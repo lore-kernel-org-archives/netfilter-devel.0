@@ -1,15 +1,13 @@
-From: Jeff Hall <hall@vdata.com>
-Subject: Problems with 25_natcore-nohelper patch
-Date: Fri, 9 May 2003 03:14:09 -0400 (EDT)
+From: "cyberyam" <zpeak@cyberyam.com>
+Subject: What can i do ? When i rmmod the modules .
+Date: Fri, 9 May 2003 20:22:08 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.03.10305090250510.7371-100000@shemp.vdata.com>
-References: <200305081512.31038.raivis@mt.lv>
+Message-ID: <000801c31625$9c29c510$01e7a8c0@zpeak>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0005_01C31668.A9F71CE0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Raivis Bucis <raivis@mt.lv>
-In-Reply-To: <200305081512.31038.raivis@mt.lv>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,61 +18,71 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Did you also apply the patches below? They're from a message to Harald
-Welte on 2003/4/8 and I believe they pertain to the problem you're
-having.
+This is a multi-part message in MIME format.
 
-I tested the pptp client from sourceforge.net on a machine also running
-a PoPToP server and was able to make a successful outgoing connection from
-that machine.
+------=_NextPart_000_0005_01C31668.A9F71CE0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-If these patches don't solve your problem, let me know and I'll send you
-all the pertinent sources.
+dW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0IHZpcnR1
+YWwgYWRkcmVzcyAwMDAwMDRhMA0KIHByaW50aW5nIGVpcDoNCmM2ODlhMTZlDQoqcGRlID0gMDAw
+MDAwMDANCk9vcHM6IDAwMDANCm15ZmlyZXdhbGwgaXB0X01BU1FVRVJBREUgaXB0YWJsZV9uYXQg
+aXBfY29ubnRyYWNrIGF1dG9mcyBwY25ldDMyIG1paSBpcHRfUkVKRQ0KQ1BVOiAgICAwDQpFSVA6
+ICAgIDAwMTA6WzxjNjg5YTE2ZT5dICAgIFRhaW50ZWQ6IFANCkVGTEFHUzogMDAwMDAyOTYNCg0K
+RUlQIGlzIGF0IGZpbmkgW215ZmlyZXdhbGxdIDB4MWUgKDIuNC4xOC0xNCkNCmVheDogMDAwMDAw
+MDAgICBlYng6IGM2ODlhMDAwICAgZWN4OiBjMDMwNTQ4MCAgIGVkeDogYzAzODYxYTgNCmVzaTog
+ZmZmZmZmZjAgICBlZGk6IDAwMDAwMDAwICAgZWJwOiBjMzM4N2Y4YyAgIGVzcDogYzMzODdmNzgN
+CmRzOiAwMDE4ICAgZXM6IDAwMTggICBzczogMDAxOA0KUHJvY2VzcyBybW1vZCAocGlkOiAxMDMz
+LCBzdGFja3BhZ2U9YzMzODcwMDApDQpTdGFjazogMDAwMDAwMWQgYzAzMDU0ODAgYzEwMzgwMzAg
+YzAzMDU0ZGMgMDAwMDAyMDMgYmZmZmViMTggYzAxMWNlMmEgYzY4OWEwMDANCiAgICAgICBjNjg5
+YTAwMCBmZmZmZmZmMCBjMzJlYjAwMCBjMDExYzFhNyBjNjg5YTAwMCAwMDAwMDAwMCAwMDAwMTAw
+MCBjMzM4NjAwMA0KICAgICAgIDAwMDAwMDAxIDA4MDczYWQ4IGMwMTA5MTBmIGJmZmZmYzlhIGJm
+ZmZmYmE0IDA4MDVjYjdlIDAwMDAwMDAxIDA4MDczYWQ4DQpDYWxsIFRyYWNlOiBbPGMwMTFjZTJh
+Pl0gZnJlZV9tb2R1bGUgW2tlcm5lbF0gMHhiYSAoMHhjMzM4N2Y5MCkpDQpbPGMwMTFjMWE3Pl0g
+c3lzX2RlbGV0ZV9tb2R1bGUgW2tlcm5lbF0gMHhhNyAoMHhjMzM4N2ZhNCkpDQpbPGMwMTA5MTBm
+Pl0gc3lzdGVtX2NhbGwgW2tlcm5lbF0gMHgzMyAoMHhjMzM4N2ZjMCkpDQoNCkNvZGU6IGZmIGIw
+IGEwIDA0IDAwIDAwIGU4IDM3IGVkIDk0IGY5IDgzIGM0IDEwIGM5IGMzIDU1IDg5IGU1IDgzDQog
+Li9rOiBsaW5lIDE6ICAxMDMzIFNlZ21lbnRhdGlvbiBmYXVsdCAgICAgIHJtbW9kIG15ZmlyZXdh
+bGwNCg0K
 
-On Thu, 8 May 2003, Raivis Bucis wrote:
+------=_NextPart_000_0005_01C31668.A9F71CE0
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-> Hello,
-> 
-> I would like to inform you that width 25_natcore-nohelper patch PPTP NAT stops 
-> working correctly. Specifically PPTP client (PAC) on the box that has 
-> ip_nat_pptp.o loaded doesn't work.
-> 
-> Since PPTP NAT allways changes callerID, it is required that pptp_nat helper 
-> is also allways called, but pptp client TCP controlling connection doesn't 
-> have any manips, and only associated GRE conntrack has manips for callerID 
-> changing. So pptp_nat helper can not change callerID in controll connection 
-> and PPTP doesn't work anymore.
-> 
-> Is this a known problem?
-> 
-> Raivis
-> 
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
+MC4yODAwLjExNDEiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
+Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj51bmFibGUgdG8gaGFuZGxl
+IGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgYXQgdmlydHVhbCANCmFkZHJlc3MgMDAw
+MDA0YTA8QlI+Jm5ic3A7cHJpbnRpbmcgZWlwOjxCUj5jNjg5YTE2ZTxCUj4qcGRlID0gMDAwMDAw
+MDA8QlI+T29wczogDQowMDAwPEJSPm15ZmlyZXdhbGwgaXB0X01BU1FVRVJBREUgaXB0YWJsZV9u
+YXQgaXBfY29ubnRyYWNrIGF1dG9mcyBwY25ldDMyIG1paSANCmlwdF9SRUpFPEJSPkNQVTombmJz
+cDsmbmJzcDsmbmJzcDsgMDxCUj5FSVA6Jm5ic3A7Jm5ic3A7Jm5ic3A7IA0KMDAxMDpbJmx0O2M2
+ODlhMTZlJmd0O10mbmJzcDsmbmJzcDsmbmJzcDsgVGFpbnRlZDogUDxCUj5FRkxBR1M6IA0KMDAw
+MDAyOTY8L0ZPTlQ+PC9ESVY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+
+RUlQIGlzIGF0IGZpbmkgW215ZmlyZXdhbGxdIDB4MWUgKDIuNC4xOC0xNCk8QlI+ZWF4OiANCjAw
+MDAwMDAwJm5ic3A7Jm5ic3A7IGVieDogYzY4OWEwMDAmbmJzcDsmbmJzcDsgZWN4OiBjMDMwNTQ4
+MCZuYnNwOyZuYnNwOyBlZHg6IA0KYzAzODYxYTg8QlI+ZXNpOiBmZmZmZmZmMCZuYnNwOyZuYnNw
+OyBlZGk6IDAwMDAwMDAwJm5ic3A7Jm5ic3A7IGVicDogDQpjMzM4N2Y4YyZuYnNwOyZuYnNwOyBl
+c3A6IGMzMzg3Zjc4PEJSPmRzOiAwMDE4Jm5ic3A7Jm5ic3A7IGVzOiAwMDE4Jm5ic3A7Jm5ic3A7
+IA0Kc3M6IDAwMTg8QlI+UHJvY2VzcyBybW1vZCAocGlkOiAxMDMzLCBzdGFja3BhZ2U9YzMzODcw
+MDApPEJSPlN0YWNrOiAwMDAwMDAxZCANCmMwMzA1NDgwIGMxMDM4MDMwIGMwMzA1NGRjIDAwMDAw
+MjAzIGJmZmZlYjE4IGMwMTFjZTJhIA0KYzY4OWEwMDA8QlI+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7IGM2ODlhMDAwIGZmZmZmZmYwIGMzMmViMDAwIA0KYzAxMWMxYTcgYzY4
+OWEwMDAgMDAwMDAwMDAgMDAwMDEwMDAgDQpjMzM4NjAwMDxCUj4mbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsgMDAwMDAwMDEgMDgwNzNhZDggYzAxMDkxMGYgDQpiZmZmZmM5YSBi
+ZmZmZmJhNCAwODA1Y2I3ZSAwMDAwMDAwMSAwODA3M2FkODxCUj5DYWxsIFRyYWNlOiBbJmx0O2Mw
+MTFjZTJhJmd0O10gDQpmcmVlX21vZHVsZSBba2VybmVsXSAweGJhICgweGMzMzg3ZjkwKSk8QlI+
+WyZsdDtjMDExYzFhNyZndDtdIHN5c19kZWxldGVfbW9kdWxlIA0KW2tlcm5lbF0gMHhhNyAoMHhj
+MzM4N2ZhNCkpPEJSPlsmbHQ7YzAxMDkxMGYmZ3Q7XSBzeXN0ZW1fY2FsbCBba2VybmVsXSAweDMz
+IA0KKDB4YzMzODdmYzApKTwvRk9OVD48L0RJVj4NCjxESVY+Jm5ic3A7PC9ESVY+DQo8RElWPjxG
+T05UIHNpemU9Mj5Db2RlOiBmZiBiMCBhMCAwNCAwMCAwMCBlOCAzNyBlZCA5NCBmOSA4MyBjNCAx
+MCBjOSBjMyA1NSA4OSBlNSANCjgzPEJSPiZuYnNwOy4vazogbGluZSAxOiZuYnNwOyAxMDMzIFNl
+Z21lbnRhdGlvbiANCmZhdWx0Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IHJtbW9kIG15
+ZmlyZXdhbGw8L0ZPTlQ+PC9ESVY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBzaXpl
+PTI+PC9GT05UPiZuYnNwOzwvRElWPjwvQk9EWT48L0hUTUw+DQo=
 
---- ip_conntrack_pptp.v1_8      Tue Apr  8 06:02:29 2003
-+++ ip_conntrack_pptp.c Thu Apr  3 03:56:59 2003
-@@ -124,6 +124,7 @@
- 			/* remove only if occurred at same sequence number */
- 			if (other_exp != exp && other_exp->seq == exp->seq) {
- 				DEBUGP("unexpecting other direction\n");
-+				ip_ct_gre_keymap_destroy(other_exp);
- 				ip_conntrack_unexpect_related(other_exp);
- 			}
- 		}
-
---- ip_nat_standalone.c.prepatch        Sun Mar 16 01:41:45 2003
-+++ ip_nat_standalone.c Thu Apr  3 19:52:09 2003
-@@ -121,8 +121,13 @@
- 			if (ct->master
- 			    && master_ct(ct)->nat.info.helper
- 			    && master_ct(ct)->nat.info.helper->expect) {
--				ret = call_expect(master_ct(ct), pskb, 
-+				if(master_ct(ct)->nat.info.num_manips) {
-+					ret = call_expect(master_ct(ct), pskb, 
- 						hooknum, ct, info);
-+				} else {
-+					WRITE_UNLOCK(&ip_nat_lock);
-+					return NF_ACCEPT;
-+				}
- 			} else {
- #ifdef CONFIG_IP_NF_NAT_LOCAL
- 				/* LOCAL_IN hook doesn't have a chain and thus
+------=_NextPart_000_0005_01C31668.A9F71CE0--
