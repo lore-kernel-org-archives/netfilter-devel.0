@@ -1,12 +1,15 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Fwd:Re: 2.4.20 and user space ICMP REDIRECT
-Date: Tue, 17 Feb 2004 21:59:37 +1000
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: TCP match and IP fragmentation
+Date: Tue, 17 Feb 2004 11:49:01 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200402171159.i1HBxbU12123@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
+Message-ID: <Pine.LNX.4.44.0402171141540.29541-100000@filer.marasystems.com>
+References: <20040217052256.36333.qmail@web14008.mail.yahoo.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Kiran Kumar <immidi_kiran@yahoo.com>
+In-Reply-To: <20040217052256.36333.qmail@web14008.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,67 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 16 Feb 2004, Kiran Kumar wrote:
 
-Hello Devel,
+>   I need some clarification on how ip fragmentation
+> and tcp match interact. The tcp match seems to not
+> match any non-first fragments (return 0 if offset is
+> non-zero).
 
-  I'm cleaning out my email and I wanted to get this published for
-your review.  A long time ago I was looking to inject ICMP redirects
-into a VLAN (ordinary LAN to Linux) for some testing. 
+Probably correct. One could think that -p tcp without any additional TCP 
+matches would match tcp fragments but it does not.
 
-Archived;
-  http://lists.netfilter.org/pipermail/netfilter-devel/2003-March/010730.html
-  http://lists.netfilter.org/pipermail/netfilter-devel/2003-March/010731.html
+> So, if I have a rule to accept tcp packets
+> to a certain port in a chain, and no other rules, does
+> that mean that the first fragment is accepted and the
+> later ones not accepted?
 
-  I ended up deciding that the issue wasn't netfilter related, and 
-took it to the linux-net list .. but I was set aside, and didn't have 
-time to investigate it properly (fair enuff).
+Yes. When not using conntrack you must manually deal with fragments using 
+the the fragment match. The only issue is that you can not match the 
+protocol field of fragments.
 
-  Following my public/archived posts, two unrelated gentlemen 
-have independantly confirmed that the issue is a netfilter issue --
-that compiling the kernel without netfilter fixes the problem -- even
-in 2.6.0 (see below).
+If you are using conntrack then fragments are not an issue as all traffic 
+is defragmented before entering iptables.
 
-  I still haven't got time to investigate this properly.  But I wanted to
-get this info updated in the public domain in case anyone else is 
-looking for this. 
-
-
-
-Regards,
-
-
-
-
-
-
-Forwarded message follows:
->Subject:  Re: 2.4.20 and user space ICMP REDIRECT
->Date: Tue, 27 Jan 2004 19:59:06 +0200
->
-> Hello, Ian Latter.
-> 
-> 
-> >   No, I didn't solve this problem ... I didn't get the time to attack it
-> > properly (ie, to recompile different kernels of different versions,
-> > to find where the change occurred and what that difference 
-> > was).
-> > 
-> >   It has been suggested that this problem is caused by netfilter,
-> > and that removing netfilter (disabling it in the .config) may fix the
-> > problem ... I didn't experience that, but one other did.
-> 
-> Thank you, it may be true.
-> At 2.6.0 kernel without netfilter packets are injected successfully.
-> 
-
-
-
-
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
-
- Meet me at the Australian Unix and open systems
-   User Group (AUUG) Security Symposium; 2004
-  http://www.auug.org.au/events/2004/security/
+Regards
+Henrik
