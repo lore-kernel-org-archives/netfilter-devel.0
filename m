@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [patch-o-matic-ng] h323-conntrack-nat
-Date: Wed, 21 Jan 2004 08:59:48 -0500
+Subject: Re: Where is the 2003 workshop summary
+Date: Wed, 21 Jan 2004 09:10:24 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040121135948.GR8642@obroa-skai.de.gnumonks.org>
-References: <200401151715.17804.timg@tpi.com>
+Message-ID: <20040121141023.GT8642@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.44.0401161734210.30706-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cfJ13FhsvNR/yOpm"
+	protocol="application/pgp-signature"; boundary="huG+SbfbdD6eblZQ"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tim Gardner <timg@tpi.com>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <200401151715.17804.timg@tpi.com>
+In-Reply-To: <Pine.LNX.4.44.0401161734210.30706-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,19 +23,24 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---cfJ13FhsvNR/yOpm
+--huG+SbfbdD6eblZQ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 15, 2004 at 05:15:17PM -0700, Tim Gardner wrote:
-> Attached is a tarball that completes the h323 helper patches.
+On Fri, Jan 16, 2004 at 05:51:46PM +0100, Henrik Nordstrom wrote:
+> Is the workshop summary available for online reading somwhere? Can not=20
+> find it linked from the home page.
 
-thanks a lot.
+It seems like it got lost during the homepage v3 update.
 
-for future cases: please submit a patch (diff -Nru).
+> The draft in the CVS looks interesting, apart from the syntax errors=20
+> preventing it from being compiled and the missing introduction..
 
-> Tim Gardner - timg@tpi.com
+I'll fix that asap.
+
+> Regards
+> Henrik
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -47,7 +52,7 @@ for future cases: please submit a patch (diff -Nru).
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---cfJ13FhsvNR/yOpm
+--huG+SbfbdD6eblZQ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -55,9 +60,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFADoXTXaXGVTD0i/8RAnDJAJ4vLZJ2u/yK+GVe/C7wiTq3rxPyQwCgqJ+v
-5WT140zBVvf2AOOkah9Itus=
-=aYLj
+iD8DBQFADohPXaXGVTD0i/8RAoOKAJ43EMgfqQSSIfm1P0PYKkm6jUDbwwCfeDHc
+PaEipgG3Hpq1IPc4RlpuUbo=
+=9thd
 -----END PGP SIGNATURE-----
 
---cfJ13FhsvNR/yOpm--
+--huG+SbfbdD6eblZQ--
