@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Call for testing: patch-o-matic-ng (condition filter)
-Date: Tue, 23 Dec 2003 18:41:53 +0100
+From: Michael Rash <mbr@cipherdyne.org>
+Subject: [PATCH] save/restore fix for ascii strings
+Date: Tue, 23 Dec 2003 15:01:25 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031223174153.GB3879@obroa-skai.de.gnumonks.org>
-References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <1072086985.1031.7.camel@nienna.balabit> <20031222120047.GK5058@obroa-skai.de.gnumonks.org> <200312230757.23207.timg@tpi.com>
+Message-ID: <20031223200125.GA25531@orthanc.gambrl01.md.comcast.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JP+T4n/bALQSJXh8"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="PEIAKu/WMn1b1Hv9"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tim Gardner <timg@tpi.com>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <200312230757.23207.timg@tpi.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,52 +19,60 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---JP+T4n/bALQSJXh8
+--PEIAKu/WMn1b1Hv9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Dec 23, 2003 at 07:57:23AM -0700, Tim Gardner wrote:
-> Harald,
->=20
-> The condition filter (at least for 2.6) has extra files:
->=20
-> condition/linux/net/ipv6/Makefile.ladd
-> condition/linux/net/ipv6/Config.in.ladd
->=20
-> The presense of Makefile.ladd will not allow the filter to be applied. I=
-=20
-> suspect Config.in.ladd will cause a similar problem for 2.4.
+Due to lack of quotes, iptables-save/restore is currently broken for
+ascii strings that contain a space character.  The attached trivial
+patch fixes this.
 
-thanks a lot, I'm removing them from CVS right now.
+Let me know if I'm supposed to submit a bug first through bugzilla
+or something.
 
-> Attached is a patch that removes these files as well as patches=20
-> ipt_condition.c for 2.6.
+--Mike
 
-we'd need lots of fixes like this one.  Are there any volunteers for submit=
-ting patches like this and making sure that 2.4.x and 2.6.x compile ok ?
+Michael Rash
+http://www.cipherdyne.org
+Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
 
-> Tim Gardner - timg@tpi.com
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+--PEIAKu/WMn1b1Hv9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="libipt_string.c_ascii_fix"
 
---JP+T4n/bALQSJXh8
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Index: libipt_string.c
+===================================================================
+RCS file: /cvspublic/netfilter/userspace/extensions/libipt_string.c,v
+retrieving revision 1.10
+diff -u -r1.10 libipt_string.c
+--- libipt_string.c	30 Apr 2003 16:04:41 -0000	1.10
++++ libipt_string.c	23 Dec 2003 19:49:16 -0000
+@@ -178,7 +178,7 @@
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+-			   "STRING match: You must specify `--string'");
++			   "STRING match: You must specify `--string' or `--hex-string'");
+ }
+ 
+ 
+@@ -191,7 +191,7 @@
+ 	const struct ipt_string_info *info =
+ 	    (const struct ipt_string_info*) match->data;
+ 
+-	printf("STRING match %s%s ", (info->invert) ? "!" : "", info->string);
++	printf("STRING match %s\"%s\" ", (info->invert) ? "!" : "", info->string);
+ }
+ 
+ 
+@@ -202,7 +202,7 @@
+ 	const struct ipt_string_info *info =
+ 	    (const struct ipt_string_info*) match->data;
+ 
+-	printf("--string %s%s ", (info->invert) ? "! ": "", info->string);
++	printf("--string %s\"%s\" ", (info->invert) ? "! ": "", info->string);
+ }
+ 
+ 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/6H5hXaXGVTD0i/8RAih6AKC1YxennGllezS0tv2vIyf7cFxnWQCcCZEm
-QYl+9+JchFXEWjCLU5CXpLY=
-=BDw/
------END PGP SIGNATURE-----
-
---JP+T4n/bALQSJXh8--
+--PEIAKu/WMn1b1Hv9--
