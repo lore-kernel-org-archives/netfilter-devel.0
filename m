@@ -1,14 +1,13 @@
-From: "Davide Guerri" <tato.net@tin.it>
-Subject: Re: NAT for IPv6 FINISHED!!!!!
-Date: Wed, 26 May 2004 18:34:05 +0200
+From: "Grzegorz Nosek" <blackfire@metal.art.pl>
+Subject: MARK target extension
+Date: Thu, 27 May 2004 00:09:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <007f01c4433f$42d19a90$0400000a@majinbu>
+Message-ID: <20040526205915.M56972@metal.art.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=OPENWEBMAIL_ATT_0.777651354744197"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,14 +18,119 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
------ Original Message ----- 
-From: "Davide Guerri" <tato.net@tin.it>
-To: <netfilter-devel@lists.netfilter.org>
-Sent: Wednesday, May 26, 2004 6:25 PM
-Subject: Re: NAT for IPv6 FINISHED!!!!!
+------=OPENWEBMAIL_ATT_0.777651354744197
+Content-Type: text/plain;
+	charset=iso-8859-2
+
+Hello all!
+
+I've extended the MARK target (ipv4 only currently) to allow partial
+modification of nfmark values instead of replacing. As in:
+
+... -j MARK --set-mark 0x80
+... -j MARK --set-mark 0x8000 --mask 0xff00
+
+sets the resulting mark value to 0x8080. Note that it isn't a logical OR:
+
+... -j MARK --set-mark 0xffff
+... -j MARK --set-mark 0 --mask 0xff
+
+would change the mark to 0xff00.
+
+This way you can use the nfmark as a bit field (testing individual
+bits can be done already). Patches included are based on
+iptables-1.2.9 (from debian sarge source) and kernel 2.4.26, somewhat
+patched (nothing related to nfmark, though, so it should apply cleanly
+to a vanilla kernel too). What do you think? IMNSHO it would be useful
+to include in standard kernel/iptables especially as it breaks no
+existing applications (default mask is 0xffffffff), is no code bloat
+and might actually be useful to somebody besides me. Note that it's my
+first public kernel patch so be gentle.
+
+Regards,
+ Greg
 
 
-> discovery throught it and it can handle correctly fragments with DF flag
-                                                  ^^^^^^^^^^^^^^^^^^^^
-sorry i mean "handle fragments correctly" :(
+------=OPENWEBMAIL_ATT_0.777651354744197
+Content-Type: text/plain;
+	name="iptables-mark-1.2.9.diff"
+Content-Disposition: attachment; filename="iptables-mark-1.2.9.diff"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtTmF1ciBpcHRhYmxlcy0xLjIuOS9leHRlbnNpb25zL2xpYmlwdF9NQVJLLmMgaXB0YWJs
+ZXMtMS4yLjktbWFyay9leHRlbnNpb25zL2xpYmlwdF9NQVJLLmMKLS0tIGlwdGFibGVzLTEuMi45
+L2V4dGVuc2lvbnMvbGliaXB0X01BUksuYwkyMDAzLTAzLTAyIDE3OjE2OjQ1LjAwMDAwMDAwMCAr
+MDEwMAorKysgaXB0YWJsZXMtMS4yLjktbWFyay9leHRlbnNpb25zL2xpYmlwdF9NQVJLLmMJMjAw
+NC0wNS0yNiAxNzozNzoxNy4wMDAwMDAwMDAgKzAyMDAKQEAgLTIwLDEyICsyMCwxNCBAQAogCXBy
+aW50ZigKICJNQVJLIHRhcmdldCB2JXMgb3B0aW9uczpcbiIKICIgIC0tc2V0LW1hcmsgdmFsdWUg
+ICAgICAgICAgICAgICAgICAgU2V0IG5mbWFyayB2YWx1ZVxuIgorIiAgLS1tYXNrIHZhbHVlICAg
+ICAgICAgICAgICAgICAgICAgICBTZXQgbW9kaWZpY2F0aW9uIG1hc2tcbiIKICJcbiIsCiBJUFRB
+QkxFU19WRVJTSU9OKTsKIH0KIAogc3RhdGljIHN0cnVjdCBvcHRpb24gb3B0c1tdID0gewogCXsg
+InNldC1tYXJrIiwgMSwgMCwgJzEnIH0sCisJeyAibWFzayIsIDEsIDAsICcyJyB9LAogCXsgMCB9
+CiB9OwogCkBAIC0zMyw2ICszNSw5IEBACiBzdGF0aWMgdm9pZAogaW5pdChzdHJ1Y3QgaXB0X2Vu
+dHJ5X3RhcmdldCAqdCwgdW5zaWduZWQgaW50ICpuZmNhY2hlKQogeworCXN0cnVjdCBpcHRfbWFy
+a190YXJnZXRfaW5mbyAqbWFya2luZm8gPQorCQkoc3RydWN0IGlwdF9tYXJrX3RhcmdldF9pbmZv
+ICopdC0+ZGF0YTsKKwltYXJraW5mby0+bWFzayA9IDB4ZmZmZmZmZmY7CiB9CiAKIC8qIEZ1bmN0
+aW9uIHdoaWNoIHBhcnNlcyBjb21tYW5kIG9wdGlvbnM7IHJldHVybnMgdHJ1ZSBpZiBpdApAQCAt
+NTAsMTAgKzU1LDIwIEBACiAJCWlmIChzdHJpbmdfdG9fbnVtYmVyKG9wdGFyZywgMCwgMHhmZmZm
+ZmZmZiwgCiAJCQkJICAgICAodW5zaWduZWQgaW50ICopJm1hcmtpbmZvLT5tYXJrKSkKIAkJCWV4
+aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sICJCYWQgTUFSSyB2YWx1ZSBgJXMnIiwgb3B0YXJn
+KTsKLQkJaWYgKCpmbGFncykKKwkJaWYgKCpmbGFncyAmIDEpCiAJCQlleGl0X2Vycm9yKFBBUkFN
+RVRFUl9QUk9CTEVNLAogCQkJICAgICAgICAgICAiTUFSSyB0YXJnZXQ6IENhbid0IHNwZWNpZnkg
+LS1zZXQtbWFyayB0d2ljZSIpOwotCQkqZmxhZ3MgPSAxOworCQkqZmxhZ3MgfD0gMTsKKwkJYnJl
+YWs7CisKKwljYXNlICcyJzoKKwkJaWYgKHN0cmluZ190b19udW1iZXIob3B0YXJnLCAwLCAweGZm
+ZmZmZmZmLCAKKwkJCQkgICAgICh1bnNpZ25lZCBpbnQgKikmbWFya2luZm8tPm1hc2spKQorCQkJ
+ZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwgIkJhZCBtYXNrIHZhbHVlIGAlcyciLCBvcHRh
+cmcpOworCQlpZiAoKmZsYWdzICYgMikKKwkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0s
+CisJCQkgICAgICAgICAgICJNQVJLIHRhcmdldDogQ2FuJ3Qgc3BlY2lmeSAtLW1hc2sgdHdpY2Ui
+KTsKKwkJKmZsYWdzIHw9IDI7CiAJCWJyZWFrOwogCiAJZGVmYXVsdDoKQEAgLTY2LDE1ICs4MSwx
+NyBAQAogc3RhdGljIHZvaWQKIGZpbmFsX2NoZWNrKHVuc2lnbmVkIGludCBmbGFncykKIHsKLQlp
+ZiAoIWZsYWdzKQorCWlmICgoZmxhZ3MgJiAxKSA9PSAwKQogCQlleGl0X2Vycm9yKFBBUkFNRVRF
+Ul9QUk9CTEVNLAogCQkgICAgICAgICAgICJNQVJLIHRhcmdldDogUGFyYW1ldGVyIC0tc2V0LW1h
+cmsgaXMgcmVxdWlyZWQiKTsKIH0KIAogc3RhdGljIHZvaWQKLXByaW50X21hcmsodW5zaWduZWQg
+bG9uZyBtYXJrLCBpbnQgbnVtZXJpYykKK3ByaW50X21hcmsodW5zaWduZWQgbG9uZyBtYXJrLCB1
+bnNpZ25lZCBsb25nIG1hc2ssIGludCBudW1lcmljKQogewogCXByaW50ZigiMHglbHggIiwgbWFy
+ayk7CisJaWYgKG1hc2sgIT0gMHhmZmZmZmZmZikKKwkJcHJpbnRmKCIgbWFzayAweCVseCAiLCBt
+YXNrKTsKIH0KIAogLyogUHJpbnRzIG91dCB0aGUgdGFyZ2luZm8uICovCkBAIC04Niw3ICsxMDMs
+NyBAQAogCWNvbnN0IHN0cnVjdCBpcHRfbWFya190YXJnZXRfaW5mbyAqbWFya2luZm8gPQogCQko
+Y29uc3Qgc3RydWN0IGlwdF9tYXJrX3RhcmdldF9pbmZvICopdGFyZ2V0LT5kYXRhOwogCXByaW50
+ZigiTUFSSyBzZXQgIik7Ci0JcHJpbnRfbWFyayhtYXJraW5mby0+bWFyaywgbnVtZXJpYyk7CisJ
+cHJpbnRfbWFyayhtYXJraW5mby0+bWFyaywgbWFya2luZm8tPm1hc2ssIG51bWVyaWMpOwogfQog
+CiAvKiBTYXZlcyB0aGUgdW5pb24gaXB0X3RhcmdpbmZvIGluIHBhcnNhYmxlIGZvcm0gdG8gc3Rk
+b3V0LiAqLwpAQCAtOTcsNiArMTE0LDggQEAKIAkJKGNvbnN0IHN0cnVjdCBpcHRfbWFya190YXJn
+ZXRfaW5mbyAqKXRhcmdldC0+ZGF0YTsKIAogCXByaW50ZigiLS1zZXQtbWFyayAweCVseCAiLCBt
+YXJraW5mby0+bWFyayk7CisJaWYgKG1hcmtpbmZvLT5tYXNrICE9IDB4ZmZmZmZmZmYpCisJCXBy
+aW50ZigiLS1tYXNrIDB4JWx4ICIsIG1hcmtpbmZvLT5tYXNrKTsKIH0KIAogc3RhdGljCg==
+
+------=OPENWEBMAIL_ATT_0.777651354744197
+Content-Type: text/plain;
+	name="kernel-mark-2.4.26.diff"
+Content-Disposition: attachment; filename="kernel-mark-2.4.26.diff"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtTmF1ciBsaW51eC0yLjQuMjYtb3cxK3JvdXRlL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVy
+X2lwdjQvaXB0X01BUksuaCBsaW51eC0yLjQuMjYtb3cxK3JvdXRlK21hcmsvaW5jbHVkZS9saW51
+eC9uZXRmaWx0ZXJfaXB2NC9pcHRfTUFSSy5oCi0tLSBsaW51eC0yLjQuMjYtb3cxK3JvdXRlL2lu
+Y2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X01BUksuaAkyMDAwLTAzLTE3IDE5OjU2OjIw
+LjAwMDAwMDAwMCArMDEwMAorKysgbGludXgtMi40LjI2LW93MStyb3V0ZSttYXJrL2luY2x1ZGUv
+bGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X01BUksuaAkyMDA0LTA1LTI2IDE3OjEwOjI2LjAwMDAw
+MDAwMCArMDIwMApAQCAtMyw2ICszLDcgQEAKIAogc3RydWN0IGlwdF9tYXJrX3RhcmdldF9pbmZv
+IHsKIAl1bnNpZ25lZCBsb25nIG1hcms7CisJdW5zaWduZWQgbG9uZyBtYXNrOwogfTsKIAogI2Vu
+ZGlmIC8qX0lQVF9NQVJLX0hfdGFyZ2V0Ki8KZGlmZiAtTmF1ciBsaW51eC0yLjQuMjYtb3cxK3Jv
+dXRlL25ldC9pcHY0L25ldGZpbHRlci9pcHRfTUFSSy5jIGxpbnV4LTIuNC4yNi1vdzErcm91dGUr
+bWFyay9uZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X01BUksuYwotLS0gbGludXgtMi40LjI2LW93MSty
+b3V0ZS9uZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X01BUksuYwkyMDAxLTA5LTMwIDIxOjI2OjA4LjAw
+MDAwMDAwMCArMDIwMAorKysgbGludXgtMi40LjI2LW93MStyb3V0ZSttYXJrL25ldC9pcHY0L25l
+dGZpbHRlci9pcHRfTUFSSy5jCTIwMDQtMDUtMjYgMTc6MTg6NDkuMDAwMDAwMDAwICswMjAwCkBA
+IC0xNiw5ICsxNiwxMCBAQAogICAgICAgIHZvaWQgKnVzZXJpbmZvKQogewogCWNvbnN0IHN0cnVj
+dCBpcHRfbWFya190YXJnZXRfaW5mbyAqbWFya2luZm8gPSB0YXJnaW5mbzsKKwlsb25nIG5ld19t
+YXJrID0gKCgqcHNrYiktPm5mbWFyayAmIH5tYXJraW5mby0+bWFzaykgfCAobWFya2luZm8tPm1h
+cmsgJiBtYXJraW5mby0+bWFzayk7CiAKLQlpZigoKnBza2IpLT5uZm1hcmsgIT0gbWFya2luZm8t
+Pm1hcmspIHsKLQkJKCpwc2tiKS0+bmZtYXJrID0gbWFya2luZm8tPm1hcms7CisJaWYoKCpwc2ti
+KS0+bmZtYXJrICE9IG5ld19tYXJrKSB7CisJCSgqcHNrYiktPm5mbWFyayA9IG5ld19tYXJrOwog
+CQkoKnBza2IpLT5uZmNhY2hlIHw9IE5GQ19BTFRFUkVEOwogCX0KIAlyZXR1cm4gSVBUX0NPTlRJ
+TlVFOwo=
+
+------=OPENWEBMAIL_ATT_0.777651354744197--
