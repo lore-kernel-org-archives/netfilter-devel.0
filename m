@@ -1,7 +1,8 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 7/8] Netfilter:  Use ct_extend for master pointer
-Date: Thu, 13 Jan 2005 07:59:28 +1100
-Message-ID: <1105563568.12794.14.camel@localhost.localdomain>
+Subject: [PATCH 1/8] Netfilter:  Add a structure extension framework for
+	connection tracking.
+Date: Thu, 13 Jan 2005 07:53:09 +1100
+Message-ID: <1105563189.12794.8.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -19,196 +20,304 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Use ct_extend for master pointer
-Status: Tested lightly under nfsim
+Name: Add a structure extension framework for connection tracking.
+Status: Tested on 2.6.10-rc2-bk13
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-Most connections were never expected, so their master pointer (which
-points to the connection which expected them) is unused.  Good
-candidate for ct_extend.
+Create a ct_extend structure for adding random crap to structures
+(intended for the ip_conntrack structures which hold a lot of extra
+fields).
 
-Index: linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/ip_nat_helper.c
+Don't use it for anything yet, but it will be protected by the
+ip_conntrack_lock.  We can easily migrate this to RCU later.
+
+Index: linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/ct_extend.c
 ===================================================================
---- linux-2.6.10-bk14-Netfilter.orig/net/ipv4/netfilter/ip_nat_helper.c	2005-01-12 23:43:21.562540736 +1100
-+++ linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/ip_nat_helper.c	2005-01-12 23:44:23.299155344 +1100
-@@ -409,6 +409,7 @@
- 			  struct ip_conntrack_expect *exp)
- {
- 	struct ip_nat_range range;
-+	struct ip_conntrack **master = ct_extend_find(ct->ext, CTE_MASTER);
- 
- 	/* This must be a fresh one. */
- 	BUG_ON(ct->status & IPS_NAT_DONE_MASK);
-@@ -416,7 +417,7 @@
- 	/* Change src to where master sends to */
- 	range.flags = IP_NAT_RANGE_MAP_IPS;
- 	range.min_ip = range.max_ip
--		= ct->master->tuplehash[!exp->dir].tuple.dst.ip;
-+		= (*master)->tuplehash[!exp->dir].tuple.dst.ip;
- 	/* hook doesn't matter, but it has to do source manip */
- 	ip_nat_setup_info(ct, &range, NF_IP_POST_ROUTING);
- 
-@@ -424,7 +425,7 @@
- 	range.flags = (IP_NAT_RANGE_MAP_IPS | IP_NAT_RANGE_PROTO_SPECIFIED);
- 	range.min = range.max = exp->saved_proto;
- 	range.min_ip = range.max_ip
--		= ct->master->tuplehash[!exp->dir].tuple.src.ip;
-+		= (*master)->tuplehash[!exp->dir].tuple.src.ip;
- 	/* hook doesn't matter, but it has to do destination manip */
- 	ip_nat_setup_info(ct, &range, NF_IP_PRE_ROUTING);
- }
-Index: linux-2.6.10-bk14-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/ct_extend.c	2005-01-12 23:36:24.671917744 +1100
+@@ -0,0 +1,223 @@
++/* Structure dynamic extension infrastructure
++ * Copyright (C) 2004 Rusty Russell IBM Corporation
++ *
++ *      This program is free software; you can redistribute it and/or
++ *      modify it under the terms of the GNU General Public License
++ *      as published by the Free Software Foundation; either version
++ *      2 of the License, or (at your option) any later version.
++ */
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/netfilter_ipv4/ct_extend.h>
++
++static struct ct_extend_type cte_types[CTE_MAX];
++static spinlock_t cte_type_lock = SPIN_LOCK_UNLOCKED;
++
++/* Horrible trick to figure out smallest amount worth kmallocing. */
++#define CACHE(x) (x) + 0 *
++enum {
++	CT_EXTEND_MIN_SIZE = 
++#include <linux/kmalloc_sizes.h>
++	1 };
++#undef CACHE
++
++/* Find data offset of nth entry. */
++static unsigned int extend_offset(const struct ct_extend *ext, unsigned int n)
++{
++	unsigned int i, off;
++
++	off = sizeof(*ext);
++	for (i = 0; i < n; i++) {
++		struct ct_extend_type *t = &cte_types[ext->type[i]];
++		off = ALIGN(off, t->align) + t->len;
++	}
++	return ALIGN(off, cte_types[ext->type[n]].align)-sizeof(*ext);
++}
++
++void *__ct_extend_find(const struct ct_extend *ext, u8 type)
++{
++	u8 *p;
++
++	if (!ext)
++		return NULL;
++
++	p = memchr(ext->type, type, sizeof(ext->type));
++	if (!p)
++		return NULL;
++
++	return (void *)ext->data + extend_offset(ext, p - ext->type);
++}
++
++static unsigned int first_ext(const struct ct_extend *ext, unsigned int *i)
++{
++	unsigned int off = sizeof(*ext);
++
++	*i = 0;
++	if (ext->type[*i] == 0xFF)
++		return 0;
++	return ALIGN(off, cte_types[ext->type[*i]].align);
++}
++
++static unsigned int next_ext(const struct ct_extend *ext,
++		      unsigned int *i,
++		      unsigned int prev)
++{
++	if (ext->type[*i + 1] == 0xFF)
++		return 0;
++	prev += cte_types[ext->type[(*i)++]].len;
++	return ALIGN(prev, cte_types[ext->type[*i]].align);
++}
++
++void ct_extend_free(struct ct_extend *ext)
++{
++	unsigned int i, off;
++
++	for (off = first_ext(ext, &i); off; off = next_ext(ext, &i, off)) {
++		if (cte_types[ext->type[i]].free)
++			cte_types[ext->type[i]].free(ext, off-sizeof(*ext));
++	}
++	kfree(ext);
++}
++
++static unsigned int ct_extend_datalen(const struct ct_extend *ext)
++{
++	unsigned int i, off, dlen = 0;
++
++	for (off = first_ext(ext, &i); off; off = next_ext(ext, &i, off))
++		dlen = off-sizeof(*ext) + cte_types[ext->type[i]].len;
++
++	return dlen;
++}
++
++static void *cte_create(struct ct_extend **ext, enum ct_ext_type type, int gfp)
++{
++	unsigned int len;
++
++	len = ALIGN(sizeof(**ext), cte_types[type].align);
++	*ext = kmalloc(max_t(int, CT_EXTEND_MIN_SIZE,
++			     len + cte_types[type].len), gfp);
++	if (!*ext)
++		return NULL;
++ 
++	(*ext)->type[0] = type;
++	memset((*ext)->type+1, 0xFF, CTE_MAX-1);
++	return (void *)(*ext) + len;
++}
++
++void *__ct_extend_add(struct ct_extend **ext, enum ct_ext_type type, int gfp)
++{
++	struct ct_extend *new;
++	int i, len, newlen, newoff;
++
++	if (!*ext)
++		return cte_create(ext, type, gfp);
++
++	len = sizeof(*new) + ct_extend_datalen(*ext);
++	newoff = ALIGN(len, cte_types[type].align);
++	newlen = newoff + cte_types[type].len;
++
++	if (newlen >= CT_EXTEND_MIN_SIZE) {
++		int off;
++
++		new = kmalloc(newlen, gfp);
++		if (!new)
++			return NULL;
++		*new = **ext;
++
++		/* Copy one at a time, eg. two in same linked list. */
++		for (off = first_ext(new, &i);
++		     off;
++		     off = next_ext(new, &i, off)) {
++			struct ct_extend_type *t = &cte_types[new->type[i]];
++			memcpy((void *)new + off, (void *)*ext + off, t->len);
++			if (t->move)
++				t->move(new, off-sizeof(*new));
++		}
++		kfree(*ext);
++		*ext = new;
++	}
++
++	/* Find free slot. */
++	for (i = 0; i < CTE_MAX && (*ext)->type[i] != 0xFF; i++);
++	BUG_ON(i == CTE_MAX);
++
++	(*ext)->type[i] = type;
++	return (void *)(*ext) + newoff;
++}
++	
++struct ct_extend *ct_extend_del(struct ct_extend *ext,
++				  enum ct_ext_type type)
++{
++	unsigned int i, newi, off, nextoff, nexti, newoff;
++	enum ct_ext_type *p;
++
++	if (!ext)
++		return ext;
++
++	p = memchr(ext->type, type, sizeof(ext->type));
++	if (!p)
++		return ext;
++
++	/* If last one, simply drop free and return NULL. */
++	if (ext->type[1] == 0xFF) {
++		ct_extend_free(ext);
++		return NULL;
++	}
++
++	if (cte_types[type].free)
++		cte_types[type].free(ext, extend_offset(ext, p-ext->type));
++
++	newoff = sizeof(*ext);
++	newi = 0;
++	for (off = first_ext(ext, &i); off; off = nextoff, i = nexti) {
++		struct ct_extend_type *t = &cte_types[ext->type[i]];
++
++		/* Figure out next offset before we blatt type. */
++		nexti = i;
++		nextoff = next_ext(ext, &nexti, off);
++
++		/* Don't copy the one we're deleting. */
++		if (i == (p - ext->type))
++			continue;
++
++		/* Move type information and actual data. */
++		ext->type[newi] = ext->type[i];
++		newoff = ALIGN(newoff, t->align);
++		BUG_ON(newoff > off);
++		memmove((void *)ext + newoff, (void *)ext + off, t->len);
++		if (cte_types[ext->type[newi]].move)
++			cte_types[ext->type[newi]].move(ext,
++							newoff - sizeof(*ext));
++		newoff += t->len;
++		newi++;
++	}
++	while (newi < CTE_MAX)
++		ext->type[newi++] = 0xFF;
++	return ext;
++}
++
++void register_ct_extend_type(struct ct_extend_type *ext)
++{
++	spin_lock_irq(&cte_type_lock);
++	cte_types[ext->type] = *ext;
++	spin_unlock_irq(&cte_type_lock);
++}
++
++/* Presumably they don't care about the data any more, but we need to
++ * keep information about size and alignment so we can step across
++ * remaining instances. */
++void unregister_ct_extend_type(struct ct_extend_type *ext)
++{
++	spin_lock_irq(&cte_type_lock);
++	cte_types[ext->type].free = NULL;
++	cte_types[ext->type].move = NULL;
++	spin_unlock_irq(&cte_type_lock);
++}
++
++EXPORT_SYMBOL(ct_extend_find);
++EXPORT_SYMBOL(ct_extend_free);
++EXPORT_SYMBOL(ct_extend_add);
++EXPORT_SYMBOL(ct_extend_del);
++EXPORT_SYMBOL_GPL(register_ct_extend_type);
++EXPORT_SYMBOL_GPL(unregister_ct_extend_type);
+Index: linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/Makefile
 ===================================================================
---- linux-2.6.10-bk14-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack.h	2005-01-12 23:42:02.014633856 +1100
-+++ linux-2.6.10-bk14-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h	2005-01-12 23:44:23.300155192 +1100
-@@ -166,9 +166,6 @@
- 	/* Accounting Information (same cache line as other written members) */
- 	struct ip_conntrack_counter counters[IP_CT_DIR_MAX];
- #endif
--	/* If we were expected by an expectation, this will be it */
--	struct ip_conntrack *master;
--
- 	/* Current number of expected connections */
- 	unsigned int expecting;
+--- linux-2.6.10-bk14-Netfilter.orig/net/ipv4/netfilter/Makefile	2005-01-12 13:09:20.000000000 +1100
++++ linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/Makefile	2005-01-12 14:17:33.000000000 +1100
+@@ -3,7 +3,7 @@
+ #
  
-Index: linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/ipt_helper.c
-===================================================================
---- linux-2.6.10-bk14-Netfilter.orig/net/ipv4/netfilter/ipt_helper.c	2005-01-12 23:42:02.015633704 +1100
-+++ linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/ipt_helper.c	2005-01-12 23:44:23.301155040 +1100
-@@ -42,6 +42,7 @@
- 	struct ip_conntrack *ct;
- 	enum ip_conntrack_info ctinfo;
- 	struct ip_conntrack_helper **helpp;
-+	struct ip_conntrack **master;
- 	int ret = info->invert;
- 	
- 	ct = ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
-@@ -50,13 +51,14 @@
- 		return ret;
- 	}
+ # objects for the standalone - connection tracking / NAT
+-ip_conntrack-objs	:= ip_conntrack_standalone.o ip_conntrack_core.o ip_conntrack_proto_generic.o ip_conntrack_proto_tcp.o ip_conntrack_proto_udp.o ip_conntrack_proto_icmp.o
++ip_conntrack-objs	:= ip_conntrack_standalone.o ip_conntrack_core.o ip_conntrack_proto_generic.o ip_conntrack_proto_tcp.o ip_conntrack_proto_udp.o ip_conntrack_proto_icmp.o ct_extend.o
+ iptable_nat-objs	:= ip_nat_standalone.o ip_nat_rule.o ip_nat_core.o ip_nat_helper.o ip_nat_proto_unknown.o ip_nat_proto_tcp.o ip_nat_proto_udp.o ip_nat_proto_icmp.o
  
--	if (!ct->master) {
-+	master = ct_extend_find(ct->ext, CTE_MASTER);
-+	if (!master) {
- 		DEBUGP("ipt_helper: conntrack %p has no master\n", ct);
- 		return ret;
- 	}
- 
- 	READ_LOCK(&ip_conntrack_lock);
--	helpp = ct_extend_find(ct->master->ext, CTE_CT_HELPER);
-+	helpp = ct_extend_find((*master)->ext, CTE_CT_HELPER);
- 	if (!helpp) {
- 		DEBUGP("ipt_helper: master ct %p has no helper\n", 
- 			exp->expectant);
+ # connection tracking
 Index: linux-2.6.10-bk14-Netfilter/include/linux/netfilter_ipv4/ct_extend.h
 ===================================================================
---- linux-2.6.10-bk14-Netfilter.orig/include/linux/netfilter_ipv4/ct_extend.h	2005-01-12 23:44:19.588719416 +1100
-+++ linux-2.6.10-bk14-Netfilter/include/linux/netfilter_ipv4/ct_extend.h	2005-01-12 23:45:24.353873616 +1100
-@@ -9,6 +9,7 @@
- 	CTE_MARK,
- 	CTE_CT_HELPER,
- 	CTE_NAT_SEQ,
-+	CTE_MASTER,
- 	CTE_MAX,
- } __attribute__((packed));
- 
-@@ -17,6 +18,7 @@
- #define CTE_MARK_TYPE unsigned long
- #define CTE_CT_HELPER_TYPE struct ip_conntrack_helper *
- #define CTE_NAT_SEQ_TYPE struct ip_nat_seq
-+#define CTE_MASTER_TYPE struct ip_conntrack *
- 
- /* Extensions: optional stuff which isn't permanently in struct. */
- struct ct_extend {
-Index: linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- linux-2.6.10-bk14-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-12 23:42:02.018633248 +1100
-+++ linux-2.6.10-bk14-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-12 23:44:23.304154584 +1100
-@@ -224,7 +224,7 @@
- static void
- destroy_conntrack(struct nf_conntrack *nfct)
- {
--	struct ip_conntrack *ct = (struct ip_conntrack *)nfct;
-+	struct ip_conntrack **master, *ct = (struct ip_conntrack *)nfct;
- 	struct ip_conntrack_protocol *proto;
- 
- 	DEBUGP("destroy_conntrack(%p)\n", ct);
-@@ -257,8 +257,9 @@
- 	CONNTRACK_STAT_INC(delete);
- 	WRITE_UNLOCK(&ip_conntrack_lock);
- 
--	if (ct->master)
--		ip_conntrack_put(ct->master);
-+	master = ct_extend_find(ct->ext, CTE_MASTER);
-+	if (master)
-+		ip_conntrack_put(*master);
- 
- 	if (ct->ext)
- 		ct_extend_free(ct->ext);
-@@ -561,6 +562,8 @@
- 	exp = find_expectation(tuple);
- 
- 	if (exp) {
-+		struct ip_conntrack **master;
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.10-bk14-Netfilter/include/linux/netfilter_ipv4/ct_extend.h	2005-01-12 23:39:17.013717808 +1100
+@@ -0,0 +1,44 @@
++#ifndef _LINUX_CT_EXTEND_H
++#define _LINUX_CT_EXTEND_H
++#include <asm/atomic.h>
 +
- 		DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
- 			conntrack, exp);
- 		/* Welcome, Mr. Bond.  We've been expecting you... */
-@@ -570,8 +573,16 @@
- 			kmem_cache_free(ip_conntrack_cachep, conntrack);
- 			return NULL;
- 		}
--		conntrack->master = exp->master;
--		nf_conntrack_get(&conntrack->master->ct_general);
-+		master = ct_extend_add(&conntrack->ext, CTE_MASTER,
-+				       GFP_ATOMIC);
-+		if (!master) {
-+			ct_extend_free(conntrack->ext);
-+			kmem_cache_free(ip_conntrack_cachep, conntrack);
-+			WRITE_UNLOCK(&ip_conntrack_lock);
-+			return NULL;
-+		}
-+		*master = exp->master;
-+		nf_conntrack_get(&exp->master->ct_general);
- 		CONNTRACK_STAT_INC(expect_new);
- 	} else {
- 		struct ip_conntrack_helper *helper, **helpp;
-@@ -918,7 +929,7 @@
- 	DUMP_TUPLE(newreply);
- 
- 	conntrack->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
--	if (conntrack->master || conntrack->expecting)
-+	if (conntrack->expecting || ct_extend_find(conntrack->ext, CTE_MASTER))
- 		return 0;
- 
- 	WRITE_LOCK(&ip_conntrack_lock);
-@@ -1227,6 +1238,13 @@
- 	.type = CTE_CT_HELPER,
- };
- 
-+static struct ct_extend_type master_extend =
++enum ct_ext_type
 +{
-+	.len = sizeof(struct ip_conntrack *),
-+	.align = __alignof__(struct ip_conntrack *),
-+	.type = CTE_MASTER,
++	CTE_MAX,
++} __attribute__((packed));
++
++/* Extensions: optional stuff which isn't permanently in struct. */
++struct ct_extend {
++	enum ct_ext_type type[CTE_MAX];
++	char data[0];
 +};
 +
- /* Mishearing the voices in his head, our hero wonders how he's
-    supposed to kill the mall. */
- void ip_conntrack_cleanup(void)
-@@ -1246,6 +1264,7 @@
- 
- 	unregister_cte_mark();
- 	unregister_ct_extend_type(&helper_extend);
-+	unregister_ct_extend_type(&master_extend);
- 	kmem_cache_destroy(ip_conntrack_cachep);
- 	kmem_cache_destroy(ip_conntrack_expect_cachep);
- 	free_conntrack_hash();
-@@ -1344,6 +1363,7 @@
- 	set_bit(IPS_CONFIRMED_BIT, &ip_conntrack_untracked.status);
- 
- 	register_ct_extend_type(&helper_extend);
-+	register_ct_extend_type(&master_extend);
- 	register_cte_mark();
- 
- 	return ret;
++#define ct_extend_find(ext, type) ((type##_TYPE *)__ct_extend_find(ext, type))
++void *__ct_extend_find(const struct ct_extend *ext, enum ct_ext_type type);
++void ct_extend_free(struct ct_extend *ext);
++
++/* Add this type, returns pointer to data or NULL. */
++#define ct_extend_add(ext, type, gfp) \
++	((type##_TYPE *)__ct_extend_add(ext, type, gfp))
++void *__ct_extend_add(struct ct_extend **ext, enum ct_ext_type type, int gfp);
++
++/* Assumes ct_extend is not shared: if all deleted, will return NULL */
++struct ct_extend *ct_extend_del(struct ct_extend *ext, enum ct_ext_type type);
++
++struct ct_extend_type
++{
++	/* Length and min alignment. */
++	u16 len;
++	u16 align;
++
++	/* Free operation (can be NULL). */
++	void (*free)(struct ct_extend *ext, unsigned int dataoff);
++	/* Move operation (can be NULL).  Has already been moved. */
++	void (*move)(struct ct_extend *ext, unsigned int dataoff);
++
++	enum ct_ext_type type;
++};
++
++void register_ct_extend_type(struct ct_extend_type *);
++void unregister_ct_extend_type(struct ct_extend_type *);
++#endif /* _LINUX_CT_EXTEND_H */
