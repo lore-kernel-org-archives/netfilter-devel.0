@@ -1,17 +1,17 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Bug in rpc conntrack modules
-Date: 29 Apr 2003 21:15:33 +0200
+From: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>
+Subject: Re: PATCH: extra conntrack stats
+Date: Sun, 27 Apr 2003 17:23:30 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1051643733.8200.41.camel@tux.rsn.bth.se>
-References: <1051483678.5944.223.camel@tux.rsn.bth.se>
-	 <20030429145550.GH684@naboo.intranet.astaro.de>
+Message-ID: <200304271523.h3RFNZk05880@fokkensr.vertis.nl>
+References: <200304192142.h3JLg1S03466@fokkensr.vertis.nl> <20030427124835.GA990@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030429145550.GH684@naboo.intranet.astaro.de>
+In-Reply-To: <20030427124835.GA990@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,30 +22,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2003-04-29 at 16:55, Harald Welte wrote:
+On Sunday 27 April 2003 02:48 pm, Harald Welte wrote:
+> This is inacceptable, the only way to implement this is via per-cpu
+> counters that are added at the time you read them out (like the iptables
+> per-cpu local counters)
 
-> Hi Martin.  Please note that I don't expect Marcelo to comment on your
-> email.  He has written this code about three years ago and I assume he
-> has abandoned the code (which is perfectly fine, every author has the
-> right to do so).
->
-> As the comment on top of ip_conntrack_rpc_tcp.c indicates, rusty did
-> some porting, I merged it with newnat (IIRC), and Ian.Latter finally
-> re-worked it again.  He probably is the one most familiar with the code
-> now.
+Oh boy! It's even worse! Even without this patch we have a concurrency 
+problem: the timout! It's updated frequently I guess, and it's also protected 
+by the same lock: ip_conntrack_lock!
 
-Yeah, I failed to look at the changelog in the patch itself, I just read
-.patch.help which turned out to be a mistake.
+Well, after all this panic and calming down something constructive:
 
-> Martin, you'll have to fix it by yourself (or I will have to do it).
-
-Ian Latter has said he'll fix it.
-
-> Please add a bug to bugzilla, accept it and mark it as FIXED just for
-> keeping track of those issues.
-
-I'll add the bug, accept it and then mark it fixed when the patches (rpc
-and rsh it turns out) are fixed.
-
--- 
-/Martin
+Should a lock per contrack entry be considered? This increases the 
+concurrency for different connections anyhow.
