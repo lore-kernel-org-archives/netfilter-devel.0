@@ -1,16 +1,17 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: NAT before IPsec with 2.6
-Date: Tue, 27 Jan 2004 14:22:28 +0100 (CET)
+Date: Tue, 27 Jan 2004 14:57:01 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401271419280.17162-100000@filer.marasystems.com>
-References: <20040127130739.GR11761@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0401271449400.17979-100000@filer.marasystems.com>
+References: <20040127132725.GA14685@openoffice.nl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Willy Tarreau <willy@w.ods.org>, Tom Eastep <teastep@shorewall.net>,
-   Michal Ludvig <mludvig@suse.cz>, <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>, Willy Tarreau <willy@w.ods.org>,
+   Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
+   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040127130739.GR11761@sunbeam.de.gnumonks.org>
+To: Valentijn Sessink <valentyn+netfilter-users@nospam.openoffice.nl>
+In-Reply-To: <20040127132725.GA14685@openoffice.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,40 +22,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 27 Jan 2004, Harald Welte wrote:
+On Tue, 27 Jan 2004, Valentijn Sessink wrote:
 
-> > If the packet is rerouted in POSTROUTING then this should include IPSec
-> > routing. If the new route is to an IPSec SPI then it is. If not then it is
-> > not.
-> 
-> You are talking about the first POSTROUTING, Number 3?  Then I would
-> definitely agree.
+> On output, however, things are not so transparant. A packet hits OUTPUT,
+> then gets encrypted. A totally different packet hits POSTROUTING. This makes
+> no sense.
 
-I am.
+And there the required hooks needs to be inserted in the IPSec 
+implementation to call
 
-> > (Gateway) -> Gateway -> (client)
-> 
-> This is not symmetric, despite being the exact opposite of the previous
-> case.  I don't like that.  If we make it similar to the previous case,
-> it would be:
-> 
-> 1. PREROUTING, ESP packet
-> 2. INPUT, ESP packet
-> 3. PREROUTING, decapsulated packet
-> 4. FORWARD, decapsulated packet
-> 5. POSTROUTING, decapsulated packet.
+a) POSTROUTING before the final decision that this packet is to go via 
+IPSec. Note that this may need to allow reroute of the packet including 
+IPSec policy. Because of this some changes may be needed in the IPSec 
+implementation for this to be complete. 
 
-Right. My error. Thinks one thing, writes another. Brain obviously not 
-fully functional today.
+b) After encrypting OUTPUT needs to be called on the encrypted packet 
+before the packet leaves IPSec and continues the normal path leading to 
+POSTROUTING.
 
-> > I also see it likely there needs to be some skb extensions to add the
-> > requires SPI tracking information to allow rulesets a better view of
-> > what is going on (optional).
-> 
-> yes, but let's that make step 2.  First we have to agree on the first
-> step, do a decent implementation and then submit it to netdev.
+> There's no symmetric behaviour now.
 
-Agreed.
+We all know that, and is why this discussion exists in order to find out 
+how it should be.
+
+> And from an "input" perspective, I think a decapsulated packet that has
+> a locally ending payload should hit INPUT again. Same with output: a
+> locally generated packet hits output, then should hit OUTPUT again if it
+> was really destined for the outside world.
+
+To this we all agree from what I can tell.
 
 Regards
 Henrik
