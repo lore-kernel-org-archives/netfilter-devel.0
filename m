@@ -1,11 +1,11 @@
 From: "Patrick" <patrick_@freenet.de>
 Subject: string match patch
-Date: Mon, 12 Jul 2004 17:27:35 +0200
+Date: Mon, 12 Jul 2004 17:47:12 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <005501c46824$c2c0e7b0$0200a8c0@milchreis>
+Message-ID: <00c801c46827$8039c760$0200a8c0@milchreis>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0052_01C46835.85AC3F30"
+	boundary="----=_NextPart_000_00C5_01C46838.43278FE0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -20,7 +20,7 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0052_01C46835.85AC3F30
+------=_NextPart_000_00C5_01C46838.43278FE0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -62,7 +62,7 @@ Sincerely yours
 Patrick
 
 
-------=_NextPart_000_0052_01C46835.85AC3F30
+------=_NextPart_000_00C5_01C46838.43278FE0
 Content-Type: text/html;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -134,4 +134,4 @@ size=3D2>appreciated</FONT></DIV>
 <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
 <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
 
-------=_NextPart_000_0052_01C46835.85AC3F30--
+------=_NextPart_000_00C5_01C46838.43278FE0--
