@@ -1,17 +1,19 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: NAT and locally bound sockets
-Date: Mon, 1 Jul 2002 18:59:39 +0200
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: conntrack performance/DoS formula
+Date: Mon, 1 Jul 2002 10:49:15 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200207011859.39589.hno@marasystems.com>
-References: <20020529164926.GA9003@gort.ecn.purdue.edu> <20020530153247.I7658@sunbeam.de.gnumonks.org> <20020701163232.GB7090@lucky>
+Message-ID: <15648.38427.807689.794217@isis.cs3-inc.com>
+References: <20020628082339.I2890@oknodo.bof.de>
+	<20020630103131.X4136@oknodo.bof.de>
+	<15647.24217.324807.354846@isis.cs3-inc.com>
+	<200207011007.25108.hno@marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: shuey@purdue.edu, Michael Shuey <shuey@fmepnet.org>,
-	Harald Welte <laforge@gnumonks.org>, netfilter-devel@lists.samba.org
-In-Reply-To: <20020701163232.GB7090@lucky>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <200207011007.25108.hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,25 +24,29 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Michael Shuey wrote:
+Henrik Nordstrom writes:
+ > Don Cohen wrote:
+ > 
+ > > On a related subject, I'm worried that UNREPLIED might not mean
+ > > what I think it does.  Your data contains things like:
+ > >  tcp 6 387070 ESTABLISHED src=9.163.211.64 dst=165.130.71.38 sport=3228
+ > >  dport=1301 [UNREPLIED] src=165.130.71.38 dst=9.163.211.64 sport=1301
+ > >  dport=3228 use=1
+ > > How can one half of the connection be established while the other half
+ > > is unreplied?
+ > 
+ > The ESTABLISHED indicates the TCP state, UNREPLIED indicates the conntrack 
+ > state. This is a TCP session that has only seen ACK in one direction, no 
+ > packets in the other.
+ > 
+ > Almost related note: The connection is not ASSURED.
 
-> In this scenario, think about the tuple for a moment.  Since all clients
-> and the natbox are mounting the same NFS server, selecting the same port by
-> default, using UDP across the board, the connection tuples are (after SNAT)
-> going to be very similar - they only differ in srcport.  Normally that
-> would be just fine; however, with a high level of traffic the NAT system
-> would occaisionally select a srcport that was already in use by the NFS
-> client local to natbox.  That's not fine - it causes quite a few NFS
-> timeouts, retransmits, etc. on natbox.
+I'm having trouble making sense of your explanation above.
+This line is supposed to describe a single connection, right?
+Established as a tcp state means the three packet handshake is
+complete?  But that seems to contradict the unreplied.
 
-This is handled fine in all tests I have done provided your SNAT rule applies 
-to both forwarded and locally originating packets.
-
-If however your UDP nat entries times out from conntrack, which they can 
-easily do for a idle NFS mount, then all bets is off.. The default udp 
-timeout is only 180 seconds which is not by far sufficient for multi-client 
-NAT of NFS. A typical case where conntrack by default cannot easily know a 
-suitable timeout without additional information.
-
-Regards
-Henrik
+Is there any doc for stuff like this?
+- how to read the lines above
+- what exactly these things (unreplied, assured, established ...) mean
+- can I match on ASSURED ?
