@@ -1,8 +1,8 @@
 From: "Haitao Yu" <yuht@th-dascom.com.cn>
-Subject: about mangling skb content
-Date: Wed, 18 Dec 2002 14:10:0 +0800
+Subject: 351785
+Date: Wed, 18 Dec 2002 14:24:57 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200212181401703.SM01312@yht>
+Message-ID: <200212181416921.SM01312@yht>
 Mime-Version: 1.0
 Content-Type: text/plain;
       charset="GB2312"
@@ -23,7 +23,7 @@ hi,
 Is there a function to mangle the content in skb, no matter it's=
  tcp or udp packet? Just like ip_nat_mangle_tcp_packet()=
  function.
- =09=09=09=09
+
 =A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1Haitao Yu
 =A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1yuht@th-dascom.com.cn
 =A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A12002-12-18
