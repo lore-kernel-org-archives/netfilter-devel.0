@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] ipt_do_table accesss pskb after it has been freed
-Date: Fri, 7 Nov 2003 09:57:52 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [Debian Bug#218837] limit match not working on sparc64
+Date: Fri, 7 Nov 2003 11:43:56 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031107085752.GH5741@sunbeam.de.gnumonks.org>
-References: <3FAB00E7.1030507@metavize.com>
+Message-ID: <Pine.LNX.4.44.0311071126060.10460-100000@filer.marasystems.com>
+References: <20031107014425.GB10258@home.tig-grr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="p2pkNiL1PnZBJ6Nr"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Dirk Morris <dmorris@metavize.com>
-Content-Disposition: inline
-In-Reply-To: <3FAB00E7.1030507@metavize.com>
+To: Tom Marshall <tommy@home.tig-grr.com>
+In-Reply-To: <20031107014425.GB10258@home.tig-grr.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,45 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 6 Nov 2003, Tom Marshall wrote:
 
---p2pkNiL1PnZBJ6Nr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Just a random thought -- is an intptr_t the same between kernel and userland
+> on all architectures?
 
-On Thu, Nov 06, 2003 at 06:18:15PM -0800, Dirk Morris wrote:
-> I had a target in the mangle/PREROUTING that was freeing the skb and=20
-> returning NF_STOLEN.
-> ipt_do_table would then cause a kernel panic as it accesses the skb=20
-> after its freed.
->=20
-> Is this a bug? If so, here's the patch.
+No, and may even differ between userland and userlan on the same
+architecture if the architecture supports split personality (supporting
+both 32 and 64 bit applications)
 
-no, it's not a bug.  you should return NF_DROP if you want to have the
-skb dropped.
+Any data structures exchanged between userspace and kernel must be using 
+fixed with data types only, or else there will be problems like this as 
+long as there is split personality architectures.
 
-> -dirk
+Pointers is troublesome, and unless the kernel headers exports a pointer
+type which is always reflecting the kernel-space pointer size this will be
+hard to deal with. But as pointers are different between userspace and 
+kernelland there normally should not be any such needs.. iptables is an 
+expection as it is userspace who allocates the size of the kernelspace 
+structures, with pointers and all.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Now, this kind of thing should not be too hard to solve actually. What is
+required is that the header can determine that the pointer representation
+differs between user and kernelland, and then adjust the structure
+accordingly. The userspace part of the limit match does not use the
+pointer so it just needs to be made sure that the structure field of of
+the exact same size and alignment as a pointer in the kernel space,
+ensuring that the size and layout of the structure is identical in the two
+worlds.
 
---p2pkNiL1PnZBJ6Nr
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/q16QXaXGVTD0i/8RAufhAJoDfhuCMBd21d8R8MBfkb4GDVARegCgs0Av
-2F5+biGEiynLSCbl3hkayvc=
-=KFcv
------END PGP SIGNATURE-----
-
---p2pkNiL1PnZBJ6Nr--
+Regards
+Henrik
