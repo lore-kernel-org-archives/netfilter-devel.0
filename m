@@ -1,17 +1,14 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [OT] Mailing-list oddities
-Date: Tue, 28 Oct 2003 19:27:09 +0100
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: Re: [PATCH] Fix ip_queue for bridged packets
+Date: Tue, 28 Oct 2003 11:09:42 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1067365629.13999.20.camel@tux.rsn.bth.se>
-References: <3F9E2731.2000306@trash.net>
-	 <1067338448.773.3.camel@elendil.intranet.cartel-securite.net>
+Message-ID: <20031028190942.92198.qmail@web13908.mail.yahoo.com>
+References: <200310280002.12023.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-rcZe8ZaOLFe7k7CZkK0M"
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Cedric Blancher <blancher@cartel-securite.fr>
-In-Reply-To: <1067338448.773.3.camel@elendil.intranet.cartel-securite.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200310280002.12023.bdschuym@pandora.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,40 +19,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Caught this in the middle, so not sure all the
+details...is this concerning the ebtable bridge patch?
+If I uses the QUEUE target in PREROUTING to packet
+mangle, is there an issue since I think PF_BRIDGE
+comes after that?
+-Scott
 
---=-rcZe8ZaOLFe7k7CZkK0M
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+--- Bart De Schuymer <bdschuym@pandora.be> wrote:
+> On Monday 27 October 2003 09:04, David S. Miller
+> wrote:
+> > I thought we were taking care of this stuff via
+> other means?
+> >
+> > This problem feels like an old one to me, and it's
+> why we added all
+> > the bridge netfilter objects to struct sk_buff,
+> right?  Why doesn't
+> > that take care of this instance of the problem?
+> 
+> The thing is, we currently only copy the Ethernet
+> header to 
+> skb->nf_bridge->data at PF_BRIDGE/POST_ROUTING. So,
+> if the queue happens 
+> earlier, the Ethernet header is lost.
+> Another solution is not trusting the iptables
+> modules and doing the copy to 
+> skb->nf_bridge->data earlier at
+> PF_BRIDGE/PRE_ROUTING and 
+> PF_BRIDGE/LOCAL_OUT. After each faked PF_INET hook
+> we'd have to copy the 
+> skb->nf_bridge->data back to the Ethernet header
+> since we don't trust the 
+> iptables modules.
+> This is doable, but kind of ugly and I'd prefer the
+> explicit copy by the 
+> iptables module itself. Most iptables modules don't
+> copy skb's around anyway. 
+> One could argue that this makes the iptables
+> ip_queue module a tiny bit slower 
+> when dealing with non-bridged traffic, but if the
+> user compiled her kernel 
+> with bridge_netfilter support one would think she
+> needs it.
+> But I'll change it if anyone objects to the easy
+> fix.
+> 
+> cheers,
+> Bart
+> 
+> 
 
-On Tue, 2003-10-28 at 11:54, Cedric Blancher wrote:
-> Le mar 28/10/2003 =E0 09:22, Patrick McHardy a =E9crit :
-> > For some time now some messages to netfilter-devel appear
-> > very delayed in my inbox, sometimes as much as a week. Most
-> > messages appear timely, but I noticed it several times
-> > when I was on a CC list (CC'd mail arrived immediately,
-> > mail to list not) and this morning ~20 mails from the
-> > last week came dripping in. Is anyone else seeing these
-> > problems ?
->=20
-> I do.
-> I have the same effect with CCs.
 
-This is a closed list so someone has to approve non-member posts.
-That doesn't happen very frequently.
-
---=20
-/Martin
-
---=-rcZe8ZaOLFe7k7CZkK0M
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQA/nrT9Wm2vlfa207ERAruNAKCLHiRxhSM2aROOwOJ+EQmGIVzL1QCgjgjg
-Ofr8NI0SZAMzoRCm0uM30gk=
-=5qrg
------END PGP SIGNATURE-----
-
---=-rcZe8ZaOLFe7k7CZkK0M--
+__________________________________
+Do you Yahoo!?
+Exclusive Video Premiere - Britney Spears
+http://launch.yahoo.com/promos/britneyspears/
