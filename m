@@ -1,11 +1,16 @@
-From: Ian Norton <bredroll@darkspace.org.uk>
-Subject: using netfilter hooks (in not the intended way)
-Date: Thu, 24 Feb 2005 14:29:58 +0000
-Message-ID: <20050224142958.GA15691@earth.dsh.org.uk>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: getting PID and task name from sk_buff
+Date: Thu, 24 Feb 2005 17:27:09 +0100
+Message-ID: <20050224162709.GC5056@oknodo.bof.de>
+References: <20050224133027.GB5056@oknodo.bof.de>
+	<DEEDILHNOLKHPLJKLINBOEFIJMAC.alan@stead.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@lists.netfilter.org
+Cc: codeslinger@gmail.com, netfilter-devel@lists.netfilter.org,
+	Patrick Schaaf <bof@bof.de>
+To: Alan Stead <alan@stead.com>
 Content-Disposition: inline
+In-Reply-To: <DEEDILHNOLKHPLJKLINBOEFIJMAC.alan@stead.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,33 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi everyone,
+On Thu, Feb 24, 2005 at 07:55:28AM -0800, Alan Stead wrote:
+> > When you need per-process accounting of network traffic, the correct layer
+> > would be in the socket I/O syscalls themselves. I think the LSM framework
+> > could provide the right hooks to do that.
+> 
+> If the accounting of network traffic is done in the socket I/O syscalls,
+> would this "count" traffic that might get filtered out by ip_tables?
 
-I hope somoene can give me some pointers here, Im writing an 
-implementation of ipcomp for 2.4.x using netfilter hooks instead
-of the normal way new protocols are handled, I know it's not 
-what netfilter is intended to do, but, the main idea here is
-that it is one of those 'there is more than one way to do stuff'
-exercizes for a university project.
+For incoming traffic, it would not count. For outgoing traffic, it would.
 
-basically, my problem is this, when recieving a compressed packet,
-i want to decompress it, expand the skb and memcpy the decompressed
-data into the skb.
+Another interesting topic is whether retransmits would count, or not.
+And whether header overhead would count, or not.
 
-now, i seem to be able to do all this, if i make a clone of this skb and send
-it using dev_queue_xmit or netif_rx() then it turns up where i want it
-(albiet later than i would like and requireing some link layer header stuff)
+With a socket layer based approach, neither retransmits, nor header
+overhead, would count. For a netfilter based approach, it would be
+very hard to not account retransmits.
 
-i really want to return the 'modified' skb back to netfilter with NF_ACCEPT
-however if i do a pskb_expand_head() on it, then it is as if i did nothing
-to the packet after calling pskb_expand_head().
+Decisions, decisions...
 
-afaik, pskb_expand_head() will create a copy of the skb if it needs to, how can
-i make sure that netfilter will see this new larger copy?
-
-thanks in advance 
-
-regards
-
-Ian
--- 
+best regards
+  Patrick
