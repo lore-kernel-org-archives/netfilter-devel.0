@@ -1,13 +1,14 @@
-From: Rodrigo Severo <rodrigo@fabricadeideias.com>
-Subject: ip_pool -x not working.
-Date: Thu, 04 Dec 2003 18:36:56 -0200
+From: "Ghacker" <ghacker@super.inha.ac.kr>
+Subject: [Q] Why can't connect TCP connection..
+Date: Sun, 7 Dec 2003 22:08:25 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FCF9AE8.3010506@fabricadeideias.com>
+Message-ID: <000501c3bcc3$33add220$8926f6a5@ghacker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,44 +19,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear list,
-
-
-I am testing the ip pool match and target.
-
-I'm having problems with the ippool userspace support tool.
-
-I can't make neither -x nor the -X POOL options work. I always get a 
-"IP_POOL_DESTROY POOL failed: Device or resource busy" message. The POOL=
- 
-isn't used yet anywhere, I'm justing testing pool creation by now.
-
-Is it a bug or am I doing something wrong?
-
-I am not sure there is someone working on the ip pool functionality.
-
-I wrote Patrick Schaaf, the former maintainer of this patch. He told me 
-that he never implemented pool destruction. He also mentioned that 
-Joackim Axelsson probably is the ip pool man presently.
-
-Is there anybody working on it? I'm willing to help.
-
-BTW, I'm messing with ip pool based on the assumption that using an ip 
-pool would give me faster results than having circa 180 rules for 
-different ip addresses as I have now. Am I right?
-
-
-Thanks in advance for your attention,
-
-Rodrigo Severo
-
--- 
-----------------------------------------------------
-Rodrigo Severo
-F=E1brica de Id=E9ias
-Fone: +55(61)321 1357
-Fax: +55(61)223 1712
-SBS - Quadra 2 - Ed. Empire Center - Sala 1301
-Bras=EDlia/DF - Brasil
-CEP: 70.070-904
-----------------------------------------------------
+Rmlyc3Qgb2YgYWxsLi4gSSdtIHNvcnJ5IGZvciByZXBvc3RpbmcgbWVzc2FnZS4uDQoNCkJ1dC4u
+IHBsZWFzZS4uIHdobyBjYW4gdGVsbCBtZSB3aHkuLi4gdGhpcyBjb25uZWN0aW9uIGNhbid0IGNv
+bm5lY3RlZC4uDQoNCkkgcmVnaXN0ZXIgdHdvIGhvb2sgZnVuY3Rpb24uLiBob29rX2xvY2FsX2lu
+KC4uLikgYW5kIGhvb2tfbG9jYWxfb3V0KC4uLikNCg0KQW5kIHdyaXRlIGxpa2UgdGhpcy4uLg0K
+DQpzdGF0aWMgdW5zaWduZWQgaW50IGhvb2tfbG9jYWxfb3V0KC4uLi4uLikNCnsNCiAgICBpZigo
+KnBza2IpLT5uaC5pcGgtPnByb3RvY29sID09IElQUFJPVE9fVENQKSAoKnBza2IpLT5uaC5pcGgt
+PnByb3RvY29sID0gMjI0Ow0KICAgIHJldHVybiBORl9BQ0NFUFQ7DQp9DQoNCnN0YXRpYyB1bnNp
+Z25lZCBpbnQgaG9va19sb2NhbF9pbiguLi4uLi4pDQp7DQogICAgaWYoKCpwc2tiKS0+bmguaXBo
+LT5wcm90b2NvbCA9PSBJUFBST1RPX1RDUCkgcmV0dXJuIE5GX0RST1A7DQogICAgaWYoKCpwc2ti
+KS0+bmguaXBoLT5wcm90b2NvbCA9PSAyMjQpICgqcHNrYiktPm5oLmlwaC0+cHJvdG9jb2wgPSBJ
+UFBST1RPX1RDUDsNCiAgICByZXR1cm4gTkZfQUNDRVBUOw0KfQ0KDQpUaGVuLi4gSSByZWdpc3Rl
+ciB0aGVzZSBmdW5jdGlvbnMuLi50byBuZXRmaWx0ZXIuLiBhbmQgdHJ5IHRvIGNvbm5lY3QgbG9j
+YWxob3N0IGJ5IHRlbG5ldCh1c2luZyAidGVsbmV0IGxvY2FsaG9zdCIpLg0KDQpUaGlzIGNhbid0
+IGJlIGNvbm5lY3RlZC4uLihJIGRvbid0IGtub3cgd2h5PykNCg0KQW5kLi4uIGVhY2ggZnVuY3Rp
+b25zIGFyZSBkZXZpZGUgaW50byBvdGhlciBob3N0Li4gYW5kIHRyeSB0byBjb25uZWN0Li4gbGlr
+ZSB0aGlzKCJjb25uZWN0IiBpcyB0ZWxuZXQgY29ubmVjdGlvbikNCg0KaG9va19sb2NhbF9vdXQg
+ICAgIGNvbm5lY3QgICAgIGhvb2tfbG9jYWxfaW4gICAgICAgICAgICAgIGhvb2tfbG9jYWxfaW4g
+ICAgICAgICAgY29ubmVjdCAgICAgICAgIGhvb2tfbG9jYWxfb3V0DQogICAgICAgIGhvc3QgICAg
+ICAgICAgICAgICAtLS0+ICAgICAgICAgICAgIGhvc3QgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIGhvc3QgICAgICAgICAgICAgICAgPC0tLS0tLSAgICAgICAgICAgICAgICBob3N0DQogICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgc3VjY2VzcyAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmYWlsdXJlDQoNCmhv
+b2tfbG9jYWxfaW4gICAgICAgICAgICAgICAgICAgICAgICBob29rX2xvY2FsX291dA0KaG9va19s
+b2NhbF9vdXQgICAgIGNvbm5lY3QgICAgIGhvb2tfbG9jYWxfaW4NCiAgICAgICAgaG9zdCAgICAg
+ICAgICAgICAgPC0tLT4gICAgICAgICAgICAgaG9zdA0KICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICBmYWlsdXJlDQoNCkkgZG9uJ3QgdXNlIG90aGVyIHRhYmxlcy4uDQoNCldoYXQgaXMgdGhl
+IHJlYXNvbiB0aGF0IG9jY3VyIHRoaXMgcHJvYmxlbT8gIEFuZCBob3cgY2FuIEkgc29sdmUgdGhp
+cyBwcm9ibGVtLi4oQWN0dWFsbHkgSSBoYXZlIHRvIGNvbm5lY3QgdGhpcy4uKQ==
