@@ -1,16 +1,14 @@
-From: "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
-Subject: Re: trouble with expect_related
-Date: 04 Jan 2003 04:34:45 +0100
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH]: fix ipt_REJECT broken UDP crc firewall spotting (phrack
+ 60)
+Date: Sun, 05 Jan 2003 20:40:52 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1041651291.1637.41.camel@exile>
-References: <t2mk7hlwz5c.fsf@rw2-laptop.wellner.org>
+Message-ID: <3E188A44.4000606@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------090904000901070603020500"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rich Wellner <netfilter@objenv.com>
-In-Reply-To: <t2mk7hlwz5c.fsf@rw2-laptop.wellner.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,100 +19,86 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Rich,
+This is a multi-part message in MIME format.
+--------------090904000901070603020500
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Sat, 2003-01-04 at 01:13, Rich Wellner wrote:
-> I'm writing a module for ipfilters to deal with a protocol we use at work.
-> You'll pardon me for being long winded, but I'm not positive what's going
-> wrong.
-> 
-...
-> 
-> I claim it works because i see log messages and the helper is called as
-> expected.
-> 
-> My problem is with the helper.  I parse the packet out and run
-> ip_conntrack_expect_related but the incoming connection doesn't get passed
-> through.  I have verified using tcpdump that the connection request does come
-> from the remote machine, but my module doesn't seem to have registered the
-> return right.  Anyway, here's the helper (more commentary follows code):
-> 
-...
->   ip_conntrack_expect_related(ct, &t, &mask, NULL);
+Hi.
 
-FYI:
-This is the "old" way of calling ip_conntrack_expect_related.
-For quite a while now, there has been a newer infrastructure
-for writing conntrack/nat helpers called "newnat". This
-newer infrastructure solves some limitations of the old
-code.
+Sorry if this mail arrives twice, mozilla crashed while sending and it 
+seems it did not make it out before.
+ipt_REJECT sends unreachables in response to UDP packets with invalid 
+checksums, thereby exposing the
+existance of a firewall  (as described in phrack #60, "broken crc 
+firewall spotting" (or something like this), www.phrack.com).
+to verify please try this:
+# send udp with correct checksum
+hping -2 host -p 20000
+# send udp with invalid checksum
+hping -2 host -p 20000 -b
 
-Since this newnat infrastructure was added to the mainline
-kernel from early 2.4.20-pre releases onwards, and all the
-netfilter conntrackers in CVS have been updated to this
-infrastructure a long time ago, there really isn't much
-interest in still using the old framework - all in all,
-the newnat framework isn't that different if you're writing
-a conntracker.
-
-Have a look at the document describing newnat at:
-http://cvs.netfilter.org/cgi-bin/cvsweb/netfilter/documentation/newnat-summary.txt
-(or check out netfilter CVS of course)
-and check out some conntrackers to learn about the
-new API:
-http://cvs.netfilter.org/cgi-bin/cvsweb/netfilter/patch-o-matic/extra/
-
-The newnat patch that was included in the mainline kernel
-for the 2.4.20 release and the patch can be found here:
-http://cvs.netfilter.org/cgi-bin/cvsweb/netfilter/patch-o-matic/submitted/z-newnat16.patch
-Since you've already studied the ftp conntracking code,
-you can see how ip_conntrack_expect_related is called a
-little differently in ip_conntrack_ftp.c in the newnat 
-infrastructure.
-
-The documentation you based your work on has, as you
-may have guessed, not been updated to represent these
-changes yet.
-
-However, the oldnat stuff you based your conntracker 
-on should be able to add your expectations without
-any problems, so your problem will probably not get
-solved by moving to the newnat API.
-
-...
-> 
-> Anyone capable of helping me will probably recognize the general structure of
-> the above code as being that from the existing ftp/irc modules.  I tried to
-> use the doc on netfilter.org, but it seems to be pretty outdated, making, for
-> example, references to structure elements that don't exist anymore.
-> 
-> Significantly the last printk above shows what I expect to see: 
-> Jan  3 17:45:54 oxygen kernel: expect_related 131.225.80.34:0-207.252.250.2:38344
-> 
-> but the incoming connection, as i say above, never makes it through.
-> 
-> I've tried several different variations, but would be willing to try more if
-> people have only suggestions but no answers.  I'm just a bit out of my wits
-> right now because the doc seems old and the many changes I've tried don't
-> provoke any different behavior so I've not much to go on.  Frustrating.
-> 
-
-Are you also letting RELATED connections in ? Most often,
-people will use
-
-/usr/sbin/iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j
-ACCEPT
-
-It would be a "bang-your-head-against-the-wall" type of
-mistake not to let RELATED traffic trough when writing a
-conntracker.
-
-Other than that, does 
-
-cat /proc/net/ip_conntrack | grep ^EXPECTING
-
-turn up anything ? It should if the expectation
-is added and the firewall hasn't seen this traffic yet.
+now insert a rule to reject those packets on host or somewhere between 
+you and host and try it again.
+The patch makes ipt_REJECT verify UDP checksums if set.
 
 Regards,
-Filip
+Patrick
+
+
+--------------090904000901070603020500
+Content-Type: text/plain;
+ name="ipt_REJECT-fwspotting-phrack60-fix.diff"
+Content-Disposition: inline;
+ filename="ipt_REJECT-fwspotting-phrack60-fix.diff"
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by el-zoido.localnet id h05JdvR14093
+
+diff -urN linux-2.4.21-pre2-clean/net/ipv4/netfilter/ipt_REJECT.c linux-2=
+.4.21-pre2/net/ipv4/netfilter/ipt_REJECT.c
+--- linux-2.4.21-pre2-clean/net/ipv4/netfilter/ipt_REJECT.c	2002-11-29 00=
+:53:15.000000000 +0100
++++ linux-2.4.21-pre2/net/ipv4/netfilter/ipt_REJECT.c	2003-01-05 19:59:27=
+.000000000 +0100
+@@ -6,6 +6,8 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/ip.h>
++#include <linux/udp.h>
++#include <linux/icmp.h>
+ #include <net/icmp.h>
+ #include <net/ip.h>
+ #include <net/tcp.h>
+@@ -157,6 +159,7 @@
+ static void send_unreach(struct sk_buff *skb_in, int code)
+ {
+ 	struct iphdr *iph;
++	struct udphdr *udph;
+ 	struct icmphdr *icmph;
+ 	struct sk_buff *nskb;
+ 	u32 saddr;
+@@ -186,6 +189,19 @@
+ 	if (iph->frag_off&htons(IP_OFFSET))
+ 		return;
+=20
++	/* if UDP checksum is set, verify it's correct */
++	if (iph->protocol =3D=3D IPPROTO_UDP
++	    && skb_in->tail-(u8*)iph >=3D sizeof(struct udphdr)) {
++		int datalen =3D skb_in->len - (iph->ihl<<2);
++		udph =3D (struct udphdr *)((char *)iph + (iph->ihl<<2));
++		if (udph->check
++		    && csum_tcpudp_magic(iph->saddr, iph->daddr,
++		                         datalen, IPPROTO_UDP,
++		                         csum_partial((char *)udph, datalen,
++		                                      0)) !=3D 0)
++			return;
++	}
++		   =20
+ 	/* If we send an ICMP error to an ICMP error a mess would result.. */
+ 	if (iph->protocol =3D=3D IPPROTO_ICMP
+ 	    && skb_in->tail-(u8*)iph >=3D sizeof(struct icmphdr)) {
+Bin=E4rdateien linux-2.4.21-pre2-clean/net/ipv4/netfilter/.ipt_REJECT.c.s=
+wp and linux-2.4.21-pre2/net/ipv4/netfilter/.ipt_REJECT.c.swp sind versch=
+ieden.
+
+--------------090904000901070603020500--
