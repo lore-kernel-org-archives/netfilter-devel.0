@@ -1,38 +1,46 @@
 From: "Rusty Russell (IBM)" <rusty@au1.ibm.com>
-Subject: [PATCH] Another ip_conntrack seq fix: ip_conntrack_expect
-Date: Tue, 21 Sep 2004 08:26:31 +1000
+Subject: [PATCH] Warn people that ipchains and ipfwadm are going away.
+Date: Tue, 21 Sep 2004 09:09:02 +1000
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1095719191.1940.86.camel@bach>
+Message-ID: <1095721742.5886.128.camel@bach>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>,
-	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S263806AbUITWcM@vger.kernel.org>
+	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266187AbUITXOf@vger.kernel.org>
 To: Linus Torvalds <torvalds@osdl.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Fix /proc/net/ip_conntrack_expect output
-Status: Tested under nfsum on 2.6.9-rc1-bk16
+Name: Warn that ipchains and ipfwadm are going away
+Status: Trivial
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Depends: Netfilter/conntrack-seq-fix.patch.gz
 
-/proc/net/ip_conntrack_expect was changed over to seq_file, but a \n
-is missing.
+At the recent netfilter workshop in Erlangen, we was decided to remove
+the backwards compatibility code for ipchains and ipfwadm.  This will
+allow significant cleanup of interfaces, since we had to have a
+mid-level interface for the backwards compatibility layer to use.
 
-diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .19747-linux-2.6.9-rc2-bk4/net/ipv4/netfilter/ip_conntrack_standalone.c .19747-linux-2.6.9-rc2-bk4.updated/net/ipv4/netfilter/ip_conntrack_standalone.c
---- .19747-linux-2.6.9-rc2-bk4/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-16 00:17:16.000000000 +1000
-+++ .19747-linux-2.6.9-rc2-bk4.updated/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-20 06:03:50.000000000 +1000
-@@ -241,8 +241,9 @@ static int exp_seq_show(struct seq_file 
- 	seq_printf(s, "use=%u proto=%u ", atomic_read(&expect->use),
- 		   expect->tuple.dst.protonum);
- 
--	return print_tuple(s, &expect->tuple,
--			   __ip_ct_find_proto(expect->tuple.dst.protonum));
-+	print_tuple(s, &expect->tuple,
-+		    __ip_ct_find_proto(expect->tuple.dst.protonum));
-+	return seq_putc(s, '\n');
- }
- 
- static struct seq_operations exp_seq_ops = {
+Start off with a warning for 2.6.9, so any remaining users have a
+chance to migrate.  Their firewall scripts might not check return
+values, and they might get a nasty surprise when this goes away.
+
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .5978-linux-2.6.9-rc2-bk6/net/ipv4/netfilter/ipchains_core.c .5978-linux-2.6.9-rc2-bk6.updated/net/ipv4/netfilter/ipchains_core.c
+--- .5978-linux-2.6.9-rc2-bk6/net/ipv4/netfilter/ipchains_core.c	2004-09-16 00:17:16.000000000 +1000
++++ .5978-linux-2.6.9-rc2-bk6.updated/net/ipv4/netfilter/ipchains_core.c	2004-09-21 09:06:07.000000000 +1000
+@@ -1,3 +1,5 @@
++#warning ipchains is obsolete, and will be removed soon.
++
+ /* Minor modifications to fit on compatibility framework:
+    Rusty.Russell@rustcorp.com.au
+ */
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .5978-linux-2.6.9-rc2-bk6/net/ipv4/netfilter/ipfwadm_core.c .5978-linux-2.6.9-rc2-bk6.updated/net/ipv4/netfilter/ipfwadm_core.c
+--- .5978-linux-2.6.9-rc2-bk6/net/ipv4/netfilter/ipfwadm_core.c	2004-09-16 00:17:16.000000000 +1000
++++ .5978-linux-2.6.9-rc2-bk6.updated/net/ipv4/netfilter/ipfwadm_core.c	2004-09-21 09:06:18.000000000 +1000
+@@ -1,3 +1,5 @@
++#warning ipfwadm is obsolete, and will be removed soon.
++
+ /* Minor modifications to fit on compatibility framework:
+    Rusty.Russell@rustcorp.com.au
+ */
