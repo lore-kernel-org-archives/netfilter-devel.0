@@ -1,16 +1,15 @@
-From: sverre <sverre@gmx.net>
-Subject: Re: bug in 2.4.18 netfilter ?
-Date: Fri, 5 Jul 2002 13:58:01 +0200
+From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
+Subject: FYI: QUEUE & ipqmpd bugs
+Date: Fri, 5 Jul 2002 16:08:54 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020705115800.GA192@gmx.net>
-References: <20020705000210.GA2038@gmx.net>
-Reply-To: sverre@gmx.net
+Message-ID: <003301c2242d$7fca2e40$0689cb8a@etbx180>
+Reply-To: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
-In-Reply-To: <20020705000210.GA2038@gmx.net>
+To: <netfilter-devel@lists.samba.org>, <netfilter@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,17 +20,26 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-gonna try to reply to myself before anyone else does ;)
-the "bug" was indeed in the firewall script (surprise!) - the nat table
-was not flushed between the two ppp connestions. During the second
-connection all the outgoing packets had the source IP address I was 
-assigned in the previous ppp connection, so no wonder I didnt get any
-response.
-Sorry for questioning the netfilter bugfreeness and wasting your
-bandwidth with needless mails ;)
-best regards,
+FYI,
 
--- 
+I upgraded to iptables-1.2.6a (user & kernel-2.4.18 patches)
+and got the following (maybe known) problems:
 
+- QUEUE target is NOK with kernel compiled with CONFIG_IP_NF_QUEUE=m
+  => the packets are queued, but ipq_create_handle() returns 
+     "can't create netlink socket"
+     "ERROR: Unable to create netlink socket: Connection refused"
+    (problem with exported symbols?)
+  =>quick fix: compile kernel with CONFIG_IP_NF_QUEUE=y
 
-			sverre	<sverreQgmx.net>
+- ipqmpd-0.3: default verdict NF_ACCEPT is not applied when no
+  process has attached to it. In fact ipqmpd starts, but it seems
+  that it never receives any packet (in ipq_inp). When one process
+  attaches to it, with a mark different from the queued packet, then
+  the default NF_ACCEPT is applied correctly. When all processes have
+  detached from ipqmpd, the default NF_ACCEPT continues to be applied
+  correctly.
+
+kr,
+_______________________________________________________________________
+-jmhe-               He who expects nothing shall never be disappointed
