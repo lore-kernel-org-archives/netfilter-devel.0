@@ -1,62 +1,100 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: [PATCH 2.4.x][RFC] enlarge struct ipt_log_info prefix to 62
-	bytes
-Date: Thu, 23 Dec 2004 02:09:05 +0100
-Message-ID: <20041223010905.GC2484@eychenne.org>
-References: <41C6BDC7.8060507@tac.ch> <41C95EC5.6090803@trash.net>
+From: linux lover <linux.lover2004@gmail.com>
+Subject: Re: printing packet data
+Date: Thu, 23 Dec 2004 08:19:28 +0530
+Message-ID: <72c6e37904122218495cb49348@mail.gmail.com>
+References: <72c6e37904122118504466dd28@mail.gmail.com>
+Reply-To: linux lover <linux.lover2004@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, Roberto Nibali <ratz@tac.ch>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <41C95EC5.6090803@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <kernelnewbies-bounce@nl.linux.org>
+To: kernelnewbies@nl.linux.org
+In-Reply-To: <72c6e37904122118504466dd28@mail.gmail.com>
+Sender: kernelnewbies-bounce@nl.linux.org
+Errors-to: kernelnewbies-bounce@nl.linux.org
+List-help: <mailto:ecartis@nl.linux.org?Subject=help>
+List-unsubscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=unsubscribe>
+List-software: Ecartis version 1.0.0
+List-subscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=subscribe>
+List-owner: <mailto:ecartis-owner@nl.linux.org>
+List-post: <mailto:kernelnewbies@nl.linux.org>
+List-archive: <http://mail.nl.linux.org/kernelnewbies/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Dec 22, 2004 at 12:47:17PM +0100, Patrick McHardy wrote:
+Hello Lukas,
+            As you said i  use following printk with for loop and
+included at hook_func1.
+ for (i=0;i<5;i++)
+    printk(KERN_DEBUG"Packet data is %02x\t",sb->data[i]);
+But i am not getting any output in /var/log/messages. Where am i
+wrong? I specified to print only 5 chars at start to check whether i
+can get packet dump or not?
+         What else should i include in module code i posted already
+with above lines?
+regards,
+linux.lover
 
-> Roberto Nibali wrote:
+On Wed, 22 Dec 2004 08:20:42 +0530, linux lover
+<linux.lover2004@gmail.com> wrote:
+> Hi all,
+> I want to print skb->data contents in kernel module using netfilter module at
+> NF_HOOK NF_IP_LOCAL_OUT. How can i do that? I know how to write netfilter
+> module like this one
+> #define MODULE
+> #define __KERNEL__
+> 
+>           #include <linux/module.h>
+>           #include <linux/kernel.h>
+>           #include <linux/skbuff.h>
+>           #include <linux/ip.h>
+>           #include <linux/netfilter.h>
+>           #include <linux/netfilter_ipv4.h>
+> 
+>           static struct nf_hook_ops nfho1;
+>           static unsigned char *packet_ip = "\x7f\x00\x00\x0b";
+> 
+>           unsigned int hook_func1(unsigned int hooknum,struct sk_buff **skb,
+>                                  const struct net_device *in,
+>                                  const struct net_device *out,
+>                                  int (*okfn)(struct sk_buff *))
+>           {
+>               struct sk_buff *sb = *skb;
+>               printk(KERN_DEBUG "calling hook_func at NF_IP_LOCAL_OUT\n");
+>                 if (sb->nh.iph->saddr == *(unsigned int *)packet_ip)
+>                  {
+>  /*CODE REQUIRE TO BE INCLUDED HERE*/
+>                   return NF_ACCEPT;
+>           }
+>                else
+>                     return NF_ACCEPT;
+> 
+>           }
+> 
+> static int __init init(void)
+>   {
+>               nfho1.hook     = hook_func1;
+>               nfho1.hooknum  = NF_IP_LOCAL_OUT;
+>               nfho1.pf       = PF_INET;
+>               nfho1.priority = NF_IP_PRI_FIRST;
+>               nf_register_hook(&nfho1);
+>               return 0;
+>           }
+> 
+> static void __exit fini(void)
+>           {
+>               nf_unregister_hook(&nfho1);
+>           }
+> module_init(init);
+> module_exit(fini);
+> MODULE_LICENSE("GPL");
+> 
+> But how can i print those HEX codes in packet?
+> regards,
+> linux.lover
+>
 
-> >Concerning netfilter there is one I think others might "benefit" from =
-as=20
-> >well. Here's the patch we're using to enlarge the prefix member of the=
-=20
-> >struct ipt_log_info structure in ipt_LOG.h:
-> >
-> > struct ipt_log_info {
-> >        unsigned char level;
-> >        unsigned char logflags;
-> >-       char prefix[30];
-> >+       char prefix[62];
-> > };
-
-> This breaks binary compatibility, so we can't put it in.
-> Otherwise I'd agree, 30 byte is kind of small. Maybe it
-> will be possible with Rusty's and Pablo's work to extend
-> structures without breaking compatibility.
-
-BTW, we really should provide a /proc entry which would give the maximum
-length of this LOG prefix.  And while we are at it, another one for
-chainname length.  Can somebody think of another useful value which
-would be worth publishing?
-That will help third party applications a lot, so they can be aware
-of how many chars they can use (these values can be changed
-at compile time anyhow) and take advantage of it.
-
- Herve
-
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+--
+Kernelnewbies: Help each other learn about the Linux kernel.
+Archive:       http://mail.nl.linux.org/kernelnewbies/
+FAQ:           http://kernelnewbies.org/faq/
