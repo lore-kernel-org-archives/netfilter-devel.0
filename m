@@ -1,18 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: repeatet postings (was Re: Idea: Check session source and destination)
-Date: Sun, 23 May 2004 11:08:38 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [RFC] Die to NOTRACK/TRACE, long live MARK!
+Date: Sun, 23 May 2004 10:55:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040523090838.GA27296@sunbeam.de.gnumonks.org>
-References: <2187.80.53.224.38.1085275561.squirrel@www.tmuras.2000.cd>
+Message-ID: <1085302540.969.51.camel@tux.rsn.bth.se>
+References: <Pine.LNX.4.33.0405211416341.8045-100000@blackhole.kfki.hu>
+	 <40AF6A60.70406@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
-Cc: "Netfilter Developers List  netfilter@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>,
-	mailman-owner@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-EaxZoojb8l1LNA7yvzhA"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Philip Craig <philipc@snapgear.com>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Mike Andersen <mike@src.no>
-Content-Disposition: inline
-In-Reply-To: <2187.80.53.224.38.1085275561.squirrel@www.tmuras.2000.cd>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <40AF6A60.70406@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,48 +25,44 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---RnlQjJ0d97Da+TV1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-EaxZoojb8l1LNA7yvzhA
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-Apparently either Mike Andersen's MUA or MTA are broken and keep
-re-transmitting the same mail.  Given that every message has a different
-msgid, I'd suggest it's the MUA.
+On Sat, 2004-05-22 at 16:57, Patrick McHardy wrote:
 
-Anyway, I have now deleted all mail from the mailman and exim spools on
-both netfilter.org mailservers to ensure no more of thos mails are
-delivered.
+> But good news, I'm currently busy shrinking struct ip_conntrack (I bet
+> myself I could shrink it 30% within 24 hours). I'm already at 28% ;)
+>=20
+> -8bytes replacing struct ip_nat_hash by struct list_head because of two
+> saved conntrack pointers
+> -20bytes replacing struct nf_ct_info array by new value in struct
+> sk_buff indicating relation between skb and conntrack .. maybe we could
+> also put this in nfcache.
+> -56bytes dynamically allocating helper data, but crashes with NAT atm
+>=20
+> I see 4 more bytes by using u_int16_t for initialized and num_manips in
+> struct ip_nat_info, and maybe I can also squeeze masq_index in there.
 
-I also unsubscribed mike@src.no from netfilter-devel to make sure all
-his postings will end up in manual moderation until further
-investigation.
-
-I'm sorry for the amount of mail you received, but there's nothing we
-can [automatically] do about this, if a individual legitimate subscriber
-keeps sending in the same message over and over again.
+Nice, I hope you succeed. We also need to rearrange struct ip_conntrack
+so often updated fields aren't sharing the same cacheline as mostly read
+fields. That and adding more test_bit() before we set_bit() (or
+something similar) will bring down the cache-trashing we have right now,
+especially on SMP.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+/Martin
 
---RnlQjJ0d97Da+TV1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+--=-EaxZoojb8l1LNA7yvzhA
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFAsGoWXaXGVTD0i/8RAspfAJ9WC5xxODm1tiU47G9BCb8a30ri0wCcC3QF
-0CPwcJuIXJJFTN08ByQbWxU=
-=h5bX
+iD8DBQBAsGcMWm2vlfa207ERAnUUAJwL6TOD41vORrjjFbU9br7dn60lIACgnFMb
+6XQ9spqFrZHJ83nik8OBs78=
+=a2h2
 -----END PGP SIGNATURE-----
 
---RnlQjJ0d97Da+TV1--
+--=-EaxZoojb8l1LNA7yvzhA--
