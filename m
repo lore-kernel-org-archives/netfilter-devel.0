@@ -1,17 +1,15 @@
-From: "Emiel Mols" <emiel@fulgor-hosting.nl>
-Subject: RE: IPSEC and NAT
-Date: Sat, 16 Oct 2004 00:03:44 +0200
+From: Michal Rokos <michal@rokos.info>
+Subject: nf_conntrack_core: port to module_param
+Date: Sat, 16 Oct 2004 00:10:40 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <E1CIaAp-0006Vi-00@deer.gmane.org>
-References: <1097877726.2771.47.camel@localhost>
+Message-ID: <200410160010.40500.michal@rokos.info>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "'John A. Sullivan III'" <john.sullivan@nexusmgmt.com>
-In-Reply-To: <1097877726.2771.47.camel@localhost>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,49 +20,47 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Well, I only control one end of the link :). This one ip address is assigned
-to me and I have to find a way to NAT it :(.
+Hello,
 
-netfilter-devel@lists.netfilter.org
------Original Message-----
-From: John A. Sullivan III [mailto:john.sullivan@nexusmgmt.com] 
-Sent: zaterdag 16 oktober 2004 0:02
-To: Emiel Mols
-Cc: netfilter-devel@lists.netfilter.org
-Subject: Re: IPSEC and NAT
+as Yasuyuki KOZAKAI directed, I'm sending nf_conntrack patches here 
+instead of usagi-users.
 
-On Fri, 2004-10-15 at 14:00, Emiel Mols wrote:
-> Hi,
-> 
->  
-> 
-> I've managed to setup a host-to-net ipsec connection with a remote network
-> on a linux router using (ported) isakmpd and kernel 2.6.8.1. However, I
-want
-> to be able to 'share' this ipsec connection with the rest of the network,
-> but since no ipsecn virtual interface is created in the 2.6 kernels I
-can't
-> use ordinary SNAT/MASQUERADE targets in iptables: ipsec packets get
-> encrypted before entering the POSTROUTING table :(, so the source address
-of
-> the encapsulated packet can't be changed anymore. I've read
->
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-January/thread.htm
-> l#13879, but the supplied patch doesn't work very well.
-> 
->  
-> 
-> Does anyone have any suggestions on how to get this working?
-<snip>
-I may be a bit tired at the end of a long week and have thus missed your
-point . . . but why not set it up as a net-to-net connection? - John
--- 
-John A. Sullivan III
-Chief Technology Officer
-Nexus Management
-+1 207-985-7880
-john.sullivan@nexusmgmt.com
----
-If you are interested in helping to develop a GPL enterprise class
-VPN/Firewall/Security device management console, please visit
-http://iscs.sourceforge.net 
+This one is 1 addition I forget to fold into last patch I sent.
+
+Make nf_conntrack_core use module_param() and turn of debugging by 
+default.
+
+Michal
+
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/10/15 23:52:28+02:00 michal@michal.rokos.info 
+#   Forgot to port nf_conntrack_core to module_param too.
+# 
+# net/netfilter/nf_conntrack_core.c
+#   2004/10/15 23:52:17+02:00 michal@michal.rokos.info +2 -2
+#   Port nf_conntrack_core to module_param too.
+# 
+diff -Nru a/net/netfilter/nf_conntrack_core.c 
+b/net/netfilter/nf_conntrack_core.c
+--- a/net/netfilter/nf_conntrack_core.c 2004-10-16 00:07:30 +02:00
++++ b/net/netfilter/nf_conntrack_core.c 2004-10-16 00:07:30 +02:00
+@@ -53,7 +53,7 @@
+ 
+ #define NF_CONNTRACK_VERSION "0.3"
+ 
+-#if 1
++#if 0
+ #define DEBUGP printk
+ #else
+ #define DEBUGP(format, args...)
+@@ -1653,7 +1653,7 @@
+ }
+ 
+ static int hashsize;
+-MODULE_PARM(hashsize, "i");
++module_param(hashsize, int, 0400);
+ 
+ int __init nf_conntrack_init(void)
+ {
