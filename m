@@ -1,13 +1,17 @@
-From: "jesse" <jesse@deansoft.com.tw>
-Subject: Fw: why find_appropriate_src so unneeded??
-Date: Fri, 8 Aug 2003 18:23:21 +0800
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH][TRIVIAL]  Non-existent option in runme script
+Date: Sun, 10 Aug 2003 11:39:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <002701c35d97$1809b4c0$0f01a8c0@jessepajh2dxik>
+Message-ID: <20030810093948.GO28317@sunbeam.de.gnumonks.org>
+References: <3F35374E.6020708@videotron.ca>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0024_01C35DDA.25D5D410"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mjeOt6n4R71vn6wN"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Stephane Ouellette <ouellettes@videotron.ca>
+Content-Disposition: inline
+In-Reply-To: <3F35374E.6020708@videotron.ca>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,62 +22,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_0024_01C35DDA.25D5D410
-Content-Type: text/plain;
-	charset="big5"
+--mjeOt6n4R71vn6wN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
+On Sat, Aug 09, 2003 at 02:02:54PM -0400, Stephane Ouellette wrote:
+> Harald,
+>=20
+>    the following patch removes a non-existent option on the prompt of=20
+> the "runme" script in P-O-M.
 
------ Original Message -----=20
-From: jesse=20
-To: netfilter-devel@lists.netfilter.org=20
-Sent: Tuesday, July 01, 2003 3:24 PM
-Subject: why find_appropriate_src so unneeded??
+Thanks, patch applied.
 
+> Stephane
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Excuse me, can I ask a question?
-Since we've guaranteed that the adjusted tuple being uniche after we did =
-dnat in NF_IP_PRE_ROUTING(even finding no rule will still do =
-alloc_null_binding), why we should use find_appropriate_src to prove =
-this once adjusted tuple's reusability rether than just check it's =
-in_range?
+--mjeOt6n4R71vn6wN
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-------=_NextPart_000_0024_01C35DDA.25D5D410
-Content-Type: text/html;
-	charset="big5"
-Content-Transfer-Encoding: quoted-printable
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dbig5">
-<META content=3D"MSHTML 6.00.2600.0" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>&nbsp;</DIV>
-<DIV style=3D"FONT: 10pt =B7s=B2=D3=A9=FA=C5=E9">----- Original Message =
------=20
-<DIV style=3D"BACKGROUND: #e4e4e4; font-color: black"><B>From:</B> <A=20
-title=3Djesse@deansoft.com.tw =
-href=3D"mailto:jesse@deansoft.com.tw">jesse</A> </DIV>
-<DIV><B>To:</B> <A title=3Dnetfilter-devel@lists.netfilter.org=20
-href=3D"mailto:netfilter-devel@lists.netfilter.org">netfilter-devel@lists=
-.netfilter.org</A>=20
-</DIV>
-<DIV><B>Sent:</B> Tuesday, July 01, 2003 3:24 PM</DIV>
-<DIV><B>Subject:</B> why find_appropriate_src so unneeded??</DIV></DIV>
-<DIV><BR></DIV>
-<DIV><FONT face=3D=B7s=B2=D3=A9=FA=C5=E9 size=3D2>Excuse me, can I ask a =
-question?</FONT></DIV>
-<DIV><FONT face=3D=B7s=B2=D3=A9=FA=C5=E9 size=3D2>Since we've guaranteed =
-that the&nbsp;adjusted tuple=20
-being uniche after&nbsp;we did dnat&nbsp;in NF_IP_PRE_ROUTING(even =
-finding no=20
-rule will still do alloc_null_binding), why we should&nbsp;use=20
-find_appropriate_src to prove this&nbsp;once adjusted tuple's =
-reusability rether=20
-than just check it's in_range?</FONT></DIV></BODY></HTML>
+iD8DBQE/NhLkXaXGVTD0i/8RAuvRAKCyNmQr06nPfvn2+caZca3iExpC4wCbBvlP
+YoQnUWSepRBdf5Y5TJBVc8k=
+=urel
+-----END PGP SIGNATURE-----
 
-------=_NextPart_000_0024_01C35DDA.25D5D410--
+--mjeOt6n4R71vn6wN--
