@@ -1,22 +1,13 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCHSET] Multiarch kconfig cleanup
-Date: Fri, 3 Jan 2003 00:05:08 +0100 (MET)
+From: "PAUL FABRICIO VILLACRESES LEON" <paulvillacreses@hotmail.com>
+Subject: How block port tcp using library iptables
+Date: Fri, 03 Jan 2003 01:08:21 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.21.0301022358340.6446-100000__38576.7736276195$1041617842@vervain.sonytel.be>
-References: <20030102182038.GZ17053@louise.pinerecords.com>
+Message-ID: <F84Kljq65Rn8P5o7P6u000007a2@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Linus Torvalds <torvalds@transmeta.com>,
-	Jeff Garzik <jgarzik@pobox.com>, zaitcev@redhat.com,
-	"David S. Miller" <davem@redhat.com>,
-	Linux Kernel Development <linux-kernel@vger.kernel.org>,
-	sparclinux@vger.kernel.org,
-	Linux/m68k <linux-m68k@lists.linux-m68k.org>,
-	netfilter-devel@lists.samba.org, phillim2@comcast.net,
-	Russell King <rmk@arm.linux.org.uk>
+Content-Type: text/plain; format=flowed
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tomas Szepe <szepe@pinerecords.com>
-In-Reply-To: <20030102182038.GZ17053@louise.pinerecords.com>
+To: sumit@elitecore.com
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -27,57 +18,110 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2 Jan 2003, Tomas Szepe wrote:
-> On with the [mainly networking oriented] Kconfig clean-up saga.
-> 
-> This is the first time I'm trying to get more than 3 people to work
-> together so I'd be grateful if you didn't kick me too hard should I have
-> screwed up.
 
-> 19/36  x15-arch-m68k          SPECIAL: Tear down m68k NETDEVICES config 
 
-Looks OK.
 
-> 20/36  x15-arch-m68k_nommu    Tear down m68k_nommu NETDEVICES config
+Hi
 
-Not under our jurisdiction.
+Sumit Pandya and all netfilter-devel's menbers
 
-> 34/36  x15-net.2-m68k         2/2 -""- (and re-add m68k specific drivers)
+white Paul Villacreses Leon
+Student
+ESPOL UNIVERSIY - ECUADOR
 
-Actually CONFIG_ARIADNE2 and CONFIG_NE2K_ZORRO are the same. We introduced the
-latter in the old Configure.help when the Ariadne II driver got X-Surf support,
-but forgot to replace the former in the Makefile logic. And the driver is still
-called ariadne2.c.
+topic :contents transparent firewall
 
-linux-m68k: Should we kill CONFIG_NE2K_ZORRO, or kill CONFIG_ARIADNE2 and
-rename the driver to ne2k-zorro.c?
+I have this:
 
-> 35/36  x16                    Add the unified NETDEVICES submenu
+Internet -----| eth0 | -------  bridge --------- | eth1 | ---- LAN Proteted
 
-Looks OK.
+1.- I Used linux RedHat 8 kernel linux2.4.18-19
+2.- I use the module bridge.o for bridge eth0 to eth1
+2.- I have a C program , this capture packets .
+3.- I use libpcap.a  to capture the packet and libiptc.a(iptables1.2.6.a) 
+for block
 
-> sparc32 and m68k are special in that they define their specific netdevices
-> in arch/{sparc,m68k}/Kconfig.
+4.- whith libiptc.a read rules in iptables and add new rules in chain 
+FORWARD
+5.- My program put the rule and block ip_src,ip_dst asn ip_p(IP protocol)
 
-Mainly to avoid seeing too many entries for devices we can't support (e.g. old
-ISA adapters)...
+But I need :
 
-> ACKLIST is as follows, i.e. people listed please ACK at least:
-> 	(m68k people)		#19, #20, #34, #35
+1.- Block port TCP like (ftp 21 ,telnet 23,DNS 53, tftp 69 snmp 161 etc..)
+2.- The library libiptc whith yours struct ipt_entry don't enable me block 
+port tcp
+3.- Redirect with NAT but using a library not script
 
-> x86 seems to work as expected.  I also tried to compile sparc32 but found
-> out 2.5.54 vanilla itself was broken for it -- the .config looked sane,
-> though.
+2 questions?
 
-Disclaimer: I didn't try to compile, I just looked at the patches.
+How block port tcp using library libiptc or another libraty?
+i read about struct ipt_tcp but i don't understand when i work whith this 
+struct.
 
-Gr{oetje,eeting}s,
+In the library  libiptc.a create new rule is basic only suport ACCEPT, DROP, 
+RETURN
+i need to accept DNAT and SNAT. How enable this.
 
-						Geert
+Please answer me
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+thank you very much
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-							    -- Linus Torvalds
+
+
+
+
+
+>From: "Sumit Pandya" <sumit@elitecore.com>
+>To: "PAUL" <paulvillacreses@hotmail.com>
+>CC: <netfilter-devel@lists.samba.org>
+>Subject: RE: Request for a Beginning in libiptc and libipq
+>Date: Thu, 28 Mar 2002 19:24:19 +0530
+>
+>Hi Paul,
+>	I'm still not sure why you wanted to automate such process at kernel 
+>level.
+>But Its really an interesting thought. Ya It took a little long time to 
+>move
+>on your problem, but I've a hope to achieve this. You know me too usually
+>take interest in such adventures, so I took you personally ;-)
+>	Anyway from your description I'd define your goal as "Making System Calls
+>from Kernel Space". I got this idea by khttpd module of kernel, and I got
+>same deal on Internet from website of very popular Linux Identity
+>"Alessandro Rubini". Just go through his guide on link
+>http://www.linux.it/kerneldocs/ksys/ksys.html.
+>
+> >> 2.- Can I use libiptc or another lib or *.h  for manipulate the packet
+>and
+> >> compare with a file with IP's and enable go to the QUEUE without 
+>scripts
+> >> below, for example:
+> >> iptables -I FORWARD -j QUEUE or
+> >> iptables -t mangle -I PREROUTING -j QUEUE
+>	To achieve this you require to write your own "Target" for netfilter, like
+>ACECPT,REJECT,... Easiest to look into target "TOS".
+>
+> >> 3.- Why using table  "mangle" for sent the packet to the QUEUE  in
+> >> PREROUTING  the catch of the packet  is more fast than using the QUEUE 
+>in
+> >> the table "filter" in FORWARD.
+>	It depends on which traffic you wanted to intercept. If you Implement 
+>QUEUE
+>in FORWARD then you will miss all those packets ehich intended to host. 
+>Just
+>a Silly question here: Do you have clear idea of how packet travel into
+>netfilter code? Which chains are travel and in which order? Don't get
+>annoyed, from yours "see the comments...Step Table Chain Comment... " I can
+>say that you have little idea atleast ;-).
+>
+> >> 4.- In the HOW-TO hacking-netfilter i read some functionality using
+>KERNEL
+> >> function for add rules i read this but How can I do ?
+>	It would be nice if you snapped that part of documentation in this mail.
+>
+>-- Sumit
+>
+
+
+_________________________________________________________________
+MSN 8 with e-mail virus protection service: 2 months FREE* 
+http://join.msn.com/?page=features/virus
