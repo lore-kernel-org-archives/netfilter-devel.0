@@ -1,22 +1,15 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: iptables freeze
-Date: Wed, 07 Jul 2004 13:16:18 +0200
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Subject: TCINDEX HOWTO
+Date: Wed, 7 Jul 2004 22:12:08 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1089198977.2599.31.camel@nienna.balabit>
-References: <20040706224021.GU32707@sunbeam2>
-	 <1089192566.2599.5.camel@nienna.balabit>
-	 <38713.83.103.143.1.1089194587.squirrel@83.103.143.1>
-	 <1089195093.2599.23.camel@nienna.balabit>
-	 <46146.193.231.247.183.1089198052.squirrel@193.231.247.183>
-	 <1089198419.2599.28.camel@nienna.balabit>
-	 <46217.193.231.247.183.1089198860.squirrel@193.231.247.183>
+Message-ID: <200407071909.i67J9wMX014381@madinah.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter List" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: arny <arny@arny.ro>
-In-Reply-To: <46217.193.231.247.183.1089198860.squirrel@193.231.247.183>
+To: "MPLS Linux List" <mpls-linux-general@lists.sourceforge.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -27,16 +20,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I am unable to find any information on how to use tcindex filter nor are
+there any examples (or at least I could not find them:-(). Can any one
+please provide me with a short tutorial and some examples particularly on
+how to use exp2tc or tc2exp instructions.
 
-  Hi,
+ 
 
-2004-07-07, sze keltezéssel 13:14-kor arny ezt írta:
-> I think 2.4.26, i`m not sure. I will try it later and i will send you
-> e-mail if i find something.
+Regards,  
 
-  Ok, thanks. It would be especially useful if we could figure out the
-exact version of the kernel which introduced the bug.
+ 
 
--- 
- Regards,
-   Krisztian KOVACS
+Muhammad R. Sami 
+Research Assistant, 
+Computer Engineering Department 
+P.O.Box 354 
+King Fahd University of Petroleum & Minerals 
+Dhahran 31261 
+Saudi Arabia. 
+Tel: +96638601423 
+Cell: +96657982951 
+www.ccse.kfupm.edu.sa/sami
+
+ 
