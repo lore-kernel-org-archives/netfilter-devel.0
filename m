@@ -1,15 +1,14 @@
-From: "Piotr =?iso-8859-2?Q?Gasid=B3o?=" <quaker@barbara.eu.org>
-Subject: [PATCH] ipt_account update
-Date: Fri, 27 Aug 2004 17:35:34 +0200
+From: Alex <alex@towebs.com>
+Subject: Commentary error ?
+Date: Fri, 27 Aug 2004 12:10:59 +0000
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040827153534.GA31119@barbara.eu.org>
+Message-ID: <412F24D3.2090108@towebs.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=_pandora.barbara.ds.polsl.gliwice.pl-20867-1093620934-0001-2"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: coreteam@netfilter.org, netfilter@lists.netfilter.org,
+	netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,41 +19,11 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+/usr/src/linux-2.4.27/net/ipv4/netfilter/ip_tables.c:5
+"(2009-2002)" ?
 
---=_pandora.barbara.ds.polsl.gliwice.pl-20867-1093620934-0001-2
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-New ipt_account version 0.1.17:
-- convert ipt_account to use seq_file API
-- code cleanup
-
-Attached patch includes patches for both 2.4 and (new) 2.6 kernel tree.
-Please apply.
-
---=20
-Piotr 'QuakeR' Gasid=B3o, BOFH @ pandora.barbara.eu.org
-############## sending lusers to /dev/null since 1998
-##### Waiting for tomorrow, for a little ray of light
-### Waiting for tomorrow just to see your smile again
-
---=_pandora.barbara.ds.polsl.gliwice.pl-20867-1093620934-0001-2
-Content-Type: application/pgp-signature
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQFBL1TGgEmu6PNADqoRAmFsAKCT5hyChwbraE+DEjjFndI5f16w0ACdFqxk
-afi0q+jFRJ/lRBkzCuPTGuY=
-=rfZ8
------END PGP SIGNATURE-----
-
---=_pandora.barbara.ds.polsl.gliwice.pl-20867-1093620934-0001-2--
+/*
+ * Packet matching code.
+ *
+ * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
+ * Copyright (C) 2009-2002 Netfilter core team <coreteam@netfilter.org>
