@@ -1,73 +1,67 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: [ANNOUNCE] Proceedings of Netfilter Developer Workshop 2004
-Date: Sun, 26 Sep 2004 11:51:28 -0400
-Sender: netfilter-bounces@lists.netfilter.org
-Message-ID: <20040926155128.GE21419@ns.snowman.net>
-References: <20040925213322.GJ3236@sunbeam.de.gnumonks.org>
-	<1096169674.2341.9.camel@localhost>
+From: Robert Hardy <rhardy@webcon.ca>
+Subject: Re: Optimizing rule loading, iptables-1.3.0 and iptables-batch
+Date: Sun, 26 Sep 2004 15:24:31 -0400 (EDT)
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <Pine.LNX.4.61.0409261514330.3762@vortex.int.webcon.net>
+References: <Pine.LNX.4.61.0409070017220.23341@vortex.int.webcon.net>
+	<Pine.LNX.4.61.0409071309410.23282@filer.marasystems.com>
+	<Pine.LNX.4.61.0409072117010.11902@vortex.int.webcon.net>
+	<20040908164942.GA19802@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hCS/BWoPfTdmYtZi"
-Cc: Harald Welte <laforge@netfilter.org>, lwn@lwn.net,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Content-Disposition: inline
-In-Reply-To: <1096169674.2341.9.camel@localhost>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Ludwig Nussel <ludwig.nussel@suse.de>
+In-Reply-To: <20040908164942.GA19802@suse.de>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 8 Sep 2004, Ludwig Nussel wrote:
+> Robert Hardy wrote:
+>> As a side note for the same ~30000 rules:
+>> Time to load rules via iptables-batch using CIDR syntax: 23 mins 13 secs
+>> Time to load rules via iptables-batch using IPRANGE syntax: 26 mins 36 secs
+>> Time to load rules via iptables-restore (originally using CIDR syntax): 4
+>> mins 25 secs
+>>
+>> The time to process the rules set isn't linear with size. In general if you
+>> double a rule set it takes four times longer to load.
+>>
+>> At 30000 rules iptables-restore is still 5 times faster than iptables-batch.
+>
+> Wow, when I said 'lot' I for sure didn't think about that many :-) I
+> was thinking in the order of like saving two seconds out of four
+> when using the plain iptables command. The reason why iptables-batch
+> takes longer most probably is because it commits after every rule
+> whereas iptables-restore usually only does that once for each table.
+> It can do so because rules are grouped by table and are not mixed.
+> Maybe it's possible to reuse the handles in iptables-batch and do
+> the commit at the end. I'll check that.
 
---hCS/BWoPfTdmYtZi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I thought I should point out that the improvements present in
+iptables-1.3.0-20040925 totally rock! Good work!
 
-* John A. Sullivan III (john.sullivan@nexusmgmt.com) wrote:
-> On Sat, 2004-09-25 at 17:33, Harald Welte wrote:
-> > I finally finished writing up the proceedings of the 2004 Netfilter
-> > Developer Workshop, based on the notes taken by various attendees.
-> >=20
-> <snip>
-> Harald, I noticed the section where you were considering an organization
-> to manage funding.  If you would like, please take a look at the Open
-> Source Development Corporation (http://www.opensourcedevel.com).  OSDC
-> could potentially do the work or feel free to just adapt the ideas if
-> you like them (or reject all of it if it appears as nonsense to you!). =
-=20
->=20
-> I originally set this up to manage the funding for the ISCS network
-> security management project but the goal is to handle many more projects
-> as a bridge between organizations which derive value from open source
-> projects and the teams which create the open source products.
+I built up an i686 rpm based on that snapshot. Not only does it work well
+(2004090x segfaulted on me), it is very fast.
 
-As long as we're bringing up such things- Software in the Public
-Interest (http://www.spi-inc.org) is a non-profit organization which
-does this already for a number of projects already, most prominently
-Debian.
+I repeated my performance testing. On a P4 2.4GHz iptables-restore now takes
+a couple of seconds to restore ~30000 rules. Even a 400MHz Celeron can
+restore ~30K rules in 28 seconds.
 
-	Stephen
+This is a major improvement to say the least. It would awesome if you could
+somehow harness this performance in iptables-batch.
 
---hCS/BWoPfTdmYtZi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Regards,
+Rob
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBVuWArzgMPqB3kigRAqdpAJ4ruHu+ZSK25QnpR48HNF4dIf9X8ACfdRjS
-5/LKhbuVjlwoFsvRxhdNdYM=
-=u9gd
------END PGP SIGNATURE-----
-
---hCS/BWoPfTdmYtZi--
+-- 
+---------------------"Happiness is understanding."----------------------
+Robert Hardy, B.Eng Computer Systems                  C.E.O. Webcon Inc.
+rhardy <at> webcon <dot> ca    GPG Key available          (613) 276-7327
