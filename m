@@ -1,15 +1,16 @@
-From: larsbj@birdstep.com (=?iso-8859-1?q?Lars_Gullik_Bj=F8nnes?=)
-Subject: Re: Support for ip-ranges.
-Date: Tue, 19 Aug 2003 13:43:34 +0200
+From: Massimiliano Cuzzoli <mcuzzoli@mbigroup.it>
+Subject: Re: Problem with extended-match deletion
+Date: Tue, 19 Aug 2003 16:14:11 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <m34r0dub2x.fsf@trylle.birdstep.com>
-References: <m3n0ekpevv.fsf@tyfon.gullik.net>
+Message-ID: <3F4230B3.9090808@mbigroup.it>
+References: <20030819102424.16725.44717.Mailman@kashyyyk> <012a01c36651$0889f970$010f430a@elite.co.in> <3F422834.3020702@mbigroup.it> <018401c36659$e505a220$010f430a@elite.co.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <m3n0ekpevv.fsf@tyfon.gullik.net>
+To: Sumit Pandya <sumit@elitecore.com>
+In-Reply-To: <018401c36659$e505a220$010f430a@elite.co.in>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +21,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-larsbj@birdstep.com (Lars Gullik Bj=F8nnes) writes:
+Ok Sumit,
+now perhaps I've found my error:
+I define:
 
-| Are there support for matching on ip ranges in iptables now?
->
-| I am thinking of something like:
->
-|   --match iprange --iprange-begin 192.168.10.23 --iprange-end 192.168.1=
-1.15
->
-| Have this been thought of or is it something that would
-| be interesting?
+static struct iptables_match bwcontrol = {
+         NULL,
+         "bwcontrol",
+         NETFILTER_VERSION,
+         IPT_ALIGN(sizeof(struct ipt_bwctrl_info)),
+-->>>>  IPT_ALIGN(sizeof(struct ipt_bwctrl_info)),
+         &help_bwcontrol,
+         &init_bwcontrol,
+         &parse_bwcontrol,
+         &final_check,
+         &print_bwcontrol,
+         &save_bwcontrol,
+         opts
+};
 
-[posted several days ago what happened to it?]
+Thank you very much!!!
 
-Anyway I found the iprange patch on the web page, what are the
-prospects on getting this patch into ipfilter/iptables proper?
-
---=20
-	Lgb
+Sumit Pandya wrote:
+> I think you have overlooked some text from my previous reply
+> 
+>>>Are you sure you not changing (void*) matchinfo structure from
+> 
+> matchentry
+> 
+>>>function within kernel module?
+> 
+>     From your reply it seems that bwcontrol_checkentry is doing what I
+> doubted. If it is so then in your userland library you need this kind of
+> defination
+> static
+> struct iptables_match bwcontrol = {
+>         NULL,
+>         "bwcontrol",
+>         NETFILTER_VERSION,
+>         IPT_ALIGN(sizeof(struct ipt_bwctrl_info)),
+>         offsetof(struct ipt_bwctrl_info, original),
+>         &help_bwcontrol,
+>         &init_bwcontrol,
+>         &parse_bwcontrol,
+>         &final_check,
+>         &print_bwcontrol,
+>         &save_bwcontrol,
+>         opts
+> };
+> --Sumit
