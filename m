@@ -1,15 +1,16 @@
-From: shobhan <shobhankumar-rc@naturesoft.net>
-Subject: Re: About the iptc library
-Date: Mon, 17 Mar 2003 18:12:24 +0530
+From: John Duke <johnyduke@yahoo.com>
+Subject: Re: Transparent broadband network connectivity (IP PnP)
+Date: Mon, 17 Mar 2003 21:36:59 +0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E75C2B0.4050605@naturesoft.net>
-References: <001f01c2e943$57b36350$4f241cac@nechk.nec.com.hk>
+Message-ID: <5.2.0.9.2.20030317205113.022da110@192.168.1.1>
+References: <200303132244.h2DMisD16238@singularity.tronunltd.com>
+ <200303132244.h2DMisD16238@singularity.tronunltd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Big5
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Louis Lau <louis_lau@nechk.nec.com.hk>
+To: Patrick McHardy <kaber@trash.net>, delaunois@info.ucl.ac.be
+In-Reply-To: <3E711528.4040502@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,66 +21,108 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Seems you are not giving -rdynamic flag in gcc.
+Hi,
 
-try with giving "-rdynamic" with gcc.
+I'm realy reach the target with proxy arp and the following rules
 
-Cheers
-Shobhan
+                        172.16.1.1  PublicIP
+Client 1 -----------|        eth0    eth1
+<any IP>         |-------- [ GW ] ----- [ router ] --- Internet
+                      |  DefaultGW=RouterIP
+Client 2 -----------|
+<any IP>
 
-Louis Lau wrote:
+# snat output
+(1) iptables -t nat -A POSTROUTING -o eth1 -j SNAT --to <PublicIP>
 
->Dear all developers,
+# redirect de-nat'd return packet to internal network
+(2) iptables -t mangle -A FORWARD -i eth1 -j ROUTE --iface eth0
+
+# allow internal clients connect to 172.168.1.1 (for ssh, web, ...)
+(3) iptables -t mangle -A POSTROUTING -o eth1 -m conntrack --ctreplsrc
+172.16.1.1 -j ROUTE --iface eth0
+
+With above configuration, client inside internal network (must use a valid
+DNS server) can access into internet as well as connect to the gateway box
+via ip 172.16.1.1
+
+But in case client can have any ip configuration, I have to solve the
+following issues:
+         - Any ip (solved)
+         - Any gateway (solved)
+         - Any DNS setting (?)
+         - Any proxy setting (?)
+
+To solve the any DNS setting issue, I added DNS redirect as follow:
+
+(4) iptables -t nat -I PREROUTING -i eth0 -p tcp --dport 53 -j DNAT --to
+<Public DNS IPs>
+(5) iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to
+<Public DNS IPs>
+
+Then the wierd thing happened. When client send a DNS request, the replied
+SYN/ACK from Public DNS server to gateway box, after go into eth1
+interface, seems to be disappeared in the kernel. I can not see either that
+SYN/ACK packet send out to internal network via eth0 (in correct routing
+case) or outside network via eth1 (in wrong routing case). For sure that if
+i remove (2) rule, I can see the SYN/ACK packet after de-nat'd send out
+again to eth1. It seems to me that ROUTE target has some weird side effect.
+Do anyone have any suggestion to override DNS and proxy issues?
+
+Regards,
+
+John
+
+At 12:32 AM 3/14/2003 +0100, Patrick McHardy wrote:
+>I still think my suggestion is a lot easier, as i understood him he already
+>got so far that the clients can send packet to the internet, they are SNATed
+>and reply packet reach the NAT box which DNATs them back automatically.
+>With a simple iptables rule packet can be directed to the client-network:
+>iptables -A PREROUTING -i eth1 -m conntrack --orig-dst <eth0-ip> -j ROUTE
+>--oif eth1
+>Only thing left to do is make linux send arp requests for the client ips
+>on eth1,
+>im unsure how this can be achieved or if anything needs to be done at all.
 >
->Hi there, I have been using iptables for sometime and since there are so
->many parameters i need to set, i have made a GUI interface to handle my
->configuration. In my GUI, i use ORBit CORBA so that my server (written in C)
->can talk to my Java applet. Then i can control the firewall through the java
->interface remotely. However, the method i use in my server to get the
->iptable is very simple.. i use popen to call iptables and then transfer the
->result, pack it into some data structure and then send back to the java
->client. This has a flaw as i think most of u will know as anyoner can type
->in any command in my field and hack to my computer.. (like in the field for
->remarks, the user may type "& reboot" then my computer will reboot. I have
->done something to filter out any 'troblesome' characters but i think this
->doesn't make the GUI more secure... especially if i want to put this in a
->sourceforge project and ppl can easily write another client program to
->interact with the server program. So i have started to look at the source
->code of iptables and see if i can integrate the source code in my server
->program. (ie. change my server program to a client of the kernel netfilter
->functions) But i have some problems in doing this as i haven't program much
->in Linux before indeed, so i hope in this list, someone can give me hints on
->how to do about this.... =)
->
->in the iptables source code, i found that iptables.c has all the functions
->to control the netfilter, so i just want to be able to use the do_command()
->function in my server program and that will do my job. i put the iptables.c
->and the include directory in my testing directory,
->and then i write a short main program to parse the user input to the
->do_command function. (just like the iptables-standalone.c do) I initially
->recieve some error as it can not load the share library libiptc*. I find
->that there are some share object in /usr/include/lib/iptables, so i do
->ldconfig -v -n /usr/include/lib/iptables
->ln -sf libipt_standard.so libipt_standard.so.1
->export LD_LIBRARY_PATH=/usr/include/lib/iptables
->After that i can compile the program by adding -lipt_standard in the compile
->line.... the program compile but when i call my program, it recieve
->segmentation fault. If i don't add the dynamic link of libipt_standard.so
->and i don't compile with this library, the function won't have segmentation
->fault but it yeilds:
->couldn't load target 'standard':/usr/local/lib/iptables/libipt_standard.so:
->undefined symbol: register_target
->
->So can you give me some hints why this happens? or do i need to recompile
->the kernel in order to do this? (I suspect not as i can compile the iptables
->source code and work with my current kernel....)
->
->Thanks in advance.
->
->cheers
->
->Louis
+>Patrick
 >
 >
+>Ian Latter wrote:
 >
+>>Clarifying this ...  correcting 1 and 2 below;
+>>
+>>  Once they're at the linux router/firewall doohicky, they can then
+>>be universally NATed .... but then you've got a problem ... because
+>>the linux box, doing layer-3 routing, will send user data back to the
+>>internet.  You can fix this by doing one of two things;
+>>
+>>  1.  Whatever does the arp spoofing to correct the routing, should
+>>       also rarp the ips of the macs currently asking for arps.  This
+>>       would allow you to layer-2 correct/align the linux box.  ie;
+>>            rarp on 10.1.1.99 = US:ER:1M:AC
+>>            rarp on 192.168.27.149 = US:ER:2M:AC
+>>            rarp on 1.2.3.200 = US:ER:3M:AC
+>>          (users[1-n]) --- [linux1/router/fw] -- (net)
+>>       This linux box would have a default (l3) route to the net.
+>>
+>>  2. You could use two linux boxes.  The first (closest to the users)
+>>      would have to do all of the layer 2 work - and then forward (bridge)
+>>      traffic to the second.  The second would have to do ip NATing
+>>      when matching the traffic from the MAC of the first ... I think ... I
+>>      haven't done any layer 2 stuff in iptables.  Ie;
+>>          (users[1-n]) --- [linux1/l2bridge] -x- [linux2/router/fw] -- (net)
+>>      The second linux box has default (l3) route of the net, it
+>> would      reply to traffic from the outer interface mac address of the first
+>>      linux box.
+>>
+>>
+>>  Option 1 looks easy enough to do ... and seems cooler .. but option
+>>2 might let you get away with doing this without writing a scrap of code
+>>...  dunno ... check the kernel options and supporting software
+>>for the layer 2 stuff .. and if iptables' match on mac will do what we
+>>want then you're set.
+>>
+>>
+>>
+>>
 >
