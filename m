@@ -1,16 +1,16 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: getting PID and task name from sk_buff
-Date: Thu, 24 Feb 2005 08:22:29 -0500
-Message-ID: <876ef97a050224052244efa6f3@mail.gmail.com>
+Date: Thu, 24 Feb 2005 14:30:27 +0100
+Message-ID: <20050224133027.GB5056@oknodo.bof.de>
 References: <DEEDILHNOLKHPLJKLINBOEFHJMAC.alan@stead.com>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+	<876ef97a050224052244efa6f3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: alan@stead.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: alan@stead.com
-In-Reply-To: <DEEDILHNOLKHPLJKLINBOEFHJMAC.alan@stead.com>
+To: Tobias DiPasquale <codeslinger@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <876ef97a050224052244efa6f3@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +22,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 23 Feb 2005 22:17:01 -0800, Alan Stead <alan@stead.com> wrote:
-> Any suggestions on a better way to do this?
-> I am trying to track network traffic based on the process name and the
-> process ID.
+> Check out how the ipt_owner match module does it. However, I think
+> that this is not perfect, either. Maybe someone else has a better
+> idea?
 
-Check out how the ipt_owner match module does it. However, I think
-that this is not perfect, either. Maybe someone else has a better
-idea?
+When you do things at the wrong layer, there is never a perfect solution.
 
--- 
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+When you need per-process accounting of network traffic, the correct layer
+would be in the socket I/O syscalls themselves. I think the LSM framework
+could provide the right hooks to do that.
+
+best regards
+  Patrick
