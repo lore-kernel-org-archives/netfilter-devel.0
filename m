@@ -1,16 +1,17 @@
-From: Harald Welte <laforge@sunbeam.franken.de>
-Subject: Re: ip_conntrack_lock not readlocked
-Date: Tue, 2 Jul 2002 18:02:05 +0200
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: conntrack performance/DoS formula
+Date: Tue, 2 Jul 2002 18:32:42 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020702160205.GQ18333@naboo.rchrd.phub.net.cable.rogers.com>
-References: <3D21B499.141D270C@isd.uni-stuttgart.de>
+Message-ID: <20020702183242.E7684@oknodo.bof.de>
+References: <15643.31140.525551.843205@isis.cs3-inc.com> <20020628082339.I2890@oknodo.bof.de> <15644.41633.528107.723418@isis.cs3-inc.com> <20020628203624.A4136@oknodo.bof.de> <15644.45834.373409.220647@isis.cs3-inc.com> <20020702144048.GM18333@naboo.rchrd.phub.net.cable.rogers.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Albrecht Melan <melan@isd.uni-stuttgart.de>
+To: Harald Welte <laforge@gnumonks.org>,
+	Don Cohen <don-nf@isis.cs3-inc.com>, Patrick Schaaf <bof@bof.de>,
+	netfilter-devel@lists.samba.org
 Content-Disposition: inline
-In-Reply-To: <3D21B499.141D270C@isd.uni-stuttgart.de>
+In-Reply-To: <20020702144048.GM18333@naboo.rchrd.phub.net.cable.rogers.com>; from laforge@gnumonks.org on Tue, Jul 02, 2002 at 04:40:49PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,30 +22,25 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 02, 2002 at 04:11:37PM +0200, Albrecht Melan wrote:
-> Hi,
-> 
->  I'm using a kernel of version 2.4.18 where module-support is disabled
-> together with iptables-1.2.6a ( all compiled by myself).
->  I applied patches to netfilter  using POM.
+> great. I'd definitley want to encourage the two of you to do some
+> furtherr research on the hashing function.
 
-which patches?
+It's good to hear the audience :)
 
->  The following messages are seen in  my log-file
->         ASSERT: ip_nat_core.c: 743 &ip_conntrack_lock not readlocked
->         ASSERT:ip_conntrack_core.c: 973 &ip_conntrack_lock readlocked
+Everybody, have a look at http://bei.bof.de/ex1/. There's a bunch of
+pictures, which may become legible together with reading my recent
+mails on this thread.
 
-how often do you see them? Do they have always the same  line number?
-Could you send me a grep on all 'ASSERT:' entries in your syslog?
+The "cost" listed for each line in each picture, is the sum of the
+squares of the bucket list lengths. It's a lame attempt at getting a
+single number out of the spread.
 
-What kind of machine are you running?
+The links below the pictures lead you to the bucket statistics
+in ASCII text form (output of my cttest program).
 
->  Thanks for your help
->      Albrecht
+The data these pictures are based on, is my sample from some days ago.
 
--- 
-Live long and prosper
-- Harald Welte / laforge@sunbeam.franken.de    http://www.sunbeam.franken.de
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+Hope this is interesting to somebody :)
+
+best regards
+  Patrick
