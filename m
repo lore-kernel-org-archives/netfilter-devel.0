@@ -1,16 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: Security flaw in Stateful filtering ??????
-Date: Sat, 8 Jun 2002 09:44:17 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] don't try to track broadcasts or multicasts (4/4)
+Date: 08 Jun 2002 16:51:47 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020608074417.GC1109@naboo.de.gnumonks.org>
-References: <3D007FF0.2080304@cs.auc.dk>
+Message-ID: <1023547908.19838.46.camel@tux>
+References: <1023366027.845.30.camel@tux>
+	<20020608073547.GA1109@naboo.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Mikkel Christiansen <mixxel@cs.auc.dk>
-Content-Disposition: inline
-In-Reply-To: <3D007FF0.2080304@cs.auc.dk>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20020608073547.GA1109@naboo.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,36 +22,46 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jun 07, 2002 at 11:42:08AM +0200, Mikkel Christiansen wrote:
-> Hi 
+On Sat, 2002-06-08 at 09:35, Harald Welte wrote:
+
+> hm.  I would generally agree with you, but there is one issue which
+> needs to be looked into before considering this patch:
 > 
-> I'm still not sure I quite understand what actions an 
-> ACK packet from an unregistered connection causes when 
-> running in connection-pickup mode. Mainly, I'm interested
-> in knowing whether it causes a new connection to be 
-> registered in the connnection table or not?
+> What happens if some client sends an ip-unicast diagram as link layer
+> broadcast?  How does the linux stack react to this?
+> 
+> If the packet is processed/routed the same way like any other ip-unicast
+> link-layer unicast packet, we still need to do tracking of broadcast
+> packets.
+> 
+> Could you try to look into that and keep us posted?
 
-yes, of course, it causes a new conntrack table entry to be created.
-the entry will be UNREPLIED.  So in case the other end behind the
-firewall will reply with an ACK packet, we call the connection
-ESTABLISHED.
+Hmm why didn't I think about that?
 
-In case we run out of conntrack entries, the UNREPLIED entries are
-deleted, because they _could_ be from an ACK scan.
+I've done some simple testing and the results are:
 
-> Thanks for all the feedback - atleast to us - this is 
-> a quite interesting discussion.
+TCP:
+send SYN to ll broadcast: ignored
+send SYN,ACK to ll broadcast: ignored
 
-... a discussion which has happened multiple times before.
+UDP:
+packet sent to ll broadcast: accepted
 
-look in the mailinglist archives and search for conntrack entries with
-high timeount and UNREPLIED state.
+ICMP:
+echo-request sent to ll broadcast: accepted
+echo-reply sent to ll broadcast: accepted
+port unreachable sent to ll broadcast: accepted
 
-> -Mikkel
+I havn't done any tests with multicast ll addresses.
+
+Seeing these results there's not much need for a patch of this kind.
+TCP ll broadcasts are extremely rare. almost all ll broadcasts here are
+UDP.
+
+It was a nice thought but doesn't work in the real world.
 
 -- 
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
