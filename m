@@ -1,16 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: NAT before IPsec with 2.6
-Date: Sat, 24 Jan 2004 10:21:12 +0100 (CET)
+Subject: Re: filter for adding/checking TCP MD5 option
+Date: Sat, 24 Jan 2004 10:24:27 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401241015470.32723-100000@filer.marasystems.com>
-References: <20040124082252.GA19035@alpha.home.local>
+Message-ID: <Pine.LNX.4.44.0401241021550.32723-100000@filer.marasystems.com>
+References: <20040124083730.GB19035@alpha.home.local>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
-   <netfilter-devel@lists.netfilter.org>
+Cc: Remco van Mook <remco@virtu.nl>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Willy Tarreau <willy@w.ods.org>
-In-Reply-To: <20040124082252.GA19035@alpha.home.local>
+In-Reply-To: <20040124083730.GB19035@alpha.home.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,17 +22,15 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Sat, 24 Jan 2004, Willy Tarreau wrote:
 
-> That was my point too. Even if the packet is only encapsulated, from an IP
-> point of view, this is a completely new locally generated packet, and we
-> need to be able to apply filtering before and after encapsulation.
+> Unless I'm wrong, nf-hipac's goal is to allow to keep maximum performance with
+> *huge* amounts of rules.
 
-Yes, and to do that the required netfilter hooks needs to be added to the 
-new IPSec code when packets leave the IP stack and enters IPSec or the 
-reverse, similar to how there was hooks for the ipsecX: interfaces.
+It is, nothing more, nothing less.
 
-These hooks have not yet been done, mostly because nobody has contributed
-the code adding these hooks to the new IPSec implementation in a 
-reasonable manner I guess.
+If there is only a minimal set of rules the performance is the same.
+
+For bigger not very well structured rulesets nf-hipac is a clear win at
+the cost of higher memory usage.
 
 Regards
 Henrik
