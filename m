@@ -1,17 +1,18 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] Unused bit check to Unclean module
-Date: Thu, 13 Jun 2002 18:11:39 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] remove exessive timer updates (3/4)
+Date: 13 Jun 2002 18:17:41 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020613181139.M2543@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.21.0206121555010.18030-200000@dns.toxicfilms.tv>
+Message-ID: <1023985062.19816.368.camel@tux>
+References: <1023365846.845.26.camel@tux> <1023873045.19812.95.camel@tux>
+	<1023908549.19812.106.camel@tux>
+	<200206131407.39752@henrik.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8N0TQpGUCeEQshoq"
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.21.0206121555010.18030-200000@dns.toxicfilms.tv>; from solt@dns.toxicfilms.tv on Wed, Jun 12, 2002 at 03:57:12PM +0200
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <200206131407.39752@henrik.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,47 +23,32 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 2002-06-13 at 14:07, Henrik Nordstrom wrote:
+> On Wednesday 12 June 2002 21:02, Martin Josefsson wrote:
+> 
+> > It adds a new parameter to ip_ct_refresh called force, if set to
+> > non-zero a timer update will be forced.
+> 
+> Hmm.. this may be a little hard to enforce at all times..
+> 
+> Why don't you make the filter simply filter out any timer updates that 
+> would increase the timer by less than HZ?
+> 
+>   change = new_interval - current_remaining_time
+> 
+>   if (change < 0 || change >= HZ)
+>      update the timer
+> 
+> Feels both cleaner and safer to me..
 
---8N0TQpGUCeEQshoq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This sounds like a very good idea, it's a good thing I have you guys to
+straighten me out :)
 
-On Wed, Jun 12, 2002 at 03:57:12PM +0200, Maciej Soltysiak wrote:
-> Hello,
->=20
-> as suggested by Jozsef, i moved my IP unused bit check to the Unclean
-> module.
->=20
-> Here is the patch to netfilter root directory.
+Will send new patch later this evening. And I'll even test it before
+sending :)
 
-thanks, applied.
+-- 
+/Martin
 
-> Regards,
-> Maciej Soltysiak
-
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
-=20
-V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
-
---8N0TQpGUCeEQshoq
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9CMQ6XaXGVTD0i/8RAl+fAJ44nw/XLFbflRmkd+ZBsQFiUgDuFgCePEml
-Wh1AzdVUB3vdssVFx9frzSo=
-=KWKk
------END PGP SIGNATURE-----
-
---8N0TQpGUCeEQshoq--
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
