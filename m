@@ -1,14 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Get icmp ratelimit from sysctl in ipt_REJECT.c
-Date: Wed, 09 Feb 2005 00:34:37 +0100
-Message-ID: <42094C8D.1030009@trash.net>
-References: <20050208042943.7284.qmail@web60602.mail.yahoo.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [RFC] h323 module unloading fix
+Date: Wed, 9 Feb 2005 09:24:59 +0100
+Message-ID: <20050209082459.GY6878@sunbeam.de.gnumonks.org>
+References: <20050208145908.GS6878@sunbeam.de.gnumonks.org>
+	<420946FF.107@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Duncan Palmer <dunk_palmer@yahoo.com>
-In-Reply-To: <20050208042943.7284.qmail@web60602.mail.yahoo.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nfnKjHknX58/oBIK"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <420946FF.107@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,26 +23,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Duncan Palmer wrote:
 
->Hi,
->
->Whilst working on a netfilter module, I noticed a
->comment in ipt_REJECT.c saying 'FIXME: Use sysctl
->number. --RR' before a call to xrlim_allow(). This is
->fixed in the attached patch (against 2.6.11-rc2-mm1,
->but applies cleanly to rc3-mm1 as well).
->
-I was never convinced of using xrlim_allow in ipt_REJECT. We
-already have the limit match, which allows to set limits in
-the ruleset. The current of of xrlim_allow is actually broken,
-the max number of tokens in the dst_entry is limited by the timeout
-value, so both icmp.c and ipt_REJECT.c are limited by the smaller
-of both timeouts when ICMPs are sent by both. ipt_REJECT also
-doesn't care about icmp_ratemask and uses up token for types
-that shouldn't be limited. So we can either remove it entirely
-or use icmpv4_xrlim_allow. If there are no objections I would
-prefer to remove it.
+--nfnKjHknX58/oBIK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards
-Patrick
+On Wed, Feb 09, 2005 at 12:10:55AM +0100, Patrick McHardy wrote:
+> You can initialize helper->list and replace LIST_DELETE by list_del,=20
+> then you can avoid the check for list.next.=20
+
+I thought about that for a second, but somehow deferred the idea.
+Looking at other options, I think I'll go for that solution.
+
+> But I think splitting the code to evict expectations and expected
+> conntracks from ip_conntrack_helper_unregister is a cleaner solution.
+
+Mh, but then every author of a helper would explicitly have to take care
+of calling the 'evicting function'.  Considering that any existing
+helper, tutorial and other documentation tells him that he doesn't have
+to, it's easy to get it wrong and introduce further bugs.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--nfnKjHknX58/oBIK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCCcjbXaXGVTD0i/8RArDxAJ4/FALVGbWcHyUBy7B442QD/68SFQCeIpGd
+Zvf6HKQmkF77hJld+3a1gKM=
+=aLCT
+-----END PGP SIGNATURE-----
+
+--nfnKjHknX58/oBIK--
