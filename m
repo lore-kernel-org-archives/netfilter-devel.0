@@ -1,16 +1,14 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] tcp window tracking patch with SACK support
-Date: Fri, 18 Oct 2002 16:48:18 +0200
+From: "Javier Martin" <martin@trymedia.com>
+Subject: Wrong count on bytes
+Date: Fri, 18 Oct 2002 14:40:41 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021018144818.GJ2408@naboo.club.berlin.ccc.de>
-References: <20021017163909.GO344@pc.ilinx> <Pine.LNX.4.33.0210181255170.10340-100000@blackhole.kfki.hu>
+Message-ID: <003001c276ef$01c5b270$8432a8c0@mcpollo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0210181255170.10340-100000@blackhole.kfki.hu>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,38 +19,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Oct 18, 2002 at 01:09:43PM +0200, Jozsef Kadlecsik wrote:
-> Hello,
-> 
-> As it was reported several times on the mailing list, the tcp window
-> tracking patch could cause long SMTP delays in some cases.
-> 
-> After dumping a lot of traffic and replaying the streams it turned
-> out that the book-keeping inside the patch could go out of sync when SACK
-> was used. In another words, SACK was not supported by the patch and it
-> could cause legitimate packets to be blocked.
+Hi!
 
-Mmmh.. I see. 
+I'm getting confusing numbers from the iptables counters. The numbres
+apparently show that the output bandwidth is >140 Mbit/sec on a 100
+Mbit/sec.
 
-> I have committed the new tcp-window-tracking.patch with SACK support in
-> the cvs.
+I'm running:
 
-great, thanks.
+- RH 7.3
+- Kernel 2.4.18 (RH release is 2.4.18-10)
+- iptables 1.2.5 (RH release 1.2.5-3).
 
-> It'd be very helpful if sites which experienced the long SMTP delays could
-> give a try to the new version of the patch and then send a report: 'yeah,
-> it's seems to be OK' or 'nope, still bad'. :-)
+This server is running an intel EEPRO100 nic with own intel's driver
+(e100.o). The driver provides byte accounting at
+/proc/net/PRO_LAN_Adapters/eth0.info, and this number differs BY FAR
+from iptables. If I run the following script:
 
-well, I'd rather not test it on kashyyyk.netfilter.org for some time...
-so I really have to rely on others for testing. Please tell me about
-your erxperience with this new patch.
+  cat /proc/net/PRO_LAN_Adapters/eth0.info |grep Tx_Bytes
+  iptables -L -n -v -x |grep OUTPUT
+  sleep 10
+  cat /proc/net/PRO_LAN_Adapters/eth0.info |grep Tx_Bytes
+  iptables -L -n -v -x |grep OUTPUT
 
-> Best regards,
-> Jozsef
+This is the result:
 
--- 
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+  Tx_Bytes                  2501299733
+  Chain OUTPUT (policy ACCEPT 410429507 packets, 581914465274 bytes)
+  Tx_Bytes                  2626036933
+  Chain OUTPUT (policy ACCEPT 410555345 packets, 582099636248 bytes)
+
+Substract the numbers, then divide by 10 seconds and you will have the
+speed rate:
+
+  Intel's driver counter:   95,17 Mbit/sec
+  iptables:                141,27 Mbit/sec!?!?
+
+The driver's counter is correct as the server is truly under heavy
+traffic load and the rate is peaking at the ethernet limit. But the
+iptables number is way not coherent.
+
+I'm using the following rules:
+
+  iptables -I INPUT -i eth0 --destination x.x.x.x
+  iptables -I OUTPUT -o eth0 --source x.x.x.x
+
+And x.x.x.x is an address added to the eth0 device via the iproute's ip
+command:
+
+  ip address add x.x.x.x dev eth0
+
+I also have some queue discipline filters for bandwidth shaping which I
+don't really believe they have anything to do.
+
+Please help!
+
+Javier
