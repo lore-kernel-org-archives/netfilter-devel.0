@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_conntrack_tcp problem on kernel 2.4.28 !!! INVALID ?
-Date: Sat, 25 Dec 2004 15:11:10 +0100
-Message-ID: <41CD74FE.3090202@trash.net>
-References: <opsjkf9pg8or678w@localhost>
+Subject: Re: [PATCH] Fix conntrack iteration.
+Date: Sat, 25 Dec 2004 15:32:24 +0100
+Message-ID: <41CD79F8.5060003@trash.net>
+References: <1103888157.4000.2.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Rusty Russell <rusty@rustcorp.com.au>, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel-owner@lists.netfilter.org
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Konsar <konsar@brod.pl>
-In-Reply-To: <opsjkf9pg8or678w@localhost>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <1103888157.4000.2.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,29 +21,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Konsar wrote:
-> Hi !!!
+Rusty Russell wrote:
+> Found this bug while searching for another.  Potential crash on unload
+> (unlikely though, unless packets are queued).
 > 
-> I have patches kernel 2.4.28 + patch-o-matic-ng-20040621 with  
-> iptables-1.2.11 on my router/NAT server.This islog from my server
- >
-> [...]
->
-> Dec 25 14:15:47 gizmo kernel: ip_conntrack_tcp: INVALID: invalid RST  
-> (ignored) SRC=64.230.127.202 DST=22.22.22.22 LEN=40 TOS
-> =0x00 PREC=0x00 TTL=111 ID=25587 PROTO=TCP SPT=46885 DPT=1804 SEQ=0  
-> ACK=881916807 WINDOW=0 RES=0x00 ACK RST URGP=0
-> janek.log lines 17-47/47 (END)
+> Name: Fix ip_ct_selective_cleanup(), and rename ip_ct_iterate_cleanup()
+> Status: Tested under nfsim
+> Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 > 
-> What is this and how close this log ? Where is problem ?
+> Several places use ip_ct_selective_cleanup() as a general iterator,
+> which it was not intended for (it takes a const ip_conntrack *).  So
+> rename it, and make it take a non-const argument.
+> 
+> Also, it missed unconfirmed connections, which aren't in the hash
+> table.  This introduces a potential problem for users which expect to
+> iterate all connections (such as the helper deletion code).  So keep a
+> linked list of unconfirmed connections as well.
+> 
+> Index: linux-2.6.10-rc3-bk16-Netfilter/net/ipv4/netfilter/ip_nat_core.c
+> ===================================================================
+> --- linux-2.6.10-rc3-bk16-Netfilter.orig/net/ipv4/netfilter/ip_nat_core.c	2004-12-24 22:11:43.372205240 +1100
+> +++ linux-2.6.10-rc3-bk16-Netfilter/net/ipv4/netfilter/ip_nat_core.c	2004-12-24 22:15:18.980427808 +1100
+> @@ -298,9 +299,13 @@
+>  		ip_conntrack_destroyed(ct);
+>  
+>  	WRITE_LOCK(&ip_conntrack_lock);
+> -	/* Make sure don't leave any orphaned expectations lying around */
+> -	if (ct->expecting)
+> -		remove_expectations(ct, 1);
+> +	BUG_ON(ct->expecting);
 
-The problem is edonkey, you get all kinds of crap if you run
-it or catch the IP of someone who did. Its about the biggest
-sin for a network I've ever seen. The only funny part about
-it are the crappy implementations, you just have to smile if
-you see people do GUI refreshing in the UDP packet handler :)
+This doesn't look right. The call to remove_expectations was
+added to deal with the TFTP helper registering expectations
+for unconfirmed connections.
+
+Testcase from Phil Oester, who tracked down the problem:
+--------
+on a:
+   iptables -I INPUT -p udp --dport 69 -j DROP
+
+on b:
+   tftp -c get a:foo
+
+The expect is setup by the tftp helper, but the master conntrack is not
+confirmed.  Instead, the master is immediately sent to 
+destroy_conntrack. Whoops!  We've now got an orphaned expectation which 
+will not go away (ever!).
+--------
 
 Regards
 Patrick
-
-BTW: No need to CC tons of people for questions like these.
