@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
 Subject: Re: About a patch to unclean module.
-Date: Sat, 22 Jun 2002 18:43:25 +0200
+Date: Sat, 22 Jun 2002 18:44:32 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020622184325.B31606@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.21.0206212050210.23485-100000@dns.toxicfilms.tv> <200206222251.10087.fabrice@celestix.com>
+Message-ID: <20020622184432.C31606@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.21.0206212050210.23485-100000@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QKdGvSO+nmPlgiQ/"
-Cc: Maciej Soltysiak <solt@dns.toxicfilms.tv>,
-	netfilter-devel@lists.samba.org
+	protocol="application/pgp-signature"; boundary="IpbVkmxF4tDyP/Kb"
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Fabrice MARIE <fabrice@celestix.com>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Content-Disposition: inline
-In-Reply-To: <200206222251.10087.fabrice@celestix.com>; from fabrice@celestix.com on Sat, Jun 22, 2002 at 10:51:10PM +0800
+In-Reply-To: <Pine.LNX.4.21.0206212050210.23485-100000@dns.toxicfilms.tv>; from solt@dns.toxicfilms.tv on Fri, Jun 21, 2002 at 09:00:04PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -24,36 +23,29 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---QKdGvSO+nmPlgiQ/
+--IpbVkmxF4tDyP/Kb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Jun 22, 2002 at 10:51:10PM +0800, Fabrice MARIE wrote:
+On Fri, Jun 21, 2002 at 09:00:04PM +0200, Maciej Soltysiak wrote:
+> Hello,
 >=20
-> Hello Maciej,
+> I may say now, that I have finished writing the module, updating the
+> lipipt_unclean.c, I have created the patches to the netfilter tree.
 >=20
-> On Saturday 22 June 2002 03:00, Maciej Soltysiak wrote:
-> > Hello,
-> > I may say now, that I have finished writing the module, updating the
-> > lipipt_unclean.c, I have created the patches to the netfilter tree.
-> > But, suppose, Harald applies the patch. It will change libipt_unclean.c
-> > in a way, that withougt running patch-o-matic it will not compile, beca=
-use
-> > it uses an include file
-> > KERNEL_DIR/include/linux/netfilter_ipv4/ipt_unclean.h which will be only
-> > available after patching the kernel tree.
-> > So how do we solve that?
+> But, suppose, Harald applies the patch. It will change libipt_unclean.c
+> in a way, that withougt running patch-o-matic it will not compile, because
+> it uses an include file
+> KERNEL_DIR/include/linux/netfilter_ipv4/ipt_unclean.h which will be only
+> available after patching the kernel tree.
 >=20
-> The easiest way is to use the userspace patching facility of patch-o-mati=
-c.
+> So how do we solve that?
 
-GNAH!  As soon as somebody is using this evil confusing hack without it
-being absolutely necessarry, I'll start flaming him.
+this is a comon problem, and it's always solved the same way: Put the
+kernel include file into userspace/include/linux/netfilter_ipv4/.
 
-See my other mail in this thread.
-
-> Fabrice.
+> Maciej Soltysiak
 
 --=20
 Live long and prosper
@@ -66,7 +58,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---QKdGvSO+nmPlgiQ/
+--IpbVkmxF4tDyP/Kb
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -74,9 +66,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9FKksXaXGVTD0i/8RAgRhAJ4lkCB6Wn9JuEkFjII3Z8jqLu3GgwCdHYCm
-rcv6EKFXh2l3/9qo68CtwGk=
-=hdHr
+iD8DBQE9FKlwXaXGVTD0i/8RAo8nAKCkbVT9vea/ObeE+OPBuCgQwGjxNQCdGIci
+/yLEdT9BUPEHl6ZLG1m6+nM=
+=mX7a
 -----END PGP SIGNATURE-----
 
---QKdGvSO+nmPlgiQ/--
+--IpbVkmxF4tDyP/Kb--
