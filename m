@@ -1,54 +1,69 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re:  Any way of knowing a packet's been defragmented
-Date: Thu, 5 Aug 2004 15:10:42 +0200 (CEST)
-Sender: bridge-bounces@lists.osdl.org
-Message-ID: <Pine.LNX.4.61.0408051507530.405@filer.marasystems.com>
-References: <W5101410375481091705422@asteria.telenet-ops.be>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: [PATCH] locking issue in alter_reply
+Date: Thu, 05 Aug 2004 15:32:42 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <411236FA.5080909@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============63603790962060192=="
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-   bridge <bridge@osdl.org>, shemminger@osdl.org
-Return-path: <bridge-bounces@lists.osdl.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <W5101410375481091705422@asteria.telenet-ops.be>
-List-Unsubscribe: <http://lists.osdl.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/bridge>
-List-Post: <mailto:bridge@lists.osdl.org>
-List-Help: <mailto:bridge-request@lists.osdl.org?subject=help>
-List-Subscribe: <http://lists.osdl.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.osdl.org?subject=subscribe>
-Errors-To: bridge-bounces@lists.osdl.org
+Content-Type: multipart/mixed;
+ boundary="------------020908080906070302020503"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+ Patrick McHardy <kaber@trash.net>, Harald Welte <laforge@netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---===============63603790962060192==
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+This is a multi-part message in MIME format.
+--------------020908080906070302020503
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thu, 5 Aug 2004 bdschuym@pandora.be wrote:
+Hi,
 
-> As Stephen explained, bridge ports of the same bridge device no longer 
-> need to have the same mtu. So the bridge code needs to drop packets 
-> (ARP, IP, whatever) that will be too long for the output port.
+This the first of a set of patches. Actually this patch is a resend, I 
+think that it got lost. Actually, we don't need to write lock the 
+conntrack table because we always call alter_reply with a non-confirmed 
+conntrack.
 
-Eh.. I do not claim to be a bridge guru, but won't such bridge cause 
-serious havoc on the network much like PMTU blackholes does?
+regards,
+Pablo
 
-You should either reject creating such bridge, or make sure to fragment 
-packets including ICMP MUST FRAGMENT generation when not allowed (which 
-requires an IP).
+--------------020908080906070302020503
+Content-Type: text/x-patch;
+ name="lock-alter-reply.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="lock-alter-reply.patch"
 
-Regards
-Henrik
+diff -u -r1.2 ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c	4 Aug 2004 15:26:55 -0000	1.2
++++ b/net/ipv4/netfilter/ip_conntrack_core.c	4 Aug 2004 16:46:10 -0000
+@@ -1075,9 +1075,9 @@
+ int ip_conntrack_alter_reply(struct ip_conntrack *conntrack,
+ 			     const struct ip_conntrack_tuple *newreply)
+ {
+-	WRITE_LOCK(&ip_conntrack_lock);
++	READ_LOCK(&ip_conntrack_lock);
+ 	if (__ip_conntrack_find(newreply, conntrack)) {
+-		WRITE_UNLOCK(&ip_conntrack_lock);
++		READ_UNLOCK(&ip_conntrack_lock);
+ 		return 0;
+ 	}
+ 	/* Should be unconfirmed, so not in hash table yet */
+@@ -1089,7 +1089,7 @@
+ 	conntrack->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
+ 	if (!conntrack->master && list_empty(&conntrack->sibling_list))
+ 		conntrack->helper = ip_ct_find_helper(newreply);
+-	WRITE_UNLOCK(&ip_conntrack_lock);
++	READ_UNLOCK(&ip_conntrack_lock);
+ 
+ 	return 1;
+ }
 
---===============63603790962060192==
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-_______________________________________________
-Bridge mailing list
-Bridge@lists.osdl.org
-http://lists.osdl.org/mailman/listinfo/bridge
-
---===============63603790962060192==--
+--------------020908080906070302020503--
