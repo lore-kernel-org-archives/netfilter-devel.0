@@ -1,13 +1,15 @@
-From: =?iso-8859-1?q?Daryl=20ong?= <yjong1977extramail@yahoo.com.sg>
-Subject: Help in netfilter kernel module
-Date: Thu, 16 Oct 2003 10:55:27 +0800 (CST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] Add mark to packet from libipq
+Date: Thu, 16 Oct 2003 09:08:24 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031016025527.23285.qmail@web13108.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0310160902520.6046-100000@filer.marasystems.com>
+References: <1066262957.20541.15.camel@porky>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-1335691291-1066272927=:22511"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, <nufw-devel@nongnu.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Eric Leblond <eric@regit.org>
+In-Reply-To: <1066262957.20541.15.camel@porky>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,31 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-1335691291-1066272927=:22511
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+On Thu, 16 Oct 2003, Eric Leblond wrote:
 
-Hi
-   i am a new developer in this netfilter module.  i am developing a kernel module on a rehat linux 8 and using iptables v1.2.6a.  i came across a problem when i want to kfree_skb(skb).  When i compile my source code with this command: gcc -march=i486 -03 -D__KERNEL__ -DLINUX -DMODULE -DMODVERSIONS -I/lib/modules/linux/build/linclude -c test.c test.o, it compiles with no error.  But when i try to insmod test.o.  it prompts me an error with test.o: unresolved symbol __kfree_skb.  
- 
-i have try to use NF_DROP to drop the packet if it doesnt match what i want to filter away.  But as netfilter currently didnt filter for PF_PACKET, my packet is able to go up to application layer.  So i intended to use kfree_skb but encounter the error.  Please tell me if there is any solutions.  Thank you.
- 
-Regards,
-Daryl
+> Hi,
+> 
+> I've done really slight modification to the ip_queue module and to
+> lip_ipq to add a fonction that can change the mark of a packet and set a
+> verdict to it (its name is ipq_set_vwmark).
+> 
+> It permits to NuFW to add a mark equal to user id on packet, thus
+> enabling to set up a users based QOS, accounting, ... 
 
- Yahoo! Photos
-- A free party for the most "shiok" photo. Join now!
---0-1335691291-1066272927=:22511
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+I have one question regarding the mark mask value in the kernel message..  
+what is the purpose of this? Todays implementation looks rather wasteful
+as the userspace may just as well apply the mask before the value is sent
+to the kernel.
 
-<DIV>Hi</DIV>
-<DIV>&nbsp;&nbsp; i am a new developer in this netfilter module.&nbsp; i am developing a kernel module&nbsp;on a&nbsp;rehat linux 8 and using iptables v1.2.6a.&nbsp; i came across a problem when i want to kfree_skb(skb).&nbsp; When i compile my source code with this command: gcc -march=i486 -03 -D__KERNEL__ -DLINUX -DMODULE -DMODVERSIONS -I/lib/modules/linux/build/linclude -c test.c test.o, it compiles with no error.&nbsp; But when i try to insmod test.o.&nbsp; it prompts me an error with test.o: unresolved symbol __kfree_skb.&nbsp; </DIV>
-<DIV>&nbsp;</DIV>
-<DIV>i have try to use NF_DROP to drop the packet if it doesnt match what i want to filter away.&nbsp; But as netfilter currently didnt filter for PF_PACKET, my packet is able to go up to application layer.&nbsp; So i intended to use kfree_skb but encounter the error.&nbsp; Please tell me if there is any solutions.&nbsp; Thank you.</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>Regards,</DIV>
-<DIV>Daryl</DIV><p><img src=http://sg.yimg.com/i/sg/icons/16/photos.gif>&nbsp;<b><a 
-href="http://sg.rd.yahoo.com/mail/tagline/?http://sg.photos.yahoo.com" 
-target=_blank>Yahoo! Photos</a></b><br><small>- A free party for the most "shiok" photo. <a href="http://sg.rd.yahoo.com/mail/tagline/?http://sg.yahoo.com/shiok" target=_blank><b>Join now!</b></a></small>
---0-1335691291-1066272927=:22511--
+If you are to have a mask I propose this mask indicates which bits to save 
+of the original mark, not a mask to the new mark value. I.e. something 
+like this:
+
+            /* set mark of associated skb */
+            entry->skb->nfmark = vmsg->nfmark | (entry->skb->nfmark & vmsg->mask);
+
+(alernately mask may be inverted)
+
+but in reality this is not needed either as the userspace knows the
+original mask and can a apply whatever transformations it likes 
+when giving the new verdict mask.
+
+Regards
+Henrik
