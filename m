@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: nf_conntrack (l3 independent conntrack)
-Date: Sat, 15 Nov 2003 11:50:20 +0100
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH, RFC]: 2.4 broken helper locking
+Date: Sat, 15 Nov 2003 16:40:42 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031115105020.GI656@obroa-skai.de.gnumonks.org>
-References: <20031113010159.GD835@mea-ext.zmailer.org> <200311131303.WAA28664@toshiba.co.jp>
+Message-ID: <3FB648FA.2030403@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ogUXNSQj4OI1q3LQ"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------020206090900050409020608"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200311131303.WAA28664@toshiba.co.jp>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,196 +18,433 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------020206090900050409020608
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
---ogUXNSQj4OI1q3LQ
-Content-Type: multipart/mixed; boundary="ZG+WKzXzVby2T9Ro"
-Content-Disposition: inline
+I've sent this a month or two ago but no response so here goes
+another try. Please excuse any mistakes, I don't remember all details.
 
+Locking of ftp/irc helpers in 2.4 looks broken (and amanda, but
+thats fixed in my last patch). Both use private locks to protect
+expectation data between the conntrack and the nat helper.
+The locks are unneccessary because:
 
---ZG+WKzXzVby2T9Ro
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+- ip_conntrack_expect_related write-locks ip_conntrack_lock
+- the nat-helpers are called under read-locked ip_conntrack lock
+- the expectations private data can't change once it's register
 
-On Thu, Nov 13, 2003 at 10:03:21PM +0900, Yasuyuki Kozakai wrote:
-> If you want to use ip6_conntrack ASAP, you can find the patch in archives
-> of this list(24 Sep. 2003).
->=20
-> Or in USAGI kernel, too. http://www.linux-ipv6.org/
->=20
-> BTW, this patch works only with Linux 2.6. If you want to use it with
-> Linux 2.4, some changes are needed. ex) replace synchronize_net() to
-> br_write_{un}lock_bh(), fix the codes related to nf_reinject() in
-> ip6_conntrack_reasm.c.
+They may also cause deadlock because of this possible sequence:
 
-Hi again Yasuyuki.  Sorry for not getting back to you earlier.  I'm just
-busy with way too much work and don't really know where to start and
-when I'll be ever finished with all that stuff.
+CPU1:
+conntrack-helper:help: lock(private_lock)
+ip_conntrack_expect_related: write_lock(ip_conntrack_lock)
 
-Please be assured that I didn't forget about the issue, but I just
-didn't find the time to finish the design paper on l3 independent
-conntrack.
+CPU2:
+nat-core:do_bindings: read_lock(ip_conntrack_lock)
+nat-helper:help: lock(private_lock)
 
-However, I'll attach the current (icomplete) start of my paper to this
-email and also put it in CVS. =20
+This patch removes the locks and renames some variables from
+ct_xxx to exp_xxx to make things clearer. A remaining problem is
+in ip_nat_standalone.c:
 
-Maybe this is a start and somebody else will pick it up and express his
-idea about how the implementation / organization of data structures can
-look like.
+                WRITE_LOCK(&ip_nat_lock);
+                /* Seen it before?  This can happen for loopback, retrans,
+                   or local packets.. */
+                if (!(info->initialized & (1 << maniptype))) {
+                        unsigned int ret;
 
-> Yasuyuki KOZAKAI
+                                                                                                                              
+                        if (ct->master
+                            && master_ct(ct)->nat.info.helper
+                            && master_ct(ct)->nat.info.helper->expect) {
+                                ret = call_expect(master_ct(ct), pskb,
+                                                  hooknum, ct, info);
+                        } else {
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+ct->master is not protected by ip_nat_lock. The expect function of
+the ftp helper also touches ct->master so we need to hold
+ip_conntrack_lock. I'm not sure if and how the locks can be nested,
+so comments on this are appreciated.
 
---ZG+WKzXzVby2T9Ro
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: attachment; filename="nf_conntrack-whitepaper.txt"
-Content-Transfer-Encoding: quoted-printable
+Patrick
 
 
-Design of a layer 3 independent netfilter connection tracking
-(nf_conntrack)
 
-Harald Welte
+--------------020206090900050409020608
+Content-Type: text/plain;
+ name="helper-locking.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="helper-locking.diff"
 
-   $Revision$ - INCOMPLETE
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1168  -> 1.1169 
+#	net/ipv4/netfilter/ip_nat_ftp.c	1.8     -> 1.9    
+#	net/ipv4/netfilter/ip_conntrack_irc.c	1.10    -> 1.11   
+#	net/ipv4/netfilter/ip_conntrack_ftp.c	1.11    -> 1.12   
+#	net/ipv4/netfilter/ip_nat_irc.c	1.5     -> 1.6    
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/11/15	kaber@trash.net	1.1169
+# Partially fix broken helper locking
+# --------------------------------------------
+#
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- a/net/ipv4/netfilter/ip_conntrack_ftp.c	Sat Nov 15 16:23:47 2003
++++ b/net/ipv4/netfilter/ip_conntrack_ftp.c	Sat Nov 15 16:23:47 2003
+@@ -11,7 +11,7 @@
+ #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
+ 
+-DECLARE_LOCK(ip_ftp_lock);
++static DECLARE_LOCK(ip_ftp_lock);
+ struct module *ip_conntrack_ftp = THIS_MODULE;
+ 
+ #define MAX_PORTS 8
+@@ -338,7 +338,6 @@
+ 	memset(&expect, 0, sizeof(expect));
+ 
+ 	/* Update the ftp info */
+-	LOCK_BH(&ip_ftp_lock);
+ 	if (htonl((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3])
+ 	    == ct->tuplehash[dir].tuple.src.ip) {
+ 		exp->seq = ntohl(tcph->seq) + matchoff;
+@@ -358,7 +357,8 @@
+ 		   <lincoln@cesar.org.br> for reporting this potential
+ 		   problem (DMZ machines opening holes to internal
+ 		   networks, or the packet filter itself). */
+-		if (!loose) goto out;
++		if (!loose)
++			return NF_ACCEPT;
+ 	}
+ 
+ 	exp->tuple = ((struct ip_conntrack_tuple)
+@@ -376,8 +376,6 @@
+ 
+ 	/* Ignore failure; should only happen with NAT */
+ 	ip_conntrack_expect_related(ct, &expect);
+- out:
+-	UNLOCK_BH(&ip_ftp_lock);
+ 
+ 	return NF_ACCEPT;
+ }
+@@ -434,8 +432,6 @@
+ 	}
+ 	return 0;
+ }
+-
+-EXPORT_SYMBOL(ip_ftp_lock);
+ 
+ MODULE_LICENSE("GPL");
+ module_init(init);
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_irc.c b/net/ipv4/netfilter/ip_conntrack_irc.c
+--- a/net/ipv4/netfilter/ip_conntrack_irc.c	Sat Nov 15 16:23:47 2003
++++ b/net/ipv4/netfilter/ip_conntrack_irc.c	Sat Nov 15 16:23:47 2003
+@@ -29,7 +29,6 @@
+ #include <net/checksum.h>
+ #include <net/tcp.h>
+ 
+-#include <linux/netfilter_ipv4/lockhelp.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_irc.h>
+ 
+@@ -61,7 +60,6 @@
+ };
+ #define MINMATCHLEN	5
+ 
+-DECLARE_LOCK(ip_irc_lock);
+ struct module *ip_conntrack_irc = THIS_MODULE;
+ 
+ #if 0
+@@ -208,8 +206,6 @@
+ 			
+ 			memset(&expect, 0, sizeof(expect));
+ 
+-			LOCK_BH(&ip_irc_lock);
+-
+ 			/* save position of address in dcc string,
+ 			 * neccessary for NAT */
+ 			DEBUGP("tcph->seq = %u\n", tcph->seq);
+@@ -236,8 +232,6 @@
+ 				ntohs(exp->tuple.dst.u.tcp.port));
+ 
+ 			ip_conntrack_expect_related(ct, &expect);
+-			UNLOCK_BH(&ip_irc_lock);
+-
+ 			return NF_ACCEPT;
+ 		} /* for .. NUM_DCCPROTO */
+ 	} /* while data < ... */
+@@ -314,8 +308,6 @@
+ 		ip_conntrack_helper_unregister(&irc_helpers[i]);
+ 	}
+ }
+-
+-EXPORT_SYMBOL(ip_irc_lock);
+ 
+ module_init(init);
+ module_exit(fini);
+diff -Nru a/net/ipv4/netfilter/ip_nat_ftp.c b/net/ipv4/netfilter/ip_nat_ftp.c
+--- a/net/ipv4/netfilter/ip_nat_ftp.c	Sat Nov 15 16:23:47 2003
++++ b/net/ipv4/netfilter/ip_nat_ftp.c	Sat Nov 15 16:23:47 2003
+@@ -24,8 +24,6 @@
+ MODULE_PARM(ports, "1-" __MODULE_STRING(MAX_PORTS) "i");
+ #endif
+ 
+-DECLARE_LOCK_EXTERN(ip_ftp_lock);
+-
+ /* FIXME: Time out? --RR */
+ 
+ static unsigned int
+@@ -48,8 +46,6 @@
+ 	DEBUGP("nat_expected: We have a connection!\n");
+ 	exp_ftp_info = &ct->master->help.exp_ftp_info;
+ 
+-	LOCK_BH(&ip_ftp_lock);
+-
+ 	if (exp_ftp_info->ftptype == IP_CT_FTP_PORT
+ 	    || exp_ftp_info->ftptype == IP_CT_FTP_EPRT) {
+ 		/* PORT command: make connection go to the client. */
+@@ -64,7 +60,6 @@
+ 		DEBUGP("nat_expected: PASV cmd. %u.%u.%u.%u->%u.%u.%u.%u\n",
+ 		       NIPQUAD(newsrcip), NIPQUAD(newdstip));
+ 	}
+-	UNLOCK_BH(&ip_ftp_lock);
+ 
+ 	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC)
+ 		newip = newsrcip;
+@@ -100,8 +95,6 @@
+ {
+ 	char buffer[sizeof("nnn,nnn,nnn,nnn,nnn,nnn")];
+ 
+-	MUST_BE_LOCKED(&ip_ftp_lock);
+-
+ 	sprintf(buffer, "%u,%u,%u,%u,%u,%u",
+ 		NIPQUAD(newip), port>>8, port&0xFF);
+ 
+@@ -123,8 +116,6 @@
+ {
+ 	char buffer[sizeof("|1|255.255.255.255|65535|")];
+ 
+-	MUST_BE_LOCKED(&ip_ftp_lock);
+-
+ 	sprintf(buffer, "|1|%u.%u.%u.%u|%u|", NIPQUAD(newip), port);
+ 
+ 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
+@@ -145,8 +136,6 @@
+ {
+ 	char buffer[sizeof("|||65535|")];
+ 
+-	MUST_BE_LOCKED(&ip_ftp_lock);
+-
+ 	sprintf(buffer, "|||%u|", port);
+ 
+ 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
+@@ -166,7 +155,7 @@
+     [IP_CT_FTP_EPSV] mangle_epsv_packet
+ };
+ 
+-static int ftp_data_fixup(const struct ip_ct_ftp_expect *ct_ftp_info,
++static int ftp_data_fixup(const struct ip_ct_ftp_expect *exp_ftp_info,
+ 			  struct ip_conntrack *ct,
+ 			  struct sk_buff **pskb,
+ 			  enum ip_conntrack_info ctinfo,
+@@ -178,15 +167,14 @@
+ 	u_int16_t port;
+ 	struct ip_conntrack_tuple newtuple;
+ 
+-	MUST_BE_LOCKED(&ip_ftp_lock);
+ 	DEBUGP("FTP_NAT: seq %u + %u in %u\n",
+-	       expect->seq, ct_ftp_info->len,
++	       expect->seq, exp_ftp_info->len,
+ 	       ntohl(tcph->seq));
+ 
+ 	/* Change address inside packet to match way we're mapping
+ 	   this connection. */
+-	if (ct_ftp_info->ftptype == IP_CT_FTP_PASV
+-	    || ct_ftp_info->ftptype == IP_CT_FTP_EPSV) {
++	if (exp_ftp_info->ftptype == IP_CT_FTP_PASV
++	    || exp_ftp_info->ftptype == IP_CT_FTP_EPSV) {
+ 		/* PASV/EPSV response: must be where client thinks server
+ 		   is */
+ 		newip = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
+@@ -208,7 +196,7 @@
+ 	newtuple.src.u.tcp.port = expect->tuple.src.u.tcp.port;
+ 
+ 	/* Try to get same port: if not, try to change it. */
+-	for (port = ct_ftp_info->port; port != 0; port++) {
++	for (port = exp_ftp_info->port; port != 0; port++) {
+ 		newtuple.dst.u.tcp.port = htons(port);
+ 
+ 		if (ip_conntrack_change_expect(expect, &newtuple) == 0)
+@@ -217,9 +205,9 @@
+ 	if (port == 0)
+ 		return 0;
+ 
+-	if (!mangle[ct_ftp_info->ftptype](pskb, newip, port,
++	if (!mangle[exp_ftp_info->ftptype](pskb, newip, port,
+ 					  expect->seq - ntohl(tcph->seq),
+-					  ct_ftp_info->len, ct, ctinfo))
++					  exp_ftp_info->len, ct, ctinfo))
+ 		return 0;
+ 
+ 	return 1;
+@@ -236,12 +224,12 @@
+ 	struct tcphdr *tcph = (void *)iph + iph->ihl*4;
+ 	unsigned int datalen;
+ 	int dir;
+-	struct ip_ct_ftp_expect *ct_ftp_info;
++	struct ip_ct_ftp_expect *exp_ftp_info;
+ 
+ 	if (!exp)
+ 		DEBUGP("ip_nat_ftp: no exp!!");
+ 
+-	ct_ftp_info = &exp->help.exp_ftp_info;
++	exp_ftp_info = &exp->help.exp_ftp_info;
+ 
+ 	/* Only mangle things once: original direction in POST_ROUTING
+ 	   and reply direction on PRE_ROUTING. */
+@@ -257,28 +245,23 @@
+ 	}
+ 
+ 	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
+-	LOCK_BH(&ip_ftp_lock);
+ 	/* If it's in the right range... */
+-	if (between(exp->seq + ct_ftp_info->len,
++	if (between(exp->seq + exp_ftp_info->len,
+ 		    ntohl(tcph->seq),
+ 		    ntohl(tcph->seq) + datalen)) {
+-		if (!ftp_data_fixup(ct_ftp_info, ct, pskb, ctinfo, exp)) {
+-			UNLOCK_BH(&ip_ftp_lock);
++		if (!ftp_data_fixup(exp_ftp_info, ct, pskb, ctinfo, exp))
+ 			return NF_DROP;
+-		}
+ 	} else {
+ 		/* Half a match?  This means a partial retransmisison.
+ 		   It's a cracker being funky. */
+ 		if (net_ratelimit()) {
+ 			printk("FTP_NAT: partial packet %u/%u in %u/%u\n",
+-			       exp->seq, ct_ftp_info->len,
++			       exp->seq, exp_ftp_info->len,
+ 			       ntohl(tcph->seq),
+ 			       ntohl(tcph->seq) + datalen);
+ 		}
+-		UNLOCK_BH(&ip_ftp_lock);
+ 		return NF_DROP;
+ 	}
+-	UNLOCK_BH(&ip_ftp_lock);
+ 
+ 	return NF_ACCEPT;
+ }
+diff -Nru a/net/ipv4/netfilter/ip_nat_irc.c b/net/ipv4/netfilter/ip_nat_irc.c
+--- a/net/ipv4/netfilter/ip_nat_irc.c	Sat Nov 15 16:23:47 2003
++++ b/net/ipv4/netfilter/ip_nat_irc.c	Sat Nov 15 16:23:47 2003
+@@ -46,9 +46,6 @@
+ MODULE_PARM_DESC(ports, "port numbers of IRC servers");
+ #endif
+ 
+-/* protects irc part of conntracks */
+-DECLARE_LOCK_EXTERN(ip_irc_lock);
+-
+ /* FIXME: Time out? --RR */
+ 
+ static unsigned int
+@@ -89,7 +86,7 @@
+ 	return ip_nat_setup_info(ct, &mr, hooknum);
+ }
+ 
+-static int irc_data_fixup(const struct ip_ct_irc_expect *ct_irc_info,
++static int irc_data_fixup(const struct ip_ct_irc_expect *exp_irc_info,
+ 			  struct ip_conntrack *ct,
+ 			  struct sk_buff **pskb,
+ 			  enum ip_conntrack_info ctinfo,
+@@ -104,23 +101,17 @@
+ 	/* "4294967296 65635 " */
+ 	char buffer[18];
+ 
+-	MUST_BE_LOCKED(&ip_irc_lock);
+-
+ 	DEBUGP("IRC_NAT: info (seq %u + %u) in %u\n",
+-	       expect->seq, ct_irc_info->len,
++	       expect->seq, exp_irc_info->len,
+ 	       ntohl(tcph->seq));
+ 
+ 	newip = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
+ 
+ 	/* Alter conntrack's expectations. */
+ 
+-	/* We can read expect here without conntrack lock, since it's
+-	   only set in ip_conntrack_irc, with ip_irc_lock held
+-	   writable */
+-
+ 	t = expect->tuple;
+ 	t.dst.ip = newip;
+-	for (port = ct_irc_info->port; port != 0; port++) {
++	for (port = exp_irc_info->port; port != 0; port++) {
+ 		t.dst.u.tcp.port = htons(port);
+ 		if (ip_conntrack_change_expect(expect, &t) == 0) {
+ 			DEBUGP("using port %d", port);
+@@ -150,7 +141,7 @@
+ 
+ 	return ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
+ 					expect->seq - ntohl(tcph->seq),
+-					ct_irc_info->len, buffer, 
++					exp_irc_info->len, buffer, 
+ 					strlen(buffer));
+ }
+ 
+@@ -165,12 +156,12 @@
+ 	struct tcphdr *tcph = (void *) iph + iph->ihl * 4;
+ 	unsigned int datalen;
+ 	int dir;
+-	struct ip_ct_irc_expect *ct_irc_info;
++	struct ip_ct_irc_expect *exp_irc_info;
+ 
+ 	if (!exp)
+ 		DEBUGP("ip_nat_irc: no exp!!");
+ 		
+-	ct_irc_info = &exp->help.exp_irc_info;
++	exp_irc_info = &exp->help.exp_irc_info;
+ 
+ 	/* Only mangle things once: original direction in POST_ROUTING
+ 	   and reply direction on PRE_ROUTING. */
+@@ -187,29 +178,24 @@
+ 	DEBUGP("got beyond not touching\n");
+ 
+ 	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
+-	LOCK_BH(&ip_irc_lock);
+ 	/* Check wether the whole IP/address pattern is carried in the payload */
+-	if (between(exp->seq + ct_irc_info->len,
++	if (between(exp->seq + exp_irc_info->len,
+ 		    ntohl(tcph->seq),
+ 		    ntohl(tcph->seq) + datalen)) {
+-		if (!irc_data_fixup(ct_irc_info, ct, pskb, ctinfo, exp)) {
+-			UNLOCK_BH(&ip_irc_lock);
++		if (!irc_data_fixup(exp_irc_info, ct, pskb, ctinfo, exp))
+ 			return NF_DROP;
+-		}
+ 	} else { 
+ 		/* Half a match?  This means a partial retransmisison.
+ 		   It's a cracker being funky. */
+ 		if (net_ratelimit()) {
+ 			printk
+ 			    ("IRC_NAT: partial packet %u/%u in %u/%u\n",
+-			     exp->seq, ct_irc_info->len,
++			     exp->seq, exp_irc_info->len,
+ 			     ntohl(tcph->seq),
+ 			     ntohl(tcph->seq) + datalen);
+ 		}
+-		UNLOCK_BH(&ip_irc_lock);
+ 		return NF_DROP;
+ 	}
+-	UNLOCK_BH(&ip_irc_lock);
+ 
+ 	return NF_ACCEPT;
+ }
 
-   Copyright =A9 2003 Harald Welte <laforge@netfilter.org>
-     _________________________________________________________
-
-   Table of Contents
-   1. Rationale
-   2. Outline
-   3. Implementation
-
-1. Rationale
-
-   The 2.4.x kernel series first introduced stateful packet
-   filtering capabilities to Linux: The netfilter ip_conntrack
-   module. While in itself modular and extensible, it is a strict
-   IPv4 connection tracking implementation. There is a demand for
-   stateful packet filtering of IPv6 (and potentially other layer
-   3 protocols). In fact, we now even have an IPv6 port of the
-   ip_conntrack module.
-
-   However, this kind of port (by means of copying the existing
-   IPv4 code and doing some IPv6 specific modifications) has
-   proven to introduce a number of maintainance problems - apart
-   from being bad programming practice. The netfilter core team
-   has quite some experience with the ip_tables / ip6_tables
-   port, which was done in a similar way and has become part of
-   the 2.4.x kernel series.
-
-   Thus, a layer three independent connection tracking core is
-   needed, together with plugins for the IPv4 and IPv6 specific
-   part of connection tracking.
-
-   While the author of this paper doesn't have the ability to
-   work on this project on his own (due to time constraints with
-   other netfilter work like pkt_tables), this paper might give
-   an idea about his view on how this layer3-generalization of
-   conntrack could be achieved.
-     _________________________________________________________
-
-2. Outline
-
-   At a first glance one might think that the differences between
-   ipv4 and ipv6 connection tracking are quite small. Both
-   protocols work in a similar way, both of them are most
-   commonly used with TCP and UDP as layer 4. They just have a
-   larger address space. So the overall notion of a connection
-   within both protocols is exactly the same.
-
-   However, there are some areas where differences are leading to
-   issues with regard to connection tracking:
-
-     * Fragmentation. While ip_conntrack does always defragment
-       packets before connection tracking happens (and
-       potentially re-fragment beofore the packets leave the
-       machine again), IPv6 routers don't regularly perform
-       fragmentation on their own.
-     * NAT. ip_conntrack provides the foundation for the stateful
-       NAT implementation included with iptables. In IPv6, there
-       is no need for stateful NAT.
-     * Extension Headers. In IPv6, there can be extension headers
-       between the IPv6 packet header and the packet payload.
-       Parsing of those extension headers is needed, before the
-       layer4 header can be accessed by the l4 protocol helpers
-       in conntrack (ip_conntrack_proto_{tcp,udp}.c).
-     * ICMPv6. Unlike TCP and UDP which are the same between IPv4
-       and IPv6, ICMPv6 is quite different to ICMPv4. One example
-       is the stateless autoconfiguration / neighbour discovery
-       mechanism employing multicast ICMPv6 packets, instead of
-       the ARP protocol used with IPv4. Connection tracking
-       should not interfere with the autoconfiguration messages
-     * Scope of addresses. There are for example link-local
-       addresses that can never establish connections via a layer
-       3 routing device, because they are not allowed to leave a
-       physical network link. It is questionable whether this
-       should affect connection tracking or rather be left to the
-       administrator to configure in ip6tables.
-     * Size of Addresses. ip_conntrack keeps two address tuples
-       per connection (every tuple is
-       2*(sizeof(l3_addr)+sizeof(l4_addr)), thus adding up to 32
-       bytes. In IPv6 the size of a tuple would grow up to at
-       least 80 bytes due to the large address size. If a union
-       for struct nf_conntrack_tuple was used, every IPv4
-       conntrack entry would waste 48 bytes of memory, which is
-       not acceptable considering the effect on wasting
-       cachelines. Thus, a mechanism must be implemented to have
-       differently sizes nf_conntrack structures, allocated from
-       different slab caches, allocated from different slab
-       caches. The dynamic part could be added to the end of a
-       structure, so all l3 independent structure members can be
-       transparently accessed by the core.
-     _________________________________________________________
-
-3. Implementation
-
-   ip_conntrack needs to be split into two parts:
-net/core/netfilter/nf_conntrack_core.c
-- init()
-        - initialize conntrack hash table and slab cache pools
-        - register sockopt for SO_ORIGINAL_DST
-        - register sysctl table
-- nf_conntrack_in()
-        - expect a defragmented packet
-        - resolve the layer3 helper function (nf_ct_find_l3prot())
-        - reolve_normal_ct()
-        - l4prot->packet()
-        - call application helper
-
-net/ipv4/netfilter/nf_conntrack_ipv4.c
-- init()
-        - register with nf_conntrack core. tell it the size of the l4
-          specific part of struct nf_conntrack.
-        - register with ipv4 netfilter hooks (ip_conntrack_standalone.c
-) and
-          attach nf_conntrack_in() or a local wrapper function for
-          defrag, size checks, ...
-- export l4 hash function
-- export get_tuple() function
-
---ZG+WKzXzVby2T9Ro--
-
---ogUXNSQj4OI1q3LQ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/tgTrXaXGVTD0i/8RAuxAAJ4jxDaQGFFMLErWOoJO0gN8P61LZwCgrHQf
-ftxRpGMBccUfaMBCnvGblRU=
-=B81m
------END PGP SIGNATURE-----
-
---ogUXNSQj4OI1q3LQ--
+--------------020206090900050409020608--
