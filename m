@@ -1,12 +1,11 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] FTP sequence tracking try #2
-Date: Fri, 1 Apr 2005 08:28:53 -0800
-Message-ID: <20050401162853.GA3777@linuxace.com>
+From: Robert de Bath <list-netfilter@debath.co.uk>
+Subject: Iptables 1.3.1 still not very fast.
+Date: Fri, 1 Apr 2005 22:52:25 +0100 (BST)
+Message-ID: <89b63d049739b257@mayday.cix.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="mP3DRpeJDSE+ciuQ"
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,69 +17,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Okay, I'll admit is it a LOT faster that 1.2.11 it still seems to take a long 
+time with big tables.
 
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+An example:
+I have a program (I've called iptrange) that will take a file full of ip 
+address ranges (192.168.42.10 192.168.42.25) and converts them into a set
+of iptables chains that invokes another chain if the source (or dest) matches 
+ie:
 
-Another user pointed out a missing " in the previous patch.  I noticed
-I forgot the signoff.  Below fixes both.
+iptables -N CHECK
+iptables -A CHECK -s 192.168.42.10/31 -j FOUND
+iptables -A CHECK -s 192.168.42.12/30 -j FOUND
+iptables -A CHECK -s 192.168.42.16/29 -j FOUND
+iptables -A CHECK -s 192.168.42.24/31 -j FOUND
 
-Phil
+The good bit is that it will create a tree of subchains so that the
+matching is efficient for large numbers of ip addresses.
 
-The 2.6.11 changes incorrectly pass seq to a couple of functions as a u16.
-In addition, a few DEBUGP statements were broken.
+This works well for a few hundred address ranges; I use it to match
+recent 'evil' ips and ranges from dshield.org.
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+However, when I tried a 50000 range list from http://blocklist.org I
+ran into problems.  After conversion it created 20000 chains with a
+total of 70000 rules.  This tables took about an hour to load using
+iptables-1.2.11!
 
+Version 1.3.1 of libiptc is a LOT faster at about 5 minutes to do the
+load. But this still seems very slow when it takes about half a second
+to generate and print out the iptables rules to a script.
 
+I hate to think how slow it would be with a million ranges; assuming it can be 
+loaded it looks like it would be about 300000 chains, 1.3M
+rules and about 100 rules checked per packet (to pick some figures out
+of a single test) so it should be useable ...
 
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ftp1
+BTW: iptables-restore is slower than my iptrange!
 
-diff -ru linux-orig/net/ipv4/netfilter/ip_conntrack_ftp.c linux-new/net/ipv4/netfilter/ip_conntrack_ftp.c
---- linux-orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-03-02 02:38:38.000000000 -0500
-+++ linux-new/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-03-31 12:47:48.501244792 -0500
-@@ -252,7 +252,7 @@
- }
- 
- /* Look up to see if we're just after a \n. */
--static int find_nl_seq(u16 seq, const struct ip_ct_ftp_master *info, int dir)
-+static int find_nl_seq(u32 seq, const struct ip_ct_ftp_master *info, int dir)
- {
- 	unsigned int i;
- 
-@@ -263,7 +263,7 @@
- }
- 
- /* We don't update if it's older than what we have. */
--static void update_nl_seq(u16 nl_seq, struct ip_ct_ftp_master *info, int dir)
-+static void update_nl_seq(u32 nl_seq, struct ip_ct_ftp_master *info, int dir)
- {
- 	unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
- 
-@@ -330,9 +330,9 @@
- 	/* Look up to see if we're just after a \n. */
- 	if (!find_nl_seq(ntohl(th->seq), ct_ftp_info, dir)) {
- 		/* Now if this ends in \n, update ftp info. */
--		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u) or %s(%u)\n",
--		       ct_ftp_info->seq_aft_nl[0][dir] 
--		       old_seq_aft_nl_set ? "":"(UNSET) ", old_seq_aft_nl);
-+		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s%u\n",
-+		       ct_ftp_info->seq_aft_nl[0][dir] ? "":"(UNSET)",
-+		       ct_ftp_info->seq_aft_nl[0][dir]);
- 		ret = NF_ACCEPT;
- 		goto out_update_nl;
- 	}
-@@ -373,7 +373,7 @@
- 		goto out_update_nl;
- 	}
- 
--	DEBUGP("conntrack_ftp: match `%s' (%u bytes at %u)\n",
-+	DEBUGP("conntrack_ftp: match `%.26s' (%u bytes at %u)\n",
- 	       fb_ptr + matchoff, matchlen, ntohl(th->seq) + matchoff);
- 			 
- 	/* Allocate expectation which will be inserted */
+My problem is that I think that libiptc looks evil and I really don't
+want to dive into messing with that code. So how can I help to make
+libiptc run as fast as I'd like it to?
 
---mP3DRpeJDSE+ciuQ--
+-- 
+Rob.                          (Robert de Bath <robert$ @ debath.co.uk>)
