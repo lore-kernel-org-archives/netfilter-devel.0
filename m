@@ -1,15 +1,17 @@
-From: Ozgur AKAN <akan@aiqa.com>
-Subject: Re: target, match and checkentry functions
-Date: Wed, 28 Apr 2004 16:41:59 +0300
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: xdmcp nat module
+Date: Wed, 28 Apr 2004 16:08:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <408FB4A7.2070101@aiqa.com>
-References: <408F7388.5010704@aiqa.com> <408FAA24.9070707@aiqa.com> <200404281500.49188.thomas.jarosch@intra2net.com>
+Message-ID: <20040428140837.GG6345@sunbeam.de.gnumonks.org>
+References: <1083160431.8039.3152.camel@TesterTop.tester.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TeJTyD9hb8KJN2Jy"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-Reply-To: <200404281500.49188.thomas.jarosch@intra2net.com>
+To: Olivier Crete <tester@tester.ca>
+Content-Disposition: inline
+In-Reply-To: <1083160431.8039.3152.camel@TesterTop.tester.ca>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,20 +23,47 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
->libipt4tc.c defines LABEL_ACCEPT as IPTC_LABEL_ACCEPT
->if I'm not mistaken. IPTC_LABEL_ACCEPT is defined in libiptc.h
->
->Thomas
->
->  
->
-yes you are completely right!
+--TeJTyD9hb8KJN2Jy
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-IPTC_LABEL_ACCEPT is defined as "ACCEPT". That was what I was looking for.
+On Wed, Apr 28, 2004 at 03:53:52PM +0200, Olivier Crete wrote:
+> Hi,
+>=20
+> I saw that you updated (made?) a linux nat module for xdmcp. Do you have
+> an up to date version?
 
-(my brain does not work well when glucose level decreses :) )
+i didn't make it, I just tried to make it secure - but never completed
+my work.  Patches welcome ;)
 
-thanks,
+The original author's version opened dozens of security holes.... so it
+never became official part of netfilter/iptables
 
--- 
-Ozgur Akan
+> Olivier Cr=EAte
+> tester@tester.ca
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--TeJTyD9hb8KJN2Jy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAj7rlXaXGVTD0i/8RAgtdAKCG/rJ5gYWznHbPj8xCcLwfcegAgQCfWW3X
+tha2dST4jY6KoCQ+/58Flxk=
+=+eqM
+-----END PGP SIGNATURE-----
+
+--TeJTyD9hb8KJN2Jy--
