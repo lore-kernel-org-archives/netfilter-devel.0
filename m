@@ -1,18 +1,17 @@
-From: Fabrice MARIE <fabrice@celestix.com>
-Subject: Re: About a patch to unclean module.
-Date: Sat, 22 Jun 2002 22:51:10 +0800
+From: Stephen Frost <sfrost@snowman.net>
+Subject: Re: [ANNOUNCE] netfilter/iptables Anonymous CVS has been moved
+Date: Sat, 22 Jun 2002 11:27:44 -0400
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206222251.10087.fabrice@celestix.com>
-References: <Pine.LNX.4.21.0206212050210.23485-100000@dns.toxicfilms.tv>
-Reply-To: fabrice@celestix.com
+Message-ID: <20020622152744.GR9519@ns>
+References: <20020620213808.X2543@sunbeam.de.gnumonks.org> <20020621195508.GO9519@ns> <20020622113559.K2543@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cUQyP71RyCFJ5E3t"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>,
-	netfilter-devel@lists.samba.org
-In-Reply-To: <Pine.LNX.4.21.0206212050210.23485-100000@dns.toxicfilms.tv>
+To: Harald Welte <laforge@gnumonks.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.samba.org>
+Content-Disposition: inline
+In-Reply-To: <20020622113559.K2543@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -24,38 +23,43 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hello Maciej,
+--cUQyP71RyCFJ5E3t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Saturday 22 June 2002 03:00, Maciej Soltysiak wrote:
-> Hello,
-> I may say now, that I have finished writing the module, updating the
-> lipipt_unclean.c, I have created the patches to the netfilter tree.
-> But, suppose, Harald applies the patch. It will change libipt_unclean.c
-> in a way, that withougt running patch-o-matic it will not compile, because
-> it uses an include file
-> KERNEL_DIR/include/linux/netfilter_ipv4/ipt_unclean.h which will be only
-> available after patching the kernel tree.
-> So how do we solve that?
+* Harald Welte (laforge@gnumonks.org) wrote:
+> On Fri, Jun 21, 2002 at 03:55:08PM -0400, Stephen Frost wrote:
+> > * Harald Welte (laforge@gnumonks.org) wrote:
+> > > The anonymous CVS repository for the netfilter/iptables project has b=
+een
+> > > moved.
+> >=20
+> > Harald,
+> >=20
+> >   Is there anything we need to do to get back on the netfilter
+> >   cvs-commits list?  I havn't seen any commits since the 18th so I'm
+> >   guessing either we have to subscribe to a new list or you're still
+> >   working on getting that part up again?
+>=20
+> the list is up and running [on lists.netfilter.org].  I'll see if I can
+> find something in my logs about your mails...
 
-The easiest way is to use the userspace patching facility of patch-o-matic.
-Just look at extra/ipt_REJECT-fake-source.patch and especially
-extra/ipt_REJECT-fake-source.patch.userspace for an example of userspace
-patching.
+Whatever you did it seems to be working again, thanks. :)
 
-> I see it by adding ipt_unclean.h to the netfilter tree.
-> Or maybe I am missing something or forgetting about something, some simple
-> solution.
-> Regards,
-> Maciej Soltysiak
+	Stephen
 
-Have a nice day,
+--cUQyP71RyCFJ5E3t
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Fabrice.
---
-Fabrice MARIE
-Senior R&D Engineer
-Celestix Networks
-http://www.celestix.com/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-"Silly hacker, root is for administrators"
-       -Unknown
+iD8DBQE9FJdwrzgMPqB3kigRAjTSAJwMli6yA5+JNMRkfPit1swEC9RtyQCeJvEo
+lV3RzgbnTA+o3XEriUMuGOY=
+=xHJ5
+-----END PGP SIGNATURE-----
+
+--cUQyP71RyCFJ5E3t--
