@@ -1,48 +1,42 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ipt_physdev.c alignment problems on parisc64
-Date: Tue, 16 Sep 2003 16:09:18 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20030916140918.GF810@obroa-skai.de.gnumonks.org>
-References: <200309022116.41697.bdschuym@pandora.be> <200309132159.37834.bdschuym@pandora.be> <20030915155903.12a3f95d.davem@redhat.com> <200309160805.08171.bdschuym@pandora.be> <20030915230259.79f5a545.davem@redhat.com> <1063703910.5948.85.camel@henrik.marasystems.com>
+Subject: Re: Netfilter problem with new 2.4.22
+Date: Tue, 16 Sep 2003 15:47:55 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030916134755.GA677@obroa-skai.de.gnumonks.org>
+References: <3F66E46D.2060000@isfera.ru>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UBnjLfzoMQYIXCvq"
-Cc: "David S. Miller" <davem@redhat.com>,
-   Bart De Schuymer <bdschuym@pandora.be>, acme@conectiva.com.br,
-   netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Henrik Nordstrom <hno@marasystems.com>
+	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
+Cc: linux-kernel@vger.kernel.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Diadon <diadon@isfera.ru>
 Content-Disposition: inline
-In-Reply-To: <1063703910.5948.85.camel@henrik.marasystems.com>
-Errors-to: netdev-bounce@oss.sgi.com
+In-Reply-To: <3F66E46D.2060000@isfera.ru>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---UBnjLfzoMQYIXCvq
+--/9DWx/yDrRhgMJTb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 16, 2003 at 11:18:34AM +0200, Henrik Nordstrom wrote:
-> tis 2003-09-16 klockan 08.02 skrev David S. Miller:
->=20
-> > Also, another solution could be to store the object inside the kernel
-> > using a different structure, one where you can guarentee the alignment
-> > of these things properly.
->=20
-> unfortunately iptables does not allow such differences between userspace
-> and kernel representation..
+On Tue, Sep 16, 2003 at 02:22:37PM +0400, Diadon wrote:
+> After installing 2.4.22
+> this chain doesn't work
 
-yes. yes. yes.  The whole 'kernel internal data structure exported to
-userspace' is a fundamental design flaw of iptables.  There's nothing we
-can do about it, we'll have to live with it :(
+please post iptables related questions to netfilter@lists.netfilter.org
+or netfilter-devel@lists.netfilter.org.  I'm forwarding your mail there.
 
-That's why the yet-to-be-completed pkttables will use what I call vTLV's
-(versioned TLV's) for all [netlink based] kernel-userspace
-communication.
-
-> Henrik Nordstrom <hno@marasystems.com>
-> MARA Systems AB
+> any ideas?
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -54,16 +48,16 @@ communication.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---UBnjLfzoMQYIXCvq
+--/9DWx/yDrRhgMJTb
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/ZxmNXaXGVTD0i/8RAhomAJ90D0355YCD4jhTTPCOuvrndQ5YDACfcwaW
-UKucSJjwFt8GlCxUCXPT2CY=
-=AwWI
+iD8DBQE/ZxSKXaXGVTD0i/8RAgdPAJsHSSk0EGWTYJbKoQjtotkOML8RogCeLRYa
+7X1OBFLvpfaOuX1Uq7l7oUE=
+=3R84
 -----END PGP SIGNATURE-----
 
---UBnjLfzoMQYIXCvq--
+--/9DWx/yDrRhgMJTb--
