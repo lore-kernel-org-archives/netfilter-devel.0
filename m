@@ -1,74 +1,50 @@
-From: "Bjoern A. Zeeb" <bzeeb-lists@lists.zabbadoz.net>
-Subject: Re: 2.5.39 make modules_install error (netfilter)
-Date: Tue, 1 Oct 2002 08:40:30 +0200 (CEST)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.BSF.4.44.0210010838480.427-100000@e0-0.zab2.int.zabbadoz.net>
-References: <20021001142528.4640228c.Corporal_Pisang@Counter-Strike.com.my>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Idea: string replace
+Date: Tue, 1 Oct 2002 09:27:02 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20021001072702.GA23302@oknodo.bof.de>
+References: <20021001011306.GG16521@noir.cb.ac.at>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-kernel@vger.kernel.org, <coreteam@netfilter.org>,
-	<netfilter-devel@lists.netfilter.org>, <patch@zabbadoz.net>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Corporal Pisang <Corporal_Pisang@Counter-Strike.com.my>
-In-Reply-To: <20021001142528.4640228c.Corporal_Pisang@Counter-Strike.com.my>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Peter Surda <shurdeek@panorama.sth.ac.at>
+Content-Disposition: inline
+In-Reply-To: <20021001011306.GG16521@noir.cb.ac.at>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 1 Oct 2002, Corporal Pisang wrote:
+Hi Peter,
 
-Hi,
+> I have an idea, which is IMHO very suitable for China. Er, no, wanted to say
+> something different, suitable for me. How about adding a --replace-with option
+> to the string match? Is it difficult?
 
-> Final hurdle for me to get 2.5.39 compiled,
->
-> This is the error on make modules_install
->
-> if [ -r System.map ]; then /sbin/depmod -ae -F System.map  2.5.39; fi
-> depmod: *** Unresolved symbols in /lib/modules/2.5.39/kernel/net/ipv4/netfilter/ipt_owner.o
-> depmod:         next_thread
-> depmod:         find_task_by_pid
-> depmod: *** Unresolved symbols in /lib/modules/2.5.39/kernel/net/ipv6/netfilter/ip6t_owner.o
-> depmod:         next_thread
-> depmod:         find_task_by_pid
+I assume that you are aware of the reasons why the STRING approach
+risks both false positives and false negatives, and I'll spare you
+the usual rant.
 
-think someone already posted at least parts of this one.
+Regarding the "is it difficult" question, that depends on whether you
+want to replace with a string of identical length (piece of cake),
+or a string of different length. In the latter case, your new code
+has to reallocate the packet buffer to the appropriate new total
+size, and it must recalculate TCP sequence numbers (both ways,
+permanently, meaning you absolutely need connection tracking).
+To get a feel for the complexity, have a look at the FTP connection
+tracking and NAT helpers - they are doing just that with the FTP
+PORT command in the control connection, when NAT is active.
 
---- linux-20020930-175132/kernel/pid.c.orig	Mon Sep 30 19:13:24 2002
-+++ linux-20020930-175132/kernel/pid.c	Mon Sep 30 21:13:30 2002
-@@ -23,6 +23,7 @@
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/bootmem.h>
-+#include <linux/module.h>
+If you actually venture to implement this, please really look at
+what the FTP helpers do, and think hard about how to factor out
+the complexity into a generic helper module that can be used both
+from the FTP code, and from your new code.
 
- #define PIDHASH_SIZE 4096
- #define pid_hashfn(nr) ((nr >> 8) ^ nr) & (PIDHASH_SIZE - 1)
-@@ -275,3 +276,5 @@
- 		attach_pid(current, i, 0);
- 	}
- }
-+
-+EXPORT_SYMBOL(find_task_by_pid);
---- linux-20020930-175132/kernel/Makefile.orig	Mon Sep 30 19:41:03 2002
-+++ linux-20020930-175132/kernel/Makefile	Mon Sep 30 20:38:38 2002
-@@ -3,7 +3,8 @@
- #
-
- export-objs = signal.o sys.o kmod.o context.o ksyms.o pm.o exec_domain.o \
--	      printk.o platform.o suspend.o dma.o module.o cpufreq.o
-+	      printk.o platform.o suspend.o dma.o module.o cpufreq.o pid.o \
-+	      exit.o
-
- obj-y     = sched.o fork.o exec_domain.o panic.o printk.o \
- 	    module.o exit.o itimer.o time.o softirq.o resource.o \
---- linux-20020930-175132/kernel/exit.c.orig	Mon Sep 30 20:37:53 2002
-+++ linux-20020930-175132/kernel/exit.c	Mon Sep 30 21:13:15 2002
-@@ -911,3 +911,5 @@
- }
-
- #endif
-+
-+EXPORT_SYMBOL(next_thread);
-
--- 
-Greetings
-Bjoern A. Zeeb				bzeeb at Zabbadoz dot NeT
-56 69 73 69 74				http://www.zabbadoz.net/
+good luck!
+  Patrick
