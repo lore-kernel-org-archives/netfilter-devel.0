@@ -1,18 +1,17 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: find_appropriate_src() BUG also exist in 2.4.24
-Date: Sun, 04 Apr 2004 18:50:28 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH]  - ipsecrx match - was Re: Writing iptables	IPSEC	reception
+ support.
+Date: Mon, 05 Apr 2004 03:27:16 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1081097427.1004.77.camel@tux.rsn.bth.se>
-References: <20040403020119.1945.qmail@web41707.mail.yahoo.com>
-	 <1080985657.11647.1.camel@tux.rsn.bth.se>
-	 <20040404164436.GA17807@sch.bme.hu>
+Message-ID: <4070B5F4.7010903@trash.net>
+References: <1080772179.5070.9.camel@knox.wgtn.cat-it.co.nz>	 <20040401004343.GS1616@sunbeam.de.gnumonks.org>	 <406B73E1.6020504@trash.net>	 <1080793472.1768.14.camel@knox.wgtn.cat-it.co.nz>	 <406C07B7.90601@trash.net> <1080861835.3750.17.camel@knox.wgtn.cat-it.co.nz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-L6X5/e9L0GoHKEEWuH+B"
-Cc: zhi wang <pangy2004@yahoo.com>,
-	Netfilter Develop <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: KOVACS Krisztian <piglet@sch.bme.hu>
-In-Reply-To: <20040404164436.GA17807@sch.bme.hu>
+To: Matthew Grant <grantma@anathoth.gen.nz>
+In-Reply-To: <1080861835.3750.17.camel@knox.wgtn.cat-it.co.nz>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,44 +22,91 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Matthew Grant wrote:
+> Patrick,
+> 
+> Isn't there room for both ways of doing it?
 
---=-L6X5/e9L0GoHKEEWuH+B
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I don't think we need this match. The policy match offers a more
+generic way for matching if a packet came from a tunnel. It works
+in input and output, in tunnel and transport mode. This match only
+supports input side in tunnel mode, and it needs to touch other
+code.
 
-On Sun, 2004-04-04 at 18:44, KOVACS Krisztian wrote:
->   Hi,
->=20
-> On Sat, Apr 03, 2004 at 11:47:37AM +0200, Martin Josefsson wrote:
-> > On Sat, 2004-04-03 at 04:01, zhi wang wrote:
-> > > Current 2.6 kernel has fixed this bug. It should be used in current 2=
-.4 kernel
-> > > also.
-> >=20
-> > The fix is included in 2.4-bk, it will be included in 2.4.26 when that
-> > is released.
->=20
->   Martin, I think this is a different problem than the LIST_DELETE-relate=
-d
-> bug fixed in -bk (and 2.6.5). Are you sure it is solved?
+> I have read the Web CVS for the policy match and you have only checked
+> in IPv4.
 
-No, I should learn to eat breakfast before replying to mail :(
+Right, but it the only IPv4-specific thing it does is comparing the
+tunnel endpoints.
 
-Ignore my reply. Need to get a clue :)
+> There is a security hole with the way iptables has to be set up to allow
+> traffic in off the 2.6 IPSEC that allows packet injection off the
+> immediate external ethernet.
+> 
+> The solution I have got is simple, and it also supports IPv6, and it
+> closes the above hole by matching decapsulated traffic off the IPSEC
+> tunnel.  We have a VPN network at work that we need to convert to racoon
+> and the new IPSEC stack, and this problem needs to be sorted because of
+> security auditing reasons.
+> 
+> The question is, how soon can you get the policy match in the mainline
+> netfilter releases?  How well is it working? Do you support IPv6 yet? On
+> reading the code it looks simple, so it should be easy to get right.  I
+> could if you want get the thing finished if that is the preferred way to
+> get things done.
 
---=20
-/Martin
+Personal use and reports indicate it's working fine. It doesn't touch
+other code, so it can't break anything. More testing is of course
+welcome.
 
---=-L6X5/e9L0GoHKEEWuH+B
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+> Could you please let me know how you are placed.  A good solution is put
+> the fix I have in now, and then add yours when it is ready.  They both
+> do not stomp on each others toes, and can coexist together.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+I guess I'll add an IPv6 counterpart, but I can't tell you when it's
+going to get submitted. I don't think we should add your patch until
+then for these reasons:
 
-iD8DBQBAcDzTWm2vlfa207ERAkG1AJ9BbVPHr81JsVfvYjj+O4qX20HPNwCgs7aN
-H+TEddhs7t0UphXTOwYRkmg=
-=SlTq
------END PGP SIGNATURE-----
+1. we have a working solution available as patch
+2. we don't want to put it in and rip it out again after a short time
+3. it's clearly no permanent solution.
 
---=-L6X5/e9L0GoHKEEWuH+B--
+Regards
+Patrick
+
+> 
+> Thank you very much for your time and help.
+> 
+> Regards,
+> 
+> Matthew Grant
+> 
+> PS: I am also the Debian Maintainer for ipsec-tools and racoon packages.
+> 
+> On Fri, 2004-04-02 at 00:14, Patrick McHardy wrote:
+> 
+>>Matthew Grant wrote:
+>>
+>>>Patrick,
+>>>
+>>>Have written new patches.  Basically they just mark packets that came
+>>>from IPSEC by setting a bit in the nfcache field in the skbuff. 
+>>>Inspired by the longstanding nfmark feature.  Had to write quickly as I
+>>>need a solution to this problem for security reasons.  Far simpler than
+>>>the secpath stuff you wrote.
+>>>
+>>>I have attached the patches.  Not ready for patch-o-matic yet, but what
+>>>do you think?
+>>
+>>I think we need more flexibility than this. The policy match allows you
+>>to match --pol ipsec/none, but both ways.
+>>
+>>Regards
+>>Patrick
+>>
+>>
+>>>Cheers,
+>>>
+>>>Matthew Grant
+>>
+> 
