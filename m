@@ -1,17 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] NAT for unreplied connections
-Date: Wed, 5 Jun 2002 08:26:31 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [RFC] matching tproxied packets
+Date: Wed, 5 Jun 2002 08:53:25 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206050826.31479@henrik.marasystems.com>
-References: <3CFC7DCA.9030801@snapgear.com> <200206041501.06434.hno@marasystems.com> <3CFD67F7.5000801@snapgear.com>
+Message-ID: <Pine.LNX.4.33.0206050852190.8715-100000@blackhole.kfki.hu>
+References: <20020604145036.GA1295@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Philip Craig <philipc@snapgear.com>,
-	netfilter-devel@lists.samba.org
-In-Reply-To: <3CFD67F7.5000801@snapgear.com>
+To: Balazs Scheidler <bazsi@balabit.hu>
+In-Reply-To: <20020604145036.GA1295@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,50 +20,29 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 05 June 2002 03:23, Philip Craig wrote:
+On Tue, 4 Jun 2002, Balazs Scheidler wrote:
 
-> A solution might be to add a MASQUERADE rule for the slip
-> interface, and bring the slip down once I know the ppp is up.  So
-> in general I need to ensure that there is always MASQUERADE rule
-> for the current route that an outgoing packet will take, and to
-> bring the old interface down if there is a route change. This is
-> still kind of a workaround for the problem, but if it works then I
-> think that's good enough.
+> I'd like to make tproxies easier to administer, so I'm thinking about a
+> simple way of matching tproxied packets, which can be ACCEPTed from the
+> INPUT chain.
+>
+> Possible solutions:
+>
+> * use a new state (called TPROXY), which would be applied to all TPROXYed
+>   packets (might interact badly with nat/conntrack).
+> * have the tproxy framework mark all packets with an fwmark, and let the
+>   packets in based on the value of fwmark
+> * have a separate match (called tproxy), which matches tproxied sessions
+>   based on some value stored in the associated conntrack entry
+>
+> which one do you prefer?
 
-It should be sufficient to just have some MASQUERADE rule anywhere I 
-think. MASQUERADE does not seem to care what rules you have installed 
-when reacting on interface changes.. It will simply react on any 
-interface being brought down or ip address deleteions.
+The latter seems to me the best solution.
 
-What you need to make sure to make it work is that the SLIP interface 
-is brought down or at least that there is an ip address deleted from 
-the interface SLIP interface... i.e. the following should do in the 
-ppp-up script even if you like to keep the slip interface around:
-
-  ip addr add 1.1.1.1/32 dev slip0
-  ip addr del 1.1.1.1/32 dev slip0
-
-> I'd thought at first that this wouldn't be too much of a problem
-> for TCP... it would just look to the server like two separate
-> connections were being initiated, and the first one would never be
-> established.  I agree that it's not very good behavior though.
-
-The problem is that your approach may cause this kind of problem at 
-any time if there is more than one computer involved (including the 
-NAT gateway itself), not only when there is interface changes.
-
-  Computer A is in contact server X on port 80, using port 1234 as 
-source port.
-  Computer B tries to contact server X on port 80, also using port 
-1234 as source port.
-  Server X is slow in responding, causing retransmissions
-
-  B sends SYN, NAT assigns it port 5678 as 1234 is occupied.
-  B retransmits, NAT reassigns B to port 4325 as 1234 is still 
-occupied and there has been other changes in current port usage 
-between the two SYN packets from B..
-
-And this is only one case. There is more.
-
-Regards
-Henrik
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+WWW-Home: http://www.kfki.hu/~kadlec
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
