@@ -1,49 +1,66 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ulogd] [ANNOUNCE] ulogd-1.22 released
-Date: Mon, 7 Mar 2005 14:42:11 +0100
-Message-ID: <20050307134210.GG30487@sunbeam.de.gnumonks.org>
+From: Netfilter Core Team <coreteam@netfilter.org>
+Subject: [ANNOUNCE] Release of iptables-1.3.1
+Date: Mon, 7 Mar 2005 15:35:32 +0100
+Message-ID: <20050307143532.GI30487@sunbeam.de.gnumonks.org>
+Reply-To: coreteam@netfilter.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BrzieSmlpF6NDzIw"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	netfilter-announce@lists.netfilter.org
-To: ulogd@lists.gnumonks.org
+	protocol="application/pgp-signature"; boundary="ECAkxgSy0pGoHfdA"
+Cc: lwn@lwn.net
+To: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---BrzieSmlpF6NDzIw
+--ECAkxgSy0pGoHfdA
+Content-Type: multipart/mixed; boundary="Zll6mx50Q8J7qlLQ"
+Content-Disposition: inline
+
+
+--Zll6mx50Q8J7qlLQ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi!
 
-I have released version 1.22 of the iptables userspace logging
-daemon (ulogd).  This release is a bugfix to the recently-announced 1.21
-release (which had broken posgresql support).
+The netfilter coreteam proudly presents:
 
-The new Version is available as tar.bz2 only and can be retrieved from:
-ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.22.tar.bz2
+	iptables version 1.3.1
 
-There is a GPG signature for verification of the authenticity of the=20
-archive: ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.22.tar.bz2.sig
+The final 1.3.1 version contains some minor bugfixes to the
+recently-released version 1.3.0
 
-Version 1.22 (2005-03-07)
-- Fix postgresql endless loop (Jani Averbach)
-- Add postgrsql schema support (Bob Hockney)
+The ChangeLog is attached to this mail.
 
-Please direct any questions / bug reports to the
-ulogd@lists.gnumonks.org mailinglist.
+Version 1.3.1 can be obtained from:
+
+	http://www.netfilter.org/files/iptables-1.3.1.tar.bz2
+	ftp://ftp.netfilter.org/pub/iptables/iptables-1.3.1.tar.bz2
+
+Please also note: Since Kernel 2.6.x is out, we now use
+patch-o-matic-ng for both 2.4.x and 2.6.x. patch-o-matic-ng is
+Distributed as seperate package:=20
+	ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/
+=09
+More information can be found at the netfilter/iptables project homepage,
+available at:
+
+	http://www.netfilter.org/
+	http://www.iptables.org/
+
+Happy firewalling,
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -55,7 +72,43 @@ ulogd@lists.gnumonks.org mailinglist.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---BrzieSmlpF6NDzIw
+--Zll6mx50Q8J7qlLQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-iptables-1.3.1.txt"
+
+iptables v1.3.1 Changelog
+======================================================================
+This version requires kernel >= 2.4.4
+This version recommends kernel >= 2.4.18
+
+Bugs fixed from 1.3.0:
+
+- Fix CLUSTERIP rule deletion
+	[ Pablo Neira ]
+
+- Fix libip6t_random compilation
+	[ Harald Welte ]
+
+- Fix CONNMARK on 32bit userspace / 64bit kernel archs
+	[ Pablo Neira ]
+
+Changes from 1.3.0:
+
+- remove bogus NFC_* stuff in iptables
+	[ Pablo Neira ]
+
+- libiptc: don't sort builtin chains, restores iptables-1.2.x sort order
+	[ Olaf Rempel ]
+
+
+Please note: Since version 1.2.7a, patch-o-matic is now no longer part of
+iptables but rather distributed as a seperate package
+(ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot)
+
+
+--Zll6mx50Q8J7qlLQ--
+
+--ECAkxgSy0pGoHfdA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -63,9 +116,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFCLFoyXaXGVTD0i/8RAnEEAKCO4Sa1wRIGvVBPPAVOPGZ9Wfl5bgCeJx7K
-+JDqdIRjzRlIIQ4TDZrY7C8=
-=NfGZ
+iD8DBQFCLGa0NfqJzMqajVsRAvSwAJ4g++23LvPnbAGwYmr7iLFzLdm9XACgt8yk
+wLl/c3V9XSk5ohn3359hkIo=
+=fWic
 -----END PGP SIGNATURE-----
 
---BrzieSmlpF6NDzIw--
+--ECAkxgSy0pGoHfdA--
