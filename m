@@ -1,20 +1,21 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [PATCH] aggressive early_drop and reserved conntrack entries
-Date: Sat, 11 Dec 2004 17:56:28 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0412111740420.16780@blackhole.kfki.hu>
+Date: Sun, 12 Dec 2004 12:40:17 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0412121225240.30324@filer.marasystems.com>
 References: <Pine.LNX.4.58.0412090845060.11649@blackhole.kfki.hu>
 	<20041209085249.GA22714@oknodo.bof.de>
 	<Pine.LNX.4.58.0412091108420.11649@blackhole.kfki.hu>
 	<Pine.LNX.4.58.0412102315110.15772@blackhole.kfki.hu>
 	<1102772053.12078.40.camel@tux.rsn.bth.se>
+	<Pine.LNX.4.58.0412111740420.16780@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>,
+	Martin Josefsson <gandalf@wlug.westbo.se>, Patrick Schaaf <bof@bof.de>,
 	Grzegorz Piotr Jaskiewicz <gj@pointblue.com.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1102772053.12078.40.camel@tux.rsn.bth.se>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0412111740420.16780@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,48 +27,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Martin,
+On Sat, 11 Dec 2004, Jozsef Kadlecsik wrote:
 
-On Sat, 11 Dec 2004, Martin Josefsson wrote:
+> It's already a little bit messy. I strongly believe, we must revise
+> reference counting in order to make locking more straightforward (and to
+> be able to introduce say per bucket locking at all). The
+> conntrack_arefcount patch tries to step ahead in that direction.
 
-> > Attached (;-) is the new patch, which implements the list of unassured
-> > connections. (Reserving conntracks is dropped completely as unnecessary.)
-> > I tested it slighgtly and seems to work fine. What do you think about it?
->
-> I've been thinking about this as well, but mostly I've been thinking
-> about how to get it to scale when we go for more finegrained locking.
-> The locking is going to be nasty.
+The patch adds yet another entity needing locking: The list of unassured 
+connections. This list requires two write updates per new connection 
+(append, delete).
 
-It's already a little bit messy. I strongly believe, we must revise
-reference counting in order to make locking more straightforward (and to
-be able to introduce say per bucket locking at all). The
-conntrack_arefcount patch tries to step ahead in that direction.
+With it being a linked list fine grained locking becomes a bit hard, and 
+to have FIFO semantics there is not many other choices. But fortunately 
+the operations needing this list locked is very short in time so it should 
+be fine with a global lock on the unassured list, in addition to the 
+(finegrained) conntrack locking, provided the unassured lock is aquired 
+last (atomic list insert, delete operations).
 
-> Why not loop and kill multiple entries each time? Saves some locking and
-> cache. But in order to do that in a good way wee need a counter of how
-> many entries we have in the unassured list. But we don't want to kill
-> too many each time, then almost no real connections will get through.
+Note: RCU does not help us here.
 
-An atomic counter could help: this is just a proof of concept code :-)
-
-> @@ -1107,6 +1117,10 @@
->  			add_timer(&ct->timeout);
->  		}
->  		ct_add_counters(ct, ctinfo, skb);
-> +		if (set_assured) {
-> +			set_bit(IPS_ASSURED_BIT, &ct->status);
-> +			list_del(&ct->unassured);
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> Huh? No check to see if we already are assured or not?
-> Not needed for icmp, tcp or sctp but udp and the generic handler does.
-
-Oops, absolutely correct, I tested the code with TCP only. Fortunately
-it's easy to fix :-)
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+Henrik
