@@ -1,15 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] netfilter: fix UDP incremental checksumming
-Date: Thu, 2 Oct 2003 16:26:46 +0200
+From: Biermann-Roemke@t-online.de (=?ISO-8859-1?Q?Karsten_R=F6mke?=)
+Subject: libiptc - frustrating
+Date: Thu, 02 Oct 2003 17:49:45 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031002142646.GC5758@sunbeam.de.gnumonks.org>
+Message-ID: <3F7C4919.8060800@hhb.bonn.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/pwFaPbQJiTDEB5I"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,86 +18,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!
 
---/pwFaPbQJiTDEB5I
-Content-Type: multipart/mixed; boundary="iiGw1pLv4Q7HfyNL"
-Content-Disposition: inline
+A long time ago (means 12 month or something like this)
+I wrote c++-Classes around some functionality of libiptc and
+iptables. Used iptables-1.2.6a.
+Now, I'm changing my linux version and they actually use 1.2.7a,
+maybe patched, it's a suse 8.2.
 
+Hmm, same program works on old-Version and leads to a segmentation
+fault in the new version. (Kernel differs too).
 
---iiGw1pLv4Q7HfyNL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I remember that I need some time to analyse iptables and the calls
+to libiptc and I think I understand it half (maybe).
+My needs are only the insertion / deletion of  redirection-rules, if the 
+source
+of the packet was a specified IP. Furthermore I create a new chain out
+of my program.
 
-Hi Davem!
+OK, cause it was some work I now thought:
+"look for examples in the archive" and I found:
 
-Please apply the following patchto your 2.4 tree and push it to Marcelo.
-Thanks.
+ >We said it before and we say it again. libiptc was never intended to 
+be used
+ >by anything else but iptables.c self. Its not an "open" API to be used by
+ >any C-program. It might be and will be changed without any notice possible
+ >making your c-program not working anymore.
 
+Uuups - horrible for me :-)
 
-Author: Patrick McHardy <kaber@trash.net>
+Question: how can I insert a rule from a running daemon in the fastest way:
+1) calling a system("iptables ..."), don't know if the syntas is correct
+2) doing the work again of analyzing the source code again
+3) linking iptables.o to my application. I remember, that I've not done that
+    because iptables never frees any memory - only allocates - not 
+useful for a
+    long time running program.
+    If I'm not right with this, excuse me, I just have something in mind 
+like this :-)
 
-Add size check to ip_nat_mangle_udp_packet
+Thank you
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---iiGw1pLv4Q7HfyNL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="79_mangle_udp-sizecheck.patch"
-Content-Transfer-Encoding: quoted-printable
-
-# This is a BitKeeper generated patch for the following project:
-# Project Name: Linux kernel tree
-# This patch format is intended for GNU patch command version 2.5 or higher.
-# This patch includes the following deltas:
-#	           ChangeSet	1.1134  -> 1.1135=20
-#	net/ipv4/netfilter/ip_nat_helper.c	1.10    -> 1.11  =20
-#
-# The following is the BitKeeper ChangeSet Log
-# --------------------------------------------
-# 03/09/28	kaber@trash.net	1.1135
-# [NETFILTER]: Add size check to ip_nat_mangle_udp_packet
-# --------------------------------------------
-#
-diff -Nru a/net/ipv4/netfilter/ip_nat_helper.c b/net/ipv4/netfilter/ip_nat_=
-helper.c
---- a/net/ipv4/netfilter/ip_nat_helper.c	Sun Sep 28 04:40:29 2003
-+++ b/net/ipv4/netfilter/ip_nat_helper.c	Sun Sep 28 04:40:29 2003
-@@ -233,6 +233,13 @@
- 	newudplen =3D udplen - match_len + rep_len;
- 	newlen =3D iph->ihl*4 + newudplen;
-=20
-+	/* UDP helpers might accidentally mangle the wrong packet */
-+	if (udplen < sizeof(*udph) + match_offset + match_len) {
-+		if (net_ratelimit())
-+			printk("ip_nat_mangle_udp_packet: undersized packet\n");
-+		return 0;
-+	}
-+
- 	if (newlen > 65535) {
- 		if (net_ratelimit())
- 			printk("ip_nat_mangle_udp_packet: nat'ed packet "
-
---iiGw1pLv4Q7HfyNL--
-
---/pwFaPbQJiTDEB5I
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/fDWmXaXGVTD0i/8RAu3BAJ9RDO5D4zUhFPhZ0qihaEC84oUf/gCfb94f
-XnDqU0HhEjlBoRTjYMnSfCI=
-=AOLg
------END PGP SIGNATURE-----
-
---/pwFaPbQJiTDEB5I--
+	Karsten
