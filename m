@@ -1,16 +1,14 @@
-From: Cedric Blancher <blancher@cartel-securite.fr>
-Subject: Re: ARP filtering
-Date: 07 Jun 2003 10:06:20 +0200
+From: "calvin" <calvinproject@ihug.com.au>
+Subject: can netfilter capture internal network packet?
+Date: Sat, 7 Jun 2003 18:37:50 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1054973179.740.0.camel@elendil.intranet.cartel-securite.net>
-References: <3EE12C93.6090503@binary-one.com>
+Message-ID: <001101c32cd0$14bdf940$010aa8c0@toowoomba>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jon Webb <jon_webb@binary-one.com>
-In-Reply-To: <3EE12C93.6090503@binary-one.com>
+To: <netfilter-devel@lists.netfilter.org>, <netfilter@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,20 +19,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Le sam 07/06/2003 =E0 02:06, Jon Webb a =E9crit :
-> Hi guys. I feel like this is a silly question. I can't find=20
-> documentation on how to use the arp_tables and arp_filter netfilter=20
-> modules. I have setup a fake multi-hop wireless network by filtering ma=
-c=20
-> addresses at each host, but after a while ARP breaks the network by=20
-> getting through the mac filters. Any help is appreciated.
+Dear all,
 
-In the mean time, you can use ebtables :
+I got a serious problem with my netfilter programe.
 
-	http://ebtables.sourceforge.net/
+what i am trying to do is capture a packet frmo A to B in the same network
+and direct it to QUEUE.
 
---=20
-C=E9dric Blancher  <blancher@cartel-securite.fr>
-IT systems and networks security - Cartel S=E9curit=E9
-Phone : +33 (0)1 44 06 97 87 - Fax: +33 (0)1 44 06 97 99
-PGP KeyID:157E98EE  FingerPrint:FA62226DA9E72FA8AECAA240008B480E157E98EE
+My setup is
+
+A      B
+ \       /
+  \     /
+  HUB
+     | (eth0)
+   GW
+     |(eth1)
+     |
+     |
+
+is that possible to: when A send a message to B port 1700 (for example) ,
+the iptales in GW can grep the packet and put into queue for processing and
+put it back to the line?
+I tried to the rules like:
+iptables -A INPUT -i eth0 -p udp --dport 17-- -j QUEUE
+or
+iptables -A INPUT -o eth1 -p udp --dport 17-- -j QUEUE
+or both of them.
+
+I can get it works.
+
+I also have a netfilter module, insepecting packetsrc/dest port in the
+PRE_ROUTING hook point, also can't get it.
+
+is that any way I can do what I want to do in module? in iptables?
+
+Thanks very much for any of your help..
+
+Regards,
+Calvin
