@@ -1,14 +1,12 @@
-From: Karlis Peisenieks <karlis@mt.lv>
-Subject: recent in_range fix uncovered another bug?
-Date: Wed, 10 Sep 2003 14:05:55 +0300
+From: Brad Chapman <kakadu_croc@yahoo.com>
+Subject: [PATCH?] Fix getorigdst() in ip_conntrack_core.c on 2.4.22-ac2
+Date: Wed, 10 Sep 2003 06:32:11 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030910110555.GA30240@mt.lv>
+Message-ID: <20030910133211.1360.qmail@web40908.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="k1lZvvs/B4yU6o8G"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: coreteam@netfilter.org
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,94 +17,79 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi everyone!
 
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+gcc fails with the following error when compiling ip_conntrack_core.c on 2.4.22-ac2
+with gcc 3.2.2:
 
-Hello!
+make -C ipv4/netfilter modules
+make[2]: Entering directory `/opt/src/linux-2.4.22-ac2+nfpom/net/ipv4/netfilter'
+gcc -D__KERNEL__ -I/opt/src/linux-2.4.22-ac2+nfpom/include -Wall -Wstrict-prototypes
+-Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -pipe
+-mpreferred-stack-boundary=2 -march=pentium4 -DMODULE  -nostdinc -iwithprefix
+include -DKBUILD_BASENAME=ip_conntrack_core  -c -o ip_conntrack_core.o
+ip_conntrack_core.c
+ip_conntrack_core.c: In function `getorigdst':
+ip_conntrack_core.c:1419: invalid type argument of `->'
+ip_conntrack_core.c:1419: invalid type argument of `->'
+make[2]: *** [ip_conntrack_core.o] Error 1
+make[2]: Leaving directory `/opt/src/linux-2.4.22-ac2+nfpom/net/ipv4/netfilter'
+make[1]: *** [_modsubdir_ipv4/netfilter] Error 2
+make[1]: Leaving directory `/opt/src/linux-2.4.22-ac2+nfpom/net'
+make: *** [_mod_net] Error 2
 
-I came across "lockup" in conntrack code using 2.4 kernel with bridge 
-netfilter (which is standart in 2.6 kernel) patch applied. Lockup can be 
-reproduced by pinging some host over bridge interface if the host is 
-unreachable in the beginning (e.g. ARP does not resolve) and then 
-becomes reachable (ARP resolves).
+So I made the following patch to fix it:
 
-Here is what happens:
-
-- echo request is conntrack-ed, new conntrack is created
-- bridge netfilter code "sabotages" in post-routing hook, so it can 
-process the rest of hooks when actual outgoing interface is determined
-- neigbour code takes over packet and holds it until ARP is resolved, 
-conntrack for packet is "hanging in the air"
-- above repeats for _every_ echo request packet created
-
-At this point ARP gets resolved
-
-- neighbour code "flushes" its queue, sending packets one by one to 
-bridge interface
-- bridge code determines outgoing interface and calls IP post-routing 
-hook
-- nat code creates null-binding
-- post-routing hook confirms conntrack, it gets linked in lists
-- packet is queued for hw interface
-
-- neighbour code sends second packet
-- all goes as above up to creating of null-binding
-- in ip_nat_setup_info loop that is calling get_unique_tuple loops 
-forever because:
-
-- find_appropriate_src finds existing src-mainp (which is not doing 
-anything anyway) and decides to use it
-- ip_conntrack_alter_reply fails because it finds conntrack looking 
-exactly the same as this (remember - that conntrack got confirmed when 
-sending first packet) and thinks that get_unique_tuple will return 
-better unique tuple.
-
-So problem here are 2 equal conntrack-s, that should normaly be one, but
-as confirmation of first got delayed (because of bridge interface
-standing in the middle), second one got created.
-
-It did not happen before in_range logic fix because every time 
-completely new manip was created (with different icmp id) which made 
-those conntracks different.
-
-I hope the problem is more or less clear :). What should be fixed here? 
-I doubt it is bridge code (although this "sabotage" is evil - at least 
-in how it makes code hard to understand), because there can be other 
-cases when packet can be delayed (e.g. with ip_queue?) without 
-conntrack confirmation.
-
-Quick and dirty fix to avoid lockup was to avoid ip_nat_setup_info 
-looping forever. Patch attached.
-
-
-Karlis
-
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="nat.patch"
-
-diff -u -r1.3.4.8 ip_nat_core.c
---- ip_nat_core.c	2 Sep 2003 10:21:18 -0000	1.3.4.8
-+++ ip_nat_core.c	10 Sep 2003 09:22:50 -0000
-@@ -516,6 +516,7 @@
- 	struct ip_conntrack_tuple new_tuple, inv_tuple, reply;
- 	struct ip_conntrack_tuple orig_tp;
- 	struct ip_nat_info *info = &conntrack->nat.info;
-+	int i;
+--- net/ipv4/netfilter/ip_conntrack_core.c.orig	2003-09-10 14:24:33.000000000 -0400
++++ net/ipv4/netfilter/ip_conntrack_core.c	2003-09-10 14:24:46.000000000 -0400
+@@ -1414,14 +1414,14 @@
+ getorigdst(struct sock *sk, int optval, void *user, int *len)
+ {
+ 	struct ip_conntrack_tuple_hash *h;
+-	struct ip_conntrack_tuple tuple;
++	struct ip_conntrack_tuple *tuple;
  
- 	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
- 	IP_NF_ASSERT(hooknum == NF_IP_PRE_ROUTING
-@@ -557,7 +558,9 @@
+-	IP_CT_TUPLE_BLANK(&tuple);
+-	tuple.src.ip = sk->rcv_saddr;
+-	tuple.src.u.tcp.port = sk->sport;
+-	tuple.dst.ip = sk->daddr;
+-	tuple.dst.u.tcp.port = sk->dport;
+-	tuple.dst.protonum = IPPROTO_TCP;
++	IP_CT_TUPLE_BLANK(tuple);
++	tuple->src.ip = sk->rcv_saddr;
++	tuple->src.u.tcp.port = sk->sport;
++	tuple->dst.ip = sk->daddr;
++	tuple->dst.u.tcp.port = sk->dport;
++	tuple->dst.protonum = IPPROTO_TCP;
+ 
+ 	/* We only do TCP at the moment: is there a better way? */
+ 	if (strcmp(sk->prot->name, "TCP") != 0) {
+@@ -1435,7 +1435,7 @@
+ 		return -EINVAL;
  	}
- #endif
  
-+	i = 0;
- 	do {
-+		if (i++ == 3) return NF_DROP;
- 		if (!get_unique_tuple(&new_tuple, &orig_tp, mr, conntrack,
- 				      hooknum)) {
- 			DEBUGP("ip_nat_setup_info: Can't get unique for %p.\n",
+-	h = ip_conntrack_find_get(&tuple, NULL);
++	h = ip_conntrack_find_get(tuple, NULL);
+ 	if (h) {
+ 		struct sockaddr_in sin;
 
---k1lZvvs/B4yU6o8G--
+gcc 3.2.2 compiles this properly with only a warning about the possiblity that
+tuple will be uninitialized. The original code looks perfectly legal and proper,
+so why would gcc 3.x fail?
+
+NOTE: I did apply some patches from patch-o-matic-20030909, but no conntrack-core-
+modifying patches that weren't already present.
+
+TIA
+
+Brad Chapman
+
+=====
+Brad Chapman
+
+Permanent e-mail: kakadu_croc@yahoo.com
+
+__________________________________
+Do you Yahoo!?
+Yahoo! SiteBuilder - Free, easy-to-use web site design software
+http://sitebuilder.yahoo.com
