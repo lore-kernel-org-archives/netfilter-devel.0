@@ -1,13 +1,11 @@
-From: "junk" <junk@toutatis.be>
-Subject: can't unregister_netdevice
-Date: Thu, 24 Feb 2005 15:06:38 +0100
-Message-ID: <20050224132607.M20794@toutatis.be>
-References: <20050223130806.M55665@toutatis.be>
+From: Ian Norton <bredroll@darkspace.org.uk>
+Subject: using netfilter hooks (in not the intended way)
+Date: Thu, 24 Feb 2005 14:29:58 +0000
+Message-ID: <20050224142958.GA15691@earth.dsh.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=iso-8859-1
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20050223130806.M55665@toutatis.be>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,15 +17,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi everyone,
 
-I'm coding a module which sends packets to eth0, it actually sends packets but
-when i halt/reboot my linux, it hang over saying it can't unregister_netdevice
-eth0 because usage count is = X
+I hope somoene can give me some pointers here, Im writing an 
+implementation of ipcomp for 2.4.x using netfilter hooks instead
+of the normal way new protocols are handled, I know it's not 
+what netfilter is intended to do, but, the main idea here is
+that it is one of those 'there is more than one way to do stuff'
+exercizes for a university project.
 
-What did I forgot in my code?
+basically, my problem is this, when recieving a compressed packet,
+i want to decompress it, expand the skb and memcpy the decompressed
+data into the skb.
 
-I use dev_queue_xmit to transmit my packet to eth0
-I do not kfree_skb my skb, I return a NF_STOLEN
-I do unregister my netfilter hooks
+now, i seem to be able to do all this, if i make a clone of this skb and send
+it using dev_queue_xmit or netif_rx() then it turns up where i want it
+(albiet later than i would like and requireing some link layer header stuff)
 
-Any ideas?
+i really want to return the 'modified' skb back to netfilter with NF_ACCEPT
+however if i do a pskb_expand_head() on it, then it is as if i did nothing
+to the packet after calling pskb_expand_head().
+
+afaik, pskb_expand_head() will create a copy of the skb if it needs to, how can
+i make sure that netfilter will see this new larger copy?
+
+thanks in advance 
+
+regards
+
+Ian
+-- 
