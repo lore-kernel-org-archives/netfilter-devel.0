@@ -1,15 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: netflow/sflow & Linux
-Date: Tue, 23 Mar 2004 00:00:36 +0100 (CET)
+From: "Daniel Chemko" <dchemko@smgtec.com>
+Subject: CONNMARK again..
+Date: Mon, 22 Mar 2004 15:44:47 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403222123480.21687-100000@filer.marasystems.com>
-References: <20040322154543.GA11903@oasis.frogfoot.net>
+Message-ID: <7C9884991ADAE0479C14F10C858BCDF5122F25@alderaan.smgtec.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Abraham van der Merwe <abz@frogfoot.net>
-In-Reply-To: <20040322154543.GA11903@oasis.frogfoot.net>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,33 +20,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 22 Mar 2004, Abraham van der Merwe wrote:
+Ok, I wrote a few weeks back about getting policy routing working. I
+did!
 
-> Yes, I know about that, but ntop is rather limited because it is just based
-> on libpcap.
+The problem is that I've updated to the latest 2.4 POM and -j CONNMARK
+--save-mark doesn't seemt o be working anymore. I am using iptables
+1.2.9 for my userspace.
 
-I don't see what is wrong with that.
+Stripped down example of my problem:
 
->  (a) keep a "flow" in kernel space AND record routing information (e.g. AS
->      numbers would by extremely useful although we'd need some way for Zebra
->      to pass this information to the kernel).
+This works:
+14053 6109K CONNMARK   all  --  *      *       0.0.0.0/0
+0.0.0.0/0           CONNMARK restore
+12788 6021K ACCEPT     all  --  *      *       0.0.0.0/0
+0.0.0.0/0           MARK match !0x0
+   15  1282 MARK       all  --  eth1   *       0.0.0.0/0
+0.0.0.0/0           MARK match 0x0 MARK set 0x4
+   15  1282 CONNMARK   all  --  eth1   *       0.0.0.0/0
+0.0.0.0/0           CONNMARK match 0x0 CONNMARK set 0x4
+ 1263 87899 CONNMARK   all  --  *      *       0.0.0.0/0
+0.0.0.0/0           CONNMARK save
 
-You could just as well extend ntop/nprobe to get AS numbers from Zebra.  
-This way you do not need to burden the kernel with stream reassebly of
-forwarded traffic etc for the more advanced flow analyses.
+This doesn't:
+14053 6109K CONNMARK   all  --  *      *       0.0.0.0/0
+0.0.0.0/0           CONNMARK restore
+12788 6021K ACCEPT     all  --  *      *       0.0.0.0/0
+0.0.0.0/0           MARK match !0x0
+   15  1282 MARK       all  --  eth1   *       0.0.0.0/0
+0.0.0.0/0           MARK match 0x0 MARK set 0x4
+ 1263 87899 CONNMARK   all  --  *      *       0.0.0.0/0
+0.0.0.0/0           CONNMARK save
 
->  (b) export that flow to userspace again.
-> 
-> My main gripe with ntop is that it can't record AS numbers. This is very
-> useful!
-
-Neither can the kernel without modifications. AS numbers exists in
-userspace.
-
-> It also means that were missing out on connection tracking which
-> would've been really useful (this is something Cisco, etc can't do yet).
-
-Why bloat the kernel with connection tracking only for netflow statistics?
-
-Regards
-Henrik
+The CONNMARK mark is never updated with the value from MARK. Has there
+been any recent changes that would have broken this functionality?
