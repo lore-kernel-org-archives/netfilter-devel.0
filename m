@@ -1,23 +1,22 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: [PATCH] multiple changes/fixes
-Date: Sat, 28 Aug 2004 03:03:06 +0200
+From: jamal <hadi@cyberus.ca>
+Subject: Re: tc filtering vs iptables
+Date: 27 Aug 2004 21:35:40 -0400
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040828010306.GD2416@eychenne.org>
-References: <20040827133700.GT23981@eychenne.org> <412F5A3C.1000704@trash.net>
-	<20040827162808.GA29915@eychenne.org> <412F94D6.8040906@trash.net>
-	<20040828000124.GB2416@eychenne.org>
-	<Pine.LNX.4.61.0408280202470.10193@filer.marasystems.com>
-	<20040828004039.GC2416@eychenne.org>
-	<Pine.LNX.4.61.0408280248010.10624@filer.marasystems.com>
+Message-ID: <1093656940.1078.25.camel@jzny.localdomain>
+References: <1093614389.1068.20.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0408271751360.32691@filer.marasystems.com>
+	<1093632324.14188.2.camel@jzny.localdomain>
+	<20040827201137.GB9274@ti64.telemetry-investments.com>
+	<1093638474.14190.29.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0408280154210.10193@filer.marasystems.com>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0408280248010.10624@filer.marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0408280154210.10193@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,44 +27,71 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Aug 28, 2004 at 02:50:17AM +0200, Henrik Nordstrom wrote:
+On Fri, 2004-08-27 at 20:00, Henrik Nordstrom wrote:
+> On Fri, 27 Aug 2004, jamal wrote:
+> 
+> > Can you emulate a patricia tree out of chains?
+> 
+> Yes, sort of.
+> 
+> If you like chains are just nodes with a list of branches or terminal 
+> leaves (the rules).
+> 
+> What you can't have in iptables is the prefix compression used in 
+> patricia, or at least not to the same level. You can still compress if 
+> your rules are based on multiple "dimensions" of the packet address space 
+> (i.e. source, destination, port).
 
-> On Sat, 28 Aug 2004, Herve Eychenne wrote:
+Thats what i wanted to do. I still have one more opportunity to re-run
+tests before i close it for now.
 
-> >Yes... run indent on the current tree, run indent on the patched tree,
-> >and run diff on the two "indented" trees. But... too late: I took one
-> >hour to remove the fluff from my patch (sigh).
+> But seriously speaking, if you are looking into ruleset requiring this 
+> amount of address information I stronly suspect ippool (or it's successor 
+> ipset) is the best tool for the job, allowing you to quickly group similar 
+> things together.  Only if you need to assign unique classification to each 
+> individual flow do you need a rule for each. But then again I do not have 
+> the full picture of the type of packet classification you are trying to 
+> accomplish.
 
-> Found yet another useful tool for splitting patches with less=20
-> dependencies: tkdiff
+My goal end goal is to test a _huge_ number of rules with iptables
+and u32. huge is probably an exageration here since 64K is the max i
+test.
 
-I use it all the time, but I don't really see how it can help to
-split patches affecting multiple files efficiently (you're talking
-about the merge functionnality, aren't you?), as it works with two
-versions of a file at a time, and not a diff file nor 2 trees...
+To simplify things i selected the following:
+A single web server (TCP port 80) connected to by upto 64K different
+clients. 
+The reason i chose this simple setup is because i can plot its lookups
+easily and write simple scripts to install rules.
+So end goal: stash many rules in both u32 and iptables and check
+results.
+In this example setup src IP and src TCP port are always looked up in
+the case of u32 and only when a match happens are the packets let
+through - by default they are dropped. In the case of iptables, only the
+src IP is looked up (didnt wanna add any overhead).
+Of course these are cooked tests - so i dont bother looking up either
+dst IP or dst port. So neither u32 nor iptables do that.
 
-> >I'll post 2 new patches tonight (if my head does not fall heavily on m=
-y
-> >keyboard til then): one containing the information, the other containi=
-ng
-> >syntaxical or cosmetic changes, and typo fixes.
+Does that make sense?
 
-> Great!
+Next step: Since i can optimize u32 (didnt try too hard) - figured i
+need to be fair to iptables hence my posting here.
 
-Maybe I've talked a little bit too fast, as the patch modified by hand
-doesn't apply anymore, and I cannot get it to apply even when playing
-with rediff and recountdiff (from the patchutils).
+Traffic runs in a sort of DOS mode. i.e for all users you send one
+packet and wait until everyone has sent one before your turn again
+(round robin). The overall packets are sent at wire rate 64 byte
+packets. If there was one user that would be 1.48Million packets per
+second. If there were 148 users each would be sending 10Kpps.
+All the above is designed to test worst case scenario.
 
-> And thanks for encouraging me to look for tools doing this job easier. =
-Was=20
-> more things around than I expected to find.
+Next phase of the test:
+While all that traffic is being sent add then delete a totaly unrelated
+rule. Two metrics:
+1) what packet rates are observed during add/del?
+2) how many times/sec can you do this? (essentially this could be used
+to simulate opening and closing peepholes maybe even in a midcom kind
+environment)
 
-You're welcome... ;-)
+I will present my results at SUCON.
 
- Herve
-
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+cheers,
+jamal
