@@ -1,12 +1,15 @@
-From: Chris Wilson <chris@netservers.co.uk>
-Subject: conntrack match and locking
-Date: Mon, 24 May 2004 16:29:04 +0100 (BST)
+From: Raivis Bucis <raivis@mt.lv>
+Subject: kernel crash [problem with helpers]
+Date: Wed, 26 May 2004 14:12:32 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0405241628000.27895@chris.camcom.co.uk>
+Message-ID: <200405261412.32587.raivis@mt.lv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,16 +20,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+ip_conntrack assumes that expect->expectant->helper allways will be non null, 
+but that is not allways the case.
 
-The conntrack match from POM-ng doesn't appear to do any locking while 
-accessing conntrack structures. Is that a problem? If so, how can I fix 
-it? I can submit a patch if someone can tell me what lock(s) I need to 
-hold.
+When tftp conntrack is used, on first received UDP packet, tfp helper adds 
+expectation. If it gets NATed later to some other port, 
+ip_conntrack_alter_reply will set its helper to NULL, but expectation is 
+still kept, and when expected conntrack is created, its master conntrack 
+doesn't have helper anymore. This leads to kernel oops in list_conntracks 
+when reading "/proc/net/ip_conntrack", etc.
 
-Cheers, Chris.
--- 
-_  __ __     _
- / __/ / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
-/ (_  ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
-\__/_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
+Therefore I propose following fix:
+
+diff -u -r1.13 ip_conntrack_core.c
+--- ip_conntrack_core.c 9 Jan 2004 07:52:10 -0000       1.13
++++ ip_conntrack_core.c 26 May 2004 11:05:23 -0000
+@@ -1139,10 +1139,13 @@
+        DUMP_TUPLE(newreply);
+
+        conntrack->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
+-       if (!conntrack->master)
+-               conntrack->helper = LIST_FIND(&helpers, helper_cmp,
+-                                             struct ip_conntrack_helper *,
+-                                             newreply);
++       if (!conntrack->master) {
++               struct ip_conntrack_helper *newhelper;
++               newhelper = LIST_FIND(&helpers, helper_cmp,
++                                     struct ip_conntrack_helper *,
++                                     newreply);
++               if (newhelper) conntrack->helper = newhelper;
++       }
+        WRITE_UNLOCK(&ip_conntrack_lock);
+
+        return 1;
+
+
+Or maybe, we should check whether it has expectations before looking for new 
+helper.
+
+Raivis Bucis
