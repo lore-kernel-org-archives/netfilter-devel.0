@@ -1,18 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] kill NFC_* stuff in iptables [was Re: iptables compile
- error: NFC_IP_TOS undeclared]
-Date: Sun, 13 Feb 2005 00:34:23 +0100
-Message-ID: <420E927F.1030905@trash.net>
-References: <Pine.GSO.4.33.0502101758010.19216-100000@indigo>	<420B8623.9050308@niksula.hut.fi>	<420B9ED0.1020303@trash.net>
-	<420BEB36.7080209@eurodev.net> <420D0276.5080200@trash.net>
-	<420D27DB.9000608@eurodev.net> <420D5CC8.1060600@trash.net>
-	<420E8259.60604@eurodev.net>
+From: Torsten Luettgert <t.luettgert@pressestimmen.de>
+Subject: [PATCH] trivial patches for patch-o-matic-ng ipp2p, tproxy, TPROXY
+	and comment
+Date: Sun, 13 Feb 2005 17:52:43 +0100
+Message-ID: <1108313563.3505.22.camel@murdegern.luettgert.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <420E8259.60604@eurodev.net>
+Content-Type: multipart/mixed; boundary="=-tuKUtnsBz54ck4Wju5IW"
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,29 +17,183 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
 
-> Patrick McHardy wrote:
->
->> I haven't actually checked
->> the API, but can't we remove all those now empty init functions ?
->> If not I think it would be nicer to change the API to check for
->> ->init == NULL instead of leaving all these empty funtion bodies around.
->
-> Yes, I agree and I did it, I must confess that it was kinda boring a 
-> bit. See the patch attached.
+--=-tuKUtnsBz54ck4Wju5IW
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks Pablo. I'm going to apply it once iptables 1.3.0 is released.
+Hi,
 
->> I don't think we can remove it from struct ipt_entry without
->> breaking userspace compatibility. But we could stop using it.
->
-> Yes, I was aware of that :). I didn't talk about modifying ipt_entry 
-> which is not possible because of backward compatibility. I mean that, 
-> as next step, we could kill those nfcache arguments passed as 
-> parameter that aren't useful anymore.
+afaics, it is vital to use the ".field =3D value" syntax in
+iptables_match definitions now. There's this new field
+"u_int8_t revision" which gets in the way for some old
+matches.
 
-Sure, go ahead.
+ipp2p, tproxy, TPROXY and comment from pom-ng don't do this
+yet, so iptables won't compile if they are inserted.
 
-Regards
-Patrick
+Attached are the (trivial) patches to make them work again.
+
+Thanks,
+Torsten L=C3=BCttgert <t.luettgert@pressestimmen.de>
+
+
+--=-tuKUtnsBz54ck4Wju5IW
+Content-Disposition: attachment; filename=ipp2p.patch
+Content-Type: text/x-patch; name=ipp2p.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- ipp2p/iptables/extensions/libipt_ipp2p.c	(revision 3667)
++++ ipp2p/iptables/extensions/libipt_ipp2p.c	(working copy)
+@@ -431,18 +431,19 @@
+ 
+ static
+ struct iptables_match ipp2p
+-= { NULL,
+-    "ipp2p",
+-    IPTABLES_VERSION, 
+-    IPT_ALIGN(sizeof(struct ipt_p2p_info)),
+-    IPT_ALIGN(sizeof(struct ipt_p2p_info)),
+-    &help,
+-    &init,
+-    &parse,
+-    &final_check,
+-    &print,
+-    &save,
+-    opts
++= {
++   .next          = NULL,
++   .name          = "ipp2p",
++   .version       = IPTABLES_VERSION, 
++   .size          = IPT_ALIGN(sizeof(struct ipt_p2p_info)),
++   .userspacesize = IPT_ALIGN(sizeof(struct ipt_p2p_info)),
++   .help          = &help,
++   .init          = &init,
++   .parse         = &parse,
++   .final_check   = &final_check,
++   .print         = &print,
++   .save          = &save,
++   .extra_opts    = opts
+ };
+ 					    
+ 
+
+--=-tuKUtnsBz54ck4Wju5IW
+Content-Disposition: attachment; filename=tproxy.patch
+Content-Type: text/x-patch; name=tproxy.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- tproxy/iptables/extensions/libipt_tproxy.c	(revision 3667)
++++ tproxy/iptables/extensions/libipt_tproxy.c	(working copy)
+@@ -57,18 +57,18 @@
+ 
+ static
+ struct iptables_match tproxy
+-= { NULL,
+-    "tproxy",
+-    IPTABLES_VERSION,
+-    0, 
+-    0, 
+-    &help,
+-    &init,
+-    &parse,
+-    &final_check,
+-    &print,
+-    &save,
+-    opts
++= { .next            = NULL,
++    .name            = "tproxy",
++    .version         = IPTABLES_VERSION,
++    .size            = 0, 
++    .userspacesize   = 0, 
++    .help            = &help,
++    .init            = &init,
++    .parse           = &parse,
++    .final_check     = &final_check,
++    .print           = &print,
++    .save            = &save,
++    .extra_opts      = opts
+ };
+ 
+ void _init(void)
+
+--=-tuKUtnsBz54ck4Wju5IW
+Content-Disposition: attachment; filename=TPROXY.patch
+Content-Type: text/x-patch; name=TPROXY.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- tproxy/iptables/extensions/libipt_TPROXY.c	(revision 3667)
++++ tproxy/iptables/extensions/libipt_TPROXY.c	(working copy)
+@@ -118,18 +118,19 @@
+ }
+ 
+ struct iptables_target tproxy
+-= { NULL,
+-    "TPROXY",
+-    IPTABLES_VERSION,
+-    IPT_ALIGN(sizeof(struct ipt_tproxy_target_info)),
+-    IPT_ALIGN(sizeof(struct ipt_tproxy_target_info)),
+-    &help,
+-    &init,
+-    &parse,
+-    &final_check,
+-    &print,
+-    &save,
+-    opts
++= {
++   .next            = NULL,
++   .name            = "TPROXY",
++   .version         = IPTABLES_VERSION,
++   .size            = IPT_ALIGN(sizeof(struct ipt_tproxy_target_info)),
++   .userspacesize   = IPT_ALIGN(sizeof(struct ipt_tproxy_target_info)),
++   .help            = &help,
++   .init            = &init,
++   .parse           = &parse,
++   .final_check     = &final_check,
++   .print           = &print,
++   .save            = &save,
++   .extra_opts      = opts
+ };
+ 
+ void _init(void)
+
+--=-tuKUtnsBz54ck4Wju5IW
+Content-Disposition: attachment; filename=comment.patch
+Content-Type: text/x-patch; name=comment.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- comment/iptables/extensions/libipt_comment.c	(revision 3667)
++++ comment/iptables/extensions/libipt_comment.c	(working copy)
+@@ -105,18 +105,18 @@
+ 
+ static
+ struct iptables_match comment
+-= { NULL,
+-    "comment",
+-    IPTABLES_VERSION,
+-    IPT_ALIGN(sizeof(struct ipt_comment_info)),
+-    IPT_ALIGN(sizeof(struct ipt_comment_info)),
+-    &help,
+-    &init,
+-    &parse,
+-    &final_check,
+-    &print,
+-    &save,
+-    opts
++= { .next            = NULL,
++    .name            = "comment",
++    .version         = IPTABLES_VERSION,
++    .size            = IPT_ALIGN(sizeof(struct ipt_comment_info)),
++    .userspacesize   = IPT_ALIGN(sizeof(struct ipt_comment_info)),
++    .help            = &help,
++    .init            = &init,
++    .parse           = &parse,
++    .final_check     = &final_check,
++    .print           = &print,
++    .save            = &save,
++    .extra_opts      = opts
+ };
+ 
+ void _init(void)
+
+--=-tuKUtnsBz54ck4Wju5IW--
