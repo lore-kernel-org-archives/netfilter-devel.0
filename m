@@ -1,17 +1,15 @@
-From: Jeremy Kerr <jeremy@redfishsoftware.com.au>
-Subject: Re: [ANNOUNCE] nfsim - netfilter simulation environment
-Date: Thu, 8 Jan 2004 08:41:01 +0800
+From: "Maciej Soltysiak" <solt@dns.toxicfilms.tv>
+Subject: Re: socket() call in iptables?
+Date: Thu, 8 Jan 2004 08:11:00 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401080841.02152.jeremy@redfishsoftware.com.au>
-References: <20040107192530.99189.qmail@web60701.mail.yahoo.com>
+Message-ID: <002d01c3d5b6$9238b560$0e25fe0a@southpark.ae.poznan.pl>
+References: <008901c3d536$13a35f50$0e25fe0a@southpark.ae.poznan.pl>    <Pine.LNX.4.44.0401071659480.4717-100000@filer.marasystems.com> <3670.212.79.158.153.1073506689.squirrel@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+	charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Zeeshan Ali <zeelists@yahoo.com>, netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040107192530.99189.qmail@web60701.mail.yahoo.com>
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,21 +20,7 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Thanks.
 
-> core/netfilter.c:453: conflicting types for
-> `nf_hook_slow'
-
-Looks like you're importing netfilter modules from 2.4 source. I've made a few 
-changes that are in today's snapshot which should solve most of the problems 
-here...
-
-> core/netfilter.c:581: warning: implicit declaration of
-> function `ip_dev_find'
-
-... except for this one. Which version of the kernel are you importing from?
-
-Try the 20040108 snapshot and/or importing from a 2.6 source tree. I'll take a 
-look at the ip_dev_find problem in the meantime.
-
-
-Jeremy
+Regards,
+Maciej
