@@ -1,8 +1,8 @@
 From: dwu@zipworld.com.au
-Subject: ip_packet_match causing kernel crash (?)
-Date: Wed, 02 Jul 2003 10:10:32 +1000 (EST)
+Subject: tip_packet_match causing kernel crash (?)
+Date: Wed, 02 Jul 2003 20:54:13 +1000 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1057104632.3f0222f82da97@webmail.pacific.net.au>
+Message-ID: <1057143253.3f02b9d570008@webmail.pacific.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
@@ -19,7 +19,6 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-
 Hi,
 
 I'm seeing a kernel crash in the netfilter section of the kernel and is trying 
@@ -32,8 +31,8 @@ function ip_packet_match from the file ip_tables.c returns 0.
 Analysing the code in ip_tables.c, in the function ipt_do_table, if the 
 ip_packet_match return 0, then it looks at the next ipt_entry (see the code 
 around line 384). It looks to me as if there is no way for the loop to get out 
-of the "do { ... } while (!hotdrop)" loop if ip_packet_match always return 0 
-(?) Is this causing the kernel crash in my test environment.
+of the "do { ... } while (!hotdrop)" loop if ip_packet_match always
+return 0 (?) Is this causing the kernel crash in my test environment.
 
 Any comments would be greatly appreciated.
 
