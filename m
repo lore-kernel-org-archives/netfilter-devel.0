@@ -1,19 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and
- optimization
-Date: Tue, 06 Jul 2004 12:20:23 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and optimization
+Date: Tue, 6 Jul 2004 12:35:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40EA7CE7.2000502@trash.net>
-References: <200406240404.NAA01264@toshiba.co.jp> <40DABA52.9070700@trash.net> <19040125165321.GA4640@obroa-skai.de.gnumonks.org>
+Message-ID: <20040706103544.GU32707@sunbeam2>
+References: <200406240404.NAA01264@toshiba.co.jp> <40DABA52.9070700@trash.net> <19040125165321.GA4640@obroa-skai.de.gnumonks.org> <40EA7CE7.2000502@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ibvzjYYg+QDzMCy1"
 Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
- netfilter-devel@lists.netfilter.org,  kisza@securityaudit.hu,
- usagi-core@linux-ipv6.org
+	netfilter-devel@lists.netfilter.org, kisza@securityaudit.hu,
+	usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <19040125165321.GA4640@obroa-skai.de.gnumonks.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <40EA7CE7.2000502@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,38 +24,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Thu, Jun 24, 2004 at 01:26:10PM +0200, Patrick McHardy wrote:
-> 
->>Think of 100 rules matching "-p tcp --dport X". We copy the tcp header
->>100 times, for a total of 2000 bytes. 
-> 
-> 
-> but we're talking about local copies to the stack.  those copies are 20
-> byte copies to the cache, and most likely would never have to hit memory
-> at all.  
 
-I did some profiling:
+--ibvzjYYg+QDzMCy1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-1000 non-matching rules for tcp-sport, ~40mbit tcp transfer, about 10
-minutes
+On Tue, Jul 06, 2004 at 12:20:23PM +0200, Patrick McHardy wrote:
+> skb_copy_bits is taking about twice as much cycles as tcp_match
+> and 20% of total cycles.
 
-The top three entries are:
+Well, I am convinced ;)
 
-CPU: Athlon, speed 1667.51 MHz (estimated)
-Counted CPU_CLK_UNHALTED events (Cycles outside of halt state) with a 
-unit mask of 0x00 (No unit mask) count 100000
-samples  %        linenr info                 image name 
-app name                 symbol name
-3489310  50.0932  (no location information)   ip_tables.ko 
-ip_tables                ipt_do_table
-1405809  20.1821  skbuff.c:858                vmlinux 
-vmlinux                  skb_copy_bits
-755945   10.8525  ip_tables.c:1488            ip_tables.ko 
-ip_tables                tcp_match
+> Regards
+> Patrick
 
-skb_copy_bits is taking about twice as much cycles as tcp_match
-and 20% of total cycles.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Regards
-Patrick
+--ibvzjYYg+QDzMCy1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFA6oCAXaXGVTD0i/8RAs6nAJwPpzHXlMxJV7P3D/U/vO6ADW5OzACeMjGE
+hr6/yqiA0T/57eSYEfjxkaE=
+=M98P
+-----END PGP SIGNATURE-----
+
+--ibvzjYYg+QDzMCy1--
