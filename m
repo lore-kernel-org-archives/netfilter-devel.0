@@ -1,15 +1,16 @@
-From: Wang Jian <lark@linux.net.cn>
+From: Max Kellermann <max@duempel.org>
 Subject: Re: [PATCH pom-ng] H.225 parser for h323-conntrack-nat
-Date: Mon, 04 Apr 2005 23:32:05 +0800
-Message-ID: <20050404232509.0238.LARK@linux.net.cn>
+Date: Mon, 4 Apr 2005 17:51:57 +0200
+Message-ID: <20050404155157.GA32497@roonstrasse.net>
 References: <20050404230336.0235.LARK@linux.net.cn>
 	<20050404150638.GA32081@roonstrasse.net>
+	<20050404232509.0238.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20050404150638.GA32081@roonstrasse.net>
+Content-Disposition: inline
+In-Reply-To: <20050404232509.0238.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,51 +22,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Max Kellermann,
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
+> unable to find ladd slot in src /tmp/pom-10691/include/linux/netfilter_ipv4/ip_conntrack.h 
+> (./h323-conntrack-nat/linux-2.6.11/./include/linux/netfilter_ipv4/ip_conntrack.h.ladd_3)
 
-Error message
+ah damn, that file is still in the pom-ng svn repository. It is
+obsolete and was deleted by a patch long ago, but that was forgotten.
 
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-unable to find ladd slot in src /tmp/pom-10691/include/linux/netfilter_ipv4/ip_conntrack.h 
-(./h323-conntrack-nat/linux-2.6.11/./include/linux/netfilter_ipv4/ip_conntrack.h.ladd_3)
+Delete the file ip_conntrack.h.ladd_3 from your working copy, and it
+should finally work..
 
-ladd_3 looks like
-
-        /* insert conntrack helper private data (expect) here */
-        struct ip_ct_h225_expect exp_h225_info;
-
-But ip_conntrac.h in 2.6.11 and 2.6.11.6 is
-
--- snip --
-union ip_conntrack_expect_proto {
-        /* insert expect proto private data here */
-};
--- snip --
-
-
-Acutally, rtsp/mms/h323 all failed on this. If I edit ip_conntrack.h by
-hand and fix the insertion marker, then the pom-ng can be applied but
-can't be compiled.
-
-
-Here it is 23:30, so I say 'tomorrow' means I want to get a break now :)
-
-
-On Mon, 4 Apr 2005 17:06:38 +0200, Max Kellermann <max@duempel.org> wrote:
-
-> On 2005/04/04 17:04, Wang Jian <lark@linux.net.cn> wrote:
-> > I tried it once with 2.6.11 and 2.6.11.6, both failed. But I will try it
-> > again tomorrow.
-> 
-> What failed exactly? Message? Reject file?
-> 
-> I guess changing the "time" parameter (= tomorrow) won't help in this
-> case ;)
-> 
-> Max
-> 
-
-
-
--- 
-  lark
+Max
