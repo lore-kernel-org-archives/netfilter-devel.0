@@ -1,15 +1,14 @@
-From: "Hime Junior" <hime@engineer.com>
-Subject: [PATCH] Fuzzy match userspace tool
-Date: Mon, 09 Jun 2003 17:10:32 -0500
+From: "Wei Ming Long" <WEI_Ming_Long@dsi.a-star.edu.sg>
+Subject: Auto IP configuration
+Date: Tue, 10 Jun 2003 09:25:27 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030609221032.5265.qmail@mail.com>
+Message-ID: <see5a40f.082@gwia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: <<netfilter-devel@lists.netfilter.org>>
 Content-Disposition: inline
-To: jf_patenaude@hotmail.com, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,86 +19,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi everyone,
+I am thinking of setting up a wireless lan and hope to use my laptop as
+wireless client with dynamic ip address, using dhcp & running netfilter on the
+gateway. I use my laptop at office with a static ip address and configured
+proxy server. My question is: Can netfilter do nat or packet filtering based
+on mac address so that I do not have to change my network configurations each
+time my network environment changes. 
 
- Hi Harald and Netfilter developers !
+Scenario 1 - With only my laptop
 
- A bug was found in libipt_fuzzy.c and libip6t_fuzzy.c modules .
+Internet ------------- Linux Gateway (ip address = 192.1681.1, Netfilter +
+DHCP + Squid) -------------- My laptop A (ip address = 192.168.1.1)(dynamic)
 
-(
+Scenario 2 - With my laptop & a friend's laptop
 
- an inversion in the save function : 
+Internet ------------- Linux Gateway +-------------- My laptop A (ip address
+= 192.168.1.1) (dynamic)
+                                  +
+                                   |
+                                   |
+                                   |
+                        Friend's laptop B (ip address = 172.16.1.1)
+(static),
 
-printf("--upper-limit %u ",fuzzyinfo->minimum_rate);
-printf("--lower-limit %u ",fuzzyinfo->maximum_rate);
+All help greatly appreciated. Thanks.
 
-                  SHOULD BE
-
-printf("--lower-limit %u ",fuzzyinfo->minimum_rate);
-printf("--upper-limit %u ",fuzzyinfo->maximum_rate);
- 
-)
-
-  The enclosed patches will fix the problem .
-
-    Please , apply them as soon as possible .
-
- Thanks in advance...
-
-==================================================
-==================================================
-diff -Nru  old/libip6t_fuzzy.c new/libip6t_fuzzy.c
---- old/libip6t_fuzzy.c	Mon Jun  9 18:31:38 2003
-+++ new/libip6t_fuzzy.c	Mon Jun  9 18:23:43 2003
-@@ -7,6 +7,9 @@
- 
- 2002-08-07 Hime Aguiar e Oliveira Jr. <hime@engineer.com> : Initial version.
- 2003-04-08 Maciej Soltysiak <solt@dns.toxicfilms.tv> : IPv6 Port
-+2003-06-09 Hime Aguiar e Oliveira Jr. <hime@engineer.com> : Bug corrections in
-+the save function , thanks to information given by Jean-Francois Patenaude.
-+
- */
- 
- #include <stdio.h>
-@@ -131,8 +134,8 @@
- 	const struct ip6t_fuzzy_info *fuzzyinfo
- 		= (const struct ip6t_fuzzy_info *)match->data;
- 
--	printf("--upper-limit %u ",fuzzyinfo->minimum_rate);
--	printf("--lower-limit %u ",fuzzyinfo->maximum_rate);
-+	printf("--lower-limit %u ",fuzzyinfo->minimum_rate);
-+	printf("--upper-limit %u ",fuzzyinfo->maximum_rate);
- 
- }
-=====================================================
-=====================================================
-diff -Nru  old/libipt_fuzzy.c new/libipt_fuzzy.c
---- old/libipt_fuzzy.c	Mon Jun  9 18:31:38 2003
-+++ new/libipt_fuzzy.c	Mon Jun  9 18:23:49 2003
-@@ -6,6 +6,8 @@
-    ftp://prep.ai.mit.edu/pub/gnu/GPL
- 
- 2002-08-07 Hime Aguiar e Oliveira Jr. <hime@engineer.com> : Initial version.
-+2003-06-09 Hime Aguiar e Oliveira Jr. <hime@engineer.com> : Bug corrections in
-+the save function , thanks to information given by Jean-Francois Patenaude .
- 
- */
- 
-@@ -131,8 +133,8 @@
- 	const struct ipt_fuzzy_info *fuzzyinfo
- 		= (const struct ipt_fuzzy_info *)match->data;
- 
--	printf("--upper-limit %u ",fuzzyinfo->minimum_rate);
--	printf("--lower-limit %u ",fuzzyinfo->maximum_rate);
-+	printf("--lower-limit %u ",fuzzyinfo->minimum_rate);
-+	printf("--upper-limit %u ",fuzzyinfo->maximum_rate);
- 
- }
-======================================================
-======================================================
-
- 
-
--- 
-__________________________________________________________
-Sign-up for your own FREE Personalized E-mail at Mail.com
-http://www.mail.com/?sr=signup
+Best regards
+Matthew
