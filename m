@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: Some dumb questions...
-Date: Mon, 4 Nov 2002 12:05:08 +0100
+Subject: Re: changes in 2.5/2.6 Kernels
+Date: Mon, 4 Nov 2002 12:09:09 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021104120508.O8635@sunbeam.de.gnumonks.org>
-References: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>
+Message-ID: <20021104120909.Q8635@sunbeam.de.gnumonks.org>
+References: <3DC14A46.5010506@vt.edu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WcZHMCrhYs4ZC/pD"
+	protocol="application/pgp-signature"; boundary="H0flIYUxnzbhZUOY"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Joel Linuxdude" <linuxlists@hotmail.com>
+To: Brad Tilley <rtilley@vt.edu>
 Content-Disposition: inline
-In-Reply-To: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>; from linuxlists@hotmail.com on Sun, Nov 03, 2002 at 02:32:34AM -0500
+In-Reply-To: <3DC14A46.5010506@vt.edu>; from rtilley@vt.edu on Thu, Oct 31, 2002 at 10:20:38AM -0500
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,71 +23,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---WcZHMCrhYs4ZC/pD
+--H0flIYUxnzbhZUOY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 03, 2002 at 02:32:34AM -0500, Joel Linuxdude wrote:
-> I was referred to this list by one of the Netfilter guys on order to glee=
-n=20
-> some information needed to write a decent tutorial/reference guide.
+On Thu, Oct 31, 2002 at 10:20:38AM -0500, Brad Tilley wrote:
+> Hello and thanks for a great piece of software!!!
 
-Joel, I'm happy that you are trying to contribute some documentation.
+you're welcome :)
 
-But I have to agree with the point raised by Martin...
+> I have been told that there are major changes in netfilter/iptables in=20
+> the latest beta kernel 2.5 and that the changes will be made permanent=20
+> in the next stable release 2.6
 
-> WARNING: POSSIBLE DUMB QUESTIONS. (But, ask me if I care!)
+well, there was the planned pkttables change, but unfortunately it didn't
+get finished before the kernel freeze.
 
-Questions are not dumb.  But you could have obtained (and still can!) the
-anwers without raising this issue on the list again.
+> My question is, will the command syntax change again (like it did from=20
+> ipchains to iptables)? I use iptables daily on routers and I'm very=20
+> comfortable with its logic and syntax. If there is going to be a major=20
+> change, I'd like to know so I can study the change and test it out.
 
-> QUESTION: Would a packet created on the Netfilter PC first
-> go through the OUTPUT chain and then through POSTROUTING?
-> If so, what TABLE??? NAT? What about FILTER? I assume:
-> NetFilter system -> (nat)OUTPUT -> (nat)POSTROUTING -> Eth0 -> Internet
+it doesn't look like those changes will make it in before the next stable
+release, so everything will stay the same for some time :(
 
-This has been answered over and over again. please check the list archives.
-
-Once you have understand the underlying architecture, it should become
-obvious anyway.
-
-> QUESTION: Absolutely everything coming INTO an interface
-> first goes to (nat)PREROUTING, right?
-
-you seem to confuse netfilter hooks with chain names. Yes, everything
-goes to the netfilter NF_IP_PRE_ROUTING hook.  Whataver happens next depends
-on your setup/configuration/...=20
-
-> QUESTION: Netfilter PC has 3 workstations over Eth1 and they
-> are SNATing through Eth0 and out to the internet. What if
-> somebody conversing with the workstation over...say...
-> IRC gets the IP of the workstation (It would be the Netfilter
-> PC's IP) and pings it.....Of course, it would be pinging
-> the Netfilter PC and NOT the workstation, right? The workstation
-> would not even see any ICMP packets at all, right?
-
-of course.
-
-> QUESTION: Where is the most effective place to stop spoofed
-> packets or block a port?
-> A) -t nat PREROUTING ???
-
-the nat table is for _NAT_, not for filtering.
-
-> B) -t filter INPUT (for local) and -t filter FORWARD (for LAN)?
-
-we are talking about filtering packets, so we obviously use the 'filter'
-table.
-
-> THANK YOU VERY MUCH! These answers will help me out a lot.
-
-As stated before, if you are wanting to write decent documentation,
-please try reading the list (esp. netfilter-devel) archives fist.
-Thanks.
-
-> Joel
-
+> R. Bradley Tilley (Brad), System Administrator
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -98,7 +59,7 @@ Live long and prosper
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---WcZHMCrhYs4ZC/pD
+--H0flIYUxnzbhZUOY
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -106,9 +67,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9xlRkXaXGVTD0i/8RAvdzAJwMLNO/gNxI4jfl0TkCkkNTFblI4ACgpeZ1
-mQukZRavVT5YXF4zSp1EPJ0=
-=kjfl
+iD8DBQE9xlVVXaXGVTD0i/8RAvN0AJ9dKK7HC8+XOp4uF8T6OUWiGcMGfwCfR+YZ
+GHI54lZklifN6XD/Bl9ZQsM=
+=2YQ7
 -----END PGP SIGNATURE-----
 
---WcZHMCrhYs4ZC/pD--
+--H0flIYUxnzbhZUOY--
