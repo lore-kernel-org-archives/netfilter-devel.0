@@ -1,15 +1,19 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
-Subject: Re: Modify skb from match module?
-Date: Thu, 17 Feb 2005 08:14:21 -0500
-Message-ID: <876ef97a05021705149c5180d@mail.gmail.com>
-References: <4213B519.3080201@evtek.fi>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [RFC] string matching based packet classification/filtering
+Date: Thu, 17 Feb 2005 14:31:14 +0100
+Message-ID: <20050217133114.GU31837@postel.suug.ch>
+References: <20050215203211.GL31837@postel.suug.ch>
+	<42126C9B.5060406@eurodev.net>
+	<20050216223038.GQ31837@postel.suug.ch>
+	<4213ECC9.30502@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: Juha Heljoranta <juha.heljoranta@evtek.fi>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <4213B519.3080201@evtek.fi>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@oss.sgi.com,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Harald Welte <laforge@gnumonks.org>
+To: Pablo Neira <pablo@eurodev.net>
+Content-Disposition: inline
+In-Reply-To: <4213ECC9.30502@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,36 +25,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 16 Feb 2005 23:03:21 +0200, Juha Heljoranta
-<juha.heljoranta@evtek.fi> wrote:
-> I would like to associate some information to struct sk_buff *skb so
-> that it would be available later while processing packet. But it turns
-> out that the skb is const
+> >The matching algorithm would parse the array as a finite automation
+> >eating up byte by byte in the text.
+> >
 > 
->     static int match(const struct sk_buff *skb, ...
-> 
-> Is there any way to modify skb from match module? 
+> Looks good but Boyer-Moore algorithm doesn't need this at all. BM 
+> doesn't support wildcards like '*' because of the shiftings that it uses 
+> to look for matches. This issue together with memory consumption are two 
+> limitations that we have to live with if we want to use BM. Anyway I 
+> think it's worth it because we can perform search in O(n/m).
 
-No. As you correctly point out, the sk_buff is constant and thus
-unmodifiable. Packets can only be modified by rules in the mangle
-table using a target, not a match.
-
-> Or is there another way to store/cache information so that it can be later
-> associated to skb.
-
-Potentially, depending on the protocol you need to manipulate, you
-could create a conntrack helper that has its own data structure for
-storing the information you require. This would allow you to store
-data on a per-connection basis. This data would not persist past the
-life of the connection, however.
-
-Alternatively, you could create a module that serves only to store the
-data that you need and call out to it in your match module in order to
-save data about packets you match on. This would allow you to store
-data beyond the life of a connection or single packet and also to
-aggregate data in more complicated manners. You would then have to
-come up with some way to clean this data, however.
-
--- 
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+This would be _additional_ to BM/KMP/naive/finite automata/you name it.
+The benefit of libqsearch is hide various algorithms behind a single
+interface, isn't it? It's argueable whether it would make sense to try
+and rule out bad shifts while parsing a chain of non-wildcard regular
+expression tokens but I guess that would be over the top.
