@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Problems determining the correct tcp header size
-Date: Wed, 26 Mar 2003 16:35:02 +0100
+Subject: Re: PPTP connection tracking and NAT patches
+Date: Wed, 26 Mar 2003 16:48:21 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030326153502.GB21953@sunbeam.de.gnumonks.org>
-References: <3E809133.4050400@pandora.be>
+Message-ID: <20030326154821.GC21953@sunbeam.de.gnumonks.org>
+References: <Pine.GSO.4.03.10303190516050.23211-100000@shemp.vdata.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SvF6CGw9fzJC4Rcx"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="tpZe61tYkA9f+p/0"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: qber66 <tim.vandermeersch@pandora.be>
+To: Jeff Hall <hall@vdata.com>
 Content-Disposition: inline
-In-Reply-To: <3E809133.4050400@pandora.be>
+In-Reply-To: <Pine.GSO.4.03.10303190516050.23211-100000@shemp.vdata.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,39 +23,26 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---SvF6CGw9fzJC4Rcx
+--tpZe61tYkA9f+p/0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 25, 2003 at 06:26:11PM +0100, qber66 wrote:
-> Hi,
->=20
-> I'm making a new target for iptables, but I'n having a problems with=20
-> determining the correct tcp header lenght in the following function:
->=20
-> static unsigned int ipt_mytarget_target(struct sk_buff **pskb, unsigned=
-=20
-> int hooknum,
->        const struct net_device *in, const struct net_device *out,
->        const void *targetinfo, void *userinfo)
-> {
->    struct tcphdr *tcph =3D (struct tcphdr *) (*pskb)->h.th;
+On Thu, Mar 20, 2003 at 03:32:46AM -0500, Jeff Hall wrote:
+> +			if ( other_exp !=3D exp )
 
-you cannot blindly assume that all packets are tcp.
+I've changed this into=20
+			if (other_exp !=3D exp && other_exp->seq =3D=3D exp->seq)
 
-> I get the following output:
->=20
-> iphdr lenght: 20, tcphdr lenght: 0
-> iphdr lenght: 20, tcphdr lenght: 16
-> iphdr lenght: 20, tcphdr lenght: 4
+to make sure we really delete only the corresponding expectation in the
+other direction.  At least theoretically we can have more than one call
+in a single session...
 
-> Can any one tell me what I'm doing wrong?
+Can you please try (+test) ip_conntrack_pptp.c version 1.8 from
+netfilter-extensions CVS in combination with the
+'pending/25_natcore_nohelper.patch' of patch-o-matic?
 
-maybe it's non-tcp packets?
-
-> Thanks in advance,
-> Tim Vandermeersch.
+Thanks.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -67,7 +54,7 @@ maybe it's non-tcp packets?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---SvF6CGw9fzJC4Rcx
+--tpZe61tYkA9f+p/0
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -75,9 +62,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+gcimXaXGVTD0i/8RAoVHAJ4wprhw4VnffSdBVk8hxBZscU4vbgCfTNB1
-BZyp+5M9T12tP73vA+fLC88=
-=1d8X
+iD8DBQE+gcvFXaXGVTD0i/8RAjbJAKCXhB/dXJM67wUR2ilxZfghTKlxXACfajEc
+vvj9m/6oh+MxjUI7jJ8+48g=
+=CqcY
 -----END PGP SIGNATURE-----
 
---SvF6CGw9fzJC4Rcx--
+--tpZe61tYkA9f+p/0--
