@@ -1,18 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Using iptables with x86_64 static kernel (module problems)?
-Date: Sun, 5 Oct 2003 13:54:20 +0200
+From: c0g <c0g@wp.pl>
+Subject: raw patch = kernel panic :(
+Date: Sun, 05 Oct 2003 18:24:19 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031005115420.GA5758@sunbeam.de.gnumonks.org>
-References: <20031001161136.GA13226@cc.jyu.fi> <20031003102156.GV5758@sunbeam.de.gnumonks.org> <20031005001333.GA8589@cc.jyu.fi>
+Message-ID: <3F8045B3.6000607@wp.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OpjiOMsh+o5vh7q4"
-Cc: netfilter@lists.netfilter.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: kadlec@blackhole.kfki.hu,  laforge@netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jani Averbach <jaa@cc.jyu.fi>
-Content-Disposition: inline
-In-Reply-To: <20031005001333.GA8589@cc.jyu.fi>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,53 +19,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---OpjiOMsh+o5vh7q4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi!
+I applied raw-patch from CVS patch-o-matic (20031003), and it appears
+that loading rule in PREROUTING chain of table raw causes kernel panic.
+Specifing policy for this table doesn't.
 
-On Sun, Oct 05, 2003 at 03:13:33AM +0300, Jani Averbach wrote:
-> > I don't really understand the problem.  'iptables tries to do various
-> > mudules related task' ?
->=20
-> Ok, perhaps the culprit is not the module related things, but however
-> iptables won't work with x86_64 kernel.=20
+So I was forced to use older POM, which fills my logs with "Frag of
+proto" messages :(
 
-I will give it some testing.  My Opteron box only runs 2.6.x kernels,
-which seem to work fine with iptables.
+Jozsef, could you look at it?
 
-> My first idea was that iptables try to use modprobe etc. to probing if
-> various netfilter kernel modules are present, and it gets confused
-> when this module-stuff won't work with x86_64 kernel.=20
+I have vanilla 2.4.22 kernel with following POM patches applied:
+submitted/01_2.4.19
+submitted/02_2.4.20
+submitted/03_2.4.21
+submitted/04_2.4.22
+submitted/44_backport_ah_esp_fixes
+submitted/54_ip_nat-macro-args
+submitted/58-ip_conntrack-macro-args
+submitted/60_nat_tftp-remove-warning
+submitted/72_recent_procfs_fix
+submitted/73_ipt_MASQUERADE-oif
+submitted/74_nat-range-fix
+submitted/75_REJECT_localpmtu-fix
+submitted/76_snmp-checksum_h-fix
+submitted/77_destroy-conntrack
+submitted/78_nathelper-udp-csum
+submitted/79_mangle_udp-sizecheck
+submitted/80_ip_conntrack-proc
+submitted/81_ipt_unclean-tcp-flag-table
+submitted/82_irc-conntrack-mirc-serverlookup
+submitted/83_nolocalout
+submitted/84_local-nullbinding
+submitted/85_ipv6header
+submitted/86_getorigdst-tuple-zero
+pending/40_nf-log
+pending/59_ip_nat_h-unused-var
+pending/61-remove-memsets
+pending/64_masquerade-sameip-noflush
+base/mport
+extra/addrtype
+extra/tcp-window-tracking
+userspace/ipt_REJECT-fake-source
+userspace/raw
 
-mh. The only idea I have is that you've somehow ended up with a 32bit
-iptables (which won't work).  It has to be compiled in the same mode as
-the kernel itself - to assure that structure sizes/alignment/... are
-consistent.
-
-> BR, Jani
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---OpjiOMsh+o5vh7q4
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
+- --
+c0g@wp.pl
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Version: GnuPG v1.2.1 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iD4DBQE/gAZsXaXGVTD0i/8RAokiAJ9/WSqtwDkW1mPgDZAthHbxMAOU/wCXb0ZR
-WnPmObUwemOmziNO8pdVFg==
-=R97g
+iD8DBQE/gEWMPqmVt5WhbA8RAr7RAJ9VQQ113DigkI3z3RQmC1O0jLLABACdG+8J
+1aWGhgAe91Ftgyvq+5g5cv0=
+=+2Gf
 -----END PGP SIGNATURE-----
-
---OpjiOMsh+o5vh7q4--
