@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
+From: "Alex Bennee" <alex@bennee.com>
 Subject: Re: performance issues (nat / conntrack)
-Date: Tue, 25 Jun 2002 15:51:13 +0200
+Date: Tue, 25 Jun 2002 14:56:18 +0100 (BST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020625135113.GE7975@naboo.ols.wavesec.org>
-References: <Pine.LNX.4.33.0206251238390.4927-100000@blackhole.kfki.hu> <021a01c21c4b$47b2f2b0$0489cb8a@etbx180>
+Message-ID: <23233.195.99.244.6.1025013378.squirrel@www.bennee.com>
+References: <01ff01c21c45$c90eb2a0$0489cb8a@etbx180>
+Reply-To: alex@bennee.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@lists.samba.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
-Content-Disposition: inline
-In-Reply-To: <021a01c21c4b$47b2f2b0$0489cb8a@etbx180>
+To: <netfilter-devel@lists.samba.org>
+In-Reply-To: <01ff01c21c45$c90eb2a0$0489cb8a@etbx180>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,37 +21,31 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 25, 2002 at 03:21:56PM +0200, Jean-Michel Hemstedt wrote:
-> > > loading a module, doesn't mean using it (lsmod reports it as 'unused'
-> > > in my tests). So, does it really 'sounds as expected', when you see
-> > 
-> > From where do you think that the module usage counter reports how many
-> > packets/connections are handled (currently? totally?) by the module.
-> > There is no whatsoever connection!
-> 
-> module usage counter increases when a TARGET needs it (i.e. ipt_REDIRECT).
-> In this test, no rule was defined, and no target module was loaded.
-> So I did not expect NAT to process any packet.
+Jean-Michel Hemstedt said:
+> In my opinion, a first step should be to reconsider timeout values but
+> also timer mechanisms.
 
-the way NAT is implemented currently, it always processes every packet
-the same way.  For a NEW packet where we don't find a nat rule, we
-allocate a 'null binding' telling the nat code that there is no nat 
-transformation to be made .
+I've been following this thread with interest as I recently also had
+conntrack related problems (failing to establish new connections due to the
+table being full).
 
-> But this raises one additional problem: 
-> 1) the hash index size and the hash total size should be configurable 
-> separately (get rid of that factor 8, and use a free list for the tuple 
-> allocation).
-> 2) NAT hash sizes should also be configurable independently from conntrack.
-> Normally the nat hashes are smaller than conntrack hash, since conntrack
-> is based on ports, while nat is not.
+My machine is resource contrained (28M RAM) as its only an ADSL gateway yet
+when I count the number of connections its tracking it varies between
+300->600 connections which bare little relation to what it should be.
 
-both of this is already true. look at the module loadtime parameters of
-ip_conntrack.o and iptable_nat.o
+I excacerbate the problem by running gtk-gnutella which entertains a lot of
+short lived incomming connections that get closed by the application but
+still create long-lived conntrack entries.
 
--- 
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+>> I'm against in changing the *default* timeout values, except when it
+>> is based on real-life, well established cases.
+>
+> What sounds the most significant: 'TCP timeouts' or 'application
+> timeouts'? Should (i.e) HTTP, FTP and Telnet have the same lifetime in
+> hash?
+
+Maybe a iptables marking approach (a-la tc)?
+
+
+Alex
+www.bennee.com/~alex/
