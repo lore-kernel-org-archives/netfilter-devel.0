@@ -1,77 +1,74 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Perl Module for Packet generation (Re: Net::Packet)
-Date: Mon, 22 Nov 2004 11:03:47 +0100
-Message-ID: <20041122100347.GD19371@sunbeam.de.gnumonks.org>
-References: <20041121214325.GA99287@dani.enslaved.lan>
+From: Nish Aravamudan <nish.aravamudan@gmail.com>
+Subject: Re: how netfilter handles fragmented packets
+Date: Mon, 22 Nov 2004 11:55:23 -0800
+Message-ID: <29495f1d04112211554e78da67@mail.gmail.com>
+References: <29495f1d04112109372bb8ebe4@mail.gmail.com>
+	 <20041121194202.14581.qmail@web41407.mail.yahoo.com>
+Reply-To: Nish Aravamudan <nish.aravamudan@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7gGkHNMELEOhSGF6"
-Cc: Rusty Russell <rusty@rustcorp.com.au>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: GomoR <GomoR@gomor.org>
-Content-Disposition: inline
-In-Reply-To: <20041121214325.GA99287@dani.enslaved.lan>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: kernelnewbies@nl.linux.org, linux-kernel@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <kernelnewbies-bounce@nl.linux.org>
+To: cranium2003 <cranium2003@yahoo.com>
+In-Reply-To: <20041121194202.14581.qmail@web41407.mail.yahoo.com>
+Sender: kernelnewbies-bounce@nl.linux.org
+Errors-to: kernelnewbies-bounce@nl.linux.org
+List-help: <mailto:ecartis@nl.linux.org?Subject=help>
+List-unsubscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=unsubscribe>
+List-software: Ecartis version 1.0.0
+List-subscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=subscribe>
+List-owner: <mailto:ecartis-owner@nl.linux.org>
+List-post: <mailto:kernelnewbies@nl.linux.org>
+List-archive: <http://mail.nl.linux.org/kernelnewbies/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, 21 Nov 2004 11:42:02 -0800 (PST), cranium2003
+<cranium2003@yahoo.com> wrote:
+> 
+> --- Nish Aravamudan <nish.aravamudan@gmail.com> wrote:
+> Hello Nish,
+> 
+> 
+> 
+> > On Sun, 21 Nov 2004 17:15:12 +0100 (MET), Jan
+> > Engelhardt
+> > <jengelh@linux01.gwdg.de> wrote:
+> > > >hello,
+> > > >          In ip_output.c file ip_fragmet function
+> > when
+> > > >create a new fragmented packet given to
+> > output(skb)
+> > > >function. i want to know which function are
+> > actually
+> > > >called by output(skb)?
+> > >
+> > > use stack_dump() (or was it dump_stack()?)
+> >
+> > dump_stack(), if you want to dump the current
+> > process' stack context.
+> >
+> > -Nish
+> >
+> 
+> can you please tell me how can i use dump_stack()
+> method? so using dump_stack i will come to know which
+> function will be called by output(skb) right? But
+> where i get dump_stack()???
 
---7gGkHNMELEOhSGF6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Last time i used it, I didn't need to do a darn thing. I believe it's
+part of the traps code, so you can just call dump_stack().
+dump_stack() will throw out the trace of the current task's stack at
+the point when it is called. See what happens when you place it in
+different places. Another option, if you ever have a hanging sytem is
+Alt-SysRq-T (presuming you have the magic option enabled and you are
+able to scrollback still), which pretty much calls dump_stack() for
+all available processes.
 
-On Sun, Nov 21, 2004 at 10:43:25PM +0100, GomoR wrote:
->=20
->   Hello Harald,
->=20
->   I  was  googling  about  my  Perl  module  and  found  the
->   following messages: https://lists.netfilter.org/pipermail/netfilter-
->   devel/2001-December/006179.html
->=20
->   Just to inform you that this module now exists exactly  as
->   you described the need.
->=20
+-Nish
 
-That is great news.
-
->   It can be found on CPAN. If you are  no  more  interested,
->   sorry to have disturbed you.
-
-I'm at the moment not working on the testsuite myself, but I'll pass it
-on to Jeremy and Rusty, who're working on a testsuite with nfsim.  Maybe
-it is of use to them.
-
-Thanks fro letting us know.
->   Best regards,
---=20
-- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-Programming is like sex: One mistake and you have to support it your lifeti=
-me
-
---7gGkHNMELEOhSGF6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBobmDXaXGVTD0i/8RAtwzAKCZYKx9UeBGn5gHYxgVEDpaA9uruQCgp4+T
-67eqY7GEtKN8tybKtB1Ajrg=
-=2t7I
------END PGP SIGNATURE-----
-
---7gGkHNMELEOhSGF6--
+--
+Kernelnewbies: Help each other learn about the Linux kernel.
+Archive:       http://mail.nl.linux.org/kernelnewbies/
+FAQ:           http://kernelnewbies.org/faq/
