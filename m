@@ -1,15 +1,16 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [1/2] osf: fixed matching bug.
-Date: Sun, 22 Aug 2004 01:03:53 +0400
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] POM-NG OSF match - missing header
+Date: Sun, 22 Aug 2004 00:00:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040822010353.34801a4f@zanzibar.2ka.mipt.ru>
-Reply-To: johnpol@2ka.mipt.ru
+Message-ID: <4127C5F5.1020801@trash.net>
+References: <20040820225437.GA25659@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="Multipart=_Sun__22_Aug_2004_01_03_53_+0400_5voKYf6utvlQO4/2"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20040820225437.GA25659@linuxace.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,44 +21,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Phil Oester wrote:
 
---Multipart=_Sun__22_Aug_2004_01_03_53_+0400_5voKYf6utvlQO4/2
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+>The 2.6 directory is missing the osf.h header.  Copied the 2.4 version, and
+>added a missing include while there.  Build tested on 2.6.8.1.
+>
+>This fixes bugzilla #234
+>  
+>
 
-Fixed matching bug - when we have match and have options to process
-not only first one but all, then we may rewrite fmatch value
-with FMATCH_WRONG parameters. Later osf will create decision based on
-the latest fmatch value, but not the fact that osf had match before.
+Applied, thanks for taking on all these bugzilla bugs :)
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-
-	Evgeniy Polyakov ( s0mbre )
-
-Only failure makes us experts. -- Theo de Raadt
-
---Multipart=_Sun__22_Aug_2004_01_03_53_+0400_5voKYf6utvlQO4/2
-Content-Type: text/plain;
- name="ipt_osf.diff"
-Content-Disposition: attachment;
- filename="ipt_osf.diff"
-Content-Transfer-Encoding: 7bit
-
---- netfilter_cvs/patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c	2004-07-18 00:10:43.000000000 +0400
-+++ netfilter_cvs/patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c	2004-08-20 21:55:22.000000000 +0400
-@@ -411,8 +413,11 @@
- 		}
- 	}
- 
--	read_unlock(&osf_lock);
-+	if (fcount)
-+		fmatch = FMATCH_OK;
- 
-+	read_unlock(&osf_lock);
-+	
- 	return (fmatch == FMATCH_OK)?1:0;
- }
- 
-
---Multipart=_Sun__22_Aug_2004_01_03_53_+0400_5voKYf6utvlQO4/2--
+Regards
+Patrick
