@@ -1,16 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: Throttling by 'limit' in one chain fails whenever a *different*
-	chain is modified
-Date: Tue, 28 Dec 2004 12:59:51 -0800
-Message-ID: <20041228205951.GA7990@linuxace.com>
-References: <041228124435.278000@ime1.iment.com>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH 2/2] extensions conversion to C99 structure
+	initialization and MARK target modification
+Date: Wed, 29 Dec 2004 15:15:23 +1100
+Message-ID: <1104293724.4690.1.camel@localhost.localdomain>
+References: <41CDDC53.7070700@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Paul Kosinski <prk@iment.com>
-Content-Disposition: inline
-In-Reply-To: <041228124435.278000@ime1.iment.com>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <41CDDC53.7070700@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,16 +22,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Dec 28, 2004 at 12:44:34PM -0500, Paul Kosinski wrote:
-> [Posting this to the general list got no response since Dec 15, so I'll try the developer list.]
+On Sat, 2004-12-25 at 22:32 +0100, Pablo Neira wrote:
+> Hi,
+> 
+> This patch makes all structures use C99 initization, I needed this to 
+> add the versioning stuff.
 
-Did you search the archives prior to posting?  That is generally
-considered to be a good idea (as is wrapping lines at 80 characters).
+Applied all the straight initialization stuff.
 
-> The problem I experience is that whenever the dynamic-rule script fires, I get a log entry for an established-tunnel packet. Since the first script fires N times per hour, I get N times as many log entries for the tunnel as I want. This makes my examination of the firewall log more tedious and error prone than it should be.
-
-Please see this thread:
-
-https://lists.netfilter.org/pipermail/netfilter-devel/2004-September/016826.html
-
-Phil
+Thanks!
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
