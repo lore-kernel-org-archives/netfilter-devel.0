@@ -1,32 +1,64 @@
-From: Mike Smith <mikesmith1@btconnect.com>
-Subject: Re: Oops in replace_in_hashes (ip_net_core.c) 2.4.19
-Date: Mon, 21 Jul 2003 14:08:57 +0000
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <S270013AbTGUMtz/20030721124955Z+1316@vger.kernel.org>
-References: <S261808AbTGAJfh/20030701093537Z+14616@vger.kernel.org> <20030721084011.8347162D3E@wlug.westbo.se> <Pine.LNX.4.52.0307211319260.16207@tux.rsn.bth.se>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 2.4]: Fix wrong AH-header
+Date: Mon, 21 Jul 2003 17:57:33 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030721155732.GA3733@naboo>
+References: <3F1B4683.3040103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: linux-net@vger.kernel.org,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <linux-net-owner@vger.kernel.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <Pine.LNX.4.52.0307211319260.16207@tux.rsn.bth.se>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3F1B4683.3040103@trash.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 21 Jul 2003 11:22 am, Martin Josefsson wrote:
-> I'll look over it again later tonight, in the mean time could you switch
-> to 2.4.21? And apply everything from submitted and pending in
-> patch-o-matic from cvs (cvs instructions can be found on
-> http://netfilter.org). Any eventual debugging-patches will be against that
-> kernel and those patches.
->
-> /Martin
 
-Martin,
+--gBBFr7Ir9EOA20Yy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-thanks for taking an interest in this. I've now switched to 2.4.21.
-I'll wait for a bit before taking the patch-o-matic plunge,
-(to double-check that 'vanilla' 2.4.21 is stable).
+On Mon, Jul 21, 2003 at 03:48:51AM +0200, Patrick McHardy wrote:
+> I'm beginning to feel guilty for not warning you before bombing you with=
+=20
+> patches ..
 
---Mike
+I'm perfectly fine with receving your patches, don't worry.  I'm just at
+the linux kernel summit, and it might take some days until those are
+getting integrated.
+
+> Patrick
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--gBBFr7Ir9EOA20Yy
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE/HA1sXaXGVTD0i/8RApNyAKCG3mWe2UDPbkDNUs1sqwKxTZAPDgCgnYC9
+8DaL3o7q0PW7r8MuB4EoyNY=
+=JEwe
+-----END PGP SIGNATURE-----
+
+--gBBFr7Ir9EOA20Yy--
