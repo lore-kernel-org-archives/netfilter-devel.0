@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: 3 target treatment
-Date: Wed, 5 Mar 2003 19:14:05 +0100
+Subject: Re: [PATCH] update for ROUTE target in Netfilter-Extension HOWTO [ENG][FR]
+Date: Wed, 5 Mar 2003 19:15:32 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030305181405.GD4880@sunbeam.de.gnumonks.org>
-References: <3E65B570.5DA3802D@ie.cuhk.edu.hk> <200303052308.55624.fabrice@netfilter.org>
+Message-ID: <20030305181532.GE4880@sunbeam.de.gnumonks.org>
+References: <1046877476.28140.86.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4fNq9Po2wJlmxAaR"
-Cc: Philip Ho <cbho@ie.cuhk.edu.hk>, netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="kD0q5DIPXzY/lIlp"
+Cc: Fabrice MARIE <fabrice@celestix.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Fabrice MARIE <fabrice@netfilter.org>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
 Content-Disposition: inline
-In-Reply-To: <200303052308.55624.fabrice@netfilter.org>
+In-Reply-To: <1046877476.28140.86.camel@descartes.info.ucl.ac.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +24,24 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---4fNq9Po2wJlmxAaR
-Content-Type: text/plain; charset=us-ascii
+--kD0q5DIPXzY/lIlp
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 05, 2003 at 11:08:55PM +0800, Fabrice MARIE wrote:
-> On Wednesday 05 March 2003 16:29, Philip Ho wrote:
-> > Dear all
-> > Can I possibly force some matched packet passing through three targets
-> > in a row, namely
-> > 1. update fragmentation field in IP header
-> > 2. update DSCP field
-> > 3. mark it (must be in mangle table)
+On Wed, Mar 05, 2003 at 04:17:57PM +0100, Cedric de Launois wrote:
+
+> Here are two patches to update Netfilter-Extension HOWTO, concerning
+> the ROUTE target. The patches are against the english and french
+> versions of the sgml master.
 >=20
-> Hello Philip,
->=20
-> Short answer: for the moment you cannot.
+> The patches update the descriptions of the ROUTE options and move
+> the section so that it appears alphabetically (between the NETMAP
+> and the SAME patch sections).
 
-well. I'm not sure.  Apart from the missing IPid target, I think the
-solution with a custom chain and DSCP/MARK target [both return
-IPT_CONTINUE] is fine for him.
+thanks, applied.
 
-writing an IPid target is extremely easy, the only problem is how to create
-'secure' IPid's...
-
-> Fabrice.
-> --
-> Fabrice MARIE
+> C=E9dric
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,7 +53,7 @@ writing an IPid target is extremely easy, the only problem is how to create
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---4fNq9Po2wJlmxAaR
+--kD0q5DIPXzY/lIlp
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -70,9 +61,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+Zj5tXaXGVTD0i/8RAnOaAKCBNuz443MQVgL6AmnpUZQl9gHFCgCeNHjR
-Z7M6Xab7uGyqdSOHdXUx55k=
-=d9gf
+iD8DBQE+Zj7EXaXGVTD0i/8RAtmBAJwLYLh/p7qxMPUv/22x6ORtYKSFwACghxRs
+SaLtU/vkXhCOTEoeS8Pb7U0=
+=tqLi
 -----END PGP SIGNATURE-----
 
---4fNq9Po2wJlmxAaR--
+--kD0q5DIPXzY/lIlp--
