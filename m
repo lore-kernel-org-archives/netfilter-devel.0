@@ -1,17 +1,17 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: NAT and locally bound sockets
-Date: Tue, 2 Jul 2002 09:52:20 +0200
+Subject: Re: conntrack performance/DoS formula
+Date: Tue, 2 Jul 2002 09:58:03 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200207020952.20868@henrik.marasystems.com>
-References: <20020529164926.GA9003@gort.ecn.purdue.edu> <200207011859.39589.hno@marasystems.com> <20020701184615.GA13296@lucky>
+Message-ID: <200207020958.03375@henrik.marasystems.com>
+References: <20020628082339.I2890@oknodo.bof.de> <200207011007.25108.hno@marasystems.com> <15648.38427.807689.794217@isis.cs3-inc.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: shuey@purdue.edu
-In-Reply-To: <20020701184615.GA13296@lucky>
+To: don-nf@isis.cs3-inc.com (Don Cohen)
+In-Reply-To: <15648.38427.807689.794217@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,22 +22,34 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 01 July 2002 20.46, Michael Shuey wrote:
+On Monday 01 July 2002 19.49, Don Cohen wrote:
 
-> First, why would I want to SNAT locally originating packets? 
-> Second, are you telling me that netfilter _does_ check to see if a
-> port is locally bound before using it for a translation?
+>  > The ESTABLISHED indicates the TCP state, UNREPLIED indicates the
+>  > conntrack state. This is a TCP session that has only seen ACK in
+>  > one direction, no packets in the other.
+>  >
+>  > Almost related note: The connection is not ASSURED.
+>
+> I'm having trouble making sense of your explanation above.
+> This line is supposed to describe a single connection, right?
+> Established as a tcp state means the three packet handshake is
+> complete?  But that seems to contradict the unreplied.
 
-Mainly in case the locally selected port is already in use by a NAT:ed 
-connection.
+See the archives. This was discussed to death some days ago.
 
-NAT checks to see that the port isn't already in use by NAT or local 
-sockets, but as far as I know local traffic do not check that the 
-port isn't already in use by NAT.
+Summary in short: TCP state only indicates what kind of packets are 
+currently seen on the connection. This can be derived from a single 
+packet due to "connection pickup".
 
-By applying SNAT to the locally originating traffic as well the NAT 
-engine will detect any such collisions and reassign the port 
-automatically.
+> Is there any doc for stuff like this?
+> - how to read the lines above
+> - what exactly these things (unreplied, assured, established ...)
+> mean - can I match on ASSURED ?
+
+ASSURED can be matched using the new conntrack match found in 
+patch-o-matic. Normally this flag is only used by conntrack to 
+garbagecollect invalid entries in case of a DoS attempt. There isn't 
+really much use of matching it in rulesets.
 
 Regards
 Henrik
