@@ -1,14 +1,16 @@
-From: Jesse Lang <jlang@bureauofcollection.com>
-Subject: IPTABLES port forward to port range using DNAT
-Date: Mon, 3 Feb 2003 14:04:04 -0600
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Layer-7 HTTP Matching Module
+Date: Wed, 5 Feb 2003 21:02:35 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <6BCA929C2000D411BE2800E018C1BB81432ECA@URS01>
+Message-ID: <20030205200235.GA28378@oknodo.bof.de>
+References: <Pine.LNX.4.44.0302040925160.12235-100000@kaybee.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+To: Kirk Bauer <kirk@kaybee.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0302040925160.12235-100000@kaybee.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,33 +21,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey there,
+> But I think it might be nice to have a true layer 7 matching module.
+[...]
+> Does such a module exist or is it being developed?
 
-I read the docs on NAT and how to forward to a range of ports on another
-machine.
+No.
 
-Here's the deal:
-I have a proprietary machine that uses one client per port ports available
-are let's say 2000-2299
-Now, I'd like to have iptables do some magic for me where I could connect as
-many clients to a port (ie 2300) on an iptables/linux box and have iptables
-find the first available port in that range.  I set up forwarding and
-DNAT/SNAT to accomplish this, but iptables seems to always go for the first
-port 2000, whether it's in use or not.
+> If not, I may write
+> one when I have time if other people think it would be useful.
 
-Any help would be appreciated.  Thanks.
+It would be useful if it had significantly better performance
+than an application level gateway, and would be just as compliant
+WRT the protocol. A half-baked solution useful only for opportunistic
+marking, would not be good: people would try to use it in other
+situations, and be surprised when they find their security compromised.
 
-Jesse Lang
-Information Technology
-Bureau of Collection Recovery, Inc.
-http://www.bureauofcollection.com/
-320.214.8747 x2982
+A proper implementation WRT the protocol, will need to implement
+both TCP, and HTTP.
 
-Confidentiality Note:
-This message may contain confidential information that is legally privileged
-and is intended only for the use of the parties to whom it is addressed. If
-you are not an intended recipient, you are hereby notified that any
-disclosure, copying, distribution or use of any information in this message
-is strictly prohibited. If you have received this message in error, please
-notify the sender immediately at the telephone number or e-mail address
-noted above.
+Good luck with your endeavour. We did not hear back from the last
+10 people who posted the equivalent of your query.
+
+best regards
+  Patrick
