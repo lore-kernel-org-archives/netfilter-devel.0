@@ -1,16 +1,15 @@
-From: Stefan Schlott <stefan.schlott@informatik.uni-ulm.de>
-Subject: Re: netfilter and ipsec
-Date: Thu, 9 Jan 2003 15:21:51 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: [PATCH] ipt_multiport invert fix
+Date: Thu, 9 Jan 2003 15:39:42 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030109142151.GA17856@orca.informatik.uni-ulm.de>
-References: <011101c2b7e6$69afb880$8365608c@kmlin>
+Message-ID: <20030109143942.GE9467@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="U4Pv8ouM+6WX/UB7"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: ?e?? <kmlin@itri.org.tw>
+To: David Miller <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <011101c2b7e6$69afb880$8365608c@kmlin>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,41 +20,73 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Re-Hi,
 
->   I am a new entrant in linux network security, and have tried to
-> understand Netfilter and FreesWan.
->   There is a question now confusing me so long. Why not integrating
-> IPSec in the Netfilter architecture?
->   Is there any reason that IPSec must exist as an device driver or
-> some drawbacks to integrate??
+--U4Pv8ouM+6WX/UB7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I personally never touched the FreeSWAN-code, but I did the kernel part of
-an IPsec-implementation for the IPv6 module about 2 years ago. So, this
-statement is from an IPv6-point-of-view :-)
-The main problem is the increasing size of a packet: It is possible to
-modify packets in netfilter - as long as you don't increase the size.
-Fragmentation is done somewhere else (in an earlier stage), so you have
-to make sure that your IPsec-enriched packets do not exceed the (P)MTU.
-If they do, this is your problem. If you don't care, the kernel will drop
-the outgoing packet.
-Of course, you could implement that, but this would void the performance
-optimization done in the TCP code.
-Inbound packets are not better: When netfilter gets hold of them, they are
-still fragmented - afaik IPsec processing is done on the reassembled packets
-(this makes sense: If a fragment is lost, some expensive cryptographic
-operations would have been done in vain).
-That's why I ended up patching the ipv6 module.
+Hi Dave!
 
-Well, as already mentioned - that was two years ago. If something has
-changed, I'd be curious to know.
+This is another patch of the series of patches you will receive from me tod=
+ay.
 
-Stefan.
+Please apply to 2.4.x and 2.5.x, thanks.
 
--- 
-*--- please cut here... -------------------------------------- thanks! ---*
-|-> E-Mail: stefan.schlott@informatik.uni-ulm.de    PGP-Key: 0x2F36F4FE <-|
-| The only secure Microsoft software is what's still shrink-wrapped in    |
-| their warehouse...                                                      |
-|   -- Richard Forno                                                      |
-*-------------------------------------------------------------------------*
+This patch fixes the ULOG target when logging packets without any
+ethernet header (mac address).
+
+--- linux-2.4.20-pre11-plain/net/ipv4/netfilter/ipt_ULOG.c	Wed Oct 30 10:09=
+:41 2002
++++ linux-2.4.20-pre11-ulogfix/net/ipv4/netfilter//ipt_ULOG.c	Wed Oct 30 10=
+:07:31 2002
+@@ -12,6 +12,7 @@
+  * 	      module loadtime -HW
+  * 2002/07/07 remove broken nflog_rcv() function -HW
+  * 2002/08/29 fix shifted/unshifted nlgroup bug -HW
++ * 2002/10/30 fix uninitialized mac_len field - <Anders K. Pedersen>
+  *
+  * Released under the terms of the GPL
+  *
+@@ -31,7 +32,7 @@
+  *   Specify, after how many clock ticks (intel: 100 per second) the queue
+  * should be flushed even if it is not full yet.
+  *
+- * ipt_ULOG.c,v 1.21 2002/08/29 10:54:34 laforge Exp
++ * ipt_ULOG.c,v 1.22 2002/10/30 09:07:31 laforge Exp
+  */
+=20
+ #include <linux/module.h>
+@@ -224,7 +225,8 @@
+ 	    && in->hard_header_len <=3D ULOG_MAC_LEN) {
+ 		memcpy(pm->mac, (*pskb)->mac.raw, in->hard_header_len);
+ 		pm->mac_len =3D in->hard_header_len;
+-	}
++	} else
++		pm->mac_len =3D 0;
+=20
+ 	if (in)
+ 		strncpy(pm->indev_name, in->name, sizeof(pm->indev_name));
+--=20
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--U4Pv8ouM+6WX/UB7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+HYmuXaXGVTD0i/8RAnk1AJwMbuqEQb+ehgqemtnEHVFLo+weZgCggSwJ
+yhBJXvvy6Z0Wav6deU1tC5s=
+=dChh
+-----END PGP SIGNATURE-----
+
+--U4Pv8ouM+6WX/UB7--
