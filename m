@@ -1,17 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: timeout storms make the box unresponsive
-Date: Sun, 27 Jul 2003 00:39:22 +0200 (CEST)
+Date: Sun, 27 Jul 2003 12:34:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0307270027460.7327-100000@blackhole.kfki.hu>
-References: <20030725202113.GK10897@naboo>
+Message-ID: <20030727103422.GA23621@oknodo.bof.de>
+References: <20030725202113.GK10897@naboo> <Pine.LNX.4.33.0307270027460.7327-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Balazs Scheidler <bazsi@balabit.hu>,
-	<netfilter-devel@lists.netfilter.org>,
-	Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030725202113.GK10897@naboo>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0307270027460.7327-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,41 +21,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 25 Jul 2003, Harald Welte wrote:
+Hi Jozsef,
 
-> On Fri, Jul 25, 2003 at 08:56:44PM +0200, Balazs Scheidler wrote:
->
-> > Maybe we should consider removing expired entries from the NAT hash at a
-> > single go, instead of the current lock-remove-unlock for each entry. Or
-> > create a cleanup thread which cleans up conntrack entries regularly, but not
-> > in the timer interrupt context.
->
-> Rusty, Jamal and I were talking about this conntrack cleanup yesterday
-> (we're currently all at OLS).  The conclusion was that a cleanup kernel thread
-> is what we want to have.
-[...]
-> If I understood correctly, Rusty already has some old patches in this
-> area, and he is most likely to put an update of these patches out in the
-> next weeks before the netfilter developer workshop.
+> 03_locking.patch	per bucket locking patch with a couple of
+> 			optimizations
 
-Maybe the reworked per bucket locking patch is a good start for a
-cleanup kernel thread. I have uploaded all my pending patches to
-http://www.kfki.hu/~kadlec/sw/netfilter/2.5/:
+some questions, during first pass reading over the patch;
 
-01_logging.patch	2.4 logging patch ported to 2.5
-02_proc.patch		ditto
-03_locking.patch	per bucket locking patch with a couple of
-			optimizations
-04_tcp_window.patch	TCP window tracking patch port
-05_dos.patch		protection against a conntrack attack
-			by an advisory hotlist
+1) regarding the 'ifdef CONFIG_IP_NF_NAT_NEEDED' gymnastics, reading
+   hash_conntrack(), am I correct that this is the "non-NAT symmetry"
+   optimization I proposed a long time ago, i.e. if both direction's
+   tuples are mirrors of each other, hash/chain them only once?
+   If yes, I feel that warrants breaking out into a separate patch.
 
-[Harald, the user home pages on kashyyyk are unavailable from outside.]
+2) assuming I am correct wrt the goal in 1), I object to the seperate
+   "sorting" of IP and port in hash_conntrack(). Although it is unlikely,
+   consider a situation where between two specific IP addresses,
+   two independant connections run from (IPA,portA)<->(IPB,portB)
+   and (IPA,portB)<->(IPB,portA). The code in your patch would
+   throw both into the same hash chain, without need. Better:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+   	if (IPa < IPb) {
+		/* fine, do nothing */
+	} else if (IPa > IPb) {
+		swap IPs _and_ ports
+	} else /* IPa == IPb */ if (portA > port B) {
+		swap ports (IPs are identical, swap is noop)
+	}
+
+3) there is much activity related to managing expectations and
+   helper stuff. Is that directly related to the conntrack locking
+   changes themselves?  If not, I would also advocate breaking those
+   into a separate patch. I never looked closely into the expectation
+   stuff, so it is nothing but confusing (to me) to see it in this patch.
+
+In any case, thanks for your work. Feel free to ignore my pleas, if you
+and others are content with the aggregated changes.
+
+best regards
+  Patrick
