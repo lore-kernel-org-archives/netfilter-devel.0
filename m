@@ -1,50 +1,38 @@
-From: "He Ke" <heke@uestc.edu.cn>
-Subject: a libipq problem(FAQ cannot help)
-Date: Fri, 27 Aug 2004 18:01:05 +0800
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <293600865.26722@uestc.edu.cn>
-Reply-To: He Ke <heke@uestc.edu.cn>
-Content-Type: text/plain
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: an oops possibly due to an SMP related bug in netfilter
+Date: Mon, 30 Aug 2004 18:57:53 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040830165753.GA22979@sch.bme.hu>
+References: <20040830120809.GB1029@always.joy.eth.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268575AbUH3Q6M@vger.kernel.org>
+To: Joshua N Pritikin <jpritikin@pobox.com>
+Content-Disposition: inline
+In-Reply-To: <20040830120809.GB1029@always.joy.eth.net>
 List-Id: netfilter-devel.vger.kernel.org
 
-i've now got a serious problem on the libipq programming.I wrote an application
-which gets 
-packets from iptables's QUEUE target(ip_queue&ip6_queue),and then deals with
-them(drop,accept,...).
-It works well with normal amout of packets,but when packets comes above 10M/s,it
-dies soon,and show
- "Failed to received netlink message: No buffer space available".
-   I've checked the FAQ,it says "you can tune their receive buffer sizes via
- /proc/sys/net/core, sysctl, or use the SO_RCVBUF socket option on the file
- descriptor".I tried them both , but it doesn't work,my application still die
-soon
- when it meets packets above 10M/s.
-   I tuned
-  /proc/sys/net/core/rmem_default
-  /proc/sys/net/core/rmem_max
- up to 1048576 .
-   I modified the ipq_create_handle function in the libipq.c file, added the
- following sentence:
- 	char maxbuf[1048576];
- 	if(setsockopt(h->fd,SOL_SOCKET,SO_RCVBUF,&maxbuf,sizeof(maxbuf))==-1)
- 		{
- 		ipq_errno=IPQ_ERR_RECVBUF;
- 		free(h);
- 		return NULL;
- 		}
- Am I right?
- If what i've done is what the FAQ says,why doesn't it work?
- the software snort_inline who uses this technique has the same problem,i've
- checked it.
- Would you please tell me how can i deal with this problem ?
- I'll be very appreaciate!
+
+  Hi,
+
+On Mon, Aug 30, 2004 at 05:38:09PM +0530, Joshua N Pritikin wrote:
+> (Perhaps I am one of the few people crazy enough to run a firewall on
+> an SMP machine.  ;-)
+>  
+> CPU:    0 
+> EIP:    0060:[<c8895955>]    Not tainted 
+> EFLAGS: 00010246   (2.6.7)  
+> EIP is at __ip_conntrack_find+0x179/0x1a0 [ip_conntrack] 
+> eax: 00000001   ebx: 00000000   ecx: c0353cc0   edx: 00000000 
+> esi: 00000000   edi: 00000000   ebp: c0353c88   esp: c0353c6c 
+> ds: 007b   es: 007b   ss: 0068 
+> Process swapper (pid: 0, threadinfo=c0352000 task=c0300980)
+
+  I don't think you're the only one running iptables on SMP... This looks
+like a conntrack hash table corruption, so the first thing you should
+check is your memory, of course. Are you 100 percent sure that it is ok?
+
+-- 
+ KOVACS Krisztian
