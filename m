@@ -1,15 +1,20 @@
-From: William Stearns <wstearns@pobox.com>
-Subject: Thumbs up for POM-NG, incorrect fix for ipt_string.c
-Date: Sat, 7 Feb 2004 14:19:14 -0500 (EST)
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: [Cybr.rdsw] [Cy.rdsw] serious problem with 2.4.24 combined
+	with KVM switch (fwd)
+Date: Thu, 05 Feb 2004 13:41:05 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402071412270.27286-100000@sparrow>
-Reply-To: William Stearns <wstearns@pobox.com>
+Message-ID: <1075984865.3101.5.camel@bzorp.balabit>
+References: <Pine.LNX.4.58L.0401271021230.9958@logos.cnet>
+	 <20040127124259.GP11761@sunbeam.de.gnumonks.org>
+	 <1075825496.23902.9.camel@tammuz>
+	 <20040203220020.GC25175@obroa-skai.de.gnumonks.org>
+	 <1075903552.8033.17.camel@tammuz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: William Stearns <wstearns@pobox.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>, Gianni Tedesco <gianni@ecsc.co.uk>,
-   ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1075903552.8033.17.camel@tammuz>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,29 +25,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Good day, Harald, Gianni,
-	First off, _nice work_on patch-o-matic-ng, Harald - it worked
-almost flawlessly right out of the box.  pom-ng-20040206 put in almost
-every module correctly, although I had to manually add ipt_string, I
-suspect because Makefile.ladd was looking for an ipt_unclean line and 2.6
-doesn't have it.
-	ipt_string.c didn't compile correctly out of the box, because of a 
-missing symbol smp_num_cpus.  I know there's a _correct_ fix for that 
-(something like NR_CPUS?), but I couldn't find it.  Adding the line
+On Wed, 2004-02-04 at 15:05, Oliver Kurth wrote:
+> On Tue, 2004-02-03 at 23:00, Harald Welte wrote:
+> > On Tue, Feb 03, 2004 at 05:24:57PM +0100, Oliver Kurth wrote:
+> > > Hi Harald,
+> > > 
+> > > > > We are having a problem with 2.4.24 on cyclades germany, the box
+> > > > > (firewall) is crashing in the netfilter code.
+> > > 
+> > > Anything new about that problem? Do you need more information?
+> > 
+> > sorry, I lost that issue because I'm extremely overloaded at the moment.
+> > 
+> > It seems like it crashes in the following piece of code (from
+> > ip_conntrack_core.c)
+> > 
+> >         /* If the expectation is dying, then this is a looser. */
+> >         if (expected
+> >             && expected->expectant->helper->timeout
+> >             && !del_timer(&expected->timeout))
+> >                 expected = NULL;
+> > 
+> > 
+> > To be more precise, it cannot dereference helper->timeout, since helper
+> > is NULL.  I am extremely puzzled how you would end up with a conntrack
+> > expectation (which can only be caused by a helper) that has not assigned
+> > a helper.
 
-int smp_num_cpus = 1;
+I've encountered the same oops back in September 2003, you might be
+interested in the information I posted back then:
 
-	near the top of that file allowed it to compile and link correctly 
-on my UP box, but I hold _no_ illusions that this is correct!
-	Cheers,
-	- Bill
+http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/012590.html
 
----------------------------------------------------------------------------
-	"Perfection is reached, not when there is no longer anything to
-add, but when there is no longer anything to take away."
-	-- Antoine de Saint-Exupery
-(Courtesy of Thomas Graichen <tgr@spoiled.org>)
---------------------------------------------------------------------------
-William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
-rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
---------------------------------------------------------------------------
+It must be some kind of race condition, but I could not figure out what
+it could be.
+
+-- 
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
