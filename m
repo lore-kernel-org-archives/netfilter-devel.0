@@ -1,18 +1,20 @@
-From: Cedric de Launois <delaunois@info.ucl.ac.be>
-Subject: Re: [PATCH] info file for ROUTE target
-Date: Fri, 10 Dec 2004 09:37:44 +0100
-Message-ID: <1102667864.11255.2.camel@descartes.info.ucl.ac.be>
-References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
-	<20041209195706.GA4121@oknodo.bof.de>
-	<20041209212420.GD591@ti64.telemetry-investments.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: TCP window tracking has bad side effects
+Date: Fri, 10 Dec 2004 20:42:10 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0412102036050.15549@blackhole.kfki.hu>
+References: <20041201110253.GA9536@suse.de>
+	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
+	<20041201153903.GA16807@suse.de>
+	<Pine.LNX.4.58.0412030942320.30157@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
+	<20041209162656.GA9569@suse.de>
+	<20041210172217.GA4323@ti64.telemetry-investments.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: "netfilter-devel@lists.netfilter.org"
-	<netfilter-devel@lists.netfilter.org>, Patrick Schaaf <bof@bof.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, Ludwig Nussel <ludwig.nussel@suse.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
-In-Reply-To: <20041209212420.GD591@ti64.telemetry-investments.com>
+In-Reply-To: <20041210172217.GA4323@ti64.telemetry-investments.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,21 +26,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le jeu 09/12/2004 =E0 22:24, Bill Rugolsky Jr. a =E9crit :
-> ip6t_ROUTE.c doesn't build properly as a module, because it
-> invokes the inline function ndisc_get_neigh(), which in turn depends on=
- the
-> symbol (un-exported) symbol nd_tbl:
+On Fri, 10 Dec 2004, Bill Rugolsky Jr. wrote:
 
-Indeed, the ipv6 ROUTE target doesn't compile for the reason explained
-above.
+> On Thu, Dec 09, 2004 at 05:26:56PM +0100, Ludwig Nussel wrote:
+> > Seems to work. The client machine no longer drops the packet and
+> > properly sends RST.
+>
+> Will you push this to DaveM for 2.6.10?
 
-> Presumably ip6t_ROUTE.c requires an out-of-line version of ndisc_get_ne=
-igh()
-> to be exported.
+Yes, he fully aware of the issue and the slightly modified version I have
+posted to the list today (not arrived yet, it seems) will hopefully be
+added to 2.6.10.
 
-Agree.
-
-Regards,
-
-Cedric
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
