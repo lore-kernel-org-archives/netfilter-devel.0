@@ -1,8 +1,8 @@
 From: "Bisawjit  Paul" <biswajit_paul@rediffmail.com>
 Subject: path of Netfilter source code ??????
-Date: 16 Sep 2002 09:21:55 -0000
+Date: 16 Sep 2002 09:22:21 -0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020916092155.11363.qmail@webmail27.rediffmail.com>
+Message-ID: <20020916092221.31679.qmail@webmail28.rediffmail.com>
 Reply-To: "Bisawjit  Paul" <biswajit_paul@rediffmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -28,21 +28,3 @@ directory.
 
    with Regards
            biswajit Paul
-
-
-  ### Biswajit Paul ###
-       Scientist 'B'
-
-off add:-
-
-CENTER FOR ARTIFITIAL
-INTELEGENCE & ROBOTICS
-Rajbhavan Circle,Highground
-Bangalore-560001
-Ph-(080)2265406 Ext-280/281
-
-Res add:-
-   SH-5A/77
-   DRDO Township,Phase-2
-   C.V Raman Nagar
-   Bangalore-560093
