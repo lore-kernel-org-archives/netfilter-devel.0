@@ -1,18 +1,16 @@
-From: Chris Wilson <chris@netservers.co.uk>
-Subject: Re: IPtables performance (fwd)
-Date: Sat, 3 May 2003 11:32:24 +0100 (BST)
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH] trivial but important iptables ipt_conntrack fix
+Date: Sat, 03 May 2003 04:06:00 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0305031129230.8273-100000@localhost>
-References: <Pine.LNX.4.33.0305021628100.8241-100000@fantomas.insite.com.br>
+Message-ID: <20030503.040600.52165591.davem@redhat.com>
+References: <20030503120350.GT26924@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-   "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>,
-   Robert Olsson <robban@robtex.com>, John McEleney <john@netservers.co.uk>,
-   Ben McKeegan <ben@netservers.co.uk>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: marcelo@conectiva.com.br, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andre Uratsuka Manoel <andre@insite.com.br>
-In-Reply-To: <Pine.LNX.4.33.0305021628100.8241-100000@fantomas.insite.com.br>
+To: laforge@netfilter.org
+In-Reply-To: <20030503120350.GT26924@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,22 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Andre,
+   From: Harald Welte <laforge@netfilter.org>
+   Date: Sat, 3 May 2003 14:03:50 +0200
 
-> 	I also may be making a fool of myself (not a first), but my take
-> is this:
+   I'm sending you this fairly trivial fix for ipt_conntrack, that should
+   definitely go in before 2.4.21 is released.
+   
+Marcelo, I also have a set of remote networking exploit fixes for you.
 
-It looks like you have found some very efficient algorithms (not to 
-mention a nice visual metaphor). Would you mind if I try to reimplement 
-mark_source_chains using these algorithms?
+So I'll add this change from Harald to my tree and send you all the
+fixes together in the next day or two.
 
-I'm also wondering if the two steps, loop-detection and colouring, should 
-be combined as they currently are for brevity and performance, or 
-separated for simplicity and intuitive correctness?
-
-Cheers, Chris.
--- 
-   ___ __     _
- / __// / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
-/ (_ / ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
-\ _//_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
+Thanks.
