@@ -1,14 +1,16 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] fine grain locking for tcp helper
-Date: Sun, 02 May 2004 05:40:41 +0200
+Subject: Re: [PATCH] fine grain locking for tcp helper
+Date: Sun, 02 May 2004 05:51:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40946DB9.6050705@eurodev.net>
+Message-ID: <4094705E.6010007@eurodev.net>
+References: <40946DB9.6050705@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------090307090307010404070503"
+ boundary="------------070103050706060901050207"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
  Patrick McHardy <kaber@trash.net>
+In-Reply-To: <40946DB9.6050705@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +22,25 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090307090307010404070503
+--------------070103050706060901050207
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi,
+Pablo Neira wrote:
 
-This patch provides a fine-grain locking for the tcp helper in 
-conntrack. A per-conntrack lock is used, instead of having a global lock 
-to protect tcp specific data. If I'm missing something, please let me know.
+> This patch provides a fine-grain locking for the tcp helper in 
+> conntrack. A per-conntrack lock is used, instead of having a global 
+> lock to protect tcp specific data. If I'm missing something, please 
+> let me know.
+
+
+oops, sorry, wrong patch, it doesn't compile, I made a mistake in the .h 
+file, please review this patch instead.
 
 regards,
 Pablo
 
---------------090307090307010404070503
+--------------070103050706060901050207
 Content-Type: text/plain;
  name="locking_tcp_proto_helper.patch"
 Content-Transfer-Encoding: 7bit
@@ -102,16 +109,16 @@ Content-Disposition: inline;
  }
  
 --- linux-2.6.3-old/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2004-02-18 04:57:29.000000000 +0100
-+++ linux-2.6.3/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2004-05-02 04:19:04.000000000 +0200
++++ linux-2.6.3/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2004-05-02 05:48:49.000000000 +0200
 @@ -18,6 +18,9 @@
  
  struct ip_ct_tcp
  {
 +	/* Protects conntrack tcp protocol specific information */
-+	rwlock_t tcp_lock;
++	rwlock_t lock;
 +
  	enum tcp_conntrack state;
  
  	/* Poor man's window tracking: sequence number of valid ACK
 
---------------090307090307010404070503--
+--------------070103050706060901050207--
