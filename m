@@ -1,44 +1,54 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re: --reject-with admin-prohib - Suggested Solution.
-Date: Wed, 4 Dec 2002 21:12:37 +0100 (CET)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0212042040540.3788-100000@dns.toxicfilms.tv>
-References: <Pine.LNX.4.33.0212040052300.29619-100000@blackhole.kfki.hu>
+From: Ian Chilton <mailinglist@ichilton.co.uk>
+Subject: iptables Error - "Memory allocation problem"
+Date: Thu, 5 Dec 2002 01:24:32 +0000
+Sender: user-mode-linux-devel-admin@lists.sourceforge.net
+Message-ID: <20021205012432.GB18233@buzz.ichilton.co.uk>
+Reply-To: Ian Chilton <ian@ichilton.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@gnumonks.org>, <g@naboo.gnumonks.org>,
-	<netfilter-devel@lists.samba.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0212040052300.29619-100000@blackhole.kfki.hu>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <user-mode-linux-devel-admin@lists.sourceforge.net>
+To: user-mode-linux-devel@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+Errors-To: user-mode-linux-devel-admin@lists.sourceforge.net
+List-Help: <mailto:user-mode-linux-devel-request@lists.sourceforge.net?subject=help>
+List-Post: <mailto:user-mode-linux-devel@lists.sourceforge.net>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/user-mode-linux-devel>,
+	<mailto:user-mode-linux-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/user-mode-linux-devel>,
+	<mailto:user-mode-linux-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=user-mode-linux-devel>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > No.  You will make the libipt_REJECT.so dependent on the particular
-> > source code installed on the machine where iptables was compiled.
->
-> Why don't we simply add an INCOMPATIBILITIES file to the userspace source
-> tree, together with a similar section in the manpage?
->
-Hmm, that could be a solution.
+Hello,
 
-Also, we could add an [*] to the libipt_REJECT.c help and say that [*]
-works only with kernels 2.x.y+
+I have a uml (user mode linux) instance with a debian/testing root
+running on an Intel P200MMX with 96MB RAM. The host is running
+2.4.20-fairsched-skas3 and the uml is 2.4.19-34um.
 
-> Backward compatibility is very important, but we shouldn't insist on it at
-> every cost.
->
-What is more important here? Backward compatibility or RFC compliance.
 
-I see it has been hard to have both, and that is why Harald is fighting
-for both compatibility and compliance, but maybe here we can cut corners.
+On boot when it loads my firewall, I get this:
 
-Regards,
-Maciej Soltysiak
+Starting Firewall... /scripts/firewall: line 26:   109 Segmentation
+fault      iptables -F
+iptables v1.2.7a: can't initialize iptables table `filter': Memory
+allocation problem
+Perhaps iptables or your kernel needs to be upgraded.
+
+
+The uml then locks solid. Anyone seen this before or have any ideas?
+
+[ Please CC replies to me as well as the list(s) ]
+
+
+Thanks in Advance!
+
+Ian
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Microsoft Visual Studio.NET 
+comprehensive development tool, built to increase your 
+productivity. Try a free online hosted session at:
+http://ads.sourceforge.net/cgi-bin/redirect.pl?micr0003en
