@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH][TRIVIAL]  Unused variable in libipt_LOG.c and libip6t_LOG.c
-Date: Mon, 11 Aug 2003 21:54:18 +0200
+From: Srinivas Kommu <kommu@hotmail.com>
+Subject: differences between 2.4.19 and 2.4.20?
+Date: Mon, 11 Aug 2003 15:43:07 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030811195418.GH11901@sunbeam.de.gnumonks.org>
-References: <3F2DA5B8.8040109@videotron.ca>
+Message-ID: <3F381BFB.6060805@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aF3LVLvitz/VQU3c"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Stephane Ouellette <ouellettes@videotron.ca>
-Content-Disposition: inline
-In-Reply-To: <3F2DA5B8.8040109@videotron.ca>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,42 +18,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Is there a major difference in the netfilter functionality in the 2.4.19 
+and 2.4.20 kernels? What are the differences?
 
---aF3LVLvitz/VQU3c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Is there a general way to find out?
 
-On Sun, Aug 03, 2003 at 08:15:52PM -0400, Stephane Ouellette wrote:
-> Harald,
->=20
->   the following two patches remove an unused variable in save() and=20
-> convert all structure initialization to C99.
-
-thanks, applied.
-
-> Regards,
-> Stephane Ouellette
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---aF3LVLvitz/VQU3c
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/N/RqXaXGVTD0i/8RAtGcAKCv7v3xFcZ/Z5Y64tlk0KFhnamwqQCfQHpV
-KQNcdTcw7PHapqTluo3mpU4=
-=HuwC
------END PGP SIGNATURE-----
-
---aF3LVLvitz/VQU3c--
+thanks. any response is appreciated.
+kommu
