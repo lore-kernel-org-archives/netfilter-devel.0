@@ -1,17 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: iptables bad byte counter?!?
-Date: Wed, 5 Jun 2002 21:29:54 +0200
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: Syncookie firewall
+Date: Wed, 5 Jun 2002 12:30:52 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206052129.54254.hno@marasystems.com>
-References: <1023304055.2845.69.camel@cygnus>
+Message-ID: <15614.26348.278645.301276@isis.cs3-inc.com>
+References: <20020603132204.7934546FF@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Torge Szczepanek <netfilter-devel@szczepanek.de>,
-	netfilter-devel@lists.samba.org
-In-Reply-To: <1023304055.2845.69.camel@cygnus>
+To: netfilter-devel@lists.samba.org
+In-Reply-To: <20020603132204.7934546FF@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,19 +20,110 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Torge Szczepanek wrote:
+ > From: Michel Banguerski <Michel.Banguerski@laposte.net>
 
-> I am getting byte counters like this:
->
-> 18446744073707058701
+ > I came across your posing on netfilter-dev
+I must have missed it, but I assume the idea is that firewalls should
+reply to syn's with cookies and forward the connection only when it
+gets the ack. 
+I also have thought this would be a good idea.  
+You'll see my lines of thinking below.  
 
-Very much looks like a negative number.. the above is the same as 64 bit 
-integer -2492915 printed as a unsigned value.
+First, a problem:
+There are some tcp options that have to be sent in the syn packet, 
+e.g., window scale.  These become unusable if this packet is supplied 
+by the firewall, unless the firewall somehow knows how the original
+destination host "would have" answered.  This seems unfortunate, and 
+I don't see a good solution.
+(Actually, I think the solution is to change the protocol to allow 
+those options in later packets!)
 
-> The byte counters differ (18446744073707 is mostly the same) so I think
-> this might be an overflow of a (longint?!?) counter.
+Now on to the interesting stuff.
 
-Very unlikely as it is 64 bits in size and unsigned..
+You're probably thinking in terms of defense against syn flooding
+here, but I'm also interested in defenses against some more subtle
+attacks.  In particular, I want to prevent packet floods from going 
+through the firewall.  Here's an initial solution:
 
-Regards
-Henrik
+rate limit all packets other than tcp packets that are part of
+established connections 
+
+The rate limit can be quite small, just enough to accomodate normal
+syn, icmp and udp traffic.
+
+This limits both incoming and outgoing floods to the rate limit above.
+
+But here's a way to defeat that defense.  Suppose the attacker
+controls a zombie on the inside that he wants to use to flood someone
+on the outside.  He also controls a machine on the outside.(*)  He can
+use the outside machine to send a packet to the zombie with the
+spoofed source address of the victim.  Now the zombie replies to the
+victim.  Furthermore, the outside machine, knowing what the zombie
+will do, can send the ack to convince the firewall that the connection
+is established and now the zombie can send to the victim without the
+rate limit.
+
+(*)Yes, he could use that outside machine to attack directly, but
+this solution causes the attack to come from your network and also
+requires very little bandwidth from the outside machine, so that one
+outside machine could allow lots of different zombies to attack. 
+
+If instead the firewall replied to the first syn, the outside machine
+wouldn't be able to send the correct ack in order to establish the
+connection.  (The attacker presumably can't predict the sequence
+number the firewall will use, and he can't observe it since it's sent 
+to the victim.)
+
+However, it turns out this is not good enough.  Here's a similar
+attack.  Again the outside machine and the zombie are in cahoots.
+This time the zombie sends the syn to the victim.  The firewall
+replies with the cookie and the zombie replies.  Now the firewall
+forwards the syn to the victim.  (I don't want to deal with any
+replies from the victim here.  Suppose it's not replying to these 
+packets.)  But now the outside attacker can spoof the syn-ack
+since it knows the zombie's sequence number!  And again, it can
+send more spoofed acks if the firewall is checking for that sort
+of thing.
+
+The solution is a slight extension to your scheme.  You're already
+keeping one sequence number offset.  You just have to keep two, one 
+in each direction.  That is, instead of
+
+client			 FW		     server
+       -> seq#A
+       ack#A, seq#B <-
+       -> seq#A, ack#B
+				-> seq#A
+make this last one
+				-> seq#C
+
+Here C is a random number generated by the firewall.  The important 
+thing is that B can only be observed on one side of the firewall and
+C can only be observed on the other.  Now the outside attacker again
+does not know what sequence number went to the victim and can no
+longer send the right ack.
+
+ > Questions that i have no answered yet:
+ >  -  What to do if the server is down
+That's a good question.
+
+ >  -  How to avoid breaking nat
+Clearly can be done, even if the best way is not obvious
+
+ >  -  Is there a trick that could allow us to not to store context before
+ >     receiving the third ack from the server
+Isn't this just what happens now?  The syn simply elicits a cookie,
+all else is done when the ack arrives.
+The changes I see are
+- for some reason syn cookies now seem to be used only when there's a
+long syn queue - should be always
+- they're used (I think) only for the local machine, have to be used
+also for forwarded packets (which seems to break the boundary between
+IP and TCP, doesn't it)
+I'd be interested in delaying the processing of the syn-ack (and other
+conntrack stuff) to even later - when it's apparent that the packet is
+actually going to be forwarded.  This matters to me because of my rate
+limiting.  You may recall I raised that issue on this list before.
+
+ >  -  What are pitfalls i've missed.
+The problem at the top is one.
