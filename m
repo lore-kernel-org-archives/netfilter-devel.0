@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Dynamic rule creation and deletion
-Date: Wed, 25 Feb 2004 23:03:44 +0100 (CET)
+Subject: Re: PPTP conntrack/NAT Problems
+Date: Wed, 25 Feb 2004 23:10:03 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402252302420.32183-100000@filer.marasystems.com>
-References: <20040225171842.54119.qmail@web25105.mail.ukl.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0402252307540.32183-100000@filer.marasystems.com>
+References: <Pine.LNX.4.58.0402251550120.12632@mastermind.inside.guardiandigital.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?iso-8859-1?q?Jambunathan=20Kalyanasundaram?= <k_jambunathan@yahoo.co.uk>
-In-Reply-To: <20040225171842.54119.qmail@web25105.mail.ukl.yahoo.com>
+To: "Ryan W. Maple" <ryan@guardiandigital.com>
+In-Reply-To: <Pine.LNX.4.58.0402251550120.12632@mastermind.inside.guardiandigital.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,15 +20,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 25 Feb 2004, Jambunathan Kalyanasundaram wrote:
+On Wed, 25 Feb 2004, Ryan W. Maple wrote:
 
-> Transparent http proxy is at times required to talk to
-> the origin web server with it's own ip address spoofed
-> to that of the browser for which it is forwarding the
-> request.
+> I cannot find it _anywhere_.  The latest POM has revisions 1.9 (conntrack)
+> and 1.5 (nat) while the netfilter-extensions repository has 1.10/1.6.
+> Could somebody please tell me exactly which of these (if either) are
+> "version 1.13"?
 
-For this specific purpose the TPROXY patch was created, avoiding the 
-constant modifications of iptables NAT in a more elegant manner.
+The version in patch-o-matic and patch-o-matic-ng is version 1.13.
+
+The version number posted is from the CVS revision number of the main
+patch file in patch-o-matic CVS, not the version numbers listed in the
+specific components making up the patch.
 
 Regards
 Henrik
