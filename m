@@ -1,17 +1,16 @@
-From: Lukas Ruf <ruf@rawip.org>
+From: Pablo Neira <pablo@eurodev.net>
 Subject: Re: modifications for SMP processor
-Date: Wed, 4 Aug 2004 09:45:57 +0200
+Date: Wed, 04 Aug 2004 13:11:39 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040804074557.GA871@tik.ee.ethz.ch>
-References: <PAEMKCJPEJFAMHHIJGBOOEKPMLAB.laurent@eriservice.ch>
-Reply-To: PLEASE REPLY TO THE LIST <dev_null@rawip.org>
+Message-ID: <4110C46B.6000100@eurodev.net>
+References: <PAEMKCJPEJFAMHHIJGBOCELBMLAB.laurent.schweizer@eivd.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter development <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laurent Schweizer <laurent@eriservice.ch>
-Content-Disposition: inline
-In-Reply-To: <PAEMKCJPEJFAMHHIJGBOOEKPMLAB.laurent@eriservice.ch>
+To: laurent Schweizer <laurent.schweizer@eivd.ch>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <PAEMKCJPEJFAMHHIJGBOCELBMLAB.laurent.schweizer@eivd.ch>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,22 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> laurent Schweizer <laurent@eriservice.ch> [2004-08-04 05:20]:
+Hi Laurent,
+
+laurent Schweizer wrote:
+
+>I am writing a target for iptables.
 >
-> I am writing a target for iptables.  My target has a table and I see
-> that it is not working correctly on SMP processor.  I want to know
-> which modifications I must make, or where I can find an example.
+>My target has a table and I see that it is not working correctly on SMP
+>processor.
+>  
 >
 
-what is the exact problem?
+well, that's not enough info. Anyway, if all iptables rules are sharing
+that table (I mean that table is defined inside the target as a global
+var), I guess that you need reader/writer lock.
 
-Is it a problem with your target?
+On the other hand, if the table is inside the target's private
+information, that's different... you should have a look at ipt_limit.c
+for a reference.
 
-Or do you believe it's a problem with iptables?
+>I want to know which modifications I must make, or where I can find an
+>example.
+>  
+>
 
-wbr,
-Lukas
--- 
-Lukas Ruf           | Wanna know anything about raw |
-<http://www.lpr.ch> | IP? -> <http://www.rawip.org> |
-eMail Style Guide: <http://www.rawip.org/style.html>|
+Robert Love has written a good article about this:
+http://www.linuxjournal.com/article.php?sid=5833
+
+Check out also Rusty's unreliable guide for locking in the kernel.
+
+regards,
+Pablo
