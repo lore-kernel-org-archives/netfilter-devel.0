@@ -1,18 +1,20 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Change masquerade code to use first IP address of
-Date: Fri, 22 Oct 2004 12:52:03 +0200
+Subject: Re: [PATCH] netbios broadcast connection tracking module
+Date: Fri, 22 Oct 2004 12:55:04 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041022105203.GB3551@sunbeam.de.gnumonks.org>
-References: <4175FCF2.E494D.3F15@iris2.directnic.com>
-	<53512.217.169.232.210.1098252363.squirrel@217.169.232.210>
+Message-ID: <20041022105504.GC3551@sunbeam.de.gnumonks.org>
+References: <1098175785.6562.60.camel@greebo.homeip.net>
+	<1098206621.1108.105.camel@tux.rsn.bth.se>
+	<1098214482.6562.125.camel@greebo.homeip.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kUmo4NyTJbuJZ752"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="7cXxibKNEnJOqEg4"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Martin Josefsson <gandalf@wlug.westbo.se>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ferry Huberts <ferry@Hupie.com>
+To: Alexander Larsson <alexl@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <53512.217.169.232.210.1098252363.squirrel@217.169.232.210>
+In-Reply-To: <1098214482.6562.125.camel@greebo.homeip.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,39 +26,27 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---kUmo4NyTJbuJZ752
+--7cXxibKNEnJOqEg4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 20, 2004 at 08:06:03AM +0200, Ferry Huberts wrote:
-> In netfilter-devel Digest, Vol 3, Issue 20
->=20
-> In response to Rusty's message
-> Subject: [PATCH] Change masquerade code to use first IP address of
->         interface.
->=20
-> I scream :-)
->=20
-> I have an application that has multiple DHCP assigned addresses on an
-> interface and I would like to tell netfilter to which interface
-> address/name (eth0:0 or eth0 or eth0:1) it should MASQ.
+Hi!
 
-MASQUERADE is and has always only been for the common [stupid]
-dialup-with-dynamic-address case.
+First of all, let me say that I am much in favour of a conntrack helper
+than an ipt_recent-based solution.
 
-'eth0:0', etc. are _NOT_ interfaces.  They are a backwards compatibility
-kludge to make stupid old bsd-like userspace tools [and sysadmis] work.
-In reality, any interface can have multiple addresses, even without any
-of those :X pseudo-devices.
+> Hmm. I though by setting max_expected to 0 would allow me to get
+> multiple expected replies, but i could easily have misread the code. Is
+> there no way to expect multiple packets in reply to a single udp
+> package?
 
-> Is it possible to implement this as an option to the MASQ module?
+you just need to re-issue the expectation as soon as it is confirmed by
+the first packet (from the expectfn).  If I'm not mistaken, there are
+already helpers doing that, although I forgot which ones.
 
-I don't see how, sorry.
-
-> Ferry Huberts
-
-p.s.: Please don't full-quote.
+>  Alexander Larsson                                            Red Hat, In=
+c=20
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -68,7 +58,7 @@ p.s.: Please don't full-quote.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---kUmo4NyTJbuJZ752
+--7cXxibKNEnJOqEg4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -76,9 +66,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBeOZTXaXGVTD0i/8RAoMZAKCUDNMe2eJ39Z68IKEprHohlI8THwCfbCI7
-hfFHe7UgoCgTMeIA2EeITs4=
-=Et3o
+iD8DBQFBeOcIXaXGVTD0i/8RAnKyAJ9G5+00bGaNNL6zKG4FnakSSSi/LACfeUH8
+s5L4ddMikFh/0tfuWqqg49g=
+=FP1V
 -----END PGP SIGNATURE-----
 
---kUmo4NyTJbuJZ752--
+--7cXxibKNEnJOqEg4--
