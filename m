@@ -1,12 +1,20 @@
-From: "Robert K. Johnson" <johnson60@llnl.gov>
-Subject: problems with MAC filtering of fragmented packets
-Date: Mon, 30 Sep 2002 11:55:59 -0700
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: PPTP conntrack w/out DEBUG is broken ???
+Date: Wed, 2 Oct 2002 15:30:13 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.1.0.14.2.20020930114233.0209be00@poptop.llnl.gov>
+Message-ID: <20021002153013.A13233@sunbeam.de.gnumonks.org>
+References: <87d6r9jaa4.fsf@sensi.yemanja.net> <1032690651.9594.13.camel@tux> <200209251648.42936.marian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
+	=?iso-8859-1?Q?C=E9dric_Rivard_=3Ccedric=40yemanja=2Enet=3E?=@sunbeam.gnumonks.org,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Netfilter <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+To: Marian Stagarescu <marian@ti.com>
+Content-Disposition: inline
+In-Reply-To: <200209251648.42936.marian@ti.com>; from marian@ti.com on Wed, Sep 25, 2002 at 04:48:42PM -0400
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,30 +25,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have an embedded computer platform running Linux 2.4.3 and iptables
-userland tools 1.2.4.  MAC address filtering does not appear to work for
-fragmented packets.  Non-fragmented packets work fine.  Please let me
-know if there is a minimum kernel version and iptables version that performs
-MAC address filtering correctly for fragmented packets.
 
-I have a wireless networking application.  I would like to first block all 
-packets
-except those with known MAC addresses.  I will then perform additional 
-filtering
-based on protocols, ip addresses, etc.  In other words, MAC address 
-verification
-is an initial check.  I created a user chain that I jump to immediately 
-from both
-the INPUT and FORWARD chains.  This user chain performs a RETURN jump
-for matches with known MAC's and DROPs all others.  I created a user chain
-for dropped packets to perform logging.  Using a commercial packet sniffer, 
-I can
-see that fragmented packets are not passing the MAC check when they should.
-The resulting LOG shows an empty MAC address field.  I have seen old entries
-in the mailing list archives that indicate MAC address matching does not 
-work for
-fragmented packets.  I was hoping that this problem was resolved since then.
-I would like to know the oldest kernel and iptables version that works 
-correctly.
-I am limited on moving to the latest kernel and iptables because the embedded
-platform requires special Linux drivers that I do not have source access for.
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Sep 25, 2002 at 04:48:42PM -0400, Marian Stagarescu wrote:
+> i run into one problem with PPTP conntrack:
+>=20
+> run it with debug on: works
+> run it w/out debug on: does not.
+
+what do you call 'debug' ?  Does this mean the DEBUG #defines in the
+respective sourcecode .c files, or are you talking about CONFIG_NETFILTER_D=
+EBUG?
+
+> this debug issue was tracked down to a single printk statement in=20
+> ip_conntrack_pptp.c: line 244,245:
+>=20
+> DEBUGP("%s, CID=3D%X, PCID=3D%X\n", strMName[msg]                 =20
+>                      ntohs(*cid), ntohs(*pcid));
+>=20
+
+What happens?  Does the kernel oops at this statement?
+
+> thanks for any input,
+> marian
+
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long =
+as
+ I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--RnlQjJ0d97Da+TV1
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9mvTkXaXGVTD0i/8RApiFAKCMN6CH7uFv8Um+5vUhVdvfJ7GjhgCdG99w
+il3dtSoAgs87jxS4qVxDedU=
+=hj9p
+-----END PGP SIGNATURE-----
+
+--RnlQjJ0d97Da+TV1--
