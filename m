@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: iptables/extensions/libipt_time.c missing include
-Date: Tue, 27 Jan 2004 14:08:51 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: NAT before IPsec with 2.6
+Date: Tue, 27 Jan 2004 14:22:28 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127130851.GS11761@sunbeam.de.gnumonks.org>
-References: <20040127105745.GG11761@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0401271300460.16067-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0401271419280.17162-100000@filer.marasystems.com>
+References: <20040127130739.GR11761@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PY8tzLeNxmyMVNR3"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Willy Tarreau <willy@w.ods.org>, Tom Eastep <teastep@shorewall.net>,
+   Michal Ludvig <mludvig@suse.cz>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0401271300460.16067-100000@filer.marasystems.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040127130739.GR11761@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,45 +21,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 27 Jan 2004, Harald Welte wrote:
 
---PY8tzLeNxmyMVNR3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > If the packet is rerouted in POSTROUTING then this should include IPSec
+> > routing. If the new route is to an IPSec SPI then it is. If not then it is
+> > not.
+> 
+> You are talking about the first POSTROUTING, Number 3?  Then I would
+> definitely agree.
 
-On Tue, Jan 27, 2004 at 01:02:17PM +0100, Henrik Nordstrom wrote:
+I am.
 
-> > At least on my debian machines /usr/include/stddef.h doesn't exist.
->=20
-> There should be one in your gcc include directory. It is a compiler=20
-> dependent include, not a system dependent one.
+> > (Gateway) -> Gateway -> (client)
+> 
+> This is not symmetric, despite being the exact opposite of the previous
+> case.  I don't like that.  If we make it similar to the previous case,
+> it would be:
+> 
+> 1. PREROUTING, ESP packet
+> 2. INPUT, ESP packet
+> 3. PREROUTING, decapsulated packet
+> 4. FORWARD, decapsulated packet
+> 5. POSTROUTING, decapsulated packet.
 
-stupid me, thanks.
+Right. My error. Thinks one thing, writes another. Brain obviously not 
+fully functional today.
 
-> Regards
-> Henrik
+> > I also see it likely there needs to be some skb extensions to add the
+> > requires SPI tracking information to allow rulesets a better view of
+> > what is going on (optional).
+> 
+> yes, but let's that make step 2.  First we have to agree on the first
+> step, do a decent implementation and then submit it to netdev.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Agreed.
 
---PY8tzLeNxmyMVNR3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFAFmLjXaXGVTD0i/8RAmkFAJsHnfpi1E2qPk7CIDezIk7RQToCQgCeOYye
-ika5x4HYRfluvK12S7ZChSE=
-=ITyy
------END PGP SIGNATURE-----
-
---PY8tzLeNxmyMVNR3--
+Regards
+Henrik
