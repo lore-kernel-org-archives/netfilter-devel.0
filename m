@@ -1,17 +1,15 @@
-From: Mike-Ro-Chanel <mikerochanel@yahoo.it>
-Subject: Re: Adding packet metadata
-Date: Wed, 24 Mar 2004 09:18:52 +0100
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: problem when loading ip_tables
+Date: Wed, 24 Mar 2004 13:00:34 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4061446C.7050502@yahoo.it>
-References: <Pine.LNX.4.44.0403240852150.22258-100000@filer.marasystems.com>
+Message-ID: <40616A52.3080704@netlab.hut.fi>
+References: <4055C7C3.2030003@netlab.hut.fi> <20040317135934.GB21899@sunbeam.de.gnumonks.org>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Scott MacKay <scottmackay@yahoo.com>,
-   Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0403240852150.22258-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,29 +20,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
-> On Wed, 24 Mar 2004, Mike-Ro-Chanel wrote:
-> 
-> 
->>An interesting question about MARK field in SKB structure is: Can I use 
->>all 32-bit of "nfmark" for adding metadata?
-> 
-> 
-> Yes.
-> 
-> 
->>Iptables front-end (from command line) seems to take mark value as a
->>8-bit number.
-> 
-> 
-> What makes you think so?
+Hi!
 
-Now I understand, it is my error on iptables usage.
+After having modified a few things in the nat part of the iptables code, 
+I was sent back to an old problem:
 
-> There is a slight signed bug in the string_to_number function which 
-> prevents the use of the 2^31 bit, easily fixed by changing it to use 
-> unsigned.
-> 
-Ok, thanks for the tip!
+modprobe: Can't locate module ip_tables
+iptables v1.2.9: can't initialize iptables 'nat': Table does not exist 
+(do you need to insmod?)
+Perhaps iptables or your kernel need to be upgraded.
 
-		Mike-Ro-Chanel
+I can't remember exactly when did the problem appear, but it may have 
+been after I had added something in ip_conntrack_standalone.c
+Anyway, I compiled again, again and again until now when I have a brand 
+new kernel (2.4.23) and iptables library (1.2.9, patched) compiled. 
+Still, I cannot get rid of that error. Moreover, if I try manually to 
+load ip_tables I also get an error
+
+insmod: ip_tables: no module by that name found
+
+while the module ip_tables.o exists. insmod finds without problem the 
+other modules like for example ipt_REDIRECT, ip_conntrack, iptable_nat...
+
+Any advice about that?
+
+         Emmanuel
