@@ -1,59 +1,44 @@
-From: mukesh agrawal <mukesh@cs.cmu.edu>
-Subject: [PATCH 2.6.10 1/1] netfilter: fix crash on nat+icmp packets
-Date: Tue, 1 Mar 2005 20:41:40 -0500 (EST)
-Message-ID: <Pine.LNX.4.61.0503011830590.31296@slash.mukesh.agrawals.org>
+From: Ian Norton <bredroll@darkspace.org.uk>
+Subject: Modify an sk_buff from an NF_HOOK
+Date: Wed, 2 Mar 2005 01:50:34 +0000
+Message-ID: <20050302015034.GA857@earth.dsh.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: trivial@rustcorp.com.au, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org
-To: coreteam@netfilter.org
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi everyone,
 
-This patch fixes a kernel crashing bug when using NAT. The crash occurs in 
-the case when we send out a UDP packet to a closed port on another host, 
-with the UDP packet being SNATed. The remote host replies with an ICMP 
-port unreachable (type 3, code 3). We need to adjust the ICMP packet, 
-because the UDP packet was SNATed.
+I've been faffing about for well over two weeks now, and, have come almost to
+the conculsion (as I hauntingly suspected) that 'any' changes to an skb that
+involve changes outside of the original values of skb->head and skb->tail are 
+impossible to do safely. 
 
-The cause of the crash is that udp_manip_pkt reads *pskb into iph before 
-calling skb_ip_make_writable, and fails to update iph after the call. 
-Since skb_ip_make_writable may delete the original skb when it makes a 
-copy, a page fault may occur when udp_manip_pkt later dereferences iph.
+say you want to add some bytes to the end of your packet payload, you might
+do skb_put(skb,bytes_to_add). you will get a pointer to the old skb->tail
+and the new value of skb->tail will be increased accordingly.
 
-I suspect that normally, the relevant skbuff holds a UDP packet, and 
-either the skbuff is unshared (so no copy is made, and the skbuff 
-remains valid), or is shared, but remains so while udp_manip_pkt is 
-running (and hence, the old reference to the skbuff is still okay).
+this is all well and good, it seems to work, you can see your packet data
+without it going crazy, but, then you return your newly changed packet to
+netfilter.
 
-When we get an ICMP reply for a SNATed UDP packet, ip_nat_proto_udp is 
-asked to modify the UDP header inside the payload of the ICMP packet. (The 
-call chain is ip_nat_fn -> icmp_reply_translation -> ip_nat_manip_pkt -> 
-udp_manip_pkt.)
+and...
 
-Since the UDP header is beyond the ICMP header, skb_ip_make_writable 
-copies the skbuff, and deletes the original. Then udp_manip_pkt's iph is 
-invalid, and dereferencing it causes a page fault.
+you loose everything after the old skb->tail pointer.
 
-Glancing at the code for tcp_manip_pkt, I think it would have the same 
-problem, but I haven't tested that case. The patch below fixes the UDP 
-case only.
+I expect this is really going past what netfilter is supposed to do, (after
+all, what kind of filter adds stuff?)
 
-(For the record, my kernel tree also has the tproxy patch from 
-http://www.balabit.com/downloads/tproxy/linux-2.4/cttproxy-2.6.10-2.0.0.tar.gz 
-applied. But I think this bug is independent of that patch.)
 
-diff -uprN linux-2.6.10.orig/net/ipv4/netfilter/ip_nat_proto_udp.c linux-2.6.10.fixed/net/ipv4/netfilter/ip_nat_proto_udp.c
---- linux-2.6.10.orig/net/ipv4/netfilter/ip_nat_proto_udp.c	2004-12-24 16:34:01.000000000 -0500
-+++ linux-2.6.10.fixed/net/ipv4/netfilter/ip_nat_proto_udp.c	2005-03-01 19:32:21.000000000 -0500
-@@ -95,6 +95,9 @@ udp_manip_pkt(struct sk_buff **pskb,
-
-  	if (!skb_ip_make_writable(pskb, hdroff + sizeof(hdr)))
-  		return 0;
-+	/* skb_ip_make_writable may have copied the skb, and deleted
-+	   the original */
-+	iph = (struct iphdr *)((*pskb)->data + iphdroff);
-
-  	hdr = (void *)(*pskb)->data + hdroff;
-  	if (maniptype == IP_NAT_MANIP_SRC) {
+-- 
+Ian Norton-Badrul
