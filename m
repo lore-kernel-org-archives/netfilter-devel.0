@@ -1,16 +1,12 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] combine iptables, iptables-save and iptables-restore
- for size reduction
-Date: Fri, 25 Jun 2004 13:30:05 +0200 (CEST)
+Subject: pom-ng updates renamings
+Date: Fri, 25 Jun 2004 14:08:09 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406251329340.11001-100000@blackhole.kfki.hu>
-References: <1087852753.2962.27.camel@x1722074250.edup.local>
+Message-ID: <Pine.LNX.4.33.0406251343310.11001-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bastiaan Bakker <bastiaan.bakker@lifeline.nl>
-In-Reply-To: <1087852753.2962.27.camel@x1722074250.edup.local>
+To: <coreteam@netfilter.org>, <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,19 +19,21 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-On Mon, 21 Jun 2004, Bastiaan Bakker wrote:
+I'm going to rename files in the special updates directory in pom-ng (and
+change Netfilter_POM.ng). The reason for this is that following the name
+convention used in the patchlet parts of pom-ng is quite misleading and
+non-intuitive in updates.
 
-> The iptables, iptables-save and iptables-restore binaries contain a
-> relatively large amount of identical code. In most cases this doesn't
-> matter, but on embedded platforms 100KB can make a difference.
-> Attached is a small patch against iptables 1.2.10 which enables building
-> iptables, iptables-save and iptables-restore into 1 multi-purpose
-> binary. In BusyBoxy style it selects the correct command based on
-> argv[0].
->
-> To build, do 'make DO_MULTI=1' instead of 'make'.
+In pom-ng (if other constraints are not defined) linux-2.6.6 patch
+can be applied for kernel versions equal or above 2.6.6.
 
-The patch is applied in cvs.
+Currently the same convention is used in updates, in contrary to the
+natural naming: linux-2.6.6 patch is against kernel release 2.6.5, i.e it
+brings the kernel up to 2.6.6. However because in updates linux-2.6.5
+patch brings the kernel to 2.6.6, a bugfix patch against 2.6.6 should be
+named as linux-2.6.5-foo-bugfix patch, which is simply horrid.
+
+I'll update pom-ng on the weekend.
 
 Best regards,
 Jozsef
