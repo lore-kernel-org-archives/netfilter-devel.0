@@ -1,13 +1,17 @@
-From: Gianni Tedesco <gianni@scaramanga.co.uk>
-Subject: [PATCH]: mv .NETLINK.test .NETLINK-test
-Date: 08 Jul 2003 14:04:57 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH]: mv .NETLINK.test .NETLINK-test
+Date: Tue, 8 Jul 2003 16:52:24 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1057669496.10481.5.camel@sherbert>
+Message-ID: <20030708145224.GA27685@sunbeam.de.gnumonks.org>
+References: <1057669496.10481.5.camel@sherbert>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-ZWFCcc7j+GEVbY2HEygn"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
 Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
+To: Gianni Tedesco <gianni@scaramanga.co.uk>
+Content-Disposition: inline
+In-Reply-To: <1057669496.10481.5.camel@sherbert>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,51 +23,39 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-ZWFCcc7j+GEVbY2HEygn
-Content-Type: text/plain
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Harald, all.
+On Tue, Jul 08, 2003 at 02:04:57PM +0100, Gianni Tedesco wrote:
+> Hi Harald, all.
+>=20
+> Slight bug in the 1.2.8 rev, .NETLINK.test should be .NETLINK-test
+> following patch fixes it, but would be easier to do mv, cvs delete, cvs
+> add.
 
-Slight bug in the 1.2.8 rev, .NETLINK.test should be .NETLINK-test
-following patch fixes it, but would be easier to do mv, cvs delete, cvs
-add.
-
-Apologies if this is fixed in CVS.
-
-diff -urN iptables-1.2.8.orig/extensions/.NETLINK-test iptables-1.2.8/exten=
-sions/.NETLINK-test
---- iptables-1.2.8.orig/extensions/.NETLINK-test        Thu Jan  1 01:00:00=
- 1970
-+++ iptables-1.2.8/extensions/.NETLINK-test     Thu Feb 15 08:05:09 2001
-@@ -0,0 +1,2 @@
-+#! /bin/sh
-+[ -f $KERNEL_DIR/net/ipv4/netfilter/ipt_NETLINK.c ] && echo NETLINK
-diff -urN iptables-1.2.8.orig/extensions/.NETLINK.test iptables-1.2.8/exten=
-sions/.NETLINK.test
---- iptables-1.2.8.orig/extensions/.NETLINK.test        Thu Feb 15 08:05:09=
- 2001
-+++ iptables-1.2.8/extensions/.NETLINK.test     Thu Jan  1 01:00:00 1970
-@@ -1,2 +0,0 @@
--#! /bin/sh
--[ -f $KERNEL_DIR/net/ipv4/netfilter/ipt_NETLINK.c ] && echo NETLINK
+thanks, I have fixed it now.  Sorry for the inconvenience.
 
 --=20
-// Gianni Tedesco (gianni at scaramanga dot co dot uk)
-lynx --source www.scaramanga.co.uk/gianni-at-ecsc.asc | gpg --import
-8646BE7D: 6D9F 2287 870E A2C9 8F60 3A3C 91B5 7669 8646 BE7D
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
 
-
---=-ZWFCcc7j+GEVbY2HEygn
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQA/CsF4kbV2aYZGvn0RAkCcAJ9HkfEml0oI+QfP6+atXwH8lJkawQCfd4+h
-D1iIx81I5Kirx8Ef/SFmky8=
-=LX4V
+iD8DBQE/CtqoXaXGVTD0i/8RAmLiAJ0YjuZDpGjOL2gvKMJJYBzDbbNxewCgqGHk
+tNo7mmONJxt/WAJ0p/ZllBM=
+=sEiL
 -----END PGP SIGNATURE-----
 
---=-ZWFCcc7j+GEVbY2HEygn--
+--7AUc2qLy4jB3hD7Z--
