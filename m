@@ -1,14 +1,18 @@
-From: jamal <hadi@cyberus.ca>
-Subject: ANNOUNCE: tc filter extensions
-Date: Sat, 4 Jan 2003 13:03:58 -0500 (EST)
+From: Rich Wellner <rkw@objenv.com>
+Subject: Re: trouble with expect_related
+Date: Tue, 07 Jan 2003 09:59:02 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030104125252.J48869__10126.799302134$1041973400@shell.cyberus.ca>
+Message-ID: <t2mk7hhx86x.fsf@rw2-laptop.wellner.org>
+References: <t2mk7hlwz5c.fsf@rw2-laptop.wellner.org>
+	<1041651291.1637.41.camel@exile> <t2mwulie0cu.fsf@rw2-laptop.wellner.org>
+	<1041933003.502.23.camel@xbox>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: lartc@mailman.ds9a.nl, "" <netfilter@lists.samba.org>,
-	"" <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: diffserv-general <diffserv-general@lists.sourceforge.net>
+To: Filip Sneppe <filip.sneppe@cronos.be>
+In-Reply-To: <1041933003.502.23.camel@xbox> (Filip Sneppe's message of "07
+ Jan 2003 10:50:02 +0100")
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,25 +23,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Filip Sneppe <filip.sneppe@cronos.be> writes:
 
+> On Mon, 2003-01-06 at 16:58, Rich Wellner wrote:
+>> "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be> writes:
+>>
+>> Can anyone else comment?
+>> 
+> Do you see the expected connection in /proc/net/ip_conntrack? It should
+> be preceded by "EXPECTING:" if it hasn't seen any traffic yet.
 
-I guess holidays means idle time which means idle minds which leads to
-thumb twiddling which then leads to some work (which is sometimes useful)
+Ok, this is very helpful.  I didn't know about that vfile.  There is the line
+I expect there.
 
-Ive updated the traffic control patches i posted about six months ago.
-Note, the current release does not break anything in tc. It is fully
-backward compatible so you can choose not to use it and things will work
-as they do today. Of course, it is very useful so you cant choose to
-ignore it!
+EXPECTING: proto=6 src=131.225.80.34 dst=207.252.250.2 sport=0 dport=41209
 
-It's now upgraded to better than "use at your own risk" category.
-tested on both uni and SMP 2.4.18 and 2.4.20.
+I don't know where to look to find out what proto 6 is, but the rest *seems*
+ok.
 
-http://www.cyberus.ca/~hadi/patches/action/
+The src, 131.225.80.34 is the machine I expect to be calling me back.  The
+sport of 0 should be ok because I don't have that byte masked in my call to
+expect_related the dport is correct.
 
-Bug reports and feedback are appreaciated.
-A lot more goodies coming up, so this is just the tip. First steps are to
-prove sanity of the idea.
+I wasn't sure if the dst should be the NAT node or the private net node, so
+I've tried it both ways:
 
-cheers,
-jamal
+EXPECTING: proto=6 src=131.225.80.34 dst=192.168.1.2 sport=0 dport=41330
+
+And neither forwarded the connection.  Judging by the FTP example the dst
+should be the private node, right?
+
+And I reconfirmed using tcpdump that the incoming connection is still being
+attempted and is on the correct port.
+
+rw2
