@@ -1,14 +1,18 @@
-From: "dada1" <dada1@cosmosbay.com>
-Subject: TARPIT on linux-2.6
-Date: Wed, 15 Oct 2003 09:30:42 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: pptp-conntrack-nat and PPTP server behind firewall
+Date: Wed, 15 Oct 2003 09:32:20 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <0e2701c392ee$3e198f00$d800a8c0@edumazet>
+Message-ID: <20031015073220.GB9880@obroa-skai.de.gnumonks.org>
+References: <1066175519.8813.92.camel@johnh>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CUfgB8w4ZwR/yMy5"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: John Hardin <johnh@aproposretail.com>
+Content-Disposition: inline
+In-Reply-To: <1066175519.8813.92.camel@johnh>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,43 +23,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all
 
-I tried to compile TARPIT module (from patch-o-matic-20030912.tar.bz2) on a
-linux-2.6.0-test5 kernel :
+--CUfgB8w4ZwR/yMy5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-make modules
-  CC [M]  net/ipv4/netfilter/ipt_TARPIT.o
-net/ipv4/netfilter/ipt_TARPIT.c: In function `tarpit_tcp':
-net/ipv4/netfilter/ipt_TARPIT.c:182: warning: implicit declaration of
-function `ip_route_output'
-net/ipv4/netfilter/ipt_TARPIT.c:192: structure has no member named `pmtu'
-net/ipv4/netfilter/ipt_TARPIT.c: At top level:
-net/ipv4/netfilter/ipt_TARPIT.c:268: warning: initialization from
-incompatible pointer type
-net/ipv4/netfilter/ipt_TARPIT.c:268: warning: initialization from
-incompatible pointer type
+On Tue, Oct 14, 2003 at 04:51:59PM -0700, John Hardin wrote:
+> Harald:
+>=20
+> In the .help file you state:
+>=20
+> 	can only NAT connections from PNS to PAC
+>=20
+> It's been a while since I've worked with the PPTP model, and I've
+> forgotten what the acronyms mean. Does this comment mean that the
+> current pptp-conntrack-nat code can or cannot be used for a PPTP server
+> behind a masq/nat firewall serving clients out on the Internet?
 
-It seems linux-2.6 made some changes on ip_route_output() stuff, that I dont
-understand at all to try my own patches... :)
+no, it can be used for both ways.  It just assumes that (like every
+known implementation I've seen so far) the TCP connection is established
+between 'client' and 'server'.  The protocol spec also allow a 'server'
+to connect the 'client'.
 
-The pmtu part is easy : (line 192)
+Please ask questions like this on the mailing lists, this way you might
+get a quick answer and the question is documented in the list archive
 
--   if (nskb->len > nskb->dst->pmtu)
-+   if (nskb->len > dst_pmtu(nskb->dst))
+> Thanks.
+> I may have to get back into this... :)
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
 
-The ipt_target part too (line 270)
+--CUfgB8w4ZwR/yMy5
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-- static struct ipt_target ipt_tarpit_reg
-- = { { NULL, NULL }, "TARPIT", tarpit, check, NULL, THIS_MODULE };
-+ static struct ipt_target ipt_tarpit_reg = {
-+  .name       = "TARPIT",
-+   .target     = tarpit,
-+  .checkentry = check,
-+    .me     = THIS_MODULE,
-+ }
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-Anybody willing to help about ip_route_output() ?
+iD8DBQE/jPgDXaXGVTD0i/8RAmrsAKCc1JvTsgV5aGc/Mbc/ityXUJPlwwCdHRS7
+YghwEPwpeadBgA+a0HhThKE=
+=IjIQ
+-----END PGP SIGNATURE-----
 
-Thanks
-Eric Dumazet
+--CUfgB8w4ZwR/yMy5--
