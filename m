@@ -1,15 +1,17 @@
-From: James Morris <jmorris@intercode.com.au>
-Subject: Re: [SECURITY] Local Netfilter / IPTables IP Queue PID Wrap Flaw
-Date: Wed, 4 Dec 2002 00:29:11 +1100 (EST)
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: --reject-with admin-prohib - Suggested Solution.
+Date: Thu, 28 Nov 2002 09:10:09 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Mutt.LNX.4.44.0212040025010.28607-100000@blackbird.intercode.com.au>
-References: <Mutt.LNX.4.44.0212032155570.27990-100000@blackbird.intercode.com.au>
+Message-ID: <20021128081009.GJ7047@naboo.de.gnumonks.org>
+References: <Pine.LNX.4.44.0211120952040.29168-100000@dns.toxicfilms.tv> <Pine.LNX.4.44.0211121712540.1461-100000@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.samba.org, <netfilter@lists.samba.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="fmvA4kSBHQVZhkR6"
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-announce@lists.netfilter.org
-In-Reply-To: <Mutt.LNX.4.44.0212032155570.27990-100000@blackbird.intercode.com.au>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>, g@naboo.gnumonks.org
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0211121712540.1461-100000@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,29 +22,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Just an update on this, someone has pointed out that the recommended
-2.4.20 kernel has a ext3 data corruption bug (which fortunately will not
-affect most users).
+--fmvA4kSBHQVZhkR6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The changset comments for the ext3 bug are at:
-<http://linux.bkbits.net:8080/linux-2.4/cset@1.793?nav=index.html|ChangeSet@-1d>
+On Tue, Nov 12, 2002 at 05:16:47PM +0100, Maciej Soltysiak wrote:
+> Let's say the patch below has been submitted to 2.5 kernel, at 2.5.48
+> stage. It adds admin-prohib to the REJECT target.
 
-Please be careful if updating to 2.4.20, or wait until 2.4.21.
+ok.
 
+> Now, if the 2.5.48 kernel has the admin-prohib support, the userspace will
+> detect it, and will show the option in -j REJECT --help and will accept
+> admin-prohib.
 
-- - James
-- -- 
-James Morris
-<jmorris@intercode.com.au>
+No.  You will make the libipt_REJECT.so dependent on the particular
+source code installed on the machine where iptables was compiled.
+
+> What do you think?
+
+Sorry for being such a PITA :(
+
+> Best Regards,
+> Maciej Soltysiak
+
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
+=20
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+
+--fmvA4kSBHQVZhkR6
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE97LGqKVbBrEQtqycRAnyaAJ9xMP2FFhMiB4EHQlEdCQ2Kf7z2bwCeLq2J
-IS9YvQzsHYCJILYLo6vsbmo=
-=V9f/
+iD8DBQE95c9hXaXGVTD0i/8RAqesAKCqB+CrtbJEtfFuMNnsC+oz1iQcTwCfQbij
+QSo8ao+0aCCxEmHtAvpkoUk=
+=Rhz4
 -----END PGP SIGNATURE-----
+
+--fmvA4kSBHQVZhkR6--
