@@ -1,16 +1,15 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] Netfilter: Don't cachline align slab allocs
-Date: Wed, 02 Feb 2005 11:55:19 +1100
-Message-ID: <1107305721.10400.16.camel@localhost.localdomain>
-References: <1105947649.3954.39.camel@localhost.localdomain>
-	<20050201125731.GD6878@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ipt_hashlimit.c: expire's type overflow when showing
+ tuples at bad moment.
+Date: Wed, 02 Feb 2005 03:11:23 +0100
+Message-ID: <420036CB.9050804@trash.net>
+References: <41F2FE92.6020603@cookinglinux.org>	<20050201132915.GJ6878@sunbeam.de.gnumonks.org>	<41FF877D.4080309@trash.net>	<20050201135423.GS6878@sunbeam.de.gnumonks.org>	<41FF9024.3070101@trash.net>	<6732.142.169.215.10.1107269629.squirrel@142.169.215.10>
+	<41FFC770.2090401@trash.net> <41FFF909.9050509@cookinglinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1251
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
-	Anton Blanchard <anton@samba.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050201125731.GD6878@sunbeam.de.gnumonks.org>
+Content-Type: multipart/mixed; boundary="------------000703030603050706000901"
+Cc: netfilter-devel@lists.netfilter.org
+To: Samuel Jean <sj-netfilter@cookinglinux.org>
+In-Reply-To: <41FFF909.9050509@cookinglinux.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,62 +21,110 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2005-02-01 at 13:57 +0100, Harald Welte wrote:
-> On Mon, Jan 17, 2005 at 06:40:49PM +1100, Rusty Russell wrote:
-> > Anton points out that cacheline aligning conntrack entries is a wank.
-> > He's right: there's lots of them, and they're currently ~200 bytes.
->=20
-> I'm totally fine believing both of you... but ... So why is/was it a ba=
-d
-> idea? =20
+This is a multi-part message in MIME format.
+--------------000703030603050706000901
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-It has the effect of enlarging the structure to a cacheline boundary,
-hence reducing density and worsening cache behaviour (as well as wasting
-memory).  The only gain would be if there were a significant probability
-of "false sharing" where two connection tracking entries accessed by
-different CPUs were in the same cacheline.  This is unlikely because of
-the number of conntrack entries, and the fact that they are bigger than
-a cacheline already (ie. at worst, only two could share a cacheline, and
-then not completely).
+Samuel Jean wrote:
 
-In general, cacheline aligned is hard to justify for any slab allocation
-for performance reasons, as slab indicates that many are being
-allocated.
+> # cat /proc/net/ipt_hashlimit/moo
+> 4294967 x.239.59.104:0->0.0.0.0:0 1600 1600 320
+> 4294967 x.162.158.131:0->0.0.0.0:0 1600 1600 320
 
-> > Same with the cargo-cult programming in ipt_hashlimit.
->=20
-> Mh, please elaborate about that 'cargo-cult programming' phrase - seems
-> to be an expression I'm not familiar with, as non-native english
-> speaker.
+Apparently we saw two different problems. The problem I saw on my
+64 bit system was caused by my false assumption that gcc would
+promote arguments to functions declared with attribute(format(printf))
+to the types specified in the format string. It does not, so -1
+was passed as signed int, but interpreted as an signed long.
+The reason for the problem you are seeing is that the result of
+an arithmetic operation where both operands have equal types has
+the same type as the operands. This means the subtraction of
+two unsigned longs yields an unsigned long. The division by HZ
+then makes it small enough so it looses the sign bit.
 
-That's disingenuous: don't blame your language skills for my lack of
-clarity.  From the jargon file:
+This patch should fix the problem.
 
-http://www.catb.org/~esr/jargon/html/C/cargo-cult-programming.html
+Regards
+Patrick
 
-cargo cult programming: n.
-       =20
-        A style of (incompetent) programming dominated by ritual
-        inclusion of code or program structures that serve no real
-        purpose. A cargo cult programmer will usually explain the extra
-        code as a way of working around some bug encountered in the
-        past, but usually neither the bug nor the reason the code
-        apparently avoided the bug was ever fully understood (compare
-        shotgun debugging, voodoo programming).
-       =20
-        The term =91cargo cult=92 is a reference to aboriginal religions
-        that grew up in the South Pacific after World War II. The
-        practices of these cults center on building elaborate mockups of
-        airplanes and military style landing strips in the hope of
-        bringing the return of the god-like airplanes that brought such
-        marvelous cargo during the war. Hackish usage probably derives
-        from Richard Feynman's characterization of certain practices as
-        =93cargo cult science=94 in his book Surely You're Joking, Mr.
-        Feynman! (W. W. Norton & Co, New York 1985, ISBN 0-393-01921-7).
-       =20
-My only difference here is that I place 50% of the blame on the
-interface, not the poor programmer who copied the code.
 
-Rusty.
---=20
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+--------------000703030603050706000901
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2005/02/02 02:59:11+01:00 kaber@coreworks.de 
+#   [NETFILTER]: Use correct types in seq_printf calls
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# net/ipv4/netfilter/ipt_hashlimit.c
+#   2005/02/02 02:59:01+01:00 kaber@coreworks.de +1 -1
+#   [NETFILTER]: Use correct types in seq_printf calls
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# net/ipv4/netfilter/ip_conntrack_standalone.c
+#   2005/02/02 02:59:01+01:00 kaber@coreworks.de +6 -5
+#   [NETFILTER]: Use correct types in seq_printf calls
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-02-02 03:03:08 +01:00
++++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-02-02 03:03:08 +01:00
+@@ -115,11 +115,12 @@
+ 			       .tuple.dst.protonum);
+ 	IP_NF_ASSERT(proto);
+ 
+-	if (seq_printf(s, "%-8s %u %lu ",
++	if (seq_printf(s, "%-8s %u %ld ",
+ 		      proto->name,
+ 		      conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum,
+ 		      timer_pending(&conntrack->timeout)
+-		      ? (conntrack->timeout.expires - jiffies)/HZ : 0) != 0)
++		      ? (long)(conntrack->timeout.expires - jiffies)/HZ
++		      : 0) != 0)
+ 		return 1;
+ 
+ 	if (proto->print_conntrack(s, conntrack))
+@@ -148,7 +149,7 @@
+ 			return 1;
+ 
+ #if defined(CONFIG_IP_NF_CONNTRACK_MARK)
+-	if (seq_printf(s, "mark=%ld ", conntrack->mark))
++	if (seq_printf(s, "mark=%lu ", conntrack->mark))
+ 		return 1;
+ #endif
+ 
+@@ -235,8 +236,8 @@
+ 	struct ip_conntrack_expect *expect = v;
+ 
+ 	if (expect->timeout.function)
+-		seq_printf(s, "%lu ", timer_pending(&expect->timeout)
+-			   ? (expect->timeout.expires - jiffies)/HZ : 0);
++		seq_printf(s, "%ld ", timer_pending(&expect->timeout)
++			   ? (long)(expect->timeout.expires - jiffies)/HZ : 0);
+ 	else
+ 		seq_printf(s, "- ");
+ 
+diff -Nru a/net/ipv4/netfilter/ipt_hashlimit.c b/net/ipv4/netfilter/ipt_hashlimit.c
+--- a/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-02 03:03:08 +01:00
++++ b/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-02 03:03:08 +01:00
+@@ -609,7 +609,7 @@
+ 	rateinfo_recalc(ent, jiffies);
+ 
+ 	return seq_printf(s, "%ld %u.%u.%u.%u:%u->%u.%u.%u.%u:%u %u %u %u\n",
+-			(ent->expires - jiffies)/HZ,
++			(long)(ent->expires - jiffies)/HZ,
+ 			NIPQUAD(ent->dst.src_ip), ntohs(ent->dst.src_port),
+ 			NIPQUAD(ent->dst.dst_ip), ntohs(ent->dst.dst_port),
+ 			ent->rateinfo.credit, ent->rateinfo.credit_cap,
+
+--------------000703030603050706000901--
