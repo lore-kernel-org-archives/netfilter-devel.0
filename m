@@ -1,18 +1,23 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: remove usage of __MOD_XXX_USAGE_COUNT and derivatives
-Date: Sun, 12 Jan 2003 23:14:17 +0100
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: iptables u32 match patch-o-matic (attempt)
+Date: Sun, 12 Jan 2003 13:11:51 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200301122314.17191.bdschuym@pandora.be>
-References: <3E1DEF2D.4080703@fugmann.dhs.org> <3E1EE4EC.7010703@fugmann.dhs.org> <20030112163616.GA426@naboo.de.gnumonks.org>
+Message-ID: <15905.55831.492080.943865@isis.cs3-inc.com>
+References: <200212271854.gBRIsf131987@isis.cs3-inc.com>
+	<20030106125720.GF9467@sunbeam.de.gnumonks.org>
+	<15897.46884.822054.847738@isis.cs3-inc.com>
+	<20030107185748.GV9467@sunbeam.de.gnumonks.org>
+	<15899.51201.381520.438520@isis.cs3-inc.com>
+	<20030108105646.GH9467@sunbeam.de.gnumonks.org>
+	<15900.41422.812422.110502@isis.cs3-inc.com>
+	<20030111194740.GF24488@naboo.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	Anders Fugmann <afu@fugmann.dhs.org>
-In-Reply-To: <20030112163616.GA426@naboo.de.gnumonks.org>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20030111194740.GF24488@naboo.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,65 +28,98 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 12 January 2003 17:36, Harald Welte wrote:
-> > Ok - I will split my answer up into two parts.
-> > 1. It seems that we agree upon modules should not have their module
-> > count increased because a new module is loaded. This is the current c=
-ase.
->
-> Well, I don't consider it important, if there is 'just' a module
-> dependency, or an increased module usage count (or both, like now).  As
-> long as it is assured that the system is in a consistent state.
->=20
-> It's a minor (cosmetic) issue, that we do both right now... it doesn't
-> even affect runtime performance in any noticeable way - how often are
-> new matches/targets loaded?
+(reshuffling the message to which I reply for better presentation)
 
-Well, as is stated in Rusty's FAQ, a module doesn't need to increment its=
- own=20
-usage count. Anyway, MOD_{INC,DEC}_USE_COUNT are deprecated in 2.5 now an=
-d=20
-even cause the module to be unable to be unloaded because "unsafe".
+It seems a lot easier to write a match than to package it as a patch!
+Perhaps my confusion is related to the fact that I went about this
+whole process in some unexpected way.  I downloaded iptables-1.2.7a
+and patch-o-matic-20020825 in order to look at existing code so I
+could write my match.  Then I added stuff that looked similar to what
+was there and built it.  I begin to think I should have instead
+started with cvs checkout.  I see that contains netfilter/userspace
+whereas I have no such directory.
 
-> > 2. If the general design goal is to have modules reflect all rules, I
-> > guess that the sum of all module counts should be equal or greater th=
-an
-> > the total number of rules. If this is the case, then where which modu=
-le
-> > should be increased when inserting the rule "iptables -A INPUT". In
-> > general - Should not iptables_filter's module count be incremented fo=
-r
-> > every inserted rule in the filter tabel (Same goes for NAT and MANGLE=
-).
->
-> iptable_filter usage count needs to be incremented.  Either per rule, o=
-r
-> increased to one as soon as there is >0 rules, and decreased to zero as
-> soon as there is <1 rules.
+ > Maybe it's a good idea to have a look at some other patches (like the
+ > recently submitted hoplimit (hl) patches as an example.  I didn't need
+ > to describe this into detail so far, everybody just figured..
 
-Sorry if I misunderstand you, but the reason why the table modules don't =
-need=20
-to get an incremented usage count for every rule is because it's a featur=
-e=20
-that an rmmod iptable_filter removes all rules from the table before remo=
-ving=20
-the table module.
-It's the usage count of match and target modules that needs to be increme=
-nted=20
-when they are used in a rule, and obviously that's being done.
+I did try to look at other patches.  I think the example you site will
+give an idea of the resulting problems:
+http://lists.netfilter.org/pipermail/netfilter-devel/2003-January/010135.html
+[RESEND][PATCH] Hop Limit match/target for IPv6 
+contains about 20 diffs !  (I thought I needed about 3.)
+What's the difference between the HL's and the hl's, I wonder.
+And the first dozen or so don't contain any userspace.
+And then there's a large base64 attachment at the end.
 
-inserting a rule "iptables -A INPUT" does not cause an increment in modul=
-e=20
-usage count. Module usage count is not a rule count.
+Whereas NEWPATCHES seems to be meant to tell me what to do.
 
-> > I'm asking, as I'm willing to spend some time understanding the syste=
-m,
-> > and make patches for Netfilter.
->
-> great, although I don't really see the need (see above).
+ > > I've tried to follow directions in NEWPATCHES.
+ > > I don't quite understand, though, where libipt_u32.c belongs.
+ > 
+ > no, it just belongs into the extensions subdirectory, together with a
+ > .u32-test shellscript (similar to the others...)
+This suggests that it should be part of what I send you.
+But below you seem to say 3 files, which is what NEWPATCHES seemed
+to indicate, and which is what I did send.
 
-There is a need.
+ > > It looks like you want me to download the current patch-o-matic cvs,
+ > > make a copy of it with my 3 patch files, then do a diff.
+ > > But this just contains my 3 patch files, right?
+ > yup, it is a diff which adds 3 files (of which one is again a diff)
+This is at least consistent with what I sent.
 
---=20
-cheers,
-Bart
+ > > So wouldn't that be the same as putting those files in one directory,
+ > > creating a second directory with empty files of those names and doing
+ > > the diff of those?
+ > 
+ > yes, it would turn out the same thing, as long as (like in the usual
+ > case) there are no modifications to existing Makefiles, etc.
+ > 
+ > > Anyhow, see if this is what you wanted:
+ > 
+ > couple of comments:
+ > 
+ > 1) please include the patch 'netfilter/userspace' or at least
+ > 'userspace', so the patch can be applied from the 'root' netfilter
+ > directory. (this is not really important, but usual) (this is not really
+ > important, but usual)
+
+Am I correct that the complaint here is that instead of
+ diff -ur u32-empty/u32.patch u32-added/u32.patch
+you wanted something like
+ diff -ur u32-empty/userspace/u32.patch u32-added/userspace/u32.patch
+or
+ diff -ur u32-empty/netfilter/userspace/u32.patch u32-added/netfilter/userspace/u32.patch
+or
+ diff -ur netfilter/userspace/u32.patch netfilter/userspace/u32.patch
+?
+
+ > 2) please don't include the u32 in extensions/Makefile...
+The only Makefile in what I sent was
+ diff -ur u32-empty/u32.patch.makefile u32-added/u32.patch.makefile
+which was mentioned in NEWPATCHES:
+ 4) If you want to edit the Makefile...
+Maybe you're saying I shouldn't do that.  
+In which case
+- how should I make u32 ?
+- I end up with only 2 files in my patch, so one's missing from the
+three that you agree above should be there.  Is that libipt_u32.c ?
+
+ > .. but it seems like there is a need for documentation.  If you feel
+ > NEWPATCHES should be extended in some way -> patches are welcome ;)
+Sorry to be so dense.  Maybe when I finally see what I should have
+done I'll have a better idea of what NEWPATCHES could have said to
+lead me to that result.
+
+In the mean while, here's what I regard as a summary of what I sent you.
+Please tell me what you want to see in the corresponding summary of
+what I send on the next try.
+====
+ $ grep diff /tmp/u32-diff
+ diff -ur u32-empty/u32.patch u32-added/u32.patch
+ +diff -ur /usr/src/linux-2.4.18-clean/include/linux/netfilter_ipv4/ipt_u32.h /usr/src/linux-2.4.18/include/linux/netfilter_ipv4/ipt_u32.h
+ +diff -ur /usr/src/linux-2.4.18-clean/net/ipv4/netfilter/ipt_u32.c /usr/src/linux-2.4.18/net/ipv4/netfilter/ipt_u32.c
+ diff -ur u32-empty/u32.patch.help u32-added/u32.patch.help
+ diff -ur u32-empty/u32.patch.makefile u32-added/u32.patch.makefile
+====
