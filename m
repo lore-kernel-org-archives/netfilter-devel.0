@@ -1,19 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: IPTABLES problem
-Date: Mon, 9 Dec 2002 17:31:08 +0100
+Subject: Re: bug in iptables-save/iptables-restore
+Date: Mon, 9 Dec 2002 17:28:58 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021209163108.GM2223@sunbeam.de.gnumonks.org>
-References: <039c01c28f1d$e6ad3610$1543a8c0@sanches>
+Message-ID: <20021209162858.GL2223@sunbeam.de.gnumonks.org>
+References: <3DD7B46F.3050006@attbi.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="V3eawNQxI9TAjvgi"
-Cc: netfilter-devel@lists.netfilter.org, Regina.Tsujiguchi@stj.gov.br,
-	Pim Van Heuven <pim.vanheuven@intec2.rug.ac.be>,
-	RSVP <ds_mpls@atlantis.rug.ac.be>
+	protocol="application/pgp-signature"; boundary="J2pR2RtFp0tAjF3C"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Alexandre Carlos <alexandre@redes.unb.br>
+To: Gerry Skerbitz <gsker@attbi.com>
 Content-Disposition: inline
-In-Reply-To: <039c01c28f1d$e6ad3610$1543a8c0@sanches>
+In-Reply-To: <3DD7B46F.3050006@attbi.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,24 +23,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---V3eawNQxI9TAjvgi
-Content-Type: text/plain; charset=iso-8859-1
+--J2pR2RtFp0tAjF3C
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 18, 2002 at 01:16:46PM -0300, Alexandre Carlos wrote:
+On Sun, Nov 17, 2002 at 09:23:27AM -0600, Gerry Skerbitz wrote:
+> here are the offending lines created by iptables-save:
+> #~>iptables-save | grep length
+> -A CUST_LOG -p tcp -m length --length !40:68 -j LOG --log-prefix=20
+> "PACKET_LENGTH_BAD: " --log-level 7 --log-tcp-options --log-ip-options
+> -A CUST_LOG -p tcp -m length --length !40:68 -j DROP
+> #~>
+>=20
+> I just did some digging and figured out that the exclamation point=20
+> should go before the --length 40:68.  I guess that's
+> what iptables-save should really do and clearly it's what narc does when=
+=20
+> it sets up the rule.
 
-> I=B4m using IPTABLES version 1.2.4-dscp do set up the tos value of the
-> packets. I=B4m creating the following rule on A and C
+there was a bugfix for libipt_length.c, which is in latest CVS.  Could
+you try using the latest CVS version (or the latest iptables-snapshot
+from ftp.netfilter.org) and see if the bug is gone?
 
-Unfortunately this is a very old version of iptables (about one year)
-and the FTOS target is not officially supported by the project.
+Thanks.
 
-If there were any issues, I wouldn't even remember, sorry.
-
-Please try a more recent version of iptables
-
-> Alex
+> Gerry
 
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -53,7 +59,7 @@ Please try a more recent version of iptables
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---V3eawNQxI9TAjvgi
+--J2pR2RtFp0tAjF3C
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -61,9 +67,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE99MVMXaXGVTD0i/8RAs29AKCnljVszzNYh7jSvf5BE8OnFWoS5gCff+Ys
-f+D2G8dYi0xqxcGHo+mU0KI=
-=SJRd
+iD8DBQE99MTKXaXGVTD0i/8RAiLIAJ4oXfuY2Hfu5jD+MovNBggNfgfc0gCdHZRy
+y7K8BGPanBGkzXDodkBdO7A=
+=Y/cc
 -----END PGP SIGNATURE-----
 
---V3eawNQxI9TAjvgi--
+--J2pR2RtFp0tAjF3C--
