@@ -1,15 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Feature suggestion: internal logdrop table
-Date: Wed, 17 Dec 2003 20:45:25 +0100 (CET)
+From: "McGuffin, Tim" <UCS_TIM@exchange.shsu.edu>
+Subject: Quota / SMP / IRQBalance
+Date: Wed, 17 Dec 2003 15:16:25 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312172036520.18802-100000@filer.marasystems.com>
-References: <3FE0706A.9000308@pp3.inet.fi>
+Message-ID: <0E051BDF2E73C847B9220964CBD1B8F32BC3@EXCHANGE.SHSU.EDU>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Markus Saarinen <markus.saarinen@pp3.inet.fi>
-In-Reply-To: <3FE0706A.9000308@pp3.inet.fi>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,44 +20,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 17 Dec 2003, Markus Saarinen wrote:
+I currently have a Dual P3/800 and a Dual Xeon 2GHz experiencing the
+same behavior with multiple kernels and thought I would mention it to
+the list.  The -devel list seemed a little more appropriate than the
+standard netfilter list.
 
-> Would it be possible to have a 'logdrop' target coded into iptables?
+On the Dual 800 running Redhat 9 or Fedora Core 1, the quota match is
+completely broken by enabling the irqbalance service.  With irqbalance
+enabled, the box is able to transfer roughly twice the amount of data
+before the quota is exhausted (11437662 bytes out of a 5000000 byte
+quota).
 
-Jost copy LOG and make a terminal version of LOG, or extend the LOG target 
-with options to indicate that the rule is terminal.
+On the Dual Xeon 2G with Hyperthreading enabled, they're able to
+transfer roughly 4 times the traffic, and the quota counter doesn't
+decrement like it should.
 
-But I guess that the reason why this is not done is because "terminal" log 
-is just as often used with other actions such as ACCEPT/REJECT making the 
-number of combinations very large.
+When IRQBalance is not loaded from boot, the quota functions work as
+they should.  After its started they're hosed until the box is rebooted
+again.
 
-What have been discussed before is making a log match instead of a target. 
-This would allow log to be used within any other rule in a clean manner. 
-But unfortunately this discussion got sidetracked on other issues and 
-apparently no such match was made.
+It seems the quota patch is tied to a single processor handling IRQs and
+the load balancing of IRQBalance throws everything off.
 
-This would make the example rules look like:
+I have plenty of trial and error attempts if anyone would like more
+information. :)
 
-  -A INPUT -s subnet1 -d somewhere -m log --log-prefix "fromsubnet1" -J DROP
-  -A INPUT -s subnet2 -d somewhere -m log --log-prefix "fromsubnet2" -J DROP
-
-> From a bit of Googling, i've seen that quite many people actually
-> create these log-drop chains by hand (myself included).
-
-Yes, this is the common solution to the problem. However when using 
---log-prefix is creates very many chains (one per --log-prefix).
-
-> so think it would actually be a quite useful feature. Not to mention the few
-> clockticks my firewall would save when it could just drop the packet
-> from the same rule without traversing back to the original chain and
-> parsing a new rule ;-)
-
-For now use custom chains making the target of the packet. This saves you
-from duplicating all the matches. So your main chains matches the packet
-to your rules, and target chains decides on what should be done with the 
-packet including log/nolog etc.. The CPU difference is not large between 
-using custom chains and using a combined rule like discussed above, the 
-main difference is in how easy the ruleset is to maintain.
-
-Regards
-Henrik
+Thanks,
+-Tim McGuffin
