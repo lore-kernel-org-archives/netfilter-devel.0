@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: target_info read only?
-Date: Tue, 21 Jan 2003 10:58:26 +0100
+Subject: Re: nf/ctnetlink and notify
+Date: Tue, 21 Jan 2003 11:01:37 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030121095826.GL15225@sunbeam.de.gnumonks.org>
-References: <3E2C883F.7070707@hipac.org>
+Message-ID: <20030121100137.GM15225@sunbeam.de.gnumonks.org>
+References: <20030120171129.GB27847@sch.bme.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="451BZW+OUuJBCAYj"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="HTLCc13+3hfAZ6SL"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Heinz <creatix@hipac.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <3E2C883F.7070707@hipac.org>
+In-Reply-To: <20030120171129.GB27847@sch.bme.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,44 +22,45 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---451BZW+OUuJBCAYj
-Content-Type: text/plain; charset=us-ascii
+--HTLCc13+3hfAZ6SL
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 21, 2003 at 12:37:35AM +0100, Thomas Heinz wrote:
-> Hi
+On Mon, Jan 20, 2003 at 06:11:29PM +0100, Kovacs Krisztian wrote:
 >=20
-> A netfilter target (struct ipt_entry_target) can contain an
-> arbitrary amount of private data which is delivered to the
-> target function in case the corresponding rule matches.
+>   Hi,
+>=20
+>   I'd have a question regarding the nfnetlink/ctnetlink patch in the
+> 'extra' suite of POM. In this version of nfnetlink, the notify callback
+> API is missing (ip_conntrack_notify_register() and friends), while in the
+> old version in the oldnat directory it is part of the ctnetlink patch. Why
+> was this left out of the patch?=20
 
-true.
+because I wanted to have a minimum subset of the functionality first.  A
+subset that doesn't require adding any API to the conntrack core.  As
+you may have noticed, with recent newnat-enabled kernels, nfnetlink is
+totally self-contained.
 
-> Now it would be possible for the target function to modify
-> the private data although I haven't seen any target that
-> does this. In contrast to targets this behaviour is quite
-> normal for matches, especially stateful ones.
+> What are the main concerns with the _notify() code in the old patch?
 
-true.
+It's quite some time ago.  I don't even  remember what the case was.
+But there was something (sorry...)
 
-> 1) Is there any target (kernel and cvs) that already modifies
->    its private data (maybe I have overlooked one)?
+>   As I can see some kind of such notification service will be required to
+> complete the nfnetlink patch, because in its current state it's totally
+> uncapable of sending messages on conntrack state changes.=20
 
-Not that I am aware of....  You might want to look for the PSD target (yes,
-it was a target before it became a match).  This was years ago.
+True.  This is one of the first issues on my TODO after iptables-1.2.8
+is released and some of the bugzilla bugs are closed.
 
-> 2) If ! 1) is there any reason for which targets might want
->    to write to their private data buffer and if not can
->    I assume that netfilter targets must (sort of unwritten law
->    like) treat their private data as read only?
+> (And one possible typo in the patch: in nfnetlink_conntrack.c
+> ctnetlink_create is not commented out, but there is no use of this
+> function.)
 
-no. they can.  But please note that (like matchinfo) you are operating
-on per-cpu local data.  So in an SMP system, there will be one targinfo
-per cpu.
+I'm aware of that, thanks.
 
-> Regards,
-> Thomas
+>  Kov=E1cs Kriszti=E1n
 
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -71,7 +71,7 @@ per cpu.
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---451BZW+OUuJBCAYj
+--HTLCc13+3hfAZ6SL
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -79,9 +79,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+LRnCXaXGVTD0i/8RAiv1AJ0fvX9bEQ5gsjB2Hc04yzt0KW6CZgCghQXQ
-055PXcC23ClEwEZp2HPXFQE=
-=Zt87
+iD8DBQE+LRqBXaXGVTD0i/8RAtlhAKCRMjMLQVIOvvXjRLmet4AYANKgLwCgnxQG
+nM1pexAMH4O95Q3BWjk0ZS8=
+=/bqA
 -----END PGP SIGNATURE-----
 
---451BZW+OUuJBCAYj--
+--HTLCc13+3hfAZ6SL--
