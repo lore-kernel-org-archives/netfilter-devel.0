@@ -1,35 +1,40 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Userspace msg, hw_addr unused?
-Date: Thu, 15 Jan 2004 05:32:17 -0800 (PST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040115133217.86413.qmail@web13909.mail.yahoo.com>
-References: <1074172485.1305.21.camel@nienna.balabit>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
+Subject: Re: [PATCH|RFC] IPv6 netfilter: a module for complete proxy ND
+ support
+Date: Thu, 15 Jan 2004 22:34:30 +0900 (JST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040115.223430.100570163.yoshfuji@linux-ipv6.org>
+References: <Pine.LNX.4.58.0401141250470.24125@rhea.tcs.hut.fi>
+	<20040114.210427.104284595.yoshfuji@linux-ipv6.org>
+	<Pine.LNX.4.58.0401141726490.24125@rhea.tcs.hut.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1074172485.1305.21.camel@nienna.balabit>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org, davem@redhat.com, netdev@oss.sgi.com,
+        yoshfuji@linux-ipv6.org, kuznet@ms2.inr.ac.ru
+Return-path: <netdev-bounce@oss.sgi.com>
+To: vnuorval@tcs.hut.fi
+In-Reply-To: <Pine.LNX.4.58.0401141726490.24125@rhea.tcs.hut.fi>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-I was looking thru the userspace code for material
-passed up in the ipq_packet_msg structure, looking for
-any data from the ethernet header.  I noticed that the
-hw_addr array never seems to be filled out, even
-though hw_addrlen does.  Any reason for that?
+In article <Pine.LNX.4.58.0401141726490.24125@rhea.tcs.hut.fi> (at Thu, 1=
+5 Jan 2004 15:00:24 +0200 (EET)), Ville Nuorvala <vnuorval@tcs.hut.fi> sa=
+ys:
 
-Also, if I wanted to patch the kernel's ip_queue.c to
-pass up the source and destination ether address, any
-ideas on where I get the packet's data from?  Thanks!!
+> On Wed, 14 Jan 2004, YOSHIFUJI Hideaki / [iso-2022-jp] =B5=C8=C6=A3=B1=D1=
+=CC=C0 wrote:
+>=20
+> > I don't think so. Proxy should not depend on netfilter.
+:
+> There aren't that many ways of doing this "hack" cleanly.
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Hotjobs: Enter the "Signing Bonus" Sweepstakes
-http://hotjobs.sweepstakes.yahoo.com/signingbonus
+Well...
+
+We (or only me?) might have mis-understood the "proxy" in Linux :-P
+It is not for proxy in rfc2461, is it?
+It is for proxy in Thaler's draft, isn't it?
+
+If so... hmm... let me consider...
+
+--yoshfuji
