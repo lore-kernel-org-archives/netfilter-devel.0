@@ -1,13 +1,14 @@
-From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH]  libipt_condition.c and libip6t_condition.c
-Date: Tue, 22 Apr 2003 00:32:36 -0400
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 1/3] ipt_REJECT fixes
+Date: Tue, 22 Apr 2003 12:52:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EA4C5E4.6010808@videotron.ca>
+Message-ID: <3EA51F05.2020800@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_hwjwAQq4MLHqtkZ39+CvDQ)"
+Content-Type: multipart/mixed;
+ boundary="------------090207090803060008060805"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>,
- Harald Welte <laforge@netfilter.org>
+To: Harald Welte <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,95 +20,75 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
+--------------090207090803060008060805
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---Boundary_(ID_hwjwAQq4MLHqtkZ39+CvDQ)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+This patch fixes routing of tcp-rsts and a memory leak in ipt_REJECT.
+it also removes an unnecessary declaration and RTO_CONN.
 
-Harald,
+Best regards,
+Patrick
 
-   the following two patches move the call to check_inverse() to a saner 
-place and surround the condition name by double-quotes in save().
+--------------090207090803060008060805
+Content-Type: text/plain;
+ name="01-reject-fixes.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01-reject-fixes.diff"
 
-   Please apply.
-
-Stephane.
-
-
---Boundary_(ID_hwjwAQq4MLHqtkZ39+CvDQ)
-Content-type: text/plain; name=libipt_condition.c.patch; CHARSET=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=libipt_condition.c.patch
-
---- netfilter-orig/userspace/extensions/libipt_condition.c	Wed Mar 26 09:42:35 2003
-+++ netfilter-fixed/userspace/extensions/libipt_condition.c	Tue Apr 22 00:21:59 2003
-@@ -1,3 +1,4 @@
-+/* Shared library add-on to iptables for condition match */
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-@@ -39,13 +40,13 @@
- 	struct condition_info *info =
- 	    (struct condition_info *) (*match)->data;
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1101  -> 1.1102 
+#	net/ipv4/netfilter/ipt_REJECT.c	1.10    -> 1.11   
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/04/21	kaber@trash.net	1.1102
+# - fix tcp-rst routing
+# - fix memory leak
+# - remove unecessary "struct in_device" declaration
+# - remove RTO_CONN
+# --------------------------------------------
+#
+diff -Nru a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+--- a/net/ipv4/netfilter/ipt_REJECT.c	Mon Apr 21 21:26:34 2003
++++ b/net/ipv4/netfilter/ipt_REJECT.c	Mon Apr 21 21:26:34 2003
+@@ -11,7 +11,6 @@
+ #include <net/icmp.h>
+ #include <net/ip.h>
+ #include <net/tcp.h>
+-struct in_device;
+ #include <net/route.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_REJECT.h>
+@@ -65,10 +64,9 @@
+ 		return;
  
--	check_inverse(optarg, &invert, &optind, 0);
--
- 	if (c == 'X') {
- 		if (*flags)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Can't specify multiple conditions");
+ 	/* Routing: if not headed for us, route won't like source */
+-	if (ip_route_output(&rt, oldskb->nh.iph->daddr,
+-			    local ? oldskb->nh.iph->saddr : 0,
+-			    RT_TOS(oldskb->nh.iph->tos) | RTO_CONN,
+-			    0) != 0)
++	if (ip_route_output(&rt, oldskb->nh.iph->saddr,
++			    local ? oldskb->nh.iph->daddr : 0,
++			    RT_TOS(oldskb->nh.iph->tos), 0) != 0)
+ 		return;
  
-+		check_inverse(optarg, &invert, &optind, 0);
-+
- 		if (strlen(argv[optind - 1]) < CONDITION_NAME_LEN)
- 			strcpy(info->name, argv[optind - 1]);
- 		else
-@@ -88,7 +89,7 @@
- 	const struct condition_info *info =
- 	    (const struct condition_info *) match->data;
+ 	hh_len = (rt->u.dst.dev->hard_header_len + 15)&~15;
+@@ -80,8 +78,10 @@
+ 	   hh_len of incoming interface < hh_len of outgoing interface */
+ 	nskb = skb_copy_expand(oldskb, hh_len, skb_tailroom(oldskb),
+ 			       GFP_ATOMIC);
+-	if (!nskb)
++	if (!nskb) {
++		dst_release(&rt->u.dst);
+ 		return;
++	}
  
--	printf("--condition %s%s ", (info->invert) ? "! " : "", info->name);
-+	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
- }
- 
- 
+ 	dst_release(nskb->dst);
+ 	nskb->dst = &rt->u.dst;
 
---Boundary_(ID_hwjwAQq4MLHqtkZ39+CvDQ)
-Content-type: text/plain; name=libip6t_condition.c.patch; CHARSET=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=libip6t_condition.c.patch
-
---- netfilter-orig/userspace/extensions/libip6t_condition.c	Wed Mar 26 09:42:35 2003
-+++ netfilter-fixed/userspace/extensions/libip6t_condition.c	Tue Apr 22 00:23:22 2003
-@@ -1,3 +1,4 @@
-+/* Shared library add-on to ip6tables for condition match */
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-@@ -39,13 +40,13 @@
- 	struct condition6_info *info =
- 	    (struct condition6_info *) (*match)->data;
- 
--	check_inverse(optarg, &invert, &optind, 0);
--
- 	if (c == 'X') {
- 		if (*flags)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Can't specify multiple conditions");
- 
-+		check_inverse(optarg, &invert, &optind, 0);
-+
- 		if (strlen(argv[optind - 1]) < CONDITION6_NAME_LEN)
- 			strcpy(info->name, argv[optind - 1]);
- 		else
-@@ -88,7 +89,7 @@
- 	const struct condition6_info *info =
- 	    (const struct condition6_info *) match->data;
- 
--	printf("--condition %s%s ", (info->invert) ? "! " : "", info->name);
-+	printf("--condition %s\"%s\" ", (info->invert) ? "! " : "", info->name);
- }
- 
- 
-
---Boundary_(ID_hwjwAQq4MLHqtkZ39+CvDQ)--
+--------------090207090803060008060805--
