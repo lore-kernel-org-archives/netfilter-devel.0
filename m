@@ -1,18 +1,17 @@
-From: Andreas Schwab <schwab@suse.de>
-Subject: Re: [PATCH 1/3] Netfilter: Remove ip_conntrack_tuple_hash "ctrack"
-Date: Mon, 24 Jan 2005 11:08:59 +0100
-Message-ID: <jellajqguc.fsf@sykes.suse.de>
-References: <1105444254.19331.43.camel@localhost.localdomain>
-	<m3k6q52ubw.fsf@igel.m5r.de>
-	<1106535381.19666.6.camel@localhost.localdomain>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: New ROUTE patch does not work with conntrack+nat disabled
+Date: Mon, 24 Jan 2005 18:58:31 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0501241856210.10054@bizon.gios.gov.pl>
+References: <Pine.LNX.4.61.0501201253440.5089@bizon.gios.gov.pl>
+	<1106229501.3807.4.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1251401869-1106589511=:10054"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Cedric de Launois <delaunois@info.ucl.ac.be>, Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <1106535381.19666.6.camel@localhost.localdomain> (Rusty
-	Russell's message of "Mon, 24 Jan 2005 13:56:21 +1100")
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <1106229501.3807.4.camel@nienna.balabit>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,47 +23,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rusty Russell <rusty@rustcorp.com.au> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> On Sat, 2005-01-22 at 19:26 +0100, Andreas Schwab wrote:
->> Rusty Russell <rusty@rustcorp.com.au> writes:
->>=20
->> > Index: linux-2.6.10-bk13-Netfilter/include/linux/netfilter_ipv4/ip_c=
-onntrack_tuple.h
->> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> > --- linux-2.6.10-bk13-Netfilter.orig/include/linux/netfilter_ipv4/ip=
-_conntrack_tuple.h	2005-01-11 21:04:11.743513264 +1100
->> > +++ linux-2.6.10-bk13-Netfilter/include/linux/netfilter_ipv4/ip_conn=
-track_tuple.h	2005-01-11 21:05:20.015134400 +1100
->> > @@ -64,7 +64,10 @@
->> >  		} u;
->> > =20
->> >  		/* The protocol. */
->> > -		u_int16_t protonum;
->> > +		u8 protonum;
->> > +
->> > +		/* The direction (for tuplehash) */
->> > +		u8 dir;
->> >  	} dst;
->> >  };
->> > =20
->>=20
->> Doesn't this break the iptables conntrack module on big-endian systems=
-?
+---187430788-1251401869-1106589511=:10054
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Thu, 20 Jan 2005, KOVACS Krisztian wrote:
+
 >
-> I don't see why... we only need 8 bits for the protocol, and we used to
-> use 16 (because we had them).  I wanted to add a field, so I reduced
-> protonum to 8 bits and added another 8 bit field.
+>  Hi,
+>
+> 2005-01-20, cs keltez=E9ssel 14.23-kor Krzysztof Oledzki ezt =EDrta:
+>> This is the problematic part of the code:
+>> +       /* Set up fake conntrack (stolen from raw.patch):
+>> +           - to never be deleted, not in any hashes */
+>> +       atomic_set(&route_tee_track.ct_general.use, 1);
+>> +       /*  - and look it like as a confirmed connection */
+>> +       set_bit(IPS_CONFIRMED_BIT, &route_tee_track.status);
+>> +       /*  - and prepare the ctinfo field for REJECT/NAT. */
+>> +       route_tee_track.infos[IP_CT_NEW].master =3D
+>> +       route_tee_track.infos[IP_CT_RELATED].master =3D
+>> +       route_tee_track.infos[IP_CT_RELATED + IP_CT_IS_REPLY].master =3D
+>> +               &route_tee_track.ct_general;
+>> +       /* Initialize fake conntrack so that NAT will skip it */
+>> +       route_tee_track.nat.info.initialized |=3D
+>> +               (1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST);
+>> +
+>
+>  Put #ifdef around the problematic code (setting info.initialized) like
+> this:
+>
+> #ifdef CONFIG_IP_NF_NAT_NEEDED
+> =09route_tee_track.nat.info.initialized |=3D
+> =09=09(1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST);
+> #endif
 
-iptables uses this structure internally.  If it also uses it inside a
-kernel interface then you have broken the kernel ABI.
+Sweet :) What about 2.6.11-rc2 kernel? There is no "initialized" in the=20
+"struct ip_nat_info".
 
-Andreas.
 
---=20
-Andreas Schwab, SuSE Labs, schwab@suse.de
-SuSE Linux Products GmbH, Maxfeldstra=DFe 5, 90409 N=FCrnberg, Germany
-Key fingerprint =3D 58CA 54C7 6D53 942B 1756  01D3 44D5 214B 8276 4ED5
-"And now for something completely different."
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1251401869-1106589511=:10054--
