@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: New filters
-Date: Thu, 22 Jan 2004 10:21:08 -0500
+Subject: Re: ip_conntrack_pptp
+Date: Thu, 22 Jan 2004 12:53:45 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040122152108.GM1810@obroa-skai.de.gnumonks.org>
-References: <200401220723.58124.timg@tpi.com>
+Message-ID: <20040122175345.GN1810@obroa-skai.de.gnumonks.org>
+References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <003601c3e100$6e8a68c0$2d64a8c0@pcjka>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="K3vkeaB0MlFjg8U+"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="yLfVvEQOBD/VeTNx"
+Cc: 'Netfilter Development Mailinglist' <netfilter-devel@lists.netfilter.org>,
+	'Netfilter Mailinglist' <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tim Gardner <timg@tpi.com>
+To: Jan Kaastrup <jka@protego.dk>
 Content-Disposition: inline
-In-Reply-To: <200401220723.58124.timg@tpi.com>
+In-Reply-To: <003601c3e100$6e8a68c0$2d64a8c0@pcjka>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,25 +24,23 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---K3vkeaB0MlFjg8U+
+--yLfVvEQOBD/VeTNx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 22, 2004 at 07:23:58AM -0700, Tim Gardner wrote:
-> Harald,
+On Thu, Jan 22, 2004 at 04:57:26PM +0100, Jan Kaastrup wrote:
+> Hi Harald and all on this list.
 >=20
-> I have a couple of new filters that I would like to submit for=20
-> patch-o-matic-ng. Would you like them as a diff against the ng tree, or i=
-s a=20
-> drop-in tarball sufficient?
+> I have problems with ip_conntrack_pptp patch from POM-20031219
+> Does anyone know of this, or is it just me being stupid ?
 
-please send diffs, as they can be read inline in the mail client before
-applying.
+*sigh* *sigh* *sigh*. =20
 
-Thanks.
+Does anybody actually ponder reading the 'README' file included in the
+patch-o-matic package?
 
-> Tim Gardner - timg@tpi.com
+> Jan
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -53,7 +52,7 @@ Thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---K3vkeaB0MlFjg8U+
+--yLfVvEQOBD/VeTNx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -61,9 +60,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAD+pkXaXGVTD0i/8RAoOwAKC0+GOR9yEnZmi28heUAU/9ARNz9gCfYwGb
-j5Cs0ZeACv+Aj4ASZdLa3sc=
-=riin
+iD8DBQFAEA4pXaXGVTD0i/8RAkhRAJ0UN4OUlBQw0h44ao5dl6RFR0lUxgCggvTX
+psEdEwz1KkD4X0EwsQBYYxo=
+=EJv0
 -----END PGP SIGNATURE-----
 
---K3vkeaB0MlFjg8U+--
+--yLfVvEQOBD/VeTNx--
