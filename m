@@ -1,16 +1,15 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Re: Problem with apply patch connlimit to 2.6.10 (debian 2.6.10-6)
-Date: Sat, 26 Mar 2005 12:22:46 +1100
-Message-ID: <20050326012246.GG10616@samad.com.au>
-References: <20050325234332.GD10616@samad.com.au>
-	<20050326001504.GE10616@samad.com.au>
-	<20050326011742.GA4239@linuxace.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] Conntrack leak with raw sockets
+Date: Fri, 25 Mar 2005 22:05:43 -0800
+Message-ID: <20050326060543.GA4791@linuxace.com>
+References: <20050325201127.GA3400@linuxace.com> <4244766D.2020001@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XRI2XbIfl/05pQwm"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="2fHTh5uZTiUOsy+g"
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <20050326011742.GA4239@linuxace.com>
+In-Reply-To: <4244766D.2020001@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,47 +22,56 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---XRI2XbIfl/05pQwm
+--2fHTh5uZTiUOsy+g
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 25, 2005 at 05:17:42PM -0800, Phil Oester wrote:
-> On Sat, Mar 26, 2005 at 11:15:04AM +1100, Alexander Samad wrote:
-> > > I have had a look in include/linux/netfilter_ipv4/ip_conntrack.h  and=
- it
-> > > seems like the structure has gone  and I am not sure what else I need=
- to
-> > > apply to make it compile.
-> >=20
-> > I noticed on bugszilla there is an open bug about connlimit not
-> > compiling on 2.6.11 (Bugzilla Bug 317) and the patch seems to remove any
-> > access to infos !  Should i be using the patch attached to this bugzilla
->=20
-> Yes, although 317 is a dupe of 268.  The fix is already applied to the=20
-> 2.6.11 branch of POM-NG.
-So does this mean I have to wait for the debian 2.6.11 source package,
-as the current one is 2.6.10-6
+On Fri, Mar 25, 2005 at 09:37:01PM +0100, Patrick McHardy wrote:
+> Great work tracking this down. But I fear the problem will come back
+> haunt us with this patch. The are more places where a packet can be
+> queued indefinitely, for example stopped qdiscs. IMO the best fix
+> is to drop the conntrack reference once the packet leaves IP, so we
+> don't have to make any assumptions about what will happen to the
+> packet - this would be in ip_finish_output2(). Could you send a patch
 
->=20
-> Which raises the question (Harald?) - can we now make the 2.6.11 branch
-> the primary one?
->=20
-> Phil
->=20
->=20
+Something like the attached?
 
---XRI2XbIfl/05pQwm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Phil
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFCRLlmkZz88chpJ2MRAqykAKCZX2nqle6ITUb2AQ118jXHItW7ZQCgrHpZ
-TgXLrS7r6PhCabJed826U8Y=
-=Cvnr
------END PGP SIGNATURE-----
 
---XRI2XbIfl/05pQwm--
+--2fHTh5uZTiUOsy+g
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ref2
+
+diff -ru linux-orig/net/ipv4/ip_output.c linux-new/net/ipv4/ip_output.c
+--- linux-orig/net/ipv4/ip_output.c	2005-03-25 14:48:13.543911760 -0500
++++ linux-new/net/ipv4/ip_output.c	2005-03-26 01:01:13.064616240 -0500
+@@ -195,6 +195,8 @@
+ 	nf_debug_ip_finish_output2(skb);
+ #endif /*CONFIG_NETFILTER_DEBUG*/
+ 
++	nf_reset(skb);
++
+ 	if (hh) {
+ 		int hh_alen;
+ 
+diff -ru linux-orig/net/ipv4/netfilter/ip_conntrack_standalone.c linux-new/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- linux-orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-03-25 14:48:13.550910696 -0500
++++ linux-new/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-03-26 01:03:09.916852000 -0500
+@@ -423,13 +423,6 @@
+ 				        const struct net_device *out,
+ 				        int (*okfn)(struct sk_buff *))
+ {
+-#if !defined(CONFIG_IP_NF_NAT) && !defined(CONFIG_IP_NF_NAT_MODULE)
+-	/* Previously seen (loopback)?  Ignore.  Do this before
+-           fragment check. */
+-	if ((*pskb)->nfct)
+-		return NF_ACCEPT;
+-#endif
+-
+ 	/* Gather fragments. */
+ 	if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
+ 		*pskb = ip_ct_gather_frags(*pskb,
+
+--2fHTh5uZTiUOsy+g--
