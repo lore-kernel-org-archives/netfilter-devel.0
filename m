@@ -1,18 +1,18 @@
-From: Cedric Blancher <blancher@cartel-securite.fr>
-Subject: Re: limit and negation
-Date: Tue, 09 Nov 2004 16:53:07 +0100
-Message-ID: <1100015587.8753.46.camel@anduril.intranet.cartel-securite.net>
-References: <1099995187.4318.15.camel@porky>
-	<33091.66.11.161.14.1100010503.squirrel@66.11.161.14>
-	<1100013282.4439.1.camel@porky>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] MASQUERADE handling of device events
+Date: Tue, 9 Nov 2004 08:53:13 -0800
+Message-ID: <20041109165313.GA13205@linuxace.com>
+References: <20041107181825.GA3522@linuxace.com> <418F9952.5030004@trash.net>
+	<20041108161511.GA6754@linuxace.com> <418F9DD4.20202@trash.net>
+	<20041108163457.GB6754@linuxace.com>
+	<20041108215525.GA8766@linuxace.com> <4190A44F.7010509@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org,
-	Nicolas Bouliane <nib@cookinglinux.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1100013282.4439.1.camel@porky>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4190A44F.7010509@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,25 +24,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le mardi 09 novembre 2004 =E0 16:14 +0100, Eric Leblond a =E9crit :
-> I try this one too, but it should not accept this command as it does
-> now :
-> >> iptables -A OUTPUT -m limit ! --limit 1/s -j LOG --log-prefix "over"
+On Tue, Nov 09, 2004 at 12:04:47PM +0100, Patrick McHardy wrote:
+> You're right. I have to admit, I'm not too happy about the unpredictable
+> behaviour we get with this patch and multiple ppp devices. So one last
+> attempt to convince people. The old behaviour was to kill conntracks once
+> the device goes down. I think killing conntracks when the IP is deleted
+> makes more sense. Since the IP has to be deleted manually, except when
+> the device goes away, people can simply not delete IP addresses for
+> devices that don't go away, than nothing will get removed. pppd can be
+> taught to keep the device alive. The attached patch adds a program
+> alloc-ppp to pre-allocate ppp-devices and teaches pppd to attach to them.
+> The device never goes away, if ppp doesn't delete the IP address the
+> conntracks won't be killed. It could easily be integrated in a more handy
+> way in pppd. So this could also be done entirely in userspace, without
+> the unpredictable behaviour.
 
-Last time I tried, rule was accepted by iptables, bu was acting ignoring
-inversion statement. So just like you was stating before.
+Is this the unpredictable behaviour you refer to:
 
-By the way, you can invert limit (as well as any match you may need)
-using a user chain :
+ppp0 down -> clear assured bit on ppp0 conntracks
+ppp1 down -> clear assured bit on ppp1 conntracks
+ppp0 up with same ip -> all ppp1 conntracks get cleared since that ip
+			no longer exists on box
+ppp1 up with same ip -> loser
 
-	iptables -N MYLIMIT
-	iptables -A MYLIMIT -m limit --limit 1/s -j RETURN
-	iptables -A MYLIMIT -j LOG --log-prefix "over"
-	iptables -A OUTPUT -j MYLIMIT
+Not much we can do about that except revert to the old behaviour of
+dropping all conntracks on interface down, but that does seem silly
+for 'mostly static' pppoe users.
 
+Obviously I'd vote for the 'friendlier' method, but bottom line is current
+behaviour is broken and should be fixed somehow...
 
---=20
-http://www.netexit.com/~sid/
-PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
->> Hi! I'm your friendly neighbourhood signature virus.
->> Copy me to your signature file and help me spread!
+Phil
