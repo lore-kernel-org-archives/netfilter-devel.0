@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2.4] netfilter ipt_conntrack/ipt_state moduse count
-Date: Tue, 3 Feb 2004 09:24:27 +0100
+Subject: Re: [patch, resent] Updated CONNMARK
+Date: Tue, 3 Feb 2004 09:20:52 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040203082427.GQ24449@obroa-skai.de.gnumonks.org>
-References: <20040202152149.GG24449@obroa-skai.de.gnumonks.org> <20040203010224.387392C13E@lists.samba.org>
+Message-ID: <20040203082052.GO24449@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.44.0401181806250.29966-400000@filer.marasystems.com> <Pine.LNX.4.44.0402030032540.16957-400000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wr1Q/2bz0MCWWNYv"
-Cc: Sergey Vlasov <vsu@altlinux.ru>, netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="XVTPT6MZt3zd/C+/"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <20040203010224.387392C13E@lists.samba.org>
+In-Reply-To: <Pine.LNX.4.44.0402030032540.16957-400000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,27 +23,25 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---wr1Q/2bz0MCWWNYv
+--XVTPT6MZt3zd/C+/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 03, 2004 at 11:42:01AM +1100, Rusty Russell wrote:
-> In message <20040202152149.GG24449@obroa-skai.de.gnumonks.org> you write:
-> > ip_nat_standalone.c : is using conntrack functions anyway
->=20
-> IIRC, this wasn't always the case, especially on UP (where the
-> conntrack lock vanishes).
+On Tue, Feb 03, 2004 at 12:40:27AM +0100, Henrik Nordstrom wrote:
+> Attached you find a slightly updated version of the previously submitted=
+=20
+> patches to bring CONNMARK up to the level discussed for kernel submission=
+=2E=20
+> You acknowledged getting the patches but the CVS is still not updated it=
+=20
+> seems.
 
-ip_conntrack_get() is now called from ip_nat_fn().  This should be
-sufficient.
+Sorry, I might have applied it to some local tree but never committed it
+to CVS.  Seems to happen quite often when I'm mostly offline due to
+travel :(
 
-> If it is the case now, we're OK.
-
-Ok, I'm going to prepare a patch
-
-> Cheers,
-> Rusty.
+Now it's applied.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -55,7 +53,7 @@ Ok, I'm going to prepare a patch
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---wr1Q/2bz0MCWWNYv
+--XVTPT6MZt3zd/C+/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -63,9 +61,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAH1q7XaXGVTD0i/8RAhdrAJ40oOqh8gi45gLSy6u4fqEE9Hs22gCeIC0m
-LDqk7/ks2i7Vy6LavUgrw4Y=
-=9Fmr
+iD8DBQFAH1njXaXGVTD0i/8RAj3BAKCNqqr8nBNtAhrjWS7daK3Oltep0wCfW6by
+8ZS0yvS9MnuTMfMy6tgzPco=
+=4n8O
 -----END PGP SIGNATURE-----
 
---wr1Q/2bz0MCWWNYv--
+--XVTPT6MZt3zd/C+/--
