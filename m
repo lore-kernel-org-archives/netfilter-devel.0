@@ -1,13 +1,17 @@
-From: Eicke Friedrich <tady@gmx.net>
-Subject: Re: how to clear the conntrack table!
-Date: Thu, 16 Oct 2003 09:57:45 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: IPTables API & documentation
+Date: Thu, 16 Oct 2003 10:10:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F8E4F79.3010700@gmx.net>
+Message-ID: <20031016081044.GI14807@obroa-skai.de.gnumonks.org>
+References: <20031016033411.51850.qmail@web13111.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J+eNKFoVC4T1DV3f"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Daniel Fonseca <danielonline_2@yahoo.com>
+Content-Disposition: inline
+In-Reply-To: <20031016033411.51850.qmail@web13111.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,78 +22,81 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi again,
 
-Patrick McHardy wrote:
+--J+eNKFoVC4T1DV3f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Eicke Friedrich wrote:
-> 
->> Harald Welte wrote:
->> 
->>> unfortunately there is currently no other way than to unload 
->>> and reload the ip_conntrack module
->> 
->> 
->> 
->> I've tried this a couple of times. The module seems to get 
->> deleted (lsmod still shows ip_conntrack but as deleted) but rmmod
->>  does NOT finish. It grabs 100% CPU for minutes. I had to reboot 
->> the box then. Any hints?
-> 
-> In case your running an older kernel (before -pre9), try the latest
->  -rc kernel or
-submitted/70_ip-conntrack-expect-drop-refcnt-combined.patch from
-> patch-o-matic.
+On Wed, Oct 15, 2003 at 08:34:11PM -0700, Daniel Fonseca wrote:
+> Hi Harald,
+>=20
+> I am involved in a project for CS undergrad
+> qualifying, it's about a new protocol being developed
+> by IETF called midcom. Have you heard about it?
 
+yes.  I was following MIDCOM at some point in the past, but haven't
+looked at it's proceedings for at least a year.
 
-Not having time before I updated my box today to kernel version 2.4.22
-from kernel.org. The system works still very well but I'm still not
-able to unload the conntrack module. It's the same problem as I
-described above using 2.4.21. So anyone there who knows an answer?
-Thanks in advance.
+> I would like to know how can firewall (packet filter)
+> and NAT rules be added, removed and read from the
+> iptables configuration in a programming (C/C++)
+> environment. Is there an API or something similar? If
+> so, do you have any documentation for it, or happen to
+> know references where I can search or ask more about
+> it?
 
-Regards,
-Eicke Friedrich
+no, we don't have such an API.  It will  be added in the future, there
+is some work on libpkttables - but I won't expect a stable API to be
+ready within the next 6 months or so.
 
-PS: Sorry Patrick for sending this message directly to you - I forgot
-to change the receiver. :-(
+> So far, I have found a lib called libiptc, and a HOWTO
+> ("Querying libiptc HOWTO") describing its function
+> calls with some examples. Those calls were also
+> mentioned in the netfilter hacking HOWTO, but neither
+> document describe them in the necessary depth for one
+> to add and remove both filters and NAT.
 
-My system:
-Dual Athlon MP, 512 MB RAM
-Following patches applied:
-Enable NF on a bridge: ebtables-brnf-2_vs_2.4.22.diff
-NETFILTER P-O-M:
-Already applied: submitted/01_2.4.19
-                  submitted/02_2.4.20
-                  submitted/03_2.4.21
-                  submitted/04_2.4.22
-                  submitted/44_backport_ah_esp_fixes
-                  submitted/45_masq_routing_check
-                  submitted/54_ip_nat-macro-args
-                  submitted/58-ip_conntrack-macro-args
-                  submitted/60_nat_tftp-remove-warning
-                  submitted/73_ipt_MASQUERADE-oif
-                  submitted/74_nat-range-fix
-                  submitted/75_REJECT_localpmtu-fix
-                  submitted/76_snmp-checksum_h-fix
-                  submitted/77_destroy-conntrack
-                  submitted/78_nathelper-udp-csum
-                  submitted/79_mangle_udp-sizecheck
-                  submitted/80_ip_conntrack-proc
-                  submitted/81_ipt_unclean-tcp-flag-table
-                  submitted/83_nolocalout
-                  submitted/84_local-nullbinding
-                  submitted/86_getorigdst-tuple-zero
-                  submitted/87_nat-helpers-u16
-                  pending/59_ip_nat_h-unused-var
-                  pending/61-remove-memsets
-                  pending/64_masquerade-sameip-noflush
-                  pending/69_amanda-helpers
-                  pending/70_expect-evict-order
-                  pending/72_recent_procfs_fix
-                  base/connlimit
-                  base/mport
-                  base/quota
-                  extra/CLASSIFY
-                  extra/CONNMARK
-                  extra/string
+libiptc was _NEVER_ meant as a public interface.  It's a bunch of
+routines used by iptables internally.  We do not guarantee stability of
+that interface, and in the 2.7 (and maybe 2.6 at some point) kernel it will
+be removed without replacement.
+
+This has been mentioned so often on the netfilter developer mailinglist,
+that it should be very obvious to find in the list archives.
+
+I've now also added it as an FAQ.
+
+> Thanks in advance,
+> Daniel Fonseca
+
+> PS: I have been told you know brazilian portuguese.
+> Isso e verdade? (Is that true?)
+
+sim, falo um pouco de portugues.  morava para um meio ano em curitiba,
+trabalhando para a conectiva.  Agora eu nao tenho muito possibilidade de
+praticar.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--J+eNKFoVC4T1DV3f
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/jlKDXaXGVTD0i/8RAr7tAKCArvZYOmFFB1ZBTv19TpEiuQ5/hACfXFZc
+beplainH8TzQgbNrdjndN98=
+=8qyA
+-----END PGP SIGNATURE-----
+
+--J+eNKFoVC4T1DV3f--
