@@ -1,15 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: raw.patch needs defrag at LOCAL_OUT
-Date: Sat, 1 Nov 2003 19:38:12 +0100
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: raw.patch needs defrag at LOCAL_OUT
+Date: Sat, 1 Nov 2003 23:20:44 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031101183812.GL15184@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0311012315530.11097-100000@blackhole.kfki.hu>
+References: <20031101183812.GL15184@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wRokNccIwvMzawGl"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031101183812.GL15184@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,44 +20,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 1 Nov 2003, Harald Welte wrote:
 
---wRokNccIwvMzawGl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> I'm not sure if this bug was already discovered in the recent
+> discussion, but the raw.patch moves ip_ct_gather_frags() to a seperate
+> netfilter hook entry.
+>
+> However, that hook entry is only called from PRE_ROUTING and not from
+> LOCAL_OUT, resulting in ip_conntrack_in() seeing fragmented packets e.g.
+> in case of NFS.
 
-Hi Jozsef!
+Ouch! It seems I'm completely dense nowadays. :-(((
 
-I'm not sure if this bug was already discovered in the recent
-discussion, but the raw.patch moves ip_ct_gather_frags() to a seperate
-netfilter hook entry. =20
+> I'll prepare a fix (need it working for my own NFS server).
 
-However, that hook entry is only called from PRE_ROUTING and not from
-LOCAL_OUT, resulting in ip_conntrack_in() seeing fragmented packets e.g.
-in case of NFS.
-
-I'll prepare a fix (need it working for my own NFS server).
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---wRokNccIwvMzawGl
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/o/2UXaXGVTD0i/8RAuv7AJ44Ie1M9Gf7opN1kOabuaFWaNmH4wCfdeRX
-YCzOChInvT2R5ro7sPrLlAw=
-=HxxW
------END PGP SIGNATURE-----
-
---wRokNccIwvMzawGl--
+Thank you,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
