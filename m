@@ -1,13 +1,16 @@
-From: Abraham van der Merwe <abz@frogfoot.net>
-Subject: netflow/sflow & Linux
-Date: Mon, 22 Mar 2004 13:07:10 +0200
+From: Wojciech 'Sas' Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
+Subject: ipt_helper-any error
+Date: Mon, 22 Mar 2004 12:51:45 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040322110710.GC8314@oasis.frogfoot.net>
+Message-ID: <Pine.LNX.4.58L.0403221249000.1288@alpha.zarz.agh.edu.pl>
+References: <NEBBJFIAIKIHKGJDONCDAEMMCCAA.smith-peter@comcast.net>
+ <20040317135825.GA21899@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: laforge@gnumonks.org, kaber@trash.net
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Netfilter developmnet mailing list <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20040317135825.GA21899@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,24 +21,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+in ipt_helper-any modules is IMHO error
+In line 74 id :
+	if (info->data[0] == '\0')
 
-Has anyone done any work to enable Linux to do netflow (capturing not
-processing)?
+but data isn't declared, here is nedded this "data" not "name" ??
 
-If not, why not and what needs to be done?
-
+					Sas.
 -- 
-
-Regards
- Abraham
-
-TODAY the Pond!
-TOMORROW the World!
-                -- Frogs (1972)
-
-___________________________________________________
- Abraham vd Merwe - Frogfoot Networks CC
- 1st Floor, Albion Springs, 183 Main Road, Newlands
- Phone: +27 21 689 3873 Cell: +27 82 565 4451
- Http: http://www.frogfoot.net/ Email: abz@frogfoot.net
+{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
+{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
