@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: IPP2P 0.7 update (POM-ng patch included)
-Date: Tue, 1 Feb 2005 11:07:53 +0100
-Message-ID: <20050201100753.GT6878@sunbeam.de.gnumonks.org>
-References: <41CB587A.4000402@studserv.uni-leipzig.de>
-	<20050104104108.GU11370@sunbeam.de.gnumonks.org>
-	<41DB0781.50301@studserv.uni-leipzig.de>
+Subject: Re: [PATCH] PPTP connection tracking: fixed oops during PPTP
+	connect when interface under heavy load
+Date: Tue, 1 Feb 2005 11:40:02 +0100
+Message-ID: <20050201104002.GV6878@sunbeam.de.gnumonks.org>
+References: <41DD887D.6080007@nit.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qXPE+6hUsFlDAc0e"
+	protocol="application/pgp-signature"; boundary="65fUfJaAyj3QT6Mb"
 Cc: netfilter-devel@lists.netfilter.org
-To: Eicke Friedrich <mai97bwf@studserv.uni-leipzig.de>
+To: Peter Zion <pzion@nit.ca>
 Content-Disposition: inline
-In-Reply-To: <41DB0781.50301@studserv.uni-leipzig.de>
+In-Reply-To: <41DD887D.6080007@nit.ca>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,25 +23,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qXPE+6hUsFlDAc0e
+--65fUfJaAyj3QT6Mb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 04, 2005 at 10:15:45PM +0100, Eicke Friedrich wrote:
-> But thinking about it your're absolutely right so
-> I've removed both switches from IPP2P.
+On Thu, Jan 06, 2005 at 01:50:37PM -0500, Peter Zion wrote:
+> Summary:
+>=20
+> If PPTP connection tracking is running on a machine and certain PPTP
+> packets arrive out of order, or preceding packets never made
+> it to the machine, the PPTP connection tracking code will
+> dereference NULL pointers.  Reproduction steps are to attempt PPTP=20
+> connections to the machine on an interface under heavy load.
 
-Thanks for taking this into consideration.
+That's really strange.  Can you please elaborate more?
 
-> Users can use -p tcp or -p udp for a single protocol only or omit -p
-> at all to search both protocols. Sorry 'bout this and thanks for the
-> hint Harald. IPP2P 0.7.2 as patch against pom-ng is attached.
+The keymaps are added in ip_conntrack_pptp.c for OUT_CALL_REPLY and
+IN_CALL_CONNECT messages.  And they are only changed by ip_nat_pptp.c
+for exactly the same packets.
 
-sorry for the long delay, now committed to svn (Revision 3623)
+So if your bug report is correct, this means that packet arrive at
+ip_nat_pptp.c but never go through ip_conntrack_pptp ?!?
 
-> Regards,
-> Eicke
+> Patch:
+>=20
+> [..]
+
+I'd rather like to understand what's going on before applying your
+patch.  And even if the soultion was similar, I would check for missing
+keymaps at the caller rather than the callee.
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -53,7 +64,7 @@ sorry for the long delay, now committed to svn (Revision 3623)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---qXPE+6hUsFlDAc0e
+--65fUfJaAyj3QT6Mb
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -61,9 +72,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFB/1T5XaXGVTD0i/8RAjh0AKCTCHPCpTCTBVhGPUNU/JRsMnm/bQCeM2yJ
-oa4zP+cksOk2E9Mscic6avE=
-=uiZK
+iD8DBQFB/1yCXaXGVTD0i/8RAmq6AJ9KjM2OzH2AHrTRAFdNOxHpKLGfRwCgjDzU
+iXeAICHco2BFzIedQ+UQ0Ko=
+=tB/1
 -----END PGP SIGNATURE-----
 
---qXPE+6hUsFlDAc0e--
+--65fUfJaAyj3QT6Mb--
