@@ -1,58 +1,37 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] for some issues in tcp window tracking patch
-Date: Tue, 18 May 2004 11:57:06 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40A9DDF2.3000107@eurodev.net>
-References: <Pine.LNX.4.33.0405171427460.29543-100000@blackhole.kfki.hu> <40A93199.3010007@trash.net>
+From: linux lover <linux_lover2004@yahoo.com>
+Subject: tracing calls of output(skb)
+Date: Mon, 17 May 2004 23:28:57 -0700 (PDT)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040518062857.80216.qmail@web90109.mail.scd.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
- Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <40A93199.3010007@trash.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev <netdev@oss.sgi.com>,
+        netfilter <netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: linuxkernel <linux-kernel@vger.kernel.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+hello friends,
+          can anybody knows where does this
+skb->dst->output(skb) call goes? it is written in
+output_maybe_reroute function call in ip_output.c?
+also let me know whether following two calls also
+point to same destination funcaion as above function?
+   hh->hh_output(skb);
+   return dst->neighbour->output(skb);
+if yes to which function they point (dev_queue_xmit)?
 
-Patrick McHardy wrote:
-
-> Jozsef Kadlecsik wrote:
->
->> On Mon, 17 May 2004, Pablo Neira wrote:
->>
->>> a) Use flags defined in tcp.h instead of bsd flags: I found that these
->>> flags are already defined in linux with different names in tcp.h, so we
->>> could use linux flags instead.
->>
->>
->>
->> Fine, better to use the flags already defined in tcp.h.
->>
->
-> I don't think we should use those, they are for use in the tcp control
-> buffer, which is also expressed in their name (TCPCB_FLAG_*).
+Thanking you.
+linux_lover
 
 
-I think that we should, we are "redefining" the size of a wheel :-), and 
-also this comment:
 
-------- snipped from tcp.h ------
 
-1130         /* NOTE: These must match up to the flags byte in a
-1131          *       real TCP header.
-1132          */
 
---------- end --------
-
-regards,
-Pablo
+	
+		
+__________________________________
+Do you Yahoo!?
+SBC Yahoo! - Internet access at a great low price.
+http://promo.yahoo.com/sbc/
