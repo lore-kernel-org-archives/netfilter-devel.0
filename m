@@ -1,12 +1,21 @@
-From: Gan HawK <ganhawk3@yahoo.com>
-Subject: Caching of netfilter rules
-Date: Sun, 8 Aug 2004 18:33:38 -0700 (PDT)
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c
+ and optimization
+Date: Mon, 09 Aug 2004 10:40:07 +0900 (JST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040809013338.8559.qmail@web90103.mail.scd.yahoo.com>
+Message-ID: <200408090140.KAA22024@toshiba.co.jp>
+References: <20040801181150.GI14539@sunbeam2>
+	<200408020405.NAA27078@toshiba.co.jp>
+	<200408072105.GAA23792@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+        netfilter-devel@lists.netfilter.org, kisza@securityaudit.hu,
+        usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: yasuyuki.kozakai@toshiba.co.jp
+In-Reply-To: <200408072105.GAA23792@toshiba.co.jp>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,44 +26,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I am interested in implementing a caching system for
-netfilter rules. The cache would intercept all the
-packets that have been accepted through all the rules,
-and store its nfcache along with values of all the
-nfcache bits that are set. (of course it will discard
-if NFC_UNKNOWN or NFC_ALTERED or NFC_IP_PROTO_UNKNOWN
-is set)
+Sorry for my misstakes ...
 
-Then, when a packet comes in, the cache is first
-checked to see if it can be accepted, else all the
-netfilter rules are accepted (normal processing).
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Date: Sun, 08 Aug 2004 06:05:35 +0900 (JST)
 
-I have implemented a test system as kernel module to
-develop and test the cache. The current testbed system
-consists of two hooks. One hook in NF_IP_LOCAL_IN with
-NF_IP_PRI_LAST that updates the cache with new entries
-and  NF_IP_PRE_ROUTING that checks if the packet can
-be accepted from the cache. Of course, for the end
-system, I need to change the netfilter code itself to
-accept packets without further processing. 
+> 2.1 On router
+> I applied the patches to kernel on a router, inserted 2000 non-matching rules
+                                                        ^^^^
+This is 1000.
 
-I would appreciate feedback or comments on the idea or
-pointers on how to add a call to netfilter to accept
-packets without further processing. I plan to
-implement the cache as a module and it will use this
-netfilter call to accept packets which are in the
-cache.
+> 2.2 On host
+> I applied the patches to kernel on a host, inserted 1000 non-matching rules
+                                                      ^^^^
+This is 2000.
 
-
-thanks,
-ganhawk
-
-
-
-		
-__________________________________
-Do you Yahoo!?
-Yahoo! Mail - You care about security. So do we.
-http://promotions.yahoo.com/new_mail
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
