@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] netfilter ipt_conntrack/ipt_state moduse count
-Date: Tue, 27 Jan 2004 22:48:57 +0100
+Subject: [PATCH 2.6] netfilter Documentation/Changes
+Date: Tue, 27 Jan 2004 22:53:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127214857.GE11761@sunbeam.de.gnumonks.org>
+Message-ID: <20040127215326.GF11761@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zBZpvCNcoXwafAjP"
+	protocol="application/pgp-signature"; boundary="mXWEJCq0x1D2MX0F"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,90 +21,82 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---zBZpvCNcoXwafAjP
-Content-Type: multipart/mixed; boundary="a6YTfLRor63AaheO"
+--mXWEJCq0x1D2MX0F
+Content-Type: multipart/mixed; boundary="qpqR4wE1CEr+Roqx"
 Content-Disposition: inline
 
 
---a6YTfLRor63AaheO
+--qpqR4wE1CEr+Roqx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-Please apply the following fix to your 2.4.x tree.  A 2.6.x fix is not
-needed, because of it's different reference counting.
+Please apply the following patch to your 2.6.x tree.=20
+
+It makes the Changes file actually match what happened with 2.6.x.
 
 Thanks.
 
 --
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-============================================================================
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
   "Fragmentation is like classful addressing -- an interesting early
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---a6YTfLRor63AaheO
+--qpqR4wE1CEr+Roqx
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="linux-2.4.patch"
+Content-Disposition: attachment; filename="2.6.0-documentation-changes.patch"
 Content-Transfer-Encoding: quoted-printable
 
-diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
-pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
-' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
-' --exclude '*~' linux-2.4.24/net/ipv4/netfilter/ipt_conntrack.c linux-2.4.=
-24-usecount/net/ipv4/netfilter/ipt_conntrack.c
---- linux-2.4.24/net/ipv4/netfilter/ipt_conntrack.c	2003-06-13 10:51:39.000=
-000000 -0400
-+++ linux-2.4.24-usecount/net/ipv4/netfilter/ipt_conntrack.c	2004-01-21 08:=
-50:59.232369344 -0500
-@@ -109,10 +109,15 @@
+--- a/Documentation/Changes	2003-09-29 21:20:11.000000000 +0200
++++ b/Documentation/Changes	2003-11-02 09:56:09.000000000 +0100
+@@ -237,13 +237,15 @@
+ General changes
+ ---------------
 =20
- static int __init init(void)
- {
-+	int ret;
+-The IP firewalling and NAT code has been replaced again.  The new
+-netfilter software (including ipfwadm and ipchains backwards-
+-compatible modules) is currently distributed separately.
+-
+ If you have advanced network configuration needs, you should probably
+ consider using the network tools from ip-route2.
+=20
++Packet Filter / NAT
++-------------------
++The packet filtering and NAT code uses the same tools like the previous 2.=
+4.x
++kernel series (iptables).  It still includes backwards-compatibility modul=
+es
++for 2.2.x-style ipchains and 2.0.x-style ipfwadm.
 +
- 	/* NULL if ip_conntrack not a module */
- 	if (ip_conntrack_module)
- 		__MOD_INC_USE_COUNT(ip_conntrack_module);
--	return ipt_register_match(&conntrack_match);
-+	ret =3D ipt_register_match(&conntrack_match);
-+	if (ret)
-+		__MOD_DEC_USE_COUNT(ip_conntrack_module);
-+	return ret;
- }
+ PPP
+ ---
 =20
- static void __exit fini(void)
-diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
-pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
-' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
-' --exclude '*~' linux-2.4.24/net/ipv4/netfilter/ipt_state.c linux-2.4.24-u=
-secount/net/ipv4/netfilter/ipt_state.c
---- linux-2.4.24/net/ipv4/netfilter/ipt_state.c	2001-09-30 15:26:08.0000000=
-00 -0400
-+++ linux-2.4.24-usecount/net/ipv4/netfilter/ipt_state.c	2004-01-21 08:49:3=
-6.054014376 -0500
-@@ -46,10 +46,15 @@
+@@ -400,11 +402,9 @@
+ ---------
+ o  <http://sourceforge.net/project/showfiles.php?group_id=3D14>
 =20
- static int __init init(void)
- {
-+	int ret;
-+
- 	/* NULL if ip_conntrack not a module */
- 	if (ip_conntrack_module)
- 		__MOD_INC_USE_COUNT(ip_conntrack_module);
--	return ipt_register_match(&state_match);
-+	ret =3D ipt_register_match(&state_match);
-+	if (ret)
-+		__MOD_DEC_USE_COUNT(ip_conntrack_module);
-+	return ret;
- }
+-Netfilter
+----------
+-o  <http://netfilter.filewatcher.org/iptables-1.2.tar.bz2>
+-o  <http://netfilter.samba.org/iptables-1.2.tar.bz2>
+-o  <http://netfilter.kernelnotes.org/iptables-1.2.tar.bz2>
++Iptables
++--------
++o  <http://www.iptables.org/downloads.html>
 =20
- static void __exit fini(void)
+ Ip-route2
+ ---------
 
---a6YTfLRor63AaheO--
+--qpqR4wE1CEr+Roqx--
 
---zBZpvCNcoXwafAjP
+--mXWEJCq0x1D2MX0F
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -112,9 +104,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAFtzJXaXGVTD0i/8RAgYtAJsE19gywErlW+BzH3jDpNOghxm3GwCaApjK
-tkW/oocD2pMRiQoiWVoWcjM=
-=dRJD
+iD8DBQFAFt3WXaXGVTD0i/8RAgLxAJ4w3Szvlb8upGG/gWCk6tueXzLDLwCfZDIj
+IoFUZbxzXYszIoLhMIyPjTI=
+=Gsq0
 -----END PGP SIGNATURE-----
 
---zBZpvCNcoXwafAjP--
+--mXWEJCq0x1D2MX0F--
