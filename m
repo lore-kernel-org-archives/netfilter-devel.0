@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] NETFILTER (3/X): fix mutex declaration
-Date: Sat, 24 Jul 2004 10:28:20 -0400
+Subject: [PATCH 2.6] NETFILTER (9/x): make 'helper' list of ip_nat_core static
+Date: Sat, 24 Jul 2004 10:55:24 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040724142820.GM2848@obroa-skai.de.gnumonks.org>
+Message-ID: <20040724145524.GR2848@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yUmmepPgoWmUqRhm"
+	protocol="application/pgp-signature"; boundary="KqBSqvdnnccM6+Kg"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,77 +21,120 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---yUmmepPgoWmUqRhm
+--KqBSqvdnnccM6+Kg
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-On Sun, Jun 20, 2004 at 01:23:28PM +0200, Christoph Hellwig wrote:
-> okay, the gunk we had in arp_tables is in ip6_tables and ip6_tables,
-> too. =20
+This patch makes the 'helper' symbol static to not pollute the namespace
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-
-=3D=3D=3D=3D=3D include/linux/netfilter_ipv4/ip_tables.h 1.7 vs edited =3D=
-=3D=3D=3D=3D
---- 1.8/include/linux/netfilter_ipv4/ip_tables.h	2004-06-19 20:55:10 +02:00
-+++ edited/include/linux/netfilter_ipv4/ip_tables.h	2004-06-20 10:25:40 +02=
-:00
-@@ -338,7 +336,6 @@
-  *	Main firewall chains definitions and global var's definitions.
-  */
- #ifdef __KERNEL__
--static DECLARE_MUTEX(ipt_mutex);
-=20
- #include <linux/init.h>
- extern void ipt_init(void) __init;
-=3D=3D=3D=3D=3D include/linux/netfilter_ipv6/ip6_tables.h 1.7 vs edited =3D=
-=3D=3D=3D=3D
---- 1.7/include/linux/netfilter_ipv6/ip6_tables.h	2004-06-19 20:55:10 +02:00
-+++ edited/include/linux/netfilter_ipv6/ip6_tables.h	2004-06-20 10:26:32 +0=
-2:00
-@@ -107,10 +107,6 @@
- 	u_int64_t pcnt, bcnt;			/* Packet and byte counters */
+diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
+pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
+' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
+' --exclude '*~' linux-2.6.7-newmodparam/include/linux/netfilter_ipv4/ip_na=
+t_helper.h linux-2.6.7-newmodparam-nathelper/include/linux/netfilter_ipv4/i=
+p_nat_helper.h
+--- linux-2.6.7-newmodparam/include/linux/netfilter_ipv4/ip_nat_helper.h	20=
+04-07-20 11:26:37.277081608 -0400
++++ linux-2.6.7-newmodparam-nathelper/include/linux/netfilter_ipv4/ip_nat_h=
+elper.h	2004-07-20 11:26:55.726276904 -0400
+@@ -38,11 +38,12 @@
+ 			       struct ip_nat_info *info);
  };
 =20
--#ifdef __KERNEL__
--static DECLARE_MUTEX(ip6t_mutex);
--#endif
+-extern struct list_head helpers;
 -
- /* Values for "flag" field in struct ip6t_ip6 (general ip6 structure). */
- #define IP6T_F_PROTO		0x01	/* Set if rule cares about upper=20
- 					   protocols */
-=3D=3D=3D=3D=3D net/ipv4/netfilter/ip_tables.c 1.24 vs edited =3D=3D=3D=3D=
-=3D
---- 1.24/net/ipv4/netfilter/ip_tables.c	2004-06-07 05:15:04 +02:00
-+++ edited/net/ipv4/netfilter/ip_tables.c	2004-06-20 12:29:17 +02:00
-@@ -61,6 +61,8 @@
- #endif
- #define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
+ extern int ip_nat_helper_register(struct ip_nat_helper *me);
+ extern void ip_nat_helper_unregister(struct ip_nat_helper *me);
 =20
-+static DECLARE_MUTEX(ipt_mutex);
++extern struct ip_nat_helper *
++ip_nat_find_helper(const struct ip_conntrack_tuple *tuple);
 +
- /* Must have mutex */
- #define ASSERT_READ_LOCK(x) IP_NF_ASSERT(down_trylock(&ipt_mutex) !=3D 0)
- #define ASSERT_WRITE_LOCK(x) IP_NF_ASSERT(down_trylock(&ipt_mutex) !=3D 0)
-=3D=3D=3D=3D=3D net/ipv6/netfilter/ip6_tables.c 1.29 vs edited =3D=3D=3D=3D=
-=3D
---- 1.29/net/ipv6/netfilter/ip6_tables.c	2004-06-07 05:15:04 +02:00
-+++ edited/net/ipv6/netfilter/ip6_tables.c	2004-06-20 12:29:29 +02:00
-@@ -66,6 +66,7 @@
+ /* These return true or false. */
+ extern int ip_nat_mangle_tcp_packet(struct sk_buff **skb,
+ 				struct ip_conntrack *ct,
+diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
+pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
+' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
+' --exclude '*~' linux-2.6.7-newmodparam/net/ipv4/netfilter/ip_nat_core.c l=
+inux-2.6.7-newmodparam-nathelper/net/ipv4/netfilter/ip_nat_core.c
+--- linux-2.6.7-newmodparam/net/ipv4/netfilter/ip_nat_core.c	2004-07-20 11:=
+26:37.279081304 -0400
++++ linux-2.6.7-newmodparam-nathelper/net/ipv4/netfilter/ip_nat_core.c	2004=
+-07-20 11:26:55.729276448 -0400
+@@ -49,7 +49,6 @@
+ static struct list_head *bysource;
+ static struct list_head *byipsproto;
+ LIST_HEAD(protos);
+-LIST_HEAD(helpers);
+=20
+ extern struct ip_nat_protocol unknown_nat_protocol;
+=20
+@@ -498,13 +497,6 @@
+ 	return ret;
+ }
+=20
+-static inline int
+-helper_cmp(const struct ip_nat_helper *helper,
+-	   const struct ip_conntrack_tuple *tuple)
+-{
+-	return ip_ct_tuple_mask_cmp(tuple, &helper->tuple, &helper->mask);
+-}
+-
+ /* Where to manip the reply packets (will be reverse manip). */
+ static unsigned int opposite_hook[NF_IP_NUMHOOKS]
+ =3D { [NF_IP_PRE_ROUTING] =3D NF_IP_POST_ROUTING,
+@@ -642,8 +634,7 @@
+=20
+ 	/* If there's a helper, assign it; based on new tuple. */
+ 	if (!conntrack->master)
+-		info->helper =3D LIST_FIND(&helpers, helper_cmp, struct ip_nat_helper *,
+-					 &reply);
++		info->helper =3D ip_nat_find_helper(&reply);
+=20
+ 	/* It's done. */
+ 	info->initialized |=3D (1 << HOOK2MANIP(hooknum));
+diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
+pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
+' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
+' --exclude '*~' linux-2.6.7-newmodparam/net/ipv4/netfilter/ip_nat_helper.c=
+ linux-2.6.7-newmodparam-nathelper/net/ipv4/netfilter/ip_nat_helper.c
+--- linux-2.6.7-newmodparam/net/ipv4/netfilter/ip_nat_helper.c	2004-07-20 1=
+1:26:37.281081000 -0400
++++ linux-2.6.7-newmodparam-nathelper/net/ipv4/netfilter/ip_nat_helper.c	20=
+04-07-20 15:16:53.672014608 -0400
+@@ -47,6 +47,7 @@
+ #define DUMP_OFFSET(x)
  #endif
- #define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
 =20
-+static DECLARE_MUTEX(ip6t_mutex);
++static LIST_HEAD(helpers);
+ DECLARE_LOCK(ip_nat_seqofs_lock);
 =20
- /* Must have mutex */
- #define ASSERT_READ_LOCK(x) IP_NF_ASSERT(down_trylock(&ip6t_mutex) !=3D 0)
-
-
+ /* Setup TCP sequence correction given this change at this sequence */
+@@ -419,6 +420,18 @@
+ 	return ret;
+ }
+=20
++struct ip_nat_helper *
++ip_nat_find_helper(const struct ip_conntrack_tuple *tuple)
++{
++	struct ip_nat_helper *h;
++
++	READ_LOCK(&ip_nat_lock);
++	h =3D LIST_FIND(&helpers, helper_cmp, struct ip_nat_helper *, tuple);
++	READ_UNLOCK(&ip_nat_lock);
++
++	return h;
++}
++
+ static int
+ kill_helper(const struct ip_conntrack *i, void *helper)
+ {
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -102,7 +145,7 @@ Signed-off-by: Harald Welte <laforge@netfilter.org>
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---yUmmepPgoWmUqRhm
+--KqBSqvdnnccM6+Kg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -110,9 +153,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBAnIEXaXGVTD0i/8RAqnTAKCDSZo3RRmg/VqDS5uZ8JOLrLP26ACeOCuC
-2qJ5BNwgVLgdgZ9uPQ6MSgI=
-=K4jZ
+iD8DBQFBAnhbXaXGVTD0i/8RAviqAKCG3ViY0DTnDuA1HAgNxA2Wr+Ei7ACeNNCb
+DwryZA0UK0j6N/Occv4QbSA=
+=cCto
 -----END PGP SIGNATURE-----
 
---yUmmepPgoWmUqRhm--
+--KqBSqvdnnccM6+Kg--
