@@ -1,14 +1,14 @@
-From: TeJun Huh <tj@atj.dyndns.org>
-Subject: [patch] LIST_DELETE bug in linux 2.4.20
-Date: Thu, 20 Feb 2003 16:52:53 +0900
+From: "Andrew Hall" <andrew.hall@bluereef.com.au>
+Subject: Re: Bug in patch-o-matic-20030107 with tcp-window-tracking patch?
+Date: Tue, 18 Feb 2003 17:48:22 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030220075253.GA12340@atj.dyndns.org>
-Reply-To: tejun@aratech.co.kr
+Message-ID: <007001c2d719$ba5e1f40$2601010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,43 +19,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
- Hello, netfilter guys.
+Pls. disregard last mail. Typo in my makefile caused the problem.
 
- We run transparent web caches using ipt_REDIRECT, and after upgrading
-to 2.4.20, found that conntrack table overflows after a week or so.
-Quick examination showed large number of entries in SYN_SENT state
-with super long timeouts exist.  The offending change was in
-include/linux/list.h.  list_del() now zeros prev and next pointer of
-list_head, which circumvents is_confirmed() test.
-
- This didn't cause troubles to most conntrack entries which disappear
-by timing out.  But as our cache was bypassing some of the
-connections, the machine was seeing only one way stream of packets
-(!IPS_SEEN_REPLY).  And when the originating host terminates a
-bypassed connection by sending out RST packets, the corresponding
-entry is repeatedly removed from hash with death_by_tiemout() and soon
-confirmed again adding jiffies to expire time every time.
-
- Applying the following patch solved the problem.  As I'm not on the
-list, please CC to me any comments regarding this problem.  Thank you
-a lot for great netfilter.
+----- Original Message -----
+From: "Andrew Hall" <andrew.hall@bluereef.com.au>
+To: <netfilter-devel@lists.netfilter.org>
+Sent: Tuesday, February 18, 2003 4:20 PM
+Subject: Bug in patch-o-matic-20030107 with tcp-window-tracking patch?
 
 
---- linux-2.4.20-orig/include/linux/netfilter_ipv4/listhelp.h	2003-02-20 16:48:27.000000000 +0900
-+++ linux-2.4.20-rmap-pm/include/linux/netfilter_ipv4/listhelp.h	2003-02-20 16:45:30.000000000 +0900
-@@ -57,10 +57,13 @@
- 	if (!list_inlist(head, oldentry))				\
- 		printk("LIST_DELETE: %s:%u `%s'(%p) not in %s.\n",	\
- 		       __FILE__, __LINE__, #oldentry, oldentry, #head);	\
--        else list_del((struct list_head *)oldentry);			\
-+        else __list_del(((struct list_head *)oldentry)->prev,		\
-+			((struct list_head *)oldentry)->next);		\
- } while(0)
- #else
--#define LIST_DELETE(head, oldentry) list_del((struct list_head *)oldentry)
-+#define LIST_DELETE(head, oldentry)					\
-+	__list_del(((struct list_head *)oldentry)->prev,		\
-+		   ((struct list_head *)oldentry)->next)
- #endif
- 
- /* Append. */
+> I have been trying to apply the tcp-window-tracking patch to 2.2.20 from
+the
+> 20030107 POM. It fails with no error but only that it didn't successfully
+> apply the patch.
+>
+> When I manually apply the patch to the kernel including the makefile
+changes
+> it fails to compile with the errors below. The objects should be defined
+as
+> I placed the changes from tcp-window-tracking.makefile into
+> linux/net/ipv4/netfilter/Makefile. This should be all that is required?
+The
+> tcp-windows-tracking module isn't broken is it?
+>
+> Thanks,
+>
+> Andrew.
+>
+>
+gcc -D__KERNEL__ -I/iso/2.4.20/linux-2.4.20/include -Wall -Wstrict-prototype
+>
+s -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -
+> pipe -mpreferred-stack-boundary=2 -march=i686   -nostdinc -iwithprefix
+> include -DKBUILD_BASENAME=ip_conntrack_proto_tcp  -c -o
+> ip_conntrack_proto_tcp.o ip_conntrack_proto_tcp.c
+> ip_conntrack_proto_tcp.c:715: parse error before
+> "this_object_must_be_defined_as_export_objs_in_the_Makefile"
+> ip_conntrack_proto_tcp.c:715: warning: type defaults to `int' in
+declaration
+> of `this_object_must_be_defined_as_export_objs_in_the_Makefile'
+> ip_conntrack_proto_tcp.c:715: warning: data definition has no type or
+> storage class
+> make[3]: *** [ip_conntrack_proto_tcp.o] Error 1
+> make[3]: Leaving directory `/iso/2.4.20/linux-2.4.20/net/ipv4/netfilter'
+> make[2]: *** [first_rule] Error 2
+> make[2]: Leaving directory `/iso/2.4.20/linux-2.4.20/net/ipv4/netfilter'
+> make[1]: *** [_subdir_ipv4/netfilter] Error 2
+> make[1]: Leaving directory `/iso/2.4.20/linux-2.4.20/net'
+> make: *** [_dir_net] Error 2
+>
+>
