@@ -1,17 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] kill NFC_* stuff in iptables [was Re: iptables compile
- error: NFC_IP_TOS undeclared]
-Date: Sat, 12 Feb 2005 02:32:56 +0100
-Message-ID: <420D5CC8.1060600@trash.net>
-References: <Pine.GSO.4.33.0502101758010.19216-100000@indigo>	<420B8623.9050308@niksula.hut.fi>	<420B9ED0.1020303@trash.net>
-	<420BEB36.7080209@eurodev.net> <420D0276.5080200@trash.net>
-	<420D27DB.9000608@eurodev.net>
+From: Piotrek Kaczmarek <kaczorek@k.daleka.net>
+Subject: conntrack error
+Date: Sat, 12 Feb 2005 12:03:58 +0100
+Message-ID: <20050212110358.GA32095@daleka.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <420D27DB.9000608@eurodev.net>
+Content-Type: text/plain; charset=iso-8859-2
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +17,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
+Hi,
+I encountered the following situation - when there are around 20000 connections
+"cat /proc/net/ip_conntrack" doesn't display all connections and outputs
+"cat: No space left on device" error. If I patch kernel with POM and 'nth' module
+(only patch, don't load the module) the same happens around 17000 connections.
+It happenes both with 2.6.9 and 2.6.10 kernels.
 
-> Patrick McHardy wrote:
->
->> Why didn't you remove it entirely instead ?
->
-> true :), patch attached. I've gzip'ed it, it's too big for sending it 
-> in clear text.
+Why is it so? Is this matter of memory limit or something else?
 
-Thanks a lot. Hopeing I don't annoy you .. I haven't actually checked
-the API, but can't we remove all those now empty init functions ?
-If not I think it would be nicer to change the API to check for
-->init == NULL instead of leaving all these empty funtion bodies around.
+Thank you in advantage,
 
-> Next step, what do you think about removing nfcache passed as 
-> parameter from the iptables API?
-
-I don't think we can remove it from struct ipt_entry without
-breaking userspace compatibility. But we could stop using it.
-
-Regards
-Patrick
+-- 
+Piotrek Kaczmarek
