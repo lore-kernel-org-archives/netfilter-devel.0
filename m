@@ -1,15 +1,15 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] for some issues in tcp window tracking patch
-Date: Fri, 21 May 2004 14:13:09 +0200 (CEST)
+Subject: Re: [RFC] Die to NOTRACK/TRACE, long live MARK!
+Date: Fri, 21 May 2004 14:35:36 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405211325150.7455-100000@blackhole.kfki.hu>
-References: <40AD3CB7.1070107@eurodev.net>
+Message-ID: <Pine.LNX.4.33.0405211423310.8045-100000@blackhole.kfki.hu>
+References: <40AD4B36.50202@snapgear.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40AD3CB7.1070107@eurodev.net>
+To: Philip Craig <philipc@snapgear.com>
+In-Reply-To: <40AD4B36.50202@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,79 +20,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Hi,
 
-On Fri, 21 May 2004, Pablo Neira wrote:
+On Fri, 21 May 2004, Philip Craig wrote:
 
-> a) Sometimes we destroy the conntrack calling
-> conntrack->timeout.function((unsigned long)conntrack) but we are
-> returning -NF_ACCEPT, so we are calling implicitely nf_conntrack_put
-> from conntrack core, could we have any unexpected problem?
-
-Good catch, this is one of the rare cases where conntrack must explicitly
-drop the packet, so the return value should be -NF_DROP. (-NF_ACCEPT does
-not guarantee that the packet will truly be dropped, as it was discussed
-in the previous mail.)
-
-> b) We don't need to set assured bit all the time, I think that I told
-> you, well if so, sorry for repeating me.
+> Jozsef Kadlecsik wrote:
+> > We could introduce a new silly target for that purpose like NOTRACK or
+> > TRACE. However it's pure marking and we do have a interface to mark
+> > packets: the MARK target. So if we could tell the system which mark value
+> > has got the given special meaning, we wouldn't need a new target and we
+> > could even eliminate the NOTRACK/TRACE targets.
 >
->          } else if ((old_state == TCP_CONNTRACK_SYN_RECV
->                     || old_state == TCP_CONNTRACK_ESTABLISHED)
-> -                   && new_state == TCP_CONNTRACK_ESTABLISHED)
-> +                 && new_state == TCP_CONNTRACK_ESTABLISHED
-> +                 && !test_bit(IPS_ASSURED_BIT, &conntrack->status)) {
+> I assume this will mean allowing the MARK target to be used in the raw
+> table, otherwise you can't mark the packets before conntrack.
 
-Yes, I'll add the test but as first, because that's the common case.
+Oops.
 
-> c) In the TCP_CONNTRACK_SYN_SENT case, we saw a SYN packet while staying
-> in state TIME_WAIT, so there's a reopened connection. Why do we destroy
-> the conntrack and don't recycle /reuse this conntrack? I mean,
-> reinitilize all the fields and let it continue its travel through the
-> tcp tracking of instead of returning NF_REPEAT.
+> Will this mean that only one of these features can be used at a time,
+> since a packet cannot have multiple marks?  And use of any of these
+> features would preclude current uses of MARK, such as policy routing?
+> You could add support for masking bits of the mark, but you would have
+> to add this to the policy routing also.
 
-To complete Willy's answer the reason is that there are a lot of
-informations attached to a conntrack entry (expectations, NAT). There is
-no functionality to reset all those info, but to destroy the entry and let
-the system create a new one, with high probability from the slab cache.
+Boom! Bye-bye idea, that won't go.
 
-> d) We could move up WRITE_UNLOCK(&tcp_lock) just before timeout is updated.
+> What happens when you modify the /proc setting?  This will change the
+> state of packets currently being processed, which could cause problems.
 
-Yes, I'll modify the code accordingly.
-
-> e) I'm not sure if it's worthy optimizing this case. In tcp_new, we are
-> checking if a packet is clean as well as size of tcp header, then in
-> tcp_packet we will do the same, so we are doing twice the same checking.
-> If we consider that general case is that packets are clean, will be this
-> double check worthy?
-
-That double-checking happens only for connection-initiating packets.
-If we'd add a check of a flag wether the cleaness checking had been
-done or not, then the normal packets would suffer from it. I think the
-current solution is the optimal one.
-
-> thanks Jozsef!,
-> insidious Pablo
-
-Actually, I'm really glad that there are guys who goes trough the code,
-work hard to understand and try to improve, optimize it. We have been
-planning to submit the code for kernel inclusion for a long time, but
-it cannot be done lightheartedly, without a wider (known) test base and
-code scrutinizing by more people.
-
-Compared to the cvs version, the following modifications has been added to
-my tree:
-
-- tcph->ack should be tcph->ack_seq in tcp_packet at TCP_CONNTRACK_CLOSE
-  case
-- inlined segment_seq_plus_len
-- explicit drop of SYN/ACK when the state machine is out of sync
-- releasing lock moved up, after setting timeout parameter in tcp_packet
-- IPS_ASSURED_BIT is checked before set in tcp_packet
-- SACK support added
-
-I'm waiting for the result of the validation of the SACK code by the guys
-from Balabit, then a new patch will be released.
+The raw table is the very first, so no other parts of netfilter could see
+the packets.
 
 Best regards,
 Jozsef
