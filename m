@@ -1,15 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: conntrack DoS
-Date: Thu, 27 Jun 2002 10:26:22 +0200 (CEST)
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: performance issues (nat / conntrack)
+Date: Thu, 27 Jun 2002 13:24:48 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206271021250.4405-100000@blackhole.kfki.hu>
-References: <3D18F1DB.FD515947@marasystems.com>
+Message-ID: <20020627112448.GC9003@naboo.rchrd.phub.net.cable.rogers.com>
+References: <Pine.LNX.4.33.0206251548230.539-100000@blackhole.kfki.hu> <38143.203.134.158.15.1025144505.squirrel@iw.k1k2.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <3D18F1DB.FD515947@marasystems.com>
+To: Andrew Smith <nfml@k1k2.com>
+Content-Disposition: inline
+In-Reply-To: <38143.203.134.158.15.1025144505.squirrel@iw.k1k2.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,33 +21,33 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 26 Jun 2002, Henrik Nordstrom wrote:
+On Thu, Jun 27, 2002 at 12:21:45PM +1000, Andrew Smith wrote:
+> This gives a good example when being able to set the timeout dependant
+> upon specific factors (e.g. port/protocol) would be good rather than a
+> global timeout that suits specific cases and does not match many cases
+> - and causes a severe problem for a limited set of cases
 
-> A running TCP packet flow (even for a "half-closed" uni-directional TCP)
-> is never uni-directional. If there is data in flowing in one direction
-> then there is ACKs in the other direction.
+Sorry, but we've had this discussion over and over again. Go to the list
+archives and look for tuneable timeouts.
 
-Yes, right.
+The conclusion of this discussion was, that we need to cope with all
+cases without any tuning being necessarry. 
 
-> Idea on how conntrack could deal with such connections: If several
-> retransmissions (lets say 5) is seen in one direction and no ACKs in the
-> other within a reasonable timeframe (lets say 10 minutes) then the TCP
-> is most likely dead and a low inactivity timeout can be assigned (lets
-> say 20 minutes) to have it cleaned out from conntrack.
->
-> At a first glance this can be simplified into a RETRANSMIT/ACK timeout
-> state machinery, but there is a significant race window making a simple
-> packet driven state machine unsuitable. Must not trigger on a delayed
-> retransmission followed by a lost ACK, or delayed retransmissions not
-> resulting in ACK (out of window).
+btw: For the 'ping' case, the icmp echo reply is closing the connection
+anyway.
 
-I believe it is a good approach and can be implemented. But first the
-NOTRACK patch...
+conntrack is mostly about tracking layer 3+4 protocol state.  And this
+should happen as transparent as possible, so assumptions about the
+application are made.  [conntrack helpers are an exemption, and be sure
+I would be much happier if we didn't need to have them].
 
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-WWW-Home: http://www.kfki.hu/~kadlec
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+> -Cheers
+> -Andrew
+
+-- 
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
