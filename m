@@ -1,14 +1,15 @@
-From: Zeeshan Ali <zeelists@yahoo.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: stealing packets
-Date: Sun, 23 Nov 2003 17:06:29 -0800 (PST)
+Date: Mon, 24 Nov 2003 02:34:31 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031124010629.24469.qmail@web60710.mail.yahoo.com>
-References: <Pine.LNX.4.44.0311240039520.6878-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0311240228540.7951-100000@filer.marasystems.com>
+References: <20031124010359.21595.qmail@web60703.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.44.0311240039520.6878-100000@filer.marasystems.com>
+To: Zeeshan Ali <zeelists@yahoo.com>
+In-Reply-To: <20031124010359.21595.qmail@web60703.mail.yahoo.com>
+ReSent-Message-ID: <Pine.LNX.4.44.0311240235200.7951@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,37 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-  Thanks for responding. 
+On Sun, 23 Nov 2003, Zeeshan Ali wrote:
 
-> If the hook returns NF_QUEUE then the packet will be
-> sent to the netfilter 
-> queue handler from where it can later be reinjected
-> and will then continue 
-> on the next hook.
+>     Yeah, i know that but the kernel does'nt like it
+> when you re-inject the packet sometimes later. E.g
+> this simple test code inside the queue handler
+> function caused a kernel panic:
+> 
+>   static struct sk_buff *next = NULL;
+>  
+>   if (next != NULL) {
+>     nf_reinject (next, info, NF_ACCEPT);
+>   }
+> 
+>   next = skb;
+> 
+>   return 0; /* what should be the return value? */
 
-    Yeah, i know that but the kernel does'nt like it
-when you re-inject the packet sometimes later. E.g
-this simple test code inside the queue handler
-function caused a kernel panic:
+You need to pass back the same skb,info pair... other than that it should
+work from what I can tell..
 
-  static struct sk_buff *next = NULL;
- 
-  if (next != NULL) {
-    nf_reinject (next, info, NF_ACCEPT);
-  }
+The return code is 0 for success, -ERRNO on error where ERRNO is a 
+suitable error code describing the error.
 
-  next = skb;
+> BTW, my first question still remains unanswered :(
 
-  return 0; /* what should be the return value? */
+I don't remember what the question was and it has already been deleted
+from my inbox. Maybe if you repost the questsion. But probably it was 
+outside what I know to answer and is why it was deleted..
 
-    BTW, my first question still remains unanswered :(
-Anyway, I 've just re-compiled the kernel with a lot
-of debuging into the routing code, so i gues that
-would help to identify my problem. Anyway, thanks for
-replying. Bye.
-
-__________________________________
-Do you Yahoo!?
-Protect your identity with Yahoo! Mail AddressGuard
-http://antispam.yahoo.com/whatsnewfree
+Regards
+Henrik
