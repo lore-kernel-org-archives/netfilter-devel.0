@@ -1,17 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: match target project
-Date: Thu, 19 Aug 2004 13:38:59 +0200
+Subject: Re: Any way of knowing a packet's been defragmented
+Date: Thu, 19 Aug 2004 13:46:04 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040819113859.GP3921@sunbeam.de.gnumonks.org>
-References: <1092154889.4261.436.camel@porky>
+Message-ID: <20040819114604.GQ3921@sunbeam.de.gnumonks.org>
+References: <W5101410375481091705422@asteria.telenet-ops.be> <Pine.LNX.4.61.0408051507530.405@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rEhM+w5krfX9Wpv9"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="74hf9PSALuoWtOh/"
+Cc: Bart De Schuymer <bdschuym@pandora.be>, shemminger@osdl.org,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	bridge <bridge@osdl.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <1092154889.4261.436.camel@porky>
+In-Reply-To: <Pine.LNX.4.61.0408051507530.405@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +25,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---rEhM+w5krfX9Wpv9
+--74hf9PSALuoWtOh/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 10, 2004 at 06:21:30PM +0200, Eric Leblond wrote:
-> Hi,
+On Thu, Aug 05, 2004 at 03:10:42PM +0200, Henrik Nordstrom wrote:
+> On Thu, 5 Aug 2004 bdschuym@pandora.be wrote:
 >=20
-> I was looking for a match that could be able to match one packet per
-> connection each N min interval.
-
-It sounds like you're interested in either the dstlimit match (doesn't
-use conntrack but it's own hash tables, certainly less accurate.
-
-If you really want to be based on connection as in 'conntrack', you
-could base your implementation on top of the counters from the
-'conntrack-acct' patch.
-
-> It seems, it does not exist, so the next question is :
-> 	Is it possible to develop such a match ?
-> 	If yes, is it a huge work ?
+> >As Stephen explained, bridge ports of the same bridge device no longer=
+=20
+> >need to have the same mtu. So the bridge code needs to drop packets=20
+> >(ARP, IP, whatever) that will be too long for the output port.
 >=20
-> BR,
-> --=20
-> Eric Leblond
-> Nufw, Now User Filtering Works (http://www.nufw.org)
+> Eh.. I do not claim to be a bridge guru, but won't such bridge cause=20
+> serious havoc on the network much like PMTU blackholes does?
 
+Nobody ever replied to that question.
 
+Bart, Stephen, what is your take on this?   How was this resolved?
+
+> Regards
+> Henrik
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,7 +58,7 @@ could base your implementation on top of the counters from the
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---rEhM+w5krfX9Wpv9
+--74hf9PSALuoWtOh/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -70,9 +66,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBJJFTXaXGVTD0i/8RAss8AJ0SHvLiZck6Vnlud0X3U0NNaAOygACdHqY1
-eWz7+kBOK3HA8LFABngRPBk=
-=Wg7e
+iD8DBQFBJJL8XaXGVTD0i/8RAk+tAJsE/nw7IQzURImMS9CuXryxEa11twCaAk7i
+jLZk5i2Wp2FZMFk4f91VfCc=
+=kKiS
 -----END PGP SIGNATURE-----
 
---rEhM+w5krfX9Wpv9--
+--74hf9PSALuoWtOh/--
