@@ -1,15 +1,16 @@
-From: luoqiang <luoqiang@ict.ac.cn>
-Subject: how to set up conntrck for DNAT
-Date: Sat, 8 Jun 2002 11:27:38 +0800
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Sat, 8 Jun 2002 10:21:41 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <02060811273800.01420@luoqiang>
-Reply-To: luoqiang@ict.ac.cn
+Message-ID: <20020608102140.C23410@oknodo.bof.de>
+References: <3D007D73.9030609@cs.auc.dk> <20020607094319.GA595@morinfr.org> <3D00839F.6000103@cs.auc.dk> <20020607101713.GB595@morinfr.org> <3D009951.5090004@cs.auc.dk> <20020607133300.GD595@morinfr.org> <3D00CDB4.3060605@cs.auc.dk> <20020607183600.GD630@morinfr.org> <20020607210026.B23410@oknodo.bof.de> <3D016699.9010301@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick Schaaf <bof@bof.de>, netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: Emmanuel Fleury <fleury@cs.auc.dk>
+Content-Disposition: inline
+In-Reply-To: <3D016699.9010301@cs.auc.dk>; from fleury@cs.auc.dk on Sat, Jun 08, 2002 at 04:06:17AM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,20 +21,20 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,all
+> > Alternatively, if no answer comes back at all, the conntrack is in the
+> > (extra) state UNREPLIED. When the connection table becomes full, UNREPLIED
+> > connections are recycled preferentially.
+> 
+> Hey, this is not fair !!!!!
 
-I have write a module for DNAT to achieve the purpose as follows:
-iptables -A PREROUTING -t nat -p udp -d 159.226.1.1 --dport 5001 -j DNAT --to 
- 192.168.1.2:8888
-my code is in 
-http://lists.samba.org/pipermail/netfilter-devel/2002-June/004621.html
-The expected conntrack in "/proc/net/ip_conntrack" I set up is "EXPECTING: 
-proto=17 src=0.0.0.0 dst=159.226.1.1 
-sport=0 dport=5001" 
-I don't know if my conntrack is correct here?
-Then in nat module, fill the ip_nat_multi_range struct with 
-192.168.1.2:8888,but no DNAT happened:-(
-I am too worried now,somebody can help me ?
+The behaviour is as fair as it can be, IMO.
 
-Thanks!
-luoqiang
+> This behaviour is not described in ip_conntrack_proto_tcp.c.
+> Where is it coded ????
+
+Mostly in ip_conntrack_core.c. The early_drop() and unreplied() functions
+implement the checking, based on the IPS_ASSURED bit in conntrack->status.
+Use "grep" to see where that bit is set.
+
+best regards
+  Patrick
