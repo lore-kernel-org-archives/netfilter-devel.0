@@ -1,56 +1,61 @@
-From: "Jan Kaastrup" <jka@protego.dk>
-Subject: ip_conntrack_pptp
-Date: Thu, 22 Jan 2004 16:57:26 +0100
-Sender: netfilter-admin@lists.netfilter.org
-Message-ID: <003601c3e100$6e8a68c0$2d64a8c0@pcjka>
-References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Re: why not  __MOD_DEC_USE_COUNT whe
+Date: Thu, 22 Jan 2004 10:18:59 -0500
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040122151859.GK1810@obroa-skai.de.gnumonks.org>
+References: <20040122075145.12917.qmail@sina.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: "'Netfilter Mailinglist'" <netfilter@lists.netfilter.org>
-Return-path: <netfilter-admin@lists.netfilter.org>
-To: "'Harald Welte'" <laforge@netfilter.org>,
-	"'Netfilter Development Mailinglist'" <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20031221122445.GC5058@obroa-skai.de.gnumonks.org>
-Errors-To: netfilter-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wg9FEZT+WCTrEXgJ"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: lepton <lepton@sina.com>
+Content-Disposition: inline
+In-Reply-To: <20040122075145.12917.qmail@sina.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald and all on this list.
 
-I have problems with ip_conntrack_pptp patch from POM-20031219
+--wg9FEZT+WCTrEXgJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It seems the patch doesn't apply what it should:
+On Thu, Jan 22, 2004 at 03:51:45PM +0800, lepton wrote:
+> Thanks for your reply.
+>=20
+> Since you have said it could be fixed, I will preparing a patch after my
 
-"In the pptp-conntrack-nat.patch.configure.help it says something like
-this:
-CONFIG_IP_NF_CT_PROTO_GRE
-  This module adds generic support for connection tracking and NAT of
-the
-  GRE protocol (RFC1701, RFC2784).  Please note that this will only work
-  with GRE connections using the key field of the GRE header."
+I already wrote a patch, don't worry.
 
-I do something like this for patching my kernel (2.4.21):
-patch -p1 < ./path-o-mat.../ip_conntrack_pptp.patch, and everything
-seems allright.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-But I Never get the option in my kernelconfiguration - I want to make it
-as a module.
-I do have the ip_conntrack_pptp.c and .h file, maybe it is possible to
-make my module out of them?
+--wg9FEZT+WCTrEXgJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-Does anyone know of this, or is it just me being stupid ?
+iD8DBQFAD+niXaXGVTD0i/8RApsLAKCgTnN1D6lZWeT5pGQoDd0+dPDpKgCeO/N2
+lkbrh65+wEUAUsNxx8D0QCE=
+=3Txc
+-----END PGP SIGNATURE-----
 
-
-
-Thanks a lot in regards
-
-Jan
+--wg9FEZT+WCTrEXgJ--
