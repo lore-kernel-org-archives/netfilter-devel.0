@@ -1,36 +1,40 @@
-From: Robert Love <rml@novell.com>
-Subject: Re: GFP_ATOMIC vs GFP_KERNEL in netfilter module
-Date: Thu, 02 Dec 2004 19:31:49 -0500
-Message-ID: <1102033909.6052.24.camel@localhost>
-References: <92A26C52-44B7-11D9-A62F-000A957B2B6C@inf.ufrgs.br>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Reset conntrack...
+Date: Fri, 3 Dec 2004 07:08:19 +0100
+Message-ID: <20041203060819.GG4605@oknodo.bof.de>
+References: <41AF92B1.30802@anduras.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261815AbULCAak@vger.kernel.org>
-To: Roberto Jung Drebes <drebes@inf.ufrgs.br>
-In-Reply-To: <92A26C52-44B7-11D9-A62F-000A957B2B6C@inf.ufrgs.br>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Sven Anders <anders@anduras.de>
+Content-Disposition: inline
+In-Reply-To: <41AF92B1.30802@anduras.de>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2004-12-02 at 21:12 -0200, Roberto Jung Drebes wrote:
+> Is it possible to reset the conntrack list or set any entry to the state 
+> NEW to force a recheck against new filter rules?
+> ~  If I set the (new) filtering rules with the target DROP, I want old
+> ~  (existing) connections to be dropped immediatly.
 
-> If I use GFP_KERNEL with the kmallocs, I get errors like
+Consider using REJECT. This has two advantages: it gives the end
+systems you are now blocking a chance at state cleanup (instead of
+needlessly wasting memory and CPU resources on a connection that you
+now elect to forbit). But, the greater advantage: the packets that
+the end systems exchange in response to the connection teardown,
+are JUST what you need to get rid of their conntracks.
 
-So don't use GFP_KERNEL; use GFP_ATOMIC.  You cannot sleep in netfilter
-hooks, since they are run in interrupt context (when the packet is
-received) by the net_rx_action softirq.  You can see this in your stack
-trace.
+Of course, one could do what you requested. Maybe even without coding.
+I wouldn't know. Maybe others.
 
-> If I use GFP_ATOMIC, I don't get the error, but I think timers are not 
-> being called after the delay. I have a similar code for transmition, 
-> which works OK with GFP_KERNEL (delays messages) but with GFP_ATOMIC it 
-> does also not delay.
-
-If you have problems with GFP_ATOMIC, the problem is elsewhere and not
-in the fact that your allocations are atomic versus not.
-
-First thing, though, check the return value from kmalloc for failure (dp
-and tl equal NULL) to ensure that the allocation is even working!
-
-	Robert Love
+best regards
+  Patrick
