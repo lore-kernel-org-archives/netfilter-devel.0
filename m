@@ -1,16 +1,16 @@
-From: "Andrew Hall" <temp02@bluereef.com.au>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: patch-o-matic-ng release candidate in cvs
-Date: Tue, 11 May 2004 18:32:22 +1000
+Date: Tue, 11 May 2004 11:04:39 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <020101c43732$7acb8ff0$2601010a@bluereef.local>
-References: <Pine.LNX.4.33.0405110935320.13357-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.33.0405111103400.13357-100000@blackhole.kfki.hu>
+References: <Pine.LNX.4.44.0405092357270.14931-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Willy TARREAU <willy@w.ods.org>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0405092357270.14931-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,58 +21,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+On Mon, 10 May 2004, Henrik Nordstrom wrote:
 
-Your tcp_window_tracking patch fails to install with the new 2.6.6 kernel
-
-patching file include/linux/netfilter_ipv4/ip_conntrack.h
-Hunk #1 succeeded at 249 (offset 1 line).
-patching file include/linux/netfilter_ipv4/ip_conntrack_tcp.h
-patching file include/linux/sysctl.h
-Hunk #1 succeeded at 406 (offset 15 lines).
-patching file net/ipv4/netfilter/ip_conntrack_core.c
-Hunk #1 succeeded at 844 (offset 2 lines).
-patching file net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-Hunk #4 FAILED at 712.
-Hunk #5 succeeded at 857 (offset 2 lines).
-1 out of 6 hunks FAILED -- saving rejects to file
-net/ipv4/netfilter/ip_conntrack_proto_tcp.c.rej
-patching file net/ipv4/netfilter/ip_conntrack_standalone.c
-Hunk #1 succeeded at 322 (offset 36 lines).
-patching file net/ipv4/netfilter/ip_nat_helper.c
-
-This worked okay with 2.6.5.
-
-regards,
-
-Andrew.
------ Original Message -----
-From: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
-To: "Jim Gifford" <maillist@jg555.com>
-Cc: <netfilter-devel@lists.netfilter.org>; "Toth Szabolcs"
-<totya@mail.ajkanet.hu>
-Sent: Tuesday, May 11, 2004 5:42 PM
-Subject: Re: patch-o-matic-ng release candidate in cvs
-
-
-> On Mon, 10 May 2004, Jim Gifford wrote:
+> On Sun, 9 May 2004, Willy TARREAU wrote:
 >
-> > I assume this new version doesn't support 1.2.9
+> > While INFOP needs at least 2 arguments :
 > >
-> > Error Message
-> > Your iptables version 1.2.9 is too old and not supported at ./runme line
-214
+> >    #define INFOP(fmt, args...) printk(KERN_INFO "%s: %s: " fmt, __FILE__, __FUNCTION__, ## args)
 >
-> Yes, because the corresponding patch between 1.2.9 and 1.2.10 had not
-> yet been generated. Use the iptables source code from cvs.
+> Actually I think the bug is that there is no space infront of the comma in
+> the ## expansion. To limit the conflicts with C99 the GNU CPP varargs
+> comma magics is only activated if there is a space infront of the comma
+> like in this example from the GNU CPP manual:
 >
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : KFKI Research Institute for Particle and Nuclear Physics
->           H-1525 Budapest 114, POB. 49, Hungary
->
->
->
+>      #define eprintf(format, args...) fprintf (stderr, format , ##args)
+
+Yes, exactly. Patch is applied, thank you both.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
