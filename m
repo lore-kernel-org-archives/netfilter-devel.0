@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: ipt_iplimit bug fixed+questions
-Date: Sun, 15 Sep 2002 13:54:43 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: iptables on sparc64 platform?
+Date: 15 Sep 2002 14:58:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020915135443.R3810@sunbeam.de.gnumonks.org>
-References: <B9QQOYXRWS74TSZXYU05OJYSFE08QL.3ce15cb3@hernyo>
+Message-ID: <1032094701.28097.150.camel@tux>
+References: <20020314153419.GA5152@margo.student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JqtTuO3XTyKM6PLB"
-Cc: netfilter-devel@lists.samba.org, Gerd Knorr <kraxel@bytesex.org>,
-	"Wojciech Maj" <wojtektm@poczta.onet.pl>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature";
+	boundary="=-AfTVVjaJ8a4DyPElOViv"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Laszlo Hermann <hernyo@c7.campus.utcluj.ro>
-Content-Disposition: inline
-In-Reply-To: <B9QQOYXRWS74TSZXYU05OJYSFE08QL.3ce15cb3@hernyo>; from hernyo@c7.campus.utcluj.ro on Tue, May 14, 2002 at 09:51:31PM +0300
+To: Simon Oosthoek <simon@cal003100.student.utwente.nl>
+In-Reply-To: <20020314153419.GA5152@margo.student.utwente.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,60 +22,68 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---JqtTuO3XTyKM6PLB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-AfTVVjaJ8a4DyPElOViv
+Content-Type: multipart/mixed; boundary="=-TgttfE71HGdGSbXMIeX0"
+
+
+--=-TgttfE71HGdGSbXMIeX0
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 14, 2002 at 09:51:31PM +0300, Laszlo Hermann wrote:
->=20
-> Dear Netfilter Team,
->=20
-> I was testing the ipt_iplimit module (extension) while I encountered the
-> following problem:
->=20
-Sorry for following up this late.  I didn't read your code back in may, bec=
-ause
-it was a C file compressed in  a ZIP binary. =20
+On Thu, 2002-03-14 at 16:34, Simon Oosthoek wrote:
 
-Proposed code changes are usually submitted as unified diff and
-attached/included in the mail - so people can read it out of their mailbox.
+> The reason I have doubts about the quality of the modules on 64 bit sparc=
+ is
+> that the iptables command gives an invalid argument error when using the =
+-m
+> limit option. The ipt_limit module is in memory (according to lsmod).
 
-Wojciech has encountered the same problem and pointed me at your original m=
-ail.
+Hi Simon, sorry for the very very late reply.
 
-The ipt_iplimit module is contributed by Gerd Knorr, so he is the author
-and should make the decision whether he wants to include your changes or no=
-t.
+It seems I made a patch for libipt_limit.c when I read this mail but it
+seems I never sent it to anyone :( I found it when I was cleaning up a
+bit.
 
-Gerd, could you please have a look and discuss the bug as well as the propo=
-sed
-fix with Laszlo and Wojciech?
-
-Thanks.
+Do you still have this problem?
+I don't know if this patch will solve the problem but if you want you
+can give it a try.
 
 --=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
-=20
-V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+/Martin
 
---JqtTuO3XTyKM6PLB
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
+
+--=-TgttfE71HGdGSbXMIeX0
+Content-Disposition: attachment; filename=libipt_limit-diff
+Content-Type: text/plain; name=libipt_limit-diff; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+--- netfilter/userspace/extensions/libipt_limit.c.orig	Tue Jul 30 11:56:40 =
+2002
++++ netfilter/userspace/extensions/libipt_limit.c	Tue Jul 30 11:57:28 2002
+@@ -183,7 +183,7 @@
+     "limit",
+     IPTABLES_VERSION,
+     IPT_ALIGN(sizeof(struct ipt_rateinfo)),
+-    offsetof(struct ipt_rateinfo, prev),
++    IPT_ALIGN(sizeof(struct ipt_rateinfo)),
+     &help,
+     &init,
+     &parse,
+
+--=-TgttfE71HGdGSbXMIeX0--
+
+--=-AfTVVjaJ8a4DyPElOViv
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Version: GnuPG v1.0.7 (GNU/Linux)
 
-iD8DBQE9hHUDXaXGVTD0i/8RAqtXAJ9WxNF4l01s+6sV7uWrbrhj3fD4pgCgoh9Q
-wDU36J4jkYdUgu3lYdg49hw=
-=fpZT
+iD8DBQA9hIPtWm2vlfa207ERApMGAJ9h5pKZ6RwAkFvYFn8cUJHc2MgkDgCfeG7T
+sb1vsqfdjc6qmKgJHXTH7EA=
+=dgGg
 -----END PGP SIGNATURE-----
 
---JqtTuO3XTyKM6PLB--
+--=-AfTVVjaJ8a4DyPElOViv--
