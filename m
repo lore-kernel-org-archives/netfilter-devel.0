@@ -1,17 +1,17 @@
-From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Subject: Re: Activating IPTables rules with external files (containing flag
-	va lues).
-Date: Mon, 16 Feb 2004 11:31:14 -0500
+From: "Tarek W." <mailinglists1@hotpop.com>
+Subject: distro kernel support in patch-o-matic-ng [WAS: HOPLIMIT]
+Date: Mon, 01 Jan 2001 06:29:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1076949073.2023.26.camel@ca.gts.nexusmgmt.com>
-References: <019BE2AC0F67D51198C000508B69393F0C1DDCE0@esf-exchange1a.brevard.k12.fl.us>
+Message-ID: <978323361.27467.12.camel@carve.personal.localdomain>
+References: <Pine.LNX.4.58L.0402161307250.2317@alpha.zarz.agh.edu.pl>
+ <006801c3f482$5f28a190$0e25fe96@pysiak>
+ <Pine.LNX.4.58L.0402161413310.6865@alpha.zarz.agh.edu.pl>
 Mime-Version: 1.0
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Ziemba, Jason@Viera" <jason.ziemba@brevard.k12.fl.us>
-In-Reply-To: <019BE2AC0F67D51198C000508B69393F0C1DDCE0@esf-exchange1a.brevard.k12.fl.us>
+In-reply-to: <Pine.LNX.4.58L.0402161413310.6865@alpha.zarz.agh.edu.pl>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,36 +22,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I believe that is the condition patch in the extra repository - John
+On Mon, 2004-02-16 at 15:19, Wojciech 'Sas' Cieciwa wrote: [snipped]
+> On Mon, 16 Feb 2004, Maciej Soltysiak wrote:
+> 
+> > > In HOPLIMIT module file has name ip6t_HL.c but Makefile requires 
+> > > ip6t_HOPLIMIT.o, and ip6t_HL.c required ip6t_HOPLIMIT.h which not exist.
+> > > exist include/linux/netfilter_ipv6/ip6t_HL.h
+> > Hmm, what kernel is that ? Which version and is it
+> > a vanilla or a distro kernel?
 
-On Mon, 2004-02-16 at 11:27, Ziemba, Jason@Viera wrote:
-> A while back I located an article that described placing a 1 or 0 (or
-> other flag value) into a file and then building IPTables rules that
-> activated a specific rule based on the value contained within this
-> file.
->  
-> I, of course, didn't bookmark that article (or print it out).
->  
-> Has anyone on this list came across a similar article (or done this
-> themselves)?
-> If so, could you please point me in the right direction to implement a
-> configuration of this nature.
->  
-> Thank You,
-> Jason Ziemba
-> Computer Programmer / Webmaster
-> Brevard Public Schools
-> jason.ziemba@brevard.k12.fl.us
->  
-> 
-> 
--- 
-John A. Sullivan III
-Chief Technology Officer
-Nexus Management
-+1 207-985-7880
-john.sullivan@nexusmgmt.com
----
-If you are interested in helping to develop a GPL enterprise class
-VPN/Firewall/Security device management console, please visit
-http://iscs.sourceforge.net 
+I've been following the earlier thread on architecturing
+patch-o-matic-ng to support kernel version, even minor numbers.
+
+I'd like to suggest the inclusion of support (in patch-o-matic-ng, as in
+"can work with", not labeled "supported") for distro kernels too.
+
+shouldn't be too different then adding support for leaf kernel versions.
+albeit adding headaches to the maintainer which could be delegated to
+volunteer sergeants.
+
+/me ducks dodging the hail of bullets and fades away into the dunes
+
+my $.02 ;)
