@@ -1,12 +1,15 @@
-From: "Rajesh B. V." <rajeshbv@intotoinc.com>
-Subject: Problem with MASQUERADE of L2TP packets
-Date: Thu, 13 Nov 2003 16:32:55 +0530
+From: "Song Wang" <wsong@ece.uci.edu>
+Subject: netfilter connection tracking TIMEOUT issue
+Date: Thu, 13 Nov 2003 17:20:46 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
+Message-ID: <MEEKIEPDOBGHADOEHGGOMEKHCCAA.wsong@ece.uci.edu>
+Reply-To: <wsong@ece.uci.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,45 +20,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+Hi,
 
-We have our L2TP module which now we are integrating with Linux IPtables. 
-We are facing problem in sending data through L2TP session.
+I have run into the timeout issue related to the connection
+tracking entry several times. The fact that those connection tracking
+entries
+just stay in the connection tracking table and take effect due to
+the default  timeout values (for example, TCP_CONNTRACK_ESTABLISHED
+is 5 DAYS) could compromise the security or put network connection
+into the wrong state.
 
-SG1 in following setup is having iptables with MASQUERADE. The rule is:
+For instance, I can implement "Virtual Servers" using DNAT such as
 
-# iptables -t nat -A POSTROUTING -j MASQUERADE -o ppp0
+iptables -t nat -A PREROUTING -i ppp0 -p tcp --dport 22 -j DNAT --to
+192.168.1.5
 
-Test set-up:
+to create a virtual ssh server behind my Linux gateway.
 
-192.168.1.82 192.168.1.254
-LAN PC ----------------- SG 1 ( LAC Mode ) --------------- SG2 ( LNS Mode )
-172.16.3.83 172.16.3.73
-6.6.6.7 ---- l2tp tunnel ---- 6.6.6.6
+However, when a ssh connection is established from the remove to the ssh
+server,
+the TCP connection tracking entry will be created in ESTABLISHED status with
+timeout set to 5 DAYS. So even I realized I made a mistake to allow this
+kind
+of SSH virtual server and deleted the iptables rule, due to the 5 DAYS
+timeout, the remote can still connect to the ssh server within 5 DAYS unless
+I
+rebooted the gateway or reloaded ip_conntrack module!!!
 
-After estabilshing the L2TP tunnel, when we issue ping from LAN PC 
-(192.168.1.82) to LNS IP address (6.6.6.6) we observe the packets sent out 
-by SG1 having strange Source IP in both inner and outer IP header.
-# ping 6.6.6.6 (from 192.168.1.82)
+I don't know how netfilter designers come up with these TIMEOUT values. I
+searched
+the mailing list before and there were arguments about it.
 
-Problem:
-The outer IP header is having the source IP as 6.7.1.254 (last two octets 
-of PPP IP + last two octets of ethernet IP).
-And the inner IP header (PPP) is having source as 6.6.6.7 instead of 
-192.168.1.82 (actual packet originator).
+I don't want to argue about these values. But I think we should come up with
+a method that when we delete an iptables rule, at least we can easily elect
+to
+delete related connection tracking entries in the connection tracking table.
 
-If i disable the iptables rule with MASQUERADE then the traffic is going fine.
+Do we have an easy way to delete specified entries in the connection
+tracking table
+without writing a kernel module? The only way I know to access connection
+tracking table
+from the user space is "cat /proc/net/ip_conntrack".
 
-We are calling " ip_finish_output () " in our L2TP send function. Till this 
-function the IP headers are intact and fine. IP tables hook function will 
-be called in " ip_finish_output ()", where NAT is applied and the problem 
-could be in this area.
+Thanks in advance.
 
-Can anyone suggest, what is the mistake in configuration or is it the 
-problem with L2TP itself ?
-
-PS:
-Pl. reply me as i did not subscribe to the list.
-
-Regards,
---Rajesh
+-Song
