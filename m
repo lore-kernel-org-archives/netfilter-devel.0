@@ -1,169 +1,112 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
- <yoshfuji@linux-ipv6.org>
-Subject: [PATCH] IPv6: Miscellaneous clean-ups
-Date: Fri, 04 Oct 2002 01:13:15 +0900 (JST)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20021004.011315.05129566.yoshfuji@linux-ipv6.org>
+From: Andras Kis-Szabo <kisza@securityaudit.hu>
+Subject: [PATCH] IPv6 SMP fix
+Date: Thu, 03 Oct 2002 19:03:21 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1033664602.1062.4.camel@arwen>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: usagi@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
-   netfilter-devel@lists.netfilter.org
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/mixed; boundary="Boundary_(ID_sukEvtkHkvZ+Fkxy9tXHKA)"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Netfilter Devel <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
+
+
+--Boundary_(ID_sukEvtkHkvZ+Fkxy9tXHKA)
+Content-type: text/plain
+Content-transfer-encoding: 7BIT
 
 Hi,
 
-1. use s6_addrXX instead of in6_u.s6_addrXX.
-2. avoid using magic number.
-3. use 32bit constants.
+- fixed TABLE_OFFSET macro
+- set the owner of the proc entry
 
-Following patch in against linux-2.4.19.
+The original problem (bad counter values at Sparc64) remained: this
+problem exists in IPv4, too!
 
-Thanks in advance.
+kisza
 
--------------------------------------------------------------------
-Patch-Name: Miscellaneous clean-ups
-Patch-Id: FIX_2_4_19_ADDRCONF_TIMER-20020905
-Patch-Author: YOSHIFUJI Hideaki / USAGI Project <yoshfuji@linux-ipv6.org>
-Credit: YOSHIFUJI Hideaki / USAGI Project <yoshfuji@linux-ipv6.org>
-Reference: RFC2553
--------------------------------------------------------------------
-Index: net/ipv6/addrconf.c
-===================================================================
-RCS file: /cvsroot/usagi/usagi-backport/linux24/net/ipv6/addrconf.c,v
-retrieving revision 1.1.1.1
-retrieving revision 1.1.1.1.12.1
-diff -u -r1.1.1.1 -r1.1.1.1.12.1
---- net/ipv6/addrconf.c	2002/08/20 09:47:02	1.1.1.1
-+++ net/ipv6/addrconf.c	2002/09/12 09:41:58	1.1.1.1.12.1
-@@ -172,7 +172,7 @@
+-- 
+    Andras Kis-Szabo       Security Development, Design and Audit
+-------------------------/        Zorp, NetFilter and IPv6
+ kisza@SecurityAudit.hu /------------------------------------------->
+
+--Boundary_(ID_sukEvtkHkvZ+Fkxy9tXHKA)
+Content-type: text/plain; name=counter.20021003; charset=ISO-8859-2
+Content-transfer-encoding: 7BIT
+Content-disposition: attachment; filename=counter.20021003
+
+--- linux/net/ipv6/netfilter/ip6_tables.c.old	Thu Oct  3 18:35:19 2002
++++ linux/net/ipv6/netfilter/ip6_tables.c	Thu Oct  3 18:50:46 2002
+@@ -111,7 +111,7 @@
+ #define ADD_COUNTER(c,b,p) do { (c).bcnt += (b); (c).pcnt += (p); } while(0)
  
- 	if ((addr->s6_addr32[0] | addr->s6_addr32[1]) == 0) {
- 		if (addr->s6_addr32[2] == 0) {
--			if (addr->in6_u.u6_addr32[3] == 0)
-+			if (addr->s6_addr32[3] == 0)
- 				return IPV6_ADDR_ANY;
+ #ifdef CONFIG_SMP
+-#define TABLE_OFFSET(t,p) (SMP_ALIGN((t)->size)*cpu_number_map(p))
++#define TABLE_OFFSET(t,p) (SMP_ALIGN((t)->size)*(p))
+ #else
+ #define TABLE_OFFSET(t,p) 0
+ #endif
+@@ -358,7 +358,8 @@
+ 	read_lock_bh(&table->lock);
+ 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
+ 	table_base = (void *)table->private->entries
+-		+ TABLE_OFFSET(table->private, smp_processor_id());
++		+ TABLE_OFFSET(table->private, 
++				cpu_number_map(smp_processor_id()));
+ 	e = get_entry(table_base, table->private->hook_entry[hook]);
  
- 			if (addr->s6_addr32[3] == __constant_htonl(0x00000001))
-@@ -1187,7 +1187,7 @@
- 	ASSERT_RTNL();
+ #ifdef CONFIG_NETFILTER_DEBUG
+@@ -589,7 +590,7 @@
+ 				= (void *)ip6t_get_target(e);
  
- 	memset(&addr, 0, sizeof(struct in6_addr));
--	addr.s6_addr[15] = 1;
-+	addr.s6_addr32[3] = __constant_htonl(0x00000001);
+ 			if (e->comefrom & (1 << NF_IP6_NUMHOOKS)) {
+-				printk("iptables: loop hook %u pos %u %08X.\n",
++				printk("ip6tables: loop hook %u pos %u %08X.\n",
+ 				       hook, pos, e->comefrom);
+ 				return 0;
+ 			}
+@@ -936,7 +937,7 @@
  
- 	if ((idev = ipv6_find_idev(dev)) == NULL) {
- 		printk(KERN_DEBUG "init loopback: add_dev failed\n");
-@@ -1234,9 +1234,7 @@
- 		return;
- 
- 	memset(&addr, 0, sizeof(struct in6_addr));
--
--	addr.s6_addr[0] = 0xFE;
--	addr.s6_addr[1] = 0x80;
-+	addr.s6_addr32[0] = __contant_htonl(0xFE800000);
- 
- 	if (ipv6_generate_eui64(addr.s6_addr + 8, dev) == 0)
- 		addrconf_add_linklocal(idev, &addr);
-Index: net/ipv6/icmp.c
-===================================================================
-RCS file: /cvsroot/usagi/usagi-backport/linux24/net/ipv6/icmp.c,v
-retrieving revision 1.1.1.1
-retrieving revision 1.1.1.1.12.1
-diff -u -r1.1.1.1 -r1.1.1.1.12.1
---- net/ipv6/icmp.c	2002/08/20 09:47:02	1.1.1.1
-+++ net/ipv6/icmp.c	2002/09/12 09:41:58	1.1.1.1.12.1
-@@ -198,7 +198,7 @@
- 		u8 type;
- 		if (skb_copy_bits(skb, ptr+offsetof(struct icmp6hdr, icmp6_type),
- 				  &type, 1)
--		    || !(type & 0x80))
-+		    || !(type & ICMPV6_INFOMSG_MASK))
- 			return 1;
+ 	/* And one copy for every other CPU */
+ 	for (i = 1; i < smp_num_cpus; i++) {
+-		memcpy(newinfo->entries + SMP_ALIGN(newinfo->size*i),
++		memcpy(newinfo->entries + SMP_ALIGN(newinfo->size)*i,
+ 		       newinfo->entries,
+ 		       SMP_ALIGN(newinfo->size));
  	}
- 	return 0;
-@@ -216,7 +216,7 @@
- 	int res = 0;
+@@ -1491,6 +1492,9 @@
+ 	duprintf("table->private->number = %u\n",
+ 		 table->private->number);
  
- 	/* Informational messages are not limited. */
--	if (type & 0x80)
-+	if (type & ICMPV6_INFOMSG_MASK)
- 		return 1;
++	/* save number of initial entries */
++	table->private->initial_entries = table->private->number;
++
+ 	table->lock = RW_LOCK_UNLOCKED;
+ 	list_prepend(&ip6t_tables, table);
  
- 	/* Do not limit pmtu discovery, it would break it. */
-@@ -519,22 +519,22 @@
- 				    skb_checksum(skb, 0, skb->len, 0))) {
- 			if (net_ratelimit())
- 				printk(KERN_DEBUG "ICMPv6 checksum failed [%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x > %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x]\n",
--				       ntohs(saddr->in6_u.u6_addr16[0]),
--				       ntohs(saddr->in6_u.u6_addr16[1]),
--				       ntohs(saddr->in6_u.u6_addr16[2]),
--				       ntohs(saddr->in6_u.u6_addr16[3]),
--				       ntohs(saddr->in6_u.u6_addr16[4]),
--				       ntohs(saddr->in6_u.u6_addr16[5]),
--				       ntohs(saddr->in6_u.u6_addr16[6]),
--				       ntohs(saddr->in6_u.u6_addr16[7]),
--				       ntohs(daddr->in6_u.u6_addr16[0]),
--				       ntohs(daddr->in6_u.u6_addr16[1]),
--				       ntohs(daddr->in6_u.u6_addr16[2]),
--				       ntohs(daddr->in6_u.u6_addr16[3]),
--				       ntohs(daddr->in6_u.u6_addr16[4]),
--				       ntohs(daddr->in6_u.u6_addr16[5]),
--				       ntohs(daddr->in6_u.u6_addr16[6]),
--				       ntohs(daddr->in6_u.u6_addr16[7]));
-+				       ntohs(saddr->s6_addr16[0]),
-+				       ntohs(saddr->s6_addr16[1]),
-+				       ntohs(saddr->s6_addr16[2]),
-+				       ntohs(saddr->s6_addr16[3]),
-+				       ntohs(saddr->s6_addr16[4]),
-+				       ntohs(saddr->s6_addr16[5]),
-+				       ntohs(saddr->s6_addr16[6]),
-+				       ntohs(saddr->s6_addr16[7]),
-+				       ntohs(daddr->s6_addr16[0]),
-+				       ntohs(daddr->s6_addr16[1]),
-+				       ntohs(daddr->s6_addr16[2]),
-+				       ntohs(daddr->s6_addr16[3]),
-+				       ntohs(daddr->s6_addr16[4]),
-+				       ntohs(daddr->s6_addr16[5]),
-+				       ntohs(daddr->s6_addr16[6]),
-+				       ntohs(daddr->s6_addr16[7]));
- 			goto discard_it;
- 		}
+@@ -1818,9 +1822,15 @@
  	}
-@@ -613,7 +613,7 @@
- 			printk(KERN_DEBUG "icmpv6: msg of unkown type\n");
  
- 		/* informational */
--		if (type & 0x80)
-+		if (type & ICMPV6_INFOMSG_MASK)
- 			break;
- 
- 		/* 
-Index: net/ipv6/netfilter/ip6_queue.c
-===================================================================
-RCS file: /cvsroot/usagi/usagi-backport/linux24/net/ipv6/netfilter/ip6_queue.c,v
-retrieving revision 1.1.1.1
-retrieving revision 1.1.1.1.12.2
-diff -u -r1.1.1.1 -r1.1.1.1.12.2
---- net/ipv6/netfilter/ip6_queue.c	2002/08/20 09:47:02	1.1.1.1
-+++ net/ipv6/netfilter/ip6_queue.c	2002/09/19 03:57:51	1.1.1.1.12.2
-@@ -306,14 +306,8 @@
- 	 */
- 	if (e->info->hook == NF_IP_LOCAL_OUT) {
- 		struct ipv6hdr *iph = e->skb->nh.ipv6h;
--		if (!(   iph->daddr.in6_u.u6_addr32[0] == e->rt_info.daddr.in6_u.u6_addr32[0]
--                      && iph->daddr.in6_u.u6_addr32[1] == e->rt_info.daddr.in6_u.u6_addr32[1]
--                      && iph->daddr.in6_u.u6_addr32[2] == e->rt_info.daddr.in6_u.u6_addr32[2]
--                      && iph->daddr.in6_u.u6_addr32[3] == e->rt_info.daddr.in6_u.u6_addr32[3]
--		      && iph->saddr.in6_u.u6_addr32[0] == e->rt_info.saddr.in6_u.u6_addr32[0]
--		      && iph->saddr.in6_u.u6_addr32[1] == e->rt_info.saddr.in6_u.u6_addr32[1]
--		      && iph->saddr.in6_u.u6_addr32[2] == e->rt_info.saddr.in6_u.u6_addr32[2]
--		      && iph->saddr.in6_u.u6_addr32[3] == e->rt_info.saddr.in6_u.u6_addr32[3]))
-+		if (ipv6_addr_cmp(&iph->daddr, &e->rt_info.daddr) ||
-+		    ipv6_addr_cmp(&iph->saddr, &e->rt_info.saddr))
- 			return route6_me_harder(e->skb);
+ #ifdef CONFIG_PROC_FS
+-	if (!proc_net_create("ip6_tables_names", 0, ip6t_get_tables)) {
++	{
++	struct proc_dir_entry *proc;
++
++	proc = proc_net_create("ip6_tables_names", 0, ip6t_get_tables);
++	if (!proc) {
+ 		nf_unregister_sockopt(&ip6t_sockopts);
+ 		return -ENOMEM;
++	}
++	proc->owner = THIS_MODULE;
  	}
- 	return 0;
+ #endif
+ 
+
+--Boundary_(ID_sukEvtkHkvZ+Fkxy9tXHKA)--
