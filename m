@@ -1,17 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] multiple changes/fixes
-Date: Fri, 27 Aug 2004 22:08:54 +0200
+From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+Subject: Re: tc filtering vs iptables
+Date: Fri, 27 Aug 2004 16:11:37 -0400
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <412F94D6.8040906@trash.net>
-References: <20040827133700.GT23981@eychenne.org> <412F5A3C.1000704@trash.net>
-	<20040827162808.GA29915@eychenne.org>
+Message-ID: <20040827201137.GB9274@ti64.telemetry-investments.com>
+References: <1093614389.1068.20.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0408271751360.32691@filer.marasystems.com>
+	<1093632324.14188.2.camel@jzny.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-In-Reply-To: <20040827162808.GA29915@eychenne.org>
+To: jamal <hadi@cyberus.ca>
+Content-Disposition: inline
+In-Reply-To: <1093632324.14188.2.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,37 +23,17 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Herve Eychenne wrote:
+On Fri, Aug 27, 2004 at 02:45:24PM -0400, jamal wrote:
+> Both of them seem to be a hassle for what i need (and given the time i
+> have). hipac seems to be a 2.4.x thing and pool requires me to recompile
+> a few things (while docs look scarce). I dont have much time to get this
+> done by - when i have more time in the future i could do it.
+> 
+> Any recommendation of how i should arrange the chains?
+ 
+PATRICIA tree?  Calculate the internal CIDR address/prefixes and branch
+on them.
 
->On Fri, Aug 27, 2004 at 05:58:52PM +0200, Patrick McHardy wrote:
->
->>Would it be possible that you split the patch into logical changes
->>so it's easier to review ?
->>
->
->I was afraid someone would say that. Does someone know a good tool to
->split patches? I think of a X11 that would enable to drag and drop
->diff file portions to several new areas/patches, with an option that
->would automatically create one containing only whitespace changes.
->
-Unfortunately, no. I use bitkeeper, patch and cut-n-paste for that, but
-that's just my preference.
+Regards,
 
->
->Otherwise I guess I may not have the courage to do it. :-(
->
-I hope you're still going to do it. I don't want to throw in a 70k
-patch which touches stuff all over the place, and it's really hard
-to judge which change has which purpose with just one big patch
-that also reindents and reformats stuff. BTW:
-
--static int print_match(const struct ip6t_entry_match *e,
--                       const struct ip6t_ip6 *ip)
--{
-+static int
-+print_match(const struct ip6t_entry_match *e, const struct ip6t_ip6 *ip) {
-
-the opening bracket should be on a seperate line.
-
-Regards
-Patrick
+	Bill Rugolsky
