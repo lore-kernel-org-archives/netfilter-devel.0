@@ -1,8 +1,8 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 12/18] Netfilter:  Add bitops to ipt_MARK without breaking
-	compatbility
-Date: Wed, 05 Jan 2005 14:34:52 +1100
-Message-ID: <1104896093.20582.76.camel@localhost.localdomain>
+Subject: [PATCH 13/18] Netfilter:  Multiport revision with port ranges
+	(replaces "mport")
+Date: Wed, 05 Jan 2005 14:35:59 +1100
+Message-ID: <1104896159.20582.79.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -21,189 +21,207 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Add bitops to ipt_MARK without breaking compatbility
+Name: Multiport revision with port ranges (replaces "mport")
 Status: Tested under nfsim
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au> (modified)
 
-Anders Fugmann <afu@fugmann.dhs.org> wrote a patch to add bitops to
-ipt_MARK.  I made a version based on the revision patch.
+The multiport match doesn't support ranges of ports, so a new match
+called "mport" was written.  Now we have versioning of matches and
+targets, we can simply put this extension in multiport revision 1.
 
-Bart De Schuymer <bdschuym@pandora.be> provided the idea of overriding
-the target type.
+Also, removes gratuitous checking in match: we basically trust
+iptables userspace these days.
 
-Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_MARK.c
+===== net/ipv4/netfilter/ipt_multiport.c 1.8 vs edited =====
+Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ipt_multiport.h
 ===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ipt_MARK.c	2004-12-29 14:38:13.057844376 +1100
-+++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_MARK.c	2004-12-29 15:20:28.792354136 +1100
-@@ -20,12 +20,12 @@
- MODULE_DESCRIPTION("iptables MARK modification module");
- 
- static unsigned int
--target(struct sk_buff **pskb,
--       const struct net_device *in,
--       const struct net_device *out,
--       unsigned int hooknum,
--       const void *targinfo,
--       void *userinfo)
-+target_v0(struct sk_buff **pskb,
-+	  const struct net_device *in,
-+	  const struct net_device *out,
-+	  unsigned int hooknum,
-+	  const void *targinfo,
-+	  void *userinfo)
- {
- 	const struct ipt_mark_target_info *markinfo = targinfo;
- 
-@@ -36,12 +36,45 @@
- 	return IPT_CONTINUE;
+--- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-05 12:59:28.122700808 +1100
++++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-05 13:02:41.176352192 +1100
+@@ -18,4 +18,12 @@
+ 	u_int8_t count;				/* Number of ports */
+ 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
+ };
++
++struct ipt_multiport_v1
++{
++	u_int8_t flags;				/* Type of comparison */
++	u_int8_t count;				/* Number of ports */
++	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
++	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
++};
+ #endif /*_IPT_MULTIPORT_H*/
+Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ipt_multiport.c
+===================================================================
+--- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ipt_multiport.c	2005-01-05 12:59:28.121700960 +1100
++++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ipt_multiport.c	2005-01-05 13:02:41.176352192 +1100
+@@ -46,6 +46,50 @@
+ 	return 0;
  }
  
-+static unsigned int
-+target_v1(struct sk_buff **pskb,
-+	  const struct net_device *in,
-+	  const struct net_device *out,
-+	  unsigned int hooknum,
-+	  const void *targinfo,
-+	  void *userinfo)
++/* Returns 1 if the port is matched by the test, 0 otherwise. */
++static inline int
++ports_match_v1(const struct ipt_multiport_v1 *minfo,
++	       u_int16_t src, u_int16_t dst)
 +{
-+	const struct ipt_mark_target_info_v1 *markinfo = targinfo;
-+	int mark = 0;
++	unsigned int i;
++	u_int16_t s, e;
 +
-+	switch (markinfo->mode) {
-+	case IPT_MARK_SET:
-+		mark = markinfo->mark;
-+		break;
-+		
-+	case IPT_MARK_AND:
-+		mark = (*pskb)->nfmark & markinfo->mark;
-+		break;
-+		
-+	case IPT_MARK_OR:
-+		mark = (*pskb)->nfmark | markinfo->mark;
-+		break;
-+	}
++	for (i=0; i < minfo->count; i++) {
++		s = minfo->ports[i];
 +
-+	if((*pskb)->nfmark != mark) {
-+		(*pskb)->nfmark = mark;
-+		(*pskb)->nfcache |= NFC_ALTERED;
++		if (minfo->pflags[i]) {
++			/* range port matching */
++			e = minfo->ports[++i];
++			duprintf("src or dst matches with %d-%d?\n", s, e);
++
++			if (minfo->flags == IPT_MULTIPORT_SOURCE
++			    && src >= s && src <= e)
++				return 1;
++			if (minfo->flags == IPT_MULTIPORT_DESTINATION
++			    && dst >= s && dst <= e)
++				return 1;
++			if (minfo->flags == IPT_MULTIPORT_EITHER
++			    && ((dst >= s && dst <= e)
++				|| (src >= s && src <= e)))
++				return 1;
++		} else {
++			/* exact port matching */
++			duprintf("src or dst matches with %d?\n", s);
++			if (minfo->flags == IPT_MULTIPORT_SOURCE
++			    && src == s)
++				return 1;
++			if (minfo->flags == IPT_MULTIPORT_DESTINATION
++			    && dst == s)
++				return 1;
++			if (minfo->flags == IPT_MULTIPORT_EITHER
++			    && (src == s || dst == s))
++				return 1;
++		}
 +	}
-+	return IPT_CONTINUE;
++ 
++ 	return 0;
 +}
-+
 +
  static int
--checkentry(const char *tablename,
--	   const struct ipt_entry *e,
--           void *targinfo,
--           unsigned int targinfosize,
--           unsigned int hook_mask)
-+checkentry_v0(const char *tablename,
-+	      const struct ipt_entry *e,
-+	      void *targinfo,
-+	      unsigned int targinfosize,
-+	      unsigned int hook_mask)
- {
- 	if (targinfosize != IPT_ALIGN(sizeof(struct ipt_mark_target_info))) {
- 		printk(KERN_WARNING "MARK: targinfosize %u != %Zu\n",
-@@ -58,21 +91,71 @@
- 	return 1;
+ match(const struct sk_buff *skb,
+       const struct net_device *in,
+@@ -57,14 +101,11 @@
+ 	u16 _ports[2], *pptr;
+ 	const struct ipt_multiport *multiinfo = matchinfo;
+ 
+-	/* Must not be a fragment. */
+ 	if (offset)
+ 		return 0;
+ 
+-	/* Must be big enough to read ports (both UDP and TCP have
+-           them at the start). */
+ 	pptr = skb_header_pointer(skb, skb->nh.iph->ihl * 4,
+-				  sizeof(_ports), &_ports[0]);
++				  sizeof(_ports), _ports);
+ 	if (pptr == NULL) {
+ 		/* We've been asked to examine this packet, and we
+ 		 * can't.  Hence, no choice but to drop.
+@@ -80,6 +121,35 @@
+ 			   ntohs(pptr[0]), ntohs(pptr[1]));
  }
  
--static struct ipt_target ipt_mark_reg = {
 +static int
-+checkentry_v1(const char *tablename,
-+	      const struct ipt_entry *e,
-+	      void *targinfo,
-+	      unsigned int targinfosize,
-+	      unsigned int hook_mask)
++match_v1(const struct sk_buff *skb,
++	 const struct net_device *in,
++	 const struct net_device *out,
++	 const void *matchinfo,
++	 int offset,
++	 int *hotdrop)
 +{
-+	struct ipt_mark_target_info_v1 *markinfo = targinfo;
++	u16 _ports[2], *pptr;
++	const struct ipt_multiport_v1 *multiinfo = matchinfo;
 +
-+	if (targinfosize != IPT_ALIGN(sizeof(struct ipt_mark_target_info_v1))){
-+		printk(KERN_WARNING "MARK: targinfosize %u != %Zu\n",
-+		       targinfosize,
-+		       IPT_ALIGN(sizeof(struct ipt_mark_target_info_v1)));
++	if (offset)
++		return 0;
++
++	pptr = skb_header_pointer(skb, skb->nh.iph->ihl * 4,
++				  sizeof(_ports), _ports);
++	if (pptr == NULL) {
++		/* We've been asked to examine this packet, and we
++		 * can't.  Hence, no choice but to drop.
++		 */
++		duprintf("ipt_multiport:"
++			 " Dropping evil offset=0 tinygram.\n");
++		*hotdrop = 1;
 +		return 0;
 +	}
 +
-+	if (strcmp(tablename, "mangle") != 0) {
-+		printk(KERN_WARNING "MARK: can only be called from \"mangle\" table, not \"%s\"\n", tablename);
-+		return 0;
-+	}
-+
-+	if (markinfo->mode != IPT_MARK_SET
-+	    && markinfo->mode != IPT_MARK_AND
-+	    && markinfo->mode != IPT_MARK_OR) {
-+		printk(KERN_WARNING "MARK: unknown mode %u\n",
-+		       markinfo->mode);
-+		return 0;
-+	}
-+
-+	return 1;
++	return ports_match_v1(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
 +}
 +
-+static struct ipt_target ipt_mark_reg_v0 = {
- 	.name		= "MARK",
--	.target		= target,
--	.checkentry	= checkentry,
-+	.target		= target_v0,
-+	.checkentry	= checkentry_v0,
- 	.me		= THIS_MODULE,
+ /* Called when user tries to insert an entry of this type. */
+ static int
+ checkentry(const char *tablename,
+@@ -88,36 +158,53 @@
+ 	   unsigned int matchsize,
+ 	   unsigned int hook_mask)
+ {
+-	const struct ipt_multiport *multiinfo = matchinfo;
+-
+-	if (matchsize != IPT_ALIGN(sizeof(struct ipt_multiport)))
+-		return 0;
++	return (matchsize == IPT_ALIGN(sizeof(struct ipt_multiport)));
++}
+ 
+-	/* Must specify proto == TCP/UDP, no unknown flags or bad count */
+-	return (ip->proto == IPPROTO_TCP || ip->proto == IPPROTO_UDP)
+-		&& !(ip->invflags & IPT_INV_PROTO)
+-		&& matchsize == IPT_ALIGN(sizeof(struct ipt_multiport))
+-		&& (multiinfo->flags == IPT_MULTIPORT_SOURCE
+-		    || multiinfo->flags == IPT_MULTIPORT_DESTINATION
+-		    || multiinfo->flags == IPT_MULTIPORT_EITHER)
+-		&& multiinfo->count <= IPT_MULTI_PORTS;
++static int
++checkentry_v1(const char *tablename,
++	      const struct ipt_ip *ip,
++	      void *matchinfo,
++	      unsigned int matchsize,
++	      unsigned int hook_mask)
++{
++	return (matchsize == IPT_ALIGN(sizeof(struct ipt_multiport_v1)));
+ }
+ 
+ static struct ipt_match multiport_match = {
+ 	.name		= "multiport",
 +	.revision	= 0,
-+};
-+
-+static struct ipt_target ipt_mark_reg_v1 = {
-+	.name		= "MARK",
-+	.target		= target_v1,
-+	.checkentry	= checkentry_v1,
-+	.me		= THIS_MODULE,
-+	.revision	= 1,
+ 	.match		= &match,
+ 	.checkentry	= &checkentry,
+ 	.me		= THIS_MODULE,
  };
  
++static struct ipt_match multiport_match_v1 = {
++	.name		= "multiport",
++	.revision	= 1,
++	.match		= &match_v1,
++	.checkentry	= &checkentry_v1,
++	.me		= THIS_MODULE,
++};
++
  static int __init init(void)
  {
--	return ipt_register_target(&ipt_mark_reg);
+-	return ipt_register_match(&multiport_match);
 +	int err;
 +
-+	err = ipt_register_target(&ipt_mark_reg_v0);
++	err = ipt_register_match(&multiport_match);
 +	if (!err) {
-+		err = ipt_register_target(&ipt_mark_reg_v1);
++		err = ipt_register_match(&multiport_match_v1);
 +		if (err)
-+			ipt_unregister_target(&ipt_mark_reg_v0);
++			ipt_unregister_match(&multiport_match);
 +	}
++
 +	return err;
  }
  
  static void __exit fini(void)
  {
--	ipt_unregister_target(&ipt_mark_reg);
-+	ipt_unregister_target(&ipt_mark_reg_v0);
-+	ipt_unregister_target(&ipt_mark_reg_v1);
+ 	ipt_unregister_match(&multiport_match);
++	ipt_unregister_match(&multiport_match_v1);
  }
  
  module_init(init);
-Index: linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ipt_MARK.h
-===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ipt_MARK.h	2004-12-29 14:38:13.057844376 +1100
-+++ linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ipt_MARK.h	2004-12-29 15:18:20.243896472 +1100
-@@ -1,8 +1,20 @@
- #ifndef _IPT_MARK_H_target
- #define _IPT_MARK_H_target
- 
-+/* Version 0 */
- struct ipt_mark_target_info {
- 	unsigned long mark;
- };
- 
-+/* Version 1 */
-+enum {
-+	IPT_MARK_SET=0,
-+	IPT_MARK_AND,
-+	IPT_MARK_OR
-+};
-+
-+struct ipt_mark_target_info_v1 {
-+	unsigned long mark;
-+	u_int8_t mode;
-+};
- #endif /*_IPT_MARK_H_target*/
