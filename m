@@ -1,88 +1,91 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack tree
-Date: Wed, 23 Mar 2005 01:31:22 +0900 (JST)
-Message-ID: <200503221631.j2MGVMB8011775@toshiba.co.jp>
-References: <42389136.3050900@trash.net>
-	<200503170831.j2H8VgbY014017@toshiba.co.jp>
-	<423DA811.3090608@trash.net>
+From: Tobias Klauser <tklauser@access.unizh.ch>
+Subject: [KJ] [PATCH] net/ipv4/iptables/ipt_hashlimit.c: Remove custom
+	msecs_to_jiffies() macro
+Date: Tue, 22 Mar 2005 17:38:42 +0100
+Message-ID: <20050322163842.GA7173@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	yasuyuki.kozakai@toshiba.co.jp
-To: kaber@trash.net
-In-Reply-To: <423DA811.3090608@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="===============67660855260729513=="
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+To: kernel-janitors@lists.osdl.org
+List-Unsubscribe: <http://lists.osdl.org/mailman/listinfo/kernel-janitors>,
+	<mailto:kernel-janitors-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/kernel-janitors>
+List-Post: <mailto:kernel-janitors@lists.osdl.org>
+List-Help: <mailto:kernel-janitors-request@lists.osdl.org?subject=help>
+List-Subscribe: <http://lists.osdl.org/mailman/listinfo/kernel-janitors>,
+	<mailto:kernel-janitors-request@lists.osdl.org?subject=subscribe>
+Sender: kernel-janitors-bounces@lists.osdl.org
+Errors-To: kernel-janitors-bounces@lists.osdl.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sun, 20 Mar 2005 17:42:57 +0100
+--===============67660855260729513==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> > But in the current, it's not acceptable to introduce nf_conntrack_common
-> > as you said in other mail. I think it needs many changes to ip_conntrack and
-> > ip_nat, it may be difficult to change nf_conn structure
-> > (e.g. optimization), and it will confuse us - What we unify is ?
->
-> We're unifying things common to ip_conntrack and nf_conntrack, like
-> mark, status, ... in order to keep the number of accessor functions
-> in nf_ct_ops to a minimum.
+Replace the MS2JIFFIES() macro with the msecs_to_jiffies() function provided in
+jiffies.h.  The current macro is incorrect because HZ can have different values
+on different architectures.
 
-It's very poor joke. Please don't mind. :)
+Signed-off-by: Tobias Klauser <tklauser@nuerscht.ch>
 
-At first, let me clarify. I imagine that your suggestion is changing definition
-of "struct ip_connntrack" as follow.
+diff -urpN linux-2.6.11.orig/net/ipv4/netfilter/ipt_hashlimit.c linux-2.6.11/net/ipv4/netfilter/ipt_hashlimit.c
+--- linux-2.6.11.orig/net/ipv4/netfilter/ipt_hashlimit.c	2005-03-02 12:50:59.000000000 +0100
++++ linux-2.6.11/net/ipv4/netfilter/ipt_hashlimit.c	2005-03-21 16:46:41.000000000 +0100
+@@ -45,8 +45,6 @@
+ /* FIXME: this is just for IP_NF_ASSERRT */
+ #include <linux/netfilter_ipv4/ip_conntrack.h>
+ 
+-#define MS2JIFFIES(x) ((x*HZ)/1000)
+-
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_DESCRIPTION("iptables match for limiting per hash-bucket");
+@@ -225,7 +223,7 @@ static int htable_create(struct ipt_hash
+ 	hinfo->pde->data = hinfo;
+ 
+ 	init_timer(&hinfo->timer);
+-	hinfo->timer.expires = jiffies + MS2JIFFIES(hinfo->cfg.gc_interval);
++	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
+ 	hinfo->timer.data = (unsigned long )hinfo;
+ 	hinfo->timer.function = htable_gc;
+ 	add_timer(&hinfo->timer);
+@@ -275,7 +273,7 @@ static void htable_gc(unsigned long htlo
+ 	htable_selective_cleanup(ht, select_gc);
+ 
+ 	/* re-add the timer accordingly */
+-	ht->timer.expires = jiffies + MS2JIFFIES(ht->cfg.gc_interval);
++	ht->timer.expires = jiffies + msecs_to_jiffies(ht->cfg.gc_interval);
+ 	add_timer(&ht->timer);
+ }
+ 
+@@ -468,7 +466,7 @@ hashlimit_match(const struct sk_buff *sk
+ 			return 0;
+ 		}
+ 
+-		dh->expires = jiffies + MS2JIFFIES(hinfo->cfg.expire);
++		dh->expires = jiffies + msecs_to_jiffies(hinfo->cfg.expire);
+ 
+ 		dh->rateinfo.prev = jiffies;
+ 		dh->rateinfo.credit = user2credits(hinfo->cfg.avg * 
+@@ -482,7 +480,7 @@ hashlimit_match(const struct sk_buff *sk
+ 	}
+ 
+ 	/* update expiration timeout */
+-	dh->expires = now + MS2JIFFIES(hinfo->cfg.expire);
++	dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
+ 
+ 	rateinfo_recalc(dh, now);
+ 	if (dh->rateinfo.credit >= dh->rateinfo.cost) {
 
-struct ip_conntrack {
-	...
-	struct nf_conntrack_common common;
-	...
-}
+--===============67660855260729513==
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-This would change many parts of ip_conntrack and we'd have to rework on this
-issue when we want to change some member of "struct nf_conn". I think
-duplicating matches/targets is better than this way.
+_______________________________________________
+Kernel-janitors mailing list
+Kernel-janitors@lists.osdl.org
+http://lists.osdl.org/mailman/listinfo/kernel-janitors
 
-Or what you suggest is implementing glue function which gathers the common
-parameters from ip_conntrack/nf_conn and put them in nf_conntrack_common
-structure ? This introduces a few overheads, but acceptable for me.
-
-> Yes, that is one part. But some matches/targets need to get some
-> information from the conntrack. I've made a list of what is needed, so
-> we can talk in more concrete terms:
-
-OK,
-
-> ipt_state:
-> - recognize untracked
-> 
-> ipt_helper:
-> - ct->master->helper->name
-> 
-> ipt_conntrack:
-> - recognize untracked
-> - tuples
-> - status
-> - expires
-> 
-> ipt_connmark/IPT_CONNMARK:
-> - mark
-
-We have to be careful about "mark". Users may enable NF_IP_CONNTRACK_MARK and
-disable NF_CONNTRACK_MARK.
-
-> Creating a struct nf_conntrack_common should be ok for untracked,
-> status, expires, mark and master->helper->name. The tuples can't be
-> handled this way, for them we need nf_ct_ops.
-
-Regards,
-
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+--===============67660855260729513==--
