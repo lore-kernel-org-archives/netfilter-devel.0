@@ -1,15 +1,13 @@
-From: Ryan Hagelstrom <rhagelstrom@atcorp.com>
-Subject: Setting sk_buff->dst
-Date: Wed, 12 Feb 2003 13:31:26 -0600
+From: Manickavel Subramaniraj <MSubramaniraj@MEGISTO.com>
+Subject: IP Queue and fragmentation
+Date: Tue, 11 Feb 2003 12:10:35 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <01C2D29B.0B49B960.rhagelstrom@atcorp.com>
-Reply-To: "rhagelstrom@atcorp.com" <rhagelstrom@atcorp.com>
+Message-ID: <C3F7A1AD0781F84784B5528466CA09DD04F4E0@megisto-sql1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C2D1F0.7E2B0520"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "netfilter-devel@lists.netfilter.org"
-	 <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,54 +18,70 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
-I'm trying to send out packets from the kernel level from my module. I have 
-the packet built correctly and I have a net_device that I'd like to send 
-the packet out on. From what I have been playing around with it appears 
-that the dst field needs to be filled out correctly for the packet to be 
-sent over the wire. I set the dst field currently with the following code 
-but in setting that field it seems that it selects the device to send out 
-on as well.
+------_=_NextPart_001_01C2D1F0.7E2B0520
+Content-Type: text/plain;
+	charset="iso-8859-1"
 
-I'm curious if there is a method to specifiy the device to output on 
-reguardless of what   ip_route_output_key() sets up or without calling that 
-function at all? If not is there a way to manually modify the routing table 
-within my module?
+All:
+    I need some help in IP queue. I am passing IP packets to user space
+using IP Queue by setting up iptables as follows 
+ 
+iptables -A FORWARD -p udp -d 10.10.0.0/16 - j QUEUE
+ 
+What I am trying to do is in Linux 2.4 kernel is to create a  transparent
+proxy(UDP), where application needs reassembled IP packet.  Looks like  IP
+queue does not reassemble the packet before sending to the user space ( is
+it true). If that is case  
+ 
+1) Is any thing that I can do to reassemble the packet before sending to
+user space?
+2) Is there any user space reassembly code available?. so I can try to
+reassemble the packet in user space.
+ 
+Thank
+Vel..
 
-Thanks
+------_=_NextPart_001_01C2D1F0.7E2B0520
+Content-Type: text/html;
+	charset="iso-8859-1"
 
-Ryan Hagelstrom
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 
-	struct rtable *rt;
-	struct rt_key key = { dst:iph->daddr,
-			src:iph->saddr,
-			oif:skb->sk ? skb->sk->bound_dev_if : 0,
-			tos:RT_TOS(iph->tos)|RTO_CONN,
-  };
 
-  if (ip_route_output_key(&rt, &key) != 0)
-  {
-    return -EINVAL;
-  }
-  dst_release(skb->dst);
+<META content="MSHTML 5.00.3103.1000" name=GENERATOR></HEAD>
+<BODY>
+<DIV><FONT face=Arial size=2><SPAN 
+class=550325916-11022003>All:</SPAN></FONT></DIV>
+<DIV><FONT face=Arial size=2><SPAN class=550325916-11022003>&nbsp;&nbsp;&nbsp; I 
+need some help in IP queue. I am passing IP packets to user space using IP Queue 
+by setting up iptables as follows </SPAN></FONT></DIV>
+<DIV><FONT face=Arial size=2><SPAN 
+class=550325916-11022003></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=Arial size=2><SPAN class=550325916-11022003>iptables -A FORWARD 
+-p udp -d 10.10.0.0/16 - j QUEUE</SPAN></FONT></DIV>
+<DIV><FONT face=Arial size=2><SPAN 
+class=550325916-11022003></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=Arial size=2><SPAN class=550325916-11022003>What I am trying to 
+do is in Linux 2.4 kernel is to create a&nbsp; transparent proxy(UDP), where 
+application needs reassembled IP packet.&nbsp; Looks like&nbsp; IP queue does 
+not reassemble the packet before sending to the user space ( is it true). If 
+that is case&nbsp; </SPAN></FONT></DIV>
+<DIV><FONT face=Arial size=2><SPAN 
+class=550325916-11022003></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=Arial size=2><SPAN class=550325916-11022003>1) Is any thing that 
+I can do to reassemble the packet before sending to user 
+space?</SPAN></FONT></DIV>
+<DIV><FONT face=Arial size=2><SPAN class=550325916-11022003>2) Is there any user 
+space reassembly code available?. so I can try to reassemble the packet in user 
+space.</SPAN></FONT></DIV>
+<DIV><FONT face=Arial size=2><SPAN 
+class=550325916-11022003></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=Arial size=2><SPAN 
+class=550325916-11022003>Thank<BR>Vel..</SPAN></FONT></DIV></BODY></HTML>
 
-  skb->dst = &rt->u.dst
-	
-	dev = skb->dst->dev;
-	dst = skb->dst;
-	hh = dst->hh;
-	ip = skb->nh.iph;
-	skb->dev = dev;
-
-	if (hh)
-	{
-		read_lock_bh(&hh->hh_lock);
-		memcpy(skb->data - 16, hh->hh_data, 16);
-		read_unlock_bh(&hh->hh_lock);
-		skb_push(skb, hh->hh_len);
-		return hh->hh_output(skb);
-	}
-
-	else if (dst->neighbour)
-		return dst->neighbour->output(skb);
+------_=_NextPart_001_01C2D1F0.7E2B0520--
