@@ -1,58 +1,59 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] tcp window tracking initial port to 2.6
-Date: Mon, 8 Mar 2004 11:31:28 +0100 (CET)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0403081111190.10575-100000@blackhole.kfki.hu>
-References: <404B8B72.2040500@eurodev.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: ip_route_me_harder -> xfrm_lookup
+Date: Mon, 8 Mar 2004 22:03:31 +1100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040308110331.GA20719@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <404B8B72.2040500@eurodev.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/mixed; boundary="zYM0uCDKw75PZbzx"
+Return-path: <netdev-bounce@oss.sgi.com>
+To: "David S. Miller" <davem@redhat.com>, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
 
-On Sun, 7 Mar 2004, Pablo Neira wrote:
+--zYM0uCDKw75PZbzx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> I spent my sunday evening in porting the tcp window tracking system to
-> the 2.6.x tree. Attached to this email the incremental fix to the CVS
-> and the merge to the 2.6.x tree.
+Hi:
 
-Sorry, that was a waste of time. I had already done the porting, but
-because pom-ng is not fully ready yet, I haven't put it into the cvs.
+I've received a number of reports that the any packets that are modified
+by the PREROUTING mangle table will not be protected by IPsec.
 
-> - I drop the old helpers modifications. I think that they are not needed
-> anymore.
+The reason is that ip_route_me_harder which is called upon the exit
+of the mangle table does not set the proto field.  This means that
+xfrm_lookup is never called.
 
-Yes, true.
+The following patch sets the proto field so that the packet can be
+protected by IPsec.
 
-> - I commented all the nf_log_ip stuff because the API has changed for
-> 2.6.x tree and I was sure of the correct use of the new one
-> (nf_log_packet?).
+Cheers,
+-- 
+Debian GNU/Linux 3.0 is out! ( http://www.debian.org/ )
+Email:  Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
 
-Yes, the interface changed. The raw patch in pom-ng is also ported to
-2.6 and uses the new API.
+--zYM0uCDKw75PZbzx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=p
 
-> BTW I think that I experimented some problems with the nf-log patch for
-> 2.6.x tree, I'll have a look at them.
+Index: kernel-2.5/net/core/netfilter.c
+===================================================================
+RCS file: /home/gondolin/herbert/src/CVS/debian/kernel-source-2.5/net/core/netfilter.c,v
+retrieving revision 1.1.1.10
+diff -u -r1.1.1.10 netfilter.c
+--- kernel-2.5/net/core/netfilter.c	8 Oct 2003 19:24:04 -0000	1.1.1.10
++++ kernel-2.5/net/core/netfilter.c	8 Mar 2004 10:52:39 -0000
+@@ -639,6 +639,7 @@
+ #ifdef CONFIG_IP_ROUTE_FWMARK
+ 		fl.nl_u.ip4_u.fwmark = (*pskb)->nfmark;
+ #endif
++		fl.proto = iph->protocol;
+ 		if (ip_route_output_key(&rt, &fl) != 0)
+ 			return -1;
+ 
 
-Please report if you find any problem with it. The cvs contains the lates
-version, which should work.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--zYM0uCDKw75PZbzx--
