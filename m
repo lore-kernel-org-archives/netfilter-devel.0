@@ -1,14 +1,18 @@
-From: Milos Wimmer <wimmer@zcu.cz>
-Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
-Date: Sun, 3 Apr 2005 14:26:07 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0504031420030.11607@nike.zcu.cz>
-References: <20050402202438.GA2968@linuxace.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.11 corrupting FTP session
+Date: Sun, 03 Apr 2005 17:58:17 +0200
+Message-ID: <42501299.5010006@trash.net>
+References: <1111176664.423b35d80b351@webmail.conectcor.com.br>
+	<423DA1FB.6030209@trash.net>
+	<1111341503.423db9bfcffb7@webmail.conectcor.com.br>
+	<20050401060249.GI19835@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Michel Pereira <michel@michel.eti.br>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050402202438.GA2968@linuxace.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050401060249.GI19835@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,14 +24,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2 Apr 2005, Phil Oester wrote:
+Harald Welte wrote:
+> this sounds pretty straight forward, still i can't reproduce the problem
+> at all. which ftp server and client are you using?
 
-> As noted, without this patch an mget fails at (sizediff * strlen(PORT...).
-> With this patch, I have successfully transferred 500 files under both
-> scenarios: sizediff > 0 and < 0.
+Me neither. I could trigger it totally unreliable, but couldn't figure
+out what the problem is. My guess so far is that it is somehow related
+to retransmissions.
 
-  Yes, I tried it just now and I can confirm it works great.
-
-  Thank you for your work,
-
-     Milos Wimmer
+Regards
+Patrick
