@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: ip_conntrack performance issues - also semantic issues
-Date: Fri, 31 Jan 2003 12:35:16 +0100
+Subject: Re: conntrack and netstat: diverging ideas of established connections
+Date: Fri, 31 Jan 2003 12:46:12 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131113516.GR9073@naboo.cybercafe42>
-References: <20030118232752.26497.32589.Mailman@kashyyyk> <15914.20503.476455.344137@isis.cs3-inc.com> <20030119075102.GF12401@oknodo.bof.de> <15914.25470.189261.168220@isis.cs3-inc.com> <20030119091656.GG12401@oknodo.bof.de> <1042969247.28675.57.camel@tux.rsn.bth.se>
+Message-ID: <20030131114612.GU9073@naboo.cybercafe42>
+References: <4D618F6493CE064A844A5D496733D667031692@freedom.icomedias.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5FetH82qe0Z6y/zI"
-Cc: Patrick Schaaf <bof@bof.de>, Don Cohen <don-netf@isis.cs3-inc.com>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="6tPipYVl+OcoAvSh"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+To: Martin Bene <martin.bene@icomedias.com>
 Content-Disposition: inline
-In-Reply-To: <1042969247.28675.57.camel@tux.rsn.bth.se>
+In-Reply-To: <4D618F6493CE064A844A5D496733D667031692@freedom.icomedias.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,42 +23,33 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---5FetH82qe0Z6y/zI
+--6tPipYVl+OcoAvSh
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jan 19, 2003 at 10:40:47AM +0100, Martin Josefsson wrote:
-> On Sun, 2003-01-19 at 10:16, Patrick Schaaf wrote:
+On Fri, Jan 24, 2003 at 04:24:25PM +0100, Martin Bene wrote:
+> On a server with no forwarding I'm seeing pronounced differences regarding
+> established connections:
 >=20
-> > >  > 1) that a NEW conntrack need not be allocated in full.
-> > > I guess you're saying that the allocation takes a significant amount
-> > > of time, entering into hash is another chunk, and the first part is
-> > > done at prerouting.
-> >=20
-> > I'm pretty sure that the allocation is the main cost, putting into
-> > the hashes is not performance critical per se (if the lists are short).=
-=20
+> cat /proc/net/ip_conntrack shows ~ 150 tcp connections in "ESTABLISHED"
+> state;
 >=20
-> My small unscientific tests (performed quite some time ago) say that the
-> allocation isn't the most costly operation performed.
+> netstat -an shows 20 established TCP connections.
+>=20
+> especialy troubling: I find 10 concurrent connections =3D=3D> port 25 for=
+ a host
+> IP in ip_conntrack, while there actually is not a single sendmail session
+> active.
+>=20
+> Any ideas why conntrack keeps these "ghost" connections around as avtive =
+even
+> though they definitely don't exist?
+> since I'm trying to limit max concurrent connections by host using iplimit
+> these bad entries in ip_conntrack are quite troublesome.
+>=20
 
-It would also surprise me if allocation cost was _that_ high. Remember,
-we are already using the slab cache for this.
-
-> The test was a simple SYN-flood (random source ip's and ports) beeing
-> forwarded by a router. If I didn't load ip_conntrack at all everything
-> was fine and I had lots of cpu left. When I loaded ip_conntrack the cpu
-> usage went to 100%. Then I tried blocking the flood in filter/FORWARD
-> and that helped _a lot_ and in this case the allocation is still
-> happening for each packet. But of course blocking it in raw/PREROUTING
-> is even better (before the packets reach ip_conntrack)
-
-yup.  Why don't we have a 'raw' or 'prestate' table in patch-o-matic
-yet?  This is a very easy job, can't anybody please add this missing
-feature?
-
-> /Martin
+this is not a development question.
 
 --=20
 Live long and prosper
@@ -72,7 +62,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---5FetH82qe0Z6y/zI
+--6tPipYVl+OcoAvSh
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -80,9 +70,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+Ol90XaXGVTD0i/8RAlopAKCQxxgpAjjCwHDcRuiG3vIJ+pmYaACfTYj6
-CEAyHUgEDkVccTLpVD/Vi3o=
-=P425
+iD8DBQE+OmIEXaXGVTD0i/8RAipTAJwJ8wRo0LRtY0T+kjMANoPAh96ISgCfcjUq
+sAMijllY+FxCFUrOW9Ic+M0=
+=IyZd
 -----END PGP SIGNATURE-----
 
---5FetH82qe0Z6y/zI--
+--6tPipYVl+OcoAvSh--
