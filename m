@@ -1,33 +1,25 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jeffrey Laramie <JALaramie@Loudoun-Fairfax.com>
 Subject: Re: Bug/Problem with DNAT on OUTPUT chain (-t nat -A OUTPUT) that
  breaks routing? (fwd)
-Date: Thu, 23 Oct 2003 19:16:23 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F980CE7.2050909@trash.net>
+Date: Thu, 23 Oct 2003 13:29:09 -0400
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <3F980FE5.1000108@Loudoun-Fairfax.com>
 References: <Pine.LNX.4.44.0310231127470.29188-100000@kinison.puremagic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Evan Harris <eharris@puremagic.com>
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org
 In-Reply-To: <Pine.LNX.4.44.0310231127470.29188-100000@kinison.puremagic.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
-
-I tried 2.4 and 2.6 with DNAT to 127.0.0.1. The packets were sent on the
-loopback device as expected. Please send some more information about
-your specific setup.
-
-Best regards,
-Patrick
 
 Evan Harris wrote:
 
@@ -42,6 +34,13 @@ Evan Harris wrote:
 >
 >Evan
 >
->
 >  
 >
+
+I haven't seen the rest of this thread, so I may have missed something, 
+but why are you doing DNAT on the nat OUTPUT chain? DNAT is usually done 
+on the nat PREROUTING chain and SNAT on the POSTROUTING chain. Anything 
+done in filter OUTPUT, mangle POSTROUTING, or nat POSTROUTING could 
+change the direction of your packets before they leave your host.
+
+Jeff
