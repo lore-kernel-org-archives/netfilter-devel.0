@@ -1,16 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: MSN helper module
-Date: Tue, 17 Dec 2002 08:54:48 +0100
+From: "Haitao Yu" <yuht@th-dascom.com.cn>
+Subject: Re: FTP and connection tracking
+Date: Tue, 17 Dec 2002 16:9:32 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021217075448.GA24766@oknodo.bof.de>
-References: <006d01c2a55e$e7a08200$152ea8c0@maincomp>
+Message-ID: <200212171600984.SM01312@yht>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+      charset="GB2312"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Carlos Fernandez Sanz <cfs-netfilter@nisupu.com>
-Content-Disposition: inline
-In-Reply-To: <006d01c2a55e$e7a08200$152ea8c0@maincomp>
+To: Hans Jorgensen <jorgensenhans@hotmail.com>,
+ netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,21 +20,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Dec 17, 2002 at 12:57:35AM +0100, Carlos Fernandez Sanz wrote:
-> 
-> Is there a helper module for MSN? If not, is it being developed and can I
-> join the effort?
-> 
-> If nothing is being done I'll just write the module myself before not having
-> full MSN support becomes a serious issue and starts going up...
+As I think, ftp nat's expected function is called twice when the first expected packet is in PREROUTING chain and POSTROUTING chain.
 
-Ahem - what would such a helper module have to do? As far as I know,
-MSN is an Internet Service Provider, and there is no network protocol
-called MSN. Did that change? Do they do the AOL, 10 years later?
+>Dear list
+>
+>I am currently developing an application which is using DNAT and 
+>masquerading. First an incoming packet is DNAT'ed to have as specific dest. 
+>ip. The it is masquerading when it is leaving the decided interface.
+>
+>This works fine, but when I use FTP, the following shows up in the kernel 
+>log:
+>
+><4>ip_conntrack_in: related packet for c3a22310
+><4>nat_expected: We have a connection!
+><4>nat_expected: PASV cmd. 192.168.1.254->192.168.4.1
+><4>nat_expected: IP to 192.168.4.1
+><4>Found best for tuple c3d69db8: 6 10.0.0.8:1026 -> 192.168.4.1:11697
+><4>nat_expected: We have a connection!
+><4>nat_expected: PASV cmd. 192.168.1.254->192.168.4.1
+><4>nat_expected: IP to 192.168.1.254
+><4>Found best for tuple c3d69cf0: 6 192.168.1.254:1026 -> 192.168.4.1:11697
+><4>Altering reply tuple of c3a22310 to tuple c3d69cd0: 6 192.168.4.1:11697 
+>-> 192.168.1.254:1026
+><4>Mangling c3ad4140: SRC to 192.168.1.254 1026
+><4>Confirming conntrack c3a22310
+>
+>My question is:
+>Why does: "We have a connection!" and the following lines show up two times? 
+>Is the connection data traversing the same chain twice?
+>
+>Does anybody know where I can find more information on how the code in 
+>connection tracking and NAT works?
+>
+>Thanks in advance.
+>
+>/Hans
+>
+>
+>_________________________________________________________________
+>STOP MORE SPAM with the new MSN 8 and get 2 months FREE* 
+>http://join.msn.com/?page=features/junkmail
 
-I sure hope so, it would be their final death.
+= = = = = = = = = = = = = = = = = = = =
+			
 
-Sorry for off-topic; my first question, above, is what should be discussed.
-
-best regards
-  Patrick
+				 
+               Haitao Yu
+               yuht@th-dascom.com.cn
+					2002-12-17 
