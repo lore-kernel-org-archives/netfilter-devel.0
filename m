@@ -1,13 +1,16 @@
 From: Daniel 'NebuchadnezzaR' Dehennin <nebuchadnezzar@nerim.net>
-Subject: IPROUTE compilation problem
-Date: Thu, 13 May 2004 23:28:33 +0200
+Subject: Re: IPROUTE compilation problem
+Date: Thu, 13 May 2004 23:33:27 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <87ad0cj9tq.fsf@thorr.asgardr.info>
+Message-ID: <873c64j9lk.fsf@thorr.asgardr.info>
+References: <87ad0cj9tq.fsf@thorr.asgardr.info>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
 	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+TO: netfilter-devel@lists.netfilter.org
+In-Reply-To: <87ad0cj9tq.fsf@thorr.asgardr.info> (Daniel Dehennin's message
+ of "Thu, 13 May 2004 23:28:33 +0200")
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,43 +25,16 @@ List-Id: netfilter-devel.vger.kernel.org
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hello,
+On 3907 September 1993, Daniel Dehennin wrote:
+> Hello,
+>
+> The IPROUTE patch failed to build (latest CVS + 2.6.6):
 
-The IPROUTE patch failed to build (latest CVS + 2.6.6):
+I read the help of the ipv4 and ipv6 route extension, in v6 it says
+that it's not working as a module (so a bug in Kconfig entry cause I
+set it to a module ?)
 
-  CC [M]  net/ipv4/netfilter/ipt_ROUTE.o
-net/ipv4/netfilter/ipt_ROUTE.c: In function `route':
-net/ipv4/netfilter/ipt_ROUTE.c:56: error: variable `key' has initializer bu=
-t incomplete type
-net/ipv4/netfilter/ipt_ROUTE.c:57: error: unknown field `dst' specified in =
-initializer
-net/ipv4/netfilter/ipt_ROUTE.c:57: warning: excess elements in struct initi=
-alizer
-net/ipv4/netfilter/ipt_ROUTE.c:57: warning: (near initialization for `key')
-net/ipv4/netfilter/ipt_ROUTE.c:58: error: unknown field `src' specified in =
-initializer
-net/ipv4/netfilter/ipt_ROUTE.c:58: warning: excess elements in struct initi=
-alizer
-net/ipv4/netfilter/ipt_ROUTE.c:58: warning: (near initialization for `key')
-net/ipv4/netfilter/ipt_ROUTE.c:59: error: unknown field `oif' specified in =
-initializer
-net/ipv4/netfilter/ipt_ROUTE.c:59: warning: excess elements in struct initi=
-alizer
-net/ipv4/netfilter/ipt_ROUTE.c:59: warning: (near initialization for `key')
-net/ipv4/netfilter/ipt_ROUTE.c:60: error: unknown field `tos' specified in =
-initializer
-net/ipv4/netfilter/ipt_ROUTE.c:61: warning: excess elements in struct initi=
-alizer
-net/ipv4/netfilter/ipt_ROUTE.c:61: warning: (near initialization for `key')
-net/ipv4/netfilter/ipt_ROUTE.c:56: error: storage size of `key' isn't known
-net/ipv4/netfilter/ipt_ROUTE.c:56: warning: unused variable `key'
-net/ipv4/netfilter/ipt_ROUTE.c: In function `ipt_route_target':
-net/ipv4/netfilter/ipt_ROUTE.c:262: warning: implicit declaration of functi=
-on `ip_route_output'
-make[4]: *** [net/ipv4/netfilter/ipt_ROUTE.o] Error 1
-make[3]: *** [net/ipv4/netfilter] Error 2
-
-Thanks
+Noting particuliar in v4.
 =2D-=20
 Daniel 'NebuchadnezzaR' Dehennin
 R=E9cup=E9rer ma clef GPG:
@@ -70,12 +46,12 @@ Content-Type: application/pgp-signature
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iQEVAwUAQKPohdWamn5Mpz3GAQLv6ggAvTz0WlkqBXj63CE64sNDXIE4m9Rh4A2t
-LgB37SIdX7aRUrd3+dNl39Q3sXccBl5WqTO3e+VmPXO7g6KK9G3ZZy4gZFQL/KpE
-tJnYiX+YZmahHhs8iul+n5xFY5wijoKz+53VHdgWEagnliS++7sxpbfBbyqlmqvB
-yHOxVdfP/UI8/9OO1yzCTvO/ww3gzZ8QL3ilosEvkKVQQdoV/bz3Xhr6vLuoeov8
-On7TpxC+r65x2n5UlQdpUEqBqHJ45He6z6iiGVt/fad0C9KYslT6JMJhcpixYNbo
-4KXvn/MprnqEdL/Au+CHVUzTHp8dqSHOrd7Rk0cwImVxzbCjHiJF6g==
-=blz3
+iQEVAwUAQKPpp9Wamn5Mpz3GAQLJkwf/alVgczT7qOuJM3+ZrulHlIDqaqf3Rg9z
+qn+0J9mSQef87NhLFpOD0VQlXq1tlkCH/y0kfb6DWRPMW+kVHMd57KOoPhnXYdix
+j2rYiLvDsgg9SHgomI2/qQ+tvyYUS4d7FCtN6E2rT3nkgpd+NkLGOOUwRH/OX5j4
+YAW5UjnTp5hntxFo+nbp9kYVbk2QkNp15LAUp0Nx0rgbGNBF1pR2YxZixXwj5N12
+eG6yv5e3tEh+P3+w4fi+Gbh1/YmBWBI46lgfQLExMXEnKpcPJQKzSiBs1lBHuhqA
+61uHCm84k92N8eSH1ey/ZPEbhiwDh7WsMS4FwcMCA/T3iewb8mXrSQ==
+=HCvi
 -----END PGP SIGNATURE-----
 --=-=-=--
