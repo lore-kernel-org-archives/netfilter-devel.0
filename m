@@ -1,14 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: [ANNOUNCE] Call for pending patches
-Date: Thu, 13 Jun 2002 17:50:53 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: [patch] REJECT incorrectly inherits the current nfmark to the generated RST packet
+Date: Thu, 13 Jun 2002 19:31:23 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020613175053.J2543@sunbeam.de.gnumonks.org>
+Message-ID: <200206131931.23688.hno@marasystems.com>
+References: <20020613175053.J2543@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NPWyolIJAVLYbHY6"
+Content-Type: Multipart/Mixed;
+  boundary="------------Boundary-00=_BCNNPP9Z06EJEE80IB6G"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
+To: Harald Welte <laforge@gnumonks.org>,
+	netfilter-devel@lists.samba.org
+In-Reply-To: <20020613175053.J2543@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,43 +22,72 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---NPWyolIJAVLYbHY6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--------------Boundary-00=_BCNNPP9Z06EJEE80IB6G
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
-Hi!
+I have a smal patch not yet sent..
 
-I'm sorry if there are still any pending patches which I have missed to
-pick up from netfilter-devel.
+REJECT incorrecly inherits the current nfmark to the generated packet, 
+inhibiting mangle from rerouting the generated RST packet correcly if 
+attempting to set the same mark as the original packet that was REJECT:ed.
 
-If anybody has still patches against netfilter/iptables CVS, which he wants
-to have included, please re-send them to me via private email.
+Attached you find a patch that makes sure the nfmark on the generated packet 
+is cleared proper, allowing mangle to do it's job as usual for any other 
+locally generated packets.
 
-Thanks.
+If the normal TCP/IP routing of locally generated packets accounted for nfmark 
+this would obviously not be a problem, but then routing occurs before mangle 
+on locally generated traffic so...
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
-=20
-V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+Reards
+Henrik
 
---NPWyolIJAVLYbHY6
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Harald Welte wrote:
+> Hi!
+>
+> I'm sorry if there are still any pending patches which I have missed to
+> pick up from netfilter-devel.
+>
+> If anybody has still patches against netfilter/iptables CVS, which he wants
+> to have included, please re-send them to me via private email.
+>
+> Thanks.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+--------------Boundary-00=_BCNNPP9Z06EJEE80IB6G
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="REJECT_mark.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="REJECT_mark.patch"
 
-iD8DBQE9CL9dXaXGVTD0i/8RAvGQAJ9bM/7/DAa4xVjokLf51dOolQ6YqwCdHq76
-88wBwO1bop3JoEMA/xVwn2Q=
-=sl5h
------END PGP SIGNATURE-----
+--- linux-uml/net/ipv4/netfilter/ipt_REJECT.c.orig	Wed Jun 12 18:54:48 2002
++++ linux-uml/net/ipv4/netfilter/ipt_REJECT.c	Wed Jun 12 18:54:52 2002
+@@ -74,6 +74,7 @@
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 	nskb->nf_debug = 0;
+ #endif
++	nskb->nfmark = 0;
+ 
+ 	tcph = (struct tcphdr *)((u_int32_t*)nskb->nh.iph + nskb->nh.iph->ihl);
+ 
 
---NPWyolIJAVLYbHY6--
+--------------Boundary-00=_BCNNPP9Z06EJEE80IB6G
+Content-Type: text/plain;
+  charset="iso-8859-1";
+  name="REJECT_mark.help"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="REJECT_mark.help"
+
+Author: Henrik Nordstrom <hno@marasystems.com>
+Status: working
+
+Don't copy the nfmark value of the old packet into the new RST
+packet when rejecting with TCP resets.
+
+ip_route_output is not smart enough to know about nfmark routing,
+and having the mark value set from start prevents mangle OUTPUT
+from rerouting the packet later..
+
+--------------Boundary-00=_BCNNPP9Z06EJEE80IB6G--
