@@ -1,16 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [RFC] Die to NOTRACK/TRACE, long live MARK!
-Date: Tue, 25 May 2004 14:38:15 +0200
+From: Ozgur Akan <akan@aiqa.com>
+Subject: Re: argv[optind-1] == optarg
+Date: Wed, 26 May 2004 16:00:36 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40B33E37.4070807@eurodev.net>
-References: <Pine.LNX.4.33.0405211416341.8045-100000@blackhole.kfki.hu> <40AF6A60.70406@trash.net>
+Message-ID: <40B494F4.5020606@aiqa.com>
+References: <Pine.LNX.4.44.0405252123140.17545-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <40AF6A60.70406@trash.net>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0405252123140.17545-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +21,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
 
-Patrick McHardy wrote:
-
->> Do we really need an unsigned long to store the status? :-)
+>  ! -d a.b.c.d
+>  -d ! a.b.c.d
+>  
 >
->
-> I always thought we would, because set_bit and test_bit take unsigned
-> long *, but I'm not sure anymore if that really means we can't use
-> something smaller.
+...hmm, I am going to work on it.
 
 
-if we use atomic operations *_bit for status field in ip_conntrack, we 
-only use 24 bits of that unsigned long, this issue lets us keep 
-compatibility with some special platforms which only support atomic 
-operations of that size.
+thanks,
+Ozgur Akan
 
-I read that in  Robert Love's linux kernel development book I think. If 
-missing anything, please let me know.
-
-regards,
-Pablo
+-- 
+Ozgur Akan
