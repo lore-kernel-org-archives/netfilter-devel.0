@@ -1,14 +1,16 @@
-From: "Middour, Chris" <cmiddour@amplifynet.com>
-Subject: Delete Conntrack Entries From Userspace?
-Date: Mon, 3 Feb 2003 17:09:22 -0800
+From: =?iso-8859-1?q?graham=20g?= <grinna369@yahoo.com.au>
+Subject: Re: distributed firewall
+Date: Tue, 4 Feb 2003 12:11:05 +1100 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <95E2AB7E9225D211ABE100104B9E8E119E4C48@anet1.amplifynet.com>
+Message-ID: <20030204011105.65032.qmail@web13306.mail.yahoo.com>
+References: <1044282321.25601.96.camel@rade7.s.cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+To: Emmanuel Fleury <fleury@cs.auc.dk>
+In-Reply-To: <1044282321.25601.96.camel@rade7.s.cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,20 +21,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have a need to remove a conntrack entry for ip protocol 50 (the IPSEC
-protocol).
+im just writing a client/server app where the server
+sends out policy commands to client daemon processes,
+which are interpreted by the daemon, which then
+creates the necessary rules in iptables.
 
-I've found that using the tcp-reset target (-j REJECT --reject-with
-tcp-reset) works very well for this when the TCP protocol is involved, but
-unfortunately, that doesn't help with protocol 50.
+all logging info will be sent back to the server and
+analysed to determine the next set of rules to be sent
+out to clients
 
-I've tried using the normal reject rule (-j REJECT), and that does indeed
-send an icmp port unreachable message, but it does not remove the conntrack
-entry.
 
-Is there any way to get iptables to remove a conntrack entry (without coding
-it myself in the kernel?)
+ --- Emmanuel Fleury <fleury@cs.auc.dk> wrote: > On
+Mon, 2003-02-03 at 14:11, graham g wrote:
+> > hi 
+> > 
+> > being new to this list, i just wanna know if
+> anyone has had any
+> > experience trying to build a distributed firewall
+> using iptables /
+> > libiptc. im currently working on such a project
+> and just wanna know if
+> > anyone has ever attempted anything similar
+> 
+> What do you call a 'distributed firewall' ?
+> 
+> -- 
+> Emmanuel Fleury
+> 
+> Computer Science Department, |  Office: E4-112
+> Aalborg University,          |  Phone:  +45 96 35 72
+> 23
+> Fredriks Bajersvej 7E,       |  Fax:    +45 98 15 98
+> 89
+> 9220 Aalborg East, Denmark   |  Email: 
+> fleury@cs.auc.dk
+> 
+>  
 
-Thanks very much!
-
---Chris Middour
+http://movies.yahoo.com.au - Yahoo! Movies
+- What's on at your local cinema?
