@@ -1,12 +1,15 @@
-From: Padam J Singh <padam.singh@inventum.cc>
-Subject: Ruleset creation process.
-Date: Sat, 02 Oct 2004 16:02:21 +0530
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Ruleset creation process.
+Date: Sun, 3 Oct 2004 18:07:05 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <415E83B5.5090301@inventum.cc>
+Message-ID: <Pine.LNX.4.61.0410031804410.16241@filer.marasystems.com>
+References: <415E83B5.5090301@inventum.cc>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090606050409020205000003"
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Padam J Singh <padam.singh@inventum.cc>
+In-Reply-To: <415E83B5.5090301@inventum.cc>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,17 +20,20 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090606050409020205000003
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sat, 2 Oct 2004, Padam J Singh wrote:
 
-Is there are document that specifies the ruleset creation process?
+> Is there are document that specifies the ruleset creation process?
 
-I recently had an issue with destroy being called for old rules when 
-adding a new rule for the same target.
+What part of the ruleset creation process?
 
-Thanks!
-Padam Singh.
+> I recently had an issue with destroy being called for old rules when adding a 
+> new rule for the same target.
 
---------------090606050409020205000003--
+Destroy of what, where?
+
+If you refer to the match/target destroy functions being called then this 
+is by design of iptables. Each modification to an iptable results in a 
+new table being installed in the kernel and the old deleted.
+
+Regards
+Henrik
