@@ -1,18 +1,16 @@
-From: William Stearns <wstearns@pobox.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: "ip_tables: table screwed up!" on pom 20031023 - raw patch?
-Date: Thu, 20 Nov 2003 21:14:18 -0500 (EST)
+Date: Fri, 21 Nov 2003 03:59:13 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311202112500.21895-100000@sparrow>
-References: <Pine.LNX.4.44.0311210139300.23998-100000@filer.marasystems.com>
-Reply-To: William Stearns <wstearns@pobox.com>
+Message-ID: <Pine.LNX.4.44.0311210317290.25547-100000@filer.marasystems.com>
+References: <Pine.LNX.4.44.0311202112500.21895-100000@sparrow>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, <kadlec@netfilter.org>,
-   ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
-   William Stearns <wstearns@pobox.com>
+   ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0311210139300.23998-100000@filer.marasystems.com>
+To: William Stearns <wstearns@pobox.com>
+In-Reply-To: <Pine.LNX.4.44.0311202112500.21895-100000@sparrow>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,50 +21,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Good evening, Henrik,
+On Thu, 20 Nov 2003, William Stearns wrote:
 
-On Fri, 21 Nov 2003, Henrik Nordstrom wrote:
+> Interesting.  I hope removing that patch helps both of us.
 
-> On Thu, 20 Nov 2003, William Stearns wrote:
-> 
-> > 	Just for reference, using the stock compiled iptables rpm from 
-> > Redhat 7.3's updates collection (after cleaning out every trace of the 
-> > self-compiled iptables and modules) gives:
-> > 
-> > bash-2.05a# iptables -L INPUT
-> > Chain INPUT (policy ACCEPT)
-> > target     prot opt source               destination         
-> > bash-2.05a# iptables -A INPUT -s 99.99.99.99     
-> > iptables: Invalid argument
-> 
-> This is a know error in the version of the "raw" patch you are using
-> causing a binary incompatibility, and is corrected in POM to only cause 
-> this if the TRACE patch is used (was part of "raw", now separate).
+Unfortunately my problem is still there.. and now the UML kernel config is 
+very close to what we use on "real" boxes..
 
-	Aha!  Henrik, thank you so _very_ much.  That makes sense - I'll 
-skip the raw patch next time.
+Time for some sleep. Maybe the problem is easier to find with a 
+functional brain..
 
-> Your other problems I am not familiar with. But at the same time I am 
-> currently trying to hunt down a odd problem where iptables is very 
-> unstable in our UML kernel but not on "real" boxes.. and your reference to 
-> the "raw" table makes me suspect my problems may in fact be from that 
-> patch (we have the "raw" patch applied to the UML kernel, not to the 
-> kernel for "real" boxes). I will know more tomorrow.
+Problem description:
 
-	Interesting.  I hope removing that patch helps both of us.
-	Thank you again for clearing this up.
-	Cheers,
-	- Bill
+UML 2.4.22 kernel compiled with several POM patches and
+CONFIG_NETFILTER_DEBUG
 
----------------------------------------------------------------------------
-        "Don't say you don't have enough time.  You have exactly the
-same number of hours per day that were given to Helen Keller, Pasteur,
-Michaelangelo, Mother Teresa, Leonardo da Vinci, Thomas Jefferson, and
-Albert Einstein."
-        -- H. Jackson Brown 
-(Courtesy of <drow@visi.com>)
---------------------------------------------------------------------------
-William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
-rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
-Linux articles at:                         http://www.opensourcedigest.com
---------------------------------------------------------------------------
+a) iptables-restore randomly fails to load a mangle+filter+nat setup in
+one invocation. Calling it separately per table always seems to work.
+
+b) Kernel often segfaults in ipt_do_table on
+			                        
+                        t = ipt_get_target(e);
+			IP_NF_ASSERT(t->u.kernel.target);
+                        /* Standard target? */
+                        if (!t->u.kernel.target->target) {
+
+sometimes the assert is printed before, sometimes it just faults.
+
+c) Does not seem to be related to any speific targets/matches. The problem 
+even manifests itself when loading a simple ruleset consisting of only the 
+default policies + custom chain definitions (wihtout contents) not using 
+any matches or targets.
+
+sometimes the table gets completely corrupted to the point that running 
+iptables-save fails, complaining about out of memory or a similar errror.
+
+I am hoping this is a UML issue and not iptables.. but it is worrying.
+
+Regards
+Henrik
