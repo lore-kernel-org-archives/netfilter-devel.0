@@ -1,20 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: Missing ipt_osf.h in p-o-m (kernel 2.6)
-Date: Tue, 24 Aug 2004 15:10:28 +0200 (CEST)
+Date: Tue, 24 Aug 2004 16:34:35 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0408241447140.13212@blackhole.kfki.hu>
-References: <20040818223233.GA317@cerbere.dyndns.info>
- <20040819094720.GZ3921@sunbeam.de.gnumonks.org> <4127E920.2080100@trash.net>
- <Pine.LNX.4.58.0408241134530.13212@blackhole.kfki.hu>
- <20040824104945.GR26877@sunbeam.de.gnumonks.org>
- <Pine.LNX.4.61.0408241435260.7021@filer.marasystems.com>
+Message-ID: <20040824143435.GY26877@sunbeam.de.gnumonks.org>
+References: <20040818223233.GA317@cerbere.dyndns.info> <20040819094720.GZ3921@sunbeam.de.gnumonks.org> <4127E920.2080100@trash.net> <Pine.LNX.4.58.0408241134530.13212@blackhole.kfki.hu> <20040824104945.GR26877@sunbeam.de.gnumonks.org> <Pine.LNX.4.58.0408241400200.13212@blackhole.kfki.hu> <Pine.LNX.4.61.0408241442240.7021@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ECcIMtargrIi2fbc"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0408241435260.7021@filer.marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.61.0408241442240.7021@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,45 +23,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 24 Aug 2004, Henrik Nordstrom wrote:
 
-> On Tue, 24 Aug 2004, Harald Welte wrote:
->
-> > Mh, do you still remember the precise reason for this? I would like to
-> > have this resolved in a cleaner way than copying everything over and
-> > over...
->
-> I don't remember, and also do not see any reason why there can not be a
-> shared directory or even hierarchy.
->
-> My suggestion
->
-> linux		version independent files
-> linux-2.4	linux-2.4 specific
-> linux-2.6	linux-2.6 specific
-> linux-2.6.8	linux-2.6.8 or later specific
->
-> where if you are on linux-2.6.9 the files are the sum of linux, linux-2.4
-> and linux-2.6.8, where the same file in a more specific version overrides
-> the less specific version.
->
-> This should not be very complex to accomplish, and is open to several
-> different ways of maintaining the versions depending on the authors
-> preference.
+--ECcIMtargrIi2fbc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > As far as I remember the main problem was how to express when a file
-> > was *not* required in specific versions or above a given version.
+On Tue, Aug 24, 2004 at 02:43:43PM +0200, Henrik Nordstrom wrote:
+> On Tue, 24 Aug 2004, Jozsef Kadlecsik wrote:
+>=20
+> >As far as I remember the main problem was how to express when a file was
+> >*not* required in specific versions or above a given version.
+>=20
+> I propose that in such case the file need to be forked into the respectiv=
+e=20
+> version trees where it should be used.
 
-> I propose that in such case the file need to be forked into the
-> respective version trees where it should be used.
+yes, this was my initial idea about this, too.
 
-Using the directory scheme and logic above, how you could express that
-foo.c is required up to 2.6.8 but not above?
+> Regards
+> Henrik
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--ECcIMtargrIi2fbc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBK1H7XaXGVTD0i/8RAn6BAJ47asGGthpEtIsBnwYOtnTxV1OHYQCcCdSo
+LNLPwYoaBB8sKgZ6KbZVjh4=
+=YwGb
+-----END PGP SIGNATURE-----
+
+--ECcIMtargrIi2fbc--
