@@ -1,19 +1,17 @@
-From: Glen Turner <glen.turner@aarnet.edu.au>
-Subject: Re: TOS target broken wrt ECN (was RFC 1349)
-Date: Tue, 04 May 2004 14:50:19 +0930
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: MARK_operations patch
+Date: Tue, 4 May 2004 08:20:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1083648019.15357.4.camel@andromache>
-References: <Pine.LNX.4.44.0404290113410.17188-100000@filer.marasystems.com>
-	 <Pine.LNX.4.58.0404291748430.5102@chris.camcom.co.uk>
-	 <1083317127.12783.71.camel@andromache>
-	 <Pine.LNX.4.58.0404301055140.17235@chris.camcom.co.uk>
+Message-ID: <20040504062059.GT6345@sunbeam.de.gnumonks.org>
+References: <4096B3A0.1020907@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zYtRAvLPyLojxZ7Y"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Wilson <chris@netservers.co.uk>
-In-Reply-To: <Pine.LNX.4.58.0404301055140.17235@chris.camcom.co.uk>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4096B3A0.1020907@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,27 +22,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2004-04-30 at 19:52, Chris Wilson wrote:
 
-> > Obviously there would be no tos-minimize-cost, but that would be no
-> > loss.
-> 
-> Except financially ;)
+--zYtRAvLPyLojxZ7Y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Um no.  No ISP offers least charge routing for that ToS.
+On Mon, May 03, 2004 at 11:03:28PM +0200, Patrick McHardy wrote:
+> The MARK_operations patch has been in broken for a long time, I never
+> knew why - I've been using a rediffed version for almost two years.
+> Is there any reason why I shouldn't add it to pom-ng ?
 
-If you are building a network you can easily offer a
-least cost DSCP. For example, we offer a DSCP=8 "worst
-effort" service for bulk file transfers. DSCP=8 maps
-to IP Precedence=1, allowing for older OSs to participate.
-And the default mappings from DSCP to link layer markings
-like 802.1p and MPLS Exp work well.
+no, just do it.
 
-Search Google for "Scavenger service".  The AARNet web
-site has iptables rules and code changes for Apache and
-some FTP servers.
+> Regards
+> Patrick
 
--- 
-Glen Turner         Tel: (08) 8303 3936 or +61 8 8303 3936 
-Network Engineer          Email: glen.turner@aarnet.edu.au
-Australian Academic & Research Network   www.aarnet.edu.au
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--zYtRAvLPyLojxZ7Y
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAlzZLXaXGVTD0i/8RAqFzAKC0Vv3urlE4I56CF2S8x09Fp2Q8UACfQuhp
+9Itk6rvFE/aHkjjFeHYE5u8=
+=98Uo
+-----END PGP SIGNATURE-----
+
+--zYtRAvLPyLojxZ7Y--
