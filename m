@@ -1,18 +1,16 @@
 From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [PATCH] ip_tables.h does not compile when using g++
-Date: Mon, 16 Sep 2002 19:16:40 +0200
+Subject: Re: Question about mac addresses in IP hook.,
+Date: Mon, 16 Sep 2002 19:25:13 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020916171640.GA9020@oknodo.bof.de>
-References: <1032190296.458.21.camel@localhost.localdomain> <20020916140850.GA8967@oknodo.bof.de> <20020916184417.P3810@sunbeam.de.gnumonks.org>
+Message-ID: <20020916172513.GB9020@oknodo.bof.de>
+References: <F238tv3x6BfNLP8NLnI0001196f@hotmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick Schaaf <bof@bof.de>,
-  Scott Andrew Baillie <sbaillie@bigpond.net.au>,
-  netfilter List <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, DanE@aiinet.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
+To: hMax Roth <mroth2002@hotmail.com>
 Content-Disposition: inline
-In-Reply-To: <20020916184417.P3810@sunbeam.de.gnumonks.org>
+In-Reply-To: <F238tv3x6BfNLP8NLnI0001196f@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,22 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > I strongly disagree with the "void *" -> "char *" conversion in pure
-> > kernel headers, because the kernel is by definition geared towards
-> > gcc with most extensions (and void * arithmetic is one that makes
-> > sense).
+On Sat, Sep 14, 2002 at 07:18:06AM +0000, hMax Roth wrote:
+> Thanks for the response.
+> On the NF_IP_PRE_ROUTING I can get the mac header without a problem (what a 
+> relief! Thanks for the help, it really helped a lot) Basically, it's always 
+> 14 bytes before the data pointer or on the .mac union.  However, the 
+> outbound hook, the mac address pointer is still randomly NULL and pointing 
+> to strange data! I can't understand it.  The code looks something like this
 > 
-> I share this disagreemenent.  However, if it's the only way we can make
-> C++ apps use libiptc (for now), I am willing to pay this 'price'.
+> <in NF_IP_LOCAL_OUToutbound hook>
 
-Fully agreed. I did not know about the "libiptc" connection.
+Stop right there. For outbound packets, all the way through to
+POST_ROUTING, there is NO WAY the outbound ethernet header could
+already be in place for all cases. Think about sending to a station
+which is not yet in the local ARP cache. Before the kernel can be
+sure of the destination MAC address, it keeps back the original
+outgoing packet, makes an ARP broadcast, and only when it hears
+back, can it send on the packet on its journey.
 
-Sorry for my intervention, Scott, your problem analysis and solution
-is completely appropriate.
+If what you naively expect, must be implemented, then all filtering
+action has to be postponed to the moment where the outgoing header
+is completely determined - doing so would need an almost complete
+rearrangement of the output path of iptables (and probably much
+meddling with the network stack itself). Furthermore, it would open
+the possibility for to-be-blocked traffic to neccessiate traffic,
+namely the ARP request/reply.
 
-Would you agree, Harald, and maybe work towards that goal, that a future
-new pkttables structure should have a clean seperation between kernel
-and userspace headers?
+Can you see why things are the way they are, now?
+
+(There is a small chance, that I'm wrong for the POST_ROUTING hook.
+Somebody please correct me if that hook guarantees L2 header
+availability. I haven't looked closely at the code, so far.)
 
 best regards
   Patrick
