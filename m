@@ -1,17 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] peer_pid checking in ip_queue
-Date: Wed, 24 Mar 2004 01:47:47 +0100
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Fix LIST_INSERT breakage
+Date: Tue, 23 Mar 2004 17:02:30 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4060DAB3.7010400@trash.net>
-References: <Pine.LNX.4.44.0403240106490.15222-100000@filer.marasystems.com>
+Message-ID: <20040324010230.GA4144@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira <pablo@eurodev.net>,  netfilter-devel@lists.netfilter.org,
- Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0403240106490.15222-100000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,28 +18,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
-> On Tue, 23 Mar 2004, Patrick McHardy wrote:
-> 
-> 
->>It can happen if peer_pid is checked outside the locked section on one
->>CPU and changed on another at the same time. I don't consider it
->>important, as the exact point in time at which the first packet will be
->>received is non-deterministic for userspace anyway.
-> 
-> 
-> What about when the user program closes? How bad it is to have read the 
-> pid and then there is no userspace there?
+In 2.4.25, this patch was included:
 
-It's no problem, netlink_unicast checks for existance of the socket,
-which will be gone with the reader. If no socket is found it returns
--ECONNREFUSED.
+http://linux.bkbits.net:8080/linux-2.4/cset@3fcc5cc99cChx6Q0shnhIlekWT1-5Q?nav=index.html|ChangeSet@-4M
 
-Regards
-Patrick
+which has a questionable change in LIST_INSERT due to the disappearing
+cmpfn.  But it appears this macro is unused anywhere in the tree, so perhaps
+removing it is better than fixing it?
+
+Phil Oester
 
 
-> 
-> Regards
-> Henrik
-> 
+
+--- include/linux/netfilter_ipv4/listhelp.h-orig        2004-03-23 19:57:00.696775216 -0500
++++ include/linux/netfilter_ipv4/listhelp.h     2004-03-23 20:01:09.603032216 -0500
+@@ -89,17 +89,6 @@
+        list_add(new, head);
+ }
+ 
+-/* Insert according to ordering function; insert before first true. */
+-#define LIST_INSERT(head, new, cmpfn)                          \
+-do {                                                           \
+-       struct list_head *__i;                                  \
+-       ASSERT_WRITE_LOCK(head);                                \
+-       list_for_each(__i, (head))                              \
+-               if ((new), (typeof (new))__i)                   \
+-                       break;                                  \
+-       list_add((struct list_head *)(new), __i->prev);         \
+-} while(0)
+-
+ /* If the field after the list_head is a nul-terminated string, you
+    can use these functions. */
+ static inline int __list_cmp_name(const void *i, const char *name)
