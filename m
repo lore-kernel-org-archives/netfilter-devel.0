@@ -1,15 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: A question about reinjecting packets
-Date: Thu, 12 Feb 2004 03:04:10 +0100 (CET)
+From: William Stearns <wstearns@pobox.com>
+Subject: Sample iptables commands page
+Date: Wed, 11 Feb 2004 23:51:32 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402120248440.11347-100000@filer.marasystems.com>
-References: <20040211155807.GA3146@lain.localnet>
+Message-ID: <Pine.LNX.4.44.0402112347290.2555-100000@sparrow>
+Reply-To: William Stearns <wstearns@pobox.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: William Stearns <wstearns@pobox.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Paul Tipper <tipper@wintermute.me.uk>
-In-Reply-To: <20040211155807.GA3146@lain.localnet>
+To: ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,32 +19,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 11 Feb 2004, Paul Tipper wrote:
+Good day, all,
+	I've put together a page with sample iptables firewall rules using 
+a number of different modules:
 
-> I'm working on an implementation of an IPv4 to IPv6 bump in the stack (yes
-> I admit it, I'm a student) and while doing this I've gotten stuck at the
-> stage of reinjecting packets into the network.  The model I'm working with
-> is a little kludgey but in short translates v6 addresses to Class E v4
-> addresses so that they can be consistently addressed.
+http://www.stearns.org/modwall/sample/sample-rules.html
 
-For various compliated reasons I would recommend such transitions to occur
-via a virtual network device rather than rewriting the packet within the 
-stack. This to ensure correct operation with conntrack etc. But that is 
-another story.
+	The sample files can be directly accessed from:
 
-> So as far as I can see I've modified everything I need to change to make
-> this v4 sk_buff into a v6 one, the problem I then run into is I can find
-> no way of getting it successfully out onto the network.
+http://www.stearns.org/modwall/sample/
 
-Is there an IPv6 stack enabled on this server?
+	All of the above are part of the Modwall project, a collection of 
+firewall bricks that can be used in an existing firewall.
 
-> I've tried using ip6_xmit() (for which I constructed a struct flowi).
+http://www.stearns.org/modwall/
 
-Should work I think, but I am not sure.
+	I'm writing in because at one point there was a placeholder on the 
+Netfilter web site for examples, which to the best of my memory was never 
+populated.
+	Could I interest the core team members in having either a) a
+pointer sent off to one of the above links under examples on the netfilter
+web site, or b) allowing me to provide all the files in that directory for
+direct placement on the netfilter web?
+	Cheers,
+	- Bill
 
-ipv6_rcv() is a safer bet I think. Also has the benefit that the IPv6 
-packet will be routed and forwarded like normal requiring much less setup, 
-and plays better with netfilter conntrack.
-
-Regards
-Henrik
+---------------------------------------------------------------------------
+        "Cogito ergo sum...cogito."
+(Courtesy of Bob Hillery <rhillery@tec.nh.us>)
+--------------------------------------------------------------------------
+William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
+rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
+--------------------------------------------------------------------------
