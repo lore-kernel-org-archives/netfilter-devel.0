@@ -1,16 +1,20 @@
-From: Laszlo Valko <valko@linux.karinthy.hu>
-Subject: Re: iptables u32 match patch-o-matic (attempt)
-Date: Sat, 1 Feb 2003 01:23:05 +0100
+From: don-netf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: conntrack hash function comparison
+Date: Fri, 31 Jan 2003 16:41:28 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030201012305.B27624@linux.karinthy.hu>
-References: <20030128234654.29362.28104.Mailman@kashyyyk> <15927.22044.618895.821767@isis.cs3-inc.com> <20030129090945.A880@linux.karinthy.hu> <15927.62265.746506.765623@isis.cs3-inc.com> <20030131101645.GC9073@naboo.cybercafe42>
+Message-ID: <15931.6072.971476.262073@isis.cs3-inc.com>
+References: <15916.59019.853598.788888@isis.cs3-inc.com>
+	<Pine.LNX.4.33.0301211136020.19820-100000@blackhole.kfki.hu>
+	<15917.31840.767508.76359@isis.cs3-inc.com>
+	<20030131114145.GS9073@naboo.cybercafe42>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Don Cohen <don-netf@isis.cs3-inc.com>, netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+   netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@gnumonks.org>
-Content-Disposition: inline
-In-Reply-To: <20030131101645.GC9073@naboo.cybercafe42>; from laforge@gnumonks.org on Fri, Jan 31, 2003 at 11:16:45AM +0100
+In-Reply-To: <20030131114145.GS9073@naboo.cybercafe42>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,41 +25,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 31, 2003 at 11:16:45AM +0100, Harald Welte wrote:
-> On Wed, Jan 29, 2003 at 07:28:57AM -0800, Don Cohen wrote:
-> I also disagree with Laszlo. We don't need cross-architecture
-> compatibility of those structures anyway. 
-> 
-> >  > > +struct ipt_u32_test
-> >  > > +{
-> >  > > +	u_int8_t nnums;
-> >  > > +	struct ipt_u32_location_element location[U32MAXSIZE+1];
-> >  > > +	u_int8_t nvalues;
-> >  > > +	struct ipt_u32_value_element value[U32MAXSIZE+1];
-> >  > > +};
-> > 
-> > In this one case at least it might help to put the two 8's together,
-> > right? 
-> 
-> yes, it should. depending on compiler and archtiecture, though.
+Harald Welte writes:
+ > not that I totally disagree with rehashing being a good idea... but in
+ > the case you add this 'small piece of code', you also introduce a new
+ > vulnerability: If somebody can provoke the firewall to rehash all the
+ > time ;(
+The counter argument is that if they can do that then they have a way
+of causing lots of connections to go into the same bucket, and allowing
+that to happen is (at least in the extreme case) much worse than
+rehashing.  Obviously it's also bad to rehash too eagerly.
+I think the only question is where to put the threshold.
 
-Ok, but please understand that gcc will not do any packing on x86 or
-any RISC platforms by default. And since this is part of the platform ABI,
-the default behaviour is a fairly stable thing.
-This boils down to saying that whatever you use (u_int8_t or u_int32_t),
-it will not matter, the compiler will generate the same structure for
-all major platforms of Linux (x86, alpha, sparc for sure).
-
-Of course, this whole debate is akin to splitting a hair into two... :)
-
-Regards,
-Laszlo
-
-
-
-> -- 
-> Live long and prosper
-> - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-> ============================================================================
-> GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-> V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+It's reasonable to make that threshold read/writable via /proc.
