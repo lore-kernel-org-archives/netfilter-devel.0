@@ -1,16 +1,12 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@linux-ipv6.org>
-Subject: Re: ip6tables NAT
-Date: Wed, 30 Mar 2005 21:57:08 +0900 (JST)
-Message-ID: <20050330.215708.24512192.yoshfuji@linux-ipv6.org>
-References: <42497540.6030001@mega.ist.utl.pt>
+From: Wang Jian <lark@linux.net.cn>
+Subject: Improve POM error message
+Date: Wed, 30 Mar 2005 23:01:55 +0800
+Message-ID: <20050330225916.0198.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: vrca@mega.ist.utl.pt
-In-Reply-To: <42497540.6030001@mega.ist.utl.pt>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,11 +18,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <42497540.6030001@mega.ist.utl.pt> (at Tue, 29 Mar 2005 16:33:20 +0100), Vasco <vrca@mega.ist.utl.pt> says:
+Hi,
 
-> I would like to know when do you think the nat table for ip6tables will 
-> be implemented.
+Here is a one liner patch agains Netfilter_POM.pm which improves error
+message. This patch will give more clear information in the situation
+that there are multiple lineadd files for a single file.
 
-never ever.
 
---yoshfuji
+Index: Netfilter_POM.pm
+===================================================================
+--- Netfilter_POM.pm    (revision 3808)
++++ Netfilter_POM.pm    (working copy)
+@@ -630,7 +630,7 @@
+        close(SRC);
+                
+        if ($found == 0) {
+-               $self->{ERRMSG} .= "unable to find ladd slot in src $srcfile\n";
++               $self->{ERRMSG} .= "unable to find ladd slot in src $srcfile ($laddfile)\n";
+                return 0;
+        } elsif (!$test && $found == -1) {
+                $self->{ERRMSG} .= "unable to find all to-be-removed lines in $srcfile\n";
+
+
+
+-- 
+  lark
