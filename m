@@ -1,18 +1,10 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ANNOUNCE] netfilter.org systems downtime
-Date: Fri, 22 Aug 2003 16:41:05 +0200
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: [PATCH] Trivial 2.6 tftp conntrack fix
+Date: Thu, 21 Aug 2003 01:00:10 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030822144105.GE11901@sunbeam.de.gnumonks.org>
-Reply-To: coreteam@netfilter.org
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GYkYyJI7bObpCn+O"
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	netfilter-workshop@lists.netfilter.org, coreteam@netfilter.org
+Message-ID: <20030822153414.84E262C0C4@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
-Content-Disposition: inline
+To: davem@redhat.com, netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,65 +15,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Name: TFTP Conntrack Helper Return Fix
+Author: Rusty Russell
+Status: Trivial
 
---GYkYyJI7bObpCn+O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+D: In 2.6, the TFTP conntrack helper returns -1 if the packet is too
+D: short, but that is an invalid return code.  Return NF_ACCEPT
+D: instead.
 
-Hi!
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .1520-linux-2.6.0-test3-bk6/net/ipv4/netfilter/ip_conntrack_tftp.c .1520-linux-2.6.0-test3-bk6.updated/net/ipv4/netfilter/ip_conntrack_tftp.c
+--- .1520-linux-2.6.0-test3-bk6/net/ipv4/netfilter/ip_conntrack_tftp.c	2003-08-12 06:58:07.000000000 +1000
++++ .1520-linux-2.6.0-test3-bk6.updated/net/ipv4/netfilter/ip_conntrack_tftp.c	2003-08-21 00:58:52.000000000 +1000
+@@ -44,7 +44,7 @@ static int tftp_help(struct sk_buff *skb
+ 
+ 	if (skb_copy_bits(skb, skb->nh.iph->ihl * 4 + sizeof(struct udphdr),
+ 			  &tftph, sizeof(tftph)) != 0)
+-		return -1;
++		return NF_ACCEPT;
+ 
+ 	switch (ntohs(tftph.opcode)) {
+ 	/* RRQ and WRQ works the same way */
 
-Due to an unfortunate event [*] the main netfilter.org system had become
-unavailable from Aug 19 to Aug 22.  =20
-
-The long downtime was caused by the netfilter developer workshop, which
-distracted the netfilter developers from doing any system
-administration.
-
-This caused all @netfilter.org mail addresses, the mailinglist, CVS,
-rsync, ftp and www access to be unavailable.
-
-I have now migrated the www, ftp, rsync, anoncvs and mail services to
-different machines.  However, bugzilla.netfilter.org and CVSweb as well
-as the list archives will remain unavailable until the replacement
-server is activated.
-
-The replacement server will be in place at some point this evening/night
-and should be up by midnight GMT.
-
-All your pending emails will be delivered, since we have plenty of backup=
-=20
-MX'es.
-
-We are sorry for the inconvenience, but assure you that we are doing
-everything we can to minimize downtime.
-
-Special thanks to Florian Sippel <fun@noris.net> and Alexander Ruff
-<ruff@exodus.franken.de>, who are taking care of physically replacing
-the servers (hosted 500km away from my current location).
-
-[*] We will provide more details about the exact type of event soon
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---GYkYyJI7bObpCn+O
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/RiuBNfqJzMqajVsRApZNAJ9qXFyDVyOA+kWGZIMBY5t8xmWhGQCgpKdz
-mYw4QDzgAqHgD61JRX5i2W4=
-=yBsE
------END PGP SIGNATURE-----
-
---GYkYyJI7bObpCn+O--
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
