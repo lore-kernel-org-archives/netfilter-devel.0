@@ -1,77 +1,80 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: port-based filtering of ESP packets with in-kernel IPsec?
-Date: Wed, 30 Jul 2003 16:24:11 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20030730142411.GD4553@sunbeam.de.gnumonks.org>
-References: <1059540296.16545.305.camel@k7.localnet>
+Subject: Re: [PATCH] patch-o-matic
+Date: Wed, 30 Jul 2003 16:33:23 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030730143323.GE4553@sunbeam.de.gnumonks.org>
+References: <3B4E2B56.6050109@earthlink.net> <3B4ECEDB.8FF5096C@marasystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kvUQC+jR9YzypDnK"
-Cc: netfilter@lists.netfilter.org, netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="zaRBsRFn0XYhEU69"
+Cc: Brad Chapman <kakadu@earthlink.net>,
+	=?iso-8859-1?Q?Ga=EBl?= Roualland <gael.roualland@dial.oleane.com>,
+	netfilter-devel@lists.samba.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <1059540296.16545.305.camel@k7.localnet>
-Errors-to: netdev-bounce@oss.sgi.com
+In-Reply-To: <3B4ECEDB.8FF5096C@marasystems.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---kvUQC+jR9YzypDnK
+--zaRBsRFn0XYhEU69
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 29, 2003 at 11:44:57PM -0500, Rick Kennell wrote:
-> I asked about this last week in the general netfilter list, but it
-> appears that most folks are still using FreeS/WAN for IPsec.
+On Fri, Jul 13, 2001 at 12:35:07PM +0200, Henrik Nordstrom wrote:
 
-yes, most people will use a stable kernel rather than a development one
-;)
+> Problem is that the common ip_conntrack structure includes helper and
+> protocol specific data, and there is no way of registering new
+> variants without patching include/linux/netfilter_ipv4/ip_conntrack.h
+> and recompile everything dependent on conntrack.
 
-> I'm using the in-kernel IPsec and want to be able to filter ESP packets
-> based on protocol or port number.  These values are encapsulated in the
-> ESP payload and are unavailable to netfilter.  If I were using
-> FreeS/WAN, I could use standard netfilter techniques on the ipsec0
-> device.  With the in-kernel IPsec, there's no extra pseudo-device with
-> which to examine unencapsulated ESP packets.
+yes.  I remember having a discussion with Rusty about this in 2001.  We
+den decided to consider this as a feature.  If you could add any
+conntrcak/nat helper without recompiling the kernel code, you make it
+too easy for 3rd parties to ship binary-only conntrack/nat helpers.
 
-true.
+> This could be solved by separating the helper and protocol data from the =
+main
+> conntrac structure (use opaqueue pointers instead of unions). Probably a =
+good
+> idea as it would lessen the memory usage for "plain" entries, but it adds=
+ some
+> extra memory and CPU overhead when there is helpers involved,=20
 
-> It looks too me like netfilter sees the packet as ESP in all chains in
-> all tables.  (I'd be delighted to be corrected.)
+Yes, this is certainly an interesting idea.  But it would definitely
+make the code more complex.  We would then have struct ip_conntrack,
+struct ip_conntrack_expect - and again something else.
 
-I haven't investigated the new in-kernel ESP implementation that far,
-but your observation sounds reasonable (although I don't say this is the
-desired behaviour).
+The helper could tell the core how many bytes it needs.  The core would
+then create a slab cache for objects of this size. =20
 
-> Since ESP packets that reach the mangle INPUT chain are destined for a
-> local process, why not unencapsulate them just before that point? =20
+Alternatively you could also glue the variable sized part to the end of
+the structure and then have slab caches for 'plain conntrack' and
+'conntrack+helper'.  This would get the number of allocations down to
+one.  However, we would need some flag inside struct ip_conntrack to
+know to which slab cache we return the object when calling
+kmem_cache_free().
 
-Because NF_IP_LOCAL_IN (like all other hooks) are in the layer 3 stack,
-and decapsulating ESP is inside a layer 4 protocol - thus it happens
-after the ip stack has handed it over to the esp4 protocol engine.
+> plus it makes it slightly harder to write helpers (one have to
+> typecast to get access to the helper data).
 
-> It might still be nice to have an indication that this was once an ESP
-> packet for filtering, but that could be done by setting a mark in the
-> mangle PREROUTING chain.
+I wouldn't care about that.  You also need to do this in case of
+writing iptables matches/targets (matchinfo).  And somebody diving into
+the complexity of writing conntrack/nat helpers certainly has no problem
+with adding a typecast to their code.
 
-no. My preferred solution was something like adding a netfilter hook to
-the xfrm4 engine, exactly after decapsulation / decryption of one layer,
-i.e.  after xfrm_type.input was called.=20
-
-iptables could then register the INPUT chain (or probably even a
-seperate POSTXFRM chain) in order to filter on the respective packets.
-
-> I realize that this would probably require some heavy lifting in the
-> network layer to accomplish this nesting of functionality.
-
-yes, this is why this should be discussed on the netdev list (Cc'ed).
-
-I think this needs to be sorted out before 2.6.0-final will be released.
-
-Any comments are appreciated.
-
-> Am I missing something obvious?
+> Henrik Nordstrom
+> MARA Systems AB
+> Sweden
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -83,16 +86,16 @@ Any comments are appreciated.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---kvUQC+jR9YzypDnK
+--zaRBsRFn0XYhEU69
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/J9ULXaXGVTD0i/8RApDKAJ9Khp7Ne+MXX8f1gKyXpIwDUWegdgCfYY6g
-xKhlDsfWItUGVBtroYz8EOs=
-=qqO8
+iD8DBQE/J9czXaXGVTD0i/8RAmFfAJ96nSl1/RVF2oHhFeV1PLqdolBVyQCgjwsL
+3Rpuh1Ppf7WpL9cqF2LEjD8=
+=bN9F
 -----END PGP SIGNATURE-----
 
---kvUQC+jR9YzypDnK--
+--zaRBsRFn0XYhEU69--
