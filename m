@@ -1,16 +1,15 @@
-From: "Sumit Pandya" <sumit@elitecore.com>
-Subject: Re: Difference between match and target
-Date: Wed, 25 Jun 2003 11:59:06 +0530
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Port Expectation
+Date: Wed, 25 Jun 2003 09:19:41 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <005301c33ae3$141da460$010f430a@elitecore7>
-References: <20030624170402.8564.54425.Mailman@kashyyyk>
+Message-ID: <Pine.LNX.4.33.0306250918320.7456-100000@blackhole.kfki.hu>
+References: <Sea2-F66YluLCTaogxL0000049f@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: <laforge@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Ricky Foo <blue_pion@hotmail.com>
+In-Reply-To: <Sea2-F66YluLCTaogxL0000049f@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +20,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald and All,
-    Then do Netfilter core team or Netfilter individual module authors will
-think of reconsidering this policy? Like ipt_foo and ipt_FOO can be combined
-in one kernel module and that module will call both ipt_register_match and
-ipt_register_target in MODULE_INIT. In my point of view if we are inserting
-2 modules then it is definitely consuming extra (some) memory of kernel.
--- Sumit
+On Wed, 25 Jun 2003, Ricky Foo wrote:
 
-> Date: Tue, 24 Jun 2003 18:08:24 +0200
-> From: Harald Welte <laforge@netfilter.org>
+> For this piece of code in ip_nat_ftp.c, why are we change the port to use?
+> If your protocol uses the same protocol port number for both the src & dest
+> port (in my case always 138 in both direction), I suppose there is no need
+> to change the expected port to some other values?
 >
-> On Fri, Jun 20, 2003 at 06:33:58PM +0530, Sumit Pandya wrote:
-> >     What is difference between writing match and target extension for
-> > netfilter? Is there something in match which I cannot achieve in target
-a=
-> nd
-> > vice-versa?
+> ++++++++++++++++++++++++++++++++++++++++++++++++++
 >
-> From a technical point of view, there is not much differrence.
-> There are no technical restrictions, it's a mere policy:
-> Matches match against packet data
-> Targets connect some action with previously matched packets.
+>   /* Try to get same port: if not, try to change it. */
+>   for (port = ct_ftp_info->port; port != 0; port++)
+>   {
+> 	newtuple.dst.u.tcp.port = htons(port);
+> 	if (ip_conntrack_change_expect(expect, &newtuple) == 0)
+> 		break;
+>   }
+
+It's required to avoid clashing with a connection already mapped to the
+port in question.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
