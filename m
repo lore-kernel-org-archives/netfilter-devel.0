@@ -1,14 +1,13 @@
-From: "Srinivasa Hebbar" <sshebbar@yahoo.com>
-Subject: NAT & FORWARDING
-Date: Thu, 29 Jan 2004 19:53:10 +0530
+From: =?gb2312?q?Jon=20Zeng?= <jon_zeng@yahoo.com.cn>
+Subject: A bug in nf_reinject()?
+Date: Thu, 29 Jan 2004 11:49:52 +0800 (CST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <003601c3e673$78521a60$3d40000a@wisdom>
+Message-ID: <20040129034952.63721.qmail@web15202.mail.bjs.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,19 +18,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hello, 
 
-I believe that the NAT PREROUTING and POSTROUTING will 
-always takes place for all the incoming/outgoing packets
-irrespective of whether the packet is destined to the node or not.
+It seems that the line tagged '-' should be the one
+tagged '+',
+am I right?
 
-I have a situation that if the dest. IP address of the packet is
-for the local node, then apply NAT rule, otherwise it should simply
-forward the packet according to the routing table.
+void nf_reinject(struct sk_buff *skb, struct nf_info
+*info,
+		 unsigned int verdict)
+{
+	......
 
-How can I achieve the above?
+	list_for_each_rcu(i, &nf_hooks[info->pf][info->hook])
+{
+		if (i == elem) 
+  			break;
+  	}
+  
+-	if (elem == &nf_hooks[info->pf][info->hook]) {
++	if (i == &nf_hooks[info->pf][info->hook]) {
+		/* The module which sent it to userspace is gone. */
+		NFDEBUG("%s: module disappeared, dropping
+packet.\n",
+			__FUNCTION__);
+		verdict = NF_DROP;
+	}
 
-Any help is very much appreciated.
+	......
+}
 
-Regards,
-S. Hebbar.
+_________________________________________________________
+Do You Yahoo!? 
+繁华世界里，让我看清你
+http://cn.rd.yahoo.com/mail_cn/tag/?http://cn.surveys.yahoo.com/cn_user_profile_study_dec2003
