@@ -1,16 +1,13 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: [PATCH] ipt_osf: module revision fixup
-Date: Fri, 7 Jan 2005 14:22:00 +0300
-Message-ID: <20050107142200.294ac6bd@zanzibar.2ka.mipt.ru>
-References: <20050107022459.GC26992@ti64.telemetry-investments.com>
-Reply-To: johnpol@2ka.mipt.ru
+From: Peter Zion <pzion@nit.ca>
+Subject: [PATCH] PPTP connection tracking: fixed oops during PPTP connect
+ when interface under heavy load
+Date: Thu, 06 Jan 2005 13:50:37 -0500
+Message-ID: <41DD887D.6080007@nit.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
-In-Reply-To: <20050107022459.GC26992@ti64.telemetry-investments.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,38 +19,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Use C99 initializers to allow for new match revision field.
+Summary:
 
-I've applied your patch to my tree, netfilter team, please
-apply it to netfilter CVS, thank you.
+If PPTP connection tracking is running on a machine and certain PPTP
+packets arrive out of order, or preceding packets never made
+it to the machine, the PPTP connection tracking code will
+dereference NULL pointers.  Reproduction steps are to attempt PPTP 
+connections
+to the machine on an interface under heavy load.
 
-Signed-off-by: Bill Rugolsky <brugolsky@telemetry-investments.com>
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Reproduction:
 
---- patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c.revision	2004-11-24 10:19:50.000000000 -0500
-+++ patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c	2005-01-06 20:37:36.000000000 -0500
-@@ -83,14 +83,11 @@
- static unsigned long seq, ipt_osf_groups = 1;
- static struct sock *nts;
+1. Set up the vulnerable machine NATing a shared external connection to the
+local network and with a PPTP daemon running that allows connections from
+the external network.  It must have PPTP connection tracking enabled.
+
+2. On a machine on the local network for which the vulnerable machine is
+acting as a gateway to the external network, run hping2 about 8-15 times
+simultaneously, until your ping response is around 500-800ms but with less
+than 50% packet loss.  Use the following options: "hping2 -2 --destport 123
+--keep -d 100 -i u1 <external address>", where <external address> is a 
+machine
+on the external network that won't mind being flooded for a few minutes.
+
+3. On a machine on the external network, repeatedly make a PPTP
+connection to the vulnerable machine.  In our experience the vulnerable
+machine will oops about one in three PPTP connection attempts.
+
+Patch:
+
+--- linux.orig/net/ipv4/netfilter/ip_conntrack_proto_gre.c        Wed 
+Nov 24 00:49:42 2004
++++ linux/net/ipv4/netfilter/ip_conntrack_proto_gre.c    Wed Nov 24 
+00:46:15 2004
+@@ -133,6 +133,13 @@ int ip_ct_gre_keymap_add(struct ip_connt
+ void ip_ct_gre_keymap_change(struct ip_ct_gre_keymap *km,
+                             struct ip_conntrack_tuple *t)
+ {
++        if (!km)
++        {
++                printk(KERN_WARNING
++                        "NULL GRE conntrack keymap change requested\n");
++                return;
++        }
++
+        DEBUGP("changing entry %p to: ", km);
+        DUMP_TUPLE_GRE(t);
  
--static struct ipt_match osf_match = 
--{ 
--	{ NULL, NULL }, 
--	"osf", 
--	&match, 
--	&checkentry, 
--	NULL, 
--	THIS_MODULE 
-+static struct ipt_match osf_match = { 
-+	.name = "osf", 
-+	.match = &match, 
-+	.checkentry = &checkentry, 
-+	.me = THIS_MODULE 
- };
- 
- static void ipt_osf_nlsend(struct osf_finger *f, const struct sk_buff *sk)
-
-
-	Evgeniy Polyakov
-
-Only failure makes us experts. -- Theo de Raadt
+---
+Peter Zion
+Net Integration Technologies
