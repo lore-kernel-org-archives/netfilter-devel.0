@@ -1,14 +1,17 @@
-From: Gopal Chandavarapu <Gopal.Chandavarapu@rtc.bosch.com>
-Subject: MAC Filtering
-Date: Wed, 14 Jan 2004 15:52:10 -0800
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Future of CONNMARK (was Re: MASQUERADE: Route sent us somewhere
+ else (was Re: Fw: Rusty's brain broke!)
+Date: Sat, 17 Jan 2004 18:50:21 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4005D62A.3080609@rtc.bosch.com>
-Reply-To: Gopal.Chandavarapu@rtc.bosch.com
+Message-ID: <Pine.LNX.4.44.0401171737300.10400-100000@filer.marasystems.com>
+References: <20040117110952.GI18505@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Julian Anastasov <ja@ssi.bg>, <linux-net@vger.kernel.org>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040117110952.GI18505@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,32 +22,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+On Sat, 17 Jan 2004, Harald Welte wrote:
 
-A specific hardware and its cross compiler need 2.4.14 version of the 
-linux kernel. I have to do MAC filtering for these devices, so I found that
+> I think we could push CONNMARK to the mainstream kernel in the next
+> couple of weeks.  
 
-http://ebtables.sourceforge.net/documentation.html#whatdo
+Great!
 
-  does MAC filtering. -----------   Good till now.
+> I'd like to discuss one change with you first... that is using the mark
+> field as a bitmask.
+> 
+> We had that idea for a very long time, and didn't ever change it for the
+> skb->nfmark field for the sake of compatibility.
+> 
+> But now, when introducing a new mark field (the conntrack->mark field),
+> I'd rather prefer implement matching/setting individual bitmasks from
+> the beginning.  What do you think?  Would you be willing to add that
+> feature, or alternatively don't mind if I'd add the respective changes
+> myself?
 
+It is fine by me. It is a trivial thing to add as the extension is not 
+yet frozen.
 
+> Also, please add a Copyright notice including your name and a reference
+> to the GPL on top of the .c files.
 
-Problem : The problem is ebtables works only with linux kernel 2.4.22/23 
-and version 2.6.x
+Will do.
 
-Question 1: Is there any other module like ebtables which does MAC 
-filtering and works with 2.4.14 kernel.
+> Another minor cosmetic issue: Could you please update it to use
+> C99-style structure initializers in the code?
 
+Sure.
 
-Question 2: The MAC filter module should be capable of filtering the 
-packets at run time.
-That means that the filter should be able to ACCEPT all packets from MAC 
-address A for some time and upon users request at run time, it should be 
-able to take a new MAC address B and ACCEPT only from B and DROP/ACCEPT 
-packets from A.
+> Last, but not least:  We'd need an etry for the iptables(8) manpage.
 
-Please let me know.
+Already there from the beginning, but lost in p-o-m due to the lack of a
+clear structure on how manpage additions should be maintained for not yet 
+official extensions. (the help is copy-paste from the manpage output)
 
-Thanks
-Gopal.
+Should I also write a more module like help text for these modules?
+
+Btw, any plans on how iptables manpage snippets for extra/not yet
+submitted matches/targets should be maintained?
+
+The requested changes has been done but is not yet tested. Testing should 
+be finished tomorrow when I will submit the changes.
+
+Regards
+Henrik
