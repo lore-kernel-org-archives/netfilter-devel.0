@@ -1,13 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: patch-o-matic updated
-Date: 07 Apr 2003 17:53:36 +0200
+From: Bernd Petrovitsch <bernd@gams.at>
+Subject: Re: rfc3514
+Date: Wed, 02 Apr 2003 11:29:43 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1049730816.26440.150.camel@tux.rsn.bth.se>
+Message-ID: <8234.1049275783@frodo.gams.co.at>
+References: <1049212213.9858.80.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-reply-to: Your message of "01 Apr 2003 17:50:13 +0200."
+             <1049212213.9858.80.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,39 +21,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Martin Josefsson <gandalf@wlug.westbo.se> wrote:
+>On Tue, 2003-04-01 at 17:13, Patrick Schaaf wrote:
+>> > And there's another small problem regarding conntrack... conntrack t=
+ries
+>> > to reassemble all fragments and this doesn't really work with these
+>> > packets :)
+>> =
 
-Now patch-o-matic has support for dependencies thanks to Jozsef,
-great work!
+>> Will you write a suitable conntrack helper? There's still some hours t=
+o go :
+>)
+>Don't think I'll spend any more time on this extremely useful RFC...
+>
+>> In any case: thanks for the laugh!
+>
+>Just couldn't help myself :)
 
+Perhaps it could be used as demo code ....
 
-Modifications I've done:
+	Bernd
+-- =
 
-* Disable dependency-checking for reverse and force modes.
-* Add support for empty lines / comments in .depend files.
-* Add support for conflicting dependencies.
-* Re-add support for sourcetree copying which is needed for correct
-  dependency testing (avoids copying when not neccessary).
-* Add some dependencies, both normal and conflicting.
-* Fix testing and applying of userspace patches.
-* Update both kernel- and userspace-patches in userspace/ to make them
-  apply again. Split up into more correct pieces and thus avoid
-  conflicts with other patches.
-* Cleanups which resulted in performance improvements (just continued
-  with Jozsef's cleanups).
-* Fix problem where circular dependencies were falsely indicated.
-* Make userspacepatches work correctly with dependencies.
-* Add support for batch testing (--batch --test).
-* Fix detection of failed hunks with certain patches.
-* More flexible userspace searching.
-
-All changes are in cvs and they _seem_ to work just fine. Can some
-people please grab p-o-m from cvs and try applying all the patches you
-usually use and report success or failure to me?
-
-I've started working a little on a script to test p-o-m and report any
-failures with diffrent patch combinations. I have the easy stuff
-finished, will work a bit more on it before I release it.
-
--- 
-/Martin
+Bernd Petrovitsch                              Email : bernd@gams.at
+g.a.m.s gmbh                                  Fax : +43 1 205255-900
+Prinz-Eugen-Stra=DFe 8                    A-1040 Vienna/Austria/Europe
+                     LUGA : http://www.luga.at
