@@ -1,17 +1,13 @@
-From: Fabrice MARIE <fabrice-marie-sec@ifrance.com>
-Subject: Re: German translation of the netfilter-extension-HOWTO
-Date: Thu, 10 Oct 2002 19:10:56 +0800
+From: caster@postech.ac.kr
+Subject: =?iso-8859-1?B?VElNRUJMT0NLIGFuZCBwZXJmb3JtYW5jZQ==?=
+Date: Thu, 10 Oct 2002 20:16:15 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200210101910.56677.fabrice-marie-sec@ifrance.com>
-References: <20021010105020.GA26751@mail.maxrelax.de>
-Reply-To: fabrice-marie-sec@ifrance.com
+Message-ID: <20021010.AAA1034248479@postech.ac.kr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_ZBKQ8Z638QHZTLBPKICELP5G"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Knop <tknop@maxrelax.de>, netfilter-devel@lists.netfilter.org
-In-Reply-To: <20021010105020.GA26751@mail.maxrelax.de>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,34 +18,99 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
-Hello Thomas,
+------=_NextPart_ZBKQ8Z638QHZTLBPKICELP5G
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_CYHB86KVJH7BC7DDD5VHFIDC"
 
-On Thursday 10 October 2002 18:50, Thomas Knop wrote:
-> Dear netfilter developers,
-> i am glad to present you today a german translation of the
-> netfilter-extension-HOWTO. Hopefully you will publish it on your famous
-> webpage.
 
-Thanks for your translation work. Much appreciated :)
+------=_NextPart_CYHB86KVJH7BC7DDD5VHFIDC
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 
-> length Patch:
-> Ther is a +/- 1 error. If we want to drop all the pings with a packet size
-> *greater* than 85 bytes and ranges are inclusive, the roule must be:
-> iptables -A INPUT -p icmp --icmp-type echo-request -m length --length
-> 86:65535 -j DROP
-> [..]
+VGhhbmtzIHRvIHJlcGx5IG15IHF1ZXN0aW9uLg0KDQogDQoNClNvcnJ5IHRvIG1ha2UgYSB0cml2
+aWFsIHF1ZXN0aW9uIG9uIHRoZSBuZWZpbHRlci1kZXYgYm9hcmQuDQoNCkJ1dCwgSSBqdXN0IHRy
+eSB0byBtYWtlIGEgaW5pdGlhdGl2ZSB0aGF0IG1lZXRzICBib3RoIHBlcmZvcm1hbmNlIG9mIG5l
+dGZpbHRlciBhbmQgDQoNClNvbHZpbmcgcHJvYmxlbSBvZiBpbW1pZGF0ZSBhcHBseSBvZiByZWpl
+Y3QgcnVsZSBmb3IgY3VycmVudGx5IHVzaW5nIHNlc3Npb24uDQoNCiANCg0KSWYgQUNDRVBUIHJ1
+bGUgYWJvdXQgRXN0YWJsaXNoZWQgc2Vzc2lvbiBvbiB0aGUgdG9wIG9mIGZvcndhcmQgY2hhaW4g
+aW4gaXB0YWJsZXMgaXMgbm90IHRoZXJlIA0KDQosIGFuZCA1IHRob3VzYW5kcyBvZiBydWxlIHdp
+dGggdGltZWJsb2NrIGlzIHJlc2lkZWQgYmVmb3JlIEFDQ0VQVCBydWxlIGFib3V0IEVzdGFibHNp
+aGVkIHNlc3Npb24gDQoNCiANCg0KdGhpbmsuIA0KDQogDQoNCkhvdyBtYW55IENQVSBjeWNsZSBp
+cyBjb25zdW1lZCBmb3IgdGhlIHBhY2tldCB3aGljaCBkbyBub3QgbWF0Y2ggdGltZWJsb2NrIHJ1
+bGUgYmVmb3JlIEVzdGFibGlzaCBvbmU/DQoNCldoYXQgaGFwcGVucyBJZiB0aGVyZSBpcyA1MDBN
+Yml0L3MgZmxvdyB3aXRoIDY0Ynl0ZXMgaW4gdGhlcmUgLg0KDQogDQoNCkkgdGVzdCBuZXRmaWx0
+ZXIgZmlyZXdhbGwgd2l0aCBnaWdhYml0IE5JQyBpbiBteSBzY2hvb2wuIEFuZCBJIHRoaW5rIHRo
+YXQgbmV0ZmlsdGVyIHNob3VsZCBiZSBtb2RpZmllZCB0byBzdXBwb3J0IGZ1bGwtZHVwbGV4DQoN
+CjEgZ2lnYWJpdCBmbG93IHdpdGggNjQgYnl0ZXMuKCBJIGhvcGUpIA0KDQogDQoNCk15IGxpbnV4
+IGJveCBpcyBkdWFsIFhlb24gd2l0aCAyZ2lnYSByYW0uIEJ1dCBpdKGvcyBwZXJmb3JtYW5jZSBp
+biBnaWdhYml0IGVudmlyb25tZW50IGlzIG5vdCBnb29kLiBBbmQNCg0KV2hhdCBkbyBub3QgaGFw
+cGVuIGluMTAwTSBlbnZpcm9ubWVudCBvY2N1cnMgbGlrZSBVTE9HIGFuZCBMT0cgcHJvYmxlbS4N
+Cg0KIA0KDQpzbywgSSB3YW50IHRvIHB1dCB0aGUgRXN0YWJsaXNoZWQtc3RhdGUgYWNjZXB0aW5n
+IHJ1bGUgb24gdGhlIHRvcCBvZiAgRk9SV0FSRCBjaGFpbiAuIA0KDQogDQoNCmFuZCB0byBzb2x2
+ZSB0aGUgcHJvYmxlbSBvZiBpbW1pZGF0ZSBhcHBseSBvZiByZWplY3QgcnVsZSBmb3IgY3VycmVu
+dGx5IHVzaW5nIHNlc3Npb24gd2hlbiBFc3RhYmxpc2hlZC1zdGF0ZSBhY2NlcHRpbmcgcnVsZQ0K
+DQppcyBvbiB0aGUgdG9wIG9mIEZPUldBUkQgY2hhaW4gLCANCg0KSSB0cnkgdG8gcmVlc3RpbWF0
+ZSB0aGUgc2Vzc2lvbiBpbiBwYXJ0aWN1bGFyIG1vbWVudC4gDQoNCiANCg0KSXQgUmVhZHMgdGhl
+IGNvbm50cmFjayBlbnRyeSBpbiBoYXNoIGFuZCByZWRvIGRvX2lwdGFibGVzKCkgaW4gRk9SV0FS
+RCBjaGFpbiBleGNlcHQgc3RhdGUtbWF0Y2hpbmcgcnVsZS4NCg0KQW5kIGlmIGV4aXN0aW5nIHNl
+c3Npb24gY2Fuoa90IHBhc3MgdGhlIGNoYWluICwgcnVuIHRoZWlyIHRpbWVyIGZ1Y3Rpb24gYW5k
+IGRlc3Ryb3kgaXQuDQoNCiANCg0KRG8gWW91IHRoaW5rIHRoYXQgaXQgd29ya3MgY29ycmVjdGx5
+Pw0KDQogDQoNCkFuZCBvbmUgbW9yZSBRdWVzdGlvbi4NCg0KSSBqdXN0IHdhbm5hIGltcHJvdmUg
+cGVyZm9ybWFuY2Ugb2YgbmV0ZmlsdGVyIGluIGdpZ2FiaXQgZW52aXJvbm1lbnQuDQoNCldoYXQg
+ZG8geW91IHRoaW5rIG5ldGZpbHRlcqGvcyBib3R0bGVuZWNrIGlzPw0KDQpBbmQgd2hpY2ggcGFy
+dCBvZiBrZXJuZWwgaXMgbW9kaWZpZWQgdG8gb3B0aW1pemUgcGVyZm9ybWFuY2U/DQoNCiANCg0K
+d2l6YXJkDQoNCgoKCgoK
 
-Thanks I modified the original document to fix the problem the way you mentioned.
+------=_NextPart_CYHB86KVJH7BC7DDD5VHFIDC
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 
-BTW, did you forget to attach your patch or URL ? You haven't told us where to
-find your document for inclusion :)
+PEhUTUw+CjxIRUFEPjwvSEVBRD4KPEJPRFkgQkdDT0xPUj0id2hpdGUiPgo8Rk9OVCBTSVpFPTI+
+ClRoYW5rcyB0byByZXBseSBteSBxdWVzdGlvbi48QlI+CjxCUj4KIDxCUj4KPEJSPgpTb3JyeSB0
+byBtYWtlIGEgdHJpdmlhbCBxdWVzdGlvbiBvbiB0aGUgbmVmaWx0ZXItZGV2IGJvYXJkLjxCUj4K
+PEJSPgpCdXQsIEkganVzdCB0cnkgdG8gbWFrZSBhIGluaXRpYXRpdmUgdGhhdCBtZWV0cyAgYm90
+aCBwZXJmb3JtYW5jZSBvZiBuZXRmaWx0ZXIgYW5kIDxCUj4KPEJSPgpTb2x2aW5nIHByb2JsZW0g
+b2YgaW1taWRhdGUgYXBwbHkgb2YgcmVqZWN0IHJ1bGUgZm9yIGN1cnJlbnRseSB1c2luZyBzZXNz
+aW9uLjxCUj4KPEJSPgogPEJSPgo8QlI+CklmIEFDQ0VQVCBydWxlIGFib3V0IEVzdGFibGlzaGVk
+IHNlc3Npb24gb24gdGhlIHRvcCBvZiBmb3J3YXJkIGNoYWluIGluIGlwdGFibGVzIGlzIG5vdCB0
+aGVyZSA8QlI+CjxCUj4KLCBhbmQgNSB0aG91c2FuZHMgb2YgcnVsZSB3aXRoIHRpbWVibG9jayBp
+cyByZXNpZGVkIGJlZm9yZSBBQ0NFUFQgcnVsZSBhYm91dCBFc3RhYmxzaWhlZCBzZXNzaW9uIDxC
+Uj4KPEJSPgogPEJSPgo8QlI+CnRoaW5rLiA8QlI+CjxCUj4KIDxCUj4KPEJSPgpIb3cgbWFueSBD
+UFUgY3ljbGUgaXMgY29uc3VtZWQgZm9yIHRoZSBwYWNrZXQgd2hpY2ggZG8gbm90IG1hdGNoIHRp
+bWVibG9jayBydWxlIGJlZm9yZSBFc3RhYmxpc2ggb25lPzxCUj4KPEJSPgpXaGF0IGhhcHBlbnMg
+SWYgdGhlcmUgaXMgNTAwTWJpdC9zIGZsb3cgd2l0aCA2NGJ5dGVzIGluIHRoZXJlIC48QlI+CjxC
+Uj4KIDxCUj4KPEJSPgpJIHRlc3QgbmV0ZmlsdGVyIGZpcmV3YWxsIHdpdGggZ2lnYWJpdCBOSUMg
+aW4gbXkgc2Nob29sLiBBbmQgSSB0aGluayB0aGF0IG5ldGZpbHRlciBzaG91bGQgYmUgbW9kaWZp
+ZWQgdG8gc3VwcG9ydCBmdWxsLWR1cGxleDxCUj4KPEJSPgoxIGdpZ2FiaXQgZmxvdyB3aXRoIDY0
+IGJ5dGVzLiggSSBob3BlKSA8QlI+CjxCUj4KIDxCUj4KPEJSPgpNeSBsaW51eCBib3ggaXMgZHVh
+bCBYZW9uIHdpdGggMmdpZ2EgcmFtLiBCdXQgaXShr3MgcGVyZm9ybWFuY2UgaW4gZ2lnYWJpdCBl
+bnZpcm9ubWVudCBpcyBub3QgZ29vZC4gQW5kPEJSPgo8QlI+CldoYXQgZG8gbm90IGhhcHBlbiBp
+bjEwME0gZW52aXJvbm1lbnQgb2NjdXJzIGxpa2UgVUxPRyBhbmQgTE9HIHByb2JsZW0uPEJSPgo8
+QlI+CiA8QlI+CjxCUj4Kc28sIEkgd2FudCB0byBwdXQgdGhlIEVzdGFibGlzaGVkLXN0YXRlIGFj
+Y2VwdGluZyBydWxlIG9uIHRoZSB0b3Agb2YgIEZPUldBUkQgY2hhaW4gLiA8QlI+CjxCUj4KIDxC
+Uj4KPEJSPgphbmQgdG8gc29sdmUgdGhlIHByb2JsZW0gb2YgaW1taWRhdGUgYXBwbHkgb2YgcmVq
+ZWN0IHJ1bGUgZm9yIGN1cnJlbnRseSB1c2luZyBzZXNzaW9uIHdoZW4gRXN0YWJsaXNoZWQtc3Rh
+dGUgYWNjZXB0aW5nIHJ1bGU8QlI+CjxCUj4KaXMgb24gdGhlIHRvcCBvZiBGT1JXQVJEIGNoYWlu
+ICwgPEJSPgo8QlI+CkkgdHJ5IHRvIHJlZXN0aW1hdGUgdGhlIHNlc3Npb24gaW4gcGFydGljdWxh
+ciBtb21lbnQuIDxCUj4KPEJSPgogPEJSPgo8QlI+Ckl0IFJlYWRzIHRoZSBjb25udHJhY2sgZW50
+cnkgaW4gaGFzaCBhbmQgcmVkbyBkb19pcHRhYmxlcygpIGluIEZPUldBUkQgY2hhaW4gZXhjZXB0
+IHN0YXRlLW1hdGNoaW5nIHJ1bGUuPEJSPgo8QlI+CkFuZCBpZiBleGlzdGluZyBzZXNzaW9uIGNh
+bqGvdCBwYXNzIHRoZSBjaGFpbiAsIHJ1biB0aGVpciB0aW1lciBmdWN0aW9uIGFuZCBkZXN0cm95
+IGl0LjxCUj4KPEJSPgogPEJSPgo8QlI+CkRvIFlvdSB0aGluayB0aGF0IGl0IHdvcmtzIGNvcnJl
+Y3RseT88QlI+CjxCUj4KIDxCUj4KPEJSPgpBbmQgb25lIG1vcmUgUXVlc3Rpb24uPEJSPgo8QlI+
+CkkganVzdCB3YW5uYSBpbXByb3ZlIHBlcmZvcm1hbmNlIG9mIG5ldGZpbHRlciBpbiBnaWdhYml0
+IGVudmlyb25tZW50LjxCUj4KPEJSPgpXaGF0IGRvIHlvdSB0aGluayBuZXRmaWx0ZXKhr3MgYm90
+dGxlbmVjayBpcz88QlI+CjxCUj4KQW5kIHdoaWNoIHBhcnQgb2Yga2VybmVsIGlzIG1vZGlmaWVk
+IHRvIG9wdGltaXplIHBlcmZvcm1hbmNlPzxCUj4KPEJSPgogPEJSPgo8QlI+CndpemFyZDxCUj4K
+PEJSPgo8QlI+CjxCUj4KPEJSPgo8QlI+PEJSPgo8SU1HIFNSQz0iaHR0cDovL3dtYWlsLnBvc3Rl
+Y2guYWMua3I6ODAvY2dpLWF1dGgvbWFpbHJjcHQuY2dpP3VzZXJpZD1jYXN0ZXImbWFpbGRvbWFp
+bm5hbWU9cG9zdGVjaC5hYy5rciZtc2dpZD0yMDAyMTAxMC5BQUExMDM0MjQ4NDc5QHBvc3RlY2gu
+YWMua3IiPgo8L0ZPTlQ+CjwvQk9EWT48L0hUTUw+Cgo=
 
-Have a nice day,
+------=_NextPart_CYHB86KVJH7BC7DDD5VHFIDC--
 
-Fabrice.
---
-Fabrice MARIE
-
-"Silly hacker, root is for administrators"
-       -Unknown
+------=_NextPart_ZBKQ8Z638QHZTLBPKICELP5G--
