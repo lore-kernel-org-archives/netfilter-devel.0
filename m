@@ -1,18 +1,16 @@
-From: Andreas Jellinghaus <aj@dungeon.inka.de>
-Subject: Re: port-based filtering of ESP packets with in-kernel IPsec?
-Date: 30 Jul 2003 16:51:41 +0200
+From: "Jeremy Davis" <jeremy@slicenet.net>
+Subject: RE: port-based filtering of ESP packets with in-kernel IPsec?
+Date: Wed, 30 Jul 2003 11:45:03 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1059576701.4586.20.camel__49480.113053187$1059749587@simulacron>
+Message-ID: <KAEOKILOFJNGKODBFBLJKEDCCNAA.jeremy@slicenet.net>
 References: <1059540296.16545.305.camel@k7.localnet>
-	 <20030730142411.GD4553@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org, netdev@oss.sgi.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030730142411.GD4553@sunbeam.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <1059540296.16545.305.camel@k7.localnet>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,56 +21,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+I guess I need to get a develop kernel and do some testing.  Purdue aye, I
+just moved from Indianapolis, had many friends that attended Purdue.  Been
+there a time or two myself.
 
-if you are using ipsec from kernel 2.6.* there is no "ipsec0"
-interface, and thus using netfilter isn't as easy as it was with
-freeswan.
+Jeremy Davis
+Security Analyst
+Slice Networks
 
-three ways to solve the problem, only tried the first one so far:
-1.) configure ipsec in tunnel mode, add your tunnel ip to 
-    the outgoing interface, change the default route to
-    set the source ip to the tunnel ip.
-note: there is no routing step after encapsulating a packet
-with ipsec, there was one with freeswan, so this is different.
+-----Original Message-----
+From: netfilter-admin@lists.netfilter.org
+[mailto:netfilter-admin@lists.netfilter.org]On Behalf Of Rick Kennell
+Sent: Wednesday, July 30, 2003 12:45 AM
+To: netfilter-devel@lists.netfilter.org; netfilter@lists.netfilter.org
+Subject: port-based filtering of ESP packets with in-kernel IPsec?
 
-2.) set a fwmark on an esp packet, it should be there after
-    unpacking/decryption. didn't try this one.
 
-3.) do not use the build in tunneling. use an explicit ipip tunnel.
-	that way you have the interface, can use it in netfilter,
-	can route into it, and the interface will set the right
-	source address.
+I asked about this last week in the general netfilter list, but it
+appears that most folks are still using FreeS/WAN for IPsec.
 
-[netfilter]
-incoming encrypted packets are seen as ESP/AH in INPUT
-and then as decrypted packet in INPUT or FORWARD.
+I'm using the in-kernel IPsec and want to be able to filter ESP packets
+based on protocol or port number.  These values are encapsulated in the
+ESP payload and are unavailable to netfilter.  If I were using
+FreeS/WAN, I could use standard netfilter techniques on the ipsec0
+device.  With the in-kernel IPsec, there's no extra pseudo-device with
+which to examine unencapsulated ESP packets.
 
-outgoing packets are only seen as ESP in OUTPUT.
+It looks too me like netfilter sees the packet as ESP in all chains in
+all tables.  (I'd be delighted to be corrected.)
 
-> > Since ESP packets that reach the mangle INPUT chain are destined for a
-> > local process, why not unencapsulate them just before that point?  
+Since ESP packets that reach the mangle INPUT chain are destined for a
+local process, why not unencapsulate them just before that point?  It
+might still be nice to have an indication that this was once an ESP
+packet for filtering, but that could be done by setting a mark in the
+mangle PREROUTING chain.
 
-INPUT only means the ESP will be decrypted/unecapsulated.
-after that the decrypted packet will show up in INPUT or FORWARD.
+I realize that this would probably require some heavy lifting in the
+network layer to accomplish this nesting of functionality.
 
-> no. My preferred solution was something like adding a netfilter hook to
-> the xfrm4 engine, exactly after decapsulation / decryption of one layer,
-> i.e.  after xfrm_type.input was called. 
->
-> iptables could then register the INPUT chain (or probably even a
-> seperate POSTXFRM chain) in order to filter on the respective packets.
+Am I missing something obvious?
 
-you can already filter incoming packets. The problem is you
-don't know if they came in that way they look now, or if they
-came in via ESP packets and got decrypted.
-
-maybe decryption/unencapsulating could leave a mark on the
-packet, so we know packets without that mark came in without
-ipsec and are bad / attempts to access resources without ipsec?
-(maybe fwmark works on that. or an explicit ipip tunnel, so you
-have "ipip0" or something as incoming interface).
-
-> Any comments are appreciated.
-
-Regards, Andreas
+--
+Rick Kennell <kennell@ecn.purdue.edu>
+Purdue University School of Electrical and Computer Engineering
