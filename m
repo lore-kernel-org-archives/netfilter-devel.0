@@ -1,15 +1,15 @@
-From: Kevin McConnell <kevymac@yahoo.com>
+From: Oskar Andreasson <blueflux@koffein.net>
 Subject: Re: confusion about mangle
-Date: Mon, 14 Oct 2002 10:45:57 -0700 (PDT)
+Date: Mon, 14 Oct 2002 17:53:23 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021014174557.38935.qmail@web40305.mail.yahoo.com>
-References: <Pine.LNX.4.44.0210141748270.2696-100000@laptop1.agatha>
+Message-ID: <Pine.LNX.4.44.0210141748270.2696-100000@laptop1.agatha>
+References: <20021014165810.23290.qmail@web40303.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Oskar Andreasson <blueflux@koffein.net>
-In-Reply-To: <Pine.LNX.4.44.0210141748270.2696-100000@laptop1.agatha>
+To: Kevin McConnell <kevymac@yahoo.com>
+In-Reply-To: <20021014165810.23290.qmail@web40303.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,35 +20,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On this same topic, I just updated the iptables tutorial, which contains
+updates which should hopefully reflect the mangle5hooks.patch. Would
+anyone take a look at
+http://iptables-tutorial.frozentux.net/images/tables_traverse.jpg and tell
+me if it's wrong?
 
---- Oskar Andreasson <blueflux@koffein.net> wrote:
-> On this same topic, I just updated the iptables
-> tutorial, which contains
-> updates which should hopefully reflect the
-> mangle5hooks.patch. Would
-> anyone take a look at
->
-http://iptables-tutorial.frozentux.net/images/tables_traverse.jpg
-> and tell
-> me if it's wrong?
+As a sidenote, Kevin, you may also be interested in that image since it is 
+pretty much what you asked for:). 
 
-Aha! That is exactly what I was looking for. I
-wondered whatever happened to your tutorial. I hadn't
-seen an update to it in a long time. I imagine that
-since you aren't really paid for it, it's probably a
-pretty daunting task. I checked all old resourse links
-and the links either timed out or were at the old
-version. Thank you very kindly for this update. I post
-your tutorial to many newbies. It's very well written.
+Thanks,
 
+Oskar
 
-Many thanks to you and keep up the great work!
+On Mon, 14 Oct 2002, Kevin McConnell wrote:
 
+> Hi :)
+> I noticed that 2 releases ago (1.2.6) the mangle table
+> acquired some new chains... 3 to be exact. How do
+> these new chains effect the flow of packets? Does
+> anyone have it laid out somewhere? I am really trying
+> hard to imagine the benefits of adding those
+> particular chains, since the docs said never to filter
+> in the mangle table. Could someone enumerate on this
+> please? Any help is greatly appreciated. Thanks.
+> 
+> 
+> =====
+> Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
+> 
+> __________________________________________________
+> Do you Yahoo!?
+> Faith Hill - Exclusive Performances, Videos & More
+> http://faith.yahoo.com
+> 
+> 
 
-=====
-Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
-
-__________________________________________________
-Do you Yahoo!?
-Faith Hill - Exclusive Performances, Videos & More
-http://faith.yahoo.com
+-- 
+----
+Oskar Andreasson
+http://www.frozentux.net
+http://iptables-tutorial.frozentux.net
+http://ipsysctl-tutorial.frozentux.net
+mailto:blueflux@koffein.net
