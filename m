@@ -1,16 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [ANNOUNCE] IP sets
-Date: Tue, 17 Feb 2004 12:03:08 +0100 (CET)
+From: Wojciech 'Sas' Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
+Subject: pool module.
+Date: Tue, 17 Feb 2004 13:12:41 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com>
-References: <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.58L.0402171234001.24901@alpha.zarz.agh.edu.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
+To: Netfilter developmnet mailing list <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +17,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Feb 2004, Jozsef Kadlecsik wrote:
+Hi 
 
-> Thank you pointing out the article! Let's consider the current version of
-> ipset as the first, beta release (as it is :-). Actually, Linus'
-> description when vmalloc is valid fits to the vmalloc usage in ipset
-> (large arrays allocated), but I'll work on to eliminate it.
+In this module, in file net/ipv4/netfilter/ip_pool.c are missing two line:
+EXPORT_SYMBOL(ip_pool_mod);
+EXPORT_STMBOL(ip_pool_match);
 
-To make you more comfortable it may be worth noticing that iptables too 
-uses vmalloc for allocating the iptables.
+here is patch:
+==========================================================
+--- patch-o-matic-ng/pool/linux/net/ipv4/netfilter/ip_pool.c.org	2003-12-18 19:28:43.000000000 +0100
++++ patch-o-matic-ng/pool/linux/net/ipv4/netfilter/ip_pool.c	2004-02-17 12:43:15.000000000 +0100
+@@ -67,6 +67,7 @@
+ 	read_unlock_bh(&pool->lock);
+ 	return res;
+ }
++EXPORT_SYMBOL(ip_pool_match);
+ 
+ static int pool_change(ip_pool_t index, u_int32_t addr, int isdel)
+ {
+@@ -95,6 +96,7 @@
+ 	if (!isdel) res = !res;
+ 	return res;
+ }
++EXPORT_SYMBOL(ip_pool_mod);
+ 
+ static inline int bitmap_bytes(u_int32_t a, u_int32_t b)
+ {
 
-What can be argued is that any design requiring allocation of a large
-contigous memory areas in the kernel is broken by design and should be
-redesigned rather than referring to vmalloc, and I think this is what
-Linus tried to say. In my opinion a design which frequently calls vmalloc 
-is plain broken, but a design intentionally requiring a large allocation 
-should use vmalloc providing the design as such is valid.
-
-Regards
-Henrik
+-- 
+{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
+{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
