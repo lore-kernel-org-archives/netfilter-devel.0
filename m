@@ -1,16 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [Fwd: Re: "ip_conntrack_core: Frag of proto 17." error and memory
- leak?]
-Date: Tue, 23 Sep 2003 12:24:17 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] Netfilter modules to use modern parameters
+Date: Tue, 23 Sep 2003 13:23:32 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0309231204140.24180-100000@blackhole.kfki.hu>
-References: <1064090237.28506.83.camel@tux.rsn.bth.se>
+Message-ID: <20030923112332.GK31401@sunbeam.de.gnumonks.org>
+References: <20030923083215.7CFC62C23F@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DEfZqDS1MPR2ysog"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1064090237.28506.83.camel@tux.rsn.bth.se>
+To: Rusty Russell <rusty@rustcorp.com.au>
+Content-Disposition: inline
+In-Reply-To: <20030923083215.7CFC62C23F@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,40 +22,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 20 Sep 2003, Martin Josefsson wrote:
 
-> Ok it was as I suspected.
-> ipt_NOTRACK calls ip_conntrack_get_tuple() which calls get_tuple() for
-> all packets, even fragments and get_tuple() barfs and returns 0 so
-> NOTRACK doesn't mark the packet as untracked.
+--DEfZqDS1MPR2ysog
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Oh, my stupidity! I'll add the banner to the code:
+On Tue, Sep 23, 2003 at 06:31:29PM +1000, Rusty Russell wrote:
+> Requires previous patch send to lkml, entitled [PATCH] module_param_array=
+().
+>=20
+> Harald: I changed ULOG's flushtimeout to always use 100ths of a
+> second, to avoid being kernel-version and arch specific.
 
-/* Even when the intention was to write a code with the given
- * functionality, any reseblance in the actual behavior to the
- * intended one is due to pure luck.
- */
+Thanks, I'm going to update 2.4.x accordingly.
 
-[...]
-> A small variant of this is to still split ip_find() into two functions
-> and if we find that the fragment is expected (either conntrack or the
-> ipstack has seen the first packet and tries to defrag it) we simply
-> continue the defraging on their behalf and rerun the now complete packet
-> through ip_conntrack_tuple_taken() to see if conntrack should have it or
-> not. This way I think everyone's happy. There will be some extra
-> searching in the defrag-hashtable for all fragments handled by NOTRACK
-> and one extra search in conntrack for each defragged packet. For the
-> case where the arriving fragments are expected there will be two
-> searches in the defrag-hashtable unless we split those things up a bit
-> and modify them, I wonder how keen davem is on that.
+> If no objections, I'll send to DaveM (it's 2.6-only).
 
-What about calling ip_ct_gather_frags directly in the NOTRACK target?
-It'd be straightforward and in the target we already depend on conntrack.
+sure, just go ahead.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> Cheers,
+> Rusty.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--DEfZqDS1MPR2ysog
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE/cC00XaXGVTD0i/8RAqCLAJ9xepfac1PHoVSQtphXLsvYK3zV8ACfchfs
+f9IX6wNOB2Kl+YDrY8hh9b4=
+=aVuX
+-----END PGP SIGNATURE-----
+
+--DEfZqDS1MPR2ysog--
