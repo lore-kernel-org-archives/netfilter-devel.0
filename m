@@ -1,17 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: skb_ip_make_writable and skbs not owned by a socket
-Date: Mon, 03 Jan 2005 02:53:13 +0100
-Message-ID: <41D8A589.9090802@trash.net>
-References: <41D86571.6070501@trash.net>	<20050102235757.GA26856@postel.suug.ch>
-	<41D8A1A3.3060308@trash.net>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH 1/2] Versioning (aka release) stuff for iptables
+Date: Mon, 03 Jan 2005 20:47:23 +1100
+Message-ID: <1104745643.14092.7.camel@localhost.localdomain>
+References: <41CDDC3F.2060708@eurodev.net>
+	<1104301816.8383.14.camel@localhost.localdomain>
+	<41D71C82.7060101@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040207050508030705000500"
-Cc: "David S. Miller" <davem@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>,
-	Jamal Hadi Salim <hadi@cyberus.ca>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Graf <tgraf@suug.ch>
-In-Reply-To: <41D8A1A3.3060308@trash.net>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <41D71C82.7060101@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,101 +23,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040207050508030705000500
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sat, 2005-01-01 at 22:56 +0100, Pablo Neira wrote:
+> multiport-remove-late-check.patch:
+> Remove a checking in kernel space which makes sures that the parameters 
+> passed are correct, that's already done in user space where this thing 
+> really belongs.
 
-Patrick McHardy wrote:
+I've rolled this into the other kernel patch, after some thought.  The
+previous policy was that iptables should not be able to crash the
+kernel, however that means a lot of gratuitous checking in the kernel
+that is far more useful if done in userspace (where the error messages
+can be more informative).
 
-> A different question is why we can't simply do this:
->
-> (cut-n-paste, I would cut at least one goto in a patch)
->
-> int skb_ip_make_writable(struct sk_buff **pskb, unsigned int 
-> writable_len)
-> {
->        struct sk_buff *nskb;
->
->        if (writable_len > (*pskb)->len)
->                return 0;
->
->        /* Not exclusive use of packet?  Must copy. */
->        if (skb_shared(*pskb) || skb_cloned(*pskb))
->                goto copy_skb;
->
->        if (skb_headlen(skb) <= writable_len)
->                return 1;
+> multiport_v2.patch:
+> the revision 1 of multiport. Actually this merges current mport in the 
+> SVN repository to multiport.
 
-This should have been >=, but is not necessary anyway, pskb_may_pull
-already does the same test. Real patch attached.
+I've put this in my patch collection.
 
+> iptables-multiport_v2.patch:
+> iptables user space part.
 
+Applied and committed.
 
---------------040207050508030705000500
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+> multiport.sim:
+> a testsuite to check that new version works fine (incomplete).
 
-===== net/core/netfilter.c 1.37 vs edited =====
---- 1.37/net/core/netfilter.c	2004-11-13 14:41:07 +01:00
-+++ edited/net/core/netfilter.c	2005-01-03 02:50:29 +01:00
-@@ -678,7 +678,6 @@
- int skb_ip_make_writable(struct sk_buff **pskb, unsigned int writable_len)
- {
- 	struct sk_buff *nskb;
--	unsigned int iplen;
- 
- 	if (writable_len > (*pskb)->len)
- 		return 0;
-@@ -687,35 +686,7 @@
- 	if (skb_shared(*pskb) || skb_cloned(*pskb))
- 		goto copy_skb;
- 
--	/* Alexey says IP hdr is always modifiable and linear, so ok. */
--	if (writable_len <= (*pskb)->nh.iph->ihl*4)
--		return 1;
--
--	iplen = writable_len - (*pskb)->nh.iph->ihl*4;
--
--	/* DaveM says protocol headers are also modifiable. */
--	switch ((*pskb)->nh.iph->protocol) {
--	case IPPROTO_TCP: {
--		struct tcphdr _hdr, *hp;
--		hp = skb_header_pointer(*pskb, (*pskb)->nh.iph->ihl*4,
--					sizeof(_hdr), &_hdr);
--		if (hp == NULL)
--			goto copy_skb;
--		if (writable_len <= (*pskb)->nh.iph->ihl*4 + hp->doff*4)
--			goto pull_skb;
--		goto copy_skb;
--	}
--	case IPPROTO_UDP:
--		if (writable_len<=(*pskb)->nh.iph->ihl*4+sizeof(struct udphdr))
--			goto pull_skb;
--		goto copy_skb;
--	case IPPROTO_ICMP:
--		if (writable_len
--		    <= (*pskb)->nh.iph->ihl*4 + sizeof(struct icmphdr))
--			goto pull_skb;
--		goto copy_skb;
--	/* Insert other cases here as desired */
--	}
-+	return pskb_may_pull(*pskb, writable_len);
- 
- copy_skb:
- 	nskb = skb_copy(*pskb, GFP_ATOMIC);
-@@ -730,9 +701,6 @@
- 	kfree_skb(*pskb);
- 	*pskb = nskb;
- 	return 1;
--
--pull_skb:
--	return pskb_may_pull(*pskb, writable_len);
- }
- EXPORT_SYMBOL(skb_ip_make_writable);
- #endif /*CONFIG_INET*/
+I reworked this to be thorough and test one thing at a time, and split
+the test into revision 0 things, and revision 1 things.  As a result, I
+found a bug in the userspace part (checks protocol, but not that it
+isn't inverted), and in the kernel part (--ports only examined
+destination ports, not source).
 
---------------040207050508030705000500--
+Fixed, and thanks!
+
+> BTW, if you need this. Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+
+Please read part (11) of Documentation/SubmittingPatches in the kernel
+source tree.  If you're fine by that, attach it to future patches.
+
+Thanks!
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
