@@ -1,13 +1,17 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: conntrack performance/DoS formula
-Date: Thu, 27 Jun 2002 13:46:28 -0700
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: MSN Messenger ALG
+Date: Thu, 27 Jun 2002 20:12:56 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15643.31140.525551.843205@isis.cs3-inc.com>
+Message-ID: <20020627181256.GN9003@naboo.rchrd.phub.net.cable.rogers.com>
+References: <20020627112623.GD9003@naboo.rchrd.phub.net.cable.rogers.com> <000001c21dfc$3d236890$7200a8c0@blue>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: 'Amir Khandani' <amirk@broadcom.com>,
+	netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: Glover George <dime@gulfsales.com>
+Content-Disposition: inline
+In-Reply-To: <000001c21dfc$3d236890$7200a8c0@blue>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,54 +22,37 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, Jun 27, 2002 at 12:01:05PM -0500, Glover George wrote:
+> Yes, SIP can get very hairy, because it's primarily xml -ished based.
+> The proper way to make MSN Messenger work is using Universal Plug n Play
+> to do nat traversal.  http://linux-igd.sourceforge.net will make this
+> work (every feature except file transfer, which we at the UPnP forum are
+> trying to get Microsoft to hurry up and fix (along with many router
+> vendors)).  
 
-I had mentioned that I was hoping to remember/find the appropriate
-formula for the probability of a hash bucket reaching its limit.
-I got out my prob-stat book from I-won't-mention-how-many years ago.
+For security reason I'd _never ever_ run a upnp igd on any firewall.
+This is just insane.  The firewall has no possibility of knowing if the 
+upnp request is sent by a 'legitimate application' or by some new
+outlook macro virus.
 
-Suppose there's a limit of L connections to be put in a hash table
-with B buckets, each bucket allowed to hold a max of M entries.
-I assume that the hash function maps a connection to each bucket
-with equal probability, P = 1/B.
-Suppose the table is full, meaning it has L connections in it.
-The probability that a given bucket has n connections in it is:
+> If there was indeed an SIP conntrack however, it would be so much nicer,
+> because there are a lot of packages coming out that use SIP but do not
+> use UPnP.  It's just a matter of sparking enough interest in it to get
+> someone knowledgeable in netfilter to write one (or someone learning
+> from scratch).
 
-c(L,n) (P ^ n) ((1-P) ^ (L-n))  [called binomial distribution]
+the SIP/SDP helper would be the most complex conntrack helper for
+netfilter.  Even H.323 is harmless compared to the full SIP/SDP
+protocol.  And there are corner cases like encrypted/authenticated SDP
+messages where you will never be able to do NAT.
 
-where c(L,n) is the number of ways of choosing n things out of L,
-which is L! / (L-n)! n!, i.e., 10x9x8/3x2x1 ways to choose 3 out of 10.
-The binomial formula comes from the fact that we've chosen n
-connections out of L to put in this bucket, each of those with
-probability P, and of course the other L-n went into other buckets
-with probability 1-P. 
 
-BTW, this is closely approximated by a Poisson distribution.
+> Glover George
+> Systems/Networks Administrator
 
-Anyhow, on to some answers.  My initial guess was that with L/2
-buckets (so the average bucket length is 2), max bucket size M=10
-would result in only a microscopic chance of overflow.
-The chance is bigger than I expected, about 1E-5.
-Raising M to 15 reduces it to about 1E-10 and raising M to 20 makes it
-about 1E-15, which seems quite respectable. 
-
-There's a pretty straight forward tradeoff between space and time.
-Instead of increasing the time (# iterations = M) you can increase 
-the space (# buckets).  Changing from L/2 buckets to L we get
-M=10 probability 1E-9 of filling a bucket
-M=15 probability 1E-14
-M=20 probability 1E-20
-
-And while we're at it, with 2L buckets (average occupancy .5)
-M=10 prob ~ 1E-11
-M=15 prob ~ 1E-18
-M=20 prob ~ 1E-25
-
-My guess is that the amount of time required to do 20 iterations
-comparing connection data with elements of a list in a bucket is
-very small compared to the amount of time otherwise spent on a
-packet.  On the other hand, a hash bucket is also pretty cheap.
-The data for a connection takes much more space than 2 hash buckets, 
-or even 10.  And with 10L buckets the chance of overflow at M=10
-is only 1E-19, for M=20 it's somewhere around 1E-40.
-
-So, there you have it.
+-- 
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
