@@ -1,17 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] convert mport to multiport
-Date: Sun, 26 Sep 2004 16:27:38 -0700
+Date: Mon, 27 Sep 2004 01:36:34 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040926232738.GB2201@linuxace.com>
-References: <415748E8.60000@eurodev.net>
+Message-ID: <41575282.4030006@trash.net>
+References: <415748E8.60000@eurodev.net> <41574F5E.1020409@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <415748E8.60000@eurodev.net>
+In-Reply-To: <41574F5E.1020409@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,41 +21,36 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 27, 2004 at 12:55:36AM +0200, Pablo Neira wrote:
-> Hi Patrick,
-> 
-> Attached a patch that puts mport and multiport together. It applies to 
-> latest bk snapshot.
-> 
-> I've also added some clean ups like the use of  a count var inside the 
-> ipt_multiport instead of using 65535 and the pflag set to mark the end 
-> of the array of ports. I've tested and it works fine for me.
-> 
-> Also attached the patch for iptables and man page. If missing something, 
-> please let me know.
-> 
-> regards,
-> Pablo
+Hi Pablo,
 
-Pablo - 
+Pablo Neira wrote:
 
-first of all, thanks for doing this -- it will come in handy in my scripts.
+> Hi again Patrick,
+>
+> I think that some comments about the patch could help you to review 
+> it, so here we go :-)
 
-Minor nit:
+Thanks, I appreciate it :)
 
-@@ -146,6 +161,10 @@
-                exit_error(PARAMETER_PROBLEM,
-                           "multiport does not support invert");
+>> +/* every entry in ports[] except for the last one has one bit in pflags
+>> + * associated with it. If this bit is set, the port is the first 
+>> port of
+>> + * a portrange, with the next entry being the last.
+>> + * End of list is marked with pflags bit set and port=65535.
+>> + * If 14 ports are used (last one does not have a pflag), the last port
+>> + * is repeated to fill the last entry in ports[] */
+>> struct ipt_multiport
+>> {
+>> -    u_int8_t flags;                /* Type of comparison */
+>> -    u_int8_t count;                /* Number of ports */
+>> +    u_int8_t flags:2;            /* Type of comparison */
+>> +    u_int16_t pflags:14;            /* Port flags */
+>>     u_int16_t ports[IPT_MULTI_PORTS];    /* Ports */
+>> +    u_int8_t count;                         /* Number of ports */
+>>  
+>>
 
-+       if (invert)             
-+               exit_error(PARAMETER_PROBLEM,
-+                          "multiport does not support invert");
-+       
-        if (*flags)
-                exit_error(PARAMETER_PROBLEM,
-                           "multiport can only have one option");
+This breaks userspace compatibility. We can't do that, sorry.
 
-this hunk looks redundant.
-
-
-Phil
+Regards
+Patrick
