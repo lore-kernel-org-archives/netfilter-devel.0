@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: the definition of function iptc_init
-Date: Fri, 13 Jun 2003 17:18:12 +0200
+Subject: Re: Conntrack Entries
+Date: Fri, 13 Jun 2003 17:19:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030613151812.GE32593@sunbeam.de.gnumonks.org>
-References: <00c801c330b5$8b68c960$0b00a8c0@haf>
+Message-ID: <20030613151957.GF32593@sunbeam.de.gnumonks.org>
+References: <Sea2-F465SpDz9vUkUq0000c036@hotmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JZV+hE4cb0ibQYPB"
+	protocol="application/pgp-signature"; boundary="4ewN61DNRuNLc83n"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jack <jack@cosmism.com>
+To: Ricky Foo <blue_pion@hotmail.com>
 Content-Disposition: inline
-In-Reply-To: <00c801c330b5$8b68c960$0b00a8c0@haf>
+In-Reply-To: <Sea2-F465SpDz9vUkUq0000c036@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,21 +23,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---JZV+hE4cb0ibQYPB
+--4ewN61DNRuNLc83n
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 12, 2003 at 03:37:49PM +0800, Jack wrote:
-> Sorry for disturbing you all
-> I just begin to study the source code.
-> I could not find the definition of function iptc_init.=20
-> Please give me a hint.
+On Thu, Jun 12, 2003 at 08:45:01AM +0000, Ricky Foo wrote:
+> Hi all,
+>=20
+> I have written a netbios conntrack module for port 139. However when I=20
+> tested it, it shows several entries because the source port on my side=20
+> keeps changing.....e.g. 32900, then 32901, 32902.... in this case, there=
+=20
+> will be 3 lines as if there are 3 different connections are going on. Is=
+=20
+> this the correct expected behaviour or should they just go into 1 line?
 
-cvs:userspace/libiptc/libiptc.c (IPTC_INIT, as a preprocessor macro from
-libip4tc.c translates the name...)
+I have no idea about the netbios protocol, so I don't know what the
+expected behaviour is.  Is it really only one connection?  Then you
+should probably make the 2nd an 3rd connection be siblings
+(ip_conntrack_expect_related()) of the master connection. =20
 
-> thanks
+> What does the "use" field mean?
+
+It's an internal reference counter indicating how many other objects in
+the kernel are still referencing this conntrack.
+
+>    Ricky
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -48,16 +61,16 @@ libip4tc.c translates the name...)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---JZV+hE4cb0ibQYPB
+--4ewN61DNRuNLc83n
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+6es0XaXGVTD0i/8RAnjLAKCcRt6aZPkswdkYuE7om01UfFi5WwCfReIi
-FYNL4VDT+ZYR3+bKRkpGSSE=
-=TROB
+iD8DBQE+6eudXaXGVTD0i/8RAn1dAJ4xwcVjT87m5CHC7jPMT7dRpr6lPACfSpRL
+7rGlhDCxR7j0Nv+bnIJwB+o=
+=gwwI
 -----END PGP SIGNATURE-----
 
---JZV+hE4cb0ibQYPB--
+--4ewN61DNRuNLc83n--
