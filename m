@@ -1,18 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] modification in current protocol helper API to handle
- error/unclean packets
-Date: Mon, 21 Jun 2004 10:56:13 +0200 (CEST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Interfacing custom application with iptables
+Date: Mon, 21 Jun 2004 10:59:47 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406211033420.31871-100000@blackhole.kfki.hu>
-References: <40D60A2D.2080800@eurodev.net>
+Message-ID: <Pine.LNX.4.44.0406211057370.23953-100000@filer.marasystems.com>
+References: <200406210648.i5L6m5MX003056@madinah.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
-	Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40D60A2D.2080800@eurodev.net>
+To: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+In-Reply-To: <200406210648.i5L6m5MX003056@madinah.ccse.kfupm.edu.sa>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,48 +20,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+On Mon, 21 Jun 2004, Muhammad R. Sami wrote:
 
-On Mon, 21 Jun 2004, Pablo Neira wrote:
+> I would like to assign priority and routing policies on the basis of
+> application payload. For this purpose how can your implementation of
+> iptables help me? I would like to ask whether I can integrate an application
+> with Iptables such that on entering the interface, every packet goes to my
+> application instead of the forwarding module of the iptables where
+> application payload is processed and priorities are assigned to each packet
+> and then sent to the forwarding module. For this could you please provide me
+> with information on how to interface my application with iptables? Your
+> quick response will be highly appreciated as I am running out of time.
+> Thanks in advance.
 
-> Would you be willing to apply the patch attached to pom-ng? It applies
-> to linux-2.6.patch_02-udp-icmp and it adds more checkings for invalid
-> icmp combinations.
 
-Let us be very careful here and not add half of the unclean match to
-conntrack.
+The easiest approach for this would be to use a slightly extended version
+of the QUEUE target / libipq library (library part of iptables package).  
+You only need to extend QUEUE with additional return values to set the
+nfmark and priority. This has been discussed several times on the 
+mailinglist and I thing you can even find patches doing this.
 
-We always have to remind ourselves that the sole task of the connection
-tracking subsystem is to keep track of connections as good as possible.
-We drop packets directly only when letting trough the packet would render
-connection tracking useless (therefore it's so rare). We *advice* the
-admin to drop packets by flagging it as INVALID when we can surely say
-that the packet in question is invalid in the context of the connection
-where it seems to belong to. But it's practically as strong a decision
-as dropping the packet directly, so we have to be careful there as well.
-
-I had already hesitated over the implications of the code
-
-++      /* 15 is the highest 'known' ICMP code. See RFC 1812 */
-++      if (icmph.code > 15) {
-++              if (LOG_INVALID(IPPROTO_ICMP))
-++                      nf_log_packet(PF_INET, 0, skb, NULL, NULL,
-++                                    "ip_ct_icmp: invalid ICMP code ");
-++              return -NF_ACCEPT;
-++      }
-
-because it means that if a new ICMP code is introduced, even if we modify
-the source code, all previously installed systems runnin netfilter
-(estimate that number) would refuse to handle the new ICMP code: we
-created a forward-incompatibility.
-
-I'd better not add the code checkings and would even remove the one above,
-unless you have strong arguments against doing so.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+Henrik
