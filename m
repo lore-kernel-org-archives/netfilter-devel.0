@@ -1,17 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [ANNOUNCE] IP sets
-Date: Tue, 17 Feb 2004 14:49:05 +0100 (CET)
+Date: Tue, 17 Feb 2004 14:50:16 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0402171348210.1089@tux.rsn.bth.se>
-References: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0402171419580.30790-100000@filer.marasystems.com>
+References: <20040217125710.GA981@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Harald Welte <laforge@netfilter.org>,
-	netfilter-devel@lists.netfilter.org
+   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040217125710.GA981@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,24 +21,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Feb 2004, Henrik Nordstrom wrote:
+On Tue, 17 Feb 2004, Harald Welte wrote:
 
-> What can be argued is that any design requiring allocation of a large
-> contigous memory areas in the kernel is broken by design and should be
-> redesigned rather than referring to vmalloc, and I think this is what
-> Linus tried to say. In my opinion a design which frequently calls vmalloc
-> is plain broken, but a design intentionally requiring a large allocation
-> should use vmalloc providing the design as such is valid.
+> It would be interesting though, to know how much of a performance
+> penalty it implies.
 
-Maybe try __get_free_pages() and fall back to vmalloc() if it fails?
+There is mainly a penalty at allocation and initial population time for
+setting up the page maps and flushing the TLB. This is quite significant 
+compared to kmalloc, but still negliable if used correctly.
 
-The downside of __get_free_pages() is that you get 2^n pages of memory
-which might result in a quite large allocation sometimes.
+Once the memory area is set up and populated causing it to be mapped the
+performance is mostly the same as kmalloc:ed memory.
 
-I've been using this in conntrack for some time and it works fine. I
-havn't tried to measure any benefits. One thing I don't do is to increase
-the hashsize if the wanted allocation would be for (2^n)+1 pages (then the
-actual allocation will be for 2^(n+1) pages). Now with the jenkins hash we
-don't have any problems with 2^n hashtable sizes so we could do that.
+The other issue is that the vmalloc memory area is quite limited in size
+on many architectures, sitting between the user-process and the physical
+memory ranges, and is also subject to fragmentation if there is frequent 
+vmalloc/vfree calls.
 
-/Martin
+vmalloc is designed for a few static largeish memory allocations where you
+do not need pysically ajdacent memory and want to avoid failing due to
+kernel memory fragmentation, not for frequent or very large allocations.
+
+Regards
+Henrik
