@@ -1,16 +1,16 @@
-From: "Ferry Huberts" <ferry@Hupie.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: Unique rule ID?!
-Date: Mon, 8 Nov 2004 14:05:24 +0100 (CET)
-Message-ID: <21865.217.169.232.210.1099919124.squirrel@217.169.232.210>
+Date: Mon, 8 Nov 2004 14:43:28 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0411081437490.18476@filer.marasystems.com>
 References: <418F52A5.7010700@anduras.de>
 	<Pine.LNX.4.61.0411081255090.17672@filer.marasystems.com>
-Reply-To: ferry@Hupie.com
+	<418F6375.1030709@anduras.de>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0411081255090.17672@filer.marasystems.com>
-To: netfilter-devel@lists.netfilter.org
+To: Sven Anders <anders@anduras.de>
+In-Reply-To: <418F6375.1030709@anduras.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,42 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I also have a patch that implement a match 'userindex' that uses an integer.
-Currently it uses a u_int16_t but this can easily be changed.
-I am in the process of converting it to pom-ng format
+On Mon, 8 Nov 2004, Sven Anders wrote:
 
+> Harald Welte and some others are breaking the compatibility every two or
+> three ip-tables/netfilter/kernel versions. :-)
 
-Drop a mail if you would like to use it.
+Only for patch-o-matic modules and intentionally so as there is good 
+reasons why these are not (yet) in mainline. Every breakage of what is in 
+mainline is a bug and gets fixed pretty quickly should it occur.
 
---
-Ferry Huberts
+Using stuff from pom is a gamble on versions, much like any other use of 
+experimental stuff is. Yes, it occationally happens, but frankly so quite 
+rarely.
 
-> On Mon, 8 Nov 2004, Sven Anders wrote:
->
->> set with an unique id, it would be easy. Sadly, I did not found any
->> field in the netfilter rules structure to do this... I found an
->> 'comment' match extension, which I could misuse for it, but this would
->> be an hack.
->
-> While the comment match is a hack it is actually designed for what you are
-> looking for.
->
->> Or are there any unique identifiers to each rule (which would not change
->> from one kernel commit to the next) that I missed?
->
-> No. Only rule number which you need to keep track of.
->
->> If I decide to add an ID field to the kernel's rule structure (and
->> implement the code for giving each new rule an unique ID), would you be
->> interested to accept these patch to the offical netfilter tree? If you
->> argue against it with the used memory, do you really think 2-4 bytes per
->> rule is too much? What is the biggest useful size of an netfilter table?
->> 1000 rules (= 4 Kbytes for IDs), 10000 rules (= 40KB)? If so much rules
->> are in place, don't you think you have to use chains? ;-)
->
-> Unfortunately it is not possible to extend the structure without breaking
-> compatibility, hence the existence of the comment match.
->
-> Regards
-> Henrik
->
+Lately this has started to becoming quite a bit of hinderance for the 
+iptables development as there is many changes everyone agrees needs to be 
+done, but can't be done in a clean manner without breaking mainline stuff.
+
+Regards
+Henrik
