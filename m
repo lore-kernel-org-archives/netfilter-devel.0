@@ -1,13 +1,18 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] conntrack match typo
-Date: Sat, 21 Aug 2004 14:56:16 -0700
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
+Date: Sun, 22 Aug 2004 09:49:26 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040821215616.GA29585@linuxace.com>
+Message-ID: <41285006.2070904@sch.bme.hu>
+References: <1092407190.2402.120.camel@nienna.balabit> <4127EB7C.60103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Cc: KOVACS Krisztian <hidden@balabit.hu>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4127EB7C.60103@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,23 +23,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Status option should use IPT_CONNTRACK_STATUS, not IPT_CONNTRACK_STATE.
-Originally noticed by M. J. Pomraning. 
 
-This fixes bug #194 
+   Hi,
 
-Phil
+Patrick McHardy wrote:
+> Are there any differences between the nfnetlink-ctnetlink patch and the
+> ctnetlink patch in the netfilter-ha repository ? Porting ctnetlink to
+> 2.6 would be a start. Maybe someone wants to do it, otherwise I'll do
+> it on a rainy day ..
 
+   No, there is no difference apart from a small change I've already=20
+mentioned on netfilter-devel wrt the NATINFO notification. For details, s=
+ee
 
-diff -ru ipt-orig/extensions/libipt_conntrack.c ipt-new/extensions/libipt_conntrack.c
---- ipt-orig/extensions/libipt_conntrack.c      2004-06-14 18:02:17.000000000 -0400
-+++ ipt-new/extensions/libipt_conntrack.c       2004-08-21 17:51:05.507406408 -0400
-@@ -492,7 +492,7 @@
- 
-        if(sinfo->flags & IPT_CONNTRACK_STATUS) {
-                printf("%sctstatus ", optpfx);
--               if (sinfo->invflags & IPT_CONNTRACK_STATE)
-+               if (sinfo->invflags & IPT_CONNTRACK_STATUS)
-                        printf("! ");
-                print_status(sinfo->statusmask);
-        }
+http://lists.netfilter.org/pipermail/netfilter-devel/2004-August/016225.h=
+tml
+
+   AFAIK the ctnetlink patch has already been ported to 2.6, and a patch=20
+was sent to the mailing list. Unfortunately I was unable to find that=20
+mail in the mailing list archives...
+
+--=20
+   KOV=C1CS, Kriszti=E1n
