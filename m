@@ -1,19 +1,15 @@
-From: Fabrice MARIE <fabrice@netfilter.org>
-Subject: Re: regular expressions - how to
-Date: Sun, 9 Feb 2003 22:42:08 +0800
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: [PATCH] big endian patch against netfilter after PPTP NAT pat ch
+Date: Sun, 9 Feb 2003 17:53:47 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200302092242.08611.fabrice@netfilter.org>
-References: <18022761969.20030208171208@yahoo.es>
-Reply-To: fabrice@netfilter.org
+Message-ID: <20030209165347.GA1737@oknodo.bof.de>
+References: <771F217D7A4AF84494632457889470A412D77E@bcmsg011.corp.ads> <3E41A7BC.20209@snapgear.com> <20030209092911.GO13269@naboo.fugue.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: macadanet@yahoo.es,
-   lista de correo netfilter <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <18022761969.20030208171208@yahoo.es>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
+In-Reply-To: <20030209092911.GO13269@naboo.fugue.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,27 +20,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> yes.  David Miller has indicated that he wants us to use
+> individual-member initialization instead of our '{{{{ }}, }}' stuff.
+> So maybe this is the time to do the change - or at least use named
+> initializers like '{ asdf: 0xffff, }'
 
-Hola,
+Nowaways, we'd rather use the C99 syntax: { .asdf = 0xffff, }.
 
-On Sunday 09 February 2003 00:12, macadanet@yahoo.es wrote:
-> Hello group,
-> I want to develop a patch for netfilter (kernel 2.4.20). I want compare
-> many strings in a packet. I didn't find a kernel library to work in this
-> project.
-> With regular expresions I want to find strings in a packet. Anybody
-> can helps me?
+I'm all for a change towards such initializers; the current stuff
+is completely opaque.
 
-I'm afraid some people have previously proposed the same thing on this list
-sometime around last year, and the reply was generally that it was a bad idea.
-Regexps are _very_ heavy/time consuming, and should generally not be in the kernel..
-I believe I won't be the only one to tell you this :)
-
-Have a nice day,
-
-Fabrice.
---
-Fabrice MARIE
-
-"Silly hacker, root is for administrators"
-       -Unknown
+best regards
+  Patrick
