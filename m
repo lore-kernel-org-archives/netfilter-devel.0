@@ -1,15 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
-Date: Fri, 12 Mar 2004 08:16:00 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Iptable Extension Arg question
+Date: Fri, 12 Mar 2004 08:19:13 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0403120802180.20054-100000@blackhole.kfki.hu>
-References: <20040311193326.GA1567@finarfin.cooper.xfnet>
+Message-ID: <Pine.LNX.4.44.0403120811330.29532-100000@filer.marasystems.com>
+References: <Pine.LNX.4.44.0403111655320.13639-100000@lhotse.up.edu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jonathan Cooper <netfilter@jonc.me.uk>
-In-Reply-To: <20040311193326.GA1567@finarfin.cooper.xfnet>
+To: John Fastabend <jfastabe@up.edu>
+In-Reply-To: <Pine.LNX.4.44.0403111655320.13639-100000@lhotse.up.edu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,72 +20,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 11 Mar 2004, Jonathan Cooper wrote:
+On Thu, 11 Mar 2004, John Fastabend wrote:
 
-> > So you use NAT. If you could test the system without using
-> > NAT at all (I mean no NAT related module loaded in), that could probably
-> > help to identify the problem.
->
-> Aha. If we have just the following ip* modules loaded: ipt_limit,
-> ipt_REJECT, ipt_LOG, ipt_state, ip_conntrack, iptable_filter, ip_tables
-> (and the nat table flushed) then I can access pages via the previously
-> masqueraded interface without problems.
+> 1) on line 92 of libipt_TOS.c where it says
+> 	struct ipt_tos_target_info *tosinfo = 
+> 		(struct ipt_tos_target_info *)(*target)->data;
+>   
+>    does this mean that the args from the command line are stored in 
+> target->data?
 
-So it looks like NAT related bug. Please do the following: both in
-ip_conntrack_core.c and ip_nat_core.c enable debugging by changing
+Yes, or more precicely that the pointer to the target specific argument 
+structure is.
 
-#if 0
-#define DEBUGP printk
-#else
-#define DEBUGP(format, args...)
-#endif
+> And if so does that mean I will have to pass the args another way if I
+> am trying to pass a couple ip addresses which would be longer then data
+> which is an unsigned char. i think.
 
-to
+No. Each target defines its argument structure. Can be of any size.
 
-#if 1
-#define DEBUGP printk
-#else
-#define DEBUGP(format, args...)
-#endif
+> 2) what does the struct option opts[] on line 50 do? Its used in the 
+> iptables_target 
+> struct below, but where does it show up in the module code?
 
-at the head of the files and add additional debugging to the
-clean_from_lists function in ip_conntrack_core.c like this:
+It defines the command line arguments understood by the target specific 
+userspace module used by the iptables command to translate your command 
+line into the required kernel structure.
 
-static void
-clean_from_lists(struct ip_conntrack *ct)
-{
-        unsigned int ho, hr;
+> 3) finally how do the args get used in ipt_TOS.c, it looks to me that they 
+> are passed in through targinfo. so maybe the above questions will show me 
+> how to get the arguments into targinfo.
 
-        DEBUGP("clean_from_lists(%p)\n", ct);
+It is.
 
-	/* The additional debug lines follow: */
-	DEBUGP("original tuple: ");
-	DUMP_TUPLE(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
-	DEBUGP("reply tuple:    ");
-	DUMP_TUPLE(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+> If the args are in targinfo what is the userinfo pointer for?
 
-Recompile the kernel modules, start your system and try to trigger the
-bug. Then please send me the kernel log messages or post the URL to
-download from.
+userinfo is not used and can be ignored.
 
-> > Did you compile all of them with gcc 3.3.3? Could you recompile the
-> > kernels with gcc 2.95?
->
-> I can't remember what version was used to compile 2.4.22. It would've
-> been whatever the standard gcc was in Debian testing on Dec 12th 2003. I
-> certainly used gcc 3.3.3 for kernel 2.4.25, and I suspect for .23 & .24
-> as well, although I'm not sure.
->
-> I've just tried the Debian kernel 2.4.25 sources compiled with gcc 2.95
-> and the kernel.org 2.4.25 sources compiled with gcc 3.3.3. The problem
-> occurs with both.
 
-OK. That direction is then closed.
+There is also some information on how this works on the general level in
+the netfilter hacking howto document, but reading the source of a couple
+of targets provides more detail than the howto.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> ps if this is the wrong list for this type of question just ignore it.
+
+It is 100% the correct list for this type of question.
+
+Regards
+Henrik
