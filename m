@@ -1,167 +1,134 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [PATCH] admin-prohibited option. Let us look at it again.
-Date: Wed, 9 Apr 2003 19:27:24 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0304091927060.13250@dns.toxicfilms.tv>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: 2.5.67 -- questions about netfilter config options
+Date: Thu, 10 Apr 2003 11:22:16 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20030410092216.GK21326@naboo>
+References: <Pine.LNX.4.44.0304080702130.25860-100000@dell>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HuXIgs6JvY9hJs5C"
+Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: "Robert P. J. Day" <rpjday@mindspring.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0304080702130.25860-100000@dell>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-Harald wrote in:
-http://lists.netfilter.org/pipermail/netfilter-devel/2002-December/009962.html
+--HuXIgs6JvY9hJs5C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-that we should add this option and make an INCOMPATIBILITIES file as Jozsef
-suggested. Also as Jozsef suggested this patch does not have kernel version
-checking, just a warning in the man page, the INCOMPATIBILITIES file and
-the '-j REJECT --help' message.
+On Tue, Apr 08, 2003 at 07:15:45AM -0400, Robert P. J. Day wrote:
+>=20
+>   [while i'm discussing these things on the netfilter mailing
+> list, i figure at least a few folks here might be helpful.]
+>=20
+>   i'm trying to clarify the purpose and interdependence of=20
+> the NF config options, and perhaps document them more clearly
+> in their associated help screens.  to that end, i'm confused
+> by the way some options can be selected without other=20
+> options that would seem to be obvious dependencies.
+> to wit:
 
-Please recall our exchange of opinions back then and review the patch to
-the netfilter tree:
+so why didn't you take this to the netfilter development mailinglist
+first?  I don't think this is of general interest to linux-kernel, which
+certainly has more than enough postings per day, and the subject is
+clearly netfilter-only.
 
- patch-o-matic/extra/admin-prohib.patch      |   34 ++++++++++++++++++++++++++++
- patch-o-matic/extra/admin-prohib.patch.help |    9 +++++++
- userspace/INCOMPATIBILITIES                 |    6 ++++
- userspace/extensions/libipt_REJECT.c        |   16 ++++++++++++-
- userspace/iptables.8                        |    7 ++++-
- 5 files changed, 69 insertions(+), 3 deletions(-)
+> 1) currently, it's possible to select the single option
+>    "IP tables support" without any other options *anywhere*
+>    in that menu.  what value does this have?
 
-Regards,
-Maciej
+this means that you have the generic iptables core. this enables you for
+example to use some out-of-kernel compiled iptables_foo module.=20
 
-diff -Nru netfilter.orig/patch-o-matic/extra/admin-prohib.patch netfilter/patch-o-matic/extra/admin-prohib.patch
---- netfilter.orig/patch-o-matic/extra/admin-prohib.patch	1970-01-01 01:00:00.000000000 +0100
-+++ netfilter/patch-o-matic/extra/admin-prohib.patch	2003-04-09 16:43:50.000000000 +0200
-@@ -0,0 +1,34 @@
-+diff -Nru linux.bak/include/linux/netfilter_ipv4/ipt_REJECT.h linux/include/linux/netfilter_ipv4/ipt_REJECT.h
-+--- linux.bak/include/linux/netfilter_ipv4/ipt_REJECT.h	2003-04-08 20:21:22.000000000 +0200
-++++ linux/include/linux/netfilter_ipv4/ipt_REJECT.h	2003-04-09 16:40:05.000000000 +0200
-+@@ -9,7 +9,8 @@
-+ 	IPT_ICMP_ECHOREPLY,
-+ 	IPT_ICMP_NET_PROHIBITED,
-+ 	IPT_ICMP_HOST_PROHIBITED,
-+-	IPT_TCP_RESET
-++	IPT_TCP_RESET,
-++	IPT_ICMP_ADMIN_PROHIBITED
-+ };
-+
-+ struct ipt_reject_info {
-+diff -Nru linux.bak/net/ipv4/netfilter/ipt_REJECT.c linux/net/ipv4/netfilter/ipt_REJECT.c
-+--- linux.bak/net/ipv4/netfilter/ipt_REJECT.c	2003-04-08 20:21:56.000000000 +0200
-++++ linux/net/ipv4/netfilter/ipt_REJECT.c	2003-04-09 16:41:07.000000000 +0200
-+@@ -1,6 +1,7 @@
-+ /*
-+  * This is a module which is used for rejecting packets.
-+  * Added support for customized reject packets (Jozsef Kadlecsik).
-++ * Added support for ICMP type-3-code-13 (Maciej Soltysiak). [RFC 1812]
-+  */
-+ #include <linux/config.h>
-+ #include <linux/module.h>
-+@@ -330,6 +331,9 @@
-+ 	case IPT_ICMP_HOST_PROHIBITED:
-+     		send_unreach(*pskb, ICMP_HOST_ANO);
-+     		break;
-++    	case IPT_ICMP_ADMIN_PROHIBITED:
-++		send_unreach(*pskb, ICMP_PKT_FILTERED);
-++		break;
-+ 	case IPT_TCP_RESET:
-+ 		send_reset(*pskb, hooknum == NF_IP_LOCAL_IN);
-+ 	case IPT_ICMP_ECHOREPLY:
-diff -Nru netfilter.orig/patch-o-matic/extra/admin-prohib.patch.help netfilter/patch-o-matic/extra/admin-prohib.patch.help
---- netfilter.orig/patch-o-matic/extra/admin-prohib.patch.help	1970-01-01 01:00:00.000000000 +0100
-+++ netfilter/patch-o-matic/extra/admin-prohib.patch.help	2003-04-09 16:47:14.000000000 +0200
-@@ -0,0 +1,9 @@
-+Author: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-+Status: Working, causes incompatibilities.
-+
-+This patch adds --reject-with admin-prohib option to the REJECT targe
-+making it compliant with RFC 1812 and making an incompatibility
-+with kernels that do not support this ipt_REJECT.c option.
-+
-+Usage of this option with kernels that do not support will effect in
-+a DROP, not REJECT.
-diff -Nru netfilter.orig/userspace/INCOMPATIBILITIES netfilter/userspace/INCOMPATIBILITIES
---- netfilter.orig/userspace/INCOMPATIBILITIES	1970-01-01 01:00:00.000000000 +0100
-+++ netfilter/userspace/INCOMPATIBILITIES	2003-04-09 16:53:01.000000000 +0200
-@@ -0,0 +1,6 @@
-+INCOMPATIBILITIES:
-+
-+- The REJECT target has an '--reject-with admin-prohib' option which used
-+  with kernels that do not support it, will result in a plain DROP instead
-+  of REJECT.  Use with caution.
-+  Kernels that do support it:
-diff -Nru netfilter.orig/userspace/extensions/libipt_REJECT.c netfilter/userspace/extensions/libipt_REJECT.c
---- netfilter.orig/userspace/extensions/libipt_REJECT.c	2003-04-08 21:49:15.000000000 +0200
-+++ netfilter/userspace/extensions/libipt_REJECT.c	2003-04-09 16:59:53.000000000 +0200
-@@ -9,6 +9,16 @@
- #include <iptables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_REJECT.h>
-+#include <linux/version.h>
-+
-+/* If we are compiling against a kernel that does not support
-+ * IPT_ICMP_ADMIN_PROHIBITED, we are emulating it.
-+ * The result will be a plain DROP of the packet instead of
-+ * reject. -- Maciej Soltysiak <solt@dns.toxicfilms.tv>
-+ */
-+#ifndef IPT_ICMP_ADMIN_PROHIBITED
-+#define IPT_ICMP_ADMIN_PROHIBITED	IPT_TCP_RESET + 1
-+#endif
+compare this with enabling scsi support, but not enabling a single scsi
+host.
 
- struct reject_names {
- 	const char *name;
-@@ -35,7 +45,9 @@
- 	{"icmp-host-prohibited", "host-prohib",
- 	 IPT_ICMP_HOST_PROHIBITED, "ICMP host prohibited"},
- 	{"tcp-reset", "tcp-reset",
--	 IPT_TCP_RESET, "TCP RST packet"}
-+	 IPT_TCP_RESET, "TCP RST packet"},
-+	{"icmp-admin-prohibited", "admin-prohib",
-+	 IPT_ICMP_ADMIN_PROHIBITED, "ICMP administratively prohibited (*)"}
- };
+>    if you look down the submenu for that option, you see
+>    "Packet filtering", which suggests you can ask for=20
+>    "IP tables support" but still not have any ability to
+>    set up any filtering rules. =20
 
- static void
-@@ -64,6 +76,8 @@
- "                                a reply packet according to type:\n");
+yes, this makes sense.  packet filtering is the 'filter' table.  It is
+perfectly legal to use NAT ('nat' table) or mangling ('mangle') without
+enabling packet filtering.
 
- 	print_reject_types();
-+
-+	printf("(*) See man page or read the INCOMPATIBILITES file for compatibility issues.\n");
- }
+> sort of strange.  it seems
+>    odd that you can select to support limit matches,
+>    TTL matches, etc., without actually having basic
+>    "Packet filtering" support built in.  what does this
+>    mean?
 
- static struct option opts[] = {
-diff -Nru netfilter.orig/userspace/iptables.8 netfilter/userspace/iptables.8
---- netfilter.orig/userspace/iptables.8	2003-04-08 21:49:17.000000000 +0200
-+++ netfilter/userspace/iptables.8	2003-04-09 17:11:20.000000000 +0200
-@@ -852,8 +852,9 @@
- .BR icmp-host-unreachable ,
- .BR icmp-port-unreachable ,
- .BR icmp-proto-unreachable ,
--.BR "icmp-net-prohibited or"
--.BR icmp-host-prohibited ,
-+.BR icmp-net-prohibited ,
-+.BR "icmp-host-prohibited or"
-+.BR "icmp-admin-prohibited (*)"
- which return the appropriate ICMP error message (\fBport-unreachable\fP is
- the default).  The option
- .B tcp-reset
-@@ -862,6 +863,8 @@
- .I ident
- (113/tcp) probes which frequently occur when sending mail to broken mail
- hosts (which won't accept your mail otherwise).
-+.TP
-+(*) Using icmp-admin-prohibited with kernels that do not support it will result in a plain DROP instead of REJECT
- .SS SNAT
- This target is only valid in the
- .B nat
+see above.
+
+>    one possibility is that, according to the help info,
+>    "IP tables support" is necesasry for masq/NAT.  if
+>    this is true, it leads into my next question ...
+
+it is true.
+
+> 2) currently, it's possible to select "Connection tracking"
+>    without "IP tables support", even though the latter is
+>    listed as being essential for masq/NAT as well.
+>=20
+>    what is the value of selecting only "Conenction tracking"
+>    in the entire NF config menu?  that is, what does it allow
+>    you to do if not masq/NAT?
+
+connection tracking provides a service to the kernel.  If you load it,
+any code within the kernel can derive the connection tracking entry to
+which a packet belongs.  Even though there is no current code in the
+kernel (besides iptable_nat and ipt_state) that uses this information,
+we should not decide on that. =20
+
+A possible application would be something like a 'cfq' (derived from the
+stochastic fairness queue).  This would eliminate the 'stochastic' part
+which tries to determine which 'flow' (basically one direction of a
+connection) a packet belongs to.
+
+> i guess i'm trying to clarify whether there should be more
+> dependencies in the underlying config structure, or it not,
+
+no, at least not from the point of view of the netfilter coreteam.
+
+> rday
+>=20
+> p.s.  is there a reason that almost all of the options
+> are listed as "(NEW)" in the config menu?  they weren't
+> even labelled that way in the 2.4.20 kernel.  how is it
+> that they're suddenly "NEW" now?
+
+Everything marked as 'NEW' means that your .config file did not contain
+a setting (i.e. it was copied from a kernel that didn't have support for
+those options).  This is also used for 'make oldconfig'.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--HuXIgs6JvY9hJs5C
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+lTfIXaXGVTD0i/8RAsl9AJ0XadSj16Fsz6h4JIbraj7XtJVuKwCePegU
+XoNBKI2QAb1eDl0w0ciR1ho=
+=+Ya+
+-----END PGP SIGNATURE-----
+
+--HuXIgs6JvY9hJs5C--
