@@ -1,8 +1,8 @@
 From: Patrick Schaaf <bof@bof.de>
 Subject: Re: L2TP protocol source port number changed
-Date: Thu, 22 May 2003 07:59:21 +0200
+Date: Thu, 22 May 2003 08:10:46 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030522055921.GA24297@oknodo.bof.de>
+Message-ID: <20030522061046.GB24297@oknodo.bof.de>
 References: <3ECC5A67.5000803@cobra.ee.ntu.edu.tw>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -21,32 +21,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> 	I have tried L2TP protocol under netfiler and it seems the second
-> connection's source port will be changed to 1024 from 1071.
+ChungLiang & all,
 
->From reading the RFC for L2TP, it is clear that only the first,
-initial packet establishing a new tunnel, will have 1701 (not 1071,
-that was probably a typo?) as the _destination_ port. By answering
-with different ports, a LNS can switch the operational tunnel around
-onto other ports - and even onto a different endpoint IP address!
+my previous mail was a bit wrong on the real problem with L2TP:
 
-The RFC even alludes to problems with NAT devices (and consequently
-stateful tracking).
+Seeing the initial tunnel establishment packet from LAC to LNS,
+one can NOT infer the IP address and port that the LNS will use
+for the second, acknowledging, packet. The LNS is free to choose
+one, it just has to answer back to the LAC and the port the LAC
+used in the initial packet.
 
-In practise, at least between ERX and Cisco systems, this appears
-to be avoided, and communication runs source/dest port 1701.
-However, by misconfiguring the Cisco LNS, I could clearly see
-the endpoint IP address switching. It is not unlikely that once
-the 2^16 session IDs of a single tunnel run out, that the Cisco
-will switch to an additional tunnel on nonstandard ports.
+Thus, no exact expectation can be set up by inspecting the
+initial packet; you need to capture any UDP traffic flowing
+back to the initial LAC IP/port, and use the source information
+of that captured packet to then set up the expectation.
 
-For a proper solution, somebody would need to write a conntrack helper
-for L2TP, to setup expectations / create RELATED connections, by analyzing
-the tunnel establishment. As far as I can see, such a setup would then
-provide a security hole enabling an attacker to permit more or less
-arbitrary UDP traffic, if they can hand-craft a suitable packet. So one
-needs to be very careful. NOTE: that's a vague feeling of mine, I have
-not analysed this deeply.
+Does the current NAT core allow such a partial expectation setup?
 
 best regards
   Patrick
