@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 5/19]: Enable ip6t_ah.c to work without skb_linearize()
-Date: Mon, 25 Oct 2004 02:49:05 +0200
+Subject: [PATCH 2.6 15/19]: Fix multiple bugs in dst match
+Date: Mon, 25 Oct 2004 02:49:57 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C4D81.70500@trash.net>
+Message-ID: <417C4DB5.8040108@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050404050901080804070902"
+Content-Type: multipart/mixed; boundary="------------070603020207050707080305"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,96 +19,220 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050404050901080804070902
-Content-Type: text/plain; charset=us-ascii; format=flowed
+--------------070603020207050707080305
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Convert ip6t_ah to skb_header_pointer.
+Fix multiple bugs in dst match:
+
+- ".me = THIS_MODULE" is missing
+- The cast of the pointer to the next IPv6 extension header is wrong.
+- hdrlen may underflow.
+- (u16)*optdesc causes to alignment problem.
+- The calculation of the offset to next option is wrong. In the case
+  that the type isn't 0, it should be "Opt Data Len" field + 2
+  (see RFC2460).
 
 
 
---------------050404050901080804070902
+--------------070603020207050707080305
 Content-Type: text/x-patch;
- name="05.diff"
+ name="15.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="05.diff"
+ filename="15.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/10/19 02:16:42+02:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Enable ip6t_ah.c to work without skb_linearize()
-#      
+#   2004/10/25 00:39:13+02:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: Fix multiple bugs in dst match
+#   
+#   This patch fixes the following bugs in ip6t_dst.c.
+#   
+#     - ".me = THIS_MODULE" is missing 
+#     - The cast of the pointer to the next IPv6 extension header is wrong.
+#     - hdrlen may underflow.
+#     - (u16)*optdesc causes to alignment problem.
+#     - The calculation of the offset to next option is wrong. In the case
+#       that the type isn't 0, it should be "Opt Data Len" field + 2
+#       (see RFC2460).
+#   
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv6/netfilter/ip6t_ah.c
-#   2004/10/19 02:16:15+02:00 yasuyuki.kozakai@toshiba.co.jp +9 -7
-#   [NETFILTER]: Enable ip6t_ah.c to work without skb_linearize()
-#      
+# net/ipv6/netfilter/ip6t_dst.c
+#   2004/10/25 00:39:07+02:00 yasuyuki.kozakai@toshiba.co.jp +39 -37
+#   [NETFILTER]: Fix multiple bugs in dst match
+#   
+#   This patch fixes the following bugs in ip6t_dst.c.
+#   
+#     - ".me = THIS_MODULE" is missing 
+#     - The cast of the pointer to the next IPv6 extension header is wrong.
+#     - hdrlen may underflow.
+#     - (u16)*optdesc causes to alignment problem.
+#     - The calculation of the offset to next option is wrong. In the case
+#       that the type isn't 0, it should be "Opt Data Len" field + 2
+#       (see RFC2460).
+#   
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
---- a/net/ipv6/netfilter/ip6t_ah.c	2004-10-22 03:38:01 +02:00
-+++ b/net/ipv6/netfilter/ip6t_ah.c	2004-10-22 03:38:01 +02:00
-@@ -48,7 +48,7 @@
-       unsigned int protoff,
-       int *hotdrop)
- {
--       struct ip_auth_hdr *ah = NULL;
-+       struct ip_auth_hdr *ah = NULL, _ah;
-        const struct ip6t_ah *ahinfo = matchinfo;
-        unsigned int temp;
-        int len;
-@@ -69,7 +69,7 @@
-        temp = 0;
+diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
+--- a/net/ipv6/netfilter/ip6t_dst.c	2004-10-25 01:13:48 +02:00
++++ b/net/ipv6/netfilter/ip6t_dst.c	2004-10-25 01:13:48 +02:00
+@@ -7,7 +7,6 @@
+  * published by the Free Software Foundation.
+  */
  
-         while (ip6t_ext_hdr(nexthdr)) {
--               struct ipv6_opt_hdr *hdr;
-+               struct ipv6_opt_hdr _hdr, *hp;
+-
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/ipv6.h>
+@@ -20,8 +19,6 @@
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter_ipv6/ip6t_opts.h>
  
-               DEBUGP("ipv6_ah header iteration \n");
+-#define LOW(n)		(n & 0x00FF)
+-
+ #define HOPBYHOP	0
  
-@@ -85,15 +85,16 @@
+ MODULE_LICENSE("GPL");
+@@ -48,8 +45,8 @@
+  *  	0	-> invariant
+  *  	1	-> can change the routing
+  *  (Type & 0x1F) Type
+- *      0	-> PAD0 (only 1 byte!)
+- *      1	-> PAD1 LENGTH info (total length = length + 2)
++ *      0	-> Pad1 (only 1 byte!)
++ *      1	-> PadN LENGTH info (total length = length + 2)
+  *      C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
+  *      5	-> RTALERT 2 x x
+  */
+@@ -71,7 +68,8 @@
+        unsigned int ptr;
+        unsigned int hdrlen = 0;
+        unsigned int ret = 0;
+-       u_int16_t *optdesc = NULL;
++       u8 *opttype = NULL;
++       unsigned int optlen;
+        
+        /* type of the 1st exthdr */
+        nexthdr = skb->nh.ipv6h->nexthdr;
+@@ -98,7 +96,7 @@
                       break;
                }
  
--              hdr=(struct ipv6_opt_hdr *)skb->data+ptr;
-+	      hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
-+	      BUG_ON(hp == NULL);
+-              hdr=(void *)(skb->data)+ptr;
++	      hdr = (void *)(skb->data + ptr);
  
                /* Calculate the header length */
                  if (nexthdr == NEXTHDR_FRAGMENT) {
-                         hdrlen = 8;
-                 } else if (nexthdr == NEXTHDR_AUTH)
--                        hdrlen = (hdr->hdrlen+2)<<2;
-+                        hdrlen = (hp->hdrlen+2)<<2;
-                 else
--                        hdrlen = ipv6_optlen(hdr);
-+                        hdrlen = ipv6_optlen(hp);
- 
-               /* AH -> evaluate */
-                 if (nexthdr == NEXTHDR_AUTH) {
-@@ -116,7 +117,7 @@
-                             break;
-               }
- 
--                nexthdr = hdr->nexthdr;
-+                nexthdr = hp->nexthdr;
-                 len -= hdrlen;
-                 ptr += hdrlen;
- 		if ( ptr > skb->len ) {
-@@ -133,7 +134,8 @@
+@@ -160,7 +158,7 @@
         		return 0;
         }
  
--       ah = (struct ip_auth_hdr *) (skb->data + ptr);
-+       ah = skb_header_pointer(skb, ptr, sizeof(_ah), &_ah);
-+       BUG_ON(ah == NULL);
+-       optsh=(void *)(skb->data)+ptr;
++       optsh = (void *)(skb->data + ptr);
  
-        DEBUGP("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
-        DEBUGP("RES %04X ", ah->reserved);
+        DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
+ 
+@@ -176,7 +174,6 @@
+                            ((optinfo->hdrlen == hdrlen) ^
+                            !!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
+ 
+-       temp = len = 0;
+        ptr += 2;
+        hdrlen -= 2;
+        if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
+@@ -187,48 +184,52 @@
+ 		DEBUGP("Strict ");
+ 		DEBUGP("#%d ",optinfo->optsnr);
+ 		for(temp=0; temp<optinfo->optsnr; temp++){
+-			optdesc = (void *)(skb->data)+ptr;
++			/* type field exists ? */
++			if (ptr > skb->len - 1 || hdrlen < 1)
++				break;
++			opttype = (void *)(skb->data + ptr);
++
+ 			/* Type check */
+-			if ( (unsigned char)*optdesc != 
+-				(optinfo->opts[temp] & 0xFF00)>>8 ){
++			if (*opttype != (optinfo->opts[temp] & 0xFF00)>>8){
+ 				DEBUGP("Tbad %02X %02X\n",
+-						(unsigned char)*optdesc,
+-						(optinfo->opts[temp] &
+-						 0xFF00)>>8);
++				       *opttype,
++				       (optinfo->opts[temp] & 0xFF00)>>8);
+ 				return 0;
+ 			} else {
+ 				DEBUGP("Tok ");
+ 			}
+ 			/* Length check */
+-			if (((optinfo->opts[temp] & 0x00FF) != 0xFF) &&
+-				(unsigned char)*optdesc != 0){
+-				if ( ntohs((u16)*optdesc) != 
+-						optinfo->opts[temp] ){
+-					DEBUGP("Lbad %02X %04X %04X\n",
+-							(unsigned char)*optdesc,
+-							ntohs((u16)*optdesc),
+-							optinfo->opts[temp]);
++			if (*opttype) {
++				u16 spec_len;
++
++				/* length field exists ? */
++				if (ptr > skb->len - 2 || hdrlen < 2)
++					break;
++				optlen = *((u8 *)(skb->data + ptr + 1));
++				spec_len = optinfo->opts[temp] & 0x00FF;
++
++				if (spec_len != 0x00FF && spec_len != optlen) {
++					DEBUGP("Lbad %02X %04X\n", optlen,
++					       spec_len);
+ 					return 0;
+-				} else {
+-					DEBUGP("Lok ");
+ 				}
+-			}
+-			/* Step to the next */
+-			if ((unsigned char)*optdesc == 0){
+-				DEBUGP("PAD0 \n");
+-				ptr++;
+-				hdrlen--;
++				DEBUGP("Lok ");
++				optlen += 2;
+ 			} else {
+-				ptr += LOW(ntohs(*optdesc));
+-				hdrlen -= LOW(ntohs(*optdesc));
+-				DEBUGP("len%04X \n", 
+-					LOW(ntohs(*optdesc)));
++				DEBUGP("Pad1\n");
++				optlen = 1;
+ 			}
+-			if (ptr > skb->len || ( !hdrlen && 
+-				(temp != optinfo->optsnr - 1))) {
++
++			/* Step to the next */
++			DEBUGP("len%04X \n", optlen);
++
++			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
++			    (temp < optinfo->optsnr - 1)) {
+ 				DEBUGP("new pointer is too large! \n");
+ 				break;
+ 			}
++			ptr += optlen;
++			hdrlen -= optlen;
+ 		}
+ 		if (temp == optinfo->optsnr)
+ 			return ret;
+@@ -270,6 +271,7 @@
+ #endif
+ 	.match		= &match,
+ 	.checkentry	= &checkentry,
++	.me		= THIS_MODULE,
+ };
+ 
+ static int __init init(void)
 
---------------050404050901080804070902--
+--------------070603020207050707080305--
