@@ -1,13 +1,16 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Re:Re[2]: REJECT target
-Date: Thu, 26 Jun 2003 15:12:47 +1000
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: [PATCH] Add arptables mangle module
+Date: Thu, 26 Jun 2003 08:16:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200306260512.h5Q5CnS08017@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <200306260816.49221.bdschuym@pandora.be>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "DarKRaveR" <DarKRaveR@habitat-b.de>
+To: David S.Miller <davem@redhat.com>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,72 +21,174 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Dave,
 
-Hello DarKRaveR,
+This time without the added pln.
+Note that the only publicly available arptables userspace tool that I
+know of is the one in my CVS, so there's no major risk of breaking
+anything.
+The module could also be useful in 2.4, I'll make a patch if you want it
+in 2.4.
 
-  I agree with trying to filter on the prerouting chain .. and I think that
-comes from using netfilter as a standalone firewall rather than using
-it as a host-based firewall.  I prefer to see packets stopped at the first
-point capable of making the decision, and that's at the prerouting chain.
-I believe I stand alone on that, though.
+cheers,
+Bart
 
-  However, I use drops in all of my rules, so I've not come across the
-reject problem.  I don't know why reject couldn't be applied to any
-chain .. isn't this just an "or" option in the target module?  Is there any
-other reason (list)?
+--- linux-2.5.73/net/ipv4/netfilter/Makefile.old	2003-06-25 20:37:06.000000000 +0200
++++ linux-2.5.73/net/ipv4/netfilter/Makefile	2003-06-25 20:37:37.000000000 +0200
+@@ -79,6 +79,7 @@
 
+ # generic ARP tables
+ obj-$(CONFIG_IP_NF_ARPTABLES) += arp_tables.o
++obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
 
+ # just filtering instance of ARP tables for now
+ obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
+--- linux-2.5.73/net/ipv4/netfilter/Kconfig.old	2003-06-25 20:37:24.000000000 +0200
++++ linux-2.5.73/net/ipv4/netfilter/Kconfig	2003-06-25 20:37:37.000000000 +0200
+@@ -540,6 +540,13 @@
+ 	tristate "ARP packet filtering"
+ 	depends on IP_NF_ARPTABLES
 
------ Original Message -----
->From: "DarKRaveR" <DarKRaveR@habitat-b.de>
->To: <netfilter-devel@lists.netfilter.org>
->Subject:  Re[2]: REJECT target
->Date: Wed, 25 Jun 2003 16:13:43 +0200
->
-> Hello Jozsef,
-> 
-> I understood that, the question is why ? I got a scenarion, where I
-> would need it in the PREROUTING chain of the nat table, instead of
-> just dropping the packets ... Is there any reason, why it is only
-> available in the filter table. I mean, it's for filtering okay, but
-> maybe I want to reject connections properly at other places (like nat
-> table, prerouting) instead of plain stupid
-> dropping them and waiting at the client software to time out.
-> 
-> Wednesday, June 25, 2003, 9:17:56 AM, you wrote:
-> 
-> JK> On Wed, 25 Jun 2003, DarKRaveR wrote:
-> 
-> >>   I know this is not really a developers question, but maybe the
-> >>   developers are the right people at hand, to explain this.
-> >>   From what I read, the REJECT target is only valid in
-> >>   INPUT/OUPUT/FORWARD. Is there any particular reason why ? I read in
-> >>   one of the tutorials, that you wouldn't need it at any other place,
-> >>   but I think this is not perfectly true.
-> 
-> JK> The REJECT target is for filtering. The filter table has got the
-> JK> INPUT/OUPUT/FORWARD chains, therfore the REJECT target can be used in
-> JK> those chains (and sub-chains, naturally).
-> 
-> JK> Best regards,
-> JK> Jozsef
-> JK> -
-> JK> E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-> JK> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> JK> Address : KFKI Research Institute for Particle and Nuclear Physics
-> JK>           H-1525 Budapest 114, POB. 49, Hungary
-> 
-> 
-> 
-> 
-> -- 
-> Best regards,
->  DarKRaveR                            mailto:DarKRaveR@habitat-b.de
-> 
-> 
-> 
-
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
++config IP_NF_ARP_MANGLE
++	tristate "ARP payload mangling"
++	depends on IP_NF_ARPTABLES
++	help
++	  Allows altering the ARP packet payload: source and destination
++	  hardware and network addresses.
++
+ # Backwards compatibility modules: only if you don't build in the others.
+ config IP_NF_COMPAT_IPCHAINS
+ 	tristate "ipchains (2.2-style) support"
+--- /dev/null	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.5.73/net/ipv4/netfilter/arpt_mangle.c	2003-06-26 08:00:15.000000000 +0200
+@@ -0,0 +1,101 @@
++/* module that allows mangling of the arp payload */
++#include <linux/module.h>
++#include <linux/netfilter_arp/arpt_mangle.h>
++#include <net/sock.h>
++
++static unsigned int
++target(struct sk_buff **pskb, unsigned int hooknum, const struct net_device *in,
++   const struct net_device *out, const void *targinfo, void *userinfo)
++{
++	const struct arpt_mangle *mangle = targinfo;
++	struct arphdr *arp;
++	unsigned char *arpptr;
++	int pln, hln;
++
++	if (skb_shared(*pskb) || skb_cloned(*pskb)) {
++		struct sk_buff *nskb;
++
++		nskb = skb_copy(*pskb, GFP_ATOMIC);
++		if (!nskb)
++			return NF_DROP;
++		if ((*pskb)->sk)
++			skb_set_owner_w(nskb, (*pskb)->sk);
++		kfree_skb(*pskb);
++		*pskb = nskb;
++	}
++
++	arp = (*pskb)->nh.arph;
++	arpptr = (*pskb)->nh.raw + sizeof(*arp);
++	pln = arp->ar_pln;
++	hln = arp->ar_hln;
++	/* We assume that pln and hln were checked in the match */
++	if (mangle->flags & ARPT_MANGLE_SDEV) {
++		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
++		   (arpptr + hln > (**pskb).tail))
++			return NF_DROP;
++		memcpy(arpptr, mangle->src_devaddr, hln);
++	}
++	arpptr += hln;
++	if (mangle->flags & ARPT_MANGLE_SIP) {
++		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
++		   (arpptr + pln > (**pskb).tail))
++			return NF_DROP;
++		memcpy(arpptr, &mangle->u_s.src_ip, pln);
++	}
++	arpptr += pln;
++	if (mangle->flags & ARPT_MANGLE_TDEV) {
++		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
++		   (arpptr + hln > (**pskb).tail))
++			return NF_DROP;
++		memcpy(arpptr, mangle->tgt_devaddr, hln);
++	}
++	arpptr += hln;
++	if (mangle->flags & ARPT_MANGLE_TIP) {
++		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
++		   (arpptr + pln > (**pskb).tail))
++			return NF_DROP;
++		memcpy(arpptr, &mangle->u_t.tgt_ip, pln);
++	}
++	return mangle->target;
++}
++
++static int
++checkentry(const char *tablename, const struct arpt_entry *e, void *targinfo,
++   unsigned int targinfosize, unsigned int hook_mask)
++{
++	const struct arpt_mangle *mangle = targinfo;
++
++	if (mangle->flags & ~ARPT_MANGLE_MASK ||
++	    !(mangle->flags & ARPT_MANGLE_MASK))
++		return 0;
++
++	if (mangle->target != NF_DROP && mangle->target != NF_ACCEPT &&
++	   mangle->target != ARPT_CONTINUE)
++		return 0;
++	return 1;
++}
++
++static struct arpt_target arpt_mangle_reg
++= {
++        .name		= "mangle",
++        .target		= target,
++        .checkentry	= checkentry,
++        .me		= THIS_MODULE,
++};
++
++static int __init init(void)
++{
++	if (arpt_register_target(&arpt_mangle_reg))
++		return -EINVAL;
++
++	return 0;
++}
++
++static void __exit fini(void)
++{
++	arpt_unregister_target(&arpt_mangle_reg);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
+--- /dev/null	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.5.73/include/linux/netfilter_arp/arpt_mangle.h	2003-06-25 20:37:37.000000000 +0200
+@@ -0,0 +1,26 @@
++#ifndef _ARPT_MANGLE_H
++#define _ARPT_MANGLE_H
++#include <linux/netfilter_arp/arp_tables.h>
++
++#define ARPT_MANGLE_ADDR_LEN_MAX sizeof(struct in_addr)
++struct arpt_mangle
++{
++	char src_devaddr[ARPT_DEV_ADDR_LEN_MAX];
++	char tgt_devaddr[ARPT_DEV_ADDR_LEN_MAX];
++	union {
++		struct in_addr src_ip;
++	} u_s;
++	union {
++		struct in_addr tgt_ip;
++	} u_t;
++	u_int8_t flags;
++	int target;
++};
++
++#define ARPT_MANGLE_SDEV 0x01
++#define ARPT_MANGLE_TDEV 0x02
++#define ARPT_MANGLE_SIP 0x04
++#define ARPT_MANGLE_TIP 0x08
++#define ARPT_MANGLE_MASK 0x0f
++
++#endif /* _ARPT_MANGLE_H */
