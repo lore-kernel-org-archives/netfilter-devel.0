@@ -1,42 +1,33 @@
-From: "Ghacker" <ghacker@super.inha.ac.kr>
-Subject: [Q] Please answer me about modifying sk_buff( or packet anywayz...)
-Date: Sun, 7 Dec 2003 17:52:33 +0900
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000501c3bc9f$74e3e460$8926f6a5@ghacker>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Extremely slow network with e1000 & ip_conntrack
+Date: Thu, 11 Dec 2003 09:25:17 +0100 (CET)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.44.0312110921540.23401-100000@filer.marasystems.com>
+References: <20031211072608.GF22826@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ks_c_5601-1987"
-Content-Transfer-Encoding: base64
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "David S. Miller" <davem@redhat.com>,
+	Stephen Lee <mukansai@emailplus.org>,
+	<scott.feldman@intel.com>, <netfilter-devel@lists.netfilter.org>,
+	<linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031211072608.GF22826@sunbeam.de.gnumonks.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGkuLi4gZXZlcnlvbmUuLg0KDQpGaXJzdCBvZiBhbGwuLiBUaGFueCB0byB5b3UgZm9yIHJlYWRp
-bmcuLi4gYW5kIGZvcmdpdmUgIG15IHBvb3IgZW5nbGlzaC4uIDooDQoNCkkgaGF2ZSBhIHByb2Js
-ZW0gdGhhdCBtb2RpZnlpbmcgcGFja2V0IHdpdGggbmV0ZmlsdGVyLi4NCg0KTXkgcHJvZ3JhbSBp
-cyBkZXZpZGVkIGluIDIgcGFydC4uKHNlcnZlciBhbmQgY2xpZW50IHByb2dyYW1tZWQgaW4ga2Vy
-bmVsIG1vZHVsZSkNCg0KVGhlIENsaWVudCBwcm9ncmFtKGFjdHVhbGx5IE5GX0lQX0xPQ0FMX09V
-VCBob29rIGZ1bmN0aW9uKSBtb2RpZnkgcHJvdG9jb2wgZmllbGQgb2YgaXAgaGVhZGVyIGluIHNr
-X2J1ZmYuLg0KDQpGb3IgZXhhbXBsZS4uIGlmIFRDUCBwYWNrZXQgaXMgaG9va2VkLCBJIGNoYW5n
-ZSB0aGUgcHJvdG9jb2wgZmllbGQgb2YgaXAgaGVhZGVyIDYgdG8gMjI0KEl0J3MgcmFuZG9tbHkg
-c2VsZWN0ZWQuLikgYW5kIHJldHVybiBORl9BQ0NFUFQNCg0KQW5kLi4gU2VydmVyIHByb2dyYW0o
-b2J2aW91c2x5IE5GX0lQX0xPQ0FMX0lOIGhvb2sgZnVuY3Rpb24pIG1vZGlmeSBwcm90b2NvbCBm
-aWVsZCBvZiBpcCBoZWFkZXIgdG9vLiBhbmQgcmV0dXJuIE5GX0FDQ0VQVA0KDQpJbiBzZXJ2ZXIg
-Y2FzZS4uIGlmIGhvb2tlZCBpbiBwYWNrZXQncyBwcm90b2NvbCBmaWVsZCBvZiBpcCBoZWFkZXIg
-aXMgMjI0KEl0IGlzIGEgbW9kaWZpZWQgcGFja2V0IGJ5IGNsaWVudCBwcm9ncmFtKSwgaXQganVz
-dCBjaGFuZ2UgdGhlIG51bWJlciB0byA2IGFuZCByZXR1cm4gTkZfQUNDRVBUDQoNClNvIEkgdGVz
-dCB0aGlzIHByb2dyYW0uLiBJdCBpcyBzdWNjZXNmdWwgZm9yIGNsaWVudCB0byBzZXJ2ZXIgY29u
-bmVjdGlvbi4uKHRlc3RlZCBpbiB0ZWxuZXQuIHNzaC4gZnRwLCBodHRwKQ0KQnV0IEkgdHJ5IHRv
-IGNvbm5lY3Qgc2VydmVyIHRvIGNsaWVudCwgaXQncyBpbXBvc3NpYmxlLi4NCg0KQ2xpZW50IHNl
-bmQgYSBTWU4mQUNLIHBhY2tldC4uLiBidXQgU2VydmVyIHJlY2VpdmVkIGFueXRoaW5nLi4gKCBJ
-IGNoZWNrIHRoaXMgaW4gTkZfSVBfUFJFX1JPVVRJTkcgYW5kIE5GX0lQX1BPU1RfUk9VVElORykN
-Cg0KSG93IGNhbiBJIHNvbHZlIHRoaXMgcHJvYmxlbS4uPyAgVGhhbnggYWdhaW4uLiBmb3IgcmVh
-ZGluZy4u
+On Thu, 11 Dec 2003, Harald Welte wrote:
+
+> yes, this is certainly a problem - but not with conntrack, only with
+> nat.  So maybe we should add a safeguard, preventing
+> iptables_nat/ipchains/ipfwadm from being loaded when TSO on any
+> interface is enabled?  Or at least print a warining in syslog?
+
+TSO can be enabled while NAT is running so you better do this in the 
+packet flow or if there is a suitable notifier hook that can be used.
+
+Most firewalls etc load the ruleset before activating the 
+interfaces, i..e before even loading the nic drivers, so there is no 
+interfaces to look at when iptables_nat is loaded.
+
+Regards
+Henrik
