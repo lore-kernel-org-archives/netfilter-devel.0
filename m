@@ -1,14 +1,15 @@
-From: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
-Subject: pptp-conntrack-nat: ip_nat_proto_gre.c:gre_manip_pkt: can't nat GRE
-	w/o key
-Date: Sun, 3 Apr 2005 13:56:47 +0200
-Message-ID: <222203005.20050403135647@stud.tue.nl>
-Reply-To: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ipq_get_msgerr: No such file or directory
+Date: Sun, 03 Apr 2005 19:12:02 +0200
+Message-ID: <425023E2.30703@trash.net>
+References: <bfbae0cc011856c1dbdca5bedf862015@axentra.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Robert Scott <rbscott@axentra.net>
+In-Reply-To: <bfbae0cc011856c1dbdca5bedf862015@axentra.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,20 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-It seems pptp code is working now with 2.6.10, now the gre code needs some
-tweaks. 
-In ip_nat_proto_gre.c:gre_manip_pkt it seems hdroff, greh and pgreh don't get 
-the right values for their attributes. (should here skb_header_pointer be used 
-too ?). In ip_conntrack_proto_gre.c:gre_pkt_to_tuple it seems to go right, 
-protocol has the right value, and key and version also.
+Robert Scott wrote:
+> I am receiving this error code from ipq_get_msgerr.  The read is 
+> successful, and returns a non-zero positive number, but when I call 
+> ipq_message_type on the buffer used to read the packet, I get 
+> NLMSG_ERROR, and then, when I call strerror( ipq_get_msgerr( buffer ))  
+> where "buffer" is the second argument to ipq_read, I receive the error 
+> message "No such file or directory".
+> 
+> This has occurred on a Linux 2.6.8.1 kernel with version 1.2.9 of 
+> iptables.  The box where this occurred is acting as a bridge, and this 
+> started happening when the internet connection on one of its interfaces 
+> went down for a few hours.
+> 
+> Any ideas as to why this may be happening?
 
-I think this could probably be the last hurdle to a working pptp-conntrack (at 
-least under <= 2.6.10
+There is only a single place where ip_queue returns -ENOENT, which is
+when in ipq_set_verdict when the entry can't be found.
 
-As attachments I included  the kern.log (with extra debug info i put in 
-ip_nat_proto_gre.c and ip_conntrack_proto_gre.c), and tcpdumps with whole 
-packets on eth0 and eth1 in the bugzilla report
-
-Regards,
-
-Sander Eikelenboom
+Regards
+Patrick
