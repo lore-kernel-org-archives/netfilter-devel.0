@@ -1,15 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6 7/14]: don't reroute no mark change in mangle table without CONFIG_IP_ROUTE_FWMARK
-Date: Mon, 21 Jun 2004 21:43:25 +0200
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH 2.6 1/14]: Fix non-existant config option
+ CONFIG_NF_DEBUG
+Date: Mon, 21 Jun 2004 14:44:52 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040621194325.GM24374@sunbeam.de.gnumonks.org>
+Message-ID: <20040621144452.15fbe009.davem@redhat.com>
+References: <20040621193851.GF24374@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vtBqmokgY1evbO3C"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040621193851.GF24374@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,77 +22,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 21 Jun 2004 21:38:51 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
---vtBqmokgY1evbO3C
-Content-Type: multipart/mixed; boundary="RU5vHP6eAM91MAfE"
-Content-Disposition: inline
+> Sorry for the patch-bombing, but we have finally decided that now is the
+> right time to submit some long-standing fixes and additions to netfilter
+> in the 2.6.x series.
+> 
+> Please apply to your tree, thanks.
 
+All 2.6.x patches applied, thanks.
 
---RU5vHP6eAM91MAfE
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-
-This patch for 2.6 changes iptable_mangle so it won't reroute on nfmark
-change when routing by nfmark is not enabled.
-
-Author: Patrick McHardy <kaber@trash.net>
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Harald Welte <laforge@netfilter.org>
-
---
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-============================================================================
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---RU5vHP6eAM91MAfE
-Content-Type: text/plain; charset=us-ascii; name="07.diff"
-Content-Disposition: inline; filename="07.diff"
-Content-Transfer-Encoding: quoted-printable
-
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/06/20 22:40:02+02:00 kaber@trash.net=20
-#   [NETFILTER]: Don't reroute on nfmark change in mangle table when routin=
-g by nfmark is not enabled
-#=20
-# net/ipv4/netfilter/iptable_mangle.c
-#   2004/06/20 22:39:52+02:00 kaber@trash.net +2 -0
-#   [NETFILTER]: Don't reroute on nfmark change in mangle table when routin=
-g by nfmark is not enabled
-#=20
-diff -Nru a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptabl=
-e_mangle.c
---- a/net/ipv4/netfilter/iptable_mangle.c	2004-06-20 23:00:21 +02:00
-+++ b/net/ipv4/netfilter/iptable_mangle.c	2004-06-20 23:00:21 +02:00
-@@ -173,7 +173,9 @@
- 	if (ret !=3D NF_DROP && ret !=3D NF_STOLEN && ret !=3D NF_QUEUE
- 	    && ((*pskb)->nh.iph->saddr !=3D saddr
- 		|| (*pskb)->nh.iph->daddr !=3D daddr
-+#ifdef CONFIG_IP_ROUTE_FWMARK
- 		|| (*pskb)->nfmark !=3D nfmark
-+#endif
- 		|| (*pskb)->nh.iph->tos !=3D tos))
- 		return ip_route_me_harder(pskb) =3D=3D 0 ? ret : NF_DROP;
-=20
-
-
---RU5vHP6eAM91MAfE--
-
---vtBqmokgY1evbO3C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFA1zpdXaXGVTD0i/8RAulfAJwIgn5lbxTzynSDXMtYiyFEqVjV7ACeIBB3
-LG/xazCqAuFWklKv8a4y0TE=
-=W3F3
------END PGP SIGNATURE-----
-
---vtBqmokgY1evbO3C--
+Harald, you are using bitkeeper, maybe I can directly pull from
+your tree at some point?  Also, please add the necessary
+Signed-off-by: lines to your changeset comments.  That would
+help me a lot.
