@@ -1,70 +1,106 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH/RFC] Reduce call chain length in netfilter
-Date: Thu, 27 Jan 2005 22:16:04 +0100
-Message-ID: <1106860564.3389.4.camel@localhost.localdomain>
-References: <1131604877.20041218092730@mail.ru.suse.lists.linux.kernel>
-	 <p73zn0ccaee.fsf@verdi.suse.de>
-	 <1105117559.11753.34.camel@baythorne.infradead.org>
-	 <20050107100017.454ddadc@dxpl.pdx.osdl.net>
-	 <1105133241.3375.16.camel@localhost.localdomain>
-	 <20050118135735.4b77d38d.davem@davemloft.net>
-	 <1106433059.4486.11.camel@localhost.localdomain>
-	 <1106436153.20995.42.camel@tux.rsn.bth.se>
-	 <1106484019.3376.5.camel@localhost.localdomain>
-	 <1106496509.1085.1.camel@tux.rsn.bth.se>
-	 <20050125220558.6e824f8a.davem@davemloft.net>
-	 <1106730510.4041.4.camel@localhost.localdomain>
-	 <41F82C6D.7020006@trash.net> <20050126231801.7bf90338.davem@davemloft.net>
-	 <41F929FA.3050800@trash.net>  <20050127114726.2205b4ed.davem@davemloft.net>
+From: Ulysses Almeida <munky@maluco.com.br>
+Subject: Multiple links / multiple routes
+Date: Thu, 27 Jan 2005 18:37:00 -0300
+Message-ID: <20050127213700.GA24329@maluco.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org, snort2004@mail.ru,
-        rusty@rustcorp.com.au, ak@suse.de, bridge@osdl.org,
-        gandalf@wlug.westbo.se, dwmw2@infradead.org, shemminger@osdl.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20050127114726.2205b4ed.davem@davemloft.net>
-Sender: netdev-bounce@oss.sgi.com
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op do, 27-01-2005 te 11:47 -0800, schreef David S. Miller:
-> On Thu, 27 Jan 2005 18:50:50 +0100
-> Patrick McHardy <kaber@trash.net> wrote:
-> 
-> >  From what I can see it doesn't generate tail-calls currently:
-> 
-> Indeed... It even doesn't do this on Sparc64 either, even for
-> the okfn(skb) call which I was sure it would.
-> 
-> It won't tail-call for function pointers for some strance reason
-> as exhibited by this simple test:
-> 
-> struct sk_buff {
-> 	int foo;
-> };
-> 
-> int invoke(struct sk_buff *skb, int (*okfn)(struct sk_buff *))
-> {
-> 	return okfn(skb);
-> }
-> 
-> extern int test_func(struct sk_buff *);
-> 
-> int invoke2(struct sk_buff *skb)
-> {
-> 	return test_func(skb);
-> }
-> 
-> In the generated asm on sparc64, invoke2() gets a tail-call
-> whereas invoke() does not.  Hmmm...
+Hi folks,
 
-Pasha (<snort2004@mail.ru>) is currently using a bridge-nf patch vs
-2.4.29 with the changes I sent to you. After two days he sent me
-(yesterday) a message that all is well. Without the patch he was getting
-the stack overflow oopses.
+    I Have the following scenario:
 
-cheers,
-Bart
+  - One server with two links:
+    * First link has dynamic IP (cheap one)
+    * Second links has fixed IP (expensive one)
+
+  - Link(1) is used by my intranet users, they use Internet
+  services by this link. To do this, I just setuped Link(1)
+  as my default gw. And made my server a linux router.
+    # echo 1 > /proc/sys/net/ipv4/ip_forward
+    # iptables -t nat -A POSTROUTING -s <intranet_net> -o <eth_link(1)> -j MASQUERADE
+    # ip route add default via <link(1)_gw> dev <eth_link(1)>
+
+  - Link(2) is used by some incomming requests from internet
+  to this server. This services are HTTP and SMTP services.
+  To use second link properly, I setuped iproute2
+    # echo 100 link2 >> /etc/iproute2/rt_tables
+    # ip route add <intranet_net> dev <eth_intranet> src <server_intranet_ip> table link2
+    # ip route add <link(2)_net> dev <eth_link(2)> src <server_link(2)_ip> table link2
+    # ip route add default via <link(2)_gw> dev <eth_link(2)> table link2
+    # ip rule add from <server_link(2)_ip> lookup link2
+
+  Almost every thing works at this point. All my intranet users, are
+using Link(1) to navigate on Internet, use MSN/ICQ/Jabber, and etc.
+  When someone on Internet want's to access my WEB page, they use
+server_link(2)_ip to get into. The same when they want to accesse their
+e-mails. If some MTA on internet, needs to deliver some e-mail to my
+smtp server, it also uses the server_link(2)_ip. And it's work fine.
+
+  There's only one problem. If my MTA wants to deliver an e-mail, it
+tries it by Link(1), what's reasonable, because that's the server default
+gateway. But  it's not good, when the link(1) (dynamic IP) is a black
+listed one
+
+  To solve this problem, on 2.4 time I played with iptables and iproute2:
+
+  Every outgoing packet, with destination port set to 25, I will mark.
+    # iptables -t mangle -A OUTPUT -p tcp --dport 25 -j MARK --set-mark 0x02
+
+  Now I can say to iproute2 use the right routing table.
+    # ip rule add fwmark 0x02 lookup link2
+
+  Still not working, if i log outgoing packts, with destination port 25,
+I see SMTP packets going through eth_link(2), but with server_link(1)_ip.
+Let's handle those packets a little more.
+    # iptables -t nat -I POSTROUTING -o <eth_link(2)> -j SNAT --to-source <server_link(2)_ip>
+
+  Yes, now I'm sure every outgoing trafic through eth_link(2) is going
+with the correct IP.
+
+
+  Everything above use to work on 2.4.5 vanilla kernel. Now i'm trying the same at 2.6.10 kernel, and that's the result:
+
+  # iptables -t mangle -m tcp -I OUTPUT -p tcp --dport 25 -j LOG --log-level 3 --log-prefix 'mangle OUTPUT: '
+  # iptables -t nat -m tcp -I POSTROUTING -p tcp --dport 25 -j LOG --log-level 3 --log-prefix 'nat POSTROUTING:
+  # iptables -t mangle -m tcp -I PREROUTING -p tcp --sport 25 -j LOG --log-level 3 --log-prefix 'mangle PREROUTING: '
+  # iptables -t nat -m tcp -I PREROUTING -p tcp --sport 25 -j LOG --log-level 3 --log-prefix 'nat PREROUTING: '
+  # iptables -t mangle -m tcp -I INPUT -p tcp --sport 25 -j LOG --log-level 3 --log-prefix 'mangle INPUT: '
+  # iptables -t filter -m tcp -I INPUT -p tcp --sport 25 -j LOG --log-level 3 --log-prefix 'filter INPUT: '
+
+
+  To simulate, I started a telnet some_smtp_server 25. I could see:
+
+  - packet on output mangle -> postrouting nat.
+  - packet on prerouting mangle.
+
+  After packet appears on mangle's prerouting, it disappers? I can't
+understando why. What could broke this on 2.6 series?
+
+  I tried with 2.6.5 before, and got the same result.
+
+  I alredy tried with -j ROUTE from pom-ng, but it's not working too, or maybe a missunderstood the man page.
+
+  I don't know if i'm missing some conntrack with this multiple routing table or something like this.... And the most strange is the "answer" packet appearing on mangle PREROUTING, but not on filter INPUT.
+
+  Any help, I thanks in advance.
+
+  Regards.
+
+-- 
+    .~.  Ulysses Almeida
+   / V \  munky@maluco.com.br
+ / (   ) \  Seja livre, use GNU/Linux! 
+   ^^-^^
