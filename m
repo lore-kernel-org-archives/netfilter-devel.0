@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 10/12]: Fix two broken assertions
-Date: Tue, 21 Sep 2004 05:23:18 +0200
+Subject: [PATCH 2.6 11/12]: Fix invalid return values in sctp_new
+Date: Tue, 21 Sep 2004 05:23:30 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414F9EA6.7020302@trash.net>
+Message-ID: <414F9EB2.2000709@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090104050200040607000509"
+Content-Type: multipart/mixed; boundary="------------060100080604030408060002"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,73 +19,82 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090104050200040607000509
+--------------060100080604030408060002
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-ChangeSet@1.1935.1.10, 2004-09-20 11:52:16+02:00, kaber@coreworks.de
-  [NETFILTER]: Fix two broken assertions
+sctp conntrack should return 0 for invalid packets, otherwise we end
+up with invalid conntrack entries.
+
+
+ChangeSet@1.1935.1.11, 2004-09-20 11:54:00+02:00, kaber@coreworks.de
+  [NETFILTER]: Fix invalid return values in sctp_new
  
   Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 
 
---------------090104050200040607000509
+--------------060100080604030408060002
 Content-Type: text/x-patch;
- name="10.diff"
+ name="11.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="10.diff"
+ filename="11.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/09/20 11:52:16+02:00 kaber@coreworks.de 
-#   [NETFILTER]: Fix two broken assertions
+#   2004/09/20 11:54:00+02:00 kaber@coreworks.de 
+#   [NETFILTER]: Fix invalid return values in sctp_new
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_core.c
-#   2004/09/20 11:51:56+02:00 kaber@coreworks.de +2 -6
-#   [NETFILTER]: Fix two broken assertions
+# net/ipv4/netfilter/ip_conntrack_proto_sctp.c
+#   2004/09/20 11:53:36+02:00 kaber@coreworks.de +5 -5
+#   [NETFILTER]: Fix invalid return values in sctp_new
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_conntrack_core.c
-#   2004/09/20 11:51:56+02:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix two broken assertions
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 11:59:17 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 11:59:17 +02:00
-@@ -590,7 +590,7 @@
- 		DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
- 			conntrack, expected);
- 		/* Welcome, Mr. Bond.  We've been expecting you... */
--		IP_NF_ASSERT(master_ct(conntrack));
-+		IP_NF_ASSERT(expected->expectant);
- 		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
- 		conntrack->master = expected;
- 		expected->sibling = conntrack;
-diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
---- a/net/ipv4/netfilter/ip_nat_core.c	2004-09-20 11:59:17 +02:00
-+++ b/net/ipv4/netfilter/ip_nat_core.c	2004-09-20 11:59:17 +02:00
-@@ -852,12 +852,8 @@
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_proto_sctp.c b/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
+--- a/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2004-09-20 11:59:52 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2004-09-20 11:59:52 +02:00
+@@ -430,16 +430,16 @@
+ 	DEBUGP("\n");
+ 
+ 	if (skb_copy_bits(skb, skb->nh.iph->ihl * 4, &sctph, sizeof(sctph)) != 0)
+-		return -1;
++		return 0;
+ 
+ 	if (do_basic_checks(conntrack, skb, map) != 0)
+-		return -1;
++		return 0;
+ 
+ 	/* If an OOTB packet has any of these chunks discard (Sec 8.4) */
+ 	if ((test_bit (SCTP_CID_ABORT, (void *)map))
+ 		|| (test_bit (SCTP_CID_SHUTDOWN_COMPLETE, (void *)map))
+ 		|| (test_bit (SCTP_CID_COOKIE_ACK, (void *)map))) {
+-		return -1;
++		return 0;
  	}
  
- 	/* Must be RELATED */
--	IP_NF_ASSERT((*pskb)->nfct
--		     - ((struct ip_conntrack *)(*pskb)->nfct->master)->infos
--		     == IP_CT_RELATED
--		     || (*pskb)->nfct
--		     - ((struct ip_conntrack *)(*pskb)->nfct->master)->infos
--		     == IP_CT_RELATED+IP_CT_IS_REPLY);
-+	IP_NF_ASSERT((*pskb)->nfctinfo == IP_CT_RELATED ||
-+		     (*pskb)->nfctinfo == IP_CT_RELATED+IP_CT_IS_REPLY);
+ 	newconntrack = SCTP_CONNTRACK_MAX;
+@@ -461,7 +461,7 @@
  
- 	/* Redirects on non-null nats must be dropped, else they'll
-            start talking to each other without our translation, and be
+ 				if (skb_copy_bits(skb, offset + sizeof (sctp_chunkhdr_t), 
+ 					&inithdr, sizeof(inithdr)) != 0) {
+-						return -1;
++						return 0;
+ 				}
+ 
+ 				DEBUGP("Setting vtag %x for new conn\n", 
+@@ -471,7 +471,7 @@
+ 								inithdr.init_tag;
+ 			} else {
+ 				/* Sec 8.5.1 (A) */
+-				return -1;
++				return 0;
+ 			}
+ 		}
+ 		/* If it is a shutdown ack OOTB packet, we expect a return
 
---------------090104050200040607000509--
+--------------060100080604030408060002--
