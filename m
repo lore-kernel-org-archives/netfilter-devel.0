@@ -1,9 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [1/2] osf: fixed matching bug.
-Date: Sun, 22 Aug 2004 00:12:45 +0200
+Subject: Re: [2/2] osf: fixed /proc reading bug
+Date: Sun, 22 Aug 2004 00:30:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4127C8DD.2080406@trash.net>
-References: <20040822010353.34801a4f@zanzibar.2ka.mipt.ru>
+Message-ID: <4127CCF9.2030505@trash.net>
+References: <20040822010358.79048eda@zanzibar.2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -11,7 +11,7 @@ Cc: Harald Welte <laforge@netfilter.org>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: johnpol@2ka.mipt.ru
-In-Reply-To: <20040822010353.34801a4f@zanzibar.2ka.mipt.ru>
+In-Reply-To: <20040822010358.79048eda@zanzibar.2ka.mipt.ru>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,53 +24,30 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Evgeniy Polyakov wrote:
 
->Fixed matching bug - when we have match and have options to process
->not only first one but all, then we may rewrite fmatch value
->with FMATCH_WRONG parameters. Later osf will create decision based on
->the latest fmatch value, but not the fact that osf had match before.
+>Fixed buffer overflow when reading rules from /proc file.
 >
->Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
->
->	Evgeniy Polyakov ( s0mbre )
->
->Only failure makes us experts. -- Theo de Raadt
->  
->
+How is this supposed to fix it ?
 
-Applied to 2.4 and 2.6, but hand edited, you don't need to move the lock
-for a local variable.
 
-diff -u -r1.1 ipt_osf.c
---- osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c  22 Jul 2004 19:21:58 
--0000      1.1
-+++ osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c  21 Aug 2004 22:10:02 -0000
-@@ -412,6 +412,9 @@
-        }
+                log("%s [%s]", f->genre, f->details);
 
-        read_unlock(&osf_lock);
-+
-+       if (fcount)
-+               fmatch = FMATCH_OK;
+-               count += sprintf(buf+count, "%s - %s[%s] : %s",
++               err = snprintf(buf+count, __count-count, "%s - %s[%s] : %s",
+                                        f->genre, f->version,
+                                        f->subtype, f->details);
+-
++               if (err < 0)
++                       break;
++               else
++                       count += err;
+                if (f->opt_num)
+                {
+                        loga(" OPT: ");
 
-        return (fmatch == FMATCH_OK)?1:0;
- }
+snprintf returns the number of characters written if n <= limit, otherwise
+the number of characters that would have been generated for the given input,
+but never < 0. You can also use vscnprintf to get the real number of bytes
+written.
 
->------------------------------------------------------------------------
->
->--- netfilter_cvs/patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c	2004-07-18 00:10:43.000000000 +0400
->+++ netfilter_cvs/patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c	2004-08-20 21:55:22.000000000 +0400
->@@ -411,8 +413,11 @@
-> 		}
-> 	}
-> 
->-	read_unlock(&osf_lock);
->+	if (fcount)
->+		fmatch = FMATCH_OK;
-> 
->+	read_unlock(&osf_lock);
->+	
-> 	return (fmatch == FMATCH_OK)?1:0;
-> }
-> 
->  
->
+Regards
+Patrick
