@@ -1,15 +1,13 @@
-From: Ryan Hagelstrom <rhagelstrom@atcorp.com>
-Subject: libIPQ Questions
-Date: Wed, 11 Dec 2002 14:16:21 -0600
+From: Toth Szabolcs <totya@mail.ajkanet.hu>
+Subject: Help! ip traffic accounting and bidirection with iptables ??
+Date: Fri, 13 Dec 2002 17:42:44 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <01C2A11F.E1F0ADA0.rhagelstrom@atcorp.com>
-Reply-To: "rhagelstrom@atcorp.com" <rhagelstrom@atcorp.com>
+Message-ID: <Pine.LNX.4.21.0212131702290.24104-100000@eagle.ajkanet.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+To: netfilter@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,21 +18,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
 
-I'm in the works to write a module using netfilter. However I'm wondering 
-if I would be able to use libIPQ to simply some of the project.
-I need to write a module that is able to mangle and route packets between 
-two different network interfaces along with inject certain custom 
-management and configuration packets to the specific network interface. I'm 
-just curious if one is able to this using libIPQ or would the approach 
-involve just writing it all in a netfilter module. I'm guessing the answer 
-is the latter but I wanted to double check. If doing this in libIPQ is 
-possible if someone could provide an example it would be appreciated.
+Hi All !
 
-Or if I'm missing something and there is an alternative approach I'm open 
-to suggestions.
+I have the following network schema :
 
-Thanks
+         firewall
+         _________
+ INET    |   |	 |     LAN 
+<------>ETH0 |   ETH1<----->
+1.2.3.5  |   |   |    192.168.0.0/16
+         ---------
+	  server
 
-Ryan Hagelstrom
+I measure the ip traffic for each user who are in the LAN segment.
+I measure all traffic that goes to , come from the server and INET.
+
+I used unil now ipchains. The following rules make it possible for me to
+see seperated the incoming and outgoing traffic on each user ip:
+
+pkts	bytes
+1125     208155 -          all  ------ 0xFF 0x00  eth1 				192.168.2.10         0.0.0.0/0             n/a
+1542    1153702 -          all  ------ 0xFF 0x00  eth1 				0.0.0.0/0            192.168.2.10          n/a
+---------------
+
+ipchains -N acct
+ipchains -A input -j acct -s 192.168.0.0/16 -b
+ipchains -A output -j acct -s 192.168.0.0/16 -b
+
+ipchains -A acct -p all -s 192.168.0.19  -i eth1 -b
+ipchains -A acct -p all -s 192.168.2.10  -i eth1 -b
+ipchains -A acct -p all -s 192.168.2.26  -i eth1 -b
+ipchains -A acct -p all -s 192.168.2.42  -i eth1 -b
+ipchains -A acct -p all -s 192.168.2.58  -i eth1 -b
+......
+.....
+.....
+(n+1)
+
+Now I would change to iptables but I have a problem that I can not solve.
+I can not measure the ip traffic / seperated for incoming and outgoing !!/ 
+in ONE rule beacuse there is now "-b" /bidirection/ option in the 
+iptables.
+
+Now I use the following rules in iptables:
+
+iptables -N acct
+iptables -A acct -d 192.168.2.10
+iptables -A acct -s 192.168.2.10
+........
+.......
+(2n+1)
+
+iptables -A INPUT -i eth1 -s 192.168.0.0/16 -j acct
+iptables -A FORWARD -j acct
+iptables -A OUTPUT -o eth1 -d 192.168.0.0/16 -j acct
+
+If anybody know a better solution please write me: totya@ajkanet.hu
