@@ -1,14 +1,16 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: 12_contrack_nat_dependency.patch
-Date: 25 Mar 2003 23:18:32 +0100
+Subject: Re: [PATCH] ROUTE target with ARP lookups
+Date: 26 Mar 2003 00:35:05 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1048630711.14738.71.camel@tux.rsn.bth.se>
+Message-ID: <1048635304.14737.81.camel@tux.rsn.bth.se>
+References: <1048519994.27352.149.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+In-Reply-To: <1048519994.27352.149.camel@descartes.info.ucl.ac.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,16 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Rusty,
+On Mon, 2003-03-24 at 16:33, Cedric de Launois wrote:
+> Here is a patch for the --oif option of the ROUTE target.
+> When sending to a destination through an interface, the target
+> now performs ARP cache lookup & ARP request (excepted if the
+> device is a tunnel). This should now enable "Transparent broadband
+> network connectivity (IP PnP)" as John said.
+> 
+> The patch is against the current CVS tree.
 
-I have a question about the 12_contrack_nat_dependency.patch in
-p-o-m/pending...
+I don't really like the check for ARP-able devices...
+There are a lot more non-arpable devices than the ones you test for.
+And your code looks ethernet specific so why not test for ARPHRD_ETHER
+instead?
 
-The patch you sent Harald was for 2.5, will a similar patch work for
-2.4? I've backported it and it compiles but I can't really test it.
+I havn't followed the discussion on the use of this, but it's probably
+useful :)
 
-It looks like it should work but I try to stay away from the module
-voodoo...
+If you fix the dev->type issue or convince me it should look like it
+does I'll be glad to apply the patch.
 
 -- 
 /Martin
