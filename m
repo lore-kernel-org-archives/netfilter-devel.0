@@ -1,101 +1,90 @@
-From: Kurt Garloff <garloff@suse.de>
-Subject: [PATCH] Unaligend accesses nulldevname
-Date: Thu, 8 Jan 2004 00:00:11 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040107230011.GG23133@tpkurt.garloff.de>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [ANNOUNCE] nfsim - netfilter simulation environment
+Date: Thu, 08 Jan 2004 00:19:31 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1073517570.31821.119.camel@tux.rsn.bth.se>
+References: <200401071044.18059.jeremy@redfishsoftware.com.au>
+	 <1073505244.31821.101.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tctmm6wHVGT/P6vA"
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Linux kernel list <linux-kernel@vger.kernel.org>,
-	netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-AReuLnX8/Nm3cNhIwc8I"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Jeremy Kerr <jeremy@redfishsoftware.com.au>
+In-Reply-To: <1073505244.31821.101.camel@tux.rsn.bth.se>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---tctmm6wHVGT/P6vA
-Content-Type: multipart/mixed; boundary="CEUtFxTsmBsHRLs3"
-Content-Disposition: inline
-
-
---CEUtFxTsmBsHRLs3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-AReuLnX8/Nm3cNhIwc8I
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Wed, 2004-01-07 at 20:54, Martin Josefsson wrote:
 
-I found an excessive amount of unaligned accesses on my AXP workstation
-and tracked it down to ip_packet_match() in the ip_tables module.
-indev and outdev are not properly aligned if set to nulldevname in
-ipt_do_table().
-This destroys the benefits of comparing names in units of (long) and
-on architectures with expensive unaligned accesses (such as ia64 or
-alpha), it even hurts a lot.
+> > Contributions & comments are most welcome.
+>=20
+> Will give it a testspin.
 
-Find attached a patch against 2.6.0. A similar patch is needed for 2.4,
-also attached.
+Hi again, now I've given it a small initial testdrive and I've found a
+small bug.
 
-Please consider merging them.
+Here's a small patch to fix select() handling in
+core/message.c:wait_for_message()
 
-Looking at ip_packet_match(), I have two more thoughts:
-* It should not be inlined. It's too large to benefit from inlining,
-  IMHO. (OTOH, it's only called from one place, so it does not
-  really matter.)
-* There's a comment about the compiler being able to unroll the 2/4
-  (64/32bit) iter loop which is not completely appropriate: We don't
-  pass -funroll-loops, so gcc does not do it :-(
-  It would be beneficial though.
+The fdset is undefined when select() returns -1.
+Rerun select() when that happens and errno is something retryable.
 
-Regards,
+Without this all iptables commands that uses sockets hang the simulator
+when message_client_connection() is called for sockfd but there isn't
+any data available.
+
+--- nfsim/core/message.c.orig	2004-01-08 00:01:17.000000000 +0100
++++ nfsim/core/message.c	2004-01-08 00:01:45.000000000 +0100
+@@ -184,6 +184,7 @@
+ void wait_for_message(int extra_fd)
+ {
+ 	fd_set fdset;
++	int retry =3D 0;
+=20
+ 	do {
+ 		int maxfd, sret;
+@@ -194,8 +195,14 @@
+=20
+ 		maxfd =3D max(extra_fd, sockfd);
+ 		sret =3D select(maxfd + 1, &fdset, NULL, NULL, NULL);
+-		if (sret < 0 && errno !=3D EINTR)
++		if (sret < 0) {
++			if (errno =3D=3D EINTR || errno =3D=3D EAGAIN) {
++				if (++retry > 3)
++					barf_perror("too many retries");
++				continue;
++			}
+ 			barf_perror("select");
++		}
+=20
+ 		if (FD_ISSET(sockfd, &fdset))
+ 			message_client_connection(sockfd);
+
 --=20
-Kurt Garloff  <garloff@suse.de>                            Cologne, DE=20
-SUSE LINUX AG, Nuernberg, DE                          SUSE Labs (Head)
+/Martin
 
---CEUtFxTsmBsHRLs3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="iptables-nulldevname-unaligned26.diff"
-
---- linux-2.6.0.ix86/net/ipv4/netfilter/ip_tables.c.orig	2003-12-18 03:58:28.000000000 +0100
-+++ linux-2.6.0.ix86/net/ipv4/netfilter/ip_tables.c	2004-01-07 23:49:29.000000000 +0100
-@@ -260,7 +260,7 @@
- 	     struct ipt_table *table,
- 	     void *userdata)
- {
--	static const char nulldevname[IFNAMSIZ];
-+	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	u_int16_t offset;
- 	struct iphdr *ip;
- 	u_int16_t datalen;
-
---CEUtFxTsmBsHRLs3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="iptables-nulldevname-unaligned24.diff"
-
---- linux-2.4.19/net/ipv4/netfilter/ip_tables.c	2002-02-25 20:38:14.000000000 +0100
-+++ linux-2.4.19.AXP/net/ipv4/netfilter/ip_tables.c	2004-01-09 01:55:01.000000000 +0100
-@@ -259,7 +264,7 @@
- 	     struct ipt_table *table,
- 	     void *userdata)
- {
--	static const char nulldevname[IFNAMSIZ] = { 0 };
-+	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long)))) = { 0 };
- 	u_int16_t offset;
- 	struct iphdr *ip;
- 	void *protohdr;
-
---CEUtFxTsmBsHRLs3--
-
---tctmm6wHVGT/P6vA
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+--=-AReuLnX8/Nm3cNhIwc8I
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQE//I96xmLh6hyYd04RAlpzAJ9G3v+AfXv7fo7WukJt+lX9ogguOQCeIY5a
-tbb6eUsHezqUrmAOCuhWKGc=
-=/bAN
+iD8DBQA//JQCWm2vlfa207ERAkRZAJ43sACBd4dvxvdVSoRWtGu1BhjhEgCdFwO7
+Yy9EzUI2gkINTV2T/X7pXKU=
+=Vqbd
 -----END PGP SIGNATURE-----
 
---tctmm6wHVGT/P6vA--
+--=-AReuLnX8/Nm3cNhIwc8I--
