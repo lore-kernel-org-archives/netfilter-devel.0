@@ -1,16 +1,12 @@
-From: Jeff Hall <hall@vdata.com>
-Subject: Re: PPTP connection tracking and Poptop on same box
-Date: Thu, 4 Sep 2003 04:04:21 -0400 (EDT)
+From: "=?ISO-8859-1?Q?Jos=E9=20Queiroz?=" <JQueiroz@prrj.mpf.gov.br>
+Subject: About LOG facilities
+Date: Mon, 01 Sep 2003 11:07:12 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.56.0309040327250.10914@shemp.vdata.com>
-References: <3F542C4E.1000307@netbox.biz> <Pine.GSO.4.56.0309031853090.10914@shemp.vdata.com>
- <3F56E2E2.5040007@netbox.biz>
+Message-ID: <sf532e79.001@fs-mail.prrj.mpf.gov.br>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative; boundary="=_E5BB84B9.B9D846BD"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Menno Smits <menno@netbox.biz>
-In-Reply-To: <3F56E2E2.5040007@netbox.biz>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,73 +17,98 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  On Thu, 4 Sep 2003, Menno Smits wrote:
+--=_E5BB84B9.B9D846BD
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-  > Hi Jeff,
-  >
-  > Thanks for your quick reply.
-  >
-  > Jeff Hall wrote:
-  > > I experienced some of these problems also trying to get 2.4.20 working
-  > > with PoPToP and making outgoing connections from PCs behind the PoPToP
-  > > server. Take a look at my messages dated March 2,3,20,21 and
-  > > April 8 of this year in the netfilter-devel archives. With the patches
-  > > in those messages I have multiple sessions connecting to a PoPToP server
-  > > running on my firewall server and can make at least one outgoing
-  > > connection from a PC behind that server (I didn't test making multiple
-  > > outgoing connections but I believe that will also worked based on some
-  > > tests I ran months ago). I also successfully tested running a PPTP client
-  > > on the PoPToP server.
-  >
-  > I've read those posts before but I went over them again just to make
-  > sure I hadn't missed anything.
-  >
-  > I checked the patches in your posts against a POM patched 2.4.20 kernel
-  > I used to use here which exhibits the same problems as my 2.4.21 kernel.
-  > I can't even find where your patches to ip_conntrack_pptp.c could be
-  > applied! (even when trying to apply the patch manually). Key lines which
-  > surround your changes simply don't exist in my tree. I was using POM out
-  > of CVS from a few months ago in that kernel. What POM version are you
-  > using? Which POM patches are you using?
-  >
-I started with the 20030107 POM but then added individual patches I
-needed from the CVS archives. I tried to detail them as clearly as possible
-in the March 2nd and 3rd memos. I'm afraid that is the best I can do now
-after 6 months.  I'll send you the fully patched sources I'm using in a
-personal message. I hope you find them useful. I'll send you anything
-dated newer than when I ran the 20030107 POM against the 2.4.20 base.
-  > I'm thinking I might try a vanilla kernel with the bare minimum of
-  > patches to support PPTP conntrack. Knowing what POM version and patches
-  > you're using would be useful for me so I can try and duplicate your setup.
-  >
-  > > I have not (at least knowingly) modified the connection MTU, MRU, or
-  > > TCPMSS and while I occassionally get the 'out of order' messages from
-  > > pptpd the connection seems to recover. I'm using PoPToP v 1.1.3-2 with a
-  > > patch to generate unique call ids.
-  >
-  > Actually the MTU/MRU/TCPMSS stuff was to deal with "GRE: Discarding
-  > duplicate packet" problems not 'out of order packet" problems like I
-  > originally stated (it was a while ago). I removed these workarounds
-  > today just to make sure that these had nothing to do with the problems
-  > I'm having. Connection attempts seemed to behave in just the same way
-  > (unreliably), and I started getting lots of "GRE: Discarding duplicate
-  > packet" messages when a connection did establish and data was transferred.
-  >
-I consistently receive one "GRE: Discarding duplicate packet" message per
-connection. But it never causes any problem so I've never pursued the cause.
-I see on Sourceforge that the single message problem is due to an initial-
-zation error in pptpgre.c (see the diff 1.4 vs 1.3). I've never had a problem
-with multiple "duplicate..." errors. Possibly they are due to the kernel
-delivering GRE packets to the wrong pptpd process.
-  > Today I also made sure that the pptpd version I'm using (1.1.4) has the
-  > callid patch and it definitely does. I modified it to log the callids
-  > its using and it uses different ids for each connection, so no issue
-  > there. Besides, that only becomes important once you have multiple
-  > clients involved and so far in my testing there's only one.
-  >
-  >
-  >
-  > Menno
-  >
-  >
-Good luck.
+Hi,
+ 
+I m working with iptables (1.2.4) and I'm interested on setting a log
+facility along with loglevel, said, auth.alert instead of simply
+'alert'.
+ 
+I know that iptables is coded so "log levels" are tied to levels 0-7,
+and that there is no possibility to set the facility (hardcoded to
+"Kernel").
+ 
+So I came to suggest you to add this facility (and those "facilities")
+to iptables front-end.
+ 
+Also, looking at the soruce code, I saw that you had coded the
+log-level strings within your sources. But the header file
+<sys/syslog.h> have these log-level strings also, so these can be used
+as:
+ 
+typedef struct _code {
+        char    *c_name;
+        int     c_val;
+} CODE;
+
+CODE prioritynames[], facilitynames[];
+ 
+both these tables have a "{ NULL, -1}" as its last entry. 
+ 
+Speaking of limiting possible choices on facility/priority numerical
+codes, there's also some constants, as LOG_PRIMASK and  LOG_FACMASK,
+which can be combined to form a "LOG_LEVELMASK" and/or a
+"LOG_MAXLEVEL".
+ 
+Relevant system versions: Kernel 2.4.19, Sysklogd 1.4.1, Distribution:
+Conectiva Linux 8+
+ 
+Thanks in advance.
+ 
+----------------------------------------------------------------
+José D. Queiroz - Analista de Informática
+MPF/PR/RJ/CDIJ/DDI/Gerência de Rede
+jqueiroz@prrj.mpf.gov.br
+jdqueiroz@ibest.com.br 
+----------------------------------------------------------------
+
+
+--=_E5BB84B9.B9D846BD
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
+<META content="MSHTML 6.00.2800.1170" name=GENERATOR></HEAD>
+<BODY style="MARGIN-TOP: 2px; FONT: 10pt MS Sans Serif; MARGIN-LEFT: 2px">
+<DIV>Hi,</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>I´m working with iptables (1.2.4) and I'm interested on setting a log 
+facility along with loglevel, said, auth.alert instead of simply 'alert'.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>I know that iptables is coded so "log levels" are tied to levels 0-7, and 
+that there is no possibility to set the facility (hardcoded to "Kernel").</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>So I came to suggest you to add this facility (and those "facilities") to 
+iptables front-end.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Also, looking at the soruce code, I saw that you had coded the log-level 
+strings within your sources. But the header file &lt;sys/syslog.h&gt; have these 
+log-level strings also, so these can be used as:</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>typedef struct _code {<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+char&nbsp;&nbsp;&nbsp; *c_name;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+int&nbsp;&nbsp;&nbsp;&nbsp; c_val;<BR>} CODE;<BR></DIV>
+<DIV>CODE prioritynames[], facilitynames[];</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>both these tables have a "{ NULL, -1}" as its last entry. </DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Speaking of limiting possible choices on facility/priority numerical codes, 
+there's also some constants, as LOG_PRIMASK and&nbsp; LOG_FACMASK, which can be 
+combined to form a "LOG_LEVELMASK" and/or a "LOG_MAXLEVEL".</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Relevant system versions: Kernel 2.4.19, Sysklogd 1.4.1, Distribution: 
+Conectiva Linux 8+</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Thanks in advance.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>----------------------------------------------------------------<BR>José D. 
+Queiroz - Analista de Informática<BR>MPF/PR/RJ/CDIJ/DDI/Gerência de Rede<BR><A 
+href="mailto:jqueiroz@prrj.mpf.gov.br">jqueiroz@prrj.mpf.gov.br</A><BR><A 
+href="mailto:jdqueiroz@ibest.com.br">jdqueiroz@ibest.com.br</A><BR>----------------------------------------------------------------<BR></DIV></BODY></HTML>
+
+--=_E5BB84B9.B9D846BD--
