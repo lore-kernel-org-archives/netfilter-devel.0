@@ -1,16 +1,12 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: urgent help on libiptc
-Date: Sun, 9 Mar 2003 20:23:48 +0100
+From: "Krishna N. Ramachandran" <krishna@cs.ucsb.edu>
+Subject: new match for PIM
+Date: Sun, 9 Mar 2003 12:05:11 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030309192348.GA7177@oknodo.bof.de>
-References: <20030309190618.11970.qmail@web41007.mail.yahoo.com>
+Message-ID: <Pine.GSO.4.21.0303091201140.23610-100000@ella>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: teddybear4u@sify.com
-Content-Disposition: inline
-In-Reply-To: <20030309190618.11970.qmail@web41007.mail.yahoo.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,20 +17,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> There is no tutorial connecting those two topics.
+Hi Developers, 
+    I am trying to create a new match module for PIM (protocol independant
+multicast), a protocol used for multicast tree creation. 
 
-This is because libiptc is not really thought of as a useful library
-to develop other applications; it's an internal detail of the current
-iptables implementation.
+    I am relatively new to the world of module development. I am running
+into problems with insmoding my new module ...
 
-If you need to integrate other applications with iptables, you are
-supposed to call the iptables, iptables-save, and iptables-restore
-programs, and let them worry about the details.
+net/ipv4/netfilter/ipt_pim.o: unresolved symbol ipt_register_match
+net/ipv4/netfilter/ipt_pim.o: unresolved symbol ipt_unregister_match
 
-Any program you write now to work with libiptc, is bound to fail
-some time in the not so far future, when the next rewrite of firewalling
-happens. This is already in the works, and as far as I know, there will
-be no attempt at library backwards compatibility.
+I wonder if there is any documentation out there that gives the exact
+options to include for compiling a netfilter module.
 
-best regards
-  Patrick
+Thank you,
+Krishna
