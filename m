@@ -1,16 +1,14 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] multiple devices with ranges match support
-Date: Fri, 20 Sep 2002 17:07:41 +0200
+Subject: [PATCH] trivial netfilter/iptables fixes
+Date: Fri, 20 Sep 2002 17:19:20 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020920170741.M3810@sunbeam.de.gnumonks.org>
-References: <638AA0336D7ED411928700D0B7B0D75B03053C9C@aimail.aiinet.com> <20020918221212.GG10465@oknodo.bof.de>
+Message-ID: <20020920171920.O3810@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: application/pgp; x-action=sign; format=text
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
+To: David Miller <davem@redhat.com>
 Content-Disposition: inline; filename="msg.pgp"
-In-Reply-To: <20020918221212.GG10465@oknodo.bof.de>; from bof@bof.de on Thu, Sep 19, 2002 at 12:12:12AM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,36 +22,55 @@ List-Id: netfilter-devel.vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-On Thu, Sep 19, 2002 at 12:12:12AM +0200, Patrick Schaaf wrote:
-> > Would you ever want to use this on interfaces with secondary addresses, like
-> > eth0:4?  (Does that even matter?  I'm not too familiar with them; I just
-> > remember seeing that syntax.)
-> 
-> Their use is deprecated (use "ip addr add ..." instead), but it's
-> nevertheless a good idea to avoid actively breaking them. However,
-> if I remember correctly, they don't really appear as input or
-> output device of real packets in the kernel, so in this place,
-> it's probably OK to reuse ':'.
+Hi Dave!
 
-true.
+I'm not submitting those patches seperately, since they are all small trivial
+fixes.
 
-> However, in general, I'm not so sure that it makes sense to expand
-> all kinds of match options into multidimensional specification
-> languages for arbitrary subsets of their keyspaces, with all kinds
-> of option specific shortcut forms for how ranges and patterns are
-> written. Each option becomes its own mini-language. I don't like.
+changelog:
+	- fix module usage counting for ip6_tables.o
+	- make ipt_ULOG compile on SPARC
+	- fix to experimental ipt_unclean match (it considers udp w/out csum
+	  unclean)
 
-You seem to be reading my mind.  I already had this issue with the
-multiport match (I never liked it, in fact) - and I have the same 
-trouble with this kind of patches.  Somebody seems to be solving a 
-particular problem (efficiency?) the wrong way.
+Please apply, thanks.
 
->   Patrick
-> 
-> P.S.: My deepest apologies, Jay, for you receiving so many rants from
-> me this evening. Please, don't take them personally. I hope to help.
+- --- linux.old/net/ipv6/netfilter/ip6_tables.c.old	Sun Sep 15 13:12:13 2002
++++ linux/net/ipv6/netfilter/ip6_tables.c	Sun Sep 15 13:12:48 2002
+@@ -1469,6 +1469,9 @@
+ 	duprintf("table->private->number = %u\n",
+ 		 table->private->number);
+ 
++	/* save number of initial entries */
++	table->private->initial_entries = table->private->number;
++
+ 	table->lock = RW_LOCK_UNLOCKED;
+ 	list_prepend(&ip6t_tables, table);
+ 
+- --- linux-2.4.20-pre7/net/ipv4/netfilter/ipt_ULOG.c.orig	2002-09-16 15:24:21.000000000 -0400
++++ linux-2.4.20-pre7/net/ipv4/netfilter/ipt_ULOG.c	2002-09-16 15:23:58.000000000 -0400
+@@ -50,7 +50,7 @@
+ #include <linux/netfilter_ipv4/ipt_ULOG.h>
+ #include <linux/netfilter_ipv4/lockhelp.h>
+ #include <net/sock.h>
+- -#include <asm/bitops.h>
++#include <linux/bitops.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
 
-I would consider this a philosophic discussion, it's not about people.
+- --- linux-2.4.19-vanilla/net/ipv4/netfilter/ipt_unclean.c	2002-09-10 16:06:50.000000000 +0200
++++ linux/net/ipv4/netfilter/ipt_unclean.c	2002-09-10 16:22:57.000000000 +0200
+@@ -211,7 +211,7 @@
+ 
+ 	/* Bad checksum?  Don't print, just say it's unclean. */
+ 	/* FIXME: SRC ROUTE packets won't match checksum --RR */
+- -	if (!more_frags && !embedded
++	if (!more_frags && !embedded && udph->check
+ 	    && csum_tcpudp_magic(iph->saddr, iph->daddr, datalen, IPPROTO_UDP,
+ 				 csum_partial((char *)udph, datalen, 0)) != 0)
+ 		return 0;
+
 
 - -- 
 Live long and prosper
@@ -65,7 +82,7 @@ V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9izm9XaXGVTD0i/8RAvtNAJ4wpuj5cx8VMtSqhguFri9fbd1IfQCcDiPg
-NxAQ1o9h7qZHDsFZqSQyrkE=
-=oeeR
+iD8DBQE9izx3XaXGVTD0i/8RAr4vAKCB+sTYFteElDY9HoDWaUrMdoJbagCgs8cW
+KQcrGDwlW6Hz9JS1upecik8=
+=NhvX
 -----END PGP SIGNATURE-----
