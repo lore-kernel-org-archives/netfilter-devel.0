@@ -1,15 +1,14 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Reset conntrack...
-Date: Sat, 4 Dec 2004 15:51:50 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0412041547340.14126@filer.marasystems.com>
-References: <41AF92B1.30802@anduras.de> <20041203060819.GG4605@oknodo.bof.de>
-	<41B049C5.403@anduras.de>
+Subject: Re: check timer active
+Date: Sat, 4 Dec 2004 15:55:54 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0412041554150.14126@filer.marasystems.com>
+References: <EINSTEINLVbNDN4CxpA000066fb@einstein.systemmetrics.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Anders <anders@anduras.de>
-In-Reply-To: <41B049C5.403@anduras.de>
+To: Richard <richard@o-matrix.org>
+In-Reply-To: <EINSTEINLVbNDN4CxpA000066fb@einstein.systemmetrics.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +20,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 3 Dec 2004, Sven Anders wrote:
+On Thu, 2 Dec 2004, Richard wrote:
 
-> ~ 1) Recheck all CONNTRACK entries against the new firewall rules.
+> It looks like that there are two ways to check if a timer for conntrack is
+> active or not.
 >
-> ~ 2) Set all CONNTRACK entries with states RELATED or ESTABLISHED to
-> ~     NEW, to force the recheck.
+> ct->timeout->list.next != NULL
+>
+> test_bit(IPS_CONFIRMED_BIT, &ct->status)
 
-Setting it to NEW won't help you as this discards the current conntrack 
-entry, and if the next packet is return traffic or on an related 
-connection your ruleset will get very upset.
+These two tests for slightly different things
 
-> Is there any way to accomplish this?
+The first checks that there is a timeout.
 
-There is three ways
+The second checks that the conntrack entry is active (in the hash table 
+etc...).
 
-a) The simple "CONFIRMED" patch posted by a collegue of mine little more 
-than a year ago (see archives).
-
-b) Use CONNMARK as a ruleset counter instead of looking for state 
-ESTABLISHED,RELATED. Mark accepted traffic with a specific CONNMARK and 
-then look for this mark rather than the state.
-
-Note that in both cases special care is needed to make sure you look at 
-traffic or addresses in the "original" direction. See the conntrack match. 
-Also beware of related connections such as the data channel of FTP 
-connection etc.
+The two is at most if not all times equal as all active conntrack entries 
+have a timeout of some sort, but maybe it is possible for the timeout to 
+be established before the conntrack becomes confirmed or something..
 
 Regards
 Henrik
