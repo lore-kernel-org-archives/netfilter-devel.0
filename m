@@ -1,47 +1,66 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Wilmer van der Gaast <lintux@lintux.cx>
 Subject: Re: 2.4.23 masquerading broken?
-Date: Tue, 02 Dec 2003 18:25:22 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FCCCB02.5070203@trash.net>
-References: <20031202165653.GJ615@gaast.net>
+Date: Tue, 2 Dec 2003 18:33:59 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20031202173358.GK615@gaast.net>
+References: <20031202165653.GJ615@gaast.net> <3FCCCB02.5070203@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZG5hGh9V5E9QzVHS"
 Cc: linux-kernel@vger.kernel.org,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Wilmer van der Gaast <lintux@lintux.cx>
-In-Reply-To: <20031202165653.GJ615@gaast.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3FCCCB02.5070203@trash.net>
 List-Id: netfilter-devel.vger.kernel.org
 
-Wilmer van der Gaast wrote:
 
->For security reasons, I upgraded to 2.4.23 last night. Now, suddenly, IP
->masquerading seems to be broken. When I use SNAT instead of
->masquerading, everything works.
->
->Unfortunately, I think it's hard to reproduce the problem. Right after
->booting .23 for the first time, everything seemed to be okay. The
->problems started just an hour ago, after having the server running for
->fifteen hours without any problems.
->
->Unfortunately there's not much more information I can provide. I can
->attach my iptables/rule/route file and keep my machine running in case
->anyone needs/wants more information. For now I'll just stick with SNAT.
->It works good enough for me.
->  
->
+--ZG5hGh9V5E9QzVHS
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Can you check the ringbuffer for error messages ? What happens
-to the packets when masquerading fails ?
+Patrick McHardy (kaber@trash.net) wrote:
+> Can you check the ringbuffer for error messages ? What happens
+> to the packets when masquerading fails ?
+>=20
+Hmm. Damn, forgot about the syslogs completely. :-(
 
-Best regards,
-Patrick
+Dec  2 16:42:30 tosca kernel: MASQUERADE: Route sent us somewhere else.
+Dec  2 16:42:44 tosca last message repeated 11 times
+Dec  2 16:42:47 tosca kernel: NET: 1 messages suppressed.
+Dec  2 16:42:47 tosca kernel: MASQUERADE: Route sent us somewhere else.
+Dec  2 16:42:51 tosca kernel: NET: 5 messages suppressed.
+Dec  2 16:42:51 tosca kernel: MASQUERADE: Route sent us somewhere else.
+Dec  2 16:42:57 tosca kernel: NET: 4 messages suppressed.
+Dec  2 16:42:57 tosca kernel: MASQUERADE: Route sent us somewhere else.
+
+And, well, it goes on like that. dmesg is full of messages like this.
+
+The packages seem to get lost completely. At least I don't see them
+going out on eth1 (where they should go to).
+
+
+Wilmer van der Gaast.
+
+--=20
++-------- .''`.     - -- ---+  +        - -- --- ---- ----- ------+
+| lintux : :'  :  lintux.cx |  | OSS Programmer   www.bitlbee.org |
+|   at   `. `~'  debian.org |  | www.algoritme.nl   www.lintux.cx |
++--- -- -  ` ---------------+  +------ ----- ---- --- -- -        +
+
+--ZG5hGh9V5E9QzVHS
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (GNU/Linux)
+
+iD8DBQE/zM0GeYWXmuMwQFERApNuAJ9yhx3cAx0XMIXr19W8cbItK1kSXQCg05vt
+tss1CRbFf6hgJaX0YJfYSY8=
+=cFnJ
+-----END PGP SIGNATURE-----
+
+--ZG5hGh9V5E9QzVHS--
