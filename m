@@ -1,12 +1,15 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 2.6] fix deadlock with ip_queue and tcp local input path
-Date: Fri, 27 May 2005 07:38:57 +1000
-Message-ID: <E1DbQ49-00027X-00@gondolin.me.apana.org.au>
-References: <20050526142420.GD13114@sunbeam.de.gnumonks.org>
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+From: Chris Lowth <chris@lowth.com>
+Subject: Re: Writing new Netfilter Modules
+Date: Sun, 26 May 2002 23:08:26 +0100
+Message-ID: <3CF15CDA.6080105@lowth.com>
+References: <6B6D4D4E2ED1D6119DB80000D11D813EB4CA6F@blns203e.bln.icn.siemens.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org (Harald Welte)
-In-Reply-To: <20050526142420.GD13114@sunbeam.de.gnumonks.org>
+To: Gingold Tomasz <tomasz.gingold@siemens.com>,
+	netfilter-devel@lists.netfilter.org
+In-Reply-To: <6B6D4D4E2ED1D6119DB80000D11D813EB4CA6F@blns203e.bln.icn.siemens.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,18 +21,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte <laforge@netfilter.org> wrote:
-> 
-> The patch below adds an additional queue for ip_queue verdicts.  They
-> come up from userspace, are appended to a queue which is then processed
-> by a tasklet.  The tasklet itself runs in softirq context, so when timer
-> hardirq leaves, no tcp_delack_timer() will be executed until
-> nf_reinject() has finished.
+You could try "Rope", which allows modules to be written using a 
+scripting language that doesnt required kernel development.
+You get access to the vast majority of IP/UDP and TCP headers plus the 
+data payload, conntrack, packet marks and other facilities.
+Currently this is for kernel 2.4.x only - 2.6.x will be covered shortly.
 
-This seems to be overly complicated if all you want is to do this in
-softirq context.  What's wrong with simply alling local_bh_disable?
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Even if your eventual module isnt written in Rope, it does provide a way 
+of playing with ideas (protyping) in a safe environment before 
+committing them to C.
+
+http://www.lowth.com/rope
+
+Chris
+
+Gingold Tomasz wrote:
+
+>Hello,
+>
+>i want to write my own netfilter module. Can anybody tell me how to start?
+>Are there any tutorials/documents which could help?
+>
+>Up to now i have found the "Linux netfilter Hacking HOWTO", especially
+>chapter 4 "Information for Programmers.
+>Is this the only help i can obtain?
+>
+>
+>Another question: 
+>I have found on www.netfilter.org <www.netfilter.org>  the following statement: 
+>"netfilter and iptables are building blocks of a framework inside the Linux <http://www.kernel.org/>  2.4.x and 2.6.x kernel"
+>Does this mean, that netfilter and iptables are part of the kernel and don´t have to be installed?
+>
+>thanks for helping
+>gingold tomasz
+>berlin
+>  
+>
