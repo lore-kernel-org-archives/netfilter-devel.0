@@ -1,15 +1,15 @@
 From: Kevin McConnell <kevymac@yahoo.com>
-Subject: Re: [release] iptables tutorial 1.1.14
-Date: Mon, 14 Oct 2002 11:30:28 -0700 (PDT)
+Subject: Re: confusion about mangle
+Date: Mon, 14 Oct 2002 11:33:53 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021014183028.12268.qmail@web40304.mail.yahoo.com>
-References: <Pine.LNX.4.44.0210141756250.2710-100000@laptop1.agatha>
+Message-ID: <20021014183353.32210.qmail@web40302.mail.yahoo.com>
+References: <Pine.LNX.4.44.0210141825310.2821-100000@laptop1.agatha>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Oskar Andreasson <blueflux@koffein.net>,
-  netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.44.0210141756250.2710-100000@laptop1.agatha>
+To: Oskar Andreasson <blueflux@koffein.net>
+In-Reply-To: <Pine.LNX.4.44.0210141825310.2821-100000@laptop1.agatha>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,15 +22,28 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 --- Oskar Andreasson <blueflux@koffein.net> wrote:
-> Just a quick line to inform everyone that the
-> iptables-tutorial has been 
-> released in a new version on
-> http://iptables-tutorial.frozentux.net. If 
-> there are any questions/problems, let me know.
 
-Shouldn't second routing decision near the bottom also
-contain mangle/POSTROUTING ? I am not seeing that on
-there anywhere....
+> I have thought about it before, yupp, but I got this
+> really bad
+> inferiority complex, which means I'll probably never
+> be satisfied enough
+> with this piece to actually submit it:).
+
+Are you serious? This is a GREAT piece of work! There
+is nothing inferior about it. It is perfectly drawn
+out in easy to read terms. 
+
+> 
+> On a slight more serious note though, would they
+> accept "tutorials"? I 
+> don't know...
+
+Sure... a HOW-TO and a tutorial are the same thing,
+aren't they? It tells me HOW TO use it, HOW it works
+and it's even updated very frequently. You would also
+benefit by having many more eyes looking at the
+project itself. You know what they say about many
+pairs of eyes. ;)
 
 
 =====
