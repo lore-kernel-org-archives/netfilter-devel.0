@@ -1,15 +1,18 @@
-From: James Morris <jmorris@redhat.com>
-Subject: Re: [Coverity] Untrusted user data in kernel
-Date: Fri, 17 Dec 2004 01:45:05 -0500 (EST)
-Message-ID: <Xine.LNX.4.44.0412170144410.12579-100000@thoron.boston.redhat.com>
-References: <41C26DD1.7070006@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] remove overzealous checks in REJECT target]
+Date: Fri, 17 Dec 2004 08:54:42 +0100
+Message-ID: <20041217075442.GB11436@sunbeam.de.gnumonks.org>
+References: <20041216133959.GH10165@sunbeam.de.gnumonks.org>
+	<41C2720B.7@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Bryan Fulton <bryan@coverity.com>, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kXdP64Ggrk/fb43R"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41C26DD1.7070006@trash.net>
+Content-Disposition: inline
+In-Reply-To: <41C2720B.7@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +24,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 17 Dec 2004, Patrick McHardy wrote:
 
-> James Morris wrote:
-> 
-> >This at least needs CAP_NET_ADMIN.
+--kXdP64Ggrk/fb43R
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Dec 17, 2004 at 06:43:39AM +0100, Patrick McHardy wrote:
+> Harald Welte wrote:
+>=20
+> >Hi Patrick!
 > >
-> It is already checked in do_ip6t_set_ctl(). Otherwise anyone could
-> replace iptables rules :)
+> >I agree with Yasuyuki's proposed changes, do you already have this patch
+> >in your pending queue?
+>
+> I missed it, but the patch is wrong. We must return at least 8 byte of
+> protocol header, so the check can't be removed. The skb_header_pointer
+> part looks fine, I'm going to apply it after getting some sleep.
 
-That's what I meant, you need the capability to do anything bad :-)
+> RFC1122: =A73.2.2:
 
+Thanks for pointing this out.  I certainly read it a number of times
+before, but it slipped my mind temporarily.
 
-- James
--- 
-James Morris
-<jmorris@redhat.com>
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--kXdP64Ggrk/fb43R
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBwpDCXaXGVTD0i/8RAqz9AJ9yfpvh0zJeaxXO9Y+GtPnxPQ8lDACggXXc
+Gg3/RtVOe3HMf8CWdbfBbyM=
+=HPFh
+-----END PGP SIGNATURE-----
+
+--kXdP64Ggrk/fb43R--
