@@ -1,15 +1,12 @@
-From: Andy Polyakov <appro@fy.chalmers.se>
-Subject: Re: iptables performance under 2.6.0[-test9]
-Date: Tue, 28 Oct 2003 22:59:36 +0100
+From: Michael Jung <michaj@cs.tu-berlin.de>
+Subject: Netfilter: Ensuring serial packet delivery to the hooks ?
+Date: Thu, 30 Oct 2003 15:10:32 +0100 (MET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F9EE6C8.AE3F16DA@fy.chalmers.se>
-References: <3F9D4370.99795B87@fy.chalmers.se> <3F9D5E60.866B0B63@fy.chalmers.se> <3F9E292C.3020509@trash.net> <3F9E3E6C.C0CC5598@fy.chalmers.se> <3F9E406C.7050105@trash.net> <3F9E506A.BD4BA635@fy.chalmers.se> <3F9E5EE6.1090103@trash.net>
+Message-ID: <Pine.SOL.4.56.0310301455410.18298@fiesta>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------740384F81B1BEB2668BB8288"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,62 +17,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------740384F81B1BEB2668BB8288
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
-> >Yes, it does [imply that]. But I rather wonder why did it assemble a TCP
-> >packet larger than MTU in first place. But in either case it looks like
-> >whomever who did that gives up after 3 seconds and generates two smaller
-> >instead. Normally I would also complain that one would expect tcpdump to
-> >show wire traffic even on the client side, but this is really bad
-> >opportunity to do so, as we probably wouldn't land on ip_refrag so
-> >soon:-)
-> 
-> Yes you're right the stack should never generate tcp packets > mtu.
-> 
-> This is either a misconfiguration or a bug in TCP.
+Hello Netfilter Team !
 
-Looks like neither:-) My NIC turned to be NETIF_F_TSO capable, which
-means that it "can off-load TCP/IP segmentation" and kernel is allowed
-to and does throw packets larger than ethernet MTU at it [and tcpdump
-therefore was honest].
+I have a question related to the kind of packet delivery in Netfilter.
 
-I'm currently running attached patch and it apparently solves my
-*particular* problem, but I can't tell if it's actually "the right
-thing(tm)" to do... Is (*pskb)->sk->sk_route_caps right place to check?
-Maybe out->features is more appropriate? Is there TSO maximum which one
-should compare (*pskb)->len against? That kind of questions...
+I want to make some packet checks on hook PREROUTING and LOCALOUT.
+(That is the combination where I get all packets without doing the
+ same checks on the same packet multiple times, because a packet may
+ pass several hooks on one host.)
 
-HOWEVER!!! Even if we figure out "the right thing(tm)" and address the
-NETIF_F_TSO issue in proper manner, it does *not* necessarily mean that
-performance problem will disappear as well. Well, in my optinion... I
-mean performance might still suffer, whenever user will for example
-masquerade a larger MTU interface behind "narrower" one, e.g. behind
-PPPoE virtual interface, and further experiments should therefore be
-performed... But I'm not sure if I'll be able to assist, because my
-NETIF_F_TSO capable NIC might make it impossible to arrange for proper
-setup [without PPPoE which I simply don't have]. I'll try, but can't
-make any promises... Cheers. A.
---------------740384F81B1BEB2668BB8288
-Content-Type: text/plain; charset=us-ascii;
- name="nf.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nf.diff"
+May problem is, that the result of these checks must be known and
+applicable on all other hooks like FORWARD, where my program does
+other packet mangling things.
 
---- ./net/ipv4/netfilter/ip_conntrack_standalone.c.orig	Sat Oct 25 20:43:32 2003
-+++ ./net/ipv4/netfilter/ip_conntrack_standalone.c	Tue Oct 28 23:16:56 2003
-@@ -198,6 +198,9 @@
- 	if (ip_confirm(hooknum, pskb, in, out, okfn) != NF_ACCEPT)
- 		return NF_DROP;
- 
-+	if ((*pskb)->sk && (*pskb)->sk->sk_route_caps&NETIF_F_TSO)
-+		return NF_ACCEPT;
-+
- 	/* Local packets are never produced too large for their
- 	   interface.  We degfragment them at LOCAL_OUT, however,
- 	   so we have to refragment them here. */
+So, can I set a global flag when a packet passes PREROUTING or
+LOCALOUT, and then use this flag on hook FORWARD ?
+May be, that at the time between the hooks PREROUTING (or LOCALOUT)
+and FORWARD another packet could come from the network (or process).
+This second packet will be handled regularly by my check routine on
+PREROUTING (or LOCALOUT). This would change the global flag and I
+will loose my first result related to the first packet, which will
+pass FORWARD soon.
 
---------------740384F81B1BEB2668BB8288--
+My direct question:  Does Netfilter ensure that each packet passes
+all hooks for which it is directed, before the next packet enters
+the hook chain ?
+
+Mic
