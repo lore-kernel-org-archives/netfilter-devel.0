@@ -1,14 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [rfc] ipt_owner.c improvements
-Date: Sat, 05 Mar 2005 00:35:57 +0100
-Message-ID: <4228F0DD.7030307@trash.net>
-References: <4227B908.4070900@evtek.fi>
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: [iptables 1.3.0 / libiptc patch] sort chains by hooknum/names
+Date: Sat, 5 Mar 2005 03:07:25 +0100
+Message-ID: <20050305020725.GC30982@eychenne.org>
+References: <20050304212114.130e2a7c@coruscant>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
-To: Juha Heljoranta <juha.heljoranta@evtek.fi>
-In-Reply-To: <4227B908.4070900@evtek.fi>
+To: Olaf Rempel <razzor@kopf-tisch.de>
+Content-Disposition: inline
+In-Reply-To: <20050304212114.130e2a7c@coruscant>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,21 +21,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Juha Heljoranta wrote:
-> I'd like to make few improvements to ipt_owner.c or perhaps to create 
-> something new that is like owner match.
-> 
-> First I'd like to improve performance for incoming packet matches. The 
-> next thing is to reliably identify sending/receiving process. Last 
-> proposal is to improve performance when matching is done several times 
-> per packet.
+On Fri, Mar 04, 2005 at 09:21:14PM +0100, Olaf Rempel wrote:
 
-As Dave Miller pointed out, the only sensible thing to do is add new
-hooks to the protocols themselves, anything else is racy. The main
-challenges are making sure incoming connections using protocols that
-support sockets aren't confirmed before they survived the socket
-hooks, with all possible module combinations, and possibly hooks for
-outgoing packets, I haven't thought about that very much.
+> hi list
 
-Regards
-Patrick
+> >From 1.3.0 all chain names were alphabetically sorted when listing tab=
+les.
+> A user-defined chain 'AAA' is listed before the buildin chain "INPUT", =
+and=20
+> "FORWARD" is listed before "INPUT".
+
+> I've created two patches to revert it to the "old" behavior:
+> first buildin chains, sorted by hooknum, than userdefined chains, sorte=
+d by name.
+
+Appart from the fact that it restores the old behavior (and avoids
+breakage of some badly written scripts or apps), can you give a
+single reason why the listing should be sorted?
+
+Why not sort the output of a lot of commands (like lsof, netstat, ps,
+etc.) then?  Hint: probably because there is no interest in wasting CPU
+time for this.
+
+ Herve
+
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
