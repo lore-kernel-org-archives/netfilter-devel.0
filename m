@@ -1,171 +1,148 @@
-From: Olaf Kirch <okir@suse.de>
-Subject: [PATCH] Prevent crash on ip_conntrack removal
-Date: Wed, 18 Aug 2004 11:13:52 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040818091352.GB6507@suse.de>
+From: <Atanu.Mondal@infineon.com>
+Subject: RE: NAT question on holding back a port
+Date: Wed, 18 Aug 2004 15:38:09 +0530
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <04EE7AD0450F7B498BA216312943A1A11555CE@blrse201.ap.infineon.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="3V7upXqbjpZ4EhLz"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: netdev@oss.sgi.com
-Content-Disposition: inline
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C4850B.437FF060"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------_=_NextPart_001_01C4850B.437FF060
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi All,
+I have a unique requirement.. I am writing a SIP ALG and am facing with
+the following situation.
+=20
+The local Lan SIP phone sends a registration message and along with it ,
+its own contact port number. This gets SRC natted and the SIP ALG
+changes
+the Lan contact address and contact port to a Firewall global address
+and contact port... A DNAT rule also get added dynamically on this
+global address
+and contact port so that any WAN phone calling on this global address
+and contact port will get DNAT ed to the lan SIP phone.
+=20
+Now any phone on the WAN can connect the lan phone by calling on this
+contact address and contact port.
+=20
+My problem arises from the part that if the conntrack created by the
+Registration message goes off, and any other application is given that
+global port(NAT checks
+only for unique tuple match to assign port).. then everything comes
+crashing when some packets come from the WAN side. Due to the DNAT rule
+set, the packet gets
+directed to the SIP application on the LAN port or a SIP call from
+outside will get directed to the Application on the LAN....=20
+=20
+Is there any way in which I can prevent the assignment of the port to
+someother application.
+=20
+Regards
+Atanu Mondal
 
-here's a patch that keeps us from crashing on removal of ip_conntrack.
-This problem came up during IBM's testing of SLES.
-I'm not sure if this issue has been submitted already.
-
-Problem description courtesy of David Stevens:
-
-	It appears that conntrack, when loaded, is queueing the fragments
-	for reassembly pre-routing (ie, when skb->dst is 0) and giving
-	the fully reassembled packet to the pre-routing code which will
-	set skb->dst before using it.
-
-	IP without conntrack does the queueing of fragments and reassembly
-	post-routing, so skb->dst in that case is set for all fragments
-	and the reassembled packet.
-
-	In the failure scenario, it appears that conntrack has queued
-	some of the fragments (w/ skb->dst=0, esp. in the offset=0 first
-	fragment) and then the conntrack module is removed. Arrival
-	of a fragment afterward will queue and reassemble the entire
-	packet post-routing, but the first frag still has skb->dst 0,
-	so it'll blow up
-
-To fix this, the patch below simply drops such skbs. A different fix
-could be to change the conntrack module to flush out all unassembled
-fragments when unloaded; an alternative patch for this is attached as
-well (this one is completely untested).
-
-Cheers
-Olaf
--- 
-Olaf Kirch     |  The Hardware Gods hate me.
-okir@suse.de   |
----------------+ 
-
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=netfilter-unload-crash
-
-Index: v2.6.8/net/ipv4/ip_input.c
-===================================================================
---- v2.6.8.orig/net/ipv4/ip_input.c
-+++ v2.6.8/net/ipv4/ip_input.c
-@@ -177,6 +177,13 @@ int ip_call_ra_chain(struct sk_buff *skb
- 					read_unlock(&ip_ra_lock);
- 					return 1;
- 				}
-+				/* When ip_conntrack gets unloaded, we may be
-+				 * left with fragment chains where the first
-+				 * fragment has skb->dst = NULL. */
-+				if (skb->dst == NULL) {
-+					 kfree_skb(skb);
-+					 return 1;
-+				 }
- 			}
- 			if (last) {
- 				struct sk_buff *skb2 = skb_clone(skb, GFP_ATOMIC);
-@@ -277,6 +284,13 @@ int ip_local_deliver(struct sk_buff *skb
- 		skb = ip_defrag(skb);
- 		if (!skb)
- 			return 0;
-+		/* When ip_conntrack gets unloaded, we may be
-+		 * left with fragment chains where the first
-+		 * fragment has skb->dst = NULL. */
-+		if (skb->dst == NULL) {
-+			 kfree_skb(skb);
-+			 return 0;
-+		 }
- 	}
- 
- 	return NF_HOOK(PF_INET, NF_IP_LOCAL_IN, skb, skb->dev, NULL,
-
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=conntrack-flush-fragments
+=09
 
 
-Alternative fix for the crash on conntrack unload. Simply flush all
-fragment queues when unloading conntrack_standalone so that there are
-no partially assembled fragments left with skb->dst == NULL.
+------_=_NextPart_001_01C4850B.437FF060
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Index: v2.6.8/include/net/ip.h
-===================================================================
---- v2.6.8.orig/include/net/ip.h
-+++ v2.6.8/include/net/ip.h
-@@ -255,6 +255,7 @@ extern int	ip_call_ra_chain(struct sk_bu
-  */
-  
- struct sk_buff *ip_defrag(struct sk_buff *skb);
-+extern void ipfrag_flush(void);
- extern int ip_frag_nqueues;
- extern atomic_t ip_frag_mem;
- 
-Index: v2.6.8/net/ipv4/ip_fragment.c
-===================================================================
---- v2.6.8.orig/net/ipv4/ip_fragment.c
-+++ v2.6.8/net/ipv4/ip_fragment.c
-@@ -239,13 +239,13 @@ static void ipq_kill(struct ipq *ipq)
- /* Memory limiting on fragments.  Evictor trashes the oldest 
-  * fragment queue until we are back under the low threshold.
-  */
--static void ip_evictor(void)
-+static void __ip_evictor(int threshold)
- {
- 	struct ipq *qp;
- 	struct list_head *tmp;
- 
- 	for(;;) {
--		if (atomic_read(&ip_frag_mem) <= sysctl_ipfrag_low_thresh)
-+		if (atomic_read(&ip_frag_mem) <= threshold)
- 			return;
- 		read_lock(&ipfrag_lock);
- 		if (list_empty(&ipq_lru_list)) {
-@@ -267,6 +267,11 @@ static void ip_evictor(void)
- 	}
- }
- 
-+static inline void ip_evictor(void)
-+{
-+	__ip_evictor(sysctl_ipfrag_low_thresh);
-+}
-+
- /*
-  * Oops, a fragment queue timed out.  Kill it and send an ICMP reply.
-  */
-@@ -677,4 +682,10 @@ void ipfrag_init(void)
- 	add_timer(&ipfrag_secret_timer);
- }
- 
-+void ipfrag_flush(void)
-+{
-+	__ip_evictor(0);
-+}
-+
- EXPORT_SYMBOL(ip_defrag);
-+EXPORT_SYMBOL(ipfrag_flush);
-Index: v2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c
-===================================================================
---- v2.6.8.orig/net/ipv4/netfilter/ip_conntrack_standalone.c
-+++ v2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c
-@@ -562,6 +562,8 @@ static int init_or_cleanup(int init)
- 	nf_unregister_hook(&ip_conntrack_defrag_local_out_ops);
-  cleanup_defragops:
- 	nf_unregister_hook(&ip_conntrack_defrag_ops);
-+	/* Frag queues may hold fragments with skb->dst == NULL */
-+	ipfrag_flush();
-  cleanup_proc:
- 	proc_net_remove("ip_conntrack");
-  cleanup_init:
-
---3V7upXqbjpZ4EhLz--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>Message</TITLE>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<META content=3D"MSHTML 5.50.4937.800" name=3DGENERATOR></HEAD>
+<BODY>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>Hi=20
+All,</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>I have=20
+a unique requirement.. I am writing a SIP ALG and am facing with the =
+following=20
+situation.</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN=20
+class=3D393375509-18082004></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>The=20
+local Lan SIP phone sends a registration message and along with it , its =
+own=20
+contact port number. This gets&nbsp;SRC natted and the SIP ALG=20
+changes</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>the=20
+Lan contact address and contact port to a Firewall global address and =
+contact=20
+port... A DNAT rule also get added dynamically on this global=20
+address</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>and=20
+contact port so that any WAN phone calling on this global address and =
+contact=20
+port will get DNAT ed to the lan SIP phone.</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN=20
+class=3D393375509-18082004></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>Now=20
+any phone on the WAN can connect the lan phone by calling on this =
+contact=20
+address and contact port.</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN=20
+class=3D393375509-18082004></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>My=20
+problem arises from the part that if the conntrack created by the =
+Registration=20
+message goes off, and any other application is given that global =
+port(NAT=20
+checks</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>only=20
+for unique tuple match to assign port).. then everything comes crashing =
+when=20
+some packets come from the WAN side. Due to the DNAT rule set, the =
+packet=20
+gets</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN=20
+class=3D393375509-18082004>directed to the SIP application on the LAN =
+port or a=20
+SIP call from outside will get directed to the Application on the =
+LAN....=20
+</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN=20
+class=3D393375509-18082004></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>Is=20
+there any way in which I can prevent the assignment of the port to =
+someother=20
+application.</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN=20
+class=3D393375509-18082004></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN=20
+class=3D393375509-18082004>Regards</SPAN></FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2><SPAN =
+class=3D393375509-18082004>Atanu=20
+Mondal</SPAN></FONT></DIV>
+<BLOCKQUOTE style=3D"MARGIN-RIGHT: 0px">
+  <DIV><FONT face=3DArial color=3D#0000ff=20
+size=3D2></FONT></DIV></BLOCKQUOTE></BODY></HTML>
+=00
+------_=_NextPart_001_01C4850B.437FF060--
