@@ -1,16 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] init-conntrack-optimize does not apply to 2.4
-Date: Mon, 04 Oct 2004 01:35:19 +0200
+From: "=?gb2312?B?Z2FpbHlh?=" <gailya@163.com>
+Subject: question about log kernel modules and log of iptables
+Date: Mon, 4 Oct 2004 11:54:59 +0800 (CST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41608CB7.7060702@eurodev.net>
-References: <20041001220555.GB30842@linuxace.com>
+Message-ID: <4160C993.000072.19484@m250.163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20041001220555.GB30842@linuxace.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,20 +18,16 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Phil,
 
-Phil Oester wrote:
-
->init-conntrack-optimize in pom-ng depends on expect-slab-cache,
->which requires kernel >= 2.6.6.  This breaks --batch mode on 2.4.
->The below patch removes the 2.4 version and adds the proper 'requires'
->entry.
->  
->
-
-I'm fine with it, anyway if someone thinks that this patch can goes into 
-2.4 mainline, I will have no problem in posting a patch which applies 
-cleanly to current 2.4.
-
-regards,
-Pablo
+SGVsbG8hDQoNCkknbSB3b3JraW5nIG9uIGxvZyBhdWRpdCBvZiBmaXJld2FsbCByZWNlbnRs
+eS4gVGhlIGZpcmV3YWxsIGlzIGJhc2VkIG9uIG5ldGZpbHRlciBmcmFtZXdvcmsuIE5vdyBJ
+J20gZmluZGluZyBhIHdheSB0byBjb2xsZWN0IHRoZSBsb2cgaW5mby4gSG93ZXZlciwgSSBk
+b24ndCBrbm93IGhvdyBpcHRhYmxlcyBnZW5lcmF0ZXMgbG9nIG1lc3NhZ2VzIGFuZCBob3cg
+aXQgZGVhbHMgd2l0aCBpdC4gSSB3b25kZXIgd2hldGhlciBJIHNob3VsZCBhbHRlciB0aGUg
+bG9nIGtlcm5lbCBtb2R1bGUgaWYgSSB3YW50IG1vcmUgZGV0YWlsZWQgaW5mbywgYW5kIGhv
+dy4gQW55b25lIGNhbiBnaXZlIG1lIHNvbWUgaGVscCBvciBoaW50cy4gQW55IHJlbGF0ZWQg
+aW5mb3JtYXRpb24gYW5kIGhpbnRzIHdvdWxkIGJlIGFwcHJlY2lhdGVkLg0KDQpUaGFuayB5
+b3UuIA0KDQpSZWdhcmRzOg0KR2FpbHlhDQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLQrW3L3cwtfU2iK12tK7z9azoSLT68Tjw+a21MPmIGh0dHA6Ly9zbXNwb3AuMTYzLmNv
+bS9zcGVjaWFsL2pheTIwMDQwOC9pbmRleDIuaHRtbA==
