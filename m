@@ -1,16 +1,16 @@
-From: Dan Aloni <da-x@gmx.net>
-Subject: Re: '-m owner' problem (bug?)
-Date: Fri, 20 Sep 2002 18:31:51 +0300
+From: Harald Welte <laforge@sunbeam.franken.de>
+Subject: Re: [PATCH]: this time with patch attached ;)
+Date: Fri, 20 Sep 2002 17:02:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020920153151.GA11251@callisto.yi.org>
-References: <20020918170408.GA12455@callisto.yi.org> <20020920170513.L3810@sunbeam.de.gnumonks.org>
+Message-ID: <20020920170248.J3810@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0209171557580.23114-200000@the.brain.uni-freiburg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: application/pgp; x-action=sign; format=text
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-Content-Disposition: inline
-In-Reply-To: <20020920170513.L3810@sunbeam.de.gnumonks.org>
+To: Patrick McHardy <kaber@the.brain.uni-freiburg.de>
+Content-Disposition: inline; filename="msg.pgp"
+In-Reply-To: <Pine.LNX.4.44.0209171557580.23114-200000@the.brain.uni-freiburg.de>; from kaber@the.brain.uni-freiburg.de on Tue, Sep 17, 2002 at 03:58:47PM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,29 +21,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 20, 2002 at 05:05:13PM +0200, Harald Welte wrote:
-> On Wed, Sep 18, 2002 at 08:04:08PM +0300, Dan Aloni wrote:
-> > (not subscribed to the list, please CC)
-> > 
-> > This command used to work in the past:
-> > 
-> >    iptables -A OUTPUT -o eth1 -m owner --uid-owner 0 -d 192.168.1.6/32 -j
-> >    ACCEPT
-> 
-> can you try to recompile the latest iptables package (1.2.7a) and see if
-> the problem persists?
-> 
-> This is not supposed to be the solution, I just want to know where the 
-> problem comes from...
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Apparently, the problem comes from me. I compiled iptables without
-specifing KERNEL_DIR= to the location of the 2.4.20-pre7 source tree.
+On Tue, Sep 17, 2002 at 03:58:47PM +0200, Patrick McHardy wrote:
+> Here is the patch ...
 
-I was assuming that the Makefile would pickup /lib/modules/`uname -r`/build,
-but now I see that it defaults to /usr/src/linux.
+thanks, I will apply them now.
 
-Well, it works now. Thanks.
+> Patrick
 
--- 
-Dan Aloni
-da-x@gmx.net
+- -- 
+Live long and prosper
+- - Harald Welte / laforge@sunbeam.franken.de   http://www.sunbeam.franken.de/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+ 
+V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9iziXXaXGVTD0i/8RAuaJAKCl7ZXnNa3pH62sG3MTpDFwgWS2ZgCdFGJA
+NtS8Sm3M/rj26y+xFaX/3+Y=
+=KCOg
+-----END PGP SIGNATURE-----
