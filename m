@@ -1,16 +1,19 @@
-From: Willy Tarreau <willy@w.ods.org>
+From: "Gerd v. Egidy" <lists@egidy.de>
 Subject: Re: condition and 2.6
-Date: Sun, 29 Feb 2004 15:05:21 +0100
+Date: Sun, 29 Feb 2004 15:28:01 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040229140521.GA18370@alpha.home.local>
+Message-ID: <200402291528.01679.lists@egidy.de>
 References: <200402290210.35962.lists@egidy.de> <20040229110711.GJ7790@sunbeam.de.gnumonks.org>
+Reply-To: gerd@egidy.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>, gerd@egidy.de,
-   netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel@lists.netfilter.org
 In-Reply-To: <20040229110711.GJ7790@sunbeam.de.gnumonks.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +24,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Feb 29, 2004 at 12:07:11PM +0100, Harald Welte wrote:
- 
-> > What do you dislike? Is it the idea or the implementation? Do you know of any 
-> > bugs or possible problems in the code - especially with 2.6?
-> 
+> This comment is meant as:
+>
+> "Since nobody provided us with a 2.6.x port yet, and I have very limited
+> time for such porting, and I personnaly dislike the condition match
+> anyway, I marked it as 2.4.x only - since the 2.4.x patch doesn't work
+> for 2.6.x"
+
+Thank you for the clarification.
+
+> > What do you dislike? Is it the idea or the implementation? Do you know of
+> > any bugs or possible problems in the code - especially with 2.6?
+>
 > The idea of having /proc files control how the ruleset behaves.  This is
 > an ugly kludge for our less-than-optimal ruleset change performance.
 > Apart from that I cannot really see why this has to be solved in the
 > kernel and not by some userspace daemon that updates the ruleset
 > whenever a change is needed.
 
-I was planning to try to use condition in a HA environment to temporarily
-disable some rules during a fail-over, or for maintenance operations (eg:
-disable health-checks but let application traffic go through for soft-stop).
-I think that condition offers much more atomicity than a ruleset update, and
-there's no risk of multiple loads of the same rule.
+I don't mind that much about ruleset change speed. The different conditions 
+for my firewall are changed by different scripts and I can't make sure that 
+only one is running at a time. So I fear a race like this:
 
-Anyway, I agree that for permanent changes, an update of the ruleset should
-be preferred.
+Program 1: iptc_init
+Program 2: iptc_init
+Program 1: modify rule A
+Program 2: modify rule B
+Program 1: iptc_commit
+Program 2: iptc_commit
 
-Regards,
-Willy
+As far as I understand the libiptc code, the result will be that the changes 
+done by program 1 will be lost. Is that correct or have I misunderstood the 
+code?
+
+The condition module offers a lot more atomicity and I can be sure that two 
+scripts don't interfere with each other.
+
+Kind regards,
+
+Gerd
