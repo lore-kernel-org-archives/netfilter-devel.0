@@ -1,17 +1,12 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: NAT before IPsec with 2.6
-Date: Sat, 24 Jan 2004 10:27:21 +0100
+From: Leonardo Henrique Machado <leoh@dcc.ufmg.br>
+Subject: Question about procfs function
+Date: Sun, 25 Jan 2004 19:23:18 -0200 (BRST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040124092721.GA19140@alpha.home.local>
-References: <20040124082252.GA19035@alpha.home.local> <Pine.LNX.4.44.0401241015470.32723-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0401251921480.2228-100000@truta.dcc.ufmg.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
-   netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0401241015470.32723-100000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,15 +17,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jan 24, 2004 at 10:21:12AM +0100, Henrik Nordstrom wrote:
- 
-> These hooks have not yet been done, mostly because nobody has contributed
-> the code adding these hooks to the new IPSec implementation in a 
-> reasonable manner I guess.
 
-OK, that's good news. At first, I thought that people were against this
-mode of operation. This is now just a matter of time for anyone of us to
-understand how to add the hooks and send a patch ! I wish I add time...
+Where can I find a complete tutorial about procfs?
 
-Regards,
-Willy
+I need to print a whole table in a procfs file.
+I have created the file but I cannot understand
+one of it's functions:
+
+proc = proc_net_create(procfs_name, 0, procfs_getinfo);
+
+procfs_getinfo is a very confusing function! I would like
+to save a linked list in a buffer and after that I'll print
+it in the procfs buffer file.
+
+I know that procfs_getinfo (or whatever name you gave it)
+must return a integer representing the size of the buffer
+that will store my table. Anyway, where can I find good
+tutorials and examples about using this procfs buffer
+function?
+
+Is there a better place to ask about it?
+
+
+//leoh
+main(){int j=1234;char t[]=":@abcdefghijklmnopqrstuvwxyz.\n"
+,*i = "iqgbgxmlvivuc\n:wwnfwsdoi"; char *strchr(char *,int);
+while(*i){j+=strchr(t,*i++)-t;j%=sizeof t-1;putchar(t[j]);}}
