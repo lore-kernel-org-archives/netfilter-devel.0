@@ -1,15 +1,16 @@
-From: Chris Wilson <chris@netservers.co.uk>
-Subject: Re: [PATCH] Orphaned expectations
-Date: Tue, 20 Apr 2004 12:51:38 +0100 (BST)
+From: Ozgur AKAN <akan@aiqa.com>
+Subject: Re: Can iptables REDIRECT traffic to a range of ports in one command?
+Date: Tue, 20 Apr 2004 15:29:47 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404201250190.4160-100000@chris.camcom.co.uk>
-References: <20040419203744.GA1328@linuxace.com>
+Message-ID: <408517BB.7030703@aiqa.com>
+References: <BAY7-F619fiD0yzNrUD0005c8b5@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20040419203744.GA1328@linuxace.com>
+To: Grace Li <zheyinli@hotmail.com>
+In-Reply-To: <BAY7-F619fiD0yzNrUD0005c8b5@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,18 +21,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Phil,
+this is what you look for;
 
-> https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=131
+10.0.0.1 is the ip of destination machine
 
-Thanks for fixing that one, it's been bugging me for a while! 
+iptables -t nat -A PREROUTING -p tcp -d 10.0.0.1 --dport 2000:3000 -j 
+DNAT --to 10.0.0.1:3333
 
-Do you think that any other helpers might be vulnerable to the same 
-problem?
-
-Cheers, Chris.
 -- 
-_  __ __     _
- / __/ / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
-/ (_  ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
-\__/_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
+Ozgur Akan
