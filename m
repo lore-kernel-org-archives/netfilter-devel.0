@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: stat module
-Date: Tue, 11 Nov 2003 13:27:57 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: RE: Memory leaks in ip_conntrack?
+Date: Tue, 11 Nov 2003 14:24:50 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FB0D5CD.6060401@trash.net>
-References: <1068547747.1719.114.camel@jazz>
+Message-ID: <Pine.LNX.4.44.0311111424150.16497-100000@filer.marasystems.com>
+References: <7C9884991ADAE0479C14F10C858BCDF52E37C7@alderaan.smgtec.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Alistair@nerdnet.ca, Kishore Dharmavaram <kishored@servgate.com>,
+   <netfilter@lists.netfilter.org>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Juha Heljoranta <juha.heljoranta@evitech.fi>
-In-Reply-To: <1068547747.1719.114.camel@jazz>
+To: Daniel Chemko <dchemko@smgtec.com>
+In-Reply-To: <7C9884991ADAE0479C14F10C858BCDF52E37C7@alderaan.smgtec.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,30 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Juha Heljoranta wrote:
 
->Hi, 
->
->I was thinking about to write a module to match outbound packets against
->stat (file of filesystem status) information. One might find device and
->inode information usefull.
->
->Usage might be something like
->$ iptables -A OUTPUT -m stat --device 303 --inode 341166 -j ACCEPT
->
->Anyway, I thought to ask if you have any suggestions, thoughts,
->opinions, etc. about this. I might find them helpfull :)
->  
->
-Not sure what you want to match here, is it the inode of the
-executable that created the packet ? If so, have a look at
-the owner match.
+On Mon, 10 Nov 2003, Daniel Chemko wrote:
 
+> Ack! (slaps head)
+> 
+> I was a victim of this! I finally have a reason for all those annoying
+> TCP window error messages! Who knows, I may actually have 'traffic'
+> through my gateway at this rate.
 
->I have about 400 hours to spend on this. So how does it sound? 
->  
->
-I wish I had 400 hours .. ;)
+tcp_wmem should not be related to forwarded traffic at all, only for local 
+TCP sockets..
 
-Best regards,
-Patrick
+Regards
+Henrik
