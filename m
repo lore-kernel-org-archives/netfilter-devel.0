@@ -1,15 +1,13 @@
-From: Michael Gundlach <gundlach@cs.uga.edu>
-Subject: Re: Urgent question: changing src|dst IP w/ ipq fails
-Date: Tue, 18 Feb 2003 17:53:59 -0500
+From: Michael Rash <mbr@cipherdyne.com>
+Subject: [PATCH] snort hex strings and libipt_string.c (revisited)
+Date: Tue, 18 Feb 2003 18:03:44 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030218175359.C25778@cs.uga.edu>
-References: <20030218162320.A25778@cs.uga.edu>
+Message-ID: <20030218180344.B23930@orthanc.gambrl01.md.comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="+QahgC5+KEYLbs62"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20030218162320.A25778@cs.uga.edu>; from gundlach@cs.uga.edu on Tue, Feb 18, 2003 at 04:23:20PM -0500
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,49 +18,122 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi again everyone,
 
-After mailing the list I found something on the netfilter archives saying
-that the FORWARD chain is traversed after kernel routing decisions have
-been made.  Is this the (unfortunate) answer I was looking for - that if I
-get a packet on the FORWARD chain I can't change its destination, or
-routing fails and the packet is dropped?
+--+QahgC5+KEYLbs62
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks
-Michael
+Ok, after thinking about it a bit more I removed the --hex-string
+option in favor of a more flexible strategy.  Snort signatures can
+have content fields that mix both ascii and hex strings like so:
 
-On Tue Feb 18, 2003 at 04:23PM, Michael Gundlach wrote:
+|3200000006000000|Drives|2400|
 
-> I have a machine A sending packets to machine C, and machine B is a linux
-> bridge running ipq between them on the network.  B is catching all packets
-> between A and C, looking at them, and reinjecting them.  This works just
-> fine, and A and C can talk happily together without knowing that the bridge
-> B is between them.
-> 
-> Now I wish to modify the source or destination addresses of these
-> packets before reinjecting them.  Modifying the source or destination
-> *port* and reinjecting the packet works fine - the destination computer
-> (running tcpdump) sees a packet from the source, using the new source or
-> destination port that ipq put in.
-> 
-> However, modifying the source or destination *IP* does not work.  When IPQ
-> changes a A->D packet to be A->C, C never gets the packet.  When IPQ changes
-> a A->C packet to be D->C, C will *eventually* (after 20+ seconds) get a
-> packet claiming to come from D.  Running tcpdump on the bridge B, I see a
-> TCP SYN packet come in from A->C, and 20 seconds later or so a TCP SYN
-> packet D->C (the reinjected packet); but only, say, 2 out of 3 of the A->C
-> packets get successfully retransmitted as D->C.
-> 
-> Any idea what I am doing wrong?  I am recalculating IP and TCP checksums OK,
-> I know that.  A colleague thinks perhaps I have to set up a new route in
-> the kernel-level code when I modify the destination IP, but I don't think
-> so - since ipq is a user-level interface.  Also, that wouldn't solve the
-> source-IP-modification problem.
-> 
-> I am using a version of netfilter 1.6a that is patched to work with a
-> bridging kernel.
-> 
-> Thanks in advance - and *please* post back soon :)  Even if it's past the
-> morning of Feb 19th, I still need to figure this out.
-> Michael Gundlach
-> 
+The attached patch extends the original parse_string() function to
+handle hex data embedded between two "|" characters.  It also
+handles escaping (necessary if you actually want to use the "|" in
+ascii data now since it has a special meaning).  With any luck we
+should now just be able to take the content fields right out of
+snort and iptables should be able to handle them.
+
+BTW, snort2iptables was the inspiration for this patch.  Thanks
+for the great original idea!
+
+(Hopefully the code is in the correct format now, but let me know
+if anything needs to be changed.)
+
+--Mike
+
+Michael Rash
+http://www.cipherdyne.com
+Key fingerprint = 4EE3 816C 413A 41AA 72C8  4463 70C3 783C 1B91 F85E
+
+--+QahgC5+KEYLbs62
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="libipt_string.c.patch"
+
+--- libipt_string.c.old	Wed May 29 09:08:16 2002
++++ libipt_string.c	Tue Feb 18 17:53:42 2003
+@@ -13,6 +13,7 @@
+ #include <string.h>
+ #include <stdlib.h>
+ #include <getopt.h>
++#include <ctype.h>
+ 
+ #include <iptables.h>
+ #include <linux/netfilter_ipv4/ipt_string.h>
+@@ -44,8 +45,70 @@
+ static void
+ parse_string(const unsigned char *s, struct ipt_string_info *info)
+ {	
+-        if (strlen(s) <= BM_MAX_NLEN) strcpy(info->string, s);
+-	else exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
++	int i=0, slen, sindex=0, schar;
++	short hex_f = 0, literal_f = 0;
++	char hextmp[3];
++
++	slen = strlen(s);
++
++	if (slen == 0) {
++		exit_error(PARAMETER_PROBLEM,
++			"STRING must contain at least one char");
++	}
++
++	while (i < slen) {
++		if (s[i] == '\\' && !hex_f) {
++			literal_f = 1;
++		} else if (s[i] == '\\') {
++			exit_error(PARAMETER_PROBLEM,
++				"Cannot include literals in hex data");
++		} else if (s[i] == '|') {
++			if (hex_f)
++				hex_f = 0;
++			else
++				hex_f = 1;
++			if (i+1 >= slen)
++				break;
++			else
++				i++;  /* advance to the next character */
++		}
++
++		if (literal_f) {
++			if (i+1 >= slen) {
++				exit_error(PARAMETER_PROBLEM,
++					"Bad literal placement at end of string");
++			}
++			info->string[sindex] = s[i+1];
++			i += 2;  /* skip over literal char */
++			literal_f = 0;
++		} else if (hex_f) {
++			if (i+1 >= slen) {
++				exit_error(PARAMETER_PROBLEM,
++					"Odd number of hex digits");
++			}
++			if (i+2 >= slen) {
++				/* must end with a "|" */
++				exit_error(PARAMETER_PROBLEM, "Invalid hex block");
++			}
++			hextmp[0] = s[i];
++			hextmp[1] = s[i+1];
++			hextmp[2] = '\0';
++			if (! sscanf(hextmp, "%x", &schar))
++				exit_error(PARAMETER_PROBLEM,
++					"Invalid hex char `%c'", s[i]);
++			info->string[sindex] = (char) schar;
++			if (s[i+2] == ' ')
++				i += 3;  /* spaces included in the hex block */
++			else
++				i += 2;
++		} else {  /* the char is not part of hex data, so just copy */
++			info->string[sindex] = s[i];
++			i++;
++		}
++		if (sindex > BM_MAX_NLEN)
++			exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
++		sindex++;
++	}
+ }
+ 
+ /* Function which parses command options; returns true if it
+
+--+QahgC5+KEYLbs62--
