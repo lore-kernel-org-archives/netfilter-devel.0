@@ -1,16 +1,13 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: 2.4.20 and user space ICMP REDIRECT
-Date: Sat, 8 Mar 2003 08:22:09 +0100
+From: kalpesh@kalupurbank.com
+Subject: help
+Date: Sat, 8 Mar 2003 11:40:17 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030308072209.GH4052@oknodo.bof.de>
-References: <200303080625.h286Pw206614@singularity.tronunltd.com>
+Message-ID: <65256CE2.001F9E17.00@vikramnt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ian Latter <Ian.Latter@mq.edu.au>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <200303080625.h286Pw206614@singularity.tronunltd.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,21 +18,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
->   Harald's name came up in the kernel code (of course ;-) some
-> place like ip_nat_core (sample of the interesting bit below - but
-> not incl Harald ref) ..  is there something like this in the kernel
-> that is causing me problems?
+help
 
-You said you are doing this, and seeing the problem, without any
-active iptables rules, right? And you see suitable counters go up?
+Slow respose after using IPTABLES
 
-> Ie -  Is there some sort of safe guard or config option that I'm missing?
+Hi all,
+My mail server is runnig on Redhat 7.2 with Sendmail.
+Now I want to use IPTABLES for the Security Point of view. For this I made
+test server and implemented IPTABLES on it. But after using IPTABLES
+respose from the server is SLOW  when i use POP3 clients but it works.
 
-I would almost bet that this is a generic feature of the network stack.
-The linux-net mailing list would probably be the more helpful place
-to ask.  I strongly doubt that is has anything to do with netfilter
-or iptables.  You could easily try to prove that, by recompiling the
-kernel to not contain any iptables stuff.
+I am using following script.
 
-best regards
-  Patrick
+# Deny All
+
+/sbin/iptables -P INPUT DROP
+/sbin/iptables -P FORWARD DROP
+/sbin/iptables -P OUTPUT DROP
+
+# Local host
+
+/sbin/iptables -A INPUT -s localhost -d localhost -j ACCEPT
+/sbin/iptables -A OUTPUT -s localhost -d localhost -j ACCEPT
+
+# ICMP
+
+/sbin/iptables -A INPUT -s $INTRANET  -d $MYHOST -p icmp -j ACCEPT
+/sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET  -p icmp -j ACCEPT
+
+
+# SMTP
+
+/sbin/iptables -A INPUT -s $INTRANET -d $MYHOST -p tcp --dport smtp    -j
+ACCEPT
+/sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET -p tcp --sport smtp   -j
+ACCEPT
+
+# POP3
+
+/sbin/iptables -A INPUT -s $INTRANET -d $MYHOST -p tcp --dport pop3    -j
+ACCEPT
+/sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET -p tcp --sport  pop3   -j
+  ACCEPT
+
+Any suggestions ? help ? Please
+
+with warm regards
+
+kalpesh
