@@ -1,14 +1,16 @@
-From: Christopher Soghoian <chris@dubfire.net>
-Subject: Netfilter logging from the kernel
-Date: Wed, 14 Jul 2004 13:21:28 +0100
+From: "Samuel Jean" <sjean@cookinglinux.org>
+Subject: Re: Working on a match extension (ipt_gateway)
+Date: Thu, 15 Jul 2004 09:16:39 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040714132128.A30620@sphinx.mythic-beasts.com>
-Reply-To: chris@dubfire.net
+Message-ID: <1068.216.239.71.162.1089897399.squirrel@216.239.71.162>
+References: <33216.207.236.166.71.1089853555.squirrel@207.236.166.71>
+    <Pine.LNX.4.33.0407150844420.32102-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.33.0407150844420.32102-100000@blackhole.kfki.hu>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,41 +21,77 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+On Thu, 15 Jul 2004, Jozsef wrote:
+> On Wed, 14 Jul 2004, Samuel Jean wrote:
+>
+>> I'm working on an extension used to match packets by next-hop ip.
+>> It is only valid with FORWARD & POST_ROUTING hooks.
+>> It gets the routing decision via (struct rtable*)skb->dst
+>> and it works quite well.
+>>
+>> I just finished on Linux 2.6 and I'm about to do it on 2.4.
+>>
+>> I've done it after reading that unanswered post :
+>> http://lists.netfilter.org/pipermail/netfilter/2004-July/054199.html
+>>
+>> Please, could someone answer my questions :
+>>
+>> 1) Is that match useless? (Can this be done without such a match)
+>
+> Could you give an example in which context can it be useful?
+>
 
-We're working on a project here @ IBM Zurich, that will most likely
-involve some netfilter stuff.
+Sure, let me take the example given in that unanswered post.
 
-We're interested in locking down machines, in an attempt to
-limit what a hacker can do if he is able to break into them.
+   +-------------+ 200.0.0.0/24       +---------------+ 192.168.2.0/24
+   | Router A    | 200.0.1.0/24       | Router B      | 192.168.3.0/24
+   +------+------+ 200.0.2.0/24       +--------+------+ 192.168.4.0/24
+          |                                    |
+    192.168.0.2                          192.168.0.3
+          |                                    |
+          |                                    |
+          +--------------------+---------------+
+                               |
+                          192.168.0.1
+                               | [ETH1]
+                        +-------------+
+                        | Netfilter   |
+                        +------+------+
+                               |
+                          192.168.5.0/24
 
-All of these machines will have a iptables firewall in place,
-limiting the outbound traffic.
+ Ok, I know this setup is a little strange, but it could be real.
 
-Thus, the first thing an attacker would do after breaking in
-would be to attempt to remove the firewall rules.
+If packets coming from 192.168.5.0/24 are going to Internet (Router A)
+we'd like to MASQUERADE it. But we can't use something like :
 
-While we cannot defend against this, assuming he has gained root
-access, we would at least like to make the machine tamper evident.
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+because everything going to 192.168.{2,3,4}.0/24 will be NATed too.
 
-Initially, we thought that we could modify the iptables binary to
-print out something to syslog every time a change to the rules
-is made - however, it would be easy enough for the attacker to
-copy over a virgin copy of iptables.
+Using something like :
 
-Thus, the logging code must be in the kernel, and not in the
-iptables binary.
+iptables -t nat -A POSTROUTING -m gateway --gateway 192.168.0.2 -j MASQUE=
+RADE
 
-We would ideally like to see a log message sent to the
-syslog every time an iptables rule is added/modified/removed.
+could be a solution.
 
-Does anyone know if there is anything in place right now that
-would allow this?
+MASQUERADE is just a silly example cause I don't know what that person
+really wants to do with matched packets. He just mentioned he want to
+match packets by next-hop.
 
-If nothing exists, how difficult would it be to whip something
-like this up? Could you point me to the right part of the code
-where I'd need to add my additional functionality.
+Please read (this isn't an order) :
+http://lists.netfilter.org/pipermail/netfilter/2004-July/054199.html
 
-Cheers,
+And let me know if this setup shall require (or not) the ipt_gateway matc=
+h.
 
-Chris
+>
+> Best regards,
+> Jozsef
+
+Thanks a lot for you time, Jozsef,
+
+--=20
+Samuel Jean
+SysAdmin & NetAdmin
+at cookinglinux.org
