@@ -1,13 +1,16 @@
-From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [TRIVIAL][TYPO]  Trivial typo in NETLINK target help file
-Date: Sat, 14 Aug 2004 23:56:38 -0400
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Policy match with a bridge
+Date: Sun, 15 Aug 2004 14:55:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <411EDEF6.4090204@videotron.ca>
+Message-ID: <411F5D5E.4000001@trash.net>
+References: <411EAF08.3000401@shorewall.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_l7NGRfreG88rZJjtaFb/Mw)"
-Cc: Netfilter Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
+To: Tom Eastep <teastep@shorewall.net>
+In-Reply-To: <411EAF08.3000401@shorewall.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,31 +21,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Tom Eastep wrote:
 
---Boundary_(ID_l7NGRfreG88rZJjtaFb/Mw)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> I'm seeing odd behavior of policy match when used with a bridge.
+>
+> wookie:/backup # uname -a
+> Linux wookie 2.6.5-7.104-default #1 Wed Jul 28 16:42:13 UTC 2004 i586
+> i586 i386 GNU/Linux
 
-Harald,
+Have you applied the ipsec+netfilter patches ? Without them, packets are
+only seen encrypted in the OUTPUT chain.
 
-   here's a trivial patch that fixes a typo in p-o-m.
-
-Stephane.
-
-
---Boundary_(ID_l7NGRfreG88rZJjtaFb/Mw)
-Content-type: text/plain; name=NETLINK_help.diff; CHARSET=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=NETLINK_help.diff
-
---- patch-o-matic-ng-20040621/NETLINK/help	Sat Dec 20 11:19:17 2003
-+++ patch-o-matic-ng-fixed/NETLINK/help	Mon Aug  9 23:42:23 2004
-@@ -1,4 +1,4 @@
- CONFIG_IP_NF_TARGET_NETLINK adds a NETLINK target that sends dropped packets to
- userspace via a netlink socket.  Apps such as fwmon
--(http://firestorm.geek-ware.co.uk) can then recieve and dislpay these packets.
-+(http://firestorm.geek-ware.co.uk) can then receive and display these packets.
- This option is basically a re-implementation of the ipchains -o option.
-
---Boundary_(ID_l7NGRfreG88rZJjtaFb/Mw)--
+Regards
+Patrick
