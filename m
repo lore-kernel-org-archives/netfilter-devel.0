@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables --log-uid patch for 2.6
-Date: Wed, 08 Dec 2004 18:07:25 +0100
-Message-ID: <41B734CD.6010903@trash.net>
-References: <1101668109.2922.1618.camel@ws102.darkcore.net>	
-	<41B6840C.1030706@trash.net>
-	<1102486259.2214.2276.camel@ws102.darkcore.net>
+Subject: Re: [1/1] OSF: pom-ng - linux-2.6.
+Date: Wed, 08 Dec 2004 19:44:42 +0100
+Message-ID: <41B74B9A.8090609@trash.net>
+References: <1102503533.3363.48.camel@uganda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-develop <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: John Lange <john.lange@open-it.ca>
-In-Reply-To: <1102486259.2214.2276.camel@ws102.darkcore.net>
+To: johnpol@2ka.mipt.ru
+In-Reply-To: <1102503533.3363.48.camel@uganda>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,45 +21,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-John Lange wrote:
+Evgeniy Polyakov wrote:
 
->Thanks for response Patrick.
->
->One small note... 
->
->I believe there is a limitation to this approach that makes it tricky
->for blocking outbound packets. I hope you have a work-around.
->
->Specifically, there is no way to allow packets that have no UID set such
->as packets generated directly by the kernel.
->
->The following rules were designed to block users from (accidentally)
->installing spam relays on their web accounts (bad CGI scripts for
->example).
->
->I hope this example makes some sense:
->
->e.g.
->
-># first allow root (this allows root, but NOT the kernel!)
->iptables -A OUTPUT -p ALL -m owner --uid-owner 0 -j ACCEPT
->
-># allow anyone in the mail group
->iptables -A OUTPUT -p tcp -m owner --gid-owner 102 --dport 25 -j ACCEPT
->
->iptables -A OUTPUT -p tcp --dport 25 -j LOG --log-uid
->iptables -A OUTPUT -p tcp --dport 25 -j DROP
->
->----
->
->Packets generated directly by the kernel (like RST packets) have no UID
->set and therefore get blocked....
+>Since OSF originally was created in 2.5 environment 
+>it is strange not to have 2.6 support for OSF.
+>This(similar) patch was sent some time ago but was lost.
+>Please apply.
 >  
 >
-I have a patch that lets you match "--owner" or "! --owner", this
-should be enough. I'm going to merge it some time soon. You can
-also use connection tracking, this should catch packets generated
-by the kernel.
+Please send patches that apply -p1 in the patch-o-matic-ng directory
+in the future. Your patch doesn't apply at all:
+
+~/src/nf/svn/netfilter/trunk/patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter$ 
+patch -p6 </tmp/ipt_osf --dry-run
+missing header for unified diff at line 3 of patch
+(Stripping trailing CRs from patch.)
+patching file ipt_osf.c
+Hunk #1 succeeded at 52 with fuzz 2.
+Hunk #2 FAILED at 77.
+Hunk #3 FAILED at 154.
+Hunk #4 FAILED at 185.
+Hunk #5 FAILED at 414.
+Hunk #6 FAILED at 603.
+Hunk #7 FAILED at 616.
+Hunk #8 FAILED at 636.
+Hunk #9 FAILED at 855.
+8 out of 9 hunks FAILED -- saving rejects to file ipt_osf.c.rej
+
+To make osf fit for 2.6, you also need to handle non-linear skbs.
 
 Regards
 Patrick
