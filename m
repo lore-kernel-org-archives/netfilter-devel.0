@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] 2.6 owner-socketlookup
-Date: Wed, 21 Jan 2004 09:44:50 -0500
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Injecting a brand new packet.
+Date: Wed, 21 Jan 2004 17:02:25 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040121144450.GX8642@obroa-skai.de.gnumonks.org>
-References: <4008964A.7040807@trash.net>
+Message-ID: <400E9481.3080000@netlab.hut.fi>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E0h0CbphJD8hN+Gf"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <4008964A.7040807@trash.net>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,45 +19,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!
 
---E0h0CbphJD8hN+Gf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'd like some advices on the following as I would not like to do it 
+wrong and be obliged to started it again and again from scratch.
 
-On Sat, Jan 17, 2004 at 02:56:26AM +0100, Patrick McHardy wrote:
-> Hi Harald,
->=20
-> this is the 2.6 version of the owner-socketlookup patch, I had some=20
-> requests for this.
-> I don't know what the current prefered format for patch submission is, so=
-=20
-> plain patch
-> attached. Please add to patch-o-matic.
+In my framework, upon reception of a certain message, the host running 
+netfilter needs to inject a TCP packet in the network on behalf of 
+another machine.
 
-thanks, applied.
+I started to implement this from scratch by building my own TCP packet 
+that I was thinking to send with the ip_build_and_send_pkt (it seems to 
+fit my needs as I can specify the source and destination IP addresses). 
+So far, I filled my TCP header except the checksum (I guess I'll find a 
+function to do so), I initialized a socket, and I have now to initialize 
+the struct sk_buff, which I don't know yet how to do.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Now two questions haunt my mind:
+ - is there something alike in any part of the netfilter code? It would 
+avoid me to reinvent the wheel.
+ - if not, do you think I choose the good way? Particularly because I'm 
+not totally sure about the exact functionality of this 
+ip_build_and_send_pkt function.
 
---E0h0CbphJD8hN+Gf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+If you have a good advice on that, I appreciate your help a lot.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFADpBhXaXGVTD0i/8RAvB+AJ9Q5Oax2+90AT+qhJNhbm+ZE9sL7gCZAa5y
-COPd22ynQDI+WJrJ19qQvj4=
-=8HeM
------END PGP SIGNATURE-----
-
---E0h0CbphJD8hN+Gf--
+          Emmanuel
