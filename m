@@ -1,14 +1,15 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: OpenBSD Firewall Failover with pfsync and CARP
-Date: Tue, 30 Mar 2004 17:30:08 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Netfilter hook! Insert error (insmod)
+Date: Tue, 30 Mar 2004 17:51:25 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040330153008.GH1237@eychenne.org>
+Message-ID: <Pine.LNX.4.44.0403301746240.9211-100000@filer.marasystems.com>
+References: <20040330034954.13321.qmail@web41302.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Tuan nguyen hoang anh <nguyen_hoang_anh_tuan@yahoo.com>
+In-Reply-To: <20040330034954.13321.qmail@web41302.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,22 +20,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
- Hi,
+On Mon, 29 Mar 2004, Tuan nguyen hoang anh wrote:
 
-This is not stricly netfilter related, but it might be of some
-interest for those who are working on this issue for Linux.
-It's always good to stay tuned and see what others are doing.
+> Hi, i'm writting a netfilter hook module. I compiled
+> it successfull but when i insert it into kernel then
+> it occurs errors following:
+> 
+> "unresolved symbol nf_register_hook"
+> "unresolved symbol nf_unregister_hook"
 
-OpenBSD Firewall Failover with pfsync and CARP:
-http://www.countersiege.com/doc/pfsync-carp/
+Looks like your running kernel is not built with support for netfilter.
 
-UCARP - Common Address Redundancy Protocol (CARP) for Unix:
-http://www.ucarp.org/
+Make sure you run the same kernel build as the kernel headers you used 
+when building your module.
 
- Herve
+Also make sure the compile flags are correct for your kernel.
 
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+Recommended method for building modules is to have them integrated in 
+the kernel buildprocess. See Netfilter patch-o-matic-ng for a simple 
+method of incorporating separately developed modules into the kernel 
+source tree.
+
+Regards
+Henrik
