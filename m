@@ -1,22 +1,20 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] aggressive early_drop and reserved conntrack entries
-Date: Mon, 13 Dec 2004 22:52:44 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0412132055520.19900@blackhole.kfki.hu>
-References: <Pine.LNX.4.58.0412090845060.11649@blackhole.kfki.hu>
-	<20041209085249.GA22714@oknodo.bof.de>
-	<Pine.LNX.4.58.0412091108420.11649@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0412102315110.15772@blackhole.kfki.hu>
-	<1102772053.12078.40.camel@tux.rsn.bth.se>
-	<Pine.LNX.4.58.0412111740420.16780@blackhole.kfki.hu>
-	<Pine.LNX.4.61.0412121225240.30324@filer.marasystems.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] info file for ROUTE target
+Date: Tue, 14 Dec 2004 03:47:00 +0100
+Message-ID: <41BE5424.40001@trash.net>
+References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
+	<20041209195706.GA4121@oknodo.bof.de> <41B8EB72.50502@trash.net>
+	<1102669404.11255.29.camel@descartes.info.ucl.ac.be>
+	<20041210091445.GC4121@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Martin Josefsson <gandalf@wlug.westbo.se>, Patrick Schaaf <bof@bof.de>,
-	Grzegorz Piotr Jaskiewicz <gj@pointblue.com.pl>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@lists.netfilter.org"
+	<netfilter-devel@lists.netfilter.org>,
+	Cedric de Launois <delaunois@info.ucl.ac.be>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0412121225240.30324@filer.marasystems.com>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20041210091445.GC4121@oknodo.bof.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,42 +26,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 12 Dec 2004, Henrik Nordstrom wrote:
+Patrick Schaaf wrote:
 
-> On Sat, 11 Dec 2004, Jozsef Kadlecsik wrote:
+>>My fear is that you could still have something like this :
+>>
+>>          PC1                                    PC2
+>>
+>>      orig packet     
+>>           |
+>>           v                  dup pkt 1
+>>   [ROUTE --tee --gw PC2] -------------------------.
+>>         | |   ^                                   |
+>>         | |   |                                   v
+>>         | |   '-----dup pkt 2 ---------- [ROUTE --tee --gw PC1]
+>>         | |                                      | |
+>>         v v                                      v v
+>> Flood of duplicated packets            Flood of duplicated packets
+>>
 >
-> > It's already a little bit messy. I strongly believe, we must revise
-> > reference counting in order to make locking more straightforward (and to
-> > be able to introduce say per bucket locking at all). The
-> > conntrack_arefcount patch tries to step ahead in that direction.
+>This is easily possible. There are lots of other failure scenarios.
 >
-> The patch adds yet another entity needing locking: The list of unassured
-> connections. This list requires two write updates per new connection
-> (append, delete).
+>For example, when the chosen --gw resolves through our defaul route,
+>chances are good all duplicate packets will come back to us almost
+>immediately. We saw this in our testing, already. TTL should always
+>be properly decremented, so this is a bit self-limiting, but
+>nevertheless it's certainly a dangerous thing.
+>
+Seems ok to me, you can also add a route via loopback, it will loop until
+the ttl expires. Fact is you can shoot yourself in the foot with some
+setups. I've added your patch except the file iptables/extensions/xxx :)
 
-I just wanted to note that fine grained locking needs some preparation.
-
-> With it being a linked list fine grained locking becomes a bit hard, and
-> to have FIFO semantics there is not many other choices. But fortunately
-> the operations needing this list locked is very short in time so it should
-> be fine with a global lock on the unassured list, in addition to the
-> (finegrained) conntrack locking, provided the unassured lock is aquired
-> last (atomic list insert, delete operations).
-
-With a little tweaking we could create a fast path for the new conntrack
-entries:  in __ip_conntrack_confirm do not add them to the unassured_list
-till we have, say, more than 5% percent of the conntrack entries free.
-Of course when assuring/deleting a conntrack, we should still lock, check
-and delete, unlock, but that is not the critical path.
-
-> Note: RCU does not help us here.
-
-Yes, no way to use RCU.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+Patrick
