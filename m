@@ -1,51 +1,27 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack (l3 independent conntrack)
-Date: Thu, 20 Nov 2003 00:09:12 +0900 (JST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200311191510.AAA04610@toshiba.co.jp>
-References: <20031118165138.GO5075@sunbeam.de.gnumonks.org>
-	<200311190246.LAA10515@toshiba.co.jp>
-	<20031119132444.GW5075@sunbeam.de.gnumonks.org>
+From: "Beau E. Cox" <beau@beaucox.com>
+Subject: Re: PROBLEM: 2.4.23-rc4 -> rc1 hang with change to ip_nat_core.c made in pre4
+Date: Wed, 19 Nov 2003 05:55:22 -1000
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200311190555.22438.beau@beaucox.com>
+References: <200311121442.27406.beau@beaucox.com> <20031112195908.0611fe2e.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20031119132444.GW5075@sunbeam.de.gnumonks.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031112195908.0611fe2e.davem@redhat.com>
+Content-Disposition: inline
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wednesday 12 November 2003 05:59 pm, David S. Miller wrote:
+> Marcelo has reverted the change in question, so his current
+> 2.4.x tree should be fine.
 
-Hi, Harald,
+Thank you all for reverting the pre4 change to ip_nat_core.c that
+was giving me problems.
 
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: nf_conntrack (l3 independent conntrack)
-Date: Wed, 19 Nov 2003 14:24:44 +0100
+I have 2.4.23-rc2 up and running fine.
 
-> > OK, I'll send it ASAP. But maybe I take a week to get permission.
-> 
-> Would you need to get that permission every time you publish a certain
-> version of the code?  Isn't it possible to publish it once and get a
-> general permission to publish changes to that already-published code?
-
-Well, I need to write some documents to get permission from my company
-this time. Probably I don't need anymore to send codes related l3 independent
-conntrack.
-
-----------------------------------------
-Yasuyuki KOZAKAI
-
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
-
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+Aloha => Beau;
