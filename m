@@ -1,18 +1,14 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: [PATCH] Small fixes to Polish FAQ
-Date: Sun, 15 Sep 2002 15:42:22 -0400
+From: Scott Andrew Baillie <sbaillie@bigpond.net.au>
+Subject: Re: ip_tables.h does not compile when using g++
+Date: 16 Sep 2002 14:12:56 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020915194222.GT24872@ns>
-References: <Pine.LNX.4.44.0209132051260.8309-200000@dns.toxicfilms.tv> <20020915132537.J3810@sunbeam.de.gnumonks.org>
+Message-ID: <1032185577.458.12.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BBw4iOnA9FNdCxVc"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	Maciej Soltysiak <solt@dns.toxicfilms.tv>,
-	netfilter-devel@lists.samba.org
-Content-Disposition: inline
-In-Reply-To: <20020915132537.J3810@sunbeam.de.gnumonks.org>
+To: netfilter List <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,48 +19,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald,
 
---BBw4iOnA9FNdCxVc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>
+> why does it have to be (char *) ? There are no characters involved,
+> hence it (in the spirit of this gcc extension) should be (void *).
+>
+> The typecast to struct ipt_entry_target is correct, however.
+>
+> Does it compile with 
+>
+> return ((struct ipt_entry_target *)((void *)e + e->target_offset));
+>
+> If yes, I will submit this modified version of  your patch.
 
-* Harald Welte (laforge@gnumonks.org) wrote:
-> I'm sorry, I have read the email but somehow I'm not sure how active our =
-current
-> Webmaster (stephen frost) is...
->=20
-> I'm now going to take care of this.
->=20
-> Stephen: Are you busy at the moment? Are you lacking some privileges on
-> kashyyyk.netfilter.org?
+No, it does not compile with (void *) at all. Here is the error message
+from gcc-3.2 when compiling using g++ :
 
-Unfortunately I've been pretty busy and I wasn't sure where we were at
-the moment...  I recall you mentioning that you wanted things generated
-from the account on kashyyyk but I wasn't sure if that started
-immediately or not.  Sorry I havn't been around much, as I mentioned in
-my email regarding the update to my patch I'm closing on a house at the
-end of this month and school is keeping me pretty busy.
+ip_tables.h: In
+   function `ipt_entry_target* ipt_get_target(ipt_entry*)':
+ip_tables.h:295: pointer
+   of type `void *' used in arithmetic
 
-I'll log in and look around some and see if I can figure things out.
-I'll also try and come up with the last list of 'issues' that I had and
-determine if they're current still since I don't think I had gotten a
-response on them...
 
-	Sorry,
+I agree that the (char *) looks a little confusing but I dont know
+what else to use.
 
-		Stephen
+Also, just below the function 'ipt_get_target' there is 2 macros
+defined that use the same (void *) cast. These casts should also
+be patched.
 
---BBw4iOnA9FNdCxVc
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-
-iD8DBQE9hOKerzgMPqB3kigRAtEmAKCAjgpHsUtA3dWPWXaKN8LT7Lpn3wCgi4bF
-MvOysD/5EpF9FaQkWSjM/tI=
-=ET7a
------END PGP SIGNATURE-----
-
---BBw4iOnA9FNdCxVc--
+Scott.
