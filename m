@@ -1,15 +1,16 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] ct-event API port to 2.6.11
-Date: Wed, 06 Apr 2005 17:03:05 +0100
-Message-ID: <42540839.8020405@ufomechanic.net>
-References: <424747D5.8060500@eurodev.net> <42502B1B.7090309@trash.net>
+Subject: Re: no ctstat? Re: building libctnetlink
+Date: Wed, 06 Apr 2005 17:30:28 +0100
+Message-ID: <42540EA4.1000001@ufomechanic.net>
+References: <423BF227.8030502@outerspace.dyndns.org>	<423BF4DC.2070902@outerspace.dyndns.org>	<1111335091.2523.46.camel@lap-ufomechanic>	<1111335425.2523.49.camel@lap-ufomechanic>	<423DF940.100@eurodev.net>	<1111412190.2716.55.camel@lap-ufomechanic>	<423F007F.2060102@eurodev.net>	<1111667756.2526.19.camel@lap-ufomechanic>	<4242B977.1030607@eurodev.net>	<d2rpmi$3n8$1@sea.gmane.org>
+	<d30tcp$tsc$1@sea.gmane.org>	<d3107o$933$1@sea.gmane.org>
+	<1112806753.2704.7.camel@lap-ufomechanic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42502B1B.7090309@trash.net>
+In-Reply-To: <1112806753.2704.7.camel@lap-ufomechanic>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,47 +22,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira wrote:
+Just another UFO mechanic wrote:
+> On Wed, 2005-04-06 at 16:48, Amin Azez wrote:
 > 
->> I sent this patch to Krisztian Kovacs some time ago in private but 
->> forgot to post it in mailing list. It is currently used by ct_sync.
+>>as Soon as my linux 2.6.11.6 source downloaded I tried:
+>>IPTABLES_DIR=../iptables-1.2.11/ KERNEL_DIR=../linux-2.6.11.6 ./runme 
+>>--batch nfnetlink-ctnetlink-0.13
 >>
->> BTW, I also ported this to nf_conntrack some time ago:
+>>But it just says:
 >>
->> https://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018219.html 
+>>unable to find ladd slot in src 
+>>../linux-2.6.11.6/include/linux/netfilter_ipv4/ip_conntrack.h 
+>>(./nfnetlink-ctnetlink-0.13/li)-----------------------------------------------------------------
+>>Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?]
 >>
+>>I dont know what a ladd slot is (OK, its a line-add slot, but I still 
+>>don't know what it is) but I'll take this to mean the patch was for 2.6.10
 >>
->> I guess that such patch doesn't apply anymore since Rusty's changes. 
->> If I ported it again, could it be merge to the nf_conntrack tree or 
->> better wait until it's pushed forward?
+>>The rejected hunks have thinks like:
+>>   #ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
+>>   struct notifier_block *ip_conntrack_chain;
+>>   #endif /* CONFIG_IP_NF_CONNTRACK_EVENTS */
+>>
+>>in, which makes it look like ct-event is needed, perhaps such as pablo 
+>>posted on 28/03/05 for kernel 2.6.11
+>>
+>>I'll take this up on the "[PATCH] ct-event API port to 2.6.11" thread.
 > 
-> I think it would be better to wait to avoid delaying both.
-> Is there already a user of this API for nf_conntrack?
+> 
+>>Amin
+> 
+> 
+> Amin nar nin buzee, as ta den feB. Av ni no bin 2.6.12 kez nip obou
+> avayop armal nupiy wen karsanel.
+> 
+> CONFIG_IP_NF_CONNTRACK_EVENTS=y
+> 
+> Niki wen swe ning.
 
-It appears that pom-ng nfnetlink-ctnetlink-0.13 (ported by Pablo?) 
-requires ct-event (although this is not listed in the pom-ng dependancies).
+Sound as my lovely dad, you do.
 
-Pablo, can you confirm this?
+On reflection, netfilter patches against specific kernels are likely to 
+require it as a minimum version to patch against, I mean there is more 
+likelyhood that a patch will patch against the next kernel revision than 
+  the previous kernel revision, so yeah, it may mean a skip up to 
+2.6.12, if that has ct-event in it
 
-Are these changes of Rusty likly to have been applied to the released 
-kernel or to ip_tables?
+agghh!
 
-Although this patch is against 2.6.11, are there any strong reasons for 
-it to fail on 2.6.10? I ask because the layer 7 pattern matching which 
-I'm also using is reported to leak memory with 2.6.11.
-
-Right now ct-event fails badly to apply to 2.6.10 with context like:
-  IPS_NAT_DONE_MASK = (IPS_DST_NAT_DONE | IPS_SRC_NAT_DONE),
-missing entirely from the file-to-be-patched, but which is present in 
-the 2.6.11 version.
-
-Is there any sane route to getting Pablo's nfnetlink-ctnetlink-0.13 
-applied to 2.6.10?
-
-Looks like I'm bound to 2.6.11 and try and get nfnetlink-ctnetlink-0.13 
-to apply, unless I have misunderstood something.
-
-Thanks
+thanks
 
 Amin
