@@ -1,36 +1,36 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: Iptables-1.2.9/10 compile failure with linux 2.6.7 headers
-Date: Sat, 19 Jun 2004 11:59:04 -0700
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040619115904.6cbb1736.davem@redhat.com>
-References: <40D31EA6.5030207@ThinRope.net>
-	<20040619.021818.04202102.yoshfuji@linux-ipv6.org>
-	<200406191038.51118.andrew@walrond.org>
-	<20040620.013527.55353972.yoshfuji@linux-ipv6.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Typo's in ip_conntrack_rpc_tcp.c ....
+Date: Sat, 19 Jun 2004 22:33:44 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <40D4A328.5070608@trash.net>
+References: <200406181606.35340.mark@vevers.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: andrew@walrond.org, kalin@ThinRope.net,
-	linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org, yoshfuji@linux-ipv6.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264134AbUFSTAX@vger.kernel.org>
-To: yoshfuji@linux-ipv6.org
-In-Reply-To: <20040620.013527.55353972.yoshfuji@linux-ipv6.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: mark@vevers.net
+In-Reply-To: <200406181606.35340.mark@vevers.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 20 Jun 2004 01:35:27 +0900 (JST)
-YOSHIFUJI Hideaki / 吉藤英明 <yoshfuji@linux-ipv6.org> wrote:
+Mark Vevers wrote:
 
-> In article <200406191038.51118.andrew@walrond.org> (at Sat, 19 Jun 2004 10:38:50 +0100), Andrew Walrond <andrew@walrond.org> says:
+> In the init for ip_conntrack_rpc_tcp the code sets the ports for
 > 
-> > On Friday 18 Jun 2004 18:18, YOSHIFUJI Hideaki / 吉藤英明 wrote:
-> > >
-> > > Please try this. Thanks
-> > >
-> > 
-> > I can confirm that iptables-1.2.10 builds fine with your patch applied to 
-> > linux-2.6.7
+>   rpc_helpers[port].mask.dst.u.udp.port = htons(0x0);
 > 
-> Thanks. David?
+> with
+>   rpc_helpers[port].tuple.dst.protonum = IPPROTO_TCP;
 
-Applied.
+Patch applied, thanks.
+
+Regards
+Patrick
