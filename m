@@ -1,16 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Bug#150467: user-defined chains vs. iptables module names
-Date: Mon, 24 Jun 2002 14:38:34 +0200 (CEST)
+From: "Martin Sperl" <martin.sperl@ucpag.com>
+Subject: strange effects of DNAT in connection with policy routing
+Date: Mon, 24 Jun 2002 15:08:01 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206241437170.1998-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.33.0206211347370.30045-100000@blackhole.kfki.hu>
+Message-ID: <8FD16F6B8AC4B6499BE151D339AEEFD690EC9A@vie-dc1.vienna.ucpag.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.samba.org>,
-	"Laurence J. Lane" <ljlane@nontoxic.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <Pine.LNX.4.33.0206211347370.30045-100000@blackhole.kfki.hu>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,21 +20,52 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 21 Jun 2002, Jozsef Kadlecsik wrote:
+Hi!
 
-> On Fri, 21 Jun 2002, Patrick Schaaf wrote:
->
-> > > What about simply returning by an error code if there is an attempt to
-> > > create a chain wich clashes with a target name?
->
-> Here is the patch according to my proposal:
+We are currently experiencing strange problems with DNAT in conjunction
+with policy routing and think that we have found a bug somewhere!
 
-I have committed the patch in cvs.
+The setup is as follows:
 
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-WWW-Home: http://www.kfki.hu/~kadlec
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+2 Uplink gws (GW.A,GW.B) with 2 ip ranges (say A.A.A.0/24 anf
+B.B.B.0/24)
+
+One firewall setup like this:
+policy routing is set up like this:
+ip route add default via GW.A table 100
+ip rule add from A.A.A.0/24 to default prio 100 table 100
+ip route add default via GW.B table 200
+ip rule add from B.B.B.0/24 to default prio 200 table 200
+
+got one host behind with 2 Addresses assigned for A.A.A.2 and B.B.B.2
+
+Now connecting from the outside works fine for both IP adresses.
+(Forwarding works)
+
+using A.A.A.2 the FW routes return-packets to GW.A
+using B.B.B.2 the FW routes return-packets to GW.B
+
+NOW we activate DESTINATION NAT
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+
+ip tables -t nat -I PREROUTING 1 -d B.B.B.2/32 -j DNAT --to-destination
+A.A.A.2
+
+And now the routing is as follows:
+
+using A.A.A.2 the FW routes packets to GW.A
+using B.B.B.2 the FW routes packets to GW.A
+
+SO it seems that the NAT-ed adresses are not passed to the routing core
+of Linux and thus the original adresses
+are used for the routing policy...
+
+Did we do something wrong, or is it a bug?
+
+Any Ideas?
+
+Ciao,
+	Martin
+
+P.s: This behaviour shows up on linux 2.4.9 and 2.4.17 (stock)
