@@ -1,14 +1,17 @@
-From: "Robbert" <hanbo163com@163.com>
-Subject: why iptables has no ruleset?
-Date: Mon, 6 Sep 2004 21:47:55 +0800
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Re: Where can I find IMQ
+Date: Mon, 6 Sep 2004 10:27:08 -0400
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <001401c49418$1f1544b0$8e5f78ca@nic.ecnu.edu.cn>
+Message-ID: <876ef97a04090607275e9ac7b@mail.gmail.com>
+References: <2573898910776652717@unknownmsgid>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@lists.netfilter." <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: zhanghong <arthur.zhang@360degreeweb.com>
+In-Reply-To: <2573898910776652717@unknownmsgid>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,8 +22,15 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-UEYgaW4gT3BlbkJTRCx3aGljaCBsaWtlIE5ldGZpbHRlci9JcHRhYmxlcyBpbiBsaW51eCxoYXMg
-aW50cm9kdWNlZCBhIGNvbmNlcHQgY2FsbGVkIFJVTEVTRVQsYW5kIFBGIG9wdGltaXplIGl0IHdp
-dGggInNraXAtc3RlcHMiLldoeSBpcHRhYmxlcyBoYXMgbm8gc3VjaCB0aGluZz8gSSB3YW50IHRv
-IGNoYW5nZSB0aGUgc3RydWN0IGlwdF9lbnRyeSB0byBtYWtlIHNvbWUgcnVsZXNldCBvciBhIHJ1
-bGUgdHJlZSxkb2VzIHRoYXQgbWFrZSBzZW5zZT8=
+On Mon, 6 Sep 2004 15:53:13 +0800, zhanghong
+<arthur.zhang@360degreeweb.com> wrote:
+> Hello all,
+> 
+>     It seems the site http://trash.net/~kaber/imq are not available now.
+>     Or someone can give me a patch ? My kernel is 2.4.20.
+
+Check out http://www.linuximq.net. That's the home of IMQ, AFAIK.
+
+-- 
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
