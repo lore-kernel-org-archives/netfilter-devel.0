@@ -1,14 +1,16 @@
-From: Ben Alabaster <ben@scorpiocc.com>
-Subject: iptables modification
-Date: Tue, 03 Aug 2004 18:49:36 -0600
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: #263154: iptables: segfault with multiple ip hostnames
+Date: Tue, 3 Aug 2004 15:11:30 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1091580576.3949.12.camel@ben1.scorpiocc.corp>
-Reply-To: ben@scorpiocc.com
+Message-ID: <20040803221130.GA25495@linuxace.com>
+References: <20040803220350.GA5223@ljlane.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Laurence J. Lane" <ljlane@nontoxic.org>
+Content-Disposition: inline
+In-Reply-To: <20040803220350.GA5223@ljlane.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,47 +21,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Tue, Aug 03, 2004 at 06:03:50PM -0400, Laurence J. Lane wrote:
+> http://bugs.debian.org/263154
+> 
+> iptables 1.2.11 segfaults when given a domain name that resolves 
+> to multiple ip addresses. The situation is the same for kernel 
+> versions 2.4.26 and 2.6.7.
 
-I need to modify my iptables module so that it will store FQDN's in the
-routing tables but I have no clue where to start.  I will give you an
-example of what I'm trying to do to better help explain.
+This is fixed in CVS.  Patch below for reference.
 
-We have (currently) about 150 devices in the field that are assigned
-their IP addresses via DHCP from the telephone provider servicing those
-devices.  These devices poll our DNS server to update their host record
-when their IP address changes so that our DNS server always has their
-current IP address.
+Phil
 
-Also, we have about 80 clients who need to be able to poll these devices
-in the field for data.  The software the clients must be preconfigured
-with the IP addresses of these devices in the field (meaning that DHCP
-is no good to them, they must use static IP) and don't have the ability
-to use FQDN's only IP addresses.
 
-Currently my iptables are configured using the following command:
-
-iptables -t nat -A OUTPUT -d <static_ip> -j DNAT --to-destination
-<Dynamic_IP>
-
-This is great while the IP address of the remote device doesn't change,
-but when it changes, we then have to update the NAT table.
-
-Ideally, I need to be able to do this:
-
-iptables -t nat -A OUTPUT -d <static_ip> -j DNAT --to-destination
-<Remote_FQDN>
-
-This will then not resolve the ip address of the remote host until the
-packet is being sent out.
-
-I know that I need to modify the command so that I can input an FQDN and
-I also need to modify the service so that it will resolve the IP address
-when it is actually NAT'ing the packet.
-
-Can you give me some pointers on how I can achieve this please?
-
-Many thanks in advance,
-
-Ben Alabaster
-Scorpio Computer & Consulting
+diff -u -r1.68 -r1.69
+--- iptables/iptables.c	2004/05/26 16:04:48	1.68
++++ iptables/iptables.c	2004/07/04 15:20:53	1.69
+@@ -2339,11 +2339,8 @@
+ 		e = NULL;
+ 	}
+ 
+-	for (c = 0; c < nsaddrs; c++)
+-		free(&saddrs[c]);
+-
+-	for (c = 0; c < ndaddrs; c++)
+-		free(&daddrs[c]);
++	free(saddrs);
++	free(daddrs);
+ 
+ 	if (opts != original_opts) {
+ 		free(opts);
