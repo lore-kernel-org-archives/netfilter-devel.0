@@ -1,57 +1,52 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Prevent crash on ip_conntrack removal
-Date: Thu, 19 Aug 2004 12:11:59 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040819101159.GC3921@sunbeam.de.gnumonks.org>
-References: <20040818091352.GB6507@suse.de>
+Subject: Re: iptables-save counters on builtin chains not restored?
+Date: Thu, 19 Aug 2004 12:13:14 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040819101314.GD3921@sunbeam.de.gnumonks.org>
+References: <20040817211821.GE23109@eychenne.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xsILJLaVOAbiPmXa"
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-        David Miller <davem@redhat.com>
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Olaf Kirch <okir@suse.de>
+	protocol="application/pgp-signature"; boundary="rG8Oha4Ryswg1dZ8"
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Herve Eychenne <rv@wallfire.org>
 Content-Disposition: inline
-In-Reply-To: <20040818091352.GB6507@suse.de>
-Errors-to: netdev-bounce@oss.sgi.com
+In-Reply-To: <20040817211821.GE23109@eychenne.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---xsILJLaVOAbiPmXa
+--rG8Oha4Ryswg1dZ8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 18, 2004 at 11:13:52AM +0200, Olaf Kirch wrote:
-> Hi,
+On Tue, Aug 17, 2004 at 11:18:21PM +0200, Herve Eychenne wrote:
+=20
+> When fed with the result of iptables-save -c, iptables-restore -c
+> does not seem to restore counters on chains (I'm not talking about
+> rules), as I simply cannot find any parsing code for that.
 >=20
-> here's a patch that keeps us from crashing on removal of ip_conntrack.
-> This problem came up during IBM's testing of SLES.
+> Note that it would make sense only on builtin chains, but not
+> user-chains, because only builtin chains have a policy, and the
+> counters are about packets that hit the policy.
+>=20
+> Anyway, it doesn't seem to be restored at all, and I suspect an
+> omission, so... a bug. Can someone confirm?
 
-Thanks for this detailed bugreport and fix.
+Yes, now that you say it, I don't remember having written that code ;)
 
-> I'm not sure if this issue has been submitted already.
+Please put it in bugzilla... and patches are obviously always welcome.
 
-Not that I'm aware of.
+>  Herve
 
-> To fix this, the patch below simply drops such skbs. A different fix
-> could be to change the conntrack module to flush out all unassembled
-> fragments when unloaded; an alternative patch for this is attached as
-> well (this one is completely untested).
-
-Since I don't want to put any more conntrack-specific code into the core
-network stack, I'd rather go for the 'alternative patch'.
-
-I'm not sure whether it's worth the effort to combine the two, i.e. only
-flush entries with skb->dst =3D=3D NULL.
-
-But especially since module unloading is EXPERIMENTAL anyway, I think
-it's ok when we completely flush the fragemnt queue.
-
-Dave, is this fine with you?  What solution would you prefer?
-
-> Cheers
-> Olaf
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -62,7 +57,7 @@ Dave, is this fine with you?  What solution would you prefer?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---xsILJLaVOAbiPmXa
+--rG8Oha4Ryswg1dZ8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -70,9 +65,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBJHzuXaXGVTD0i/8RAoUwAJ4pt8h/EGR14G0hNFLWKBM4fLXF2ACbBj6N
-z3ThhO8OwdNK1tSfWX4n/+g=
-=T3Q9
+iD8DBQFBJH06XaXGVTD0i/8RAmP0AJ4zFBuECaKkgmpceA4SmTAeA25xYQCeNKV8
+mIH8wVtjyRbRFzvzwrEKu+s=
+=OHJh
 -----END PGP SIGNATURE-----
 
---xsILJLaVOAbiPmXa--
+--rG8Oha4Ryswg1dZ8--
