@@ -1,17 +1,18 @@
-From: "Andrew Hall" <temp02@bluereef.com.au>
-Subject: Re: NAT behind IPSEC GW working OK - please review patch
-Date: Mon, 21 Mar 2005 13:10:52 +1100
-Message-ID: <000001c52dc4$ce0437b0$5001010a@bluereef.local>
-References: <DB15CAD558452949A35006D66C5C5A99010F8B@nav-post.navcorp.com>
-	<1111256850.19630.11.camel@leto.cs.pocnet.net>
-	<423DA104.7000402@trash.net>
+From: Just another UFO mechanic <oscar@ufomechanic.net>
+Subject: Re: building libctnetlink
+Date: 21 Mar 2005 13:36:30 +0000
+Message-ID: <1111412190.2716.55.camel@lap-ufomechanic>
+References: <423BF227.8030502@outerspace.dyndns.org>
+	<423BF4DC.2070902@outerspace.dyndns.org>
+	<1111335091.2523.46.camel@lap-ufomechanic>
+	<1111335425.2523.49.camel@lap-ufomechanic> <423DF940.100@eurodev.net>
+Reply-To: oscar@ufomechanic.net
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=response
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Robert Borger <bborger@navcorp.com>, netfilter-devel@lists.netfilter.org
-To: "Patrick McHardy" <kaber@trash.net>,
-	"Christophe Saout" <christophe@saout.de>
+Cc: netfilter-devel@lists.netfilter.org
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <423DF940.100@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,53 +24,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Christophe Saout wrote:
->>>static inline int xfrm_policy_check(struct sock *sk, int dir, struct 
->>>sk_buff
->>>*skb, unsigned short family)
->>>{
->>>  if (sk && sk->sk_policy[XFRM_POLICY_IN])
->>>    return __xfrm_policy_check(sk, dir, skb, family);
->>>
->>>  return(!xfrm_policy_list[dir] && !skb->sp) ||
->>>    (skb->sp && skb->sp->decap_done) || /* Added this line */
->>>    (skb->dst->flags & DST_NOPOLICY) ||
->>>    __xfrm_policy_check(sk, dir, skb, family);
->>>}
->>
->>
->> I can confirm that this fixes the problem you described.
->> (I'm using the IPSEC+NAT patches I forward-ported for 2.6.11).
->>
->> The line you added should be enclosed in an pair of #ifdef
->> CONFIG_NETFILTER and #endif.
->
-> This is not correct, the reason why the packets are dropped
-> is most likely a missing forward policy. If this is not the
-> case, there must be a bug somewhere in nf_nat_decode_session4().
->
-> Regards
-> Patrick
->
-There definately seems to be an issue somewhere, because I haven't been able 
-to get SNAT working via the tunnel in transport mode without this patch, but 
-this maybe an issue with my understanding of how the policy match works. Can 
-you please confirm the following:
 
-Traffic that requires SNAT modification will need a policy match to be 
-applied to a rule in the POSTROUTING chain. IPSEC with your patches applied 
-will make the traffic pass the POSTROUTING chain twice. The first time is 
-clear, and the second time is encrypted. To mark packets for translation we 
-set a rule something like the following:
+On Sun, 2005-03-20 at 22:29, Pablo Neira wrote:
+> Just another UFO mechanic wrote:
+> > Is it possible the libctnetlink is missing the configure script ?
+> 
+> just type autoconf and it will generate it.
+> 
+> --
+> Pablo
 
-iptables -A POSTROUTING -t nat -s 10.1.1.0/24 -d 10.1.2.0/24 -m policy --pol 
-none -j SNAT --to-source 11.1.1.200
+Hi 
+    Thanks but when I run autoconf it creates the configure script then
+when I run configure it says 
 
-Is this correct? Setting pol = none matches on traffic that has not yet been 
-encrypted (but will be next time through the chain), and pol = ipsec matches 
-on traffic that has already been encrypted (for POSTROUTING) and visa versa 
-for PREROUTING? Your confirmation will help clarify if I'm doing this 
-properly or if there is infact a problem with my configuration.
+creating libtool
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: error: cannot find input file: Makefile.in
 
-Thanks,
-Andrew. 
+
+Version
+autoconf -V
+autoconf (GNU Autoconf) 2.57
+
+Any ideas ?
+
+Thanks
