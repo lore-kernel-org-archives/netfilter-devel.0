@@ -1,17 +1,14 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Fri, 14 Jan 2005 16:24:01 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>   
-	<20050114143722.GA10088@ti64.telemetry-investments.com>   
-	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
-	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re[2]: DoS on kernel 2.4.27+ -j LOG (fwd)
+Date: Fri, 14 Jan 2005 17:31:36 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0501141722040.11870@filer.marasystems.com>
+References: <Pine.LNX.4.61.0411270340420.15105@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-965934004-1105716241=:4865"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Samuel Jean <sj-netfilter@cookinglinux.org>
-In-Reply-To: <57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
+To: Crazy AMD K7 <snort2004@mail.ru>
+In-Reply-To: <Pine.LNX.4.61.0411270340420.15105@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,191 +20,128 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----187430788-965934004-1105716241=:4865
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Sat, 27 Nov 2004, Crazy AMD K7 wrote:
 
 
+> Code;  c022dcdc <ip_sabotage_out+2c/110>
+> 00000000 <_EIP>:
+> Code;  c022dcdc <ip_sabotage_out+2c/110>   <=====
+>   0:   66 83 79 10 08            cmpw   $0x8,0x10(%ecx)   <=====
+> Code;  c022dce1 <ip_sabotage_out+31/110>
+>   5:   75 1d                     jne    24 <_EIP+0x24> c022dd00 
+> <ip_sabotage_out+50/110>
 
-On Fri, 14 Jan 2005, Samuel Jean wrote:
 
-> On Fri, January 14, 2005 9:48 am, Krzysztof Oledzki said:
->>> This is most likely due to Andi Kleen's net timestamp optimization,
->>> which
->>> avoids calling gettimeofday in the network fastpath unless it is needed=
-=2E
->>
->> I see... So, where we should fix this in netfilter code?
->
-> Am sorry, I haven't looked much at your patches. But here's my opinion.
->
-> Netfilter shouldn't enable this for the unique reason a match/target
-> will possibly rely on this.
->
-> I think it's the job of the first rule (of a given module) seeing that
-> 'new' packet to keep counting the last-seen time. Yes, the stamp is a bit
-> later than it should. But that's not dramatic and still consistant among
-> multiple rules (of a common module) needing that reference.
+I am now also experiencing this exact same problem, and it seems a handful
+other people also experience this problem.
 
-OK, How about...
+Have you found any additional clues to what may be causing this?
 
-diff -Nur patch-o-matic-ng-20050113-orig/time/linux/include/linux/netfilter=
-_ipv4/ipt_time.h patch-o-matic-ng-20050113/time/linux/include/linux/netfilt=
-er_ipv4/ipt_time.h
---- patch-o-matic-ng-20050113-orig/time/linux/include/linux/netfilter_ipv4/=
-ipt_time.h=092004-05-05 12:11:24.000000000 +0200
-+++ patch-o-matic-ng-20050113/time/linux/include/linux/netfilter_ipv4/ipt_t=
-ime.h=092005-01-14 16:06:54.000000000 +0100
-@@ -6,7 +6,10 @@
-  =09u_int8_t  days_match;   /* 1 bit per day. -SMTWTFS                    =
-  */
-  =09u_int16_t time_start;   /* 0 < time_start < 23*60+59 =3D 1439         =
-    */
-  =09u_int16_t time_stop;    /* 0:0 < time_stat < 23:59                    =
-  */
-+
-+=09=09=09=09/* FIXME: Keep this one for userspace iptables binary compabil=
-ity: */
-  =09u_int8_t  kerneltime;   /* ignore skb time (and use kerneltime) or not=
-=2E */
-+
-  =09time_t    date_start;
-  =09time_t    date_stop;
-  };
-diff -Nur patch-o-matic-ng-20050113-orig/time/linux/net/ipv4/netfilter/ipt_=
-time.c patch-o-matic-ng-20050113/time/linux/net/ipv4/netfilter/ipt_time.c
---- patch-o-matic-ng-20050113-orig/time/linux/net/ipv4/netfilter/ipt_time.c=
-=092004-05-05 12:11:24.000000000 +0200
-+++ patch-o-matic-ng-20050113/time/linux/net/ipv4/netfilter/ipt_time.c=0920=
-05-01-14 16:15:30.000000000 +0100
-@@ -56,24 +56,17 @@
-  =09struct tm currenttime;                          /* time human readable=
- */
-  =09u_int8_t days_of_week[7] =3D {64, 32, 16, 8, 4, 2, 1};
-  =09u_int16_t packet_time;
--=09struct timeval kerneltimeval;
--=09time_t packet_local_time;
 
--=09/* if kerneltime=3D1, we don't read the skb->timestamp but kernel time =
-instead */
--=09if (info->kerneltime)
--=09{
--=09=09do_gettimeofday(&kerneltimeval);
--=09=09packet_local_time =3D kerneltimeval.tv_sec;
--=09}
--=09else
--=09=09packet_local_time =3D skb->stamp.tv_sec;
-+=09/* We might not have a timestamp, get one */
-+=09if (skb->stamp.tv_sec =3D=3D 0)
-+=09=09do_gettimeofday((struct timeval *)&skb->stamp);
+My oops trace:
 
-  =09/* First we make sure we are in the date start-stop boundaries */
--=09if ((packet_local_time < info->date_start) || (packet_local_time > info=
-->date_stop))
-+=09if ((skb->stamp.tv_sec < info->date_start) || (skb->stamp.tv_sec > info=
-->date_stop))
-  =09=09return 0; /* We are outside the date boundaries */
 
-  =09/* Transform the timestamp of the packet, in a human readable form */
--=09localtime(&packet_local_time, &currenttime);
-+=09localtime(&skb->stamp.tv_sec, &currenttime);
+Unable to handle kernel NULL pointer dereference at virtual address 
+00000087
+*pde = 00000000
+Oops: 0000
+CPU:    0
+EIP:    0010:[<c02179f0>]    Tainted: P
+Using defaults from ksymoops -t elf32-i386 -a i386
+EFLAGS: 00010246
+eax: 00000081   ebx: f2d3ae00   ecx: 00000077   edx: 00000000
+esi: f7540000   edi: 00000000   ebp: c01e2640   esp: c0291b80
+ds: 0018   es: 0018   ss: 0018
+Process swapper (pid: 0, stackpage=c0291000)
+Stack: f7540000 c01e2640 c0291be4 80000000 c02e3778 c01e2640 c01d25d6 
+00000003
+        c0291c04 00000000 f7540000 c01e2640 00000000 00000003 f7540000 
+00000000
+        c01d292a c02e3778 c0291c04 00000003 00000000 f7540000 c0291be4 
+c01e2640
+Call Trace:    [<c01e2640>] [<c01e2640>] [<c01d25d6>] [<c01e2640>] 
+[<c01d292a>]
+   [<c01e2640>] [<c01e12fb>] [<c01e2640>] [<c01f819a>] [<c01f2a7a>] 
+[<c01f37d4>]
+   [<c01f074a>] [<c01c6851>] [<c01f0fc2>] [<f88b8077>] [<f8876375>] 
+[<c01f92e2>]
+   [<c01f97d4>] [<f887b0ee>] [<c01de33e>] [<c01d296b>] [<c01de1f0>] 
+[<c01ddd47>]
+   [<c01de1f0>] [<c01de549>] [<c01de360>] [<c01d296b>] [<c01de360>] 
+[<c01de14e>]
+   [<c01de360>] [<c01ca9d8>] [<f8824767>] [<f882df1e>] [<f8822ab5>] 
+[<f8822bd8>]
+   [<c01cac3a>] [<c011e7a5>] [<c010a8ae>] [<c0106fd0>] [<c010ce38>] 
+[<c0106fd0>]
+   [<c0106ff3>] [<c0107082>] [<c0105000>]
+Code: 66 83 79 10 08 0f 85 cd fe ff ff a1 0c d3 28 c0 85 c0 0f 84
 
-  =09/* check if we match this timestamp, we start by the days... */
-  =09if ((days_of_week[currenttime.tm_wday] & info->days_match) !=3D days_o=
-f_week[currenttime.tm_wday])
-@@ -104,11 +97,6 @@
-  =09=09printk("ipt_time: error, only valid for PRE_ROUTING, LOCAL_IN, FORW=
-ARD and OUTPUT)\n");
-  =09=09return 0;
-  =09}
--=09/* we use the kerneltime if we are in forward or output */
--=09info->kerneltime =3D 1;
--=09if (hook_mask & ~((1 << NF_IP_FORWARD) | (1 << NF_IP_LOCAL_OUT)))=20
--=09=09/* we use the skb time */
--=09=09info->kerneltime =3D 0;
+>>EIP; c02179f0 <ip_sabotage_out+170/1a0>   <=====
 
-  =09/* Check the size */
-  =09if (matchsize !=3D IPT_ALIGN(sizeof(struct ipt_time_info)))
+>>ebx; f2d3ae00 <_end+32a553c0/38529620>
+>>esi; f7540000 <_end+3725a5c0/38529620>
+>>ebp; c01e2640 <ip_queue_xmit2+0/23f>
+>>esp; c0291b80 <init_task_union+1b80/2000>
 
-Best regards,
+Trace; c01e2640 <ip_queue_xmit2+0/23f>
+Trace; c01e2640 <ip_queue_xmit2+0/23f>
+Trace; c01d25d6 <nf_iterate+76/b0>
+Trace; c01e2640 <ip_queue_xmit2+0/23f>
+Trace; c01d292a <nf_hook_slow+7a/190>
+Trace; c01e2640 <ip_queue_xmit2+0/23f>
+Trace; c01e12fb <ip_queue_xmit+49b/560>
+Trace; c01e2640 <ip_queue_xmit2+0/23f>
+Trace; c01f819a <tcp_v4_send_check+4a/d0>
+Trace; c01f2a7a <tcp_transmit_skb+40a/6a0>
+Trace; c01f37d4 <tcp_write_xmit+184/2d0>
+Trace; c01f074a <__tcp_data_snd_check+ea/100>
+Trace; c01c6851 <__kfree_skb+111/180>
+Trace; c01f0fc2 <tcp_rcv_established+572/9c0>
+Trace; f88b8077 <[ipt_confirmed].text.start+17/70>
+Trace; f8876375 <[ip_tables]ipt_do_table+2e5/4c0>
+Trace; c01f92e2 <tcp_v4_do_rcv+122/130>
+Trace; c01f97d4 <tcp_v4_rcv+4e4/670>
+Trace; f887b0ee <[iptable_nat]ip_nat_fn+8e/200>
+Trace; c01de33e <ip_local_deliver_finish+14e/170>
+Trace; c01d296b <nf_hook_slow+bb/190>
+Trace; c01de1f0 <ip_local_deliver_finish+0/170>
+Trace; c01ddd47 <ip_local_deliver+1b7/1f0>
+Trace; c01de1f0 <ip_local_deliver_finish+0/170>
+Trace; c01de549 <ip_rcv_finish+1e9/250>
+Trace; c01de360 <ip_rcv_finish+0/250>
+Trace; c01d296b <nf_hook_slow+bb/190>
+Trace; c01de360 <ip_rcv_finish+0/250>
+Trace; c01de14e <ip_rcv+3ce/470>
+Trace; c01de360 <ip_rcv_finish+0/250>
+Trace; c01ca9d8 <netif_receive_skb+148/230>
+Trace; f8824767 <[bcm5700]MM_IndicateRxPackets+38b/434>
+Trace; f882df1e <[bcm5700]LM_ServiceInterrupts+56/198>
+Trace; f8822ab5 <[bcm5700]bcm5700_poll+131/158>
+Trace; f8822bd8 <[bcm5700]bcm5700_interrupt+fc/318>
+Trace; c01cac3a <net_rx_action+6a/100>
+Trace; c011e7a5 <do_softirq+95/a0>
+Trace; c010a8ae <do_IRQ+9e/a0>
+Trace; c0106fd0 <default_idle+0/40>
+Trace; c010ce38 <call_do_IRQ+5/d>
+Trace; c0106fd0 <default_idle+0/40>
+Trace; c0106ff3 <default_idle+23/40>
+Trace; c0107082 <cpu_idle+52/70>
+Trace; c0105000 <_stext+0/0>
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-965934004-1105716241=:4865
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name="20-ipt_time-fix-timestamp2.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.61.0501141624010.4865@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename="20-ipt_time-fix-timestamp2.patch"
+Code;  c02179f0 <ip_sabotage_out+170/1a0>
+00000000 <_EIP>:
+Code;  c02179f0 <ip_sabotage_out+170/1a0>   <=====
+    0:   66 83 79 10 08            cmpw   $0x8,0x10(%ecx)   <=====
+Code;  c02179f5 <ip_sabotage_out+175/1a0>
+    5:   0f 85 cd fe ff ff         jne    fffffed8 <_EIP+0xfffffed8>
+Code;  c02179fb <ip_sabotage_out+17b/1a0>
+    b:   a1 0c d3 28 c0            mov    0xc028d30c,%eax
+Code;  c0217a00 <ip_sabotage_out+180/1a0>
+   10:   85 c0                     test   %eax,%eax
+Code;  c0217a02 <ip_sabotage_out+182/1a0>
+   12:   0f 84 00 00 00 00         je     18 <_EIP+0x18>
 
-ZGlmZiAtTnVyIHBhdGNoLW8tbWF0aWMtbmctMjAwNTAxMTMtb3JpZy90aW1l
-L2xpbnV4L2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X3RpbWUu
-aCBwYXRjaC1vLW1hdGljLW5nLTIwMDUwMTEzL3RpbWUvbGludXgvaW5jbHVk
-ZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfdGltZS5oDQotLS0gcGF0Y2gt
-by1tYXRpYy1uZy0yMDA1MDExMy1vcmlnL3RpbWUvbGludXgvaW5jbHVkZS9s
-aW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfdGltZS5oCTIwMDQtMDUtMDUgMTI6
-MTE6MjQuMDAwMDAwMDAwICswMjAwDQorKysgcGF0Y2gtby1tYXRpYy1uZy0y
-MDA1MDExMy90aW1lL2xpbnV4L2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lw
-djQvaXB0X3RpbWUuaAkyMDA1LTAxLTE0IDE2OjA2OjU0LjAwMDAwMDAwMCAr
-MDEwMA0KQEAgLTYsNyArNiwxMCBAQA0KIAl1X2ludDhfdCAgZGF5c19tYXRj
-aDsgICAvKiAxIGJpdCBwZXIgZGF5LiAtU01UV1RGUyAgICAgICAgICAgICAg
-ICAgICAgICAqLw0KIAl1X2ludDE2X3QgdGltZV9zdGFydDsgICAvKiAwIDwg
-dGltZV9zdGFydCA8IDIzKjYwKzU5ID0gMTQzOSAgICAgICAgICAgICAqLw0K
-IAl1X2ludDE2X3QgdGltZV9zdG9wOyAgICAvKiAwOjAgPCB0aW1lX3N0YXQg
-PCAyMzo1OSAgICAgICAgICAgICAgICAgICAgICAqLw0KKw0KKwkJCQkvKiBG
-SVhNRTogS2VlcCB0aGlzIG9uZSBmb3IgdXNlcnNwYWNlIGlwdGFibGVzIGJp
-bmFyeSBjb21wYWJpbGl0eTogKi8NCiAJdV9pbnQ4X3QgIGtlcm5lbHRpbWU7
-ICAgLyogaWdub3JlIHNrYiB0aW1lIChhbmQgdXNlIGtlcm5lbHRpbWUpIG9y
-IG5vdC4gKi8NCisNCiAJdGltZV90ICAgIGRhdGVfc3RhcnQ7DQogCXRpbWVf
-dCAgICBkYXRlX3N0b3A7DQogfTsNCmRpZmYgLU51ciBwYXRjaC1vLW1hdGlj
-LW5nLTIwMDUwMTEzLW9yaWcvdGltZS9saW51eC9uZXQvaXB2NC9uZXRmaWx0
-ZXIvaXB0X3RpbWUuYyBwYXRjaC1vLW1hdGljLW5nLTIwMDUwMTEzL3RpbWUv
-bGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF90aW1lLmMNCi0tLSBwYXRj
-aC1vLW1hdGljLW5nLTIwMDUwMTEzLW9yaWcvdGltZS9saW51eC9uZXQvaXB2
-NC9uZXRmaWx0ZXIvaXB0X3RpbWUuYwkyMDA0LTA1LTA1IDEyOjExOjI0LjAw
-MDAwMDAwMCArMDIwMA0KKysrIHBhdGNoLW8tbWF0aWMtbmctMjAwNTAxMTMv
-dGltZS9saW51eC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X3RpbWUuYwkyMDA1
-LTAxLTE0IDE2OjE1OjMwLjAwMDAwMDAwMCArMDEwMA0KQEAgLTU2LDI0ICs1
-NiwxNyBAQA0KIAlzdHJ1Y3QgdG0gY3VycmVudHRpbWU7ICAgICAgICAgICAg
-ICAgICAgICAgICAgICAvKiB0aW1lIGh1bWFuIHJlYWRhYmxlICovDQogCXVf
-aW50OF90IGRheXNfb2Zfd2Vla1s3XSA9IHs2NCwgMzIsIDE2LCA4LCA0LCAy
-LCAxfTsNCiAJdV9pbnQxNl90IHBhY2tldF90aW1lOw0KLQlzdHJ1Y3QgdGlt
-ZXZhbCBrZXJuZWx0aW1ldmFsOw0KLQl0aW1lX3QgcGFja2V0X2xvY2FsX3Rp
-bWU7DQogDQotCS8qIGlmIGtlcm5lbHRpbWU9MSwgd2UgZG9uJ3QgcmVhZCB0
-aGUgc2tiLT50aW1lc3RhbXAgYnV0IGtlcm5lbCB0aW1lIGluc3RlYWQgKi8N
-Ci0JaWYgKGluZm8tPmtlcm5lbHRpbWUpDQotCXsNCi0JCWRvX2dldHRpbWVv
-ZmRheSgma2VybmVsdGltZXZhbCk7DQotCQlwYWNrZXRfbG9jYWxfdGltZSA9
-IGtlcm5lbHRpbWV2YWwudHZfc2VjOw0KLQl9DQotCWVsc2UNCi0JCXBhY2tl
-dF9sb2NhbF90aW1lID0gc2tiLT5zdGFtcC50dl9zZWM7DQorCS8qIFdlIG1p
-Z2h0IG5vdCBoYXZlIGEgdGltZXN0YW1wLCBnZXQgb25lICovDQorCWlmIChz
-a2ItPnN0YW1wLnR2X3NlYyA9PSAwKQ0KKwkJZG9fZ2V0dGltZW9mZGF5KChz
-dHJ1Y3QgdGltZXZhbCAqKSZza2ItPnN0YW1wKTsNCiANCiAJLyogRmlyc3Qg
-d2UgbWFrZSBzdXJlIHdlIGFyZSBpbiB0aGUgZGF0ZSBzdGFydC1zdG9wIGJv
-dW5kYXJpZXMgKi8NCi0JaWYgKChwYWNrZXRfbG9jYWxfdGltZSA8IGluZm8t
-PmRhdGVfc3RhcnQpIHx8IChwYWNrZXRfbG9jYWxfdGltZSA+IGluZm8tPmRh
-dGVfc3RvcCkpDQorCWlmICgoc2tiLT5zdGFtcC50dl9zZWMgPCBpbmZvLT5k
-YXRlX3N0YXJ0KSB8fCAoc2tiLT5zdGFtcC50dl9zZWMgPiBpbmZvLT5kYXRl
-X3N0b3ApKQ0KIAkJcmV0dXJuIDA7IC8qIFdlIGFyZSBvdXRzaWRlIHRoZSBk
-YXRlIGJvdW5kYXJpZXMgKi8NCiANCiAJLyogVHJhbnNmb3JtIHRoZSB0aW1l
-c3RhbXAgb2YgdGhlIHBhY2tldCwgaW4gYSBodW1hbiByZWFkYWJsZSBmb3Jt
-ICovDQotCWxvY2FsdGltZSgmcGFja2V0X2xvY2FsX3RpbWUsICZjdXJyZW50
-dGltZSk7DQorCWxvY2FsdGltZSgmc2tiLT5zdGFtcC50dl9zZWMsICZjdXJy
-ZW50dGltZSk7DQogDQogCS8qIGNoZWNrIGlmIHdlIG1hdGNoIHRoaXMgdGlt
-ZXN0YW1wLCB3ZSBzdGFydCBieSB0aGUgZGF5cy4uLiAqLw0KIAlpZiAoKGRh
-eXNfb2Zfd2Vla1tjdXJyZW50dGltZS50bV93ZGF5XSAmIGluZm8tPmRheXNf
-bWF0Y2gpICE9IGRheXNfb2Zfd2Vla1tjdXJyZW50dGltZS50bV93ZGF5XSkN
-CkBAIC0xMDQsMTEgKzk3LDYgQEANCiAJCXByaW50aygiaXB0X3RpbWU6IGVy
-cm9yLCBvbmx5IHZhbGlkIGZvciBQUkVfUk9VVElORywgTE9DQUxfSU4sIEZP
-UldBUkQgYW5kIE9VVFBVVClcbiIpOw0KIAkJcmV0dXJuIDA7DQogCX0NCi0J
-Lyogd2UgdXNlIHRoZSBrZXJuZWx0aW1lIGlmIHdlIGFyZSBpbiBmb3J3YXJk
-IG9yIG91dHB1dCAqLw0KLQlpbmZvLT5rZXJuZWx0aW1lID0gMTsNCi0JaWYg
-KGhvb2tfbWFzayAmIH4oKDEgPDwgTkZfSVBfRk9SV0FSRCkgfCAoMSA8PCBO
-Rl9JUF9MT0NBTF9PVVQpKSkgDQotCQkvKiB3ZSB1c2UgdGhlIHNrYiB0aW1l
-ICovDQotCQlpbmZvLT5rZXJuZWx0aW1lID0gMDsNCiANCiAJLyogQ2hlY2sg
-dGhlIHNpemUgKi8NCiAJaWYgKG1hdGNoc2l6ZSAhPSBJUFRfQUxJR04oc2l6
-ZW9mKHN0cnVjdCBpcHRfdGltZV9pbmZvKSkpDQo=
 
----187430788-965934004-1105716241=:4865--
+
+Regards
+Henrik
