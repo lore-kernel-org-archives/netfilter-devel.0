@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] iptables MIRROR target fixes
-Date: Fri, 25 Jul 2003 22:50:48 +0200
+Subject: [PATCH 2.4] netfilter policy routing fixes
+Date: Fri, 25 Jul 2003 22:50:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725205048.GH3244@sunbeam.de.gnumonks.org>
+Message-ID: <20030725205051.GI3244@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="U/OZNOFFJieNpJU4"
+	protocol="application/pgp-signature"; boundary="24bywM+ZyrW0DJoD"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
@@ -22,149 +22,261 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---U/OZNOFFJieNpJU4
+--24bywM+ZyrW0DJoD
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-This is the first of a set of bugfixes (all tested against 2.4.22-pre7).
+This is the 2nd of a set of bugfixes (all tested against 2.4.22-pre7).
 You might need to apply them incrementally (didn't test it in a
 different order).  You will receive 2.6 merges of those patches soon.
 
 Author: Patrick McHardy <kaber@trash.net>
 
-This patch fixes various problems with the experimental=20
-iptables MIRROR target:
-
-- check TTL before rewriting so icmp_send gets clean packet
-- skb_copy_expand(skb) for tcpdump and asymmetric routing
-- inline some function
-- remove unneccessary 'struct in_device' declaration
-- remove RTO_CONN
+This patch fixes some issues with iptables REJECT and MIRROR targets
+when combined with policy routing / rp_filter.
 
 Please apply,
 
+diff -Nru a/net/core/netfilter.c b/net/core/netfilter.c
+--- a/net/core/netfilter.c	Tue Apr 22 01:07:31 2003
++++ b/net/core/netfilter.c	Tue Apr 22 01:07:31 2003
+@@ -563,64 +563,62 @@
+ {
+ 	struct iphdr *iph =3D (*pskb)->nh.iph;
+ 	struct rtable *rt;
+-	struct rt_key key =3D { dst:iph->daddr,
+-			      src:iph->saddr,
+-			      oif:(*pskb)->sk ? (*pskb)->sk->bound_dev_if : 0,
+-			      tos:RT_TOS(iph->tos)|RTO_CONN,
++	struct rt_key key =3D {};
++	struct dst_entry *odst;
++	unsigned int hh_len;
++
++	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
++	 * packets with foreign saddr to be appear on the NF_IP_LOCAL_OUT hook.
++	 */
++	if (inet_addr_type(iph->saddr) =3D=3D RTN_LOCAL) {
++		key.dst =3D iph->daddr;
++		key.src =3D iph->saddr;
++		key.oif =3D (*pskb)->sk ? (*pskb)->sk->bound_dev_if : 0;
++		key.tos =3D RT_TOS(iph->tos);
+ #ifdef CONFIG_IP_ROUTE_FWMARK
+-			      fwmark:(*pskb)->nfmark
++		key.fwmark =3D (*pskb)->nfmark;
+ #endif
+-			    };
+-	struct net_device *dev_src =3D NULL;
+-	int err;
+-
+-	/* accomodate ip_route_output_slow(), which expects the key src to be
+-	   0 or a local address; however some non-standard hacks like
+-	   ipt_REJECT.c:send_reset() can cause packets with foreign
+-           saddr to be appear on the NF_IP_LOCAL_OUT hook -MB */
+-	if(key.src && !(dev_src =3D ip_dev_find(key.src)))
+-		key.src =3D 0;
+-
+-	if ((err=3Dip_route_output_key(&rt, &key)) !=3D 0) {
+-		printk("route_me_harder: ip_route_output_key(dst=3D%u.%u.%u.%u, src=3D%u=
+=2E%u.%u.%u, oif=3D%d, tos=3D0x%x, fwmark=3D0x%lx) error %d\n",
+-			NIPQUAD(iph->daddr), NIPQUAD(iph->saddr),
+-			(*pskb)->sk ? (*pskb)->sk->bound_dev_if : 0,
+-			RT_TOS(iph->tos)|RTO_CONN,
+-#ifdef CONFIG_IP_ROUTE_FWMARK
+-			(*pskb)->nfmark,
+-#else
+-			0UL,
+-#endif
+-			err);
+-		goto out;
+-	}
+-
+-	/* Drop old route. */
+-	dst_release((*pskb)->dst);
++		if (ip_route_output_key(&rt, &key) !=3D 0)
++			return -1;
+=20
+-	(*pskb)->dst =3D &rt->u.dst;
++		/* Drop old route. */
++		dst_release((*pskb)->dst);
++		(*pskb)->dst =3D &rt->u.dst;
++	} else {
++		/* non-local src, find valid iif to satisfy
++		 * rp-filter when calling ip_route_input. */
++		key.dst =3D iph->saddr;
++		if (ip_route_output_key(&rt, &key) !=3D 0)
++			return -1;
++
++		odst =3D (*pskb)->dst;
++		if (ip_route_input(*pskb, iph->daddr, iph->saddr,
++		                   RT_TOS(iph->tos), rt->u.dst.dev) !=3D 0) {
++			dst_release(&rt->u.dst);
++			return -1;
++		}
++		dst_release(&rt->u.dst);
++		dst_release(odst);
++	}
++=09
++	if ((*pskb)->dst->error)
++		return -1;
+=20
+ 	/* Change in oif may mean change in hh_len. */
+-	if (skb_headroom(*pskb) < (*pskb)->dst->dev->hard_header_len) {
++	hh_len =3D (*pskb)->dst->dev->hard_header_len;
++	if (skb_headroom(*pskb) < hh_len) {
+ 		struct sk_buff *nskb;
+=20
+-		nskb =3D skb_realloc_headroom(*pskb,
+-					    (*pskb)->dst->dev->hard_header_len);
+-		if (!nskb) {
+-			err =3D -ENOMEM;
+-			goto out;
+-		}
++		nskb =3D skb_realloc_headroom(*pskb, hh_len);
++		if (!nskb)
++			return -1;
+ 		if ((*pskb)->sk)
+ 			skb_set_owner_w(nskb, (*pskb)->sk);
+ 		kfree_skb(*pskb);
+ 		*pskb =3D nskb;
+ 	}
+=20
+-out:
+-	if (dev_src)
+-		dev_put(dev_src);
+-
+-	return err;
++	return 0;
+ }
+ #endif /*CONFIG_INET*/
+=20
 diff -Nru a/net/ipv4/netfilter/ipt_MIRROR.c b/net/ipv4/netfilter/ipt_MIRROR=
 =2Ec
---- a/net/ipv4/netfilter/ipt_MIRROR.c	Mon Apr 21 21:26:42 2003
-+++ b/net/ipv4/netfilter/ipt_MIRROR.c	Mon Apr 21 21:26:42 2003
-@@ -32,7 +32,6 @@
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netdevice.h>
- #include <linux/route.h>
--struct in_device;
- #include <net/route.h>
-=20
- #if 0
-@@ -41,31 +40,20 @@
+--- a/net/ipv4/netfilter/ipt_MIRROR.c	Tue Apr 22 01:07:31 2003
++++ b/net/ipv4/netfilter/ipt_MIRROR.c	Tue Apr 22 01:07:31 2003
+@@ -40,15 +40,42 @@
  #define DEBUGP(format, args...)
  #endif
 =20
--static int route_mirror(struct sk_buff *skb)
-+static inline struct rtable *route_mirror(struct sk_buff *skb)
+-static inline struct rtable *route_mirror(struct sk_buff *skb)
++static inline struct rtable *route_mirror(struct sk_buff *skb, int local)
  {
          struct iphdr *iph =3D skb->nh.iph;
++	struct dst_entry *odst;
++	struct rt_key key =3D {};
  	struct rtable *rt;
 =20
- 	/* Backwards */
- 	if (ip_route_output(&rt, iph->saddr, iph->daddr,
--			    RT_TOS(iph->tos) | RTO_CONN,
--			    0)) {
--		return 0;
--	}
-+			    RT_TOS(iph->tos), 0))
-+		return NULL;
-=20
--	/* check if the interface we are leaving by is the same as the
--           one we arrived on */
--	if (skb->dev =3D=3D rt->u.dst.dev) {
--		/* Drop old route. */
--		dst_release(skb->dst);
--		skb->dst =3D &rt->u.dst;
--		return 1;
--	}
--	return 0;
-+	return rt;
- }
-=20
--static void
--ip_rewrite(struct sk_buff *skb)
-+static inline void ip_rewrite(struct sk_buff *skb)
- {
- 	struct iphdr *iph =3D skb->nh.iph;
- 	u32 odaddr =3D iph->saddr;
-@@ -105,32 +93,48 @@
- 				      const void *targinfo,
- 				      void *userinfo)
- {
--	if (((*pskb)->dst !=3D NULL) &&
--	    route_mirror(*pskb)) {
--
--		ip_rewrite(*pskb);
-+	struct rtable *rt;
-+	struct sk_buff *nskb;
-+	unsigned int hh_len;
-=20
--		/* If we are not at FORWARD hook (INPUT/PREROUTING),
--		 * the TTL isn't decreased by the IP stack */
--		if (hooknum !=3D NF_IP_FORWARD) {
--			struct iphdr *iph =3D (*pskb)->nh.iph;
--			if (iph->ttl <=3D 1) {
--				/* this will traverse normal stack, and=20
--				 * thus call conntrack on the icmp packet */
--				icmp_send(*pskb, ICMP_TIME_EXCEEDED,=20
--					  ICMP_EXC_TTL, 0);
--				return NF_DROP;
--			}
--			ip_decrease_ttl(iph);
-+	/* If we are not at FORWARD hook (INPUT/PREROUTING),
-+	 * the TTL isn't decreased by the IP stack */
-+	if (hooknum !=3D NF_IP_FORWARD) {
-+		struct iphdr *iph =3D (*pskb)->nh.iph;
-+		if (iph->ttl <=3D 1) {
-+			/* this will traverse normal stack, and=20
-+			 * thus call conntrack on the icmp packet */
-+			icmp_send(*pskb, ICMP_TIME_EXCEEDED,=20
-+				  ICMP_EXC_TTL, 0);
-+			return NF_DROP;
- 		}
-+		ip_decrease_ttl(iph);
+-	/* Backwards */
+-	if (ip_route_output(&rt, iph->saddr, iph->daddr,
+-			    RT_TOS(iph->tos), 0))
+-		return NULL;
++	if (local) {
++		key.dst =3D iph->saddr;
++		key.src =3D iph->daddr;
++		key.tos =3D RT_TOS(iph->tos);
++
++		if (ip_route_output_key(&rt, &key) !=3D 0)
++			return NULL;
++	} else {
++		/* non-local src, find valid iif to satisfy
++		 * rp-filter when calling ip_route_input. */
++		key.dst =3D iph->daddr;
++		if (ip_route_output_key(&rt, &key) !=3D 0)
++			return NULL;
++
++		odst =3D skb->dst;
++		if (ip_route_input(skb, iph->saddr, iph->daddr,
++		                   RT_TOS(iph->tos), rt->u.dst.dev) !=3D 0) {
++			dst_release(&rt->u.dst);
++			return NULL;
++		}
++		dst_release(&rt->u.dst);
++		rt =3D (struct rtable *)skb->dst;
++		skb->dst =3D odst;
++	}
++
++	if (rt->u.dst.error) {
++		dst_release(&rt->u.dst);
++		rt =3D NULL;
 +	}
 =20
--		/* Don't let conntrack code see this packet:
--                   it will think we are starting a new
--                   connection! --RR */
--		ip_direct_send(*pskb);
-+	if ((rt =3D route_mirror(*pskb)) =3D=3D NULL)
-+		return NF_DROP;
-=20
--		return NF_STOLEN;
-+	hh_len =3D (rt->u.dst.dev->hard_header_len + 15) & ~15;
-+
-+	/* Copy skb (even if skb is about to be dropped, we can't just
-+	 * clone it because there may be other things, such as tcpdump,
-+	 * interested in it). We also need to expand headroom in case
-+	 * hh_len of incoming interface < hh_len of outgoing interface */
-+	nskb =3D skb_copy_expand(*pskb, hh_len, skb_tailroom(*pskb), GFP_ATOMIC);
-+	if (nskb =3D=3D NULL) {
-+		dst_release(&rt->u.dst);
-+		return NF_DROP;
+ 	return rt;
+ }
+@@ -111,7 +138,7 @@
+ 		ip_decrease_ttl(iph);
  	}
-+
-+	dst_release(nskb->dst);
-+	nskb->dst =3D &rt->u.dst;
-+
-+	ip_rewrite(nskb);
-+	/* Don't let conntrack code see this packet:
-+           it will think we are starting a new
-+           connection! --RR */
-+	ip_direct_send(nskb);
-+
- 	return NF_DROP;
+=20
+-	if ((rt =3D route_mirror(*pskb)) =3D=3D NULL)
++	if ((rt =3D route_mirror(*pskb, hooknum =3D=3D NF_IP_LOCAL_IN)) =3D=3D NU=
+LL)
+ 		return NF_DROP;
+=20
+ 	hh_len =3D (rt->u.dst.dev->hard_header_len + 15) & ~15;
+diff -Nru a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT=
+=2Ec
+--- a/net/ipv4/netfilter/ipt_REJECT.c	Tue Apr 22 01:07:31 2003
++++ b/net/ipv4/netfilter/ipt_REJECT.c	Tue Apr 22 01:07:31 2003
+@@ -33,6 +33,46 @@
+ 		attach(new_skb, nfct);
  }
 =20
++static inline struct rtable *route_reverse(struct sk_buff *skb, int local)
++{
++	struct iphdr *iph =3D skb->nh.iph;
++	struct dst_entry *odst;
++	struct rt_key key =3D {};
++	struct rtable *rt;
++
++	if (local) {
++		key.dst =3D iph->saddr;
++		key.src =3D iph->daddr;
++		key.tos =3D RT_TOS(iph->tos);
++
++		if (ip_route_output_key(&rt, &key) !=3D 0)
++			return NULL;
++	} else {
++		/* non-local src, find valid iif to satisfy
++		 * rp-filter when calling ip_route_input. */
++		key.dst =3D iph->daddr;
++		if (ip_route_output_key(&rt, &key) !=3D 0)
++			return NULL;
++
++		odst =3D skb->dst;
++		if (ip_route_input(skb, iph->saddr, iph->daddr,
++		                   RT_TOS(iph->tos), rt->u.dst.dev) !=3D 0) {
++			dst_release(&rt->u.dst);
++			return NULL;
++		}
++		dst_release(&rt->u.dst);
++		rt =3D (struct rtable *)skb->dst;
++		skb->dst =3D odst;
++	}
++
++	if (rt->u.dst.error) {
++		dst_release(&rt->u.dst);
++		rt =3D NULL;
++	}
++
++	return rt;
++}
++
+ /* Send RST reply */
+ static void send_reset(struct sk_buff *oldskb, int local)
+ {
+@@ -63,10 +103,7 @@
+ 			 csum_partial((char *)otcph, otcplen, 0)) !=3D 0)
+ 		return;
+=20
+-	/* Routing: if not headed for us, route won't like source */
+-	if (ip_route_output(&rt, oldskb->nh.iph->saddr,
+-			    local ? oldskb->nh.iph->daddr : 0,
+-			    RT_TOS(oldskb->nh.iph->tos), 0) !=3D 0)
++	if ((rt =3D route_reverse(oldskb, local)) =3D=3D NULL)
+ 		return;
+=20
+ 	hh_len =3D (rt->u.dst.dev->hard_header_len + 15)&~15;
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -175,16 +287,16 @@ diff -Nru a/net/ipv4/netfilter/ipt_MIRROR.c b/net/ipv4/netfilter/ipt_MIRROR=
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---U/OZNOFFJieNpJU4
+--24bywM+ZyrW0DJoD
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/IZgoXaXGVTD0i/8RAr7GAKCwENd6SRw+n3cqMrzm9462njYd6wCgs/OV
-fFjYOZPQZmtM05/FF2G/mA8=
-=F3l5
+iD8DBQE/IZgrXaXGVTD0i/8RAsE/AJ9NgvwfiUroAnFz4aTw5lrfaZIBWACcC8UI
+kGIq+9m7tyE/lhj/RzBy4Zk=
+=NCbW
 -----END PGP SIGNATURE-----
 
---U/OZNOFFJieNpJU4--
+--24bywM+ZyrW0DJoD--
