@@ -1,59 +1,50 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: ip_route_me_harder -> xfrm_lookup
-Date: Mon, 8 Mar 2004 22:03:31 +1100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040308110331.GA20719@gondor.apana.org.au>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] tcp window tracking initial port to 2.6
+Date: Mon, 08 Mar 2004 12:28:45 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <404C58ED.6060206@eurodev.net>
+References: <Pine.LNX.4.33.0403081111190.10575-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="zYM0uCDKw75PZbzx"
-Return-path: <netdev-bounce@oss.sgi.com>
-To: "David S. Miller" <davem@redhat.com>, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+ netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.33.0403081111190.10575-100000@blackhole.kfki.hu>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Jozsef,
 
---zYM0uCDKw75PZbzx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Jozsef Kadlecsik wrote:
 
-Hi:
+>Sorry, that was a waste of time. I had already done the porting, but
+>because pom-ng is not fully ready yet, I haven't put it into the cvs.
+>  
+>
 
-I've received a number of reports that the any packets that are modified
-by the PREROUTING mangle table will not be protected by IPsec.
+It's ok, it wasn't a full waste of time. I learnt a bit about the 
+current implementation which was one of my goal as well as spending my 
+sunday evening on something interesting I think. When I started doing 
+the porting I also thought about this possibility. :-)
 
-The reason is that ip_route_me_harder which is called upon the exit
-of the mangle table does not set the proto field.  This means that
-xfrm_lookup is never called.
+>>BTW I think that I experimented some problems with the nf-log patch for
+>>2.6.x tree, I'll have a look at them.
+>>    
+>>
+>
+>Please report if you find any problem with it. The cvs contains the lates
+>version, which should work.
+>  
+>
+ok, I'll have a look at it calmly and if I find something I'll let you know.
 
-The following patch sets the proto field so that the packet can be
-protected by IPsec.
-
-Cheers,
--- 
-Debian GNU/Linux 3.0 is out! ( http://www.debian.org/ )
-Email:  Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
-
---zYM0uCDKw75PZbzx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=p
-
-Index: kernel-2.5/net/core/netfilter.c
-===================================================================
-RCS file: /home/gondolin/herbert/src/CVS/debian/kernel-source-2.5/net/core/netfilter.c,v
-retrieving revision 1.1.1.10
-diff -u -r1.1.1.10 netfilter.c
---- kernel-2.5/net/core/netfilter.c	8 Oct 2003 19:24:04 -0000	1.1.1.10
-+++ kernel-2.5/net/core/netfilter.c	8 Mar 2004 10:52:39 -0000
-@@ -639,6 +639,7 @@
- #ifdef CONFIG_IP_ROUTE_FWMARK
- 		fl.nl_u.ip4_u.fwmark = (*pskb)->nfmark;
- #endif
-+		fl.proto = iph->protocol;
- 		if (ip_route_output_key(&rt, &fl) != 0)
- 			return -1;
- 
-
---zYM0uCDKw75PZbzx--
+regards,
+Pablo
