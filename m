@@ -1,43 +1,38 @@
-From: Zeeshan Ali <zeelists@yahoo.com>
-Subject: Re: [ANNOUNCE] nfsim - netfilter simulation environment
-Date: Sun, 11 Jan 2004 14:11:23 -0800 (PST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040111221123.58420.qmail@web60709.mail.yahoo.com>
-References: <200401080841.02152.jeremy@redfishsoftware.com.au>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's
+ brain broke!)
+Date: Mon, 12 Jan 2004 02:07:06 +0100
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <4001F33A.9000802@trash.net>
+References: <20030725173900.E6E952C2AE@lists.samba.org> <200307251756.VAA12609@dub.inr.ac.ru> <20040111130114.GJ20706@sunbeam.de.gnumonks.org> <Pine.LNX.4.58.0401111517550.1161@u.domain.uli>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200401080841.02152.jeremy@redfishsoftware.com.au>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, kuznet@ms2.inr.ac.ru,
+	Rusty Russell <rusty@rustcorp.com.au>, fenio@o2.pl,
+	davem@redhat.com, linux-net@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>, boris@boris.ca,
+	email@cs-ware.de, Jan.Schubert@GMX.li
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Julian Anastasov <ja@ssi.bg>
+In-Reply-To: <Pine.LNX.4.58.0401111517550.1161@u.domain.uli>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-  Fist of all I am extreme sorry for replying so late.
+Julian Anastasov wrote:
 
-> > core/netfilter.c:581: warning: implicit
-> declaration of
-> > function `ip_dev_find'
-> 
-> ... except for this one. Which version of the kernel
-> are you importing from?
+>- provide oif learned from the input route (as before the discussed
+>change). May be in 99% of the setups it selects the right route.
+>I think, we should use this, at least for 2.4.
+>
+>  
+>
+Why should we do a route lookup at all ? MASQUERADE doesn't need the
+dst_entry but only the interface address. Using ifa_list->ifa_local
+of the outgoing in_device seems like the simplest solution to me.
 
-     2.4.20-8
+Regards,
+Patrick
 
-> Try the 20040108 snapshot and/or importing from a
-> 2.6 source tree. I'll take a 
-> look at the ip_dev_find problem in the meantime.
 
-    Tried but the ip_dev_find problem is still the same.
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Hotjobs: Enter the "Signing Bonus" Sweepstakes
-http://hotjobs.sweepstakes.yahoo.com/signingbonus
