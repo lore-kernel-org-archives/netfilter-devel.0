@@ -1,15 +1,15 @@
-From: "Maciej Soltysiak" <solt@dns.toxicfilms.tv>
-Subject: Re: HOPLIMIT
-Date: Mon, 16 Feb 2004 12:45:27 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: netfilter/iptables and 2.6.x
+Date: Mon, 16 Feb 2004 13:10:03 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <006801c3f482$5f28a190$0e25fe96@pysiak>
-References: <Pine.LNX.4.58L.0402161307250.2317@alpha.zarz.agh.edu.pl>
+Message-ID: <Pine.LNX.4.44.0402161308470.13183-100000@filer.marasystems.com>
+References: <Pine.LNX.4.58L.0402161034560.601@alpha.zarz.agh.edu.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter developmnet mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: "Wojciech 'Sas' Cieciwa" <cieciwa@alpha.zarz.agh.edu.pl>
+In-Reply-To: <Pine.LNX.4.58L.0402161034560.601@alpha.zarz.agh.edu.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,14 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> In HOPLIMIT module file has name ip6t_HL.c but Makefile requires 
-> ip6t_HOPLIMIT.o, and ip6t_HL.c required ip6t_HOPLIMIT.h which not exist.
-> exist include/linux/netfilter_ipv6/ip6t_HL.h
-Hmm, what kernel is that ? Which version and is it
-a vanilla or a distro kernel?
+On Mon, 16 Feb 2004, Wojciech 'Sas' Cieciwa wrote:
 
-I wrote the modules as *_HL everywhere and I do not
-recall changing their names ever :-)
+> I read about some modules fixed for 2.6, but WHERE this modules are pleaced?
 
-Regards,
-Maciej
+As they are completed they are put into patch-o-matic-ng. Not all have
+been completed yet.
+
+> Can anyone one tell me where is fixed version of for example: string modules?
+
+The fix for the string module is not yet ready. See the archives for more 
+info.
+
+Regards
+Henrik
