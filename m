@@ -1,16 +1,10 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: fixed the bug of tracking TCP sequence number in ftp
- module
-Date: Thu, 10 Mar 2005 02:53:15 +0100
-Message-ID: <422FA88B.6080509@trash.net>
-References: <200503092146.j29LkY7a006055@toshiba.co.jp>
-	<422F6FF3.2080603@trash.net>
+From: "dpeng" <y030730@njupt.edu.cn>
+Subject: (no subject)
+Date: Thu, 10 Mar 2005 10:2:56 +0800
+Message-ID: <310424129.24052@njupt.edu.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <422F6FF3.2080603@trash.net>
+Content-Type: multipart/mixed; boundary="=====000_Dragon183564013353_====="
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,16 +16,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
+This is a multi-part message in MIME format.
 
-> TCP sequence number is 32bits. 
+--=====000_Dragon183564013353_=====
+Content-Type: text/plain;
+      charset="GB2312"
+Content-Transfer-Encoding: 8bit
 
-BTW, I have a nf_conntrack tree outside of patch-o-matic to get it ready
-for submission. I haven't exported it anywhere public yet, but since
-you're updating nf_conntrack anyway, it would be great if you could also
-send patches for nf_conntrack against your tree together with
-ip_conntrack patches. I'll try to export my tree somewhere this
-weekend.
+hello,
+	In order to understanding the Gred qdisc,i am reading sch_gred.c(linux/net/sched) .Is there anyone explain the element"u8 eqp" which belong to "struct gred_sched" to me?
+	
+thanks
+	 
+ 				
 
-Thanks,
-Patrick
+　　　　　　　　dpeng
+　　　　　　　　y030730@njupt.edu.cn
+　　　　　　　　　　2005-03-10
+
+--=====000_Dragon183564013353_=====--
