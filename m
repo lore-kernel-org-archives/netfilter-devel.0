@@ -1,19 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: NAT before IPsec with 2.6
-Date: Tue, 27 Jan 2004 21:51:23 +0100
+Date: Tue, 27 Jan 2004 21:45:46 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127205123.GA11761@sunbeam.de.gnumonks.org>
-References: <20040127130739.GR11761@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0401271457370.17979-100000@filer.marasystems.com>
+Message-ID: <20040127204546.GZ11761@sunbeam.de.gnumonks.org>
+References: <20040124082252.GA19035@alpha.home.local> <20040124092721.GA19140@alpha.home.local> <20040127103917.GC11761@sunbeam.de.gnumonks.org> <200401270811.36973.teastep@shorewall.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iRaAnoDFBoP0sW/E"
-Cc: Willy Tarreau <willy@w.ods.org>, Tom Eastep <teastep@shorewall.net>,
+	protocol="application/pgp-signature"; boundary="WVf18ZLo9bznw8Mz"
+Cc: Willy Tarreau <willy@w.ods.org>, Henrik Nordstrom <hno@marasystems.com>,
 	Michal Ludvig <mludvig@suse.cz>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: Tom Eastep <teastep@shorewall.net>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0401271457370.17979-100000@filer.marasystems.com>
+In-Reply-To: <200401270811.36973.teastep@shorewall.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,54 +25,49 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---iRaAnoDFBoP0sW/E
+--WVf18ZLo9bznw8Mz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 27, 2004 at 03:12:49PM +0100, Henrik Nordstrom wrote:
-> On Tue, 27 Jan 2004, Harald Welte wrote:
+> > To do this, somewhen between esp_output() is called and the beginning of
+> > the modification of the packet payload, we need to call
+> > nf_hook(POST_ROUTING).  This way, conntrack would be able to put the
+> > connection in the hash, and people can do SNAT-like operations in
+> > nat->POSTROUTING.  We could even pass a dummy output device structure
+> > with an interface name "esp" so people can SNAT everything heading for
+> > esp encapsulation.
 >=20
-> > > My view of where hooks should be for IPSec:
-> > >=20
-> > > (Client) -> Gateway -> (Gateway)
-> > >=20
-> > >   1. PREROUTING, original client packet
-> > >   2. FORWARD, original client packet. Destination the IPSec SPI
-> > >   3. POSTROUTING, original client packet. Destination the IPSec SPI
-> > >   4. OUTPUT, ESP packet. Preferably with some preserved information a=
-bout=20
-> > > the original packet attached.
-> > >   5. POSTROUTING, ESP packet.
-> >=20
-> > I agree to all but 4.    My proposal was PREROUTING, yours OUTPUT.
->=20
-> It is very hard to distinguis the different IPSec cases here. Save of
-> adding yet another hook for encapsulated and to be decapsulated packets
-> OUTPUT(/INPUT) is the closest match in my opinion.=20
+> I like this proposal.=20
 
-Please don't confuse hooks with chains.  I suggested to add new
-netfilter hooks (NF_IP_{PRE,POST}_XFRM), but attach the old INPUT/OUTPUT
-(or even PREROUTING/POSTROUTING) chains to those hooks.
+Great :)
 
-Hm.  You have a point, but I'm still not really sure.  I'll do it the
-way you proposed, but I might change my mind again in the future ;)
+> I assume that on input, payload packets would also have this dummy
+> device as their input device?=20
 
-> If introducing new hooks then we would have
->=20
->    XXXX -> POSTROUTING <-net-> PREROUTING -> YYYY
->=20
-> if XXXX and YYYY can be the same hook name in this case or not I'll leave
-> to the core team to ponder upon?
->=20
-> What exacly is the semantical problem of using OUTPUT/INPUT?  In my view
-> the ESP/AH packet is locally generated, and belongs to a connection with a
-> local endpoint.
+sure, makes sense.
 
-well, you convinced me (for now). new hooks, old chains.=20
+> And on output that payload packets would have "esp" as their output
+> device in the FORWARD and OUTPUT hooks as well?
 
-> Regards
-> Henrik
+no, that's way more difficult.  I'm not sure whether it can be done at
+all (without adding rediculous kludges to the code).
+
+> I would also like to register my vote for having the AH/ESP packets go
+> through INPUT and OUTPUT. This would allow Shorewall to treat IPSEC in
+> the same way as it does all other tunnel types:
+
+Mh.  Let's say we stick with the INPUT/OUTPUT chains for now.
+
+However, I would like to introduce new netfilter hooks.  At least for
+the beginning (due to lack of better ideas), I'm going to register the
+INPUT/OUTPUT chains with those new hooks.
+
+the idea of the new hooks is, that in reality they are at different
+locations in the stack.  And at some point we might have some module
+that is only interested in xfrm'ed packets.
+
+> -Tom
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -84,7 +79,7 @@ well, you convinced me (for now). new hooks, old chains.=20
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---iRaAnoDFBoP0sW/E
+--WVf18ZLo9bznw8Mz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -92,9 +87,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAFs9LXaXGVTD0i/8RAtZgAJ0ZuJjKMs7NI3upN+VrtkZg+tXJYQCgqPy6
-QMmPWj5Mz+RUjjtmiGVXf30=
-=gliI
+iD8DBQFAFs36XaXGVTD0i/8RAqkWAJ9AAOm6Lqc+TNfR2X4/rOpK8NiYDQCfUCiZ
+cbQLA7ZKNk0xujv+pj/4xKg=
+=ZCWF
 -----END PGP SIGNATURE-----
 
---iRaAnoDFBoP0sW/E--
+--WVf18ZLo9bznw8Mz--
