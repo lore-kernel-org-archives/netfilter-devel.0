@@ -1,12 +1,17 @@
-From: Peter Stamfest <peter@stamfest.at>
-Subject: [PATCH] Efficient matching of many IP blocks
-Date: Sat, 5 Jun 2004 11:35:47 +0200 (CEST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [linuximq] Re: [PATCH] pom-ng version of IMQ target (file is
+ attached this time)
+Date: Sat, 05 Jun 2004 14:56:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406051017530.16559-100000@peter.stamf.pr.at>
+Message-ID: <40C1C310.7070605@trash.net>
+References: <40A29E4A.94165870@info-link.net> <40A2D9D8.2050201@trash.net> <40A39C34.639DC30E@info-link.net> <40BB2C43.90704@dsl.pipex.com> <40BD0E6E.7040608@trash.net> <40BD1CC7.7080605@dsl.pipex.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+ boundary="------------050605050703030809040605"
+Cc: linuximq@yahoogroups.com,  netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Andy Furniss <andy.furniss@dsl.pipex.com>
+In-Reply-To: <40BD1CC7.7080605@dsl.pipex.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,92 +22,86 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------050605050703030809040605
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hello List, 
+Andy Furniss wrote:
+> Patrick McHardy wrote:
+>
+>> Your mail made me realize I need patch for exactly the same issue
+>> with ESFQ for work, so if you need it I can send it to you.
+> 
+> 
+> Yea - it would be nice to see the right way to do it :-)
 
-I haven't had the time to follow this list closely in the last couple of 
-weeks, but finally I get around to feed this back to the list.... I think 
-that something like the proposed module does not exist yet - if it does, 
-please tell me.
+With this patch esfq uses the original source address if the packet has
+been SNATed. It's a hack, but it solves the problem without IMQ.
 
-A while ago I had the problem to match many different IP-Adress Ranges 
-efficiently (several 100 Nets). However, the simple apporoach to just add 
-several hundred rules simply added to much latency to packet processing in 
-kernel 2.4.25.
+> 
+> I guessed using the example of the ingress NAT patch and changed egress 
+> postrouting hook to NF_IP_PRI_NAT_SRC - 1.
+> 
+> It seems to be OK for me - are there other safe places where IMQ is OK 
+> or any to be avoided?
 
-So I decided to implement a module to efficiently match many nets...
+I don't know about the current patches, you better ask the people
+maintaining them.
 
-The idea is to keep a "balanced" [1] tree of ip-ranges and to walk the 
-tree in order to decide if a given IP matches or not. That way, matching 
-N nets is now O(ln(N)) instead of O(N). I tested the module using all the 
-network assignments done by RIPE, APNIC and ARIN combined, and the speed 
-is really incredible.
+Regards
+Patrick
 
-Where could it be used? I got into this during a DDoS attack where we 
-thought about (temporarily) just blocking all traffic coming in from 
-countries other than where the intended audience lives (as a first line of 
-defence - this strategy can be questioned, but a DDoS situation somethimes 
-requires questionable counter-measures).
-
-Fighting spam by blocking out known spam-sources very early on is also an 
-option.
-
-The module gets configured through files in the /proc hierarchy (as this 
-was the simplest way to do it).
-
-I have written a README for the module which can be found here:
-
-   http://oss.stamfest.net/ipt-match-table/README
-
-And the code can be found here (a patch for the 2.4.25 kernel, some chunks 
-may be off by a couple of lines, but it _should_ apply cleanly to vanilla 
-2.4.25)
-
-   http://oss.stamfest.net/ipt-match-table/ipt-table-match-2.4.25.diff
-
-The iptables user-space support can be found here (sorry, no patch, just 
-the source).
-
-   http://oss.stamfest.net/ipt-match-table/libipt_table_match.c
-
-I would like to submit this module to the netfilter project - the only 
-trouble is that I simply do not have the time to put much more work into 
-it, so I am looking for somebody dedicated to take over maintenance. The 
-code is partly based on the condition module (but virtually no code is 
-left), everything else is (c) 2004 by me and the whole thing is GPLed.
-
-It has only been tested against kernel 2.4.25, I think it should work for 
-2.4.26 as well and I guess it does not work for 2.6. It also only works 
-for IPv4 nets and has only been tested on the i386 platform. The last 
-changes I did had to do with the handling of the /proc interface and I 
-hope this all works correctly right now - somebody cares to test this?
+> 
+> Andy.
+> 
 
 
+--------------050605050703030809040605
+Content-Type: text/x-patch;
+ name="esfq-source.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="esfq-source.diff"
 
-I really hope that somebody speaks up to take over this module, as I see 
-many useful applications for it. Implementing it for IPv6 would be great 
-as well... porting it to 2.6.x as well...
+diff -urN a/net/sched/sch_esfq.c b/net/sched/sch_esfq.c
+--- a/net/sched/sch_esfq.c	2004-06-05 15:45:19.000000000 +0200
++++ b/net/sched/sch_esfq.c	2004-06-05 15:47:21.000000000 +0200
+@@ -34,6 +34,7 @@
+ #include <linux/etherdevice.h>
+ #include <linux/notifier.h>
+ #include <linux/init.h>
++#include <linux/netfilter_ipv4/ip_conntrack.h>
+ #include <net/ip.h>
+ #include <linux/ipv6.h>
+ #include <net/route.h>
+@@ -109,6 +110,18 @@
+ 	return h & (q->hash_divisor-1);
+ }
+ 
++static inline u32 esfq_get_source(struct sk_buff *skb)
++{
++	struct ip_conntrack *ct;
++	int dir;
++
++	if (skb->nfct == NULL)
++		return skb->nh.iph->saddr;
++	ct = (struct ip_conntrack *)skb->nfct->master;
++	dir = CTINFO2DIR(skb->nfct - ct->infos);
++	return ct->tuplehash[dir].tuple.src.ip;
++}
++
+ static unsigned esfq_hash(struct esfq_sched_data *q, struct sk_buff *skb)
+ {
+ 	u32 h, h2;
+@@ -119,7 +132,7 @@
+ 	{
+ 		struct iphdr *iph = skb->nh.iph;
+ 		h = iph->daddr;
+-		hs = iph->saddr;
++		hs = esfq_get_source(skb);
+ 		h2 = hs^iph->protocol;
+ 		if (!(iph->frag_off&htons(IP_MF|IP_OFFSET)) &&
+ 		    (iph->protocol == IPPROTO_TCP ||
 
-Any feedback wrt to the concept, etc, is welcome. However, rather sooner 
-than later I have to give up maintenance of the code (due to lack of 
-time [- even while I'm writing this -], AND the original project the whole 
-beast was invented for has been halted as well).
-
-
-Footnote
---------
-
-[1] Currently two balancing strategies are implemented: one based on 
-network-sizes and the other on previous matches for nets. The latter 
-balancing further improves matching speed and is thought to be used for 
-heavy-traffic machines. Rebalancing should be done periodically, to adapt 
-for changes in the traffic pattern(s).
-
-
-peter
-
-
-_________________________________________________________________________
-Dipl.-Ing. Peter Stamfest         UNIX, Networking & Computing Consultant
-Tel: +43/699/10711205             Software Development - Internetservices
-E-Mail: peter@stamfest.at         WWW: http://stamfest.at/
+--------------050605050703030809040605--
