@@ -1,17 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: routing table improvements
-Date: Sun, 24 Oct 2004 20:41:34 -0700
+From: Harald Welte <laforge@netfilter.org>
+Subject: [PATCH 2.6] fix ipt_ULOG bogus error messages
+Date: Mon, 25 Oct 2004 09:44:03 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041024204134.542420ce.davem@davemloft.net>
-References: <876ef97a04102417193517f48f@mail.gmail.com>
+Message-ID: <20041025074403.GO18934@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-net@vger.kernel.org, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6o78gXsyQHm68LY/"
+Cc: Linux Netdev List <netdev@oss.sgi.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tobias DiPasquale <codeslinger@gmail.com>
-In-Reply-To: <876ef97a04102417193517f48f@mail.gmail.com>
+To: David Miller <davem@davemloft.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,37 +21,75 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 24 Oct 2004 20:19:55 -0400
-Tobias DiPasquale <codeslinger@gmail.com> wrote:
 
-> First of all, is anyone else doing something in this area?
+--6o78gXsyQHm68LY/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, this has been discussed on this list over the past
-2 months.  Let me save you some time:
 
-1) We are already working on abstracting out the algorithmic
-   portions of net/ipv4/fib_hash.c, see recent changeset
-   history of this file in 2.6.x for details
+Hi Dave!
 
-2) Using the BSD Radix tree will not improve performance,
-   it has the same algorithmic complexity as the current
-   32-hashtable algorithm for large routing tables
+Please apply the fix below, it addresses some bogus error messages
+("error during NLMSG_PUT") that were printed because of a wrong
+calculation of the 'len' parameter to NLMSG_PUT().
 
-3) Once the complexity of the mid-level routing table FIB
-   algorithms is made better, there is no evidence that this
-   means the routing cache should be removed.
+2.4.x fix will follow.
 
-   You should instead evaluate it's performance after the
-   mid-level algorithms perform acceptably.
+Thanks!
 
-If you remove the routing cache, I don't believe you understand
-the implications of this.  Firstly, you have to store the
-routing metrics for every remote host we talk to, where do you
-plan to store this and what will it be keyed upon?  How will you
-handle per-socket routes?  How will you handle the interface with
-the IPSEC layer which uses trees of routing cache entries as it's
-fundamental object type?
+--- linux-2.6.9/net/ipv4/netfilter/ipt_ULOG.c	2004-10-18 23:53:46.000000000=
+ +0200
++++ linux-2.6.9-ulog/net/ipv4/netfilter/ipt_ULOG.c	2004-10-25 09:39:28.1505=
+82258 +0200
+@@ -1,7 +1,7 @@
+ /*
+  * netfilter module for userspace packet logging daemons
+  *
+- * (C) 2000-2002 by Harald Welte <laforge@netfilter.org>
++ * (C) 2000-2004 by Harald Welte <laforge@netfilter.org>
+  *
+  * 2000/09/22 ulog-cprange feature added
+  * 2001/01/04 in-kernel queue as proposed by Sebastian Zander=20
+@@ -13,6 +13,8 @@
+  * 2002/07/07 remove broken nflog_rcv() function -HW
+  * 2002/08/29 fix shifted/unshifted nlgroup bug -HW
+  * 2002/10/30 fix uninitialized mac_len field - <Anders K. Pedersen>
++ * 2004/10/25 fix erroneous calculation of 'len' parameter to NLMSG_PUT
++ *	      resulting in bogus 'error during NLMSG_PUT' messages.
+  *
+  * (C) 1999-2001 Paul `Rusty' Russell
+  * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
+@@ -212,7 +214,7 @@
+=20
+ 	/* NLMSG_PUT contains a hidden goto nlmsg_failure !!! */
+ 	nlh =3D NLMSG_PUT(ub->skb, 0, ub->qlen, ULOG_NL_EVENT,=20
+-			size - sizeof(*nlh));
++			sizeof(*pm)+copy_len);
+ 	ub->qlen++;
+=20
+ 	pm =3D NLMSG_DATA(nlh);
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Please scan the list postings, particularly on netdev, and I've
-even given a keynote on our planned work just the other week in
-Tokyo.
+--6o78gXsyQHm68LY/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBfK7DXaXGVTD0i/8RAhImAJ9rqbwnyaL9luZFPTdwT5cj5z0wNgCfUniY
+JM6sbH+03mNjFP5BIahGkfo=
+=jZYh
+-----END PGP SIGNATURE-----
+
+--6o78gXsyQHm68LY/--
