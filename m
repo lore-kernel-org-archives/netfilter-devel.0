@@ -1,10 +1,10 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] RFC - compile iptables without O2
-Date: Wed, 8 Sep 2004 15:34:00 -0700
+Subject: [PATCH] document multiport invert option
+Date: Wed, 8 Sep 2004 16:35:35 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040908223400.GA16692@linuxace.com>
+Message-ID: <20040908233535.GA17162@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="FCuugMFkClbJLl1L"
+Content-Type: multipart/mixed; boundary="gBBFr7Ir9EOA20Yy"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,79 +19,159 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---FCuugMFkClbJLl1L
+--gBBFr7Ir9EOA20Yy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-There is an ancient bug in bugzilla (#13) which says iptables should 
-compile without 'O2'.  Not sure why this is important, but the below
-patch makes it compile, and the resulting executable works.
+The man/-h pages for multiport don't document that you can use
+inversion.  This can be confusing, since multiport uses '! --port x'
+instead of '--dport ! x' like tcp/udp.
 
-Anyone comment on why these '#ifndef __OPTIMIZE' statements were added
-in the first place, and whether I'm missing something by simply removing
-them?
+This closes bugzilla #143
 
 Phil
 
 
 
---FCuugMFkClbJLl1L
+
+--gBBFr7Ir9EOA20Yy
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-nooptimize
+Content-Disposition: attachment; filename=patch-notmultiport
 
-diff -ru ipt-orig/ip6tables.c ipt-new/ip6tables.c
---- ipt-orig/ip6tables.c	2004-06-14 18:02:16.000000000 -0400
-+++ ipt-new/ip6tables.c	2004-09-08 18:14:53.031881136 -0400
-@@ -148,14 +148,6 @@
-  * magic number of -1 */
- int line = -1;
- 
--#ifndef __OPTIMIZE__
--struct ip6t_entry_target *
--ip6t_get_target(struct ip6t_entry *e)
--{
--	return (void *)e + e->target_offset;
--}
--#endif
--
- static struct option *opts = original_opts;
- static unsigned int global_option_offset = 0;
- 
-diff -ru ipt-orig/iptables.c ipt-new/iptables.c
---- ipt-orig/iptables.c	2004-06-14 18:02:16.000000000 -0400
-+++ ipt-new/iptables.c	2004-09-08 18:14:23.430381248 -0400
-@@ -147,14 +147,6 @@
-  * magic number of -1 */
- int line = -1;
- 
--#ifndef __OPTIMIZE__
--struct ipt_entry_target *
--ipt_get_target(struct ipt_entry *e)
--{
--	return (void *)e + e->target_offset;
--}
--#endif
--
- static struct option *opts = original_opts;
- static unsigned int global_option_offset = 0;
- 
-diff -ru ipt-orig/libiptc/libiptc.c ipt-new/libiptc/libiptc.c
---- ipt-orig/libiptc/libiptc.c	2004-06-14 18:02:18.000000000 -0400
-+++ ipt-new/libiptc/libiptc.c	2004-09-08 18:19:36.847734568 -0400
-@@ -27,14 +27,6 @@
- #define IPT_LIB_DIR "/usr/local/lib/iptables"
- #endif
- 
--#ifndef __OPTIMIZE__
--STRUCT_ENTRY_TARGET *
--GET_TARGET(STRUCT_ENTRY *e)
--{
--	return (void *)e + e->target_offset;
--}
--#endif
--
- static int sockfd = -1;
- static void *iptc_fn = NULL;
- 
+diff -ru ipt-orig/extensions/libip6t_multiport.c ipt-new/extensions/libip6t_multiport.c
+--- ipt-orig/extensions/libip6t_multiport.c	2003-07-14 16:01:29.000000000 -0400
++++ ipt-new/extensions/libip6t_multiport.c	2004-09-08 19:29:59.897221576 -0400
+@@ -13,13 +13,13 @@
+ {
+ 	printf(
+ "multiport v%s options:\n"
+-" --source-ports port[,port,port...]\n"
+-" --sports ...\n"
++" [!] --source-ports port[,port,port...]\n"
++" [!] --sports ...\n"
+ "				match source port(s)\n"
+-" --destination-ports port[,port,port...]\n"
+-" --dports ...\n"
++" [!] --destination-ports port[,port,port...]\n"
++" [!] --dports ...\n"
+ "				match destination port(s)\n"
+-" --ports port[,port,port]\n"
++" [!] --ports port[,port,port]\n"
+ "				match both source and destination port(s)\n",
+ IPTABLES_VERSION);
+ }
+diff -ru ipt-orig/extensions/libip6t_multiport.man ipt-new/extensions/libip6t_multiport.man
+--- ipt-orig/extensions/libip6t_multiport.man	2004-01-22 10:04:24.000000000 -0500
++++ ipt-new/extensions/libip6t_multiport.man	2004-09-08 19:24:43.199366968 -0400
+@@ -4,16 +4,16 @@
+ or
+ .BR "-p udp" .
+ .TP
+-.BR "--source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the source port is one of the given ports.  The flag
+ .B --sports
+ is a convenient alias for this option.
+ .TP
+-.BR "--destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the destination port is one of the given ports.  The flag
+ .B --dports
+ is a convenient alias for this option.
+ .TP
+-.BR "--ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the both the source and destination ports are equal to each
+ other and to one of the given ports.
+diff -ru ipt-orig/extensions/libipt_mport.c ipt-new/extensions/libipt_mport.c
+--- ipt-orig/extensions/libipt_mport.c	2003-07-14 16:01:29.000000000 -0400
++++ ipt-new/extensions/libipt_mport.c	2004-09-08 19:30:26.468182176 -0400
+@@ -13,13 +13,13 @@
+ {
+ 	printf(
+ "mport v%s options:\n"
+-" --source-ports port[,port:port,port...]\n"
+-" --sports ...\n"
++" [!] --source-ports port[,port:port,port...]\n"
++" [!] --sports ...\n"
+ "				match source port(s)\n"
+-" --destination-ports port[,port:port,port...]\n"
+-" --dports ...\n"
++" [!] --destination-ports port[,port:port,port...]\n"
++" [!] --dports ...\n"
+ "				match destination port(s)\n"
+-" --ports port[,port:port,port]\n"
++" [!] --ports port[,port:port,port]\n"
+ "				match both source and destination port(s)\n",
+ IPTABLES_VERSION);
+ }
+diff -ru ipt-orig/extensions/libipt_mport.man ipt-new/extensions/libipt_mport.man
+--- ipt-orig/extensions/libipt_mport.man	2004-01-22 10:04:25.000000000 -0500
++++ ipt-new/extensions/libipt_mport.man	2004-09-08 19:24:08.047710832 -0400
+@@ -4,16 +4,16 @@
+ or
+ .BR "-p udp" .
+ .TP
+-.BR "--source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the source port is one of the given ports.  The flag
+ .B --sports
+ is a convenient alias for this option.
+ .TP
+-.BR "--destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the destination port is one of the given ports.  The flag
+ .B --dports
+ is a convenient alias for this option.
+ .TP
+-.BR "--ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the both the source and destination ports are equal to each
+ other and to one of the given ports.
+diff -ru ipt-orig/extensions/libipt_multiport.c ipt-new/extensions/libipt_multiport.c
+--- ipt-orig/extensions/libipt_multiport.c	2003-07-14 16:01:29.000000000 -0400
++++ ipt-new/extensions/libipt_multiport.c	2004-09-08 19:30:47.800939104 -0400
+@@ -13,13 +13,13 @@
+ {
+ 	printf(
+ "multiport v%s options:\n"
+-" --source-ports port[,port,port...]\n"
+-" --sports ...\n"
++" [!] --source-ports port[,port,port...]\n"
++" [!] --sports ...\n"
+ "				match source port(s)\n"
+-" --destination-ports port[,port,port...]\n"
+-" --dports ...\n"
++" [!] --destination-ports port[,port,port...]\n"
++" [!] --dports ...\n"
+ "				match destination port(s)\n"
+-" --ports port[,port,port]\n"
++" [!] --ports port[,port,port]\n"
+ "				match both source and destination port(s)\n",
+ IPTABLES_VERSION);
+ }
+diff -ru ipt-orig/extensions/libipt_multiport.man ipt-new/extensions/libipt_multiport.man
+--- ipt-orig/extensions/libipt_multiport.man	2004-01-22 10:04:25.000000000 -0500
++++ ipt-new/extensions/libipt_multiport.man	2004-09-08 19:23:50.583365816 -0400
+@@ -4,16 +4,16 @@
+ or
+ .BR "-p udp" .
+ .TP
+-.BR "--source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the source port is one of the given ports.  The flag
+ .B --sports
+ is a convenient alias for this option.
+ .TP
+-.BR "--destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the destination port is one of the given ports.  The flag
+ .B --dports
+ is a convenient alias for this option.
+ .TP
+-.BR "--ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
++.BR "[!] --ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the both the source and destination ports are equal to each
+ other and to one of the given ports.
 
---FCuugMFkClbJLl1L--
+--gBBFr7Ir9EOA20Yy--
