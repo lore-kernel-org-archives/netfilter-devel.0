@@ -1,16 +1,17 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
+From: Harald Welte <laforge@gnumonks.org>
 Subject: Re: ICMP match bug
-Date: Mon, 3 Feb 2003 14:20:20 +0100
+Date: Mon, 3 Feb 2003 14:52:18 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030203132020.GB17330@balabit.hu>
-References: <20030127140143.GA29965@balabit.hu> <20030127173937.GB31017@balabit.hu> <20030131120016.GY9073@naboo.cybercafe42>
+Message-ID: <20030203135218.GY27870@sunbeam.de.gnumonks.org>
+References: <20030127140143.GA29965@balabit.hu> <20030127173937.GB31017@balabit.hu> <20030131120016.GY9073@naboo.cybercafe42> <20030203132020.GB17330@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Dex7YdYhTh9daYX7"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
+To: Balazs Scheidler <bazsi@balabit.hu>
 Content-Disposition: inline
-In-Reply-To: <20030131120016.GY9073@naboo.cybercafe42>
+In-Reply-To: <20030203132020.GB17330@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,51 +22,65 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 31, 2003 at 01:00:16PM +0100, Harald Welte wrote:
-> On Mon, Jan 27, 2003 at 06:39:37PM +0100, Balazs Scheidler wrote:
-> > Let me fix myself, the latest iptables version seems to have this demand
-> > loading fixed, thus our problem is solved. 
-> 
-> ;).  Yes, I remember having fixed that demandloading code.  It now has
-> more comment than C code :(
-> 
-> > However the way the icmp match defaults does not seem to be correct to me.
-> 
-> I totally agree.  Any suggestions?
 
-I don't think this issue can be fixed without changing the userspace API
-(and retain compatibility)
+--Dex7YdYhTh9daYX7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Incompatible solutions:
+On Mon, Feb 03, 2003 at 02:20:20PM +0100, Balazs Scheidler wrote:
+> Option 1) could be implemented without changing the size of the match
+> struct, the other two would involve changing the size of the match struct.
+>=20
+> I've checked the kernel source, specifying -1 for old kernels would mean
+> 'match nothing', thus our beloved compatibility equations would be like
+> this:
+>=20
+> 1) old kernel - new iptables
+>=20
+> when ANY icmp type is specified, no packets would be matched, this is
+> different from the current behaviour when icmp type 0 is matched (PONG).
+>=20
+> when a usual icmp type is specified everything works correctly.
+>=20
+> 2) new kernel - old iptables
+>=20
+> no problem.
+>=20
+> The question is whether we can live with the incompatibility of matching
+> nothing instead of PONG when no --icmp-type is specified.
 
-1) have a special value meaning "no icmp type specified", for example -1 (0xFF)
-   would mean "any"
-2) create a possibility to match a range of icmp types, and initialize the
-   range to [0,max_icmp_type]
-3) use a bitmask instead of a range where each bit would mean a specific
-   icmp type
+yes, this is perfectly fine.  matching 'pong' when no icmp-type is
+specified was never advertised as a feature.  It's a misbehaviour which
+is now going to be corrected.  We should document this change at least
+in bugzilla (i.e. submit a bug report, and document the change to CVS)
 
-Option 1) could be implemented without changing the size of the match
-struct, the other two would involve changing the size of the match struct.
+Do you want to send me a patch?
 
-I've checked the kernel source, specifying -1 for old kernels would mean
-'match nothing', thus our beloved compatibility equations would be like
-this:
+Thanks.
 
-1) old kernel - new iptables
+> Bazsi
 
-when ANY icmp type is specified, no packets would be matched, this is
-different from the current behaviour when icmp type 0 is matched (PONG).
+--=20
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
-when a usual icmp type is specified everything works correctly.
+--Dex7YdYhTh9daYX7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-2) new kernel - old iptables
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-no problem.
+iD8DBQE+PnQSXaXGVTD0i/8RAgcdAJ4oZu3+Hx4M4V6ljEZK98CEQbRAywCdE6u1
+6qdaT7o4OUDGrjWWntvDoU0=
+=OIy3
+-----END PGP SIGNATURE-----
 
-The question is whether we can live with the incompatibility of matching
-nothing instead of PONG when no --icmp-type is specified.
-
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+--Dex7YdYhTh9daYX7--
