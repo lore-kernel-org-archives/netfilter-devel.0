@@ -1,66 +1,75 @@
-From: Mickael DILY <woksy@ether.net1.nerim.net>
-Subject: Re: [ANNOUNCE] netfilter.org looking for ftp and www mirror sites
-Date: Thu, 2 Oct 2003 13:36:46 +0200
-Sender: netfilter-admin@lists.netfilter.org
-Message-ID: <200310021336.48365.woksy@ether.net1.nerim.net>
-References: <20031001082832.GU5758@sunbeam.de.gnumonks.org>
-Reply-To: woksy@ether.net1.nerim.net
+From: DarKRaveR <DarKRaveR@habitat-b.de>
+Subject: Re: http&rtsp kernel 'proxy'
+Date: Thu, 2 Oct 2003 14:15:07 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1268892368.20031002141507@habitat-b.de>
+References: <200310021145.10243.fjcabello@visual-tools.com>
+Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netfilter-admin@lists.netfilter.org>
-To: webmaster@netfilter.org, Harald Welte <laforge@netfilter.org>,
-	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20031001082832.GU5758@sunbeam.de.gnumonks.org>
-Errors-To: netfilter-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Francisco Javier Cabello Torres <fjcabello@visual-tools.com>
+In-Reply-To: <200310021145.10243.fjcabello@visual-tools.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hello Francisco,
 
-Hi !
-How high does the bandwith need to be ?=20
-If it is not too much high, i can provide a mirror for .fr
-How many MBits for a month ?=20
+I don't know about rtsp, but consider this:
+
+HTTP should not be a problem, since the server is just answering, or
+to put it in other words: As soon as the server establishes a
+connection, the client will start the 'communication'. So it should be
+possible to to analyse, what the client wants. If for rtsp the order
+is reversed, like for smtp or most other protocols, your plans are
+impossible. If, in both cases, the client initiates the protocol, I
+assume you plans can succeed, at least I don'T see any reason, why it
+shouldn't work.
+
+Thursday, October 2, 2003, 11:45:10 AM, you wrote:
+
+FJCT> Hello,
+FJCT> I'm new with kernel development. 
+FJCT> I would like to implement a http&rtsp port as a kernel module.
+FJCT> First, I will try to explain what I want to develop. I have two servers, one 
+FJCT> of then a HTTP server, listening on port 80, and the second one a RTSP 
+FJCT> server, listening on port 554. My system is besides a firewall which only 
+FJCT> allow traffic in port 80. Because of that I need a 'proxy' listen on port 80 
+FJCT> which redirect traffic to RTSP server (still listen on 554) or HTTP server 
+FJCT> (now listen on 8080). This 'proxy' should  analyze incoming packets and 
+FJCT> depending of contents redirect it to one of the servers.  If packet contents 
+FJCT> belongs to rtsp protocol, it will be redirect to port 554, however if it's a 
+FJCT> http packet, it will be redirect to 8080.
+
+FJCT> I have been reading some documentation, and it think it would be possible to 
+FJCT> implement a iptables 'match' for rtsp and http packets, modify iptables to 
+FJCT> accept new match and then, with my modified iptables, specify rules to send 
+FJCT> packets to correct servers.
+FJCT> Any ideas? Am I going crazy?  ;)
+
+FJCT> Thanks.
+
+FJCT> Paco
+
+FJCT> --
+FJCT> Stop software patents!
+FJCT> examples: http://www.base.com/software-patents/examples.html
+FJCT> stop it, see http://petition.eurolinux.org & http://petition.ffii.org/eubsa/en
+
+FJCT>  11:44:07 up 1 day, 19:11,  1 user,  load average: 0.09, 0.07, 0.04
 
 
 
-Le Mercredi 1 Octobre 2003 10:28, Harald Welte a =E9crit :
- Hi!
 
- The netfilter project is calling for international mirrors of it's
- homepage and ftp server.
-
- Ideally we would have one mirror for ftp and http per country,
- having ftp.<CCtld>.netfilter.org and www.<CCtld>.netfilter.org in
- operation.
-
- We already have mirrors for: .de, .at, .it, .ar
-
- If you have sufficient bandwith and want to donate a mirror, please
- contact webmaster@netfilter.org (Reply-To is set in this message).
-
- The mirrors are pulling from the public rsync service
- (rsync.netfilter.org::ftp / rsync.netfilter.org::www).
-
- Thanks in advance!
-
-- --=20
-- - M. DILY, administrateur r=E9seau, geek :-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-
-iD8DBQE/fA3OzEzekoYhlpsRAsC3AKDHMZda9BfxxYh/FS0pKwabC93u7QCgn8wl
-1FHoa2NgelBWHV/O7QBPzvA=3D
-=3D6Zg5
------END PGP SIGNATURE-----
+-- 
+Best regards,
+ DarKRaveR                            mailto:DarKRaveR@habitat-b.de
