@@ -1,12 +1,16 @@
-From: Michal Schmidt <xschmi00@stud.feec.vutbr.cz>
-Subject: GPF in ip_tables on linux-2.6.10
-Date: Mon, 27 Dec 2004 18:35:10 +0100
-Message-ID: <41D047CE.50407@stud.feec.vutbr.cz>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH] Fix conntrack iteration.
+Date: Tue, 28 Dec 2004 12:45:39 +1100
+Message-ID: <1104198339.6910.13.camel@localhost.localdomain>
+References: <1103888157.4000.2.camel@localhost.localdomain>
+	<41CD79F8.5060003@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41CD79F8.5060003@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,74 +22,297 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello everyone,
+On Sat, 2004-12-25 at 15:32 +0100, Patrick McHardy wrote:
+> Rusty Russell wrote:
+> >  	WRITE_LOCK(&ip_conntrack_lock);
+> > -	/* Make sure don't leave any orphaned expectations lying around */
+> > -	if (ct->expecting)
+> > -		remove_expectations(ct, 1);
+> > +	BUG_ON(ct->expecting);
+> 
+> This doesn't look right. The call to remove_expectations was
+> added to deal with the TFTP helper registering expectations
+> for unconfirmed connections.
 
-I got a general protection fault when loading iptables rules
-with SuSEfirewall2. What I exactly did was:
-Boot into kdm on my laptop. Login as myself. While KDE was loading,
-I switched to a VGA console with CTRL+ALT+F1, login as root.
-KDE was still loading in the background. As root I started OpenVPN:
+Yep, good catch.  Reverted that, added a comment in a separate patch.
 
-openvpn --config /etc/openvpn/michich.conf &
+Cheers,
+Rusty.
 
-This created the interface tun0.
-Now I tried to reload my SuSEfirewall2 rules with:
+Name: Fix ip_ct_selective_cleanup(), and rename ip_ct_iterate_cleanup()
+Status: Tested under nfsim
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-rcSuSEfirewall2 restart
+Several places use ip_ct_selective_cleanup() as a general iterator,
+which it was not intended for (it takes a const ip_conntrack *).  So
+rename it, and make it take a non-const argument.
 
-The script hung and this message appeared in syslog:
+Also, it missed unconfirmed connections, which aren't in the hash
+table.  This introduces a potential problem for users which expect to
+iterate all connections (such as the helper deletion code).  So keep a
+linked list of unconfirmed connections as well.
 
-Dec 26 00:49:25 localhost SuSEfirewall2: Firewall customary rules loaded from /etc/sysconfig/scripts/SuSEfirewall2-custom
-Dec 26 00:49:25 localhost kernel: general protection fault: 0000 [#1]
-Dec 26 00:49:25 localhost kernel: PREEMPT
-Dec 26 00:49:25 localhost kernel: Modules linked in: usbserial parport_pc lp parport snd_intel8x0m snd_intel8x0 
-snd_ac97_codec snd_pcm snd_timer snd soundcore snd_page_alloc cpufreq_powersave speedstep_ich speedstep_lib freq_table video 
-battery ibm_acpi fan button thermal processor ac ipt_TCPMSS ipt_TOS ipt_state ipt_LOG ehci_hcd uhci_hcd usbcore e100 mii airo 
-ipt_REJECT iptable_mangle iptable_filter ip_nat_ftp iptable_nat ip_conntrack_ftp ip_conntrack ip_tables tun ide_cd cdrom 
-nls_cp437 vfat fat nls_iso8859_1 ntfs nls_base
-Dec 26 00:49:25 localhost kernel: CPU:    0
-Dec 26 00:49:25 localhost kernel: EIP:    0060:[<c013b4c2>]    Not tainted VLI
-Dec 26 00:49:25 localhost kernel: EFLAGS: 00010202   (2.6.10)
-Dec 26 00:49:25 localhost kernel: EIP is at __free_pages+0x2/0x40
-Dec 26 00:49:25 localhost kernel: eax: ffffffff   ebx: 00000001   ecx: ffffffff   edx: 00000000
-Dec 26 00:49:25 localhost kernel: esi: cfb31220   edi: 00000001   ebp: d0a560b0   esp: c9083c0c
-Dec 26 00:49:25 localhost kernel: ds: 007b   es: 007b   ss: 0068
-Dec 26 00:49:25 localhost kernel: Process iptables (pid: 7083, threadinfo=c9083000 task=cd6d3020)
-Dec 26 00:49:25 localhost kernel: Stack: c014bda2 00000000 00000094 00000001 d096f960 d0a56120 00000070 c9083000
-Dec 26 00:49:25 localhost kernel:        d098a66e c9083c54 d098cce0 c9083c84 c9083c98 0805b11c 000070e0 d0a64000
-Dec 26 00:49:25 localhost kernel:        d0a4f000 d0b1a000 00000000 746c6966 00007265 00000000 00000000 00000000
-Dec 26 00:49:25 localhost kernel: Call Trace:
-Dec 26 00:49:25 localhost kernel:  [<c014bda2>] __vunmap+0xb2/0x100
-Dec 26 00:49:25 localhost kernel:  [<d098a66e>] do_replace+0x49e/0x5d0 [ip_tables]
-Dec 26 00:49:25 localhost kernel:  [<d098a96b>] do_ipt_set_ctl+0x4b/0x60 [ip_tables]
-Dec 26 00:49:25 localhost kernel:  [<c0246351>] nf_sockopt+0xd1/0x130
-Dec 26 00:49:25 localhost kernel:  [<c02463d0>] nf_setsockopt+0x20/0x30
-Dec 26 00:49:25 localhost kernel:  [<c025611e>] ip_setsockopt+0xde/0xa90
-Dec 26 00:49:25 localhost kernel:  [<c0246362>] nf_sockopt+0xe2/0x130
-Dec 26 00:49:25 localhost kernel:  [<c0256b9b>] ip_getsockopt+0xcb/0x6b0
-Dec 26 00:49:25 localhost kernel:  [<c013756c>] generic_file_read+0x9c/0xc0
-Dec 26 00:49:25 localhost kernel:  [<c013e25d>] do_page_cache_readahead+0xbd/0x1b0
-Dec 26 00:49:25 localhost kernel:  [<c01c4599>] __copy_to_user_ll+0x59/0x70
-Dec 26 00:49:25 localhost kernel:  [<c013af8c>] buffered_rmqueue+0xec/0x1d0
-Dec 26 00:49:25 localhost kernel:  [<c013b137>] __alloc_pages+0xc7/0x370
-Dec 26 00:49:25 localhost kernel:  [<c0145cb5>] do_anonymous_page+0x115/0x190
-Dec 26 00:49:25 localhost kernel:  [<c0145d9b>] do_no_page+0x6b/0x350
-Dec 26 00:49:25 localhost kernel:  [<c0146309>] handle_mm_fault+0x179/0x1d0
-Dec 26 00:49:25 localhost kernel:  [<c0114621>] do_page_fault+0x3b1/0x58f
-Dec 26 00:49:25 localhost kernel:  [<c01478d9>] vma_merge+0x149/0x1e0
-Dec 26 00:49:25 localhost kernel:  [<c0236566>] sock_common_setsockopt+0x26/0x40
-Dec 26 00:49:25 localhost kernel:  [<c02342ed>] sys_setsockopt+0x5d/0xa0
-Dec 26 00:49:25 localhost kernel:  [<c02349d2>] sys_socketcall+0x202/0x250
-Dec 26 00:49:25 localhost kernel:  [<c0114270>] do_page_fault+0x0/0x58f
-Dec 26 00:49:25 localhost kernel:  [<c010305f>] syscall_call+0x7/0xb
-Dec 26 00:49:25 localhost kernel: Code: 78 16 8d b4 26 00 00 00 00 8b 44 9e 08 8b 56 04 e8 b4 f8 ff ff 4b 79 f1 5b 5e c3 8d 
-b4 26 00 00 00 00 8d bc 27 00 00 00 00 89 c1 <8b> 00 f6 c4 08 75 1c 8b 41 04 40 74 1e 83 41 04 ff 0f 98 c0 84
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_nat_core.c
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_nat_core.c	2004-12-28 12:31:35.132307528 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_nat_core.c	2004-12-28 12:41:40.705246448 +1100
+@@ -1006,16 +1006,16 @@
+ }
+ 
+ /* Clear NAT section of all conntracks, in case we're loaded again. */
+-static int clean_nat(const struct ip_conntrack *i, void *data)
++static int clean_nat(struct ip_conntrack *i, void *data)
+ {
+-	memset((void *)&i->nat, 0, sizeof(i->nat));
++	memset(&i->nat, 0, sizeof(i->nat));
+ 	return 0;
+ }
+ 
+ /* Not __exit: called from ip_nat_standalone.c:init_or_cleanup() --RR */
+ void ip_nat_cleanup(void)
+ {
+-	ip_ct_selective_cleanup(&clean_nat, NULL);
++	ip_ct_iterate_cleanup(&clean_nat, NULL);
+ 	ip_conntrack_destroyed = NULL;
+ 	vfree(bysource);
+ }
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_standalone.c
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-12-28 12:31:35.131307680 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-12-28 12:41:40.729242800 +1100
+@@ -48,7 +48,7 @@
+ extern atomic_t ip_conntrack_count;
+ DECLARE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
+ 
+-static int kill_proto(const struct ip_conntrack *i, void *data)
++static int kill_proto(struct ip_conntrack *i, void *data)
+ {
+ 	return (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum == 
+ 			*((u_int8_t *) data));
+@@ -859,7 +859,7 @@
+ 	synchronize_net();
+ 
+ 	/* Remove all contrack entries for this protocol */
+-	ip_ct_selective_cleanup(kill_proto, &proto->proto);
++	ip_ct_iterate_cleanup(kill_proto, &proto->proto);
+ }
+ 
+ static int __init init(void)
+@@ -890,7 +890,7 @@
+ EXPORT_SYMBOL(need_ip_conntrack);
+ EXPORT_SYMBOL(ip_conntrack_helper_register);
+ EXPORT_SYMBOL(ip_conntrack_helper_unregister);
+-EXPORT_SYMBOL(ip_ct_selective_cleanup);
++EXPORT_SYMBOL(ip_ct_iterate_cleanup);
+ EXPORT_SYMBOL(ip_ct_refresh_acct);
+ EXPORT_SYMBOL(ip_ct_protos);
+ EXPORT_SYMBOL(ip_ct_find_proto);
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_nat_helper.c
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_nat_helper.c	2004-12-24 22:25:07.000000000 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_nat_helper.c	2004-12-28 12:41:40.728242952 +1100
+@@ -444,7 +444,7 @@
+ }
+ 
+ static int
+-kill_helper(const struct ip_conntrack *i, void *helper)
++kill_helper(struct ip_conntrack *i, void *helper)
+ {
+ 	int ret;
+ 
+@@ -474,5 +474,5 @@
+ 	   forces admins to gen fake RSTs or bounce box, either of
+ 	   which is just a long-winded way of making things
+ 	   worse. --RR */
+-	ip_ct_selective_cleanup(kill_helper, me);
++	ip_ct_iterate_cleanup(kill_helper, me);
+ }
+Index: linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack.h	2004-12-28 12:31:05.339836672 +1100
++++ linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h	2004-12-28 12:41:40.729242800 +1100
+@@ -283,10 +283,10 @@
+ struct sk_buff *
+ ip_ct_gather_frags(struct sk_buff *skb);
+ 
+-/* Delete all conntracks which match. */
++/* Iterate over all conntracks: if iter returns true, it's deleted. */
+ extern void
+-ip_ct_selective_cleanup(int (*kill)(const struct ip_conntrack *i, void *data),
+-			void *data);
++ip_ct_iterate_cleanup(int (*iter)(struct ip_conntrack *i, void *data),
++		      void *data);
+ 
+ /* It's confirmed if it is, or has been in the hash table. */
+ static inline int is_confirmed(struct ip_conntrack *ct)
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_MASQUERADE.c
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-12-28 12:31:10.438061624 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-12-28 12:41:40.730242648 +1100
+@@ -118,7 +118,7 @@
+ }
+ 
+ static inline int
+-device_cmp(const struct ip_conntrack *i, void *ifindex)
++device_cmp(struct ip_conntrack *i, void *ifindex)
+ {
+ 	int ret;
+ 
+@@ -141,7 +141,7 @@
+ 		   and forget them. */
+ 		IP_NF_ASSERT(dev->ifindex != 0);
+ 
+-		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
++		ip_ct_iterate_cleanup(device_cmp, (void *)(long)dev->ifindex);
+ 	}
+ 
+ 	return NOTIFY_DONE;
+@@ -159,7 +159,7 @@
+ 		   and forget them. */
+ 		IP_NF_ASSERT(dev->ifindex != 0);
+ 
+-		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
++		ip_ct_iterate_cleanup(device_cmp, (void *)(long)dev->ifindex);
+ 	}
+ 
+ 	return NOTIFY_DONE;
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_core.c	2004-12-28 12:31:10.342076216 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c	2004-12-28 12:41:40.731242496 +1100
+@@ -74,6 +74,7 @@
+ static kmem_cache_t *ip_conntrack_expect_cachep;
+ struct ip_conntrack ip_conntrack_untracked;
+ unsigned int ip_ct_log_invalid;
++static LIST_HEAD(unconfirmed);
+ 
+ DEFINE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
+ 
+@@ -302,6 +303,12 @@
+ 	if (ct->expecting)
+ 		remove_expectations(ct, 1);
+ 
++	/* We overload first tuple to link into unconfirmed list. */
++	if (!is_confirmed(ct)) {
++		BUG_ON(list_empty(&ct->tuplehash[IP_CT_DIR_ORIGINAL].list));
++		list_del(&ct->tuplehash[IP_CT_DIR_ORIGINAL].list);
++	}
++
+ 	/* Delete our master expectation */
+ 	if (ct->master) {
+ 		if (ct->master->expectant) {
+@@ -412,6 +419,10 @@
+ 	DEBUGP("Confirming conntrack %p\n", ct);
+ 
+ 	WRITE_LOCK(&ip_conntrack_lock);
++
++	/* Remove from unconfirmed list */
++	list_del(&ct->tuplehash[IP_CT_DIR_ORIGINAL].list);
++
+ 	/* See if there's one in the list already, including reverse:
+            NAT could have grabbed it without realizing, since we're
+            not in the hash.  If there is, we lost race. */
+@@ -603,6 +614,10 @@
+ 
+ 		/* this is a braindead... --pablo */
+ 		atomic_inc(&ip_conntrack_count);
++
++		/* Overload tuple linked list to put us in unconfirmed list. */
++		list_add(&conntrack->tuplehash[IP_CT_DIR_ORIGINAL].list,
++			 &unconfirmed);
+ 		WRITE_UNLOCK(&ip_conntrack_lock);
+ 
+ 		if (expected->expectfn)
+@@ -617,7 +632,11 @@
+ 		CONNTRACK_STAT_INC(new);
+ 	}
+ 
+-end:	atomic_inc(&ip_conntrack_count);
++end:
++	/* Overload tuple linked list to put us in unconfirmed list. */
++	list_add(&conntrack->tuplehash[IP_CT_DIR_ORIGINAL].list, &unconfirmed);
++
++	atomic_inc(&ip_conntrack_count);
+ 	WRITE_UNLOCK(&ip_conntrack_lock);
+ 
+ ret:	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
+@@ -1067,6 +1086,7 @@
+ 	LIST_DELETE(&helpers, me);
+ 
+ 	/* Get rid of expecteds, set helpers to NULL. */
++	LIST_FIND_W(&unconfirmed, unhelp, struct ip_conntrack_tuple_hash*, me);
+ 	for (i = 0; i < ip_conntrack_htable_size; i++)
+ 		LIST_FIND_W(&ip_conntrack_hash[i], unhelp,
+ 			    struct ip_conntrack_tuple_hash *, me);
+@@ -1179,25 +1199,28 @@
+ }
+ 
+ static inline int
+-do_kill(const struct ip_conntrack_tuple_hash *i,
+-	int (*kill)(const struct ip_conntrack *i, void *data),
++do_iter(const struct ip_conntrack_tuple_hash *i,
++	int (*iter)(struct ip_conntrack *i, void *data),
+ 	void *data)
+ {
+-	return kill(i->ctrack, data);
++	return iter(i->ctrack, data);
+ }
+ 
+ /* Bring out ya dead! */
+ static struct ip_conntrack_tuple_hash *
+-get_next_corpse(int (*kill)(const struct ip_conntrack *i, void *data),
++get_next_corpse(int (*iter)(struct ip_conntrack *i, void *data),
+ 		void *data, unsigned int *bucket)
+ {
+ 	struct ip_conntrack_tuple_hash *h = NULL;
+ 
+ 	READ_LOCK(&ip_conntrack_lock);
+ 	for (; !h && *bucket < ip_conntrack_htable_size; (*bucket)++) {
+-		h = LIST_FIND(&ip_conntrack_hash[*bucket], do_kill,
+-			      struct ip_conntrack_tuple_hash *, kill, data);
++		h = LIST_FIND_W(&ip_conntrack_hash[*bucket], do_iter,
++				struct ip_conntrack_tuple_hash *, iter, data);
+ 	}
++	if (*bucket == ip_conntrack_htable_size)
++		h = LIST_FIND_W(&unconfirmed, do_iter,
++				struct ip_conntrack_tuple_hash *, iter, data);
+ 	if (h)
+ 		atomic_inc(&h->ctrack->ct_general.use);
+ 	READ_UNLOCK(&ip_conntrack_lock);
+@@ -1206,13 +1229,12 @@
+ }
+ 
+ void
+-ip_ct_selective_cleanup(int (*kill)(const struct ip_conntrack *i, void *data),
+-			void *data)
++ip_ct_iterate_cleanup(int (*iter)(struct ip_conntrack *i, void *), void *data)
+ {
+ 	struct ip_conntrack_tuple_hash *h;
+ 	unsigned int bucket = 0;
+ 
+-	while ((h = get_next_corpse(kill, data, &bucket)) != NULL) {
++	while ((h = get_next_corpse(iter, data, &bucket)) != NULL) {
+ 		/* Time to push up daises... */
+ 		if (del_timer(&h->ctrack->timeout))
+ 			death_by_timeout((unsigned long)h->ctrack);
+@@ -1283,7 +1305,7 @@
+ 	.get		= &getorigdst,
+ };
+ 
+-static int kill_all(const struct ip_conntrack *i, void *data)
++static int kill_all(struct ip_conntrack *i, void *data)
+ {
+ 	return 1;
+ }
+@@ -1299,7 +1321,7 @@
+ 	synchronize_net();
+  
+  i_see_dead_people:
+-	ip_ct_selective_cleanup(kill_all, NULL);
++	ip_ct_iterate_cleanup(kill_all, NULL);
+ 	if (atomic_read(&ip_conntrack_count) != 0) {
+ 		schedule();
+ 		goto i_see_dead_people;
 
-
-I was able to sync the disk and reboot.
-
-I've been trying to reproduce but haven't succeeded yet.
-My system is IBM ThinkPad R40 with a Cisco Aironet mini-PCI
-802.11b card, SuSE 8.2, Linux 2.6.10.
-
-Michal
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
