@@ -1,14 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] trivial patch for TCPLAG iptables version
-Date: Wed, 16 Mar 2005 15:41:04 +0100
-Message-ID: <42384580.4010502@trash.net>
-References: <1110978420.5786.9.camel@scaramouche>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK]: fixed the bug that conntrack becomes its
+ master.
+Date: Thu, 17 Mar 2005 04:02:05 +0900 (JST)
+Message-ID: <200503161902.j2GJ26J2028676@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Thu_Mar_17_04:02:05_2005_460)--"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
-To: Torsten Luettgert <t.luettgert@pressestimmen.de>
-In-Reply-To: <1110978420.5786.9.camel@scaramouche>
+Cc: usagi-core@linux-ipv6.org
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,19 +20,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Torsten Luettgert wrote:
-> Hi,
-> 
-> iptables/extensions/libipt_TCPLAG.c from svn requires
-> iptables version 1.2.3 in its struct iptables_target, so
-> the TCPLAG target cannot be used from iptables other than
-> 1.2.3.
-> 
-> The attached trivial patch sets .version to IPTABLES_VERSION,
-> just as all the other libipt_*.c matches have.
-> 
+----Next_Part(Thu_Mar_17_04:02:05_2005_460)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Applied, thanks Torsten.
 
-Regards
-Patrick
+Hi, Patrick,
+
+This patch for nf_conntrack fixes a shameful bug that conntrack becomes
+its master.
+
+Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+
+Regards,
+
+----Next_Part(Thu_Mar_17_04:02:05_2005_460)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="fix-master.patch"
+
+Index: linux-2.6/net/netfilter/nf_conntrack_core.c
+===================================================================
+--- linux-2.6/net/netfilter/nf_conntrack_core.c	(revision 3776)
++++ linux-2.6/net/netfilter/nf_conntrack_core.c	(working copy)
+@@ -761,7 +761,7 @@
+ 			conntrack, exp);
+ 		/* Welcome, Mr. Bond.  We've been expecting you... */
+ 		__set_bit(NF_S_EXPECTED_BIT, &conntrack->status);
+-		conntrack->master = conntrack;
++		conntrack->master = exp->master;
+ #if CONFIG_NF_CONNTRACK_MARK
+ 		conntrack->mark = exp->master->mark;
+ #endif
+
+----Next_Part(Thu_Mar_17_04:02:05_2005_460)----
