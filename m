@@ -1,12 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] Add inversion to multiport match
-Date: Fri, 14 Jan 2005 10:10:30 -0800
-Message-ID: <20050114181030.GA3598@linuxace.com>
+From: Samuel Jean <sj-netfilter@cookinglinux.org>
+Subject: Re: ipt_time fixes (resend, sorry)
+Date: Fri, 14 Jan 2005 17:47:22 -0500
+Message-ID: <41E84BFA.1030900@cookinglinux.org>
+References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>	<20050114143722.GA10088@ti64.telemetry-investments.com>	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
+	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="EVF5PPMfhYS0aIcm"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: olenf@ans.pl
+In-Reply-To: <57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,129 +22,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I wrote:
+> I use an ugly hack of this kind:
+> 
+>    /* We might not have a timestamp, get one */
+>    if (skb->stamp.tv_sec == 0)
+>       do_gettimeofday((struct timeval *)&skb->stamp);
+> 
+>    now = timeval_to_jiffies(&skb->stamp);
+> 
+> 
+>    if (struct->curr != now)
+>       struct->prev = xchg(&struct->curr, now);
+> 
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hey, just realized it really doesn't make sense in that module 
+(ipt_time). Sorry, I think I was blinded by my current module.
 
-Should add this to rev1 of multiport before 2.6.11 comes out.
+Please discard my post.
 
-Phil
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
-
-
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-mport-kern
-
-diff -ru linux-orig/include/linux/netfilter_ipv4/ipt_multiport.h linux-mport/include/linux/netfilter_ipv4/ipt_multiport.h
---- linux-orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-07 20:51:06.293435976 -0500
-+++ linux-mport/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-06 19:55:28.000000000 -0500
-@@ -25,5 +25,6 @@
- 	u_int8_t count;				/* Number of ports */
- 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
- 	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
-+	u_int8_t invert;			/* Invert flag */
- };
- #endif /*_IPT_MULTIPORT_H*/
-diff -ru linux-orig/net/ipv4/netfilter/ipt_multiport.c linux-mport/net/ipv4/netfilter/ipt_multiport.c
---- linux-orig/net/ipv4/netfilter/ipt_multiport.c	2005-01-07 20:51:06.404419104 -0500
-+++ linux-mport/net/ipv4/netfilter/ipt_multiport.c	2005-01-07 20:53:23.468582184 -0500
-@@ -64,30 +64,31 @@
- 
- 			if (minfo->flags == IPT_MULTIPORT_SOURCE
- 			    && src >= s && src <= e)
--				return 1;
-+				return 1 ^ minfo->invert;
- 			if (minfo->flags == IPT_MULTIPORT_DESTINATION
- 			    && dst >= s && dst <= e)
--				return 1;
-+				return 1 ^ minfo->invert;
- 			if (minfo->flags == IPT_MULTIPORT_EITHER
- 			    && ((dst >= s && dst <= e)
- 				|| (src >= s && src <= e)))
--				return 1;
-+				return 1 ^ minfo->invert;
- 		} else {
- 			/* exact port matching */
- 			duprintf("src or dst matches with %d?\n", s);
-+
- 			if (minfo->flags == IPT_MULTIPORT_SOURCE
- 			    && src == s)
--				return 1;
-+				return 1 ^ minfo->invert;
- 			if (minfo->flags == IPT_MULTIPORT_DESTINATION
- 			    && dst == s)
--				return 1;
-+				return 1 ^ minfo->invert;
- 			if (minfo->flags == IPT_MULTIPORT_EITHER
- 			    && (src == s || dst == s))
--				return 1;
-+				return 1 ^ minfo->invert;
- 		}
- 	}
-  
-- 	return 0;
-+ 	return minfo->invert;
- }
- 
- static int
-
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-mport-ipt
-
-diff -ru iptables-orig/extensions/libipt_multiport.c iptables-new/extensions/libipt_multiport.c
---- iptables-orig/extensions/libipt_multiport.c	2005-01-03 04:51:58.000000000 -0500
-+++ iptables-new/extensions/libipt_multiport.c	2005-01-07 20:08:07.000000000 -0500
-@@ -31,13 +31,13 @@
- {
- 	printf(
- "multiport v%s options:\n"
--" --source-ports port[,port:port,port...]\n"
-+" --source-ports [!] port[,port:port,port...]\n"
- " --sports ...\n"
- "				match source port(s)\n"
--" --destination-ports port[,port:port,port...]\n"
-+" --destination-ports [!] port[,port:port,port...]\n"
- " --dports ...\n"
- "				match destination port(s)\n"
--" --ports port[,port:port,port]\n"
-+" --ports [!] port[,port:port,port]\n"
- "				match both source and destination port(s)\n",
- IPTABLES_VERSION);
- }
-@@ -255,8 +255,7 @@
- 	}
- 
- 	if (invert)
--		exit_error(PARAMETER_PROBLEM,
--			   "multiport does not support invert");
-+		multiinfo->invert = 1;
- 
- 	if (*flags)
- 		exit_error(PARAMETER_PROBLEM,
-@@ -362,6 +361,9 @@
- 		break;
- 	}
- 
-+	if (multiinfo->invert)
-+		printf("! ");
-+
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
- 		print_port(multiinfo->ports[i], ip->proto, numeric);
-diff -ru iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h
---- iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-03 04:37:07.000000000 -0500
-+++ iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-06 20:37:38.000000000 -0500
-@@ -24,5 +24,6 @@
- 	u_int8_t count;				/* Number of ports */
- 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
- 	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
-+	u_int8_t invert;			/* Invert flag */
- };
- #endif /*_IPT_MULTIPORT_H*/
-
---EVF5PPMfhYS0aIcm--
+Samuel
