@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: SIP ALG and netfilter
-Date: Tue, 27 Jan 2004 11:45:43 +0100
+Subject: subject-prefixing of ml postings (was Re: A humble request)
+Date: Tue, 27 Jan 2004 11:54:51 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127104543.GE11761@sunbeam.de.gnumonks.org>
-References: <20040122212258.17112.qmail@web20805.mail.yahoo.com>
+Message-ID: <20040127105451.GF11761@sunbeam.de.gnumonks.org>
+References: <20040122220714.10159.qmail@web60702.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hwvH6HDNit2nSK4j"
+	protocol="application/pgp-signature"; boundary="FoLtEtfbNGMjfgrs"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Siddhartha Gavirneni <siddh_g2@yahoo.com>
+To: Zeeshan Ali <zeelists@yahoo.com>
 Content-Disposition: inline
-In-Reply-To: <20040122212258.17112.qmail@web20805.mail.yahoo.com>
+In-Reply-To: <20040122220714.10159.qmail@web60702.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,38 +23,64 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---hwvH6HDNit2nSK4j
+--FoLtEtfbNGMjfgrs
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 22, 2004 at 01:22:58PM -0800, Siddhartha Gavirneni wrote:
-> Hi,
->   I am new to this list, and I am here because I would
-> like to develop a SIP ALG for netfilter. And for this
-> purpose, I need help from you guys.
+On Thu, Jan 22, 2004 at 02:07:14PM -0800, Zeeshan Ali wrote:
+> Hello,
+>    Most of the mailing-lists that i have subscribed
+> to, follow a tradition that make it quite easy to
+> identify emails: they add a prefix at the beginning of
+> each email's topic. Would'nt it be better if we do the
+> same too. Bye.
 
-Great.  I suppose you are talking about free software development?
-=20
-> Firstly, I tried searching for the SNMP ALG's source
-> code, but could not find it. I would like to use that
-> to understand the ALG approach for netfilter.
+This is mostly done on mailinglists for non-technical people.  People
+who don't understand=20
 
-ip_nat_snmp.c
+a) how the email system works
+b) how to use their email client
 
-SNMP might not be the best example, since it only is a NAT helper, but
-no conntrack helper.  Please look for ip_{conntrack,nat}_ftp.c for an
-easy example... and ip_{conntrack,nat}_h323.c for a more sophisticated
-one.
+As I can expect anybody involved with netfilter (even more with
+netfilter development) to not fit into any of those categories,
+I strongly oppose that proposal.
 
-> Second, is there anyone else working on this? If yes,
-> who is it, and can I contact those developers?
+Why?
 
-Please talk to Nikolai Dahlem <listuser@epygi.de>, he was working on
-such a solution.=20
+Because the netfilter/iptalbes lists (like any other reasonable
+mailinglists, at least all of the 100+ that I'm on) insert special
+headers that allow you to identify mailinglist postings without putting
+garbage into the subject line.
 
-> Thank you,
-> Siddharth.
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=3Dhe=
+lp>   =20
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>                    =
+     List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilte=
+r-devel>,=20
+        <mailto:netfilter-devel-request@lists.netfilter.org?subject=3Dsubsc=
+ribe>=20
+List-Id: discussion about netfilter development <netfilter-devel.lists.netf=
+ilter.org>          =20
+
+So you just configure your email reader or procmail or sieve or whatever
+your favourite filtering system is to match on the "List-ID" header.
+Even proprietary end-user oriented products like Outlook or Netscape
+Mail can do that...
+
+> Do you Yahoo!?
+
+No, despite their constant advertisement efforts.
+
+P.S.: I can also expect anybody who posts to this list to put
+_REASONABLE_ subject lines into their postings.  A subject line where
+one could conclude the matter of the request, not just that it is some
+request.
+
+P.P.S.: Would anybody be willing to make a docbook-website XML document
+for our new homepage about 'how to use the netfilter/iptables
+mailinglists' with content like the above one?  That would be really
+appreciated.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -66,7 +92,7 @@ such a solution.=20
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---hwvH6HDNit2nSK4j
+--FoLtEtfbNGMjfgrs
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -74,9 +100,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAFkFXXaXGVTD0i/8RAn/YAJ4zkwhBtTd+5U8CpnkmXAI5bRhqeACfbeSl
-4oEwNQD4ek4nt/tvnkQaGDQ=
-=mpFS
+iD8DBQFAFkN7XaXGVTD0i/8RAueqAJ0cLDKNAgpsp93Fl3Xza0jqYHeXLQCgksSU
+Wgb5byYz9CXnrTFcXdjf+oE=
+=fNva
 -----END PGP SIGNATURE-----
 
---hwvH6HDNit2nSK4j--
+--FoLtEtfbNGMjfgrs--
