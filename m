@@ -1,8 +1,8 @@
 From: "Stephan Jager" <Stephan@medz.org>
 Subject: Re: H.323 conntrack patch
-Date: Tue, 15 Jul 2003 20:37:30 +0200
+Date: Tue, 15 Jul 2003 15:00:10 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200307151837.h6FIbUwT006094@alpha.medz.org>
+Message-ID: <200307151300.h6FD0AwT004469@alpha.medz.org>
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: mzieba-netfilter@mail.biuro.medianet.pl
@@ -16,19 +16,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 15 Jul 2003, mzieba-netfilter@mail.biuro.medianet.pl wrote:
+Hallo,
 
-> On Tue, Jul 15, 2003 at 03:00:10PM +0200, Stephan Jager wrote:
-
-> Jul 14 10:45:20 nat kernel: ct_h245_help: new RTCP/RTP requested
-> 192.168.2.101:->193.192.xxx.xxx:19422
-> Jul 14 10:45:20 nat kernel: ct_h245_help: new RTCP/RTP requested
-> 192.168.2.101:->193.192.xxx.xxx:19423
+> > > OpenChannelAck. So... the gateway is trying to send your ,,voice'' to
+> > > not mangled ip/port.
+> > 
+> > Thats right. I receive the "voice" stream on my linux box, which is then 
+> > rejected with an icmp. But it IS going to the port from the h245 function 
+> > which registered that expect_related.
+> > 
 > 
-> but only one h323_data_fixup for that packet. I just can't find example
-> code of multiple expectation per packet to look, how it should be done. ;)
+> Oh. Maybe that device, which you have, setup connection in slightly
+> different way ;) ethereal with h323 plugin is nice ;-) But, this plugin
+> is for win32 only, as I saw last time.
+> On that cisco ata, I've got voice stream from box behind NAT, but no
+> reply. Only one way.
 
-So our question: Can you have more expectations for one packet? It does 
-not seem to word at least.
+my voicedevice does send voice "out" (I can hear it on the other side), 
+but incoming voice isn't send to the voicedevice.
+
+I've used ethereal with h323, so I know how the protocol goes.
+I don't think the asn1 parsing is the problem, because it does find the 
+correct ip/port for the voice connections in the h245 packets and it does 
+register them with the expect_related function
 
 Stephan
