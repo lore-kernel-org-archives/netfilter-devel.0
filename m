@@ -1,16 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: RE : RE : RE : RE : RE : Apply rules to 1 UDP port but port used
- as a socket: possible?
-Date: Tue, 17 Feb 2004 11:41:08 +0100 (CET)
+From: "Ian Latter" <Ian.Latter@mq.edu.au>
+Subject: Fwd:Re: 2.4.20 and user space ICMP REDIRECT
+Date: Tue, 17 Feb 2004 21:59:37 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402171136510.29541-100000@filer.marasystems.com>
-References: <D4EF10CCEB2CE742BEEA9838C590B0E8011CC286@ftrdmel2.rd.francetelecom.fr>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <200402171159.i1HBxbU12123@singularity.tronunltd.com>
+Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: zze-Proxy GRALL O ext FTRD/SVA/LAN <ograll.ext@rd.francetelecom.com>
-In-Reply-To: <D4EF10CCEB2CE742BEEA9838C590B0E8011CC286@ftrdmel2.rd.francetelecom.fr>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,29 +17,67 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Feb 2004, zze-Proxy GRALL O ext FTRD/SVA/LAN wrote:
 
-> I still need 2 informations:
-> -Can I stop the stream ? When I remove the rule (and even Flush) the UDP packets can continue to pass ...
+Hello Devel,
 
-See ctnetlink.
+  I'm cleaning out my email and I wanted to get this published for
+your review.  A long time ago I was looking to inject ICMP redirects
+into a VLAN (ordinary LAN to Linux) for some testing. 
 
-> -Another thing strange is that during my tests I used 2 client programs
-> on 2 different machines. They tried to connect to the same server.
-> First, for the NAT I apply a rule:
+Archived;
+  http://lists.netfilter.org/pipermail/netfilter-devel/2003-March/010730.html
+  http://lists.netfilter.org/pipermail/netfilter-devel/2003-March/010731.html
+
+  I ended up deciding that the issue wasn't netfilter related, and 
+took it to the linux-net list .. but I was set aside, and didn't have 
+time to investigate it properly (fair enuff).
+
+  Following my public/archived posts, two unrelated gentlemen 
+have independantly confirmed that the issue is a netfilter issue --
+that compiling the kernel without netfilter fixes the problem -- even
+in 2.6.0 (see below).
+
+  I still haven't got time to investigate this properly.  But I wanted to
+get this info updated in the public domain in case anyone else is 
+looking for this. 
+
+
+
+Regards,
+
+
+
+
+
+
+Forwarded message follows:
+>Subject:  Re: 2.4.20 and user space ICMP REDIRECT
+>Date: Tue, 27 Jan 2004 19:59:06 +0200
 >
->       iptables -t nat -A POSROUTING -p udp -d SERVER_ADDR --dport SERVER_PORT -s CLIENT1_ADDR --sport CLIENT1_PORT -j SNAT --to-source PUBLIC_ADDR:PUBLIC_PORT
->       iptables -t nat -A POSROUTING -p udp -d SERVER_ADDR --dport SERVER_PORT -s CLIENT2_ADDR --sport CLIENT2_PORT -j SNAT --to-source PUBLIC_ADDR:PUBLIC_PORT
->
-> So when clients sended UDP packets, only the client who sended the first
-> packets was NATed and not the other. I changed the new IP source of the
-> 2nd client to "--to-source PUBLIC_ADDR:PUBLIC_PORT2" and then it was OK.
+> Hello, Ian Latter.
+> 
+> 
+> >   No, I didn't solve this problem ... I didn't get the time to attack it
+> > properly (ie, to recompile different kernels of different versions,
+> > to find where the change occurred and what that difference 
+> > was).
+> > 
+> >   It has been suggested that this problem is caused by netfilter,
+> > and that removing netfilter (disabling it in the .config) may fix the
+> > problem ... I didn't experience that, but one other did.
+> 
+> Thank you, it may be true.
+> At 2.6.0 kernel without netfilter packets are injected successfully.
+> 
 
-Yes. This is because NAT needs to be able to differentiate the two 
-sessions if there is return traffic. The above rules makes the sessions 
-after NAT use the exact same addressing information making it impossible 
-to determine which session return traffic belongs to. Because of this the 
-second NAT session is rejected by netfilter.
 
-Regards
-Henrik
+
+
+--
+Ian Latter
+Internet and Networking Security Officer
+Macquarie University
+
+ Meet me at the Australian Unix and open systems
+   User Group (AUUG) Security Symposium; 2004
+  http://www.auug.org.au/events/2004/security/
