@@ -1,14 +1,17 @@
-From: "peter smith" <smith-peter@comcast.net>
-Subject: real time stateful filtering question
-Date: Mon, 15 Mar 2004 10:54:00 -0500
+From: "Saber zrelli" <saber_z@fastmail.fm>
+Subject: Re: Netfilter based application : any advice ?
+Date: Tue, 16 Mar 2004 02:01:58 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <NEBBJFIAIKIHKGJDONCDAEMMCCAA.smith-peter@comcast.net>
+Message-ID: <1079370118.16263.182707172@webmail.messagingengine.com>
+References: <200403141930.29602.alchemyx@uznam.net.pl> <1079300670.3068.182659007@webmail.messagingengine.com> <40556E79.50608@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+To: "Pablo Neira" <pablo@eurodev.net>,
+	"Netfilter Community" <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <40556E79.50608@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,37 +22,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+hi ,
+so if i well understood  ; 
+Netfilter doesn't offer packet injection , and i have to use libnet .
+then , the other point :
+I would like to capture in link level , 
+Netfilter can aceess MAC adresses and other Ethernet parameters cause it
+support it ,
+but if for example i'm using wireless network and want to filter wireless
+packets , does ethernet offer 802.11 specific methods , or is there a
+standard link layer methods that supports all kind of protocols ?
 
-Sorry if this topic has come up before, but I was unable to find any past
-posting on the subject:
+thanks for clarifications.
 
-If I wish to monitor using netfilter a link that has applications talking on
-it that use ephemeral ports (like, for instance, FTP or H323), is there a
-way to install filters fast enough /syncronously enough to guarantee that
-you won't miss packets that you have already received? For instance, say
-that you have some number of packets in your rx ring buffer waiting to be
-processed. The first one is processed, and matches some filter you have set.
-That packet is queued for delivery to userland.
 
-That packet also has a FTP PORT command inside it's payload that specifies
-the new data channel that the two hosts will use to transfer data. (where
-channel == the src/dst ip and src/dst ports)
 
-Unfortunately, packets sent on the data channel are also in your receive
-buffer, and get processed by netfilter *before* the "PORT COMMAND" packet
-gets processed by the userland monitor, or before the monitor can
-sucessfully re-program the netfilter filter list. So they are dropped,
-silently.
-
-I have exaggerated this example a bit for clarity, but I believe the race
-condition exists, particularly wrt the filter reprogramming.
-
-Is this truly a problem? Have others found a way around it? It appears that
-for a stateful filtering application, a user must build a faster mechanism
-for programming the filters?
-
-Any comments greatly appreciated.
-
-Thanks,
-Peter
+On Mon, 15 Mar 2004 09:51:05 +0100, "Pablo Neira" <pablo@eurodev.net>
+said:
+> Hi,
+> 
+> Saber zrelli wrote:
+> 
+> >- Is it possible to send packets with Netfilter or not? ( if not i guess
+> >using libnet will resolve the pb but better to have  
+> >  every thing based on the same infrastructure)
+> >  
+> >
+> 
+> If you can do that in user space, have a look at libnet.You can forge
+> packets in inject them.
+> 
+> 
+> >- I would like to have the tool work with wireless protocol , does
+> >Netfilter support non Ethernet proto and 802.11 particulary?
+> >  
+> >
+> 
+> This is transparent to netfilter since it's in OSI layer 3/4.
+> 
+> regards,
+> Pablo
+> 
+-- 
+  Saber Zrelli
+  kanazawa university international house 
+  kakuma-machi , kanazawa , Ishikawa 
+  920-1192 Japan. 
