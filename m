@@ -1,16 +1,14 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: a question on ipip encapsulation
-Date: Fri, 7 Feb 2003 14:08:03 +0100
+From: Kevin McConnell <kevymac@yahoo.com>
+Subject: Re: Layer-7 HTTP Matching Module
+Date: Fri, 7 Feb 2003 11:23:43 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030207130802.GD31556@oknodo.bof.de>
-References: <000801c2cea8$971ef050$3d00a8c0@chenwei>
+Message-ID: <20030207192343.85533.qmail@web40309.mail.yahoo.com>
+References: <Pine.LNX.4.44.0302040925160.12235-100000@kaybee.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: ???? <buaacst@163.com>
-Content-Disposition: inline
-In-Reply-To: <000801c2cea8$971ef050$3d00a8c0@chenwei>
+To: Kirk Bauer <kirk@kaybee.org>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0302040925160.12235-100000@kaybee.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +19,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Feb 07, 2003 at 08:58:15PM +0800, ???? wrote:
->     I want to implement  ipip encapsulation .
 
-Why? There already is an implementation in the base network stack,
-and it should work fine together with iptables.
+--- Kirk Bauer <kirk@kaybee.org> wrote:
+> I think I could do this with the 'string' module of
+> iptables -- i.e.
+> look for the string "Content-type: text/html" and
+> set a TOS flag or a
+> firewall mark.  The 'tc' command can then be used to
+> give these packets
+> higher priority.
+> 
+> But I think it might be nice to have a true layer 7
+> matching module.
+> You could do:
+> 
+> -m --content-type 'text/html' --host
+> 'www.mydomain.com'
+> 
+> It seems that if the string matching module is
+> possible, then this is
+> also possible.  
 
->     I use skb_push for a new ip header at NF_IP_POST_ROUTING, and use skb_pull at NF_IP_PRE_ROUTING.
->     I could ping well, but when I use ftp, it will not work, just like stop.
+I'm sure anything's possible if you can imagine it.
 
-With the ipip implementation in the kernel, you have an explicit network
-device, which has an MTU setting, which is observed by the base network
-stack. If you did nothing of that sort, that will be your problem.
-A ping with large data size, should also give you a problem.
+> 
+> Does such a module exist or is it being developed? 
+> If not, I may write
+> one when I have time if other people think it would
+> be useful.
 
-ALWAYS test with all realistic packet sizes, when modifying
-packet processors, especially if you modify the length of the packets.
+I don't see one being developed at this time, but I
+think it would be useful.
 
-best regards
-  Patrick
+> Kirk Bauer <kirk@kaybee.org>
+> http://linux.kaybee.org | www.autorpm.org |
+> www.logwatch.org
+
+btw, thanks for so many years of use of both of these
+great tools.
+
+
+=====
+Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
+
+__________________________________________________
+Do you Yahoo!?
+Yahoo! Mail Plus - Powerful. Affordable. Sign up now.
+http://mailplus.yahoo.com
