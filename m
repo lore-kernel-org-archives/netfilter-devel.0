@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] add nf_log handler
-Date: Mon, 29 Mar 2004 12:58:31 +0200
+Subject: [PATCH 2.6] 'raw' table
+Date: Mon, 29 Mar 2004 13:05:15 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040329105831.GG1528@sunbeam.de.gnumonks.org>
+Message-ID: <20040329110515.GH1528@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RNGrj7vazCqBHNw7"
+	protocol="application/pgp-signature"; boundary="4Y142/9l9nQlBiaj"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,27 +21,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---RNGrj7vazCqBHNw7
-Content-Type: multipart/mixed; boundary="kswDJesP0akhmDn8"
+--4Y142/9l9nQlBiaj
+Content-Type: multipart/mixed; boundary="Aaj1jBvBEV7KRjLi"
 Content-Disposition: inline
 
 
---kswDJesP0akhmDn8
+--Aaj1jBvBEV7KRjLi
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-This is a patch adding a generic packet logging interface called
-'nf_log'.  The idea is that anybody wanting to log a packet calls a
-common function, which in turn dispatches that call to a 'logging
-handler'.  Currently ipt_LOG and ipt_ULOG can both register as such a
-handler. =20
+This is a patch adding a 'raw' table.  This table is iterated in
+NF_IP[6]_PRE_ROUTING before anything else happens (esp. before conntrack).
 
-This is neccessarry especially for the upcoming 'TRACE' target that
-would allow you to trace a packet while iterating through all
-netfilter/iptables modules.
+The idea is to call the 'NOTRACK' target from within the 'raw' table to
+prevent certain packets from being connection tracked.
+
+This 'raw' table is also neccessarry for the upcoming 'TRACE' target
+that would allow you to mark those packets that you want to have traced
+while iterating through all netfilter/iptables modules.
 
 Author: Jozsef Kadlecsik
 
@@ -57,738 +57,829 @@ Please submit,
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---kswDJesP0akhmDn8
+--Aaj1jBvBEV7KRjLi
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="nf_log.patch"
+Content-Disposition: attachment; filename="nf_raw.patch"
 Content-Transfer-Encoding: quoted-printable
 
 diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/include/linux/netfilter.h linux-2.6.5-rc2-nflog/include/linux=
-/netfilter.h
---- linux-2.6.5-rc2-nfsubmit/include/linux/netfilter.h	2004-03-11 03:55:27.=
-000000000 +0100
-+++ linux-2.6.5-rc2-nflog/include/linux/netfilter.h	2004-03-29 12:57:07.000=
-000000 +0200
-@@ -99,6 +99,24 @@
+-rc2-nflog/include/linux/netfilter_ipv4/ip_conntrack.h linux-2.6.5-rc2-nflo=
+g-trace/include/linux/netfilter_ipv4/ip_conntrack.h
+--- linux-2.6.5-rc2-nflog/include/linux/netfilter_ipv4/ip_conntrack.h	2004-=
+03-11 03:55:44.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/include/linux/netfilter_ipv4/ip_conntrack.h=
+	2004-03-29 13:01:50.000000000 +0200
+@@ -251,6 +251,9 @@
+ /* Call me when a conntrack is destroyed. */
+ extern void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack);
 =20
- extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
-=20
-+typedef void nf_logfn(unsigned int hooknum,
-+		      const struct sk_buff *skb,
-+		      const struct net_device *in,
-+		      const struct net_device *out,
-+		      const char *prefix);
++/* Fake conntrack entry for untracked connections */
++extern struct ip_conntrack ip_conntrack_untracked;
 +
-+/* Function to register/unregister log function. */
-+int nf_log_register(int pf, nf_logfn *logfn);
-+void nf_log_unregister(int pf, nf_logfn *logfn);
-+
-+/* Calls the registered backend logging function */
-+void nf_log_packet(int pf,
-+		   unsigned int hooknum,
-+		   const struct sk_buff *skb,
-+		   const struct net_device *in,
-+		   const struct net_device *out,
-+		   const char *fmt, ...);
-+                  =20
- /* Activate hook; either okfn or kfree_skb called, unless a hook
-    returns NF_STOLEN (in which case, it's up to the hook to deal with
-    the consequences).
+ /* Returns new sk_buff, or NULL */
+ struct sk_buff *
+ ip_ct_gather_frags(struct sk_buff *skb);
 diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/include/linux/netfilter_ipv4/ip_logging.h linux-2.6.5-rc2-nfl=
-og/include/linux/netfilter_ipv4/ip_logging.h
---- linux-2.6.5-rc2-nfsubmit/include/linux/netfilter_ipv4/ip_logging.h	1970=
--01-01 01:00:00.000000000 +0100
-+++ linux-2.6.5-rc2-nflog/include/linux/netfilter_ipv4/ip_logging.h	2004-03=
--29 12:57:07.000000000 +0200
-@@ -0,0 +1,20 @@
-+/* IPv4 macros for the internal logging interface. */
-+#ifndef __IP_LOGGING_H
-+#define __IP_LOGGING_H
+-rc2-nflog/include/linux/netfilter_ipv4/ipt_conntrack.h linux-2.6.5-rc2-nfl=
+og-trace/include/linux/netfilter_ipv4/ipt_conntrack.h
+--- linux-2.6.5-rc2-nflog/include/linux/netfilter_ipv4/ipt_conntrack.h	2004=
+-03-11 03:55:37.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/include/linux/netfilter_ipv4/ipt_conntrack.=
+h	2004-03-29 13:01:50.000000000 +0200
+@@ -10,6 +10,7 @@
+=20
+ #define IPT_CONNTRACK_STATE_SNAT (1 << (IP_CT_NUMBER + 1))
+ #define IPT_CONNTRACK_STATE_DNAT (1 << (IP_CT_NUMBER + 2))
++#define IPT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
+=20
+ /* flags, invflags: */
+ #define IPT_CONNTRACK_STATE	0x01
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/include/linux/netfilter_ipv4/ipt_state.h linux-2.6.5-rc2-nflog-t=
+race/include/linux/netfilter_ipv4/ipt_state.h
+--- linux-2.6.5-rc2-nflog/include/linux/netfilter_ipv4/ipt_state.h	2004-03-=
+11 03:55:43.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/include/linux/netfilter_ipv4/ipt_state.h	20=
+04-03-29 13:01:50.000000000 +0200
+@@ -4,6 +4,8 @@
+ #define IPT_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+1))
+ #define IPT_STATE_INVALID (1 << 0)
+=20
++#define IPT_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
 +
-+#ifdef __KERNEL__
-+#include <linux/socket.h>
-+#include <linux/netfilter_logging.h>
-+
-+#define nf_log_ip_packet(pskb,hooknum,in,out,fmt,args...) \
-+	nf_log_packet(AF_INET,pskb,hooknum,in,out,fmt,##args)
-+
-+#define nf_log_ip(pfh,len,fmt,args...) \
-+	nf_log(AF_INET,pfh,len,fmt,##args)
-+
-+#define nf_ip_log_register(logging) nf_log_register(AF_INET,logging)
-+#define nf_ip_log_unregister(logging) nf_log_unregister(AF_INET,logging)
+ struct ipt_state_info
+ {
+ 	unsigned int statemask;
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/include/linux/netfilter_ipv4.h linux-2.6.5-rc2-nflog-trace/inclu=
+de/linux/netfilter_ipv4.h
+--- linux-2.6.5-rc2-nflog/include/linux/netfilter_ipv4.h	2004-03-11 03:55:4=
+3.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/include/linux/netfilter_ipv4.h	2004-03-29 1=
+3:01:50.000000000 +0200
+@@ -51,6 +51,8 @@
+=20
+ enum nf_ip_hook_priorities {
+ 	NF_IP_PRI_FIRST =3D INT_MIN,
++	NF_IP_PRI_CONNTRACK_DEFRAG =3D -400,
++	NF_IP_PRI_RAW =3D -300,
+ 	NF_IP_PRI_SELINUX_FIRST =3D -225,
+ 	NF_IP_PRI_CONNTRACK =3D -200,
+ 	NF_IP_PRI_BRIDGE_SABOTAGE_FORWARD =3D -175,
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/net/ipv4/netfilter/Kconfig linux-2.6.5-rc2-nflog-trace/net/ipv4/=
+netfilter/Kconfig
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/Kconfig	2004-03-11 03:55:43.00=
+0000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/Kconfig	2004-03-29 13:01=
+:49.000000000 +0200
+@@ -579,5 +579,29 @@
+=20
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+=20
++config IP_NF_TARGET_NOTRACK
++	tristate  'NOTRACK target support'
++	depends on IP_NF_RAW
++	help
++	  The NOTRACK target allows a select rule to specify
++	  which packets *not* to enter the conntrack/NAT
++	  subsystem with all the consequences (no ICMP error tracking,
++	  no protocol helpers for the selected packets).
 +=09
-+#endif /*__KERNEL__*/
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/modules.txt>.  If unsure, say `N'.
 +
-+#endif /*__IP_LOGGING_H*/
++config IP_NF_RAW
++	tristate  'raw table support (required for NOTRACK/TRACE)'
++	depends on IP_NF_IPTABLES
++	help
++	  This option adds a `raw' table to iptables. This table is the very
++	  first in the netfilter framework and hooks in at the PREROUTING
++	  and OUTPUT chains.
++=09
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/modules.txt>.  If unsure, say `N'.
++	  help
++
+ endmenu
+=20
 diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/include/linux/netfilter_ipv4/ipt_ULOG.h linux-2.6.5-rc2-nflog=
-/include/linux/netfilter_ipv4/ipt_ULOG.h
---- linux-2.6.5-rc2-nfsubmit/include/linux/netfilter_ipv4/ipt_ULOG.h	2004-0=
-3-11 03:55:26.000000000 +0100
-+++ linux-2.6.5-rc2-nflog/include/linux/netfilter_ipv4/ipt_ULOG.h	2004-03-2=
-9 12:57:07.000000000 +0200
-@@ -11,6 +11,9 @@
- #define NETLINK_NFLOG 	5
+-rc2-nflog/net/ipv4/netfilter/Makefile linux-2.6.5-rc2-nflog-trace/net/ipv4=
+/netfilter/Makefile
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/Makefile	2004-03-11 03:55:23.0=
+00000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/Makefile	2004-03-29 13:0=
+1:49.000000000 +0200
+@@ -38,6 +38,7 @@
+ obj-$(CONFIG_IP_NF_FILTER) +=3D iptable_filter.o
+ obj-$(CONFIG_IP_NF_MANGLE) +=3D iptable_mangle.o
+ obj-$(CONFIG_IP_NF_NAT) +=3D iptable_nat.o
++obj-$(CONFIG_IP_NF_RAW) +=3D iptable_raw.o
+=20
+ # matches
+ obj-$(CONFIG_IP_NF_MATCH_HELPER) +=3D ipt_helper.o
+@@ -81,6 +82,7 @@
+ obj-$(CONFIG_IP_NF_TARGET_LOG) +=3D ipt_LOG.o
+ obj-$(CONFIG_IP_NF_TARGET_ULOG) +=3D ipt_ULOG.o
+ obj-$(CONFIG_IP_NF_TARGET_TCPMSS) +=3D ipt_TCPMSS.o
++obj-$(CONFIG_IP_NF_TARGET_NOTRACK) +=3D ipt_NOTRACK.o
+=20
+ # generic ARP tables
+ obj-$(CONFIG_IP_NF_ARPTABLES) +=3D arp_tables.o
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/net/ipv4/netfilter/ip_conntrack_core.c linux-2.6.5-rc2-nflog-tra=
+ce/net/ipv4/netfilter/ip_conntrack_core.c
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/ip_conntrack_core.c	2004-03-11=
+ 03:55:20.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/ip_conntrack_core.c	2004=
+-03-29 13:01:50.000000000 +0200
+@@ -67,6 +67,7 @@
+ static atomic_t ip_conntrack_count =3D ATOMIC_INIT(0);
+ struct list_head *ip_conntrack_hash;
+ static kmem_cache_t *ip_conntrack_cachep;
++struct ip_conntrack ip_conntrack_untracked;
+=20
+ extern struct ip_conntrack_protocol ip_conntrack_generic_protocol;
+=20
+@@ -794,6 +795,15 @@
+ 	int set_reply;
+ 	int ret;
+=20
++	/* Never happen */
++	if ((*pskb)->nh.iph->frag_off & htons(IP_OFFSET)) {
++		if (net_ratelimit()) {
++		printk(KERN_ERR "ip_conntrack_in: Frag of proto %u (hook=3D%u)\n",
++		       (*pskb)->nh.iph->protocol, hooknum);
++		}
++		return NF_DROP;
++	}
++
+ 	/* FIXME: Do this right please. --RR */
+ 	(*pskb)->nfcache |=3D NFC_UNKNOWN;
+=20
+@@ -812,18 +822,10 @@
+ 	}
  #endif
 =20
-+#define ULOG_DEFAULT_NLGROUP	1
-+#define ULOG_DEFAULT_QTHRESHOLD	1
-+
- #define ULOG_MAC_LEN	80
- #define ULOG_PREFIX_LEN	32
+-	/* Previously seen (loopback)?  Ignore.  Do this before
+-           fragment check. */
++	/* Previously seen (loopback or untracked)?  Ignore. */
+ 	if ((*pskb)->nfct)
+ 		return NF_ACCEPT;
 =20
+-	/* Gather fragments. */
+-	if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
+-		*pskb =3D ip_ct_gather_frags(*pskb);
+-		if (!*pskb)
+-			return NF_STOLEN;
+-	}
+-
+ 	proto =3D ip_ct_find_proto((*pskb)->nh.iph->protocol);
+=20
+ 	/* It may be an icmp error... */
+@@ -1422,6 +1424,18 @@
+=20
+ 	/* For use by ipt_REJECT */
+ 	ip_ct_attach =3D ip_conntrack_attach;
++
++	/* Set up fake conntrack:
++	    - to never be deleted, not in any hashes */
++	atomic_set(&ip_conntrack_untracked.ct_general.use, 1);
++	/*  - and look it like as a confirmed connection */
++	set_bit(IPS_CONFIRMED_BIT, &ip_conntrack_untracked.status);
++	/*  - and prepare the ctinfo field for REJECT & NAT. */
++	ip_conntrack_untracked.infos[IP_CT_NEW].master =3D
++	ip_conntrack_untracked.infos[IP_CT_RELATED].master =3D
++	ip_conntrack_untracked.infos[IP_CT_RELATED + IP_CT_IS_REPLY].master =3D=
+=20
++			&ip_conntrack_untracked.ct_general;
++
+ 	return ret;
+=20
+ err_free_hash:
 diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/include/linux/netfilter_ipv6/ip6_logging.h linux-2.6.5-rc2-nf=
-log/include/linux/netfilter_ipv6/ip6_logging.h
---- linux-2.6.5-rc2-nfsubmit/include/linux/netfilter_ipv6/ip6_logging.h	197=
-0-01-01 01:00:00.000000000 +0100
-+++ linux-2.6.5-rc2-nflog/include/linux/netfilter_ipv6/ip6_logging.h	2004-0=
-3-29 12:57:07.000000000 +0200
-@@ -0,0 +1,20 @@
-+/* IPv6 macros for the nternal logging interface. */
-+#ifndef __IP6_LOGGING_H
-+#define __IP6_LOGGING_H
+-rc2-nflog/net/ipv4/netfilter/ip_conntrack_standalone.c linux-2.6.5-rc2-nfl=
+og-trace/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/ip_conntrack_standalone.c	2004=
+-03-11 03:55:26.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/ip_conntrack_standalone.=
+c	2004-03-29 13:01:50.000000000 +0200
+@@ -194,6 +194,26 @@
+ 	return ip_conntrack_confirm(*pskb);
+ }
+=20
++static unsigned int ip_conntrack_defrag(unsigned int hooknum,
++				        struct sk_buff **pskb,
++				        const struct net_device *in,
++				        const struct net_device *out,
++				        int (*okfn)(struct sk_buff *))
++{
++	/* Previously seen (loopback)?  Ignore.  Do this before
++           fragment check. */
++	if ((*pskb)->nfct)
++		return NF_ACCEPT;
 +
-+#ifdef __KERNEL__
-+#include <linux/socket.h>
-+#include <linux/netfilter_logging.h>
++	/* Gather fragments. */
++	if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
++		*pskb =3D ip_ct_gather_frags(*pskb);
++		if (!*pskb)
++			return NF_STOLEN;
++	}
++	return NF_ACCEPT;
++}
 +
-+#define nf_log_ip6_packet(pskb,hooknum,in,out,fmt,args...) \
-+	nf_log_packet(AF_INET6,pskb,hooknum,in,out,fmt,##args)
-+
-+#define nf_log_ip6(pfh,len,fmt,args...) \
-+	nf_log(AF_INET6,pfh,len,fmt,##args)
-+
-+#define nf_ip6_log_register(logging) nf_log_register(AF_INET6,logging)
-+#define nf_ip6_log_unregister(logging) nf_log_unregister(AF_INET6,logging)
-+=09
-+#endif /*__KERNEL__*/
-+
-+#endif /*__IP6_LOGGING_H*/
-diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/include/linux/netfilter_logging.h linux-2.6.5-rc2-nflog/inclu=
-de/linux/netfilter_logging.h
---- linux-2.6.5-rc2-nfsubmit/include/linux/netfilter_logging.h	1970-01-01 0=
-1:00:00.000000000 +0100
-+++ linux-2.6.5-rc2-nflog/include/linux/netfilter_logging.h	2004-03-29 12:5=
-7:07.000000000 +0200
-@@ -0,0 +1,33 @@
-+/* Internal logging interface, which relies on the real=20
-+   LOG target modules */
-+#ifndef __LINUX_NETFILTER_LOGGING_H
-+#define __LINUX_NETFILTER_LOGGING_H
-+
-+#ifdef __KERNEL__
-+#include <asm/atomic.h>
-+
-+struct nf_logging_t {
-+	void (*nf_log_packet)(struct sk_buff **pskb,
-+			      unsigned int hooknum,
-+			      const struct net_device *in,
-+			      const struct net_device *out,
-+			      const char *prefix);
-+	void (*nf_log)(char *pfh, size_t len,
-+		       const char *prefix);
+ static unsigned int ip_refrag(unsigned int hooknum,
+ 			      struct sk_buff **pskb,
+ 			      const struct net_device *in,
+@@ -236,6 +256,14 @@
+=20
+ /* Connection tracking may drop packets, but never alters them, so
+    make it the first hook. */
++static struct nf_hook_ops ip_conntrack_defrag_ops =3D {
++	.hook		=3D ip_conntrack_defrag,
++	.owner		=3D THIS_MODULE,
++	.pf		=3D PF_INET,
++	.hooknum	=3D NF_IP_PRE_ROUTING,
++	.priority	=3D NF_IP_PRI_CONNTRACK_DEFRAG,
 +};
 +
-+extern void nf_log_register(int pf, const struct nf_logging_t *logging);
-+extern void nf_log_unregister(int pf, const struct nf_logging_t *logging);
-+
-+extern void nf_log_packet(int pf,
-+			  struct sk_buff **pskb,
-+			  unsigned int hooknum,
-+			  const struct net_device *in,
-+			  const struct net_device *out,
-+			  const char *fmt, ...);
-+extern void nf_log(int pf,
-+		   char *pfh, size_t len,
-+		   const char *fmt, ...);
-+#endif /*__KERNEL__*/
-+
-+#endif /*__LINUX_NETFILTER_LOGGING_H*/
-diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/net/core/netfilter.c linux-2.6.5-rc2-nflog/net/core/netfilter=
-=2Ec
---- linux-2.6.5-rc2-nfsubmit/net/core/netfilter.c	2004-03-11 03:55:27.00000=
-0000 +0100
-+++ linux-2.6.5-rc2-nflog/net/core/netfilter.c	2004-03-29 12:57:07.00000000=
-0 +0200
-@@ -8,8 +8,10 @@
-  *
-  * February 2000: Modified by James Morris to have 1 queue per protocol.
-  * 15-Mar-2000:   Added NF_REPEAT --RR.
-+ * 08-May-2003:	  Internal logging interface added by Jozsef Kadlecsik.
-  */
- #include <linux/config.h>
-+#include <linux/kernel.h>
- #include <linux/netfilter.h>
- #include <net/protocol.h>
- #include <linux/init.h>
-@@ -741,6 +743,72 @@
- EXPORT_SYMBOL(skb_ip_make_writable);
- #endif /*CONFIG_INET*/
+ static struct nf_hook_ops ip_conntrack_in_ops =3D {
+ 	.hook		=3D ip_conntrack_in,
+ 	.owner		=3D THIS_MODULE,
+@@ -244,6 +272,14 @@
+ 	.priority	=3D NF_IP_PRI_CONNTRACK,
+ };
 =20
-+/* Internal logging interface, which relies on the real=20
-+   LOG target modules */
++static struct nf_hook_ops ip_conntrack_defrag_local_out_ops =3D {
++	.hook		=3D ip_conntrack_defrag,
++	.owner		=3D THIS_MODULE,
++	.pf		=3D PF_INET,
++	.hooknum	=3D NF_IP_LOCAL_OUT,
++	.priority	=3D NF_IP_PRI_CONNTRACK_DEFRAG,
++};
 +
-+#define NF_LOG_PREFIXLEN		128
-+
-+static nf_logfn *nf_logging[NPROTO]; /* =3D NULL */
-+static int reported =3D 0;
-+static spinlock_t nf_log_lock =3D SPIN_LOCK_UNLOCKED;
-+
-+int nf_log_register(int pf, nf_logfn *logfn)
-+{
-+	int ret =3D -EBUSY;
-+
-+	/* Any setup of logging members must be done before
-+	 * substituting pointer. */
-+	smp_wmb();
-+	spin_lock(&nf_log_lock);
-+	if (!nf_logging[pf]) {
-+		nf_logging[pf] =3D logfn;
-+		ret =3D 0;
+ static struct nf_hook_ops ip_conntrack_local_out_ops =3D {
+ 	.hook		=3D ip_conntrack_local,
+ 	.owner		=3D THIS_MODULE,
+@@ -470,10 +506,20 @@
+ 	if (!proc) goto cleanup_init;
+ 	proc->owner =3D THIS_MODULE;
+=20
++	ret =3D nf_register_hook(&ip_conntrack_defrag_ops);
++	if (ret < 0) {
++		printk("ip_conntrack: can't register pre-routing defrag hook.\n");
++		goto cleanup_proc;
 +	}
-+	spin_unlock(&nf_log_lock);
-+	return ret;
-+}	=09
-+
-+void nf_log_unregister(int pf, nf_logfn *logfn)
-+{
-+	spin_lock(&nf_log_lock);
-+	if (nf_logging[pf] =3D=3D logfn)
-+		nf_logging[pf] =3D NULL;
-+	spin_unlock(&nf_log_lock);
-+
-+	/* Give time to concurrent readers. */
-+	synchronize_net();
-+}	=09
-+
-+void nf_log_packet(int pf,
-+		   unsigned int hooknum,
-+		   const struct sk_buff *skb,
-+		   const struct net_device *in,
-+		   const struct net_device *out,
-+		   const char *fmt, ...)
-+{
-+	va_list args;
-+	char prefix[NF_LOG_PREFIXLEN];
-+	nf_logfn *logfn;
-+=09
-+	rcu_read_lock();
-+	logfn =3D nf_logging[pf];
-+	if (logfn) {
-+		va_start(args, fmt);
-+		vsnprintf(prefix, sizeof(prefix), fmt, args);
-+		va_end(args);
-+		/* We must read logging before nf_logfn[pf] */
-+		smp_read_barrier_depends();
-+		logfn(hooknum, skb, in, out, prefix);
-+	} else if (!reported) {
-+		printk(KERN_WARNING "nf_log_packet: can\'t log yet, "
-+		       "no backend logging module loaded in!\n");
-+		reported++;
++	ret =3D nf_register_hook(&ip_conntrack_defrag_local_out_ops);
++	if (ret < 0) {
++		printk("ip_conntrack: can't register local_out defrag hook.\n");
++		goto cleanup_defragops;
 +	}
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(nf_log_register);
-+EXPORT_SYMBOL(nf_log_unregister);
-+EXPORT_SYMBOL(nf_log_packet);
-=20
- /* This does not belong here, but ipt_REJECT needs it if connection
-    tracking in use: without this, connection may not be in hash table,
-diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/net/ipv4/netfilter/ipt_LOG.c linux-2.6.5-rc2-nflog/net/ipv4/n=
-etfilter/ipt_LOG.c
---- linux-2.6.5-rc2-nfsubmit/net/ipv4/netfilter/ipt_LOG.c	2004-03-11 03:55:=
-44.000000000 +0100
-+++ linux-2.6.5-rc2-nflog/net/ipv4/netfilter/ipt_LOG.c	2004-03-29 12:57:07.=
-000000000 +0200
-@@ -19,6 +19,7 @@
- #include <net/tcp.h>
- #include <net/route.h>
-=20
-+#include <linux/netfilter.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_LOG.h>
-=20
-@@ -26,6 +27,10 @@
- MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
- MODULE_DESCRIPTION("iptables syslog logging module");
-=20
-+static unsigned int nflog =3D 1;
-+MODULE_PARM(nflog, "i");
-+MODULE_PARM_DESC(nflog, "register as internal netfilter logging module");
-+=20
- #if 0
- #define DEBUGP printk
- #else
-@@ -324,28 +329,25 @@
- 	/* maxlen =3D 230+   91  + 230 + 252 =3D 803 */
- }
-=20
--static unsigned int
--ipt_log_target(struct sk_buff **pskb,
-+static void
-+ipt_log_packet(unsigned int hooknum,
-+	       const struct sk_buff *skb,
- 	       const struct net_device *in,
- 	       const struct net_device *out,
--	       unsigned int hooknum,
--	       const void *targinfo,
--	       void *userinfo)
-+	       const struct ipt_log_info *loginfo,
-+	       const char *level_string,
-+	       const char *prefix)
- {
--	const struct ipt_log_info *loginfo =3D targinfo;
--	char level_string[4] =3D "< >";
--
--	level_string[1] =3D '0' + (loginfo->level % 8);
- 	spin_lock_bh(&log_lock);
- 	printk(level_string);
- 	printk("%sIN=3D%s OUT=3D%s ",
--	       loginfo->prefix,
-+	       prefix =3D=3D NULL ? loginfo->prefix : prefix,
- 	       in ? in->name : "",
- 	       out ? out->name : "");
- #ifdef CONFIG_BRIDGE_NETFILTER
--	if ((*pskb)->nf_bridge) {
--		struct net_device *physindev =3D (*pskb)->nf_bridge->physindev;
--		struct net_device *physoutdev =3D (*pskb)->nf_bridge->physoutdev;
-+	if (skb->nf_bridge) {
-+		struct net_device *physindev =3D skb->nf_bridge->physindev;
-+		struct net_device *physoutdev =3D skb->nf_bridge->physoutdev;
-=20
- 		if (physindev && in !=3D physindev)
- 			printk("PHYSIN=3D%s ", physindev->name);
-@@ -357,25 +359,56 @@
- 	if (in && !out) {
- 		/* MAC logging for input chain only. */
- 		printk("MAC=3D");
--		if ((*pskb)->dev && (*pskb)->dev->hard_header_len
--		    && (*pskb)->mac.raw !=3D (void*)(*pskb)->nh.iph) {
-+		if (skb->dev && skb->dev->hard_header_len
-+		    && skb->mac.raw !=3D (void*)skb->nh.iph) {
- 			int i;
--			unsigned char *p =3D (*pskb)->mac.raw;
--			for (i =3D 0; i < (*pskb)->dev->hard_header_len; i++,p++)
-+			unsigned char *p =3D skb->mac.raw;
-+			for (i =3D 0; i < skb->dev->hard_header_len; i++,p++)
- 				printk("%02x%c", *p,
--				       i=3D=3D(*pskb)->dev->hard_header_len - 1
-+				       i=3D=3Dskb->dev->hard_header_len - 1
- 				       ? ' ':':');
- 		} else
- 			printk(" ");
+ 	ret =3D nf_register_hook(&ip_conntrack_in_ops);
+ 	if (ret < 0) {
+ 		printk("ip_conntrack: can't register pre-routing hook.\n");
+-		goto cleanup_proc;
++		goto cleanup_defraglocalops;
  	}
+ 	ret =3D nf_register_hook(&ip_conntrack_local_out_ops);
+ 	if (ret < 0) {
+@@ -511,6 +557,10 @@
+ 	nf_unregister_hook(&ip_conntrack_local_out_ops);
+  cleanup_inops:
+ 	nf_unregister_hook(&ip_conntrack_in_ops);
++ cleanup_defraglocalops:
++	nf_unregister_hook(&ip_conntrack_defrag_local_out_ops);
++ cleanup_defragops:
++	nf_unregister_hook(&ip_conntrack_defrag_ops);
+  cleanup_proc:
+ 	proc_net_remove("ip_conntrack");
+  cleanup_init:
+@@ -602,5 +652,6 @@
+ EXPORT_SYMBOL(ip_conntrack_expect_list);
+ EXPORT_SYMBOL(ip_conntrack_lock);
+ EXPORT_SYMBOL(ip_conntrack_hash);
++EXPORT_SYMBOL(ip_conntrack_untracked);
+ EXPORT_SYMBOL_GPL(ip_conntrack_find_get);
+ EXPORT_SYMBOL_GPL(ip_conntrack_put);
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/net/ipv4/netfilter/ip_nat_core.c linux-2.6.5-rc2-nflog-trace/net=
+/ipv4/netfilter/ip_nat_core.c
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/ip_nat_core.c	2004-03-11 03:55=
+:22.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/ip_nat_core.c	2004-03-29=
+ 13:01:50.000000000 +0200
+@@ -1016,6 +1016,10 @@
+ 	/* FIXME: Man, this is a hack.  <SIGH> */
+ 	IP_NF_ASSERT(ip_conntrack_destroyed =3D=3D NULL);
+ 	ip_conntrack_destroyed =3D &ip_nat_cleanup_conntrack;
++=09
++	/* Initialize fake conntrack so that NAT will skip it */
++	ip_conntrack_untracked.nat.info.initialized |=3D=20
++		(1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST);
 =20
--	dump_packet(loginfo, *pskb, 0);
-+	dump_packet(loginfo, skb, 0);
- 	printk("\n");
- 	spin_unlock_bh(&log_lock);
-+}
+ 	return 0;
+ }
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/net/ipv4/netfilter/ipt_NOTRACK.c linux-2.6.5-rc2-nflog-trace/net=
+/ipv4/netfilter/ipt_NOTRACK.c
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/ipt_NOTRACK.c	1970-01-01 01:00=
+:00.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/ipt_NOTRACK.c	2004-03-29=
+ 13:01:49.000000000 +0200
+@@ -0,0 +1,75 @@
++/* This is a module which is used for setting up fake conntracks
++ * on packets so that they are not seen by the conntrack/NAT code.
++ */
++#include <linux/module.h>
++#include <linux/skbuff.h>
++
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv4/ip_conntrack.h>
 +
 +static unsigned int
-+ipt_log_target(struct sk_buff **pskb,
-+	       const struct net_device *in,
-+	       const struct net_device *out,
-+	       unsigned int hooknum,
-+	       const void *targinfo,
-+	       void *userinfo)
++target(struct sk_buff **pskb,
++       const struct net_device *in,
++       const struct net_device *out,
++       unsigned int hooknum,
++       const void *targinfo,
++       void *userinfo)
 +{
-+	const struct ipt_log_info *loginfo =3D targinfo;
-+	char level_string[4] =3D "< >";
++	/* Previously seen (loopback)? Ignore. */
++	if ((*pskb)->nfct !=3D NULL)
++		return IPT_CONTINUE;
 +
-+	level_string[1] =3D '0' + (loginfo->level % 8);
-+	ipt_log_packet(hooknum, *pskb, in, out, loginfo, level_string, NULL);
-=20
- 	return IPT_CONTINUE;
- }
-=20
-+static void
-+ipt_logfn(unsigned int hooknum,
-+	  const struct sk_buff *skb,
-+	  const struct net_device *in,
-+	  const struct net_device *out,
-+	  const char *prefix)
-+{
-+	struct ipt_log_info loginfo =3D {=20
-+		.level =3D 0,=20
-+		.logflags =3D IPT_LOG_MASK,=20
-+		.prefix =3D ""=20
-+	};
++	/* Attach fake conntrack entry.=20
++	   If there is a real ct entry correspondig to this packet,=20
++	   it'll hang aroun till timing out. We don't deal with it
++	   for performance reasons. JK */
++	(*pskb)->nfct =3D &ip_conntrack_untracked.infos[IP_CT_NEW];
++	nf_conntrack_get((*pskb)->nfct);
 +
-+	ipt_log_packet(hooknum, skb, in, out, &loginfo, KERN_WARNING, prefix);
++	return IPT_CONTINUE;
 +}
 +
- static int ipt_log_checkentry(const char *tablename,
- 			      const struct ipt_entry *e,
- 			      void *targinfo,
-@@ -413,11 +446,18 @@
-=20
- static int __init init(void)
- {
--	return ipt_register_target(&ipt_log_reg);
-+	if (ipt_register_target(&ipt_log_reg))
++static int
++checkentry(const char *tablename,
++	   const struct ipt_entry *e,
++           void *targinfo,
++           unsigned int targinfosize,
++           unsigned int hook_mask)
++{
++	if (targinfosize !=3D 0) {
++		printk(KERN_WARNING "NOTRACK: targinfosize %u !=3D 0\n",
++		       targinfosize);
++		return 0;
++	}
++
++	if (strcmp(tablename, "raw") !=3D 0) {
++		printk(KERN_WARNING "NOTRACK: can only be called from \"raw\" table, not=
+ \"%s\"\n", tablename);
++		return 0;
++	}
++
++	return 1;
++}
++
++static struct ipt_target ipt_notrack_reg =3D {=20
++	.name =3D "NOTRACK",=20
++	.target =3D target,=20
++	.checkentry =3D checkentry,
++	.me =3D THIS_MODULE=20
++};
++
++static int __init init(void)
++{
++	if (ipt_register_target(&ipt_notrack_reg))
 +		return -EINVAL;
-+	if (nflog)
-+		nf_log_register(PF_INET, &ipt_logfn);
-+=09
++
 +	return 0;
- }
-=20
- static void __exit fini(void)
- {
-+	if (nflog)
-+		nf_log_unregister(PF_INET, &ipt_logfn);
- 	ipt_unregister_target(&ipt_log_reg);
- }
-=20
++}
++
++static void __exit fini(void)
++{
++	ipt_unregister_target(&ipt_notrack_reg);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
 diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/net/ipv4/netfilter/ipt_ULOG.c linux-2.6.5-rc2-nflog/net/ipv4/=
-netfilter/ipt_ULOG.c
---- linux-2.6.5-rc2-nfsubmit/net/ipv4/netfilter/ipt_ULOG.c	2004-03-11 03:55=
-:25.000000000 +0100
-+++ linux-2.6.5-rc2-nflog/net/ipv4/netfilter/ipt_ULOG.c	2004-03-29 12:57:07=
-=2E000000000 +0200
-@@ -50,6 +50,7 @@
- #include <linux/netlink.h>
- #include <linux/netdevice.h>
- #include <linux/mm.h>
-+#include <linux/netfilter.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_ULOG.h>
- #include <linux/netfilter_ipv4/lockhelp.h>
-@@ -80,6 +81,10 @@
- MODULE_PARM(flushtimeout, "i");
- MODULE_PARM_DESC(flushtimeout, "buffer flush timeout");
+-rc2-nflog/net/ipv4/netfilter/ipt_conntrack.c linux-2.6.5-rc2-nflog-trace/n=
+et/ipv4/netfilter/ipt_conntrack.c
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/ipt_conntrack.c	2004-03-11 03:=
+55:44.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/ipt_conntrack.c	2004-03-=
+29 13:01:50.000000000 +0200
+@@ -35,11 +35,13 @@
 =20
-+static unsigned int nflog =3D 1;
-+MODULE_PARM(nflog, "i");
-+MODULE_PARM_DESC(nflog, "register as internal netfilter logging module");
-+
- /* global data structures */
+ #define FWINV(bool,invflg) ((bool) ^ !!(sinfo->invflags & invflg))
 =20
- typedef struct {
-@@ -157,17 +162,17 @@
- 	return skb;
- }
-=20
--static unsigned int ipt_ulog_target(struct sk_buff **pskb,
--				    const struct net_device *in,
--				    const struct net_device *out,
--				    unsigned int hooknum,
--				    const void *targinfo, void *userinfo)
-+static void ipt_ulog_packet(unsigned int hooknum,
-+			    const struct sk_buff *skb,
-+			    const struct net_device *in,
-+			    const struct net_device *out,
-+			    const struct ipt_ulog_info *loginfo,
-+			    const char *prefix)
- {
- 	ulog_buff_t *ub;
- 	ulog_packet_msg_t *pm;
- 	size_t size, copy_len;
- 	struct nlmsghdr *nlh;
--	struct ipt_ulog_info *loginfo =3D (struct ipt_ulog_info *) targinfo;
-=20
- 	/* ffs =3D=3D find first bit set, necessary because userspace
- 	 * is already shifting groupnumber, but we need unshifted.
-@@ -176,8 +181,8 @@
-=20
- 	/* calculate the size of the skb needed */
- 	if ((loginfo->copy_range =3D=3D 0) ||
--	    (loginfo->copy_range > (*pskb)->len)) {
--		copy_len =3D (*pskb)->len;
-+	    (loginfo->copy_range > skb->len)) {
-+		copy_len =3D skb->len;
- 	} else {
- 		copy_len =3D loginfo->copy_range;
- 	}
-@@ -214,19 +219,21 @@
-=20
- 	/* copy hook, prefix, timestamp, payload, etc. */
- 	pm->data_len =3D copy_len;
--	pm->timestamp_sec =3D (*pskb)->stamp.tv_sec;
--	pm->timestamp_usec =3D (*pskb)->stamp.tv_usec;
--	pm->mark =3D (*pskb)->nfmark;
-+	pm->timestamp_sec =3D skb->stamp.tv_sec;
-+	pm->timestamp_usec =3D skb->stamp.tv_usec;
-+	pm->mark =3D skb->nfmark;
- 	pm->hook =3D hooknum;
--	if (loginfo->prefix[0] !=3D '\0')
-+	if (prefix !=3D NULL)
-+		strncpy(pm->prefix, prefix, sizeof(pm->prefix));
-+	else if (loginfo->prefix[0] !=3D '\0')
- 		strncpy(pm->prefix, loginfo->prefix, sizeof(pm->prefix));
- 	else
- 		*(pm->prefix) =3D '\0';
-=20
- 	if (in && in->hard_header_len > 0
--	    && (*pskb)->mac.raw !=3D (void *) (*pskb)->nh.iph
-+	    && skb->mac.raw !=3D (void *) skb->nh.iph
- 	    && in->hard_header_len <=3D ULOG_MAC_LEN) {
--		memcpy(pm->mac, (*pskb)->mac.raw, in->hard_header_len);
-+		memcpy(pm->mac, skb->mac.raw, in->hard_header_len);
- 		pm->mac_len =3D in->hard_header_len;
- 	} else
- 		pm->mac_len =3D 0;
-@@ -241,8 +248,8 @@
- 	else
- 		pm->outdev_name[0] =3D '\0';
-=20
--	/* copy_len <=3D (*pskb)->len, so can't fail. */
--	if (skb_copy_bits(*pskb, 0, pm->payload, copy_len) < 0)
-+	/* copy_len <=3D skb->len, so can't fail. */
-+	if (skb_copy_bits(skb, 0, pm->payload, copy_len) < 0)
- 		BUG();
- =09
- 	/* check if we are building multi-part messages */
-@@ -266,8 +273,7 @@
-=20
- 	UNLOCK_BH(&ulog_lock);
-=20
--	return IPT_CONTINUE;
+-	if (ct)
+-		statebit =3D IPT_CONNTRACK_STATE_BIT(ctinfo);
+-	else
+-		statebit =3D IPT_CONNTRACK_STATE_INVALID;
 -
-+	return;
-=20
- nlmsg_failure:
- 	PRINTR("ipt_ULOG: error during NLMSG_PUT\n");
-@@ -276,8 +282,35 @@
- 	PRINTR("ipt_ULOG: Error building netlink message\n");
-=20
- 	UNLOCK_BH(&ulog_lock);
-+}
-+
-+static unsigned int ipt_ulog_target(struct sk_buff **pskb,
-+				    const struct net_device *in,
-+				    const struct net_device *out,
-+				    unsigned int hooknum,
-+				    const void *targinfo, void *userinfo)
-+{
-+	struct ipt_ulog_info *loginfo =3D (struct ipt_ulog_info *) targinfo;
-=20
--	return IPT_CONTINUE;
-+	ipt_ulog_packet(hooknum, *pskb, in, out, loginfo, NULL);
++	if (skb->nfct =3D=3D &ip_conntrack_untracked.infos[IP_CT_NEW])
++		statebit =3D IPT_CONNTRACK_STATE_UNTRACKED;
++	else if (ct)
++ 		statebit =3D IPT_CONNTRACK_STATE_BIT(ctinfo);
++ 	else
++ 		statebit =3D IPT_CONNTRACK_STATE_INVALID;
 +=20
-+ 	return IPT_CONTINUE;
-+}
-+=20
-+static void ipt_logfn(unsigned int hooknum,
-+		      const struct sk_buff *skb,
-+		      const struct net_device *in,
-+		      const struct net_device *out,
-+		      const char *prefix)
-+{
-+	struct ipt_ulog_info loginfo =3D {=20
-+		.nl_group =3D ULOG_DEFAULT_NLGROUP,
-+		.copy_range =3D 0,
-+		.qthreshold =3D ULOG_DEFAULT_QTHRESHOLD,
-+		.prefix =3D ""
-+	};
-+
-+	ipt_ulog_packet(hooknum, skb, in, out, &loginfo, prefix);
- }
-=20
- static int ipt_ulog_checkentry(const char *tablename,
-@@ -341,7 +374,9 @@
- 		sock_release(nflognl->sk_socket);
- 		return -EINVAL;
- 	}
--
-+	if (nflog)
-+		nf_log_register(PF_INET, &ipt_logfn);
-+=09
- 	return 0;
- }
-=20
-@@ -352,6 +387,8 @@
-=20
- 	DEBUGP("ipt_ULOG: cleanup_module\n");
-=20
-+	if (nflog)
-+		nf_log_unregister(PF_INET, &ipt_logfn);
- 	ipt_unregister_target(&ipt_ulog_reg);
- 	sock_release(nflognl->sk_socket);
-=20
+ 	if(sinfo->flags & IPT_CONNTRACK_STATE) {
+ 		if (ct) {
+ 			if(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip !=3D
 diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
--rc2-nfsubmit/net/ipv6/netfilter/ip6t_LOG.c linux-2.6.5-rc2-nflog/net/ipv6/=
-netfilter/ip6t_LOG.c
---- linux-2.6.5-rc2-nfsubmit/net/ipv6/netfilter/ip6t_LOG.c	2004-03-11 03:55=
-:24.000000000 +0100
-+++ linux-2.6.5-rc2-nflog/net/ipv6/netfilter/ip6t_LOG.c	2004-03-29 12:57:07=
-=2E000000000 +0200
-@@ -18,12 +18,17 @@
- #include <net/udp.h>
- #include <net/tcp.h>
- #include <net/ipv6.h>
-+#include <linux/netfilter.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
+-rc2-nflog/net/ipv4/netfilter/ipt_state.c linux-2.6.5-rc2-nflog-trace/net/i=
+pv4/netfilter/ipt_state.c
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/ipt_state.c	2004-03-11 03:55:5=
+4.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/ipt_state.c	2004-03-29 1=
+3:01:50.000000000 +0200
+@@ -30,7 +30,9 @@
+ 	enum ip_conntrack_info ctinfo;
+ 	unsigned int statebit;
 =20
- MODULE_AUTHOR("Jan Rekorajski <baggins@pld.org.pl>");
- MODULE_DESCRIPTION("IP6 tables LOG target module");
- MODULE_LICENSE("GPL");
-=20
-+static unsigned int nflog =3D 1;
-+MODULE_PARM(nflog, "i");
-+MODULE_PARM_DESC(nflog, "register as internal netfilter logging module");
-+=20
- struct in_device;
- #include <net/route.h>
- #include <linux/netfilter_ipv6/ip6t_LOG.h>
-@@ -265,40 +270,38 @@
- 	}
- }
-=20
--static unsigned int
--ip6t_log_target(struct sk_buff **pskb,
--		unsigned int hooknum,
-+static void
-+ip6t_log_packet(unsigned int hooknum,
-+		const struct sk_buff *skb,
- 		const struct net_device *in,
- 		const struct net_device *out,
--		const void *targinfo,
--		void *userinfo)
-+		const struct ip6t_log_info *loginfo,
-+		const char *level_string,
-+		const char *prefix)
- {
--	struct ipv6hdr *ipv6h =3D (*pskb)->nh.ipv6h;
--	const struct ip6t_log_info *loginfo =3D targinfo;
--	char level_string[4] =3D "< >";
-+	struct ipv6hdr *ipv6h =3D skb->nh.ipv6h;
-=20
--	level_string[1] =3D '0' + (loginfo->level % 8);
- 	spin_lock_bh(&log_lock);
- 	printk(level_string);
- 	printk("%sIN=3D%s OUT=3D%s ",
--		loginfo->prefix,
-+		prefix =3D=3D NULL ? loginfo->prefix : prefix,
- 		in ? in->name : "",
- 		out ? out->name : "");
- 	if (in && !out) {
- 		/* MAC logging for input chain only. */
- 		printk("MAC=3D");
--		if ((*pskb)->dev && (*pskb)->dev->hard_header_len && (*pskb)->mac.raw !=
-=3D (void*)ipv6h) {
--			if ((*pskb)->dev->type !=3D ARPHRD_SIT){
-+		if (skb->dev && skb->dev->hard_header_len && skb->mac.raw !=3D (void*)ip=
-v6h) {
-+			if (skb->dev->type !=3D ARPHRD_SIT){
- 			  int i;
--			  unsigned char *p =3D (*pskb)->mac.raw;
--			  for (i =3D 0; i < (*pskb)->dev->hard_header_len; i++,p++)
-+			  unsigned char *p =3D skb->mac.raw;
-+			  for (i =3D 0; i < skb->dev->hard_header_len; i++,p++)
- 				printk("%02x%c", *p,
--			       		i=3D=3D(*pskb)->dev->hard_header_len - 1
-+			       		i=3D=3Dskb->dev->hard_header_len - 1
- 			       		? ' ':':');
- 			} else {
- 			  int i;
--			  unsigned char *p =3D (*pskb)->mac.raw;
--			  if ( p - (ETH_ALEN*2+2) > (*pskb)->head ){
-+			  unsigned char *p =3D skb->mac.raw;
-+			  if ( p - (ETH_ALEN*2+2) > skb->head ){
- 			    p -=3D (ETH_ALEN+2);
- 			    for (i =3D 0; i < (ETH_ALEN); i++,p++)
- 				printk("%02x%s", *p,
-@@ -309,10 +312,10 @@
- 					i =3D=3D ETH_ALEN-1 ? ' ' : ':');
- 			  }
- 			 =20
--			  if (((*pskb)->dev->addr_len =3D=3D 4) &&
--			      (*pskb)->dev->hard_header_len > 20){
-+			  if ((skb->dev->addr_len =3D=3D 4) &&
-+			      skb->dev->hard_header_len > 20){
- 			    printk("TUNNEL=3D");
--			    p =3D (*pskb)->mac.raw + 12;
-+			    p =3D skb->mac.raw + 12;
- 			    for (i =3D 0; i < 4; i++,p++)
- 				printk("%3d%s", *p,
- 					i =3D=3D 3 ? "->" : ".");
-@@ -328,10 +331,41 @@
- 	dump_packet(loginfo, ipv6h, 1);
- 	printk("\n");
- 	spin_unlock_bh(&log_lock);
-+}
+-	if (!ip_conntrack_get((struct sk_buff *)skb, &ctinfo))
++	if (skb->nfct =3D=3D &ip_conntrack_untracked.infos[IP_CT_NEW])
++		statebit =3D IPT_STATE_UNTRACKED;
++	else if (!ip_conntrack_get((struct sk_buff *)skb, &ctinfo))
+ 		statebit =3D IPT_STATE_INVALID;
+ 	else
+ 		statebit =3D IPT_STATE_BIT(ctinfo);
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/net/ipv4/netfilter/iptable_raw.c linux-2.6.5-rc2-nflog-trace/net=
+/ipv4/netfilter/iptable_raw.c
+--- linux-2.6.5-rc2-nflog/net/ipv4/netfilter/iptable_raw.c	1970-01-01 01:00=
+:00.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv4/netfilter/iptable_raw.c	2004-03-29=
+ 13:01:49.000000000 +0200
+@@ -0,0 +1,149 @@
++/*=20
++ * 'raw' table, which is the very first hooked in at PRE_ROUTING and LOCAL=
+_OUT .
++ *
++ * Copyright (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ */
++#include <linux/module.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
 +
-+static unsigned int
-+ip6t_log_target(struct sk_buff **pskb,
-+		unsigned int hooknum,
-+		const struct net_device *in,
-+		const struct net_device *out,
-+		const void *targinfo,
-+		void *userinfo)
++#define RAW_VALID_HOOKS ((1 << NF_IP_PRE_ROUTING) | (1 << NF_IP_LOCAL_OUT))
++
++/* Standard entry. */
++struct ipt_standard
 +{
-+	const struct ip6t_log_info *loginfo =3D targinfo;
-+	char level_string[4] =3D "< >";
-+
-+	level_string[1] =3D '0' + (loginfo->level % 8);
-+	ip6t_log_packet(hooknum, *pskb, in, out, loginfo, level_string, NULL);
-=20
- 	return IP6T_CONTINUE;
- }
-=20
-+static void
-+ip6t_logfn(unsigned int hooknum,
-+	   const struct sk_buff *skb,
-+	   const struct net_device *in,
-+	   const struct net_device *out,
-+	   const char *prefix)
-+{
-+	struct ip6t_log_info loginfo =3D {
-+		.level =3D 0,
-+		.logflags =3D IP6T_LOG_MASK,
-+		.prefix =3D ""
-+	};
-+
-+	ip6t_log_packet(hooknum, skb, in, out, &loginfo, KERN_WARNING, prefix);
-+}
-+
- static int ip6t_log_checkentry(const char *tablename,
- 			       const struct ip6t_entry *e,
- 			       void *targinfo,
-@@ -360,20 +394,27 @@
- 	return 1;
- }
-=20
--static struct ip6t_target ip6t_log_reg
--=3D { { NULL, NULL }, "LOG", ip6t_log_target, ip6t_log_checkentry, NULL,=
-=20
--    THIS_MODULE };
-+static struct ip6t_target ip6t_log_reg =3D {
-+	.name 		=3D "LOG",
-+	.target 	=3D ip6t_log_target,=20
-+	.checkentry	=3D ip6t_log_checkentry,=20
-+	.me 		=3D THIS_MODULE,
++	struct ipt_entry entry;
++	struct ipt_standard_target target;
 +};
++
++struct ipt_error_target
++{
++	struct ipt_entry_target target;
++	char errorname[IPT_FUNCTION_MAXNAMELEN];
++};
++
++struct ipt_error
++{
++	struct ipt_entry entry;
++	struct ipt_error_target target;
++};
++
++static struct
++{
++	struct ipt_replace repl;
++	struct ipt_standard entries[2];
++	struct ipt_error term;
++} initial_table __initdata
++=3D { { "raw", RAW_VALID_HOOKS, 3,
++      sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),
++      { [NF_IP_PRE_ROUTING] 0,
++	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) },
++      { [NF_IP_PRE_ROUTING] 0,
++	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) },
++      0, NULL, { } },
++    {
++	    /* PRE_ROUTING */
++	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++		0,
++		sizeof(struct ipt_entry),
++		sizeof(struct ipt_standard),
++		0, { 0, 0 }, { } },
++	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } =
+},
++		-NF_ACCEPT - 1 } },
++	    /* LOCAL_OUT */
++	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++		0,
++		sizeof(struct ipt_entry),
++		sizeof(struct ipt_standard),
++		0, { 0, 0 }, { } },
++	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } =
+},
++		-NF_ACCEPT - 1 } }
++    },
++    /* ERROR */
++    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++	0,
++	sizeof(struct ipt_entry),
++	sizeof(struct ipt_error),
++	0, { 0, 0 }, { } },
++      { { { { IPT_ALIGN(sizeof(struct ipt_error_target)), IPT_ERROR_TARGET=
+ } },
++	  { } },
++	"ERROR"
++      }
++    }
++};
++
++static struct ipt_table packet_raw =3D {=20
++	.name =3D "raw",=20
++	.table =3D &initial_table.repl,
++	.valid_hooks =3D  RAW_VALID_HOOKS,=20
++	.lock =3D RW_LOCK_UNLOCKED,=20
++	.me =3D THIS_MODULE
++};
++
++/* The work comes in here from netfilter.c. */
++static unsigned int
++ipt_hook(unsigned int hook,
++	 struct sk_buff **pskb,
++	 const struct net_device *in,
++	 const struct net_device *out,
++	 int (*okfn)(struct sk_buff *))
++{
++	return ipt_do_table(pskb, hook, in, out, &packet_raw, NULL);
++}
++
++/* 'raw' is the very first table. */
++static struct nf_hook_ops ipt_ops[] =3D {
++	{
++	  .hook =3D ipt_hook,=20
++	  .pf =3D PF_INET,=20
++	  .hooknum =3D NF_IP_PRE_ROUTING,=20
++	  .priority =3D NF_IP_PRI_RAW
++	},
++	{
++	  .hook =3D ipt_hook,=20
++	  .pf =3D PF_INET,=20
++	  .hooknum =3D NF_IP_LOCAL_OUT,=20
++	  .priority =3D NF_IP_PRI_RAW
++	},
++};
++
++static int __init init(void)
++{
++	int ret;
++
++	/* Register table */
++	ret =3D ipt_register_table(&packet_raw);
++	if (ret < 0)
++		return ret;
++
++	/* Register hooks */
++	ret =3D nf_register_hook(&ipt_ops[0]);
++	if (ret < 0)
++		goto cleanup_table;
++
++	ret =3D nf_register_hook(&ipt_ops[1]);
++	if (ret < 0)
++		goto cleanup_hook0;
++
++	return ret;
++
++ cleanup_hook0:
++	nf_unregister_hook(&ipt_ops[0]);
++ cleanup_table:
++	ipt_unregister_table(&packet_raw);
++
++	return ret;
++}
++
++static void __exit fini(void)
++{
++	unsigned int i;
++
++	for (i =3D 0; i < sizeof(ipt_ops)/sizeof(struct nf_hook_ops); i++)
++		nf_unregister_hook(&ipt_ops[i]);
++
++	ipt_unregister_table(&packet_raw);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/net/ipv6/netfilter/Kconfig linux-2.6.5-rc2-nflog-trace/net/ipv6/=
+netfilter/Kconfig
+--- linux-2.6.5-rc2-nflog/net/ipv6/netfilter/Kconfig	2004-03-11 03:55:44.00=
+0000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv6/netfilter/Kconfig	2004-03-29 13:01=
+:49.000000000 +0200
+@@ -218,5 +218,17 @@
+ 	  To compile it as a module, choose M here.  If unsure, say N.
 =20
- static int __init init(void)
- {
- 	if (ip6t_register_target(&ip6t_log_reg))
- 		return -EINVAL;
-+	if (nflog)
-+		nf_log_register(PF_INET6, &ip6t_logfn);
+ #dep_tristate '  LOG target support' CONFIG_IP6_NF_TARGET_LOG $CONFIG_IP6_=
+NF_IPTABLES
++config IP6_NF_RAW
++	tristate  'raw table support (required for TRACE)'
++	depends on IP6_NF_IPTABLES
++	help
++	  This option adds a `raw' table to ip6tables. This table is the very
++	  first in the netfilter framework and hooks in at the PREROUTING
++	  and OUTPUT chains.
++=09
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/modules.txt>.  If unsure, say `N'.
++	  help
++
+ endmenu
 =20
- 	return 0;
- }
-=20
- static void __exit fini(void)
- {
-+	if (nflog)
-+		nf_log_unregister(PF_INET6, &ip6t_logfn);
- 	ip6t_unregister_target(&ip6t_log_reg);
- }
-=20
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/net/ipv6/netfilter/Makefile linux-2.6.5-rc2-nflog-trace/net/ipv6=
+/netfilter/Makefile
+--- linux-2.6.5-rc2-nflog/net/ipv6/netfilter/Makefile	2004-03-11 03:55:33.0=
+00000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv6/netfilter/Makefile	2004-03-29 13:0=
+1:49.000000000 +0200
+@@ -21,4 +21,5 @@
+ obj-$(CONFIG_IP6_NF_TARGET_MARK) +=3D ip6t_MARK.o
+ obj-$(CONFIG_IP6_NF_QUEUE) +=3D ip6_queue.o
+ obj-$(CONFIG_IP6_NF_TARGET_LOG) +=3D ip6t_LOG.o
++obj-$(CONFIG_IP6_NF_RAW) +=3D ip6table_raw.o
+ obj-$(CONFIG_IP6_NF_MATCH_HL) +=3D ip6t_hl.o
+diff -Nru --exclude-from /sunbeam/home/laforge/scripts/dontdiff linux-2.6.5=
+-rc2-nflog/net/ipv6/netfilter/ip6table_raw.c linux-2.6.5-rc2-nflog-trace/ne=
+t/ipv6/netfilter/ip6table_raw.c
+--- linux-2.6.5-rc2-nflog/net/ipv6/netfilter/ip6table_raw.c	1970-01-01 01:0=
+0:00.000000000 +0100
++++ linux-2.6.5-rc2-nflog-trace/net/ipv6/netfilter/ip6table_raw.c	2004-03-2=
+9 13:01:49.000000000 +0200
+@@ -0,0 +1,154 @@
++/*
++ * IPv6 raw table, a port of the IPv4 raw table to IPv6
++ *
++ * Copyright (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ */
++#include <linux/module.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++
++#define RAW_VALID_HOOKS ((1 << NF_IP6_PRE_ROUTING) | (1 << NF_IP6_LOCAL_OU=
+T))
++
++#if 0
++#define DEBUGP(x, args...)	printk(KERN_DEBUG x, ## args)
++#else
++#define DEBUGP(x, args...)
++#endif
++
++/* Standard entry. */
++struct ip6t_standard
++{
++	struct ip6t_entry entry;
++	struct ip6t_standard_target target;
++};
++
++struct ip6t_error_target
++{
++	struct ip6t_entry_target target;
++	char errorname[IP6T_FUNCTION_MAXNAMELEN];
++};
++
++struct ip6t_error
++{
++	struct ip6t_entry entry;
++	struct ip6t_error_target target;
++};
++
++static struct
++{
++	struct ip6t_replace repl;
++	struct ip6t_standard entries[2];
++	struct ip6t_error term;
++} initial_table __initdata=20
++=3D { { "raw", RAW_VALID_HOOKS, 3,
++      sizeof(struct ip6t_standard) * 2 + sizeof(struct ip6t_error),
++      { [NF_IP6_PRE_ROUTING] 	0,
++	[NF_IP6_LOCAL_OUT]	sizeof(struct ip6t_standard) },
++      { [NF_IP6_PRE_ROUTING] 	0,
++	[NF_IP6_LOCAL_OUT]	sizeof(struct ip6t_standard) },
++      0, NULL, { } },
++    {
++	    /* PRE_ROUTING */
++            { { { { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, { { { 0 } }=
+ }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++		0,
++		sizeof(struct ip6t_entry),
++		sizeof(struct ip6t_standard),
++		0, { 0, 0 }, { } },
++	      { { { { IP6T_ALIGN(sizeof(struct ip6t_standard_target)), "" } }, { =
+} },
++		-NF_ACCEPT - 1 } },
++	    /* LOCAL_OUT */
++            { { { { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, { { { 0 } }=
+ }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++		0,
++		sizeof(struct ip6t_entry),
++		sizeof(struct ip6t_standard),
++		0, { 0, 0 }, { } },
++	      { { { { IP6T_ALIGN(sizeof(struct ip6t_standard_target)), "" } }, { =
+} },
++		-NF_ACCEPT - 1 } },
++    },
++    /* ERROR */
++    { { { { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, "", =
+"", { 0 }, { 0 }, 0, 0, 0 },
++	0,
++	sizeof(struct ip6t_entry),
++	sizeof(struct ip6t_error),
++	0, { 0, 0 }, { } },
++      { { { { IP6T_ALIGN(sizeof(struct ip6t_error_target)), IP6T_ERROR_TAR=
+GET } },
++	  { } },
++	"ERROR"
++      }
++    }
++};
++
++static struct ip6t_table packet_raw =3D {=20
++	.name =3D "raw",=20
++	.table =3D &initial_table.repl,
++	.valid_hooks =3D RAW_VALID_HOOKS,=20
++	.lock =3D RW_LOCK_UNLOCKED,=20
++	.me =3D THIS_MODULE
++};
++
++/* The work comes in here from netfilter.c. */
++static unsigned int
++ip6t_hook(unsigned int hook,
++	 struct sk_buff **pskb,
++	 const struct net_device *in,
++	 const struct net_device *out,
++	 int (*okfn)(struct sk_buff *))
++{
++	return ip6t_do_table(pskb, hook, in, out, &packet_raw, NULL);
++}
++
++static struct nf_hook_ops ip6t_ops[] =3D {=20
++	{
++	  .hook =3D ip6t_hook,=20
++	  .pf =3D PF_INET6,
++	  .hooknum =3D NF_IP6_PRE_ROUTING,
++	  .priority =3D NF_IP6_PRI_FIRST
++	},
++	{
++	  .hook =3D ip6t_hook,=20
++	  .pf =3D PF_INET6,=20
++	  .hooknum =3D NF_IP6_LOCAL_OUT,
++	  .priority =3D NF_IP6_PRI_FIRST
++	},
++};
++
++static int __init init(void)
++{
++	int ret;
++
++	/* Register table */
++	ret =3D ip6t_register_table(&packet_raw);
++	if (ret < 0)
++		return ret;
++
++	/* Register hooks */
++	ret =3D nf_register_hook(&ip6t_ops[0]);
++	if (ret < 0)
++		goto cleanup_table;
++
++	ret =3D nf_register_hook(&ip6t_ops[1]);
++	if (ret < 0)
++		goto cleanup_hook0;
++
++	return ret;
++
++ cleanup_hook0:
++	nf_unregister_hook(&ip6t_ops[0]);
++ cleanup_table:
++	ip6t_unregister_table(&packet_raw);
++
++	return ret;
++}
++
++static void __exit fini(void)
++{
++	unsigned int i;
++
++	for (i =3D 0; i < sizeof(ip6t_ops)/sizeof(struct nf_hook_ops); i++)
++		nf_unregister_hook(&ip6t_ops[i]);
++
++	ip6t_unregister_table(&packet_raw);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
 
---kswDJesP0akhmDn8--
+--Aaj1jBvBEV7KRjLi--
 
---RNGrj7vazCqBHNw7
+--4Y142/9l9nQlBiaj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -796,9 +887,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFAaAFXXaXGVTD0i/8RAvixAJ48xziQP0zpxnV8mzJc7Zprq8rngwCeMqp3
-QR42M5LJL8zOkxH2NyrSql0=
-=SlTj
+iD8DBQFAaALrXaXGVTD0i/8RAjMeAKCQbZBG4m5s1lGHwOyHSxrdN9vm5wCeOctX
+LaXgrnrLpvJwuSqj+OocDa8=
+=wAHF
 -----END PGP SIGNATURE-----
 
---RNGrj7vazCqBHNw7--
+--4Y142/9l9nQlBiaj--
