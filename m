@@ -1,15 +1,12 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: Re: pptp-conntrack-nat - problem
-Date: Tue, 5 Apr 2005 08:24:10 -0700
-Message-ID: <20050405152410.GA7423@linuxace.com>
-References: <1112691812.22295.4.camel@sas>
+Subject: [PATCH] Note IRC helper limitation
+Date: Tue, 5 Apr 2005 15:25:54 -0700
+Message-ID: <20050405222554.GA8985@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="lrZ03NoBR/3+SXJZ"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wojciech 'Sas' Ci?ciwa <cieciwa@dzp.ntt.com.pl>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <1112691812.22295.4.camel@sas>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +18,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 05, 2005 at 11:03:32AM +0200, Wojciech 'Sas' Ci?ciwa wrote:
-> Hi, 
-> I try apply pptp-conntrack downloaded directly from SVN
-> and I got error:
-> ===============================
-> Welcome to Patch-o-matic ($Revision: 3733 $)!
-> 
-> Kernel:   2.6.11, /home/users/cieciwa/rpm/BUILD/linux-2.6.11.6
 
-It doesn't work with kernels > 2.6.10 at the moment.
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+IRC helper does not handle spaces in filenames, and a fix for it
+is non-trivial.  Note the limitation so people aren't surprised.
 
 Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-irc
+
+diff -ru linux-orig/net/ipv4/netfilter/Kconfig linux-new/net/ipv4/netfilter/Kconfig
+--- linux-orig/net/ipv4/netfilter/Kconfig	2005-03-02 02:38:20.000000000 -0500
++++ linux-new/net/ipv4/netfilter/Kconfig	2005-04-05 18:22:29.883866472 -0400
+@@ -73,6 +73,9 @@
+ 	  chats.  Note that you do NOT need this extension to get files or
+ 	  have others initiate chats, or everything else in IRC.
+ 
++	  Known limitation: DCC SEND filenames with spaces are not currently
++	  supported.
++
+ 	  To compile it as a module, choose M here.  If unsure, say Y.
+ 
+ config IP_NF_TFTP
+
+--lrZ03NoBR/3+SXJZ--
