@@ -1,16 +1,14 @@
-From: Joost Remijn <remijnj@eidetica.com>
-Subject: RE: libipq packet id
-Date: Thu, 26 Sep 2002 17:51:02 +0200 (CEST)
+From: Andras Kis-Szabo <kisza@securityaudit.hu>
+Subject: [PATCH]Re: sparc64 ipv6 ip6tables nogo
+Date: Thu, 26 Sep 2002 18:48:31 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0209261748150.7774-100000@fruit.eidetica.com>
-References: <003801c26578$b48e22d0$97025a3e@SHAGWELL>
+Message-ID: <1033058911.1015.13.camel@arwen>
+References: <20020912155314.GA20741@paradigm.rfc822.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "'James Morris'" <jmorris@intercode.com.au>,
-   <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="Boundary_(ID_GGBzfLE7OwqwBMfQ9oRY+A)"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Moshe Ashkenazi <moshea@checkpoint.com>
-In-Reply-To: <003801c26578$b48e22d0$97025a3e@SHAGWELL>
+In-reply-to: <20020912155314.GA20741@paradigm.rfc822.org>
+To: Netfilter Devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,62 +19,57 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-But did you actually mark the packet. Check the iptables manpage to see
-how to mark a packet.
 
-Joost
+--Boundary_(ID_GGBzfLE7OwqwBMfQ9oRY+A)
+Content-type: text/plain
+Content-transfer-encoding: 7BIT
 
-On Thu, 26 Sep 2002, Moshe Ashkenazi wrote:
+Hi,
 
-> If have those two rules:
->
-> 1    QUEUE      icmp --  anywhere             anywhere
-> 2    QUEUE      tcp  --  anywhere             anywhere           tcp
-> dpt:ftp
->
-> mark return always zero and hook return 1 even the second rule queue the
-> packet (I did ftp)
->
->
-> Moshe Ashkenazi,
->
-> -----Original Message-----
-> From: Joost Remijn [mailto:remijnj@eidetica.com]
-> Sent: Thursday, September 26, 2002 5:04 PM
-> To: James Morris
-> Cc: Moshe Ashkenazi; netfilter-devel@lists.netfilter.org
-> Subject: Re: libipq packet id
->
->
->
-> On Fri, 27 Sep 2002, James Morris wrote:
->
-> > On Thu, 26 Sep 2002, Moshe Ashkenazi wrote:
-> >
-> > > Hi, All -
-> > >
-> > > I'm using libipq to retrieve packet from netfilter in userspace, and
-> its
-> > > work cool.
-> > >
-> > > My question is how can I know on userspace mode from which netfilter
-> > > rule the packet arrive?
-> > >
-> >
-> > This information is not passed to userspace.
->
-> What about the mark and hook values in the struct ipq_packet_msg_t.
-> That looks like a possibility to get some info from userspace about the
-> rule.
->
-> Joost
->
-> > --
-> > James Morris
-> > <jmorris@intercode.com.au>
-> >
-> >
-> >
->
->
->
+(I send the patch to the Netfilter-Devel list, too. I forgot it :()
+> i seem to have been hit by a ip6tables problem on sparc64 - It seems
+> that there are some hidden 64bit kernel / 32 bit userspace problems
+> somewhere in netfilter (Same happened with tunnel ioctls on sparc64)
+One quick workaround is attached for this problem. (The counter-problem
+remained)
+Thanks to: Florian Lohoff <flo@rfc822.org>
+
+Regards,
+
+	kisza
+
+-- 
+    Andras Kis-Szabo       Security Development, Design and Audit
+-------------------------/        Zorp, NetFilter and IPv6
+ kisza@SecurityAudit.hu /------------------------------------------->
+
+--Boundary_(ID_GGBzfLE7OwqwBMfQ9oRY+A)
+Content-type: text/plain; name=align.20020926; charset=ISO-8859-2
+Content-transfer-encoding: 7BIT
+Content-disposition: attachment; filename=align.20020926
+
+--- linux/net/ipv6/netfilter/ip6_tables.c.as	2002-09-26 18:28:27.000000000 +0200
++++ linux/net/ipv6/netfilter/ip6_tables.c	2002-09-26 18:31:54.000000000 +0200
+@@ -101,10 +101,8 @@
+ 	unsigned int hook_entry[NF_IP6_NUMHOOKS];
+ 	unsigned int underflow[NF_IP6_NUMHOOKS];
+ 
+-	char padding[SMP_ALIGN((NF_IP6_NUMHOOKS*2+2)*sizeof(unsigned int))];
+-
+ 	/* ip6t_entry tables: one per CPU */
+-	char entries[0];
++	char entries[0] ____cacheline_aligned;
+ };
+ 
+ static LIST_HEAD(ip6t_target);
+@@ -1449,7 +1447,7 @@
+ 	int ret;
+ 	struct ip6t_table_info *newinfo;
+ 	static struct ip6t_table_info bootstrap
+-		= { 0, 0, 0, { 0 }, { 0 }, { }, { } };
++		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 
+ 	MOD_INC_USE_COUNT;
+ 	newinfo = vmalloc(sizeof(struct ip6t_table_info)
+
+--Boundary_(ID_GGBzfLE7OwqwBMfQ9oRY+A)--
