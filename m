@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: patch for conntrack expectations
-Date: Tue, 24 Feb 2004 17:32:42 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: [PATCH 2.6] amanda conntrack/nat helper cleanup
+Date: Tue, 24 Feb 2004 18:23:57 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <403B7CAA.3060005@trash.net>
-References: <403014C5.8080102@eurodev.net> <20040217213217.GF30968@obroa-skai.de.gnumonks.org> <4032F4DE.3050402@eurodev.net> <20040218172539.GX9464@sunbeam.de.gnumonks.org> <4038B14C.901@eurodev.net> <20040224094014.GV13386@sunbeam.de.gnumonks.org> <403B1F5F.6010004@trash.net> <20040224102432.GX13386@sunbeam.de.gnumonks.org>
+Message-ID: <20040224172356.GM13386@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060706080503020604070801"
-Cc: Pablo Neira <pablo@eurodev.net>,  netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3xvobRwI6W2FSfVC"
+Cc: kaber@trash.net,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040224102432.GX13386@sunbeam.de.gnumonks.org>
+To: David Miller <davem@redhat.com>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,6 +20,74 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
+
+
+--3xvobRwI6W2FSfVC
+Content-Type: multipart/mixed; boundary="n8ucneZ6gTaxrU7s"
+Content-Disposition: inline
+
+
+--n8ucneZ6gTaxrU7s
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Dave!
+
+The attached patch is a major cleanup of the amanda nat and conntrack
+helpers.  It already went into 2.4.x some time ago but was lost for
+2.6.x.
+
+Pleae apply, thanks.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--n8ucneZ6gTaxrU7s
+Content-Type: message/rfc822
+Content-Disposition: inline
+
+Return-Path: Received: from coruscant.gnumonks.org ([unix socket])
+	by coruscant.gnumonks.org (Cyrus v2.1.15-IPv6-Debian-2.1.15-0woody.1.0) with LMTP; Tue, 24 Feb 2004 17:32:12 +0100
+X-Sieve: CMU Sieve 2.2
+Return-path: <kaber@trash.net>
+Received: from netfilter-sponsored-by.noris.net ([62.128.28.62] helo=vishnu.netfilter.org)
+	by coruscant.gnumonks.org with esmtp (TLSv1:DES-CBC3-SHA:168)
+	(Exim 4.20)
+	id 1AvfTf-0001y1-UL
+	for laforge@gnumonks.org; Tue, 24 Feb 2004 17:32:12 +0100
+Received: from mx02.qsc.de ([213.148.130.14])
+	by vishnu.netfilter.org with esmtp (Exim 4.22 #1 (Debian))
+	id 1AvfTK-00025v-CQ; Tue, 24 Feb 2004 17:31:50 +0100
+Received: from port-212-202-52-78.reverse.qsc.de ([212.202.52.78] helo=gw.localnet)
+	by mx02.qsc.de with esmtp (Exim 3.35 #1)
+	id 1AvfT8-0002T7-00; Tue, 24 Feb 2004 17:31:38 +0100
+Received: from ws.localnet
+	([192.168.0.23] helo=trash.net ident=kaber)
+	by gw.localnet with esmtp (Exim 3.36 #1 (Debian))
+	id 1AvfTZ-0002n2-00; Tue, 24 Feb 2004 17:32:05 +0100
+Message-ID: <403B7CAA.3060005@trash.net>
+Date: Tue, 24 Feb 2004 17:32:42 +0100
+From: Patrick McHardy <kaber@trash.net>
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.6) Gecko/20040122 Debian/1.6-1
+X-Accept-Language: en
+MIME-Version: 1.0
+To: Harald Welte <laforge@netfilter.org>
+CC: Pablo Neira <pablo@eurodev.net>,  netfilter-devel@lists.netfilter.org
+Subject: Re: patch for conntrack expectations
+References: <403014C5.8080102@eurodev.net> <20040217213217.GF30968@obroa-skai.de.gnumonks.org> <4032F4DE.3050402@eurodev.net> <20040218172539.GX9464@sunbeam.de.gnumonks.org> <4038B14C.901@eurodev.net> <20040224094014.GV13386@sunbeam.de.gnumonks.org> <403B1F5F.6010004@trash.net> <20040224102432.GX13386@sunbeam.de.gnumonks.org>
+In-Reply-To: <20040224102432.GX13386@sunbeam.de.gnumonks.org>
+Content-Type: multipart/mixed;
+ boundary="------------060706080503020604070801"
+X-Spam-Score: -7.0 (-------)
+X-Spam-Score: -2.7 (--)
 
 This is a multi-part message in MIME format.
 --------------060706080503020604070801
@@ -568,3 +636,20 @@ diff -Nru a/net/ipv4/netfilter/ip_nat_amanda.c b/net/ipv4/netfilter/ip_nat_amand
  NEEDS_CONNTRACK(amanda);
 
 --------------060706080503020604070801--
+
+--n8ucneZ6gTaxrU7s--
+
+--3xvobRwI6W2FSfVC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAO4isXaXGVTD0i/8RAkgxAJ0feHVp9fIAyTgTX6JDEjsHWqkPMwCff7v8
+Nhoe14EngEwXtuwGSyoquM8=
+=Adb4
+-----END PGP SIGNATURE-----
+
+--3xvobRwI6W2FSfVC--
