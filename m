@@ -1,52 +1,66 @@
-From: Nick Pasich <newsletters@NickAndBarb.net>
-Subject: MAX_PORTS for ftp modules
-Date: Mon, 26 Jan 2004 13:14:41 -0800
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040126211441.GA10833@66.27.62.2>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Problem using fwmarks as routing key: "MASQUERADE: Route sent us somewhere else."
+Date: Tue, 27 Jan 2004 02:51:52 +0100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040127015152.GP19250@sunbeam.de.gnumonks.org>
+References: <001c01c3e043$93583cd0$1684188d@Kiste>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FcSpk3Icpd/Pbul4"
+Cc: netfilter@lists.netfilter.org, netdev@oss.sgi.com,
+        Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Thhoep <thhoep@gmx.de>
 Content-Disposition: inline
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+In-Reply-To: <001c01c3e043$93583cd0$1684188d@Kiste>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
- Hi,
 
- I've exhausted the MAX_PORTS limit of 8 for ftp using my own port id.
+--FcSpk3Icpd/Pbul4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- I'm wondering if there are any repercussions in upping the limit to say,
- 16 in the following modules.
+On Wed, Jan 21, 2004 at 06:25:22PM +0100, Thhoep wrote:
+> hi,
+>=20
+> my aim: to divide 100 hosts upon 6 masqueraded adsl connections to the
+> internet using a linux router runnig a debian woody.
+>=20
+> the problem: really strange behaviour of the routing/masquerading combo,
+> that changes with every tried kernel version. (described below)
+>=20
+> presumption: some version mismatch or a bug in the kernel routing code,
+> which needs a bugfix that till now is unknown to me
 
- ip_conntrack_ftp.c:  #define MAX_PORTS 8
- ip_conntrack_irc.c:  #define MAX_PORTS 8
- ip_conntrack_tftp.c: #define MAX_PORTS 8
- ip_nat_ftp.c:        #define MAX_PORTS 8
- ip_nat_irc.c:        #define MAX_PORTS 8
- ip_nat_tftp.c:       #define MAX_PORTS 8
+Please read the recent archives of the netdev list with regard to
+"Rusty's brain broke".  Also see=20
+https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=3D144
 
+Alexey heavily argued against us reverting that change, however :(
 
- I noticed that ipfwadm_core.c has "IP_FW_MAX_PORTS" which is defined in
- ipfwadm_core.h as 10.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
- *********************************************************************************************************
- linux/include/linux/netfilter_ipv4/ipfwadm_core.h:#define IP_FW_MAX_PORTS  10 /* A reasonable maximum */
- *********************************************************************************************************
- 
- So what modules need to be changed and what kind of trouble am I going to
- get into????
- 
- 
- I'm not subscribed to the newsletter, so please respond to me directly.
- 
- 
-             Thanks,
- 
-             ---( Nick Pasich )---
+--FcSpk3Icpd/Pbul4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQFAFcQ4XaXGVTD0i/8RAsKqAJ0Q9QW37doao1sqR2PoEhUH+fVqyQCgp0vM
+jwRf5NBu0ZGXvns9H02A6f4=
+=/1Gy
+-----END PGP SIGNATURE-----
+
+--FcSpk3Icpd/Pbul4--
