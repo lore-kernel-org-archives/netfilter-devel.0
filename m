@@ -1,13 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: how trustworthy is the current iptables user/kernel interface?
-Date: Thu, 4 Jul 2002 09:30:35 +0200
+From: =?ISO-8859-1?Q?C=E9dric?= de Launois <delaunoi@info.ucl.ac.be>
+Subject: Re: [libipq] Shutdown problem
+Date: 04 Jul 2002 09:39:30 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020704093035.D10726@oknodo.bof.de>
+Message-ID: <1025768371.1377.59.camel@descartes>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: Wei Koong CHAI <eem1wc@eim.surrey.ac.uk>,
+	Netfilter list <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
+To: James Morris <jmorris@intercode.com.au>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,36 +20,22 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi list,
+le jeu 04-07-2002 =E0 03:47, James Morris a =E9crit :
+> On Wed, 3 Jul 2002, Wei Koong CHAI wrote:
+>=20
+> > that it's not the bridge problem. Most probably, it is with my userspac=
+e=20
+> > program.=20
+>=20
+> It shouldn't be possible for the userspace program to cause this.  To=20
+> look into this further, I need to know the details of your system=20
+> topology, iptables & briding configuration, and all startup and shutdown=20
+> messages relating to networking.
 
-I need your advice on this:
+I encountered this kind of problem when programming a netfilter module.
+And yes, it is probably caused by something in the kernel. I got this
+problem when a call to dev_put was missing in my code. The fact that=20
+usage count is 14157 (!) consolidates my thought.
+Maybe the bridge-nf cause this leak.
 
-Imagine there would be a new iptables table, independant of filter/mangle/nat.
-Let's call it the 'ctx' table. This new table has one chain, OUTPUT, and a
-subset of the current matches and targets is available in rules defined
-for that table.  The ctx OUTPUT chain would work like the filter table
-OUTPUT chain, and probably come just before that.
-
-Next, imagine that we had a mechanism to group processes into so-called
-contexts [1]. The new 'ctx' table would be per-context, with copy-on-write
-sharing when new process contexts are created.
-
-Now, imagine that suser() non-CAP_NET_ADMIN processes, while disallowed to
-muddle with the filter, nat, and mangle tables, would be permitted to
-modify the new 'ctx' table. If it is shared with a parent context at
-the first modification, a copy is made private to the context of the
-calling process. Oh, and add a nonreversible mechanism to "lock" the
-context private table against further modifications.
-
-The questions to people who know the implementation innards, are:
-
-- can the incoming table validator in the kernel be trusted far enough?
-- same question for each match and target made available to iptable_ctx?
-- what are the matches/targets keeping global state? those would probably
-  better not be available.
-
-thanks in advance for all your thoughts
-
-  Patrick
-
-[1] ftp://ftp.solucorp.qc.ca/pub/vserver/
+- C=E9dric
