@@ -1,15 +1,15 @@
 From: Eicke Friedrich <tady@gmx.net>
 Subject: Re: Feasability of Protocol Filtering
-Date: Thu, 24 Apr 2003 22:31:58 +0200
+Date: Thu, 24 Apr 2003 22:31:24 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EA849BE.7080205@gmx.net>
-References: <Pine.LNX.4.44+maildir.0304231452150.9967-100000@woozle.org>
+Message-ID: <3EA8499C.2080604@gmx.net>
+References: <3EA7056F.2050601@gmx.net> <3EA8414C.3020302@rnl.ist.utl.pt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.44+maildir.0304231452150.9967-100000@woozle.org>
+In-Reply-To: <3EA8414C.3020302@rnl.ist.utl.pt>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Matt Skidmore wrote:
-> the downside to this is, say you want to reject SSH traffic. you
-> issue the command to reject it based on protocol. if there is a
-> connection already in progress it probably wouldnt get it unless
-> there are some telltale signs in the data packets, but since you 
-> can at least identify the initial connection packets you could at
-> least stop additional connections.
-Yes, you are absolute right. But i don't see a way to change this. For
-p2p the already
-established connections are not worth any effort. At some point the
-file is completly
-transfered (kazaa) or the transfered segment has to be acknowlegded
-(edk). My match will
-find this ack and treat the following packets as p2p-traffic.
+Filipe Almeida wrote:
+> Hi have something similiar to that, and running for a 
+> couple of months on a 15MB/s network connection. Almost 
+> no performance impact noted.
+What hardware is doing this job? Any tweaks (Kernel patches,
+NAPI ...) installed? Is it a router (NAT) or a bridge?
 
-> I would be interested in seeing what you have so far. as for CPU
-> and RAM concerns, I thought about this a bit myself. it could also
-> intoduce latency as well.
-I can send you the source-code if you want to.
+> http://mega.ist.utl.pt/~filipe/ipt_p2p/
+Can't reach the url with my DSL-connection but with a
+100MBit-connection everything is fine - maybe one of those
+internet black holes or whatever they're called?
 
-Regards,
+I'm not sure if the developer list is the right place for
+such a discussion but if not please answer directly to my mail
+adress (and start flaming me ;-]).
+
+Thanks for your help,
 Eicke.
