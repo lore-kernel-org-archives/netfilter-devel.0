@@ -1,47 +1,38 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: raw patch = kernel panic :(
-Date: Tue, 7 Oct 2003 12:52:37 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031007105237.GR18246@sunbeam.de.gnumonks.org>
-References: <20031006142214.GM5758@sunbeam.de.gnumonks.org> <Pine.LNX.4.33.0310071154220.17604-100000@blackhole.kfki.hu>
+Subject: Re: [Patch]: IPv6 Connection Tracking
+Date: Tue, 7 Oct 2003 14:30:21 +0200
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20031007123021.GX18246@sunbeam.de.gnumonks.org>
+References: <20030925092806.GC5758@sunbeam.de.gnumonks.org> <200310031119.UAA11088@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Zbynv6TNPa9FrOf6"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+	protocol="application/pgp-signature"; boundary="aEcIyhw0mmnxygNd"
+Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org,
+        netdev@oss.sgi.com, usagi-core@linux-ipv6.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0310071154220.17604-100000@blackhole.kfki.hu>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+In-Reply-To: <200310031119.UAA11088@toshiba.co.jp>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Zbynv6TNPa9FrOf6
+--aEcIyhw0mmnxygNd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 07, 2003 at 12:12:12PM +0200, Jozsef Kadlecsik wrote:
-> > So I don't really see the need for raw.patch having a userspace part at
-> > all.
-> >
-> > Did I miss something?
->=20
-> No, then there's no problem. I did not think of simply releasing a new
-> iptables snapshot.
+On Fri, Oct 03, 2003 at 08:19:07PM +0900, Yasuyuki Kozakai wrote:
+> I select 2), too.
 
-I'm about to release 1.2.9 anyway, so I'll add the userspace part of the
-raw patch now.
+Ok, thanks for your patience and understanding.
 
-> Best regards,
-> Jozsef
+> Harald, Could you add my patch to patch-o-matic ?
+
+Ok, I'll put it into patch-o-matic asap.
+
+> Regards,
+> Yasuyuki KOZAKAI
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -53,16 +44,16 @@ raw patch now.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Zbynv6TNPa9FrOf6
+--aEcIyhw0mmnxygNd
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/gpr1XaXGVTD0i/8RAgH6AJ9h/4/xE7LGpUD2ed0vU2GnPVHd8QCeN8Hj
-G2BN34WIJlpDhiRTIHeqTrM=
-=6fds
+iD8DBQE/grHdXaXGVTD0i/8RAgpNAJ45UTeBOXL3dqPY74rWZjQqntjQiACgipl8
+M9YLjRtvXOs9Qs9ISzIQjtU=
+=IaCj
 -----END PGP SIGNATURE-----
 
---Zbynv6TNPa9FrOf6--
+--aEcIyhw0mmnxygNd--
