@@ -1,17 +1,20 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] fuzzy.patch and fuzzy6.patch.ipv6
-Date: Thu, 1 May 2003 13:18:17 +0200
+Subject: Re: PATCH: extra conntrack stats
+Date: Thu, 1 May 2003 13:26:13 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030501111817.GA26924@sunbeam.de.gnumonks.org>
-References: <20030430203937.18286.qmail@mail.com>
+Message-ID: <20030501112613.GC26924@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.33.0304301227530.3328-100000@blackhole.kfki.hu> <1051701556.8213.125.camel@tux.rsn.bth.se> <1051743903.8213.188.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
-Cc: cieciwa@alpha.zarz.agh.edu.pl, netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="i7F3eY7HS/tUJxUd"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Hime Junior <hime@engineer.com>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
 Content-Disposition: inline
-In-Reply-To: <20030430203937.18286.qmail@mail.com>
+In-Reply-To: <1051743903.8213.188.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,45 +26,42 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=iso-8859-1
+--i7F3eY7HS/tUJxUd
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 30, 2003 at 03:39:37PM -0500, Hime Junior wrote:
->     I=B4m curious about what "unresolved symbols" are those and why,=20
->  by changing the VALUE of a symbolic constant,the problem vanishes...
+On Thu, May 01, 2003 at 01:05:03AM +0200, Martin Josefsson wrote:
 
-Although I do all my development on PowerPC, I have to admit that I
-never tested the fuzzy patch.
+> > I'll write up a small list of things I think we should fix in conntrack.
+>=20
+> - Switch to using hlists for the hashtable
+> - Rearrange struct ip_conntrack to be more cachefriendly if possible
+> - Add prefetching in list-searching
+> - Turn protocol_list into an array
+> - Switch to a better hashfunction
+> - Remove pointless timer-updating
+> - Rework locking to be finer grained, start with per bucket spinlocks
+>   (goal: RCU?)
+> - Remove tcp_lock if using per bucket spinlocks, otherwise move it into
+>   the entries
+> - Remove pointless rehashing of tuples
+> - Rework overload support (early_drop)
+> - Avoid as many memory-writes as possible, no need to dirty cachelines if
+>   we don't have to
+> - Eliminate listhelp.h and lockhelp.h by request from hch
+> - Try to shrink struct ip_conntrack
 
-I suppose the unreslved symbols are with regard to floating point
-functions that are not provided by the kernel.
+this list is too long for a change that is going to happen during 2.4.x
+soon.
 
->  OK . The floating point instructions are eliminated by
->  applying this patch .
+I would really like to see a simple patch changing the hash function
+before.  This patch can be pushed to davem after a relatively short time
+period of testing, since it shouldn't touch too much of the conntrack
+core.
 
-exactly.  I am not even sure that it was valid to use floating point
-instructions at all.  IIRC, the kernel doesn't save the FPU registers,
-so if we interrupt an userspace process that uses FPU, we will corrupt
-it.  Not sure whether this is still true, and/or this is only valid
-within syscall context.
 
->  The only problem is relative to truncation errors...
-> I don=B4t have a PPC to do exaustive tests , but in the simulations that
-> I have made , no discrepancies were detected when computing the final
-> acceptance rates .
-
-well, the algorithm is going to produce the same results on any
-architecture, independent of PPC or not.
->  My opinion is that the primary reason for the change is very weird -
->  "unresolved symbols" - and the solution is even more strange.=20
->  Anyway , I suggest additional investigation about this issue .
-
-I can easily run a test here on my development machine, it's just the
-lack of time...
-
->   Thank you very much .
+> /Martin
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -73,7 +73,7 @@ lack of time...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---VbJkn9YxBvnuCH5J
+--i7F3eY7HS/tUJxUd
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -81,9 +81,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+sQJ5XaXGVTD0i/8RArsPAKCCDbLGHrUTck31a+/pVuw8ial2YACfR9tB
-U2679pmaJ2aesbHPrKLUEts=
-=4Zq1
+iD8DBQE+sQRVXaXGVTD0i/8RAlS0AJ0fXLGQPuGyPjPXmIi/7engrjZwawCePAwo
+6lIR4tDR5iRgpUwqp8Ymxs8=
+=60yL
 -----END PGP SIGNATURE-----
 
---VbJkn9YxBvnuCH5J--
+--i7F3eY7HS/tUJxUd--
