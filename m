@@ -1,8 +1,8 @@
-From: Andrei Ivanov <andrei.ivanov@ines.ro>
-Subject: tos 0x62
-Date: Tue, 17 Sep 2002 13:22:48 +0300 (EEST)
+From: Patrick McHardy <kaber@the.brain.uni-freiburg.de>
+Subject: [PATCH]: make libipt_mark/connmark work with iptables-save/restore
+Date: Tue, 17 Sep 2002 15:57:49 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0209171317130.6328-100000@webdev.ines.ro>
+Message-ID: <Pine.LNX.4.44.0209171556190.23114-100000@the.brain.uni-freiburg.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
@@ -18,19 +18,11 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hello,
-I'm trying to filter packets which have a TOS value of 0x62, and it seems
-I cannot.
-I tried the tos module, but it only knows valid tos values.
-I looked for the ftos module from patch-o-matic, but it seems it has been
-obsoleted by DSCP and ECN module.
+Hi.
+The attached patch makes libipt_mark and libipt_connmark work with
+iptables-save/restore. I couldn't figure out how to make a pure userspace
+patch, but maybe you don't want to put it into patch-o-matic but apply
+directly.
 
-If I try iptables -I acc_IN -i eth1 -m dscp --dscp 0x62 it spits out:
-
-iptables v1.2.7a: DSCP `98` out of range
-
-Should I use ftos or is there another way to do this ?
-
-(I coudln't search the mail archives for this problem because this 
-mailing list manager doesn't offer such a facility)
-(I tried this on netfilter-users, but nobody answered)
+Bye,
+Patrick
