@@ -1,11 +1,14 @@
-From: Jim Gifford <maillist@jg555.com>
-Subject: IPTables 1.3.0 on RaQ2
-Date: Fri, 04 Mar 2005 19:23:46 -0800
-Message-ID: <42292642.6030504@jg555.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2.6 0/8]: Netfilter Update
+Date: Sat, 05 Mar 2005 13:16:18 +0100
+Message-ID: <4229A312.1080406@trash.net>
+References: <42284DD6.5090301@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <42284DD6.5090301@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,13 +20,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-When I tried to compile iptables 1.3.0 on a MIPS based machine (Cobalt 
-RaQ2), I get the following error.
+Patrick McHardy wrote:
+> following are a couple of netfilter fixes for 2.6. The patches
+> are based on your net-2.6 tree, but also apply cleanly to your
+> 2.6.12 tree. Unfortunately no bitkeeper tree this time because
+> someone messed up our firewall rules.
 
-# make BINDIR="/usr/bin" LIBDIR="/usr/lib" MANDIR="/usr/man"
-Making dependencies: please wait...
-Something wrong... deleting dependencies.
-make: *** [cpu-feature-overrides.h] Error 1
+I moved it to a different port, now both trees should be pullable at:
 
+bk://212.42.230.204:994/nf-2.4
+bk://212.42.230.204:994/nf-2.6
 
-Any suggestions
+Regards
+Patrick
