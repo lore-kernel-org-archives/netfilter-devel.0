@@ -1,15 +1,16 @@
-From: "Jiangbo Li" <jiangbo@cs.uky.edu>
-Subject: How to reflect received packet in PreRouting hook
-Date: Sat, 29 Mar 2003 01:19:36 -0500
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: writing a fragmentation-needed patch
+Date: Sun, 30 Mar 2003 11:35:14 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000101c2f5bb$2c7379d0$fe9d10ac@ljb>
-Reply-To: <jiangbo@cs.uky.edu>
+Message-ID: <20030330093514.GA1098@oknodo.bof.de>
+References: <3E85D60D.7040304@rtij.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Martijn Lievaart <m@rtij.nl>
+Content-Disposition: inline
+In-Reply-To: <3E85D60D.7040304@rtij.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,24 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all,
+> I have written a patch for ipt_REJECT that enables iptables to send back 
+> fragmentation-needed. This is useful for testing PMTUD problems. It 
+> works for me now, but needs some polishing before I release it.
+> 
+> Questions:
+> - Would such a patch have a chance to be submitted to pom?
 
-I am developing a kernel module to handle IP packet. My problem is 
-how to reflect received packet to the sender.
+Two questions:
 
-I got the packet by a NF_PRE_ROUTING hook. I switched the source 
-and destination address( which is local address ) of the IP header, and 
-then return NF_ACCEPT.But after doing this, the packet will be dropped.
+- why is it a patch against REJECT, instead of a standalone target?
+- how would you concretely use it to test PMTUD problems?
 
-If I switch the src and dst address, and modify the src(local) address
-to  be a non local address. The packet will traverse the FORWARD and 
-POST_ROUTING hooks, and will be send back to the sender.
-
-But change the src address to be a non-local address is not allowed in
-my project. 
-
-How to solve this problem.
-
-Thank you very much
-
-Jiangbo Li
+best regards
+  Patrick
