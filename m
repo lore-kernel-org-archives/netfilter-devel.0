@@ -1,15 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Stange ip_conntrack (newnat) behaviour.
-Date: Mon, 3 Jun 2002 12:03:29 +0200 (CEST)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: About IP unused bit WAS:Why was not there any response to my patch?
+Date: Mon, 3 Jun 2002 15:17:15 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206031154180.4553-100000@blackhole.kfki.hu>
-References: <200206020845.g528jCj06987@mint.home.net>
+Message-ID: <Pine.LNX.4.21.0206031457070.1065-100000@dns.toxicfilms.tv>
+References: <Pine.LNX.4.33.0205300846380.7361-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.samba.org>
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "A. van Schie" <a.van.schie@quicknet.nl>
-In-Reply-To: <200206020845.g528jCj06987@mint.home.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0205300846380.7361-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,53 +20,22 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+> However there are so many sanity checkings in unclean that it's not so
+> easy to design an intuitive and handy interface.
+i will look into it, i have seen tons of checks, maybe it is possible to
+divise a strategy.
 
-On Sun, 2 Jun 2002, A. van Schie wrote:
+> > 1. match ip unused and log or drop
+> > 2. match some scans using --tcp-flags and reject with tcp-reset
+> > 3. match tcp scans using psd and reject with tcp-reset
+> > 4. match udp scans using psd and reject with icmp
+> > 5. match using unclean for anything else: bad chksum, bad frag offset,
+> >    etc
+> 
+> If you simply drop at 5. then it could be replaced with the new unclean
+> match used at 1.
+No, unclean will match what's in 2. XMAS, NULL, etc.
 
-> I saw something strange that I think comes from ip_conntrack.
->
-> I'm using conntrack-state to filter my packets.
-> A simple version of my rules look like this:
->   iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
->   iptables -A OUTPUT -m state --state NEW -p tcp --destination-port 110 -j log+accept
->   ...
->   iptables -A OUTPUT -j log+drop
->
->   iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
->   iptables -A INPUT -j log+drop
->
-> What I see with ULOG is the following:
-> +------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
-> | id   | prefix     | in   | out  | time            | saddr  | sport | daddr  | dport | ip_csum | ip_id | ip_fragoff | tcp_seq    | tcp_ackseq | tcp_ack | tcp_syn |
-> +------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
-> | 8603 | ACCEPT-NEW |      | eth1 | 18:38:10.389606 | client | 38136 | server |   110 |       0 |     0 |          0 | 4080432246 |          0 |    NULL |       1 |
-> | 8604 | ACCEPT-NEW |      | eth1 | 18:38:10.389606 | client | 38136 | server |   110 |   21509 | 13068 |          0 | 4080432246 |          0 |    NULL |       1 |
-> | 8605 | DROPPED    | eth1 |      | 18:38:10.397096 | server |   110 | client | 38136 |   62367 | 56184 |      16384 | 3577899487 | 4080432247 |       1 |    NULL |
-> | 8606 | ACCEPT-NEW |      | eth1 | 18:38:16.389606 | client | 38136 | server |   110 |   21508 | 13069 |          0 | 4080432246 |          0 |    NULL |       1 |
-> | 8607 | DROPPED    | eth1 |      | 18:38:16.403816 | server |   110 | client | 38136 |   62365 | 56186 |      16384 | 3577899487 | 4080432247 |       1 |    NULL |
-> | 8608 | ACCEPT-NEW |      | eth1 | 18:39:55.286423 | client | 38137 | server |   110 |    1024 |     0 |          0 | 4184019953 |          0 |    NULL |       1 |
-> +------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
-> All other fields are equal.
->
-> What I find strange is that it starts with 2 almost the same packets (except for ip_id),
-> and that they both get the conntrack state NEW!
+But i will add this to unclean and send a patch soon.
 
-What else state should they got? But those first two packets looks
-strange, that's true.
-
-> I think there is a problem in conntrack,
-> maybe the newnat patch or the "double packet" is introduced in the kernel.
-
-If you suspect something like that, then start tcpdumping both involved
-interfaces and look at the generated logs.
-
-Did you applied other patches from p-o-m?
-
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-WWW-Home: http://www.kfki.hu/~kadlec
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Maciek
