@@ -1,15 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: RFC: Partial IP4 syntax
-Date: Wed, 29 Sep 2004 10:50:34 +0200 (CEST)
+Date: Wed, 29 Sep 2004 10:55:23 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0409291042240.11661@filer.marasystems.com>
-References: <415A12AE.1060901@parknet.dk>
+Message-ID: <Pine.LNX.4.61.0409291051190.11661@filer.marasystems.com>
+References: <415A12AE.1060901@parknet.dk> <415A3263.7080708@xgendev.com>
+	<415A4B4E.1080801@parknet.dk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Ben Efros <ben@xgendev.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Simon Lodal <simonl@parknet.dk>
-In-Reply-To: <415A12AE.1060901@parknet.dk>
+In-Reply-To: <415A4B4E.1080801@parknet.dk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +23,26 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Wed, 29 Sep 2004, Simon Lodal wrote:
 
-> I know IP address syntax should not change every day. But this will not break 
-> or exclude old syntax. I do not see it clashing with other/future syntax.
+> What tools are passing IP's literally as full 32bits? I understand why 
+> programs (especially in script languages) might do it internally, but between 
+> programs?
 
-There already is an old BSD syntax similar this which many people are used 
-to, but with a slightly different meaning
+IETF has not defined such ascii representation of IPv4 addresses, but the 
+BSD libc inet_aton function does and this has been inherited by very many 
+systems and tools.
 
-10.1 is the same as 10.0.0.1
+This notation is being depreated as it does not serve a very useful 
+purpose and can be somewhat confusing, but it exists and conflicting with 
+it would be a bad idea.
 
-10.59470 is the same as 10.0.232.78
+> If it is really a problem I agree my scheme will break it. Could probably be 
+> solved by changing the default to incomplete-at-beginning, so 10 = .10 = 
+> 0.0.0.10.
 
-2888886350 is the same as 172.48.232.78
+Not without breaking existing "industry standards" on how IP numbers can 
+be typed.
 
-not very useful for netfilter thou as here one mostly wants to specify 
-networks, not hosts which means that the address must always end in .0
-
-> Only minor problem I know of is when parsing netmask which can be in cidr or 
-> dotted quad form: /32 could be interpreted as a partial address, expanded to 
-> 32.0.0.0. But it is simple to special case this; make it a cidr mask when 
-> there is only one octet and it is <=32, otherwise interpret as dotted quad 
-> (partial or not).
-
-This is how most people do this. These numbers does not make sense as 
-binary netmasks, and if you need them you can always use the quad dotted 
-form.
+You could use 10. for the 10.0.0.0/8 network.
 
 Regards
 Henrik
