@@ -1,17 +1,16 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: ipt_ACCOUNT accounting target released
-Date: Tue, 27 Apr 2004 10:12:29 +0200
+From: Ozgur AKAN <akan@aiqa.com>
+Subject: Re: size of a rule
+Date: Tue, 27 Apr 2004 11:41:30 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200404271012.29136.thomas.jarosch@intra2net.com>
-References: <200404131731.02001.thomas.jarosch@intra2net.com> <200404261336.08119.thomas.jarosch@intra2net.com> <408DB05E.6010706@trash.net>
+Message-ID: <408E1CBA.5010007@aiqa.com>
+References: <Pine.LNX.4.44.0404261609030.6443-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-9; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,  pangy2004@yahoo.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <408DB05E.6010706@trash.net>
-Content-Disposition: inline
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0404261609030.6443-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,49 +21,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
 
-> > Did anyone had a chance to take a look?
-> > I really would like to see this one in netfilter CVS ;-)
+
+
+Henrik Nordstrom wrote:
+
 >
-> The pom-ng tar has the include and net directory in the
-> ACCOUNT directory. You need to place them inside the
-> linux directory. Also, the target is very long (>1000 lines)
-> and formatted improperly, this makes it hard to review.
-> Please stick to Documentation/CodingStyle, especially
-> regaring overly long lines (>80 chars) and wasted lines:
+>ipt_entry->next_offset gives the size of this rule from what I can 
+>understand.
 >
->      if (table_nr == -1)
->      {
+>Regards
+>Henrik
 >
-> should be:
->
->      if (table_nr == -1) {
->
-> C-style comments are prefered over C++-style comments.
+I solved my problem. Here is the sample which gets the name of target. 
+It may be useful for other beginners.
 
-Thanks for your reply. I'll fix the coding style
-and will post a new patch soon.
+Thank you for your help.
 
-> It also looks like some common blocks of code could
-> be placed in a seperate function, for example the inner
-> blocks in ipt_account_handle_get_data().
+-------------------------------------------------
+//print ipt_entry_target
+struct ipt_entry_target *
+get_target(const struct ipt_entry *e)
+{
+    return (void *)e + e->target_offset;
+}
 
-Premature optimization is the root of all evil ;-)
-Is see what I can do, but IMHO this will increase
-the complexity of the ipt_account_handle_get_data() function.
+//print ipt_entry_target.name
+static void print_target_name(const struct ipt_entry *e)
+{
+    struct ipt_entry_target *t = get_target(e);
+    printf("Target name : %s\n", t->u.user.name);
+}
+------------------------------------------------------
 
-> Why does it need a PAGE_SIZE >= 4096 ?
-
-The internal data layout for a 8 bit network (256 hosts/CLASS C) is
-designed to fit into a kernel zero page. As the code is designed for constant
-(meaning every second/every 10 seconds) readout of the data,
-kmalloc would be too expensive as snapshots of the data are created.
-
-> Please post the patch to the list for easier review.
-
-Ah, ok. I didn't want to spoil the list as it's rather huge
-(at least when the userspace library is included),
-but I'll post the kernel space part once I've fixed the coding style.
-
-Thomas
+-- 
+Ozgur Akan
