@@ -1,17 +1,15 @@
-From: "Yong" <sdssly@sina.com>
-Subject: Re: ipq_set_verdict problem in bridge+iptables
-Date: Tue, 15 Jul 2003 11:24:55 +0800
+From: Poltorak Serguei <poltorak@df.ru>
+Subject: Re: target MARK in filter table?
+Date: Tue, 15 Jul 2003 08:26:17 +0400 (MSD)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <003201c34a80$a9f57150$8501a8c0@dev>
-References: <20030712222620.28732.48265.Mailman@kashyyyk> <001901c348ec$6dbbc5d0$e84ce9db@win2ken> <20030714080728.GF6538@naboo> <001c01c34a6f$97af4fe0$8501a8c0@dev>
+Message-ID: <Pine.LNX.3.95.1030715080541.10486A-100000@cannabis.dataforce.net>
+References: <20030714080503.GE6538@naboo>
+Reply-To: Poltorak Serguei <poltorak@df.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
-Content-Transfer-Encoding: base64
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Yong" <sdssly@sina.com>,
-	"Harald Welte" <laforge@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20030714080503.GE6538@naboo>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,41 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIllvbmciIDxzZHNzbHlAc2lu
-YS5jb20+DQpUbzogIkhhcmFsZCBXZWx0ZSIgPGxhZm9yZ2VAbmV0ZmlsdGVyLm9yZz4NCkNjOiA8
-bmV0ZmlsdGVyLWRldmVsQGxpc3RzLm5ldGZpbHRlci5vcmc+DQpTZW50OiBUdWVzZGF5LCBKdWx5
-IDE1LCAyMDAzIDk6MjIgQU0NClN1YmplY3Q6IFJlOiBpcHFfc2V0X3ZlcmRpY3QgcHJvYmxlbSBp
-biBicmlkZ2UraXB0YWJsZXMNCg0KDQo+IEhlbGxvIEhhcmFsZCwNCj4gDQo+IFRoYW5rIHlvdSBm
-b3IgeW91ciBlbWFpbHMhDQo+IA0KPiBJIHdhbnQgdG8gdXNlIHRoZSBpcHRhYmxlX3F1ZXVlIGlu
-IGJyaWRnZStpcHRhYmxlcyBlbnZpcm9ubWVudC4gSSBjYW4gZ2V0IHRoZSBwYWNrZXQgaW4gdXNl
-cnNwYWNlIHVzaW5nIC1qIFFVRVVFIGNvbW1hbmQuIEhvd2V2ZXIsIElmIEkgY2hhbmdlIHRoZSBw
-YWNrZXQgc2l6ZS4gZm9yIGV4YW1wbGUsIEkgY2hhbmdlIHRoZSBwaW5nIGljbXAgcGFja2V0IHNp
-emUgdG8gNDAwLCB0aGUgcGFja2V0IEV0aGVybmV0IGhlYWRlciBpcyBjaGFuZ2VkLiBJbiBteSB0
-ZXN0LCB0aGUgTUFDIGFkZHJlc3MgaXMgY2hhbmdlZCB0byAweGZmZmZmZmZmZmYuIEkgY2FuIGNh
-cHR1cmUgdGhpcyBwYWNrZXQgdXNpbmcgc25pZmZlciB0b29sLiBTaW5jZSB0aGUgTUFDIGFkZHJl
-c3MgaXMgY2hhbmdlZCwgdGhlIG90aGVyIGNvbXB1dGVyIGNhbm5vdCByZWNlaXZlIHRoZSBJQ01Q
-IHBhY2tldC4NCj4gDQo+IEl0IHNlZW1zIHRoYXQgdGhlIGJyaWRnZSBpcHRhYmxlcyBwYXRjaCBj
-aGFuZ2VkIHNvbWV0aGluZyBpbiB0aGUgZnVuY3Rpb24gaXBxX3NldF92ZXJkaWN0KCkuIA0KPiAN
-Cj4gUmVnYXJkaW5nIHRoZSBNVFUgaXNzdWUsIHlvdSBhcmUgcmlnaHQuIHRoZSBpcHFfc2V0X3Zl
-cmRpY3QgZnVuY3Rpb24gZG9lcyBub3QgcGVyZm9ybSB0aGUgSVAgZnJhZ21lbnQuIElmIEkgc2Vu
-ZCBhIHBhY2tldCBsYXJnZXIgdGhhbiBNVFUsIGl0IGlzIG1pc3NpbmcuIElzIGl0IGJ5IGRlc2ln
-bj8NCj4gDQo+IENhbiBJIG1vZGlmeSB0aGUgaXBxX3NldF92ZXJkaWN0IGZ1bmN0aW9uIHRvIHBl
-cmZvcm0gdGhlIElQIGZyYWdtZW50PyAgSXMgdGhlcmUgYW55IHBhdGNoIGZvciB0aGlzIElQIGZy
-YWdtZW50IGlzc3VlPw0KPiANCj4gVGhhbmsgeW91IGFnYWluIGZvciB5b3VyIGhlbHAhDQo+IA0K
-PiBZb25nDQo+IA0KPiAtLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KPiBGcm9tOiAiSGFy
-YWxkIFdlbHRlIiA8bGFmb3JnZUBuZXRmaWx0ZXIub3JnPg0KPiBUbzogIllvbmcgTGkiIDxzZHNz
-bHlAc2luYS5jb20+DQo+IENjOiA8bmV0ZmlsdGVyLWRldmVsQGxpc3RzLm5ldGZpbHRlci5vcmc+
-DQo+IFNlbnQ6IE1vbmRheSwgSnVseSAxNCwgMjAwMyA0OjA3IFBNDQo+IFN1YmplY3Q6IFJlOiBp
-cHFfc2V0X3ZlcmRpY3QgcHJvYmxlbSBpbiBicmlkZ2UraXB0YWJsZXMNCj4gDQo+IE9uIFN1biwg
-SnVsIDEzLCAyMDAzIGF0IDExOjExOjE2QU0gKzA4MDAsIFlvbmcgTGkgd3JvdGU6DQo+ID4gSGVs
-bG8gQWxsLA0KPiA+IA0KPiA+IEkgZW5jb3VudGVyZWQgYSBwcm9ibGVtIHdpdGggdGhlIGlwcV9z
-ZXRfdmVyZGljdCBmdW5jdGlvbi4gSSB3YW50IHRvIG1vZGlmeQ0KPiA+IHRoZSBwYWNrZXQgY29u
-dGVudCBhbmQgc2l6ZSB1c2luZyB0aGUgaXBxX3NldF92ZXJkaWN0IGZ1bmN0aW9uLiBIb3dldmVy
-LCBJDQo+ID4gZm91bmQgSSBjYW5ub3QgY2hhbmdlIHRoZSBJUCBwYWNrZXQgc2l6ZSBtb3JlIHRo
-YW4gNDAwKyBieXRlcy4gSXMgaXQgYSBrbm93bg0KPiA+IGlzc3VlPw0KPiANCj4gd2hhdCBkbyB5
-b3UgbWVhbiBieSAnSSBjYW5ub3QnID8gV2hhdCBoYXBwZW5zPyAgSXMgYW4gZXJyb3IgcmV0dXJu
-ZWQgdG8NCj4gdGhlIGlwcV9zZXRfdmVyZGljdCgpIGNhbGw/ICBJcyB0aGUgcGFja2V0IHNpbGVu
-dGx5IGRpc2NhcmRlZD8gIElzIHRoZQ0KPiBwYWNrZXQgdHJ1bmNhdGVkPw0KPiANCj4gQW55d2F5
-LCBpdCBzaG91bGQgd29yay4gIEJ1dCBpZiB5b3UgZXhjZWVkIHRoZSBvdXRnb2luZyBpbnRlcmZh
-Y2UncyBNVFUsDQo+IEkgY291bGQgaW1hZ2luZSB0aGF0IG5vIGZyYWdtZW50YXRpb24gaGFwcGVu
-cy4uLg0KPiANCj4gPiBUaGFua3MgaW4gYWR2YW5jZSENCj4gPiBZb25n
+;The idea is to have targets for filtering in the filter table - and
+;anything that modifies the packet [or potentially affect other kernel
+;subsystems such as policy routing] in 'mangle'.
+And if I'm using fwmark mechanism not to change packet, but to
+mark it and remember that this one I need to treat differantly.
+
+May be you know a better way to do it...
+In my case i need to know if the examined packet had entered into a chain
+or it didn't mached all of them. Because it may traverse 0,1 or 2 chains.
+I'm marking the packet on the entrance of each chain and checking at the
+end of FORWARD if it is marked. I'm marking packets i don't disallow, but
+i'm not sure to accept, and if no chain will DROP it and it had passed at 
+least one chain, it would be accepted.
+
+;In that particular practical case, I think Poltorak Serguei is 'abusing'
+;the mark mechanism for something that we didn't think it should be 
+;
+;> While we are on the topic of seemingly arbitrary "sanity" checks, why is
+;> it that using the TCPMSS option throws a vague "invalid argument" error
+;> when one forgets to also specify --syn? Can't that target just check for
+;> tcp/syn dynamically, i.e. become a NOOP for non-syn packets, instead of
+;> forcing me to specify --syn at rule insertion time?
+I'm not abusing, it was text of Patrick Schaaf, not mine :)
+
+now i'm using MARK in filter table. it works. i commented the checking of
+table. may this cause problems (apart philosophy)? is it safe to use?
+
+I think fwmark is very usefull not only with routing and qos to tell what
+to change/mangle/nat/... It makes iptables more programmable :)
+
+PoltoS/
