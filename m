@@ -1,7 +1,7 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 5/11] Netfilter:  Make Expectations Timeouts Compulsory
-Date: Mon, 17 Jan 2005 16:45:45 +1100
-Message-ID: <1105940745.3954.27.camel@localhost.localdomain>
+Subject: [PATCH 6/11] Netfilter:  Remove remaining multirange related code
+Date: Mon, 17 Jan 2005 16:45:51 +1100
+Message-ID: <1105940751.3954.29.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -19,124 +19,94 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Make Expectations Timeouts Compulsory 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Name: Remove remaining multirange related code
 Status: Tested under nfsim
+From: KOVACS Krisztian <hidden@sch.bme.hu>
 
-This patch simplifies the code by always having expectation timeouts.
+  Hi Rusty,
 
-Index: linux-2.6.10-bk8-Netfilter/net/ipv4/netfilter/ip_conntrack_ftp.c
+Your recent patch which removed the byipsproto hash left some unused
+code around. The following patch cleans up that. I'm not sure it's
+correct, but please take a look at it.
+
+Index: linux-2.6.10-bk12-Netfilter/net/ipv4/netfilter/ip_nat_core.c
 ===================================================================
---- linux-2.6.10-bk8-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-01-06 12:03:06.444300896 +1100
-+++ linux-2.6.10-bk8-Netfilter/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-01-06 12:03:20.840112400 +1100
-@@ -476,7 +476,7 @@
- 		ftp[i].mask.src.u.tcp.port = 0xFFFF;
- 		ftp[i].mask.dst.protonum = 0xFFFF;
- 		ftp[i].max_expected = 1;
--		ftp[i].timeout = 0;
-+		ftp[i].timeout = 5 * 60; /* 5 minutes */
- 		ftp[i].me = ip_conntrack_ftp;
- 		ftp[i].help = help;
+--- linux-2.6.10-bk12-Netfilter.orig/net/ipv4/netfilter/ip_nat_core.c	2005-01-11 14:35:00.327472200 +1100
++++ linux-2.6.10-bk12-Netfilter/net/ipv4/netfilter/ip_nat_core.c	2005-01-11 14:43:43.458944128 +1100
+@@ -51,15 +51,7 @@
+ struct ip_nat_protocol *ip_nat_protos[MAX_IP_NAT_PROTO];
  
-Index: linux-2.6.10-bk8-Netfilter/net/ipv4/netfilter/ip_conntrack_tftp.c
-===================================================================
---- linux-2.6.10-bk8-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_tftp.c	2005-01-06 12:03:06.444300896 +1100
-+++ linux-2.6.10-bk8-Netfilter/net/ipv4/netfilter/ip_conntrack_tftp.c	2005-01-06 12:03:20.839112552 +1100
-@@ -131,7 +131,7 @@
- 		tftp[i].mask.dst.protonum = 0xFFFF;
- 		tftp[i].mask.src.u.udp.port = 0xFFFF;
- 		tftp[i].max_expected = 1;
--		tftp[i].timeout = 0;
-+		tftp[i].timeout = 5 * 60; /* 5 minutes */
- 		tftp[i].me = THIS_MODULE;
- 		tftp[i].help = tftp_help;
- 
-Index: linux-2.6.10-bk8-Netfilter/net/ipv4/netfilter/ip_nat_irc.c
-===================================================================
---- linux-2.6.10-bk8-Netfilter.orig/net/ipv4/netfilter/ip_nat_irc.c	2005-01-06 12:03:06.445300744 +1100
-+++ linux-2.6.10-bk8-Netfilter/net/ipv4/netfilter/ip_nat_irc.c	2005-01-06 12:03:20.840112400 +1100
-@@ -34,8 +34,6 @@
- MODULE_DESCRIPTION("IRC (DCC) NAT helper");
- MODULE_LICENSE("GPL");
- 
--/* FIXME: Time out? --RR */
+
+-/* We keep extra hashes for each conntrack, for fast searching. */
+-static inline size_t
+-hash_by_ipsproto(u_int32_t src, u_int32_t dst, u_int16_t proto)
+-{
+-	/* Modified src and dst, to ensure we don't create two
+-           identical streams. */
+-	return (src + dst + proto) % ip_nat_htable_size;
+-}
 -
- static unsigned int help(struct sk_buff **pskb,
- 			 enum ip_conntrack_info ctinfo,
- 			 unsigned int matchoff,
-Index: linux-2.6.10-bk8-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- linux-2.6.10-bk8-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-06 12:03:06.454299376 +1100
-+++ linux-2.6.10-bk8-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-06 12:03:20.842112096 +1100
-@@ -176,7 +176,7 @@
- 		   and weird things would happen to future packets). */
- 		if (ip_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask)
- 		    && is_confirmed(i->master)
--		    && (!i->timeout.function || del_timer(&i->timeout))) {
-+		    && del_timer(&i->timeout)) {
- 			unlink_expect(i);
- 			return i;
- 		}
-@@ -194,8 +194,7 @@
++/* We keep an extra hash for each conntrack, for fast searching. */
+ static inline size_t
+ hash_by_src(const struct ip_conntrack_manip *manip, u_int16_t proto)
+ {
+@@ -71,7 +63,7 @@
+ static void ip_nat_cleanup_conntrack(struct ip_conntrack *conn)
+ {
+ 	struct ip_nat_info *info = &conn->nat.info;
+-	unsigned int hs, hp;
++	unsigned int hs;
+ 
+ 	if (!info->initialized)
  		return;
+@@ -80,11 +72,6 @@
+ 	                 conn->tuplehash[IP_CT_DIR_ORIGINAL]
+ 	                 .tuple.dst.protonum);
  
- 	list_for_each_entry_safe(i, tmp, &ip_conntrack_expect_list, list) {
--		if (i->master == ct
--		    && (!i->timeout.function || del_timer(&i->timeout))) {
-+		if (i->master == ct && del_timer(&i->timeout)) {
- 			unlink_expect(i);
- 			destroy_expect(i);
- 		}
-@@ -722,8 +721,7 @@
- 	WRITE_LOCK(&ip_conntrack_lock);
- 	/* choose the the oldest expectation to evict */
- 	list_for_each_entry_reverse(i, &ip_conntrack_expect_list, list) {
--		if (expect_matches(i, exp)
--		    && (!i->timeout.function || del_timer(&i->timeout))) {
-+		if (expect_matches(i, exp) && del_timer(&i->timeout)) {
- 			unlink_expect(i);
- 			WRITE_UNLOCK(&ip_conntrack_lock);
- 			destroy_expect(i);
-@@ -777,7 +775,7 @@
- 
- 	list_for_each_entry_reverse(i, &ip_conntrack_expect_list, list) {
- 		if (i->master == master) {
--			if (!i->timeout.function || del_timer(&i->timeout)) {
-+			if (del_timer(&i->timeout)) {
- 				unlink_expect(i);
- 				destroy_expect(i);
- 			}
-@@ -788,9 +786,6 @@
- 
- static inline int refresh_timer(struct ip_conntrack_expect *i)
- {
--	if (!i->timeout.function)
--		return 1;
+-	hp = hash_by_ipsproto(conn->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip,
+-	                      conn->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip,
+-	                      conn->tuplehash[IP_CT_DIR_REPLY]
+-	                      .tuple.dst.protonum);
 -
- 	if (!del_timer(&i->timeout))
- 		return 0;
+ 	WRITE_LOCK(&ip_nat_lock);
+ 	list_del(&info->bysource);
+ 	WRITE_UNLOCK(&ip_nat_lock);
+@@ -336,15 +323,13 @@
+ 	DUMP_TUPLE(&orig_tp);
+ 	DEBUGP("Range %p: ", mr);
+ 	for (i = 0; i < mr->rangesize; i++) {
+-		DEBUGP("%u:%s%s%s %u.%u.%u.%u - %u.%u.%u.%u %u - %u\n",
++		DEBUGP("%u:%s%s %u.%u.%u.%u - %u.%u.%u.%u %u - %u\n",
+ 		       i,
+ 		       (mr->range[i].flags & IP_NAT_RANGE_MAP_IPS)
+ 		       ? " MAP_IPS" : "",
+ 		       (mr->range[i].flags
+ 			& IP_NAT_RANGE_PROTO_SPECIFIED)
+ 		       ? " PROTO_SPECIFIED" : "",
+-		       (mr->range[i].flags & IP_NAT_RANGE_FULL)
+-		       ? " FULL" : "",
+ 		       NIPQUAD(mr->range[i].min_ip),
+ 		       NIPQUAD(mr->range[i].max_ip),
+ 		       mr->range[i].min.all,
+Index: linux-2.6.10-bk12-Netfilter/include/linux/netfilter_ipv4/ip_nat.h
+===================================================================
+--- linux-2.6.10-bk12-Netfilter.orig/include/linux/netfilter_ipv4/ip_nat.h	2005-01-11 14:22:04.951347288 +1100
++++ linux-2.6.10-bk12-Netfilter/include/linux/netfilter_ipv4/ip_nat.h	2005-01-11 14:43:43.459943976 +1100
+@@ -16,8 +16,6 @@
  
-@@ -856,6 +851,7 @@
+ #define IP_NAT_RANGE_MAP_IPS 1
+ #define IP_NAT_RANGE_PROTO_SPECIFIED 2
+-/* Used internally by get_unique_tuple(). */
+-#define IP_NAT_RANGE_FULL 4
  
- int ip_conntrack_helper_register(struct ip_conntrack_helper *me)
+ /* NAT sequence number modifications */
+ struct ip_nat_seq {
+@@ -51,7 +49,7 @@
+ };
+ 
+ /* Worst case: local-out manip + 1 post-routing, and reverse dirn. */
+-#define IP_NAT_MAX_MANIPS (2*3)
++#define IP_NAT_MAX_MANIPS (2*2)
+ 
+ struct ip_nat_info_manip
  {
-+	BUG_ON(me->timeout == 0);
- 	WRITE_LOCK(&ip_conntrack_lock);
- 	list_prepend(&helpers, me);
- 	WRITE_UNLOCK(&ip_conntrack_lock);
-@@ -882,12 +878,9 @@
- 
- 	/* Get rid of expectations */
- 	list_for_each_entry_safe(exp, tmp, &ip_conntrack_expect_list, list) {
--		if (exp->master->helper == me) {
--			if (!exp->timeout.function
--			    || del_timer(&exp->timeout)) {
--				unlink_expect(exp);
--				destroy_expect(exp);
--			}
-+		if (exp->master->helper == me && del_timer(&exp->timeout)) {
-+			unlink_expect(exp);
-+			destroy_expect(exp);
- 		}
- 	}
- 	/* Get rid of expecteds, set helpers to NULL. */
