@@ -1,18 +1,17 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: Call for testing: patch-o-matic-ng
-Date: Mon, 5 Jan 2004 12:55:33 +0100
+From: Andras Kis-Szabo <kisza@securityaudit.hu>
+Subject: Re: [POM PATCHES] IPv6 ports of time and quota matches
+Date: Mon, 5 Jan 2004 13:12:44 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040105115533.GK1133@eychenne.org>
-References: <20040101163627.GD3530@obroa-skai.de.gnumonks.org> <Pine.LNX.4.33.0401051150120.15063-100000@blackhole.kfki.hu>
+Message-ID: <20040105121244.GB16171@sch.bme.hu>
+References: <000501c3c96c$c1f02e60$0e25fe0a@southpark.ae.poznan.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Maciej =?us-ascii?Q?So=3Ftysiak?= <maciej.soltysiak@ae.poznan.pl>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0401051150120.15063-100000@blackhole.kfki.hu>
+In-Reply-To: <000501c3c96c$c1f02e60$0e25fe0a@southpark.ae.poznan.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,49 +22,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 05, 2004 at 12:32:35PM +0100, Jozsef Kadlecsik wrote:
+Maciej So=C5=82tysiak .....................................................=
+....................... (2003. december 23.)
 
-> On Thu, 1 Jan 2004, Harald Welte wrote:
+Hi,
 
-> > a 2.6 specific patch would then be inside a linux-2.6 directory.  The
-> > only remaining question is:
-> >
-> > - how to encode the information 'which patch for which version' in th=
-e
-> >   info file ?  We would need something like
-> >   "if linux >=3D 2.6.0 && linux < 2.7.0, then use linux-2.6 and
-> >   linux-2.6.patch"
-> >
-> > - what about patchlets that have the same wholefiles but a different
-> >   'patch' file.  I.e. a new conntrack helper that has the same source
-> >   file, valid for 2.4 and 2.6 - but a different diff for patching
-> >   something into conntrack_core ?
+> I noticed I have two patchsets left behind, never included in patch-o-mat=
+ic
+> These are IPv6 ports of the time and quota matches.
+Please, be careful w/ the 'plain ports'.
+Rusty has changed the internal structure of the IPv4 parts (acording the skb
+linearization) - and these changes are missing from the IPv6 part. In IPv6
+every packets are linearized - in IPv4 you have to linearize the required
+parts avery time and in some higher-level protocols tha helper functions ha=
+ve
+benn changed.
+(We have no size parameter in the IPv6 header (like in IPv4) so we cannot s=
+eek
+in the virtual skb. We have to parse the full header every time. I think th=
+at
+a plain linearize_all is much more cheaper.)
 
-> Something like 'best match wins'?
+Regards,
 
-> linux-2.6.13		- just for 2.6.13
-> linux-2.6		- every (other) 2.6 release
-> linux-2.4		- every 2.4 release
-> linux			- every other release :-)
-
-> (Same goes for the linux.patch file.) 'Requires' could be used to set
-> general version bounds, like
-> Requires: linux >=3D 2.4.22
-
-I think the convention of Debian Packages files with a line like
-Depends: zope, python2.1-popy (>=3D 2.0.8), python2.1-popy (<< 2.0.9)
-would just be perfect.
-I just hope there is some kind of out-of-the-box perl module which
-would deal with these kinds of versioning issues (handle parsing,
-compare versions, resolve recursive dependencies, etc).
-
-That would imply versioning of patches, which would be a good
-thing.
-
- Herve
+	kisza=20
 
 --=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+    Andras Kis-Szabo       Security Development, Design and Audit
+-------------------------/        Zorp, NetFilter and IPv6
+ kisza@SecurityAudit.hu /----------------------------------------------->
