@@ -1,22 +1,17 @@
-From: Ville Nuorvala <vnuorval@tcs.hut.fi>
-Subject: Re: [PATCH|RFC] IPv6 netfilter: a module for complete proxy ND
- support
-Date: Fri, 16 Jan 2004 11:40:22 +0200 (EET)
+From: Peter Surda <shurdeek@routehat.org>
+Subject: Re: [PATCH] Traffic accounting match
+Date: Fri, 16 Jan 2004 19:10:44 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0401151800170.29722@rhea.tcs.hut.fi>
-References: <Pine.LNX.4.58.0401151705500.29722@rhea.tcs.hut.fi>
- <20040116.001317.73950271.yoshfuji@linux-ipv6.org>
- <Pine.LNX.4.58.0401151719160.29722@rhea.tcs.hut.fi>
- <20040116.005443.92504522.yoshfuji@linux-ipv6.org>
+Message-ID: <20040116181043.GJ12709@chloe.cb.ac.at>
+References: <20031212182346.GA21222@moon.ondraszek.ds.polsl.gliwice.pl> <20031213084905.GE8950@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@lists.netfilter.org, davem@redhat.com,
-	netdev@oss.sgi.com, kuznet@ms2.inr.ac.ru
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?iso-8859-15?Q?YOSHIFUJI_Hideaki_=2F_=B5=C8=C6=A3=B1=D1=CC=C0?= <yoshfuji@linux-ipv6.org>,
-	pekkas@netcore.fi
-In-Reply-To: <20040116.005443.92504522.yoshfuji@linux-ipv6.org>
+To: Harald Welte <laforge@netfilter.org>,
+   Piotr Gasid?o <quaker@ondraszek.eu.org>,
+   netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20031213084905.GE8950@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -27,104 +22,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 16 Jan 2004, YOSHIFUJI Hideaki / [iso-2022-jp] =B5=C8=C6=A3=B1=D1=
-=CC=C0 wrote:
+On Sat, Dec 13, 2003 at 09:49:05AM +0100, Harald Welte wrote:
+> On Fri, Dec 12, 2003 at 07:23:46PM +0100, Piotr Gasid?o wrote:
+> > This is my first patch for patch-o-matic. Comments welcome.
+> sorry, but we use the kernel 'CodingStyle' in the netfilter/iptables
+> project.  And that clearly states: all comments/variable names / ...
+> have to be in english.
+I have been using the patch for a couple of days and it seems to work fine,
+and I think it is a very useful thing. I looked at the code and seem to be
+able to understand most of the comments (I don't actually speak Polish, but 3
+other slavic languages :-)). If I translate it into english, is there anything
+more preventing it from going into p-o-m?
 
-> So, all usage of pneigh_XXX() is not for rfc2461 but for proxy arp.
-> 1) We need to consider how to implement rfc2461-proxy.
-> 2) We need to revisit all usages in net/ipv6.
+> > Piotr 'QuakeR' Gasid?o, just another user @ ondraszek.eu.org
+> -- 
+> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+> ============================================================================
+>   "Fragmentation is like classful addressing -- an interesting early
+>    architectural error that shows how much experimentation was going
+>    on while IP was being designed."                    -- Paul Vixie
+Bye,
 
-No, no! The pneigh_XXX() *is* the way to do RFC2461 proxying :)
-I think Thaler's extended "proxy ARP" for IPv6 needs some other framework.
+Peter Surda (Shurdeek) <shurdeek@routehat.org>, ICQ 10236103, +436505122023
 
-I still haven't had the time to check how proxy ARP really works in IPv4,
-so I might have misunderstood this line in arp.c (line 763):
-
-"(arp_fwd_proxy(in_dev, rt) || pneigh_lookup(&arp_tbl, &tip, dev, 0)))) {"
-
-I think the first check is for proxy ARP, and the second for a router
-acting as proxy.
-
-In a similar case for IPv6, we would first need to check for the Thaler
-IPv6 "proxy ARP", then for the RFC2461 router as a proxy case.
-
-> > In the current implementation the proxying router captures the multicas=
-t
-> > queries since it has joined the solicited-node multicast group, but it
-> > doesn't capture the unicast queries.
->
-> It is VERY strange to handle multicast / unicast in different way.
-> I really hate such a hetero (or an inconsistent) implementation.
-
-Well, we still need some way to have the router capture some packets (the
-unicast NS messages) it would normally forward.
-
-> > This is what I want to fix.
->
-> I understand the issue, but the fix is unappropriate.
-
-Ok. Having slept on the matter, here is a new attempt to fix the probem,
-which I think is cleaner than the one I proposed earlier. The down side is
-of course that all nodes, no matter if they are acting as proxies or not,
-will have to do some extra comparisons each time they receive a packet.
-
-Perhaps this is an acceptable trade off for the architectual cleanness.
-
-Regards,
-Ville
-
-Ps. this patch is just a RFC, I haven't had a chance to test it yet!
-
-=3D=3D=3D=3D=3D net/ipv6/ip6_input.c 1.14 vs edited =3D=3D=3D=3D=3D
---- 1.14/net/ipv6/ip6_input.c=09Mon Jun 16 18:11:36 2003
-+++ edited/net/ipv6/ip6_input.c=09Fri Jan 16 11:13:06 2004
-@@ -46,13 +46,41 @@
- #include <net/addrconf.h>
- #include <net/xfrm.h>
-
-+static inline int ip6_proxy_rcv(struct sk_buff *skb)
-+{
-+=09struct ipv6hdr *hdr =3D skb->nh.ipv6h;
-
-+=09if (ipv6_addr_type(&hdr->daddr)&IPV6_ADDR_UNICAST &&
-+=09    pneigh_lookup(&nd_tbl, &hdr->daddr, skb->dev, 0)) {
-+=09=09u8 nexthdr =3D hdr->nexthdr;
-+=09=09int offset;
-+=09=09struct icmp6hdr msg;
-+
-+=09=09if (ipv6_ext_hdr(nexthdr)) {
-+=09=09=09offset =3D ipv6_skip_exthdr(skb, sizeof(*hdr), &nexthdr,
-+=09=09=09=09=09=09  skb->len - sizeof(*hdr));
-+=09=09=09if (offset < 0)
-+=09=09=09=09return 0;
-+=09=09} else
-+=09=09=09offset =3D sizeof(struct ipv6hdr);
-+
-+=09=09/* capture unicast NUD probes on behalf of the proxied node */
-+
-+=09=09if (nexthdr =3D=3D IPPROTO_ICMPV6 &&
-+=09=09    !skb_copy_bits(skb, offset, &msg, sizeof(msg)) &&
-+=09=09    msg.icmp6_type =3D=3D NDISC_NEIGHBOUR_SOLICITATION) {
-+=09=09=09ip6_input(skb);
-+=09=09=09return 1;
-+=09=09}
-+=09}
-+=09return 0;
-+}
-
- static inline int ip6_rcv_finish( struct sk_buff *skb)
- {
--=09if (skb->dst =3D=3D NULL)
-+=09if (skb->dst =3D=3D NULL && !ip6_proxy_rcv(skb)) {
- =09=09ip6_route_input(skb);
--
-+=09}
- =09return dst_input(skb);
- }
-
-
---
-Ville Nuorvala
-Research Assistant, Institute of Digital Communications,
-Helsinki University of Technology
-email: vnuorval@tcs.hut.fi, phone: +358 (0)9 451 5257
+-- 
+         To understand recursion, one must first understand recursion.
