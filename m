@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: conntrack state change logging
-Date: Mon, 9 Sep 2002 12:39:16 +0200
+From: Michael Schwendt <mschwendt@yahoo.com>
+Subject: Re: [PATCH] libipt_mac.c: minor bug and questions
+Date: Mon, 9 Sep 2002 06:07:00 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020909123916.E3810@sunbeam.de.gnumonks.org>
-References: <20020620211242.V2543@sunbeam.de.gnumonks.org> <Pine.LNX.4.33.0209051100260.3007-100000@strut.corplink.net>
+Message-ID: <20020909130700.79853.qmail@web14602.mail.yahoo.com>
+References: <638AA0336D7ED411928700D0B7B0D75B03053C7E@aimail.aiinet.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="24zk1gE8NUlDmwG9"
-Cc: <netfilter-devel@lists.samba.org>
+Content-Type: multipart/mixed; boundary="0-2045304795-1031576820=:78090"
+Cc: "Eble, Dan" <DanE@aiinet.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nick Eggleston <netfilter-devel@nick.corplink.net>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0209051100260.3007-100000@strut.corplink.net>; from netfilter-devel@nick.corplink.net on Thu, Sep 05, 2002 at 11:07:34AM -0500
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <638AA0336D7ED411928700D0B7B0D75B03053C7E@aimail.aiinet.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,44 +20,72 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
---24zk1gE8NUlDmwG9
+--0-2045304795-1031576820=:78090
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 05, 2002 at 11:07:34AM -0500, Nick Eggleston wrote:
-> Is there a framework for logging activity in the conntrack database?
+--- "Eble, Dan" <DanE@aiinet.com> wrote:
+> Yesterday I began evaluating iptables for MAC and IP address ACLs.  It
+> looks like it will work very well, but I think there is a bug at
+> libipt_mac.c:121.
+> It says printf("--mac ") instead of printf("--mac-source ").  Please
+> forgive me if I am a clueless newbie, but this seem like a bad thing.
 
-please see the original ctnetlink patches by Jay Schulist (netfilter-devel=
-=20
-archives).  Look at the 'ctrace' application.
+No, not a clueless newbie. It's well-spotted!
 
-> Thanks,
-> Nick
+I consider such bugs in iptables-save as crucial, because some system
+firewall solutions save/load their rules with the
+iptables-save/iptables-restore tools. I found this yesterday night in
+1.2.6a, too, when I had to block one host based on its MAC address, but
+couldn't reach netfilter.org.
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
-=20
-V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+Attached is the trivial patch against 1.2.7a for both ipv4 and ipv6
+mac-match extension.
 
---24zk1gE8NUlDmwG9
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Regards,
+Michael
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+-- 
 
-iD8DBQE9fHpTXaXGVTD0i/8RAmPNAJwJkfJ/eMq71sU5Ex8Sqi3XhuNgtACePIMm
-5XJyj1gXPjtC/1JO2abgc7s=
-=6I7K
------END PGP SIGNATURE-----
 
---24zk1gE8NUlDmwG9--
+
+
+__________________________________________________
+Do You Yahoo!?
+Yahoo! Finance - Get real-time stock quotes
+http://finance.yahoo.com
+--0-2045304795-1031576820=:78090
+Content-Type: application/octet-stream; name="iptables-1.2.7a-matchmac.patch"
+Content-Transfer-Encoding: base64
+Content-Description: iptables-1.2.7a-matchmac.patch
+Content-Disposition: attachment; filename="iptables-1.2.7a-matchmac.patch"
+
+W2J1Zy1maXhdIHByaW50IC0tbWFjLXNvdXJjZSBpbnN0ZWFkIG9mIC0tbWFj
+CgpkaWZmIC1OYXVyIGlwdGFibGVzLTEuMi43YS1vcmlnL2V4dGVuc2lvbnMv
+bGliaXA2dF9tYWMuYyBpcHRhYmxlcy0xLjIuN2EvZXh0ZW5zaW9ucy9saWJp
+cDZ0X21hYy5jCi0tLSBpcHRhYmxlcy0xLjIuN2Etb3JpZy9leHRlbnNpb25z
+L2xpYmlwNnRfbWFjLmMJV2VkIE1heSAyOSAxNTowODoxNiAyMDAyCisrKyBp
+cHRhYmxlcy0xLjIuN2EvZXh0ZW5zaW9ucy9saWJpcDZ0X21hYy5jCVN1biBT
+ZXAgIDggMjM6Mjc6MjIgMjAwMgpAQCAtMTE4LDcgKzExOCw3IEBACiAvKiBT
+YXZlcyB0aGUgdW5pb24gaXA2dF9tYXRjaGluZm8gaW4gcGFyc2FibGUgZm9y
+bSB0byBzdGRvdXQuICovCiBzdGF0aWMgdm9pZCBzYXZlKGNvbnN0IHN0cnVj
+dCBpcDZ0X2lwNiAqaXAsIGNvbnN0IHN0cnVjdCBpcDZ0X2VudHJ5X21hdGNo
+ICptYXRjaCkKIHsKLQlwcmludGYoIi0tbWFjICIpOworCXByaW50ZigiLS1t
+YWMtc291cmNlICIpOwogCXByaW50X21hYygoKHN0cnVjdCBpcDZ0X21hY19p
+bmZvICopbWF0Y2gtPmRhdGEpLT5zcmNhZGRyLAogCQkgICgoc3RydWN0IGlw
+NnRfbWFjX2luZm8gKiltYXRjaC0+ZGF0YSktPmludmVydCk7CiB9CmRpZmYg
+LU5hdXIgaXB0YWJsZXMtMS4yLjdhLW9yaWcvZXh0ZW5zaW9ucy9saWJpcHRf
+bWFjLmMgaXB0YWJsZXMtMS4yLjdhL2V4dGVuc2lvbnMvbGliaXB0X21hYy5j
+Ci0tLSBpcHRhYmxlcy0xLjIuN2Etb3JpZy9leHRlbnNpb25zL2xpYmlwdF9t
+YWMuYwlXZWQgTWF5IDI5IDE1OjA4OjE2IDIwMDIKKysrIGlwdGFibGVzLTEu
+Mi43YS9leHRlbnNpb25zL2xpYmlwdF9tYWMuYwlTdW4gU2VwICA4IDIzOjI3
+OjQ3IDIwMDIKQEAgLTExOCw3ICsxMTgsNyBAQAogLyogU2F2ZXMgdGhlIHVu
+aW9uIGlwdF9tYXRjaGluZm8gaW4gcGFyc2FibGUgZm9ybSB0byBzdGRvdXQu
+ICovCiBzdGF0aWMgdm9pZCBzYXZlKGNvbnN0IHN0cnVjdCBpcHRfaXAgKmlw
+LCBjb25zdCBzdHJ1Y3QgaXB0X2VudHJ5X21hdGNoICptYXRjaCkKIHsKLQlw
+cmludGYoIi0tbWFjICIpOworCXByaW50ZigiLS1tYWMtc291cmNlICIpOwog
+CXByaW50X21hYygoKHN0cnVjdCBpcHRfbWFjX2luZm8gKiltYXRjaC0+ZGF0
+YSktPnNyY2FkZHIsCiAJCSAgKChzdHJ1Y3QgaXB0X21hY19pbmZvICopbWF0
+Y2gtPmRhdGEpLT5pbnZlcnQpOwogfQo=
+
+--0-2045304795-1031576820=:78090--
