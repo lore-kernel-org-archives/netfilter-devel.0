@@ -1,13 +1,15 @@
-From: "Andriy T. Yanko" <wireless@wireless.org.ua>
-Subject: filling ipt_entry
-Date: Thu, 10 Jul 2003 17:31:50 +0300
+From: "Martin Bene" <martin.bene@icomedias.com>
+Subject: ipt_connlimit.c module
+Date: Fri, 11 Jul 2003 14:33:04 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030710173150.545ee3e2.wireless@wireless.org.ua>
+Message-ID: <4D618F6493CE064A844A5D496733D667031A4E@freedom.icomedias.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+Content-Class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,19 +20,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
+I've just tried to compile ipt_connlimit.c from current patch-o-matic
+snapshot (20030710) on 2.4.21 kernel;=20
 
-I'd like create a simple rule for INPUT chain with my progam wich use libiptc  like it do iptables progam:
-iptables -A INPUT -s 192.168.1.1 - j ACCEPT
+compilation fails with an error (NF_ACCEPT undeclared):
 
-Please show me piece of code how to fill ipt_entry in this case?
-I don't now how to  add right  target offset.
+/usr/src/linux-2.4.21/include/linux/netfilter_ipv4/ip_conntrack_core.h: =
+In
+function `ip_conntrack_confirm':
+In file included from ipt_connlimit.c:18:
+/usr/src/linux-2.4.21/include/linux/netfilter_ipv4/ip_conntrack_core.h:44=
+:
+`NF_ACCEPT' undeclared (first use in this function)
+/usr/src/linux-2.4.21/include/linux/netfilter_ipv4/ip_conntrack_core.h:44=
+:
+(Each undeclared identifier is reported only once
+/usr/src/linux-2.4.21/include/linux/netfilter_ipv4/ip_conntrack_core.h:44=
+:
+for each function it appears in.)
+/usr/src/linux-2.4.21/include/linux/netfilter_ipv4/ip_conntrack_core.h:45=
+:
+warning: control reaches end of non-void function
 
-THANKS IN ADVANCE.
+Fix: additional include seems to be needed:
 
--- 
-Andriy T. Yanko
-wireless@wireless.org.ua
+#include <linux/netfilter.h>
 
-*   Avoid The Gates of Hell use Linux
-**  Wenn ich sterbe, legt mir eine Birne in mein Grab ...
+Bye, Martin
