@@ -1,14 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.4]: Only match packets with full ESP header (like in 2.5)
-Date: Mon, 21 Jul 2003 03:51:24 +0200
+From: "A Weasel" <a__weasel@hotmail.com>
+Subject: "NAT/ICMP code information leak" still present?
+Date: Mon, 21 Jul 2003 01:14:32 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F1B471C.4040108@trash.net>
+Message-ID: <Law9-F930Qq5ldnekJf000146fb@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060806010701070006030301"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,47 +17,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060806010701070006030301
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Would I be correct in assuming that the issue discussed here still exists in 
+the 2.4.21 kernel?
 
-This patch is pretty useless, it just adds an unused field to struct esphdr
-so behaviour wrt. incomplete headers is identical to 2.5.
+http://www.iptables.org/security/2002-04-02-icmp-dnat.html
 
-Best regards,
-Patrick
+I can reproduce the "information leak" using the example steps provided. The 
+hping'ing host gets back internal IP addresses in the ICMP TTL Exceeded 
+packets (according to tcpdump and tethereal).
 
---------------060806010701070006030301
-Content-Type: text/plain;
- name="24-ipt_esp-esphdr.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="24-ipt_esp-esphdr.diff"
+The last mention of the bug I could find was 3 months ago in this thread:
 
-# This is a BitKeeper generated patch for the following project:
-# Project Name: Linux kernel tree
-# This patch format is intended for GNU patch command version 2.5 or higher.
-# This patch includes the following deltas:
-#	           ChangeSet	1.1022  -> 1.1023 
-#	net/ipv4/netfilter/ipt_esp.c	1.1     -> 1.2    
-#
-# The following is the BitKeeper ChangeSet Log
-# --------------------------------------------
-# 03/07/21	kaber@trash.net	1.1023
-# [NETFILTER]: Only match packets with full ESP header (like in 2.5)
-# --------------------------------------------
-#
-diff -Nru a/net/ipv4/netfilter/ipt_esp.c b/net/ipv4/netfilter/ipt_esp.c
---- a/net/ipv4/netfilter/ipt_esp.c	Mon Jul 21 02:22:20 2003
-+++ b/net/ipv4/netfilter/ipt_esp.c	Mon Jul 21 02:22:20 2003
-@@ -16,6 +16,7 @@
- 
- struct esphdr {
- 	__u32   spi;
-+	__u32   seq_no;
- };
- 
- /* Returns 1 if the spi is matched by the range, 0 otherwise */
+http://lists.netfilter.org/pipermail/netfilter-devel/2003-April/011215.html
 
---------------060806010701070006030301--
+where it was said that it should be fixed. But that doesn't seem to be the 
+case...
+
+Thanks,
+-Steve
+
+_________________________________________________________________
+The new MSN 8: smart spam protection and 2 months FREE*  
+http://join.msn.com/?page=features/junkmail
