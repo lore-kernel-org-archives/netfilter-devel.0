@@ -1,27 +1,37 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] don't require ip_forwarding for reset on a bridge
-Date: Mon, 29 Mar 2004 20:30:25 -0800
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040329203025.4d272b55.davem@redhat.com>
-References: <200403292314.12855.bdschuym@pandora.be>
+Subject: Re: [PATCH 2.4+2.6] fix DELETE_LIST netfilter oopses
+Date: Mon, 29 Mar 2004 20:29:10 -0800
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040329202910.78f5608f.davem@redhat.com>
+References: <20040329113239.GC7039@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <200403292314.12855.bdschuym@pandora.be>
-Errors-to: netdev-bounce@oss.sgi.com
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040329113239.GC7039@sunbeam.de.gnumonks.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 29 Mar 2004 23:14:12 +0200
-Bart De Schuymer <bdschuym@pandora.be> wrote:
+On Mon, 29 Mar 2004 13:32:39 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
-> Currently, to be able to send a reset in the FORWARD chain of iptables
-> for bridged traffic, ip forwarding must be enabled. This causes confusion
-> and in some situations people really don't want to enable ip forwarding.
-> The patch below lets the user send reset packets for bridged frames in
-> the FORWARD chain, with ip forwarding disabled (as long as there is a
-> route).
+> We've now narrowed down the issue of kernel oopses in combination with
+> 'LIST_DELETE' syslog messages happening in certain setups.
+> 
+> Apparently people who do not enable CONFIG_IP_NF_NAT_LOCAL and do
+> DNAT/REDIRECT and want to connect locally from the gateway via DNAT to
+> the DNAT'ed address experience the bug ;)
+> 
+> Please push the attached patch [courtesy of KOVACS Krisztian and Henrik
+> Nordstrom] to 2.4.x and 2.6.x ASAP, thanks.  
 
-I want an ACK from the netfilter folks before applying this one.
+Applied, thanks guys.
