@@ -1,13 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 18/19]: Introduce skb_header_pointer() to hbh match
-Date: Mon, 25 Oct 2004 02:50:08 +0200
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: routing table improvements
+Date: Sun, 24 Oct 2004 20:41:34 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C4DC0.8030509@trash.net>
+Message-ID: <20041024204134.542420ce.davem@davemloft.net>
+References: <876ef97a04102417193517f48f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030208070006010505040606"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-net@vger.kernel.org, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: Tobias DiPasquale <codeslinger@gmail.com>
+In-Reply-To: <876ef97a04102417193517f48f@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,173 +22,37 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030208070006010505040606
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sun, 24 Oct 2004 20:19:55 -0400
+Tobias DiPasquale <codeslinger@gmail.com> wrote:
 
-Convert ip6t_hbh to skb_header_pointer.
+> First of all, is anyone else doing something in this area?
 
+Yes, this has been discussed on this list over the past
+2 months.  Let me save you some time:
 
+1) We are already working on abstracting out the algorithmic
+   portions of net/ipv4/fib_hash.c, see recent changeset
+   history of this file in 2.6.x for details
 
---------------030208070006010505040606
-Content-Type: text/x-patch;
- name="18.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="18.diff"
+2) Using the BSD Radix tree will not improve performance,
+   it has the same algorithmic complexity as the current
+   32-hashtable algorithm for large routing tables
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/10/25 00:46:55+02:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Introduce skb_header_pointer() to hbh match
-#   
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv6/netfilter/ip6t_hbh.c
-#   2004/10/25 00:46:48+02:00 yasuyuki.kozakai@toshiba.co.jp +30 -20
-#   [NETFILTER]: Introduce skb_header_pointer() to hbh match
-#   
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
---- a/net/ipv6/netfilter/ip6t_hbh.c	2004-10-25 01:14:02 +02:00
-+++ b/net/ipv6/netfilter/ip6t_hbh.c	2004-10-25 01:14:02 +02:00
-@@ -60,7 +60,7 @@
-       unsigned int protoff,
-       int *hotdrop)
- {
--       struct ipv6_opt_hdr *optsh = NULL;
-+       struct ipv6_opt_hdr _optsh, *oh;
-        const struct ip6t_opts *optinfo = matchinfo;
-        unsigned int temp;
-        unsigned int len;
-@@ -68,7 +68,8 @@
-        unsigned int ptr;
-        unsigned int hdrlen = 0;
-        unsigned int ret = 0;
--       u8 *opttype = NULL;
-+       u8 _opttype, *tp = NULL;
-+       u8 _optlen, *lp = NULL;
-        unsigned int optlen;
-        
-        /* type of the 1st exthdr */
-@@ -80,7 +81,7 @@
-        temp = 0;
- 
-         while (ip6t_ext_hdr(nexthdr)) {
--               struct ipv6_opt_hdr *hdr;
-+               struct ipv6_opt_hdr _hdr, *hp;
- 
-               DEBUGP("ipv6_opts header iteration \n");
- 
-@@ -96,15 +97,16 @@
-                      break;
-               }
- 
--	      hdr = (void *)(skb->data + ptr);
-+	      hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
-+	      BUG_ON(hp == NULL);
- 
-               /* Calculate the header length */
-                 if (nexthdr == NEXTHDR_FRAGMENT) {
-                         hdrlen = 8;
-                 } else if (nexthdr == NEXTHDR_AUTH)
--                        hdrlen = (hdr->hdrlen+2)<<2;
-+                        hdrlen = (hp->hdrlen+2)<<2;
-                 else
--                        hdrlen = ipv6_optlen(hdr);
-+                        hdrlen = ipv6_optlen(hp);
- 
-               /* OPTS -> evaluate */
- #if HOPBYHOP
-@@ -132,7 +134,7 @@
-                             break;
-               }
- 
--                nexthdr = hdr->nexthdr;
-+                nexthdr = hp->nexthdr;
-                 len -= hdrlen;
-                 ptr += hdrlen;
- 		if ( ptr > skb->len ) {
-@@ -158,9 +160,10 @@
-        		return 0;
-        }
- 
--       optsh = (void *)(skb->data + ptr);
-+       oh = skb_header_pointer(skb, ptr, sizeof(_optsh), &_optsh);
-+       BUG_ON(oh == NULL);
- 
--       DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
-+       DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, oh->hdrlen);
- 
-        DEBUGP("len %02X %04X %02X ",
-        		optinfo->hdrlen, hdrlen,
-@@ -168,7 +171,7 @@
-                            ((optinfo->hdrlen == hdrlen) ^
-                            !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
- 
--       ret = (optsh != NULL)
-+       ret = (oh != NULL)
-        		&&
- 	      	(!(optinfo->flags & IP6T_OPTS_LEN) ||
-                            ((optinfo->hdrlen == hdrlen) ^
-@@ -185,36 +188,43 @@
- 		DEBUGP("#%d ",optinfo->optsnr);
- 		for(temp=0; temp<optinfo->optsnr; temp++){
- 			/* type field exists ? */
--			if (ptr > skb->len - 1 || hdrlen < 1)
-+			if (hdrlen < 1)
-+				break;
-+			tp = skb_header_pointer(skb, ptr, sizeof(_opttype),
-+						&_opttype);
-+			if (tp == NULL)
- 				break;
--			opttype = (void *)(skb->data + ptr);
- 
- 			/* Type check */
--			if (*opttype != (optinfo->opts[temp] & 0xFF00)>>8){
-+			if (*tp != (optinfo->opts[temp] & 0xFF00)>>8){
- 				DEBUGP("Tbad %02X %02X\n",
--				       *opttype,
-+				       *tp,
- 				       (optinfo->opts[temp] & 0xFF00)>>8);
- 				return 0;
- 			} else {
- 				DEBUGP("Tok ");
- 			}
- 			/* Length check */
--			if (*opttype) {
-+			if (*tp) {
- 				u16 spec_len;
- 
- 				/* length field exists ? */
--				if (ptr > skb->len - 2 || hdrlen < 2)
-+				if (hdrlen < 2)
-+					break;
-+				lp = skb_header_pointer(skb, ptr + 1,
-+							sizeof(_optlen),
-+							&_optlen);
-+				if (lp == NULL)
- 					break;
--				optlen = *((u8 *)(skb->data + ptr + 1));
- 				spec_len = optinfo->opts[temp] & 0x00FF;
- 
--				if (spec_len != 0x00FF && spec_len != optlen) {
--					DEBUGP("Lbad %02X %04X\n", optlen,
-+				if (spec_len != 0x00FF && spec_len != *lp) {
-+					DEBUGP("Lbad %02X %04X\n", *lp,
- 					       spec_len);
- 					return 0;
- 				}
- 				DEBUGP("Lok ");
--				optlen += 2;
-+				optlen = *lp + 2;
- 			} else {
- 				DEBUGP("Pad1\n");
- 				optlen = 1;
+3) Once the complexity of the mid-level routing table FIB
+   algorithms is made better, there is no evidence that this
+   means the routing cache should be removed.
 
---------------030208070006010505040606--
+   You should instead evaluate it's performance after the
+   mid-level algorithms perform acceptably.
+
+If you remove the routing cache, I don't believe you understand
+the implications of this.  Firstly, you have to store the
+routing metrics for every remote host we talk to, where do you
+plan to store this and what will it be keyed upon?  How will you
+handle per-socket routes?  How will you handle the interface with
+the IPSEC layer which uses trees of routing cache entries as it's
+fundamental object type?
+
+Please scan the list postings, particularly on netdev, and I've
+even given a keynote on our planned work just the other week in
+Tokyo.
