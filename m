@@ -1,16 +1,14 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Re: [RFC, PATCH 2/5]: netfilter+ipsec - output hooks
-Date: Sun, 21 Mar 2004 08:45:56 +1100
+From: "Jim Gifford" <maillist@jg555.com>
+Subject: Bug-Report 3-19-03 patch-o-matic-ng
+Date: Sat, 20 Mar 2004 17:07:03 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040320214556.GJ29442@samad.com.au>
-References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CEEC.7070009@trash.net>
+Message-ID: <029901c40ee1$3c847280$d100a8c0@W2RZ8L4S02>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9uDGw67+9J53IzxX"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <4059CEEC.7070009@trash.net>
+To: "Netfilter Developer" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,56 +19,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Welcome to Patch-o-matic (1.15)!
 
---9uDGw67+9J53IzxX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Kernel:         /usr/src/linux
+Iptables:       /usr/src/iptables
 
-Hi
+Each patch is a new feature: many have minimal impact, some do not.
+Almost every one has bugs, so don't apply what you don't need!
+-------------------------------------------------------
+Already applied: init_conntrack-optimize ipt_helper-invert-fix nf-log NETMAP
+SAME TTL connlimit fuzzy iprange mport nth sctp CLASSIFY
+iptables-loopcheck-speedup netfilter-docbook
 
-I don't have a full understanding of the code area we are talking about,
-having only had a peruse of it a while back.
+Testing tcp-window-tracking... not applied
+The tcp-window-tracking patch:
+   Author: Jozsef Kadlecsik
+   Status: proven to be quite stable, but still experimental
 
-But from my reading of this do I understand that packets that enter a
-box to be routed (forwarded on) that match a IPSEC transform policy
+Now for the error message
+-----------------------------------------------------------------
+Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
+present 'ctstat' conflicts with to-be-installed 'tcp-window-tracking'
+-----------------------------------------------------------------
+Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
+apply_dependencies: unable to apply dependent nf-log: cannot apply (22
+rejects out of 24 hunks)
+-----------------------------------------------------------------
 
-1) Are seen in  mangle prerouting
-2) nat prerouting=20
-2) Encrypted
-3) mangle Output
-4) nat Output
+As you notice ctstat is not installed and nf-log is installed.
 
-Does this mean they also hit the filter input & output tables aswell or
- just the filter forward table.
-
-I would have thought for the whole process the packet (routed/forward
-packet) would only be seen in the prerouting/forward/postrouting flow.
-Weather or not it is going to be encrypted shouldn't make a difference I
-would have thought
-
-On Thu, Mar 18, 2004 at 05:31:40PM +0100, Patrick McHardy wrote:
-> This patch adds new output-hooks. Packets with dst->xfrm !=3D NULL
-> traverse the POST_ROUTING hook before dst_output is called. The
-> transformers mark the packets in the control buffer with a new flag
-> IPSKB_XFRM_TRANSFORMED, these packets then traverse the LOCAL_OUT
-> hook when they hit ip_output.
->=20
->=20
-
-
-
---9uDGw67+9J53IzxX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAXLuUkZz88chpJ2MRApyfAKCPLCUwAnpI/rrtjGNkLdiLb1Y8ygCgkJ8R
-axav0TDCIgK/RlL1LYEQ9iQ=
-=3YqR
------END PGP SIGNATURE-----
-
---9uDGw67+9J53IzxX--
+----
+Jim Gifford
+maillist@jg555.com
