@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 15/19]: Fix multiple bugs in dst match
-Date: Mon, 25 Oct 2004 02:49:57 +0200
+Subject: [PATCH 2.6 16/19]: Fix multiple bugs in hbh match
+Date: Mon, 25 Oct 2004 02:50:01 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C4DB5.8040108@trash.net>
+Message-ID: <417C4DB9.3080502@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070603020207050707080305"
+Content-Type: multipart/mixed; boundary="------------070607000108050203090301"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,13 +19,12 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070603020207050707080305
+--------------070607000108050203090301
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Fix multiple bugs in dst match:
+Fix multiple bugs in hbh match:
 
-- ".me = THIS_MODULE" is missing
 - The cast of the pointer to the next IPv6 extension header is wrong.
 - hdrlen may underflow.
 - (u16)*optdesc causes to alignment problem.
@@ -35,22 +34,20 @@ Fix multiple bugs in dst match:
 
 
 
---------------070603020207050707080305
+--------------070607000108050203090301
 Content-Type: text/x-patch;
- name="15.diff"
+ name="16.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="15.diff"
+ filename="16.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/10/25 00:39:13+02:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Fix multiple bugs in dst match
+#   2004/10/25 00:43:08+02:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: Fix multiple bugs in hbh match
 #   
-#   This patch fixes the following bugs in ip6t_dst.c.
-#   
-#     - ".me = THIS_MODULE" is missing 
+#   This patch fixes the following bugs in ip6t_hbh.c.
 #     - The cast of the pointer to the next IPv6 extension header is wrong.
 #     - hdrlen may underflow.
 #     - (u16)*optdesc causes to alignment problem.
@@ -61,13 +58,11 @@ Content-Disposition: inline;
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv6/netfilter/ip6t_dst.c
-#   2004/10/25 00:39:07+02:00 yasuyuki.kozakai@toshiba.co.jp +39 -37
-#   [NETFILTER]: Fix multiple bugs in dst match
+# net/ipv6/netfilter/ip6t_hbh.c
+#   2004/10/25 00:43:01+02:00 yasuyuki.kozakai@toshiba.co.jp +38 -36
+#   [NETFILTER]: Fix multiple bugs in hbh match
 #   
-#   This patch fixes the following bugs in ip6t_dst.c.
-#   
-#     - ".me = THIS_MODULE" is missing 
+#   This patch fixes the following bugs in ip6t_hbh.c.
 #     - The cast of the pointer to the next IPv6 extension header is wrong.
 #     - hdrlen may underflow.
 #     - (u16)*optdesc causes to alignment problem.
@@ -78,27 +73,19 @@ Content-Disposition: inline;
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
---- a/net/ipv6/netfilter/ip6t_dst.c	2004-10-25 01:13:48 +02:00
-+++ b/net/ipv6/netfilter/ip6t_dst.c	2004-10-25 01:13:48 +02:00
-@@ -7,7 +7,6 @@
-  * published by the Free Software Foundation.
-  */
- 
--
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ipv6.h>
-@@ -20,8 +19,6 @@
+diff -Nru a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+--- a/net/ipv6/netfilter/ip6t_hbh.c	2004-10-25 01:13:52 +02:00
++++ b/net/ipv6/netfilter/ip6t_hbh.c	2004-10-25 01:13:52 +02:00
+@@ -19,8 +19,6 @@
  #include <linux/netfilter_ipv6/ip6_tables.h>
  #include <linux/netfilter_ipv6/ip6t_opts.h>
  
 -#define LOW(n)		(n & 0x00FF)
 -
- #define HOPBYHOP	0
+ #define HOPBYHOP	1
  
  MODULE_LICENSE("GPL");
-@@ -48,8 +45,8 @@
+@@ -47,8 +45,8 @@
   *  	0	-> invariant
   *  	1	-> can change the routing
   *  (Type & 0x1F) Type
@@ -109,7 +96,7 @@ diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
   *      C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
   *      5	-> RTALERT 2 x x
   */
-@@ -71,7 +68,8 @@
+@@ -70,7 +68,8 @@
         unsigned int ptr;
         unsigned int hdrlen = 0;
         unsigned int ret = 0;
@@ -119,7 +106,7 @@ diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
         
         /* type of the 1st exthdr */
         nexthdr = skb->nh.ipv6h->nexthdr;
-@@ -98,7 +96,7 @@
+@@ -97,7 +96,7 @@
                       break;
                }
  
@@ -128,7 +115,7 @@ diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
  
                /* Calculate the header length */
                  if (nexthdr == NEXTHDR_FRAGMENT) {
-@@ -160,7 +158,7 @@
+@@ -159,7 +158,7 @@
         		return 0;
         }
  
@@ -137,7 +124,7 @@ diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
  
         DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
  
-@@ -176,7 +174,6 @@
+@@ -175,7 +174,6 @@
                             ((optinfo->hdrlen == hdrlen) ^
                             !!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
  
@@ -145,7 +132,7 @@ diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
         ptr += 2;
         hdrlen -= 2;
         if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
-@@ -187,48 +184,52 @@
+@@ -186,48 +184,52 @@
  		DEBUGP("Strict ");
  		DEBUGP("#%d ",optinfo->optsnr);
  		for(temp=0; temp<optinfo->optsnr; temp++){
@@ -226,13 +213,5 @@ diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
  		}
  		if (temp == optinfo->optsnr)
  			return ret;
-@@ -270,6 +271,7 @@
- #endif
- 	.match		= &match,
- 	.checkentry	= &checkentry,
-+	.me		= THIS_MODULE,
- };
- 
- static int __init init(void)
 
---------------070603020207050707080305--
+--------------070607000108050203090301--
