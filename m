@@ -1,14 +1,16 @@
-From: "Dec0y" <anti_decoy@sina.com>
-Subject: Can  REDIRECT be realized in FORWARD?!
-Date: Fri, 28 Mar 2003 17:43:18 +0800
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Can  REDIRECT be realized in FORWARD?!
+Date: Fri, 28 Mar 2003 11:32:18 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <00ae01c2f50e$77732fa0$5b01aa0a@Dec0y>
+Message-ID: <20030328103218.GA32638@oknodo.bof.de>
+References: <00ae01c2f50e$77732fa0$5b01aa0a@Dec0y>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+To: Dec0y <anti_decoy@sina.com>
+Content-Disposition: inline
+In-Reply-To: <00ae01c2f50e$77732fa0$5b01aa0a@Dec0y>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,11 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGkhDQoNCkNhbiAgUkVESVJFQ1QgYmUgcmVhbGl6ZWQgaW4gRk9SV0FSRD8hDQoNCkknbSB3cml0
-dGluZyBhIHRhcmdldCB0aGF0IG1haW5seSB1c2VkIGluIHRoZSBGT1JXQVJEISAgSW4gdGhpcyB0
-YXJnZXQgLEkgd2FudCB0byAgUkVESVJFQ1QgYWxsIHRoZSBwYWNrZXQhIHNvIEkgdXNlZCB0aGUg
-ZnVuY3Rpb24gcmVkaXJlY3RfdGFyZ2V0KCkgZnVuY3Rpb24gdGhhdCBpcyBpbiB0aGUgaXB0X1JF
-RElSRUNUISAgQnV0IGl0IHdvcmtlZCBjb3JyZWN0bHkgd2l0aCB0aGUgcGFja2V0IHRoYXQgaGFz
-ICBiZWVuIEROQVQsIGFuZCBub3QgdG8gdGhlIHBhY2tldCB0aGF0IHdpbGwgYmUgU05BVCEgIEJ1
-dCB3aHkhICBJcyB0aGF0IEknbSB3cm9uZz8hICAgSXMgdGhlcmUgYW55IG1ldGhvZCB0byByZWFs
-aXplIGl0ISANCg0KDQo=
+> Can  REDIRECT be realized in FORWARD?!
+
+No.
+
+What do you want to accomplish, that you cannot accomplish with
+the way things are meant to be?
+
+"I'm in the habit of putting everything into FORWARD" does NOT count.
+
+I doubt that there is any easy, painless way to move REDIRECT
+into the filter table. It is designed to be used in the NAT table.
+
+best regards
+  Patrick
