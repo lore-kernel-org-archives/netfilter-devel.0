@@ -1,54 +1,93 @@
-From: jamal <hadi@cyberus.ca>
-Subject: ppp ifindex WAS(Re: ipt_physdev.c alignment problems on parisc64
-Date: 21 Sep 2003 09:57:07 -0400
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <1064152627.1030.128.camel@jzny.localdomain>
-References: <20030912085606.GC2350@obroa-skai.de.gnumonks.org>
-	 <1063371268.1031.96.camel@jzny.localdomain>
-	 <20030920055002.GC8398@sunbeam.de.gnumonks.org>
-Reply-To: hadi@cyberus.ca
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: "ip_conntrack_core: Frag of proto 17." error and memory leak?
+Date: Sun, 21 Sep 2003 17:04:58 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030921150458.GE22223@sunbeam.de.gnumonks.org>
+References: <3F65EC33.2060906@wp.pl> <1064059876.2500.54.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@redhat.com>,
-        Bart De Schuymer <bdschuym@pandora.be>, acme@conectiva.com.br,
-        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030920055002.GC8398@sunbeam.de.gnumonks.org>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QXO0/MSS4VvK6f+D"
+Cc: c0g <c0g@wp.pl>,
+	jozsef Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+Content-Disposition: inline
+In-Reply-To: <1064059876.2500.54.camel@tux.rsn.bth.se>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2003-09-20 at 01:50, Harald Welte wrote:
 
-> > 
-> > If ifindices change for the same device name then that would be a bug.
-> > The only time they should change is if a) you reboot or b) you unload a
-> > module after ifconfiged down the device(s) and then reload it later.
-> > In both cases if you have exactly the same setup, the chances of those
-> > ifindices changing are very slim.
-> 
-> What about a ppp interface that is deleted because pppd terminated.
-> Then you start a new pppd that uses the same ppp interface [i.e. ppp12].
-> Would ifindex still be guaranteed to be the same in that case?
-> 
+--QXO0/MSS4VvK6f+D
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-maybe not in that case - but i am not sure if it is a feature or a bug; 
-The reason is because pppd will create a brand new device everytime but
-may maintain the same name as you point out. I suppose this is legit.
-The whole point behind the ifindex is to do device management, billing,
-etc. Example if you were doing fault detection/failover and something
-goes wrong with ppp12, you can uniqueuly identify it is the same ppp12
-that you are interested in if the ifindex is the same. Chances are no if
-you depend on the name as you do in iptables. Infact the new ppp12 maybe
-terminating at a new server. For this reason, maybe a good idea for ppp
-_not_ to reuse the same unit number but rather to monotomically
-increment so that next ppp device you get is ppp13. Yes, I know it will
-break a lot of scripts etc. Unless you dont care about the above
-scenario.
-OTOH, take eth* - in this case it is desirable to maintain the same
-ifindex even across reboots for consistency as above. Note, tc doesnt
-have these issues.
+On Sat, Sep 20, 2003 at 02:11:16PM +0200, Martin Josefsson wrote:
+> Are you using the NOTRACK target in raw/PREROUTING?
+>=20
+> This is the only source of this I can see and it is indeed a bug. This
+> message shouldn't be printed for this case. It doesn't defrag packets
+> and calls get_tuple() for all packets, even the fragments and
+> get_tuple() barfs. This causes only the first fragment to be marked as
+> untracked and leaves the rest of the fragments to conntrack which tries
+> to defrag them but that won't succeed since conntrack will never see the
+> first packet. And thus the kernel keeps lots of fragments in memory
+> until they time out and are dropped.
 
-cheers,
-jamal
+Mh. So why does it call get_tuple() anyway?  To check if the tuple is
+taken (i.e. the packet is part of an already tracked connection)?  I
+think we can safely split this check, since
+
+1) it tries to work around an obvious misconfiguration by the user
+2) it adds significant runtime cost to the NOTRACK target (call
+   get_tuple, which calls in turn the l4 protocol helper get_tuple, then
+   tuple_taken(), which in turn locks the conntrack lock, ...)
+3) it introduces the problem above.
+
+Yes, we can still try to make it work, even with that check.  But I
+think we can just skip it and make our life easier.
+
+Jozsef?
+
+btw: I wan to merge the 'raw' table userspace changes into iptables
+before 1.2.9 is released... All we need to make it compile even on a
+non-rawtable-kernel is:
+
+#ifndef IPT_CONNTRACK_STATE_UNTRACKED
+#define IPT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_IS_REPLY+3))
+#endif
+
+in one of our (userspace) header files.
+
+> /Martin
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--QXO0/MSS4VvK6f+D
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE/bb4aXaXGVTD0i/8RAgr+AKCyqqJs59wwvwhGNMeNs+4ZWkz+0QCdEB19
+FzBW9lTASDzoo+pWcyBf2iw=
+=t2od
+-----END PGP SIGNATURE-----
+
+--QXO0/MSS4VvK6f+D--
