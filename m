@@ -1,18 +1,16 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: Re: [PTCH 2.5.68] netfilter using Read Copy Update
-Date: Mon, 28 Apr 2003 08:57:21 -0700
+From: "Hillmann, Oliver" <Oliver.Hillmann@charite.de>
+Subject: RE: ICMP unreachable (DF) does not report the NATed IP
+Date: Mon, 28 Apr 2003 17:57:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030428085721.15966de4.shemminger@osdl.org>
-References: <20030427132413.GP990@sunbeam.de.gnumonks.org>
-	<20030428062622.5F0FE2C4D3@lists.samba.org>
+Message-ID: <4F9AFAF72B246745B6847C7EECD8FF6901D17A81@EXCHANGE1.charite.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-   davem@redhat.com
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: "Netfilter-devel" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <20030428062622.5F0FE2C4D3@lists.samba.org>
+content-class: urn:content-classes:message
+To: "Martin Josefsson" <gandalf@wlug.westbo.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 28 Apr 2003 14:24:30 +1000
-Rusty Russell <rusty@rustcorp.com.au> wrote:
+> -----Original Message-----
+> From: Martin Josefsson [mailto:gandalf@wlug.westbo.se]
+> To: Hillmann, Oliver
+> Cc: Netfilter-devel
+> Subject: Re: ICMP unreachable (DF) does not report the NATed IP
+>=20
 
-> In message <20030427132413.GP990@sunbeam.de.gnumonks.org> you write:
-> > 
-> > --K0mDTbuGRobClnW5
-> > Content-Type: text/plain; charset=us-ascii
-> > Content-Disposition: inline
-> > Content-Transfer-Encoding: quoted-printable
-> > 
-> > On Thu, Apr 24, 2003 at 09:04:06AM -0700, Stephen Hemminger wrote:
-> > > This is an update to netfilter core that uses the read-copy-update
-> > > instead of brlock.  The code is similar to my earlier patch but less
-> > > invasive.
-> > 
-> > I will try to review this patch and eventually push it to David Miller.
-> 
-> There is a fundamental flaw in the nf_reinject code: when a packet is
-> reinjected, it makes an attempt to figure out if the hook which sent
-> it to queue in the first place has vanished, and if so it drops the
-> packet.
-> 
-> Of course, this is racy (it compares nf_hook_ops addresses) but
-> "mostly works".  The best solution is to hold a reference to the hook
-> so it can't vanish.
-> 
-> Stephen, it should be simple for you to rework your patch on top of
-> this one.
-> 
+Hi!
 
-Okay, that makes sense.
+> I'm moving this to the correct list.
+>=20
+> I see the "10.0.1.2 reports that a packet didn't reach 10.0.1.2 due to
+> MTU and DF contraints" problem here (GRE tunnels between networks).
+>=20
+> I havn't investigated it much yet but please go ahead :)
+
+Thanks for both forwarding this mail and acknowledging this problem. I =
+don't use GRE but L2TP, yet both protocols constitute tunnels and suffer =
+from that MTU difference... Now I know I haven't done something utterly =
+stupid, but that this might be a netfilter issue.. ;)
+
+> (you need to be subscribed to=20
+> netfilter-devel@lists.netfilter.org to be
+> able to post without your messages beeing held for approval)
+
+I have been subcribed to netfilter-devel, but first wanted to send it to =
+a more general list before bothering the developers with this...
+
+As soon as I find some time, I will be looking into this and try to come =
+up with a NAT helper module... Any comments and suggestions are welcome!
+
+Regards,
+
+Oliver
