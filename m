@@ -1,16 +1,16 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: bug in icmp tracking?
-Date: Tue, 09 Mar 2004 22:02:38 +0100
+Subject: Re: [PATCH] datalen variable unused in ftp helper.
+Date: Tue, 09 Mar 2004 22:20:15 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <404E30EE.4010600@eurodev.net>
-References: <404E1E90.3060509@eurodev.net> <1078865277.3615.34.camel@tux.rsn.bth.se>
+Message-ID: <404E350F.8060608@eurodev.net>
+References: <404E0A4D.3070303@eurodev.net> <404E2AC5.1080803@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>,
+To: Patrick McHardy <kaber@trash.net>,
  netfilter-devel@lists.netfilter.org
-In-Reply-To: <1078865277.3615.34.camel@tux.rsn.bth.se>
+In-Reply-To: <404E2AC5.1080803@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,18 +21,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Martin,
+Hi Patrick,
 
-Martin Josefsson wrote:
+Patrick McHardy wrote:
 
->You probably won't see them in /proc/net/ip_conntrack since they are
->removed as soon as the reply has been seen, which probably is around 1ms
->after you were added, you have to be quite lucky in order to see them in
->that file.
->  
+>> --- linux-2.6.3/net/ipv4/netfilter/ip_conntrack_ftp.c    2004-03-09 
+>> 18:49:21.000000000 +0100
+>> +++ linux-2.6.3-old/net/ipv4/netfilter/ip_conntrack_ftp.c    
+>> 2004-02-18 04:59:06.000000000 +0100
+>> @@ -281,7 +281,7 @@
+>>      datalen = skb->len - dataoff;
 >
-Actually, this was my error, looking at /proc/net/ip_conntrack, this got 
-me confused.
+>
+> ^^ Shouldn't the patch remove the variable entirely then ?
 
-thanks,
+
+I'm not sure what's better. Adding a new parameter to the stack is cheap 
+and this way I'm sure that gcc won't generate code to calculate skb->len 
+- dataoff over and over again. I'm not a compiler geek, so I could be 
+wrong :-). If you think that removing datalen is a better solution, 
+please let me know and I'll post the patch.
+
+regards,
 Pablo
