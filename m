@@ -1,12 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: [patch pomng] convert2pomng.sh "final"
-Date: Sat, 28 Feb 2004 15:30:51 +0100 (CET)
+From: Pablo Neira <pablo@eurodev.net>
+Subject: ip_ct_refresh lock issue
+Date: Sat, 28 Feb 2004 15:18:28 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402281438410.9609-201000@filer.marasystems.com>
+Message-ID: <4040A334.3020808@eurodev.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-736690209-1077978651=:9609"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,175 +18,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+Hi list,
 
----1463811839-736690209-1077978651=:9609
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+I can't see the reason why in ip_ct_refresh the conntrack is locked to 
+modify an not confirmed conntrack timeout.
 
-The attached patch automates several missing pieces in convert2pomng.sh, 
+It isn't inserted in the conntrack table yet, so why do we need to do 
+that? any possible race here?
 
-- The Configure.help change posted ealier, with some small corrections
-- automatic separation of added files from patched files, eleminating
-  the need to manually clean linux.patch
-- dependencies now automatically copied, excluding submitted and pending
-- automatically clean the target to allow convert2pomng to be
-  run repeatedly or in an existing tree
-- some cosmetics go get rid of "normal" errors
-- cvs commands adjusted for new CVS structure with patch-o-matic as a
-  separate moduleB
+        WRITE_LOCK(&ip_conntrack_lock);
+        /* If not in hash table, timer will not be active yet */
+        if (!is_confirmed(ct))
+                ct->timeout.expires = extra_jiffies;
+        else {
+                /* Need del_timer for race avoidance (may already be 
+dying). */
+                if (del_timer(&ct->timeout)) {
+                        ct->timeout.expires = jiffies + extra_jiffies;
+                        add_timer(&ct->timeout);
+                }
+        }
+        WRITE_UNLOCK(&ip_conntrack_lock);
+}
 
-Attached is also a small script to reconvert all the patches from pom.  
-There is a lot of missing .ladd files etc in the current CVS repository
-and rebuilding pom-ng from patch-o-matic is the easiest way to deal with
-these I think. If you change the CVS variable at the top the script should
-automate the required cvs adds to prepare all the files to be committed.
-
-Regards
-Henrik
-
----1463811839-736690209-1077978651=:9609
-Content-Type: APPLICATION/x-sh; name="pomng-convert-from-pom.sh"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0402281530510.9609@filer.marasystems.com>
-Content-Description: 
-Content-Disposition: attachment; filename="pomng-convert-from-pom.sh"
-
-IyEvYmluL3NoCmNvbnYoKSB7CiAgICBwYXRjaC1vLW1hdGljLW5nL2NvbnZl
-cnQycG9tbmcuc2ggIiRAIgp9CmNvbnYgYmFzZSBjb25ubGltaXQgY29ubmxp
-bWl0CmNvbnYgYmFzZSBkc3RsaW1pdCBkc3RsaW1pdApjb252IGJhc2UgZnV6
-enkgZnV6enkKY29udiBiYXNlIGlwcmFuZ2UgaXByYW5nZQpjb252IGJhc2Ug
-aXB2NG9wdGlvbnMgaXB2NG9wdGlvbnMKY29udiBiYXNlIElQVjRPUFRTU1RS
-SVAgSVBWNE9QVFNTVFJJUApjb252IGJhc2UgbXBvcnQgbXBvcnQKY29udiBi
-YXNlIE5FVExJTksgTkVUTElOSwpjb252IGJhc2UgTkVUTUFQIE5FVE1BUApj
-b252IGJhc2UgbnRoIG50aApjb252IGJhc2Ugb3NmIG9zZgpjb252IGJhc2Ug
-cG9vbCBwb29sCmNvbnYgYmFzZSBwc2QgcHNkCmNvbnYgYmFzZSBxdW90YSBx
-dW90YQpjb252IGJhc2UgcmFuZG9tIHJhbmRvbQpjb252IGJhc2UgcmF3IHJh
-dwpjb252IGJhc2UgcmVhbG0gcmVhbG0KY29udiBiYXNlIFNBTUUgU0FNRQpj
-b252IGJhc2Ugc2V0IHNldApjb252IGJhc2UgdGltZSB0aW1lCmNvbnYgYmFz
-ZSBUVEwgVFRMCmNvbnYgYmFzZSB1MzIgdTMyCmNvbnYgZXh0cmEgYWRkcnR5
-cGUgYWRkcnR5cGUKY29udiBleHRyYSBDTEFTU0lGWSBDTEFTU0lGWQpjb252
-IGV4dHJhIGNvbmRpdGlvbiBjb25kaXRpb24KY29udiBleHRyYSBjb25uYnl0
-ZXMgY29ubmJ5dGVzCmNvbnYgZXh0cmEgQ09OTk1BUksgQ09OTk1BUksKY29u
-diBleHRyYSBjb25udHJhY2tfYXJlZmNvdW50IGNvbm50cmFja19hcmVmY291
-bnQKY29udiBleHRyYSBjb25udHJhY2tfbG9ja2luZyBjb25udHJhY2tfbG9j
-a2luZwpjb252IGV4dHJhIGNvbm50cmFja19ub25hdCBjb25udHJhY2tfbm9u
-YXQKY29udiBleHRyYSBjb25udHJhY2stc2VxZmlsZSBjb25udHJhY2stc2Vx
-ZmlsZQpjb252IGV4dHJhIGN0c3RhdCBjdHN0YXQKY29udiBleHRyYSBjdXNl
-ZW1lLW5hdCBjdXNlZW1lLW5hdApjb252IGV4dHJhIGVnZ2Ryb3AtY29ubnRy
-YWNrIGVnZ2Ryb3AtY29ubnRyYWNrCmNvbnYgZXh0cmEgaDMyMy1jb25udHJh
-Y2stbmF0IGgzMjMtY29ubnRyYWNrLW5hdApjb252IGV4dHJhIElQTUFSSyBJ
-UE1BUksKY29udiBleHRyYSBpcHRhYmxlcy1sb29wY2hlY2stc3BlZWR1cCBp
-cHRhYmxlcy1sb29wY2hlY2stc3BlZWR1cApjb252IGV4dHJhIGlwdF9UQVJQ
-SVQgVEFSUElUCmNvbnYgZXh0cmEgbW1zLWNvbm50cmFjay1uYXQgbW1zLWNv
-bm50cmFjay1uYXQKY29udiBleHRyYSBuZXRmaWx0ZXItZG9jYm9vayBuZXRm
-aWx0ZXItZG9jYm9vawpjb252IGV4dHJhIG5mbmV0bGluay1jdG5ldGxpbmst
-MC4xMyBuZm5ldGxpbmstY3RuZXRsaW5rLTAuMTMKY29udiBleHRyYSBvd25l
-ci1zb2NrZXRsb29rdXAgb3duZXItc29ja2V0bG9va3VwCmNvbnYgZXh0cmEg
-b3duZXItc3VwZ2lkcyBvd25lci1zdXBnaWRzCmNvbnYgZXh0cmEgcHB0cC1j
-b25udHJhY2stbmF0IHBwdHAtY29ubnRyYWNrLW5hdApjb252IGV4dHJhIHF1
-YWtlMy1jb25udHJhY2sgcXVha2UzLWNvbm50cmFjay1uYXQKY29udiBleHRy
-YSBST1VURSBST1VURQpjb252IGV4dHJhIHJwYyBycGMKY29udiBleHRyYSBy
-c2ggcnNoCmNvbnYgZXh0cmEgcnRzcC1jb25udHJhY2sgcnRzcC1jb25udHJh
-Y2sKY29udiBleHRyYSBzdHJpbmcgc3RyaW5nCmNvbnYgZXh0cmEgdGFsay1j
-b25udHJhY2stbmF0IHRhbGstY29ubnRyYWNrLW5hdApjb252IGV4dHJhIFRD
-UExBRyBUQ1BMQUcKY29udiBleHRyYSB0Y3Atd2luZG93LXRyYWNraW5nIHRj
-cC13aW5kb3ctdHJhY2tpbmcKY29udiBleHRyYSBUUkFDRSBUUkFDRQpjb252
-IGV4dHJhIFhPUiBYT1IK
----1463811839-736690209-1077978651=:9609
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="pomng-convert2pomng.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0402281530511.9609@filer.marasystems.com>
-Content-Description: 
-Content-Disposition: attachment; filename="pomng-convert2pomng.patch"
-
-SW5kZXg6IGNvbnZlcnQycG9tbmcuc2gNCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0NClJDUyBmaWxlOiAvY3ZzcHVibGljL3BhdGNoLW8tbWF0aWMtbmcvY29u
-dmVydDJwb21uZy5zaCx2DQpyZXRyaWV2aW5nIHJldmlzaW9uIDEuNQ0KZGlm
-ZiAtdSAtcCAtcjEuNSBjb252ZXJ0MnBvbW5nLnNoDQotLS0gY29udmVydDJw
-b21uZy5zaAkyNyBGZWIgMjAwNCAyMTo0MDoyMCAtMDAwMAkxLjUNCisrKyBj
-b252ZXJ0MnBvbW5nLnNoCTI4IEZlYiAyMDA0IDE0OjI4OjMzIC0wMDAwDQpA
-QCAtMSw3ICsxLDE0IEBADQogIyEvYmluL2Jhc2gNCiANCisjIEZvciB3cml0
-ZSBDVlMgYWNjZXNzIHNldCB0aGlzIHRvIGN2cw0KIENWUz1lY2hvDQotI0NW
-Uz1gd2hpY2ggY3ZzYA0KKyNDVlM9Y3ZzDQorDQorDQoraWYgWyAkIyAhPSAz
-IF07IHRoZW4NCisJZWNobyAiVXNhZ2U6ICQwIHJlcG9zaXRvcnkgbmFtZSBu
-ZXduYW1lIg0KKwlleGl0IDENCitmaQ0KIA0KIFJFUE9TSVRPUlk9JDENCiBO
-QU1FPSQyDQpAQCAtMTAsMTggKzE3LDMzIEBAIE5FV05BTUU9JDMNCiBQUkVG
-SVg9cGF0Y2gtby1tYXRpYy8kUkVQT1NJVE9SWS8kTkFNRS5wYXRjaA0KIERF
-U1RESVI9cGF0Y2gtby1tYXRpYy1uZy8kTkVXTkFNRQ0KIA0KLW1rZGlyICRE
-RVNURElSDQotJENWUyBhZGQgJERFU1RESVINCithZGQoKSB7DQorICAgIHBh
-dGg9ImBlY2hvICQxIHwgc2VkIC1lICdzJXBhdGNoLW8tbWF0aWMtbmcvJSUn
-YCINCisgICAgc2ggLWMgImNkIHBhdGNoLW8tbWF0aWMtbmc7ICRDVlMgYWRk
-ICRwYXRoIg0KK30NCisNCisNCitta2RpciAtcCAkREVTVERJUg0KK2FkZCAk
-REVTVERJUg0KIA0KICMgc3RyaXAgQXV0aG9yIGFuZCBWZXJzaW9uIGZyb20g
-aGVscCBmaWxlDQogY2F0ICRQUkVGSVguaGVscCB8IGVncmVwIC12IEF1dGhv
-cjpcfFN0YXR1czogPiAkREVTVERJUi9oZWxwDQotJENWUyBhZGQgJERFU1RE
-SVIvaGVscA0KK2FkZCAkREVTVERJUi9oZWxwDQogDQogIyBnZW5lcmF0ZSBp
-bmZvDQogY2F0ICRQUkVGSVguaGVscCB8IGdyZXAgQXV0aG9yOiA+ICRERVNU
-RElSL2luZm8NCiBjYXQgJFBSRUZJWC5oZWxwIHwgZ3JlcCBTdGF0dXM6ID4+
-ICRERVNURElSL2luZm8NCiBlY2hvIFJlcG9zaXRvcnk6ICRSRVBPU0lUT1JZ
-ID4+ICRERVNURElSL2luZm8NCi0kQ1ZTIGFkZCAkREVTVERJUi9pbmZvDQor
-WyAtZiAkUFJFRklYLmRlcGVuZCBdICYmIGNhdCAkUFJFRklYLmRlcGVuZCB8
-IGdyZXAgLXYgc3VibWl0dGVkLyB8IGdyZXAgLXYgcGVuZGluZy8gfCB3aGls
-ZSByZWFkIGRlcCBkZXAyOyBkbw0KKwlub3Q9IiINCisJaWYgWyAkZGVwID0g
-Im5vdCIgXTsgdGhlbg0KKwkJbm90PSIhIjsNCisJCWRlcD0kZGVwMg0KKwlm
-aQ0KKwlkZXA9YGJhc2VuYW1lICRkZXAgLnBhdGNoYA0KKwllY2hvIERlcGVu
-ZHM6ICRub3QkZGVwID4+ICRERVNURElSL2luZm8NCitkb25lDQorYWRkICRE
-RVNURElSL2luZm8NCiANCiAjIHVnbHkgdHJpY2ssIGRvbid0IGtub3cgaWYg
-d2UgbmVlZCBhbGwgZGllY3RvcmllcyB5ZXQuICBidXQgd2UgdHJ5DQogIyB0
-byBybWRpciB0aGVtIGxhdGVyLCB3aGljaCBmYWlscyBpbiBjYXNlIHRoZXkg
-YXJlIG5vdCBlbXB0eSBhbnltb3JlDQpAQCAtMjksMzkgKzUxLDc0IEBAIFRS
-WURJUlM9ImxpbnV4L25ldC9pcHY0L25ldGZpbHRlciBsaW51eC8NCiBmb3Ig
-ZCBpbiAkVFJZRElSUzsgZG8NCiAJbWtkaXIgLXAgJERFU1RESVIvJGQNCiBk
-b25lDQorZmluZCAkREVTVERJUi9saW51eCAtbmFtZSBDVlMgLXBydW5lIC1v
-IC10eXBlIGYgLWV4ZWMgcm0gXHtcfSBcOw0KIA0KIGZvciBmIGluICRQUkVG
-SVgubWFrZWZpbGUqOyBkbw0KKyAgICBpZiBbIC1mICIkZiIgXTsgdGhlbg0K
-IAlwb3N0Zml4PSQoZWNobyAiJHtmIyMkUFJFRklYLm1ha2VmaWxlfSIgfCBz
-ZWQgLWUgcy8tL18vKQ0KIAluZXdmaWxlPSRERVNURElSL2xpbnV4L25ldC9p
-cHY0L25ldGZpbHRlci9NYWtlZmlsZS5sYWRkJHBvc3RmaXgNCiAJY3AgJGYg
-JG5ld2ZpbGUNCisgICAgZmkNCiBkb25lDQogDQogZm9yIGYgaW4gJFBSRUZJ
-WC5jb25maWcuaW4qOyBkbw0KKyAgICBpZiBbIC1mICIkZiIgXTsgdGhlbg0K
-IAlwb3N0Zml4PSQoZWNobyAiJHtmIyMkUFJFRklYLmNvbmZpZy5pbn0iIHwg
-c2VkIC1lIHMvLS9fLykNCiAJbmV3ZmlsZT0kREVTVERJUi9saW51eC9uZXQv
-aXB2NC9uZXRmaWx0ZXIvQ29uZmlnLmluLmxhZGQkcG9zdGZpeA0KIAljcCAk
-ZiAkbmV3ZmlsZQ0KKyAgICBmaQ0KIGRvbmUNCiANCiBmb3IgZiBpbiAkUFJF
-RklYLmlwX2Nvbm50cmFjay5oKjsgZG8NCisgICAgaWYgWyAtZiAiJGYiIF07
-IHRoZW4NCiAJcG9zdGZpeD0kKGVjaG8gIiR7ZiMjJFBSRUZJWC5pcF9jb25u
-dHJhY2suaH0iIHwgc2VkIC1lIHMvLS9fLykNCiAJbmV3ZmlsZT0kREVTVERJ
-Ui9saW51eC9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50
-cmFjay5oLmxhZGQkcG9zdGZpeA0KIAljcCAkZiAkbmV3ZmlsZQ0KKyAgICBm
-aQ0KIGRvbmUNCiANCi1mb3IgZCBpbiAkVFJZRElSUzsgZG8NCi0Jcm1kaXIg
-LXAgJERFU1RESVIvJGQNCi1kb25lDQotDQotY3AgJFBSRUZJWCAkREVTVERJ
-Ui9saW51eC5wYXRjaA0KLXBhdGNoIC1kICRERVNURElSL2xpbnV4IC1wMSAt
-aSAuLi9saW51eC5wYXRjaCAtciAvZGV2L251bGwgLWINCitjYXQgJFBSRUZJ
-WCB8ICgNCisJY2QgJERFU1RESVIvbGludXgNCisJYXdrICcNCisJZnVuY3Rp
-b24gbmV3cGF0Y2goKSB7DQorCSAgICBpZiAoaW5wYXRjaCkgew0KKwkJaWYg
-KGNoYW5nZXMpIHsgcHJpbnRmICIlcyIsIHBhdGNoIH0NCisJCWVsc2UgeyBw
-cmludCAiJXMiIHBhdGNoIHwgInBhdGNoIC1wMSAtcyIgfQ0KKwkJcGF0Y2g9
-IiINCisJCWNoYW5nZXM9MA0KKwkJaW5wYXRjaD0wDQorCSAgICB9DQorCX0N
-CisNCisJL15bXiBcK0BcLV18XlwrXCtcKy8geyBuZXdwYXRjaCgpIH0NCisJ
-RU5ECQl7IG5ld3BhdGNoKCkgfQ0KKwkJCXsgcGF0Y2ggPSBwYXRjaCAkMCAi
-XG4iIH0NCisJL15cK1wrXCsgLwl7IGlucGF0Y2g9MSB9DQorCS9eLS0tIC8J
-CXsgbmV4dCB9DQorCS9eWyBcLV0vCXsgY2hhbmdlcysrIH0NCisJJyB8IGdy
-ZXAgLXYgIl5taXNzaW5nIGhlYWRlciIgPiAuLi9saW51eC5wYXRjaA0KKykN
-CitpZiBbICEgLXMgJERFU1RESVIvbGludXgucGF0Y2ggXTsgdGhlbg0KKyAg
-ICBybSAkREVTVERJUi9saW51eC5wYXRjaA0KK2Vsc2UNCisgICAgYWRkICRE
-RVNURElSL2xpbnV4LnBhdGNoDQorZmkNCiBmaW5kICRERVNURElSL2xpbnV4
-IC1uYW1lIFwqLm9yaWcgLWV4ZWMgcm0gLWYgXHtcfSBcOw0KIA0KLSMgYWRk
-IHRvIENWUw0KLU5FV0ZJTEVTPWBmaW5kICRERVNURElSL2xpbnV4IFwhIC1w
-YXRoIFwqQ1ZTXCpgDQotZm9yIGYgaW4gJE5FV0ZJTEVTOyBkbw0KLQkkQ1ZT
-IGFkZCAkZg0KK2lmIFsgLWYgJFBSRUZJWC5jb25maWd1cmUuaGVscCBdOyB0
-aGVuDQorICAgIG1rZGlyIC1wICRERVNURElSL2xpbnV4L0RvY3VtZW50YXRp
-b24NCisgICAgY3AgJFBSRUZJWC5jb25maWd1cmUuaGVscCAkREVTVERJUi9s
-aW51eC9Eb2N1bWVudGF0aW9uL0NvbmZpZ3VyZS5oZWxwLmxhZGQNCitmaQ0K
-Kw0KK2ZvciBkIGluICRUUllESVJTOyBkbw0KKwlybWRpciAtcCAkREVTVERJ
-Ui8kZCAyPi9kZXYvbnVsbA0KIGRvbmUNCiANCi0jIHdlIG5lZWQgdG8gZGVh
-bCB3aXRoIHBhdGNoIGFuZCBjb25maWd1cmUuaGVscCBtYW51YWxseQ0KLWNw
-ICRQUkVGSVguY29uZmlndXJlLmhlbHAgJERFU1RESVIvY29uZmlndXJlLmhl
-bHANCisjIGFkZCB0byBDVlMNCitpZiBbIC1kICRERVNURElSL2xpbnV4IF07
-IHRoZW4NCisgICAgTkVXRklMRVM9YGZpbmQgJERFU1RESVIvbGludXggXCEg
-LXBhdGggXCpDVlNcKmANCisgICAgZm9yIGYgaW4gJE5FV0ZJTEVTOyBkbw0K
-KwkgICAgYWRkICRmDQorICAgIGRvbmUNCitmaQ0KIA0K
----1463811839-736690209-1077978651=:9609--
+best regards,
+Pablo
