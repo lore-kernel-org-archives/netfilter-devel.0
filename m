@@ -1,32 +1,77 @@
-From: Adrian Bunk <bunk@fs.tum.de>
-Subject: 2.6.9-rc1: missing netfilter help texts
-Date: Tue, 31 Aug 2004 19:34:25 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040831173425.GE3466@fs.tum.de>
-References: <Pine.LNX.4.58.0408240031560.17766@ppc970.osdl.org>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH, RFC] Add bridged IPv6 packet filtering
+Date: Tue, 31 Aug 2004 20:28:42 +0200
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <200408312028.42742.bdschuym@pandora.be>
+References: <200408281713.29192.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268778AbUHaRiW@vger.kernel.org>
-To: Linus Torvalds <torvalds@osdl.org>, coreteam@netfilter.org
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@oss.sgi.com>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "David S.Miller" <davem@redhat.com>
+In-Reply-To: <200408281713.29192.bdschuym@pandora.be>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0408240031560.17766@ppc970.osdl.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The following new netfilter options lack help texts:
-- IP_NF_CT_ACCT
-- IP_NF_MATCH_SCTP
-- IP_NF_CT_PROTO_SCTP
+On Saturday 28 August 2004 17:13, Bart De Schuymer wrote:
+Hi,
 
-Could someone add the help texts?
+How should I proceed to get any response in this matter? Should I be 
+contacting someone else? I'm no authority on IPv6, so I would like an 
+informed opinion...
+Mapping the IPv6 hooks onto the bridge hooks was really easy, because there is 
+no NAT stuff to mess things up. This is not a complicated patch. Also, if the 
+bridge-nf code causes a malfunction in ip6tables, this can be undone by 
+simply setting /proc/sys/net/bridge/bridge-nf-call-ip6tables 0 untill a 
+solution is available.
 
-TIA
-Adrian
+cheers,
+Bart
 
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+> Hello,
+>
+> The patch below adds bridged IPv6 packet filtering.
+>
+> One thing I was unclear of what to do: before giving an IPv6 packet to
+> ip6tables the IPv6 sanity checks are done (copied from ipv6_rcv()).
+> These checks include this code snippet:
+>
+> if (hdr->nexthdr == NEXTHDR_HOP) {
+> 	skb->h.raw = (u8*)(hdr+1);
+> 	if (ipv6_parse_hopopts(skb, offsetof(struct ipv6hdr, nexthdr)) < 0) {
+> 		IP6_INC_STATS_BH(IPSTATS_MIB_INHDRERRORS);
+> 		return 0;
+> 	}
+> 	hdr = skb->nh.ipv6h;
+> }
+>
+> If it's necessary to call ipv6_parse_hopopts() then this function will need
+> to be exported. Note that we only need ip6tables to behave correctly. So,
+> is this function call needed to let ip6tables behave properly?
+> Also, what happens if skb->h.raw = (u8*)(hdr+1); is executed once
+> inside the bridge-nf code and later all the IPv6 checks are done again
+> in ipv6_rcv() ? This can happen if the IPv6 packet is destined for the
+> bridge box or if it's used as a router too.
+>
+> In short, I'd like to know which IPv6 sanity checks are absolutely
+> necessary for ip6tables and if there are any implications if those checks
+> are done twice.
+>
+> This patch has been tested by Scott MacKay <scottmackay@yahoo.com>.
+>
+> cheers,
+> Bart
+>
+> --- linux-2.6.8.1/include/linux/netfilter_ipv6.h.old	Sun Aug 22 18:49:47
+<snip>
