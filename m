@@ -1,13 +1,13 @@
-From: Jakub Bogusz <qboosh@pld-linux.org>
-Subject: [PATCH] endianess fix for ip_conntrack_amanda
-Date: Fri, 8 Aug 2003 10:46:05 +0200
+From: Stephane Ouellette <ouellettes@videotron.ca>
+Subject: [PATCH][TRIVIAL]  Non-existent option in runme script
+Date: Sat, 09 Aug 2003 14:02:54 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030808084605.GE22335@gruby.cs.net.pl>
+Message-ID: <3F35374E.6020708@videotron.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="mYCpIKhGyMATD0i+"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_8yuw6GZRcLbP4ToIg4+7wg)"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,58 +18,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---mYCpIKhGyMATD0i+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Boundary_(ID_8yuw6GZRcLbP4ToIg4+7wg)
+Content-type: text/plain; charset=us-ascii; format=flowed
+Content-transfer-encoding: 7BIT
 
-I've sent it few days ago, but I can't see it in netfilter-devel
-archives, so I'm sending again...
+Harald,
 
------ Forwarded message from Jakub Bogusz <qboosh@pld.org.pl> -----
-Date: Tue, 5 Aug 2003 21:06:57 +0200
-From: Jakub Bogusz <qboosh@pld.org.pl>
+    the following patch removes a non-existent option on the prompt of 
+the "runme" script in P-O-M.
 
-
-Hello,
-
-I've just noticed that I probably missed one place (in ip_conntrack_amanda)
-when I was making fixes for big-endian archs in conntrack and nat modules
-by using C99 initializers in May, and it remained unfixed (at least in
-2.6.0-test2, where all other fixes are already merged; probably the same
-in 2.4.22-pre).
-
-So here is the missing element...
+Stephane
 
 
--- 
-Jakub Bogusz    http://cyber.cs.net.pl/~qboosh/
-PLD Linux       http://www.pld-linux.org/
+--Boundary_(ID_8yuw6GZRcLbP4ToIg4+7wg)
+Content-type: text/plain; name=runme.patch; CHARSET=US-ASCII
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=runme.patch
 
---mYCpIKhGyMATD0i+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="linux-netfilter-ip_conntrack_amanda-endian.patch"
+--- netfilter/patch-o-matic/runme	Sat Aug  9 13:55:57 2003
++++ netfilter-fixed/patch-o-matic/runme	Sat Aug  9 13:56:23 2003
+@@ -813,7 +813,7 @@
+ 		while [ "$ANSWER" = "" ]
+ 		do
+ 		    echo "-----------------------------------------------------------------"
+-		    echo -n "Do you want to `modesense 1` this patch "'[N/y/t/f/a/r/b/w/v/q/?] '
++		    echo -n "Do you want to `modesense 1` this patch "'[N/y/t/f/a/r/b/w/q/?] '
+ 		    read ANSWER
+ 		    case "$ANSWER" in 
+ 		        y*|Y*)
 
-This is one more fix for big-endian problems in conntrack and nat modules,
-similar to those merged about two months ago (this one was missing).
-
-	Jakub Bogusz <qboosh@pld.org.pl>
-
---- linux-2.6.0-test2/net/ipv4/netfilter/ip_conntrack_amanda.c.orig	2003-07-14 05:35:56.000000000 +0200
-+++ linux-2.6.0-test2/net/ipv4/netfilter/ip_conntrack_amanda.c	2003-08-05 20:38:55.000000000 +0200
-@@ -133,11 +133,11 @@
- 				{ { ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip,
- 				    { 0 } },
- 				  { ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip,
--				    { htons(exp_amanda_info->port) },
-+				    { .tcp = { htons(exp_amanda_info->port) } },
- 				    IPPROTO_TCP }});
- 			expect.mask = ((struct ip_conntrack_tuple)
- 				{ { 0, { 0 } },
--				  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
-+				  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
- 
- 			expect.expectfn = NULL;
- 
-
---mYCpIKhGyMATD0i+--
+--Boundary_(ID_8yuw6GZRcLbP4ToIg4+7wg)--
