@@ -1,12 +1,12 @@
-From: Kevin McConnell <kevymac@yahoo.com>
-Subject: confusion about mangle
-Date: Mon, 14 Oct 2002 09:58:10 -0700 (PDT)
+From: Oskar Andreasson <blueflux@koffein.net>
+Subject: [release] iptables tutorial 1.1.14
+Date: Mon, 14 Oct 2002 17:58:14 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021014165810.23290.qmail@web40303.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0210141756250.2710-100000@laptop1.agatha>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter@lists.netfilter.org, <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,21 +17,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi :)
-I noticed that 2 releases ago (1.2.6) the mangle table
-acquired some new chains... 3 to be exact. How do
-these new chains effect the flow of packets? Does
-anyone have it laid out somewhere? I am really trying
-hard to imagine the benefits of adding those
-particular chains, since the docs said never to filter
-in the mangle table. Could someone enumerate on this
-please? Any help is greatly appreciated. Thanks.
+Just a quick line to inform everyone that the iptables-tutorial has been 
+released in a new version on http://iptables-tutorial.frozentux.net. If 
+there are any questions/problems, let me know.
 
-
-=====
-Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
-
-__________________________________________________
-Do you Yahoo!?
-Faith Hill - Exclusive Performances, Videos & More
-http://faith.yahoo.com
+----
+Oskar Andreasson
+http://www.frozentux.net
+http://iptables-tutorial.frozentux.net
+http://ipsysctl-tutorial.frozentux.net
+mailto:blueflux@koffein.net
