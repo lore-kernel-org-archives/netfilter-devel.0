@@ -1,13 +1,13 @@
-From: Michael Rash <mbr@cipherdyne.org>
-Subject: [PATCH] Trivial space char fix for --log-prefix
-Date: Mon, 8 Dec 2003 04:45:57 -0500
+From: Haris Koutsouris <harisk@epmhs.gr>
+Subject: netfilter vs iptables naming confusion
+Date: Mon, 08 Dec 2003 13:17:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031208094557.GA16116@orthanc.gambrl01.md.comcast.net>
+Message-ID: <3FD45DDC.9030901@epmhs.gr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,54 +18,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello -
+Dear All,
 
-This patch adds a space character to the --log-prefix string if the
-user did not have it already.  This prevents the "IN=" field in
-iptables log messages from being obscured by a --log-prefix that
-doesn't have a space.
-
-(Resending this since my original post did not seem to make it
-through).
-
---Mike
-
-Michael Rash
-http://www.cipherdyne.org
-Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
-
+I am not a netfilter hacker but i need your insight, i hope you can help 
+me out.
+I am a co-author of an upcoming book concerning Honeynets. In this book 
+we need to refer to the netfilter/iptables  functionality and we try to 
+provide a 2 page introduction for the readers just to get them going.
+One of the book reviewers felt we where missusing the term iptables and 
+we should use netfilter instead. Since i value the reviewer's view but i 
+also felt strong on my point i would be obliged if you can shed some 
+light on this problem. Well i really don't intened to confuse any of our 
+readers so i depend on you to make it clear.
+Next follows my understanding on what netfilter and iptables are, Please 
+comment.
 
 
-diff -u -r1.14 libipt_LOG.c
---- libipt_LOG.c	11 Aug 2003 19:58:56 -0000	1.14
-+++ libipt_LOG.c	5 Dec 2003 07:15:45 -0000
-@@ -107,6 +107,7 @@
-       struct ipt_entry_target **target)
- {
- 	struct ipt_log_info *loginfo = (struct ipt_log_info *)(*target)->data;
-+	unsigned short int addspc_f = 0, prefix_len = 0;
- 
- 	switch (c) {
- 	case '!':
-@@ -131,12 +132,21 @@
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Unexpected `!' after --log-prefix");
- 
--		if (strlen(optarg) > sizeof(loginfo->prefix) - 1)
-+		prefix_len = strlen(optarg);
-+		if (optarg[strlen(optarg)-1] != ' ') {
-+			/* we need to add a space */
-+			addspc_f = 1;
-+			prefix_len++;
-+		}
-+
-+		if (prefix_len > sizeof(loginfo->prefix) - 1)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Maximum prefix length %u for --log-prefix",
- 				   sizeof(loginfo->prefix) - 1);
- 
- 		strcpy(loginfo->prefix, optarg);
-+		if (addspc_f)
-+			loginfo->prefix[prefix_len-1] = ' ';
- 		*flags |= IPT_LOG_OPT_PREFIX;
- 		break;
+<my understanding>
+Netfilter is a set of hooks in the networking code of the linux kernel
+  that allows another piece of code (kernel module) to register for 
+access  to the packets that pass through these points. Several iptables 
+kernel modules (e.g ip_tables, iptable_mangle,ipt_conntrack, ipt_LOG) 
+implement
+  the firewalling functionality and in addition the user space utility
+  iptables is used as a user interface to the iptables functionality.
+
+If I am correct, then the Netfilter code though its a great idea it
+  shouldn't be that big percentage of the firewalling code. Thus, i fill
+  that we can name the whole thing IPTables provided we add a footnote
+  stating the existance of Netfilter and provide enough references for 
+the user to explore the whole magic of netfilter/iptables.
+</my understanding>
+
+A final question are the kernel modules named iptables modules or 
+netfilter modules?????
+
+A raw grep in the archives of the netfilter users mailing list revealed 
+the following:
+grep "iptables modules" user-netfilter.mbox | wc -l
+      84 references
+grep "netfilter modules" user-netfilter.mbox | wc -l
+      68 references
+
+The same search on the developers list revealed:
+
+"iptables modules" 37 references
+"netfilter modules" 99 references
+
+
+Thank you for your advice.
+
+Yours
+
+Haris Koutsouris
