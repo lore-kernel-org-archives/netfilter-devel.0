@@ -1,16 +1,14 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.6 0/19]: Netfilter Update
-Date: Mon, 25 Oct 2004 20:59:00 -0700
+From: =?iso-8859-1?Q?Carmen_M_Yago_S=E1nchez?= <carmen@dif.um.es>
+Subject: mac filtering and multicast
+Date: Tue, 26 Oct 2004 10:12:59 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041025205900.04e58c90.davem@redhat.com>
-References: <417C4D5F.7080401@trash.net>
+Message-ID: <008801c4bb33$9b55bc70$31d2369b@pepito>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <417C4D5F.7080401@trash.net>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +19,14 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 25 Oct 2004 02:48:31 +0200
-Patrick McHardy <kaber@trash.net> wrote:
-
-> the following 19 patches contain Yasuyuki's work to remove
-> skb_linearize from ip6_tables, Rusty's MASQUERADE changes
-> with Herbert's suggested change, ip_conntrack_stat fixes
-> and some minor cleanup. I'll check what is needed for 2.4
-> and send patches during the next week.
-> 
-> You can pull all changes from bk://212.42.230.204/nf-2.6
-
-All pulled, thanks Patrick.
+Hello all,
+I need to filter and drop some input IPv6 Multicast traffic from some =
+MAC addresses. I have to use Mandrake 10.0 with kernel 2.6 and I tried  =
+iptables/iptables-ipv6 1.2.9-7mdk but it didn't work.
+It is neccesary to modify the code  to filter  multicast traffic by MAC =
+source? How can I do this?Thank you in advance
+Best Regards
+Carmen
+---Outgoing mail is certified Virus Free.Checked by AVG anti-virus =
+system (http://www.grisoft.com).Version: 6.0.782 / Virus Database: 528 - =
+Release Date: 22/10/2004
