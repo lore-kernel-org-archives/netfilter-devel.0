@@ -1,14 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: RFC: conntrack hash function comparison II
-Date: Wed, 19 Feb 2003 12:40:56 +0100 (CET)
+From: Michael Gundlach <gundlach@cs.uga.edu>
+Subject: PREROUTING doesn't catch all packets?
+Date: Wed, 19 Feb 2003 14:18:30 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0302191233330.10818-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.33.0301201113510.17671-100000@blackhole.kfki.hu>
+Message-ID: <20030219141830.A8641@cs.uga.edu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.33.0301201113510.17671-100000@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,35 +18,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi again everyone,
 
-I have finished my second try to compare the candidate hash functions for
-conntrack. The very short summary of my findings:
+I have the following iptables rules on my bridging Linux box:
 
-The best hashes are the jenkinks ones and the abcd64 hash. However
+iptables -t nat -F
+iptables -t nat -A PREROUTING -j QUEUE
+iptables -t nat -A OUTPUT -j QUEUE
 
-- the jenkins hashes work reliably for even hash sizes as well while
-  the abcd64 hash doesn't
-- the jenkins2b hash is a little bit faster than the abcd64 hash
-- the strength of the abcd family is in the random coefficients
-  while the strength of the jenkins family is in the algorithm. In
-  another words, in the case of abcd hashes we should have to solve
-  the problem of rehashing while there is no such thing for the
-  jenkins hashes.
+I then have a box connected to one NIC of the bridge telnet to a box
+connected to the other NIC of the bridge.  I use libipq to catch all
+packets, print them out, and reinject them.
 
-In my opinion we should adopt the jenkins2b hash for conntrack.
+If I understand things correctly, all packets coming in on either bridge
+interface pass through the PREROUTING hook, so I should see every single
+one.  However, all I see (aka, all that ipq_read catches) is the SYN packet
+from the client to the server.
 
-All the graphs and results can be found at
+Worse yet, when I add
+  iptables -A FORWARD -j QUEUE
+to the list, I see every packet - and the SYN packet twice.  So all packets
+hit the FORWARD chain, but only the SYN packet hits the PREROUTING chain!
 
-http://www.kfki.hu/~kadlec/sw/netfilter/ct2
+Am I misusing the nat table or something?  Shouldn't I be able to see all
+packets?  (I need to use PREROUTING for an application that is modifying
+the destination IP of incoming packets, so "use the FORWARDING chain
+instead" isn't a sufficient answer.)
 
-The cttest package has been updated with the new hashes and the script
-which created all the graphs and pages was added to the package as well.
+Thanks for your help, everybody.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Michael
