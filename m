@@ -1,16 +1,20 @@
-From: "Nix N. Nix" <nix@go-nix.ca>
-Subject: Re: Minor modification of function dcc_parse in ip_conntrack_irc.c
-Date: Tue, 17 Aug 2004 16:34:03 -0400
+From: Matt Walters <mattw@parasun.com>
+Subject: Re: libipq, kernel panics/oopses, and other undesirable traits
+Date: Tue, 17 Aug 2004 13:40:15 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1092774843.10908.0.camel@dana.go-nix.ca>
-References: <1092170081.9955.12.camel@dana.go-nix.ca>
-	 <411A1F1D.7080804@trash.net>
+Message-ID: <1092775215.22731.1958.camel@marx.mindlink.net>
+References: <E1BwO5M-000718-NF@giant.mindlink.net>
+	 <1092692707.22731.1687.camel@marx.mindlink.net>
+	 <41213777.9050701@trash.net>
+	 <1092703243.22731.1778.camel@marx.mindlink.net>
+	 <4121E082.6050602@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <411A1F1D.7080804@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4121E082.6050602@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +25,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2004-08-11 at 09:29, Patrick McHardy wrote:
-> How do filenames which contain a quotation mark look ? I assume the 
-> quotation
-> marks is escaped ? We should also handle this case.
+On Tue, 2004-08-17 at 03:40, Patrick McHardy wrote:
+> Matt Walters wrote:
+> 
+> >On Mon, 2004-08-16 at 15:38, Patrick McHardy wrote:
+> >
+> >>skb_tailroom should return 0 in this case and the skb should be linearized
+> >>by skb_copy_expand already. The check isn't triggered because this line is
+> >>wrong:
+> >>
+> >>diff = v->data_len - e->skb->len
+> >>
+> >>skb->len is the total length, including fragments. If we want to copy to it,
+> >>we either need to linearize it or look at skb_headlen(skb). It's complicated
+> >>getting everything right, I need to think about it some more.
+> >>    
+> >>
+> 
+> This patch on top of the ip_queue_nonlinear_skbs patch should fix the 
+> problem.
+> It wastes a couple of bytes when enlarging a non-linear skb, but that 
+> shouldn't be
+> a problem. When you test it, please try all three possibilities (replace 
+> by smaller,
+> equally sized and larger packet).
 
-I submitted another patch which addresses this issue in a previous
-message a few days ago, however, I have received no feedback on it. 
-Could somebody with a few minutes to spare please look it over ?
+Thanks Patrick-
 
-I'm fairly new to this list, so I'm not familiar with the process of
-submitting patches, however, I would like this fix to eventually make it
-into ip_conntrack_irc.c.
+	A quick test shows that unaltered packets being passed back from
+userspace no longer cause kernel panics (yay) but also that they are not
+being responded to (boo).  I'll have a look deeper into it later on.
 
-Please let me know what you think !
+-Matt
