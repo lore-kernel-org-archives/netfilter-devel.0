@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Netfilter Inconsistency?
-Date: Fri, 23 May 2003 22:01:12 +0200
+Subject: Re: Experimental RTSP modules
+Date: Fri, 23 May 2003 21:58:43 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030523200112.GR3077@sunbeam.de.gnumonks.org>
-References: <20030515174951.32627.qmail@web20002.mail.yahoo.com>
+Message-ID: <20030523195843.GQ3077@sunbeam.de.gnumonks.org>
+References: <20030406033532.GA23082@home.tig-grr.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vTfKKTivj/mQoluA"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="gmhhrsDozM2n+uz5"
+Cc: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Brian Deep <brian_deep@yahoo.com>
+To: Tom Marshall <tommy@home.tig-grr.com>
 Content-Disposition: inline
-In-Reply-To: <20030515174951.32627.qmail@web20002.mail.yahoo.com>
+In-Reply-To: <20030406033532.GA23082@home.tig-grr.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,38 +23,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---vTfKKTivj/mQoluA
+--gmhhrsDozM2n+uz5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 15, 2003 at 10:49:51AM -0700, Brian Deep wrote:
+On Sat, Apr 05, 2003 at 07:35:32PM -0800, Tom Marshall wrote:
+> Please note this is an experimental module.  It works for me.  It may work
+> for you, it may panic your kernel, or it may just sit there using ram.
 
->  I can add and delete rules fine and open up
-> connections correctly using the SNAT rules, but if I
-> change the source IP address on the SNAT rule I run
-> into problems.  The SNAT rule is added correctly and
-> verified using iptables userspace, but when the
-> connection actually gets NAT'd, it gets the source IP
-> address of the SNAT rule I had in previous.  I have
-> tried manually inserting and appending  SNAT rules,
-> but the connection is still NAT'd with the previous
-> rule source IP.  At some point, this rule "time's out"
-> and I am able to correctly add my SNAT rule in.
+great news. If you could convert it to patch-o-matic format, I'm happy
+to include it!
 
-the NAT tables are only traversed for every first packet of a
-connection. if you alter the ruleset, it will only work for new
-connections.  All further packets within this connection will be
-transformed according to what was determined by the first packet.
+>  * Handle multiple SETUP messages in a single packet.
+>  * Un-mangle client_port on return trip.
 
-> Anyone have any thoughts?  And why the he** would it
-> timeout after several minutes?
+Any progress so far?
 
-because then the entry times out from the conntrack table (you can
-confirm this by watching /proc/net/ip_conntrack)
+>  * IPv6 modules
 
-> Thanks,
-> -- Brian
+ipv6 is not supported by conntrack or NAT, so I guess that's going to be
+hard to support :)  This is has been discussed quite a number of times
+on the devel list.
+
+> Hints for implementing IPv6 conntrack and nat modules especially apprecia=
+ted
+> (why are there no IRC or FTP modules for IPv6?)
+
+see above...
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -66,16 +62,16 @@ confirm this by watching /proc/net/ip_conntrack)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---vTfKKTivj/mQoluA
+--gmhhrsDozM2n+uz5
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+zn4IXaXGVTD0i/8RAn9UAKCbauxJ/X/0MgHuPm4nonbxF/3UtACdGDrD
-H2Rga99+8a6SgAvMXZz+HR0=
-=FDhT
+iD8DBQE+zn1zXaXGVTD0i/8RAvtiAJ4qomwl4Nueea3CvVSAhbJkl0abOgCeNjS7
+3R/PbAbmncZdRvsxnXjYO6w=
+=3WQI
 -----END PGP SIGNATURE-----
 
---vTfKKTivj/mQoluA--
+--gmhhrsDozM2n+uz5--
