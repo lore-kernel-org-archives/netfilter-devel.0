@@ -1,17 +1,16 @@
-From: Josh Samuelson <josamue1@wsc.edu>
-Subject: Re: [PATCH] new match extension `flow'
-Date: Sun, 7 Nov 2004 20:52:41 -0600
-Message-ID: <20041108025241.GA4850@wsc.edu>
-References: <20041028020550.GA10097@wsc.edu> <41829ADC.2090708@eurodev.net>
-	<20041031063813.GA29402@wsc.edu> <4184F9AD.9040902@eurodev.net>
-	<20041104022039.GA25749@wsc.edu> <418CEB7A.9080505@eurodev.net>
+From: "Ferry Huberts" <ferry@Hupie.com>
+Subject: Re: Unique rule ID?!
+Date: Mon, 8 Nov 2004 14:05:24 +0100 (CET)
+Message-ID: <21865.217.169.232.210.1099919124.squirrel@217.169.232.210>
+References: <418F52A5.7010700@anduras.de>
+	<Pine.LNX.4.61.0411081255090.17672@filer.marasystems.com>
+Reply-To: ferry@Hupie.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <418CEB7A.9080505@eurodev.net>
+In-Reply-To: <Pine.LNX.4.61.0411081255090.17672@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,62 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+I also have a patch that implement a match 'userindex' that uses an integer.
+Currently it uses a u_int16_t but this can easily be changed.
+I am in the process of converting it to pom-ng format
 
-On Sat, Nov 06, 2004 at 04:19:22PM +0100, Pablo Neira wrote:
-> Hi Josh,
-> please, don't forget that we are still discussing the event API. As this 
-> new match goes on top of it, we can hold this patch until the event API 
-> is pushed forward. Then we'll go back this point.
 
-Indeed.
+Drop a mail if you would like to use it.
 
-> 
-> Some comments:
-> 
-> >diff -Pru linux-2.6.9/include/linux/netfilter_ipv4/ip_cte_flow.h 
-> >linux-2.6.9-flow/include/linux/netfilter_ipv4/ip_cte_flow.h
-> >--- linux-2.6.9/include/linux/netfilter_ipv4/ip_cte_flow.h	1969-12-31 
-> >18:00:00.000000000 -0600
-> >+++ linux-2.6.9-flow/include/linux/netfilter_ipv4/ip_cte_flow.h 2004-11-03 
-> >19:10:13.000000000 -0600
-> > 
-> >
-> 
-> I see two possibilities here:
-> 
-> a) move ip_cte_flow.[h|c] to ipt_flow.[h|c], matches always fit in a file.
-> b) rename ip_cte_flow to ip_conntrack_flow_stats, this could be a module 
-> which generates stats about current connections going through the firewall.
-> 
-> I need to give more spins to this issue.
-> 
-> Any comments?
-> 
-> Pablo
+--
+Ferry Huberts
 
-In regards to ip_cte_flow.[h|c], I wasn't sure how to handle this module
-with respect to the filesystem namespace.  Those files don't provide
-any of the match functionality; it just tracks the flows from the CTE
-API, exports a few functions, the linked list of flows and provides
-"/proc/net/ip_cte_flow" file.  All of which I'm sure you know by the
-source, but just to provide some context for those who perhaps haven't
-glanced at it.  The main reason I called ip_cte_flow was because it's
-built on/requires 'CTE' functionality.  I figure there is the
-potential for a lot of modules needing the CTE API and perhaps the need
-to separate those files that require it into a differing filesystem
-namespace that can't really be classified as a match/target, etc?
-If you prefer ip_conntrack_flow_stats, I'm really not partial to
-anything.
-
-The ipt_flow.[h|c] file builds on top of the prior module to provide the
-match functionality and to track network/mask based flows.  I separated the
-two because I can see the need to track the flows via /proc outside of the
-iptables match.  I.e. to just have a quick glance at who may be responsible
-for a sudden burst of flows.  Or to allow for other match modules
-to build on top of it in ways that my simple match module lacks, etc.
-
-Those are my thoughts on why I did things the way I did.  :)
-
-Cheers,
-Josh
+> On Mon, 8 Nov 2004, Sven Anders wrote:
+>
+>> set with an unique id, it would be easy. Sadly, I did not found any
+>> field in the netfilter rules structure to do this... I found an
+>> 'comment' match extension, which I could misuse for it, but this would
+>> be an hack.
+>
+> While the comment match is a hack it is actually designed for what you are
+> looking for.
+>
+>> Or are there any unique identifiers to each rule (which would not change
+>> from one kernel commit to the next) that I missed?
+>
+> No. Only rule number which you need to keep track of.
+>
+>> If I decide to add an ID field to the kernel's rule structure (and
+>> implement the code for giving each new rule an unique ID), would you be
+>> interested to accept these patch to the offical netfilter tree? If you
+>> argue against it with the used memory, do you really think 2-4 bytes per
+>> rule is too much? What is the biggest useful size of an netfilter table?
+>> 1000 rules (= 4 Kbytes for IDs), 10000 rules (= 40KB)? If so much rules
+>> are in place, don't you think you have to use chains? ;-)
+>
+> Unfortunately it is not possible to extend the structure without breaking
+> compatibility, hence the existence of the comment match.
+>
+> Regards
+> Henrik
+>
