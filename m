@@ -1,15 +1,17 @@
-From: Thomas Heinz <creatix@hipac.org>
-Subject: Re: "Atomic" snapshot of counters
-Date: Sat, 01 Feb 2003 00:28:21 +0100
+From: Laszlo Valko <valko@linux.karinthy.hu>
+Subject: Re: Comments about IPT_ALIGN
+Date: Sat, 1 Feb 2003 00:37:50 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E3B0695.1070808@hipac.org>
-References: <3E308A34.4020501@hipac.org> <20030131114514.GT9073@naboo.cybercafe42>
+Message-ID: <20030201003750.A27624@linux.karinthy.hu>
+References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu> <3E33C665.9080106@fugmann.dhs.org> <20030126152227.A6811@linux.karinthy.hu> <20030131115512.GW9073@naboo.cybercafe42>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Anders Fugmann <afu@fugmann.dhs.org>, Thomas Heinz <creatix@hipac.org>,
+  netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@gnumonks.org>
+Content-Disposition: inline
+In-Reply-To: <20030131115512.GW9073@naboo.cybercafe42>; from laforge@gnumonks.org on Fri, Jan 31, 2003 at 12:55:12PM +0100
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,46 +22,55 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald
+Hi Harald!
 
-Thanks for your comment.
-
-You wrote:
->>How important is it to have such an atomic snapshot? 
+On Fri, Jan 31, 2003 at 12:55:12PM +0100, Harald Welte wrote:
+> On Sun, Jan 26, 2003 at 03:22:27PM +0100, Laszlo Valko wrote:
+> > Currently, I see two ways:
+> > 1) make a translation function for all currently existing netfilter structures
+> >    that use longs or pointers (difficult, as modules can be added
+> >    independently), like those in arch/sparc64/sys_sparc32.c, and its
+> >    friends,
 > 
-> From my current point of view: not that important.  My pkt_tables plans
-> [which are meant to eventually replace ip_tables] also don't have this
-> atomicity anymore.
+> it's a hack, but it would work.
 
-Well, Michael and I had some discussion about the counter issue.
-Finally, we decided to implement atomic counters but without freezing
-the packet matching. We're using two counter pairs per rule. One is
-a kind of overflow counter which is used after a snapshot has been
-requested, i.e. all packets being machted after the snapshot has been
-requested are added to the second counter. After the rules are delivered
-to user space the counter pairs are "fixed", i.e. the second counter
-is added to the first one and set to 0 afterwards.
+Well, we will definitely need it if people want to use netfilter on 2.4,
+as that is a stable series, and we don't want to introduce incompatibilities
+I guess.
+When I arrive to the state of having a little spare time, I might convince
+myself to sketch a first version up... It does not look too difficult at least.
 
-This is simple. The more complicated part is based on the fact that an
-insert or delete operation which appears sort of "atomic" to the user
-might be expanded to several hipac rules on the kernel side.
-But we also found a solution for this issue that does not require
-stopping the packet matching.
+> > 2) introduce a new way of passing structures, with new structures, probably
+> >    with new setsockopt/getsockopt numbers, essentially creating an API
+> >    incompatible with the existing one (there are a few other bleeding wounds
+> >    waiting to be solved in the existing interface as I saw).
+> 
+> please don't go for solution #2.  There is already one new interface
+> between kernel an userspace in development... we don't need more
+> interfaces than we already have.  
 
-BTW another topic: I've just read that you don't consider the
-netfilter-devel mailing list the right place for gtk-iptables
-announcements. In the past, Michael and I also posted announcements
-about nf-hipac to netfilter-devel (and netfilter user mailing list) :-)
-We did so because we thought (and still believe :) that nf-hipac
-might be interesting for netfilter developers too (especially the
-next version which will include generic support for iptables
-targets/matches and user-defined chains).
+Wow! May I see it? :)
 
-Just drop us a line if you think that upcoming nf-hipac announcements
-should not be posted to netfilter-devel. This is not a problem or
-whatsoever ;-)
+> And yes, the new interface still has the matchinfo of all matches
+> concatenated in one memory area.  Everything else has linked lists,
+> though (e.g. every rule is a seperately allocated memory chunk).
+
+That's all right, as long as the interface structures != kernel internal
+structures. In fact kernel internal structure should be >= interface structure.
+Otherwise you cannot solve the problem of using unsigned longs in
+interface structures (eg jiffies is always unsigned long unfortunately).
+
+Do we expect to change the modules as well? I mean struct ipt_anything et al.
+are expected to change, is that so?
 
 
 Regards,
+Laszlo
 
-Thomas
+> 
+> -- 
+> Live long and prosper
+> - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+> ============================================================================
+> GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+> V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
