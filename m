@@ -1,15 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: iptables does not handle hostname with DNAT
-Date: Sat, 22 May 2004 00:39:35 +0200 (CEST)
+From: Natty McButterpants <ipv6natlover@yahoo.com>
+Subject: NAT for IPv6 Update
+Date: Fri, 21 May 2004 15:44:19 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405220030010.28306-100000@filer.marasystems.com>
-References: <40AE016E.6050007@redhat.com>
+Message-ID: <20040521224419.25928.qmail@web90007.mail.scd.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/alternative; boundary="0-1468037630-1085179459=:23934"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Woerner <twoerner@redhat.com>
-In-Reply-To: <40AE016E.6050007@redhat.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,21 +17,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 21 May 2004, Thomas Woerner wrote:
+--0-1468037630-1085179459=:23934
+Content-Type: text/plain; charset=us-ascii
 
-> is there a reason why DNAT can only be used with ip adresses and not with 
-> hostnames?
+Just an update, we have UDP getting NAT'ed properly, and hope to have TCP done by the weekend.  We may also setup TFTP before releasing the code, not sure yet.  Expect a posting of the code sometime within the next week.  If you are specifically interested in getting the code, email us.  Our primary difficulty has been the way to re-calculate the checksum using the in6_addr struct instead of the old 32int, but we got it figured out.  Man is this going to upset the IETF or what? :)  
 
-None other than the small fact that iptables can only operate on IP
-addresses..  but I don't really see any reason why DNAT --to should not
-accept host names much like any of the other IP address specifications in
-iptables. Well, there is one.. DNAT can only accept a single IP address
-but a host name may return multiple IP addresses but it is pretty trivial
-to deal with so..
+		
+---------------------------------
+Do you Yahoo!?
+Yahoo! Domains - Claim yours for only $14.70/year
+--0-1468037630-1085179459=:23934
+Content-Type: text/html; charset=us-ascii
 
-What is needed is to rewrite libipt_DNAT.c to use parse_hostnetworkmask
-rater than dotted_to_addr. See libipt_conntrack.c for an example on how it
-can be done.
-
-Regards
-Henrik
+<DIV>Just an update, we have UDP getting NAT'ed properly, and hope to have TCP done by the weekend.&nbsp; We may also setup TFTP before releasing the code, not sure yet.&nbsp; Expect a posting of the code sometime within the next week.&nbsp; If you are specifically interested in getting the code, email us.&nbsp; Our primary&nbsp;difficulty has been the way to re-calculate the checksum using the in6_addr struct instead of the old 32int, but we got it figured out.&nbsp; Man is this going to upset the IETF or what? :)&nbsp; </DIV><p>
+		<hr size=1><font face=arial size=-1>Do you Yahoo!?<br>Yahoo! Domains - <a href="http://us.rd.yahoo.com/evt=23613/*http://smallbusiness.promotions.yahoo.com/offer">Claim yours for only $14.70/year</a>
+--0-1468037630-1085179459=:23934--
