@@ -1,56 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH]: forgotten dev_put for bridge-devices in nf_reinject
-Date: Tue, 10 Dec 2002 14:35:58 +0100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <3DF5EDBE.7000707@trash.net>
+From: Andrea Rossato <mailing_list@istitutocolli.org>
+Subject: Re: ECN target bug report
+Date: Tue, 10 Dec 2002 18:27:54 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3DF6241A.9040404@istitutocolli.org>
+References: <3DF1F442.806@istitutocolli.org> <3DF508CA.6000107@istitutocolli.org> <3DF52111.8080405@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000505020000010609080306"
-Cc: netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Errors-to: netdev-bounce@oss.sgi.com
-List-Id: netfilter-devel.vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------000505020000010609080306
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <3DF52111.8080405@trash.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
+Patrick McHardy wrote:
+> the first attached patch fixes the issue you reported (verified), 
+> altough i'm not entirely sure why ;).
+> the second one is untested but probably couldn't hurt neither.
 
-The attached patch releases the bridge devices grabbed in nf_queue after 
-reinjecting the packet.
-Seems someone forgot these (or planned to get Rusty killed) ;)
+great patrick! faster then light!
 
-Bye,
-Patrick
+BTW, your second patch seems to imply that byte order is just a matter 
+of taste ;)
 
---------------000505020000010609080306
-Content-Type: text/plain;
- name="nfqueue-bridge-devput.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nfqueue-bridge-devput.diff"
+iph and tcph should give little endian int on i386 arch, so tons should 
+be needed when writing to the sk_buff. but in computer programming there 
+are misteries a lawyar will never be able to grasp...
 
---- linux-2.5.50/net/core/netfilter.c.orig	2002-12-10 14:16:20.000000000 +0100
-+++ linux-2.5.50/net/core/netfilter.c	2002-12-10 14:19:23.000000000 +0100
-@@ -574,7 +574,15 @@
- 	/* Release those devices we held, or Alexey will kill me. */
- 	if (info->indev) dev_put(info->indev);
- 	if (info->outdev) dev_put(info->outdev);
--	
-+#if defined(CONFIG_BRIDGE) || defined(CONFIG_BRIDGE_MODULE)
-+	if (skb->nf_bridge) {
-+		if (skb->nf_bridge->physindev)
-+			dev_put(skb->nf_bridge->physindev);
-+		if (skb->nf_bridge->physoutdev)
-+			dev_put(skb->nf_bridge->physoutdev);
-+	}
-+#endif
-+
- 	kfree(info);
- 	return;
- }
-
---------------000505020000010609080306--
+thanks a lot.
+andrea
