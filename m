@@ -1,27 +1,38 @@
-From: David Stevens <dlstevens@us.ibm.com>
-Subject: Re: [PATCH] Prevent crash on ip_conntrack removal
-Date: Tue, 24 Aug 2004 15:28:07 -0600
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <OFE08A3DF5.09BCA1C4-ON88256EFA.00806C05-88256EFA.0080E98F@us.ibm.com>
-References: <412A8FB5.4080700@trash.net>
+From: "Nix N. Nix" <nix@go-nix.ca>
+Subject: Re: Minor modification of function dcc_parse in ip_conntrack_irc.c
+Date: Tue, 24 Aug 2004 18:43:22 -0400
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <1093387402.12172.6.camel@dana.go-nix.ca>
+References: <1092170081.9955.12.camel@dana.go-nix.ca>
+	<411A1F1D.7080804@trash.net> <1092436283.4792.34.camel@dana.go-nix.ca>
+	<20040819113532.GO3921@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Cc: "David S. Miller" <davem@redhat.com>, laforge@netfilter.org,
-        netdev@oss.sgi.com, netdev-bounce@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org, okir@suse.de
-Return-path: <netdev-bounce@oss.sgi.com>
-In-Reply-To: <412A8FB5.4080700@trash.net>
-To: Patrick McHardy <kaber@trash.net>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040819113532.GO3921@sunbeam.de.gnumonks.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Then it appears that simply dropping the packet when the
-skb->dst == 0 isn't quite right, since per-frag option processing
-wouldn't be done in the case where conntrack is removed, but
-the first frag does have skb->dst set  (but not some of the others).
+On Thu, 2004-08-19 at 07:35, Harald Welte wrote:
+> Which IRC clients did you test this with?  If we put a change in
+> ip_conntrack_irc, we should make sure that it suports all major clients
+> in both linux and windows world.
 
-In that case, it appears that conntrack needs to flush the entire
-frag queue when it's unloaded. That shouldn't happen much,
-so maybe that's not such a bad idea.
+I just realized that, since I run an fserve behind the firewall
+containing the modified ip_conntrack_irc code (the failure of the fserve
+to transmit files prompted me to look into the problem in the first
+place), a multitude of IRC clients must have been able to grab files
+from my fserve (since I have already completed quite a few uploads). 
+All the files I serve contain spaces, and one of them even has a double
+quote.
 
-                                        +-DLS
+The fserve is fserve.pl an irssi script.
