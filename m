@@ -1,12 +1,17 @@
-From: Raja Reddy <reddyrajareddy@yahoo.com>
-Subject: NetFilter NF_IP_FORWARD Hook
-Date: Wed, 2 Apr 2003 03:57:17 -0800 (PST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: sploit for skipping netfilter
+Date: Wed, 2 Apr 2003 17:25:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030402115717.90435.qmail@web13808.mail.yahoo.com>
+Message-ID: <20030402152551.GF27344@sunbeam.de.gnumonks.org>
+References: <200304020709.h3279Rv14203@singularity.tronunltd.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-1608271391-1049284637=:89090"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Ian Latter <Ian.Latter@mq.edu.au>
+Content-Disposition: inline
+In-Reply-To: <200304020709.h3279Rv14203@singularity.tronunltd.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,46 +22,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-1608271391-1049284637=:89090
+
+--ZInfyf7laFu/Kiw7
 Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Apr 02, 2003 at 05:09:24PM +1100, Ian Latter wrote:
+> Howdy,
+>=20
+
+Don't consider this an 'exploit'.  It's a perfectly legal netfilter
+module.
+
+>   Thought this was an interesting spin ... maybe it should be
+> added to POM (5th March);
+>=20
+>   http://projet7.tuxfamily.org/factory/releases/nfbypass.c
+
+I will ask the author if his code is GPL'd.  If so, I'll include it.
 
 
-Hello,
+> Regards,
+> Ian Latter
 
-  I am developing a NetFilter Module.  I have 2 (eth0,eth1) interfaces.I hooked at NF_IP_FORWARD. 
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-I changed destination address of the Packet (skb->nh.iph->saddr).
+--ZInfyf7laFu/Kiw7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-After that i am getting problems. My Questions are..
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-1. How to calculate skb->csum checksum.
+iD8DBQE+iwD/XaXGVTD0i/8RAph4AKCSuf4TgxNN2QsSXL2JrZdQtNHtEgCgpxcO
+bnRDuOpHm0hI0ObW8kEQUPQ=
+=xpNr
+-----END PGP SIGNATURE-----
 
-2. How to calculate skb->h.th->check TCP Checksum.
-
-I gone throught the Netfilter source tree. But saw few  lines of source. I got checksum errors when i applied. 
-
-Please help me to solve this problem.
-
-Thanks in Advance,
-
-
-Keep Faith on the Supreme Lord Sri Sri Sri Krishna. He will take care of you.
-
-
----------------------------------
-Do you Yahoo!?
-Yahoo! Tax Center - File online, calculators, forms, and more
---0-1608271391-1049284637=:89090
-Content-Type: text/html; charset=us-ascii
-
-<P>Hello,</P>
-<P>&nbsp; I am developing a NetFilter Module.&nbsp; I have 2 (eth0,eth1) interfaces.I hooked at NF_IP_FORWARD. </P>
-<P>I changed destination address of the Packet (skb-&gt;nh.iph-&gt;saddr).</P>
-<P>After that i am getting problems. My Questions are..</P>
-<P>1. How to calculate skb-&gt;csum checksum.</P>
-<P>2. How to calculate skb-&gt;h.th-&gt;check TCP Checksum.</P>
-<P>I gone throught the Netfilter source tree. But saw few&nbsp; lines of source. I got checksum errors when i applied. </P>
-<P>Please help me to solve this problem.</P>
-<P>Thanks in Advance,</P><BR><BR>Keep Faith on the Supreme Lord Sri Sri Sri Krishna. He will take care of you.<p><br><hr size=1>Do you Yahoo!?<br>
-<a href="http://us.rd.yahoo.com/finance/mailsig/*http://tax.yahoo.com">Yahoo! Tax Center</a> - File online, calculators, forms, and more
---0-1608271391-1049284637=:89090--
+--ZInfyf7laFu/Kiw7--
