@@ -1,15 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Counter problem in a new nat target.
-Date: Tue, 9 Dec 2003 11:15:04 +0100 (CET)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH] tcp-window-tracking patch
+Date: Tue, 9 Dec 2003 11:32:33 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312091107570.24092-100000@filer.marasystems.com>
-References: <3FD59D74.6050005@netlab.hut.fi>
+Message-ID: <Pine.LNX.4.33.0312091121400.5228-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-In-Reply-To: <3FD59D74.6050005@netlab.hut.fi>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,40 +17,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 9 Dec 2003, Emmanuel Guiton wrote:
+Hello,
 
-> My problem is that I do not see which data can be accessed by any of the 
-> function involved. To be precise, I need to increment a counter each 
-> time I get one new conntrack. Then I decrement it each time a conntrack 
-> is destroyed or set as assured (tcp connection).
+The new TCP window tracking patch in p-o-m has been committed with a lot
+of improvements compared to the previous release:
 
-Then the problem is a lot more complex.
+- Silly window scaling bug fixed
+- State table has been highly revised and a new internal state introduced
+- More robust handling of new connections:
+	- Reinitalized new connection requests are handled
+	- New requests when the state table carries an apparently dead
+	  connection are handled properly
+- close_wait timeout value is lowered to the more proper 10 minutes
+- Correspondig bugzilla patches fixed
+- Other forgotten tunings & fixes :-)
 
-Increasing is not a big problem, but the decreasing are as it is hard to 
-find which counter to decrease from the conntrack and there is no good 
-place to store such information for later without extending the 
-ip_conntrack structure unless you implement this as a conntrack 
-application protocol helper (can be done if no other conntrack helper is 
-needed in the relevant traffic).
+Many thanks to Willy Tarreau for the excellent bugreports, suggestions,
+code segments and testings!
 
-Do you really need to decrease the counters?
-
-> Is the destroy function called when a conntrack is destroyed? 
-
-The target destroy function is called when the target as such in the 
-iptable is destroyed. It is not related to connection tracking.
-
-> The hacking howto also states that the checkentry can be used to 
-> dynalically allocate resources and they can be freed in the destroy 
-> function. But here the same issue occurs: I do not see which common data 
-> I can access from bothe the checkentry and destroy function.
-
-Both target functions operates on the iptable, not the traffic.
-
-When you define your target/match you define what data the target/match
-uses, and you are free to use this data as you please. This data MAY
-include space for counters etc but due to SMP issues it is better to have
-the counters separate as each CPU operates on his own iptable copy.
-
-Regards
-Henrik
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
