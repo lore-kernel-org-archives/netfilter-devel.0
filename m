@@ -1,32 +1,30 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Sample POM adding packet value field?
-Date: Wed, 30 Jun 2004 23:34:51 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406302334160.14074-100000@filer.marasystems.com>
-References: <20040630172602.333.qmail@web13902.mail.yahoo.com>
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: Remote DoS vulnerability in Linux kernel 2.6.x (fwd)
+Date: Wed, 30 Jun 2004 14:42:30 -0700
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040630144230.1d52864b.davem@redhat.com>
+References: <Xine.LNX.4.44.0406301423320.32212-100000@thoron.boston.redhat.com>
+	<Xine.LNX.4.44.0406301507320.32316-100000@thoron.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Scott MacKay <scottmackay@yahoo.com>
-In-Reply-To: <20040630172602.333.qmail@web13902.mail.yahoo.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, laforge@netfilter.org,
+        netdev@oss.sgi.com, arjanv@redhat.com, kuznet@ms2.inr.ac.ru
+Return-path: <netdev-bounce@oss.sgi.com>
+To: James Morris <jmorris@redhat.com>
+In-Reply-To: <Xine.LNX.4.44.0406301507320.32316-100000@thoron.boston.redhat.com>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 30 Jun 2004, Scott MacKay wrote:
+On Wed, 30 Jun 2004 15:11:25 -0400 (EDT)
+James Morris <jmorris@redhat.com> wrote:
 
-> Do you know if CONNMARK actually extends skbuff or
-> does it play with connection tracking structures?
+> FYI, I have audited options parsing code in TCP, IPv4 input and Netfilter 
+> for any similar problems and not found any.  Further review would be 
+> useful (I have not looked at the IPv6 header parsing for example).
 
-CONNMARK does not touch the skbuff, just connection tracking.
+I can't find any other cases.
 
-Regards
-Henrik
-author of CONNMARK
+This bug only came up because up the huge change Rusty and Harald did
+to make these modules not access the SKB header data directly, and
+instead to use local on-stack copies and skb_copy_bits().
