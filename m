@@ -1,15 +1,18 @@
-From: "Damiano Bolzoni" <damiano.bolzoni@tin.it>
-Subject: How to close a sock?
-Date: Tue, 11 Jun 2002 23:25:05 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] remove exessive timer updates (3/4)
+Date: Wed, 12 Jun 2002 00:21:14 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <000501c2118e$74e1f9b0$32907450@CHICCA>
-Reply-To: "Damiano Bolzoni" <damiano.bolzoni@tin.it>
+Message-ID: <200206120021.15472@henrik.marasystems.com>
+References: <1023365846.845.26.camel@tux> <20020611095922.G11177@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: Harald Welte <laforge@gnumonks.org>,
+	Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <20020611095922.G11177@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,74 +23,25 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I've posted some days ago about a problem with a lkm.
-I'm trying to close all the sock that remain too much time in SYN_RECV
-state.
-This is how I obtain a pointer to each of them:
+On Tuesday 11 June 2002 09:59, Harald Welte wrote:
+> On Thu, Jun 06, 2002 at 02:24:04PM +0200, Martin Josefsson wrote:
+> > This patch adds a check to ip_ct_refresh() so it doesn't update
+> > the timer of a connection unless it's been >HZ ticks since the
+> > last update. both del_timer() and add_timer() disables interrupts
+> > while removing/inserting the timer, no reason to do this for each
+> > packet.
+>
+> ok.  I'm postponing this stuff for after 2.4.20 time, since for
+> 2.4.19 we already have enough netfilter [and core networking
+> changes], and for 2.4.20 there will be the newnat merge.
 
-tcp_listen_lock();
+Haven't looked at the patch, but one thing to look out for is to make 
+sure timer transitions is not lost.
 
-for(i = 0; i < TCP_LHTABLE_SIZE; i++)
+Unlike atime updates, conntrack timers vary in length depending on the 
+state. It would not be fun if a TIME_WAIT state got a timeout of 
+ESTABLISHED only because the transition was too quick to be noticed 
+by the timer update filter..
 
-{
-
-sk_copy = tcp_listening_hash[i];
-
-while(sk_copy != NULL)
-
-{
-
-tp = &(sk_copy->tp_pinfo.af_tcp);
-
-read_lock_bh(&tp->syn_wait_lock);
-
-lopt = tp->listen_opt;
-
-if (lopt && lopt->qlen != 0)
-
-{
-
-for (k=0; k<TCP_SYNQ_HSIZE; k++)
-
-{
-
-req = lopt->syn_table[k];
-
-while(req != NULL)
-
-{
-
-req = req->dl_next;
-
-// here I want to use tcp_synq_drop...but my system crashes!!!
-
-num++;
-
-}
-
-}
-
-}
-
-read_unlock_bh(&tp->syn_wait_lock);
-
-num++;
-
-sk_copy = sk_copy->next;
-
-}
-
-}
-
-tcp_listen_unlock();
-
-
-
-How can I do it?
-
-Thanx
-
-damiano
-
-damiano.bolzoni@tin.it
+Regards
+Henrik
