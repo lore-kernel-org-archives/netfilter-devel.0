@@ -1,8 +1,8 @@
 From: diegows@linux.org.ar (Diego Woitasen (Lanux))
-Subject: (no subject)
-Date: Tue, 22 Jul 2003 14:17:52 -0300 (ART)
+Subject: [PATCH] quota per ip
+Date: Tue, 22 Jul 2003 15:40:19 -0300 (ART)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030722171752.6280411775B@superhijitus>
+Message-ID: <20030722184019.AE7BE117853@superhijitus>
 Cc: samj@samj.net
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
