@@ -1,17 +1,17 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: cttest-0.1
-Date: Sun, 7 Jul 2002 13:00:40 +0200
+Subject: Re: init_conntrack() low hanging fruit
+Date: Sun, 7 Jul 2002 13:40:53 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200207071300.40861@henrik.marasystems.com>
-References: <20020706224109.GH3729@aaricia.hemmet.chalmers.se> <20020707042341.GK3729@aaricia.hemmet.chalmers.se> <20020707054607.GL3729@aaricia.hemmet.chalmers.se>
+Message-ID: <200207071340.53733@henrik.marasystems.com>
+References: <20020707123754.K13116@oknodo.bof.de> <20020707125141.L13116@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson),
-	netfilter-devel@lists.samba.org
-In-Reply-To: <20020707054607.GL3729@aaricia.hemmet.chalmers.se>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20020707125141.L13116@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,41 +22,26 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 07 July 2002 07.46, Joakim Axelsson wrote:
-> res = ((key->sip & 0xF0F0F0F0) >> 4) | ((key->sip & 0x0F0F0F0F) <<
-> 4); res *= 0x47441DFB;
-> res ^= key->dip ^ key->proto;
-> res ^= ((key->dport << 16) | key->sport);
-> res ^= 0x57655A7D;
-> res ^= (res >> 24);
-> res ^= (res >> 8);
->
->
-> Now someone else have to take a look at it. I digged my head into a
-> corner.
+On Sunday 07 July 2002 12.51, Patrick Schaaf wrote:
+> Just spotted one more thing, rediff appended. Now that I've saved
+> some horizontal screen real estate, the drop error can be
+> single-line again...
 
-Hmm...
+drop_next should most likely be made voilatile to protect from 
+compiler optimization evilness, and you may need to care for 
+alignment etc.... using atomic_t as proposed earlier feels like a 
+good bet.
 
-> res ^= key->dip ^ key->proto;
-> res ^= ((key->dport << 16) | key->sport);
+   static atomic_t drop_next = ATOMIC_INIT(0);
+   int victim = atomic_read(&drop_next);
+   int next = victim + 1;
+   atomic_set(&drop_next, (next < ip_conntrack_htable_size) ? next : 
+0);
 
-can easily nullify itself.. here you are just xor:ing the destination 
-IP with the source and destination ports, which makes a highly 
-predictable hash pattern..
-
-To always hit the same hash bucket you just need to keep the source IP 
-constant, and the result of the above XOR constant..
-
-> res ^= 0x57655A7D;
-> res ^= (res >> 24);
-> res ^= (res >> 8);
-
-And this is twofold.. it both obfuscates the bits and probably makes 
-it likelier an attacker can find bits that nullify eachother, 
-especially so if the hash size is not prime (or at a minimum odd).. 
-These 5 xor statements xor:s quite many sources into the lower bits, 
-always in the same order.. I am pretty sure you will find very 
-interesting iterference patterns if you unwind these xors.
+To other readers: We do not need to SMP synchronize here.. only SMP 
+criteria is that the value cannot be badly corrupted by concurrent 
+read/write to produce a invalid reading. It does not matter if a few 
+(or even many) iterations of drop_next is lost/forgotten/skipped.
 
 Regards
 Henrik
