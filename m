@@ -1,18 +1,19 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
+From: "David S. Miller" <davem@redhat.com>
 Subject: Re: [PATCH] Fix ip_queue for bridged packets
-Date: Wed, 29 Oct 2003 23:25:44 +0100
+Date: Wed, 29 Oct 2003 14:41:36 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200310292325.44927.bdschuym@pandora.be>
-References: <200310251709.13913.bdschuym@pandora.be> <200310280002.12023.bdschuym@pandora.be> <20031028065610.499a5b01.davem@redhat.com>
+Message-ID: <20031029144136.56c74aba.davem@redhat.com>
+References: <200310251709.13913.bdschuym@pandora.be>
+	<200310280002.12023.bdschuym@pandora.be>
+	<20031028065610.499a5b01.davem@redhat.com>
+	<200310292325.44927.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-In-Reply-To: <20031028065610.499a5b01.davem@redhat.com>
-Content-Disposition: inline
+To: Bart De Schuymer <bdschuym@pandora.be>
+In-Reply-To: <200310292325.44927.bdschuym@pandora.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,19 +24,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 28 October 2003 15:56, David S. Miller wrote:
-> Ok, there are other parts of netfilter (both ipv4 and ipv6) that
-> call skb_copy_expand() like this and I suspect we'll be copying
-> this bridging hack over to those places as well.  Not good.
+On Wed, 29 Oct 2003 23:25:44 +0100
+Bart De Schuymer <bdschuym@pandora.be> wrote:
 
-Note that bridged ipv6 is currently not seen by iptables6.
+> On Tuesday 28 October 2003 15:56, David S. Miller wrote:
+> > skb_copy_expand() is not exactly a fast path, so let's just make
+> > it copy the header area too.
+> >
+> > Bart, does this fix your bug too?  Please test it, thanks.
+> 
+> It fixes the bug.
 
-> skb_copy_expand() is not exactly a fast path, so let's just make
-> it copy the header area too.
->
-> Bart, does this fix your bug too?  Please test it, thanks.
-
-It fixes the bug.
-
-Thanks,
-Bart
+Thanks a lot for getting it tested.
