@@ -1,16 +1,20 @@
-From: "Samuel Jean" <sj-netfilter@cookinglinux.org>
-Subject: Re: New match ipt_geoip
-Date: Fri, 5 Nov 2004 12:50:41 -0500 (EST)
-Message-ID: <4427.142.169.215.10.1099677041.squirrel@142.169.215.10>
-References: <41899D17.7060800@cookinglinux.org>   
-	<20041105104217.GD5606@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] MASQUERADE not flushing conntracks on ip change
+Date: Fri, 05 Nov 2004 20:15:09 +0100
+Message-ID: <418BD13D.5080907@trash.net>
+References: <20041102210440.GA1851@linuxace.com> <418999B2.3070600@trash.net>
+	<20041104154355.GA8553@linuxace.com> <418A6D29.60004@trash.net>
+	<Pine.LNX.4.61.0411042254020.18136@filer.marasystems.com>
+	<418AAF0A.4000201@trash.net>
+	<Pine.LNX.4.61.0411050036560.19958@filer.marasystems.com>
+	<20041105104845.GF5606@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Harald Welte" <laforge@netfilter.org>
-In-Reply-To: <20041105104217.GD5606@sunbeam.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041105104845.GF5606@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,79 +26,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, November 5, 2004 5:42 am, Harald Welte said:
-Dear Harald.
+Harald Welte wrote:
 
-> (although I
-> generally dislike the concept, since it never works, especially in the
-> case of tunnels in multinational corporations/organizations...)
+>On Fri, Nov 05, 2004 at 12:40:03AM +0100, Henrik Nordstrom wrote:
+>
+>  
+>
+>>I am not saying that the current code is correct, only that I see no 
+>>reason why MASQUERADE should consider being overly friendly to people 
+>>having multiple IP addresses on their dynamic IP interface.
+>>    
+>>
+>
+>I totally agree with Henrik in this issue. But we relly need to document
+>it.  Maybe printk() some warning in case somebody adds a second address
+>to an interface that uses MASQUERADE (from within the notifier)?
+>  
+>
+We only know is someone adds a true secondary address, not multiple
+primaries, otherwise we could just ignore it. Anyway, I agree we
+don't need to be overly friendly, I just don't see a case where this
+optimization does something useful. On ethernet devices, why delete
+the IP (if it didn't change) or set the interface down in the first
+place ? On ppp-interfaces, it doesn't work. Phil mentioned powercycling
+his dsl-/cablemodem would set his eth-interface down. I find that hard
+to believe, so I assume he didn't literally meant "my", but picked a
+bad example.
 
-I agree.
+So, can anyone think of a setup where this optimization does work ?
 
-> On the other hand, I think there is significant overlap between your
-> ipt_geoip.c kernel part and the ippool/ipset match.
-
-What kind of overlap ? Is there incompatibilitie issue ? or is it
-functionnality's similarity issue ?
-
-> Thus, I argue, rather than inventing a new patch for the kernel, this
-can > be done in userspace by configuring a pool of address ranges.
-
-Yes, that could make sense if ipt_geoip.c was incompatible (conflicting)
-with other modules. Else, I think we might consider using it.
-
-Let me show you how I see it.
-
-
-Arguement #1:
-When someone insert rules like :
-
--m geoip --src-cc CA
--m geoip --src-cc US
--m geoip --src-cc DE
--m geoip --src-cc JP
--m geoip --src-cc CH
-
-there's sum of about 20 000 subnets for those countries.
-
-If we use ipt_pool as the subnets matcher, everytime a packet
-hit one of previous rules, ipt_pool must seek through its whole
-pool. (Do I am wrong ?) If that user also use ip_pool for other
-things than geolocation matching, the pool size increase.
-Or maybe ipt_pool handles multiple pool ? (forgive my ignorance)
-
-Let's continue.
-If we use ipt_geoip as the subnets matcher, everytime a packet
-hit one of the previous rules, ipt_geoip knows exactly where
-the subnets' pool is.
-
-Argument #2:
-
-It is possible to match up to 15 countries per rule.
-
--m geoip --src-cc ca,us,jp,ch,de,ad,a1,a2,...
-
-How shall ipt_pool handle that ?
-Is it going to create 15 diff pools or just one with all those subnets.
-And if someone insert another rule with same countries, is ipt_pool going
-to increment a refcount for the pool ?
-
-In the other way, ipt_geoip is allocating ressources on a per-rule basis.
-If ressources already exist for a given country, a refcount is simply
-increased. If there's no more rule using that ressource, it is simply
-freed.
-
-
-Argument #3:
-
-Nicolas and me are working on a caching system in ipt_geoip. I'm sure it'=
-s
-going to decrease latency a bit. So, would be nice to keep that module.
-
-
-Please, let me know your thought.
-
-Thanks a lot, chief Harald :-)
-
-Samuel
-CookingLinux TM
+Regards
+Patrick
