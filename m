@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] move ipt_error and ipt_standard to iptables.h
-Date: Mon, 03 Jan 2005 00:03:03 +0100
-Message-ID: <41D87DA7.7080203@trash.net>
-References: <41D71E97.8020709@eurodev.net>
+Subject: Re: [PATCH] libipt_helper
+Date: Mon, 03 Jan 2005 00:19:55 +0100
+Message-ID: <41D8819B.7050103@trash.net>
+References: <41D7A43E.9060903@cookinglinux.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <41D71E97.8020709@eurodev.net>
+To: Nicolas Bouliane <nib@cookinglinux.org>
+In-Reply-To: <41D7A43E.9060903@cookinglinux.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
+Nicolas Bouliane wrote:
 
 > Hi,
 >
-> ipt_error_target, ipt_error and ipt_standard are defined in every 
-> table. Move these declarations to ip_tables.h where I think they 
-> really belongs to.
->
-> Please, let me know if there any special reason to duplicate them that 
-> way.
+> This trivial patch prevents from using `--helper` several time, which 
+> case would overwriting previous value.
 
-I can't imagine a reason, so I've applied you patch. Thanks.
+Applied, thanks.
 
 Regards
 Patrick
