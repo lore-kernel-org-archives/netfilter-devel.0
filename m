@@ -1,13 +1,14 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: ASN.1 parsing for H.323
-Date: Mon, 16 Jun 2003 19:02:42 +1000
+From: Nigel Kukard <nkukard@lbsd.net>
+Subject: netlink sockets
+Date: Mon, 16 Jun 2003 11:37:26 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EED87B2.90809@snapgear.com>
+Message-ID: <20030616093726.GI2103@lbsd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HkMjoL2LAeBLhbFV"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,22 +19,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I've seen a few messages in the list archives about the current
-H.323 being a brute force approach, and that a better implementation
-would be to do ASN.1 parsing.
+--HkMjoL2LAeBLhbFV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Is ASN.1 parsing in the kernel still the desired approach?  I saw
-some messages from Sampsa Ranta in 2001 where he concluded that it
-was not suited for in the kernel and that it would be better in
-user space.  I think his primary reason was the need to parse the
-stream, rather than individual packets.
+are netlink sockets full duplex?
 
-Has anyone else done any work on this yet?
+For 2 threads reading and setting verdicts on the same handle i get=20
+alot of "Unknown Errors" set by ipq_error and "Interrupted System=20
+Call" set by errno.
 
-If this is a worthwhile endeavour I may start some work on it.
 
--- 
-Philip Craig - philipc@snapgear.com - http://www.SnapGear.com
-SnapGear - Custom Embedded Solutions and Security Appliances
+Regards
+Nigel
+
+
+
+--HkMjoL2LAeBLhbFV
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+7Y/WKoUGSidwLE4RAkQZAJ9R7S0H1+XoQqpcjuOB/UeP33pe1ACeJ4lk
+DznbcYEF3/3T98fMUcUwP+s=
+=B6Ts
+-----END PGP SIGNATURE-----
+
+--HkMjoL2LAeBLhbFV--
