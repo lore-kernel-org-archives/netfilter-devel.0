@@ -1,12 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [PATCH] small optimization in __ip_conntrack_find()
-Date: 08 Jun 2002 01:00:59 +0200
+From: Emmanuel Fleury <fleury@cs.auc.dk>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Sat, 08 Jun 2002 03:42:20 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1023490707.19838.14.camel@tux>
+Message-ID: <3D0160FC.3050101@cs.auc.dk>
+References: <E17G6im-0000FK-00@wagner.rustcorp.com.au> <3D006B9E.1040809@cs.auc.dk> <200206071105.42881.hno@marasystems.com> <3D007D73.9030609@cs.auc.dk> <20020607094319.GA595@morinfr.org> <3D00839F.6000103@cs.auc.dk> <20020607101713.GB595@morinfr.org> <3D009951.5090004@cs.auc.dk> <20020607133300.GD595@morinfr.org> <3D00CDB4.3060605@cs.auc.dk> <20020607183600.GD630@morinfr.org>
+Reply-To: netfilter-devel@lists.samba.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-5dK3oTvNUcaaAdgNpqgW"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Netfilter-devel <netfilter-devel@lists.samba.org>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -17,45 +20,35 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Guillaume,
 
---=-5dK3oTvNUcaaAdgNpqgW
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Guillaume Morin wrote:
+> 
+> The documentation is correct because it assumes you understand
+> "connection" as a conntrack entry. 
 
-Hi,
+Hum.
 
-Attached is a small optimization for __ip_conntrack_find().
-The way I read the use of the LIST_FIND macro it seems that we are
-calling hash_conntrack() for each iteration with the same inparameters.
+> I do agree that it should be  more explicit.
 
-My change calls it once before looping.
+We met an agreement so.
 
+>>The funny thing is that if you have a bad ruleset, you can easily be
+>>DOSed by some external people which are just sending random ACK packets.
+>>
+>>Those ACKs will create entries in your connection table as ESTABLISHED
+>>connections with a time-out of.... 5 days !!!!! 8-)
+> 
+> 
+> Well no, since the concerned box will reply with a RST.
+
+Try to imagine what if I try to address ACK to computer which are not
+existing in your network.... see the picture now ???? :-)
+
+Regards
 -- 
-/Martin
+Emmanuel
 
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
-
---=-5dK3oTvNUcaaAdgNpqgW
-Content-Disposition: attachment; filename=ip_conntrack_core.c-find-diff
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; name=ip_conntrack_core.c-find-diff; charset=ISO-8859-15
-
---- linux-2.4.19-pre10/net/ipv4/netfilter/ip_conntrack_core.c.orig	Sat Jun =
- 8 00:48:59 2002
-+++ linux-2.4.19-pre10/net/ipv4/netfilter/ip_conntrack_core.c	Sat Jun  8 00=
-:49:56 2002
-@@ -292,9 +292,10 @@
- 		    const struct ip_conntrack *ignored_conntrack)
- {
- 	struct ip_conntrack_tuple_hash *h;
-+	size_t hash =3D hash_conntrack(tuple);
-=20
- 	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
--	h =3D LIST_FIND(&ip_conntrack_hash[hash_conntrack(tuple)],
-+	h =3D LIST_FIND(&ip_conntrack_hash[hash],
- 		      conntrack_tuple_cmp,
- 		      struct ip_conntrack_tuple_hash *,
- 		      tuple, ignored_conntrack);
-
---=-5dK3oTvNUcaaAdgNpqgW--
+A dreamer is one who can only find his way by moonlight, and his
+punishment is that he sees the dawn before the rest of the world.
+   -- Oscar Wilde
