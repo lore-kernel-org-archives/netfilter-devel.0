@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: conntrack and netstat: diverging ideas of established connections
-Date: Fri, 31 Jan 2003 12:46:12 +0100
+Subject: Re: "Atomic" snapshot of counters
+Date: Fri, 31 Jan 2003 12:45:14 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131114612.GU9073@naboo.cybercafe42>
-References: <4D618F6493CE064A844A5D496733D667031692@freedom.icomedias.com>
+Message-ID: <20030131114514.GT9073@naboo.cybercafe42>
+References: <3E308A34.4020501@hipac.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6tPipYVl+OcoAvSh"
+	protocol="application/pgp-signature"; boundary="/DkgDsqJFFamjKX0"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Bene <martin.bene@icomedias.com>
+To: Thomas Heinz <creatix@hipac.org>
 Content-Disposition: inline
-In-Reply-To: <4D618F6493CE064A844A5D496733D667031692@freedom.icomedias.com>
+In-Reply-To: <3E308A34.4020501@hipac.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,33 +23,29 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---6tPipYVl+OcoAvSh
+--/DkgDsqJFFamjKX0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 24, 2003 at 04:24:25PM +0100, Martin Bene wrote:
-> On a server with no forwarding I'm seeing pronounced differences regarding
-> established connections:
+On Fri, Jan 24, 2003 at 01:35:00AM +0100, Thomas Heinz wrote:
+> Hi
 >=20
-> cat /proc/net/ip_conntrack shows ~ 150 tcp connections in "ESTABLISHED"
-> state;
->=20
-> netstat -an shows 20 established TCP connections.
->=20
-> especialy troubling: I find 10 concurrent connections =3D=3D> port 25 for=
- a host
-> IP in ip_conntrack, while there actually is not a single sendmail session
-> active.
->=20
-> Any ideas why conntrack keeps these "ghost" connections around as avtive =
-even
-> though they definitely don't exist?
-> since I'm trying to limit max concurrent connections by host using iplimit
-> these bad entries in ip_conntrack are quite troublesome.
->=20
+> Netfilter produces an atomic snapshot of counters, i.e. the table is
+> locked during the gathering of the counter values. Of course no packet
+> is matched while this lock is active.
 
-this is not a development question.
+yes. This was thought to be one of 'the' advantages of iptables over
+ipchains.
+
+> How important is it to have such an atomic snapshot?=20
+
+=46rom my current point of view: not that important.  My pkt_tables plans
+[which are meant to eventually replace ip_tables] also don't have this
+atomicity anymore.
+
+> Regards,
+> Thomas
 
 --=20
 Live long and prosper
@@ -62,7 +58,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---6tPipYVl+OcoAvSh
+--/DkgDsqJFFamjKX0
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -70,9 +66,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+OmIEXaXGVTD0i/8RAipTAJwJ8wRo0LRtY0T+kjMANoPAh96ISgCfcjUq
-sAMijllY+FxCFUrOW9Ic+M0=
-=IyZd
+iD8DBQE+OmHKXaXGVTD0i/8RAuJ7AKCybiH2aCRqyPKR3AixbeHNBeSnWgCgqZih
+LABCi9mUl6BC9xg+LjYM9Rw=
+=/lGU
 -----END PGP SIGNATURE-----
 
---6tPipYVl+OcoAvSh--
+--/DkgDsqJFFamjKX0--
