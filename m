@@ -1,15 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] remove unnessesary 0-initilization of data in bss segment
-Date: Fri, 11 Apr 2003 11:55:40 +0200 (CEST)
+Subject: Re: [PATCH] addrtype match
+Date: Fri, 11 Apr 2003 12:01:22 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0304111152490.31394-100000@blackhole.kfki.hu>
-References: <3E92F428.4050707@trash.net>
+Message-ID: <Pine.LNX.4.33.0304111158460.31394-100000@blackhole.kfki.hu>
+References: <3E941FE3.6020808@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <3E92F428.4050707@trash.net>
+In-Reply-To: <3E941FE3.6020808@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,15 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+On Wed, 9 Apr 2003, Patrick McHardy wrote:
 
-On Tue, 8 Apr 2003, Patrick McHardy wrote:
+> Once again a new patch, it seems it wasn't very clever to name the options
+> --source and --dest, iptables ate the --source option before it was passed
+> to the match. they are now renamed to --stype and --dtype.
 
-> This patch removes a couple of memset(.., 0, ..) of data in the bss
-> segment.
+You attached the CLASSIFY target patch instead of the corrected addrtype
+patch :-)
 
-Thank you the patch, I'm going to integrate it with C99 initialization
-fixes.
+Before sending the real patch, please add an addrtype.configure.help.
+That was missing from the previous versions.
 
 Best regards,
 Jozsef
