@@ -1,15 +1,15 @@
-From: Nils Ohlmeier <lists@ohlmeier.de>
-Subject: conntrack manipulation
-Date: Thu, 8 May 2003 23:47:41 +0200
+From: Jeff Hall <hall@vdata.com>
+Subject: Problems with 25_natcore-nohelper patch
+Date: Fri, 9 May 2003 03:14:09 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200305082347.41709.lists@ohlmeier.de>
+Message-ID: <Pine.GSO.4.03.10305090250510.7371-100000@shemp.vdata.com>
+References: <200305081512.31038.raivis@mt.lv>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Raivis Bucis <raivis@mt.lv>
+In-Reply-To: <200305081512.31038.raivis@mt.lv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,47 +20,61 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Did you also apply the patches below? They're from a message to Harald
+Welte on 2003/4/8 and I believe they pertain to the problem you're
+having.
 
-short question: is it possible to manipulate the entrys of the connection 
-tracking (specialy adding and removing entrys) from user space?
+I tested the pptp client from sourceforge.net on a machine also running
+a PoPToP server and was able to make a successful outgoing connection from
+that machine.
 
-In more details:
-we try to get an over SIP signaled RTP stream (Voice over IP) through 
-netfilter NAT. Some time ago we coded the fcpd (http://fcpd.berlios.de) which 
-enables applications to maipulate packet filter and NAT rules. Now the SIP 
-Express Router (http://www.iptel.org/ser) has support for this netfilter 
-manipulation. But after long testing sessions we came to the following 
-result:
+If these patches don't solve your problem, let me know and I'll send you
+all the pertinent sources.
 
-phone1 ------ NAT ------- Internet ----- phone2
+On Thu, 8 May 2003, Raivis Bucis wrote:
 
-Phone1 starts a call to phone2 (INVITE message). Phone2 confirms the call (200 
-OK message) after the user picked up and starts to send RTP packets to the 
-public NAT address immediately. Now the comfirmation message hits the SIP 
-proxy at the NAT box and will be processed. The proxy requests at the fcpd to 
-insert S- and D-NAT rules for the RTP stream. The fpcd processes the request 
-and inserts the rules.
-But during all this process time the first RTP packets allready hit the NAT 
-box. And if this packets are not droped by a rule, they will create a new 
-conntrack entry. Now the insertion of the S/DNAT rules comes too late because 
-all the packets of the stream will be intercepted by the conntrack before 
-they hit our new rules.
-Ok if the NAT box drops every packet which is not explictly allowed everything 
-should work fine. But i think this is somewhat unrealistic, because most NATs 
-will at least accept all packets from the private side to the Internet.
+> Hello,
+> 
+> I would like to inform you that width 25_natcore-nohelper patch PPTP NAT stops 
+> working correctly. Specifically PPTP client (PAC) on the box that has 
+> ip_nat_pptp.o loaded doesn't work.
+> 
+> Since PPTP NAT allways changes callerID, it is required that pptp_nat helper 
+> is also allways called, but pptp client TCP controlling connection doesn't 
+> have any manips, and only associated GRE conntrack has manips for callerID 
+> changing. So pptp_nat helper can not change callerID in controll connection 
+> and PPTP doesn't work anymore.
+> 
+> Is this a known problem?
+> 
+> Raivis
+> 
 
-So my question is if it is possible that the fcpd deletes connection tracking 
-entrys from the early packets. And if the fcpd could just insert a connection 
-tracking entry for the stream it could omit the insertion of three normal 
-rules (SNAT, DNAT and FORWARD).
+--- ip_conntrack_pptp.v1_8      Tue Apr  8 06:02:29 2003
++++ ip_conntrack_pptp.c Thu Apr  3 03:56:59 2003
+@@ -124,6 +124,7 @@
+ 			/* remove only if occurred at same sequence number */
+ 			if (other_exp != exp && other_exp->seq == exp->seq) {
+ 				DEBUGP("unexpecting other direction\n");
++				ip_ct_gre_keymap_destroy(other_exp);
+ 				ip_conntrack_unexpect_related(other_exp);
+ 			}
+ 		}
 
-I know that i could explicitly drop the packets from the stream until the 
-connection is confirmed. But i dont like this idea because it complicates the 
-rule handling from the fcpd a much. And because of the details in the SIP 
-protocol we could only drop packets with some wildcards in the matching 
-rules.
-
-Thanks for any comments and ideas.
-Greetings
-  Nils Ohlmeier
+--- ip_nat_standalone.c.prepatch        Sun Mar 16 01:41:45 2003
++++ ip_nat_standalone.c Thu Apr  3 19:52:09 2003
+@@ -121,8 +121,13 @@
+ 			if (ct->master
+ 			    && master_ct(ct)->nat.info.helper
+ 			    && master_ct(ct)->nat.info.helper->expect) {
+-				ret = call_expect(master_ct(ct), pskb, 
++				if(master_ct(ct)->nat.info.num_manips) {
++					ret = call_expect(master_ct(ct), pskb, 
+ 						hooknum, ct, info);
++				} else {
++					WRITE_UNLOCK(&ip_nat_lock);
++					return NF_ACCEPT;
++				}
+ 			} else {
+ #ifdef CONFIG_IP_NF_NAT_LOCAL
+ 				/* LOCAL_IN hook doesn't have a chain and thus
