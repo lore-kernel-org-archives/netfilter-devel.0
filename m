@@ -1,17 +1,18 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: ip_conntrack table full problem
-Date: Mon, 21 Mar 2005 19:41:06 +0100
-Message-ID: <20050321184105.GA378@oknodo.bof.de>
-References: <200503141647.42299.thomas.jarosch@intra2net.com>
-	<200503211513.59943.thomas.jarosch@intra2net.com>
-	<20050321162147.GA14696@linuxace.com>
-	<200503211803.18918.thomas.jarosch@intra2net.com>
+From: Christophe Saout <christophe@saout.de>
+Subject: Re: NAT behind IPSEC GW working OK - please review patch
+Date: Mon, 21 Mar 2005 20:15:09 +0100
+Message-ID: <1111432509.32237.4.camel@leto.cs.pocnet.net>
+References: <DB15CAD558452949A35006D66C5C5A99010F8B@nav-post.navcorp.com>
+	<1111256850.19630.11.camel@leto.cs.pocnet.net>
+	<423DA104.7000402@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Content-Disposition: inline
-In-Reply-To: <200503211803.18918.thomas.jarosch@intra2net.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-xAf1zyfn1LX9gcBmxe9J"
+Cc: Robert Borger <bborger@navcorp.com>, netfilter-devel@lists.netfilter.org,
+	Andrew Hall <temp02@bluereef.com.au>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <423DA104.7000402@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +24,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Would it be possible to dump the internal conntrack tables
-> once the error occurs?
 
-The interface for such dumping is /proc/net/ip_conntrack, where you
-only find 35 conntracks in your table-full situation. So I would
-strongly doubt that extra "show them all" code would show much
-more than that...
+--=-xAf1zyfn1LX9gcBmxe9J
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Just a random comment - unfortunately I have no idea how to
-help more constructively.
+Am Sonntag, den 20.03.2005, 17:12 +0100 schrieb Patrick McHardy:
 
-best regards
-  Patrick
+> This is not correct, the reason why the packets are dropped
+> is most likely a missing forward policy. If this is not the
+> case, there must be a bug somewhere in nf_nat_decode_session4().
+
+You were right. Actually it's working without the patch, I was just too
+stupid to allow forwarding in the other direction when I tested it the
+first time.
+
+And there actually was a bug in my nf_nat_decode_session4 when using
+both SNAT and DNAT.
+
+The updated version of ipsec-04-policy-checks.diff can be found at
+http://www.saout.de/misc/linux-2.6.12-rc1-ipsec-nat/
+
+The patches are against linux-2.6.12-rc1, but the only change compared
+to linux-2.6.11 is ipsec-01-output-hooks.diff.
+
+
+--=-xAf1zyfn1LX9gcBmxe9J
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBCPx08ZCYBcts5dM0RAiz4AJ45DfkTdl0ooBSUOrmHAlQQ2B7NugCfc7G9
+kAtDExGB/Tp7SBEBmG0j+kg=
+=hxJT
+-----END PGP SIGNATURE-----
+
+--=-xAf1zyfn1LX9gcBmxe9J--
