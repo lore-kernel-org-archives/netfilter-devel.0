@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: --reject-with admin-prohib - Suggested Solution.
-Date: Thu, 28 Nov 2002 09:10:09 +0100
+Subject: Re: [PATCH] iptables-save match tos bug-fix
+Date: Thu, 28 Nov 2002 09:02:33 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021128081009.GJ7047@naboo.de.gnumonks.org>
-References: <Pine.LNX.4.44.0211120952040.29168-100000@dns.toxicfilms.tv> <Pine.LNX.4.44.0211121712540.1461-100000@dns.toxicfilms.tv>
+Message-ID: <20021128080233.GH7047@naboo.de.gnumonks.org>
+References: <20021126032827.0c755686.rh0209ms@arcor.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fmvA4kSBHQVZhkR6"
-Cc: netfilter-devel@lists.samba.org
+	protocol="application/pgp-signature"; boundary="yQbNiKLmgenwUfTN"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>, g@naboo.gnumonks.org
+To: Michael Schwendt <rh0209ms@arcor.de>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0211121712540.1461-100000@dns.toxicfilms.tv>
+In-Reply-To: <20021126032827.0c755686.rh0209ms@arcor.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +23,25 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---fmvA4kSBHQVZhkR6
+--yQbNiKLmgenwUfTN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 12, 2002 at 05:16:47PM +0100, Maciej Soltysiak wrote:
-> Let's say the patch below has been submitted to 2.5 kernel, at 2.5.48
-> stage. It adds admin-prohib to the REJECT target.
+On Tue, Nov 26, 2002 at 03:28:27AM +0100, Michael Schwendt wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>=20
+> Hi everyone!
+>=20
+> Here's one more patch for another "missing space in save() function"
+> bug. This time it's the "tos match" userspace extension. An inverted
+> TOS match is not saved correctly, so that iptables-restore would
+> understand it.
 
-ok.
+thanks. I'll apply it as soon as I have IP connectivity again.
 
-> Now, if the 2.5.48 kernel has the admin-prohib support, the userspace will
-> detect it, and will show the option in -j REJECT --help and will accept
-> admin-prohib.
-
-No.  You will make the libipt_REJECT.so dependent on the particular
-source code installed on the machine where iptables was compiled.
-
-> What do you think?
-
-Sorry for being such a PITA :(
-
-> Best Regards,
-> Maciej Soltysiak
+> Michael
 
 --=20
 Live long and prosper
@@ -59,7 +54,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---fmvA4kSBHQVZhkR6
+--yQbNiKLmgenwUfTN
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -67,9 +62,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE95c9hXaXGVTD0i/8RAqesAKCqB+CrtbJEtfFuMNnsC+oz1iQcTwCfQbij
-QSo8ao+0aCCxEmHtAvpkoUk=
-=Rhz4
+iD8DBQE95c2ZXaXGVTD0i/8RAiiCAJ4zhSW9rKgC2NOQCEs7ODzMMxEa0ACfU0p9
+Auo5fch7zOFvITWYohSRWCM=
+=fToC
 -----END PGP SIGNATURE-----
 
---fmvA4kSBHQVZhkR6--
+--yQbNiKLmgenwUfTN--
