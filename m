@@ -1,18 +1,20 @@
-From: Robert Hardy <rhardy@webcon.ca>
-Subject: Re: Optimizing rule loading, iptables-1.3.0 and iptables-batch
-Date: Sun, 26 Sep 2004 15:24:31 -0400 (EDT)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2.6 0/12]: netfilter update
+Date: Sun, 26 Sep 2004 21:43:08 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0409261514330.3762@vortex.int.webcon.net>
-References: <Pine.LNX.4.61.0409070017220.23341@vortex.int.webcon.net>
-	<Pine.LNX.4.61.0409071309410.23282@filer.marasystems.com>
-	<Pine.LNX.4.61.0409072117010.11902@vortex.int.webcon.net>
-	<20040908164942.GA19802@suse.de>
+Message-ID: <41571BCC.2050909@trash.net>
+References: <414F9DFC.701@trash.net> <20040921143611.6a6e2f60.davem@redhat.com>
+	<4150BB62.2060904@trash.net>
+	<20040921171857.2c720c8e.davem@redhat.com>
+	<4150D880.70108@trash.net>
+	<20040924154032.5a0c32e1.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ludwig Nussel <ludwig.nussel@suse.de>
-In-Reply-To: <20040908164942.GA19802@suse.de>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20040924154032.5a0c32e1.davem@redhat.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,45 +25,47 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 8 Sep 2004, Ludwig Nussel wrote:
-> Robert Hardy wrote:
->> As a side note for the same ~30000 rules:
->> Time to load rules via iptables-batch using CIDR syntax: 23 mins 13 secs
->> Time to load rules via iptables-batch using IPRANGE syntax: 26 mins 36 secs
->> Time to load rules via iptables-restore (originally using CIDR syntax): 4
->> mins 25 secs
->>
->> The time to process the rules set isn't linear with size. In general if you
->> double a rule set it takes four times longer to load.
->>
->> At 30000 rules iptables-restore is still 5 times faster than iptables-batch.
+David S. Miller wrote:
+
+>I think the scheme is a bit illogical.
 >
-> Wow, when I said 'lot' I for sure didn't think about that many :-) I
-> was thinking in the order of like saving two seconds out of four
-> when using the plain iptables command. The reason why iptables-batch
-> takes longer most probably is because it commits after every rule
-> whereas iptables-restore usually only does that once for each table.
-> It can do so because rules are grouped by table and are not mixed.
-> Maybe it's possible to reuse the handles in iptables-batch and do
-> the commit at the end. I'll check that.
+>Until the actual TCP socket lookup call, you cannot say for sure
+>what that lookup would result in.
+>
+>For example, let's say that between where the ipt_owner match
+>is invoked on input, and the actual call to tcp_v4_rcv(), some
+>filtering or other packet mangling scheme changes the IP address
+>or ports.  You're going to get different results in ipt_owner()
+>than TCP was going to achieve.
+>
+>It sounds like we want some kind of socket resolution policy check.
+>It's starting to get rediculious, as we have two filters _already_
+>in that code path, one for the per-socket BPF style filtering, and
+>the other for IPSEC.
+>
+>The IPSEC check is available on output too.
+>  
+>
 
-I thought I should point out that the improvements present in
-iptables-1.3.0-20040925 totally rock! Good work!
+It's mainly a problem if the socket is closed or replaced between the
+lookup in ipt_owner and the lookup in tcp, for the other cases you
+can define the semantic as: the socket that the packet would be
+delivered to if the packet is not dropped and none of the keys used
+for the lookup are altered.
 
-I built up an i686 rpm based on that snapshot. Not only does it work well
-(2004090x segfaulted on me), it is very fast.
+>I don't see how it's avoidable to add another condition there.
+>So what if we had something like:
+>
+>	NF_SK_HOOK(PF_INET, NF_TCP_IN, sk, skb, skb->dev, NULL,
+>		   tcp_v4_rcv_finish)
+>
+>or something along those lines?  Perhaps you can simplify the
+>argument set even further.
+>  
+>
+Unfortunately I have to agree with you, another set of hooks looks
+like the only way to solve the race. Let me think some more about
+the implications for iptables and ip_conntrack.
 
-I repeated my performance testing. On a P4 2.4GHz iptables-restore now takes
-a couple of seconds to restore ~30000 rules. Even a 400MHz Celeron can
-restore ~30K rules in 28 seconds.
-
-This is a major improvement to say the least. It would awesome if you could
-somehow harness this performance in iptables-batch.
-
-Regards,
-Rob
-
--- 
----------------------"Happiness is understanding."----------------------
-Robert Hardy, B.Eng Computer Systems                  C.E.O. Webcon Inc.
-rhardy <at> webcon <dot> ca    GPG Key available          (613) 276-7327
+Regards
+Patrick
