@@ -1,49 +1,74 @@
-From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: Re: iptables denial of services
-Date: Sat, 17 Apr 2004 13:13:14 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4081114A.40808@fl.priv.at>
-References: <Pine.LNX.4.44.0404161149300.1981-100000@filer.marasystems.com>
-Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: [2.4/2.6] ip_nat_ftp - manip at the right place
+Date: Sat, 17 Apr 2004 16:26:09 +0300 (EEST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <Pine.LNX.4.58.0404171549360.3263@u.domain.uli>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0404161149300.1981-100000@filer.marasystems.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: MULTIPART/MIXED; BOUNDARY="1607745702-453966119-1082208369=:3263"
+Cc: netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: coreteam@netfilter.org
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote on 16.04.2004 12:03 MET:
-> On Thu, 15 Apr 2004, Jorge Garcia wrote:
-> 
->>Is this a problem in iptables firewall??i mean does iptables stop filtering after handling a lot of traffic?
-> 
-> No, but it may start dropping packets if overloaded.
-> 
-> If you are doing connection tracking then there is also an analogy to the
-> connection flooding, where conntrack will not accept new sessions when a
-> huge number of connetions is already established and this will most likely
-> result in those new sessions to dropped by your firewall. But it is not a
-> risk that filtering stops, only that new connections may not be accepted 
-> for a while. The number of sessions involved is considerably higher than 
-> on a server so your servers will most likely be dead long before the limit 
-> in conntrack can be reached.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-What if the server you are talking about is a server farm? Then an iptables 
-gateway that does connection track on the way may as well "die" before the 
-servers "die" because of overload.
+--1607745702-453966119-1082208369=:3263
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Can you give some details about those limits? Are there any numbers 
-availabe that relate that to memory/cpu/....?
 
--- 
-MfG / Regards
-Friedrich Lobenstock
+	Hello,
+
+	The attached patch changes the way the ip_nat_ftp helper
+manipulates the packets:
+
+- no manips => no fixup
+- check the direction, do manip once and at the same time when the
+headers are changed
+
+	This is needed mostly for IPVS setups and I hope we do not
+create troubles for other setups or FTP software.
+
+	I'm not sure whether proper locking for 'info' is needed,
+may be not. Tested for SNAT, DNAT, passive, active.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+--1607745702-453966119-1082208369=:3263
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="nat_ftp-1.diff"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0404171626090.3263@u.domain.uli>
+Content-Description: ip_nat_ftp - change manip
+Content-Disposition: attachment; filename="nat_ftp-1.diff"
+
+LS0tIHYyLjYuNS9saW51eC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfbmF0X2Z0
+cC5jCTIwMDQtMDItMTkgMDA6MTM6MzguMDAwMDAwMDAwICswMjAwDQorKysg
+bGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX25hdF9mdHAuYwkyMDA0LTA0
+LTE3IDExOjQ0OjE0LjQ3MTA3NDY4OCArMDMwMA0KQEAgLTI1MCwxNyArMjUw
+LDIzIEBADQogCXVuc2lnbmVkIGludCBkYXRhbGVuOw0KIAlpbnQgZGlyOw0K
+IAlzdHJ1Y3QgaXBfY3RfZnRwX2V4cGVjdCAqY3RfZnRwX2luZm87DQorCWlu
+dCBpLCBkb19tYW5pcCA9IDA7DQogDQogCWlmICghZXhwKQ0KIAkJREVCVUdQ
+KCJpcF9uYXRfZnRwOiBubyBleHAhISIpOw0KIA0KIAljdF9mdHBfaW5mbyA9
+ICZleHAtPmhlbHAuZXhwX2Z0cF9pbmZvOw0KIA0KLQkvKiBPbmx5IG1hbmds
+ZSB0aGluZ3Mgb25jZTogb3JpZ2luYWwgZGlyZWN0aW9uIGluIFBPU1RfUk9V
+VElORw0KLQkgICBhbmQgcmVwbHkgZGlyZWN0aW9uIG9uIFBSRV9ST1VUSU5H
+LiAqLw0KKwkvKiBPbmx5IG1hbmdsZSB0aGluZ3Mgb25jZTogZm9yIHRoZSBm
+aXJzdCBtYW5pcCBpbiB0aGlzIGRpcmVjdGlvbi4gKi8NCiAJZGlyID0gQ1RJ
+TkZPMkRJUihjdGluZm8pOw0KLQlpZiAoISgoaG9va251bSA9PSBORl9JUF9Q
+T1NUX1JPVVRJTkcgJiYgZGlyID09IElQX0NUX0RJUl9PUklHSU5BTCkNCi0J
+ICAgICAgfHwgKGhvb2tudW0gPT0gTkZfSVBfUFJFX1JPVVRJTkcgJiYgZGly
+ID09IElQX0NUX0RJUl9SRVBMWSkpKSB7DQorCWZvciAoaSA9IDA7IGkgPCBp
+bmZvLT5udW1fbWFuaXBzOyBpKyspIHsNCisJCWlmIChpbmZvLT5tYW5pcHNb
+aV0uZGlyZWN0aW9uID09IGRpcikgew0KKwkJCWlmIChpbmZvLT5tYW5pcHNb
+aV0uaG9va251bSA9PSBob29rbnVtKQ0KKwkJCQlkb19tYW5pcCA9IDE7DQor
+CQkJYnJlYWs7DQorCQl9DQorCX0NCisJaWYgKCFkb19tYW5pcCkgew0KIAkJ
+REVCVUdQKCJuYXRfZnRwOiBOb3QgdG91Y2hpbmcgZGlyICVzIGF0IGhvb2sg
+JXNcbiIsDQogCQkgICAgICAgZGlyID09IElQX0NUX0RJUl9PUklHSU5BTCA/
+ICJPUklHIiA6ICJSRVBMWSIsDQogCQkgICAgICAgaG9va251bSA9PSBORl9J
+UF9QT1NUX1JPVVRJTkcgPyAiUE9TVFJPVVRJTkciDQo=
+
+--1607745702-453966119-1082208369=:3263--
