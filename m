@@ -1,20 +1,16 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Re: ip_conntrack_pptp
-Date: Thu, 22 Jan 2004 13:09:04 -0500
+From: Elf King <elf@googgun.com>
+Subject: Re: iptables-xml userland tool and feedback
+Date: Thu, 22 Jan 2004 15:11:48 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <14802.0446686589$1074804059@news.gmane.org>
-References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <003601c3e100$6e8a68c0$2d64a8c0@pcjka> <20040122175345.GN1810@obroa-skai.de.gnumonks.org>
+Message-ID: <40102E84.3090904@googgun.com>
+References: <400E4214.1070100@googgun.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: 'Netfilter Development Mailinglist' <netfilter-devel@lists.netfilter.org>,
-  'Netfilter Mailinglist' <netfilter@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-From: Alistair Tonner <>
-To: Harald Welte <laforge@netfilter.org>, Jan Kaastrup <jka@protego.dk>
-In-Reply-To: <20040122175345.GN1810@obroa-skai.de.gnumonks.org>
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <400E4214.1070100@googgun.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,22 +21,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On January 22, 2004 12:53 pm, Harald Welte wrote:
-> On Thu, Jan 22, 2004 at 04:57:26PM +0100, Jan Kaastrup wrote:
-> > Hi Harald and all on this list.
-> >
-> > I have problems with ip_conntrack_pptp patch from POM-20031219
-> > Does anyone know of this, or is it just me being stupid ?
->
-> *sigh* *sigh* *sigh*.
->
-> Does anybody actually ponder reading the 'README' file included in the
-> patch-o-matic package?
+Hello Harald and all netfilter devers:
 
+Harald, not sure if you got a chance to see my post about an 
+iptables-xml utility. If not have a glance at 
+http://www.googgun.com/iptables-xml/.
 
-	I thought that was for padding to make the MD5 sums work??? 
-	*grin*
+Would there be interest in bundling it into the iptables userland tools?
 
-	Alistair
->
-> > Jan
+When you deliberate on whether or not to include a "new feature" like 
+this into iptables do remember that while it is a _new_ feature, it 
+isn't modifying any code of any existing tools or libraries, nor does 
+the tool require any external libraries or components other than those 
+required by iptables itself, it is quite standalone and production grade 
+and won't interfere with any of the mainline pieces.
+
+Everyone, I am also hoping for some feedback on the proposed XML so i 
+can finalize a formal DTD/xsd, as well as create an XSLT template that 
+does the reverse a la iptables-restore, so do drop me a note to let me 
+know what you think (both positives and negatives because the comparison 
+helps).
+
+Cheers,
+
+Ahmed.
