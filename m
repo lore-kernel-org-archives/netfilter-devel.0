@@ -1,18 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] REJECT for 2.6.9+
-Date: Fri, 1 Apr 2005 08:13:53 +0200
-Message-ID: <20050401061353.GJ19835@sunbeam.de.gnumonks.org>
-References: <423BF227.8030502@outerspace.dyndns.org> <423DA194.40100@trash.net>
-	<200503300205.j2U25fCc021930@toshiba.co.jp>
+Subject: Re: netfilter performance question
+Date: Fri, 1 Apr 2005 08:18:42 +0200
+Message-ID: <20050401061842.GK19835@sunbeam.de.gnumonks.org>
+References: <20050322122438.C70026@imperator.sieradz.info>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qYrsQHciA3Wqs7Iv"
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	kaber@trash.net
+	protocol="application/pgp-signature"; boundary="yLaBmHMi4cq+C/u4"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Marcin Szczepaniak <szczepan@sieradz.info>
 Content-Disposition: inline
-In-Reply-To: <200503300205.j2U25fCc021930@toshiba.co.jp>
+In-Reply-To: <20050322122438.C70026@imperator.sieradz.info>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,47 +23,38 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qYrsQHciA3Wqs7Iv
+--yLaBmHMi4cq+C/u4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 30, 2005 at 11:05:40AM +0900, Yasuyuki KOZAKAI wrote:
-> Hi,
->=20
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Sun, 20 Mar 2005 17:15:16 +0100
->=20
-> > Why add a new branch instead of simply restoring that file?
-> > Even better, I think I'm simply going to submit the IPv6
-> > REJECT target of nobody objects.
->=20
-> I have some thoughts.
->=20
-> I wrote ip6t_REJECT so that the source address of ICMPv6 error was
-> destination address of original packet. Because of this behavior,
-> send_unreach could not use icmpv6_send().
-> But now I have found that the behavior of ipt_REJECT is different.
-> The source address of ICMP error is its node. I think the behavior of them
-> should be same. Moreover, ipt_REJECT has changed to use icmp_send() recen=
-tly.
->=20
-> Then I think ip6t_REJECT can use icmpv6_send() like ipt_REJECT.
-> Please consider applying attached patch to REJECT in pom-ng.
+On Tue, Mar 22, 2005 at 12:42:53PM +0000, Marcin Szczepaniak wrote:
+> I've tested two configurations of kernel (i am using 2.6 kernel tree):
+> first - no netfilter enabled - my device was able to bridge 70 Mbit of
+> traffic.  second - netfilter compiled in, but no rules applied -
+> traffic is only 20 Mbit :( Adding some test rules has minor affect to
+> traffic. Simply existence of netfiler makes maximal possible traffic
+> to be equal one third of that when only routing exists in kernel.
 
-Thanks, Yasuyuki.  I agree.
+what are you referring to as 'existance of netfilter'.   netfilter is
+something different than iptables.
 
-However, please note that your patch didn't apply:
+If you want to nail this down, please check
 
-laforge@hanuman%pts/3 (8:05) svn/netfilter/patch-o-matic-ng/REJECT > patch =
--p1 --dry-run < ~/reject.patch=20
-patching file linux-2.4.patch
-patching file linux-2.6/include/linux/netfilter_ipv6/ip6t_REJECT.h
-can't find file to patch at input line 58
-Perhaps you used the wrong -p or --strip option?
+1) performance with CONFIG_NETFILER =3D=3D n
+2) performance with CONFIG_NETFILTER =3D=3D y but CONFIG_IP_NF_IPTABLES =3D=
+=3D n
+3) performance with an empty module attached to the netfilter hook, i.e.
+   something that registers to all five hooks and returns NF_ACCEPT
+4) performanec with CONFIG_NETFILTER =3D=3D y, CONFIG_IP_NF_IPTABLES =3D=3D=
+ y
+   and CONFIG_IP_NF_FILTER =3D=3Dy, but no rules loaded.
 
-I've fixed it up manually and applied it, please verify that everything
-works fine.
+Please send the numbers to netfilter-devel and Cc me personally.
+
+> 2. Is it possible to use only ebtables, without netfilter ?
+
+ebtables is based on netfilter, but not on iptables.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -77,16 +66,16 @@ works fine.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---qYrsQHciA3Wqs7Iv
+--yLaBmHMi4cq+C/u4
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCTOahXaXGVTD0i/8RAnOnAKCPoO/SSEFUmJu8AYsLzmTTwN+zjwCfbGz6
-9+BZFlFO9Yq4iod2b01yylc=
-=ZLof
+iD8DBQFCTOfCXaXGVTD0i/8RAg3zAJ9hEShD6IRsjY7wI0vHy7oce1VoxACeK7fr
+RUnq4+visR5F23JW6A5vgfU=
+=Q36Q
 -----END PGP SIGNATURE-----
 
---qYrsQHciA3Wqs7Iv--
+--yLaBmHMi4cq+C/u4--
