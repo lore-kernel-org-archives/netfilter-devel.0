@@ -1,17 +1,16 @@
-From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: Creating rules without the /sbin/iptables command?
-Date: Wed, 17 Mar 2004 18:59:43 -0500
+Date: Thu, 18 Mar 2004 02:15:09 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1079567983.2115.10.camel@localhost>
-References: <Pine.LNX.4.44.0403180022440.15641-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0403180152360.18641-100000@filer.marasystems.com>
+References: <1079567983.2115.10.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Victor Julien <victor@nk.nl>,
    Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0403180022440.15641-100000@filer.marasystems.com>
+To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
+In-Reply-To: <1079567983.2115.10.camel@localhost>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,92 +21,69 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2004-03-17 at 18:45, Henrik Nordstrom wrote:
-> On Wed, 17 Mar 2004, Victor Julien wrote:
-> 
-> > This might be a big improvement, but it leaves me with one possible 
-> > problem. When adding and removing rules on-the-fly i can't use this 
-> > method, right?
-> 
-> You can. There is a --noflush option to iptables-restore to not flush the
-> existing rules, allowing you to use iptables-restore to add/modify/delete
-> existing rules without having to specify the whole ruleset.
-> 
-> > Wouldn't it be nice if there was an c function which i could call, which 
-> > would do all the checking and other stuff the commandline iptables does, 
-> >   but, because its a c-function, way faster? Would it be easy (or even 
-> > possible) to implement such a function?
-> 
-> Such C function would only be marginally faster than having a pipe to 
-> iptables-restore.
-> 
-> iptables-restore has the exact same capabilities as iptables, only 
-> difference is that iptables-restore is batch oriented compiling all your 
-> changes and then uploading them into the kernel in one single call while 
-> iptables makes one modification to the table per call.
-> 
-> iptables-restore accepts the exact same set of commands as iptables with 
-> only some minor syntactical sugar differences
-> 
-> Syntax for iptables-restore input is
-> 
-> *tablename
-> start working on rules in table "tablename". Equivalent to the -t option 
-> to iptables.
-> 
-> :chainname policy
-> specifies the default policy for chain "chainname". Equivalent to the 
-> iptables -P command. Probably also works just fine to use the -P command 
-> but I have not tried.
-> 
+On Wed, 17 Mar 2004, John A. Sullivan III wrote:
+
+> I found that there were a few other differences.  As far as I can tell,
+> you can only have one table section per file, in other words if I have a
+> file such as
+>
+> *nat
+> some rules
 > COMMIT
-> Uploads the current table (specified by *tablename) to the kernel.
-> 
-> #....
-> Input lines starting with # are assumed to be comments and are ignored
-> 
-> Any other lines are assumed to be iptables commands per the iptables 
-> syntax specification.
-> 
-> iptables commands may be prefixed by [packetcnt:bytecnt] which gets
-> automatically translated into --set-counters packetcnt bytecnt before the
-> command is executed within iptables-restore. The two syntaxes are
-> equivalent.
-> 
-> 
-> Don't be fooled by the fact that iptables-save only uses the -A command or
-> by the name iptables-restore. What iptables-restore is is a batch version
-> of iptables with all the capabilities of iptables, not just a tool to
-> restore complete tables saved by iptables-save.
-> 
-> Regards
-> Henrik
-I found that there were a few other differences.  As far as I can tell,
-you can only have one table section per file, in other words if I have a
-file such as
-*nat
-some rules
-COMMIT
+> *filter
+> some more rules
+> COMMIT
+> *nat
+> some more rules
+> COMMIT
+>
+> only the first set of NAT rules commits.
+
+If this is the case then it is a bug somewhere, most likely in libiptc..
+
+seems to work fine here however.. tested with
+
 *filter
-some more rules
+-A INPUT -p tcp --dport 45 -j ACCEPT
 COMMIT
 *nat
-some more rules
+-A PREROUTING -p tcp --dport 45 -j ACCEPT
 COMMIT
-
-only the first set of NAT rules commits.  I also found that I needed to
-use an explicit declaration of implicit matches, e.g.,
 *filter
--A FORWARD -p 6 --dport 80 -j ACCEPT - does not work
--A FORWARD -p 6 -m tcp --dport 80 -j ACCEPT - does work
+-A OUTPUT -j ACCEPT
 COMMIT
 
-I did find that the performance difference for even small rule sets was
-noticeable and, for large rule sets, it was absolutely stunning - John
+and all three rules was added just fine.
 
--- 
-John A. Sullivan III
-Chief Technology Officer
-Nexus Management
-+1 207-985-7880
-john.sullivan@nexusmgmt.com
+also I do not see any reason why it should not work. The libiptc handle is 
+completely closed on COMMIT so there should not be any memory of you 
+already have used this table when the new *tablename is reached.
+
+Note: when doing this you MUST use the --noflush (-n) option. If not the
+second reference to the table will clear the rules added by the first..
+
+> I also found that I needed to use an explicit declaration of implicit
+> matches, e.g.,
+>
+> *filter
+> -A FORWARD -p 6 --dport 80 -j ACCEPT - does not work
+> -A FORWARD -p 6 -m tcp --dport 80 -j ACCEPT - does work
+> COMMIT
+
+Works fine here without.. and considering that the exact same iptables.c 
+is used in both commands for parsing the commands I don't see why it 
+should not work in any version of iptables-restore..
+
+The fact that iptables-save prints the protocol match is only due to the
+fact that this is actually what the rules looks like if you are protocol
+match options.. there is some heavy duty "magics" in iptables command
+parsing if a protocol is specified but no protocol match. There is an
+interesting comment in iptables.c which summarises this magic protocol
+match function quite well ;-)
+
+                                /* If you listen carefully, you can
+                                   actually hear this code suck. */
+
+
+Regards
+Henrik
