@@ -1,16 +1,16 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: nat: expected connection only works one way
-Date: Tue, 28 Oct 2003 18:38:31 +1000
+From: Cedric Blancher <blancher@cartel-securite.fr>
+Subject: Re: [OT] Mailing-list oddities
+Date: Tue, 28 Oct 2003 11:54:08 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F9E2B07.3060707@snapgear.com>
-References: <26158.1067264889@www3.gmx.net>
+Message-ID: <1067338448.773.3.camel@elendil.intranet.cartel-securite.net>
+References: <3F9E2731.2000306@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: n_dahlem@gmx.net
-In-Reply-To: <26158.1067264889@www3.gmx.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <3F9E2731.2000306@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,15 +21,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-n_dahlem@gmx.net wrote:
-> Sniffing between Masq and Host1, one can see that the packets coming from
-> host2 get nat'd and an answer is send:
-> 10.20.10.198:5020 -> 172.30.8.100:5006
-> 172.30.8.100:5006 -> 10.20.10.213:5020
+Le mar 28/10/2003 =E0 09:22, Patrick McHardy a =E9crit :
+> For some time now some messages to netfilter-devel appear
+> very delayed in my inbox, sometimes as much as a week. Most
+> messages appear timely, but I noticed it several times
+> when I was on a CC list (CC'd mail arrived immediately,
+> mail to list not) and this morning ~20 mails from the
+> last week came dripping in. Is anyone else seeing these
+> problems ?
 
-The second packet is not a reply to the first.
-Its destination is Masq, not Host2.
+I do.
+I have the same effect with CCs.
 
--- 
-Philip Craig - philipc@snapgear.com - http://www.SnapGear.com
-SnapGear - Custom Embedded Solutions and Security Appliances
+--=20
+http://www.netexit.com/~sid/
+PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
+>> Hi! I'm your friendly neighbourhood signature virus.
+>> Copy me to your signature file and help me spread!=20
