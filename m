@@ -1,9 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.4 12/18]: Backport fixes for ip6t_frag
-Date: Mon, 20 Dec 2004 08:15:15 +0100
-Message-ID: <41C67C03.4090605@trash.net>
+Subject: [PATCH 2.4 13/18]: Backport fixes for ip6t_hbh
+Date: Mon, 20 Dec 2004 08:15:20 +0100
+Message-ID: <41C67C08.506@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040509070209060407010806"
+Content-Type: multipart/mixed; boundary="------------070401080304050700040607"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -19,208 +19,193 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040509070209060407010806
+--------------070401080304050700040607
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Backport fixes for ip6t_frag.
+Backport fixes for ip6t_hbh.
 
 
---------------040509070209060407010806
+--------------070401080304050700040607
 Content-Type: text/x-patch;
- name="12.diff"
+ name="13.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="12.diff"
+ filename="13.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/12/05 23:27:40+01:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Backport fixes for ip6t_frag
+#   2004/12/05 23:29:45+01:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: Backport fixes for ip6t_hbh
 #   
-#   This patch fixes following bugs in ip6t_frag.c:
+#   This patch fixes the following bugs in ip6t_hbh.c:
 #   
-#     - Wrong cast the pointer to extension header.
-#     - replaced "struct fraghdr" with "struct frag_hdr".
-#     - header length of Fragment Header is statically 8 octets.
-#       Then the option "--frag-len" doesn't make sense.
-#     - There are endian issues where using frag->info.
-#     - Reserved fields are not 2 bit but 8bit + 2 bit. (see RFC2460)
-#   
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv6/netfilter/ip6t_frag.c
-#   2004/12/05 23:27:38+01:00 yasuyuki.kozakai@toshiba.co.jp +38 -58
-#   [NETFILTER]: Backport fixes for ip6t_frag
-#   
-#   This patch fixes following bugs in ip6t_frag.c:
-#   
-#     - Wrong cast the pointer to extension header.
-#     - replaced "struct fraghdr" with "struct frag_hdr".
-#     - header length of Fragment Header is statically 8 octets.
-#       Then the option "--frag-len" doesn't make sense.
-#     - There are endian issues where using frag->info.
-#     - Reserved fields are not 2 bit but 8bit + 2 bit. (see RFC2460)
+#     - The cast of the pointer to the next IPv6 extension header is wrong.
+#     - hdrlen may underflow.
+#     - (u16)*optdesc causes to alignment problem.
+#     - The calculation of the offset to next option is wrong. In the case
+#       that the type isn't 0, it should be "Opt Data Len" field + 2
+#       (see RFC2460).
 #   
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
---- a/net/ipv6/netfilter/ip6t_frag.c	2004-12-20 07:01:25 +01:00
-+++ b/net/ipv6/netfilter/ip6t_frag.c	2004-12-20 07:01:25 +01:00
-@@ -6,8 +6,6 @@
- #include <net/checksum.h>
- #include <net/ipv6.h>
- 
--#include <asm/byteorder.h>
--
+# net/ipv6/netfilter/ip6t_hbh.c
+#   2004/12/05 23:29:44+01:00 yasuyuki.kozakai@toshiba.co.jp +38 -36
+#   [NETFILTER]: Backport fixes for ip6t_hbh
+#   
+#   This patch fixes the following bugs in ip6t_hbh.c:
+#   
+#     - The cast of the pointer to the next IPv6 extension header is wrong.
+#     - hdrlen may underflow.
+#     - (u16)*optdesc causes to alignment problem.
+#     - The calculation of the offset to next option is wrong. In the case
+#       that the type isn't 0, it should be "Opt Data Len" field + 2
+#       (see RFC2460).
+#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+--- a/net/ipv6/netfilter/ip6t_hbh.c	2004-12-20 07:01:26 +01:00
++++ b/net/ipv6/netfilter/ip6t_hbh.c	2004-12-20 07:01:26 +01:00
+@@ -11,8 +11,6 @@
  #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_frag.h>
+ #include <linux/netfilter_ipv6/ip6t_opts.h>
  
-@@ -22,28 +20,7 @@
- #define DEBUGP(format, args...)
- #endif
- 
--#if 0
--#if     BYTE_ORDER == BIG_ENDIAN
--#define IP6F_OFF_MASK       0xfff8  /* mask out offset from _offlg */
--#define IP6F_RESERVED_MASK  0x0006  /* reserved bits in ip6f_offlg */
--#define IP6F_MORE_FRAG      0x0001  /* more-fragments flag */
--#else   /* BYTE_ORDER == LITTLE_ENDIAN */
--#define IP6F_OFF_MASK       0xf8ff  /* mask out offset from _offlg */
--#define IP6F_RESERVED_MASK  0x0600  /* reserved bits in ip6f_offlg */
--#define IP6F_MORE_FRAG      0x0100  /* more-fragments flag */
--#endif
--#endif
+-#define LOW(n)		(n & 0x00FF)
 -
--#define IP6F_OFF_MASK       0xf8ff  /* mask out offset from _offlg */
--#define IP6F_RESERVED_MASK  0x0600  /* reserved bits in ip6f_offlg */
--#define IP6F_MORE_FRAG      0x0100  /* more-fragments flag */
--
--struct fraghdr {
--       __u8    nexthdr;
--       __u8    hdrlen;
--       __u16   info;
--       __u32   id;
--};
-+#define IP6_MF	0x0001
+ #define HOPBYHOP	1
  
- /* Returns 1 if the id is matched by the range, 0 otherwise */
- static inline int
-@@ -67,7 +44,7 @@
-       u_int16_t datalen,
-       int *hotdrop)
- {
--       struct fraghdr *frag = NULL;
-+       struct frag_hdr *frag = NULL;
-        const struct ip6t_frag *fraginfo = matchinfo;
-        unsigned int temp;
-        int len;
-@@ -100,7 +77,7 @@
+ EXPORT_NO_SYMBOLS;
+@@ -40,8 +38,8 @@
+  *  	0	-> invariant
+  *  	1	-> can change the routing
+  *  (Type & 0x1F) Type
+- *      0	-> PAD0 (only 1 byte!)
+- *      1	-> PAD1 LENGTH info (total length = length + 2)
++ *      0	-> Pad1 (only 1 byte!)
++ *      1	-> PadN LENGTH info (total length = length + 2)
+  *      C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
+  *      5	-> RTALERT 2 x x
+  */
+@@ -64,7 +62,8 @@
+        unsigned int ptr;
+        unsigned int hdrlen = 0;
+        unsigned int ret = 0;
+-       u_int16_t *optdesc = NULL;
++       u8 *opttype = NULL;
++       unsigned int optlen;
+        
+        /* type of the 1st exthdr */
+        nexthdr = skb->nh.ipv6h->nexthdr;
+@@ -91,7 +90,7 @@
                       break;
                }
  
--              hdr=(struct ipv6_opt_hdr *)skb->data+ptr;
-+              hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
+-              hdr=(void *)(skb->data)+ptr;
++	      hdr = (void *)(skb->data + ptr);
  
                /* Calculate the header length */
                  if (nexthdr == NEXTHDR_FRAGMENT) {
-@@ -143,59 +120,62 @@
-        /* FRAG header not found */
-        if ( temp != MASK_FRAGMENT ) return 0;
- 
--       if (len < (int)sizeof(struct fraghdr)){
-+       if (len < sizeof(struct frag_hdr)){
- 	       *hotdrop = 1;
+@@ -153,7 +152,7 @@
         		return 0;
         }
  
--       frag = (struct fraghdr *) (skb->data + ptr);
-+       frag = (struct frag_hdr *) (skb->data + ptr);
+-       optsh=(void *)(skb->data)+ptr;
++       optsh = (void *)(skb->data + ptr);
  
--       DEBUGP("IPv6 FRAG LEN %u %u ", hdrlen, frag->hdrlen);
--       DEBUGP("INFO %04X ", frag->info);
--       DEBUGP("OFFSET %04X ", frag->info & IP6F_OFF_MASK);
--       DEBUGP("RES %04X ", frag->info & IP6F_RESERVED_MASK);
--       DEBUGP("MF %04X ", frag->info & IP6F_MORE_FRAG);
--       DEBUGP("ID %u %08X\n", ntohl(frag->id), ntohl(frag->id));
-+       DEBUGP("INFO %04X ", frag->frag_off);
-+       DEBUGP("OFFSET %04X ", ntohs(frag->frag_off) & ~0x7);
-+       DEBUGP("RES %02X %04X", frag->reserved, ntohs(frag->frag_off) & 0x6);
-+       DEBUGP("MF %04X ", frag->frag_off & htons(IP6_MF));
-+       DEBUGP("ID %u %08X\n", ntohl(frag->identification),
-+	      ntohl(frag->identification));
+        DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
  
-        DEBUGP("IPv6 FRAG id %02X ",
-        		(id_match(fraginfo->ids[0], fraginfo->ids[1],
--                           ntohl(frag->id),
-+                           ntohl(frag->identification),
-                            !!(fraginfo->invflags & IP6T_FRAG_INV_IDS))));
--       DEBUGP("len %02X %04X %02X ",
--       		fraginfo->hdrlen, hdrlen,
--       		(!fraginfo->hdrlen ||
--                           (fraginfo->hdrlen == hdrlen) ^
--                           !!(fraginfo->invflags & IP6T_FRAG_INV_LEN)));
--       DEBUGP("res %02X %02X %02X ", 
--       		(fraginfo->flags & IP6T_FRAG_RES), frag->info & IP6F_RESERVED_MASK,
--       		!((fraginfo->flags & IP6T_FRAG_RES) && (frag->info & IP6F_RESERVED_MASK)));
-+       DEBUGP("res %02X %02X%04X %02X ", 
-+       		(fraginfo->flags & IP6T_FRAG_RES), frag->reserved,
-+		ntohs(frag->frag_off) & 0x6,
-+       		!((fraginfo->flags & IP6T_FRAG_RES)
-+			&& (frag->reserved || (ntohs(frag->frag_off) & 0x6))));
-        DEBUGP("first %02X %02X %02X ", 
--       		(fraginfo->flags & IP6T_FRAG_FST), frag->info & IP6F_OFF_MASK,
--       		!((fraginfo->flags & IP6T_FRAG_FST) && (frag->info & IP6F_OFF_MASK)));
-+       		(fraginfo->flags & IP6T_FRAG_FST),
-+		ntohs(frag->frag_off) & ~0x7,
-+       		!((fraginfo->flags & IP6T_FRAG_FST)
-+			&& (ntohs(frag->frag_off) & ~0x7)));
-        DEBUGP("mf %02X %02X %02X ", 
--       		(fraginfo->flags & IP6T_FRAG_MF), frag->info & IP6F_MORE_FRAG,
--       		!((fraginfo->flags & IP6T_FRAG_MF) && !((frag->info & IP6F_MORE_FRAG))));
-+       		(fraginfo->flags & IP6T_FRAG_MF),
-+		ntohs(frag->frag_off) & IP6_MF,
-+       		!((fraginfo->flags & IP6T_FRAG_MF)
-+			&& !((ntohs(frag->frag_off) & IP6_MF))));
-        DEBUGP("last %02X %02X %02X\n", 
--       		(fraginfo->flags & IP6T_FRAG_NMF), frag->info & IP6F_MORE_FRAG,
--       		!((fraginfo->flags & IP6T_FRAG_NMF) && (frag->info & IP6F_MORE_FRAG)));
-+       		(fraginfo->flags & IP6T_FRAG_NMF),
-+		ntohs(frag->frag_off) & IP6_MF,
-+       		!((fraginfo->flags & IP6T_FRAG_NMF)
-+			&& (ntohs(frag->frag_off) & IP6_MF)));
+@@ -169,7 +168,6 @@
+                            ((optinfo->hdrlen == hdrlen) ^
+                            !!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
  
-        return (frag != NULL)
-        		&&
-        		(id_match(fraginfo->ids[0], fraginfo->ids[1],
--                           ntohl(frag->id),
-+			  ntohl(frag->identification),
-                            !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)))
- 		&&
--	      	(!fraginfo->hdrlen ||
--                           (fraginfo->hdrlen == hdrlen) ^
--                           !!(fraginfo->invflags & IP6T_FRAG_INV_LEN))
--		&&
--		!((fraginfo->flags & IP6T_FRAG_RES) && (frag->info & IP6F_RESERVED_MASK))
-+		!((fraginfo->flags & IP6T_FRAG_RES)
-+			&& (frag->reserved || (ntohs(frag->frag_off) & 0x6)))
- 		&&
--		!((fraginfo->flags & IP6T_FRAG_FST) && (frag->info & IP6F_OFF_MASK))
-+		!((fraginfo->flags & IP6T_FRAG_FST)
-+			&& (ntohs(frag->frag_off) & ~0x7))
- 		&&
--		!((fraginfo->flags & IP6T_FRAG_MF) && !((frag->info & IP6F_MORE_FRAG)))
-+		!((fraginfo->flags & IP6T_FRAG_MF)
-+			&& !(ntohs(frag->frag_off) & IP6_MF))
- 		&&
--		!((fraginfo->flags & IP6T_FRAG_NMF) && (frag->info & IP6F_MORE_FRAG));
-+		!((fraginfo->flags & IP6T_FRAG_NMF)
-+			&& (ntohs(frag->frag_off) & IP6_MF));
- }
- 
- /* Called when user tries to insert an entry of this type. */
+-       temp = len = 0;
+        ptr += 2;
+        hdrlen -= 2;
+        if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
+@@ -180,48 +178,52 @@
+ 		DEBUGP("Strict ");
+ 		DEBUGP("#%d ",optinfo->optsnr);
+ 		for(temp=0; temp<optinfo->optsnr; temp++){
+-			optdesc = (void *)(skb->data)+ptr;
++			/* type field exists ? */
++			if (ptr > skb->len - 1 || hdrlen < 1)
++				break;
++			opttype = (void *)(skb->data + ptr);
++
+ 			/* Type check */
+-			if ( (unsigned char)*optdesc != 
+-				(optinfo->opts[temp] & 0xFF00)>>8 ){
++			if (*opttype != (optinfo->opts[temp] & 0xFF00)>>8){
+ 				DEBUGP("Tbad %02X %02X\n",
+-						(unsigned char)*optdesc,
+-						(optinfo->opts[temp] &
+-						 0xFF00)>>8);
++				       *opttype,
++				       (optinfo->opts[temp] & 0xFF00)>>8);
+ 				return 0;
+ 			} else {
+ 				DEBUGP("Tok ");
+ 			}
+ 			/* Length check */
+-			if (((optinfo->opts[temp] & 0x00FF) != 0xFF) &&
+-				(unsigned char)*optdesc != 0){
+-				if ( ntohs((u16)*optdesc) != 
+-						optinfo->opts[temp] ){
+-					DEBUGP("Lbad %02X %04X %04X\n",
+-							(unsigned char)*optdesc,
+-							ntohs((u16)*optdesc),
+-							optinfo->opts[temp]);
++			if (*opttype) {
++				u16 spec_len;
++
++				/* length field exists ? */
++				if (ptr > skb->len - 2 || hdrlen < 2)
++					break;
++				optlen = *((u8 *)(skb->data + ptr + 1));
++				spec_len = optinfo->opts[temp] & 0x00FF;
++
++				if (spec_len != 0x00FF && spec_len != optlen) {
++					DEBUGP("Lbad %02X %04X\n", optlen,
++					       spec_len);
+ 					return 0;
+-				} else {
+-					DEBUGP("Lok ");
+ 				}
+-			}
+-			/* Step to the next */
+-			if ((unsigned char)*optdesc == 0){
+-				DEBUGP("PAD0 \n");
+-				ptr++;
+-				hdrlen--;
++				DEBUGP("Lok ");
++				optlen += 2;
+ 			} else {
+-				ptr += LOW(ntohs(*optdesc));
+-				hdrlen -= LOW(ntohs(*optdesc));
+-				DEBUGP("len%04X \n", 
+-					LOW(ntohs(*optdesc)));
++				DEBUGP("Pad1\n");
++				optlen = 1;
+ 			}
+-			if (ptr > skb->len || ( !hdrlen && 
+-				(temp != optinfo->optsnr - 1))) {
++
++			/* Step to the next */
++			DEBUGP("len%04X \n", optlen);
++
++			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
++			    (temp < optinfo->optsnr - 1)) {
+ 				DEBUGP("new pointer is too large! \n");
+ 				break;
+ 			}
++			ptr += optlen;
++			hdrlen -= optlen;
+ 		}
+ 		if (temp == optinfo->optsnr)
+ 			return ret;
 
---------------040509070209060407010806--
+--------------070401080304050700040607--
