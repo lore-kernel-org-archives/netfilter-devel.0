@@ -1,16 +1,12 @@
-From: "Ruud van den Brink" <ruud@stress.utwente.nl>
-Subject: RE: Bug in ip_nat_core.c, introduced in 2.4.19pre4 and still persisting in 2.4.20
-Date: Sun, 26 Jan 2003 11:23:53 +0100
+From: Illes Marci <marci@balabit.hu>
+Subject: iptables-restore fixes
+Date: Mon, 27 Jan 2003 16:05:53 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000001c2c525$06ead3f0$026ba8c0@DEEPBLUE>
+Message-ID: <Pine.LNX.4.44.0301271551570.909-300000@octane>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: <laforge@gnumonks.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811072-1058823471-1043679953=:909"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: 
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,64 +17,116 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-Earlier this month, I reported the bug below. At that time, you asked if =
-I
-did enable the feature "NAT of local connections". I didn't. However,
-enabling this feature doesn't solve the problem. Also with this feature
-turned on; when I undo the patch introduced in 2.4.19-pre3 it works, =
-when I
-use the "standard" 2.4.20 kernel it doesn't work.
+---1463811072-1058823471-1043679953=:909
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Let me know if I can be of any help again...
+Hi All!
 
-Regards,
-Ruud.
+We have discoverd two minor probleam, with iptables-restore.
 
-Ps. I lost my Inbox short after you sent me your e-mail. You asked me to =
-use
-another mailinglist than coreteam@netfilter.org, I hope I picked the =
-good
-one.
+If the file used by iptables-restore is incorrect, has no table
+definition, than as loading it with iptables-restore, it segfaults.
 
-> -----Original Message-----
-> From: Ruud van den Brink [mailto:ruud@stress.utwente.nl]
-> Sent: maandag 6 januari 2003 20:32
-> To: 'coreteam@netfilter.org'
-> Subject: Bug in ip_nat_core.c, introduced in 2.4.19pre4 and still
-> persisting in 2.4.20
->=20
-> Hi netfilter team,
->=20
-> I have been using the 2.4.16 kernel for a while, and recently I =
-upgraded
-> to 2.4.19. At that time, CIPE (a VPN application) refused to work in
-> conjunction with NAT. Today I finally found some time to trace the =
-problem
-> in the Kernel source.
->=20
-> In the patch from 2.4.19-pre2 to 2.4.19-pre3, you applied a patch for
-> ip_nat_core.c:
->=20
-> @@ -494,7 +498,10 @@
->  static unsigned int opposite_hook[NF_IP_NUMHOOKS]
->  =3D { [NF_IP_PRE_ROUTING] =3D NF_IP_POST_ROUTING,
->      [NF_IP_POST_ROUTING] =3D NF_IP_PRE_ROUTING,
-> -    [NF_IP_LOCAL_OUT] =3D NF_IP_POST_ROUTING
-> +#ifdef CONFIG_IP_NF_NAT_LOCAL
-> +    [NF_IP_LOCAL_OUT] =3D NF_IP_LOCAL_IN,
-> +    [NF_IP_LOCAL_IN] =3D NF_IP_LOCAL_OUT,
-> +#endif
->  };
->=20
-> If I undo this patch, everything works fine again. My knowledge about =
-the
-> kernel and about the netfilter in particular is not sufficient to give =
-any
-> input on what exactly is incorrect here, or if it is correct but it is =
-a
-> bug in Cipe - for that reason I cc'ed Olaf Titz in.
->=20
-> Kind regards,
-> Ruud.
+The probleam is that, it doesn't check to see, if the table definition
+occuerd before any chain or rule definition. If it trys to add a new chain
+before the table is set. I have created a trivial patch to look after it.
+Find it attached.
+
+An other probleam, when using iptables-restore, if a rule has some
+probleam, than durring loading it, the iptables-restore just exits.
+
+The iptables-restore calls "do_command" for every rule, but up on some
+probleam the do_command doesn't return, rather it exits, so the user can't
+see on wich line the probleam occured. Which might drive debuging users
+crazzy with a long config.
+
+We created a patch to log the linenumber in "exit_tryhelp". It only logs,
+if called from iptables-restore. Find it also attached.
+
+bye,
+
+Marci
+
+---1463811072-1058823471-1043679953=:909
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=patch-iptables-restore
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.44.0301271605530.909@octane>
+Content-Description: 
+Content-Disposition: attachment; filename=patch-iptables-restore
+
+ZGlmZiAtdXJOIGlwdGFibGVzLTEuMi43YS1vcmlnL2lwdGFibGVzLXJlc3Rv
+cmUuYyBpcHRhYmxlcy0xLjIuN2EvaXB0YWJsZXMtcmVzdG9yZS5jDQotLS0g
+aXB0YWJsZXMtMS4yLjdhLW9yaWcvaXB0YWJsZXMtcmVzdG9yZS5jCVdlZCBB
+dWcgIDcgMTE6MDc6NDEgMjAwMg0KKysrIGlwdGFibGVzLTEuMi43YS9pcHRh
+Ymxlcy1yZXN0b3JlLmMJTW9uIEphbiAyNyAxNTo0ODowNCAyMDAzDQpAQCAt
+MTA2LDYgKzEwNiw3IEBADQogCWNoYXIgY3VydGFibGVbSVBUX1RBQkxFX01B
+WE5BTUVMRU4gKyAxXTsNCiAJRklMRSAqaW47DQogCWNvbnN0IGNoYXIgKm1v
+ZHByb2JlID0gMDsNCisJaW50IGluX3RhYmxlID0gMDsNCiANCiAJcHJvZ3Jh
+bV9uYW1lID0gImlwdGFibGVzLXJlc3RvcmUiOw0KIAlwcm9ncmFtX3ZlcnNp
+b24gPSBJUFRBQkxFU19WRVJTSU9OOw0KQEAgLTE2MSwxMCArMTYyLDExIEBA
+DQogCQllbHNlIGlmIChidWZmZXJbMF0gPT0gJyMnKSB7DQogCQkJaWYgKHZl
+cmJvc2UpIGZwdXRzKGJ1ZmZlciwgc3Rkb3V0KTsNCiAJCQljb250aW51ZTsN
+Ci0JCX0gZWxzZSBpZiAoc3RyY21wKGJ1ZmZlciwgIkNPTU1JVFxuIikgPT0g
+MCkgew0KKwkJfSBlbHNlIGlmICgoc3RyY21wKGJ1ZmZlciwgIkNPTU1JVFxu
+IikgPT0gMCkgJiYgKGluX3RhYmxlKSkgew0KIAkJCURFQlVHUCgiQ2FsbGlu
+ZyBjb21taXRcbiIpOw0KIAkJCXJldCA9IGlwdGNfY29tbWl0KCZoYW5kbGUp
+Ow0KLQkJfSBlbHNlIGlmIChidWZmZXJbMF0gPT0gJyonKSB7DQorCQkJaW5f
+dGFibGUgPSAwOw0KKwkJfSBlbHNlIGlmICgoYnVmZmVyWzBdID09ICcqJykg
+JiYgKCFpbl90YWJsZSkpew0KIAkJCS8qIE5ldyB0YWJsZSAqLw0KIAkJCWNo
+YXIgKnRhYmxlOw0KIA0KQEAgLTE5Miw4ICsxOTQsOSBAQA0KIAkJCX0NCiAN
+CiAJCQlyZXQgPSAxOw0KKwkJCWluX3RhYmxlID0gMTsNCiANCi0JCX0gZWxz
+ZSBpZiAoYnVmZmVyWzBdID09ICc6Jykgew0KKwkJfSBlbHNlIGlmICgoYnVm
+ZmVyWzBdID09ICc6JykgJiYgKGluX3RhYmxlKSkgew0KIAkJCS8qIE5ldyBj
+aGFpbi4gKi8NCiAJCQljaGFyICpwb2xpY3ksICpjaGFpbjsNCiANCkBAIC0y
+NTIsNyArMjU1LDcgQEANCiANCiAJCQlyZXQgPSAxOw0KIA0KLQkJfSBlbHNl
+IHsNCisJCX0gZWxzZSBpZiAoaW5fdGFibGUpIHsNCiAJCQlpbnQgYTsNCiAJ
+CQljaGFyICpwdHIgPSBidWZmZXI7DQogCQkJY2hhciAqcGNudCA9IE5VTEw7
+DQo=
+---1463811072-1058823471-1043679953=:909
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=patch-linenum-iptables
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.44.0301271605531.909@octane>
+Content-Description: 
+Content-Disposition: attachment; filename=patch-linenum-iptables
+
+ZGlmZiAtdXJOIGlwdGFibGVzLTEuMi43YS1vcmlnL2luY2x1ZGUvaXB0YWJs
+ZXMuaCBpcHRhYmxlcy0xLjIuN2EvaW5jbHVkZS9pcHRhYmxlcy5oDQotLS0g
+aXB0YWJsZXMtMS4yLjdhLW9yaWcvaW5jbHVkZS9pcHRhYmxlcy5oCVRodSBE
+ZWMgIDYgMTU6NTA6MjAgMjAwMQ0KKysrIGlwdGFibGVzLTEuMi43YS9pbmNs
+dWRlL2lwdGFibGVzLmgJTW9uIEphbiAyNyAxNTo0MDozMiAyMDAzDQpAQCAt
+MTA2LDYgKzEwNiw4IEBADQogI2VuZGlmDQogfTsNCiANCitleHRlcm4gaW50
+IGxpbmU7DQorDQogLyogWW91ciBzaGFyZWQgbGlicmFyeSBzaG91bGQgY2Fs
+bCBvbmUgb2YgdGhlc2UuICovDQogZXh0ZXJuIHZvaWQgcmVnaXN0ZXJfbWF0
+Y2goc3RydWN0IGlwdGFibGVzX21hdGNoICptZSk7DQogZXh0ZXJuIHZvaWQg
+cmVnaXN0ZXJfdGFyZ2V0KHN0cnVjdCBpcHRhYmxlc190YXJnZXQgKm1lKTsN
+CmRpZmYgLXVyTiBpcHRhYmxlcy0xLjIuN2Etb3JpZy9pcHRhYmxlcy1yZXN0
+b3JlLmMgaXB0YWJsZXMtMS4yLjdhL2lwdGFibGVzLXJlc3RvcmUuYw0KLS0t
+IGlwdGFibGVzLTEuMi43YS1vcmlnL2lwdGFibGVzLXJlc3RvcmUuYwlXZWQg
+QXVnICA3IDExOjA3OjQxIDIwMDINCisrKyBpcHRhYmxlcy0xLjIuN2EvaXB0
+YWJsZXMtcmVzdG9yZS5jCU1vbiBKYW4gMjcgMTU6NDQ6MTggMjAwMw0KQEAg
+LTEwMSw3ICsxMDEsNiBAQA0KIHsNCiAJaXB0Y19oYW5kbGVfdCBoYW5kbGU7
+DQogCWNoYXIgYnVmZmVyWzEwMjQwXTsNCi0JdW5zaWduZWQgaW50IGxpbmUg
+PSAwOw0KIAlpbnQgYzsNCiAJY2hhciBjdXJ0YWJsZVtJUFRfVEFCTEVfTUFY
+TkFNRUxFTiArIDFdOw0KIAlGSUxFICppbjsNCkBAIC0xMDksNiArMTA4LDcg
+QEANCiANCiAJcHJvZ3JhbV9uYW1lID0gImlwdGFibGVzLXJlc3RvcmUiOw0K
+IAlwcm9ncmFtX3ZlcnNpb24gPSBJUFRBQkxFU19WRVJTSU9OOw0KKwlsaW5l
+ID0gMDsNCiANCiAjaWZkZWYgTk9fU0hBUkVEX0xJQlMNCiAJaW5pdF9leHRl
+bnNpb25zKCk7DQpkaWZmIC11ck4gaXB0YWJsZXMtMS4yLjdhLW9yaWcvaXB0
+YWJsZXMuYyBpcHRhYmxlcy0xLjIuN2EvaXB0YWJsZXMuYw0KLS0tIGlwdGFi
+bGVzLTEuMi43YS1vcmlnL2lwdGFibGVzLmMJTW9uIEF1ZyAyNiAxNDoxNjow
+NiAyMDAyDQorKysgaXB0YWJsZXMtMS4yLjdhL2lwdGFibGVzLmMJTW9uIEph
+biAyNyAxNTo0MjoxMiAyMDAzDQpAQCAtMTQxLDYgKzE0MSw4IEBADQogCXsg
+MCB9DQogfTsNCiANCitpbnQgbGluZSA9IC0xOw0KKw0KICNpZm5kZWYgX19P
+UFRJTUlaRV9fDQogc3RydWN0IGlwdF9lbnRyeV90YXJnZXQgKg0KIGlwdF9n
+ZXRfdGFyZ2V0KHN0cnVjdCBpcHRfZW50cnkgKmUpDQpAQCAtMzMwLDYgKzMz
+Miw4IEBADQogdm9pZA0KIGV4aXRfdHJ5aGVscChpbnQgc3RhdHVzKQ0KIHsN
+CisJaWYgKGxpbmUgPSEgLTEpDQorCQlmcHJpbnRmKHN0ZGVyciwgIkVycm9y
+IG9jY3VyZWQgYXQgbGluZTogJWRcbiIsIGxpbmUpOw0KIAlmcHJpbnRmKHN0
+ZGVyciwgIlRyeSBgJXMgLWgnIG9yICclcyAtLWhlbHAnIGZvciBtb3JlIGlu
+Zm9ybWF0aW9uLlxuIiwNCiAJCQlwcm9ncmFtX25hbWUsIHByb2dyYW1fbmFt
+ZSApOw0KIAlleGl0KHN0YXR1cyk7DQo=
+---1463811072-1058823471-1043679953=:909--
