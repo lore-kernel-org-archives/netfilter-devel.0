@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: (no subject)
-Date: Wed, 30 Oct 2002 09:55:43 +0100
+Subject: Re: use of a state machine compiler in netfilter?
+Date: Wed, 30 Oct 2002 09:53:36 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021030095543.U8635@sunbeam.de.gnumonks.org>
-References: <1035739556.3dbc21a447d28@student-webmail.lboro.ac.uk>
+Message-ID: <20021030095336.T8635@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0210261452140.16251-100000@ice.ragel.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6SWS31fp4apnN2Tf"
+	protocol="application/pgp-signature"; boundary="pw8vfKuzsXn95o6p"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: C.Shelley-02@student.lboro.ac.uk
+To: Adrian Thurston <adriant@ragel.ca>
 Content-Disposition: inline
-In-Reply-To: <1035739556.3dbc21a447d28@student-webmail.lboro.ac.uk>; from C.Shelley-02@student.lboro.ac.uk on Sun, Oct 27, 2002 at 05:25:56PM +0000
+In-Reply-To: <Pine.LNX.4.44.0210261452140.16251-100000@ice.ragel.ca>; from adriant@ragel.ca on Sat, Oct 26, 2002 at 03:11:19PM -0400
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,28 +23,37 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---6SWS31fp4apnN2Tf
+--pw8vfKuzsXn95o6p
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Oct 27, 2002 at 05:25:56PM +0000, C.Shelley-02@student.lboro.ac.uk =
-wrote:
-> Developers,
+On Sat, Oct 26, 2002 at 03:11:19PM -0400, Adrian Thurston wrote:
+>   I am the author of the Ragel State Machine Compiler
+>   (http://www.essemage.com/ragel/). State machines are very useful for
+>   matching a large number of diverse patterns very efficiently.
 >=20
-> I have had an idea for a new target for moifying the TCP flags of a packe=
-t.
+> This leads me to my question. Would the netfilter project benefit from
+> code that built state machines from high-level descriptions of packets
+> that would recognise and ultimately route many different types of packets
+> on one pass?
 
-> Do you think it will work?
+Well it is definitely interesting to have something like this.  We currently
+have already multiple classification mechanisms:  There is the tc/u32 style=
+=20
+classifier, there is iptables, the upcoming pkttables, the nf-hipac stuff,.=
+..
 
-yes, it will work with 'weak' firewalls doing very lazy checking on the TCP=
- ,
-of course.=20
+So (from an academic/educational point of view) it would be great to have
+yet another classification mechanism.
 
-An iptables target like this is an ugly hack, so don't expect it to show
-up in the linux kernel, after you have submitted it to me :)
+However, I cannot promise that any of those will go mainline anytime soon.
 
-> --Craig Shelley  =20
+> Perhaps you have something like this implemented already?
+
+no, not that I am aware of.
+
+> -Adrian
 
 --=20
 Live long and prosper
@@ -56,7 +65,7 @@ Live long and prosper
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---6SWS31fp4apnN2Tf
+--pw8vfKuzsXn95o6p
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -64,9 +73,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9v56PXaXGVTD0i/8RAtxsAJ9WBmDgBXg/B5zVd+5bqxFzGThiNwCgtGvv
-ij4oeMmczKJu4xrZ6eQjJRU=
-=oERv
+iD8DBQE9v54PXaXGVTD0i/8RAi51AKCzeDOKmuIoB9cqhf7/DDFJJUGV3wCdEpXM
+G5Fpi3Dyywc+Ks5bfnWVU8U=
+=dFbT
 -----END PGP SIGNATURE-----
 
---6SWS31fp4apnN2Tf--
+--pw8vfKuzsXn95o6p--
