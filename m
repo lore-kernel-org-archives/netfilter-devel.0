@@ -1,18 +1,17 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: [PATCH] document multiport invert option
-Date: Thu, 9 Sep 2004 15:36:56 +0200
+From: Alexey Toptygin <alexeyt@freeshell.org>
+Subject: Re: Strange thing with iptables
+Date: Thu, 9 Sep 2004 14:33:06 +0000 (UTC)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040909133656.GA3158@eychenne.org>
-References: <20040908233535.GA17162@linuxace.com>
-	<1094724443.8900.2.camel@localhost.localdomain>
+Message-ID: <Pine.NEB.4.60.0409091430510.3683@ukato.freeshell.org>
+References: <opsd15s018le1n2s@mail.tlt.hu>
+	<1094732295.8900.7.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Martin Josefsson <gandalf@wlug.westbo.se>
-Content-Disposition: inline
-In-Reply-To: <1094724443.8900.2.camel@localhost.localdomain>
+In-Reply-To: <1094732295.8900.7.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,26 +22,22 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 09, 2004 at 12:07:23PM +0200, Martin Josefsson wrote:
+On Thu, 9 Sep 2004, Martin Josefsson wrote:
 
-> On Thu, 2004-09-09 at 01:35, Phil Oester wrote:
-> > The man/-h pages for multiport don't document that you can use
-> > inversion.  This can be confusing, since multiport uses '! --port x'
-> > instead of '--dport ! x' like tcp/udp.
-> > 
-> > This closes bugzilla #143
+>> which looked like:
+>>
+>> iptables -A FORWARD -s $machine/255.255.0.255 -j ACCEPT
+>>
+>>
+>> What I was surprised on is the netmask. Is this a feature or a bug? I mean
+>> this is quite strange netmask for me.
+>
+> It's a feature :)
+> It doesn't make the current code any more complicated.
+> And ther are actually people using it to do weird stuff...
 
-> I believe neither multiport or mport has invert support, they don't
-> complain when you add a inverted rule but the resulting rule won't be
-> inverted so I'm not going to apply this patch.
+Do you mean that one can use arbitrary bitmasks wherever netfilter wants a 
+netmask value?
+So, one might select all IPs with the LSB set with 0.0.0.1/0.0.0.1?
 
-Though, multiport and mport should have invert support, right?
-So you may add this support to your patch, phil. :-)
-
- Herve
-
--- 
- _
-(°=  Hervé Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+ 			Alexey
