@@ -1,13 +1,14 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH] ip_conntrack_irc:parse_dcc should be static
-Date: Wed, 15 Dec 2004 14:56:28 +1100
-Message-ID: <1103082989.8016.2.camel@localhost.localdomain>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: tcp window tracking question
+Date: Wed, 15 Dec 2004 08:51:03 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0412150849450.22202@blackhole.kfki.hu>
+References: <00f901c4e21c$452634f0$0e25fe0a@pysiak>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Linus Torvalds <torvalds@osdl.org>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <00f901c4e21c$452634f0$0e25fe0a@pysiak>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,27 +20,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: ip_conntrack_irc:parse_dcc should be static
-Status: Trivial
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Hi Maciej,
 
-Found by nfsim (-Wmissing-prototypes is your friend).
+On Tue, 14 Dec 2004, Maciej Soltysiak wrote:
 
-Index: linux-2.6.10-rc3-bk6-Netfilter/net/ipv4/netfilter/ip_conntrack_irc.c
-===================================================================
---- linux-2.6.10-rc3-bk6-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_irc.c	2004-12-15 14:37:16.143447512 +1100
-+++ linux-2.6.10-rc3-bk6-Netfilter/net/ipv4/netfilter/ip_conntrack_irc.c	2004-12-15 14:51:38.447357392 +1100
-@@ -65,8 +65,8 @@
- #define DEBUGP(format, args...)
- #endif
- 
--int parse_dcc(char *data, char *data_end, u_int32_t * ip, u_int16_t * port,
--	      char **ad_beg_p, char **ad_end_p)
-+static int parse_dcc(char *data, char *data_end, u_int32_t *ip,
-+		     u_int16_t *port, char **ad_beg_p, char **ad_end_p)
- /* tries to get the ip_addr and port out of a dcc command
-    return value: -1 on failure, 0 on success 
- 	data		pointer to first byte of DCC command data
+> Is the tcp window tracking code in effect only when ip_conntrack is loaded
+> or regardles of ip_conntrack?
 
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Of course the former. It's an enhanced way of TCP connection tracking.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
