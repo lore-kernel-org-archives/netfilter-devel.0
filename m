@@ -1,8 +1,8 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Sven Schuster <schuster.sven@gmx.de>
 Subject: Re: udp portforward on same interface
-Date: Tue, 15 Jul 2003 14:36:18 +0200
+Date: Tue, 15 Jul 2003 15:37:02 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F13F542.4010301@trash.net>
+Message-ID: <3F14037E.8050206@gmx.de>
 References: <060e01c34a32$ad0df860$15d2f181@TheTraveller>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -21,16 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This doesn't belong on netfilter-devel as it's clearly a user question which
-can even be easily answered by looking at the manpage.
 
-Example:
-iptables -t nat -A PREROUTING -i <if> -p udp --dport 78 -j REDIRECT 
---to-ports 98
-iptables -A INPUT -i <if> -p tcp --dport 98 -j ACCEPT
+Hello,
 
-Bye
-Patrick
+first of all this is the the netfilter developing mailing list, maybe
+you try the users mailing list next time?? ;-)
+
+What you want to do can easily be done with the REDIRECT
+target. Try something like
+
+iptables -t nat -A PREROUTING -p udp --dport 78 -j REDIRECT --to-ports 98
+
+Hope this helps ;-)
+
+Sven
+
 
 Amir Zangeneh wrote:
 
