@@ -1,18 +1,18 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [Bug 1764] New: conntrack oops while reading
- /proc/net/ip_conntrack
-Date: Sat, 3 Jan 2004 15:29:21 +1100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: GnomeMeeting STUN
+Date: Sat, 3 Jan 2004 17:43:14 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040103152921.76d4362e.rusty@rustcorp.com.au>
-References: <11020000.1072813876@[10.10.2.4]>
+Message-ID: <20040103164313.GA3483@obroa-skai.de.gnumonks.org>
+References: <1072260947.722.25.camel@golgoth01> <20031224143851.GD941@obroa-skai.de.gnumonks.org> <200401022037.24303.lists@ohlmeier.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, christophe@saout.de,
-	laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
+Cc: Damien Sandras <dsandras@seconix.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Martin J. Bligh" <mbligh@aracnet.com>
-In-Reply-To: <11020000.1072813876@[10.10.2.4]>
+To: Nils Ohlmeier <lists@ohlmeier.de>
+Content-Disposition: inline
+In-Reply-To: <200401022037.24303.lists@ohlmeier.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,70 +23,62 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 30 Dec 2003 11:51:16 -0800
-"Martin J. Bligh" <mbligh@aracnet.com> wrote:
 
-> http://bugme.osdl.org/show_bug.cgi?id=1764
-> 
->            Summary: conntrack oops while reading /proc/net/ip_conntrack
->     Kernel Version: 2.6.0
->             Status: NEW
->           Severity: high
->              Owner: laforge@gnumonks.org
->          Submitter: christophe@saout.de
-...
-> Apparently expect->expectant->helper is NULL in print_expect
-> (net/ipv4/netfilter/ip_conntrack_standalone.c).
+--FL5UXtIhxfXey3p5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Um, Harald, other developers,
+On Fri, Jan 02, 2004 at 08:37:24PM +0100, Nils Ohlmeier wrote:
 
-	Shouldn't list_conntracks do READ_LOCK(&ip_conntrack_expect_tuple_lock) before walking the expect list?
+> > So it seems like linux is too advanced for the tricks that STUN tries to
+> > do.
+>=20
+> Yes, STUN works well if you are sitting behind one of these small hardwar=
+e=20
+> boxes, because the experiences shows that most of them are 'full cone=20
+> NAT' (which means an IP port combination on the NAT box accepts pakcets f=
+rom=20
+> any IP or port combination for this destination and delivers it to the=20
+> private destination).
+> But with netfilter and if i'm not wrong with the BSD's STUN is no help
+> (except that you can detect that you are lost :)
 
-Here's a patch.  Does it do anything?
-Rusty.
--- 
-   there are those who do and those who hang on and you don't see too
-   many doers quoting their contemporaries.  -- Larry McVoy
+fortunately (or unfortunately, depending on your viewpoint) an
+increasing number of those 'small hardware boxes' start to use Linux.
+If you buy recent 802.11g AP/router combo's with builtin switch and
+sometimes even dsl-modem, they are very likely to run linux.
+(linksys,belkin,buffalo, ...)
+> To be able to live just with STUN you had to change Netfilter back to
+> the more "unsecure"  'full cone NAT' as with ipchains. Which will
+> probably rejected by the Netfilter team :)
 
-Name: Grab ip_conntrack_expect_tuple_lock in list_conntracks
-Author: Rusty Russell
-Status: Experimental
+probably ;)
 
-D: http://bugme.osdl.org/show_bug.cgi?id=1764
-D: We're walking the expect list without the ip_conntrack_expect_tuple_lock.
+> Greets
+>   Nils
 
-diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .20891-linux-2.6.1-rc1/include/linux/netfilter_ipv4/ip_conntrack_core.h .20891-linux-2.6.1-rc1.updated/include/linux/netfilter_ipv4/ip_conntrack_core.h
---- .20891-linux-2.6.1-rc1/include/linux/netfilter_ipv4/ip_conntrack_core.h	2003-09-22 10:26:46.000000000 +1000
-+++ .20891-linux-2.6.1-rc1.updated/include/linux/netfilter_ipv4/ip_conntrack_core.h	2004-01-03 15:27:14.000000000 +1100
-@@ -50,5 +50,6 @@ static inline int ip_conntrack_confirm(s
- extern struct list_head *ip_conntrack_hash;
- extern struct list_head ip_conntrack_expect_list;
- DECLARE_RWLOCK_EXTERN(ip_conntrack_lock);
-+DECLARE_RWLOCK_EXTERN(ip_conntrack_expect_tuple_lock);
- #endif /* _IP_CONNTRACK_CORE_H */
- 
-diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .20891-linux-2.6.1-rc1/net/ipv4/netfilter/ip_conntrack_standalone.c .20891-linux-2.6.1-rc1.updated/net/ipv4/netfilter/ip_conntrack_standalone.c
---- .20891-linux-2.6.1-rc1/net/ipv4/netfilter/ip_conntrack_standalone.c	2003-12-18 15:53:34.000000000 +1100
-+++ .20891-linux-2.6.1-rc1.updated/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-01-03 15:23:40.000000000 +1100
-@@ -154,6 +154,7 @@ list_conntracks(char *buffer, char **sta
- 	}
- 
- 	/* Now iterate through expecteds. */
-+	READ_LOCK(&ip_conntrack_expect_tuple_lock);
- 	list_for_each(e, &ip_conntrack_expect_list) {
- 		unsigned int last_len;
- 		struct ip_conntrack_expect *expect
-@@ -164,10 +165,12 @@ list_conntracks(char *buffer, char **sta
- 		len += print_expect(buffer + len, expect);
- 		if (len > length) {
- 			len = last_len;
--			goto finished;
-+			goto finished_expects;
- 		}
- 	}
- 
-+ finished_expects:
-+	READ_UNLOCK(&ip_conntrack_expect_tuple_lock);
-  finished:
- 	READ_UNLOCK(&ip_conntrack_lock);
- 
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--FL5UXtIhxfXey3p5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/9vEhXaXGVTD0i/8RAmWvAJ9r+rBoVZIg/1+KObVuqPsmQp2guQCbBQ4+
+54BYvsACLgMSWxWOUsZ3CTs=
+=OqSX
+-----END PGP SIGNATURE-----
+
+--FL5UXtIhxfXey3p5--
