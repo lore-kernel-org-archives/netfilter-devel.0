@@ -1,16 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Usage of CONNMARK
-Date: Sun, 6 Feb 2005 01:51:38 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0502060136540.22104@filer.marasystems.com>
-References: <42032EC5.4090303@multitech.co.in>
-	<Pine.LNX.4.61.0502041515360.10050@filer.marasystems.com>
-	<42047777.3030102@multitech.co.in>
+From: Pedro Fortuna <pedro.fortuna@gmail.com>
+Subject: Using non-standard ethertype numbers
+Date: Sun, 6 Feb 2005 03:33:41 +0000
+Message-ID: <db95d40c050205193369997278@mail.gmail.com>
+Reply-To: Pedro Fortuna <pedro.fortuna@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	netfilter@lists.netfilter.org
-To: Vinod Chandran <vinod_chandran@multitech.co.in>
-In-Reply-To: <42047777.3030102@multitech.co.in>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,44 +18,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 5 Feb 2005, Vinod Chandran wrote:
+Hello guys. I'll try to make it as short an simple as I can.
 
-> Currently, from the FTP helper if DROP is given, the packets are not getting 
-> dropped since the conntrack entry exists and also since from where the helper 
-> routine is called, there is no check for return value of NF_DROP. Hence when 
-> NF_DROP is returned, inside ip_conntrack_in, I set the conntrack value
->      ct->mark = 1
-> However this CONNMARK value is getting applicable only from the next packet 
-> ownwards.
+I want to develop a kernel module which will be running in two linux
+hosts, connected by a crossover network cable (ethernet). This kernel
+module will intercept a specific type of traffic (as an example, let's
+say FTP packets (encapsulated in DIX frames)), both incomming and
+outgoing, and change the ethertype in the frame header.
 
-I do not follow. Conntract helpers can return NF_DROP to drop the packets, 
-and this will cause the packet to be dropped. This is actively used today 
-by the FTP helper when an partial request is received.
+Outgoing dix frames carrying FTP packets get their ethertype changed
+to a private, non standard ethertype number, just before they leave
+the host (i.e. before they are passed to the network driver). The
+frame is intercepted with the NF_IP_POST_ROUTING hook.
 
->From ip_conntrack_in:
+Incoming dix frames carrying FTP packets are get their ethertype
+changed (at this point, a non standard ethertype number) to the
+standard IPv4 ethertype number (i.e. 0x800), just after they are
+processed by the network driver. The frame is intercepted with the
+NF_IP_PRE_ROUTING hook.
 
-         if (ret != NF_DROP && ct->helper) {
-                 ret = ct->helper->help(*pskb, ct, ctinfo);
- 	[...]
+My doubt is:
+I'm not sure if I will be able to intercept the incoming frames
+because they have a non standard ethertype number. They might get
+dropped before passing through the NF_IP_PRE_ROUTING hook, due to the
+unrecognized ethertype number. Is this true or false?
+If the frame passes the hook before trying to identify the packet
+type, then I'll have no trouble, because my netfilter module changes
+the frame to the original ethertype number, thus making the hole
+process transparent to the TCP/IP stacks running in both hosts.
 
- 	return ret;
-}
+I could explain what the hell I need to this for, but then you would
+have three times more text to read :P I tried to restrict this post to
+a minimum-painless-size.
 
-> If on the other hand, say I try to change the mark value, (*pskb)->nfmark ( I 
-> assume it contains the MARK indicator), and put a rule in the 
-> KEEP_STATE_FORWARD chain to drop packets with the specific mark value, the 
-> kernel is panicing , with a BUG in sched.c. I also get panic if I call 
-> nf_conntrack_put.
-
-Setting the nfmark like this (MARK) should work, and should not panic your 
-system.
-
-In addition, setting the connection mark from helpers called in 
-ip_conntrack_in should be available in all iptables chains.
-
-
-All three of your problems makes no sense to me. All should work (return 
-NF_DROP from helpers, setting the connection mark, setting the nfmark).
-
-Regards
-Henrik
+Regards,
+-Pedro Fortuna
