@@ -1,15 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: KOVACS Krisztian <hidden@balabit.hu>
 Subject: Re: [RFC] CONNMARK getsockopt/setsockopt functionality
-Date: Mon, 24 May 2004 09:31:01 +0200 (CEST)
+Date: Mon, 24 May 2004 09:42:09 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405240929001.15131-100000@blackhole.kfki.hu>
-References: <1085125075.1782.36.camel@nienna.balabit>
+Message-ID: <1085384529.1841.8.camel@nienna.balabit>
+References: <Pine.LNX.4.33.0405240929001.15131-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <1085125075.1782.36.camel@nienna.balabit>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0405240929001.15131-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,28 +21,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-On Fri, 21 May 2004, KOVACS Krisztian wrote:
+  Hi,
 
->   While thinking on problems with traffic control in user-space proxies,
-> we came to the conclusion, that under some conditions manually setting
-> the connmark value of an already established connection would be really
-> useful. (For example, it would be possible to traffic-limit based on
-> outband authentication decisions.)
->
->   I've created a patch for connmark, which registers a getsockopt() and
-> a setsockopt() function for getting/setting the connection mark. The
-> patch is for Linux 2.4.25 + CONNMARK from POM-ng, but theoretically it
-> should apply on any 2.4.x version plus the newest connmark patch.
+2004-05-24, h keltezéssel 09:31-kor Jozsef Kadlecsik ezt írta:
+> >   While thinking on problems with traffic control in user-space proxies,
+> > we came to the conclusion, that under some conditions manually setting
+> > the connmark value of an already established connection would be really
+> > useful. (For example, it would be possible to traffic-limit based on
+> > outband authentication decisions.)
+> >
+> >   I've created a patch for connmark, which registers a getsockopt() and
+> > a setsockopt() function for getting/setting the connection mark. The
+> > patch is for Linux 2.4.25 + CONNMARK from POM-ng, but theoretically it
+> > should apply on any 2.4.x version plus the newest connmark patch.
+> 
+> I believe ctnetlink would be the proper tool to do conntrack manipulation
+> from userspace.
 
-I believe ctnetlink would be the proper tool to do conntrack manipulation
-from userspace.
+  I completely agree. In fact, it was one of the proposed solutions for
+the problem in my initial correspondence with Henrik. However, I don't
+consider ctnetlink ready for prime time (e.g. to be used in a production
+environment), and my patch has a lot smaller footprint than ctnetlink.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+  Of course, ctnetlink will be the proper tool, if it will be stable
+enough for production use. Until then, I think that a simple/working
+solution is better than nothing...
+
+  BTW, what are the plans for Linux 2.7? Will ctnetlink/netfilter-ha and
+pkttables be integrated? (ctnetlink would be especially important...)
+
+-- 
+ Regards,
+   Krisztian KOVACS
