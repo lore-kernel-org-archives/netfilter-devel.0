@@ -1,18 +1,12 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: PPTP conntrack with CONFIG_NETFILTER_DEBUG is broken (was:
-	newnat and patch-o-matic)
-Date: 22 Sep 2002 12:30:51 +0200
+From: Nigel Kukard <nkukard@lbsd.net>
+Subject: netfilter patches
+Date: Sun, 22 Sep 2002 21:52:54 +0200 (SAST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1032690651.9594.13.camel@tux>
-References: <87d6r9jaa4.fsf@sensi.yemanja.net>
+Message-ID: <Pine.LNX.4.33.0209222152080.10139-100000@mail.lbsd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter <netfilter@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?ISO-8859-1?Q?C=E9dric?= Rivard <cedric@yemanja.net>
-In-Reply-To: <87d6r9jaa4.fsf@sensi.yemanja.net>
+To: Netfilter Development List <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +17,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2002-09-20 at 11:11, C=E9dric Rivard wrote:
-> Hi all,
->=20
-> As I've already reported, there is a problem with the PPTP conntrack modu=
-le of pom. It can't be built with the option CONFIG_NETFILTER_DEBUG. And I =
-still receive questions about the first thread I started on this problem bu=
-t without pointing the cause.
-> I hope that everyone is now aware of this issue.
+Hi,
 
-This issue came to my attention in the end of August, I produced a patch
-and I never heard from that person again. The patch is quite ugly but it
-does solve this specific problem. I was waiting for some more input from
-other developers before submitting it to cvs but now I've given up on
-that and I've submitted it. patch-o-matic in cvs now works with
-debugging enabled.
+If anyone is looking for some netfilter patches which add basically all
+the P-O-M stuff... check out   www.lbsd.net 
 
-or you can apply this patch on your kernel after patching with the
-patch-o-matic you are currently using:
+Hope this helps someone  :)
 
-http://www.netfilter.org/~gandalf/patches/ip_conntrack_proto_gre.c-lockfix
 
---=20
-/Martin
+-- 
 
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+
+Nigel Kukard  (Chief Executive Officer)
+Lando Technologies Africa (Pty) Ltd
+nigel@lando.co.za   www.lando.co.za
+Tel: 083 399 5822  Fax: 086 1100036
+Hoheisen Park Bellville,  Cape Town
+National  Internet Service Provider
+
+
+  The best language to use is the language that was designed for
+         what you want to use it for. - Nigel Kukard 1997
+
+
+=====================================================================
+
+Disclaimer
+----------
+The contents of this message and any attachments are intended 
+solely for the addressee's use and may be legally privileged and/or 
+confidential information. This message may not be retained, 
+distributed, copied or used if you are not he addressee of this 
+message. If this message was sent to you in error, please notify 
+the sender immediately by reply e-mail and then destroy the message 
+and any copies thereof.
+
+Opinions, conclusions and other information in this message may be 
+personal to the sender and is not that of Lando Technologies Africa 
+or any of it's subsideries, associated companies or principals and 
+is therefore not endorsed by any of the Lando groups of companies. 
+Due to e-maill communication being insecure, Lando groups of 
+companies do not guarantee confidentiality, security, accuracy or  
+performance of the e-mail. Any liability for viruses is excluded 
+to the fullest extent.
