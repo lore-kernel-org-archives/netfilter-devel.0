@@ -1,18 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Unaligend accesses nulldevname
-Date: Sun, 11 Jan 2004 11:01:37 +0100
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.4.23 masquerading broken?
+Date: Sun, 11 Jan 2004 11:40:37 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040111100137.GH20706@sunbeam.de.gnumonks.org>
-References: <20040107230011.GG23133@tpkurt.garloff.de>
+Message-ID: <40012825.60405@trash.net>
+References: <20031202165653.GJ615@gaast.net> <3FCCCB02.5070203@trash.net> <20040110215954.GC20706@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="k+G3HLlWI7eRTl+h"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Wilmer van der Gaast <lintux@lintux.cx>,
+ linux-kernel@vger.kernel.org,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kurt Garloff <garloff@suse.de>,
-	Linux kernel list <linux-kernel@vger.kernel.org>,
-	netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20040107230011.GG23133@tpkurt.garloff.de>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040110215954.GC20706@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,72 +23,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
 
---k+G3HLlWI7eRTl+h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>This seems to be the same as 
+>http://www.ussg.iu.edu/hypermail/linux/kernel/0312.0/0465.html
+>and https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=144
+>
+>I've committed the proposed fix (from #144) into patch-o-matic/pending.
+>
+>Comments?
+>  
+>
 
-On Thu, Jan 08, 2004 at 12:00:11AM +0100, Kurt Garloff wrote:
-> Hi,
->=20
-> I found an excessive amount of unaligned accesses on my AXP workstation
-> and tracked it down to ip_packet_match() in the ip_tables module.
-> indev and outdev are not properly aligned if set to nulldevname in
-> ipt_do_table().
-> This destroys the benefits of comparing names in units of (long) and
-> on architectures with expensive unaligned accesses (such as ia64 or
-> alpha), it even hurts a lot.
+I don't know if reverting to 2.4.22 is the correct fix, the change was made after this
+mail from Alexey http://marc.theaimsgroup.com/?l=linux-net&m=105915597804604&w=2 ,
+he states that giving out ifindex is a bug. I don't understand the problem yet but I'm
+looking into it.
 
-Thanks for submitting your patch, this is the same bug report as
-https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=3D84
+BTW: Why do we need a route lookup at all ? Couldn't we just use the first address on 
+dev->in_dev->ifa_list ?
 
-> Find attached a patch against 2.6.0. A similar patch is needed for 2.4,
-> also attached.
-
-the fix is already in our patch-o-matic CVS tree, and I'm going to
-submit this to davem together with some other fixes I have pending.
-
-> Looking at ip_packet_match(), I have two more thoughts:
-> * It should not be inlined. It's too large to benefit from inlining,
->   IMHO. (OTOH, it's only called from one place, so it does not
->   really matter.)
-
-That is the idea.  It's just split in two functions to make it more
-readable.  It's never intended to be called from somewhere else.
-
-> * There's a comment about the compiler being able to unroll the 2/4
->   (64/32bit) iter loop which is not completely appropriate: We don't
->   pass -funroll-loops, so gcc does not do it :-(
->   It would be beneficial though.
-
-I'm not a compiler geek.  Thanks for pointing this out, I will do some
-testing and look at the compiler output to see what is happening.
-
-> Regards,
-> --=20
-> Kurt Garloff  <garloff@suse.de>                            Cologne, DE=20
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---k+G3HLlWI7eRTl+h
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFAAR8BXaXGVTD0i/8RAnAuAJ9qhRHsnQQI8azLx5p+I1S3vBKw0wCeKoio
-v2pIw8coqEg5TomqGflYo70=
-=D2yY
------END PGP SIGNATURE-----
-
---k+G3HLlWI7eRTl+h--
+Best regards,
+Patrick
