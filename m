@@ -1,14 +1,16 @@
 From: Laszlo Valko <valko@linux.karinthy.hu>
-Subject: [PATCH] sparc64 compatibility netfilter patches
-Date: Wed, 1 Jan 2003 17:16:54 +0100
+Subject: Re: [PATCH] sparc64 compatibility netfilter patches
+Date: Wed, 1 Jan 2003 21:32:05 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030101171654.B25870@linux.karinthy.hu>
+Message-ID: <20030101213205.A27131@linux.karinthy.hu>
+References: <20030101171654.B25870@linux.karinthy.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="lrZ03NoBR/3+SXJZ"
+Content-Type: multipart/mixed; boundary="pf9I7BMVVzbSWLtt"
 Cc: "David S . Miller" <davem@redhat.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
+In-Reply-To: <20030101171654.B25870@linux.karinthy.hu>; from valko@linux.karinthy.hu on Wed, Jan 01, 2003 at 05:16:54PM +0100
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,52 +22,22 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---lrZ03NoBR/3+SXJZ
+--pf9I7BMVVzbSWLtt
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Hi all!
-
-Here are two patches to make netfilter "more" usable on sparc64
-platforms with 32-bit user-space.
-
-
-The first one is a workaround for the not-so-nice idea of passing
-a user-space pointer in a structure for setsockopt. The patch makes
-the netfilter counters working.
-
-The second one is a workaround for the even-wilder idea of putting
-kernel-only variables (including a pointer) into structures used
-for communication between user-space and kernel-space, whose sizeof()
-is checked at the beginning of the system call. This patch makes
-netfilter module "limit" working.
-
-Please review, comment, etc.
+Improved version follows.
+Both patches had something to improve.
 
 Laszlo
-email: <valko@linux.karinthy.hu>
+e-mail: <valko@linux.karinthy.hu>
 
-
-PS: the first patch is the best I can imagine without changing the way
-of data exchange (maybe putting the counters struct at the end of struct
-ipt_replace, after the entries, with offset pointers like struct ipt_entry
-uses with target_offset and next_offset?), even though it results in
-HORRIBLE amount of copying for EVERY iptables change command.
-The second is an ugly workaround. The correct way would be to rip off
-everything non-user-space from struct ipt_rateinfo, especially these:
-
-        /* Used internally by the kernel */
-        unsigned long prev;
-
-        /* Ugly, ugly fucker. */
-        struct ipt_rateinfo *master;
-
---lrZ03NoBR/3+SXJZ
+--pf9I7BMVVzbSWLtt
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="diff-2.4.20-netfilter-sparc64"
+Content-Disposition: attachment; filename="diff-2.4.20-netfilter-sparc64-2"
 
 --- linux-2.4.20/arch/sparc64/kernel/sys_sparc32.c	2002-12-09 16:50:51.000000000 +0100
-+++ linux-2.4.20-my/arch/sparc64/kernel/sys_sparc32.c	2003-01-01 15:54:56.000000000 +0100
++++ linux-2.4.20-my/arch/sparc64/kernel/sys_sparc32.c	2003-01-01 20:33:05.000000000 +0100
 @@ -50,6 +50,7 @@
  #include <linux/icmpv6.h>
  #include <linux/sysctl.h>
@@ -74,7 +46,7 @@ Content-Disposition: attachment; filename="diff-2.4.20-netfilter-sparc64"
  
  #include <asm/types.h>
  #include <asm/ipc.h>
-@@ -2777,6 +2778,79 @@
+@@ -2777,6 +2778,78 @@
  extern asmlinkage int sys_setsockopt(int fd, int level, int optname,
  				     char *optval, int optlen);
  
@@ -140,10 +112,9 @@ Content-Disposition: attachment; filename="diff-2.4.20-netfilter-sparc64"
 +			     (char *)krepl, kreplsize);
 +	set_fs(old_fs);
 +
-+	if (copy_to_user(counters32, krepl->counters, kcountersize)) {
-+		kfree(krepl);
-+		return -EFAULT;
-+	}
++	if (ret == 0 &&
++		copy_to_user(counters32, krepl->counters, kcountersize))
++			ret = -EFAULT;
 +
 +	kfree(krepl->counters);
 +	kfree(krepl);
@@ -154,7 +125,7 @@ Content-Disposition: attachment; filename="diff-2.4.20-netfilter-sparc64"
  static int do_set_attach_filter(int fd, int level, int optname,
  				char *optval, int optlen)
  {
-@@ -2870,6 +2944,9 @@
+@@ -2870,6 +2943,9 @@
  asmlinkage int sys32_setsockopt(int fd, int level, int optname,
  				char *optval, int optlen)
  {
@@ -165,15 +136,16 @@ Content-Disposition: attachment; filename="diff-2.4.20-netfilter-sparc64"
  		return do_set_attach_filter(fd, level, optname,
  					    optval, optlen);
 
---lrZ03NoBR/3+SXJZ
+--pf9I7BMVVzbSWLtt
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="diff-iptables-1.2.7a-sparc64"
+Content-Disposition: attachment; filename="diff-iptables-1.2.7a-sparc64-2"
 
-diff -Naur iptables-1.2.7a/extensions/Makefile iptables-1.2.7a-my/extensions/Makefile
---- iptables-1.2.7a/extensions/Makefile	2002-08-09 09:44:10.000000000 +0200
-+++ iptables-1.2.7a-my/extensions/Makefile	2003-01-01 16:04:29.000000000 +0100
-@@ -1,5 +1,17 @@
- #! /usr/bin/make
+diff -Naur iptables-1.2.7a/Makefile iptables-1.2.7a-my/Makefile
+--- iptables-1.2.7a/Makefile	2002-08-26 15:04:39.000000000 +0200
++++ iptables-1.2.7a-my/Makefile	2003-01-01 21:16:41.000000000 +0100
+@@ -35,6 +35,18 @@
+ CFLAGS += -DNO_SHARED_LIBS=1
+ endif
  
 +# Sparc64 hack
 +ifeq ($(shell uname -m),sparc64)
@@ -187,12 +159,31 @@ diff -Naur iptables-1.2.7a/extensions/Makefile iptables-1.2.7a-my/extensions/Mak
 +CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
 +endif
 +
- PF_EXT_SLIB:=ah conntrack dscp ecn esp helper icmp length limit mac mark multiport owner pkttype standard state tcp tcpmss tos ttl udp unclean DNAT DSCP ECN LOG MARK MASQUERADE MIRROR REDIRECT REJECT SAME SNAT TCPMSS TOS ULOG
- PF6_EXT_SLIB:=eui64 icmpv6 length limit mac mark multiport owner standard tcp udp LOG MARK
+ ifndef NO_SHARED_LIBS
+ DEPFILES = $(SHARED_LIBS:%.so=%.d)
+ SH_CFLAGS:=$(CFLAGS) -fPIC
+@@ -64,18 +76,6 @@
+ EXTRA_INSTALLS_EXP+=$(DESTDIR)$(BINDIR)/ip6tables-save $(DESTDIR)$(BINDIR)/ip6tables-restore # $(DESTDIR)$(MANDIR)/man8/iptables-restore.8 $(DESTDIR)$(MANDIR)/man8/iptables-save.8 $(DESTDIR)$(MANDIR)/man8/ip6tables-save.8 $(DESTDIR)$(MANDIR)/man8/ip6tables-restore.8
+ endif
  
+-# Sparc64 hack
+-ifeq ($(shell uname -m),sparc64)
+-# The kernel is 64-bit, even though userspace is 32.
+-CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
+-endif
+-
+-# HPPA hack
+-ifeq ($(shell uname -m),parisc64)
+-# The kernel is 64-bit, even though userspace is 32.
+-CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
+-endif
+-
+ ifndef IPT_LIBDIR
+ IPT_LIBDIR:=$(LIBDIR)/iptables
+ endif
 diff -Naur iptables-1.2.7a/extensions/libipt_limit.c iptables-1.2.7a-my/extensions/libipt_limit.c
 --- iptables-1.2.7a/extensions/libipt_limit.c	2002-05-29 15:08:16.000000000 +0200
-+++ iptables-1.2.7a-my/extensions/libipt_limit.c	2003-01-01 16:03:56.000000000 +0100
++++ iptables-1.2.7a-my/extensions/libipt_limit.c	2003-01-01 21:16:25.000000000 +0100
 @@ -13,6 +13,20 @@
  #include <linux/netfilter_ipv4/ip_tables.h>
  #include <linux/netfilter_ipv4/ipt_limit.h>
@@ -214,30 +205,9 @@ diff -Naur iptables-1.2.7a/extensions/libipt_limit.c iptables-1.2.7a-my/extensio
  #define IPT_LIMIT_AVG	"3/hour"
  #define IPT_LIMIT_BURST	5
  
-diff -Naur iptables-1.2.7a/libiptc/Makefile iptables-1.2.7a-my/libiptc/Makefile
---- iptables-1.2.7a/libiptc/Makefile	2001-03-16 14:40:52.000000000 +0100
-+++ iptables-1.2.7a-my/libiptc/Makefile	2003-01-01 16:03:56.000000000 +0100
-@@ -1,5 +1,17 @@
- #! /usr/bin/make
- 
-+# Sparc64 hack
-+ifeq ($(shell uname -m),sparc64)
-+# The kernel is 64-bit, even though userspace is 32.
-+CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
-+endif
-+
-+# HPPA hack
-+ifeq ($(shell uname -m),parisc64)
-+# The kernel is 64-bit, even though userspace is 32.
-+CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
-+endif
-+
- EXTRAS+=libiptc/libiptc.a
- 
- DEVEL_LIBS+=libiptc/libiptc.a
 diff -Naur iptables-1.2.7a/libiptc/libiptc.c iptables-1.2.7a-my/libiptc/libiptc.c
 --- iptables-1.2.7a/libiptc/libiptc.c	2002-05-29 15:08:16.000000000 +0200
-+++ iptables-1.2.7a-my/libiptc/libiptc.c	2003-01-01 16:03:56.000000000 +0100
++++ iptables-1.2.7a-my/libiptc/libiptc.c	2003-01-01 21:16:25.000000000 +0100
 @@ -1690,13 +1690,11 @@
  		/* Kernel will think that pointer should be 64-bits, and get
  		   padding.  So we accomodate here (assumption: alignment of
@@ -253,4 +223,4 @@ diff -Naur iptables-1.2.7a/libiptc/libiptc.c iptables-1.2.7a-my/libiptc/libiptc.
  #endif /* KERNEL_64_USERSPACE_32 */
  
 
---lrZ03NoBR/3+SXJZ--
+--pf9I7BMVVzbSWLtt--
