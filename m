@@ -1,16 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: String match for 2.6?
-Date: Thu, 16 Dec 2004 14:43:22 +0100
-Message-ID: <20041216134322.GJ10165@sunbeam.de.gnumonks.org>
-References: <000401c4d458$00f82710$450aa8c0@hierzo>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] Introducing the Change API
+Date: Thu, 16 Dec 2004 15:34:24 +0000
+Message-ID: <41C1AB00.2040202@eurodev.net>
+References: <41B236F6.9090405@eurodev.net> <41B36E59.5020800@trash.net>
+	<20041216124049.GF10165@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jITzwD3HDGXid3BE"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Udo van den Heuvel <udovdh@xs4all.nl>
-Content-Disposition: inline
-In-Reply-To: <000401c4d458$00f82710$450aa8c0@hierzo>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041216124049.GF10165@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,48 +23,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---jITzwD3HDGXid3BE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Harald Welte wrote:
 
-On Sat, Nov 27, 2004 at 09:06:30AM +0100, Udo van den Heuvel wrote:
-> Hello,
->=20
-> Can anyone here comment on the status of the string match for the 2.6 ker=
-nel
-> series?
+>On Sun, Dec 05, 2004 at 09:23:53PM +0100, Patrick McHardy wrote:
+>
+>  
+>
+>>I think that depends on what we want to do with ip_conntrack once
+>>nf_conntrack is merged. Since I really don't feel like keeping
+>>three codebases in sync (ip_conntrack 2.4 + 2.6 and nf_conntrack),
+>>I would prefer to remove it. If we do this, it doesn't make much
+>>sense to add further features to it. But I'm not sure what Harald's
+>>and Krisztian's plans are for ct_sync, so they might disagree with me.
+>>    
+>>
+>
+>I think we should move to nf_conntrack ASAP.  All new
+>code/features/API's should be developed on top of nf_conntrack.  We
+>really should put ip_conntrack into a maintainance-only mode once
+>nf_conntrack becomes mainline.
+>
 
-The status is that no one submitted a working port yet.  The string
-match is not an official feature of netfilter/iptables, but rather a
-contributed patch.  The core developers are unlikely to spend time on
-it.
+I don't mind about porting both patches to nf_conntrack, as soon as it 
+is pushed forward.
 
-> Kind regards,
-> Udo
+>Actually I only want to do some nf_conntrack vs. ip_conntrack
+>benchmarking, which I never got aroun doing up to now :(  With a little
+>luck, I can do this over the weekend.  If the results are acceptable,
+>nf_conntrack will be submitted maybe as soon as 2.6.11. 
+>
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+ok, looking forward seeing the result of your benchmark.
 
---jITzwD3HDGXid3BE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+>nfnetlink-ctnetlink in it's existing form will not be submitted to
+>mainline.  I'm workin on a new (ctnetlink2) patch, that is
+>template-based and to a certain degree arch/alignment/endian
+>independent.
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+I'm willing to contribute to ctnetlink, actually I wrote the event and 
+change API patches thinking about contibuting to ctnetlink and ct_sync. 
+Please, consider sending me such patch as soon as it gets some kind of 
+shape.
 
-iD8DBQFBwZD6XaXGVTD0i/8RAqMyAJ0QGwHi62gunDsFgVgZervjAJLSNwCgoyD4
-dzzXpC+IJ2s1p6u6MJed0H0=
-=HUV8
------END PGP SIGNATURE-----
+>   If this ctnetlink2 will be submitted upstream, it will at
+>least support nf_conntrack, maybe also ip_conntrack - but not the other
+>way around.
+>  
+>
 
---jITzwD3HDGXid3BE--
+Ok, thanks Harald, this clarifies which are the plans for conntrack 
+stuff in future.
+
+--
+Pablo
