@@ -1,12 +1,13 @@
-From: "Narendra Prabhu. B" <naren@deeproot.co.in>
-Subject: is this a bug or my mistake ?
-Date: Fri, 3 Jan 2003 13:37:16 +0530 (IST)
+From: "=?gb2312?B?s8Lsvw==?=" <buaacst@163.com>
+Subject: a question on skb
+Date: Fri, 3 Jan 2003 20:32:37 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.43.0301031318450.957-100000@abodh.pesit.deeproot.co.in>
+Message-ID: <000f01c2b324$3f1c0270$3d00a8c0@chenwei>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_000C_01C2B367.411F9F30"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,134 +18,80 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
-Hello,
+------=_NextPart_000_000C_01C2B367.411F9F30
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-I am using libiptc library for reading different counters. I am reading
-the counters and logging them for further usage.
+DQpoaSwNCiAgICBJIGFtIGEgc3R1ZGVudCwgSSB0aGluayB0aGF0IHNrYiBoYXMgYWxsIHRoZSBp
+bmZvcm1hdGlvbiB0aGF0IGlzIG5lZWRlZCBmb3Igc2VuZGluZyBhbmQgcmVjZWl2aW5nLlNvIEkg
+Z2V0IHRoZSBza2IgcG9pbnRlciBhdCBORl9JUF9QT1NUX1JPVVRJTkcsIHB1dCBpdCBpbiBhIGNo
+YWluICBvcmdhbml6ZWQgYnkgbXlzZWxmIChJIHVzZSBhIHNwaW5sb2NrX3QgIGxvY2sgdG8gY29u
+dHJvbCB0aGUgYWNjZXNzIG9mIHRoZSBjaGFpbiwgSSBuYW1lZCBpdCBteWxvY2spLCBhbmQgcmV0
+dXJuIE5GX1NUT0xFTi4gDQogIEkgbWFrZSBhICB0cV90aW1lciB0YXNrIHRvIHN0YXJ0IGlwX2Zp
+bmlzaF9vdXRwdXQyKEkgZXhwb3J0IGl0IGZyb20ga2VybmVsKSxpcF9maW5pc2hfb3V0cHV0MiB1
+c2UgdGhlIHNrYiBmcm9tIG15IGNoYWluLkkgY2FuIG1ha2UgZnRwIHJ1biBvayBmb3IgYWxtb3N0
+IDEgaG91ciwgYnV0IHRoZW4gdGhlIHN5c3RlbSB3aWxsIGNhcnNoIHdpdGggdGhpcyBpbmZvcm1h
+dGlvbjoNCg0KICAgICAgICBkczowMDE4ICAgIGVzOjAwMTggICAgc3M6MDAxOA0KICAgICAgICBw
+cm9jZXNzIHN3YXBwZXIocGlkOjAsIHN0YWNrcGFnZSA9IGMwMjY1MDAwKQ0KICAgICAgICBzdGFj
+azogYzAxYTA3ZWEgYzE3M2EwODggLi4uLi4uLi4uLi4NCiAgICAgICAgY2FsbCB0cmFjZTpbPGMw
+MWEwN2VhPl0gICAgWzxjMDFhMTU2ZD5dLi4uLi4uDQogICAgICAgIGNvZGU6IDBmIDBiIDg5IDdj
+IDI0IDA0IGI4IDAzIDAwIDAwIDAwLi4uLi4uDQogICAgICAgIDwwPmtlcm5lbCBwYW5pYzogQWll
+ZSwga2lsbGluZyBpbnRlcnJ1cHQgaGFuZGxlciENCiAgICAgICAgSW4gaW50ZXJydXB0IGhhbmRs
+ZXIgLSBub3Qgc3luY2luZyENCg0KDQogICAgSSB3YW50IHRvIGtub3cgd2h5IEkgY291bnQgcnVu
+IGZvciBzb21lIHRpbWUgYnV0IGNvdWxkIG5vdCBnbyBvbiBmb3IgYSBsb25nIHRpbWUgLiBEb2Vz
+IGl0IHBvc3NpYmxlIHRvIHRyYW5zbWl0IGRhdGEgYnkgdGhlIHdheSBhbmQgaG93IHRvIGRvP3Ro
+YW5rcyB2ZXJ5IG11Y2ghDQogICAgICAgIA0K
 
-When repeatedly(every 120 secs) calling this function I am seeing that,
-its using a lot of memory(not cpu).
+------=_NextPart_000_000C_01C2B367.411F9F30
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-First I have put the code/function that is responsible for memory leakage.
-And followed by a memory debuger(ccmalloc) log.
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
+MC4yNjAwLjAiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8Qk9E
+WSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIGZhY2U9QXJpYWwgc2l6ZT0yPjwvRk9OVD4m
+bmJzcDs8L0RJVj4NCjxESVY+PEZPTlQgZmFjZT1BcmlhbCBzaXplPTI+aGksPC9GT05UPjwvRElW
+Pg0KPERJVj48Rk9OVCBmYWNlPUFyaWFsIHNpemU9Mj4mbmJzcDsmbmJzcDsmbmJzcDsgSSBhbSBh
+IHN0dWRlbnQsIEkgdGhpbmsgdGhhdCBza2IgDQpoYXMgYWxsIHRoZSBpbmZvcm1hdGlvbiB0aGF0
+IGlzIG5lZWRlZCBmb3Igc2VuZGluZyBhbmQgcmVjZWl2aW5nLlNvIEkgZ2V0IHRoZSANCnNrYiBw
+b2ludGVyIGF0IE5GX0lQX1BPU1RfUk9VVElORywgcHV0IGl0IGluIGEmbmJzcDtjaGFpbiZuYnNw
+OyZuYnNwO29yZ2FuaXplZCANCmJ5IG15c2VsZiAoSSB1c2UgYSBzcGlubG9ja190Jm5ic3A7Jm5i
+c3A7bG9jayB0byBjb250cm9sIHRoZSBhY2Nlc3Mgb2YgdGhlIA0KY2hhaW4sIEkgbmFtZWQgaXQg
+bXlsb2NrKSwgYW5kIHJldHVybiBORl9TVE9MRU4uIDwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQg
+ZmFjZT1BcmlhbCBzaXplPTI+Jm5ic3A7IEkgbWFrZSBhJm5ic3A7IHRxX3RpbWVyIHRhc2sgdG8g
+c3RhcnQgDQppcF9maW5pc2hfb3V0cHV0MihJIGV4cG9ydCBpdCBmcm9tIGtlcm5lbCksaXBfZmlu
+aXNoX291dHB1dDIgdXNlIHRoZSBza2IgZnJvbSBteSANCmNoYWluLkkgY2FuIG1ha2UgZnRwIHJ1
+biBvayBmb3IgYWxtb3N0IDEgaG91ciwgYnV0IHRoZW4gdGhlIHN5c3RlbSB3aWxsIGNhcnNoIA0K
+d2l0aCB0aGlzIGluZm9ybWF0aW9uOjwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQgZmFjZT1Bcmlh
+bCBzaXplPTI+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBmYWNlPUFyaWFsIHNpemU9
+Mj4mbmJzcDsmbmJzcDsmbmJzcDsgJm5ic3A7Jm5ic3A7Jm5ic3A7IA0KZHM6MDAxOCZuYnNwOyZu
+YnNwOyZuYnNwOyBlczowMDE4Jm5ic3A7Jm5ic3A7Jm5ic3A7IHNzOjAwMTg8L0ZPTlQ+PC9ESVY+
+DQo8RElWPjxGT05UIGZhY2U9QXJpYWwgc2l6ZT0yPiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyBwcm9jZXNzIA0Kc3dhcHBlcihwaWQ6MCwgc3RhY2twYWdlID0gYzAy
+NjUwMDApPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPUFyaWFsIHNpemU9Mj4mbmJzcDsm
+bmJzcDsmbmJzcDsgJm5ic3A7Jm5ic3A7Jm5ic3A7IHN0YWNrOiANCmMwMWEwN2VhIGMxNzNhMDg4
+IC4uLi4uLi4uLi4uPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPUFyaWFsIHNpemU9Mj4m
+bmJzcDsmbmJzcDsmbmJzcDsgJm5ic3A7Jm5ic3A7Jm5ic3A7IGNhbGwgDQp0cmFjZTpbJmx0O2Mw
+MWEwN2VhJmd0O10mbmJzcDsmbmJzcDsmbmJzcDsgWyZsdDtjMDFhMTU2ZCZndDtdLi4uLi4uPC9G
+T05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPUFyaWFsIHNpemU9Mj4mbmJzcDsmbmJzcDsmbmJz
+cDsgJm5ic3A7Jm5ic3A7Jm5ic3A7IGNvZGU6IDBmIDBiIA0KODkgN2MgMjQgMDQgYjggMDMgMDAg
+MDAgMDAuLi4uLi48L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9QXJpYWwgc2l6ZT0yPiZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyANCiZsdDswJmd0O2tlcm5l
+bCBwYW5pYzogQWllZSwga2lsbGluZyBpbnRlcnJ1cHQgaGFuZGxlciE8L0ZPTlQ+PC9ESVY+DQo8
+RElWPjxGT05UIGZhY2U9QXJpYWwgc2l6ZT0yPiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyBJbiANCmludGVycnVwdCBoYW5kbGVyIC0gbm90IHN5bmNpbmchPC9GT05U
+PjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPUFyaWFsIHNpemU9Mj48L0ZPTlQ+Jm5ic3A7PC9ESVY+
+DQo8RElWPjxGT05UIGZhY2U9QXJpYWwgc2l6ZT0yPjwvRk9OVD4mbmJzcDs8L0RJVj4NCjxESVY+
+PEZPTlQgZmFjZT1BcmlhbCBzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7IEkgd2FudCB0byBrbm93
+IHdoeSBJIGNvdW50IHJ1biANCmZvciBzb21lIHRpbWUgYnV0IGNvdWxkIG5vdCBnbyBvbiBmb3Ig
+YSBsb25nIHRpbWUgLiBEb2VzIGl0IHBvc3NpYmxlIHRvIHRyYW5zbWl0IA0KZGF0YSBieSB0aGUg
+d2F5IGFuZCBob3cgdG8gZG8/dGhhbmtzIHZlcnkgbXVjaCE8L0ZPTlQ+PC9ESVY+DQo8RElWPjxG
+T05UIGZhY2U9QXJpYWwgc2l6ZT0yPiZuYnNwOyZuYnNwOyZuYnNwOyAmbmJzcDsmbmJzcDsmbmJz
+cDsgDQo8L0ZPTlQ+PC9ESVY+PC9CT0RZPjwvSFRNTD4NCg==
 
-<THE_FUNCTION>
-char* read_rules ( const char *chain, iptc_handle_t *hp)
-{
-	const struct ipt_entry  *p_rule, *c_rule ;/*pointers to previous and current rules*/
-
-	char *listed_counters = (char*) malloc(150) ;
-
-	bzero ( listed_counters,150);
-
-	for (c_rule = p_rule = iptc_first_rule (chain,hp);
-					c_rule != NULL ;c_rule = iptc_next_rule(p_rule,hp) ) {
-			sprintf ( listed_counters,"%s %ld ",	listed_counters, c_rule->counters.bcnt);
-			p_rule = c_rule ;
-	}
-
-	return (listed_counters) ;
-/*
- * In the caller function I am freeing the "listed_counters"
- * the functions "iptc_first_rule" and "iptc_next_rule" return "const struct ipt_entry *"
- */
-
-}
-</THE_FUNCTION>
-
-
-<DEBUG_LOG>
-.--------------------------------------------------------------------------.
-|================ ccmalloc-0.3.9 (C) 1997-2001 Armin Biere ================|
-+--------------------------------------------------------------------------+
-| executable       = /home/naren/bridging/new-progs/libiptc/read_counters |
-| startup file     = .ccmalloc                                             |
-| log file         = stderr                                                |
-| start time       = Fri Jan  3 13:24:06 2003                              |
-| operating system = Linux 2.4.19 i686 on abodh                            |
-+--------------------------------------------------------------------------+
-| only-count        = 0            keep-deallocated-data = 0               |
-| check-interval    = 0            check-free-space      = 0               |
-| check-start       = 0            file-info             = 1               |
-| chain-length      = 0            additional-line       = 1               |
-| check-underwrites = 0            print-addresses       = 0               |
-| check-overwrites  = 0            print-on-one-line     = 0               |
-| sort-by-wasted    = 1            sort-by-size          = 1               |
-| # only-log-chain  = 0            continue              = 0               |
-| # dont-log-chain  = 0            statistics            = 0               |
-| debug             = 0            library-chains        = 0               |
-| load-dynlibs      = 0            align-8-byte          = 0               |
-| only-wasting-alloc= 1                                                    |
-`--------------------------------------------------------------------------'
-
-.---------------.
-|ccmalloc report|
-=======================================================
-| total # of|   allocated | deallocated |     garbage |
-+-----------+-------------+-------------+-------------+
-|      bytes|        4192 |           0 |        4192 |
-+-----------+-------------+-------------+-------------+
-|allocations|           8 |           0 |           8 |
-+-----------------------------------------------------+
-| number of checks: 1                                 |
-| number of counts: 8                                 |
-| retrieving function names for addresses ... done.   |
-| reading file info from gdb ... done.                |
-| sorting by number of not reclaimed bytes ... done.  |
-| number of call chains: 2                            |
-| number of ignored call chains: 0                    |
-| number of reported call chains: 2                   |
-| number of internal call chains: 2                   |
-| number of library call chains: 0                    |
-=======================================================
-|
-* 77.1% = 3232 Bytes of garbage allocated in 4 allocations
-|       |
-|       |       0x400cd9d3 in <???>
-|       |
-|       |       0x0804c133 in <main>
-|       |                  at read_counters.c:27
-|       |
-|       |       0x0804c6d5 in <iptc_init>
-|       |
-|       |       0x0804c5b9 in <alloc_handle>
-|       |
-|       `-----> 0x08058e52 in <malloc>
-|                          at src/ccmalloc.cc:41
-|
-* 22.9% = 960 Bytes of garbage allocated in 4 allocations
-|       |
-|       |       0x400cd9d3 in <???>
-|       |
-|       |       0x0804c18e in <main>
-|       |                  at read_counters.c:33
-|       |
-|       |       0x0804cb8b in <iptc_first_chain>
-|       |
-|       |       0x0804c85d in <populate_cache>
-|       |
-|       `-----> 0x08058e52 in <malloc>
-|                          at src/ccmalloc.cc:41
-|
-`------------------------------------------------------
-
-</DEBUG_LOG>
-
-
-Forgive me if this is my mistake and if so please let me know.
-
-Thanks
-
-Bye,
-Narendra.
-
-
-
-In the middle of difficulty..... lies Opportunity. (Albert Einstein)
---------------------------------------------------------------------
-Narendra Prabhu. B             Free Software at its product-ive best.
-DeepRoot Linux                             http://www.deeproot.co.in
-                ---- Server Appliances ----
-             ---- Linux Support and Services ----
--------------------------------------------------------------------
+------=_NextPart_000_000C_01C2B367.411F9F30--
