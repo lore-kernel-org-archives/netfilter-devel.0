@@ -1,13 +1,13 @@
-From: =?ISO-8859-2?Q?Krzysztof_Ol=EAdzki?= <ole@ans.pl>
-Subject: PATCH: add PRE_ROUTING and POST_ROUTING to filter table
-Date: Fri, 10 Jan 2003 14:23:11 +0100 (CET)
+From: "Stefan (metze) Metzmacher" <metze@metzemix.de>
+Subject: [PATCH] add CONFIG_IP_NF_MASQUERADE_LOCAL
+Date: Sat, 11 Jan 2003 19:04:13 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0301101422160.5200-101000@dark.pcgames.pl>
+Message-ID: <5.2.0.9.0.20030111185330.020f4160@post.strato.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/Mixed; BOUNDARY="-842857922-1008661402-1042065228=:32462"
+Content-Type: multipart/mixed;
+	boundary="=====================_6552471==_"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-Content-ID: <Pine.LNX.4.33.0301101422161.5200@dark.pcgames.pl>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,66 +18,127 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+--=====================_6552471==_
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 
----842857922-1008661402-1042065228=:32462
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <Pine.LNX.4.33.0301101422162.5200@dark.pcgames.pl>
+Hi *,
 
-Hello,
+I have patches witch allow the masuerading of local packets.
+Now support for DNAT of local packets are in the kernel.
 
-This patch adds support for NF_IP_PRE_ROUTING and NF_IP_POST_ROUTING for
-filter table.
+But somebody (like me) could need masuerading of local packets.
 
-Now, on linux router, it is possible to block with one rule all traffic
-from specific source or to specific destination. Previously, in such
-situations, two rules were required (one in FORWARD and one in
-INPUT/OUTPUT).
+e.g. I have a squid proxy listen on a specified ip and it should use this 
+ip when connetion to intra net web servers, but when the it should connect 
+to an internet host this ip should be masueraded.
 
-This patch was tested with 2.4.20 and 2.4.50 kernels.
+I running the 2.4 serie with this patch since 2.4.3 and I never had 
+problems with it!
 
-Best regards,
+it would be very,very cool if this could be in the main kernel as well.
+
+I didn't wnat to patch the kernel by myself allways! :-)
+
+I attach two patches one for 2.4.21-pre3 and one for 2.5.56
 
 
-=09=09=09=09Krzysztof Ol=EAdzki
 
----842857922-1008661402-1042065228=:32462
-Content-Type: APPLICATION/OCTET-STREAM; NAME="iptable_filter.patch.gz"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.33.0301082333480.32462@dark.pcgames.pl>
-Content-Description: 
-Content-Disposition: ATTACHMENT; FILENAME="iptable_filter.patch.gz"
+metze
+-----------------------------------------------------------------------------
+Stefan "metze" Metzmacher <metze@metzemix.de> 
+--=====================_6552471==_
+Content-Type: text/plain; charset="us-ascii"
 
-H4sIADENAT4CA+VXbW/aSBD+bP+KUSr1cGwDNi8JJD0lJaSl5QARev2QQz7H
-rGGFsZFf0rxc/vD9iptdY2KCMempOp1U3hZ7Z5595plZe6yqKpSiwC8FvlVy
-qBvdqXqxVqzWSi4JS3R5W2V/bOqExMfD0LxxiBEfFi1hNIugb4VQ0aCsNat6
-U6+DXi7roizLUMy2vyAWaA1mX642K8ex/dkZqLqiaSDjbwPOzkSAQxjNaAD4
-CWcEXRoN8Mk3n4YEPBs6A7ikeGw6yHqqgEkXOILt+TAnvksc0IuV4l2RAXGw
-lre89+l0FkKhJcVwAzNy4M9hFIT3vwAOAXEceAu/UWtmIsCnIvRIxOBFGUHw
-C+27kLgTMoHQA1wZbHpLYC0QzDxvHsDNPXz2H+6DhxB59p2/Jw9zyr3fmwG6
-ei4P6H0Ll/r4FRbehNrUMkOKE+iQiLYw3alDihYjXxJlEd5Q13KiCYFTnqcS
-OkZoMPt1e2rNyOAZpEuDYwbcWFTfTIhNXQKXne6oPTR+P+92LoyP/f7nKygU
-NDg9hd6l0RkY3X7rvGt0ehL8Benzl/3h1/PhxcvTsXn/y0iSRPm1awyGbWOI
-Pp3eB4b3hygLggD42kUk2yJFKQ+CkdtpMuhfjdZcJBQKSodwFZruxPQnQNzQ
-vy+yXEAQ+hFWPWbKCFbTcQUfKboOcqWmVGq8hoWUJfF9z8c8+FMSQjyciPCE
-X5ZcxAmptUIW4XHT1ydLx7QIsPFEVIUMApwfJcF1ZXyC0eVZ1NBimxpguSwY
-I6AuDanpxDUDhsGOJ2Zoiuo7eMT3QVxbB0pGchWoKqIK/BXQB+LZhQwqEm6G
-CsgZFpyKtIZ4hOvNChhDGSeF642sj/OWSpmva2C8h5sOT/8LCvJrBK+j3WsE
-r+UKLr+INrUvxwIGLAsvZRByI5ZfCiQIewLeWoOptMepknJKb999flWu7s8X
-chwxFjD0vnS7Csb+tD79iLhsxIteSgl+8xFineJ3GT2yh4OD+Lt5thx/uOJC
-rGsGVX55lXZMboiMEAxaSRZ5ipGTZMbvzmBk4Cb50CvsRltdjCWJseYwz2iC
-igqft1rtwQhU0FYyJfokBcHvBj9KHODisPtIva7UQT4+UrRqfBvJlwSyJYH/
-QpLnkkmV4k9ZM5AlULyzkh2GMrWHw/6Q6cPyjBk+AlnT6jiwPPOGY4S94TfP
-n4PlLQi2vy7MiE/A9r3Fc6dZtJJOhLcNkRvQqYu9JXVDUWV8WSdaSJ/mvSnG
-zNsJLwrJThOsm1Xgwdy4iWwbDg+XwfyGz1ieG4TJPNIxJuSWYmdySN38eVwy
-Lu5GHLSeBP3E4t4Zh+NZ2Imgc35EsdnuiFimdwbFJvfElWuyDk3TakoDY6tW
-Fa22FVziaXOehrcMeGXheD1OWqvH1XWZ/bLaSlKpwAAv+L32SHnRESvrNrpj
-xM3BunX5DrTVDeu7wTazs4MkXhPWnUwWyHM1bgGk7kN8F2fRk3fTy0Fe6/dj
-YRMh/wXqcwnn6vgj2aav2bzKt6FXTyi8ums15Riru1FW9HJ8X6I2FHx8nDmF
-ssT8px4+F1sOMd1oyZfU+OONwGzescr3yZQG7LmUb9W3Sf1XxhJ7aNmAkzPg
-dLR6BVz1lXAVBgcMLvJdfLgKOdtNkyZ64kqRm0t9k+U+H535wKZQTSSS56Nt
-+5Sb4j/4991mvxEAAA==
----842857922-1008661402-1042065228=:32462--
+diff -Npur --exclude=CVS --exclude=*.bak --exclude=*.o --exclude=*.po --exclude=.#* linux-2.4.21-pre3/Documentation/Configure.help linux-2.4.21-pre3-MX/Documentation/Configure.help
+--- linux-2.4.21-pre3/Documentation/Configure.help	Sat Jan 11 18:44:33 2003
++++ linux-2.4.21-pre3-MX/Documentation/Configure.help	Sat Jan 11 18:29:48 2003
+@@ -2758,6 +2758,16 @@ CONFIG_IP_NF_TARGET_MASQUERADE
+   If you want to compile it as a module, say M here and read
+   <file:Documentation/modules.txt>.  If unsure, say `N'.
+ 
++Local MASQUERADE support
++CONFIG_IP_NF_MASQUERADE_LOCAL
++  This option enables support for MASQUERADE of 
++  locally originated connections. 
++  
++  Enable this if you need to use masquerading on connections
++  originating from local processes on the nat box itself.
++
++  If unsure, say 'N'.
++
+ Basic SNMP-ALG support
+ CONFIG_IP_NF_NAT_SNMP_BASIC
+ 
+diff -Npur --exclude=CVS --exclude=*.bak --exclude=*.o --exclude=*.po --exclude=.#* linux-2.4.21-pre3/net/ipv4/netfilter/Config.in linux-2.4.21-pre3-MX/net/ipv4/netfilter/Config.in
+--- linux-2.4.21-pre3/net/ipv4/netfilter/Config.in	Fri Nov 29 00:53:15 2002
++++ linux-2.4.21-pre3-MX/net/ipv4/netfilter/Config.in	Sat Jan 11 18:21:14 2003
+@@ -55,6 +55,9 @@ if [ "$CONFIG_IP_NF_IPTABLES" != "n" ]; 
+     if [ "$CONFIG_IP_NF_NAT" != "n" ]; then
+       define_bool CONFIG_IP_NF_NAT_NEEDED y
+       dep_tristate '    MASQUERADE target support' CONFIG_IP_NF_TARGET_MASQUERADE $CONFIG_IP_NF_NAT
++      if [ "$CONFIG_IP_NF_TARGET_MASQUERADE" != "n" ]; then
++        bool '      MASQUERADE of local connections (READ HELP)' CONFIG_IP_NF_MASQUERADE_LOCAL $CONFIG_IP_NF_TARGET_MASQUERADE
++      fi
+       dep_tristate '    REDIRECT target support' CONFIG_IP_NF_TARGET_REDIRECT $CONFIG_IP_NF_NAT
+       bool '    NAT of local connections (READ HELP)' CONFIG_IP_NF_NAT_LOCAL
+       if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+diff -Npur --exclude=CVS --exclude=*.bak --exclude=*.o --exclude=*.po --exclude=.#* linux-2.4.21-pre3/net/ipv4/netfilter/ipt_MASQUERADE.c linux-2.4.21-pre3-MX/net/ipv4/netfilter/ipt_MASQUERADE.c
+--- linux-2.4.21-pre3/net/ipv4/netfilter/ipt_MASQUERADE.c	Sun Sep 30 21:26:08 2001
++++ linux-2.4.21-pre3-MX/net/ipv4/netfilter/ipt_MASQUERADE.c	Sat Jan 11 18:03:34 2003
+@@ -73,10 +73,10 @@ masquerade_target(struct sk_buff **pskb,
+ 
+ 	IP_NF_ASSERT(hooknum == NF_IP_POST_ROUTING);
+ 
+-	/* FIXME: For the moment, don't do local packets, breaks
+-	   testsuite for 2.3.49 --RR */
++#ifndef CONFIG_IP_NF_MASQUERADE_LOCAL
+ 	if ((*pskb)->sk)
+ 		return NF_ACCEPT;
++#endif /* CONFIG_IP_NF_MASQUERADE_LOCAL */
+ 
+ 	ct = ip_conntrack_get(*pskb, &ctinfo);
+ 	IP_NF_ASSERT(ct && (ctinfo == IP_CT_NEW
+
+--=====================_6552471==_
+Content-Type: text/plain; charset="us-ascii"
+
+diff -Npur linux-2.5.56/net/ipv4/netfilter/Kconfig linux-2.5.56-MX/net/ipv4/netfilter/Kconfig
+--- linux-2.5.56/net/ipv4/netfilter/Kconfig	Fri Jan 10 21:12:16 2003
++++ linux-2.5.56-MX/net/ipv4/netfilter/Kconfig	Sat Jan 11 18:39:40 2003
+@@ -316,6 +316,18 @@ config IP_NF_TARGET_MASQUERADE
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
+ 
++config IP_NF_MASQUERADE_LOCAL
++	bool "MASQUERADE of local connections (READ HELP)"
++	depends on IP_NF_TARGET_MASQUERADE
++	help
++	  This option enables support for MASQUERADE of 
++	  locally originated connections. 
++	  
++	  Enable this if you need to use masquerading on connections
++	  originating from local processes on the nat box itself.
++
++	  If unsure, say 'N'.
++
+ config IP_NF_TARGET_REDIRECT
+ 	tristate "REDIRECT target support"
+ 	depends on IP_NF_NAT
+diff -Npur linux-2.5.56/net/ipv4/netfilter/ipt_MASQUERADE.c linux-2.5.56-MX/net/ipv4/netfilter/ipt_MASQUERADE.c
+--- linux-2.5.56/net/ipv4/netfilter/ipt_MASQUERADE.c	Fri Jan 10 21:11:57 2003
++++ linux-2.5.56-MX/net/ipv4/netfilter/ipt_MASQUERADE.c	Sat Jan 11 18:36:03 2003
+@@ -72,10 +72,10 @@ masquerade_target(struct sk_buff **pskb,
+ 
+ 	IP_NF_ASSERT(hooknum == NF_IP_POST_ROUTING);
+ 
+-	/* FIXME: For the moment, don't do local packets, breaks
+-	   testsuite for 2.3.49 --RR */
++#ifndef CONFIG_IP_NF_MASQUERADE_LOCAL
+ 	if ((*pskb)->sk)
+ 		return NF_ACCEPT;
++#endif /* CONFIG_IP_NF_MASQUERADE_LOCAL */
+ 
+ 	ct = ip_conntrack_get(*pskb, &ctinfo);
+ 	IP_NF_ASSERT(ct && (ctinfo == IP_CT_NEW
+
+--=====================_6552471==_--
