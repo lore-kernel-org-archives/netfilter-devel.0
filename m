@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 17/19]: Introduce skb_header_pointer() to dst match
-Date: Mon, 25 Oct 2004 02:50:05 +0200
+Subject: [PATCH 2.6 18/19]: Introduce skb_header_pointer() to hbh match
+Date: Mon, 25 Oct 2004 02:50:08 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C4DBD.8090000@trash.net>
+Message-ID: <417C4DC0.8030509@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060302010207080905040509"
+Content-Type: multipart/mixed; boundary="------------030208070006010505040606"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,40 +19,40 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060302010207080905040509
+--------------030208070006010505040606
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Convert ip6t_dst to skb_header_pointer.
+Convert ip6t_hbh to skb_header_pointer.
 
 
 
---------------060302010207080905040509
+--------------030208070006010505040606
 Content-Type: text/x-patch;
- name="17.diff"
+ name="18.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="17.diff"
+ filename="18.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/10/25 00:45:22+02:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Introduce skb_header_pointer() to dst match
+#   2004/10/25 00:46:55+02:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: Introduce skb_header_pointer() to hbh match
 #   
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv6/netfilter/ip6t_dst.c
-#   2004/10/25 00:45:16+02:00 yasuyuki.kozakai@toshiba.co.jp +30 -20
-#   [NETFILTER]: Introduce skb_header_pointer() to dst match
+# net/ipv6/netfilter/ip6t_hbh.c
+#   2004/10/25 00:46:48+02:00 yasuyuki.kozakai@toshiba.co.jp +30 -20
+#   [NETFILTER]: Introduce skb_header_pointer() to hbh match
 #   
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
---- a/net/ipv6/netfilter/ip6t_dst.c	2004-10-25 01:13:57 +02:00
-+++ b/net/ipv6/netfilter/ip6t_dst.c	2004-10-25 01:13:57 +02:00
+diff -Nru a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+--- a/net/ipv6/netfilter/ip6t_hbh.c	2004-10-25 01:14:02 +02:00
++++ b/net/ipv6/netfilter/ip6t_hbh.c	2004-10-25 01:14:02 +02:00
 @@ -60,7 +60,7 @@
        unsigned int protoff,
        int *hotdrop)
@@ -187,4 +187,4 @@ diff -Nru a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
  				DEBUGP("Pad1\n");
  				optlen = 1;
 
---------------060302010207080905040509--
+--------------030208070006010505040606--
