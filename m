@@ -1,16 +1,13 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Memory Leaks in the iptc libs
-Date: 19 Jun 2003 07:13:39 +0200
+From: Chris Rankin <cj.rankin@ntlworld.com>
+Subject: Connection tracking problem in 2.4.21-UP?
+Date: Wed, 18 Jun 2003 22:56:21 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1055999618.3200.100.camel@tux.rsn.bth.se>
-References: <5.2.0.9.0.20030618212603.00a813e8@wheresmymailserver.com>
+Message-ID: <200306182156.h5ILuLqK001640@twopit.underworld>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@westboro.org
-In-Reply-To: <5.2.0.9.0.20030618212603.00a813e8@wheresmymailserver.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,18 +18,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2003-06-19 at 03:48, netfilter@westboro.org wrote:
-> I have written a program - loosely based on iptables that maintains rules 
-> under RedHat 9.0.  I am seeing a memory leak - presumably in the kernel and 
-> am looking to see if anyone can point me in the right direction.  I can run 
-> 67,000 iterations of the program and my memory space is not increasing - 
-> but the overall memory usage of the machine seams to have gone up 60-70 
-> megabytes.  IE even after I kill my process the memory is up.  For this 
-> test I was not increasing the number of rules but deleting one then adding 
-> one. This program is meant to be a long running daemon but if the 
-> underlying libs leak leak memory that is not part of my process I have issues.
+Hi,
 
-Have you tried the cvs version?
+Ever since switching to 2.4.21, I am noticing that my firewall has
+started to reject packets from
 
--- 
-/Martin
+http://news.bbc.co.uk
+
+I have the following rules in my firewall (among others):
+
+--match state --state RELATED,ESTABLISHED --jump ACCEPT
+--protocol tcp --jump LOG --log-level info
+
+and under 2.4.20, these worked OK. The rejected packets start being
+logged after a few minutes of surfing, and have "ACK SYN" flags set
+as if they should be part of an existing connection.
+
+Does anyone else see this?
+Cheers,
+Chris
