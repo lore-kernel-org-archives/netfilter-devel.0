@@ -1,12 +1,16 @@
-From: Luca Raggi <llr@raggi.org>
-Subject: SNAT & default route
-Date: Sun, 22 Jun 2003 23:19:16 -0700
+From: Filip Sneppe <filip.sneppe@cronos.be>
+Subject: Re: How to create a .so file
+Date: 23 Jun 2003 11:17:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E19UKfY-00043o-00@raggi.org>
+Message-ID: <1056359879.712.6.camel@xbox>
+References: <1907516dc8.16dc819075@teleline.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+To: "ISLERO77@telefonica.net" <ISLERO77@telefonica.net>
+In-Reply-To: <1907516dc8.16dc819075@teleline.es>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,41 +21,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi;
+On Mon, 2003-06-23 at 02:59, ISLERO77@telefonica.net wrote:
+> 
+> 	Hi, 
+>  
+> 	When I try to use the mport module, I receive this message: 
+>  
+> iptables v1.2.5: Couldn't load match `mport':/usr/lib/iptables/libipt_mport.so: 
+> cannot open shared object file: No such file or directory 
+>  
+> Try `iptables -h' or 'iptables --help' for more information. 
+>  
+> 	How can I create this .so file? 
+>  
+> 	Regards, 
+>  
+> 	Juan. 
 
-I'm trying to do source NAT and multiple-provider outbound load balancing
-at the same time, and while everything works with respect to incoming
-packets, I can't seem to get outbound packets out through the right
-device/gateway.
+Hi Juan,
 
-I tried the following approaches:
+You've patched your kernel with the mport match, but you didn't
+recompile your iptables userspace application. Download the
+source tarball and compile it with the KERNEL_DIR variable
+pointing to the kernel source directory.
 
-- Using MARK, CONNMARK, and fwmark to select an iproute2 table with the
-  right default gateway. While the marks are set correctly (for both 
-packet
-  N=1 and packets N>=2), in the end the routing decision is apparently
-  discarded, and the main default is used anyways (for all values of N.)
-  This only happens for forwarded/SNAT'ed packets, however. Locally
-  originating packets and non-SNAT'ed forwarded packets get routed
-  correctly (via "ip rule from"'s that point to the same tables that the
-  higher-priority "ip rule fwmark"'s point to.)
-
-- Using SMASQ instead of SNAT. Here, again, the device indicated with
-  --via-dev doesn't get used after all, and the main default is used
-  instead. This is rather perplexing, since being able to choose the
-  output device is SMASQ's raison d'etre.
-
-- Using the ROUTE target in various places to try to force the correct
-  behavior. Unfortunately, trying to ROUTE before SNAT'ing bypasses the
-  SNAT'ing, and ROUTE'ing after the SNAT'ing is apparently impossible,
-  since there's no chain after the nat/POSTROUTING chain in which to place
-  the ROUTE rule.
-
-Can anyone offer a hint as to what I may be running into here? Any 
-pointers
-as to where to look in the kernel source (2.4.21) would also be helpful.
-
-Thanks!
+Also, watch out for /sbin/iptables & /usr/lib/iptables/...  vs.
+/usr/local/sbin/iptables & /usr/local/lib/iptables/...
+mismatches when installing the newer iptables version.
 
 Regards,
-Luca Raggi
+Filip
