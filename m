@@ -1,11 +1,10 @@
-From: =?ISO-8859-1?Q?S=E9rgio_Bernardino?= <sergio.bernardino@gmail.com>
-Subject: LibIPQ issue
-Date: Mon, 7 Mar 2005 12:51:40 +0000
-Message-ID: <e54bc1880503070451419fc57@mail.gmail.com>
-Reply-To: =?ISO-8859-1?Q?S=E9rgio_Bernardino?= <sergio.bernardino@gmail.com>
+From: Justin Schoeman <justin@expertron.co.za>
+Subject: Possible 'destroy' paths for conntracks?
+Date: Mon, 07 Mar 2005 11:32:22 +0200
+Message-ID: <422C1FA6.5030701@expertron.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,46 +17,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Greetings to all.
-I have a small problem in regards to libipq and the effects of
-altering packets in userspace. I was wondering if anyone could help me
-clear the issue. Here's the situation:
-Consider three machines: A, B and C. They are located in a LAN. Now, i
-sent a packet from A to B. On the machine B i have the following
-iptables rule:
+[I am not on the list, so please CC me any answers.]
 
-iptables -t mangle -A PREROUTING -p ip -j QUEUE
+Hi all,
 
-Inside the program i created to deal with the packets i queue into
-userspace i change the destination address on the IP header to point
-to the machine C and ACCEPT the packet with all the changes. Now, as
-far as i can tell and for what i've gathered from reading this,
+I am trying to locate a memory leak, either induced by, or agravated by 
+the l7-filter.
 
-http://iptables-tutorial.frozentux.net/chunkyhtml/traversingoftables.html=
-=20
+Using the slab debugger, I see that the memory that is leaking are the 
+app_data and/or app_proto fields that are kmalloc'ed in the 'match' method.
 
-I'm changing the packet before the routing decision, hence, it should
-continue to traverse the network and reach machine C instead of
-"staying" on machine B. The thing is, nothing happens. I'm sure the
-packet is valid, and that i recalculate the checksum correctly and
-such since i've tested it several times. In fact, in the case where i
-have the following iptables rule:
+These are then (supposed to be) kfree'ed in the destroy_conntrack 
+function, but they are apparently not destroyed, as even after most 
+active connections have closed/timed out (/proc/net/ip_conntrack is 
+practically empty), there are still thousands of these kmalloced memory 
+regions left.
 
-iptables -t filter -A OUTPUT -p ip -j QUEUE
+At the moment, I am assuming that there are multiple possible paths for 
+a conntrack to be destroyed, and l7-filter is just missing some.  Is 
+this true?  If so, what are all the possible destructors, or is there 
+one single (better) place to clean up per-conntrack specific memory?
 
-I can alter the destination address of the outgoing packet (for
-example, a packet that goes from A to B becomes a packet that goes
-from A to A, a localhost packet), and it all works fine.
-I seems like i'm doing something wrong but i can't quite figure out
-what. Any ideas?
-Thank you.
---=20
-S=E9rgio Bernardino
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-"The Dragon awakens in the darkness
-with a frozen heart he roars.
-If you are close, the dragon sleeps
-And when the wings appear before him
-people's dreams will fill the sky..."
+Thanks,
+Justin
