@@ -1,18 +1,17 @@
-From: Netfilter Core Team <coreteam@netfilter.org>
-Subject: [ANNOUNCE] Release of iptables-1.2.8
-Date: Sun, 13 Apr 2003 17:43:20 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: patch-o-matic updated
+Date: Sun, 13 Apr 2003 18:17:09 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030413154320.GS1922@sunbeam.de.gnumonks.org>
-Reply-To: coreteam@netfilter.org
+Message-ID: <20030413161709.GU1922@sunbeam.de.gnumonks.org>
+References: <1049730816.26440.150.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Vy1A5eXR7jld12ZH"
-Cc: lwn@lwn.net
+	protocol="application/pgp-signature"; boundary="vIXBmblrD40XNCy4"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
 Content-Disposition: inline
+In-Reply-To: <1049730816.26440.150.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,46 +23,43 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Vy1A5eXR7jld12ZH
-Content-Type: multipart/mixed; boundary="N/GrjenRD+RJfyz+"
-Content-Disposition: inline
-
-
---N/GrjenRD+RJfyz+
+--vIXBmblrD40XNCy4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Mon, Apr 07, 2003 at 05:53:36PM +0200, Martin Josefsson wrote:
+> Hi all,
+>=20
+> Now patch-o-matic has support for dependencies thanks to Jozsef,
+> great work!
+>=20
+>=20
+> Modifications I've done:
+> [..]
 
-The netfilter coreteam proudly presents:
+thanks a lot.
 
-	iptables version 1.2.8:
+However, before we do more and more of this complicated (and IMHO evil)
+shell scripting: is anybody considering a clean reimplementation in
+perl?
 
-Version 1.2.8 is a maintainance release, containing dozens of small
-bugfixes that have accumulated over the last months since 1.2.7a was
-released in August 2002.
+> All changes are in cvs and they _seem_ to work just fine. Can some
+> people please grab p-o-m from cvs and try applying all the patches you
+> usually use and report success or failure to me?
 
-The ChangeLog is attached to this mail.
+I'm planning to release a new version of the patch-o-matic package soon.
+Please inform me if there are any known problems with your changes.
 
-Version 1.2.8 can be obtained from:
+> I've started working a little on a script to test p-o-m and report any
+> failures with diffrent patch combinations. I have the easy stuff
+> finished, will work a bit more on it before I release it.
 
-	http://www.netfilter.org/files/iptables-1.2.8.tar.bz2
-	ftp://ftp.netfilter.org/pub/iptables/iptables-1.2.8.tar.bz2
+great.  I hope we then can also test if the p-o-m applies against a
+given set of kernel versions (i.e. 2.4.18 to 2.4.20-pre7) in an
+automatic manner.
 
-Please note that since iptables-1.2.7 patch-o-matic is no longer part of
-iptables, but distributed as a seperate package.  You can obtain the
-latest release and daily CVS snapshots from:
-
-	ftp://ftp.netfilter.org/pub/patch-o-matic/
-=09
-More information can be found at the netfilter/iptables project homepage,
-available at:
-
-	http://www.netfilter.org/
-	http://www.iptables.org/
-
-Happy firewalling,
+> /Martin
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -75,102 +71,7 @@ Happy firewalling,
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---N/GrjenRD+RJfyz+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-iptables-1.2.8.txt"
-
-iptables v1.2.8 Changelog
-======================================================================
-This version requires kernel >= 2.4.4
-This version recommends kernel >= 2.4.18
-
-Bugs Fixed from 1.2.7a:
-
-- fix ip6tables-save function of 'length' match
-	[ Gerry Skerbitz ]
-- fix ip6tables-save function of 'mac' match
-	[ Kristian Gronfeldt Sorensen ]
-- fix iptables-save function of 'ULOG' target
-	[ Jimmy Hedman ]
-- fix iptables-save function of 'conntrack' match
-	[ Lutz Pressler ]
-- fix iptables-save function of 'length' match
-	[ Gerry Skerbitz ]
-- fix iptables-save function of 'mac' match
-	[ Kristian Gronfeldt Sorense ]
-- fix iptables-save function of 'mark' match
-	[ Harald Welte ]
-- fix iptables-save function of 'owner' match
-	[ Costa Tsaousis ]
-- fix iptables-save function of 'pool' match
-	[ Oskar Berggren ]
-- fix iptables-save function of 'tcpmss' match
-	[ Michael Schwendt ]
-- fix iptables-save function of 'tos' match
-	[ Harald Welte ]
-- fix save/print function of 'connmark' match
-	[ Harald Welte ]
-- fix error message when invalid TCP flag is specified with 'tcp' match
-	[ Aaron Sethman ]
-
-Changes from 1.2.7a:
-
-- updated version of the ROUTE target
-	[ Cedric de Launois ]
-- updated version of the 'recent' match
-	[ Stephen Frost ]
-- update the RPC conntrack match, extend it to support filtering on procedures
-	[ Ian (Larry) Latter ]
-- add support for hexstrings to the 'string' match
-	[ Michael Rash ]
-- have iptables-restore print the line number in case of an error
-	[ Illes Marci ]
-- big iptables.8 manpage update
-	[ Herve Eychenne ]
-- print loglevel human-readable in ip6tables 'LOG' target
-	[ Michael Schwendt ]
-- print loglevel human-readable in 'LOG' target
-	[ Michael Schwendt ]
-- remove bogus code from 'ecn' match
-	[ Stephane Ouellette ]
-- be more specific in help message of 'helper' match
-	[ Herve Eychenne ]
-- fix semantic problem that '-p icmp -m icmp' was matching icmp type 0 instead
-  of 'any'
-	[ Harald Welte ]
-- fix iptables rename-chain option
-	[ Maciej Soltysiak ]
-- remove libipulog from iptables since it is distributed with ulogd
-	[ Harald Welte ]
-- support new ip6tables 'HL' target
-	[ Maciej Soltysiak ]
-- support new ip6tables 'condition' match
-	[ Stephane Ouellette ]
-- support new ip6tables 'fuzzy' match
-	[ Maciej Soltysiak ]
-- support new ip6tables 'hoplimit' match
-	[ Maciej Soltysiak ]
-- support new iptables 'CLASSIFY' target
-	[ unknown ]
-- support new iptables TARPIT target
-	[ Aaron Hopkins ]
-- support new iptables 'condition' match
-	[ Stephane Ouellette ]
-- support new iptables 'fuzzy' match
-	[ Hime Junior ]
-- support new iptables 'physdev' match (for 2.5.x bridging)
-	[ Bart de Schumyer ]
-- support new iptables 'u32' match (based on u32 tc filter)
-	[ Don Cohen ]
-
-Please note: As of version 1.2.7a, patch-o-matic is now no longer part of
-iptables but rather distributed as a seperate package
-(ftp://ftp.netfilter.org/pub/patch-o-matic/)
-
-
---N/GrjenRD+RJfyz+--
-
---Vy1A5eXR7jld12ZH
+--vIXBmblrD40XNCy4
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -178,9 +79,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+mYWYNfqJzMqajVsRAk+dAJ40Vlu/EeyM52FE7pwTQ+AXKbEDzwCfXrIJ
-uG+24Hhs6NsN8GMUqgWE81A=
-=V5QA
+iD8DBQE+mY2FXaXGVTD0i/8RArtWAJkBCgCtb13jkfIsCCKe5/0qrkTbwwCgnaTu
+0ztkoUqhodB0L6gmg6f7ZEA=
+=QqTW
 -----END PGP SIGNATURE-----
 
---Vy1A5eXR7jld12ZH--
+--vIXBmblrD40XNCy4--
