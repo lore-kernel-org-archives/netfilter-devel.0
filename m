@@ -1,19 +1,15 @@
-From: Tom Eastep <teastep@shorewall.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: NAT before IPsec with 2.6
-Date: Fri, 23 Jan 2004 07:51:40 -0800
+Date: Fri, 23 Jan 2004 16:56:54 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401230751.40618.teastep@shorewall.net>
-References: <Pine.LNX.4.44.0401231521350.13626-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0401231655030.16986-100000@filer.marasystems.com>
+References: <4011325F.6030308@suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>,
-	Michal Ludvig <mludvig@suse.cz>
-In-Reply-To: <Pine.LNX.4.44.0401231521350.13626-100000@filer.marasystems.com>
-Content-Disposition: inline
+To: Michal Ludvig <mludvig@suse.cz>
+In-Reply-To: <4011325F.6030308@suse.cz>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,27 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 23 January 2004 06:24 am, Henrik Nordstrom wrote:
-> On Fri, 23 Jan 2004, Michal Ludvig wrote:
-> > I.e. the postrouting on the unencrypted packet is really called right
-> > before it gets encrypted. And the encrypted packet then hits the
-> > POSTROUTING again, but it's already a different packet, actually.
->
-> My issue is with packets not destinated for an IPSec tunnel.. from what I
-> read your patch these will hit POSTROUTING twice. But maybe I misread your
-> patch?
+On Fri, 23 Jan 2004, Michal Ludvig wrote:
 
-I'm concerned that passing the unencrypted packet through POSTROUTING 
-apparently makes it impossible for firewall rules to enforce encryption to a 
-remote host or network.
+> Yes, that's true. But how to solve it? The best would be to skip the 
+> first POSTROUTING if the packet won't be encapsulated. But we can't know 
+> whether or not it will go to IPsec until we perform NAT on it.
 
-It's my opinion that when the ipsec<n> devices where eliminated, the baby got 
-thrown out with the bath water.
+As I said the hook needs to be just before the packet is about to enter 
+IPSec.
 
-My $.02...
+Any decisions on what to IPSec or not needs to be based on other 
+information than NAT, i.e. via nfmark routing or similar.
 
--Tom
--- 
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
+Regards
+Henrik
