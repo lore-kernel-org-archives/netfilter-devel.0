@@ -1,16 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: SNAT table!?
-Date: Thu, 24 Jun 2004 19:36:49 +0200 (CEST)
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: How to make conntrack ignore packets on certain interfaces?
+Date: Fri, 25 Jun 2004 10:07:18 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406241936060.24475-100000@filer.marasystems.com>
-References: <20040624133247.M60452@linkexpress.com.br>
+Message-ID: <40DB6CB6.3080307@snapgear.com>
+References: <BAY22-F9OxHp2sdp2Mn0009ff98@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?ISO-8859-1?Q?Daniel_Corr=EAa_de_A?=zevedo <nielca@linkexpress.com.br>
-In-Reply-To: <20040624133247.M60452@linkexpress.com.br>
+To: Colin Paton <cozzarp@hotmail.com>
+In-Reply-To: <BAY22-F9OxHp2sdp2Mn0009ff98@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 24 Jun 2004, Daniel Corr=EAa de Azevedo wrote:
+Colin Paton wrote:
+> - Register a higher-priority netfilter hook which is called before 
+> conntrack_in() - this somehow(?!) causes the packet to jump over netfilter. 
+> I'm not sure if 'jumping' over netfilter hooks is possible however.
+> - Tell the conntrack code (somehow) to ignore packet coming on eth1.6. While 
+> it seems that iptables can read the connection tracking state I don't think 
+> it can alter it.
 
-> I need to find where do Iptables/netfilter save information about in/ou=
-t=20
-> traffic SNAT, once it has to associate to who is talking to who. What I=
- mean=20
-> to ask is if is there any file like /proc/net/ip_conntrack (for connect=
-ion=20
-> traking) for SNAT?
+The raw patch in pom-ng will let you do this.  It adds a raw table
+that is higher priority then conntrack, and a NOTRACK target which
+tells conntrack to ignore packets.
 
-The information is there.
-
-> How are timeouts managed?
-
-The normal connection timeouts applies. NAT does not modify timeouts in=20
-any manner.
-
-Regards
-Henrik
+-- 
+Philip Craig - SnapGear, A CyberGuard Company - http://www.SnapGear.com
