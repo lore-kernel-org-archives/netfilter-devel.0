@@ -1,40 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's
- brain broke!)
-Date: Thu, 15 Jan 2004 12:58:33 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40068069.60108@trash.net>
-References: <Pine.LNX.4.44.0401150759480.11137-100000@filer.marasystems.com>
+From: Ville Nuorvala <vnuorval@tcs.hut.fi>
+Subject: Re: [PATCH|RFC] IPv6 netfilter: a module for complete proxy ND
+ support
+Date: Thu, 15 Jan 2004 15:00:24 +0200 (EET)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <Pine.LNX.4.58.0401141726490.24125@rhea.tcs.hut.fi>
+References: <Pine.LNX.4.58.0401141250470.24125@rhea.tcs.hut.fi>
+ <20040114.210427.104284595.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0401150759480.11137-100000@filer.marasystems.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: TEXT/PLAIN; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org, davem@redhat.com, netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
+In-Reply-To: <20040114.210427.104284595.yoshfuji@linux-ipv6.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
-> 
-> MASQUERADE is never called in INPUT.
+On Wed, 14 Jan 2004, YOSHIFUJI Hideaki / [iso-2022-jp] =B5=C8=C6=A3=B1=D1=
+=CC=C0 wrote:
 
-That is true, but if you want to save the routing call in MASQUERADE all
-you've got is the route that was determined at input routing (for
-non-local packets).
+> I don't think so. Proxy should not depend on netfilter.
+
+That's not very constructive criticism, Yoshifuji-san ;)
+
+There aren't that many ways of doing this "hack" cleanly.
+
+The fact of the matter is: the proxy needs to scan through the unicast
+packets to filter out the Neighbor Discovery packets, if it supports NUD.
+
+I think a netfilter module is the cleanest way of doing this. It doesn't
+change any interfaces either inside the kernel, or to userspace. As a
+module this feature is also easy to turn on if you want it, and it doesn'=
+t
+cause any preformance penalties if you don't.
+
+What kind of solution do you propose for this problem?
 
 Regards,
-Patrick
-
-
-> 
-> Regards
-> Henrik
-> 
+Ville
+--
+Ville Nuorvala
+Research Assistant, Institute of Digital Communications,
+Helsinki University of Technology
+email: vnuorval@tcs.hut.fi, phone: +358 (0)9 451 5257
