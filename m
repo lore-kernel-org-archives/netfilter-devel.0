@@ -1,15 +1,15 @@
-From: Sven-Haegar Koch <haegar@sdinet.de>
+From: "Maxime Ducharme" <mducharme@cybergeneration.com>
 Subject: Re: netfilter efficiency
-Date: Fri, 21 Jan 2005 14:42:30 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0501211440290.17007@mercury.sdinet.de>
+Date: Fri, 21 Jan 2005 14:35:25 -0500
+Message-ID: <173b01c4fff0$5b180030$b000a8c0@cybergeneration.com>
 References: <005c01c4ff19$508ade80$c0de623e@MAURO>
-	<7958.142.169.215.10.1106314775.squirrel@142.169.215.10>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: MauroTablo' <m.tablo@libero.it>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Samuel Jean <sj-netfilter@cookinglinux.org>
-In-Reply-To: <7958.142.169.215.10.1106314775.squirrel@142.169.215.10>
+To: "MauroTablo'" <m.tablo@libero.it>,
+	<netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,29 +21,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 21 Jan 2005, Samuel Jean wrote:
 
-> On Thu, January 20, 2005 12:56 pm, MauroTablo' said:
+Hi
 
->> [...]
->> The question is: iptables confronts the TCP packet with all my 90 rules,
->> or it confronts the packet ONLY WITH rules for tcp packets (-p tcp)?
-[...]
-> By now, your packets just hit every rules and test against your -p proto.
+I think the packet will traverse every filters
+before getting dropped by the policy
 
-To speed up you can use subchains.
+suggestion :
+add a drop rule after each protocols
+if packet is tcp
 
-iptables -N mytcpchain
-iptables -A mytcpchain ....
-iptables -A FORWARD -p tcp -j mytcpchain
-iptables -A FORWARD -p udp -j myudpchain  etc etc
+-A FORWARD -p tcp --dport 123 -j ACCEPT
+...
+-A FORWARD -p tcp --dport 1234 -j ACCEPT
+-A FORWARD -p tcp -j DROP
 
-That way iptables needs to check only a subset of your rules.
+-A FORWARD -p udp --dport 123 -j ACCEPT
+-A FORWARD -p udp --dport 1234 -j ACCEPT
+...
+-A FORWARD -p udp -j DROP
 
-c'ya
-sven
+This way a tcp packet which is not allowed wont
+get to udp and icmp rules
 
--- 
+Hope this helps
 
-The Internet treats censorship as a routing problem, and routes around it.
-(John Gilmore on http://www.cygnus.com/~gnu/)
+Have a nice day
+
+Maxime Ducharme
+Programmeur / Spécialiste en sécurité réseau
+
+----- Original Message ----- 
+From: "MauroTablo'" <m.tablo@libero.it>
+To: <netfilter-devel@lists.netfilter.org>
+Sent: Thursday, January 20, 2005 12:56 PM
+Subject: netfilter efficiency
+
+
+Hi all.
+My Linux (+ iptables) based firewall has about 90 forward filtering rules,
+for tcp packets (about 30 rules), udp datagram (about 40 rules) and icmp
+messages(about 20 rules).
+Suppose that it comes a transit tcp packet that doesn't match anyone of my
+rules. So, the last rule will be applied, because it is the first one that
+matches the packet (/sbin/iptables -A FORWARD -j DROP)
+
+The question is: iptables confronts the TCP packet with all my 90 rules, or
+it confronts the packet ONLY WITH rules for tcp packets (-p tcp)?
+In other words, is there a function in netfilter that looks up to the
+protocol type of a transit packet and decides which rules to confront the
+packet with?
+
+Thank you.
+Mauro.
