@@ -1,17 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: sctp conntrack
-Date: Mon, 2 Aug 2004 13:54:13 +0200 (CEST)
+From: Gergely Madarasz <gorgo@broadband.hu>
+Subject: Re: conntrack oops
+Date: Mon, 2 Aug 2004 09:36:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0408021352340.7180-100000@blackhole.kfki.hu>
-References: <410E277A.3050202@eurodev.net>
+Message-ID: <20040802073601.GV1703@thunderchild.debian.net>
+References: <20040724093955.GC1703@thunderchild.debian.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	Kiran Kumar <immidi_kiran@yahoo.com>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <410E277A.3050202@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20040724093955.GC1703@thunderchild.debian.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,19 +20,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2 Aug 2004, Pablo Neira wrote:
+On Sat, Jul 24, 2004 at 11:39:55AM +0200, Gergely Madarasz wrote:
+> Code;  c02416d5 <init_conntrack+30d/3dc>
+> 00000000 <_EIP>:
+> Code;  c02416d5 <init_conntrack+30d/3dc>   <=====
+>    0:   83 78 18 00               cmpl   $0x0,0x18(%eax)   <=====
+> Code;  c02416d9 <init_conntrack+311/3dc>
+>    4:   74 15                     je     1b <_EIP+0x1b>
+> Code;  c02416db <init_conntrack+313/3dc>
+>    6:   8d 43 2c                  lea    0x2c(%ebx),%eax
+> Code;  c02416de <init_conntrack+316/3dc>
+>    9:   50                        push   %eax
+> Code;  c02416df <init_conntrack+317/3dc>
+>    a:   e8 1c ea ed ff            call   ffedea2b <_EIP+0xffedea2b>
+> Code;  c02416e4 <init_conntrack+31c/3dc>
+>    f:   89 c2                     mov    %eax,%edx
+> Code;  c02416e6 <init_conntrack+31e/3dc>
+>   11:   83 c4 04                  add    $0x4,%esp
 
-> ip_conntrack_max is duplicated, is there any reason to do so? that's why
-> I remove that entry in the sysctl table.
+It seems I didn't give enough information about this bug... :(
 
-Yes, that's intentional: we keep the backward compatible
-/proc/sys/net/ipv4/ip_conntrack_max besides the new
-/proc/sys/net/ipv4/netfilter/ip_conntrack_max
+I guess there is a race condition somewhere, the oops occurs at:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+        if (expected
+            && expected->expectant->helper->timeout
+            && ! del_timer(&expected->timeout))
+                expected = NULL;
+
+I added some debugging code around it. The problem seems to be triggered
+by a tftp connection. Currently I have _lots_ of tftp requests going
+through this firewall, about 2-3/sec, and ip_conntrack_tftp is loaded. The
+oops occurs because expected->expectant->helper is NULL at the time of the
+crash. It is an SMP machine btw. 
+
+-- 
+Madarasz Gergely   
+gorgo@broadband.hu
