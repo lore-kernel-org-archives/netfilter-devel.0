@@ -1,21 +1,13 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Thu, 20 Jan 2005 14:40:25 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0501201424140.5089@bizon.gios.gov.pl>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
-	<20050114143722.GA10088@ti64.telemetry-investments.com>
-	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
-	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
-	<Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
-	<41E7F2DA.608@info-link.net> <41E7F4B9.4080103@info-link.net>
+From: Laurens Blankers <laurens.blankers@gmail.com>
+Subject: PPTP conntrack NOT working in kernel 2.6
+Date: Thu, 20 Jan 2005 14:52:16 +0100
+Message-ID: <7a182bd905012005523e78f4c6@mail.gmail.com>
+Reply-To: Laurens Blankers <laurens.blankers@gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1172203057-1106228425=:5089"
-Cc: netfilter-devel@lists.netfilter.org,
-	Samuel Jean <sj-netfilter@cookinglinux.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Brad Fisher <brad@info-link.net>
-In-Reply-To: <41E7F4B9.4080103@info-link.net>
+To: netfilter-devel@lists.netfilter.org, laforge@netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,90 +19,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hello Harald & all,
 
----187430788-1172203057-1106228425=:5089
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+I'm having problems with PPTP conntrack when using kernel 2.6.10 and
+pom-ng from SVN. The problem is a bit difficult to explain so please
+read carefully.
 
+I have a server which connects to the internet and acts as a
+masquarading NAT gateway for several (Windows) PCs. I am trying to
+establish a PPTP connection from a Windows PC thought the Linux NAT
+gateway to a remote PPTP server somewhere on the inet. This works for
+when a single PC connects to a remote PPTP server, but not when
+multiple local PCs connect to the remote PPTP server. This is because
+of limitations in standard Linux conntrack and the reason for the
+existance of PPTP conntrack.
 
+So to solve this problem I got PPTP conntrack from pom-ng in SVN and
+compiled it as a module. However loading the PPTP conntrack and NAT
+modules prevents even a single PC from establishing a connection with
+the remote PPTP server.
 
-On Fri, 14 Jan 2005, Brad Fisher wrote:
+There are no error messages in the system log. However the firewall
+log shows that incoming GRE packets get dropped because they do not
+belong to an connection. Obviously the conntrack module is not
+working, and even preventing the standard conntrack from working.
 
-> Brad Fisher wrote:
->
->> Krzysztof Oledzki wrote:
->>=20
->>>=20
->>> -        packet_local_time =3D skb->stamp.tv_sec;
->>> +    /* We might not have a timestamp, get one */
->>> +    if (skb->stamp.tv_sec =3D=3D 0)
->>> +        do_gettimeofday((struct timeval *)&skb->stamp);
->>>=20
->>>      /* First we make sure we are in the date start-stop boundaries */
->>> -    if ((packet_local_time < info->date_start) || (packet_local_time >=
-=20
->>> info->date_stop))
->>> +    if ((skb->stamp.tv_sec < info->date_start) || (skb->stamp.tv_sec >=
-=20
->>> info->date_stop))
->>>          return 0; /* We are outside the date boundaries */
->>>=20
->> I'd like to see the above like become:
->>=20
->> +    if ((skb->stamp.tv_sec >=3D info->date_start) && (skb->stamp.tv_sec=
- <=3D=20
->> info->date_stop))
->>         return 0; /* We are outside the date boundaries */
->>=20
->> This will have the same logic in most situations, and fix a problem with=
-=20
->> the time match where you need 2 rules to match something like all times=
-=20
->> between 20:00-04:00 (ie. the start time is "greater" than the end time).=
-=20
->> I've used something similar for years and enjoy not needing multiple rul=
-es=20
->> for this.  I also have a patch (and I believe I've submitted it in the=
-=20
->> past) for grabbing the kernel time if no time is known (and with that=20
->> patch, or what's being discussed here, I believe the time match should w=
-ork=20
->> in any chain).
->>=20
->> -Brad Fisher
->>=20
->>=20
->> !DSPAM:41e7f37a167171105578672!
->>=20
->
-> Sorry for the additional spam :(
->
-> The check should be changed to something like the following:
->
-> +      if (info->date_start <=3D info->date_stop) {
-> +              /* normal order: start <=3D stop */
-> +              if ((skb->stamp.tv_sec < info->date_start) ||=20
-> (skb->stamp.tv_sec > info->date_stop))
-> +                        return 0;
-> +        } else {
-> +              /* reversed order: stop < start */
-> +                if ((skb->stamp.tv_sec < info->date_start) &&=20
-> (skb->stamp.tv_sec > info->date_stop))
-> +                        return 0;
-> +        }
->
-> Sorry about the previous crap :)  Anyway, this only adds one more if test=
- per=20
-> packet, which in my opintion is acceptable when the alternative is an=20
-> additional rule.
+The problem gets more complicated though: the server is not connected
+to the internet directly but though a PPTP connection (this is a
+totally different connection that was described above). Loading PPTP
+conntrack also causes problems with this connection.
 
+Certain GRE packets of this PPTP connection that connects my Linux box
+to the internet get marked as 'invalid', causing my firewall to drop
+them. Strangely enough this does not cause the PPTP connection to
+fail: internet connectivity stays up.
 
-OK.. You need to match 20:00-4:00, right? So why you just cannot reverse=20
-the match of 4:00-20:00?
+Also at exactly 60 second intervals the system log shows the following error:
 
-Best regards,
+Jan 20 12:40:33 src@beta net/ipv4/netfilter/ip_conntrack_pptp.c: bad csum
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1172203057-1106228425=:5089--
+I hope I have been able to convey the problem to you, if not please
+send me an e-mail and I will try to explain it in another way.
+
+Sincerely,
+
+Laurens
