@@ -1,60 +1,52 @@
-From: Thomas Zehetbauer <thomasz@hostmaster.org>
+From: Willy Tarreau <willy@w.ods.org>
 Subject: Re: netfilter IPv6 support
-Date: Thu, 26 Aug 2004 23:25:10 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1093555510.3497.33.camel@hostmaster.org>
+Date: Fri, 27 Aug 2004 00:05:01 +0200
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <20040826220501.GA564@alpha.home.local>
 References: <1093546367.3497.23.camel@hostmaster.org>
-	 <20040826130024.6ff83dff.davem@redhat.com>
+	<20040826130024.6ff83dff.davem@redhat.com>
+	<1093555510.3497.33.camel@hostmaster.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-XrcRMAdNuVNjVm2Zh+Tn"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S269643AbUHZV3Q@vger.kernel.org>
-To: linux-kernel@vger.kernel.org
-In-Reply-To: <20040826130024.6ff83dff.davem@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Thomas Zehetbauer <thomasz@hostmaster.org>
+Content-Disposition: inline
+In-Reply-To: <1093555510.3497.33.camel@hostmaster.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, Aug 26, 2004 at 11:25:10PM +0200, Thomas Zehetbauer wrote:
+> On Don, 2004-08-26 at 13:00 -0700, David S. Miller wrote:
+> > Stateful netfilter is not there because it's a total waste
+> > to completely duplicate all of the connection tracking et al.
+> > code into ipv6 counterparts when %80 of the code is roughly
+> > the same.  People are working on a consolidation of these
+> > things so that there is no code duplication but it is a lot
+> > of work and there are bigger fires to put out at the moment.
+> 
+> Of course it's a waste to duplicate the code but as far as I remember
+> the status of netfilter for IPv6 has not changed for almost a year. As
+> said there is still not even the basic REJECT target available.
 
---=-XrcRMAdNuVNjVm2Zh+Tn
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+These features are available in patch-o-matic-ng. They're not in mainline
+because the netfilter team only pushes well tested and non-intrusive changes.
+But there are lots of people using features from patch-o-matic in production.
+You can get those here :
 
-On Don, 2004-08-26 at 13:00 -0700, David S. Miller wrote:
-> Stateful netfilter is not there because it's a total waste
-> to completely duplicate all of the connection tracking et al.
-> code into ipv6 counterparts when %80 of the code is roughly
-> the same.  People are working on a consolidation of these
-> things so that there is no code duplication but it is a lot
-> of work and there are bigger fires to put out at the moment.
+    ftp://ftp.netfilter.org/pub/patch-o-matic-ng/
 
-Of course it's a waste to duplicate the code but as far as I remember
-the status of netfilter for IPv6 has not changed for almost a year. As
-said there is still not even the basic REJECT target available.
+Please also take a look at the mailing list archives since it's an area
+which is currently moving :
+ 
+    http://marc.theaimsgroup.com/?l=netfilter-devel
 
-Tom
-
---=20
-  T h o m a s   Z e h e t b a u e r   ( TZ251 )
-  PGP encrypted mail preferred - KeyID 96FFCB89
-      finger thomasz@hostmaster.org for key
-
-The three Rs of Microsoft support: Retry, Reboot, Reinstall.
-
-
-
---=-XrcRMAdNuVNjVm2Zh+Tn
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iQEVAwUAQS5VNmD1OYqW/8uJAQKj+Af+KX8fHtgVq2vziIu508/BOXQ7U7TOn+7m
-sLy7/n+mC516PjTlq1fP0m4tKAo+MI6bFDfWRvjsqnBp3sW2nL6G2jiCSvgxWSR1
-ImucDWvlyUpxkrH3zab/GYpW9l2+CkN7NuxrmFaUfHrWsKLVJ4ZoBSZkoTxwSOuj
-P9Hp5IHEiNHVS/C8isj6S0mxDUQAmSzFwuSKQvVQ0cx+JuyxC8kLG4EsKIxd8r4U
-KflZDAfPNnm6On9akp7UohYLGAqWy7tFtXEa0pro2sxSIzLMbw1Kopau5zFEioPh
-N2RYA7Ch5YnPtEH0QaC3NJ7ThImxWeDS+o5l2ttU2YIxFfT0ZnmqxA==
-=atN8
------END PGP SIGNATURE-----
-
---=-XrcRMAdNuVNjVm2Zh+Tn--
+Regards,
+Willy
