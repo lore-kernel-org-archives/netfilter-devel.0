@@ -1,11 +1,17 @@
-From: linux lover <linux_lover2004@yahoo.com>
-Subject: how to access packet's data part in skbuff?
-Date: Thu, 30 Dec 2004 04:21:11 -0800 (PST)
-Message-ID: <20041230122111.17993.qmail@web52209.mail.yahoo.com>
+From: Stephen Frost <sfrost@snowman.net>
+Subject: Re: [testsuite] ipt_recent
+Date: Thu, 30 Dec 2004 09:18:57 -0500
+Message-ID: <20041230141857.GH10437@ns.snowman.net>
+References: <41D39D3A.8050308@cookinglinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x5Jc+KxZ0sNxpb2X"
+Cc: Rusty Russell <rusty@rustcorp.com.au>, netfilter-devel@lists.netfilter.org,
+        Nicolas Bouliane <nib@cookinglinux.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Samuel <sj-netfilter@cookinglinux.org>
+Content-Disposition: inline
+In-Reply-To: <41D39D3A.8050308@cookinglinux.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,86 +23,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello all,
-          While writing kernel module packet sniffer
-at IP layer,i start with first accessing packets
-length 
-and its data part.so, to start i try to access packet
-data first and copy it to other variable to dump
-its contents but i am facing a problem while accessing
-the packet's data. As i have studied i 
-found that data in packet at any layer resides in
-between data and tail pointers.  So if i
-have to print it or copy it in any unsigned string
-then how to do that?
-          I tried with following example which
-receives only loopback packet and print data part at 
-IP layer. But it does not print also why am i getting
-sb->len as 1 not actual size of packet at IP layer?
-regards,
-linux_lover
 
-#define MODULE
-#define __KERNEL__
+--x5Jc+KxZ0sNxpb2X
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/skbuff.h>
-#include <linux/ip.h>
-#include <linux/netfilter.h>
-#include <linux/netfilter_ipv4.h>
-#include <linux/myh.h>
-#include <linux/string.h>
+* Samuel (sj-netfilter@cookinglinux.org) wrote:
+> Here's the testcase for the ipt_recent module.
 
-static struct nf_hook_ops nfho;
-unsigned int cap_packet(unsigned int hooknum,struct
-sk_buff **skb,const struct net_device *in,
-                                 const struct
-net_device *out,int (*okfn)(struct sk_buff *))
-{
-  struct sk_buff *sb = *skb;
-      unsigned char *packet;
-      int buflen=0,i=0;
-      buflen=sb->len;
-      packet=kmalloc(buflen,GFP_USER);
-      memset(packet,'\0',buflen);
-      printk(KERN_DEBUG "Length of sb->data in hook
-function = %d\n", buflen);
-      while(buflen>=0)
-      {
-      packet[i]=sb->data[i];
-      i++;
-      buflen--;
-      }
-      packet[i]='\0';
-      strcpy(packet,sb->data);
-      printk(KERN_DEBUG "packet contents of sb->data
-in hook function = %s\n", packet);
-      return NF_ACCEPT;
+Hey, that's kinda neat (that you can write a testcase like that :).
 
-}
+> Note that it really doesn't behave like I think it should.
 
-static int __init init(void)   
-  {
-              nfho.hook     = cap_packet;
-              nfho.hooknum  = NF_IP_LOCAL_OUT;
-              nfho.pf       = PF_INET;
-              nfho.priority = NF_IP_PRI_FIRST;
-              nf_register_hook(&nfho);
-              return 0;
-          }
+I'm guessing you're referring to the 'FIXME'/'BUG' things below?
 
-static void __exit fini(void)
-          {
-              nf_unregister_hook(&nfho);
-          }
-module_init(init);
-module_exit(fini);
-MODULE_LICENSE("GPL");
+> # Test #4: Using --hitcount in solo limiting 5 packets & more.
+> # We expect to NF_DROP 5th and 6th packet. IMO
+> #
+> # FIXME: Actually it only drops 6th packet. Shouldn't this
+> #			acts the same on 5th packet ?
+> echo iptables -I INPUT -m recent --name testcase --rsource \
+> 	--hitcount 5 --rcheck -j DROP
+> echo iptables -A INPUT -m recent --name testcase --set --rsource -j ACCEPT
+>=20
+> for pkt in 1 2 3 4 5; do # The 4 packets we send + an unexpected 5th
+> 	echo expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT '*'
+> 	echo gen_ip IF=3Deth0 192.168.0.2 192.168.0.1 0 17 1 2
+> done
 
+Well, you're using --rcheck and --set, and the --set is coming *after*
+the --rcheck.  --rcheck doesn't change anything, so when packet #5 comes
+through the '--set' has been done *4* times.  It isn't until packet #5
+passes --set that the hitcount for that packet becomes 5.  It's an
+interesting thing to think about as to if --update should behave the
+same way or not.  At the moment it does because the
+--update/modification logic is after the --update/check logic.  That
+wouldn't be too hard to change, but then that'd end up producing
+different results than the --rcheck/--set above, which I'm not sure I
+like.
 
-		
-__________________________________ 
-Do you Yahoo!? 
-Yahoo! Mail - 250MB free storage. Do more. Manage less. 
-http://info.mail.yahoo.com/mail_250
+Hope that helps.  Were there any other issues?  Looked like everything
+else was correct, but I might have missed something.
+
+	Stephen
+
+--x5Jc+KxZ0sNxpb2X
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFB1A5RrzgMPqB3kigRAi3sAJ9XSU8hWcIK2OdGkQ7mCNiZL3MtCwCgl6LN
+sjESqtUlGt7y+QEgd4wxuSI=
+=hoa6
+-----END PGP SIGNATURE-----
+
+--x5Jc+KxZ0sNxpb2X--
