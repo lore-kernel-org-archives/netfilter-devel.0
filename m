@@ -1,110 +1,91 @@
-From: Allen Francom <aef@tempest.prismnet.com>
-Subject: Re: Netfilter as an application
-Date: Fri, 16 Jan 2004 23:35:41 -0600 (CST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040116232355.Q76777@tempest.prismnet.com>
-References: <20040116214721.82710.qmail@web40301.mail.yahoo.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Future of CONNMARK (was Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's brain broke!)
+Date: Sat, 17 Jan 2004 12:09:52 +0100
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20040117110952.GI18505@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.58.0401111517550.1161@u.domain.uli> <Pine.LNX.4.44.0401112203250.24615-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: kernel_learner <kernel_learner@yahoo.com>
-In-Reply-To: <20040116214721.82710.qmail@web40301.mail.yahoo.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dMdWWqg3F2Dv/qfw"
+Cc: Julian Anastasov <ja@ssi.bg>, linux-net@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0401112203250.24615-100000@filer.marasystems.com>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi,
+--dMdWWqg3F2Dv/qfw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Well, in order for a user-space application to get
-at the raw packets and presumably do things like
-set promiscuous mode on ethernet adapter(s), that
-takes root privileges for one thing ( last I tried )
+[Stripped Cc' list since it is not the original subject]
 
-Netfilter, what I know of it and what I've tried,
-has cornfused me because it seemed intertwined
-/ interdependent with kernel code and libraries
-and gets packets in a structure that is generated
-by the kernel etc., and so on.  ( too much for
-me to try and deal with given limited time )
+On Sun, Jan 11, 2004 at 10:11:43PM +0100, Henrik Nordstrom wrote:
+> On Sun, 11 Jan 2004, Julian Anastasov wrote:
+>=20
+> > - use CONNMARK or similar functionality to keep the connection
+> > bound to its path. As long as CONNMARK is not a standard feature
+> > there is no safe way to use multipath routes with MASQUERADE and
+> > SNAT in the latest kernels. Even before this change it was risky
+> > to rely on the routing cache to keep NAT connections bound to
+> > its path in the multipath route - the cache entries expire.
+>=20
+> As the aurhor of CONNMARK I certainly do not mind having this progress=20
+> beyond path-o-matic extras..
 
-To me, netfilter does not look or feel like an
-application having much if anything to do with
-user-space.
+I think we could push CONNMARK to the mainstream kernel in the next
+couple of weeks. =20
 
-However, I have done a few things with the IPQUEUE
-"userspace module" extension ability.
+I'd like to discuss one change with you first... that is using the mark
+field as a bitmask.
 
-This is where you can run a user program that gets
-packets out of the kernel NETFILTER via a -j IPQUEUE
-rule and it goes to your listening program.
+We had that idea for a very long time, and didn't ever change it for the
+skb->nfmark field for the sake of compatibility.
 
-Then you can in your program inspect the packets,
-Accept, Deny or Drop them, and even modify the packets.
+But now, when introducing a new mark field (the conntrack->mark field),
+I'd rather prefer implement matching/setting individual bitmasks from
+the beginning.  What do you think?  Would you be willing to add that
+feature, or alternatively don't mind if I'd add the respective changes
+myself?
 
-That's one thing.
+Also, please add a Copyright notice including your name and a reference
+to the GPL on top of the .c files.
 
-I suggested Snort because it is all user-space and might
-be more appropriate for your tinkerings due to the
-way your request sounded.
+Another minor cosmetic issue: Could you please update it to use
+C99-style structure initializers in the code?
 
-Snort I believe throws promiscous mode on the
-adapters and that takes root privileges.
+Last, but not least:  We'd need an etry for the iptables(8) manpage.
 
-Netfilter code itself to me ( and I'm no genius here )
-but it is not what I'd start with for anything in
-user-space, and from what I've seen I wouldn't even
-try to fanagle the code to working in user-space.
+Thanks.
 
-It is kernel stuff with some command-line utilities
-to manipulate the rules.  That's how I look at
-netfilter.
+> Regards
+> Henrik
 
-Indeed, build a linux kernel and see all the kernel
-modules.  Then look at the code to those modules
-and see all the dependencies on other kernel code.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-If I'm not mistaken, netfilter relies entirely on
-the kernel network stack and cannot "stand-alone".
+--dMdWWqg3F2Dv/qfw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Too yucky to try in my book.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-So I second my own recommendation to look at things
-like Snort instead.
+iD8DBQFACRf/XaXGVTD0i/8RAuS7AJ478aZSfhYm3lfDYFSemQoLE07tvgCfUBJB
+0oQcaNHuD0NFyAjvXukadx8=
+=+i3T
+-----END PGP SIGNATURE-----
 
-Also maybe try hogwash, and there are a couple other similar
-projects.
-
-Perhaps though what you want after reflecting on it
-is to use the Netfilter IPQUEUE extension.
-
-But not if you truly need or want an entirely
-userspace self-contained something.
-
-IMHO
--AEF
-
-
-On Fri, 16 Jan 2004, kernel_learner wrote:
-
-> Thanks Allen,
->
->  However I am not sure why you think user should have
-> user priveleges. I am not saying I will use netfilter
-> as it is.
-
-> What exactly does the netfilter use from the Linux
-> kernel?
->
-> Where exactly does it interact with the kernel?
->
-> Most of the extensions are modules..which is fine..I
-> can easily convert them to user-application-code.
-> I hope I am making myself clear...
+--dMdWWqg3F2Dv/qfw--
