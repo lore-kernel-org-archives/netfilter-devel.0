@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Typo's in ip_conntrack_rpc_tcp.c ....
-Date: Sat, 19 Jun 2004 22:33:44 +0200
+From: Weiguang Shi <wgshi2002@yahoo.ca>
+Subject: packet reordering with libipq
+Date: Sun, 20 Jun 2004 03:07:44 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40D4A328.5070608@trash.net>
-References: <200406181606.35340.mark@vevers.net>
+Message-ID: <20040620070744.33536.qmail@web54102.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: mark@vevers.net
-In-Reply-To: <200406181606.35340.mark@vevers.net>
+To: DeveloperList Netfilter <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,16 +17,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Mark Vevers wrote:
+Hi
 
-> In the init for ip_conntrack_rpc_tcp the code sets the ports for
-> 
->   rpc_helpers[port].mask.dst.u.udp.port = htons(0x0);
-> 
-> with
->   rpc_helpers[port].tuple.dst.protonum = IPPROTO_TCP;
+I have a quick question about libipq. 
 
-Patch applied, thanks.
+After I read a packet at  userspace, must I call 
+ipq_set_verdict() before I can read another?
+In other words, can I re-order packets using libipq?
 
-Regards
-Patrick
+Thanks,
+Weiguang
+
+______________________________________________________________________ 
+Post your free ad now! http://personals.yahoo.ca
