@@ -1,18 +1,16 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: [ipt_recent] Re: [PATCH] ipt_recent 0.3.1 Released
-Date: Mon, 14 Apr 2003 09:47:38 -0400
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] New behaviour for early_drop()
+Date: 14 Apr 2003 16:06:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030414134738.GF18434@ns.snowman.net>
-References: <20030331213757.GU18434@ns.snowman.net> <20030414133248.GB6866@sunbeam.de.gnumonks.org>
+Message-ID: <1050329196.11154.244.camel@tux.rsn.bth.se>
+References: <200304141140.18647.francesco@unipg.it>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EJCnrJiDxBM3d8Vu"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-   Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-   ipt_recent Users <ipt_recent@snowman.net>
-Content-Disposition: inline
-In-Reply-To: <20030414133248.GB6866@sunbeam.de.gnumonks.org>
+To: Francesco Sportolari <francesco@unipg.it>
+In-Reply-To: <200304141140.18647.francesco@unipg.it>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,38 +21,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 2003-04-14 at 11:40, Francesco Sportolari wrote:
+> Hi all,
+> this is a little patch to modify the behaviour of the early_drop() function; 
+> now it uses the ip_conntrack_drop_list, a double-linked list of all the 
+> non-assured connections. It costs 2 bytes more for the ip_conntrack struct
+> and a pair of list_append() and list_del() ops, but would have to do better 
+> under heavy loads and some type of attacks against the hash chains.
 
---EJCnrJiDxBM3d8Vu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I've thought about something like this as well... The problem is that
+this probably makes it easier to attack a certain chain. Earlier we
+tried to delete an entry fromthe chain we were about to put the new into
+and if that failed we tried another chain and if that failed we dropped
+the new connection.
 
-* Harald Welte (laforge@netfilter.org) wrote:
-> May I assume that there is no incompatibility of using 0.3.0 userspace
-> (which is what made it into iptables-1.2.8) and the 0.3.1 kernel part?
+Now we can add the new entry into the chain as long as there's at least
+one entry that can be deleted in the entire hashtable. Thus we can get a
+_very_ long chain. But if it's a normal attack these entries will get
+reaped and their places reused, eventually. But we'll probably get the
+very long chain before they start getting reused.
 
-That's correct, though both versions have a few bugs in the save
-logic which was pointed out by Stephane Ouellette and has been fixed in
-my tree.  These things always seem to have a knack for showing up at
-just the wrong time.
+Another approach might be to leave it the way it is right now but change
+it to purge several entries at once if the chain-length is above a
+certain level.
 
-> I will send it to DaveM for kernel inclusion soon.
-
-Great, thanks!  So far the only changes I've made to the kernel portion
-of ipt_recent has been to move to using a macro for debugging statements
-instead of all those ugly #ifdef's.
-
-	Stephen
-
---EJCnrJiDxBM3d8Vu
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+mrv6rzgMPqB3kigRAtUuAJ40KFdB2HaDdamo4RDJxhKssRClVACeJXZd
-EKrTQ2WZvohmKOLE7f/p4nA=
-=pxoQ
------END PGP SIGNATURE-----
-
---EJCnrJiDxBM3d8Vu--
+-- 
+/Martin
