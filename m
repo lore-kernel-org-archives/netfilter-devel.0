@@ -1,14 +1,16 @@
-From: Jonas Berlin <jberlin@niksula.hut.fi>
-Subject: Re: Owner on Input table
-Date: Mon, 14 Feb 2005 09:41:32 +0200
-Message-ID: <4210562C.6090401@niksula.hut.fi>
-References: <000101c51162$aceabfa0$9600a8c0@netcontent>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 2.6] Allow dynamic helper-port assignment
+Date: Mon, 14 Feb 2005 12:21:15 +0100
+Message-ID: <20050214112115.GE32452@sunbeam.de.gnumonks.org>
+References: <20050213165638.GM20269@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.58.0502132315570.10608@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Egon Phillips <egon.phillips@sympatico.ca>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <000101c51162$aceabfa0$9600a8c0@netcontent>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LwW0XdcUbUexiWVK"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0502132315570.10608@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,36 +22,72 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Egon Phillips wrote:
 
->I read in the docs that the owner match as described below is not
->available on the input chain.
->
->    This module attempts to match various
->    characteristics of the packet creator, 
->    for locally-generated packets. It is 
->    only valid in the OUTPUT chain, and even
->    this some packets (such as ICMP ping responses)
->    may have no owner, and hence never match. 
->
->Are there any plans to change this policy?  If not, is this a limitation
->of the software or of the OS?  Is it not possible to use the destination
->ports process id to determine the owner?
->____________________________________________________
->The Brockton Initiative (http://brockton.dyndns.org)
->Egon Phillips, Chair
->  
->
-Afaik the owner-socketlookup patch in patch-o-matic-ng does what you are 
-asking for. It has been around for over a year now.
+--LwW0XdcUbUexiWVK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-<snip>
-The patch allows you to use the owner match in the INPUT chain to match
-properties of the receiving socket. It is mainly intended to help filter 
-weird
-protocols like H.323 or IIOB without conntrack helpers, but could also come
-handy for local user traffic accounting and similar stuff.
-</snip>
+On Sun, Feb 13, 2005 at 11:38:40PM +0100, Jozsef Kadlecsik wrote:
+> Hi Harald,
+>=20
+> Let's imagine a real H.323 helper module, which works reliably (contrary
+> to the current one) and thus deployed at sites which use videoconferencing
+> heavily. Due to the nature of H.323, the dynamic H.245 helpers are truly
+> created dynamically for every single H.225 session, which starts the whole
+> H.323 protocol-tree . The currently nicely static helper list (which we
+> could thus protect even by RCU locking) would become dynamic and
+> could create *potentially* a new bottleneck.
 
--- 
-- xkr47
+Well, while h323 triggered my work on dynamic helper-port assignment, it
+is not really proposed as a solution to the h323 problem.  It merely
+solves the h323-oops problem as a side-effect, since it (again, as a
+side effect) splits helper registration and port assignment in two
+seperate steps.
+
+The helper list could indeed become a bottleneck, but unless you run in
+front of a heavily loaded h323 pbx I don't think that's much of an issue
+now.
+
+My patch clearly seperates helper lookup from the conntrack core, thus
+enabling implementation of faster matching algorithms=20
+
+> Let's assume another protocol, which uses dynamic sub-helpers. How
+> could we handle the possible ports clashes of the different
+> sub-helpers in your scheme?
+
+That's a totally different problem.  Actually two:
+
+1) helpers register overlapping expectations.
+   most likely the helpers are broken, and/or they need nat reservations
+   (which we ought to provide)
+2) helpers expectations overlap with administrator-assigned ports
+   Well, the admin can alway shoot himself in the foot.  No action
+   required here.
+
+> Jozsef
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--LwW0XdcUbUexiWVK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCEImrXaXGVTD0i/8RAhLFAKCtp7IEm9eVWtlFb2OSDPlZ8PKjmgCffa6/
+dVXhNylMzg9LdLVm6xW3J00=
+=rxi4
+-----END PGP SIGNATURE-----
+
+--LwW0XdcUbUexiWVK--
