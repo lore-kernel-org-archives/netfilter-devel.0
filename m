@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Rule optimization scheme openbsd-like
-Date: Fri, 31 Oct 2003 08:59:20 +0100
+From: Andy Polyakov <appro@fy.chalmers.se>
+Subject: Re: iptables performance under 2.6.0[-test9]
+Date: Tue, 28 Oct 2003 11:01:16 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031031075920.GX7095@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.51.0310131004000.17633@dns.toxicfilms.tv> <20031014112305.GD3752@obroa-skai.de.gnumonks.org> <Pine.LNX.4.51.0310301350260.25629@dns.toxicfilms.tv>
+Message-ID: <3F9E3E6C.C0CC5598@fy.chalmers.se>
+References: <3F9D4370.99795B87@fy.chalmers.se> <3F9D5E60.866B0B63@fy.chalmers.se> <3F9E292C.3020509@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KqBSqvdnnccM6+Kg"
+Content-Type: multipart/mixed;
+ boundary="------------D896F347D83BB09D1D90F8DA"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.51.0310301350260.25629@dns.toxicfilms.tv>
+To: Patrick McHardy <kaber@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,68 +20,151 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
---KqBSqvdnnccM6+Kg
+This is a multi-part message in MIME format.
+--------------D896F347D83BB09D1D90F8DA
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 30, 2003 at 01:57:44PM +0100, Maciej Soltysiak wrote:
-> > yes, that was something I always wanted to do but never got around
-> > doing.  Actually I started it once, but didn't get very far.
-> >
-> > When I'm back home next weekend, I'll see if I can find that old piece
-> > of document and send it to you.
-> A long weekend :)
-> Could you send me the document in free time ?
+> Can you please provide (pcap format) packet dumps of
+> 
+> a) the correct situation
+> b) broken situation
 
-I didn't find it, unfortunately :(
+Attached.
 
-but it would be great if you'd write one. the general rules are simple.
-You major goal is:
+> I would like to have a look at it.
 
-- reduce number of rule iterations necessarry for every packet
+As already mentioned in my last letter, note that 4th packet in
+fast.tcpdump is *not* actual wire traffic. On the wire [e.g. on server
+side] I see *two* packets with 1460 and 540 \n's as TCP payload.
 
-everything else is just explaining the practical consequences of this to
-the user, giving examples, ...
+In either case it apparently has something[/everything?] to do with
+ip_refrag in ip_conntrack_standalone.c. At least if I comment out the
+"if ((*pskb)->len > dst_pmtu(&rt->u.dst)) { ... }" statement in this
+function, './head.pl some.host 2000' completes instantly even if I
+insmod the patched module. A.
+--------------D896F347D83BB09D1D90F8DA
+Content-Type: application/octet-stream;
+ name="fast.tcpdump"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="fast.tcpdump"
 
-so you should try to branch into userdefined chains whenever possible
-(usually one for every host in your dmz, one for related packets, etc.)
+NM2yoQIABAAAAAAAAAAAANwFAAABAAAAiTeePy65AQBCAAAAQgAAAAIAAAAIAARAAAKzmxTA
+AAAAAAAACABFAAA0OM1AAEAG84OBEDKlPoAcPoKnAFAYhLdZAAAAAIACFtD2/wAAAgQFtAEB
+BAIBAwMAiTeeP0RHAgBCAAAAQgAAAAIAAAAIAABAAAAAAAABAgABZQDLCABFAAA0AABAAHIG
++lA+gBw+gRAypQBQgqeZpsn3GIS3WoASFtCTUAAAAgQFtAEBBAIBAwMAiTeeP1pHAgA2AAAA
+NgAAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAAoOM5AAEAG846BEDKlPoAcPoKnAFAYhLda
+mabJ+FAQFtDUGwAAiTeeP/5HAgDuBQAABggAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAf4
+OM9AAEAG672BEDKlPoAcPoKnAFAYhLdamabJ+FAYFtAWXgAACgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKiTeeP8LaAgBCAAAA
+QgAAAAIAAAAIAABAAAAAAAABAgABZQDLCABFAAA04mBAAHIGF/A+gBw+gRAypQBQgqeZpsn4
+GIS3WoAQFtDwwgAAAQEFChiEvQ4YhL8qiTeeP8jaAgA8AAAAPAAAAAIAAAAIAABAAAAAAAAB
+AgABZQDLCABFAAAo4mFAAHIGF/s+gBw+gRAypQBQgqeZpsn4GIS/KlAQIjjA4wAAwACvjS2B
+iTeeP+DaAgBHAAAARwAAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAA5ONFAAEAG83qBEDKl
+PoAcPoKnAFAYhL8qmabJ+FAYFtAOnwAASEVBRCAvIEhUVFAvMS4wCgqJN54/hGYDADwAAAA8
+AAAAAgAAAAgAAEAAAAAAAAECAAFlAMsIAEUAACjiYkAAcgYX+j6AHD6BEDKlAFCCp5mmyfgY
+hL87UBAiOMDSAADAACPQkiaJN54/c24DAHMBAABzAQAAAgAAAAgAAEAAAAAAAAECAAFlAMsI
+AEUAAWXiY0AAcgYWvD6AHD6BEDKlAFCCp5mmyfgYhL87UBgiOL/dAABIVFRQLzEuMSAyMDAg
+T0sNCkRhdGU6IFR1ZSwgMjggT2N0IDIwMDMgMDk6MzA6MDkgR01UDQpTZXJ2ZXI6IEFwYWNo
+ZS8xLjMuMjcgKFVuaXgpIERlYmlhbiBHTlUvTGludXggbW9kX3NzbC8yLjguOSBPcGVuU1NM
+LzAuOS42Yw0KTGFzdC1Nb2RpZmllZDogRnJpLCAxNyBPY3QgMjAwMyAyMDoxOTo0MSBHTVQN
+CkVUYWc6ICI0MTgwMjctNGVlMi0zZjkwNGVkZCINCkFjY2VwdC1SYW5nZXM6IGJ5dGVzDQpD
+b250ZW50LUxlbmd0aDogMjAxOTQNCkNvbm5lY3Rpb246IGNsb3NlDQpDb250ZW50LVR5cGU6
+IHRleHQvaHRtbDsgY2hhcnNldD1pc28tODg1OS0xDQoNCok3nj+LbgMANgAAADYAAAACAAAA
+CAAEQAACs5sUwAAAAAAAAAgARQAAKDjSQABABvOKgRAypT6AHD6CpwBQGIS/O5mmyzVQEBkg
+yK0AAIk3nj+EbwMAPAAAADwAAAACAAAACAAAQAAAAAAAAQIAAWUAywgARQAAKOJkQAByBhf4
+PoAcPoEQMqUAUIKnmabLNRiEvztQESI4v5QAAL8Ab8BW4ok3nj91dgMANgAAADYAAAACAAAA
+CAAEQAACs5sUwAAAAAAAAAgARQAAKDjTQABABvOJgRAypT6AHD6CpwBQGIS/O5mmyzZQERkg
+yKsAAIk3nj/HAgQAPAAAADwAAAACAAAACAAAQAAAAAAAAQIAAWUAywgARQAAKOJlQAByBhf3
+PoAcPoEQMqUAUIKnmabLNhiEvzxQECI4v5MAAL8AZrwzoA==
+--------------D896F347D83BB09D1D90F8DA
+Content-Type: application/octet-stream;
+ name="slow.tcpdump"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="slow.tcpdump"
 
-another good advice is:  don't replicate unneccessary matches. something
-like:
-
-iptables -A FORWARD -m state --state ESTABLISHED -j my_estab_chain
-iptables -A my_estab_chain -m state --state ESTABLISHED -p tcp -j ACCEPT
-
-in this case you have already matched against 'ESTABLISHED' before
-jumping to the chain.  So every rule in the chain should _not_ have that
-match replicated.
-
-thanks!
-
-> Maciej
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---KqBSqvdnnccM6+Kg
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/ohZYXaXGVTD0i/8RAvpHAKCyYvgyNt9i19slCyrUF89uK1tEBwCfQIEk
-Rq3I+a4Ob6OBnJtVREqUTW0=
-=Z75z
------END PGP SIGNATURE-----
-
---KqBSqvdnnccM6+Kg--
+NM2yoQIABAAAAAAAAAAAANwFAAABAAAA1zeePxUcCABCAAAAQgAAAAIAAAAIAARAAAKzmxTA
+AAAAAAAACABFAAA0wElAAEAGbAeBEDKlPoAcPoKpAFAdQgG7AAAAAIACFtCn3gAAAgQFtAEB
+BAIBAwMA1zeePw2rCABCAAAAQgAAAAIAAAAIAABAAAAAAAABAgABZQDLCABFAAA0AABAAHIG
++lA+gBw+gRAypQBQgqmdb/LJHUIBvIASFtAXlAAAAgQFtAEBBAIBAwMA1zeePyirCAA2AAAA
+NgAAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAAowEpAAEAGbBKBEDKlPoAcPoKpAFAdQgG8
+nW/yylAQFtBYXwAA2jeeP5SnCADqBQAA6gUAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAXc
+wE1AAEAGZluBEDKlPoAcPoKpAFAdQgG8nW/yylAQFtCyCgAACgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgraN54/2DsJADwAAAA8AAAA
+AgAAAAgAAEAAAAAAAAECAAFlAMsIAEUAACi480AAcgZBaT6AHD6BEDKlAFCCqZ1v8sodQgdw
+UBAiOEdDAABHAChlwOvaN54/BDwJAGIAAABSAgAAAgAAAAgABEAAArObFMAAAAAAAAAIAEUA
+AkTAT0AAQAZp8YEQMqU+gBw+gqkAUB1CB3Cdb/LKUBgW0LnwAAAKCgoKCgoKCgoKCgoKCgoK
+CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCto3nj+ZywkAPAAAADwAAAACAAAACAAAQAAA
+AAAAAQIAAWUAywgARQAAKLj0QAByBkFoPoAcPoEQMqUAUIKpnW/yyh1CCYxQEC2gOb8AADkA
+8W2qs9o3nj+tywkARwAAAEcAAAACAAAACAAEQAACs5sUwAAAAAAAAAgARQAAOcBQQABABmv7
+gRAypT6AHD6CqQBQHUIJjJ1v8spQGBbQdrkAAEhFQUQgLyBIVFRQLzEuMAoK2jeeP55XCgA8
+AAAAPAAAAAIAAAAIAABAAAAAAAABAgABZQDLCABFAAAouPVAAHIGQWc+gBw+gRAypQBQgqmd
+b/LKHUIJnVAQLaA5rgAAOQBoAype2jeeP7tkCgBzAQAAcwEAAAIAAAAIAABAAAAAAAABAgAB
+ZQDLCABFAAFluPZAAHIGQCk+gBw+gRAypQBQgqmdb/LKHUIJnVAYLaA0wgAASFRUUC8xLjEg
+MjAwIE9LDQpEYXRlOiBUdWUsIDI4IE9jdCAyMDAzIDA5OjMxOjMwIEdNVA0KU2VydmVyOiBB
+cGFjaGUvMS4zLjI3IChVbml4KSBEZWJpYW4gR05VL0xpbnV4IG1vZF9zc2wvMi44LjkgT3Bl
+blNTTC8wLjkuNmMNCkxhc3QtTW9kaWZpZWQ6IEZyaSwgMTcgT2N0IDIwMDMgMjA6MTk6NDEg
+R01UDQpFVGFnOiAiNDE4MDI3LTRlZTItM2Y5MDRlZGQiDQpBY2NlcHQtUmFuZ2VzOiBieXRl
+cw0KQ29udGVudC1MZW5ndGg6IDIwMTk0DQpDb25uZWN0aW9uOiBjbG9zZQ0KQ29udGVudC1U
+eXBlOiB0ZXh0L2h0bWw7IGNoYXJzZXQ9aXNvLTg4NTktMQ0KDQraN54/vGQKADwAAAA8AAAA
+AgAAAAgAAEAAAAAAAAECAAFlAMsIAEUAACi490AAcgZBZT6AHD6BEDKlAFCCqZ1v9AcdQgmd
+UBEtoDhwAAA4AARdbkHaN54//WQKADYAAAA2AAAAAgAAAAgABEAAArObFMAAAAAAAAAIAEUA
+ACjAUUAAQAZsC4EQMqU+gBw+gqkAUB1CCZ2db/QHUBAZIEzxAADaN54/6GYKADYAAAA2AAAA
+AgAAAAgABEAAArObFMAAAAAAAAAIAEUAACjAUkAAQAZsCoEQMqU+gBw+gqkAUB1CCZ2db/QI
+UBEZIEzvAADaN54/pvIKADwAAAA8AAAAAgAAAAgAAEAAAAAAAAECAAFlAMsIAEUAACi4+EAA
+cgZBZD6AHD6BEDKlAFCCqZ1v9AgdQgmeUBAtoDhvAAA4APjAvJ8=
+--------------D896F347D83BB09D1D90F8DA--
