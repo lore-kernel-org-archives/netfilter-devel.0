@@ -1,18 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: ctnetlink questions
-Date: Mon, 20 Oct 2003 20:37:42 +0200
+Date: Mon, 20 Oct 2003 20:39:54 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031020183741.GB20288@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0310201133040.23768-100000@filer.marasystems.com> <3F942CB6.5060005@trash.net>
+Message-ID: <20031020183954.GC20288@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0310200244580.17141-100000@filer.marasystems.com> <3F934FFD.7090700@trash.net> <20031020071545.GA21521@sunbeam.de.gnumonks.org> <3F9426C1.6070908@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="61jdw2sOBCFtR2d/"
+	protocol="application/pgp-signature"; boundary="S1BNGpv0yoYahz37"
 Cc: Henrik Nordstrom <hno@marasystems.com>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <3F942CB6.5060005@trash.net>
+In-Reply-To: <3F9426C1.6070908@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,29 +24,21 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---61jdw2sOBCFtR2d/
+--S1BNGpv0yoYahz37
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 20, 2003 at 08:43:02PM +0200, Patrick McHardy wrote:
+On Mon, Oct 20, 2003 at 08:17:37PM +0200, Patrick McHardy wrote:
 
-> >The dump operation should be connetion oriented with the userspace=20
-> >application, not purely datagram based. The kernel should know for certa=
-in=20
-> >if the userspace application terminates a dump operation mid-air.
-> >
->=20
-> Actually the kernel knows. If the socket is closed cb->done() is called.
-> However the kernel can not know if userspace still keeps the socket open
-> but doesn't read anymore. Connection oriented sockets don't help with thi=
-s.
+> I still favour the global counter but I'm fine as long as dumping works,=
+=20
+> a unqiue identity for userspace is less important. I'd say it's up to
+> you to decide.
 
-yes, but if the application is broken, that's not our problem.  If the
-API and the behaviour is documented, I don't see any problems with this.
-If an app wants to intentionally allocate many opjects in kernel space,
-there's nothing we can do.  Also, since we are sending to userspace, we
-could actually allocate this as virtual memory, right?
+Mh, well let's go for the 64bit, as there seems to be no other choice.
+But we should start working on the variable-sized conntracks within
+short time afterwards.
 
 > Best regards,
 > Patrick
@@ -61,16 +53,16 @@ could actually allocate this as virtual memory, right?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---61jdw2sOBCFtR2d/
+--S1BNGpv0yoYahz37
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/lCt1XaXGVTD0i/8RAh/GAJsHK17Dx3yWiElNM89iniwUqGIutgCgn5CV
-Z2ADTnFL4rJpI397WMY8bjg=
-=6sYn
+iD8DBQE/lCv6XaXGVTD0i/8RAtpyAJ4sN7xIOVe1vB6lyzVD2y88ndtUfgCfR1Dy
+bEslRnYlqlt2bXxNmBBZVXc=
+=CZn7
 -----END PGP SIGNATURE-----
 
---61jdw2sOBCFtR2d/--
+--S1BNGpv0yoYahz37--
