@@ -1,19 +1,21 @@
 From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Subject: Re: [PATCH] Passive OS fingerprint matching module update. Dynamic
  fingerprint loading.
-Date: Tue, 23 Sep 2003 15:59:44 +0400
+Date: Tue, 23 Sep 2003 20:02:26 +0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030923155944.521d6299.johnpol@2ka.mipt.ru>
+Message-ID: <20030923200226.5e9c43e2.johnpol@2ka.mipt.ru>
 References: <20030922171921.009b2133.johnpol@2ka.mipt.ru>
+	<20030923155944.521d6299.johnpol@2ka.mipt.ru>
+	<20030923125746.GL31401@sunbeam.de.gnumonks.org>
 Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, laforge@netfilter.org,
-   quaker@ondraszek.eu.org, solt@dns.toxicfilms.tv
+Content-Type: multipart/mixed;
+ boundary="Multipart_Tue__23_Sep_2003_20:02:26_+0400_082cdd30"
+Cc: netfilter-devel@lists.netfilter.org, quaker@ondraszek.eu.org,
+   solt@dns.toxicfilms.tv
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: johnpol@2ka.mipt.ru
-In-Reply-To: <20030922171921.009b2133.johnpol@2ka.mipt.ru>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030923125746.GL31401@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,28 +26,157 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 22 Sep 2003 17:19:21 +0400
-Evgeniy Polyakov <johnpol@2ka.mipt.ru> wrote:
+This is a multi-part message in MIME format.
 
-> This patch also adds possibility to dynamically load fingerprints(for
-> complete list of supported fingerprints please see
-> http://www.openbsd.org/cgi-bin/cvsweb/src/etc/pf.os and
-> http://lcamtuf.coredump.cx/p0f.shtml) through /proc interface.
+--Multipart_Tue__23_Sep_2003_20:02:26_+0400_082cdd30
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Btw, Linux rule parsing code is not compatible with OpenBSD one, since
-they use fields "version" and "subversion", but one can easily remove
-two ":" symbols between them( and details field) and successfully load
-new rule. 
+On Tue, 23 Sep 2003 14:57:46 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
-> Examples:
-> loading new rule:
-> echo "16384:64:0:44:M512:.:AIX:4.3.2 and
-> earlier">/proc/sys/net/ipv4/osf 
+> > > Examples:
+> > > loading new rule:
+> > > echo "16384:64:0:44:M512:.:AIX:4.3.2 and
+> > > earlier">/proc/sys/net/ipv4/osf 
+> > 
+> > So, in OpenBSD we have: 
+> > 16384:64:0:44:M512:             AIX:4.3:2-3:AIX 4.3.2 and earlier
+> >                                                              ^^^^^^
+> > If someone like to use this notation, i can create a patch.
+> 
+> Well, the osf match is pretty much your child... so it's up to you.
+> 
+> I personally would like to see compatibility... since this means that
+> the fingerprint database has only to be kept in one format.
 
-So, in OpenBSD we have: 
-16384:64:0:44:M512:             AIX:4.3:2-3:AIX 4.3.2 and earlier
-                                                             ^^^^^^^^
+Ok, here is the patch.
+Now we are compatible with OpenBSD, but not with Michal Zalewski :)
 
-If someone like to use this notation, i can create a patch.
+P.S. Harald, is it convenient for you to use -p0 when patching or is -p1
+better?
+
+> 
+> -- 
+> - Harald Welte <laforge@netfilter.org>            
+> http://www.netfilter.org/
+
 
 	Evgeniy Polyakov
+
+--Multipart_Tue__23_Sep_2003_20:02:26_+0400_082cdd30
+Content-Type: application/octet-stream;
+ name="osf.diff"
+Content-Disposition: attachment;
+ filename="osf.diff"
+Content-Transfer-Encoding: base64
+
+LS0tIHBhdGNoLW8tbWF0aWMvYmFzZS9vc2YucGF0Y2gJMjAwMy0wOS0yMyAxNjozNjoyMC4wMDAw
+MDAwMDAgKzA0MDAKKysrIHBhdGNoLW8tbWF0aWMvYmFzZS9vc2YucGF0Y2gJMjAwMy0wOS0yMyAx
+OTo0ODowMy4wMDAwMDAwMDAgKzA0MDAKQEAgLTQ4LDEyICs0OCwxMiBAQAogKwogKyNpbmNsdWRl
+IDxsaW51eC9uZXRmaWx0ZXJfaXB2NC9pcF90YWJsZXMuaD4KICsKLSsjaW5jbHVkZSA8bGludXgv
+bmV0ZmlsdGVyX2lwdjQvaXB0X29zZi5oPgorKyNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2
+NC9pcHRfb3NmLmg+CiArCi0rLy8jZGVmaW5lIE9TRl9ERUJVRworKy8vI2RlZmluZSBPU0ZfREVC
+VUcKICsKICsjaWZkZWYgT1NGX0RFQlVHCi0rI2RlZmluZSBsb2coeC4uLikgCQlwcmludGsoS0VS
+Tl9FUlIgImlwdF9vc2Y6ICIgeCkKKysjZGVmaW5lIGxvZyh4Li4uKSAJCXByaW50ayhLRVJOX0lO
+Rk8gImlwdF9vc2Y6ICIgeCkKICsjZGVmaW5lIGxvZ2EoeC4uLikgCQlwcmludGsoeCkKICsjZWxz
+ZQogKyNkZWZpbmUgbG9nKHguLi4pIAkJZG8ge30gd2hpbGUoMCkKQEAgLTI4MSw2ICsyODEsMTgg
+QEAKICsgICAgICAgcmV0dXJuIDE7CiArfQogKworK3N0YXRpYyBjaGFyICogb3NmX3N0cmNocihj
+aGFyICpwdHIsIGNoYXIgYykKKyt7CisrCWNoYXIgKnRtcDsKKysKKysJdG1wID0gc3RyY2hyKHB0
+ciwgYyk7CisrCisrCXdoaWxlICh0bXAgJiYgdG1wKzEgJiYgaXNzcGFjZSgqKHRtcCsxKSkpCisr
+CQl0bXArKzsKKysKKysJcmV0dXJuIHRtcDsKKyt9CisrCiArc3RhdGljIHN0cnVjdCBvc2ZfZmlu
+Z2VyICogZmluZ2VyX2FsbG9jKCkKICt7CiArCXN0cnVjdCBvc2ZfZmluZ2VyICpmOwpAQCAtMzE2
+LDcgKzMyOCw3IEBACiArCQl7CiArCQkJY2FzZSAnTic6IAogKwkJCQlvcCA9IE9TRk9QVF9OT1A7
+Ci0rCQkJCXB0ciA9IHN0cmNocigmb2J1ZltpXSwgT1BUREVMKTsKKysJCQkJcHRyID0gb3NmX3N0
+cmNocigmb2J1ZltpXSwgT1BUREVMKTsKICsJCQkJaWYgKHB0cikKICsJCQkJewogKwkJCQkJKnB0
+ciA9ICdcMCc7CkBAIC0zMjksNyArMzQxLDcgQEAKICsJCQkJYnJlYWs7CiArCQkJY2FzZSAnUyc6
+IAogKwkJCQlvcCA9IE9TRk9QVF9TQUNLUDsKLSsJCQkJcHRyID0gc3RyY2hyKCZvYnVmW2ldLCBP
+UFRERUwpOworKwkJCQlwdHIgPSBvc2Zfc3RyY2hyKCZvYnVmW2ldLCBPUFRERUwpOwogKwkJCQlp
+ZiAocHRyKQogKwkJCQl7CiArCQkJCQkqcHRyID0gJ1wwJzsKQEAgLTM0Miw3ICszNTQsNyBAQAog
+KwkJCQlicmVhazsKICsJCQljYXNlICdUJzogCiArCQkJCW9wID0gT1NGT1BUX1RTOwotKwkJCQlw
+dHIgPSBzdHJjaHIoJm9idWZbaV0sIE9QVERFTCk7CisrCQkJCXB0ciA9IG9zZl9zdHJjaHIoJm9i
+dWZbaV0sIE9QVERFTCk7CiArCQkJCWlmIChwdHIpCiArCQkJCXsKICsJCQkJCSpwdHIgPSAnXDAn
+OwpAQCAtMzU1LDcgKzM2Nyw3IEBACiArCQkJCWJyZWFrOwogKwkJCWNhc2UgJ1cnOiAKICsJCQkJ
+b3AgPSBPU0ZPUFRfV1NPOwotKwkJCQlwdHIgPSBzdHJjaHIoJm9idWZbaV0sIE9QVERFTCk7Cisr
+CQkJCXB0ciA9IG9zZl9zdHJjaHIoJm9idWZbaV0sIE9QVERFTCk7CiArCQkJCWlmIChwdHIpCiAr
+CQkJCXsKICsJCQkJCXN3aXRjaCAob2J1ZltpKzFdKQpAQCAtMzgwLDcgKzM5Miw3IEBACiArCQkJ
+CWJyZWFrOwogKwkJCWNhc2UgJ00nOiAKICsJCQkJb3AgPSBPU0ZPUFRfTVNTOwotKwkJCQlwdHIg
+PSBzdHJjaHIoJm9idWZbaV0sIE9QVERFTCk7CisrCQkJCXB0ciA9IG9zZl9zdHJjaHIoJm9idWZb
+aV0sIE9QVERFTCk7CiArCQkJCWlmIChwdHIpCiArCQkJCXsKICsJCQkJCWlmIChvYnVmW2krMV0g
+PT0gJyUnKQpAQCAtMzk5LDcgKzQxMSw3IEBACiArCQkJCWJyZWFrOwogKwkJCWNhc2UgJ0UnOiAK
+ICsJCQkJb3AgPSBPU0ZPUFRfRU9MOwotKwkJCQlwdHIgPSBzdHJjaHIoJm9idWZbaV0sIE9QVERF
+TCk7CisrCQkJCXB0ciA9IG9zZl9zdHJjaHIoJm9idWZbaV0sIE9QVERFTCk7CiArCQkJCWlmIChw
+dHIpCiArCQkJCXsKICsJCQkJCSpwdHIgPSAnXDAnOwpAQCAtNDExLDcgKzQyMyw3IEBACiArCQkJ
+CQlpKys7CiArCQkJCWJyZWFrOwogKwkJCWRlZmF1bHQ6Ci0rCQkJCXB0ciA9IHN0cmNocigmb2J1
+ZltpXSwgT1BUREVMKTsKKysJCQkJcHRyID0gb3NmX3N0cmNocigmb2J1ZltpXSwgT1BUREVMKTsK
+ICsJCQkJaWYgKHB0cikKICsJCQkJewogKwkJCQkJcHRyKys7CkBAIC00NTMsOCArNDY1LDkgQEAK
+ICsJCWxvZygiJXMgLSAlczogdHRsPSVkLCB3c3M9JWMlbHUsIGRmPSVkLCBzaXplPSVsdSIsCiAr
+CQkJZi0+Z2VucmUsIGYtPmRldGFpbHMsIGYtPnR0bCwgKGYtPndzcy53Yyk/Zi0+d3NzLndjOicg
+JywgZi0+d3NzLnZhbCwgZi0+ZGYsIGYtPnNzKTsKICsJCQotKwkJY291bnQgKz0gc3ByaW50Zihi
+dWYrY291bnQsICIlcyAtICVzOiB0dGw9JWQsIHdzcz0lYyVsdSwgZGY9JWQsIHNpemU9JWx1IiwK
+LSsJCQlmLT5nZW5yZSwgZi0+ZGV0YWlscywgZi0+dHRsLCAoZi0+d3NzLndjKT9mLT53c3Mud2M6
+JyAnLCBmLT53c3MudmFsLCBmLT5kZiwgZi0+c3MpOworKwkJY291bnQgKz0gc3ByaW50ZihidWYr
+Y291bnQsICIlcyAtICVzWyVzXSA6ICVzIiwgCisrCQkJCQlmLT5nZW5yZSwgZi0+dmVyc2lvbiwK
+KysJCQkJCWYtPnN1YnR5cGUsIGYtPmRldGFpbHMpOwogKwkJCiArCQlpZiAoZi0+b3B0X251bSkK
+ICsJCXsKQEAgLTQ4MCw3ICs0OTMsNyBAQAogK3sKICsJaW50IGNudDsKICsJdW5zaWduZWQgbG9u
+ZyBpOwotKwljaGFyIHF1aXJrc1tNQVhPUFRTVFJMRU5dLCBvYnVmW01BWE9QVFNUUkxFTl07Cisr
+CWNoYXIgb2J1ZltNQVhPUFRTVFJMRU5dOwogKwlzdHJ1Y3Qgb3NmX2ZpbmdlciAqZmluZ2VyOwog
+KwlzdHJ1Y3QgbGlzdF9oZWFkICplbnQsICpuOwogKwpAQCAtNTEwLDE1ICs1MjMsMTMgQEAKICsJ
+CWlmIChidWZmZXJbaV0gPT0gJzonKQogKwkJCWNudCsrOwogKwotKwlpZiAoY250ICE9IDcgfHwg
+aSAhPSBjb3VudCkKKysJaWYgKGNudCAhPSA4IHx8IGkgIT0gY291bnQpCiArCXsKLSsJCWxvZygi
+V3JvbmcgaW5wdXQgbGluZSBjbnQ9JWRbN10sIGxlbj0lbHVbJWx1XVxuIiwgCisrCQlsb2coIldy
+b25nIGlucHV0IGxpbmUgY250PSVkWzhdLCBsZW49JWx1WyVsdV1cbiIsIAogKwkJCWNudCwgaSwg
+Y291bnQpOwogKwkJcmV0dXJuIGNvdW50OwogKwl9CiArCi0rCi0rCW1lbXNldChxdWlya3MsIDAs
+IHNpemVvZihxdWlya3MpKTsKICsJbWVtc2V0KG9idWYsIDAsIHNpemVvZihvYnVmKSk7CiArCQog
+KwlmaW5nZXIgPSBmaW5nZXJfYWxsb2MoKTsKQEAgLTUyOSw3ICs1NDAsNyBAQAogKwl9CiArCiAr
+CXBiZWcgPSAoY2hhciAqKWJ1ZmZlcjsKLSsJcGVuZCA9IHN0cmNocihwYmVnLCBPU0ZQREVMKTsK
+KysJcGVuZCA9IG9zZl9zdHJjaHIocGJlZywgT1NGUERFTCk7CiArCWlmIChwZW5kKQogKwl7CiAr
+CQkqcGVuZCA9ICdcMCc7CkBAIC01NjEsMjEgKzU3MiwyMSBAQAogKwogKwkJcGJlZyA9IHBlbmQr
+MTsKICsJfQotKwlwZW5kID0gc3RyY2hyKHBiZWcsIE9TRlBERUwpOworKwlwZW5kID0gb3NmX3N0
+cmNocihwYmVnLCBPU0ZQREVMKTsKICsJaWYgKHBlbmQpCiArCXsKICsJCSpwZW5kID0gJ1wwJzsK
+ICsJCWZpbmdlci0+dHRsID0gc2ltcGxlX3N0cnRvdWwocGJlZywgTlVMTCwgMTApOwogKwkJcGJl
+ZyA9IHBlbmQrMTsKICsJfQotKwlwZW5kID0gc3RyY2hyKHBiZWcsIE9TRlBERUwpOworKwlwZW5k
+ID0gb3NmX3N0cmNocihwYmVnLCBPU0ZQREVMKTsKICsJaWYgKHBlbmQpCiArCXsKICsJCSpwZW5k
+ID0gJ1wwJzsKICsJCWZpbmdlci0+ZGYgPSBzaW1wbGVfc3RydG91bChwYmVnLCBOVUxMLCAxMCk7
+CiArCQlwYmVnID0gcGVuZCsxOwogKwl9Ci0rCXBlbmQgPSBzdHJjaHIocGJlZywgT1NGUERFTCk7
+CisrCXBlbmQgPSBvc2Zfc3RyY2hyKHBiZWcsIE9TRlBERUwpOwogKwlpZiAocGVuZCkKICsJewog
+KwkJKnBlbmQgPSAnXDAnOwpAQCAtNTgzLDM0ICs1OTQsMzggQEAKICsJCXBiZWcgPSBwZW5kKzE7
+CiArCX0KICsKLSsJcGVuZCA9IHN0cmNocihwYmVnLCBPU0ZQREVMKTsKKysJcGVuZCA9IG9zZl9z
+dHJjaHIocGJlZywgT1NGUERFTCk7CiArCWlmIChwZW5kKQogKwl7CiArCQkqcGVuZCA9ICdcMCc7
+CiArCQljbnQgPSBzbnByaW50ZihvYnVmLCBzaXplb2Yob2J1ZiksICIlcyIsIHBiZWcpOwogKwkJ
+cGJlZyA9IHBlbmQrMTsKICsJfQorKworKwlwZW5kID0gb3NmX3N0cmNocihwYmVnLCBPU0ZQREVM
+KTsKKysJaWYgKHBlbmQpCisrCXsKKysJCSpwZW5kID0gJ1wwJzsKKysJCWlmIChwYmVnWzBdID09
+ICdAJyB8fCBwYmVnWzBdID09ICcqJykKKysJCQljbnQgPSBzbnByaW50ZihmaW5nZXItPmdlbnJl
+LCBzaXplb2YoZmluZ2VyLT5nZW5yZSksICIlcyIsIHBiZWcrMSk7CisrCQllbHNlCisrCQkJY250
+ID0gc25wcmludGYoZmluZ2VyLT5nZW5yZSwgc2l6ZW9mKGZpbmdlci0+Z2VucmUpLCAiJXMiLCBw
+YmVnKTsKKysJCXBiZWcgPSBwZW5kKzE7CisrCX0KICsJCi0rCXBlbmQgPSBzdHJjaHIocGJlZywg
+T1NGUERFTCk7CisrCXBlbmQgPSBvc2Zfc3RyY2hyKHBiZWcsIE9TRlBERUwpOwogKwlpZiAocGVu
+ZCkKICsJewogKwkJKnBlbmQgPSAnXDAnOwotKwkJY250ID0gc25wcmludGYocXVpcmtzLCBzaXpl
+b2YocXVpcmtzKSwgIiVzIiwgcGJlZyk7CisrCQljbnQgPSBzbnByaW50ZihmaW5nZXItPnZlcnNp
+b24sIHNpemVvZihmaW5nZXItPnZlcnNpb24pLCAiJXMiLCBwYmVnKTsKICsJCXBiZWcgPSBwZW5k
+KzE7CiArCX0KLSsKLSsJcGVuZCA9IHN0cmNocihwYmVnLCBPU0ZQREVMKTsKKysJCisrCXBlbmQg
+PSBvc2Zfc3RyY2hyKHBiZWcsIE9TRlBERUwpOwogKwlpZiAocGVuZCkKICsJewogKwkJKnBlbmQg
+PSAnXDAnOwotKwkJaWYgKHBiZWdbMF0gPT0gJ0AnIHx8IHBiZWdbMF0gPT0gJyonKQotKwkJCWNu
+dCA9IHNucHJpbnRmKGZpbmdlci0+Z2VucmUsIAotKwkJCQkJKChjb3VudC0ocGJlZysxLWJ1ZmZl
+cikrMSkgPiBNQVhHRU5SRUxFTik/TUFYR0VOUkVMRU46KGNvdW50LShwYmVnKzEtYnVmZmVyKSsx
+KSwgCi0rCQkJCQkiJXMiLCBwYmVnKzEpOwotKwkJZWxzZQotKwkJCWNudCA9IHNucHJpbnRmKGZp
+bmdlci0+Z2VucmUsIAotKwkJCQkJKChjb3VudC0ocGJlZy1idWZmZXIpKzEpID4gTUFYR0VOUkVM
+RU4pP01BWEdFTlJFTEVOOihjb3VudC0ocGJlZy1idWZmZXIpKzEpLCAKLSsJCQkJCSIlcyIsIHBi
+ZWcpOworKwkJY250ID0gc25wcmludGYoZmluZ2VyLT5zdWJ0eXBlLCBzaXplb2YoZmluZ2VyLT5z
+dWJ0eXBlKSwgIiVzIiwgcGJlZyk7CiArCQlwYmVnID0gcGVuZCsxOwogKwl9CiArCkBAIC02MTgs
+MTAgKzYzMyw5IEBACiArCQkJKChjb3VudCAtIChwYmVnIC0gYnVmZmVyKSsxKSA+IE1BWERFVExF
+Tik/TUFYREVUTEVOOihjb3VudCAtIChwYmVnIC0gYnVmZmVyKSsxKSwgCiArCQkJIiVzIiwgcGJl
+Zyk7CiArCQotKwlsb2coIiVzIC0gJXMuIHR0bD0lZCwgZGY9JWQsIHNpemU9JWx1LCB3c3M9WyVk
+LCAlbHVdXG4iLCAKLSsJCWZpbmdlci0+Z2VucmUsIGZpbmdlci0+ZGV0YWlscywKLSsJCWZpbmdl
+ci0+dHRsLCBmaW5nZXItPmRmLCBmaW5nZXItPnNzLAotKwkJZmluZ2VyLT53c3Mud2MsIGZpbmdl
+ci0+d3NzLnZhbCk7CisrCWxvZygiJXMgLSAlc1slc10gOiAlc1xuIiwgCisrCQlmaW5nZXItPmdl
+bnJlLCBmaW5nZXItPnZlcnNpb24sCisrCQlmaW5nZXItPnN1YnR5cGUsIGZpbmdlci0+ZGV0YWls
+cyk7CiArCQogKwlvc2ZfcGFyc2Vfb3B0KGZpbmdlci0+b3B0LCAmZmluZ2VyLT5vcHRfbnVtLCBv
+YnVmLCBzaXplb2Yob2J1ZikpOwogKwkKQEAgLTc1MSw2ICs3NjUsNyBAQAogKwl1bnNpZ25lZCBj
+aGFyCQlkZjsKICsJdW5zaWduZWQgbG9uZwkJc3M7CiArCWNoYXIJCQlnZW5yZVtNQVhHRU5SRUxF
+Tl07CisrCWNoYXIJCQl2ZXJzaW9uW01BWEdFTlJFTEVOXSwgc3VidHlwZVtNQVhHRU5SRUxFTl07
+CiArCQogKwkvKiBOb3QgbmVlZGVkLCBidXQgZm9yIGNvbnNpc3RlbmN5IHdpdGggb3JpZ2luYWwg
+dGFibGUgZnJvbSBNaWNoYWwgWmFsZXdza2kgKi8KICsJY2hhcgkJCWRldGFpbHNbTUFYREVUTEVO
+XTsgCg==
+
+--Multipart_Tue__23_Sep_2003_20:02:26_+0400_082cdd30--
