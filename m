@@ -1,17 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and
  optimization
-Date: Thu, 24 Jun 2004 12:24:15 +0200 (CEST)
+Date: Thu, 24 Jun 2004 13:26:10 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406241220180.8190-100000@blackhole.kfki.hu>
-References: <200406241012.TAA24555@toshiba.co.jp>
+Message-ID: <40DABA52.9070700@trash.net>
+References: <200406240404.NAA01264@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <kisza@securityaudit.hu>, <netfilter-devel@lists.netfilter.org>,
-	<laforge@netfilter.org>, <usagi-core@linux-ipv6.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,  laforge@netfilter.org,
+ kisza@securityaudit.hu,  usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200406241012.TAA24555@toshiba.co.jp>
+In-Reply-To: <200406240404.NAA01264@toshiba.co.jp>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,28 +23,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 24 Jun 2004, Yasuyuki Kozakai wrote:
+Yasuyuki Kozakai wrote:
+> Hi, folks,
+> 
+> In the current kernel, skb is linearized by skb_linearize() in ip6_tables.c.
+> I suggest removing this, and this patch is the 1st step to do it.
+> 
+> To remove skb_linearize(), this patch changes the API of match() like
+> ip_tables.h
 
-> OK, I try to solve this problem... But how same problem was managed when
-> removing skb_linearize() from "ip_tables.c" ? Maybe the order of arguments
-> of target() were changed ?
+I'm not sure the way iptables does it is really the right way. We call
+skb_copy_bits for anything that needs to be matched after the ip_header.
+Think of 100 rules matching "-p tcp --dport X". We copy the tcp header
+100 times, for a total of 2000 bytes. One call to skb_linearize would
+most likely be less expensive. I'm thinking about putting the copied
+protocol header in the control buffer, this would reduce this extensive
+copying a lot. We could also do some common preprocessing steps in one
+place, like converting things to host byte order.
 
-Exactly!
+Comments anyone ?
 
-/* Registration hooks for targets. */
-struct ipt_target
-{
-[...]
-        /* Returns verdict.  Argument order changed since 2.4, as this
-           must now handle non-linear skbs, using skb_copy_bits and
-           skb_ip_make_writable. */
-        unsigned int (*target)(struct sk_buff **pskb,
-[...]
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+Patrick
