@@ -1,33 +1,37 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] fix ip_nat_ftp in 2.6.0-test1
-Date: Thu, 17 Jul 2003 14:43:26 -0700
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030717144326.4f496995.davem@redhat.com>
-References: <20030717211254.GA27685@sunbeam.de.gnumonks.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030717211254.GA27685@sunbeam.de.gnumonks.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [2.4 patch] netfilter Configure.help cleanup
+Date: Fri, 18 Jul 2003 11:06:49 +1000
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20030718012910.0D5BB2C5A9@lists.samba.org>
+References: <20030717201304.GL1407@fs.tum.de>
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	linux-net@vger.kernel.org
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Adrian Bunk <bunk@fs.tum.de>
+To: Marcelo Tosatti <marcelo@conectiva.com.br>,
+	"David S. Miller" <davem@redhat.com>
+In-reply-to: Your message of "Thu, 17 Jul 2003 22:13:05 +0200."
+             <20030717201304.GL1407@fs.tum.de>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 17 Jul 2003 23:12:54 +0200
-Harald Welte <laforge@netfilter.org> wrote:
-
-> This is a 2.6 only fix for the FTP NAT helper code.  The patch below
-> (by Martin Josefsson) also closes Bug 933 in the kernel bug tracker.
+In message <20030717201304.GL1407@fs.tum.de> you write:
+> On Wed, Jul 02, 2003 at 04:25:05PM -0300, Marcelo Tosatti wrote:
+> > 
+> > Make that go through davem, please.
 > 
-> The bug was introduced while making the helper compliant to the recently
-> introduced support for nonlinear skb's in netfilter.
+> Hi Dave,
+> 
+> the patch below does the following changes to the netfilter entries in
+> Configure.help in 2.4.22-pre2:
+> - order similar to net/ipv4/netfilter/Config.in
+> - remove useless short descriptions above CONFIG_*
+> - added CONFIG_IP_NF_MATCH_RECENT entry (stolen from 2.5)
 
-Applied, thanks Harald.
+Sorry Adrian, I think this is overzealous.
+
+Please just add the CONFIG_IP_NF_MATCH_RECENT entry.  Remember,
+"stable" means "boring". 8)
+
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
