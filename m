@@ -1,56 +1,86 @@
-From: Michael Richardson <mcr@sandelman.ottawa.on.ca>
-Subject: Re: H.323 progress.
-Date: Tue, 18 May 2004 10:06:10 -0400
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <2291.1084889170@marajade.sandelman.ottawa.on.ca>
-References: <40A9431D.8020404@sauce.co.nz>
-Reply-To: users@lists.openswan.org
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Richard Scobie <richard@sauce.co.nz>
-In-Reply-To: Message from Richard Scobie <richard@sauce.co.nz>
-   of "Tue, 18 May 2004 10:56:29 +1200." <40A9431D.8020404@sauce.co.nz>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+From: Manu Garg <manu.garg@med.ge.com>
+Subject: Re: how ip header added in ip_bulid_xmit function?
+Date: Tue, 18 May 2004 19:53:16 +0530
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <40AA1C54.2090201@med.ge.com>
+References: <20040518063106.85290.qmail@web90102.mail.scd.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: linuxnet <linux-net@vger.kernel.org>, netdev <netdev@oss.sgi.com>,
+	netfilter <netfilter-devel@lists.netfilter.org>
+Return-path: <linux-net-owner@vger.kernel.org>
+To: linux lover <linux_lover2004@yahoo.com>
+In-Reply-To: <20040518063106.85290.qmail@web90102.mail.scd.yahoo.com>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
+linux lover wrote:
+
+>hello ,
+>   In ip_output.c file there is ip_build_xmit function
+>call. when packet comes from tcp layer to IP layer
+>this function is called. In that i found that 
+>   skb = sock_alloc_send_skb(sk, length+hh_len+15
+>,flags&MSG_DONTWAIT, &err);
+>staement allocates skb for packet. after that i found
+>that no iphdr adding statement in ip_build_xmit. i
+>want to know where is iphdr push to skb? cause skb
+>works using first alloc_skb to allocate memory then
+>skb_reserve to reserve headroom then put data in skb
+>by skb_put or skb_push for pushing headers in skb. so
+>there i found       
+>  skb->nh.iph = iph = (struct iphdr *)skb_put(skb,
+>length); 
+>statement is this does that iphdr adding?
+>
+>regards,
+>linuxlover
+>
+>
+>	
+>		
+>__________________________________
+>Do you Yahoo!?
+>SBC Yahoo! - Internet access at a great low price.
+>http://promo.yahoo.com/sbc/
+>-
+>To unsubscribe from this list: send the line "unsubscribe linux-net" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>  
+>
+A packet comes from TCP layer to IP layer through function call 
+tp->af_specific->queue_xmit() (in tcp_output.c:tcp_transmit_skb() ). For 
+IP this function is nothing but ip_queue_xmit() defined in
+ip_output.c.
+
+If you'll check this function, it clearly allocates ip header and put 
+information in it.
+
+----------------------------------------------------
+iph = (struct iphdr *) skb_push(skb, sizeof(struct iphdr) + (opt ? 
+opt->optlen : 0));
+        *((__u16 *)iph) = htons((4 << 12) | (5 << 8) | 
+(sk->protinfo.af_inet.tos & 0xff));
+iph->tot_len = htons(skb->len);
+if (ip_dont_fragment(sk, &rt->u.dst))
+    iph->frag_off = htons(IP_DF);
+else
+    iph->frag_off = 0;
+iph->ttl      = sk->protinfo.af_inet.ttl;
+iph->protocol = sk->protocol;
+iph->saddr    = rt->rt_src;
+iph->daddr    = rt->rt_dst;
+skb->nh.iph   = iph;
+---------------------------------------------------
+
+I hope this answers your question.
+
+regards,
+Manu Garg
+http://manugarg.freezope.org/notes
 
 
->>>>> "Richard" == Richard Scobie <richard@sauce.co.nz> writes:
-    Richard> I have a FreeSwan IPsec VPN between 2 iptables NAT boxes.
 
-  Okay. But this, you mean that you have two boxes that normally perform
-NAT, but the VPN otherwise connects the two private networks? (I am
-asking to confirm this)
 
-    Richard> With H.323 videoconferencing equipment from both Via Video
-    Richard> and Tandberg, I have been unable to get complete connection
-    Richard> between both ends through the VPN - 90+ % of the time,
-    Richard> video connects both ways and audio only one.
-
-  I'm ignorant of how the proxies work. If you have a VPN, why do you
-need them?  I'd think you need them only when trying to pass through the
-NAT, rather than go around it.
-  
-- --
-]     "Elmo went to the wrong fundraiser" - The Simpson         |  firewalls  [
-]   Michael Richardson,    Xelerance Corporation, Ottawa, ON    |net architect[
-] mcr@xelerance.com      http://www.sandelman.ottawa.on.ca/mcr/ |device driver[
-] panic("Just another Debian GNU/Linux using, kernel hacking, security guy"); [
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-Comment: Finger me for keys
-
-iQCVAwUBQKoYS4qHRg3pndX9AQH8bAQAzMlS18fG+h7meTTjO4GmicaCZMhmui/q
-IeHkzJI0rPx6QlGGDG8EvohOkltKAvHv3gi6NuzY7XsOq3AoGdlcjHwqXCPTOgdw
-iYkd83NLbboX6yF7+CBavt2tH5PAJu2WNHVlIq9YwKXKyEysv9eAm/1dqSVIrZMk
-pC4CkmSS1yM=
-=LoQC
------END PGP SIGNATURE-----
