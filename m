@@ -1,63 +1,65 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [Debian Bug#218837] limit match not working on sparc64
-Date: Fri, 7 Nov 2003 14:54:04 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031107135404.GL5741@sunbeam.de.gnumonks.org>
-References: <20031106160055.GA25555@absolom.libra.net> <20031107000324.GC5741@sunbeam.de.gnumonks.org> <20031107014425.GB10258@home.tig-grr.com>
+Subject: Re: [netfilter-core] Re: [ANNOUNCE] Release of iptables-1.2.9
+Date: Fri, 7 Nov 2003 14:55:20 +0100
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <20031107135520.GM5741@sunbeam.de.gnumonks.org>
+References: <20031102171611.GF1536@sunbeam.de.gnumonks.org> <20031107073518.GA1215@alpha.home.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DMLl6fZPX8o7hGmc"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tom Marshall <tommy@home.tig-grr.com>
+	protocol="application/pgp-signature"; boundary="BZziOT8Kz25R/m/E"
+Cc: Netfilter Core Team <coreteam@netfilter.org>,
+	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: Willy Tarreau <willy@w.ods.org>
 Content-Disposition: inline
-In-Reply-To: <20031107014425.GB10258@home.tig-grr.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+In-Reply-To: <20031107073518.GA1215@alpha.home.local>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---DMLl6fZPX8o7hGmc
+--BZziOT8Kz25R/m/E
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 06, 2003 at 05:44:25PM -0800, Tom Marshall wrote:
-> On Fri, Nov 07, 2003 at 01:03:24AM +0100, Harald Welte wrote:
-> > On Thu, Nov 06, 2003 at 11:00:56AM -0500, Laurence J. Lane wrote:
-> > > I received a bug report [0] regarding the limit match not working
-> > > on sparc64 with kernel 2.4.22. It references an earlier report [1]
-> > > of the problem on this list. Harald Welete commented on it [2] and
-> > > asked for additional information, but there is no clear resolution.
-> > >=20
-> > > Anyone?
-> >=20
-> > this is most likely never going to get fixed.   the problem is that the
-> > limit match does an ugly hack: it stores a pointer in it's struct
-> > matchinfo.  That pointer is 64bits in the kernel, but userspace is
-> > 32bits, and thus the compilar only allocates 32bit for the pointer in
-> > the structure: boom.
+On Fri, Nov 07, 2003 at 08:35:18AM +0100, Willy Tarreau wrote:
+> Hi Harald,
 >=20
-> Just a random thought -- is an intptr_t the same between kernel and userl=
-and
-> on all architectures?
+> > 	http://www.netfilter.org/files/iptables-1.2.9.tar.bz2
+> > 	ftp://ftp.netfilter.org/pub/iptables/iptables-1.2.9.tar.bz2
+>=20
+> I was wondering why this file was nearly 50kB bigger than rc1. In fact, t=
+he
+> archive contains some old files, totalizing about 160 kB :
+>=20
+>   extensions/.#libipt_ECN.c.1.7
+>   extensions/.#libipt_recent.c.1.6
+>   .#iptables.c.1.54
+>   .#iptables.c.1.55
+>   libiptc2/.libiptc.c.1.40
 
-I don't think so.   Actually, the processor is running in a different
-mode, so it an integer pointer in user space should never be 64bits
-wide.
+oh, I wonder how they get there... .# looks like emacs, but I never use
+emacs...
 
-we also cannot change the structure definition in a way that renders it
-incompatible on other architectures.
+thanks for pointing this out, I'll try to avoid that for the next
+release.
 
-Since the limit match is not a particularly useful or important piece of
-iptables, I never though of it as a too important issue.  It'll be
-solved with the mythical pkttables in 2.7.x ;)
+> That's harmless however. I will probably upgrade today some hosts on which
+> I installed rc1 a few days ago and which didn't have any problem with it.
+
+That's great, thanks!
+
+> Cheers,
+> Willy
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -69,16 +71,16 @@ solved with the mythical pkttables in 2.7.x ;)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---DMLl6fZPX8o7hGmc
+--BZziOT8Kz25R/m/E
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/q6P8XaXGVTD0i/8RAldlAKCjSgnRqoGY2VRIsXFOhOyTvmP0NACgjWcc
-bFOShhbYNWShekvUgpQoXKQ=
-=WtGw
+iD8DBQE/q6RHXaXGVTD0i/8RAh0CAKCrYD3oDEjvIMqaMV7UEpnac6Mt/ACfR8nG
+mrt5u5pKtunFLaiAmCSBzw4=
+=LMhJ
 -----END PGP SIGNATURE-----
 
---DMLl6fZPX8o7hGmc--
+--BZziOT8Kz25R/m/E--
