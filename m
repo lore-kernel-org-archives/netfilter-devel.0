@@ -1,76 +1,50 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Thomas Spatzier <tspat@de.ibm.com>
 Subject: Re: [netfilter-core] memory leak with IP connection tracking and IP forwarding
-Date: Tue, 4 May 2004 13:58:08 +0200
+Date: Tue, 4 May 2004 16:02:26 +0200
 Sender: linux-net-owner@vger.kernel.org
-Message-ID: <20040504115808.GJ6345@sunbeam.de.gnumonks.org>
-References: <200405041305.55627.tspat@de.ibm.com>
+Message-ID: <200405041602.26635.tspat@de.ibm.com>
+References: <200405041305.55627.tspat@de.ibm.com> <20040504115808.GJ6345@sunbeam.de.gnumonks.org>
+Reply-To: tspat@gmx.de
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="B3XPdYri2NuANWBV"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Cc: linux-net@vger.kernel.org, coreteam@netfilter.org,
 	netfilter-devel@lists.netfilter.org
 Return-path: <linux-net-owner@vger.kernel.org>
-To: tspat@gmx.de
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040504115808.GJ6345@sunbeam.de.gnumonks.org>
 Content-Disposition: inline
-In-Reply-To: <200405041305.55627.tspat@de.ibm.com>
 List-Id: netfilter-devel.vger.kernel.org
 
+> > I'm experiencing a major memory leak if I run a router with IP connection
+> > tracking enabled and packets larger than MTU size.
+>
+> How do you observe such a memory leak?  What exact values are you
+> looking at?
 
---B3XPdYri2NuANWBV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On the router I issue a 'watch -n 1 cat /proc/meminfo'.
+Then I do a 'ping -f -s 64000' from one host to another host via the router.
+On each update of my watch above there are about 10 MB of memory
+(MemFree) missing.
+I also watched /proc/slabinfo and noticed the increasing size of the
+skbuff_head_cache slab.
 
-On Tue, May 04, 2004 at 01:05:55PM +0200, Thomas Spatzier wrote:
-> Hi all,
->=20
-> I'm experiencing a major memory leak if I run a router with IP connection
-> tracking enabled and packets larger than MTU size.
+> > My only glue so far is that the skbuff_head_cache is growing. Connection
+> > tracking has a hook in the IP stack, where it gets hold of packets. If
+> > these packets are fragmented (due to the packet size being larger than
+> > MTU size) they are reassembled by ip_conntrack. So I guess the memory
+> > leak might be somewhere in there.
+>
+> Did you enable support for bridging?
+>
+> There was a bug in the bridging (bridging firewall) code which made it
+> 'forget' to drop the reference count (and thus introduced a memory
+> leak).
 
-How do you observe such a memory leak?  What exact values are you
-looking at?
+CONFIG_BRIDGE is not set, i.e. bridging is not enabled.
 
-> If I do a 'ping -f -s 64000 <Host B>' from host A via the router, the
-> router is losing more then 10 MB of memory per second.
-> Without connection tracking everything works fine.
->=20
-> My only glue so far is that the skbuff_head_cache is growing. Connection
-> tracking has a hook in the IP stack, where it gets hold of packets. If th=
-ese
-> packets are fragmented (due to the packet size being larger than MTU size)
-> they are reassembled by ip_conntrack. So I guess the memory leak might
-> be somewhere in there.
+-- 
+Regards,
+Thomas.
 
-Did you enable support for bridging?
-
-There was a bug in the bridging (bridging firewall) code which made it
-'forget' to drop the reference count (and thus introduced a memory
-leak).
-
-> Regards,
-> Thomas.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---B3XPdYri2NuANWBV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAl4VQXaXGVTD0i/8RAuAIAKCWtwPUpPcRRUEBFIDRz9JNoUJMzQCfTfI2
-XbNhtLwxYSlprDsOWYJw3XE=
-=YdK6
------END PGP SIGNATURE-----
-
---B3XPdYri2NuANWBV--
