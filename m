@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ip_conntrack_count broken - kernel 2.6 - New patch
-Date: Thu, 19 Aug 2004 12:52:14 +0200
+Subject: Re: libipq, kernel panics/oopses, and other undesirable traits
+Date: Thu, 19 Aug 2004 12:55:33 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040819105214.GH3921@sunbeam.de.gnumonks.org>
-References: <20040815131740.GA23767@cerbere.dyndns.info>
+Message-ID: <20040819105533.GI3921@sunbeam.de.gnumonks.org>
+References: <E1BwO5M-000718-NF@giant.mindlink.net> <1092692707.22731.1687.camel@marx.mindlink.net> <41213777.9050701@trash.net> <1092703243.22731.1778.camel@marx.mindlink.net> <4121E082.6050602@trash.net> <1092775215.22731.1958.camel@marx.mindlink.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fQa200R4EO7jAQ6Z"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="uBaQ+BsiqpBBIRFI"
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Samir Bellabes <sam@cerbere.dyndns.info>
+To: Matt Walters <mattw@parasun.com>
 Content-Disposition: inline
-In-Reply-To: <20040815131740.GA23767@cerbere.dyndns.info>
+In-Reply-To: <1092775215.22731.1958.camel@marx.mindlink.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +23,23 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---fQa200R4EO7jAQ6Z
+--uBaQ+BsiqpBBIRFI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Aug 15, 2004 at 03:17:40PM +0200, Samir Bellabes wrote:
-> Hi Harald,
->    The ip_conntrack_count is broken with kernel 2.6.8.
->    This patch, which do the same thing, applies correctly.
+On Tue, Aug 17, 2004 at 01:40:15PM -0700, Matt Walters wrote:
+> Thanks Patrick-
+>=20
+> 	A quick test shows that unaltered packets being passed back from
+> userspace no longer cause kernel panics (yay) but also that they are not
+> being responded to (boo).  I'll have a look deeper into it later on.
 
-mh, at least with 2.6.8.1 it works:
+Patrkick, do you think we should push your make_writable fix to davem
+yet?
 
-laforge@tatooine%pts/2 (12:49) /usr/src/linux-2.6.8.1-test > patch -p1 --dr=
-y-run < ~/projects/cvs/netfilter/patch-o-matic-ng/ip_conntrack_count/linux-=
-2.6.patch
-patching file net/ipv4/netfilter/ip_conntrack_core.c
-Hunk #1 succeeded at 65 (offset 1 line).
-patching file net/ipv4/netfilter/ip_conntrack_standalone.c
-Hunk #1 succeeded at 312 (offset 1 line).
-Hunk #2 succeeded at 347 (offset 1 line).
-patching file include/linux/sysctl.h
-Hunk #1 succeeded at 410 (offset 1 line).
+> -Matt
 
-Can you be more specific what the problem is?  Also, apart from hunk
-reordering, I cannot see how your patch is different from what we have
-in cvs.
-
-> thanks.
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -61,7 +50,7 @@ in cvs.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---fQa200R4EO7jAQ6Z
+--uBaQ+BsiqpBBIRFI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -69,9 +58,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBJIZeXaXGVTD0i/8RAgmnAJwJt8WEmxwQHrpPGJv31Ty8RDXp6gCeJVc0
-tRwYIUAZnsDkgrlee+Vu198=
-=4TYY
+iD8DBQFBJIclXaXGVTD0i/8RAh/EAJwNc83R4cL566H236xZ4LDva/W83wCgq/mx
+7aDY5PSjASuE3/VBIsR6PNk=
+=DLP9
 -----END PGP SIGNATURE-----
 
---fQa200R4EO7jAQ6Z--
+--uBaQ+BsiqpBBIRFI--
