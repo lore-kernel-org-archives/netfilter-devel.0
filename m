@@ -1,12 +1,13 @@
-From: Peter Stamfest <peter@stamfest.at>
-Subject: Introducing iptables-snmp...
-Date: Wed, 19 Mar 2003 12:02:27 +0100 (CET)
+From: Richard Allen <ra@ra.is>
+Subject: Accept and remove
+Date: Wed, 19 Mar 2003 14:08:57 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0303191155100.24978-100000@peter.stamf.pr.at>
+Message-ID: <20030319140857.GB21417@ra.is>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,32 +18,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all.
 
-Hello everybody, 
+I was wondering if there is a feature in iptables where I can add a rule
+that matches for example a SYN packet and jump to a target that lets it
+through and then removes the rule.
+Basicly allowing me to add a rule to my firewall that says, "You can ssh in
+once, after that you need to talk to me again."
 
-I have just put up a very alpha version of my iptables-over-SNMP software 
-for download on http://oss.stamfest.net/iptables-snmp/
+I've tried to do this using the limits and it mostly works but when any
+change hapens in the rules in the kernel, the counters seem to get reset
+and that reopenes those "spent" rules again.
 
-It provides for basic access to iptables information via SNMP using the 
-net-snmp (http://www.net-snmp.org/) SNMP agent.
+If not, I was considering to take the ACCEPT target and copy it to something
+else (ACCEPTONCE) and making the necessary changes.  Is there any way for
+targets to know which rule called them ?
 
-A MIB is provided as well.
+Any help in this would be greatly appriciated. :)
 
-It also requires iptables-1.2.7a (+a small patch to introduce 
-"iptc_free" - I would suggest to actually apply this patch to the 
-iptables-distribution) - it uses the libiptc.a library.
 
-Currently it provides for access to packet and bytes counters and some 
-information about the rules. However, currently it does not provide for 
-information about extension modules due to the lack(?) of a reasonable 
-interface to access such information via iptables..
-
-Also it has no support for IPv6.
-
-Have a look at the README file for build-instructions. No thoughts went 
-into making it user-friendly so far ;-)  This is experimental!
-
-I am most interested in any feedback. I am willing to contribute this 
-software to iptables proper if there is interest in this.
-
-peter
+-- 
+Rikki.         --  RHCE, RHCX, HP-UX Certified Administrator.
+               --  Solaris 7 Certified Systems and Network Administrator.
+Bell Labs Unix --  Reach out and grep someone.
+Those who do not understand Unix are condemned to reinvent it, poorly.
