@@ -1,15 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: netfilter query
-Date: Mon, 22 Nov 2004 13:03:23 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0411221245470.20973@filer.marasystems.com>
-References: <20041121153354.99557.qmail@web41404.mail.yahoo.com>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Perl Module for Packet generation (Re: Net::Packet)
+Date: Mon, 22 Nov 2004 11:03:47 +0100
+Message-ID: <20041122100347.GD19371@sunbeam.de.gnumonks.org>
+References: <20041121214325.GA99287@dani.enslaved.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: kernelnewbies@nl.linux.org, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7gGkHNMELEOhSGF6"
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: cranium2003 <cranium2003@yahoo.com>
-In-Reply-To: <20041121153354.99557.qmail@web41404.mail.yahoo.com>
+To: GomoR <GomoR@gomor.org>
+Content-Disposition: inline
+In-Reply-To: <20041121214325.GA99287@dani.enslaved.lan>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,26 +23,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 21 Nov 2004, cranium2003 wrote:
 
-> Also,which headers are added when packet
-> reaches to netfilter hook NF_IP_LOCAL_OUT? I found
-> TCP/UDP/ICMP ,IP. Is that correct?
+--7gGkHNMELEOhSGF6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes.
+On Sun, Nov 21, 2004 at 10:43:25PM +0100, GomoR wrote:
+>=20
+>   Hello Harald,
+>=20
+>   I  was  googling  about  my  Perl  module  and  found  the
+>   following messages: https://lists.netfilter.org/pipermail/netfilter-
+>   devel/2001-December/006179.html
+>=20
+>   Just to inform you that this module now exists exactly  as
+>   you described the need.
+>=20
 
-netfilter is running at the IP layer and only reliably have access to IP 
-headers and up. Lower level headers such as Ethernet MAC header is 
-transport dependent and not always available, and certainly not available 
-in NF_IP_LOCAL_OUT as it is not yet known the packet will be sent to an 
-Ethernet.
+That is great news.
 
-In some netfilter hooks it is possible to rewind back to the Ethernet MAC 
-header but one must be careful to verify that it really is an Ethernet 
-packet one is looking at when doing this. Unfortunately there is no 
-perfect solution how to detect this.. For an example of how one may try to 
-look at the Ethernet MAC header see ipt_mac.c. But be warned that it is 
-possible for non-Ethernet frames to pass the simple checks done there..
+>   It can be found on CPAN. If you are  no  more  interested,
+>   sorry to have disturbed you.
 
-Regards
-Henrik
+I'm at the moment not working on the testsuite myself, but I'll pass it
+on to Jeremy and Rusty, who're working on a testsuite with nfsim.  Maybe
+it is of use to them.
+
+Thanks fro letting us know.
+>   Best regards,
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
+
+--7gGkHNMELEOhSGF6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBobmDXaXGVTD0i/8RAtwzAKCZYKx9UeBGn5gHYxgVEDpaA9uruQCgp4+T
+67eqY7GEtKN8tybKtB1Ajrg=
+=2t7I
+-----END PGP SIGNATURE-----
+
+--7gGkHNMELEOhSGF6--
