@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: Q about ip_conntrack_expect_related()/ip_nat_expect_register()
-Date: Wed, 30 Oct 2002 09:44:06 +0100
+Subject: Re: (no subject)
+Date: Wed, 30 Oct 2002 09:55:43 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021030094406.N8635@sunbeam.de.gnumonks.org>
-References: <3DB6A8B3.7050706@runestig.com>
+Message-ID: <20021030095543.U8635@sunbeam.de.gnumonks.org>
+References: <1035739556.3dbc21a447d28@student-webmail.lboro.ac.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4XBiSqiiHCIj6zoM"
+	protocol="application/pgp-signature"; boundary="6SWS31fp4apnN2Tf"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Peter 'Luna' Runestig" <peter@runestig.com>
+To: C.Shelley-02@student.lboro.ac.uk
 Content-Disposition: inline
-In-Reply-To: <3DB6A8B3.7050706@runestig.com>; from peter@runestig.com on Wed, Oct 23, 2002 at 03:48:35PM +0200
+In-Reply-To: <1035739556.3dbc21a447d28@student-webmail.lboro.ac.uk>; from C.Shelley-02@student.lboro.ac.uk on Sun, Oct 27, 2002 at 05:25:56PM +0000
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +23,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---4XBiSqiiHCIj6zoM
+--6SWS31fp4apnN2Tf
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 23, 2002 at 03:48:35PM +0200, Peter 'Luna' Runestig wrote:
-> Hi all!
+On Sun, Oct 27, 2002 at 05:25:56PM +0000, C.Shelley-02@student.lboro.ac.uk =
+wrote:
+> Developers,
 >=20
-> I'm thinking of trying to put together a helper module, and I'm looking=
-=20
-> at existing code (plus reading howto's and searching the mbox archive)=20
-> to try to grasp the way it all works.
->=20
-> I actually have two questions:
->=20
-> 1) I'm looking at ip_{conntrack,nat}_irc.c (2.4.19). The help() function=
-=20
+> I have had an idea for a new target for moifying the TCP flags of a packe=
+t.
 
-please don't look at 2.4.19 kernels, they predate the newnat changes.
+> Do you think it will work?
 
-Either look at 2.4.20-preX (where X > 2), or apply (at least) the newnat
-patch from patch-o-matic.
+yes, it will work with 'weak' firewalls doing very lazy checking on the TCP=
+ ,
+of course.=20
 
-The API has changed in both the issues you are questioning.
+An iptables target like this is an ugly hack, so don't expect it to show
+up in the linux kernel, after you have submitted it to me :)
 
-> TIA,
-> - Peter
-=20
+> --Craig Shelley  =20
 
 --=20
 Live long and prosper
@@ -62,7 +56,7 @@ Live long and prosper
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---4XBiSqiiHCIj6zoM
+--6SWS31fp4apnN2Tf
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -70,9 +64,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9v5vVXaXGVTD0i/8RArMPAJ9aHzEI328COBmTD3M7WGlkSpd+KQCfYeOx
-Fk6faecvH9st2ZBDQaMAfog=
-=jndp
+iD8DBQE9v56PXaXGVTD0i/8RAtxsAJ9WBmDgBXg/B5zVd+5bqxFzGThiNwCgtGvv
+ij4oeMmczKJu4xrZ6eQjJRU=
+=oERv
 -----END PGP SIGNATURE-----
 
---4XBiSqiiHCIj6zoM--
+--6SWS31fp4apnN2Tf--
