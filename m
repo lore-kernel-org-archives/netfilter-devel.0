@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] introducing skb_header_pointer() to hbh match
-Date: Mon, 25 Oct 2004 00:47:42 +0200
+Subject: Re: [PATCH] fix stats in __ip_conntrack_confirm
+Date: Mon, 25 Oct 2004 01:12:27 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C310E.7000402@trash.net>
-References: <200410220259.i9M2xqR5010725@toshiba.co.jp>
+Message-ID: <417C36DB.5000403@trash.net>
+References: <4176E6EB.1070008@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Eric Lemoine <eric.lemoine@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200410220259.i9M2xqR5010725@toshiba.co.jp>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4176E6EB.1070008@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,11 +22,14 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki Kozakai wrote:
+Pablo Neira wrote:
 
->This patch introduces skb_header_pointer() to ip6t_hbh.c
->
-Thanks Yasuyuki, all four patches applied.
+> So net_rx_softirq can preempt the calling process while incrementing 
+> the stats.
+> I think that we can fix this moving both CONNTRACK_STAT_INC to the locked
+> section.
+
+Applied, thanks Pablo.
 
 Regards
 Patrick
