@@ -1,20 +1,12 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Strange thing with iptables
-Date: Thu, 09 Sep 2004 16:38:00 +0200
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: [PATCH] cleanup
+Date: Thu, 09 Sep 2004 17:29:11 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1094740680.8900.10.camel@localhost.localdomain>
-References: <opsd15s018le1n2s@mail.tlt.hu>
-	<1094732295.8900.7.camel@localhost.localdomain>
-	<Pine.NEB.4.60.0409091430510.3683@ukato.freeshell.org>
+Message-ID: <414076C7.7000009@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-1hX/yzUeZcsS/CVqhe1b"
-Cc: Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------010509030403080305000909"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Alexey Toptygin <alexeyt@freeshell.org>
-In-Reply-To: <Pine.NEB.4.60.0409091430510.3683@ukato.freeshell.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,39 +17,90 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------010509030403080305000909
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---=-1hX/yzUeZcsS/CVqhe1b
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2004-09-09 at 16:33, Alexey Toptygin wrote:
+Hello,
 
-> > It's a feature :)
-> > It doesn't make the current code any more complicated.
-> > And ther are actually people using it to do weird stuff...
->=20
-> Do you mean that one can use arbitrary bitmasks wherever netfilter wants =
-a=20
-> netmask value?
-> So, one might select all IPs with the LSB set with 0.0.0.1/0.0.0.1?
 
-Yes you can.
-Although this might change in the (distant) future when diffrent
-algorithms are used for rule-lookup.
+I got this patch for iptables in bugzilla #131848 from Steve Grubb. Are including it 
+in the next version?
 
---=20
-/Martin
 
---=-1hX/yzUeZcsS/CVqhe1b
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+Thanks in advance,
+Thomas
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+-- 
+Thomas Woerner
+Software Engineer            Phone: +49-711-96437-310
+Red Hat GmbH                 Fax  : +49-711-96437-111
+Hauptstaetterstr. 58         Email: Thomas Woerner <twoerner@redhat.com>
+D-70178 Stuttgart            Web  : http://www.redhat.de/
 
-iD8DBQBBQGrIWm2vlfa207ERAhsCAKCj3yATyVXEpHXzVrHcb4ins0i0IQCgliwo
-944V/7sWNZqj3bm8f6QADGk=
-=tLqG
------END PGP SIGNATURE-----
+--------------010509030403080305000909
+Content-Type: text/x-patch;
+ name="iptables-1.2.11-cleanup.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="iptables-1.2.11-cleanup.patch"
 
---=-1hX/yzUeZcsS/CVqhe1b--
+diff -ur iptables-1.2.11.orig/extensions/libipt_REJECT.c iptables-1.2.11/extensions/libipt_REJECT.c
+--- iptables-1.2.11.orig/extensions/libipt_REJECT.c	2004-09-05 11:27:49.000000000 -0400
++++ iptables-1.2.11/extensions/libipt_REJECT.c	2004-09-05 11:28:17.000000000 -0400
+@@ -147,13 +147,16 @@
+ {
+ 	const struct ipt_reject_info *reject
+ 		= (const struct ipt_reject_info *)target->data;
+-	unsigned int i;
++	unsigned int i, limit=sizeof(reject_table)/sizeof(struct reject_names);
+ 
+-	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
++	for (i = 0; i < limit; i++) {
+ 		if (reject_table[i].with == reject->with)
+ 			break;
+ 	}
+-	printf("reject-with %s ", reject_table[i].name);
++	if (i < limit)
++		printf("reject-with %s ", reject_table[i].name);
++	else
++		printf("reject-with: error reject->with not found ");
+ }
+ 
+ /* Saves ipt_reject in parsable form to stdout. */
+@@ -161,13 +164,15 @@
+ {
+ 	const struct ipt_reject_info *reject
+ 		= (const struct ipt_reject_info *)target->data;
+-	unsigned int i;
++	unsigned int i, limit=sizeof(reject_table)/sizeof(struct reject_names);
+ 
+-	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++)
++	for (i = 0; i < limit; i++)
+ 		if (reject_table[i].with == reject->with)
+ 			break;
+-
+-	printf("--reject-with %s ", reject_table[i].name);
++	if (i < limit)
++		printf("--reject-with %s ", reject_table[i].name);
++	else
++		fprintf(stderr, "--reject-with error reject->with not found");
+ }
+ 
+ static
+diff -ur iptables-1.2.11.orig/extensions/libipt_rpc.c iptables-1.2.11/extensions/libipt_rpc.c
+--- iptables-1.2.11.orig/extensions/libipt_rpc.c	2004-09-05 11:27:50.000000000 -0400
++++ iptables-1.2.11/extensions/libipt_rpc.c	2004-09-05 11:41:11.000000000 -0400
+@@ -252,7 +252,7 @@
+ 
+ 			idup = 0;
+ 			memset(buf, 0, sizeof(buf));
+-			dst = (char *)buf - 1;
++			dst = (char *)buf;
+ 		}
+ 	}
+ 
+
+--------------010509030403080305000909--
