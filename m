@@ -1,16 +1,16 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: NAT, not doing route_me_harder?
-Date: Wed, 26 Jun 2002 12:18:38 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: performance issues (nat / conntrack)
+Date: Wed, 26 Jun 2002 16:50:11 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020626101838.GA9824@balabit.hu>
-References: <20020626084136.GA25908@balabit.hu> <200206261113.16886.hno@marasystems.com> <20020626095557.GB4140@balabit.hu> <200206261204.23831.hno@marasystems.com>
+Message-ID: <20020626145011.GC8557@naboo.rchrd.phub.net.cable.rogers.com>
+References: <20020625151007.980D14140@lists.samba.org> <15640.41407.432907.402311@isis.cs3-inc.com> <046a01c21c91$dd980b80$0489cb8a@etbx180>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
 Content-Disposition: inline
-In-Reply-To: <200206261204.23831.hno@marasystems.com>
+In-Reply-To: <046a01c21c91$dd980b80$0489cb8a@etbx180>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,47 +21,39 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 26, 2002 at 12:04:23PM +0200, Henrik Nordstrom wrote:
-> Balazs Scheidler wrote:
-> > I think I now understand, have my packets marked in local OUTPUT, route
-> > based on that mark, and SNAT based on the marks. Is this the way you
-> > suggested? Hmm.. this sounds reasonable on the programmer's perspective,
-> > but is difficult to maintain from the user's: it needs two rules.
+On Tue, Jun 25, 2002 at 11:47:12PM +0200, Jean-Michel Hemstedt wrote:
+> agreed.
 > 
-> Yes, it requires three custom rules rather than two (there is also the routing 
-> policy rule)
+> (strange thing is that ethernet irq's reported by procinfo are 
+>  decreasing when the machine is overloaded. It suppose that it 
+>  means either that irq's are not even caught by the kernel/driver, 
+>  which is quite worrying, or either that irq's counters refer to 
+>  'processessed' interrupts)
+
+are you using a driver which uses the irq mitigation interface of 2.4.x
+or the NAPI of 2.5.x ?
+
+> Harld: could you ask to your kernel specialist what is the weakpoint of
+> kmem_cache_alloc()? (locks, allocs, ...), and how we could possibly
+> improve it (batch alloc, but isn't it already the case?)
+
+I don't think that the slab allocator is the bottleneck. please show me
+profiling data pointing this out.
+
+> > I've been talking about this with a couple of people here at the kernel
+> > summit, and it looks like the per-packet del_timer/add_timer in
+> > ip_ct_refresh should be a severe performance hit on SMP boxes.
 > 
-> Having NAT reroute all packets due to source nat transformations would be a 
-> significant performance impact only to support the corner cases where it is 
-> handy..
+> Any indications that it would not be the same on non SMP boxes? 
 
-Why? The rerouting would be triggered only if the user requests it, so
-normal path would not be affected. And as routing decisions are heavily
-cached, it is said (I think it was Harald who said that) that routing
-decisions are not expensive. It would add a simple bit-test in normal path,
-and a second routing decision if explicitly requested:
+well, it's still a performance problem, but on UP it doesn't involve
+disabling interrupts across all cpus.
 
-something like this in ip_nat_fn(), after do_bindings is called:
-
-	saddr = (*pskb)->nh.iph->saddr;
-	daddr = (*pskb)->nh.iph->daddr;
-
-	ret = do_bindings(ct, ctinfo, info, hooknum, pskb);
-	if (ret != NF_DROP && ret != NF_STOLEN && (ct->flags & IP_NAT_REROUTE)) {
-	        if (((*pskb)->nh.iph->saddr != saddr || (*pskb)->nh.iph->daddr != daddr))
-	                ret = (ip_route_me_harder(pskb) == 0) ? ret : NF_DROP;
-	
-	}
-	return ret;
-
-This could also be extended with the local output case, so ip_nat_fn() and
-ip_nat_local_fn() could be merged. (the if condition would become:
-
-if (ret != NF_DROP && ret != NF_STOLEN && (hooknum == NF_IP_LOCAL_OUT || ct->flags & IP_NAT_REROUTE)) {
-	...
-}
-
+> -jmhe-
 
 -- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
