@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 8/12]: lookup sockets for incoming packets in ipt_owner
-Date: Tue, 21 Sep 2004 05:23:05 +0200
+Subject: [PATCH 2.6 9/12]: Cleanup ctstat
+Date: Tue, 21 Sep 2004 05:23:09 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414F9E99.8080507@trash.net>
+Message-ID: <414F9E9D.1000900@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030607070608030704070409"
+Content-Type: multipart/mixed; boundary="------------000708080205010307040304"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,310 +19,243 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030607070608030704070409
+--------------000708080205010307040304
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch exports __tcp_v4_lookup and udp_v4_lookup and changes the
-owner match to look up the receiving socket for incoming packets.
-
-
-ChangeSet@1.1935.1.8, 2004-09-19 18:08:05+02:00, kaber@coreworks.de
-  [NETFILTER]: lookup sockets for incoming packets in ipt_owner
+ChangeSet@1.1935.1.9, 2004-09-19 18:18:43+02:00, gandalf@wlug.westbo.se
+  [NETFILTER]: Cleanup ctstat
  
+  This patch simply adds a macro to increase the statistics.
+  And it changes icmp_error to error in struct ip_conntrack_stat in order
+  to adopt to the tcp-windowtracking changes.
+ 
+  Based on patch by Pablo Neira.
+ 
+  Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
   Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 
 
---------------030607070608030704070409
+--------------000708080205010307040304
 Content-Type: text/x-patch;
- name="08.diff"
+ name="09.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="08.diff"
+ filename="09.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/09/19 18:08:05+02:00 kaber@coreworks.de 
-#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
+#   2004/09/19 18:18:43+02:00 gandalf@wlug.westbo.se 
+#   [NETFILTER]: Cleanup ctstat
 #   
+#   This patch simply adds a macro to increase the statistics.
+#   And it changes icmp_error to error in struct ip_conntrack_stat in order
+#   to adopt to the tcp-windowtracking changes.
+#   
+#   Based on patch by Pablo Neira.
+#   
+#   Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/udp.c
-#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +1 -0
-#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
+# net/ipv4/netfilter/ip_conntrack_standalone.c
+#   2004/09/19 18:18:22+02:00 gandalf@wlug.westbo.se +1 -1
+#   [NETFILTER]: Cleanup ctstat
 #   
+#   This patch simply adds a macro to increase the statistics.
+#   And it changes icmp_error to error in struct ip_conntrack_stat in order
+#   to adopt to the tcp-windowtracking changes.
+#   
+#   Based on patch by Pablo Neira.
+#   
+#   Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/tcp_ipv4.c
-#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +3 -2
-#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
+# net/ipv4/netfilter/ip_conntrack_core.c
+#   2004/09/19 18:18:22+02:00 gandalf@wlug.westbo.se +16 -15
+#   [NETFILTER]: Cleanup ctstat
 #   
+#   This patch simply adds a macro to increase the statistics.
+#   And it changes icmp_error to error in struct ip_conntrack_stat in order
+#   to adopt to the tcp-windowtracking changes.
+#   
+#   Based on patch by Pablo Neira.
+#   
+#   Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ipt_owner.c
-#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +76 -24
-#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
+# include/linux/netfilter_ipv4/ip_conntrack.h
+#   2004/09/19 18:18:22+02:00 gandalf@wlug.westbo.se +2 -1
+#   [NETFILTER]: Cleanup ctstat
 #   
+#   This patch simply adds a macro to increase the statistics.
+#   And it changes icmp_error to error in struct ip_conntrack_stat in order
+#   to adopt to the tcp-windowtracking changes.
+#   
+#   Based on patch by Pablo Neira.
+#   
+#   Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# include/net/udp.h
-#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +2 -0
-#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/net/tcp.h
-#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +1 -0
-#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/include/net/tcp.h b/include/net/tcp.h
---- a/include/net/tcp.h	2004-09-20 11:58:45 +02:00
-+++ b/include/net/tcp.h	2004-09-20 11:58:45 +02:00
-@@ -160,6 +160,7 @@
- extern void tcp_bucket_unlock(struct sock *sk);
- extern int tcp_port_rover;
- extern struct sock *tcp_v4_lookup_listener(u32 addr, unsigned short hnum, int dif);
-+extern struct sock *__tcp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 hnum, int dif);
+diff -Nru a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
+--- a/include/linux/netfilter_ipv4/ip_conntrack.h	2004-09-20 11:59:01 +02:00
++++ b/include/linux/netfilter_ipv4/ip_conntrack.h	2004-09-20 11:59:01 +02:00
+@@ -305,12 +305,13 @@
+ 	unsigned int insert_failed;
+ 	unsigned int drop;
+ 	unsigned int early_drop;
+-	unsigned int icmp_error;
++	unsigned int error;
+ 	unsigned int expect_new;
+ 	unsigned int expect_create;
+ 	unsigned int expect_delete;
+ };
  
- /* These are AF independent. */
- static __inline__ int tcp_bhashfn(__u16 lport)
-diff -Nru a/include/net/udp.h b/include/net/udp.h
---- a/include/net/udp.h	2004-09-20 11:58:45 +02:00
-+++ b/include/net/udp.h	2004-09-20 11:58:45 +02:00
-@@ -72,6 +72,8 @@
- extern int	udp_ioctl(struct sock *sk, int cmd, unsigned long arg);
- extern int	udp_disconnect(struct sock *sk, int flags);
++#define CONNTRACK_STAT_INC(count) (__get_cpu_var(ip_conntrack_stat).count++)
  
-+extern struct sock *udp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 dport, int dif);
-+
- DECLARE_SNMP_STAT(struct udp_mib, udp_statistics);
- #define UDP_INC_STATS(field)		SNMP_INC_STATS(udp_statistics, field)
- #define UDP_INC_STATS_BH(field)		SNMP_INC_STATS_BH(udp_statistics, field)
-diff -Nru a/net/ipv4/netfilter/ipt_owner.c b/net/ipv4/netfilter/ipt_owner.c
---- a/net/ipv4/netfilter/ipt_owner.c	2004-09-20 11:58:45 +02:00
-+++ b/net/ipv4/netfilter/ipt_owner.c	2004-09-20 11:58:45 +02:00
-@@ -6,12 +6,19 @@
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-+ *
-+ * 03/26/2003 Patrick McHardy <kaber@trash.net>	: LOCAL_IN support
-  */
+ /* eg. PROVIDES_CONNTRACK(ftp); */
+ #define PROVIDES_CONNTRACK(name)                        \
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 11:59:01 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 11:59:01 +02:00
+@@ -151,7 +151,7 @@
+ 	IP_NF_ASSERT(!timer_pending(&exp->timeout));
  
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/file.h>
-+#include <linux/ip.h>
-+#include <linux/tcp.h>
-+#include <linux/udp.h>
- #include <net/sock.h>
-+#include <net/tcp.h>
-+#include <net/udp.h>
- 
- #include <linux/netfilter_ipv4/ipt_owner.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
-@@ -21,7 +28,7 @@
- MODULE_DESCRIPTION("iptables owner match");
- 
- static int
--match_comm(const struct sk_buff *skb, const char *comm)
-+match_comm(const struct sock *sk, const char *comm)
- {
- 	struct task_struct *g, *p;
- 	struct files_struct *files;
-@@ -38,7 +45,7 @@
- 			spin_lock(&files->file_lock);
- 			for (i=0; i < files->max_fds; i++) {
- 				if (fcheck_files(files, i) ==
--				    skb->sk->sk_socket->file) {
-+				    sk->sk_socket->file) {
- 					spin_unlock(&files->file_lock);
- 					task_unlock(p);
- 					read_unlock(&tasklist_lock);
-@@ -54,7 +61,7 @@
+ 	kmem_cache_free(ip_conntrack_expect_cachep, exp);
+-	__get_cpu_var(ip_conntrack_stat).expect_delete++;
++	CONNTRACK_STAT_INC(expect_delete);
  }
  
- static int
--match_pid(const struct sk_buff *skb, pid_t pid)
-+match_pid(const struct sock *sk, pid_t pid)
- {
- 	struct task_struct *p;
- 	struct files_struct *files;
-@@ -70,7 +77,7 @@
- 		spin_lock(&files->file_lock);
- 		for (i=0; i < files->max_fds; i++) {
- 			if (fcheck_files(files, i) ==
--			    skb->sk->sk_socket->file) {
-+			    sk->sk_socket->file) {
- 				spin_unlock(&files->file_lock);
- 				task_unlock(p);
- 				read_unlock(&tasklist_lock);
-@@ -86,10 +93,10 @@
+ inline void ip_conntrack_expect_put(struct ip_conntrack_expect *exp)
+@@ -320,14 +320,14 @@
+ 	DEBUGP("destroy_conntrack: returning ct=%p to slab\n", ct);
+ 	kmem_cache_free(ip_conntrack_cachep, ct);
+ 	atomic_dec(&ip_conntrack_count);
+-	__get_cpu_var(ip_conntrack_stat).delete++;
++	CONNTRACK_STAT_INC(delete);
  }
  
- static int
--match_sid(const struct sk_buff *skb, pid_t sid)
-+match_sid(const struct sock *sk, pid_t sid)
+ static void death_by_timeout(unsigned long ul_conntrack)
  {
- 	struct task_struct *g, *p;
--	struct file *file = skb->sk->sk_socket->file;
-+	struct file *file = sk->sk_socket->file;
- 	int i, found=0;
+ 	struct ip_conntrack *ct = (void *)ul_conntrack;
  
- 	read_lock(&tasklist_lock);
-@@ -129,41 +136,77 @@
-       int *hotdrop)
- {
- 	const struct ipt_owner_info *info = matchinfo;
-+	struct iphdr *iph = skb->nh.iph;
-+	struct sock *sk = NULL;
-+	int ret = 0;
-+
-+	if (out) {
-+		sk = skb->sk;
-+	} else {
-+		if (iph->protocol == IPPROTO_TCP) {
-+			struct tcphdr _tcph, *th =
-+				skb_header_pointer(skb, skb->nh.iph->ihl * 4,
-+				                   sizeof(_tcph), &_tcph);
-+			if (th == NULL)
-+				return ret;
-+			sk = __tcp_v4_lookup(iph->saddr, th->source,
-+			                     iph->daddr, ntohs(th->dest),
-+			                     in->ifindex);
-+			if (sk && sk->sk_state == TCP_TIME_WAIT) {
-+				tcp_tw_put((struct tcp_tw_bucket *)sk);
-+				return ret;
-+			}
-+		} else if (iph->protocol == IPPROTO_UDP) {
-+			struct udphdr _udph, *uh =
-+				skb_header_pointer(skb, skb->nh.iph->ihl * 4,
-+				                   sizeof(_udph), &_udph);
-+			if (uh == NULL)
-+				return ret;
-+			sk = udp_v4_lookup(iph->saddr, uh->source, iph->daddr,
-+			                   uh->dest, in->ifindex);
-+		}
-+	}
+-	__get_cpu_var(ip_conntrack_stat).delete_list++;
++	CONNTRACK_STAT_INC(delete_list);
  
--	if (!skb->sk || !skb->sk->sk_socket || !skb->sk->sk_socket->file)
--		return 0;
-+	if (!sk || !sk->sk_socket || !sk->sk_socket->file)
-+		goto out;
- 
- 	if(info->match & IPT_OWNER_UID) {
--		if ((skb->sk->sk_socket->file->f_uid != info->uid) ^
-+		if ((sk->sk_socket->file->f_uid != info->uid) ^
- 		    !!(info->invert & IPT_OWNER_UID))
--			return 0;
-+			goto out;
+ 	WRITE_LOCK(&ip_conntrack_lock);
+ 	clean_from_lists(ct);
+@@ -436,12 +436,12 @@
+ 		atomic_inc(&ct->ct_general.use);
+ 		set_bit(IPS_CONFIRMED_BIT, &ct->status);
+ 		WRITE_UNLOCK(&ip_conntrack_lock);
+-	 	__get_cpu_var(ip_conntrack_stat).insert++;
++		CONNTRACK_STAT_INC(insert);
+ 		return NF_ACCEPT;
  	}
  
- 	if(info->match & IPT_OWNER_GID) {
--		if ((skb->sk->sk_socket->file->f_gid != info->gid) ^
-+		if ((sk->sk_socket->file->f_gid != info->gid) ^
- 		    !!(info->invert & IPT_OWNER_GID))
--			return 0;
-+			goto out;
- 	}
- 
- 	if(info->match & IPT_OWNER_PID) {
--		if (!match_pid(skb, info->pid) ^
-+		if (!match_pid(sk, info->pid) ^
- 		    !!(info->invert & IPT_OWNER_PID))
--			return 0;
-+			goto out;
- 	}
- 
- 	if(info->match & IPT_OWNER_SID) {
--		if (!match_sid(skb, info->sid) ^
-+		if (!match_sid(sk, info->sid) ^
- 		    !!(info->invert & IPT_OWNER_SID))
--			return 0;
-+			goto out;
- 	}
- 
- 	if(info->match & IPT_OWNER_COMM) {
--		if (!match_comm(skb, info->comm) ^
-+		if (!match_comm(sk, info->comm) ^
- 		    !!(info->invert & IPT_OWNER_COMM))
--			return 0;
-+			goto out;
- 	}
- 
--	return 1;
-+	ret = 1;
-+
-+out:
-+	if (in && sk)
-+		sock_put(sk);
-+
-+	return ret;
+ 	WRITE_UNLOCK(&ip_conntrack_lock);
+-	__get_cpu_var(ip_conntrack_stat).insert_failed++;
++	CONNTRACK_STAT_INC(insert_failed);
+ 	return NF_DROP;
  }
  
- static int
-@@ -173,11 +216,20 @@
-            unsigned int matchsize,
-            unsigned int hook_mask)
- {
--        if (hook_mask
--            & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING))) {
--                printk("ipt_owner: only valid for LOCAL_OUT or POST_ROUTING.\n");
--                return 0;
--        }
-+	if (hook_mask
-+	    & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING) |
-+	    (1 << NF_IP_LOCAL_IN) | (1 << NF_IP_PRE_ROUTING))) {
-+		printk("ipt_owner: only valid for PRE_ROUTING, LOCAL_IN, "
-+		       "LOCAL_OUT or POST_ROUTING.\n");
-+		return 0;
-+	}
-+
-+	if ((hook_mask & ((1 << NF_IP_LOCAL_IN) | (1 << NF_IP_PRE_ROUTING)))
-+	    && ip->proto != IPPROTO_TCP && ip->proto != IPPROTO_UDP) {
-+		printk("ipt_owner: only TCP or UDP can be used in "
-+		       "PRE_ROUTING/LOCAL_IN\n");
-+		return 0;
-+	}
+@@ -485,7 +485,7 @@
+ 	if (del_timer(&h->ctrack->timeout)) {
+ 		death_by_timeout((unsigned long)h->ctrack);
+ 		dropped = 1;
+-		__get_cpu_var(ip_conntrack_stat).early_drop++;
++		CONNTRACK_STAT_INC(early_drop);
+ 	}
+ 	ip_conntrack_put(h->ctrack);
+ 	return dropped;
+@@ -605,13 +605,13 @@
+ 		if (expected->expectfn)
+ 			expected->expectfn(conntrack);
+ 	
+-		__get_cpu_var(ip_conntrack_stat).expect_new++;
++		CONNTRACK_STAT_INC(expect_new);
  
- 	if (matchsize != IPT_ALIGN(sizeof(struct ipt_owner_info))) {
- 		printk("Matchsize %u != %Zu\n", matchsize,
-diff -Nru a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c	2004-09-20 11:58:45 +02:00
-+++ b/net/ipv4/tcp_ipv4.c	2004-09-20 11:58:45 +02:00
-@@ -514,8 +514,8 @@
- 	goto out;
+ 		goto ret;
+ 	} else  {
+ 		conntrack->helper = ip_ct_find_helper(&repl_tuple);
+ 
+-		__get_cpu_var(ip_conntrack_stat).new++;
++		CONNTRACK_STAT_INC(new);
+ 	}
+ 
+ end:	atomic_inc(&ip_conntrack_count);
+@@ -716,7 +716,7 @@
+ 
+ 	/* Previously seen (loopback or untracked)?  Ignore. */
+ 	if ((*pskb)->nfct) {
+-		__get_cpu_var(ip_conntrack_stat).ignore++;
++		CONNTRACK_STAT_INC(ignore);
+ 		return NF_ACCEPT;
+ 	}
+ 
+@@ -727,19 +727,20 @@
+ 	 * core what to do with the packet. */
+ 	if (proto->error != NULL 
+ 	    && (ret = proto->error(*pskb, &ctinfo, hooknum)) <= 0) {
+-		__get_cpu_var(ip_conntrack_stat).icmp_error++;
++		CONNTRACK_STAT_INC(error);
++		CONNTRACK_STAT_INC(invalid);
+ 		return -ret;
+ 	}
+ 
+ 	if (!(ct = resolve_normal_ct(*pskb, proto,&set_reply,hooknum,&ctinfo))) {
+ 		/* Not valid part of a connection */
+-		__get_cpu_var(ip_conntrack_stat).invalid++;
++		CONNTRACK_STAT_INC(invalid);
+ 		return NF_ACCEPT;
+ 	}
+ 
+ 	if (IS_ERR(ct)) {
+ 		/* Too stressed to deal. */
+-		__get_cpu_var(ip_conntrack_stat).drop++;
++		CONNTRACK_STAT_INC(drop);
+ 		return NF_DROP;
+ 	}
+ 
+@@ -751,7 +752,7 @@
+ 		 * the netfilter core what to do*/
+ 		nf_conntrack_put((*pskb)->nfct);
+ 		(*pskb)->nfct = NULL;
+-		__get_cpu_var(ip_conntrack_stat).invalid++;
++		CONNTRACK_STAT_INC(invalid);
+ 		return -ret;
+ 	}
+ 
+@@ -759,7 +760,7 @@
+ 		ret = ct->helper->help(*pskb, ct, ctinfo);
+ 		if (ret == -1) {
+ 			/* Invalid */
+-			__get_cpu_var(ip_conntrack_stat).invalid++;
++			CONNTRACK_STAT_INC(invalid);
+ 			nf_conntrack_put((*pskb)->nfct);
+ 			(*pskb)->nfct = NULL;
+ 			return NF_ACCEPT;
+@@ -963,7 +964,7 @@
+ 
+ 	WRITE_UNLOCK(&ip_conntrack_lock);
+ 
+-	__get_cpu_var(ip_conntrack_stat).expect_create++;
++	CONNTRACK_STAT_INC(expect_create);
+ 
+ 	return ret;
  }
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-20 11:59:01 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-20 11:59:01 +02:00
+@@ -316,7 +316,7 @@
+ 		   st->insert_failed,
+ 		   st->drop,
+ 		   st->early_drop,
+-		   st->icmp_error,
++		   st->error,
  
--static inline struct sock *__tcp_v4_lookup(u32 saddr, u16 sport,
--					   u32 daddr, u16 hnum, int dif)
-+inline struct sock *__tcp_v4_lookup(u32 saddr, u16 sport,
-+				    u32 daddr, u16 hnum, int dif)
- {
- 	struct sock *sk = __tcp_v4_lookup_established(saddr, sport,
- 						      daddr, hnum, dif);
-@@ -2647,6 +2647,7 @@
- EXPORT_SYMBOL(tcp_v4_connect);
- EXPORT_SYMBOL(tcp_v4_do_rcv);
- EXPORT_SYMBOL(tcp_v4_lookup_listener);
-+EXPORT_SYMBOL(__tcp_v4_lookup);
- EXPORT_SYMBOL(tcp_v4_rebuild_header);
- EXPORT_SYMBOL(tcp_v4_remember_stamp);
- EXPORT_SYMBOL(tcp_v4_send_check);
-diff -Nru a/net/ipv4/udp.c b/net/ipv4/udp.c
---- a/net/ipv4/udp.c	2004-09-20 11:58:45 +02:00
-+++ b/net/ipv4/udp.c	2004-09-20 11:58:45 +02:00
-@@ -1516,6 +1516,7 @@
- EXPORT_SYMBOL(udp_port_rover);
- EXPORT_SYMBOL(udp_prot);
- EXPORT_SYMBOL(udp_sendmsg);
-+EXPORT_SYMBOL(udp_v4_lookup);
- 
- #ifdef CONFIG_PROC_FS
- EXPORT_SYMBOL(udp_proc_register);
+ 		   st->expect_new,
+ 		   st->expect_create,
 
---------------030607070608030704070409--
+--------------000708080205010307040304--
