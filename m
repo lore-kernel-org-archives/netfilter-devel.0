@@ -1,16 +1,15 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [HELP] what is the semantic meaning of find_appropriate_src()?
-Date: Mon, 01 Mar 2004 17:13:49 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Question about IP rerouting at POST_ROUTE_HOOK
+Date: Mon, 1 Mar 2004 17:33:04 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1078157629.669.59.camel@nienna.balabit>
-References: <OF7E32BEEA.71DFB54B-ON48256E4A.0009FB21@legend.com.cn>
+Message-ID: <Pine.LNX.4.44.0403011731030.12756-100000@filer.marasystems.com>
+References: <OFAFE494A0.B2169671-ON88256E4A.000CABC4@tais.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: wanghtb@legend.com.cn
-In-Reply-To: <OF7E32BEEA.71DFB54B-ON48256E4A.0009FB21@legend.com.cn>
+To: Glenn.Swonk@tais.com
+In-Reply-To: <OFAFE494A0.B2169671-ON88256E4A.000CABC4@tais.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,26 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, 29 Feb 2004 Glenn.Swonk@tais.com wrote:
 
-  Hi,
-
-On Mon, 2004-03-01 at 02:50, wanghtb@legend.com.cn wrote:
-> I have studied the netfilter/iptables code for serval months, but I can 
-> not understand the
-> semantic meaning of function find_appropriate_src(), which is called by 
-> get_unique_tuple().
+> I am trying to change the destination (IP address) of the packet at this
+> point and am having a problem.
 > 
-> I can not figure in what situation it can return TRUE( a proper manip) and 
->  I think even in the situation it can return TRUE, it is still 
-> meaningless. I designed and tried some DNAT/SNAT examples, but none of 
-> them can make find_appropriate_src() return TRUE.
+> I am able to change the dest IP address but it is sent out with the
+> original IP destination's  MAC address.
 
-  It's used to make sure that the same original source will be
-translated to the same new address. When does it return TRUE? For
-example when doing SNAT on UDP traffic, and one of your hosts on the
-internal net sends packets from the same source port to distinct
-destinations.
+See ip_route_me_harder usage in iptables (iptable_mangle is a good and
+clear example on this)
 
--- 
- Regards,
-   Krisztian KOVACS
+As you have hooked in to the IP kernel after routing have already taken 
+place it is your responsibility to rerout the packet if you make 
+modifications which should affect how the packet is routed.
+
+Regards
+Henrik
