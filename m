@@ -1,16 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4] netfilter: remove unnccessarry memsets
-Date: Tue, 2 Dec 2003 01:30:06 -0800
+Subject: Re: [PATCH 2.4] netfilter: major amanda helper update
+Date: Tue, 2 Dec 2003 01:32:15 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031202013006.49db52b1.davem@redhat.com>
-References: <20031130123014.GA26749@obroa-skai.de.gnumonks.org>
+Message-ID: <20031202013215.4300affb.davem@redhat.com>
+References: <20031130125033.GD26749@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031130123014.GA26749@obroa-skai.de.gnumonks.org>
+In-Reply-To: <20031130125033.GD26749@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,9 +21,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 30 Nov 2003 18:00:15 +0530
+On Sun, 30 Nov 2003 18:20:33 +0530
 Harald Welte <laforge@netfilter.org> wrote:
 
-> This mail contains the first one.  Please apply.
+> Author: Patrick McHardy <kaber@trash.net>
+> 
+> Fix various issues with the amanda conntrack+NAT helpers
 
-Applied, thanks Harald.
+Applied, thanks.
