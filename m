@@ -1,15 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: IPTables 1.3.0 on RaQ2
-Date: Sat, 5 Mar 2005 13:57:10 +0100
-Message-ID: <20050305125710.GP30487@sunbeam.de.gnumonks.org>
-References: <42292642.6030504@jg555.com>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: forwarding one port to a port range with REDIRECT target
+Date: Sat, 05 Mar 2005 17:53:55 +0200
+Message-ID: <4229D613.1060300@outerspace.dyndns.org>
+References: <013c01c520d3$8d037710$1416a8c0@lannion.citypassenger.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+HmK7y6O+lKZIGkr"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Jim Gifford <maillist@jg555.com>
-Content-Disposition: inline
-In-Reply-To: <42292642.6030504@jg555.com>
+To: olivier <odanes@free.fr>
+In-Reply-To: <013c01c520d3$8d037710$1416a8c0@lannion.citypassenger.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,41 +20,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---+HmK7y6O+lKZIGkr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+olivier wrote:
 
-On Fri, Mar 04, 2005 at 07:23:46PM -0800, Jim Gifford wrote:
-> When I tried to compile iptables 1.3.0 on a MIPS based machine (Cobalt=20
-> RaQ2), I get the following error.
+| Hi all,
 
-without some information on what distribution you are using, which
-kernel source version or kernel headers, ... you will certainly not
-receive any answer :(
+Hello!
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+| I would like to use the REDIRECT target to load balance incoming HTTP
+connections to a few couple of processes (not webservers).
+| for example incoming connections are received on port 8000 and
+forwarded to port 8080 and 8081 (or more).
+| I try the following rule:
+|
+| iptables -t nat -A  PREROUTING -p tcp --dport 8000 -j REDIRECT
+- --to-ports 8080-8081
+|
+| the rule seems to be good according to the man page, but all the
+connections are forwarded to the same port (8080 in this example). I've
+tried different clients with odd and even IPs but nothing change.
 
---+HmK7y6O+lKZIGkr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+I don't remember how REDIRECT works exactly, but if you say it seems to
+be fixed, let's assume it is.
 
+In patch-o-matic-ng there's a nth patch that you could use to implement
+round-robin. Let's say you had 3 ports 8080-8082:
+
+iptables -t nat -A  PREROUTING -p tcp --dport 8000 -m nth --counter 0
+- --every 3 --packet 0 -j REDIRECT --to-ports 8080
+iptables -t nat -A  PREROUTING -p tcp --dport 8000 -m nth --counter 0
+- --every 3 --packet 1 -j REDIRECT --to-ports 8081
+iptables -t nat -A  PREROUTING -p tcp --dport 8000 -m nth --counter 0
+- --every 3 --packet 2 -j REDIRECT --to-ports 8082
+
+The "nth" patch is described here:
+
+http://www.no.netfilter.org/patch-o-matic/pom-base.html#pom-base-nth
+
+- --
+- - xkr47
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCKaymXaXGVTD0i/8RAhxkAJ4xWx0KiViRrMhcI1uurBTdLvHk0wCgrvC+
-HB2C7Z+ii7oBqhsABVQe2h4=
-=qKY3
+iD8DBQFCKdYRxyF48ZTvn+4RAijCAJwIOY7kWLFzfEdLKsw8qVr1mE4NVACg1A1Z
+sSS08dtLY3qcgDx8KtL3luU=
+=YMLh
 -----END PGP SIGNATURE-----
-
---+HmK7y6O+lKZIGkr--
