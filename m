@@ -1,8 +1,8 @@
 From: Roberto Nibali <ratz@tac.ch>
-Subject: Re: 2.4.22-pre9 and pending patches issues
-Date: Wed, 30 Jul 2003 11:06:24 +0200
+Subject: [SOLVED] Re: 2.4.22-pre9 and pending patches issues
+Date: Wed, 30 Jul 2003 11:21:00 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F278A90.6010209@tac.ch>
+Message-ID: <3F278DFC.1080706@tac.ch>
 References: <3F27723B.7040502@tac.ch> <Pine.LNX.4.52.0307300933570.27087@tux.rsn.bth.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
@@ -20,21 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Martin,
+
 > I'll look into it tonight.
 
-Thanks.
+I've solved it myself by engaging my brain. I did a very stupid mistake: I cat'd 
+all pending patches into one patch and tried to apply this one, instead of 
+applying every single one. Now it works with some minor/major offsets.
 
-> When stuff like this happens it's usually because of another change in
-> that kernel that modified a file we also want to modify. It's a major
-> pain when that happens since it makes it harder to support both older
-> kernels and newer kernels with the same patch.
+I can also successfully apply the tcp-window-tracking patch on top of the 
+pending patches. I apologize to you for the waste of time and to the list for 
+the waste of electrons.
 
-<OT>
-I know the feelings, been there done that. I'll see what I can do since this 
-week my task is to finally get a working 2.4.x kernel for our distribution ;).
-</OT>
+You still might to rediff the pending patches ;).
 
-TIA and best regards,
+Best regards and a quiet evening,
 Roberto Nibali, ratz
 -- 
 echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
