@@ -1,19 +1,14 @@
-From: Fabrice MARIE <fabrice@celestix.com>
-Subject: Re: [PATCH] netfilter-extensions-HOWTO.sgml updated for ROUTE target
-Date: Tue, 18 Jun 2002 11:30:02 +0800
+From: Stephen Frost <sfrost@snowman.net>
+Subject: ipt_recent-0.2.1 [PATCH]
+Date: Tue, 18 Jun 2002 00:34:39 -0400
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206181130.02488.fabrice@celestix.com>
-References: <1024321950.11605.25.camel@descartes>
-Reply-To: fabrice@celestix.com
+Message-ID: <20020618043438.GV9519@ns>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8bit
-Cc: Harald Welte <laforge@gnumonks.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="z7PwrGSuFWcNaapT"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: =?iso-8859-15?q?C=E9dric=20de=20Launois?= <delaunoi@info.ucl.ac.be>,
-	Netfilter-devel <netfilter-devel@lists.samba.org>
-In-Reply-To: <1024321950.11605.25.camel@descartes>
+To: Netfilter Devel List <netfilter-devel@lists.samba.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -25,27 +20,245 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Salut Cédric,
+--z7PwrGSuFWcNaapT
+Content-Type: multipart/mixed; boundary="2JhMvOwMi9vhAgPY"
+Content-Disposition: inline
 
-On Monday 17 June 2002 21:52, Cédric de Launois wrote:
-> Hi,
-> Here's a patch to update the netfilter-extensions-HOWTO.sgml
-> (english version) for the new ROUTE target.
-> I'm planning to also update the french version of this HOWTO
-> since it's my mother tongue.
-> The patch is to apply on
->   /cvsroot/netfilter/HOWTO/netfilter-extensions-HOWTO.sgml
 
-Applied both en/fr patches. Thank you very much.
+--2JhMvOwMi9vhAgPY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Have a nice day,
+Hey all,
 
-Fabrice.
---
-Fabrice MARIE
-Senior R&D Engineer
-Celestix Networks
-http://www.celestix.com/
+  Version 0.2.1 of my ipt_recent module has been up and running on my
+  production firewall for over a week now (8 days) and I've gotten
+  reports from other people that they're using the module and everything
+  is working.  Since I havn't had any bug reports and everything has
+  been working fine for me I'm submitting this patch against the current
+  netfilter tree to bring ipt_recent up to the current version in the
+  CVS tree.  Harald, as opportunity allows I'd appriciate having this
+  patch incorporated into the netfilter tree.  Following is the
+  ChangeLog:
 
-"Silly hacker, root is for administrators"
-       -Unknown
+Big Changes:
+  - The module is now hash-based for lookups and a sorted list is
+    maintained for finding the oldest address in the list (which will be
+    replaced by the newest once the table is full).
+  - Multiple tables supported now
+  - /proc/net/ipt_recent is now a directory where each file is a table
+  - Source and Destination address matching ability, per table.
+  - Alot of printk's for debugging, if you turn it on.
+  - Finer grained locking; locks for a short time to locate the table to
+    perform the match on and then locks that table and unlocks the
+    overall lock; so, speed increase with multiple tables for SMP
+    systems, though I think you'd have to throw alot at the system to
+    really notice..
+  - Changed basically everything to use vmalloc's instead of kmalloc;
+    mallocs of any kind are only done when the module is inserted or a
+    new table is created so there isn't any reason to use kalloc.
+
+Smaller Changes:
+  - Fixed argument processing
+  - Changed method used to clear out a table (echo "clear" > table now)
+  - Updated documentation for changes
+  - Increased default table size to 100 since table size affects
+    performance much, much, much less now.
+  - Cleaned up some of the formatting of the files
+  - Added versioning to the module
+
+  All in all I feel very comfortable with this module and look forward
+  to seeing the netfilter CVS version updated with all of the
+  improvments and the many bug fixes.
+
+  Any questions, comments, please feel free to contact me.
+
+  	Thanks,
+
+		Stephen
+
+--2JhMvOwMi9vhAgPY
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="ipt_recent-0.2.1.patch.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--2JhMvOwMi9vhAgPY--
+
+--z7PwrGSuFWcNaapT
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9DrherzgMPqB3kigRArqWAKCJEiVjSfm8A8BsYE5UDJaqtTFYIwCfQmvC
+jiEi6Ue6wtNL4vHwQwoIvUE=
+=E2PX
+-----END PGP SIGNATURE-----
+
+--z7PwrGSuFWcNaapT--
