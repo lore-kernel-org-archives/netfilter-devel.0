@@ -1,16 +1,13 @@
 From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: Re: [testsuite] ipt_iprange
-Date: Thu, 16 Dec 2004 20:26:02 -0500
-Message-ID: <41C235AA.9030006@cookinglinux.org>
-References: <41C213FB.2000101@cookinglinux.org>
-	<1103246257.29545.39.camel@localhost.localdomain>
+Subject: Fixed small memory leak into ipt_geoip.c
+Date: Thu, 16 Dec 2004 21:56:04 -0500
+Message-ID: <41C24AC4.8020709@cookinglinux.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Nicolas Bouliane <nib@cookinglinux.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <1103246257.29545.39.camel@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,29 +19,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rusty Russell wrote:
+Hi there,
 
-> 1) I like all the tests to only test one thing, and be as orthogonal and
-> simple as possible.  So I always try to use the same rule over and over,
-> with very simply changes.
+The subject said it all, I was allocating memory for a 
+checkentry()/destroy() refcount
+but not freeing it..
 
-It is very interesting.
+Current code can be retreived from :
+svn co http://svn.cookinglinux.org/netfilter/geoip/trunk
 
-> 
-> 2) The default setup is eth0: 192.168.0.*, and eth1: 192.168.1.*, so
-> unless there's a good reason you should probably stick with those
-> address ranges.
-> 
+Bug discovered with nfsim, the netfilter developer's favorite toy.
 
-This is noted.
-
-> 4) The opposite case is always the exact opposite, making it simple to
-> write the test and ensure it's correct.
-> 
-
-So far, this is the best way to do. I appreciate this come back and will 
-stick to your way.
-
-Thanks a bunch,
+See ya,
 
 --peejix
