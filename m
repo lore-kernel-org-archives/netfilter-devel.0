@@ -1,14 +1,15 @@
-From: George Vieira <GeorgeV@citadelcomputer.com.au>
-Subject: iptables -L %table% <with rule matching>
-Date: Tue, 28 Jan 2003 11:22:28 +1100
+From: don-netf@isis.cs3-inc.com (Don Cohen)
+Subject: dDoS attacks
+Date: Mon, 27 Jan 2003 16:28:59 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200FAA488DE0D41194F10010B597610D5BEAFB@jupiter.citadelcomputer.com.au>
+Message-ID: <15925.52939.339426.673375@isis.cs3-inc.com>
+References: <20030127232648.31312.21611.Mailman@kashyyyk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org, <curious@pb194.luban.sdi.tpnet.pl>
+In-Reply-To: <20030127232648.31312.21611.Mailman@kashyyyk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,32 +20,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+ > i am not very skilled in using iptables, but as far i know it is
+   not possible to write following rule...
+To paraphrase, I think the idea is that when the router sees a packet
+from A to B complaining about traffic then it drops the next n packets
+from B to A.
+You may be correct that this cannot be done by iptables, but it's not
+a very good solution.  For one thing, what makes you think that
+packets with source address A were actually sent from A?
+Your defense could be used to prevent you from communicating with the
+address of the attacker's choice (unless something prevents him from
+source spoofing).
 
-I've gone through the source code for iptables 1.2.7a and found it's quite
-possible to change it a little to make the -L command list 1 rule instead of
-the whole table by using part of the "-D" routines and change it to LIST and
-not DELETE, but I'm not a very good linux C programmer.
+Something closer to a solution is to use connection tracking and 
+rate limit (now we're getting away from nefilter into lartc territory)
+packets in connections that have not been replied to.
+There's still the problem that if you run a public server, an 
+attacker can prevent other legitimate customers from reaching you.
+And all of this doesn't address the problem of packet loss due to 
+link saturation.
 
-Is there anyone who could help be achieve this function and make a patch, or
-tell me if there is a way to look up a rules byte count without having to
-"grep" through the "-L"ist and this takes up valuable CPU when searching
-many rules..
-
-I'm trying to write graphing scripts, but on every swoop it chews heaps of
-CPU coz' it has to sweep through and grep on every rule it's checking (which
-I have around 20-30 rules so far).... 
-
-I hope I made myself clear, and I hope it's possible.. ;)
- 
- 
-Thanks,
-____________________________________________
-George Vieira
-Systems Manager
-georgev@citadelcomputer.com.au 
-Citadel Computer Systems Pty Ltd
-Phone : +61 2 9955 2644
-HelpDesk: +61 2 9955 2698  
-http://www.citadelcomputer.com.au
- 
+For (much) more info on this subject see http://cs3-inc.com/ddos.html
