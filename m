@@ -1,13 +1,15 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH] remove reference to '!' in limit man page entrance
-Date: Sat, 23 Oct 2004 12:58:21 +0200
+From: "Miguel Amador L." <amador@puc.cl>
+Subject: Re: GUI for managing iptable
+Date: Sat, 23 Oct 2004 12:31:39 -0300 (-0300)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410231258.21150.bdschuym@pandora.be>
+Message-ID: <Pine.OSF.4.40.0410231229100.1824-100000@zapoteca.crisol.puc.cl>
+References: <498D2534FBEB784686D402666966F6161C07BA@sophia.crossbeamsys.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_NljeBoHqcae3R6X"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: "Zelmans, Bernard" <BZelmans@CROSSBEAMSYS.COM>
+In-Reply-To: <498D2534FBEB784686D402666966F6161C07BA@sophia.crossbeamsys.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,51 +21,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Boundary-00=_NljeBoHqcae3R6X
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Hi,
+www.fwbuilder.com
 
-Please apply the attached trivial patch.
+Is a easy Gui, Open source and Free for linux
 
-cheers,
-Bart
 
---Boundary-00=_NljeBoHqcae3R6X
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="limitinvert.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="limitinvert.diff"
+On Fri, 22 Oct 2004, Zelmans, Bernard wrote:
 
---- iptables/iptables.8.old	2004-10-23 12:15:10.000000000 +0200
-+++ iptables/iptables.8	2004-10-23 12:15:47.000000000 +0200
-@@ -607,8 +607,8 @@ or range of values.
- .BR "--length " "\fIlength\fP[:\fIlength\fP]"
- .SS limit
- This module matches at a limited rate using a token bucket filter.
--A rule using this extension will match until this limit is reached
--(unless the `!' flag is used).  It can be used in combination with the
-+A rule using this extension will match until this limit is reached.
-+It can be used in combination with the
- .B LOG
- target to give limited logging, for example.
- .TP
---- iptables/ip6tables.8.old	2004-10-23 12:46:23.000000000 +0200
-+++ iptables/ip6tables.8	2004-10-23 12:46:43.000000000 +0200
-@@ -471,8 +471,8 @@ or range of values.
- .BR "--length " "\fIlength\fP[:\fIlength\fP]"
- .SS limit
- This module matches at a limited rate using a token bucket filter.
--A rule using this extension will match until this limit is reached
--(unless the `!' flag is used).  It can be used in combination with the
-+A rule using this extension will match until this limit is reached.
-+It can be used in combination with the
- .B LOG
- target to give limited logging, for example.
- .TP
+> Is there any open source GUI to manage iptable?
+> Thanks, b
+>
+>
 
---Boundary-00=_NljeBoHqcae3R6X--
+
+ Miguel Angel Amador Lorca    |    mailto:amador@puc.cl
+
+-----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GCM d- s:+ a- C++++ UL+++ P- L+++ E--- W+++ N++ o K- w++
+O- M- V- PS+ PE++ Y PGP- t 5 X+++ R !tv b+ DI- D
+G++ e- h* r- y*
+------END GEEK CODE BLOCK------
