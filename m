@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: 76_conntrack_bucket_sysctl.patch
-Date: Thu, 27 Nov 2003 12:15:27 +0100
+Subject: Re: [PATCH] Re: hashsize available through /proc was RAM and conntrack performance: first draft of the document is online
+Date: Thu, 27 Nov 2003 12:14:04 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031127111527.GE3373@obroa-skai.de.gnumonks.org>
-References: <Pine.LNX.4.58.0311270631070.1622@gw.localnet>
+Message-ID: <20031127111404.GD3373@obroa-skai.de.gnumonks.org>
+References: <20031028151032.GD726@eychenne.org> <20031103081240.GQ1536@sunbeam.de.gnumonks.org> <20031125153543.GD1082@eychenne.org> <20031125205723.GE2971@obroa-skai.de.gnumonks.org> <20031126034231.GA1044@eychenne.org> <20031126113645.GF3121@obroa-skai.de.gnumonks.org> <20031127041452.GD1084@eychenne.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tqI+Z3u+9OQ7kwn0"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="1LKvkjL3sHcu1TtY"
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Herve Eychenne <rv@wallfire.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0311270631070.1622@gw.localnet>
+In-Reply-To: <20031127041452.GD1084@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,27 +23,43 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---tqI+Z3u+9OQ7kwn0
+--1LKvkjL3sHcu1TtY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 27, 2003 at 06:35:49AM +0100, Patrick McHardy wrote:
-> Hi Harald,
+On Thu, Nov 27, 2003 at 05:14:52AM +0100, Herve Eychenne wrote:
+> I had a quick look at the existing code in ip_conntrack_core.c.
 >=20
-> I just had a look at 76_conntrack_bucket_sysctl.patch, it adds an
-> unneccessary strategy routine. The file permission check is done before
-> the strategy is called so that alone should be fine. In fact, I didn't
-> even manage to get it called at all. The attached patch is tested and
-> works.
+> First I would have been happy to write a small patch, but I'm not really a
+> kernel guy and register_sysctl_table API seems _completely crappy_ to
+> me.
 
-thanks.  I thought I'd better make really, really sure that it never
-gets written...=20
+;)
 
-> Best regards,
-> Patrick
+>=20
+> So I took the risk to ridiculize myself in public and wrote something, th=
+ough,
+> the ctl_table... I took NET_IP_CONNTRACK_MAX + 1 =3D 2090 because I could=
+ find
+> no occurence of 2090 user for sysctl in the whole kernel tree... but it
+> seems crappy and hazardous. Who the hell is in charge of ensuring the
+> unicity of each sysctl binary entry? Where's the list?
 
-I'll apply your patch, thanks.
+the list is in include/linux/sysctl.h  And sysctl-by-numbers has been
+deprecated anyways, nobody should safely assume that sysctl via number
+is safe anymore...
+
+> So I didn't even took time to compile the attached patch, but with the he=
+lp of
+> gods if will hopefully work.
+
+I've written up a patch that ensures it is exported only read-only,
+please have a look at
+http://cvs.netfilter.org/netfilter/patch-o-matic/pending/76_conntrack_bucke=
+t_sysctl.patch
+
+>  Herve
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -55,16 +71,16 @@ I'll apply your patch, thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---tqI+Z3u+9OQ7kwn0
+--1LKvkjL3sHcu1TtY
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/xdzPXaXGVTD0i/8RArD6AJ9DBd4ndPaNJaZG69tVazh0zWI7agCgl4/W
-Kn0GJKT/PSHbKQ+24BhKZEM=
-=ws1s
+iD8DBQE/xdx8XaXGVTD0i/8RAhTwAKCzxRlojerv2yWCLiQ6aAtxckAONACgmMrB
+Kxp7EovI12RowBSul1keEaA=
+=R6y8
 -----END PGP SIGNATURE-----
 
---tqI+Z3u+9OQ7kwn0--
+--1LKvkjL3sHcu1TtY--
