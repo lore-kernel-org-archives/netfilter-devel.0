@@ -1,17 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] Resend: Add inversion to multiport match
-Date: Sat, 22 Jan 2005 20:25:39 +0100
-Message-ID: <1106421939.20995.28.camel@tux.rsn.bth.se>
-References: <20050122174123.GA9269@linuxace.com>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: memcmp() is slow?
+Date: Sat, 22 Jan 2005 21:31:52 +0100
+Message-ID: <69935817.20050122213152@dns.toxicfilms.tv>
+References: <E1CsQZH-0002AE-Ob@vishnu.netfilter.org>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-ACwAOw4Mlor3udFPK4mI"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050122174123.GA9269@linuxace.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <E1CsQZH-0002AE-Ob@vishnu.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,37 +21,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---=-ACwAOw4Mlor3udFPK4mI
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I have seen a patch that replaces memcmp() with a few comparison statements.
+The log for the change says that memcmp() is slow.
 
-On Sat, 2005-01-22 at 09:41 -0800, Phil Oester wrote:
-> 2.6.11 is theoretically around the corner, and I'd
-> like to get inversion added to multiport rev1.  Could
-> I get an ack/nack/i'm an idiot regarding the patch below?
+Why is it? Is it just due to the overhead of calling a function and going
+through the memory in a loop? Or are there other issues I am not aware of.
 
-Patrick, could you add the kernelpart to your tree together with the
-other changes that need to go into 2.6.11 ?
+Ragards,
+Maciej
 
-Phil, the userspace part only adds inverted printout to print_v1() not
-to save_v1()
-Either send an updated patch or I'll fix that up when applying it after
-Patrick has submitted the kernel part.
+Below is the mention patch:
 
---=20
-/Martin
-
---=-ACwAOw4Mlor3udFPK4mI
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBB8qizWm2vlfa207ERAgnnAKCk/k+Fl+Zyxd3uE3cDJjS5e4ecpACgksPJ
-e1ZcLnmYcL9SneuvWFK9cFE=
-=qRNE
------END PGP SIGNATURE-----
-
---=-ACwAOw4Mlor3udFPK4mI--
+trunk/patch-o-matic-ng/nf_conntrack/linux-2.6/include/linux/netfilter/nf_conntrack_tuple.h
+2005-01-22 19:05:07 UTC (rev 3607)
+@@ -142,19 +142,25 @@
+ static inline int nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
+                                        const struct nf_conntrack_tuple *t2)
+ {
+-       return (!memcmp(t1->src.u3.all, t2->src.u3.all, sizeof(t1->src.u3.all)))
+-              && (t1->src.u.all == t2->src.u.all)
+-              && (t1->src.l3num == t2->src.l3num)
+-              && (t1->dst.protonum == t2->dst.protonum);
++       return (t1->>src.u3.all[0] == t2->src.u3.all[0] &&
++               t1->>src.u3.all[1] == t2->src.u3.all[1] &&
++               t1->>src.u3.all[2] == t2->src.u3.all[2] &&
++               t1->>src.u3.all[3] == t2->src.u3.all[3] &&
++               t1->>src.u.all == t2->src.u.all &&
++               t1->>src.l3num == t2->src.l3num &&
++               t1->>dst.protonum == t2->dst.protonum);
+>  }
