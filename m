@@ -1,51 +1,46 @@
-From: David Stevens <dlstevens@us.ibm.com>
-Subject: Re: [Bug 155] Outgoing MLD packets are not traversing netfilter
-Date: Thu, 4 Dec 2003 09:58:27 -0800
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <OF7A4D0521.A45AB2B1-ON88256DF2.00613598@us.ibm.com>
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: Extremely slow network with e1000 & ip_conntrack
+Date: Thu, 4 Dec 2003 10:24:20 -0800
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20031204102420.2aa43b43.davem@redhat.com>
+References: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD1F@orsmsx402.jf.intel.com>
+	<20031204213030.2B75.MUKANSAI@emailplus.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Cc: Michael Bussmann <bus@mb-net.net>, netdev@oss.sgi.com,
-        Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Harald Welte <laforge@netfilter.org>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Transfer-Encoding: 7bit
+Cc: scott.feldman@intel.com, laforge@netfilter.org,
+        netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Stephen Lee <mukansai@emailplus.org>, torvalds@osdl.org
+In-Reply-To: <20031204213030.2B75.MUKANSAI@emailplus.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 04 Dec 2003 21:36:09 +0900
+Stephen Lee <mukansai@emailplus.org> wrote:
 
+> "Feldman, Scott" <scott.feldman@intel.com> wrote:
+> > 
+> > Try turning off TSO by disabling this code or by using "ethtool -K tso
+> > off" (need version 1.8).
+> 
+> Yes, turning off TSO with ethtool fixed it (tested on 2.6.0-test11).  At
+> least we have a workaround now.
+> 
+> Thanks Scott, Harald and Dave.
+> 
+> Is it not supported by the hardware?  Seems TSO could improve
+> performance a bit since the 1000/MT Desktop is starved for PCI bandwidth
+> at 32-bit/33MHz.
 
-
-
-Harald,
-
->1) ip6_tables not matching it as icmp6 packet
->
-
-Just a guess, but if netfilter6 doesn't go through all
-the extension headers, then the protocol won't look like
-ICMP6 because of the router alert option.
-
-
->2) ip6_queue copying the linklayer header to userspace
->
-   >This means that skb->data does not point at the beginning of the
-   >ipv6 packet (i.e. skb->data != skb->nh.ip6h), but to the beginning of
-   >the hardware header (i.e. skb->data == skb->head).
-   >
-   >This is because mcast.c writes the full packet including the hardware
-   >header and _then_ calls NF_HOOK.  All other code (ipv6 or ipv4) is
-   >building the layer 3 packet, then calling NF_HOOK and later on (via
-   >ipX_outpur_finish() or dst_output()) adding the hardware header.
-
-...
->So the fundamental question (with regard to the ipv6 gods) is:  Is it
->really necessarry that the ipv6 mcast code bypasses the destination
->cache?
-
-      It can't go through the routing table. The advertisements
-are only meaningful on the particular interface, whether or not
-there is a route pointing output multicasts to a different
-interface (which is useful frequently, but MLD packets can't
-go there too).
-
-                              +-DLS
+This workaround explains everything.  The TSO packets have to be
+"un-TSO'd" in order for netfilter to look at the packet and parse
+the contents.  This means copying all the data around, allocating
+several networking buffers, etc.
