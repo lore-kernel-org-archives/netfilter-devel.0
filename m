@@ -1,17 +1,16 @@
 From: DarKRaveR <DarKRaveR@habitat-b.de>
-Subject: Re: accounting
-Date: Thu, 13 Feb 2003 01:02:12 +0100
+Subject: Re: libiptc/rules with MAC match
+Date: Thu, 13 Feb 2003 06:14:53 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <17921743084.20030213010212@habitat-b.de>
-References: <F14LEZF98vvwNeZsjSF0004b9b0@hotmail.com>
+Message-ID: <15940504432.20030213061453@habitat-b.de>
+References: <647994215.20030212211303@habitat-b.de>
 Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Andrej Ricnik" <lemmetink@hotmail.com>
-In-Reply-To: <F14LEZF98vvwNeZsjSF0004b9b0@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <647994215.20030212211303@habitat-b.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,66 +21,69 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Andrej,
+Hello list,
 
-First of all: If you want a hardlimit, this is easy, there's an
-extended match target, quota, which takes care of dropping a rule, as
-soon, as the limit is hit.
-So you can setup up rulkes for each ip, and make the rule basicly drop
-....
-And if there is no rule, you can set up one matching, since it has a
-counter.
+Okay, I kinda tried out some things.
 
-but, it is not too easy, to gather the information, you can either
-iptables -L -v -x to grab the counters and parse the output ...
-or use libiptc to do so ...
+I use libiptc to get a rule ...
+there's destinations source, etc.
+if target_offset is bigger than sizeof(struct ipt_entry),
+there's a match present.
+elems points to the first match ...
+If I cast it to ipt_entry_match, and then check the vars in that
+structure, I can see various sizes etc.
+u.user.name gives me 'mac'.
 
-I kinda face the same problem here, just that I want the whole
-enchilada database backed, and the rules should be generated from a
-database with user information.
-I am working on some c++ progs etc. to make a solution for our
-scenario ... but it's all still earliest work in progress.
+but, what I am wondering:
+where can I find the actual mac address ?
+there ipt_entry_match.data, but the data in there didn't make too much
+sense ...
 
-it's a pitty, I couldn'T find anythign usefull :-( could have save me
-hours of work :-)
+Can anyone help me out on that ?
 
-Thursday, February 13, 2003, 12:27:24 AM, you wrote:
+And how can I construct a rule myself, that does mac matching ?
+I am kinda stuck !
 
-AR> Hi Guys!
+Wednesday, February 12, 2003, 9:13:03 PM, you wrote:
 
-AR> I've been searching for a decent Linux IP accounting
-AR> solution (I have a 5GB limit a month and don't want
-AR> to pay a penalty just because the kids are greedy :})
-AR> but couldn't find anything easy to use/decent that would
-AR> allow me to keep track of traffic per IP and/or user
-AR> and stop traffic from that IP/user once their "fair share"
-AR> is used up ...
+D> Hello netfilter-devel ppl,
 
-AR> So I was wondering how difficult it would be to intercept
-AR> logging information from userland, and where to find
-AR> info's on how to do it.
+D>   I got some questions concerning libiptc and acquiring rules and setting
+D>   rules with it. I read all documents I could find, as well as part of
+D>   iptable sources and the header files etc. .
+D>   Yet there's some things I don't seem to get straight.
 
+D>   If I fetch the rules of a chain, I'll get a struct ipt_entry (well,
+D>   actually a pointer, but this won'T matter for now). There's all
+D>   kinda src,dst ips,netmasks etc. flags.
 
+D>   Within this struct there an ipt_ip struct, with the properties:
+D>   char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
+D>   unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
 
-AR> Cheers,
-AR> Tink
+D>   What's the difference between those two ?
 
-AR> -----BEGIN GEEK CODE BLOCK-----
-AR> Version: 3.12
-AR> GCM/IT/O d-(++)@ a C+(+++)@ UL++>+++ P+>+++ L++ E+@ W+@ N+ o? K? w---@(+) 
-AR> O+++(+)@ M-@ V? PS+ PE- Y+ PGP++ t- 5- X- R-(*) tv-@ b+ DI++ D-- G++ !e* 
-AR> h--- r++ z?
-AR> ------END GEEK CODE BLOCK------
+D>   The other thing is, assuming I have a rule, which matches a MAC
+D>   Adress, how do I get the MAC Adress (and if such a matching is in
+D>   the rule). From what I've understood, there's the target_offset
+D>   counter, which helps me on that.
+D>   IT seems to describe the size of a memmory block, so basicly, if I
+D>   sub the size of the ipt_entry structure, I get the size of the
+D>   matches, or actually, behind the ipt_entry in the memory space there
+D>   seems to be a flat array, with matches ?
+D>   The other thing is, if I want to set such a rule, with mac matching,
+D>   even if I properly construct that memory block, what do I need to
+D>   take care about, alignment stuff etc. ?
 
+D>   Even more intriguing is the following question to me:
 
+D>   I can see, there's a function to get the target.
+D>   Assuming I want to set a rule, how do I set the target properly, and
+D>   how do I set a MAC matching ?
 
-AR> _________________________________________________________________
-AR> Tired of spam? Get advanced junk mail protection with MSN 8. 
-AR> http://join.msn.com/?page=features/junkmail
-
-
-
-
+D>   I couldn't find anything in particular on that and would apprechiate
+D>   any help on that.
+  
 -- 
 Best regards,
  DarKRaveR                            mailto:DarKRaveR@habitat-b.de
