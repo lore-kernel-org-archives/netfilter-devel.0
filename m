@@ -1,12 +1,12 @@
 From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2/3] introduce skb_header_pointer() to ipv6header match
-Date: Mon, 01 Nov 2004 17:42:45 +0900 (JST)
-Message-ID: <200411010842.iA18glBH005475@toshiba.co.jp>
+Subject: [PATCH 3/3] fix for eui64 match
+Date: Mon, 01 Nov 2004 17:43:36 +0900 (JST)
+Message-ID: <200411010843.iA18hcfo019583@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Mon_Nov__1_17:42:45_2004_422)--"
+	boundary="--Next_Part(Mon_Nov__1_17:43:36_2004_914)--"
 Content-Transfer-Encoding: 7bit
-Cc: usagi-core@linux-ipv6.org
+Cc: kisza@sch.bme.hu, usagi-core@linux-ipv6.org, Peter.Ivancik@gympos.sk
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -20,62 +20,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Mon_Nov__1_17:42:45_2004_422)--
+----Next_Part(Mon_Nov__1_17:43:36_2004_914)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
 
-This patch introduces skb_header_pointer() to ipv6header match.
+According to report from Peter, user cannot insert rule with eui64 match
+to FORWARD chain.
 
 Signed-off-by Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+
+From: kisza@sch.bme.hu
+Date: Sat, 09 Oct 2004 18:09:59 +0200
+
+> Could you fix this problem in the next patch, please?
+> There is a wrong condition at the loading :(
+> 
+> Thank you in advance,
+> 
+> Andras
+> 
+> From: Peter Ivancik <Peter.Ivancik@gympos.sk>
+> Date: Sat, 09 Oct 2004 17:37:45 +0200
+> > 
+> > 
+> > 
+> > Hi again,
+> > 
+> > it looks, that there's problem in source code of ip6t_eui64.c file.
+> > (linux/net/ipv6/netfilter/ip6t_eui64.c).
+> > There's twice deffined PRE_ROUTING table and isn't there FORWARD table.
+> > This is diff between original and modified version:
+> > 61c61
+> >  <               (1 << NF_IP6_PRE_ROUTING) )) {
+> >    ---
+> >  >               (1 << NF_IP6_FORWARD) )) {
+> > 
+> > I'm not sure, if I'm right, but it works for me good now :)
+> > Bye.
+> > 
+> > 	Peter 
 
 -----------------------------------------------------------------
 Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Mon_Nov__1_17:42:45_2004_422)--
+----Next_Part(Mon_Nov__1_17:43:36_2004_914)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="ipv6header-nolin.patch"
+Content-Disposition: inline; filename="eui64-fix.patch"
 
---- linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_ipv6header.c	2004-11-01 16:37:54.074790232 +0900
-+++ linux-2.6.9-rc3-nolin-ext/net/ipv6/netfilter/ip6t_ipv6header.c	2004-11-01 16:37:26.603966432 +0900
-@@ -51,7 +51,7 @@ ipv6header_match(const struct sk_buff *s
- 	temp = 0;
- 
-         while (ip6t_ext_hdr(nexthdr)) {
--        	struct ipv6_opt_hdr *hdr;
-+		struct ipv6_opt_hdr _hdr, *hp;
-         	int hdrlen;
- 
- 		/* Is there enough space for the next ext header? */
-@@ -68,15 +68,16 @@ ipv6header_match(const struct sk_buff *s
- 			break;
- 		}
- 
--		hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
-+		hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
-+		BUG_ON(hp == NULL);
- 
- 		/* Calculate the header length */
-                 if (nexthdr == NEXTHDR_FRAGMENT) {
-                         hdrlen = 8;
-                 } else if (nexthdr == NEXTHDR_AUTH)
--                        hdrlen = (hdr->hdrlen+2)<<2;
-+                        hdrlen = (hp->hdrlen+2)<<2;
-                 else
--                        hdrlen = ipv6_optlen(hdr);
-+                        hdrlen = ipv6_optlen(hp);
- 
- 		/* set the flag */
- 		switch (nexthdr){
-@@ -100,7 +101,7 @@ ipv6header_match(const struct sk_buff *s
- 				break;
- 		}
- 
--                nexthdr = hdr->nexthdr;
-+                nexthdr = hp->nexthdr;
-                 len -= hdrlen;
-                 ptr += hdrlen;
- 		if (ptr > skb->len)
+--- linux-2.6.9-rc3-nolin/net/ipv6/netfilter/ip6t_eui64.c	2004-09-30 19:36:23.000000000 +0900
++++ linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_eui64.c	2004-10-27 14:29:23.929587368 +0900
+@@ -69,7 +69,7 @@ ip6t_eui64_checkentry(const char *tablen
+ {
+ 	if (hook_mask
+ 	    & ~((1 << NF_IP6_PRE_ROUTING) | (1 << NF_IP6_LOCAL_IN) |
+-		(1 << NF_IP6_PRE_ROUTING) )) {
++		(1 << NF_IP6_FORWARD))) {
+ 		printk("ip6t_eui64: only valid for PRE_ROUTING, LOCAL_IN or FORWARD.\n");
+ 		return 0;
+ 	}
 
-----Next_Part(Mon_Nov__1_17:42:45_2004_422)----
+----Next_Part(Mon_Nov__1_17:43:36_2004_914)----
