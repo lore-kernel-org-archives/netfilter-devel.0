@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: How to take over TCP connection from userspace process?
-Date: Tue, 21 Oct 2003 15:47:29 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ctnetlink questions
+Date: Tue, 21 Oct 2003 18:47:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031021134729.GB12049@sunbeam.de.gnumonks.org>
-References: <006701c397a5$9c13fee0$d32f110a@yrhd>
+Message-ID: <3F95630A.3090507@trash.net>
+References: <Pine.LNX.4.44.0310200244580.17141-100000@filer.marasystems.com> <3F934FFD.7090700@trash.net> <20031020071545.GA21521@sunbeam.de.gnumonks.org> <3F9426C1.6070908@trash.net> <20031020183954.GC20288@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: yangrunhua <yangrunhua@njupt.edu.cn>
-Content-Disposition: inline
-In-Reply-To: <006701c397a5$9c13fee0$d32f110a@yrhd>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031020183954.GC20288@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,43 +22,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
 
---/9DWx/yDrRhgMJTb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>Mh, well let's go for the 64bit, as there seems to be no other choice.
+>But we should start working on the variable-sized conntracks within
+>short time afterwards.
+>
 
-On Tue, Oct 21, 2003 at 03:33:22PM +0800, yangrunhua wrote:
-> Hi all,
-> 	With the help of netfilter/iptables, is there any way to high-speed forw=
-arding between 2 already-connected TCP connections in the kernel?
+Ok there's another problem, for fast lookups by id (we don't want to
+search the entire hash) we need to encode the hash chain of a tuple 
+in the id. We basically have two choices now for the remaining bits:
 
-I don't see how this could be related to netfilter/iptables at all.
-The normal sendfile() systemcall may be helpful to you.
+a) keep using a global counter which reduces namespace to
+   2^(64-lg(hashsize))
 
-> 	Thanks,
-> 				Runhua Yang
+b) use a per-bucket counter which keeps 64 bit namespace and eliminates
+   potential contention on the counter but requires as much memory as the
+   hash buckets themselves.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+The problem is guessing how big the hash might get. With a hash of 2^20
+buckets and 1 million connections/s the ids wrap after 0.5 years with
+possibility a. Even if the connection rate may be unrealistic high I
+assume a hash size of 2^20 and bigger is realistic now or might be soon,
+so the chance of seeing reused ids is real. Possibility b is of course
+not acceptable due to memory usage.
 
---/9DWx/yDrRhgMJTb
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+My proposed solution is to reserve 16bit for the chain id and to
+compensate for the remaining used bits by keeping
+2^max(number_of_bits-16, 0) counters. This always gives us 48bit for
+the id (if hash distribution is good), with the numbers above that is 
+~9 years without a wraparound while keeping 16 counters. For a hash
+size <= 2^16 we still only have one counter, but if we really
+experience contention we now can easily increase it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+Does that sound ok ? Feel free to shut me up by giving some more
+realistic numbers ;)
 
-iD8DBQE/lTjxXaXGVTD0i/8RAgZhAJ0f/5pHzcDKuS79aQM6iHecWrA/DACff3Fr
-8E9mWW2fM1wDzCdIrd1MlvY=
-=VFP1
------END PGP SIGNATURE-----
-
---/9DWx/yDrRhgMJTb--
+Best regards,
+Patrick
