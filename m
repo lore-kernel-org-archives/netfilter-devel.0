@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: prearation of removing skb_linearize()
-Date: Tue, 21 Sep 2004 13:37:51 +0200
+From: Jan Holmberg <jan@artech.net>
+Subject: Patch to save ca 100.000 kbyte, integrate save & restore to iptables
+Date: Mon, 20 Sep 2004 17:24:08 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <4150128F.4020400@trash.net>
-References: <200409160318.i8G3IAOw010298@toshiba.co.jp>
+Message-ID: <414EF618.4070602@artech.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
+Content-Type: multipart/mixed; boundary="------------030706020500020209010405"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200409160318.i8G3IAOw010298@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,64 +17,104 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Yasuyuki,
+This is a multi-part message in MIME format.
+--------------030706020500020209010405
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yasuyuki Kozakai wrote:
+Hi all,
 
->Hi,
->
->I updated the patch which prepares to remove skb_linearize() from ip6_tables.c
->
->This patch uses skb_header_pointer() so that packets can be parsed even though
->skb_linearize() doesn't exist. But this patch doesn't remove skb_linearize()
->yet. We can remove it after changing all match/target modules.
->
->Moreover ...
->	- I deleted the optimization not to parse IPv6 extension header
->	  many time from previous patch. I'll send the patch to do this
->	  separately.
->	- fixed the bug that "offset" argument of match functions are always 0.
->	- deleted "hdr" and "datalen" argument and added "protoff" argument
->	  to match functions. "protoff" means the offset to Layer 4 protocol
->	  header.
->	- the argument order of target function is changed likely IPv4 modules.
->	  This prevents user from meeting kernel panic when they use old
->	  match modules.
->	- changed {tcp,udp,icmp6}_match(). These functions became very similar
->	  to codes in ip_tables.c again.
->
->I tested this patch with some configurations(attached file: "tests.txt")
->In these tests, I also used quick hack to fragment skb at the end of IPv6
->header before filtering to confirm that I didn't forget to use
->skb_header_pointer() somewhere.
->
->Double checks and more tests are welcome.
->  
->
-Looks good, I'm going to review your patch more in-depth tonight.
-One thing I noticed while looking over it:
+A patch to save flash memory in embedded system  and make a symbolic 
+link to iptables
+to iptables-save and iptables-restore. More than 100.000 kbyte saved 
+with this patch.
 
->@@ -1535,26 +1546,31 @@
-> 
-> static int
-> tcp_find_option(u_int8_t option,
->-		const struct tcphdr *tcp,
->-		u_int16_t datalen,
->+		const struct sk_buff *skb,
->+		unsigned int tcpoff,
->+		unsigned int optlen,
-> 		int invert,
-> 		int *hotdrop)
-> {
->-	unsigned int i = sizeof(struct tcphdr);
->-	const u_int8_t *opt = (u_int8_t *)tcp;
->+	/* tcp.doff is only 4 bits, ie. max 15 * 4 bytes */
->+	char _opt[60 - sizeof(struct tcphdr)], *op;
->  
->
 
-This should stay a u_int8_t, look at
-http://netfilter.org/security/2004-06-30-2.6-tcpoption.html
+//Jan
 
-Regards
-Patrick
+--------------030706020500020209010405
+Content-Type: text/plain;
+ name="patch-iptables-1.2.9-hoj.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="patch-iptables-1.2.9-hoj.diff"
+
+diff -ur iptables-1.2.9/iptables-restore.c iptables-1.2.9-p/iptables-restore.c
+--- iptables-1.2.9/iptables-restore.c	Sat May  3 20:52:13 2003
++++ iptables-1.2.9-p/iptables-restore.c	Sun May 23 23:14:51 2004
+@@ -97,7 +97,7 @@
+ 		free(newargv[i]);
+ }
+ 
+-int main(int argc, char *argv[])
++int do_restore(int argc, char *argv[])
+ {
+ 	iptc_handle_t handle = NULL;
+ 	char buffer[10240];
+Only in iptables-1.2.9-p/: iptables-save
+diff -ur iptables-1.2.9/iptables-save.c iptables-1.2.9-p/iptables-save.c
+--- iptables-1.2.9/iptables-save.c	Sat May  3 20:52:13 2003
++++ iptables-1.2.9-p/iptables-save.c	Sun May 23 22:46:22 2004
+@@ -313,7 +313,7 @@
+  * :Chain name POLICY packets bytes
+  * rule
+  */
+-int main(int argc, char *argv[])
++int do_save(int argc, char *argv[])
+ {
+ 	const char *tablename = NULL;
+ 	int c;
+diff -ur iptables-1.2.9/iptables-standalone.c iptables-1.2.9-p/iptables-standalone.c
+--- iptables-1.2.9/iptables-standalone.c	Thu Aug  8 15:36:19 2002
++++ iptables-1.2.9-p/iptables-standalone.c	Sun May 23 23:15:52 2004
+@@ -37,6 +37,10 @@
+ #include <string.h>
+ #include <iptables.h>
+ 
++int do_save(int, char *[]);
++ 
++int do_restore(int, char *[]);
++ 
+ int
+ main(int argc, char *argv[])
+ {
+@@ -50,7 +54,15 @@
+ #ifdef NO_SHARED_LIBS
+ 	init_extensions();
+ #endif
+-
++  
++        if ( strlen(argv[0]) >=13 && 
++          !strncmp(argv[0]+strlen(argv[0])-13,"iptables-save",13)) 
++             return (do_save(argc, argv));  
++          
++        if ( strlen(argv[0]) >=16 && 
++          !strncmp(argv[0]+strlen(argv[0])-16,"iptables-restore",16)) 
++             return (do_restore(argc, argv));  
++          
+ 	ret = do_command(argc, argv, &table, &handle);
+ 	if (ret)
+ 		ret = iptc_commit(&handle);
+@@ -58,6 +70,6 @@
+ 	if (!ret)
+ 		fprintf(stderr, "iptables: %s\n",
+ 			iptc_strerror(errno));
+-
++        
+ 	exit(!ret);
+ }
+Only in iptables-1.2.9-p/: iptables-standalone.d
+diff -ur iptables-1.2.9/iptables.c iptables-1.2.9-p/iptables.c
+--- iptables-1.2.9/iptables.c	Sun Jun 15 00:39:35 2003
++++ iptables-1.2.9-p/iptables.c	Sun May 23 22:30:18 2004
+@@ -2296,3 +2296,4 @@
+ 
+ 	return ret;
+ }
++
+Only in iptables-1.2.9-p/: iptables.d
+Only in iptables-1.2.9-p/libiptc: libip4tc.d
+Only in iptables-1.2.9-p/libiptc: libip6tc.d
+Only in iptables-1.2.9-p/: patch-o-matic
+
+--------------030706020500020209010405--
