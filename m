@@ -1,13 +1,16 @@
-From: "Andrzej Kozak" <kozak@manager.ae.wroc.pl>
-Subject: Trouble with PPTP
-Date: Wed, 15 Oct 2003 15:46:49 +0200
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: Rule optimization scheme openbsd-like
+Date: Thu, 16 Oct 2003 15:15:43 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000c01c39322$c9fbcf40$01d2a8c0@adm.ae.wroc.pl>
+Message-ID: <Pine.LNX.4.51.0310161512340.32449@dns.toxicfilms.tv>
+References: <Pine.LNX.4.51.0310131004000.17633@dns.toxicfilms.tv>
+ <20031014112305.GD3752@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0009_01C39333.8BD96040"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031014112305.GD3752@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,50 +21,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+> > It might be a good rule writing technique to add to the HOWTO or to write
+> > a HOWTO on rule writing technique.
+>
+> yes, that was something I always wanted to do but never got around
+> doing.  Actually I started it once, but didn't get very far.
+>
+> When I'm back home next weekend, I'll see if I can find that old piece
+> of document and send it to you.
+Ok, I could try to finish it.
 
-------=_NextPart_000_0009_01C39333.8BD96040
-Content-Type: text/plain;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-
-Hello!
-When I patched my 2.4.22 kernel with pptp-conntrack-nat -DNAT and -SNAT =
-is broken if I use iptables with -t nat
-I get message: iptables: Invalid argument
-Iptables v. 1.2.8
-I need establish connect from my security network to outside VPN server.
-
-best regards
-
-Andrew Kozak
-------=_NextPart_000_0009_01C39333.8BD96040
-Content-Type: text/html;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-2">
-<META content=3D"MSHTML 6.00.2800.1226" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>
-<DIV><FONT size=3D2>Hello!</FONT></DIV>
-<DIV><FONT size=3D2>When I&nbsp;patched my 2.4.22 kernel with =
-pptp-conntrack-nat=20
--DNAT and -SNAT is broken if I use iptables with -t nat</FONT></DIV>
-<DIV><FONT size=3D2>I get message: <EM>iptables: Invalid=20
-argument</EM></FONT></DIV>
-<DIV><FONT size=3D2>Iptables v. 1.2.8</FONT></DIV>
-<DIV><FONT size=3D2>I need establish connect from my security network to =
-outside=20
-VPN server.</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>best regards</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT size=3D2>Andrew Kozak</FONT></DIV></DIV></BODY></HTML>
-
-------=_NextPart_000_0009_01C39333.8BD96040--
+Maciej
