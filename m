@@ -1,68 +1,68 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: RE : RE : Apply rules to 1 UDP port but port used as a socket:
- possible?
-Date: Wed, 11 Feb 2004 17:58:57 +0100 (CET)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402111749210.4956-100000@filer.marasystems.com>
-References: <D4EF10CCEB2CE742BEEA9838C590B0E8011CB5D4@ftrdmel2.rd.francetelecom.fr>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: TProxy, 2.4 Kernel and NetFilter
+Date: Wed, 11 Feb 2004 20:58:38 +0100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040211195838.GA11552@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: zze-Proxy GRALL O ext FTRD/SVA/LAN <ograll.ext@rd.francetelecom.com>
-In-Reply-To: <D4EF10CCEB2CE742BEEA9838C590B0E8011CB5D4@ftrdmel2.rd.francetelecom.fr>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Jambunathan Kalyanasundaram <k_jambunathan@yahoo.co.uk>
+Content-Disposition: inline
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 11 Feb 2004, zze-Proxy GRALL O ext FTRD/SVA/LAN wrote:
 
-> For the moment I need an UDP socket. After treatment, I want the
-> following packets to be NATed. If I inspect these packets thanks to
-> QUEUE target(passing to userspace, isn't it?) I don't know what will
-> permit to apply NAT rules... I don't understand exactly what you mean ?
+  Hi,
 
-You can not let the initial packet be accepted by the local IP stack. 
-If you do that then the session will be fully created and future packets 
-of the same session will go the smae way.
-
-You MUST intercept the packet before it reaches the local IP stack, or to 
-be precise before the packet reaches netfilter nat PREROUTING.
-
-One good way of doing this is to use QUEUE in mangle PREROUTING. The 
-mangle PREROUTING hook is called just before nat PREROUTING.
-
-> So your solution is to use libipq after a rule like this:
+On Wed, Feb 11, 2004 at 08:49:33AM +0100, Henrik Nordstrom wrote:
+> > 2) But if I am not really interested in the overheads
+> > imposed by the NetFilter, the only option is to patch
+> > the Linux kernel with Balazs Scheidler's patch.
 > 
-> iptables -t mangle -A PREROUTING -p udp -s REMOTE_ADDR --sport REMOTE_PORT -d LOCAL_ADDR --dport 1727 -j QUEUE
+> Not sure this has less overhead.
+
+  I'm sure it hasn't. TProxy was never intended to be a "faster redirect",
+or something like that. If you do not care about almost full transparent
+proxying, you don't need TProxy at all.
+
+  The TProxy patch can be used to make the proxy transparent from both
+sides: the client sends the packets to the server's IP, and the server
+sees packets coming from the client's IP. However, this needs user-space
+support in the proxy itself. And Gianni Tedesco's latest TProxy support
+patch for Squid is known to be broken...
+
+> > If I don't like something as heavyweight as Netfilter
+> > and something that is as  "non standard" as patching
+> > the kernel, are there any ways out ? 
 > 
-> Is it what you mean ?
+> Yes, by configuring the client to use the proxy.
+
+  Completely true. This is _the_ way to go if you can set all clients to
+use the proxy.
+
+> If it is a normal Internet proxy environment where the number of clients 
+> are limited, and the proxy supports per-user selection of the outgoing 
+> address (Squid does) then it is possible with the help of NAT.
 > 
-> In this way I can inspect the packet in userspace.
+> 1. Set up as many IP aliases on the proxy server as you have clients. Use
+> one of the unassigned networks.
+> 
+> 2. Configure the proxy to use one IP alias per client IP address.
+> 
+> 3. Configure iptables NAT rules in OUTPUT to NAT these IP aliases back to
+> the client IP address.
 
-Exacly.
+  Hmm... What a solution! :)
 
-> Do you want to say I do the NAT in the userspace ? 
+> If it is a reverse proxy or other environment where the client addresses 
+> are not limited then this obviously can not be done and you must use the 
+> tproxy patch.
 
-No. The packet will reenter the kernel once you are done with it in your 
-queue handler, and will then enter the nat table and a NAT session will be 
-created.
+  As I wrote, the patch for Squid would need some fixes before actually
+using it... Unfortunately I don't know enough about Squid to be able to
+make those fixes.
 
-> But if conntrack is already set up, packets won't arrive to mangle PREROUTING, isn't it ?
-
-All packets get to mangle PREROUTING. It is only the nat table that is 
-magic.
-
-You will need some rules in mangle to determine that this is the first
-packet. Maybe -m state --state NEW may be sufficient for your task but 
-keep in mind that this also matches retransmissions until traffic is seen 
-in both directions.
-
-Regards
-Henrik
+-- 
+ KOVACS Krisztian
