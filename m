@@ -1,14 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Last night Linus bk - netfilter busted?
-Date: Fri, 11 Mar 2005 23:55:59 +0100
-Message-ID: <423221FF.8020103@trash.net>
-References: <E1D9rZX-0004KE-00@gondolin.me.apana.org.au>
+From: Olaf Rempel <razzor@kopf-tisch.de>
+Subject: flushing conntrack-table
+Date: Sat, 12 Mar 2005 00:34:18 +0100
+Message-ID: <20050312003418.6a582ad9@coruscant>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010502040408080807090105"
-Cc: netdev@oss.sgi.com, dtor_core@ameritech.net,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <E1D9rZX-0004KE-00@gondolin.me.apana.org.au>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,94 +17,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010502040408080807090105
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi list
 
-Herbert Xu wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> 
->>You're right, good catch. IPT_RETURN is interpreted internally by
->>ip_tables, but since the value changed it isn't recognized by ip_tables
->>anymore and returned to nf_iterate() as NF_REPEAT. This patch restores
->>the old value.
-> 
-> 
-> Please fix netfilter_arp while you're at it since it does exactly
-> the same thing.
+I've build a modul to flush some/all conntracks from the ct-table, but have 
+some questions about the used functions and locking issues.
 
-New patch attached, thanks.
+I'm sending a "search pattern" (proto + srcip/mask + sport-range + dstip/mask 
++ dport-range) via ioctl (yeah, i know..) to the kernel, and delete all matching
+conntracks. 
 
+As far as I understand, I don't need hold a lock while iterating over the 
+hash-buckets, only when accessing the list inside.
 
---------------010502040408080807090105
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+To actually delete a conntrack (via del_timer + ct->timeout.function) the code 
+must NOT hold the readlock, because death_by_timeout() grabs the writelock. 
+Correct?
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2005/03/11 23:54:54+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Fix iptables userspace compatibility breakage
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv6/ip6_tables.h
-#   2005/03/11 23:54:44+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix iptables userspace compatibility breakage
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv4/ip_tables.h
-#   2005/03/11 23:54:44+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix iptables userspace compatibility breakage
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_arp/arp_tables.h
-#   2005/03/11 23:54:44+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix iptables userspace compatibility breakage
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
---- a/include/linux/netfilter_arp/arp_tables.h	2005-03-11 23:55:09 +01:00
-+++ b/include/linux/netfilter_arp/arp_tables.h	2005-03-11 23:55:09 +01:00
-@@ -154,7 +154,7 @@
- #define ARPT_CONTINUE 0xFFFFFFFF
- 
- /* For standard target */
--#define ARPT_RETURN (-NF_MAX_VERDICT - 1)
-+#define ARPT_RETURN (-NF_REPEAT - 1)
- 
- /* The argument to ARPT_SO_GET_INFO */
- struct arpt_getinfo
-diff -Nru a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
---- a/include/linux/netfilter_ipv4/ip_tables.h	2005-03-11 23:55:09 +01:00
-+++ b/include/linux/netfilter_ipv4/ip_tables.h	2005-03-11 23:55:09 +01:00
-@@ -166,7 +166,7 @@
- #define IPT_CONTINUE 0xFFFFFFFF
- 
- /* For standard target */
--#define IPT_RETURN (-NF_MAX_VERDICT - 1)
-+#define IPT_RETURN (-NF_REPEAT - 1)
- 
- /* TCP matching stuff */
- struct ipt_tcp
-diff -Nru a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
---- a/include/linux/netfilter_ipv6/ip6_tables.h	2005-03-11 23:55:09 +01:00
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h	2005-03-11 23:55:09 +01:00
-@@ -166,7 +166,7 @@
- #define IP6T_CONTINUE 0xFFFFFFFF
- 
- /* For standard target */
--#define IP6T_RETURN (-NF_MAX_VERDICT - 1)
-+#define IP6T_RETURN (-NF_REPEAT - 1)
- 
- /* TCP matching stuff */
- struct ip6t_tcp
+idea 1:
+if a matching tuple is found, abort the search, delete conntrack and restart 
+search in same bucket (assuming that there could be another matching tuple):
 
---------------010502040408080807090105--
+while (bucket < ip_conntrack_htable_size) {
+	struct ip_conntrack *ct = NULL;
+
+	READ_LOCK(&ip_conntrack_lock);
+	list_for_each_entry(hash_tuple, &ip_conntrack_hash[bucket], list) {
+		if (match_pattern(hash_tuple, pattern)) {
+			ct = tuplehash_to_ctrack(hash_tuple);
+			break;
+		}
+	}
+	READ_UNLOCK(&ip_conntrack_lock);
+
+	if (ct) {
+		if (del_timer(&ct->timeout))
+			ct->timeout.function((unsigned long)ct);
+
+	} else {
+		bucket++;
+	}
+}
+
+idea 2:
+same as idea 1, but storing N matching conntracks in an array. if the array is 
+full, or the search in this bucket is complete then delete the found conntracks.
+if array was full, restart search in same bucket else do next bucket.
+N is small (~4), just to avoid search-restart in the same bucket with 2-3 matching
+tuples. (don't know if it's needed)
+
+idea 3:
+use list_for_each_entry_safe(), when a matching tuple is found, 
+release the readlock, delete the conntrack, grab readlock, resume search:
+
+	READ_LOCK(&ip_conntrack_lock);
+	list_for_each_entry_safe(hash_tuple, tmp, &ip_conntrack_hash[bucket], list) {
+		if (match_pattern(hash_tuple, pattern)) {
+			ct = tuplehash_to_ctrack(hash_tuple);
+			READ_UNLOCK(&ip_conntrack_lock);
+
+			if (del_timer(&ct->timeout))
+				ct->timeout.function((unsigned long)ct);
+
+			READ_LOCK(&ip_conntrack_lock);
+		}
+	}
+	READ_UNLOCK(&ip_conntrack_lock);
+
+I know I could do this with ctnetlink or something equal, but I want to try this
+in kernel. The code from idea #2 works for me, but I just want to know if it's
+a good way.
+
+So, which of these ideas is "the best"?
+Or am I missing something (== my code is crap :)
+
+Olaf
