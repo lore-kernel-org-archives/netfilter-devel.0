@@ -1,16 +1,14 @@
-From: Roberto Nibali <ratz@tac.ch>
-Subject: Re: [PATCH] tcp window tracking patch with SACK support
-Date: Wed, 06 Nov 2002 12:33:09 +0100
+From: netfilter@interlinx.bc.ca
+Subject: Weird results with tcp-window-tracking patch
+Date: Wed, 6 Nov 2002 10:32:59 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DC8FDF5.7050906@tac.ch>
-References: <20021017163909.GO344@pc.ilinx> <Pine.LNX.4.33.0210181255170.10340-100000@blackhole.kfki.hu> <20021018144818.GJ2408@naboo.club.berlin.ccc.de>
+Message-ID: <20021106153259.GC12743@pc.ilinx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-   netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="rQ2U398070+RC21q"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,50 +19,67 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
->>As it was reported several times on the mailing list, the tcp window
->>tracking patch could cause long SMTP delays in some cases.
->>
->>After dumping a lot of traffic and replaying the streams it turned
->>out that the book-keeping inside the patch could go out of sync when SACK
->>was used. In another words, SACK was not supported by the patch and it
->>could cause legitimate packets to be blocked.
+--rQ2U398070+RC21q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-First I wasn't able to reproduce it on a normal box with low traffic but then I 
-asked our management if I could test it out on one of our main packetfilters and 
-after 3 minutes I saw those strange DROPs and retransmits with interesting TCP 
-flag combinations indicating the SACK. While this firewall has a steady 30Mbit/s 
-  sustained filtering rate 7/24 with 8 interfaces and around 1200 rules, I 
-expected some rules not to work because not only did I use the tcp window 
-tracking patch but the packetfilter was still running ipchains with a 2.2.x kernel.
+I have the tcp-window-tracking patch applied to my firewall's kernel.
+For reference, the dates on the first hunk in the
+=2E/extra/tcp-window-tracking.patch are as follows:
 
-To get to the point: All rules were transitioned (I added the MetaFW layer for 
-iptables to our fw suite) and worked very well but the SMTP ones somehow 
-generated too many DROPs. I accredit this to the missing SACK support in the tcp 
-window tracking patch. I wasn't able to tcpdump nor trace packets back in 
-another way because of strict security constraints (don't ask).
+--- linux-2.4.19-base/include/linux/netfilter_ipv4/ip_conntrack_tcp.h Fri O=
+ct 18 11:38:10 2002
++++ linux-2.4.19-tcp-window/include/linux/netfilter_ipv4/ip_conntrack_tcp.h=
+ Fri Oct 18 11:56:35 2002
 
->>It'd be very helpful if sites which experienced the long SMTP delays could
->>give a try to the new version of the patch and then send a report: 'yeah,
->>it's seems to be OK' or 'nope, still bad'. :-)
->  
-> well, I'd rather not test it on kashyyyk.netfilter.org for some time...
+Anyway, I have been seeing some strange results from the patch.  I
+have lots of these from the last 12 or so hours:
 
-Actually you should, because the problem will be spotted very soon and you can 
-then quickly failback to the old kernel without pissing off too many people.
+04:16:48 kernel SRC=3D195.33.98.115 DST=3D205.210.52.208 LEN=3D64 TOS=3D0x0=
+0 PREC=3D0x00 TTL=3D37 ID=3D1 PROTO=3DTCP SPT=3D57376 DPT=3D53 SEQ=3D232119=
+966 ACK=3D1365344649 WINDOW=3D2048 RES=3D0x00 SYN URGP=3D0 ip_conntrack_tcp=
+: INVALID: Out of window data; SEQ is under the lower bound (retransmitted =
+already ACKed data)=20
+04:16:49 kernel SRC=3D195.33.98.115 DST=3D205.210.52.208 LEN=3D64 TOS=3D0x0=
+0 PREC=3D0x00 TTL=3D37 ID=3D2 PROTO=3DTCP SPT=3D57380 DPT=3D53 SEQ=3D291116=
+2149 ACK=3D4054392719 WINDOW=3D2048 RES=3D0x00 SYN URGP=3D0 ip_conntrack_tc=
+p: INVALID: Out of window data; SEQ is under the lower bound (retransmitted=
+ already ACKed data)=20
+04:16:50 kernel SRC=3D195.33.98.115 DST=3D205.210.52.208 LEN=3D64 TOS=3D0x0=
+0 PREC=3D0x00 TTL=3D37 ID=3D3 PROTO=3DTCP SPT=3D57382 DPT=3D53 SEQ=3D210422=
+3658 ACK=3D1098213046 WINDOW=3D2048 RES=3D0x00 SYN URGP=3D0 ip_conntrack_tc=
+p: INVALID: Out of window data; SEQ is under the lower bound (retransmitted=
+ already ACKed data)=20
 
-> so I really have to rely on others for testing. Please tell me about
-> your erxperience with this new patch.
+It seems to me that these are just regular run-of-the-mill initial SYN
+packets (i.e. packet one of the TCP three-way handshake) for TCP DNS
+queries of my name server (even though I don't have one -- from the
+number of both UDP and TCP DNS queries I am getting, the previous
+owner of my IP address must have a name server running).
 
-I will now (after I have more or less proven that without this SACK patch we're 
-running into problems too) patch my kernel and try it again. Unfortunately I 
-have only a very limited test period because if I screw up 30 fulltime engineers 
-won't be able to work properly. My initial test which only lasted for 20 minutes 
-cost us around $4000. I will report back as soon as I have done testing with 
-this new patch.
+Why would these be flagged as "Out of window data" packets when in
+reality they are just a simple violation of the rules I have
+installed?  Doesn't there have to be an established TCP session in
+order to determine if there is any "Out of window data"?
 
-Regards,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
+b.
+
+--=20
+Brian J. Murrell
+
+--rQ2U398070+RC21q
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
+
+iD8DBQE9yTYrl3EQlGLyuXARAvDXAKCmdqJOY9UeX2IUbPVo8ihM9sr7awCdHyxu
+Ue71hUxIktWyXF85ztBjKyU=
+=Oubi
+-----END PGP SIGNATURE-----
+
+--rQ2U398070+RC21q--
+--rQ2U398070+RC21q--
