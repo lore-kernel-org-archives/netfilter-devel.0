@@ -1,15 +1,18 @@
-From: Peter Lee <mclee@sfu.ca>
-Subject: ip6_queue
-Date: Thu, 05 Dec 2002 1:35:39 PST
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [Fwd: Question with printk warnings in ip_conntrack with 2.4.20.]
+Date: Thu, 5 Dec 2002 21:07:57 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200212050935.gB59ZdMj023281@rm-rstar.sfu.ca>
-Reply-To: Peter Lee <mclee@sfu.ca>
+Message-ID: <20021205200756.GB11068@naboo.club.berlin.ccc.de>
+References: <1038618763.22065.1.camel@rth.ninka.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: binary
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XF85m9dhOBO43t/C"
+Cc: netfilter-devel@lists.netfilter.org,
+	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: jpiszcz <jpiszcz@lucidpixels.com>
 Content-Disposition: inline
-To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1038618763.22065.1.camel@rth.ninka.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,57 +23,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I am stuck with ip6_queue module. I am using RedHat 7.3 and I did try to
-recompile my kernel to build the ip6_queue module. But, I am not sure why
-this module didn't get build. What I did is, I manually copy this file to
-another directory and create a new make file to build the module. Is there
-another way out?
+--XF85m9dhOBO43t/C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I do the following to install the module:
+> Nov 29 03:29:26 lucidpixels kernel: ip_conntrack: max number of expected=
+=20
+> connections 1 of ftp reached for 192.168.xxx.xxx->129.128.5.191, reusing
+> Nov 29 03:29:30 lucidpixels kernel: ip_conntrack: max number of expected=
+=20
+> connections 1 of ftp reached for 192.168.xxx.xxx->129.132.7.170, reusing
+> Nov 29 03:29:36 lucidpixels kernel: ip_conntrack: max number of expected=
+=20
+> connections 1 of ftp reached for 192.168.xxx.xxx->195.113.31.123, reusing
+>=20
+> These fill up my logs (kern.info) which I use for logging iptables=20
+> blocked packets.
 
-install -m 644 ip6_queue.o /lib/modules/$(KERNEL)/ip6_queue.o
-/sbin/depmod -ae
+the issue is that somebody is doing something very strange to your ftp
+server.  Inside an FTP session, there's always only one expectation,
+since there is only one unestablished data session per control session
+at any given point in time.
 
-and I got the following error message:
-depmod: *** Unresolved symbols in /lib/modules/2.4.18-3/aodv/ip6_queue.o
-depmod: 	sock_wfree
-depmod: 	__kfree_skb
-depmod: 	nf_register_queue_handler
-depmod: 	alloc_skb
-depmod: 	kmalloc
-depmod: 	unregister_netdevice_notifier
-depmod: 	netlink_kernel_create
-depmod: 	create_proc_entry
-depmod: 	rtnl_sem
-depmod: 	nf_unregister_queue_handler
-depmod: 	netlink_ack
-depmod: 	proc_dointvec
-depmod: 	unregister_sysctl_table
-depmod: 	net_ratelimit
-depmod: 	kfree
-depmod: 	___pskb_trim
-depmod: 	nf_reinject
-depmod: 	remove_proc_entry
-depmod: 	skb_over_panic
-depmod: 	netlink_unicast
-depmod: 	proc_net
-depmod: 	sock_release
-depmod: 	do_BUG
-depmod: 	sprintf
-depmod: 	register_netdevice_notifier
-depmod: 	printk
-depmod: 	irq_stat
-depmod: 	register_sysctl_table
-depmod: 	do_softirq
-depmod: 	skb_copy_expand
+> Is there anyway to turn this feature off dynamically or should one just=
+=20
+> comment out line #970 in=20
+> /usr/src/linux/net/ipv4/netfilter/ip_conntrack_core.c ?
 
-But I can use modprobe to load the module and it seem to work fine. But I
-would like to get rid of the error message, help please :-<
+feel free to remove the comment.  but in normal ftp protocol behaviour,
+the lines above should never be printed.
 
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
+=20
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
-Thanks.
-Peter Lee
-M.Eng. Student
-Simon Fraser University
+--XF85m9dhOBO43t/C
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE977IcXaXGVTD0i/8RAtvtAJ9nLCvbzdrkrNaIRldtBNqwVA8NygCfSKbX
+iM8HHSXBZptNcwpsw/EAUMc=
+=edML
+-----END PGP SIGNATURE-----
+
+--XF85m9dhOBO43t/C--
