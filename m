@@ -1,51 +1,46 @@
-From: =?iso-8859-1?q?Jambunathan=20Kalyanasundaram?= <k_jambunathan@yahoo.co.uk>
-Subject: TProxy, 2.4 Kernel and NetFilter
-Date: Mon, 9 Feb 2004 07:56:44 +0000 (GMT)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040209075644.11922.qmail@web25110.mail.ukl.yahoo.com>
+From: Jimmy Hedman <jimmy.hedman@southpole.se>
+Subject: Differences between MASQ and SNAT
+Date: Mon, 09 Feb 2004 13:42:50 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1076330570.8454.13.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
-Cc: netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: netfilter-devel@lists.netfilter.org
-Errors-to: netdev-bounce@oss.sgi.com
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Netfilter Mailing List <netfilter@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-( Sorry for posting in two mailing lists at the same
-time )
+Hi,
+What's the REAL differences between MASQ and SNAT? I've had a problem
+where it didn't work with SNAT but it did work with MASQ...
+The setup was two firewalls (A and B) with a Ipsec tunnel between them
+and and another VPN onward from B. The old setup was to masquerade all
+the traffic from site A, even the traffic out on the VPN between FW A
+and FW B. Due to some other changes i had to remove the masquerade for
+traffic the over the VPN and do SNAT on FW B instead. This worked for
+everything but one machine. If i turned on MASQ for that machine on FW A
+everything worked again which made me puzzled what MASQ is doing that
+SNAT isn't.
 
-I would like to implement Transparent HTTP Proxy  and
-I have scoured through your archives for the related
-threads. Can someone confirm that my following
-understanding is still valid as of date considering
-the latest Linux kernel and Netfilter source tree.
+So, does MASQ do anything that SNAT doesn't in form of changing the
+header or such? Or should i find the answer in the Windows machine that
+was putting up the fight?
 
-1) For packet interception from browser side, the
-standard way is to use REDIRECT target of Netfilter.
-
-2) But if I am not really interested in the overheads
-imposed by the NetFilter, the only option is to patch
-the Linux kernel with Balazs Scheidler's patch.=20
-
-If I don't like something as heavyweight as Netfilter
-and something that is as  "non standard" as patching
-the kernel, are there any ways out ?=20
-
-Also are there any existing NetFilter modules that
-work on a standard, unpatched kerenel that allow proxy
-to talk to the web server as though it's the web
-browser ( source address spoofing ) ?
-
-Regards,
-Jambunathan K.
+// Jimmy
 
 
 
-
-=09
-=09
-	=09
-___________________________________________________________
-BT Yahoo! Broadband - Free modem offer, sign up online today and save =A3=
-80 http://btyahoo.yahoo.co.uk
+--=20
+Jimmy Hedman                       South Pole AB
+Phone:  +46 8 51420420             Gelbjutarv=E4gen 5
+Fax:    +46 8 51420429             SE - 17148 Solna=20
+e-mail: jimmy.hedman@southpole.se  www.southpole.se
