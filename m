@@ -1,14 +1,13 @@
-From: Glauber Reis <greis_one@yahoo.com.br>
-Subject: pkttables compilation problem
-Date: 16 Jan 2004 09:40:26 -0300
+From: "Konrad D." <darnok@post.pl>
+Subject: manual connection adding to ip_conntrack hash table
+Date: Fri, 16 Jan 2004 15:33:36 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1074256826.6677.9.camel@oc-cinf-lin>
-Reply-To: greis_one@yahoo.com.br
+Message-ID: <14603099.20040116153336@post.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,30 +18,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Is pkttables from CVS broken? Is there any requisites?
-I got only NETLINK and nfnetlink-ctnetlink-0.13 into a 2.4.22 kernel
-(from kernel.org).
-I'd really want to try a netfilter userspace library, but got no success
-with libiptc...
-Any suggestion?
+Hi!
+I'm in the course of writing my thesis about connection tracking in netfilter,
+it's sad but I need help. So I'm asking for help you, the netfilter developers.
+Topic of my thesis is High Availability Firewall.
+We have two PC computers connected together. One computer act as
+firewall. The second one is "just in case" the first one broke down.
+If that happend the second one must take place of the first one and
+get informaction about all connections that was established.
 
-When I issue a make I get the following
+AFAIK I need to get connections from /proc/net/ip_conntrack on 1st computer
+and then put them in the same place on 2nd one. My question i how I
+can do that? Can I add new connection to ip_conntrack hash table by calling
+some function(s)? I'm not well programer so please dont be mad on me ;).
+I was googling and searching linux source code for some clue, and I'm
+pretty sure that I need to modify ip_conntrack hash table but I don't
+know how. So please help.
 
-Making all in .
-make[1]: Entering directory `/opt/prog/Netfilter/pkttables'
-make[1]: Nothing to be done for `all-am'.
-make[1]: Leaving directory `/opt/prog/Netfilter/pkttables'
-Making all in include
-make[1]: Entering directory `/opt/prog/Netfilter/pkttables/include'
-make  all-am
-make[2]: Entering directory `/opt/prog/Netfilter/pkttables/include'
-make[2]: Nothing to be done for `all-am'.
-make[2]: Leaving directory `/opt/prog/Netfilter/pkttables/include'
-make[1]: Leaving directory `/opt/prog/Netfilter/pkttables/include'
-Making all in libnfnetlink
-make[1]: Entering directory `/opt/prog/Netfilter/pkttables/libnfnetlink'
-/bin/sh ./config.status --recheck
-./config.status: ./config.status: No such file or directory
-make[1]: *** [config.status] Error 127
-make[1]: Leaving directory `/opt/prog/Netfilter/pkttables/libnfnetlink'
-make: *** [all-recursive] Error 1
+Best regadrs
