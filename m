@@ -1,16 +1,17 @@
-From: James Morris <jmorris@intercode.com.au>
-Subject: Re: problem with libipq and userprocess and 'clean' exit
-Date: Thu, 13 Jun 2002 21:50:18 +1000 (EST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] Unused bit check to Unclean module
+Date: Thu, 13 Jun 2002 13:53:18 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Mutt.LNX.4.44.0206132148020.5321-100000@blackbird.intercode.com.au>
-References: <3D08719C.7020204@avodaq.com>
+Message-ID: <200206131353.18480@henrik.marasystems.com>
+References: <Pine.LNX.4.21.0206131304570.18486-100000@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: =?ISO-8859-15?Q?Tassilo_Sch=FCtz?= <tschuetz@avodaq.com>
-In-Reply-To: <3D08719C.7020204@avodaq.com>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>,
+	netfilter-devel@lists.samba.org
+In-Reply-To: <Pine.LNX.4.21.0206131304570.18486-100000@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,26 +22,29 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 13 Jun 2002, [ISO-8859-15] Tassilo Schütz wrote:
+Please have some patience. The Netfilter core team is usually quite 
+busy and it usually takes a couple of days before they can respond to 
+patch submissions. Your contribution was sent yesterday, only 22 
+hours before..
 
-> Hello list,
-> 
-> 
-> I would like to know, if I have to do anything else, before quit my 
-> userprocess? Is there
-> maybe a flush_queue() call or term_queue() call? I thought about, 
-> because of Queue flushing
-> and Queue terminate in /proc/net/ip_queue.
+If you haven't received any response to your submission in a week, 
+send it again with a gentle reminder that no response has been seen 
+to the original post. If you don't receive any response to that 
+within a week then a message asking them to go to hell may be 
+appropriate..
 
-Nothing to worry about, there is currentl no way for the ip_queue module 
-to know that the user process has exited (unless another process starts 
-using the queue).
+Note: Not all of us can read mime base64 encoded patches.. you may 
+want to repost the patch as plain text.. (also good for the archive.. 
+see 
+http://lists.samba.org/pipermail/netfilter-devel/2002-June/004755.html 
+for why..)
 
-The kernel module also ensures that all packets are fed back into the 
-stack, no matter what the userspace application does.
+Regards
+Henrik Nordström
+Another Netfilter contributor
 
 
-- James
--- 
-James Morris
-<jmorris@intercode.com.au>
+
+On Thursday 13 June 2002 13:05, Maciej Soltysiak wrote:
+> I guess you guys, don't care a bit about my contribution.
+> Go to hell.
