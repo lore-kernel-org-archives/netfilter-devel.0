@@ -1,222 +1,55 @@
-From: Adrian Bunk <bunk@fs.tum.de>
-Subject: [2.6 patch] netfilter/ip_nat_snmp_basic.c: fix inlines (fwd)
-Date: Thu, 29 Jul 2004 23:20:49 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040729212048.GD23589@fs.tum.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: netfilter h323 helper extension
+Date: Fri, 30 Jul 2004 14:50:31 +0200 (CEST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.33.0407301441380.31121-100000@blackhole.kfki.hu>
+References: <200407271650.36835.michaelc@mikeit.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265102AbUG2VXC@vger.kernel.org>
-To: James Morris <jmorris@intercode.com.au>,
-	Andrew Morton <akpm@osdl.org>
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Michael Carmody <michaelc@mikeit.com.au>
+In-Reply-To: <200407271650.36835.michaelc@mikeit.com.au>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-FYI:
-The patch forwarded below is still required in 2.6.8-rc2-mm1.
+On Tue, 27 Jul 2004, Michael Carmody wrote:
 
+> It seems that Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> has a very tight
+> spam filter and has rejected all my mails so far.
 
------ Forwarded message from Adrian Bunk <bunk@fs.tum.de> -----
+Sorry. In fall we'll improve our spam filtering system to handle
+unintentionally closed-out messages better.
 
-Date:	Wed, 14 Jul 2004 23:19:09 +0200
-From: Adrian Bunk <bunk@fs.tum.de>
-To: James Morris <jmorris@intercode.com.au>
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Subject: [2.6 patch] netfilter/ip_nat_snmp_basic.c: fix inlines
+> Trying this out for a H.323 Interop project between cisco and 3com VoIP gear.
+>
+> Without any helper and just basic port redirection I get phones ringing but of
+> course since the H.225 packet is not being mangled the systems try to connect
+> to the wrong IP.
+>
+> With your ip_conntrack_h323 and ip_nat_h323 modules loaded I get non-function.
 
-Trying to compile net/ipv4/netfilter/ip_nat_snmp_basic.c in 
-2.6.8-rc1-mm1 using gcc 3.4 results in the following compile error:
+The modules work in some cases while in other cases they simply does not
+work at all. In the latter case I always suggest to setup a H.323
+gatekeeper/proxy instead.
 
-<--  snip  -->
+There is no way to fix the current modules without a complete rewriting
+from the ground. To be honest, I do not plan to start such a project in
+the near future...
 
-...
-  CC      net/ipv4/netfilter/ip_nat_snmp_basic.o
-net/ipv4/netfilter/ip_nat_snmp_basic.c: In function `snmp_trap_decode':
-net/ipv4/netfilter/ip_nat_snmp_basic.c:612: sorry, unimplemented: 
-inlining failed in call to 'mangle_address': function body not available
-net/ipv4/netfilter/ip_nat_snmp_basic.c:896: sorry, unimplemented: called from here
-make[3]: *** [net/ipv4/netfilter/ip_nat_snmp_basic.o] Error 1
-
-<--  snip  -->
-
-The patch below moves an inlined function above the place where it is 
-called the first time.
-
-An alternative approach would be to remove the inline.
-
-
-diffstat output:
- net/ipv4/netfilter/ip_nat_snmp_basic.c |  142 ++++++++++++-------------
- 1 files changed, 71 insertions(+), 71 deletions(-)
-
-
-
-Signed-off-by: Adrian Bunk <bunk@fs.tum.de>
-
---- linux-2.6.7-mm6-full-gcc3.4/net/ipv4/netfilter/ip_nat_snmp_basic.c.old	2004-07-09 02:18:23.000000000 +0200
-+++ linux-2.6.7-mm6-full-gcc3.4/net/ipv4/netfilter/ip_nat_snmp_basic.c	2004-07-09 02:21:00.000000000 +0200
-@@ -862,6 +862,77 @@
- 	return 1;
- }
- 
-+/* 
-+ * Fast checksum update for possibly oddly-aligned UDP byte, from the
-+ * code example in the draft.
-+ */
-+static void fast_csum(unsigned char *csum,
-+                      const unsigned char *optr,
-+                      const unsigned char *nptr,
-+                      int odd)
-+{
-+	long x, old, new;
-+	
-+	x = csum[0] * 256 + csum[1];
-+	
-+	x =~ x & 0xFFFF;
-+	
-+	if (odd) old = optr[0] * 256;
-+	else old = optr[0];
-+	
-+	x -= old & 0xFFFF;
-+	if (x <= 0) {
-+		x--;
-+		x &= 0xFFFF;
-+	}
-+	
-+	if (odd) new = nptr[0] * 256;
-+	else new = nptr[0];
-+	
-+	x += new & 0xFFFF;
-+	if (x & 0x10000) {
-+		x++;
-+		x &= 0xFFFF;
-+	}
-+	
-+	x =~ x & 0xFFFF;
-+	csum[0] = x / 256;
-+	csum[1] = x & 0xFF;
-+}
-+
-+/* 
-+ * Mangle IP address.
-+ * 	- begin points to the start of the snmp messgae
-+ *      - addr points to the start of the address
-+ */
-+static inline void mangle_address(unsigned char *begin,
-+                                  unsigned char *addr,
-+                                  const struct oct1_map *map,
-+                                  u_int16_t *check)
-+{
-+	if (map->from == NOCT1(*addr)) {
-+		u_int32_t old;
-+		
-+		if (debug)
-+			memcpy(&old, (unsigned char *)addr, sizeof(old));
-+			
-+		*addr = map->to;
-+		
-+		/* Update UDP checksum if being used */
-+		if (*check) {
-+			unsigned char odd = !((addr - begin) % 2);
-+			
-+			fast_csum((unsigned char *)check,
-+			          &map->from, &map->to, odd);
-+			          
-+		}
-+		
-+		if (debug)
-+			printk(KERN_DEBUG "bsalg: mapped %u.%u.%u.%u to "
-+			       "%u.%u.%u.%u\n", NIPQUAD(old), NIPQUAD(*addr));
-+	}
-+}
-+
- static unsigned char snmp_trap_decode(struct asn1_ctx *ctx,
-                                       struct snmp_v1_trap *trap,
-                                       const struct oct1_map *map,
-@@ -952,77 +1023,6 @@
- 	printk("\n");
- }
- 
--/* 
-- * Fast checksum update for possibly oddly-aligned UDP byte, from the
-- * code example in the draft.
-- */
--static void fast_csum(unsigned char *csum,
--                      const unsigned char *optr,
--                      const unsigned char *nptr,
--                      int odd)
--{
--	long x, old, new;
--	
--	x = csum[0] * 256 + csum[1];
--	
--	x =~ x & 0xFFFF;
--	
--	if (odd) old = optr[0] * 256;
--	else old = optr[0];
--	
--	x -= old & 0xFFFF;
--	if (x <= 0) {
--		x--;
--		x &= 0xFFFF;
--	}
--	
--	if (odd) new = nptr[0] * 256;
--	else new = nptr[0];
--	
--	x += new & 0xFFFF;
--	if (x & 0x10000) {
--		x++;
--		x &= 0xFFFF;
--	}
--	
--	x =~ x & 0xFFFF;
--	csum[0] = x / 256;
--	csum[1] = x & 0xFF;
--}
+Best regards,
+Jozsef
 -
--/* 
-- * Mangle IP address.
-- * 	- begin points to the start of the snmp messgae
-- *      - addr points to the start of the address
-- */
--static inline void mangle_address(unsigned char *begin,
--                                  unsigned char *addr,
--                                  const struct oct1_map *map,
--                                  u_int16_t *check)
--{
--	if (map->from == NOCT1(*addr)) {
--		u_int32_t old;
--		
--		if (debug)
--			memcpy(&old, (unsigned char *)addr, sizeof(old));
--			
--		*addr = map->to;
--		
--		/* Update UDP checksum if being used */
--		if (*check) {
--			unsigned char odd = !((addr - begin) % 2);
--			
--			fast_csum((unsigned char *)check,
--			          &map->from, &map->to, odd);
--			          
--		}
--		
--		if (debug)
--			printk(KERN_DEBUG "bsalg: mapped %u.%u.%u.%u to "
--			       "%u.%u.%u.%u\n", NIPQUAD(old), NIPQUAD(*addr));
--	}
--}
--
- /*
-  * Parse and mangle SNMP message according to mapping.
-  * (And this is the fucking 'basic' method).
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
-
------ End forwarded message -----
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
