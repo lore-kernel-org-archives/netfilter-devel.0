@@ -1,16 +1,16 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: NAT for IPv6
-Date: Fri, 21 Nov 2003 14:22:06 +0100
+From: Pablo Cingolani <pcingola@uolsinectis.com>
+Subject: Re: when/how is the packet forwarded?
+Date: Fri, 21 Nov 2003 15:11:57 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031121132206.GA3421@balabit.hu>
-References: <20031120174847.GA2254@balabit.hu> <Pine.LNX.4.44.0311210110290.23998-100000@filer.marasystems.com>
+Message-ID: <20031121151157.5f78a5c8.pcingola@uolsinectis.com>
+References: <20031120205611.69144.qmail@web60708.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0311210110290.23998-100000@filer.marasystems.com>
+To: Zeeshan Ali <zeelists@yahoo.com>
+In-Reply-To: <20031120205611.69144.qmail@web60708.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,49 +21,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-[Removed direct Cc's and left netfilter-devel as this topic might not be too
-interesting to them]
 
-On Fri, Nov 21, 2003 at 01:24:15AM +0100, Henrik Nordstrom wrote:
-> > - transparency
-> >   - because there are protocols which do not have a proxy mode 
-> >   - because they do not want to reconfigure their clients when a firewall
-> >     is installed.
+I'm not an expert but I think you should change 
+sk_buff's route entry, may be using something like:
+
+       if( ip_route_me_harder( skb ) ) {
+		printk("Error routing\n");
+            return NF_DROP;
+        }
+
+Yours 
+   Pablo
+
+
+
+On Thu, 20 Nov 2003 12:56:11 -0800 (PST)
+Zeeshan Ali <zeelists@yahoo.com> wrote:
+
+> Hello everyone,
+>   I am having problem in understanding that when/how
+> is the packet forwarded. I mean if i alter the daddr
+> in the packets comming from eth0 to contain an addr
+> that belongs to the network connected to another
+> interface (e.g ppp0) in my NF_IP_PRE_ROUTING hook then
+> should'nt this packet be next seen by my NF_IP_FORWARD
+> hook instead of NF_IP_LOCAL_IN hook? I am attaching
+> the source code with this email.
 > 
-> And these points I say should not be taken for granted when moving to a 
-> IPv6 environment.
-> 
-> There is very few protocols which can not be proxied using the proper 
-> tools. And given some thought clients should not be needed to be manually 
-> reconfigured when installing a firewall.
-
-I can't how this would be implemented when a legacy protocol is ported. 
-
-> 
-> > I can see cases when end-to-end IP connections are a must, but there are
-> > other cases when proxying is the only viable solution, and I can't see why
-> > we can't have a solution for both worlds.
-> 
-> I am not against proxying (quite naturally given who I am). What I am
-> against is violation of the fundamental end-to-end property of IP. Per
-> definition proxying is not a violation of end-to-end, transparent
-> interception is.
-
-In my sense firewalls have nothing but a DROP rule in their FORWARD chain,
-and I can't see how end-to-end IP communication can be established through a
-DROP rule :)
-
-> In the state of IPv4 it is unfortunately a neccesary bad due to the large
-> installed base of dumb applications not capable of using proxies. The
-> situation in IPv6 is better and in my opinion in a position allowing this
-> kind of problems to be solved at the application level without having to 
-> resort to "dirty hacks".
-
-I think there are too many legacy application protocols being ported
-to IPv6 without any application layer change.
-
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+> __________________________________
+> Do you Yahoo!?
+> Protect your identity with Yahoo! Mail AddressGuard
+> http://antispam.yahoo.com/whatsnewfree
