@@ -1,16 +1,19 @@
-From: Simon Lodal <simonl@parknet.dk>
-Subject: Re: RFC: Partial IP4 syntax
-Date: Wed, 29 Sep 2004 07:42:38 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Fw: [Bug 133788] New: ip_conntrack_in: Frag of proto 17
+Date: Wed, 29 Sep 2004 09:43:29 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <415A4B4E.1080801@parknet.dk>
-References: <415A12AE.1060901@parknet.dk> <415A3263.7080708@xgendev.com>
+Message-ID: <20040929074328.GB31674@sunbeam.de.gnumonks.org>
+References: <20040928130512.57479400.davem@davemloft.net>
+	<20040928220532.GN29961@sunbeam.de.gnumonks.org>
+	<4159F559.3040400@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oJ71EGRlYNjSvfq7"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ben Efros <ben@xgendev.com>
-In-Reply-To: <415A3263.7080708@xgendev.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4159F559.3040400@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,44 +25,49 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-What tools are passing IP's literally as full 32bits? I understand why 
-programs (especially in script languages) might do it internally, but 
-between programs?
+--oJ71EGRlYNjSvfq7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Funny, works with ping, but not ssh. Works with iptables for --src and 
---dst (surprise). But not for SNAT --to-source.
+On Wed, Sep 29, 2004 at 01:35:53AM +0200, Patrick McHardy wrote:
+> Harald Welte wrote:
+>=20
+> >The conntrack message basically means that at NF_IP_PRE_ROUTING we
+> >suddenly see fragmented packets.  This "can never happen" since at the
+> >same PRE_ROUTING hook we defragment just before
+> >via ip_conntrack_defrag() -> ip_ct_gather_frags() -> ip_defrag()
+> >=20
+> >
+>=20
+> Here is the patch. Untracked and already tracked (loopback) packets
+> are not defragmented, but the check in ip_conntrack_in for
+> untracked/already tracked is after the check for fragments.
+> This patch moves it up.
 
-Just looked at RFC 1123, it only talks about dotted decimal 
-representation. The 32bit form is not even documented anywhere afaik, 
-and honestly I do not remember seeing it.
+Sometimes I feel like I'm blind.  Thanks, Patrick.
 
-If it is really a problem I agree my scheme will break it. Could 
-probably be solved by changing the default to incomplete-at-beginning, 
-so 10 = .10 = 0.0.0.10.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
+--oJ71EGRlYNjSvfq7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Simon
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
+iD8DBQFBWmegXaXGVTD0i/8RAn6LAJ4gQ/fwYgvRXNrNSSq8lkDdyN0ccgCgp8fn
+Gqv7mK2hz45gXSg7V7QH+fI=
+=F0eW
+-----END PGP SIGNATURE-----
 
->> Iknow IP address syntax should not change every day. But this will not 
->> break or exclude old syntax. I do not see it clashing with 
->> other/future syntax.
-> 
-> 
-> Wrong.  IP numbers can also be written in 32-bit unsigned notation.  In 
-> your first example:
-> 10 being  10.0.0.0/8
-> 10 is actually treated as unsigned 32bit int, meaning you're address is 
-> actually 0.0.0.10
-> Try this command and see for yourself:
-> "ping 5000"
-> Notice how ping is actually sending to "0.0.19.136" ?
-> 
-> This is done because 32-bit addresses should be representable as a 32bit 
-> number and not just as a string representation of the address for a 
-> variety of reasons.
-> 
-> Unfortunately your idea would break a LOT of very useful tools and ways 
-> of representing valid ip numbers.
-> 
-> Ben
+--oJ71EGRlYNjSvfq7--
