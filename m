@@ -1,9 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.4 6/18]: Release dst_entry in PRE_ROUTING after NAT
-Date: Mon, 20 Dec 2004 08:14:32 +0100
-Message-ID: <41C67BD8.2010801@trash.net>
+Subject: [PATCH 2.4 7/18]: revert MASQUERADE optimization for mostly static
+ IPs
+Date: Mon, 20 Dec 2004 08:14:38 +0100
+Message-ID: <41C67BDE.1030702@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010507080609090506050500"
+Content-Type: multipart/mixed; boundary="------------070400020206040500050803"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -19,80 +20,133 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010507080609090506050500
+--------------070400020206040500050803
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Release dst_entry in PRE_ROUTING after NAT, fixes
-DNAT on loopback.
+Revert MASQUERADE optimization for mostly static IPs
+since it it broken in its current form.
 
 
---------------010507080609090506050500
+--------------070400020206040500050803
 Content-Type: text/x-patch;
- name="06.diff"
+ name="07.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="06.diff"
+ filename="07.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/12/05 22:44:07+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Release dst_entry in PRE_ROUTING after NAT
+#   2004/12/05 22:46:31+01:00 kernel@linuxace.com 
+#   [NETFILTER]: revert MASQUERADE optimization for mostly static IPs
 #   
-#   Fixes NAT on loopback.
-#   
+#   Signed-off-by: Phil Oester <kernel@linuxace.com>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_standalone.c
-#   2004/12/05 22:44:05+01:00 kaber@coreworks.de +24 -1
-#   [NETFILTER]: Release dst_entry in PRE_ROUTING after NAT
+# net/ipv4/netfilter/ipt_MASQUERADE.c
+#   2004/12/05 22:46:30+01:00 kernel@linuxace.com +41 -14
+#   [NETFILTER]: revert MASQUERADE optimization for mostly static IPs
 #   
-#   Fixes NAT on loopback.
-#   
+#   Signed-off-by: Phil Oester <kernel@linuxace.com>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
---- a/net/ipv4/netfilter/ip_nat_standalone.c	2004-12-20 06:59:30 +01:00
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c	2004-12-20 06:59:30 +01:00
-@@ -156,6 +156,29 @@
+diff -Nru a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
+--- a/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-12-20 06:59:31 +01:00
++++ b/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-12-20 06:59:31 +01:00
+@@ -125,35 +125,58 @@
  }
  
- static unsigned int
-+ip_nat_in(unsigned int hooknum,
-+          struct sk_buff **pskb,
-+          const struct net_device *in,
-+          const struct net_device *out,
-+          int (*okfn)(struct sk_buff *))
+ static inline int
+-device_cmp(const struct ip_conntrack *i, void *_ina)
++device_cmp(const struct ip_conntrack *i, void *ifindex)
+ {
+-	int ret = 0;
+-	struct in_ifaddr *ina = _ina;
++	int ret;
+ 
+ 	READ_LOCK(&masq_lock);
+-	/* If it's masquerading out this interface with a different address,
+-	 * or we don't know the new address of this interface. */
+-	if (i->nat.masq_index == ina->ifa_dev->dev->ifindex
+-	    && i->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip != ina->ifa_address)
+-		ret = 1;
++	ret = (i->nat.masq_index == (int)(long)ifindex);
+ 	READ_UNLOCK(&masq_lock);
+ 
+ 	return ret;
+ }
+ 
++static int masq_device_event(struct notifier_block *this,
++			     unsigned long event,
++			     void *ptr)
 +{
-+	u_int32_t saddr, daddr;
-+	unsigned int ret;
++	struct net_device *dev = ptr;
 +
-+	saddr = (*pskb)->nh.iph->saddr;
-+	daddr = (*pskb)->nh.iph->daddr;
-+
-+	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
-+	if (ret != NF_DROP && ret != NF_STOLEN
-+	    && ((*pskb)->nh.iph->saddr != saddr
-+	        || (*pskb)->nh.iph->daddr != daddr)) {
-+		dst_release((*pskb)->dst);
-+		(*pskb)->dst = NULL;
++	if (event == NETDEV_DOWN) {
++		/* Device was downed.  Search entire table for
++		   conntracks which were associated with that device,
++		   and forget them. */
++		IP_NF_ASSERT(dev->ifindex != 0);
++ 
++		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
 +	}
-+	return ret;
++
++	return NOTIFY_DONE;
 +}
 +
-+static unsigned int
- ip_nat_out(unsigned int hooknum,
- 	   struct sk_buff **pskb,
- 	   const struct net_device *in,
-@@ -217,7 +240,7 @@
++
+ static int masq_inet_event(struct notifier_block *this,
+ 			   unsigned long event,
+ 			   void *ptr)
+ {
+-	/* For some configurations, interfaces often come back with
+-	 * the same address.  If not, clean up old conntrack
+-	 * entries. */
+-	if (event == NETDEV_UP)
+-		ip_ct_selective_cleanup(device_cmp, ptr);
++	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
++
++	if (event == NETDEV_DOWN) {
++		/* IP address was deleted.  Search entire table for
++		   conntracks which were associated with that device,
++		   and forget them. */
++		IP_NF_ASSERT(dev->ifindex != 0);
++
++		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
++	}
  
- /* Before packet filtering, change destination */
- static struct nf_hook_ops ip_nat_in_ops
--= { { NULL, NULL }, ip_nat_fn, PF_INET, NF_IP_PRE_ROUTING, NF_IP_PRI_NAT_DST };
-+= { { NULL, NULL }, ip_nat_in, PF_INET, NF_IP_PRE_ROUTING, NF_IP_PRI_NAT_DST };
- /* After packet filtering, change source */
- static struct nf_hook_ops ip_nat_out_ops
- = { { NULL, NULL }, ip_nat_out, PF_INET, NF_IP_POST_ROUTING, NF_IP_PRI_NAT_SRC};
+ 	return NOTIFY_DONE;
+ }
+ 
++static struct notifier_block masq_dev_notifier = {
++	.notifier_call  = masq_device_event,
++};
++
+ static struct notifier_block masq_inet_notifier = {
+ 	.notifier_call = masq_inet_event
+ };
+@@ -168,9 +191,12 @@
+ 
+ 	ret = ipt_register_target(&masquerade);
+ 
+-	if (ret == 0)
++	if (ret == 0) {
++		/* Register for device down reports */
++		register_netdevice_notifier(&masq_dev_notifier);
+ 		/* Register IP address change reports */
+ 		register_inetaddr_notifier(&masq_inet_notifier);
++	}
+ 
+ 	return ret;
+ }
+@@ -178,6 +204,7 @@
+ static void __exit fini(void)
+ {
+ 	ipt_unregister_target(&masquerade);
++	unregister_netdevice_notifier(&masq_dev_notifier);
+ 	unregister_inetaddr_notifier(&masq_inet_notifier);	
+ }
+ 
 
---------------010507080609090506050500--
+--------------070400020206040500050803--
