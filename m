@@ -1,14 +1,15 @@
-From: Fabien COELHO <fabien@coelho.net>
-Subject: date match
-Date: Wed, 23 Apr 2003 10:47:07 +0200 (CEST)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [PATCH] libip6t_hl.c
+Date: Wed, 23 Apr 2003 14:05:32 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.53.0304231025160.31438@sablons.ensmp.fr>
-Reply-To: Fabien COELHO <fabien@coelho.net>
+Message-ID: <Pine.LNX.4.51.0304231343580.4360@dns.toxicfilms.tv>
+References: <3EA5B476.1000208@videotron.ca> <Pine.LNX.4.51.0304231051150.2137@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="34246414-344365775-1051087627=:31438"
-Cc: Fabrice MARIE <fabrice@netfilter.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-23717851-615095886-1051099532=:4360"
+Cc: Stephane Ouellette <ouellettes@videotron.ca>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Developpers <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.51.0304231051150.2137@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,144 +24,247 @@ List-Id: netfilter-devel.vger.kernel.org
   while the remaining parts are likely unreadable without MIME-aware tools.
   Send mail to mime@docserver.cac.washington.edu for more info.
 
---34246414-344365775-1051087627=:31438
+---23717851-615095886-1051099532=:4360
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 
+Hello,
 
-Hello Netfilter guys,
+Stephane Ouellette has sent me a patch to the libip6t_hl.c module
+to make some cleanups. Here's the list of changes:
+1- help() now indicates that the reverse match is supported.
+2- final_check() was missing a single-quote.
+3- C99 initializers
+4- Simplify print() and save() to reduce the number of calls to printf().
 
-I wish to contribute a "date" match which enable rules based on dates.
-Unlike Fabrice's "time" match which can be used for periodic patterns, the
-date module just set simple start and stop dates.
+Please apply.
 
-For instance to enable something in April 2003 one can set:
+Regards,
+Maciej Soltysiak
 
-	iptables ... -m date --date-start 2003:04 --date-stop 2003:05 ...
 
-I need this match because I'm often asked to open our iptables filter for
-some destination "temporarily", but this ends up as permanent rules as I
-do not spend my time reviewing the configuration script...
+--- netfilter.orig/userspace/extensions/libip6t_hl.c	2003-04-08 21:49:15.000000000 +0200
++++ netfilter/userspace/extensions/libip6t_hl.c	2003-04-23 13:52:30.000000000 +0200
+@@ -3,6 +3,7 @@
+  * Maciej Soltysiak <solt@dns.toxicfilms.tv>
+  * Based on HW's ttl match
+  * This program is released under the terms of GNU GPL
++ * Cleanups by Stephane Ouellette <ouellettes@videotron.ca>
+  */
 
->From a technical point of view, I could not get the time from the "stamp"
-field in the "sk_buff" struct, as it seems to always be 0, so the time
-relies on the do_gettimeofday kernel function, which may be quite time
-consumming?
+ #include <stdio.h>
+@@ -18,7 +19,7 @@
+ {
+ 	printf(
+ "HL match v%s options:\n"
+-"  --hl-eq value	Match hop limit value\n"
++"  --hl-eq [!] value	Match hop limit value\n"
+ "  --hl-lt value	Match HL < value\n"
+ "  --hl-gt value	Match HL > value\n"
+ , IPTABLES_VERSION);
+@@ -81,7 +82,6 @@
+ 			break;
+ 		default:
+ 			return 0;
+-
+ 	}
 
->From an English language point of view, I'm not sure the option names are
-well chosen ("date-start", "date-stop", "epoch-start", "epoch-stop").
-Maybe begin/end would be better than start/stop?
+ 	return 1;
+@@ -92,82 +92,61 @@
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			"HL match: You must specify one of "
+-			"`--hl-eq', `--hl-lt', `--hl-gt");
++			"`--hl-eq', `--hl-lt', `--hl-gt'");
+ }
 
-Moreover, I have no idea how to contribute the module to netfilter from a
-practical point of view. The current situation is that it is a standalone
-module which is compiled and installed on its own. I'm not really versed
-in CVS/pom/patch/diff which looks the standard way to contribute a module.
+ static void print(const struct ip6t_ip6 *ip,
+ 		const struct ip6t_entry_match *match,
+ 		int numeric)
+ {
++	static const char *op[] = {
++		[IP6T_HL_EQ] = "==",
++		[IP6T_HL_NE] = "!=",
++		[IP6T_HL_LT] = "<",
++		[IP6T_HL_GT] = ">" };
++
+ 	const struct ip6t_hl_info *info =
+ 		(struct ip6t_hl_info *) match->data;
 
-The current module is attached. Its current status is "it works for me".
+-	printf("HL match ");
+-	switch (info->mode) {
+-		case IP6T_HL_EQ:
+-			printf("HL == ");
+-			break;
+-		case IP6T_HL_NE:
+-			printf("HL != ");
+-			break;
+-		case IP6T_HL_LT:
+-			printf("HL < ");
+-			break;
+-		case IP6T_HL_GT:
+-			printf("HL > ");
+-			break;
+-	}
+-	printf("%u ", info->hop_limit);
++	printf("HL match HL %s %u ", op[info->mode], info->hop_limit);
+ }
 
-Thanks in advance for your comments, pointers and help,
+ static void save(const struct ip6t_ip6 *ip,
+ 		const struct ip6t_entry_match *match)
+ {
++	static const char *op[] = {
++		[IP6T_HL_EQ] = "eq",
++		[IP6T_HL_NE] = "eq !",
++		[IP6T_HL_LT] = "lt",
++		[IP6T_HL_GT] = "gt" };
++
+ 	const struct ip6t_hl_info *info =
+ 		(struct ip6t_hl_info *) match->data;
 
-have a nice day,
+-	switch (info->mode) {
+-		case IP6T_HL_EQ:
+-			printf("--hl-eq ");
+-			break;
+-		case IP6T_HL_NE:
+-			printf("! --hl-eq ");
+-			break;
+-		case IP6T_HL_LT:
+-			printf("--hl-lt ");
+-			break;
+-		case IP6T_HL_GT:
+-			printf("--hl-gt ");
+-			break;
+-		default:
+-			/* error */
+-			break;
+-	}
+-	printf("%u ", info->hop_limit);
++	printf("--hl-%s %u ", op[info->mode], info->hop_limit);
+ }
 
--- 
-Fabien COELHO   _____   fabien@coelho.net   _____   http://www.coelho.net
---34246414-344365775-1051087627=:31438
-Content-Type: APPLICATION/x-gtar; name="date-0.9alpha.tgz"
+ static struct option opts[] = {
+-	{ "hl", 1, 0, '2' },
+-	{ "hl-eq", 1, 0, '2'},
+-	{ "hl-lt", 1, 0, '3'},
+-	{ "hl-gt", 1, 0, '4'},
++	{ .name = "hl",    .has_arg = 1, .flag = 0, .val = '2' },
++	{ .name = "hl-eq", .has_arg = 1, .flag = 0, .val = '2' },
++	{ .name = "hl-lt", .has_arg = 1, .flag = 0, .val = '3' },
++	{ .name = "hl-gt", .has_arg = 1, .flag = 0, .val = '4' },
+ 	{ 0 }
+ };
+
+ static
+ struct ip6tables_match hl = {
+-	NULL,
+-	"hl",
+-	IPTABLES_VERSION,
+-	IP6T_ALIGN(sizeof(struct ip6t_hl_info)),
+-	IP6T_ALIGN(sizeof(struct ip6t_hl_info)),
+-	&help,
+-	&init,
+-	&parse,
+-	&final_check,
+-	&print,
+-	&save,
+-	opts
++	.name          = "hl",
++	.version       = IPTABLES_VERSION,
++	.size          = IP6T_ALIGN(sizeof(struct ip6t_hl_info)),
++	.userspacesize = IP6T_ALIGN(sizeof(struct ip6t_hl_info)),
++	.help          = &help,
++	.init          = &init,
++	.parse         = &parse,
++	.final_check   = &final_check,
++	.print         = &print,
++	.save          = &save,
++	.extra_opts    = opts
+ };
+
+
+---23717851-615095886-1051099532=:4360
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="hl.patch"
 Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.53.0304231047070.31438@sablons.ensmp.fr>
-Content-Description: 
-Content-Disposition: attachment; filename="date-0.9alpha.tgz"
+Content-ID: <Pine.LNX.4.51.0304231405320.4360@dns.toxicfilms.tv>
+Content-Description: libip6t_hl.c
+Content-Disposition: attachment; filename="hl.patch"
 
-H4sIAJNApj4AA+1bfVvbRhLPv9an2BJCJNeSX4BwsXFSgh3qqzE8vFzaJ8np
-hLTGepAlnSRDSMJ99puZXcmSbULaQnO9etvY8u7s7Oy87W93hWMlvOqGienA
-gzF69BClVq/VNmq1RzUo640Gfte3NsVvqntWf1TberZZ39ioNWqbQA9Um49Y
-7UGkmSmTOLEixh7ZAfdGwe10d7X/Sctjd+g7fMhME50gccfcHJmub3sThzum
-qTyGRtfnt7YrcRJN7ISlLgRtw4B9Uhgj2oShepMWg1Its2A4rAY+SyLLj93E
-hUcrYcnIjRn2ZeVqvl8QUjfq51eh65f63bQU5TH3HXeI9LdIi4TfWuH/Y8Up
-xL/9IGPcEf8btY2tZfx/o1ItQ8idYCSNA2ficQZPwyAScTW2Envk+uctXQOq
-vmtzP+Zsb3DK9g77TI05Z6MkCZvV6tXVlXHuT4wgOq8irWprrAHWZq+tM5f7
-bJe0x7aH9PMHoUzD58kLGt7yL2KWBEgdwShs34pcTnKgZJZzCZWxoUD4Ko9l
-OLNtz/UnH6p24A/dc2P0Yq7lkkcxpApsmmsTk13UK744mwyHi1ownSxkBtMY
-ul7CI8g6lxsQTWZinXkg8AImc7Tpygt89w86p/2uuXN68uPBkbpyp+pWtFba
-p9M93j3qHZ70DgbqSu+QCQFYaNkXPCkaUxo617nf2+0OjrvqClgVqyGnW4lr
-M9dPFOqlgpJjTMmU6uMLE1XEyqCqikIpmhUIQDbT4WgzVnb9O0mCSVKkuQxc
-h5WlvMMgbQRxcAGJ+ULykROl1RNI+Un9mUkTtzzu5zmUR0HiREGoKbhIFYQq
-rmFl+myzTI4Wriz0i1ETumeEIYNuScvU1QiXJXATjCI3ecmGVgymZlfW9Uux
-uAERaE1/ARoeh0ZyacbcZu02qxXWPj+4asEvKRZWXloeu0iw0gnMc55gXTB0
-rGt17SLRsB76gLAXiWSKyyGshWL1dtRO99XpngkOYnZ2TroYoWEE2rhAZxF1
-TeTQfuI5YsWWT0GID+/8lQpTSkhRobnTBKJk+gP02cqtv8XhpIKgSc11Ztv5
-3opc6c2sVP+ZlXfTWqEnxiKeTCI/L8x2G1XA1tZQzO0pa1QO9yBvAXd1Ws22
-2/neWsoYqBYOnBNnRobicOzz5zmpWspNIajsEYe49JPoWkaWPYI1qExB61tj
-nvrrfNygi7oh+GZYoLklYkQ0AGQ6Bx8g7yeS2P3IbycZBcGFObbiCxEh6LHT
-sclBbwuPclXo75YYobZdnDpAN85QClGNjpEJxr5rM3ScnX5vb6BiTTBUFwWo
-pml5K9RaYoA3GINk73gUTMCJe4zULQNQUtfzJslxl6Kn40T8XGmzT/Df4LTf
-r9Anu6mwFWyFmFgjevieWrQiSU9+7B2bIsGym0JORXTquzAefKhoOaHo1KNh
-bBjWxcQhxFHX8vJoecnJ7qbJPwA7CHQ3xw77TPy7OYnVgCRS8QNqZRVyVZEr
-VH1rmLIsD1QI/3vu2UNuAb6M/+vr6wD2Z/D/Vn19if//iEL4H4yf4sUIMVYR
-MBrfCvvPQn/I7sewUMI6BQ4bWdE1NDs6nicE0ynAM9RCNvVgDk6KgDPwG0/C
-MIgSgxX3EnHiuEERr4OAzlmxChYK1MdMnQPSFOsAoAVhMrNXSLcP+R3B2E3i
-GbJ0Ir9285Ae1KSgyzw+2Tk6YWrtQ62uLWo9OKTGhpatJl4ACgLZTcj7eVzC
-4grL/y6zsCKIx65vAjRNf1kf8JdYf6jGA4AASksCTwUeKnYvlzXsXq8RasWl
-P0TMVg7b7VijgyOJTYfqipClCSslsIWVLr72E+sDoFHqmy2Zeh1/3kh23raU
-CpGY9yIV6hbWZ5bDoHnCGQLet/BRgX/vCfHCvLIJpmxuGVhWeLSkgp9OEteL
-mXRa8GMAPBEgkgC2BlfcAywPqNBHpO07VuSw4cS36VgLvBdiEAIN7RoTZgEG
-krvcHRCBwyBA9DrOeGi5HnfIo6Uh84TkIUVzZjZKNxhjRlsL2DuMTTd2gLKN
-c0M4BVsMzz0fAQC1LsH3X04R23esTHot6AJ6XHMcpJryw59t6VSkyTX6rD+v
-1SqsfzDYM/d3ftZaTHKd9mnr9RnmWZvexu6tdLQmq7WpZiociQbPn1JMPw78
-ZJQCd2j8/nthSeIJjTDjBULC/w1p8kw4IF4g25STrreyAUEyw6jX03HzkqWy
-ManllKYgXcoV228RcL2upbRTEYF+oYyzIqAQJRgfkDLZrCTHLhEbql00LFiu
-sQ7DlrIRkXRuxNJ0sBKMI+wAiUyc2JaymZbSabqLzQDDbT7XiG46RXfeCqX8
-9Eo0N6lf2BAHviNHzY8rR6Zd+OKRn0GiQhYet8KUT3qinDHMxAKCRWLlBMu1
-kGTnzBpCRv9O8rrBD9y+zEkHG5wStNLWZkZlIGaRUNj2Rn4LdnmTph2+0F10
-pq7znpj2+Fp2N0qOVS7kso6/jS3oD+xxyQG0QOIUxokNwyhs9cYXmA7VtURL
-k/PrNNtejVzY7dGSELNgkrBJbJ0D8OExfuczKu6rlBH3wmyHVZIribIyBUvs
-8knM1CewjsHyDwPETVhHlBVdRxJdnHoQdVrm7kOK9EFYJJ+/B5H0PAzskRzA
-n4zPePRl/ik9DJAnv4U/ytBERAaTZFbMfoHytrm//7bZ6bxtjkZvm+Px22Yc
-v8dCPQQ3wBzWxCPbgAnd8WQsl1pAmNwCdU1gv5mnx7niyZnPrtEDvMCGVRyt
-R0RCUkQDqalZDJHI6TShizNi6iSeWJ53zf5u+ZS9n2/VNOrMP1jj0INpPC1Y
-A3Fqs95geZVD3cZTduXCMn0GsuIhE0zFJlri9WbnaNAb7DUxqAUbRKoYxXRi
-VkGBoBdVY0UImcKZIHQkUcFteASKyM0cEwSR+wFo2Gc8imB5B7054NaBQZQI
-SRTAbzuv+t1j8x/do+PewYBqBKKTNdqCkw3hjfgVv30PwYMrzydxiCH0sEJL
-CUTY0/pTdlMpNAfhtLUxbc253LR9fb49330jba7d0IUdxGIPXMAFcPdRmJHC
-aC7w6HAid0pDBy3yrKYsj2AKZ1hlf2iDg/ECzFl8vLvwbImVNWKrv8ATZAKq
-uYNL6CQQlsYECJk6YHbIG0R4FNRjI+uSoyER8AGdPB82hcsIkIzQMEtauYPE
-3DApTpqOJlYzcaRm+U8B2+F86U5Uckp1wD632eD1rnk6+Glw8GZwWxJErBhD
-Oh2PAZOm+aslkygA2AjiFvzdTTCHY6BafupXU2vh4SZxUtEKdiXdMFjR+WWF
-LONSup4119CzzuOFFwWZuVlZHK+lZ/yLzJ023uYqwld+h1OoksPULwrAOmzh
-OXd85eJouA2mKwYLFmyIq2b2vE7PhAmYqorJa2vFjZuWwUM8hjMpIaiHO0c7
-+92T7pF5eHQAaWC/opRKTObnf+m6ik+fKfI0EZpPIaKuIYdBSoRcFofcdocu
-bh4gb6a7qJsMmwJ2AUFTaFh0+dxmAq35Fm3vO3r9veSSQwrFjhJVFTsBwAop
-J0x3AEomRv74vHZvihA5Fbzd4zQZTMd0jFtQg7AGxkzRHoLmLOLWRSszZCNn
-1I27jHpweB9TCcJfb9LGnEkpu/wGi1K/rzborD2D8H7MiTr4HdY8OJwxpsQp
-zbnrhNzOvp7lTdcHUELn/a3ZdWqIbSa1qYUEJbwhu08J6KaQ9tKC6eEUggqE
-MAzmFkHCm+odt0GLc2dxqcxdhgKk4pFr398ymR6v5DAxnqvgv5UvXR0KNRzD
-YklnJYgMA3EXQuMAAkMj48EY4VCC+4kD+ppTUww8btXS1+jn/pVRxOeoiwIC
-/xrliBnmXraiM0IpN4pA11R080TmlRdU9DyPGWXt19yx/QbiNdwnyUdEbvKR
-0o18zgVK2oq6ks9oQvGIiJWQorjomrsxK15uoSSkrm99qP4nKnT/s29d8CFk
-0gca4473v9bXG7PvfzW21mvL+58/ojxmqz2nyVIPqFyyulHfpL1utbZRbayz
-2lazsdmsbzChAXbEPbaqPFYe42YhxPXXoiMx0CPsmDF5U/LP7irk+0bQA7p0
-O70T9mP3qMteHxyxXw5Oj9hx9+QEdtPHyuOfukeDbt/s9I4gx1YncVSNI7tK
-Vx+KaDMcF2yVa7zgkc89fcQth0ex3jA2jEZNf/a3Z2kH17exw6o6ZaBV5fkd
-CiTltnAjI9+HOqZRYBDPPZMvisXVKWc5Jl7GVOkaJpsp7sX7vVeZkNg/TdU4
-Ft6ZZfdUui7fT6OrLlSb/D23xwdWdaNhbFnIo3PABgcnUz2+pAOA3mAX02Wb
-6T1STXpvVPwp7nn/rfQHP2OPkuyR6QbINEXJHyYgQc14bnnhCEbfxS6A/2xb
-2T08fN3f2TsmDp1ZidvvVlbV2Urt3Qp7B7iOyAtHFkReOMMAUr1nKLs0Bg2q
-v0Hv0t/gFZyd6GEUJEFyHaIi3/iBDrXnkRWO4OdBQwwzhGpJbXmuRQiRKnGP
-C2rXh8HYTfRhZI25HgZ0KiN6hm4IqhuHER8CzOQOLtz2hX4WTPC25rrdgEYr
-skdtFx2t3yEBPQeecvLGdFOpKK8NuyQ88Mr1HBtve8oG6Pm1Ech6oGg+Mez2
-EyPA6tE8+Qjrkw8JtaShyo66O539Lo4AkZDxGmmCpfiCThoTEaTANmave0KE
-2c1hwPJ3/3GgKKDmZhrZivxuAi/RG/xDRky+rmSPIE6Y9X1UqAxBxzP8GfmF
-DJKMJifOqpoLQhwta2pOyWyltKru7mrgeqYps4bJ0GWgv/RunH/qpfQsn96J
-g3W9I9/NoQfpd8fQyqZFT8OoECHV7A1SGbCxMWK6H+AVMiQbwV93r9xkhB7k
-fmBZNHZ+enXa63fMVzvH3QHseNqrZabbbHVbUfJqgqkW3shIZ7t4QqTRdMbZ
-5BewjWf4Bsi336FuHclMBwv8QD2foBjgli32pcHlMLbHLb+JpEf7Giv/B3wW
-8DD5E4JBaPmB27B2rIzBeRlRf5a+9Vn604qiwEIMlLgc2x8vxUsI+kxiMJLz
-j0zfZQZa2nIcqWFCMRXyeIgFTVsiwK8tpDmRSR5sjLv+/ufZ1hz+q28u3///
-Q4rEf8IDBPqbAX/1zeZmrQj+lMEMuKOrCm55DLOeeHcBL4oseZ6vKEpvcHyy
-0+8rSl1j3HETedovlzKEQLkrnxhfcPbPATTFkD68F+zSzZY9RWloGfLMo844
-mQyHWQ9KNLIZhj89hoVyHZbCwHLE0PKvHXyQHH8LUJd1h564oqW5UlE2sG9w
-gX93FPgevkqDiW1Kn8G6sYC/ui7aN1FY/AuFScSFdqaIcLYvXgJM+8/cUs1d
-USH5789z8v0/XNHuwZsWFxC2sfWF+K9hG8Z/rVF/1tjA+IcOj9jmg0mUK3/x
-+M/Zv/h22T2OAfasbWGO/2r7b25sNh6xhmHcoxS3lL+4/ZdlWZZlWZZlWZZl
-WZZlWZZlWZZlWZZlWZZlWZbl/7f8F+rGV9EAUAAA
+LS0tIG5ldGZpbHRlci5vcmlnL3VzZXJzcGFjZS9leHRlbnNpb25zL2xpYmlw
+NnRfaGwuYwkyMDAzLTA0LTA4IDIxOjQ5OjE1LjAwMDAwMDAwMCArMDIwMA0K
+KysrIG5ldGZpbHRlci91c2Vyc3BhY2UvZXh0ZW5zaW9ucy9saWJpcDZ0X2hs
+LmMJMjAwMy0wNC0yMyAxMzo1MjozMC4wMDAwMDAwMDAgKzAyMDANCkBAIC0z
+LDYgKzMsNyBAQA0KICAqIE1hY2llaiBTb2x0eXNpYWsgPHNvbHRAZG5zLnRv
+eGljZmlsbXMudHY+DQogICogQmFzZWQgb24gSFcncyB0dGwgbWF0Y2gNCiAg
+KiBUaGlzIHByb2dyYW0gaXMgcmVsZWFzZWQgdW5kZXIgdGhlIHRlcm1zIG9m
+IEdOVSBHUEwNCisgKiBDbGVhbnVwcyBieSBTdGVwaGFuZSBPdWVsbGV0dGUg
+PG91ZWxsZXR0ZXNAdmlkZW90cm9uLmNhPg0KICAqLw0KIA0KICNpbmNsdWRl
+IDxzdGRpby5oPg0KQEAgLTE4LDcgKzE5LDcgQEANCiB7DQogCXByaW50ZigN
+CiAiSEwgbWF0Y2ggdiVzIG9wdGlvbnM6XG4iDQotIiAgLS1obC1lcSB2YWx1
+ZQlNYXRjaCBob3AgbGltaXQgdmFsdWVcbiINCisiICAtLWhsLWVxIFshXSB2
+YWx1ZQlNYXRjaCBob3AgbGltaXQgdmFsdWVcbiINCiAiICAtLWhsLWx0IHZh
+bHVlCU1hdGNoIEhMIDwgdmFsdWVcbiINCiAiICAtLWhsLWd0IHZhbHVlCU1h
+dGNoIEhMID4gdmFsdWVcbiINCiAsIElQVEFCTEVTX1ZFUlNJT04pOw0KQEAg
+LTgxLDcgKzgyLDYgQEANCiAJCQlicmVhazsNCiAJCWRlZmF1bHQ6DQogCQkJ
+cmV0dXJuIDA7DQotDQogCX0NCiANCiAJcmV0dXJuIDE7DQpAQCAtOTIsODIg
+KzkyLDYxIEBADQogCWlmICghZmxhZ3MpIA0KIAkJZXhpdF9lcnJvcihQQVJB
+TUVURVJfUFJPQkxFTSwNCiAJCQkiSEwgbWF0Y2g6IFlvdSBtdXN0IHNwZWNp
+Znkgb25lIG9mICINCi0JCQkiYC0taGwtZXEnLCBgLS1obC1sdCcsIGAtLWhs
+LWd0Iik7DQorCQkJImAtLWhsLWVxJywgYC0taGwtbHQnLCBgLS1obC1ndCci
+KTsNCiB9DQogDQogc3RhdGljIHZvaWQgcHJpbnQoY29uc3Qgc3RydWN0IGlw
+NnRfaXA2ICppcCwgDQogCQljb25zdCBzdHJ1Y3QgaXA2dF9lbnRyeV9tYXRj
+aCAqbWF0Y2gsDQogCQlpbnQgbnVtZXJpYykNCiB7DQorCXN0YXRpYyBjb25z
+dCBjaGFyICpvcFtdID0gew0KKwkJW0lQNlRfSExfRVFdID0gIj09IiwNCisJ
+CVtJUDZUX0hMX05FXSA9ICIhPSIsDQorCQlbSVA2VF9ITF9MVF0gPSAiPCIs
+DQorCQlbSVA2VF9ITF9HVF0gPSAiPiIgfTsNCisNCiAJY29uc3Qgc3RydWN0
+IGlwNnRfaGxfaW5mbyAqaW5mbyA9IA0KIAkJKHN0cnVjdCBpcDZ0X2hsX2lu
+Zm8gKikgbWF0Y2gtPmRhdGE7DQogDQotCXByaW50ZigiSEwgbWF0Y2ggIik7
+DQotCXN3aXRjaCAoaW5mby0+bW9kZSkgew0KLQkJY2FzZSBJUDZUX0hMX0VR
+Og0KLQkJCXByaW50ZigiSEwgPT0gIik7DQotCQkJYnJlYWs7DQotCQljYXNl
+IElQNlRfSExfTkU6DQotCQkJcHJpbnRmKCJITCAhPSAiKTsNCi0JCQlicmVh
+azsNCi0JCWNhc2UgSVA2VF9ITF9MVDoNCi0JCQlwcmludGYoIkhMIDwgIik7
+DQotCQkJYnJlYWs7DQotCQljYXNlIElQNlRfSExfR1Q6DQotCQkJcHJpbnRm
+KCJITCA+ICIpOw0KLQkJCWJyZWFrOw0KLQl9DQotCXByaW50ZigiJXUgIiwg
+aW5mby0+aG9wX2xpbWl0KTsNCisJcHJpbnRmKCJITCBtYXRjaCBITCAlcyAl
+dSAiLCBvcFtpbmZvLT5tb2RlXSwgaW5mby0+aG9wX2xpbWl0KTsNCiB9DQog
+DQogc3RhdGljIHZvaWQgc2F2ZShjb25zdCBzdHJ1Y3QgaXA2dF9pcDYgKmlw
+LCANCiAJCWNvbnN0IHN0cnVjdCBpcDZ0X2VudHJ5X21hdGNoICptYXRjaCkN
+CiB7DQorCXN0YXRpYyBjb25zdCBjaGFyICpvcFtdID0gew0KKwkJW0lQNlRf
+SExfRVFdID0gImVxIiwNCisJCVtJUDZUX0hMX05FXSA9ICJlcSAhIiwNCisJ
+CVtJUDZUX0hMX0xUXSA9ICJsdCIsDQorCQlbSVA2VF9ITF9HVF0gPSAiZ3Qi
+IH07DQorDQogCWNvbnN0IHN0cnVjdCBpcDZ0X2hsX2luZm8gKmluZm8gPQ0K
+IAkJKHN0cnVjdCBpcDZ0X2hsX2luZm8gKikgbWF0Y2gtPmRhdGE7DQogDQot
+CXN3aXRjaCAoaW5mby0+bW9kZSkgew0KLQkJY2FzZSBJUDZUX0hMX0VROg0K
+LQkJCXByaW50ZigiLS1obC1lcSAiKTsNCi0JCQlicmVhazsNCi0JCWNhc2Ug
+SVA2VF9ITF9ORToNCi0JCQlwcmludGYoIiEgLS1obC1lcSAiKTsNCi0JCQli
+cmVhazsNCi0JCWNhc2UgSVA2VF9ITF9MVDoNCi0JCQlwcmludGYoIi0taGwt
+bHQgIik7DQotCQkJYnJlYWs7DQotCQljYXNlIElQNlRfSExfR1Q6DQotCQkJ
+cHJpbnRmKCItLWhsLWd0ICIpOw0KLQkJCWJyZWFrOw0KLQkJZGVmYXVsdDoN
+Ci0JCQkvKiBlcnJvciAqLw0KLQkJCWJyZWFrOw0KLQl9DQotCXByaW50Zigi
+JXUgIiwgaW5mby0+aG9wX2xpbWl0KTsNCisJcHJpbnRmKCItLWhsLSVzICV1
+ICIsIG9wW2luZm8tPm1vZGVdLCBpbmZvLT5ob3BfbGltaXQpOw0KIH0NCiAN
+CiBzdGF0aWMgc3RydWN0IG9wdGlvbiBvcHRzW10gPSB7DQotCXsgImhsIiwg
+MSwgMCwgJzInIH0sDQotCXsgImhsLWVxIiwgMSwgMCwgJzInfSwNCi0JeyAi
+aGwtbHQiLCAxLCAwLCAnMyd9LA0KLQl7ICJobC1ndCIsIDEsIDAsICc0J30s
+DQorCXsgLm5hbWUgPSAiaGwiLCAgICAuaGFzX2FyZyA9IDEsIC5mbGFnID0g
+MCwgLnZhbCA9ICcyJyB9LA0KKwl7IC5uYW1lID0gImhsLWVxIiwgLmhhc19h
+cmcgPSAxLCAuZmxhZyA9IDAsIC52YWwgPSAnMicgfSwNCisJeyAubmFtZSA9
+ICJobC1sdCIsIC5oYXNfYXJnID0gMSwgLmZsYWcgPSAwLCAudmFsID0gJzMn
+IH0sDQorCXsgLm5hbWUgPSAiaGwtZ3QiLCAuaGFzX2FyZyA9IDEsIC5mbGFn
+ID0gMCwgLnZhbCA9ICc0JyB9LA0KIAl7IDAgfQ0KIH07DQogDQogc3RhdGlj
+DQogc3RydWN0IGlwNnRhYmxlc19tYXRjaCBobCA9IHsNCi0JTlVMTCwNCi0J
+ImhsIiwNCi0JSVBUQUJMRVNfVkVSU0lPTiwNCi0JSVA2VF9BTElHTihzaXpl
+b2Yoc3RydWN0IGlwNnRfaGxfaW5mbykpLA0KLQlJUDZUX0FMSUdOKHNpemVv
+ZihzdHJ1Y3QgaXA2dF9obF9pbmZvKSksDQotCSZoZWxwLA0KLQkmaW5pdCwN
+Ci0JJnBhcnNlLA0KLQkmZmluYWxfY2hlY2ssDQotCSZwcmludCwNCi0JJnNh
+dmUsDQotCW9wdHMNCisJLm5hbWUgICAgICAgICAgPSAiaGwiLA0KKwkudmVy
+c2lvbiAgICAgICA9IElQVEFCTEVTX1ZFUlNJT04sDQorCS5zaXplICAgICAg
+ICAgID0gSVA2VF9BTElHTihzaXplb2Yoc3RydWN0IGlwNnRfaGxfaW5mbykp
+LA0KKwkudXNlcnNwYWNlc2l6ZSA9IElQNlRfQUxJR04oc2l6ZW9mKHN0cnVj
+dCBpcDZ0X2hsX2luZm8pKSwNCisJLmhlbHAgICAgICAgICAgPSAmaGVscCwN
+CisJLmluaXQgICAgICAgICAgPSAmaW5pdCwNCisJLnBhcnNlICAgICAgICAg
+PSAmcGFyc2UsDQorCS5maW5hbF9jaGVjayAgID0gJmZpbmFsX2NoZWNrLA0K
+KwkucHJpbnQgICAgICAgICA9ICZwcmludCwNCisJLnNhdmUgICAgICAgICAg
+PSAmc2F2ZSwNCisJLmV4dHJhX29wdHMgICAgPSBvcHRzDQogfTsNCiANCiAN
+Cg==
 
---34246414-344365775-1051087627=:31438--
+---23717851-615095886-1051099532=:4360--
