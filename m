@@ -1,12 +1,13 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: [PATCH 2.6] ipt_hashlimit: use | instead of & for correct hash key
-Date: Sun, 13 Mar 2005 17:38:10 +0100
-Message-ID: <20050313163810.GJ28014@sunbeam.de.gnumonks.org>
+From: Denilson Guedes Duarte <denilson@bnet.com.br>
+Subject: Help ip-limit
+Date: Mon, 14 Mar 2005 09:25:28 +0000
+Message-ID: <200503140925.28555.denilson@bnet.com.br>
+Reply-To: denilson@bnet.com.br
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bg2esWel0ueIH/G/"
-Cc: netfilter-devel@lists.netfilter.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,49 +20,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+sorry by my english,
 
---Bg2esWel0ueIH/G/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I reading for a iptables because I need to make a solution to my case: 
+I have a sever that I use only to redirect packets to another sever, I control by IP source like example:
 
-Hi Dave!
+iptables -A INPUT -s 200.sss.sss.sss -j ACCEPT -p tcp --dport 23
+/usr/sbin/iptables -t nat -A PREROUTING -s 200.sss.sss.sss -j DNAT -d 200.lll.lll.lll -p tcp --dport 23 --to 172.ddd.ddd.ddd:23
 
-Please apply the followign trivial fix, Thanks
+/usr/sbin/iptables -t nat -A POSTROUTING -j SNAT -d 172.ddd.ddd.ddd -p tcp --dport 23 --to-source 172.aaa.aaa.aaa
 
-Signed-off-by: Harald Welte <laforge@netfilter.org>
+200.sss.sss.sss = IP source Client
+200.lll.lll.lll = IP Server localhost - extern IP
+172.ddd.ddd.ddd = IP destination Server
+172.aaa.aaa.aaa = IP configured to accept conections on 172.ddd.ddd.ddd
 
---- linux-2.6-old/net/ipv4/netfilter/ipt_hashlimit.c	(revision 3678)
-+++ linux-2.6/net/ipv4/netfilter/ipt_hashlimit.c	(working copy)
-@@ -112,7 +112,7 @@
- static inline u_int32_t
- hash_dst(const struct ipt_hashlimit_htable *ht, const struct dsthash_dst *=
-dst)
- {
--	return (jhash_3words(dst->dst_ip, (dst->dst_port<<16 & dst->src_port),=20
-+	return (jhash_3words(dst->dst_ip, (dst->dst_port<<16 | dst->src_port),=20
- 			     dst->src_ip, ht->rnd) % ht->cfg.size);
- }
-=20
---=20
-- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
+I want to control the limit of conections by IP source simultaneous-use, Ex. IP 200.sss.sss.sss can use 3 conections in the same time.
 
---Bg2esWel0ueIH/G/
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+It's possible?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Thanks.
 
-iD8DBQFCNGxyXaXGVTD0i/8RAmxBAJ49ZxfziCS5n6nARp2QGRjWl9JeVACfetGZ
-6M0e1PIcgM6DB4E4M7EtyGw=
-=SRJh
------END PGP SIGNATURE-----
-
---Bg2esWel0ueIH/G/--
+-- 
+Denilson Guedes Duarte
+ISPbnet - Provedor de Internet
+Uruguaiana - RS
+denilson@bnet.com.br
+(55) 411 6350
