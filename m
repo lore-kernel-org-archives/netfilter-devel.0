@@ -1,15 +1,16 @@
-From: =?iso-8859-2?q?Micha=B3_Margula?= <alchemyx@uznam.net.pl>
-Subject: Floods
-Date: Sun, 14 Mar 2004 19:30:29 +0100
+From: "Saber zrelli" <saber_z@fastmail.fm>
+Subject: Netfilter based application : any advice ?
+Date: Mon, 15 Mar 2004 06:44:30 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200403141930.29602.alchemyx@uznam.net.pl>
+Message-ID: <1079300670.3068.182659007@webmail.messagingengine.com>
+References: <200403141930.29602.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200403141930.29602.alchemyx@uznam.net.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,35 +21,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello!
+Hi people ,
 
-	I have problem, quite big one. I don't know how to deal with it. Tried=20
-everything i know. I have a 2 x Xeon 2.66 server with 1 Gig ram. Everything=
-=20
-based on Intel e100 and e1000 NICs. That server is my firewall and gateway.
+i'm new in Netfilter community ,
+I'm planning to crate a network software robot acting like 'automata'
+based on scripts dicting its behaviour .
+i explain :
 
-I have common problem - viruses, worms and so on. It degrades server=20
-performance quite much. I am using connlimit.
+the main program basically filter packets and executes actions like
+iptbles does ,  based on rules located in some file.
+the difference is that the actions can also be sending specific packet.
+the tool should allows for example simulation of tcp/ip connections , ftp
+connections and so on.
 
-=2Dp tcp --syn -m connlimit --connlimit-above 100 -j DROP
+the implentation will consist on a Netfilter module that will be added to
+hook on the network activities.
+now the point is :
 
-It was working fine until today. I was hit by UDP flood coming from one of =
-our=20
-100mbit networks. I found that person and disconnected, but that is not=20
-solution. Event "-t raw" didnt' help.
+- Is it possible to send packets with Netfilter or not? ( if not i guess
+using libnet will resolve the pb but better to have  
+  every thing based on the same infrastructure)
 
-Altough after removing ip_conntrack from kernel everything goes fine. But i=
-=20
-can't stop using conntrack, because of SNAT, DNAT and REDIRECT targets.
+- I would like to have the tool work with wireless protocol , does
+Netfilter support non Ethernet proto and 802.11 particulary?
 
-What do you recommend? Unfortunately connlimit does not work with UDP packe=
-ts=20
-(no wonder - UDP is conection less). What should I do? I even thought about=
-=20
-switch to FreeBSD (sic! :<).
 
-Help, please!
+any advices will be really appreciated.
+also , any partner for the project is welcome.
 
-=2D-=20
-Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/
-"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
+Regards.
+
+-- 
+  Saber Zrelli
+  kanazawa university international house 
+  kakuma-machi , kanazawa , Ishikawa 
+  920-1192 Japan. 
