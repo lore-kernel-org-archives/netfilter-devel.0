@@ -1,9 +1,10 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 1/2] Versioning (aka release) stuff for iptables
-Date: Sat, 25 Dec 2004 22:31:43 +0100
-Message-ID: <41CDDC3F.2060708@eurodev.net>
+Subject: [PATCH 2/2] extensions conversion to C99 structure initialization
+ and MARK target modification
+Date: Sat, 25 Dec 2004 22:32:03 +0100
+Message-ID: <41CDDC53.7070700@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040709040708090909010101"
+Content-Type: multipart/mixed; boundary="------------010703060706050806080505"
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,499 +20,166 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040709040708090909010101
+--------------010703060706050806080505
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Rusty,
+Hi,
 
-I've been working on the versioning stuff last days. I've tested with 
-the mark target.
+This patch makes all structures use C99 initization, I needed this to 
+add the versioning stuff. Actually, I've spent one hour on this... but 
+it was too late when I changed my mind and decided to add a single line 
+in every file. I was already possesed by a penguin... hope that it's 
+worth it anyway.
 
-As I told you, I propose to add an option called --release to the 
-current syntax of iptables which works as follows:
+Anyway, the most important thing here is the example of how to extend a 
+target/match to register a new version. Please see libipt_MARK.c
 
-a) New version of matches/targets: iptables -I INPUT -t mangle -j MARK 
---release 1 --and-mark 0x1
-
-b) Primitive version. To keep backward compatibility, the syntax is the 
-same, no modification: iptables -I INPUT -t mangle -j MARK --set-mark 0x1
-
-Optionally, someone could apply this: iptables -I INPUT -t mangle -j 
-MARK --release 0 --set-mark 0x1
-
-To finish, some comments about what I have in mind for next days:
-
-1) Test this stuff in nfsim with a test case based on yours.
-2) Clean up the kernel patch that I sent you some weeks ago and rename 
-field `version' to `release'
-3) port mport match to multiport to test that versioning stuff is 
-working fine with matches.
-4) More testing...
-
-Please, comments welcome.
+Sorry, it's gzip'ed, too big for the mailling list (65K).
 
 --
 Pablo
 
---------------040709040708090909010101
-Content-Type: text/x-patch;
- name="xmas-version.patch"
-Content-Transfer-Encoding: 7bit
+--------------010703060706050806080505
+Content-Type: application/gzip;
+ name="extensions-C99.patch.gz"
+Content-Transfer-Encoding: base64
 Content-Disposition: inline;
- filename="xmas-version.patch"
+ filename="extensions-C99.patch.gz"
 
-Index: iptables.c
-===================================================================
---- iptables.c	(revision 3357)
-+++ iptables.c	(working copy)
-@@ -138,6 +138,7 @@
- 	{ "line-numbers", 0, 0, '0' },
- 	{ "modprobe", 1, 0, 'M' },
- 	{ "set-counters", 1, 0, 'c' },
-+	{ "release", 1, 0, 'r' },
- 	{ 0 }
- };
- 
-@@ -664,12 +665,12 @@
- }
- 
- struct iptables_match *
--find_match(const char *name, enum ipt_tryload tryload, struct iptables_rule_match **matches)
-+find_match(const char *name, u_int8_t rel, enum ipt_tryload tryload, struct iptables_rule_match **matches)
- {
- 	struct iptables_match *ptr;
- 
- 	for (ptr = iptables_matches; ptr; ptr = ptr->next) {
--		if (strcmp(name, ptr->name) == 0)
-+		if (strcmp(name, ptr->name) == 0 && ptr->release == rel) 
- 			break;
- 	}
- 
-@@ -681,16 +682,16 @@
- 		if (dlopen(path, RTLD_NOW)) {
- 			/* Found library.  If it didn't register itself,
- 			   maybe they specified target as match. */
--			ptr = find_match(name, DONT_LOAD, NULL);
-+			ptr = find_match(name, rel, DONT_LOAD, NULL);
- 
- 			if (!ptr)
- 				exit_error(PARAMETER_PROBLEM,
--					   "Couldn't load match `%s'\n",
--					   name);
-+					   "Couldn't load match `%s' (r.%d)\n",
-+					   name, rel);
- 		} else if (tryload == LOAD_MUST_SUCCEED)
- 			exit_error(PARAMETER_PROBLEM,
--				   "Couldn't load match `%s':%s\n",
--				   name, dlerror());
-+				   "Couldn't load match `%s' (r.%d):%s\n",
-+				   name, rel, dlerror());
- 	}
- #else
- 	if (ptr && !ptr->loaded) {
-@@ -701,7 +702,7 @@
- 	}
- 	if(!ptr && (tryload == LOAD_MUST_SUCCEED)) {
- 		exit_error(PARAMETER_PROBLEM,
--			   "Couldn't find match `%s'\n", name);
-+			   "Couldn't find match `%s' (r.%d)\n", name, rel);
- 	}
- #endif
- 
-@@ -730,9 +731,10 @@
- 		char *protoname = proto_to_name(proto, nolookup);
- 
- 		if (protoname)
--			return find_match(protoname, tryload, matches);
-+			/* standalone matches doesn't support versioning */
-+			return find_match(protoname, 0, tryload, matches);
- 	} else
--		return find_match(pname, tryload, matches);
-+		return find_match(pname, 0, tryload, matches);
- 
- 	return NULL;
- }
-@@ -966,7 +968,7 @@
- }
- 
- struct iptables_target *
--find_target(const char *name, enum ipt_tryload tryload)
-+find_target(const char *name, u_int8_t rel, enum ipt_tryload tryload)
- {
- 	struct iptables_target *ptr;
- 
-@@ -979,7 +981,7 @@
- 		name = "standard";
- 
- 	for (ptr = iptables_targets; ptr; ptr = ptr->next) {
--		if (strcmp(name, ptr->name) == 0)
-+		if (strcmp(name, ptr->name) == 0 && ptr->release == rel)
- 			break;
- 	}
- 
-@@ -991,15 +993,15 @@
- 		if (dlopen(path, RTLD_NOW)) {
- 			/* Found library.  If it didn't register itself,
- 			   maybe they specified match as a target. */
--			ptr = find_target(name, DONT_LOAD);
-+			ptr = find_target(name, rel, DONT_LOAD);
- 			if (!ptr)
- 				exit_error(PARAMETER_PROBLEM,
--					   "Couldn't load target `%s'\n",
--					   name);
-+					   "Couldn't load target `%s' (r.%d)\n",
-+					   name, rel);
- 		} else if (tryload == LOAD_MUST_SUCCEED)
- 			exit_error(PARAMETER_PROBLEM,
--				   "Couldn't load target `%s':%s\n",
--				   name, dlerror());
-+				   "Couldn't load target `%s' (r.%d):%s\n",
-+				   name, rel, dlerror());
- 	}
- #else
- 	if (ptr && !ptr->loaded) {
-@@ -1010,7 +1012,7 @@
- 	}
- 	if(!ptr && (tryload == LOAD_MUST_SUCCEED)) {
- 		exit_error(PARAMETER_PROBLEM,
--			   "Couldn't find target `%s'\n", name);
-+			   "Couldn't find target `%s' (r.%d)\n", name, rel);
- 	}
- #endif
- 
-@@ -1055,7 +1057,7 @@
- 		exit(1);
- 	}
- 
--	if (find_match(me->name, DONT_LOAD, NULL)) {
-+	if (find_match(me->name, me->release, DONT_LOAD, NULL)) {
- 		fprintf(stderr, "%s: match `%s' already registered.\n",
- 			program_name, me->name);
- 		exit(1);
-@@ -1085,7 +1087,7 @@
- 		exit(1);
- 	}
- 
--	if (find_target(me->name, DONT_LOAD)) {
-+	if (find_target(me->name, me->release, DONT_LOAD)) {
- 		fprintf(stderr, "%s: target `%s' already registered.\n",
- 			program_name, me->name);
- 		exit(1);
-@@ -1185,7 +1187,7 @@
- 	    const struct ipt_ip *ip,
- 	    int numeric)
- {
--	struct iptables_match *match = find_match(m->u.user.name, TRY_LOAD, NULL);
-+	struct iptables_match *match = find_match(m->u.user.name, m->u.user.version, TRY_LOAD, NULL);
- 
- 	if (match) {
- 		if (match->print)
-@@ -1213,12 +1215,12 @@
- 	u_int8_t flags;
- 	char buf[BUFSIZ];
- 
-+	t = ipt_get_target((struct ipt_entry *)fw);
- 	if (!iptc_is_chain(targname, handle))
--		target = find_target(targname, TRY_LOAD);
-+		target = find_target(targname, t->u.user.version, TRY_LOAD);
- 	else
--		target = find_target(IPT_STANDARD_TARGET, LOAD_MUST_SUCCEED);
-+		target = find_target(IPT_STANDARD_TARGET, t->u.user.version, LOAD_MUST_SUCCEED);
- 
--	t = ipt_get_target((struct ipt_entry *)fw);
- 	flags = fw->ip.flags;
- 
- 	if (format & FMT_LINENUMBERS)
-@@ -1715,6 +1717,9 @@
- 	char *protocol = NULL;
- 	const char *modprobe = NULL;
- 	int proto_used = 0;
-+	int release = 0, match_option = 0, target_option = 0;
-+	char *match_name = NULL, *target_name = NULL;
-+	static struct option *old_opts;
- 
- 	memset(&fw, 0, sizeof(fw));
- 
-@@ -1737,7 +1742,7 @@
- 	opterr = 0;
- 
- 	while ((c = getopt_long(argc, argv,
--	   "-A:D:R:I:L::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:",
-+	   "-A:D:R:I:L::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:r:xc:",
- 					   opts, NULL)) != -1) {
- 		switch (c) {
- 			/*
-@@ -1815,7 +1820,7 @@
- 				exit_error(PARAMETER_PROBLEM,
- 					   "chain name not allowed to start "
- 					   "with `-'\n");
--			if (find_target(optarg, TRY_LOAD))
-+			if (find_target(optarg, 0, TRY_LOAD))
- 				exit_error(PARAMETER_PROBLEM,
- 					   "chain name may not clash "
- 					   "with target name\n");
-@@ -1866,7 +1871,7 @@
- 
- 			/* iptables -p icmp -h */
- 			if (!matches && protocol)
--				find_match(protocol, TRY_LOAD, &matches);
-+				find_match(protocol, 0, TRY_LOAD, &matches);
- 
- 			exit_printhelp(matches);
- 
-@@ -1913,19 +1918,14 @@
- 				   invert);
- 			jumpto = parse_target(optarg);
- 			/* TRY_LOAD (may be chain name) */
--			target = find_target(jumpto, TRY_LOAD);
-+			target = find_target(jumpto, 0, TRY_LOAD);
- 
- 			if (target) {
--				size_t size;
--
--				size = IPT_ALIGN(sizeof(struct ipt_entry_target))
--					+ target->size;
--
--				target->t = fw_calloc(1, size);
--				target->t->u.target_size = size;
--				strcpy(target->t->u.user.name, jumpto);
--				target->init(target->t, &fw.nfcache);
-+				old_opts = opts;
- 				opts = merge_options(opts, target->extra_opts, &target->option_offset);
-+				target_name = jumpto;
-+				target_option = 1;
-+				release = 0;
- 			}
- 			break;
- 
-@@ -1964,24 +1964,76 @@
- 			verbose++;
- 			break;
- 
--		case 'm': {
--			size_t size;
--
-+		case 'm':
- 			if (invert)
- 				exit_error(PARAMETER_PROBLEM,
- 					   "unexpected ! flag before --match");
- 
--			m = find_match(optarg, LOAD_MUST_SUCCEED, &matches);
--			size = IPT_ALIGN(sizeof(struct ipt_entry_match))
--					 + m->size;
--			m->m = fw_calloc(1, size);
--			m->m->u.match_size = size;
--			strcpy(m->m->u.user.name, m->name);
--			m->init(m->m, &fw.nfcache);
--			opts = merge_options(opts, m->extra_opts, &m->option_offset);
--		}
-+			/* Backward compatibility: load release 0 */
-+			m = find_match(optarg, release, LOAD_MUST_SUCCEED, NULL);
-+
-+			/* Merge option of release 0, but keep a 
-+			 * pointer to the old structure */
-+			old_opts = opts;
-+			opts = merge_options(opts, m->extra_opts, 
-+					     &m->option_offset);
-+			match_name = optarg;
-+			match_option = 1;
-+			release = 0;
- 		break;
- 
-+		case 'r':
-+			release = atoi(optarg);
-+
-+			if (release < 0 || release > 256)
-+				exit_error(PARAMETER_PROBLEM,
-+					   "release must be >= 0 and =< 255");
-+
-+			if (match_option) {
-+				size_t s;
-+
-+				/* restore old options */
-+				free(opts);
-+				opts = old_opts;
-+
-+				/* load a specific release of a match */
-+				m = find_match(match_name, release, 
-+					       LOAD_MUST_SUCCEED, &matches);
-+				s = IPT_ALIGN(sizeof(struct ipt_entry_match))
-+					      + m->size;
-+				m->m = fw_calloc(1, s);
-+				m->m->u.match_size = s;
-+				strcpy(m->m->u.user.name, m->name);
-+				m->m->u.user.version = m->release;
-+				m->init(m->m, &fw.nfcache);
-+				opts = merge_options(opts, m->extra_opts, 
-+						     &m->option_offset);
-+				/* reset flag */
-+				match_option = 0;
-+			} else if (target_option) {
-+				size_t s;
-+
-+				/* restore old options */
-+				free(opts);
-+				opts = old_opts;
-+
-+				/* load a specific release of a target */
-+				target = find_target(target_name, release, TRY_LOAD);
-+
-+				s = IPT_ALIGN(sizeof(struct ipt_entry_target))
-+					      + target->size;
-+
-+				target->t = fw_calloc(1, s);
-+				target->t->u.target_size = s;
-+				strcpy(target->t->u.user.name, target_name);
-+				target->t->u.user.version = target->release;
-+				target->init(target->t, &fw.nfcache);
-+				opts = merge_options(opts, target->extra_opts, &target->option_offset);
-+				/* reset flag */
-+				target_option = 0;
-+			}
-+			break;
-+			
- 		case 'n':
- 			set_option(&options, OPT_NUMERIC, &fw.ip.invflags,
- 				   invert);
-@@ -2056,6 +2108,41 @@
- 			exit_tryhelp(2);
- 
- 		default:
-+			if (match_option) {
-+				/* No release specified, so use release 0 */
-+				size_t s;
-+
-+				m = find_match(match_name, release, 
-+					       LOAD_MUST_SUCCEED, &matches);
-+				s = IPT_ALIGN(sizeof(struct ipt_entry_match))
-+					      + m->size;
-+				m->m = fw_calloc(1, s);
-+				m->m->u.match_size = s;
-+				strcpy(m->m->u.user.name, m->name);
-+				m->m->u.user.version = 0;
-+				m->init(m->m, &fw.nfcache);
-+				
-+				/* reset flag */
-+				match_option = 0;
-+			} else if (target_option) {
-+				/* targets with parameters like SNAT need
-+				 * this stuff */
-+				size_t s;
-+	
-+				s = IPT_ALIGN(sizeof(struct ipt_entry_target))
-+					      + target->size;
-+
-+				target->t = fw_calloc(1, s);
-+				target->t->u.target_size = s;
-+				strcpy(target->t->u.user.name, target_name);
-+				target->t->u.user.version = 0;
-+				target->init(target->t, &fw.nfcache);
-+
-+				/* reset flag */
-+				target_option = 0;
-+			}
-+ 
-+
- 			/* FIXME: This scheme doesn't allow two of the same
- 			   matches --RR */
- 			if (!target
-@@ -2135,6 +2222,23 @@
- 		invert = FALSE;
- 	}
- 
-+	if (target_option) {
-+		/* This target has no parameters */
-+		size_t s;
-+				
-+		s = IPT_ALIGN(sizeof(struct ipt_entry_target))
-+ 			      + target->size;
-+
-+		target->t = fw_calloc(1, s);
-+		target->t->u.target_size = s;
-+		strcpy(target->t->u.user.name, target_name);
-+		target->t->u.user.version = 0;
-+		target->init(target->t, &fw.nfcache);
-+
-+		/* reset flag */
-+		target_option = 0;
-+	}
-+
- 	for (matchp = matches; matchp; matchp = matchp->next)
- 		matchp->match->final_check(matchp->match->mflags);
- 
-@@ -2239,7 +2343,9 @@
- 			|| iptc_is_chain(jumpto, *handle))) {
- 			size_t size;
- 
-+			/* standard doesn't support versioning */
- 			target = find_target(IPT_STANDARD_TARGET,
-+					     0,
- 					     LOAD_MUST_SUCCEED);
- 
- 			size = sizeof(struct ipt_entry_target)
-@@ -2255,7 +2361,7 @@
- 			 * We cannot know if the plugin is corrupt, non
- 			 * existant OR if the user just misspelled a
- 			 * chain. */
--			find_target(jumpto, LOAD_MUST_SUCCEED);
-+			find_target(jumpto, 0, LOAD_MUST_SUCCEED);
- 		} else {
- 			e = generate_entry(&fw, matches, target->t);
- 			free(target->t);
-Index: include/iptables.h
-===================================================================
---- include/iptables.h	(revision 3309)
-+++ include/iptables.h	(working copy)
-@@ -22,8 +22,12 @@
- 
- 	ipt_chainlabel name;
- 
-+	/* compatible with a certain iptables version */
- 	const char *version;
- 
-+	/* release number of this match */
-+	u_int8_t release;
-+
- 	/* Size of match data. */
- 	size_t size;
- 
-@@ -74,6 +78,8 @@
- 
- 	const char *version;
- 
-+	u_int8_t release;
-+
- 	/* Size of target data. */
- 	size_t size;
- 
-@@ -143,8 +149,8 @@
- 	LOAD_MUST_SUCCEED
- };
- 
--extern struct iptables_target *find_target(const char *name, enum ipt_tryload);
--extern struct iptables_match *find_match(const char *name, enum ipt_tryload, struct iptables_rule_match **match);
-+extern struct iptables_target *find_target(const char *name, const u_int8_t version, enum ipt_tryload);
-+extern struct iptables_match *find_match(const char *name, const u_int8_t version, enum ipt_tryload, struct iptables_rule_match **match);
- 
- extern int delete_chain(const ipt_chainlabel chain, int verbose,
- 			iptc_handle_t *handle);
-Index: libiptc/libiptc.c
-===================================================================
---- libiptc/libiptc.c	(revision 3309)
-+++ libiptc/libiptc.c	(working copy)
-@@ -1246,7 +1246,11 @@
- 	/* memset to all 0 for your memcmp convenience. */
- 	memset(t->u.user.name + strlen(t->u.user.name),
- 	       0,
--	       FUNCTION_MAXNAMELEN - strlen(t->u.user.name));
-+	       FUNCTION_MAXNAMELEN - strlen(t->u.user.name) - 1);
-+	/* fcuk (tm), this is what happens when you apply 
-+	 * dirty hacks... that memset has been knocking me for
-+	 * hours... arrrg! --pablo
-+	 */
- 
- 	set_changed(handle);
- 	return 1;
-
---------------040709040708090909010101--
+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
+--------------010703060706050806080505--
