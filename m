@@ -1,17 +1,13 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack resync with 2.6.11-rc4
-Date: Wed, 16 Feb 2005 13:17:33 +0900 (JST)
-Message-ID: <200502160417.j1G4HYti004869@toshiba.co.jp>
-References: <20050215124751.GZ3829@sunbeam.de.gnumonks.org>
-	<200502151301.j1FD1E9a012759@toshiba.co.jp>
-	<20050215140401.GD3829@sunbeam.de.gnumonks.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: (no subject)
+Date: Wed, 16 Feb 2005 09:14:10 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0502160910450.16487@blackhole.kfki.hu>
+References: <20050215210947.32682.qmail@ad.mailbox.hu>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	yasuyuki.kozakai@toshiba.co.jp
-To: laforge@netfilter.org
-In-Reply-To: <20050215140401.GD3829@sunbeam.de.gnumonks.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
+To: Varga Endre <drew@mailbox.hu>
+In-Reply-To: <20050215210947.32682.qmail@ad.mailbox.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,27 +19,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-Oh, sorry for mis-reading.
+On Tue, 15 Feb 2005, Varga Endre wrote:
 
-OK, I'll check it.
+> To be short, my problem is the following:
+> I must track outgoing SYN+ACK packets (confirmation of connection
+> request) and incoming ACK packets acknowledging the SYN+ACKs. With this,
+> the module would be able to calculate the ratio of half open
+> connections.
+> It is easy to track outgoing SYN+ACKs, but to decide if an incoming ACK
+> is a response to a former SYN+ACK I have to track the state of the TCP
+> connection. Of course I dont want to do this, because the TCP conntrack
+> module makes this - It would be a nonsense and a source of inconsistency
+> to track the state in both modules.
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Tue, 15 Feb 2005 15:04:02 +0100
+You could rely on event notification from the nfnetlink-ctnetlink-0.13
+patch from patch-o-matic-ng. Unfortunately it seems to me
+nfnetlink-ctnetlink's a little bit out of sync compared to the recent
+kernel trees.
 
-> On Tue, Feb 15, 2005 at 10:01:13PM +0900, Yasuyuki KOZAKAI wrote:
-> > 
-> > Hi, Harald,
-> > 
-> > Last week, I reviewed the recent changes to ip_conntrack.
-> > OK, then I'll re-sync nf_conntrack with it ASAP.
-> 
-> Yasuyuki, I was telling you that I already did all the work ;)  I was
-> just asking you to test it ;)
-> 
-> -- 
-> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-> ============================================================================
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
