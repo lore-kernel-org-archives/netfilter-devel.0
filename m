@@ -1,15 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: nf_conntrack
-Date: Mon, 23 Feb 2004 08:48:31 +0100 (CET)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: tcp-window-tracking for 2.6? (Re: [PATCH] patch-o-matic-ng
+ reorganization and updated patches)
+Date: Mon, 23 Feb 2004 09:45:53 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402230835390.29722-100000@filer.marasystems.com>
-References: <200402230527.OAA02726@toshiba.co.jp>
+Message-ID: <Pine.LNX.4.33.0402230942390.19701-100000@blackhole.kfki.hu>
+References: <029801c3f7a3$ee1920e0$2601010a@bluereef.local>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: tato.net@tin.it, <netfilter-devel@lists.netfilter.org>
+Cc: Nuutti Kotivuori <naked@iki.fi>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200402230527.OAA02726@toshiba.co.jp>
+To: Andrew Hall <temp02@bluereef.com.au>
+In-Reply-To: <029801c3f7a3$ee1920e0$2601010a@bluereef.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +22,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 23 Feb 2004, Yasuyuki Kozakai wrote:
+On Fri, 20 Feb 2004, Andrew Hall wrote:
 
-> nf_conntrack doesn't need to care about weather tuple has changed or not.
-> It just find conntrack which has tuple matched with IPv{4,6} header of packet,
-> and update states of it.
+> There seems to be a dependancy on nf_log for the tcp-windowing patch? Using
+> the latest CVS patch-o-matic and 2.6, the nf_log patch seems to fail ( says
+> it's missing one needed file). Is this intentional or should we expect the
+> 2.6 nf_log+tcp-windowing patches to install cleanly now?
 
-But conntrack do care about the protocol and is only implemented for 
-IPv4.
+The logging part from the TCP window tracking patch was ripped off,
+because there is now a commong logging ifrastructure (nf-log). Thus the
+dependency is unavoidable.
 
-Assuming there is a 1-1 map IPv4<->IPv6 (after any IPv4 NAT applied by
-iptables) then the translation is probably best implemented as a virtual
-tunnel like device outside of netfilter. IPv4 packets routed to this
-tunnel gets translated into IPv6 and then reinjected to the other stack as
-input packets and vise versa. Beware of loops.
+The 2.6 nf-log patch fails from pom-ng? Then I have to double check it
+again. Thank you for notifying about the problem.
 
-In early implementation you can use the TUN device and run the translation
-in userspace. In final implemenenation you want to implement a new virtual
-device running the translation in kernel land to avoid extra copying of
-the packet data and context switches..
-
-Regards
-Henrik
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
