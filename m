@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: =?iso-8859-1?Q?question?=
-Date: Fri, 23 Jan 2004 13:21:51 +0100 (CET)
+Subject: Re: [new filter] simple packet authentication
+Date: Fri, 23 Jan 2004 13:27:40 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401231307440.12080-100000@filer.marasystems.com>
-References: <HRU2W7$64C9358E9A23239906B5624603A3F140@tiscali.fr>
+Message-ID: <Pine.LNX.4.44.0401231326510.12080-100000@filer.marasystems.com>
+References: <0de101c3e147$648fa910$2601010a@bluereef.local>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: =?iso-8859-1?Q?netfilter-devel?= <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?iso-8859-1?Q?Jeanmich?= <jm.cornilleau@freesbee.fr>
-In-Reply-To: <HRU2W7$64C9358E9A23239906B5624603A3F140@tiscali.fr>
+To: Andrew Hall <temp02@bluereef.com.au>
+In-Reply-To: <0de101c3e147$648fa910$2601010a@bluereef.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,45 +20,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 21 Jan 2004, Jeanmich wrote:
+On Fri, 23 Jan 2004, Andrew Hall wrote:
 
-> I would like to protect myself against syn flooding.
+> This is a neat idea although I'd probably be a bit wary to use the IP ID
+> field when considering it's use with fragments. Perhaps a better solution
+> would be to use part of the options field which apparently DoD originally
+> planned to use for this type of IP partitioning. Also it would be good if it
+> was payload agnostic (could be used for UDP as well as TCP).
 
-What kind of SYN flooding of what?
-
-> Obviously, i've looked on the web and i found 2 solutions :
-> 
-> -1- echo 1 in the file /proc/sys/net/ipv4/tcp_syncookies
-> -2- iptables -A FORWARD -p tcp --syn -m limit --limit
-> 1/second -J ACCEPT
-
-The first makes Linux deal with SYN flooding on any services given by THIS 
-Linux box. It does nothing on forwarded traffic.
-
-THe second makes sure SYN "flooding" guantees a Denial of Service any new
-sessions matching that rule in order to protect servers from becoming
-overloaded by too many new sessions too fast, but without regard to the
-actual load on the server.  This type of protection is highly overrated
-and almost always causes more problems than it solves.  SYN flooding
-SHOULD be addressed on the actual server using approach '1' or equivalent
-(depending on the Server OS).
-
-Neither protects from connection flooding if the server accepts long 
-connections. And again connection flooding SHOULD be addressed on the 
-server if possible as firewalling has much less knowledge of what is 
-actually going on within the active sessions.
-
-> When i've have a look in
-> /usr/scr/linux/Documentation/networking/ip-sysctl.txt, i
-> understand that it is a "facility" to use -1-, and that -1-
-> is often hiding "misconfigured" servers.
-
-This is not what the documentation says. What it says is that 
-syncookies is not a substitute for a large SYN backlog unless there 
-actually is a synflood in progress.
-
-Both syncookies and SYN backlog is only relevant on connections to this
-server. It is not related to forwarded traffic.
+AH comes in mind if you want to support any payload..
 
 Regards
 Henrik
