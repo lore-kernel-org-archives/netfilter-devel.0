@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: raw table breaks iptables binary compatibility
-Date: Sun, 9 Nov 2003 10:35:56 +0100
+From: Willy Tarreau <willy@w.ods.org>
+Subject: [FWD] PROBLEM: PATCH for 2.4.23-pre4 and up hang on one system
+Date: Sun, 9 Nov 2003 11:11:23 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031109093556.GC1005@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0311090204280.25676-100000@filer.marasystems.com>
+Message-ID: <20031109101123.GA1094@alpha.home.local>
+References: <200311081341.38553.beau@beaucox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eRtJSFbw+EEWtPj3"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: "Beau E. Cox" <beau@beaucox.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0311090204280.25676-100000@filer.marasystems.com>
+In-Reply-To: <200311081341.38553.beau@beaucox.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,79 +21,101 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi !
 
---eRtJSFbw+EEWtPj3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+You should have CC'd netfilter-devel too.
+(I've done it with this mail)
 
-On Sun, Nov 09, 2003 at 02:12:43AM +0100, Henrik Nordstrom wrote:
-> This is a followup to the message I sent on 30 Oct after noticing binary=
-=20
-> compatibility with older iptables releases was broken after applying=20
-> p-o-m/base.
->=20
-> Other unrelated events has identified this being due to the raw table
-> patch. This patch modifies ipt_entry by adding two more fields and this
-> totally breaks binary compatibility with iptables binaries compiled for
-> kernels with/without the raw table.
->=20
-> linux-2.4.22-log/include/linux/netfilter_ipv4/ip_tables.h=20
-> linux-2.4.22-raw/include/linux/netfilter_ipv4/ip_tables.h
-> --- linux-2.4.22-log/include/linux/netfilter_ipv4/ip_tables.h   2003-09-1=
-7=20
-> 17:15:00.000000000 +0200
-> +++ linux-2.4.22-raw/include/linux/netfilter_ipv4/ip_tables.h   2003-09-2=
-8=20
-> 14:19:16.000000000 +0200
-> @@ -134,6 +134,12 @@
->         /* Back pointer */
->         unsigned int comefrom;
->=20
-> +       /* Name of the chain */
-> +       char *chainname;
-> +      =20
-> +       /* Rule number in the chain. */
-> +       u_int32_t rulenum;
-> +
->         /* Packet and byte counters. */
->         struct ipt_counters counters;
+Regards,
+Willy
 
-btw: isn't there a way we can do this without compatibility issues?
-Can't we put this information into an additional 'magic' matchinfo
-struct?  one that doesn't really match anything, but gets automatically
-added (and filled in) for every rule?
-
-I doubt the rule-number tracing will be used in a lot of setups - and
-this way we could make it run-time configurable.  Something like a
-global iptables parameter (iptables -A INPUT -T .....) where '-T' means
-'insert a hidden trace matchinfo for rulenumber and chainname'.
-
-Jozsef, what do you think?
-
-> Regards
-> Henrik
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---eRtJSFbw+EEWtPj3
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/rgp8XaXGVTD0i/8RAgtmAJ45UW7v4rV+8K73T6oP5eoDKt8xgwCfT80O
-X6ehB0crjLgb+hlDVv3tzik=
-=tHpH
------END PGP SIGNATURE-----
-
---eRtJSFbw+EEWtPj3--
+On Sat, Nov 08, 2003 at 06:27:28PM -1000, Beau E. Cox wrote:
+> submitted Sat Nov  8 13:08:55 HST 2003 by Beau E. Cox <beau@beaucox.com>
+> 
+> [1.] One line summary of the problem:
+> 
+> Patch that fixes my problem:
+> Starting with 2.4.23-pre4 my system hangs during startup and/or is
+> generally unstable (see patch in [ X. ] below.)
+> 
+> [2.] Full description of the problem/report:
+> 
+> Origionally I had catagorized this problem with the startup sequence;
+> the system always seemed to hang when squid was started before
+> mysql, etc. Moving squid near the end of the startup process, I
+> thought the problem was in hand. However, the system (pre9) proved
+> unstable (would not stay up for longer than one day.)
+> 
+> The problem exhibits itself with a solid 'hang'; no oops, no dumps,
+> nada.
+> 
+> [ 3. ] - [ 7. ]
+> 
+> See previous posting; no hardware or configuration changes.
+> 
+> [X.] Other notes, patches, fixes, workarounds:
+> 
+> This patch to net/ipv4/netfilter/ip_nat_core.c fixed my problem
+> in all 2.4.23 versions pre4 - pre9:
+> 
+> --- linux-2.4.23-pre4/net/ipv4/netfilter/ip_nat_core.c	2003-11-08 
+> 03:01:59.000000000 -1000
+> +++ linux-2.4.23-pre3/net/ipv4/netfilter/ip_nat_core.c	2003-11-08 
+> 03:00:47.000000000 -1000
+> @@ -157,8 +157,8 @@
+>  				continue;
+>  		}
+>  
+> -		if (!(mr->range[i].flags & IP_NAT_RANGE_PROTO_SPECIFIED)
+> -		    || proto->in_range(&newtuple, IP_NAT_MANIP_SRC,
+> +		if ((mr->range[i].flags & IP_NAT_RANGE_PROTO_SPECIFIED)
+> +		    && proto->in_range(&newtuple, IP_NAT_MANIP_SRC,
+>  				       &mr->range[i].min, &mr->range[i].max))
+>  			return 1;
+>  	}
+> 
+> It is simply a rollback of changes to ip_nat_core.c made in
+> pre4.
+> 
+> Since my patch is to ip_nat_core.c, I should mention that I use
+> NAT via iptables. Here is an the relevant section if my iptables
+> startup script:
+> 
+> [...]
+> # setup nat
+> echo "  applying nat rules"
+> echo ""
+> $iptables -F FORWARD
+> $iptables -F -t nat
+> $iptables -P FORWARD DROP
+> $iptables -A FORWARD -i eth0 -j ACCEPT
+> $iptables -A INPUT -i eth0 -j ACCEPT
+> $iptables -A OUTPUT -o eth0 -j ACCEPT
+> $iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+> $iptables -t nat -A POSTROUTING -s 10.0.0.0/8 -o eth1 -j SNAT --to-source 
+> x.x.x.x
+> [...]
+> 
+> All the information I can think of relating to this problem is at:
+> 
+> ftp://beaucox.com/pub/kernel/2.4.23-pre4-bug
+> 
+> Please see the README file.
+> 
+> ---------------------------WARNING--------------------------
+> I am NOT a kernel programmer. The patch above was arrived at
+> by hit-or-miss. I REALLY don't know what I am doing (but
+> my system works now!)
+> ---------------------------WARNING--------------------------
+> 
+> Aloha => Beau;
+> 
+> PS: Please let me know if you need more information.
+> 
+> 
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
