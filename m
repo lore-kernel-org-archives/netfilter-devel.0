@@ -1,16 +1,16 @@
-From: Adam Guyot <aguyot@speakeasy.net>
-Subject: Re: match code question
-Date: Wed, 18 Sep 2002 11:19:32 +0000
+From: netfilter@interlinx.bc.ca
+Subject: Re: [PATCH] Connection tracking/NAT for Amanda
+Date: Wed, 18 Sep 2002 11:49:01 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020918111932.A55735@speakeasy.net>
-References: <20020918105402.A55640@speakeasy.net> <20020918150727.GA10465@oknodo.bof.de>
+Message-ID: <20020918154901.GD4059@pc.ilinx>
+References: <20020913201501.GD2689@pc.ilinx> <20020915132946.K3810@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Adam Guyot <aguyot@speakeasy.net>, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZARJHfwaSJQLOEUz"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
+To: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <20020918150727.GA10465@oknodo.bof.de>; from bof@bof.de on Wed, Sep 18, 2002 at 05:07:27PM +0200
+In-Reply-To: <20020915132946.K3810@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,14 +21,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 18, 2002 at 05:07:27PM +0200, Patrick Schaaf wrote:
-> > Now, when a new connection is initiated, the printk msgs don't show
-> > up in /var/log/messages or anywhere that I can tell :P.
-> 
-> Stupid question: did you actually insert a rule _using_ your new match?
 
-Dohhh! That would fix the problem.
+--ZARJHfwaSJQLOEUz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-thanks,
---a
- 
+On Sun, Sep 15, 2002 at 01:29:46PM +0200, Harald Welte wrote:
+> On Fri, Sep 13, 2002 at 04:15:01PM -0400, netfilter@interlinx.bc.ca wrote:
+> > Please find attached a patch (to p-o-m) which adds both connection
+> > tracking and NAT support for the Amanda backup protocol.
+> >=20
+>=20
+> thanks, applied to patch-o-matic.
+
+Thanks Harald.  Please do note, that the patch you applied does depend
+on a previous patch I sent that I did not see any comment on; whether
+it was applied or not or otherwise.  I don't think it was applied.
+The message I sent previously with the patch can be found at:
+
+http://lists.netfilter.org/pipermail/netfilter-devel/2002-August/009012.html
+
+If you don't like the ip_nat_mangle_multi_udp_packet() function it can
+be removed from the patch, but the rest is needed.
+
+Thanx,
+b.
+
+--=20
+Brian J. Murrell
+
+--ZARJHfwaSJQLOEUz
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
+
+iD8DBQE9iKBtl3EQlGLyuXARAnG1AJ9YZTsFmN2A/6q71Ne+Lig6TKITHQCePlxz
+dh5FR0wh/WxmuY0ti9FcUhU=
+=kDi7
+-----END PGP SIGNATURE-----
+
+--ZARJHfwaSJQLOEUz--
