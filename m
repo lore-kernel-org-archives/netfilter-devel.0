@@ -1,12 +1,15 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: match target project
-Date: Tue, 10 Aug 2004 18:21:30 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: match target project
+Date: Tue, 10 Aug 2004 19:56:21 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1092154889.4261.436.camel@porky>
+Message-ID: <Pine.LNX.4.61.0408101955320.11740@filer.marasystems.com>
+References: <1092154889.4261.436.camel@porky>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-ZtnNPaHGExcVZCsjYg0a"
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Eric Leblond <eric@inl.fr>
+In-Reply-To: <1092154889.4261.436.camel@porky>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,35 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 10 Aug 2004, Eric Leblond wrote:
 
---=-ZtnNPaHGExcVZCsjYg0a
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> I was looking for a match that could be able to match one packet per
+> connection each N min interval.
 
-Hi,
+Is connection in this scope the same as a ip_conntrack connection?
 
-I was looking for a match that could be able to match one packet per
-connection each N min interval.
+> It seems, it does not exist, so the next question is :
+> 	Is it possible to develop such a match ?
 
-It seems, it does not exist, so the next question is :
-	Is it possible to develop such a match ?
-	If yes, is it a huge work ?
+Yes.
 
-BR,
---=20
-Eric Leblond
-Nufw, Now User Filtering Works (http://www.nufw.org)
+> 	If yes, is it a huge work ?
 
---=-ZtnNPaHGExcVZCsjYg0a
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+Not really.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBBGPYJnxA7CdMWjzIRAnhfAJ9NBMsrT3VQMZ6uKYP3o3VlCNkP8QCggj45
-IKxE2vXL+vjrW+4wMfg/4Bo=
-=87oS
------END PGP SIGNATURE-----
-
---=-ZtnNPaHGExcVZCsjYg0a--
+Regards
+Henrik
