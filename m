@@ -1,8 +1,7 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 10/18] Netfilter:  Steal a Character To Create a Revision
-	Number
-Date: Wed, 05 Jan 2005 14:34:07 +1100
-Message-ID: <1104896047.20582.73.camel@localhost.localdomain>
+Subject: [PATCH 11/18] Netfilter:  iptables revision getsockopt
+Date: Wed, 05 Jan 2005 14:34:14 +1100
+Message-ID: <1104896054.20582.75.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -21,191 +20,148 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Steal a Character To Create a Revision Number
+Name: iptables revision getsockopt
 Status: Tested under nfsim
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-Pablo Neira <pablo@eurodev.net> came up with the idea of stealing the
-last byte in the (already nul-terminated) name of a target/match to
-create a version.
+This adds a new getsockopt to iptables, which allows userspace to
+query the revision number of extensions.  iptables 1.3.0 (to be
+released soon) already has support for this.
 
-That patch motivated me to clean up the match and target searching in
-ip_tables, which makes this patch more trivial.  I also renamed
-"version" to "revision" since the word "version" was used for iptables
-itself.
-
-===== include/linux/netfilter_ipv4/ip_tables.h 1.12 vs edited =====
 Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_tables.c
 ===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_tables.c	2004-12-29 16:58:27.500654632 +1100
-+++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_tables.c	2004-12-29 16:58:29.014424504 +1100
-@@ -430,34 +430,62 @@
- 	return NULL;
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_tables.c	2004-12-31 21:30:54.000000000 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_tables.c	2005-01-01 10:51:37.363095768 +1100
+@@ -488,6 +488,65 @@
+ 	return ERR_PTR(-EPROTOTYPE);
  }
  
--/* Find match by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
--static inline struct ipt_match *find_match_lock(const char *name)
-+/* Find match, grabs mutex & ref.  Returns ERR_PTR() on error. */
-+static inline struct ipt_match *find_match_lock(const char *name, u8 revision)
- {
- 	struct ipt_match *m;
-+	int found = 0;
- 
- 	if (down_interruptible(&ipt_mutex) != 0)
- 		return ERR_PTR(-EINTR);
- 
--	list_for_each_entry(m, &ipt_match, list)
--		if (strcmp(m->name, name) == 0 && try_module_get(m->me))
--			return m;
++static int match_revfn(const char *name, u8 revision, int *bestp)
++{
++	struct ipt_match *m;
++	int have_rev = 0;
++
 +	list_for_each_entry(m, &ipt_match, list) {
 +		if (strcmp(m->name, name) == 0) {
-+			found = 1;
-+			if (m->revision == revision) {
-+				if (!try_module_get(m->me))
-+					found = 0;
-+				else
-+					return m;
-+			}
++			if (m->revision > *bestp)
++				*bestp = m->revision;
++			if (m->revision == revision)
++				have_rev = 1;
 +		}
 +	}
- 	up(&ipt_mutex);
--	return NULL;
++	return have_rev;
++}
 +
-+	/* Not found at all?  NULL so try_then_request_module loads module. */
-+	if (!found)
-+		return NULL;
++static int target_revfn(const char *name, u8 revision, int *bestp)
++{
++	struct ipt_target *t;
++	int have_rev = 0;
 +
-+	return ERR_PTR(-EPROTOTYPE);
- }
- 
--/* Find target by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
--static inline struct ipt_target *find_target_lock(const char *name)
-+/* Find target, grabs mutex & ref.  Returns ERR_PTR() on error. */
-+static inline struct ipt_target *find_target_lock(const char *name, u8 revision)
- {
- 	struct ipt_target *t;
-+	int found = 0;
- 
- 	if (down_interruptible(&ipt_mutex) != 0)
- 		return ERR_PTR(-EINTR);
- 
--	list_for_each_entry(t, &ipt_target, list)
--		if (strcmp(t->name, name) == 0 && try_module_get(t->me))
--			return t;
 +	list_for_each_entry(t, &ipt_target, list) {
 +		if (strcmp(t->name, name) == 0) {
-+			found = 1;
-+			if (t->revision == revision) {
-+				if (!try_module_get(t->me))
-+					found = 0;
-+				else
-+					return t;
-+			}
++			if (t->revision > *bestp)
++				*bestp = t->revision;
++			if (t->revision == revision)
++				have_rev = 1;
 +		}
 +	}
- 	up(&ipt_mutex);
--	return NULL;
++	return have_rev;
++}
 +
-+	/* Not found at all?  NULL so try_then_request_module loads module. */
-+	if (!found)
-+		return NULL;
++/* Returns true or false (if no such extension at all) */
++static inline int find_revision(const char *name, u8 revision,
++				int (*revfn)(const char *, u8, int *),
++				int *err)
++{
++	int have_rev, best = -1;
 +
-+	return ERR_PTR(-EPROTOTYPE);
- }
- 
++	if (down_interruptible(&ipt_mutex) != 0) {
++		*err = -EINTR;
++		return 1;
++	}
++	have_rev = revfn(name, revision, &best);
++	up(&ipt_mutex);
++
++	/* Nothing at all?  Return 0 to try loading module. */
++	if (best == -1) {
++		*err = -ENOENT;
++		return 0;
++	}
++
++	*err = best;
++	if (!have_rev)
++		*err = -EPROTONOSUPPORT;
++	return 1;
++}
++
++
  /* All zeroes == unconditional rule. */
-@@ -621,7 +649,8 @@
- {
- 	struct ipt_match *match;
+ static inline int
+ unconditional(const struct ipt_ip *ip)
+@@ -1316,6 +1375,31 @@
+ 		break;
+ 	}
  
--	match = try_then_request_module(find_match_lock(m->u.user.name),
-+	match = try_then_request_module(find_match_lock(m->u.user.name,
-+							m->u.user.revision),
- 					"ipt_%s", m->u.user.name);
- 	if (IS_ERR(match) || !match) {
- 		duprintf("check_match: `%s' not found\n", m->u.user.name);
-@@ -666,7 +695,8 @@
- 		goto cleanup_matches;
- 
- 	t = ipt_get_target(e);
--	target = try_then_request_module(find_target_lock(t->u.user.name),
-+	target = try_then_request_module(find_target_lock(t->u.user.name,
-+							  t->u.user.revision),
- 					 "ipt_%s", t->u.user.name);
- 	if (IS_ERR(target) || !target) {
- 		duprintf("check_entry: `%s' not found\n", t->u.user.name);
-@@ -1303,12 +1333,7 @@
- 	ret = down_interruptible(&ipt_mutex);
- 	if (ret != 0)
- 		return ret;
--
--	if (!list_named_insert(&ipt_target, target)) {
--		duprintf("ipt_register_target: `%s' already in list!\n",
--			 target->name);
--		ret = -EINVAL;
--	}
-+	list_add(&target->list, &ipt_target);
- 	up(&ipt_mutex);
- 	return ret;
- }
-@@ -1330,11 +1355,7 @@
- 	if (ret != 0)
- 		return ret;
- 
--	if (!list_named_insert(&ipt_match, match)) {
--		duprintf("ipt_register_match: `%s' already in list!\n",
--			 match->name);
--		ret = -EINVAL;
--	}
-+	list_add(&match->list, &ipt_match);
- 	up(&ipt_mutex);
- 
- 	return ret;
++	case IPT_SO_GET_REVISION_MATCH:
++	case IPT_SO_GET_REVISION_TARGET: {
++		struct ipt_get_revision rev;
++		int (*revfn)(const char *, u8, int *);
++
++		if (*len != sizeof(rev)) {
++			ret = -EINVAL;
++			break;
++		}
++		if (copy_from_user(&rev, user, sizeof(rev)) != 0) {
++			ret = -EFAULT;
++			break;
++		}
++
++		if (cmd == IPT_SO_GET_REVISION_TARGET)
++			revfn = target_revfn;
++		else
++			revfn = match_revfn;
++
++		try_then_request_module(find_revision(rev.name, rev.revision,
++						      revfn, &ret),
++					"ipt_%s", rev.name);
++		break;
++	}
++
+ 	default:
+ 		duprintf("do_ipt_get_ctl: unknown request %i\n", cmd);
+ 		ret = -EINVAL;
 Index: linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_tables.h
 ===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ip_tables.h	2004-12-29 16:58:27.523651136 +1100
-+++ linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_tables.h	2004-12-29 16:58:29.014424504 +1100
-@@ -53,7 +53,9 @@
- 			u_int16_t match_size;
+--- linux-2.6.10-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ip_tables.h	2004-12-31 21:30:54.000000000 +1100
++++ linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_tables.h	2004-12-31 21:31:06.000000000 +1100
+@@ -156,9 +156,11 @@
+ #define IPT_SO_SET_ADD_COUNTERS	(IPT_BASE_CTL + 1)
+ #define IPT_SO_SET_MAX		IPT_SO_SET_ADD_COUNTERS
  
- 			/* Used by userspace */
--			char name[IPT_FUNCTION_MAXNAMELEN];
-+			char name[IPT_FUNCTION_MAXNAMELEN-1];
-+
-+			u_int8_t revision;
- 		} user;
- 		struct {
- 			u_int16_t match_size;
-@@ -76,7 +78,9 @@
- 			u_int16_t target_size;
+-#define IPT_SO_GET_INFO		(IPT_BASE_CTL)
+-#define IPT_SO_GET_ENTRIES	(IPT_BASE_CTL + 1)
+-#define IPT_SO_GET_MAX		IPT_SO_GET_ENTRIES
++#define IPT_SO_GET_INFO			(IPT_BASE_CTL)
++#define IPT_SO_GET_ENTRIES		(IPT_BASE_CTL + 1)
++#define IPT_SO_GET_REVISION_MATCH	(IPT_BASE_CTL + 2)
++#define IPT_SO_GET_REVISION_TARGET	(IPT_BASE_CTL + 3)
++#define IPT_SO_GET_MAX			IPT_SO_GET_REVISION_TARGET
  
- 			/* Used by userspace */
--			char name[IPT_FUNCTION_MAXNAMELEN];
-+			char name[IPT_FUNCTION_MAXNAMELEN-1];
-+
-+			u_int8_t revision;
- 		} user;
- 		struct {
- 			u_int16_t target_size;
-@@ -344,7 +348,9 @@
- {
- 	struct list_head list;
+ /* CONTINUE verdict for targets */
+ #define IPT_CONTINUE 0xFFFFFFFF
+@@ -288,6 +290,15 @@
+ 	struct ipt_entry entrytable[0];
+ };
  
--	const char name[IPT_FUNCTION_MAXNAMELEN];
-+	const char name[IPT_FUNCTION_MAXNAMELEN-1];
++/* The argument to IPT_SO_GET_REVISION_*.  Returns highest revision
++ * kernel supports, if >= revision. */
++struct ipt_get_revision
++{
++	char name[IPT_FUNCTION_MAXNAMELEN-1];
 +
 +	u_int8_t revision;
- 
- 	/* Return true or false: return FALSE and set *hotdrop = 1 to
-            force immediate packet drop. */
-@@ -378,7 +384,9 @@
- {
- 	struct list_head list;
- 
--	const char name[IPT_FUNCTION_MAXNAMELEN];
-+	const char name[IPT_FUNCTION_MAXNAMELEN-1];
++};
 +
-+	u_int8_t revision;
- 
- 	/* Called when user tries to insert an entry of this type:
-            hook_mask is a bitmask of hooks from which it can be
+ /* Standard return verdict, or do jump. */
+ #define IPT_STANDARD_TARGET ""
+ /* Error verdict. */
