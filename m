@@ -1,18 +1,14 @@
-From: Fabrice MARIE <fabrice@celestix.com>
-Subject: Re: [PATCH] update for ROUTE target in Netfilter-Extension HOWTO [ENG][FR]
-Date: Sat, 21 Sep 2002 21:36:55 +0800
+From: =?iso-8859-15?q?C=E9dric?= Rivard <cedric@yemanja.net>
+Subject: PPTP conntrack with CONFIG_NETFILTER_DEBUG is broken (was: newnat and patch-o-matic)
+Date: 20 Sep 2002 11:11:15 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200209212136.55217.fabrice@celestix.com>
-References: <1032527991.15787.18.camel@descartes>
-Reply-To: fabrice@celestix.com
+Message-ID: <87d6r9jaa4.fsf@sensi.yemanja.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?iso-8859-15?q?C=E9dric=20de=20Launois?= <delaunoi@info.ucl.ac.be>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1032527991.15787.18.camel@descartes>
+To: netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +19,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all,
 
-Hello C=E9dric,
-
-On Friday 20 September 2002 21:19, C=E9dric de Launois wrote:
-> Fabrice,
-> Here are two patches to update the Netfilter-Extension HOWTO, concernin=
-g
-> the ROUTE target.
-> The first one [netfilter-extensions-HOWTO.sgml.PATCH] is against
-> the english version of the sgml master.
-> The second patch is against [netfilter-extensions-HOWTO.sgml.PATCH-FR]
-> is against the french version.
-
-Thanks a lot. Applied.
-
-Have a nice day,
-
-Fabrice.
---
-Fabrice MARIE
-Senior R&D Engineer
-Celestix Networks
-http://www.celestix.com/
-
-"Silly hacker, root is for administrators"
-       -Unknown
+As I've already reported, there is a problem with the PPTP conntrack module=
+ of pom. It can't be built with the option CONFIG_NETFILTER_DEBUG. And I st=
+ill receive questions about the first thread I started on this problem but =
+without pointing the cause.
+I hope that everyone is now aware of this issue.
+Regards,
+C=E9dric
