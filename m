@@ -1,16 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Multiple Address specification or match
-Date: Thu, 30 Sep 2004 13:42:33 +0200 (CEST)
+From: Olaf Kirch <okir@suse.de>
+Subject: [PATCH] netfilter6 ip6_packet_match doesn't properly skip exthdrs
+Date: Thu, 30 Sep 2004 14:14:08 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0409301341530.29461@filer.marasystems.com>
-References: <003301c4a6cc$069e3fb0$2201010a@bluereef.local>
-	<1096538091.4406.12.camel@porky>
+Message-ID: <20040930121408.GG19083@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1096538091.4406.12.camel@porky>
+To: netdev@oss.sgi.com
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +19,27 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 30 Sep 2004, Eric Leblond wrote:
+This patch fixes a bug in the ip6_tables code that tries to skip extension
+headers. Packets with extension headers were usually not matched because
+the code was looking at the wrong offset inside the skb.
 
-> iptables/netfilter has to be efficient, rules generation script has to
-> be elegant. Having 3 rules is as efficient as your masked "or" rules if
-> it was coded and 3 separate rules are more simple than your global one
-> so in a way this is more elegant.
+Signed-off-by: Olaf Kirch <okir@suse.de>
 
-For hipac this is true, but not really when using iptables.
+Index: linux-2.6.8.nf/net/ipv6/netfilter/ip6_tables.c
+===================================================================
+--- linux-2.6.8.nf.orig/net/ipv6/netfilter/ip6_tables.c	2004-09-30 14:07:51.000000000 +0200
++++ linux-2.6.8.nf/net/ipv6/netfilter/ip6_tables.c	2004-09-30 14:07:57.000000000 +0200
+@@ -219,7 +219,7 @@
+ 		u_int16_t ptr;		/* Header offset in skb */
+ 		u_int16_t hdrlen;	/* Header */
+ 
+-		ptr = IPV6_HDR_LEN;
++		ptr = ((char *) ipv6 - (char *) skb->data) + IPV6_HDR_LEN;
+ 
+ 		while (ip6t_ext_hdr(currenthdr)) {
+ 	                /* Is there enough space for the next ext header? */
 
-Regards
-Henrik
+-- 
+Olaf Kirch     | Things that make Monday morning interesting, #1:
+okir@suse.de   |        "I want to use NFS over AX25, can you help me?"
+---------------+ 
