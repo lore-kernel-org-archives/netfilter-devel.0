@@ -1,16 +1,17 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: performance issues (nat / conntrack)
-Date: Tue, 25 Jun 2002 23:08:24 +0200 (CEST)
+Subject: Re: conntrack DoS
+Date: Tue, 25 Jun 2002 23:47:10 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206252303450.1273-100000@blackhole.kfki.hu>
-References: <20020625124744.GB7975@naboo.ols.wavesec.org>
+Message-ID: <Pine.LNX.4.33.0206252341290.1273-100000@blackhole.kfki.hu>
+References: <200206252253.15622.hno@marasystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>,
+Cc: Harald Welte <laforge@gnumonks.org>,
+	Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>,
 	<netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20020625124744.GB7975@naboo.ols.wavesec.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <200206252253.15622.hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,28 +22,46 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 25 Jun 2002, Harald Welte wrote:
+On Tue, 25 Jun 2002, Henrik Nordstrom wrote:
 
-> > According to your first mail, the machine has 256M RAM and you issued
-> >
-> > insmod ip_conntrack 16384
-> >
-> > That requires 16384*8*~600byte ~= 75MB non-swappable RAM.
-> >
-> > When you issued "iptables -t nat -L", the system tried to reserve plus
-> > 2x75MB. That's in total pretty near to all your available physical RAM
-> > and the machine might died in swapping.
+> > if conntrack  doesn't see a FIN or RST packet, it won't be forwarded by
+> > the machine and thus never arrive at the receiver.  The sender will thus
+> > retransmit, and hope the packet makes it next time.
 >
-> ??? Why should listing an IP table try to reserve twice the size of the
-> conntrack table?
+> FIN will be retransmitted a couple of times, but RST won't. RST will only be
+> retransmitted indirectly if data arrives from the other end.
 
-Harald, Bazsi, of course you are totally right and I wrote bullshit above.
+Yes.
 
-Of course loading iptable_nat does *not* involve a memory requirement
-comparable to ip_conntrack. Hash element sizes are equal but structure
-sizes in the hashes are far from each other.
+> This brings me back to the important cases where TCP closes down without
+> conntrack noticing. Have tried to bring this up a couple of times before but
+> I do not recall seeing much of a response..
+>
+> There exists at least two real-life cenarios where conntrack won't notice that
+> a TCP connection is gone:
+>
+> If the RST is lost on a aborted connection where the other endpoint has
+> disappeared.
+>
+> when the TCP is dropped due to retransmission timeouts after one of the
+> endpoints have disappeared.
+>
+> The two cases above is only slight variations of the same scenario. A TCP is
+> established, then one of the endpoints disappears from the network preventing
+> the connection to be shut down in a normal manner.
+>
+> The first very uncommon and probably not easily exploitable.
+>
+> The second case is a real problem and can quite easily be used to DoS
+> conntrack with a relatively small amount of packets. (total ~20 minimum size
+> TCP packets per wasted conntrack entry)
+>
+> The good news is that second case can be detected by detecting a long term
+> uni-directional packet flow, and we probably do not need to care about the
+> first..
 
-Sorry for spreading false information. :-(
+How could be such connections (second case) sorted out from
+legitimate uni-directional (even half-closed) connections?
 
 Regards,
 Jozsef
