@@ -1,15 +1,16 @@
-From: Robbie Dinn <robbie@microbus.com>
-Subject: Re: PPTP conntrack for kernel 2.6
-Date: Tue, 17 Aug 2004 09:58:37 +0100
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: libipq, kernel panics/oopses, and other undesirable traits
+Date: Tue, 17 Aug 2004 12:40:02 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4121C8BD.5030203@microbus.com>
-References: <cfdmen$3hu$1@sea.gmane.org>
+Message-ID: <4121E082.6050602@trash.net>
+References: <E1BwO5M-000718-NF@giant.mindlink.net>	 <1092692707.22731.1687.camel@marx.mindlink.net>	 <41213777.9050701@trash.net> <1092703243.22731.1778.camel@marx.mindlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------020809050605090706060206"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <cfdmen$3hu$1@sea.gmane.org>
+To: Matt Walters <mattw@parasun.com>
+In-Reply-To: <1092703243.22731.1778.camel@marx.mindlink.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,44 +21,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Laurens Blankers wrote:
-> Could someone please port the pptp conntrack module to kernel 2.6?
+This is a multi-part message in MIME format.
+--------------020809050605090706060206
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I thought I would have a go at this. It is a bit harder to do
-than I thought.
+Matt Walters wrote:
 
-<aside>
-At the moment I am stuck trying to fix up function gre_manip_pkt()
-in ip_nat_proto_gre.c . I can change the function parameter to
-match the function prototype, but I don't know to fix the code
-in the body of the function.
+>On Mon, 2004-08-16 at 15:38, Patrick McHardy wrote:
+>
+>>skb_tailroom should return 0 in this case and the skb should be linearized
+>>by skb_copy_expand already. The check isn't triggered because this line is
+>>wrong:
+>>
+>>diff = v->data_len - e->skb->len
+>>
+>>skb->len is the total length, including fragments. If we want to copy to it,
+>>we either need to linearize it or look at skb_headlen(skb). It's complicated
+>>getting everything right, I need to think about it some more.
+>>    
+>>
 
-I tried looking at functions udp_manip_pkt() and tcp_manip_pkt()
-for guidance (in files ip_nat_protocol_{udp|tcp}.c), but I am still
-confused.
-</aside>
+This patch on top of the ip_queue_nonlinear_skbs patch should fix the 
+problem.
+It wastes a couple of bytes when enlarging a non-linear skb, but that 
+shouldn't be
+a problem. When you test it, please try all three possibilities (replace 
+by smaller,
+equally sized and larger packet).
 
-I think I might have spotted something that looks a bit strange,
-maybe even a bug? Please bear in mind that I don't understand the
-code.
+Regards
+Patrick
 
-Both udp_manip_pkt() and tcp_manip_pkt() make a call to
-skb_ip_make_writable(). It is the second parameter passed to
-skb_ip_make_writable() that I am worried about.
 
-In udp_manip_pkt() it is called like this:
 
-      if (!skb_ip_make_writable(pskb, hdroff + sizeof(hdr)))
 
-where hdr is a pointer to a struct udphdr
+--------------020809050605090706060206
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-In tcp_manip_pkt() it is called like this:
+===== net/ipv4/netfilter/ip_queue.c 1.16 vs edited =====
+--- 1.16/net/ipv4/netfilter/ip_queue.c	2004-01-29 00:59:33 +01:00
++++ edited/net/ipv4/netfilter/ip_queue.c	2004-08-17 12:35:05 +02:00
+@@ -362,6 +362,8 @@
+ 		}
+ 		skb_put(e->skb, diff);
+ 	}
++	if (!skb_ip_make_writable(&e->skb, v->data_len))
++		return -ENOMEM;
+ 	memcpy(e->skb->data, v->payload, v->data_len);
+ 	e->skb->nfcache |= NFC_ALTERED;
+ 
 
-      if (!skb_ip_make_writable(pskb, hdroff + hdrsize))
-
-where hdrsize may have a value of sizeof(tcphdr)
-
-I am worried that sizeof(struct udphdr) and sizeof(struct udphdr *)
-are different things.
-
-Have I found a bug or am I simply confused?
+--------------020809050605090706060206--
