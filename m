@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] don't try to track broadcasts or multicasts (4/4)
-Date: Sun, 9 Jun 2002 19:18:26 +0200
+Subject: Re: conntrack/NAT module
+Date: Sun, 9 Jun 2002 19:30:23 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020609171826.GD3181@naboo.de.gnumonks.org>
-References: <1023366027.845.30.camel@tux> <20020608073547.GA1109@naboo.de.gnumonks.org> <1023547908.19838.46.camel@tux>
+Message-ID: <20020609173023.GD3305@naboo.de.gnumonks.org>
+References: <02060510364800.10075@luoqiang>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+To: luoqiang <luoqiang@ict.ac.cn>
 Content-Disposition: inline
-In-Reply-To: <1023547908.19838.46.camel@tux>
+In-Reply-To: <02060510364800.10075@luoqiang>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,21 +21,25 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jun 08, 2002 at 04:51:47PM +0200, Martin Josefsson wrote:
-> Hmm why didn't I think about that?
+On Wed, Jun 05, 2002 at 10:36:48AM +0800, luoqiang wrote:
+> Hi,Harald
+> 
+>    Thanks for your answers.
+>    I am afraid that the conntrack module for DNAT is not correct now.my 
+> purpose of the two module is to achieve the rule  which is "iptables -A 
+> PREROUTING -t nat -p udp -d 159.226.1.1 --dport 5001 -j DNAT --to 
+> 192.168.1.2:8888".
 
-it just came to my mind after reading your mail..
+well. from having a short view at your code, i'm unable to determine the
+reason of it's malfunction.
 
-> I've done some simple testing and the results are:
+it might be worth trying to see what verdict ip_nat_setup_info is
+actually returning, since that particular (hardcoded) ip_address /
+portnumber range could be already in use.
 
-the results are actually quite interesting - but maybe there's a
-particular reason for TCP behaving different than other protocols...
+Another issue could be endianness... 
 
-> It was a nice thought but doesn't work in the real world.
-
-yup, it would have been a nice optimization...
-
-> /Martin
+> > luoqiang
 
 -- 
 Live long and prosper
