@@ -1,12 +1,14 @@
-From: Paul Campbell <paul@donard.lan.campbell-multimedia.co.uk>
-Subject: Logging ownership
-Date: Thu, 18 Nov 2004 20:16:28 +0000
-Message-ID: <20041118201628.GA10213@donard.lan.campbell-multimedia.co.uk>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: Logging ownership
+Date: Fri, 19 Nov 2004 14:08:29 +0100
+Message-ID: <1100869711.3610.24.camel@coati>
+References: <20041118201628.GA10213@donard.lan.campbell-multimedia.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+In-Reply-To: <20041118201628.GA10213@donard.lan.campbell-multimedia.co.uk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,33 +20,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Thu, 2004-11-18 at 20:16 +0000, Paul Campbell wrote:
 
-Sorry if this is the wrong list for this question, but...
+> Basically what I am after, and there might be an easier way...  Is to trigger 
+> a userspace alert when an unknown program attempts to form a new connection.
+> Personal firewall style for Desktops.
 
-How much work would be involved in sending the packet ownership details, as 
-used by ipt_owner.c, from an extension target to an external program or socket?
+NuFW (http://www.nufw.org) may be a solution, is is an authenticated
+firewalling solution. I mean it is able to filter a whole network with
+acls of the type :
+John has access to external imap server if he uses thunderbird on XP SP2 
+or even better
+John has access to external imap server if he uses evolution on Linux ;-)
 
-I've had a look around in the module sources and ... well, I'm a bit lost to 
-be honest.  I've not got enough Linux C coding experience to try anything more 
-than modifiying ipt_owner.c to add some kprint lines.  Which I dont want, as it 
-will generate far too much garbage in the logs etc.
+There's no alert in case of problem but NuFW is able to log dropped
+packet in a SQL database. Applications logging in case of failure has
+just been added at my TODO list.
 
-Basically what I am after, and there might be an easier way...  Is to trigger 
-a userspace alert when an unknown program attempts to form a new connection.
-Personal firewall style for Desktops.
+> I'm assuming the packet -> program -> user relationship only exists within the
+> kernel.
 
-I'm assuming the packet -> program -> user relationship only exists within the
-kernel.
+There's socket-> program -> user relationship
 
+BR,
 -- 
-
-Paul Campbell
-
-Campbell Multimedia
-Web Design | PC Sales
-+=======================================+
-[ WWW:   http://campbell-multimedia.com ]
-[ Tel:   07970 510549                   ]
-[ Email: info@campbell-multimedia.com   ]
-+=======================================+
+Eric Leblond <eric@inl.fr>
+INL
