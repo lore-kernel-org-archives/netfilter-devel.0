@@ -1,35 +1,35 @@
-From: Primantara HT <prim@csse.uwa.edu.au>
-Subject: Additional Option that is nout used
-Date: Thu, 5 Sep 2002 12:19:53 +0800 (WST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0209051214570.8188-100000@server01.cs.uwa.edu.au>
-References: <20020324150524.GA31340@endlich.mbsi.ca>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: ip_conntrack_hash() problem
+Date: Thu, 5 Sep 2002 10:19:55 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20020905081955.GC1064@naboo.lincon.Uni-Koeln.DE>
+References: <1031142822.3314.116.camel@biker.pdb.fsc.net> <20020904125628.GB1720@naboo.lincon.Uni-Koeln.DE> <1031145854.3359.125.camel@biker.pdb.fsc.net> <20020904152626.A11438@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
-In-Reply-To: <20020324150524.GA31340@endlich.mbsi.ca>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: Martin Wilck <Martin.Wilck@Fujitsu-Siemens.com>,
+	Netfilter Mailing List <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel mailing list <linux-kernel@vger.kernel.org>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Patrick Schaaf <bof@bof.de>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Andi Kleen <ak@suse.de>
+Content-Disposition: inline
+In-Reply-To: <20020904152626.A11438@wotan.suse.de>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear,
+On Wed, Sep 04, 2002 at 03:26:26PM +0200, Andi Kleen wrote:
+> > I think the hash function should be fixed, not the possible choice of
+> > hash sizes, if that is at feasible.
+> I also agree with Martin that it is better to fix the hash function in
+> this case. Restricting to magic hash table sizes looks like a bad hack.
 
-I found an additional option in line 1690 of iptables.c.
-This option is "M:" that is not used in options described in
-previous part of the iptables.c or for "case()"
+I wasn't proposing to restrict it.  Just make it chose a sane default.
 
-The line contains :
- "-A:D:R:I:L::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:",
-              ^^
-	      ^^
+> -Andi
 
-Thank's
-
-Prim
+-- 
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
