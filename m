@@ -1,16 +1,16 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4] netfilter ipt_REJECT: Add RFC1812 ICMP_PKT_FILTERED
-Date: Fri, 25 Jul 2003 14:16:25 -0700
+From: Internet Protocol version Six <inet6@mail.be>
+Subject: --reject-with admin-prohib not working
+Date: Sat, 26 Jul 2003 00:15:22 +0200 (GMT+02:00)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725141625.04b6e47e.davem@redhat.com>
-References: <20030725205111.GO3244@sunbeam.de.gnumonks.org>
+Message-ID: <1052431003.1059171322687.JavaMail.Administrator@pumbaa>
+References: <20030721155732.GA3733@naboo>
+Reply-To: Internet Protocol version Six <inet6@mail.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030725205111.GO3244@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20030721155732.GA3733@naboo>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,13 +21,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 25 Jul 2003 22:51:11 +0200
-Harald Welte <laforge@netfilter.org> wrote:
+Hello all,
 
-> The seven patch set of bugfixes for 2.4 is now complete.  Well, one more
-> thing, depending on the definition of 'bug' (since Marcelo only accepts
-> bug fixes from now on).
+like the subject says, it is not working for me, I applied the PoM patch to the kernel, compiled the kernel, even recompiled iptables and it still gives me "iptables v1.2.8: unknown reject type `admin-prohib'"
 
-All 2.4.x patches applied, I'll push onwards to Marcelo.
+Is there some patch that needs to be applied to iptables itself? Because I can't find one
 
-Thanks Harald.
+Any help is greatly appriciated
+-----------------------------------------------------
+Mail.be, WebMail and Virtual Office
+http://www.mail.be
