@@ -1,16 +1,17 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: [BUG] yet another icmp reply transition bug
-Date: Wed, 30 Oct 2002 19:44:58 +0100
+From: "Sumit Pandya" <sumit@elitecore.com>
+Subject: Re: problem with iplimit
+Date: Thu, 31 Oct 2002 12:01:08 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021030184457.GA7720@balabit.hu>
-References: <20021029211506.A26147@sunbeam.de.gnumonks.org>
+Message-ID: <NDBBKOCLFLKJBBJIHCODAEMBCDAA.sumit@elitecore.com>
+References: <20021030090702.18873.97698.Mailman@kashyyyk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: <romp@siil.net>, <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-Content-Disposition: inline
-In-Reply-To: <20021029211506.A26147@sunbeam.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20021030090702.18873.97698.Mailman@kashyyyk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,89 +22,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Oct 29, 2002 at 09:15:06PM +0100, Harald Welte wrote:
-> Hi !
+Hi,
+	Just try with solution posted on following link
+http://lists.netfilter.org/pipermail/netfilter/2002-January/030405.html
+-- Sumit
+
+> From: Harald Welte <laforge@gnumonks.org>
 > 
-> While debugging the network problem of a friend of mine, I have discovered
-> yet another icmp reply transition bug, present in all kernel versions.
+> On Sat, Oct 26, 2002 at 11:26:53AM +0300, Romp wrote:
+> > > The problem appears every time I try to use this module.
+> > > if I set --limit-above to 2 and try to open third connection, 
+> system wi=
+> ll drop it (ok).
+> > > But if I try to open this connection again (while previous 2 
+> connection=
+> s are still active), system will accept it (!).
+> > > Since, almost every connection will be accepted (!).
+> > > Note that if I close all connections, and try to make 
+> described test ag=
+> ain, all will happen again.
+> > the problem (and fix) is also described at
+> > 
+> http://lists.netfilter.org/pipermail/netfilter-devel/2002-May/007818.html
 > 
-> Imagine the following setup:
+> interesting. I will add this issue to the TODO list.
 > 
-> a NAT gateway is situated between two networks with different MTUs. Let's
-> say 1500 on one side, and 1300 on the other side.
+> > unfortunately, the patch provided does not solve the problem 
+> (at least for
+> > me)
 > 
-> Poor user on the 1300 network initiates a TCP connection to some other end
-> in the 1500 network.  The other end will start sending 1500-sized datagrams
-> with DONT_FRAG set.
+> even more interesting...
 > 
-> The NAT gateway will generate an ICMP dest_unreach/frag_needed inside
-> ip_forward.c, which will hit conntrack and NAT on the NF_IP_LOCAL_OUT
-> hook.
+> I have some higher-priority stuff to do right now, but I will try to get
+> back to this issue ASAP.
 > 
-> ip_nat_core.c:icmp_reply_translation() will get called, and in line 916
-> [ if (info->manips[i].hooknum == opposite_hook[hooknum])  ] is evaluated.
-> 
-> If LOCAL_NAT is disabled, opposite_hook doesn't even have an entry for
-> LOCAL_OUT... yes, we are reading over the end of the array :((
-> 
-> If LOCAL_NAT is enabled, opposite_hook would return NF_IP_LOCAL_IN,
-> which is not what we want.  The inverse translation needed for the inner
-> icmp translation happened at NF_IP_PRE_ROUTING!
-> 
-> I'm now heading off to a party, leaving you to think about this *g*.
-> 
-> If there is no reasonable proposal on how to solve this problem, I'll
-> come up with a solution tomorrow.
-
-This is exactly the problem I have posted several times now. (I found it
-during my tproxy development). I have modified ICMP nat so that the inner
-packet is translated at the same time the outer packet is. I saw no real
-reasons to NAT ICMP packets in two phases (other than simmetricity). 
-
-The way it works now with two phases:
-
-#1 translating outer header (this happens in the same hook the NAT manip was
-   registered in)
-
-#2 translating the inner header (this happens in the opposite of #1)
-
-If there's no opposite for #1, the inner packet is not modified.
-
-Let's see my case I ran into during tproxy development:
-
-  I wanted to SNAT a locally generated session to a foreign IP address (my
-  NAT translation happened implicitly without rules, but can be reproduced by
-  using a simple iptables rule and netcat)
-
-SNATs for locally generated sessions are set up in POSTROUTING
-(ip_nat_setup_info called with the hooknum argument set to POSTROUTING), and
-it registers a single manip to change the destination of reply packets at
-opposite_hook[hook] which is PREROUTING.
-
-Looking above means that the outer header of ICMP replies is translatated at
-PREROUTING (which is correctly done), and the inner header would be
-translated in POSTROUTING (which happens never as this is a locally
-destined packet since it was generated locally)
-
-Your case is similar IMHO, it is not guaranteed that the reply ICMP packet
-arrives to us in our opposite hook. It does in the simplest case when the
-session is simply forwarded _AND_ the icmp reply is not generated by us. If
-either of these conditions is FALSE, opposite_hook will be bogus.
-
-When fixing the problem I came up with two solutions:
-
-1) fix opposite_hook, and allow many possible points of inner header
-   translation (e.g. a manip in PREROUTING may mean ICMP reply in
-   POSTROUTING _or_ LOCAL_IN _or_ LOCAL_OUT)
-
-2) as the first one doesn't seem too robust to me, I fixed the translation
-   and did the whole thing in one step. The inner header is translated at
-   the same time the outer header is translated. I have seen no real use in
-   having the inconsistent (translated outer, and untranslated inner header)
-   packet traverse the IP stack.
-
-I've posted my fix several times, I'll post it again if you like.
-
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+> > romp
+> Live long and prosper
+> - Harald Welte / laforge@gnumonks.org
