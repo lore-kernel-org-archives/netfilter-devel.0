@@ -1,15 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] 2.4.x new amanda conntrack + NAT support
-Date: Sun, 30 Mar 2003 22:07:50 +0200
+From: "Dec0y" <anti_decoy@sina.com>
+Subject: Re: [netfilter-core] (no subject)
+Date: Mon, 31 Mar 2003 09:34:10 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030330200750.GZ7718@sunbeam.de.gnumonks.org>
+Message-ID: <007001c2f725$a1dcd4d0$5b01aa0a@Dec0y>
+References: <004701c2f502$8da118c0$5b01aa0a@Dec0y> <20030328115850.GU25471@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JVTyp1F/hrbhzAAs"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_006D_01C2F768.AF3C76B0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
-Content-Disposition: inline
+To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,668 +19,233 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---JVTyp1F/hrbhzAAs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+------=_NextPart_000_006D_01C2F768.AF3C76B0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 
-Hi Dave!
+DQpDYW4gc29tZSBib2R5IGhlbHAgbWU/DQoNCkkgd2FudCB0byBSZWRpcmVjdCBhbGwgdGhlIHBh
+Y2tldCB0aHJvdWdoIG15IExpbnV4IG1hY2hpbmUgaW4gdGhlIEZPUldBUkQgb2YgZmlsdGVyIHRh
+YmxlIGJ5IHdyaXRlIGEgdGFyZ2V0LCBhbmQgSSBoYXZlIHJlYWxpemVkIGl0IC4gQnV0IHRoZXJl
+IGlzIGEgbGl0dGxlIHdyb25nIHdpdGggaXQuIA0KDQpUaGUgcGFja2V0cyB0aGF0IHdpbGwgYmUg
+cHJvY2Vzc2VkKFNOQVQpIGluIHRoZSBQT1NUUk9VVElORyBjYW4gYmUgcmVkaXJlY3RlZCBjb3Jy
+ZWN0bHkgLCAgQnV0IHRoZSBwYWNrZXRzIHRoYXQgaGF2ZSBiZWVuIHByb2Nlc3NlZChETkFUKSBp
+biB0aGUgUFJFUk9VVElORyBjYW4ndCBiZSByZWRpcmVjdGVkIGNvcnJlY3RseS4gDQoNCk15IE5l
+dHdvcmsgQXMgZm9sbG93Og0KDQoNCg0KKy0tLS0tLS0tLS0tLSsgICAgICAgICAgICAgICAgICAg
+IDE5Mi4xNjguMC4xDQp8MTkyLjE2OC4wLjIgfC0tLS0tLS0tLS0tLS0tLS0tLS0tLXwNCistLS0t
+LS0tLS0tLS0rICAgICAgICAgICAgKy0tLS0tLS0tKy0tLS0tLS0tLSsxOTIuMTY4LjIuMSAgICAr
+LS0tLS0tLS0tLS0tLS0tKw0KICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgTGludXggTWFj
+aGluZSAgfC0tLS0tLS0tLS0tLS0tLXwgMTkyLjE2OC4yLjIgICB8DQogICAgICAgICAgICAgICAg
+ICAgICAgICAgICstLS0tLS0tLSstLS0tLS0tLS0rICAgICAgICAgICAgICAgKy0tLS0tLS0tLS0t
+LS0tLSsNCistLS0tLS0tLS0tLS0rICAgICAgICAgICAgICAgICAgICAgfDE5Mi4xNjguMS4xDQp8
+MTkyLjE2OC4xLjIgfC0tLS0tLS0tLS0tLS0tLS0tLS0tLSsNCistLS0tLS0tLS0tLS0rDQoNCkkg
+aGF2ZSBhZGQgdGhlIGZvbGx3aW5nIHJ1bGVzOg0KIA0KaXB0YWJsZXMgLXQgbmF0IC1BIFBPU1RS
+T1VUSU5HIC1zIDE5Mi4xNjguMC4yIC1kIDAvMCAtaiBTTkFUIC0tdG8gMTkyLjE2OC4yLjENCmlw
+dGFibGVzIC10IG5hdCAtQSBQUkVST1VUSU5HIC1zIDE5Mi4xNjguMi4yIC1kIDE5Mi4xNjguMi4x
+IC1qIEROQVQgLS10byAxOTIuMTY4LjEuMg0KDQppcHRhYmxlcyAtQSBGT1JXQVJEIC1zIDE5Mi4x
+NjguMC4yIC1kIDAvMCAtaiBNWV9UQVJHRVQNCmlwdGFibGVzIC1BIEZPUldBUkQgLXMgMTkyLjE2
+OC4yLjIgLWQgMTkyLjE2OC4xLjIgLWogTVlfVEFSR0VUDQoNCkkgd2FudCB0byBSZWRpcmVjdCBh
+bGwgdGhlIHBhY2tldCB0aHJvdWdoIG15IExpbnV4IG1hY2hpbmUgaW4gdGhlIEZPUldBUkQgb2Yg
+ZmlsdGVyIHRhYmxlIGJ5IE1ZX1RBUkdFVC4NCg0KVGhlIHBhY2tldHMgdGhhdCB3aWxsIGJlIHBy
+b2Nlc3NlZChTTkFUKSBpbiB0aGUgUE9TVFJPVVRJTkcgY2FuIGJlIHJlZGlyZWN0ZWQgY29ycmVj
+dGx5ICwgIEJ1dCB0aGUgcGFja2V0cyB0aGF0IGhhdmUgYmVlbiBwcm9jZXNzZWQoRE5BVCkgaW4g
+dGhlIFBSRVJPVVRJTkcgY2FuJ3QgYmUgcmVkaXJlY3RlZCBjb3JyZWN0bHkuIA0KDQoNCg0KICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA0KICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgDQogICAgICAgICAg
+ICAgICAgICAgICAgICAgKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKw0KICAg
+ICAgc3JjPTE5Mi4xNjguMC4yICAgIHwgICAgICAgICAgICAgICAgICBSRURJUkVDVCAgICAgICAg
+IHwNClNOQVQ6IC0tLS0tLS0tLS0tLS0tLS0tLT58UFJFUk9VVElORy0tLS0tLS0+Rk9SV0FSRC0t
+LS0+Li4uLS18LS0tLS0tLT4uLi4uLi4uLg0KICAgICAgZHN0PTAvMCAgICAgICAgICAgIHwgICAg
+ICAgICAgICAgICAgICAgZHN0PTE5Mi4xNjguMi4xIHwgICAgICANCiAgICAgICAgICAgICAgICAg
+ICAgICAgICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rDQoNCnRoZSBkc3Qg
+b25seSBjaGFuZ2Ugb25jZSBmcm9tIGRzdCB0byAxOTIuMTY4LjIuMQ0KDQoNCiAgICAgICAgICAg
+ICAgICAgICAgICAgICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rDQog
+ICAgICBzcmM9MTkyLjE2OC4yLjIgICAgfCAgICAgIGRzdD0xOTIuMTY4LjEuMiAgUkVESVJFQ1Qg
+ICAgICAgfA0KRE5BVDogLS0tLS0tLS0tLS0tLS0tLS0tPnxQUkVST1VUSU5HLS0tLS0tLS0tLS0+
+Rk9SV0FSRC0tLS0tPi4uLXwtLS0tLS0tPi4uLi4uLi4uDQogICAgICBkc3Q9MTkyLjE2OC4yLjEg
+ICAgfCAgICAgICAgICAgICAgICAgICAgICAgZHN0PTE5Mi4xNjguMi4xfCAgICAgICAgICAgIHwg
+ICAgICANCiAgICAgICAgICAgICAgICAgICAgICAgICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0rDQoNCnRoZSBkc3QgbmVlZCB0byBjaGFuZ2UgdHdpY2UgIQ0KIA0KDQpD
+YW4gc29tZSBib2R5IGhlbHAgbWU/DQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fDQoNCiAgLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0t
+LSANCiAgRnJvbTogSGFyYWxkIFdlbHRlIA0KICBUbzogRGVjMHkgDQogIENjOiBOZXRmaWx0ZXIg
+RGV2ZWxvcG1lbnQgTWFpbGluZ2xpc3QgDQogIFNlbnQ6IEZyaWRheSwgTWFyY2ggMjgsIDIwMDMg
+Nzo1OCBQTQ0KICBTdWJqZWN0OiBSZTogW25ldGZpbHRlci1jb3JlXSAobm8gc3ViamVjdCkNCg0K
+DQo=
 
-Author: Brian J. Murrell <netfilter@interlinx.bc.ca>
-The attached patch for 2.4.x adds new support for connection tracking and
-NAT of the amanda backup protocol.  The patch is incremental to all
-other 2.4.20 updates (including the tftp patch) I've sent you so far.
+------=_NextPart_000_006D_01C2F768.AF3C76B0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 
-I'll provide you with a patch for 2.5.x shortly.
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWlzby04ODU5LTEiPg0KPE1FVEEgY29udGVudD0iTVNIVE1M
+IDYuMDAuMjYwMC4wIiBuYW1lPUdFTkVSQVRPUj4NCjxTVFlMRT48L1NUWUxFPg0KPC9IRUFEPg0K
+PEJPRFkgYmdDb2xvcj0jZmZmZmZmPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsg
+c2l6ZT0yPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPjwvRk9OVD4m
+bmJzcDs8L0RJVj4NCjxESVY+PEZPTlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj5DYW4g
+c29tZSBib2R5IGhlbHAgbWU/PC9GT05UPjwvRElWPjwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQg
+ZmFjZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj48L0ZPTlQ+Jm5ic3A7PC9ESVY+DQo8RElWPjxG
+T05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+SSB3YW50IHRvIFJlZGlyZWN0IGFsbCB0
+aGUgcGFja2V0IHRocm91Z2ggbXkgTGludXggDQptYWNoaW5lIGluIHRoZSBGT1JXQVJEIG9mIGZp
+bHRlciB0YWJsZSBieSB3cml0ZSBhIHRhcmdldCwgPC9GT05UPjxGT05UIGZhY2U9JiMyMzQzNTsm
+IzIwMzA3OyANCnNpemU9Mj5hbmQgSSBoYXZlIHJlYWxpemVkJm5ic3A7aXQgLiBCdXQgdGhlcmUg
+aXMgYSBsaXR0bGUgd3Jvbmcgd2l0aCBpdC4gDQo8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGZh
+Y2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9O
+VCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPlRoZSBwYWNrZXRzIHRoYXQgd2lsbCBiZSBw
+cm9jZXNzZWQoU05BVCkgaW4gdGhlIA0KUE9TVFJPVVRJTkcgY2FuIGJlIHJlZGlyZWN0ZWQgY29y
+cmVjdGx5ICwmbmJzcDsgQnV0IHRoZSBwYWNrZXRzIHRoYXQgaGF2ZSBiZWVuIA0KcHJvY2Vzc2Vk
+KEROQVQpIGluIHRoZSBQUkVST1VUSU5HJm5ic3A7Y2FuJ3QgYmUgcmVkaXJlY3RlZCBjb3JyZWN0
+bHkuIA0KPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6
+ZT0yPjwvRk9OVD4mbmJzcDs8L0RJVj4NCjxESVY+PEZPTlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7
+IHNpemU9Mj5NeSBOZXR3b3JrIEFzIGZvbGxvdzo8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGZh
+Y2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9O
+VCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPjwvRk9OVD4mbmJzcDs8L0RJVj4NCjxESVY+
+PEZPTlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj48L0ZPTlQ+Jm5ic3A7PC9ESVY+DQo8
+RElWPjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyANCnNpemU9Mj4rLS0tLS0tLS0tLS0tKyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyAN
+CjE5Mi4xNjguMC4xPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMw
+Nzsgc2l6ZT0yPnwxOTIuMTY4LjAuMiZuYnNwO3wtLS0tLS0tLS0tLS0tLS0tLS0tLS18PC9GT05U
+PjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgDQpzaXplPTI+Ky0tLS0t
+LS0tLS0tLSsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsgDQorLS0tLS0tLS0rLS0tLS0tLS0tKzE5Mi4xNjguMi4xJm5ic3A7
+Jm5ic3A7Jm5ic3A7ICstLS0tLS0tLS0tLS0tLS0rPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBm
+YWNlPSYjMjM0MzU7JiMyMDMwNzsgDQpzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7fCZuYnNwOyZuYnNwOyANCkxpbnV4IE1hY2hpbmUmbmJzcDsgfC0tLS0t
+LS0tLS0tLS0tLXwmbmJzcDsxOTIuMTY4LjIuMiZuYnNwOyZuYnNwOyANCnw8L0ZPTlQ+PC9ESVY+
+DQo8RElWPjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyANCnNpemU9Mj4mbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgDQorLS0tLS0tLS0rLS0tLS0tLS0tKyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyANCistLS0tLS0tLS0tLS0tLS0rPC9GT05UPjwvRElWPg0KPERJVj4N
+CjxESVY+PEZPTlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7IA0Kc2l6ZT0yPistLS0tLS0tLS0tLS0r
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7IA0KfDE5Mi4xNjguMS4xPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0
+MzU7JiMyMDMwNzsgc2l6ZT0yPnwxOTIuMTY4LjEuMiZuYnNwO3wtLS0tLS0tLS0tLS0tLS0tLS0t
+LS0rPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0y
+PistLS0tLS0tLS0tLS0rPC9GT05UPjwvRElWPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0
+MzU7JiMyMDMwNzsgc2l6ZT0yPjwvRk9OVD4mbmJzcDs8L0RJVj4NCjxESVY+PEZPTlQgZmFjZT0m
+IzIzNDM1OyYjMjAzMDc7IHNpemU9Mj5JIGhhdmUgYWRkIHRoZSBmb2xsd2luZyBydWxlczo8L0ZP
+TlQ+PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+Jm5ic3A7
+PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPg0K
+PERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPmlwdGFibGVzIC10IG5hdCAt
+QSBQT1NUUk9VVElORyAtcyAxOTIuMTY4LjAuMiAtZCAwLzAgDQotaiBTTkFUIC0tdG8gMTkyLjE2
+OC4yLjE8L0ZPTlQ+PC9ESVY+PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7
+JiMyMDMwNzsgc2l6ZT0yPmlwdGFibGVzIC10IG5hdCAtQSBQUkVST1VUSU5HIC1zIDE5Mi4xNjgu
+Mi4yIC1kIA0KMTkyLjE2OC4yLjEgLWogRE5BVCAtLXRvIDE5Mi4xNjguMS4yPC9GT05UPjwvRElW
+Pg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPjwvRk9OVD4mbmJzcDs8
+L0RJVj4NCjxESVY+PEZPTlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj5pcHRhYmxlcyAt
+QSBGT1JXQVJEIC1zIDE5Mi4xNjguMC4yIC1kJm5ic3A7MC8wIC1qIA0KTVlfVEFSR0VUPC9GT05U
+PjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPmlwdGFibGVz
+IC1BIEZPUldBUkQgLXMgMTkyLjE2OC4yLjIgLWQgMTkyLjE2OC4xLjIgLWogDQpNWV9UQVJHRVQ8
+L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+PC9G
+T05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0y
+Pkkgd2FudCB0byBSZWRpcmVjdCBhbGwgdGhlIHBhY2tldCB0aHJvdWdoIG15IExpbnV4IA0KbWFj
+aGluZSBpbiB0aGUgRk9SV0FSRCBvZiBmaWx0ZXIgdGFibGUgYnkgTVlfVEFSR0VULjwvRk9OVD48
+L0RJVj4NCjxESVY+PEZPTlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj48L0ZPTlQ+Jm5i
+c3A7PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+VGhlIHBh
+Y2tldHMgdGhhdCB3aWxsIGJlIHByb2Nlc3NlZChTTkFUKSBpbiB0aGUgDQpQT1NUUk9VVElORyBj
+YW4gYmUgcmVkaXJlY3RlZCBjb3JyZWN0bHkgLCZuYnNwOyBCdXQgdGhlIHBhY2tldHMgdGhhdCBo
+YXZlIGJlZW4gDQpwcm9jZXNzZWQoRE5BVCkgaW4gdGhlIFBSRVJPVVRJTkcmbmJzcDtjYW4ndCBi
+ZSByZWRpcmVjdGVkIGNvcnJlY3RseS4gDQo8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9
+JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBm
+YWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPjwvRk9OVD4mbmJzcDs8L0RJVj4NCjxESVY+PEZP
+TlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj48L0ZPTlQ+Jm5ic3A7PC9ESVY+DQo8RElW
+PjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyANCnNpemU9Mj4mbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsgDQo8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9JiMy
+MzQzNTsmIzIwMzA3OyANCnNpemU9Mj4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsgDQo8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9JiMy
+MzQzNTsmIzIwMzA3OyANCnNpemU9Mj4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgDQor
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rPC9GT05UPjwvRElWPg0KPERJVj48
+Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyANCnNyYz0xOTIuMTY4LjAuMiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwO3wmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDtSRURJUkVDVCANCiZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyB8PC9GT05UPjwvRElWPg0K
+PERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPlNOQVQ6IA0KLS0tLS0tLS0t
+LS0tLS0tLS0tJmd0O3xQUkVST1VUSU5HLS0tLS0tLSZndDtGT1JXQVJELS0tLSZndDsuLi4tLXwt
+LS0tLS0tJmd0Oy4uLi4uLi4uPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7
+JiMyMDMwNzsgDQpzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7ZHN0
+PTAvMCZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyANCiZuYnNwOyANCnwmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDtkc3Q9MTkyLjE2OC4yLjEmbmJzcDt8Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7IA0KPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMw
+NzsgDQpzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Ky0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKzwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQgZmFj
+ZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj48L0ZPTlQ+Jm5ic3A7PC9ESVY+DQo8RElWPjxGT05U
+IGZhY2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+dGhlIGRzdCBvbmx5IGNoYW5nZSBvbmNlIGZy
+b20gZHN0IHRvIA0KMTkyLjE2OC4yLjE8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9JiMy
+MzQzNTsmIzIwMzA3OyBzaXplPTI+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBmYWNl
+PSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPjwvRk9OVD4mbmJzcDs8L0RJVj4NCjxESVY+DQo8RElW
+PjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyANCnNpemU9Mj4mbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsgDQorLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rPC9G
+T05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPiZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyANCnNyYz0xOTIuMTY4LjIuMiZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwO3wmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgDQpkc3Q9MTkyLjE2OC4x
+LjImbmJzcDsmbmJzcDtSRURJUkVDVCAmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgDQombmJzcDt8
+PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgc2l6ZT0yPkRO
+QVQ6IA0KLS0tLS0tLS0tLS0tLS0tLS0tJmd0O3xQUkVST1VUSU5HLS0tLS0tLS0tLS0mZ3Q7Rk9S
+V0FSRC0tLS0tJmd0Oy4uLXwtLS0tLS0tJmd0Oy4uLi4uLi4uPC9GT05UPjwvRElWPg0KPERJVj48
+Rk9OVCBmYWNlPSYjMjM0MzU7JiMyMDMwNzsgDQpzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7ZHN0PTE5Mi4xNjguMi4xJm5ic3A7Jm5ic3A7Jm5ic3A7IA0KfCZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyANCiZuYnNwOyZuYnNwO2RzdD0xOTIuMTY4LjIuMXwmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDt8Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IA0KPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBmYWNlPSYj
+MjM0MzU7JiMyMDMwNzsgDQpzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Ky0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKzwvRk9OVD48L0RJVj48
+L0RJVj4NCjxESVY+PEZPTlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj48L0ZPTlQ+Jm5i
+c3A7PC9ESVY+DQo8RElWPjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+dGhlIGRz
+dCBuZWVkIHRvIGNoYW5nZSB0d2ljZSAhPC9GT05UPjwvRElWPg0KPERJVj4mbmJzcDs8L0RJVj4N
+CjxESVY+PEZPTlQgZmFjZT0mIzIzNDM1OyYjMjAzMDc7IHNpemU9Mj48L0ZPTlQ+Jm5ic3A7PC9E
+SVY+DQo8RElWPjxGT05UIGZhY2U9JiMyMzQzNTsmIzIwMzA3OyBzaXplPTI+Q2FuIHNvbWUgYm9k
+eSBoZWxwIG1lPzwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQgDQpmYWNlPSYjMjM0MzU7JiMyMDMw
+Nzs+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXzwvRk9OVD48L0RJVj4NCjxESVY+Jm5ic3A7PC9ESVY+DQo8QkxPQ0tRVU9URSBkaXI9bHRy
+IA0Kc3R5bGU9IlBBRERJTkctUklHSFQ6IDBweDsgUEFERElORy1MRUZUOiA1cHg7IE1BUkdJTi1M
+RUZUOiA1cHg7IEJPUkRFUi1MRUZUOiAjMDAwMDAwIDJweCBzb2xpZDsgTUFSR0lOLVJJR0hUOiAw
+cHgiPg0KICA8RElWIHN0eWxlPSJGT05UOiA5cHQgJiMyMzQzNTsmIzIwMzA3OyI+LS0tLS0gT3Jp
+Z2luYWwgTWVzc2FnZSAtLS0tLSA8L0RJVj4NCiAgPERJViBzdHlsZT0iQkFDS0dST1VORDogI2U0
+ZTRlNDsgRk9OVDogOXB0ICYjMjM0MzU7JiMyMDMwNzs7IGZvbnQtY29sb3I6IGJsYWNrIj48Qj5G
+cm9tOjwvQj4gDQogIDxBIHRpdGxlPWxhZm9yZ2VAbmV0ZmlsdGVyLm9yZyBocmVmPSJtYWlsdG86
+bGFmb3JnZUBuZXRmaWx0ZXIub3JnIj5IYXJhbGQgDQogIFdlbHRlPC9BPiA8L0RJVj4NCiAgPERJ
+ViBzdHlsZT0iRk9OVDogOXB0ICYjMjM0MzU7JiMyMDMwNzsiPjxCPlRvOjwvQj4gPEEgdGl0bGU9
+YW50aV9kZWNveUBzaW5hLmNvbSANCiAgaHJlZj0ibWFpbHRvOmFudGlfZGVjb3lAc2luYS5jb20i
+PkRlYzB5PC9BPiA8L0RJVj4NCiAgPERJViBzdHlsZT0iRk9OVDogOXB0ICYjMjM0MzU7JiMyMDMw
+NzsiPjxCPkNjOjwvQj4gPEEgDQogIHRpdGxlPW5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0
+ZXIub3JnIA0KICBocmVmPSJtYWlsdG86bmV0ZmlsdGVyLWRldmVsQGxpc3RzLm5ldGZpbHRlci5v
+cmciPk5ldGZpbHRlciBEZXZlbG9wbWVudCANCiAgTWFpbGluZ2xpc3Q8L0E+IDwvRElWPg0KICA8
+RElWIHN0eWxlPSJGT05UOiA5cHQgJiMyMzQzNTsmIzIwMzA3OyI+PEI+U2VudDo8L0I+IEZyaWRh
+eSwgTWFyY2ggMjgsIDIwMDMgNzo1OCBQTTwvRElWPg0KICA8RElWIHN0eWxlPSJGT05UOiA5cHQg
+JiMyMzQzNTsmIzIwMzA3OyI+PEI+U3ViamVjdDo8L0I+IFJlOiBbbmV0ZmlsdGVyLWNvcmVdIChu
+byANCiAgc3ViamVjdCk8L0RJVj4NCiAgPERJVj48QlI+PC9ESVY+PC9CTE9DS1FVT1RFPjwvQk9E
+WT48L0hUTUw+DQo=
 
-Please apply, thanks.
-
-
-diff -Nru linux-2.4.20-nfsub3003-tftp/Documentation/Configure.help linux-2.=
-4.20-nfsub3003-tftp-amanda/Documentation/Configure.help
---- linux-2.4.20-nfsub3003-tftp/Documentation/Configure.help	Sun Mar 30 21:=
-59:23 2003
-+++ linux-2.4.20-nfsub3003-tftp-amanda/Documentation/Configure.help	Sun Mar=
- 30 22:06:17 2003
-@@ -2508,6 +2508,19 @@
-   If you want to compile it as a module, say M here and read
-   <file:Documentation/modules.txt>.  If unsure, say `N'.
-=20
-+Amanda protocol support
-+CONFIG_IP_NF_AMANDA
-+  If you are running the Amanda backup package (http://www.amanda.org/)
-+  on this machine or machines that will be MASQUERADED through this
-+  machine, then you may want to enable this feature.  This allows the
-+  connection tracking and natting code to allow the sub-channels that
-+  Amanda requires for communication of the backup data, messages and
-+  index.
-+
-+  If you want to compile it as a module, say M here and read
-+  Documentation/modules.txt.  If unsure, say `N'.
-+
-+
- IRC Send/Chat protocol support
- CONFIG_IP_NF_IRC
-   There is a commonly-used extension to IRC called
-diff -Nru linux-2.4.20-nfsub3003-tftp/include/linux/netfilter_ipv4/ip_connt=
-rack.h linux-2.4.20-nfsub3003-tftp-amanda/include/linux/netfilter_ipv4/ip_c=
-onntrack.h
---- linux-2.4.20-nfsub3003-tftp/include/linux/netfilter_ipv4/ip_conntrack.h=
-	Sun Mar 30 21:57:37 2003
-+++ linux-2.4.20-nfsub3003-tftp-amanda/include/linux/netfilter_ipv4/ip_conn=
-track.h	Sun Mar 30 22:06:17 2003
-@@ -63,12 +63,15 @@
- };
-=20
- /* Add protocol helper include file here */
-+#include <linux/netfilter_ipv4/ip_conntrack_amanda.h>
-+
- #include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_irc.h>
-=20
- /* per expectation: application helper private data */
- union ip_conntrack_expect_help {
- 	/* insert conntrack helper private data (expect) here */
-+	struct ip_ct_amanda_expect exp_amanda_info;
- 	struct ip_ct_ftp_expect exp_ftp_info;
- 	struct ip_ct_irc_expect exp_irc_info;
-=20
-diff -Nru linux-2.4.20-nfsub3003-tftp/include/linux/netfilter_ipv4/ip_connt=
-rack_amanda.h linux-2.4.20-nfsub3003-tftp-amanda/include/linux/netfilter_ip=
-v4/ip_conntrack_amanda.h
---- linux-2.4.20-nfsub3003-tftp/include/linux/netfilter_ipv4/ip_conntrack_a=
-manda.h	Thu Jan  1 01:00:00 1970
-+++ linux-2.4.20-nfsub3003-tftp-amanda/include/linux/netfilter_ipv4/ip_conn=
-track_amanda.h	Sun Mar 30 22:06:17 2003
-@@ -0,0 +1,29 @@
-+#ifndef _IP_CONNTRACK_AMANDA_H
-+#define _IP_CONNTRACK_AMANDA_H
-+/* AMANDA tracking. */
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/netfilter_ipv4/lockhelp.h>
-+
-+/* Protects amanda part of conntracks */
-+DECLARE_LOCK_EXTERN(ip_amanda_lock);
-+
-+#endif
-+
-+struct conn {
-+	char* match;
-+	int matchlen;
-+};
-+
-+#define NUM_MSGS 	3
-+
-+
-+struct ip_ct_amanda_expect
-+{
-+	u_int16_t port;		/* port number of this expectation */
-+	u_int16_t offset;	/* offset of the port specification in ctrl packet */
-+	u_int16_t len;		/* the length of the port number specification */
-+};
-+
-+#endif /* _IP_CONNTRACK_AMANDA_H */
-diff -Nru linux-2.4.20-nfsub3003-tftp/net/ipv4/netfilter/Config.in linux-2.=
-4.20-nfsub3003-tftp-amanda/net/ipv4/netfilter/Config.in
---- linux-2.4.20-nfsub3003-tftp/net/ipv4/netfilter/Config.in	Sun Mar 30 21:=
-59:23 2003
-+++ linux-2.4.20-nfsub3003-tftp-amanda/net/ipv4/netfilter/Config.in	Sun Mar=
- 30 22:06:17 2003
-@@ -7,6 +7,7 @@
- tristate 'Connection tracking (required for masq/NAT)' CONFIG_IP_NF_CONNTR=
-ACK
- if [ "$CONFIG_IP_NF_CONNTRACK" !=3D "n" ]; then
-   dep_tristate '  FTP protocol support' CONFIG_IP_NF_FTP $CONFIG_IP_NF_CON=
-NTRACK
-+  dep_tristate '  Amanda protocol support' CONFIG_IP_NF_AMANDA $CONFIG_IP_=
-NF_CONNTRACK
-   dep_tristate '  TFTP protocol support' CONFIG_IP_NF_TFTP $CONFIG_IP_NF_C=
-ONNTRACK
-   dep_tristate '  IRC protocol support' CONFIG_IP_NF_IRC $CONFIG_IP_NF_CON=
-NTRACK
- fi
-@@ -57,6 +58,13 @@
-       define_bool CONFIG_IP_NF_NAT_NEEDED y
-       dep_tristate '    MASQUERADE target support' CONFIG_IP_NF_TARGET_MAS=
-QUERADE $CONFIG_IP_NF_NAT
-       dep_tristate '    REDIRECT target support' CONFIG_IP_NF_TARGET_REDIR=
-ECT $CONFIG_IP_NF_NAT
-+      if [ "$CONFIG_IP_NF_AMANDA" =3D "m" ]; then
-+        define_tristate CONFIG_IP_NF_NAT_AMANDA m
-+      else
-+        if [ "$CONFIG_IP_NF_AMANDA" =3D "y" ]; then
-+          define_tristate CONFIG_IP_NF_NAT_AMANDA $CONFIG_IP_NF_NAT
-+        fi
-+      fi
-       bool '    NAT of local connections (READ HELP)' CONFIG_IP_NF_NAT_LOC=
-AL
-       if [ "$CONFIG_EXPERIMENTAL" =3D "y" ]; then
-         dep_tristate '    Basic SNMP-ALG support (EXPERIMENTAL)' CONFIG_IP=
-_NF_NAT_SNMP_BASIC $CONFIG_IP_NF_NAT
-diff -Nru linux-2.4.20-nfsub3003-tftp/net/ipv4/netfilter/Makefile linux-2.4=
-.20-nfsub3003-tftp-amanda/net/ipv4/netfilter/Makefile
---- linux-2.4.20-nfsub3003-tftp/net/ipv4/netfilter/Makefile	Sun Mar 30 21:5=
-9:23 2003
-+++ linux-2.4.20-nfsub3003-tftp-amanda/net/ipv4/netfilter/Makefile	Sun Mar =
-30 22:06:17 2003
-@@ -31,6 +31,14 @@
- # connection tracking
- obj-$(CONFIG_IP_NF_CONNTRACK) +=3D ip_conntrack.o
-=20
-+# Amanda protocol support
-+obj-$(CONFIG_IP_NF_AMANDA) +=3D ip_conntrack_amanda.o
-+obj-$(CONFIG_IP_NF_NAT_AMANDA) +=3D ip_nat_amanda.o
-+ifdef CONFIG_IP_NF_NAT_AMANDA
-+	export-objs +=3D ip_conntrack_amanda.o
-+endif
-+
-+
- # connection tracking helpers
- obj-$(CONFIG_IP_NF_TFTP) +=3D ip_conntrack_tftp.o
- obj-$(CONFIG_IP_NF_FTP) +=3D ip_conntrack_ftp.o
-diff -Nru linux-2.4.20-nfsub3003-tftp/net/ipv4/netfilter/ip_conntrack_amand=
-a.c linux-2.4.20-nfsub3003-tftp-amanda/net/ipv4/netfilter/ip_conntrack_aman=
-da.c
---- linux-2.4.20-nfsub3003-tftp/net/ipv4/netfilter/ip_conntrack_amanda.c	Th=
-u Jan  1 01:00:00 1970
-+++ linux-2.4.20-nfsub3003-tftp-amanda/net/ipv4/netfilter/ip_conntrack_aman=
-da.c	Sun Mar 30 22:06:17 2003
-@@ -0,0 +1,233 @@
-+/* Amanda extension for IP connection tracking, Version 0.2
-+ * (C) 2002 by Brian J. Murrell <netfilter@interlinx.bc.ca>
-+ * based on HW's ip_conntrack_irc.c as well as other modules
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ *
-+ *	Module load syntax:
-+ * 	insmod ip_conntrack_amanda.o [master_timeout=3Dn]
-+ *=09
-+ *	Where master_timeout is the timeout (in seconds) of the master
-+ *	connection (port 10080).  This defaults to 5 minutes but if
-+ *	your clients take longer than 5 minutes to do their work
-+ *	before getting back to the Amanda server, you can increase
-+ *	this value.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/netfilter.h>
-+#include <linux/ip.h>
-+#include <net/checksum.h>
-+#include <net/udp.h>
-+
-+#include <linux/netfilter_ipv4/lockhelp.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_helper.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_amanda.h>
-+
-+static unsigned int master_timeout =3D 300;
-+
-+MODULE_AUTHOR("Brian J. Murrell <netfilter@interlinx.bc.ca>");
-+MODULE_DESCRIPTION("Amanda connection tracking module");
-+MODULE_LICENSE("GPL");
-+MODULE_PARM(master_timeout, "i");
-+MODULE_PARM_DESC(master_timeout, "timeout for the master connection");
-+
-+DECLARE_LOCK(ip_amanda_lock);
-+struct module *ip_conntrack_amanda =3D THIS_MODULE;
-+
-+#define MAXMATCHLEN	6
-+struct conn conns[NUM_MSGS] =3D {
-+	{"DATA ", 5},
-+	{"MESG ", 5},
-+	{"INDEX ", 6},
-+};
-+
-+#if 0
-+#define DEBUGP printk
-+#else
-+#define DEBUGP(format, args...)
-+#endif
-+
-+
-+/* FIXME: This should be in userspace.  Later. */
-+static int help(const struct iphdr *iph, size_t len,
-+		struct ip_conntrack *ct, enum ip_conntrack_info ctinfo)
-+{
-+	struct udphdr *udph =3D (void *)iph + iph->ihl * 4;
-+	u_int32_t udplen =3D len - iph->ihl * 4;
-+	u_int32_t datalen =3D udplen - sizeof(struct udphdr);
-+	char *data =3D (char *)udph + sizeof(struct udphdr);
-+	char *datap =3D data;
-+	char *data_limit =3D (char *) data + datalen;
-+	int dir =3D CTINFO2DIR(ctinfo);
-+	struct ip_ct_amanda *info =3D
-+				(struct ip_ct_amanda *)&ct->help.ct_ftp_info;
-+
-+	/* Can't track connections formed before we registered */
-+	if (!info)
-+		return NF_ACCEPT;
-+
-+	/* increase the UDP timeout of the master connection as replies from
-+	 * Amanda clients to the server can be quite delayed */
-+	ip_ct_refresh(ct, master_timeout * HZ);
-+
-+	/* If packet is coming from Amanda server */
-+	if (dir =3D=3D IP_CT_DIR_ORIGINAL)
-+		return NF_ACCEPT;
-+
-+	/* Not whole UDP header? */
-+	if (udplen < sizeof(struct udphdr)) {
-+		printk("ip_conntrack_amanda_help: udplen =3D %u\n",
-+		       (unsigned)udplen);
-+		return NF_ACCEPT;
-+	}
-+
-+	/* Checksum invalid?  Ignore. */
-+	if (csum_tcpudp_magic(iph->saddr, iph->daddr, udplen, IPPROTO_UDP,
-+			      csum_partial((char *)udph, udplen, 0))) {
-+		DEBUGP("ip_ct_talk_help: bad csum: %p %u %u.%u.%u.%u "
-+		       "%u.%u.%u.%u\n",
-+		       udph, udplen, NIPQUAD(iph->saddr),
-+		       NIPQUAD(iph->daddr));
-+		return NF_ACCEPT;
-+	}
-+=09
-+	/* Search for the CONNECT string */
-+	while (data < data_limit) {
-+		if (!memcmp(data, "CONNECT ", 8)) {
-+			break;
-+		}
-+		data++;
-+	}
-+	if (memcmp(data, "CONNECT ", 8))
-+		return NF_ACCEPT;
-+
-+	DEBUGP("ip_conntrack_amanda_help: CONNECT found in connection "
-+		   "%u.%u.%u.%u:%u %u.%u.%u.%u:%u\n",
-+		   NIPQUAD(iph->saddr), htons(udph->source),
-+		   NIPQUAD(iph->daddr), htons(udph->dest));
-+	data +=3D 8;
-+	while (*data !=3D 0x0a && data < data_limit) {
-+
-+		int i;
-+
-+		for (i =3D 0; i < NUM_MSGS; i++) {
-+			if (!memcmp(data, conns[i].match,
-+				   conns[i].matchlen)) {
-+
-+				char *portchr;
-+				struct ip_conntrack_expect expect;
-+				struct ip_ct_amanda_expect
-+				    *exp_amanda_info =3D
-+					&expect.help.exp_amanda_info;
-+
-+				memset(&expect, 0, sizeof(expect));
-+
-+				data +=3D conns[i].matchlen;
-+				/* this is not really tcp, but let's steal an
-+				 * idea from a tcp stream helper :-)
-+				 */
-+				// XXX expect.seq =3D data - datap;
-+				exp_amanda_info->offset =3D data - datap;
-+// XXX DEBUGP("expect.seq =3D %p - %p =3D %d\n", data, datap, expect.seq);
-+DEBUGP("exp_amanda_info->offset =3D %p - %p =3D %d\n", data, datap, exp_am=
-anda_info->offset);
-+				portchr =3D data;
-+				exp_amanda_info->port =3D
-+				    simple_strtoul(data, &data, 10);
-+				exp_amanda_info->len =3D data - portchr;
-+
-+				/* eat whitespace */
-+				while (*data =3D=3D ' ')
-+					data++;
-+				DEBUGP ("ip_conntrack_amanda_help: "
-+					"CONNECT %s request with port "
-+					"%u found\n", conns[i].match,
-+					exp_amanda_info->port);
-+
-+				LOCK_BH(&ip_amanda_lock);
-+
-+				expect.tuple =3D ((struct ip_conntrack_tuple)
-+						{ { ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip,
-+						  { 0 } },
-+				  		{ ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip,
-+						  { htons(exp_amanda_info->port) },
-+				    	  IPPROTO_TCP }});
-+				expect.mask =3D ((struct ip_conntrack_tuple)
-+							   { { 0, { 0 } },
-+				  				 { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
-+
-+				expect.expectfn =3D NULL;
-+
-+				DEBUGP ("ip_conntrack_amanda_help: "
-+					"expect_related: %u.%u.%u.%u:%u - "
-+					"%u.%u.%u.%u:%u\n",
-+					NIPQUAD(expect.tuple.src.ip),
-+					ntohs(expect.tuple.src.u.tcp.port),
-+					NIPQUAD(expect.tuple.dst.ip),
-+					ntohs(expect.tuple.dst.u.tcp.port));
-+				if (ip_conntrack_expect_related(ct, &expect) =3D=3D
-+				    -EEXIST) {
-+					;
-+					/* this must be a packet being resent */
-+					/* XXX - how do I get the
-+					 *       ip_conntrack_expect that
-+					 *       already exists so that I can
-+					 *       update the .seq so that the
-+					 *       nat module rewrites the port
-+					 *       numbers?
-+					 *       Perhaps I should use the
-+					 *       exp_amanda_info instead of
-+					 *       .seq.
-+					 */
-+				}
-+				UNLOCK_BH(&ip_amanda_lock);
-+			} /* if memcmp(conns) */
-+		} /* for .. NUM_MSGS */
-+		data++;
-+	} /* while (*data !=3D 0x0a && data < data_limit) */
-+
-+	return NF_ACCEPT;
-+}
-+
-+static struct ip_conntrack_helper amanda_helper;
-+
-+static void fini(void)
-+{
-+	DEBUGP("ip_ct_amanda: unregistering helper for port 10080\n");
-+	ip_conntrack_helper_unregister(&amanda_helper);
-+}
-+
-+static int __init init(void)
-+{
-+	int ret;
-+
-+	memset(&amanda_helper, 0, sizeof(struct ip_conntrack_helper));
-+	amanda_helper.tuple.src.u.udp.port =3D htons(10080);
-+	amanda_helper.tuple.dst.protonum =3D IPPROTO_UDP;
-+	amanda_helper.mask.src.u.udp.port =3D 0xFFFF;
-+	amanda_helper.mask.dst.protonum =3D 0xFFFF;
-+	amanda_helper.max_expected =3D NUM_MSGS;
-+	amanda_helper.timeout =3D 180;
-+	amanda_helper.flags =3D IP_CT_HELPER_F_REUSE_EXPECT;
-+	amanda_helper.me =3D ip_conntrack_amanda;
-+	amanda_helper.help =3D help;
-+	amanda_helper.name =3D "amanda";
-+
-+	DEBUGP("ip_ct_amanda: registering helper for port 10080\n");
-+
-+	ret =3D ip_conntrack_helper_register(&amanda_helper);
-+
-+	if (ret) {
-+		printk("ip_ct_amanda: ERROR registering helper\n");
-+		fini();
-+		return -EBUSY;
-+	}
-+	return 0;
-+}
-+
-+module_init(init);
-+module_exit(fini);
-diff -Nru linux-2.4.20-nfsub3003-tftp/net/ipv4/netfilter/ip_nat_amanda.c li=
-nux-2.4.20-nfsub3003-tftp-amanda/net/ipv4/netfilter/ip_nat_amanda.c
---- linux-2.4.20-nfsub3003-tftp/net/ipv4/netfilter/ip_nat_amanda.c	Thu Jan =
- 1 01:00:00 1970
-+++ linux-2.4.20-nfsub3003-tftp-amanda/net/ipv4/netfilter/ip_nat_amanda.c	S=
-un Mar 30 22:06:17 2003
-@@ -0,0 +1,226 @@
-+/* Amanda extension for TCP NAT alteration.
-+ * (C) 2002 by Brian J. Murrell <netfilter@interlinx.bc.ca>
-+ * based on a copy of HW's ip_nat_irc.c as well as other modules
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ *
-+ *	Module load syntax:
-+ * 	insmod ip_nat_amanda.o
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/netfilter_ipv4.h>
-+#include <linux/ip.h>
-+#include <linux/udp.h>
-+#include <linux/kernel.h>
-+#include <net/tcp.h>
-+#include <net/udp.h>
-+
-+#include <linux/netfilter_ipv4/ip_nat.h>
-+#include <linux/netfilter_ipv4/ip_nat_helper.h>
-+#include <linux/netfilter_ipv4/ip_nat_rule.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_helper.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_amanda.h>
-+
-+
-+#if 0
-+#define DEBUGP printk
-+#define DUMP_OFFSET(x)	printk("offset_before=3D%d, offset_after=3D%d, corr=
-ection_pos=3D%u\n", x->offset_before, x->offset_after, x->correction_pos);
-+#else
-+#define DEBUGP(format, args...)
-+#define DUMP_OFFSET(x)
-+#endif
-+
-+MODULE_AUTHOR("Brian J. Murrell <netfilter@interlinx.bc.ca>");
-+MODULE_DESCRIPTION("Amanda network address translation module");
-+MODULE_LICENSE("GPL");
-+
-+/* protects amanda part of conntracks */
-+DECLARE_LOCK_EXTERN(ip_amanda_lock);
-+
-+static unsigned int
-+amanda_nat_expected(struct sk_buff **pskb,
-+		 unsigned int hooknum,
-+		 struct ip_conntrack *ct,
-+		 struct ip_nat_info *info)
-+{
-+	struct ip_nat_multi_range mr;
-+	u_int32_t newdstip, newsrcip, newip;
-+	u_int16_t port;
-+	struct ip_ct_amanda_expect *exp_info;
-+	struct ip_conntrack *master =3D master_ct(ct);
-+
-+	IP_NF_ASSERT(info);
-+	IP_NF_ASSERT(master);
-+
-+	IP_NF_ASSERT(!(info->initialized & (1 << HOOK2MANIP(hooknum))));
-+
-+	DEBUGP("nat_expected: We have a connection!\n");
-+	exp_info =3D &ct->master->help.exp_amanda_info;
-+
-+	newdstip =3D ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip;
-+	newsrcip =3D master->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip;
-+	DEBUGP("nat_expected: %u.%u.%u.%u->%u.%u.%u.%u\n",
-+	       NIPQUAD(newsrcip), NIPQUAD(newdstip));
-+
-+	port =3D exp_info->port;
-+
-+	if (HOOK2MANIP(hooknum) =3D=3D IP_NAT_MANIP_SRC)
-+		newip =3D newsrcip;
-+	else
-+		newip =3D newdstip;
-+
-+	DEBUGP("nat_expected: IP to %u.%u.%u.%u\n", NIPQUAD(newip));
-+
-+	mr.rangesize =3D 1;
-+	/* We don't want to manip the per-protocol, just the IPs. */
-+	mr.range[0].flags =3D IP_NAT_RANGE_MAP_IPS;
-+	mr.range[0].min_ip =3D mr.range[0].max_ip =3D newip;
-+
-+	if (HOOK2MANIP(hooknum) =3D=3D IP_NAT_MANIP_DST) {
-+		mr.range[0].flags |=3D IP_NAT_RANGE_PROTO_SPECIFIED;
-+		mr.range[0].min =3D mr.range[0].max
-+			=3D ((union ip_conntrack_manip_proto)
-+				{ htons(port) });
-+	}
-+
-+	return ip_nat_setup_info(ct, &mr, hooknum);
-+}
-+
-+static int amanda_data_fixup(struct ip_conntrack *ct,
-+			  struct sk_buff **pskb,
-+			  enum ip_conntrack_info ctinfo,
-+			  struct ip_conntrack_expect *expect)
-+{
-+	u_int32_t newip;
-+	/* DATA 99999 MESG 99999 INDEX 99999 */
-+	char buffer[6];
-+	struct ip_conntrack_expect *exp =3D expect;
-+	struct ip_ct_amanda_expect *ct_amanda_info =3D &exp->help.exp_amanda_info;
-+	struct ip_conntrack_tuple t =3D exp->tuple;
-+	int port;
-+
-+	MUST_BE_LOCKED(&ip_amanda_lock);
-+
-+	newip =3D ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
-+	DEBUGP ("ip_nat_amanda_help: newip =3D %u.%u.%u.%u\n", NIPQUAD(newip));
-+
-+	/* Alter conntrack's expectations. */
-+
-+	/* We can read expect here without conntrack lock, since it's
-+	   only set in ip_conntrack_amanda, with ip_amanda_lock held
-+	   writable */
-+
-+	t.dst.ip =3D newip;
-+	for (port =3D ct_amanda_info->port + 10; port !=3D 0; port++) {
-+		t.dst.u.tcp.port =3D htons(port);
-+		if (ip_conntrack_change_expect(exp, &t) =3D=3D 0)
-+			break;
-+	}
-+
-+	if (port =3D=3D 0)
-+		return 0;
-+
-+	sprintf(buffer, "%u", port);
-+
-+	return ip_nat_mangle_udp_packet(pskb, ct, ctinfo, /* XXX exp->seq */ ct_a=
-manda_info->offset,=20
-+					ct_amanda_info->len, buffer, strlen(buffer));
-+}
-+
-+static unsigned int help(struct ip_conntrack *ct,
-+			 struct ip_conntrack_expect *exp,
-+			 struct ip_nat_info *info,
-+			 enum ip_conntrack_info ctinfo,
-+			 unsigned int hooknum,
-+			 struct sk_buff **pskb)
-+{
-+	int dir;
-+
-+	if (!exp)
-+		DEBUGP("ip_nat_amanda: no exp!!");
-+	=09
-+	/* Only mangle things once: original direction in POST_ROUTING
-+	   and reply direction on PRE_ROUTING. */
-+	dir =3D CTINFO2DIR(ctinfo);
-+	if (!((hooknum =3D=3D NF_IP_POST_ROUTING && dir =3D=3D IP_CT_DIR_ORIGINAL)
-+	      || (hooknum =3D=3D NF_IP_PRE_ROUTING && dir =3D=3D IP_CT_DIR_REPLY)=
-)) {
-+		DEBUGP("ip_nat_amanda_help: Not touching dir %s at hook %s\n",
-+		       dir =3D=3D IP_CT_DIR_ORIGINAL ? "ORIG" : "REPLY",
-+		       hooknum =3D=3D NF_IP_POST_ROUTING ? "POSTROUTING"
-+		       : hooknum =3D=3D NF_IP_PRE_ROUTING ? "PREROUTING"
-+		       : hooknum =3D=3D NF_IP_LOCAL_OUT ? "OUTPUT"
-+		       : hooknum =3D=3D NF_IP_LOCAL_IN ? "INPUT" : "???");
-+		return NF_ACCEPT;
-+	}
-+	DEBUGP("ip_nat_amanda_help: got beyond not touching: dir %s at hook %s fo=
-r expect: ",
-+		   dir =3D=3D IP_CT_DIR_ORIGINAL ? "ORIG" : "REPLY",
-+		   hooknum =3D=3D NF_IP_POST_ROUTING ? "POSTROUTING"
-+		   : hooknum =3D=3D NF_IP_PRE_ROUTING ? "PREROUTING"
-+		     : hooknum =3D=3D NF_IP_LOCAL_OUT ? "OUTPUT"
-+		       : hooknum =3D=3D NF_IP_LOCAL_IN ? "INPUT" : "???");
-+	DUMP_TUPLE(&exp->tuple);
-+
-+	LOCK_BH(&ip_amanda_lock);
-+// XXX	if (exp->seq !=3D 0)
-+	if (exp->help.exp_amanda_info.offset !=3D 0)
-+		/*  if this packet has a "seq" it needs to have it's content mangled */
-+		if (!amanda_data_fixup(ct, pskb, ctinfo, exp)) {
-+			UNLOCK_BH(&ip_amanda_lock);
-+			DEBUGP("ip_nat_amanda: NF_DROP\n");
-+			return NF_DROP;
-+		}
-+	exp->help.exp_amanda_info.offset =3D 0;
-+	UNLOCK_BH(&ip_amanda_lock);
-+
-+	DEBUGP("ip_nat_amanda: NF_ACCEPT\n");
-+	return NF_ACCEPT;
-+}
-+
-+static struct ip_nat_helper ip_nat_amanda_helper;
-+
-+/* This function is intentionally _NOT_ defined as  __exit, because
-+ * it is needed by init() */
-+static void fini(void)
-+{
-+	DEBUGP("ip_nat_amanda: unregistering nat helper\n");
-+	ip_nat_helper_unregister(&ip_nat_amanda_helper);
-+}
-+
-+static int __init init(void)
-+{
-+	int ret =3D 0;
-+	struct ip_nat_helper *hlpr;
-+
-+	hlpr =3D &ip_nat_amanda_helper;
-+	memset(hlpr, 0, sizeof(struct ip_nat_helper));
-+
-+	hlpr->tuple.dst.protonum =3D IPPROTO_UDP;
-+	hlpr->tuple.src.u.udp.port =3D htons(10080);
-+	hlpr->mask.src.u.udp.port =3D 0xFFFF;
-+	hlpr->mask.dst.protonum =3D 0xFFFF;
-+	hlpr->help =3D help;
-+	hlpr->flags =3D 0;
-+	hlpr->me =3D THIS_MODULE;
-+	hlpr->expect =3D amanda_nat_expected;
-+
-+	hlpr->name =3D "amanda";
-+
-+	DEBUGP
-+	    ("ip_nat_amanda: Trying to register nat helper\n");
-+	ret =3D ip_nat_helper_register(hlpr);
-+
-+	if (ret) {
-+		printk
-+		    ("ip_nat_amanda: error registering nat helper\n");
-+		fini();
-+		return 1;
-+	}
-+	return ret;
-+}
-+
-+
-+module_init(init);
-+module_exit(fini);
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---JVTyp1F/hrbhzAAs
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+h06WXaXGVTD0i/8RAhhhAJwM3+3aejBblDeFbDhsRpDr0kY9CgCfYZLd
-sxpZ8ak0b9TVmtjJkUSpX3M=
-=wlu7
------END PGP SIGNATURE-----
-
---JVTyp1F/hrbhzAAs--
+------=_NextPart_000_006D_01C2F768.AF3C76B0--
