@@ -1,15 +1,16 @@
-From: Jonathan Cooper <netfilter@jonc.me.uk>
-Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
-Date: Fri, 12 Mar 2004 11:39:14 +0000
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Re: connection destruction question
+Date: Fri, 12 Mar 2004 14:58:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040312113914.GB1859@finarfin.cooper.xfnet>
-References: <20040311160401.GA1565@finarfin.cooper.xfnet> <20040311165037.GA1615@finarfin.cooper.xfnet> <20040311211725.GA11634@sch.bme.hu>
+Message-ID: <4051B401.3070005@netlab.hut.fi>
+References: <200403112155.i2BLt8Er012209@sirius.cs.pdx.edu>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20040311211725.GA11634@sch.bme.hu>
+To: Kristen Carlson <kristenc@cs.pdx.edu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +21,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-* Kovacs Krisztian <piglet@sch.bme.hu> [2004-03-12 00:04]:
->   Could you try turning CONFIG_IP_NF_NAT_LOCAL on?
+Hi!
 
-I've just tried this, and find I can now fetch pages via the masqueraded
-interface from the machine itself, with no occurrences of LIST_DELETE
-messages. Fetching pages from my other computer on the masqueraded
-network also works.
+No, you're not insane: you need the patch. I'm not sure it's available 
+for 2.4.18, but at least it is for 2.4.23 (as it is what I use).
 
-So this seems to fix the problem. I'll keep the kernel running with debug
-on for a bit just in case.
+          Emmanuel
 
-Jonathan.
 
--- 
-Jonathan Cooper        MSN: msn@jonc.me.uk        jonc.me.uk/
 
-A clear concience is usually the sign of a bad memory.
+Kristen Carlson wrote:
+
+>>Hi!
+>>
+>>Did you take a look at the events used in nf_conntrack?
+>>I had a similar problem and I solved it that way. You may have to define 
+>>a new event (in ip_conntrack.h), or may not, I don't remember if it's 
+>>already included. if you have to use a new event, you can send it with 
+>>the ip_conntrack_cache_event() function.
+>>    
+>>
+>
+>
+>	Hum, I don't see any such thing in my kernel version.  I'm using
+>a kernel for an embedded system, so it isn't straight forward for me to 
+>upgrade.  I should have specified: on 2.4.18.  Unless I am insane and 
+>this is really somewhere I didn't grep properly.  I didn't see it in
+>net/ipv4/netfilter or include/linux/netfilter_ipv4.
+>  
+>
