@@ -1,12 +1,17 @@
-From: Jimmy Hedman <jimmy.hedman@southpole.se>
-Subject: Patch for ULOG save
-Date: 13 Sep 2002 17:21:49 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: sparc64 ipv6 ip6tables nogo
+Date: Sun, 15 Sep 2002 13:12:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1031930509.1663.8.camel@goofy>
+Message-ID: <20020915131217.F3810@sunbeam.de.gnumonks.org>
+References: <20020912155314.GA20741@paradigm.rfc822.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-5VSfET8eu4g+whx3c1Rl"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DTbNwtYx2n+Gggn7"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Florian Lohoff <flo@rfc822.org>
+Content-Disposition: inline
+In-Reply-To: <20020912155314.GA20741@paradigm.rfc822.org>; from flo@rfc822.org on Thu, Sep 12, 2002 at 05:53:14PM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,58 +23,64 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-5VSfET8eu4g+whx3c1Rl
-Content-Type: text/plain; charset=ISO-8859-1
+--DTbNwtYx2n+Gggn7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-i found that ULOG target doesn't get saved right when doing a
-iptables-save so i created a small patch for it. The problem was that it
-wasn't putting "'s around ulog-prefix arguments.
-Patch attached is against 1.2.7a but the cvs tree seem to have the same
-problem.
+On Thu, Sep 12, 2002 at 05:53:14PM +0200, Florian Lohoff wrote:
+>=20
+> Hi,
+> i seem to have been hit by a ip6tables problem on sparc64 - It seems
+> that there are some hidden 64bit kernel / 32 bit userspace problems
+> somewhere in netfilter (Same happened with tunnel ioctls on sparc64)
 
-I don't subscribe to the developer mailinglist so if you answer, please
-cc: me.
+There are known 64bit kernel/ 32bit userspace problems, which affect the
+byte/packet counters in iptables/ip6tables.  I've tried to fix this,
+but unfortunately didn't succeed.  See the mailinglist archives for this.
 
-// Jimmy
+The ip6tables problem you have reported was unknown so far.  I can reproduce
+this problem on my Ultra5 running 2.4.18.  But it certainly has no relation
+to any 64/32 kernel/usrspace, since there is no userspace involved when
+ip6table_filter registers with ip6_tables.
 
+What really is surprising is the fact that ip_tables work and ip6_tables
+doesn't - and ip6_tables is a copy+paste 'port'...
 
-Patch:
---- extensions/libipt_ULOG.c.old	2002-09-13 17:12:11 +0200
-+++ extensions/libipt_ULOG.c	2002-09-13 17:12:34 +0200
-@@ -157,7 +157,7 @@
- 	    =3D (const struct ipt_ulog_info *) target->data;
-=20
- 	if (strcmp(loginfo->prefix, "") !=3D 0)
--		printf("--ulog-prefix %s ", loginfo->prefix);
-+		printf("--ulog-prefix \"%s\" ", loginfo->prefix);
-=20
- 	if (loginfo->nl_group !=3D ULOG_DEFAULT_NLGROUP) {
- 		printf("--ulog-nlgroup ");
+I've tried to debug the problem, and the EINVAL comes from=20
+check_entry_size_and_hooks() in ip6_tables.c:
 
+translate_table: size 856
+Bad offset 000000014002e074
+
+Unfortunately I don't have the time to dig further right now.  I will
+put it on the TODO list.=20
+
+> Flo
+> PS: I am not subscribed to netfilter-devel
 
 --=20
-Jimmy Hedman                       South Pole AB
-Phone:  +46 8 51420420             Gelbjutarv=E4gen 5
-Fax:    +46 8 51420429             SE - 17148 Solna=20
-e-mail: jimmy.hedman@southpole.se  www.southpole.se
-
---=-5VSfET8eu4g+whx3c1Rl
-Content-Disposition: attachment; filename=patch
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; name=patch; charset=ISO-8859-1
-
---- extensions/libipt_ULOG.c.old	2002-09-13 17:12:11.000000000 +0200
-+++ extensions/libipt_ULOG.c	2002-09-13 17:12:34.000000000 +0200
-@@ -157,7 +157,7 @@
- 	    =3D (const struct ipt_ulog_info *) target->data;
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
- 	if (strcmp(loginfo->prefix, "") !=3D 0)
--		printf("--ulog-prefix %s ", loginfo->prefix);
-+		printf("--ulog-prefix \"%s\" ", loginfo->prefix);
-=20
- 	if (loginfo->nl_group !=3D ULOG_DEFAULT_NLGROUP) {
- 		printf("--ulog-nlgroup ");
+V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---=-5VSfET8eu4g+whx3c1Rl--
+--DTbNwtYx2n+Gggn7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9hGsMXaXGVTD0i/8RAraXAJ967+Q3pK7TcA7nVcmfvXixyw7WWgCglBH1
+vNkwFLhsvJvkbqN/SX3bmmQ=
+=PYZQ
+-----END PGP SIGNATURE-----
+
+--DTbNwtYx2n+Gggn7--
