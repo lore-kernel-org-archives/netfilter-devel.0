@@ -1,14 +1,15 @@
-From: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
-Subject: [PATCH] pptp_conntrack-nat: Fix compile errors DEBUGP() macro in
-	ip_nat_proto_gre.c and ip_nat_pptp.c,
-	fix typo in ip_conntrack_pptp.h
-Date: Sat, 26 Feb 2005 00:23:05 +0100
-Message-ID: <1268323301.20050226002305@stud.tue.nl>
-Reply-To: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
+From: Filip Sneppe <filip.sneppe@gmail.com>
+Subject: Re: Iptables Match on Direction (IP_CT_IS_REPLY)
+Date: Sun, 27 Feb 2005 21:37:38 +0100
+Message-ID: <9151ac2a05022712376c099fb4@mail.gmail.com>
+References: <20050226124304.13105.qmail@web90010.mail.scd.yahoo.com>
+Reply-To: Filip Sneppe <filip.sneppe@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+To: Peter Lenci <peterlenci@yahoo.ca>
+In-Reply-To: <20050226124304.13105.qmail@web90010.mail.scd.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,51 +21,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-3 small fixes:
-- Fixed compile errors in 2.6 DEBUGP() macro of  ip_nat_proto_gre.c and ip_nat_pptp.c
-- Fixed typo in ip_conntrack_pptp.h
+Hi Peter,
 
+On Sat, 26 Feb 2005 07:43:03 -0500 (EST), Peter Lenci
+<peterlenci@yahoo.ca> wrote:
+> Hi there
+> 
+> Is there a possibility to access flag IP_CT_IS_REPLY from an iptables
+> command?
+> 
+> I have only spotted the "--direction original|reply|both" option from
+> the connbytes patch
+> (http://www.netfilter.org/patch-o-matic/pom-extra.html#pom-extra-connbytes)
+> but then I would prefer not to waste memory by counting bytes.
+> 
 
+The "conntrack" match should do what you are looking for. From the help
+option:
 
-serveerstertje:/usr/src/netfilter-svn/patch-o-matic-ng# svn diff
-Index: pptp-conntrack-nat/linux/include/linux/netfilter_ipv4/ip_conntrack_pptp.h
-===================================================================
---- pptp-conntrack-nat/linux/include/linux/netfilter_ipv4/ip_conntrack_pptp.h   (revision 3742)
-+++ pptp-conntrack-nat/linux/include/linux/netfilter_ipv4/ip_conntrack_pptp.h   (working copy)
-@@ -54,7 +54,7 @@
-                 void                           *rawreq;
-                struct PptpStartSessionRequest  *sreq;
-                struct PptpStartSessionReply    *srep;
--               struct PptpStopSessionReqest    *streq;
-+               struct PptpStopSessionRequest   *streq;
-                struct PptpStopSessionReply     *strep;
-                 struct PptpOutCallRequest       *ocreq;
-                 struct PptpOutCallReply         *ocack;
-Index: pptp-conntrack-nat/linux-2.6/net/ipv4/netfilter/ip_nat_proto_gre.c
-===================================================================
---- pptp-conntrack-nat/linux-2.6/net/ipv4/netfilter/ip_nat_proto_gre.c  (revision 3742)
-+++ pptp-conntrack-nat/linux-2.6/net/ipv4/netfilter/ip_nat_proto_gre.c  (working copy)
-@@ -36,8 +36,7 @@
- MODULE_DESCRIPTION("Netfilter NAT protocol helper module for GRE");
+conntrack match v1.2.11 options:
+ [!] --ctstate [INVALID|ESTABLISHED|NEW|RELATED|UNTRACKED|SNAT|DNAT][,...]
+				State(s) to match
+ [!] --ctproto	proto		Protocol to match; by number or name, eg. `tcp'
+     --ctorigsrc  [!] address[/mask]
+				Original source specification
+     --ctorigdst  [!] address[/mask]
+				Original destination specification
+     --ctreplsrc  [!] address[/mask]
+				Reply source specification
+     --ctrepldst  [!] address[/mask]
+				Reply destination specification
+ [!] --ctstatus [NONE|EXPECTED|SEEN_REPLY|ASSURED|CONFIRMED][,...]
+				Status(es) to match
+ [!] --ctexpire time[:time]	Match remaining lifetime in seconds against
+				value or range of values (inclusive)
 
- #if 0
--#define DEBUGP(format, args...) printk(KERN_DEBUG __FILE__ ":" __FUNCTION__ \
--                                      ": " format, ## args)
-+#define DEBUGP(format, args...) printk(KERN_DEBUG "%s:%s: " format, __FILE__, __FUNCTION__, ## args)
- #else
- #define DEBUGP(x, args...)
- #endif
-Index: pptp-conntrack-nat/linux-2.6/net/ipv4/netfilter/ip_nat_pptp.c
-===================================================================
---- pptp-conntrack-nat/linux-2.6/net/ipv4/netfilter/ip_nat_pptp.c       (revision 3742)
-+++ pptp-conntrack-nat/linux-2.6/net/ipv4/netfilter/ip_nat_pptp.c       (working copy)
-@@ -56,8 +56,7 @@
-
- #if 0
- #include "ip_conntrack_pptp_priv.h"
--#define DEBUGP(format, args...) printk(KERN_DEBUG __FILE__ ":" __FUNCTION__ \
--                                      ": " format, ## args)
-+#define DEBUGP(format, args...) printk(KERN_DEBUG "%s:%s: " format, __FILE__, __FUNCTION__, ## args)
- #else
- #define DEBUGP(format, args...)
- #endif
+Regards,
+Filip
