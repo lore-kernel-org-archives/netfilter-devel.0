@@ -1,10 +1,11 @@
-From: Aaron Hopkins <lists@die.net>
-Subject: [PATCH] ipt_TARPIT
-Date: Sat, 30 Nov 2002 16:44:44 -0800 (PST)
+From: Luciano Ruete <kies@myrealbox.com>
+Subject: [PATCH] ipt_mask
+Date: Mon, 02 Dec 2002 15:02:52 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0211301639220.14832-100000@asherah.die.net>
+Message-ID: <3DEBA04C.7080606@myrealbox.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+ boundary="------------050604040408030504010007"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,439 +18,279 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-[ This is a resend.  The list appears to have eaten my post from last 
-  night, so I'm retrying as a subscriber. ]
+This is a multi-part message in MIME format.
+--------------050604040408030504010007
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On April 2, I submitted a patch to add --reject-with tcp-synack to the
-REJECT target.  It was suggested that this functionality was "antisocial",
-but that it would be accepted into patch-o-matic as a separate module.  I
-wrote such a module, put in production, then promptly forgot about it.
+Hi, i've made a netfilter match module called ipt_mask. Basically it 
+provides arbitrary mask syntax to do a match whit the destination address.
+ie:
 
-As I've recently received a few inquiries from people failing to understand
-how to build a new kernel with it, I thought I would try again to get it
-into the netfilter distribution.  The use of patch-o-matic would simplify
-things greatly for the people interested in it.
+iptables -m mask --mask 0x01,0x00 -j MARK --set-mark 6900
+iptables -m mask --mask 0x01,0x01 -j MARK --set-mark 6901
 
-Here's a patch against the current netfilter CVS tree.  The module itself
-has been well tested.  The patch-o-matic bits have only be tested enough to
-let me build a kernel.
+will logical AND the first parameter(and_mask) whit the daddress and 
+then compare the result whit the second parameter(cmpr_mask)
+As result it is MARKing whit 6900 the even daddress and whit 6901 the 
+odd daddress.
 
-This is also available from
-http://ftp.die.net/pub/linux-kernel-tarpit/netfilter-20021130-ipt_TARPIT.patch
-should it get mangled in e-mail.
+It works for me to do a dirty ;-) load balancing between to or more 
+providers.
 
-                                    -- Aaron
+I guess maybe can be usefull(?) to match broadcast address using ie:
+iptables -m mask --mask 0xF,0xF
 
----
 
-diff -urP netfilter/patch-o-matic/extra/ipt_TARPIT.patch netfilter-tarpit/patch-o-matic/extra/ipt_TARPIT.patch
---- netfilter/patch-o-matic/extra/ipt_TARPIT.patch	Wed Dec 31 16:00:00 1969
-+++ netfilter-tarpit/patch-o-matic/extra/ipt_TARPIT.patch	Sat Nov 30 02:03:46 2002
-@@ -0,0 +1,288 @@
-+diff -urP linux-2.4.18-18.7.x-orig/net/ipv4/netfilter/ipt_TARPIT.c linux-2.4.18-18.7.x/net/ipv4/netfilter/ipt_TARPIT.c
-+--- linux-2.4.18-18.7.x-orig/net/ipv4/netfilter/ipt_TARPIT.c	Wed Dec 31 16:00:00 1969
-++++ linux-2.4.18-18.7.x/net/ipv4/netfilter/ipt_TARPIT.c	Wed Nov 27 23:54:02 2002
-+@@ -0,0 +1,284 @@
-++/* 
-++ * Kernel module to capture and hold incoming TCP connections using 
-++ * no local per-connection resources.
-++ * 
-++ * Based on ipt_REJECT.c and offering functionality similar to 
-++ * LaBrea <http://www.hackbusters.net/LaBrea/>.
-++ * 
-++ * Copyright (c) 2002 Aaron Hopkins <tools@die.net>
-++ * 
-++ * This program is free software; you can redistribute it and/or modify
-++ * it under the terms of the GNU General Public License as published by
-++ * the Free Software Foundation; either version 2 of the License, or
-++ * (at your option) any later version.
-++ *
-++ * This program is distributed in the hope that it will be useful,
-++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-++ * GNU General Public License for more details.
-++ *
-++ * You should have received a copy of the GNU General Public License
-++ * along with this program; if not, write to the Free Software
-++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-++ * 
-++ * Goal:
-++ * - Allow incoming TCP connections to be established.
-++ * - Passing data should result in the connection being switched to the 
-++ *   persist state (0 byte window), in which the remote side stops sending 
-++ *   data and asks to continue every 60 seconds.
-++ * - Attempts to shut down the connection should be ignored completely, so 
-++ *   the remote side ends up having to time it out.
-++ *
-++ * This means:
-++ * - Reply to TCP SYN,!ACK,!RST,!FIN with SYN-ACK, window 5 bytes
-++ * - Reply to TCP SYN,ACK,!RST,!FIN with RST to prevent spoofing
-++ * - Reply to TCP !SYN,!RST,!FIN with ACK, window 0 bytes, rate-limited
-++ */
-++
-++#include <linux/config.h>
-++#include <linux/module.h>
-++#include <linux/skbuff.h>
-++#include <linux/ip.h>
-++#include <net/ip.h>
-++#include <net/tcp.h>
-++#include <net/icmp.h>
-++struct in_device;
-++#include <net/route.h>
-++#include <linux/random.h>
-++#include <linux/netfilter_ipv4/ip_tables.h>
-++
-++#if 0
-++#define DEBUGP printk
-++#else
-++#define DEBUGP(format, args...)
-++#endif
-++
-++
-++/* Stolen from ip_finish_output2 */
-++static int ip_direct_send(struct sk_buff *skb)
-++{
-++	struct dst_entry *dst = skb->dst;
-++	struct hh_cache *hh = dst->hh;
-++
-++	if (hh) {    
-++		read_lock_bh(&hh->hh_lock);
-++		memcpy(skb->data - 16, hh->hh_data, 16);
-++                read_unlock_bh(&hh->hh_lock);
-++                skb_push(skb, hh->hh_len);
-++                return hh->hh_output(skb);
-++        } else if (dst->neighbour)
-++                return dst->neighbour->output(skb);
-++
-++	if (net_ratelimit())
-++		printk(KERN_DEBUG "TARPIT ip_direct_send: no header cache and no neighbor!\n");
-++        kfree_skb(skb);
-++        return -EINVAL;
-++}
-++
-++
-++/* Send reply */
-++static void tarpit_tcp(struct sk_buff *oskb,struct rtable *ort,int local)
-++{
-++	struct sk_buff *nskb;
-++	struct rtable *nrt;
-++	struct tcphdr *otcph, *ntcph;
-++	unsigned int otcplen;
-++	u_int16_t tmp;
-++
-++	/* A truncated TCP header isn't going to be useful */
-++	if (oskb->len < (oskb->nh.iph->ihl*4) + sizeof(struct tcphdr))
-++		return;
-++
-++	otcph = (struct tcphdr *)((u_int32_t*)oskb->nh.iph 
-++                                  + oskb->nh.iph->ihl);
-++	otcplen = oskb->len - oskb->nh.iph->ihl*4;
-++
-++	/* No replies for RST or FIN */
-++	if (otcph->rst || otcph->fin)
-++		return;
-++
-++	/* No reply to !SYN,!ACK.  Rate-limit replies to !SYN,ACKs */
-++	if (!otcph->syn && (!otcph->ack || !xrlim_allow(&ort->u.dst, 1*HZ)))
-++		return;
-++
-++	/* Check checksum. */
-++	if (tcp_v4_check(otcph, otcplen, oskb->nh.iph->saddr,
-++			 oskb->nh.iph->daddr,
-++			 csum_partial((char *)otcph, otcplen, 0)) != 0)
-++		return;
-++
-++	/* Copy skb (even if skb is about to be dropped, we can't just
-++           clone it because there may be other things, such as tcpdump,
-++           interested in it) */
-++	nskb = skb_copy(oskb, GFP_ATOMIC);
-++	if (!nskb)
-++		return;
-++
-++	/* This packet will not be the same as the other: clear nf fields */
-++	nf_conntrack_put(nskb->nfct);
-++	nskb->nfct = NULL;
-++	nskb->nfcache = 0;
-++#ifdef CONFIG_NETFILTER_DEBUG
-++	nskb->nf_debug = 0;
-++#endif
-++
-++	ntcph = (struct tcphdr *)((u_int32_t*)nskb->nh.iph + nskb->nh.iph->ihl);
-++
-++	/* Truncate to length (no data) */
-++	ntcph->doff = sizeof(struct tcphdr)/4;
-++	skb_trim(nskb, nskb->nh.iph->ihl*4 + sizeof(struct tcphdr));
-++	nskb->nh.iph->tot_len = htons(nskb->len);
-++
-++	/* Swap source and dest */
-++	nskb->nh.iph->daddr = xchg(&nskb->nh.iph->saddr, nskb->nh.iph->daddr);
-++	tmp = ntcph->source;
-++	ntcph->source = ntcph->dest;
-++	ntcph->dest = tmp;
-++
-++	/* Use supplied sequence number or make a new one */
-++	ntcph->seq = otcph->ack ? otcph->ack_seq 
-++                     : htonl(secure_tcp_sequence_number(nskb->nh.iph->saddr, 
-++						        nskb->nh.iph->daddr, 
-++						        ntcph->source, 
-++			     			        ntcph->dest));
-++
-++	/* Our SYN-ACKs must have a >0 window */
-++	ntcph->window = (otcph->syn && !otcph->ack) ? htons(5) : 0;
-++
-++	ntcph->urg_ptr = 0;
-++
-++	/* Reset flags */
-++	((u_int8_t *)ntcph)[13] = 0;
-++
-++	if (otcph->syn && otcph->ack) {
-++		ntcph->rst = 1;
-++		ntcph->ack_seq = 0;
-++	} else {
-++		ntcph->syn = otcph->syn;
-++		ntcph->ack = 1;
-++		ntcph->ack_seq = htonl(ntohl(otcph->seq) + otcph->syn);
-++	}
-++
-++	/* Adjust TCP checksum */
-++	ntcph->check = 0;
-++	ntcph->check = tcp_v4_check(ntcph, sizeof(struct tcphdr),
-++				   nskb->nh.iph->saddr,
-++				   nskb->nh.iph->daddr,
-++				   csum_partial((char *)ntcph,
-++						sizeof(struct tcphdr), 0));
-++
-++	/* Adjust IP TTL */
-++	nskb->nh.iph->ttl = sysctl_ip_default_ttl;
-++
-++	/* Set DF, id = 0 */
-++	nskb->nh.iph->frag_off = htons(IP_DF);
-++	nskb->nh.iph->id = 0;
-++
-++	/* Adjust IP checksum */
-++	nskb->nh.iph->check = 0;
-++	nskb->nh.iph->check = ip_fast_csum((unsigned char *)nskb->nh.iph, 
-++					   nskb->nh.iph->ihl);
-++
-++	if (ip_route_output(&nrt, nskb->nh.iph->daddr, 
-++			    local ? nskb->nh.iph->saddr : 0,
-++			    RT_TOS(nskb->nh.iph->tos) | RTO_CONN, 
-++			    0) != 0)
-++		goto free_nskb;
-++
-++	dst_release(nskb->dst);
-++	nskb->dst = &nrt->u.dst;
-++
-++	/* "Never happens" */
-++	if (nskb->len > nskb->dst->pmtu)
-++		goto free_nskb;
-++
-++	ip_direct_send (nskb);
-++
-++	return;
-++
-++ free_nskb:
-++	kfree_skb(nskb);
-++}
-++
-++
-++static unsigned int tarpit(struct sk_buff **pskb,
-++			   unsigned int hooknum,
-++			   const struct net_device *in,
-++			   const struct net_device *out,
-++			   const void *targinfo,
-++			   void *userinfo)
-++{
-++	struct sk_buff *skb = *pskb;
-++	struct rtable *rt = (struct rtable*)skb->dst;
-++
-++	/* Do we have an input route cache entry? */
-++	if (!rt)
-++		return NF_DROP;
-++
-++        /* No replies to physical multicast/broadcast */
-++        if (skb->pkt_type != PACKET_HOST && skb->pkt_type != PACKET_OTHERHOST)
-++     		return NF_DROP;
-++
-++        /* Now check at the protocol level */
-++	if (rt->rt_flags&(RTCF_BROADCAST|RTCF_MULTICAST))
-++                return NF_DROP;
-++
-++	/* Our naive response construction doesn't deal with IP
-++           options, and probably shouldn't try. */
-++	if (skb->nh.iph->ihl*4 != sizeof(struct iphdr))
-++		return NF_DROP;
-++
-++        /* We aren't interested in fragments */
-++	if (skb->nh.iph->frag_off & htons(IP_OFFSET))
-++                return NF_DROP;
-++
-++	tarpit_tcp(skb,rt,hooknum == NF_IP_LOCAL_IN);
-++
-++	return NF_DROP;
-++}
-++
-++
-++static int check(const char *tablename,
-++		 const struct ipt_entry *e,
-++		 void *targinfo,
-++		 unsigned int targinfosize,
-++		 unsigned int hook_mask)
-++{
-++	/* Only allow these for input/forward packet filtering. */
-++	if (strcmp(tablename, "filter") != 0) {
-++		DEBUGP("TARPIT: bad table %s'.\n", tablename);
-++		return 0;
-++	}
-++	if ((hook_mask & ~((1 << NF_IP_LOCAL_IN) 
-++                           | (1 << NF_IP_FORWARD))) != 0) {
-++		DEBUGP("TARPIT: bad hook mask %X\n", hook_mask);
-++		return 0;
-++	}
-++
-++	/* Must specify that it's a TCP packet */
-++	if (e->ip.proto != IPPROTO_TCP || (e->ip.invflags & IPT_INV_PROTO)) {
-++		DEBUGP("TARPIT: not valid for non-tcp\n");
-++		return 0;
-++	}
-++
-++	return 1;
-++}
-++
-++static struct ipt_target ipt_tarpit_reg
-++= { { NULL, NULL }, "TARPIT", tarpit, check, NULL, THIS_MODULE };
-++
-++static int __init init(void)
-++{
-++	if (ipt_register_target(&ipt_tarpit_reg))
-++		return -EINVAL;
-++	return 0;
-++}
-++
-++static void __exit fini(void)
-++{
-++	ipt_unregister_target(&ipt_tarpit_reg);
-++}
-++
-++module_init(init);
-++module_exit(fini);
-++MODULE_LICENSE("GPL");
-diff -urP netfilter/patch-o-matic/extra/ipt_TARPIT.patch.config.in netfilter-tarpit/patch-o-matic/extra/ipt_TARPIT.patch.config.in
---- netfilter/patch-o-matic/extra/ipt_TARPIT.patch.config.in	Wed Dec 31 16:00:00 1969
-+++ netfilter-tarpit/patch-o-matic/extra/ipt_TARPIT.patch.config.in	Sat Nov 30 02:11:43 2002
-@@ -0,0 +1,2 @@
-+      dep_tristate '    MIRROR target support (EXPERIMENTAL)' CONFIG_IP_NF_TARGET_MIRROR $CONFIG_IP_NF_FILTER
-+      dep_tristate '    TARPIT target support (EXPERIMENTAL)' CONFIG_IP_NF_TARGET_TARPIT $CONFIG_IP_NF_FILTER
-diff -urP netfilter/patch-o-matic/extra/ipt_TARPIT.patch.help netfilter-tarpit/patch-o-matic/extra/ipt_TARPIT.patch.help
---- netfilter/patch-o-matic/extra/ipt_TARPIT.patch.help	Wed Dec 31 16:00:00 1969
-+++ netfilter-tarpit/patch-o-matic/extra/ipt_TARPIT.patch.help	Sat Nov 30 02:03:46 2002
-@@ -0,0 +1,31 @@
-+Author: "Aaron Hopkins" <lists@die.net>
-+Status: Works for me
+Whell if you see it is usefull in some way i will be glad to make a 
+working patch against the las patch-o-matic version (this patchs are 
+againsta iptables-1.2.7a and linux-2.4.19). Anyway i have a lot of fun 
+doing it :-)
+
+Suegestion/modifications are welcome. This is my first hack ever, so it 
+maybe look like a newbie has code it =).
+
+Attached patch also aviable at http://lupe.praga.org.ar/dev/ipt_mask/
+Greetings !
+
+--
+Luciano
+ps: sorry about my pour english.
+
+--------------050604040408030504010007
+Content-Type: text/plain;
+ name="ipt_mask.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ipt_mask.patch"
+
+diff -Naur linux-2.4.19.orig/include/linux/netfilter_ipv4/ipt_mask.h linux-2.4.19/include/linux/netfilter_ipv4/ipt_mask.h
+--- linux-2.4.19.orig/include/linux/netfilter_ipv4/ipt_mask.h	1969-12-31 21:00:00.000000000 -0300
++++ linux-2.4.19/include/linux/netfilter_ipv4/ipt_mask.h	2002-11-12 18:56:51.000000000 -0300
+@@ -0,0 +1,9 @@
++#ifndef _IPT_MASK_H
++#define _IPT_MASK_H
 +
 +
-+Adds a TARPIT target to iptables, which captures and holds incoming TCP
-+connections using no local per-connection resources.  Connections are
-+accepted, but immediately switched to the persist state (0 byte window), in
-+which the remote side stops sending data and asks to continue every 60-240
-+seconds.  Attempts to close the connection are ignored, forcing the remote
-+side to time out the connection in 12-24 minutes.
++struct ipt_mask_info {
++	u_int32_t and_mask; // mask to be ANDed whit addres
++	u_int32_t cmpr_mask; // mask to compare after AND
++};
++#endif /*_IPT_MASK_H*/
+diff -Naur linux-2.4.19.orig/net/ipv4/netfilter/Config.in linux-2.4.19/net/ipv4/netfilter/Config.in
+--- linux-2.4.19.orig/net/ipv4/netfilter/Config.in	2002-08-02 21:39:46.000000000 -0300
++++ linux-2.4.19/net/ipv4/netfilter/Config.in	2002-11-16 17:11:50.000000000 -0300
+@@ -25,6 +25,8 @@
+   dep_tristate '  LENGTH match support' CONFIG_IP_NF_MATCH_LENGTH $CONFIG_IP_NF_IPTABLES
+   dep_tristate '  TTL match support' CONFIG_IP_NF_MATCH_TTL $CONFIG_IP_NF_IPTABLES
+   dep_tristate '  tcpmss match support' CONFIG_IP_NF_MATCH_TCPMSS $CONFIG_IP_NF_IPTABLES
++  dep_tristate '  arbitrary mask syntax match support' CONFIG_IP_NF_MATCH_MASK $CONFIG_IP_NF_IPTABLES
++  
+   if [ "$CONFIG_IP_NF_CONNTRACK" != "n" ]; then
+     dep_tristate '  Connection state match support' CONFIG_IP_NF_MATCH_STATE $CONFIG_IP_NF_CONNTRACK $CONFIG_IP_NF_IPTABLES 
+   fi
+diff -Naur linux-2.4.19.orig/net/ipv4/netfilter/ipt_mask.c linux-2.4.19/net/ipv4/netfilter/ipt_mask.c
+--- linux-2.4.19.orig/net/ipv4/netfilter/ipt_mask.c	1969-12-31 21:00:00.000000000 -0300
++++ linux-2.4.19/net/ipv4/netfilter/ipt_mask.c	2002-11-16 17:13:33.000000000 -0300
+@@ -0,0 +1,57 @@
++/* Kernel module to match daddress against arbitrary syntax mask. 
++* 
++* Copyright (c) 2002 Luciano Ruete <luciano@lugmen.org.ar> 
++* 
++* This program is free software; you can redistribute it and/or modify
++* it under the terms of the GNU General Public License as published by
++* the Free Software Foundation; either version 2 of the License, or
++* (at your option) any later version.
++*
++* This program is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++* GNU General Public License for more details.
++*
++* You should have received a copy of the GNU General Public License
++* along with this program; if not, write to the Free Software
++* Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++*/ 
 +
-+This offers similar functionality to LaBrea
-+<http://www.hackbusters.net/LaBrea/> but doesn't require dedicated hardware
-+or IPs.  Any TCP port that you would normally DROP or REJECT can instead
-+become a tarpit.
++#include <linux/module.h>
++#include <linux/ioport.h>
++#include <linux/skbuff.h>
++#include <linux/types.h>
++#include <linux/udp.h>
 +
-+To tarpit connections to TCP port 80 destined for the current machine:
 +
-+  iptables -A INPUT -p tcp -m tcp --dport 80 -j TARPIT
++#include <linux/netfilter_ipv4/ipt_mask.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
 +
-+To significantly slow down Code Red/Nimda-style scans of unused address
-+space, forward unused ip addresses to a Linux box not acting as a router
-+(e.g. "ip route 10.0.0.0 255.0.0.0 ip.of.linux.box" on a Cisco), enable IP
-+forwarding on the Linux box, and add:
 +
-+  iptables -A FORWARD -p tcp -j TARPIT
-+  iptables -A FORWARD -j DROP
++static int
++match(const struct sk_buff *skb,
++      const struct net_device *in,
++      const struct net_device *out,
++      const void *matchinfo,
++      int offset,
++      const void *hdr,
++      u_int16_t datalen,
++      int *hotdrop)
++{
++	const struct ipt_mask_info *info = matchinfo;
++	if (( skb->nh.iph->daddr & info->and_mask) ^ info->cmpr_mask)
++		return 0;
++	return 1;
++	
++}
++static int
++checkentry(const char *tablename,
++           const struct ipt_ip *ip,
++           void *matchinfo,
++           unsigned int matchsize,
++           unsigned int hook_mask)
++{
++        if (matchsize != IPT_ALIGN(sizeof(struct ipt_mask_info)))
++		return 0;
++	return 1;
++}
 +
-+You probably don't want the conntrack module loaded while you are using
-+TARPIT, or you will be using resources per connection.
++static struct ipt_match mask_match
++= { { NULL, NULL }, "mask", &match, &checkentry, NULL, THIS_MODULE };
 +
-diff -urP netfilter/patch-o-matic/extra/ipt_TARPIT.patch.makefile netfilter-tarpit/patch-o-matic/extra/ipt_TARPIT.patch.makefile
---- netfilter/patch-o-matic/extra/ipt_TARPIT.patch.makefile	Wed Dec 31 16:00:00 1969
-+++ netfilter-tarpit/patch-o-matic/extra/ipt_TARPIT.patch.makefile	Sat Nov 30 02:10:17 2002
-@@ -0,0 +1,2 @@
-+obj-$(CONFIG_IP_NF_TARGET_MIRROR) += ipt_MIRROR.o
-+obj-$(CONFIG_IP_NF_TARGET_TARPIT) += ipt_TARPIT.o
-diff -urP netfilter/userspace/extensions/Makefile netfilter-tarpit/userspace/extensions/Makefile
---- netfilter/userspace/extensions/Makefile	Fri Aug  9 00:47:12 2002
-+++ netfilter-tarpit/userspace/extensions/Makefile	Sat Nov 30 02:03:46 2002
-@@ -1,6 +1,6 @@
- #! /usr/bin/make
++static int __init init(void)
++{
++	return ipt_register_match(&mask_match);
++}
++
++static void __exit fini(void)
++{
++	ipt_unregister_match(&mask_match);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
++
+diff -Naur linux-2.4.19.orig/net/ipv4/netfilter/Makefile linux-2.4.19/net/ipv4/netfilter/Makefile
+--- linux-2.4.19.orig/net/ipv4/netfilter/Makefile	2002-08-02 21:39:46.000000000 -0300
++++ linux-2.4.19/net/ipv4/netfilter/Makefile	2002-11-12 18:56:03.000000000 -0300
+@@ -55,6 +55,7 @@
+ obj-$(CONFIG_IP_NF_MATCH_OWNER) += ipt_owner.o
+ obj-$(CONFIG_IP_NF_MATCH_TOS) += ipt_tos.o
+ obj-$(CONFIG_IP_NF_MATCH_AH_ESP) += ipt_ah.o ipt_esp.o
++obj-$(CONFIG_IP_NF_MATCH_MASK) += ipt_mask.o
  
--PF_EXT_SLIB:=ah conntrack dscp ecn esp helper icmp length limit mac mark multiport owner pkttype standard state tcp tcpmss tos ttl udp unclean DNAT DSCP ECN LOG MARK MASQUERADE MIRROR REDIRECT REJECT SAME SNAT TCPMSS TOS ULOG
-+PF_EXT_SLIB:=ah conntrack dscp ecn esp helper icmp length limit mac mark multiport owner pkttype standard state tcp tcpmss tos ttl udp unclean DNAT DSCP ECN LOG MARK MASQUERADE MIRROR REDIRECT REJECT SAME SNAT TARPIT TCPMSS TOS ULOG
- PF6_EXT_SLIB:=eui64 icmpv6 length limit mac mark multiport owner standard tcp udp LOG MARK
+ obj-$(CONFIG_IP_NF_MATCH_LENGTH) += ipt_length.o
  
- # The following may not be present, but compile them anyway.
-diff -urP netfilter/userspace/extensions/libipt_TARPIT.c netfilter-tarpit/userspace/extensions/libipt_TARPIT.c
---- netfilter/userspace/extensions/libipt_TARPIT.c	Wed Dec 31 16:00:00 1969
-+++ netfilter-tarpit/userspace/extensions/libipt_TARPIT.c	Sat Nov 30 02:03:46 2002
-@@ -0,0 +1,67 @@
-+/* Shared library add-on to iptables for TARPIT support */
+
+--------------050604040408030504010007
+Content-Type: text/plain;
+ name="libipt_mask.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="libipt_mask.patch"
+
+diff -Naur iptables-1.2.7a.orig/extensions/libipt_mask.c iptables-1.2.7a/extensions/libipt_mask.c
+--- iptables-1.2.7a.orig/extensions/libipt_mask.c	1969-12-31 21:00:00.000000000 -0300
++++ iptables-1.2.7a/extensions/libipt_mask.c	2002-11-18 02:20:58.000000000 -0300
+@@ -0,0 +1,113 @@
++/* Shared library add-on to iptables to add NFMASK arbitrary mask syntax matching support. */
 +#include <stdio.h>
++#include <netdb.h>
++#include <string.h>
++#include <stdlib.h>
 +#include <getopt.h>
-+#include <iptables.h>
 +
++#include <iptables.h>
++#include <linux/netfilter_ipv4/ipt_mask.h>
++
++/* Function which prints out usage message. */
 +static void
 +help(void)
 +{
-+	fputs(
-+"TARPIT takes no options\n"
-+"\n", stdout);
++	printf(
++"mask match v%s options:\n"
++"--mask andmask,matchmask  match matchmask whit the resutl of (dstadress & andmask)\n"
++"\n",
++IPTABLES_VERSION);
 +}
 +
 +static struct option opts[] = {
-+	{ 0 }
++	{ "mask", 1, 0, '1' },
++	{0}
 +};
 +
++/* Initialize the match. */
 +static void
-+init(struct ipt_entry_target *t, unsigned int *nfcache)
++init(struct ipt_entry_match *m, unsigned int *nfcache)
 +{
-+	/* Can't cache this */
++	/* Can't cache this. */
 +	*nfcache |= NFC_UNKNOWN;
 +}
 +
++/* Function which parses command options; returns true if it
++   ate an option */
 +static int
 +parse(int c, char **argv, int invert, unsigned int *flags,
 +      const struct ipt_entry *entry,
-+      struct ipt_entry_target **target)
++      unsigned int *nfcache,
++      struct ipt_entry_match **match)
 +{
-+	return 0;
++	struct ipt_mask_info *maskinfo = (struct ipt_mask_info *)(*match)->data;
++	switch (c) {
++		char *end;
++	case '1':
++		maskinfo->and_mask = htonl((u_int32_t)strtoul(optarg, &end, 0));
++		if (*end == ',') {
++			maskinfo->cmpr_mask = htonl((u_int32_t)strtoul(end+1, &end, 0));
++		} else
++			exit_error(PARAMETER_PROBLEM, "must specify both ANDmask,MATCHmask %s",optarg);
++		if (*end != '\0' || end == optarg)
++			exit_error(PARAMETER_PROBLEM, "bad mask values `%s'", optarg);
++		*flags=1;
++		break;
++	default:
++		return 0;
++	}
++	return 1;
 +}
 +
-+static void final_check(unsigned int flags)
++/* Final check; must have specified --mask. */
++static void
++final_check(unsigned int flags)
 +{
++	if (!flags)
++		exit_error(PARAMETER_PROBLEM,
++			   "mask expection an option");
 +}
 +
++/* Prints out the matchinfo. */
 +static void
 +print(const struct ipt_ip *ip,
-+      const struct ipt_entry_target *target,
++      const struct ipt_entry_match *match,
 +      int numeric)
 +{
++	const struct ipt_mask_info *maskinfo = (const struct ipt_mask_info *)match->data;
++	
++	printf("mask match ");
++	printf("0x%x,0x%x ", ntohl(maskinfo->and_mask),
++			     ntohl(maskinfo->cmpr_mask) );
 +}
 +
-+static void save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
++/* Saves the union ipt_matchinfo in parsable form to stdout. */
++static void
++save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
 +{
++	const struct ipt_mask_info *maskinfo = (const struct ipt_mask_info *)match->data;
++	printf("--mask ");
++	printf("0x%x,0x%x ", ntohl(maskinfo->and_mask),
++			     ntohl(maskinfo->cmpr_mask) );
 +}
 +
 +static
-+struct iptables_target tarpit
++struct iptables_match mask
 += { NULL,
-+    "TARPIT",
++    "mask",
 +    IPTABLES_VERSION,
-+    IPT_ALIGN(0),
-+    IPT_ALIGN(0),
++    IPT_ALIGN(sizeof(struct ipt_mask_info)),
++    IPT_ALIGN(sizeof(struct ipt_mask_info)),
 +    &help,
 +    &init,
 +    &parse,
@@ -461,5 +302,18 @@ diff -urP netfilter/userspace/extensions/libipt_TARPIT.c netfilter-tarpit/usersp
 +
 +void _init(void)
 +{
-+	register_target(&tarpit);
++	register_match(&mask);
 +}
+diff -Naur iptables-1.2.7a.orig/extensions/Makefile iptables-1.2.7a/extensions/Makefile
+--- iptables-1.2.7a.orig/extensions/Makefile	2002-08-09 04:44:10.000000000 -0300
++++ iptables-1.2.7a/extensions/Makefile	2002-11-18 02:21:05.000000000 -0300
+@@ -1,6 +1,6 @@
+ #! /usr/bin/make
+ 
+-PF_EXT_SLIB:=ah conntrack dscp ecn esp helper icmp length limit mac mark multiport owner pkttype standard state tcp tcpmss tos ttl udp unclean DNAT DSCP ECN LOG MARK MASQUERADE MIRROR REDIRECT REJECT SAME SNAT TCPMSS TOS ULOG
++PF_EXT_SLIB:=ah conntrack dscp ecn esp helper icmp length limit mac mark mask multiport owner pkttype standard state tcp tcpmss tos ttl udp unclean DNAT DSCP ECN LOG MARK MASQUERADE MIRROR REDIRECT REJECT SAME SNAT TCPMSS TOS ULOG
+ PF6_EXT_SLIB:=eui64 icmpv6 length limit mac mark multiport owner standard tcp udp LOG MARK
+ 
+ # The following may not be present, but compile them anyway.
+
+--------------050604040408030504010007--
