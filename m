@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] multiple 2.4.x ipt_REJECT fixes
-Date: Sun, 27 Apr 2003 12:46:03 +0200
+Subject: [PATCH] 2.4.x netfilter Makefile / Build fix
+Date: Sun, 27 Apr 2003 13:48:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427104603.GJ990@sunbeam.de.gnumonks.org>
+Message-ID: <20030427114853.GM990@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fckbADODYWZD5TdN"
+	protocol="application/pgp-signature"; boundary="WuT04sMzYDXq8et0"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,74 +21,109 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---fckbADODYWZD5TdN
+--WuT04sMzYDXq8et0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-Again another patch, courtesy of Patrick McHardy.  This time a 2.4.x
-only patch (applies against 2.4.21-rc1).  The fix is incremental to a
-change in early 2.4.21-preX days.
+Here's some fixes for a compilation problem in 2.4 when
+conntrack-helpers are selected as modules but no NAT support is
+configured, but ipfwadm or ipchains is configured.
+(No NAT-helpers but CONFIG_IP_NF_NAT_NEEDED is defined)
 
-Please apply, Thanks
+The patch is from Martin Josefsson.
 
+Please apply, we should get this in before 2.4.21 is released.
 
-# This is a BitKeeper generated patch for the following project:
-# Project Name: Linux kernel tree
-# This patch format is intended for GNU patch command version 2.5 or higher.
-# This patch includes the following deltas:
-#	           ChangeSet	1.1101  -> 1.1102=20
-#	net/ipv4/netfilter/ipt_REJECT.c	1.10    -> 1.11  =20
-#
-# The following is the BitKeeper ChangeSet Log
-# --------------------------------------------
-# 03/04/21	kaber@trash.net	1.1102
-# - fix tcp-rst routing
-# - fix memory leak
-# - remove unecessary "struct in_device" declaration
-# - remove RTO_CONN
-# --------------------------------------------
-#
-diff -Nru a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT=
-.c
---- a/net/ipv4/netfilter/ipt_REJECT.c	Mon Apr 21 21:26:34 2003
-+++ b/net/ipv4/netfilter/ipt_REJECT.c	Mon Apr 21 21:26:34 2003
-@@ -11,7 +11,6 @@
- #include <net/icmp.h>
- #include <net/ip.h>
- #include <net/tcp.h>
--struct in_device;
- #include <net/route.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_REJECT.h>
-@@ -65,10 +64,9 @@
- 		return;
+Thanks!
+
+diff -urN linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/Makefile linux-2.4.2=
+1-pre7-bk/net/ipv4/netfilter/Makefile
+--- linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/Makefile	2003-04-14 02:42:=
+11.000000000 +0200
++++ linux-2.4.21-pre7-bk/net/ipv4/netfilter/Makefile	2003-04-14 02:42:44.00=
+0000000 +0200
+@@ -31,27 +31,25 @@
+ # connection tracking
+ obj-$(CONFIG_IP_NF_CONNTRACK) +=3D ip_conntrack.o
 =20
- 	/* Routing: if not headed for us, route won't like source */
--	if (ip_route_output(&rt, oldskb->nh.iph->daddr,
--			    local ? oldskb->nh.iph->saddr : 0,
--			    RT_TOS(oldskb->nh.iph->tos) | RTO_CONN,
--			    0) !=3D 0)
-+	if (ip_route_output(&rt, oldskb->nh.iph->saddr,
-+			    local ? oldskb->nh.iph->daddr : 0,
-+			    RT_TOS(oldskb->nh.iph->tos), 0) !=3D 0)
- 		return;
+-# Amanda protocol support
++# connection tracking helpers
+ obj-$(CONFIG_IP_NF_AMANDA) +=3D ip_conntrack_amanda.o
+-obj-$(CONFIG_IP_NF_NAT_AMANDA) +=3D ip_nat_amanda.o
+-ifdef CONFIG_IP_NF_NAT_AMANDA
++ifdef CONFIG_IP_NF_AMANDA
+ 	export-objs +=3D ip_conntrack_amanda.o
+ endif
 =20
- 	hh_len =3D (rt->u.dst.dev->hard_header_len + 15)&~15;
-@@ -80,8 +78,10 @@
- 	   hh_len of incoming interface < hh_len of outgoing interface */
- 	nskb =3D skb_copy_expand(oldskb, hh_len, skb_tailroom(oldskb),
- 			       GFP_ATOMIC);
--	if (!nskb)
-+	if (!nskb) {
-+		dst_release(&rt->u.dst);
- 		return;
-+	}
+-
+-# connection tracking helpers
+ obj-$(CONFIG_IP_NF_TFTP) +=3D ip_conntrack_tftp.o
+ obj-$(CONFIG_IP_NF_FTP) +=3D ip_conntrack_ftp.o
+-ifdef CONFIG_IP_NF_NAT_FTP
++ifdef CONFIG_IP_NF_FTP
+ 	export-objs +=3D ip_conntrack_ftp.o
+ endif
 =20
- 	dst_release(nskb->dst);
- 	nskb->dst =3D &rt->u.dst;
+ obj-$(CONFIG_IP_NF_IRC) +=3D ip_conntrack_irc.o
+-ifdef CONFIG_IP_NF_NAT_IRC
++ifdef CONFIG_IP_NF_IRC
+ 	export-objs +=3D ip_conntrack_irc.o
+ endif
+=20
+ # NAT helpers=20
++obj-$(CONFIG_IP_NF_NAT_AMANDA) +=3D ip_nat_amanda.o
+ obj-$(CONFIG_IP_NF_NAT_TFTP) +=3D ip_nat_tftp.o
+ obj-$(CONFIG_IP_NF_NAT_FTP) +=3D ip_nat_ftp.o
+ obj-$(CONFIG_IP_NF_NAT_IRC) +=3D ip_nat_irc.o
+diff -urN linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_amanda.=
+c linux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_amanda.c
+--- linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_amanda.c	2003=
+-04-14 02:42:11.000000000 +0200
++++ linux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_amanda.c	2003-04-1=
+4 02:42:44.000000000 +0200
+@@ -229,5 +229,7 @@
+ 	return 0;
+ }
+=20
++EXPORT_SYMBOL(ip_amanda_lock);
++
+ module_init(init);
+ module_exit(fini);
+diff -urN linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_ftp.c l=
+inux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-04=
+-14 02:42:02.000000000 +0200
++++ linux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-04-14 0=
+2:42:44.000000000 +0200
+@@ -436,9 +436,7 @@
+ 	return 0;
+ }
+=20
+-#ifdef CONFIG_IP_NF_NAT_NEEDED
+ EXPORT_SYMBOL(ip_ftp_lock);
+-#endif
+=20
+ MODULE_LICENSE("GPL");
+ module_init(init);
+diff -urN linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_irc.c l=
+inux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_irc.c
+--- linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_irc.c	2002-11=
+-29 00:53:15.000000000 +0100
++++ linux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_irc.c	2003-04-14 0=
+2:42:44.000000000 +0200
+@@ -305,9 +305,7 @@
+ 	}
+ }
+=20
+-#ifdef CONFIG_IP_NF_NAT_NEEDED
+ EXPORT_SYMBOL(ip_irc_lock);
+-#endif
+=20
+ module_init(init);
+ module_exit(fini);
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -99,7 +134,7 @@ diff -Nru a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT=
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---fckbADODYWZD5TdN
+--WuT04sMzYDXq8et0
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -107,9 +142,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+q7TrXaXGVTD0i/8RAtiZAJ9uCoJ/nacgd1Lvvxm5t4gWxR606gCeKo1X
-9bJaf+atfcoeXpZLjqr/Qt0=
-=QsM9
+iD8DBQE+q8OlXaXGVTD0i/8RApQvAJ9KmUyU7EizqoS65/xKHPDLm10x0QCaAmXm
+7VWoeqBMsilPO9L7SvAfYsY=
+=U7BX
 -----END PGP SIGNATURE-----
 
---fckbADODYWZD5TdN--
+--WuT04sMzYDXq8et0--
