@@ -1,11 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH, RFC]: 2.4 broken helper locking
-Date: Sat, 15 Nov 2003 16:40:42 +0100
+From: Tim Gardner <timg@tpi.com>
+Subject: 2.4 SNAT fails randomly
+Date: Sat, 15 Nov 2003 11:03:47 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FB648FA.2030403@trash.net>
+Message-ID: <200311151103.47454.timg@tpi.com>
+Reply-To: timg@tpi.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020206090900050409020608"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,433 +20,241 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020206090900050409020608
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+I think I have a case where SNAT is sometimes failing. I have a specific =
+case=20
+where UDP SNAT fails repeatedly. However, I have SPOOF log entries on som=
+e of=20
+our servers that indicate TCP is also failing SNAT once in awhile.
 
-I've sent this a month or two ago but no response so here goes
-another try. Please excuse any mistakes, I don't remember all details.
+In particular, I (as an ISP) have a client that repeatably demonstrates t=
+he=20
+problem. This client is behind our embedded Linux 2.4.19 StrongARM NAT=20
+firewall using P-O-M from CVS as of 11/14/2003. I have applied the follow=
+ing=20
+P-O-M patches:
 
-Locking of ftp/irc helpers in 2.4 looks broken (and amanda, but
-thats fixed in my last patch). Both use private locks to protect
-expectation data between the conntrack and the nat helper.
-The locks are unneccessary because:
+submitted/02_2.4.20.patch
+submitted/03_2.4.21.patch
+submitted/04_2.4.22.patch
+base/mport.patch"
+base/iprange.patch"
+base/psd.patch"
+base/connlimit.patch"
+base/u32.patch"
+extra/h323-conntrack-nat.patch"
+extra/pptp-conntrack-nat.patch"
 
-- ip_conntrack_expect_related write-locks ip_conntrack_lock
-- the nat-helpers are called under read-locked ip_conntrack lock
-- the expectations private data can't change once it's register
+This client has a NetGear router connected to our firewall. The NetGear r=
+outer=20
+has a well known bug wherein it attempts to get time/date via UDP/NTP fro=
+m a=20
+hardcoded destination (caesar.cs.wisc.edu). This is the UDP packet that i=
+s=20
+not being SNAT'd. The packet in question is thus:
 
-They may also cause deadlock because of this possible sequence:
+tcpdump  -vvv -t -i eth1 -p -x -X -e 'port 123'
+tcpdump: listening on eth1
+0:2:6f:3:60:5c 0:90:27:90:49:e7 ip 90: 192.168.10.2.23457 >=20
+caesar.cs.wisc.edu.ntp:  v1 client strat 0 poll 0 prec 0 dist 0.000000 di=
+sp=20
+0.000000 ref (unspec)@0.000000000 [|ntp] (ttl 253, id 63424, len 76)
+0x0000   4500 004c f7c0 0000 fd11 53c1 c0a8 0a02        E..L......S.....
+0x0010   8069 270b 5ba1 007b 0038 2643 0b00 0000        .i'.[..{.8&C....
+0x0020   0000 0000 0000 0000 0000 0000 0000 0000        ................
+0x0030   0000 0000 0000
 
-CPU1:
-conntrack-helper:help: lock(private_lock)
-ip_conntrack_expect_related: write_lock(ip_conntrack_lock)
+I have verfied that this really is the packet that is being emitted on et=
+h1=20
+and is not an artifact of tcpdump. As you can see from the Chain POSTROUT=
+ING=20
+output below, some packets are clearly getting SNAT'd. Why not all of the=
+m?
 
-CPU2:
-nat-core:do_bindings: read_lock(ip_conntrack_lock)
-nat-helper:help: lock(private_lock)
+The iptables rules are straightforward.=20
+---------------------------------------
 
-This patch removes the locks and renames some variables from
-ct_xxx to exp_xxx to make things clearer. A remaining problem is
-in ip_nat_standalone.c:
-
-                WRITE_LOCK(&ip_nat_lock);
-                /* Seen it before?  This can happen for loopback, retrans,
-                   or local packets.. */
-                if (!(info->initialized & (1 << maniptype))) {
-                        unsigned int ret;
-
-                                                                                                                              
-                        if (ct->master
-                            && master_ct(ct)->nat.info.helper
-                            && master_ct(ct)->nat.info.helper->expect) {
-                                ret = call_expect(master_ct(ct), pskb,
-                                                  hooknum, ct, info);
-                        } else {
-
-ct->master is not protected by ip_nat_lock. The expect function of
-the ftp helper also touches ct->master so we need to hold
-ip_conntrack_lock. I'm not sure if and how the locks can be nested,
-so comments on this are appreciated.
-
-Patrick
-
-
-
---------------020206090900050409020608
-Content-Type: text/plain;
- name="helper-locking.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="helper-locking.diff"
-
-# This is a BitKeeper generated patch for the following project:
-# Project Name: Linux kernel tree
-# This patch format is intended for GNU patch command version 2.5 or higher.
-# This patch includes the following deltas:
-#	           ChangeSet	1.1168  -> 1.1169 
-#	net/ipv4/netfilter/ip_nat_ftp.c	1.8     -> 1.9    
-#	net/ipv4/netfilter/ip_conntrack_irc.c	1.10    -> 1.11   
-#	net/ipv4/netfilter/ip_conntrack_ftp.c	1.11    -> 1.12   
-#	net/ipv4/netfilter/ip_nat_irc.c	1.5     -> 1.6    
+IPTABLES=3D${IPTABLES:-/bin/iptables}
+EXTIF=3Deth1
+INTIF=3Deth0
+${IPTABLES} -P INPUT ACCEPT
+${IPTABLES} -F INPUT
+${IPTABLES} -P OUTPUT ACCEPT
+${IPTABLES} -F OUTPUT
+${IPTABLES} -P FORWARD DROP
+${IPTABLES} -F FORWARD
+${IPTABLES} -t nat -F
 #
-# The following is the BitKeeper ChangeSet Log
-# --------------------------------------------
-# 03/11/15	kaber@trash.net	1.1169
-# Partially fix broken helper locking
-# --------------------------------------------
+# Established or NAT helper streams get out of jail free.
 #
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
---- a/net/ipv4/netfilter/ip_conntrack_ftp.c	Sat Nov 15 16:23:47 2003
-+++ b/net/ipv4/netfilter/ip_conntrack_ftp.c	Sat Nov 15 16:23:47 2003
-@@ -11,7 +11,7 @@
- #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
- #include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
- 
--DECLARE_LOCK(ip_ftp_lock);
-+static DECLARE_LOCK(ip_ftp_lock);
- struct module *ip_conntrack_ftp = THIS_MODULE;
- 
- #define MAX_PORTS 8
-@@ -338,7 +338,6 @@
- 	memset(&expect, 0, sizeof(expect));
- 
- 	/* Update the ftp info */
--	LOCK_BH(&ip_ftp_lock);
- 	if (htonl((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3])
- 	    == ct->tuplehash[dir].tuple.src.ip) {
- 		exp->seq = ntohl(tcph->seq) + matchoff;
-@@ -358,7 +357,8 @@
- 		   <lincoln@cesar.org.br> for reporting this potential
- 		   problem (DMZ machines opening holes to internal
- 		   networks, or the packet filter itself). */
--		if (!loose) goto out;
-+		if (!loose)
-+			return NF_ACCEPT;
- 	}
- 
- 	exp->tuple = ((struct ip_conntrack_tuple)
-@@ -376,8 +376,6 @@
- 
- 	/* Ignore failure; should only happen with NAT */
- 	ip_conntrack_expect_related(ct, &expect);
-- out:
--	UNLOCK_BH(&ip_ftp_lock);
- 
- 	return NF_ACCEPT;
- }
-@@ -434,8 +432,6 @@
- 	}
- 	return 0;
- }
--
--EXPORT_SYMBOL(ip_ftp_lock);
- 
- MODULE_LICENSE("GPL");
- module_init(init);
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_irc.c b/net/ipv4/netfilter/ip_conntrack_irc.c
---- a/net/ipv4/netfilter/ip_conntrack_irc.c	Sat Nov 15 16:23:47 2003
-+++ b/net/ipv4/netfilter/ip_conntrack_irc.c	Sat Nov 15 16:23:47 2003
-@@ -29,7 +29,6 @@
- #include <net/checksum.h>
- #include <net/tcp.h>
- 
--#include <linux/netfilter_ipv4/lockhelp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
- #include <linux/netfilter_ipv4/ip_conntrack_irc.h>
- 
-@@ -61,7 +60,6 @@
- };
- #define MINMATCHLEN	5
- 
--DECLARE_LOCK(ip_irc_lock);
- struct module *ip_conntrack_irc = THIS_MODULE;
- 
- #if 0
-@@ -208,8 +206,6 @@
- 			
- 			memset(&expect, 0, sizeof(expect));
- 
--			LOCK_BH(&ip_irc_lock);
--
- 			/* save position of address in dcc string,
- 			 * neccessary for NAT */
- 			DEBUGP("tcph->seq = %u\n", tcph->seq);
-@@ -236,8 +232,6 @@
- 				ntohs(exp->tuple.dst.u.tcp.port));
- 
- 			ip_conntrack_expect_related(ct, &expect);
--			UNLOCK_BH(&ip_irc_lock);
--
- 			return NF_ACCEPT;
- 		} /* for .. NUM_DCCPROTO */
- 	} /* while data < ... */
-@@ -314,8 +308,6 @@
- 		ip_conntrack_helper_unregister(&irc_helpers[i]);
- 	}
- }
--
--EXPORT_SYMBOL(ip_irc_lock);
- 
- module_init(init);
- module_exit(fini);
-diff -Nru a/net/ipv4/netfilter/ip_nat_ftp.c b/net/ipv4/netfilter/ip_nat_ftp.c
---- a/net/ipv4/netfilter/ip_nat_ftp.c	Sat Nov 15 16:23:47 2003
-+++ b/net/ipv4/netfilter/ip_nat_ftp.c	Sat Nov 15 16:23:47 2003
-@@ -24,8 +24,6 @@
- MODULE_PARM(ports, "1-" __MODULE_STRING(MAX_PORTS) "i");
- #endif
- 
--DECLARE_LOCK_EXTERN(ip_ftp_lock);
--
- /* FIXME: Time out? --RR */
- 
- static unsigned int
-@@ -48,8 +46,6 @@
- 	DEBUGP("nat_expected: We have a connection!\n");
- 	exp_ftp_info = &ct->master->help.exp_ftp_info;
- 
--	LOCK_BH(&ip_ftp_lock);
--
- 	if (exp_ftp_info->ftptype == IP_CT_FTP_PORT
- 	    || exp_ftp_info->ftptype == IP_CT_FTP_EPRT) {
- 		/* PORT command: make connection go to the client. */
-@@ -64,7 +60,6 @@
- 		DEBUGP("nat_expected: PASV cmd. %u.%u.%u.%u->%u.%u.%u.%u\n",
- 		       NIPQUAD(newsrcip), NIPQUAD(newdstip));
- 	}
--	UNLOCK_BH(&ip_ftp_lock);
- 
- 	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC)
- 		newip = newsrcip;
-@@ -100,8 +95,6 @@
- {
- 	char buffer[sizeof("nnn,nnn,nnn,nnn,nnn,nnn")];
- 
--	MUST_BE_LOCKED(&ip_ftp_lock);
--
- 	sprintf(buffer, "%u,%u,%u,%u,%u,%u",
- 		NIPQUAD(newip), port>>8, port&0xFF);
- 
-@@ -123,8 +116,6 @@
- {
- 	char buffer[sizeof("|1|255.255.255.255|65535|")];
- 
--	MUST_BE_LOCKED(&ip_ftp_lock);
--
- 	sprintf(buffer, "|1|%u.%u.%u.%u|%u|", NIPQUAD(newip), port);
- 
- 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
-@@ -145,8 +136,6 @@
- {
- 	char buffer[sizeof("|||65535|")];
- 
--	MUST_BE_LOCKED(&ip_ftp_lock);
--
- 	sprintf(buffer, "|||%u|", port);
- 
- 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
-@@ -166,7 +155,7 @@
-     [IP_CT_FTP_EPSV] mangle_epsv_packet
- };
- 
--static int ftp_data_fixup(const struct ip_ct_ftp_expect *ct_ftp_info,
-+static int ftp_data_fixup(const struct ip_ct_ftp_expect *exp_ftp_info,
- 			  struct ip_conntrack *ct,
- 			  struct sk_buff **pskb,
- 			  enum ip_conntrack_info ctinfo,
-@@ -178,15 +167,14 @@
- 	u_int16_t port;
- 	struct ip_conntrack_tuple newtuple;
- 
--	MUST_BE_LOCKED(&ip_ftp_lock);
- 	DEBUGP("FTP_NAT: seq %u + %u in %u\n",
--	       expect->seq, ct_ftp_info->len,
-+	       expect->seq, exp_ftp_info->len,
- 	       ntohl(tcph->seq));
- 
- 	/* Change address inside packet to match way we're mapping
- 	   this connection. */
--	if (ct_ftp_info->ftptype == IP_CT_FTP_PASV
--	    || ct_ftp_info->ftptype == IP_CT_FTP_EPSV) {
-+	if (exp_ftp_info->ftptype == IP_CT_FTP_PASV
-+	    || exp_ftp_info->ftptype == IP_CT_FTP_EPSV) {
- 		/* PASV/EPSV response: must be where client thinks server
- 		   is */
- 		newip = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
-@@ -208,7 +196,7 @@
- 	newtuple.src.u.tcp.port = expect->tuple.src.u.tcp.port;
- 
- 	/* Try to get same port: if not, try to change it. */
--	for (port = ct_ftp_info->port; port != 0; port++) {
-+	for (port = exp_ftp_info->port; port != 0; port++) {
- 		newtuple.dst.u.tcp.port = htons(port);
- 
- 		if (ip_conntrack_change_expect(expect, &newtuple) == 0)
-@@ -217,9 +205,9 @@
- 	if (port == 0)
- 		return 0;
- 
--	if (!mangle[ct_ftp_info->ftptype](pskb, newip, port,
-+	if (!mangle[exp_ftp_info->ftptype](pskb, newip, port,
- 					  expect->seq - ntohl(tcph->seq),
--					  ct_ftp_info->len, ct, ctinfo))
-+					  exp_ftp_info->len, ct, ctinfo))
- 		return 0;
- 
- 	return 1;
-@@ -236,12 +224,12 @@
- 	struct tcphdr *tcph = (void *)iph + iph->ihl*4;
- 	unsigned int datalen;
- 	int dir;
--	struct ip_ct_ftp_expect *ct_ftp_info;
-+	struct ip_ct_ftp_expect *exp_ftp_info;
- 
- 	if (!exp)
- 		DEBUGP("ip_nat_ftp: no exp!!");
- 
--	ct_ftp_info = &exp->help.exp_ftp_info;
-+	exp_ftp_info = &exp->help.exp_ftp_info;
- 
- 	/* Only mangle things once: original direction in POST_ROUTING
- 	   and reply direction on PRE_ROUTING. */
-@@ -257,28 +245,23 @@
- 	}
- 
- 	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
--	LOCK_BH(&ip_ftp_lock);
- 	/* If it's in the right range... */
--	if (between(exp->seq + ct_ftp_info->len,
-+	if (between(exp->seq + exp_ftp_info->len,
- 		    ntohl(tcph->seq),
- 		    ntohl(tcph->seq) + datalen)) {
--		if (!ftp_data_fixup(ct_ftp_info, ct, pskb, ctinfo, exp)) {
--			UNLOCK_BH(&ip_ftp_lock);
-+		if (!ftp_data_fixup(exp_ftp_info, ct, pskb, ctinfo, exp))
- 			return NF_DROP;
--		}
- 	} else {
- 		/* Half a match?  This means a partial retransmisison.
- 		   It's a cracker being funky. */
- 		if (net_ratelimit()) {
- 			printk("FTP_NAT: partial packet %u/%u in %u/%u\n",
--			       exp->seq, ct_ftp_info->len,
-+			       exp->seq, exp_ftp_info->len,
- 			       ntohl(tcph->seq),
- 			       ntohl(tcph->seq) + datalen);
- 		}
--		UNLOCK_BH(&ip_ftp_lock);
- 		return NF_DROP;
- 	}
--	UNLOCK_BH(&ip_ftp_lock);
- 
- 	return NF_ACCEPT;
- }
-diff -Nru a/net/ipv4/netfilter/ip_nat_irc.c b/net/ipv4/netfilter/ip_nat_irc.c
---- a/net/ipv4/netfilter/ip_nat_irc.c	Sat Nov 15 16:23:47 2003
-+++ b/net/ipv4/netfilter/ip_nat_irc.c	Sat Nov 15 16:23:47 2003
-@@ -46,9 +46,6 @@
- MODULE_PARM_DESC(ports, "port numbers of IRC servers");
- #endif
- 
--/* protects irc part of conntracks */
--DECLARE_LOCK_EXTERN(ip_irc_lock);
--
- /* FIXME: Time out? --RR */
- 
- static unsigned int
-@@ -89,7 +86,7 @@
- 	return ip_nat_setup_info(ct, &mr, hooknum);
- }
- 
--static int irc_data_fixup(const struct ip_ct_irc_expect *ct_irc_info,
-+static int irc_data_fixup(const struct ip_ct_irc_expect *exp_irc_info,
- 			  struct ip_conntrack *ct,
- 			  struct sk_buff **pskb,
- 			  enum ip_conntrack_info ctinfo,
-@@ -104,23 +101,17 @@
- 	/* "4294967296 65635 " */
- 	char buffer[18];
- 
--	MUST_BE_LOCKED(&ip_irc_lock);
--
- 	DEBUGP("IRC_NAT: info (seq %u + %u) in %u\n",
--	       expect->seq, ct_irc_info->len,
-+	       expect->seq, exp_irc_info->len,
- 	       ntohl(tcph->seq));
- 
- 	newip = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
- 
- 	/* Alter conntrack's expectations. */
- 
--	/* We can read expect here without conntrack lock, since it's
--	   only set in ip_conntrack_irc, with ip_irc_lock held
--	   writable */
--
- 	t = expect->tuple;
- 	t.dst.ip = newip;
--	for (port = ct_irc_info->port; port != 0; port++) {
-+	for (port = exp_irc_info->port; port != 0; port++) {
- 		t.dst.u.tcp.port = htons(port);
- 		if (ip_conntrack_change_expect(expect, &t) == 0) {
- 			DEBUGP("using port %d", port);
-@@ -150,7 +141,7 @@
- 
- 	return ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
- 					expect->seq - ntohl(tcph->seq),
--					ct_irc_info->len, buffer, 
-+					exp_irc_info->len, buffer, 
- 					strlen(buffer));
- }
- 
-@@ -165,12 +156,12 @@
- 	struct tcphdr *tcph = (void *) iph + iph->ihl * 4;
- 	unsigned int datalen;
- 	int dir;
--	struct ip_ct_irc_expect *ct_irc_info;
-+	struct ip_ct_irc_expect *exp_irc_info;
- 
- 	if (!exp)
- 		DEBUGP("ip_nat_irc: no exp!!");
- 		
--	ct_irc_info = &exp->help.exp_irc_info;
-+	exp_irc_info = &exp->help.exp_irc_info;
- 
- 	/* Only mangle things once: original direction in POST_ROUTING
- 	   and reply direction on PRE_ROUTING. */
-@@ -187,29 +178,24 @@
- 	DEBUGP("got beyond not touching\n");
- 
- 	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
--	LOCK_BH(&ip_irc_lock);
- 	/* Check wether the whole IP/address pattern is carried in the payload */
--	if (between(exp->seq + ct_irc_info->len,
-+	if (between(exp->seq + exp_irc_info->len,
- 		    ntohl(tcph->seq),
- 		    ntohl(tcph->seq) + datalen)) {
--		if (!irc_data_fixup(ct_irc_info, ct, pskb, ctinfo, exp)) {
--			UNLOCK_BH(&ip_irc_lock);
-+		if (!irc_data_fixup(exp_irc_info, ct, pskb, ctinfo, exp))
- 			return NF_DROP;
--		}
- 	} else { 
- 		/* Half a match?  This means a partial retransmisison.
- 		   It's a cracker being funky. */
- 		if (net_ratelimit()) {
- 			printk
- 			    ("IRC_NAT: partial packet %u/%u in %u/%u\n",
--			     exp->seq, ct_irc_info->len,
-+			     exp->seq, exp_irc_info->len,
- 			     ntohl(tcph->seq),
- 			     ntohl(tcph->seq) + datalen);
- 		}
--		UNLOCK_BH(&ip_irc_lock);
- 		return NF_DROP;
- 	}
--	UNLOCK_BH(&ip_irc_lock);
- 
- 	return NF_ACCEPT;
- }
+${IPTABLES} -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+#
+# Block client hosting of well known services as well as SMB noise.
+#
+${IPTABLES} -A FORWARD -s 192.168.10.2/32 -p tcp -m mport --sports=20
+21,23,25,80,110,137:139 -j DROP
+${IPTABLES} -A FORWARD -s 192.168.10.2/32 -p udp -m mport --sports=20
+137:139,201:206,396 -j DROP
+${IPTABLES} -A FORWARD -d 192.168.10.2/32 -p tcp -m mport --dports=20
+137:139,201:206,396 -j DROP
+${IPTABLES} -A FORWARD -d 192.168.10.2/32 -p udp -m mport --dports=20
+137:139,201:206,396 -j DROP
+#
+# Estable SNAT/DNAT mapping.
+#
+${IPTABLES} -t nat -A POSTROUTING -s 192.168.10.2 -j SNAT --to-source=20
+216.166.171.155
+${IPTABLES} -t nat -A PREROUTING -d 216.166.171.155 -j DNAT --to 192.168.=
+10.2
+#
+# Allow ARP broadcasts from client.
+#
+${IPTABLES} -A FORWARD -s 192.168.10.0/24 -d 255.255.255.255 -j ACCEPT
+#
+# Block multicast from client.
+#
+${IPTABLES} -A FORWARD -s 192.168.10.0/24 -d 224.0.0.0/3 -j DROP
+#
+# Allow icmp echo-request to client, but block pings from client.
+#
+${IPTABLES} -A FORWARD -d 192.168.10.0/24 -p icmp --icmp-type echo-reques=
+t -j=20
+ACCEPT
+${IPTABLES} -A FORWARD -s 192.168.10.0/24 -p icmp --icmp-type echo-reques=
+t -j=20
+DROP
+#
+# Allow inbound non-TCP traffic, e.g., IPSEC and UDP.
+#
+${IPTABLES} -A FORWARD -i ${EXTIF} -o ${INTIF} ! -p tcp -m iprange --dst-=
+range=20
+192.168.10.2-192.168.10.2 -j ACCEPT
+#
+# Allow inbound new TCP connections.
+#
+${IPTABLES} -A FORWARD -i ${EXTIF} -o ${INTIF} -d 192.168.10.0/24 -m stat=
+e=20
+--state NEW -j ACCEPT
+#
+# Allow client outbound packets from known source addresses. These packet=
+s=20
+should all go to
+# the POSTROUTING rule.
+#=20
+${IPTABLES} -A FORWARD -i ${INTIF} -o ${EXTIF} -m iprange --src-range=20
+192.168.10.2-192.168.10.2 -j ACCEPT
 
---------------020206090900050409020608--
+This is what the iptables dump shows:
+-------------------------------------
+
+Chain INPUT (policy ACCEPT 786 packets, 67921 bytes)
+ pkts bytes target     prot opt in     out     source              =20
+destination
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source              =20
+destination
+   31  2608 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0=
+=2E0/0          =20
+state RELATED,ESTABLISHED
+    0     0 DROP       tcp  --  *      *       192.168.10.2         0.0.0=
+=2E0/0          =20
+mport sports 21,23,25,80,110,137:139
+    0     0 DROP       udp  --  *      *       192.168.10.2         0.0.0=
+=2E0/0          =20
+mport sports 137:139,201:206,396
+    0     0 DROP       tcp  --  *      *       0.0.0.0/0           =20
+192.168.10.2        mport dports 137:139,201:206,396
+    0     0 DROP       udp  --  *      *       0.0.0.0/0           =20
+192.168.10.2        mport dports 137:139,201:206,396
+    0     0 ACCEPT     all  --  *      *       192.168.10.0/24     =20
+255.255.255.255
+    0     0 DROP       all  --  *      *       192.168.10.0/24     =20
+224.0.0.0/3
+    1    92 ACCEPT     icmp --  *      *       0.0.0.0/0           =20
+192.168.10.0/24     icmp type 8
+    0     0 DROP       icmp --  *      *       192.168.10.0/24      0.0.0=
+=2E0/0          =20
+icmp type 8
+    1   404 ACCEPT    !tcp  --  eth1   eth0    0.0.0.0/0            0.0.0=
+=2E0/0          =20
+destination IP range 192.168.10.2-192.168.10.2
+    2   120 ACCEPT     all  --  eth1   eth0    0.0.0.0/0           =20
+192.168.10.0/24     state NEW
+ 2348  179K ACCEPT     all  --  eth0   eth1    0.0.0.0/0            0.0.0=
+=2E0/0          =20
+source IP range 192.168.10.2-192.168.10.2
+
+Chain OUTPUT (policy ACCEPT 527 packets, 74202 bytes)
+ pkts bytes target     prot opt in     out     source              =20
+destination
+
+Chain PREROUTING (policy ACCEPT 811 packets, 71641 bytes)
+ pkts bytes target     prot opt in     out     source              =20
+destination
+    3   556 DNAT       all  --  *      *       0.0.0.0/0           =20
+216.166.171.155     to:192.168.10.2
+
+Chain POSTROUTING (policy ACCEPT 53 packets, 4657 bytes)
+ pkts bytes target     prot opt in     out     source              =20
+destination
+    6   572 SNAT       all  --  *      *       192.168.10.2         0.0.0=
+=2E0/0          =20
+to:216.166.171.155
+
+Chain OUTPUT (policy ACCEPT 49 packets, 4025 bytes)
+ pkts bytes target     prot opt in     out     source              =20
+destination
+
+
+Here are my interface definitions:
+----------------------------------
+
+eth0      Link encap:Ethernet  HWaddr 00:D0:CA:F1:20:A4 =20
+          UP BROADCAST RUNNING  MTU:1500  Metric:1
+          RX packets:414 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:3 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100=20
+          RX bytes:31413 (30.6 kb)  TX bytes:228 (228.0 b)
+          Interrupt:47 Base address:0x300=20
+
+eth0:10   Link encap:Ethernet  HWaddr 00:D0:CA:F1:20:A4 =20
+          inet addr:192.168.10.1  Bcast:192.168.10.255  Mask:255.255.255.=
+0
+          UP BROADCAST RUNNING  MTU:1500  Metric:1
+          Interrupt:47 Base address:0x300=20
+
+eth1      Link encap:Ethernet  HWaddr 00:02:6F:03:60:5C =20
+          inet addr:172.16.233.252  Bcast:172.16.239.255  Mask:255.255.24=
+8.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:4072 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:645 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100=20
+          RX bytes:310754 (303.4 kb)  TX bytes:86412 (84.3 kb)
+
+eth1:10-2 Link encap:Ethernet  HWaddr 00:02:6F:03:60:5C =20
+          inet addr:216.166.171.155  Bcast:216.166.171.255  Mask:255.255.=
+255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+
+lo        Link encap:Local Loopback =20
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0=20
+          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
+
+rf0       Link encap:Ethernet  HWaddr 00:02:6F:03:60:5C =20
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:16964 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:691 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100=20
+          RX bytes:765858 (747.9 kb)  TX bytes:71316 (69.6 kb)
+          Interrupt:43=20
+
+
+--=20
+Tim Gardner - timg@tpi.com 406-443-5357
+TriplePoint, Inc. - http://www.tpi.com
+PGP: http://www.tpi.com/PGP/Tim.txt
