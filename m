@@ -1,19 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: ipt_string / 2.6.x (smp_num_cpus)
-Date: Sat, 14 Feb 2004 22:38:49 +0100
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: (no subject)
+Date: Sun, 15 Feb 2004 00:36:32 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040214213849.GD7756@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0402071412270.27286-100000@sparrow>
+Message-ID: <402EB100.9080601@eurodev.net>
+References: <01L6LLAK8FJC0007Z9@cc.uab.es>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jn9znQ5OoOl0oegR"
-Cc: Gianni Tedesco <gianni@ecsc.co.uk>,
-	ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: William Stearns <wstearns@pobox.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0402071412270.27286-100000@sparrow>
+To: scp@bbs-ce.uab.es, netfilter-devel@lists.netfilter.org
+In-Reply-To: <01L6LLAK8FJC0007Z9@cc.uab.es>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,62 +20,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!
 
---jn9znQ5OoOl0oegR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+scp@bbs-ce.uab.es wrote:
 
-I'm Cc'ing Rusty, since he's the hotplug cpu expert=20
+>Hi all!!
+>
+>I'm new in the netfilter-devel list. I'm a computer science enginieering student
+>in the last year. Currently I'm working in my final project :)
+>
+>Well... my first question:
+>
+>I'm coding a module that uses netfilter to detect some DDoS attacks, like
+>synflooding, icmpflooding, etc... The way to detect is based on an adaptative
+>treslhold algorithm. The behaviour of the algorithm must be changed if I modify
+>some parameters. The idea is that these parameters could be modified when I
+>want, I mean to say to the module "the new values are n=3 k=2, etc...". Then I
+>need a communication between user-space and kernel-space. What is the best way
+>to do it? I have readed some documentation about using ioctl but I'm not sure if
+>this is the best way. I know that iptables uses getsockopt to build the rules in
+>the netfilter-space (kernel space) but I don't understand how it does.
+>
 
-On Sat, Feb 07, 2004 at 02:19:14PM -0500, William Stearns wrote:
-> 	ipt_string.c didn't compile correctly out of the box, because of a=20
-> missing symbol smp_num_cpus.  I know there's a _correct_ fix for that=20
-> (something like NR_CPUS?), but I couldn't find it.  Adding the line
->=20
-> int smp_num_cpus =3D 1;
+Actually I prefer using netlink sockets to communicate user process with 
+the kernel, for example you could use the current libnfnetlink library 
+available in the CVS or define your own library.
 
-NR_CPUS is set to the maximum number of cpu's that particular kernel
-image can support.  on x86, that's usually 32. =20
+If you still want to use setsockopt/getsockopt, have a look at the 
+netfilter hacking HOW-TO which describes the way to register the action 
+performed by getsockopt/setsockopt that you defined.
 
-If I understood correctly, smp_num_cpus went away because there is no
-longer a static number of cpus in a system.  Instead, there is now a
-list of 'currently active' cpus and one of 'cpus that could possibly
-run'.
-
-There is only a macro for num_online_cpus().  We would need
-num_possible_cpus() as replacement for smp_num_cpus.
-
-#define num_possible_cpus()	cpus_weight(cpu_possible_map)
-#define smp_num_cpus		num_possible_cpus()
-
-should therefore be a working and semantically correct fix.
-
-Rusty: Any comments?
-
-> 	- Bill
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---jn9znQ5OoOl0oegR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFALpVpXaXGVTD0i/8RAnxAAJ9/v4YkTA492dSdCKj+i4j6iAP9sQCcDSrd
-OMDUg3vVTut8K5sOw3IjpHI=
-=SzwH
------END PGP SIGNATURE-----
-
---jn9znQ5OoOl0oegR--
+best regards,
+Pablo
