@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: patch-o-matic and CVS proposal
-Date: Fri, 5 Mar 2004 08:11:24 +0100 (CET)
+Subject: Re: [PATCH] matching any helper in ipt_helper.c
+Date: Fri, 5 Mar 2004 08:14:43 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403050809310.5918-100000@filer.marasystems.com>
-References: <Pine.LNX.4.33.0403021402360.1136-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.44.0403050812350.5918-100000@filer.marasystems.com>
+References: <Pine.LNX.4.60.0403041821010.21790@dsl093-017-216.msp1.dsl.speakeasy.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0403021402360.1136-100000@blackhole.kfki.hu>
+To: Matthew Strait <quadong@users.sourceforge.net>
+In-Reply-To: <Pine.LNX.4.60.0403041821010.21790@dsl093-017-216.msp1.dsl.speakeasy.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,15 +20,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 4 Mar 2004, Jozsef Kadlecsik wrote:
+On Thu, 4 Mar 2004, Matthew Strait wrote:
 
-> If someone were interested in just the updates/bugfixes, then downloading
-> bugfixes/ and 'patch' would be enough to apply them.
+> +       if(info->name[0] == '\0') /* special case meaning "any" */
+> +               ret = !info->invert;
 
-Or the bugfixes directory can contain a slightly modified "runme" from pom 
-which automates the detection of which bugfixes are required.
-
-With this everything looks great to me.
+This also needs to be done earlier in the "no helper" case. You never get
+here if there is no helper so ! any is a no-op.
 
 Regards
 Henrik
