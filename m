@@ -1,15 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] remove overzealous checks in REJECT target]
-Date: Thu, 16 Dec 2004 14:39:59 +0100
-Message-ID: <20041216133959.GH10165@sunbeam.de.gnumonks.org>
+Subject: Re: ULOG / netlink errors
+Date: Thu, 16 Dec 2004 14:41:27 +0100
+Message-ID: <20041216134127.GI10165@sunbeam.de.gnumonks.org>
+References: <20041128113728.GA17226@oasis.frogfoot.net>
+	<41AA3723.9070708@eurodev.net> <41AA39FC.1000400@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZY5CS28jBCfb727c"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	yasuyuki.kozakai@toshiba.co.jp
+	protocol="application/pgp-signature"; boundary="zOcTNEe3AzgCmdo9"
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>,
+	Abraham van der Merwe <abz@frogfoot.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
+In-Reply-To: <41AA39FC.1000400@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +25,28 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ZY5CS28jBCfb727c
-Content-Type: multipart/mixed; boundary="uAgJxtfIS94j9H4T"
-Content-Disposition: inline
-
-
---uAgJxtfIS94j9H4T
+--zOcTNEe3AzgCmdo9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Patrick!
+On Sun, Nov 28, 2004 at 09:50:04PM +0100, Pablo Neira wrote:
+> Pablo Neira wrote:
+>=20
+> >this is ok, it's always a good idea to reduce the probability of an=20
+> >overflow. But I think that you'll have problems anyway with traffers=20
+> >rates bigger than ~20 Mbits/s.
+>=20
+>=20
+> well, this is true in ip_queue, don't know in ipt_ULOG, it depends on=20
+> three/four parameters.
 
-I agree with Yasuyuki's proposed changes, do you already have this patch
-in your pending queue?
+just to let you know: there are people doing ULOG based acounting on >=3D
+100MBit.  So it's not as bad as you think it is ;)
 
-I'm just asking because there was no follow-up on the list...
+[no, I'm not advertising the use of ulog for accounting.  That's not
+what it was menat for].
 
-Thanks!
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -50,206 +57,7 @@ Thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---uAgJxtfIS94j9H4T
-Content-Type: message/rfc822
-Content-Disposition: inline
-
-Return-Path: Received: from ganesha.gnumonks.org ([unix socket])
-	by ganesha (Cyrus v2.1.15-IPv6-Debian-2.1.15-0woody.1.0) with LMTP;
-	Thu, 02 Dec 2004 07:18:03 +0100
-X-Sieve: CMU Sieve 2.2
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Received: from vishnu.netfilter.org ([213.95.27.115])
-	by ganesha.gnumonks.org with esmtp
-	(TLS-1.0:DHE_RSA_3DES_EDE_CBC_SHA:24) (Exim 4.34) id 1CZkHz-0003qy-99
-	for laforge@gnumonks.org; Thu, 02 Dec 2004 07:18:03 +0100
-Received: from localhost ([127.0.0.1] helo=vishnu.netfilter.org)
-	by vishnu.netfilter.org with esmtp (Exim 4.41 #1 (Debian))
-	id 1CZkTH-0003lg-Uw; Thu, 02 Dec 2004 07:29:43 +0100
-Received: from inet-tsb.toshiba.co.jp ([202.33.96.40])
-	by vishnu.netfilter.org with esmtp (Exim 4.41 #1 (Debian))
-	id 1CZkT3-0003lV-Ey for <netfilter-devel@lists.netfilter.org>;
-	Thu, 02 Dec 2004 07:29:39 +0100
-Received: from tsb-wall.toshiba.co.jp ([133.199.160.134])
-	by inet-tsb.toshiba.co.jp  with ESMTP id iB26H8UD014067;
-	Thu, 2 Dec 2004 15:17:08 +0900 (JST)
-Received: (from root@localhost) by tsb-wall.toshiba.co.jp  id iB26H8uS023443;
-	Thu, 2 Dec 2004 15:17:08 +0900 (JST)
-Received: from tis2 [133.199.160.66] by tsb-wall.toshiba.co.jp with SMTP id
-	RAA23442 ; Thu, 2 Dec 2004 15:17:08 +0900
-Received: from mx.toshiba.co.jp by tis2.tis.toshiba.co.jp
-	id PAA00938; Thu, 2 Dec 2004 15:17:08 +0900 (JST)
-Received: by toshiba.co.jp id iB26H6ut018405;
-	Thu, 2 Dec 2004 15:17:06 +0900 (JST)
-Date: Thu, 02 Dec 2004 15:17:06 +0900 (JST)
-Message-Id: <200412020617.iB26H6ut018405@toshiba.co.jp>
-To: c-d.hailfinger.kernel.2004@gmx.net
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <41AD67A3.6090608@gmx.net>
-References: <41AD67A3.6090608@gmx.net>
-X-Mailer: Mew version 3.3 on Emacs 20.7 / Mule 4.0 (HANANOEN)
-Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Dec__2_15:17:06_2004_044)--"
-Content-Transfer-Encoding: 7bit
-X-Spam-Score: 0.0 (/)
-Cc: netfilter-devel@lists.netfilter.org
-Subject: Re: [PATCH] remove overzealous checks in REJECT target
-X-BeenThere: netfilter-devel@lists.netfilter.org
-X-Mailman-Version: 2.1.5
-Precedence: list
-List-Id: discussion about netfilter development
-	<netfilter-devel.lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
-X-Spam-Score: -4.5 (----)
-
-----Next_Part(Thu_Dec__2_15:17:06_2004_044)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-
-Hi,
-
-I think so. This check isn't needed.
-
-And I found strange codes after this check: directly access to the data
-in skb.h and overwriting ICMP header with same data.
-
-I think we should use skb_header_pointer() to get UDP/ICMP header.
-
-Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
-
-From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004@gmx.net>
-Date: Wed, 01 Dec 2004 07:41:39 +0100
-
-> Hi,
-> 
-> after wondering why the REJECT target didn't work as expected
-> when scanned with nmap -sO, I found a check in ipt_REJECT.c
-> for 8 or more bytes of proto header which caused all packets
-> gernated by nmap to be dropped although they were sent to the
-> REJECT target. Since I could not see any use for the proto
-> header length check, I replaced it with a warning.
-> Now the REJECT target works as expected for all packets I
-> could thow at it.
-> 
-> Regards,
-> Carl-Daniel
-> -- 
-> http://www.hailfinger.org/
-> 
-> Signed-off-by Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004@gmx.net>
-> --- linux-2.6.9/net/ipv4/netfilter/ipt_REJECT.c~	Wed Dec  1 06:38:06 2004
-> +++ linux-2.6.9/net/ipv4/netfilter/ipt_REJECT.c	Wed Dec  1 06:41:04 2004
-> @@ -255,7 +255,7 @@ static void send_unreach(struct sk_buff
-> 
->  	/* Ensure we have at least 8 bytes of proto header. */
->  	if (skb_in->len < skb_in->nh.iph->ihl*4 + 8)
-> -		return;
-> +		printk("REJECT: we have less than 8 bytes of proto header.\n");
-> 
->  	/* if UDP checksum is set, verify it's correct */
->  	if (iph->protocol == IPPROTO_UDP
-> 
-> 
-> 
-
-----Next_Part(Thu_Dec__2_15:17:06_2004_044)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="ipt_reject.patch"
-
---- linux-2.6.10-rc2-rc2-bk13/net/ipv4/netfilter/ipt_REJECT.c	2004-12-02 11:45:28.000000000 +0900
-+++ linux-2.6.10-rc2-rc2-bk13-reject/net/ipv4/netfilter/ipt_REJECT.c	2004-12-02 14:47:17.245615416 +0900
-@@ -223,8 +223,8 @@
- static void send_unreach(struct sk_buff *skb_in, int code)
- {
- 	struct iphdr *iph;
--	struct udphdr *udph;
--	struct icmphdr *icmph;
-+	struct udphdr *udph, _udph;
-+	struct icmphdr *icmph, _icmph;
- 	struct sk_buff *nskb;
- 	u32 saddr;
- 	u8 tos;
-@@ -253,40 +253,37 @@
- 	if (iph->frag_off&htons(IP_OFFSET))
- 		return;
- 
--	/* Ensure we have at least 8 bytes of proto header. */
--	if (skb_in->len < skb_in->nh.iph->ihl*4 + 8)
--		return;
--
- 	/* if UDP checksum is set, verify it's correct */
--	if (iph->protocol == IPPROTO_UDP
--	    && skb_in->tail-(u8*)iph >= sizeof(struct udphdr)) {
--		int datalen = skb_in->len - (iph->ihl<<2);
--		udph = (struct udphdr *)((char *)iph + (iph->ihl<<2));
--		if (udph->check
-+	if (iph->protocol == IPPROTO_UDP) {
-+		int udphoff = ((u8*)iph - skb_in->data) + (iph->ihl << 2);
-+		int datalen = skb_in->len - udphoff;
-+
-+		udph = skb_header_pointer(skb_in, udphoff,
-+					  sizeof(struct udphdr), &_udph);
-+
-+		if (udph && udph->check
- 		    && csum_tcpudp_magic(iph->saddr, iph->daddr,
- 		                         datalen, IPPROTO_UDP,
--		                         csum_partial((char *)udph, datalen,
--		                                      0)) != 0)
-+					 skb_checksum(skb_in, udphoff, datalen,
-+						      0)) != 0)
- 			return;
- 	}
- 
- 	/* If we send an ICMP error to an ICMP error a mess would result.. */
--	if (iph->protocol == IPPROTO_ICMP
--	    && skb_in->tail-(u8*)iph >= sizeof(struct icmphdr)) {
--		icmph = (struct icmphdr *)((char *)iph + (iph->ihl<<2));
--
--		if (skb_copy_bits(skb_in, skb_in->nh.iph->ihl*4,
--				  icmph, sizeof(*icmph)) < 0)
--			return;
-+	if (iph->protocol == IPPROTO_ICMP) {
-+		icmph = skb_header_pointer(skb_in, iph->ihl<<2,
-+					   sizeof(struct icmphdr),
-+					   &_icmph);
- 
- 		/* Between echo-reply (0) and timestamp (13),
- 		   everything except echo-request (8) is an error.
- 		   Also, anything greater than NR_ICMP_TYPES is
- 		   unknown, and hence should be treated as an error... */
--		if ((icmph->type < ICMP_TIMESTAMP
--		     && icmph->type != ICMP_ECHOREPLY
--		     && icmph->type != ICMP_ECHO)
--		    || icmph->type > NR_ICMP_TYPES)
-+		if (icmph &&
-+		    ((icmph->type < ICMP_TIMESTAMP
-+		      && icmph->type != ICMP_ECHOREPLY
-+		      && icmph->type != ICMP_ECHO)
-+		     || icmph->type > NR_ICMP_TYPES))
- 			return;
- 	}
- 
-
-----Next_Part(Thu_Dec__2_15:17:06_2004_044)----
-
-
---uAgJxtfIS94j9H4T--
-
---ZY5CS28jBCfb727c
+--zOcTNEe3AzgCmdo9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -257,9 +65,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBwZAvXaXGVTD0i/8RAlQMAJ9RoN/NPAtPg/ZlXi2+xFFke5poDQCdExvU
-jCveoAFHuqt4mx4NlfCkW1Q=
-=wDvl
+iD8DBQFBwZCHXaXGVTD0i/8RAmMDAJ9I9iakRinX7ztkXdD9VII4KHx+3wCfedJh
+ov04RsRaO2ZHgc5eY2CzqHU=
+=zhot
 -----END PGP SIGNATURE-----
 
---ZY5CS28jBCfb727c--
+--zOcTNEe3AzgCmdo9--
