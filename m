@@ -1,16 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ctnetlink & helper_locking_fix conflict
-Date: Tue, 9 Nov 2004 18:11:06 +0100
-Message-ID: <20041109171106.GF22257@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.61.0411090808200.30695@filer.marasystems.com>
+Subject: Re: [RFC] Event Cache per-cpu
+Date: Tue, 9 Nov 2004 18:13:19 +0100
+Message-ID: <20041109171319.GG22257@sunbeam.de.gnumonks.org>
+References: <418FC922.9080004@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bnBIwIKtMHAVL+3z"
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="0uCeA/GhJk5vQd80"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0411090808200.30695@filer.marasystems.com>
+In-Reply-To: <418FC922.9080004@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,31 +24,52 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---bnBIwIKtMHAVL+3z
+--0uCeA/GhJk5vQd80
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 09, 2004 at 08:13:33AM +0100, Henrik Nordstrom wrote:
-> Hi,
+On Mon, Nov 08, 2004 at 08:29:38PM +0100, Pablo Neira wrote:
+> Hi all,
+> c) per packet cache. I don't see any possible race with this approach at=
+=20
+> the moment, but I'll need to use the nfcache field in skbuff. I prefer=20
+> this than adding a new field to a skbuff, I think that Davem won't like=
+=20
+> that.
+
+seems fine to me.
+
+> There's 15 bits in nfcache available now (because IPVS guys are using=20
+> one in private). My last patch has 11 events.
+
+who authorized IPVS people to use that bit ? It's ours, and we fought
+hard for it  ;)  [just kidding, but I didn't know that before].
+
+> enum ip_conntrack_events
+> {
+>       IPCT_NEW,                       /* New conntrack                */
+>       IPCT_RELATED,                   /* Expected connection          */
+>       IPCT_DESTROY,                   /* Destroyed conntrack          */
+>       IPCT_STATUS,                    /* Status has changed           */
+>       IPCT_REFRESH,                   /* Timer has been refreshed     */
+>       IPCT_PROTOINFO,                 /* Update of protocol info      */
+>       IPCT_PROTOINFO_VOLATILE,        /* Volatile protocol info       */
+>       IPCT_HELPER,                    /* New helper for conntrack     */
+>       IPCT_HELPINFO,                  /* Update of helper info        */
+>       IPCT_HELPINFO_VOLATILE,         /* Volatile helper info         */
+>       IPCT_NATINFO,                   /* NAT info                     */
+> };
 >=20
-> there is a conflict between the above two patches. The helper_locking_fix=
-=20
-> removes the locks from the helpers, but ctnetlink adds code using these=
-=20
-> locks.
->=20
-> >From reading the code I think the helper side locking should be removed=
-=20
-> from the ctnetlink additions as well, but just wanted to verify with you.
+> Patrick suggests that we could run out of bits soon if events go in=20
+> nfcache, that's true. To fix that, could we remove this stuff in=20
+> netfilter_ipv4.h, nobody is using it ?
 
-I think it is safe.  We're holding a write lock on ip_conntrack_lock and
-thus it's safe to change the helper data.
+No, I think this can be removed, nobody has ever used nfcache the way it
+was originally intended.
 
-If you have a fix for ctnetlink, that would be appreciated
-
-> Regards
-> Henrik
+> Please, comments welcome.
+> Pablo
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -59,7 +81,7 @@ If you have a fix for ctnetlink, that would be appreciated
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---bnBIwIKtMHAVL+3z
+--0uCeA/GhJk5vQd80
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -67,9 +89,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBkPoqXaXGVTD0i/8RAkbwAKCY3PGkECyVYhSQez/6/DJ8sjmZswCfQ6iH
-Heh/K12eRSt7mCeIrhRpRI4=
-=9k6C
+iD8DBQFBkPqvXaXGVTD0i/8RAi0pAJ9HPxB21r/tLaNhhsFj/YNbeXNgaACggbZ5
+nSyQKB8VS4Fo0WWqBGr8VTs=
+=LfoW
 -----END PGP SIGNATURE-----
 
---bnBIwIKtMHAVL+3z--
+--0uCeA/GhJk5vQd80--
