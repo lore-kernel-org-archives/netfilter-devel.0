@@ -1,18 +1,15 @@
-From: Stephen Lee <mukansai@emailplus.org>
-Subject: Re: Extremely slow network with e1000 & ip_conntrack
-Date: Thu, 04 Dec 2003 21:36:09 +0900
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Re: How do I use ip_conntrack_destroyed?
+Date: Thu, 04 Dec 2003 16:14:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031204213030.2B75.MUKANSAI@emailplus.org>
-References: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD1F@orsmsx402.jf.intel.com>
+Message-ID: <3FCF413D.1060405@netlab.hut.fi>
+References: <Pine.LNX.4.44.0312032243000.11739-100000@filer.marasystems.com> <3FCEE93C.5040104@balabit.hu>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "Harald Welte" <laforge@netfilter.org>,
-   <netfilter-devel@lists.netfilter.org>, <linux-kernel@vger.kernel.org>,
-   "David S. Miller" <davem@redhat.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Feldman, Scott" <scott.feldman@intel.com>
-In-Reply-To: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD1F@orsmsx402.jf.intel.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,19 +20,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-"Feldman, Scott" <scott.feldman@intel.com> wrote:
-> 
-> Try turning off TSO by disabling this code or by using "ethtool -K tso
-> off" (need version 1.8).
+Hi!
 
-Yes, turning off TSO with ethtool fixed it (tested on 2.6.0-test11).  At
-least we have a workaround now.
+KOVACS Krisztian wrote:
 
-Thanks Scott, Harald and Dave.
+>
+>   Hi,
+>
+> Henrik Nordstrom wrote:
+>
+>>> /* Call me when a conntrack is destroyed. */
+>>> extern void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack);
+>>
+>>
+>> If you want to do this I think you should first extend
+>> ip_conntrack_destroyed into a list of handlers with a suitable
+>> registration functions to allow more than one module to register a 
+>> "ip_conntrack_destroyed" function.
+>
+>
+>   As I've mentioned, this is already done in the nfnetlink-ctnetlink 
+> patch.
+>
+Thanks, it seems to be what I need.
 
-Is it not supported by the hardware?  Seems TSO could improve
-performance a bit since the 1000/MT Desktop is starved for PCI bandwidth
-at 32-bit/33MHz.
+Then, if I'm correct, I should register a function in my module as follows:
 
-Thanks,
-Stephen
+static struct ip_conntrack_notify ctnl_notify = { { NULL, NULL },
+                        my_function_destroy,
+                        NULL };
+
+But where is "struct ip_conntrack_notify" defined?
+I found the following code in a patch using google. It seems to be a 
+modification of ip_conntrack.h, but my ip_conntrack.h file does not 
+include these lines. And it's not in the nfnetlink patch neither. Is 
+there any other patch that I should install?
+
+-/* These are for NAT.  Icky. */
+-/* Call me when a conntrack is destroyed. */
+-extern void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack);
++/* This is for the ip_conntrack_notify facilities. */
++struct ip_conntrack_notify
++{
++        /* Internal use. */
++        struct list_head list;
++
++	void (*destroyed)(struct ip_conntrack *conntrack);
++        void (*created)(struct ip_conntrack *conntrack,
++                enum ip_conntrack_info info,
++                const struct net_device *in, 
++		const struct net_device *out);
++};
++
++extern int ip_conntrack_notify_register(struct ip_conntrack_notify *nb);
++extern int ip_conntrack_notify_unregister(struct ip_conntrack_notify *nb);
+
+
+           Emmanuel
