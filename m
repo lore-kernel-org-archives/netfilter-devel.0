@@ -1,25 +1,61 @@
-From: "GoMi ." <gomiuk@hotmail.com>
-Subject: Re: Connection tracking problem in 2.4.21-UP?
-Date: Thu, 19 Jun 2003 10:14:41 +0000
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Law8-F58gMHb75Fx2OQ00037722@hotmail.com>
+From: Matthias Juchem <lists@konfido.de>
+Subject: [PATCH 2.4] Trivial: kill __FUNCTION__ warnings in ip_nat_helper.c
+Date: Thu, 19 Jun 2003 13:30:09 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200306191326.09187.lists@konfido.de>
+Reply-To: Matthias Juchem <lists@konfido.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: cj.rankin@ntlworld.com, netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Id: netfilter-devel.vger.kernel.org
 
-That happens to me as well, msnmessengers stop working, audio casts as well, 
-I dont have any idea what to do!
+Hi there.
 
-_________________________________________________________________
-Charla con tus amigos en línea mediante MSN Messenger: 
-http://messenger.yupimsn.com/
+The attached patch kills two warnings (produced by gcc 3.3):
+
+ip_nat_helper.c:493: warning: concatenation of string literals with 
+__FUNCTION__ is deprecated
+ip_nat_helper.c:577: warning: concatenation of string literals with 
+__FUNCTION__ is deprecated
+
+Diff is against 2.4.21.
+
+Regards,
+ Matthias
+
+diff -urN linux-2.4.21-vanilla/net/ipv4/netfilter/ip_nat_helper.c 
+linux-2.4.21/net/ipv4/netfilter/ip_nat_helper.c
+--- linux-2.4.21-vanilla/net/ipv4/netfilter/ip_nat_helper.c     2003-06-19 
+11:53:43.000000000 +0200
++++ linux-2.4.21/net/ipv4/netfilter/ip_nat_helper.c     2003-06-19 
+12:37:26.000000000 +0200
+@@ -488,9 +488,9 @@
+                        const char *tmp = me->me->name;
+
+                        if (strlen(tmp) + 6 > MODULE_MAX_NAMELEN) {
+-                               printk(__FUNCTION__ ": unable to "
+-                                      "compute conntrack helper name "
+-                                      "from %s\n", tmp);
++                               printk("%s: unable to compute conntrack "
++                                      "helper name from %s\n",
++                                      __FUNCTION__, tmp);
+                                return -EBUSY;
+                        }
+                        tmp += 6;
+@@ -573,7 +573,8 @@
+                    && ct_helper->me) {
+                        __MOD_DEC_USE_COUNT(ct_helper->me);
+                } else
+-                       printk(__FUNCTION__ ": unable to decrement usage 
+count"
+-                              " of conntrack helper %s\n", me->me->name);
++                       printk("%s: unable to decrement usage count of "
++                              "conntrack helper %s\n",
++                              __FUNCTION__, me->me->name);
+        }
+ }
