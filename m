@@ -1,14 +1,20 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset 2.0 - Minor fix
-Date: Fri, 10 Dec 2004 11:20:13 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0412101117280.14449@blackhole.kfki.hu>
-References: <699F7BBB368A10479166148511F5241710DA52@gn-ex01.Go80211.com>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: [PATCH] info file for ROUTE target
+Date: Fri, 10 Dec 2004 09:43:50 +0100
+Message-ID: <20041210084350.GB4121@oknodo.bof.de>
+References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
+	<20041209195706.GA4121@oknodo.bof.de>
+	<20041209212420.GD591@ti64.telemetry-investments.com>
+	<1102667864.11255.2.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: "netfilter-devel@lists.netfilter.org"
+	<netfilter-devel@lists.netfilter.org>, Patrick Schaaf <bof@bof.de>,
+	"Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robert Iakobashvili <roberti@Go-WLAN.com>
-In-Reply-To: <699F7BBB368A10479166148511F5241710DA52@gn-ex01.Go80211.com>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+Content-Disposition: inline
+In-Reply-To: <1102667864.11255.2.camel@descartes.info.ucl.ac.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,29 +26,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+> > Presumably ip6t_ROUTE.c requires an out-of-line version of ndisc_get_neigh()
+> > to be exported.
+> 
+> Agree.
 
-On Thu, 9 Dec 2004, Robert Iakobashvili wrote:
+I'm curious - why aren't such functions EXPORT_SYMBOL_GPLled?
+Same question applies to the out-of-line ip_finish_output2 in ROUTE.
+Methinks that would be much nicer. Is this a policy, or is it just
+a communication problem?
 
-> IPset 2.0 works great with the recommended patch-o-patic and iptables version
-> on linux vanilla kernel 2.6.9.
->
-> The minor issue on a Debian 64-bit destribution for AMD:
-> ipset compilation fails with :
-[..]
->
-> fixed by adding to CFLAGS -fPIC.
-
-You are right, the flag was missing from Makefile.
-It has been corrected in svn and the new snapshot is uploaded to
-http://people.netfilter.org/kadlec/ipset.
-
-Thank you for reporting and fixing the problem.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+best regards
+  Patrick
