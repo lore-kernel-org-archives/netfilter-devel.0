@@ -1,16 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: pom-ng TRACE patch: unable to find ladd slot in src
- ./net/ipv6/Config.in
-Date: Wed, 18 Feb 2004 00:49:17 +0100 (CET)
+From: quadong@users.sourceforge.net
+Subject: [PATCH] Layer7 v0.6
+Date: Tue, 17 Feb 2004 18:52:19 -0600 (CST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402180045380.12013-100000@blackhole.kfki.hu>
-References: <5.2.1.1.2.20040217235440.00b19750@wheresmymailserver.com>
+Message-ID: <Pine.LNX.4.60.0402171851160.3450@dsl093-017-216.msp1.dsl.speakeasy.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Robby <inet6@mail.be>
-In-Reply-To: <5.2.1.1.2.20040217235440.00b19750@wheresmymailserver.com>
+To: l7-filter-developers@lists.sf.net, netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,18 +17,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 18 Feb 2004, Robby wrote:
+I've released a new version of the layer7 patch on sourceforge:
 
-> I see, but are new patches or code updates still being applied to the good
-> old and working patch-o-matic?
+http://sourceforge.net/project/showfiles.php?group_id=80085
 
-Yes. Until p-o-m-ng is out, the old p-o-m is the official repository of
-the patches and bugfixes, as I think. :-)
+It's significantly cleaned up in terms of CodingStyle, GPL notices, file
+locations, and so on.  The childlevel code has been removed from it.  I've
+attempted to make it SMP-safe, but I'd love for someone who's done this
+before to read it over and see if I've done it right.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-matthew
