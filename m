@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Deadlocks
-Date: Tue, 15 Jun 2004 08:23:26 +0200
+From: "Peter Olsson" <aa@tbh.se>
+Subject: Kernel Oops with kernel 2.4.25 and iptables 1.2.9 in __unexpect_related
+Date: Tue, 15 Jun 2004 09:40:26 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40CE95DE.9090703@trash.net>
-References: <20040609180909.GA11445@linuxace.com> <1087156709.11287.8.camel@ws> <20040615044723.GA16891@linuxace.com>
+Message-ID: <002401c452ac$06523580$7c01a8c0@std.visionutv.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090607010502040709030101"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0021_01C452BC.C9D4EB00"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20040615044723.GA16891@linuxace.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,252 +19,330 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090607010502040709030101
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Phil Oester wrote:
-> I agree I am likely experiencing the deadlock you refer to:
-> 
-> CPU1:
-> conntrack-helper:help: lock(private_lock)
-> ip_conntrack_expect_related: write_lock(ip_conntrack_lock)
-> 
-> CPU2:
-> nat-core:do_bindings: read_lock(ip_conntrack_lock)
-> nat-helper:help: lock(private_lock)
-> 
-> However, it's unclear to me that the ip_ftp_lock can be trivially eliminated.
-> 
-> This code path looks particularly prickly in ip_nat_ftp.c:
-> 
-> help
->   ftp_data_fixup
->     ip_conntrack_change_expect
-> 
-> so the nat helper is changing the expectation -- potentially at the same time
-> the conntrack helper is calling ip_conntrack_expect.  If the private lock
-> were removed, could this not cause a race condition if the expectation got
-> created just after the nat-helper changed the expectation?  
-
-I don't understand what you mean. The nat-helper can not change the
-expectation before it's created, and once it's created it can not
-be touched by the conntrack helper anymore. ip_ftp_lock is protecting
-ftp_buffer and ct_ftp_info, so it can be dropped directly after the
-call to find_pattern. The help function in the nat_helper only touches
-the expectation, which is protected by ip_conntrack_lock, so it doesn't
-need ip_ftp_lock lock at all.
-
-> 
-> It seems the ip_ftp_lock is needed, but perhaps needs to be reworked to avoid
-> the deadlock condition illustrated above.
-
-I've attached an untested patch which should fix this problem for the
-ftp helper. Care to give it a try ?
-
-Regards
-Patrick
-
-> 
-> Thoughts?
-> 
-> Phil
-
---------------090607010502040709030101
+------=_NextPart_000_0021_01C452BC.C9D4EB00
 Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-===== include/linux/netfilter_ipv4/ip_conntrack_ftp.h 1.4 vs edited =====
---- 1.4/include/linux/netfilter_ipv4/ip_conntrack_ftp.h	2002-08-19 20:41:51 +02:00
-+++ edited/include/linux/netfilter_ipv4/ip_conntrack_ftp.h	2004-06-15 08:20:59 +02:00
-@@ -4,11 +4,6 @@
- 
- #ifdef __KERNEL__
- 
--#include <linux/netfilter_ipv4/lockhelp.h>
--
--/* Protects ftp part of conntracks */
--DECLARE_LOCK_EXTERN(ip_ftp_lock);
--
- #define FTP_PORT	21
- 
- #endif /* __KERNEL__ */
-===== net/ipv4/netfilter/ip_conntrack_ftp.c 1.19 vs edited =====
---- 1.19/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-03-30 06:18:56 +02:00
-+++ edited/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-06-15 08:20:28 +02:00
-@@ -27,7 +27,7 @@
- /* This is slow, but it's simple. --RR */
- static char ftp_buffer[65536];
- 
--DECLARE_LOCK(ip_ftp_lock);
-+static DECLARE_LOCK(ip_ftp_lock);
- struct module *ip_conntrack_ftp = THIS_MODULE;
- 
- #define MAX_PORTS 8
-@@ -327,6 +327,7 @@
- 				     search[i].getnum);
- 		if (found) break;
- 	}
-+	UNLOCK_BH(&ip_ftp_lock);
- 	if (found == -1) {
- 		/* We don't usually drop packets.  After all, this is
- 		   connection tracking, not packet filtering.
-@@ -336,12 +337,9 @@
- 			printk("conntrack_ftp: partial %s %u+%u\n",
- 			       search[i].pattern,
- 			       ntohl(tcph.seq), datalen);
--		ret = NF_DROP;
--		goto out;
--	} else if (found == 0) { /* No match */
--		ret = NF_ACCEPT;
--		goto out;
--	}
-+		return NF_DROP;
-+	} else if (found == 0) /* No match */
-+		return NF_ACCEPT;
- 
- 	DEBUGP("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
- 	       (int)matchlen, data + matchoff,
-@@ -349,11 +347,8 @@
- 
- 	/* Allocate expectation which will be inserted */
- 	exp = ip_conntrack_expect_alloc();
--	if (exp == NULL) {
--		ret = NF_ACCEPT;
--		goto out;
--	}
--
-+	if (exp == NULL)
-+		return NF_ACCEPT;
- 	exp_ftp_info = &exp->help.exp_ftp_info;
- 
- 	/* Update the ftp info */
-@@ -376,10 +371,8 @@
- 		   <lincoln@cesar.org.br> for reporting this potential
- 		   problem (DMZ machines opening holes to internal
- 		   networks, or the packet filter itself). */
--		if (!loose) {
--			ret = NF_ACCEPT;
--			goto out;
--		}
-+		if (!loose)
-+			return NF_ACCEPT;
- 	}
- 
- 	exp->tuple = ((struct ip_conntrack_tuple)
-@@ -397,7 +390,8 @@
- 
- 	/* Ignore failure; should only happen with NAT */
- 	ip_conntrack_expect_related(exp, ct);
--	ret = NF_ACCEPT;
-+	return NF_ACCEPT;
-+
-  out:
- 	UNLOCK_BH(&ip_ftp_lock);
- 	return ret;
-@@ -457,7 +451,6 @@
- }
- 
- PROVIDES_CONNTRACK(ftp);
--EXPORT_SYMBOL(ip_ftp_lock);
- 
- module_init(init);
- module_exit(fini);
-===== net/ipv4/netfilter/ip_nat_ftp.c 1.13 vs edited =====
---- 1.13/net/ipv4/netfilter/ip_nat_ftp.c	2004-01-29 00:59:33 +01:00
-+++ edited/net/ipv4/netfilter/ip_nat_ftp.c	2004-06-15 08:23:13 +02:00
-@@ -37,8 +37,6 @@
- MODULE_PARM(ports, "1-" __MODULE_STRING(MAX_PORTS) "i");
- #endif
- 
--DECLARE_LOCK_EXTERN(ip_ftp_lock);
--
- /* FIXME: Time out? --RR */
- 
- static unsigned int
-@@ -61,8 +59,6 @@
- 	DEBUGP("nat_expected: We have a connection!\n");
- 	exp_ftp_info = &ct->master->help.exp_ftp_info;
- 
--	LOCK_BH(&ip_ftp_lock);
--
- 	if (exp_ftp_info->ftptype == IP_CT_FTP_PORT
- 	    || exp_ftp_info->ftptype == IP_CT_FTP_EPRT) {
- 		/* PORT command: make connection go to the client. */
-@@ -77,7 +73,6 @@
- 		DEBUGP("nat_expected: PASV cmd. %u.%u.%u.%u->%u.%u.%u.%u\n",
- 		       NIPQUAD(newsrcip), NIPQUAD(newdstip));
- 	}
--	UNLOCK_BH(&ip_ftp_lock);
- 
- 	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC)
- 		newip = newsrcip;
-@@ -113,8 +108,6 @@
- {
- 	char buffer[sizeof("nnn,nnn,nnn,nnn,nnn,nnn")];
- 
--	MUST_BE_LOCKED(&ip_ftp_lock);
--
- 	sprintf(buffer, "%u,%u,%u,%u,%u,%u",
- 		NIPQUAD(newip), port>>8, port&0xFF);
- 
-@@ -136,8 +129,6 @@
- {
- 	char buffer[sizeof("|1|255.255.255.255|65535|")];
- 
--	MUST_BE_LOCKED(&ip_ftp_lock);
--
- 	sprintf(buffer, "|1|%u.%u.%u.%u|%u|", NIPQUAD(newip), port);
- 
- 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
-@@ -158,8 +149,6 @@
- {
- 	char buffer[sizeof("|||65535|")];
- 
--	MUST_BE_LOCKED(&ip_ftp_lock);
--
- 	sprintf(buffer, "|||%u|", port);
- 
- 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
-@@ -191,7 +180,6 @@
- 	u_int16_t port;
- 	struct ip_conntrack_tuple newtuple;
- 
--	MUST_BE_LOCKED(&ip_ftp_lock);
- 	DEBUGP("FTP_NAT: seq %u + %u in %u\n",
- 	       expect->seq, ct_ftp_info->len,
- 	       ntohl(tcph->seq));
-@@ -270,15 +258,12 @@
- 	}
- 
- 	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
--	LOCK_BH(&ip_ftp_lock);
- 	/* If it's in the right range... */
- 	if (between(exp->seq + ct_ftp_info->len,
- 		    ntohl(tcph->seq),
- 		    ntohl(tcph->seq) + datalen)) {
--		if (!ftp_data_fixup(ct_ftp_info, ct, pskb, ctinfo, exp)) {
--			UNLOCK_BH(&ip_ftp_lock);
-+		if (!ftp_data_fixup(ct_ftp_info, ct, pskb, ctinfo, exp))
- 			return NF_DROP;
--		}
- 	} else {
- 		/* Half a match?  This means a partial retransmisison.
- 		   It's a cracker being funky. */
-@@ -288,11 +273,8 @@
- 			       ntohl(tcph->seq),
- 			       ntohl(tcph->seq) + datalen);
- 		}
--		UNLOCK_BH(&ip_ftp_lock);
- 		return NF_DROP;
- 	}
--	UNLOCK_BH(&ip_ftp_lock);
--
- 	return NF_ACCEPT;
- }
- 
+After running my firewall without any problems for about 90 days, I =
+suddenly got a Kernel Oops.
+When running it through ksymoops I received the result below.
 
---------------090607010502040709030101--
+I've read a few comments about a bug in the newnat code in =
+unexpect_related, but what I can see
+this should be fixed a long time ago, and if I compare the =
+unexpect_related calls in the ip_conntrack_core.c
+from version 2.4.25 til 2.4.26 they work in exactly the same way. Could =
+there be something else causing
+this problem? I don't think it's hardware related, I've been using the =
+same hardware, but with kernel 2.4.27
+for about a year before this happened, and it's been working really =
+good.
+
+Best regards,
+
+Peter Olsson
+
+----
+
+ksymoops on i686 2.4.25.  Options used
+     -V (specified)
+     -k /proc/ksyms (default)
+     -l /proc/modules (default)
+     -o /lib/modules/2.4.25/ (default)
+     -m /boot/System.map-2.4.25 (default)
+
+Unable to handle kernel NULL pointer dereference at virtual address =
+00000004 printing eip:
+c026f410
+*pde =3D 00000000
+Oops: 0002
+CPU:    0
+EIP:    0010:[<c026f410>]  Tainted: P
+Using defaults from ksymoops -t elf32-i386 -a i386
+EFLAGS: 00010286
+eax: 00000000   ebx: e1499a80     ecx: e1499a8c       edx: 00000000
+esi: f7c34b8c   edi: f7c34b80     ebp: c2477380       esp: c036bcfc
+ds: 0018   es: 0018   ss: 0018
+Process swapper (pid: 0, stackpage=3Dc036b000)
+Stack: 00000000 f7dd1000 e1499a80 c036a000 c036a000 c0271bc0 e1499a80 =
+e1499a80
+       c0272ee0 e1499a80 e1499a80 e6c9c500 f7c34b80 f7c34bc0 00000000 =
+c02704fd
+       e6c9c500 c9648c80 cd6dd2d9 00000001 f7c34b80 c036bddc e6c9c500 =
+020749d4
+Call Trace:    [<c0271bc0>] [<c0272ee0>] [<c02704fd>] [<c027067c>] =
+[<c022fac6>]
+  [<c023d148>] [<c023be60>] [<c022f75e>] [<c023be60>] [<c023be60>] =
+[<c022fa8f>]
+  [<c023be60>] [<c023bce6>] [<c023be60>] [<c0227889>] [<c0222fbf>] =
+[<c0227889>]
+  [<c0227985>] [<f99a5f68>] [<c0227adf>] [<c011dafb>] [<c0108bad>] =
+[<c01052c0>]
+  [<c01052c0>] [<c01052c0>] [<c01052c0>] [<c01052e9>] [<c0105372>] =
+[<c0105000>]
+Code: 89 50 04 89 02 8b 43 0c c7 03 00 00 00 00 c7 43 04 00 00 00
+
+>>EIP; c026f410 <__unexpect_related+10/60>   <=3D=3D=3D=3D=3D
+Trace; c0271bc0 <ip_conntrack_unexpect_related+30/70>
+Trace; c0272ee0 <pptp_expectfn+90/b0>
+Trace; c02704fd <init_conntrack+40d/420>
+Trace; c027067c <ip_conntrack_in+16c/2a0>
+Trace; c022fac6 <nf_hook_slow+106/180>
+Trace; c023d148 <ip_forward+1f8/260>
+Trace; c023be60 <ip_rcv_finish+0/20f>
+Trace; c022f75e <nf_iterate+2e/80>
+Trace; c023be60 <ip_rcv_finish+0/20f>
+Trace; c023be60 <ip_rcv_finish+0/20f>
+Trace; c022fa8f <nf_hook_slow+cf/180>
+Trace; c023be60 <ip_rcv_finish+0/20f>
+Trace; c023bce6 <ip_rcv+3a6/3f0>
+Trace; c023be60 <ip_rcv_finish+0/20f>
+Trace; c0227889 <netif_receive_skb+189/1c0>
+Trace; c0222fbf <alloc_skb+ef/1c0>
+Trace; c0227889 <netif_receive_skb+189/1c0>
+Trace; c0227985 <process_backlog+c5/180>
+Trace; f99a5f68 <[tg3]tg3_poll+f8/110>
+Trace; c0227adf <net_rx_action+9f/160>
+Trace; c011dafb <do_softirq+6b/d0>
+Trace; c0108bad <do_IRQ+dd/f0>
+Trace; c01052c0 <default_idle+0/40>
+Trace; c01052c0 <default_idle+0/40>
+Trace; c01052c0 <default_idle+0/40>
+Trace; c01052c0 <default_idle+0/40>
+Trace; c01052e9 <default_idle+29/40>
+Trace; c0105372 <cpu_idle+52/70>
+Trace; c0105000 <_stext+0/0>
+Code;  c026f410 <__unexpect_related+10/60>
+00000000 <_EIP>:
+Code;  c026f410 <__unexpect_related+10/60>   <=3D=3D=3D=3D=3D
+   0:   89 50 04                  mov    %edx,0x4(%eax)   =
+<=3D=3D=3D=3D=3D
+Code;  c026f413 <__unexpect_related+13/60>
+   3:   89 02                     mov    %eax,(%edx)
+Code;  c026f415 <__unexpect_related+15/60>
+   5:   8b 43 0c                  mov    0xc(%ebx),%eax
+Code;  c026f418 <__unexpect_related+18/60>
+   8:   c7 03 00 00 00 00         movl   $0x0,(%ebx)
+Code;  c026f41e <__unexpect_related+1e/60>
+   e:   c7 43 04 00 00 00 00      movl   $0x0,0x4(%ebx)
+
+ <0>Kernel panic: Aiee, killing interrupt handler!
+
+----
+
+This is the actual __unexpect_related code in my ip_contrack_core.c:
+
+static void __unexpect_related(struct ip_conntrack_expect *expect)
+{
+        DEBUGP("unexpect_related(%p)\n", expect);
+        MUST_BE_WRITE_LOCKED(&ip_conntrack_lock); =20
+
+        /* we're not allowed to unexpect a confirmed expectation! */
+        IP_NF_ASSERT(!expect->sibling);
+
+        /* delete from global and local lists */
+        list_del(&expect->list);
+        list_del(&expect->expected_list);
+
+        /* decrement expect-count of master conntrack */
+        if (expect->expectant)
+                expect->expectant->expecting--;
+
+        ip_conntrack_expect_put(expect);
+}
+
+------=_NextPart_000_0021_01C452BC.C9D4EB00
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1400" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>After running my firewall without any =
+problems for=20
+about 90 days, I suddenly got a Kernel Oops.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>When running it through ksymoops I =
+received the=20
+result below.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I've read a few comments about a bug in =
+the newnat=20
+code in unexpect_related, but what I can see</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>this should be fixed a long time ago, =
+and if I=20
+compare the unexpect_related calls in the =
+ip_conntrack_core.c</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>from version 2.4.25 til 2.4.26 they =
+work in exactly=20
+the same way. Could there be something else causing</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>this problem? I don't think it's =
+hardware related,=20
+I've been using the same hardware, but with kernel 2.4.27</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>for about a year before this happened, =
+and it's=20
+been working really good.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Best regards,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Peter Olsson</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>----</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>ksymoops on i686 2.4.25.&nbsp; Options=20
+used<BR>&nbsp;&nbsp;&nbsp;&nbsp; -V =
+(specified)<BR>&nbsp;&nbsp;&nbsp;&nbsp; -k=20
+/proc/ksyms (default)<BR>&nbsp;&nbsp;&nbsp;&nbsp; -l /proc/modules=20
+(default)<BR>&nbsp;&nbsp;&nbsp;&nbsp; -o /lib/modules/2.4.25/=20
+(default)<BR>&nbsp;&nbsp;&nbsp;&nbsp; -m /boot/System.map-2.4.25=20
+(default)</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Unable to handle kernel NULL pointer =
+dereference at=20
+virtual address 00000004 printing eip:<BR>c026f410<BR>*pde =3D =
+00000000<BR>Oops:=20
+0002<BR>CPU:&nbsp;&nbsp;&nbsp; 0<BR>EIP:&nbsp;&nbsp;&nbsp;=20
+0010:[&lt;c026f410&gt;]&nbsp; Tainted: P<BR>Using defaults from ksymoops =
+-t=20
+elf32-i386 -a i386<BR>EFLAGS: 00010286<BR>eax: 00000000&nbsp;&nbsp; ebx: =
+
+e1499a80&nbsp;&nbsp;&nbsp;&nbsp; ecx:=20
+e1499a8c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; edx: 00000000<BR>esi:=20
+f7c34b8c&nbsp;&nbsp; edi: f7c34b80&nbsp;&nbsp;&nbsp;&nbsp; ebp:=20
+c2477380&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; esp: c036bcfc<BR>ds:=20
+0018&nbsp;&nbsp; es: 0018&nbsp;&nbsp; ss: 0018<BR>Process swapper (pid: =
+0,=20
+stackpage=3Dc036b000)<BR>Stack: 00000000 f7dd1000 e1499a80 c036a000 =
+c036a000=20
+c0271bc0 e1499a80 e1499a80<BR></FONT><FONT face=3DArial=20
+size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; c0272ee0 e1499a80 e1499a80 =
+e6c9c500=20
+f7c34b80 f7c34bc0 00000000 =
+c02704fd<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+e6c9c500 c9648c80 cd6dd2d9 00000001 f7c34b80 c036bddc e6c9c500 =
+020749d4<BR>Call=20
+Trace:&nbsp;&nbsp;&nbsp; [&lt;c0271bc0&gt;] [&lt;c0272ee0&gt;]=20
+[&lt;c02704fd&gt;] [&lt;c027067c&gt;] [&lt;c022fac6&gt;]<BR>&nbsp;=20
+[&lt;c023d148&gt;] [&lt;c023be60&gt;] [&lt;c022f75e&gt;] =
+[&lt;c023be60&gt;]=20
+[&lt;c023be60&gt;] [&lt;c022fa8f&gt;]<BR>&nbsp; [&lt;c023be60&gt;]=20
+[&lt;c023bce6&gt;] [&lt;c023be60&gt;] [&lt;c0227889&gt;] =
+[&lt;c0222fbf&gt;]=20
+[&lt;c0227889&gt;]<BR>&nbsp; [&lt;c0227985&gt;] [&lt;f99a5f68&gt;]=20
+[&lt;c0227adf&gt;] [&lt;c011dafb&gt;] [&lt;c0108bad&gt;]=20
+[&lt;c01052c0&gt;]<BR>&nbsp; [&lt;c01052c0&gt;] [&lt;c01052c0&gt;]=20
+[&lt;c01052c0&gt;] [&lt;c01052e9&gt;] [&lt;c0105372&gt;]=20
+[&lt;c0105000&gt;]<BR>Code: 89 50 04 89 02 8b 43 0c c7 03 00 00 00 00 c7 =
+43 04=20
+00 00 00</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>&gt;&gt;EIP; c026f410=20
+&lt;__unexpect_related+10/60&gt;&nbsp;&nbsp; =
+&lt;=3D=3D=3D=3D=3D<BR>Trace; c0271bc0=20
+&lt;ip_conntrack_unexpect_related+30/70&gt;<BR>Trace; c0272ee0=20
+&lt;pptp_expectfn+90/b0&gt;<BR>Trace; c02704fd=20
+&lt;init_conntrack+40d/420&gt;<BR>Trace; c027067c=20
+&lt;ip_conntrack_in+16c/2a0&gt;<BR>Trace; c022fac6=20
+&lt;nf_hook_slow+106/180&gt;<BR>Trace; c023d148=20
+&lt;ip_forward+1f8/260&gt;<BR>Trace; c023be60=20
+&lt;ip_rcv_finish+0/20f&gt;<BR>Trace; c022f75e=20
+&lt;nf_iterate+2e/80&gt;<BR>Trace; c023be60=20
+&lt;ip_rcv_finish+0/20f&gt;<BR>Trace; c023be60=20
+&lt;ip_rcv_finish+0/20f&gt;<BR>Trace; c022fa8f=20
+&lt;nf_hook_slow+cf/180&gt;<BR>Trace; c023be60=20
+&lt;ip_rcv_finish+0/20f&gt;<BR>Trace; c023bce6 =
+&lt;ip_rcv+3a6/3f0&gt;<BR>Trace;=20
+c023be60 &lt;ip_rcv_finish+0/20f&gt;<BR>Trace; c0227889=20
+&lt;netif_receive_skb+189/1c0&gt;<BR>Trace; c0222fbf=20
+&lt;alloc_skb+ef/1c0&gt;<BR>Trace; c0227889=20
+&lt;netif_receive_skb+189/1c0&gt;<BR>Trace; c0227985=20
+&lt;process_backlog+c5/180&gt;<BR>Trace; f99a5f68=20
+&lt;[tg3]tg3_poll+f8/110&gt;<BR>Trace; c0227adf=20
+&lt;net_rx_action+9f/160&gt;<BR>Trace; c011dafb=20
+&lt;do_softirq+6b/d0&gt;<BR>Trace; c0108bad =
+&lt;do_IRQ+dd/f0&gt;<BR>Trace;=20
+c01052c0 &lt;default_idle+0/40&gt;<BR>Trace; c01052c0=20
+&lt;default_idle+0/40&gt;<BR>Trace; c01052c0 =
+&lt;default_idle+0/40&gt;<BR>Trace;=20
+c01052c0 &lt;default_idle+0/40&gt;<BR>Trace; c01052e9=20
+&lt;default_idle+29/40&gt;<BR>Trace; c0105372 =
+&lt;cpu_idle+52/70&gt;<BR>Trace;=20
+c0105000 &lt;_stext+0/0&gt;<BR>Code;&nbsp; c026f410=20
+&lt;__unexpect_related+10/60&gt;<BR>00000000 =
+&lt;_EIP&gt;:<BR>Code;&nbsp;=20
+c026f410 &lt;__unexpect_related+10/60&gt;&nbsp;&nbsp; =
+&lt;=3D=3D=3D=3D=3D<BR>&nbsp;&nbsp;=20
+0:&nbsp;&nbsp; 89 50=20
+04&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+mov&nbsp;&nbsp;&nbsp; %edx,0x4(%eax)&nbsp;&nbsp; =
+&lt;=3D=3D=3D=3D=3D<BR>Code;&nbsp;=20
+c026f413 &lt;__unexpect_related+13/60&gt;<BR>&nbsp;&nbsp; 3:&nbsp;&nbsp; =
+89=20
+02&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+mov&nbsp;&nbsp;&nbsp; %eax,(%edx)<BR>Code;&nbsp; c026f415=20
+&lt;__unexpect_related+15/60&gt;<BR>&nbsp;&nbsp; 5:&nbsp;&nbsp; 8b 43=20
+0c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+mov&nbsp;&nbsp;&nbsp; 0xc(%ebx),%eax<BR>Code;&nbsp; c026f418=20
+&lt;__unexpect_related+18/60&gt;<BR>&nbsp;&nbsp; 8:&nbsp;&nbsp; c7 03 00 =
+00 00=20
+00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; movl&nbsp;&nbsp;=20
+$0x0,(%ebx)<BR>Code;&nbsp; c026f41e=20
+&lt;__unexpect_related+1e/60&gt;<BR>&nbsp;&nbsp; e:&nbsp;&nbsp; c7 43 04 =
+00 00=20
+00 00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; movl&nbsp;&nbsp; =
+$0x0,0x4(%ebx)</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>&nbsp;&lt;0&gt;Kernel panic: Aiee, =
+killing=20
+interrupt handler!<BR></FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>----</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>This is the actual __unexpect_related =
+code in my=20
+ip_contrack_core.c:</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>static void __unexpect_related(struct=20
+ip_conntrack_expect =
+*expect)<BR>{<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+DEBUGP("unexpect_related(%p)\n",=20
+expect);<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+MUST_BE_WRITE_LOCKED(&amp;ip_conntrack_lock);&nbsp; </FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial =
+size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* we're=20
+not allowed to unexpect a confirmed expectation!=20
+*/<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+IP_NF_ASSERT(!expect-&gt;sibling);</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial =
+size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /*=20
+delete from global and local lists=20
+*/<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+list_del(&amp;expect-&gt;list);<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;=20
+list_del(&amp;expect-&gt;expected_list);</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial =
+size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /*=20
+decrement expect-count of master conntrack=20
+*/<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if=20
+(expect-&gt;expectant)<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+expect-&gt;expectant-&gt;expecting--;</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial =
+size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+ip_conntrack_expect_put(expect);<BR>}</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>&nbsp;</DIV></FONT></BODY></HTML>
+
+------=_NextPart_000_0021_01C452BC.C9D4EB00--
