@@ -1,13 +1,16 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Re:?
-Date: Thu, 03 Apr 2003 14:26:12 +1100
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: tcp-window-tracking vs. pending/24_conntrack-nosysctl.patch
+Date: 03 Apr 2003 12:15:43 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200304030426.h334QGX15665@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <1049364942.25148.60.camel@tux.rsn.bth.se>
+References: <20030403025151.GA1702@pc.ilinx>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Soporte Meranetwork" <mera@fibertel.com.ar>
+To: netfilter@interlinx.bc.ca
+In-Reply-To: <20030403025151.GA1702@pc.ilinx>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,39 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Eugen,
+On Thu, 2003-04-03 at 04:51, netfilter@interlinx.bc.ca wrote:
+> There is a patch in pending that makes the tcp-window-tracking patch
+> fail to apply cleanly.  The patch in
+> pending/24_conntrack-nosysctl.patch:
+> 
+> --- linux-2.4.21-pre5-ac3/net/ipv4/netfilter/ip_conntrack_core.c	Sat Mar 15 12:16:55 2003
+> +++ linux-2.4.21-pre5-ac3-fixed/net/ipv4/netfilter/ip_conntrack_core.c	Sat Mar 15 12:23:34 2003
+> @@ -1478,8 +1478,10 @@
+>  	ip_ct_attach = ip_conntrack_attach;
+>  	return ret;
+>  
+> +#ifdef CONFIG_SYSCTL
+>  err_free_ct_cachep:
+>  	kmem_cache_destroy(ip_conntrack_cachep);
+> +#endif /*CONFIG_SYSCTL*/
+>  err_free_hash:
+>  	vfree(ip_conntrack_hash);
+>  err_unreg_sockopt:
+> 
+> 
+> is not accounted for in hunk 5 to file
+> net/ipv4/netfilter/ip_conntrack_core.c in
+> extra/tcp-window-tracking.patch.
+> 
+> I guess the question is, should it be expected that patches in suites
+> like extra should apply if all of submitted and pending are applied.
 
-  I'm sorry but I'm not the H323 author ... and I haven't used netfilter H323
-support since ipchains.  I have CCd the netfilter list in case someone 
-there can help.
+Thanks for the report, I'll try to fix it up.
 
+The answer is that I don't have time to check all the time if everything
+still applies after new stuff has been added to pom.
 
-
-
-
------ Original Message -----
->From: "Soporte Meranetwork" <mera@fibertel.com.ar>
->To: <Ian.Latter@mq.edu.au>
->Subject:  ?
->Date: Mon, 31 Mar 2003 18:56:17 -0300
->
-> Good day.I have used IPTabels 1.2.5-3,and dont know that it have or not H323 modul .But 
-for recive Call from outside(internet) to inside(throught NAT) - Netmeeting(ATA 186) i use 
-thet rules: 
-> $IPTABLES -t nat -A POSTROUTING -o $EXTIF -s 192.168.0.0/24 -j MASQUERADE 
->   (intern LAN)
-> PORTFWIP="192.168.0.201" ( PC with Netmeting or ATA 186)
-> $IPTABLES -A FORWARD -i $EXTIF -o $INTIF -p tcp --dport 1720 -m state --state
-> NEW,ESTABLISHED,RELATED -j ACCEPT
-> $IPTABLES -A PREROUTING -t nat -p tcp -d $EXTIP --dport 1720 -j DNAT --to 
-$PORTFWIP:1720
-> But i want to use NAT without  FORWARD ,PREROUTING with H323 ability for any IP in 
-LAN.Where i can find IPtables with ability of H323(version) or where is the patch(modul) for 
-that ability? Thank your. 
-> Buy,
-> Eugen
-
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
+-- 
+/Martin
