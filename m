@@ -1,16 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] fine grain locking for tcp helper
-Date: Mon, 3 May 2004 16:49:19 +0200 (CEST)
+From: Null Device <nulldevice83@yahoo.com>
+Subject: seeking help on pom and other issues
+Date: Mon, 3 May 2004 13:24:00 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405031632300.24224-100000@blackhole.kfki.hu>
-References: <40964F69.1040508@eurodev.net>
+Message-ID: <20040503202400.1496.qmail@web41906.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40964F69.1040508@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,40 +17,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Hi list,
 
-On Mon, 3 May 2004, Pablo Neira wrote:
+i tried using pom.
+already have linux source, using 2.4.22-10mdk,
+downloaded iptables and pom-ng.
 
-> Actually I was having a look at conntrack_locking for per bucket locking
-> some days ago, I find it interesting. I had in mind to port them to 2.6
-> but Patrick was faster :-).
+then after giving proper paths i ran ./runme from the
+directory where i extracted
+patch-o-matic-ng-20040302.tar.bz2 as root.
 
-:-)
+i want to install n use connlimit.
+i found it in netfilter\extensions as well as pom-ng
+dir
+when i run ./runme base 
+and when i press y for connlimit
+i get an error
+it states "newfile: 2 files in our way, unable to
+apply"
+i am unable to get this. any help in this regard wud b
+invaluable.
 
-> BTW, is there any problem in using both patches at the same time? If we
-> have a machine with mostly tcp traffic, when we take a conntrack, two
-> buckets will be locked (for original and reply tuples), but when calling
-> tcp specific functions, it will spin until tcp_lock is released possibly
-> by other conntrack.
+Moreover for my modules which i am working on to learn
+netfilter and iptables. userspace program sets the
+parameters for the kernel module to work. in userspace
+code i first bzero a srtuct, fill it with port values
+whic i htons() brfore setting after setting required
+values . when used with ports 20 and 22 it turns the
+values into 5120 and 5632 (all in %d format)
+respective which i am sure are wrong and shuld have
+been sonething like 0020 or 0022. where i am
+slipping??.
 
-I see, your're right. Actually, it seems I was blind, sorry. Both patches
-could be used and your patch could give more speed.
+as i have learned that for skbuff transport header
+(TCP/UDP/ICMP) do not exactly point to transport layer
+headers as supposed to b . as per this pharck article 
+" One should note that  the transport  header and
+network header may very well point to the same 
+location in memory.  This
+is  the  case for TCP packets where  h  and  nh  are
+both  considered  as
+pointers  to IP header structures.  This means  that
+attempting  to get a
+value from h->th thinking it's pointing to the TCP
+header will  result in
+false results because h->th will actually be pointing
+to the  IP  header,
+just like nh->iph."
+is it case with ICMP and UDP too?
 
-> >Could you check and revive the patches
-> >
-> >conntrack_arefcount	- revised reference counting
->
-> Is conntrack_locking dependent of this patch? in pom-ng is marked as
-> dependent, but I don't understand why.
+any help in these matters wud b highly appriciated.
 
-It's a must. Without the revised refcounting and well-separated
-ip_conntrack_lock and ip_conntrack_expect_lock, per bucket locking cannot
-simply be introduced. The locking patch cannot be applied without it.
+thx 
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+	
+		
+__________________________________
+Do you Yahoo!?
+Win a $20,000 Career Makeover at Yahoo! HotJobs  
+http://hotjobs.sweepstakes.yahoo.com/careermakeover 
