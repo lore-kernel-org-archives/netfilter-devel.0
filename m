@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Logging NAT translations?
-Date: Mon, 2 Aug 2004 19:13:01 +0200
+From: "kesineni sai pratap" <kesineni@woojininc.net>
+Subject: it is possible to use inet_addr
+Date: Tue, 3 Aug 2004 14:30:31 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040802171301.GS18758@sunbeam2>
-References: <87isc7on6q.fsf@ion.xlipstream.com> <20040801170153.GC14539@sunbeam2> <20040802161124.GA20307@zion.homelinux.com>
+Message-ID: <000a01c4791a$fe672660$a06464c0@kesineni>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uQ3BaAlxDi9XKvis"
-Cc: Chris Green <cmg@dok.org>, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0007_01C47966.6E001220"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sven Schuster <schuster.sven@gmx.de>
-Content-Disposition: inline
-In-Reply-To: <20040802161124.GA20307@zion.homelinux.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,43 +18,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---uQ3BaAlxDi9XKvis
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------=_NextPart_000_0007_01C47966.6E001220
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
-> I'll see if I still can find my old work and if I can do something
-> to get it working on a recent 2.6.x kernel. But don't hold your
-> breath, time is quite limited as always (like probably everybody
-> here knows :-)
+Hello,
 
-even if it only works with 2.6.2/2.6.3, it might be worth sending your
-patch to the devel list, so somebody else can pick up.
+          Iam changing  netif_receive_skb () function in  in =
+/usr/src/linux/net/core/dev.c.i  unable  to use inet_addr function in =
+netif_receive_skb function. It is possible to use inet_addr function in =
+netif_receive-skb function, if possible how can use.
 
-> Sven
+thanks & regards
+LEO
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+------=_NextPart_000_0007_01C47966.6E001220
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
---uQ3BaAlxDi9XKvis
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1458" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>Hello,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial=20
+size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Iam =
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+changing&nbsp; netif_receive_skb () function in&nbsp; in=20
+/usr/src/linux/net/core/dev.c.</FONT><FONT face=3DArial size=3D2>i&nbsp; =
 
-iD8DBQFBDnYdXaXGVTD0i/8RAjSOAKCG/m50YCskVbJsRT9IfYkivAMPgwCfSYTR
-9DY4hfQVjlMmdkCn3f65jGQ=
-=926+
------END PGP SIGNATURE-----
+unable&nbsp;&nbsp;to use inet_addr function in netif_receive_skb =
+function. It is=20
+possible to use inet_addr function in netif_receive-skb function, if =
+possible=20
+how can use.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>thanks &amp; regards</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>LEO</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
 
---uQ3BaAlxDi9XKvis--
+------=_NextPart_000_0007_01C47966.6E001220--
