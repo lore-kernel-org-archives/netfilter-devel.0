@@ -1,36 +1,69 @@
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Subject: iptables+2.6-test8-bk4 : Still problems
-Date: Sun, 26 Oct 2003 09:48:29 +0100
+From: Balint Cristian <rezso@rdsor.ro>
+Subject: Re: iptables+2.6-test8-bk4 : Still problems
+Date: Sun, 26 Oct 2003 10:52:25 -0500
 Sender: sparclinux-owner@vger.kernel.org
-Message-ID: <3F9B8A5D.9010803@triaton-webhosting.com>
+Message-ID: <200310261052.25944.rezso@rdsor.ro>
+References: <3F9B8A5D.9010803@triaton-webhosting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <sparclinux-owner@vger.kernel.org>
-To: sparclinux@vger.kernel.org, netfilter-devel@lists.netfilter.org
+To: Georg Chini <georg.chini@triaton-webhosting.com>,
+	sparclinux@vger.kernel.org, netfilter-devel@lists.netfilter.org
+In-Reply-To: <3F9B8A5D.9010803@triaton-webhosting.com>
+Content-Disposition: inline
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On Sunday 26 October 2003 03:48, Georg Chini wrote:
 
-on my sparc64 (ultra1) I am using ppp and ipsec
-to get a tunnel to my office. Before 2.6.0-test8-bk4
-my computer would freeze when using any iptables command.
-With 2.6.0-test8-bk4 "iptables -F" responds with
-"invalid argument" when my ppp interface is up and
-the tables will not be flushed.
-/usr/local/sbin/iptables -A INPUT -i ppp0 -j ACCEPT
-works, but the corresponding
-/usr/local/sbin/iptables -D INPUT -i ppp0 -j ACCEPT
-does not, again I get "invalid argument".
-When I additionally start ipsec (using freeswan 2.03)
-things will get worse. Every iptables command referring
-to the ppp interface or the IP-address of the ppp interface
-is rejected with "invalid argument".
-Any suggestions how to fix this are welcome.
-If you need more debugging output, I can supply it.
-As I am not sure wether this is a sparc-only problem,
-I post this to netfilter-devel too.
+> /usr/local/sbin/iptables -A INPUT -i ppp0 -j ACCEPT
+> works, but the corresponding
+> /usr/local/sbin/iptables -D INPUT -i ppp0 -j ACCEPT
+> does not, again I get "invalid argument".
 
-Thanks in advance
-                   Georg Chini
+
+I object too, a simple "iptables -F" not work, see here:
+
+-------------------------------------------///-------------------------------------
+[root@sun root]# iptables -L -n
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+REJECT     tcp  --  0.0.0.0/0            0.0.0.0/0          tcp dpt:631 reject-with tcp-reset
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+[root@sun root]# iptables -F INPUT
+iptables: No chain/target/match by that name
+[root@sun root]#
+------------------------------------////------------------------------------------------------------
+
+	I can add rules even can delete rules, accounting seems to work on rules but only rules FLUSH
+don't work.
+
+Using: iptables v1.2.8 + 2.6.0-test8-bk2 + davem.netfilter-compat-patch
+
+cristian
+
+
+>
+> Thanks in advance
+>                    Georg Chini
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Life in itself has no meaning. 
+Life is an opportunity to create meaning.
+
+              \|/ ____ \|/ 
+              "@'/ .. \`@" 
+              /_| \__/ |_\ 
+                 \__U_/ 
 
