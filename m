@@ -1,14 +1,19 @@
-From: "Kumar Shobhit (IFIN DC COM)" <Shobhit.Kumar@infineon.com>
-Subject: RE: blocking/allowing particular protocol
-Date: Wed, 17 Mar 2004 16:38:29 +0530
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
+Date: Wed, 17 Mar 2004 12:16:05 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <0C674B14EAEBD61196D900B0D03DB49F01C1EA7A@blrw502w.blr.infineon.com>
+Message-ID: <1079522164.812.93.camel@nienna.balabit>
+References: <Pine.LNX.4.33.0403121424070.20054-100000@blackhole.kfki.hu>
+	 <1079458116.843.62.camel@nienna.balabit>  <1079516281.4874.11.camel@vijay>
 Mime-Version: 1.0
 Content-Type: text/plain
-Cc: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'Henrik Nordstrom'" <hno@marasystems.com>
+To: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
+In-Reply-To: <1079516281.4874.11.camel@vijay>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,40 +24,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
->It is not possible to reliably identify HTTP traffic, and 
->further this is 
->extremely hard to do correctly at packet level simply because 
->you can not 
->at all see the protocol data unless you accept the session to 
->be set up 
->and even allow forwarding of protocol payload until the 
->protocol can be 
->reliably identified by its payload.
->
->The best way to do this reliably is by proxies. Set up a HTTP 
->proxy and have your clients configured to use this. Then block 
->any direct access to Internet not using the proxy.
 
-Yes I think I should do it this way. Thanks.
+  Hi,
 
->> Another question which I couldn't find an answer to is, when in the 
->> conntrack/NAT code is the ip_nat_info structure initialized
->
->It is set up by the NAT targets/helpers by calling 
->ip_nat_setup_info, or implicitly by the NAT table if there is 
->no NAT target in the hook.
+On Wed, 2004-03-17 at 10:38, Vijaya Chandra Vupputuri wrote:
+> 've tried to do the same but I don't seem to have any problem on a test
+> box with redhat 7.3 (2.4.18-3)
 
-Ok. Just to veryfy whether I understand everything correctly. First I have
-to 
-register a NAT helper and then in the helper's callback function I call 
-Ip_nat_setup_info. Correct?
-But now I have one more doubt There is another expect callback function in
-the
-Ip_nat_helper structure. What is the purpose of this? 
-I reffered to the FTP ALG (FYI I am implementing a SIP ALG) and I found that
+  I think the problem is present only on kernels > 2.4.22. This is
+because of a fix in 2.4.23 which changed when alloc_null_binding() is
+called. In 2.4.22, alloc_null_binding() is called even when
+CONFIG_IP_NF_LOCAL_NAT is off, while in 2.4.23 (and above) it's only
+called when CONFIG_IP_NF_LOCAL_NAT is turned on. I don't know if it
+matters or not with respect to this problem.
 
-ip_set_nat_info is being called from there. 
-When and how will this function be called?
+> If I understood what you said properly the following is your setup,
+> the ip of the test box is 10.1.0.1 and you have a lan 10.1.0.0/16 whose
+> gateway is 10.1.0.1
+> on 10.1.0.1 you redirect any traffic to port 80 to the local port 8080
 
-Thanks & Rgds
-Shobhit
+  Yes, this is the setup. (Although this is a virtual setup using UML,
+but it shouldn't matter at all.)
+
+> now if 10.1.0.2 tries to connect to, say, 216.239.41.104 it gets
+> redirected to the port 8080 on 10.1.0.1
+
+  Yes, in theory. To trigger the bug, you should connect _from_ the
+gateway to itself. (Note that the ruleset is somewhat flawed, since it
+should redirect only traffic coming in through the LAN interface.) I
+used netcat to connect:
+
+# nc 10.1.0.1 80
+
+> but, from 10.1.0.2, if you try to connect directly to port 80 on
+> 10.1.0.1, with your setup where nothing is listening on 80, the box
+> would hang. am i right?!
+
+  It does not matter if there is something listening on port 80. I think
+it wasn't clear from my previous mail that you have to connect _from_
+the gateway, and not from the attached 10.1.0.0/16 LAN.
+
+-- 
+ Regards,
+   Krisztian KOVACS
