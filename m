@@ -1,17 +1,23 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 2.6] iptables hashlimit match
-Date: Wed, 20 Oct 2004 21:42:31 -0700
+Subject: Re: [PATCH] Change masquerade code to use first IP address of
+ interface.
+Date: Wed, 20 Oct 2004 22:29:38 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041020214231.769459eb.davem@davemloft.net>
-References: <20041020224506.GQ19899@sunbeam.de.gnumonks.org>
+Message-ID: <20041020222938.0dee0d5b.davem@davemloft.net>
+References: <E1CKBtq-0005FC-00@gondolin.me.apana.org.au>
+	<Pine.LNX.4.61.0410201123200.25590@filer.marasystems.com>
+	<20041020104650.GA20868@gondor.apana.org.au>
+	<Pine.LNX.4.61.0410201300580.28452@filer.marasystems.com>
+	<20041020111245.GA22703@gondor.apana.org.au>
+	<1098319849.10571.155.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org, mhennig@astaro.com,
-	ghansen@astaro.com
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
+	herbert@gondor.apana.org.au, hno@marasystems.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20041020224506.GQ19899@sunbeam.de.gnumonks.org>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <1098319849.10571.155.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +28,25 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 21 Oct 2004 00:45:06 +0200
-Harald Welte <laforge@netfilter.org> wrote:
+On Thu, 21 Oct 2004 10:50:49 +1000
+Rusty Russell <rusty@rustcorp.com.au> wrote:
 
-> This is the third (and last, for now) patch, adding the 'hashlimit'
-> match to iptables.  It was previously known as 'dstlimit', but has now
-> been generalized one step further.
+> On Wed, 2004-10-20 at 21:12, Herbert Xu wrote:
+> > On Wed, Oct 20, 2004 at 01:04:51PM +0200, Henrik Nordstrom wrote:
+> > > On Wed, 20 Oct 2004, Herbert Xu wrote:
+> > > 
+> > > >I mean
+> > > >
+> > > >	rt = (struct rtable *)(*pskb)->dst;
+> > > >	newsrc = inet_select_addr(out, rt->rt_gateway, RT_SCOPE_UNIVERSE);
+> > > 
+> > > IIRC we are not allowed to access this here, but I may be wrong.. If we 
+> > 
+> > Why? POST_ROUTING is called in three places in ip_output.c and they all
+> > give a valid dst.  In fact ip_refrag in ip_conntrack_standalone.c is also
+> > accessing skb->dst.
 > 
-> Please apply, thanks.
-> 
-> Signed-off-by: Harald Welte <laforge@netfilter.org>
+> Yeah, I like it.  Please send patch on top of mine to Dave, and we'll
+> see what blows up.
 
-Applied, thanks Harald.
+Patrick feel free to send this along to me whenever you like.
