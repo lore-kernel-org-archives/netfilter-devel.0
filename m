@@ -1,16 +1,15 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] nfsim TCP related fixes
-Date: Tue, 22 Feb 2005 19:53:00 +1100
-Message-ID: <1109062380.14533.1.camel@localhost.localdomain>
-References: <Pine.LNX.4.58.0502210859300.834@blackhole.kfki.hu>
-	<1108999481.16083.1.camel@localhost.localdomain>
-	<Pine.LNX.4.58.0502212015190.1542@blackhole.kfki.hu>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 2/2] ipt_hashlimit.c: hash only once
+Date: Tue, 22 Feb 2005 12:08:01 +0100
+Message-ID: <20050222110800.GL29256@sunbeam.de.gnumonks.org>
+References: <421428F2.4030404@cookinglinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0502212015190.1542@blackhole.kfki.hu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Dy3pjCZLf6+6NySR"
+Cc: netfilter-devel@lists.netfilter.org
+To: sjean@cookinglinux.org
+Content-Disposition: inline
+In-Reply-To: <421428F2.4030404@cookinglinux.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +21,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2005-02-21 at 20:16 +0100, Jozsef Kadlecsik wrote:
-> On Tue, 22 Feb 2005, Rusty Russell wrote:
-> 
-> > On Mon, 2005-02-21 at 09:07 +0100, Jozsef Kadlecsik wrote:
-> > > Hi,
-> > >
-> > > I discovered two TCP related bugs in gen_ip: TCP SEQ and ACK numbers were
-> > > converted from string to u_int16_t instead of u_int32_t and full length
-> > > TCP options could not be specified.
-> >
-> > Don't think so: string_to_number uses int.  You couldn't specify >
-> > 2billion though.  We should just make string_to_number() use unsigned
-> > since noone wants -ve numbers anyway.  Other fix looks fine: feel free
-> > to simply commit.
-> 
-> Yes, you are right. What about the attached patch?
 
-Perfect, please apply.
+--Dy3pjCZLf6+6NySR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks!
-Rusty (in hotel room, via modem).
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+On Thu, Feb 17, 2005 at 12:17:38AM -0500, Samuel Jean wrote:
+> Name: hash only once
+> Status: Tested on Linux 2.6.10.
+>          Patch against 2.6.11-rc4-bk2
+>          Incremental to previous hlist_head patch [1/2]
+> Signed-off-by: Samuel Jean <sjean@cookinglinux.org>
+>=20
+> Harald: this patch might be crap.
+>=20
+> I couldn't find the reason on why we initialize random seed only on first=
+=20
+> entry.
+
+my reasoning is the same like for the ip_conntrack hash:  We don't have
+random seed at immediate system startup.  However, at the point we see
+the first packets, we have a higher probability of having collected
+entropy.
+
+Not sure whether it can be compared to ip_conntrack, which will create
+it's hashtable definitely before any entropy is available when the
+module is statically linked.
+
+With ipt_hashlimit, we create the hash table at iptables rule loadtime,
+which ideally should be after the rng has gathered some entropy.
+
+On a side note:
+The wohle entropy issue in embedded networking is a real problem.  A lot
+of devices don't want to limit flash lifetime by writing the random seed
+at shutdown into flash and re-read it at startup.  Also, a number of
+network drivers doesn't set the SA_RANDOM (or whatever it's called) flag
+for the netork interrupts.=20
+
+> This patch move the seed initializing at hashtable creation. So we can ha=
+sh=20
+> only once to find and create.
+
+I like the optimization, but am still undecided.  Let me first integrate
+your hlist changes ;)
+
+> Patch is inlined and attached as I'm dumb and dunno how to inline the=20
+> attachement.
+
+I personally prefer attachments, and I think it's pretty standard these
+days.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--Dy3pjCZLf6+6NySR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCGxKQXaXGVTD0i/8RAvnCAJ4vH/hXzW8RAT9IJMJLH6h4I+3TQgCeKDiX
+LgU8vpmC/o/Ehq3cDOxV8dE=
+=XpgF
+-----END PGP SIGNATURE-----
+
+--Dy3pjCZLf6+6NySR--
