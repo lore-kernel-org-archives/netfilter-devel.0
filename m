@@ -1,21 +1,17 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [TRIVIAL] place IPv4 netfilter submenu where it belongs
-Date: Wed, 30 Jul 2003 16:54:52 -0700
+From: Internet Protocol version Six <inet6@mail.be>
+Subject: Re: --reject-with admin-prohib not working
+Date: Thu, 31 Jul 2003 03:48:46 +0200 (GMT+02:00)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030730165452.5a7d131e.davem@redhat.com>
-References: <20030726200646.GF16160@louise.pinerecords.com>
-	<20030727160942.647707d8.davem@redhat.com>
-	<20030729042618.GL32673@louise.pinerecords.com>
-	<20030729223802.1d670476.davem@redhat.com>
-	<20030730140813.GC4553@sunbeam.de.gnumonks.org>
+Message-ID: <563371376.1059616126453.JavaMail.Administrator@pumbaa>
+References: <20030730140214.GA4553@sunbeam.de.gnumonks.org>
+Reply-To: Internet Protocol version Six <inet6@mail.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: szepe@pinerecords.com, netfilter-devel@lists.netfilter.org,
-        linux-kernel@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030730140813.GC4553@sunbeam.de.gnumonks.org>
+To: laforge@netfilter.org
+In-Reply-To: <20030730140214.GA4553@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -26,22 +22,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 30 Jul 2003 16:08:13 +0200
-Harald Welte <laforge@netfilter.org> wrote:
+Works great, thanks :)
 
-> On Tue, Jul 29, 2003 at 10:38:02PM -0700, David S. Miller wrote:
-> > On Tue, 29 Jul 2003 06:26:18 +0200
-> > Tomas Szepe <szepe@pinerecords.com> wrote:
-> > 
-> > > The only aim of the patch is to put most netfilter options
-> > > in a dedicated submenu so that one can go tweaking the
-> > > them right where they've enabled netfilter in the first
-> > > place.
-> > 
-> > This looks fine to me.  Can I get an ACK from the netfilter
-> > folks?
+> ----------------------------------------
+> From: Harald Welte <laforge@netfilter.org>
+> Sent: Wed Jul 30 16:02:14 GMT+02:00 2003
+> To: Internet Protocol version Six <inet6@mail.be>
+> Subject: Re: --reject-with admin-prohib not working
 > 
-> I also aggree with this change, please apply Tomas' second proposed
-> patch.
+> 
+> On Sat, Jul 26, 2003 at 12:15:22AM +0200, Internet Protocol version Six wrote:
+> > Hello all,
+> > 
+> > like the subject says, it is not working for me, I applied the PoM
+> > patch to the kernel, compiled the kernel, even recompiled iptables and
+> > it still gives me "iptables v1.2.8: unknown reject type
+> > `admin-prohib'"
+> 
+> just use iptables from CVS.  I should do a 1.2.9 release, if only for
+> this issue.
+> 
+> -- 
+> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+> ============================================================================
+>   "Fragmentation is like classful addressing -- an interesting early
+>    architectural error that shows how much experimentation was going
+>    on while IP was being designed."                    -- Paul Vixie
 
-Applied, thanks guys.
+-----------------------------------------------------
+Mail.be, WebMail and Virtual Office
+http://www.mail.be
