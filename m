@@ -1,12 +1,10 @@
-From: DarKRaveR <DarKRaveR@habitat-b.de>
-Subject: REJECT target
-Date: Wed, 25 Jun 2003 02:39:03 +0200
+From: "Ricky Foo" <blue_pion@hotmail.com>
+Subject: Port Expectation
+Date: Wed, 25 Jun 2003 03:03:53 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <19527171580.20030625023903@habitat-b.de>
-Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
+Message-ID: <Sea2-F66YluLCTaogxL0000049f@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,15 +17,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello netfilter-devel list,
+Greetings,
 
-  I know this is not really a developers question, but maybe the
-  developers are the right people at hand, to explain this.
-  From what I read, the REJECT target is only valid in
-  INPUT/OUPUT/FORWARD. Is there any particular reason why ? I read in
-  one of the tutorials, that you wouldn't need it at any other place,
-  but I think this is not perfectly true.
+For this piece of code in ip_nat_ftp.c, why are we change the port to use? 
+If your protocol uses the same protocol port number for both the src & dest 
+port (in my case always 138 in both direction), I suppose there is no need 
+to change the expected port to some other values?
 
--- 
-Best regards,
- DarKRaveR                          mailto:DarKRaveR@habitat-b.de
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  /* Try to get same port: if not, try to change it. */
+  for (port = ct_ftp_info->port; port != 0; port++)
+  {
+	newtuple.dst.u.tcp.port = htons(port);
+	if (ip_conntrack_change_expect(expect, &newtuple) == 0)
+		break;
+  }
+
+
+    Ricky
+
+_________________________________________________________________
+Send a fun phone greeting to your friend! 
+http://www.msn.com.sg/mobile/fungreetings/
