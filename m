@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Kernel Oops with kernel 2.4.25 and iptables 1.2.9 in __unexpect_related
-Date: Wed, 16 Jun 2004 00:07:44 +0200 (CEST)
+Subject: Re: [netfilter-core] strange iptables statistics =(
+Date: Wed, 16 Jun 2004 00:19:53 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406160001480.15456-100000@filer.marasystems.com>
-References: <008901c45314$efb3dd10$7c01a8c0@std.visionutv.se>
+Message-ID: <Pine.LNX.4.44.0406160012010.15456-100000@filer.marasystems.com>
+References: <40CF5CE5.8080601@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Peter Olsson <aa@tbh.se>
-In-Reply-To: <008901c45314$efb3dd10$7c01a8c0@std.visionutv.se>
+To: Renat Araslanow <tr0nd@bitel.ru>
+In-Reply-To: <40CF5CE5.8080601@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,14 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 15 Jun 2004, Peter Olsson wrote:
+Renat Araslanow wrote:
 
-> I looked through all applied patches from pom, and it's the list below.
+> as u can see in "ufanets_out" chain there is 328 packets, but in chain
+> "by_protocol_out" we see only 1 udp packet. i have one more ip range - and
+> its reported ok. can u explain me this please? thanks in advance.
 
-You really ought to be using pom-ng these days..
+the ufanets_out chain counts all kinds of packets, not only UDP..
 
-Maybe updates/05_linux-2.4.26-orphaned_expect.patch is relevant to your 
-problem?
+by_protocol_out does not count all kinds of packets, only a small set of 
+selected packets.
+
+there is a large number of situations where these two will not add up as 
+there is very many kinds of packets which will not be counted by your 
+by_protocol_out chain.
 
 Regards
 Henrik
