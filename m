@@ -1,24 +1,24 @@
-From: Patrick Schaaf <bof@bof.de>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: nf_conntrack [was Re: [PATCH 1/4] RFC: fast string matching
 	infrastrure for netfilter]
-Date: Fri, 14 Jan 2005 09:20:12 +0100
-Message-ID: <20050114082012.GA22042@oknodo.bof.de>
+Date: Fri, 14 Jan 2005 09:31:55 +0100
+Message-ID: <20050114083154.GG9070@sunbeam.de.gnumonks.org>
 References: <41E1AECD.6020209@eurodev.net> <41E1B9F1.7010106@trash.net>
 	<Pine.LNX.4.58.0501102041430.28819@blackhole.kfki.hu>
 	<41E2E631.3060102@trash.net>
 	<20050110212807.GZ18568@sunbeam.de.gnumonks.org>
 	<41E73258.7030002@trash.net>
-	<1105686102.7311.101.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>,
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="84ND8YJRMFlzkrP4"
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>,
+	Pablo Neira <pablo@eurodev.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <1105686102.7311.101.camel@localhost.localdomain>
+In-Reply-To: <41E73258.7030002@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,47 +30,83 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> 	timeout: move to a 32-bit seconds counter, and use a sweep-method to
-> clean up connections rather than a timer per conn.  Save 28 bytes.
 
-I don't like sweep...
+--84ND8YJRMFlzkrP4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This reminds me: what about my "timer management frequency reduction"
-from longtimeago? Basic points:
+On Fri, Jan 14, 2005 at 03:45:44AM +0100, Patrick McHardy wrote:
 
-1) Note that the normal, tcp stream, per-packet timer usually only increases,
-   and is way out in the future (for ESTABLISHED connections).
-2) Meditate
-3) Have a store area for the jiffies target, per conntrack, which is
-   independant of the kernel timer.
-4) When the timeout jiffies target is set or modified, and the kernel timer
-   is not already running, start it up, as usual. Also store the jiffies
-   target in the conntrack.
-5) When the timeout jiffies target changes, and we have an already running
-   kernel timer, compare stored jiffies target with new jiffies target:
-5a) New target is smaller than old target: store new target, modify kernel
-    timer, as usual.
-5b) New target is larger than old target: store new target. DONE.
-6) when timeout happens, compare stored jiffies target to $now:
-6a) If stored target and current time match (or stored is older),
-    run the timer activity we have now, i.e. destroy conntrack, usually.
-6b) If the stored target is in the future, restart kernel timer
-    to the target time. DO NOT fire traditional timer activity.
-7) Meditate
-8) Note that the normal, tcp stream, per-packet timer usually only increases,
-   and is way out in the future (for ESTABLISHED connections).
+> But unlike ct_extend, the get_features stuff is very unflexible. The
+> way it is currently implemented it only works for a single dynamically
+> allocated part without leaving holes, and it even it if could handle more,
+> they all need to be determined at allocation time, so a worst-case=20
+> assumption
+> has to be made for anything depending on the ruleset. This is especially
+> a concern with modules and distribution-kernels, NAT could be loaded at a=
+ny
+> time, so the memory needs to be allocated in advance.
 
-We'll save the whole kernel timer modification for each packet after the first,
-for all usual ESTABLISHED connections. They'll only rearm their timer once
-every few days.
+Nobody should ever load iptable_nat if it isn't actually used.  That's
+what module autoloading is about.  If a distribution does this, it is
+straight forward broken.
 
-I had this coded up and working (for some hours, on my box). Patch must be
-somewhere in the archives...
+Also, I haven't seen this in practise so far, so it's not a valid
+optimization target from my point of view.
 
-> 	ip_nat_info: use hash tree.  Save 8 bytes.
-> 	tuplehash: use hash tree, put proto in status word.  Save 24 bytes.
+> >But, then think of a firewall in front of an FTP (IRC/...) Server, and
+> >your traffic pattern immediately looks like 50% of your connections (not
+> >talking about traffic) have helper private data... and my argument
+> >becomes stronger again.
+> >
+> Sure, but helpers are slow anyway. The additional allocation is a one-time
+> effort, the two disjunct pieces of memory shouldn't hurt too much since
+> nf_conntrack is very large and covers multiple cache-lines already. Rusty
+> mentioned he got struct ip_conntrack down to ~150b, this makes it possible
+> to have a lot more active connections without exceeding the cache.
 
-Umm. What exactly is meant with "hash tree", here?
+Ok, agreed for the helper case.  But my argument for NAT still holds, at
+least as far as I see.  Also, stuff like the accounting counters are a
+similar case.
 
-best regards
-  Patrick
+So maybe in the end we need 'features' for those, and ct_extend for
+helper related data?
+
+> One more thing I was thinking about. If we put ip_conntrack in maintenance
+> mode and probably deprecate it at some time, I see little reason to remove
+> ipchains compat just now. Why not just let it fade out together with
+> ip_conntrack once nf_conntrack is in ? I haven't checked if it was because
+> of incompatibilities or required changes with Rusty's latest work, if so
+> that would be a good reason.
+
+I don't have a particular favour for or against any of the proposed
+solutions.
+
+> Regards
+> Patrick
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--84ND8YJRMFlzkrP4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFB54N6XaXGVTD0i/8RAkqlAKCghno+2LpxCcIaat8yv5INU8p4PgCeJuO/
+uAWsDRr4GKIiJWr8nEjy09M=
+=SHb5
+-----END PGP SIGNATURE-----
+
+--84ND8YJRMFlzkrP4--
