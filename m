@@ -1,41 +1,82 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: skb_ip_make_writable and skbs not owned by a socket
-Date: Wed, 26 Jan 2005 21:50:39 -0800
-Message-ID: <20050126215039.65ebd158.davem@davemloft.net>
-References: <41D86571.6070501@trash.net>
-	<20050113213122.7e70c3c2.davem@davemloft.net>
-	<41E75FA4.907@trash.net>
-	<20050117135029.04e6580f.davem@davemloft.net>
-	<41EC469F.6010605@trash.net> <41F869C2.5030800@trash.net>
+Subject: Re: [PATCH/RFC] Reduce call chain length in netfilter
+Date: Wed, 26 Jan 2005 23:18:01 -0800
+Message-ID: <20050126231801.7bf90338.davem@davemloft.net>
+References: <1131604877.20041218092730@mail.ru.suse.lists.linux.kernel>
+	<p73zn0ccaee.fsf@verdi.suse.de>
+	<1105117559.11753.34.camel@baythorne.infradead.org>
+	<20050107100017.454ddadc@dxpl.pdx.osdl.net>
+	<1105133241.3375.16.camel@localhost.localdomain>
+	<20050118135735.4b77d38d.davem@davemloft.net>
+	<1106433059.4486.11.camel@localhost.localdomain>
+	<1106436153.20995.42.camel@tux.rsn.bth.se>
+	<1106484019.3376.5.camel@localhost.localdomain>
+	<1106496509.1085.1.camel@tux.rsn.bth.se>
+	<20050125220558.6e824f8a.davem@davemloft.net>
+	<1106730510.4041.4.camel@localhost.localdomain>
+	<41F82C6D.7020006@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: hadi@cyberus.ca, rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Cc: bdschuym@pandora.be, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org, snort2004@mail.ru,
+        rusty@rustcorp.com.au, ak@suse.de, bridge@osdl.org,
+        gandalf@wlug.westbo.se, dwmw2@infradead.org, shemminger@osdl.org
+Return-path: <netdev-bounce@oss.sgi.com>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41F869C2.5030800@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+In-Reply-To: <41F82C6D.7020006@trash.net>
+Sender: netdev-bounce@oss.sgi.com
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 27 Jan 2005 05:10:42 +0100
+On Thu, 27 Jan 2005 00:49:01 +0100
 Patrick McHardy <kaber@trash.net> wrote:
 
-> Dave, could you please have another look at this ? I think the patch is
-> correct, and even necessary to make the ipt action work with targets
-> that mangle the data area. Jamal asked me to put back the pskb_expand_head
-> call in the ipt action, so iptables won't see cloned skbs and copy them
-> (actions must not replace the skb), but the protocol-dependant cases
-> in skb_ip_make_writable can cause copying anyway. I think you missed
-> my reply to your last mail, please see below.
+> Bart De Schuymer wrote:
+> 
+> >Does anyone have objections to this patch, which reduces the netfilter
+> >call chain length?
+> >
+> Looks fine to me.
+> 
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-It's in my backlog, don't worry.  I'll try to get to it tomorrow.
+Ok, I applied this.
 
-Is it the end of the world if I defer it to 2.6.12?
+While reviewing I thought it may be an issue that the new macros
+potentially change skb.  It really isn't an issue because NF_HOOK()
+calls pass ownership of the SKB over from the caller.
+
+Although technically, someone could go:
+
+	skb_get(skb);
+	err = NF_HOOK(... skb ...);
+	... do stuff with skb ...
+	kfree_skb(skb);
+
+but that would cause other problems and I audited the entire tree
+and nobody attempts anything like this currently.  'skb' always
+dies at the NF_HOOK() call site.
+
+I guess if we wanted to preserve NF_HOOK*() semantics even in such
+a case we could use a local "__skb" var in the macro's basic block.
+
+Another huge downside to this change I was worried about
+was from a code generation point of view.  Since we now take the
+address of "skb", gcc cannot generate tail-calls for the common
+case of:
+
+	return NF_HOOK(...);
+
+when netfilter is enabled.  Ho hum...
+
+Wait...
+
+This is actually an important point!  Since gcc is generating a tail-
+call for NF_HOOK() today, there is no stack savings for NF_HOOK()
+created by this patch.  The only real gain is the NF_STOP stuff
+for bridge netfilter.
+
+I'm backing this out of my tree, let's think about this some more.
+Perhaps it's only worth adding the NF_STOP thing and just making
+nf_hook_slow() do the okfn(skb); call in that case?
