@@ -1,12 +1,10 @@
-From: "Robert Iakobashvili" <roberti@Go-WLAN.com>
-Subject: 64-bit versus 32-bit kernel performance
-Date: Mon, 25 Oct 2004 09:19:49 +0200
+From: "Ronald Moesbergen" <Ronald.Moesbergen@bkvision.nl>
+Subject: [Patch] ipsec-nat patches for 2.6.9
+Date: Mon, 25 Oct 2004 10:19:46 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <699F7BBB368A10479166148511F524174CBA6B@gn-ex01.Go80211.com>
+Message-ID: <C7150F785DD9414B9F5B74FEBD08A322155891@ma-sv-ex2003.bkvision.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C4BA6B.6326B1AE"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 Content-class: urn:content-classes:message
 To: <netfilter-devel@lists.netfilter.org>
@@ -20,230 +18,155 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-With reference to the nf-workshop-2004-summary.pdf,=20
-section 13.3 "Netfilter benchmarking by HW",
-"building as 64-bit kernel hurts performance,=20
-this is assumed because skb grows another cache line because of
-large pointers".
+This is a multi-part message in MIME format.
 
-Could somebody elaborate on this issue?=20
-Does it mean that the bottleneck is CPU and broadband throughput
-to the board makes just nothing?
+------_=_NextPart_001_01C4BA6B.6326B1AE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Any pointers to the exact setup description would be appreciated.
+Hi,
+=20
+Serveral people have requested updated patches to be able to use NAT
+with ipsec. I have "fixed" the following pom-ng patches so they apply
+(and work) with kernel 2.6.9:
 
-Sincerely,
-Robert Iakobashvili
+ipsec-01-output-hooks
+ipsec-02-input-hooks
+ipsec-03-policy-lookup
+ipsec-04-policy-checks
 
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of
-netfilter-devel-request@lists.netfilter.org
-Sent: Monday, October 25, 2004 2:57 AM
-To: netfilter-devel@lists.netfilter.org
-Subject: netfilter-devel Digest, Vol 3, Issue 33
+I hope someone finds them useful.
+=20
+Thanks,
+Ronald.
 
-Send netfilter-devel mailing list submissions to
-	netfilter-devel@lists.netfilter.org
+------_=_NextPart_001_01C4BA6B.6326B1AE
+Content-Type: application/x-gzip;
+	name="patches.tar.gz"
+Content-Transfer-Encoding: base64
+Content-Description: patches.tar.gz
+Content-Disposition: attachment;
+	filename="patches.tar.gz"
 
-To subscribe or unsubscribe via the World Wide Web, visit
-	https://lists.netfilter.org/mailman/listinfo/netfilter-devel
-or, via email, send a message with subject or body 'help' to
-	netfilter-devel-request@lists.netfilter.org
+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
 
-You can reach the person managing the list at
-	netfilter-devel-owner@lists.netfilter.org
-
-When replying, please edit your Subject line so it is more specific
-than "Re: Contents of netfilter-devel digest..."
-
-
-Today's Topics:
-
-   1. [PATCH 2.6 12/19]: Enable ip6t_multiport.c to work without
-      skb_linearize() (Patrick McHardy)
-   2. [PATCH 2.6 14/19]: Fix warning in CONNMARK (Patrick McHardy)
-   3. [PATCH 2.6 5/19]: Enable ip6t_ah.c to work without
-      skb_linearize() (Patrick McHardy)
-   4. [PATCH 2.6 15/19]: Fix multiple bugs in dst match
-      (Patrick McHardy)
-   5. [PATCH 2.6 16/19]: Fix multiple bugs in hbh match
-      (Patrick McHardy)
-   6. [PATCH 2.6 19/19]: fix stats in __ip_conntrack_confirm
-      (Patrick McHardy)
-
-
-----------------------------------------------------------------------
-
-Message: 1
-Date: Mon, 25 Oct 2004 02:49:45 +0200
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 12/19]: Enable ip6t_multiport.c to work without
-	skb_linearize()
-To: "David S. Miller" <davem@redhat.com>
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Message-ID: <417C4DA9.3090901@trash.net>
-Content-Type: text/plain; charset=3D"us-ascii"
-
-Convert ip6t_multiport to skb_header_pointer.
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 12.diff
-Type: text/x-patch
-Size: 2192 bytes
-Desc: not available
-Url :
-/pipermail/netfilter-devel/attachments/20041025/e5075569/12-0001.bin
-
-------------------------------
-
-Message: 2
-Date: Mon, 25 Oct 2004 02:49:52 +0200
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 14/19]: Fix warning in CONNMARK
-To: "David S. Miller" <davem@redhat.com>
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Message-ID: <417C4DB0.3090206@trash.net>
-Content-Type: text/plain; charset=3D"us-ascii"
-
-Fix warning in CONNMARK:
-net/ipv4/netfilter/ipt_CONNMARK.c:63: warning: suggest parentheses=20
-around arithmetic in operand of ^
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 14.diff
-Type: text/x-patch
-Size: 1000 bytes
-Desc: not available
-Url :
-/pipermail/netfilter-devel/attachments/20041025/66c3bed9/14-0001.bin
-
-------------------------------
-
-Message: 3
-Date: Mon, 25 Oct 2004 02:49:05 +0200
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 5/19]: Enable ip6t_ah.c to work without
-	skb_linearize()
-To: "David S. Miller" <davem@redhat.com>
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Message-ID: <417C4D81.70500@trash.net>
-Content-Type: text/plain; charset=3D"us-ascii"
-
-Convert ip6t_ah to skb_header_pointer.
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 05.diff
-Type: text/x-patch
-Size: 2572 bytes
-Desc: not available
-Url :
-/pipermail/netfilter-devel/attachments/20041025/01812945/05-0001.bin
-
-------------------------------
-
-Message: 4
-Date: Mon, 25 Oct 2004 02:49:57 +0200
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 15/19]: Fix multiple bugs in dst match
-To: "David S. Miller" <davem@redhat.com>
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Message-ID: <417C4DB5.8040108@trash.net>
-Content-Type: text/plain; charset=3D"iso-8859-15"
-
-Fix multiple bugs in dst match:
-
-- ".me =3D THIS_MODULE" is missing
-- The cast of the pointer to the next IPv6 extension header is wrong.
-- hdrlen may underflow.
-- (u16)*optdesc causes to alignment problem.
-- The calculation of the offset to next option is wrong. In the case
-  that the type isn't 0, it should be "Opt Data Len" field + 2
-  (see RFC2460).
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 15.diff
-Type: text/x-patch
-Size: 5637 bytes
-Desc: not available
-Url :
-/pipermail/netfilter-devel/attachments/20041025/1b345c34/15-0001.bin
-
-------------------------------
-
-Message: 5
-Date: Mon, 25 Oct 2004 02:50:01 +0200
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 16/19]: Fix multiple bugs in hbh match
-To: "David S. Miller" <davem@redhat.com>
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Message-ID: <417C4DB9.3080502@trash.net>
-Content-Type: text/plain; charset=3D"iso-8859-15"
-
-Fix multiple bugs in hbh match:
-
-- The cast of the pointer to the next IPv6 extension header is wrong.
-- hdrlen may underflow.
-- (u16)*optdesc causes to alignment problem.
-- The calculation of the offset to next option is wrong. In the case
-  that the type isn't 0, it should be "Opt Data Len" field + 2
-  (see RFC2460).
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 16.diff
-Type: text/x-patch
-Size: 5261 bytes
-Desc: not available
-Url :
-/pipermail/netfilter-devel/attachments/20041025/5b0d3915/16-0001.bin
-
-------------------------------
-
-Message: 6
-Date: Mon, 25 Oct 2004 02:50:11 +0200
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 19/19]: fix stats in __ip_conntrack_confirm
-To: "David S. Miller" <davem@redhat.com>
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Message-ID: <417C4DC3.3060604@trash.net>
-Content-Type: text/plain; charset=3D"us-ascii"
-
-net_rx_softirq can preempt the calling process while incrementing the
-stats,
-call CONNTRACK_STAT_INC within the locked section.
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 19.diff
-Type: text/x-patch
-Size: 1543 bytes
-Desc: not available
-Url : /pipermail/netfilter-devel/attachments/20041025/9cc40ad3/19.bin
-
-------------------------------
-
-_______________________________________________
-netfilter-devel mailing list
-netfilter-devel@lists.netfilter.org
-https://lists.netfilter.org/mailman/listinfo/netfilter-devel
-
-
-End of netfilter-devel Digest, Vol 3, Issue 33
-**********************************************
+------_=_NextPart_001_01C4BA6B.6326B1AE--
