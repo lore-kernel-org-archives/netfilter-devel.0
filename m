@@ -1,18 +1,20 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: nfsim updates
-Date: Sat, 25 Sep 2004 09:00:01 +0200
+Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
+Date: Sat, 25 Sep 2004 09:52:53 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040925070001.GO3236@sunbeam.de.gnumonks.org>
-References: <20040919223457.GL1307@sunbeam.de.gnumonks.org>
-	<1095732625.1940.166.camel@bach> <200409222104.36526.jk@ozlabs.org>
+Message-ID: <20040925075253.GQ3236@sunbeam.de.gnumonks.org>
+References: <1092407190.2402.120.camel@nienna.balabit>
+	<1095993739.1044.9.camel@jzny.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5OiCWnsosOq6PSM0"
-Cc: Rusty Russell <rusty@rustcorp.com.au>, netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="elWSKwo949DbmCL3"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jeremy Kerr <jk@ozlabs.org>
+To: jamal <hadi@cyberus.ca>
 Content-Disposition: inline
-In-Reply-To: <200409222104.36526.jk@ozlabs.org>
+In-Reply-To: <1095993739.1044.9.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,48 +26,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---5OiCWnsosOq6PSM0
+--elWSKwo949DbmCL3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 22, 2004 at 09:04:36PM -0400, Jeremy Kerr wrote:
-> > > As stated before, we could also move it to
-> > > svn.netfilter.org (which actually exists, but also has no public
-> > > interface yet).
-> >
-> > Jeremy?
+On Thu, Sep 23, 2004 at 10:42:19PM -0400, jamal wrote:
+> Hi Krisztian,
 >=20
-> This would probably be the best way to go - It also depends on how the=20
-> netfilter testsuite is going to be developed - would using the subversion=
-=20
-> repository cause any problems, rather than rolling it into netfilter cvs?
+> I just glanced over your code (30 sec scan) and your state machine
+> doesnt allow for active/active (i.e two masters).
 
-no, I think that would be a good idea.  I'm actually thinking about
-moving the re-organized [as discussed at the netfilter workshop]
-patch-o-matic-ng into svn anyway... if only for the single reason that
-it allows recursive directory-adding (anybody who has added stuff to pom
-CVS knows what I'm talking about).
+yes, this is not a supported mode of operation in this first
+implementation.
 
-I'll send you notice when svn.netfilter.org is up and running as
-expected.
+> I havent actually run it - can you confirm this is impossible?=20
+> if ct_sync was blind i.e it just did what it was told "become master" or
+> "become slave" regardless of who else is master, then it would be more
+> usable - leave policy to whatever tells it to switch.
 
-I've successfully tested certificate-based client authentication with
-svn.gnumonks.org, so I think that's the way to go for developer access.
-It's the only strongly authenticated way where you still have the power
-to have permissions on per-user granularity.
+well it exactly does this, with an additional security:  A master will
+be downgraded to slave as soon as another master announces itself.  This
+is a security guard against invalid mode of operation.
 
-> In the meantime though, I've set up a cron task to create a nightly snaps=
-hot=20
-> from the ozlabs.org subversion repository (23:00 AEST). This puts the .ta=
-r.gz=20
-> up at:
->=20
->  http://ozlabs.org/~jk/projects/nfsim/
-
-Thanks.
-
-> Jeremy
+> cheers,
+> jamal
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -77,7 +62,7 @@ Thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---5OiCWnsosOq6PSM0
+--elWSKwo949DbmCL3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -85,9 +70,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBVRdxXaXGVTD0i/8RApnnAKCo6wjz5dSjwrWgUUjZWejFnCynswCgq/w8
-P9zkfA9CNeocYKb0rerTz2U=
-=gU+f
+iD8DBQFBVSPVXaXGVTD0i/8RAtKNAKCMhcn3y/JBoGX/HAfPT6BugwoT3QCeLhtV
+Gzh7SCAuIav1HZ4VRgBysRw=
+=AynR
 -----END PGP SIGNATURE-----
 
---5OiCWnsosOq6PSM0--
+--elWSKwo949DbmCL3--
