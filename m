@@ -1,17 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Table duplication on smp machine
-Date: Mon, 31 Mar 2003 13:07:09 +0200
+Subject: [ANNOUNCE] iptables-1.2.8 feature freeze
+Date: Sun, 30 Mar 2003 22:23:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030331110709.GE7718@sunbeam.de.gnumonks.org>
-References: <3E881DD6.8090206@hipac.org>
+Message-ID: <20030330202322.GA7718@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4imyEzq1NYdDURgI"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="qD80nKKiJWXm4UaL"
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Heinz <creatix@hipac.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <3E881DD6.8090206@hipac.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,40 +21,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---4imyEzq1NYdDURgI
+--qD80nKKiJWXm4UaL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Mar 31, 2003 at 12:52:06PM +0200, Thomas Heinz wrote:
-> Hi
->=20
-> Netfilter maintains different tables for each cpu which is especially
-> interesting for smp ;-)
+Hi my fellow netfilter users ;)
 
-yes.
+iptbles-1.2.8 has been overdue for at least a couple of months now.  I'm
+starting to get lots of bug reports for stuff that is fixed in CVS for
+half a year.
 
-> This is done - according to the docs - to avoid write locking.
-> Now, what would be write locked in case we had only one set of
-> rules:
+I'm now officially announcing a feature freeze for the 1.2.8 iptables
+release. =20
 
-it's not only write locking.  Even if there was a locking mechanism in
-place, and we didn't care about it's performance.=20
+Please test the CVS snapshot of today (will be published in 2 hours,
+just before midnight german time). The snapshot will be available at
+ftp://ftp.netfilter.org/pub/iptables/snapshot/iptables-1.2.7a-20030330.tar.=
+bz2
 
-What we are really caring about is cacheline ping-pong.  If you have a
-single piece of data (like a counter) that is written by different cpu's
-all the time, you will always invalidate the cached values in the other
-cpu's cachelines.
+Report any bugs you encounter to http://bugzilla.netfilter.org/.
 
-> Hm, remains a). There must be another reason. Otherwise a lot
-> of space is wasted just to keep separate per-cpu counter values.
+Apart from that, I will refuse to include any new features (for iptables
+userspace) for 7 days; expect iptables-1.2.8 to come up at April 6,
+2003.
 
-Depends on what you think of 'a lot of space'.  In all my practical
-setups, the connection tracking table is significantly larger (by orders
-of magnitude) than the iptables ruleset.
-
-> Regards
-> Thomas
+Thanks for your patience,
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -68,7 +58,7 @@ of magnitude) than the iptables ruleset.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---4imyEzq1NYdDURgI
+--qD80nKKiJWXm4UaL
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -76,9 +66,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+iCFdXaXGVTD0i/8RAvMwAKCWKWpl6tnkrzMcw0kiHom0ilm6IACgj0MJ
-H26iSS8Fr3ubv1TKj3FKZT0=
-=hSaT
+iD8DBQE+h1I6XaXGVTD0i/8RAkwZAJ92ATcDMjZaw0XMr1E+zjOGAl2LsQCeI5f+
+B9UTrebeKllMwhcF3f9//lQ=
+=Y91H
 -----END PGP SIGNATURE-----
 
---4imyEzq1NYdDURgI--
+--qD80nKKiJWXm4UaL--
