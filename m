@@ -1,13 +1,17 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: [PATCH] linux tproxy support
-Date: Mon, 3 Jun 2002 17:58:15 +0200
+From: "A. van Schie" <a.van.schie@quicknet.nl>
+Subject: Re: Stange ip_conntrack (newnat) behaviour.
+Date: Mon, 3 Jun 2002 18:40:03 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020603155815.GA27696@balabit.hu>
+Message-ID: <200206031640.g53Ge3j14419@mint.home.net>
+References: <Pine.LNX.4.33.0206031154180.4553-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0206031154180.4553-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,69 +22,138 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Monday 03 June 2002 12:03, Jozsef Kadlecsik wrote:
+> Hi,
+>
+> On Sun, 2 Jun 2002, A. van Schie wrote:
+> > I saw something strange that I think comes from ip_conntrack.
+> >
+> > I'm using conntrack-state to filter my packets.
+> > A simple version of my rules look like this:
+> >   iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+> >   iptables -A OUTPUT -m state --state NEW -p tcp --destination-port 110
+> > -j log+accept ...
+> >   iptables -A OUTPUT -j log+drop
+> >
+> >   iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+> >   iptables -A INPUT -j log+drop
+> >
+> > What I see with ULOG is the following:
+> > +------+------------+------+------+-----------------+--------+-------+---
+> >-----+-------+---------+-------+------------+------------+------------+---
+> >------+---------+
+> >
+> > | id   | prefix     | in   | out  | time            | saddr  | sport |
+> > | daddr  | dport | ip_csum | ip_id | ip_fragoff | tcp_seq    | tcp_ackseq
+> > | | tcp_ack | tcp_syn |
+> >
+> > +------+------------+------+------+-----------------+--------+-------+---
+> >-----+-------+---------+-------+------------+------------+------------+---
+> >------+---------+
+> >
+> > | 8603 | ACCEPT-NEW |      | eth1 | 18:38:10.389606 | client | 38136 |
+> > | server |   110 |       0 |     0 |          0 | 4080432246 |          0
+> > | |    NULL |       1 | 8604 | ACCEPT-NEW |      | eth1 | 18:38:10.389606
+> > | | client | 38136 | server |   110 |   21509 | 13068 |          0 |
+> > | 4080432246 |          0 |    NULL |       1 | 8605 | DROPPED    | eth1
+> > | |      | 18:38:10.397096 | server |   110 | client | 38136 |   62367 |
+> > | 56184 |      16384 | 3577899487 | 4080432247 |       1 |    NULL | 8606
+> > | | ACCEPT-NEW |      | eth1 | 18:38:16.389606 | client | 38136 | server
+> > | |   110 |   21508 | 13069 |          0 | 4080432246 |          0 |   
+> > | NULL |       1 | 8607 | DROPPED    | eth1 |      | 18:38:16.403816 |
+> > | server |   110 | client | 38136 |   62365 | 56186 |      16384 |
+> > | 3577899487 | 4080432247 |       1 |    NULL | 8608 | ACCEPT-NEW |     
+> > | | eth1 | 18:39:55.286423 | client | 38137 | server |   110 |    1024 | 
+> > |    0 |          0 | 4184019953 |          0 |    NULL |       1 |
+> >
+> > +------+------------+------+------+-----------------+--------+-------+---
+> >-----+-------+---------+-------+------------+------------+------------+---
+> >------+---------+ All other fields are equal.
+> >
+> > What I find strange is that it starts with 2 almost the same packets
+> > (except for ip_id), and that they both get the conntrack state NEW!
+>
+> What else state should they got? But those first two packets looks
+> strange, that's true.
 
-I've released my new release of the Linux transparent proxy patch. It is
-available at:
+I expected that conntrack gives the second packet the state ESTABLISHED, 
+because all fields that conntrack checks are equal, or is there some other
+special tcp connection tracking code that I missed.
 
-http://www.balabit.hu/en/downloads/tproxy/
+And I didn't expected the third "response" packet to be DROPPED.
 
-or 
+Is it possible that 2 or more packets are handled in parallel on a Single CPU
+machine? What still not explains that third DROPPED packet, the syn must be
+send before any response is expected.
 
-http://www.balabit.hu/downloads/tproxy/linux-2.4/cttproxy-2.4.18-02.tar.gz
+> > I think there is a problem in conntrack,
+> > maybe the newnat patch or the "double packet" is introduced in the
+> > kernel.
+>
+> If you suspect something like that, then start tcpdumping both involved
+> interfaces and look at the generated logs.
 
-It features:
-* test programs for listening on/connecting from foreign addresses (TCP)
-* a kernel patch against vanilla 2.4.18
-  (it includes my last ICMP translation fix)
+I'm not to handy with that tool, I hope that the current netfilter logging is enough
+to see what has happend.
 
-I've included the README file, which outlines its use below.
+> Did you applied other patches from p-o-m?
 
-TODO:
-* when the socket is closed, the entry assigned to the socket should be
-  deleted. Sadly the only solution is to patch the core to notify tproxy
-  about this event, so the assigned entry can be deleted.
-* receiving UDP packets on a foreign address should work, but sending from
-  foreign address doesn't work, as it also needs heavy patching in the
-  kernel.
+Yes: here is the list:
+Already applied: submitted/2.4.14
+                 submitted/2.4.18
+                 submitted/2.4.4
+                 submitted/REJECT-dont_fragment
+                 submitted/TOS-oops-fix
+                 submitted/ah-esp
+                 submitted/conntrack+nat-helper-unregister
+                 submitted/ip6t_mac-fix-ipv6
+                 submitted/ip6tables-export-symbols
+                 submitted/ip_nat_irc-srcaddr-fix
+                 submitted/ipqueue-ipv6
+                 submitted/ipt_MIRROR-ttl
+                 submitted/ipt_REJECT-checkentry
+                 submitted/ipt_mac-fix
+                 submitted/ipt_unclean-ecn
+                 submitted/irc-dcc-mask
+                 submitted/local-nat
+                 submitted/macro-trailing-semicolon-fix
+                 submitted/mangle5hooks
+                 submitted/module-license
+                 submitted/nat-export_symbols
+                 submitted/netfilter-arp
+                 submitted/skb_clone_copy
+                 submitted/tcp-MSS
+                 submitted/ulog
+                 pending/0-newnat13
+                 pending/DSCP
+                 pending/conntrack
+                 pending/ipv6-agr-ipv6
+                 pending/length-ipv6
+                 pending/ownercmd
+                 pending/pkttype
+                 base/IPV4OPTSSTRIP
+                 base/REJECT-ipv6
+                 base/TTL
+                 base/ahesp6-ipv6
+                 base/ipv4options
+                 base/mport
+                 base/psd
+                 base/quota
+                 base/time
+                 extra/h323-conntrack-nat
+                 extra/helper
+                 extra/recent
+                 extra/record-rpc
+                 extra/tcp-window-tracking
 
-README:
-
-How it works?
--------------
-
-Within the tproxy module in the kernel there's a table describing the
-relationship between local sockets and non-local IP address/port pairs. A
-local socket is referenced by its local IP/port, therefore all sockets to be
-used for transparent proxy purposes must be bound to a local IP prior
-anything can be done.
-
-To connect from, or listen on a foreign address an entry to this table must
-be added.
-
-To add a translation table entry, create a socket (bind it to a local
-interface), and call the setsockopt IP_TPROXY_ASSIGN at level SOL_IP with a
-structure describing the nonlocal address (struct in_tproxy).
-
-If this setsockopt succeeds, specify what you want to do with the given
-socket, by calling IP_TPROXY_FLAGS with the combination of the bits in
-in_tproxy.h:
-
-/* bitfields in IP_TPROXY_FLAGS */
-#define ITP_CONNECT  0x00000001
-#define ITP_LISTEN   0x00000002
-#define ITP_ONCE     0x00010000
-
-ITP_CONNECT means you want to initiate a connection, ITP_LISTEN means you
-want to accept connections on the foreign address specified in
-IP_TPROXY_ASSIGN.
-
-ITP_ONCE means that this translation is to be performed only once, and then
-it should be removed from the table atomically. You usually want to specify
-ITP_ONCE with ITP_CONNECT, and may specify ITP_ONCE for listening socket
-when only one connection is to be accepted. (FTP data connection for
-example)
+> Regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+> WWW-Home: http://www.kfki.hu/~kadlec
+> Address : KFKI Research Institute for Particle and Nuclear Physics
+>           H-1525 Budapest 114, POB. 49, Hungary
 
 -- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+Andries van Schie
+Let's make the linux-world a safer place to live in ;-)
