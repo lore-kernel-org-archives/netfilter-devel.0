@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: some question about libiptc
-Date: Fri, 31 Jan 2003 12:22:36 +0100
+Subject: Re: ip_conntrack performance issues
+Date: Fri, 31 Jan 2003 12:28:16 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131112235.GP9073@naboo.cybercafe42>
-References: <F97GAGoMLk4vQd5GQrW00006ede@hotmail.com>
+Message-ID: <20030131112816.GQ9073@naboo.cybercafe42>
+References: <200301180113.04460.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="S6vg04ofUPzW4qJg"
-Cc: sumit@elitecore.com, netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="BHMq0+oGliEfCAkH"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: PAUL FABRICIO VILLACRESES LEON <paulvillacreses@hotmail.com>
+To: Micha? Margula <alchemyx@uznam.net.pl>
 Content-Disposition: inline
-In-Reply-To: <F97GAGoMLk4vQd5GQrW00006ede@hotmail.com>
+In-Reply-To: <200301180113.04460.alchemyx@uznam.net.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,43 +23,86 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---S6vg04ofUPzW4qJg
+--BHMq0+oGliEfCAkH
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 17, 2003 at 08:00:05PM +0000, PAUL FABRICIO VILLACRESES LEON wr=
-ote:
+On Sat, Jan 18, 2003 at 01:13:04AM +0100, Micha? Margula wrote:
+> Hello!
 >=20
->=20
-> Hi
->=20
->=20
->=20
-> I'm Paul Villacreses
-> Student ESPOL ECUADOR
-> TOPIC : Firewall content
->=20
-> I had develop a program with libiptc.a and othes library libpcap, i had t=
-he=20
-> following
-
-*sigh* Somebody else using libiptc as if it was intended as a public
-interface.  I'm sorry that it still hasn't been replaced by something
-more useful.
-
-As of now, I feel unable to answer to any more support questions on
-libiptc.=20
+> First of all I would like to apologize if issue I am writing about, was=
 =20
-> Please can anybody help me!!!! a response HOW i can put rules in table na=
-t=20
-> , and HOW TO put rules whith port TCP like 80(HTTP),53(DNS),23(TELNET) wi=
-th=20
-> programming NOT with scripts.
+> discussed here before. I wasn't looking trough archive, because it is abo=
+ut=20
+> 63 MB of pure mbox, I was only googling.
+>=20
+> The problem is that I have Linux box, that is making NAT for few hundreds=
+ of=20
+> workstations. I am using 2.4.18 but it also happens on 2.4.19 or 2.4.20. =
+I=20
+> need to run identd daemon for those workstations behind NAT. I am using=
+=20
+> oidentd for that purpose. Oidentd reads /proc/net/ip_conntrack to identif=
+y=20
+> connections.
+>=20
+> My /proc/net/ip_conntrack has about 100 000 entries. Sometimes less,
+> sometimes more but near that value.=20
 
-pipe your commands into 'iptables-restore --noflush'
+This is definitely _not_ what you want to do.  oidentd might work as
+long as you have  a couple of hundred connections, but not at this size.
 
-> Thank you Developers
+> Oidentd parsing that file "eats" almost whole CPU=20
+> time. Running more than one instance of oidentd is simply a suicide. But =
+that=20
+> is not main problem - when parsing /proc/net/ip_conntrack my network goes=
+=20
+> weird. Packet lossess on every interface increase, round trip time behave=
+s=20
+> funny (jumping from 10 ms to 300). Network flow is also affected in a sam=
+e=20
+> way (file transfers "hangs" for a while).
+
+yup. This is known for a very long time and is not considered a bug.
+ip_conntrack is more like a debugging interface than something to be
+polled regularly by userspace applications.
+
+We have developed 'ctnetlink' for exactly this purpose.  It is not in
+the stock kernel yet, but can be easily added by patch-o-matic.
+
+> Friend of mine created "dirty hack" which consist of kernel module=20
+> (ip_conntrack_identd) and patched version of oidentd, but he says that he=
+=20
+> won't make it public, because that solution is very bad and shouldn't be =
+done=20
+> this way.
+
+true.  There have also been talks of an ip_nat_ident.o kernel module
+which would NAT the ident request back to the real machine behind the
+firewall.  It's a bit tricky, but it can be done with heuristics in most
+cases.
+
+> So question is - what now? Are there any ideas to improve performance of=
+=20
+> /proc/net/ip_conntrack=20
+
+no. I don't think that there is any way of doing this via /proc
+
+> or maybe replacing that with some calls to internals of the kernel? It
+> is quite important issue, because using ident daemon on boxes with
+> huge amounts of traffic is impossible.
+
+please see the nfnetlink-ctnetlink patch in patch-o-matic.
+
+for userspace, see CVS:
+
+iptables2/libnfnetlink/ (you just need to compile it)
+iptables2/libctnetlink/ (you will need this API for oidentd)
+iptables2/libctnetlink/ctnltest.c (example application using libctnetlink)
+
+> Micha? Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/ +)
+
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -71,7 +114,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---S6vg04ofUPzW4qJg
+--BHMq0+oGliEfCAkH
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -79,9 +122,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+Olx7XaXGVTD0i/8RAskGAJ442KDBSZFe5xIQTT3UENkGXVY09wCeMHZM
-KN6izt6XKWK96QXVI1Gs2ws=
-=DLEv
+iD8DBQE+Ol3QXaXGVTD0i/8RAiZHAJwJ1EOp4whRVo6PZ7lKlNeZEpkKJgCcC23u
+2HUak0LeC6vy/WzHt1V3Xis=
+=4Atf
 -----END PGP SIGNATURE-----
 
---S6vg04ofUPzW4qJg--
+--BHMq0+oGliEfCAkH--
