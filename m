@@ -1,28 +1,38 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] IPv6: Functions Clean-up
-Date: Sun, 03 Nov 2002 04:03:38 -0800 (PST)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20021103.040338.98864962.davem@redhat.com>
-References: <20021103.115427.104445233.yoshfuji@linux-ipv6.org>
-	<1036328414.1048.3.camel@arwen>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: Some dumb questions...
+Date: 03 Nov 2002 13:36:43 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1036327003.28641.75.camel@tux>
+References: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: yoshfuji@linux-ipv6.org, linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
-   netfilter-devel@lists.netfilter.org, kuznet@ms2.inr.ac.ru,
-   usagi@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: kisza@securityaudit.hu
-In-Reply-To: <1036328414.1048.3.camel@arwen>
-Errors-to: netdev-bounce@oss.sgi.com
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Joel Linuxdude <linuxlists@hotmail.com>
+In-Reply-To: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: Andras Kis-Szabo <kisza@securityaudit.hu>
-   Date: Sun, 03 Nov 2002 14:00:14 +0100
+On Sun, 2002-11-03 at 08:32, Joel Linuxdude wrote:
+> I was referred to this list by one of the Netfilter guys on order to gleen 
+> some information needed to write a decent
+> tutorial/reference guide.
+> 
+> WARNING: POSSIBLE DUMB QUESTIONS. (But, ask me if I care!)
 
-   (And we should not to trust in the kernel.)
+Please take these questions to the netfilter mailinglist, not the
+development mailinglist. They have nothing to do with development.
 
-If you can't trust the exthdr parser in the kernel, you probably can't
-trust the kernel to even give you the packets correctly in the first
-place.  So you better just rm -rf netfilter/ while you have the chance
-:-)
+-- 
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
