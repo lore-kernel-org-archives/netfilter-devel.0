@@ -1,16 +1,14 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] MASQUERADE handling of device events
-Date: Sun, 21 Nov 2004 13:58:28 +1100
-Message-ID: <1101005908.18919.11.camel@localhost.localdomain>
-References: <20041107181825.GA3522@linuxace.com>
+From: "SiegeX" <siegex@atozcomp.com>
+Subject: [PATCH] random match ported to 2.6
+Date: Sat, 20 Nov 2004 19:13:03 -0800
+Message-ID: <003101c4cf78$03558d20$0701a8c0@skynet>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: linux-net@vger.kernel.org,
-	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20041107181825.GA3522@linuxace.com>
+To: <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,185 +20,317 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2004-11-07 at 10:18 -0800, Phil Oester wrote:
-> As discussed in recent days, MASQUERADE target handling of device events
-> is broken in a couple of ways:
-> 
-> 1) when ppp interfaces cycle, conntracks with old ip addresses are not
->    flushed
-> 
-> 2) an 'ip addr add' on an interface used for masquerading flushes all
->    conntracks associated with that interface
+>From looking over past posts dealing with patches, seems that I didnt follo=
+w the correct way of doing things with my earlier post so this is to make t=
+hings easier for you guys.
 
-Sorry, just caught up with this reversion in 2.6.10-rc2-bk* (was trying
-to figure out why my nfsim testcase was failing: this explains it).
+This was patched agasint the latest STABLE PoM-ng.  Note that although this=
+ patch looks pretty big, the only file that needed altering was ipt_random.=
+c.  The rest of the patch is just building the linux-2.6 tree.
 
-We had numerous complaints about the old behaviour: several people with
-small (or clever?) ISPs actually got the same IP address most of the
-time, and the old code was damaging them.  It also registered two
-callbacks which AFAICT is unnecessary.
 
-This patch bloats conntrack, but is worth it IMHO.  Most importantly,
-Phil, does it work for you?
-
-Rusty.
-Name: Reliable Masquerading Connection Removal
-Status: Compiles, Untested
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-
-The MASQUERADE target use to destroy connections when an interface
-went down.  We changed this to merely remove the ASSURED bit, and
-destroy them if the same interface came up with a different IP
-address.  Unfortunately, as Phil Oester pointed out, that code was
-crap for PPP connections, since we (1) compared ifa_address instead of
-ifa_local, (2) identified interfaces by ifindex, which increments as a
-PPP device downs and ups, and (3) caused all connections to be flushed
-when we added an IP address.
-
-So that code was reverted after 2.6.10-rc2.
-
-This code stores the interface name, rather than trying to use the
-ifindex, and only deletes connections if *no* ifa_local on the
-interface matches the connection, so simply adding a new IP address is
-a NOOP.
-
-Index: linux-2.6.10-rc2-bk1-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h
-===================================================================
---- linux-2.6.10-rc2-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack.h	2004-11-20 17:53:54.000000000 +1100
-+++ linux-2.6.10-rc2-bk1-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h	2004-11-20 17:55:40.000000000 +1100
-@@ -193,7 +193,7 @@
- 		union ip_conntrack_nat_help help;
- #if defined(CONFIG_IP_NF_TARGET_MASQUERADE) || \
- 	defined(CONFIG_IP_NF_TARGET_MASQUERADE_MODULE)
--		int masq_index;
-+		char masq_iface[IFNAMSIZ];
- #endif
- 	} nat;
- #endif /* CONFIG_IP_NF_NAT_NEEDED */
-Index: linux-2.6.10-rc2-bk1-Netfilter/net/ipv4/netfilter/ipt_MASQUERADE.c
-===================================================================
---- linux-2.6.10-rc2-bk1-Netfilter.orig/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-19 16:51:36.000000000 +1100
-+++ linux-2.6.10-rc2-bk1-Netfilter/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-21 13:50:02.943750896 +1100
-@@ -104,7 +104,7 @@
- 	}
- 
- 	WRITE_LOCK(&masq_lock);
--	ct->nat.masq_index = out->ifindex;
-+	strcpy(ct->nat.masq_iface, out->name);
- 	WRITE_UNLOCK(&masq_lock);
- 
- 	/* Transfer from original range. */
-@@ -118,57 +118,61 @@
- }
- 
- static inline int
--device_cmp(const struct ip_conntrack *i, void *ifindex)
-+no_address_matches(u32 dstip, struct in_device *in_dev)
- {
--	int ret;
-+	struct in_ifaddr *i;
+diff -uNr random-orig/info random/info
+--- random-orig/info 2004-02-19 15:49:32.000000000 -0800
++++ random/info   2004-11-18 10:32:02.000000000 -0800
+@@ -1,4 +1,3 @@
+ Author: Fabrice MARIE <fabrice@netfilter.org>
+ Status: Works For Me.
+ Repository: base
+-Requires: linux < 2.6.0
+diff -uNr random-orig/linux-2.6/include/linux/netfilter_ipv4/ipt_random.h r=
+andom/linux-2.6/include/linux/netfilter_ipv4/ipt_random.h
+--- random-orig/linux-2.6/include/linux/netfilter_ipv4/ipt_random.h  1969-1=
+2-31 16:00:00.000000000 -0800
++++ random/linux-2.6/include/linux/netfilter_ipv4/ipt_random.h 2003-12-18 1=
+0:28:45.000000000 -0800
+@@ -0,0 +1,11 @@
++#ifndef _IPT_RAND_H
++#define _IPT_RAND_H
 +
-+	for (i = in_dev->ifa_list; i; i = i->ifa_next)
-+		if (i->ifa_local == dstip)
-+			return 0;
-+	return 1;
++#include <linux/param.h>
++#include <linux/types.h>
++
++struct ipt_rand_info {
++  u_int8_t average;
++};
++
++#endif /*_IPT_RAND_H*/
+diff -uNr random-orig/linux-2.6/include/linux/netfilter_ipv6/ip6t_random.h =
+random/linux-2.6/include/linux/netfilter_ipv6/ip6t_random.h
+--- random-orig/linux-2.6/include/linux/netfilter_ipv6/ip6t_random.h 1969-1=
+2-31 16:00:00.000000000 -0800
++++ random/linux-2.6/include/linux/netfilter_ipv6/ip6t_random.h   2003-12-2=
+0 08:36:09.000000000 -0800
+@@ -0,0 +1,11 @@
++#ifndef _IP6T_RAND_H
++#define _IP6T_RAND_H
++
++#include <linux/param.h>
++#include <linux/types.h>
++
++struct ip6t_rand_info {
++  u_int8_t average;
++};
++
++#endif /*_IP6T_RAND_H*/
+diff -uNr random-orig/linux-2.6/net/ipv4/netfilter/Kconfig.ladd random/linu=
+x-2.6/net/ipv4/netfilter/Kconfig.ladd
+--- random-orig/linux-2.6/net/ipv4/netfilter/Kconfig.ladd   1969-12-31 16:0=
+0:00.000000000 -0800
++++ random/linux-2.6/net/ipv4/netfilter/Kconfig.ladd  2004-05-06 06:37:39.0=
+00000000 -0700
+@@ -0,0 +1,10 @@
++config IP_NF_MATCH_RANDOM
++  tristate  'random match support'
++  depends on IP_NF_IPTABLES
++  help
++    This option adds a `random' match,
++    which allow you to match packets randomly
++    following a given probability.
++
++    If you want to compile it as a module, say M here and read
++    Documentation/modules.txt.  If unsure, say `N'.
+diff -uNr random-orig/linux-2.6/net/ipv4/netfilter/Makefile.ladd random/lin=
+ux-2.6/net/ipv4/netfilter/Makefile.ladd
+--- random-orig/linux-2.6/net/ipv4/netfilter/Makefile.ladd  1969-12-31 16:0=
+0:00.000000000 -0800
++++ random/linux-2.6/net/ipv4/netfilter/Makefile.ladd 2003-12-18 10:28:45.0=
+00000000 -0800
+@@ -0,0 +1,3 @@
++obj-$(CONFIG_IP_NF_MATCH_TOS) +=3D ipt_tos.o
++
++obj-$(CONFIG_IP_NF_MATCH_RANDOM) +=3D ipt_random.o
+diff -uNr random-orig/linux-2.6/net/ipv4/netfilter/ipt_random.c random/linu=
+x-2.6/net/ipv4/netfilter/ipt_random.c
+--- random-orig/linux-2.6/net/ipv4/netfilter/ipt_random.c   1969-12-31 16:0=
+0:00.000000000 -0800
++++ random/linux-2.6/net/ipv4/netfilter/ipt_random.c  2004-11-18 10:39:22.0=
+00000000 -0800
+@@ -0,0 +1,92 @@
++/*
++  This is a module which is used for a "random" match support.
++  This file is distributed under the terms of the GNU General Public
++  License (GPL). Copies of the GPL can be obtained from:
++     ftp://prep.ai.mit.edu/pub/gnu/GPL
++
++  2001-10-14 Fabrice MARIE <fabrice@netfilter.org> : initial implementatio=
+n.
++*/
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/ip.h>
++#include <linux/random.h>
++#include <net/tcp.h>
++#include <linux/spinlock.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv4/ipt_random.h>
++
++MODULE_LICENSE("GPL");
++
++static int
++ipt_rand_match(const struct sk_buff *pskb,
++         const struct net_device *in,
++         const struct net_device *out,
++         const void *matchinfo,
++         int offset,
++         int *hotdrop)
++{
++  /* Parameters from userspace */
++  const struct ipt_rand_info *info =3D matchinfo;
++  u_int8_t random_number;
++
++  /* get 1 random number from the kernel random number generation routine =
+*/
++  get_random_bytes((void *)(&random_number), 1);
++
++  /* Do we match ? */
++  if (random_number <=3D info->average)
++     return 1;
++  else
++     return 0;
 +}
 +
-+static inline int
-+device_cmp(const struct ip_conntrack *i, void *_ina)
++static int
++ipt_rand_checkentry(const char *tablename,
++        const struct ipt_ip *e,
++        void *matchinfo,
++        unsigned int matchsize,
++        unsigned int hook_mask)
 +{
-+	int ret = 0;
-+	struct in_ifaddr *ina = _ina;
- 
- 	READ_LOCK(&masq_lock);
--	ret = (i->nat.masq_index == (int)(long)ifindex);
-+	/* If it's masquerading out this interface with an address,
-+	 * which is not any of the existing ones, time to go. */
-+	if (strcmp(i->nat.masq_iface, ina->ifa_dev->dev->name) == 0
-+	    && no_address_matches(i->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip,
-+				  ina->ifa_dev))
-+		ret = 1;
- 	READ_UNLOCK(&masq_lock);
- 
- 	return ret;
- }
- 
--static int masq_device_event(struct notifier_block *this,
--			     unsigned long event,
--			     void *ptr)
--{
--	struct net_device *dev = ptr;
--
--	if (event == NETDEV_DOWN) {
--		/* Device was downed.  Search entire table for
--		   conntracks which were associated with that device,
--		   and forget them. */
--		IP_NF_ASSERT(dev->ifindex != 0);
--
--		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
--	}
-+static inline int
-+connect_unassure(const struct ip_conntrack *i, void *_ina)
++  /* Parameters from userspace */
++  const struct ipt_rand_info *info =3D matchinfo;
++
++  if (matchsize !=3D IPT_ALIGN(sizeof(struct ipt_rand_info))) {
++     printk("ipt_random: matchsize %u !=3D %u\n", matchsize,
++            IPT_ALIGN(sizeof(struct ipt_rand_info)));
++     return 0;
++  }
++
++  /* must be  1 <=3D average % <=3D 99 */
++  /* 1  x 2.55 =3D 2   */
++  /* 99 x 2.55 =3D 252 */
++  if ((info->average < 2) || (info->average > 252)) {
++     printk("ipt_random:  invalid average %u\n", info->average);
++     return 0;
++  }
++
++  return 1;
++}
++
++static struct ipt_match ipt_rand_reg =3D {
++  .name =3D "random",
++  .match =3D ipt_rand_match,
++  .checkentry =3D ipt_rand_checkentry,
++  .me =3D THIS_MODULE };
++
++static int __init init(void)
 +{
-+	struct in_ifaddr *ina = _ina;
- 
--	return NOTIFY_DONE;
-+	/* We reset the ASSURED bit on all connections, so they will
-+	 * get reaped under memory pressure. */
-+	if (strcmp(i->nat.masq_iface, ina->ifa_dev->dev->name) == 0)
-+		clear_bit(IPS_ASSURED_BIT, (unsigned long *)&i->status);
-+	return 0;
- }
- 
- static int masq_inet_event(struct notifier_block *this,
- 			   unsigned long event,
- 			   void *ptr)
- {
--	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
--
--	if (event == NETDEV_DOWN) {
--		/* IP address was deleted.  Search entire table for
--		   conntracks which were associated with that device,
--		   and forget them. */
--		IP_NF_ASSERT(dev->ifindex != 0);
--
--		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
--	}
-+	/* For some configurations, interfaces often come back with
-+	 * the same address.  If not, clean up old conntrack
-+	 * entries. */
-+	if (event == NETDEV_UP)
-+		ip_ct_selective_cleanup(device_cmp, ptr);
-+	else if (event == NETDEV_DOWN)
-+		ip_ct_selective_cleanup(connect_unassure, ptr);
- 
- 	return NOTIFY_DONE;
- }
- 
--static struct notifier_block masq_dev_notifier = {
--	.notifier_call	= masq_device_event,
--};
--
- static struct notifier_block masq_inet_notifier = {
- 	.notifier_call	= masq_inet_event,
- };
-@@ -187,8 +191,6 @@
- 	ret = ipt_register_target(&masquerade);
- 
- 	if (ret == 0) {
--		/* Register for device down reports */
--		register_netdevice_notifier(&masq_dev_notifier);
- 		/* Register IP address change reports */
- 		register_inetaddr_notifier(&masq_inet_notifier);
- 	}
-@@ -199,7 +201,6 @@
- static void __exit fini(void)
- {
- 	ipt_unregister_target(&masquerade);
--	unregister_netdevice_notifier(&masq_dev_notifier);
- 	unregister_inetaddr_notifier(&masq_inet_notifier);	
- }
- 
-
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
++  if (ipt_register_match(&ipt_rand_reg))
++     return -EINVAL;
++
++  printk("ipt_random match loaded\n");
++  return 0;
++}
++
++static void __exit fini(void)
++{
++  ipt_unregister_match(&ipt_rand_reg);
++  printk("ipt_random match unloaded\n");
++}
++
++module_init(init);
++module_exit(fini);
+diff -uNr random-orig/linux-2.6/net/ipv6/netfilter/Kconfig.ladd random/linu=
+x-2.6/net/ipv6/netfilter/Kconfig.ladd
+--- random-orig/linux-2.6/net/ipv6/netfilter/Kconfig.ladd   1969-12-31 16:0=
+0:00.000000000 -0800
++++ random/linux-2.6/net/ipv6/netfilter/Kconfig.ladd  2004-05-06 06:37:39.0=
+00000000 -0700
+@@ -0,0 +1,10 @@
++config IP6_NF_MATCH_RANDOM
++  tristate  'Random match support'
++  depends on IP6_NF_IPTABLES
++  help
++    This option adds a `random' match,
++    which allow you to match packets randomly
++    following a given probability.
++
++    If you want to compile it as a module, say M here and read
++    Documentation/modules.txt.  If unsure, say `N'.
+diff -uNr random-orig/linux-2.6/net/ipv6/netfilter/Makefile.ladd random/lin=
+ux-2.6/net/ipv6/netfilter/Makefile.ladd
+--- random-orig/linux-2.6/net/ipv6/netfilter/Makefile.ladd  1969-12-31 16:0=
+0:00.000000000 -0800
++++ random/linux-2.6/net/ipv6/netfilter/Makefile.ladd 2003-12-20 08:36:09.0=
+00000000 -0800
+@@ -0,0 +1,3 @@
++obj-$(CONFIG_IP6_NF_TARGET_LOG) +=3D ip6t_LOG.o
++
++obj-$(CONFIG_IP6_NF_MATCH_RANDOM) +=3D ip6t_random.o
+diff -uNr random-orig/linux-2.6/net/ipv6/netfilter/ip6t_random.c random/lin=
+ux-2.6/net/ipv6/netfilter/ip6t_random.c
+--- random-orig/linux-2.6/net/ipv6/netfilter/ip6t_random.c  1969-12-31 16:0=
+0:00.000000000 -0800
++++ random/linux-2.6/net/ipv6/netfilter/ip6t_random.c 2003-12-20 08:36:09.0=
+00000000 -0800
+@@ -0,0 +1,97 @@
++/*
++  This is a module which is used for a "random" match support.
++  This file is distributed under the terms of the GNU General Public
++  License (GPL). Copies of the GPL can be obtained from:
++     ftp://prep.ai.mit.edu/pub/gnu/GPL
++
++  2001-10-14 Fabrice MARIE <fabrice@netfilter.org> : initial implementatio=
+n.
++  2003-04-30 Maciej Soltysiak <solt@dns.toxicfilms.tv> : IPv6 Port
++*/
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/ip.h>
++#include <linux/random.h>
++#include <net/tcp.h>
++#include <linux/spinlock.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter_ipv6/ip6t_random.h>
++
++MODULE_LICENSE("GPL");
++
++static int
++ip6t_rand_match(const struct sk_buff *pskb,
++         const struct net_device *in,
++         const struct net_device *out,
++         const void *matchinfo,
++         int offset,
++         const void *hdr,
++         u_int16_t datalen,
++         int *hotdrop)
++{
++  /* Parameters from userspace */
++  const struct ip6t_rand_info *info =3D matchinfo;
++  u_int8_t random_number;
++
++  /* get 1 random number from the kernel random number generation routine =
+*/
++  get_random_bytes((void *)(&random_number), 1);
++
++  /* Do we match ? */
++  if (random_number <=3D info->average)
++     return 1;
++  else
++     return 0;
++}
++
++static int
++ip6t_rand_checkentry(const char *tablename,
++        const struct ip6t_ip6 *e,
++        void *matchinfo,
++        unsigned int matchsize,
++        unsigned int hook_mask)
++{
++  /* Parameters from userspace */
++  const struct ip6t_rand_info *info =3D matchinfo;
++
++  if (matchsize !=3D IP6T_ALIGN(sizeof(struct ip6t_rand_info))) {
++     printk("ip6t_random: matchsize %u !=3D %u\n", matchsize,
++            IP6T_ALIGN(sizeof(struct ip6t_rand_info)));
++     return 0;
++  }
++
++  /* must be  1 <=3D average % <=3D 99 */
++  /* 1  x 2.55 =3D 2   */
++  /* 99 x 2.55 =3D 252 */
++  if ((info->average < 2) || (info->average > 252)) {
++     printk("ip6t_random:  invalid average %u\n", info->average);
++     return 0;
++  }
++
++  return 1;
++}
++
++static struct ip6t_match ip6t_rand_reg =3D {
++  {NULL, NULL},
++  "random",
++  ip6t_rand_match,
++  ip6t_rand_checkentry,
++  NULL,
++  THIS_MODULE };
++
++static int __init init(void)
++{
++  if (ip6t_register_match(&ip6t_rand_reg))
++     return -EINVAL;
++
++  printk("ip6t_random match loaded\n");
++  return 0;
++}
++
++static void __exit fini(void)
++{
++  ip6t_unregister_match(&ip6t_rand_reg);
++  printk("ip6t_random match unloaded\n");
++}
++
++module_init(init);
++module_exit(fini);
