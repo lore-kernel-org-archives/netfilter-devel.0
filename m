@@ -1,16 +1,15 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4+2.6] fix DELETE_LIST netfilter oopses
-Date: Mon, 29 Mar 2004 20:29:10 -0800
+From: Kiran Kumar <immidi_kiran@yahoo.com>
+Subject: Re: Help writing netfilter match
+Date: Mon, 29 Mar 2004 19:59:08 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040329202910.78f5608f.davem@redhat.com>
-References: <20040329113239.GC7039@sunbeam.de.gnumonks.org>
+Message-ID: <20040330035908.46877.qmail@web14001.mail.yahoo.com>
+References: <406E0129@minerva.ex.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040329113239.GC7039@sunbeam.de.gnumonks.org>
+To: Richard Bishop <R.J.Bishop@exeter.ac.uk>,
+  netfilter-devel@lists.netfilter.org
+In-Reply-To: <406E0129@minerva.ex.ac.uk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +20,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 29 Mar 2004 13:32:39 +0200
-Harald Welte <laforge@netfilter.org> wrote:
-
-> We've now narrowed down the issue of kernel oopses in combination with
-> 'LIST_DELETE' syslog messages happening in certain setups.
+--- Richard Bishop <R.J.Bishop@exeter.ac.uk> wrote:
 > 
-> Apparently people who do not enable CONFIG_IP_NF_NAT_LOCAL and do
-> DNAT/REDIRECT and want to connect locally from the gateway via DNAT to
-> the DNAT'ed address experience the bug ;)
-> 
-> Please push the attached patch [courtesy of KOVACS Krisztian and Henrik
-> Nordstrom] to 2.4.x and 2.6.x ASAP, thanks.  
+> This is compiled with the command  "gcc -shared -o
+> libipt_net.so
+> -DIPTABLES_VERSION=\"1.2.9\"
+> -I/usr/src/linux/include libipt_net.c"  and the
+> .so file placed in /lib/iptables. Incidentally I'm
+> compiling and running on
+> Debian with kernel 2.4.24-1-k7.
 
-Applied, thanks guys.
+  Why dont you use the existing Makefiles for "make"
+and "make install"? They would put the proper
+libraries in the proper places.
+
+> 
+> As root I then run "iptables -A INPUT -m net --help"
+> and get "iptables v1.2.9:
+> Couldn't load match `net'". I've obviously missed
+> something somewhere - can
+> somebody point me in the right direction please?! 
+
+  The iptables binary looks for the shared library in
+the directory IPT_LIB_DIR (look for it in iptables.c).
+So, iptables would be looking for libipt_net.so in
+this directory. Making the .so available at the proper
+location will solve the problem.
+
+=====
+Regards,
+Kiran Kumar Immidi
+
+__________________________________
+Do you Yahoo!?
+Yahoo! Finance Tax Center - File online. File on time.
+http://taxes.yahoo.com/filing.html
