@@ -1,12 +1,15 @@
-From: Matt Skidmore <fox@woozle.org>
-Subject: Feasability of Protocol Filtering
-Date: Tue, 22 Apr 2003 16:25:11 -0700 (PDT)
+From: "zze-Proxy_Corveller ball001 exterieur FTRD" <proxycorveller.ball001@rd.francetelecom.com>
+Subject: Problem in NAT table at PREROUTING with VLAN
+Date: Fri, 25 Apr 2003 10:10:08 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44+maildir.0304221620090.1447-100000@woozle.org>
+Message-ID: <8C19E3FBB6467846AFF97E366D34CB6055A022@lanmhs20.rd.francetelecom.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,30 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-I have gained some interest in adding a new module to the netfilter code
-for filtering by protocol. However, I do not know how realistic this
-project would be. I have not found any projects similar to it as of yet.
-But, I would like to be able to REJECT, DENY, or REDIRECT packets based on
-the protocol of their connection.
+I'm trying to catch packets coming from VLANs (by using vconfig) at
+PREROUTING.=20
+The mangle table sees VLANs packets but not the NAT table.=20
 
-Examples:
-Identify and DENY SSH traffic regardless of port
+I've tried different targets such as the incoming interface or the
+destination address,=20
+at each time the mangle table see packets but not the NAT table.
 
-Identify HTTP traffic regardless of port and REDIRECT/reroute it
-transparently through another route or hand it to a transparent proxy.
+Is it normal ?
 
-I believe Cisco has a similar feature in their IOS called protocol
-discovery (not 100% sure)
-(http://www.cisco.com/en/US/products/sw/iosswrel/ps1839/products_feature_guide09186a0080153efc.html)
-
-If it isn't workable that's fine, I'm just throwing in an idea for
-something I might like to contribute to. I've not worked on any parts of
-the kernel and I would need to shake the dust off my C and and TCP
-knowledge, but I'm willing to jump into the pit and give it a try.
-
-Please be gentle, first post to this list. This is just a probe of a
-peliminary idea, if there is some hope for the idea I would continue to
-brainstorm and elaborate on other features that may be achievable.
-
--Matt
+Mickael
