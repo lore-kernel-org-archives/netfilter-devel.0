@@ -1,15 +1,15 @@
-From: Peter Stamfest <peter@stamfest.at>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [PATCH] Efficient matching of many IP blocks
-Date: Tue, 8 Jun 2004 20:27:44 +0200 (CEST)
+Date: Wed, 9 Jun 2004 00:41:48 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406082024010.5747-100000@peter.stamf.pr.at>
-References: <Pine.LNX.4.44.0406051017530.16559-100000@peter.stamf.pr.at>
+Message-ID: <Pine.LNX.4.44.0406090040370.30134-100000@filer.marasystems.com>
+References: <Pine.LNX.4.44.0406082024010.5747-100000@peter.stamf.pr.at>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Peter Stamfest <peter@stamfest.at>
-In-Reply-To: <Pine.LNX.4.44.0406051017530.16559-100000@peter.stamf.pr.at>
-ReSent-Message-ID: <Pine.LNX.4.44.0406082028440.5747@peter.stamf.pr.at>
+In-Reply-To: <Pine.LNX.4.44.0406082024010.5747-100000@peter.stamf.pr.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,60 +20,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 8 Jun 2004, Peter Stamfest wrote:
 
-Sorry to follow-up on my own post...
-
-On Sat, 5 Jun 2004, I wrote:
-
-> Date: Sat, 5 Jun 2004 11:35:47 +0200 (CEST)
-> From: Peter Stamfest <peter@stamfest.at>
-> To: netfilter-devel@lists.netfilter.org
-> Subject: [PATCH] Efficient matching of many IP blocks
+> I know that some of you d/l'ed the README and the tgz, so what do people 
+> think about
 > 
-> 
-> Hello List, 
-> 
+> * the concept?
 
-[ snip ] 
+Similar to ippool/ipset if I understood you correctly.
 
-> [...] I decided to implement a module to efficiently match many nets...
-> 
-> The idea is to keep a "balanced" [1] tree of ip-ranges and to walk the 
-> tree in order to decide if a given IP matches or not. That way, matching 
-> N nets is now O(ln(N)) instead of O(N). I tested the module using all the 
-> network assignments done by RIPE, APNIC and ARIN combined, and the speed 
-> is really incredible.
-> 
+> * the interface?
 
-[snip]
+No opinion.
 
-> I have written a README for the module which can be found here:
-> 
->    http://oss.stamfest.net/ipt-match-table/README
-> 
-> And the code can be found here (a patch for the 2.4.25 kernel, some chunks 
-> may be off by a couple of lines, but it _should_ apply cleanly to vanilla 
-> 2.4.25)
-> 
->    http://oss.stamfest.net/ipt-match-table/ipt-table-match-2.4.25.diff
-> 
-> The iptables user-space support can be found here (sorry, no patch, just 
-> the source).
-> 
->    http://oss.stamfest.net/ipt-match-table/libipt_table_match.c
-> 
+> * the implementation?
 
-[ snip ]
+No opinion.
 
-I know that some of you d/l'ed the README and the tgz, so what do people 
-think about
+> * the likelihood to add this to netfilter proper?
 
-* the concept?
-* the interface?
-* the implementation?
-* the likelihood to add this to netfilter proper?
-* the porting to 2.6 and creating the equivalent ipv6 module?
+Depends on the fate of or integration with ipset I think..
 
-So many questions....
+> * the porting to 2.6 and creating the equivalent ipv6 module?
 
-peter
+No opinion.
+
+Regards
+Henrik
