@@ -1,15 +1,17 @@
-From: Ozgur AKAN <akan@aiqa.com>
-Subject: Re: mask for interface
-Date: Fri, 26 Mar 2004 16:40:51 +0200
+From: Eduardo Pereira Habkost <ehabkost@conectiva.com.br>
+Subject: RPC conntrack code status
+Date: Fri, 26 Mar 2004 11:55:54 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <406440F3.8010203@aiqa.com>
-References: <40629EB1.4080005@aiqa.com>
+Message-ID: <20040326145554.GJ18517@duckman.distro.conectiva>
+References: <20040323174953.GF2611@conectiva.com.br> <20040323193958.GB18517@duckman.distro.conectiva>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
- boundary="------------010902040402090801000903"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="62y5mOfGKwnOLojJ"
+Cc: andreas@conectiva.com.br
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <40629EB1.4080005@aiqa.com>
+Content-Disposition: inline
+In-Reply-To: <20040323193958.GB18517@duckman.distro.conectiva>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,96 +22,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010902040402090801000903
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi,
-
-In the manual of iptables there is nothing about the mask value of an 
-interface. + sign at the end of a few characters of an interface means 
-any interface which begins with this name will match.
-
-Again what I wonder is the why iniface_mask value is used???
-
-thanks,
-Ozgur AKAN
-
----------------------------------------------------------------------
-*-i, --in-interface *[!] [/name/]
-    Optional name of an interface via which a packet is received (for
-    packets entering the *INPUT*, *FORWARD* and *PREROUTING* chains).
-    When the "!" argument is used before the interface name, the sense
-    is inverted. If the interface name ends in a "+", then any interface
-    which begins with this name will match. If this option is omitted,
-    the string "+" is assumed, which will match with any interface name.
-*-o, --out-interface *[!] [/name/]
-    Optional name of an interface via which a packet is going to be sent
-    (for packets entering the *FORWARD*, *OUTPUT* and *POSTROUTING*
-    chains). When the "!" argument is used before the interface name,
-    the sense is inverted. If the interface name ends in a "+", then any
-    interface which begins with this name will match. If this option is
-    omitted, the string "+" is assumed, which will match with any
-    interface name.
-------------------------------------------------------------------------
+--62y5mOfGKwnOLojJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 
---------------010902040402090801000903
-Content-Type: text/html; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi, All,
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-9">
-  <title></title>
-</head>
-<body text="#000000" bgcolor="#ffffff">
-Hi,<br>
-<br>
-In the manual of iptables there is nothing about the mask value of an
-interface. + sign at the end of a few characters of an interface means
-any
-interface which begins with this name will match.<br>
-<br>
-Again what I wonder is the why iniface_mask value is used???<br>
-<br>
-thanks,<br>
-Ozgur AKAN<br>
-<br>
----------------------------------------------------------------------<br>
-<dt><b>-i, --in-interface </b>[!] [<i>name</i>]
-</dt>
-<dd>Optional name of an interface via which a packet is received (for
-packets entering the <b>INPUT</b>,
-  <b>FORWARD</b>
-and
-  <b>PREROUTING</b>
-chains). When the "!" argument is used before the interface name, the
-sense is inverted. If the interface name ends in a "+", then any
-interface which begins with this name will match. If this option is
-omitted, the string "+" is assumed, which will match with any
-interface name.<br>
-</dd>
-<dt><b>-o, --out-interface </b>[!] [<i>name</i>]
-</dt>
-<dd>Optional name of an interface via which a packet is going to
-be sent (for packets entering the
-  <b>FORWARD</b>,
-  <b>OUTPUT</b>
-and
-  <b>POSTROUTING</b>
-chains). When the "!" argument is used before the interface name,
-the sense is inverted. If the interface name ends in a "+", then any
-interface which begins with this name will match. If this option is
-omitted, the string "+" is assumed, which will match with any
-interface name.</dd>
-<br>
-------------------------------------------------------------------------<br>
-<dd><br>
-</dd>
-</body>
-</html>
+I've been looking at the Netfilter RPC conntrack module, and I would
+like to know the status of the permanent inclusion of this module. Is
+this module considered stable and there are plans to include it, soon?
 
---------------010902040402090801000903--
+Regards,
+
+--=20
+Eduardo
+
+--62y5mOfGKwnOLojJ
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAZER6caRJ66w1lWgRAuk8AJ40r98m+MXgWaQxSJDPi7/F+nK3DACgkb+v
+66OqHY/Gqs4La+BjAHfDyMQ=
+=ccky
+-----END PGP SIGNATURE-----
+
+--62y5mOfGKwnOLojJ--
