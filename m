@@ -1,13 +1,13 @@
 From: "andre achternaam" <andreiscmeel@hotmail.com>
 Subject: How to add nat rules by another loadable kernel module
-Date: Thu, 24 Oct 2002 09:31:06 +0000
+Date: Thu, 24 Oct 2002 09:26:49 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F19769YDqSkcJse1fTv000009e4@hotmail.com>
+Message-ID: <F17677bieLYCT4aJ6pk00000164@hotmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; format=flowed
 Cc: andrekleibeuker@hotmail.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -47,5 +47,5 @@ Andre Kleibeuker
 
 
 _________________________________________________________________
-Protect your PC - get McAfee.com VirusScan Online 
-http://clinic.mcafee.com/clinic/ibuy/campaign.asp?cid=3963
+Choose an Internet access plan right for you -- try MSN! 
+http://resourcecenter.msn.com/access/plans/default.asp
