@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
 Subject: Re: performance issues (nat / conntrack)
-Date: Tue, 25 Jun 2002 21:03:42 +0200
+Date: Tue, 25 Jun 2002 21:06:47 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020625190342.GK7975@naboo.ols.wavesec.org>
-References: <Pine.LNX.4.33.0206251119260.4927-100000@blackhole.kfki.hu> <01ff01c21c45$c90eb2a0$0489cb8a@etbx180> <20020625155038.A527@oknodo.bof.de>
+Message-ID: <20020625190647.GL7975@naboo.ols.wavesec.org>
+References: <01ff01c21c45$c90eb2a0$0489cb8a@etbx180> <Pine.LNX.4.33.0206251548230.539-100000@blackhole.kfki.hu> <20020625151302.GA21293@balabit.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>,
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>,
 	netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
+To: Balazs Scheidler <bazsi@balabit.hu>
 Content-Disposition: inline
-In-Reply-To: <20020625155038.A527@oknodo.bof.de>
+In-Reply-To: <20020625151302.GA21293@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,30 +23,38 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 25, 2002 at 03:50:38PM +0200, Patrick Schaaf wrote:
-> > In my opinion, a first step should be to reconsider timeout values but
-> > also timer mechanisms.
+On Tue, Jun 25, 2002 at 05:13:02PM +0200, Balazs Scheidler wrote:
+> On Tue, Jun 25, 2002 at 04:17:54PM +0200, Jozsef Kadlecsik wrote:
+> > On Tue, 25 Jun 2002, Jean-Michel Hemstedt wrote:
+> > > > The book-keeping overhead is at least doubled compared to the
+> > > > conntrack-only case - this explains pretty well the results you got.
+> > >
+> > > what do you mean by 'book-keeping' ?
+> > > Does NAT do a lookup even if there are no rules?
+> > 
+> > I have to write again: even if there are no any rules, NULL
+> > mapping happens and new connections must be put into both nat hashes.
 > 
-> No. A first step MUST be pointing out that the current timeouts become
-> a problem in REAL LIFE. Right now you are speculating.  On all setups
-> I personally know, the timeouts are NOT a problem.
+> This should not explain the performance degradation others found. If no
+> rules are found in the table, the conntrack entry is added to the NAT
+> hashes. (place_in_hashes() function), this involves adding the entry to two
+> linked lists (changes two pointers per list), and then calling do_bindings()
+> which does nothing (num_manips == 0) except for calling helpers, which
+> should be none, if helper modules are not loaded.
 > 
-> Regarding timer _mechanisms_ I have seen no indication at all that the
-> current mechanism is a problem. If you want to insist, _please_ learn
-> about kernel profiling, and start posting FACT.
+> Adding entries to the NAT hashes doesn't involve memory allocation (NAT info
+> is stored in ip_conntrack), therefore I don't see the reason for the 50%
+> performance decrease.
 
-I've been talking about this with a couple of people here at the kernel
-summit, and it looks like the per-packet del_timer/add_timer in
-ip_ct_refresh should be a severe performance hit on SMP boxes.
+think about the lock contention on SMP system. The 'null binding'
+approach for nat (and for example, that nat helpers are called for
+connections with 'null binding') is a poor design.  
 
-Changing this to 'do not update timer if update would be < HZ different
-than current timer' is a two-line patch.  
+I've recently did some testing which try to avoid the null binding, but 
+as I'm not entirely sure they don't break something else I haven't been
+releasing them yet.
 
-As stated before, I'm currently away of my testing equipment, so if 
-anybody wants to give it a try...
-
-> regards
->   Patrick
+> Bazsi
 
 -- 
 Live long and prosper
