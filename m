@@ -1,20 +1,15 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH]: fixed kernel panic when trying to find tcp option
-Date: Thu, 16 Sep 2004 02:31:01 +0900 (JST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Variable-length data?
+Date: Wed, 15 Sep 2004 20:10:10 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200409151731.i8FHV2Cv005059@toshiba.co.jp>
-References: <20040915085049.7a7d45f0.davem@davemloft.net>
-	<200409151720.i8FHKJAC002371@toshiba.co.jp>
-	<20040915102236.6100ea14.davem@davemloft.net>
+Message-ID: <Pine.LNX.4.61.0409152009120.4567@filer.marasystems.com>
+References: <20040915171814.GA30824@em.ca>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-        yasuyuki.kozakai@toshiba.co.jp
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net
-In-Reply-To: <20040915102236.6100ea14.davem@davemloft.net>
-	<200409151720.i8FHKJAC002371@toshiba.co.jp>
+To: Bruce Guenter <lists-netfilter-devel@bruce-guenter.dyndns.org>
+In-Reply-To: <20040915171814.GA30824@em.ca>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,32 +20,20 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 15 Sep 2004 10:22:36 -0700
+On Wed, 15 Sep 2004, Bruce Guenter wrote:
 
-> On Thu, 16 Sep 2004 02:20:18 +0900 (JST)
-> Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> wrote:
-> 
-> > If you do it, all tcp packets which has no option will be dropped
-> > in the case of adding tcp-option match rule.
-> 
-> You are right.
-> 
-> Did your patch return "invert" from tcp_find_option() when optlen
-> is zero?  I deleted it, sorry.
+> I have written a simple filter for matching multiple network masks in a
+> list.  From what I can see, the actual netfilter data has to be constant
+> sized.  Is this true, or is there an easy way to have a non-fixed size
+> list of addresses (for example)?
 
-Yes. Because
+iptables matches (and targets) must use a static size matchdata structure 
+per match (or target).
 
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Date: Thu, 16 Sep 2004 02:20:18 +0900 (JST)
+> It seems rather wasteful to allocate a large array when only a small one 
+> is needed.
 
-> should return 0. On the other hand, if you configure
-> 
-> 	ip6tables -p tcp ! --tcp-option 2 -j LOG
-> 
-> tcp_match() should return 1.
+It is.
 
-Regards,
-
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+Regards
+Henrik
