@@ -1,15 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] ipt_time: module revision fixup
-Date: Tue, 1 Feb 2005 11:45:46 +0100
-Message-ID: <20050201104546.GW6878@sunbeam.de.gnumonks.org>
-References: <20050107022117.GB26992@ti64.telemetry-investments.com>
+Subject: Re: [PATCH] ipt_osf: module revision fixup
+Date: Tue, 1 Feb 2005 11:47:33 +0100
+Message-ID: <20050201104733.GX6878@sunbeam.de.gnumonks.org>
+References: <20050107022459.GC26992@ti64.telemetry-investments.com>
+	<20050107142200.294ac6bd@zanzibar.2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mdGUb96ZZNqpHCXz"
-Cc: netfilter-devel@lists.netfilter.org, Fabrice MARIE <fabrice@netfilter.org>
-To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+	protocol="application/pgp-signature"; boundary="36+Jv5wzUORg1Ut4"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	"Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Content-Disposition: inline
-In-Reply-To: <20050107022117.GB26992@ti64.telemetry-investments.com>
+In-Reply-To: <20050107142200.294ac6bd@zanzibar.2ka.mipt.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,20 +24,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---mdGUb96ZZNqpHCXz
+--36+Jv5wzUORg1Ut4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 06, 2005 at 09:21:17PM -0500, Bill Rugolsky Jr. wrote:
-> Use C99 initializers to allow for new match revision field.
-> Update function parameter list to match the corresponding function protot=
-ype.
+On Fri, Jan 07, 2005 at 02:22:00PM +0300, Evgeniy Polyakov wrote:
+> > Use C99 initializers to allow for new match revision field.
 >=20
-> Signed-off-by: Bill Rugolsky <brugolsky@telemetry-investments.com>
+> I've applied your patch to my tree, netfilter team, please
+> apply it to netfilter CVS, thank you.
 
-Thanks, I committed your changes to svn. Please note that I've created a
-new linux-2.6 specific directory for them. (Revision 3624)
+It's now subversion, but applied anyway ;)
+
+Thanks!
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -46,7 +49,7 @@ new linux-2.6 specific directory for them. (Revision 3624)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---mdGUb96ZZNqpHCXz
+--36+Jv5wzUORg1Ut4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -54,9 +57,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFB/13aXaXGVTD0i/8RAv/FAJ4tPRtOMFDzMjjXAbEhMeQe1LV0lwCaAliI
-Y2TWv6pcxaombTxZbWlnj5w=
-=BHtu
+iD8DBQFB/15FXaXGVTD0i/8RAgtnAJ9tfkgapTLNYxU7OSG0eum6xLeg5QCgq/Jk
+StciUpNdJqScNIt1/+zGlrI=
+=ROrm
 -----END PGP SIGNATURE-----
 
---mdGUb96ZZNqpHCXz--
+--36+Jv5wzUORg1Ut4--
