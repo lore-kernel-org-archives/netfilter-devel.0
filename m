@@ -1,17 +1,22 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] Fix MASQUERADE
-Date: Tue, 7 Sep 2004 08:09:44 -0700
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH] Add bridged IPv6 packet filtering
+Date: Tue, 7 Sep 2004 20:41:27 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040907080944.3f80976c.davem@davemloft.net>
-References: <1094566809.25641.9.camel@bach>
+Message-ID: <200409072041.27774.bdschuym@pandora.be>
+References: <200409012234.26310.bdschuym@pandora.be>
+	<200409021523.i82FNdsY015603@toshiba.co.jp>
+	<200409022346.13288.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	herbert@gondor.apana.org.au
+Cc: davem@redhat.com, netfilter-devel@lists.netfilter.org,
+	usagi-core@linux-ipv6.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <1094566809.25641.9.camel@bach>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
+	hno@marasystems.com
+In-Reply-To: <200409022346.13288.bdschuym@pandora.be>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +27,22 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 08 Sep 2004 00:20:09 +1000
-Rusty Russell <rusty@rustcorp.com.au> wrote:
+On Thursday 02 September 2004 23:46, Bart De Schuymer wrote:
+> > > On Thu, 2 Sep 2004, Yasuyuki Kozakai wrote:
+> > > > You forgot to find "Jumbo Payload Option" in Hop-by-Hop Options
+> > > > header. Other options may exist in this header.
+> > > >
+> > > > And please truncate packet if actual packet length is greater than
+> > > > Jumbo Payload Length + IPv6 header length.
+>
+> The incremental patch below introduces this.
+<snip>
+> Dave, unless someone complains, please apply.
 
-> Please test.  Also resets assured bit.
-> 
-> Name: Change MASQUERADE to Use Device Address Directly
-> Status: Untested
-> Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-> 
-> Instead of doing a dubious route lookup, just use the first IP address
-> of the (dynamic) interface.  Also, reset assured bit so after masq
-> connections can be cleaned up if memory pressure.
+Hi Dave,
 
-Didn't Herbert Xu et al. come to the conclusion that this isn't
-the way to fix this and that using inet_select_addr() had
-some problems especially in policy routing situations?
+I was wondering what your plans are on applying the patch I sent last 
+Thursday. Noone has complained about it.
+
+> --- linux-2.6.8.1/net/bridge/br_netfilter.c.older	2004-09-02
+<snip>
