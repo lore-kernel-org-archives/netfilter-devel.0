@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [ANNOUNCE] Feature Freeze for iptables-1.2.7
-Date: Sat, 22 Jun 2002 20:15:37 +0200
+From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
+Subject: Re: performance issues (nat / conntrack)
+Date: Sun, 23 Jun 2002 11:14:45 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020622201537.H31606@sunbeam.de.gnumonks.org>
-References: <20020615115909.M2543@sunbeam.de.gnumonks.org> <20020622171230.GC399@eychenne.org>
+Message-ID: <008101c21a96$6feec210$0489cb8a@etbx180>
+References: <20020621132640.2C326472B@lists.samba.org> <15635.25545.469973.950625@isis.cs3-inc.com>
+Reply-To: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cW+P/jduATWpL925"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.samba.org>
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: =?iso-8859-1?Q?Herv=E9_Eychenne_=3Crv=40wallfire=2Eorg=3E?=@sunbeam.gnumonks.org
-Content-Disposition: inline
-In-Reply-To: <20020622171230.GC399@eychenne.org>; from rv@wallfire.org on Sat, Jun 22, 2002 at 07:12:30PM +0200
+To: "Don Cohen" <don-nf@isis.cs3-inc.com>,
+	<netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,48 +23,71 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---cW+P/jduATWpL925
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > I'm doing some tcp benches on a netfilter enabled box and noticed
+>  > huge and surprising perf decrease when loading iptable_nat module. 
+> Rather similar to the results I posted about a week ago.
 
-On Sat, Jun 22, 2002 at 07:12:30PM +0200, Herv=E9 Eychenne wrote:
-> On Sat, Jun 15, 2002 at 11:59:09AM +0200, Harald Welte wrote:
->=20
->  Hi,
->=20
-> > I'm announcing a feature freeze for the iptables-1.2.7 release starting
-> > at 24 Jun 2002. After this date, only bugfixes will be accepted.  The
-> > 1.2.7 release will most likely be out by Jul 01.
->=20
-> So here are minor manpage updates.
+yes, i noticed it after my tests, sorry for this new thread. ;o)
 
-thanks, applied.
+> 
+>  > - Another (old) question: why are conntrack or nat active when there are
+>  > no rules configured (using them or not)? 
+> I noticed this too.  After a test using conntrack the next test
+> without "using" conntrack would perfom poorly unless I did rmmod.
 
->  RV
+yes, minor issue if documented... but serious risk.
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
-=20
-V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+> 
+>  > Since in my test, each connection is ephemeral (<10ms) ...
+> When all works correctly, the end of each connection should be noticed
+> by conntrack and the connection removed from the table, right?
 
---cW+P/jduATWpL925
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+yep
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+> In which case the table should never get very full.
 
-iD8DBQE9FL7JXaXGVTD0i/8RAvIfAJ9RyCfhFySZPvdM886nC6tbSVqsPQCfQOqY
-YdayL1VagoN/AgS9LsWJIOA=
-=WvwX
------END PGP SIGNATURE-----
+ideally yes, but from the conntrack machine perspective, the rest of
+the world should not be considered reliable... and in fact it is not.
+So, timouts should be reviewed, especially if we know that the average
+tcp connection duration on the www is about 20 seconds. 
+Generic timeouts are not suited to real world traffic.
 
---cW+P/jduATWpL925--
+> So I'm guessing that large number of entries in conntrack table is
+> evidence that packets are being lost.  
+
+not only: a crashed endpoint breaking the tcp sequence causes also
+garbage entries in conntrack (known issue).
+
+> In particular, if the syn
+> packet arrives but is never forwarded, you get one of those conntrack
+> entries where conntrack thinks (incorrectly) the syn has been
+> forwarded so it's waiting for the reply.  Ideally the entry should
+> not be added to the table until the packet goes out.
+
+??? or is served locally ???
+
+> 
+> Just wondering, how did you measure cpu load?
+> 
+
+procinfo -n10 ; [d] for showing differences, which in fact, computes
+                   the differences of cumulated cpu time (got from 
+                   /proc/stat) on the given period: (tsys1-tsys0)/T
+                   (I was too lazy to write a script...)
+
+--
+
+Maybe my mail was not clear... I've been surprised by 2 issues:
+1) conntrack timeout garbages (which was addressed by you mail)
+2) nat performance killing: I really don't understand it, especially
+   when there's no rule active on it, and thus no translation active.
+
+I can admit the overhead of conntrack because of the number of
+entries and criteria it has to manage, but this one can be 
+dimensionned and understood. 
+But what about NAT??? In my opinion, the NAT overhead should only
+be a delta against the conntrack overhead. But what I noticed is 
+an overhead as big as the conntrack overhead! why?
+
+_______________________________________________________________________
+-jmhe-               He who expects nothing shall never be disappointed
