@@ -1,11 +1,11 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC] updated ctnetlink patches
-Date: Wed, 28 May 2003 15:43:50 +0200
+Subject: [RFC] updated ctnetlink patches: connmark.diff/ctsynd.c
+Date: Wed, 28 May 2003 15:46:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3ED4BD16.8030606@trash.net>
+Message-ID: <3ED4BDB5.1000205@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------000407070303020906030208"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,144 +18,164 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-For some reason my mail didn't make it to netfilter-devel, i assume its 
-because of the big patches.
-For this reason, i'm sending the patches serperated from the mail.
--------------------[original 
-mail]------------------------------------------------
-
-I've done some work on ctnetlink, here is what i've got so far. The 
-patch is still incomplete,
-i just hope for some comments. I'll try to sum up the changes and some 
-thoughts as good as i
-can. To keep the reader motivated, attached is a small program which 
-enables you to do basic
-state synchronisation between two conntracks.
-
-Changes:
-
-- Attributes:
-Removed CTA_IIF and CTA_OIF, there is no relation between conntrack and  
-interfaces. I also
-don't see what meaning CTA_INFO (ctinfo) could have outside of packet 
-processing context,
-but i left it in for now.
-
-- Creation and manipulation of conntrack entries:
-It is possible now to create and change conntrack entries. Only 
-confirmed entries are accessible
-trough ctnetlink, also only confirmed ones can be created. All 
-attributes except CTA_HELPINFO
-and CTA_NATINFO are implemented. For NATINFO probably another ugly 
-pointer somewhere is
-required to access either functions inside ip_nat_core or nat_lock 
-without requiring nat to be
-loaded.
-
-- Conntrack event notifications:
-The patch adds event notifications to conntrack. Since there are very 
-much events, it is tried to
-cache them where possible and to deliver all cached ones at once. Still, 
-there are a lot. The
-notifications can be disabled at compile time while keeping parts of 
-ctnetlink that don't rely on
-them working. Also noteworthy is the fact that the NEW event is in fact 
-CONFIRM since there is
-no way to access unconfirmed connections. The DESTROY event is currently in
-destroy_conntrack, this should probably move to clean_from_lists. 
-ip_ct_refresh is changed
-to only update the timer if timer.expires != jiffies+extra_jiffies. This 
-reduces timeout change
-messages to at most HZ/s instead of 1/packet. I'm unclear if this change 
-introduces a race
-condition of some kind.
-
-- ctnetlink event messages:
-ctnetlink sends out a message for each conntrack event. There are two 
-types of messages,
-CTNL_MSG_NEWCONNTRACK and CTNL_MSG_DELCONNTRACK. Each message includes 
-at least
-the CTA_ORIG/CTA_RPLY attributes, plus all attributes that changed. 
-Messages for new conntrack
-entries include all available data, but at least 
-CTA_ORIG/CTA_RPLY/CTA_TIMEOUT/
-CTA_PROTOINFO/CTA_STATUS. These are also the minimum required attributes 
-to create new
-entries. There are no special flags set for this message at the moment, 
-NLM_F_CREATE | NLM_F_EXCL would make sense to distinguish new entries 
-from changes. I have to check what
-rtnetlink is doing. There are currently no messages for things done on 
-behalf of ctnetlink itself.
-
--Table dumping:
-Previous code crashed (known issue i think), also if it worked entries 
-would have been dumped
-multiple times if there was no room in the skb while in the middle of 
-dumping a hash chain. With
-my current solution confirmed entries are assigned a unique increasing 
-id and held in an ordered
-list. The last id successfully dumped is stored in the struct 
-netlink_callback and after an
-interruption it is continued with the next one. Unfortunately this adds 
-two new fields to struct
-ip_conntrack. The id field could be useful for ctnetlink itself (since 
-tuples can be reused it is the
-only unique identifier).
+This is a multi-part message in MIME format.
+--------------000407070303020906030208
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
-Some thoughts/problems for discussion:
-- There are too much messages, messages get lost if the socket receive 
-buffer is exhausted. I
-only tested on UML so it might have been just too slow.
-- If NEW message is lost all further changes are pointless. One could 
-make messages redundant
-by always including the attributes required to create new entries. OTOH, 
-this is only interesting
-for state synchronisation, not for other listeners. Different messages 
-for different multicast
-groups ? This is probably needlessly expensive, the overhead of the 
-extra attributes is not much.
-It could of course also be handled in userspace (but with high overhead).
-- Helpers: should it be possible to assign arbitary helpers to 
-connections (respecting protocol,
-disrespecting ports) or not ? Should connections created on behalf of 
-ctnetlink be assigned
-a helper automatically if there is a matching one ?
-- nat: masq_index is current not included in NATINFO. could it be useful ?
 
+--------------000407070303020906030208
+Content-Type: text/plain;
+ name="connmark.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="connmark.diff"
 
-Ok my brain is empty now, if i remember some more i'll write a new 
-message ..
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1229  -> 1.1230 
+#	net/ipv4/netfilter/ipt_CONNMARK.c	1.1     -> 1.2    
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/05/27	kaber@trash.net	1.1230
+# CONNMARK changes for conntrack event notifications
+# --------------------------------------------
+#
+diff -Nru a/net/ipv4/netfilter/ipt_CONNMARK.c b/net/ipv4/netfilter/ipt_CONNMARK.c
+--- a/net/ipv4/netfilter/ipt_CONNMARK.c	Tue May 27 19:25:03 2003
++++ b/net/ipv4/netfilter/ipt_CONNMARK.c	Tue May 27 19:25:03 2003
+@@ -19,16 +19,21 @@
+        void *userinfo)
+ {
+ 	const struct ipt_connmark_target_info *markinfo = targinfo;
+-
+ 	enum ip_conntrack_info ctinfo;
+ 	struct ip_conntrack *ct = ip_conntrack_get((*pskb), &ctinfo);
++	unsigned long oldmark = ct->mark;
++
+ 	if (ct) {
+ 	    switch(markinfo->mode) {
+ 	    case IPT_CONNMARK_SET:
+ 		ct->mark = markinfo->mark;
++		if (oldmark != ct->mark)
++			ip_conntrack_event(IPCT_MARK, ct);
+ 		break;
+ 	    case IPT_CONNMARK_SAVE:
+ 		ct->mark = (*pskb)->nfmark;
++		if (oldmark != ct->mark)
++			ip_conntrack_event(IPCT_MARK, ct);
+ 		break;
+ 	    case IPT_CONNMARK_RESTORE:
+ 		if (ct->mark != (*pskb)->nfmark) {
 
+--------------000407070303020906030208
+Content-Type: text/x-csrc;
+ name="ctsyncd.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ctsyncd.c"
 
-There are three patches:
-ctnetlink-0.11-0.12.diff - incremental, expects CONNMARK and 
-ctnetlink-0.11 patched kernel
-ctnetlink-0.12.diff - expects CONNMARK patched kernel
-connmark.diff - patch to CONNMARK for event notifications
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <ctype.h>
+#include <time.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/uio.h>
+#include <asm/types.h>
+#include <linux/if.h>
+#include <linux/netlink.h>
+#include <linux/netfilter_ipv4/ip_nat.h>
+#include <linux/netfilter_ipv4/ip_tables.h>
+#include <linux/netfilter_ipv4/ip_conntrack.h>
+#include <linux/netfilter_ipv4/ip_conntrack_tcp.h>
+#include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
+#include <linux/netfilter_ipv4/ip_conntrack_icmp.h>
+#include <linux/netfilter_ipv4/ip_conntrack_tuple.h>
+#include <linux/nfnetlink_conntrack.h>
 
-Sorry about expecting a connmark patched kernel, but i started to work 
-on ctnetlink because i
-wanted to change connection marks ..
+#include "libctnetlink.h"
 
-For state-syncronization testing there is a small programm. It 
-encapsulates netlink messages in
-udp and sends them out. The receiver sets NLM_F_REQUEST and passes them 
-to the kernel.
+#define NETLINK_SOCKBUFSZ	1<<20
 
-Compile with (in libctnetlink directory):
+int accept_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
+{
+	int udp_sock = *(int *)arg;
 
-gcc  -I../include -I/usr/src/linux/include -lnfnetlink ctsyncd.c -o ctsyncd
+	if (send(udp_sock, n, n->nlmsg_len, 0) < 0)
+		perror("send\n");
 
-On one side: ./ctsynd listen
-Other side: ./ctsynd <ip>
+	return 0;
+}
 
-Looking forward for suggestions/comments.
+int main(int argc, char **argv)
+{
+	struct nfnl_handle nlh;
+	struct sockaddr_in sin;
+	int sock_buf_size = NETLINK_SOCKBUFSZ;
+	int udp_sock;
 
-Best regards,
-Patrick
+	if (argc < 2) {
+		fprintf(stderr, "Usage: %s [ <ip> | listen ]\n", argv[0]);
+		exit(1);
+	}
 
-PS: I guess many here are aware of it, there is a draft on "Netlink as 
-an IP services protocol"
-with many information on netlink:
-http://www.ietf.org/proceedings/01dec/I-D/draft-ietf-forces-netlink-01.txt
+	if (nfnl_open(&nlh, NFNL_SUBSYS_CTNETLINK, ~NFGRP_IPV4_CT_UDP)) {
+		perror("nfnl_open\n");
+		exit(1);
+	}
+
+	if ((udp_sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+		perror("socket\n");
+		exit(1);
+	}
+
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(10000);
+
+	if (strncmp(argv[1], "listen", sizeof("listen")) == 0) {
+		char buf[4000];
+		struct nlmsghdr *n = (struct nlmsghdr *)buf;
+		int len;
+		
+		sin.sin_addr.s_addr = 0;
+		if (bind(udp_sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+			perror("bind\n");
+			exit(1);
+		}
+
+		while ((len = recv(udp_sock, &buf, sizeof(buf), 0))) {
+			n->nlmsg_flags = NLM_F_REQUEST|NLM_F_CREATE|NLM_F_EXCL;
+			if (nfnl_send(&nlh, n) < 0)
+				perror("nfnl_send\n");
+		}
+		exit(0);
+	}
+
+	if (setsockopt(nlh.fd, SOL_SOCKET, SO_RCVBUF,
+	               (const char *)&sock_buf_size, sizeof(int)) < 0) {
+		perror("setsockopt\n");
+		exit(1);
+	}
+
+	inet_aton(argv[1],&sin.sin_addr.s_addr);
+
+	if (connect(udp_sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+		perror("connect\n");
+		exit(1);
+	}
+
+	if (nfnl_listen(&nlh, accept_msg, &udp_sock) < 0) {
+		perror("nfnl_listen\n");
+		exit(1);
+	}
+}
+
+--------------000407070303020906030208--
