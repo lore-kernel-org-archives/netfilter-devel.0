@@ -1,13 +1,17 @@
-From: Juan Carlos Castro y Castro <jcastro@vialink.com.br>
-Subject: Li'l time match userspace patch o' mine
-Date: Sat, 04 Oct 2003 21:25:02 -0300
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Sparc64, Kernel 2.6 and iptables
+Date: Sun, 5 Oct 2003 13:51:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F7F64DE.4070506@vialink.com.br>
+Message-ID: <20031005115106.GY5758@sunbeam.de.gnumonks.org>
+References: <3F729BFE.7040702@triaton-webhosting.com> <20031002195500.GC5758@sunbeam.de.gnumonks.org> <3F7EF645.5080806@triaton-webhosting.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010004050500080100060705"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="r3ueNplNBnzMaJE3"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Georg Chini <georg.chini@triaton-webhosting.com>
+Content-Disposition: inline
+In-Reply-To: <3F7EF645.5080806@triaton-webhosting.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,97 +22,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010004050500080100060705
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-This makes --days optional; if user gives only; if user gives only 
---timestart and --timestop the rule will be recorded as if all weekdays 
-were specified (intuitive IMHO).
+--r3ueNplNBnzMaJE3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You'll see I accomplished this in a rather ugly fashion (taking 
-advantage of the fact there are options that remain mandatory). I'm sure 
-there is a better way, but this works and the ugliness is totally 
-limited to userspace. Is this acceptable?
+On Sat, Oct 04, 2003 at 06:33:09PM +0200, Georg Chini wrote:
+> Hello,
+>=20
+> thanks for your reply. Would it help if I give you
+> access to a sparc64 box? Or do you have any idea what
+> I could do to track down the problem? Including netfilter debug
+> in the configuration did not change anything, I still do
+> not get any messages. I tested it with 2.6.0-test6-bk6.
 
---------------010004050500080100060705
-Content-Type: text/plain;
- name="time-match-days-optional.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="time-match-days-optional.patch"
+mh.  Since you don't even get an Oops message, it's hard to track... and
+remote debugging (even with a serial console) is very inconvenient due
+to the latency, etc.
 
---- libipt_time.c.prejuan	2003-10-04 20:48:55.000000000 -0300
-+++ libipt_time.c	2003-10-04 21:10:45.000000000 -0300
-@@ -17,10 +17,11 @@
- {
- 	printf(
- "TIME v%s options:\n"
--" --timestart value --timestop value --days listofdays\n"
--"          timestart value : HH:MM\n"
--"          timestop  value : HH:MM\n"
--"          listofdays value: a list of days to apply -> ie. Mon,Tue,Wed,Thu,Fri. Case sensitive\n",
-+" --timestart value --timestop value [ --days listofdays ]\n"
-+"          timestart  value : HH:MM\n"
-+"          timestop   value : HH:MM\n"
-+"          listofdays value : a list of days to apply\n"
-+"                             -> ie. Mon,Tue,Wed,Thu,Fri. Case sensitive\n",
- IPTABLES_VERSION);
- }
- 
-@@ -173,6 +174,7 @@
-       unsigned int *nfcache,
-       struct ipt_entry_match **match)
- {
-+	static int setdaysalready = 0;	/* major cheat! */
- 	struct ipt_time_info *timeinfo = (struct ipt_time_info *)(*match)->data;
- 	int hours, minutes;
- 
-@@ -180,6 +182,11 @@
- 	{
- 		/* timestart */
- 	case '1':
-+		if (!setdaysalready)
-+		{
-+			globaldays = 127;	/* All of them if not given */
-+			timeinfo->days_match = globaldays;
-+		}
- 		if (invert)
- 			exit_error(PARAMETER_PROBLEM,
-                                    "unexpected '!' with --timestart");
-@@ -192,6 +199,11 @@
- 		break;
- 		/* timestop */
- 	case '2':
-+		if (!setdaysalready)
-+		{
-+			globaldays = 127;	/* All of them if not given */
-+			timeinfo->days_match = globaldays;
-+		}
- 		if (invert)
- 			exit_error(PARAMETER_PROBLEM,
-                                    "unexpected '!' with --timestop");
-@@ -205,6 +217,7 @@
- 
- 		/* days */
- 	case '3':
-+		setdaysalready = 1;
- 		if (invert)
- 			exit_error(PARAMETER_PROBLEM,
-                                    "unexpected '!' with --days");
-@@ -225,9 +238,10 @@
- static void
- final_check(unsigned int flags)
- {
--	if (flags != (IPT_TIME_START | IPT_TIME_STOP | IPT_TIME_DAYS))
-+	if (flags != (IPT_TIME_START | IPT_TIME_STOP | IPT_TIME_DAYS) &&
-+	    flags != (IPT_TIME_START | IPT_TIME_STOP))
- 		exit_error(PARAMETER_PROBLEM,
--			   "TIME match: You must specify `--timestart --timestop and --days'");
-+			   "TIME match: You must specify `--timestart and --timestop'");
- }
- 
- 
+I've just bought another Ultra5, I expect it to arrive within the next
+week.
 
---------------010004050500080100060705--
+> Regards
+>        Georg Chini
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--r3ueNplNBnzMaJE3
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE/gAWqXaXGVTD0i/8RAgsvAJ9x5705RpGw+SMx8gGa5NLjif6KAQCfdN+k
+iu8KfEEbCI2nIydXL39b0Rk=
+=PVkB
+-----END PGP SIGNATURE-----
+
+--r3ueNplNBnzMaJE3--
