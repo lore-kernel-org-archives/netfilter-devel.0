@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Packet Fragementation
-Date: Wed, 31 Mar 2004 17:08:58 +0200 (CEST)
+Subject: Re: LIST_DELETE bug tracked
+Date: Wed, 31 Mar 2004 17:10:39 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403311708100.21410-100000@filer.marasystems.com>
-References: <20040331140404.16955.qmail@web13907.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0403311709220.21410-100000@filer.marasystems.com>
+References: <20040331145833.8569.qmail@web41704.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Develop <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Scott MacKay <scottmackay@yahoo.com>
-In-Reply-To: <20040331140404.16955.qmail@web13907.mail.yahoo.com>
+To: zhi wang <pangy2004@yahoo.com>
+In-Reply-To: <20040331145833.8569.qmail@web41704.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,23 +20,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 31 Mar 2004, Scott MacKay wrote:
+On Wed, 31 Mar 2004, zhi wang wrote:
 
-> You are the god!!!! TY so much :)
-> Actually, NF_IP_PRI_RAW is -300 (at least 2.4.25
-> kernel patch) , so I am golden.
+> In a post by KOVACS Krisztian,
+> http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014584.html,
+> he declared that the LIST_DELETE bug can be reliably
+> reproduced, which is first reported by Jonathan
+> Cooper. The bug is really  responsive :). I reproduced
+> it by executing the following commands at my host
+> 10.0.0.2:
+> 1. iptables -t nat -A PREROUTING -s 10.0.0.0/24 -p tcp
+> --dport 80 -j REDIRECT --to-port 8080
+> 2. nc -l -p 8080
+> 3. nc -n 10.0.0.2 80
 
-Just a copy-paste error on my part..
+Yes, this will trigger the bug.
 
-> Ah good.  So it sounds like I can add in my packet
-> altering code in mangle/POST_ROUTING (where I have
-> unfragmented packets ready to head out) and then my
-> packet de-altering code in raw/PRE_ROUTING (where I
-> will have de-fragmented packets that have not yet been
-> examined for session/conn track yet) and I will be a
-> Happy Camper.
-
->From what I can tell this should work yes.
+Patch is found in the archives. Alternatively you can recompile your
+kernel with local-nat support enabled which will also cure the problem.
 
 Regards
 Henrik
