@@ -1,16 +1,17 @@
-From: "Daniel Chemko" <dchemko@smgtec.com>
-Subject: RE: Masquerading and loading balancing among several outbound Internet connections
-Date: Wed, 2 Jun 2004 10:05:12 -0700
+From: Andre Correa <andre.correa@pobox.com>
+Subject: Re: [linuximq] Re: [PATCH] pom-ng version of IMQ target (file is
+ attached this time)
+Date: Thu, 03 Jun 2004 12:24:21 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <7C9884991ADAE0479C14F10C858BCDF591E328@alderaan.smgtec.com>
+Message-ID: <40BF42A5.7070002@pobox.com>
+References: <40A29E4A.94165870@info-link.net> <40A2D9D8.2050201@trash.net> <40A39C34.639DC30E@info-link.net> <40BB2C43.90704@dsl.pipex.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: "Joseph Tung" <jst1@pacbell.net>,
-	<netfilter-devel@lists.netfilter.org>
+To: linuximq@yahoogroups.com
+In-Reply-To: <40BB2C43.90704@dsl.pipex.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,95 +22,78 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Joseph Tung wrote:
-> Hello,
->=20
-> I have several internal networks that are to be ipmasqueraded or
-> snat'd among several outbound Internet connections (all going to this
-> one router/bridge).
->=20
-> 1) Is it possible to ipmasquerade to more than 1 outbound Internet
-> connection? (I have Fedora Core 1).
 
-Yes. Maybe with a kernel update, but yes, its possible
+Hi Andy, I cannot tell about netfilter, but I would like to see you 
+patch anyway for testing and maybe include it on IMQ.
 
-> 2) If so, are there any samples of how this is done?  For now, I'd be
-> happy just assigning each private network one outgoing ip address;
-> but I want to do this with one box.  Then I'll bridge the two (or
-> more) by modifying the routing table?
+Some patchs sent by people are queued and I hope to review and publish 
+then soon. Does your patch changes iptables too? Please send it on pvt.
 
-If you're only using a single ISP, you can get away with something like
-the following. This may also work on different ISP's, but that depends
-on if they filter your traffic outbound. Some do, some don't.
+To be honest I'm not willing to get in a "fight" for putting IMQ patch 
+into p-o-m. I think it should be there the way IMQ is right now, but we 
+better give it some time. I'm not sure too that dummy will satisfy all 
+needs. I'm more to the good-old IMQ implementation.
 
-# Set all new connections to use either of the external network's
-interfaces. This is a simple return-path algorithm
-iptables -A PREROUTING --destination ! ${INTERNAL}/${MSK_INT} -m state
---state NEW -m nth --every 2 --start 0 -j MARK --set-mark 100
-iptables -A PREROUTING --destination ! ${INTERNAL}/${MSK_INT} -m state
---state NEW -m nth --every 2 --start 1 -j MARK --set-mark 101
+tks
 
-# This is what 'equalizes' the outgoing data.
-iptables -A PREROUTING --destination ! ${INTERNAL}/${MSK_INT} -m state
---state ESTABLISHED,RELATED -m nth --every 2 --start 0 -j MARK
---set-mark 100
-iptables -A PREROUTING --destination ! ${INTERNAL}/${MSK_INT} -m state
---state ESTABLISHED,RELATED -m nth --every 2 --start 1 -j MARK
---set-mark 101
+Andre
 
-# See below
-route_builder 100 $ISP_NET1_GW $MY_ISP_NET1_IP
-route_builder 101 $ISP_NET2_GW $MY_ISP_NET2_IP
-
-# Use SNAT rules on each outgoing interface
-
-The following script is what I use to easily build specialized routing
-tables.
-#
-# Notes:
-#    This function generates a new routing table based on the currect
-main
-#    routing table. The difference is that the default route is user
-specified.
-#=20
-# Arguments:
-#    1 - Table ID to create
-#    2 - IP Address, Gateway Address=20
-#    3 - IP Address, Generated Source - In other words, your internet
-address
-#
-function route_builder
-{
-   if [ "${OPT_SYS_ROUTER}" =3D "0" -o "${OPT_ROUTER_POLICYROUTING}" =3D =
-"0"
-]; then
-      info "route_builder: Policy Routing is disabled. Skipping."
-      return 1
-   fi
-   _table_id=3D${1}
-   _table_gateway=3D${2}
-   _table_source=3D${3}
-   if [ ! -z "${_table_id}" -a ! -z "${_table_gateway}" -a ! -z
-"${_table_source}" ]; then
-      ${IP} rule del fwmark ${_table_id} table ${_table_id}
-      ${IP} rule add fwmark ${_table_id} table ${_table_id}
-      ${IP} route flush table ${_table_id}
-      ${IP} route show table main | grep -Ev ^default
-\
-      | while read ROUTE ; do  =20
-         ${IP} route add table ${_table_id} $ROUTE
-      done
-      ${IP} route add table ${_table_id} default via ${_table_gateway}
-\
-         src ${_table_source}
-   else
-      info "route_builder: Invalid arguments specified."
-   fi
-}
-
-> 3) I'd like to provide webservices via several low bandwidth
-> connections, so I'd like to dynamically route the traffic based on the
-> load.  My sense is that this is impossible with the current release.
-
-Take a look at lartc.org and TC and tell us what isn't possible to
-traffic shape :-)
+Andy Furniss wrote:
+> Brad Fisher wrote:
+> 
+>>Patrick McHardy wrote:
+>>
+>>
+>>
+>>>Andre Correa already asked me about inclusion of the IMQ target. I would
+>>>rather not include at this time it for two reasons:
+>>>
+>>>- IMQ still has stability problems
+>>>- Jamal is working on a netfilter-independant replacement, I would like to
+>>>see how it works out first. See
+>>>http://marc.theaimsgroup.com/?t=108202471500003&r=1&w=2
+>>>
+>>>Regards
+>>>Patrick
+>>
+>>
+>>That's fine, I wasn't really asking for inclusion quite yet (though I would
+>>like to see it happen someday :).  I just wanted to let people who may be
+>>interested know that a pom-ng version of the patch existed.
+>>
+>>-Brad
+> 
+> 
+> I am still not sure whether using Dummy will satisfy other IMQ users 
+> though, the thread above just deals with my setup - using ingress IMQ. 
+> There must be people on here using IMQ for egress/ multiple IMQs to 
+> solve their own problems. I changed IMQ to hook before NAT for egress, 
+> just to see if it worked, as someone on the LARTC list wanted to use 
+> ESFQ for a large NATed LAN - it appears to be OK - but will a netfilter 
+> independent replacement allow this sort of flexability?
+> 
+> Andy.
+> 
+> 
+> 
+> 
+> ------------------------ Yahoo! Groups Sponsor --------------------~--> 
+> Yahoo! Domains - Claim yours for only $14.70
+> http://us.click.yahoo.com/Z1wmxD/DREIAA/yQLSAA/dkFolB/TM
+> --------------------------------------------------------------------~-> 
+> 
+>  
+> Yahoo! Groups Links
+> 
+> <*> To visit your group on the web, go to:
+>      http://groups.yahoo.com/group/linuximq/
+> 
+> <*> To unsubscribe from this group, send an email to:
+>      linuximq-unsubscribe@yahoogroups.com
+> 
+> <*> Your use of Yahoo! Groups is subject to:
+>      http://docs.yahoo.com/info/terms/
+>  
+> 
+> 
+> 
