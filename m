@@ -1,15 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: possible bug in ip_nat_fn()
-Date: Wed, 13 Aug 2003 14:37:40 +0200 (CEST)
+From: Herve Eychenne <rv@wallfire.org>
+Subject: mysterious kernel lockups
+Date: Wed, 13 Aug 2003 19:45:20 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0308131432300.5634-100000@blackhole.kfki.hu>
-References: <20030810141425.GA4906@balabit.hu>
+Message-ID: <20030813174520.GE5771@eychenne.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Balazs Scheidler <bazsi@balabit.hu>
-In-Reply-To: <20030810141425.GA4906@balabit.hu>
+To: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,31 +19,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Bazsi,
+ Hi,
 
-On Sun, 10 Aug 2003, Balazs Scheidler wrote:
+I'm coming back from holidays... just before going to Budapest for
+Netfilter workshop. I read all of my mailbox (oh my god), and
+last Kernel Traffic, where I saw this:
+http://www.kerneltraffic.org/kernel-traffic/kt20030811_227.html#1
 
-> The problem occurs if no ip_nat_setup_info() is called (or it fails) _AND_
-> ret == NF_ACCEPT. This is always the case in 2), when 'ret' is simply set to
-> NF_ACCEPT, and might possibly also happen if the NAT helper does not check
-> the return value of ip_nat_setup_info(), or it simply does not set up a NAT
-> mapping for the current connection.
-[...]
-> I think the solution for this problem would be a separate flag in
-> ip_nat_info->initialized which tells whether this conntrack has already been
-> hashed, or to move the hash update code to ip_nat_setup_info. I've attached
-> a patch which does the latter, and makes the place_in_hashes and
-> replace_in_hashes functions static.
+It's about possible (but unsure) lockups problem with netfilter,
+and I don't recall having seen this subject evoked on the NF ML.
+(but I may be wrong... as I had so many emails)
 
-I think your analysis is correct and I agree with your fix as well.
+Well, it's just for information.
 
-Could you report this and all your other findings in the workshop during
-presenting the TPROXY patch?
+ Herve
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
