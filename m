@@ -1,64 +1,71 @@
-From: Jonas Berlin <jberlin@niksula.hut.fi>
-Subject: netfilter & ipv6
-Date: Tue, 08 Feb 2005 09:50:40 +0200
-Message-ID: <42086F50.9090504@niksula.hut.fi>
+From: Andi Kleen <ak@suse.de>
+Subject: [PATCH] Fix small vmalloc per allocation limit
+Date: Tue, 8 Feb 2005 11:33:46 +0100
+Message-ID: <20050208103345.GA9724@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+To: akpm@osdl.org, linux-kernel@vger.kernel.org
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
 
-I have found that there seems to be a bunch of match & target modules 
-for iptables that don't exist for ip6tables.. Like CLASSIFY for example. 
-And some that exist have only a subset of the features.
+The vmap vmalloc rework in 2.5 had a unintended side effect.
+vmalloc uses kmalloc now to allocate an array with a list of pages.
+kmalloc has a 128K maximum. This limits the vmalloc maximum size 
+to 64MB on a 64bit system with 4K pages. That limit causes problems
+with other subsystems, e.g. iptables relies on allocating large
+vmallocs for its rule sets. 
 
-Also some modules exist only for linux 2.4 but were never ported to 2.6 
-or don't compile cleanly anymore on the newest 2.6 kernels.
+This is a bug IMHO - on 64bit platforms there shouldn't be 
+such a low limit on the vmalloc size. And even on 32bit it's too
+small for custom kernels with enlarged vmalloc area.
 
-While I don't have that much experience of 2.6 yet and only have been 
-hacking some smaller modules for 2.4 in the past, I think I should have 
-enough skills to at least port/update some of these.
+Another problem is that this makes vmalloc unreliable. After the
+system has been running for some time it is unlikely that kmalloc
+will be able to allocate >order 2 pages due to memory fragmentation.
 
-So I thought maybe I could help out with this task - ipv6 is something 
-that I hope and think will take over ipv4 some day and I'd like for 
-linux to be able to provide the same experience then as ipv4 users of 
-iptables have today.
+This patch takes the easy way out for fixing this by just allocating
+this array with vmalloc when it is larger than a page.
+While more complicated and intrusive solutions would be possible
+they didn't use vmalloc recursively they didn't seem it worth
+to handle this very infrequent case.
 
-I have some questions..
+Please note that the vmalloc recursion is strictly bounded
+because each nested allocation will generate a much smaller
+stack frame. Also the kernel stack can handle even a few
+recursion steps easily because vmalloc has only a  small
+stack frame.
 
-1. Some modules (will) look almost identical on ipv4 on and ipv6 - would 
-there be any point in making the ipv4 modules export some symbols and 
-then re-use those methods in ipv6 if it wouldn't imply any (major) 
-changes to the ipv4 modules?
+Signed-off-by: Andi Kleen <ak@suse.de>
 
-2. I think it could be nice to keep track of what modules exist for ipv4 
-and ipv6 on some web page and maybe also let people sign up to join the 
-porting effort (if there are any =). What do you think? And is that 
-something I could help out with as well? I have a server at home that 
-could run it, however behind an 0,5M adsl line..
-
-3. If I succeed porting something, what should I name the patch to be 
-sent to patch-o-matic-ng? I don't think I could just extend the existing 
-ones as that would suggest the original authors have something to do 
-with it and also some of them also are pending or already included in 
-the ekernel. So, would CLASSIFY_v6 be an acceptable name for the ipv6 
-version of CLASSIFY? And maybe condition_26 for the 2.6 port of 
-condition from 2.4? What's your general procedure if someone have 
-updates to a module that someone else did? Should the original authors 
-be contacted instead of sending patches to this list?
-
-Any suggestions you have are welcome!
-
--- 
-- xkr47
+diff -u linux-2.6.11rc3/mm/vmalloc.c-o linux-2.6.11rc3/mm/vmalloc.c
+--- linux-2.6.11rc3/mm/vmalloc.c-o	2005-02-04 09:13:51.000000000 +0100
++++ linux-2.6.11rc3/mm/vmalloc.c	2005-02-08 10:59:58.000000000 +0100
+@@ -378,7 +378,10 @@
+ 			__free_page(area->pages[i]);
+ 		}
+ 
+-		kfree(area->pages);
++		if (area->nr_pages > PAGE_SIZE/sizeof(struct page *))
++			vfree(area->pages);
++		else
++			kfree(area->pages);
+ 	}
+ 
+ 	kfree(area);
+@@ -482,7 +485,12 @@
+ 	array_size = (nr_pages * sizeof(struct page *));
+ 
+ 	area->nr_pages = nr_pages;
+-	area->pages = pages = kmalloc(array_size, (gfp_mask & ~__GFP_HIGHMEM));
++	/* Please note that the recursion is strictly bounded. */
++	if (array_size > PAGE_SIZE) 
++		pages = __vmalloc(array_size, gfp_mask, PAGE_KERNEL);
++	else
++		pages = kmalloc(array_size, (gfp_mask & ~__GFP_HIGHMEM));
++	area->pages = pages;
+ 	if (!area->pages) {
+ 		remove_vm_area(area->addr);
+ 		kfree(area);
