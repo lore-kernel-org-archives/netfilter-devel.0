@@ -1,14 +1,12 @@
-From: "calvin" <calvinproject@ihug.com.au>
-Subject: can netfilter capture internal network packet?
-Date: Sat, 7 Jun 2003 18:37:50 +1000
+From: "Ian Latter" <Ian.Latter@mq.edu.au>
+Subject: ip_conntrack_lock usage?
+Date: Sun, 08 Jun 2003 12:21:07 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001101c32cd0$14bdf940$010aa8c0@toowoomba>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Message-ID: <200306080221.h582L8f07562@singularity.tronunltd.com>
+Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>, <netfilter@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,42 +17,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all,
+Hey dudes,
 
-I got a serious problem with my netfilter programe.
+  I finally have my dev machine back online, and a long weekend to look at
+the RSH and RPC bugs, and the RPC enhancements.  However, I've gotten
+myself bogged down in trying to understand usage of "ip_conntrack_lock"
+READ/WRITE LOCKs.
 
-what i am trying to do is capture a packet frmo A to B in the same network
-and direct it to QUEUE.
+  The old rpc-recent module(s) had a comment at the top that said;
+    +/* For future conections RPC, using client's cache bindings
+    + * I'll use ip_conntrack_lock to lock these lists         */
 
-My setup is
+.. why would you use a global locking mechanism for lists that only have
+local implications?
 
-A      B
- \       /
-  \     /
-  HUB
-     | (eth0)
-   GW
-     |(eth1)
-     |
-     |
+  The added confusion is that I can see no documentation on it in the HowTo's
+or FAQ's .. and the only mentions in the Netfilter mailling archives are either
+code references from the conntrack root code, or discussions on potential
+performance bottlenecks.
 
-is that possible to: when A send a message to B port 1700 (for example) ,
-the iptales in GW can grep the packet and put into queue for processing and
-put it back to the line?
-I tried to the rules like:
-iptables -A INPUT -i eth0 -p udp --dport 17-- -j QUEUE
-or
-iptables -A INPUT -o eth1 -p udp --dport 17-- -j QUEUE
-or both of them.
+  Should I be trying to implement a global locking structure in the RPC code,
+or should I stick with what I've got?
 
-I can get it works.
 
-I also have a netfilter module, insepecting packetsrc/dest port in the
-PRE_ROUTING hook point, also can't get it.
+Thanks,
+ 
 
-is that any way I can do what I want to do in module? in iptables?
 
-Thanks very much for any of your help..
-
-Regards,
-Calvin
+--
+Ian Latter
+Internet and Networking Security Officer
+Macquarie University
