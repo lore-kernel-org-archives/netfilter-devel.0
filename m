@@ -1,10 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6.11 3/4]: Fix ip_conntrack_ftp crash with debugging
-	enabled
-Date: Fri, 04 Feb 2005 04:05:14 +0100
-Message-ID: <4202E66A.9070908@trash.net>
+Subject: [PATCH 2.6.11 4/4]: Use GFP_ATOMIC in ipt_hashlimit
+Date: Fri, 04 Feb 2005 04:05:17 +0100
+Message-ID: <4202E66D.2010905@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020707000302070408020405"
+Content-Type: multipart/mixed; boundary="------------050901090906030906000906"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,53 +18,48 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020707000302070408020405
+--------------050901090906030906000906
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-data doesn't exist, an integer is printed with %s
+Fix GFP_KERNEL allocation under spinlock.
 
 
 
---------------020707000302070408020405
+--------------050901090906030906000906
 Content-Type: text/x-patch;
- name="03.diff"
+ name="04.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="03.diff"
+ filename="04.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2005/02/01 14:24:23+01:00 nib@cookinglinux.org 
-#   [NETFILTER]: Fix ip_conntrack_ftp crash with debugging enabled
+#   2005/02/01 15:08:47+01:00 sjean@cookinglinux.org 
+#   [NETFILTER]: Use GFP_ATOMIC in ipt_hashlimit
 #   
-#   Signed-off-by: Nicolas Bouliane <nib@cookinglinux.org>
+#   Signed-off-by: Samuel Jean <sjean@cookinglinux.org>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_conntrack_ftp.c
-#   2005/02/01 14:24:15+01:00 nib@cookinglinux.org +3 -4
-#   [NETFILTER]: Fix ip_conntrack_ftp crash with debugging enabled
+# net/ipv4/netfilter/ipt_hashlimit.c
+#   2005/02/01 15:08:39+01:00 sjean@cookinglinux.org +1 -1
+#   [NETFILTER]: Use GFP_ATOMIC in ipt_hashlimit
 #   
-#   Signed-off-by: Nicolas Bouliane <nib@cookinglinux.org>
+#   Signed-off-by: Samuel Jean <sjean@cookinglinux.org>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
---- a/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-02-03 20:43:10 +01:00
-+++ b/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-02-03 20:43:10 +01:00
-@@ -373,10 +373,9 @@
- 		goto out_update_nl;
- 	}
+diff -Nru a/net/ipv4/netfilter/ipt_hashlimit.c b/net/ipv4/netfilter/ipt_hashlimit.c
+--- a/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-03 20:43:16 +01:00
++++ b/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-03 20:43:16 +01:00
+@@ -570,7 +570,7 @@
+ 	if (*pos >= htable->cfg.size)
+ 		return NULL;
  
--	DEBUGP("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
--	       (int)matchlen, data + matchoff,
--	       matchlen, ntohl(th->seq) + matchoff);
--
-+	DEBUGP("conntrack_ftp: match `%s' (%u bytes at %u)\n",
-+	       fb_ptr + matchoff, matchlen, ntohl(th->seq) + matchoff);
-+			 
- 	/* Allocate expectation which will be inserted */
- 	exp = ip_conntrack_expect_alloc();
- 	if (exp == NULL) {
+-	bucket = kmalloc(sizeof(unsigned int), GFP_KERNEL);
++	bucket = kmalloc(sizeof(unsigned int), GFP_ATOMIC);
+ 	if (!bucket)
+ 		return ERR_PTR(-ENOMEM);
+ 
 
---------------020707000302070408020405--
+--------------050901090906030906000906--
