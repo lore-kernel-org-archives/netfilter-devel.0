@@ -1,77 +1,51 @@
-From: Bernd Petrovitsch <bernd@gams.at>
-Subject: Re: Fw: 2.4.20pre8aa2 failed assertions in ip_{conntrack,nat}_core.c
-Date: Fri, 11 Oct 2002 00:05:10 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200210102205.g9AM5AK25232@frodo.gams.co.at>
-References: <1034283708.25146.25.camel@tux>
+From: "Zheng Weibin" <zwb@xanet.edu.cn>
+Subject: Re: ip_conntrack_hash() problem
+Date: Fri, 11 Oct 2002 11:51:55 +0800
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <008901c270d9$bce2f5c0$26301bd2@zwb>
+References: <20020905115208.4D0A02C064@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-reply-to: Your message of "10 Oct 2002 23:01:48 +0200."
-             <1034283708.25146.25.camel@tux>
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
+Cc: "Andi Kleen" <ak@suse.de>, "Harald Welte" <laforge@gnumonks.org>,
+   "Netfilter Mailing List" <netfilter-devel@lists.netfilter.org>,
+   "Linux Kernel mailing list" <linux-kernel@vger.kernel.org>,
+   "Patrick Schaaf" <bof@bof.de>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: "Rusty Russell" <rusty@rustcorp.com.au>,
+   "Martin Wilck" <Martin.Wilck@Fujitsu-Siemens.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Martin Josefsson <gandalf@wlug.westbo.se> wrote:
->> [2.] Full description of the problem/report:
->> I'm running 2.4.20pre8aa2 with all the firewalling stuff enabled=20
->> on a Pentium 75 and get occasionally
->> ----  snip (lines broken to keep it readable) ----
->> Oct 10 20:00:04 fw kernel: ASSERT ip_conntrack_core.c:97
->>                              &ip_conntrack_lock readlocked=20
->> Oct 10 20:00:04 fw kernel: ASSERT ip_conntrack_core.c:1067
->>                              &ip_conntrack_lock not readlocked=20
->> Oct 10 20:00:04 fw kernel: ASSERT: ip_nat_core.c:841
->>                              &ip_conntrack_lock not readlocked=20
->> Oct 10 20:00:04 fw kernel: ASSERT ip_conntrack_core.c:97
->>                              &ip_conntrack_lock readlocked=20
->> Oct 10 20:00:04 fw kernel: ASSERT: ip_nat_core.c:841
->>                              &ip_conntrack_lock not readlocked=20
->> ----  snip  ----
->> Otherwise everything is working fine.
->
->I've attached a small patch that fixes the ip_conntrack_core.c:97 and
->ip_nat_core.c:841 messages, These two messages aren't bugs in the
->locking, it's just the lock-debugging that can't handle "recursive"
->read-locks on the same lock and cpu correctly and thus reports an erro=
-r
->even though everything is fine.
-
-This explains why the box was actually usable.
-
->(the patch is made against 2.4.20-pre8-ac2 but it should apply.)
-
-It does. Compiled and boot4ed the patched kernel.
-
->ASSERT ip_conntrack_core.c:1067 &ip_conntrack_lock not readlocked
->this might be a real locking-bug but it's only used in
->conntrack-handlers so unless you have two expectations happening at th=
-e
->same time on diffrent cpu's there's no problem. I'll look into it.
-
-Thanks!
-
->> [6.] A small shell script or example program which triggers the
->>      problem (if possible)
->> Simply http'ing or ftp'ing trigger it occasionally. The symptom is=20
->> that a particular (TCP-)connection "freezes".
->
->hmm, shouldn't happen. Can you describe it in more detail?
-
-Not really, it just popped up a dozen times within 3 hours within 7=20
-minutes (hmm, God knows what I was doing exactly at that time to=20
-trigger it).
-And I actually realized it only because some <tab> completion in=20
-ncftp hang (of course it came out on the console but who is looking=20
-there all the time since that's not the primary PC).
-I'll see if it occurs again .....
-
-	Bernd
---=20
-Bernd Petrovitsch                              Email : bernd@gams.at
-g.a.m.s gmbh                                  Fax : +43 1 205255-900
-Prinz-Eugen-Stra=DFe 8                    A-1040 Vienna/Austria/Europe
-                     LUGA : http://www.luga.at
+YW55b25lIHRlc3QgdGhlIHBhdGNoPyBJIGZpbmQgaXQgaXMgbm90IGFwcGxpY2FibGUgdW5kZXIg
+Mi41LjM2LiBBbmQgDQpJIG1ha2UgZWZmb3J0cyB0byBwYXRjaCB0aGUgMi40LjE4LCBnZXQgYWx3
+YXlzIE9vcHMuDQoNClpoZW5nDQoNCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLSANCkZy
+b206ICJSdXN0eSBSdXNzZWxsIiA8cnVzdHlAcnVzdGNvcnAuY29tLmF1Pg0KVG86ICJNYXJ0aW4g
+V2lsY2siIDxNYXJ0aW4uV2lsY2tARnVqaXRzdS1TaWVtZW5zLmNvbT4NCkNjOiAiQW5kaSBLbGVl
+biIgPGFrQHN1c2UuZGU+OyAiSGFyYWxkIFdlbHRlIiA8bGFmb3JnZUBnbnVtb25rcy5vcmc+OyAi
+TmV0ZmlsdGVyIE1haWxpbmcgTGlzdCIgPG5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0ZXIu
+b3JnPjsgIkxpbnV4IEtlcm5lbCBtYWlsaW5nIGxpc3QiIDxsaW51eC1rZXJuZWxAdmdlci5rZXJu
+ZWwub3JnPjsgIlBhdHJpY2sgU2NoYWFmIiA8Ym9mQGJvZi5kZT4NClNlbnQ6IFRodXJzZGF5LCBT
+ZXB0ZW1iZXIgMDUsIDIwMDIgNzoxNSBQTQ0KU3ViamVjdDogUmU6IGlwX2Nvbm50cmFja19oYXNo
+KCkgcHJvYmxlbSANCg0KDQpJbiBtZXNzYWdlIDwxMDMxMjEwMzQyLjk3ODUuMTU5LmNhbWVsQGJp
+a2VyLnBkYi5mc2MubmV0PiB5b3Ugd3JpdGU6DQo+IEFtIERvbiwgMjAwMi0wOS0wNSB1bSAwMi4z
+OSBzY2hyaWViIFJ1c3R5IFJ1c3NlbGw6DQo+IA0KPiA+IFRoaXMgd29yayBpcyBhbHJlYWR5IGRv
+bmU6DQo+ID4gaHR0cDovL3d3dy5rZXJuZWwub3JnL3B1Yi9saW51eC9rZXJuZWwvcGVvcGxlL3J1
+c3R5L3BhdGNoZXMvTmV0ZmlsdGVyL2Nvbm50DQpyYWNrX2hhc2hpbmcucGF0Y2guZ3oNCj4gDQo+
+IFdlbGwsIGJlYXV0aWZ1bC4NCj4gV2lsbCB0aGlzIGdvIGludG8gdGhlIG1haW4gbGluZSBrZXJu
+ZWwgYW55IHRpbWUgc29vbj8NCj4gKEknZCBiZSBmb3IgdGhhdCkuDQo+IA0KPiBJZiB0aGVyZSdz
+IHN0aWxsIG5lZWQgZm9yIGRpc2N1c3Npb24gcmVnYXJkaW5nIHRoaXMgcGF0Y2gsIGFzIHRoZSB0
+aHJlYWQNCj4gc3VnZ2VzdHMsIEknZCBwcm9wb3NlIHRvIGdvIGZvciBhbiBpbnRlcm1lZGlhdGUs
+IGxlc3MgaW50cnVzaXZlIGZpeCBsaWtlDQo+IG1pbmUgZmlyc3QuDQoNCkknbGwgZmVlZCB0aGlz
+IHRocm91Z2ggMi41LCBvbmNlIGl0J3MgaGFkIHNvbWUgbW9yZSB0ZXN0aW5nIChoaW50DQpoaW50
+ISkuICBUaGVuIEhhcmFsZCB3aWxsIG1ha2UgYSBjYWxsIG9uIDIuNC4NCg0KUnVzdHkuDQotLQ0K
+ICBBbnlvbmUgd2hvIHF1b3RlcyBtZSBpbiB0aGVpciBzaWcgaXMgYW4gaWRpb3QuIC0tIFJ1c3R5
+IFJ1c3NlbGwuDQoNCg0KDQo=
