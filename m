@@ -1,61 +1,130 @@
-From: Cedric de Launois <delaunois@info.ucl.ac.be>
-Subject: Re: [PATCH] [RESEND] ROUTE target
-Date: 21 Jul 2003 10:25:50 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1058775950.3150.26.camel@descartes>
-References: <1056465726.2457.30.camel@descartes>
-	 <1058517461.25182.139.camel@descartes>
-	 <1058724909.8305.307.camel@tux.rsn.bth.se>
+From: Mike Smith <mikesmith1@btconnect.com>
+Subject: Re: Oops in replace_in_hashes (ip_net_core.c) 2.4.19
+Date: Mon, 21 Jul 2003 09:44:03 +0000
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <S269392AbTGUIZI/20030721082508Z+4150@vger.kernel.org>
+References: <S261808AbTGAJfh/20030701093537Z+14616@vger.kernel.org> <20030701.024732.71580915.davem@redhat.com> <1057093550.720.58.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1058724909.8305.307.camel@tux.rsn.bth.se>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: linux-net@vger.kernel.org,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>,
+	"David S. Miller" <davem@redhat.com>
+In-Reply-To: <1057093550.720.58.camel@tux.rsn.bth.se>
 List-Id: netfilter-devel.vger.kernel.org
 
-Le dim 20/07/2003 =E0 20:15, Martin Josefsson a =E9crit :
-> On Fri, 2003-07-18 at 10:37, Cedric de Launois wrote:
-> > This is a resend of the ROUTE patch I sent nearly one month ago.
-> > Please apply or give me comments.
-> >=20
-> > Cedric
-> >=20
-> > Le mar 24/06/2003 =E0 16:42, Cedric de Launois a =E9crit :
-> > > Hi !
-> > >=20
-> > > Here is a new version of the ROUTE target. Following discussions,
-> > > it seems that there is a need to make the ROUTE target also a
-> > > non-final target. So I added a new option --force. When not using
-> > > this option, the behaviour is to set the route and continue travers=
-al.
-> > > When using this option, the behaviour is as before, i.e. the packet
-> > > is sent and the packet is stolen. This remains useful when we have
-> > > to force the use of an interface (rather unfrequent).
->=20
-> My concern is that even though this target isn't included in the kernel
-> it's a bad idea to change the current behaviour if it can be avoidable.
-> I mean this target has existed in pom for quite some time (just over 1
-> year) and if the behaviour changes it might make for some surprises for
-> its users. Sure the options has changed names over time but that's the
-> sort of change that users notice quite easily. A subtle change that
-> suddenly continues traversing rules might lead to weird things.
->=20
-> It's your target but I'd like you to think about this and maybe rename
-> the new option and leave the default as is.
+On Tuesday 01 Jul 2003 21:05 pm, Martin Josefsson wrote:
+> On Tue, 2003-07-01 at 11:47, David S. Miller wrote:
+> > I believe 2.4.21 has a fix for this, but the netfilter
+> > experts will know better.
+>
+> (Dave, it's netfilter-devel@lists.netfilter.org)
+> (to the rest, the original report can be found on linux-net)
+>
+> It looks like list-corruption.
+>
+> ip_conntrack_core.c:665
+> byipsproto[ipsprotohash].next points into space.
+>
+> I can't see anything obvious right now, my eyelids are very heavy so
+> I'll continue looking tomorrow.
+>
+> There's a small possibility that this is caused by the modify-after-free
+> bug that's fixed in 2.4.21 (but unfortunately introduced some
+> refcounting bugs, patches are on the way to Dave, they can be found in
+> netfilter patch-o-matic as well).
 
-My concern is that the current behaviour is perhaps not the most logical
-one. But you're certainly right. I'll submit a modified patch later.
+Hi,
 
-Thanks for your comment.
+this has happened again. Hand-transcribed oops below. Is this of interest?
+I'm happy to accept debug patches etc. Or shall I just move to 2.4.21?
 
-Cedric
+Thanks.
+
+Oops: 0000
+CPU:    0
+EIP:    0010:[<c0247b2d>]   Not tainted
+Using defaults from ksymoops -t elf32-i386 -a i386
+EFLAGS: 00210206
+eax: c88a1fb8   ebx: c2a19cf0   ecx: 00200216   edx: c98a3068
+esi: c2a19c90   edi: 0000017b   ebp: c02dbcfc   esp: c02dbcf0
+ds: 0018   es: 0018   ss:0018
+Process swapper (pid: 0, stackpage=c02db000)
+Stack: c2a19bc0 c2a19c90 00000002 c02dbd20 c024625d c2a19bc0 c2a19c90 00000000
+       00000002 c02dbd70 c031f0c0 c021e440 c02dbd48 c0213ea7 00000004 c02dbda0
+       00000000 c5787000 c021e440 00000000 c5787000 00000004 c02dbd90 c021417d
+Call Trace:    [<c024625d>] [<c021e440>] [<c0213ea7>] [<c021e440>] 
+[<c021417d>]
+  [<c021e440>] [<c021e409>] [<c021e440>] [<c0213ea7>] [<c021bbb6>] 
+[<c021417d>]
+  [<c02141b3>] [<c021bb27>] [<c021bb80>] [<c021aec3>] [<c021417d>] 
+[<c02141b3>]
+  [<c020a91a>] [<c021abe5>] [<c021ad50>] [<c0119b20>] [<c0119b31>] 
+[<c020e90a>]
+  [<c011a6ab>] [<c010a13c>] [<c0106fb0>] [<c010c5b8>] [<c0106fb0>] 
+[<c0106fd6>]
+  [<c0107062>] [<c0105000>]
+Code: 8b 02 89 58 04 89 46 60 89 53 04 89 1a 5b 5e 5f 5d c3 90 55
+
+>>EIP; c0247b2d <replace_in_hashes+7d/90>   <=====
+Trace; c024625d <ip_nat_fn+13d/1a0>
+Trace; c021e440 <ip_finish_output2+0/d0>
+Trace; c0213ea7 <nf_iterate+27/90>
+Trace; c021e440 <ip_finish_output2+0/d0>
+Trace; c021417d <nf_hook_slow+9d/130>
+Trace; c021e440 <ip_finish_output2+0/d0>
+Trace; c021e409 <ip_finish_output+f9/110>
+Trace; c021e440 <ip_finish_output2+0/d0>
+Trace; c0213ea7 <nf_iterate+27/90>
+Trace; c021bbb6 <ip_forward_finish+36/70>
+Trace; c021417d <nf_hook_slow+9d/130>
+Trace; c02141b3 <nf_hook_slow+d3/130>
+Trace; c021bb27 <ip_forward+1b7/210>
+Trace; c021bb80 <ip_forward_finish+0/70>
+Trace; c021aec3 <ip_rcv_finish+173/1a0>
+Trace; c021417d <nf_hook_slow+9d/130>
+Trace; c02141b3 <nf_hook_slow+d3/130>
+Trace; c020a91a <alloc_skb+da/1a0>
+Trace; c021abe5 <ip_rcv+325/360>
+Trace; c021ad50 <ip_rcv_finish+0/1a0>
+Trace; c0119b20 <it_real_fn+0/60>
+Trace; c0119b31 <it_real_fn+11/60>
+Trace; c020e90a <net_rx_action+13a/210>
+Trace; c011a6ab <do_softirq+5b/b0>
+Trace; c010a13c <do_IRQ+ac/c0>
+Trace; c0106fb0 <default_idle+0/30>
+Trace; c010c5b8 <call_do_IRQ+5/d>
+Trace; c0106fb0 <default_idle+0/30>
+Trace; c0106fd6 <default_idle+26/30>
+Trace; c0107062 <cpu_idle+52/70>
+Trace; c0105000 <_stext+0/0>
+Code;  c0247b2d <replace_in_hashes+7d/90>
+00000000 <_EIP>:
+Code;  c0247b2d <replace_in_hashes+7d/90>   <=====
+   0:   8b 02                     mov    (%edx),%eax   <=====
+Code;  c0247b2f <replace_in_hashes+7f/90>
+   2:   89 58 04                  mov    %ebx,0x4(%eax)
+Code;  c0247b32 <replace_in_hashes+82/90>
+   5:   89 46 60                  mov    %eax,0x60(%esi)
+Code;  c0247b35 <replace_in_hashes+85/90>
+   8:   89 53 04                  mov    %edx,0x4(%ebx)
+Code;  c0247b38 <replace_in_hashes+88/90>
+   b:   89 1a                     mov    %ebx,(%edx)
+Code;  c0247b3a <replace_in_hashes+8a/90>
+   d:   5b                        pop    %ebx
+Code;  c0247b3b <replace_in_hashes+8b/90>
+   e:   5e                        pop    %esi
+Code;  c0247b3c <replace_in_hashes+8c/90>
+   f:   5f                        pop    %edi
+Code;  c0247b3d <replace_in_hashes+8d/90>
+  10:   5d                        pop    %ebp
+Code;  c0247b3e <replace_in_hashes+8e/90>
+  11:   c3                        ret    
+Code;  c0247b3f <replace_in_hashes+8f/90>
+  12:   90                        nop    
+Code;  c0247b40 <place_in_hashes+0/80>
+  13:   55                        push   %ebp
+
+ <0>Kernel panic: Aiee, killing interrupt handler!
