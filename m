@@ -1,16 +1,12 @@
-From: "Kim Thye Chua" <kim.thye.chua@aptilo.com>
-Subject: netlink_unicast question
-Date: Wed, 18 Sep 2002 02:03:41 +0800
+From: Andrei Ivanov <andrei.ivanov@ines.ro>
+Subject: tos 0x62 match
+Date: Wed, 18 Sep 2002 12:52:09 +0300 (EEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <OHEAKJJCKHIPCLKINACKCEEHCAAA.kim.thye.chua@aptilo.com>
-References: <Pine.LNX.4.44.0209171556190.23114-100000@the.brain.uni-freiburg.de>
+Message-ID: <Pine.LNX.4.44.0209181251500.6328-100000@webdev.ines.ro>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0209171556190.23114-100000@the.brain.uni-freiburg.de>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +17,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I have a problem when using netlink_unicast(...) in
-net/netlink/af_netlink.c. When calling netlink_unicast(...) multiple times,
-e.g. in a loop, the internal buffer in the socket will get filled up, then
-it will refuse to send any more netlink msg and return -EAGAIN.
+Hello,
+I'm trying to match packets which have a TOS value of 0x62, and it seems
+I cannot.
+I tried the tos module, but it only knows standard tos values.
 
-Is there anyway to force netlink socket to send/flush whatever in the buffer
-thus leave more room for the next netlink_unicast call?
-
-Any advice is appreciated. thank you very much.
-
-
-/kim
+How can I match this kind of pachets ????
