@@ -1,15 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ctnetlink unique id size?
-Date: Sun, 20 Feb 2005 13:28:06 +0100
-Message-ID: <20050220122805.GU29256@sunbeam.de.gnumonks.org>
-References: <4214D75D.5070005@ingate.com> <4218165E.1060300@trash.net>
+From: "Jan Holmberg" <jan@artech.se>
+Subject: Message for local interface lo for "icmp error responses" is
+	invalid ?
+Date: Mon, 21 Feb 2005 01:04:12 +0100
+Message-ID: <01b401c517a8$dfa5d960$6401a8c0@stopen1>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yaPAUYI/0vT2YKpA"
-Cc: netfilter-devel@lists.netfilter.org, Marcus Sundberg <marcus@ingate.com>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <4218165E.1060300@trash.net>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,60 +19,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all,
 
---yaPAUYI/0vT2YKpA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+New invalid messages for lo interface in ipv4,icmp.c code in kernel =
+2.6.11-rc4 and higher version....
+And I have netfilter 1.3.0, Sorry if this is wrong forum.
 
-On Sun, Feb 20, 2005 at 05:47:26AM +0100, Patrick McHardy wrote:
-> Marcus Sundberg wrote:
-> >Hi,
-> >
-> >isn't an unsigned int a bit (or rather about 32 bits) small for
-> >keeping the id field of the ip_conntrack struct? It's bound to wrap
-> >around, and with things like long-lived ssh sessions it's even
-> >possible for two connections to be assigned the same id after a
-> >wrap-around.
-> >
-> >Am I missing something obvious when I think ctnetlink_dump_table()
-> >will break down when the wrap-around occurs?
-> >
-> >Using an uint64_t would on the other hand guarantee that each
-> >connection really get a unique id.
->=20
-> We had a long discussion about this an the result was that it has to
-> be 64 bit. Search the archives if you are interested, the subject
-> is "ctnetlink questions". I'm surprised too that it now is 32 bit.
-> Maybe Harald knows the reason.
+Feb 21 00:19:06 rb3 last message repeated 7 times
+Feb 21 00:19:48 rb3 last message repeated 8 times
+Feb 21 00:20:43 rb3 last message repeated 6 times
+Feb 21 00:23:45 rb3 kernel: 213.115.224.241 sent an invalid ICMP type 3, =
+code 1 error to a broadcast: 0.0.0.0 on lo
+Feb 21 00:24:48 rb3 last message repeated 14 times
+Feb 21 00:25:37 rb3 last message repeated 3 times
+Feb 21 00:27:05 rb3 kernel: 213.115.224.241 sent an invalid ICMP type 3, =
+code 1 error to a broadcast: 0.0.0.0 on lo
+Feb 21 00:27:13 rb3 last message repeated 2 times
+Feb 21 00:29:06 rb3 last message repeated 7 times
+Feb 21 00:29:48 rb3 last message repeated 8 times
 
-my guess is that nobody has ever increased it's size since that
-discussion was over.
 
-> Regards
-> Patrick
+ip addr sh give follow:
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+1: lo: <LOOPBACK,UP> mtu 16436 qdisc noqueue
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 brd 127.255.255.255 scope host lo
 
---yaPAUYI/0vT2YKpA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Can't see any problem with this configuration on local interface, but =
+can someone explain what code 1 error means.
+No other interface give me this message, and I have lot of interface in =
+this computer.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+With  icmp_ignore_bogus_error_responses enabled no error messages are =
+displayed, but it should not trigger on
+local device in any way I think.=20
 
-iD8DBQFCGIJVXaXGVTD0i/8RAuVtAKCGZdzzWn7Ovysguy1MWsH7LUrgRQCdF3KT
-wcn0vFZSfzhiRb1hsoowXz8=
-=nezM
------END PGP SIGNATURE-----
 
---yaPAUYI/0vT2YKpA--
+//Jan
