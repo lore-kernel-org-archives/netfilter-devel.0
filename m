@@ -1,13 +1,12 @@
-From: "andre achternaam" <andreiscmeel@hotmail.com>
-Subject: How to add nat rules by another loadable kernel module
-Date: Thu, 24 Oct 2002 09:26:49 +0000
+From: Adrian Thurston <adriant@ragel.ca>
+Subject: use of a state machine compiler in netfilter?
+Date: Sat, 26 Oct 2002 15:11:19 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F17677bieLYCT4aJ6pk00000164@hotmail.com>
+Message-ID: <Pine.LNX.4.44.0210261452140.16251-100000@ice.ragel.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: andrekleibeuker@hotmail.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,34 +17,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi coders,
+Hello, I'd like to contribute to netfilter, but first I need to do a
+little research. I don't have much experience kernel hacking or with
+netfilter but...
 
-I'm developing a module, but have some difficulty with it. May be some of 
-you can put me on the right track.
-In my loadable kernel module i want to add the following rule to my nat 
-module(s):
-iptables -t nat -A PREROUTING -d 192.168.0.50 -i eth0 -j DNAT 
---to-destination 10.255.255.10
+  I have written a realtime operating system that included
+  a stateless ip network driver. It was for a course at school.
 
-I'm aware this is a userspace methode to do it, and i like to know how to do 
-this in kernel space. I have looked hours in all kind of netfilter files but 
-i don't have any hint how to do it.
+  I am the author of the Ragel State Machine Compiler
+  (http://www.essemage.com/ragel/). State machines are very useful for
+  matching a large number of diverse patterns very efficiently.
 
-Q] Can somebody tell me how to add NAT rules from another loadable kernel 
-module or provide some example code?
+This leads me to my question. Would the netfilter project benefit from
+code that built state machines from high-level descriptions of packets
+that would recognise and ultimately route many different types of packets
+on one pass?
 
-I don't want to do it with the register_expect stuff since you need a 
-releted (master) connection, which i dont have.
-Of couse later on i want to delete them as wel with the following 
-look-a-like
-iptables -t nat -D PREROUTING -d 192.168.0.50 -i eth0 -j DNAT 
---to-destination 10.255.255.10
+Perhaps you have something like this implemented already?
 
-Thanx in advance for the information.
-
-Andre Kleibeuker
-
-
-_________________________________________________________________
-Choose an Internet access plan right for you -- try MSN! 
-http://resourcecenter.msn.com/access/plans/default.asp
+-Adrian
