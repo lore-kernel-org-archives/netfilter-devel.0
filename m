@@ -1,7 +1,8 @@
 From: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
-Subject: Netfilter logo
-Date: Sun, 3 Apr 2005 10:36:03 +0200
-Message-ID: <519389109.20050403103603@stud.tue.nl>
+Subject: pptp-conntrack-nat: ip_nat_proto_gre.c:gre_manip_pkt: can't nat GRE
+	w/o key
+Date: Sun, 3 Apr 2005 13:56:47 +0200
+Message-ID: <222203005.20050403135647@stud.tue.nl>
 Reply-To: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -19,10 +20,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+It seems pptp code is working now with 2.6.10, now the gre code needs some
+tweaks. 
+In ip_nat_proto_gre.c:gre_manip_pkt it seems hdroff, greh and pgreh don't get 
+the right values for their attributes. (should here skb_header_pointer be used 
+too ?). In ip_conntrack_proto_gre.c:gre_pkt_to_tuple it seems to go right, 
+protocol has the right value, and key and version also.
 
-I was just wondering ..., shouldn't the netfilter logo include kernel "2.6"
-also by now ?
+I think this could probably be the last hurdle to a working pptp-conntrack (at 
+least under <= 2.6.10
+
+As attachments I included  the kern.log (with extra debug info i put in 
+ip_nat_proto_gre.c and ip_conntrack_proto_gre.c), and tcpdumps with whole 
+packets on eth0 and eth1 in the bugzilla report
 
 Regards,
 
