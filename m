@@ -1,16 +1,18 @@
-From: Kishore Dharmavaram <kishored@servgate.com>
-Subject: RE: Memory leaks in ip_conntrack?
-Date: Sat, 8 Nov 2003 19:08:13 -0800
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: raw table breaks iptables binary compatibility
+Date: Sun, 9 Nov 2003 10:32:55 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B204A@skat.sky.com>
+Message-ID: <20031109093255.GB1005@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0311090204280.25676-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Cc: "'netfilter@lists.netfilter.org'" <netfilter@lists.netfilter.org>,
-	"'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GRPZ8SYKNexpdSJ7"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: 'Harald Welte' <laforge@netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0311090204280.25676-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,54 +23,57 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Herald & All,
 
-I verified & I find my 2.4.20 is already patched with UNCONFIRMED
-connections fix. 
+--GRPZ8SYKNexpdSJ7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-How it possible that /proc/slabinfo shows a lot more ip_conntracks than are
-shown in "/proc/net/ip_conntrack"?. /proc/slabinfo shows that maximum
-possible conntracks, 131072, are being currently used but
-/proc/net/ip_conntrack  shows only 21 connections. My box is refusing new
-connections because max conntracks have reached. 
+On Sun, Nov 09, 2003 at 02:12:43AM +0100, Henrik Nordstrom wrote:
+> I don't quite see why these are required for the 'raw' table. Seems to be=
+=20
+> related to debugging or error management on rulesets incompatible with=20
+> 'raw'. In any case the effect is probably not that desireable from a=20
+> p-o-m/base patch..
 
-Please take a look at my console output given below:
+yes, they are for the 'TRACE' target that is included with the raw
+patch.  Initially the patch didn't add these fields, but then jozsef
+implemented it for speeding up the logging of rule numbers.
 
-[root@Firewall root]# cat /proc/sys/net/ipv4/ip_conntrack_max
-13072
-[root@Firewall root]# cat /proc/slabinfo | fgrep ip_conn
-ip_conntrack      131072 131080    384 13108 13108    1
-[root@Firewall root]# cat /proc/net/ip_conntrack | wc -l
-     21
+Jozsef: could you split out the raw.patch in=20
 
-Can anyone tell how to findout which connections are using up the
-conntracks.
+a) one that just adds the table (and the NOTRACK target)
+b) another one that adds the TRACE target (and thus depends on the LOG chan=
+ges)
 
-Thanks,
-Kishore
+this way we should be able to have a clean raw.patch that can go
+upstream pretty soon (for NOTRACK which a lot of people want).
 
------Original Message-----
-From: Harald Welte [mailto:laforge@netfilter.org]
-Sent: Saturday, November 08, 2003 3:44 AM
-To: Kishore Dharmavaram
-Cc: 'netfilter@lists.netfilter.org';
-'netfilter-devel@lists.netfilter.org'
-Subject: Re: Memory leaks in ip_conntrack?
+thanks.
 
+> Regards
+> Henrik
 
-On Fri, Nov 07, 2003 at 02:21:13PM -0800, Kishore Dharmavaram wrote:
-> Hi All,
-> 
-> I have a Linux box running 2.4.20 kernel with netfilter(ip_conntrack)
-
-http://www.netfilter.org/security/2003-08-01-listadd.html
-
-> Thanks,
-> Kishore
-
--- 
+--=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-============================================================================
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
   "Fragmentation is like classful addressing -- an interesting early
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
+
+--GRPZ8SYKNexpdSJ7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/rgnHXaXGVTD0i/8RAl0zAJ9TIxBj2SStflwuJZu1ysCUBHnrgACfdmz7
+8QJtbJRbtyHXDt6WjRLsH6w=
+=tA6P
+-----END PGP SIGNATURE-----
+
+--GRPZ8SYKNexpdSJ7--
