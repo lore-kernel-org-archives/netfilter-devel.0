@@ -1,20 +1,16 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Re: ip_conntrack_pptp
-Date: Thu, 22 Jan 2004 13:09:04 -0500
+From: Bastian Blank <bastian@waldi.eu.org>
+Subject: Re: iptables/extensions/libipt_time.c missing include
+Date: Fri, 23 Jan 2004 10:52:34 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <6777.09855740449$1074901755@news.gmane.org>
-References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <003601c3e100$6e8a68c0$2d64a8c0@pcjka> <20040122175345.GN1810@obroa-skai.de.gnumonks.org>
+Message-ID: <20040123095234.GA4595@wavehammer.waldi.eu.org>
+References: <wazza.877jzj8ll6.fsf@message.id>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: 'Netfilter Development Mailinglist' <netfilter-devel@lists.netfilter.org>,
-  'Netfilter Mailinglist' <netfilter@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UugvWAfsgieZRqgk"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-From: Alistair Tonner <>
-To: Harald Welte <laforge@netfilter.org>, Jan Kaastrup <jka@protego.dk>
-In-Reply-To: <20040122175345.GN1810@obroa-skai.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
+In-Reply-To: <wazza.877jzj8ll6.fsf@message.id>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,22 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On January 22, 2004 12:53 pm, Harald Welte wrote:
-> On Thu, Jan 22, 2004 at 04:57:26PM +0100, Jan Kaastrup wrote:
-> > Hi Harald and all on this list.
-> >
-> > I have problems with ip_conntrack_pptp patch from POM-20031219
-> > Does anyone know of this, or is it just me being stupid ?
->
-> *sigh* *sigh* *sigh*.
->
-> Does anybody actually ponder reading the 'README' file included in the
-> patch-o-matic package?
 
+--UugvWAfsgieZRqgk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-	I thought that was for padding to make the MD5 sums work??? 
-	*grin*
+On Fri, Jan 23, 2004 at 03:06:45AM +0100, laurent.ml@linuxfr.org wrote:
+> Tell me if I'm wrong, it seems an include is missing in
+> extensions/libipt_time.c from iptables cvs.
+> (line 302 : offsetof)
 
-	Alistair
->
-> > Jan
+You should use <stddef.h> instead of <linux/stddef.h>.
+
+Bastian
+
+--=20
+	"... freedom ... is a worship word..."
+	"It is our worship word too."
+		-- Cloud William and Kirk, "The Omega Glory", stardate unknown
+
+--UugvWAfsgieZRqgk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iEYEARECAAYFAkAQ7uIACgkQLkAIIn9ODhGhQQCgv2hXjOzN74R1LQwNu/afMYSV
++rAAmgLFcSAjbBmj4ILoO+3EOvXt+HEZ
+=3ksV
+-----END PGP SIGNATURE-----
+
+--UugvWAfsgieZRqgk--
