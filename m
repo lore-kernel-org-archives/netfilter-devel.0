@@ -1,18 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Passive OS fingerprint matching module update. Dynamic fingerprint loading.
-Date: Thu, 25 Sep 2003 23:01:53 +0200
+From: "Daniel Chemko" <dchemko@smgtec.com>
+Subject: RE: A humble proposal
+Date: Thu, 25 Sep 2003 17:19:23 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030925210153.GN5758@sunbeam.de.gnumonks.org>
-References: <20030923125746.GL31401@sunbeam.de.gnumonks.org> <20030923200226.5e9c43e2.johnpol@2ka.mipt.ru>
+Message-ID: <7C9884991ADAE0479C14F10C858BCDF5122E53@alderaan.smgtec.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LJm8egi4vkexsie5"
-Cc: netfilter-devel@lists.netfilter.org, quaker@ondraszek.eu.org,
-	solt@dns.toxicfilms.tv
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: <netfilter@lists.netfilter.org>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Content-Disposition: inline
-In-Reply-To: <20030923200226.5e9c43e2.johnpol@2ka.mipt.ru>
+content-class: urn:content-classes:message
+To: <firewalldude@newkirk.us>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,50 +22,77 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I had a thought about this, and I see a lot of work taking this
+approach.
 
---LJm8egi4vkexsie5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+How about this:
 
-On Tue, Sep 23, 2003 at 08:02:26PM +0400, Evgeniy Polyakov wrote:
-=20
-> Ok, here is the patch.
-> Now we are compatible with OpenBSD, but not with Michal Zalewski :)
+Write a jump target that applies only inside the filter table, since the
+first revision would just implement filtering control.
 
-Well, I have to admit that I'm not really involved in the 'os
-fingerprinting community', so I don't know what might be the better
-format (or the more commonly used one).
+The module itself would be initialized by a userspace tool be adding
+rules. An example would be:
 
-> P.S. Harald, is it convenient for you to use -p0 when patching or is -p1
-> better?
+iptables -I INPUT -m expire --expire-condition timer=3D6000 --expire-id
+12123124325 --source 192.168.1.1/24 -j ACCEPT
+iptables -I OUTPUT -m expire --expire-condition timer=3D6000 --expire-id
+12123124326 --destination 192.168.1.1/24 -j ACCEPT
 
-I'd prefer -p1, but I don't really care anyway.
+Since they are inserted in these tables, they should be called before
+ESTABLISHED,RELATED is even hit.
 
-Thanks.
+The jump determines if the packets are valid any longer. The problems
+that I can see here are:
 
-> 	Evgeniy Polyakov
+- The rule itself needs to be cleared out of the chain once it is
+expired. I could get the daemon to do some housekeeping, but it'd be
+better if the jump module could clean up its own reference. Can this be
+done?
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+- The CONNTRACK entries for the allowed sessions are not dropped. Once
+again, it would be nice if the jump module could clean up the CONNTRACK
+entry.
 
---LJm8egi4vkexsie5
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+-----Original Message-----
+From: Joel Newkirk [mailto:firewalldude@newkirk.us]=20
+Sent: Tuesday, September 23, 2003 2:10 PM
+To: Daniel Chemko
+Cc: netfilter@lists.netfilter.org; netfilter-devel@lists.netfilter.org
+Subject: Re: A humble proposal
 
-iD8DBQE/c1fBXaXGVTD0i/8RAk7WAJ4yM74TMWSAuYRnLisxakSJ8k+J2wCfVBQ1
-6LDhVoONkJg24eYPEMgC6Cw=
-=X+8c
------END PGP SIGNATURE-----
+On Tue, 2003-09-23 at 12:13, Daniel Chemko wrote:
+> I have been researching some possible extensions to the Netfilter
+> environment, and something has become very necessary for my current
+> environment. The following proposal outlines what I wish to implement.
+I
+> am wondering if anyone would find value in this. Plus, I look forward
+to
+> feedback so that I may improve my ideas.
 
---LJm8egi4vkexsie5--
+
+> Suggestion:
+>=20
+> I would like to take pam_iptables and expand it beyond its simple
+> structure. Features will include:
+
+My humble suggestion would be that this should be handled in the
+stateful
+connection tracking - If a session is authenticated and certain
+connections
+are to be allowed, then the new allowed connections would be of state=20
+"related".  Really handy would be the ability to distinguish these
+particular
+'related' connections and feed them through specific chains.  I for one=20
+would NOT want to simply open the box (or network) wide for every
+authenticated=20
+connection, but would like to be able to specify a different set of
+(more=20
+permissive) rules for them once authenticated.  Perhaps patch an
+additional
+state - "PAM" or "AUTH".  Or the ability to specify a fwmark that is
+automatically implemented for RELATED traffic to the authenticated
+session,
+allowing different chains to be traversed based on the mark found.
+
+j
