@@ -1,12 +1,22 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH NFSIM]: Define ____cacheline_aligned
-Date: Thu, 06 Jan 2005 15:15:46 +0100
-Message-ID: <41DD4812.9070805@trash.net>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: [PATCH 9/18] Netfilter:  Clean up the kmod handling code in
+	iptables.c
+Date: 06 Jan 2005 09:28:23 -0500
+Message-ID: <1105021703.2315.51.camel@jzny.localdomain>
+References: <1104896029.20582.72.camel@localhost.localdomain>
+	<20050105181249.GS26856@postel.suug.ch>
+	<1104973817.20582.110.camel@localhost.localdomain>
+	<20050106013031.GT26856@postel.suug.ch>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000308000506020003040601"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>,
+	Rusty Russell <rusty@rustcorp.com.au>, Netfilter development mailing list
+	<netfilter-devel@lists.netfilter.org>, rmk@arm.linux.org.uk
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: Thomas Graf <tgraf@suug.ch>
+In-Reply-To: <20050106013031.GT26856@postel.suug.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,44 +28,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000308000506020003040601
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wed, 2005-01-05 at 20:30, Thomas Graf wrote:
 
-____cacheline_aligned is currently undefined, this makes this check in
-ip_tables.c check_entry_size_and_hooks() fail on 64 bit because
-newinfo->entries and thus e is only 4-byte aligned:
+> > I looked harder at this, and I prefer this patch:
+> 
+> Looks fine to me.
 
-        if ((unsigned long)e % __alignof__(struct ipt_entry) != 0
-            || (unsigned char *)e + sizeof(struct ipt_entry) >= limit) {
-                duprintf("Bad offset %p\n", e);
-                return -EINVAL;
-        }
+Thanks Thomas for catching this.
+Patch looks good from here too. Andrew caught the unexported
+ipt_find_target for completion.
 
-This patch makes it align to 8 byte.
+BTW, do we have a sane IDE maintainer yet?[1] If we do, maybe its time i
+joined lk list again ;-> I have been waiting for a decade to fulfil that
+promise;-> 
+At some point Alan took over - but Alans sanity is somewhere on the edge
+of genius and insanity - so i wasnt sure which side of the line he was
+going to end up on after he took over.  As Russell King puts it in not
+so many words "What is it with Linux IDE and its maintainers?". Alas! my
+attempts to monitor Alan were short lived.
 
+I hear the new guy may be ok - but at times conflicting sentiments cross
+my path about him. So still watching ...
 
-
---------------000308000506020003040601
-Content-Type: text/x-patch;
- name="3.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="3.diff"
-
-Index: kernelenv/include/kernelenv.h
-===================================================================
---- kernelenv/include/kernelenv.h	(revision 3578)
-+++ kernelenv/include/kernelenv.h	(working copy)
-@@ -103,7 +103,7 @@
- 
- #define __init
- #define __inline
--#define ____cacheline_aligned
-+#define ____cacheline_aligned __attribute__((aligned(8)))
- 
- #include <talloc.h>
- extern void *__vmalloc_ctx;
-
---------------000308000506020003040601--
+cheers,
+jamal
+[1] Ok, theres actually some moral to this caffeine tale;-> netdev cc
+for net patches.
