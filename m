@@ -1,15 +1,14 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [resend] p-o-m runme --exclude update
-Date: Thu, 13 Nov 2003 17:21:12 +0100
+From: "Andrew Hall" <temp02@bluereef.com.au>
+Subject: state of play for TCP-window-tracking patch
+Date: Fri, 14 Nov 2003 18:29:31 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1068740471.774.5.camel@tux.rsn.bth.se>
-References: <Pine.LNX.4.44.0311131619330.20382-100000@filer.marasystems.com>
+Message-ID: <013901c3aa81$0b2d5810$2601010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-nnHm76eWmFzs3wpL8tMV"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0311131619330.20382-100000@filer.marasystems.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,36 +19,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Can someone please inform me of the current status of the
+tcp-window-tracking patch, particularly in reference to it's compatibility
+or eligibility for inclusion into the 2.6 stream? I have tried to do a
+direct port from the last 2.4 version but quite a bit has seemed to have
+changed in the skbuff function definitions for 2.6. I'd be interested in
+helping to port it if this was the intention as the stock 2.6.0-test 9
+implementation of the TCP state stuff seems to be the old 2.4 stuff. BTW
+does anyone have any documentation as to what the fundamental changes have
+been to the net components of 2.6 over 2.4?
 
---=-nnHm76eWmFzs3wpL8tMV
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Thanks,
 
-On Thu, 2003-11-13 at 16:22, Henrik Nordstrom wrote:
-> This patch extends the --exlude option to runme to accept pathes named by=
-=20
-> their full name (including .patch). Previously the --exclude option only=20
-> matched patches by their internal base name (dir/patchname without=20
-> .patch).
->=20
-> This makes --exclude more consistent with the other patch naming in
-> patch-o-matic use.
-
-Applied, thanks
-
---=20
-/Martin
-
---=-nnHm76eWmFzs3wpL8tMV
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQA/s693Wm2vlfa207ERAngIAKCBfr96/tAiw2iLfZWNTOyPwB1X1ACghFbX
-XEkzVrV15IVR/QGo1HiLniU=
-=xPay
------END PGP SIGNATURE-----
-
---=-nnHm76eWmFzs3wpL8tMV--
+Andrew Hall.
