@@ -1,13 +1,13 @@
-From: "Laurence J. Lane" <ljlane@nontoxic.org>
-Subject: rules inserted with bad interface name
-Date: Fri, 22 Nov 2002 19:12:30 -0500
+From: "=?gb2312?B?s8Lsvw==?=" <buaacst@163.com>
+Subject: a question of mtu
+Date: Sat, 23 Nov 2002 20:11:03 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021123001230.GA23841@ns>
+Message-ID: <000201c292e9$98dc87e0$5101a8c0@workstation>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_000D_01C2932C.72DA7A00"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,28 +18,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-http://bugs.debian.org/170040
+This is a multi-part message in MIME format.
 
-There appears to be an argument parsing bug in iptables, tested with
-version 1.2.7a. If -i or -o is used without a space between the
-interface and the option, iptables use the option as part of the
-interface name. For example:
+------=_NextPart_000_000D_01C2932C.72DA7A00
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-  iptables -A INPUT -ifoo
+DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogs8LsvyANClRvOiBuZXRmaWx0
+ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZyANClNlbnQ6IEZyaWRheSwgTm92ZW1iZXIgMjIs
+IDIwMDIgOTowMCBQTQ0KU3ViamVjdDogYSBxdWVzdGlvbiBvZiBtdHUNCg0KDQpIaSwNCiAgICBJ
+IHRyeSB0byBnZXQgdGhlIHBtdHUgYXQgdGhlIHBvaW50IG9mIE5GX0lQX0xPQ0FMX09VVC5JIHdy
+aXRlIHRocmVlIHNlbnRlbmNlIHRvIGRvIHRoaXMuDQoNCnN0cnVjdCBza19idWZmICpza19iID0g
+KnNrYjsNCnN0cnVjdCBydGFibGUgKnJfdCA9IChzdHJ1Y3QgcnRhYmxlICopc2tfYi0+ZHN0Ow0K
+cG10dSA9IHJfdC0+dS5kc3QucG10dTsNCg0KVGhlIHJlc3VsdCBpcyAwLGJ1dCBpbiBuZXQvaXB2
+NC9pcF9vdXRwdXQuYy9pcF9xdWV1ZV94bWl0MixydC0+dS5kc3QucG10dSBpcyBub3QgMC5Eb2Vz
+IHNvbWUgb25lIGtub3cgdGhlIHJlYXNvbix0aGFua3MgdmVyeSBtdWNoIQ0K
 
-That actually appends the rule with the inbound interface 
-literally named "-ifoo".
+------=_NextPart_000_000D_01C2932C.72DA7A00
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-I also fond something else odd. The longopt forms of the interface
-options give an error when used with an equal sign. For example:
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PWdi
+MjMxMiIgaHR0cC1lcXVpdj1Db250ZW50LVR5cGU+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNS4w
+MC4yOTIwLjAiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8Qk9E
+WSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJViBzdHlsZT0iRk9OVDog
+OXB0IMvOzOUiPi0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQo8RElWIHN0eWxlPSJCQUNL
+R1JPVU5EOiAjZTRlNGU0OyBmb250LWNvbG9yOiBibGFjayI+PEI+RnJvbTo8L0I+IDxBIA0KaHJl
+Zj0ibWFpbHRvOmJ1YWFjc3RAMTYzLmNvbSIgdGl0bGU9YnVhYWNzdEAxNjMuY29tPrPC7L88L0E+
+IDwvRElWPg0KPERJVj48Qj5Ubzo8L0I+IDxBIGhyZWY9Im1haWx0bzpuZXRmaWx0ZXItZGV2ZWxA
+bGlzdHMubmV0ZmlsdGVyLm9yZyIgDQp0aXRsZT1uZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0Zmls
+dGVyLm9yZz5uZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZzwvQT4gDQo8L0RJVj4N
+CjxESVY+PEI+U2VudDo8L0I+IEZyaWRheSwgTm92ZW1iZXIgMjIsIDIwMDIgOTowMCBQTTwvRElW
+Pg0KPERJVj48Qj5TdWJqZWN0OjwvQj4gYSBxdWVzdGlvbiBvZiBtdHU8L0RJVj48L0RJVj4NCjxE
+SVY+PEJSPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+SGksPC9GT05UPjwvRElWPg0KPERJVj48
+Rk9OVCBzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7IEkgdHJ5IHRvIGdldCB0aGUgcG10dSBhdCB0
+aGUgcG9pbnQgb2YgDQpORl9JUF9MT0NBTF9PVVQuSSB3cml0ZSZuYnNwO3RocmVlIHNlbnRlbmNl
+Jm5ic3A7dG8gZG8gdGhpcy48L0ZPTlQ+PC9ESVY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJVj48
+Rk9OVCBzaXplPTI+c3RydWN0IHNrX2J1ZmYgKnNrX2IgPSAqc2tiOzwvRk9OVD48L0RJVj4NCjxE
+SVY+PEZPTlQgc2l6ZT0yPnN0cnVjdCBydGFibGUgKnJfdCA9IChzdHJ1Y3QgcnRhYmxlIA0KKilz
+a19iLSZndDtkc3Q7PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+cG10dSA9IHJfdC0m
+Z3Q7dS5kc3QucG10dTs8L0ZPTlQ+PC9ESVY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJVj48Rk9O
+VCBzaXplPTI+VGhlIHJlc3VsdCBpcyAwLGJ1dCZuYnNwO2luIA0KbmV0L2lwdjQvaXBfb3V0cHV0
+LmMvaXBfcXVldWVfeG1pdDIscnQtJmd0O3UuZHN0LnBtdHUgaXMgbm90IDAuRG9lcyBzb21lIG9u
+ZSANCmtub3cgdGhlIHJlYXNvbix0aGFua3MgdmVyeSBtdWNoITwvRk9OVD48L0RJVj48L0JPRFk+
+PC9IVE1MPg0K
 
-  root@absolom:~# iptables --append=OUTPUT --out-interface=foo
-  iptables v1.2.7a: interface name `--out-interface=foo' must be shorter
-  than IFNAMSIZ (15)
-
-That may actually be the same bug because iptables will accept
-"--in-interface=" (which weighs in at exactly 15 characters) and 
-make it the actual interface name.
-
-
-Thanks.
+------=_NextPart_000_000D_01C2932C.72DA7A00--
