@@ -1,41 +1,32 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: iptables.c changes submitted argv value
-Date: Fri, 13 Aug 2004 10:05:01 +1000
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <411C05AD.6030408@snapgear.com>
-References: <IDEAKKJENKGNPNLKJKODOEAECAAA.listuser@epygi.de> <Pine.LNX.4.61.0408121254480.20263@filer.marasystems.com>
+From: sandr8 <sandr8_NOSPAM_@crocetta.org>
+Subject: [PATCH 0/4] deferred drop, __parent workaround, reshape_fail, ACCT
+ unbilling and some cosmetics
+Date: Fri, 13 Aug 2004 02:48:00 +0200
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <411C0FC0.4060703@crocetta.org>
+Reply-To: sandr8_NOSPAM_@crocetta.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Henrik Nordstrom <hno@marasystems.com>,
-	netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sascha <listuser@epygi.de>
-In-Reply-To: <Pine.LNX.4.61.0408121254480.20263@filer.marasystems.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: hadi@cyberus.ca, kuznet@ms2.inr.ac.ru, davem@redhat.com, devik@cdi.cz,
+        shemminger@osdl.org, kaber@trash.net, rusty@rustcorp.com.au,
+        laforge@netfilter.org
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
-> On Thu, 12 Aug 2004, Sascha wrote:
->>That's not the point. I'm developing on an embedded device and i have no 
->>space for iptables-store.c, iptables-restore.c and iptables.c.
-> 
-> 
-> All you need is iptables-restore. It has all functions of iptables plus 
-> more and is very well suited for batch or daemon operations. What 
-> iptables-restore is is a efficient batch interface using the same syntax 
-> as iptables (well, it is even the same code so..)
+This set of patches addresses some issues _apparently_ not tightly bound
+one to the other one. i tested the whole patchset in two configurations, 
+one with cbq + sfq + ingress and the other with a packet scheduler that 
+i'm actually working on. i'd be very glad if somebody volunteers for 
+more testing, although i would be even more happy if somebody could read 
+attentively and countercheck what i have written. i have checked and 
+double checked slowly and carefully myself but i would really appreciate 
+if somebody else does some further bug hunting, just in case i forgot 
+something or i've made some wrong assumption.
 
-You probably want to have iptables still for debugging/diagnostics.
-If so, get the latest version of iptables from CVS and enable DO_MULTI.
-This combines all three programs into the one binary.
-
--- 
-Philip Craig - SnapGear, A CyberGuard Company - http://www.SnapGear.com
+Alessandro Salvatori
+--
+the _NOSPAM_ account is the one i am subscribed with, please remove 
+_NOSPAM_ for personal replies
