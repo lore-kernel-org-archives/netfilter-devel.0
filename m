@@ -1,12 +1,17 @@
-From: Gordon Messmer <yinyang@eburg.com>
-Subject: kernel crash
-Date: Thu, 29 May 2003 13:41:11 -0700
+From: John M Flinchbaugh <glynis@butterfly.hjsoft.com>
+Subject: Re: kernel crash
+Date: Thu, 29 May 2003 17:20:16 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3ED67067.6080605@eburg.com>
+Message-ID: <20030529212016.GA7740@butterfly.hjsoft.com>
+References: <3ED67067.6080605@eburg.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_1vWP0swfZnHMRJROrQ1tnA)"
+Content-Type: multipart/signed; boundary=LQksG6bCIzRHxTLp;
+ protocol="application/pgp-signature"; micalg=pgp-sha1
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+In-reply-to: <3ED67067.6080605@eburg.com>
+To: Gordon Messmer <yinyang@eburg.com>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,219 +22,90 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
 
---Boundary_(ID_1vWP0swfZnHMRJROrQ1tnA)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-We recently have had trouble with kernel crashes on a Linux 2.4.20 box 
-used as a NAT gateway.  The machine is running Slackware 8.1 with a 
-vanilla 2.4.20 kernel.  The kernel configuration is attached.  The 
-message-log attachment contains the full dmesg output, as captured by a 
-remote syslog server, as well as the last messages received before the 
-box hung:
+On Thu, May 29, 2003 at 01:41:11PM -0700, Gordon Messmer wrote:
+> May 28 16:18:08 tog-wakko4 kernel: LIST_DELETE:=20
+ip_conntrack_core.c:303=20
+> `&ct->tuplehash[IP_CT_DIR_REPLY]'(f687fbc4) not in &ip_conntrack_hash=20
+> [hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple)].
+> May 28 16:18:52 tog-wakko4 kernel: LIST_DELETE:=20
+ip_conntrack_core.c:303=20
+> `&ct->tuplehash[IP_CT_DIR_REPLY]'(f687cd24) not in &ip_conntrack_hash=20
+> [hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple)].
+> May 28 16:18:52 tog-wakko4 kernel: LIST_DELETE:=20
+ip_conntrack_core.c:303=20
+> `&ct->tuplehash[IP_CT_DIR_REPLY]'(f687ce64) not in &ip_conntrack_hash=20
+> [hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple)].
 
-May 28 16:18:08 tog-wakko4 kernel: LIST_DELETE: ip_conntrack_core.c:303 
-`&ct->tuplehash[IP_CT_DIR_REPLY]'(f687fbc4) not in &ip_conntrack_hash 
-[hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple)].
-May 28 16:18:52 tog-wakko4 kernel: LIST_DELETE: ip_conntrack_core.c:303 
-`&ct->tuplehash[IP_CT_DIR_REPLY]'(f687cd24) not in &ip_conntrack_hash 
-[hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple)].
-May 28 16:18:52 tog-wakko4 kernel: LIST_DELETE: ip_conntrack_core.c:303 
-`&ct->tuplehash[IP_CT_DIR_REPLY]'(f687ce64) not in &ip_conntrack_hash 
-[hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple)].
+what iptables statements are you running at startup?
 
-What further information would be useful in tracking down this problem?
+i had a similar problem, i think, last summer due to _overlapping_ nat
+rules causing a race condition.  i'm not sure anyone ever knew what to
+do about it, but i did find that tweaking some rules kept the bug from
+being triggered.
 
---Boundary_(ID_1vWP0swfZnHMRJROrQ1tnA)
-Content-type: application/x-gzip; name=message-log.txt.gz
-Content-transfer-encoding: base64
-Content-disposition: inline; filename=message-log.txt.gz
+http://marc.theaimsgroup.com/?l=3Dnetfilter-devel&m=3D102750186506947&w=3D2
 
-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
-AA==
+i used to use:
+iptables -t nat -A POSTROUTING -j SNAT --to 64.192.31.41
+iptables -t nat -A POSTROUTING -j SNAT --to 192.168.1.1
+iptables -t nat -A POSTROUTING -j SNAT --to 127.0.0.1
 
---Boundary_(ID_1vWP0swfZnHMRJROrQ1tnA)
-Content-type: application/x-gzip; name=kernel-config.gz
-Content-transfer-encoding: base64
-Content-disposition: inline; filename=kernel-config.gz
+and now i use something very similar to (now i have 3 ifs):
+iptables -t nat -A POSTROUTING -j SNAT -o eth0 --to 64.192.31.41
+iptables -t nat -A POSTROUTING -o eth1 -s 192.168.1.0/24 \
+	 -j SNAT --to 192.168.1.1
+iptables -t nat -A POSTROUTING -o eth2 -s 192.168.2.0/24 \
+	 -j SNAT --to 192.168.2.1
 
-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
-oN8DPrS5ZeB6GJcR2JdkNYL/A+0hT6wmPwAA
+i've formulated the opinion that the first set of rules would match a
+packet on multiple rules and mangle the packet more than once, while
+the new rule set only matches packets going certain directions, so a
+packet only matches one rule.
 
---Boundary_(ID_1vWP0swfZnHMRJROrQ1tnA)--
+i think these multiple matches caused a race condition and hung the
+machine.  does this make any sense to anyone?
+
+the idea of these rules is to mangle the destination of a packet that
+came in on an interface and got forwarded back out the same interface.
+this allows a port forward to work from any network, even if it's the
+same network.  here's my example:
+iptables -t nat -A PREROUTING -p tcp \
+	--destination 64.192.31.41 --destination-port 2080 \
+	-j DNAT --to 192.168.1.2:80
+
+with the SNATs above, this connection works:
+    192.168.1.2 -> 64.192.31.41:2080 -> 192.168.1.2:80
+and return:
+    192.168.1.2 <- 64.192.31.41 <- 192.168.1.2:80
+
+if i only did the SNAT on the external ip, then the forward would only
+work when the connection came from the outside.
+a connection from the intranet would:
+    192.168.1.2 -> 64.192.31.41:2080 -> 192.168.1.2:80
+and return:
+    192.168.1.2 <- 192.168.1.2:80=20
+the return path wouldn't match up and thus the packets were just lost.
+--=20
+____________________}John Flinchbaugh{______________________
+| glynis@hjsoft.com         http://www.hjsoft.com/~glynis/ |
+~~Powered by Linux: Reboots are for hardware upgrades only~~
+
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE+1nmQCGPRljI8080RAuYMAJ9omv1tRyofCE+tz7DRJg5qUSzt6ACfXLFt
+2gOBRvU+jym2AR010vUvT4A=
+=jcCv
+-----END PGP SIGNATURE-----
+
+--LQksG6bCIzRHxTLp--
