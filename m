@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: --reject-with admin-prohib - Suggested Solution.
-Date: Thu, 5 Dec 2002 20:28:35 +0100
+Subject: Re: [PATCH] Re: bug in iptables-save/iptables-restore
+Date: Thu, 5 Dec 2002 21:32:56 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021205192835.GB11044@naboo.club.berlin.ccc.de>
-References: <20021128081009.GJ7047@naboo.de.gnumonks.org> <Pine.LNX.4.33.0212040052300.29619-100000@blackhole.kfki.hu>
+Message-ID: <20021205203256.GL11068@naboo.club.berlin.ccc.de>
+References: <3DD7B46F.3050006@attbi.com> <20021124124344.20640cb8.rh0209ms@arcor.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZfOjI3PrQbgiZnxM"
-Cc: Maciej Soltysiak <solt@dns.toxicfilms.tv>, g@naboo.gnumonks.org,
-	netfilter-devel@lists.samba.org
+	protocol="application/pgp-signature"; boundary="kaF1vgn83Aa7CiXN"
+Cc: netfilter-devel@lists.netfilter.org, Gerry Skerbitz <gsker@attbi.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Michael Schwendt <rh0209ms@arcor.de>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0212040052300.29619-100000@blackhole.kfki.hu>
+In-Reply-To: <20021124124344.20640cb8.rh0209ms@arcor.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,43 +23,21 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ZfOjI3PrQbgiZnxM
+--kaF1vgn83Aa7CiXN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 04, 2002 at 01:02:23AM +0100, Jozsef Kadlecsik wrote:
-> On Thu, 28 Nov 2002, Harald Welte wrote:
+On Sun, Nov 24, 2002 at 12:43:44PM +0100, Michael Schwendt wrote:
+> It should go before the 40:68, but separated with whitespace,
+> like: -m length --length ! 40:68
 >=20
-> > > Now, if the 2.5.48 kernel has the admin-prohib support, the userspace=
- will
-> > > detect it, and will show the option in -j REJECT --help and will acce=
-pt
-> > > admin-prohib.
-> >
-> > No.  You will make the libipt_REJECT.so dependent on the particular
-> > source code installed on the machine where iptables was compiled.
->=20
-> Why don't we simply add an INCOMPATIBILITIES file to the userspace source
-> tree, together with a similar section in the manpage?
->=20
-> Backward compatibility is very important, but we shouldn't insist on it at
-> every cost.
+> Try attached patch.
 
-Yup, we should draw a line somewhere.
+thanks, patch applied.
 
-I think we should just add the option to both kernel and userspace,
-which would result in the following bug:
+> Michael
 
-old kernel + new userspace + usage of the new admin-prohibited type =3D=3D
-DROP without any REJECT.
-
-I'll put the Patch from Maciej (message=20
-<Pine.LNX.4.21.0207261551070.3420-200000@dns.toxicfilms.tv>)
-without any attempt of the userspace-patch.
-
-> Regards,
-> Jozsef
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -72,7 +49,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---ZfOjI3PrQbgiZnxM
+--kaF1vgn83Aa7CiXN
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -80,9 +57,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE976jjXaXGVTD0i/8RAqfNAJ4lYWn279U6yQfFR/PPsonZ0d8BtgCeP292
-M1tcVChwFZcKvayyJdyX/KQ=
-=VDEA
+iD8DBQE977f4XaXGVTD0i/8RAsquAJ4odeCX1NjJ7PpVFpcRV2Ngt6wXSACfTGBf
+ISTUphF5AtjvZd4TNAkgoo4=
+=CcEp
 -----END PGP SIGNATURE-----
 
---ZfOjI3PrQbgiZnxM--
+--kaF1vgn83Aa7CiXN--
