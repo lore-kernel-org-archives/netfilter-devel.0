@@ -1,18 +1,15 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: [Linux Diffserv] ANNOUNCE: tc filter extensions
-Date: Sat, 4 Jan 2003 17:17:39 -0500 (EST)
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: slog target status
+Date: Wed, 08 Jan 2003 00:13:56 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030104165244.S48869__8594.78298011727$1041974886@shell.cyberus.ca>
-References: <20030104125252.J48869@shell.cyberus.ca> <3E172729.2070707@promo.ro>
- <20030104133257.I48869@shell.cyberus.ca>
+Message-ID: <3E1B5F34.1080801@drugphish.ch>
+References: <m3vg1asglq.fsf@beagle.ton.tut.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: diffserv-general <diffserv-general@lists.sourceforge.net>,
-	"" <lartc@mailman.ds9a.nl>, "" <netfilter@lists.samba.org>,
-	"" <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ciprian Niculescu <ciprian@promo.ro>
-In-Reply-To: <20030104133257.I48869@shell.cyberus.ca>
+To: Antti Siiskonen <antti.siiskonen@tut.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,132 +20,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Antti,
 
-Ok, i tested basic stuff and it works. Not very useful example but
-should serve to illustrate things:
-Example below will log every packet with src ip 127.1.1.1/32 seen at
-ingres of dev lo every time it exceeds its allocated rate. the nfmark
-is also set to 2 every time the rate is exceeded.
+Sorry for the late reply but I took a hiatus after having spent several 
+weeks in the hospital.
 
----------- script -------
-#
-tc qdisc add dev lo ingress
-#
-tc filter add dev lo parent ffff: protocol ip prio 1 u32  \
-match ip src 127.1.1.1/32 \
-action police mtu 5000  rate 2500kbit burst 90k pipe \
-action ipt -j LOG --log-prefix "1:20 exceeded 2.5mbps" \
-action ipt -j mark --set-mark 2
+>>http://www.drugphish.ch/patches/roman/slog-kernel-2.4.18.diff
+> 
+> The patch adds a slog target to the kernel which provides exactly the
+> functionality requested in the quoted mail. All connections matching
+> the rule with slog target are logged with connection specific byte and
+> packet counters when the connection is deleted from the connection
+> tracking mechanism.
+> 
+> I'm very interested in this patch. I'm curious if the patch has been
+> updated in any way and also if the user space tools have been patched
+> to include this target. All information on the subject is very
+> welcome, I'd love to play around with this. Also if there are other
+> patches with the same objectives, please let me know.
 
------------------------------------------------
+Yes, Roman has sent me an update to that patch which addresses most of 
+the issues Harald and me were having at the time of its first drop. He's 
+currently doing his diploma thesis and sitting some exams so I will be 
+responsible for the patch.
 
-Now try to list what we installed
+Unfortunately I also have different priorities at the moment so I can't 
+do much work on the SLOG target. I've made the latest drop available at:
 
------------------- listing ----------------
-jroot# tc filter show parent ffff: dev lo
-filter protocol ip pref 1 u32
-filter protocol ip pref 1 u32 fh 800: ht divisor 1
-filter protocol ip pref 1 u32 fh 800::800 order 2048 key ht 800 bkt 0
-flowid 1:20
+http://www.drugphish.ch/patches/roman/slog-kernel-devel11.diff
+http://www.drugphish.ch/patches/roman/slog-userspace-r3.diff
 
-   action order 1: police 1 action pipe rate 2500Kbit burst 86153b mtu 5000b
+Unfortunately we haven't forward ported it to newer kernels and the user 
+space patch is against 1.2.6a of iptables. Another problem is that I 
+lost track of the ctnetlink status so I don't know how quick I can adapt 
+the changes into the SLOG patch. Nevertheless it should give you 
+something to play with. Your testing and reporting would be very 
+valuable to me.
 
-   action order 2: tablename: mangle  hook: NF_IP_PRE_ROUTING
-        target LOG level warning prefix `1:20 exceded 2.5mbps'  index 1
-
-   action order 3: tablename: mangle  hook: NF_IP_PRE_ROUTING
-        target MARK set 0x2  index 2
-
-  match 7f010101/ffffffff at 12
-
------------------------------
-
-Of course this is a 5 minute test.
-
-cheers,
-jamal
-
-On Sat, 4 Jan 2003, jamal wrote:
-
->
->
-> Yes, thats is a useful feature.
-> Should be able to able use the iptables LOG; I am trying to avoid
-> replicating things which already exist; it is very easy to replicate it.
-> I'll test iptables LOG sometimes today; if you beat me to it, let me know
-> if it works.
->
-> cheers,
-> jamal
->
-> On Sat, 4 Jan 2003, Ciprian Niculescu wrote:
->
-> > hello,
-> >
-> > if someone can develop a feature like -j LOG from iptables, for the tc
-> > filter
-> >
-> > for ex i have
-> >
-> > tc filter ...... match dport 80 0xffff flowid 1:1
-> >
-> > i want to write to syslog the headers of the packets that matched this rule.
-> >
-> > C
-> >
-> > jamal wrote:
-> > >
-> > > I guess holidays means idle time which means idle minds which leads to
-> > > thumb twiddling which then leads to some work (which is sometimes useful)
-> > >
-> > > Ive updated the traffic control patches i posted about six months ago.
-> > > Note, the current release does not break anything in tc. It is fully
-> > > backward compatible so you can choose not to use it and things will work
-> > > as they do today. Of course, it is very useful so you cant choose to
-> > > ignore it!
-> > >
-> > > It's now upgraded to better than "use at your own risk" category.
-> > > tested on both uni and SMP 2.4.18 and 2.4.20.
-> > >
-> > > http://www.cyberus.ca/~hadi/patches/action/
-> > >
-> > > Bug reports and feedback are appreaciated.
-> > > A lot more goodies coming up, so this is just the tip. First steps are to
-> > > prove sanity of the idea.
-> > >
-> > > cheers,
-> > > jamal
-> > >
-> > >
-> > > -------------------------------------------------------
-> > > This sf.net email is sponsored by:ThinkGeek
-> > > Welcome to geek heaven.
-> > > http://thinkgeek.com/sf
-> > > _______________________________________________
-> > > Diffserv-general mailing list
-> > > Diffserv-general@lists.sourceforge.net
-> > > https://lists.sourceforge.net/lists/listinfo/diffserv-general
-> >
-> >
-> >
-> >
-> > -------------------------------------------------------
-> > This sf.net email is sponsored by:ThinkGeek
-> > Welcome to geek heaven.
-> > http://thinkgeek.com/sf
-> > _______________________________________________
-> > Diffserv-general mailing list
-> > Diffserv-general@lists.sourceforge.net
-> > https://lists.sourceforge.net/lists/listinfo/diffserv-general
-> >
->
->
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Diffserv-general mailing list
-> Diffserv-general@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/diffserv-general
->
+Sorry for the inconvenience and best regards,
+Roberto Nibali, ratz
+-- 
+echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
