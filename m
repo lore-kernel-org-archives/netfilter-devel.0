@@ -1,16 +1,18 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] ipt_do_table accesss pskb after it has been freed
-Date: Fri, 7 Nov 2003 19:18:52 +0100 (CET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [netfilter-core] Re: [ANNOUNCE] Release of iptables-1.2.9
+Date: Fri, 7 Nov 2003 19:44:05 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311071910540.12681-100000@filer.marasystems.com>
-References: <3FABC3BF.7070808@metavize.com>
+Message-ID: <20031107184405.GX5741@sunbeam.de.gnumonks.org>
+References: <20031107135520.GM5741@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0311071901580.12681-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-   <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="309evMHi/619oHyA"
+Cc: Netfilter Core Team <coreteam@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: dmorris <dmorris@metavize.com>
-In-Reply-To: <3FABC3BF.7070808@metavize.com>
+To: Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0311071901580.12681-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,31 +23,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 7 Nov 2003, dmorris wrote:
 
-> What am I supposed to do if there is no skb to be dropped.
-> My hook calls some other functions in the kernel which call
-> skb_free if all is not well.
-> That leaves me with two choices, either make a copy of the skb,
-> which i cant do for performance reasons, or apply this patch.
+--309evMHi/619oHyA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You don't need to copy the skb, but you need to protect it from beeing 
-freed if what you are calling is destructive and may call kfree_skb():
+On Fri, Nov 07, 2003 at 07:09:38PM +0100, Henrik Nordstrom wrote:
 
-i.e. something like this:
+> It is always a good idea to use "cvs export" when making releases. This=
+=20
+> makes sure there is no crap left over in the directory, and also=20
+> automatically gets rid of those CVS directories..
 
-   struct skbuff *ref = skb_get(skb);
+yes, that's what I used to do all the time.  unfortunately something in
+our cvs repositorry seems to be broken, and all I get are failed
+assertions of the cvs binary :(  Something like "assertion failed: "
+followed by about 4kbytes of source code mangled into a single line).
 
-   /* call possibly destructive function */
-  
-   if (was_not_destructive) {
-       skb_free(ref);
-       return NF_ACCEPT;
-   } else {
-       /* our reference was eaten by the evil destructive call above */B
-       return NF_DROP;
-   }
+> The procedure we use for Squid is something like this once the release is=
+=20
+> decided by the core team:
 
+yup, that's exactly what I used to do (and still do for other projects
+like ulogd).
 
-Regards
-Henrik
+> Regards
+> Henrik
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--309evMHi/619oHyA
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/q+f1XaXGVTD0i/8RAg+aAJ0Xpe08mIutnwMZ3j8vVoeWuA9pDQCghVSh
+mIYYRjrWJaYis4wJFwOU714=
+=Kiqy
+-----END PGP SIGNATURE-----
+
+--309evMHi/619oHyA--
