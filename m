@@ -1,12 +1,15 @@
-From: Robert Hardy <rhardy@webcon.ca>
-Subject: Optimizing rule loading, iptables-1.3.0 and iptables-batch
-Date: Tue, 7 Sep 2004 00:45:10 -0400 (EDT)
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: [PATCH] Make 2.6.9-rc1-bk9 compile without CONFIG_SYSCTL
+Date: Tue, 07 Sep 2004 18:13:20 +1000
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0409070017220.23341@vortex.int.webcon.net>
+Message-ID: <1094293407.32317.20.camel@bach>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Jeremy Kerr <jk@ozlabs.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David S. Miller" <davem@davemloft.net>,
+	Harald Welte <laforge@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,86 +20,150 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I've been trying out various ways of optimizing the loading of large
-iptables rule sets.
+Discovered this by accident (nfsim doesn't turn on CONFIG_SYSCTL).
 
-I recently tried out iptables-batch. It loaded 30000 iprange rules in
-roughly 26 minutes, on an fairly idle P4 2.4GHz w/ 1GB of ram. Obviously
-that it quite painful but I don't believe it is a reflection on how well
-iptables-batch works... It may be better than running a bunch of iptables
-commands in series from a shell script but I must admit I got bored and
-didn't finish the test without iptables-batch....
+Name: Make sure conntrack compiles without CONFIG_SYSCTL (ip_ct_log_invalid)
+Status: Untested
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-iptables-batch has the advantage of being able to batch install a single
-chain (or part of a chain) of a table in a more optimal manner. This was
-sorely lacking in iptables-restore. Even when patched with the recent "fixes
-patch" off the devel list, iptables-restore still only allows you to save
-and restore whole tables.
+ip_ct_log_invalid was added without testing that it compiles without
+CONFIG_SYSCTL.  Since sysctl is the only way of turning it on, there
+should be no references to it if !CONFIG_SYSCTL.  Also, that turns off
+CONFIG_PROC_FS, which elicits more warnings.  Squish them too.
 
-Given some of the comments in CVS I because quite excited about iptables
-1.3.0. I took a CVS snapshot from 20040906 (all the automatic snapshot
-tarballs stopped on 2004/08/23 BTW.)
-
-While it does compile nicely, it unforunately segfaults after every
-command. Even something simple like iptables -L with no rules loaded.
-
-Is there something I'm missing?
-
-Like a hidden kernel patch or some kind of kernel requirement I'm missing?
-
-It may be pointless but here is a diff between the working and failing
-commands.
-
-With empty tables: strace -fF iptables-1.2.11 -L >& strace1211.log
-With empty tables: strace -fF iptables-1.3.0 -L >& strace130.log
-
-iptables-1.3.0 segfaults
-
-# diff -urNbB strace1211.log strace130.log
---- strace1211.log      2004-09-06 22:48:12.253187032 -0400
-+++ strace130.log       2004-09-06 22:47:48.442806760 -0400
-@@ -1,6 +1,6 @@
-execve("/sbin/iptables", ["iptables", "-L"], [/* 31 vars */]) = 0
-uname({sys="Linux", node="vortex.int.webcon.net", ...}) = 0
--brk(0)                                  = 0x8054000
-+brk(0)                                  = 0x8053000
-open("/etc/ld.so.preload", O_RDONLY)    = -1 ENOENT (No such file or directory)
-open("/etc/ld.so.cache", O_RDONLY)      = 3
-fstat64(3, {st_mode=S_IFREG|0644, st_size=109104, ...}) = 0
-@@ -25,21 +25,13 @@
-set_thread_area({entry_number:-1 -> 6, base_addr:0xb7fe4880, limit:1048575, seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1}) = 0
-munmap(0xb7fe5000, 109104)              = 0
-socket(PF_INET, SOCK_RAW, IPPROTO_RAW)  = 3
--getsockopt(3, SOL_IP, 0x40 /* IP_??? */, "filter\0\301\1\0\0\0\10\335p\364\320\334p\364\0\0\0\0\0"..., [84]) = 0
--brk(0)                                  = 0x8054000
--brk(0x8075000)                          = 0x8075000
-+getsockopt(3, SOL_IP, 0x40 /* IP_??? */, "filter\0\301\1\0\0\0\10\375K\331\320\374K\331\0\0\0\0\0"..., [84]) = 0
-+brk(0)                                  = 0x8053000
-+brk(0x8074000)                          = 0x8074000
-getsockopt(3, SOL_IP, 0x41 /* IP_??? */, "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., [656]) = 0
--fstat64(1, {st_mode=S_IFREG|0644, st_size=2230, ...}) = 0
-+brk(0x8095000)                          = 0x8095000
-+fstat64(1, {st_mode=S_IFREG|0644, st_size=2282, ...}) = 0
-mmap2(NULL, 131072, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb7fc4000
-close(3)                                = 0
--write(1, "Chain INPUT (policy ACCEPT)\ntarg"..., 273Chain INPUT (policy ACCEPT)
--target     prot opt source               destination
--
--Chain FORWARD (policy DROP)
--target     prot opt source               destination
--
--Chain OUTPUT (policy ACCEPT)
--target     prot opt source               destination
--) = 273
--munmap(0xb7fc4000, 131072)              = 0
--exit_group(0)                           = ?
-+--- SIGSEGV (Segmentation fault) @ 0 (0) ---
-++++ killed by SIGSEGV (core dumped) +++
-
-Regards,
-Rob
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .21815-linux-2.6.9-rc1-bk9/include/linux/netfilter_ipv4/ip_conntrack_protocol.h .21815-linux-2.6.9-rc1-bk9.updated/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
+--- .21815-linux-2.6.9-rc1-bk9/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2004-08-25 09:54:14.000000000 +1000
++++ .21815-linux-2.6.9-rc1-bk9.updated/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2004-09-04 19:56:07.000000000 +1000
+@@ -75,6 +75,7 @@ extern int ip_conntrack_protocol_tcp_ini
+ /* Log invalid packets */
+ extern unsigned int ip_ct_log_invalid;
+ 
++#ifdef CONFIG_SYSCTL
+ #ifdef DEBUG_INVALID_PACKETS
+ #define LOG_INVALID(proto) \
+ 	(ip_ct_log_invalid == (proto) || ip_ct_log_invalid == IPPROTO_RAW)
+@@ -83,5 +84,8 @@ extern unsigned int ip_ct_log_invalid;
+ 	((ip_ct_log_invalid == (proto) || ip_ct_log_invalid == IPPROTO_RAW) \
+ 	 && net_ratelimit())
+ #endif
++#else
++#define LOG_INVALID(proto) 0
++#endif /* CONFIG_SYSCTL */
+ 
+ #endif /*_IP_CONNTRACK_PROTOCOL_H*/
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .21815-linux-2.6.9-rc1-bk9/net/ipv4/netfilter/ip_conntrack_proto_sctp.c .21815-linux-2.6.9-rc1-bk9.updated/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
+--- .21815-linux-2.6.9-rc1-bk9/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2004-09-03 09:31:10.000000000 +1000
++++ .21815-linux-2.6.9-rc1-bk9.updated/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2004-09-04 19:53:43.000000000 +1000
+@@ -623,8 +623,8 @@ int __init init(void)
+ 
+ 	return ret;
+ 
+- cleanup:
+ #ifdef CONFIG_SYSCTL
++ cleanup:
+ 	ip_conntrack_protocol_unregister(&ip_conntrack_protocol_sctp);
+ #endif
+  out:
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .21815-linux-2.6.9-rc1-bk9/net/ipv4/netfilter/ip_conntrack_standalone.c .21815-linux-2.6.9-rc1-bk9.updated/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- .21815-linux-2.6.9-rc1-bk9/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-03 09:31:10.000000000 +1000
++++ .21815-linux-2.6.9-rc1-bk9.updated/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-04 20:01:37.000000000 +1000
+@@ -54,6 +54,7 @@ static int kill_proto(const struct ip_co
+ 			*((u_int8_t *) data));
+ }
+ 
++#ifdef CONFIG_PROC_FS
+ static unsigned int
+ print_tuple(char *buffer, const struct ip_conntrack_tuple *tuple,
+ 	    struct ip_conntrack_protocol *proto)
+@@ -367,6 +368,7 @@ static struct file_operations ct_cpu_seq
+ 	.llseek  = seq_lseek,
+ 	.release = seq_release_private,
+ };
++#endif
+ 
+ static unsigned int ip_confirm(unsigned int hooknum,
+ 			       struct sk_buff **pskb,
+@@ -726,10 +728,15 @@ static ctl_table ip_ct_net_table[] = {
+ 	},
+ 	{ .ctl_name = 0 }
+ };
+-#endif
++
++EXPORT_SYMBOL(ip_ct_log_invalid);
++#endif /* CONFIG_SYSCTL */
++
+ static int init_or_cleanup(int init)
+ {
++#ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc, *proc_exp, *proc_stat;
++#endif
+ 	int ret = 0;
+ 
+ 	if (!init) goto cleanup;
+@@ -738,19 +745,20 @@ static int init_or_cleanup(int init)
+ 	if (ret < 0)
+ 		goto cleanup_nothing;
+ 
+-	proc = proc_net_create("ip_conntrack", 0440, NULL);
++#ifdef CONFIG_PROC_FS
++	proc = proc_net_fops_create("ip_conntrack", 0440, &ct_file_ops);
+ 	if (!proc) goto cleanup_init;
+-	proc->proc_fops = &ct_file_ops;
+ 
+-	proc_exp = proc_net_create("ip_conntrack_expect", 0440, NULL);
++	proc_exp = proc_net_fops_create("ip_conntrack_expect", 0440,
++					&exp_file_ops);
+ 	if (!proc_exp) goto cleanup_proc;
+-	proc_exp->proc_fops = &exp_file_ops;
+ 
+ 	proc_stat = proc_net_fops_create("ip_conntrack_stat", S_IRUGO,
+ 					 &ct_cpu_seq_fops);
+ 	if (!proc_stat)
+ 		goto cleanup_proc_exp;
+ 	proc_stat->owner = THIS_MODULE;
++#endif
+ 
+ 	ret = nf_register_hook(&ip_conntrack_defrag_ops);
+ 	if (ret < 0) {
+@@ -814,12 +822,14 @@ static int init_or_cleanup(int init)
+ 	local_bh_enable();
+ 	nf_unregister_hook(&ip_conntrack_defrag_ops);
+  cleanup_proc_stat:
++#ifdef CONFIG_PROC_FS
+ 	proc_net_remove("ip_conntrack_stat");
+ cleanup_proc_exp:
+ 	proc_net_remove("ip_conntrack_exp");
+  cleanup_proc:
+ 	proc_net_remove("ip_conntrack");
+  cleanup_init:
++#endif /* CONFIG_PROC_FS */
+ 	ip_conntrack_cleanup();
+  cleanup_nothing:
+ 	return ret;
+@@ -912,4 +922,3 @@ EXPORT_SYMBOL(ip_conntrack_hash);
+ EXPORT_SYMBOL(ip_conntrack_untracked);
+ EXPORT_SYMBOL_GPL(ip_conntrack_find_get);
+ EXPORT_SYMBOL_GPL(ip_conntrack_put);
+-EXPORT_SYMBOL(ip_ct_log_invalid);
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .21815-linux-2.6.9-rc1-bk9/net/ipv4/netfilter/ip_queue.c .21815-linux-2.6.9-rc1-bk9.updated/net/ipv4/netfilter/ip_queue.c
+--- .21815-linux-2.6.9-rc1-bk9/net/ipv4/netfilter/ip_queue.c	2004-02-18 23:54:37.000000000 +1100
++++ .21815-linux-2.6.9-rc1-bk9.updated/net/ipv4/netfilter/ip_queue.c	2004-09-04 19:54:04.000000000 +1000
+@@ -619,6 +619,7 @@ static ctl_table ipq_root_table[] = {
+ 	{ .ctl_name = 0 }
+ };
+ 
++#ifdef CONFIG_PROC_FS
+ static int
+ ipq_get_info(char *buffer, char **start, off_t offset, int length)
+ {
+@@ -648,6 +649,7 @@ ipq_get_info(char *buffer, char **start,
+ 		len = 0;
+ 	return len;
+ }
++#endif /* CONFIG_PROC_FS */
+ 
+ static int
+ init_or_cleanup(int init)
 
 -- 
----------------------"Happiness is understanding."----------------------
-Robert Hardy, B.Eng Computer Systems                  C.E.O. Webcon Inc.
-rhardy <at> webcon <dot> ca    GPG Key available          (613) 276-7327
+Anyone who quotes me in their signature is an idiot -- Rusty Russell
