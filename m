@@ -1,14 +1,15 @@
-From: Ilguiz Latypov <ilguiz@nit.ca>
-Subject: Re: extra/pptp-conntrack-nat.patch
-Date: Fri, 11 Apr 2003 07:09:57 -0400 (EDT)
+From: diegows <diegows@linux.org.ar>
+Subject: Re: quota.patch
+Date: Fri, 11 Apr 2003 10:32:52 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0304110659110.12367-100000@localhost.localdomain>
-References: <3E969D88.4070005@fl.priv.at>
+Message-ID: <3E96C404.3040600@linux.org.ar>
+References: <Pine.LNX.4.33.0304111112170.31394-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, samj@samj.net
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <3E969D88.4070005@fl.priv.at>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,35 +20,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+yes, sorry i submitted the wrong files. Later i will send the correct files
 
-On Fri, 11 Apr 2003, Friedrich Lobenstock wrote:
+Jozsef Kadlecsik wrote:
 
-> > If you remove the comment and include the line "return NF_ACCEPT",
-> > then any packet with an invalid checksum is NOT processed by the PPTP
-> > helper function. With the line commented out the incorrect checksum is
-> > ignored and the packet is processed by the rest of the PPTP helper
-> > function. Why this solved your problem I can't say.
+>Hi,
 >
-> I don't know either. Because of this I ask the author of this module to
-> make this an option to the module, so I do not have to create two
-> different versions of devil linux to support both possibilities.
-
-Are you connecting to the Windows server from the Linux machine where PPTP
-connection tracking modules are loaded?
-
-If this is true, you would be affected by the modules' rewriting of call
-IDs in one direction only when you were running the unmodified version.
-
-To be able to connect from such Linux machine to another PPTP server, you
-need to apply the pending local NAT patch from the netfilter patch-o-matic
-and enable the CONFIG_NF_NAT_LOCAL option in the kernel.
-
-There would be nothing Windows specific in this case.
-
-Correct me if I am wrong.
-
---
-Ilguiz Latypov
-Net Integration Technologies, Inc
-
-tel. +1 (514) 281 9191 x 117
+>On Tue, 8 Apr 2003, diegows wrote:
+>
+>  
+>
+>>This is a modified quota match writing by Sam j. I add quota per ip and
+>>quota per connection (this is not very useful i think now...). Please
+>>try this and send  to me any comments and suggestions.
+>>    
+>>
+>
+>Sorry, I won't apply your changes in the present form
+>
+>- userspace part is missing
+>- quota per connection - as you yourself write - is questionnable
+>- the patch itself is messy
+>
+>Please re-work it before submitting again.
+>
+>Best regards,
+>Jozsef
+>-
+>E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+>PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+>Address : KFKI Research Institute for Particle and Nuclear Physics
+>          H-1525 Budapest 114, POB. 49, Hungary
+>
+>
+>
+>  
+>
