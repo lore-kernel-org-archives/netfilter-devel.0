@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: compiling netfilter modules outside of kernel tree
-Date: Sat, 11 Oct 2003 22:37:28 +0200 (CEST)
+Subject: Re: libipq and mark
+Date: Sat, 11 Oct 2003 23:01:56 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0310112236050.14382-100000@filer.marasystems.com>
-References: <3F7DB22E.6080505@cs.ucsb.edu>
+Message-ID: <Pine.LNX.4.44.0310112242280.14382-100000@filer.marasystems.com>
+References: <1064665866.2289.33.camel@porky>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Krishna Ramachandran <krishna@cs.ucsb.edu>
-In-Reply-To: <3F7DB22E.6080505@cs.ucsb.edu>
+To: Eric Leblond <eric@regit.org>
+In-Reply-To: <1064665866.2289.33.camel@porky>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,18 +20,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 3 Oct 2003, Krishna Ramachandran wrote:
+On Sat, 27 Sep 2003, Eric Leblond wrote:
 
->       I am facing a sort of a deployment issue ... I need to install a 
-> netfilter module i developed on several Linux systems. I understand that 
-> it is easiest to compile a netfilter module inside the kernel tree. 
-> However, it'd be impossible for me to ask each of the users to install 
-> the kernel source and then compile my module. I am hoping that there is 
-> a better way to do this. I'd appreciate any help you can provide.
+> Hi,
+> 
+> I like to know it it's possible to set the mark of a paquet in usermode
+> using libipq ?
 
-Compiling kernel modules outside of the kernel is a little tricky. To
-correctly compile a kernel module for a kernel you must have access to the
-exact same kernel headers after "make dep" as when the kernel was built.
+Not that I know of.
+
+To extent libipq you need to extend the ip_queue communication channel
+used to include the mark in the verdict messages (ipq_verdict_msg) and 
+modify the libipq API to provide access to this new verdict field.
+
+Then modify ip_queue.c ipq_mangle_ipv4 to copy the new mark from the 
+verdict (also remember to look for mark modification in the routing part 
+at the end of the same function).
 
 Regards
 Henrik
