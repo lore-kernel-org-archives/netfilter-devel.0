@@ -1,13 +1,17 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: connection loss/pickup
-Date: Mon, 8 Jul 2002 15:28:03 -0700
+From: Allen <aef@prismnet.com>
+Subject: IMHO - Re: Deleting Connection Tracking information
+Date: Mon, 8 Jul 2002 23:49:17 +0000
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15658.4595.38711.111342@isis.cs3-inc.com>
+Message-ID: <20020708234917.9B08E2A@bob.localdomain>
+References: <AE696B0F5B44A348B8D18E40F976D9571BA92E@mailsrv.etagon.com> <200207081143.g68Bh6806571@vulcan.rissington.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: Antony Stone <Antony@Soft-Solutions.co.uk>,
+	<netfilter-devel@lists.samba.org>
+In-Reply-To: <200207081143.g68Bh6806571@vulcan.rissington.net>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -19,23 +23,39 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-(Trying to think about something OTHER than hashing!)
 
-The recent message about something in conntrack that does not have to
-be atomic reminds me of a question.
+On Monday 08 July 2002 11:43 am, Antony Stone wrote:
+> On Monday 08 July 2002 1:31 pm, Tsachi Sharfman wrote:
 
-I'm about to implement something that cannot afford to lose track of
-connections.  Is conntrack now suitable for such a thing?  If not, is
-the reason well understood and easy to fix?  Or should I just start
-from scratch? 
+snips
 
-It seems to me that nat already has this character, but maybe the
-nat tables data is sufficiently independent of conntrack so that you
-can afford to lose conntrack data as long as you don't lose nat data?
-In that case, perhaps I can do the same sort of thing.
+> However, a more serious problem is what do you possibly want to change in
+> the NAT rules for a connection which is currently in progress, which isn't
+> going to seriously upset either the client or the server on the ends of the
+> connection ?
 
-Also, I thought that recent changes to conntrack tcp did window
-checking, and window scaling can't be recovered from the middle of a
-tcp connection.  So is connection pickup just never supposed to
-happen?  Or under the circumstances where it does any good all sorts
-of other things will break?
+
+I have to say something about this.
+
+Remember Mosix ?
+
+One of the things 'they' are supposed to be working on is a sort of
+"portable socket".
+
+This makes for at least interesting if not all out fantastic cluster 
+applicability to lots of different "solutions".
+
+1.  Mosix massive web server that would be hard to kill...
+
+    Right dandy scalability, reliability, *.ility...
+
+2.  Big Ole RDBMS that keeps you alive at almost all costs... ;)
+
+3.  Etc.,
+
+This whole concept *may* be entirely out of scope... but then again,
+maybe not...
+
+2 cents.
+
+-AEF
