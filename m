@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: MAC Filtering
-Date: Wed, 21 Jan 2004 08:55:31 -0500
+Subject: Re: [patch-o-matic-ng] h323-conntrack-nat
+Date: Wed, 21 Jan 2004 08:59:48 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040121135531.GQ8642@obroa-skai.de.gnumonks.org>
-References: <4005D62A.3080609@rtc.bosch.com>
+Message-ID: <20040121135948.GR8642@obroa-skai.de.gnumonks.org>
+References: <200401151715.17804.timg@tpi.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6BvahUXLYAruDZOj"
+	protocol="application/pgp-signature"; boundary="cfJ13FhsvNR/yOpm"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Gopal Chandavarapu <Gopal.Chandavarapu@rtc.bosch.com>
+To: Tim Gardner <timg@tpi.com>
 Content-Disposition: inline
-In-Reply-To: <4005D62A.3080609@rtc.bosch.com>
+In-Reply-To: <200401151715.17804.timg@tpi.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +23,19 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---6BvahUXLYAruDZOj
+--cfJ13FhsvNR/yOpm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 14, 2004 at 03:52:10PM -0800, Gopal Chandavarapu wrote:
-> Hi All,
->=20
-> A specific hardware and its cross compiler need 2.4.14 version of the=20
-> linux kernel. I have to do MAC filtering for these devices, so I found th=
-at
->=20
-> http://ebtables.sourceforge.net/documentation.html#whatdo
->=20
->  does MAC filtering. -----------   Good till now.
->=20
->=20
->=20
-> Problem : The problem is ebtables works only with linux kernel 2.4.22/23=
-=20
-> and version 2.6.x
+On Thu, Jan 15, 2004 at 05:15:17PM -0700, Tim Gardner wrote:
+> Attached is a tarball that completes the h323 helper patches.
 
-This is the netfilter/iptables mailinglist.  Please ask questions
-related to ebtables on the linux bridging mailinglist.
+thanks a lot.
 
+for future cases: please submit a patch (diff -Nru).
 
-> Thanks
-> Gopal.
+> Tim Gardner - timg@tpi.com
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,7 +47,7 @@ related to ebtables on the linux bridging mailinglist.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---6BvahUXLYAruDZOj
+--cfJ13FhsvNR/yOpm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -70,9 +55,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFADoTTXaXGVTD0i/8RAkp/AJ9lppV1hiWbCNq03RSSK2QM6O0grgCePJ/+
-XdxLB2ZabIkyd0Sey1gD+Ns=
-=VLg+
+iD8DBQFADoXTXaXGVTD0i/8RAnDJAJ4vLZJ2u/yK+GVe/C7wiTq3rxPyQwCgqJ+v
+5WT140zBVvf2AOOkah9Itus=
+=aYLj
 -----END PGP SIGNATURE-----
 
---6BvahUXLYAruDZOj--
+--cfJ13FhsvNR/yOpm--
