@@ -1,8 +1,8 @@
 From: vanuxem gregory <gvanuxem@club-internet.fr>
 Subject: bug in ip6tables-save ?
-Date: 06 Jul 2002 13:05:28 +0200
+Date: 06 Jul 2002 13:12:55 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1025953528.785.9.camel@elipse>
+Message-ID: <1025953975.1133.1.camel@elipse>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
