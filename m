@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Maximum chain name length
-Date: Mon, 8 Dec 2003 13:17:44 +0100 (CET)
+Subject: Re: Counter problem in a new nat target.
+Date: Mon, 8 Dec 2003 13:28:51 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312081311370.10693-100000@filer.marasystems.com>
-References: <1070883753.1932.7.camel@jasiiitosh.nexusmgmt.com>
+Message-ID: <Pine.LNX.4.44.0312081319100.10693-100000@filer.marasystems.com>
+References: <3FD46638.5000300@netlab.hut.fi>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-In-Reply-To: <1070883753.1932.7.camel@jasiiitosh.nexusmgmt.com>
+To: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+In-Reply-To: <3FD46638.5000300@netlab.hut.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,21 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 8 Dec 2003, John A. Sullivan III wrote:
+On Mon, 8 Dec 2003, Emmanuel Guiton wrote:
 
-> Is there any way to extend the maximum allowed chain name length in
-> iptables? Thanks - John
+> Does someone has a good advice on where I can store my variable? Can I 
+> use the void *userdata ? (I do not really know to what it points).
 
-You can change the limit by redefining IPT_FUNCTION_MAXNAMELEN in
-include/linux/netfilter_ipv4/ip_tables.h, but this will render any
-binaries compiled with the old length unuseable and also considerably
-increases the kernel memory usage of iptables as the maximum space is
-allocated for each rule even if it uses a long chain name or not.
-
-If you really need this long names I would recommend you to just use 
-abstract names in the kernel and save a index file on the system for 
-in-field analysis. By using a small wrapper you can even have the names 
-translated automatically if you like.
+You should be able to use the userdata I think. It is a pointer to the
+original targetinfo sent/seen by userspace iptables command. The kernel
+operates on another copy of the table per CPU. But I would not recommend 
+doint this. I think it is better if you keep the needed counters 
+elsewhere. You can use reference counting from the check/destroy functions 
+to determine which counters you need to maintain.
 
 Regards
 Henrik
