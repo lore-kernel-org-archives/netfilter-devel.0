@@ -1,59 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_dstlimit spinlock fixup
-Date: Mon, 23 Aug 2004 22:49:22 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <412A5852.4050104@trash.net>
-References: <20040822153348.GA20301@linuxace.com> <412A3BAA.6000708@trash.net> <20040823201231.GA2046@linuxace.com>
+From: David Stevens <dlstevens@us.ibm.com>
+Subject: Re: [PATCH] Prevent crash on ip_conntrack removal
+Date: Mon, 23 Aug 2004 14:18:24 -0700
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <OF4320C747.75C5E93A-ON88256EF9.00744FBA-88256EF9.00750996@us.ibm.com>
+References: <41289859.2040803@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kadlec@blackhole.kfki.hu
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20040823201231.GA2046@linuxace.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset="US-ASCII"
+Cc: "David S. Miller" <davem@redhat.com>, laforge@netfilter.org,
+        netdev@oss.sgi.com, netdev-bounce@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org, okir@suse.de
+Return-path: <netdev-bounce@oss.sgi.com>
+In-Reply-To: <41289859.2040803@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
+BTW, since some of the frags (esp. the one that triggers the problem)
+are added post-routing, a valid dst is available. It just isn't the first
+frag in the particular scenario.
 
->On Mon, Aug 23, 2004 at 08:47:06PM +0200, Patrick McHardy wrote:
->  
->
->>Phil Oester wrote:
->>
->>    
->>
->>>Since ipt_dstlimit makes use of MUST_BE_LOCKED macro, compiling
->>>without CONFIG_NETFILTER_DEBUG causes errors.  Fix below.
->>>
->>>      
->>>
->>Jozsefs conntrack_locking patch has the same problem, I wonder if we
->>should introduce a spinlock_debug_t (if that is not taken yet) or
->>better yet, kill lockhelp.h.
->>    
->>
->
->Or option 3: remove the MUST_BE_LOCKED users in both files.  lockhelp
->does seem to be, er, helpful in some cases.
->  
->
-With the conntrack patches we need to remove it from ip_conntrack_core.c
-and ip_nat_core.c, after that there really would be no readon for keeping
-it at all. There isn't any readon even today, spinlock.h already offers
-the same features.
+So, one solution would be to set skb->dst for the head (if NULL)  based
+on a non-null fragment skb->dst. I believe that would prevent the problem
+case without dropping the fragment, since it'll be processed post-routing
+only if one of the frags is.
 
-Regards
-Patrick
+When I was looking at it, I wondered if conntrack really has a need to
+reassemble itself, though. Couldn't it let IP do the reassembling and
+just ignore offset != 0 frags? The offset==0 frags will have enough
+protocol header to identify by port (a requirement for ICMP). But I don't
+know this code well enough to know if conntrack does actually need
+to reassemble for some good reason. Superficially, I wouldn't think
+there'd be a reason for it.
 
->Phil
->
->  
->
+                                        +-DLS
