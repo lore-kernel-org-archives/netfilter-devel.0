@@ -1,9 +1,9 @@
-From: Michael Rash <mbr@cipherdyne.org>
-Subject: [PATCH] --log-ip-options broken in 2.4
-Date: Sat, 29 Jan 2005 02:04:23 -0500
-Message-ID: <20050129070423.GA25755@orthanc.gambrl01.md.comcast.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] update pptp contrack for 2.4.29
+Date: Sun, 30 Jan 2005 09:23:46 -0800
+Message-ID: <20050130172346.GA14821@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="fdj2RfSjLxBAspz7"
+Content-Type: multipart/mixed; boundary="7JfCtLOvnd9MIVvH"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,43 +19,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---fdj2RfSjLxBAspz7
+--7JfCtLOvnd9MIVvH
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-It looks like --log-ip-options is broken in 2.4, i.e. the OPT field
-never appears in Netfilter logs even when packets contain IP options.
-I have attached a small patch that fixes this.  It removes the
-"iph->ihl * 4 >= datalen" condition, which rarely happens ("ping -T
-tsonly -s 1 <host>" will trigger it for example).  The resulting code is
-analogous to the code in the 2.6 kernel.
+Since CONFIG_IP_NF_NAT_LOCAL disappeared, the following is needed for
+2.4.29+.
 
-This is for Netfilter bugzilla # 288.
+Phil
 
-Thanks,
 
---Mike
 
-Michael Rash
-http://www.cipherdyne.org/
-Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
-
---fdj2RfSjLxBAspz7
+--7JfCtLOvnd9MIVvH
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="ipt_LOG.c_ipoptions.patch"
+Content-Disposition: attachment; filename=patch-pptp-2429
 
---- linux-2.4.29.orig/net/ipv4/netfilter/ipt_LOG.c      2005-01-29 01:55:29.000000000 -0500
-+++ linux-2.4.29/net/ipv4/netfilter/ipt_LOG.c   2005-01-29 01:50:36.000000000 -0500
-@@ -67,8 +67,7 @@
-                printk("FRAG:%u ", ntohs(iph->frag_off) & IP_OFFSET);
+diff -ru pom-orig/pptp-conntrack-nat/linux/net/ipv4/netfilter/Config.in.ladd_2 pom/pptp-conntrack-nat/linux/net/ipv4/netfilter/Config.in.ladd_2
+--- pom-orig/pptp-conntrack-nat/linux/net/ipv4/netfilter/Config.in.ladd_2	2004-03-05 04:30:25.000000000 -0500
++++ pom/pptp-conntrack-nat/linux/net/ipv4/netfilter/Config.in.ladd_2	2005-01-30 12:20:52.954915072 -0500
+@@ -1,4 +1,4 @@
+-      bool '    NAT of local connections (READ HELP)' CONFIG_IP_NF_NAT_LOCAL
++      dep_tristate '    REDIRECT target support' CONFIG_IP_NF_TARGET_REDIRECT $CONFIG_IP_NF_NAT
+       if [ "$CONFIG_IP_NF_PPTP" = "m" ]; then
+         define_tristate CONFIG_IP_NF_NAT_PPTP m
+       else
 
-        if ((info->logflags & IPT_LOG_IPOPT)
--           && iph->ihl * 4 != sizeof(struct iphdr)
--           && iph->ihl * 4 >= datalen) {
-+           && iph->ihl * 4 > sizeof(struct iphdr)) {
-                unsigned int i;
-
-                /* Max length: 127 "OPT (" 15*4*2chars ") " */
-
-
---fdj2RfSjLxBAspz7--
+--7JfCtLOvnd9MIVvH--
