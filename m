@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Netfilter modules to use modern parameters
-Date: Tue, 23 Sep 2003 13:23:32 +0200
+Subject: Re: [PATCH] Passive OS fingerprint matching module update. Dynamic fingerprint loading.
+Date: Tue, 23 Sep 2003 14:57:46 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030923112332.GK31401@sunbeam.de.gnumonks.org>
-References: <20030923083215.7CFC62C23F@lists.samba.org>
+Message-ID: <20030923125746.GL31401@sunbeam.de.gnumonks.org>
+References: <20030922171921.009b2133.johnpol@2ka.mipt.ru> <20030923155944.521d6299.johnpol@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DEfZqDS1MPR2ysog"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="fTrra2YUagINO7SV"
+Cc: netfilter-devel@lists.netfilter.org, quaker@ondraszek.eu.org,
+	solt@dns.toxicfilms.tv
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Content-Disposition: inline
-In-Reply-To: <20030923083215.7CFC62C23F@lists.samba.org>
+In-Reply-To: <20030923155944.521d6299.johnpol@2ka.mipt.ru>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,26 +24,31 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---DEfZqDS1MPR2ysog
+--fTrra2YUagINO7SV
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 23, 2003 at 06:31:29PM +1000, Rusty Russell wrote:
-> Requires previous patch send to lkml, entitled [PATCH] module_param_array=
-().
+On Tue, Sep 23, 2003 at 03:59:44PM +0400, Evgeniy Polyakov wrote:
 >=20
-> Harald: I changed ULOG's flushtimeout to always use 100ths of a
-> second, to avoid being kernel-version and arch specific.
+> > Examples:
+> > loading new rule:
+> > echo "16384:64:0:44:M512:.:AIX:4.3.2 and
+> > earlier">/proc/sys/net/ipv4/osf=20
+>=20
+> So, in OpenBSD we have:=20
+> 16384:64:0:44:M512:             AIX:4.3:2-3:AIX 4.3.2 and earlier
+>                                                              ^^^^^^^^
+>=20
+> If someone like to use this notation, i can create a patch.
 
-Thanks, I'm going to update 2.4.x accordingly.
+Well, the osf match is pretty much your child... so it's up to you.
 
-> If no objections, I'll send to DaveM (it's 2.6-only).
+I personally would like to see compatibility... since this means that
+the fingerprint database has only to be kept in one format.
 
-sure, just go ahead.
+> 	Evgeniy Polyakov
 
-> Cheers,
-> Rusty.
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -53,16 +59,16 @@ sure, just go ahead.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---DEfZqDS1MPR2ysog
+--fTrra2YUagINO7SV
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/cC00XaXGVTD0i/8RAqCLAJ9xepfac1PHoVSQtphXLsvYK3zV8ACfchfs
-f9IX6wNOB2Kl+YDrY8hh9b4=
-=aVuX
+iD8DBQE/cENKXaXGVTD0i/8RAvLoAJ4zrbD4oTBSeDJKtO6mJ9edwwHREgCePS5n
+DptE65xZ/HtjxrkzL8xqfwY=
+=DK0v
 -----END PGP SIGNATURE-----
 
---DEfZqDS1MPR2ysog--
+--fTrra2YUagINO7SV--
