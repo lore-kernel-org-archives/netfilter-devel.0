@@ -1,74 +1,115 @@
-From: Olaf Kirch <okir@suse.de>
-Subject: (usagi-users 02866) Re: ip6t_REJECT dst underflow
-Date: Fri, 26 Mar 2004 10:08:59 +0100
-Message-ID: <20040326090859.GB671@suse.de>
-References: <20040325134340.GC8500@suse.de> <200403260726.QAA02087@toshiba.co.jp>
-Reply-To: usagi-users@linux-ipv6.org
+From: Ozgur AKAN <akan@aiqa.com>
+Subject: Re: mask for interface
+Date: Fri, 26 Mar 2004 16:40:51 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <406440F3.8010203@aiqa.com>
+References: <40629EB1.4080005@aiqa.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Cc: netfilter-devel@lists.netfilter.org, usagi-users@linux-ipv6.org
-Return-path: <usagi-users-admin@linux-ipv6.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200403260726.QAA02087@toshiba.co.jp>
-Content-Disposition: inline
-List-Software: fml [fml 4.0.3 release (20011202/4.0.3)]
-List-Post: <mailto:usagi-users@linux-ipv6.org>
-List-Owner: <mailto:usagi-users-admin@linux-ipv6.org>
-List-Help: <mailto:usagi-users-ctl@linux-ipv6.org?body=help>
-List-Unsubscribe: <mailto:usagi-users-ctl@linux-ipv6.org?body=unsubscribe>
+Content-Type: multipart/alternative;
+ boundary="------------010902040402090801000903"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <40629EB1.4080005@aiqa.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 26, 2004 at 04:25:32PM +0900, Yasuyuki Kozakai wrote:
-> I think this patch is for ip6t_REJECT in USAGI kernel (linux 2.6.x), right ?
-> I applied your patch to USAGI tree.
+This is a multi-part message in MIME format.
+--------------010902040402090801000903
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Right. I thought this stuff originated from netfilter.org, however,
-which is why I cc'ed netfilter-devel.  If that's not the case, sorry
-for the noise.
+Hi,
 
-Olaf
+In the manual of iptables there is nothing about the mask value of an 
+interface. + sign at the end of a few characters of an interface means 
+any interface which begins with this name will match.
 
-> 
-> Thank you for your report.
-> 
-> From: Olaf Kirch <okir@suse.de>
-> Date: Thu, 25 Mar 2004 14:43:40 +0100
-> 
-> > Hi,
-> > 
-> > the ip6t_REJECT module currently produces dst underruns when used.
-> > The problem is that it assigns the dst pointer to the new skb without
-> > bumping its reference count. The attached patch fixes this.
-> > 
-> > A second issue I came across isn't really a bug but more of
-> > a minor nuisance.
-> > 
-> > When I configured ip6t_REJECT to reject packets to ::1 and then pinged
-> > ::1, I would get in my syslog
-> > 
-> > 	Mar 25 14:16:05 hammer kernel: printk: 2 messages suppressed.
-> > 
-> > without telling me what message got suppressed. The problem is that the
-> > code does the following in two locations:
-> > 
-> > 	if (net_ratelimit())
-> > 		DEBUGP(....)
-> > 
-> > So with debugging off, all you get is the above mentioned messages
-> > from net_ratelimit but nothing else. Either the DEBUGP needs to be
-> > converted to a printk, or the entire if() statement needs to be
-> > enclosed in an #if/#endif pair.
-> > 
-> > Olaf
-> > -- 
-> > Olaf Kirch     |  Stop wasting entropy - start using predictable
-> > okir@suse.de   |  tempfile names today!
-> > ---------------+ 
-> 
-> -----------------------------------------------------------------
-> Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+Again what I wonder is the why iniface_mask value is used???
 
--- 
-Olaf Kirch     |  Stop wasting entropy - start using predictable
-okir@suse.de   |  tempfile names today!
----------------+ 
+thanks,
+Ozgur AKAN
+
+---------------------------------------------------------------------
+*-i, --in-interface *[!] [/name/]
+    Optional name of an interface via which a packet is received (for
+    packets entering the *INPUT*, *FORWARD* and *PREROUTING* chains).
+    When the "!" argument is used before the interface name, the sense
+    is inverted. If the interface name ends in a "+", then any interface
+    which begins with this name will match. If this option is omitted,
+    the string "+" is assumed, which will match with any interface name.
+*-o, --out-interface *[!] [/name/]
+    Optional name of an interface via which a packet is going to be sent
+    (for packets entering the *FORWARD*, *OUTPUT* and *POSTROUTING*
+    chains). When the "!" argument is used before the interface name,
+    the sense is inverted. If the interface name ends in a "+", then any
+    interface which begins with this name will match. If this option is
+    omitted, the string "+" is assumed, which will match with any
+    interface name.
+------------------------------------------------------------------------
+
+
+--------------010902040402090801000903
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-9">
+  <title></title>
+</head>
+<body text="#000000" bgcolor="#ffffff">
+Hi,<br>
+<br>
+In the manual of iptables there is nothing about the mask value of an
+interface. + sign at the end of a few characters of an interface means
+any
+interface which begins with this name will match.<br>
+<br>
+Again what I wonder is the why iniface_mask value is used???<br>
+<br>
+thanks,<br>
+Ozgur AKAN<br>
+<br>
+---------------------------------------------------------------------<br>
+<dt><b>-i, --in-interface </b>[!] [<i>name</i>]
+</dt>
+<dd>Optional name of an interface via which a packet is received (for
+packets entering the <b>INPUT</b>,
+  <b>FORWARD</b>
+and
+  <b>PREROUTING</b>
+chains). When the "!" argument is used before the interface name, the
+sense is inverted. If the interface name ends in a "+", then any
+interface which begins with this name will match. If this option is
+omitted, the string "+" is assumed, which will match with any
+interface name.<br>
+</dd>
+<dt><b>-o, --out-interface </b>[!] [<i>name</i>]
+</dt>
+<dd>Optional name of an interface via which a packet is going to
+be sent (for packets entering the
+  <b>FORWARD</b>,
+  <b>OUTPUT</b>
+and
+  <b>POSTROUTING</b>
+chains). When the "!" argument is used before the interface name,
+the sense is inverted. If the interface name ends in a "+", then any
+interface which begins with this name will match. If this option is
+omitted, the string "+" is assumed, which will match with any
+interface name.</dd>
+<br>
+------------------------------------------------------------------------<br>
+<dd><br>
+</dd>
+</body>
+</html>
+
+--------------010902040402090801000903--
