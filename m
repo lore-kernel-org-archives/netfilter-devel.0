@@ -1,12 +1,12 @@
 From: Andy Polyakov <appro@fy.chalmers.se>
 Subject: Re: iptables performance under 2.6.0[-test9]
-Date: Tue, 28 Oct 2003 11:01:16 +0100
+Date: Tue, 28 Oct 2003 12:18:02 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F9E3E6C.C0CC5598@fy.chalmers.se>
-References: <3F9D4370.99795B87@fy.chalmers.se> <3F9D5E60.866B0B63@fy.chalmers.se> <3F9E292C.3020509@trash.net>
+Message-ID: <3F9E506A.BD4BA635@fy.chalmers.se>
+References: <3F9D4370.99795B87@fy.chalmers.se> <3F9D5E60.866B0B63@fy.chalmers.se> <3F9E292C.3020509@trash.net> <3F9E3E6C.C0CC5598@fy.chalmers.se> <3F9E406C.7050105@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------D896F347D83BB09D1D90F8DA"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
@@ -20,151 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------D896F347D83BB09D1D90F8DA
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+> >As already mentioned in my last letter, note that 4th packet in
+> >fast.tcpdump is *not* actual wire traffic. On the wire [e.g. on server
+> >side] I see *two* packets with 1460 and 540 \n's as TCP payload.
+> >
+> Sorry I forgot about this earlier, can you make the dumps again on
+> both sides of the firewall ?
 
-> Can you please provide (pcap format) packet dumps of
+Can't you take my word for it? See my last letter from yesterday, first
+tcpdump snippet. You'll see that my server first ACKs 1460 bytes and
+then 540 extra. This alone proves that server got 2000 bytes in two
+packets, not one. But I can actually confirm that tcpdump does show two
+packets on server. I see no meaning to waste public bandwidth on
+attachment that does not actually add any extra information...
+
+> >In either case it apparently has something[/everything?] to do with
+> >ip_refrag in ip_conntrack_standalone.c. At least if I comment out the
+> >"if ((*pskb)->len > dst_pmtu(&rt->u.dst)) { ... }" statement in this
+> >function, './head.pl some.host 2000' completes instantly even if I
+> >insmod the patched module. A.
 > 
-> a) the correct situation
-> b) broken situation
+> Yes these lines are suspect nr. 1 ;) I wonder however how it keeps
+> working without refragmentation, this implies it's not necessary to
+> refragment here as the stack will do it anyways ..
 
-Attached.
-
-> I would like to have a look at it.
-
-As already mentioned in my last letter, note that 4th packet in
-fast.tcpdump is *not* actual wire traffic. On the wire [e.g. on server
-side] I see *two* packets with 1460 and 540 \n's as TCP payload.
-
-In either case it apparently has something[/everything?] to do with
-ip_refrag in ip_conntrack_standalone.c. At least if I comment out the
-"if ((*pskb)->len > dst_pmtu(&rt->u.dst)) { ... }" statement in this
-function, './head.pl some.host 2000' completes instantly even if I
-insmod the patched module. A.
---------------D896F347D83BB09D1D90F8DA
-Content-Type: application/octet-stream;
- name="fast.tcpdump"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="fast.tcpdump"
-
-NM2yoQIABAAAAAAAAAAAANwFAAABAAAAiTeePy65AQBCAAAAQgAAAAIAAAAIAARAAAKzmxTA
-AAAAAAAACABFAAA0OM1AAEAG84OBEDKlPoAcPoKnAFAYhLdZAAAAAIACFtD2/wAAAgQFtAEB
-BAIBAwMAiTeeP0RHAgBCAAAAQgAAAAIAAAAIAABAAAAAAAABAgABZQDLCABFAAA0AABAAHIG
-+lA+gBw+gRAypQBQgqeZpsn3GIS3WoASFtCTUAAAAgQFtAEBBAIBAwMAiTeeP1pHAgA2AAAA
-NgAAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAAoOM5AAEAG846BEDKlPoAcPoKnAFAYhLda
-mabJ+FAQFtDUGwAAiTeeP/5HAgDuBQAABggAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAf4
-OM9AAEAG672BEDKlPoAcPoKnAFAYhLdamabJ+FAYFtAWXgAACgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKiTeeP8LaAgBCAAAA
-QgAAAAIAAAAIAABAAAAAAAABAgABZQDLCABFAAA04mBAAHIGF/A+gBw+gRAypQBQgqeZpsn4
-GIS3WoAQFtDwwgAAAQEFChiEvQ4YhL8qiTeeP8jaAgA8AAAAPAAAAAIAAAAIAABAAAAAAAAB
-AgABZQDLCABFAAAo4mFAAHIGF/s+gBw+gRAypQBQgqeZpsn4GIS/KlAQIjjA4wAAwACvjS2B
-iTeeP+DaAgBHAAAARwAAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAA5ONFAAEAG83qBEDKl
-PoAcPoKnAFAYhL8qmabJ+FAYFtAOnwAASEVBRCAvIEhUVFAvMS4wCgqJN54/hGYDADwAAAA8
-AAAAAgAAAAgAAEAAAAAAAAECAAFlAMsIAEUAACjiYkAAcgYX+j6AHD6BEDKlAFCCp5mmyfgY
-hL87UBAiOMDSAADAACPQkiaJN54/c24DAHMBAABzAQAAAgAAAAgAAEAAAAAAAAECAAFlAMsI
-AEUAAWXiY0AAcgYWvD6AHD6BEDKlAFCCp5mmyfgYhL87UBgiOL/dAABIVFRQLzEuMSAyMDAg
-T0sNCkRhdGU6IFR1ZSwgMjggT2N0IDIwMDMgMDk6MzA6MDkgR01UDQpTZXJ2ZXI6IEFwYWNo
-ZS8xLjMuMjcgKFVuaXgpIERlYmlhbiBHTlUvTGludXggbW9kX3NzbC8yLjguOSBPcGVuU1NM
-LzAuOS42Yw0KTGFzdC1Nb2RpZmllZDogRnJpLCAxNyBPY3QgMjAwMyAyMDoxOTo0MSBHTVQN
-CkVUYWc6ICI0MTgwMjctNGVlMi0zZjkwNGVkZCINCkFjY2VwdC1SYW5nZXM6IGJ5dGVzDQpD
-b250ZW50LUxlbmd0aDogMjAxOTQNCkNvbm5lY3Rpb246IGNsb3NlDQpDb250ZW50LVR5cGU6
-IHRleHQvaHRtbDsgY2hhcnNldD1pc28tODg1OS0xDQoNCok3nj+LbgMANgAAADYAAAACAAAA
-CAAEQAACs5sUwAAAAAAAAAgARQAAKDjSQABABvOKgRAypT6AHD6CpwBQGIS/O5mmyzVQEBkg
-yK0AAIk3nj+EbwMAPAAAADwAAAACAAAACAAAQAAAAAAAAQIAAWUAywgARQAAKOJkQAByBhf4
-PoAcPoEQMqUAUIKnmabLNRiEvztQESI4v5QAAL8Ab8BW4ok3nj91dgMANgAAADYAAAACAAAA
-CAAEQAACs5sUwAAAAAAAAAgARQAAKDjTQABABvOJgRAypT6AHD6CpwBQGIS/O5mmyzZQERkg
-yKsAAIk3nj/HAgQAPAAAADwAAAACAAAACAAAQAAAAAAAAQIAAWUAywgARQAAKOJlQAByBhf3
-PoAcPoEQMqUAUIKnmabLNhiEvzxQECI4v5MAAL8AZrwzoA==
---------------D896F347D83BB09D1D90F8DA
-Content-Type: application/octet-stream;
- name="slow.tcpdump"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="slow.tcpdump"
-
-NM2yoQIABAAAAAAAAAAAANwFAAABAAAA1zeePxUcCABCAAAAQgAAAAIAAAAIAARAAAKzmxTA
-AAAAAAAACABFAAA0wElAAEAGbAeBEDKlPoAcPoKpAFAdQgG7AAAAAIACFtCn3gAAAgQFtAEB
-BAIBAwMA1zeePw2rCABCAAAAQgAAAAIAAAAIAABAAAAAAAABAgABZQDLCABFAAA0AABAAHIG
-+lA+gBw+gRAypQBQgqmdb/LJHUIBvIASFtAXlAAAAgQFtAEBBAIBAwMA1zeePyirCAA2AAAA
-NgAAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAAowEpAAEAGbBKBEDKlPoAcPoKpAFAdQgG8
-nW/yylAQFtBYXwAA2jeeP5SnCADqBQAA6gUAAAIAAAAIAARAAAKzmxTAAAAAAAAACABFAAXc
-wE1AAEAGZluBEDKlPoAcPoKpAFAdQgG8nW/yylAQFtCyCgAACgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgraN54/2DsJADwAAAA8AAAA
-AgAAAAgAAEAAAAAAAAECAAFlAMsIAEUAACi480AAcgZBaT6AHD6BEDKlAFCCqZ1v8sodQgdw
-UBAiOEdDAABHAChlwOvaN54/BDwJAGIAAABSAgAAAgAAAAgABEAAArObFMAAAAAAAAAIAEUA
-AkTAT0AAQAZp8YEQMqU+gBw+gqkAUB1CB3Cdb/LKUBgW0LnwAAAKCgoKCgoKCgoKCgoKCgoK
-CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCto3nj+ZywkAPAAAADwAAAACAAAACAAAQAAA
-AAAAAQIAAWUAywgARQAAKLj0QAByBkFoPoAcPoEQMqUAUIKpnW/yyh1CCYxQEC2gOb8AADkA
-8W2qs9o3nj+tywkARwAAAEcAAAACAAAACAAEQAACs5sUwAAAAAAAAAgARQAAOcBQQABABmv7
-gRAypT6AHD6CqQBQHUIJjJ1v8spQGBbQdrkAAEhFQUQgLyBIVFRQLzEuMAoK2jeeP55XCgA8
-AAAAPAAAAAIAAAAIAABAAAAAAAABAgABZQDLCABFAAAouPVAAHIGQWc+gBw+gRAypQBQgqmd
-b/LKHUIJnVAQLaA5rgAAOQBoAype2jeeP7tkCgBzAQAAcwEAAAIAAAAIAABAAAAAAAABAgAB
-ZQDLCABFAAFluPZAAHIGQCk+gBw+gRAypQBQgqmdb/LKHUIJnVAYLaA0wgAASFRUUC8xLjEg
-MjAwIE9LDQpEYXRlOiBUdWUsIDI4IE9jdCAyMDAzIDA5OjMxOjMwIEdNVA0KU2VydmVyOiBB
-cGFjaGUvMS4zLjI3IChVbml4KSBEZWJpYW4gR05VL0xpbnV4IG1vZF9zc2wvMi44LjkgT3Bl
-blNTTC8wLjkuNmMNCkxhc3QtTW9kaWZpZWQ6IEZyaSwgMTcgT2N0IDIwMDMgMjA6MTk6NDEg
-R01UDQpFVGFnOiAiNDE4MDI3LTRlZTItM2Y5MDRlZGQiDQpBY2NlcHQtUmFuZ2VzOiBieXRl
-cw0KQ29udGVudC1MZW5ndGg6IDIwMTk0DQpDb25uZWN0aW9uOiBjbG9zZQ0KQ29udGVudC1U
-eXBlOiB0ZXh0L2h0bWw7IGNoYXJzZXQ9aXNvLTg4NTktMQ0KDQraN54/vGQKADwAAAA8AAAA
-AgAAAAgAAEAAAAAAAAECAAFlAMsIAEUAACi490AAcgZBZT6AHD6BEDKlAFCCqZ1v9AcdQgmd
-UBEtoDhwAAA4AARdbkHaN54//WQKADYAAAA2AAAAAgAAAAgABEAAArObFMAAAAAAAAAIAEUA
-ACjAUUAAQAZsC4EQMqU+gBw+gqkAUB1CCZ2db/QHUBAZIEzxAADaN54/6GYKADYAAAA2AAAA
-AgAAAAgABEAAArObFMAAAAAAAAAIAEUAACjAUkAAQAZsCoEQMqU+gBw+gqkAUB1CCZ2db/QI
-UBEZIEzvAADaN54/pvIKADwAAAA8AAAAAgAAAAgAAEAAAAAAAAECAAFlAMsIAEUAACi4+EAA
-cgZBZD6AHD6BEDKlAFCCqZ1v9AgdQgmeUBAtoDhvAAA4APjAvJ8=
---------------D896F347D83BB09D1D90F8DA--
+Yes, it does [imply that]. But I rather wonder why did it assemble a TCP
+packet larger than MTU in first place. But in either case it looks like
+whomever who did that gives up after 3 seconds and generates two smaller
+instead. Normally I would also complain that one would expect tcpdump to
+show wire traffic even on the client side, but this is really bad
+opportunity to do so, as we probably wouldn't land on ip_refrag so
+soon:-) A.
