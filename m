@@ -1,14 +1,15 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [PATCH] www typo
-Date: Thu, 18 Mar 2004 20:59:45 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Creating rules without the /sbin/iptables command?
+Date: Fri, 19 Mar 2004 00:45:41 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1657382537.20040318205945@dns.toxicfilms.tv>
-Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Message-ID: <Pine.LNX.4.44.0403190042550.32344-100000@filer.marasystems.com>
+References: <40599AC4.6030504@nk.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Victor Julien <victor@nk.nl>
+In-Reply-To: <40599AC4.6030504@nk.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,27 +20,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Thu, 18 Mar 2004, Victor Julien wrote:
 
-this patch fixes a typo in the script that generates the
-mirrors page.
+> using 'iptables-restore' (without noflush) is there a way to preserve 
+> the accounting data from the first rule?
 
-Regards,
-Maciej
+Then you must use incremental commands, keepint the accounting rule 
+untouched.
 
-Index: scripts/Netfilter_HP.pm
-===================================================================
-RCS file: /cvspublic/homepage/scripts/Netfilter_HP.pm,v
-retrieving revision 1.7
-diff -u -r1.7 Netfilter_HP.pm
---- scripts/Netfilter_HP.pm     9 Jan 2004 01:04:34 -0000       1.7
-+++ scripts/Netfilter_HP.pm     18 Mar 2004 19:36:27 -0000
-@@ -303,7 +303,7 @@
-                        $writer->dataElement('entry', $$mhash{'thanks'});
-                }
-        } else {
--               $writer->dataElement('entry', 'uknnown');
-+               $writer->dataElement('entry', 'unknown');
-        }
+> Is this what the -c option of iptables-restore is for?
 
-        my ($name, $email) = parse_email(@{$$mhash{'contact'}}[0]);
+No. This instructs iptables-restore to restore any packet/byte counters 
+found in the input data. Without this option any such counters is ignored 
+and the installed rules have zeroed counters.
+
+Regards
+Henrik
