@@ -1,18 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] don't try to track broadcasts or multicasts (4/4)
-Date: Sun, 9 Jun 2002 21:35:06 +0200
+From: "andre achternaam" <andreiscmeel@hotmail.com>
+Subject: DNS ALG
+Date: Mon, 10 Jun 2002 07:54:06 +0000
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206092135.06199@henrik.marasystems.com>
-References: <1023366027.845.30.camel@tux> <1023547908.19838.46.camel@tux> <20020609171826.GD3181@naboo.de.gnumonks.org>
+Message-ID: <F67eOz8E9lEEsTmImmz000147c4@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <20020609171826.GD3181@naboo.de.gnumonks.org>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,37 +17,26 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 09 June 2002 19:18, Harald Welte wrote:
+Good day'
 
-> the results are actually quite interesting - but maybe there's a
-> particular reason for TCP behaving different than other
-> protocols...
+I have set-up a gateway that separates my (private ipv4) LAN from the 
+Internet. The hosts on my LAN are DHCP enabled and using private addresses. 
+Also set-up an authorive DNS server for the hosts with a domain. Since the 
+gateway performs NA(P)T it is not allowed to do queries from the Internet 
+because it get a private address. However I found a RFC (2694 DNS extensions 
+to NAT) that covers this part as far as I understand.  (I don’t want to use 
+it for ipv6).
 
-Broadcast or multicast does not apply to TCP. It does in the other 
-protocols (ICMP / UDP). A broadcast or multicast packet received by 
-TCP is with no doubt a martian as there is no aspect of TCP that can 
-be safely used on other than unicast links.
+Is there any developer who has looked into a DNS ALG in combination with 
+NA(P)T for ipv4? When yes, what is the status and what are the difficulties 
+he/she/you encounters up till now.
 
-Linux ICMP seems to have some provision to filter out broadcasts when 
-they do not make sense, but it could do better I think..
+All information is appreciated,
+regards,
 
-But I think this aspect of the Linux IP stack can be ignored local 
-traffic. If you receive a broadcast frame addressed to your unicast 
-IP address then the processing should not be much different from 
-receiving a broadcast frame addressed to your broadcast address. The 
-likelyhood that there is TCP/IP implementations sending you broadcast 
-link frames when unicast was intended is very low.
+Andre
 
-But the reverse cannot be assumed. There is special applications of 
-TCP/IP where multicast is used as local transport. This can be seen 
-in some odd active-active load balancing products where all servers 
-must see all packets, so a Linux server/router can be required to 
-receive unicast IP frames from a multicast link source address or to 
-sent unicast IP to a multicast link address..
 
-If this is considered in a bridge environment using the 
-bridge-netfilter integration then obviously no optimization based on 
-unicast/multicast link transport can be done on forwarded packets..
 
-Regards
-Henrik
+_________________________________________________________________
+Send and receive Hotmail on your mobile device: http://mobile.msn.com
