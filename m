@@ -1,13 +1,16 @@
-From: Mike-Ro-Chanel <mikerochanel@yahoo.it>
-Subject: A beginner spinlock question
-Date: Fri, 29 Aug 2003 10:52:00 +0200
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: [netfilter-core] bad performance: bug or missing optimisation?
+Date: Fri, 29 Aug 2003 11:56:42 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F4F1430.7050604@yahoo.it>
+Message-ID: <Pine.LNX.4.51.0308291149090.22881@dns.toxicfilms.tv>
+References: <20030829052521.57DA12C0BD@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Karlis Peisenieks <karlis@mt.lv>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <20030829052521.57DA12C0BD@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,24 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
-I'm writing my first "match" module for iptables.
-I use spin_lock_bh()/spin_unlock_bh() functions for mutex between BHs.
+Hi,
+> Hi Maciej,
+>
+> 	Definitely a different problem.  ICMP errors are handled
+> very differently from pings.  I assume you were actually doing NAT at
+> the time?
+No NAT rules, yet the nat modules were simply loaded because i used a copy
+of a setup that just had:
+# iptables -X -t nat
+# iptables -F -t nat
+For flushing all the tables. So iptable_nat was in memory. After unloading
+that, the redirects were treated again by the conntrack mechanism as
+valid and accepted by the by the ruleset.
+After modprobing iptable_nat again, after a few minutes, the -m state
+rules did not match the redirects, so they were DROPped by the ruleset
+default policy.
 
-My problem:
+I will re-examine the problem with the latest 2.4 kernel.
 
-- I include <linux/spin_lock.h> for mutex functions declaration
-
-- On Red Hat 9.0 with its 2.4.20-8 (redhat) kernel the compilation 
-procedure goes all right.
-
-- If I compile my module with 2.4.21 original (Linus) kernel I get this 
-messages:
-
-warning: implicit declaration of function `local_bh_disable'
-warning: implicit declaration of function `local_bh_enable'
-
-
-Anybody can help Me?
-
-Regards.
+Regards,
+Maciej
