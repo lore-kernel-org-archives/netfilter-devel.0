@@ -1,16 +1,16 @@
 From: Martijn Lievaart <m@rtij.nl>
 Subject: Re: conntrack and application-triggered port forwarding
-Date: Wed, 09 Apr 2003 17:20:10 +0200
+Date: Wed, 09 Apr 2003 13:21:30 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E943A2A.6070602@rtij.nl>
-References: <1049846579.16856.157.camel@gt4rvnd11.telogy.design.ti.com> 	<3E94023A.8080701@rtij.nl> <1049892747.23224.30.camel@gt4rvnd11.telogy.design.ti.com>
+Message-ID: <3E94023A.8080701@rtij.nl>
+References: <1049846579.16856.157.camel@gt4rvnd11.telogy.design.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: marian stagarescu <marian@ti.com>
-In-Reply-To: <1049892747.23224.30.camel@gt4rvnd11.telogy.design.ti.com>
+In-Reply-To: <1049846579.16856.157.camel@gt4rvnd11.telogy.design.ti.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,51 +23,47 @@ List-Id: netfilter-devel.vger.kernel.org
 
 marian stagarescu wrote:
 
->>The recent match should be able to do this.
->>1. Create a rule that matches the control channel and add the packet to 
->>a recent-table.
->>2. Match on the udp reverse packets. and on the reversed source/dest in 
->>the recent table. If match, accept.
->>
->>Martijn
->>    
->>
+>i may be missing something elementary about conntrack & nat & firewall
+>so please let me know if the following feature is supported in linux
+>because i don't quite see it:
 >
->hi martijn,
+>outside the scope of specialized ALGs (e.g. ftp, h323,...) i want 
+>to be able to specify that an outbound tcp/udp connection to dstport x
+>will require that related traffic be allowed inbound on port y.
 >
->thanks for your input. a couple questions on this recent match patch
->usage here:
+>that is to say, for a gateway:
 >
->for 1 above:
+>NET---| NAT/Conntrack/Firewall |---(private LAN)
 >
->iptables -I FORWARD -o (NET_IFACE) -p tcp --dport 100 -m recent --name
->test --set -j ACCEPT
-> 
->will install src (LAN IP) in recent list
+>_IF_AND_ONLY_IF_ traffic goes from LAN on tcp/dstport X open
+>forward chain to allow related udp/dstport Y to go back on LAN.
+>(i have a drop policy on forward chain for traffic with input interface
+>facing NET).
 >
->2) Not trying to set the accept for reverse:
+>in this example the tcp traffic will be playing the role of the control
+>channel and the udp the data channel but since I know that it operates
+>on predefined ports (or port ranges) i don't have to snoop into the
+>control channel and get the data channel port.
 >
->iptables -I FORWARD -i (NET_IFACE) -p udp --dport 200 -m recent --name
->test --rcheck 
+>this will be some "generic" ALG mechanism so that for applications that
+>are operating on known ports (or port ranges) i can use it without an
+>ALG implementation proper.
 >
->will test against the src ip (NET IP) whereas i need dst ip (LAN IP)
+>I can use static rules that will open udp/dstport Y but forward path
+>will be open on this rule (proto/port) regardless of the presence of
+>outbound tcp/dstport x traffic. so opening the firewall is not triggered
+>by an application.
 >
+>
+>Not being too familiar with the internals and api  of conntrack i
+>wonder: is such a task easy (example pointers ?)? 
 >  
 >
 
-Mind you, you'll need a more recent (no pun intended) release of 
-iptables than the current release, This functionality is not in iptables 
-1.2.7a. Look at the homepage for recent 
-(http://snowman.net/projects/ipt_recent/) for more information on how to 
-use it, there are examples there. Also see my previous post and the 
-answer from Stephen Frost (the author of the recent module) (Subject: 
-Talking about recent (was: Re: [PATCH] 2.4.x new amanda conntrack + NAT 
-support)).
+The recent match should be able to do this.
+1. Create a rule that matches the control channel and add the packet to 
+a recent-table.
+2. Match on the udp reverse packets. and on the reversed source/dest in 
+the recent table. If match, accept.
 
-Finally, this kind of questions really belongs on the user-list 
-(although in this paprticular instance you where lucky you posted here). 
-Please post question about usage of iptables there 
-(netfilter@lists.netfilter.org).
-
-HTH,
-Martijn Lievaart
+Martijn
