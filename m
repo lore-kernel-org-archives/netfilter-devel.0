@@ -1,14 +1,16 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: compiling libipq example
-Date: Thu, 03 Mar 2005 15:17:29 +0200
-Message-ID: <42270E69.5020008@outerspace.dyndns.org>
-References: <421EE3A0.7000804@datavibe.net>
+From: "Essien Ita Essien" <essiene@gmail.com>
+Subject: RE: compiling libipq example
+Date: Thu, 3 Mar 2005 16:26:29 +0100
+Message-ID: <WENDYiFmnENgidtlfcb00000001@wendy.ng.splasherstech.com>
+References: <42270E69.5020008@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Essien Ita Essien <essiene@datavibe.net>
-In-Reply-To: <421EE3A0.7000804@datavibe.net>
+To: "'Jonas Berlin'" <xkr47@outerspace.dyndns.org>,
+	"'Essien Ita Essien'" <essiene@datavibe.net>
+In-Reply-To: <42270E69.5020008@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,41 +22,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Essien Ita Essien wrote:
+>The error is on line 46:
 
-| Any ideas what i'm doing wrong?
+>|                 struct ipq_packet_msg_t *m = ipq_get_packet(buf);
 
-Found it! :)
+>it should be either
 
-| first.c:47: error: dereferencing pointer to incomplete type
+>struct ipq_packet_msg *m
 
-The error is on line 46:
+>or
 
-|                 struct ipq_packet_msg_t *m = ipq_get_packet(buf);
+>ipq_packet_msg_t *m
 
-it should be either
+>but not
 
-struct ipq_packet_msg *m
+>struct ipq_packet_msg_t *m
 
-or
+>:)
 
-ipq_packet_msg_t *m
+HOLY CROWBARS!!! 
 
-but not
+My bad thnx a million... 
 
-struct ipq_packet_msg_t *m
+funny thing is EVEN after looking thru the header file... I DIDN'T notice
+that typedef error.
 
-:)
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCJw5lxyF48ZTvn+4RAppkAKC+vJ6OOMUWvYwibvBLbo1xWIfj+QCgjk+l
-Chu0AEhgZHffTyUNtC2JlDo=
-=WRhi
------END PGP SIGNATURE-----
+Thnx again.
