@@ -1,19 +1,16 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH 1/2] ipt_MARK extension with backwards
- compatibility	(kernel side).
-Date: Tue, 07 Dec 2004 22:20:04 +0100
-Message-ID: <41B61E84.7020304@eurodev.net>
-References: <1101358191.5842.26.camel@localhost.localdomain>
-	<41A7B514.9030703@eurodev.net>
+Subject: Re: REJECT using invalid data
+Date: Tue, 07 Dec 2004 23:14:44 +0100
+Message-ID: <41B62B54.8060003@eurodev.net>
+References: <20041207010130.GC4757@netnation.com>
+	<41B58EE3.5050709@eurodev.net>
+	<20041207172823.GA31513@netnation.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080107030401080809050104"
-Cc: Anders Fugmann <afu@fugmann.dhs.org>,
-	Bart De Schuymer <bdschuym@pandora.be>,
-	Rusty Russell <rusty@rustcorp.com.au>, Netfilter development mailing list
-	<netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------030302070302060705040307"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <41A7B514.9030703@eurodev.net>
+To: Simon Kirby <sim@netnation.com>
+In-Reply-To: <20041207172823.GA31513@netnation.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,496 +23,154 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------080107030401080809050104
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+--------------030302070302060705040307
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Pablo Neira wrote:
+Simon Kirby wrote:
 
->> 2) If not, you must extend the size of the structure, so old kernels
->> will fail, and new kernels will be able to tell whether they are to use
->> the new or old structure.  The IPT_ALIGN'ed size of the structure must
->> change for this to work!
+>On Tue, Dec 07, 2004 at 12:07:15PM +0100, Pablo Neira wrote:
+>  
 >
+>>not really, my ruleset drops it, actually another rule here is 
+>>previously logging it.
+>>
+>>-A INPUT -m state --state INVALID -j DROP
+>>    
+>>
 >
-> My idea, I don't know how crazy it is. Instead of using the size to 
-> guess the target/match version, we could steal 1 byte from char name[] 
-> to define a new field called version, so we could register different 
-> versions of a match/target.
+>That's all fine and dandy, except that we can't use state tracking in our
+>configuration because of asymmetric routing (which is required due to
+>BGP).  This is fairly common, and not an incorrect setup.
+>  
 >
-> Possible scenarios:
-> a) Old kernel, new iptables binary: since names are manipulated with 
-> str* functions, it shouldn't be any problem with the version stuff 
-> because it will be ignored since info after first '\0' is ignored.
-> b) New kernel, old iptables: version value is zero, so kernel guess 
-> that it must handle the thing with first version of the target/match.
 
+Hm I thought that you were using state tracking... I agree your setup is 
+correct.
 
-I finally found some spare time to go back this issue, I've finished two 
-patches for the kernel part of my idea of adding versions to 
-targets/matches. One for ip_tables, and other for ipt_MARK, this based 
-on Rusty's.
-
-iptables (user space) patches is still missing  :(
-
-It works for me (TM) on a x86/gcc-2.95 with both patches applied and 
-using an old binary version of iptables to test that doesn't break 
-backward compatibility.
-
-Please, say crap/cool/dirty/crazy/whatever about this.
+>>>REJECT can be set to reject with a
+>>>tcp-reset or some ICMP response at this point.  If so, it will actually
+>>>use the possibly-incorrect information from the bad TCP packet and send a
+>>>rejection packet.  As far as I can tell, this is a bug.
+>>>      
+>>>
+>>yes, that's a bug, but in your ruleset, people should log/drop/let 
+>>    
+>>
+>
+>No!  It is not a bug in our ruleset, it is a bug in REJECT.
+>
+>It is incorrect to reply to packet layers that have bad checksums.
+>REJECT in this case must DROP, because anything else would be broken.
+>  
+>
+Now I see, if state tracking is not enable there's no way to avoid this 
+problem. But I guess that we should drop all malformed packets, not only 
+those which have bad checksums. Would you like to give a try to the 
+patch attached?
 
 --
 Pablo
 
---------------080107030401080809050104
+--------------030302070302060705040307
 Content-Type: text/x-patch;
- name="ip_table-version.patch"
+ name="reject.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="ip_table-version.patch"
+ filename="reject.patch"
 
-===== include/linux/netfilter_ipv4/ip_tables.h 1.12 vs edited =====
---- 1.12/include/linux/netfilter_ipv4/ip_tables.h	2004-11-02 01:39:53 +01:00
-+++ edited/include/linux/netfilter_ipv4/ip_tables.h	2004-12-07 20:16:50 +01:00
-@@ -53,7 +53,9 @@
- 			u_int16_t match_size;
+===== net/ipv4/netfilter/ipt_REJECT.c 1.32 vs edited =====
+--- 1.32/net/ipv4/netfilter/ipt_REJECT.c	2004-11-13 14:41:07 +01:00
++++ edited/net/ipv4/netfilter/ipt_REJECT.c	2004-12-07 23:03:29 +01:00
+@@ -352,6 +352,76 @@
+ 		ip_finish_output);
+ }	
  
- 			/* Used by userspace */
--			char name[IPT_FUNCTION_MAXNAMELEN];
-+			char name[IPT_FUNCTION_MAXNAMELEN-1];
++#define TH_FIN  0x01
++#define TH_SYN  0x02
++#define TH_RST  0x04
++#define TH_PUSH 0x08
++#define TH_ACK  0x10
++#define TH_URG  0x20
++#define TH_ECE  0x40
++#define TH_CWR  0x80
 +
-+			u_int8_t version;
- 		} user;
- 		struct {
- 			u_int16_t match_size;
-@@ -76,7 +78,9 @@
- 			u_int16_t target_size;
- 
- 			/* Used by userspace */
--			char name[IPT_FUNCTION_MAXNAMELEN];
-+			char name[IPT_FUNCTION_MAXNAMELEN-1];
-+
-+			u_int8_t version;
- 		} user;
- 		struct {
- 			u_int16_t target_size;
-@@ -344,7 +348,9 @@
- {
- 	struct list_head list;
- 
--	const char name[IPT_FUNCTION_MAXNAMELEN];
-+	const char name[IPT_FUNCTION_MAXNAMELEN-1];
-+
-+	u_int8_t version;
- 
- 	/* Return true or false: return FALSE and set *hotdrop = 1 to
-            force immediate packet drop. */
-@@ -378,7 +384,9 @@
- {
- 	struct list_head list;
- 
--	const char name[IPT_FUNCTION_MAXNAMELEN];
-+	const char name[IPT_FUNCTION_MAXNAMELEN-1];
-+
-+	u_int8_t version;
- 
- 	/* Called when user tries to insert an entry of this type:
-            hook_mask is a bitmask of hooks from which it can be
-@@ -414,7 +422,7 @@
- extern void ipt_unregister_match(struct ipt_match *match);
- 
- extern struct ipt_target *
--__ipt_find_target_lock(const char *name, int *error);
-+__ipt_find_target_lock(const char *name, const u_int8_t ver, int *error);
- extern void __ipt_mutex_up(void);
- 
- /* Furniture shopping... */
-===== net/ipv4/netfilter/ip_tables.c 1.34 vs edited =====
---- 1.34/net/ipv4/netfilter/ip_tables.c	2004-11-16 00:00:45 +01:00
-+++ edited/net/ipv4/netfilter/ip_tables.c	2004-12-07 20:07:45 +01:00
-@@ -465,22 +465,133 @@
- 	return find_inlist_lock(&ipt_tables, name, "iptable_", error, mutex);
- }
- 
-+static struct ipt_target *
-+find_target(const char *name, u_int8_t version)
++/* table of valid flag combinations - ECE and CWR are always valid */
++static u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
 +{
-+	struct list_head *i;
-+	struct ipt_target *t;
++	[TH_SYN]                        = 1,
++	[TH_SYN|TH_ACK]                 = 1,
++	[TH_RST]                        = 1,
++	[TH_RST|TH_ACK]                 = 1,
++	[TH_RST|TH_ACK|TH_PUSH]         = 1,
++	[TH_FIN|TH_ACK]                 = 1,
++	[TH_ACK]                        = 1,
++	[TH_ACK|TH_PUSH]                = 1,
++	[TH_ACK|TH_URG]                 = 1,
++	[TH_ACK|TH_URG|TH_PUSH]         = 1,
++	[TH_FIN|TH_ACK|TH_PUSH]         = 1,
++	[TH_FIN|TH_ACK|TH_URG]          = 1,
++	[TH_FIN|TH_ACK|TH_URG|TH_PUSH]  = 1,
++};
 +
-+	list_for_each(i, &ipt_target) {
-+		t = (struct ipt_target *) i;
-+		if (!strcmp(name, t->name)
-+		    && version == t->version)
-+			return t;
-+	}
-+	return NULL;
-+}
-+
-+static struct ipt_match *
-+find_match(const char *name, u_int8_t version)
++/* Protect against broken packets. Reduced version of tcp_error, taken 
++ * from tcp connection tracking. 
++ * 
++ * If someone else needs this piece of code, we should move this elsewhere 
++ * instead of copying it over and over again --pablo 
++ */
++static int tcp_error(struct sk_buff *skb, unsigned int hooknum)
 +{
-+	struct list_head *i;
-+	struct ipt_match *m;
++	struct iphdr *iph = skb->nh.iph;
++	struct tcphdr _tcph, *th;
++	unsigned int tcplen = skb->len - iph->ihl * 4;
++	u_int8_t tcpflags;
 +
-+	list_for_each(i, &ipt_match) {
-+		m = (struct ipt_match *) i;
-+		if (!strcmp(name, m->name)
-+		    && version == m->version)
-+			return m;
-+	}
-+	return NULL;
-+}
-+
-+static int
-+target_insert(struct ipt_target *target)
-+{
-+	if (find_target(target->name, target->version) == NULL) {
-+		list_prepend(&ipt_target, target);
++	/* Smaller that minimal TCP header? */
++	th = skb_header_pointer(skb, iph->ihl * 4,
++				sizeof(_tcph), &_tcph);
++	if (th == NULL) 
 +		return 1;
-+	}
++  
++	/* Not whole TCP header or malformed packet */
++	if (th->doff*4 < sizeof(struct tcphdr) || tcplen < th->doff*4) 
++		return 1;
++  
++	/* Checksum invalid? Ignore.
++	 * We skip checking packets on the outgoing path
++	 * because the semantic of CHECKSUM_HW is different there 
++	 * and moreover root might send raw packets.
++	 */
++	/* FIXME: Source route IP option packets --RR */
++	if (hooknum == NF_IP_PRE_ROUTING
++	    && csum_tcpudp_magic(iph->saddr, iph->daddr, tcplen, IPPROTO_TCP,
++			         skb->ip_summed == CHECKSUM_HW ? skb->csum
++			      	 : skb_checksum(skb, iph->ihl*4, tcplen, 0)))
++		return 1;
++
++	/* Check TCP flags. */
++	tcpflags = (((u_int8_t *)th)[13] & ~(TH_ECE|TH_CWR));
++	if (!tcp_valid_flags[tcpflags]) 
++		return 1;
++
 +	return 0;
 +}
 +
-+static int
-+match_insert(struct ipt_match *match)
-+{
-+	if (find_match(match->name, match->version) == NULL) {
-+		list_prepend(&ipt_match, match);
-+		return 1;
-+	}
-+	return 0;
-+}
+ static unsigned int reject(struct sk_buff **pskb,
+ 			   const struct net_device *in,
+ 			   const struct net_device *out,
+@@ -364,6 +434,12 @@
+ 	/* Our naive response construction doesn't deal with IP
+            options, and probably shouldn't try. */
+ 	if ((*pskb)->nh.iph->ihl<<2 != sizeof(struct iphdr))
++		return NF_DROP;
 +
-+#define IPT_MATCH 0
-+#define IPT_TARGET 1
-+
-+static inline void *
-+find_inlist_tm_lock_noload(const char *name,
-+			const u_int8_t ver,
-+			int *error,
-+			struct semaphore *mutex,
-+			int type)
-+{
-+	void *ret = NULL;
-+
-+	*error = down_interruptible(mutex);
-+	if (*error != 0)
-+		return NULL;
-+
-+	switch(type) {
-+		case IPT_MATCH:
-+			ret = (void *) find_match(name, ver);
-+			break;
-+		case IPT_TARGET:
-+			ret = (void *) find_target(name, ver);
-+			break;
-+		default:
-+			/* shouldn't happen */
-+			break;
-+	}
-+	if (!ret) {
-+		printk("find_tm_lock_noload: `%s' version=(%1x) not found!\n", name, ver);
-+		*error = -ENOENT;
-+		up(mutex);
-+	}
-+	return ret;
-+}
-+
-+#ifndef CONFIG_KMOD
-+#define find_inlist_tm_lock(n,v,p,e,m,t) find_inlist_tm_lock_noload((n),(v),(e),(m),(t))
-+#else
-+static void *
-+find_inlist_tm_lock(const char *name,
-+		    const u_int8_t ver,
-+		    const char *prefix,
-+		    int *error,
-+		    struct semaphore *mutex,
-+		    int type)
-+{
-+	void *ret;
-+
-+	ret = find_inlist_tm_lock_noload(name, ver, error, mutex, type);
-+	if (!ret) {
-+		duprintf("find_inlist: loading `%s%s'.\n", prefix, name);
-+		request_module("%s%s", prefix, name);
-+		ret = find_inlist_tm_lock_noload(name, ver, error, mutex,type);
-+	}
-+
-+	return ret;
-+}
-+#endif
-+
- static inline struct ipt_match *
--find_match_lock(const char *name, int *error, struct semaphore *mutex)
-+find_match_lock(const char *name, u_int8_t ver, int *error, 
-+		struct semaphore *mutex)
- {
--	return find_inlist_lock(&ipt_match, name, "ipt_", error, mutex);
-+	return find_inlist_tm_lock(name, ver, "ipt_", error, mutex, IPT_MATCH);
- }
++	/* It is incorrect to reply to malformed packet.
++	 * REJECT in this case must DROP, because anything
++	 * else would be broken. */
++	if (tcp_error(*pskb, hooknum))
+ 		return NF_DROP;
  
- static struct ipt_target *
--ipt_find_target_lock(const char *name, int *error, struct semaphore *mutex)
-+ipt_find_target_lock(const char *name, const u_int8_t ver, int *error, 
-+		     struct semaphore *mutex)
- {
--	return find_inlist_lock(&ipt_target, name, "ipt_", error, mutex);
-+	return find_inlist_tm_lock(name, ver, "ipt_", error, mutex,IPT_TARGET);
- }
- 
- struct ipt_target *
--__ipt_find_target_lock(const char *name, int *error)
-+__ipt_find_target_lock(const char *name, const u_int8_t ver, int *error)
- {
--	return ipt_find_target_lock(name,error,&ipt_mutex);
-+	return ipt_find_target_lock(name,ver,error,&ipt_mutex);
- }
- 
- void
-@@ -651,7 +762,8 @@
- 	int ret;
- 	struct ipt_match *match;
- 
--	match = find_match_lock(m->u.user.name, &ret, &ipt_mutex);
-+	match = find_match_lock(m->u.user.name, m->u.user.version, &ret,
-+				&ipt_mutex);
- 	if (!match) {
- 		duprintf("check_match: `%s' not found\n", m->u.user.name);
- 		return ret;
-@@ -699,7 +811,8 @@
- 		goto cleanup_matches;
- 
- 	t = ipt_get_target(e);
--	target = ipt_find_target_lock(t->u.user.name, &ret, &ipt_mutex);
-+	target = ipt_find_target_lock(t->u.user.name, t->u.user.version, &ret,
-+				      &ipt_mutex);
- 	if (!target) {
- 		duprintf("check_entry: `%s' not found\n", t->u.user.name);
- 		goto cleanup_matches;
-@@ -1339,12 +1452,13 @@
- 	if (ret != 0)
- 		return ret;
- 
--	if (!list_named_insert(&ipt_target, target)) {
--		duprintf("ipt_register_target: `%s' already in list!\n",
--			 target->name);
--		ret = -EINVAL;
-+	if (!target_insert(target)) {
-+		printk("ipt_register_target: `%s' already in list!\n",
-+			target->name);
-+		return -EINVAL;
- 	}
- 	up(&ipt_mutex);
-+	printk("register_target: `%s' registered\n", target->name);
- 	return ret;
- }
- 
-@@ -1365,12 +1479,13 @@
- 	if (ret != 0)
- 		return ret;
- 
--	if (!list_named_insert(&ipt_match, match)) {
--		duprintf("ipt_register_match: `%s' already in list!\n",
--			 match->name);
--		ret = -EINVAL;
-+	if (!match_insert(match)) {
-+		printk("ipt_register_match: `%s' already in list!\n",
-+			match->name);
-+		return -EINVAL;
- 	}
- 	up(&ipt_mutex);
-+	printk("register_match: `%s' registered\n", match->name);
- 
- 	return ret;
- }
+ 	/* WARNING: This code causes reentry within iptables.
 
---------------080107030401080809050104
-Content-Type: text/x-patch;
- name="ipt_mark.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ipt_mark.patch"
-
-===== include/linux/netfilter_ipv4/ipt_MARK.h 1.1 vs edited =====
---- 1.1/include/linux/netfilter_ipv4/ipt_MARK.h	2002-02-05 18:39:43 +01:00
-+++ edited/include/linux/netfilter_ipv4/ipt_MARK.h	2004-12-07 21:17:33 +01:00
-@@ -1,8 +1,19 @@
- #ifndef _IPT_MARK_H_target
- #define _IPT_MARK_H_target
- 
--struct ipt_mark_target_info {
-+struct ipt_mark_target_info_v0 {
- 	unsigned long mark;
-+};
-+
-+enum {
-+	IPT_MARK_SET=0,
-+	IPT_MARK_AND,
-+	IPT_MARK_OR
-+};
-+
-+struct ipt_mark_target_info_v1 {
-+	unsigned long mark;
-+	u_int8_t mode;
- };
- 
- #endif /*_IPT_MARK_H_target*/
-===== net/ipv4/netfilter/ipt_MARK.c 1.7 vs edited =====
---- 1.7/net/ipv4/netfilter/ipt_MARK.c	2004-01-30 02:00:13 +01:00
-+++ edited/net/ipv4/netfilter/ipt_MARK.c	2004-12-07 21:29:03 +01:00
-@@ -20,14 +20,14 @@
- MODULE_DESCRIPTION("iptables MARK modification module");
- 
- static unsigned int
--target(struct sk_buff **pskb,
--       const struct net_device *in,
--       const struct net_device *out,
--       unsigned int hooknum,
--       const void *targinfo,
--       void *userinfo)
-+target_v0(struct sk_buff **pskb,
-+	  const struct net_device *in,
-+	  const struct net_device *out,
-+	  unsigned int hooknum,
-+	  const void *targinfo,
-+	  void *userinfo)
- {
--	const struct ipt_mark_target_info *markinfo = targinfo;
-+	const struct ipt_mark_target_info_v0 *markinfo = targinfo;
- 
- 	if((*pskb)->nfmark != markinfo->mark) {
- 		(*pskb)->nfmark = markinfo->mark;
-@@ -36,43 +36,118 @@
- 	return IPT_CONTINUE;
- }
- 
-+static unsigned int
-+target_v1(struct sk_buff **pskb,
-+	  const struct net_device *in,
-+	  const struct net_device *out,
-+	  unsigned int hooknum,
-+	  const void *targinfo,
-+	  void *userinfo)
-+{
-+	const struct ipt_mark_target_info_v1 *markinfo = targinfo;
-+	int mark = 0;
-+
-+	switch (markinfo->mode) {
-+	case IPT_MARK_SET:
-+		mark = markinfo->mark;
-+		break;
-+		
-+	case IPT_MARK_AND:
-+		mark = (*pskb)->nfmark & markinfo->mark;
-+		break;
-+		
-+	case IPT_MARK_OR:
-+		mark = (*pskb)->nfmark | markinfo->mark;
-+		break;
-+	}
-+
-+	if((*pskb)->nfmark != mark) {
-+		(*pskb)->nfmark = mark;
-+		(*pskb)->nfcache |= NFC_ALTERED;
-+	}
-+	return IPT_CONTINUE;
-+}
-+
- static int
--checkentry(const char *tablename,
--	   const struct ipt_entry *e,
--           void *targinfo,
--           unsigned int targinfosize,
--           unsigned int hook_mask)
-+checkentry_v0(const char *tablename,
-+	      const struct ipt_entry *e,
-+	      void *targinfo,
-+	      unsigned int targinfosize,
-+	      unsigned int hook_mask)
- {
--	if (targinfosize != IPT_ALIGN(sizeof(struct ipt_mark_target_info))) {
-+	if (strcmp(tablename, "mangle") != 0) {
-+		printk(KERN_WARNING "MARK: can only be called from \"mangle\" table, not \"%s\"\n", tablename);
-+		return 0;
-+	}
-+
-+	if (targinfosize 
-+	    != IPT_ALIGN(sizeof(struct ipt_mark_target_info_v0))) {
- 		printk(KERN_WARNING "MARK: targinfosize %u != %Zu\n",
- 		       targinfosize,
--		       IPT_ALIGN(sizeof(struct ipt_mark_target_info)));
-+		       IPT_ALIGN(sizeof(struct ipt_mark_target_info_v0)));
- 		return 0;
- 	}
-+	return 1;
-+}
-+
-+static struct ipt_target ipt_mark_reg_v0 = {
-+	.name		= "MARK",
-+	.target		= target_v0,
-+	.checkentry	= checkentry_v0,
-+	.me		= THIS_MODULE,
-+};
-+
-+static int
-+checkentry_v1(const char *tablename,
-+	      const struct ipt_entry *e,
-+	      void *targinfo,
-+	      unsigned int targinfosize,
-+	      unsigned int hook_mask)
-+{
-+	const struct ipt_mark_target_info_v1 *markinfo = targinfo;
- 
- 	if (strcmp(tablename, "mangle") != 0) {
- 		printk(KERN_WARNING "MARK: can only be called from \"mangle\" table, not \"%s\"\n", tablename);
- 		return 0;
- 	}
-+		
-+	if (targinfosize
-+	    != IPT_ALIGN(sizeof(struct ipt_mark_target_info_v1))) {
-+		printk(KERN_WARNING "MARK: targinfosize %u != %Zu\n",
-+		       targinfosize,
-+		       IPT_ALIGN(sizeof(struct ipt_mark_target_info_v1)));
-+		return 0;
-+	}
-+	if (markinfo->mode != IPT_MARK_SET
-+    	    && markinfo->mode != IPT_MARK_AND
-+	    && markinfo->mode != IPT_MARK_OR) {
-+		printk(KERN_WARNING "MARK: unknown mode %u\n",
-+		       markinfo->mode);
-+		return 0;
-+	}
- 
- 	return 1;
- }
- 
--static struct ipt_target ipt_mark_reg = {
-+static struct ipt_target ipt_mark_reg_v1 = {
- 	.name		= "MARK",
--	.target		= target,
--	.checkentry	= checkentry,
-+	.version	= 0x1,
-+	.target		= target_v1,
-+	.checkentry	= checkentry_v1,
- 	.me		= THIS_MODULE,
- };
- 
- static int __init init(void)
- {
--	return ipt_register_target(&ipt_mark_reg);
-+	if (ipt_register_target(&ipt_mark_reg_v0) < 0)
-+		return -EINVAL;
-+	return ipt_register_target(&ipt_mark_reg_v1);
- }
- 
- static void __exit fini(void)
- {
--	ipt_unregister_target(&ipt_mark_reg);
-+	ipt_unregister_target(&ipt_mark_reg_v0);
-+	ipt_unregister_target(&ipt_mark_reg_v1);
- }
- 
- module_init(init);
-
---------------080107030401080809050104--
+--------------030302070302060705040307--
