@@ -1,20 +1,16 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 9/18] Netfilter: Clean up the kmod handling code in
-	iptables.c
-Date: Thu, 6 Jan 2005 02:30:31 +0100
-Message-ID: <20050106013031.GT26856@postel.suug.ch>
-References: <1104896029.20582.72.camel@localhost.localdomain>
-	<20050105181249.GS26856@postel.suug.ch>
-	<1104973817.20582.110.camel@localhost.localdomain>
+From: Jon Webb <jon_webb@binary-one.com>
+Subject: Re: mac dest match
+Date: Wed, 05 Jan 2005 19:24:51 -0800
+Message-ID: <41DCAF83.5040805@binary-one.com>
+References: <645d37c505010511185e63eb1b@mail.gmail.com>
+	<20050105211829.GA6225@soldats.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, Linus Torvalds <torvalds@osdl.org>,
-	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
-	Jamal Hadi Salim <hadi@cyberus.ca>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-Content-Disposition: inline
-In-Reply-To: <1104973817.20582.110.camel@localhost.localdomain>
+To: Peter Surda <shurdeek@routehat.org>
+In-Reply-To: <20050105211829.GA6225@soldats.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,27 +22,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Rusty Russell <1104973817.20582.110.camel@localhost.localdomain> 2005-01-06 12:10
-> On Wed, 2005-01-05 at 19:12 +0100, Thomas Graf wrote:
-> > * Rusty Russell <1104896029.20582.72.camel@localhost.localdomain> 2005-01-05 14:33
-> > > Name: Clean up the kmod handling code in iptables.c
-> > > Status: Tested under nfsim
-> > > 
-> > > 4) Remove __ipt_mutex_up() and __ipt_find_target_lock() which weren't
-> > >    used (even in patch-o-matic AFAICT).
-> > 
-> > Those are used by ipt action (net/sched/ipt.c).
-> > 
-> > Readds __ipt_find_target_lock() and __ipt_mutex_up() and adapts ipt.c
-> > to correctly use it. module must be given back properly upon cleanup.
-> > removes the comments demanding for proper module refcnt since
-> > find_target_lock() takes care of this now.
-> 
-> OK, thanks.  You missed a module_put in the check_entry-failed error
-> path though.
+Peter,
+I've had to do this before with regards to testing adhoc wireless 
+network protocols. For mac filtering, you are on the right track - 
+filter everything you can using routing/iptables rules and set the 
+[send|accept|secure]_redirects appropriately. However, the problem is 
+that ARP will not live by those rules. Therefore, you must disable ARP 
+using ifconfig and then add static entries manually with the arp command.
 
-Agreed, thanks.
+- Jon
 
-> I looked harder at this, and I prefer this patch:
+Peter Surda wrote:
 
-Looks fine to me.
+>On Wed, Jan 05, 2005 at 01:18:43PM -0600, Vivek raghunathan wrote:
+>  
+>
+>>Hi all.
+>>    
+>>
+>Hi,
+>
+>  
+>
+>>I have 3 nodes A, B, C on the same subnet and I would like to create a
+>>line topology:
+>>
+>>A -> B -> C
+>>
+>>To do this, I need to prevent any MAC packet from A to C from getting
+>>across and vice versa.
+>>    
+>>
+>I think it would be easier to use separate subnets and deactivate sending icmp
+>source redirects on "B". No need to play with iptables.
+>Assuming the network device is always eth0, you'd do something like:
+>
+>A: ip addr add 192.168.0.1/30 dev eth0
+>B: ip addr add 192.168.0.2/30 dev eth0;ip addr add 192.268.0.6/30 dev eth0
+>C: ip addr add 192.168.0.5/30 dev eth0
+>
+>(on B)
+>echo 0 > /proc/sys/net/ipv4/conf/eth0/send_redirects
+>
+>  
+>
+>>-Vivek
+>>    
+>>
+>Bye,
+>
+>Peter Surda (Shurdeek) <shurdeek@routehat.org>, ICQ 10236103, +436505122023
+>
+>  
+>
