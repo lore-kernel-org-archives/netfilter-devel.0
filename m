@@ -1,17 +1,16 @@
-From: Nils Radtke <Nils.Radtke@Think-Future.de>
-Subject: Re: local NAT
-Date: Sat, 14 Jun 2003 11:48:57 +0200
+From: P@draigBrady.com
+Subject: Re: performance
+Date: Thu, 12 Jun 2003 13:04:23 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030614114857.A13339@marvin.informatik.uni-stuttgart.de>
-References: <20030607215013.4F9B8444E8@service.i-think-future.de> <20030611120649.GK32593@sunbeam.de.gnumonks.org> <20030611140313.GB8055@balabit.hu> <20030611145856.GT32593@sunbeam.de.gnumonks.org>
-Reply-To: Nils Radtke <Nils.Radtke@Think-Future.de>
+Message-ID: <3EE86C47.7030204@draigBrady.com>
+References: <3EE4B1EB.9090305@draigBrady.com> <3EE4B2E3.2070700@draigBrady.com> <723210746.20030609212730@lf.lv> <3EE59BB2.1070009@draigBrady.com> <20030611121611.GM32593@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Cc: Peteris Krumins <newsgroups@lf.lv>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <20030611145856.GT32593@sunbeam.de.gnumonks.org>; from laforge@netfilter.org on Wed, Jun 11, 2003 at 04:58:56PM +0200
+In-Reply-To: <20030611121611.GM32593@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,62 +21,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> In order to get any idea about how those clock ticks are distributed
+> among the various pars of kernel networking, you need to use some means
+> of profiling.
 
-        Hello Harald, hello interested reader,
+iptables is in modules so I can't profile it at the moment.
+But this is informative. This is with 160 match any rules in the
+mangle::PREROUTING chain and then the packets are just dropped after.
+Packet rate again is 85Kpps.
 
-# Nils: which one are you interested in?
- My hope having supplied correct and simple data about the problem didn't
-fullfill. I'm sorry if I missed that goal and I'll try to do it better
-now:
+  14754 total                                      0.0096
+  11421 default_idle                             142.7625 (71% !!)
+    537 handle_IRQ_event                           3.3563
+    341 eth_type_trans                             1.7760
+    298 ip_rcv                                     0.4233
+    238 do_gettimeofday                            1.8594
+    224 netif_rx                                   0.5185
+    217 add_timer_randomness                       0.9042
+    196 skb_release_data                           1.3611
+    180 batch_entropy_store                        1.0227
+    162 alloc_skb                                  0.3375
+    157 process_backlog                            0.5164
+    137 kfree                                      0.7784
+    126 __kmem_cache_alloc                         0.3937
+    109 netif_receive_skb                          0.2004
+     85 nf_hook_slow                               0.1771
+     66 kmalloc                                    0.8250
+     61 kfree_skbmem                               0.4766
+     50 __constant_c_and_count_memset              0.3125
+     36 __kfree_skb                                0.0978
+     28 nf_iterate                                 0.1750
+     16 get_sample_stats                           0.1250
+     15 add_entropy_words                          0.0852
+     14 ip_promisc_rcv_finish                      0.2917
+     10 kmem_cache_free                            0.0625
+      8 add_interrupt_randomness                   0.1250
+      6 __generic_copy_to_user                     0.0625
+      4 schedule                                   0.0030
+      2 net_rx_action                              0.0057
+      2 do_softirq                                 0.0089
 
-BIG PICTURE: I use an access point to connect my wireless clients to the
-net. I am paranoid regarding data integrity and privacy. So, of course,
-WEP is not sufficient. In addition to using VPN (FreeSwan) I implement a
-different (compared to the private intranet) subnet on the wireless behalf.
+The main question is why all the idle time?
+Note userspace is locked out at this packet rate.
 
+system specs:
+    dual 1.4GHz PIII
+    e1000 nic
+    kernel 2.4.20
 
-VISUALIZATION:
-
-                 (Internet-)                (Intranet-)
-     Internet ---- Gateway ---- Intranet ---- Gateway ---- AccessPoint - - - - wireless_Intranet
-DEV:            ppp0    eth0                eth0   eth1     transparent
-
-IP:   any                     private_net               wireless_private_net
-                             192.168.1.0/24             172.16.1.0/24
-
-
-FACT: - Using netfilter to connect Intranet and Internet works. Good.
-      - The Intranet Gateway is hosting a whole bunch of services
-        configured to accept connections from the Intranet. Works. Good.
-PROB: - the clients on air (wireless_Intranet) cannot access the
-        services as, obviously, the IP-range is not allowed to connect. Bad.
-
-SOLUTION: - Need to do local SNAT.
-          - Map any single IP or IP-range (inbound on eth1 of Intranet-Gateway) 
-            from wireless_private_net to a specified single IP or a 
-            corresponding specified IP-range belonging to private_net.
-            This must be done _before_ the packet reaches a listening
-            local process.
-            Then the local processes configured to accept IP-addresses from
-            private_net only can serve to clients connected via WLAN, too.
-
-
-I hope this time all information has been clearly stated. If any
-questions remain, do not hesitate to address them to me.
-
-
-        Kind regards,
-
-                Nils Radtke
-
-
-
--- 
-
-* N.Radtke@                 * University of Stuttgart *    icq / lc   *
-*      www.Think-Future.de  *    dep.comp.science     * 9336272/92045 *
-:x                                                                   :)
-
-   Yesterday is but today's memory, and tomorrow is today's dream.  
-   -- Kahlil Gibran 
-   
+P=E1draig.
