@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] 2.5.x iptables iptable_mangle LOCAL_IN bugfix
-Date: Sun, 30 Mar 2003 21:40:24 +0200
+Subject: [PATCH] 2.4.x ipt_REJECT bugfix for TCP RST packets + asymm. routing
+Date: Sun, 30 Mar 2003 21:44:02 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030330194024.GT7718@sunbeam.de.gnumonks.org>
+Message-ID: <20030330194402.GU7718@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8N5nZmKALFZnI1Hj"
+	protocol="application/pgp-signature"; boundary="0M7E0x35R+W+EAky"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,38 +21,85 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---8N5nZmKALFZnI1Hj
+--0M7E0x35R+W+EAky
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Davem!
 
-The patch below fixes a bug when the MARK target is used in the INPUT
-chain of the mangle table.
+This fixes a bug (oops) in the generation of TCP RST packets in the
+ipt_REJECT target in the case of asymmetric routing, where the hardware
+header length of the outgoing interface is bigger than the hardware
+header length of the incoming interface.
 
-This one is for 2.5.x, the 2.4.x fix was in my last email.
-
-Please apply, thanks.
+Please apply to 2.4.x (2.5.x will follow), thanks.
 
 
 diff -Nru --exclude .depend --exclude *.o --exclude *.ver --exclude .*.flag=
-s --exclude *.orig --exclude *.rej --exclude *~ linux-2.5.66-plain/net/ipv4=
-/netfilter/iptable_mangle.c linux-2.5.66-nftest/net/ipv4/netfilter/iptable_=
-mangle.c
---- linux-2.5.66-plain/net/ipv4/netfilter/iptable_mangle.c	Mon Mar 24 23:01=
-:24 2003
-+++ linux-2.5.66-nftest/net/ipv4/netfilter/iptable_mangle.c	Sun Mar 30 21:3=
-9:08 2003
-@@ -179,7 +179,7 @@
- 		.priority	=3D NF_IP_PRI_MANGLE,
- 	},
- 	{
--		.hook		=3D ipt_local_hook,
-+		.hook		=3D ipt_route_hook,
- 		.pf		=3D PF_INET,
- 		.hooknum	=3D NF_IP_LOCAL_IN,
- 		.priority	=3D NF_IP_PRI_MANGLE,
+s --exclude *.orig --exclude *.rej --exclude *~ linux-2.4.20-plain/net/ipv4=
+/netfilter/ipt_REJECT.c linux-2.4.20-reject/net/ipv4/netfilter/ipt_REJECT.c
+--- linux-2.4.20-plain/net/ipv4/netfilter/ipt_REJECT.c	Fri Nov 29 00:53:15 =
+2002
++++ linux-2.4.20-reject/net/ipv4/netfilter/ipt_REJECT.c	Wed Mar  5 08:50:28=
+ 2003
+@@ -42,6 +42,7 @@
+ 	u_int16_t tmp_port;
+ 	u_int32_t tmp_addr;
+ 	int needs_ack;
++	int hh_len;
+=20
+ 	/* IP header checks: fragment, too short. */
+ 	if (oldskb->nh.iph->frag_off & htons(IP_OFFSET)
+@@ -61,13 +62,28 @@
+ 			 csum_partial((char *)otcph, otcplen, 0)) !=3D 0)
+ 		return;
+=20
++	/* Routing: if not headed for us, route won't like source */
++	if (ip_route_output(&rt, oldskb->nh.iph->daddr,
++			    local ? oldskb->nh.iph->saddr : 0,
++			    RT_TOS(oldskb->nh.iph->tos) | RTO_CONN,
++			    0) !=3D 0)
++		return;
++
++	hh_len =3D (rt->u.dst.dev->hard_header_len + 15)&~15;
++
++
+ 	/* Copy skb (even if skb is about to be dropped, we can't just
+            clone it because there may be other things, such as tcpdump,
+-           interested in it) */
+-	nskb =3D skb_copy(oldskb, GFP_ATOMIC);
++           interested in it). We also need to expand headroom in case
++	   hh_len of incoming interface < hh_len of outgoing interface */
++	nskb =3D skb_copy_expand(oldskb, hh_len, skb_tailroom(oldskb),
++			       GFP_ATOMIC);
+ 	if (!nskb)
+ 		return;
+=20
++	dst_release(nskb->dst);
++	nskb->dst =3D &rt->u.dst;
++
+ 	/* This packet will not be the same as the other: clear nf fields */
+ 	nf_conntrack_put(nskb->nfct);
+ 	nskb->nfct =3D NULL;
+@@ -129,16 +145,6 @@
+ 	nskb->nh.iph->check =3D 0;
+ 	nskb->nh.iph->check =3D ip_fast_csum((unsigned char *)nskb->nh.iph,=20
+ 					   nskb->nh.iph->ihl);
+-
+-	/* Routing: if not headed for us, route won't like source */
+-	if (ip_route_output(&rt, nskb->nh.iph->daddr,
+-			    local ? nskb->nh.iph->saddr : 0,
+-			    RT_TOS(nskb->nh.iph->tos) | RTO_CONN,
+-			    0) !=3D 0)
+-		goto free_nskb;
+-
+-	dst_release(nskb->dst);
+-	nskb->dst =3D &rt->u.dst;
+=20
+ 	/* "Never happens" */
+ 	if (nskb->len > nskb->dst->pmtu)
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -63,7 +110,7 @@ mangle.c
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---8N5nZmKALFZnI1Hj
+--0M7E0x35R+W+EAky
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -71,9 +118,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+h0goXaXGVTD0i/8RAtE6AKCyfFCM4vWaCnZO82AJt9RrNrU9PgCfTEWI
-b+h/VQ6B0Uj4AF4ni9Y1Khk=
-=biGl
+iD8DBQE+h0kCXaXGVTD0i/8RAs3oAJ4/cJlWxnNZUoZNf+hWXgkimJxJBACZAX3I
+B/rVXhJUf1rhMCSuC8OqWfw=
+=nRba
 -----END PGP SIGNATURE-----
 
---8N5nZmKALFZnI1Hj--
+--0M7E0x35R+W+EAky--
