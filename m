@@ -1,21 +1,22 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Linux 2.6.9-rc1
-Date: Thu, 26 Aug 2004 10:02:03 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Missing ipt_osf.h in p-o-m (kernel 2.6)
+Date: Thu, 26 Aug 2004 11:23:45 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040826080203.GZ5824@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.58.0408240031560.17766@ppc970.osdl.org>
-	<412CDFEE.1010505@triplehelix.org>
-	<20040825203206.GS5824@sunbeam.de.gnumonks.org>
-	<20040825164401.12259308.davem@redhat.com>
+Message-ID: <Pine.LNX.4.58.0408261103190.17019@blackhole.kfki.hu>
+References: <20040818223233.GA317@cerbere.dyndns.info>
+	<20040819094720.GZ3921@sunbeam.de.gnumonks.org>
+	<4127E920.2080100@trash.net>
+	<Pine.LNX.4.58.0408241134530.13212@blackhole.kfki.hu>
+	<20040824104945.GR26877@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.61.0408241435260.7021@filer.marasystems.com>
+	<Pine.LNX.4.58.0408241447140.13212@blackhole.kfki.hu>
+	<Pine.LNX.4.61.0408241647300.9087@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XbHSybK3LHOYQtWI"
-Cc: joshk@triplehelix.org, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <20040825164401.12259308.davem@redhat.com>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0408241647300.9087@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,53 +27,33 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 24 Aug 2004, Henrik Nordstrom wrote:
 
---XbHSybK3LHOYQtWI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Aug 25, 2004 at 04:44:01PM -0700, David S. Miller wrote:
-> On Wed, 25 Aug 2004 22:32:06 +0200
-> Harald Welte <laforge@netfilter.org> wrote:
->=20
-> Harald, a question about this fix.
-
-Sorry about not commenting on this initially.
-
-> So we're converting over to using __ip_nat_find_helper().
+> On Tue, 24 Aug 2004, Jozsef Kadlecsik wrote:
 >
-> And adding an export of ip_nat_find_helper (ie. without the two underscore
-> prefix).  Why?
->=20
-> If we need to export one, then we need to export both.
+> > Using the directory scheme and logic above, how you could express that
+> > foo.c is required up to 2.6.8 but not above?
+>
+> Place it in linux-2.6.1 (or from whatever version is required), and create
+> a linux-2.6.9 directory not having this file.
+>
+> If there is other releases between 2.6.1 and 2.6.9 for the file into each
+> release.
 
-yes, we're using __ip_nat_find_helper from within the NAT core (which is
-one module built from multiple .o files), and we export ip_nat_find_helper
-for other kernel modules, such as helpers and ct_sync (none of it is in
-mainline kernel yet).
+The assumption is that the file is required for all releases up to 2.6.8.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+We can't put the file into linux/, because then it'd be added to 2.6.9.
+We can't put the file into linux-2.4/ and linux-2.6/ either, from the same
+reason.
 
---XbHSybK3LHOYQtWI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+If we put the file into each linux-x.y.z directory up to 2.6.8, we are
+copying the same file between directories in spite of the efforts of
+avoiding that.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBLZj7XaXGVTD0i/8RAhpWAJ9vSFw+uTnQ4F5X0CGgSNglH/Jz9gCfVCM5
-ZBDuiG9BLwtcbYm5shSVIAI=
-=j7xt
------END PGP SIGNATURE-----
-
---XbHSybK3LHOYQtWI--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
