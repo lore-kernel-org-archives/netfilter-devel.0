@@ -1,13 +1,15 @@
-From: Michal Ludvig <mludvig@suse.cz>
-Subject: NAT before IPsec with 2.6
-Date: Wed, 21 Jan 2004 13:29:09 +0100
+From: Peter Surda <shurdeek@routehat.org>
+Subject: Re: [PATCH] Traffic accounting match
+Date: Wed, 21 Jan 2004 16:20:37 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <400E7095.9040709@suse.cz>
+Message-ID: <20040121152036.GR15599@chloe.cb.ac.at>
+References: <20031212182346.GA21222@moon.ondraszek.ds.polsl.gliwice.pl> <20031213084905.GE8950@obroa-skai.de.gnumonks.org> <20040116181043.GJ12709@chloe.cb.ac.at> <20040121132232.GN8642@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000904020509070106080906"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20040121132232.GN8642@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,87 +20,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000904020509070106080906
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wed, Jan 21, 2004 at 08:22:32AM -0500, Harald Welte wrote:
+> On Fri, Jan 16, 2004 at 07:10:44PM +0100, Peter Surda wrote:
+> > I have been using the patch for a couple of days and it seems to work fine,
+> > and I think it is a very useful thing. I looked at the code and seem to be
+> > able to understand most of the comments (I don't actually speak Polish, but 3
+> > other slavic languages :-)). If I translate it into english, is there anything
+> > more preventing it from going into p-o-m?
+> No, at least not from my point of view.
+Great.
 
-Hi there,
+> But please discuss this with Piotr first, since he is the original
+> author.
+He wrote me privately that he's already finished the translation and fixed
+some bugs as well, and expects to post an updated patch sometime soon.
 
-with the native IPsec stack in 2.6.1 kernel it's impossible to do SNAT 
-on outgoing packets that are leaving through an IPsec link. The problem 
-is that the forwarded packets are encapsulated (with IPSec ESP/AH) yet 
-before the POSTROUTING chain is reached.
+> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+Bye,
 
-So I hacked up this simple solution - I understand that it won't be 
-accepted as-is, because now the POSTROUTING chain is reached twice (once 
-from ip_forward and once from ip_output). But anyways - is this a 
-correct approach and should I go this way with some cleanups?
+Peter Surda (Shurdeek) <shurdeek@routehat.org>, ICQ 10236103, +436505122023
 
-Or is there another approach? I was thinking about extending the FORWARD 
-chain and let it do SNAT/MASQUERADE. That would be cleaner, but more 
-intrusive than my patch and would probably also require some changes in 
-the userspace.
-
-Comments, opinions, ...?
-
-(Please Cc me on replies, thanks!)
-
-Michal Ludvig
 -- 
-SUSE Labs                    mludvig@suse.cz | Cray is the only computer
-(+420) 296.545.373        http://www.suse.cz | that runs an endless loop
-Personal homepage http://www.logix.cz/michal | in just four hours.
-
---------------000904020509070106080906
-Content-Type: text/plain;
- name="kernel-nat-before-ipsec.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="kernel-nat-before-ipsec.diff"
-
-diff -rup linux-2.6.1.orig/net/ipv4/ip_forward.c linux-2.6.1.naga/net/ipv4/ip_forward.c
---- linux-2.6.1.orig/net/ipv4/ip_forward.c	2004-01-16 14:28:39.000000000 +0100
-+++ linux-2.6.1.naga/net/ipv4/ip_forward.c	2004-01-20 16:11:09.904466001 +0100
-@@ -46,12 +46,30 @@ static inline int ip_forward_finish(stru
- {
- 	struct ip_options * opt	= &(IPCB(skb)->opt);
- 
-+	if (!xfrm4_route_forward(skb))
-+		goto drop;
-+
-+#ifdef CONFIG_NETFILTER_DEBUG
-+	skb->nf_debug &= ~(1 << NF_IP_POST_ROUTING);
-+#endif
-+
- 	IP_INC_STATS_BH(IpForwDatagrams);
- 
- 	if (unlikely(opt->optlen))
- 		ip_forward_options(skb);
- 
- 	return dst_output(skb);
-+
-+drop:
-+	kfree_skb(skb);
-+	return NET_RX_DROP;
-+}
-+
-+static inline int ip_forward_postroute(struct sk_buff *skb)
-+{
-+	struct rtable *rt = (struct rtable*)skb->dst;
-+
-+	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, skb->dev, rt->u.dst.dev, ip_forward_finish);
- }
- 
- int ip_forward(struct sk_buff *skb)
-@@ -109,7 +131,7 @@ int ip_forward(struct sk_buff *skb)
- 	skb->priority = rt_tos2priority(iph->tos);
- 
- 	return NF_HOOK(PF_INET, NF_IP_FORWARD, skb, skb->dev, rt->u.dst.dev,
--		       ip_forward_finish);
-+		       ip_forward_postroute);
- 
- sr_failed:
-         /*
-
---------------000904020509070106080906--
+            Secret hacker rule #11: hackers read manuals.
