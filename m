@@ -1,16 +1,16 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: Netfilter/PPTP/GRE weirdness - only when used with 'tap' device
-Date: Wed, 16 Jun 2004 17:44:39 +1000
+From: "Peter Olsson" <aa@tbh.se>
+Subject: Re: Kernel Oops with kernel 2.4.25 and iptables 1.2.9 in __unexpect_related
+Date: Wed, 16 Jun 2004 17:57:54 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40CFFA67.8040808@snapgear.com>
-References: <BAY22-F4x5ElptLnpp000050866@hotmail.com>
+Message-ID: <002201c453ba$af6ec070$7c01a8c0@std.visionutv.se>
+References: <Pine.LNX.4.44.0406160001480.15456-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: "Netfilter Developers List" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Colin Paton <cozzarp@hotmail.com>
-In-Reply-To: <BAY22-F4x5ElptLnpp000050866@hotmail.com>
+To: "Henrik Nordstrom" <hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,30 +21,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Colin Paton wrote:
-> It would appear that ip_nat_proto_gre.c function gre_manip_pkt() is only 
-> being called for the first packet (client->PPTP server) and is not being 
-> called for the response (PPTP server->laptop) - or at least a DEBUGP there 
-> only occurs once.
-> 
-> I *think* (but this is where I begin to get out of my depth a bit) that the 
-> correct keymap entries aren't being added to the tables in 
-> ip_conntrack_proto_gre, and hence the gre_manip_pkt() isn't being called for 
-> the return entry. I'm not sure why though.
+Yes, I know. But I just don't have the time for the moment...
 
-For the working case, your logs show ip_ct_gre_keymap_destroy being
-called only once.  But for the broken case, it is called twice.  Since
-there are only two sets of keymaps, this means that all the keymap
-entries are deleted and so subsequent packets can't match any.
+I've applied the orphaned_expect patch now, hopefully it will help! :)
 
-Can you give full logs?  Or at least show what is going on in
-ip_conntrack_pptp also.
+Thanks for all help,
 
-pptp conntrack uses two expectations, but when the first one is matched
-it deletes the other one.  My initial suspicion is that the packet is
-going through conntrack twice, and we are trying to delete the other
-expectation twice, but since it is already deleted the second time, we
-end up deleting both expectations.
+Peter Olsson
 
--- 
-Philip Craig - SnapGear, A CyberGuard Company - http://www.SnapGear.com
+----- Original Message ----- 
+From: "Henrik Nordstrom" <hno@marasystems.com>
+To: "Peter Olsson" <aa@tbh.se>
+Cc: "Netfilter Developers List" <netfilter-devel@lists.netfilter.org>
+Sent: Wednesday, June 16, 2004 12:07 AM
+Subject: Re: Kernel Oops with kernel 2.4.25 and iptables 1.2.9 in
+__unexpect_related
+
+
+> On Tue, 15 Jun 2004, Peter Olsson wrote:
+>
+> > I looked through all applied patches from pom, and it's the list below.
+>
+> You really ought to be using pom-ng these days..
+>
+> Maybe updates/05_linux-2.4.26-orphaned_expect.patch is relevant to your
+> problem?
+>
+> Regards
+> Henrik
+>
+>
