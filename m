@@ -1,18 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Use net/checksum.h, not asm/checksum.h
-Date: Sun, 21 Sep 2003 16:47:29 +0200
+Subject: [PATCH 2.4+2.6] Use <net/checksum.h> instead of <asm/checksum.h>
+Date: Sun, 21 Sep 2003 16:52:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030921144729.GC22223@sunbeam.de.gnumonks.org>
-References: <20030920001917.GG21596@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20030921145252.GD22223@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="d01dLTUuW90fS44H"
-Cc: James Morris <jmorris@intercode.com.au>,
-	netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="sfyO1m2EN8ZOtJL6"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Matthew Wilcox <willy@debian.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Matthew Wilcox <willy@debian.org>
+To: David Miller <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <20030920001917.GG21596@parcelfarce.linux.theplanet.co.uk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,26 +22,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---d01dLTUuW90fS44H
+--sfyO1m2EN8ZOtJL6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Sep 20, 2003 at 01:19:17AM +0100, Matthew Wilcox wrote:
->=20
-> On PA-RISC, I get the warning:
->=20
-> In file included from net/ipv4/netfilter/ip_nat_snmp_basic.c:56:
-> include/asm/checksum.h:127: warning: `struct in6_addr' declared inside pa=
-rameter
->  list
-> include/asm/checksum.h:127: warning: its scope is only this definition or=
- declar
-> ation, which is probably not what you want.
->=20
-> This patch fixes that:
+Hi Dave!
 
-Thanks willy, I will push this patch to davem for kernel inclusion
+Please apply the following trivial fix (by Matthew Wilcox) to 2.4 and
+2.6.  Thanks.
+
+diff -u -p -r1.3 ip_nat_snmp_basic.c
+--- a/net/ipv4/netfilter/ip_nat_snmp_basic.c      8 Sep 2003 21:42:58 -0000=
+      1.3
++++ b/net/ipv4/netfilter/ip_nat_snmp_basic.c      20 Sep 2003 00:15:46 -0000
+@@ -51,9 +51,9 @@
+ #include <linux/netfilter_ipv4/ip_nat.h>
+ #include <linux/netfilter_ipv4/ip_nat_helper.h>
+ #include <linux/ip.h>
++#include <net/checksum.h>
+ #include <net/udp.h>
+ #include <asm/uaccess.h>
+-#include <asm/checksum.h>
+=20
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
+
 
 
 --=20
@@ -56,16 +60,16 @@ Thanks willy, I will push this patch to davem for kernel inclusion
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---d01dLTUuW90fS44H
+--sfyO1m2EN8ZOtJL6
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/bboBXaXGVTD0i/8RAkFsAKCn/8I5Obd4SigjzaB4jnUburmzOQCgkINx
-JENGwznAwZYEO6OPi2ST1wA=
-=3T5R
+iD8DBQE/bbtEXaXGVTD0i/8RAjp/AJwK06cl1K5G8cq8skeQjvaUzpS5YQCfewMV
+34rVt3qfRVXwGNG/NOO7Zmc=
+=iPIx
 -----END PGP SIGNATURE-----
 
---d01dLTUuW90fS44H--
+--sfyO1m2EN8ZOtJL6--
