@@ -1,15 +1,18 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Faking ethernet source MAC in NF_IP_POST_ROUTING
-Date: Thu, 24 Jun 2004 10:07:57 +0200 (CEST)
+From: Andras Kis-Szabo <kisza@securityaudit.hu>
+Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c
+	and optimization
+Date: Thu, 24 Jun 2004 10:13:50 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406241002580.17474-100000@filer.marasystems.com>
-References: <20040623161503.188c007f@mindrape>
+Message-ID: <1088064830.3104.21.camel@jds.i.dns-hungary.hu>
+References: <200406240404.NAA01264@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Harald Welte <laforge@netfilter.org>,
+   usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Phillip Whelan <pwhelan@exis.cl>
-In-Reply-To: <20040623161503.188c007f@mindrape>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200406240404.NAA01264@toshiba.co.jp>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +23,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 23 Jun 2004, Phillip Whelan wrote:
+Hi Yasuyuki,
 
-> In NF_IP_POST_ROUTING, the skb->mac is not NULL, but skb->mac_len is 0.
-> Directly modifying the skb->mac would just lead to memory corruption.  
-> How would I modify the source MAC address? (Im inside
-> NF_IP_POST_ROUTING). Can I access through a negative offset from
-> skb->data? (net/ipv4/arp.c does this, I think).
+you saved my life :)
+When I tried to do the same a was not able to track behaviour of
+skb->nh. (There was some grey point, like when the packet leaves the
+machine over the tunnel interface.)
 
-You can't from netfilter. The MAC is added very very late in the packet 
-sending process, after the NF_IP_POST_ROUTING hook.
+> "protoff" is the offset of transport protocol header from skb->data.
+> match modules can get the transport protocol header without skipping IPv6
+> extension headers.
+(Its OK, since we have some code which uses the extension headers.)
 
-What you maybe can do if ARP is your only concern is to run ARP in
-userspace and send the replies using a raw socket.
+> 	- In all match module, the only arguments of match() are changed.
+I think it is not a problem since the ip6tables - as I know - not a
+'core' product. We can break the compatibility / usability of these
+extensions. (And it will push us to fix the problems and sync the
+matches with the IPv4 parts.)
+Could you add an #error string right after the definitions in the
+matches?
+In this case the compilation of the matches will cause strange error
+messages - and someone have to answer all of them. An error message
+should help a little bit. (Eg.: Known error point. This part is under
+reconstruction. Please, be patient. etc.)
 
-But I honestly do not understand why you want to do this. The ARP address
-is configurable (see the ip link command), and there even exists patches
-to allow a single Ethernet to act as multiple virtual interfaces each with
-their own MAC... (look for mac vlan, can be found from the same source as
-the vlan patch)
+Many thanks again,
 
-Regards
-Henrik
+Best regards,
+
+Andras
+
+-- 
+Andras Kis-Szabo <kisza@securityaudit.hu>
