@@ -1,16 +1,23 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: About ipt_dstlimit.c, 2.6.10
-Date: Sat, 15 Jan 2005 23:38:19 +0100
-Message-ID: <20050115223819.GK9070@sunbeam.de.gnumonks.org>
-References: <20050115190719.GD20833@lunik.p0f.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: nf_conntrack [was Re: [PATCH 1/4] RFC: fast string matching
+ infrastrure for netfilter]
+Date: Sun, 16 Jan 2005 17:09:10 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0501152347460.5833@blackhole.kfki.hu>
+References: <41E1AECD.6020209@eurodev.net> <41E1B9F1.7010106@trash.net>
+	<Pine.LNX.4.58.0501102041430.28819@blackhole.kfki.hu>
+	<41E2E631.3060102@trash.net>
+	<20050110212807.GZ18568@sunbeam.de.gnumonks.org>
+	<41E73258.7030002@trash.net>
+	<1105686102.7311.101.camel@localhost.localdomain>
+	<20050114082012.GA22042@oknodo.bof.de>
+	<1105813114.6266.9.camel@krak.odu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ViWwB84N1zFtNiVD"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	pasztor@linux.gyakg.u-szeged.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Grega Bremec <gregab@p0f.net>
-Content-Disposition: inline
-In-Reply-To: <20050115190719.GD20833@lunik.p0f.net>
+To: KOVACS Krisztian <hidden@sch.bme.hu>
+In-Reply-To: <1105813114.6266.9.camel@krak.odu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,68 +29,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 15 Jan 2005, KOVACS Krisztian wrote:
 
---ViWwB84N1zFtNiVD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > This reminds me: what about my "timer management frequency reduction"
+> > from longtimeago? Basic points:
+>
+>   If my memory serves me well, Jozsef made some tests using a similar
+> patch (or maybe yours?), but the results were quite controversial.
 
-On Sat, Jan 15, 2005 at 08:07:19PM +0100, Grega Bremec wrote:
-> Hello, Harald.
+Yes, but that was probably due to my crappy code.
 
-Hi Grega!
+There is a plan to repeate conntrack performance tests in spring, in a
+real environment: ~30 machines as server on one side and ~100 machine as
+client on the other side, thanks to Gyuri Pasztor. There are some
+conditions we have to satisfy (the machines are available for testings at
+nights and weekends only) but that'll be fine. They still have a lot of
+work to put the machines in normal production tought, but I hope real
+soon we can work on the ramdisk images for the servers/clients, on the
+smooth switching back and forth between testing/production mode, etc.
 
-> I'm writing to you with regard to latest released pomng and the dstlimit
-> match patch, which I was trying to build into the kernel.
+Any hints on performance tunings at Gb lines, better metodology that what
+was used previously (httperf as traffic generator), suggestions on what
+patches/patch sets to test are welcomed!
 
-dstlimit hast been superseded by hashlimit.  But your locking issue
-would be the same with both ;)
-
-> Somehow, it turns out you're using MUST_BE_LOCKED() on a spinlock_t, yet
-> 2.6.10 (probably previous releases, maybe one of the patches I applied,
-> but it doesn't seem so, after skimming over them) expects all arguments
-> to MUST_BE_(READ_|WRITE_|)LOCKED() to be declared with DECLARE_RWLOCK(),
-> which is impossible to add to struct, as it initializes as well.
-
-mh. I see. It appears like I never tried to compile the code with
-NETFILTER_DEBUG enabled.
-
-The correct fix is to add some macros/functions to lockhelp.h that allow
-you to use a spinlock or rwlock within a structure.  This would require
-a macro or typedef for the lock itself, and some initialization function
-that initializes at runtime, just like the DECLARE_foo_LOCK macros work.
-
-> While my question may be related to any possible fixes to that, it is
-> not my primary concern to have that happen irrespective of my actions.
-> I was just wondering if you know any macros that can still operate on
-> spinlock_t members in 2.6.10, so I can produce the (probably extremely
-> tiny) patch myself and send it to you.
-
-I doubt that this code ever compiled with NETFILTER_DEBUG enabled.
-
->     Grega Bremec
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---ViWwB84N1zFtNiVD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFB6ZtbXaXGVTD0i/8RAudJAJ9/jd1C+ufPW5/ofPur+rF0IjKJtwCgoq1H
-e7N6pi890Iw9oIQ/0M2TkZc=
-=SwjT
------END PGP SIGNATURE-----
-
---ViWwB84N1zFtNiVD--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
