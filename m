@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] cleanup for random seed initialization ip_conntrack_hash_rnd
-Date: Tue, 13 Apr 2004 01:30:25 +0200
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: PPTP connttrack problem - 'unexpecting' performed too early?
+Date: Tue, 13 Apr 2004 11:21:22 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040412233025.GF1424@sunbeam.de.gnumonks.org>
-References: <407B1E91.5090206@eurodev.net>
+Message-ID: <407B4092.3060604@snapgear.com>
+References: <BAY13-F92qgIjOiwsN300050707@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eVzOFob/8UvintSX"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <407B1E91.5090206@eurodev.net>
+To: Colin Paton <cozzarp@hotmail.com>
+In-Reply-To: <BAY13-F92qgIjOiwsN300050707@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,48 +21,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Colin Paton wrote:
+> Can anyone advise? I'm not 100% sure of the nature of the 'expect' stuff, 
+> which is perhaps where my misunderstanding is coming from. I'm wondering if 
+> the other end should be 'unexpected' only AFTER GRE reply has been seen, but 
+> am not quite sure.
 
---eVzOFob/8UvintSX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+For most protocols, the first packet in the connection will be in a
+predetermined direction, so expectations are set up to only expect a
+packet in that direction.  But the first packet in a GRE connection
+can be sent by either end, so two expectations must be created.
 
-On Tue, Apr 13, 2004 at 12:56:17AM +0200, Pablo Neira wrote:
-> Hi Harald and list,
->=20
-> Attached a clean up for the initialization of the random seed used in=20
-> ip_conntrack. With this patch the random seed is initialized once when=20
-> ip_conntrack is loaded instead of checking every time a conntrack is=20
-> created whether it was already initialized or not. If I'm missing=20
-> something, please let me know.
+However, once an expectation is matched, a conntrack entry is created
+that will match packets in either direction.  So once the first GRE
+expectation is matched, the expectation for the other direction can
+be deleted immediately.  There is no need to wait for the reply.
 
-yes, you are missing that there might not be sufficient entropy yet at
-the time ip_conntrack is loaded (or, for that matter, consider a
-statically linked ip_conntrack).
+An additional complication with GRE is that it uses a different ID
+in either direction, so in order to match up the packets in either
+direction, a 'keymap' is used.  The pptp helper creates 2 keymaps
+for each expectation, for a total of 4 keymaps.  When an expectation
+is matched, its 2 keymaps are used for the conntrack entry.  But
+the other 2 keymaps are deleted by ip_ct_gre_keymap_destroy when
+the other expectation is deleted.
 
-> regards,
-> Pablo
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+What your change is accomplishing is to keep one of the keymaps for
+the other expectation (for ever).  This shouldn't be needed, so if
+it fixes things, it is probably because the keymap for the matched
+expectation is wrong.
 
---eVzOFob/8UvintSX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+> I enclose a debug log.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+Your log doesn't have any debug info from ip_nat_pptp.c or
+ip_nat_proto_gre.c.  Have you insmod'ed them?  If you haven't then
+that would explain why the keymap is wrong.  If you have, then please
+enable debug for them also, and resend the log.
 
-iD8DBQFAeyaQuOzVP8+Oy+QRAkFbAJ9YnB8nnf1fTacSS4lB/2BmCu50hwCff4n9
-pJX1wVLgQfYhHqXxLRiCdXI=
-=SJle
------END PGP SIGNATURE-----
-
---eVzOFob/8UvintSX--
+-- 
+Philip Craig - SnapGear, A CyberGuard Company - http://www.SnapGear.com
