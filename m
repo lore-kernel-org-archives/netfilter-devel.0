@@ -1,37 +1,31 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: RE: Routing decision?
-Date: Tue, 16 Sep 2003 00:32:33 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0309160030520.21174-100000@filer.marasystems.com>
-References: <7C9884991ADAE0479C14F10C858BCDF5122E38@alderaan.smgtec.com>
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: ipt_physdev.c alignment problems on parisc64
+Date: Mon, 15 Sep 2003 15:59:03 -0700
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20030915155903.12a3f95d.davem@redhat.com>
+References: <200309022116.41697.bdschuym@pandora.be>
+	<20030905153152.GA3623@obroa-skai.de.gnumonks.org>
+	<20030908191400.5ef59ab6.davem@redhat.com>
+	<200309132159.37834.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Wim Ceulemans <wim.ceulemans@able.be>,
-   <netfilter-devel@lists.netfilter.org>, <pieter@able.be>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Daniel Chemko <dchemko@smgtec.com>
-In-Reply-To: <7C9884991ADAE0479C14F10C858BCDF5122E38@alderaan.smgtec.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, acme@conectiva.com.br,
+   netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Bart De Schuymer <bdschuym@pandora.be>
+In-Reply-To: <200309132159.37834.bdschuym@pandora.be>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 15 Sep 2003, Daniel Chemko wrote:
+On Sat, 13 Sep 2003 21:59:37 +0200
+Bart De Schuymer <bdschuym@pandora.be> wrote:
 
-> I am using this with squid in userspace, and I am unaware of any way to
-> get squid to bind its outbound interface.
+> -	char physindev[IFNAMSIZ];
+> +	char physindev[IFNAMSIZ] __attribute__ ((aligned (__alignof__(unsigned int))));
 
-See tcp_outgoing_address in squid.conf. Gives you powers way beyond what 
-can be done in iptables/policy routing for selecting which source address 
-to use (assuming the current STABLE release of Squid is used)
+I have to reject the fix for this problem again.
 
-policy using based on source address is then trivial and does not even 
-need marks.
-
-Regards
-Henrik
+You can't change the struct exported to userspace in any way
+without breaking the tools.  I tried to explain this in the
+first revision of your change.
