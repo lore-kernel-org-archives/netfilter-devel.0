@@ -1,18 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] modification in current protocol helper API to handle
- error/unclean packets
-Date: Mon, 14 Jun 2004 13:37:46 +0200
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: difference of behavior between ip_tables.c and ip6_tables.c in
+ kernel
+Date: Mon, 14 Jun 2004 21:38:02 +0900 (JST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40CD8E0A.6050900@eurodev.net>
-References: <40CCECFF.9070907@eurodev.net> <40CD0BE7.3050802@trash.net>
+Message-ID: <200406141238.VAA11627@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
- Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <40CD0BE7.3050802@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,70 +20,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick and Jozsef,
 
-I'll reply you both in this email
+Hi,
 
-Jozsef Kadlecsik wrote:
+I found that ip6_packet_match() skips AH(Authentication Header) but
+ip_packet_match() doesn't skip AH. Then "ip6tables -A INPUT -p tcp -j DROP"
+matches AHed IPv6 packets but "iptables -A INPUT -p tcp -j DROP" doesn't match
+AHed IPv4 packets.
 
->I like it, too! I think the tcp-window-tracking patch should be made
->dependent of your patch
->  
->
+I think these commands should be behave in the same way. But do you think
+which behavior is better ?
 
-happy that you both like it! :-)
+If skipping AH, we can specify the inner protocol of AH/IPv4. But it is needed
+to change more codes because tcp_match(), udp_match(), etc. assume that
+protocol header is next of IPv4 header.
 
->NF_DROP == 0, so it should simply return an NF_* value. Thus the condition
->
->+       /* It may be an special packet, error, unclean... */
->+       if ((ret = proto->error(*pskb, &ctinfo, hooknum)))
->+               return ret;
->
->should be
->
->+       /* It may be an special packet, error, unclean... */
->+       if ((ret = proto->error(*pskb, &ctinfo, hooknum)) != NF_ACCEPT)
->+               return ret;
->  
->
+Otherwise, we'll just delete a few code from ip6_packet_match(). But we can't
+specify inner protocol.
 
-I'm still in doubt, if we found an unclean packet, we should return 
-NF_ACCEPT, so we let the packet continues its travel. In that case, the 
-skbuff  won't have a conntrack associated and the sysadmin could 
-explicitely drop invalid packets with an iptables rule, am I right?
+My ideal solution is the former. I think it is better that match() in matching
+module has "int protoff" argument which points to transport protocol header. 
 
-So I need a return value to say: "do nothing", that is, go ahead with 
-conntrack session, and I can  use neither NF_ACCEPT to do that nor 0 
-because == NF_DROP. Should I use -1 then?
+Regards,
 
->And as Patrick noted, UDP checksumming in IPv4 is not mandatory.
->
-
-I missed that, I'll take it into account for an extra patch to check for 
-udp/icmp unclean packets which will go on top of my patch.
-
-
-Patrick McHardy wrote:
-
-> Couldn't you use ip_ct_find_proto(IPPROTO_ICMP)->error() instead ?
-
-
-true, I'll have a look at this
-
-> invert_tuple and find_tuple probably should be prefixed with ip_ct_
-> then.
-
-
-so, I could rename those
-
->> - oh! I added udp checksum checking, well, I just stole that from 
->> Joszef's tcp tracking code and rename things...
->
->
-> This should be an extra patch.
-
-
-ok, so I'll do them like an extra patch on top of this.
-
-regards,
-Pablo
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
