@@ -1,19 +1,16 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re[2]: [PATCH] new 'tcpack' match
-Date: Mon, 4 Apr 2005 15:30:25 +0200
-Message-ID: <5810131003.20050404153025@dns.toxicfilms.tv>
-References: <42464598.9040707@outerspace.dyndns.org>
-	<425032D5.2010302@trash.net>
-	<878113493.20050403233059@dns.toxicfilms.tv>
-	<4250848E.5040207@outerspace.dyndns.org>
-Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+From: Wang Jian <lark@linux.net.cn>
+Subject: Re: [PATCH pom-ng] H.225 parser for h323-conntrack-nat
+Date: Mon, 04 Apr 2005 22:01:31 +0800
+Message-ID: <20050404215535.022F.LARK@linux.net.cn>
+References: <Pine.LNX.4.58.0504040852460.12853@blackhole.kfki.hu>
+	<20050404091035.GB28490@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <4250848E.5040207@outerspace.dyndns.org>
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <20050404091035.GB28490@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,35 +22,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> | Hmm. I'm no guru, but isn't it possible to do that using the u32 filter
-> | with tc? Which propably is faster than doing it in iptables anyway.
+Hi Max Kellermann,
 
-> Yeah it's possible, but no one seems to be doing it right..
-Ah, okay, I get it.
+It is very good news for me.
 
-> I aim to fix this all with one simple netfilter match which can give an
-> answer with simple arithmetics in one go instead of matching against a
-> preconfigured list of possible values one by one.
-Right.
+Please read back to my mail titled as "Need help on 2.6.11 and pom-ng
+HEAD"
 
-I agree the best way to go would be to extend the tcp match with
-the proposed semantics:
-    --datalen [!] A[,B:C[,D]]
+I want to make it works under 2.6.11 or 2.6.12. I really need your help
+to finish it in time.
+
+I will spend a day (ideally) to look into the new conntrack
+infrastructure, and then I will spend time on every conntrack involved.
+If the old code works, I think it is not very hard to port them to new
+infrastructure. provided that new infrastruture is stable and good.
+
+On Mon, 4 Apr 2005 11:10:35 +0200, Max Kellermann <max@duempel.org> wrote:
+
+> Hi all,
+> 
+> back from vacation now.
+> 
+> On 2005/04/04 10:07, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+> > > Jozsef: what do you think of that patch? h.323 helper is your code,
+> > > after all.
+> > 
+> > Max does the right thing. And as he completes the helper with the H.245
+> > parser, we could finally consider to push the helper into the
+> > kernel. :-)
+> 
+> Jozsef, thanks for confirming my patches. The H.225 parser works for
+> the clients I tested, but needs more work, because it *may* break
+> other clients (no ASN.1-PER parser, just q'n'd).
+> 
+> I have already written a lean H.245 parser which is working for me. It
+> aims to parse the ASN.1-PER correctly, but it has grown more complex
+> than I had expected. I will release it after I have spent more time on
+> cleanup, review and testing.
+> 
+> Security is my goal #1; what we need least is a remote kernel hole
+> (other ASN.1 parsers had holes in the past). This is the most complex
+> conntrack helper until now. It has to undergo much more review before
+> we can recommend it for the mainstream kernel.
+> 
+> Once the H.245 parser is finished, the H.225 parser will be rewritten
+> using my low-level ASN.1-PER parser library.
+> 
+> Max
+> 
 
 
-It also might be useful to match the sole header length.
-   --headerlen [!] A[,B:C[,D]]
-
-And the lenght of tcp+data
-
-   --len
-
-Possibly the similar for udp:
-   --datalen, --headerlen, --len
-
-And ICMP:
-   --datalen, --len (icmp headers have fixed size)
 
 -- 
-Regards,
-Maciej Soltysiak
+  lark
