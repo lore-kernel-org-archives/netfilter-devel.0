@@ -1,15 +1,17 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: Cannot apply h323-conntrack-nat
-Date: Fri, 25 Mar 2005 23:20:27 +0100
-Message-ID: <20050325222027.GA12915@roonstrasse.net>
-References: <1111695753.32351.34.camel@localhost>
+From: Jamal Hadi Salim <hadi@znyx.com>
+Subject: Re: iptables versioning feature causes ABI breakage
+Date: 25 Mar 2005 17:24:12 -0500
+Message-ID: <1111789452.1089.725.camel@jzny.localdomain>
+References: <1111666300.1037.40.camel@jzny.localdomain>
+	<42432E51.1080309@eurodev.net>
+Reply-To: hadi@znyx.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-To: Javier Kohen <jkohen@users.sourceforge.net>
-Content-Disposition: inline
-In-Reply-To: <1111695753.32351.34.camel@localhost>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@oss.sgi.com>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>, Harald Welte <laforge@gnumonks.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <42432E51.1080309@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +23,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/03/24 21:22, Javier Kohen <jkohen@users.sourceforge.net> wrote:
-> I'm trying to apply the h323-conntrack-nat patch to kernel 2.6.11-ck2
-> using pom-ng revision 3805, but it keeps saying: «unable to find ladd
-> slot in src /tmp/pom-29949/include/linux/netfilter_ipv4/ip_conntrack.h.»
-> Note that the -ck2 patchset does not modify file ip_conntrack.h.
+On Thu, 2005-03-24 at 16:17, Pablo Neira wrote:
+> Jamal,
+> 
+> Jamal Hadi Salim wrote:
+> > Folks,
+> > 
+> > Could whoever that made the versioning changes in iptables please
+> > contact me?
+> 
+> I was also involved in that change together with Rusty around january. 
+> It's a new infrastructure to extend matches/targets without breaking 
+> backward compatibility with previous releases of target/matches/iptables.
+> 
 
-Hi Javier,
+I think in the future this will go fine; all actions have a version
+field as well that is set to 0 at the moment.
 
-I have already posted patches to h323-conntrack-nat, unfortunately
-they have not been applied to svn yet. You can find patches against
-pom-ng trunk on my home page:
+> I must confess that I didn't have a look at your ipt_action stuff before 
+> , now I did. As Patrick pointed out, we'll keep in mind your ipt thing 
+> in future.
+> 
+> Your patch for tc to fix the problem looks fine. BTW, you can now use 
+> extended MARK features like --and-mark and --or-mark ;->
+> 
 
- http://max.kellermann.name/projects/netfilter/h323.html
+cool.
 
-Max
+Would you like to pay for your sins;-> by looking at my code to see it
+doesnt break or miss things?
+
+cheers,
+jamal
