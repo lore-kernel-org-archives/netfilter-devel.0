@@ -1,56 +1,57 @@
-From: Benoit Boissinot <benoit.boissinot@ens-lyon.org>
-Subject: Re: 2.6.11-rc2-mm1 - compile fix
-Date: Mon, 24 Jan 2005 21:24:09 +0100
-Message-ID: <20050124202409.GG1847@ens-lyon.fr>
-References: <20050124021516.5d1ee686.akpm@osdl.org>
+From: Guilherme Cesar Soares Ruppert <ruppert@las.ic.unicamp.br>
+Subject: Help!! How to steal UDP traffic?
+Date: Mon, 24 Jan 2005 22:10:45 -0200 (BRST)
+Message-ID: <Pine.LNX.4.61.0501242209090.6917@quasar.las.ic.unicamp.br>
+References: <Pine.LNX.4.61.0501221918080.6027@quasar.las.ic.unicamp.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261619AbVAXU1A@vger.kernel.org>
-To: Andrew Morton <akpm@osdl.org>
-Content-Disposition: inline
-In-Reply-To: <20050124021516.5d1ee686.akpm@osdl.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.61.0501221918080.6027@quasar.las.ic.unicamp.br>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 24, 2005 at 02:15:16AM -0800, Andrew Morton wrote:
-> 
-> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.11-rc1/2.6.11-rc1-mm1/
-> 
-> 
-> - Lots of updates and fixes all over the place.
-> 
-> - On my test box there is no flashing cursor on the vga console.  Known bug,
->   please don't report it.
-> 
->   Binary searching shows that the bug was introduced by
->   cleanup-vc-array-access.patch but that patch is, unfortunately, huge.
-> 
-> 
-
-The patch below fixes the compilation of the tftp nat module
-
-net/ipv4/netfilter/ip_nat_tftp.o(.bss+0x0):net/ipv4/netfilter/ip_nat_tftp.c:44: multiple definition of `ip_nat_tftp_hook'
-net/ipv4/netfilter/ip_conntrack_tftp.o(.bss+0x0):net/ipv4/netfilter/ip_conntrack_tftp.c:49: first defined here
-make[3]: *** [net/ipv4/netfilter/built-in.o] Error 1
-make[2]: *** [net/ipv4/netfilter] Error 2
-make[1]: *** [net/ipv4] Error 2
-make: *** [net] Error 2
-
-Signed-off-by: Benoit Boissinot <benoit.boissinot@ens-lyon.org>
 
 
---- linux-clean/include/linux/netfilter_ipv4/ip_conntrack_tftp.h	2005-01-24 12:44:29.000000000 +0100
-+++ linux-test/include/linux/netfilter_ipv4/ip_conntrack_tftp.h	2005-01-24 21:11:05.000000000 +0100
-@@ -13,8 +13,8 @@ struct tftphdr {
- #define TFTP_OPCODE_ACK		4
- #define TFTP_OPCODE_ERROR	5
- 
--unsigned int (*ip_nat_tftp_hook)(struct sk_buff **pskb,
--				 enum ip_conntrack_info ctinfo,
--				 struct ip_conntrack_expect *exp);
-+extern unsigned int (*ip_nat_tftp_hook)(struct sk_buff **pskb,
-+					enum ip_conntrack_info ctinfo,
-+					struct ip_conntrack_expect *exp);
- 
- #endif /* _IP_CT_TFTP */
+  Hi everyone, please I need some help!!
+
+  I'm developing a program that needs to intercept an UDP traffic generated
+  locally by another application. It's like a tunnel. My program will steal the
+  outgoing packets from the application (in the same machine) and will send to
+  a tcp tunnel.
+
+  I am using Libipq to do that, but I have a BIG problem. After send the UDP
+  packets to my tunnel, I need to DROP the packets because I don't want them to
+  be sent over the network. So I am doing:
+  ipq_set_verdict(handle, m->packet_id, NF_DROP, 0, NULL);
+
+  But the problem is that when I drop the packet, the application that
+  generated the packet remains blocked in sendto() until the packet is
+  accepted. When I change to NF_ACCEPT, the application doesn't block but the
+  packets are sent to the network and I don't want it.
+
+  How could I drop a packet silently, without blocking the application? Is
+  there any way to intercept outgoing packets locally without let the
+  applications notice that their packet were stolen?
+
+  Here is the same example using netcat:
+  $ iptables -A OUTPUT -p udp -j QUEUE
+  $ echo "Test" | nc -n -u 10.1.1.23 800
+  And this last remains blocked, not returning to shell.
+
+  I tested will ping (icmp echo) also and the same happened, but ping didn't
+  block. Instead, it said "operation not permitted".
+
+  Please give me some hope!!! :-)
+
+  Thanks
+
+  Guilherme Ruppert
