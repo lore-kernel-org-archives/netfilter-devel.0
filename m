@@ -1,13 +1,16 @@
-From: Ron Arts <raarts@netland.nl>
-Subject: ASSERT ip_conntrack_core.c:622 &ip_conntrack_lock not readlocked
-Date: Wed, 12 Mar 2003 21:34:13 +0100
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: ASSERT ip_conntrack_core.c:622 &ip_conntrack_lock not
+	readlocked
+Date: 12 Mar 2003 23:45:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E6F99C5.1050101@netland.nl>
-Reply-To: raarts@office.netland.nl
+Message-ID: <1047509148.824.53.camel@tux.rsn.bth.se>
+References: <3E6F99C5.1050101@netland.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms050108020301030102080006"
+Content-Type: multipart/mixed; boundary="=-efwYsLVtZ8YarcPpvgQl"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: raarts@office.netland.nl
+In-Reply-To: <3E6F99C5.1050101@netland.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,101 +21,131 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
 
---------------ms050108020301030102080006
-Content-Type: text/plain; charset=us-ascii; format=flowed
+--=-efwYsLVtZ8YarcPpvgQl
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-I get this error on kernel 2.4.21pre4 when I boot. RH 2.4.18 didn't have this problem:
+On Wed, 2003-03-12 at 21:34, Ron Arts wrote:
+> I get this error on kernel 2.4.21pre4 when I boot. RH 2.4.18 didn't have this problem:
+> 
+> Mar 12 14:05:52 n000007 kernel: ASSERT ip_conntrack_core.c:622 &ip_conntrack_lock not readlocked
+>
+> Is this a known problem?
 
-Mar 12 14:05:52 n000007 kernel: ASSERT ip_conntrack_core.c:622 &ip_conntrack_lock not readlocked
-Mar 12 14:05:52 n000007 last message repeated 2 times
-Mar 12 14:05:52 n000007 kernel: unable to load module ip_conntrack_ftp
-Mar 12 14:05:52 n000007 kernel: ip_nat_ftp: error registering helper for port 121
-Mar 12 14:05:52 n000007 kernel: ASSERT ip_conntrack_core.c:622 &ip_conntrack_lock not readlocked
-Mar 12 14:05:52 n000007 nbs-iptables: /lib/modules/2.4.21-0NBS/kernel/net/ipv4/netfilter/ip_nat_ftp.o:
-Mar 12 14:05:52 n000007 nbs-iptables: Hint: insmod errors can be caused by incorrect module parameters, including invalid IO
-  or IRQ parameters
-Mar 12 14:05:52 n000007 nbs-iptables: init_module: Device or resource busy
-Mar 12 14:05:52 n000007 nbs-iptables: /lib/modules/2.4.21-0NBS/kernel/net/ipv4/netfilter/ip_nat_ftp.o: insmod /lib/modules/2
-.4.21-0NBS/kernel/net/ipv4/netfilter/ip_nat_ftp.o failed
-Mar 12 14:05:52 n000007 nbs-iptables: /lib/modules/2.4.21-0NBS/kernel/net/ipv4/netfilter/ip_nat_ftp.o: insmod ip_nat_ftp fai
-led
+It looks like it's the NAT code that's abusing the locking a bit.
+It calls a function in conntrack without taking the correct lock first.
 
-Is this a known problem?
+I've attached a small patch that should fix it.
+The patch is completely untested, not even testcompiled...
+YMMV :)
 
-Ron Arts
+It would be great if you could try it out and report back if it fixes
+the problem or not. This patch will only fix the ASSERT warnings. Not
+the actual error that ip_conntrack_ftp couldn't be loaded.
 
---------------ms050108020301030102080006
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+I havn't checked the RH 2.4.18 kernel but I doubt they have netfilter
+compiled with debugging like you have. It's the debugging code that
+prints out the ASSERT warnings.
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJdjCC
-AxkwggKCoAMCAQICAwdzkDANBgkqhkiG9w0BAQQFADCBkjELMAkGA1UEBhMCWkExFTATBgNV
-BAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2FwZSBUb3duMQ8wDQYDVQQKEwZUaGF3dGUx
-HTAbBgNVBAsTFENlcnRpZmljYXRlIFNlcnZpY2VzMSgwJgYDVQQDEx9QZXJzb25hbCBGcmVl
-bWFpbCBSU0EgMjAwMC44LjMwMB4XDTAyMDUxMzEyNDI0OFoXDTAzMDUxMzEyNDI0OFowXDEN
-MAsGA1UEBBMEQXJ0czERMA8GA1UEKhMIUm9uIFIuQS4xFjAUBgNVBAMTDVJvbiBSLkEuIEFy
-dHMxIDAeBgkqhkiG9w0BCQEWEXJhYXJ0c0BuZXRsYW5kLm5sMIIBIjANBgkqhkiG9w0BAQEF
-AAOCAQ8AMIIBCgKCAQEAsz1vQDs+fOlea3WOBrQay1HHCqENWzUhuaMzDYKduzVxGzwNmc7j
-HnR0QflErghjp61ihnDQI1EF3NbIlSAne3fiCQ/9i2Ztbtxa1dlhzu3iZzMvCX4MDaIFwgk1
-rkdVG2sVZwgjV9nvroVZoV3Mqgh2ev7Cd6USxG9yJ3HFaK/BntOhCnRv52jTPOFqlZfD37FH
-XNmllxdmdfD7VKE7ssTr+wq336cm2uqqY0BEiovD1W6gyG2UXDBRo7ExhCroJzzirmsffW09
-p5XTdzC5CO3tdYqz5rtUua5ED0AwJGK7WO4YO2jHRSg7jykc+XvSXvL9SdlhKMqeWt1b/im+
-XQIDAQABoy4wLDAcBgNVHREEFTATgRFyYWFydHNAbmV0bGFuZC5ubDAMBgNVHRMBAf8EAjAA
-MA0GCSqGSIb3DQEBBAUAA4GBABNzXukOa8Lhmw1d12+RvwFORDhX2FEy+iaXkG6RDTcctEuc
-QBAebt1ialWEa3MAI5R7xKhkF78W/RilmHbSMr5MX3RfSnmi49n0+rzqtXDygci1PJfZFLSi
-cNx8GreiFF9H1id3F0LmJpkc2WEEJxJ5ofKVpXjjrt1MkMm2X8KtMIIDGTCCAoKgAwIBAgID
-B3OQMA0GCSqGSIb3DQEBBAUAMIGSMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBD
-YXBlMRIwEAYDVQQHEwlDYXBlIFRvd24xDzANBgNVBAoTBlRoYXd0ZTEdMBsGA1UECxMUQ2Vy
-dGlmaWNhdGUgU2VydmljZXMxKDAmBgNVBAMTH1BlcnNvbmFsIEZyZWVtYWlsIFJTQSAyMDAw
-LjguMzAwHhcNMDIwNTEzMTI0MjQ4WhcNMDMwNTEzMTI0MjQ4WjBcMQ0wCwYDVQQEEwRBcnRz
-MREwDwYDVQQqEwhSb24gUi5BLjEWMBQGA1UEAxMNUm9uIFIuQS4gQXJ0czEgMB4GCSqGSIb3
-DQEJARYRcmFhcnRzQG5ldGxhbmQubmwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
-AQCzPW9AOz586V5rdY4GtBrLUccKoQ1bNSG5ozMNgp27NXEbPA2ZzuMedHRB+USuCGOnrWKG
-cNAjUQXc1siVICd7d+IJD/2LZm1u3FrV2WHO7eJnMy8JfgwNogXCCTWuR1UbaxVnCCNX2e+u
-hVmhXcyqCHZ6/sJ3pRLEb3InccVor8Ge06EKdG/naNM84WqVl8PfsUdc2aWXF2Z18PtUoTuy
-xOv7Crffpyba6qpjQESKi8PVbqDIbZRcMFGjsTGEKugnPOKuax99bT2nldN3MLkI7e11irPm
-u1S5rkQPQDAkYrtY7hg7aMdFKDuPKRz5e9Je8v1J2WEoyp5a3Vv+Kb5dAgMBAAGjLjAsMBwG
-A1UdEQQVMBOBEXJhYXJ0c0BuZXRsYW5kLm5sMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEE
-BQADgYEAE3Ne6Q5rwuGbDV3Xb5G/AU5EOFfYUTL6JpeQbpENNxy0S5xAEB5u3WJqVYRrcwAj
-lHvEqGQXvxb9GKWYdtIyvkxfdF9KeaLj2fT6vOq1cPKByLU8l9kUtKJw3Hwat6IUX0fWJ3cX
-QuYmmRzZYQQnEnmh8pWleOOu3UyQybZfwq0wggM4MIICoaADAgECAhBmRXK3zHT1z2N2RYTQ
-LpEBMA0GCSqGSIb3DQEBBAUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBD
-YXBlMRIwEAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgw
-JgYDVQQLEx9DZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3
-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
-Lva/AAAAAAAA
---------------ms050108020301030102080006--
+Oh now I noticed one more thing. I believe you are trying something like
+this:
+
+modprobe ip_nat_ftp ports=121
+
+This will fail unless ip_conntrack_ftp was loaded the same way:
+
+modprobe ip_conntrack_ftp ports=121
+
+The autoloading will not supply the correct arguments to
+ip_conntrack_ftp when it tries to autoload it which happens when you
+load ip_nat_ftp without having ip_conntrack_ftp loaded.
+
+The error-message could be improved to say what exactly went wrong...
+I've attached a small patch for that as well...
+(not tested or testcompiled either)
+
+Time to continue trying to get rid of the flu... good night.
+
+-- 
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat you with experience.
+
+--=-efwYsLVtZ8YarcPpvgQl
+Content-Disposition: attachment; filename=ip_ct_find_helper.patch
+Content-Type: text/plain; name=ip_ct_find_helper.patch; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_core.c.orig	2003-03-12 23:=
+08:49.000000000 +0100
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_core.c	2003-03-12 23:12:05=
+.000000000 +0100
+@@ -617,13 +617,24 @@
+ 	return ip_ct_tuple_mask_cmp(rtuple, &i->tuple, &i->mask);
+ }
+=20
+-struct ip_conntrack_helper *ip_ct_find_helper(const struct ip_conntrack_tu=
+ple *tuple)
++struct ip_conntrack_helper *__ip_ct_find_helper(const struct ip_conntrack_=
+tuple *tuple)
+ {
+ 	return LIST_FIND(&helpers, helper_cmp,
+ 			 struct ip_conntrack_helper *,
+ 			 tuple);
+ }
+=20
++struct ip_conntrack_helper *ip_ct_find_helper(const struct ip_conntrack_tu=
+ple *tuple)
++{
++	struct ip_conntrack_helper *helper;
++=09
++	READ_LOCK(&ip_conntrack_lock);
++	helper =3D __ip_ct_find_helper(tuple);
++	READ_UNLOCK(&ip_conntrack_lock);
++
++	return helper;
++}
++
+ /* Allocate a new conntrack: we return -ENOMEM if classification
+    failed due to stress.  Otherwise it really is unclassifiable. */
+ static struct ip_conntrack_tuple_hash *
+@@ -702,7 +713,7 @@
+=20
+ 	/* Look up the conntrack helper for master connections only */
+ 	if (!expected)
+-		conntrack->helper =3D ip_ct_find_helper(&repl_tuple);
++		conntrack->helper =3D __ip_ct_find_helper(&repl_tuple);
+=20
+ 	/* If the expectation is dying, then this is a looser. */
+ 	if (expected
+
+--=-efwYsLVtZ8YarcPpvgQl
+Content-Disposition: attachment; filename=ip_nat_helper-request_module.patch
+Content-Type: text/plain; name=ip_nat_helper-request_module.patch; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+--- linux-2.4.20/net/ipv4/netfilter/ip_nat_helper.c.orig	2003-03-12 23:33:5=
+6.000000000 +0100
++++ linux-2.4.20/net/ipv4/netfilter/ip_nat_helper.c	2003-03-12 23:40:29.000=
+000000 +0100
+@@ -501,12 +501,14 @@
+ 			tmp +=3D 6;
+ 			sprintf(name, "ip_conntrack%s", tmp);
+ #ifdef CONFIG_KMOD
+-			if (!request_module(name)
+-			    && (ct_helper =3D ip_ct_find_helper(&me->tuple))
++			if (request_module(name)) {
++				printk("unable to load module %s\n", name);
++				return -EBUSY;
++			} else if ((ct_helper =3D ip_ct_find_helper(&me->tuple))
+ 			    && ct_helper->me) {
+ 				__MOD_INC_USE_COUNT(ct_helper->me);
+ 			} else {
+-				printk("unable to load module %s\n", name);
++				printk("unable to find sought helper from module %s\n", name);
+ 				return -EBUSY;
+ 			}
+ #else
+
+--=-efwYsLVtZ8YarcPpvgQl--
