@@ -1,16 +1,15 @@
-From: Polychronis Ypodimatopoulos <ypol@intracom.gr>
-Subject: IPv6 module vs Netfilter static
-Date: Thu, 9 Oct 2003 08:55:24 +0300
+From: "Slav Rilov" <Slav.Rilov@Zoo.org>
+Subject: DNAT dosen't work
+Date: Fri, 10 Oct 2003 16:06:17 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200310090855.24134.ypol@intracom.gr>
+Message-ID: <A59F9B5C2A83424F9A8679E1BAB3E56610DCAA@exchange.zoodomain.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Description: clearsigned data
-Content-Disposition: inline
+Content-Class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,40 +20,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I have Red Hat intalled, with minimum pakets option:
+I am building dual host: eth1 - external, eth0(10.10.1.1 255.255.0.0) - =
+internal interface=20
+I just want the packet to hit eth0 for testing, but it never dose
+I am running the folowing script:
 
-Dear all
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
 
-There is a problem if you compile IPv6 as a module and the
-IPv6 netfilter options statically into the kernel. AFAICS they should depen=
-d=20
-on the IPv6 option and not be allowed to compile statically if IPv6 is a=20
-module. Otherwise, various depend errors occur.
+iptables -t nat -A PREROUTING -i eth1 -j DNAT --to-destination 10.10.1.1
+iptables -A INPUT -i eth0 -j ACCEPT
+iptables -A INPUT -i eth1 -j ACCEPT
 
-Please cc me as I am no expert (or intermediate :) in netfilter development=
-=20
-and therefore not subscribed in this list.
+I have log that tracks pakets and I see that packet arrives, then it =
+destination addresses changes to 10.10.1.1 and hits eth1 instead of eth0 =
+and stops, never gets to eth0
 
-=2D --=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-Polychronis Ypodimatopoulos MSc
-Software Engineer
-Defense Systems Development
-INTRACOM S.A.
-Markopoulo Ave, 190 02
-Peania
-Tel:   (+30)210-667 9067
-=46ax:   (+30)210-667 4634
-email: ypol at intracom dot gr
-http://www.intracom.gr
-
-=20
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE/hPhMJ3lXivLkjBERAj2TAJ43rV1z+5Kwoy571b49flney436IQCffkj0
-3SXZYtLW1IjqapCN6y+3Jcc=3D
-=3DjnMq
-=2D----END PGP SIGNATURE-----
+Please help me
+Slav
