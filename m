@@ -1,13 +1,13 @@
-From: namelesspirate@gmx.net
-Subject: what to expect ?
-Date: Wed, 15 Oct 2003 12:04:54 +0200 (MEST)
+From: "Andrzej Kozak" <kozak@manager.ae.wroc.pl>
+Subject: Trouble with PPTP
+Date: Wed, 15 Oct 2003 15:46:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <24158.1066212294@www55.gmx.net>
+Message-ID: <000c01c39322$c9fbcf40$01d2a8c0@adm.ae.wroc.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0009_01C39333.8BD96040"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,32 +18,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-my setup is the following:
-HOST1 <-> GW <-> SERVER <-> HOST2
-    <---------------DATA------------->
+This is a multi-part message in MIME format.
 
-HOST1 opens a control-connection to the SERVER which is nat'd by GW.
-Now either HOST1 (or HOST2) issue a call to the SERVER, which is nat'd to
-HOST2 (or HOST1).
-This host answers with connection information for a data connection, that
-gets rewritten by GW and is transfered via the server to the other host.
-Now the hosts try to establish the data connection. I have ip/port-tuples
-for both ends of the connection.
-My question is how should the expectation look like ?
-src: host2-ip/port  dst: gw-ip/port is what I think is correct. (if HOST1
-issued the call)
-and when does ip_nat_expected get called ? and how should I alter src and
-dst ip in ip_nat_expected ?
-So far I only got the data goin' in one direction.
+------=_NextPart_000_0009_01C39333.8BD96040
+Content-Type: text/plain;
+	charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 
-regards
+Hello!
+When I patched my 2.4.22 kernel with pptp-conntrack-nat -DNAT and -SNAT =
+is broken if I use iptables with -t nat
+I get message: iptables: Invalid argument
+Iptables v. 1.2.8
+I need establish connect from my security network to outside VPN server.
 
-niKolAi
+best regards
 
--- 
-NEU FÜR ALLE - GMX MediaCenter - für Fotos, Musik, Dateien...
-Fotoalbum, File Sharing, MMS, Multimedia-Gruß, GMX FotoService
+Andrew Kozak
+------=_NextPart_000_0009_01C39333.8BD96040
+Content-Type: text/html;
+	charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 
-Jetzt kostenlos anmelden unter http://www.gmx.net
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-2">
+<META content=3D"MSHTML 6.00.2800.1226" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV>
+<DIV><FONT size=3D2>Hello!</FONT></DIV>
+<DIV><FONT size=3D2>When I&nbsp;patched my 2.4.22 kernel with =
+pptp-conntrack-nat=20
+-DNAT and -SNAT is broken if I use iptables with -t nat</FONT></DIV>
+<DIV><FONT size=3D2>I get message: <EM>iptables: Invalid=20
+argument</EM></FONT></DIV>
+<DIV><FONT size=3D2>Iptables v. 1.2.8</FONT></DIV>
+<DIV><FONT size=3D2>I need establish connect from my security network to =
+outside=20
+VPN server.</FONT></DIV>
+<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D2>best regards</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT size=3D2>Andrew Kozak</FONT></DIV></DIV></BODY></HTML>
 
-+++ GMX - die erste Adresse für Mail, Message, More! +++
+------=_NextPart_000_0009_01C39333.8BD96040--
