@@ -1,16 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Some one knows how to implement policy routing with iptables?
-Date: Sat, 28 Aug 2004 09:15:23 +0200 (CEST)
+From: "He Ke" <heke@uestc.edu.cn>
+Subject: a libipq problem(FAQ cannot help)
+Date: Sat, 28 Aug 2004 16:46:32 +0800
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408280912520.17572@filer.marasystems.com>
-References: <7C9884991ADAE0479C14F10C858BCDF591E362@alderaan.smgtec.com>
-	<000e01c48ccc$6bd0a770$8e5f78ca@nic.ecnu.edu.cn>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <293682792.10746@uestc.edu.cn>
+Reply-To: He Ke <heke@uestc.edu.cn>
+Content-Type: text/plain
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robbert <hanbo163com@163.com>
-In-Reply-To: <000e01c48ccc$6bd0a770$8e5f78ca@nic.ecnu.edu.cn>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,26 +17,35 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 28 Aug 2004, Robbert wrote:
-
-> If there are some way to arrange the rules in iptables sorted, so the 
-> administrator do not borther with which rules he added first and which 
-> last , this kind of thing make sense ?
-
-Yes, by using a frontend implementing the sorting, or by defining a tree 
-of chains defining priority levels.
-
-> And,since the ROUTE targe now can only let us specify the interface and 
-> the gateway , then if there is a way can let us specify the route table, 
-> so we do NOT need to mark the packet first then find the ip rules,route 
-> table,then the next hop and we can routing faster.Does this thought very 
-> weird?Is it valuable?
-
-It is better to fix the route table lookup to be efficient rather than 
-a linerar search than to make iptables look into doing this.
-
-There is apparently ongoing work to optimize the route slow path 
-considerably, if done correctly this should solve the above.
-
-Regards
-Henrik
+Hello,
+i've now got a serious problem on the libipq programming.I wrote an application
+which gets 
+packets from iptables's QUEUE target(ip_queue&ip6_queue),and then deals with
+them(drop,accept,...).
+It works well with normal amout of packets,but when packets comes above 10M/s,it
+dies soon,and show
+ "Failed to received netlink message: No buffer space available".
+   I've checked the FAQ,it says "you can tune their receive buffer sizes via
+ /proc/sys/net/core, sysctl, or use the SO_RCVBUF socket option on the file
+ descriptor".I tried them both , but it doesn't work,my application still die
+soon
+ when it meets packets above 10M/s.
+   I tuned
+  /proc/sys/net/core/rmem_default
+  /proc/sys/net/core/rmem_max
+ up to 1048576 .
+   I modified the ipq_create_handle function in the libipq.c file, added the
+ following sentence:
+ 	char maxbuf[1048576];
+ 	if(setsockopt(h->fd,SOL_SOCKET,SO_RCVBUF,&maxbuf,sizeof(maxbuf))==-1)
+ 		{
+ 		ipq_errno=IPQ_ERR_RECVBUF;
+ 		free(h);
+ 		return NULL;
+ 		}
+ Am I right?
+ If what i've done is what the FAQ says,why doesn't it work?
+ the software snort_inline who uses this technique has the same problem,i've
+ checked it.
+ Would you please tell me how can i deal with this problem ?
+ I'll be very appreaciate!
