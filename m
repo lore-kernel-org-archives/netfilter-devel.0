@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: scripts for adding rulesets for performance testing?
-Date: Fri, 10 Oct 2003 22:22:24 +0200
+Subject: Re: Question about nf_hookfn
+Date: Fri, 10 Oct 2003 22:23:36 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031010202224.GG13456@sunbeam.de.gnumonks.org>
-References: <20031009211452.GA16165@sirius.cs.pdx.edu>
+Message-ID: <20031010202336.GH13456@sunbeam.de.gnumonks.org>
+References: <1065798842.17392.38.camel@rade7.s.cs.auc.dk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VACxsDaSTfeluoxK"
+	protocol="application/pgp-signature"; boundary="3ecMC0kzqsE2ddMN"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kristen Carlson <kristenc@cs.pdx.edu>
+To: Emmanuel Fleury <fleury@cs.auc.dk>
 Content-Disposition: inline
-In-Reply-To: <20031009211452.GA16165@sirius.cs.pdx.edu>
+In-Reply-To: <1065798842.17392.38.camel@rade7.s.cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,26 +23,29 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---VACxsDaSTfeluoxK
+--3ecMC0kzqsE2ddMN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 09, 2003 at 02:14:52PM -0700, Kristen Carlson wrote:
-> Hi there.  I'm doing some performance testing of iptables with increasing
-> rulesets and am wondering if anybody already has some scripts for adding
-> rules (many many rules) that they would like to share?  I noticed in the
-> archives that the nf-hipac folks had posted a link to a script they had u=
-sed
-> for their performance testing which seemed to do exactly what I wanted,=
-=20
-> but the link is busted.=20
+On Fri, Oct 10, 2003 at 05:14:05PM +0200, Emmanuel Fleury wrote:
+> typedef unsigned int nf_hookfn(unsigned int hooknum,
+>                                struct sk_buff **skb,
+>                                const struct net_device *in,
+>                                const struct net_device *out,
+>                                int (*okfn)(struct sk_buff *));
+>=20
+> I got all the other arguments but the last one...
+>=20
+> What is it for ???
 
-please contact them at the email address given on their homepage.  I am
-sure they are very willing to fix that broken link.
+it is the function that gets called if the packet is to continue (i.e. when=
+ the
+registered function returns NF_ACCEPT).
 
-> Thanks,
-> Kristen
+> Regards
+> --=20
+> Emmanuel
 
 
 --=20
@@ -55,16 +58,16 @@ sure they are very willing to fix that broken link.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---VACxsDaSTfeluoxK
+--3ecMC0kzqsE2ddMN
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/hxUAXaXGVTD0i/8RAhvFAKCxI1YmfWDH5T5Xv/ofMG6o7gns+QCdGOzc
-5ayPojQdzojYKSrdiFiSEI4=
-=J8Nu
+iD8DBQE/hxVIXaXGVTD0i/8RAtTBAJ0WgjJwJcWhsCWszC3iE94jU3lr5QCfTZFZ
+Kmg9JxATuBxmMrBC0e8Ebpk=
+=j80B
 -----END PGP SIGNATURE-----
 
---VACxsDaSTfeluoxK--
+--3ecMC0kzqsE2ddMN--
