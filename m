@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Transparent web proxiing stops working in linux-2.4.22
-Date: Thu, 4 Sep 2003 23:52:31 +0200
+From: Paul Spink <paul.spink@SurfControl.com>
+Subject: Module Only Receiving First Packet Of Connection
+Date: Thu, 4 Sep 2003 10:53:53 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030904215231.GD6909@obroa-skai.de.gnumonks.org>
-References: <200309020938.56412.raivis@mt.lv>
+Message-ID: <B1BE16C7DD91C846821C56B5F7CEDDC60A4865@bell.surfcontrol.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zbGR4y+acU1DwHSi"
-Cc: netfilter-devel@lists.netfilter.org, cieciwa@alpha.zarz.agh.edu.pl
+Content-Type: multipart/alternative;
+	boundary="--=_NextPart_ST_10_52_21_Thursday_September_04_2003_803"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Raivis Bucis <raivis@mt.lv>
-Content-Disposition: inline
-In-Reply-To: <200309020938.56412.raivis@mt.lv>
+To: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,78 +18,91 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
---zbGR4y+acU1DwHSi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+----=_NextPart_ST_10_52_21_Thursday_September_04_2003_803
+Content-Type: text/plain
+
+Hi there,
+
+I am trying to create a module that will examine all HTTP GET requests.  My
+problem is whenever I insert my module, it only ever sees the first TCP
+packet of the connection (for the same <source IP:port> / <destination
+IP:port> combination), I never get to see the HTTP GET requests or
+subsequent TCP packets.
+
+The hook is registered on the NF_IP_POST_ROUTING hook.  I set skb->nfcache
+|= NFC_UNKNOWN in my hook before returning NF_QUEUE.  The queue handler
+prints out the source and destination IPs and ports into the system log,
+then calls nf_reinject with NF_ACCEPT to accept the packets.
+
+Any advice you can give me as to what I am doing wrong?  And how I can log
+all the HTTP requests?
+
+Thanks, Paul.
+
+Get the latest news on SurfControl and our products,
+subscribe to our monthly e-newsletter, SurfAdvisory at:
+http://surfcontrol.us-hosts.com/sc/subscribe
+
+*********************************************************************
+The information in this email is confidential and may be legally
+privileged. It is intended solely for the addressee. Access to this
+email by anyone else is unauthorized. If you are not the intended
+recipient, any disclosure, copying, distribution or any action taken
+or omitted to  be taken in reliance on it, is prohibited and may be
+unlawful. If you believe that you have received this email in error,
+please contact the sender.
+*********************************************************************
+
+----=_NextPart_ST_10_52_21_Thursday_September_04_2003_803
+Content-Type: text/html
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 02, 2003 at 09:38:56AM +0000, Raivis Bucis wrote:
-> It doesn't zero all of the tuple contents before assigning, and this way =
-3rd=20
-> and 4th bytes of tuple.src.all contain garbage, and ip_conntrack_find_get=
- is=20
-> not able to find correct conntrack because of that.
->=20
-> So instead of fixing getorigdst for big endian architectures, it brakes e=
-ven=20
-> the little endian ones.
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; charset=3Dus-ascii"=
+>
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version 5.5.2653.12"=
+>
+<TITLE>Module Only Receiving First Packet Of Connection</TITLE>
+</HEAD>
+<BODY>
 
-Can you please test the following (proposed) patch and report back if it
-fixes your problems?
+<P><FONT SIZE=3D2 FACE=3D"Arial">Hi there,</FONT>
+</P>
 
-If you could post your comments to the correspoinding bugzilla entry
-(https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=3D126),
-it would make my work easier.  Otherwise, just send an email reply.
+<P><FONT SIZE=3D2 FACE=3D"Arial">I am trying to create a module that will e=
+xamine all HTTP GET requests.&nbsp; My problem is whenever I insert my modu=
+le, it only ever sees the first TCP packet of the connection (for the same =
+&lt;source IP:port&gt; / &lt;destination IP:port&gt; combination), I never =
+get to see the HTTP GET requests or subsequent TCP packets.</FONT></P>
 
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.4.22-plain/net/ipv4/netfilt=
-er/ip_conntrack_core.c linux-2.4.22-getorig/net/ipv4/netfilter/ip_conntrack=
-_core.c
---- linux-2.4.22-plain/net/ipv4/netfilter/ip_conntrack_core.c	2003-08-25 13=
-:44:44.000000000 +0200
-+++ linux-2.4.22-getorig/net/ipv4/netfilter/ip_conntrack_core.c	2003-09-04 =
-23:47:30.000000000 +0200
-@@ -1303,9 +1303,11 @@
- getorigdst(struct sock *sk, int optval, void *user, int *len)
- {
- 	struct ip_conntrack_tuple_hash *h;
--	struct ip_conntrack_tuple tuple =3D { { sk->rcv_saddr, { .tcp =3D { sk->s=
-port } } },
--					    { sk->daddr, { .tcp =3D { sk->dport } },
--					      IPPROTO_TCP } };
-+	struct ip_conntrack_tuple tuple;
-+
-+	memset(&tuple, 0, sizeof(tuple));
-+	tuple =3D { { sk->rcv_saddr, { .tcp =3D { sk->sport } } },
-+		  { sk->daddr, { .tcp =3D { sk->dport } }, IPPROTO_TCP } };
-=20
- 	/* We only do TCP at the moment: is there a better way? */
- 	if (strcmp(sk->prot->name, "TCP") !=3D 0) {
+<P><FONT SIZE=3D2 FACE=3D"Arial">The hook is registered on the NF_IP_POST_R=
+OUTING hook.&nbsp; I set skb-&gt;nfcache |=3D NFC_UNKNOWN in my hook before=
+ returning NF_QUEUE.&nbsp; The queue handler prints out the source and dest=
+ination IPs and ports into the system log, then calls nf_reinject with NF_A=
+CCEPT to accept the packets.</FONT></P>
 
-> Raivis Bucis
+<P><FONT SIZE=3D2 FACE=3D"Arial">Any advice you can give me as to what I am=
+ doing wrong?&nbsp; And how I can log all the HTTP requests?</FONT>
+</P>
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+<P><FONT SIZE=3D2 FACE=3D"Arial">Thanks, Paul.</FONT>
+</P>
 
---zbGR4y+acU1DwHSi
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/V7QeXaXGVTD0i/8RAoK+AKCeFFV8MB18ieAcpm47OExc9xoIHgCcCkBZ
-BCOSvgmbMhEhRIXo0qMfQUw=
-=6FBK
------END PGP SIGNATURE-----
-
---zbGR4y+acU1DwHSi--
+<br><br>Get the latest news on SurfControl and our products,<br>subscribe t=
+o our monthly e-newsletter, SurfAdvisory at:<br>http://surfcontrol.us-hosts=
+=2Ecom/sc/subscribe<br><br>************************************************=
+*********************<br>The information in this email is confidential and =
+may be legally<br>privileged. It is intended solely for the addressee. Acce=
+ss to this<br>email by anyone else is unauthorized. If you are not the inte=
+nded<br>recipient, any disclosure, copying, distribution or any action take=
+n<br>or omitted to  be taken in reliance on it, is prohibited and may be<br=
+>unlawful. If you believe that you have received this email in error,<br>pl=
+ease contact the sender.<br>***********************************************=
+**********************<br></BODY>
+</HTML>
+----=_NextPart_ST_10_52_21_Thursday_September_04_2003_803--
