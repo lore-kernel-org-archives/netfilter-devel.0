@@ -1,16 +1,12 @@
-From: Chris Friesen <chris_friesen@sympatico.ca>
-Subject: Re: any plan for firewalling before the packet socket hooks?
-Date: Sun, 14 Sep 2003 01:46:30 -0400
+From: "Avi Lipa" <alipa_54@msn.com>
+Subject: Per session rule matching (TC)
+Date: Sun, 14 Sep 2003 14:33:38 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F6400B6.2060708@sympatico.ca>
-References: <3F5E9340.9040908@sympatico.ca> <20030912213131.GI4398@obroa-skai.de.gnumonks.org>
+Message-ID: <BAY3-F37iY6QYb6cnzu00038ebc@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030912213131.GI4398@obroa-skai.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +17,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Tue, Sep 09, 2003 at 10:58:08PM -0400, Chris Friesen wrote:
+Dear Mr. Mrs.
 
->> Is there anything else required to allow me to create a module to 
->> bind in at that hook and do my filtering?
+As a Linux user and (from time to time ... developer) I spent some time 
+studying the connection
+tracking module with in the netfilter and found it interesting and valuable.
 
-> Sure, you can certainly do that.  However, you can not just attach an
->  iptable to your newly created PF_PACKET hook... PF_PACKET hooks 
-> receive all kinds of packets (not just IP)... and iptables is 
-> something ipv4 only.
+I have a question regarding a possible missing feature which might help 
+improving the
+performance of rule matching in the queuing discipline processing.
 
-Sure, I realize it wouldn't be just for iptables.  I was expecting to
-write my own netfilter module to bind in to the hook.
+Today the rule/filter matching in the queuing discipline of each device is 
+done
+per packet (which is expensive once many rules are configured) with out any 
+assumption on the session / connection which
+this packet belongs to (although hashing is allowed in the u32 classifier a 
+standard
+user might find it hard to configure).
 
-However, I tried this and must have missed some locking or something, since
-the machine livelocked as soon as I loaded my module.
+I saw that for the NAT module in the Netfilter if a rule was found it is 
+stored in a dedicated structure on the ip_conntrack,
+thus rule matching is done per session and not per packet
 
-Anyways, I may take another look at it.  I'm kind of surprised that nobody
-has done this before, unless there has been a convention that packet sockets
-are allowed to receive everything that the system sees.
+I think that supporting a dedicated entry in ip_conntrack for cached queuing 
+discipline rule matching
+is a capability that would improve performance for system where numerous of 
+classifiers are configured and
+deals with multiple sessions.
 
-Chris
+Regards,
+Neo  .M.
+
+_________________________________________________________________
+STOP MORE SPAM with the new MSN 8 and get 2 months FREE* 
+http://join.msn.com/?page=features/junkmail
