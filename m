@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: libiptc - frustrating
-Date: Thu, 2 Oct 2003 22:13:44 +0200
+From: Eric Leblond <eric@regit.org>
+Subject: Re: A humble proposal
+Date: Thu, 02 Oct 2003 23:26:12 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031002201344.GF5758@sunbeam.de.gnumonks.org>
-References: <3F7C4919.8060800@hhb.bonn.de>
+Message-ID: <1065129971.561.24.camel@porky>
+References: <7C9884991ADAE0479C14F10C858BCDF5122E46@alderaan.smgtec.com>
+	 <20031002195132.GA5758@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4WQlXZB3DN+7gtbl"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-8Etbbipn0g2PJTIRVAVy"
+Cc: Daniel Chemko <dchemko@smgtec.com>, netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org, nufw-devel@nongnu.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Karsten =?iso-8859-1?Q?R=F6mke?= <Biermann-Roemke@t-online.de>
-Content-Disposition: inline
-In-Reply-To: <3F7C4919.8060800@hhb.bonn.de>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031002195132.GA5758@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,65 +22,55 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---4WQlXZB3DN+7gtbl
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+--=-8Etbbipn0g2PJTIRVAVy
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 02, 2003 at 05:49:45PM +0200, Karsten R=F6mke wrote:
-> OK, cause it was some work I now thought:
-> "look for examples in the archive" and I found:
+Le jeu 02/10/2003 =C3=A0 21:51, Harald Welte a =C3=A9crit :
+> On Tue, Sep 23, 2003 at 09:13:21AM -0700, Daniel Chemko wrote:
+> > I have seen some of this functionality in Checkpoint, and I think that
+> > it would be immensely useful in the iptables community if it is adopted=
+.
 >=20
-> >We said it before and we say it again. libiptc was never intended to=20
-> >be used by anything else but iptables.c self. Its not an "open" API
-> >to be used by any C-program. It might be and will be changed without
-> >any notice possible making your c-program not working anymore.
->=20
-> Uuups - horrible for me :-)
+> Just because a particular proprietary vendor offers a 'feature', it
+> doesn't necessarrily mean that we need to do a blind copy of that
+> feature.
 
-yes, unfortunately...
+I agree with you in the sense that we can do a better work. As I said
+earlier in this thread and in this mailling list, the current tools
+provided by Netfilter are great enough to build a good user
+authentication system.
 
-> Question: how can I insert a rule from a running daemon in the fastest wa=
-y:
-> 1) calling a system("iptables ..."), don't know if the syntas is correct
-> 2) doing the work again of analyzing the source code again
-> 3) linking iptables.o to my application. I remember, that I've not done t=
-hat
->    because iptables never frees any memory - only allocates - not=20
-> useful for a
->    long time running program.
+The NuFW project (http://www.nufw.org) has managed to build a user
+authentication of packet, by (only) using libipq. We (the NuFW team)
+think that in the current state of the project, we have managed to prove
+the viability of the concept.
 
-this should be fixed now.
+But, it's just the beginning ! With a slight modification of libipq and
+of the corresponding module conbined with the use of CONNMARK, we should
+be able to provide a user based marking of the connection.
+If we're able to do so, the path to a user based ,QOS, bandwith sharing,
+or even routing will be wide open.
 
-You have to consider a fourth option:
-4) running iptables-restore --noflash and piping commands to stdin.
+We think that it's not a 'feature' but that it could really bring
+something to the iptables community.
 
-Depending on your usage scenario (how frequent do you have ruleset
-changes?) this might be the fastest one.
-
-> Thank you
-> 	Karsten
-
+BR,
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Eric Leblond
+Nufw, Now User Filtering Works (http://www.nufw.org)
 
---4WQlXZB3DN+7gtbl
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+--=-8Etbbipn0g2PJTIRVAVy
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e=2E?=
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/fIb4XaXGVTD0i/8RAkAxAJsFwGTE9s3V1G8fHAduz69ObockIgCfQJ6n
-HkL2+kyGKwStK5z5XpSiwd0=
-=ybE/
+iD8DBQA/fJfznxA7CdMWjzIRAsA7AJ443QTCMCqGsbfTqliHz0dVqF9RdgCgk1/0
+rvy/cayHdtP0+NoYrnr8+Pc=
+=tfZv
 -----END PGP SIGNATURE-----
 
---4WQlXZB3DN+7gtbl--
+--=-8Etbbipn0g2PJTIRVAVy--
