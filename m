@@ -1,17 +1,19 @@
-From: Martijn Lievaart <netfilter-devel@rtij.nl>
-Subject: Re: suggestion, p-o-m, iplimit for ipv6 protocol
-Date: Wed, 30 Apr 2003 22:31:08 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] patch-o-matic fixes
+Date: 30 Apr 2003 22:57:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EB0328C.4030305@rtij.nl>
-References: <Pine.LNX.4.33.0304301249220.3330-100000@blackhole.kfki.hu>
+Message-ID: <1051736263.8201.177.camel@tux.rsn.bth.se>
+References: <20030430085332.GA32392@alpha.home.local>
+	 <20030430153222.GC685@sunbeam.de.gnumonks.org>
+	 <1051717921.8200.151.camel@tux.rsn.bth.se>
+	 <20030430202009.GK685@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Tom Marshall <tommy@home.tig-grr.com>,
-  netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0304301249220.3330-100000@blackhole.kfki.hu>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030430202009.GK685@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,30 +24,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
+On Wed, 2003-04-30 at 22:20, Harald Welte wrote:
+> On Wed, Apr 30, 2003 at 05:52:01PM +0200, Martin Josefsson wrote:
+> 
+> > It does apply IF you've applied pending/24_conntrack-nosysctl.patch
+> > Which should have been done. We've had implicit dependencies on
+> > submitted and pending stuff many times.
+> > 
+> > No need to make a cumulative -rc1 patch, I've managed to get it working
+> > for .18 .19 .20 .21-rc1 and .21-bk
+> 
+> great, thanks for pointing this out.
 
->On Tue, 29 Apr 2003, Tom Marshall wrote:
->  
->
->>Sorry for a perhaps naive question, but why is there no IPv6 conntrack?
->>    
->>
->
->A blind porting of the IPv4 conntrack is unacceptable due to the code
->duplication.
->
->A blind union with IPv4 conntrack is unacceptable due to the sheer wasting
->of memory.
->
->An intelligent unification of IPv4/6 conntrack is possible. That itself is
->not so easy and one should keep in mind the relation with NAT, which
->makes it at the end complicated and hard.
->
->
->  
->
-I understand, but for myself am willing to pay the price of a blind 
-port. Has anyone done work in that direction?
+I have a small script that tests p-o-m against .18 .19 .20
+latest .21-{pre,rc} and .21-bk and reports any failures. It is still
+missing some stuff and needs a good cleanup before I dare releasing it.
 
-TIA,
-Martijn Lievaast
+My plans are to implement compile-testing for both user and kernelspace
+as well.
+
+-- 
+/Martin
