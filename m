@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [NETFILTER] Some more informations
-Date: Sun, 2 Nov 2003 16:42:28 +0100
+Subject: Re: Problen with transpartent proxy
+Date: Sun, 2 Nov 2003 18:27:36 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031102154228.GD1536@sunbeam.de.gnumonks.org>
-References: <mnet1.1066738475.26722.florian.pouradier@netcourrier.com>
+Message-ID: <20031102172736.GG1536@sunbeam.de.gnumonks.org>
+References: <1464.192.168.0.240.1067723204.squirrel@192.168.0.1>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="snImcH6YoPvXmXT+"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="AnSJTMMZ92c40QA7"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: florian.pouradier@netcourrier.com
+To: pivik@intelserv.kiev.ua
 Content-Disposition: inline
-In-Reply-To: <mnet1.1066738475.26722.florian.pouradier@netcourrier.com>
+In-Reply-To: <1464.192.168.0.240.1067723204.squirrel@192.168.0.1>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,45 +23,39 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---snImcH6YoPvXmXT+
+--AnSJTMMZ92c40QA7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 21, 2003 at 02:14:35PM +0200, florian.pouradier@netcourrier.com=
- wrote:
-> Hi,
->=20
-> these last days, I'm interested in coding in netfilter. I read a few
-> (good) papers from you on this topic.
+On Sat, Nov 01, 2003 at 11:46:44PM +0200, pivik@intelserv.kiev.ua wrote:
+> But after I have setup transparent proxy all source addresses changed to
+> address of my proxy server :((.
 
-Thanks, you're welcome !
+of course.  IT is a _proxy_ after all.  you have two totally seperate
+connections, one between browser and proxy, and the other one between
+proxy and server.
 
-> I have a good experience in C programming, but never in kernel nor in
-> advanced network.
+> iptables  -I OUTPUT -s ! 192.168.0.1  -j LOG
+> Show nothing  :(
 
-that's not a problem in general.
+thos shows outgoing connections between proxy and server
 
-> I would like to develop a netfilter module to change "on the fly" data
-> from protocols, like NNTP.
+> tcpdump -i eth0 not src host 192.168.0.1
 
-I doubt that netfilter (or any other packet filter) is the right way to
-do that.   The major problem is that you don't have stream reassembly,
-but just the packets themselves.  So somebody could send the data in one
-byte packets, and you'd never be able to match [and replace] data in the
-stream.
+May I assume that eth0 is your 'internal' interface (where the browers
+are located)?  Then you see the connection between browser and proxy.
 
-> I can't really see whether the NAT helper modules architecture is
-> suitable for this kind of manipulation. I can see it changing some
-> data (for the FTP PORT command as an example), but always for related
-> connections. The module I would like to write won't imply a new
-> connection, so I would like to know your opinion about this.
+> Show all resuts ok like no transparent squid exists at all?
+> What should a do to protocol all sources with IPTABLES + transparent SQUI=
+D??
 
-You can perfectly implement it as a  NAT helper module.  Nobody forces a
-nat helper to raise expectations. see the SNMP helper as an example.
+LOG in INPUT.
 
-> Thanks in advance,
-> Florian Pouradier.
+btw: LOG is _NOT_ meant as an accounting mechanism, since it is way too
+slow for logging huge amoounts of packets.  You should look into using
+ULOG / ulogd.
+
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -73,16 +67,16 @@ nat helper to raise expectations. see the SNMP helper as an example.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---snImcH6YoPvXmXT+
+--AnSJTMMZ92c40QA7
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/pSXkXaXGVTD0i/8RAlTTAKCjIpgNdbFBQPj4ossfRoMjx8nnvgCeLuPy
-mpKFkJ+39VU2//mdCX7J1zY=
-=V5l/
+iD8DBQE/pT6IXaXGVTD0i/8RApQoAJ428pa6mX4tvQEx1CCteHmzJi8DAgCfZPco
+kUP6moT+cDs8TSme2nHpcyQ=
+=vMXa
 -----END PGP SIGNATURE-----
 
---snImcH6YoPvXmXT+--
+--AnSJTMMZ92c40QA7--
