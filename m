@@ -1,59 +1,112 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.0-test6, connntrack/sis900/net (?)  Badness in
- local_bh_enable at kernel/softirq.c:119
-Date: Mon, 20 Oct 2003 16:14:37 -0700
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <20031020161437.6708e994.akpm@osdl.org>
-References: <20031020222306.GB32167@finwe.eu.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: ctnetlink questions
+Date: Tue, 21 Oct 2003 01:09:17 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20031020230917.GI20288@sunbeam.de.gnumonks.org>
+References: <20031020071545.GA21521@sunbeam.de.gnumonks.org> <3F9426C1.6070908@trash.net> <20031020185258.GD20288@sunbeam.de.gnumonks.org> <3F943CE5.80809@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, linux-net@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org
-Return-path: <linux-net-owner@vger.kernel.org>
-To: Jacek Kawa <jfk@zeus.polsl.gliwice.pl>
-In-Reply-To: <20031020222306.GB32167@finwe.eu.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Q59ABw34pTSIagmi"
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3F943CE5.80809@trash.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jacek Kawa <jfk@zeus.polsl.gliwice.pl> wrote:
->
-> I found it in logs (2.6.0-test6). It happened little while after 
-> I had reloaded dhcpd configuration.
-> 
-> I'm not sure if it's related to NIC or ip-conntrack, but as both
-> are mentioned... 
-> 
-> System information below.
-> 
-> eth0: Media Link Off
-> NETDEV WATCHDOG: eth0: transmit timed out
-> eth0: Transmit timeout, status 00000004 00000000 
-> Badness in local_bh_enable at kernel/softirq.c:119
-> Call Trace:
->  [local_bh_enable+137/144] local_bh_enable+0x89/0x90
->  [_end+130859013/1069963240] ip_ct_find_proto+0x3d/0x60 [ip_conntrack]
->  [_end+130860013/1069963240] destroy_conntrack+0x15/0x110 [ip_conntrack]
->  [sock_wfree+73/80] sock_wfree+0x49/0x50
->  [__kfree_skb+143/272] __kfree_skb+0x8f/0x110
->  [_end+130608961/1069963240] sis900_tx_timeout+0x99/0x150 [sis900]
->  [dev_watchdog+0/208] dev_watchdog+0x0/0xd0
->  [dev_watchdog+191/208] dev_watchdog+0xbf/0xd0
 
-This should fix it up.
+--Q59ABw34pTSIagmi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Oct 20, 2003 at 09:52:05PM +0200, Patrick McHardy wrote:
 
-diff -puN drivers/net/sis900.c~sis900-tx_timeout-fix drivers/net/sis900.c
---- 25/drivers/net/sis900.c~sis900-tx_timeout-fix	Mon Oct 20 16:10:04 2003
-+++ 25-akpm/drivers/net/sis900.c	Mon Oct 20 16:10:11 2003
-@@ -1438,7 +1438,7 @@ static void sis900_tx_timeout(struct net
- 			pci_unmap_single(sis_priv->pci_dev, 
- 				sis_priv->tx_ring[i].bufptr, skb->len,
- 				PCI_DMA_TODEVICE);
--			dev_kfree_skb(skb);
-+			dev_kfree_skb_irq(skb);
- 			sis_priv->tx_skbuff[i] = 0;
- 			sis_priv->tx_ring[i].cmdsts = 0;
- 			sis_priv->tx_ring[i].bufptr = 0;
+> I agree. Removing is not very important. Modifying also requires a way to
+> identify the expectation. Currently (as you might have noticed) the
+> expectations also include an id. The namespace could probably be smaller
+> than for conntracks but I need to think about this some more after catchi=
+ng
+> breakfast.
 
-_
+yes, I've noted that they also have id's.  However, as you will have
+noticed by now, I feel very reluctant to add id's to our structures ;)
 
+> BTW: I thought a bit about userspace helpers, they need to be synchronous
+> like they are now so we don't get races were an expectation arrives before
+> it's registered. So they should probably receive their packets though
+> ip_queue.=20
+
+for local helpers this is true.  But think about even more complex
+setups, like the envisioned SIP proxy (that might even run on a totally
+different machine than your packet filter).  They are inherently racy -
+and there's nothing we can do about that.
+
+> How realistic do you think is it to move ftp/irc/amanda... to
+> userspace ? All of them operate on low traffic protocols, but if they sent
+> packets to userspace through netlink sockets operation can easily be
+> interrupted be sending lots of traffic that will fill up the socket buffe=
+r.
+
+yes, that is a problem.  another problem is that there can only be one
+userspace process be attached to the queue.  And no, we don't want to
+use ipqmpd - that is just a hack and doesn't scale at all.
+
+btw: I already have a patch of a l3 independent queue implementation.
+The only problem is that it has to change the packet format - and thus
+will introduce incompatibility :(
+
+> I have not studied the code intensively, but can't you just sync the tabl=
+es
+> in order of the hierachie:
+>=20
+> conntrack
+> conntrack, master-expect, sibling-conntrack, sibling-conntrack, ...
+> conntrack
+> ...
+
+well, this means I cannot use the existing iterator functions, and
+locking might become complex once we have per-bucket locks.
+
+Also, I don't like the idea of hiding too much information in the
+packet/message order.  Yes, ordering is guaranteed by the protocol - but
+even then...
+
+I'll have to think about that... but now I'm off for some sleep. Maybe
+tomorrow ;)
+
+> Best regards,
+> Patrick
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--Q59ABw34pTSIagmi
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/lGsdXaXGVTD0i/8RAhfRAKCdQCYQLPlyRDPk5E+GorPdRgDDIACfQrdX
+JCIDEagy0YIsytwW7nYN+Lk=
+=uZJz
+-----END PGP SIGNATURE-----
+
+--Q59ABw34pTSIagmi--
