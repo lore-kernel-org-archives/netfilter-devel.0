@@ -1,13 +1,14 @@
 From: Brad Fisher <brad@info-link.net>
-Subject: Re: [PATCH] Minor fix for patchlets which modify multiple projects
-Date: Thu, 13 May 2004 11:09:42 -0500
+Subject: Re: [PATCH] pom-ng patchlet to add 'goto' type jumps
+Date: Thu, 13 May 2004 11:11:58 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40A39DC6.C3F78CA3@info-link.net>
-References: <40A2754C.F4AA6CEF@info-link.net> <40A2E52C.3010103@trash.net>
+Message-ID: <40A39E4E.8A72F85C@info-link.net>
+References: <Pine.LNX.4.44.0405130102100.7624-100000@filer.marasystems.com> <40A2E5F0.7080705@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+        Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -22,21 +23,25 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Patrick McHardy wrote:
 
-> Thanks Brad, I've applied a small variation of this, because I don't know if
-> perl will complain about two equally named variables (@projects and %projects)
-> with warnings turned on.
-
-I don't think your patch is quite right.  You can end up having the same project listed multiple
-times with your patch, which is why I used the separate hash - key collisions are reduced to single
-entries.  I guess as long as it is no problem for a project to be processed multiple times, then
-your patch will be OK, but if that isn't the case, you may want to look into it again.
-
-As far as variables with the same name and different types, I don't believe Perl complains.  I
-typically program with 'use strict', which I believe enables all warnings, and have used naming
-like this before.  Of course it does add quite a bit of ambiguity, so renaming the %projects hash
-would probably be a good idea if you choose to use a variation of my patch.
-
+> Henrik Nordstrom wrote:
+>
+> >On Wed, 12 May 2004, Brad Fisher wrote:
+> >
+> >
+> >>Please let me know if it is/is'nt acceptable for pom inclusion.  I'd
+> >>like to see it included someday...
+> >>
+> >>
+> >
+> >I support this even if I am not using the patch and probably never will..
+> >
+> >
+>
+> Thanks, I've added it to CVS.
+>
 > Regards
 > Patrick
+
+Thanks for adding it!  I really appreciate it.
 
 -Brad
