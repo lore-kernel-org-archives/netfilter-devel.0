@@ -1,34 +1,56 @@
-From: J Sloan <joe@tmsusa.com>
-Subject: Re: An oops while running 2.5.65-mm2
-Date: Sun, 23 Mar 2003 20:43:03 -0800
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3E7E8CD7.3060507@tmsusa.com>
-References: <3E7A1ABF.7050402@tmsusa.com>	 <20030320122931.0d2f208f.akpm@digeo.com> <1048209554.1103.21.camel@tux.rsn.bth.se>
+From: Jean-Francois Dive <jef@linuxbe.org>
+Subject: Re: netfilter / c++
+Date: Mon, 24 Mar 2003 10:59:55 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030324095955.GK821@gardafou.assamite.eu.org>
+References: <20030320184935.83289.qmail@web10708.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: sdcan2019@yahoo.com
+Content-Disposition: inline
+In-Reply-To: <20030320184935.83289.qmail@web10708.mail.yahoo.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Martin Josefsson wrote:
+The actual design of the userland tool avoid it, so you'll have to use
+exec + fork
 
->This might explain the crashes I've seen in my routers but been unable
->to capture so far (and without the extra slab debugging I don't know if
->I would have been able to find it or even get a decent capture...)
->
->Patch attached that should fix the problem, not tested or even compiled.
->
->Joe, can you please please test it and report back?
->
+JeF
 
-I've been running 2.5.65-kb2 + your patch
-for the past 2 days and everything is fully
-functional, with no repeat of the problems
-we saw before.
+On Thu, Mar 20, 2003 at 10:49:35AM -0800, sdcan2019@yahoo.com wrote:
+> Hi there netfilter hackers ,
+> 
+> 
+> i am working on a project (C++) and i have to use some
+> of the iptables commands in my programme; are there
+> any 
+> interface to netfilter for C on linux ? 
+> 
+> 
+> Thanks for the time reading and answering ,
+> 
+> Keep up the good work !
+> 
+> Suha Demir CAN
+> 
+> __________________________________________________
+> Do you Yahoo!?
+> Yahoo! Platinum - Watch CBS' NCAA March Madness, live on your desktop!
+> http://platinum.yahoo.com
 
-Nice work.
+-- 
 
-Joe
+-> Jean-Francois Dive
+--> jef@linuxbe.org
+
+  There is no such thing as randomness.  Only order of infinite
+  complexity. - Marquis de LaPlace - deterministic Principles - 
