@@ -1,16 +1,13 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: using a hash table for netfilter tables?
-Date: Thu, 24 Apr 2003 08:21:48 +0200
+From: Philip Ho <cbho@ie.cuhk.edu.hk>
+Subject: cannot insmod
+Date: Thu, 24 Apr 2003 16:41:42 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030424062148.GE3374@oknodo.bof.de>
-References: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
+Message-ID: <3EA7A345.99FCDB9D@ie.cuhk.edu.hk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andre Uratsuka Manoel <andre@insite.com.br>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
+To: netfilter devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,34 +18,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Apr 24, 2003 at 02:19:58AM -0300, Andre Uratsuka Manoel wrote:
-> 
-> 	I need to replace the current list-based netfilter code for 
-> something using hashtables. The reason is that I have hundreds of tables 
-> in a project, but set up times are killing me.
+Dear all
 
-I assume you already use iptables-restore to load them in one go?
-If not, you want to do that!
+After I copied my iptables kernel module to
+/lib/modules/2.4.18-3/kernel/net/ipv4/netfilter/,
+I cannot insmod it. Can anyone tell me what I have missed?
 
-Apart from that, what you appear to think you could do, is NOT easy.
+[root@idr401 root]# insmod ipt_id
+Using /lib/modules/2.4.18-3/kernel/net/ipv4/netfilter/ipt_id.o
+/lib/modules/2.4.18-3/kernel/net/ipv4/netfilter/ipt_id.o: unresolved
+symbol ipt_
+register_match_Ra1b42f03
+/lib/modules/2.4.18-3/kernel/net/ipv4/netfilter/ipt_id.o: unresolved
+symbol ipt_
+unregister_match_Re43e717e
+/lib/modules/2.4.18-3/kernel/net/ipv4/netfilter/ipt_id.o:
+Hint: You are trying to load a module without a GPL compatible license
+      and it has unresolved symbols.  Contact the module supplier for
+      assistance, only they can help you.
 
-Three very basic easy questions for you:
-
-1) what, exactly, is the key material you'll compute the hash function on?
-2) for any given iptables match line, a multitude of keys could match.
-   What do you do?
-3) Each iptables line is a combination of several matches. Each of them
-   can represent a range of matching values. Sometimes, that range is
-   not even known when the rule is loaded. Consider stateful matches
-   like 'limit' and 'random'.  What do you do?  
-
-There is an ongoing attempt at meeting the challenges for a noninterpretive
-lookup structure. See http://www.hipac.org/. I have no personal experience
-with that code, though. They solve 1) by giving a list of the key
-material (see the site), and they are solving 2) and 3) step by
-step, by building their own tool parallel to iptables, with only
-the features they can efficiently represent. The result is emphatically
-NOT iptables, and can't be.
-
-best regards
-  Patrick
+Regards,
+philip
