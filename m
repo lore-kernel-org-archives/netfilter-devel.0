@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: kernel rule insertion question/suggestion
-Date: Wed, 7 Jan 2004 17:08:19 +0100 (CET)
+Subject: Re: Module compilation?
+Date: Wed, 7 Jan 2004 17:05:31 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401071706160.4717-100000@filer.marasystems.com>
-References: <1073385010.1106.15.camel@sin.nobugconsulting.ro>
+Message-ID: <Pine.LNX.4.44.0401071704360.4717-100000@filer.marasystems.com>
+References: <007801c3d415$0ef89640$6b00a8c0@hfkdz92r69c0ua>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrascu Eugeniu <epatrascu@go.ro>
-In-Reply-To: <1073385010.1106.15.camel@sin.nobugconsulting.ro>
+To: UnderLord <ekin0x@phreaker.net>
+In-Reply-To: <007801c3d415$0ef89640$6b00a8c0@hfkdz92r69c0ua>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,30 +20,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 6 Jan 2004, Patrascu Eugeniu wrote:
+On Tue, 6 Jan 2004, UnderLord wrote:
 
-> Hi,
+> Hello all,
 > 
-> As explained by a list member a while ago, to insert a netfilter rule in
-> the running kernel the following things happen:
-> 	I. the whole ruleset is being downloaded in userspace
-> 	II. the rules are checked for loops/errors/whatever and the new rule is
-> added to the chain.
-> 	III. then the whole ruleset is uploaded back into the running kernel.
-> 	IV. the steps above are repeated for each and every rule added.
+>     I just made a tiny module (which is a small hack of the MIRROR module)
+> and I don't
+> know how to compile it properly. The Netfilter hacking documentation does
+> not refer to this and
+> the Makefile refers to a main Makefile but I can't figure out which one.
+> That's why I'm asking your help here.
 
-
-If you want to avoid this then use iptables-restore to load your ruleset. 
-This compiles the ruleset and if successful installs it with one call to 
-the kernel.
-
-> I was wondering (in case what I wrote above is really true) if there
-> would be a good ideea to have a userspace rule compiler that can check
-> for errors in the rules and then just upload them in the kernel, without
-> using the mecanism described above.
-
-Having a "dry-run" iptables-restore type command would perhaps be useful
-to verify the syntax of a ruleset.
+See the gcc line when you compile kernel modules for your kernel. Then 
+copy the options and call gcc manually for compiling your module.
 
 Regards
 Henrik
