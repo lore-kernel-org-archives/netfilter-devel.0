@@ -1,16 +1,13 @@
 From: "jesse" <jesse@deansoft.com.tw>
-Subject: Re: null binding question
-Date: Fri, 8 Aug 2003 18:18:18 +0800
+Subject: Fw: why find_appropriate_src so unneeded??
+Date: Fri, 8 Aug 2003 18:23:21 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001501c35d96$64f8f260$0f01a8c0@jessepajh2dxik>
-References: <20030808081531.GA31190@balabit.hu>
+Message-ID: <002701c35d97$1809b4c0$0f01a8c0@jessepajh2dxik>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0024_01C35DDA.25D5D410"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Balazs Scheidler" <bazsi@balabit.hu>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,47 +18,62 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
------ Original Message -----
-From: "Balazs Scheidler" <bazsi@balabit.hu>
-To: <netfilter-devel@lists.netfilter.org>
-Sent: Friday, August 08, 2003 4:15 PM
-Subject: null binding question
+------=_NextPart_000_0024_01C35DDA.25D5D410
+Content-Type: text/plain;
+	charset="big5"
+Content-Transfer-Encoding: quoted-printable
 
 
-> Hi,
->
-> I'm reading the source code again to hunt down another Oops and I can't
-see
-> why null_binding is required. Can anyone explain me? A short hint would be
-> enough.
-In case some connection  have used this guy's original tupple for its nated
-tupple(e.g. steal this guy's client port), So even no nat rule applied to
-this guy, then without the null binding check, this guy will eventually fail
-to confirm it's reply tupple(stolen by the previous some connection), while
-with null binding, this guy may have chance to get it's reply uniche
-again(nat will get him a uniche tuple).
-Can this be short enough to get? :-)
->
-> TPROXY does not allocate NULL bindings on its own, however NAT does this
-for
-> non-local connections. Quoting ip_nat_standalone.c:
->
-> #ifdef CONFIG_IP_NF_NAT_LOCAL
->                                 if (hooknum == NF_IP_LOCAL_IN) {
-Currently kernel don't implement nat table at NF_IP_LOCAL_IN, which is only
-for LOCAL_OUT dnat thing's reply, so do'nt see any relation to null binding.
->                                         ret = NF_ACCEPT;
->                                 } else
-> #endif
->                                 ret = ip_nat_rule_find(pskb, hooknum, in,
-out,
->                                                        ct, info);
->
-> Therefore as it seems it is not needed for local NATs. Is there a specific
-> reason?
->
-> --
-> Bazsi
-> PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C
-8EB1
+----- Original Message -----=20
+From: jesse=20
+To: netfilter-devel@lists.netfilter.org=20
+Sent: Tuesday, July 01, 2003 3:24 PM
+Subject: why find_appropriate_src so unneeded??
+
+
+Excuse me, can I ask a question?
+Since we've guaranteed that the adjusted tuple being uniche after we did =
+dnat in NF_IP_PRE_ROUTING(even finding no rule will still do =
+alloc_null_binding), why we should use find_appropriate_src to prove =
+this once adjusted tuple's reusability rether than just check it's =
+in_range?
+
+------=_NextPart_000_0024_01C35DDA.25D5D410
+Content-Type: text/html;
+	charset="big5"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dbig5">
+<META content=3D"MSHTML 6.00.2600.0" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV>&nbsp;</DIV>
+<DIV style=3D"FONT: 10pt =B7s=B2=D3=A9=FA=C5=E9">----- Original Message =
+-----=20
+<DIV style=3D"BACKGROUND: #e4e4e4; font-color: black"><B>From:</B> <A=20
+title=3Djesse@deansoft.com.tw =
+href=3D"mailto:jesse@deansoft.com.tw">jesse</A> </DIV>
+<DIV><B>To:</B> <A title=3Dnetfilter-devel@lists.netfilter.org=20
+href=3D"mailto:netfilter-devel@lists.netfilter.org">netfilter-devel@lists=
+.netfilter.org</A>=20
+</DIV>
+<DIV><B>Sent:</B> Tuesday, July 01, 2003 3:24 PM</DIV>
+<DIV><B>Subject:</B> why find_appropriate_src so unneeded??</DIV></DIV>
+<DIV><BR></DIV>
+<DIV><FONT face=3D=B7s=B2=D3=A9=FA=C5=E9 size=3D2>Excuse me, can I ask a =
+question?</FONT></DIV>
+<DIV><FONT face=3D=B7s=B2=D3=A9=FA=C5=E9 size=3D2>Since we've guaranteed =
+that the&nbsp;adjusted tuple=20
+being uniche after&nbsp;we did dnat&nbsp;in NF_IP_PRE_ROUTING(even =
+finding no=20
+rule will still do alloc_null_binding), why we should&nbsp;use=20
+find_appropriate_src to prove this&nbsp;once adjusted tuple's =
+reusability rether=20
+than just check it's in_range?</FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_0024_01C35DDA.25D5D410--
