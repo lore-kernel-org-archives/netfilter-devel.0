@@ -1,15 +1,15 @@
-From: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson)
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: cttest-0.3 (conntrack hashing)
-Date: Mon, 8 Jul 2002 21:24:00 +0200
+Date: Mon, 8 Jul 2002 22:05:24 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020708192400.GA30970@aaricia.hemmet.chalmers.se>
-References: <20020708114504.CAF79473F@lists.samba.org> <15657.50484.842528.683308@isis.cs3-inc.com>
+Message-ID: <20020708220524.V13116@oknodo.bof.de>
+References: <20020708114504.CAF79473F@lists.samba.org> <15657.50484.842528.683308@isis.cs3-inc.com> <20020708192400.GA30970@aaricia.hemmet.chalmers.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
 Content-Disposition: inline
-In-Reply-To: <15657.50484.842528.683308@isis.cs3-inc.com>
+In-Reply-To: <20020708192400.GA30970@aaricia.hemmet.chalmers.se>; from gozem@aaricia.hemmet.chalmers.se on Mon, Jul 08, 2002 at 09:24:00PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,56 +20,37 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I analyzed the part res ^= (res >> 24); res ^= (res >> 8); a little more in
-the rt_hash. What it really does is that it applies the hi bits in the 32bit
-integer on the low ones. This means that we wont just throw them away when
-we apply the %-operation on it. This is what keeps the good distribution. So
-i just added those two line to abcd (and got abcd_rt). Showed up to be very
-good:
+> big-endian machine:
+> #uname -a 
+> SunOS licia.dtek.chalmers.se 5.8 Generic_108528-14 sun4u sparc SUNW,Sun-Fire-280
+> 
+> http://www.dtek.chalmers.se/~d97gozem/cttest/0.4/
+> 
+> All graphs here look about equally good. I dont know if there is a bug
+> somewhere in cttest that might do this. 
 
-http://aaricia.hemmet.chalmers.se/~gozem/cttest/0.4/
+I don't think so. Thanks for the run. It seems like abcd does not show
+detoriation at even table sizes, on big endian systems. To confirm
+this, I just added ntohl/ntohs to the abcd hash, and it really comes
+out nicely.
 
-And specially:
-http://aaricia.hemmet.chalmers.se/~gozem/cttest/0.4/1abcd/sizes.262143.html
+Don, hope this helps your analysis.
 
-The hashfunction:
-static u32 hash_abcd_rt(struct ct_key *key)
+static u32 hash_abcd_host(struct ct_key *key)
 {
         u32 res;
 PER_HASH_TIMER_1(
-        res = 0x47441DFB * key->sip
-        + 0x57655A7D * key->dip
-        + 0x1C7F1D2D * key->sport
-        + 0xDF91D738 * key->dport
+        res = 0x47441DFB * ntohl(key->sip)
+        + 0x57655A7D * ntohl(key->dip)
+        + 0x1C7F1D2D * ntohs(key->sport)
+        + 0xDF91D738 * ntohs(key->dport)
         + key->proto;
-        res ^= (res >> 24);
-        res ^= (res >> 8);
-                
 );
         return res;
 }
 
+Slightly surprising, this code runs about half as fast as the normal abcd,
+on my little endian box.
 
-
-Since we wanted to try other architectures than x86 i tried to run the
-calculations on my school that has SUN and solaris. After much trixing with
-the cttest-0.4 scripts and program (since they were clearly not Solaris
-compatible) i managed to get some results. Without the timing of the
-function since that part was Linux specific. Atleast this is a test on a
-big-endian machine:
-
-#uname -a 
-SunOS licia.dtek.chalmers.se 5.8 Generic_108528-14 sun4u sparc SUNW,Sun-Fire-280
-
-http://www.dtek.chalmers.se/~d97gozem/cttest/0.4/
-
-All graphs here look about equally good. I dont know if there is a bug
-somewhere in cttest that might do this. 
-
-
-
-                
-
-
--- 
-/Joakim Axelsson A.K.A Gozem@EFnet & OPN
+best regards
+  Patrick
