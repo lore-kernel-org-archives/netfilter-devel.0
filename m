@@ -1,16 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: ipt_limit module with sun4u architectures
-Date: Thu, 19 Feb 2004 21:18:06 +0100 (CET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: possible ipt_MASQUERADE.c bug
+Date: Thu, 19 Feb 2004 21:26:22 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402191943010.2826-100000@filer.marasystems.com>
-References: <20040219175014.GA12545@primewebs.net>
+Message-ID: <20040219202622.GH4797@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com> <Pine.LNX.4.44.0402171613120.26321-100000@sillypoint.zayanionline.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-   <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lQSB8Tqijvu1+4Ba"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jose Monteiro <jfmonteiro@netvisao.pt>
-In-Reply-To: <20040219175014.GA12545@primewebs.net>
+To: Vineet Mehta <extreme@zayanionline.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0402171613120.26321-100000@sillypoint.zayanionline.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,37 +22,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 19 Feb 2004, Jose Monteiro wrote:
 
-> Since this bug is already very old (2003-05-29), and probably there
-> aren't that few sun4u/linux/iptables users as it could be supposed
-> (partly because of the line of reasoning above, who knows), i was coming
-> for the help of you guys to see if a patch is made available.
+--lQSB8Tqijvu1+4Ba
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The problem is that there has not been found a clear way to detect the
-64-bit kernel / 32-bit user situation, probably because there is no 
-iptables developers working in such environment.
+On Tue, Feb 17, 2004 at 04:19:35PM +0300, Vineet Mehta wrote:
+> while working on Fedora kernel version 2.4.22-1.2115.nptl code i found ou=
+t=20
+> that one of the DEBUGP(...) statement had problem with variable name.
 
-A simple patch is to when you compile the userspace replace the pointer 
-within the ipt_ratelimit structure with a "long long".
+thanks, i'll submit this fix with the next set of patches.
 
-So instead of
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-	/* Ugly, ugly fucker. */
-	struct ipt_rateinfo *master;
+--lQSB8Tqijvu1+4Ba
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-You have
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-        /* Ugly, ugly fucker. */
-#ifdef __KERNEL__
-	struct ipt_rateinfo *master;
-#else
-        long long ugly_fucker;
-#endif
+iD8DBQFANRvuXaXGVTD0i/8RAkhfAKCnQAg+Y6Nh9t9LXPzCH7T7KpeI/QCdGs1y
++5ocnK8fVW8qwpiCDmqZWmQ=
+=2DY5
+-----END PGP SIGNATURE-----
 
-The problem is that this can not be done universially until a clean way to 
-defermine what that ugly_fucker should be to match the size and alignment 
-of a pointer within the kernel.
-
-Regards
-Henrik
+--lQSB8Tqijvu1+4Ba--
