@@ -1,15 +1,16 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re: New target - how to publish?
-Date: Tue, 26 Aug 2003 12:31:45 +0200 (CEST)
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: policy routing on locally generated packets
+Date: Tue, 26 Aug 2003 13:09:13 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0308261212330.5081@dns.toxicfilms.tv>
-References: <001501c36b98$ad6452a0$0a02a8c0@apiscomp>
+Message-ID: <20030826110913.GI423@oknodo.bof.de>
+References: <1061813400.1289.36.camel@drs0.manchotnetworks.net> <3F4A01BE.1090805@trash.net> <3F4A2795.3030805@trash.net> <1061837608.1333.9.camel@drs0.manchotnetworks.net> <20030825190750.GH423@oknodo.bof.de> <1061887675.1273.37.camel@drs0.manchotnetworks.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tomasz Krzyzaniak <apisek@czubki.za.net>
-In-Reply-To: <001501c36b98$ad6452a0$0a02a8c0@apiscomp>
+To: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>
+Content-Disposition: inline
+In-Reply-To: <1061887675.1273.37.camel@drs0.manchotnetworks.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,34 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> Hi!
->
-> I wrote brand new target, but i don't know how to publish it and add it to
-> iptables, just to be avaiable to everyone. Any sugestions?
-Get the latest iptables source and patch-o-matic source.
-Add your own libipt_BRANDEWTARGET.c to userspace/extensions
-Add your own .BRANDNEWTARGET-test to userspace/extensions
-Prepare a set of files for patch-o-matic:
-BRANDNEW.patch
-BRANDNEW.patch.config.in
-BRANDNEW.patch.configure.help
-BRANDNEW.patch.help
-BRANDNEW.patch.makefile
+Hi Charles,
 
-Put them depending on their character to appropriate directory like: base,
-extra, ...
+> > What about mangle/PREROUTING? Doesn't it / shouldn't it sit before a
+> > routing decision for locally generated packets?
+> PREROUTING is "before" a routing decision. but only affects packets
+> coming in over the wire, and not locally generated. 
 
-For more information read the patch-o-matic/NEWPATCHES file.
+To me, it could/would be the most logical extension to make PREROUTING
+also see outbound locally generated packets, before the routing step.
 
-Test your version of patch-o-matic, recompile iptables and re-check if
-your TARGET works.
+What do others think?
 
-And then create a patch against an original netfilter tree like so:
-# diff -Nru netfilter.orig netfilter > BRANDNEW_TARGET.diff
+[snip per-uid accounting requirement]
 
-Recheck that diff, and send it off to netfilter-devel for inclusion to
-CVS. This way it'll be possible for CVS and patch-o-matic users to check
-that patch.
+> So I am searching for a hopefully simple way to implement this without
+> having to recompile a bunch of stuff.
 
-Regards,
-Maciej
+Your application would be far better served, IMHO, by a suitable, small
+piece of code that does exactly what you need, instead of invoking complex
+configuration all over the place.
+
+First, the kernel already has a nice per-uid data structure, the
+'struct user_struct'. It is used today to count the number of
+processes a uid posesses. It could certainly be easily extended
+with some counters. Second, those counters would get incremented
+whenever a socket-using user level process sends or receives something.
+Third, add some /proc/ file to read out the current counters, and a way
+to reset the counters to 0.
+
+Anybody here who A) needs the feature and B) has the skill to write the code?
+If I'm not mistaken, it's 1-2 days of work.
+
+best regards
+  Patrick
