@@ -1,12 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH NFSIM]: Fix invalid IP checksums on 64bit
-Date: Thu, 06 Jan 2005 15:29:59 +0100
-Message-ID: <41DD4B67.6010205@trash.net>
+From: "Maarten Wijnants" <maarten.wijnants@pandora.be>
+Subject: Re: ipq_set_verdict gives errors for multicast packets but works
+	fine	for unicast (kernel 2.6)
+Date: Thu, 6 Jan 2005 16:49:17 +0100
+Message-ID: <015a01c4f407$482a32d0$642813ac@in.edm.luc.ac.be>
+References: <013301c4f341$50919b00$642813ac@in.edm.luc.ac.be>
+	<41DD3737.4080808@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080904070103020601010108"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=response
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: "Pablo Neira" <pablo@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,79 +23,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080904070103020601010108
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello Pablo (and rest of list),
 
-IP checksums are calculated wrong on 64 bit because too large types are 
-used.
-This patch fixes them and a couple of unrelated snprintf-sizeof-warnings 
-in the
-same file. I still get invalid TCP checksums, but couldn't locate the 
-problem yet.
+Thanks for your reply,
 
+> Maarten Wijnants wrote:
+>
+>> This all worked fine on kernel version 2.4. However, I have just upgraded 
+>> to kernel 2.6.6, and all of a sudden my application doesn't work anymore.
+>
+>
+> Update to lastest kernel stable 2.6. Patrick McHardy pushed forward some 
+> patches which fixes some problems in ip_queue some time ago.
+>
 
+Well I tried a variety of kernels already. More specifically, I started out 
+with kernel 2.4.20. Everything works fine on this kernel version. 
+Afterwards, I have tried kernel 2.4.28, 2.6.6, 2.6.9 and 2.6.10. I even 
+patched 2.6.10 with the latest snapshot from kernel.org. On none of these 
+kernel versions the rule
 
---------------080904070103020601010108
-Content-Type: text/x-patch;
- name="4.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="4.diff"
+ipq_set_verdict(ipq_handle, m->packet_id, NF_ACCEPT, m->data_len, packet);
 
-Index: core/ipv4/ipv4.c
-===================================================================
---- core/ipv4/ipv4.c	(revision 3578)
-+++ core/ipv4/ipv4.c	(working copy)
-@@ -565,7 +565,7 @@
- 	iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
- }
- 
--static inline unsigned short from32to16(unsigned long x)
-+static inline unsigned short from32to16(unsigned int x)
- {
- 	/* add up 16-bit and 16-bit for 16+c bit */
- 	x = (x & 0xffff) + (x >> 16);
-@@ -574,10 +574,10 @@
- 	return x;
- }
- 
--static unsigned long do_csum(const unsigned char * buff, int len)
-+static unsigned int do_csum(const unsigned char * buff, int len)
- {
- 	int odd, count;
--	unsigned long result = 0;
-+	unsigned int result = 0;
- 
- 	if (len <= 0)
- 		return 0;
-@@ -819,7 +819,7 @@
- 	switch (iph->protocol) {
- 	case IPPROTO_ICMP:
- 		icmph = (struct icmphdr *)(iph + 1);
--		ptr += sprintf(ptr, "%u %u ",
-+		ptr += sprintf(ptr, "%Zu %u ",
- 		       iplen - sizeof(struct icmphdr), iph->protocol);
- 
- 		if (len < sizeof(struct icmphdr)) {
-@@ -855,7 +855,7 @@
- 
- 	case IPPROTO_UDP:
- 		udph = (struct udphdr *)(iph + 1);
--		ptr += sprintf(ptr, "%u %u ",
-+		ptr += sprintf(ptr, "%Zu %u ",
- 		       iplen - sizeof(struct udphdr), iph->protocol);
- 
- 		if (len < sizeof(struct udphdr)) {
-@@ -891,7 +891,7 @@
- 		tcph = (struct tcphdr *)(iph + 1);
- 		if (len < sizeof(struct tcphdr)) {
- 			/* Assume no tcp options... */
--			ptr += sprintf(ptr, "%u %u ",
-+			ptr += sprintf(ptr, "%Zu %u ",
- 				       iplen - sizeof(*tcph), iph->protocol);
- 
- 			ptr += sprintf(ptr, "-TRUNCATED-");
+works for an altered packet with a multicast destination. For unicast 
+destination packets, the rule works on any kernel version. On kernel 2.4.20, 
+this rule works perfectly correct in all situations (i.e. both unicast and 
+multicast destinations). I have absolutely no idea what is going wrong in 
+the other kernel versions. Any ideas?
 
---------------080904070103020601010108--
+Thanks in advance.
+
+Kind regards,
+Maarten 
