@@ -1,19 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and optimization
-Date: Sun, 1 Aug 2004 18:46:53 +0200
+Subject: Re: sctp conntrack
+Date: Sun, 1 Aug 2004 18:50:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040801164653.GA10656@sunbeam2>
-References: <200406250457.NAA07080@toshiba.co.jp> <Pine.LNX.4.33.0406251133230.11001-100000@blackhole.kfki.hu> <20040721213653.GR27487@obroa-skai.de.gnumonks.org> <200407290609.PAA13928@toshiba.co.jp>
+Message-ID: <20040801165005.GA14539@sunbeam2>
+References: <20040722191649.GJ14946@obroa-skai.de.gnumonks.org> <200407271348.34615.immidi@spymac.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
-Cc: kadlec@blackhole.kfki.hu, kaber@trash.net,
-	netfilter-devel@lists.netfilter.org, kisza@securityaudit.hu,
-	usagi-core@linux-ipv6.org
+	protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+To: Kiran Kumar Immidi <immidi@spymac.com>
 Content-Disposition: inline
-In-Reply-To: <200407290609.PAA13928@toshiba.co.jp>
+In-Reply-To: <200407271348.34615.immidi@spymac.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,34 +23,40 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---cWoXeonUoKmBZSoM
+--ReaqsoxgOBHFXBhH
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 29, 2004 at 03:09:02PM +0900, Yasuyuki Kozakai wrote:
-> I got time to implement your idea. How about this ? (not tested)
->
-> 	struct tcphdr hdr;
-> 	struct tcphdr *tcph
+On Tue, Jul 27, 2004 at 01:48:34PM +0530, Kiran Kumar Immidi wrote:
+> On Friday 23 July 2004 12:46 am, Harald Welte wrote:
 >=20
-> 	tcph =3D skb_get_bits(skb, &hdr, skb->nh.iph->ihl*4, sizeof(hdr));
+> > I was about to include the SCTP conntrack patch into my set of pending
+> > patches for 2.6.9 but then discovered that you don't export the timeouts
+> > via /proc (similar to what recent versions of ip_conntrack_tcp do).
+> >
+> > Would you please include suport for /proc tuning of the timeouts and
+> > submit a patch against current CVS?
 >=20
-> If skb is neither shared nor cloned, this function linearize up to tcp he=
-ader
-> and returns the pointer to tcp header in skb.
+>   The attached patch adds this support. It is a diff against current cvs =
+pom=20
+> sctp-conntrack-nat module, the following doubt remains:
+
+thanks, applied.
+
 >=20
-> Otherwise, copies tcp header to "hdr" and return the pointer to it.
-> If error, return NULL.
+> - The type of these timeouts in case of TCP is unsigned long, though the =
+code=20
+> in ip_conntrack_standalone.c treats them as unsigned int. I am not sure o=
+f=20
+> the working, but I suspect something wrong here. I have followed the same=
+=20
+> pattern however.
 
-This sounds like a very sane approach to me. =20
+yes, indeed. on 64bit archs this is going to cause trouble :(
 
-Since we don't have stable API's in 2.6.x anymore (kernel summit
-decision), we could even put this in our pending queue of patches for
-something like 2.6.10/2.6.11
-
-What does eveybody else think?  Comments?
-
+> Regards,
+> Kiran Kumar Immidi
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -63,7 +67,7 @@ What does eveybody else think?  Comments?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---cWoXeonUoKmBZSoM
+--ReaqsoxgOBHFXBhH
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -71,9 +75,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBDR59XaXGVTD0i/8RAh5PAJ9rNJy86dRf52G1D/MUUIq/iie6fwCffSgd
-6Zy/aOfqEA3Fk8BQ1Xg1QTU=
-=Q53G
+iD8DBQFBDR89XaXGVTD0i/8RAsk4AKCjxFmHG4Qw1I3jkXScHOjlXlw3PQCfbQw8
+Z1pz6GOd4VyivTTheRqkJd0=
+=OKNe
 -----END PGP SIGNATURE-----
 
---cWoXeonUoKmBZSoM--
+--ReaqsoxgOBHFXBhH--
