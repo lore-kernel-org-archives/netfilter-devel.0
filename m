@@ -1,77 +1,41 @@
-From: Jesse Peng <jesse@deansoft.com.tw>
-Subject: again!!! the 3rd time, why we need find_appopriate_src? rether than
- just check in_range?
-Date: Thu, 04 Dec 2003 12:42:36 +0800
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FCEBB3C.1000309@deansoft.com.tw>
+From: "Feldman, Scott" <scott.feldman@intel.com>
+Subject: RE: Extremely slow network with e1000 & ip_conntrack
+Date: Wed, 3 Dec 2003 22:51:44 -0800
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD1F@orsmsx402.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: <netfilter-devel@lists.netfilter.org>,
+	<linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+content-class: urn:content-classes:message
+To: "Harald Welte" <laforge@netfilter.org>,
+	"Stephen Lee" <mukansai@emailplus.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-According to the concerning comments and code within get_unique_tupple 
-in ip_nat_core.c, I cite them as below:
-/* 1) If this srcip/proto/src-proto-part is currently mapped,
-       and that same mapping gives a unique tuple within the given
-       range, use that.
+> > > I compiled lots of kernels :-( and narrowed it down to between 
+> > > 2.5.26 and 2.5.46.
+> > > 
+> > > Kernel version	Chip		Problem?
+> > > 2.4.22		82540EM		N
+> > > 2.5.26		82540EM		N
+> > > 2.5.46		82540EM		Y
+> > > 2.6.0-test10		82540EM		Y
+> > > 2.6.0-test11		82540EM		Y
+> > > 2.6.0-test11		82547EI		N
+> > > 2.4.22nptlsmp		82547EI		N
 
-       This is only required for source (ie. NAT/masq) mappings.
-       So far, we don't do local source mappings, so multiple
-       manips not an issue.  */
-if (hooknum == NF_IP_POST_ROUTING) {
-        struct ip_conntrack_manip *manip;
+In e1000, check this out:
 
-        manip = find_appropriate_src(orig_tuple, mr);
-        if (manip) {
-            /* Apply same source manipulation. */
-            *tuple = ((struct ip_conntrack_tuple)
-                  { *manip, orig_tuple->dst });
-            DEBUGP("get_unique_tuple: Found current src map\n");
-            if (!ip_nat_used_tuple(tuple, conntrack))
-                return 1;
-        }
+  #ifdef NETIF_F_TSO
+          if((adapter->hw.mac_type >= e1000_82544) &&
+             (adapter->hw.mac_type != e1000_82547))
+                  netdev->features |= NETIF_F_TSO;
+  #endif
 
-According to above, this circumstance only limited at POST_ROUTING hook, 
-then the question is as follow:
+Try turning off TSO by disabling this code or by using "ethtool -K tso
+off" (need version 1.8).
 
-1.Since ip_nat_fn is called both during PREROUTING and POSTROUTING hook, 
-then we've sure while a new packet passing PREROUTING, the ip_nat_fn 
-have called ip_nat_rule_find, then the ip_nat_rule_find graranting that 
-even no rule found the output tuple will be unique(through the 
-compensation by allocate_null_biding).
-2.While during POSTROUTE, the input tuple: orig_tuple to 
-get_unique_tuple is right one the output tuple above mentioned, so it is 
-still unique!!
-3.Then why can't we just check if the src of the orig_tuple "in range" 
-the mr. If it is, then all we need to do is to set the 
-*tuple=*orig_tuple, and return 1.
-
-So can the new code look like below?
-
-if (hooknum == NF_IP_POST_ROUTING) {
-            if ( in_range(orig_tuple, &orig_tuple->src, mr)) {
-            /* Apply same source manipulation. */
-            *tuple = *orig_tuple;
-            DEBUGP("get_unique_tuple: Found current src map\n");
-            /*Since we've sure the orig_tuple is unique*/
-            /*if (!ip_nat_used_tuple(tuple, conntrack))*/
-                return 1;
-        }
-
-Ok!!!!May be this doubt is very fool wrong, and  nor the question ever 
-exist, Please give me some correct hint.Because this remaining 
-disunderstanding fool me so long and almost destroy my life!!
-
-Thanx!! a lot.
-
-Your Sincerely
+-scott
