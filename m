@@ -1,16 +1,16 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Tue, 15 Feb 2005 16:58:39 +0100 (CET)
-Message-ID: <Pine.LNX.4.62.0502151647350.16076@bizon.gios.gov.pl>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
-	<200502030010.47260.fabrice.marie@fma-rms.com>
-	<Pine.LNX.4.62.0502150219100.17929@bizon.gios.gov.pl>
-	<200502152323.11942.fabrice@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ip_conntrack_proto_sctp INIT_ACK messages droppedg
+Date: Tue, 15 Feb 2005 17:08:44 +0100
+Message-ID: <42121E8C.2070505@trash.net>
+References: <001d01c50dda$f317c4e0$320aa8c0@blueslicemtl>
+	<20050214232045.GJ3829@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-77928170-1108483119=:16076"
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
-To: Fabrice MARIE <fabrice@netfilter.org>
-In-Reply-To: <200502152323.11942.fabrice@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050214232045.GJ3829@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,60 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Harald Welte wrote:
 
----187430788-77928170-1108483119=:16076
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Tue, 15 Feb 2005, Fabrice MARIE wrote:
-
+>On Tue, Feb 08, 2005 at 07:37:22AM -0500, Ariel Rosenblatt wrote:
 >
-> Hello,
+>>The following patch seems to solve the problem, the INIT "init_tag" is now
+>>saved properly for an ESTABLISHED sctp association. The "init_tag" (of an
+>>INIT message) wasn't being saved in the proper direction, causing the
+>>INIT_ACK to be dropped while verifying the tag ("vtag") at the beginning of
+>>sctp_packet().
+>>
 >
-> On Tuesday 15 February 2005 09:20, Krzysztof Oledzki wrote:
->> Any progress? ;-)
+>Thanks for your patch.  Patrick, would you please include the patch with
+>your next patches to davem?
 >
-> Yep. Sorry for the delay. The patch looks alright although I didn't test =
-it.
-;-)
+Are you sure it is correct ? RFC2960 §5.2.2-5.2.4 talks about how to handle
+unexpected INIT and INIT_ACKs. It says:
 
-> As for the rest of the thread, right now like Brad mentioned, you need
-> 2 rules to match the time period:
->> To match 20:00 - 4:00 you currently need 2 rules:
->>  1) match 20:00 - 23:59
->>  2) match 0:00 - 4:00
->> What I'm proposing is to allow this to be reduced to one rule.
->
-> The cleanest way to solve that in my opinion is to implement
-> the negative form of time match, in other words, to allow the usage
-> of the negative option (!) in the time match which is right now not allow=
-ed.
-True. Talking about negation of -m (match). Excuse me for my question,=20
-maybe this is obvious, but.. why we don't have a negation for -m=20
-(match) like for -p (protocol)?
+   After sending out the INIT ACK, the endpoint shall take no further
+   actions, i.e., the existing association, including its current state,
+   and the corresponding TCB MUST NOT be changed.
 
-> It shouldn't be very straight forward. On the other hand, this will requi=
-re an additional
-> variable in the time structure passed from userspace to kernelspace,
-> and this would break binary compatibility with previously built iptables =
-userpace
-> programs.
-Oh. With my patch we have free "u_int8_t  kerneltime" ;-) So no problem,=20
-we can easy store additional flag(s).
+I sounds to me like we can translate this to "the conntrack must not change".
 
-> But if you ask me, patches on extensions like ipt_time shouldn't bother
-> too much about backward compatibility headaches, since they are not shipp=
-ed
-> in the kernel by default (and I guess never will). Backward compatibility=
- for
-> standard-kernel-modules is important though.
-True, true ;)
-
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-77928170-1108483119=:16076--
+Regards
+Patrick
