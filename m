@@ -1,15 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: H.323 Contrack w/ 2.6?
-Date: Tue, 3 Feb 2004 10:02:07 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [patch, resent] Updated CONNMARK
+Date: Tue, 3 Feb 2004 10:03:23 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402030958400.11027-100000@blackhole.kfki.hu>
-References: <1075790189.12953.30.camel@goliath.dscn.net>
+Message-ID: <Pine.LNX.4.44.0402031001090.21619-200000@filer.marasystems.com>
+References: <20040203082052.GO24449@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-1704458873-1075799003=:21619"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Robert Day <zarin@dscn.net>
-In-Reply-To: <1075790189.12953.30.camel@goliath.dscn.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040203082052.GO24449@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,27 +20,77 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 3 Feb 2004, Robert Day wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-> I know PoM -ng is going to address this issue, but till it is ready, and
-> all the extras are ported to it, is there any way to use the h.323
-> contrack module kernel patch with a 2.6 kernel?
-> Running 2.6.1 - no 2.4 kernel stuff on the system, so downgrade is not
-> an option...
+---1463811839-1704458873-1075799003=:21619
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-The module is not ported yet to 2.6, sorry.
+On Tue, 3 Feb 2004, Harald Welte wrote:
 
-> Do I have any options besides a gatekeeper app (does not work in my
-> network) or a proxy (would prefer to avoid them)?
+> Now it's applied.
 
-I suggest everyone to setup a proxy (gatekeeper) instead: the module is
-really dumb and does not deserve to exist at all. It was an excellent tool
-to debug/develop the newnat interface.
+Thanks!
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Unfortunately I forgot the userspace includes in the patch I sent it
+seems. Needed in case the kernel is not patched. Please apply.
+
+Regards
+Henrik
+
+---1463811839-1704458873-1075799003=:21619
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="CONNMARK-userspace-include.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.44.0402031003230.21619@filer.marasystems.com>
+Content-Description: 
+Content-Disposition: attachment; filename="CONNMARK-userspace-include.patch"
+
+SW5kZXg6IHVzZXJzcGFjZS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0
+L2lwdF9DT05OTUFSSy5oDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQpSQ1Mg
+ZmlsZTogL2N2c3B1YmxpYy9pcHRhYmxlcy9pbmNsdWRlL2xpbnV4L25ldGZp
+bHRlcl9pcHY0L2lwdF9DT05OTUFSSy5oLHYNCnJldHJpZXZpbmcgcmV2aXNp
+b24gMS4xDQpkaWZmIC11IC1wIC1yMS4xIGlwdF9DT05OTUFSSy5oDQotLS0g
+dXNlcnNwYWNlL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X0NP
+Tk5NQVJLLmgJMjMgQXVnIDIwMDMgMjI6MTA6MTEgLTAwMDAJMS4xDQorKysg
+dXNlcnNwYWNlL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X0NP
+Tk5NQVJLLmgJMyBGZWIgMjAwNCAwODo1NDoxNiAtMDAwMA0KQEAgLTEsNiAr
+MSwxNSBAQA0KICNpZm5kZWYgX0lQVF9DT05OTUFSS19IX3RhcmdldA0KICNk
+ZWZpbmUgX0lQVF9DT05OTUFSS19IX3RhcmdldA0KIA0KKy8qIENvcHlyaWdo
+dCAoQykgMjAwMiwyMDA0IE1BUkEgU3lzdGVtcyBBQiA8aHR0cDovL3d3dy5t
+YXJhc3lzdGVtcy5jb20+DQorICogYnkgSGVucmlrIE5vcmRzdHJvbSA8aG5v
+QG1hcmFzeXN0ZW1zLmNvbT4NCisgKg0KKyAqIFRoaXMgcHJvZ3JhbSBpcyBm
+cmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3Ig
+bW9kaWZ5DQorICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2Vu
+ZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkNCisgKiB0aGUg
+RnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9m
+IHRoZSBMaWNlbnNlLCBvcg0KKyAqIChhdCB5b3VyIG9wdGlvbikgYW55IGxh
+dGVyIHZlcnNpb24uDQorICovDQorDQogZW51bSB7DQogCUlQVF9DT05OTUFS
+S19TRVQgPSAwLA0KIAlJUFRfQ09OTk1BUktfU0FWRSwNCkBAIC05LDYgKzE4
+LDcgQEAgZW51bSB7DQogDQogc3RydWN0IGlwdF9jb25ubWFya190YXJnZXRf
+aW5mbyB7DQogCXVuc2lnbmVkIGxvbmcgbWFyazsNCisJdW5zaWduZWQgbG9u
+ZyBtYXNrOw0KIAl1X2ludDhfdCBtb2RlOw0KIH07DQogDQpJbmRleDogdXNl
+cnNwYWNlL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X2Nvbm5t
+YXJrLmgNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NClJDUyBmaWxlOiAvY3Zz
+cHVibGljL2lwdGFibGVzL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQv
+aXB0X2Nvbm5tYXJrLmgsdg0KcmV0cmlldmluZyByZXZpc2lvbiAxLjENCmRp
+ZmYgLXUgLXAgLXIxLjEgaXB0X2Nvbm5tYXJrLmgNCi0tLSB1c2Vyc3BhY2Uv
+aW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfY29ubm1hcmsuaAky
+MyBBdWcgMjAwMyAyMjoxMDoxMSAtMDAwMAkxLjENCisrKyB1c2Vyc3BhY2Uv
+aW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfY29ubm1hcmsuaAkz
+IEZlYiAyMDA0IDA4OjU0OjE2IC0wMDAwDQpAQCAtMSw2ICsxLDE1IEBADQog
+I2lmbmRlZiBfSVBUX0NPTk5NQVJLX0gNCiAjZGVmaW5lIF9JUFRfQ09OTk1B
+UktfSA0KIA0KKy8qIENvcHlyaWdodCAoQykgMjAwMiwyMDA0IE1BUkEgU3lz
+dGVtcyBBQiA8aHR0cDovL3d3dy5tYXJhc3lzdGVtcy5jb20+DQorICogYnkg
+SGVucmlrIE5vcmRzdHJvbSA8aG5vQG1hcmFzeXN0ZW1zLmNvbT4NCisgKg0K
+KyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJl
+ZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5DQorICogaXQgdW5kZXIgdGhl
+IHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBw
+dWJsaXNoZWQgYnkNCisgKiB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9u
+OyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcg0KKyAqIChh
+dCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uDQorICovDQorDQog
+c3RydWN0IGlwdF9jb25ubWFya19pbmZvIHsNCiAJdW5zaWduZWQgbG9uZyBt
+YXJrLCBtYXNrOw0KIAl1X2ludDhfdCBpbnZlcnQ7DQo=
+---1463811839-1704458873-1075799003=:21619--
