@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] 2.4.x iptables iptable_mangle LOCAL_IN bugfix
-Date: Sun, 30 Mar 2003 21:36:41 +0200
+Subject: [PATCH] 2.5.x iptables iptable_mangle LOCAL_IN bugfix
+Date: Sun, 30 Mar 2003 21:40:24 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030330193641.GS7718@sunbeam.de.gnumonks.org>
+Message-ID: <20030330194024.GT7718@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="U5J2I87mWnf1KeOw"
+	protocol="application/pgp-signature"; boundary="8N5nZmKALFZnI1Hj"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,7 +21,7 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---U5J2I87mWnf1KeOw
+--8N5nZmKALFZnI1Hj
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -31,29 +31,28 @@ Hi Davem!
 The patch below fixes a bug when the MARK target is used in the INPUT
 chain of the mangle table.
 
-This one is for 2.4.x, expect the 2.5.x fix in my next email.
+This one is for 2.5.x, the 2.4.x fix was in my last email.
 
 Please apply, thanks.
 
 
 diff -Nru --exclude .depend --exclude *.o --exclude *.ver --exclude .*.flag=
-s --exclude *.orig --exclude *.rej --exclude *~ linux-2.4.20-plain/net/ipv4=
-/netfilter/iptable_mangle.c linux-2.4.20-mangleinput/net/ipv4/netfilter/ipt=
-able_mangle.c
---- linux-2.4.20-plain/net/ipv4/netfilter/iptable_mangle.c	Mon Feb 25 20:38=
-:14 2002
-+++ linux-2.4.20-mangleinput/net/ipv4/netfilter/iptable_mangle.c	Wed Jan  8=
- 18:09:36 2003
-@@ -170,7 +170,7 @@
- static struct nf_hook_ops ipt_ops[]
- =3D { { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_PRE_ROUTING,=20
- 	NF_IP_PRI_MANGLE },
--    { { NULL, NULL }, ipt_local_hook, PF_INET, NF_IP_LOCAL_IN,
-+    { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_LOCAL_IN,
- 	NF_IP_PRI_MANGLE },
-     { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_FORWARD,
- 	NF_IP_PRI_MANGLE },
-
+s --exclude *.orig --exclude *.rej --exclude *~ linux-2.5.66-plain/net/ipv4=
+/netfilter/iptable_mangle.c linux-2.5.66-nftest/net/ipv4/netfilter/iptable_=
+mangle.c
+--- linux-2.5.66-plain/net/ipv4/netfilter/iptable_mangle.c	Mon Mar 24 23:01=
+:24 2003
++++ linux-2.5.66-nftest/net/ipv4/netfilter/iptable_mangle.c	Sun Mar 30 21:3=
+9:08 2003
+@@ -179,7 +179,7 @@
+ 		.priority	=3D NF_IP_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		=3D ipt_local_hook,
++		.hook		=3D ipt_route_hook,
+ 		.pf		=3D PF_INET,
+ 		.hooknum	=3D NF_IP_LOCAL_IN,
+ 		.priority	=3D NF_IP_PRI_MANGLE,
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -64,7 +63,7 @@ able_mangle.c
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---U5J2I87mWnf1KeOw
+--8N5nZmKALFZnI1Hj
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -72,9 +71,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+h0dJXaXGVTD0i/8RAmAYAJ46CrZwMRAksCZXmF4uVBgRlnenqwCfSBrX
-bmXXV1taDhF5RF9vhjGmoPI=
-=2fHR
+iD8DBQE+h0goXaXGVTD0i/8RAtE6AKCyfFCM4vWaCnZO82AJt9RrNrU9PgCfTEWI
+b+h/VQ6B0Uj4AF4ni9Y1Khk=
+=biGl
 -----END PGP SIGNATURE-----
 
---U5J2I87mWnf1KeOw--
+--8N5nZmKALFZnI1Hj--
