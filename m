@@ -1,22 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Tue, 15 Feb 2005 01:57:31 +0100
-Message-ID: <20050215005731.GU3829@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
-	<20050114143722.GA10088@ti64.telemetry-investments.com>
-	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
-	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
-	<Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
-	<20050201120618.GA6878@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.61.0502011747520.7203@bizon.gios.gov.pl>
+Subject: Re: [netfilter-core] RFP - Request For Participation
+Date: Tue, 15 Feb 2005 02:00:25 +0100
+Message-ID: <20050215010025.GV3829@sunbeam.de.gnumonks.org>
+References: <9e07bb0c05021214067569fff5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9zecZT88ylESpiZX"
-Cc: netfilter-devel@lists.netfilter.org, fabrice@netfilter.org,
-	Samuel Jean <sj-netfilter@cookinglinux.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
+	protocol="application/pgp-signature"; boundary="Y9o+fgG4MNl0mnzl"
+Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org
+To: Tarek Amr <tarekamr@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0502011747520.7203@bizon.gios.gov.pl>
+In-Reply-To: <9e07bb0c05021214067569fff5@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,35 +22,33 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---9zecZT88ylESpiZX
+--Y9o+fgG4MNl0mnzl
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 01, 2005 at 05:52:38PM +0100, Krzysztof Oledzki wrote:
->=20
->=20
-> On Tue, 1 Feb 2005, Harald Welte wrote:
->=20
-> >On Fri, Jan 14, 2005 at 04:24:01PM +0100, Krzysztof Oledzki wrote:
-> >>OK, How about...
-> >
-> >Could you please coordinate with Fabrice Marie (the author of the
-> >module?) and send me (personally) the final patch?
-> Of course! What is the correct Fabrice's email address? My last patches=
-=20
-> was also send to fabrice%netfilter*org (s/%/@/, s/\*/./), but no one=20
-> responded.
+On Sun, Feb 13, 2005 at 12:06:27AM +0200, Tarek Amr wrote:
+> Hello
+> How to participate in NetFilter developmen. I like writting code
+> especially in kernel space using LKMs. I am not familiar with working
+> in big projects not working with CSV and so. But I'd like to learn any
+> way.
 
-mh, mayb fabrice is inactive these days... so mabe time is sort-of
-unmaintained.=20
+First of all thanks for your request.  All development discussion
+happens on netfilter-devel@lists.netfilter.org, you should subscribe to
+that list.  Secondly, getting used to working with subversion (svn) is a
+good step forward.
 
-Pleaes retry, the last email I got from him (fabrice@netfilter.org) was
-Nov 02 2004, not so long ago.
+We usually don't give svn committ access to anyone outside the coreteam,
+so all contributions are sent in via patches (unified diffs), i.e. the
+output of 'svn diff'.
 
-> Best regards,
-> 				Krzysztof Ol?dzki
+Just watch how others submit their work on netfilter-devel.
 
+Also, for any kind of questions, netfilter-devel is your friend :)
+
+Cheers,
+	Harald
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -68,7 +59,7 @@ Nov 02 2004, not so long ago.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---9zecZT88ylESpiZX
+--Y9o+fgG4MNl0mnzl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -76,9 +67,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFCEUj7XaXGVTD0i/8RAkmuAJ0fHank6I5e1TlsL7O9o12w7U8UqwCdHpwf
-NNiPFY7PcCIEMD5KFka7diI=
-=FebV
+iD8DBQFCEUmpXaXGVTD0i/8RAsDpAJ42uENo8lhyPyXBM1VvrJ4EIPr7ogCgjHVF
+4/Ns129ZptwLpvX8H03sm/8=
+=TGb/
 -----END PGP SIGNATURE-----
 
---9zecZT88ylESpiZX--
+--Y9o+fgG4MNl0mnzl--
