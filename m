@@ -1,171 +1,54 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] expectation use a slab instead of kmalloc
-Date: Mon, 31 May 2004 15:56:11 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40BB397B.6050300@eurodev.net>
+From: Thomas Spatzier <tspat@de.ibm.com>
+Subject: Re: ip_conntrack memory leak?
+Date: Tue, 1 Jun 2004 09:35:39 +0200
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <200406010935.40119.tspat@de.ibm.com>
+References: <9e3aacf404052815384498ae20@mail.gmail.com>
+Reply-To: tspat@gmx.de
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000408020700020805020707"
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
- Patrick McHardy <kaber@trash.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-net-owner@vger.kernel.org>
+To: linux-net <linux-net@vger.kernel.org>,
+	netfilter <netfilter@lists.netfilter.org>,
+	nf-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <9e3aacf404052815384498ae20@mail.gmail.com>
+Content-Disposition: inline
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000408020700020805020707
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+> Hi all,
+> 
+> I am noticing what appears to be a memory leak in conntrack on one of
+> my boxes. The machine is a single 2.4GHz P4 1U rackmount with software
+> RAID 1 on 2 40GB IDE HDDs and an onboard e1000 (eth0) and e100 (eth1).
+> The kernel is 2.4.26 from kernel.org with ip_conntrack compiled
+> statically into the kernel.
+> 
+> The conntrack slab (/proc/slabinfo) grows without bound and the
+> machine needs to be rebooted every few days in order to prevent it
+> from running out of memory. This machine is the most heavily loaded
+> box I have; it is a stateful firewall and pseudo-bridge for a
+> high-traffic subnet. The important thing to note here is that the
+> number of active objects reported by /proc/slabinfo is far below the
+> number that is reported by a cat /proc/net/ip_conntrack. There are
+> ~70K entries in /proc/net/ip_conntrack, whereas /proc/slabinfo reports
+> several times that many active objects in the slab. As well, the
+> number of active objects keeps going up over time while the number of
+> objects reported by /proc/net/ip_conntrack stays relatively the same.
+> 
+> Has anyone experienced a similar memory leak in this area?
+> 
 
-Hi,
+A few weeks ago I posted to these list reporting a similar problem, however
+on Linux 2.6. The problem I had (and still have) is that when I have
+ip_conntrack enabled on a router I lose memory over time. An extreme
+example: a flood ping with packets of size 64K over this router results in
+a memory leak of about 10MB per second. The problem did only occur if
+packets larger than MTU size were sent, which looks like there is a
+problem in ip_conntrack reassembly (possibly refcounting for slab objects ?).
+The behaviour of the slab cache is exactly the same as you described it.
 
-Attached a patch to use a slab for expectations, I think that this could 
-increase a bit the performance in a system which has lots of expectations.
-
-I also moved the increment of an expectation refcount to 
-ip_conntrack_expect_alloc because we could use ip_conntrack_expect_put 
-to release an expectation which we just allocated in a helper (well, in 
-current helpers I didn't find any case but there are weird protocols 
-outthere so I think that it's not a bad idea).
-
-Patrick, if you consider that it's ok, would you be willing to add this 
-to pom-ng? If I'm missing something, please let me know.
-
-regards,
-Pablo
-
---------------000408020700020805020707
-Content-Type: text/x-patch;
- name="slab-expectation.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="slab-expectation.patch"
-
-diff -u -r1.1.1.1 ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	11 May 2004 13:07:08 -0000	1.1.1.1
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	30 May 2004 13:08:00 -0000
-@@ -67,6 +67,7 @@
- static atomic_t ip_conntrack_count = ATOMIC_INIT(0);
- struct list_head *ip_conntrack_hash;
- static kmem_cache_t *ip_conntrack_cachep;
-+static kmem_cache_t *ip_conntrack_expect_cachep;
- struct ip_conntrack ip_conntrack_untracked;
- 
- extern struct ip_conntrack_protocol ip_conntrack_generic_protocol;
-@@ -176,7 +177,7 @@
- 	IP_NF_ASSERT(atomic_read(&exp->use));
- 	IP_NF_ASSERT(!timer_pending(&exp->timeout));
- 
--	kfree(exp);
-+	kmem_cache_free(ip_conntrack_expect_cachep, exp);
- }
- 
- 
-@@ -335,7 +336,7 @@
- 			list_del(&ct->master->expected_list);
- 			master = ct->master->expectant;
- 		}
--		kfree(ct->master);
-+		kmem_cache_free(ip_conntrack_expect_cachep, ct->master);
- 	}
- 	WRITE_UNLOCK(&ip_conntrack_lock);
- 
-@@ -923,16 +924,17 @@
- ip_conntrack_expect_alloc()
- {
- 	struct ip_conntrack_expect *new;
--	
--	new = (struct ip_conntrack_expect *)
--		kmalloc(sizeof(struct ip_conntrack_expect), GFP_ATOMIC);
-+
-+	new = kmem_cache_alloc(ip_conntrack_expect_cachep, GFP_ATOMIC);
- 	if (!new) {
- 		DEBUGP("expect_related: OOM allocating expect\n");
- 		return NULL;
- 	}
- 
-+	DEBUGP("new expectation %p allocated\n", new);
- 	/* tuple_cmp compares whole union, we have to initialized cleanly */
- 	memset(new, 0, sizeof(struct ip_conntrack_expect));
-+	atomic_set(&new->use, 1);
- 
- 	return new;
- }
-@@ -944,7 +946,6 @@
- 	DEBUGP("new expectation %p of conntrack %p\n", new, related_to);
- 	new->expectant = related_to;
- 	new->sibling = NULL;
--	atomic_set(&new->use, 1);
- 
- 	/* add to expected list for this connection */
- 	list_add(&new->expected_list, &related_to->sibling_list);
-@@ -998,7 +999,8 @@
- 		}
- 
- 		WRITE_UNLOCK(&ip_conntrack_lock);
--		kfree(expect);
-+		/* This expectation is not inserted so no need to lock */
-+		kmem_cache_free(ip_conntrack_expect_cachep, expect);
- 		return -EEXIST;
- 
- 	} else if (related_to->helper->max_expected && 
-@@ -1017,7 +1019,7 @@
- 				       related_to->helper->name,
-  		    	       	       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip),
-  		    	       	       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip));
--			kfree(expect);
-+			kmem_cache_free(ip_conntrack_expect_cachep, expect);
- 			return -EPERM;
- 		}
- 		DEBUGP("ip_conntrack: max number of expected "
-@@ -1058,7 +1060,7 @@
- 		WRITE_UNLOCK(&ip_conntrack_lock);
- 		DEBUGP("expect_related: busy!\n");
- 
--		kfree(expect);
-+		kmem_cache_free(ip_conntrack_expect_cachep, expect);
- 		return -EBUSY;
- 	}
- 
-@@ -1379,6 +1381,7 @@
- 	}
- 
- 	kmem_cache_destroy(ip_conntrack_cachep);
-+	kmem_cache_destroy(ip_conntrack_expect_cachep);
- 	vfree(ip_conntrack_hash);
- 	nf_unregister_sockopt(&so_getorigdst);
- }
-@@ -1431,6 +1434,15 @@
- 		printk(KERN_ERR "Unable to create ip_conntrack slab cache\n");
- 		goto err_free_hash;
- 	}
-+
-+        ip_conntrack_expect_cachep = kmem_cache_create("ip_conntrack_expect",
-+                                          sizeof(struct ip_conntrack_expect),
-+					   0, SLAB_HWCACHE_ALIGN, NULL, NULL);
-+        if (!ip_conntrack_expect_cachep) {
-+                printk(KERN_ERR "Unable to create ip_expect slab cache\n");
-+                goto err_free_conntrack_slab;
-+        }
-+
- 	/* Don't NEED lock here, but good form anyway. */
- 	WRITE_LOCK(&ip_conntrack_lock);
- 	/* Sew in builtin protocols. */
-@@ -1458,6 +1470,8 @@
- 
- 	return ret;
- 
-+err_free_conntrack_slab:
-+	kmem_cache_destroy(ip_conntrack_cachep);
- err_free_hash:
- 	vfree(ip_conntrack_hash);
- err_unreg_sockopt:
-
---------------000408020700020805020707--
+-- 
+Regards,
+Thomas.
