@@ -1,14 +1,17 @@
-From: macadanet@yahoo.es
-Subject: my new option calls httpr
-Date: Sat, 1 Mar 2003 12:40:05 +0100
+From: Michael Rash <mbr@cipherdyne.com>
+Subject: Re: string match -> new option
+Date: Sat, 1 Mar 2003 10:47:03 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <618861251.20030301124005@yahoo.es>
-Reply-To: macadanet@yahoo.es
+Message-ID: <20030301104703.A479@orthanc.gambrl01.md.comcast.net>
+References: <15760529186.20030301025308@yahoo.es> <20030301063948.GF24025@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: macadanet@yahoo.es,
+	netfilter devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: lista de correo netfilter <netfilter-devel@lists.netfilter.org>
+To: Patrick Schaaf <bof@bof.de>
+Content-Disposition: inline
+In-Reply-To: <20030301063948.GF24025@oknodo.bof.de>; from bof@bof.de on Sat, Mar 01, 2003 at 07:39:48AM +0100
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,35 +22,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mar 01, 2003, Patrick Schaaf wrote:
 
-When I didn't modify -string option. I created a new option -httpr
-(http request).
+> > If some package includes the string: GET ???????8????????? HTTP
+> > the system will write in log file.
+> 
+> > What do people think? Is a good idea?
+> 
+> 1) it is mostly a bad idea to use the string match at all, as it does
+>    not reassemble a TCP stream, and thus strings that happen to be
+>    broken up in two TCP segments, are not matchable. This is a
+>    fundamental limitation, making any security you get out of
+>    such a rule dubious, best-effort, only-in-good-weather pseudo
+>    security.
 
-I had done a test suite above my network with this patch aplied. In
-Input string on NETFILTER hook, I had a 4 rules:
+Agreed, if the expectation is that doing string matching is going to
+act as a full-blown NIDS (which, as you point out, it certainly
+can't).
 
-iptables -A INPUT -m httpr --httpr '"GET"?"cmd.exe"?"dir"?"HTTP"'
--j LOG
-iptables -A INPUT -m httpr --httpr '"GET"?"tftp"?"HTTP"'
--j LOG
-iptables -A INPUT -m httpr --httpr '"GET"?"root.exe"?"HTTP"'
--j LOG
-iptables -A INPUT -m httpr --httpr '"GET"?"default.ida"?[XNO]*?"HTTP"'
--j LOG
+Having string matching is nice though since allows me to detect
+_some_ signatures without having to run a full-blown NIDS, and I can
+do it directly within iptables itself.  Being able to reject (or at
+least log) the latest Code xxx packets traversing my iptables
+interfaces with a single rule is useful.
 
-My regexp library recognices the rules before showed.
+--Mike
 
-In this host (it's a gateway) is installed a ftp server (proftp
-server). From other host established a ftp connexion to this gate with
- NETFILTER on. PUT and GET binaries files, from and to this gateway
- and bandwith was ok. (5000 Kb/s).
-
-I hope that my explanation was good and people understand me.
-
-Sorry for my horrible english.
-
-
-___________________________________________________
-Yahoo! Móviles
-Personaliza tu móvil con tu logo y melodía favorito 
-en http://moviles.yahoo.es
+Michael Rash
+http://www.cipherdyne.com
+Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
