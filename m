@@ -1,15 +1,20 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: no ctstat? Re: building libctnetlink
-Date: Wed, 06 Apr 2005 15:59:32 +0100
-Message-ID: <d30tcp$tsc$1@sea.gmane.org>
-References: <423BF227.8030502@outerspace.dyndns.org>		<423BF4DC.2070902@outerspace.dyndns.org>		<1111335091.2523.46.camel@lap-ufomechanic>		<1111335425.2523.49.camel@lap-ufomechanic>	<423DF940.100@eurodev.net>		<1111412190.2716.55.camel@lap-ufomechanic>	<423F007F.2060102@eurodev.net>	<1111667756.2526.19.camel@lap-ufomechanic>	<4242B977.1030607@eurodev.net>
-	<d2rpmi$3n8$1@sea.gmane.org>
+From: Stephen Frost <sfrost@snowman.net>
+Subject: Re: NAT behind IPSEC GW working OK - please review patch
+Date: Wed, 6 Apr 2005 11:04:40 -0400
+Message-ID: <20050406150439.GS8725@ns.snowman.net>
+References: <DB15CAD558452949A35006D66C5C5A99010F8B@nav-post.navcorp.com>
+	<1111256850.19630.11.camel@leto.cs.pocnet.net>
+	<423DA104.7000402@trash.net>
+	<1111432509.32237.4.camel@leto.cs.pocnet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CX2kZGZwrCIhBPP7"
+Cc: Robert Borger <bborger@navcorp.com>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>, Andrew Hall <temp02@bluereef.com.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <d2rpmi$3n8$1@sea.gmane.org>
+To: Christophe Saout <christophe@saout.de>
+Content-Disposition: inline
+In-Reply-To: <1111432509.32237.4.camel@leto.cs.pocnet.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,61 +26,92 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sam Liddicott wrote:
-> Pablo Neira wrote:
-> 
->> Just another UFO mechanic wrote:
->>
->>> I am still trying to compile libctnetlink and libnfnetlink I cannot find
->>> a whole lot of info on it. I have 2 questions
->>>
->>> When I try compile
->>> I get the error
->>> libctnetlink.c:32:39 linux/nfnetlink_conntrack.h: No such file or
->>> directory
->>
->>
->>
->> Have you applied `nfnetlink-ctnetlink-0.13' in pom-ng? Add 
->> -I/your/kernel/include/path to your compilation script.
-> 
-> 
-> Thanks for the tip Pablo; probably a case of user error; but:
-> 
-> When I try to apply nfnetlink-ctnetlink-0.13 from the latest pom-ng 
-> (20050403), I am told:
-> 
-> nfnetlink-ctnetlink-0.13 has dependency on ctstat, but ctstat is not known
-> cannot apply (9 rejects out of 42 hunks)
-> 
-> As far as I can tell ctstats was added to pom-ng in around September 
-> 2004 time. There is a ctstat folder in my un-tar'd pom-ng, but it is empty.
-> 
-> I'm running patch-o-matic against iptables 1.2.11 and kernel 2.6.10
-> source.
 
-So after much looking, for my part, according to section 6.2 of the 2004 
-workshop summary at 
-http://www.netfilter.org/documentation/conferences/nf-workshop-2004-summary.html
-  ctstat has already been merged with... with....
+--CX2kZGZwrCIhBPP7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-and there you have it.
+* Christophe Saout (christophe@saout.de) wrote:
+> Am Sonntag, den 20.03.2005, 17:12 +0100 schrieb Patrick McHardy:
+> > This is not correct, the reason why the packets are dropped
+> > is most likely a missing forward policy. If this is not the
+> > case, there must be a bug somewhere in nf_nat_decode_session4().
+>=20
+> You were right. Actually it's working without the patch, I was just too
+> stupid to allow forwarding in the other direction when I tested it the
+> first time.
+>=20
+> And there actually was a bug in my nf_nat_decode_session4 when using
+> both SNAT and DNAT.
+>=20
+> The updated version of ipsec-04-policy-checks.diff can be found at
+> http://www.saout.de/misc/linux-2.6.12-rc1-ipsec-nat/
+>=20
+> The patches are against linux-2.6.12-rc1, but the only change compared
+> to linux-2.6.11 is ipsec-01-output-hooks.diff.
 
-I can't tell if ctstat has been merged with any particular kernel 
-version or any particular iptables version or both.
+Using these patches (except w/ ipsec-01-output-hooks.diff from the prior
+thread w/ 2.6.11 since the one from the URL above didn't patch cleanly)
+I seem to still be having a problem with certain situations.  Hopefully
+you all might be able to shed some light on it.  This is the situation:
 
-This file, 
-http://people.netfilter.org/gandalf/old/ctstat/ctstat-040215-2.6, hints 
-that ctstat may have been merged with kernel 2.6
+IPSEC tunnels using strongswan for:
+A <--> B
+A <--> B/subnet *
+subnet/A <--> B *
+subnet/A <--> B/subnet
 
-So assuming that you do have ctstat merged somehow (and 
-ct_cpu_seq_show() seems to be defined in ip_conntrack_standalone.c on 
-2.6.10), edit nfnetlink-ctnetlink-0.13/info and remove the dependancy on 
-ctstat and then apply with
-   ... ... ./runme --batch nfnetlink-ctnetlink-0.13
+This all worked just fine under 2.6.10 w/ the 2.6.10 ipsec/netfilter
+patches.  Using 2.6.11.6 the two *'d tunnels don't seem to be working. =20
+When trying to ping from A to B/subnet what I see happening is this:
 
-You'll still get a failure to apply though, which I'm looking into. I'll 
-post back when I find out more, I'm going to try it on 2.6.11 and then 
-look at the rejects more closely if that doesn't work.
+Packet from A is encrypted using the appropriate tunnel going from=20
+A to B.  On B I see the packet going through the firewall rules I have
+set up in iptables and see the appropriate response is generated and
+according to tcpdump on B the return packet is encrypted and sent out
+the correct B -> A tunnel.  I don't see that encrypted return packet=20
+on A though, again according to tcpdump.  I also see both the icmp=20
+return packet and the encrypted packet pass through the OUTPUT chain=20
+of B, which is what I'd expect.  I also don't see the encrypted or=20
+unencrypted return packet from B to A in the chains of netfilter=20
+on A (checked INPUT and nat/PREROUTING).
 
-Amin
+subnet/A and B/subnet are subnets on the localhost interface of the
+associated machine using aliases, technically.  This didn't seem to
+bother 2.6.10 at all and I wouldn't expect 2.6.11.6 to care but I wanted
+to put that out there too in case it makes a difference.  I could test
+w/ real interfaces if necessary but what I actually want working is with
+them on localhost.  Additionally, I'm using Vserver 1.9.5 (which is why
+I want things on localhost to work in this setup).  Again, worked fine
+under 2.6.10 and wouldn't expect it to be a problem.
+
+I understand that people using 2.6.11 have this working w/o the
+netfilter patches (at least the A <--> B/subnet part, don't know if
+they've tried it w/ using localhost but wouldn't expect that to make a
+difference...)..
+
+I've also tried disabling all the firewall rules on both systems and
+still the same problem.  I'm probably going to try w/o the patches but
+I'd really like to have them..
+
+Any thoughts?
+
+	Thanks,
+
+		Stephen
+
+--CX2kZGZwrCIhBPP7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCU/qHrzgMPqB3kigRAirCAJ0bztBQb+siyZENFW6Ql4Y1X5B01gCfZ53E
+hCRjqjZvwMUpMXZuIFvSJBw=
+=qU/P
+-----END PGP SIGNATURE-----
+
+--CX2kZGZwrCIhBPP7--
