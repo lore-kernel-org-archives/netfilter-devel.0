@@ -1,15 +1,14 @@
-From: serjio <serjio@tajik.net>
-Subject: Re: Is this an ULOG error?
-Date: Wed, 02 Feb 2005 14:30:02 +0500
-Message-ID: <42009D9A.9080309@tajik.net>
-References: <41FF2188.3040300@tajik.net>
-	<20050201134607.GN6878@sunbeam.de.gnumonks.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] TCP window tracking over-window handling
+Date: Wed, 2 Feb 2005 10:46:01 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0502021017590.24272@blackhole.kfki.hu>
+References: <20050128234334.GA20713@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050201134607.GN6878@sunbeam.de.gnumonks.org>
+To: Phil Oester <kernel@linuxace.com>,
+	Patrick McHardy <kaber@trash.net>
+In-Reply-To: <20050128234334.GA20713@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,87 +20,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Harald,
+Hi Phil,
 
+On Fri, 28 Jan 2005, Phil Oester wrote:
 
->>I would like to use ULOG and ULOGD for traffic accounting. 
->>    
->>
+> This was a tough one to track down, and also tough to explain...
 >
->This is not what ULOG is meant for.But after I have installed these tools on my router I was surprised
->that I cannot check my traffic with 100% accuracy.
->  
+> In cases of packet loss, some broken TCP stacks will send data over the
+> window of the receiver.  Then, on the next packet they will resend the
+> missing packet, then move on.
 >
+> The current window tracking code 'ignores' this window overage by resetting
+> the end of the packet to the theoretical maximum (corrects the math of the
+> stupid sender).
 >
->Please give more information, such as exact kernel version, exact ulogd
->version, any patches you might be using, ...
->  
+> Unfortunately, the sender does receive this over-the-window packet, and does
+> increment its ack seq.  So on the next ack after receiving the missing
+> packet, the receiver acks with the ack seq it knows about, which is higher
+> than that which the window tracking code thinks it has seen.  Consequently,
+> it complains that the ACK is over the upper bound, and does not adjust
+> the window.
+
+That implies then that the receiver is broken as well, by accepting and
+ack-ing out of window segments. But it is true, we anticipate the
+behaviour of the receiver here, which we shouldn't.
+
+> After this, communications cease, as each new packet from the sender is
+> dropped by the window tracking code -- it thinks it is over the window
+> of the sender.
 >
-Please look at the below description of what I am using:
-kernel 2.6.2-rc3
-ulogd ver 1.02
-CPU: Intel(R) Pentium(R) 4 CPU 2.40GHz
-RAM: 256M
-Network loading is about 500K per sec.
-We are ISP and using this server as our primary shaper.
+> So, we have seen situations where large ftp transfers stop midstream, but
+> smaller transfers complete fine (they got lucky).  I've attached a tcpdump
+> log at the bottom of this message with some annotation and conntrack
+> debugging inserted in appropriate locations for the interested.
 
-I found this problem when I used a fresh 2.6.10 kernel without any 
-patches as well.
+Interesting indeed!
 
+> The solution IMO is not to correct the math of the sender -- there is no
+> benefit to doing so.  The attached patch does this (and also clarifies
+> the language in some debugging code).
 
->>I think that there are some problems in transmit data via kernel socket 
->>to userspace.
->>    
->>
->
->probably.  even if your buffers are large enough - if the system
->forwards more packets than it is able to ULOG, then you will have holes
->in your logs.  ULOG is best-effort.
->
->  
->
-I added to the ipt_ULOG.c file some debug information just after 
-netlink_broadcast function.
+The current code follows closely TCP/IP Illustrated vol 2, p. 954: Trim
+Segment so Data is Within Window.
 
-ret = netlink_broadcast(nflognl, ub->skb, 0, (1 << nlgroupnum), GFP_ATOMIC);
-if(ret!=0){
-     PRINTR("%s\n  throwing %d packets","ipt_ULOG:netlink_broadcast 
-error",ub->qlen);
-};
+Do you know the OS of the communicating parties? Weren't window scaling or
+SACK negotiated?
 
+With your proposed patch, we'd actually drop the oow segment. Could you
+check that it won't cause problems (besides more logging generated :-)?
 
-And I didn't get any errors from this function.
-So for my mind information is lost somewhere in the way between ulog 
-kernel module
-and  ulogd daemon.
-What do you think if I will change ULOG module so it will send data via 
-proc fs?
-Can it solve a problem with lost data?
-
->>Changing a socket network buffer size up to 4M didn't help me.
->>
->>sysctl -w net.core.rmem_max=8388608
->>    
->>
->>sysctl -w net.core.rmem_default=4194304
->>sysctl -w net.core.wmem_max=8388608
->>sysctl -w net.core.wmem_default=4194304
->>    
->>
->
->there are multiple buffers involved, please see the ulogd documentation.
->  
->
-Unfortunatelly I didn't find any related. There is only one place in the 
-ulogd daemon
-when ulogd is receiving a data from ulog.
-Look at the below code:
-libipulog.c:81      status = recvfrom(h->fd, buf, len, 0, (struct 
-sockaddr *)&h->peer,&addrlen);
-
-How I can trace this way between call netlink_broadcast function and 
-recvfrom in the ulogd daemon?
-I would be grateful for any suggestions, information links or hints etc.
-
-Thanks,
-Sergei Filippov
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
