@@ -1,14 +1,15 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [1/1] libipt_osf: fix iptables-1.3.0rc1 compilation.
-Date: Mon, 07 Feb 2005 20:29:53 +0300
-Message-ID: <1107797393.5789.17.camel@uganda>
-Reply-To: johnpol@2ka.mipt.ru
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] Reduce netfilter memory use on MP systems
+Date: Mon, 7 Feb 2005 19:31:25 +0100
+Message-ID: <20050207183125.GJ10011@obroa-skai.de.gnumonks.org>
+References: <20050204140900.GD2518@wotan.suse.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-TnmmQgREf88XShfiQ8Pv"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="wjoFZxbW4tu+iR6v"
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+To: Andi Kleen <ak@suse.de>
+Content-Disposition: inline
+In-Reply-To: <20050204140900.GD2518@wotan.suse.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,54 +22,45 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-TnmmQgREf88XShfiQ8Pv
-Content-Type: text/plain
+--wjoFZxbW4tu+iR6v
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Bug reported by Sami Farin <safari-kernel@safari.iki.fi>.
+On Fri, Feb 04, 2005 at 03:09:00PM +0100, Andi Kleen wrote:
+>=20
+> On kernels compiled with a big NR_CPUS netfilter rules would=20
+> eat a lot of memory because all counters would be duplicated
+> for all NR_CPUs CPUs.  With NR_CPUS=3D256 this would add up
+> to many MBs of memory.
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Thanks, Andi.  I think the NR_CPUS is actually a remnescant of 2.3.x
+times when we didn't have num_possible_cpus() yet.
 
---- linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h.orig 2005-02-07
-19:11:08.237624320+0300
-+++ linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h    2005-02-07
-19:11:43.854209776 +0300 @@ -33,9 +33,6 @@
- #define IPT_OSF_LOGLEVEL_ALL   0
- #define IPT_OSF_LOGLEVEL_FIRST 1
-
--#include <linux/list.h>
--#include <net/tcp.h>
--
- #ifndef __KERNEL__
- #include <netinet/ip.h>
- #include <netinet/tcp.h>
-@@ -98,6 +95,10 @@
-
- #ifdef __KERNEL__
-
-+#include <linux/list.h>
-+#include <net/tcp.h>
-+
-+
- /* Defines for IANA option kinds */
-
- #define OSFOPT_EOL             0       /* End of options */
+Also wrt. your vmalloc issues, I think there are floating around some
+patches which replace our vmalloc use by __get_free_pages() anyway.
 
 --=20
-        Evgeniy Polyakov
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Crash is better than data corruption -- Arthur Grabowski
-
---=-TnmmQgREf88XShfiQ8Pv
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+--wjoFZxbW4tu+iR6v
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQBCB6WRIKTPhE+8wY0RAlLGAJ9CnPwbdjFiKTojHOJlGMby6A7Y3QCdHXeq
-RLj8VO8R3i/zBven8SbrgLM=
-=bbwg
+iD8DBQFCB7P9XaXGVTD0i/8RAmIqAJwJtMIpX7En5Aviun9GlUNlYgwlEACfW9aJ
+imO65JN9lU62h80CgsPfO2s=
+=V8jP
 -----END PGP SIGNATURE-----
 
---=-TnmmQgREf88XShfiQ8Pv--
+--wjoFZxbW4tu+iR6v--
