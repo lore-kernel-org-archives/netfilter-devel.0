@@ -1,16 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4] netfilter: get rid of warnings if no PROC_FS
-Date: Tue, 2 Dec 2003 01:33:30 -0800
+Subject: Re: [PATCH 2.4] netfilter: optimization of listhelp.h
+Date: Tue, 2 Dec 2003 01:37:49 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031202013330.691cfc26.davem@redhat.com>
-References: <20031130153512.GF26749@obroa-skai.de.gnumonks.org>
+Message-ID: <20031202013749.364b61f6.davem@redhat.com>
+References: <20031130153627.GG26749@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031130153512.GF26749@obroa-skai.de.gnumonks.org>
+In-Reply-To: <20031130153627.GG26749@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,13 +21,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 30 Nov 2003 21:05:12 +0530
+On Sun, 30 Nov 2003 21:06:27 +0530
 Harald Welte <laforge@netfilter.org> wrote:
 
 > This mail contains the fifth netfilter patch, please apply.
 > 
-> Author: Stephen Hemminger
+> Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 > 
-> Trivial -- Get rid of warnings in netfilter if /proc is not configured on.
+> List macro optimization patch so that we can benefit
+> from prefetching automatically.
 
 Applied, thanks.
