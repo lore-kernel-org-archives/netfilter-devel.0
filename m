@@ -1,11 +1,11 @@
 From: Felipe W Damasio <felipewd@terra.com.br>
-Subject: [PATCH 5/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ipt_ULOG
-Date: Fri, 29 Aug 2003 17:09:08 -0300
+Subject: [PATCH 3/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ipfwadm_core
+Date: Fri, 29 Aug 2003 17:09:03 -0300
 Sender: kernel-janitor-discuss-admin@lists.sourceforge.net
-Message-ID: <3F4FB2E4.5050702@terra.com.br>
+Message-ID: <3F4FB2DF.3090903@terra.com.br>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------090405060809040504090307"
+ boundary="------------070703010107040306020004"
 Return-path: <kernel-janitor-discuss-admin@lists.sourceforge.net>
 To: netfilter-devel@lists.netfilter.org,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -21,7 +21,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=kernel-janitor
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090405060809040504090307
+--------------070703010107040306020004
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -35,25 +35,25 @@ Content-Transfer-Encoding: 7bit
 
 Felipe
 
---------------090405060809040504090307
+--------------070703010107040306020004
 Content-Type: text/plain;
- name="ipt_ULOG.patch"
+ name="ipfwadm_core.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="ipt_ULOG.patch"
+ filename="ipfwadm_core.patch"
 
---- linux-2.6.0-test4/net/ipv4/netfilter/ipt_ULOG.c.orig	Fri Aug 29 16:46:04 2003
-+++ linux-2.6.0-test4/net/ipv4/netfilter/ipt_ULOG.c	Fri Aug 29 16:46:11 2003
-@@ -36,7 +36,6 @@
-  */
- 
- #include <linux/module.h>
+--- linux-2.6.0-test4/net/ipv4/netfilter/ipfwadm_core.c.orig	Fri Aug 29 16:45:40 2003
++++ linux-2.6.0-test4/net/ipv4/netfilter/ipfwadm_core.c	Fri Aug 29 16:45:53 2003
+@@ -131,7 +131,6 @@
+ #include <net/checksum.h>
+ #include <linux/proc_fs.h>
+ #include <linux/stat.h>
 -#include <linux/version.h>
- #include <linux/config.h>
- #include <linux/spinlock.h>
- #include <linux/socket.h>
+ 
+ MODULE_LICENSE("Dual BSD/GPL");
+ 
 
---------------090405060809040504090307--
+--------------070703010107040306020004--
 
 
 
