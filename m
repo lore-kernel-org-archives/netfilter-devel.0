@@ -1,14 +1,12 @@
-From: Rickard Molin <rickard.molin@businessecurity.com>
-Subject: IP csum bug in ROUTE module
-Date: Mon, 19 Apr 2004 14:42:48 +0200
+From: zhi wang <pangy2004@yahoo.com>
+Subject: Fwd: Re: Iptables Source Based Routing
+Date: Mon, 19 Apr 2004 06:19:51 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5340B444BE2BD411A89C009027F6917B4FDDE6@BSSERVER>
+Message-ID: <20040419131951.20980.qmail@web41702.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Cc: "'delanois@info.ucl.ac.be'" <delanois@info.ucl.ac.be>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Netfilter-Devel (E-mail)" <netfilter-devel@lists.netfilter.org>
+To: Netfilter Develop <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,59 +17,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
-
-I reported this bug to Cedric de Lanois (Author) a few months ago but he
-seems to have to much work to include the fix.
-
-If ROUTE is used on the INPUT chain with the --oif option the ttl needs to
-be decreased and the checksum recalculated. This is currently done with
-ip_decrease_ttl which also fixes the checksum assuming that nothing else has
-changed in the IP header. If the packet was defragmented before the
-netfilter hook the length has changed and ip_decrease_ttl produces an
-incorrect checksum.
-
-Therefore i propose that ip_fast_csum should be used when on INPUT chain
-instead.
-I have done limited testing and cannot guarantee that this is correct but
-here is a patch
-
-/Rickard Molin
-
-
-
-
---- linux-2.4.20/net/ipv4/netfilter/ipt_ROUTE.c	2004-04-19
-11:18:17.000000000 +0200
-+++ linux-2.4.20-patched/net/ipv4/netfilter/ipt_ROUTE.c	2004-04-19
-14:35:55.000000000 +0200
-@@ -19,6 +19,7 @@
- #include <net/ip.h>
- #include <net/route.h>
- #include <net/icmp.h>
-+#include <net/checksum.h>
+> I am setting up a linux box roughly working as the one depicted at
+> http://lartc.org/howto/lartc.rpdb.multiple-links.html.
+> As IPTABLES 1.2.9 has already been installed and it is running on my linux
+> box I'm wandering if I can use just Iptables instead of Iproute in order to
+> get the required behaviour.
+Look at the CONNMARK in pom-ng, it provides a more flexible way to do source
+routing. But iproute2 is still a must.
+The idea is that you mark the session at input, and use iproute2 to route the
+packet with nf-mark, then save the mark at output
  
- #if 0
- #define DEBUGP printk
-@@ -281,8 +282,19 @@
- 			return NF_DROP;
- 		}
- 
--		ip_decrease_ttl(iph);
--	}
-+
-+    /*
-+     * If we are at INPUT the checksum must be recalculated since
-+     * the length could change as the result of a defragmentation.
-+     */
-+    if(hooknum == NF_IP_LOCAL_IN) {
-+      iph->ttl = iph->ttl - 1;
-+      iph->check = 0;
-+      iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
-+    } else {
-+      ip_decrease_ttl(iph);
-+    }
-+  }
- 
- 	/* Tell conntrack to forget this packet since it may get confused 
- 	 * when a packet is leaving with dst address == our address.
+
+
+
+	
+		
+__________________________________
+Do you Yahoo!?
+Yahoo! Photos: High-quality 4x6 digital prints for 25¢
+http://photos.yahoo.com/ph/print_splash
