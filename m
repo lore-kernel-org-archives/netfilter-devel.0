@@ -1,18 +1,18 @@
-From: Nils Ohlmeier <lists@ohlmeier.de>
-Subject: Re: GnomeMeeting STUN
-Date: Fri, 2 Jan 2004 20:37:24 +0100
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [Bug 1764] New: conntrack oops while reading
+ /proc/net/ip_conntrack
+Date: Sat, 3 Jan 2004 15:29:21 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401022037.24303.lists@ohlmeier.de>
-References: <1072260947.722.25.camel@golgoth01> <20031224143851.GD941@obroa-skai.de.gnumonks.org>
+Message-ID: <20040103152921.76d4362e.rusty@rustcorp.com.au>
+References: <11020000.1072813876@[10.10.2.4]>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: linux-kernel@vger.kernel.org, christophe@saout.de,
+	laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>, Damien Sandras <dsandras@seconix.com>
-In-Reply-To: <20031224143851.GD941@obroa-skai.de.gnumonks.org>
-Content-Disposition: inline
+To: "Martin J. Bligh" <mbligh@aracnet.com>
+In-Reply-To: <11020000.1072813876@[10.10.2.4]>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,78 +23,70 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On Tue, 30 Dec 2003 11:51:16 -0800
+"Martin J. Bligh" <mbligh@aracnet.com> wrote:
 
-On Wednesday 24 December 2003 15:38, Harald Welte wrote:
-> On Wed, Dec 24, 2003 at 11:16:14AM +0100, Damien Sandras wrote:
-> > I have a few questions for you if you don't mind. You probably guess
-> > that getting gnomemeeting (and voip apps in general) behind a NAT
-> > gateway is hard for average users for which even port forwarding is
-> > hard.
->
-> yes, unfortunately those protocols are not very NAT friendly.
->
-> > Cisco has come up with a solution called STUN, I suppose you know what
-> > it is. GnomeMeeting could get STUN support soon, but Linux Nat appears
-> > as being of type "Blocked" (RFC3489).
->
-> The Linux >= 2.4.x implementation of NA(P)T is what the IETF tends to
-> call 'fully symmetric NAPT', i.e. the most sophisticated version of
-> network and port address translation.
+> http://bugme.osdl.org/show_bug.cgi?id=1764
+> 
+>            Summary: conntrack oops while reading /proc/net/ip_conntrack
+>     Kernel Version: 2.6.0
+>             Status: NEW
+>           Severity: high
+>              Owner: laforge@gnumonks.org
+>          Submitter: christophe@saout.de
+...
+> Apparently expect->expectant->helper is NULL in print_expect
+> (net/ipv4/netfilter/ip_conntrack_standalone.c).
 
-The detected NA(P)T type depends on various factors. How long are the bindings 
-in connection tracking and how fast/often the STUN clients retry to check 
-their status. How many STUN clients are used behind the NAT.
+Um, Harald, other developers,
 
-> With old, 'more stupid' NA(P)T implementations in ipfwadm and ipchains,
-> you would be able to do STUN.
+	Shouldn't list_conntracks do READ_LOCK(&ip_conntrack_expect_tuple_lock) before walking the expect list?
 
-You are able to do STUN behind any type of NA(P)T. Only the detection results 
-and depending on that the choices on how you can proceed are diffenrent :)
+Here's a patch.  Does it do anything?
+Rusty.
+-- 
+   there are those who do and those who hang on and you don't see too
+   many doers quoting their contemporaries.  -- Larry McVoy
 
-> So it seems like linux is too advanced for the tricks that STUN tries to
-> do.
+Name: Grab ip_conntrack_expect_tuple_lock in list_conntracks
+Author: Rusty Russell
+Status: Experimental
 
-Yes, STUN works well if you are sitting behind one of these small hardware 
-boxes, because the experiences shows that most of them are 'full cone 
-NAT' (which means an IP port combination on the NAT box accepts pakcets from 
-any IP or port combination for this destination and delivers it to the 
-private destination).
-But with netfilter and if i'm not wrong with the BSD's STUN is no help (except 
-that you can detect that you are lost :)
+D: http://bugme.osdl.org/show_bug.cgi?id=1764
+D: We're walking the expect list without the ip_conntrack_expect_tuple_lock.
 
-> netfilter/iptables would AFAICT interoperate quite well with what the
-> ITEF MIDCOM people are designing, though.
-
-If it ever gets launched.
-
-> > So my question is: is there a way to make Linux NAT gateways work with
-> > STUN?
->
-> No, I honestly don't see any way.
-> The fundamental principles behind the iptables NAT design are:
->
-> 1) try to change as little information as possible
-> 	i.e. we only do NAT as long as it is possible. port numbers
-> 	 are only changed if absolutely necessarry.  Also, as opposed
-> 	 to ipchains, you cannot tell that NAT is used just by looking
-> 	 at the source port numbers.
->
-> 2) try to use as little resources as possible
-> 	this especially means that any given (srcport,srcip) tuple
-> 	at the NAT gateway can be used for many different connections,
-> 	as long as the (dstip,dstport) tuple differs
->
-> 3) provide as much 'security' as possible
-> 	we get this for free if we do '2)'.  This means we don't accept
-> 	any incoming reply packets from a differnet srcip/srcport than
-> 	the original request was sent to.
-
-The best solution at the moment for 'symmetric NAT's' like Linux seems to be 
-media relay in the public internet.
-To be able to live just with STUN you had to change Netfilter back to the more 
-"unsecure"  'full cone NAT' as with ipchains. Which will probably rejected by 
-the Netfilter team :)
-
-Greets
-  Nils
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .20891-linux-2.6.1-rc1/include/linux/netfilter_ipv4/ip_conntrack_core.h .20891-linux-2.6.1-rc1.updated/include/linux/netfilter_ipv4/ip_conntrack_core.h
+--- .20891-linux-2.6.1-rc1/include/linux/netfilter_ipv4/ip_conntrack_core.h	2003-09-22 10:26:46.000000000 +1000
++++ .20891-linux-2.6.1-rc1.updated/include/linux/netfilter_ipv4/ip_conntrack_core.h	2004-01-03 15:27:14.000000000 +1100
+@@ -50,5 +50,6 @@ static inline int ip_conntrack_confirm(s
+ extern struct list_head *ip_conntrack_hash;
+ extern struct list_head ip_conntrack_expect_list;
+ DECLARE_RWLOCK_EXTERN(ip_conntrack_lock);
++DECLARE_RWLOCK_EXTERN(ip_conntrack_expect_tuple_lock);
+ #endif /* _IP_CONNTRACK_CORE_H */
+ 
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .20891-linux-2.6.1-rc1/net/ipv4/netfilter/ip_conntrack_standalone.c .20891-linux-2.6.1-rc1.updated/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- .20891-linux-2.6.1-rc1/net/ipv4/netfilter/ip_conntrack_standalone.c	2003-12-18 15:53:34.000000000 +1100
++++ .20891-linux-2.6.1-rc1.updated/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-01-03 15:23:40.000000000 +1100
+@@ -154,6 +154,7 @@ list_conntracks(char *buffer, char **sta
+ 	}
+ 
+ 	/* Now iterate through expecteds. */
++	READ_LOCK(&ip_conntrack_expect_tuple_lock);
+ 	list_for_each(e, &ip_conntrack_expect_list) {
+ 		unsigned int last_len;
+ 		struct ip_conntrack_expect *expect
+@@ -164,10 +165,12 @@ list_conntracks(char *buffer, char **sta
+ 		len += print_expect(buffer + len, expect);
+ 		if (len > length) {
+ 			len = last_len;
+-			goto finished;
++			goto finished_expects;
+ 		}
+ 	}
+ 
++ finished_expects:
++	READ_UNLOCK(&ip_conntrack_expect_tuple_lock);
+  finished:
+ 	READ_UNLOCK(&ip_conntrack_lock);
+ 
