@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: a question of mtu
-Date: Thu, 5 Dec 2002 21:36:24 +0100
+Subject: Re: re &ip_conntrack_lock not readlocked
+Date: Thu, 5 Dec 2002 21:28:07 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021205203624.GM11068@naboo.club.berlin.ccc.de>
-References: <000101c29227$29749040$5101a8c0@workstation>
+Message-ID: <20021205202807.GJ11068@naboo.club.berlin.ccc.de>
+References: <013701c28a2c$ef342000$4200000a@simon>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zHDeOHGDnzKksZSU"
+	protocol="application/pgp-signature"; boundary="ofZMSlrAVk9bLeVm"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: ???? <buaacst@163.com>
+To: Simon May <simon@imsl.es>
 Content-Disposition: inline
-In-Reply-To: <000101c29227$29749040$5101a8c0@workstation>
+In-Reply-To: <013701c28a2c$ef342000$4200000a@simon>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,26 +23,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---zHDeOHGDnzKksZSU
+--ofZMSlrAVk9bLeVm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 22, 2002 at 09:00:11PM +0800, ???? wrote:
-> Hi,
->     I try to get the pmtu at the point of NF_IP_LOCAL_OUT.I write three s=
-entence to do this.
->=20
-> struct sk_buff *sk_b =3D *skb;
-> struct rtable *r_t =3D (struct rtable *)sk_b->dst;
-> pmtu =3D r_t->u.dst.pmtu;
->=20
-> The result is 0,but in net/ipv4/ip_output.c/ip_queue_xmit2,rt->u.dst.pmtu=
- is not 0.Does some one know the reason,thanks very much!
+On Tue, Nov 12, 2002 at 10:21:51AM +0100, Simon May wrote:
+> I have been seeing the message
+> Nov 12 09:58:01 clients kernel: ASSERT: ip_nat_core.c:839 &ip_conntrack_l=
+ock
+> not readlocked
+> in the logs and believe it may be related to
 
-and how is this related to netfilter development?  This is a core
-networking issue, pleaes go to netdev@oss.sgi.com.
+> I'm not sure that it's actually doing any harm but
+> can not find much about it.
+>=20
+> any helpful comments would be apreciated
 
+please read the list archives.  It's a problem in the debug statement,
+not the code itself.
+
+> Simon May
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -54,7 +55,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---zHDeOHGDnzKksZSU
+--ofZMSlrAVk9bLeVm
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -62,9 +63,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE977jIXaXGVTD0i/8RAmt7AJwNKtRI7+gHrZPjLxFT2pICUXZwYwCfVZt4
-YjlPidzVPM6XSKABZl+p02M=
-=pCu4
+iD8DBQE977bXXaXGVTD0i/8RAsMHAKCUj+l8M4g7wVmkXBqRfYQMBLCfjQCfdTdk
+nWYA5py+fd4Rx9tgaKZvarA=
+=cuZg
 -----END PGP SIGNATURE-----
 
---zHDeOHGDnzKksZSU--
+--ofZMSlrAVk9bLeVm--
