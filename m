@@ -1,13 +1,18 @@
-From: Thomas Woerner <twoerner@redhat.com>
-Subject: ip6tables-save and udp port range
-Date: Mon, 22 Sep 2003 12:25:07 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2.4] fix ipt_REJECT when used in OUTPUT
+Date: Mon, 22 Sep 2003 13:08:30 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F6ECE03.5020608@redhat.com>
+Message-ID: <3F6ED82E.5060606@trash.net>
+References: <20030921144013.GA22223@sunbeam.de.gnumonks.org> <3F6EAFF2.9080303@isfera.ru> <20030922085326.GF31401@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020607010802060108060707"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Diadon <diadon@isfera.ru>, David Miller <davem@redhat.com>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+  linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030922085326.GF31401@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,56 +23,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020607010802060108060707
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Harald Welte wrote:
 
+>David, pleas defer applying that patch until further testing is done.
+>
+>Sorry for the confusion.
+>
 
-Hello,
+My bad, I missed that we cannot pass the packet to ip_finish_output2
+since it was routed as local input and is missing a neighbour. The correct
+fix is to use ip_route_output for packets generated in LOCAL_OUT with
+key.saddr set to 0 (the first one I sent to Diadon).
 
-
-ip6tables-save is not saving an udp port range if one of the ports is 
-0x0 or 0xFFFF. This is aleady fixed in the ipv4 version.
-
-I have attached the patch.
-
-
-Thanks in advance
-Thomas Woerner
-
--- 
-Thomas Woerner, Software Engineer      Phone: +49-711-96437-0
-Red Hat GmbH                           Fax  : +49-711-96437-111
-Hauptstaetterstr. 58                   Email: twoerner@redhat.com
-D-70178 Stuttgart                      Web  : http://www.redhat.de/
-
---------------020607010802060108060707
-Content-Type: text/plain;
- name="iptables-1.2.8-save_ports.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="iptables-1.2.8-save_ports.patch"
-
---- iptables-1.2.8/extensions/libip6t_udp.c.save_ports	2003-09-17 16:11:40.000000000 +0200
-+++ iptables-1.2.8/extensions/libip6t_udp.c	2003-09-17 16:27:17.000000000 +0200
-@@ -205,7 +205,7 @@
- 	const struct ip6t_udp *udpinfo = (struct ip6t_udp *)match->data;
- 
- 	if (udpinfo->spts[0] != 0
--	    && udpinfo->spts[1] != 0xFFFF) {
-+	    || udpinfo->spts[1] != 0xFFFF) {
- 		if (udpinfo->invflags & IP6T_UDP_INV_SRCPT)
- 			printf("! ");
- 		if (udpinfo->spts[0]
-@@ -219,7 +219,7 @@
- 	}
- 
- 	if (udpinfo->dpts[0] != 0
--	    && udpinfo->dpts[1] != 0xFFFF) {
-+	    || udpinfo->dpts[1] != 0xFFFF) {
- 		if (udpinfo->invflags & IP6T_UDP_INV_DSTPT)
- 			printf("! ");
- 		if (udpinfo->dpts[0]
-
---------------020607010802060108060707--
+Best regards,
+Patrick
