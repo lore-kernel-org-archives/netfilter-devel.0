@@ -1,15 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] 2.4.x netfilter Makefile / Build fix
-Date: Sun, 27 Apr 2003 13:48:53 +0200
+Subject: Re: Accessing iptables from within an application...
+Date: Sun, 27 Apr 2003 14:34:31 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427114853.GM990@sunbeam.de.gnumonks.org>
+Message-ID: <20030427123431.GT990@sunbeam.de.gnumonks.org>
+References: <20030326145319.GT21953@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0303261733140.25652-100000@peter.stamf.pr.at>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WuT04sMzYDXq8et0"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="FiqEyLLt06qkB6ow"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
+To: Peter Stamfest <peter@stamfest.at>
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0303261733140.25652-100000@peter.stamf.pr.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,109 +23,64 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---WuT04sMzYDXq8et0
+--FiqEyLLt06qkB6ow
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave!
+Sorry for my very late reply, but I tend to not reply too verbosely
+about issues that are assumed to be well-known.
 
-Here's some fixes for a compilation problem in 2.4 when
-conntrack-helpers are selected as modules but no NAT support is
-configured, but ipfwadm or ipchains is configured.
-(No NAT-helpers but CONFIG_IP_NF_NAT_NEEDED is defined)
+On Wed, Mar 26, 2003 at 05:54:46PM +0100, Peter Stamfest wrote:
 
-The patch is from Martin Josefsson.
+> 1 libiptc.a, libip6tc.a plus the iptables.o and ip6tables.o files contain=
+=20
+>   most of what is needed for an API
 
-Please apply, we should get this in before 2.4.21 is released.
+I don't think so.
 
-Thanks!
+> 2 the splitting of libiptc and libip6tc  using a common libiptc.c and=20
+>   #including it is not an example of "good" C-programming, however, the=
+=20
+>   fact that it (libiptc.c) contains functions common to both libraries=20
+>   leads to trouble when using BOTH ipv4 and ipv6 versions.
 
-diff -urN linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/Makefile linux-2.4.2=
-1-pre7-bk/net/ipv4/netfilter/Makefile
---- linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/Makefile	2003-04-14 02:42:=
-11.000000000 +0200
-+++ linux-2.4.21-pre7-bk/net/ipv4/netfilter/Makefile	2003-04-14 02:42:44.00=
-0000000 +0200
-@@ -31,27 +31,25 @@
- # connection tracking
- obj-$(CONFIG_IP_NF_CONNTRACK) +=3D ip_conntrack.o
+yes, we are aware of that.
+
+> 3 The modules and the libraries are STDOUT-centric. So many printfs all=
 =20
--# Amanda protocol support
-+# connection tracking helpers
- obj-$(CONFIG_IP_NF_AMANDA) +=3D ip_conntrack_amanda.o
--obj-$(CONFIG_IP_NF_NAT_AMANDA) +=3D ip_nat_amanda.o
--ifdef CONFIG_IP_NF_NAT_AMANDA
-+ifdef CONFIG_IP_NF_AMANDA
- 	export-objs +=3D ip_conntrack_amanda.o
- endif
+>   over the place. And sometimes this is the only way to get at some=20
+>   information.
+
+true.
+
+> 4 There is no proper way to query a module for its configuration settings=
 =20
--
--# connection tracking helpers
- obj-$(CONFIG_IP_NF_TFTP) +=3D ip_conntrack_tftp.o
- obj-$(CONFIG_IP_NF_FTP) +=3D ip_conntrack_ftp.o
--ifdef CONFIG_IP_NF_NAT_FTP
-+ifdef CONFIG_IP_NF_FTP
- 	export-objs +=3D ip_conntrack_ftp.o
- endif
-=20
- obj-$(CONFIG_IP_NF_IRC) +=3D ip_conntrack_irc.o
--ifdef CONFIG_IP_NF_NAT_IRC
-+ifdef CONFIG_IP_NF_IRC
- 	export-objs +=3D ip_conntrack_irc.o
- endif
-=20
- # NAT helpers=20
-+obj-$(CONFIG_IP_NF_NAT_AMANDA) +=3D ip_nat_amanda.o
- obj-$(CONFIG_IP_NF_NAT_TFTP) +=3D ip_nat_tftp.o
- obj-$(CONFIG_IP_NF_NAT_FTP) +=3D ip_nat_ftp.o
- obj-$(CONFIG_IP_NF_NAT_IRC) +=3D ip_nat_irc.o
-diff -urN linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_amanda.=
-c linux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_amanda.c
---- linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_amanda.c	2003=
--04-14 02:42:11.000000000 +0200
-+++ linux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_amanda.c	2003-04-1=
-4 02:42:44.000000000 +0200
-@@ -229,5 +229,7 @@
- 	return 0;
- }
-=20
-+EXPORT_SYMBOL(ip_amanda_lock);
-+
- module_init(init);
- module_exit(fini);
-diff -urN linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_ftp.c l=
-inux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_ftp.c
---- linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-04=
--14 02:42:02.000000000 +0200
-+++ linux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-04-14 0=
-2:42:44.000000000 +0200
-@@ -436,9 +436,7 @@
- 	return 0;
- }
-=20
--#ifdef CONFIG_IP_NF_NAT_NEEDED
- EXPORT_SYMBOL(ip_ftp_lock);
--#endif
-=20
- MODULE_LICENSE("GPL");
- module_init(init);
-diff -urN linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_irc.c l=
-inux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_irc.c
---- linux-2.4.21-pre7-bk.orig/net/ipv4/netfilter/ip_conntrack_irc.c	2002-11=
--29 00:53:15.000000000 +0100
-+++ linux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_irc.c	2003-04-14 0=
-2:42:44.000000000 +0200
-@@ -305,9 +305,7 @@
- 	}
- }
-=20
--#ifdef CONFIG_IP_NF_NAT_NEEDED
- EXPORT_SYMBOL(ip_irc_lock);
--#endif
-=20
- module_init(init);
- module_exit(fini);
+>   besides the stuff that just printf's it.
+
+true.
+
+> Some possible solutions:
+
+The problem is not that we don't know of solutions.  I've presented an
+outlind of my libiptables / libpkttables approach quite a couple of
+times. Please have a look at
+http://cvs.netfilter.org/netfilter/iptables2/libiptables/README
+
+> I know that the proposed changes are at the core of the iptables
+> utilities, but eventually something will have to be done about it.=20
+
+Yes, yes, yes.  Now if anybody could invent some device that triples my
+available time, I would be happy to implement all of this...
+
+> I would like to compare this to eg. rpm and its librpm: did anybody
+> think about an API when first inventing something like RPM?? I think
+> the same thing happened to iptables.
+
+again, true.
+
+> peter
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -134,7 +91,7 @@ inux-2.4.21-pre7-bk/net/ipv4/netfilter/ip_conntrack_irc.c
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---WuT04sMzYDXq8et0
+--FiqEyLLt06qkB6ow
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -142,9 +99,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+q8OlXaXGVTD0i/8RApQvAJ9KmUyU7EizqoS65/xKHPDLm10x0QCaAmXm
-7VWoeqBMsilPO9L7SvAfYsY=
-=U7BX
+iD8DBQE+q85XXaXGVTD0i/8RAkAZAJ0WHn0VPuobwN87j4qAmakS2T/uZACeP8T9
+FzeS5x7/ad69N6LtrN9lJaE=
+=5tC7
 -----END PGP SIGNATURE-----
 
---WuT04sMzYDXq8et0--
+--FiqEyLLt06qkB6ow--
