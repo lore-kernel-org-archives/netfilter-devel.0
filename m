@@ -1,17 +1,18 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: check timer active
-Date: Sun, 05 Dec 2004 22:21:42 +0100
-Message-ID: <41B37BE6.1090208@eurodev.net>
-References: <EINSTEINObLLAeSQzWA000068c7@einstein.systemmetrics.com>
-	<41B376E9.10607@eurodev.net>
+Date: Sun, 05 Dec 2004 22:31:27 +0100
+Message-ID: <41B37E2F.4020007@trash.net>
+References: <EINSTEINObLLAeSQzWA000068c7@einstein.systemmetrics.com>	<41B376E9.10607@eurodev.net>
+	<41B37BE6.1090208@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, 'Krisztian Kovacs' <hidden@sch.bme.hu>,
-	'Henrik Nordstrom' <hno@marasystems.com>
+Cc: netfilter-devel@lists.netfilter.org,
+	'Henrik Nordstrom' <hno@marasystems.com>,
+	'Krisztian Kovacs' <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard <richard@o-matrix.org>
-In-Reply-To: <41B376E9.10607@eurodev.net>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <41B37BE6.1090208@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,53 +26,15 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Pablo Neira wrote:
 
-> Richard wrote:
+> still think that you should use that function.
 >
->>>  Hi,
->>>
->>> On Sat, 2004-12-04 at 15:55 +0100, Henrik Nordstrom wrote:
->>>   
->>>
->>>>> ct->timeout->list.next != NULL
->>>>>
->>>>> test_bit(IPS_CONFIRMED_BIT, &ct->status)
->>>>>       
->>>>
->>>> The two is at most if not all times equal as all active conntrack
->>>>     
->>>
->>> entries
->>>   
->>>
->>>> have a timeout of some sort, but maybe it is possible for the 
->>>> timeout to
->>>> be established before the conntrack becomes confirmed or something..
->>>>     
->>>
->>>  It is definitely possible if you use ct_sync. Replicated entries on
->>> the slave nodes do not have their timers started, but are in the hash
->>> tables.
->>>
->>>   
->>
->>
->> I am writing a new target to manipulate the expire value of a conntrack,
->> i.e. (ct->timeout.expires). If the expire timeout is not fired, it 
->> uses the
->> timeout value. If it is, it uses jiffies+timeout. In order to check what
->> state it is at, I'd use "ct->timeout->list.next!=NULL)", right?
->>  
->>
->
-> better use ip_ct_refresh_acct to manipulate a conntrack timer.
+> Hm, I just realized that the amanda helper is faking counters, I guess 
+> that we need a version of ip_ct_refresh_acct which doesn't the 
+> increase skb counters. I'll send a patch to fix this once I know what 
+> is scheduled with nf_conntrack.
 
+Feel free to send it now, I still apply bugfixes to ip_conntrack
+of course :)
 
-still think that you should use that function.
-
-Hm, I just realized that the amanda helper is faking counters, I guess 
-that we need a version of ip_ct_refresh_acct which doesn't the increase 
-skb counters. I'll send a patch to fix this once I know what is 
-scheduled with nf_conntrack.
-
---
-Pablo
+Regards
+Patrick
