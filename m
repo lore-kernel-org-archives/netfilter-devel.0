@@ -1,12 +1,15 @@
-From: "raquel toribio" <raqueltoribio@hotmail.com>
-Subject: Using -j QUEUE
-Date: Tue, 26 Nov 2002 12:02:04 +0100
+From: James Morris <jmorris@intercode.com.au>
+Subject: Re: Problems using iqp_read
+Date: Tue, 26 Nov 2002 22:39:42 +1100 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F188P1Ny1WafSqy4YkV0000addd@hotmail.com>
+Message-ID: <Mutt.LNX.4.44.0211262239170.28710-100000@blackbird.intercode.com.au>
+References: <F52eNTdiSbxl4ggadKT00025cdc@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: raquel toribio <raqueltoribio@hotmail.com>
+In-Reply-To: <F52eNTdiSbxl4ggadKT00025cdc@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,23 +20,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-I am using the following rule in iptables:
+On Mon, 25 Nov 2002, raquel toribio wrote:
 
-iptables -A INPUT -p TCP -j QUEUE
+> Does anybody know why this could be hapenning?
 
-and I would expect all incoming tcp traffic, independently of the 
-destination IP to be fetched by my userspace program. Nevertheless, what I 
-get, is that only tcp packets destined for the linux machine arrive to the 
-userspace program. Is that the correct behaviour? If so, how should I 
-configure the iptables to get all the tcp packets independently of the 
-destination IP?
+Not really... what kernel is this with?
 
-Regards
-Raquel
-
-
-
-_________________________________________________________________
-Charla con tus amigos en línea mediante MSN Messenger: 
-http://messenger.microsoft.com/es
+-- 
+James Morris
+<jmorris@intercode.com.au>
