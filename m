@@ -1,38 +1,50 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Some dumb questions...
-Date: 03 Nov 2002 13:36:43 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1036327003.28641.75.camel@tux>
-References: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
+ <yoshfuji@linux-ipv6.org>
+Subject: Re: [PATCH] IPv6: Functions Clean-up
+Date: Sun, 03 Nov 2002 22:16:58 +0900 (JST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20021103.221658.52523847.yoshfuji@linux-ipv6.org>
+References: <20021103.115427.104445233.yoshfuji@linux-ipv6.org>
+	<1036328414.1048.3.camel@arwen>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Joel Linuxdude <linuxlists@hotmail.com>
-In-Reply-To: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
+   netfilter-devel@lists.netfilter.org, davem@redhat.com, kuznet@ms2.inr.ac.ru,
+   usagi@linux-ipv6.org, yoshfuji@linux-ipv6.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: kisza@securityaudit.hu
+In-Reply-To: <1036328414.1048.3.camel@arwen>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2002-11-03 at 08:32, Joel Linuxdude wrote:
-> I was referred to this list by one of the Netfilter guys on order to gleen 
-> some information needed to write a decent
-> tutorial/reference guide.
-> 
-> WARNING: POSSIBLE DUMB QUESTIONS. (But, ask me if I care!)
+In article <1036328414.1048.3.camel@arwen> (at Sun, 03 Nov 2002 14:00:14 +0100), Andras Kis-Szabo <kisza@securityaudit.hu> says:
 
-Please take these questions to the netfilter mailinglist, not the
-development mailinglist. They have nothing to do with development.
+> This patch removes one function from the Netfilter code and forces the
+> Netfilter to use a similar function from the kernel's one!
+
+net/ipv6/netfilter/ip6_queue.c says:
+
+/*
+ * Taken from net/ipv6/ip6_output.c
+ * We should use the one there, but is defined static
+ * so we put this just here and let the things as
+ * they are now.
+ *
+ * If that one is modified, this one should be modified too.
+ */
+
+So, the reason why the copy of route6_me_harder() 
+lives there is because net/ipv6/ip6_output.c has not been 
+exported it.
+
+Is this something to do with parser of extension headers?
+Parser of extension headers is different thing, isn't it?
+
+Yes, since duplication of code is bad unless there're really 
+strong reasons.  I believe that there would be a better 
+design for filtering.
 
 -- 
-/Martin
-
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+Hideaki YOSHIFUJI @ USAGI Project <yoshfuji@linux-ipv6.org>
+GPG FP: 9022 65EB 1ECF 3AD1 0BDF  80D8 4807 F894 E062 0EEA
