@@ -1,16 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: MAC address matching. Or other ideas.
-Date: Sat, 10 May 2003 12:59:43 +0200
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: when IPVS into netfilter?
+Date: Sat, 10 May 2003 13:29:12 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030510105942.GB28426@oknodo.bof.de>
-References: <3EB5A38C.4090606@dev-zone.org>
+Message-ID: <3EBCE288.5020801@drugphish.ch>
+References: <3EB44BE7.3070602@wanadoo.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Daniel <daniel@dev-zone.org>
-Content-Disposition: inline
-In-Reply-To: <3EB5A38C.4090606@dev-zone.org>
+To: Xose Vazquez Perez <xose@wanadoo.es>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,31 +20,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> Is it possible to get the MAC match module to match on dst MAC address 
-> rather than just src MAC?
+Hello,
 
-Not without much much work. The destination MAC is not known, generally,
-while the packet traverses the network stack; only on output, after
-a potentially long time waiting for an ARP reply, will a destination
-MAC be available for checking.
+I hope the netfilter people do not mind if I answer this on behalf of 
+the LVS project.
 
-You could, maybe, be lucky to have it in the POSTROUTING table. But I
-doubt that.
+> Are there some possibility to IPVS Netfilter
+> ( http://www.linuxvirtualserver.org )
+> module for it can go into iptable 2.4.xx code?
 
-> So I want to be able to say only gimme traffic that is coming in and
-> out via gateway X, the only way I can figure to do that is by matching
-> the MAC address of the gateway,
+I think not for 2.4.x because we're changing too much of the 
+netfilter/routing code to make it a smooth and acceptable merge. There 
+is also some code most people use which is completely not acceptable 
+within the scope of routing extensions (like the hidden patch or some 
+DGD code).
 
-Why not the IP address of the gateway? That is known after routing,
-i.e. in both the INPUT and FORWARD chains, and a 'route' match
-is trivial to write, as far as I know. There is already a nice
-ROUTE target in patch-o-matic, such a route-match could A) be
-patterned after the target (take the same options), and it
-could B) look at the exact same structure (skb->dst) that the
-ROUTE target sets up. Nice mirror work.
+For 2.5 it is already too late, feature freeze was already called in and 
+we haven't talked to the netfilter people anyways ;).
 
-If that's a solution for you, and you set out to implement it,
-just mail me if you have detail questions.
+I'm going to talk to Harald about it this coming OLS (once again), 
+provided he's got enough time. It's on my BoF list actually; for more 
+information please check out the .plan:
 
-best regards
-  Patrick
+http://marc.theaimsgroup.com/?l=linux-virtual-server&m=104756133813089&w=2
+
+Another point is that we (Wensong the most) never felt the urge to 
+submit the code to the networking maintainers for approval and 
+inclusion. At OLS 2000, Wensong, Horms, Rusty, me and some others talked 
+about a possible inclusion of LVS into netfilter. It simply never 
+happened because noone felt about doing more than talking of it.
+
+Yet another point is that we never really agreed on having someone being 
+the lead developer and responsible for a possible kernel inclusion and 
+most of us simply do not have the time to be a maintainer. It's a tough 
+and time consuming job even if the code works for 99.999% of the people.
+
+You have to talk to other involved parties, you have to monitor API 
+changes and you will need to be responsive to an increasing amount of 
+emails addressed directly to you (for example package responsibles for a 
+distribution), because you're in the MAINTAINERS list.
+
+Last but not least it is pretty easy to patch your kernel with LVS, 
+There are as few as possible changes to the existing code, most of the 
+patch is in form of additional code.
+
+ > --
+ > Galiza nin perdoa nin esquence. Governo demision!
+
+:) Fair enough.
+
+Best regards,
+Roberto Nibali, ratz
+-- 
+echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
