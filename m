@@ -1,15 +1,19 @@
-From: Emmanuel Fleury <fleury@cs.auc.dk>
-Subject: Re: distributed firewall
-Date: 03 Feb 2003 15:25:21 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [netfilter-core] [PATCH] add CONFIG_IP_NF_MASQUERADE_LOCAL
+Date: Mon, 3 Feb 2003 16:04:04 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1044282321.25601.96.camel@rade7.s.cs.auc.dk>
-References: <20030203131123.82985.qmail@web13302.mail.yahoo.com>
+Message-ID: <20030203150404.GD27870@sunbeam.de.gnumonks.org>
+References: <5.2.0.9.2.20030123121528.02219148@post.webmailer.de>
+Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="R9b51G30WkD62Ue3"
+Cc: coreteam@netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-Reply-To: <20030203131123.82985.qmail@web13302.mail.yahoo.com>
+To: "Stefan (metze) Metzmacher" <metze@metzemix.de>
+Content-Disposition: inline
+In-Reply-To: <5.2.0.9.2.20030123121528.02219148@post.webmailer.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +24,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2003-02-03 at 14:11, graham g wrote:
-> hi 
-> 
-> being new to this list, i just wanna know if anyone has had any
-> experience trying to build a distributed firewall using iptables /
-> libiptc. im currently working on such a project and just wanna know if
-> anyone has ever attempted anything similar
 
-What do you call a 'distributed firewall' ?
+--R9b51G30WkD62Ue3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Emmanuel Fleury
+On Thu, Jan 23, 2003 at 12:16:24PM +0100, Stefan (metze) Metzmacher wrote:
+> Hi *,
+>=20
+> I have patches witch allow the masuerading of local packets.
+> Now support for DNAT of local packets are in the kernel.
+>=20
+> But somebody (like me) could need masuerading of local packets.
 
-Computer Science Department, |  Office: E4-112
-Aalborg University,          |  Phone:  +45 96 35 72 23
-Fredriks Bajersvej 7E,       |  Fax:    +45 98 15 98 89
-9220 Aalborg East, Denmark   |  Email:  fleury@cs.auc.dk
+why do you need MASQUERADE?  isn't SNAT enough?  and SNAT of local
+connections is supported by the stock linux kernel for a very long time.
+
+DNAT has been added  recently.
+
+=20
+> Feedback please!!!:-)
+>=20
+> thanks
+> metze
+
+--=20
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--R9b51G30WkD62Ue3
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+PoTkXaXGVTD0i/8RAkNDAJ4rb7fGX5AruXwi9JEhNOil7eV+ygCfd9Bj
+Wv32VibFADRT4IXWtU+YGsE=
+=oHNQ
+-----END PGP SIGNATURE-----
+
+--R9b51G30WkD62Ue3--
