@@ -1,58 +1,76 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] pom-ng new release
-Date: Tue, 4 May 2004 12:28:17 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405041202330.26840-100000@blackhole.kfki.hu>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [netfilter-core] memory leak with IP connection tracking and IP forwarding
+Date: Tue, 4 May 2004 13:58:08 +0200
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20040504115808.GJ6345@sunbeam.de.gnumonks.org>
+References: <200405041305.55627.tspat@de.ibm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="B3XPdYri2NuANWBV"
+Cc: linux-net@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@lists.netfilter.org
+Return-path: <linux-net-owner@vger.kernel.org>
+To: tspat@gmx.de
+Content-Disposition: inline
+In-Reply-To: <200405041305.55627.tspat@de.ibm.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I'm happy to announce the new pom-ng release!
+--B3XPdYri2NuANWBV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There are numerous internal changes:
+On Tue, May 04, 2004 at 01:05:55PM +0200, Thomas Spatzier wrote:
+> Hi all,
+>=20
+> I'm experiencing a major memory leak if I run a router with IP connection
+> tracking enabled and packets larger than MTU size.
 
-- object-oriented internal API instead of the functional one:
-  more consistent, easier to extend, but function prototypeing is lost
-- complete control over version dependency via name encoding and
-  version requirements in info files
-- complete dependency checking: when a patch is dependent on other
-  patches and neither one is specified, shadow tree is created to
-  check wether the patch could really be applied
-- special updates/ directory for full project-version patches and bugfixes
-  introduced
-- reported bugs and improvements fixed/incorporated:
-    - dependency clashing did not work (Jim Gifford)
+How do you observe such a memory leak?  What exact values are you
+looking at?
 
-      [Could any Perl guru explain in plain English while the code
+> If I do a 'ping -f -s 64000 <Host B>' from host A via the router, the
+> router is losing more then 10 MB of memory per second.
+> Without connection tracking everything works fine.
+>=20
+> My only glue so far is that the skbuff_head_cache is growing. Connection
+> tracking has a hook in the IP stack, where it gets hold of packets. If th=
+ese
+> packets are fragmented (due to the packet size being larger than MTU size)
+> they are reassembled by ip_conntrack. So I guess the memory leak might
+> be somewhere in there.
 
-      for my $dep (@{$$patchlet{info}{depends}}) {
-		$dep =~ s/^!//;
-      }
+Did you enable support for bridging?
 
-      modifies the content of array $patchlet{info}{depends} too??]
+There was a bug in the bridging (bridging firewall) code which made it
+'forget' to drop the reference count (and thus introduced a memory
+leak).
 
-    - broken out patches are supported (KOVACS Krisztian)
-    - ignore case in runme (syrius.ml)
+> Regards,
+> Thomas.
 
-Please check out and try the new code. Bugreports, suggestion for
-improvements are welcomed!
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--B3XPdYri2NuANWBV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAl4VQXaXGVTD0i/8RAuAIAKCWtwPUpPcRRUEBFIDRz9JNoUJMzQCfTfI2
+XbNhtLwxYSlprDsOWYJw3XE=
+=YdK6
+-----END PGP SIGNATURE-----
+
+--B3XPdYri2NuANWBV--
