@@ -1,12 +1,14 @@
-From: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
-Subject: 2.4.25 crash with conntrack msgs in the kernel log
-Date: Tue, 02 Mar 2004 23:38:30 +0530
+From: Pablo Neira <pablo@eurodev.net>
+Subject: comments about ip_conntrack_in function
+Date: Wed, 03 Mar 2004 01:44:07 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1078250798.957.58.camel@vijay>
+Message-ID: <40452A57.3060209@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-vRo1MtaA7vKDEtX3SHdv"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org,
+ Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,208 +19,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald and list,
 
---=-vRo1MtaA7vKDEtX3SHdv
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Having a look at the ip_conntrack_in function (please, see below), I 
+noticed that:
 
-The following were the messages in the kernel log before the system (s/w
-h/w configuration detailed below) has frozen:
+a) I didn't find any helper that returns -1.
 
-Mar  2 13:32:34 Sergeus kernel: device eth0 entered promiscuous mode
-Mar  2 13:32:48 Sergeus kernel: device eth0 left promiscuous mode
-Mar  2 13:55:53 Sergeus kernel: LIST_DELETE: ip_conntrack_core.c:302
-`&ct->tuplehash[IP_CT_DIR_REPLY]'(eea82c38) not in
-&ip_conntrack_hash[hr].
-Mar  2 13:55:58 Sergeus kernel: LIST_DELETE: ip_conntrack_core.c:302
-`&ct->tuplehash[IP_CT_DIR_REPLY]'(f77af420) not in
-&ip_conntrack_hash[hr].
+b) I didn't find a function proto->packet (which actually calls its 
+respective protocol specific function) that returns NF_DROP. So the 
+condition alike(NF_DROP) is always true. In fact, all the functions that 
+I had a look at return -1 and NF_ACCEPT.
 
-The server is running the 2.4.25 kernel (debugging enabled) compiled
-with gcc 3.2.3 (on redhat 7.3). Enclosed in the attachment is a copy of
-the config file. A slightly modified quota patch from patch-o-matic
-(modified source in the attachment) is the only addition to the
-vanilla-sources.
+So, is considering that proto->packet is always going to return 
+NF_ACCEPT and -1 an invalid assumption? Maybe the possible return values 
+of this function could be restricted a bit more.
+Anyway, in which case does returning NF_DROP make sense here?.
 
-The system has a 2.4GHz Xeon processor(SMP disabled in the kernel) with
-1GB of ram with two Intel Ethernet Pro NICs.
+c) I don't know so much about the set_bit function and its 
+implementation but, while setting the status of a conntrack already 
+inserted, don't we need to write_lock the conntrack hash table?
 
-The system acts as the gateway for around 500 active users, with around
-1000 rules in the forward chain and around 400 chains, each of these
-chains with one rule (using the 'ipt_quota' match), in the filter table
-and around 1500 rules in the 'nat' table, HTB, being the one used for
-shaping bandwidth.
+--- snipped from ip_conntrack_in() ------
+...
+        ret = proto->packet(ct, *pskb, ctinfo);
+        if (ret == -1) {
+                /* Invalid */
+                nf_conntrack_put((*pskb)->nfct);
+                (*pskb)->nfct = NULL;
+                return NF_ACCEPT;
+        }
 
-Addition/deletion of 5-6 iptables rules takes place about every 5
-seconds and the only warning msgs in the logs before the crash were
+        if (ret != NF_DROP && ct->helper) {
+                ret = ct->helper->help(*pskb, ct, ctinfo);
+                if (ret == -1) {
+                        /* Invalid */
+                        nf_conntrack_put((*pskb)->nfct);
+                        (*pskb)->nfct = NULL;
+                        return NF_ACCEPT;
+                }
+        }
+        if (set_reply)
+                set_bit(IPS_SEEN_REPLY_BIT, &ct->status);
 
-Mar  1 17:26:47 Sergeus kernel: ip_conntrack: table full, dropping
-packet.
-Mar  1 17:27:25 Sergeus kernel: ip_conntrack: table full, dropping
-packet.
-Mar  1 17:27:25 Sergeus kernel: ip_conntrack: table full, dropping
-packet.
-Mar  1 17:37:15 Sergeus kernel:
-Mar  1 17:37:15 Sergeus kernel: Quota Patch:
-src=10.19.35.207:81.250.245.74:99989
-Mar  1 17:50:37 Sergeus kernel:
-Mar  1 17:50:37 Sergeus kernel: Quota Patch:
-src=66.28.176.251:10.19.45.101:99795
-Mar  1 18:42:17 Sergeus kernel: conntrack_ftp: partial PORT 4154756532+1
-Mar  1 18:42:39 Sergeus kernel: conntrack_ftp: partial PORT 4154756610+1
-Mar  1 18:44:10 Sergeus kernel: conntrack_ftp: partial PORT 4154756637+1
-Mar  1 18:44:11 Sergeus kernel: conntrack_ftp: partial PORT 4154756681+1
+        return ret;
 
-this was around 20 hrs before the crash.
+-------- end ------------
 
-The system had to be hard booted after this and some logs which are
-accessed at this time have either junk or content from other files
-appended at the end.
-
-We've been having 'regular' crashes on similar systems with 2.4.23 (with
-SMP enabled and compiled gcc 2.96) but without netfilter debugging
-enabled (which is printing the LIST_DELETE warnings). There haven't been
-indications of the conntrack list size hitting conntrack_max value in
-the other crashes ( at least the logs before the crash don't have any
-such entries)
-
-I'd had tried simulating the crash earlier on a system with quite a
-lower configuration compared to the actual setup (on a 500 MHz with 128
-MB of ram) and was getting some virtual page request failure oops for
-ip_tables ('ve already s_p-a_m-m-e_d the list earlier with those oops).
-but after 2 weeks of beginner's luck, as doubted by some ppl on the
-list, the cause of the oops turned out to be bad ram on the test box.
-But on the systems in production, there aren't oops or kernel panics and
-the probability of problems due to bad ram seems to be extremely low as
-the crashes have been happening on and off on around 7-8 systems.
-
-Does anyone have an idea what the cause for the crash might be and can
-someone suggest changes to be made/steps to follow that can help resolve
-the problem or atleast lead to the 'exact' cause for the problem?
-
-Regards,
-Vijaya Chandra Vupputuri,
-Tachyon Technologies.
-
---=-vRo1MtaA7vKDEtX3SHdv
-Content-Disposition: attachment; filename=2.4.25Crash.tar.bz2
-Content-Type: application/x-bzip; name=2.4.25Crash.tar.bz2
-Content-Transfer-Encoding: base64
-
-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
-
---=-vRo1MtaA7vKDEtX3SHdv--
+best regards,
+Pablo
