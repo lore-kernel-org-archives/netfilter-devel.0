@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Getting the current RTT for an active connection
-Date: Wed, 28 Apr 2004 09:28:27 +0200 (CEST)
+From: Ozgur AKAN <akan@aiqa.com>
+Subject: target, match and checkentry functions
+Date: Wed, 28 Apr 2004 12:04:08 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404280916280.4504-100000@filer.marasystems.com>
-References: <1083109593.15705.11.camel@Fallen.FAMILIA>
+Message-ID: <408F7388.5010704@aiqa.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/alternative;
+ boundary="------------070809030001040007030801"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Alfonso Presa <AlfPresa@msn.com>
-In-Reply-To: <1083109593.15705.11.camel@Fallen.FAMILIA>
+To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,33 +18,91 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 28 Apr 2004, Alfonso Presa wrote:
+This is a multi-part message in MIME format.
+--------------070809030001040007030801
+Content-Type: text/plain; charset=ISO-8859-9; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I'm trying to develop an iptables extension that needs to get the rtt
-> for an already established connection. Is there any "eassy" way to do
-> this through a conntrack module, or do I have to meassure the delay time
-> between each packet and it's ACK?
+Hi,
 
-conntrack does not care about the RTT, just that packets is flowing.
+I am reading ip_tables.h. There is a structure called  ipt_target. In it 
+there is pointer to a function which is below.
 
-further, measuring the delay between data and ACK won't really give you 
-the RTT due to the delayed ack feature of TCP. But I suppose that if you 
-keep a running average with high weight to smaller values then you should 
-end up in a good approximate.
+unsigned int (*target <http://lxr.linux.no/ident?i=target>)(struct sk_buff <http://lxr.linux.no/ident?i=sk_buff> **pskb, .......)
 
-Also you need to pair data packet to it's ACK. Not just any data packet to 
-any ACK. This requires a small memory of what data packets (or their last 
-sequence number) has been seen when. Don't forget about window scaling 
-option.
+I can not find the original function that this function pointer(*target) points. When I search for target, I see that it is defined in 6 files. Which one is used and when? How can I understand it? (this is same for match and checkentry functions)
 
-> I'm newie in programming modules for the kernel, so I would apreciate
-> any kind of help ,explanations and advices you can give me.
+6 files in which target is defined;
 
-It is not very different from any other C programming, except that making 
-errors have bigger effects..
+    * net/ipv4/netfilter/ipt_ECN.c, line 104
+      <http://lxr.linux.no/source/net/ipv4/netfilter/ipt_ECN.c#L104>
+    * net/ipv4/netfilter/ipt_DSCP.c, line 25
+      <http://lxr.linux.no/source/net/ipv4/netfilter/ipt_DSCP.c#L25>
+    * net/ipv4/netfilter/ipt_MARK.c, line 11
+      <http://lxr.linux.no/source/net/ipv4/netfilter/ipt_MARK.c#L11>
+    * net/ipv4/netfilter/ipt_TOS.c, line 11
+      <http://lxr.linux.no/source/net/ipv4/netfilter/ipt_TOS.c#L11>
+    * net/ipv6/netfilter/ip6t_MARK.c, line 11
+      <http://lxr.linux.no/source/net/ipv6/netfilter/ip6t_MARK.c#L11>
 
-UML <http://user-mode-linux.sf.net/> is a great tool to even out the
-differences while developing.
+thanks,
 
-Regards
-Henrik
+-- 
+Ozgur Akan
+
+
+--------------070809030001040007030801
+Content-Type: text/html; charset=ISO-8859-9
+Content-Transfer-Encoding: 8bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-9">
+  <title></title>
+</head>
+<body text="#000000" bgcolor="#ffffff">
+<font face="microsoft-verdana-iso10646-1">Hi,<br>
+<br>
+I am reading ip_tables.h. There is a structure called  ipt_target. In
+it there is pointer to a function which is below.</font><br>
+<pre class="moz-signature" cols="72">unsigned int (*<a
+ href="http://lxr.linux.no/ident?i=target">target</a>)(struct <a
+ href="http://lxr.linux.no/ident?i=sk_buff">sk_buff</a> **pskb, .......)
+
+I can not find the original function that this function pointer(*target) points. When I search for target, I see that it is defined in 6 files. Which one is used and when? How can I understand it? (this is same for match and checkentry functions)
+
+6 files in which target is defined;
+</pre>
+<ul>
+  <li><a
+ href="http://lxr.linux.no/source/net/ipv4/netfilter/ipt_ECN.c#L104">net/ipv4/netfilter/ipt_ECN.c,
+line 104</a>
+  </li>
+  <li><a
+ href="http://lxr.linux.no/source/net/ipv4/netfilter/ipt_DSCP.c#L25">net/ipv4/netfilter/ipt_DSCP.c,
+line 25</a>
+  </li>
+  <li><a
+ href="http://lxr.linux.no/source/net/ipv4/netfilter/ipt_MARK.c#L11">net/ipv4/netfilter/ipt_MARK.c,
+line 11</a>
+  </li>
+  <li><a
+ href="http://lxr.linux.no/source/net/ipv4/netfilter/ipt_TOS.c#L11">net/ipv4/netfilter/ipt_TOS.c,
+line 11</a>
+  </li>
+  <li><a
+ href="http://lxr.linux.no/source/net/ipv6/netfilter/ip6t_MARK.c#L11">net/ipv6/netfilter/ip6t_MARK.c,
+line 11</a>
+  </li>
+</ul>
+<pre class="moz-signature" cols="72">
+thanks,
+
+-- 
+Ozgur Akan
+</pre>
+</body>
+</html>
+
+--------------070809030001040007030801--
