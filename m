@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Deadlocks
-Date: Wed, 30 Jun 2004 11:50:50 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: /proc/net/ip_conntrack
+Date: Wed, 30 Jun 2004 12:38:51 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40E28CFA.30206@trash.net>
-References: <20040609180909.GA11445@linuxace.com> <1087156709.11287.8.camel@ws> <20040615044723.GA16891@linuxace.com> <40CE95DE.9090703@trash.net> <20040617155946.GA28564@linuxace.com> <40D1C4BF.8070605@trash.net> <20040618171214.GA750@linuxace.com> <40D62FDB.8090904@trash.net> <20040629175426.GA25242@linuxace.com> <40E1AE4D.7040306@trash.net> <20040629200944.GA25735@linuxace.com>
+Message-ID: <Pine.LNX.4.44.0406301236030.3767-100000@filer.marasystems.com>
+References: <20040629203549.M8283@linkexpress.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20040629200944.GA25735@linuxace.com>
+To: =?ISO-8859-1?Q?Daniel_Corr=EAa_de_A?=zevedo <nielca@linkexpress.com.br>
+In-Reply-To: <20040629203549.M8283@linkexpress.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +21,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> On Tue, Jun 29, 2004 at 08:00:45PM +0200, Patrick McHardy wrote:
->>
->>Thanks for the update, but I thought it kept crashing when you first
->>tried the patch ?
-> 
-> It crashed once, but appears to have been stack corruption which
-> could've been caused by anything.  After it crashed I enabled
-> CONFIG_NETFILTER_DEBUG and it's been quiet ever since.  Possible
-> that enabling debugging prevents the issue?
+On Tue, 29 Jun 2004, Daniel Corr=EAa de Azevedo wrote:
 
-Could be, but I doubt it. Could you try without CONFIG_NETFILTER_DEBUG
-once more ?
+> I wonder if any one could help me with figuring out a way to write to t=
+he=20
+> proc file "/proc/net/ip_conntrack".
+
+You can't. It is not a file, it is a window into the connection tracking=20
+function of the kernel showing you what is going on "right now". This=20
+window is bulletproof and you cant take things out or put things in via=20
+this window, only look at how they look.
+
+> What I need is to replicate this file=20
+> from one computer to another.
+
+See discussions on conntrack replication/syncronisation. There is an=20
+ongoing (not yet finished) project implementing this kind of function.=20
+There is a whole lot more involved than just "copying".
 
 Regards
-Patrick
-
-> 
-> Phil
-> 
+Henrik
