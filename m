@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6 8/14]: Fix expectation eviction order
-Date: Mon, 21 Jun 2004 21:43:51 +0200
+Subject: [PATCH 2.6 7/14]: don't reroute no mark change in mangle table without CONFIG_IP_ROUTE_FWMARK
+Date: Mon, 21 Jun 2004 21:43:25 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040621194351.GN24374@sunbeam.de.gnumonks.org>
+Message-ID: <20040621194325.GM24374@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oYHLzUxHEKq3fcvW"
+	protocol="application/pgp-signature"; boundary="vtBqmokgY1evbO3C"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,18 +21,17 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---oYHLzUxHEKq3fcvW
-Content-Type: multipart/mixed; boundary="fCjW77bNSYaih4x3"
+--vtBqmokgY1evbO3C
+Content-Type: multipart/mixed; boundary="RU5vHP6eAM91MAfE"
 Content-Disposition: inline
 
 
---fCjW77bNSYaih4x3
+--RU5vHP6eAM91MAfE
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
 
-This patch for 2.6 fixes the order in which expectations are evicted
-when a helper specifies IP_CT_HELPER_F_REUSE_EXPECT. Without this patch
-expectations are evicted in LIFO order, this patch changes it to FIFO.
+This patch for 2.6 changes iptable_mangle so it won't reroute on nfmark
+change when routing by nfmark is not enabled.
 
 Author: Patrick McHardy <kaber@trash.net>
 
@@ -46,94 +45,42 @@ Signed-off-by: Harald Welte <laforge@netfilter.org>
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---fCjW77bNSYaih4x3
-Content-Type: text/plain; charset=us-ascii; name="08.diff"
-Content-Disposition: inline; filename="08.diff"
+--RU5vHP6eAM91MAfE
+Content-Type: text/plain; charset=us-ascii; name="07.diff"
+Content-Disposition: inline; filename="07.diff"
 Content-Transfer-Encoding: quoted-printable
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/06/20 22:44:52+02:00 kaber@trash.net=20
-#   [NETFILTER]: Fix expectation eviction order
+#   2004/06/20 22:40:02+02:00 kaber@trash.net=20
+#   [NETFILTER]: Don't reroute on nfmark change in mangle table when routin=
+g by nfmark is not enabled
 #=20
-# net/ipv4/netfilter/ip_nat_core.c
-#   2004/06/20 22:44:43+02:00 kaber@trash.net +1 -1
-#   [NETFILTER]: Fix expectation eviction order
+# net/ipv4/netfilter/iptable_mangle.c
+#   2004/06/20 22:39:52+02:00 kaber@trash.net +2 -0
+#   [NETFILTER]: Don't reroute on nfmark change in mangle table when routin=
+g by nfmark is not enabled
 #=20
-# net/ipv4/netfilter/ip_conntrack_core.c
-#   2004/06/20 22:44:43+02:00 kaber@trash.net +7 -16
-#   [NETFILTER]: Fix expectation eviction order
-#=20
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_=
-conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	2004-06-20 23:00:32 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	2004-06-20 23:00:32 +02:00
-@@ -946,9 +946,8 @@
- 	atomic_set(&new->use, 1);
+diff -Nru a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptabl=
+e_mangle.c
+--- a/net/ipv4/netfilter/iptable_mangle.c	2004-06-20 23:00:21 +02:00
++++ b/net/ipv4/netfilter/iptable_mangle.c	2004-06-20 23:00:21 +02:00
+@@ -173,7 +173,9 @@
+ 	if (ret !=3D NF_DROP && ret !=3D NF_STOLEN && ret !=3D NF_QUEUE
+ 	    && ((*pskb)->nh.iph->saddr !=3D saddr
+ 		|| (*pskb)->nh.iph->daddr !=3D daddr
++#ifdef CONFIG_IP_ROUTE_FWMARK
+ 		|| (*pskb)->nfmark !=3D nfmark
++#endif
+ 		|| (*pskb)->nh.iph->tos !=3D tos))
+ 		return ip_route_me_harder(pskb) =3D=3D 0 ? ret : NF_DROP;
 =20
- 	/* add to expected list for this connection */
--	list_add(&new->expected_list, &related_to->sibling_list);
-+	list_add_tail(&new->expected_list, &related_to->sibling_list);
- 	/* add to global list of expectations */
--
- 	list_prepend(&ip_conntrack_expect_list, &new->list);
- 	/* add and start timer if required */
- 	if (related_to->helper->timeout) {
-@@ -1002,7 +1001,6 @@
-=20
- 	} else if (related_to->helper->max_expected &&=20
- 		   related_to->expecting >=3D related_to->helper->max_expected) {
--		struct list_head *cur_item;
- 		/* old =3D=3D NULL */
- 		if (!(related_to->helper->flags &=20
- 		      IP_CT_HELPER_F_REUSE_EXPECT)) {
-@@ -1028,21 +1026,14 @@
- 		       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip));
- =20
- 		/* choose the the oldest expectation to evict */
--		list_for_each(cur_item, &related_to->sibling_list) {=20
--			struct ip_conntrack_expect *cur;
--
--			cur =3D list_entry(cur_item,=20
--					 struct ip_conntrack_expect,
--					 expected_list);
--			if (cur->sibling =3D=3D NULL) {
--				old =3D cur;
-+		list_for_each_entry(old, &related_to->sibling_list,=20
-+		                                      expected_list)
-+			if (old->sibling =3D=3D NULL)
- 				break;
--			}
--		}
-=20
--		/* (!old) cannot happen, since related_to->expecting is the
--		 * number of unconfirmed expects */
--		IP_NF_ASSERT(old);
-+		/* We cannot fail since related_to->expecting is the number
-+		 * of unconfirmed expectations */
-+		IP_NF_ASSERT(old && old->sibling =3D=3D NULL);
-=20
- 		/* newnat14 does not reuse the real allocated memory
- 		 * structures but rather unexpects the old and
-diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_co=
-re.c
---- a/net/ipv4/netfilter/ip_nat_core.c	2004-06-20 23:00:32 +02:00
-+++ b/net/ipv4/netfilter/ip_nat_core.c	2004-06-20 23:00:32 +02:00
-@@ -817,7 +817,7 @@
-=20
- 		/* Have to grab read lock before sibling_list traversal */
- 		READ_LOCK(&ip_conntrack_lock);
--		list_for_each(cur_item, &ct->sibling_list) {=20
-+		list_for_each_prev(cur_item, &ct->sibling_list) {=20
- 			exp =3D list_entry(cur_item, struct ip_conntrack_expect,=20
- 					 expected_list);
- 					=20
 
 
---fCjW77bNSYaih4x3--
+--RU5vHP6eAM91MAfE--
 
---oYHLzUxHEKq3fcvW
+--vtBqmokgY1evbO3C
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -141,9 +88,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFA1zp3XaXGVTD0i/8RAiQVAJ4r41fav/mvTYUXYy6CjxXs42PedgCgoXv7
-wxO0A0mLvRMzoFWPUmNe95U=
-=Z6wH
+iD8DBQFA1zpdXaXGVTD0i/8RAulfAJwIgn5lbxTzynSDXMtYiyFEqVjV7ACeIBB3
+LG/xazCqAuFWklKv8a4y0TE=
+=W3F3
 -----END PGP SIGNATURE-----
 
---oYHLzUxHEKq3fcvW--
+--vtBqmokgY1evbO3C--
