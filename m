@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] datalen variable unused in ftp helper.
-Date: Wed, 17 Mar 2004 15:10:05 +0100
+Subject: Re: ipt_sctp undeclared variable
+Date: Wed, 17 Mar 2004 15:04:30 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040317141005.GE21899@sunbeam.de.gnumonks.org>
-References: <404E0A4D.3070303@eurodev.net>
+Message-ID: <20040317140430.GD21899@sunbeam.de.gnumonks.org>
+References: <87znajva8y.fsf@thorr.asgardr.info> <20040315030653.52069.qmail@web14008.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AjmyJqqohANyBN/e"
+	protocol="application/pgp-signature"; boundary="x4pBfXISqBoDm8sr"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: Kiran Kumar <immidi_kiran@yahoo.com>
 Content-Disposition: inline
-In-Reply-To: <404E0A4D.3070303@eurodev.net>
+In-Reply-To: <20040315030653.52069.qmail@web14008.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,25 +23,17 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---AjmyJqqohANyBN/e
+--x4pBfXISqBoDm8sr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 09, 2004 at 07:17:49PM +0100, Pablo Neira wrote:
-> Hi,
->=20
-> I found that the variable datalen in the ftp helper is sometimes used=20
-> and sometimes not. Attached to this email the patch to fix this.
->=20
-> regards,
-> Pablo
+On Sun, Mar 14, 2004 at 07:06:53PM -0800, Kiran Kumar wrote:
+>   The attached (trivial) patch is the fix for it. BTW,
+> I have submitted it to Harald as well, and it should
+> be in CVS some time soon.
 
-Pablo, I seem to loose track of your dozens of patches.  Could you
-please re-send all patches that do not yet show up in a current 2.6.x
-tree?   I'll then review and submit all of them in one 'flush'
-
-Thanks again.
+committing just now.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -53,7 +45,7 @@ Thanks again.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---AjmyJqqohANyBN/e
+--x4pBfXISqBoDm8sr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -61,9 +53,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFAWFw9XaXGVTD0i/8RAj+IAJ0RcHRgUaxeeU7axZmlmRJZL0j76ACfbZRf
-Dn93MmdP1U9nc9Ai1idyf/c=
-=WMlu
+iD8DBQFAWFruXaXGVTD0i/8RAs8zAJsHgwMMnrzr/9ms75sQaPcwF244vgCggMA6
+eN2Q0obtIRKOgkWK+GhhJOQ=
+=fPq/
 -----END PGP SIGNATURE-----
 
---AjmyJqqohANyBN/e--
+--x4pBfXISqBoDm8sr--
