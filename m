@@ -1,9 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH NFSIM]: Fix linker error on x86_64
-Date: Thu, 06 Jan 2005 15:07:01 +0100
-Message-ID: <41DD4605.3090907@trash.net>
+Subject: [PATCH NFSIM]: use unsigned long for nf_userspace_message args
+Date: Thu, 06 Jan 2005 15:10:46 +0100
+Message-ID: <41DD46E6.8040108@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040006070909060205070106"
+Content-Type: multipart/mixed; boundary="------------010407060900080305060904"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Rusty Russell <rusty@rustcorp.com.au>
@@ -19,55 +19,112 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040006070909060205070106
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+--------------010407060900080305060904
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Rusty,
-
-I have a couple of nfsim fixes for x86_64. Please review and apply the 
-correct ones.
-
-Thanks,
-Patrick
-
-
-This patch fixes a linker error on x86_64 when linking core/fakesockopt.o:
-
-gcc -Wmissing-prototypes -Wstrict-prototypes -Wunused -Wall -g -Wa,-W 
--shared -Wl,-soname,fakesockopt.so.1 -nostdlib -ldl \
-        -o core/fakesockopt.so.1.0 core/fakesockopt.o core/utils.o
-/usr/bin/ld: core/fakesockopt.o: relocation R_X86_64_32S can not be used 
-when making a shared object; recompile with -fPIC
-core/fakesockopt.o: could not read symbols: Bad value
-collect2: ld returned 1 exit status
-make: *** [core/fakesockopt.so.1.0] Error 1
+nf_userspace_message args may hold pointers, use unsigned long so they
+also fit on 64 bit.
 
 
 
---------------040006070909060205070106
+--------------010407060900080305060904
 Content-Type: text/x-patch;
- name="1.diff"
+ name="2.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="1.diff"
+ filename="2.diff"
 
-Index: Makefile.in
+Index: core/fakesockopt.c
 ===================================================================
---- Makefile.in	(revision 3578)
-+++ Makefile.in	(working copy)
-@@ -58,6 +58,12 @@
- 		-o $@ $^
- 	ln -sf core/fakesockopt.so.1.0 ./
+--- core/fakesockopt.c	(revision 3578)
++++ core/fakesockopt.c	(working copy)
+@@ -234,8 +234,8 @@
+ 	msg.args[0] = PF_INET;
+ 	/*msg.args[1] = level;*/
+ 	msg.args[1] = optname;
+-	msg.args[2] = (int)optval;
+-	msg.args[3] = (int)*optlen;
++	msg.args[2] = (unsigned long)optval;
++	msg.args[3] = (unsigned long)*optlen;
+ 	ret = fake_syscall(&msg);
+ 	*optlen = msg.args[3];
+ 	return ret;
+@@ -249,8 +249,8 @@
+ 	msg.args[0] = PF_INET;
+ 	/*msg.args[1] = level;*/
+ 	msg.args[1] = optname;
+-	msg.args[2] = (int)optval;
+-	msg.args[3] = (int)optlen;
++	msg.args[2] = (unsigned long)optval;
++	msg.args[3] = (unsigned long)optlen;
+ 	return fake_syscall(&msg);
+ }
  
-+core/fakesockopt.o:
-+	$(CC) $(CFLAGS) -c -fPIC core/fakesockopt.c -o core/fakesockopt.o
-+
-+core/utils.o:
-+	$(CC) $(CFLAGS) -c -fPIC core/utils.c -o core/utils.o
-+
- core/usage.o: core/usage.c
- core/usage.c: $(USAGE_SOURCES) doc/gen-usage
- 	doc/gen-usage $(USAGE_SOURCES) >$@
+Index: core/nfsockopt.h
+===================================================================
+--- core/nfsockopt.h	(revision 3578)
++++ core/nfsockopt.h	(working copy)
+@@ -45,7 +45,7 @@
+ 	int len;
+ 
+ 	/* syscall/kernelop arguments */
+-	int args[MAX_MESSAGE_ARGS];
++	unsigned long args[MAX_MESSAGE_ARGS];
+ 
+ 	/* return val of the syscall/kernelop */
+ 	int retval;
+Index: core/message.c
+===================================================================
+--- core/message.c	(revision 3578)
++++ core/message.c	(working copy)
+@@ -282,7 +282,7 @@
+ 					  msg.args[3]);
+ 			msg.retval = nf_getsockopt(NULL, msg.args[0],
+ 					msg.args[1], (char *)msg.args[2],
+-					&msg.args[3]);
++					(int *)&msg.args[3]);
+ 			if (strace)
+ 				nfsim_log(LOG_USERSPACE,
+ 					  "    getsockopt -> %s (len %i)",
+@@ -358,9 +358,9 @@
+ 	msg->type = UM_KERNELOP;
+ 	msg->opcode = KOP_COPY_TO_USER;
+ 	msg->len = n;
+-	msg->args[0] = (int)to;
+-	msg->args[1] = (int)from;
+-	msg->args[2] = (int)n;
++	msg->args[0] = (unsigned long)to;
++	msg->args[1] = (unsigned long)from;
++	msg->args[2] = (unsigned long)n;
+ 
+ 	/* Keep valgrind happy.*/
+ 	msg->args[3] = 0;
+@@ -393,9 +393,9 @@
+ 	msg.type = UM_KERNELOP;
+ 	msg.opcode = KOP_COPY_FROM_USER;
+ 	msg.len = 0;
+-	msg.args[0] = (int)to;
+-	msg.args[1] = (int)from;
+-	msg.args[2] = (int)n;
++	msg.args[0] = (unsigned long)to;
++	msg.args[1] = (unsigned long)from;
++	msg.args[2] = (unsigned long)n;
+ 
+ 	/* Keep valgrind happy.*/
+ 	msg.args[3] = 0;
+Index: core/core.c
+===================================================================
+--- core/core.c	(revision 3578)
++++ core/core.c	(working copy)
+@@ -431,7 +431,7 @@
+ 		oldpath = getenv("LD_LIBRARY_PATH");
+ 		path = talloc_asprintf(NULL, "%s%s%.*s",
+ 				       oldpath ?:"", oldpath ? ":" : "",
+-				       p - argv[0], argv[0]);
++				       (int)(p - argv[0]), argv[0]);
+ 		setenv("LD_LIBRARY_PATH", path, 1);
+ 		talloc_free(path);
+ 	}
 
---------------040006070909060205070106--
+--------------010407060900080305060904--
