@@ -1,16 +1,14 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
-Subject: Re: [PATCH] new 'tcpack' match
-Date: Mon, 04 Apr 2005 16:15:43 +0200
-Message-ID: <42514C0F.4000605@gmx.net>
-References: <42464598.9040707@outerspace.dyndns.org>	<425032D5.2010302@trash.net>	<878113493.20050403233059@dns.toxicfilms.tv>	<4250848E.5040207@outerspace.dyndns.org>
-	<5810131003.20050404153025@dns.toxicfilms.tv>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Iptables help
+Date: Mon, 4 Apr 2005 16:46:15 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0504041630140.32358@filer.marasystems.com>
+References: <200504031850.AAA18026@WS0005.indiatimes.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <5810131003.20050404153025@dns.toxicfilms.tv>
+To: dpadalkar2001 <dpadalkar2001@indiatimes.com>
+In-Reply-To: <200504031850.AAA18026@WS0005.indiatimes.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,55 +20,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Maciej Soltysiak schrieb:
->>I aim to fix this all with one simple netfilter match which can give an
->>answer with simple arithmetics in one go instead of matching against a
->>preconfigured list of possible values one by one.
-> 
-> Right.
-> 
-> I agree the best way to go would be to extend the tcp match with
-> the proposed semantics:
->     --datalen [!] A[,B:C[,D]]
-> 
-> 
-> It also might be useful to match the sole header length.
->    --headerlen [!] A[,B:C[,D]]
-> 
-> And the lenght of tcp+data
-> 
->    --len
-> 
-> Possibly the similar for udp:
->    --datalen, --headerlen, --len
-> 
-> And ICMP:
->    --datalen, --len (icmp headers have fixed size)
+On Mon, 4 Apr 2005, dpadalkar2001 wrote:
 
-Could we do this in a generic way? I'm currently rewriting the iptables
-ACCOUNT target and it could benefit from that as well.
+>    Currently i'm developing something similar to iptables.I wud like to know
+> where does the iptables store the rules and the format in which it sotres the
+> rules.
 
-I'd need:
-- length of whole IP packet
-- length of layer 2 frame
+iptables stores rules in a linear table (with jumps), uploaded to the 
+kernel as a binary blob. There is one such blob per table type (filter, 
+nat, mangle, ...), and each hook has it's own entrypoint in the table.
 
-Perhaps a generic prefix for all "length" options is appropriate?
+This structure is managed by libiptc. Relevant structures can be found in 
+include/linux/netfilter_ipv4/ip_tables.h. The main binary table descriptor 
+is ipt_replace, and is immediately followed by a list of ipt_entry, each 
+followed by a list of ipt_match and a final ipt_target.
 
---len-header-ip
---len-data-ip
---len-full-ip
---len-header-tcp
---len-data-tcp
---len-full-tcp
---len-header-ether
---len-data-ether
---len-full-ether
-etc.
+I do not remember what the underflow thing is about.
 
-I realize that some of the options above don't make that much sense,
-but you get the idea.
+> If i can know this , my task to store it in good format becomes a bit
+> easier and more standardised . I shall be very grateful and am very very helpful
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+You may want to look at the HiPAC project
+
+   http://www.hipac.org/
+
+this uses very efficient tree structures for storing the ruleset.
