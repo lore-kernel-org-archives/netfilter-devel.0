@@ -1,10 +1,10 @@
 From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [PATCH] Update Polish FAQ
-Date: Wed, 15 Oct 2003 17:26:26 +0200 (CEST)
+Subject: [PATCH] Trivial typo in english FAQ
+Date: Wed, 15 Oct 2003 17:30:25 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0310151725150.27249@dns.toxicfilms.tv>
+Message-ID: <Pine.LNX.4.51.0310151729160.27291@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-23717851-165982025-1066231586=:27249"
+Content-Type: MULTIPART/MIXED; BOUNDARY="-23717851-412563785-1066231825=:27291"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -21,97 +21,54 @@ List-Id: netfilter-devel.vger.kernel.org
   while the remaining parts are likely unreadable without MIME-aware tools.
   Send mail to mime@docserver.cac.washington.edu for more info.
 
----23717851-165982025-1066231586=:27249
+---23717851-412563785-1066231825=:27291
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 
 Hi,
 
-this patch updates the polish FAQ to the current FAQ in CVS.
+simple s/ressources/resources patch.
 
 Regards,
 Maciej
----23717851-165982025-1066231586=:27249
-Content-Type: APPLICATION/octet-stream; name="FAQ_PL.diff.gz"
+
+Index: netfilter-faq.sgml
+===================================================================
+RCS file: /cvspublic/netfilter/documentation/FAQ/netfilter-faq.sgml,v
+retrieving revision 1.42
+diff -u -r1.42 netfilter-faq.sgml
+--- netfilter-faq.sgml	10 Oct 2003 10:27:19 -0000	1.42
++++ netfilter-faq.sgml	15 Oct 2003 15:28:52 -0000
+@@ -133,7 +133,7 @@
+ an IETF MIDCOM working group has been founded, ... meanwhile, people want to
+ use SIP.
+ <p>
+-The netfilter/iptables team has currently no ressources to implement SIP
++The netfilter/iptables team has currently no resources to implement SIP
+ conntrack/NAT support, but we're always open for sponsors :)
+ </sect1>
+
+---23717851-412563785-1066231825=:27291
+Content-Type: TEXT/plain; name="FAQ_EN.diff"
 Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.51.0310151726260.27249@dns.toxicfilms.tv>
-Content-Description: FAQ_PL.diff.gz
-Content-Disposition: attachment; filename="FAQ_PL.diff.gz"
+Content-ID: <Pine.LNX.4.51.0310151730250.27291@dns.toxicfilms.tv>
+Content-Description: FAQ_EN.diff
+Content-Disposition: attachment; filename="FAQ_EN.diff"
 
-H4sICPBkjT8AA0ZBUV9QTC5kaWZmAL1YXU/cSBZ9Hv+KO2w0gPqLbr6SHtIJ
-E8gO2YEwQDZSVquo2i6a6rZdHruMY/+dleYdtcTTSPk3PPAW8Qf23LLd3RAy
-u9JKm5kEul2uuh/nnntuHYSe/NSnUJpz5RsZt87Fb+1kFPjO8//9j3Py6pSw
-r+xTx71MonToK7czO6vjaTcNZGiEUTrsvN79tRP5na9NaV46sTSxkpcqHFGM
-HwnWU7e97Xjq/JxaKbVifHrMi1ar9cjX3/W26U0aUm9tbZ26m/31p/3eOrXW
-8Oc73rbRaDz2VneT3rpm9lZ3q7+xWb7lvHxJrY3mM2psNLtr9PKlQw7tGGV8
-OZj7qyIjhr5MCK7udMqnWCZSc6Hjwc8iFr5H7yXW0g+++dEX5zoeyZejMA10
-OEna+PTDyPz4Q+j/6DR2PGHk4O8ytsF4clKFpY+4bPToSZOe7GFB31rb6a7h
-f+qu9Xvb/e4zerLTsW87dDZNA+EWMlRYeihcJcd0qqcmT5SY7Bgz2LkwgZ/G
-PoUikM+XEu2bl16YtI3+pFz4FeDXyyXCiudLgYCfuv+NNQO4jP06lbtO6088
-2H7owNpWBzmbpWrmQOueA6+KTMRGTqi3hd9lnLmizNZs/Z+F7eljUduk7nZ/
-7Vl/bXNhk3uH/h5rT8A0OhZ/eIWScagmD49lNIhhYmLhGo66DMnTEwt+KkSG
-lwQCPHaL22ubgkJ4IhOhpCg3IlSCVl7H8rcUy/2cdpOJ9OjXVCZcN8kqZXli
-bqN0fOVK7EK+4k0sJLu9jeYWNbq9zebGeg3LTiKtFQgG/9YdvCpyqrEJkG5V
-KB3jAMooYQskFbEeqhs6OL7coqPdsxd4O0IojpRsUuwV8gt/S7xSD5NpOkrH
-kuBvmIyFO1ble346tL908M8GjcVEyZGeaB8BmDgNxLEQ47SNnTulYU7jno3J
-FUW+CPPqBEWnB8e1HfiVVk5lYtN6ECqjLKvQcayNdrW/Wrrj6esbKqb6sw7z
-JiUFkji689nqzGlYcwOVwNxIR3EhC7BXLDPh+5IUMF5ceZx0wa62id5z2EMY
-FetIF7k7vqJhPhVOY6KDlFHgjgV2uo6lZzGxgoWf8tXZ5q9fwebX1Qn0Socm
-1v6CxViVO430c+6qlHkU9lHEQTN3GY7/oJGaqQBYrD+CRnEaCUKetFsIOtg/
-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
-GWU7vBEqRGvEVsRW+IbpEF/52iTc84d6lCYLIZtnGyfFClPjSiLl/2j7R3yy
-VsPcza2lwWrbZp7BcloGXE3ldcUbJWcswE7VcxeWZBA++RwSNWuWMFvfaD6l
-xmav11wvb34yVOdoepdNEKqFa4RdFuk1wIC1OcKUVVw8T2ICELHhhot5rRU4
-ZMeWZTR/T7p5YWdY23MsZ6RkR6ucx6r6yAaEtGRZApTgPO059x9VdyKsiObG
-ET8Z6QU4L/bBxfsrCUIpdcWo6oIn+2/2X53B6an44kKRs9PHJ/snb9+dHRz9
-lWqoV8sSoxOWk9xEvUVfuEuJoYSKqYZlCLVqx9xpHBwdvzvrYEv+8frtyfvd
-kz2uAa7Zauegnj9ZWuRkbMvLiGtjwTSnscJV67XmX0GkYWBErWFaExYjjXe1
-OnFzOpp1efa7mjWv5qHDEdZuHINKtDoaEmPky8ev15bre5H51CfikZ3/l1lK
-srThHmTv8iqxVR7A26/WxMGjJV8N1MsRQwYqv6CJpdSovDywVyE8u2KeyVFU
-c5ULWVVazhctwjDGwFjoQXCOLyFmQrNJYfT42Di74mnt0vHb07M65y1jQ9EC
-oKJojVpjOtw9/fXd/snu3j5PCd8KwDfJvXGm5yJWWH2OdgPKi3MgCgrTpHF9
-M8PoxnclKZcBFMCEySu56TTsTnZuRJdu00+3fEkHsg0g1cUUUQh5pWSpySN/
-eRcR6xGa+eLu3Ohnu9K86YOW70oK0BmeMv6STI+5vrAx/7BW8Y2N9Qr9s3Sr
-hCw7VwjL7japoEKTNy2uPL4e46t2U+1nN1qd5dlpTNELuK74BoYX8Fvltt5X
-px/Z8a7UcWYxvjewiLgmfQXza82Pn0XF8ky57ZlG5ItGxk550QZdztd4xS2Y
-CkTGOiMxt/RAaD8uDGfdeJFhOPoPOSZdYJgXzr8BUg2CAlsbAAA=
+SW5kZXg6IG5ldGZpbHRlci1mYXEuc2dtbA0KPT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PQ0KUkNTIGZpbGU6IC9jdnNwdWJsaWMvbmV0ZmlsdGVyL2RvY3VtZW50
+YXRpb24vRkFRL25ldGZpbHRlci1mYXEuc2dtbCx2DQpyZXRyaWV2aW5nIHJl
+dmlzaW9uIDEuNDINCmRpZmYgLXUgLXIxLjQyIG5ldGZpbHRlci1mYXEuc2dt
+bA0KLS0tIG5ldGZpbHRlci1mYXEuc2dtbAkxMCBPY3QgMjAwMyAxMDoyNzox
+OSAtMDAwMAkxLjQyDQorKysgbmV0ZmlsdGVyLWZhcS5zZ21sCTE1IE9jdCAy
+MDAzIDE1OjI4OjUyIC0wMDAwDQpAQCAtMTMzLDcgKzEzMyw3IEBADQogYW4g
+SUVURiBNSURDT00gd29ya2luZyBncm91cCBoYXMgYmVlbiBmb3VuZGVkLCAu
+Li4gbWVhbndoaWxlLCBwZW9wbGUgd2FudCB0bw0KIHVzZSBTSVAuDQogPHA+
+DQotVGhlIG5ldGZpbHRlci9pcHRhYmxlcyB0ZWFtIGhhcyBjdXJyZW50bHkg
+bm8gcmVzc291cmNlcyB0byBpbXBsZW1lbnQgU0lQDQorVGhlIG5ldGZpbHRl
+ci9pcHRhYmxlcyB0ZWFtIGhhcyBjdXJyZW50bHkgbm8gcmVzb3VyY2VzIHRv
+IGltcGxlbWVudCBTSVANCiBjb25udHJhY2svTkFUIHN1cHBvcnQsIGJ1dCB3
+ZSdyZSBhbHdheXMgb3BlbiBmb3Igc3BvbnNvcnMgOikNCiA8L3NlY3QxPg0K
+IA0K
 
----23717851-165982025-1066231586=:27249--
+---23717851-412563785-1066231825=:27291--
