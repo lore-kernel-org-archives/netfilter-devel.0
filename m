@@ -1,90 +1,56 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: ipt_physdev.c alignment problems on parisc64
-Date: Sat, 20 Sep 2003 13:32:12 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <200309201332.13167.bdschuym@pandora.be>
-References: <200309022116.41697.bdschuym@pandora.be> <200309172317.38348.bdschuym@pandora.be> <20030918194802.6726d53c.davem@redhat.com>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: "ip_conntrack_core: Frag of proto 17." error and memory leak?
+Date: Sat, 20 Sep 2003 14:11:16 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1064059876.2500.54.camel@tux.rsn.bth.se>
+References: <3F65EC33.2060906@wp.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, hno@marasystems.com, acme@conectiva.com.br,
-        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: "David S. Miller" <davem@redhat.com>
-In-Reply-To: <20030918194802.6726d53c.davem@redhat.com>
-Content-Disposition: inline
-Errors-to: netdev-bounce@oss.sgi.com
+Cc: Netfilter@tux.rsn.bth.se,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: c0g <c0g@wp.pl>
+In-Reply-To: <3F65EC33.2060906@wp.pl>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 19 September 2003 04:48, David S. Miller wrote:
-> Don't use an alignment attribute, just put the member of
-> the struct at the very beginning and use "unsigned int"
-> at a time op+comparisons.
->
-> How about that?
+On Mon, 2003-09-15 at 18:43, c0g wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Hi,
+> I'm getting this error, my kern.log is flooded, it is logged many
+> hundred of thousands times. I read in ip_conntrack_core.c it should
+> "never happen" (so it's kind of assertion). Why does this assertion fail?
+> 
+> I'm using 2.4.22 kernel with CVS p-o-m 20030907. I'm using only
+> following major netfilter patches:
+> 
+> TCPLAG.patch
+> ipt_REJECT-fake-source.patch
+> raw.patch
 
-Fine with me.
+Are you using the NOTRACK target in raw/PREROUTING?
 
-cheers,
-Bart
+This is the only source of this I can see and it is indeed a bug. This
+message shouldn't be printed for this case. It doesn't defrag packets
+and calls get_tuple() for all packets, even the fragments and
+get_tuple() barfs. This causes only the first fragment to be marked as
+untracked and leaves the rest of the fragments to conntrack which tries
+to defrag them but that won't succeed since conntrack will never see the
+first packet. And thus the kernel keeps lots of fragments in memory
+until they time out and are dropped.
 
+We'll look into how to best solve this if this is what is causing the
+problem for you.
 
---- linux-2.6.0-test5/include/linux/netfilter_ipv4/ipt_physdev.h.old	2003-09-20 13:28:26.000000000 +0200
-+++ linux-2.6.0-test5/include/linux/netfilter_ipv4/ipt_physdev.h	2003-09-20 13:29:06.000000000 +0200
-@@ -13,12 +13,12 @@
- #define IPT_PHYSDEV_OP_MASK		(0x20 - 1)
- 
- struct ipt_physdev_info {
--	u_int8_t invert;
--	u_int8_t bitmask;
- 	char physindev[IFNAMSIZ];
- 	char in_mask[IFNAMSIZ];
- 	char physoutdev[IFNAMSIZ];
- 	char out_mask[IFNAMSIZ];
-+	u_int8_t invert;
-+	u_int8_t bitmask;
- };
- 
- #endif /*_IPT_PHYSDEV_H*/
---- linux-2.6.0-test5/net/ipv4/netfilter/ipt_physdev.c.old	2003-09-20 13:28:44.000000000 +0200
-+++ linux-2.6.0-test5/net/ipv4/netfilter/ipt_physdev.c	2003-09-20 13:29:06.000000000 +0200
-@@ -23,7 +23,7 @@ match(const struct sk_buff *skb,
- 	int i;
- 	static const char nulldevname[IFNAMSIZ];
- 	const struct ipt_physdev_info *info = matchinfo;
--	unsigned long ret;
-+	unsigned int ret;
- 	const char *indev, *outdev;
- 	struct nf_bridge_info *nf_bridge;
- 
-@@ -65,10 +65,10 @@ match(const struct sk_buff *skb,
- 	if (!(info->bitmask & IPT_PHYSDEV_OP_IN))
- 		goto match_outdev;
- 	indev = nf_bridge->physindev ? nf_bridge->physindev->name : nulldevname;
--	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
--		ret |= (((const unsigned long *)indev)[i]
--			^ ((const unsigned long *)info->physindev)[i])
--			& ((const unsigned long *)info->in_mask)[i];
-+	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned int); i++) {
-+		ret |= (((const unsigned int *)indev)[i]
-+			^ ((const unsigned int *)info->physindev)[i])
-+			& ((const unsigned int *)info->in_mask)[i];
- 	}
- 
- 	if ((ret == 0) ^ !(info->invert & IPT_PHYSDEV_OP_IN))
-@@ -79,10 +79,10 @@ match_outdev:
- 		return MATCH;
- 	outdev = nf_bridge->physoutdev ?
- 		 nf_bridge->physoutdev->name : nulldevname;
--	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
--		ret |= (((const unsigned long *)outdev)[i]
--			^ ((const unsigned long *)info->physoutdev)[i])
--			& ((const unsigned long *)info->out_mask)[i];
-+	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned int); i++) {
-+		ret |= (((const unsigned int *)outdev)[i]
-+			^ ((const unsigned int *)info->physoutdev)[i])
-+			& ((const unsigned int *)info->out_mask)[i];
- 	}
- 
- 	return (ret != 0) ^ !(info->invert & IPT_PHYSDEV_OP_OUT);
+-- 
+/Martin
