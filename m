@@ -1,69 +1,71 @@
-From: Alex Davis <alex14641@yahoo.com>
-Subject: Re: [RFC] patch for invalid packet time from ULOG target of iptables
-Date: Sun, 24 Aug 2003 08:20:52 -0700 (PDT)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20030824152052.57555.qmail@web40505.mail.yahoo.com>
-References: <20030824150024.GF10987@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH]: clear nf_debug for ipsec tunnel packets
+Date: Mon, 25 Aug 2003 00:35:31 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3F493DB3.9060607@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, ulogd@lists.gnumonks.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20030824150024.GF10987@sunbeam.de.gnumonks.org>
+Content-Type: multipart/mixed;
+ boundary="------------010304030202050701000401"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I understand. Thanks.
+This is a multi-part message in MIME format.
+--------------010304030202050701000401
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
--Alex
+Hi Harald,
 
+this patch for 2.6 clears nf_debug in ip_local_deliver_finish so the
+"hook ... already set" message in nf_hook_slow won't get triggered for
+decapsulated ipsec-tunnel packets when passing them through the network
+stack again.
 
---- Harald Welte <laforge@gnumonks.org> wrote:
-> On Sun, Aug 24, 2003 at 07:16:00AM -0700, Alex Davis wrote:
-> > I've just started playing with the ULOG target in
-> > iptables, and I've noticed that the 'timestamp_sec'
-> > member of the ulog_packet_msg_t struct paseed to
-> > the user is always 0 for locally generated packets.
-> 
-> This is a well-known behaviour (see the list archives of
-> netfilter-devel@lists.netfilter.org or ulogd@lists.gnumonks.org).
-> 
-> This is _NOT_ considered a bug, but a feature.
-> 
-> > I was thinking of patching the ipt_ulog_target
-> > function in net/ipv4/netfilter/ipt_ULOG.c to
-> > check if timestamp_sec is 0 and if so, set it
-> > to the current time by adding code to test
-> > 'timestamp_sec' after it's been set. E.g;
-> 
-> so how would you then differentiate in userspace between 
-> 
-> a) a skb receive timestamp
-> b) a timestamp created within the ULOG target (which can be very
->    different, think of async packets via QUEUE, etc.)
-> 
-> We definitely don't want to have one field in the packet that has
-> different semantics according from which hook it came in.
-> 
-> What ulogd currently does, is _always_ logging the userspace time,
-> disregarding the skb receive timestamp.  This is way closer to the LOG
-> target behaviuor anyway, since in this case the time is prepended by
-> syslogd (which just calls gettimeofday() from userspace).
-> 
-> -- 
-> - Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
-> ============================================================================
-> Programming is like sex: One mistake and you have to support it your lifetime
-> 
+Best regards,
+Patrick
 
-> ATTACHMENT part 2 application/pgp-signature 
+--------------010304030202050701000401
+Content-Type: text/plain;
+ name="pom-2.6-tunnel-debug.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="pom-2.6-tunnel-debug.diff"
 
+diff -urN a/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff b/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff
+--- a/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff	1970-01-01 01:00:00.000000000 +0100
++++ b/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff	2003-08-24 23:17:43.000000000 +0200
+@@ -0,0 +1,11 @@
++===== net/ipv4/ip_input.c 1.17 vs edited =====
++--- 1.17/net/ipv4/ip_input.c	Mon Jun 16 17:11:36 2003
+++++ edited/net/ipv4/ip_input.c	Sun Aug 24 23:11:36 2003
++@@ -201,6 +201,7 @@
++ 
++ #ifdef CONFIG_NETFILTER_DEBUG
++ 	nf_debug_ip_local_deliver(skb);
+++	skb->nf_debug = 0;
++ #endif /*CONFIG_NETFILTER_DEBUG*/
++ 
++ 	__skb_pull(skb, ihl);
+diff -urN a/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff.help b/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff.help
+--- a/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff.help	1970-01-01 01:00:00.000000000 +0100
++++ b/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff.help	2003-08-24 23:34:23.000000000 +0200
+@@ -0,0 +1,7 @@
++Author: Patrick McHardy <kaber@trash.net>
++Status: Working
++
++This patch clears nf_debug in ip_local_deliver_finish so the
++"hook ... already set" message in nf_hook_slow won't get triggered for
++decapsulated ipsec-tunnel packets when passing them through the network
++stack again.
 
-=====
-I code, therefore I am
-
-__________________________________
-Do you Yahoo!?
-Yahoo! SiteBuilder - Free, easy-to-use web site design software
-http://sitebuilder.yahoo.com
+--------------010304030202050701000401--
