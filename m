@@ -1,86 +1,40 @@
-From: "Hans Lambrechts" <hans.lambrechts@skynet.be>
-Subject: Re: Linux 2.4.23-pre1
-Date: Thu, 28 Aug 2003 17:49:32 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <001301c36d7b$f96cfbe0$0400a8c0@LAPTOP>
-References: <pcKD.6BP.19@gated-at.bofh.it> <200308280850.h7S8oxGx001862@pc.skynet.be> <3F4E1823.7060600@trash.net>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: avoid some indicative messages
+Date: Thu, 28 Aug 2003 16:24:05 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030828142404.GA4211@oknodo.bof.de>
+References: <12bff612dda5.12dda512bff6@teleline.es>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: <linux-kernel@vger.kernel.org>,
-	"Netfilter Development Mailinglist"
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: MYRIAM15 <MYRIAM15@terra.es>
+Content-Disposition: inline
+In-Reply-To: <12bff612dda5.12dda512bff6@teleline.es>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks Patrick,
+On Wed, Aug 27, 2003 at 11:24:10PM +0300, MYRIAM15 wrote:
+> Maybe it is a stupid question. It's just that use a C program that if 
+> certain conditions are true, it adds rules. But every time I start the 
+> program, I want to be sure that previous rules that could have been 
+> created, they must be deleted, so the C program also does it. In this 
+> case, if a rule itself has not been created, some messages are printed 
+> that basically say: "that rule cannot be deleted because it doesn't 
+> exist". My question then is: is there any way to avoid these messages?
 
-forwarding and NAT works as before
+Assuming that it's a stupid question, here's a try at a stupid answer:
 
-greetings,
-Hans
+program 2>/dev/null
 
------ Original Message ----- 
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Hans Lambrechts" <hans.lambrechts@skynet.be>
-Cc: <linux-kernel@vger.kernel.org>; "Netfilter Development Mailinglist"
-<netfilter-devel@lists.netfilter.org>
-Sent: Thursday, August 28, 2003 4:56 PM
-Subject: Re: Linux 2.4.23-pre1
+Hope this helps.
 
-
-> Please try this patch.
->
-> Regards,
-> Patrick
->
-> Hans Lambrechts wrote:
->
-> >Greetings,
-> >
-> >
-> >
-> >>Harald Welte:
-> >>  o [NETFILTER]: Backport iptables AH/ESP fixes from 2.6.x
-> >>  o [NETFILTER]: Fix uninitialized return in iptables tftp
-> >>  o [NETFILTER]: NAT optimization
-> >>  o [NETFILTER]: Conntrack optimization (LIST_DELETE)
-> >>
-> >>
-> >>
-> >
-> >
-> >I see this in my log:
-> >
-> >Aug 28 10:45:44 pc kernel: MASQUERADE: No route: Rusty's brain broke!
-> >Aug 28 10:46:10 pc last message repeated 13 times
-> >Aug 28 10:48:42 pc kernel: NET: 1 messages suppressed.
-> >Aug 28 10:48:42 pc kernel: MASQUERADE: No route: Rusty's brain broke!
-> >Aug 28 10:48:43 pc kernel: MASQUERADE: Route sent us somewhere else.
-> >
-> >Forwarding and masquerading doesn't work anymore.
-> >
-> >Hans
-> >
-> >
->
-
-
-----------------------------------------------------------------------------
-----
-
-
-> ===== net/ipv4/netfilter/ipt_MASQUERADE.c 1.6 vs edited =====
-> --- 1.6/net/ipv4/netfilter/ipt_MASQUERADE.c Tue Aug 12 11:30:12 2003
-> +++ edited/net/ipv4/netfilter/ipt_MASQUERADE.c Thu Aug 28 16:54:15 2003
-> @@ -90,6 +90,7 @@
->  #ifdef CONFIG_IP_ROUTE_FWMARK
->   key.fwmark = (*pskb)->nfmark;
->  #endif
-> + key.oif = 0;
->   if (ip_route_output_key(&rt, &key) != 0) {
->                  /* Funky routing can do this. */
->                  if (net_ratelimit())
->
+best regards
+  Patrick
