@@ -1,14 +1,12 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [PATCH] Fix RST handling in ip_conntrack_proto_tcp.c
-Date: Fri, 31 Dec 2004 17:38:56 +0100
-Message-ID: <1104511137.3821.20.camel@tux.rsn.bth.se>
+From: Matteo Croce <3297627799@wind.it>
+Subject: UNWANTED state
+Date: Wed, 29 Dec 2004 23:58:15 +0100
+Message-ID: <200412292358.16490.3297627799@wind.it>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-za61lQIpis9ZOrPhoEg3"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_Iaz0B4ayWLKIgtB"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,63 +18,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+--Boundary-00=_Iaz0B4ayWLKIgtB
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
---=-za61lQIpis9ZOrPhoEg3
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi,
+time ago i wanted to stealth may gateway, so i start dropping outgoing 
+icmp-port-unreachable packets, to avoid UDP scans.
+But i had also a '--dport 113 -j REJECT' target to allow faster irc logins,
+that stopped working since those ICMP were rejected by the new rule.
+So i hacked the kernel with a patch i also attach, to prevent those packets 
+being generated.
+I also start dropping outgoing RST/ACK to prevent TCP scans, but now i have a 
+question:
+can an UNWANTED state be useful?
+I mean, incoming packets which dstport is closed were classified as UNWANTED.
+So were possible to drop UNWANTED packets, and a port will be open when some 
+service listens to it and filtered (not closed) when the service doesn't 
+listens.
+A simple firewall is having a DROP default policy and open used ports.
+But what happens when the service listening behind that port stop listenings?
+The port remains not filtered, and send RST/ACK (or icmp-port-unreachable) 
+when someone tries to connect to it.
 
-Hi Jozsef
+Regards, Matteo
 
-Your latest patch contained a change to the RST handling.
-The change was that an RST is ignored if the previous packet was an ACK.
-This is happens all the time. I know it was intended as a fix for the
-SYN - ACK probe - RST sequence but it breaks normal usage. The problem
-is that connections that end with RST never get their state changed and
-are left in ESTABLISHED state with a large timeout.
+-- 
+  .""`.     Matteo Croce <3297627799@wind.it>
+ : :"  :    proud Debian admin and user
+ `. `"`
+   `-  Debian - when you have better things to do than fix a system
 
-The patch below adds a check for
-!test_bit(IPS_ASSURED_BIT, &conntrack->status) so your change will only
-be active for unassured connections. Maybe you have a better idea for
-how to fix both cases.
+--Boundary-00=_Iaz0B4ayWLKIgtB
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="udp.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="udp.diff"
 
-This patch has been tested by a user that reported the problem on irc
-and it fixes the problem for him. I'm also running it on a machine with
-lots of traffic and it fixes the problem for me as well.
+diff -urN linux-2.6.10-vanilla/net/ipv4/udp.c linux-2.6.10/net/ipv4/udp.c
+--- linux-2.6.10-vanilla/net/ipv4/udp.c	2004-12-26 17:17:09.000000000 +0100
++++ linux-2.6.10/net/ipv4/udp.c	2004-12-29 02:57:26.000000000 +0100
+@@ -1165,7 +1165,7 @@
+ 		goto csum_error;
+ 
+ 	UDP_INC_STATS_BH(UDP_MIB_NOPORTS);
+-	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_PORT_UNREACH, 0);
++//	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_PORT_UNREACH, 0);
+ 
+ 	/*
+ 	 * Hmm.  We got an UDP packet to a port to which we
+diff -urN linux-2.6.10-vanilla/net/ipv6/udp.c linux-2.6.10/net/ipv6/udp.c
+--- linux-2.6.10-vanilla/net/ipv6/udp.c	2004-12-26 17:17:10.000000000 +0100
++++ linux-2.6.10/net/ipv6/udp.c	2004-12-29 02:57:48.000000000 +0100
+@@ -523,7 +523,7 @@
+ 			goto discard;
+ 		UDP6_INC_STATS_BH(UDP_MIB_NOPORTS);
+ 
+-		icmpv6_send(skb, ICMPV6_DEST_UNREACH, ICMPV6_PORT_UNREACH, 0, dev);
++//		icmpv6_send(skb, ICMPV6_DEST_UNREACH, ICMPV6_PORT_UNREACH, 0, dev);
+ 
+ 		kfree_skb(skb);
+ 		return(0);
 
-Please make sure something that fixes the problem is submitted fairly
-quickly.
-
-<hint> A tcp-state/windowtracking testcase for nfsim would be great
-</hint> :)
-
---- linux-2.6.10-rc3-bk14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c.orig	=
-2004-12-30 19:48:33.000000000 +0100
-+++ linux-2.6.10-rc3-bk14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-=
-12-30 19:49:46.000000000 +0100
-@@ -906,7 +906,8 @@ static int tcp_packet(struct ip_conntrac
- 		if (index =3D=3D TCP_RST_SET
- 		    && ((test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
- 		         && conntrack->proto.tcp.last_index <=3D TCP_SYNACK_SET)
--		        || conntrack->proto.tcp.last_index =3D=3D TCP_ACK_SET)
-+		        || (!test_bit(IPS_ASSURED_BIT, &conntrack->status)
-+			 && conntrack->proto.tcp.last_index =3D=3D TCP_ACK_SET))
- 		    && after(ntohl(th->ack_seq),
- 		    	     conntrack->proto.tcp.last_seq)) {
- 			/* Ignore RST closing down invalid SYN or ACK
-
---=20
-/Martin
-
---=-za61lQIpis9ZOrPhoEg3
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBB1YCgWm2vlfa207ERApW+AJ440mTRehN7kZ4qY1FsXGi2cL3YZQCeI018
-eEZiu3RRJtgi5Ro0FAz2C5o=
-=fBpd
------END PGP SIGNATURE-----
-
---=-za61lQIpis9ZOrPhoEg3--
+--Boundary-00=_Iaz0B4ayWLKIgtB--
