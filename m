@@ -1,19 +1,15 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: Re: NAT before IPsec with 2.6
-Date: Wed, 28 Jan 2004 07:36:29 -0800
+From: Davide <tatonet@tiscali.it>
+Subject: NAT-PT IPv4<-->IPv6
+Date: Wed, 28 Jan 2004 16:40:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401280736.29799.teastep@shorewall.net>
-References: <20040124082252.GA19035@alpha.home.local> <200401270811.36973.teastep@shorewall.net> <20040127204546.GZ11761@sunbeam.de.gnumonks.org>
+Message-ID: <200401281640.49151.tatonet@tiscali.it>
+Reply-To: tatonet@tiscali.it
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: Willy Tarreau <willy@w.ods.org>,
-	Henrik Nordstrom <hno@marasystems.com>,
-	Michal Ludvig <mludvig@suse.cz>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040127204546.GZ11761@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -25,52 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 27 January 2004 12:45 pm, Harald Welte wrote:
-> > > To do this, somewhen between esp_output() is called and the beginning
-> > > of the modification of the packet payload, we need to call
-> > > nf_hook(POST_ROUTING).  This way, conntrack would be able to put the
-> > > connection in the hash, and people can do SNAT-like operations in
-> > > nat->POSTROUTING.  We could even pass a dummy output device structure
-> > > with an interface name "esp" so people can SNAT everything heading for
-> > > esp encapsulation.
-> >
-> > I like this proposal.
->
-> Great :)
->
-> > I assume that on input, payload packets would also have this dummy
-> > device as their input device?
->
-> sure, makes sense.
->
-> > And on output that payload packets would have "esp" as their output
-> > device in the FORWARD and OUTPUT hooks as well?
->
-> no, that's way more difficult.  I'm not sure whether it can be done at
-> all (without adding rediculous kludges to the code).
+Hi,
+first of all I want to beg your pardon for my horrible English. I'll try to be 
+as clear as possible...
 
-Bummer -- I'm trying to avoid equally ridiculous kludges in my own code :-)
+I'm intrested in writing an extension to the linux netfilter. 
+Before studying the netfilter code, and hence before I start developing such 
+extension, I would be very happy to know if it's possible to extend the linux 
+netfilter (the NAT part of it, precisely) to support ipv4<-->ipv6 NAT-PT.
+In particular my question,for now, is if it's possible to get a ipv6 datagram 
+in input and put a ipv4 datagram in output (and viceversa) without causing 
+problem in subsequent netfilter operations.
 
->
-> > I would also like to register my vote for having the AH/ESP packets go
-> > through INPUT and OUTPUT. This would allow Shorewall to treat IPSEC in
-> > the same way as it does all other tunnel types:
->
-> Mh.  Let's say we stick with the INPUT/OUTPUT chains for now.
->
-> However, I would like to introduce new netfilter hooks.  At least for
-> the beginning (due to lack of better ideas), I'm going to register the
-> INPUT/OUTPUT chains with those new hooks.
->
-> the idea of the new hooks is, that in reality they are at different
-> locations in the stack.  And at some point we might have some module
-> that is only interested in xfrm'ed packets.
->
-
-I understand.
-
--Tom
--- 
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
+Thank you very much,
+Davide.
