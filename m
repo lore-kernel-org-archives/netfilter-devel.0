@@ -1,16 +1,12 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: ctnetlink questions
-Date: Mon, 09 Feb 2004 11:33:21 +0100
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] IP sets
+Date: Mon, 9 Feb 2004 15:41:56 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <402761F1.5070402@eurodev.net>
-References: <Pine.LNX.4.33.0310200909590.12485-100000@blackhole.kfki.hu> <Pine.LNX.4.44.0310201107510.23768-100000@filer.marasystems.com> <20040206185242.GM2312@obroa-skai.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0402091505440.23818-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040206185242.GM2312@obroa-skai.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,62 +17,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Hello,
 
-I've been working on an API to add, update conntrack entries since fall 
-2003, it's
-my final proyect at the university. It's still experimental and it's far 
-from Harald and Jozsef
-work because of their experience in that matter. Anyway I promise to 
-post that patch.
+The IP sets support is available from the netfilter cvs repository!
 
-Harald Welte wrote:
+IP sets are based on the excellent IP pools package. Due to the
+internal modifications, backward compatibility cannot be kept and
+therefore a new package was created (thanks to Patrick Schaaf for the
+naming suggestion). The most important new features are:
 
->>Because it is not long-term unique. With the tuple approach the
->>administrator risks hitting another connection if the originally intended
->>connection has already been destroyed and replaced by a new connection
->>with the same address details.
->>    
->>
+- multi-level sets can be defined
+- sets can be swapped without disturbing the iptables rules
+- the current list of set types are: ipmap (known as bitmap in ippool),
+  macipmap, portmap and iphash
+- network addresses can be stored/matched in the ipmap and iphash set
+  types
 
-well, I can't see any problem, anyway we could perform some checkings to 
-avoid something like this:
+IP sets can make the rule management easier and netfilter operation much
+faster when otherwise there were hundreds/thousands of "normal" iptables
+rules, with slow processing.
 
-- when a create entry message arrives we could check if there's a 
-connection with the same address details by using 
-ip_conntrack_find_get(...) and if it's found, update the ip_conntrack 
-structure with the new info.
+In order to try out IP sets, you have to
 
-but by the means of the id we could have two conntrack structures with 
-the same address info. I think that this duplicated info, actually I 
-think that it's better considering that last info received about a 
-connection is up to date and forget the state of the old one.
+- check out the
+	iptables and
+	netfilter/patch-o-matic or patch-o-matic-ng
+  repositories from the netfilter cvs
+- patch your kernel source tree with the 'set' patchlet from base
+- configure, compile etc. your kernel
+- recompile and install the iptables binaries, which will
+  install the ipset set management utility
+- read the ipset(8) manpage
 
->well, but if the tuple is again the same tuple, chances are high the
->administrator actually wants to remove that new connection as much as
->the previous one.  In fact, apart from a short difference in time, they
->_are_ pretty much the same connection.
->  
->
->So from my point of view, the tuple is still sufficient.  Tuple can be
->used by userspace to identify a connection, tuple is used for
->replication messages in ct_sync.
->
->We can also guarantee, that all entries that
->	- existed before the dump started
->	- and still exist when the dump ended
->are actually dumped.
->
->We don't make any guarantees about connections that either started
->within that timeframe, or have been terminated within that timeframe.
->
->I would really like to see the ordered list and id disappear.
->  
->
-I agree with Harald, actually I think that adding a new id and that 
-ordered stuff will complicate
-the current structure, I would prefer redesigning the current structure 
-of the conntrack table than adding those fields.
+Please note, this is the first, beta release. Suggestions, comments,
+bug reports, patches are highly welcomed.
 
-best regards,
-Pablo
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
