@@ -1,16 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Netfilter Question - NF_QUEUE
-Date: Sun, 11 Jul 2004 04:03:02 +0200 (CEST)
+Subject: Re: ip_conntrack cleanup on reconnection?
+Date: Sun, 11 Jul 2004 04:06:38 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0407110358340.24922-100000@filer.marasystems.com>
-References: <1089395079.2776.73.camel@khocegas>
+Message-ID: <Pine.LNX.4.44.0407110403400.24922-100000@filer.marasystems.com>
+References: <40F00D16.9040109@eurodev.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Herve Eychenne <rv@wallfire.org>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?ISO-8859-1?Q?S=EDlvia?= Andreia Oliveira Rocha <srocha@ncc.up.pt>
-In-Reply-To: <1089395079.2776.73.camel@khocegas>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <40F00D16.9040109@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,21 +21,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 9 Jul 2004, S=EDlvia Andreia Oliveira Rocha wrote:
+On Sat, 10 Jul 2004, Pablo Neira wrote:
 
-> It is said that this hook is usually used to pass information to
-> UserSpace, my question is, if somewhere a package is "popped" from the
-> skb and a NF_QUEUE isn't invoked afterwords is the package lost? I gues=
-s
-> it isn't, because a package is only drops on a NF_DROP verdict, but I'm
-> getting rather confused studying an application that uses NetFilter.
+> If I think that I observed a similar behaviour in 2.6, but using 
+> DNAT/SNAT targets instead of MASQUERADE. Well, actually I'm not sure if 
+> this exactly what you mean.
 
-If the number of queued packets grow above ip_queue_maxlen (default 1024)=
-=20
-due to the userspace application not keeping up with the packet rate=20
-for one reason or another then new packets gets dropped with a warning in=
-=20
-the kernel log.
+Only MASQUERADE cleans entries on interface change. DNAT/SNAT assumes 
+static networking.
+
+> root@legba:/home/pablo# iptables -I POSTROUTING -t nat -j SNAT --to 
+> 192.168.30.30
+> root@legba:/home/pablo# telnet 192.168.0.44 80
+> Trying 192.168.0.44... ^c
+> root@legba:/home/pablo# cat /proc/net/ip_conntrack
+> tcp      6 114 SYN_SENT src=192.168.0.3 dst=192.168.0.44 sport=32779 
+> dport=80 [UNREPLIED] src=192.168.0.44 dst=192.168.30.30 sport=80 
+> dport=32779 use=1
+>                                           ^^^
+> 
+> root@legba:/home/pablo# iptables -D POSTROUTING -t nat -j SNAT --to 
+> 192.168.30.30
+> 
+> root@legba:/home/pablo# telnet 192.168.0.44 80
+> Trying 192.168.0.44...
+> root@legba:/home/pablo# cat /proc/net/ip_conntrack
+> tcp      6 2 SYN_SENT src=192.168.0.3 dst=192.168.0.44 sport=32779 
+> dport=80 [UNREPLIED] src=192.168.0.44 dst=192.168.30.30 sport=80 
+> dport=32779 use=1
+
+This is the old entry created in your first attempt..
+
+> tcp      6 106 SYN_SENT src=192.168.0.3 dst=192.168.0.44 sport=32780 
+> dport=80 [UNREPLIED] src=192.168.0.44 dst=192.168.0.3 sport=80 
+> dport=32780 use=1
+
+And this is the new.
+
+
+
+This is 100% how it should be.  Alreaty set up NAT sessions should not go 
+away only because you delete thre NAT rule, but there won't be any new NAT 
+sessions after the rule is deleted.
 
 Regards
 Henrik
