@@ -1,17 +1,15 @@
-From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: RE: Userspace queuing
-Date: Sat, 26 Jun 2004 11:17:40 +0300
+Date: Sat, 26 Jun 2004 15:41:04 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200406260818.i5Q8ILMX023595@madinah.ccse.kfupm.edu.sa>
-References: <Pine.LNX.4.44.0406260128520.8200-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0406261535140.16464-100000@filer.marasystems.com>
+References: <200406260818.i5Q8ILMX023595@madinah.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: "'Netfilter List'" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'Henrik Nordstrom'" <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0406260128520.8200-100000@filer.marasystems.com>
+To: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+In-Reply-To: <200406260818.i5Q8ILMX023595@madinah.ccse.kfupm.edu.sa>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,41 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-But as far as I have worked on it, I an only accept or drop packets using
-libipq and Queue. What if I want to set priority to accepted packets, like
-high priority and low priority, can this be also done using the same or
-there is some other mechanism in iptables. 
-Regards,
+On Sat, 26 Jun 2004, Muhammad R. Sami wrote:
 
-Muhammad R. Sami 
-Research Assistant, 
-Computer Engineering Department 
-P.O.Box 354 
-King Fahd University of Petroleum & Minerals 
-Dhahran 31261 
-Saudi Arabia. 
-Tel: +96638601423 
-Cell: +96657982951 
-www.ccse.kfupm.edu.sa/sami
------Original Message-----
-From: netfilter-devel-admin@lists.netfilter.org
-[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Henrik
-Nordstrom
-Sent: Saturday, June 26, 2004 2:30 AM
-To: Muhammad R. Sami
-Cc: Netfilter List
-Subject: Re: Userspace queuing 
+> But as far as I have worked on it, I an only accept or drop packets using
+> libipq and Queue. What if I want to set priority to accepted packets, like
+> high priority and low priority, can this be also done using the same or
+> there is some other mechanism in iptables. 
 
-On Fri, 25 Jun 2004, Muhammad R. Sami wrote:
+While it is true that you can only accept/deny/modify packets via the
+ip_queue it is not hard to extend ip_queue with additional result fields
+to allow specifying for example the nfmark or other relevan skbuff packet
+parameters.
 
-> Is there a way to perform userspace queuing in iptables? If yes can I have
-> some example codes.
+See the mailing-list archives for both discussions and patches for doing 
+this.
 
-Yes, via QUEUE and libipq.
-
-examples on how to use libipq is included in the libipq documentation.
-
-libipq is shipped together with iptables.
+You also can implement whatever queue policy you like in your userspace
+application which I thought it was you asked for. How you manage the
+priority queue while the packet is owned by your userspace application is 
+well up to your application. The kernel only requires that you at some 
+point tell a fate for the packet (accept/drop, accept -> packet continues 
+within the Linux kernel)
 
 Regards
 Henrik
