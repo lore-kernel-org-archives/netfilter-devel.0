@@ -1,15 +1,12 @@
-From: Nikola Ciprich <extmaillist@linuxbox.cz>
-Subject: Re: Backported conntrack-acct/connbytes to 2.4 tree
-Date: Fri, 01 Apr 2005 12:02:06 +0200
-Message-ID: <1112349726.20323.23.camel@develbox.linuxbox.cz>
-References: <20041116220502.GA2677@fouk.org> <20041121163442.GA99261@fouk.org>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] FTP sequence tracking try #2
+Date: Fri, 1 Apr 2005 08:28:53 -0800
+Message-ID: <20050401162853.GA3777@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="mP3DRpeJDSE+ciuQ"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Piotr Chytla <pch@fouk.org>
-In-Reply-To: <20041121163442.GA99261@fouk.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +18,69 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all, I'd like to ask, what is state of this patch? Is it going to
-main tree? I'm not able to build iptables-1.3.1 without it, but it
-breaks (at least) conntrack_{gre,mppe}
-Can I do somethink to help?
-Thanks!
 
-Piotr Chytla p=ED=B9e v Ne 21. 11. 2004 v 17:34 +0100:
-> On Tue, Nov 16, 2004 at 11:05:02PM +0100, Piotr Chytla wrote:
-> > 1) Backported conntrack-acct=20
-> > 2) Backported connbytes with per-connection accounting support , also=
-=20
-> >    shared library for iptables is attached .=20
-> >    Shared library for iptables works with connbytes from 2.6 tree.
-> >=20
-> I've removed myself from pom-ng info file(fixed patches for pomng in at=
-tachment).=20
-> I was stupid, sorry for inconvenience.
->=20
->=20
-> /pch
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Another user pointed out a missing " in the previous patch.  I noticed
+I forgot the signoff.  Below fixes both.
+
+Phil
+
+The 2.6.11 changes incorrectly pass seq to a couple of functions as a u16.
+In addition, a few DEBUGP statements were broken.
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ftp1
+
+diff -ru linux-orig/net/ipv4/netfilter/ip_conntrack_ftp.c linux-new/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- linux-orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-03-02 02:38:38.000000000 -0500
++++ linux-new/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-03-31 12:47:48.501244792 -0500
+@@ -252,7 +252,7 @@
+ }
+ 
+ /* Look up to see if we're just after a \n. */
+-static int find_nl_seq(u16 seq, const struct ip_ct_ftp_master *info, int dir)
++static int find_nl_seq(u32 seq, const struct ip_ct_ftp_master *info, int dir)
+ {
+ 	unsigned int i;
+ 
+@@ -263,7 +263,7 @@
+ }
+ 
+ /* We don't update if it's older than what we have. */
+-static void update_nl_seq(u16 nl_seq, struct ip_ct_ftp_master *info, int dir)
++static void update_nl_seq(u32 nl_seq, struct ip_ct_ftp_master *info, int dir)
+ {
+ 	unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
+ 
+@@ -330,9 +330,9 @@
+ 	/* Look up to see if we're just after a \n. */
+ 	if (!find_nl_seq(ntohl(th->seq), ct_ftp_info, dir)) {
+ 		/* Now if this ends in \n, update ftp info. */
+-		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u) or %s(%u)\n",
+-		       ct_ftp_info->seq_aft_nl[0][dir] 
+-		       old_seq_aft_nl_set ? "":"(UNSET) ", old_seq_aft_nl);
++		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s%u\n",
++		       ct_ftp_info->seq_aft_nl[0][dir] ? "":"(UNSET)",
++		       ct_ftp_info->seq_aft_nl[0][dir]);
+ 		ret = NF_ACCEPT;
+ 		goto out_update_nl;
+ 	}
+@@ -373,7 +373,7 @@
+ 		goto out_update_nl;
+ 	}
+ 
+-	DEBUGP("conntrack_ftp: match `%s' (%u bytes at %u)\n",
++	DEBUGP("conntrack_ftp: match `%.26s' (%u bytes at %u)\n",
+ 	       fb_ptr + matchoff, matchlen, ntohl(th->seq) + matchoff);
+ 			 
+ 	/* Allocate expectation which will be inserted */
+
+--mP3DRpeJDSE+ciuQ--
