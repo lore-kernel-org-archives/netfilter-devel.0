@@ -1,14 +1,13 @@
-From: Andreas Haumer <andreas@xss.co.at>
-Subject: iptables compile problem with glibc-2.1.3 and kernel 2.4.21
-Date: Tue, 08 Jul 2003 12:07:56 +0200
+From: Gianni Tedesco <gianni@scaramanga.co.uk>
+Subject: [PATCH]: mv .NETLINK.test .NETLINK-test
+Date: 08 Jul 2003 14:04:57 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F0A97FC.4030008@xss.co.at>
+Message-ID: <1057669496.10481.5.camel@sherbert>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: andreas@xss.co.at
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-ZWFCcc7j+GEVbY2HEygn"
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,55 +18,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Hi!
+--=-ZWFCcc7j+GEVbY2HEygn
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-I have a compile problem with iptables 1.2.8:
+Hi Harald, all.
 
-[...]
-make -j 1 BINDIR=/usr/bin LIBDIR=/usr/lib MANDIR=/usr/man KERNEL_DIR=/lib/modules/2.4.21-xss/build/
-Making dependencies: please wait...
-Extensions found: IPv6:ah IPv6:esp IPv6:frag IPv6:ipv6header IPv6:hbh IPv6:dst IPv6:rt
-cc -O2 -Wall -Wunused -I/lib/modules/2.4.21-xss/build//include -Iinclude/ -DIPTABLES_VERSION=\"1.2.8\"  -fPIC -o extensions/libipt_ah_sh.o -c extensions/libipt_ah.c
-ld -shared -o extensions/libipt_ah.so extensions/libipt_ah_sh.o
-cc -O2 -Wall -Wunused -I/lib/modules/2.4.21-xss/build//include -Iinclude/ -DIPTABLES_VERSION=\"1.2.8\"  -fPIC -o extensions/libipt_conntrack_sh.o -c extensions/libipt_conntrack.c
-In file included from /lib/modules/2.4.21-xss/build/include/linux/bitops.h:3,
-                 from /lib/modules/2.4.21-xss/build/include/linux/netfilter_ipv4/ip_conntrack.h:9,
-                 from extensions/libipt_conntrack.c:12:
-/lib/modules/2.4.21-xss/build/include/asm/bitops.h:410: conflicting types for `__ffs'
-/usr/include/string.h:247: previous declaration of `__ffs'
-make: *** [extensions/libipt_conntrack_sh.o] Error 1
-[...]
+Slight bug in the 1.2.8 rev, .NETLINK.test should be .NETLINK-test
+following patch fixes it, but would be easier to do mv, cvs delete, cvs
+add.
 
-Headers under "/usr/include/" come from glibc-2.1.3
-"/lib/modules/2.4.21-xss/build/" is a symlink pointing to
-linux-2.4.21 kernel sources (with ac4 patches)
+Apologies if this is fixed in CVS.
 
-Linux 2.4 and glibc-2.1.3 seem to have a different understanding
-about __ffs(). Both use their own one...
+diff -urN iptables-1.2.8.orig/extensions/.NETLINK-test iptables-1.2.8/exten=
+sions/.NETLINK-test
+--- iptables-1.2.8.orig/extensions/.NETLINK-test        Thu Jan  1 01:00:00=
+ 1970
++++ iptables-1.2.8/extensions/.NETLINK-test     Thu Feb 15 08:05:09 2001
+@@ -0,0 +1,2 @@
++#! /bin/sh
++[ -f $KERNEL_DIR/net/ipv4/netfilter/ipt_NETLINK.c ] && echo NETLINK
+diff -urN iptables-1.2.8.orig/extensions/.NETLINK.test iptables-1.2.8/exten=
+sions/.NETLINK.test
+--- iptables-1.2.8.orig/extensions/.NETLINK.test        Thu Feb 15 08:05:09=
+ 2001
++++ iptables-1.2.8/extensions/.NETLINK.test     Thu Jan  1 01:00:00 1970
+@@ -1,2 +0,0 @@
+-#! /bin/sh
+-[ -f $KERNEL_DIR/net/ipv4/netfilter/ipt_NETLINK.c ] && echo NETLINK
 
-Usually, this is not a problem, as userspace programs
-don't include kernel headers, but iptables does.
+--=20
+// Gianni Tedesco (gianni at scaramanga dot co dot uk)
+lynx --source www.scaramanga.co.uk/gianni-at-ecsc.asc | gpg --import
+8646BE7D: 6D9F 2287 870E A2C9 8F60 3A3C 91B5 7669 8646 BE7D
 
-I checked the mailing lists for glibc, linux-kernel and
-iptables for solutions, but couldn't find any.
 
-Any idea anyone?
+--=-ZWFCcc7j+GEVbY2HEygn
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-- - andreas
-
-- --
-Andreas Haumer                     | mailto:andreas@xss.co.at
-*x Software + Systeme              | http://www.xss.co.at/
-Karmarschgasse 51/2/20             | Tel: +43-1-6060114-0
-A-1100 Vienna, Austria             | Fax: +43-1-6060114-71
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/Cpf0xJmyeGcXPhERAgV4AJ41x3dVZP28Uqf8e0Z+mH6QXXfnvACguiNf
-7qNlvwr0SX/6F6kjjqga0JU=
-=g7zb
+iD8DBQA/CsF4kbV2aYZGvn0RAkCcAJ9HkfEml0oI+QfP6+atXwH8lJkawQCfd4+h
+D1iIx81I5Kirx8Ef/SFmky8=
+=LX4V
 -----END PGP SIGNATURE-----
+
+--=-ZWFCcc7j+GEVbY2HEygn--
