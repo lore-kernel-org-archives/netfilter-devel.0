@@ -1,16 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] addrtype match
-Date: Fri, 11 Apr 2003 12:01:22 +0200 (CEST)
+Subject: Re: [PATCH] CLASSIFY target
+Date: Fri, 11 Apr 2003 12:15:12 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0304111158460.31394-100000@blackhole.kfki.hu>
-References: <3E941FE3.6020808@trash.net>
+Message-ID: <Pine.LNX.4.33.0304111214160.31394-100000@blackhole.kfki.hu>
+References: <3E9373EC.4060308@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <3E941FE3.6020808@trash.net>
+In-Reply-To: <3E9373EC.4060308@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Patrick,
+
 On Wed, 9 Apr 2003, Patrick McHardy wrote:
 
-> Once again a new patch, it seems it wasn't very clever to name the options
-> --source and --dest, iptables ate the --source option before it was passed
-> to the match. they are now renamed to --stype and --dtype.
+> An updated version is attached, this one checks if it is called in
+> POST_ROUTING chain
+> of mangle table.
 
-You attached the CLASSIFY target patch instead of the corrected addrtype
-patch :-)
-
-Before sending the real patch, please add an addrtype.configure.help.
-That was missing from the previous versions.
+Patch is applied - I added a CLASSIFY.patch.configure.help file.
 
 Best regards,
 Jozsef
