@@ -1,15 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_hashlimit.c: expire's type overflow when showing
- tuples at bad moment.
-Date: Wed, 02 Feb 2005 03:11:23 +0100
-Message-ID: <420036CB.9050804@trash.net>
-References: <41F2FE92.6020603@cookinglinux.org>	<20050201132915.GJ6878@sunbeam.de.gnumonks.org>	<41FF877D.4080309@trash.net>	<20050201135423.GS6878@sunbeam.de.gnumonks.org>	<41FF9024.3070101@trash.net>	<6732.142.169.215.10.1107269629.squirrel@142.169.215.10>
-	<41FFC770.2090401@trash.net> <41FFF909.9050509@cookinglinux.org>
+From: Samuel Jean <sj-netfilter@cookinglinux.org>
+Subject: [PATCH] ipt_hashlimit.c: avoid data corruption on checkentry
+Date: Tue, 01 Feb 2005 23:07:52 -0500
+Message-ID: <42005218.5000401@cookinglinux.org>
+Reply-To: sjean@cookinglinux.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000703030603050706000901"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Samuel Jean <sj-netfilter@cookinglinux.org>
-In-Reply-To: <41FFF909.9050509@cookinglinux.org>
+To: Harald Welte <laforge@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,110 +19,144 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000703030603050706000901
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Name: avoid data corruption on checkentry
+Status: Untested but compiles on Linux 2.6.10.
+         Patch against 2.6.11-rc2-bk10
+Signed-off-by: Samuel Jean <sjean@cookinglinux.org>
 
-Samuel Jean wrote:
+While processing checkentry(), we first get a lock, search for entry
+and drop the lock. If we found the object, that's fine.
+However, in the other case, we start creating the object, get a lock,
+add the object and then release the lock. By this time, one could
+already failed to find the same object and start creating it too.
+This could lead to data corruption.
 
-> # cat /proc/net/ipt_hashlimit/moo
-> 4294967 x.239.59.104:0->0.0.0.0:0 1600 1600 320
-> 4294967 x.162.158.131:0->0.0.0.0:0 1600 1600 320
+This patch fixes it by re-searching the object before adding it.
+Also note that I dropped the rwlock as I think it's unecessary here.
+Please someone correct me if I am wrong.
 
-Apparently we saw two different problems. The problem I saw on my
-64 bit system was caused by my false assumption that gcc would
-promote arguments to functions declared with attribute(format(printf))
-to the types specified in the format string. It does not, so -1
-was passed as signed int, but interpreted as an signed long.
-The reason for the problem you are seeing is that the result of
-an arithmetic operation where both operands have equal types has
-the same type as the operands. This means the subtraction of
-two unsigned longs yields an unsigned long. The division by HZ
-then makes it small enough so it looses the sign bit.
+--- net/ipv4/netfilter/ipt_hashlimit.c.bk10     2005-02-01 20:41:33.000000000 -0500
++++ net/ipv4/netfilter/ipt_hashlimit.c  2005-02-01 22:49:48.000000000 -0500
+@@ -97,7 +97,7 @@ struct ipt_hashlimit_htable {
+         struct list_head hash[0];       /* hashtable itself */
+  };
 
-This patch should fix the problem.
+-static DECLARE_RWLOCK(hashlimit_lock); /* protects htables list */
++static DECLARE_LOCK(hashlimit_lock);   /* protects htables list */
+  static LIST_HEAD(hashlimit_htables);
+  static kmem_cache_t *hashlimit_cachep;
 
-Regards
-Patrick
+@@ -174,12 +174,17 @@ __dsthash_free(struct ipt_hashlimit_htab
+         atomic_dec(&ht->count);
+  }
+  static void htable_gc(unsigned long htlong);
+-
+-static int htable_create(struct ipt_hashlimit_info *minfo)
++static struct ipt_hashlimit_htable *htable_find_get(char *name);
++static void htable_put(struct ipt_hashlimit_htable *hinfo);
++
++static struct ipt_hashlimit_htable *
++htable_create(struct ipt_hashlimit_info *minfo)
+  {
+         int i;
+         unsigned int size;
+-       struct ipt_hashlimit_htable *hinfo;
++       struct ipt_hashlimit_htable *hinfo, *s_hinfo;
++
++       MUST_BE_UNLOCKED(&hashlimit_lock);
 
+         if (minfo->cfg.size)
+                 size = minfo->cfg.size;
+@@ -196,9 +201,8 @@ static int htable_create(struct ipt_hash
+                         + (sizeof(struct list_head) * size));
+         if (!hinfo) {
+                 printk(KERN_ERR "ipt_hashlimit: Unable to create hashtable\n");
+-               return -1;
++               return NULL;
+         }
+-       minfo->hinfo = hinfo;
 
---------------000703030603050706000901
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+         /* copy match config into hashtable config */
+         memcpy(&hinfo->cfg, &minfo->cfg, sizeof(hinfo->cfg));
+@@ -215,10 +219,12 @@ static int htable_create(struct ipt_hash
+         atomic_set(&hinfo->use, 1);
+         hinfo->rnd = 0;
+         spin_lock_init(&hinfo->lock);
++
++       /* FIXME: This could lead to duplicated proc entries, no ? --peejix */
+         hinfo->pde = create_proc_entry(minfo->name, 0, hashlimit_procdir);
+         if (!hinfo->pde) {
+                 vfree(hinfo);
+-               return -1;
++               return NULL;
+         }
+         hinfo->pde->proc_fops = &dl_file_ops;
+         hinfo->pde->data = hinfo;
+@@ -229,11 +235,22 @@ static int htable_create(struct ipt_hash
+         hinfo->timer.function = htable_gc;
+         add_timer(&hinfo->timer);
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2005/02/02 02:59:11+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Use correct types in seq_printf calls
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ipt_hashlimit.c
-#   2005/02/02 02:59:01+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Use correct types in seq_printf calls
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_conntrack_standalone.c
-#   2005/02/02 02:59:01+01:00 kaber@coreworks.de +6 -5
-#   [NETFILTER]: Use correct types in seq_printf calls
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-02-02 03:03:08 +01:00
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-02-02 03:03:08 +01:00
-@@ -115,11 +115,12 @@
- 			       .tuple.dst.protonum);
- 	IP_NF_ASSERT(proto);
- 
--	if (seq_printf(s, "%-8s %u %lu ",
-+	if (seq_printf(s, "%-8s %u %ld ",
- 		      proto->name,
- 		      conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum,
- 		      timer_pending(&conntrack->timeout)
--		      ? (conntrack->timeout.expires - jiffies)/HZ : 0) != 0)
-+		      ? (long)(conntrack->timeout.expires - jiffies)/HZ
-+		      : 0) != 0)
- 		return 1;
- 
- 	if (proto->print_conntrack(s, conntrack))
-@@ -148,7 +149,7 @@
- 			return 1;
- 
- #if defined(CONFIG_IP_NF_CONNTRACK_MARK)
--	if (seq_printf(s, "mark=%ld ", conntrack->mark))
-+	if (seq_printf(s, "mark=%lu ", conntrack->mark))
- 		return 1;
- #endif
- 
-@@ -235,8 +236,8 @@
- 	struct ip_conntrack_expect *expect = v;
- 
- 	if (expect->timeout.function)
--		seq_printf(s, "%lu ", timer_pending(&expect->timeout)
--			   ? (expect->timeout.expires - jiffies)/HZ : 0);
-+		seq_printf(s, "%ld ", timer_pending(&expect->timeout)
-+			   ? (long)(expect->timeout.expires - jiffies)/HZ : 0);
- 	else
- 		seq_printf(s, "- ");
- 
-diff -Nru a/net/ipv4/netfilter/ipt_hashlimit.c b/net/ipv4/netfilter/ipt_hashlimit.c
---- a/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-02 03:03:08 +01:00
-+++ b/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-02 03:03:08 +01:00
-@@ -609,7 +609,7 @@
- 	rateinfo_recalc(ent, jiffies);
- 
- 	return seq_printf(s, "%ld %u.%u.%u.%u:%u->%u.%u.%u.%u:%u %u %u %u\n",
--			(ent->expires - jiffies)/HZ,
-+			(long)(ent->expires - jiffies)/HZ,
- 			NIPQUAD(ent->dst.src_ip), ntohs(ent->dst.src_port),
- 			NIPQUAD(ent->dst.dst_ip), ntohs(ent->dst.dst_port),
- 			ent->rateinfo.credit, ent->rateinfo.credit_cap,
+-       WRITE_LOCK(&hashlimit_lock);
++       LOCK_BH(&hashlimit_lock);
++       if ((s_hinfo = htable_find_get(minfo->name))) {
++               /* avoid data corruption */
++               UNLOCK_BH(&hashlimit_lock);
++               remove_proc_entry(minfo->name, hashlimit_procdir);
++               if (timer_pending(&hinfo->timer))
++                       del_timer(&hinfo->timer);
++
++               vfree(hinfo);
++               return s_hinfo;
++       }
++
+         list_add(&hinfo->list, &hashlimit_htables);
+-       WRITE_UNLOCK(&hashlimit_lock);
++       UNLOCK_BH(&hashlimit_lock);
 
---------------000703030603050706000901--
+-       return 0;
++       return hinfo;
+  }
+
+  static int select_all(struct ipt_hashlimit_htable *ht, struct dsthash_ent *he)
+@@ -295,15 +312,14 @@ static struct ipt_hashlimit_htable *htab
+  {
+         struct ipt_hashlimit_htable *hinfo;
+
+-       READ_LOCK(&hashlimit_lock);
++       MUST_BE_LOCKED(&hashlimit_lock);
++
+         list_for_each_entry(hinfo, &hashlimit_htables, list) {
+                 if (!strcmp(name, hinfo->pde->name)) {
+                         atomic_inc(&hinfo->use);
+-                       READ_UNLOCK(&hashlimit_lock);
+                         return hinfo;
+                 }
+         }
+-       READ_UNLOCK(&hashlimit_lock);
+
+         return NULL;
+  }
+@@ -311,9 +327,9 @@ static struct ipt_hashlimit_htable *htab
+  static void htable_put(struct ipt_hashlimit_htable *hinfo)
+  {
+         if (atomic_dec_and_test(&hinfo->use)) {
+-               WRITE_LOCK(&hashlimit_lock);
++               LOCK_BH(&hashlimit_lock);
+                 list_del(&hinfo->list);
+-               WRITE_UNLOCK(&hashlimit_lock);
++               UNLOCK_BH(&hashlimit_lock);
+                 htable_destroy(hinfo);
+         }
+  }
+@@ -531,8 +547,11 @@ hashlimit_checkentry(const char *tablena
+         if (!r->cfg.expire)
+                 return 0;
+
++       LOCK_BH(&hashlimit_lock);
+         r->hinfo = htable_find_get(r->name);
+-       if (!r->hinfo && (htable_create(r) != 0)) {
++       UNLOCK_BH(&hashlimit_lock);
++
++       if (!r->hinfo && ((r->hinfo = htable_create(r)) == NULL)) {
+                 return 0;
+         }
