@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Sample iptables commands page
-Date: Sat, 14 Feb 2004 21:27:08 +0100
+Subject: Re: [PATCH] patch-o-matic-ng patch
+Date: Sat, 14 Feb 2004 21:42:04 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040214202708.GW7756@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0402112347290.2555-100000@sparrow>
+Message-ID: <20040214204204.GX7756@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.33.0402120950190.3899-200000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nbjgUHX6eyHhY7pW"
-Cc: ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="S4+Kf2w4CfEO117G"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: William Stearns <wstearns@pobox.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0402112347290.2555-100000@sparrow>
+In-Reply-To: <Pine.LNX.4.33.0402120950190.3899-200000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,50 +23,65 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---nbjgUHX6eyHhY7pW
+--S4+Kf2w4CfEO117G
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Feb 11, 2004 at 11:51:32PM -0500, William Stearns wrote:
-> Good day, all,
-> 	I've put together a page with sample iptables firewall rules using=20
-> a number of different modules:
+On Thu, Feb 12, 2004 at 10:22:19AM +0100, Jozsef Kadlecsik wrote:
+> Hi Harald,
+
+Hi Jozsef. =20
 >=20
-> http://www.stearns.org/modwall/sample/sample-rules.html
+> Please consider applying the attached patch on top of patch-o-matic-ng.
+> The new features implemented in the patch are:
 
-thanks a lot!
+Thank you very much, I will regard this as the best birthday present
+I have received this year ;)
 
-> 	I'm writing in because at one point there was a placeholder on the=20
-> Netfilter web site for examples, which to the best of my memory was never=
-=20
-> populated.
+I hope it was not too painful to wade through my crappy perl code.
 
-yes, unfortunately.
+>   The patch assumes that 'patch' files are renamed to 'linux.patch'.
 
-> 	Could I interest the core team members in having either a) a
-> pointer sent off to one of the above links under examples on the netfilter
-> web site, or b) allowing me to provide all the files in that directory for
-> direct placement on the netfilter web?
+Ok, I'll do that directly in the CVS repository to not loose version
+information
 
-I would love to give you access to CVS to be able to upload your example
-pages.
+> - Userspace patches are supported (iptables-x.y.z.patch).
+>   In general, other projects can be plugged in easily: just the
+>   new srcpath and version parsing are required and that's all.
 
-However, what I would even like more:  To integrate your samples with
-the netfilter-extensions howto.   Maybe rename that howto to something
-totally different, but I think there should be one place where we have a
-detailed description (including exaples) for almost any of our
-matches/targets.
+great.  I really like to have it remain very=20
 
-If all this would be put together (and maybe even augmented by including
-auto-generated syntax reference from iptables -m foo --help), _AND_ it
-would in the end generate either docbook XML or docbook-website XML,=20
-you would be my personal hero.
+> Working on patch-o-matic-ng I believe one more important thing is
+> still missing. In the current shape p-o-m-ng is more tailored for
+> 'feature' patches, and not for tiny bugfixes.=20
+> [...]
+> If you agree with such modifications, I can start implementing the
+> required code.
 
-Interested?
+At the workshop last year, I think we agreed to not put bugfixes into
+patch-o-matic anymore.  The general idea was to
 
-> 	Cheers,
-> 	- Bill
+1) not require people to run a special program for just fixing bugs
+2) not blow up patch-o-matic any further
+3) not require us to release a new patch-o-matic with every bugfix
+
+However, I'm not sure whether this is still the right decision.  What
+about a bit of both?
+
+Maybe we don't include any bugfixes in pom-ng, but rather put them as
+patches somewhere in our FTP tree, but have pom-ng automatically fetch
+those fixes via http/ftp on demand.
+
+As long as the fixes remain plain patches, people have the choice to
+a) download them as patch and apply it by hand
+b) use any kind of pom-ng release, but still get the most up-to-date
+   security fixes?
+
+what do you think?
+
+> Best regards,
+> Jozsef
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -77,7 +92,7 @@ Interested?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---nbjgUHX6eyHhY7pW
+--S4+Kf2w4CfEO117G
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -85,9 +100,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFALoScXaXGVTD0i/8RAqL6AJ9F7ZiKdt5HRJSsPJgY/BCGpyp2ugCePCK2
-o+YB1i70Xg3ZLFGBe8UZj+U=
-=kWOk
+iD8DBQFALogcXaXGVTD0i/8RAsxmAKCSCSynaAXzCRwnFCZ0XfOZUQYg2QCeJcA5
+yQghJ9+OUwMrAqozjc6qiuk=
+=zjTn
 -----END PGP SIGNATURE-----
 
---nbjgUHX6eyHhY7pW--
+--S4+Kf2w4CfEO117G--
