@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Transparent web proxiing stops working in linux-2.4.22
-Date: Thu, 4 Sep 2003 12:24:43 +0200
+From: Wim Ceulemans <wim.ceulemans@able.be>
+Subject: Re: PPTP connection tracking and Poptop on same box
+Date: Thu, 04 Sep 2003 14:16:39 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030904102442.GF2616@obroa-skai.de.gnumonks.org>
-References: <200309020938.56412.raivis@mt.lv>
+Message-ID: <3F572D27.3090104@able.be>
+References: <3F542C4E.1000307@netbox.biz> <Pine.GSO.4.56.0309031853090.10914@shemp.vdata.com> <3F56E2E2.5040007@netbox.biz> <Pine.GSO.4.56.0309040327250.10914@shemp.vdata.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aZoGpuMECXJckB41"
-Cc: netfilter-devel@lists.netfilter.org, cieciwa@alpha.zarz.agh.edu.pl
+Content-Type: multipart/mixed; boundary="----------=_1062677795-13682-42"
+Cc: Menno Smits <menno@netbox.biz>,
+   netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Raivis Bucis <raivis@mt.lv>
-Content-Disposition: inline
-In-Reply-To: <200309020938.56412.raivis@mt.lv>
+To: Jeff Hall <hall@vdata.com>
+In-Reply-To: <Pine.GSO.4.56.0309040327250.10914@shemp.vdata.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,55 +21,125 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format...
 
---aZoGpuMECXJckB41
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Sep 02, 2003 at 09:38:56AM +0000, Raivis Bucis wrote:
-> Transparent web proxiing stops working in linux-2.4.22 because of the=20
-> following patch:
-
-I've added your bug report to bugzilla.netfilter.org - It has been
-assigned #126
-
-> It doesn't zero all of the tuple contents before assigning, and this way =
-3rd=20
-> and 4th bytes of tuple.src.all contain garbage, and ip_conntrack_find_get=
- is=20
-> not able to find correct conntrack because of that.
-
-I'll write up a patch to fix this issue later today.=20
-
-> So instead of fixing getorigdst for big endian architectures, it brakes e=
-ven=20
-> the little endian ones.
-
-:(
-
-> Raivis Bucis
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---aZoGpuMECXJckB41
-Content-Type: application/pgp-signature
+------------=_1062677795-13682-42
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Hi
 
-iD8DBQE/VxLqXaXGVTD0i/8RAtJxAJ4/oV+kILvzek4oJcPgIxWUhDapDQCdEVVD
-km4JEMmTdt8x1RC0cmIe76E=
-=CKNi
------END PGP SIGNATURE-----
+I had some problems with GRE not passing through to a server behind the 
+firewall.
+I then used kernel 2.4.22 and the latest pom snapshot 
+(patch-o-matic-20030831) with iptables 1.2.8
+and gre passed through.
 
---aZoGpuMECXJckB41--
+However, after testing I notice now that although PPTP connections to a 
+win2000 server behind the
+firewall work, that the connection is not reliable. After 3 to 4 minutes 
+the connection is closed for
+some unknown reason and people have to re-establish the connection.
+
+Anyone experiencing this problem also?
+
+Regards
+Wim
+
+Jeff Hall wrote:
+
+>  On Thu, 4 Sep 2003, Menno Smits wrote:
+>
+>  > Hi Jeff,
+>  >
+>  > Thanks for your quick reply.
+>  >
+>  > Jeff Hall wrote:
+>  > > I experienced some of these problems also trying to get 2.4.20 working
+>  > > with PoPToP and making outgoing connections from PCs behind the PoPToP
+>  > > server. Take a look at my messages dated March 2,3,20,21 and
+>  > > April 8 of this year in the netfilter-devel archives. With the patches
+>  > > in those messages I have multiple sessions connecting to a PoPToP server
+>  > > running on my firewall server and can make at least one outgoing
+>  > > connection from a PC behind that server (I didn't test making multiple
+>  > > outgoing connections but I believe that will also worked based on some
+>  > > tests I ran months ago). I also successfully tested running a PPTP client
+>  > > on the PoPToP server.
+>  >
+>  > I've read those posts before but I went over them again just to make
+>  > sure I hadn't missed anything.
+>  >
+>  > I checked the patches in your posts against a POM patched 2.4.20 kernel
+>  > I used to use here which exhibits the same problems as my 2.4.21 kernel.
+>  > I can't even find where your patches to ip_conntrack_pptp.c could be
+>  > applied! (even when trying to apply the patch manually). Key lines which
+>  > surround your changes simply don't exist in my tree. I was using POM out
+>  > of CVS from a few months ago in that kernel. What POM version are you
+>  > using? Which POM patches are you using?
+>  >
+>I started with the 20030107 POM but then added individual patches I
+>needed from the CVS archives. I tried to detail them as clearly as possible
+>in the March 2nd and 3rd memos. I'm afraid that is the best I can do now
+>after 6 months.  I'll send you the fully patched sources I'm using in a
+>personal message. I hope you find them useful. I'll send you anything
+>dated newer than when I ran the 20030107 POM against the 2.4.20 base.
+>  > I'm thinking I might try a vanilla kernel with the bare minimum of
+>  > patches to support PPTP conntrack. Knowing what POM version and patches
+>  > you're using would be useful for me so I can try and duplicate your setup.
+>  >
+>  > > I have not (at least knowingly) modified the connection MTU, MRU, or
+>  > > TCPMSS and while I occassionally get the 'out of order' messages from
+>  > > pptpd the connection seems to recover. I'm using PoPToP v 1.1.3-2 with a
+>  > > patch to generate unique call ids.
+>  >
+>  > Actually the MTU/MRU/TCPMSS stuff was to deal with "GRE: Discarding
+>  > duplicate packet" problems not 'out of order packet" problems like I
+>  > originally stated (it was a while ago). I removed these workarounds
+>  > today just to make sure that these had nothing to do with the problems
+>  > I'm having. Connection attempts seemed to behave in just the same way
+>  > (unreliably), and I started getting lots of "GRE: Discarding duplicate
+>  > packet" messages when a connection did establish and data was transferred.
+>  >
+>I consistently receive one "GRE: Discarding duplicate packet" message per
+>connection. But it never causes any problem so I've never pursued the cause.
+>I see on Sourceforge that the single message problem is due to an initial-
+>zation error in pptpgre.c (see the diff 1.4 vs 1.3). I've never had a problem
+>with multiple "duplicate..." errors. Possibly they are due to the kernel
+>delivering GRE packets to the wrong pptpd process.
+>  > Today I also made sure that the pptpd version I'm using (1.1.4) has the
+>  > callid patch and it definitely does. I modified it to log the callids
+>  > its using and it uses different ids for each connection, so no issue
+>  > there. Besides, that only becomes important once you have multiple
+>  > clients involved and so far in my testing there's only one.
+>  >
+>  >
+>  >
+>  > Menno
+>  >
+>  >
+>Good luck.
+>
+>  
+>
+
+
+-- 
+Wim Ceulemans
+R&D Engineer
+
+Secure Internet Communication with aXs Guard
+
+Able NV
+Leuvensesteenweg 282 - B-3190 Boortmeerbeek - Belgium
+Phone: + 32 15 50.44.00 - Fax: + 32 15 50.44.09
+E-mail: wim.ceulemans@able.be
+
+
+
+--
+Security check on this e-mail has been done by aXs GUARD
+(http://www.axsguard.com)
+
+
+------------=_1062677795-13682-42--
