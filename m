@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] netfilter fix (2/7): don't call nat helper for connection with no manips
-Date: Tue, 24 Jun 2003 15:59:19 +0200
+Subject: [PATCH] netfilter fix (4/7): fix ip6tables alignment (64bit archs)
+Date: Tue, 24 Jun 2003 16:02:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030624135919.GB2645@sunbeam.de.gnumonks.org>
+Message-ID: <20030624140257.GD2645@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NMuMz9nt05w80d4+"
+	protocol="application/pgp-signature"; boundary="kvUQC+jR9YzypDnK"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,80 +21,69 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---NMuMz9nt05w80d4+
+--kvUQC+jR9YzypDnK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-Here goes the second...
+Here goes the fourth...
 
-Author: Jeff Hall <hall@vdata.com>, Harald Welte <laforge@netfilter.org>
 
-This patch fixes two issues in the newnat core that are particularly releva=
-nt
-for the pptp helper:
+Author: Jakub Bogusz <qboosh@pld.org.pl>
 
-1) Don't call a NAT helper for a connection without any nat manips
-2) Really call NAT helper with IP_NAT_HELPER_F_ALWAYS always
+The calculated padding used for alignment in struct ip6t_table_info
+type definition is wrong.
+char[SMP_ALIGN((NF_IP6_NUMHOOKS*2+2)*sizeof(unsigned int))]
+has _its size_ (not end address) aligned to cache line size; also note
+that there are 3 ints, not 2 before arrays. And if whole ip6t_table_info
+started on address aligned to 8, entries were placed on address not
+aligned to 8. On some machines (at least ppc - IBM RS/6000)
+__alignof__(struct ip6t_entry) is 8 - so loading any ip6table_* module
+failed with "Bad offset".
+
+Probably padding was meant to be something like
+char padding[SMP_ALIGN((NF_IP6_NUMHOOKS*2+3)*sizeof(unsigned int)) -
+	((NF_IP6_NUMHOOKS*2+3)*sizeof(unsigned int))]
+but it's simpler to use gcc's aligned attribute through
+____cacheline_aligned macro (just like in ipt_table_info struct in
+ip_tables module for ipv4/netfilter).
+
 
 diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
 =2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-dropback/net/ipv4/netfilter/ip_nat_core.c linux-2.4.21-nohelper/net/ipv4/ne=
-tfilter/ip_nat_core.c
---- linux-2.4.21-dropback/net/ipv4/netfilter/ip_nat_core.c	2003-06-13 16:51=
-:39.000000000 +0200
-+++ linux-2.4.21-nohelper/net/ipv4/netfilter/ip_nat_core.c	2003-06-24 15:52=
-:56.000000000 +0200
-@@ -756,6 +756,11 @@
- 	enum ip_conntrack_dir dir =3D CTINFO2DIR(ctinfo);
- 	int is_tcp =3D (*pskb)->nh.iph->protocol =3D=3D IPPROTO_TCP;
+32cpu/net/ipv6/netfilter/ip6_tables.c linux-2.4.21-ip6t_alignment/net/ipv6/=
+netfilter/ip6_tables.c
+--- linux-2.4.21-32cpu/net/ipv6/netfilter/ip6_tables.c	2002-11-29 00:53:15.=
+000000000 +0100
++++ linux-2.4.21-ip6t_alignment/net/ipv6/netfilter/ip6_tables.c	2003-06-24 =
+15:54:55.000000000 +0200
+@@ -101,10 +101,8 @@
+ 	unsigned int hook_entry[NF_IP6_NUMHOOKS];
+ 	unsigned int underflow[NF_IP6_NUMHOOKS];
 =20
-+	/* Skip everything and don't call helpers if there are no
-+	 * manips for this connection */
-+	if (info->num_manips =3D=3D 0)
-+		return NF_ACCEPT;
-+
- 	/* Need nat lock to protect against modification, but neither
- 	   conntrack (referenced) and helper (deleted with
- 	   synchronize_bh()) can vanish. */
-@@ -796,6 +801,7 @@
- 		struct ip_conntrack_expect *exp =3D NULL;
- 		struct list_head *cur_item;
- 		int ret =3D NF_ACCEPT;
-+		int helper_called =3D 0;
+-	char padding[SMP_ALIGN((NF_IP6_NUMHOOKS*2+2)*sizeof(unsigned int))];
+-
+ 	/* ip6t_entry tables: one per CPU */
+-	char entries[0];
++	char entries[0] ____cacheline_aligned;
+ };
 =20
- 		DEBUGP("do_bindings: helper existing for (%p)\n", ct);
+ static LIST_HEAD(ip6t_target);
+@@ -1450,7 +1448,7 @@
+ 	int ret;
+ 	struct ip6t_table_info *newinfo;
+ 	static struct ip6t_table_info bootstrap
+-		=3D { 0, 0, 0, { 0 }, { 0 }, { }, { } };
++		=3D { 0, 0, 0, { 0 }, { 0 }, { } };
 =20
-@@ -814,19 +820,21 @@
- 				continue;
-=20
- 			if (exp_for_packet(exp, pskb)) {
--				/* FIXME: May be true multiple times in the case of UDP!! */
--				DEBUGP("calling nat helper (exp=3D%p) for packet\n",
--					exp);
-+				/* FIXME: May be true multiple times in the
-+				 * case of UDP!! */
-+				DEBUGP("calling nat helper (exp=3D%p) for	packet\n", exp);
- 				ret =3D helper->help(ct, exp, info, ctinfo,=20
- 						   hooknum, pskb);
- 				if (ret !=3D NF_ACCEPT) {
- 					READ_UNLOCK(&ip_conntrack_lock);
- 					return ret;
- 				}
-+				helper_called =3D 1;
- 			}
- 		}
--		/* Helper might want to manip the packet even when there is no expectati=
-on */
--		if (!exp && helper->flags & IP_NAT_HELPER_F_ALWAYS) {
-+		/* Helper might want to manip the packet even when there is no
-+		 * matching expectation for this packet */
-+		if (!helper_called && helper->flags & IP_NAT_HELPER_F_ALWAYS) {
- 			DEBUGP("calling nat helper for packet without expectation\n");
- 			ret =3D helper->help(ct, NULL, info, ctinfo,=20
- 					   hooknum, pskb);
+ 	MOD_INC_USE_COUNT;
+ 	newinfo =3D vmalloc(sizeof(struct ip6t_table_info)
+
+
+
+
 Please apply, thanks.
 
 --=20
@@ -107,16 +96,16 @@ Please apply, thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---NMuMz9nt05w80d4+
+--kvUQC+jR9YzypDnK
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE++Fk3XaXGVTD0i/8RAnRRAJ9gYC166KkTeh3XqYVOERejqfP+EACfRMXp
-NSsYGYt5ShHGJEHWnZswJtU=
-=25F3
+iD8DBQE++FoRXaXGVTD0i/8RAvOeAJ4/CAIoYgH4OhopglXcn8KApMQmGgCghUfg
+v4JNrS5WKGGgpPld3rELWig=
+=fLSU
 -----END PGP SIGNATURE-----
 
---NMuMz9nt05w80d4+--
+--kvUQC+jR9YzypDnK--
