@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] libipt_mac.c: minor bug and questions
-Date: Thu, 12 Sep 2002 09:08:00 +0200
+Subject: Re: [PATCH] fix unclean udp checksum check
+Date: Thu, 12 Sep 2002 09:13:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020912090800.I3810@sunbeam.de.gnumonks.org>
-References: <638AA0336D7ED411928700D0B7B0D75B03053C7E@aimail.aiinet.com> <20020909130700.79853.qmail@web14602.mail.yahoo.com>
+Message-ID: <20020912091352.J3810@sunbeam.de.gnumonks.org>
+References: <20020910143343.GA22297@morinfr.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l+RjsdkfuJDA0G6K"
-Cc: netfilter-devel@lists.netfilter.org, "Eble, Dan" <DanE@aiinet.com>
+	protocol="application/pgp-signature"; boundary="BNd1cQq+8a6XQVk/"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Michael Schwendt <mschwendt@yahoo.com>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20020909130700.79853.qmail@web14602.mail.yahoo.com>; from mschwendt@yahoo.com on Mon, Sep 09, 2002 at 06:07:00AM -0700
+In-Reply-To: <20020910143343.GA22297@morinfr.org>; from guillaume@morinfr.org on Tue, Sep 10, 2002 at 04:33:43PM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,19 +22,20 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---l+RjsdkfuJDA0G6K
+--BNd1cQq+8a6XQVk/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 09, 2002 at 06:07:00AM -0700, Michael Schwendt wrote:
-> Attached is the trivial patch against 1.2.7a for both ipv4 and ipv6
-> mac-match extension.
+On Tue, Sep 10, 2002 at 04:33:43PM +0200, Guillaume Morin wrote:
+> Hi folk,
+>=20
+> unclean does not handle udp packets with a null checksum, altough udp
+> checksums are not mandatory.
 
-thanks, patch applied.
+thanks, fix is now in patch-o-matic (I'm going to submit it to davem soon)
 
-> Regards,
-> Michael
+> Guillaume Morin <guillaume@morinfr.org>
 
 --=20
 Live long and prosper
@@ -48,7 +48,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---l+RjsdkfuJDA0G6K
+--BNd1cQq+8a6XQVk/
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -56,9 +56,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9gD1QXaXGVTD0i/8RAl9xAJ4tbImSzB23f6EUQaMZMsrBh21HlACaAtSw
-nwlkOPGopmIEIN367SHxfiQ=
-=joY/
+iD8DBQE9gD6wXaXGVTD0i/8RAjmGAJ9q9Fe9wb60ewgoo/EBH6TOvI6RtACcCNNh
+8b1P8VWh4ddzWenAzwj36o4=
+=7wUl
 -----END PGP SIGNATURE-----
 
---l+RjsdkfuJDA0G6K--
+--BNd1cQq+8a6XQVk/--
