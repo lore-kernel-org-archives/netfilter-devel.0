@@ -1,14 +1,14 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: [patch pomng] convert2pomng.sh "final"-2
-Date: Sat, 28 Feb 2004 17:07:50 +0100 (CET)
+Subject: [patch pomng] missing .ladd files etc
+Date: Sat, 28 Feb 2004 23:57:29 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402281700110.10169-201000@filer.marasystems.com>
-References: <Pine.LNX.4.44.0402281438410.9609-201000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0402282354370.12487-100000@filer.marasystems.com>
+References: <Pine.LNX.4.44.0402281935160.10963-200000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-2072264787-1077984470=:10169"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0402281438410.9609-201000@filer.marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0402281935160.10963-200000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,180 +19,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+Looks like this message got stuck somewhere, maybe due to the relatively
+large patch attachment.
 
----1463811839-2072264787-1077984470=:10169
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Trying one more time with the attachment saved at 
+<url:http://marasystems.com/download/netfilter/patch-o-matic-ng.patch>
 
-A closer inspection revealed that the ipv6 stuff was left behind.
 
-The attached patch and script is updated to take ipv6 patches into 
-account, and replaces the version posted earlier today.
+On Sat, 28 Feb 2004, Henrik Nordstrom wrote:
 
-Where the same patch exists as both ipv4 and ipv6 the script will place
-them in different directories (xxx6 for ipv6). This applies to the ROUTE
-and TRACE targets. Manual action is required to clean these up, either by
-manually merging the two directories and patches, or by removing the ipv6
-stuff already in CVS from the non-ipv6 directory.
+> A closer inspection revealed that the ipv6 stuff was left behind.
+> 
+> The attached patch and script is updated to take ipv6 patches into 
+> account, and replaces the version posted earlier today.
 
- - Support for converting ipv6 patches
- - The Configure.help change posted ealier, with some small corrections
- - automatic separation of added files from patched files, eleminating
-   the need to manually clean linux.patch
- - dependencies now automatically copied, excluding submitted and pending
- - automatically clean the target to allow convert2pomng to be
-   run repeatedly or in an existing tree
- - some cosmetics go get rid of "normal" errors
- - cvs commands adjusted for new CVS structure with patch-o-matic as a
-   separate module
+There was a little more to it than just running the script as pom-ng has 
+newer copies of a few patches than pom and a few other minor things, but 
+attached is a large patch which adds a lot of missing .ladd files to 
+pom-ng found by having pom-ng rebuilt from pom and then recovering the 
+newer versions.
+
+The patch also includes a resync of the HL patch to match what is in pom
+(use HL everywhere). The directory is still called HOPLIMIT.
+
+The merge of ipv4 and ipv6 patches in one directory is kept as it is.
 
 Regards
 Henrik
-
----1463811839-2072264787-1077984470=:10169
-Content-Type: APPLICATION/x-sh; name="pomng-convert-from-pom.sh"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0402281707500.10169@filer.marasystems.com>
-Content-Description: 
-Content-Disposition: attachment; filename="pomng-convert-from-pom.sh"
-
-IyEvYmluL3NoCmNvbnYoKSB7CiAgICBwYXRjaC1vLW1hdGljLW5nL2NvbnZl
-cnQycG9tbmcuc2ggIiRAIgp9CmNvbnYgZXh0cmEgYWRkcnR5cGUKY29udiBl
-eHRyYSBDTEFTU0lGWQpjb252IGV4dHJhIGNvbmRpdGlvbgpjb252IGV4dHJh
-IGNvbmRpdGlvbjYKY29udiBleHRyYSBjb25uYnl0ZXMKY29udiBiYXNlIGNv
-bm5saW1pdApjb252IGV4dHJhIENPTk5NQVJLCmNvbnYgZXh0cmEgY29ubnRy
-YWNrX2FyZWZjb3VudApjb252IGV4dHJhIGNvbm50cmFja19sb2NraW5nCmNv
-bnYgZXh0cmEgY29ubnRyYWNrX25vbmF0CmNvbnYgZXh0cmEgY29ubnRyYWNr
-LXNlcWZpbGUKY29udiBleHRyYSBjdHN0YXQKY29udiBleHRyYSBjdXNlZW1l
-LW5hdApjb252IGJhc2UgZHN0bGltaXQKY29udiBleHRyYSBlZ2dkcm9wLWNv
-bm50cmFjawpjb252IGJhc2UgZnV6enkKY29udiBiYXNlIGZ1enp5Ngpjb252
-IGV4dHJhIGgzMjMtY29ubnRyYWNrLW5hdApjb252IGJhc2UgSEwKY29udiBl
-eHRyYSBJUE1BUksKY29udiBiYXNlIGlwcmFuZ2UKY29udiBleHRyYSBpcHRh
-Ymxlcy1sb29wY2hlY2stc3BlZWR1cApjb252IGV4dHJhIGlwdF9UQVJQSVQg
-VEFSUElUCmNvbnYgYmFzZSBpcHY0b3B0aW9ucwpjb252IGJhc2UgSVBWNE9Q
-VFNTVFJJUApjb252IGV4dHJhIG1tcy1jb25udHJhY2stbmF0CmNvbnYgYmFz
-ZSBtcG9ydApjb252IGV4dHJhIG5ldGZpbHRlci1kb2Nib29rCmNvbnYgYmFz
-ZSBORVRMSU5LCmNvbnYgYmFzZSBORVRNQVAKY29udiBleHRyYSBuZm5ldGxp
-bmstY3RuZXRsaW5rLTAuMTMKY29udiBiYXNlIG50aApjb252IGJhc2UgbnRo
-Ngpjb252IGJhc2Ugb3NmCmNvbnYgZXh0cmEgb3duZXJjbWQKY29udiBleHRy
-YSBvd25lci1zb2NrZXRsb29rdXAKY29udiBleHRyYSBvd25lci1zdXBnaWRz
-CmNvbnYgYmFzZSBwb29sCmNvbnYgZXh0cmEgcHB0cC1jb25udHJhY2stbmF0
-CmNvbnYgYmFzZSBwc2QKY29udiBleHRyYSBxdWFrZTMtY29ubnRyYWNrIHF1
-YWtlMy1jb25udHJhY2stbmF0CmNvbnYgYmFzZSBxdW90YQpjb252IGJhc2Ug
-cmFuZG9tCmNvbnYgYmFzZSByYW5kb202CmNvbnYgYmFzZSByYXcKY29udiBi
-YXNlIHJlYWxtCmNvbnYgYmFzZSBSRUpFQ1QKY29udiBleHRyYSBST1VURQpj
-b252IGV4dHJhIFJPVVRFIFJPVVRFNiAuaXB2Ngpjb252IGV4dHJhIHJwYwpj
-b252IGV4dHJhIHJzaApjb252IGV4dHJhIHJ0c3AtY29ubnRyYWNrCmNvbnYg
-YmFzZSBTQU1FCmNvbnYgYmFzZSBzZXQKY29udiBleHRyYSBzdHJpbmcKY29u
-diBleHRyYSB0YWxrLWNvbm50cmFjay1uYXQKY29udiBleHRyYSBUQ1BMQUcK
-Y29udiBleHRyYSB0Y3Atd2luZG93LXRyYWNraW5nCmNvbnYgYmFzZSB0aW1l
-CmNvbnYgZXh0cmEgVFJBQ0UKY29udiBleHRyYSBUUkFDRSBUUkFDRTYgLmlw
-djYKY29udiBiYXNlIFRUTApjb252IGJhc2UgdTMyCmNvbnYgZXh0cmEgWE9S
-Cg==
----1463811839-2072264787-1077984470=:10169
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="pomng-convert2pomng.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0402281707501.10169@filer.marasystems.com>
-Content-Description: 
-Content-Disposition: attachment; filename="pomng-convert2pomng.patch"
-
-SW5kZXg6IGNvbnZlcnQycG9tbmcuc2gNCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0NClJDUyBmaWxlOiAvY3ZzcHVibGljL3BhdGNoLW8tbWF0aWMtbmcvY29u
-dmVydDJwb21uZy5zaCx2DQpyZXRyaWV2aW5nIHJldmlzaW9uIDEuNQ0KZGlm
-ZiAtdSAtcCAtcjEuNSBjb252ZXJ0MnBvbW5nLnNoDQotLS0gY29udmVydDJw
-b21uZy5zaAkyNyBGZWIgMjAwNCAyMTo0MDoyMCAtMDAwMAkxLjUNCisrKyBj
-b252ZXJ0MnBvbW5nLnNoCTI4IEZlYiAyMDA0IDE1OjU5OjA5IC0wMDAwDQpA
-QCAtMSwyNyArMSw2MSBAQA0KICMhL2Jpbi9iYXNoDQogDQorIyBGb3Igd3Jp
-dGUgQ1ZTIGFjY2VzcyBzZXQgdGhpcyB0byBjdnMNCiBDVlM9ZWNobw0KLSND
-VlM9YHdoaWNoIGN2c2ANCisjQ1ZTPWN2cw0KKw0KKw0KK2lmIFsgJCMgLWx0
-IDIgXTsgdGhlbg0KKwllY2hvICJVc2FnZTogJDAgcmVwb3NpdG9yeSBuYW1l
-IFtuZXduYW1lIFsuaXB2Nl1dIg0KKwlleGl0IDENCitmaQ0KIA0KIFJFUE9T
-SVRPUlk9JDENCiBOQU1FPSQyDQotTkVXTkFNRT0kMw0KK05FV05BTUU9JHsz
-Oi0kezJ9fQ0KK1NVRkZJWD0kNA0KKw0KK1BSRUZJWD1wYXRjaC1vLW1hdGlj
-LyRSRVBPU0lUT1JZLyROQU1FLnBhdGNoJHtTVUZGSVh9DQoraWYgWyAhIC1m
-ICRQUkVGSVggXTsgdGhlbg0KKyAgICBQUkVGSVg9cGF0Y2gtby1tYXRpYy8k
-UkVQT1NJVE9SWS8kTkFNRS5wYXRjaC5pcHY2DQorZmkNCitpZiBbIC1mICRQ
-UkVGSVguaXB2NiBdOyB0aGVuDQorICAgIGVjaG8gIk5PVElDRTogJFJFUE9T
-SVRPUlkvJE5BTUUgYWxzbyBleGlzdHMgaW4gaXB2NiB2ZXJzaW9uIg0KK2Zp
-DQoraWYgWyAhIC1mICRQUkVGSVggXTsgdGhlbg0KKyAgICBlY2hvICJwYXRj
-aC1vLW1hdGljICRSRVBPU0lUT1JZLyROQU1FIE5PVCBGT1VORCEiDQorICAg
-IGV4aXQgMQ0KK2ZpDQogDQotUFJFRklYPXBhdGNoLW8tbWF0aWMvJFJFUE9T
-SVRPUlkvJE5BTUUucGF0Y2gNCiBERVNURElSPXBhdGNoLW8tbWF0aWMtbmcv
-JE5FV05BTUUNCiANCi1ta2RpciAkREVTVERJUg0KLSRDVlMgYWRkICRERVNU
-RElSDQorYWRkKCkgew0KKyAgICBwYXRoPSJgZWNobyAkMSB8IHNlZCAtZSAn
-cyVwYXRjaC1vLW1hdGljLW5nLyUlJ2AiDQorICAgIHNoIC1jICJjZCBwYXRj
-aC1vLW1hdGljLW5nOyAkQ1ZTIGFkZCAkcGF0aCINCit9DQorDQorDQorbWtk
-aXIgLXAgJERFU1RESVINCithZGQgJERFU1RESVINCiANCiAjIHN0cmlwIEF1
-dGhvciBhbmQgVmVyc2lvbiBmcm9tIGhlbHAgZmlsZQ0KIGNhdCAkUFJFRklY
-LmhlbHAgfCBlZ3JlcCAtdiBBdXRob3I6XHxTdGF0dXM6ID4gJERFU1RESVIv
-aGVscA0KLSRDVlMgYWRkICRERVNURElSL2hlbHANCithZGQgJERFU1RESVIv
-aGVscA0KIA0KICMgZ2VuZXJhdGUgaW5mbw0KIGNhdCAkUFJFRklYLmhlbHAg
-fCBncmVwIEF1dGhvcjogPiAkREVTVERJUi9pbmZvDQogY2F0ICRQUkVGSVgu
-aGVscCB8IGdyZXAgU3RhdHVzOiA+PiAkREVTVERJUi9pbmZvDQogZWNobyBS
-ZXBvc2l0b3J5OiAkUkVQT1NJVE9SWSA+PiAkREVTVERJUi9pbmZvDQotJENW
-UyBhZGQgJERFU1RESVIvaW5mbw0KK1sgLWYgJFBSRUZJWC5kZXBlbmQgXSAm
-JiBjYXQgJFBSRUZJWC5kZXBlbmQgfCBncmVwIC12IHN1Ym1pdHRlZC8gfCBn
-cmVwIC12IHBlbmRpbmcvIHwgd2hpbGUgcmVhZCBkZXAgZGVwMjsgZG8NCisJ
-bm90PSIiDQorCWlmIFsgJGRlcCA9ICJub3QiIF07IHRoZW4NCisJCW5vdD0i
-ISI7DQorCQlkZXA9JGRlcDINCisJZmkNCisJZGVwPWBiYXNlbmFtZSAkZGVw
-IC5wYXRjaGANCisJZWNobyBEZXBlbmRzOiAkbm90JGRlcCA+PiAkREVTVERJ
-Ui9pbmZvDQorZG9uZQ0KK2FkZCAkREVTVERJUi9pbmZvDQogDQogIyB1Z2x5
-IHRyaWNrLCBkb24ndCBrbm93IGlmIHdlIG5lZWQgYWxsIGRpZWN0b3JpZXMg
-eWV0LiAgYnV0IHdlIHRyeQ0KICMgdG8gcm1kaXIgdGhlbSBsYXRlciwgd2hp
-Y2ggZmFpbHMgaW4gY2FzZSB0aGV5IGFyZSBub3QgZW1wdHkgYW55bW9yZQ0K
-QEAgLTI5LDM5ICs2Myw3NCBAQCBUUllESVJTPSJsaW51eC9uZXQvaXB2NC9u
-ZXRmaWx0ZXIgbGludXgvDQogZm9yIGQgaW4gJFRSWURJUlM7IGRvDQogCW1r
-ZGlyIC1wICRERVNURElSLyRkDQogZG9uZQ0KK2ZpbmQgJERFU1RESVIvbGlu
-dXggLW5hbWUgQ1ZTIC1wcnVuZSAtbyAtdHlwZSBmIC1leGVjIHJtIFx7XH0g
-XDsNCiANCiBmb3IgZiBpbiAkUFJFRklYLm1ha2VmaWxlKjsgZG8NCisgICAg
-aWYgWyAtZiAiJGYiIF07IHRoZW4NCiAJcG9zdGZpeD0kKGVjaG8gIiR7ZiMj
-JFBSRUZJWC5tYWtlZmlsZX0iIHwgc2VkIC1lIHMvLS9fLykNCiAJbmV3Zmls
-ZT0kREVTVERJUi9saW51eC9uZXQvaXB2NC9uZXRmaWx0ZXIvTWFrZWZpbGUu
-bGFkZCRwb3N0Zml4DQogCWNwICRmICRuZXdmaWxlDQorICAgIGZpDQogZG9u
-ZQ0KIA0KIGZvciBmIGluICRQUkVGSVguY29uZmlnLmluKjsgZG8NCisgICAg
-aWYgWyAtZiAiJGYiIF07IHRoZW4NCiAJcG9zdGZpeD0kKGVjaG8gIiR7ZiMj
-JFBSRUZJWC5jb25maWcuaW59IiB8IHNlZCAtZSBzLy0vXy8pDQogCW5ld2Zp
-bGU9JERFU1RESVIvbGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL0NvbmZpZy5p
-bi5sYWRkJHBvc3RmaXgNCiAJY3AgJGYgJG5ld2ZpbGUNCisgICAgZmkNCiBk
-b25lDQogDQogZm9yIGYgaW4gJFBSRUZJWC5pcF9jb25udHJhY2suaCo7IGRv
-DQorICAgIGlmIFsgLWYgIiRmIiBdOyB0aGVuDQogCXBvc3RmaXg9JChlY2hv
-ICIke2YjIyRQUkVGSVguaXBfY29ubnRyYWNrLmh9IiB8IHNlZCAtZSBzLy0v
-Xy8pDQogCW5ld2ZpbGU9JERFU1RESVIvbGludXgvaW5jbHVkZS9saW51eC9u
-ZXRmaWx0ZXJfaXB2NC9pcF9jb25udHJhY2suaC5sYWRkJHBvc3RmaXgNCiAJ
-Y3AgJGYgJG5ld2ZpbGUNCisgICAgZmkNCiBkb25lDQogDQotZm9yIGQgaW4g
-JFRSWURJUlM7IGRvDQotCXJtZGlyIC1wICRERVNURElSLyRkDQotZG9uZQ0K
-LQ0KLWNwICRQUkVGSVggJERFU1RESVIvbGludXgucGF0Y2gNCi1wYXRjaCAt
-ZCAkREVTVERJUi9saW51eCAtcDEgLWkgLi4vbGludXgucGF0Y2ggLXIgL2Rl
-di9udWxsIC1iDQorY2F0ICRQUkVGSVggfCAoDQorCWNkICRERVNURElSL2xp
-bnV4DQorCWF3ayAnDQorCWZ1bmN0aW9uIG5ld3BhdGNoKCkgew0KKwkgICAg
-aWYgKGlucGF0Y2gpIHsNCisJCWlmIChjaGFuZ2VzKSB7IHByaW50ZiAiJXMi
-LCBwYXRjaCB9DQorCQllbHNlIHsgcHJpbnQgIiVzIiBwYXRjaCB8ICJwYXRj
-aCAtcDEgLXMiIH0NCisJCXBhdGNoPSIiDQorCQljaGFuZ2VzPTANCisJCWlu
-cGF0Y2g9MA0KKwkgICAgfQ0KKwl9DQorDQorCS9eW14gXCtAXC1dfF5cK1wr
-XCsvIHsgbmV3cGF0Y2goKSB9DQorCUVORAkJeyBuZXdwYXRjaCgpIH0NCisJ
-CQl7IHBhdGNoID0gcGF0Y2ggJDAgIlxuIiB9DQorCS9eXCtcK1wrIC8JeyBp
-bnBhdGNoPTEgfQ0KKwkvXi0tLSAvCQl7IG5leHQgfQ0KKwkvXlsgXC1dLwl7
-IGNoYW5nZXMrKyB9DQorCScgfCBncmVwIC12ICJebWlzc2luZyBoZWFkZXIi
-ID4gLi4vbGludXgucGF0Y2gNCispDQoraWYgWyAhIC1zICRERVNURElSL2xp
-bnV4LnBhdGNoIF07IHRoZW4NCisgICAgcm0gJERFU1RESVIvbGludXgucGF0
-Y2gNCitlbHNlDQorICAgIGFkZCAkREVTVERJUi9saW51eC5wYXRjaA0KK2Zp
-DQogZmluZCAkREVTVERJUi9saW51eCAtbmFtZSBcKi5vcmlnIC1leGVjIHJt
-IC1mIFx7XH0gXDsNCiANCi0jIGFkZCB0byBDVlMNCi1ORVdGSUxFUz1gZmlu
-ZCAkREVTVERJUi9saW51eCBcISAtcGF0aCBcKkNWU1wqYA0KLWZvciBmIGlu
-ICRORVdGSUxFUzsgZG8NCi0JJENWUyBhZGQgJGYNCitpZiBbIC1mICRQUkVG
-SVguY29uZmlndXJlLmhlbHAgXTsgdGhlbg0KKyAgICBta2RpciAtcCAkREVT
-VERJUi9saW51eC9Eb2N1bWVudGF0aW9uDQorICAgIGNwICRQUkVGSVguY29u
-ZmlndXJlLmhlbHAgJERFU1RESVIvbGludXgvRG9jdW1lbnRhdGlvbi9Db25m
-aWd1cmUuaGVscC5sYWRkDQorZmkNCisNCitmb3IgZCBpbiAkVFJZRElSUzsg
-ZG8NCisJcm1kaXIgLXAgJERFU1RESVIvJGQgMj4vZGV2L251bGwNCiBkb25l
-DQogDQotIyB3ZSBuZWVkIHRvIGRlYWwgd2l0aCBwYXRjaCBhbmQgY29uZmln
-dXJlLmhlbHAgbWFudWFsbHkNCi1jcCAkUFJFRklYLmNvbmZpZ3VyZS5oZWxw
-ICRERVNURElSL2NvbmZpZ3VyZS5oZWxwDQorIyBhZGQgdG8gQ1ZTDQoraWYg
-WyAtZCAkREVTVERJUi9saW51eCBdOyB0aGVuDQorICAgIE5FV0ZJTEVTPWBm
-aW5kICRERVNURElSL2xpbnV4IFwhIC1wYXRoIFwqQ1ZTXCpgDQorICAgIGZv
-ciBmIGluICRORVdGSUxFUzsgZG8NCisJICAgIGFkZCAkZg0KKyAgICBkb25l
-DQorZmkNCiANCg==
----1463811839-2072264787-1077984470=:10169--
