@@ -1,17 +1,15 @@
 From: "Andrew Hall" <temp02@bluereef.com.au>
 Subject: Re: [PATCH] iptables cannot be compiled with 2.6.7
-Date: Wed, 23 Jun 2004 12:24:33 +1000
+Date: Wed, 23 Jun 2004 14:12:51 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <08dc01c458c9$38c19ce0$2601010a@bluereef.local>
+Message-ID: <090201c458d8$59f846c0$2601010a@bluereef.local>
 References: <Pine.LNX.4.33.0406182142010.25898-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
-	<netfilter-devel@lists.netfilter.org>,
-	<netfilter@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,14 +20,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef,
+Actually I've now checked the main tree of 2.6.7 which already has the
+03_linux-2.6.5.patch applied in full. The issue it seems is that
+patch-o-matic-ng does realise it's already applied and tries to patch it
+again when running with 'runme extra'.
 
-This patch was already there. It is the 07_linux patch that seems to be
-missing.. Please confirm.
-
-Thanks,
-
-Andrew.
 ----- Original Message -----
 From: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
 To: <netfilter-devel@lists.netfilter.org>; <netfilter@lists.netfilter.org>
