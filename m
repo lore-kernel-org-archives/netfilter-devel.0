@@ -1,13 +1,12 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] MASQUERADE handling of device events
-Date: Sun, 7 Nov 2004 10:18:25 -0800
-Message-ID: <20041107181825.GA3522@linuxace.com>
+From: Johannes Graumann <graumann@caltech.edu>
+Subject: patch-o-matic-ng questions and remarks from newbie
+Date: Sun, 7 Nov 2004 10:28:32 -0800
+Message-ID: <20041107102832.463003a4@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="IJpNTDwzlM2Ie8A6"
-Cc: linux-net@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,106 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I'm reposting this in the devel mailing list in the hope to find more of
+an echo than in the 'normal' one ...
 
---IJpNTDwzlM2Ie8A6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hello,
 
-As discussed in recent days, MASQUERADE target handling of device events
-is broken in a couple of ways:
+In order to use my shorewall/2.6 based firewall to route IPSECed
+(openswan) wireless, I need to apply these patches from the
+patch-o-matic-ng (extra):
+1) ipsec-01-output-hooks
+2) ipsec-02-input-hooks
+3) ipsec-03-policy-lookup
+4) ipsec-04-policy-checks
+5) policy
 
-1) when ppp interfaces cycle, conntracks with old ip addresses are not
-   flushed
+It took me a whole night to figure out that these are only cleanly
+applicable to a 2.6.6 kernel and nothing later - which is ok with me ...
+if I only would have managed to find this information without loading
+down 2.6.9, 2.6.8, 2.6.7 and 2.6.6 source and testing the patch-o-matic
+with every single one of these! Can somebody please help me dummy in
+finding this information? Are these patches expected to get a revamp to
+be capable to cope with 2.6.9?
+On another note: are/when are these features scheduled to go into the
+2.6 series?
 
-2) an 'ip addr add' on an interface used for masquerading flushes all
-   conntracks associated with that interface
+Thanks for any hints,
 
-The below patch addresses these issues by changing from using ifindex
-comparisons to verifying that the masquerading ip still exists on the
-box.
-
-To achieve this, two changes were required to core networking code (thus
-the linux-net cc):
-
-1) export inet_confirm_addr
-
-2) change inet_ifa_match to use ifa_local instead of ifa_address.
-   Since ifa_local != ifa_address on ppp interfaces, inet_ifa_match
-   could not be used to verify ppp interface addresses without
-   this change.
-
-Comments?
-
-Phil
-
-
-
---IJpNTDwzlM2Ie8A6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-masq2
-
-diff -ru linux-orig/include/linux/inetdevice.h linux-diff/include/linux/inetdevice.h
---- linux-orig/include/linux/inetdevice.h	2004-11-04 17:32:05.573870736 -0500
-+++ linux-diff/include/linux/inetdevice.h	2004-11-07 12:57:50.674323160 -0500
-@@ -114,7 +114,7 @@
- 
- static __inline__ int inet_ifa_match(u32 addr, struct in_ifaddr *ifa)
- {
--	return !((addr^ifa->ifa_address)&ifa->ifa_mask);
-+	return !((addr^ifa->ifa_local)&ifa->ifa_mask);
- }
- 
- /*
-diff -ru linux-orig/net/ipv4/devinet.c linux-diff/net/ipv4/devinet.c
---- linux-orig/net/ipv4/devinet.c	2004-11-04 17:32:05.000000000 -0500
-+++ linux-diff/net/ipv4/devinet.c	2004-11-07 12:56:27.738931256 -0500
-@@ -1493,6 +1493,7 @@
- 
- EXPORT_SYMBOL(devinet_ioctl);
- EXPORT_SYMBOL(in_dev_finish_destroy);
-+EXPORT_SYMBOL(inet_confirm_addr);
- EXPORT_SYMBOL(inet_select_addr);
- EXPORT_SYMBOL(inetdev_by_index);
- EXPORT_SYMBOL(register_inetaddr_notifier);
-diff -ru linux-orig/net/ipv4/netfilter/ipt_MASQUERADE.c linux-diff/net/ipv4/netfilter/ipt_MASQUERADE.c
---- linux-orig/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-04 17:32:05.000000000 -0500
-+++ linux-diff/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-07 12:55:56.501680040 -0500
-@@ -118,16 +118,15 @@
- }
- 
- static inline int
--device_cmp(const struct ip_conntrack *i, void *_ina)
-+device_cmp(const struct ip_conntrack *i, void *junk)
- {
- 	int ret = 0;
--	struct in_ifaddr *ina = _ina;
- 
- 	READ_LOCK(&masq_lock);
--	/* If it's masquerading out this interface with a different address,
--	   or we don't know the new address of this interface. */
--	if (i->nat.masq_index == ina->ifa_dev->dev->ifindex
--	    && i->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip != ina->ifa_address)
-+	/* If masquerading this conntrack but the masquerading ip
-+	   no longer exists locally, drop conntrack. */
-+	if (i->nat.masq_index && !(inet_confirm_addr(NULL, 0,
-+	    i->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip, RT_SCOPE_HOST)))
- 		ret = 1;
- 	READ_UNLOCK(&masq_lock);
- 
-@@ -150,11 +149,10 @@
- 			   unsigned long event,
- 			   void *ptr)
- {
--	/* For some configurations, interfaces often come back with
--	 * the same address.  If not, clean up old conntrack
--	 * entries. */
-+	/* In some configurations, interfaces come back with the
-+	 * same address.  If not, clean up old conntrack entries. */
- 	if (event == NETDEV_UP)
--		ip_ct_selective_cleanup(device_cmp, ptr);
-+		ip_ct_selective_cleanup(device_cmp, NULL);
- 	else if (event == NETDEV_DOWN)
- 		ip_ct_selective_cleanup(connect_unassure, ptr);
- 
-
---IJpNTDwzlM2Ie8A6--
+Joh
