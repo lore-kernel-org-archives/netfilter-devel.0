@@ -1,14 +1,16 @@
-From: Weiguang Shi <wgshi2002@yahoo.ca>
-Subject: Re: TCP's response to NF_STOLEN
-Date: Mon, 14 Jun 2004 13:22:57 -0400 (EDT)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: MARK target extension
+Date: Mon, 14 Jun 2004 22:59:56 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040614172257.79992.qmail@web54109.mail.yahoo.com>
-References: <20040614043149.39553.qmail@web90003.mail.scd.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0406142151150.1405-100000@filer.marasystems.com>
+References: <20040614171913.M38596@metal.art.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+   Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: DeveloperList Netfilter <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20040614043149.39553.qmail@web90003.mail.scd.yahoo.com>
+To: Grzegorz Nosek <blackfire@metal.art.pl>
+In-Reply-To: <20040614171913.M38596@metal.art.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,17 +21,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I checked the (*pskb)->users and the value is 1 for 
-each stolen packet. So I guess the answer to whether
-to kfree_skb() the stolen packet is no.
+On Mon, 14 Jun 2004, Grzegorz Nosek wrote:
 
- --- Weiguang Shi <wgshi2002@yahoo.ca> wrote: > Hi,
+> S - a bit of the mask
+> R - a bit of the mark value
 > 
-> My netfilter NF_IP_OUTPUT_HOOK function matches a
-> TCP
-> connection and returns NF_STOLEN now and then when 
-> certain conditions are satisfied.
-> ...
+> SR |   | operation
+> ---+---+-----------
+> 00 | C | clear
+> 01 | S | set
+> 10 | N | no-op
+> 11 | I | invert
 
-______________________________________________________________________ 
-Post your free ad now! http://personals.yahoo.ca
+Interesting encoding with a very nice kernel side algorithm.
+
+> But still, I don't see how it allows for anything more than a simple
+> 
+>    newvalue = (oldvalue & mask) ^ value;
+
+It doesn't. AND+XOR is logically complete and can represent all the 
+bitwise logic operations in a very efficient manner in both space and 
+time.
+
+Note: The ~mask in CONNMARK was from the mask representing the bits to
+modify, not the bits to save.
+
+Regards
+Henrik
