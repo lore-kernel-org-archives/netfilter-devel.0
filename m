@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
-Date: Thu, 1 Apr 2004 22:52:02 +0200 (CEST)
+From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
+Subject: RPC patch creates kernel panic
+Date: Thu, 01 Apr 2004 16:03:11 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404012250440.9369-100000@filer.marasystems.com>
-References: <OF4647B020.55BDAE17-ON48256E69.0010A57F@legend.com.cn>
+Message-ID: <1080853391.6764.15.camel@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: wanghtb@legend.com.cn
-In-Reply-To: <OF4647B020.55BDAE17-ON48256E69.0010A57F@legend.com.cn>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +18,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 1 Apr 2004 wanghtb@legend.com.cn wrote:
+I would imagine the RPC patch developers are well aware of this but I
+have consistently generated kernel panics when using the RPC patch. 
+This was the case using RedHat with several different kernels > 2.4.18
+and patch-o-matic-20030107 (I believe).
 
-> And I think the compiling direction 
->  "#ifndef CONFIG_IP_NF_NAT_LOCAL"
-> maybe not need, since in any situation, we should not 
-> use ip_conntrack_reply() to change a confirmed ct, which 
-> will make ct's hash value changed,  and make LIST_DELETE() dump a 
-> warning: this entry is not in the correct bucket list :-)
+I thought I would give patch-o-matic-20031219 a try on SUSE with kernel
+2.4.25 from kernel.org patched with StrongSWAN 2.0.1 (FreeS/WAN
+successor) to see if it behaved any better.  Alas, the same problem.
 
-This can only happen if CONFIG_IP_NF_NAT_LOCAL is not defined.
-
-If it is defined then NAT properly registers mappings in all directions,
-and the first (original) part of the if statement makes sure the packet is
-not NAT:ed again on local->local traffic.
-
-Regards
-Henrik
+We have neither the skills nor time to contribute code to this patch but
+it is important for us especially for our support of Microsoft shops
+with their pervasive use of services spawned off of the port mapper on
+135/tcp.  If there is anything we can do to help outside of development
+such as testing, please let us know - John
+-- 
+John A. Sullivan III
+Chief Technology Officer
+Nexus Management
++1 207-985-7880
+john.sullivan@nexusmgmt.com
+---
+If you are interested in helping to develop a GPL enterprise class
+VPN/Firewall/Security device management console, please visit
+http://iscs.sourceforge.net 
