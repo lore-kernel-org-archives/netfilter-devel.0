@@ -1,65 +1,50 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [netfilter-core] [PATCH][RFC] bridge-nf -- map IPv4 hooks onto bridge hooks - try 3, vs 2.5.44
-Date: Fri, 25 Oct 2002 08:22:48 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20021025082248.A8620@sunbeam.de.gnumonks.org>
-References: <20020911223252.GA12517@erik.ca> <200210210020.37097.bart.de.schuymer@pandora.be> <200210230140.27470.bart.de.schuymer@pandora.be> <200210250801.16278.bart.de.schuymer@pandora.be>
+From: "andre achternaam" <andreiscmeel@hotmail.com>
+Subject: How to add nat rules by another loadable kernel module
+Date: Fri, 25 Oct 2002 07:02:17 +0000
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <F43ZKxt8zPdqJL947FR000004f8@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
-Cc: "David S. Miller" <davem@redhat.com>, linux-kernel@vger.kernel.org,
-	Lennert Buytenhek <buytenh@gnu.org>, coreteam@netfilter.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Bart De Schuymer <bart.de.schuymer@pandora.be>
-Content-Disposition: inline
-In-Reply-To: <200210250801.16278.bart.de.schuymer@pandora.be>; from bart.de.schuymer@pandora.be on Fri, Oct 25, 2002 at 08:01:16AM +0200
+Content-Type: text/plain; format=flowed
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi coders,
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm developing a module, but have some difficulty with it. May be some of 
+you can put me on the right track.
+In my loadable kernel module i want to add the following rule to my nat 
+module(s):
+iptables -t nat -A PREROUTING -d 192.168.0.50 -i eth0 -j DNAT 
+--to-destination 10.255.255.10
 
-On Fri, Oct 25, 2002 at 08:01:16AM +0200, Bart De Schuymer wrote:
-> As this ipt_physdev.c module is not essential I propose to already apply =
-this
-> patch.
+I'm aware this is a userspace methode to do it, and i like to know how to do 
+this in kernel space. I have looked hours in all kind of netfilter files but 
+i don't have any hint how to do it.
 
-I'm fine with this patch
+Q] Can somebody tell me how to add NAT rules from another loadable kernel 
+module or provide some example code?
 
-> Harald, should I make this module for patch-o-magic or can I post it dire=
-ctly
-> to David?
+I don't want to do it with the register_expect stuff since you need a 
+releted (master) connection, which i dont have.
+Of couse later on i want to delete them as wel with the following 
+look-a-like
+iptables -t nat -D PREROUTING -d 192.168.0.50 -i eth0 -j DNAT 
+--to-destination 10.255.255.10
 
-Please send the patch to me for review.  I will pass it on very quickly once
-I have received it.
+Thanx in advance for the information.
 
-> cheers,
-> Bart
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
+Andre Kleibeuker
 
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9uOM4XaXGVTD0i/8RAhqKAKCp/Qcec10WdaFf8QGuovuhEbEThQCaA9z7
-HTvn8feXnEdl9XbwxK+aK28=
-=tMKA
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+_________________________________________________________________
+Surf the Web without missing calls! Get MSN Broadband. 
+http://resourcecenter.msn.com/access/plans/freeactivation.asp
