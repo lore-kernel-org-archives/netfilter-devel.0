@@ -1,16 +1,13 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [netfilter-core] (no subject)
-Date: Mon, 31 Mar 2003 07:37:45 +0200
+From: Thomas Heinz <creatix@hipac.org>
+Subject: Table duplication on smp machine
+Date: Mon, 31 Mar 2003 12:52:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030331053745.GB1098@oknodo.bof.de>
-References: <004701c2f502$8da118c0$5b01aa0a@Dec0y> <20030328115850.GU25471@sunbeam.de.gnumonks.org> <007001c2f725$a1dcd4d0$5b01aa0a@Dec0y>
+Message-ID: <3E881DD6.8090206@hipac.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Dec0y <anti_decoy@sina.com>
-Content-Disposition: inline
-In-Reply-To: <007001c2f725$a1dcd4d0$5b01aa0a@Dec0y>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,20 +18,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> Can some body help me?
-> 
-> I want to Redirect all the packet through my Linux machine in the FORWARD of filter table by write a target, and I have realized it . But there is a little wrong with it. 
+Hi
 
-Of course you can fit a second gear box in the middle of your car.
-Just don't ask the car manufacturer whether they could add it as
-an option, and how they would best integrate it. They'll answer that
-there's already a fully operational gear box in the place where it
-should be, and you are on your own fitting the second one.
+Netfilter maintains different tables for each cpu which is especially
+interesting for smp ;-)
 
-I doubt that you will get more useful replies than the
-replies you got from Harald Welte, and now from me.
-If you do, unlikely as that is, please don't feel
-encouraged in any way.
+This is done - according to the docs - to avoid write locking.
+Now, what would be write locked in case we had only one set of
+rules:
 
-best regards
-  Patrick
+a) counters
+b) match/target write operations to their match/target data
+
+a) is clear. b) not really: if a target/match needs to store
+data it would do it the way the limit match does it which
+requires an in-module lock mechanism and an ugly pointer in the
+private data of the match/target.
+
+Hm, remains a). There must be another reason. Otherwise a lot
+of space is wasted just to keep separate per-cpu counter values.
+
+Is there another reason?
+
+
+Regards
+
+Thomas
