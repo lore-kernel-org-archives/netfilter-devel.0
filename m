@@ -1,16 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH 2.6] Use C99 initializers for conntrack sysctl tables
-Date: Mon, 23 Feb 2004 00:45:04 +0100
+From: Chee Yong TAN <chee_yong_tan@hotmail.com>
+Subject: Sending back out A TCP Packet from netfilter
+Date: Mon, 23 Feb 2004 11:56:25 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40393F00.8040805@eurodev.net>
-References: <20040220210758.GV4797@sunbeam.de.gnumonks.org> <20040220151242.78536970.davem@redhat.com> <4036D735.E834F74A@actiontec.com> <40393E1E.5050807@eurodev.net>
+Message-ID: <403979E9.8070300@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bo Xiong <bxiong@actiontec.com>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <40393E1E.5050807@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,30 +18,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
+Hi,
 
-> Bo Xiong wrote:
->
->> init_conntrack()  will creat a new conntrack, bu where add the new
->> conntrack to hash_list?
->> -Bo
->>
->>  
->>
-> Hi Bo,
->
-> why didn't you create a new thread? the topic of this message is 
-> different.
->
-> anyway, have a look at:
->
-> http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L460
->
-> init_conntrack creates a new conntrack and insert it to the hash list 
-> as well (see list_prepend).
+I need to do some mangling of a TCP packet at netfilter level and send 
+the packet out back to the sending host.Upon receiving the packet, my 
+module will check if the packet need to be send back to the sending host 
+  after mangling.I tried using ip_send() to send back the packet but it 
+don't seem to work but when i do a tcpdump capture i manage to capture 
+the packet. I return a verdict of NF_STOLEN for the received packet. I 
+did invert the ip address, ports and the hardware address. I also 
+updated the sequence numbers in the header.
 
-Sorry!! this is wrong, init_conntrack only creates the conntrack, it is 
-inserted in __ip_conntrack_confirm, see the link above. A little 
-blackout :-(
+What is the proper procedure in getting the packet send out back to the 
+network ?
 
-Pablo
+I need it to support both 2.2 and 2.4 kernels
+
+Thanks in advance
+
+Regards,
+Chee Yong
