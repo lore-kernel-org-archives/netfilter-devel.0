@@ -1,17 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [UPDATED PATCH] LOCAL_IN support for owner match
-Date: Tue, 01 Apr 2003 13:44:14 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: rfc3514
+Date: 01 Apr 2003 16:15:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E897B8E.4030009@trash.net>
-References: <3E81B60F.1000609@trash.net> <20030327131241.GF25471@sunbeam.de.gnumonks.org> <3E830F7C.8050106@trash.net>
+Message-ID: <1049206544.10856.76.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000401050506010606050206"
-Cc: marc@mbsi.ca,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="=-HsqhyWtHlU0KfZAPi8VV"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <3E830F7C.8050106@trash.net>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,276 +17,535 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000401050506010606050206
-Content-Type: text/plain; charset=us-ascii; format=flowed
+
+--=-HsqhyWtHlU0KfZAPi8VV
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Hi Harald,
-you already stated this addition would make sense. Do you have any further
-objections ? The last patch didn't contain updated usage information, i've
-attached it again.
+Hi
 
-Best regards,
-Patrick
+Here's a partial implementation of rfc3514.
+It just implements a match and a target.
 
-Patrick McHardy wrote:
+There's a small problem with the match, it doesn't take any options thus
+doesn't accept an invert flag... oh well.
 
-> Harald Welte wrote:
->
->> In this case, you should make sure that the owner match in INPUT can
->> only be used if the match did contain '-p udp' or '-p tcp'.
->>
-> Done, this version checks for proto = TCP / UDP if used in LOCAL_IN. 
+And there's another small problem regarding conntrack... conntrack tries
+to reassemble all fragments and this doesn't really work with these
+packets :)
 
+Patches against kernel 2.5 (Kconfig stuff need converting to Config.in
+for 2.4)
 
+-- 
+/Martin
 
---------------000401050506010606050206
-Content-Type: text/plain;
- name="pom-owner.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pom-owner.diff"
+--=-HsqhyWtHlU0KfZAPi8VV
+Content-Disposition: attachment; filename=EVIL.patch-2.5
+Content-Type: text/plain; name=EVIL.patch-2.5; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-diff -urN a/extra/owner-socketlookup.patch b/extra/owner-socketlookup.patch
---- a/extra/owner-socketlookup.patch	1970-01-01 01:00:00.000000000 +0100
-+++ b/extra/owner-socketlookup.patch	2003-04-01 13:34:08.000000000 +0200
-@@ -0,0 +1,214 @@
-+diff -urN a/include/net/tcp.h b/include/net/tcp.h
-+--- a/include/net/tcp.h	2002-11-29 00:53:15.000000000 +0100
-++++ b/include/net/tcp.h	2003-03-27 15:33:45.000000000 +0100
-+@@ -140,6 +140,7 @@
-+ extern void tcp_bucket_unlock(struct sock *sk);
-+ extern int tcp_port_rover;
-+ extern struct sock *tcp_v4_lookup_listener(u32 addr, unsigned short hnum, int dif);
-++extern struct sock *tcp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 hnum, int dif);
-+ 
-+ /* These are AF independent. */
-+ static __inline__ int tcp_bhashfn(__u16 lport)
-+diff -urN a/include/net/udp.h b/include/net/udp.h
-+--- a/include/net/udp.h	2001-11-22 20:47:15.000000000 +0100
-++++ b/include/net/udp.h	2003-03-27 15:33:45.000000000 +0100
-+@@ -69,6 +69,8 @@
-+ extern int	udp_ioctl(struct sock *sk, int cmd, unsigned long arg);
-+ extern int	udp_disconnect(struct sock *sk, int flags);
-+ 
-++extern struct sock *udp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 dport, int dif);
-++
-+ extern struct udp_mib udp_statistics[NR_CPUS*2];
-+ #define UDP_INC_STATS(field)		SNMP_INC_STATS(udp_statistics, field)
-+ #define UDP_INC_STATS_BH(field)		SNMP_INC_STATS_BH(udp_statistics, field)
-+diff -urN a/net/ipv4/netfilter/ipt_owner.c b/net/ipv4/netfilter/ipt_owner.c
-+--- a/net/ipv4/netfilter/ipt_owner.c	2002-11-29 00:53:15.000000000 +0100
-++++ b/net/ipv4/netfilter/ipt_owner.c	2003-03-27 15:38:46.000000000 +0100
-+@@ -2,17 +2,25 @@
-+    locally generated outgoing packets.
-+ 
-+    Copyright (C) 2000 Marc Boucher
-++
-++   03/26/2003 Patrick McHardy <kaber@trash.net>: LOCAL_IN support
-+  */
-+ #include <linux/module.h>
-+ #include <linux/skbuff.h>
-+ #include <linux/file.h>
-++#include <linux/ip.h>
-++#include <linux/tcp.h>
-++#include <linux/udp.h>
-+ #include <net/sock.h>
-++#include <net/tcp.h>
-++#include <net/udp.h>
-++#include <net/route.h>
-+ 
-+ #include <linux/netfilter_ipv4/ipt_owner.h>
-+ #include <linux/netfilter_ipv4/ip_tables.h>
-+ 
-+ static int
-+-match_comm(const struct sk_buff *skb, const char *comm)
-++match_comm(const struct sock *sk, const char *comm)
-+ {
-+ 	struct task_struct *p;
-+ 	struct files_struct *files;
-+@@ -28,7 +36,7 @@
-+ 		if(files) {
-+ 			read_lock(&files->file_lock);
-+ 			for (i=0; i < files->max_fds; i++) {
-+-				if (fcheck_files(files, i) == skb->sk->socket->file) {
-++				if (fcheck_files(files, i) == sk->socket->file) {
-+ 					read_unlock(&files->file_lock);
-+ 					task_unlock(p);
-+ 					read_unlock(&tasklist_lock);
-+@@ -44,7 +52,7 @@
-+ }
-+ 
-+ static int
-+-match_pid(const struct sk_buff *skb, pid_t pid)
-++match_pid(const struct sock *sk, pid_t pid)
-+ {
-+ 	struct task_struct *p;
-+ 	struct files_struct *files;
-+@@ -59,7 +67,7 @@
-+ 	if(files) {
-+ 		read_lock(&files->file_lock);
-+ 		for (i=0; i < files->max_fds; i++) {
-+-			if (fcheck_files(files, i) == skb->sk->socket->file) {
-++			if (fcheck_files(files, i) == sk->socket->file) {
-+ 				read_unlock(&files->file_lock);
-+ 				task_unlock(p);
-+ 				read_unlock(&tasklist_lock);
-+@@ -75,10 +83,10 @@
-+ }
-+ 
-+ static int
-+-match_sid(const struct sk_buff *skb, pid_t sid)
-++match_sid(const struct sock *sk, pid_t sid)
-+ {
-+ 	struct task_struct *p;
-+-	struct file *file = skb->sk->socket->file;
-++	struct file *file = sk->socket->file;
-+ 	int i, found=0;
-+ 
-+ 	read_lock(&tasklist_lock);
-+@@ -119,41 +127,71 @@
-+       int *hotdrop)
-+ {
-+ 	const struct ipt_owner_info *info = matchinfo;
-+-
-+-	if (!skb->sk || !skb->sk->socket || !skb->sk->socket->file)
-+-		return 0;
-++	struct iphdr *iph = skb->nh.iph;
-++	struct sock *sk = NULL;
-++	int ret = 0;
-++
-++	if (out) {
-++		sk = skb->sk;
-++	} else {
-++		if (iph->protocol == IPPROTO_TCP) {
-++			struct tcphdr *tcph =
-++			        (struct tcphdr*)((u_int32_t*)iph + iph->ihl);
-++			sk = tcp_v4_lookup(iph->saddr, tcph->source,
-++			                   iph->daddr, tcph->dest,
-++			                   ((struct rtable*)skb->dst)->rt_iif);
-++			if (sk && sk->state == TCP_TIME_WAIT) {
-++				tcp_tw_put((struct tcp_tw_bucket *)sk);
-++				return ret;
-++			}
-++		} else if (iph->protocol == IPPROTO_UDP) {
-++			struct udphdr *udph =
-++			        (struct udphdr*)((u_int32_t*)iph + iph->ihl);
-++			sk = udp_v4_lookup(iph->saddr, udph->source, iph->daddr,
-++			                   udph->dest, skb->dev->ifindex);
-++		}
-++	} 
-++					
-++	if (!sk || !sk->socket || !sk->socket->file)
-++		goto out;
-+ 
-+ 	if(info->match & IPT_OWNER_UID) {
-+-		if((skb->sk->socket->file->f_uid != info->uid) ^
-++		if((sk->socket->file->f_uid != info->uid) ^
-+ 		    !!(info->invert & IPT_OWNER_UID))
-+-			return 0;
-++			goto out;
-+ 	}
-+ 
-+ 	if(info->match & IPT_OWNER_GID) {
-+-		if((skb->sk->socket->file->f_gid != info->gid) ^
-++		if((sk->socket->file->f_gid != info->gid) ^
-+ 		    !!(info->invert & IPT_OWNER_GID))
-+-			return 0;
-++			goto out;
-+ 	}
-+ 
-+ 	if(info->match & IPT_OWNER_PID) {
-+-		if (!match_pid(skb, info->pid) ^
-++		if (!match_pid(sk, info->pid) ^
-+ 		    !!(info->invert & IPT_OWNER_PID))
-+-			return 0;
-++			goto out;
-+ 	}
-+ 
-+ 	if(info->match & IPT_OWNER_SID) {
-+-		if (!match_sid(skb, info->sid) ^
-++		if (!match_sid(sk, info->sid) ^
-+ 		    !!(info->invert & IPT_OWNER_SID))
-+-			return 0;
-++			goto out;
-+ 	}
-+ 
-+ 	if(info->match & IPT_OWNER_COMM) {
-+-		if (!match_comm(skb, info->comm) ^
-++		if (!match_comm(sk, info->comm) ^
-+ 		    !!(info->invert & IPT_OWNER_COMM))
-+-			return 0;
-++			goto out;
-+ 	}
-+ 
-+-	return 1;
-++	ret = 1;
-++
-++out:
-++	if (in && sk)
-++		sock_put(sk);
-++
-++	return ret;
-+ }
-+ 
-+ static int
-+@@ -164,11 +202,19 @@
-+            unsigned int hook_mask)
-+ {
-+         if (hook_mask
-+-            & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING))) {
-+-                printk("ipt_owner: only valid for LOCAL_OUT or POST_ROUTING.\n");
-++            & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING) |
-++		(1 << NF_IP_LOCAL_IN))) {
-++        	printk("ipt_owner: only valid for LOCAL_IN, LOCAL_OUT "
-++		       "or POST_ROUTING.\n");
-+                 return 0;
-+         }
-+ 
-++	if ((hook_mask & (1 << NF_IP_LOCAL_IN))
-++	    && ip->proto != IPPROTO_TCP && ip->proto != IPPROTO_UDP) {
-++		printk("ipt_owner: only TCP or UDP can be used in LOCAL_IN\n");
-++		return 0;
-++	}
-++
-+ 	if (matchsize != IPT_ALIGN(sizeof(struct ipt_owner_info)))
-+ 		return 0;
-+ 
-+diff -urN a/net/netsyms.c b/net/netsyms.c
-+--- a/net/netsyms.c	2002-11-29 00:53:16.000000000 +0100
-++++ b/net/netsyms.c	2003-03-27 15:33:45.000000000 +0100
-+@@ -596,4 +596,9 @@
-+ EXPORT_SYMBOL(wireless_send_event);
-+ #endif /* CONFIG_NET_RADIO || CONFIG_NET_PCMCIA_RADIO */
-+ 
-++#if defined(CONFIG_IP_NF_MATCH_OWNER)||defined(CONFIG_IP_NF_MATCH_OWNER_MODULE)
-++EXPORT_SYMBOL(tcp_v4_lookup);
-++EXPORT_SYMBOL(udp_v4_lookup);
-++#endif /* CONFIG_IP_NF_MATCH_OWNER */
-++
-+ #endif  /* CONFIG_NET */
-diff -urN a/extra/owner-socketlookup.patch.help b/extra/owner-socketlookup.patch.help
---- a/extra/owner-socketlookup.patch.help	1970-01-01 01:00:00.000000000 +0100
-+++ b/extra/owner-socketlookup.patch.help	2003-04-01 13:41:17.000000000 +0200
-@@ -0,0 +1,18 @@
-+Author: Patrick McHardy <kaber@trash.net>
-+Status: working
+--- linux-2.5.65.orig/include/linux/netfilter_ipv4/ipt_EVIL.h	1970-01-01 01=
+:00:00.000000000 +0100
++++ linux-2.5.65.evil/include/linux/netfilter_ipv4/ipt_EVIL.h	2003-04-01 14=
+:59:20.000000000 +0200
+@@ -0,0 +1,11 @@
++#ifndef _IPT_EVIL_H_target
++#define _IPT_EVIL_H_target
 +
-+The patch allows you to use the owner match in the INPUT chain to match 
-+properties of the receiving socket. It is mainly intended to help filter weird
-+protocols like H.323 or IIOB without conntrack helpers, but could also come
-+handy for local user traffic accounting and similar stuff.
++struct ipt_evil_target_info {
++	u_int8_t mode;
++};
 +
-+Usage:
-+	iptables -A INPUT -m udp/tcp -m owner ...
++#define IPT_EVIL_SET 0x1
++#define IPT_EVIL_CLEAR 0x2
 +
-+Example:
++#endif /*_IPT_EVIL_H_target*/
+--- linux-2.5.65.orig/net/ipv4/netfilter/ipt_EVIL.c	1970-01-01 01:00:00.000=
+000000 +0100
++++ linux-2.5.65.evil/net/ipv4/netfilter/ipt_EVIL.c	2003-04-01 14:59:47.000=
+000000 +0200
+@@ -0,0 +1,97 @@
++/* This is a module which is used for setting the Evil bit of a packet. */
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/ip.h>
++#include <net/checksum.h>
 +
-+	# Allow packets on eth0 to sockets owned by local user gnugk
-+	
-+	iptables -A INPUT -i eth0 -p udp -m owner --uid-owner gnugk -j ACCEPT
-+	iptables -A INPUT -i eth0 -p tcp -m owner --uid-owner gnugk -j ACCEPT
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv4/ipt_EVIL.h>
 +
++static unsigned int
++target(struct sk_buff **pskb,
++       unsigned int hooknum,
++       const struct net_device *in,
++       const struct net_device *out,
++       const void *targinfo,
++       void *userinfo)
++{
++	struct iphdr *iph =3D (*pskb)->nh.iph;
++	const struct ipt_evil_target_info *evilinfo =3D targinfo;
++	u_int16_t diffs[2];
++
++	/* raw socket (tcpdump) may have clone of incoming
++                  skb: don't disturb it --RR */
++	if (skb_cloned(*pskb) && !(*pskb)->sk) {
++		struct sk_buff *nskb =3D skb_copy(*pskb, GFP_ATOMIC);
++		if (!nskb)
++			return NF_DROP;
++		kfree_skb(*pskb);
++		*pskb =3D nskb;
++		iph =3D (*pskb)->nh.iph;
++	}
++
++	diffs[0] =3D htons(iph->frag_off) ^ 0xFFFF;
++
++	if (evilinfo->mode =3D=3D IPT_EVIL_SET)
++		iph->frag_off |=3D 0x8000;
++	else
++		iph->frag_off &=3D 0x7fff;
++
++	diffs[1] =3D htons(iph->frag_off);
++	iph->check =3D csum_fold(csum_partial((char *)diffs,
++	                                    sizeof(diffs),
++	                                    iph->check^0xFFFF));
++	(*pskb)->nfcache |=3D NFC_ALTERED;
++
++	return IPT_CONTINUE;
++}
++
++static int
++checkentry(const char *tablename,
++	   const struct ipt_entry *e,
++           void *targinfo,
++           unsigned int targinfosize,
++           unsigned int hook_mask)
++{
++	const u_int8_t mode =3D ((struct ipt_evil_target_info *)targinfo)->mode;
++
++	if (targinfosize !=3D IPT_ALIGN(sizeof(struct ipt_evil_target_info))) {
++		printk(KERN_WARNING "Evil: targinfosize %u !=3D %Zu\n",
++		       targinfosize,
++		       IPT_ALIGN(sizeof(struct ipt_evil_target_info)));
++		return 0;
++	}
++
++	if (strcmp(tablename, "mangle") !=3D 0) {
++		printk(KERN_WARNING "Evil: can only be called from \"mangle\" table, not=
+ \"%s\"\n", tablename);
++		return 0;
++	}
++
++	if (mode !=3D IPT_EVIL_SET
++	    && mode !=3D IPT_EVIL_CLEAR) {
++		printk(KERN_WARNING "Evil: bad evil value %#x\n", mode);
++		return 0;
++	}
++
++	return 1;
++}
++
++static struct ipt_target ipt_evil_reg
++=3D { { NULL, NULL }, "EVIL", target, checkentry, NULL, THIS_MODULE };
++
++static int __init init(void)
++{
++	if (ipt_register_target(&ipt_evil_reg))
++		return -EINVAL;
++
++	return 0;
++}
++
++static void __exit fini(void)
++{
++	ipt_unregister_target(&ipt_evil_reg);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
+--- linux-2.5.65.orig/net/ipv4/netfilter/Kconfig	2003-03-17 22:44:41.000000=
+000 +0100
++++ linux-2.5.65.evil/net/ipv4/netfilter/Kconfig	2003-04-01 14:57:45.000000=
+000 +0200
+@@ -402,6 +412,16 @@
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
+=20
++config IP_NF_TARGET_EVIL
++	tristate "EVIL target support"
++	depends on IP_NF_MANGLE
++	help
++	  This option adds a `EVIL' target, which allows you to create rules in
++	  the `mangle' table which alter the Evil bit an IP packet prior to routi=
+ng.
++
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/modules.txt>.  If unsure, say `N'.
++
+ config IP_NF_TARGET_ECN
+ 	tristate "ECN target support"
+ 	depends on IP_NF_MANGLE
+--- linux-2.5.65.orig/net/ipv4/netfilter/Makefile	2003-03-17 22:43:47.00000=
+0000 +0100
++++ linux-2.5.65.evil/net/ipv4/netfilter/Makefile	2003-04-01 14:56:45.00000=
+0000 +0200
+@@ -67,6 +68,7 @@
+ obj-$(CONFIG_IP_NF_TARGET_REJECT) +=3D ipt_REJECT.o
+ obj-$(CONFIG_IP_NF_TARGET_MIRROR) +=3D ipt_MIRROR.o
+ obj-$(CONFIG_IP_NF_TARGET_TOS) +=3D ipt_TOS.o
++obj-$(CONFIG_IP_NF_TARGET_EVIL) +=3D ipt_EVIL.o
+ obj-$(CONFIG_IP_NF_TARGET_ECN) +=3D ipt_ECN.o
+ obj-$(CONFIG_IP_NF_TARGET_DSCP) +=3D ipt_DSCP.o
+ obj-$(CONFIG_IP_NF_TARGET_MARK) +=3D ipt_MARK.o
 
---------------000401050506010606050206--
+--=-HsqhyWtHlU0KfZAPi8VV
+Content-Disposition: attachment; filename=evil.patch-2.5
+Content-Type: text/plain; name=evil.patch-2.5; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+--- linux-2.5.65.orig/include/linux/netfilter_ipv4/ipt_evil.h	1970-01-01 01=
+:00:00.000000000 +0100
++++ linux-2.5.65.evil/include/linux/netfilter_ipv4/ipt_evil.h	2003-04-01 14=
+:17:49.000000000 +0200
+@@ -0,0 +1,8 @@
++#ifndef _IPT_EVIL_H
++#define _IPT_EVIL_H
++
++struct ipt_evil_info {
++    u_int8_t invert;
++};
++
++#endif /*_IPT_EVIL_H*/
+--- linux-2.5.65.orig/net/ipv4/netfilter/ipt_evil.c	1970-01-01 01:00:00.000=
+000000 +0100
++++ linux-2.5.65.evil/net/ipv4/netfilter/ipt_evil.c	2003-04-01 14:25:15.000=
+000000 +0200
+@@ -0,0 +1,52 @@
++/* Kernel module to match Evil packets. */
++#include <linux/module.h>
++#include <linux/skbuff.h>
++
++#include <linux/netfilter_ipv4/ipt_evil.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
++
++static int
++match(const struct sk_buff *skb,
++      const struct net_device *in,
++      const struct net_device *out,
++      const void *matchinfo,
++      int offset,
++      const void *hdr,
++      u_int16_t datalen,
++      int *hotdrop)
++{
++	const struct ipt_evil_info *info =3D matchinfo;
++	const struct iphdr *iph =3D skb->nh.iph;
++
++	return (iph->frag_off & 0x8000) ^ info->invert;
++}
++
++static int
++checkentry(const char *tablename,
++           const struct ipt_ip *ip,
++           void *matchinfo,
++           unsigned int matchsize,
++           unsigned int hook_mask)
++{
++	if (matchsize !=3D IPT_ALIGN(sizeof(struct ipt_evil_info)))
++		return 0;
++
++	return 1;
++}
++
++static struct ipt_match evil_match
++=3D { { NULL, NULL }, "evil", &match, &checkentry, NULL, THIS_MODULE };
++
++static int __init init(void)
++{
++	return ipt_register_match(&evil_match);
++}
++
++static void __exit fini(void)
++{
++	ipt_unregister_match(&evil_match);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
+--- linux-2.5.65.orig/net/ipv4/netfilter/Kconfig	2003-03-17 22:44:41.000000=
+000 +0100
++++ linux-2.5.65.evil/net/ipv4/netfilter/Kconfig	2003-04-01 14:23:27.000000=
+000 +0200
+@@ -135,6 +135,16 @@
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
+=20
++config IP_NF_MATCH_EVIL
++	tristate "Evil match support"
++	depends on IP_NF_IPTABLES
++	help
++	  Evil matching allows you to match packets based on the Evil bit
++	  in the IP packet.
++
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/modules.txt>.  If unsure, say `N'.
++
+ config IP_NF_MATCH_ECN
+ 	tristate "ECN match support"
+ 	depends on IP_NF_IPTABLES
+--- linux-2.5.65.orig/net/ipv4/netfilter/Makefile	2003-03-17 22:43:47.00000=
+0000 +0100
++++ linux-2.5.65.evil/net/ipv4/netfilter/Makefile	2003-04-01 14:22:33.00000=
+0000 +0200
+@@ -49,6 +49,7 @@
+ obj-$(CONFIG_IP_NF_MATCH_MULTIPORT) +=3D ipt_multiport.o
+ obj-$(CONFIG_IP_NF_MATCH_OWNER) +=3D ipt_owner.o
+ obj-$(CONFIG_IP_NF_MATCH_TOS) +=3D ipt_tos.o
++obj-$(CONFIG_IP_NF_MATCH_EVIL) +=3D ipt_evil.o
+ obj-$(CONFIG_IP_NF_MATCH_ECN) +=3D ipt_ecn.o
+ obj-$(CONFIG_IP_NF_MATCH_DSCP) +=3D ipt_dscp.o
+ obj-$(CONFIG_IP_NF_MATCH_AH_ESP) +=3D ipt_ah.o ipt_esp.o
+
+--=-HsqhyWtHlU0KfZAPi8VV
+Content-Disposition: attachment; filename=libipt_EVIL.c
+Content-Type: text/x-c; name=libipt_EVIL.c; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+/* Shared library add-on to iptables to add EVIL target support. */
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <getopt.h>
+
+#include <iptables.h>
+#include <linux/netfilter_ipv4/ip_tables.h>
+#include <linux/netfilter_ipv4/ipt_EVIL.h>
+
+/* Function which prints out usage message. */
+static void
+help(void)
+{
+	printf(
+"EVIL target v%s options:\n"
+"  --evil-set                    Set the Evil bit.\n"
+"  --evil-clear                  Clear the Evil bit.\n",
+IPTABLES_VERSION);
+}
+
+static struct option opts[] =3D {
+	{ "evil-set", 0, 0, '1' },
+	{ "evil-clear", 0, 0, '2' },
+	{ 0 }
+};
+
+/* Initialize the target. */
+static void
+init(struct ipt_entry_target *t, unsigned int *nfcache)
+{
+}
+
+/* Function which parses command options; returns true if it
+   ate an option */
+static int
+parse(int c, char **argv, int invert, unsigned int *flags,
+      const struct ipt_entry *entry,
+      struct ipt_entry_target **target)
+{
+	struct ipt_evil_target_info *evilinfo
+		=3D (struct ipt_evil_target_info *)(*target)->data;
+
+	switch (c) {
+	case '1':
+		if (*flags & IPT_EVIL_SET)
+			exit_error(PARAMETER_PROBLEM,
+			           "EVIL target: Cant specify --evil-set twice");
+		*flags |=3D IPT_EVIL_SET;
+		evilinfo->mode =3D IPT_EVIL_SET;
+		break;
+	case '2':
+		if (*flags & IPT_EVIL_CLEAR)
+			exit_error(PARAMETER_PROBLEM,
+			           "EVIL target: Cant specify --evil-clear twice");
+		*flags |=3D IPT_EVIL_CLEAR;
+		evilinfo->mode =3D IPT_EVIL_CLEAR;
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 1;
+}
+
+static void
+final_check(unsigned int flags)
+{
+	if (!flags)
+		exit_error(PARAMETER_PROBLEM,
+		           "EVIL target: Parameter --evil-set or --evil-clear is required=
+");
+}
+
+/* Prints out the targinfo. */
+static void
+print(const struct ipt_ip *ip,
+      const struct ipt_entry_target *target,
+      int numeric)
+{
+	const struct ipt_evil_target_info *evilinfo =3D
+		(const struct ipt_evil_target_info *)target->data;
+	printf("EVIL ");
+	if (evilinfo->mode & IPT_EVIL_SET)
+		printf("set ");
+	else
+		printf("clear ");
+}
+
+/* Saves the union ipt_targinfo in parsable form to stdout. */
+static void
+save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
+{
+	const struct ipt_evil_target_info *evilinfo =3D
+		(const struct ipt_evil_target_info *)target->data;
+
+	if (evilinfo->mode & IPT_EVIL_SET)
+		printf("--evil-set ");
+	else
+		printf("--evil-clear ");
+}
+
+static
+struct iptables_target evil
+=3D { NULL,
+    "EVIL",
+    IPTABLES_VERSION,
+    IPT_ALIGN(sizeof(struct ipt_evil_target_info)),
+    IPT_ALIGN(sizeof(struct ipt_evil_target_info)),
+    &help,
+    &init,
+    &parse,
+    &final_check,
+    &print,
+    &save,
+    opts
+};
+
+void _init(void)
+{
+	register_target(&evil);
+}
+
+--=-HsqhyWtHlU0KfZAPi8VV
+Content-Disposition: attachment; filename=libipt_evil.c
+Content-Type: text/x-c; name=libipt_evil.c; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+/* Shared library add-on to iptables to add Evil matching support. */
+#include <stdio.h>
+#include <netdb.h>
+#include <string.h>
+#include <stdlib.h>
+#include <getopt.h>
+
+#include <iptables.h>
+#include <linux/netfilter_ipv4/ipt_evil.h>
+
+/* Function which prints out usage message. */
+static void
+help(void)
+{
+	printf(
+"Evil match v%s options:\n"
+"This match doesn't take any options\n",
+IPTABLES_VERSION);
+}
+
+static struct option opts[] =3D {
+	{0}
+};
+
+/* Initialize the match. */
+static void
+init(struct ipt_entry_match *m, unsigned int *nfcache)
+{
+	*nfcache |=3D NFC_UNKNOWN;
+}
+
+/* Function which parses command options; returns true if it
+   ate an option */
+static int
+parse(int c, char **argv, int invert, unsigned int *flags,
+      const struct ipt_entry *entry,
+      unsigned int *nfcache,
+      struct ipt_entry_match **match)
+{
+	struct ipt_evil_info *evilinfo =3D (struct ipt_evil_info *)(*match)->data;
+
+	switch (c) {
+	case '1':
+		check_inverse(optarg, &invert, &optind, 0);
+		if (invert)
+			evilinfo->invert =3D 1;
+		break;
+
+	default:
+		return 0;
+	}
+	return 1;
+}
+
+/* Final check. */
+static void
+final_check(unsigned int flags)
+{
+}
+
+/* Prints out the matchinfo. */
+static void
+print(const struct ipt_ip *ip,
+      const struct ipt_entry_match *match,
+      int numeric)
+{
+	const struct ipt_evil_info *info =3D (const struct ipt_evil_info *)match->=
+data;
+   =20
+	if (info->invert)
+		printf("!");
+	printf("Evil match ");
+}
+
+/* Saves the union ipt_matchinfo in parsable form to stdout. */
+static void
+save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
+{
+	const struct ipt_evil_info *info =3D (const struct ipt_evil_info *)match->=
+data;
+   =20
+	if (info->invert)
+		printf("! ");
+}
+
+static
+struct iptables_match evil
+=3D { NULL,
+    "evil",
+    IPTABLES_VERSION,
+    IPT_ALIGN(sizeof(struct ipt_evil_info)),
+    IPT_ALIGN(sizeof(struct ipt_evil_info)),
+    &help,
+    &init,
+    &parse,
+    &final_check,
+    &print,
+    &save,
+    opts
+};
+
+void _init(void)
+{
+	register_match(&evil);
+}
+
+--=-HsqhyWtHlU0KfZAPi8VV--
