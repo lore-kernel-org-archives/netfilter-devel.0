@@ -1,10 +1,10 @@
-From: "Krishna N. Ramachandran" <krishna@cs.ucsb.edu>
-Subject: new match for PIM
-Date: Sun, 9 Mar 2003 12:05:11 -0800 (PST)
+From: Greg Stark <gsstark@mit.edu>
+Subject: Handling a protocol through SNAT
+Date: 10 Mar 2003 12:16:56 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.21.0303091201140.23610-100000@ella>
+Message-ID: <87k7f7jg53.fsf@stark.dyndns.tv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,18 +17,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Developers, 
-    I am trying to create a new match module for PIM (protocol independant
-multicast), a protocol used for multicast tree creation. 
 
-    I am relatively new to the world of module development. I am running
-into problems with insmoding my new module ...
+I'm trying to get a protocol that doesn't deal well with NATS to work through
+an iptables Masq/SNAT. I've solved a number of small problems already in
+user-space but I think I'm stuck with two main problems that might require a
+kernel module.
 
-net/ipv4/netfilter/ipt_pim.o: unresolved symbol ipt_register_match
-net/ipv4/netfilter/ipt_pim.o: unresolved symbol ipt_unregister_match
+The next hurdle I'm facing is that one part of the protocol involves the
+servers sending a packet to the client on a port the client is listening on.
+The client doesn't normally send anything from that port.
 
-I wonder if there is any documentation out there that gives the exact
-options to include for compiling a netfilter module.
+I've modified the client to send a packet from that port to each server on
+startup to tickle the SNAT. However that only seems to be working for the last
+server it contacts. It seems the SNAT is only looking at the local port not
+the remote ip address and port. I need to allow all the servers to reach the
+client.
 
-Thank you,
-Krishna
+This seems like a bug in iptables that it isn't considering every flow
+independently. Two remote ip addresses can contact the same port independently
+and should be treated as separate flows, not be bucketed together.
+
+Barring fixing this in iptables, how can I create a manual rule to forward all
+packets coming in on the port the client is listening on to the client
+regardless of which server it's being sent from? The next step would be to
+make a module that did that automatically, but a manual rule would make me
+happy for now.
+
+-- 
+greg
