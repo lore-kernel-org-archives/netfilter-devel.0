@@ -1,15 +1,11 @@
-From: Nguyen Dinh Nam <64vn@cardvn.net>
-Subject: Re: is this make sense: iptables -A PREROUTING -t nat -j SNAT --to
- 0.0.0.0
-Date: Wed, 23 Mar 2005 01:56:26 +0700
-Message-ID: <42406A5A.10003@cardvn.net>
-References: <42403008.9070006@cardvn.net>
-	<20050322145522.GA12927@roonstrasse.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: Robert Scott <rbscott@axentra.net>
+Subject: ipq_get_msgerr: No such file or directory
+Date: Tue, 22 Mar 2005 12:30:05 -0800
+Message-ID: <bfbae0cc011856c1dbdca5bedf862015@axentra.net>
+Mime-Version: 1.0 (Apple Message framework v619.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20050322145522.GA12927@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +17,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I use each -j SNAT for an interface because -j MASQUERADE doesn't work 
-well with multipath routes, and SNAT has better performance than MASQ.
+I am receiving this error code from ipq_get_msgerr.  The read is 
+successful, and returns a non-zero positive number, but when I call 
+ipq_message_type on the buffer used to read the packet, I get 
+NLMSG_ERROR, and then, when I call strerror( ipq_get_msgerr( buffer ))  
+where "buffer" is the second argument to ipq_read, I receive the error 
+message "No such file or directory".
 
-CONNMARK helps keeping packets of the same connection routed via a given 
-nexthop which is selected by the multipath route for the first (--state 
-NEW) packet, I wrote about it here:
-http://selab.edu.ms/twiki/bin/view/Networking/MultihomedLinuxNetworking
-it's a vital part of a multihomed internet gateway. With SNAT/MASQ 
-available in PREROUTING, CONNMARK is no long required, hence save a lot 
-of works and increase the performance.
+This has occurred on a Linux 2.6.8.1 kernel with version 1.2.9 of 
+iptables.  The box where this occurred is acting as a bridge, and this 
+started happening when the internet connection on one of its interfaces 
+went down for a few hours.
 
-Max Kellermann wrote:
+Any ideas as to why this may be happening?
 
-> Why don't you just use -j MASQUERADE if writing one rule per interface
-> is too much work for you?
->
-> I don't understand how CONNMARK helps with your "traditional method".
->
-> Max
->
+thanks,
+--robert
