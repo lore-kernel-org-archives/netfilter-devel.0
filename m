@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Minor modification of function dcc_parse in ip_conntrack_irc.c
-Date: Wed, 11 Aug 2004 15:29:01 +0200
+From: Max Kellermann <max@duempel.org>
+Subject: Deadlock in netfilter code (ftp-conntrack)
+Date: Wed, 11 Aug 2004 15:28:02 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <411A1F1D.7080804@trash.net>
-References: <1092170081.9955.12.camel@dana.go-nix.ca>
+Message-ID: <20040811132802.GA20963@swift.xantronnet.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Nix N. Nix" <nix@go-nix.ca>
-In-Reply-To: <1092170081.9955.12.camel@dana.go-nix.ca>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,31 +18,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Nix N. Nix wrote:
+Hi,
 
->Hi!
->
->The dcc_parse function in ip_conntrack_irc.c has a shortcoming:
->
->\1DCC <command> <param> <ip> <port> [<size>]\1\n
->
->...is the format of a DCC command (where <size> is optional).
->
->dcc_parse is responsible for finding the ip and port in this string.  It
->gets the string starting at <param>.  Unfortunately, so far, dcc_parse
->assumed that <param> does not contain any spaces.  Thus, the module
->failed to track connections implied by a string of the form
->
->\1DCC SEND "The Big Movie.avi" 10289477 1011 37546262\1\n
->
->I have remedied this problem by having it check whether there's a double
->quote and, if so, loop on to the corresponding closing double quote
->before resuming normal processing:
->  
->
-How do filenames which contain a quotation mark look ? I assume the 
-quotation
-marks is escaped ? We should also handle this case.
+I am currently hunting a deadlock bug in the netfilter code on severel
+of our servers. I will provide more information when I can analyze the
+next crash.
 
-Regards
-Patrick
+Two servers are crashing once a week since we upgraded to 2.6.7
+(2.4.22 before; 2.4.23+ seemed to have a similar problem, though I
+never debugged them). All servers are dual Xeon 2.6 GHz with 2 GB
+memory, CCISS controller. Hyperthreading is enabled, making 4 virtual
+CPUs. I used KDB remotely to debug (the Compaq boxes have a web
+interface with a really ugly applet for remote console access - I have
+no physical access to the servers).
+
+Today, all CPUs except one hung in ip_ct_refresh(), trying to get a
+write lock. The last CPU waited for a spinlock in ip_nat_ftp.c,
+function help(). Unfortunately, KDB crashed before I could find out
+more. On the previous crash, I was able to manually revive the server
+by resetting the spinlock directly in kernel memory with KDB twice.
+
+Is this a known bug in netfilter?
+
+I hope KDB will stay up a bit longer on the next crash, so I can
+locate the bug. You will hear from me again, hopefully with a patch
+file attached..
+
+Max
