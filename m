@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: why not  __MOD_DEC_USE_COUNT when we register match failer?
-Date: Wed, 21 Jan 2004 08:47:19 -0500
+Subject: Re: IP Options with libipq
+Date: Wed, 21 Jan 2004 08:44:11 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040121134719.GP8642@obroa-skai.de.gnumonks.org>
-References: <20040113041248.GA24062@lepton.goldenhope.com.cn>
+Message-ID: <20040121134410.GO8642@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.44.0401171737300.10400-100000@filer.marasystems.com> <40093097.7010902@plobe.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aZoGpuMECXJckB41"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="2hMgfIw2X+zgXrFs"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: lepton <lepton@sina.com>
+To: XiChimos <xichimos@plobe.com>
 Content-Disposition: inline
-In-Reply-To: <20040113041248.GA24062@lepton.goldenhope.com.cn>
+In-Reply-To: <40093097.7010902@plobe.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,31 +23,24 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---aZoGpuMECXJckB41
+--2hMgfIw2X+zgXrFs
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 13, 2004 at 12:12:48PM +0800, lepton wrote:
-> in ipt_state.c (and ipt_helper.c)
->=20
-> There is such code in init funciton
-> -------------------------------------------
-> /* NULL if ip_conntrack not a module */
-> if (ip_conntrack_module)
-> __MOD_INC_USE_COUNT(ip_conntrack_module);
-> return
-> 	ipt_register_match(&state_match);
-> -------------------------------------------=09
->=20
-> I think if ipt_register_match failed for some reason, the use count of
-> ip_conntrack_module will increase. Is it not a bug?
+On Sat, Jan 17, 2004 at 07:54:47AM -0500, XiChimos wrote:
+> I hate to repost, but I still need help.  I need to use libipq to add=20
+> and remove an IP option defined by me.  I am working from the sample in=
+=20
+> the man page and also samples from the CVS tools folder.  Does anyone=20
+> have *any* idea how to do this?
 
-yes, I agree.
+where's the exact problem?  You get the packet via
+ipq_read()/ipq_get_packet(), then modify it according to your needs, and
+send it back via ipq_set_verdict(handle, id, NF_ACCEPT, new_len,
+buffer).
 
-> I thinks perhaps we should use such code:
-
-Would you mind preparing a patch for those fixes?
+> Chris
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -59,7 +52,7 @@ Would you mind preparing a patch for those fixes?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---aZoGpuMECXJckB41
+--2hMgfIw2X+zgXrFs
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -67,9 +60,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFADoLnXaXGVTD0i/8RApgFAJ4wrQrfTwJ/CCtpqSvv5AjlHQyH8gCdHwA1
-hGIBrG/K5eMyHv7koBKu2Jk=
-=Hn6t
+iD8DBQFADoIqXaXGVTD0i/8RAlpoAJwLktCnP+Md6Z3/X2VmNBvTJuR+lgCgprvf
+ET+iKbhXpeaLNIfCYCNZVh4=
+=Al3K
 -----END PGP SIGNATURE-----
 
---aZoGpuMECXJckB41--
+--2hMgfIw2X+zgXrFs--
