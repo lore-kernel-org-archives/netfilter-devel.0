@@ -1,17 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Prevent crash on ip_conntrack removal
-Date: Sat, 21 Aug 2004 17:10:20 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Use of Kernel Headers
+Date: Sat, 21 Aug 2004 17:13:55 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <412765DC.30600@trash.net>
-References: <20040818091352.GB6507@suse.de>	<20040819101159.GC3921@sunbeam.de.gnumonks.org>	<20040819071846.2d0d6120.davem@redhat.com>	<4124BF7E.7090304@trash.net> <20040819081428.5243e314.davem@redhat.com>
+Message-ID: <Pine.LNX.4.61.0408211708260.19071@filer.marasystems.com>
+References: <4122743A.7020309@jg555.com> <Pine.LNX.4.61.0408180123380.7879@filer.marasystems.com>
+ <Pine.LNX.4.58.0408182356030.5432@blackhole.kfki.hu> <4126F018.207@jg555.com>
+ <Pine.LNX.4.61.0408211114310.16646@filer.marasystems.com>
+ <876ef97a0408210753109a2fc4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, okir@suse.de, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Jim Gifford <maillist@jg555.com>,
+   Netfilter Developer <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-In-Reply-To: <20040819081428.5243e314.davem@redhat.com>
+To: Tobias DiPasquale <codeslinger@gmail.com>
+In-Reply-To: <876ef97a0408210753109a2fc4@mail.gmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,18 +24,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
+On Sat, 21 Aug 2004, Tobias DiPasquale wrote:
 
->I have a better idea.
->
->Instead of setting skb->dst to NULL, it should set it to some
->NULL destination entry which just frees up the packets.  Then
->no special case handling.  skb->dst==NULL packets should never
->get into the fragment queue to begin with.
->
-The problem is that conntrack unload can cause packets without a
-dst_entry to appear in ip_local_deliver, which is already after
-the call to dst_input.
+> Perhaps a special macro could be used to demarcate the sections of
+> kernel headers that are for userspace use (opposite of what __KERNEL__
+> does now).
+
+#ifndef __KERNEL__
+
+works well for this purpose.
+
+How the system user headers are composed is of no concern to iptables. 
+What iptables need to worry about to solve this issue is to supply it's 
+own required headers defining the current iptables kernel interface the 
+iptables commands should use, allowing the userspace commands to be built 
+without the kernel source.
 
 Regards
-Patrick
+Henrik
