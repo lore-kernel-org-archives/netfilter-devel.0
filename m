@@ -1,21 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: IPtables performance (fwd)
-Date: Sun, 4 May 2003 03:09:27 +0200
+From: =?iso-8859-1?q?graham=20g?= <grinna369@yahoo.com.au>
+Subject: Re: COPS Backend
+Date: Mon, 5 May 2003 00:23:30 +1000 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030504010927.GN29373@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0305031129230.8273-100000@localhost> <Pine.LNX.4.33.0305031750040.8241-100000@fantomas.insite.com.br>
+Message-ID: <20030504142330.29152.qmail@web13305.mail.yahoo.com>
+References: <20030427123509.GU990@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UFMLoheMaWcIEZAi"
-Cc: Chris Wilson <chris@netservers.co.uk>,
-	"netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>,
-	Robert Olsson <robban@robtex.com>,
-	John McEleney <john@netservers.co.uk>,
-	Ben McKeegan <ben@netservers.co.uk>
+Content-Type: multipart/alternative; boundary="0-852154147-1052058210=:25575"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andre Uratsuka Manoel <andre@insite.com.br>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0305031750040.8241-100000@fantomas.insite.com.br>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20030427123509.GU990@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -26,58 +20,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+--0-852154147-1052058210=:25575
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
---UFMLoheMaWcIEZAi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 03, 2003 at 07:39:46PM -0300, Andre Uratsuka Manoel wrote:
-> 	Be my guest to implement it. I thought of doing it myself, but I'm
-> still looking around and trying to understand all those structures and
-> pointers and I am still trying to find my way around.
+Not directly related to iptables/netfilter as such, but I am currently working on an implementation of the COPS and COPS-PR protocol stack in Java. The idea is that you can use a Policy Based Management tool to define global network security policies. These policies are then distributed to various firewall devices with COPS-PR, where the policies are enforced. Of course, the system could also ship out policies to other network devices, such as COPS enabled routers, IPsec gateways etc.Im working with Linux boxes at the moment and am working on a very simple proto-type that simply calls the iptables user space tool to add / delete firewall rules when policies are shipped to the device. Anyway suggestions, comments or ideas from anyone would be much appreciated . Development is still in the extreme early stages.  
+Harald Welte <laforge@netfilter.org> wrote:On Wed, Apr 16, 2003 at 11:55:39AM +1000, graham g wrote:
+> 
+> Hello
+> Has anyone looked into developing a COPS interface for iptables as a
+> means of remote configuration of multiple distributed firewalls ? 
 
-yes, the iptables structure is fairly complex :(
+not that the netfilter core team is aware of. 
 
-> 	Anyway, I was wondering, there is a variation that I think would
-> be more efficient, and would avoid traversing the trees again for every
-> hook.
->=20
-> 	What is new is a stack of chains, initially empty, and you change
-> the traversal slightly to put chains on the stack.
+If you are planning to implement something into this direction, please
+feel free to discuss it on this mailinglist.
 
-I don't like this idea, exactly because of the recursion problem.
-The linux kernel has a very small stack (IIRC 8k on x86), and we really
-don't want to introduce any limitations on the chain depth inside a
-ruleset.
+-- 
+- Harald Welte http://www.netfilter.org/
+============================================================================
+"Fragmentation is like classful addressing -- an interesting early
+architectural error that shows how much experimentation was going
+on while IP was being designed." -- Paul Vixie
+> ATTACHMENT part 2 application/pgp-signature 
 
-I will try to have an optimized version (similar to what you've been
-proposing in your last mails) by tomorrow.
 
-> 	Regards,
-> 	Andre
+---------------------------------
+Yahoo! Mobile
+- Check & compose your email via SMS on your Telstra or Vodafone mobile.
+--0-852154147-1052058210=:25575
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---UFMLoheMaWcIEZAi
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+tGhGXaXGVTD0i/8RAo48AKCofVKzT6LleTFBRdFxb2PxngxfWwCeIf9h
-4Uhq15yQdfcOgDjYJbgeiCo=
-=w6ui
------END PGP SIGNATURE-----
-
---UFMLoheMaWcIEZAi--
+<DIV><BR>Not directly related to iptables/netfilter as such, but I am currently working on an implementation of the COPS and COPS-PR protocol stack in Java. The idea is that you can use a Policy Based Management tool to define global network security policies. These policies are then distributed to various firewall devices with COPS-PR, where the policies are enforced. Of course, the system could also ship out policies to other network devices, such as COPS enabled routers, IPsec gateways etc.Im working with Linux boxes at the moment and am working on a very simple proto-type that simply calls the iptables user space tool to add / delete firewall rules when policies are shipped to the device. Anyway suggestions, comments&nbsp;or ideas from anyone would be much appreciated . Development is still in the extreme early stages.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV>
+<DIV><BR><B><I>Harald Welte &lt;laforge@netfilter.org&gt;</I></B> wrote:</DIV>
+<BLOCKQUOTE style="PADDING-LEFT: 5px; MARGIN-LEFT: 5px; BORDER-LEFT: #1010ff 2px solid">On Wed, Apr 16, 2003 at 11:55:39AM +1000, graham g wrote:<BR>&gt; <BR>&gt; Hello<BR>&gt; Has anyone looked into developing a COPS interface for iptables as a<BR>&gt; means of remote configuration of multiple distributed firewalls ? <BR><BR>not that the netfilter core team is aware of. <BR><BR>If you are planning to implement something into this direction, please<BR>feel free to discuss it on this mailinglist.<BR><BR>-- <BR>- Harald Welte <LAFORGE@NETFILTER.ORG>http://www.netfilter.org/<BR>============================================================================<BR>"Fragmentation is like classful addressing -- an interesting early<BR>architectural error that shows how much experimentation was going<BR>on while IP was being designed." -- Paul Vixie<BR>&gt; ATTACHMENT part 2 application/pgp-signature </BLOCKQUOTE><p><br><hr size=1>
+<a href="http://au.rd.yahoo.com/mail/tagline/?http://au.mobile.yahoo.com/sms/mail/index.html" target=_blank><b>Yahoo! Mobile</b></a><br>
+- Check & compose your email via SMS on your Telstra or Vodafone mobile.
+--0-852154147-1052058210=:25575--
