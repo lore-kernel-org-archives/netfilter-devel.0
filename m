@@ -1,16 +1,16 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: Preroute selection order
-Date: Mon, 17 Feb 2003 09:58:15 +0100
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [RFC]: ip_conntrack breaks UDP PMTU (Patrick McHardy)
+Date: Mon, 17 Feb 2003 10:14:27 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030217085815.GG7631@oknodo.bof.de>
-References: <003901c2d0b3$f9fce8a0$2601010a@bluereef.local>
+Message-ID: <Pine.LNX.4.33.0302170954580.5567-100000@blackhole.kfki.hu>
+References: <20030216200158.GB29764@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Don Cohen <don-netf@isis.cs3-inc.com>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Andrew.hall" <temp02@bluereef.com.au>
-Content-Disposition: inline
-In-Reply-To: <003901c2d0b3$f9fce8a0$2601010a@bluereef.local>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030216200158.GB29764@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,34 +21,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Sun, 16 Feb 2003, Harald Welte wrote:
 
-> When writing (for example) a new table, can someone please tell me how
-> netfilter orders the tables that register to listen on a particular hook
-> such as PREROUTE? I assume that there is a defined pecking order to which
-> tables get accessed first?
+> On Sat, Feb 15, 2003 at 05:43:55PM -0800, Don Cohen wrote:
+> > I'm also more than a little confused.
+> > My understanding is that the UDP user can't receive fragments, just a
+> > defragmented "datagram", from which he can't tell whether or how it
+> > was fragmented.  Is this correct?
+>
+> yes, at least as long as we are talking about a user using the standard
+> socket API and the UDP/IP stack - not talking about raw socktets.
 
-When writing a new table, you will eventually call nf_register_hook()
-with a 'struct nf_hook_ops' that you populate. One of the fields of
-that struct is called X, and if you grep for 'nf_hook_ops' in the
-existing table implementations, you will find that this field is
-usually initialized by a macro starting with NF_IP_PRI_*.
-Finally, grepping for those macros, you will find an include
-file with all the real values.
+We may re-fragment the packets as we wish if we don't break PMTU.
+I don't think the actual fragments have importance even for the users
+listening to a raw socket.
 
-The hook functions are called in priority order, from numerically
-lowest to numerically highest.
+> >  > What about storing the biggest fragment size of a packet at
+> >  > defragmentation and refragmenting the packet with that size at
+> >  > POST_ROUTING if MTU is not smaller.
+> > So at this point I gather the goal is the other side of the
+> > robustness principle - trying to make something work that probably
+> > shouldn't have been tried to begin with.  Are there lots of other
+> > things out there that play the same (questionable?) tricks?
+>
+> if you want to do stateful IP filtering with _transparent_ fragment
+> behaviour, I see two possible options:
+>
+> 1) hold back all individual fragments, once you receive them. once you
+> have all fragments, defragment to an internal buffer, but keep the
+> fragments.  using the defragmented copy you can consult your ruleset and
+> then forward all fragments in case the packet is allowed to pass.
+>
+> 2) do what I have been proposing: defragment, save the fragment
+> sizes/offsets and re-fragment in exactly the same way.
 
-best regards
-  Patrick
+Maybe I'm blind but why should we re-fragment exaclty with the same way?
+The receiver doesn't care about it. What we should ensure is that if a
+fragment is bigger than the MTU we may send and it's flagged with DF,
+then the whole defragmented packet should be discarded and an ICMP error
+should be sent back.
 
-bof@cdr:~/src/linux-2.5-current$ find . -name '*.c' | xargs grep -l NF_IP_PRI
-./net/bridge/br_netfilter.c
-./net/ipv4/netfilter/ip_conntrack_standalone.c
-./net/ipv4/netfilter/ip_fw_compat.c
-./net/ipv4/netfilter/ip_nat_standalone.c
-./net/ipv4/netfilter/iptable_filter.c
-./net/ipv4/netfilter/iptable_mangle.c
-./net/sched/sch_ingress.c
-bof@cdr:~/src/linux-2.5-current$ find . -name '*.h' | xargs grep -l NF_IP_PRI
-./include/linux/netfilter_ipv4.h
+The ICMP error sent back is tricky. What should we send back: the
+offending fragment? Or header of the defragmented packet with the
+size of the too big fragment as packet length would be just fine?
+
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
