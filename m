@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] LOCAL_OUT Nat fix, part 2
-Date: Thu, 2 Oct 2003 18:18:36 +0200
+Subject: [PATCH 2.4] cosmetic ipt_unclean update
+Date: Thu, 2 Oct 2003 16:43:00 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031002161836.GR5758@sunbeam.de.gnumonks.org>
+Message-ID: <20031002144300.GH5758@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rMTo2AP+XrZXQCI6"
+	protocol="application/pgp-signature"; boundary="ccWoVK0blSAgmhl2"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,27 +21,26 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---rMTo2AP+XrZXQCI6
-Content-Type: multipart/mixed; boundary="XAxdu+gdzyY/jMFv"
+--ccWoVK0blSAgmhl2
+Content-Type: multipart/mixed; boundary="BstnvG52tZMVQOpr"
 Content-Disposition: inline
 
 
---XAxdu+gdzyY/jMFv
+--BstnvG52tZMVQOpr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Davem!
 
-Please apply the following patch to your 2.6 tree, thanks.
+Please apply the following patchto your 2.4 tree and push it to Marcelo.
+Thanks.
 
 
-Author: Rusty Russell / Harald Welte
-Status: Pending for kernel inclusion
+Author: Patrick McHardy <kaber@trash.net>
 
-D: Balazs Scheidler pointed out that we can fail to call ip_nat_setup_info
-D: for local NAT, which causes the connection to be added twice. Boom.
-D: Also move the hash table insertion into ip_nat_setup_info.
+Use a pre-built table for TCP flag checks instead of individual 'if'
+statemens in ipt_unclean.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -53,146 +52,88 @@ D: Also move the hash table insertion into ip_nat_setup_info.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---XAxdu+gdzyY/jMFv
+--BstnvG52tZMVQOpr
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="84_local-nullbinding.patch"
+Content-Disposition: attachment; filename="55_ipt_unclean-tcp-flag-table.patch"
 Content-Transfer-Encoding: quoted-printable
 
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test6-localnat/include/=
-linux/netfilter_ipv4/ip_nat_rule.h linux-2.6.0-test6-localnat2/include/linu=
-x/netfilter_ipv4/ip_nat_rule.h
---- linux-2.6.0-test6-localnat/include/linux/netfilter_ipv4/ip_nat_rule.h	2=
-003-09-28 02:51:00.000000000 +0200
-+++ linux-2.6.0-test6-localnat2/include/linux/netfilter_ipv4/ip_nat_rule.h	=
-2003-10-02 18:29:05.000000000 +0200
-@@ -14,5 +14,10 @@
- 			    const struct net_device *out,
- 			    struct ip_conntrack *ct,
- 			    struct ip_nat_info *info);
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1214  -> 1.1215=20
+#	net/ipv4/netfilter/ipt_unclean.c	1.8     -> 1.9   =20
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/07/12	kaber@trash.net		1.1215
+# [NETFILTER]: Use pre-built table for TCP flag-check in ipt_unclean.
+# --------------------------------------------
+#
+diff -Nru a/net/ipv4/netfilter/ipt_unclean.c b/net/ipv4/netfilter/ipt_uncle=
+an.c
+--- a/net/ipv4/netfilter/ipt_unclean.c	Sat Jul 12 05:40:25 2003
++++ b/net/ipv4/netfilter/ipt_unclean.c	Sat Jul 12 05:40:25 2003
+@@ -259,6 +259,24 @@
+ #define	TH_ECE	0x40
+ #define	TH_CWR	0x80
+=20
++/* table of valid flag combinations - ECE and CWR are always valid */
++static u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1=
+] =3D
++{
++	[TH_SYN]			=3D 1,
++	[TH_SYN|TH_ACK]			=3D 1,
++	[TH_RST]			=3D 1,
++	[TH_RST|TH_ACK]			=3D 1,
++	[TH_RST|TH_ACK|TH_PUSH]		=3D 1,
++	[TH_FIN|TH_ACK]			=3D 1,
++	[TH_ACK]			=3D 1,
++	[TH_ACK|TH_PUSH]		=3D 1,
++	[TH_ACK|TH_URG]			=3D 1,
++	[TH_ACK|TH_URG|TH_PUSH]		=3D 1,
++	[TH_FIN|TH_ACK|TH_PUSH]		=3D 1,
++	[TH_FIN|TH_ACK|TH_URG]		=3D 1,
++	[TH_FIN|TH_ACK|TH_URG|TH_PUSH]	=3D 1
++};
 +
-+extern unsigned int
-+alloc_null_binding(struct ip_conntrack *conntrack,
-+		   struct ip_nat_info *info,
-+		   unsigned int hooknum);
- #endif
- #endif /* _IP_NAT_RULE_H */
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test6-localnat/net/ipv4=
-/netfilter/ip_nat_core.c linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_=
-nat_core.c
---- linux-2.6.0-test6-localnat/net/ipv4/netfilter/ip_nat_core.c	2003-10-02 =
-18:24:44.000000000 +0200
-+++ linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_nat_core.c	2003-10-02=
- 18:29:05.000000000 +0200
-@@ -516,12 +516,14 @@
- 	struct ip_conntrack_tuple new_tuple, inv_tuple, reply;
- 	struct ip_conntrack_tuple orig_tp;
- 	struct ip_nat_info *info =3D &conntrack->nat.info;
-+	int in_hashes =3D info->initialized;
+ /* TCP-specific checks. */
+ static int
+ check_tcp(const struct iphdr *iph,
+@@ -330,19 +348,7 @@
 =20
- 	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
- 	IP_NF_ASSERT(hooknum =3D=3D NF_IP_PRE_ROUTING
- 		     || hooknum =3D=3D NF_IP_POST_ROUTING
- 		     || hooknum =3D=3D NF_IP_LOCAL_OUT);
- 	IP_NF_ASSERT(info->num_manips < IP_NAT_MAX_MANIPS);
-+	IP_NF_ASSERT(!(info->initialized & (1 << HOOK2MANIP(hooknum))));
-=20
- 	/* What we've got will look like inverse of reply. Normally
- 	   this is what is in the conntrack, except for prior
-@@ -638,6 +640,14 @@
-=20
- 	/* It's done. */
- 	info->initialized |=3D (1 << HOOK2MANIP(hooknum));
-+
-+	if (in_hashes) {
-+		IP_NF_ASSERT(info->bysource.conntrack);
-+		replace_in_hashes(conntrack, info);
-+	} else {
-+		place_in_hashes(conntrack, info);
-+	}
-+
- 	return NF_ACCEPT;
- }
-=20
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test6-localnat/net/ipv4=
-/netfilter/ip_nat_rule.c linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_=
-nat_rule.c
---- linux-2.6.0-test6-localnat/net/ipv4/netfilter/ip_nat_rule.c	2003-09-28 =
-02:50:16.000000000 +0200
-+++ linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_nat_rule.c	2003-10-02=
- 18:29:05.000000000 +0200
-@@ -233,7 +233,7 @@
- 	return 1;
- }
-=20
--static inline unsigned int
-+inline unsigned int
- alloc_null_binding(struct ip_conntrack *conntrack,
- 		   struct ip_nat_info *info,
- 		   unsigned int hooknum)
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test6-localnat/net/ipv4=
-/netfilter/ip_nat_standalone.c linux-2.6.0-test6-localnat2/net/ipv4/netfilt=
-er/ip_nat_standalone.c
---- linux-2.6.0-test6-localnat/net/ipv4/netfilter/ip_nat_standalone.c	2003-=
-10-02 18:26:02.000000000 +0200
-+++ linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_nat_standalone.c	2003=
--10-02 18:29:05.000000000 +0200
-@@ -119,7 +119,6 @@
- 		/* Seen it before?  This can happen for loopback, retrans,
- 		   or local packets.. */
- 		if (!(info->initialized & (1 << maniptype))) {
--			int in_hashes =3D info->initialized;
- 			unsigned int ret;
-=20
- 			if (ct->master
-@@ -130,9 +129,10 @@
- 			} else {
- #ifdef CONFIG_IP_NF_NAT_LOCAL
- 				/* LOCAL_IN hook doesn't have a chain!  */
--				if (hooknum =3D=3D NF_IP_LOCAL_IN) {
--					ret =3D NF_ACCEPT;
--				} else
-+				if (hooknum =3D=3D NF_IP_LOCAL_IN)
-+					ret =3D alloc_null_binding(ct, info,
-+								 hooknum);
-+				else
- #endif
- 				ret =3D ip_nat_rule_find(pskb, hooknum, in, out,
- 						       ct, info);
-@@ -142,13 +142,6 @@
- 				WRITE_UNLOCK(&ip_nat_lock);
- 				return ret;
- 			}
--
--			if (in_hashes) {
--				IP_NF_ASSERT(info->bysource.conntrack);
--				replace_in_hashes(ct, info);
--			} else {
--				place_in_hashes(ct, info);
--			}
- 		} else
- 			DEBUGP("Already setup manip %s for ct %p\n",
- 			       maniptype =3D=3D IP_NAT_MANIP_SRC ? "SRC" : "DST",
+ 	/* CHECK: TCP flags. */
+ 	tcpflags =3D (((u_int8_t *)tcph)[13] & ~(TH_ECE|TH_CWR));
+-	if (tcpflags !=3D TH_SYN
+-	    && tcpflags !=3D (TH_SYN|TH_ACK)
+-		&& tcpflags !=3D TH_RST
+-	    && tcpflags !=3D (TH_RST|TH_ACK)
+-	    && tcpflags !=3D (TH_RST|TH_ACK|TH_PUSH)
+-	    && tcpflags !=3D (TH_FIN|TH_ACK)
+-	    && tcpflags !=3D TH_ACK
+-	    && tcpflags !=3D (TH_ACK|TH_PUSH)
+-	    && tcpflags !=3D (TH_ACK|TH_URG)
+-	    && tcpflags !=3D (TH_ACK|TH_URG|TH_PUSH)
+-	    && tcpflags !=3D (TH_FIN|TH_ACK|TH_PUSH)
+-	    && tcpflags !=3D (TH_FIN|TH_ACK|TH_URG)
+-	    && tcpflags !=3D (TH_FIN|TH_ACK|TH_URG|TH_PUSH)) {
++	if (!tcp_valid_flags[tcpflags]) {
+ 		limpk("TCP flags bad: %u\n", tcpflags);
+ 		return 0;
+ 	}
 
---XAxdu+gdzyY/jMFv--
+--BstnvG52tZMVQOpr--
 
---rMTo2AP+XrZXQCI6
+--ccWoVK0blSAgmhl2
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/fE/cXaXGVTD0i/8RAk4yAJ98FKXJc6MiptqjPRGqJNE0LLULhACeKDNn
-m9uZPoFKEsGzUr5M+oVuMNw=
-=5bSb
+iD8DBQE/fDl0XaXGVTD0i/8RAtYiAJ4i7EftvtVhvTbM6zMwYP1hOxXS5wCfboYB
+Vy5TUO3e0k5gMdN5p0ueKVM=
+=4DqM
 -----END PGP SIGNATURE-----
 
---rMTo2AP+XrZXQCI6--
+--ccWoVK0blSAgmhl2--
