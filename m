@@ -1,16 +1,14 @@
-From: Iain Barnes <zenadsl3030@zen.co.uk>
-Subject: Re: FYI: QUEUE & ipqmpd bugs
-Date: 05 Jul 2002 23:27:15 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: TCP tracking states
+Date: Sat, 6 Jul 2002 00:38:59 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1025908035.1335.1.camel@desktop>
-References: <003301c2242d$7fca2e40$0689cb8a@etbx180>
-	  <20020705191526.GS21280@naboo.ists.dartmouth.edu>
+Message-ID: <200207060038.59577@henrik.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-In-Reply-To: <20020705191526.GS21280@naboo.ists.dartmouth.edu>
+To: netfilter-devel <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,53 +19,35 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2002-07-05 at 20:15, Harald Welte wrote:
-> On Fri, Jul 05, 2002 at 04:08:54PM +0200, Jean-Michel Hemstedt wrote:
-> > FYI,
-> > 
-> > I upgraded to iptables-1.2.6a (user & kernel-2.4.18 patches)
-> > and got the following (maybe known) problems:
-> > 
-> > - QUEUE target is NOK with kernel compiled with CONFIG_IP_NF_QUEUE=m
-> >   => the packets are queued, but ipq_create_handle() returns 
-> >      "can't create netlink socket"
-> >      "ERROR: Unable to create netlink socket: Connection refused"
-> >     (problem with exported symbols?)
-> >   =>quick fix: compile kernel with CONFIG_IP_NF_QUEUE=y
-> 
-> I think james should be able to answer that.
-
-The problem is that the ip_queue module isn't loaded automagically
-when a program requires it. I have no idea if this can be fixed or not
-but the problem is known and can easily be corrected by simply
-
-insmod ip_queue
+The recent discussions and Oskar Andreassons work on a iptables 
+tutorial made me take a closer look into the TCP tracking states, and 
+I notices a couple of odd things that looks like they may be bugs..
 
 
-> 
-> > - ipqmpd-0.3: default verdict NF_ACCEPT is not applied when no
-> >   process has attached to it. In fact ipqmpd starts, but it seems
-> >   that it never receives any packet (in ipq_inp). When one process
-> >   attaches to it, with a mark different from the queued packet, then
-> >   the default NF_ACCEPT is applied correctly. When all processes have
-> >   detached from ipqmpd, the default NF_ACCEPT continues to be applied
-> >   correctly.
-> 
-> ever looked at the CVS repository? 
-> http://www.gnumonks.org/cgi-bin/cvsweb.cgi/ipqmpd/
-> 
-> None of that code has been touched since 22 months... I wrote ipqmpd for
-> fun, and nobody really seemed to use it.  Feel free to submit patches or
-> take over maintainership of ipqmpd :)
-> 
-> > kr,
-> > -jmhe-               He who expects nothing shall never be disappointed
-> 
-> -- 
-> Live long and prosper
-> - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-> ============================================================================
-> GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-> V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
--- 
-Iain Barnes <zenadsl3030@zen.co.uk>
+1. What is the use of LAST_ACK? From what I can tell this state can 
+only be reached if the connection is already in the LAST_ACK state..
+
+2. The support for half-closed connections is very poor, and differs a 
+lot depending on which side closed first.
+
+
+To deal with 2, may I propose that the following symmetric FIN state 
+machine is used instead of the odd assymetric one used today:
+
+
+ESTABLISHED / FIN  -> FIN_WAIT
+
+FIN_WAIT / ACK(R) -> CLOSE_WAIT
+
+CLOSE_WAIT / FIN(R) -> TIME_WAIT (or a new FIN_WAIT2 state)
+
+TIME_WAIT / ACK -> TIME_WAIT
+
+
+And for completeness
+
+FIN_WAIT / FIN(R) -> TIME_WAIT (or a new FIN_WAIT2 state)
+
+
+Regards
+Henrik
