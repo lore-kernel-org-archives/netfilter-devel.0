@@ -1,20 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's brain broke!)
-Date: Tue, 13 Jan 2004 12:54:28 +0100
+Subject: New netfilter/iptables homepage
+Date: Tue, 13 Jan 2004 15:28:56 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040113115428.GO20206@sunbeam.de.gnumonks.org>
-References: <4001F33A.9000802@trash.net> <20040112234710.1B13C2C0C4@lists.samba.org>
+Message-ID: <20040113142856.GR20206@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JfVplkuTfB13Rsg5"
-Cc: Patrick McHardy <kaber@trash.net>, kuznet@ms2.inr.ac.ru, fenio@o2.pl,
-	davem@redhat.com, linux-net@vger.kernel.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	boris@boris.ca, email@cs-ware.de, Jan.Schubert@GMX.li
+	protocol="application/pgp-signature"; boundary="h1wVxq8aeHrvhZJz"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <20040112234710.1B13C2C0C4@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -26,47 +22,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---JfVplkuTfB13Rsg5
+--h1wVxq8aeHrvhZJz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jan 12, 2004 at 03:30:14PM +1100, Rusty Russell wrote:
-> In message <4001F33A.9000802@trash.net> you write:
-> > Julian Anastasov wrote:
-> >=20
-> > >- provide oif learned from the input route (as before the discussed
-> > >change). May be in 99% of the setups it selects the right route.
-> > >I think, we should use this, at least for 2.4.
-> > >
-> > > =20
-> > >
-> > Why should we do a route lookup at all ? MASQUERADE doesn't need the
-> > dst_entry but only the interface address. Using ifa_list->ifa_local
-> > of the outgoing in_device seems like the simplest solution to me.
->=20
-> You take all the fun out.
->=20
-> Yes, this is the best.  It always does *something*, and is
-> predictable.  People with really complex routing shouldn't really use
-> MASQUERADE, since it's designed for a specific, simple case.
+Hi!
 
-No, I really disagree with that.  I still don't understand what the
-problem was with the old solution.  We haven't received any complaints,
-at least not that I can remember.
+I've just put the new (3rd incarnation) of the netfilter/iptables
+homepage online.=20
 
-And as long as we don't provide a more sophisticated MASQUERADE
-replacement target, we shouldn't change the behaviour at all.
+The changes shouldn't be too visible to the user, as everything is
+hidden behind the same layout as the old homepage. =20
 
-You cannot use SNAT for the dynamic IP address case, because it doesn't
-flush the tables.
+However, the whole page is now built from docbook-website XML, which
+should produce way cleaner results than our own cut+paste perlscript
+template system.
 
-And there are lots of users that have multiple DSL-dynip links these
-days, trying to statically or dynamically balance web requests between
-them, etc.
+The new homepage also features patch-o-matic-ng HTMLization.  pomlist
+has disappeared in favour of pom-ng.
 
-> Cheers,
-> Rusty.
+If you find any broken links, please report them to
+webmaster@netfilter.org, where I will take care of them.
+
+	- Harald Welte (netfilter core team)
+
+P.S.: Yes, I know... our XSLT's don't yet produce fully-compliant XHTML
+1.0.  If anybody is more keen with all this buzzword-compatible 'web
+technology' than I am - feel free to volunteer.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -78,7 +61,7 @@ them, etc.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---JfVplkuTfB13Rsg5
+--h1wVxq8aeHrvhZJz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -86,9 +69,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAA9x0XaXGVTD0i/8RAjpkAKCHm7gH3bde/0loYgHRYja3rOV9eACfV1I7
-2QXf+5Ra7qBgBYO7p1KzTEw=
-=x89B
+iD8DBQFABACoXaXGVTD0i/8RAoV9AJ0WseP5AjP0SS3cOawBLlLVAVBX7gCeJH4O
+D2/0klJS52wv7kioTWY+/+U=
+=3Dh4
 -----END PGP SIGNATURE-----
 
---JfVplkuTfB13Rsg5--
+--h1wVxq8aeHrvhZJz--
