@@ -1,8 +1,8 @@
 From: Ulises =?iso-8859-1?q?Cervi=F1o?= <ulisescervino@fullzero.com.ar>
-Subject: NAT-PT (again)
-Date: Sat, 19 Oct 2002 10:40:44 -0300
+Subject: NAT-PT
+Date: Sat, 19 Oct 2002 10:38:52 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E182txR-0006ro-00@kashyyyk.netfilter.org>
+Message-ID: <E182tvv-00066I-00@kashyyyk.netfilter.org>
 Reply-To: ulisescervino@fullzero.com.ar
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -20,10 +20,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry, I forgot to post the RFC number. It is 2766.
+Hello, 
 
-Ciao,
+This is my first post to this mailing list. I was reading RFC (which 
+describes NAT-PT) and I was wondering if anyone is working on this. I asking 
+this because I planning to do so, so I like to know if there was anything 
+already done.
+
+Best regards,
 -- 
-Cerviño Ulises <ulisescervino@fullzero.com.ar>
+Cerviño Ulises <ulisescervino@ciudad.com.ar>
 ----------------------------------------------------------------
 Dance is Life!
