@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: {PATCH]: fix expectation eviction order
-Date: Wed, 01 Oct 2003 05:00:16 +0200
+Date: Wed, 1 Oct 2003 09:38:45 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F7A4340.2010003@trash.net>
-References: <3F775469.6070107@trash.net> <20030930195427.GC734@obroa-skai.de.gnumonks.org>
+Message-ID: <20031001073845.GP5758@sunbeam.de.gnumonks.org>
+References: <3F775469.6070107@trash.net> <20030930195427.GC734@obroa-skai.de.gnumonks.org> <3F7A4340.2010003@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020002020109070803060200"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6bKodGeYF53agbop"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030930195427.GC734@obroa-skai.de.gnumonks.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3F7A4340.2010003@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,46 +22,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020002020109070803060200
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Harald Welte wrote:
+--6bKodGeYF53agbop
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->Committed to CVS now.
->
-Status: Pending for kernel inclusion, needs testing
+On Wed, Oct 01, 2003 at 05:00:16AM +0200, Patrick McHardy wrote:
+> Harald Welte wrote:
+>=20
+> >Committed to CVS now.
+> >
+> Status: Pending for kernel inclusion, needs testing
+>=20
+> I may have changed a bit too much for a simple bugfix, since I wanted
+> to be sure to keep correct behaviour in case of multiple manglings
+> to one packet I just deleted and rewrote it. At that occasion I changed
+> the lookup stuff to list_for_each_entry ;) This patch is a little less
+> intrusive, IIRC Martin is working on the list stuff anyways so maybe
+> it's more appropriate.
 
-I may have changed a bit too much for a simple bugfix, since I wanted
-to be sure to keep correct behaviour in case of multiple manglings
-to one packet I just deleted and rewrote it. At that occasion I changed
-the lookup stuff to list_for_each_entry ;) This patch is a little less
-intrusive, IIRC Martin is working on the list stuff anyways so maybe
-it's more appropriate.
+I'm fine with the original patch - however if Martin has clashing
+changes, he's free to update or revert your patch in CVS ;)
 
-Best regards,
-Patrick
+> Best regards,
+> Patrick
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
+--6bKodGeYF53agbop
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
---------------020002020109070803060200
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-===== net/ipv4/netfilter/ip_conntrack_core.c 1.26 vs edited =====
---- 1.26/net/ipv4/netfilter/ip_conntrack_core.c	Mon Aug 25 22:38:24 2003
-+++ edited/net/ipv4/netfilter/ip_conntrack_core.c	Wed Oct  1 04:46:05 2003
-@@ -997,7 +997,7 @@
- 		       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip));
-  
- 		/* choose the the oldest expectation to evict */
--		list_for_each(cur_item, &related_to->sibling_list) { 
-+		list_for_each_prev(cur_item, &related_to->sibling_list) { 
- 			struct ip_conntrack_expect *cur;
- 
- 			cur = list_entry(cur_item, 
+iD8DBQE/eoSEXaXGVTD0i/8RAuAfAJ45K+fkqYgXK5EEdppc0XNnITqc+wCggmgP
+JINoCN836C2i5Ifvc0Uh2VU=
+=najf
+-----END PGP SIGNATURE-----
 
---------------020002020109070803060200--
+--6bKodGeYF53agbop--
