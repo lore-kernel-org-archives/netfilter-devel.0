@@ -1,13 +1,15 @@
-From: Axel Thimm <Axel.Thimm@physik.fu-berlin.de>
-Subject: pom without rebuilding kernel?
-Date: Fri, 10 Oct 2003 15:45:25 +0200
+From: Polychronis Ypodimatopoulos <ypol@intracom.gr>
+Subject: IPv6 module vs Netfilter static
+Date: Thu, 9 Oct 2003 08:55:24 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031010134525.GB7985@puariko.nirvana>
+Message-ID: <200310090855.24134.ypol@intracom.gr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Description: clearsigned data
 Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -19,54 +21,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---IS0zKkzwUGydFO0o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Dear all
 
-I am thinking how nice it would be (or already is?) to build only the
-required kernel modules for a given kernel, without having to rebuild
-the kernel itself, like a lot of kernel drivers do (e.g. bttv, lirc,
-lm_sensors etc).
+There is a problem if you compile IPv6 as a module and the
+IPv6 netfilter options statically into the kernel. AFAICS they should depen=
+d=20
+on the IPv6 option and not be allowed to compile statically if IPv6 is a=20
+module. Otherwise, various depend errors occur.
 
-Imagine building only the kernel modules, putting them in a folder
-like
+Please cc me as I am no expert (or intermediate :) in netfilter development=
+=20
+and therefore not subscribed in this list.
 
-/lib/modules/`uname -r`/netfilter
+=2D --=20
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
+Polychronis Ypodimatopoulos MSc
+Software Engineer
+Defense Systems Development
+INTRACOM S.A.
+Markopoulo Ave, 190 02
+Peania
+Tel:   (+30)210-667 9067
+=46ax:   (+30)210-667 4634
+email: ypol at intracom dot gr
+http://www.intracom.gr
 
-adding the following to the top of /etc/modules.conf:
+=20
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-path[toplevel]=3D/lib/modules/`uname -r`/netfilter
-path[toplevel]=3D/lib/modules/`uname -r`
-
-and being happy ever after. :)
-
-E.g. are there changes in pom patches to the core of the kernel
-sources, or can pom modules be compiled out of the kernel tree?
-
-I suppose that for a certain kernel version and above no hooks/glue to
-the core non-modular networking components are required and therefore
-such a plan could be followed. But I found no hint in any docu to
-netfilter, not even a similar request.
-
-If there is way to do it, or a netfilter developer thinks it is worth
-the trouble, I'd rpm-package some modules for RH kernels. :)
-
-Thanks!
---=20
-Axel.Thimm@physik.fu-berlin.de
-
---IS0zKkzwUGydFO0o
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/hrf1QBVS1GOamfERAsSOAKCRMw11tLURMEjLzCz3w5eXfES1eACeOler
-IeICSk2BjgPlAujhqAIA3fU=
-=uQ/V
------END PGP SIGNATURE-----
-
---IS0zKkzwUGydFO0o--
+iD8DBQE/hPhMJ3lXivLkjBERAj2TAJ43rV1z+5Kwoy571b49flney436IQCffkj0
+3SXZYtLW1IjqapCN6y+3Jcc=3D
+=3DjnMq
+=2D----END PGP SIGNATURE-----
