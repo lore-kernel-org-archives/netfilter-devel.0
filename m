@@ -1,8 +1,8 @@
 From: Tim Burress <tim@variosecure.net>
-Subject: Handling Port-Unreachable Response to UDP
-Date: Mon, 28 Jul 2003 22:52:46 +0900
+Subject: Handling ICMP Port-Unreachable for UDP
+Date: Mon, 28 Jul 2003 23:03:35 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F252AAE.7000109@variosecure.net>
+Message-ID: <3F252D37.6050603@variosecure.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
