@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: how to release resource when rule is deleted {Virus Scanned}
-Date: Thu, 29 Apr 2004 20:03:48 +0200 (CEST)
+From: "Qiang" <qzhang@endeavorsystems.net>
+Subject: skb unknown? {Virus Scanned}
+Date: Thu, 29 Apr 2004 17:01:35 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404292002100.30100-100000@filer.marasystems.com>
-References: <200404291514.i3TFEIPW008962@localhost.localdomain>
+Message-ID: <200404292105.i3TL5ePW014312@localhost.localdomain>
+References: <Pine.LNX.4.44.0404292002100.30100-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Qiang <qzhang@endeavorsystems.net>
-In-Reply-To: <200404291514.i3TFEIPW008962@localhost.localdomain>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.44.0404292002100.30100-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,14 +21,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 29 Apr 2004, Qiang wrote:
 
-> If I have a match or target which will need to initialize some memory
-> resource at check_entry,   can I have a chance to release the resource when
-> the rule is deleted?
+I am trying to copy packets received in a netfilter module and forward it as
+IPIP packet to another destination IP address, am copying the SKB and then
+put it into NF_HOOK(local_out, ip_finish_output), although it can be sent
+out, but some bug report is coming out from the 2.6.4 kernel and it flooded
+the console! Like below
 
-matches and targets have a destroy function which can be used for this
-purpose.
+-----------------------------------------------
+Ip_finish_output: bad unowned skb= 
+Skb pf=2 (unowned) dev=eth0 len=72
+PROTO=4 192.168.0.187:0 192.168.0.129:0 L-72 S=0x00 I=1 J=0x4000 T=64
+BUG: dst underflow -9388: c04643c
+---------------------------------------
 
-Regards
-Henrik
+How can I solve this problem? Anything special in the skb operations?
+
+Urgent and Thank you very much!
