@@ -1,13 +1,16 @@
-From: Leon Bene <leon@benesconsulting.com>
-Subject: Looking for IPtables developers - Need help at core of
-  iptables (not configuration)
-Date: Tue, 27 Jul 2004 11:59:38 -0700
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] libip6t_HL.c bugfix similar to libipt_TTL.c
+Date: Wed, 28 Jul 2004 16:12:38 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.2.0.9.2.20040727115216.00aa0a30@pop.benesconsulting.com>
+Message-ID: <4107B456.90700@trash.net>
+References: <1727732474.20040728123855@dns.toxicfilms.tv> <41079334.1020101@trash.net> <254259562.20040728140825@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <254259562.20040728140825@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,19 +21,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I am using iptables in Redhats' release (ES) of Linux. In version 7.1 of 
-Redhat (iptables 1.2.1a) it forwarded packets just fine. Now with iptables 
-1.2.8 the outbound traffic hangs for about 5 seconds on rapid small packet 
-transmissions.
+Maciej Soltysiak wrote:
 
-I am not asking for support just a question about iptables 1.2.8. It looks 
-like iptables 1.2.1a just passed on packets and did not keep track of the 
-number of unanswered packets, with 1.2.8 it behaves like it keeps track of 
-unanswered packets and stops (waits) once the buckets are filled until some 
-packets clear. Is this true? I am trying to understand the differences in 
-1.2.1a and 1.2.8 that would lead to the hanging.
+>Hi,
+>
+>PM> Please resend the patch as attachment.
+>Okey dokey, here are both the userspace and kernelspace bugfixes
+>against current cvs.
+>  
+>
+Thanks, both patches applied.
 
-Thanks, and if I need to pay or donate then tell me where and I am happy to 
-do so.
-
-Leon Bene'
+Regards,
+Patrick
