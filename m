@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] patch-o-matic-ng patch
-Date: Wed, 18 Feb 2004 18:18:48 +0100
+Subject: Re: [PATCH] fix bug in convert2pomng.sh
+Date: Wed, 18 Feb 2004 18:23:24 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040218171848.GV9464@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.33.0402180005300.11937-200000@blackhole.kfki.hu> <Pine.LNX.4.33.0402181553330.13121-200000@blackhole.kfki.hu>
+Message-ID: <20040218172324.GW9464@sunbeam.de.gnumonks.org>
+References: <20040218101816.GA13588@zion.homelinux.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Rsp728Nwk8twChKq"
+	protocol="application/pgp-signature"; boundary="iJhwK4DKf9Unwzgv"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Sven Schuster <schuster.sven@gmx.de>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0402181553330.13121-200000@blackhole.kfki.hu>
+In-Reply-To: <20040218101816.GA13588@zion.homelinux.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,28 +23,52 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Rsp728Nwk8twChKq
+--iJhwK4DKf9Unwzgv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Feb 18, 2004 at 03:57:12PM +0100, Jozsef Kadlecsik wrote:
-> Hi Harald,
+On Wed, Feb 18, 2004 at 11:18:16AM +0100, Sven Schuster wrote:
 >=20
-> Just another patch :-) If a patch has got kernel tree and kernel patch
-> for one kernel version, but only kernel patch for another kernel version
-> (the to-be-released nf-log patch is such a beast), then it cannot be
-> applied correctly.
+> Hi Harald, hi Netfilter-devel-list,
+>=20
+> attached you find a patch against convert2pomng.sh.
+> The original version didn't create additional .ladd files if there where
+> more than one entries to add. For example with the nfnetlink-ctnetlink
+> patch there were the files
 
-feel free to apply=20
 
-and please don't always ask me for permission, but rather apply by yourself.
-That's why we all have CVS write access ;)
+> But because of an error in the script each part was created as=20
+>=20
+> ip_conntrack.h.ladd
+>=20
+> and so just the last part (...-8) went into pom-ng.
 
-thanks
+:( I'm sorry.
 
-> Best regards,
-> Jozsef
+> I hope the fix is fine (and a diff for patch -p0 too :-)!
+
+Seems fine.  'patch -p1' is usual, but that's not too imporant.
+
+> If it is, wouldn't most patches from pom need to be converted to
+> pom-ng again??
+
+Unfortunately yes.  Would you (or anybody else) be willing to do this in
+a local tree, make a diff, review it and finally submit it to me?  I'd
+rather not spend more time with this stuff at the moment, pom-ng has
+already taken too much time in the past.
+
+> BTW, I'm currently about to port the nfnetlink-ctnetlink patch to 2.6
+> (which actually brought my attention to this bug), is anyone else=20
+> working on this??
+
+No.  I'm now working on finalizing the specification for the pkttnetlink
+message format (which has implications on nfnetlink).  Once this is
+done, we can consider the nfnetlink message format stable and submit for
+kernel inclusion (2.6.x).  Your port would be very welcome.
+
+> Regards
+> Sven
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -55,7 +79,7 @@ thanks
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Rsp728Nwk8twChKq
+--iJhwK4DKf9Unwzgv
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -63,9 +87,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFAM554XaXGVTD0i/8RAoGrAKCu4eGSqICAh6sBJzYpS332cqKF5QCgq8Ae
-aRlKQQnWFc1m0X3RKN54vnM=
-=wyeh
+iD8DBQFAM5+MXaXGVTD0i/8RAqZNAJ4gUfAE2uPAkhTTKHu2pZe3d8Nq7gCfecXR
+EIarzd7EVBQJGFTQXsxKaN8=
+=DDeL
 -----END PGP SIGNATURE-----
 
---Rsp728Nwk8twChKq--
+--iJhwK4DKf9Unwzgv--
