@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH][RFC] ipt_REJECT.c - nf_bridge source and
-Date: Mon, 4 Nov 2002 09:27:57 +0100
+From: moath abdullah <moath2@yahoo.com>
+Subject: Personal Firewall
+Date: Sat, 2 Nov 2002 10:53:57 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021104092757.C8635@sunbeam.de.gnumonks.org>
-References: <20021102153451.N8635@sunbeam.de.gnumonks.org> <200211021530.EREjZ0McAA@gate.tbc.sub.de> <20021102185730.S8635@sunbeam.de.gnumonks.org> <200211022032.46007.bart.de.schuymer@pandora.be>
+Message-ID: <20021102185357.44537.qmail@web40106.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FgbIzWhBRCyaYU3D"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative; boundary="0-1297375024-1036263237=:43191"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bart De Schuymer <bart.de.schuymer@pandora.be>
-Content-Disposition: inline
-In-Reply-To: <200211022032.46007.bart.de.schuymer@pandora.be>; from bart.de.schuymer@pandora.be on Sat, Nov 02, 2002 at 08:32:45PM +0100
+To: netfilter@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,58 +18,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
---FgbIzWhBRCyaYU3D
+--0-1297375024-1036263237=:43191
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Nov 02, 2002 at 08:32:45PM +0100, Bart De Schuymer wrote:
-> Hello,
->=20
-> A discussion on the Linux bridge mailing list showed the following proble=
-ms:
-> 1. send_reset() does a skb_copy() and doesn't yet initialize the nf_bridge
-> skbuff field.
 
-we can add that to ipt_REJECT, no problem.
+Hello every one. First of all I would thank you for your work.
 
-> 2. send_unreach() seems to copy the wrong source IP address in the ICMP
-> message. Namely, it seems to always use an IP address of the router as
-> source IP address. Is that a bug?
+I am goging to do my graduation projoct which is A GUI Personal Firewall on linux using KDE. The basic functionality will be the same as Zone Alarm on window$. The most important features are :
 
-no, this is considered to be a feature. IIRC, this has been discussed on the
-list before.  The router, after all, has gereated the ICMP packet ;)
+1- to listen on all ports and try to catch any service i.e. deamon trying to connect to network and ask the user if he trusted this deamon to act as either client or server.
 
-In case of NAT, the nat code will take care of replacing the IP address.
+2- to give the user the ability to immediately disconnect from the internet when he sees something strange.
 
-> The following patch solves both problems.
+3- to allow the user to constuct a white list for children, education ...etc .
 
-I will put the first in my list of pending patches to davem.
+4- trying to stop anyone trying getting into the system and inform the user about this and also putting this into a log file.
 
-> cheers,
-> Bart
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
+OK 
 
---FgbIzWhBRCyaYU3D
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+The first thing I want to ask about is can I use iptables and its rules (I am new to iptables and just started learning it) to implement these especially the first feature? i.e. to build only a GUI program as an interface for iptables with some automation (away from making user write his rules)?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+The second question is if the answer of the first is no can I use the source code of the iptables to make it trigger an event when it listens to a new port (i.e. a deamon trying to get on the network) instead of rejecting it ? is it easy for me as a beginner in linux programming :)?
 
-iD8DBQE9xi+NXaXGVTD0i/8RAtuSAJ95j46hdDkNC/nOzsv3lYdPCmxpPQCgkF7C
-hA1PO828pZLGFBBBwvqUQSg=
-=QMuR
------END PGP SIGNATURE-----
+I would appreciate anybody answering me and by the way it will be a GPL program of course( and sorry for bad english ).
 
---FgbIzWhBRCyaYU3D--
+
+
+---------------------------------
+Do you Yahoo!?
+HotJobs - Search new jobs daily now
+--0-1297375024-1036263237=:43191
+Content-Type: text/html; charset=us-ascii
+
+<P>Hello every one. First of all I would thank you for your work.</P>
+<P>I am goging to do my graduation projoct which is A GUI Personal Firewall on linux using KDE. The basic functionality will be the same as Zone Alarm on window$. The most important features are :</P>
+<P>1- to listen on all ports and try to catch any service i.e. deamon trying to connect to network and ask the user if he trusted this deamon to act as either client or server.</P>
+<P>2- to give the user the ability to immediately disconnect from the internet when he sees something strange.</P>
+<P>3- to allow the user to constuct a white list&nbsp;for children, education ...etc .</P>
+<P>4- trying to stop anyone trying getting into the system and inform the user about this and also putting this into a log file.</P>
+<P>OK </P>
+<P>The first thing I want to ask about is can I use iptables and its rules (I am new to iptables and just started learning it) to implement these especially the first feature? i.e. to build only a GUI program as an interface for iptables with some automation (away from making user write his rules)?</P>
+<P>The second question is if the answer of the first is no can I use the source code of the iptables to make it trigger an event when it listens to a new port (i.e. a deamon trying to get on the network) instead of rejecting it ? is it easy for me as a beginner in linux programming :)?</P>
+<P>I would appreciate anybody answering me and by the way it will be a GPL program of course( and sorry for bad english ).</P><p><br><hr size=1>Do you Yahoo!?<br>
+<a href="http://rd.yahoo.com/careers/mailsig/*http://www.hotjobs.com ">HotJobs</a> - Search new jobs daily now
+--0-1297375024-1036263237=:43191--
