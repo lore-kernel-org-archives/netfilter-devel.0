@@ -1,12 +1,18 @@
-From: Richard Allen <ra@ra.is>
-Subject: Accept and remove
-Date: Wed, 19 Mar 2003 14:08:57 +0000
+From: Fabrice MARIE <fabrice@netfilter.org>
+Subject: Re: RV: Problems loading a Patch-O-Matic match
+Date: Wed, 19 Mar 2003 23:48:01 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030319140857.GB21417@ra.is>
+Message-ID: <200303192348.01168.fabrice@netfilter.org>
+References: <000101c2ed3a$67cf2530$0300000a@juan>
+Reply-To: fabrice@netfilter.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Juan Torres" <islero77@telefonica.net>,
+   "Netfilter-devel" <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <000101c2ed3a$67cf2530$0300000a@juan>
 Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -18,27 +24,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all.
 
-I was wondering if there is a feature in iptables where I can add a rule
-that matches for example a SYN packet and jump to a target that lets it
-through and then removes the rule.
-Basicly allowing me to add a rule to my firewall that says, "You can ssh in
-once, after that you need to talk to me again."
+Hello Juan,
 
-I've tried to do this using the limits and it mostly works but when any
-change hapens in the rules in the kernel, the counters seem to get reset
-and that reopenes those "spent" rules again.
+On Tuesday 18 March 2003 18:37, Juan Torres wrote:
+> Hi, I'm trying to load a new match which comes in the Patch-O-Matic
+> package. I have run Patch-O-Matic and I have selected the match I'm
+> interested in (mport), then I have compiled the new kernel selecting in
+> the xconfig the new option. But after all of these steps I can't use the
+> new match. I have seen in the documentation that I have to go to the
+> userspace/ directory (I suppose that it is the "userspace" directory
+> into the Patch-O-Matic package)
 
-If not, I was considering to take the ACCEPT target and copy it to something
-else (ACCEPTONCE) and making the necessary changes.  Is there any way for
-targets to know which rule called them ?
+nope, that is the userspace directory of iptables distribution.
+Userspace directory of p-o-m doesn't contain any makefile ;-)
 
-Any help in this would be greatly appriciated. :)
+So just download the latest tarball of iptables. Of if you follow
+the document to the letter, you would be using CVS version which would
+be layed out properly for you already :)
 
+> and execute make all install, but, when
+> I do that the response is the next
+> make: *** No rule to make target 'all'. Stop.
 
--- 
-Rikki.         --  RHCE, RHCX, HP-UX Certified Administrator.
-               --  Solaris 7 Certified Systems and Network Administrator.
-Bell Labs Unix --  Reach out and grep someone.
-Those who do not understand Unix are condemned to reinvent it, poorly.
+no makefile, see above.
+
+> If I try to use the new match (for example, if I write iptables -A INPUT
+> -p tcp -m mport --ports 20:23,80 -j DROP)
+> the answer that I receive is:
+> iptables v1.2.5: Couldn't load match
+> `mport':/usr/lib/iptables/libipt_mport.so: cannot open shared object
+> file: No such file or directory
+> There are two mport files that are created:
+>    /usr /src/linux-2.4.18.SuSE/include/config/ip/nf/match/mport/module.h
+> and
+    /lib/modules/2.4.18-64GB-SMP/kernel/net/ipv4/netfilter/ipt_mport.o
+> but it doesn't exist the libipt_mport.so file.
+> Can anybody tell me what it's my problem?
+> Thank you very much.
+
+As explained above, just grab the latest iptables tarball and recompile
+from the userspace directory there (not the one of patch-o-matic).
+I recommend you to use the CVS version, or a recent snapshot.
+
+Have a nice day,
+
+Fabrice.
+--
+Fabrice MARIE
+
+"Silly hacker, root is for administrators"
+       -Unknown
