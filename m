@@ -1,9 +1,8 @@
-From: Peteris Krumins <newsgroups@lf.lv>
-Subject: iptc_zerro_entries segfaults, why?
-Date: Thu, 8 May 2003 01:26:48 +0300
+From: Brad Fisher <brad@info-link.net>
+Subject: rfc on new match type
+Date: Wed, 07 May 2003 17:29:12 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <136554192396.20030508012648@lf.lv>
-Reply-To: Peteris Krumins <newsgroups@lf.lv>
+Message-ID: <3EB988B8.707B6111@info-link.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -19,52 +18,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+I've been thinking that it may be nice to have a match which can be used
+to identify which application added a particular rule.  For example, if
+there is an application (say "fwadminprogram") which adds rules it could
+mark those rules with an id of some sort using this match.  Perhaps
+something like:
 
- i am developing some tool for me which uses libtc to manage rules
- etc.
- unfortunately iptc_zerro_entries does not want to work: as soon as
- called - segfaults.
+  iptables -A <chain> -m application --application-id 2000 <other params
+here>
 
- code (simpified, might have a typo) is like this:
+So the application could determine which rules it added by searching for
+all rules with an "application" match with the id 2000.  On the kernel
+side, the match would not actually do anything, it would just match the
+packet.
 
---/
- char *table = "filter";
- ...
- iptc_handle_t h;
- int ret=0;
- const char *c = NULL;
- h = iptc_init(table);
+The main purpose of this (at least as i see it) would be to have a way
+to ignore rules not added by your application, so you don't have to
+worry (as much) about messing up what other applications may have set
+up.  Or perhaps the application-id could be a string instead of an
+integer, thus allowing you to mark the rules with the application name
+instead.
 
- if (!h){
-    .. err handler
- }
- for (c=iptc_first_chain(&h);
-      c;
-      c=iptc_next_chain(&h)) {
+I'll probably end up implementing this match sometime in the near future
+for a project i'm working on.  Unless of course, someone has a better
+idea?  Maybe it's already possible to do this with an existing match?
 
-      printf("in filter found: '%s'\n",c);
-      printf("zeroing..\n");
-      ret = iptc_zerro_entries(c,&h);
-      /* segfaults right here [1] */
-      ...
- }
---/
+Anyway, just thought I'd see what others thought.
 
-[1] i see the prototype of iptc_zerro_entries:
-    TC_ZERO_ENTRIES(const IPT_CHAINLABEL chain, TC_HANDLE_T *handle);
-    IPT_CHAINLABEL is 'typedef char ipt_chainlabel[32]'
-
-    exactly the same thing is done in iptables, only iptables have
-    zero_entries function.
-
- so what could be wrong?
-
- compile w/:
-gcc -W -Wall -I<ipt include dir> -rdynamic \
--o <executable> <src> \
-<path to>/iptables.o <path to/libiptc>/libiptc.a \
--ldl -lnsl
-
-
-P.Krumins
+Brad Fisher
+Info Link Inc.
