@@ -1,16 +1,16 @@
-From: Philipp =?iso-8859-1?q?G=FChring?= <mailinglists@futureware.at>
-Subject: Table-based branching
-Date: Mon, 5 Apr 2004 17:27:13 +0200
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: Table-based branching
+Date: Mon, 05 Apr 2004 17:37:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200404051727.13704.mailinglists@futureware.at>
-Reply-To: pg@futureware.at
+Message-ID: <1081179473.1200.29.camel@nienna.balabit>
+References: <200404051727.13704.mailinglists@futureware.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: pg@futureware.at
+In-Reply-To: <200404051727.13704.mailinglists@futureware.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,33 +21,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
 
-I am working on a scalable captive Portal Gateway software.
-I have several huge networks (/20) that have to be managed individually per=
- IP=20
-address.
-=46or every IP adress I have to store in a table, whether that IP Address i=
-s=20
-allowed or not yet allowed.
-When an IP address is allowed, it either has to be router or NATed, dependi=
-ng=20
-on the network address.
+  Hi,
 
-When an IP address is not allowed, all Traffic has to be redirected to the=
-=20
-captive portal on the firewall.
+On Mon, 2004-04-05 at 17:27, Philipp Gühring wrote:
+> My idea now is to have different rule tables for allowed and disallowed IP 
+> addresses, and special kernel module that branches into either rule table.
+> That module contains a large Bit-Array in kernel memory to store for every IP 
+> addresse whether it is allowed or disallowed.
+> 
+> Has anyone done that before (or something similar)?
 
-My idea now is to have different rule tables for allowed and disallowed IP=
-=20
-addresses, and special kernel module that branches into either rule table.
-That module contains a large Bit-Array in kernel memory to store for every =
-IP=20
-addresse whether it is allowed or disallowed.
+  Of course! Take a look at the old ippool, or the new ipset module.
+(Modules 'pool' and 'set' in Patch-o-matic-NG.) The ippool module does
+exactly what you described, the ipset addon by Jozsef Kadlecsik is much
+more powerful.
 
-Has anyone done that before (or something similar)?
-
-Is it a bad idea to do it that way?
-
-Many greetings,
-Philipp G=FChring
+-- 
+ Regards,
+   Krisztian KOVACS
