@@ -1,14 +1,15 @@
-From: Frank Meerkoetter <meerkoetter@stud.fbi.fh-darmstadt.de>
-Subject: Netfilter on an IXDP-2400/2800
-Date: Mon, 15 Sep 2003 16:04:11 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Routing decision?
+Date: Mon, 15 Sep 2003 16:34:10 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030915140411.GA3166@mandark.chaos.lab>
-Reply-To: meerkoetter@stud.fbi.fh-darmstadt.de
+Message-ID: <Pine.LNX.4.44.0309151632240.16959-100000@filer.marasystems.com>
+References: <3F65BBC2.8030208@able.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Wim Ceulemans <wim.ceulemans@able.be>
+In-Reply-To: <3F65BBC2.8030208@able.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,24 +20,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On Mon, 15 Sep 2003, Wim Ceulemans wrote:
 
-during the next 6 month i've maybe the possibility to play around with an 
-intel network processor board [1].
+> In paragraph 6.2 of the iptables-tutorial the following is said:
+> "The OUTPUT chain is used for altering locally generated packets (i.e., 
+> on the firewall) before they get to the routing decision.
 
-The IXP-2400 is a processor based on the xscale architecture, running at 
-600Mhz [2]. It contains among other things 8 io-processors, called 
-microengines which are optimized for packet-processing. The setup will 
-most probably have a quad gigabit ethernet card.
+Yes.
 
-A first idea for a project was to modify the netfilter framework to make use
-of the special hardware features of this platform.
+> But in paragraph 3.1, the "Traversing of tables and chains" diagram, we 
+> see the "Routing decision" is listed after the "Local process" and
+> BEFORE! the packet goes to the output chain.
+> 
+> So which one is right? Does the routing decision take place after or 
+> before the packet travels through the output chain?
 
-Could someone please comment on the usefullness/feasibility of such a 
-modification?
+Both, depending on the situation.
 
-sincerely 
-  Frank Meerkoetter
+if the local endpoint of the socket sending the packet is bound then
+routing occurs after OUTPUT.
 
-[1] an IXDP-2400 or even an IXDP-2800
-[2] http://www.intel.com/design/network/products/npfamily/ixp2400.htm
+If the local endpoint of the socket is NOT bound then routing occurs 
+before OUTPUT to assign the source address.
+
+Regards
+Henrik
