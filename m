@@ -1,15 +1,16 @@
-From: James Morris <jmorris@intercode.com.au>
-Subject: Re: Libipq and invalid packet_id
-Date: Thu, 26 Jun 2003 10:40:20 +1000 (EST)
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH/RFC] Add arptables mangle module
+Date: Wed, 25 Jun 2003 21:50:08 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Mutt.LNX.4.44.0306261040110.11825-100000@excalibur.intercode.com.au>
-References: <1056582020.32621.11.camel@porky>
+Message-ID: <20030625.215008.85411137.davem@redhat.com>
+References: <200306252056.31153.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eric Leblond <eric@regit.org>
-In-Reply-To: <1056582020.32621.11.camel@porky>
+To: bdschuym@pandora.be
+In-Reply-To: <200306252056.31153.bdschuym@pandora.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,16 +21,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On 26 Jun 2003, Eric Leblond wrote:
+   From: Bart De Schuymer <bdschuym@pandora.be>
+   Date: Wed, 25 Jun 2003 20:56:31 +0200
 
-> I saw that, if I give an invalid packet_id to  ipq_set_verdict, I'm not
-> able to receive any packet afterward. So I've got two questions :
-> 	- Is this a wanted feature ?
+   I've added protocol length checking, since this is useful for
+   bridged arp packets. It's useless for non-bridged packets though.
 
-No.
+This is going to break any user tools people might be using.
+Please delete this part of the patch so we can discuss it
+seperately.
 
-
-- James
--- 
-James Morris
-<jmorris@intercode.com.au>
+I have no problem with the mangle module addition.
