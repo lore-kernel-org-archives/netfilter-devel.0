@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: ICMP match bug
-Date: Mon, 3 Feb 2003 14:52:18 +0100
+From: Emmanuel Fleury <fleury@cs.auc.dk>
+Subject: Re: distributed firewall
+Date: 03 Feb 2003 15:25:21 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030203135218.GY27870@sunbeam.de.gnumonks.org>
-References: <20030127140143.GA29965@balabit.hu> <20030127173937.GB31017@balabit.hu> <20030131120016.GY9073@naboo.cybercafe42> <20030203132020.GB17330@balabit.hu>
+Message-ID: <1044282321.25601.96.camel@rade7.s.cs.auc.dk>
+References: <20030203131123.82985.qmail@web13302.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Dex7YdYhTh9daYX7"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Balazs Scheidler <bazsi@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <20030203132020.GB17330@balabit.hu>
+In-Reply-To: <20030203131123.82985.qmail@web13302.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,65 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 2003-02-03 at 14:11, graham g wrote:
+> hi 
+> 
+> being new to this list, i just wanna know if anyone has had any
+> experience trying to build a distributed firewall using iptables /
+> libiptc. im currently working on such a project and just wanna know if
+> anyone has ever attempted anything similar
 
---Dex7YdYhTh9daYX7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+What do you call a 'distributed firewall' ?
 
-On Mon, Feb 03, 2003 at 02:20:20PM +0100, Balazs Scheidler wrote:
-> Option 1) could be implemented without changing the size of the match
-> struct, the other two would involve changing the size of the match struct.
->=20
-> I've checked the kernel source, specifying -1 for old kernels would mean
-> 'match nothing', thus our beloved compatibility equations would be like
-> this:
->=20
-> 1) old kernel - new iptables
->=20
-> when ANY icmp type is specified, no packets would be matched, this is
-> different from the current behaviour when icmp type 0 is matched (PONG).
->=20
-> when a usual icmp type is specified everything works correctly.
->=20
-> 2) new kernel - old iptables
->=20
-> no problem.
->=20
-> The question is whether we can live with the incompatibility of matching
-> nothing instead of PONG when no --icmp-type is specified.
+-- 
+Emmanuel Fleury
 
-yes, this is perfectly fine.  matching 'pong' when no icmp-type is
-specified was never advertised as a feature.  It's a misbehaviour which
-is now going to be corrected.  We should document this change at least
-in bugzilla (i.e. submit a bug report, and document the change to CVS)
-
-Do you want to send me a patch?
-
-Thanks.
-
-> Bazsi
-
---=20
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---Dex7YdYhTh9daYX7
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+PnQSXaXGVTD0i/8RAgcdAJ4oZu3+Hx4M4V6ljEZK98CEQbRAywCdE6u1
-6qdaT7o4OUDGrjWWntvDoU0=
-=OIy3
------END PGP SIGNATURE-----
-
---Dex7YdYhTh9daYX7--
+Computer Science Department, |  Office: E4-112
+Aalborg University,          |  Phone:  +45 96 35 72 23
+Fredriks Bajersvej 7E,       |  Fax:    +45 98 15 98 89
+9220 Aalborg East, Denmark   |  Email:  fleury@cs.auc.dk
