@@ -1,13 +1,17 @@
-From: "Mihai Tanasescu" <cloud@sky.kappa.ro>
-Subject: Question regarding conntrack
-Date: Sat, 2 Nov 2002 10:43:15 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: problem with iplimit
+Date: Sat, 2 Nov 2002 11:22:18 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001001c2824b$e281f140$6928a8c0@MIHAI>
+Message-ID: <20021102112218.E8635@sunbeam.de.gnumonks.org>
+References: <20021030090702.18873.97698.Mailman@kashyyyk> <NDBBKOCLFLKJBBJIHCODAEMBCDAA.sumit@elitecore.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_000D_01C2825C.A5E62240"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tkSjRT2ItO2nndq7"
+Cc: <netfilter-devel@lists.netfilter.org>, <romp@siil.net>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: "Sumit Pandya" <sumit@elitecore.com>
+Content-Disposition: inline
+In-Reply-To: <NDBBKOCLFLKJBBJIHCODAEMBCDAA.sumit@elitecore.com>; from sumit@elitecore.com on Thu, Oct 31, 2002 at 12:01:08PM +0530
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,38 +22,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_000D_01C2825C.A5E62240
-Content-Type: text/plain;
-	charset="iso-8859-1"
+--tkSjRT2ItO2nndq7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-I have installed the kernel module for conntracking irc connections. =
-Still I can only receive dcc sends but I can't initiate any dcc send =
-sessions. I get the error message failed to connect or something like =
-that.=20
-What am I doing wrong?
+On Thu, Oct 31, 2002 at 12:01:08PM +0530, Sumit Pandya wrote:
+> Hi,
+> 	Just try with solution posted on following link
+> http://lists.netfilter.org/pipermail/netfilter/2002-January/030405.html
 
-------=_NextPart_000_000D_01C2825C.A5E62240
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+ah. please _always_ submit patches to the netfilter-devel list.  The develo=
+pers
+don't read the user mailinglist that often, and patches are very likely to =
+get
+lost there.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2719.2200" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>I have installed the kernel module for =
-conntracking=20
-irc connections. Still I can only receive dcc sends but I can't initiate =
-any dcc=20
-send sessions. I get the error message failed to connect or something =
-like that.=20
-<BR>What am I doing wrong?</FONT></DIV></BODY></HTML>
+romp: does this patch fix your problem?
 
-------=_NextPart_000_000D_01C2825C.A5E62240--
+> -- Sumit
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--tkSjRT2ItO2nndq7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9w6daXaXGVTD0i/8RAlp6AJ9Sf9Bx2vpeyfpeIiz5MGqGFoWscwCgnHqX
+aePvDCKEy0HPtJFrIg3bkKY=
+=GHf6
+-----END PGP SIGNATURE-----
+
+--tkSjRT2ItO2nndq7--
