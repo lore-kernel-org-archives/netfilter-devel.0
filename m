@@ -1,12 +1,22 @@
-From: Zeeshan Ali <zeelists@yahoo.com>
-Subject: when/how is the packet forwarded?
-Date: Thu, 20 Nov 2003 12:56:11 -0800 (PST)
+From: "Rajesh B. V." <rajeshbv@intotoinc.com>
+Subject: Re: Problem with MASQUERADE of L2TP packets
+Date: Mon, 17 Nov 2003 15:03:59 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031120205611.69144.qmail@web60708.mail.yahoo.com>
+Message-ID: <5.1.0.14.0.20031117145511.01b3caa0@172.16.1.10>
+References: <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
+ <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
+ <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
+ <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10> <20031117083821.GB22919@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1274309541-1069361771=:67383"
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031117083821.GB22919@sunbeam.de.gnumonks.org>
+References: <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
+ <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
+ <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
+ <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,102 +27,69 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-1274309541-1069361771=:67383
-Content-Type: text/plain; charset=us-ascii
-Content-Id: 
-Content-Disposition: inline
+Hi Harald Welte,
 
-Hello everyone,
-  I am having problem in understanding that when/how
-is the packet forwarded. I mean if i alter the daddr
-in the packets comming from eth0 to contain an addr
-that belongs to the network connected to another
-interface (e.g ppp0) in my NF_IP_PRE_ROUTING hook then
-should'nt this packet be next seen by my NF_IP_FORWARD
-hook instead of NF_IP_LOCAL_IN hook? I am attaching
-the source code with this email.
+Thanks for sparing time to reply.
 
-__________________________________
-Do you Yahoo!?
-Protect your identity with Yahoo! Mail AddressGuard
-http://antispam.yahoo.com/whatsnewfree
---0-1274309541-1069361771=:67383
-Content-Type: application/octet-stream; name="myfilter.c"
-Content-Transfer-Encoding: base64
-Content-Description: myfilter.c
-Content-Disposition: attachment; filename="myfilter.c"
+What i observed is, for L2TP packets only the NAT is behaving improper by 
+changing the source IP to weired IP (last two octets of PPP IP + last two 
+octets of ethernet IP).
 
-LyogbmV0ZmlsdGVyIGhvb2tzIGV4YW1wbGUKICogKEMpIDIwMDMgYnkgWmVl
-c2hhbiBBbGkgPHphazE0N0B5YWhvby5jb20+CiAqIFRoaXMgY29kZSBjb21l
-cyB1bmRlciBHUEwgdmVyc2lvbiAyCiAqIHNlZSBodHRwOi8vd3d3Lm9wZW5z
-b3VyY2Uub3JnL2xpY2Vuc2VzL2dwbC1saWNlbnNlLmh0bWwKICogZm9yIG1v
-cmUgaW5mb3JtYXRpb24uCiAqLwoKI2RlZmluZSBfX0tFUk5FTF9fCiNkZWZp
-bmUgTU9EVUxFCgojaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CiNpbmNsdWRl
-IDxsaW51eC9rZXJuZWwuaD4KI2luY2x1ZGUgPGxpbnV4L21tLmg+CiNpbmNs
-dWRlIDxhc20vdWFjY2Vzcy5oPgojaW5jbHVkZSA8bGludXgvc3RyaW5nLmg+
-CgojaW5jbHVkZSA8bGludXgvc29ja2V0Lmg+CiNpbmNsdWRlIDxsaW51eC9p
-cC5oPgojaW5jbHVkZSA8bGludXgvdGNwLmg+CiNpbmNsdWRlIDxsaW51eC9p
-Y21wLmg+CgojaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyLmg+CiNpbmNsdWRl
-IDxsaW51eC9uZXRmaWx0ZXJfaXB2NC5oPgoKI2luY2x1ZGUgPGxpbnV4L2lu
-dGVycnVwdC5oPgojaW5jbHVkZSA8bGludXgvc3BpbmxvY2suaD4KCiNpbmNs
-dWRlIDxsaW51eC9uZXRkZXZpY2UuaD4KICAKTU9EVUxFX0FVVEhPUiAoIlpl
-ZXNoYW4gQWxpIDx6YWsxNDdAeWFob28uY29tPiIpOwpNT0RVTEVfTElDRU5T
-RSAoIkdQTCIpOwoKc3RydWN0IG5mX2hvb2tfb3BzIGlucHV0X2ZpbHRlcjsK
-c3RydWN0IG5mX2hvb2tfb3BzIGlucHV0X2ZpbHRlcjI7CnN0cnVjdCBuZl9o
-b29rX29wcyBmb3J3YXJkX2ZpbHRlcjsKCnVuc2lnbmVkIGludAppbnB1dF9o
-YW5kbGVyICh1bnNpZ25lZCBpbnQgaG9va251bSwKCSAgICAgICBzdHJ1Y3Qg
-c2tfYnVmZiAqKnNrYiwKCSAgICAgICBjb25zdCBzdHJ1Y3QgbmV0X2Rldmlj
-ZSAqaW4sIAoJICAgICAgIGNvbnN0IHN0cnVjdCBuZXRfZGV2aWNlICpvdXQp
-CnsKICBzdHJ1Y3QgaXBoZHIgKmlwOwogIF9fdTggb3VyaXBbXSA9IHsyMDMs
-IDE3NSwgNzMsIDIzOX07CgogIGlwID0gKCpza2IpLT5uaC5pcGg7CgogIGlm
-IChzdHJjbXAgKGluLT5uYW1lLCAiZXRoMCIpID09IDApIHsKICAgIG1lbWNw
-eSAoJihpcC0+ZGFkZHIpLCBvdXJpcCwgNCk7CiAgICAoKnNrYiktPm5mY2Fj
-aGUgfD0gTkZDX0FMVEVSRUQ7CiAgfQoKICByZXR1cm4gTkZfQUNDRVBUOwp9
-Cgp1bnNpZ25lZCBpbnQKaW5wdXRfaGFuZGxlcjIgKHVuc2lnbmVkIGludCBo
-b29rbnVtLAoJICAgICAgIAlzdHJ1Y3Qgc2tfYnVmZiAqKnNrYiwKCSAgICAg
-ICAgY29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKmluLCAKCQljb25zdCBzdHJ1
-Y3QgbmV0X2RldmljZSAqb3V0KQp7CiAgc3RydWN0IGlwaGRyICppcDsKICBf
-X3U4IG91cmlwWzRdOwoKICBpcCA9ICgqc2tiKS0+bmguaXBoOwoKICBtZW1j
-cHkgKG91cmlwLCAmKGlwLT5kYWRkciksIDQpOwogIHByaW50ayAoIklzIHRo
-aXMgSVAgb3VyczogJXUuJXUuJXUuJXUgP1xuIiwgb3VyaXBbMF0sIG91cmlw
-WzFdLCBvdXJpcFsyXSwgb3VyaXBbM10pOwogIAogIHJldHVybiBORl9BQ0NF
-UFQ7Cn0KCnVuc2lnbmVkIGludApmb3J3YXJkX2hhbmRsZXIgKHVuc2lnbmVk
-IGludCBob29rbnVtLAoJCSBzdHJ1Y3Qgc2tfYnVmZiAqKnNrYiwKCQkgY29u
-c3Qgc3RydWN0IG5ldF9kZXZpY2UgKmluLCAKCQkgY29uc3Qgc3RydWN0IG5l
-dF9kZXZpY2UgKm91dCkKewogIHByaW50ayAoIlllcyEgcGFja2V0IGZvcndh
-cmRlZCBhdGxhc3QuXG4iKTsKCiAgcmV0dXJuIE5GX0FDQ0VQVDsKfQoKaW50
-CmluaXRfbW9kdWxlICh2b2lkKQp7CiAgaW50IHJlc3VsdDsKICAKICAvKiBp
-bnB1dCBob29rICovCiAgaW5wdXRfZmlsdGVyLmxpc3QubmV4dCA9IE5VTEw7
-CiAgaW5wdXRfZmlsdGVyLmxpc3QucHJldiA9IE5VTEw7CiAgaW5wdXRfZmls
-dGVyLmhvb2sgPSAobmZfaG9va2ZuICopIGlucHV0X2hhbmRsZXI7CiAgaW5w
-dXRfZmlsdGVyLnBmID0gUEZfSU5FVDsJLyogSVB2NCAqLwogIGlucHV0X2Zp
-bHRlci5ob29rbnVtID0gTkZfSVBfUFJFX1JPVVRJTkc7CgogIC8qIGlucHV0
-IGhvb2sgMiAqLwogIGlucHV0X2ZpbHRlcjIubGlzdC5uZXh0ID0gTlVMTDsK
-ICBpbnB1dF9maWx0ZXIyLmxpc3QucHJldiA9IE5VTEw7CiAgaW5wdXRfZmls
-dGVyMi5ob29rID0gKG5mX2hvb2tmbiAqKSBpbnB1dF9oYW5kbGVyMjsKICBp
-bnB1dF9maWx0ZXIyLnBmID0gUEZfSU5FVDsJLyogSVB2NCAqLwogIGlucHV0
-X2ZpbHRlcjIuaG9va251bSA9IE5GX0lQX0xPQ0FMX0lOOwoKICAvKiBmb3J3
-YXJkIGhvb2sgKi8KICBmb3J3YXJkX2ZpbHRlci5saXN0Lm5leHQgPSBOVUxM
-OwogIGZvcndhcmRfZmlsdGVyLmxpc3QucHJldiA9IE5VTEw7CiAgZm9yd2Fy
-ZF9maWx0ZXIuaG9vayA9IChuZl9ob29rZm4gKikgZm9yd2FyZF9oYW5kbGVy
-OwogIGZvcndhcmRfZmlsdGVyLnBmID0gUEZfSU5FVDsJLyogSVB2NCAqLwog
-IGZvcndhcmRfZmlsdGVyLmhvb2tudW0gPSBORl9JUF9GT1JXQVJEOwoKICAv
-KiBob29rcyByZWdpc3RyYXRpb24gKi8KICByZXN1bHQgPSBuZl9yZWdpc3Rl
-cl9ob29rICgmaW5wdXRfZmlsdGVyKTsKICBpZiAocmVzdWx0KQogICAgZ290
-byBob29rX2ZhaWxlZDsKICAKICByZXN1bHQgPSBuZl9yZWdpc3Rlcl9ob29r
-ICgmaW5wdXRfZmlsdGVyMik7CiAgaWYgKHJlc3VsdCkKICAgIGdvdG8gaG9v
-a19mYWlsZWQ7CgogIHJlc3VsdCA9IG5mX3JlZ2lzdGVyX2hvb2sgKCZmb3J3
-YXJkX2ZpbHRlcik7CiAgaWYgKHJlc3VsdCkKICAgIGdvdG8gaG9va19mYWls
-ZWQ7CgogIC8qIE9LICovCiAgcHJpbnRrIChLRVJOX0lORk8gImRlbW8gbmV0
-ZmlsdGVyIG1vZHVsZSBsb2FkZWRcbiIpOwogIHJldHVybiAwOwoKaG9va19m
-YWlsZWQ6CiAgcHJpbnRrIChLRVJOX0lORk8gIm5mZGVtbzogZXJyb3IgcmVn
-aXN0ZXJpbmcgaG9vayAoJWQpIiwgcmVzdWx0KTsKICByZXR1cm4gcmVzdWx0
-OwkJLyogZXJyb3IgcmVnaXN0ZXJpbmcgaG9va3MgKi8KfQoKdm9pZApjbGVh
-bnVwX21vZHVsZSAodm9pZCkKewogIC8qIHVucmVnaXN0ZXIgaG9va3MgKi8K
-ICBuZl91bnJlZ2lzdGVyX2hvb2sgKCZpbnB1dF9maWx0ZXIpOwogIG5mX3Vu
-cmVnaXN0ZXJfaG9vayAoJmlucHV0X2ZpbHRlcjIpOwogIG5mX3VucmVnaXN0
-ZXJfaG9vayAoJmZvcndhcmRfZmlsdGVyKTsKICAKICBwcmludGsgKEtFUk5f
-SU5GTyAiZGVtbyBuZXRmaWx0ZXIgbW9kdWxlIHJlbW92ZWRcbiIpOwp9Cg==
+Till the IP Tables hook function is called from " ip_finish_output () ", 
+the source IP in the IP header is proper and intact.
+But after NAT is done and packet is sent out by hook function using " 
+ip_finish_output2 () ", the source IP is changed to the weired IP, instead 
+of keeping the PPP IP.
 
+That is the only reason i am suspecting IP tables handling of L2TP packets. 
+And i want to seek help from like you people to understand if any known 
+problem in IP tables masquerading.
 
---0-1274309541-1069361771=:67383--
+Regards,
+--Rajesh
+
+At 09:38 AM 11/17/2003 +0100, Harald Welte wrote:
+>On Mon, Nov 17, 2003 at 09:52:28AM +0530, Rajesh B. V. wrote:
+> > Hi Harald Welte,
+> >
+> > Thankyou very much for the response.
+> >
+> > The L2TP implementation is ours. It is not free software or open source.
+>
+>In this case I have to admit that I am very reluctant to assist you with
+>debugging your problem.  I have never been a fan of kernel binary-only
+>modules, and I have never given anybody permission to link such modules
+>with any netfilter/iptables code that is held by my copyright.
+>
+> > We call " ip_finish_output () " to send the packet out. Till this function
+> > call the source IP in outer IP header is intact.
+> > But in this function the POSTROUTING Hook function of IP tables will be
+> > called. During this the NAT will happen as the masquerade rule is
+> > configured for POSTROUING.
+>
+>yes. but what is wrong about that?  If you configured masquerading to
+>happen, it will happen.
+>
+> > So i am suspecting iptables handling of L2TP packets.
+>
+>of course, if you use the IPv4 stack, iptables will act according to the
+>configured ruleset.
+>
+> > PS:
+> > I saw some patches for PPTP/IPSec masquerading in net. I guess, it may 
+> also
+> > be similar case for L2TP also, but which was not identified.
+>
+>One of the major design ideas behind l2tp was to encapsulate everything
+>in UDP - and thus being able to NAT the protocol like any other
+>udp-based protocol.  This is very different from AH/ESP or PPTP/GRE that
+>come with their own layer 4 protocol.
+>
+> > Regards,
+> > --Rajesh
+>--
+>- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+>============================================================================
+>   "Fragmentation is like classful addressing -- an interesting early
+>    architectural error that shows how much experimentation was going
+>    on while IP was being designed."                    -- Paul Vixie
