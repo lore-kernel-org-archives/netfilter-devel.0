@@ -1,17 +1,14 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: Problem using REDIRECT and SO_ORIGINAL_DST
-Date: Wed, 6 Nov 2002 20:06:50 +0100
+From: "Jaroslaw J. Pyszny" <arghil@tlen.pl>
+Subject: [PATCH] libipt_ecn.c fix
+Date: Wed, 6 Nov 2002 20:06:34 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021106190650.GC2985@balabit.hu>
-References: <20021106.15222917@w-laptop.localnet>
+Message-ID: <20021106190634.GB1897@szalony.siec>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/mixed; boundary="NDin8bjvE/0mNLFQ"
 Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Wilson Padovani =?iso-8859-1?Q?J=FAnior?= <admin@netsun.com.br>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20021106.15222917@w-laptop.localnet>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,27 +19,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Nov 06, 2002 at 03:22:29PM +0000, Wilson Padovani Júnior wrote:
-> Hi.
-> 
->     I trying to write a transparent proxy program, but I having 
-> trouble to retrieve the original destination address of the redirected 
-> connections.
->         SLen = sizeof(peer);
->         memset(&peer, 0, SLen);
->         getsockopt(new_sock, SOL_IP, SO_ORIGINAL_DST, &peer, &SLen);
->         printf( "Client: %s:%hu\nMe: %s:%hu\nPeer: %s:%hu\n",
->                 inet_ntoa(client.sin_addr), ntohs(client.sin_port),
->                 inet_ntoa(me.sin_addr), ntohs(me.sin_port),
->                 inet_ntoa(peer.sin_addr), ntohs(peer.sin_port) );
 
-inet_ntoa() uses a static buffer to format its result, you are calling
-inet_ntoa three times which all work on the same buffer -> the result of the
-last invocation will be used three times.
+--NDin8bjvE/0mNLFQ
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-try writing 3 printf() statements, or copy the result of inet_ntoa() to a
-private buffer, or create your own inet_ntoa() function.
+Hi,
 
+  IPTables (userspace) 1.2.7a (CVS) 
+  I think `print_dscp(.....)' is not needed in libipt_ecn.c
+  
+
+Best regards,
+  Jarek
+ 
 -- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+8   \\|||//           Jaroslaw J. Pyszny         \\|||//
+b    (o|o)       "Vitae,non scholae,discimus"     (o|o)
+i   --\_/--        arghil@zsk.tech.us.edu.pl     --\_/-- 
+t =-> Masz 8-bit. komputer i chcesz siê go pozbyæ daj znaæ. <-=
+
+--NDin8bjvE/0mNLFQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="iptables-1.2.7a-ipt_ecn.patch"
+
+diff -urN userspace/extensions/libipt_ecn.c userspace.new/extensions/libipt_ecn.c
+--- userspace/extensions/libipt_ecn.c	Mon Aug  5 22:24:55 2002
++++ userspace.new/extensions/libipt_ecn.c	Wed Nov  6 19:38:26 2002
+@@ -100,15 +100,6 @@
+ 		           "ECN match: some option required");
+ }
+ 
+-static void
+-print_dscp(u_int8_t dscp, int invert, int numeric)
+-{
+-	if (invert)
+-		fputc('!', stdout);
+-
+- 	printf("0x%02x ", dscp);
+-}
+-
+ /* Prints out the matchinfo. */
+ static void
+ print(const struct ipt_ip *ip,
+
+--NDin8bjvE/0mNLFQ--
