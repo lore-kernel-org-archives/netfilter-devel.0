@@ -1,14 +1,16 @@
-From: Jan Srzednicki <w@303.krakow.pl>
-Subject: ipt_CLASSIFY module
-Date: Mon, 21 Apr 2003 16:07:46 +0200
+From: Markus Schaber <markus.schaber@student.uni-ulm.de>
+Subject: Re: using a hash table for netfilter tables?
+Date: Fri, 25 Apr 2003 08:10:50 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030421140746.GQ89044@spitfire.303.krakow.pl>
+Message-ID: <20030425081050.1d2657bf.markus.schaber@student.uni-ulm.de>
+References: <20030424184706.GM8524@ns.snowman.net>
+	<Pine.LNX.4.33.0304241547520.8241-100000@fantomas.insite.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: kaber@trash.net
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.33.0304241547520.8241-100000@fantomas.insite.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,28 +21,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello there,
+Hello,
 
-I've just checked: -j CLASSIFY works well also in mangle table, chain
-FORWARD (with HTB, if that matters). So I made a little fix for that:
+Andre Uratsuka Manoel <andre@insite.com.br> schrieb:
 
---- ipt_CLASSIFY.c.old  Mon Apr 21 16:02:08 2003
-+++ ipt_CLASSIFY.c      Mon Apr 21 15:58:12 2003
-@@ -39,8 +39,9 @@
-                return 0;
-        }
-        
--       if (hook_mask & ~(1 << NF_IP_POST_ROUTING)) {
--               printk(KERN_ERR "CLASSIFY: only valid in POST_ROUTING.\n");
-+       if (hook_mask & ~(1 << NF_IP_POST_ROUTING) && 
-+           hook_mask & ~(1 << NF_IP_FORWARD) ) {
-+               printk(KERN_ERR "CLASSIFY: only valid in POSTROUTING or FORWARD.\n");
-                return 0;
-        }
+> On Thu, 24 Apr 2003, Stephen Frost wrote:
+>=20
+> > * Andre Uratsuka Manoel (andre@insite.com.br) wrote:
 
-greets,
--- 
-  -- wrzask --= v =-- Winfried --===-- GG# 3838383 ---
--- w@dream.vg --- w@303.krakow.pl --===-- http://violent.dream.vg/ ---
---=< Ride the wild wind - push the envelope, don't sit on the fence, ---
-  -- Ride the wild wind - live life on the razor's edge! >=-- Queen --
+> 	I have to have different rules for 5.000 different IP addresses=20
+> and I have to be able to change them any time in any order, in a very=20
+> small time.=20
+
+Are those different IP-addresses in a common subnet (or inside a few of
+those)?
+
+Then you could take a look at the IP-Pools, as far as I know the most
+current (but apparently unmaintained) version is at:
+
+http://gandalf.hjorten.nu/ippool/
+
+Here at the university of Ulm, we tested this version because we have
+just the same problem, but due to lack of manpower, we didn't make the
+"real switchover" from checkpoint up to now, but it is planned to do it
+in the next weeks.
+
+Gru=DF,
+Markus
+
+--=20
+Schabi's Flohmarkt: http://schabi.de/flohmarkt/
+
+Der Dienstweg ist die Verbindung der Sackgasse mit dem Holzweg!
+[DoLi in unibwm.studium]
