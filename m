@@ -1,12 +1,11 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: ESP spi/sequence tracking and nat
-Date: Tue, 10 Aug 2004 12:24:28 +0200
+Date: Tue, 10 Aug 2004 13:01:45 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4118A25C.5010103@eurodev.net>
+Message-ID: <Pine.LNX.4.61.0408101252340.8015@filer.marasystems.com>
 References: <8FC831532CEE564AB88AC1D999C29DEBD9F148@prinsmail01.am.thmulti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Kashyap Ashwin <Ashwin.Kashyap@thomson.net>
@@ -21,30 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Mon, 9 Aug 2004, Kashyap Ashwin wrote:
 
-Kashyap Ashwin wrote:
+> I want to implement a connection tracking / nat module that will track
+> the SPI and SEQ parts in the ESP header. I need this functionality
+> because, nat will fail for ESP if the destination IP address (the VPN
+> server address) is the same for two clients. I did a packet dump for a
+> popular VPN client and also noticed that the SPI can be same for two
+> clients (say client -> server direction). The idea is to remember the
+> last SEQ the server responded for a particular tuple and when we get the
+> next tuple, we try to do a closest match, as opposed to doing an exact
+> match:
 
-> 1. How can I figure out the direction of the packet in pkt_tuple(). 
-> The idea is to store the SEQ/SPI values from the packet either into 
-> tuple->src or tuple->dst. I noticed that packet() has a 
-> ip_conntrack_info, but pkt_tuple() does not. I am not sure if I can 
-> mess ip_conntrack in packet() instead…
->
+To fit the Netfilter Conntrack scheme of things you then need to implement 
+and ESP protocol helper which tracks the ESP connections as individual 
+connections. Once this is done NAT should work at least to a limited 
+degree.
 
-AFAIK you can't, you know if a packet comes from the original/reply 
-direction once you get the tuple from the conntrack table. Trace 
-resolve_normal_ct:
+To really work with NAT you should use a IPSEC implementation with NAT-T 
+support. This makes IKE detect the NAT and then switch to UDP 
+encapsulation which works very well with all forms of NAT, and also makes 
+IKE fully aware of the NAT ip address changes.
 
-1) we create a temporary tuple which will be used to match: get_tuple -> 
-pkt_to_tuple
-2) now, it's time to look up that tuple in the conntrack table: 
-ip_conntrack_find_get
-
-at 1) we don't know which direction the packet came from, we know it at 2).
-
-Please correct me if I'm missing anything.
-
-
-regards,
-Pablo
+Regards
+Henrik
