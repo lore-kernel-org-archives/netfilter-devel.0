@@ -1,8 +1,8 @@
 From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH] Fix ip_queue for bridged packets
-Date: Sat, 25 Oct 2003 17:09:13 +0200
+Subject: [PATCH] Fix possible oops in ipt_REDIRECT
+Date: Sat, 25 Oct 2003 17:28:56 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200310251709.13913.bdschuym@pandora.be>
+Message-ID: <200310251728.56938.bdschuym@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -23,71 +23,42 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi Dave,
 
-When ip_queue copies an old skbuff to a new one (because the tailroom is
-too small), it uses skb_copy_expand(). This function doesn't copy the
-Ethernet header, which is not needed for normal IP traffic. Normally, the
-Ethernet header is filled in later before doing dev_queue_xmit.
-When ip_queue does this to a bridged IP packet, it has to copy the Ethernet
-header, because the Ethernet header is already filled in and won't be filled
-in again.
-The patch below makes this happen. It puts the code that actually copies the
-header inside netfilter_bridge.h, so that it can be reused and altered
-without touching other code.
+When a device doesn't have an IP address, as in ifconfig eth0 0.0.0.0, then
+dev->ip_ptr->ifa_list == NULL.
+It is then possible to craft a packet that oopses the kernel:
+Suppose eth0 on box 1 was brought up with ifconfig eth0 0.0.0.0
+Suppose the iptabes nat table on box 1 contains one rule:
+box1# iptables -t nat -A PREROUTING -j REDIRECT
 
-The patch is already approved by Stephen Hemminger (in private mail).
-Since Harald Welte excels in silence, I'm sending netfilter stuff directly
-to you from now on.
-
-The patch is vs test7 but applies fine vs test8.
+Use box 2, connected to box1 via box1's eth0 to oops the kernel:
+box2# arp -s 192.168.123.166 $MAC_OF_ETH0_OF_BOX1
+box2# ping 192.168.123.166
+Oops on box 1.
+(Change 192.168.123.166 into an IP address of the local network)
 
 cheers,
 Bart
 
---- linux-2.6.0-test7/net/ipv4/netfilter/ip_queue.c.old	2003-10-12 21:23:01.000000000 +0200
-+++ linux-2.6.0-test7/net/ipv4/netfilter/ip_queue.c	2003-10-12 22:13:45.000000000 +0200
-@@ -21,6 +21,9 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv4/ip_queue.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+#include <linux/netfilter_bridge.h>
-+#endif
- #include <linux/netlink.h>
- #include <linux/spinlock.h>
- #include <linux/sysctl.h>
-@@ -353,6 +356,10 @@ ipq_mangle_ipv4(ipq_verdict_msg_t *v, st
- 			}
- 			if (e->skb->sk)
- 				skb_set_owner_w(newskb, e->skb->sk);
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+			/* bridged packets already have their Ethernet header */
-+			br_nf_maybe_copy_header2(newskb, e->skb);
-+#endif
- 			kfree_skb(e->skb);
- 			e->skb = newskb;
- 		}
---- linux-2.6.0-test7/include/linux/netfilter_bridge.h.old	2003-10-12 21:44:28.000000000 +0200
-+++ linux-2.6.0-test7/include/linux/netfilter_bridge.h	2003-10-12 22:21:16.000000000 +0200
-@@ -81,6 +81,22 @@ void nf_bridge_maybe_copy_header(struct 
- 	}
- }
+--- linux-2.4.22/net/ipv4/netfilter/ipt_REDIRECT.c.old	2003-10-20 23:10:02.000000000 +0200
++++ linux-2.4.22/net/ipv4/netfilter/ipt_REDIRECT.c	2003-10-20 23:10:18.000000000 +0200
+@@ -79,7 +79,7 @@ redirect_target(struct sk_buff **pskb,
  
-+/* needed in IP netfilter modules that can copy bridged skbuff's,
-+ * but don't copy the Ethernet header by default. */
-+static inline
-+void nf_bridge_maybe_copy_header2(struct sk_buff *d,
-+				  struct sk_buff *s)
-+{
-+	if (s->nf_bridge) {
-+#if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
-+		if (s->protocol == __constant_htons(ETH_P_8021Q))
-+			memcpy(d->data - 18, s->data - 18, 18);
-+		else
-+#endif
-+			memcpy(d->data - 16, s->data - 16, 16);
-+	}
-+}
-+
- static inline
- void nf_bridge_save_header(struct sk_buff *skb)
- {
+ 		/* Device might not have an associated in_device. */
+ 		indev = (struct in_device *)(*pskb)->dev->ip_ptr;
+-		if (indev == NULL)
++		if (indev == NULL || indev->ifa_list == NULL)
+ 			return NF_DROP;
+ 
+ 		/* Grab first address on interface. */
+
+--- linux-2.6.0-test8/net/ipv4/netfilter/ipt_REDIRECT.c.old	2003-10-20 22:30:53.000000000 +0200
++++ linux-2.6.0-test8/net/ipv4/netfilter/ipt_REDIRECT.c	2003-10-20 22:31:31.000000000 +0200
+@@ -83,7 +83,7 @@ redirect_target(struct sk_buff **pskb,
+ 
+ 		/* Device might not have an associated in_device. */
+ 		indev = (struct in_device *)(*pskb)->dev->ip_ptr;
+-		if (indev == NULL)
++		if (indev == NULL || indev->ifa_list == NULL)
+ 			return NF_DROP;
+ 
+ 		/* Grab first address on interface. */
