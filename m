@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: fix all iptables problems with '!' (hopefully)
-Date: Mon, 06 Jan 2003 16:33:44 +0100
+From: Rich Wellner <netfilter@objenv.com>
+Subject: Re: trouble with expect_related
+Date: Mon, 06 Jan 2003 09:58:41 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E19A1D8.7080605@trash.net>
-References: <35565.195.97.5.193.1041816667.squirrel@fs.tsaousis.gr>        <20030106020219.GC423@comet.rv-int>        <3E193B0E.9030602@trash.net> <36373.195.97.5.193.1041856153.squirrel@fs.tsaousis.gr>
+Message-ID: <t2mwulie0cu.fsf@rw2-laptop.wellner.org>
+References: <t2mk7hlwz5c.fsf@rw2-laptop.wellner.org>
+	<1041651291.1637.41.camel@exile>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Costa Tsaousis <costa@tsaousis.gr>
-In-Reply-To: <36373.195.97.5.193.1041856153.squirrel@fs.tsaousis.gr>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1041651291.1637.41.camel@exile> ("Filip Sneppe's message of
+ "04 Jan 2003 04:34:45 +0100")
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,35 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Costa Tsaousis wrote:
+"Filip Sneppe (Cronos)" <filip.sneppe@cronos.be> writes:
 
->Patrick McHardy said:
->  
->
->>I did, here is the (untested) patch, hopefully i didn't miss any.
->>I didn't change any of the "save"-functions, this patch just replaces
->>all uses
->>of optarg after check_inverse by argv[optind-1].
->>    
->>
->
->I didn't test it, but keep in mind that the ! in certain cases has to be
->placed *before* the argument and its value.
->
->For example:
->
->--uid-owner ! squid
->
->is not accepted either ("user '!' not found"). The correct is:
->
->! --uid-owner squid
->  
->
-In fact ! is used in many matches in a non-boolean context.
-After the patch is applied, both it always possible
-(! --uid-owner xxx / --uid-owner ! xxx).
-It would still be nice to have the helptexts unified concerning
-the use of '!', i think.
+> However, the oldnat stuff you based your conntracker 
+> on should be able to add your expectations without
+> any problems, so your problem will probably not get
+> solved by moving to the newnat API.
 
-Regards,
-Patrick
+Right, makes sense.  I can't see what's wrong with my code, seems like it
+should just work.  Unfortunately, switching kernel isn't an option, I have to
+support the 2.4 series with my module, not just the most current stuff.  
+
+Can anyone else comment?
+
+rw2
