@@ -1,16 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] netfilter ipt_recent Configure.help fix
-Date: Fri, 25 Jul 2003 22:52:30 +0200
+Subject: Update: [PATCH 2.6] iptables MIRROR target fixes
+Date: Fri, 25 Jul 2003 22:52:42 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725205229.GD3244@sunbeam.de.gnumonks.org>
+Message-ID: <20030725205242.GH3244@sunbeam.de.gnumonks.org>
+References: <20030719142648.GS32475@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YMoJtYXQBeUqimUz"
+	protocol="application/pgp-signature"; boundary="j+wdmHMkwJXioevW"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
 Content-Disposition: inline
+In-Reply-To: <20030719142648.GS32475@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,74 +24,40 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---YMoJtYXQBeUqimUz
+--j+wdmHMkwJXioevW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave!
+Hi again, Dave!
 
-This is the 5th of my 2.6 merge of recent bugfixes (all tested against
-2.6.0-test7).  You might need to apply them incrementally (didn't test
-it in a different order).
+On Sat, Jul 19, 2003 at 04:26:48PM +0200, Harald Welte wrote:
 
-Author: Adrian Bunk <bunk@fs.tum.de>, Harald Welte <laforge@netfilter.org>
+> This is the first of my 2.6 merge of the recent bugfixes (all tested
+> against 2.6.0-test1).  You might need to apply them incrementally
+> (didn't test it in a different order).
 
-Add the missing Configure.help entry for ipt_recent
+Unfortunately I introduced a typo during the merge (which in turn
+introduced a new bug).
 
-Please apply,
+Please incrementially apply the following patch, thanks.
 
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test1-nftest4/net/ipv4/=
-netfilter/ip_conntrack_core.c linux-2.6.0-test1-nftest5/net/ipv4/netfilter/=
-ip_conntrack_core.c
---- linux-2.6.0-test1-nftest4/net/ipv4/netfilter/ip_conntrack_core.c	2003-0=
-7-14 05:28:52.000000000 +0200
-+++ linux-2.6.0-test1-nftest5/net/ipv4/netfilter/ip_conntrack_core.c	2003-0=
-7-19 16:36:58.000000000 +0200
-@@ -251,7 +251,7 @@
+
+--- linux-2.6.0-test1-nftest5/net/ipv4/netfilter/ipt_MIRROR.c	2003-07-19 16=
+:13:56.000000000 +0200
++++ linux-2.6.0-test1-nftest6/net/ipv4/netfilter/ipt_MIRROR.c	2003-07-19 17=
+:35:23.000000000 +0200
+@@ -173,7 +173,7 @@
+ 	/* Don't let conntrack code see this packet:
+ 	 * it will think we are starting a new
+ 	 * connection! --RR */
+-	ip_direct_send(*pskb);
++	ip_direct_send(nskb);
+=20
+ 	return NF_DROP;
  }
-=20
- /* delete all unconfirmed expectations for this conntrack */
--static void remove_expectations(struct ip_conntrack *ct)
-+static void remove_expectations(struct ip_conntrack *ct, int drop_refcount)
- {
- 	struct list_head *exp_entry, *next;
- 	struct ip_conntrack_expect *exp;
-@@ -266,8 +266,11 @@
- 		 * the un-established ones only */
- 		if (exp->sibling) {
- 			DEBUGP("remove_expectations: skipping established %p of %p\n", exp->sib=
-ling, ct);
--			/* Indicate that this expectations parent is dead */
--			exp->expectant =3D NULL;
-+			if (drop_refcount) {
-+				/* Indicate that this expectations parent is dead */
-+				ip_conntrack_put(exp->expectant);
-+				exp->expectant =3D NULL;
-+			}
- 			continue;
- 		}
-=20
-@@ -292,7 +295,7 @@
- 		    &ct->tuplehash[IP_CT_DIR_REPLY]);
-=20
- 	/* Destroy all un-established, pending expectations */
--	remove_expectations(ct);
-+	remove_expectations(ct, 1);
- }
-=20
- static void
-@@ -1117,7 +1120,7 @@
- {
- 	if (i->ctrack->helper =3D=3D me) {
- 		/* Get rid of any expected. */
--		remove_expectations(i->ctrack);
-+		remove_expectations(i->ctrack, 0);
- 		/* And *then* set helper to NULL */
- 		i->ctrack->helper =3D NULL;
- 	}
+
+[now really off for OLS].
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -101,16 +69,16 @@ ling, ct);
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---YMoJtYXQBeUqimUz
+--j+wdmHMkwJXioevW
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/IZiNXaXGVTD0i/8RAlyUAJ9HjL7I19kkSoG9ogXYvZQGuELUygCgrgO+
-WaUKe7E3vLw3ogF66JxN7jo=
-=tk62
+iD8DBQE/IZiaXaXGVTD0i/8RAsSfAKCwnAi7hjGdnMvFPmxMxxVADPJf2gCbBhQx
+nRwizN451JpEO47HmtmD0BM=
+=gAIv
 -----END PGP SIGNATURE-----
 
---YMoJtYXQBeUqimUz--
+--j+wdmHMkwJXioevW--
