@@ -1,13 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: raw table breaks iptables binary compatibility
-Date: Sun, 9 Nov 2003 02:12:43 +0100 (CET)
+From: Kishore Dharmavaram <kishored@servgate.com>
+Subject: RE: Memory leaks in ip_conntrack?
+Date: Sat, 8 Nov 2003 19:08:13 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311090204280.25676-100000@filer.marasystems.com>
+Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B204A@skat.sky.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Cc: "'netfilter@lists.netfilter.org'" <netfilter@lists.netfilter.org>,
+	"'netfilter-devel@lists.netfilter.org'"
+	 <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: 'Harald Welte' <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,40 +21,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a followup to the message I sent on 30 Oct after noticing binary 
-compatibility with older iptables releases was broken after applying 
-p-o-m/base.
+Hi Herald & All,
 
-Other unrelated events has identified this being due to the raw table
-patch. This patch modifies ipt_entry by adding two more fields and this
-totally breaks binary compatibility with iptables binaries compiled for
-kernels with/without the raw table.
+I verified & I find my 2.4.20 is already patched with UNCONFIRMED
+connections fix. 
 
-linux-2.4.22-log/include/linux/netfilter_ipv4/ip_tables.h 
-linux-2.4.22-raw/include/linux/netfilter_ipv4/ip_tables.h
---- linux-2.4.22-log/include/linux/netfilter_ipv4/ip_tables.h   2003-09-17 
-17:15:00.000000000 +0200
-+++ linux-2.4.22-raw/include/linux/netfilter_ipv4/ip_tables.h   2003-09-28 
-14:19:16.000000000 +0200
-@@ -134,6 +134,12 @@
-        /* Back pointer */
-        unsigned int comefrom;
+How it possible that /proc/slabinfo shows a lot more ip_conntracks than are
+shown in "/proc/net/ip_conntrack"?. /proc/slabinfo shows that maximum
+possible conntracks, 131072, are being currently used but
+/proc/net/ip_conntrack  shows only 21 connections. My box is refusing new
+connections because max conntracks have reached. 
 
-+       /* Name of the chain */
-+       char *chainname;
-+       
-+       /* Rule number in the chain. */
-+       u_int32_t rulenum;
-+
-        /* Packet and byte counters. */
-        struct ipt_counters counters;
+Please take a look at my console output given below:
+
+[root@Firewall root]# cat /proc/sys/net/ipv4/ip_conntrack_max
+13072
+[root@Firewall root]# cat /proc/slabinfo | fgrep ip_conn
+ip_conntrack      131072 131080    384 13108 13108    1
+[root@Firewall root]# cat /proc/net/ip_conntrack | wc -l
+     21
+
+Can anyone tell how to findout which connections are using up the
+conntracks.
+
+Thanks,
+Kishore
+
+-----Original Message-----
+From: Harald Welte [mailto:laforge@netfilter.org]
+Sent: Saturday, November 08, 2003 3:44 AM
+To: Kishore Dharmavaram
+Cc: 'netfilter@lists.netfilter.org';
+'netfilter-devel@lists.netfilter.org'
+Subject: Re: Memory leaks in ip_conntrack?
 
 
+On Fri, Nov 07, 2003 at 02:21:13PM -0800, Kishore Dharmavaram wrote:
+> Hi All,
+> 
+> I have a Linux box running 2.4.20 kernel with netfilter(ip_conntrack)
 
-I don't quite see why these are required for the 'raw' table. Seems to be 
-related to debugging or error management on rulesets incompatible with 
-'raw'. In any case the effect is probably not that desireable from a 
-p-o-m/base patch..
+http://www.netfilter.org/security/2003-08-01-listadd.html
 
-Regards
-Henrik
+> Thanks,
+> Kishore
+
+-- 
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+============================================================================
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
