@@ -1,16 +1,21 @@
-From: Cedric de Launois <delaunois@info.ucl.ac.be>
-Subject: Re: iptables ROUTE
-Date: Mon, 10 Jan 2005 11:07:42 +0100
-Message-ID: <1105351662.9214.23.camel@descartes.info.ucl.ac.be>
-References: <001301c4f465$2ae966b0$030aa8c0@T>
+From: Olaf Kirch <okir@suse.de>
+Subject: Re: (usagi-users 03180) Re: netfilter6: ICMPv6 type 143 doesn't
+	match
+Date: Mon, 10 Jan 2005 14:17:09 +0100
+Message-ID: <20050110131709.GB16911@suse.de>
+References: <6050E336B1A0D7D8E70C66F3@t1mobil.muc.aerasec.de>
+	<200412270417.iBR4HZRG021429@toshiba.co.jp>
+	<20041227.100205.102356251.yoshfuji@linux-ipv6.org>
+	<EA4274721EC980393BB13B5E@worker.muc.bieringer.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: usagi-users@linux-ipv6.org, netdev@oss.sgi.com,
+	yasuyuki.kozakai@toshiba.co.jp,
+	netfilter-devel@lists.netfilter.org, laforge@gnumonks.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tadas <tpt@pupa.da.ru>
-In-Reply-To: <001301c4f465$2ae966b0$030aa8c0@T>
+To: Peter Bieringer <pb@bieringer.de>
+Content-Disposition: inline
+In-Reply-To: <EA4274721EC980393BB13B5E@worker.muc.bieringer.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,65 +27,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le vendredi 07 janvier 2005 =E0 05:01 +0200, Tadas a =E9crit :
-> Hi,
+On Sat, Jan 08, 2005 at 12:45:14PM +0100, Peter Bieringer wrote:
+> -               ptr = IPV6_HDR_LEN;
+> +               ptr = ((u8*)skb->nh.raw - skb->data) + IPV6_HDR_LEN;
+[...]
+> But it won't help :-((
 
-Hi, comments below...
+The following works for me on 2.6.8:
 
-> I am using your iptables ROUTE module quite much, it is very usefull th=
-ing
-> which alows to do what most of people cant even imagine.
-> i prefer to use iptables route instead of linux native routing, because=
- it
-> is more flexibe. --tee option should allow to fix multicast routing pro=
-blem
-> now there is no way to route such traffic on linux
+		ptr = ((char *) ipv6 - (char *) skb->data) + IPV6_HDR_LEN;
 
-You should also direct your mail to Patrick Schaaf, who coded the --tee
-option.
+Older 2.6 kernels also do not call ipv6_skip_exthdr() in icmp6_match();
+more recent kernels fix this.
 
-> But something is wrong with --tee option, as I aunderstand it should no=
-t
-> affect anything, but packet disapears instead, and goes nowhere.
-> everything elese is working. I am using little old kernel 2.4.22 but th=
-at
-> should not be problem.
->  I used latest source code from CVS
->=20
-> also seems this module somehow incorrectly handle multicat traffic,  ev=
-en
-> without tee option it should be able to forward it ,
-> but I dont see anything on other side.
-> I am not sure is there are no other problems, why this dont work. So I =
-will
-> check everything again, but seems there is some problems wih ROUTE modu=
-le
-
-This option wasn't intented to solve multicast routing issues,
-so I'm not surprised of your problems.=20
-
-> Now I did not have time to fix these problems myself, you probably can =
-do
-> that much easer, because you know better your own code.
-> also I think one more option is needed: now tee can only copy and send
-> immediately, what is not enough, because it may be nesecary to mangle p=
-acket
-> before sending.
-> the most easy way is to send copied packet to some iptables chain inste=
-ad of
-> sending to interface. probably this is even more easy to implement. and=
- much
-> more flexible.
-> because we can mark and  route that copy anytime then.
-
-My feeling is also that we need something more flexible, like a target th=
-at
-duplicates a packet and sets a mark to it, so that further rules can be a=
-pplied.
-Patrick : would this king of target fill your needs ?
-
-> I am going to write some iptables extensions too, but little later.
-
-What about a 'DUP' target ?
-
-Cedric
+Olaf
+-- 
+Olaf Kirch     | Things that make Monday morning interesting, #2:
+okir@suse.de   |        "We have 8,000 NFS mount points, why do we keep
+---------------+ 	 running out of privileged ports?"
