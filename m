@@ -1,12 +1,12 @@
 From: "andre achternaam" <andreiscmeel@hotmail.com>
 Subject: ip_conntrack_expect_related() cannot handle already established connections
-Date: Wed, 25 Sep 2002 06:45:12 +0000
+Date: Wed, 25 Sep 2002 06:33:05 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F264CcD3jzJUePldjMq00005913@hotmail.com>
+Message-ID: <F118F3bhFovvrhtyXMl00005bde@hotmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -16,9 +16,6 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
-
-
-
 
 
 Hi all,
@@ -54,9 +51,9 @@ tuple.dst.protonum = IPPROTO_UDP;
 /* Try to get same port: if not, try to change it. */
 for (port = ctMyInfo->portOrg; port != 0; port++)
 {
-tuple.dst.u.udp.port = htons(port);
-	if (ip_conntrack_expect_related(ct, &tuple, &mask, NULL) == 0)
-break;
+    tuple.dst.u.udp.port = htons(port);
+    if (ip_conntrack_expect_related(ct, &tuple, &mask, NULL) == 0)
+        break;
 }
 …
 
@@ -65,16 +62,16 @@ removed from the expect_list in the init_conntrack function.
 
 …. Init_conntrack(…)
 …
-if (expected && is_confirmed(expected->expectant)) {
-/* Welcome, Mr. Bond.  We've been expecting you... */
-	conntrack->status = IPS_EXPECTED;
-		conntrack->master.master = &expected->expectant->ct_general;
-	IP_NF_ASSERT(conntrack->master.master);
-		LIST_DELETE(&expect_list, expected);
-	MyDebugPrint(expected, "LIST_DELETED(init_conntrack)");
-		expected->expectant = NULL;
-	nf_conntrack_get(&conntrack->master);
-}
+    if (expected && is_confirmed(expected->expectant)) {
+        /* Welcome, Mr. Bond.  We've been expecting you... */
+       conntrack->status = IPS_EXPECTED;
+       conntrack->master.master = &expected->expectant->ct_general;
+       IP_NF_ASSERT(conntrack->master.master);
+       LIST_DELETE(&expect_list, expected);
+       MyDebugPrint(expected, "LIST_DELETED(init_conntrack)");
+       expected->expectant = NULL;
+       nf_conntrack_get(&conntrack->master);
+    }
 ….
 }
 
@@ -103,8 +100,6 @@ Thanx in advance for all the effort…
 Andre
 
 
-Last quest: is this netfilter-devel@lists.samba.org address obsolete?
 
 _________________________________________________________________
-MSN Photos is the easiest way to share and print your photos: 
-http://photos.msn.com/support/worldwide.aspx
+Chat with friends online, try MSN Messenger: http://messenger.msn.com
