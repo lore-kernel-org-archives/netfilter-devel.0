@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] updated ctnetlink patches: ctnetlink-0.12.diff
-Date: Fri, 05 Dec 2003 04:01:51 +0100
+From: Rodrigo Severo <rodrigo.lists@fabricadeideias.com>
+Subject: ippool -X not working
+Date: Fri, 05 Dec 2003 10:38:32 -0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FCFF51F.1050102@trash.net>
-References: <3ED4BD8D.1070500@trash.net> <20031205025503.GA11243@myinternet.com.au>
+Message-ID: <3FD07C48.9040801@fabricadeideias.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Joshua Goodall <joshua@myinternet.com.au>
-In-Reply-To: <20031205025503.GA11243@myinternet.com.au>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +18,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Joshua Goodall wrote:
+Dear list,
 
->>+#define nf_debug(level, format, arg...)					       \
->>+	do {								       \
->>+		if (nf_debug_level > level)				       \
->>+			printk(KERN_DEBUG "%s: " format, __FUNCTION__, ## arg);\
->>+	} while(0)
->>    
->>
->
->This triggers a bug in GCC 2.95.4 (Debian stable and others) and breaks
->the build.
->
->Please use
->printk(KERN_DEBUG "%s: " format, __FUNCTION__ , ## arg);
->- note the space after __FUNCTION__.
->
->Also occurs later in nfnetlink_conntrack.c.
->  
->
 
-I will fix it in the next version which I plan to finish around christmas.
+I am testing the ip pool match and target.
 
-Thanks,
-Patrick
+I'm having problems with the ippool userspace support tool.
+
+I can't make neither -x nor the -X POOL options work. I always get a 
+"IP_POOL_DESTROY POOL failed: Device or resource busy" message. The POOL=
+ 
+isn't used yet anywhere, I'm justing testing pool creation by now.
+
+Is it a bug or am I doing something wrong?
+
+I am not sure there is someone working on the ip pool functionality.
+
+I wrote Patrick Schaaf, the former maintainer of this patch. He told me 
+that he never implemented pool destruction. He also mentioned that 
+Joackim Axelsson probably is the ip pool man presently.
+
+Is there anybody working on it? I'm willing to help.
+
+BTW, I'm messing with ip pool based on the assumption that using an ip 
+pool would give me faster results than having circa 180 rules for 
+different ip addresses as I have now. Am I right?
+
+
+Thanks in advance for your attention,
+
+Rodrigo Severo
+
+-- 
+----------------------------------------------------
+Rodrigo Severo
+F=E1brica de Id=E9ias
+Fone: +55(61)321 1357
+Fax: +55(61)223 1712
+SBS - Quadra 2 - Ed. Empire Center - Sala 1301
+Bras=EDlia/DF - Brasil
+CEP: 70.070-904
+----------------------------------------------------
