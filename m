@@ -1,19 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH] CLASSIFY target
-Date: Sun, 13 Apr 2003 18:22:52 +0200
+Date: Sun, 13 Apr 2003 18:24:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030413162252.GV1922@sunbeam.de.gnumonks.org>
-References: <3E92F2F8.1020707@trash.net> <1049832299.1318.19.camel@tux.rsn.bth.se>
+Message-ID: <20030413162458.GW1922@sunbeam.de.gnumonks.org>
+References: <3E92F2F8.1020707@trash.net> <1049832299.1318.19.camel@tux.rsn.bth.se> <3E935A9C.9030700@trash.net> <1049847707.1308.92.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tV/+6PImfyFtriLg"
+	protocol="application/pgp-signature"; boundary="1IOPqZ3f1xe/JZlz"
 Cc: Patrick McHardy <kaber@trash.net>,
 	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Martin Josefsson <gandalf@wlug.westbo.se>
 Content-Disposition: inline
-In-Reply-To: <1049832299.1318.19.camel@tux.rsn.bth.se>
+In-Reply-To: <1049847707.1308.92.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,28 +25,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---tV/+6PImfyFtriLg
+--1IOPqZ3f1xe/JZlz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 08, 2003 at 10:05:00PM +0200, Martin Josefsson wrote:
-> On Tue, 2003-04-08 at 18:04, Patrick McHardy wrote:
-> > This patch adds a new target "CLASSIFY" which sets skb->priority.
-> > Several qdiscs can use this for classification. A list of the qdiscs
-> > currently capable of doing so is in the help text. Please consider
-> > for inclusion.
->=20
-> Hi Patrick,
->=20
-> It's usually Harald who decides which patches go in or not. And Harald
-> has been quite hard to get a response from during the last weeks :(
-> He seems to have a lot of things in the air at the same time.
-> I have a memory-corruption fix that havn't been OK'd yet...
+On Wed, Apr 09, 2003 at 02:21:47AM +0200, Martin Josefsson wrote:
+> Sounds like a good idea since Bert's suggestion was shot down (I think).
+> Better not upset the gods by including it in this patch :)
 
-Just a quick note: I've re-appeared from the dark voids of
-again-being-two-months-too-late-with-a-commercial-project-and-not-wanting-t=
-o-be-any-later.
+actually, I don't mind this change. =20
+
+As of now, I have no plan to submit the CLASSIFY target to the kernel,
+so there is no 'ideological/political' problem with the core networking
+change.
+
+> We want to touch as little outside code as possible and if someone
+> really needs this they can google and maybe find this discussion and
+> then find the original thread and the patch :)
+
+although, there is the practical issue.  Patching something in the core
+networking reliably over lots of 2.4.x and 2.5.x kernels seems to be
+almost impossible.
 
 > /Martin
 
@@ -60,7 +60,7 @@ o-be-any-later.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---tV/+6PImfyFtriLg
+--1IOPqZ3f1xe/JZlz
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -68,9 +68,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+mY7cXaXGVTD0i/8RAuVjAJ9je/07SjBer4K0YFktGaM8GHBDJwCdHbF+
-0njiKkmxtylpdGuIlxSKqBI=
-=LYMO
+iD8DBQE+mY9aXaXGVTD0i/8RAngnAJ4nQwO1hxzgU4N9ijhf9ZDU7K+DRgCfStn9
+lEDUe3qo7X99tQKE3DrzxgA=
+=fYUv
 -----END PGP SIGNATURE-----
 
---tV/+6PImfyFtriLg--
+--1IOPqZ3f1xe/JZlz--
