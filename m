@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: 2 problems with my net/conntrack helper for MSN
-Date: Sat, 31 May 2003 19:49:59 +0200
+Subject: Re: [RFC] updated ctnetlink patches
+Date: Sat, 31 May 2003 22:52:10 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030531174959.GD29312@sunbeam.de.gnumonks.org>
-References: <1054342550.961.68.camel@exile>
+Message-ID: <20030531205210.GE29312@sunbeam.de.gnumonks.org>
+References: <3ED4BD16.8030606@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rYRijwbmzeJBcrGE"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="rmZDAlAp7pllCg/D"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <1054342550.961.68.camel@exile>
+In-Reply-To: <3ED4BD16.8030606@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,89 +23,176 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---rYRijwbmzeJBcrGE
+--rmZDAlAp7pllCg/D
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 31, 2003 at 02:55:50AM +0200, Filip Sneppe (Cronos) wrote:
-
-> I am trying to write a conntrack/NAT helper for MSN Messenger file
-> transfers, and I am unable to solve two problems at the moment.
+On Wed, May 28, 2003 at 03:43:50PM +0200, Patrick McHardy wrote:
 >=20
-> Problem 1. Summary: Can I call ip_conntrack_change_expectation()
->            from ip_conntrack_msn, and if so, how do I do this properly ?
+> I've done some work on ctnetlink, here is what i've got so far. The=20
+> patch is still incomplete,
 
-hm, I don't see why you shouldn't be able to do so.=20
-> If A wants to send a file to host B, and B accepts this,=20
-> Host A sends its IP+port to a switchboard server.
-> On Nat box A, this allows us to set up an expectation
-> like this:
->=20
-> ?:? -> IP_A:port_A
->=20
-> We have no idea what IP may be connecting to host A as
-> we only have a connection to the switchboard server.
+First of all, thanks a lot for contributing to ctnetlink.
 
-exactly like the IRC DCC case
+> - Attributes:
+> Removed CTA_IIF and CTA_OIF, there is no relation between conntrack and =
+=20
+> interfaces.=20
 
-> Now imagine a scenario where Host A and B are behind the=20
-> same NAT box:
+oh yes, this is I think my fault.  At that time I was doing a project
+that required interface tracking in conntrack.
 
-> Now what happens is, when host A offers its file for download,=20
-> an expectation is created on the NAT box when Host A offers=20
-> the accepted file:
->=20
-> ?:? -> IP_A:port_A
->=20
-> But a switchboard server will inform host B that it can
-> connect to host A to download the file.
-> ip_conntrack_msn tries to create a second expectation:
->=20
-> IP_B:? -> IP_A:port_A
+> - Creation and manipulation of conntrack entries:
+> It is possible now to create and change conntrack entries. Only=20
+> confirmed entries are accessible trough ctnetlink, also only confirmed
+> ones can be created.=20
 
-This is true.  It was never solved for the IRC case.  I though it is a
-not too common case, and didn't further care about the problem.
+Makes sense, I don't see a need for this to be changed
 
-> Now, my idea is that, if both hosts are behind the same
-> NAT machine, and the creation of the second expectation=20
-> fails with -EBUSY, the expectation that already exists
-> should be changed to incorporate the additional information
-> about the IP address of host B.
+> All attributes except CTA_HELPINFO and CTA_NATINFO are implemented.
 
-This should work, yes.
+we should get HELPINFO implemented,
 
-> Now, I don't know how to call ip_conntrack_change_expected()
-> from within a conntracker. More specifically, I don't
-> know how to get a pointer to the existing expectation
-> in a clean way (well, I couldn't even get to this info
-> by copying bits and pieces from ip_conntrack_core.c
-> since things turned out to be really messy quickly).
-> What would be the recommended way to do this ?
+> For NATINFO probably another ugly pointer somewhere is required to
+> access either functions inside ip_nat_core or nat_lock without
+> requiring nat to be loaded.
 
-It isn't too difficult. You iterate over the sibling_list and call
-exp_for_packet() on every item. =20
+mh.
 
-The pptp code needs to delete expectations on the list from within the
-conntrack helper, see
-http://cvs.netfilter.org/netfilter-extensions/helpers/pptp/ip_conntrack_ppt=
-p.c
-and search for other_exp.
+> - Conntrack event notifications:
+> The patch adds event notifications to conntrack. Since there are very=20
+> much events, it is tried to cache them where possible and to deliver
+> all cached ones at once. Still, there are a lot. The notifications can
+> be disabled at compile time while keeping parts of ctnetlink that
+> don't rely on them working.=20
 
-Since you're using F_REUSE_EXPECT, I assume that there can always be one
-file transfer per client connection.  This would mean that even calling
-exp_for_packet is not necessarry.
+Yes, this is the way to go.
 
-> Problem 2. Summary: I don't think my NAT helper's "help" function=20
->            is getting called !? What is happening ?
+> Also noteworthy is the fact that the NEW event is in fact CONFIRM
+> since there is no way to access unconfirmed connections. The DESTROY
+> event is currently in destroy_conntrack, this should probably move to
+> clean_from_lists.=20
 
-> I have absolutely no idea why I cannot see any
-> logging messages from the NAT module's help() function...
+ACK. We can have conntracks that are forced to live longer because some
+sibling is still holding a refcount on it.  But userspace should get
+notified once the entry is deactivated - that is, at the time it is
+removed from the lists.  This change would also make it symmetric
+(NEW=3D=3Dconfirm, DESTROY=3D=3Dremove_from_lists
 
-Neither have I, sorry.
+> ip_ct_refresh is changed to only update the timer if timer.expires !=3D
+> jiffies+extra_jiffies. This reduces timeout change messages to at most
+> HZ/s instead of 1/packet.=20
 
-> Thanks in advance,
-> Filip
+> I'm unclear if this change introduces a race condition of some kind.
+
+I don't think so.
+
+> There are currently no messages for things done on behalf of ctnetlink
+> itself.
+
+This means that listener B doesn't get notified if listener A
+adds/changes something via ctnetlink.  This needs to get implemented in
+order to sanely support multiple listeners
+
+> -Table dumping:
+> Previous code crashed (known issue i think),=20
+
+Yes, Martin has a fix for it.
+
+> also if it worked entries would have been dumped multiple times if
+> there was no room in the skb while in the middle of dumping a hash
+> chain.=20
+
+true, but not too problematic.  If we send the address of the conntrack
+entry as ID to userspace, userspace could detect those copies. But it's
+not nice, of course.
+
+> With my current solution confirmed entries are assigned a unique
+> increasing id and held in an ordered list.=20
+
+Mh, this is the part i really dislike (sorry).  The unique ID is IMHO
+going to be expensive (the cacheline of this ID will always ping-pong,
+as heavy contention is to be expected).  And the ordered list..  is it
+really necessarry to yet again increase the size of ip_conntrack?=20
+
+> The last id successfully dumped is stored in the struct
+> netlink_callback and after an interruption it is continued with the
+> next one. Unfortunately this adds two new fields to struct
+> ip_conntrack. The id field could be useful for ctnetlink itself (since
+> tuples can be reused it is the only unique identifier).
+
+yes, but passing the address of the conntrack as ID would be much easier
+than than a unique sequential ID.
+
+Or what about using a timestamp as ID? it would not be unique, but at
+least you can say something like 'entries created before jiffies=3D=3Dfoo h=
+ave
+already been sent'.
+
+This still doesn't eliminate the need for the ordered list.  We need to
+find a way around that.
+
+> Some thoughts/problems for discussion:
+> - There are too much messages, messages get lost if the socket receive=20
+> buffer is exhausted. I only tested on UML so it might have been just
+> too slow.
+
+did you try to increase the buffer?
+
+> - If NEW message is lost all further changes are pointless. One could=20
+> make messages redundant by always including the attributes required to
+> create new entries. OTOH, this is only interesting for state
+> synchronisation, not for other listeners.=20
+
+No, I don't think this is necessarry.  If a sync receiver gets updates
+for an entry it doesn't have, it can issue an request to receive a full
+[new] copy of this entry.
+
+> Different messages for different multicast groups ? This is probably
+> needlessly expensive, the overhead of the extra attributes is not
+> much.  It could of course also be handled in userspace (but with high
+> overhead).
+
+Well, I don't care about the overhead in userspace if it's about a rare
+case (message loss).
+
+> - Helpers: should it be possible to assign arbitary helpers to=20
+> connections (respecting protocol, disrespecting ports) or not ?=20
+
+might be a nice feature to have, but I wouldn't consider this important
+
+> Should connections created on behalf of ctnetlink be assigned
+> a helper automatically if there is a matching one ?
+
+yes.
+
+> - nat: masq_index is current not included in NATINFO. could it be useful ?
+
+> Ok my brain is empty now, if i remember some more i'll write a new=20
+> message ..
+
+I can imagine...
+
+a couple of thoughts:
+
+- stuff like 'conntrack->proto.tcp =3D *(struct ip_ct_tcp *)p;' makes the
+  compiler to generate inline memcpy, which is less optimal than the
+  kernel-provided asm memcpy implementation, so let's not do this.
+
+- you add two new callback functions 'new' and 'change' to
+  ip_conntrack_protocol.  Can't we unify those two somehow?
+
+> Sorry about expecting a connmark patched kernel, but i started to work=20
+> on ctnetlink because i wanted to change connection marks ..
+
+no problem, we can 'fix' this later.
+
+Thanks once again, keep up the good work.
+
+> Best regards,
+> Patrick
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -116,16 +203,16 @@ Neither have I, sorry.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---rYRijwbmzeJBcrGE
+--rmZDAlAp7pllCg/D
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+2OtHXaXGVTD0i/8RAh6dAKCRYJkUjnTkuXhpDJAYE4Yci+Rx2ACfWcnE
-vn+6RUvf8Ye9kWbqI8w/OcM=
-=dBsX
+iD8DBQE+2RX5XaXGVTD0i/8RAqs4AKCgGRb5ZsV1eAaY+bPkAn5sPijBTgCZAfkY
+vHjdrmTqK4zwkldK0tzKlZ0=
+=DdpW
 -----END PGP SIGNATURE-----
 
---rYRijwbmzeJBcrGE--
+--rmZDAlAp7pllCg/D--
