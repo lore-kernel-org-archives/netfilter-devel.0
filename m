@@ -1,15 +1,16 @@
-From: "Toshihiro Sonoda" <toshihiro@jp.fujitsu.com>
-Subject: Re: [PATCH] update for ROUTE target in Netfilter-Extension HOWTO [ENG][FR]
-Date: Sat, 21 Sep 2002 18:11:20 +0900
+From: Patrick Schaaf <bof@bof.de>
+Subject: matching "many of one kind"
+Date: Sat, 21 Sep 2002 11:33:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <006b01c2614e$d9ed8300$fb01a8c0@monday>
-References: <200209201617.g8KGHNfc009408@marajade.sandelman.ottawa.on.ca>
+Message-ID: <20020921093322.GB282@oknodo.bof.de>
+References: <638AA0336D7ED411928700D0B7B0D75B03053C9C@aimail.aiinet.com> <20020918221212.GG10465@oknodo.bof.de> <20020920170741.M3810@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@gnumonks.org>
+Content-Disposition: inline
+In-Reply-To: <20020920170741.M3810@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,34 +21,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald & all,
 
-hi, I have one question.
-
+> > However, in general, I'm not so sure that it makes sense to expand
+> > all kinds of match options into multidimensional specification
+> > languages for arbitrary subsets of their keyspaces, with all kinds
+> > of option specific shortcut forms for how ranges and patterns are
+> > written. Each option becomes its own mini-language. I don't like.
 > 
->     >> I agree that the interaction with NAT is confusing at present.
-> 
->     dric> The ROUTE target is now to be inserted in the mangle table.  This
->     dric> means that the ROUTE target applies before NAT (mangle table has
->     dric> higher priority than nat table, but lower than conntrack table).
->     dric> So there is no longer interactions with the NAT.
-> 
->   NAT is done in POSTROUTING, unless you mean the un-NAT stuff, which I
-> don't understand.
-> 
+> You seem to be reading my mind.  I already had this issue with the
+> multiport match (I never liked it, in fact) - and I have the same 
+> trouble with this kind of patches.  Somebody seems to be solving a 
+> particular problem (efficiency?) the wrong way.
 
-I think NAT is not done in POSTROUTING in this case.
+Do you have an idea about how to solve these efficiency problems?
+I think we do have genuine cases on our hands that profit immensely
+from such compact specification of more or less large one-dimensional
+alternative lists. My ippool extension was born out of one such case,
+where a small bitmap can replace hundreds of source or destination
+IP specifications. Jay's multi-device-list, with his application
+needing to match "one of 100 devices" out of a larger set, is
+another good case.
 
-Packets, which are matched by the rule of 'ROUTE tareget',
-flow as following route.
+With ippool, I decided to hide the "detailed list of set members"
+in the ippool management, i.e. kept it away from normal rule
+specification, so the rule management itself does not need a
+more complicated API. This "trick" may as well be used for the
+device list stuff, or for more complex multiport things (those
+would be two new flavors of pools).
 
--> [mangle: PREROUTING]->[some tunnel device]->
-         [OUTPUT]->[POSTROUTING]-> send to another machine.
+Do you know other approaches, maybe more logical / compact /
+understandable, that may help us with this general problem?
 
-The packets go through the POSTROUTING, but netfilter does not use 
-the NAT tables matching rule in the POSTROUTING, because of 
-hook of mangle tables.
+Or, do you see iptables geared so much towards mainstream usage
+that you don't worry too much about those pathologically complex
+cases - after all, we proved that we can write our own specialcase
+extensions to cover them, anyway. Note that this paragraph is not
+meant as a sarcastic snide; such an approach could be taken.
 
-Is that OK? or Do I mistake?
+In any case, before the iptables matches and targets become even
+more baroque, I'd like to know what the core team things about
+these issues.
 
-If I am right, I want to send masqueraded packets to ROUTE target.
- 
+best regards
+  Patrick
