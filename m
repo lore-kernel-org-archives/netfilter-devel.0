@@ -1,18 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: GnomeMeeting STUN
-Date: Sat, 3 Jan 2004 17:43:14 +0100
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [netfilter-core] asymptotic complexity when creating new chains and rules
+Date: Sun, 04 Jan 2004 14:51:28 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040103164313.GA3483@obroa-skai.de.gnumonks.org>
-References: <1072260947.722.25.camel@golgoth01> <20031224143851.GD941@obroa-skai.de.gnumonks.org> <200401022037.24303.lists@ohlmeier.de>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
-Cc: Damien Sandras <dsandras@seconix.com>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <20040104043038.16CC32C2C1@lists.samba.org>
+References: <200401031636.11291.mail@stefan-winter.de>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nils Ohlmeier <lists@ohlmeier.de>
-Content-Disposition: inline
-In-Reply-To: <200401022037.24303.lists@ohlmeier.de>
+To: Stefan Winter <mail@stefan-winter.de>
+In-reply-to: Your message of "Sat, 03 Jan 2004 16:36:10 BST."
+             <200401031636.11291.mail@stefan-winter.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,62 +19,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+In message <200401031636.11291.mail@stefan-winter.de> you write:
+> But, if you iterate this process a hundred times (with increasing "N" in the 
+> chain name, so that you get 200 chains with 200*62 rules altogether), adding 
+> the chains slows down with every new chain (first chain: 20 ms, all chains 
+> together 150 SECONDS). This seems to imply that adding a chain (or rule) is 
+> of complexity O(n) with n being the number of rules/chains already in the 
+> table, where one would expect O(1). Is that right?
 
---FL5UXtIhxfXey3p5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yes.  In particular, the userspace is theoretically O(1), in that if
+you read the chains once, kept that copy, and every time updated it
+and committed it to the kernel, that would be O(1).  But most uses of
+libiptc do "read all rules, insert new one, repeat".  Secondly, the
+kernel isn't O(1): it checks for loops, and actually calls all the
+rules' matches and targets to check they like where they are.
 
-On Fri, Jan 02, 2004 at 08:37:24PM +0100, Nils Ohlmeier wrote:
+This is why Harald is working on pkttables, which abandons the whole
+"flip the whole table into the kernel approach".
 
-> > So it seems like linux is too advanced for the tricks that STUN tries to
-> > do.
->=20
-> Yes, STUN works well if you are sitting behind one of these small hardwar=
-e=20
-> boxes, because the experiences shows that most of them are 'full cone=20
-> NAT' (which means an IP port combination on the NAT box accepts pakcets f=
-rom=20
-> any IP or port combination for this destination and delivers it to the=20
-> private destination).
-> But with netfilter and if i'm not wrong with the BSD's STUN is no help
-> (except that you can detect that you are lost :)
-
-fortunately (or unfortunately, depending on your viewpoint) an
-increasing number of those 'small hardware boxes' start to use Linux.
-If you buy recent 802.11g AP/router combo's with builtin switch and
-sometimes even dsl-modem, they are very likely to run linux.
-(linksys,belkin,buffalo, ...)
-> To be able to live just with STUN you had to change Netfilter back to
-> the more "unsecure"  'full cone NAT' as with ipchains. Which will
-> probably rejected by the Netfilter team :)
-
-probably ;)
-
-> Greets
->   Nils
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---FL5UXtIhxfXey3p5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/9vEhXaXGVTD0i/8RAmWvAJ9r+rBoVZIg/1+KObVuqPsmQp2guQCbBQ4+
-54BYvsACLgMSWxWOUsZ3CTs=
-=OqSX
------END PGP SIGNATURE-----
-
---FL5UXtIhxfXey3p5--
+Cheers,
+Rusty.
+PS.  netfilter-devel is the correct mailing list.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
