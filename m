@@ -1,14 +1,12 @@
-From: "Martijn Lievaart" <m@rtij.nl>
-Subject: Re: Including iptables.c in my C++ Project
-Date: Thu, 3 Mar 2005 17:27:22 +0100 (CET)
-Message-ID: <19442.213.236.112.75.1109867242.squirrel@213.236.112.75>
-References: <1109865800.9270.17.camel@localhost>
+From: Tom Eastep <teastep@shorewall.net>
+Subject: Re: [PATCH 0/4] Updated IPSEC NAT patches for 2.6.11
+Date: Thu, 03 Mar 2005 13:10:28 -0800
+Message-ID: <42277D44.4080207@shorewall.net>
+References: <1108667319.21912.14.camel@leto.cs.pocnet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1109865800.9270.17.camel@localhost>
-To: "Borja Pacheco" <bpacheco@acisa.es>
+Content-Type: multipart/mixed; boundary="------------060308050903030909060403"
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1108667319.21912.14.camel@leto.cs.pocnet.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,43 +18,72 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Borja Pacheco said:
-> Dear all,
->
-> I'm developing  a program in C++ which needs to insert rules into the
-> kernel.
-> I thought to invoke iptables binary directly, but I think that if I used
-> it intensively it could be an issue with the performance, so I finally
-> decided to include the source code of iptables into my own program and
-> make internal calls to insert_entry (you can found its code into
-> iptables.c) instead.
+This is a multi-part message in MIME format.
+--------------060308050903030909060403
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Better to use iptables-restore probably instead.
+Christophe Saout wrote:
+> Hi,
+> 
+> I've forward-ported Patrick McHardy's patches that make the kernel IPSEC
+> work with NAT.
+> 
+> Since there probably won't be any more big changes between 2.6.11-rc4
+> and the final 2.6.11 I'm posting them now.
+> 
+> The biggest change is in the last patch (ipsec-04-policy-checks.diff). I
+> needed to rewrite nf_nat_decode_session4 due to the big NAT changes. I
+> hope I got everything right. I couldn't find a situation where it
+> failed.
+> I also added a missing return in nat_route_key_compare that made the
+> kernel fail with certain compiler flags.
+> 
 
->
-> To do this,
-> I included into my files the following include:
-> #include "iptables.c"
+Here's another little patch that allows iptables to compile cleanly
+against a kernel tree that has the IPSEC NAT patches applied.
 
-Aaargh. C and C++ are different languages. Also from an enginering point
-of view this is a hack at best.
+-Tom
+-- 
+Tom Eastep    \ Off-list replies are cheerfully ignored
+Shoreline,     \ http://shorewall.net
+Washington USA  \ teastep@shorewall.net
+PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
 
-> /usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:297: error:
-> pointer of
->    type `void *' used in arithmetic
+--------------060308050903030909060403
+Content-Type: text/x-patch;
+ name="ipsec-05-iptablescompile.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ipsec-05-iptablescompile.diff"
 
-This is different in C and C++.
+diff -Naur linux-2.6.11.orig/include/linux/netfilter_ipv4.h linux-2.6.11/include/linux/netfilter_ipv4.h
+--- linux-2.6.11.orig/include/linux/netfilter_ipv4.h	2005-03-03 10:55:24.895484995 -0800
++++ linux-2.6.11/include/linux/netfilter_ipv4.h	2005-03-03 10:55:13.496133352 -0800
+@@ -7,8 +7,10 @@
+ 
+ #include <linux/config.h>
+ #include <linux/netfilter.h>
++#ifdef __KERNEL__
+ #include <linux/netdevice.h>
+ #include <net/protocol.h>
++#endif
+ 
+ /* IP Cache bits. */
+ /* Src IP address. */
+diff -Naur linux-2.6.11.orig/include/net/ip.h linux-2.6.11/include/net/ip.h
+--- linux-2.6.11.orig/include/net/ip.h	2005-03-03 10:54:34.418212127 -0800
++++ linux-2.6.11/include/net/ip.h	2005-03-03 10:54:25.250342049 -0800
+@@ -30,8 +30,10 @@
+ #include <linux/netdevice.h>
+ #include <linux/inetdevice.h>
+ #include <linux/in_route.h>
++#ifdef __KERNEL__
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv4.h>
++#endif
+ #include <net/route.h>
+ #include <net/arp.h>
+ #include <net/snmp.h>
 
-> /usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:297: error:
-> invalid
->    conversion from `void*' to `ipt_entry_target*'
-
-As is this.
-
-[ Lots of errors omitted ]
-
-Read up on mixing C and C++ code. It's fairly trivial but this is not the
-way to do it.
-
-HTH,
-M4
+--------------060308050903030909060403--
