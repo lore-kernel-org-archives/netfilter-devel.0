@@ -1,15 +1,13 @@
-From: Vivek Kashyap <kashyapv@us.ibm.com>
-Subject: Re: [PATCH] RANGEMARK target
-Date: Fri, 31 Oct 2003 09:44:46 -0800 (Pacific Standard Time)
+From: "dimitri borjac" <dimitri_borjac@hotmail.com>
+Subject: RE: iptables and SPI...
+Date: Fri, 31 Oct 2003 18:07:08 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.WNT.4.44.0310310942460.1752-100000@w-vkashyap95.des.sequent.com>
-References: <20031031143849.GE21066@sunbeam.de.gnumonks.org>
+Message-ID: <Law10-F5700goZolmRB000000bb@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Vivek Kashyap <vivk@us.ibm.com>, <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031031143849.GE21066@sunbeam.de.gnumonks.org>
+To: hno@marasystems.com
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,108 +18,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-OK Thanks. Will resubmit after correcting.
 
-Vivek
+>  -----Message d'origine-----
+>  De : Henrik Nordstrom [mailto:hno@marasystems.com]
+>  Envoyé : vendredi 31 octobre 2003 18:42
+>  À : dimitri borjac
+>  Cc : laforge@netfilter.org; netfilter-devel@lists.netfilter.org
+>  Objet : RE: iptables and SPI...
+>    On Fri, 31 Oct 2003, dimitri borjac wrote:
+>   > what i'm trying to do is to perform NAT based on 
+>IP_addresses/Ports/SPIs.
+>   Why not simply using a IP-Sec implementation supporting the  
+>NAT-Transversal standard?
+>   IP-Sec is generally not very happy about being NAT:ed. For examle AH is
+>  totally incompatible with NAT (unless using the NAT-Transversal 
+>standard).
+>   Regards
+>  Henrik
 
+Just because I don't want to be compelled to use NAT-Traversal :)
 
-On Fri, 31 Oct 2003, Harald Welte wrote:
+And the only solution in this case is to NAT using the SPI... indeed by 
+default AH is not compatible with NAT, and neither is ESP in transport mode, 
+but ESP in tunnel mode supports the NAT (since the whole encrypted IP packet 
+is encapsulated in a new IP header).
 
-> On Mon, Oct 27, 2003 at 02:57:28PM -0800, Vivek Kashyap wrote:
-> > I wanted to MARK packets dynamically within a certain range.
->
-> Ok, thanks for this contribution.
->
-> > Please comment. I'll then update with necessary changes and also
-> > add ip6t_* target.
->
-> I'm going to comment inline.
->
-> > +struct rangemarkinfo {
-> > +    struct ipt_entry_target t;
-> > +    struct ipt_rangemark_target_info rangemark;
->
-> please adhere to the kernel CodingStyle (tabulator indent, 8char).
->
-> > +static void
-> > +print_rangemark(struct ipt_rangemark_target_info *r)
-> > +{
-> > +    printf("Base:   %lu %lx\n", r->base, r->base);
-> > +    printf("Limit:  %lu %lx\n", r->limit, r->limit);
-> > +    printf("rsize:  %lu %lx\n", r->rsize, r->rsize);
-> > +    printf("skipvalue:  %lu %lx\n", r->skip, r->skip);
-> > +    printf("mask:  %lu %lx\n", r->mask, r->mask);
-> > +    printf("policy: %d\n", r->policy);
-> > +    printf("op:     %d\n", r->op);
-> > +}
->
-> you'd have to try to be less verbose and not use newlines in the
-> printout.  the print() function will be called for every rule when you
-> do a 'iptables -L'.
->
-> > +/* Saves the union ipt_targinfo in parsable form to stdout. */
-> > +static void
-> > +save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
-> > +{
-> > +    struct ipt_rangemark_target_info *rinfo =
-> > +        (struct ipt_rangemark_target_info *)target->data;
-> > +
-> > +    print_rangemark(rinfo);
-> > +}
->
-> this is not correc.t  save() has to save it in exactly the same format
-> (i.e. gnu-longoppts like --base) so that a later call to parse() can
-> parse it again.
->
-> > @@ -5,7 +5,7 @@
-> >  # header files are present in the include/linux directory of this iptables
-> >  # package (HW)
-> >  #
-> > -PF_EXT_SLIB:=ah connlimit conntrack dscp ecn esp helper icmp iprange length limit mac mark multiport owner physdev pkttype realm rpc standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NOTRACK REDIRECT REJECT SAME SNAT TARPIT TCPMSS TOS TRACE TTL ULOG
-> > +PF_EXT_SLIB:=ah connlimit conntrack dscp ecn esp helper icmp iprange length limit mac mark multiport owner physdev pkttype realm rpc standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP NOTRACK REDIRECT REJECT SAME SNAT TARPIT TCPMSS TOS TRACE TTL ULOG RANGEMARK
-> >
->
-> instead of adding it to the makefile, we use a conditional compile
-> mechanism.  Please look at the '.*-test' files in the extensions
-> subdirectory as an example.
->
-> > +enum rangemark_policy {
-> > +	RANGEMARK_POLICY_RANDOM = 1,
-> > +	RANGEMARK_POLICY_PORTHASH,
-> > +};
->
-> in the kernel, you really should follow linux/Documentation/CodingStyle
->
-> > +unsigned short
-> > +rangemark_hash(unsigned short s, unsigned short d)
->
-> please try to use architecture independent fixed-size data types.  The
-> kernel is compiled on various architectures, ...  so if you want an
-> unsigned 16bit number, please use 'u_int16_t' or __u16.
->
-> > +        case RANGEMARK_POLICY_PORTHASH:
-> > +            /*
-> > +             * Skip non IP packets
-> > +             */
-> > +            iptr = (void *)(*pskb)->nh.iph;
-> > +            if ((((struct iphdr *)iptr)->version != 6) &&
-> > +                    (((struct iphdr *)iptr)->version != 4)){
-> > +                return IPT_CONTINUE;
->
-> an iptables target can only be called from ip_tables.  And ip_tables is
-> ipv4 specific, so it's guaranteed that you only receive IPv4 packets.
->
-> > +#endif /*_IPT_RANGEMARK_H_target*/
->
-> --
-> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-> ============================================================================
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
->
+The only problem then (with ESP in tunnel mode) is for the local gateway : 
+it has to know who the encrypted packet coming back to the local network is 
+destinated to... that's where the SPI is helpful.
 
-__
+So the problem is still there... is it possible to extend the NAT functions 
+of iptables in order to make the local gateway read and use the SPI for 
+NATting packets ?
 
-Vivek Kashyap
-Linux Technology Center, IBM
+Regards,
+dimo
+
+_________________________________________________________________
+Trouvez l'âme soeur sur MSN Rencontres ! http://g.msn.fr/FR1000/9551
