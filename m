@@ -1,12 +1,14 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] FTP sequence tracking cleanups
-Date: Thu, 31 Mar 2005 17:37:22 -0800
-Message-ID: <20050401013722.GA1493@linuxace.com>
+From: Wang Jian <lark@linux.net.cn>
+Subject: Re: Netfilter and Kernel Threads
+Date: Fri, 01 Apr 2005 09:54:10 +0800
+Message-ID: <20050401094856.01ED.LARK@linux.net.cn>
+References: <OFDADA6776.7D6B0627-ONC1256F95.0043FD45-C1256F95.00443200@ch.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="oyUTqETQ0mS9luUI"
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+In-Reply-To: <OFDADA6776.7D6B0627-ONC1256F95.0043FD45-C1256F95.00443200@ch.ibm.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,64 +20,163 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Roland Wehage,
 
---oyUTqETQ0mS9luUI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Kernel thread can only be created in process context, not in interrupt
+context. mod_init() is called in process context but example_hook() is not.
 
-The 2.6.11 changes incorrectly pass seq to a couple of functions as a u16.
-In addition, a few DEBUGP statements were broken.
+On Wed, 26 Jan 2005 13:24:52 +0100, Roland Wehage <RWE@zurich.ibm.com> wrote:
 
-Phil
+> Hello,
+> 
+> I hope you can help me, you would do me a great favour...
+> 
+> My question is about Linux Netfilter (I am using Kernel 2.6.10):
+> 
+> Background:
+> I am writing a Netfilter module and a driver for a hardware packet
+> classifier. So the filtiring should take place for every packet that passes
+> one of the following Netfilterhooks:
+> -NF_IP_FORWARD
+> -NF_IP_LOCAL_IN
+> -NF_IP_LOCAL_OUT
+> When a packet is send to the classifier (by using a PCI-Bus), the module
+> can only expect a certain number returned (for example: 0 = Accept packet,
+> 1 = Drop...). So I am not getting back any packet ID or something like
+> this.
+> 
+> Because it can happen, that Netfilter calls this module faster than the
+> classifier is able to do the filtering, I thought of creating a kernel
+> thread for each packet:
+> 
+> for example:
+> 
+> unsigned int example_hook(unsigned int hooknum, struct sk_buff **skb, ...)
+> {
+>       ...
+>       thread_id = kernel_thread(thread_code, NULL, CLONE_KERNEL);
+>       ...
+> }
+> 
+> After forwarding the packet to the Classifier, the thread is set asleep and
+> waits for being woken up. After the PCI-Bus returned an interrupt the
+> thread is woken up.
+> My problem is that I cannot create threads in this architecture.
+> 
+> My test code is something like this:
+> 
+> ...
+> 
+> static wait_que_head_t wq;
+> static int thread_id = 0;
+> static DECLARE_COMPLETION(on_exit);
+> statir int first = 1;
+> 
+> ...
+> 
+> static int thread_code(void *data)
+> {
+>       daemonize("ThisThread");
+>       allow_signal(SIGTERM);
+>       thread_id = 0;
+>       complete_and_exit(&on_exit, 0);
+> }
+> 
+> unsigned int example_hook(unsigned int hooknum, struct sk_buff **skb, ...)
+> {
+>       if(first)//only to guarantee that only the first call will create a
+> thread, to show that the system crashes
+>       //whenever kernel_thread() is called
+>       {
+>             first = 0;
+>             thread_id = kernel_thread(thread_code, NULL, CLONE_KERNEL);
+>             if(thread_id)
+>                   kill_proc(thread_id, SIGTERM, 1);
+>             wait_for_completion(&on_exit);
+>       }
+>       return NF_ACCEPT;
+> }
+> 
+> static struct nf_hook_ops example_ops =
+> {
+>       .hook = example_hook,
+>       .pf = PF_INET,
+>       .hooknum = NF_IP_LOCAL_IN,
+>       .priority = -1,
+> };
+> 
+> static int __init mod_init(void)
+> {
+>       init_waitqueue_head(&wq);
+>       if(nf_register_hook(&example_ops) < 0)
+>             return 1;
+>       return 0;
+> }
+> 
+> static void __exit mod_exit(void)
+> {
+>       nf_unregister_hook(&example_ops);
+> }
+> 
+> My problem is, that the system crashes when I load this module and I just
+> do not know why.
+> 
+> The following construction works, but is not what I need, I cannot see the
+> main difference, why this works and the construction above not:
+> 
+> ...
+> 
+> static wait_que_head_t wq;
+> static int thread_id = 0;
+> static DECLARE_COMPLETION(on_exit);
+> ...
+> 
+> static int thread_code(void *data)
+> {
+>       daemonize("ThisThread");
+>       allow_signal(SIGTERM);
+>       thread_id = 0;
+>       complete_and_exit(&on_exit, 0);
+> }
+> 
+> unsigned int example_hook(unsigned int hooknum, struct sk_buff **skb, ...)
+> {
+>       return NF_ACCEPT;
+> }
+> 
+> static struct nf_hook_ops example_ops =
+> {
+>       .hook = example_hook,
+>       .pf = PF_INET,
+>       .hooknum = NF_IP_LOCAL_IN,
+>       .priority = -1,
+> };
+> 
+> static int __init mod_init(void)
+> {
+>       init_waitqueue_head(&wq);
+>       thread_id = kernel_thread(thread_code, NULL, CLONE_KERNEL);
+>       if(thread_id)
+>             kill_proc(thread_id, SIGTERM, 1);
+>       wait_for_completion(&on_exit);
+>       if(nf_register_hook(&example_ops) < 0)
+>             return 1;
+>       return 0;
+> }
+> 
+> static void __exit mod_exit(void)
+> {
+>       nf_unregister_hook(&example_ops);
+> }
+> 
+> You would do me a grait favour, if you would help me. Thanks a lot!
+> 
+> With regards,
+> 
+> Roland Wehage.
+> 
 
 
 
---oyUTqETQ0mS9luUI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ftp1
-
-diff -ru linux-orig/net/ipv4/netfilter/ip_conntrack_ftp.c linux-new/net/ipv4/netfilter/ip_conntrack_ftp.c
---- linux-orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-03-02 02:38:38.000000000 -0500
-+++ linux-new/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-03-31 12:47:48.501244792 -0500
-@@ -252,7 +252,7 @@
- }
- 
- /* Look up to see if we're just after a \n. */
--static int find_nl_seq(u16 seq, const struct ip_ct_ftp_master *info, int dir)
-+static int find_nl_seq(u32 seq, const struct ip_ct_ftp_master *info, int dir)
- {
- 	unsigned int i;
- 
-@@ -263,7 +263,7 @@
- }
- 
- /* We don't update if it's older than what we have. */
--static void update_nl_seq(u16 nl_seq, struct ip_ct_ftp_master *info, int dir)
-+static void update_nl_seq(u32 nl_seq, struct ip_ct_ftp_master *info, int dir)
- {
- 	unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
- 
-@@ -330,9 +330,9 @@
- 	/* Look up to see if we're just after a \n. */
- 	if (!find_nl_seq(ntohl(th->seq), ct_ftp_info, dir)) {
- 		/* Now if this ends in \n, update ftp info. */
--		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u) or %s(%u)\n",
--		       ct_ftp_info->seq_aft_nl[0][dir] 
--		       old_seq_aft_nl_set ? "":"(UNSET) ", old_seq_aft_nl);
-+		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u)\n",
-+		       ct_ftp_info->seq_aft_nl[0][dir] ? "":"(UNSET),
-+		       ct_ftp_info->seq_aft_nl[0][dir]);
- 		ret = NF_ACCEPT;
- 		goto out_update_nl;
- 	}
-@@ -373,7 +373,7 @@
- 		goto out_update_nl;
- 	}
- 
--	DEBUGP("conntrack_ftp: match `%s' (%u bytes at %u)\n",
-+	DEBUGP("conntrack_ftp: match `%.26s' (%u bytes at %u)\n",
- 	       fb_ptr + matchoff, matchlen, ntohl(th->seq) + matchoff);
- 			 
- 	/* Allocate expectation which will be inserted */
-
---oyUTqETQ0mS9luUI--
+-- 
+  lark
