@@ -1,12 +1,15 @@
-From: Natty McButterpants <ipv6natlover@yahoo.com>
-Subject: IPv6 NAT for Linux 2.6.5
-Date: Tue, 18 May 2004 21:06:50 -0700 (PDT)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: H.323 progress.
+Date: Wed, 19 May 2004 08:15:51 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040519040650.32127.qmail@web90003.mail.scd.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0405190814480.19467-100000@filer.marasystems.com>
+References: <40AA6E99.20900@sauce.co.nz>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-1487575133-1084939610=:4630"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Richard Scobie <richard@sauce.co.nz>
+In-Reply-To: <40AA6E99.20900@sauce.co.nz>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,18 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-1487575133-1084939610=:4630
-Content-Type: text/plain; charset=us-ascii
+On Wed, 19 May 2004, Richard Scobie wrote:
 
-We have just completed testing on NAT for IPv6 for ICMP. We are finishing up on TCP and UDP and should have these completed within the week. We used the IPv6 connection tracking from the Usagi 2.6.5 kernel as our foundation. Just wanted to let everyone know, and those interested can inquire regarding the source. Please reply to this email.
+> Two offices each with an iptables firewall and a site to site VPN 
+> between them - the video gear is configured to connect to each others 
+> private network address through the VPN.
 
-		
----------------------------------
-Do you Yahoo!?
-SBC Yahoo! - Internet access at a great low price.
---0-1487575133-1084939610=:4630
-Content-Type: text/html; charset=us-ascii
+Is the traffic between the two offices NAT:ed, or just forwarded over the 
+VPN?
 
-<DIV>We have just completed testing on NAT for IPv6 for ICMP. We are finishing up on TCP and UDP and should have these completed within the week. We used the IPv6 connection tracking from the Usagi 2.6.5 kernel as our foundation. Just wanted to let everyone know, and those interested can inquire regarding the source. Please reply to this email.</DIV><p>
-		<hr size=1><font face=arial size=-1>Do you Yahoo!?<br><a href="http://pa.yahoo.com/*http://us.rd.yahoo.com/evt=24311/*http://promo.yahoo.com/sbc/">SBC Yahoo!</a> - Internet access at a great low price.
---0-1487575133-1084939610=:4630--
+There should be no need for NAT on office<->office traffic.
+
+Regards
+Henrik
