@@ -1,12 +1,17 @@
-From: Jean-Philippe Rey <jprey@ecp.fr>
-Subject: ip_conntrack_amanda, passing amanda udp port as parameter
-Date: Tue, 21 Sep 2004 08:34:56 +0200
+From: "Darius Tribandis" <sirijus@kobra.ktu.lt>
+Subject: Re: -m limit problem
+Date: Tue, 21 Sep 2004 11:20:47 +0300
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414FCB90.80807@ecp.fr>
+Message-ID: <1ec901c49fb3$e5a9cf50$523e000a@sirijus>
+References: <1e0e01c49f56$7f61b490$523e000a@sirijus>
+	<Pine.LNX.4.61.0409202329180.18874@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010306000608040103010502"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Henrik Nordstrom" <hno@marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,98 +22,60 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010306000608040103010502
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+hi,
 
-Hello Folks,
+Now i understand. I thing that counter resets just after i reload specific
+rule, but if it resets each time i modify any of rules =- than it must by
+trated as bug, because it lacks all funcionality of iptables limit match
+module.
 
-We are using netfilter and ip_conntrack_amanda. However for historical
-reasons, amanda is using a different port than 10080. As the port is hard
-coded in ip_conntrack_amanda, I wrote a patch in order to be able to select
-the port through a parameter.
+is it posible to owercome this "future" ? ;)
 
-As I think this may be helpfull to others I send you this patch here. Feel
-free to do wathever you like with it.
+---
+D. Tribandis
+Kaunas University of Technology
+Institute of Information Technology Development
 
--- 
-Jean-Philippe Rey          Professeur informatique - École Centrale Paris
-jprey@ecp.fr               92295 Châtenay-Malabry Cedex - France
+----- Original Message ----- 
+From: "Henrik Nordstrom" <hno@marasystems.com>
+To: "Darius Tribandis" <sirijus@kobra.ktu.lt>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Tuesday, September 21, 2004 12:52 AM
+Subject: Re: -m limit problem
 
---------------010306000608040103010502
-Content-Type: text/plain; x-mac-type="0"; x-mac-creator="0";
-	name="amanda_port.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="amanda_port.patch"
 
-ZGlmZiAtdXIga2VybmVsLXNvdXJjZS0yLjQuMjcvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nv
-bm50cmFja19hbWFuZGEuYyBrZXJuZWwtc291cmNlLTIuNC4yNy0xL25ldC9pcHY0L25ldGZp
-bHRlci9pcF9jb25udHJhY2tfYW1hbmRhLmMKLS0tIGtlcm5lbC1zb3VyY2UtMi40LjI3L25l
-dC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfYW1hbmRhLmMJMjAwNC0wMi0xOCAxNDoz
-NjozMi4wMDAwMDAwMDAgKzAxMDAKKysrIGtlcm5lbC1zb3VyY2UtMi40LjI3LTEvbmV0L2lw
-djQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19hbWFuZGEuYwkyMDA0LTA5LTA2IDIzOjUwOjQ5
-LjAwMDAwMDAwMCArMDIwMApAQCAtOCwxMSArOCwxMSBAQAogICogICAgICAyIG9mIHRoZSBM
-aWNlbnNlLCBvciAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgogICoKICAq
-CU1vZHVsZSBsb2FkIHN5bnRheDoKLSAqIAlpbnNtb2QgaXBfY29ubnRyYWNrX2FtYW5kYS5v
-IFttYXN0ZXJfdGltZW91dD1uXQorICogCWluc21vZCBpcF9jb25udHJhY2tfYW1hbmRhLm8g
-W21hc3Rlcl90aW1lb3V0PW5dW21hc3Rlcl9wb3J0PW1dCiAgKgkKICAqCVdoZXJlIG1hc3Rl
-cl90aW1lb3V0IGlzIHRoZSB0aW1lb3V0IChpbiBzZWNvbmRzKSBvZiB0aGUgbWFzdGVyCi0g
-Kgljb25uZWN0aW9uIChwb3J0IDEwMDgwKS4gIFRoaXMgZGVmYXVsdHMgdG8gNSBtaW51dGVz
-IGJ1dCBpZgotICoJeW91ciBjbGllbnRzIHRha2UgbG9uZ2VyIHRoYW4gNSBtaW51dGVzIHRv
-IGRvIHRoZWlyIHdvcmsKKyAqCWNvbm5lY3Rpb24gKHBvcnQgbSwgZGVmYXVsdCB0byAxMDA4
-MCkuICBUaGlzIGRlZmF1bHRzIHRvIDUgbWludXRlcworICoJYnV0IGlmIHlvdXIgY2xpZW50
-cyB0YWtlIGxvbmdlciB0aGFuIDUgbWludXRlcyB0byBkbyB0aGVpciB3b3JrCiAgKgliZWZv
-cmUgZ2V0dGluZyBiYWNrIHRvIHRoZSBBbWFuZGEgc2VydmVyLCB5b3UgY2FuIGluY3JlYXNl
-CiAgKgl0aGlzIHZhbHVlLgogICoKQEAgLTI5LDEyICsyOSwxNSBAQAogI2luY2x1ZGUgPGxp
-bnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFja19hbWFuZGEuaD4KIAogc3RhdGljIHVu
-c2lnbmVkIGludCBtYXN0ZXJfdGltZW91dCA9IDMwMDsKK3N0YXRpYyB1bnNpZ25lZCBpbnQg
-bWFzdGVyX3BvcnQgPSAxMDA4MDsKIAogTU9EVUxFX0FVVEhPUigiQnJpYW4gSi4gTXVycmVs
-bCA8bmV0ZmlsdGVyQGludGVybGlueC5iYy5jYT4iKTsKIE1PRFVMRV9ERVNDUklQVElPTigi
-QW1hbmRhIGNvbm5lY3Rpb24gdHJhY2tpbmcgbW9kdWxlIik7CiBNT0RVTEVfTElDRU5TRSgi
-R1BMIik7CiBNT0RVTEVfUEFSTShtYXN0ZXJfdGltZW91dCwgImkiKTsKK01PRFVMRV9QQVJN
-KG1hc3Rlcl9wb3J0LCAiaSIpOwogTU9EVUxFX1BBUk1fREVTQyhtYXN0ZXJfdGltZW91dCwg
-InRpbWVvdXQgZm9yIHRoZSBtYXN0ZXIgY29ubmVjdGlvbiIpOworTU9EVUxFX1BBUk1fREVT
-QyhtYXN0ZXJfcG9ydCwgInVkcCBwb3J0IGZvciB0aGUgbWFzdGVyIGNvbm5lY3Rpb24iKTsK
-IAogc3RhdGljIHN0cnVjdCB7IGNoYXIgKm1hdGNoOyBpbnQgbGVuOyB9IGNvbm5zW10gPSB7
-CiAJeyAiREFUQSAiLCA1fSwKQEAgLTEyNiw3ICsxMjksNyBAQAogCiBzdGF0aWMgaW50IF9f
-aW5pdCBpbml0KHZvaWQpCiB7Ci0JYW1hbmRhX2hlbHBlci50dXBsZS5zcmMudS51ZHAucG9y
-dCA9IGh0b25zKDEwMDgwKTsKKwlhbWFuZGFfaGVscGVyLnR1cGxlLnNyYy51LnVkcC5wb3J0
-ID0gaHRvbnMobWFzdGVyX3BvcnQpOwogCWFtYW5kYV9oZWxwZXIudHVwbGUuZHN0LnByb3Rv
-bnVtID0gSVBQUk9UT19VRFA7CiAJYW1hbmRhX2hlbHBlci5tYXNrLnNyYy51LnVkcC5wb3J0
-ID0gMHhGRkZGOwogCWFtYW5kYV9oZWxwZXIubWFzay5kc3QucHJvdG9udW0gPSAweEZGRkY7
-CkBAIC0xMzcsNiArMTQwLDkgQEAKIAlhbWFuZGFfaGVscGVyLmhlbHAgPSBoZWxwOwogCWFt
-YW5kYV9oZWxwZXIubmFtZSA9ICJhbWFuZGEiOwogCisJcHJpbnRrKEtFUk5fSU5GTyAiaXBf
-Y29ubnRyYWNrX2FtYW5kYTogcG9ydD0lZCwgdGltZW91dD0lZHNcbiIsCisJCW1hc3Rlcl9w
-b3J0LCBtYXN0ZXJfdGltZW91dCk7CisKIAlyZXR1cm4gaXBfY29ubnRyYWNrX2hlbHBlcl9y
-ZWdpc3RlcigmYW1hbmRhX2hlbHBlcik7CiB9CiAKZGlmZiAtdXIga2VybmVsLXNvdXJjZS0y
-LjQuMjcvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX25hdF9hbWFuZGEuYyBrZXJuZWwtc291cmNl
-LTIuNC4yNy0xL25ldC9pcHY0L25ldGZpbHRlci9pcF9uYXRfYW1hbmRhLmMKLS0tIGtlcm5l
-bC1zb3VyY2UtMi40LjI3L25ldC9pcHY0L25ldGZpbHRlci9pcF9uYXRfYW1hbmRhLmMJMjAw
-NC0wMi0xOCAxNDozNjozMi4wMDAwMDAwMDAgKzAxMDAKKysrIGtlcm5lbC1zb3VyY2UtMi40
-LjI3LTEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX25hdF9hbWFuZGEuYwkyMDA0LTA5LTA2IDIz
-OjUwOjU3LjAwMDAwMDAwMCArMDIwMApAQCAtOCw3ICs4LDcgQEAKICAqICAgICAgMiBvZiB0
-aGUgTGljZW5zZSwgb3IgKGF0IHlvdXIgb3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4KICAq
-CiAgKglNb2R1bGUgbG9hZCBzeW50YXg6Ci0gKiAJaW5zbW9kIGlwX25hdF9hbWFuZGEubwor
-ICogCWluc21vZCBpcF9uYXRfYW1hbmRhLm8gW21hc3Rlcl9wb3J0PW1dCiAgKi8KIAogI2lu
-Y2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgpAQCAtMjYsMTAgKzI2LDEzIEBACiAjaW5jbHVkZSA8
-bGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRyYWNrX2hlbHBlci5oPgogI2luY2x1ZGUg
-PGxpbnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFja19hbWFuZGEuaD4KIAorc3RhdGlj
-IHVuc2lnbmVkIGludCBtYXN0ZXJfcG9ydCA9IDEwMDgwOwogCiBNT0RVTEVfQVVUSE9SKCJC
-cmlhbiBKLiBNdXJyZWxsIDxuZXRmaWx0ZXJAaW50ZXJsaW54LmJjLmNhPiIpOwogTU9EVUxF
-X0RFU0NSSVBUSU9OKCJBbWFuZGEgTkFUIGhlbHBlciIpOwogTU9EVUxFX0xJQ0VOU0UoIkdQ
-TCIpOworTU9EVUxFX1BBUk0obWFzdGVyX3BvcnQsICJpIik7CitNT0RVTEVfUEFSTV9ERVND
-KG1hc3Rlcl9wb3J0LCAidWRwIHBvcnQgZm9yIHRoZSBtYXN0ZXIgY29ubmVjdGlvbiIpOwog
-CiBzdGF0aWMgdW5zaWduZWQgaW50CiBhbWFuZGFfbmF0X2V4cGVjdGVkKHN0cnVjdCBza19i
-dWZmICoqcHNrYiwKQEAgLTEzMiw3ICsxMzUsNyBAQAogCXN0cnVjdCBpcF9uYXRfaGVscGVy
-ICpobHByID0gJmlwX25hdF9hbWFuZGFfaGVscGVyOwogCiAJaGxwci0+dHVwbGUuZHN0LnBy
-b3RvbnVtID0gSVBQUk9UT19VRFA7Ci0JaGxwci0+dHVwbGUuc3JjLnUudWRwLnBvcnQgPSBo
-dG9ucygxMDA4MCk7CisJaGxwci0+dHVwbGUuc3JjLnUudWRwLnBvcnQgPSBodG9ucyhtYXN0
-ZXJfcG9ydCk7CiAJaGxwci0+bWFzay5zcmMudS51ZHAucG9ydCA9IDB4RkZGRjsKIAlobHBy
-LT5tYXNrLmRzdC5wcm90b251bSA9IDB4RkZGRjsKIAlobHByLT5oZWxwID0gaGVscDsKQEAg
-LTE0MSw2ICsxNDQsOCBAQAogCWhscHItPmV4cGVjdCA9IGFtYW5kYV9uYXRfZXhwZWN0ZWQ7
-CiAJaGxwci0+bmFtZSA9ICJhbWFuZGEiOwogCisJcHJpbnRrKEtFUk5fSU5GTywgImlwX25h
-dF9hbWFuZGE6IHBvcnQ9JWRcbiIsIG1hc3Rlcl9wb3J0KTsKKwogCXJldHVybiBpcF9uYXRf
-aGVscGVyX3JlZ2lzdGVyKGhscHIpOwogfQogCg==
---------------010306000608040103010502--
+> On Tue, 21 Sep 2004, Darius Tribandis wrote:
+>
+> > /usr/sbin/iptables -t nat -N httpinfo
+> > /usr/sbin/iptables -t nat -A PREROUTING -p tcp -s USERIP -m
+mac --mac-source
+> > AA:AA:BB:BB:CC:CC -m multiport --destination-port 80,8080,3128 -j
+httpinfo
+> > /usr/sbin/iptables -t nat -A httpinfo -p tcp -s 10.5.4.14 -m
+limit --limit
+> > 1/day --limit-burst 1 -j DNAT --to LOCALIP:5454
+> >
+> > sometimes i nead some times per day do like this:
+> >
+> > /usr/sbin/iptables -t nat -F PREROUTING
+> > /usr/sbin/iptables -t nat -A PREROUTING -p tcp -s USERIP -m
+mac --mac-source
+> > AA:AA:BB:BB:CC:CC -m multiport --destination-port 80,8080,3128 -j
+httpinfo
+> >
+> > here problem begins.
+> > i am not modifaing httpinfo table but i geting redirect after every
+reload
+> > like this.
+>
+> Due to the way limit stores it's counters the counters are reset each time
+> you modify the ruleset in the same table (nat in your case).
+>
+> In theory it may be possible to modify the iptables kernel API to allow
+> limit to keep it's counters while modifying the iptable, but in reality
+> the best method is to modify limit to keep it's counters in a more sane
+> place than within the iptable matchdata.. (or more realistic, write an
+> alternative match implementation using separate counters).
+>
+> Regards
+> Henrik
