@@ -1,13 +1,13 @@
-From: =?gb2312?B?uN+35UDN+NLX?= <zpeak@163.com>
-Subject: Who can tell me ,Where the sk_buffer comes from  in ipt_ULOG.c
-Date: Thu, 8 May 2003 20:02:51 +0800
+From: Daniel <daniel@dev-zone.org>
+Subject: MAC address matching. Or other ideas.
+Date: Mon, 05 May 2003 11:34:36 +1200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000a01c31559$c0ece890$01e7a8c0@zpeak>
+Message-ID: <3EB5A38C.4090606@dev-zone.org>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0007_01C3159C.CE779210"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,35 +18,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Quick version:
 
-------=_NextPart_000_0007_01C3159C.CE779210
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Is it possible to get the MAC match module to match on dst MAC address 
+rather than just src MAC?
 
-SGVsbG8sZnJpbmVkcw0KICAgIEkgYW0gdmVyeSBwdXp6bGVkICx3aGVyZSBjb21lcyBmcm9tIHRo
-ZSBza19idWZmZXIgaW4gaXB0X1VMT0cuYywNCkkgd2FudCB0byBpbXBsZW1lbnQgaXQgLGRvIHlv
-dSBoYXZlIHNvbWUgYWR2aXNlcyA/DQogICAgVGhhbmtzIGZvciByZWFkaW5nIG1haWwuDQpSZWdh
-cmRzLg0KICAgIHpwZWFrICAgICA=
+Longer Version:
 
-------=_NextPart_000_0007_01C3159C.CE779210
-Content-Type: text/html;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+My network is peered to an internet exchange. I am running Debian stable 
+with Zebra to handle all of the routing. I only want to measure traffic 
+that is going through our ISP. So I want to be able to say only gimme 
+traffic that is coming in and out via gateway X, the only way I can 
+figure to do that is by matching the MAC address of the gateway, but the 
+match only works on incoming traffic. Is it even technically possible to 
+match on out going? Or if someone has a better way of doing it I would 
+be happy to hear that as well.
 
-PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
-L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
-dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
-MC4yODAwLjExNDEiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
-Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj5IZWxsbyxmcmluZWRzPC9G
-T05UPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7IEkgYW0gdmVy
-eSBwdXp6bGVkICx3aGVyZSBjb21lcyBmcm9tIHRoZSANCnNrX2J1ZmZlciBpbiBpcHRfVUxPRy5j
-LDwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQgc2l6ZT0yPkkgd2FudCB0byBpbXBsZW1lbnQgaXQg
-LGRvIHlvdSBoYXZlIHNvbWUgYWR2aXNlcyANCj88L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIHNp
-emU9Mj4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDtUaGFua3MgZm9yIHJlYWRpbmcgbWFpbC48L0ZP
-TlQ+PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj5SZWdhcmRzLjwvRk9OVD48L0RJVj4NCjxESVY+
-PEZPTlQgc2l6ZT0yPiZuYnNwOyZuYnNwOyZuYnNwOyANCnpwZWFrJm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7PC9GT05UPiZuYnNwOzwvRElWPjwvQk9EWT48L0hUTUw+DQo=
+I am not subscribed to the list so if it is possible to reply to me and 
+the list that would be great, but I will read the list archive for the 
+next couple of days anyway.
 
-------=_NextPart_000_0007_01C3159C.CE779210--
+Thanks
+Daniel Griggs
