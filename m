@@ -1,8 +1,8 @@
 From: "Mike Andersen" <mike@src.no>
 Subject: Re: Idea: Check session source and destination
-Date: Sun, 23 May 2004 03:25:52 +0200 (CEST)
+Date: Sun, 23 May 2004 03:17:08 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <2187.80.53.224.38.1085275552.squirrel@www.tmuras.2000.cd>
+Message-ID: <1980.80.53.224.38.1085275028.squirrel@www.tmuras.2000.cd>
 Reply-To: nexor@mybaby.cd
 Mime-Version: 1.0
 Content-Type: text/plain;charset=iso-8859-2
