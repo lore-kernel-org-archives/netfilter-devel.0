@@ -1,20 +1,22 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
 Subject: Re: PATCH: extra conntrack stats
-Date: 01 May 2003 11:06:48 +0200
+Date: 01 May 2003 12:01:00 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1051780007.8215.200.camel@tux.rsn.bth.se>
-References: <20030501015802.2CB152C2D9@lists.samba.org>
+Message-ID: <1051783259.8212.256.camel@tux.rsn.bth.se>
+References: <Pine.LNX.4.33.0304301227530.3328-100000@blackhole.kfki.hu>
+	 <20030501015802.2CB152C2D9@lists.samba.org>
+	 <20030501054830.GA15143@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
 	Harald Welte <laforge@netfilter.org>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <20030501015802.2CB152C2D9@lists.samba.org>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20030501054830.GA15143@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,44 +27,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2003-05-01 at 02:06, Rusty Russell wrote:
-> In message <Pine.LNX.4.33.0304301227530.3328-100000@blackhole.kfki.hu> you write:
-> > As usual, it's Rusty's locking patch what triggered me to think over the
-> > locking issues. In that patch Rusty actually eliminates ip_conntrack
-> > lock:
-> 
-> Ah, but I think I might have a better trick.  Patrick cc'd since he's
-> the hashing man.
-> 
-> Can we compromise the hash so that every packet hashes to the same
-> chain as its reply?
-> 
-> If we can do this without making our hash really suck, we only need one
-> entry per conntrack (and we then compare both ways).  This means a
-> smaller table, and hence better cache utilization, as well as simpler
-> locking.
-> 
-> Thoughts?
+On Thu, 2003-05-01 at 07:48, Patrick Schaaf wrote:
 
-As Patrick already pointed out, it gets ugly wrt. NAT, the reply tuple
-can be quite diffrent.
+> As an aside, and independant of the key sorting/flipping,
+> we could eliminate completely the info struct array we
+> now have in each conntrack. Interested? Then I'll write
+> how I envision that.
 
-> > I think that eliminating ip_conntrack lock might uncover a (potential)
-> > bottleneck: the tcp_lock, the lock in conntrack for the predominant
-> > protocol of the Internet.
-> > 
-> > By adding a data lock to the conntrack entries can solve that
-> > (potential) problem. The data lock would make unnecessary the per
-> > conntrack helper locks too (unfortunately the buffers introduced in the
-> > zerocopy patch undo that).
+Please do.
+
+> Finally, regarding the locking, I would like to mention
+> the memory conservative "sectored locks" approach.
+> Break the hash table into sectors, about N*NR_CPU
+> of them. Use one rwlock per sector.  Given an equally
+> distributing hash function, the probability that two
+> of our NR_CPU cpus will lock the same sector at the
+> same time, becomes small with growing N, fast.
 > 
-> Yeah, per-entry locks make sense I think.  I can change the helpers to
-> do an skb_copy (suggested by Alexey) which will be lockless, or just
-> implement the damn non-linear search.
+> This way, a lot less locks than with one-lock-per-chain
+> or one-lock-per-conntrack can be used, without compromising
+> concurrency too much.
 
-The question is... how do you free such an entry with the guarantee that
-there are no waiters? It's probably possible but I can't see a clean
-nice way to do it.
+I like this, if you have 512k buckets you don't want 512k locks if it's
+a 2way SMP machine.
 
 -- 
 /Martin
