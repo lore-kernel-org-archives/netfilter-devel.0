@@ -1,17 +1,13 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: target for modifying conntrack timeout value
-Date: Wed, 1 Dec 2004 08:00:26 +0100
-Message-ID: <20041201070025.GD4605@oknodo.bof.de>
-References: <200412010920.49048.immidi@spymac.com>
-	<EINSTEINAStRc0JFaTi000063f4@einstein.systemmetrics.com>
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH 2.4 0/10] fixes for ip6tables
+Date: Wed, 01 Dec 2004 17:03:32 +0900 (JST)
+Message-ID: <200412010803.iB183XIL000087@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org,
-	'Kiran Kumar Immidi' <immidi@spymac.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard <richard@o-matrix.org>
-Content-Disposition: inline
-In-Reply-To: <EINSTEINAStRc0JFaTi000063f4@einstein.systemmetrics.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,26 +19,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Richard,
 
-> This would change the timeout value for all udp conntrack. I'd like to have
-> more granular control, e.g. after match of certain ports or other
-> conditions.
+Hi, Patrick and all,
 
-This does not exist, yet, for all I know.
+Sorry for long waiting. These fixes are backport from 2.6 .
 
-It would require a new data field for each conntrack, "override_timeout".
+Regards,
 
-And then, there would be the interesting question of what to do for
-state changes. UDP is easy, but TCP has a load of states it goes
-through when the session comes down. Each state transition is coupled
-to a per-new-state timeout value. Now, if you give a specific override_timeout,
-what to do with it when the next state transition occurs?
-
-Finally, why do you think you need that? What is so special about your
-setup that, after one UDP conntrack times out, the next packet for the
-same pair of addresses cannot just create a new, equivalent conntrack?
-That would be normal operation - what is different for you?
-
-best regards
-  Patrick
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
