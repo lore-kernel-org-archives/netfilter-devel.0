@@ -1,16 +1,16 @@
 From: Patrick Schaaf <bof@bof.de>
 Subject: Re: performance issues (nat / conntrack)
-Date: Mon, 24 Jun 2002 08:06:18 +0200
+Date: Mon, 24 Jun 2002 08:48:37 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020624080618.Q5183@oknodo.bof.de>
-References: <20020623132739.12D52455E@lists.samba.org> <15638.42021.31206.821255@isis.cs3-inc.com>
+Message-ID: <20020624084836.R5183@oknodo.bof.de>
+References: <20020623132739.12D52455E@lists.samba.org> <15638.42021.31206.821255@isis.cs3-inc.com> <20020624080618.Q5183@oknodo.bof.de> <15638.48245.84830.480715@isis.cs3-inc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Cc: Patrick Schaaf <bof@bof.de>, netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: Don Cohen <don-nf@isis.cs3-inc.com>
 Content-Disposition: inline
-In-Reply-To: <15638.42021.31206.821255@isis.cs3-inc.com>; from don-nf@isis.cs3-inc.com on Sun, Jun 23, 2002 at 09:46:29PM -0700
+In-Reply-To: <15638.48245.84830.480715@isis.cs3-inc.com>; from don-nf@isis.cs3-inc.com on Sun, Jun 23, 2002 at 11:30:13PM -0700
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,34 +21,37 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Jun 23, 2002 at 09:46:29PM -0700, Don Cohen wrote:
->  > From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
->  > >  > Since in my test, each connection is ephemeral (<10ms) ...
+Don,
+
+(hope you don't mind me replying on-list)
+
+On Sun, Jun 23, 2002 at 11:30:13PM -0700, Don Cohen wrote:
+> Patrick Schaaf writes:
+>  > Nevertheless, it does point out a valid optimization chance. We discussed
+>  > that months ago, and it's still there.
+> What's that?
+
+Looking at the quality of the hash function used, and improving it.
+
 > 
-> One question here is whether the traffic generator is acting like
-> a real set of users or like an attacker.  A real user would not keep
-> trying to make connections at the same rate if the previous attempts 
-> were not being served.  I suspect you're acting more like an attacker.
+>  > In the real world, nobody seems to care. I know I don't, and I really
+>  > looked. It doesn't matter.
+> I'm really lost here.  What doesn't matter?
 
-He definitely is. The test he described is completely artificial, and does
-not represent any normal real world workload.
+The relative slowness of conntrack vs. nonconntrack doesn't matter in the
+real world. I can reproduce it in artificial tests, but in reality, the
+arrival rates for new connections are lower. The reason, at least for me,
+is that I parallelize on multiple boxes long before conntrack reaches its
+breaking point, and I do that for different reasons (resilience and the
+other workload the boxes tend to have, like user level proxying.)
 
-Nevertheless, it does point out a valid optimization chance. We discussed
-that months ago, and it's still there.
+>  > As for theories, the last time, we almost agreed that the hash function
+>  > is very bad. Nobody did confirm that feeling, though.
+> What's wrong with the hash function?
 
-In the real world, nobody seems to care. I know I don't, and I really
-looked. It doesn't matter.
-
-As for theories, the last time, we almost agreed that the hash function
-is very bad. Nobody did confirm that feeling, though.
-
->  > > Just wondering, how did you measure cpu load?
->  > procinfo -n10 ; [d] for showing differences, which in fact, computes
->  >                    the differences of cumulated cpu time (got from 
->  >                    /proc/stat) on the given period: (tsys1-tsys0)/T
-> I see /proc/stat - user, nice, system, idle.  Thank you.  Very useful.
-
-A lot better would be a test with kernel profiling enabled.
+It's suspected to be bad. Chains are suspected to become long. Bucket
+occupation is suspected to have high variance. Nobody checked, or at
+least nobody reported the results of such checking.
 
 best regards
   Patrick
