@@ -1,16 +1,14 @@
-From: Thomas Heinz <creatix@hipac.org>
-Subject: Re: Comments about IPT_ALIGN
-Date: Mon, 27 Jan 2003 11:33:55 +0100
+From: Christian Hammers <ch@westend.com>
+Subject: Asym. router has problems with full ip_conntrack table in 2.4.20
+Date: Mon, 27 Jan 2003 12:26:53 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E350B13.8010502@hipac.org>
-References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu> <3E33C665.9080106@fugmann.dhs.org> <20030126152227.A6811@linux.karinthy.hu> <3E342355.1030707@hipac.org> <20030126204358.B9418@linux.karinthy.hu> <3E346A9A.5020305@hipac.org> <20030127014304.A10076@linux.karinthy.hu>
+Message-ID: <20030127112653.GB9209@westend.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Anders Fugmann <afu@fugmann.dhs.org>,
- netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Laszlo Valko <valko@linux.karinthy.hu>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,39 +19,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Laszlo
+Hello
 
-You wrote:
-> On sparc, it happens to be the same. I'm not sure how much pure luck
-> or intention this is.
+I use kernel 2.4.20 and iptables filter (no NAT or stateful filtering!) on
+a router that is part of a large network and has many asymetric routes
+i.e. inbound packages of some connections go over this host but replies
+are send via another router. Therefore stateful packet filtering would
+have no chance to get some kind of ESTABLISHED state or similar and is
+completely disabled.
 
-Good point. Maybe someone else can enlighten us.
+Now sadly the /proc/net/ip_conntrack still exists and slowly fills up,
+which leads to the following message after a while of uptime:
 
-> This might even be a function of using different compiler options...
+	ip_conntrack: table full, dropping packet.
 
-Ok. If we have to deal with user and kernel space having different
-alignment requirements for types of the same bit width but endianness
-can be assumed to stay (at least for solution 1)) the same we have
-(at least) two options:
+The /proc/sys/net/ipv4/ip_conntrack_max exists, too. 
+I can play around with it but even "-1" or "0" do not seem to disable the
+table, nor to flush it.
+I have reboodet the maching already.
+lsmod shows only the following (relevant), ipt_conntrack.o is
+at least compiled and installed in /lib/modules/* although not loaded.
+	ipt_MARK                 800   0  (autoclean)
+	iptable_mangle          2208   0  (autoclean)
+	ipt_LOG                 3200   2  (autoclean)
+	iptable_filter          1760   1  (autoclean)
+	ip_tables              13184   4  [ipt_MARK iptable_mangle ipt_LOG iptable_filter]
 
-1) Define a set of types with fixed bit width and fixed alignment
-    requirements for each architecture which must also be made
-    available in userspace (which implies that different type
-    primitives might be used). The kernel-user structs may only use
-    these types as basic types.
+I currently have:
+	lx01:/home/ch# wc -l /proc/net/ip_conntrack 
+	  25963 /proc/net/ip_conntrack
+(all normal traffic, 99% in state [UNREPLIED] due to asymetric routing)
+	
+I can reproduce on my desktop machine that the /proc files are active
+without having ipt_conntrack.o loaded and that I really have packet loss
+when the tables fill up!
 
-2) Define the kernel-user communication in terms of a network protocol
-    (anyway, I guess this will be the case if netfilter communication is
-    converted to netlink).
+TIA & bye,
 
-> I think the "strictest alignment on this platform" should not come
-> from the compiler. It should be defined in some kernel header under
-> linux/include/asm-*.
+-christian-
 
-If one cannot make the necessary assumptions this is of course the only
-way to define it properly.
-
-
-Regards,
-
-Thomas
+-- 
+Christian Hammers             WESTEND GmbH  |  Internet-Business-Provider
+Technik                       CISCO Systems Partner - Authorized Reseller
+                              Lütticher Strasse 10     Tel 0241/701333-11
+ch@westend.com                D-52064 Aachen              Fax 0241/911879
