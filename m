@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: String match patch 2.6.10
-Date: Fri, 5 Nov 2004 10:26:39 +0100
-Message-ID: <20041105092639.GT5606@sunbeam.de.gnumonks.org>
-References: <20041105085422.GA22273@physik.uni-hannover.de>
+Subject: Re: New match ipt_geoip
+Date: Fri, 5 Nov 2004 11:42:18 +0100
+Message-ID: <20041105104217.GD5606@sunbeam.de.gnumonks.org>
+References: <41899D17.7060800@cookinglinux.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6tPipYVl+OcoAvSh"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="5tINJiUS2/Dn5Rhr"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jochen Paul <cpaul@physik.uni-hannover.de>
+To: Samuel Jean <sj-netfilter@cookinglinux.org>
 Content-Disposition: inline
-In-Reply-To: <20041105085422.GA22273@physik.uni-hannover.de>
+In-Reply-To: <41899D17.7060800@cookinglinux.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,54 +23,34 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---6tPipYVl+OcoAvSh
+--5tINJiUS2/Dn5Rhr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 05, 2004 at 09:54:22AM +0100, Jochen Paul wrote:
-> Dear Harald,
->=20
-Hi Jochen!
+On Wed, Nov 03, 2004 at 10:08:07PM -0500, Samuel Jean wrote:
+> Hi people,
 
-Please send patches (in diff -u format rather than .tar.gz) to
-netfilter-devel.
+Hi Samuel!
 
-> According to the differences in ipoption between linux and linux-2.6 and
-> the following references :
-> http://lists.netfilter.org/pipermail/netfilter-devel/
-> 2004-February/014116.html and
-> http://lists.netfilter.org/pipermail/netfilter-devel/
-> 2004-February/014066.html I have generated the string module for
-> the 2.6.x Kernel. The Patch File patch-o-string.tgz for extracting in the
-> patch-o-matic-ng-2004.... could be found here:
-> http://www.physik.uni-hannover.de/string_2.6/patch-o-string.tgz .
-> The code has been tested only on a single processor maschine and with
-> strings less than 20 characters and seems to work. Please test it also on
-> multiprozessor boards and with large strings.
+> We've been working on a way to match a packet based on its country.
+> We know it's not a 100% reliable way to filter, but it all
+> depends on the database one use.
 
-The problem is that it is not as easy as this to read the packet
-contents anymore in 2.6.x. There is no guarantee that the whole packet
-is in one contiguous memory segment anymore.  Your match will terribly
-crash as soon as the first nonlinear skb is found.
+Thanks, I think this is useful for a number of people (although I
+generally dislike the concept, since it never works, especially in the
+case of tunnels in multinational corporations/organizations...)
 
-Please look for references of 'nonlinear skb' or skb_iter on the
-netfilter lists and netdev.
+It's also nice to see that you implemented the database-part in
+userspace, rather than feeding it via /proc into the kernel (yes, there
+are people who would do that). =20
 
-Because this is not an easy issue, I'm working on a general pattern
-matching API for nonlinar skb's -  but as usual I got distracted by
-other stuff.  Give me some two more weeks.
+On the other hand, I think there is significant overlap between your
+ipt_geoip.c kernel part and the ippool/ipset match.
 
-> Please put it in the actual patch-o-matic tree.
+Thus, I argue, rather than inventing a new patch for the kernel, this
+can be done in userspace by configuring a pool of address ranges.
 
-Sorry, not in it's current form.  You're welcome to fix it wrt. linear
-skb's (but don't just call skb_linearize, that is considered broken,
-too), then I'm happy to apply it.
-
-> Best regards
->                             Jochen Paul
-
-Cheers,
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -81,7 +61,7 @@ Cheers,
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---6tPipYVl+OcoAvSh
+--5tINJiUS2/Dn5Rhr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -89,9 +69,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBi0dPXaXGVTD0i/8RAneoAKCLLOMP0TG1DJpIQw54SOzaYqabWgCfTaF2
-t/pKSbrb8FVyKsitaTi1/30=
-=ry17
+iD8DBQFBi1kJXaXGVTD0i/8RAuiWAJ0bMN49ReolaLE9s1u5Oa4qr/xiKwCgirE0
+o2+dyvAj1SFDJ80i5avxsHs=
+=Grxp
 -----END PGP SIGNATURE-----
 
---6tPipYVl+OcoAvSh--
+--5tINJiUS2/Dn5Rhr--
