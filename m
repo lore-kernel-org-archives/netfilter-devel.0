@@ -1,14 +1,15 @@
-From: don-netfil@isis.cs3-inc.com (Don Cohen)
-Subject: Re: SNAT and IP ID -> what can be mangled by routers?
-Date: Sun, 4 May 2003 12:14:12 -0700
+From: "Hime Junior" <hime@engineer.com>
+Subject: Re: [PATCH] fuzzy.patch and fuzzy6.patch.ipv6
+Date: Sun, 04 May 2003 19:05:39 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <16053.26244.510867.656383@isis.cs3-inc.com>
-References: <20030502222622.31281.56108.Mailman@kashyyyk>
+Message-ID: <20030505000539.32918.qmail@mail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+To: laforge@netfilter.org, baggins@sith.mimuw.edu.pl,
+  cieciwa@alpha.zarz.agh.edu.pl, netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,34 +21,46 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-This question reminds me of something I've been wondering about.
-It seems to me that some parts of an IP packet can be arbitrarily
-changed by the forwarding infrastructure.
-The TOS field seems like one good example.  When I send a packet to
-my ISP it can (I believe, or at least should be allowed to) change
-the TOS field as it wishes to influence where and when that packet
-is forwarded.  What arrives at the ultimate destination need not bear 
-any resemblance to what I sent.
-The possible danger I see from this is that, after the TOS is altered,
-some router might decide to send me an ICMP reply saying that it could
-not forward this packet.  This means that when I receive that reply I
-should NOT expect the TOS field in the reply (I mean the one in the
-ICMP content part containing the beginning of the packet as it was
-received at that router) to be the same as the one I sent.
-Clearly I should expect the TTL to also be different.
-Perhaps I should also not expect, e.g., the IP ID field to be the
-same?  If I can rely on the ID field to be the same then it becomes
-an expensive proposition to mangle IDs at the firewall since you have
-to be able to UNmangle the ICMP replies, which requires possibly a lot
-of memory.
+ Hi !
 
-The linux source appears to me to identify icmp packets only by source
-and destination IP addresses and ports (and something else I don't
-quite understand - arrival interface?  Can someone explain this?).
-So if the TOS or ID were mangled on the way to the router sending the
-reply this would have no effect, I believe.  (Any other opinions?)
+ My comments go along the message...
 
-The real question:
-Are there any standards that indicate what parts of the ICMP reply the
-recipient can count on to be the same as the packet originally sent?
-If so, which are they and what do they say?
+> On Fri, May 02, 2003 at 11:15:05PM +0200, Jan Rekorajski wrote:
+ 
+> > They're because of the floating point usage, you won't see them on ix86
+> > because gcc uses native FPU instructions there - 
+
+Yes - the FP operations were in the generated code.
+
+> > silently building incorrect code,
+
+ The generated code must be fixed then - FP instructions are not a problem , they are a solution even for system software . If the machine context is not being saved , let us save it at once , redesigning compilers , CPUs and brains , if necessary .
+
+ After all , soft computing is out there to stay , and doing fuzzy math without FP operations is , sometimes , unfeasible (it is not the case here) .
+
+ Anyway , I agree 100% that kernel code should NOT contain any FP operations , that are (at present) too slow , but a compiler with a good optimizer could have made the proposed change silently , eliminating FP operations from the generated code by means of inline , equivalent integer arithmetic instructions.
+
+> > but on other architectures gcc uses math emulation
+> > library thus generating unresolved symbols.
+> 
+
+ OK - now we know the reason for the messages ...
+
+> This is what I was assuming. I think I've seen this happen on PPC
+> before.
+
+> 
+> > The primary reason was to eliminate the usage of FPU from kernel,
+> > unresolved symbols is just the effect of this on non-ix86 archs.
+> 
+> I'll apply the patch now.
+
+ As I said before,the qualitative behavior is virtually the same AND THIS TIME ALL FP OPERATIONS ARE GONE !!!
+     (I SAW IT IN THE NEW GENERATED CODE)
+
+       Thanks to all .
+
+-- 
+__________________________________________________________
+Sign-up for your own FREE Personalized E-mail at Mail.com
+http://www.mail.com/?sr=signup
