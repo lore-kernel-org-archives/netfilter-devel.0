@@ -1,14 +1,13 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH 1/2] Versioning (aka release) stuff for iptables
-Date: Wed, 29 Dec 2004 17:30:16 +1100
-Message-ID: <1104301816.8383.14.camel@localhost.localdomain>
-References: <41CDDC3F.2060708@eurodev.net>
+Subject: [PATCH 1/2] RFC: Add structure extension stuff for conntrack
+	(ct_extend)
+Date: Wed, 29 Dec 2004 17:43:42 +1100
+Message-ID: <1104302623.8383.19.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-F7pdfPnogvzq1iukq27+"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <41CDDC3F.2060708@eurodev.net>
+To: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,285 +19,316 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Name: Add a structure extension framework for connection tracking.
+Status: Tested on 2.6.10-rc2-bk13
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
---=-F7pdfPnogvzq1iukq27+
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Create a ct_extend structure for adding random crap to structures
+(intended for the ip_conntrack structures which hold a lot of extra
+fields).
 
-On Sat, 2004-12-25 at 22:31 +0100, Pablo Neira wrote:
-> Hi Rusty,
-> 
-> I've been working on the versioning stuff last days. I've tested with 
-> the mark target.
+Don't use it for anything yet.
 
-Hi Pablo,
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ct_extend.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ct_extend.c	2004-12-28 16:13:09.373275704 +1100
+@@ -0,0 +1,226 @@
++/* Structure dynamic extension infrastructure
++ * Copyright (C) 2004 Rusty Russell IBM Corporation
++ *
++ *      This program is free software; you can redistribute it and/or
++ *      modify it under the terms of the GNU General Public License
++ *      as published by the Free Software Foundation; either version
++ *      2 of the License, or (at your option) any later version.
++ */
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/netfilter_ipv4/ct_extend.h>
++
++static struct ct_extend_type *ct_extend_types[CTE_MAX];
++static spinlock_t ct_extend_type_lock = SPIN_LOCK_UNLOCKED;
++
++/* Horrible trick to figure out smallest amount work kmallocing. */
++#define CACHE(x) (x) + 0 *
++enum {
++	CT_EXTEND_MIN_SIZE = 
++#include <linux/kmalloc_sizes.h>
++	1 };
++#undef CACHE
++
++/* Find data offset of nth entry. */
++static unsigned int extend_offset(const struct ct_extend *ext, unsigned int n)
++{
++	unsigned int i, off;
++
++	off = sizeof(*ext);
++	for (i = 0; i < n; i++) {
++		struct ct_extend_type *t = ct_extend_types[ext->type[i]];
++		off = ALIGN(off, t->align) + t->len;
++	}
++	return ALIGN(off, ct_extend_types[ext->type[n]]->align)-sizeof(*ext);
++}
++
++void *ct_extend_find(const struct ct_extend *ext, u8 type)
++{
++	u8 *p;
++
++	if (!ext)
++		return NULL;
++
++	p = memchr(ext->type, type, sizeof(ext->type));
++	if (!p)
++		return NULL;
++
++	return (void *)ext->data + extend_offset(ext, p - ext->type);
++}
++
++static unsigned int first_ext(const struct ct_extend *ext, unsigned int *i)
++{
++	unsigned int off = sizeof(*ext);
++
++	*i = 0;
++	if (ext->type[*i] == 0xFF)
++		return 0;
++	return ALIGN(off, ct_extend_types[ext->type[*i]]->align);
++}
++
++static unsigned int next_ext(const struct ct_extend *ext,
++		      unsigned int *i,
++		      unsigned int prev)
++{
++	if (ext->type[*i + 1] == 0xFF)
++		return 0;
++	prev += ct_extend_types[ext->type[(*i)++]]->len;
++	return ALIGN(prev, ct_extend_types[ext->type[*i]]->align);
++}
++
++void ct_extend_free(struct ct_extend *ext)
++{
++	unsigned int i, off;
++
++	for (off = first_ext(ext, &i); off; off = next_ext(ext, &i, off)) {
++		if (ct_extend_types[ext->type[i]]->free)
++			ct_extend_types[ext->type[i]]->free(ext,
++							    off-sizeof(*ext));
++	}
++	kfree(ext);
++}
++
++static unsigned int ct_extend_datalen(const struct ct_extend *ext)
++{
++	unsigned int i, off, dlen = 0;
++
++	for (off = first_ext(ext, &i); off; off = next_ext(ext, &i, off))
++		dlen = off-sizeof(*ext) + ct_extend_types[ext->type[i]]->len;
++
++	return dlen;
++}
++
++static void *ct_extend_create(struct ct_extend **ext,
++			       enum ct_ext_type type, const void *data,
++			       int gfp)
++{
++	unsigned int len;
++
++	len = ALIGN(sizeof(**ext), ct_extend_types[type]->align);
++	*ext = kmalloc(max_t(int, CT_EXTEND_MIN_SIZE,
++			     len + ct_extend_types[type]->len), gfp);
++	if (!*ext)
++		return NULL;
++ 
++	(*ext)->type[0] = type;
++	memset((*ext)->type+1, 0xFF, MAX_CT_EXTENDS-1);
++	memcpy((void *)(*ext) + len, data, ct_extend_types[type]->len);
++	return (void *)(*ext) + len;
++}
++
++void *ct_extend_add(struct ct_extend **ext,
++		     enum ct_ext_type type, const void *data, int gfp_mask)
++{
++	struct ct_extend *old;
++	int i, len, newlen, newoff;
++
++	if (!*ext)
++		return ct_extend_create(ext, type, data, gfp_mask);
++
++	old = *ext;
++	len = sizeof(**ext) + ct_extend_datalen(old);
++	newoff = ALIGN(len, ct_extend_types[type]->align);
++	newlen = newoff + ct_extend_types[type]->len;
++
++	if (newlen >= CT_EXTEND_MIN_SIZE) {
++		int off;
++		*ext = kmalloc(max_t(int, CT_EXTEND_MIN_SIZE, newlen),
++			       gfp_mask);
++		if (!*ext)
++			return NULL;
++
++		**ext = *old;
++		/* Move entries one at a time: eg. for linked list. */
++		for (off = first_ext(old, &i);
++		     off;
++		     off = next_ext(old, &i, off)) {
++			struct ct_extend_type *t
++				= ct_extend_types[old->type[i]];
++			memcpy((void *)*ext + off, (void *)old + off, t->len);
++			if (t->move)
++				t->move(*ext, off - sizeof(*ext));
++		}
++		kfree(old);
++	}
++
++	/* Find free slot. */
++	for (i = 0; i < MAX_CT_EXTENDS && (*ext)->type[i] != 0xFF; i++);
++	BUG_ON(i == MAX_CT_EXTENDS);
++
++	memcpy((void *)(*ext) + newoff, data, ct_extend_types[type]->len);
++	(*ext)->type[i] = type;
++	return (void *)(*ext) + newoff;
++}
++	
++struct ct_extend *ct_extend_del(struct ct_extend *ext,
++				  enum ct_ext_type type)
++{
++	unsigned int i, newi, off, newoff;
++	enum ct_ext_type *p;
++
++	if (!ext)
++		return ext;
++
++	p = memchr(ext->type, type, sizeof(ext->type));
++	if (!p)
++		return ext;
++
++	/* If last one, simply drop free and return NULL. */
++	if (ext->type[1] == 0xFF) {
++		ct_extend_free(ext);
++		return NULL;
++	}
++
++	if (ct_extend_types[type]->free)
++		ct_extend_types[type]->free(ext,
++					     extend_offset(ext, p-ext->type));
++
++	newoff = sizeof(*ext);
++	newi = 0;
++	for (off = first_ext(ext, &i); off; off = next_ext(ext, &i, off)) {
++		struct ct_extend_type *t = ct_extend_types[ext->type[i]];
++
++		/* Don't copy the one we're deleting. */
++		if (i == (p - ext->type))
++			continue;
++
++		/* Move type information and actual data. */
++		ext->type[newi] = ext->type[i];
++		newoff = ALIGN(newoff, t->align);
++		BUG_ON(newoff > off);
++		memmove((void *)ext + newoff, (void *)ext + off, t->len);
++		if (ct_extend_types[ext->type[newi]]->move)
++			ct_extend_types[ext->type[newi]]->move(ext,
++							       newoff
++							       - sizeof(*ext));
++		newoff += t->len;
++		newi++;
++	}
++	while (newi < MAX_CT_EXTENDS)
++		ext->type[newi++] = 0xFF;
++	return ext;
++}
++
++void register_ct_extend_type(struct ct_extend_type *ext)
++{
++	spin_lock_irq(&ct_extend_type_lock);
++	BUG_ON(ct_extend_types[ext->type]);
++	ct_extend_types[ext->type] = ext;
++	spin_unlock_irq(&ct_extend_type_lock);
++}
++
++void unregister_ct_extend_type(struct ct_extend_type *ext)
++{
++	spin_lock_irq(&ct_extend_type_lock);
++	BUG_ON(ct_extend_types[ext->type] != ext);
++	ct_extend_types[ext->type] = NULL;
++	spin_unlock_irq(&ct_extend_type_lock);
++}
++
++EXPORT_SYMBOL(ct_extend_find);
++EXPORT_SYMBOL(ct_extend_destroy);
++EXPORT_SYMBOL(ct_extend_add);
++EXPORT_SYMBOL(ct_extend_del);
++EXPORT_SYMBOL_GPL(register_ct_extend_type);
++EXPORT_SYMBOL_GPL(unregister_ct_extend_type);
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/Makefile
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/Makefile	2004-12-28 16:13:03.216211720 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/Makefile	2004-12-28 16:13:34.904394384 +1100
+@@ -3,7 +3,7 @@
+ #
+ 
+ # objects for the standalone - connection tracking / NAT
+-ip_conntrack-objs	:= ip_conntrack_standalone.o ip_conntrack_core.o ip_conntrack_proto_generic.o ip_conntrack_proto_tcp.o ip_conntrack_proto_udp.o ip_conntrack_proto_icmp.o
++ip_conntrack-objs	:= ip_conntrack_standalone.o ip_conntrack_core.o ip_conntrack_proto_generic.o ip_conntrack_proto_tcp.o ip_conntrack_proto_udp.o ip_conntrack_proto_icmp.o ct_extend.o
+ iptable_nat-objs	:= ip_nat_standalone.o ip_nat_rule.o ip_nat_core.o ip_nat_helper.o ip_nat_proto_unknown.o ip_nat_proto_tcp.o ip_nat_proto_udp.o ip_nat_proto_icmp.o
+ 
+ # connection tracking
+Index: linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ct_extend.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ct_extend.h	2004-12-28 16:13:09.374275552 +1100
+@@ -0,0 +1,51 @@
++#ifndef _LINUX_CT_EXTEND_H
++#define _LINUX_CT_EXTEND_H
++#include <asm/atomic.h>
++
++enum ct_ext_type
++{
++	CTE_MAX,
++} __attribute__((packed));
++
++/* Maximum number of ct_extend entries on one structure. */
++#define MAX_CT_EXTENDS	4
++
++/* Extensions: optional stuff which isn't permanently in struct. */
++struct ct_extend {
++	enum ct_ext_type type[MAX_CT_EXTENDS];
++	char data[0];
++};
++
++void *ct_extend_find(const struct ct_extend *ext, enum ct_ext_type type);
++void ct_extend_free(struct ct_extend *ext);
++
++/*
++ * Add this type, copy data: returns pointer to copied data or NULL.
++ * Assumes ct_extend is not shared.  Will not call ->move().
++ */
++void *ct_extend_add(struct ct_extend **ext,
++		     enum ct_ext_type type, const void *data,
++		     int gfp_mask);
++
++/* Assumes ct_extend is not shared: if all deleted, will return NULL */
++struct ct_extend *ct_extend_del(struct ct_extend *ext,
++				  enum ct_ext_type type);
++
++
++struct ct_extend_type
++{
++	/* Length and min alignment. */
++	u16 len;
++	u16 align;
++
++	/* Free operation (can be NULL). */
++	void (*free)(struct ct_extend *ext, unsigned int dataoff);
++	/* Move operation (can be NULL).  Has already been moved. */
++	void (*move)(struct ct_extend *ext, unsigned int dataoff);
++
++	enum ct_ext_type type;
++};
++
++void register_ct_extend_type(struct ct_extend_type *);
++void unregister_ct_extend_type(struct ct_extend_type *);
++#endif /* _LINUX_CT_EXTEND_H */
 
-	I've taken your patches and hacked on them again.  I thought for a long
-time about the compatibility question, and decided that we need a kernel
-mechanism for querying versions of things as well.  This makes life much
-easier, as then all versions can register with iptables and it can
-figure out which one to use.
-
-Enclosed is a series of four kernel patches, and one iptables patch:
-
-iptables-cleanup-kmod-handling.patch.gz:
-        Clean up the kmod handling in iptables, inspired by reading your
-        patch 8)
-
-compat-pabli.patch.gz:
-        Your "steal the byte" versioning code.  I used the term
-        "revision", but it's the same code.
-
-iptables-revisions.patch.gz:
-        New getsockopts which test whether a revision is available, and
-        return the maximum revision available.
-
-compat-MARK.patch.gz:
-        The new version of ipt_MARK.
-
-iptables-userspace.patch.gz:
-        The iptables.c code to handle different revisions, and the
-        libipt_MARK.c revision 1.  Has some other crap in there (SVN
-        seems broken?).
-        
-It seems to work here... thoughts?
-Rusty.
 -- 
 A bad analogy is like a leaky screwdriver -- Richard Braakman
-
---=-F7pdfPnogvzq1iukq27+
-Content-Disposition: attachment; filename=compat-MARK.patch.gz
-Content-Type: application/x-gzip; name=compat-MARK.patch.gz
-Content-Transfer-Encoding: base64
-
-H4sIAJoz0kEAA9VYbW/aSBD+bP+KKVVbg7FjA0kIeRG0oS1qS04kvZNOkSxjr2EFrJG9Tsq1+e83
-uzZgCAGank53+UDXszOzz+zMPLvbrjshDWj5PvQpD6cx8BDolDtfWr1PcE/5MEw49CPijigbgBdO
-pi7v0zHlM/WauzyJG3BDYk58SJhPImBBTCfqNR0w4hthEBj9WQN6Scxn4jcm4zGcReKzKX69MJqa
-6NR0kwtVbQkPMbxPBhOXMThzg6QZpB+mP4zNMBpcwH0UcgIuIA5vKNC6eezqHLsJ0IGJ6wvVO/RK
-Qwb3Q4omfkhi9oZDRMYzQKnLZkBZELkxjxKPJxFRvaHLBiTGKR9oDDGnCLvveqN7N/LjbBdof0xA
-o/wNLk+AEZdj+GLHVMpwGLgegcxRGfq4i2fxMEoGF0VTVd+6EYdLAtfeMJlN0O6s78dy3JziomHk
-mn1yAdMovKM+7i0fEsCBC2EAIYYTUR/ToQoxd6MB4cBnU4KOO7iF3xowpiz5ZlTMI9O2jP7INrqE
-B3SMsA4Y4Qd0elcTg0y02DNPPf/1P9UwjC0AMIt0sB2FUrGsmmFXjMoJ2LVGtd6wq6Z1eFyv1arH
-R6DbtmWpuq4/O8yVBQ4bFatRqZvHJ5XqYc2uzhdoNsGoWGW7Anr6T7Opwpery6+f285l+/pdr/Pb
-TeeqqxXQr4u1EIPsmUno04B6WB9YW/iRjEmheKqCimWEQg/7JJbdgUXHVSNNn5bWHsQjp58EAZRK
-03jUL6sGpH9eyGKcTZUwIscndxTrq0TZHkrYwkut/PIwDMMRSybrPu5C6kNJQMPGCJezqTyJSSTk
-RVVP0Tt31lMB6MoO8FsVJHChsRn00nYdsJhZBwvfVVBWlhIFMXGjkZOFIfSgJCRydA5zhyJ9ohyq
-R7Ic8J/aoSwHJSJIGAywFJx3V92bTvdrG5UfUF/flO7Fhtn/gw3Tv6N454ZhLE/sma6IxcUUii38
-RkmMBIkcrM0NjAtsEVIEuZQbE7mToo+c6/ZNA4VKZp8zwJFwrshTSY4eGbe6l3ljTW5u0bhggZS8
-/kl3V71t3n5s9fYg46aBtm72Ig0qjV1Zn00nT9emPNdDyv9xDt3375zW55t2r32ZLbK5FHW5/IJ7
-JOWgC29EGI9mWppdPKUiUQxIYgyvA9jvyjqdiMxLEyiRJR8sOeExVzzimrlKTP8iW9REsWKRxSMs
-wCVSQTFPgBWl+4j+VvHOVTZV/Q6cG1VyGCWr0AC0vJnIrchD63PnQ1cTkjDQtvRQsViUfpQpth4f
-aZ/ava7zR6vX7XQ/QEGUYGMFFrxKxBKv/kxuWaEsqemwXq7YoJ/Y5WN7hZrsjI+MrARyMLKrwwJR
-RAZYd98X1CUZK58D+7+ZA0lUz6Mo2Zq/ljz0jvmTTfy89KFh1gjrYc/lPw9HEkdWAVaehkDYepOp
-tsweFPCGPRDXFIHKyghpSyyey/DijLdnvPd67niMGQmicAK3maPbAkjvZWAhR+mr+LYgIoXFmtvw
-rR4N82zMz4SsGF6vUPi6HtL/XnpXvd3BJmzEwnt5lROJW8vY2jn2RFjLVkz5eK9WRMqT3QiKKbZM
-Uc5TSAXBz2ZqIITpSAqXvYry5YcA/MgA3Uv5EzZyGpdOF7752Ll20ruvNIrwviGeVDglvDyc/kRU
-dsoxj6PaCNLeDjKd3gkS1eAhfwkXDOJgv1BEhz+aYCVJ5sY8WQI04qX4to2yQLTX+UiK8xsOPsdS
-JsEBxrbTELc2tcVif4E2WQ3ubW2nZSbMhbUYK0IjYXstm7srSOTydJjvi2RnxyHfcGMC3Jn8xuyx
-RhrX/lj2UhXxpiDT55RMmyZ+cGL3g5cyb5z45ECqLJ+DjnwdLt6Ew3/t6bsnnn/iEfycpQ4bdh1f
-xGalVq2fHNWOK7nnsF2u41e5Yskbxksa4OYH4Cz49GOWQZzDCcrIxjlVPyjB79n/yVhQOlC3PsgE
-Ay5O/nHIBtnNOG3ovC9b+NIJPnVkR+WPjXNJdvkDYuX7qrcksa3XCOF3ExiUog6vO1weFKfSHbwk
-zMc2PSg93gZE+jdNk4aWexMAAA==
-
-
---=-F7pdfPnogvzq1iukq27+
-Content-Disposition: attachment; filename=compat-pablo.patch.gz
-Content-Type: application/x-gzip; name=compat-pablo.patch.gz
-Content-Transfer-Encoding: base64
-
-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
-/QsFvmrOnBUAAA==
-
-
---=-F7pdfPnogvzq1iukq27+
-Content-Disposition: attachment;
-	filename=iptables-cleanup-kmod-handling.patch.gz
-Content-Type: application/x-gzip; name=iptables-cleanup-kmod-handling.patch.gz
-Content-Transfer-Encoding: base64
-
-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
-
-
---=-F7pdfPnogvzq1iukq27+
-Content-Disposition: attachment; filename=iptables-revisions.patch.gz
-Content-Type: application/x-gzip; name=iptables-revisions.patch.gz
-Content-Transfer-Encoding: base64
-
-H4sIAEgp0kEAA71WYXObRhD9DL9i404yIAkMkmxLcpNYtXGrGQd5JJxJJ80wWJwsagT0OFw7Hf/3
-7h0nCdk4TpNMNSOEYHfv7du9dztKQnI7gDhKilujbe6btmVcXtuGS9g8ihmhuwlhu1F20+U38lGU
-+Sy4jEluztTX3/9RDcP4AgIzpdHVMzCUtmV1DbtttPtgdwed3sA+MK1+t92xDvba0LRty1Kbzea3
-J/pghW5/YO+bHXvfsjs9qydXODoCo9vrtfahKX724OhIBYUSVtAEnMnEP/cmmuGcT8be2Pv93NEP
-VbhXQW3mLGDRDKKEwTJgs4VPyc080WZpkjOYLQIKjSRYkhYUPcBXUR6lSUuYNy5JzjJdbf6jNpWc
-0WLGIMqYL8JAY3mIj7ndIrghPCq8Bguf4dM4ypk/T6lPAlyQJIzeacsWvFp7t4Cb6MAjK9EcNAw/
-W2ba0nhTguFXHV5jRGkkrPD1CiK82eDDt0r5ByFUbA5rHTHo6l76VhKwhc89XvhX0rt6j+/ueX4V
-SllArwj7fk7LONBg/41UJkkt3Z9ilX2ZVfYVrLI6VtkPZXW3ARPxJgfkhUBKYR7EOQEN10pSyAvs
-OnLLSCIWDBgEcaxDY7dSENyERPA8j5LQXwF6pjAlXO6lNUQh9S0HbiyLp1dsG4RSWcdqvVrAKcOc
-DbssGycqTP9OfLRClyJjEe57rdwLBSO3OrzYFIRH5c7OyPUmgjXJlqCQs1ehtey6MqFNm73iAHRu
-XmTVZUo4yLKbskWUXEkG34KkHSxgKVJ/B3EahNxgmYZFTExBscijTI3n9hCuO3Zcr4rXknjxKo24
-86EM9GKVhb4VRaiXO55enJ+PJyJcJXsRTAVMYBjH8JnQlOQcTJFgtcKIYfJBDHSFGB41hbptKotc
-2YRRBo0IW5+LrY0KzNXW7hzstTp2KbfKJSXBNSqrIqRVmQXYnqNzz5+O/V8dz58470fT0dj13w29
-498GX7LwhhP8PyhprGCQalJuqnJ3fGVvlvUV9DZiksDPkEefSTrXOM2r/Y58yvZ6Pzwrd7LMSW5Q
-4T9Lszt/TtOlX+SEaq9EX/Pb1nbMSuOuI58OL868msjr2MuQV+1pTnQZDpPlwlMRWBGKoCRsWVRO
-NUkB9rDPFiTBh38V2HV+2cjatijgjbneO+YDNVAUEB8RFvcUZrfa/MoOr9PLfKd0FJoqkK3T5dmC
-EpJ5UMRswPsmLDKKVZprO2Hqr8o8Y/EAW/I6QXUACRVeRn8kGBlZ4if4o4KNnp2qomQWFyHZFSab
-icMXA8hm7Fj8b/PV1wL6EZPWt6/Vsc1+z+7vH3QP2pWZy97bb/XxP/7YpQj8hHXlgiIbeIoNPDw5
-8Y/HF67nTKaKxl/8Mpw6/rF3Bk2w9Vqfd8MPivJEDNQW44EL3ycj93SsbMfXaw1RiicjpxZKnXkV
-SsVdbT6J4SGIOssViDoUdfbb2vnIq/2MV6kdj9w69W4iZeXpOFgBftAcj11v5F44cENoGKFC4/gl
-FSkXZ0w19NrYuj2VH9FC7XJsb/etli3H9oreizkOxFU050frE5/cD/n5ggi8BQFcr1gSPmymtak3
-TFhPTovoasFlZCVnahMacE1oQmIcoLIspSzHA2MObzbzmilnqNozqJxwxGnDle4jB3B64R57Zak+
-uMN3zpnjGvanUnwLPuf0/A0CfnIfyoN7yoIkDGgI8liXtLb4rBem8GexzMxHvE69oXsynJzI0sDO
-jojlUIpeMoLw+hdltYlwcg4AAA==
-
-
---=-F7pdfPnogvzq1iukq27+
-Content-Disposition: attachment; filename=iptables-userspace.patch.gz
-Content-Type: application/x-gzip; name=iptables-userspace.patch.gz
-Content-Transfer-Encoding: base64
-
-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
-
-
---=-F7pdfPnogvzq1iukq27+--
