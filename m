@@ -1,17 +1,13 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: remove usage of __MOD_XXX_USAGE_COUNT and derivatives
-Date: Tue, 14 Jan 2003 02:14:20 +0100
+From: Anders Fugmann <afu@fugmann.dhs.org>
+Subject: MARK bit operations patch #2
+Date: Tue, 14 Jan 2003 13:52:17 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200301140214.20895.bdschuym@pandora.be>
-References: <3E1DEF2D.4080703@fugmann.dhs.org> <200301140053.04301.bdschuym@pandora.be> <3E234A92.50606@fugmann.dhs.org>
+Message-ID: <3E240801.8080801@fugmann.dhs.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: laforge@gnumonks.org, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------060007010306000108060806"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Anders Fugmann <afu@fugmann.dhs.org>
-In-Reply-To: <3E234A92.50606@fugmann.dhs.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,55 +18,333 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 14 January 2003 00:24, Anders Fugmann wrote:
-> Ahh. I misread. I read it as "overcommit" and not as you wrote
-> "overcomment" :-).
->
-> It is a double check as try_module_get also tests for arguemtn=3D=3DNUL=
-L.
-> This example is take out of context. Its fine by me if you dont like
-> comments in code but IMHO documentation is vital and comments are
-> usually not harming anyone. I can remove all comments in the next patch
-> if you like. (I dont, but then again - who am I to decide.)
+This is a multi-part message in MIME format.
+--------------060007010306000108060806
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-try_module_get is a function that will be used all over the kernel, so it=
-'s my=20
-feeling that the reader should have no problem with understanding this.=20
-Anyway, I'm not the one who's the final judge, Rusty or Harald seem to be=
-=20
-more appropriate, I'm just trying to help :) Maybe you should CC Rusty (
-Rusty Russell <rusty_at_rustcorp.com.au>) if you post another patch for t=
-his.=20
-Then again, maybe he is too busy with other stuff now...
+Hi.
 
-> > Can't you just change
-<snip>
-> No. At this point the replace has already occured, and we must ignore
-> the error if anything. The above is wrong as we cannot abort at that
-> point. (If I understand the code correctly - Please correct me if I'm
-> wrong).
+I have tried to make the MARK target include
+two new operations '--or-mark' and '--and-mark'.
 
-Aha, it's been more than a year (two years would be more accurate) since =
-I've=20
-read the iptables code and I see this code was added since then. My comme=
-nt=20
-in another mail about the table module count not being increased when new=
-=20
-rules are added is probably wrong then. I don't really see why this code =
-is=20
-in here since the original code was made so that an rmmod of a non-empty=20
-table would just empty the whole table first. That code now seems useless=
-=2E A=20
-quick scan of the netfilter devel list of around the time this code was a=
-dded=20
-doesn't show anything.
+The patch is compatible in the following ways:
 
-> Agreed, But I really believe that the the change discussed is nessesary=
-=2E
-> (There are two of these).
+new kernel - old userspace: OK
+new kernel - old userspace: OK
+old kernel - new userspace: OK(*)
 
-Yes, my bad.
+* - Only if the new userspace is compiled against the old kernel.
 
---=20
-cheers,
-Bart
+Please comment. I'm not use if the compatibility satifies the 
+requirements needed for such a patch to go into the 2.4 series.
+
+Attached: MARK_TARGET.patch - patch against 2.4 (applies to 2.5 aswell))
+Attached: MARK_operations.patch.userspace  - patch against iptables .1.2.7a)
+
+Regards
+Anders Fugmann
+
+
+--------------060007010306000108060806
+Content-Type: text/plain;
+ name="MARK_TARGET.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="MARK_TARGET.patch"
+
+--- linux-2.5.56/include/linux/netfilter_ipv4/ipt_MARK.h	2003-01-09 05:03:58.000000000 +0100
++++ linux-2.5.56-new/include/linux/netfilter_ipv4/ipt_MARK.h	2003-01-14 13:28:30.000000000 +0100
+@@ -5,4 +5,17 @@
+ 	unsigned long mark;
+ };
+ 
++#define MARK_BITOPS 1
++
++enum {
++	IPT_MARK_SET=0,
++	IPT_MARK_AND,
++	IPT_MARK_OR
++};
++
++struct ipt_mark_bitops_target_info {
++	unsigned long mark;
++	u_int8_t mode;
++};
++
+ #endif /*_IPT_MARK_H_target*/
+--- linux-2.5.56/net/ipv4/netfilter/ipt_MARK.c	2003-01-09 05:04:15.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ipt_MARK.c	2003-01-14 13:29:37.000000000 +0100
+@@ -1,4 +1,9 @@
+-/* This is a module which is used for setting the NFMARK field of an skb. */
++/* This is a module which is used for setting the NFMARK field of an skb. *
++ *
++ *  13-1-2003: Anders Fugmann <afu@fugmann.dhs.org>
++ *             Added bit operations ADD and OR.
++ */
++
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/ip.h>
+@@ -7,6 +12,10 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_MARK.h>
+ 
++/* If this variable is set, NFMARK works in compability mode and 
++   Uses the old ipt_mark_target_info. */
++static int compat_mode;
++
+ static unsigned int
+ target(struct sk_buff **pskb,
+        unsigned int hooknum,
+@@ -15,12 +24,36 @@
+        const void *targinfo,
+        void *userinfo)
+ {
+-	const struct ipt_mark_target_info *markinfo = targinfo;
+-
+-	if((*pskb)->nfmark != markinfo->mark) {
+-		(*pskb)->nfmark = markinfo->mark;
+-		(*pskb)->nfcache |= NFC_ALTERED;
++	int mark;
++	if (compat_mode) {
++		const struct ipt_mark_target_info *markinfo = targinfo;
++		mark = markinfo->mark;
++	} else {
++		const struct ipt_mark_bitops_target_info *markinfo = targinfo;
++		
++		switch (markinfo->mode) {
++		case IPT_MARK_SET:
++			mark = markinfo->mark;
++			break;
++			
++		case IPT_MARK_AND:
++			mark = (*pskb)->nfmark & markinfo->mark;
++			break;
++			
++		case IPT_MARK_OR:
++			mark = (*pskb)->nfmark | markinfo->mark;
++			break;
++			
++		default:
++			mark = (*pskb)->nfmark;
++			break;
++		}
+ 	}
++	if ((*pskb)->nfmark != mark) {
++		(*pskb)->nfmark = mark;
++		(*pskb)->nfcache |= NFC_ALTERED;
++        }
++
+ 	return IPT_CONTINUE;
+ }
+ 
+@@ -31,15 +64,18 @@
+            unsigned int targinfosize,
+            unsigned int hook_mask)
+ {
+-	if (targinfosize != IPT_ALIGN(sizeof(struct ipt_mark_target_info))) {
+-		printk(KERN_WARNING "MARK: targinfosize %u != %Zu\n",
+-		       targinfosize,
+-		       IPT_ALIGN(sizeof(struct ipt_mark_target_info)));
++	if (targinfosize == IPT_ALIGN(sizeof(struct ipt_mark_target_info))) 
++		compat_mode = 1;
++	else if (targinfosize !=  
++		 IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info))) {
++		printk(KERN_WARNING "MARK: targinfosize %u mismatch\n",
++		       targinfosize);
+ 		return 0;
+ 	}
+ 
+ 	if (strcmp(tablename, "mangle") != 0) {
+-		printk(KERN_WARNING "MARK: can only be called from \"mangle\" table, not \"%s\"\n", tablename);
++		printk(KERN_WARNING "MARK: can only be called from "
++		       "\"mangle\" table, not \"%s\"\n", tablename);
+ 		return 0;
+ 	}
+ 
+@@ -53,6 +89,8 @@
+ {
+ 	if (ipt_register_target(&ipt_mark_reg))
+ 		return -EINVAL;
++	
++	compat_mode = 0;
+ 
+ 	return 0;
+ }
+
+--------------060007010306000108060806
+Content-Type: text/plain;
+ name="MARK_operations.patch.userspace"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="MARK_operations.patch.userspace"
+
+--- iptables-1.2.7a-old/extensions/libipt_MARK.c	2002-08-05 16:26:47.000000000 +0200
++++ iptables-1.2.7a-new/extensions/libipt_MARK.c	2003-01-14 13:40:55.000000000 +0100
+@@ -8,11 +8,6 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_MARK.h>
+ 
+-struct markinfo {
+-	struct ipt_entry_target t;
+-	struct ipt_mark_target_info mark;
+-};
+-
+ /* Function which prints out usage message. */
+ static void
+ help(void)
+@@ -20,12 +15,20 @@
+ 	printf(
+ "MARK target v%s options:\n"
+ "  --set-mark value                   Set nfmark value\n"
++#ifdef MARK_BITOPS
++"  --and-mark value                   Binary AND the nfmark with value\n"
++"  --or-mark  value                   Binary OR  the nfmark with value\n"
++#endif
+ "\n",
+ IPTABLES_VERSION);
+ }
+ 
+ static struct option opts[] = {
+ 	{ "set-mark", 1, 0, '1' },
++#ifdef MARK_BITOPS
++	{ "and-mark", 1, 0, '2' },
++	{ "or-mark", 1, 0, '3' },
++#endif
+ 	{ 0 }
+ };
+ 
+@@ -42,24 +45,40 @@
+       const struct ipt_entry *entry,
+       struct ipt_entry_target **target)
+ {
+-	struct ipt_mark_target_info *markinfo
+-		= (struct ipt_mark_target_info *)(*target)->data;
++#ifdef MARK_BITOPS
++	struct ipt_mark_bitops_target_info *markinfo
++		= (struct ipt_mark_bitops_target_info *)(*target)->data;
+ 
+ 	switch (c) {
+ 	case '1':
+-		if (string_to_number(optarg, 0, 0xffffffff, 
+-				     (unsigned int *)&markinfo->mark))
+-			exit_error(PARAMETER_PROBLEM, "Bad MARK value `%s'", optarg);
+-		if (*flags)
+-			exit_error(PARAMETER_PROBLEM,
+-			           "MARK target: Can't specify --set-mark twice");
+-		*flags = 1;
++	        markinfo->mode = IPT_MARK_SET;
++		break;
++	case '2':
++	        markinfo->mode = IPT_MARK_AND;
++		break;
++	case '3':
++	        markinfo->mode = IPT_MARK_OR;
+ 		break;
+-
+ 	default:
+ 		return 0;
+ 	}
+-
++#else 
++	struct ipt_mark_target_info *markinfo
++		= (struct ipt_mark_target_info *)(*target)->data;
++	if (c != '1') 
++		return 0;
++#endif
++	if (string_to_number(optarg, 0, 0xffffffff, 
++			     (unsigned int *)&markinfo->mark))
++		exit_error(PARAMETER_PROBLEM, 
++			   "Bad MARK value `%s'", optarg);
++	
++	if (*flags)
++		exit_error(PARAMETER_PROBLEM,
++			   "MARK target: "
++			   "Can't specify operation twice");
++	*flags = 1;
++	
+ 	return 1;
+ }
+ 
+@@ -68,7 +87,7 @@
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+-		           "MARK target: Parameter --set-mark is required");
++		           "MARK target: Additional parameter required");
+ }
+ 
+ static void
+@@ -83,20 +102,54 @@
+       const struct ipt_entry_target *target,
+       int numeric)
+ {
++#ifdef MARK_BITOPS
++	const struct ipt_mark_bitops_target_info *markinfo =
++		(const struct ipt_mark_bitops_target_info *)target->data;
++	switch (markinfo->mode) {
++	case IPT_MARK_SET:
++	        printf("MARK set ");
++	        break;
++	case IPT_MARK_AND:
++	        printf("MARK and ");
++	        break;
++	case IPT_MARK_OR: 
++	        printf("MARK or ");
++	        break;
++	}
++#else
+ 	const struct ipt_mark_target_info *markinfo =
+ 		(const struct ipt_mark_target_info *)target->data;
+ 	printf("MARK set ");
++#endif
+ 	print_mark(markinfo->mark, numeric);
++
+ }
+ 
+ /* Saves the union ipt_targinfo in parsable form to stdout. */
+ static void
+ save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
+ {
++#ifdef MARK_BITOPS
++	const struct ipt_mark_bitops_target_info *markinfo =
++		(const struct ipt_mark_bitops_target_info *)target->data;
++	switch (markinfo->mode) {
++	case IPT_MARK_SET:
++	        printf("--set-mark ");
++	        break;
++	case IPT_MARK_AND:
++	        printf("--and-mark ");
++	        break;
++	case IPT_MARK_OR: 
++	        printf("--or-mark ");
++	        break;
++	}
++#else
+ 	const struct ipt_mark_target_info *markinfo =
+ 		(const struct ipt_mark_target_info *)target->data;
++	printf("--set-mark ");
++#endif
++	printf(" 0x%lx ", markinfo->mark);
+ 
+-	printf("--set-mark 0x%lx ", markinfo->mark);
+ }
+ 
+ static
+@@ -104,8 +157,13 @@
+ = { NULL,
+     "MARK",
+     IPTABLES_VERSION,
++#ifdef MARK_BITOPS
++    IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info)),
++    IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info)),
++#else
+     IPT_ALIGN(sizeof(struct ipt_mark_target_info)),
+     IPT_ALIGN(sizeof(struct ipt_mark_target_info)),
++#endif
+     &help,
+     &init,
+     &parse,
+
+--------------060007010306000108060806--
