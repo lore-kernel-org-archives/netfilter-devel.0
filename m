@@ -1,17 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: memory leak problems
-Date: Sat, 30 Aug 2003 21:10:23 +0200
+Subject: [PATCH 2.6] iptables ipt_helper Kconfig fix
+Date: Sat, 30 Aug 2003 21:34:02 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030830191023.GG17715@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0308270250100.12780-100000@mx.nextra.ro>
+Message-ID: <20030830193402.GL17715@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8Bkcj4NmnZ79d4W7"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="vhOf6eAHdfH9MSjZ"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Gergely Imre <gimre@nextra.ro>
+To: David Miller <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0308270250100.12780-100000@mx.nextra.ro>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,52 +21,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---8Bkcj4NmnZ79d4W7
+--vhOf6eAHdfH9MSjZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 27, 2003 at 03:10:00AM +0300, Gergely Imre wrote:
->=20
-> hi
->=20
-> i'm trying to write some traffic-meter program, using the routines from=
-=20
-> iptables 1.2.8. i have some problems. it looks like there is some memory=
-=20
-> leak. i've tried the following code:
+Hi Davem!
 
-could you please try iptables version 1.38 from CVS?  There have been
-lots of fixes since 1.2.8 was released.  Please see
-http://cvs.netfilter.org/netfilter/userspace/libiptc/libiptc.c?rev=3D1.38
+Please apply the following patch (against 2.6.0-test4).  It fixes a bug
+in Kconfig causing ipt_helper not to be compiled if ip_conntrack is a
+module.
 
-Late versions might still be a bit instable, since I've reimplemented
-parts of libiptc.   So 1.38 should be the most stable and bugfree
-version available.
+Thanks.
 
-> now, i looked in the code, and found that iptc_init, and iptc_firs_rule=
+--- linux-2.6.0-test4-plain/net/ipv4/netfilter/Kconfig	2003-08-30 20:19:56.=
+000000000 +0200
++++ linux-2.6.0-test4-kconf/net/ipv4/netfilter/Kconfig	2003-08-30 20:20:50.=
+000000000 +0200
+@@ -239,7 +239,7 @@
 =20
-> too, is doing some malloc. when/where will be that memory freed?=20
-> itc_first_rule is calling a subroutine named populate_cache that is doing=
-=20
-> some malloc.
-> where and how do i suppose to free up that memory after finished working=
-=20
-> with the handle, and i want a new snapshot of the rules? i was calling=20
-> iptc_init once every second on a fairly large chains (around 1000 rules),=
-=20
-> and after a minute or so, i saw that the program took more and more=20
-> memory from the system. what can i do? will this be fixed soon, or just=
-=20
-> i'm not using the code the right way?
-
-in that old code included in 1.2.8 indeed has memory leaks.  libiptc was
-_never meant_ to be used by something other than one-shot executables
-like iptables itself.  This is why the original authors chose not to
-care about memory usage.
-
-> thanks
-
+ config IP_NF_MATCH_HELPER
+ 	tristate "Helper match support"
+-	depends on IP_NF_CONNTRACK!=3Dn && IP_NF_IPTABLES
++	depends on IP_NF_CONNTRACK && IP_NF_IPTABLES
+ 	help
+ 	  Helper matching allows you to match packets in dynamic connections
+ 	  tracked by a conntrack-helper, ie. ip_conntrack_ftp
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -79,16 +57,16 @@ care about memory usage.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---8Bkcj4NmnZ79d4W7
+--vhOf6eAHdfH9MSjZ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/UPafXaXGVTD0i/8RAvrIAKCKQQsEwiU0trp8vlHKsPduTbxv2QCgqITl
-Up6UEZ2paGqGfAo0xngEDdc=
-=Ie6I
+iD8DBQE/UPwqXaXGVTD0i/8RAvDlAJ9cfj3Ll4TP2CBZSnvwf8VlGM3qbACfXkHg
+M7hVPaOMrEMVaoA7MSnKXH8=
+=aSNc
 -----END PGP SIGNATURE-----
 
---8Bkcj4NmnZ79d4W7--
+--vhOf6eAHdfH9MSjZ--
