@@ -1,10 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 9/9]: revert MASQUERADE optimization for mostly static
- IPs
-Date: Mon, 15 Nov 2004 22:45:43 +0100
-Message-ID: <41992387.60101@trash.net>
+Subject: [PATCH 2.6 5/9]: Move rx timestamp functions to net/core/dev.c
+Date: Mon, 15 Nov 2004 22:44:50 +0100
+Message-ID: <41992352.3070607@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060103080206050808010602"
+Content-Type: multipart/mixed; boundary="------------010602030105030005050708"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -20,146 +19,163 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060103080206050808010602
+--------------010602030105030005050708
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-The MASQUERADE optimization for mostly static IPs is broken
-and can't be fixed in a reasonable way, also makeing sure
-conntracks aren't deleted when the address stays the same
-can be done entirely in userspace with the old behaviour.
-This patch reverts to the old behaviour.
+This patch moves the rx timestamp functions to net/core/dev.c.
+This is necessary for the next patch: ip_queue needs to enable
+timestamps while packets are received by it.
 
 
 
---------------060103080206050808010602
+--------------010602030105030005050708
 Content-Type: text/x-patch;
- name="09.diff"
+ name="05.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="09.diff"
+ filename="05.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/11/15 22:03:23+01:00 kernel@linuxace.com 
-#   [NETFILTER]: revert MASQUERADE optimization for mostly static IPs
+#   2004/11/13 13:27:50+01:00 kaber@coreworks.de 
+#   [NET]: Move rx timestamp functions to net/core/dev.c
 #   
-#   Signed-off-by: Phil Oester <kernel@linuxace.com>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ipt_MASQUERADE.c
-#   2004/11/15 22:03:17+01:00 kernel@linuxace.com +36 -24
-#   [NETFILTER]: revert MASQUERADE optimization for mostly static IPs
+# net/core/sock.c
+#   2004/11/13 13:27:44+01:00 kaber@coreworks.de +2 -5
+#   [NET]: Move rx timestamp functions to net/core/dev.c
 #   
-#   Signed-off-by: Phil Oester <kernel@linuxace.com>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-15 22:09:16 +01:00
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-15 22:09:16 +01:00
-@@ -118,49 +118,57 @@
+# net/core/dev.c
+#   2004/11/13 13:27:43+01:00 kaber@coreworks.de +25 -0
+#   [NET]: Move rx timestamp functions to net/core/dev.c
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# include/net/sock.h
+#   2004/11/13 13:27:43+01:00 kaber@coreworks.de +0 -12
+#   [NET]: Move rx timestamp functions to net/core/dev.c
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# include/linux/netdevice.h
+#   2004/11/13 13:27:43+01:00 kaber@coreworks.de +3 -0
+#   [NET]: Move rx timestamp functions to net/core/dev.c
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/include/linux/netdevice.h b/include/linux/netdevice.h
+--- a/include/linux/netdevice.h	2004-11-15 22:07:09 +01:00
++++ b/include/linux/netdevice.h	2004-11-15 22:07:09 +01:00
+@@ -928,6 +928,9 @@
+ extern atomic_t netdev_dropping;
+ extern int		netdev_set_master(struct net_device *dev, struct net_device *master);
+ extern int skb_checksum_help(struct sk_buff *skb, int inward);
++/* rx skb timestamps */
++extern void		net_enable_timestamp(void);
++extern void		net_disable_timestamp(void);
+ 
+ #ifdef CONFIG_SYSCTL
+ extern char *net_sysctl_strdup(const char *s);
+diff -Nru a/include/net/sock.h b/include/net/sock.h
+--- a/include/net/sock.h	2004-11-15 22:07:09 +01:00
++++ b/include/net/sock.h	2004-11-15 22:07:09 +01:00
+@@ -1270,19 +1270,7 @@
+ 	__kfree_skb(skb);
  }
  
- static inline int
--device_cmp(const struct ip_conntrack *i, void *_ina)
-+device_cmp(const struct ip_conntrack *i, void *ifindex)
- {
--	int ret = 0;
--	struct in_ifaddr *ina = _ina;
-+	int ret;
+-extern atomic_t netstamp_needed;
+ extern void sock_enable_timestamp(struct sock *sk);
+-
+-static inline void net_timestamp(struct timeval *stamp) 
+-{ 
+-	if (atomic_read(&netstamp_needed)) 
+-		do_gettimeofday(stamp);
+-	else {
+-		stamp->tv_sec = 0;
+-		stamp->tv_usec = 0;
+-	}		
+-} 
+-
+ extern int sock_get_timestamp(struct sock *, struct timeval __user *);
  
- 	READ_LOCK(&masq_lock);
--	/* If it's masquerading out this interface with a different address,
--	   or we don't know the new address of this interface. */
--	if (i->nat.masq_index == ina->ifa_dev->dev->ifindex
--	    && i->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip != ina->ifa_address)
--		ret = 1;
-+	ret = (i->nat.masq_index == (int)(long)ifindex);
- 	READ_UNLOCK(&masq_lock);
- 
- 	return ret;
+ /* 
+diff -Nru a/net/core/dev.c b/net/core/dev.c
+--- a/net/core/dev.c	2004-11-15 22:07:09 +01:00
++++ b/net/core/dev.c	2004-11-15 22:07:09 +01:00
+@@ -1001,6 +1001,29 @@
+ 	return notifier_call_chain(&netdev_chain, val, v);
  }
  
--static inline int
--connect_unassure(const struct ip_conntrack *i, void *_ina)
-+static int masq_device_event(struct notifier_block *this,
-+			     unsigned long event,
-+			     void *ptr)
- {
--	struct in_ifaddr *ina = _ina;
-+	struct net_device *dev = ptr;
++/* When > 0 there are consumers of rx skb time stamps */
++static atomic_t netstamp_needed = ATOMIC_INIT(0);
 +
-+	if (event == NETDEV_DOWN) {
-+		/* Device was downed.  Search entire table for
-+		   conntracks which were associated with that device,
-+		   and forget them. */
-+		IP_NF_ASSERT(dev->ifindex != 0);
- 
--	/* We reset the ASSURED bit on all connections, so they will
--	 * get reaped under memory pressure. */
--	if (i->nat.masq_index == ina->ifa_dev->dev->ifindex)
--		clear_bit(IPS_ASSURED_BIT, (unsigned long *)&i->status);
--	return 0;
-+		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
++void net_enable_timestamp(void)
++{
++	atomic_inc(&netstamp_needed);
++}
++
++void net_disable_timestamp(void)
++{
++	atomic_dec(&netstamp_needed);
++}
++
++static inline void net_timestamp(struct timeval *stamp)
++{
++	if (atomic_read(&netstamp_needed))
++		do_gettimeofday(stamp);
++	else {
++		stamp->tv_sec = 0;
++		stamp->tv_usec = 0;
 +	}
++}
 +
-+	return NOTIFY_DONE;
+ /*
+  *	Support routine. Sends outgoing frames to any network
+  *	taps currently in use.
+@@ -3215,6 +3238,8 @@
+ EXPORT_SYMBOL(synchronize_net);
+ EXPORT_SYMBOL(unregister_netdevice);
+ EXPORT_SYMBOL(unregister_netdevice_notifier);
++EXPORT_SYMBOL(net_enable_timestamp);
++EXPORT_SYMBOL(net_disable_timestamp);
+ 
+ #if defined(CONFIG_BRIDGE) || defined(CONFIG_BRIDGE_MODULE)
+ EXPORT_SYMBOL(br_handle_frame_hook);
+diff -Nru a/net/core/sock.c b/net/core/sock.c
+--- a/net/core/sock.c	2004-11-15 22:07:09 +01:00
++++ b/net/core/sock.c	2004-11-15 22:07:09 +01:00
+@@ -179,7 +179,7 @@
+ {	
+ 	if (sock_flag(sk, SOCK_TIMESTAMP)) { 
+ 		sock_reset_flag(sk, SOCK_TIMESTAMP);
+-		atomic_dec(&netstamp_needed);
++		net_disable_timestamp();
+ 	}
  }
  
- static int masq_inet_event(struct notifier_block *this,
- 			   unsigned long event,
- 			   void *ptr)
- {
--	/* For some configurations, interfaces often come back with
--	 * the same address.  If not, clean up old conntrack
--	 * entries. */
--	if (event == NETDEV_UP)
--		ip_ct_selective_cleanup(device_cmp, ptr);
--	else if (event == NETDEV_DOWN)
--		ip_ct_selective_cleanup(connect_unassure, ptr);
-+	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
-+
-+	if (event == NETDEV_DOWN) {
-+		/* IP address was deleted.  Search entire table for
-+		   conntracks which were associated with that device,
-+		   and forget them. */
-+		IP_NF_ASSERT(dev->ifindex != 0);
-+
-+		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
-+	}
- 
- 	return NOTIFY_DONE;
+@@ -1226,9 +1226,6 @@
  }
+ EXPORT_SYMBOL(release_sock);
  
-+static struct notifier_block masq_dev_notifier = {
-+	.notifier_call	= masq_device_event,
-+};
-+
- static struct notifier_block masq_inet_notifier = {
- 	.notifier_call	= masq_inet_event,
- };
-@@ -178,9 +186,12 @@
- 
- 	ret = ipt_register_target(&masquerade);
- 
--	if (ret == 0)
-+	if (ret == 0) {
-+		/* Register for device down reports */
-+		register_netdevice_notifier(&masq_dev_notifier);
- 		/* Register IP address change reports */
- 		register_inetaddr_notifier(&masq_inet_notifier);
-+	}
- 
- 	return ret;
+-/* When > 0 there are consumers of rx skb time stamps */
+-atomic_t netstamp_needed = ATOMIC_INIT(0); 
+-
+ int sock_get_timestamp(struct sock *sk, struct timeval __user *userstamp)
+ { 
+ 	if (!sock_flag(sk, SOCK_TIMESTAMP))
+@@ -1246,7 +1243,7 @@
+ {	
+ 	if (!sock_flag(sk, SOCK_TIMESTAMP)) { 
+ 		sock_set_flag(sk, SOCK_TIMESTAMP);
+-		atomic_inc(&netstamp_needed);
++		net_enable_timestamp();
+ 	}
  }
-@@ -188,6 +199,7 @@
- static void __exit fini(void)
- {
- 	ipt_unregister_target(&masquerade);
-+	unregister_netdevice_notifier(&masq_dev_notifier);
- 	unregister_inetaddr_notifier(&masq_inet_notifier);	
- }
- 
+ EXPORT_SYMBOL(sock_enable_timestamp); 
 
---------------060103080206050808010602--
+--------------010602030105030005050708--
