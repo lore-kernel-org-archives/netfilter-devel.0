@@ -1,14 +1,15 @@
-From: Robby <inet6@mail.be>
-Subject: Re: pom-ng TRACE patch: unable to find ladd slot in src
-  ./net/ipv6/Config.in
-Date: Wed, 18 Feb 2004 00:05:42 +0100
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] patch-o-matic-ng patch
+Date: Wed, 18 Feb 2004 00:19:05 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.2.1.1.2.20040217235440.00b19750@wheresmymailserver.com>
+Message-ID: <Pine.LNX.4.33.0402180005300.11937-200000@blackhole.kfki.hu>
+References: <Pine.LNX.4.33.0402120950190.3899-200000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Cc: Netfilter development <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-1605507047-1077059945=:11937"
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <Pine.LNX.4.33.0402120950190.3899-200000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,51 +20,154 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I see, but are new patches or code updates still being applied to the good 
-old and working patch-o-matic?
-I didn't think so, so that's why I started using the new p-o-m-ng, but if 
-the old one still is being updated I wouldn't mind using it untill all bugs 
-are ironed out in the p-o-m-ng.
-Else, I'm going to maintain and merge the new p-o-m-ng to a for-local-use 
-patch-o-matic with the old system but with the latest versions of all 
-patches untill things get stable with the new system :)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
- > ----------------------------------------
- > From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
- > Sent: Tue Feb 17 23:48:50 CET 2004
- > To: Robby <inet6@mail.be>
- > Subject: Re: pom-ng TRACE patch: unable to find ladd slot in src
- >  ./net/ipv6/Config.in
- >
- >
- > On Tue, 17 Feb 2004, Robby wrote:
- >
- > > Well, I'm currently busy with it and I have a patch and mail ready for
- > > sending, but I'm not sending it as it seems to be breaking some things 
-in a
- > > "make menuconfig".
- > [...]
- >
- > p-o-m-ng hasn't yet been announced as a ready to use, in production
- > system. There can be bugs and it's incomplete in some areas.
- > And all of the patches in p-o-m-ng is currently for the 2.4 series,
- > some of them definitely has to be ported to 2.6.
- >
- > Best regards,
- > Jozsef
- > -
- > E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
- > PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
- > Address : KFKI Research Institute for Particle and Nuclear Physics
- >           H-1525 Budapest 114, POB. 49, Hungary
- >
- >
- >
- >
- >
- >
+--110391808-1605507047-1077059945=:11937
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
+Hi Harald,
 
+The attached patch deals with Configure.help/Kconfig in pom-ng:
+the original code did not use configure.help at all and added the
+content of the help file to *every* Kconfig a patch touched. (The latter
+is quite disturbing for both IPv4/IPv6 related patches.)
 
---
-Robby 
+In the attached patch, help file is not added to Kconfig files and
+existing Configure.help files are used as special ladd files.
+
+If configure.help files were renamed as
+linux/Documentation/Configure.help.ladd (instead of Configure.help as
+the patch assumes), then the apply_configure_help routine could be
+eliminated. I think it'd worth, because then Netfilter_POM.pm were more
+cleaner and Configure.help files adhered the internal structure of pom-ng,
+but with the price of the additional directory just for
+Configure.help.ladd.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+
+--110391808-1605507047-1077059945=:11937
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="p-o-m-ng.patch2"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.33.0402180019050.11937@blackhole.kfki.hu>
+Content-Description: p-o-m-ng.patch2
+Content-Disposition: attachment; filename="p-o-m-ng.patch2"
+
+LS0tIHAtby1tLWEvTmV0ZmlsdGVyX1BPTS5wbQkyMDA0LTAyLTE3IDA3OjI3
+OjM0LjAwMDAwMDAwMCArMDEwMA0KKysrIHBhdGNoLW8tbWF0aWMtbmcyL05l
+dGZpbHRlcl9QT00ucG0JMjAwNC0wMi0xNyAyMzo1MDoyNS4wMDAwMDAwMDAg
+KzAxMDANCkBAIC01MDAsODQgKzUwMCw2IEBADQogCXJldHVybiAxOw0KIH0N
+CiANCi1zdWIgYXBwbHlfY29uZmlndXJlX2hlbHAgew0KLQlteSAoJHBhdGNo
+bGV0LCAkcmV2ZXJ0LCAkdGVzdCkgPSBAXzsNCi0JbXkgJGNvbmZpZ3VyZV9o
+ZWxwID0gJHNyY3BhdGh7bGludXh9LicvRG9jdW1lbnRhdGlvbi9Db25maWd1
+cmUuaGVscCc7DQotCW15ICRjb25maWdfaW47DQotCW15ICgkdGl0bGUsICRj
+b25maWcpOw0KLQ0KLQkjIEZJWE1FOiBpbXBsZW1lbnRhdGlvbg0KLQlpZiAo
+JHJldmVydCkgew0KLQkJcmV0dXJuIDE7DQotCX0NCi0NCi0JIyByZXNvbHZl
+IHRpdGxlIGFuZCBjb25maWcga2V5IGZyb20gQ29uZmlnLmluDQotCWZvciBt
+eSAkZmlsZSAoQHskJHBhdGNobGV0e2xhZGRzfXtsaW51eH17YmVzdH19KSB7
+DQotCQlteSAkYmFzZW5hbWUgPSBGaWxlOjpCYXNlbmFtZTo6YmFzZW5hbWUo
+JGZpbGUpOw0KLQkJJGJhc2VuYW1lID1+IHMvXC5sYWRkKF9cZCspPyQvLzsN
+Ci0JCWlmICgkYmFzZW5hbWUgZXEgJ0NvbmZpZy5pbicpIHsNCi0JCQkkY29u
+ZmlnX2luID0gJCRwYXRjaGxldHtiYXNlZGlyfS4nL2xpbnV4Jy4kJHBhdGNo
+bGV0e2xhZGRzfXtsaW51eH17YmVzdF9wcmVmaXh9LiAnLycuJGZpbGU7DQot
+CQkJbGFzdDsNCi0JCX0NCi0JfQ0KLQlpZiAoISRjb25maWdfaW4pIHsNCi0J
+CSMgdGhpcyBhY3R1YWxseSBpcyBhIHBhdGNoIHdpdGhvdXQgYSBjb25maWcg
+b3B0aW9uDQotCQlyZXR1cm4gMTsNCi0JfQ0KLQlpZiAoIW9wZW4oSU5GSUxF
+LCAkY29uZmlnX2luKSkgew0KLQkJJEVSUk1TRyA9ICJ1bmFibGUgdG8gb3Bl
+biAkY29uZmlnX2luOiAkISI7DQotCQlyZXR1cm4gMDsNCi0JfQ0KLQlteSAk
+bGluZSA9IDxJTkZJTEU+Ow0KLQl3aGlsZSAoJGxpbmUgPSA8SU5GSUxFPikg
+ew0KLQkJaWYgKCRsaW5lID1+IC9kZXBfdHJpc3RhdGUgJ1xzKiguKiknXHMr
+KENPTkZJR19JUFxTKykvKSB7DQotCQkJJHRpdGxlID0gJDE7DQotCQkJJGNv
+bmZpZyA9ICQyOw0KLQkJfQ0KLQl9DQotCWNsb3NlKElORklMRSk7DQotDQot
+CSMgQ29uZmlndXJlLmhlbHANCi0JaWYgKCFvcGVuKElORklMRSwgJGNvbmZp
+Z3VyZV9oZWxwKSkgew0KLQkJJEVSUk1TRyA9ICJhcHBseV9jb25maWd1cmVf
+aGVscDogdW5hYmxlIHRvIG9wZW4gJGNvbmZpZ3VyZV9oZWxwOiAkISI7DQot
+CQlyZXR1cm4gMDsNCi0JfQ0KLQlteSAkY3VyY2ZnOw0KLQlteSBAb3V0bGlu
+ZXM7DQotCW15ICRoZWxwZmlsZSA9ICQkcGF0Y2hsZXR7YmFzZWRpcn0uJy8n
+LiQkcGF0Y2hsZXR7aGVscH17bGludXh9Ow0KLQl3aGlsZSAobXkgJGxpbmUg
+PSA8SU5GSUxFPikgew0KLQkJaWYgKCRsaW5lID1+IC9eQ09ORklHXyguKykv
+KSB7DQotCQkJaWYgKCQxIGVxICdJUF9ORl9JUFRBQkxFUycpIHsNCi0JCQkJ
+JGN1cmNmZyA9IDE7DQotCQkJfSBlbHNpZiAoJGN1cmNmZyA9PSAxKSB7DQot
+CQkJCSRjdXJjZmcgPSAwOw0KLQkJCQlteSAkbGFzdGxpbmUgPSBwb3AoQG91
+dGxpbmVzKTsNCi0JCQkJcHVzaChAb3V0bGluZXMsICIkdGl0bGVcbiIpOw0K
+LQkJCQlwdXNoKEBvdXRsaW5lcywgIiRjb25maWdcbiIpOw0KLQkJCQlwdXNo
+X2hlbHBmaWxlKFxAb3V0bGluZXMsICRoZWxwZmlsZSwgIiAgIik7DQotCQkJ
+CXB1c2goQG91dGxpbmVzLCAiXG5cbiIpOw0KLQkJCQlwdXNoKEBvdXRsaW5l
+cywgJGxhc3RsaW5lKTsNCi0JCQl9DQotCQl9DQotCQlwdXNoKEBvdXRsaW5l
+cywgJGxpbmUpOw0KLQl9DQotCWNsb3NlKElORklMRSk7DQotCWlmICghJHRl
+c3QpIHsNCi0JCWlmICghYnJlYWtsaW5rKCRjb25maWd1cmVfaGVscCkpIHsN
+Ci0JCQlyZXR1cm4gMDsNCi0JCX0NCi0JCWlmICghb3BlbihPVVRGSUxFLCAi
+PiRjb25maWd1cmVfaGVscCIpKSB7DQotCQkJJEVSUk1TRyA9ICJhcHBseV9j
+b25maWdfMjQ6IHVuYWJsZSB0byBvcGVuICRjb25maWd1cmVfaGVscDogJCEi
+Ow0KLQkJCXJldHVybiAwOw0KLQkJfQ0KLQkJZm9yIG15ICRsIChAb3V0bGlu
+ZXMpIHsNCi0JCQlwcmludChPVVRGSUxFICRsKTsNCi0JCX0NCi0JCWNsb3Nl
+KE9VVEZJTEUpOw0KLQl9DQotCXJldHVybiAxOw0KLX0NCi0NCiAjIGFwcGx5
+IGFuIG9sZC1zdHlsZSBsaW5lYWRkIGZpbGUNCiAjDQogc3ViIGFwcGx5X2xp
+bmVhZGQoJCQkJCQkKQ0KQEAgLTU4NSw2ICs1MDcsNyBAQA0KIAlteSAoJHBh
+dGNobGV0LCAkbGFkZGZpbGUsICRsYWRkaXIsICRrZXJuZWxkaXIsICRyZXZl
+cnQsICR0ZXN0KSA9IEBfOw0KIAlteSBAbmV3bGluZXM7DQogCW15ICRrY29u
+ZmlnbW9kZTsNCisJbXkgJGNvbmZpZ21vZGU7DQogCW15ICRsb29raW5nZm9y
+Ow0KIA0KIAlpZiAoIW9wZW4oTEFERCwgJGxhZGRpci4nLycuJGxhZGRmaWxl
+KSkgew0KQEAgLTU5MiwxMSArNTE1LDE0IEBADQogCQlyZXR1cm4gMDsNCiAJ
+fQ0KIA0KLQlteSAoJHNyY2ZpbGUsICRleHRuKSA9ICRsYWRkZmlsZSA9fiAv
+KC4qKVwubGFkZChfXGQrKT8kLzsNCisJbXkgKCRzcmNmaWxlLCAkZXh0bikg
+PSAkbGFkZGZpbGUgPX4gLyguKj8pKFwubGFkZChfXGQrKT8pPyQvOw0KIA0K
+IAlpZiAoJHNyY2ZpbGUgPX4gL0tjb25maWckLykgew0KIAkJJGtjb25maWdt
+b2RlID0gMTsNCiAJCSRsb29raW5nZm9yID0gImVuZG1lbnVcbiI7DQorCX0g
+ZWxzaWYgKCRzcmNmaWxlID1+IC9Db25maWd1cmVcLmhlbHAvKSB7DQorCQkk
+Y29uZmlnbW9kZSA9IDE7DQorCQkkbG9va2luZ2ZvciA9IDxMQUREPjsNCiAJ
+fSBlbHNlIHsNCiAJCSRsb29raW5nZm9yID0gPExBREQ+Ow0KIAl9DQpAQCAt
+NjA4LDI2ICs1MzQsMzMgQEANCiAJfQ0KIA0KIAlteSAkZm91bmQgPSAwOw0K
+LQlteSAkaGVscGZpbGUgPSAkJHBhdGNobGV0e2Jhc2VkaXJ9LicvJy4kJHBh
+dGNobGV0e2hlbHB9e2xpbnV4fTsNCiAJU1JDTElORTogd2hpbGUgKG15ICRs
+aW5lID0gPFNSQz4pIHsNCiAJCXB1c2goQG5ld2xpbmVzLCAkbGluZSk7DQog
+CQlpZiAoJGxpbmUgZXEgJGxvb2tpbmdmb3IpIHsNCiAJCQkkZm91bmQgPSAx
+Ow0KIAkJCWlmICgkcmV2ZXJ0ID09IDApIHsNCi0JCQkJbXkgJHByZXY7DQor
+CQkJCW15ICgkcHJldiwgJG5leHQsICRsYXN0KTsNCiAJCQkJaWYgKCRrY29u
+ZmlnbW9kZSkgew0KIAkJCQkJJHByZXYgPSBwb3AoQG5ld2xpbmVzKTsNCisJ
+CQkJfSBlbHNpZiAoJGNvbmZpZ21vZGUpIHsNCisJCQkJCXdoaWxlICgoJGxp
+bmUgPSA8U1JDPikgIX4gL15cUy8pIHsNCisJCQkJCQlwdXNoKEBuZXdsaW5l
+cywgJGxpbmUpOw0KKwkJCQkJfQ0KKwkJCQkJJG5leHQgPSAkbGluZTsNCiAJ
+CQkJfQ0KIAkJCQl3aGlsZSAobXkgJG5ld2xpbmUgPSA8TEFERD4pIHsNCiAJ
+CQkJCXB1c2goQG5ld2xpbmVzLCAkbmV3bGluZSk7DQorCQkJCQkkbGFzdCA9
+ICRuZXdsaW5lOw0KIAkJCQl9DQotCQkJCSMgdWdseSBrY29uZmlnIGhhY2sN
+CisJCQkJIyB1Z2x5IGtjb25maWcvY29uZmlndXJlLmhlbHAgaGFja3MNCiAJ
+CQkJaWYgKCRrY29uZmlnbW9kZSkgew0KIAkJCQkJcHVzaChAbmV3bGluZXMs
+ICJcdCAgaGVscFxuIik7DQotCQkJCQlwdXNoX2hlbHBmaWxlKFxAbmV3bGlu
+ZXMsICRoZWxwZmlsZSwNCi0JCQkJCQkJIlx0ICAiKTsNCiAJCQkJCXB1c2go
+QG5ld2xpbmVzLCAiXG4iKTsNCiAJCQkJCXB1c2goQG5ld2xpbmVzLCAkcHJl
+dik7DQorCQkJCX0gZWxzaWYgKCRjb25maWdtb2RlKSB7DQorCQkJCQlwdXNo
+KEBuZXdsaW5lcywgIlxuIikNCisJCQkJCQl1bmxlc3MgJGxhc3QgPX4gL15c
+cyokLzsNCisJCQkJCXB1c2goQG5ld2xpbmVzLCAkbmV4dCk7DQogCQkJCX0N
+CiAJCQkJIyBhcHBlbmQgcmVzdCBvZiBzb3VyY2VmaWxlDQogCQkJCXdoaWxl
+ICgkbGluZSA9IDxTUkM+KSB7DQpAQCAtNjQyLDggKzU3NSw2IEBADQogCQkJ
+CQkJcHVzaChAaGVscGxpbmVzLCAkbCk7DQogCQkJCQl9DQogCQkJCQlwdXNo
+KEBoZWxwbGluZXMsICJcdCAgaGVscFxuIik7DQotCQkJCQlwdXNoX2hlbHBm
+aWxlKFxAaGVscGxpbmVzLCAkaGVscGZpbGUsDQotCQkJCQkJCSJcdCAgIik7
+DQogCQkJCQlwdXNoKEBoZWxwbGluZXMsICJcbiIpOw0KIA0KIAkJCQkJd2hp
+bGUgKG15ICRsID0gcG9wKEBoZWxwbGluZXMpKSB7DQpAQCAtNjk1LDYgKzYy
+NiwyMCBAQA0KIAlyZXR1cm4gMTsNCiB9DQogDQorc3ViIGFwcGx5X2NvbmZp
+Z3VyZV9oZWxwIHsNCisJbXkgKCRwYXRjaGxldCwgJHJldmVydCwgJHRlc3Qp
+ID0gQF87DQorCW15ICRjb25maWd1cmVfaGVscCA9ICQkcGF0Y2hsZXR7YmFz
+ZWRpcn0uJy9Db25maWd1cmUuaGVscCc7DQorDQorCWlmICghIC1mICRjb25m
+aWd1cmVfaGVscCkgew0KKwkJIyB0aGlzIGFjdHVhbGx5IGlzIGEgcGF0Y2gg
+d2l0aG91dCBhIENvbmZpZ3VyZS5oZWxwIGZpbGUNCisJCXJldHVybiAxOw0K
+Kwl9DQorDQorCXJldHVybiBhcHBseV9saW5lYWRkKCRwYXRjaGxldCwgJ0Nv
+bmZpZ3VyZS5oZWxwJywgDQorCQkJICAgICAkJHBhdGNobGV0e2Jhc2VkaXJ9
+LCAkc3JjcGF0aHtsaW51eH0uJy9Eb2N1bWVudGF0aW9uJywNCisJCQkgICAg
+ICRyZXZlcnQsICR0ZXN0KTsNCit9DQorDQogc3ViIGFwcGx5X25ld2ZpbGVz
+KCQkJCQpDQogew0KIAlteSAoJHBhdGNobGV0LCAkcHJvaiwgJHJldmVydCwg
+JHRlc3QpID0gQF87DQpAQCAtODA4LDcgKzc1Myw3IEBADQogCQl9DQogDQog
+CQlpZiAoJHByb2ogZXEgJ2xpbnV4JyAmJiAkdmVyc2lvbnsnbGludXgnfSA9
+fiAvXjJcLjRcLlxkKy8pIHsNCi0JCQkjIENvbmZpZy5pbiBoYW5kbGVkIGJ5
+IC5sYWRkLCBuZWVkIHRvIHVwZGF0ZQ0KKwkJCSMgQ29uZmlndXJlLmhlbHAN
+CiAJCQlpZighYXBwbHlfY29uZmlndXJlX2hlbHAoJHBhdGNobGV0LCAkcmV2
+ZXJ0LCAkdGVzdCkpIHsNCiAJCQkJcmV0dXJuIDA7DQogCQkJfQ0K
+--110391808-1605507047-1077059945=:11937--
