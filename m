@@ -1,16 +1,17 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] fix conntrack bug introduced by list_del change
-Date: Mon, 03 Mar 2003 01:08:43 -0800 (PST)
+Subject: Re: [PATCH] C99 patches for net/bridge/netfilter
+Date: Mon, 03 Mar 2003 01:26:11 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030303.010843.23797700.davem@redhat.com>
-References: <20030226184110.GA15681@sunbeam.de.gnumonks.org>
+Message-ID: <20030303.012611.129838536.davem@redhat.com>
+References: <20030227172525.GA21084@debian>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org,
+        linux-net@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20030226184110.GA15681@sunbeam.de.gnumonks.org>
+To: ahaas@airmail.net
+In-Reply-To: <20030227172525.GA21084@debian>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,9 +22,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: Harald Welte <laforge@netfilter.org>
-   Date: Wed, 26 Feb 2003 19:41:10 +0100
+   From: Art Haas <ahaas@airmail.net>
+   Date: Thu, 27 Feb 2003 11:25:25 -0600
 
-   This is a fix for a serious conntrack bug in 2.4.20.
+   Here are three patches for converting files in net/bridget/netfilter to
+   use C99 initializers. The patches at first were just going to be adding
+   an '=' to array initializers, but then I decided to add named
+   initializers to the structures as I thought it would make them easier to
+   read.
 
-Applied, thanks.
+Thanks Art, patch applied.
