@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] 2.5.x ipt_REJECT bugfix for TCP RST packets + asymm. routing
-Date: Sun, 30 Mar 2003 21:47:56 +0200
+Subject: [PATCH] 2.4/2.5 ip_conntrack bugfix for LOCAL_NAT and PPTP
+Date: Sun, 30 Mar 2003 21:51:13 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030330194756.GV7718@sunbeam.de.gnumonks.org>
+Message-ID: <20030330195113.GW7718@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kbZGpL0ScFxCd8mt"
+	protocol="application/pgp-signature"; boundary="Q/AGl/UrDvkbRExF"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,96 +21,51 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---kbZGpL0ScFxCd8mt
+--Q/AGl/UrDvkbRExF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Davem!
 
-This fixes a bug (oops) in the generation of TCP RST packets in the
-ipt_REJECT target in the case of asymmetric routing, where the hardware
-header length of the outgoing interface is bigger than the hardware
-header length of the incoming interface.
+Author: Paul Mielke <paulm@routefree.com>
+This patch fixes a bug introduced with the LOCAL_NAT support of linux
+kernels  >=3D 2.4.19, which caused a problem with locally-terminated
+connections and certain NAT application helpers (esp. PPTP).
 
-Please apply to 2.5.x (2.4.x sent previously), thanks.
+Please apply to 2.4.x and 2.5.x (applies cleanly to 2.5.66), thanks.
 
 
---- linux-2.5.63-nfpending/net/ipv4/netfilter/ipt_REJECT.c	Mon Feb 24 20:05=
-:40 2003
-+++ linux-2.5.63-nfpending-harder/net/ipv4/netfilter/ipt_REJECT.c	Tue Mar  =
-4 23:37:44 2003
-@@ -44,6 +44,7 @@
- 	u_int16_t tmp_port;
- 	u_int32_t tmp_addr;
- 	int needs_ack;
-+	int hh_len;
+--- linux.old/net/ipv4/netfilter/ip_nat_standalone.c	Mon Feb 17 23:53:17 20=
+03
++++ linux-2.4.20/net/ipv4/netfilter/ip_nat_standalone.c	Mon Feb 17 23:59:16=
+ 2003
+@@ -109,12 +109,6 @@
+ 		}
+ 		/* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
+ 	case IP_CT_NEW:
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+-		/* LOCAL_IN hook doesn't have a chain and thus doesn't care
+-		 * about new packets -HW */
+-		if (hooknum =3D=3D NF_IP_LOCAL_IN)
+-			return NF_ACCEPT;
+-#endif
+ 		info =3D &ct->nat.info;
 =20
- 	/* IP header checks: fragment, too short. */
- 	if (oldskb->nh.iph->frag_off & htons(IP_OFFSET)
-@@ -63,13 +64,36 @@
- 			 csum_partial((char *)otcph, otcplen, 0)) !=3D 0)
- 		return;
-=20
-+
-+	{
-+		struct flowi fl =3D { .nl_u =3D { .ip4_u =3D
-+					      { .daddr =3D oldskb->nh.iph->saddr,
-+						.saddr =3D (local ?
-+							  oldskb->nh.iph->daddr :
-+							  0),
-+						.tos =3D (RT_TOS(oldskb->nh.iph->tos) |
-+							RTO_CONN) } } };
-+
-+		/* Routing: if not headed for us, route won't like source */
-+		if (ip_route_output_key(&rt, &fl))
-+			return;
-+=09
-+		hh_len =3D (rt->u.dst.dev->hard_header_len + 15)&~15;
-+	}
-+
-+
- 	/* Copy skb (even if skb is about to be dropped, we can't just
-            clone it because there may be other things, such as tcpdump,
--           interested in it) */
--	nskb =3D skb_copy(oldskb, GFP_ATOMIC);
-+           interested in it). We also need to expand headroom in case
-+	   hh_len of incoming interface < hh_len of outgoing interface */
-+	nskb =3D skb_copy_expand(oldskb, hh_len, skb_tailroom(oldskb),
-+			       GFP_ATOMIC);
- 	if (!nskb)
- 		return;
-=20
-+	dst_release(nskb->dst);
-+	nskb->dst =3D &rt->u.dst;
-+
- 	/* This packet will not be the same as the other: clear nf fields */
- 	nf_conntrack_put(nskb->nfct);
- 	nskb->nfct =3D NULL;
-@@ -131,23 +155,6 @@
- 	nskb->nh.iph->check =3D 0;
- 	nskb->nh.iph->check =3D ip_fast_csum((unsigned char *)nskb->nh.iph,=20
- 					   nskb->nh.iph->ihl);
--
--	{
--		struct flowi fl =3D { .nl_u =3D { .ip4_u =3D
--					      { .daddr =3D nskb->nh.iph->daddr,
--						.saddr =3D (local ?
--							  nskb->nh.iph->saddr :
--							  0),
--						.tos =3D (RT_TOS(nskb->nh.iph->tos) |
--							RTO_CONN) } } };
--
--		/* Routing: if not headed for us, route won't like source */
--		if (ip_route_output_key(&rt, &fl))
--			goto free_nskb;
--	}
--
--	dst_release(nskb->dst);
--	nskb->dst =3D &rt->u.dst;
-=20
- 	/* "Never happens" */
- 	if (nskb->len > dst_pmtu(nskb->dst))
+ 		WRITE_LOCK(&ip_nat_lock);
+@@ -130,6 +124,12 @@
+ 				ret =3D call_expect(master_ct(ct), pskb,=20
+ 						  hooknum, ct, info);
+ 			} else {
++#ifdef CONFIG_IP_NF_NAT_LOCAL
++				/* LOCAL_IN hook doesn't have a chain!  */
++				if (hooknum =3D=3D NF_IP_LOCAL_IN) {
++					ret =3D NF_ACCEPT;
++				} else
++#endif
+ 				ret =3D ip_nat_rule_find(pskb, hooknum, in, out,
+ 						       ct, info);
+ 			}
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -121,7 +76,7 @@ Please apply to 2.5.x (2.4.x sent previously), thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---kbZGpL0ScFxCd8mt
+--Q/AGl/UrDvkbRExF
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -129,9 +84,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+h0nsXaXGVTD0i/8RApOdAJ0UaUafgT5m14VcSmLD4wtWPGOFcgCeJWO1
-Nl4bsJaP86ygQWxtG7QDiiM=
-=PKZa
+iD8DBQE+h0qxXaXGVTD0i/8RAu1KAKCXdtMUD7NLZHEhi9n7ctTYW1/XCACggLQR
+e0M3+SkHzQ0trrxcj0pcewo=
+=tAxd
 -----END PGP SIGNATURE-----
 
---kbZGpL0ScFxCd8mt--
+--Q/AGl/UrDvkbRExF--
