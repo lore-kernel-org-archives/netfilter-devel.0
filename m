@@ -1,54 +1,75 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: use of vmalloc within netfilter (was Re: [ANNOUNCE] IP sets)
-Date: Thu, 26 Feb 2004 13:28:08 +0100 (CET)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0402261326520.13257@tux.rsn.bth.se>
-References: <Pine.LNX.4.33.0402261140590.25110-100000@blackhole.kfki.hu>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [ANNOUNCE] call for testing of patch-o-matic-ng
+Date: Wed, 25 Feb 2004 21:28:05 +0100
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <20040225202805.GA4040@obroa-skai.de.gnumonks.org>
+References: <20040225182828.GP13386@sunbeam.de.gnumonks.org> <001101c3fbd6$0310ed80$32640a0a@robopc>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0402261140590.25110-100000@blackhole.kfki.hu>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: rruegner <robowarp@gmx.de>
+Content-Disposition: inline
+In-Reply-To: <001101c3fbd6$0310ed80$32640a0a@robopc>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 26 Feb 2004, Jozsef Kadlecsik wrote:
 
-> > It's adding some extra overhead in some places.
-> > The chunk below will call ip_conntrack_hash_elem() with the same argument
-> > for each iteration of the linked list.
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You make this change:
+On Wed, Feb 25, 2004 at 08:31:47PM +0100, rruegner wrote:
+> Hi Harald,
+>=20
+> do you mean something like this ?
 
-> > @@ -1145,7 +1150,7 @@
-> >
-> >         /* Get rid of expecteds, set helpers to NULL. */
-> >         for (i = 0; i < ip_conntrack_htable_size; i++)
-> > -               LIST_FIND_W(&ip_conntrack_hash[i], unhelp,
-> > +               LIST_FIND_W(ip_conntrack_hash_elem(i), unhelp,
-> >                             struct ip_conntrack_tuple_hash *, me);
-> >         WRITE_UNLOCK(&ip_conntrack_lock);
-> >
-> >
-> > We've removed lots of these things earlier.
+no.
 
-This is how it could be resolved:
+> fresh 2.6.3 kernel with patch-o-matic-ng-20040224
 
-> > for (i = 0; i < ip_conntrack_htable_size; i++) {
-> > 	struct list_head *bucket = ip_conntrack_hash_elem(i);
-> > 	LIST_FIND_W(bucket, unhelp, struct ip_conntrack_tuple_hash *, me);
-> > }
+as i stated in my original email, you will not be prompted for patches
+that have not yet been ported.
 
-> That's not in 2.6.3-bk5. Sigh.
+>  requirement 'linux < 2.6.0' not fulfilled
 
-Sorry for being unclear in my previous mail.
+this clearly indicates that the quake3 patch is only available for
+kernel 2.4.x
 
-/Martin
+my main question was:  Does pom-ng still work with 2.4.x kernels as
+expected.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--pf9I7BMVVzbSWLtt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAPQVUXaXGVTD0i/8RAilKAJ0ULm6NZp+2ETKsH7FT5E8RsjVcLwCaAzvF
+4qBNgGZ8Gc79Bv7h/M44T68=
+=y46t
+-----END PGP SIGNATURE-----
+
+--pf9I7BMVVzbSWLtt--
