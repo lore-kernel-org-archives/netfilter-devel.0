@@ -1,9 +1,8 @@
-From: "Mitesh P Choksi" <murli@icafe.co.tz>
-Subject: Using SNAT to handle IP Pools
-Date: Fri, 27 Sep 2002 00:15:58 +0300 (EAT)
+From: "Wei koong Chai" <eem1wc@eim.surrey.ac.uk>
+Subject: {libipq] Netlink Connection Refused
+Date: Fri, 27 Sep 2002 16:03:27 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <54761.64.86.49.17.1033074958.squirrel@www.icafe.co.tz>
-Reply-To: murli@icafe.co.tz
+Message-ID: <2222.131.227.74.158.1033139007.squirrel@www.ecm.surrey.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
@@ -19,26 +18,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear All,
+Hi again...
 
-I have a set of  dial in users whom I have givne 192.168.130.0/255.255.255.0
-and would like to allocate them from an ip address range 16 ip addresses of
-x.x.x.96/255.255.255.240
+   I have developed a network emulator using libipq together with brctl
+under Redhat Linux 7.2. It works fine. Recently, I am asked to install
+my emulator for an old machine running Mandrake.
 
-Is this possible using SNAT, I could not find a documentation that will
-exactly let me know this from the site.
+   The iptables of that machine isn't working and thus, it is re-installed
+and works fine afterwards. Then i tried to run my emulator but received
+an error message as below:
 
-I need to know what will happen when iptables runs out of IP addresses? what
-will happen for incoming connections to the IP x.x.x.99, will it be
-forwarded back to the "that time" SNAT of for eg. 192.168.130.43.
+Netlink Connection Refused.
 
-The nearest I reached to my requirements was on a web site that had LEASE as
-a target command.
+   This problem does not exist before the re-installation of the iptables.
+I tried again with and without brctl but still receive the same error
+message. So, my guess is that the communication between iptables with
+the userspace is problematic. But i can't be sure. So, here i am asking
+the experts what could be the real cause and how do i solve such
+problems.
 
-Let me know what do you people thing about it?
+
+Thank you.
 
 
-Regards,
 
-Cyberdude Murli
-The Earth
+*I have subscribe the netfilter mailing list but without apparent reason,
+i have not receive any mail from the list for quite some time already.
+Thus, I would appreciate that the reply for this mail to be sent straight
+to my mailbox. Thank you.
