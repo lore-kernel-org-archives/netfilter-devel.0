@@ -1,16 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: libipq question
-Date: Fri, 25 Jun 2004 22:38:14 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Userspace queuing
+Date: Sat, 26 Jun 2004 01:30:02 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40DC8D36.2000209@eurodev.net>
-References: <A516FD6F11040F4E881C92EDA23F31A802ACF8AE@mx1.bsafeonline.com>
+Message-ID: <Pine.LNX.4.44.0406260128520.8200-100000@filer.marasystems.com>
+References: <200406251811.i5PIBlMX013526@madinah.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: spanishmack@mchsi.com,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <A516FD6F11040F4E881C92EDA23F31A802ACF8AE@mx1.bsafeonline.com>
+To: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+In-Reply-To: <200406251811.i5PIBlMX013526@madinah.ccse.kfupm.edu.sa>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,58 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Steve,
+On Fri, 25 Jun 2004, Muhammad R. Sami wrote:
 
-Steve Ashley wrote:
+> Is there a way to perform userspace queuing in iptables? If yes can I have
+> some example codes.
 
->I'm using libipq to do some user-space filter stuff.  Everything is
->working great and for my application, I'm not taking a significant
->enough speed hit to warrant making a new target, iptables kernel module.
->However, I am getting one problem.  If my application runs for a long
->time ( i.e. several hours or overnight ) with no activity, then filters
->packets.  I'm getting the following error messages:
->
->Error in recv().
->Broken pipe.
->  
->
+Yes, via QUEUE and libipq.
 
-If I'm not missing anything, I think that you could set the handler of 
-the broken pipe signal to an empty function, this way the application 
-won't exit.
+examples on how to use libipq is included in the libipq documentation.
 
->Currently I'm using the blocking version of the ipq_read() function,
->with no timeout.  Would putting a timeout here, and checking on the
->netlink socket every so often be a good idea?  Any thoughts or ideas
->would be helpful.
->  
->
+libipq is shipped together with iptables.
 
-Well, you could even use select() to check when the descriptor has new 
-data ready to be read. I was told (Richard Steven's books) that 
-polling+non blocking sockets are always faster than blocking sockets.
-
->Also, just for information sake.  At some point, if I add more features
->into my application, I fear using a userspace application may not be
->sufficient.  Where can I find a good example of a new netfilter target
->kernel module code?
->
-
-you want to program a match/target, you can have a look at the 
-netfilter-hacking howto:
-
-http://www.netfilter.org/documentation/index.html#documentation-howto
-
-and also you can have a look at source code in kernel and iptables 
-trees, there are simple matches/targets.
-
-On the other hand, I suppose that you meant that you wanted to know how 
-to add a hook to netfilter, in that case have a look at:
-
-http://www.linuxjournal.com/article.php?sid=7184
-
-I passed that linuxjournal to a friend and he didn't have big problems 
-to program a simple hook.
-
-regards,
-Pablo
+Regards
+Henrik
