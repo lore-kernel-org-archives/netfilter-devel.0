@@ -1,13 +1,17 @@
-From: Philip Ho <cbho@ie.cuhk.edu.hk>
-Subject: DSCP match
-Date: Fri, 04 Apr 2003 14:01:04 +0800
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: tcp-window-tracking vs. pending/24_conntrack-nosysctl.patch
+Date: Fri, 4 Apr 2003 10:46:01 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E8D1FA0.A8FB58@ie.cuhk.edu.hk>
+Message-ID: <Pine.LNX.4.33.0304041041450.18961-100000@blackhole.kfki.hu>
+References: <1049368914.25169.63.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: =?ISO-8859-1?Q?Herv=E9?= Eychenne <rv@wallfire.org>,
+	<netfilter@interlinx.bc.ca>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter devel <netfilter-devel@lists.netfilter.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1049368914.25169.63.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,20 +22,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all
+On 3 Apr 2003, Martin Josefsson wrote:
 
-I am using Redhat 8.0 and then upgraded iptables to version 1.2.7a.
+> > The best way is probably to have some scripts run regularly, trying
+> > some patch-o-matic combinations (why not all, as patch is quite
+> > fast...) to detect incompatibilities automatically, and especially
+> > report new ones.
+> > Such a list would be interesting.
+>
+> If someone builds the scripts needed :)
 
-Even after upgrade, I cannot use DSCP match. Is it a must that I need to
-install also patch-o-matic? 20030107 ?
+I have just updated the runme script in patch-o-matic:
 
-[root@mediaw11 ip2test]# /usr/local/sbin/iptables -v -A PREROUTING -t
-mangle -m dscp --dscp 0x2e -j DROP
-DROP  all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0  DSCP match 0x2e
-iptables: No chain/target/match by that name
-[root@mediaw11 ip2test]#
+- removed copying the source trees at patch testing (faster processing)
+- added patch-dependency support
 
-Thanks all.
+> tcp-window-tracking.patch should soon be updated in cvs to reflect the
+> changes.
 
-Regards,
-philip
+I'll update the tcp-window-tracking patch around the end of the next week.
+I want to test the new version in production before releasing it.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
