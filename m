@@ -1,35 +1,41 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: H.323 progress.
-Date: Wed, 19 May 2004 08:15:51 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405190814480.19467-100000@filer.marasystems.com>
-References: <40AA6E99.20900@sauce.co.nz>
+From: linux lover <linux_lover2004@yahoo.com>
+Subject: Re: how ip header added in ip_bulid_xmit function?
+Date: Tue, 18 May 2004 23:20:44 -0700 (PDT)
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20040519062044.15651.qmail@web90107.mail.scd.yahoo.com>
+References: <40AA1C54.2090201@med.ge.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Richard Scobie <richard@sauce.co.nz>
-In-Reply-To: <40AA6E99.20900@sauce.co.nz>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: linuxnet <linux-net@vger.kernel.org>, netdev <netdev@oss.sgi.com>,
+	netfilter <netfilter-devel@lists.netfilter.org>
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Manu Garg <manu.garg@med.ge.com>
+In-Reply-To: <40AA1C54.2090201@med.ge.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 19 May 2004, Richard Scobie wrote:
 
-> Two offices each with an iptables firewall and a site to site VPN 
-> between them - the video gear is configured to connect to each others 
-> private network address through the VPN.
 
-Is the traffic between the two offices NAT:ed, or just forwarded over the 
-VPN?
+hello,
 
-There should be no need for NAT on office<->office traffic.
+> A packet comes from TCP layer to IP layer through
+> function call 
+> tp->af_specific->queue_xmit() (in
+> tcp_output.c:tcp_transmit_skb() ). For 
+> IP this function is nothing but ip_queue_xmit()
+> defined in ip_output.c.
+> 
+   then why ip_build_xmit and ip_build_xmit_slow used?
+i think in case of ICMP packet control in icmp.c
+alwayes goes to ip_build_xmit?
 
-Regards
-Henrik
+
+regards,
+linux_lover
+
+
+	
+		
+__________________________________
+Do you Yahoo!?
+SBC Yahoo! - Internet access at a great low price.
+http://promo.yahoo.com/sbc/
