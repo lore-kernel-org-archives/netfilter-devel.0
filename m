@@ -1,100 +1,40 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Problem with IP-Pools
-Date: 06 Dec 2002 14:20:38 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1039180838.30495.104.camel@tux>
-References: <20021128162921.2b2a721d.markus.schaber@student.uni-ulm.de>
-	<20021205201113.GD11068@naboo.club.berlin.ccc.de>
-	<20021205224314.3c38afec.markus.schaber@student.uni-ulm.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [Fwd: Question with printk warnings in ip_conntrack with 2.4.20.]
+Date: Fri, 6 Dec 2002 14:59:46 +0100 (CET)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.33.0212061448500.2648-100000@blackhole.kfki.hu>
+References: <3DEFE07D.4020909@lucidpixels.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Markus Schaber <markus.schaber@student.uni-ulm.de>
-In-Reply-To: <20021205224314.3c38afec.markus.schaber@student.uni-ulm.de>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: jpiszcz <jpiszcz@lucidpixels.com>
+In-Reply-To: <3DEFE07D.4020909@lucidpixels.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2002-12-05 at 22:43, Markus Schaber wrote:
-> Harald Welte wrote:
->
-> > I think the pool stuff is pretty much unmaintained as of now, sorry.
-> > It was a contribution to the project, and the original author (Gerd
-> > Knorr, IIRC) has abandoned it.
+On Thu, 5 Dec 2002, jpiszcz wrote:
 
-No no, not at all. It's true that the original author (Patrick Shaaf)
-doesn't maintain it anymore. Joakim Axelsson found it lacking a lot of
-features so he rewrote it into the new ippool. The new ippool is modular
-like iptables so you have one module per pool-type. And it actually has
-the flush feature.
+> Stange?  I am just using vcheck (perl script) that goes out and checks
+> out software for the latest versions.
 
-It has three diffrent pool-types, null (just an skeleton), bitmap and
-macipmap (like bitmap but also matches macaddresses).
+If the script uses active mode FTP and when that is refused by the server
+reverts back to passive mode, that is a natural explanation for such log
+entries.
 
-I use the macipmap pool in three production routers (SMP) here and I've
-never had any problems with ippool in them. I only had a few crashes
-when I wrote macipmap :)
+Could you record by tcpdump at least one such FTP session?
 
-There are still some things missing, here's the most important ones that
-come to mind:
-	Need to push the locking down into the pooltypes.
-	Implement save/restore functionality.
-	And of course more pooltypes :)
+> Will there possibly be a /proc or kernel config option for warnings such
+> as these?
 
-The new ippool should be integrated into the netfilter cvs (up to Joakim
-to decide) or the old ippool ripped out.
-The main things before it could be integrated would be to fix ipt_pool
-and ipt_POOL and the iptables userspace parts so they report sensible
-errors, not just errorcodes like now.
+In my opinion a new directory tree /proc/sys/net/ipv4/netfilter is
+required so that tuning options could be easily added to the system.
+But that implies backward (in)compatibily issues...
 
-You can find the current version (0.3.2a) here:
-
-http://gandalf.hjorten.nu/ippool/
-
-(I hope it compiles :)
-
-The kernel part isn't a patch, it's a bunch of loose files you have to
-copy and then modify Config.in and Makefile manually.
-
-
-> Not to mention the time to load an iptable with some tens of thousands
-> of entries, we cannot wait half an hour for our firewall to boot up.
-
-ippool won't eliminate the load time yet, still needs the save/restore
-functionality (shouldn't be hard to implement at all).
- 
-> Currently, my Boss does real-life testing using single processor
-> kernels, and it seems that it works using current hardware (although I
-> don't know yet how it performed during the peak times), and it seems to
-> manage the traffic and to be rather stable.
-> 
-> If you know another method of managing such high traffic and host number
-> combinations, we'd love to hear about it, because we _really_ want to
-> leave Checkpoint.
-
-nfhipac (I think that was the name) and tc-firewall (Jamal wrote it when
-he found out about the O(n) iptables thing) comes to mind, they aren't
-O(n), they use binary trees of some kind. I havn't used either of them
-so I can't say how well they work and if they are stable.
-
-Would be nice to have some kind of general classification thing in the
-kernel (that isn't O(n) but behaves like a linear scan like nfhipac
-does) so that with one classification we get both routing, tc, ipsec, 
-firewall info. Currently they all do their own classifications...
-
-
-Good luck.
- 
--- 
-/Martin
-
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
