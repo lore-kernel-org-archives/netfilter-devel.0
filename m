@@ -1,15 +1,12 @@
-From: James Morris <jmorris@intercode.com.au>
-Subject: Re: Why UDP packet loss in the stack
-Date: Thu, 28 Nov 2002 10:44:35 +1100 (EST)
+From: "jump lee" <zomby_cn@hotmail.com>
+Subject: TCP concurrent connection capacity
+Date: Fri, 29 Nov 2002 14:15:59 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Mutt.LNX.4.44.0211281044080.3874-100000@blackbird.intercode.com.au>
-References: <F127ZiTETFTzfHD0lYt0000a246@hotmail.com>
+Message-ID: <F183xC3LeyF01DfZLVz000294e4@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: andre achternaam <andreiscmeel@hotmail.com>
-In-Reply-To: <F127ZiTETFTzfHD0lYt0000a246@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,12 +17,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 27 Nov 2002, andre achternaam wrote:
 
-> We encounter UDP packet loss.
+i performed a TCP concurrent connection capacity test of iptables and 
+ipchains .
+i am wondering about the 250000(approximate) capacity limit .
+who can tell me why this limit exist? and which parameter lead to this limit 
+?
+thanks !
 
-What does this have to do with Netfilter development?
 
--- 
-James Morris
-<jmorris@intercode.com.au>
+
+_________________________________________________________________
+The new MSN 8: advanced junk mail protection and 2 months FREE* 
+http://join.msn.com/?page=features/junkmail
