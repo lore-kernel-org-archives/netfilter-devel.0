@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipp2p 0.6.1-2
-Date: Mon, 13 Sep 2004 00:30:43 +0200
+Subject: Re: [PATCH] IPP2P update to 0.6.1
+Date: Mon, 13 Sep 2004 00:29:27 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <4144CE13.5060104@trash.net>
-References: <41418BC2.7030705@gmx.net>
+Message-ID: <4144CDC7.5080607@trash.net>
+References: <4141710F.7040303@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Eicke Friedrich <tady@gmx.net>
-In-Reply-To: <41418BC2.7030705@gmx.net>
+In-Reply-To: <4141710F.7040303@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,14 +23,21 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Eicke Friedrich wrote:
 
-> Hi again,
+> Hi folks,
 >
-> another patch for ipp2p. It covers a case that occured after the first
-> patch was send to the list. Please apply on top of the first patch.
-> Sorry for that.
+> a patch against latest pom-ng snapshot is attached containing an
+> update to the current ipp2p code. It offers first support for WinMX
+> packets (beta - please come back to me with any feedback) and some
+> code cleanup (spaces). Please apply.
 
 
-Also applied.
+Applied.
+
+> PS: is the script creating daily snapshots of pom-ng at
+> ftp.netfilter.org not running?
+
+
+Apparently not, maybe Harald knows something about it.
 
 Regards
 Patrick
