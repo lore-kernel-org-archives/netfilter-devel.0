@@ -1,16 +1,17 @@
-From: Leen Besselink <leen@wirehub.nl>
-Subject: Re: Bug (?) in ipt_reject doesn't follow policy routing (2.4.x)
-Date: Mon, 14 Apr 2003 13:35:43 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] ipt_recent 0.3.1 Released
+Date: Mon, 14 Apr 2003 15:32:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.21.0304141317090.763-100000@debian.besselink>
-References: <3E9A7603.6030607@trash.net>
-Reply-To: leen@wirehub.nl
+Message-ID: <20030414133248.GB6866@sunbeam.de.gnumonks.org>
+References: <20030331213757.GU18434@ns.snowman.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <3E9A7603.6030607@trash.net>
+To: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
+	ipt_recent Users <ipt_recent@snowman.net>
+Content-Disposition: inline
+In-Reply-To: <20030331213757.GU18434@ns.snowman.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,57 +22,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 14 Apr 2003, Patrick McHardy wrote:
 
-> Patrick Schaaf wrote:
-> 
-> >Maybe, if you can answer these questions, we'll be able to understand
-> >your problem. Maybe somebody can do that even without those answers,
-> >but the silence you received up to now indicates that's unlikely.
-> >  
-> >
-> 
-> May I ? ;)
-> 
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You sure can. I was going to make a long story, but you made a nice
-consice explaination, thank you.
+On Mon, Mar 31, 2003 at 04:37:57PM -0500, Stephen Frost wrote:
+> Hey all,
+>=20
+>   I've released ipt_recent version 0.3.1.  CVS has the tag for it and
+>   there are tarballs up on the website.  Attached is a patch against the
+>   latest netfilter CVS to bring it up to date with version 0.3.1.  The
+>   high-level changelog is not much different from what I posted to the
+>   ipt_recent list previously:
 
-> Without beeing specific to his setup, the problem he describes is
-> that ipt_REJECT (and others) always choose lsrc to be 0 if it's 
-> non-local for
-> the routing decision. I'll just make a simple example:
-> 
-> Routing Rules (incomplete):
-> 1000: from 10.0.0.0/8 lookup abc
-> 32766:  from all lookup main
-> 
-> Routing tables (incomplete):
-> abc: default via 192.168.0.1 dev eth0
-> main: default via 172.20.0.1 dev eth1
-> 
-> So all packets except those with src=10.0.0.0/8 should go through 
-> 172.20.0.1.
-> When ipt_REJECT send a reject for any non-local address in 10.0.0.0/8 it 
-> chooses
-> lsrc=0 for the routing lookup, so it ends up with default route of table 
-> main
-> instead of table abc.
-> 
-> I wonder why ip_route_input isn't used, this should eliminate the need for
-> using different information from what is contained in the actual packet for
-> the routing lookup ..
-> 
+thanks, applied.
 
-It's a safety messure, maybe because they are afraid of loops...? And
-because it touches/triggers other things, like NAT, so it seems, when I
-look at the code.
+May I assume that there is no incompatibility of using 0.3.0 userspace
+(which is what made it into iptables-1.2.8) and the 0.3.1 kernel part?
 
-You have a firewall-rule of which an incoming packet would trigger a new
-packet, which might trigger a firewall-rule to trigger an other packet...
-etc. But maybe I'm wrong, I'm not familair with the code (yet ?).
+I will send it to DaveM for kernel inclusion soon.
 
-> Bye,
-> Patrick
+> 	Thanks,
+> 		Stephen
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Thanks again.
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+mriAXaXGVTD0i/8RAp2XAJ4gYMbxX5zSwxFGUpJju8TwYuXH/gCfV/L/
+377iMPkI+62mEpemUBHMiT4=
+=N9VB
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
