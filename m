@@ -1,13 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 12/12]: add comment match
-Date: Tue, 21 Sep 2004 05:23:42 +0200
+From: Jean-Philippe Rey <jprey@ecp.fr>
+Subject: ip_conntrack_amanda, passing amanda udp port as parameter
+Date: Tue, 21 Sep 2004 08:34:56 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414F9EBE.90501@trash.net>
+Message-ID: <414FCB90.80807@ecp.fr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060607080601060501030703"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------010306000608040103010502"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,195 +18,97 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060607080601060501030703
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+--------------010306000608040103010502
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-ChangeSet@1.1935.1.12, 2004-09-20 11:55:28+02:00, kaber@coreworks.de
-  [NETFILTER]: add comment match
- 
-  2.4 version by Brad Fisher <brad@info-link.net>
- 
-  Signed-off-by: Patrick McHardy <kaber@trash.net>
+Hello Folks,
 
+We are using netfilter and ip_conntrack_amanda. However for historical
+reasons, amanda is using a different port than 10080. As the port is hard
+coded in ip_conntrack_amanda, I wrote a patch in order to be able to select
+the port through a parameter.
 
+As I think this may be helpfull to others I send you this patch here. Feel
+free to do wathever you like with it.
 
---------------060607080601060501030703
-Content-Type: text/x-patch;
- name="12.diff"
-Content-Transfer-Encoding: 7bit
+-- 
+Jean-Philippe Rey          Professeur informatique - École Centrale Paris
+jprey@ecp.fr               92295 Châtenay-Malabry Cedex - France
+
+--------------010306000608040103010502
+Content-Type: text/plain; x-mac-type="0"; x-mac-creator="0";
+	name="amanda_port.patch"
+Content-Transfer-Encoding: base64
 Content-Disposition: inline;
- filename="12.diff"
+ filename="amanda_port.patch"
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/09/20 11:55:28+02:00 kaber@coreworks.de 
-#   [NETFILTER]: add comment match
-#   
-#   2.4 version by Brad Fisher <brad@info-link.net>
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ipt_comment.c
-#   2004/09/20 11:55:06+02:00 kaber@coreworks.de +59 -0
-# 
-# net/ipv4/netfilter/ipt_comment.c
-#   2004/09/20 11:55:06+02:00 kaber@coreworks.de +0 -0
-#   BitKeeper file /home/kaber/src/net/2.6-netfilter/net/ipv4/netfilter/ipt_comment.c
-# 
-# include/linux/netfilter_ipv4/ipt_comment.h
-#   2004/09/20 11:55:04+02:00 kaber@coreworks.de +10 -0
-# 
-# net/ipv4/netfilter/Makefile
-#   2004/09/20 11:55:04+02:00 kaber@coreworks.de +1 -6
-#   [NETFILTER]: add comment match
-#   
-#   2.4 version by Brad Fisher <brad@info-link.net>
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/Kconfig
-#   2004/09/20 11:55:04+02:00 kaber@coreworks.de +10 -0
-#   [NETFILTER]: add comment match
-#   
-#   2.4 version by Brad Fisher <brad@info-link.net>
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv4/ipt_comment.h
-#   2004/09/20 11:55:04+02:00 kaber@coreworks.de +0 -0
-#   BitKeeper file /home/kaber/src/net/2.6-netfilter/include/linux/netfilter_ipv4/ipt_comment.h
-# 
-diff -Nru a/include/linux/netfilter_ipv4/ipt_comment.h b/include/linux/netfilter_ipv4/ipt_comment.h
---- /dev/null	Wed Dec 31 16:00:00 196900
-+++ b/include/linux/netfilter_ipv4/ipt_comment.h	2004-09-20 12:00:15 +02:00
-@@ -0,0 +1,10 @@
-+#ifndef _IPT_COMMENT_H
-+#define _IPT_COMMENT_H
-+
-+#define IPT_MAX_COMMENT_LEN 256
-+
-+struct ipt_comment_info {
-+	unsigned char comment[IPT_MAX_COMMENT_LEN];
-+};
-+
-+#endif /* _IPT_COMMENT_H */
-diff -Nru a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
---- a/net/ipv4/netfilter/Kconfig	2004-09-20 12:00:15 +02:00
-+++ b/net/ipv4/netfilter/Kconfig	2004-09-20 12:00:15 +02:00
-@@ -332,6 +332,16 @@
- 	  If you want to compile it as a module, say M here and read
- 	  Documentation/modules.txt.  If unsure, say `N'.
- 
-+config IP_NF_MATCH_COMMENT
-+	tristate  'comment match support'
-+	depends on IP_NF_IPTABLES
-+	help
-+	  This option adds a `comment' dummy-match, which allows you to put
-+	  comments in your iptables ruleset.
-+
-+	  If you want to compile it as a module, say M here and read
-+	  Documentation/modules.txt.  If unsure, say `N'.
-+
- # `filter', generic and specific targets
- config IP_NF_FILTER
- 	tristate "Packet filtering"
-diff -Nru a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
---- a/net/ipv4/netfilter/Makefile	2004-09-20 12:00:15 +02:00
-+++ b/net/ipv4/netfilter/Makefile	2004-09-20 12:00:15 +02:00
-@@ -50,28 +50,23 @@
- obj-$(CONFIG_IP_NF_MATCH_MARK) += ipt_mark.o
- obj-$(CONFIG_IP_NF_MATCH_MAC) += ipt_mac.o
- obj-$(CONFIG_IP_NF_MATCH_IPRANGE) += ipt_iprange.o
--
- obj-$(CONFIG_IP_NF_MATCH_PKTTYPE) += ipt_pkttype.o
- obj-$(CONFIG_IP_NF_MATCH_MULTIPORT) += ipt_multiport.o
- obj-$(CONFIG_IP_NF_MATCH_OWNER) += ipt_owner.o
- obj-$(CONFIG_IP_NF_MATCH_TOS) += ipt_tos.o
--
- obj-$(CONFIG_IP_NF_MATCH_RECENT) += ipt_recent.o
--
- obj-$(CONFIG_IP_NF_MATCH_ECN) += ipt_ecn.o
- obj-$(CONFIG_IP_NF_MATCH_DSCP) += ipt_dscp.o
- obj-$(CONFIG_IP_NF_MATCH_AH_ESP) += ipt_ah.o ipt_esp.o
--
- obj-$(CONFIG_IP_NF_MATCH_LENGTH) += ipt_length.o
--
- obj-$(CONFIG_IP_NF_MATCH_TTL) += ipt_ttl.o
- obj-$(CONFIG_IP_NF_MATCH_STATE) += ipt_state.o
- obj-$(CONFIG_IP_NF_MATCH_CONNTRACK) += ipt_conntrack.o
- obj-$(CONFIG_IP_NF_MATCH_TCPMSS) += ipt_tcpmss.o
- obj-$(CONFIG_IP_NF_MATCH_REALM) += ipt_realm.o
- obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
--
- obj-$(CONFIG_IP_NF_MATCH_PHYSDEV) += ipt_physdev.o
-+obj-$(CONFIG_IP_NF_MATCH_COMMENT) += ipt_comment.o
- 
- # targets
- obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
-diff -Nru a/net/ipv4/netfilter/ipt_comment.c b/net/ipv4/netfilter/ipt_comment.c
---- /dev/null	Wed Dec 31 16:00:00 196900
-+++ b/net/ipv4/netfilter/ipt_comment.c	2004-09-20 12:00:15 +02:00
-@@ -0,0 +1,59 @@
-+/*
-+ * Implements a dummy match to allow attaching comments to rules
-+ *
-+ * 2003-05-13 Brad Fisher (brad@info-link.net)
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_comment.h>
-+
-+MODULE_AUTHOR("Brad Fisher <brad@info-link.net>");
-+MODULE_DESCRIPTION("iptables comment match module");
-+MODULE_LICENSE("GPL");
-+
-+static int
-+match(const struct sk_buff *skb,
-+      const struct net_device *in,
-+      const struct net_device *out,
-+      const void *matchinfo,
-+      int offset,
-+      int *hotdrop)
-+{
-+	/* We always match */
-+	return 1;
-+}
-+
-+static int
-+checkentry(const char *tablename,
-+           const struct ipt_ip *ip,
-+           void *matchinfo,
-+           unsigned int matchsize,
-+           unsigned int hook_mask)
-+{
-+	/* Check the size */
-+	if (matchsize != IPT_ALIGN(sizeof(struct ipt_comment_info)))
-+		return 0;
-+	return 1;
-+}
-+
-+static struct ipt_match comment_match = {
-+	.name		= "comment",
-+	.match		= match,
-+	.checkentry	= checkentry,
-+	.me		= THIS_MODULE
-+};
-+
-+static int __init init(void)
-+{
-+	return ipt_register_match(&comment_match);
-+}
-+
-+static void __exit fini(void)
-+{
-+	ipt_unregister_match(&comment_match);
-+}
-+
-+module_init(init);
-+module_exit(fini);
-
---------------060607080601060501030703--
+ZGlmZiAtdXIga2VybmVsLXNvdXJjZS0yLjQuMjcvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nv
+bm50cmFja19hbWFuZGEuYyBrZXJuZWwtc291cmNlLTIuNC4yNy0xL25ldC9pcHY0L25ldGZp
+bHRlci9pcF9jb25udHJhY2tfYW1hbmRhLmMKLS0tIGtlcm5lbC1zb3VyY2UtMi40LjI3L25l
+dC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfYW1hbmRhLmMJMjAwNC0wMi0xOCAxNDoz
+NjozMi4wMDAwMDAwMDAgKzAxMDAKKysrIGtlcm5lbC1zb3VyY2UtMi40LjI3LTEvbmV0L2lw
+djQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19hbWFuZGEuYwkyMDA0LTA5LTA2IDIzOjUwOjQ5
+LjAwMDAwMDAwMCArMDIwMApAQCAtOCwxMSArOCwxMSBAQAogICogICAgICAyIG9mIHRoZSBM
+aWNlbnNlLCBvciAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgogICoKICAq
+CU1vZHVsZSBsb2FkIHN5bnRheDoKLSAqIAlpbnNtb2QgaXBfY29ubnRyYWNrX2FtYW5kYS5v
+IFttYXN0ZXJfdGltZW91dD1uXQorICogCWluc21vZCBpcF9jb25udHJhY2tfYW1hbmRhLm8g
+W21hc3Rlcl90aW1lb3V0PW5dW21hc3Rlcl9wb3J0PW1dCiAgKgkKICAqCVdoZXJlIG1hc3Rl
+cl90aW1lb3V0IGlzIHRoZSB0aW1lb3V0IChpbiBzZWNvbmRzKSBvZiB0aGUgbWFzdGVyCi0g
+Kgljb25uZWN0aW9uIChwb3J0IDEwMDgwKS4gIFRoaXMgZGVmYXVsdHMgdG8gNSBtaW51dGVz
+IGJ1dCBpZgotICoJeW91ciBjbGllbnRzIHRha2UgbG9uZ2VyIHRoYW4gNSBtaW51dGVzIHRv
+IGRvIHRoZWlyIHdvcmsKKyAqCWNvbm5lY3Rpb24gKHBvcnQgbSwgZGVmYXVsdCB0byAxMDA4
+MCkuICBUaGlzIGRlZmF1bHRzIHRvIDUgbWludXRlcworICoJYnV0IGlmIHlvdXIgY2xpZW50
+cyB0YWtlIGxvbmdlciB0aGFuIDUgbWludXRlcyB0byBkbyB0aGVpciB3b3JrCiAgKgliZWZv
+cmUgZ2V0dGluZyBiYWNrIHRvIHRoZSBBbWFuZGEgc2VydmVyLCB5b3UgY2FuIGluY3JlYXNl
+CiAgKgl0aGlzIHZhbHVlLgogICoKQEAgLTI5LDEyICsyOSwxNSBAQAogI2luY2x1ZGUgPGxp
+bnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFja19hbWFuZGEuaD4KIAogc3RhdGljIHVu
+c2lnbmVkIGludCBtYXN0ZXJfdGltZW91dCA9IDMwMDsKK3N0YXRpYyB1bnNpZ25lZCBpbnQg
+bWFzdGVyX3BvcnQgPSAxMDA4MDsKIAogTU9EVUxFX0FVVEhPUigiQnJpYW4gSi4gTXVycmVs
+bCA8bmV0ZmlsdGVyQGludGVybGlueC5iYy5jYT4iKTsKIE1PRFVMRV9ERVNDUklQVElPTigi
+QW1hbmRhIGNvbm5lY3Rpb24gdHJhY2tpbmcgbW9kdWxlIik7CiBNT0RVTEVfTElDRU5TRSgi
+R1BMIik7CiBNT0RVTEVfUEFSTShtYXN0ZXJfdGltZW91dCwgImkiKTsKK01PRFVMRV9QQVJN
+KG1hc3Rlcl9wb3J0LCAiaSIpOwogTU9EVUxFX1BBUk1fREVTQyhtYXN0ZXJfdGltZW91dCwg
+InRpbWVvdXQgZm9yIHRoZSBtYXN0ZXIgY29ubmVjdGlvbiIpOworTU9EVUxFX1BBUk1fREVT
+QyhtYXN0ZXJfcG9ydCwgInVkcCBwb3J0IGZvciB0aGUgbWFzdGVyIGNvbm5lY3Rpb24iKTsK
+IAogc3RhdGljIHN0cnVjdCB7IGNoYXIgKm1hdGNoOyBpbnQgbGVuOyB9IGNvbm5zW10gPSB7
+CiAJeyAiREFUQSAiLCA1fSwKQEAgLTEyNiw3ICsxMjksNyBAQAogCiBzdGF0aWMgaW50IF9f
+aW5pdCBpbml0KHZvaWQpCiB7Ci0JYW1hbmRhX2hlbHBlci50dXBsZS5zcmMudS51ZHAucG9y
+dCA9IGh0b25zKDEwMDgwKTsKKwlhbWFuZGFfaGVscGVyLnR1cGxlLnNyYy51LnVkcC5wb3J0
+ID0gaHRvbnMobWFzdGVyX3BvcnQpOwogCWFtYW5kYV9oZWxwZXIudHVwbGUuZHN0LnByb3Rv
+bnVtID0gSVBQUk9UT19VRFA7CiAJYW1hbmRhX2hlbHBlci5tYXNrLnNyYy51LnVkcC5wb3J0
+ID0gMHhGRkZGOwogCWFtYW5kYV9oZWxwZXIubWFzay5kc3QucHJvdG9udW0gPSAweEZGRkY7
+CkBAIC0xMzcsNiArMTQwLDkgQEAKIAlhbWFuZGFfaGVscGVyLmhlbHAgPSBoZWxwOwogCWFt
+YW5kYV9oZWxwZXIubmFtZSA9ICJhbWFuZGEiOwogCisJcHJpbnRrKEtFUk5fSU5GTyAiaXBf
+Y29ubnRyYWNrX2FtYW5kYTogcG9ydD0lZCwgdGltZW91dD0lZHNcbiIsCisJCW1hc3Rlcl9w
+b3J0LCBtYXN0ZXJfdGltZW91dCk7CisKIAlyZXR1cm4gaXBfY29ubnRyYWNrX2hlbHBlcl9y
+ZWdpc3RlcigmYW1hbmRhX2hlbHBlcik7CiB9CiAKZGlmZiAtdXIga2VybmVsLXNvdXJjZS0y
+LjQuMjcvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX25hdF9hbWFuZGEuYyBrZXJuZWwtc291cmNl
+LTIuNC4yNy0xL25ldC9pcHY0L25ldGZpbHRlci9pcF9uYXRfYW1hbmRhLmMKLS0tIGtlcm5l
+bC1zb3VyY2UtMi40LjI3L25ldC9pcHY0L25ldGZpbHRlci9pcF9uYXRfYW1hbmRhLmMJMjAw
+NC0wMi0xOCAxNDozNjozMi4wMDAwMDAwMDAgKzAxMDAKKysrIGtlcm5lbC1zb3VyY2UtMi40
+LjI3LTEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX25hdF9hbWFuZGEuYwkyMDA0LTA5LTA2IDIz
+OjUwOjU3LjAwMDAwMDAwMCArMDIwMApAQCAtOCw3ICs4LDcgQEAKICAqICAgICAgMiBvZiB0
+aGUgTGljZW5zZSwgb3IgKGF0IHlvdXIgb3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4KICAq
+CiAgKglNb2R1bGUgbG9hZCBzeW50YXg6Ci0gKiAJaW5zbW9kIGlwX25hdF9hbWFuZGEubwor
+ICogCWluc21vZCBpcF9uYXRfYW1hbmRhLm8gW21hc3Rlcl9wb3J0PW1dCiAgKi8KIAogI2lu
+Y2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgpAQCAtMjYsMTAgKzI2LDEzIEBACiAjaW5jbHVkZSA8
+bGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRyYWNrX2hlbHBlci5oPgogI2luY2x1ZGUg
+PGxpbnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFja19hbWFuZGEuaD4KIAorc3RhdGlj
+IHVuc2lnbmVkIGludCBtYXN0ZXJfcG9ydCA9IDEwMDgwOwogCiBNT0RVTEVfQVVUSE9SKCJC
+cmlhbiBKLiBNdXJyZWxsIDxuZXRmaWx0ZXJAaW50ZXJsaW54LmJjLmNhPiIpOwogTU9EVUxF
+X0RFU0NSSVBUSU9OKCJBbWFuZGEgTkFUIGhlbHBlciIpOwogTU9EVUxFX0xJQ0VOU0UoIkdQ
+TCIpOworTU9EVUxFX1BBUk0obWFzdGVyX3BvcnQsICJpIik7CitNT0RVTEVfUEFSTV9ERVND
+KG1hc3Rlcl9wb3J0LCAidWRwIHBvcnQgZm9yIHRoZSBtYXN0ZXIgY29ubmVjdGlvbiIpOwog
+CiBzdGF0aWMgdW5zaWduZWQgaW50CiBhbWFuZGFfbmF0X2V4cGVjdGVkKHN0cnVjdCBza19i
+dWZmICoqcHNrYiwKQEAgLTEzMiw3ICsxMzUsNyBAQAogCXN0cnVjdCBpcF9uYXRfaGVscGVy
+ICpobHByID0gJmlwX25hdF9hbWFuZGFfaGVscGVyOwogCiAJaGxwci0+dHVwbGUuZHN0LnBy
+b3RvbnVtID0gSVBQUk9UT19VRFA7Ci0JaGxwci0+dHVwbGUuc3JjLnUudWRwLnBvcnQgPSBo
+dG9ucygxMDA4MCk7CisJaGxwci0+dHVwbGUuc3JjLnUudWRwLnBvcnQgPSBodG9ucyhtYXN0
+ZXJfcG9ydCk7CiAJaGxwci0+bWFzay5zcmMudS51ZHAucG9ydCA9IDB4RkZGRjsKIAlobHBy
+LT5tYXNrLmRzdC5wcm90b251bSA9IDB4RkZGRjsKIAlobHByLT5oZWxwID0gaGVscDsKQEAg
+LTE0MSw2ICsxNDQsOCBAQAogCWhscHItPmV4cGVjdCA9IGFtYW5kYV9uYXRfZXhwZWN0ZWQ7
+CiAJaGxwci0+bmFtZSA9ICJhbWFuZGEiOwogCisJcHJpbnRrKEtFUk5fSU5GTywgImlwX25h
+dF9hbWFuZGE6IHBvcnQ9JWRcbiIsIG1hc3Rlcl9wb3J0KTsKKwogCXJldHVybiBpcF9uYXRf
+aGVscGVyX3JlZ2lzdGVyKGhscHIpOwogfQogCg==
+--------------010306000608040103010502--
