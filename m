@@ -1,15 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH}: Make MARK target terminate (resend)
-Date: Mon, 1 Jul 2002 14:08:03 +0200 (CEST)
+From: "Gilion Goudsmit" <ggoudsmit@magicminds.com>
+Subject: Anonymous CVS-access disabled?
+Date: Mon, 1 Jul 2002 14:12:52 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0207011230071.12444-100000@blackhole.kfki.hu>
-References: <200207011211.21398.hno@marasystems.com>
+Message-ID: <000801c220f8$a063f9c0$6e00a8c0@ENG0072K>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@lists.samba.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0005_01C22109.639497A0"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <200207011211.21398.hno@marasystems.com>
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,44 +18,106 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 1 Jul 2002, Henrik Nordstrom wrote:
+This is a multi-part message in MIME format.
 
-> > - rewrite the IPT_CONTINUE targets as matches
->
-> I am not very fond of this.. besides the order dependency it also has the
-> question on how to easily determine what will happen with the packet.. No
-> obvious distinction between something that matches packets and something that
-> modifies packets or internal system state (conntrack, nfmark, ippools etc..).
+------=_NextPart_000_0005_01C22109.639497A0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Nothing much can be do about order dependecy except the clear
-documentation of the feature. When the prestate/raw table will be ready
-(oh well, time...) then it'll be a good aid in spotting misconfigured
-rules.
+Gents,
 
-I see that the apparent distinction between true matches and matches with
-side effect would be lost compared to the case of separated matches,
-actions. Hoewer, would it help to the end user if there were a separated
-interface to the matches with side-effect (actions)?
+I'm trying to checkout from the new CVS, but it's not working:
 
-What would be the rule for an action name? I fear it would create a
-confusion about which module is a match, which one is an action if an
-action name would be lowercased.
+----------
+[root@localhost src]# cvs =
+-d:pserver:cvs@pserver.netfilter.org:/cvspublic login
+Logging in to :pserver:cvs@pserver.netfilter.org:2401/cvspublic
+CVS password:=20
+cvs login: authorization failed: server pserver.netfilter.org rejected =
+access to /cvspublic for user cvs
+----------
 
-Something new must be introduced. The question is which one more coherent
-*and* more user-friendly.
+I'm just hitting enter on the password prompt...
 
-> > In my opinion the match solution would be better, cleaner.
->
-> So your current opinion is that the IPT_CONTINUE targets should be rewritten
-> as matches?
+I want to checkout so I can run the p-o-m to get H323 nat'ing... That's =
+the way to go about it right?
 
-This is my current personal opinion. The naming issue of actions really
-disturbs me.
+( I posted it to netfilter-devel, because I figured you guys work with =
+the CVS the most )
 
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-WWW-Home: http://www.kfki.hu/~kadlec
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards, GRG
+
+-=3D Gilion Goudsmit -=3D- RedHat Linux Engineer -=3D- +31-(0)6-21892744 =
+=3D-
+-=3D MagicMinds interactiontechnology -=3D- www.magicminds.com =3D-
+
+-----BEGIN GEEK CODE BLOCK-----
+Version: 3.1
+GAT/CM/CS/E/P d-@ s-: a-->+++ C++++() UL*++++ P+++>+++++ L+++(++)>+++++ =
+E---
+W++(+) N+>+++ o+>+++++ K?> w(---) O M--(-) V PS+ PE++ Y+ PGP t+ 5 X R>+ =
+tv>+
+b++ DI(++)>+ D++ G>++ e++(*)>++++ h+(--)>+ r+ =
+y+++++(++)>++++++++++++++*****
+------END GEEK CODE BLOCK------
+
+
+------=_NextPart_000_0005_01C22109.639497A0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2716.2200" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DVerdana size=3D2>Gents,</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DVerdana size=3D2>I'm trying to checkout from the new =
+CVS, but it's=20
+not working:</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DVerdana size=3D2>----------</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D2>[root@localhost src]# cvs=20
+-d:pserver:cvs@pserver.netfilter.org:/cvspublic login<BR>Logging in to=20
+:pserver:cvs@pserver.netfilter.org:2401/cvspublic<BR>CVS password: =
+<BR>cvs=20
+login: authorization failed: server pserver.netfilter.org rejected =
+access to=20
+/cvspublic for user cvs<BR>----------</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DVerdana size=3D2>I'm just hitting enter on the =
+password=20
+prompt...</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DVerdana size=3D2>I want to checkout so I can run the =
+p-o-m to get=20
+H323 nat'ing... That's the way to go about it right?</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DVerdana size=3D2>( I posted it to netfilter-devel, =
+because I=20
+figured you guys work with the CVS the most )</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DVerdana size=3D2>Regards, GRG</DIV></FONT>
+<DIV><FONT face=3DVerdana size=3D2><BR>-=3D Gilion Goudsmit -=3D- RedHat =
+Linux Engineer=20
+-=3D- +31-(0)6-21892744 =3D-<BR>-=3D MagicMinds interactiontechnology =
+-=3D- <A=20
+href=3D"http://www.magicminds.com">www.magicminds.com</A> =3D-</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>-----BEGIN GEEK CODE BLOCK-----<BR>Version: 3.1<BR>GAT/CM/CS/E/P =
+d-@ s-:=20
+a--&gt;+++ C++++() UL*++++ P+++&gt;+++++ L+++(++)&gt;+++++ =
+E---<BR>W++(+)=20
+N+&gt;+++ o+&gt;+++++ K?&gt; w(---) O M--(-) V PS+ PE++ Y+ PGP t+ 5 X =
+R&gt;+=20
+tv&gt;+<BR>b++ DI(++)&gt;+ D++ G&gt;++ e++(*)&gt;++++ h+(--)&gt;+ r+=20
+y+++++(++)&gt;++++++++++++++*****<BR>------END GEEK CODE=20
+BLOCK------<BR></FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_0005_01C22109.639497A0--
