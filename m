@@ -1,16 +1,13 @@
 From: Daniel 'NebuchadnezzaR' Dehennin <nebuchadnezzar@nerim.net>
-Subject: Re: pom-ng and kernel 2.6.6
-Date: Thu, 13 May 2004 22:30:45 +0200
+Subject: IPROUTE compilation problem
+Date: Thu, 13 May 2004 23:28:33 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <87ekpojci2.fsf@thorr.asgardr.info>
-References: <87oeosjd5w.fsf@thorr.asgardr.info>
+Message-ID: <87ad0cj9tq.fsf@thorr.asgardr.info>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
 	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <87oeosjd5w.fsf@thorr.asgardr.info> (Daniel Dehennin's message
- of "Thu, 13 May 2004 22:16:27 +0200")
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,54 +22,43 @@ List-Id: netfilter-devel.vger.kernel.org
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 3907 September 1993, Daniel Dehennin wrote:
-> I say no and try to continue.
+Hello,
 
-I apply all the base section of pom-ng to my 2.6.6, everything seems
-to apply cleanly but during make menuconfig I have errors:
+The IPROUTE patch failed to build (latest CVS + 2.6.6):
 
-net/ipv4/netfilter/Kconfig:682: syntax error, unexpected T_WORD
-net/ipv4/netfilter/Kconfig:685: invalid menu option
-net/ipv4/netfilter/Kconfig:685: syntax error, unexpected T_WORD
-net/ipv4/netfilter/Kconfig:690: invalid menu option
-net/ipv4/netfilter/Kconfig:690: syntax error, unexpected T_WORD
-net/ipv4/netfilter/Kconfig:695: invalid menu option
-net/ipv4/netfilter/Kconfig:695: syntax error, unexpected T_WORD
-net/ipv4/netfilter/Kconfig:698: invalid menu option
-net/ipv6/netfilter/Kconfig:306: syntax error, unexpected T_WORD
-net/ipv6/netfilter/Kconfig:309: invalid menu option
-net/ipv6/netfilter/Kconfig:309: syntax error, unexpected T_WORD
-net/ipv6/netfilter/Kconfig:314: invalid menu option
-net/ipv6/netfilter/Kconfig:314: syntax error, unexpected T_WORD
-net/ipv6/netfilter/Kconfig:319: invalid menu option
-net/ipv6/netfilter/Kconfig:319: syntax error, unexpected T_WORD
-net/ipv6/netfilter/Kconfig:322: invalid menu option
-make[1]: *** [menuconfig] Erreur 1
-make: *** [menuconfig] Erreur 2
+  CC [M]  net/ipv4/netfilter/ipt_ROUTE.o
+net/ipv4/netfilter/ipt_ROUTE.c: In function `route':
+net/ipv4/netfilter/ipt_ROUTE.c:56: error: variable `key' has initializer bu=
+t incomplete type
+net/ipv4/netfilter/ipt_ROUTE.c:57: error: unknown field `dst' specified in =
+initializer
+net/ipv4/netfilter/ipt_ROUTE.c:57: warning: excess elements in struct initi=
+alizer
+net/ipv4/netfilter/ipt_ROUTE.c:57: warning: (near initialization for `key')
+net/ipv4/netfilter/ipt_ROUTE.c:58: error: unknown field `src' specified in =
+initializer
+net/ipv4/netfilter/ipt_ROUTE.c:58: warning: excess elements in struct initi=
+alizer
+net/ipv4/netfilter/ipt_ROUTE.c:58: warning: (near initialization for `key')
+net/ipv4/netfilter/ipt_ROUTE.c:59: error: unknown field `oif' specified in =
+initializer
+net/ipv4/netfilter/ipt_ROUTE.c:59: warning: excess elements in struct initi=
+alizer
+net/ipv4/netfilter/ipt_ROUTE.c:59: warning: (near initialization for `key')
+net/ipv4/netfilter/ipt_ROUTE.c:60: error: unknown field `tos' specified in =
+initializer
+net/ipv4/netfilter/ipt_ROUTE.c:61: warning: excess elements in struct initi=
+alizer
+net/ipv4/netfilter/ipt_ROUTE.c:61: warning: (near initialization for `key')
+net/ipv4/netfilter/ipt_ROUTE.c:56: error: storage size of `key' isn't known
+net/ipv4/netfilter/ipt_ROUTE.c:56: warning: unused variable `key'
+net/ipv4/netfilter/ipt_ROUTE.c: In function `ipt_route_target':
+net/ipv4/netfilter/ipt_ROUTE.c:262: warning: implicit declaration of functi=
+on `ip_route_output'
+make[4]: *** [net/ipv4/netfilter/ipt_ROUTE.o] Error 1
+make[3]: *** [net/ipv4/netfilter] Error 2
 
-
-I remove the following help
-
-in /net/ipv4/netfilter/Kconfig, option IP_NF_MATCH_NTH
-The same for IP6_NF_MATCH_NTH
-
-[options]
-   --every     Nth              Match every Nth packet
-  [--counter]  num              Use counter 0-15 (default:0)
-  [--start]    num              Initialize the counter at the number 'num'
-                                instead of 0. Must be between 0 and Nth-1
-  [--packet]   num              Match on 'num' packet. Must be between 0
-	                                and Nth-1.
-
-	[options]
-	   --every     Nth              Match every Nth packet
-	  [--counter]  num              Use counter 0-15 (default:0)
-	  [--start]    num              Initialize the counter at the number 'num'
-	                                instead of 0. Must be between 0 and Nth-1
-	  [--packet]   num              Match on 'num' packet. Must be between 0
-	                                and Nth-1.
-=09
-Thanks.
+Thanks
 =2D-=20
 Daniel 'NebuchadnezzaR' Dehennin
 R=E9cup=E9rer ma clef GPG:
@@ -84,12 +70,12 @@ Content-Type: application/pgp-signature
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iQEVAwUAQKPa9dWamn5Mpz3GAQI5hwgAhLPmEAlxnOyNqr+K1f2TcIxq3d2xCmUY
-KvApStuS21neFD+Wsh6L303YGWjoRBgLXqOZJCjeNtia7LA5HZcqxR20PwviTEOG
-cu5+Vh5yK0SB2ieYZ6lmlbi2+M2LHJFULFYSTXYNiDXe+3RJJTXtvPf6EIXtkxTW
-ljmKhwaT7AnhfnUbnCzCqoH+kYvbU3EmNBVMxxFNnWuuzdresddMnz9Qcs+4SUmJ
-dGtqvthCHQOhyHX+2uT1FJ3fqxsA/Hq6qCZNRhB4HENXhQfbxjvuOozRG9KSBvAZ
-wZs3G2VzAMqy/LgAvVn7NSX56qapSyjqKqXTxAWECD5uDLgo6Ji9QQ==
-=CgwV
+iQEVAwUAQKPohdWamn5Mpz3GAQLv6ggAvTz0WlkqBXj63CE64sNDXIE4m9Rh4A2t
+LgB37SIdX7aRUrd3+dNl39Q3sXccBl5WqTO3e+VmPXO7g6KK9G3ZZy4gZFQL/KpE
+tJnYiX+YZmahHhs8iul+n5xFY5wijoKz+53VHdgWEagnliS++7sxpbfBbyqlmqvB
+yHOxVdfP/UI8/9OO1yzCTvO/ww3gzZ8QL3ilosEvkKVQQdoV/bz3Xhr6vLuoeov8
+On7TpxC+r65x2n5UlQdpUEqBqHJ45He6z6iiGVt/fad0C9KYslT6JMJhcpixYNbo
+4KXvn/MprnqEdL/Au+CHVUzTHp8dqSHOrd7Rk0cwImVxzbCjHiJF6g==
+=blz3
 -----END PGP SIGNATURE-----
 --=-=-=--
