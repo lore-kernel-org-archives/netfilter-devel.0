@@ -1,7 +1,8 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 11/18] Netfilter:  iptables revision getsockopt
-Date: Wed, 05 Jan 2005 14:34:14 +1100
-Message-ID: <1104896054.20582.75.camel@localhost.localdomain>
+Subject: [PATCH 12/18] Netfilter:  Add bitops to ipt_MARK without breaking
+	compatbility
+Date: Wed, 05 Jan 2005 14:34:52 +1100
+Message-ID: <1104896093.20582.76.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -20,148 +21,189 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: iptables revision getsockopt
+Name: Add bitops to ipt_MARK without breaking compatbility
 Status: Tested under nfsim
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-This adds a new getsockopt to iptables, which allows userspace to
-query the revision number of extensions.  iptables 1.3.0 (to be
-released soon) already has support for this.
+Anders Fugmann <afu@fugmann.dhs.org> wrote a patch to add bitops to
+ipt_MARK.  I made a version based on the revision patch.
 
-Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_tables.c
+Bart De Schuymer <bdschuym@pandora.be> provided the idea of overriding
+the target type.
+
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_MARK.c
 ===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_tables.c	2004-12-31 21:30:54.000000000 +1100
-+++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_tables.c	2005-01-01 10:51:37.363095768 +1100
-@@ -488,6 +488,65 @@
- 	return ERR_PTR(-EPROTOTYPE);
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ipt_MARK.c	2004-12-29 14:38:13.057844376 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_MARK.c	2004-12-29 15:20:28.792354136 +1100
+@@ -20,12 +20,12 @@
+ MODULE_DESCRIPTION("iptables MARK modification module");
+ 
+ static unsigned int
+-target(struct sk_buff **pskb,
+-       const struct net_device *in,
+-       const struct net_device *out,
+-       unsigned int hooknum,
+-       const void *targinfo,
+-       void *userinfo)
++target_v0(struct sk_buff **pskb,
++	  const struct net_device *in,
++	  const struct net_device *out,
++	  unsigned int hooknum,
++	  const void *targinfo,
++	  void *userinfo)
+ {
+ 	const struct ipt_mark_target_info *markinfo = targinfo;
+ 
+@@ -36,12 +36,45 @@
+ 	return IPT_CONTINUE;
  }
  
-+static int match_revfn(const char *name, u8 revision, int *bestp)
++static unsigned int
++target_v1(struct sk_buff **pskb,
++	  const struct net_device *in,
++	  const struct net_device *out,
++	  unsigned int hooknum,
++	  const void *targinfo,
++	  void *userinfo)
 +{
-+	struct ipt_match *m;
-+	int have_rev = 0;
++	const struct ipt_mark_target_info_v1 *markinfo = targinfo;
++	int mark = 0;
 +
-+	list_for_each_entry(m, &ipt_match, list) {
-+		if (strcmp(m->name, name) == 0) {
-+			if (m->revision > *bestp)
-+				*bestp = m->revision;
-+			if (m->revision == revision)
-+				have_rev = 1;
-+		}
-+	}
-+	return have_rev;
-+}
-+
-+static int target_revfn(const char *name, u8 revision, int *bestp)
-+{
-+	struct ipt_target *t;
-+	int have_rev = 0;
-+
-+	list_for_each_entry(t, &ipt_target, list) {
-+		if (strcmp(t->name, name) == 0) {
-+			if (t->revision > *bestp)
-+				*bestp = t->revision;
-+			if (t->revision == revision)
-+				have_rev = 1;
-+		}
-+	}
-+	return have_rev;
-+}
-+
-+/* Returns true or false (if no such extension at all) */
-+static inline int find_revision(const char *name, u8 revision,
-+				int (*revfn)(const char *, u8, int *),
-+				int *err)
-+{
-+	int have_rev, best = -1;
-+
-+	if (down_interruptible(&ipt_mutex) != 0) {
-+		*err = -EINTR;
-+		return 1;
-+	}
-+	have_rev = revfn(name, revision, &best);
-+	up(&ipt_mutex);
-+
-+	/* Nothing at all?  Return 0 to try loading module. */
-+	if (best == -1) {
-+		*err = -ENOENT;
-+		return 0;
-+	}
-+
-+	*err = best;
-+	if (!have_rev)
-+		*err = -EPROTONOSUPPORT;
-+	return 1;
-+}
-+
-+
- /* All zeroes == unconditional rule. */
- static inline int
- unconditional(const struct ipt_ip *ip)
-@@ -1316,6 +1375,31 @@
- 		break;
- 	}
- 
-+	case IPT_SO_GET_REVISION_MATCH:
-+	case IPT_SO_GET_REVISION_TARGET: {
-+		struct ipt_get_revision rev;
-+		int (*revfn)(const char *, u8, int *);
-+
-+		if (*len != sizeof(rev)) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+		if (copy_from_user(&rev, user, sizeof(rev)) != 0) {
-+			ret = -EFAULT;
-+			break;
-+		}
-+
-+		if (cmd == IPT_SO_GET_REVISION_TARGET)
-+			revfn = target_revfn;
-+		else
-+			revfn = match_revfn;
-+
-+		try_then_request_module(find_revision(rev.name, rev.revision,
-+						      revfn, &ret),
-+					"ipt_%s", rev.name);
++	switch (markinfo->mode) {
++	case IPT_MARK_SET:
++		mark = markinfo->mark;
++		break;
++		
++	case IPT_MARK_AND:
++		mark = (*pskb)->nfmark & markinfo->mark;
++		break;
++		
++	case IPT_MARK_OR:
++		mark = (*pskb)->nfmark | markinfo->mark;
 +		break;
 +	}
 +
- 	default:
- 		duprintf("do_ipt_get_ctl: unknown request %i\n", cmd);
- 		ret = -EINVAL;
-Index: linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_tables.h
-===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ip_tables.h	2004-12-31 21:30:54.000000000 +1100
-+++ linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_tables.h	2004-12-31 21:31:06.000000000 +1100
-@@ -156,9 +156,11 @@
- #define IPT_SO_SET_ADD_COUNTERS	(IPT_BASE_CTL + 1)
- #define IPT_SO_SET_MAX		IPT_SO_SET_ADD_COUNTERS
- 
--#define IPT_SO_GET_INFO		(IPT_BASE_CTL)
--#define IPT_SO_GET_ENTRIES	(IPT_BASE_CTL + 1)
--#define IPT_SO_GET_MAX		IPT_SO_GET_ENTRIES
-+#define IPT_SO_GET_INFO			(IPT_BASE_CTL)
-+#define IPT_SO_GET_ENTRIES		(IPT_BASE_CTL + 1)
-+#define IPT_SO_GET_REVISION_MATCH	(IPT_BASE_CTL + 2)
-+#define IPT_SO_GET_REVISION_TARGET	(IPT_BASE_CTL + 3)
-+#define IPT_SO_GET_MAX			IPT_SO_GET_REVISION_TARGET
- 
- /* CONTINUE verdict for targets */
- #define IPT_CONTINUE 0xFFFFFFFF
-@@ -288,6 +290,15 @@
- 	struct ipt_entry entrytable[0];
- };
- 
-+/* The argument to IPT_SO_GET_REVISION_*.  Returns highest revision
-+ * kernel supports, if >= revision. */
-+struct ipt_get_revision
-+{
-+	char name[IPT_FUNCTION_MAXNAMELEN-1];
++	if((*pskb)->nfmark != mark) {
++		(*pskb)->nfmark = mark;
++		(*pskb)->nfcache |= NFC_ALTERED;
++	}
++	return IPT_CONTINUE;
++}
 +
-+	u_int8_t revision;
++
+ static int
+-checkentry(const char *tablename,
+-	   const struct ipt_entry *e,
+-           void *targinfo,
+-           unsigned int targinfosize,
+-           unsigned int hook_mask)
++checkentry_v0(const char *tablename,
++	      const struct ipt_entry *e,
++	      void *targinfo,
++	      unsigned int targinfosize,
++	      unsigned int hook_mask)
+ {
+ 	if (targinfosize != IPT_ALIGN(sizeof(struct ipt_mark_target_info))) {
+ 		printk(KERN_WARNING "MARK: targinfosize %u != %Zu\n",
+@@ -58,21 +91,71 @@
+ 	return 1;
+ }
+ 
+-static struct ipt_target ipt_mark_reg = {
++static int
++checkentry_v1(const char *tablename,
++	      const struct ipt_entry *e,
++	      void *targinfo,
++	      unsigned int targinfosize,
++	      unsigned int hook_mask)
++{
++	struct ipt_mark_target_info_v1 *markinfo = targinfo;
++
++	if (targinfosize != IPT_ALIGN(sizeof(struct ipt_mark_target_info_v1))){
++		printk(KERN_WARNING "MARK: targinfosize %u != %Zu\n",
++		       targinfosize,
++		       IPT_ALIGN(sizeof(struct ipt_mark_target_info_v1)));
++		return 0;
++	}
++
++	if (strcmp(tablename, "mangle") != 0) {
++		printk(KERN_WARNING "MARK: can only be called from \"mangle\" table, not \"%s\"\n", tablename);
++		return 0;
++	}
++
++	if (markinfo->mode != IPT_MARK_SET
++	    && markinfo->mode != IPT_MARK_AND
++	    && markinfo->mode != IPT_MARK_OR) {
++		printk(KERN_WARNING "MARK: unknown mode %u\n",
++		       markinfo->mode);
++		return 0;
++	}
++
++	return 1;
++}
++
++static struct ipt_target ipt_mark_reg_v0 = {
+ 	.name		= "MARK",
+-	.target		= target,
+-	.checkentry	= checkentry,
++	.target		= target_v0,
++	.checkentry	= checkentry_v0,
+ 	.me		= THIS_MODULE,
++	.revision	= 0,
 +};
 +
- /* Standard return verdict, or do jump. */
- #define IPT_STANDARD_TARGET ""
- /* Error verdict. */
++static struct ipt_target ipt_mark_reg_v1 = {
++	.name		= "MARK",
++	.target		= target_v1,
++	.checkentry	= checkentry_v1,
++	.me		= THIS_MODULE,
++	.revision	= 1,
+ };
+ 
+ static int __init init(void)
+ {
+-	return ipt_register_target(&ipt_mark_reg);
++	int err;
++
++	err = ipt_register_target(&ipt_mark_reg_v0);
++	if (!err) {
++		err = ipt_register_target(&ipt_mark_reg_v1);
++		if (err)
++			ipt_unregister_target(&ipt_mark_reg_v0);
++	}
++	return err;
+ }
+ 
+ static void __exit fini(void)
+ {
+-	ipt_unregister_target(&ipt_mark_reg);
++	ipt_unregister_target(&ipt_mark_reg_v0);
++	ipt_unregister_target(&ipt_mark_reg_v1);
+ }
+ 
+ module_init(init);
+Index: linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ipt_MARK.h
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ipt_MARK.h	2004-12-29 14:38:13.057844376 +1100
++++ linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ipt_MARK.h	2004-12-29 15:18:20.243896472 +1100
+@@ -1,8 +1,20 @@
+ #ifndef _IPT_MARK_H_target
+ #define _IPT_MARK_H_target
+ 
++/* Version 0 */
+ struct ipt_mark_target_info {
+ 	unsigned long mark;
+ };
+ 
++/* Version 1 */
++enum {
++	IPT_MARK_SET=0,
++	IPT_MARK_AND,
++	IPT_MARK_OR
++};
++
++struct ipt_mark_target_info_v1 {
++	unsigned long mark;
++	u_int8_t mode;
++};
+ #endif /*_IPT_MARK_H_target*/
