@@ -1,17 +1,13 @@
-From: Steve Hill <steve@navaho.co.uk>
-Subject: Re: [PATCH] fix netfilter refcounting [was Re: Conntrack leak
- (2.6.2rc2)]
-Date: Wed, 4 Feb 2004 10:19:45 +0000 (GMT)
+From: =?gb2312?q?Jon=20Zeng?= <jon_zeng@yahoo.com.cn>
+Subject: a bug in nf_reinject()?
+Date: Wed, 4 Feb 2004 20:06:30 +0800 (CST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0402041018120.15629@sorbus2.navaho>
-References: <Pine.LNX.4.33.0402031825170.11950-100000@blackhole.kfki.hu>
+Message-ID: <20040204120630.37101.qmail@web15203.mail.bjs.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@redhat.com>, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0402031825170.11950-100000@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,18 +18,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 3 Feb 2004, Jozsef Kadlecsik wrote:
+Hello,
 
-> Steve Hill reported a conntrack leakage in 2.6.2-rc2 when nat is enabled
-> and the system forwards fragmented packets. It turned out that an
-> nf_conntrack_put was missing from ip_copy_metadata:
+It seems that the line tagged '-' should be the line
+tagged '+'.
+Am I right?
 
-I noticed this fix made it into the 2.6.2 release last night, so I have 
-tested with a vanilla 2.6.2 kernel this morning and can confirm it's fixed 
-the problem.  Thank you.
+void nf_reinject(struct sk_buff *skb, struct nf_info
+*info,
+		 unsigned int verdict)
+{
+	......
 
-- Steve Hill
-Senior Software Developer                        Email: steve@navaho.co.uk
-Navaho Technologies Ltd.                           Tel: +44-870-7034015
+	list_for_each_rcu(i, &nf_hooks[info->pf][info->hook])
+{
+		if (i == elem) 
+  			break;
+  	}
+  
+-	if (elem == &nf_hooks[info->pf][info->hook]) {
++	if (i == &nf_hooks[info->pf][info->hook]) {
+		/* The module which sent it to userspace is gone. */
+		NFDEBUG("%s: module disappeared, dropping
+packet.\n",
+			__FUNCTION__);
+		verdict = NF_DROP;
+	}
 
-        ... Alcohol and calculus don't mix - Don't drink and derive! ...
+	......
+}
+
+_________________________________________________________
+Do You Yahoo!? 
+完全免费的雅虎电邮，马上注册获赠额外60兆网络存储空间
+http://cn.rd.yahoo.com/mail_cn/tag/?http://cn.mail.yahoo.com
