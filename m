@@ -1,13 +1,15 @@
 From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [PATCH] C99 initializers for pom-ng ip6t_HL.c
-Date: Sun, 23 Jan 2005 23:12:29 +0100
-Message-ID: <916084496.20050123231229@dns.toxicfilms.tv>
+Subject: [PATCH] C99 initializers for libip6t_HL.c
+Date: Sun, 23 Jan 2005 23:23:26 +0100
+Message-ID: <1606598165.20050123232326@dns.toxicfilms.tv>
+References: <1213386207.20050123232039@dns.toxicfilms.tv>
 Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1213386207.20050123232039@dns.toxicfilms.tv>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,27 +23,41 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hello,
 
-let us use C99 initializers in ip6t_HL.c
+this is C99 for libip6t_HL.c
 
 Regards,
 Maciej
 
-Index: ip6t_HL.c
+Index: iptables/extensions/libip6t_HL.c
 ===================================================================
---- ip6t_HL.c   (revision 3612)
-+++ ip6t_HL.c   (working copy)
-@@ -88,8 +88,12 @@
-        return 1;
- }
+--- iptables/extensions/libip6t_HL.c    (revision 3612)
++++ iptables/extensions/libip6t_HL.c    (working copy)
+@@ -147,17 +147,17 @@
 
--static struct ip6t_target ip6t_HL = { { NULL, NULL }, "HL",
--       ip6t_hl_target, ip6t_hl_checkentry, NULL, THIS_MODULE };
-+static struct ip6t_target ip6t_HL = {
+ static
+ struct ip6tables_target HL = { NULL,
+-       "HL",
+-       IPTABLES_VERSION,
+-       IP6T_ALIGN(sizeof(struct ip6t_HL_info)),
+-       IP6T_ALIGN(sizeof(struct ip6t_HL_info)),
+-       &help,
+-       &init,
+-       &parse,
+-       &final_check,
+-       &print,
+-       &save,
+-       opts
 +       .name           = "HL",
-+       .target         = ip6t_hl_target,
-+       .checkentry     = ip6t_hl_checkentry,
-+       .me             = THIS_MODULE
-+};
++       .version        = IPTABLES_VERSION,
++       .size           = IP6T_ALIGN(sizeof(struct ip6t_HL_info)),
++       .userspacesize  = IP6T_ALIGN(sizeof(struct ip6t_HL_info)),
++       .help           = &help,
++       .init           = &init,
++       .parse          = &parse,
++       .final_check    = &final_check,
++       .print          = &print,
++       .save           = &save,
++       .extra_opts     = opts
+ };
 
- static int __init init(void)
- {
+ void _init(void)
