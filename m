@@ -1,14 +1,15 @@
-From: Abraham vd Merwe <abraham@2d3d.co.za>
-Subject: questions about netfilter/iptables api
-Date: Tue, 9 Jul 2002 16:44:02 +0200
+From: James Morris <jmorris@intercode.com.au>
+Subject: Re: What is ip_nat_snmp_basic's interface?
+Date: Wed, 10 Jul 2002 01:19:41 +1000 (EST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020709164402.A6622@crystal.2d3d.co.za>
+Message-ID: <Mutt.LNX.4.44.0207100111360.31381-100000@blackbird.intercode.com.au>
+References: <F127T34CnsdreDIOZWe00008c35@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
+To: Eyal k <lalala103@hotmail.com>
+In-Reply-To: <F127T34CnsdreDIOZWe00008c35@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -19,75 +20,109 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 9 Jul 2002, Eyal k wrote:
 
---vtzGhvizbBRQ85DL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> 
+> Hi. I'm having difficulties setting up the ip_nat_snmp_basic module.
+> I can't seem to find information how to define mapping rules for it, there's 
+> no documentation of anything alike in iptables and ipchains.
+> If any of you could shed a light on this, I would be grateful.
+> 
 
-Hi!
+I've found the INSTALL file from a much earlier version (when it was 
+called 'bsalg' and not part of the kernel), and included it below.  It should 
+contain enough information to get up and running.  Obviously, steps 1-5 
+are not relevant any more, and you need to have the helper module loaded.  
 
-I'm trying to figure out how to prepend rules into the INPUT/OUTPUT chains.
-The way I see it, you do
+Note that the ALG is only designed for re-mapping entire /8 networks.
 
-1. getsockopt IPT_SO_GET_INFO and IPT_SO_GET_ENTRIES to get current entries
-in chain.
+-----------------------------------------------------------------------------
+$Id: INSTALL,v 1.8 2000/06/24 16:34:45 jmorris Exp $
 
-2. construct a ``struct ipt_entry'' with the new rule.
+Installation instructions for BSALG v0.5.0.
 
-3. construct a ``struct ipt_replace'' entry with new entry + old entries.
+1) Requirements:
+	Kernel: 2.4.0-test1-ac21
+	Iptables: 1.1.0
+	Patches: none
 
-4. do setsockopt IPT_SO_SET_REPLACE to insert new entry in the chain.
+2) Check that the kernel is configured with loadable module support,
+   Netfilter and full NAT support.
 
-Now, what I can't figure out is what those hook_entry and underflow arrays
-in ``struct ipt_replace'' are used for and what offsets I need to put in th=
-em.
+3) Set your KERNEL_DIR environment variable to the directory where
+   your kernel lives (defaults to '/usr/src/linux').
+   
+4) Type 'make install'.
 
-Also, I see that iptables goes and appends elems entries for some of the
-struct ipt_entry entries. When do I need to do that and is it necessary for
-simple rules like these:
+5) The module may be loaded with 'insmod bsalg'.
 
--I INPUT -d net/mask -i eth0
--I OUTPUT -s net/mask -o eth1
--I INPUT -d net/mask -p tcp --source-port 23 -i eth0
-etc.
+6) Debugging may be enabled with 'debug' as a module parameter, 
+   either with 'insmod bsalg debug=1' or adding 
+   'options bsalg debug=1' to the file '/etc/conf.modules'.
+   
+   Setting this to a value of 1 will show IP address mappings, while
+   setting it to 2 will provide highly verbose debugging info about
+   the snmp parsing.
+   
+7) Try a test like the following from your NMS:
+   
+   'snmpget 1.5.5.2 public ip.ipRouteTable.ipRouteEntry.ipRouteNextHop.0.0.0.0'
+   
+   where 1.5.5.2 is the DNAT'd address of the node, which has a real address
+   of 10.5.5.2.
+   
+   The response should look something like:
+   
+   'ip.ipRouteTable.ipRouteEntry.ipRouteNextHop.0.0.0.0 = IpAddress: 1.5.5.1'
+   
+   instead of:
+   
+   'ip.ipRouteTable.ipRouteEntry.ipRouteNextHop.0.0.0.0 = IpAddress: 10.5.5.1'
+   
 
-I don't see why any additional info would be necessary since you can fit all
-that info in the the ``struct ipt_ip'' field.
+8) General info.
 
-PS: Please CC me when replying. I'm not subscribed to the list.
-
---=20
-
-Regards
- Abraham
-
-Well, O.K.  I'll compromise with my principles because of EXISTENTIAL DESPA=
-IR!
-
-__________________________________________________________
- Abraham vd Merwe - 2d3D, Inc.
-
- Device Driver Development, Outsourcing, Embedded Systems
-
-  Cell: +27 82 565 4451         Snailmail:
-   Tel: +27 21 761 7549            Block C, Aintree Park
-   Fax: +27 21 761 7648            Doncaster Road
- Email: abraham@2d3d.co.za         Kenilworth, 7700
-  Http: http://www.2d3d.com        South Africa
+   For the moment, you will need explicit SNAT rules to allows traps to also
+   be processed by the module.
+   
+   This is the NAT table on the system that the code was developed on:
+   
+   # iptables -L -n -t nat
+   Chain PREROUTING (policy ACCEPT)
+   target     prot opt source               destination         
+   DNAT       all  --  0.0.0.0/0            1.5.5.2            to:10.5.5.2 
+   
+   Chain POSTROUTING (policy ACCEPT)
+   target     prot opt source               destination         
+   SNAT       all  --  10.5.5.2             0.0.0.0/0          to:1.5.5.2 
+   
+   Chain OUTPUT (policy ACCEPT)
+   target     prot opt source               destination    
 
 
---vtzGhvizbBRQ85DL
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.4 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9KvayzNXhP0RCUqMRAkDMAJ0TKjTPs9t9ms6JZmIc7XXE4BKCAgCcDkgp
-I4nhuelHz/y+5ubfA4DQFLI=
-=9Upl
------END PGP SIGNATURE-----
-
---vtzGhvizbBRQ85DL--
+   And a diagram of the topology:
+   
+   +---------------------- +
+   | NMS Box 192.168.32.12 |
+   +-----------------------+
+              | eth0
+              |
+              | eth0
+   +---------------------- +
+   | NAT Box 192.168.32.14 |
+   |         10.5.5.1      |
+   +-----------------------+
+              | eth1
+              |
+              | eth0
+   +---------------------- +
+   | Node    10.5.5.2      |
+   +-----------------------+
+   
+   The NMS box running snmpwalk/get and tkined can communicate with the node 
+   10.5.5.2 using 1.5.5.2 as a destination (and source of snmp traps).
+   
+-----------------------------------------------------------------------------    
+   
+   
+   
