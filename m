@@ -1,15 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] realm match inversion fixes
-Date: Tue, 15 Feb 2005 00:06:10 +0100
-Message-ID: <20050214230610.GD3829@sunbeam.de.gnumonks.org>
-References: <20050212223908.GA2960@linuxace.com>
+Subject: Re: [PATCH] trivial patches for patch-o-matic-ng ipp2p, tproxy,
+	TPROXY and comment
+Date: Tue, 15 Feb 2005 00:08:27 +0100
+Message-ID: <20050214230827.GE3829@sunbeam.de.gnumonks.org>
+References: <1108313563.3505.22.camel@murdegern.luettgert.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a2FkP9tdjPU2nyhF"
+	protocol="application/pgp-signature"; boundary="JBi0ZxuS5uaEhkUZ"
 Cc: netfilter-devel@lists.netfilter.org
-To: Phil Oester <kernel@linuxace.com>
+To: Torsten Luettgert <t.luettgert@pressestimmen.de>
 Content-Disposition: inline
-In-Reply-To: <20050212223908.GA2960@linuxace.com>
+In-Reply-To: <1108313563.3505.22.camel@murdegern.luettgert.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,17 +23,15 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---a2FkP9tdjPU2nyhF
+--JBi0ZxuS5uaEhkUZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Feb 12, 2005 at 02:39:08PM -0800, Phil Oester wrote:
-> Below is a combination of Harald's suggested fix for bugzilla
-> 297, plus my addition which fixes the case of ! being used
-> before the value. =20
+On Sun, Feb 13, 2005 at 05:52:43PM +0100, Torsten Luettgert wrote:
+> Attached are the (trivial) patches to make them work again.
 
-thanks, already applied to svn
+Thanks, applied to svn.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -44,7 +43,7 @@ thanks, already applied to svn
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---a2FkP9tdjPU2nyhF
+--JBi0ZxuS5uaEhkUZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -52,9 +51,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFCES7iXaXGVTD0i/8RAgt0AJ919SJcTmvHFkudfoahsuaPiVu0UQCfTIN0
-p6i26EbH1EegGcfqLExjnrI=
-=4nUm
+iD8DBQFCES9rXaXGVTD0i/8RArg/AJwJ7dCTyieuhEdfEENlsxep9RqEwwCgjrYf
+kMTrNOXdsqC1oc7Ogi1Zh+M=
+=Oqt1
 -----END PGP SIGNATURE-----
 
---a2FkP9tdjPU2nyhF--
+--JBi0ZxuS5uaEhkUZ--
