@@ -1,16 +1,15 @@
-From: Jim Mar <jmar@metavize.com>
-Subject: Re: Bridging and IPT Queueing
-Date: Sun, 11 Jul 2004 21:13:51 -0700
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH]: bug with --dst-range in libipt_iprange.c
+Date: Mon, 12 Jul 2004 09:19:28 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40F20FFF.2030403@metavize.com>
-References: <Pine.LNX.4.44.0407091846360.8729-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.33.0407120918370.24191-100000@blackhole.kfki.hu>
+References: <32886.192.168.1.19.1089594334.squirrel@192.168.1.19>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0407091846360.8729-100000@filer.marasystems.com>
+To: Nicolas Bouliane <nib@cookinglinux.org>
+In-Reply-To: <32886.192.168.1.19.1089594334.squirrel@192.168.1.19>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,38 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
+On Sun, 11 Jul 2004, Nicolas Bouliane wrote:
 
->On Thu, 8 Jul 2004, Jim Mar wrote:
+> When using --dst-range twice, which is supposed to return an error,
+> the second given ip range is overwriting the previously set ip range.
 >
->  
->
->>I've been looking at IPT Queueing in a bridging environment on
->>a 2.6 kernel and noticed that the indev associated with the
->>queued packet is the bridge device, eg. br0, instead of the
->>physical interface. While this is true, it would be nice to know
->>the physical indev of the packet. Is there a way of finding it?
->>    
->>
->
->The physdev match?
->  
->
-Yes, physdev match will work. Thanks. Using physdev match, can I get
-the physical indev for a redirected packet?
+> The --src-range option is working perfectly; we can't use it twice.
+> But --dst-range just doesn't because the flag is always reset to 1.
 
->  
->
->>I tried looking at the HW address, but that seems broken.
->>    
->>
->
->This should give you the destination HW address of the packet, not the 
->interface it was received on.
->
->Regards
->Henrik
->
->
->  
->
+Thank you the bug report and the fix, the patch is applied in cvs.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
