@@ -1,13 +1,17 @@
-From: "Grzegorz Nosek" <blackfire@metal.art.pl>
-Subject: MARK target extension
-Date: Thu, 27 May 2004 00:09:57 +0200
+From: Alexander Samad <alex@samad.com.au>
+Subject: Re: Netfilter+IPsec patches
+Date: Thu, 27 May 2004 14:46:13 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040526205915.M56972@metal.art.pl>
+Message-ID: <20040527044613.GC24464@samad.com.au>
+References: <20040526033537.GH4402@samad.com.au> <40B53CCE.40704@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=OPENWEBMAIL_ATT_0.777651354744197"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RIYY1s2vRbPFwWeW"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <40B53CCE.40704@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,119 +22,105 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=OPENWEBMAIL_ATT_0.777651354744197
-Content-Type: text/plain;
-	charset=iso-8859-2
+--RIYY1s2vRbPFwWeW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hello all!
+On Thu, May 27, 2004 at 02:56:46AM +0200, Patrick McHardy wrote:
+> Alexander Samad wrote:
+> >Patrick
+> >
+> >whilst debugging a ipsec bug I noticed these problems
+> >
+> >when you do a tcpdump you the decrypted packet seems to show up
+> > twice it seems to be the exact same packet.
+>=20
+> Yes, this is a consequence of passing the packets though the stack again
+> once we know decapsulation is finished. It will also cause statistics
+> to account for the packet twice.
+Understand that, but I see the unencapsulated packet twice (tcpdump
+see's it 3 times enc + 2 x unencap)
+>=20
+> >
+> >I am running this on a debian 2.6.4 kernel with the netfilter patchs
+> >applied
+> >(up to date cvs)
+> >
+> >
+> >tcpdump output
+> >=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> >13:23:05.868512 0:a:8b:6a:30:8c 0:5:5d:64:c6:4e 0800 150:
+> >202.154.115.130 > 138.130.55.80: ESP(spi=3D0x6e3852ef,seq=3D0x29)
+> >13:23:05.868512 0:a:8b:6a:30:8c 0:5:5d:64:c6:4e 0800 98: 192.168.5.1 >
+> >192.168.10.1: icmp: echo request (DF)
+> >13:23:05.868512 0:a:8b:6a:30:8c 0:5:5d:64:c6:4e 0800 98: 192.168.5.1 >
+> >192.168.10.1: icmp: echo request (DF)
+> >
+> >
+> >my other problem is when I ping across the ipsec tunnel  from the remote
+> >end to the server end I see the packets come in the interface, I see
+> >them in the INPUT table and in the mangle table, but it never seems to
+> >get back to the application
+>=20
+> Please give some more details on the configuration, like:
+>=20
+> Are you using NAT ?
+> Are you marking the packets in the mangle table ?
+> Are the packets forwarded when they get out of the tunnel ?
+>=20
+> When you see the packets in the INPUT chain, does their source- and
+> destination address match your policy ?
+>=20
+> Regards
+> Patrick
+I did some futher testing, I was in NAT-T mode, when I removed the
+nat'ing it started to work.
 
-I've extended the MARK target (ipv4 only currently) to allow partial
-modification of nfmark values instead of replacing. As in:
+I had not being doing anything in mangle, but I did put in some lines to
+accept and to count the packets.
 
-... -j MARK --set-mark 0x80
-... -j MARK --set-mark 0x8000 --mask 0xff00
+I did the same on the INPUT chain as well and then placed a LOG before
+(lines 1&2 on INPUT) and it seemed to have the right information.
 
-sets the resulting mark value to 0x8080. Note that it isn't a logical OR:
-
-... -j MARK --set-mark 0xffff
-... -j MARK --set-mark 0 --mask 0xff
-
-would change the mark to 0xff00.
-
-This way you can use the nfmark as a bit field (testing individual
-bits can be done already). Patches included are based on
-iptables-1.2.9 (from debian sarge source) and kernel 2.4.26, somewhat
-patched (nothing related to nfmark, though, so it should apply cleanly
-to a vanilla kernel too). What do you think? IMNSHO it would be useful
-to include in standard kernel/iptables especially as it breaks no
-existing applications (default mask is 0xffffffff), is no code bloat
-and might actually be useful to somebody besides me. Note that it's my
-first public kernel patch so be gentle.
-
-Regards,
- Greg
+The packets are destined for the box that terminates the IPSEC tunnel.
+I am presume it met the policy as the packets where decrypted.
 
 
-------=OPENWEBMAIL_ATT_0.777651354744197
-Content-Type: text/plain;
-	name="iptables-mark-1.2.9.diff"
-Content-Disposition: attachment; filename="iptables-mark-1.2.9.diff"
-Content-Transfer-Encoding: base64
 
-ZGlmZiAtTmF1ciBpcHRhYmxlcy0xLjIuOS9leHRlbnNpb25zL2xpYmlwdF9NQVJLLmMgaXB0YWJs
-ZXMtMS4yLjktbWFyay9leHRlbnNpb25zL2xpYmlwdF9NQVJLLmMKLS0tIGlwdGFibGVzLTEuMi45
-L2V4dGVuc2lvbnMvbGliaXB0X01BUksuYwkyMDAzLTAzLTAyIDE3OjE2OjQ1LjAwMDAwMDAwMCAr
-MDEwMAorKysgaXB0YWJsZXMtMS4yLjktbWFyay9leHRlbnNpb25zL2xpYmlwdF9NQVJLLmMJMjAw
-NC0wNS0yNiAxNzozNzoxNy4wMDAwMDAwMDAgKzAyMDAKQEAgLTIwLDEyICsyMCwxNCBAQAogCXBy
-aW50ZigKICJNQVJLIHRhcmdldCB2JXMgb3B0aW9uczpcbiIKICIgIC0tc2V0LW1hcmsgdmFsdWUg
-ICAgICAgICAgICAgICAgICAgU2V0IG5mbWFyayB2YWx1ZVxuIgorIiAgLS1tYXNrIHZhbHVlICAg
-ICAgICAgICAgICAgICAgICAgICBTZXQgbW9kaWZpY2F0aW9uIG1hc2tcbiIKICJcbiIsCiBJUFRB
-QkxFU19WRVJTSU9OKTsKIH0KIAogc3RhdGljIHN0cnVjdCBvcHRpb24gb3B0c1tdID0gewogCXsg
-InNldC1tYXJrIiwgMSwgMCwgJzEnIH0sCisJeyAibWFzayIsIDEsIDAsICcyJyB9LAogCXsgMCB9
-CiB9OwogCkBAIC0zMyw2ICszNSw5IEBACiBzdGF0aWMgdm9pZAogaW5pdChzdHJ1Y3QgaXB0X2Vu
-dHJ5X3RhcmdldCAqdCwgdW5zaWduZWQgaW50ICpuZmNhY2hlKQogeworCXN0cnVjdCBpcHRfbWFy
-a190YXJnZXRfaW5mbyAqbWFya2luZm8gPQorCQkoc3RydWN0IGlwdF9tYXJrX3RhcmdldF9pbmZv
-ICopdC0+ZGF0YTsKKwltYXJraW5mby0+bWFzayA9IDB4ZmZmZmZmZmY7CiB9CiAKIC8qIEZ1bmN0
-aW9uIHdoaWNoIHBhcnNlcyBjb21tYW5kIG9wdGlvbnM7IHJldHVybnMgdHJ1ZSBpZiBpdApAQCAt
-NTAsMTAgKzU1LDIwIEBACiAJCWlmIChzdHJpbmdfdG9fbnVtYmVyKG9wdGFyZywgMCwgMHhmZmZm
-ZmZmZiwgCiAJCQkJICAgICAodW5zaWduZWQgaW50ICopJm1hcmtpbmZvLT5tYXJrKSkKIAkJCWV4
-aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sICJCYWQgTUFSSyB2YWx1ZSBgJXMnIiwgb3B0YXJn
-KTsKLQkJaWYgKCpmbGFncykKKwkJaWYgKCpmbGFncyAmIDEpCiAJCQlleGl0X2Vycm9yKFBBUkFN
-RVRFUl9QUk9CTEVNLAogCQkJICAgICAgICAgICAiTUFSSyB0YXJnZXQ6IENhbid0IHNwZWNpZnkg
-LS1zZXQtbWFyayB0d2ljZSIpOwotCQkqZmxhZ3MgPSAxOworCQkqZmxhZ3MgfD0gMTsKKwkJYnJl
-YWs7CisKKwljYXNlICcyJzoKKwkJaWYgKHN0cmluZ190b19udW1iZXIob3B0YXJnLCAwLCAweGZm
-ZmZmZmZmLCAKKwkJCQkgICAgICh1bnNpZ25lZCBpbnQgKikmbWFya2luZm8tPm1hc2spKQorCQkJ
-ZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwgIkJhZCBtYXNrIHZhbHVlIGAlcyciLCBvcHRh
-cmcpOworCQlpZiAoKmZsYWdzICYgMikKKwkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0s
-CisJCQkgICAgICAgICAgICJNQVJLIHRhcmdldDogQ2FuJ3Qgc3BlY2lmeSAtLW1hc2sgdHdpY2Ui
-KTsKKwkJKmZsYWdzIHw9IDI7CiAJCWJyZWFrOwogCiAJZGVmYXVsdDoKQEAgLTY2LDE1ICs4MSwx
-NyBAQAogc3RhdGljIHZvaWQKIGZpbmFsX2NoZWNrKHVuc2lnbmVkIGludCBmbGFncykKIHsKLQlp
-ZiAoIWZsYWdzKQorCWlmICgoZmxhZ3MgJiAxKSA9PSAwKQogCQlleGl0X2Vycm9yKFBBUkFNRVRF
-Ul9QUk9CTEVNLAogCQkgICAgICAgICAgICJNQVJLIHRhcmdldDogUGFyYW1ldGVyIC0tc2V0LW1h
-cmsgaXMgcmVxdWlyZWQiKTsKIH0KIAogc3RhdGljIHZvaWQKLXByaW50X21hcmsodW5zaWduZWQg
-bG9uZyBtYXJrLCBpbnQgbnVtZXJpYykKK3ByaW50X21hcmsodW5zaWduZWQgbG9uZyBtYXJrLCB1
-bnNpZ25lZCBsb25nIG1hc2ssIGludCBudW1lcmljKQogewogCXByaW50ZigiMHglbHggIiwgbWFy
-ayk7CisJaWYgKG1hc2sgIT0gMHhmZmZmZmZmZikKKwkJcHJpbnRmKCIgbWFzayAweCVseCAiLCBt
-YXNrKTsKIH0KIAogLyogUHJpbnRzIG91dCB0aGUgdGFyZ2luZm8uICovCkBAIC04Niw3ICsxMDMs
-NyBAQAogCWNvbnN0IHN0cnVjdCBpcHRfbWFya190YXJnZXRfaW5mbyAqbWFya2luZm8gPQogCQko
-Y29uc3Qgc3RydWN0IGlwdF9tYXJrX3RhcmdldF9pbmZvICopdGFyZ2V0LT5kYXRhOwogCXByaW50
-ZigiTUFSSyBzZXQgIik7Ci0JcHJpbnRfbWFyayhtYXJraW5mby0+bWFyaywgbnVtZXJpYyk7CisJ
-cHJpbnRfbWFyayhtYXJraW5mby0+bWFyaywgbWFya2luZm8tPm1hc2ssIG51bWVyaWMpOwogfQog
-CiAvKiBTYXZlcyB0aGUgdW5pb24gaXB0X3RhcmdpbmZvIGluIHBhcnNhYmxlIGZvcm0gdG8gc3Rk
-b3V0LiAqLwpAQCAtOTcsNiArMTE0LDggQEAKIAkJKGNvbnN0IHN0cnVjdCBpcHRfbWFya190YXJn
-ZXRfaW5mbyAqKXRhcmdldC0+ZGF0YTsKIAogCXByaW50ZigiLS1zZXQtbWFyayAweCVseCAiLCBt
-YXJraW5mby0+bWFyayk7CisJaWYgKG1hcmtpbmZvLT5tYXNrICE9IDB4ZmZmZmZmZmYpCisJCXBy
-aW50ZigiLS1tYXNrIDB4JWx4ICIsIG1hcmtpbmZvLT5tYXNrKTsKIH0KIAogc3RhdGljCg==
+>=20
+> >
+> >
+> >
+> >from ipsec auto --status
+> >=3D=3D=3D=3D
+> >000 "roadwarrior.internet.nat"[4]:
+> >192.168.8.0/22=3D=3D=3D138.130.55.80:4500[C=3DAU, ST=3DNSW, L=3DSydney, =
+O=3DA.Samad
+> >Pty Ltd, OU=3DAlfred St, CN=3Dsydlxfw01,
+> >E=3Dsydlxfw01@samad.com.au]---138.130.52.1...144.137.104.46:4500[C=3DAU,
+> >ST=3DNSW, L=3DSydney, O=3DA.Samad Pty Ltd, OU=3DAlfred St,
+> >CN=3Dasamadlx.samad.com.au, E=3Dasamadlx@samad.com.au]=3D=3D=3D192.168.8=
+=2E2/32;
+> >erouted; eroute owner: #30
+> >
+> >Thanks
+> >Alex
+>=20
+>=20
 
-------=OPENWEBMAIL_ATT_0.777651354744197
-Content-Type: text/plain;
-	name="kernel-mark-2.4.26.diff"
-Content-Disposition: attachment; filename="kernel-mark-2.4.26.diff"
-Content-Transfer-Encoding: base64
+--RIYY1s2vRbPFwWeW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-ZGlmZiAtTmF1ciBsaW51eC0yLjQuMjYtb3cxK3JvdXRlL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVy
-X2lwdjQvaXB0X01BUksuaCBsaW51eC0yLjQuMjYtb3cxK3JvdXRlK21hcmsvaW5jbHVkZS9saW51
-eC9uZXRmaWx0ZXJfaXB2NC9pcHRfTUFSSy5oCi0tLSBsaW51eC0yLjQuMjYtb3cxK3JvdXRlL2lu
-Y2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X01BUksuaAkyMDAwLTAzLTE3IDE5OjU2OjIw
-LjAwMDAwMDAwMCArMDEwMAorKysgbGludXgtMi40LjI2LW93MStyb3V0ZSttYXJrL2luY2x1ZGUv
-bGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X01BUksuaAkyMDA0LTA1LTI2IDE3OjEwOjI2LjAwMDAw
-MDAwMCArMDIwMApAQCAtMyw2ICszLDcgQEAKIAogc3RydWN0IGlwdF9tYXJrX3RhcmdldF9pbmZv
-IHsKIAl1bnNpZ25lZCBsb25nIG1hcms7CisJdW5zaWduZWQgbG9uZyBtYXNrOwogfTsKIAogI2Vu
-ZGlmIC8qX0lQVF9NQVJLX0hfdGFyZ2V0Ki8KZGlmZiAtTmF1ciBsaW51eC0yLjQuMjYtb3cxK3Jv
-dXRlL25ldC9pcHY0L25ldGZpbHRlci9pcHRfTUFSSy5jIGxpbnV4LTIuNC4yNi1vdzErcm91dGUr
-bWFyay9uZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X01BUksuYwotLS0gbGludXgtMi40LjI2LW93MSty
-b3V0ZS9uZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X01BUksuYwkyMDAxLTA5LTMwIDIxOjI2OjA4LjAw
-MDAwMDAwMCArMDIwMAorKysgbGludXgtMi40LjI2LW93MStyb3V0ZSttYXJrL25ldC9pcHY0L25l
-dGZpbHRlci9pcHRfTUFSSy5jCTIwMDQtMDUtMjYgMTc6MTg6NDkuMDAwMDAwMDAwICswMjAwCkBA
-IC0xNiw5ICsxNiwxMCBAQAogICAgICAgIHZvaWQgKnVzZXJpbmZvKQogewogCWNvbnN0IHN0cnVj
-dCBpcHRfbWFya190YXJnZXRfaW5mbyAqbWFya2luZm8gPSB0YXJnaW5mbzsKKwlsb25nIG5ld19t
-YXJrID0gKCgqcHNrYiktPm5mbWFyayAmIH5tYXJraW5mby0+bWFzaykgfCAobWFya2luZm8tPm1h
-cmsgJiBtYXJraW5mby0+bWFzayk7CiAKLQlpZigoKnBza2IpLT5uZm1hcmsgIT0gbWFya2luZm8t
-Pm1hcmspIHsKLQkJKCpwc2tiKS0+bmZtYXJrID0gbWFya2luZm8tPm1hcms7CisJaWYoKCpwc2ti
-KS0+bmZtYXJrICE9IG5ld19tYXJrKSB7CisJCSgqcHNrYiktPm5mbWFyayA9IG5ld19tYXJrOwog
-CQkoKnBza2IpLT5uZmNhY2hlIHw9IE5GQ19BTFRFUkVEOwogCX0KIAlyZXR1cm4gSVBUX0NPTlRJ
-TlVFOwo=
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-------=OPENWEBMAIL_ATT_0.777651354744197--
+iD8DBQFAtXKVkZz88chpJ2MRAh4ZAJ9lOWnLjHFbNyKIvCeHHraY3vMWAQCeKNkk
+YjhvQGYE4GgOXu4wVwUHpc4=
+=PzQ+
+-----END PGP SIGNATURE-----
+
+--RIYY1s2vRbPFwWeW--
