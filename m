@@ -1,16 +1,17 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: memcmp() is slow?
-Date: Sat, 22 Jan 2005 19:52:10 -0800
-Message-ID: <20050122195210.7c9b3d3f.davem@davemloft.net>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re[2]: memcmp() is slow?
+Date: Sun, 23 Jan 2005 10:57:09 +0100
+Message-ID: <1583527289.20050123105709@dns.toxicfilms.tv>
 References: <E1CsQZH-0002AE-Ob@vishnu.netfilter.org>
 	<69935817.20050122213152@dns.toxicfilms.tv>
+	<20050122195210.7c9b3d3f.davem@davemloft.net>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <69935817.20050122213152@dns.toxicfilms.tv>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20050122195210.7c9b3d3f.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +23,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 22 Jan 2005 21:31:52 +0100
-Maciej Soltysiak <solt@dns.toxicfilms.tv> wrote:
+Hello David,
 
-> I have seen a patch that replaces memcmp() with a few comparison statements.
-> The log for the change says that memcmp() is slow.
-> 
-> Why is it?
+Sunday, January 23, 2005, 4:52:10 AM, you wrote:
 
-This is a platform specific question, as memcmp() is implemented
-differently on each architecture.  So tell us what you're test
-was run on. :)
+> This is a platform specific question, as memcmp() is implemented
+> differently on each architecture.  So tell us what you're test
+> was run on. :)
+
+Well, it was yoshfuji's patch that suggested the change explaining
+that memcmp() is slow.
+
+If joshfuji suggests a change like that, I think he is
+pretty sure that for all archs' memcmp() of 4 integers is slower
+than simply comparing them.
+
+Anyway I was not aware of such a multiplicity of memcmp() and friends
+implementations for different archs. Good to know :-)
+
+Regards,
+Maciej
