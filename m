@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Difference between match and target
-Date: Wed, 25 Jun 2003 11:10:05 +0200
+From: DarKRaveR <DarKRaveR@habitat-b.de>
+Subject: Re[2]: REJECT target
+Date: Wed, 25 Jun 2003 16:13:43 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030625091005.GH2645@sunbeam.de.gnumonks.org>
-References: <20030624170402.8564.54425.Mailman@kashyyyk> <005301c33ae3$141da460$010f430a@elitecore7>
+Message-ID: <1051987037.20030625161343@habitat-b.de>
+References: <Pine.LNX.4.33.0306250916010.7456-100000@blackhole.kfki.hu>
+Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4xmAKYnxoHNXa3WQ"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sumit Pandya <sumit@elitecore.com>
-Content-Disposition: inline
-In-Reply-To: <005301c33ae3$141da460$010f430a@elitecore7>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.33.0306250916010.7456-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,58 +21,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Jozsef,
 
---4xmAKYnxoHNXa3WQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I understood that, the question is why ? I got a scenarion, where I
+would need it in the PREROUTING chain of the nat table, instead of
+just dropping the packets ... Is there any reason, why it is only
+available in the filter table. I mean, it's for filtering okay, but
+maybe I want to reject connections properly at other places (like nat
+table, prerouting) instead of plain stupid
+dropping them and waiting at the client software to time out.
 
-On Wed, Jun 25, 2003 at 11:59:06AM +0530, Sumit Pandya wrote:
-> Hi Harald and All,
->     Then do Netfilter core team or Netfilter individual module authors wi=
-ll
-> think of reconsidering this policy?=20
+Wednesday, June 25, 2003, 9:17:56 AM, you wrote:
 
-No, not really.
+JK> On Wed, 25 Jun 2003, DarKRaveR wrote:
 
-> Like ipt_foo and ipt_FOO can be combined in one kernel module and that
-> module will call both ipt_register_match and ipt_register_target in
-> MODULE_INIT. In my point of view if we are inserting 2 modules then it
-> is definitely consuming extra (some) memory of kernel.
+>>   I know this is not really a developers question, but maybe the
+>>   developers are the right people at hand, to explain this.
+>>   From what I read, the REJECT target is only valid in
+>>   INPUT/OUPUT/FORWARD. Is there any particular reason why ? I read in
+>>   one of the tutorials, that you wouldn't need it at any other place,
+>>   but I think this is not perfectly true.
 
-yes, every module consumes at least one page (4k on x86).  So if you
-want to save that memory (and even more, by skipping the __exit
-functions), statically link it into the kernel rather than using a
-module.
+JK> The REJECT target is for filtering. The filter table has got the
+JK> INPUT/OUPUT/FORWARD chains, therfore the REJECT target can be used in
+JK> those chains (and sub-chains, naturally).
 
-btw: you can do this now (having match and target in one kernel module,
-registering as match and target - but this would break iptables
-module-on-demand-loading code).  Where should iptables  know from, that
-when the user specifies '-m foo' it should load a kernel module called
-'ipt_BAR.o' ?
+JK> Best regards,
+JK> Jozsef
+JK> -
+JK> E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+JK> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+JK> Address : KFKI Research Institute for Particle and Nuclear Physics
+JK>           H-1525 Budapest 114, POB. 49, Hungary
 
-> -- Sumit
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---4xmAKYnxoHNXa3WQ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE++WbtXaXGVTD0i/8RAgQVAKCjyQ0iArBEA9UPsW+7u7ijfCW4UgCggPDj
-IKH98GRpKojRW22lNYDH02s=
-=7YFS
------END PGP SIGNATURE-----
-
---4xmAKYnxoHNXa3WQ--
+-- 
+Best regards,
+ DarKRaveR                            mailto:DarKRaveR@habitat-b.de
