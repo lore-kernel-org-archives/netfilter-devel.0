@@ -1,19 +1,20 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [RFC] ct_sync 0.15 (corrected)
-Date: Thu, 02 Sep 2004 14:39:03 +0200
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] Add bridged IPv6 packet filtering
+Date: Fri, 03 Sep 2004 00:23:37 +0900 (JST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1094128743.2816.36.camel@nienna.balabit>
-References: <1092407190.2402.120.camel@nienna.balabit>
-	<20040902051011.GA1453@alpha.home.local>
+Message-ID: <200409021523.i82FNdsY015603@toshiba.co.jp>
+References: <200409012234.26310.bdschuym@pandora.be>
+	<200409020440.i824e8Jl020613@toshiba.co.jp>
+	<Pine.LNX.4.61.0409021029460.17962@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	jamal <hadi@cyberus.ca>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: davem@redhat.com, usagi-core@linux-ipv6.org,
+	netfilter-devel@lists.netfilter.org, bdschuym@pandora.be,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Willy Tarreau <willy@w.ods.org>
-In-Reply-To: <20040902051011.GA1453@alpha.home.local>
+To: hno@marasystems.com
+In-Reply-To: <Pine.LNX.4.61.0409021029460.17962@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,55 +26,52 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-  Hi,
+Hi,
 
-2004-09-02, cs keltez=E9ssel 07:10-kor Willy Tarreau ezt =EDrta:
-> >	One more
-> >         example could be TCP window tracking, I don't think we have
-> >         the necessary bandwidth and CPU time to send an update messag=
-e
-> >         after each and every received TCP packet... Any idea how we
-> >         could solve these problems?
->=20
-> I don't really agree on the bandwidth argument : a small TCP packet wit=
-h
-> only an ACK or a control flag is 40 bytes. This is 12 bytes more than t=
-he
-> smallest UDP packet, so if you can update a connection with at most 12 =
-bytes,
-> you can use links of the same nature. BTW, I don't think you should sen=
-d one
-> packet per connection. You should queue updates into a list, and build =
-the
-> update packet from this list. This way, you eliminate the IP+UDP header=
- (28
-> bytes) for all updates except the first one, which means you then have =
-40
-> bytes to update a connection without using more bandwidth. I'm not sayi=
-ng
-> this is much enough for every case, but I think that depending on the t=
-ype
-> of message (creation, update, destruction), we might do things with thi=
-s.
+From: Henrik Nordstrom <hno@marasystems.com>
+Date: Thu, 2 Sep 2004 10:31:05 +0200 (CEST)
 
-  We already have such a queuing facility, a packet is sent only in case
-of timeout (2s) or if it is full. The problem is the size of the
-messages. At the moment, ct_sync always sends completely self-contained
-updates: that is, a single update message contains every bit of
-information about a conntrack entry. Because of this, the size of an
-update message is 240 bytes (+ 4 byte for the message header). Because
-of this, you can have about five update messages per packet, which is
-not too much... (There are plans to implement a more fine-grained update
-mechanism, but I don't know who will have the time to implement that.)
+> On Thu, 2 Sep 2004, Yasuyuki Kozakai wrote:
+> 
+> > You forgot to find "Jumbo Payload Option" in Hop-by-Hop Options header.
+> > Other options may exist in this header.
+> >
+> > And please truncate packet if actual packet length is greater than
+> > Jumbo Payload Length + IPv6 header length.
+> 
+> Hmm.. a bridge should not touch the packet content unless absolutely 
+> needed to fulfill the Ethernet requirements. Why should it do this on 
+> IPv6?
 
-> If you don't want to synchronize TCP windows, you might also turn the s=
-lave
-> in a "lazy mode" for existing connections when it becomes master. This =
-is a
-> bit dirty, but might be an acceptable trade-off.
+Hmm... Indeed, I don't want br_netfilter to change the packet size when just
+loading it...
 
-  Yes, this is exactly what Jozsef suggested.
+Maybe alternatives are as follows.
 
---=20
- Regards,
-   Krisztian KOVACS
+	1. drop such packets. This approach is not different with truncating
+	   in that output is not same as input when loading it.
+
+	2. change netfilter modules to use payload length in
+	   IPv4 header/IPv6 header/Jumbogram option. Maybe many changes are
+	   necessary...
+
+	3. Just trust skb->len even if it doesn't consist with payload length
+	   in the headers. I'm not sure what happens in this case. At least,
+	   we have to be careful not to bring kernel panic and so on.
+	   The advantage of this case is that user can select to drop/truncate
+	   by inserting filtering rule.
+
+other idea ?
+
+> Does Netfilter require that too large packets have been truncated?
+
+Many netfilter modules assume that skb->len is the right payload length.
+And some modules uses this value to calculate checksum.
+
+> 
+> Regards
+> Henrik
+> 
+
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
