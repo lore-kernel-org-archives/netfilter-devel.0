@@ -1,12 +1,13 @@
-From: Vinay Reddy <vinayvinay@gmail.com>
-Subject: reverse NATing
-Date: Fri, 18 Mar 2005 13:07:33 +0530
-Message-ID: <537f59d10503172337941a6a4@mail.gmail.com>
-Reply-To: Vinay Reddy <vinayvinay@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: IP SET target iptables fix
+Date: Fri, 18 Mar 2005 09:14:43 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0503180907470.14190@blackhole.kfki.hu>
+References: <200503171840.01301.mpokrywka@hoga.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
+To: Michal Pokrywka <mpokrywka@hoga.pl>
+In-Reply-To: <200503171840.01301.mpokrywka@hoga.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,16 +20,22 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
-I would like to know where exactly reverse mapping(packets coming from
-outside to the internal network) is done in the case of SNAT? From the
-netfilter documentation, it seems to be done in the POST_ROUTING hook.
-Is it true?
-Logically I would expect the packet to be reverse mapped in the
-pre-routing state itself. Why would one want to reverse map it in post
-routing? I am sure I am missing something. Could anyone please
-enlighten me?
 
-Any help would be appreciated.
+On Thu, 17 Mar 2005, Michal Pokrywka wrote:
 
-Regards,
-Vinay
+> Current iptables target needs to test for IP_SET_INVALID_ID when
+> printing or saving rules from kernel, currently it errors "iptables v1.3.1:
+> Set id 65535 in kernel doesn't exist."
+>
+> Patch below fixes this problem:
+
+Yes, good catch: patch is applied in svn, iptables shapshot updated on
+webpage.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
