@@ -1,19 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [BUG] Netfilter in Linux 2.6.1
-Date: Tue, 27 Jan 2004 12:00:19 +0100
+Subject: Re: MAX_PORTS for ftp modules
+Date: Tue, 27 Jan 2004 12:01:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127110019.GH11761@sunbeam.de.gnumonks.org>
-References: <20040123160319.GA2733@schottelius.org> <20040123114205.014be03b.davem@redhat.com>
+Message-ID: <20040127110149.GI11761@sunbeam.de.gnumonks.org>
+References: <20040126211441.GA10833@66.27.62.2>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HuscSE0D68UGttcd"
-Cc: Nico Schottelius <nico-linux-net@schottelius.org>,
-	linux-net@vger.kernel.org, gregor@tecmafia.de,
-	netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="Rmm1Stw9KgbdL9/H"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: Nick Pasich <newsletters@NickAndBarb.net>
 Content-Disposition: inline
-In-Reply-To: <20040123114205.014be03b.davem@redhat.com>
+In-Reply-To: <20040126211441.GA10833@66.27.62.2>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,28 +23,37 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---HuscSE0D68UGttcd
+--Rmm1Stw9KgbdL9/H
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 23, 2004 at 11:42:05AM -0800, David S. Miller wrote:
-> On Fri, 23 Jan 2004 17:03:19 +0100
-> Nico Schottelius <nico-linux-net@schottelius.org> wrote:
+On Mon, Jan 26, 2004 at 01:14:41PM -0800, Nick Pasich wrote:
+>  Hi,
 >=20
-> > Is that right?
-> >=20
-> > This looks for me like bug in netfilter...
+>  I've exhausted the MAX_PORTS limit of 8 for ftp using my own port id.
 >=20
-> Netfilter first sees the pre-encrypted SSH TCP packets before they are
-> encapsulated in ESP, and thus your rules say to drop those.
->=20
-> That's just how things work currently.
+>  I'm wondering if there are any repercussions in upping the limit to say,
+>  16 in the following modules.
 
-JFYI: We're currently discussing how to proceed with this issue on
-netfilter-devel (Thread started at
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-January/013879.ht=
-ml)
+No, as has been discussed before (and I believe is also on the FAQ or
+some HOWTO).
+
+>  ip_conntrack_ftp.c:  #define MAX_PORTS 8
+>  ip_conntrack_irc.c:  #define MAX_PORTS 8
+>  ip_conntrack_tftp.c: #define MAX_PORTS 8
+>  ip_nat_ftp.c:        #define MAX_PORTS 8
+>  ip_nat_irc.c:        #define MAX_PORTS 8
+>  ip_nat_tftp.c:       #define MAX_PORTS 8
+>=20
+>=20
+>  I noticed that ipfwadm_core.c has "IP_FW_MAX_PORTS" which is defined in
+>  ipfwadm_core.h as 10.
+
+ipfwadm is 2.0.x kernel backwards compatibility.  please don't look at
+that code ever again ;)
+
+=20
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -58,7 +65,7 @@ ml)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---HuscSE0D68UGttcd
+--Rmm1Stw9KgbdL9/H
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -66,9 +73,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAFkTDXaXGVTD0i/8RArS9AJ9out+GO5iEJXRQFEski3XyGRPI+gCbBM41
-APjOapnCHcNMnGF9kiFrZiU=
-=s4oW
+iD8DBQFAFkUdXaXGVTD0i/8RAmW4AKC0hGThSs5UAr4Kxt/Eti/A67pLIwCeOJzb
+dc0RwY5GkUOcyGDvjhcOc2Y=
+=xZ7g
 -----END PGP SIGNATURE-----
 
---HuscSE0D68UGttcd--
+--Rmm1Stw9KgbdL9/H--
