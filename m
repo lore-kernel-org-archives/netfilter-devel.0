@@ -1,13 +1,17 @@
-From: "Wojciech Maj" <wojtektm@poczta.fm>
-Subject: How to match CLOSE or TIME_WAIT state
-Date: Fri, 3 Jan 2003 22:01:43 +0100
+From: jamal <hadi@cyberus.ca>
+Subject: Re: [Linux Diffserv] ANNOUNCE: tc filter extensions
+Date: Sat, 4 Jan 2003 13:37:44 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000801c2b36b$53036840$060110ac@localdomain>
+Message-ID: <20030104133257.I48869__8403.42630767754$1041973791@shell.cyberus.ca>
+References: <20030104125252.J48869@shell.cyberus.ca> <3E172729.2070707@promo.ro>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0005_01C2B373.B3A2D840"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: diffserv-general <diffserv-general@lists.sourceforge.net>,
+	"" <lartc@mailman.ds9a.nl>, "" <netfilter@lists.samba.org>,
+	"" <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Ciprian Niculescu <ciprian@promo.ro>
+In-Reply-To: <3E172729.2070707@promo.ro>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,87 +22,74 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0005_01C2B373.B3A2D840
-Content-Type: text/plain;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-
-Hi all
-
-I would like to know, how to match packets which have TIME_WAIT (etc..) =
-state (I need to match packets which are related with already closed =
-connection - which "close" connection).
-It is impossible to do with state or conntrack module, but I think It =
-would be easy to do after few changes in these modules.=20
-I don't know netfilter code enough, so I can't do that.
-Would anybody help me?  PLEASE HELP !
-
-Thanks in advance
-
-Wojtek=20
-
-(Forgive me my English please)
 
 
+Yes, thats is a useful feature.
+Should be able to able use the iptables LOG; I am trying to avoid
+replicating things which already exist; it is very easy to replicate it.
+I'll test iptables LOG sometimes today; if you beat me to it, let me know
+if it works.
 
+cheers,
+jamal
 
+On Sat, 4 Jan 2003, Ciprian Niculescu wrote:
 
-
-
-------=_NextPart_000_0005_01C2B373.B3A2D840
-Content-Type: text/html;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META content=3D"text/html; charset=3Diso-8859-2" =
-http-equiv=3DContent-Type>
-<META content=3D"MSHTML 5.00.2614.3500" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3D"Arial CE" size=3D2>Hi all</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3D"Arial CE" size=3D2>I would like to know, how to match =
-packets=20
-which have TIME_WAIT (etc..) state (I need to</FONT><FONT face=3D"Arial =
-CE"=20
-size=3D2> match packets which are related with already closed connection =
-- which=20
-"close" connection).</FONT></DIV>
-<DIV><FONT face=3D"Arial CE" size=3D2>It is impossible to do with state =
-or conntrack=20
-module, but I think It would be easy to do after few changes in these =
-modules.=20
-</FONT></DIV>
-<DIV><FONT face=3D"Arial CE" size=3D2>I don't know netfilter code =
-enough, so I can't=20
-do that.</FONT></DIV>
-<DIV><FONT face=3D"Arial CE" size=3D2>Would anybody help me?</FONT><FONT =
-
-face=3D"Arial CE" size=3D2>&nbsp; PLEASE HELP !</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3D"Arial CE" size=3D2>Thanks in advance</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3D"Arial CE" size=3D2>Wojtek </FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3D"Arial CE" size=3D2>(Forgive me my English =
-please)</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV></BODY></HTML>
-
-
-<TABLE cellPadding=3D"3" bgColor=3D"#ffffff"><TBODY><TR><TD style=3D"font: 12px Courier New, Courier, monotype.com; padding: 3px; background: #ffffff; color: #000000">----------------------------------------------------------------------
-<BR>
-Oficjalny serwis Polskiej Reprezentacji Skoczkow Narciarskich!
-<BR>
-&gt;&gt;&gt; <A href=3D"http://link.interia.pl/f16b1">http://link.interia.pl/f16b1</a></TD></TR></TBODY></TABLE>
-
-------=_NextPart_000_0005_01C2B373.B3A2D840--
+> hello,
+>
+> if someone can develop a feature like -j LOG from iptables, for the tc
+> filter
+>
+> for ex i have
+>
+> tc filter ...... match dport 80 0xffff flowid 1:1
+>
+> i want to write to syslog the headers of the packets that matched this rule.
+>
+> C
+>
+> jamal wrote:
+> >
+> > I guess holidays means idle time which means idle minds which leads to
+> > thumb twiddling which then leads to some work (which is sometimes useful)
+> >
+> > Ive updated the traffic control patches i posted about six months ago.
+> > Note, the current release does not break anything in tc. It is fully
+> > backward compatible so you can choose not to use it and things will work
+> > as they do today. Of course, it is very useful so you cant choose to
+> > ignore it!
+> >
+> > It's now upgraded to better than "use at your own risk" category.
+> > tested on both uni and SMP 2.4.18 and 2.4.20.
+> >
+> > http://www.cyberus.ca/~hadi/patches/action/
+> >
+> > Bug reports and feedback are appreaciated.
+> > A lot more goodies coming up, so this is just the tip. First steps are to
+> > prove sanity of the idea.
+> >
+> > cheers,
+> > jamal
+> >
+> >
+> > -------------------------------------------------------
+> > This sf.net email is sponsored by:ThinkGeek
+> > Welcome to geek heaven.
+> > http://thinkgeek.com/sf
+> > _______________________________________________
+> > Diffserv-general mailing list
+> > Diffserv-general@lists.sourceforge.net
+> > https://lists.sourceforge.net/lists/listinfo/diffserv-general
+>
+>
+>
+>
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Diffserv-general mailing list
+> Diffserv-general@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/diffserv-general
+>
