@@ -1,16 +1,12 @@
-From: Peter Surda <shurdeek@panorama.sth.ac.at>
-Subject: Re: Forced SNAT in PREROUTING
-Date: Fri, 29 Nov 2002 18:54:28 +0100
+From: "David S. Miller" <davem@redhat.com>
+Subject: [Fwd: Question with printk warnings in ip_conntrack with 2.4.20.]
+Date: 29 Nov 2002 17:12:43 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021129175428.GI6400@noir.cb.ac.at>
-References: <1038590746.3de7a31a50736@wmail-mat.upc.es>
+Message-ID: <1038618763.22065.1.camel@rth.ninka.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZG+WKzXzVby2T9Ro"
+Content-Type: multipart/mixed; boundary="=-6ZSvKfI+EAmr8tnzssBx"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <1038590746.3de7a31a50736@wmail-mat.upc.es>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,53 +18,70 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ZG+WKzXzVby2T9Ro
-Content-Type: text/plain; charset=us-ascii
+--=-6ZSvKfI+EAmr8tnzssBx
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+
+Just forwarding a bug report...
+
+
+--=-6ZSvKfI+EAmr8tnzssBx
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Description: Forwarded message - Question with printk warnings in
+	ip_conntrack with 2.4.20.
+Content-Type: message/rfc822
 
-On Fri, Nov 29, 2002 at 06:25:46PM +0100, Eduard Calvo (B-teljpa) EXP JAN 0=
-3 wrote:
->   Hi gurus,=20
-Hi,
+Return-Path: <linux-kernel-owner+davem=40rth.ninka.net@vger.kernel.org>
+Received: from vger.kernel.org (vger.kernel.org [209.116.70.75]) by
+	rth.ninka.net (8.12.5/8.12.5) with ESMTP id gATDvR1O020966 for
+	<davem@rth.ninka.net>; Fri, 29 Nov 2002 05:57:27 -0800
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand id
+	<S267038AbSK2NYW>; Fri, 29 Nov 2002 08:24:22 -0500
+Received: (majordomo@vger.kernel.org) by vger.kernel.org id
+	<S267039AbSK2NYW>; Fri, 29 Nov 2002 08:24:22 -0500
+Received: from lucidpixels.com ([66.45.37.187]:386 "HELO lucidpixels.com")
+	by vger.kernel.org with SMTP id <S267038AbSK2NYV>; Fri, 29 Nov 2002
+	08:24:21 -0500
+Received: (qmail 337 invoked from network); 29 Nov 2002 08:31:43 -0000
+Received: from unknown (HELO lucidpixels.com) (192.168.168.12) by 0 with
+	SMTP; 29 Nov 2002 08:31:43 -0000
+Message-ID: <3DE76C3F.5010601@lucidpixels.com>
+Date: Fri, 29 Nov 2002 08:31:43 -0500
+From: jpiszcz <jpiszcz@lucidpixels.com>
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.0.1)
+	Gecko/20020823 Netscape/7.0
+X-Accept-Language: en-us, en
+MIME-Version: 1.0
+To: linux-kernel@vger.kernel.org
+Subject: Question with printk warnings in ip_conntrack with 2.4.20.
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+Precedence: bulk
+X-Mailing-List: linux-kernel@vger.kernel.org
 
->   All I have to do is to allow the target SNAT to be called in the PREROU=
-TING=20
-> chain.
-Actually, I am also interested in something like this. More precisely, I wo=
-uld
-like to match a packet after doing SNAT, but currently AFAIK this is not
-possible, after you do a -j SNAT (or -j SAME), the packet leaves all tables
-and all chains.
+Nov 29 03:29:26 lucidpixels kernel: ip_conntrack: max number of expected 
+connections 1 of ftp reached for 192.168.xxx.xxx->129.128.5.191, reusing
+Nov 29 03:29:30 lucidpixels kernel: ip_conntrack: max number of expected 
+connections 1 of ftp reached for 192.168.xxx.xxx->129.132.7.170, reusing
+Nov 29 03:29:36 lucidpixels kernel: ip_conntrack: max number of expected 
+connections 1 of ftp reached for 192.168.xxx.xxx->195.113.31.123, reusing
 
-Why? It would allow very easy loadbalancing if you have more lines. You sim=
-ply
-SNAT/SAME to more addresses and then ROUTE to a specific interface. Now if =
-you
-SNAT/SAME, the packet can't be matched anymore and there is no way to do
-ROUTE. And as you just have been in POSTROUTING, you can't reroute from
-userspace anymore.
+These fill up my logs (kern.info) which I use for logging iptables 
+blocked packets.
+Is there anyway to turn this feature off dynamically or should one just 
+comment out line #970 in 
+/usr/src/linux/net/ipv4/netfilter/ip_conntrack_core.c ?
 
->                                     Eduard Calvo.=20
-Bye,
+Please cc me as I am not subscribed to the list, thanks.
 
-Peter Surda (Shurdeek) <shurdeek@panorama.sth.ac.at>, ICQ 10236103, +436505=
-122023
 
---
-               I believe the technical term is "Oops!"
 
---ZG+WKzXzVby2T9Ro
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE956nTzogxsPZwLzcRAvabAJkBvQAPEdLHc5VvdrdjNpbhzUCY/QCfUc/4
-1TBoqJOWGrQlEo4ycIW7Ck4=
-=gDdr
------END PGP SIGNATURE-----
-
---ZG+WKzXzVby2T9Ro--
+--=-6ZSvKfI+EAmr8tnzssBx--
