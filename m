@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Jitter phenomenon in the netfilter infrastructure
-Date: Thu, 16 Oct 2003 14:30:29 +0200
+Subject: Re: How to take over TCP connection from userspace process?
+Date: Thu, 23 Oct 2003 10:53:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031016123029.GU14807@obroa-skai.de.gnumonks.org>
-References: <3F8E4BFD.1050103@yahoo.it>
+Message-ID: <20031023085347.GD1418@sunbeam.de.gnumonks.org>
+References: <20031021134729.GB12049@sunbeam.de.gnumonks.org> <006f01c3984e$e045fce0$d32f110a@yrhd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="D2rVImvqWGvKULsk"
+	protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Mike-Ro-Chanel <mikerochanel@yahoo.it>
+To: yangrunhua <yangrunhua@njupt.edu.cn>
 Content-Disposition: inline
-In-Reply-To: <3F8E4BFD.1050103@yahoo.it>
+In-Reply-To: <006f01c3984e$e045fce0$d32f110a@yrhd>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +23,52 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---D2rVImvqWGvKULsk
+--s9fJI615cBHmzTOP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 16, 2003 at 09:42:53AM +0200, Mike-Ro-Chanel wrote:
-> Hi All,
-> Inspired by ipt_limit module I've written a token bucket module as a=20
-> iptables module extension.
+On Wed, Oct 22, 2003 at 11:44:56AM +0800, yangrunhua wrote:
+
+> What I need is: after I authenticated TCP connection A(host A
+> connected to me) and TCP connection B(host B connected to me), then
+> let what host A send (through TCP connection A)directly forward to
+> host B(through TCP connection B) in the kernel ,meanwhile, what host B
+> send directly forward to host A in the kernel.
+
+> That's much like MSN Messenger Server's relaying webcam video stream
+> between two peers after authenticated them. I want to do this relay in
+> kernel space and auth in the userspace. It's much like NGN
+> softswitch's theory: control and auth separate from transfer.
+
 >=20
-> I've observed a strange behaviour:
-> In the linux kernel 2.4.21 input ethernet frames are sent to the IPv4=20
-> layer by "process_backlog()" function, this one pass to ip_rcv()=20
-> hundreds of SKB elements in a single burst, its execution is limited (in=
-=20
-> time) by 1 jiffy.
-> As result a regular IPv4 input traffic is looked by PREROUTING hook as=20
-> an irregular flow of packets.
+> That's much useful functionality. Can netfilter/iptables help this?
+> done this by writing a new target or something?
 
-yes, but you have an skb receive timestamp, which tells you the exact
-jiffies at which the skb came in from the wire.
+no, it doesn't help.  What you are trying is intermixing of
+packet-oriented paradigm with connection/stream oriented paradigm.
 
-> Thanks
-> 	Mike-Ro-Chanel
+netfilter/iptables deals with individual packets.  So if you do NAT or
+something, every packet that we receive is transmited  as another
+packet. =20
+
+If you accept a socket from userspace, than there's no more packets.  At
+socket level you have a bidirectional stream of bytes.  So in order to
+send the same data oever another socket, you need to re-packetize that
+stream. In the end, you will have different packets with different
+flags, sequencenumber, and eventually size (depending on mtu), window
+scaling, options, ...
+
+so _either_ you authenticate based on layer2 - layer4 addresses, and you
+deal with packets, _or_ you authenticate somehow witin the TCP stream,
+but than you don't have packets of a single connection, but rather two
+seperate connections with each a stream of bytes in each direction.
+
+This is not a limitation by netfitler/iptables.  It's about the
+fundamentals of networking protocol layers.
+
+> Thanks,
+> 	Runhua Yang
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -58,16 +80,16 @@ jiffies at which the skb came in from the wire.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---D2rVImvqWGvKULsk
+--s9fJI615cBHmzTOP
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/jo9lXaXGVTD0i/8RAirhAJ9s2hbPNXxY67ccEeI1BNYiWvxPzwCfaiCU
-UTceok0b6XcogcUoeeGfok0=
-=ctwL
+iD8DBQE/l5cbXaXGVTD0i/8RAqryAJ9ANabWM13EewqLlCKjCDhZkDx/zwCdF71F
+lftls5ErA57dYKrklHcvuac=
+=E/I0
 -----END PGP SIGNATURE-----
 
---D2rVImvqWGvKULsk--
+--s9fJI615cBHmzTOP--
