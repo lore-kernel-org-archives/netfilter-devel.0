@@ -1,15 +1,13 @@
-From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: Re: [PATCH] ipt_hashlimit.c: avoid data corruption on checkentry
-Date: Mon, 14 Feb 2005 23:04:19 -0500
-Message-ID: <421174C3.8030705@cookinglinux.org>
-References: <42005218.5000401@cookinglinux.org>
-	<20050215005255.GS3829@sunbeam.de.gnumonks.org>
-Reply-To: sjean@cookinglinux.org
+From: Harald Welte <laforge@netfilter.org>
+Subject: nf_conntrack resync with 2.6.11-rc4
+Date: Tue, 15 Feb 2005 13:47:51 +0100
+Message-ID: <20050215124751.GZ3829@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090608010506080600050002"
-Cc: netfilter-devel@lists.netfilter.org
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050215005255.GS3829@sunbeam.de.gnumonks.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="e9fMjeYs+GPci+mg"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,97 +19,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090608010506080600050002
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-*Sorry if you get it twice. Looks like I sent from wrong email.*
+--e9fMjeYs+GPci+mg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Harald Welte wrote:
+Hi Yasuyuki!
 
-> Please consider / comment the following (untested) patch.
+Since lots of changes went into ip_conntrack over the last months, I
+went through the pain of re-synchronizing nf_conntrack with
+ip_conntrack, hopefully this was the last time.
 
-Yes. That's much less complicated than the other proposed patch.
+The code that is now in svn (Version 3689) compiles fine with a
+2.6.11-rc4 kernel here.  I didn't yet do runtime testing.  Yasuyuki,
+could you please look into that?
 
-> 
-> Not really sure whether nesting the rwlock inside the mutex is that much
-> of a good idea... but as the comment indicates, I think it's the best we
-> can get.
+I will really oppose any fundamental changes to ip_conntrack at this
+point, unless the respectiva author submits patches for both
+ip_conntrack and nf_conntrack.
 
-I think the best we actually can get, is also replacing those rwlock's with
-simple lock's. As you said on IRC, that's a bit overkill.
+It's still my position that we should merge it upstream ASAP (2.6.12),
+even though some minor isues (like ct_extend vs. features) have not yet
+been sorted out completely.  We don't have an experimental kernel
+series, so we have to put it as EXPERIMENTAL into current 2.6.x.  This
+gives us more exposure, and will make syncing with ip_conntrack changes
+a more obvious duty :)
 
-Incremental (also untested, but compiles) patch to your is attached.
+To give it even more testing, I'm now starting the work on implementing
+IPv4 NAT on top of it - lots of users (including me) won't be able to run
+it on their production routers without that feature :(
 
+Cheers,
+	Harald
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
+--e9fMjeYs+GPci+mg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
---------------090608010506080600050002
-Content-Type: text/x-patch;
-	name="linux-2.6.11-rc4-bk2-incremental_get_rid_rwlock.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="linux-2.6.11-rc4-bk2-incremental_get_rid_rwlock.patch"
+iD8DBQFCEe93XaXGVTD0i/8RAvhVAJ4yvCiQ19fvH/Rhm/Nm+2rdZE7j/gCeK3d7
+JQ+Hp/FCSy+eYE/mM4cPEdM=
+=wG5c
+-----END PGP SIGNATURE-----
 
-#
-#Signed-off-by: Samuel Jean <sjean@cookinglinux.org>
-#
---- d/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-14 20:48:33.000000000 -0500
-+++ e/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-14 21:00:07.000000000 -0500
-@@ -97,7 +97,7 @@ struct ipt_hashlimit_htable {
- 	struct list_head hash[0];	/* hashtable itself */
- };
- 
--static DECLARE_RWLOCK(hashlimit_lock);	/* protects htables list */
-+static DECLARE_LOCK(hashlimit_lock);	/* protects htables list */
- static DECLARE_MUTEX(hlimit_mutex);	/* additional checkentry protection */
- static LIST_HEAD(hashlimit_htables);
- static kmem_cache_t *hashlimit_cachep;
-@@ -230,9 +230,9 @@ static int htable_create(struct ipt_hash
- 	hinfo->timer.function = htable_gc;
- 	add_timer(&hinfo->timer);
- 
--	WRITE_LOCK(&hashlimit_lock);
-+	LOCK_BH(&hashlimit_lock);
- 	list_add(&hinfo->list, &hashlimit_htables);
--	WRITE_UNLOCK(&hashlimit_lock);
-+	UNLOCK_BH(&hashlimit_lock);
- 
- 	return 0;
- }
-@@ -296,15 +296,15 @@ static struct ipt_hashlimit_htable *htab
- {
- 	struct ipt_hashlimit_htable *hinfo;
- 
--	READ_LOCK(&hashlimit_lock);
-+	LOCK_BH(&hashlimit_lock);
- 	list_for_each_entry(hinfo, &hashlimit_htables, list) {
- 		if (!strcmp(name, hinfo->pde->name)) {
- 			atomic_inc(&hinfo->use);
--			READ_UNLOCK(&hashlimit_lock);
-+			UNLOCK_BH(&hashlimit_lock);
- 			return hinfo;
- 		}
- 	}
--	READ_UNLOCK(&hashlimit_lock);
-+	UNLOCK_BH(&hashlimit_lock);
- 
- 	return NULL;
- }
-@@ -312,9 +312,9 @@ static struct ipt_hashlimit_htable *htab
- static void htable_put(struct ipt_hashlimit_htable *hinfo)
- {
- 	if (atomic_dec_and_test(&hinfo->use)) {
--		WRITE_LOCK(&hashlimit_lock);
-+		LOCK_BH(&hashlimit_lock);
- 		list_del(&hinfo->list);
--		WRITE_UNLOCK(&hashlimit_lock);
-+		UNLOCK_BH(&hashlimit_lock);
- 		htable_destroy(hinfo);
- 	}
- }
-
-
-
---------------090608010506080600050002--
+--e9fMjeYs+GPci+mg--
