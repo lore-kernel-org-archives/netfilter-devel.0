@@ -1,14 +1,15 @@
-From: Diadon <diadon@isfera.ru>
-Subject: Netfilter problem with new 2.4.22
-Date: Thu, 18 Sep 2003 13:14:48 +0400
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Routing decision?
+Date: Thu, 18 Sep 2003 13:22:59 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F697788.8080103@isfera.ru>
+Message-ID: <Pine.LNX.4.44.0309181320030.20799-100000@filer.marasystems.com>
+References: <3F6960B5.6050303@able.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, <dev@able.be>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Wim Ceulemans <wim.ceulemans@able.be>
+In-Reply-To: <3F6960B5.6050303@able.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,97 +20,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-More new info about this problem.
+On Thu, 18 Sep 2003, Wim Ceulemans wrote:
 
-When I get ipt_REJECT.c from 2.4.21 and replace ipt_REJECT.c in 2.4.22, 
-problem has disappeared. So when I compare two files ipt_REJECT.c from 
-different versions of kernel:
+> Wouldn't the firewall be more predictable if the routing decision was 
+> always taken after the packet travels through the OUTPUT chain, even if 
+> it was a packet originating from an unbound socket? In that way the 
+> diagram in the netfilter tutorial would be true in all cases, and also if
+> advanced routing with the ip command is used, it would work with all 
+> packets (originating from bound or unbound sockets).
 
-3a4
- >  * Added support for ICMP type-3-code-13 (Maciej Soltysiak). [RFC 1812]
-35a37,76
- > static inline struct rtable *route_reverse(struct sk_buff *skb, int 
-local)
- > {
- >       struct iphdr *iph = skb->nh.iph;
- >       struct dst_entry *odst;
- >       struct rt_key key = {};
- >       struct rtable *rt;
- >
- >       if (local) {
- >               key.dst = iph->saddr;
- >               key.src = iph->daddr;
- >               key.tos = RT_TOS(iph->tos);
- >
- >               if (ip_route_output_key(&rt, &key) != 0)
- >                       return NULL;
- >       } else {
- >               /* non-local src, find valid iif to satisfy
- >                * rp-filter when calling ip_route_input. */
- >               key.dst = iph->daddr;
- >               if (ip_route_output_key(&rt, &key) != 0)
- >                       return NULL;
- >
- >               odst = skb->dst;
- >               if (ip_route_input(skb, iph->saddr, iph->daddr,
- >                                  RT_TOS(iph->tos), rt->u.dst.dev) != 0) {
- >                       dst_release(&rt->u.dst);
- >                       return NULL;
- >               }
- >               dst_release(&rt->u.dst);
- >               rt = (struct rtable *)skb->dst;
- >               skb->dst = odst;
- >       }
- >
- >       if (rt->u.dst.error) {
- >               dst_release(&rt->u.dst);
- >               rt = NULL;
- >       }
- >
- >       return rt;
- > }
- >
-66,69c107
-<       /* Routing: if not headed for us, route won't like source */
-<       if (ip_route_output(&rt, oldskb->nh.iph->saddr,
-<                           local ? oldskb->nh.iph->daddr : 0,
-<                           RT_TOS(oldskb->nh.iph->tos), 0) != 0)
----
- >       if ((rt = route_reverse(oldskb, local)) == NULL)
-332a371,373
- >       case IPT_ICMP_ADMIN_PROHIBITED:
- >               send_unreach(*pskb, ICMP_PKT_FILTERED);
- >               break;
+The routing takes place before OUTPUT on unbound sockets as it is the 
+routing table who decides the source IP address to use if the socket is 
+unbound, and it is impossible to create the packet without having the 
+source address.
 
+> Of course for packets originating from unbound sockets this would lead 
+> to the fact that the routing decision code is gone through twice, but 
+> the first time only for determining the source address, and the second 
+> time to be able to re-route the packet to another interface (based on 
+> marks set in the output chain).
 
+Yes, and this is what happens when it is needed.
 
+The kernel uses routing before output to find the source IP address.
 
-As I think problem in new new route_reverse function which called from 
-tcp_reset() procedure
+Then when iptables changes the packet in such manner that the routing may 
+change it calls the routing again, but only if the packet is modified by 
+iptables.
 
-So any new ideas?
+If there is no changes in the packet details iptables does not call 
+routing again as it can be assumed the result will be the same as in the 
+first call.
 
-
- > Subject:
- > Netfilter problem with new 2.4.22
- > From:
- > Diadon <diadon@isfera.ru>
- > Date:
- > Tue, 16 Sep 2003 14:22:37 +0400
- > To:
- > linux-kernel@vger.kernel.org
-
- > After installing 2.4.22
- > this chain doesn't work
- > $IPPROG -A OUTPUT -p tcp --dport 113 -j REJECT --reject-with tcp-reset
-
- > On 2.4.21 all works fine
- > In tcpdump on 2.4.21:
- > 14:41:41.752557 somehost.auth > somehost1.32825: R 0:0(0) ack 
-217583467 win 0 (DF)
-
- > In tcpdump on 2.4.22:
- > nothing.......
-
-
- > any ideas?
+Regards
+Henrik
