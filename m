@@ -1,13 +1,18 @@
-From: Guilherme Cesar Soares Ruppert <ruppert@las.ic.unicamp.br>
-Subject: Help!! How to steal UDP traffic?
-Date: Mon, 24 Jan 2005 22:10:45 -0200 (BRST)
-Message-ID: <Pine.LNX.4.61.0501242209090.6917@quasar.las.ic.unicamp.br>
-References: <Pine.LNX.4.61.0501221918080.6027@quasar.las.ic.unicamp.br>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH 3/2] Fix compile with NAT but without modules
+Date: Tue, 25 Jan 2005 14:35:19 +1100
+Message-ID: <1106624119.19186.27.camel@localhost.localdomain>
+References: <1106440732.20995.48.camel@tux.rsn.bth.se>
+	<41F4426B.3040204@trash.net>
+	<20050123201517.56619591.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
+	gandalf@wlug.westbo.se, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.61.0501221918080.6027@quasar.las.ic.unicamp.br>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20050123201517.56619591.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,39 +24,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, 2005-01-23 at 20:15 -0800, David S. Miller wrote:
+> On Mon, 24 Jan 2005 01:33:47 +0100
+> Patrick McHardy <kaber@trash.net> wrote:
+> 
+> > I'll apply your patches and push them to Dave tomorrow, bkbkits.com
+> > is unreachable currently so I can't resync my tree.
+> 
+> To be frank, this is one of several severe fallouts from
+> Rusty's patches.  I really think they were not ready for
+> submission when he sent them to me.
 
+Yes.  Harald NAKed some of them, and I did nowhere near enough testing
+after I shuffled and reworked them to remove the ones he didn't like.
+That's entirely my fault, because I needed to get back to IBM work and
+rushed it.  Some of these patches had been sitting around for over a
+year, and I know that if I didn't push now it would be another year 8(
 
-  Hi everyone, please I need some help!!
+> It even broke the build if you had modules enabled in any
+> way.
+> 
+> I'm only mentioning this because it appears that nfsim is
+> becomming partially a crutch, because I know this is what
+> Rusty and others use heavily for testing.  Which is fine,
+> but if your patches break the build in many ways in the
+> real kernel tree you're relying too heavily on the userland
+> simulator IMHO.
 
-  I'm developing a program that needs to intercept an UDP traffic generated
-  locally by another application. It's like a tunnel. My program will steal the
-  outgoing packets from the application (in the same machine) and will send to
-  a tcp tunnel.
+True, nfsim sucks for build testing (eg. you only need one #include),
+and you always need "real life" testing (eg. races, complex routing,
+etc).  But the worst build breakage was because my .config didn't
+include some things, which is my the "real" build test also failed to
+find them.
 
-  I am using Libipq to do that, but I have a BIG problem. After send the UDP
-  packets to my tunnel, I need to DROP the packets because I don't want them to
-  be sent over the network. So I am doing:
-  ipq_set_verdict(handle, m->packet_id, NF_DROP, 0, NULL);
+OTOH, without nfsim those patches would never have been completed at
+all, due to untestability.  That's why major NAT changes were not done
+much earlier: there are too many nasty complex scenarios for someone to
+test them all, especially such "unnecessary" cleanup work.
 
-  But the problem is that when I drop the packet, the application that
-  generated the packet remains blocked in sendto() until the packet is
-  accepted. When I change to NF_ACCEPT, the application doesn't block but the
-  packets are sent to the network and I don't want it.
+I will admit that I'm learning the hard way when to use nfsim, and when
+not to.  For example, looks like the IRC nat helper is broken.  Guess
+what: no tests in the testsuite.  (I'm writing one now, expect a "boot
+tested" patch RSN).
 
-  How could I drop a packet silently, without blocking the application? Is
-  there any way to intercept outgoing packets locally without let the
-  applications notice that their packet were stolen?
-
-  Here is the same example using netcat:
-  $ iptables -A OUTPUT -p udp -j QUEUE
-  $ echo "Test" | nc -n -u 10.1.1.23 800
-  And this last remains blocked, not returning to shell.
-
-  I tested will ping (icmp echo) also and the same happened, but ping didn't
-  block. Instead, it said "operation not permitted".
-
-  Please give me some hope!!! :-)
-
-  Thanks
-
-  Guilherme Ruppert
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
