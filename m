@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Patchomatic Snapshot Packages
-Date: Wed, 28 Jan 2004 09:20:33 +0100
+Subject: Re: subject-prefixing of ml postings (was Re: A humble request)
+Date: Wed, 28 Jan 2004 09:31:15 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040128082033.GK11761@sunbeam.de.gnumonks.org>
-References: <004c01c3e56b$58dc7490$db00a8c0@W2RZ8L4S02>
+Message-ID: <20040128083115.GL11761@sunbeam.de.gnumonks.org>
+References: <20040128043326.45988.qmail@web14003.mail.yahoo.com> <20040128045409.9799.qmail@web14007.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cW0eHRJ76X8TDo3d"
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="dnd11iroZwpv/0M5"
+Cc: Zeeshan Ali <zeelists@yahoo.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jim Gifford <jim@jg555.com>
+To: Kiran Kumar <immidi_kiran@yahoo.com>
 Content-Disposition: inline
-In-Reply-To: <004c01c3e56b$58dc7490$db00a8c0@W2RZ8L4S02>
+In-Reply-To: <20040128045409.9799.qmail@web14007.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,24 +23,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---cW0eHRJ76X8TDo3d
+--dnd11iroZwpv/0M5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 27, 2004 at 10:52:50PM -0800, Jim Gifford wrote:
-> I just noticed since Jan 11th, there have not been any snapshots of
-> patch-o-matic. Is this being discontinued??
+On Tue, Jan 27, 2004 at 08:54:09PM -0800, Kiran Kumar wrote:
+> --- Kiran Kumar <immidi_kiran@yahoo.com> wrote:
+>=20
+> >   I have built up some content based on the rules of
+> > another list that I am on (most of which are, I
+> > guess,
+> > relevant here as well). The patch for the homepage
+> > module of cvs is attached.
+>=20
+>   Sorry, seems the previous one had a problem..
+> resending it.
 
-no, there seems to be a problem with the script generating them.  I
-definitely updated that script when I reorganized the layout of the CVS
-tree, but there still seems to be a problem with it.
+thanks a  lot, I've committed your change to CVS and will update the
+homepage shortly.
 
-thank you for letting us know.
+Have you been progressing with some of the other proposed work (either
+homepage-related, or netfilter-related), or are you waiting for me
+making a concrete assignment?
 
-I'll investigate.
+I really don't want to lose your offer for help just because of some
+misunderstanding.
 
-> Jim Gifford
+> Kiran Kumar Immidi
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -53,7 +62,7 @@ I'll investigate.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---cW0eHRJ76X8TDo3d
+--dnd11iroZwpv/0M5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -61,9 +70,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAF3DRXaXGVTD0i/8RAkBlAJ9/3F54JA4HNEogZc8bzpojIM3ubgCfXx70
-sjweTcA+zLiXtkDBGmiLtYc=
-=wNKU
+iD8DBQFAF3NTXaXGVTD0i/8RAmPrAJ9KkYTizLOs7cXApaQdbCeqfqa4bQCfYJAf
+Z3gW3R/2uQ3ZSynokZSXki8=
+=8bmW
 -----END PGP SIGNATURE-----
 
---cW0eHRJ76X8TDo3d--
+--dnd11iroZwpv/0M5--
