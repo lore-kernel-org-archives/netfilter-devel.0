@@ -1,10 +1,10 @@
-From: Eicke Friedrich <tady@gmx.net>
-Subject: [PATCH] ipp2p 0.6.1-2
-Date: Fri, 10 Sep 2004 13:10:58 +0200
+From: "Sergio C" <sergnut@hotmail.com>
+Subject: Defragmentation question
+Date: Fri, 10 Sep 2004 20:26:31 +0000
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41418BC2.7030705@gmx.net>
+Message-ID: <BAY10-F49ZndN8dtdCV0001bf58@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010406060304040404090806"
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -17,56 +17,30 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010406060304040404090806
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi all!!
 
-Hi again,
+I'm currently developing some IDS sensors that detects the source of an 
+attack, for example one of them detects if from the machine where it is 
+installed someone is doing IP spoofing, ICMP or UDP Flooding, SYN scan, 
+etc... The sensors add a function to NF_IP_LOCAL_OUT.
 
-another patch for ipp2p. It covers a case that occured after the first
-patch was send to the list. Please apply on top of the first patch.
-Sorry for that.
+I thought about the possibility that an intruder uses IP fragmentation for 
+evade the sensors, for example, the SYN scan sensor could be evaded if the 
+fragmentation cuts the TCP header, same with ICMP header and ICMP flooding 
+sensor, etc... I was doing some tests with fragroute and hping2 to see what 
+happens if an intruder try to fragment their packets. The results are that 
+all the sensors continue working without problems. And my question is... 
+Does netfilter apply some kind of defragmentation before NF_IP_LOCAL_OUT?
 
-Regards,
-Eicke.
+Someone from #netfilter ask me if I have conntrack loaded but the answer is 
+NO... then why they contine working? I suppose that netfilter apply some 
+kind of defragmenation even if conntrack is not loaded because in some 
+maneer the architecture need to manage the packets, I mean... if no 
+defragmentation is applied then no rules for another protocols different 
+from IP can be used. Can anyone explain me a little more about that?
 
---------------010406060304040404090806
-Content-Type: text/plain;
- name="ipp2p-0.6.1-2.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ipp2p-0.6.1-2.diff"
+Thanx, and sorry if my question is so basic.
 
-diff -Nru patch-o-matic-ng-new/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c patch-o-matic-ng-061/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c
---- patch-o-matic-ng-new/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 11:01:56.511534576 +0200
-+++ patch-o-matic-ng-061/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 12:35:36.131222528 +0200
-@@ -44,9 +44,10 @@
-     t += head_len;
- 
-     if (((packet_len - head_len) == 4) && (memcmp(t, "SEND", 4) == 0))  return 1;
-+    if (((packet_len - head_len) == 3) && (memcmp(t, "GET", 3) == 0))  return 1;
-     if (packet_len < (head_len + 10)) return 0;
- 
--    if (memcmp(t, "SEND", 4) == 0){
-+    if ((memcmp(t, "SEND", 4) == 0) || (memcmp(t, "GET", 3) == 0)){
-         c = head_len + 4;
-         t += 4;
-         while (c < packet_len - 5) {
-diff -Nru patch-o-matic-ng-new/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c patch-o-matic-ng-061/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c
---- patch-o-matic-ng-new/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 11:02:17.171393800 +0200
-+++ patch-o-matic-ng-061/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 12:35:55.591264152 +0200
-@@ -41,9 +41,10 @@
-     t += head_len;
- 
-     if (((packet_len - head_len) == 4) && (memcmp(t, "SEND", 4) == 0))  return 1;
-+    if (((packet_len - head_len) == 3) && (memcmp(t, "GET", 3) == 0))  return 1;
-     if (packet_len < (head_len + 10)) return 0;
- 
--    if (memcmp(t, "SEND", 4) == 0){
-+    if ((memcmp(t, "SEND", 4) == 0) || (memcmp(t, "GET", 3) == 0)){
-         c = head_len + 4;
-         t += 4;
-         while (c < packet_len - 5) {
-
---------------010406060304040404090806--
+_________________________________________________________________
+Dale rienda suelta a tu tiempo libre. Encuentra mil ideas para exprimir tu 
+ocio con MSN Entretenimiento. http://entretenimiento.msn.es/
