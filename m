@@ -1,19 +1,17 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
-Subject: Re: Use of Kernel Headers
-Date: Sat, 21 Aug 2004 10:53:57 -0400
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Prevent crash on ip_conntrack removal
+Date: Sat, 21 Aug 2004 17:10:20 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <876ef97a0408210753109a2fc4@mail.gmail.com>
-References: <4122743A.7020309@jg555.com> <Pine.LNX.4.61.0408180123380.7879@filer.marasystems.com>
- <Pine.LNX.4.58.0408182356030.5432@blackhole.kfki.hu> <4126F018.207@jg555.com> <Pine.LNX.4.61.0408211114310.16646@filer.marasystems.com>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+Message-ID: <412765DC.30600@trash.net>
+References: <20040818091352.GB6507@suse.de>	<20040819101159.GC3921@sunbeam.de.gnumonks.org>	<20040819071846.2d0d6120.davem@redhat.com>	<4124BF7E.7090304@trash.net> <20040819081428.5243e314.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jim Gifford <maillist@jg555.com>,
-	Netfilter Developer <netfilter-devel@lists.netfilter.org>
+Cc: laforge@netfilter.org, okir@suse.de, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0408211114310.16646@filer.marasystems.com>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20040819081428.5243e314.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,32 +22,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 21 Aug 2004 11:30:36 +0200 (CEST), Henrik Nordstrom
-<hno@marasystems.com> wrote:
-> 
-> 
-> On Fri, 20 Aug 2004, Jim Gifford wrote:
-> 
-> > This all goes back to having true separation between the kernel and
-> > userspace, I'm starting to think iptables is different in it's situation and
-> > true separation will never be possible
-> 
-> Separation is possible, it is mainly a matter of how the userspace headers
-> should be maintained and how to ensure kernel compatibility to a
-> reasonable manner (i.e. mostly an adminstrative issue). Today a lot of the
-> kernel release compatibility depends on using the kernel headers. There is
-> also a one or two extensions which have more complex dependencies but I
-> think all of these is in pom extra.
+David S. Miller wrote:
 
-Perhaps a special macro could be used to demarcate the sections of
-kernel headers that are for userspace use (opposite of what __KERNEL__
-does now). Then, when you wanted a set of headers for userspace apps
-to use when they needed to interface with the kernel, a script could
-be run to strip out all sections of the headers that were not
-demarcated for use by userspace, and only those headers would be
-copied into /usr/include/linux? Would that be a workable solution? Or
-is it more complicated than that?
+>I have a better idea.
+>
+>Instead of setting skb->dst to NULL, it should set it to some
+>NULL destination entry which just frees up the packets.  Then
+>no special case handling.  skb->dst==NULL packets should never
+>get into the fragment queue to begin with.
+>
+The problem is that conntrack unload can cause packets without a
+dst_entry to appear in ip_local_deliver, which is already after
+the call to dst_input.
 
--- 
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+Regards
+Patrick
