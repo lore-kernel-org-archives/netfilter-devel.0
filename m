@@ -1,15 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Mangle on a Connection, not on a Packet
-Date: Thu, 16 Oct 2003 16:30:44 +0200 (CEST)
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCH] Add mark to packet from libipq
+Date: Fri, 17 Oct 2003 00:13:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0310161629230.8635-100000@filer.marasystems.com>
-References: <200310161109.h9GB9lm16121@singularity.tronunltd.com>
+Message-ID: <1066342381.1780.5.camel@porky>
+References: <Pine.LNX.4.44.0310160925400.6046-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-nQ6pKmgkTa45MqLSYTFg"
+Cc: netfilter-devel@lists.netfilter.org, nufw-devel@nongnu.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ian Latter <Ian.Latter@mq.edu.au>
-In-Reply-To: <200310161109.h9GB9lm16121@singularity.tronunltd.com>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0310160925400.6046-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,18 +20,146 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 16 Oct 2003, Ian Latter wrote:
 
-> I want to extend the functionality of the XOR module.  I am cool with
-> the connection tracking helper concepts, and I am cool with the way XOR
-> is doing its mangling as a target .. but what I'm not so cool with is
-> how I register my intent to mangle a "connection" with conntrack, rather
-> than the currently registerd mangle .. per a packet .. as with the
-> target.
+--=-nQ6pKmgkTa45MqLSYTFg
+Content-Type: multipart/mixed; boundary="=-rtkkVn+wLk2TT7+PqRle"
 
-For this purpose I think you should be able to use the CONNMARK patch to 
-mark the connection. The CONNMARK patch provides you with a 32bit piece of 
-memory per conntrack, and can be used very much like the MARK target.
 
-Regards
-Henrik
+--=-rtkkVn+wLk2TT7+PqRle
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Le jeu 16/10/2003 =C3=A0 09:31, Henrik Nordstrom a =C3=A9crit :
+> On Thu, 16 Oct 2003, Eric Leblond wrote:
+> It got the mark with the packet in packet_msg->mark, so the userspace
+> application can just apply the transformation it likes when setting the
+> verdict.
+
+I've done this changes and suppress references to a mask.
+I attach the diffs for module and lib.
+
+The code is tested on my box with nufw (CVS version) so it is in state :
+Work For Me.
+
+BR,
+--=20
+Eric Leblond
+Nufw, Now User Filtering Works (http://www.nufw.org)
+
+--=-rtkkVn+wLk2TT7+PqRle
+Content-Disposition: attachment; filename=ip_queue.diff
+Content-Type: text/plain; name=ip_queue.diff; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+LS0tIGxpbnV4Lm9yaWcvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcF9xdWV1ZS5oCTIw
+MDMtMTAtMTYgMDE6NDc6MDEuMDAwMDAwMDAwICswMjAwDQorKysgbGludXgvaW5jbHVkZS9saW51
+eC9uZXRmaWx0ZXJfaXB2NC9pcF9xdWV1ZS5oCTIwMDMtMTAtMTYgMjM6NTM6MTcuMDAwMDAwMDAw
+ICswMjAwDQpAQCAtNDcsMTAgKzQ3LDIwIEBADQogCXVuc2lnbmVkIGNoYXIgcGF5bG9hZFswXTsJ
+LyogT3B0aW9uYWwgcmVwbGFjZW1lbnQgcGFja2V0ICovDQogfSBpcHFfdmVyZGljdF9tc2dfdDsN
+CiANCit0eXBlZGVmIHN0cnVjdCBpcHFfdndtYXJrX21zZyB7DQorCXVuc2lnbmVkIGludCB2YWx1
+ZTsJCS8qIFZlcmRpY3QgdG8gaGFuZCB0byBuZXRmaWx0ZXIgKi8NCisJdW5zaWduZWQgbG9uZyBp
+ZDsJCS8qIFBhY2tldCBJRCBmb3IgdGhpcyB2ZXJkaWN0ICovDQorCXNpemVfdCBkYXRhX2xlbjsJ
+CS8qIExlbmd0aCBvZiByZXBsYWNlbWVudCBkYXRhICovDQorCXVuc2lnbmVkIGNoYXIgcGF5bG9h
+ZFswXTsJLyogT3B0aW9uYWwgcmVwbGFjZW1lbnQgcGFja2V0ICovDQorCXVuc2lnbmVkIGxvbmcg
+bmZtYXJrOwkJLyogTWFyayBmb3IgdGhlIFBhY2tldCAqLw0KK30gaXBxX3Z3bWFya19tc2dfdDsN
+CisNCisNCiB0eXBlZGVmIHN0cnVjdCBpcHFfcGVlcl9tc2cgew0KIAl1bmlvbiB7DQogCQlpcHFf
+dmVyZGljdF9tc2dfdCB2ZXJkaWN0Ow0KIAkJaXBxX21vZGVfbXNnX3QgbW9kZTsNCisgICAgICAg
+ICAgICAgICAgaXBxX3Z3bWFya19tc2dfdCB2d21hcms7DQogCX0gbXNnOw0KIH0gaXBxX3BlZXJf
+bXNnX3Q7DQogDQpAQCAtNjcsNiArNzcsNyBAQA0KICNkZWZpbmUgSVBRTV9NT0RFCShJUFFNX0JB
+U0UgKyAxKQkJLyogTW9kZSByZXF1ZXN0IGZyb20gcGVlciAqLw0KICNkZWZpbmUgSVBRTV9WRVJE
+SUNUCShJUFFNX0JBU0UgKyAyKQkJLyogVmVyZGljdCBmcm9tIHBlZXIgKi8gDQogI2RlZmluZSBJ
+UFFNX1BBQ0tFVAkoSVBRTV9CQVNFICsgMykJCS8qIFBhY2tldCBmcm9tIGtlcm5lbCAqLw0KLSNk
+ZWZpbmUgSVBRTV9NQVgJKElQUU1fQkFTRSArIDQpDQorI2RlZmluZSBJUFFNX1ZXTUFSSwkoSVBR
+TV9CQVNFICsgNCkJCS8qIFZlcmRpY3QgYW5kIG1hcmsgZnJvbSBwZWVyICovDQorI2RlZmluZSBJ
+UFFNX01BWAkoSVBRTV9CQVNFICsgNSkNCiANCiAjZW5kaWYgLypfSVBfUVVFVUVfSCovDQotLS0g
+bGludXgub3JpZy9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfcXVldWUuYwkyMDAzLTEwLTE2IDAxOjQ2
+OjI3LjAwMDAwMDAwMCArMDIwMA0KKysrIGxpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9xdWV1
+ZS5jCTIwMDMtMTAtMTYgMjM6NTQ6MTEuMDAwMDAwMDAwICswMjAwDQpAQCAtNDE3LDYgKzQxNywz
+MyBAQA0KIH0NCiANCiBzdGF0aWMgaW50DQoraXBxX3NldF92d21hcmsoc3RydWN0IGlwcV92d21h
+cmtfbXNnICp2bXNnLCB1bnNpZ25lZCBpbnQgbGVuKQ0KK3sNCisJc3RydWN0IGlwcV9xdWV1ZV9l
+bnRyeSAqZW50cnk7DQorDQorCWlmICh2bXNnLT52YWx1ZSA+IE5GX01BWF9WRVJESUNUKQ0KKwkJ
+cmV0dXJuIC1FSU5WQUw7DQorDQorCWVudHJ5ID0gaXBxX2ZpbmRfZGVxdWV1ZV9lbnRyeShpZF9j
+bXAsIHZtc2ctPmlkKTsNCisJaWYgKGVudHJ5ID09IE5VTEwpDQorCQlyZXR1cm4gLUVOT0VOVDsN
+CisJZWxzZSB7DQorCQlpbnQgdmVyZGljdCA9IHZtc2ctPnZhbHVlOw0KKwkJDQorCQlpZiAodm1z
+Zy0+ZGF0YV9sZW4gJiYgdm1zZy0+ZGF0YV9sZW4gPT0gbGVuKQ0KKwkJCWlmIChpcHFfbWFuZ2xl
+X2lwdjQoKGlwcV92ZXJkaWN0X21zZ190ICopdm1zZywgZW50cnkpIDwgMCkNCisJCQkJdmVyZGlj
+dCA9IE5GX0RST1A7DQorDQorCQkvKiBzZXQgbWFyayBvZiBhc3NvY2lhdGVkIHNrYiAqLw0KKwkJ
+ZW50cnktPnNrYi0+bmZtYXJrID0gdm1zZy0+bmZtYXJrOw0KKwkJDQorCQlpcHFfaXNzdWVfdmVy
+ZGljdChlbnRyeSwgdmVyZGljdCk7DQorCQlyZXR1cm4gMDsNCisJfQ0KK30NCisNCisNCitzdGF0
+aWMgaW50DQogaXBxX3JlY2VpdmVfcGVlcihzdHJ1Y3QgaXBxX3BlZXJfbXNnICpwbXNnLA0KICAg
+ICAgICAgICAgICAgICAgdW5zaWduZWQgY2hhciB0eXBlLCB1bnNpZ25lZCBpbnQgbGVuKQ0KIHsN
+CkBAIC00MzgsNiArNDY1LDE0IEBADQogCQkJc3RhdHVzID0gaXBxX3NldF92ZXJkaWN0KCZwbXNn
+LT5tc2cudmVyZGljdCwNCiAJCQkgICAgICAgICAgICAgICAgICAgICAgICAgbGVuIC0gc2l6ZW9m
+KCpwbXNnKSk7DQogCQkJYnJlYWs7DQorICAgICAgICBjYXNlIElQUU1fVldNQVJLOg0KKwkJaWYg
+KHBtc2ctPm1zZy52ZXJkaWN0LnZhbHVlID4gTkZfTUFYX1ZFUkRJQ1QpDQorCQkJc3RhdHVzID0g
+LUVJTlZBTDsNCisJCWVsc2UNCisJCQlzdGF0dXMgPSBpcHFfc2V0X3Z3bWFyaygmcG1zZy0+bXNn
+LnZ3bWFyaywNCisJCQkgICAgICAgICAgICAgICAgICAgICAgICAgbGVuIC0gc2l6ZW9mKCpwbXNn
+KSk7DQorCQkJYnJlYWs7DQorDQogCWRlZmF1bHQ6DQogCQlzdGF0dXMgPSAtRUlOVkFMOw0KIAl9
+DQo=
+
+--=-rtkkVn+wLk2TT7+PqRle
+Content-Disposition: attachment; filename=libipq.diff
+Content-Type: text/x-patch; name=libipq.diff; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtcnUgaXB0YWJsZXMtMS4yLjgub3JpZy9pbmNsdWRlL2xpYmlwcS9saWJpcHEuaCBpcHRh
+Ymxlcy0xLjIuOC9pbmNsdWRlL2xpYmlwcS9saWJpcHEuaA0KLS0tIGlwdGFibGVzLTEuMi44Lm9y
+aWcvaW5jbHVkZS9saWJpcHEvbGliaXBxLmgJMjAwMy0xMC0xNiAwMTo1MzowOC4wMDAwMDAwMDAg
+KzAyMDANCisrKyBpcHRhYmxlcy0xLjIuOC9pbmNsdWRlL2xpYmlwcS9saWJpcHEuaAkyMDAzLTEw
+LTE2IDIzOjQ3OjM1LjAwMDAwMDAwMCArMDIwMA0KQEAgLTc5LDYgKzc5LDEzIEBADQogICAgICAg
+ICAgICAgICAgICAgICBzaXplX3QgZGF0YV9sZW4sDQogICAgICAgICAgICAgICAgICAgICB1bnNp
+Z25lZCBjaGFyICpidWYpOw0KIA0KK2ludCBpcHFfc2V0X3Z3bWFyayhjb25zdCBzdHJ1Y3QgaXBx
+X2hhbmRsZSAqaCwNCisgICAgICAgICAgICAgICAgICAgIGlwcV9pZF90IGlkLA0KKyAgICAgICAg
+ICAgICAgICAgICAgdW5zaWduZWQgaW50IHZlcmRpY3QsDQorICAgICAgICAgICAgICAgICAgICB1
+bnNpZ25lZCBsb25nIG5mbWFyaywNCisgICAgICAgICAgICAgICAgICAgIHNpemVfdCBkYXRhX2xl
+biwNCisgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGNoYXIgKmJ1Zik7DQorDQogaW50IGlw
+cV9jdGwoY29uc3Qgc3RydWN0IGlwcV9oYW5kbGUgKmgsIGludCByZXF1ZXN0LCAuLi4pOw0KIA0K
+IGNoYXIgKmlwcV9lcnJzdHIodm9pZCk7DQpMZXMgZmljaGllcnMgYmluYWlyZXMgaXB0YWJsZXMt
+MS4yLjgub3JpZy9saWJpcHEvbGliaXBxLmEgZXQgaXB0YWJsZXMtMS4yLjgvbGliaXBxL2xpYmlw
+cS5hIHNvbnQgZGlmZulyZW50cy4NCmRpZmYgLXJ1IGlwdGFibGVzLTEuMi44Lm9yaWcvbGliaXBx
+L2xpYmlwcS5jIGlwdGFibGVzLTEuMi44L2xpYmlwcS9saWJpcHEuYw0KLS0tIGlwdGFibGVzLTEu
+Mi44Lm9yaWcvbGliaXBxL2xpYmlwcS5jCTIwMDMtMTAtMTYgMDE6NTg6NDYuMDAwMDAwMDAwICsw
+MjAwDQorKysgaXB0YWJsZXMtMS4yLjgvbGliaXBxL2xpYmlwcS5jCTIwMDMtMTAtMTYgMjM6MzM6
+MTAuMDAwMDAwMDAwICswMjAwDQpAQCAtMzQ4LDYgKzM0OCw1NCBAQA0KIAlyZXR1cm4gaXBxX25l
+dGxpbmtfc2VuZG1zZyhoLCAmbXNnLCAwKTsNCiB9DQogDQoraW50IGlwcV9zZXRfdndtYXJrKGNv
+bnN0IHN0cnVjdCBpcHFfaGFuZGxlICpoLA0KKyAgICAgICAgICAgICAgICAgICAgaXBxX2lkX3Qg
+aWQsDQorICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBpbnQgdmVyZGljdCwNCisgICAgICAg
+ICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgbmZtYXJrLA0KKyAgICAgICAgICAgICAgICAgICAg
+c2l6ZV90IGRhdGFfbGVuLA0KKyAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgY2hhciAqYnVm
+KQ0KK3sNCisJdW5zaWduZWQgY2hhciBudmVjczsNCisJc2l6ZV90IHRsZW47DQorCXN0cnVjdCBu
+bG1zZ2hkciBubGg7DQorCWlwcV9wZWVyX21zZ190IHBtOw0KKwlzdHJ1Y3QgaW92ZWMgaW92WzNd
+Ow0KKwlzdHJ1Y3QgbXNnaGRyIG1zZzsNCisNCisJbWVtc2V0KCZubGgsIDAsIHNpemVvZihubGgp
+KTsNCisJbmxoLm5sbXNnX2ZsYWdzID0gTkxNX0ZfUkVRVUVTVDsNCisJbmxoLm5sbXNnX3R5cGUg
+PSBJUFFNX1ZXTUFSSzsNCisJbmxoLm5sbXNnX3BpZCA9IGgtPmxvY2FsLm5sX3BpZDsNCisJbWVt
+c2V0KCZwbSwgMCwgc2l6ZW9mKHBtKSk7DQorCXBtLm1zZy52d21hcmsudmFsdWUgPSB2ZXJkaWN0
+Ow0KKwlwbS5tc2cudndtYXJrLmlkID0gaWQ7DQorCXBtLm1zZy52d21hcmsuZGF0YV9sZW4gPSBk
+YXRhX2xlbjsNCisJcG0ubXNnLnZ3bWFyay5uZm1hcmsgPSBuZm1hcms7DQorCWlvdlswXS5pb3Zf
+YmFzZSA9ICZubGg7DQorCWlvdlswXS5pb3ZfbGVuID0gc2l6ZW9mKG5saCk7DQorCWlvdlsxXS5p
+b3ZfYmFzZSA9ICZwbTsNCisJaW92WzFdLmlvdl9sZW4gPSBzaXplb2YocG0pOw0KKwl0bGVuID0g
+c2l6ZW9mKG5saCkgKyBzaXplb2YocG0pOw0KKwludmVjcyA9IDI7DQorCWlmIChkYXRhX2xlbiAm
+JiBidWYpIHsNCisJCWlvdlsyXS5pb3ZfYmFzZSA9IGJ1ZjsNCisJCWlvdlsyXS5pb3ZfbGVuID0g
+ZGF0YV9sZW47DQorCQl0bGVuICs9IGRhdGFfbGVuOw0KKwkJbnZlY3MrKzsNCisJfQ0KKwltc2cu
+bXNnX25hbWUgPSAodm9pZCAqKSZoLT5wZWVyOw0KKwltc2cubXNnX25hbWVsZW4gPSBzaXplb2Yo
+aC0+cGVlcik7DQorCW1zZy5tc2dfaW92ID0gaW92Ow0KKwltc2cubXNnX2lvdmxlbiA9IG52ZWNz
+Ow0KKwltc2cubXNnX2NvbnRyb2wgPSBOVUxMOw0KKwltc2cubXNnX2NvbnRyb2xsZW4gPSAwOw0K
+Kwltc2cubXNnX2ZsYWdzID0gMDsNCisJbmxoLm5sbXNnX2xlbiA9IHRsZW47DQorCXJldHVybiBp
+cHFfbmV0bGlua19zZW5kbXNnKGgsICZtc2csIDApOw0KK30NCisNCisNCisNCiAvKiBOb3QgaW1w
+bGVtZW50ZWQgeWV0ICovDQogaW50IGlwcV9jdGwoY29uc3Qgc3RydWN0IGlwcV9oYW5kbGUgKmgs
+IGludCByZXF1ZXN0LCAuLi4pDQogew0K
+
+--=-rtkkVn+wLk2TT7+PqRle--
+
+--=-nQ6pKmgkTa45MqLSYTFg
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e=2E?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQA/jxfsnxA7CdMWjzIRAk7uAJ0R4yKmypw2v36KLBBfLXHSLlXdBgCfbh+1
+e6MkAWA0l7H43RKZQ1iVBoY=
+=W0mD
+-----END PGP SIGNATURE-----
+
+--=-nQ6pKmgkTa45MqLSYTFg--
