@@ -1,15 +1,15 @@
 From: Kiran Kumar <immidi_kiran@yahoo.com>
 Subject: Re: subject-prefixing of ml postings (was Re: A humble request)
-Date: Tue, 27 Jan 2004 20:33:26 -0800 (PST)
+Date: Tue, 27 Jan 2004 20:54:09 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040128043326.45988.qmail@web14003.mail.yahoo.com>
-References: <20040127105451.GF11761@sunbeam.de.gnumonks.org>
+Message-ID: <20040128045409.9799.qmail@web14007.mail.yahoo.com>
+References: <20040128043326.45988.qmail@web14003.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1772142110-1075264406=:45263"
+Content-Type: multipart/mixed; boundary="0-173423258-1075265649=:8716"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>, Zeeshan Ali <zeelists@yahoo.com>
-In-Reply-To: <20040127105451.GF11761@sunbeam.de.gnumonks.org>
+In-Reply-To: <20040128043326.45988.qmail@web14003.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-1772142110-1075264406=:45263
+--0-173423258-1075265649=:8716
 Content-Type: text/plain; charset=us-ascii
 Content-Id: 
 Content-Disposition: inline
 
---- Harald Welte <laforge@netfilter.org> wrote:
+--- Kiran Kumar <immidi_kiran@yahoo.com> wrote:
 
-> P.P.S.: Would anybody be willing to make a
-> docbook-website XML document
-> for our new homepage about 'how to use the
-> netfilter/iptables
-> mailinglists' with content like the above one?  That
-> would be really
-> appreciated.
+>   I have built up some content based on the rules of
+> another list that I am on (most of which are, I
+> guess,
+> relevant here as well). The patch for the homepage
+> module of cvs is attached.
 
-  I have built up some content based on the rules of
-another list that I am on (most of which are, I guess,
-relevant here as well). The patch for the homepage
-module of cvs is attached.
+  Sorry, seems the previous one had a problem..
+resending it.
 
 
 =====
@@ -49,7 +45,7 @@ __________________________________
 Do you Yahoo!?
 Yahoo! SiteBuilder - Free web site building tool. Try it!
 http://webhosting.yahoo.com/ps/sb/
---0-1772142110-1075264406=:45263
+--0-173423258-1075265649=:8716
 Content-Type: application/octet-stream; name="contact.patch"
 Content-Transfer-Encoding: base64
 Content-Description: contact.patch
@@ -58,8 +54,8 @@ Content-Disposition: attachment; filename="contact.patch"
 ZGlmZiAtdXJOIGhvbWVwYWdlL3htbC9jb250YWN0LnhtbCBob21lcGFnZS5u
 ZXcveG1sL2NvbnRhY3QueG1sCi0tLSBob21lcGFnZS94bWwvY29udGFjdC54
 bWwJMjAwNC0wMS0xNyAxODo1OTowNy4wMDAwMDAwMDAgKzA1MzAKKysrIGhv
-bWVwYWdlLm5ldy94bWwvY29udGFjdC54bWwJMjAwNC0wMS0yOCAwOTo1ODox
-OC4yNjY0MDYwODAgKzA1MzAKQEAgLTI1LDYgKzI1LDUyIEBACiB5b3Ugd2ls
+bWVwYWdlLm5ldy94bWwvY29udGFjdC54bWwJMjAwNC0wMS0yOCAxMDoxODoz
+Mi41MjY4MTA0NDAgKzA1MzAKQEAgLTI1LDYgKzI1LDU0IEBACiB5b3Ugd2ls
 bCBtaW5pbWl6ZSB0aGUgYnVyZGVuIG9uIHRoZSBwcm9qZWN0IG1lbWJlcnMs
 IGFuZCB0aHVzIG1pbmltaXplIHRoZSBwb3RlbnRpYWwgZGVsYXkgdW50aWwg
 eW91IHdpbGwgcmVjZWl2ZSBhIHJlcGx5IHRvIHlvdXIgaW5xdWlyeS4KIDwv
@@ -133,26 +129,25 @@ dWNoIGFzIHRoZSB5ZWFyIDIwMDYsIG1lc3NhZ2VzIHBvc3RlZCBieSB5b3Ug
 d2lsbCBnZXQgc29ydGVkIGJhc2VkIG9uIHRoYXQgZGF0ZSwgd2hpY2ggbWF5
 IHB1dCB0aGVtIG91dHNpZGUgb2YgdGhlIHJlbGF0ZWQgbW9udGggb3IgeWVh
 ciB0aGV5IGJlbG9uZyBpbi48L3BhcmE+Cis8L2xpc3RpdGVtPgorCis8L2l0
-ZW1pemVkbGlzdD4KKwogPHNlY3Rpb24gaWQ9Im1sLWFubm91bmNlIj4KIDx0
-aXRsZT5UaGUgbmV0ZmlsdGVyLWFubm91bmNlIG1haWxpbmdsaXN0PC90aXRs
-ZT4KIDxwYXJhPgpkaWZmIC11ck4gaG9tZXBhZ2UveG1sL2xheW91dC54bWwg
-aG9tZXBhZ2UubmV3L3htbC9sYXlvdXQueG1sCi0tLSBob21lcGFnZS94bWwv
-bGF5b3V0LnhtbAkyMDA0LTAxLTEwIDAzOjQxOjUyLjAwMDAwMDAwMCArMDUz
-MAorKysgaG9tZXBhZ2UubmV3L3htbC9sYXlvdXQueG1sCTIwMDQtMDEtMjgg
-MDk6NTc6MDkuNjkxODMxMDAwICswNTMwCkBAIC0xMTEsNiArMTExLDEwIEBA
-CiAJCQk8dG9jZW50cnkgcGFnZT0ic2VjdXJpdHkvMjAwMy0wOC0wMS1uYXQt
-c2Fjay54bWwiIGZpbGVuYW1lPSIyMDAzLTA4LTAxLW5hdC1zYWNrLmh0bWwi
-Lz4KIAkJPC90b2NlbnRyeT4KIAkJPHRvY2VudHJ5IHBhZ2U9ImNvbnRhY3Qu
-eG1sIiBmaWxlbmFtZT0iY29udGFjdC5odG1sIj4KKyAgICAgICAgICAgICAg
-ICAgICAgICAgIDx0b2NlbnRyeSBpZD0ibGlzdC1ydWxlcyIgaHJlZj0iL2Nv
-bnRhY3QuaHRtbCNsaXN0LXJ1bGVzIj4KKyAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgPHRpdGxlPlRoZSBuZXRmaWx0ZXIgbWFpbGluZ2xpc3Qg
-cnVsZXM8L3RpdGxlPgorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICA8dGl0bGVhYmJyZXY+TGlzdCBSdWxlczwvdGl0bGVhYmJyZXY+CisgICAg
-ICAgICAgICAgICAgICAgICAgICA8L3RvY2VudHJ5PgogCQkJPHRvY2VudHJ5
-IGlkPSJ0b2MtY29udGFjdC1tbC1hbm5vdW5jZSIgaHJlZj0iL2NvbnRhY3Qu
-aHRtbCNtbC1hbm5vdW5jZSI+CiAJCQkJPHRpdGxlPlRoZSBuZXRmaWx0ZXIg
-YW5ub3VuY2UgbWFpbGluZ2xpc3Q8L3RpdGxlPgogCQkJCTx0aXRsZWFiYnJl
-dj5uZXRmaWx0ZXItYW5ub3VuY2UgbGlzdDwvdGl0bGVhYmJyZXY+Cg==
+ZW1pemVkbGlzdD4KKworPC9zZWN0aW9uPgorCiA8c2VjdGlvbiBpZD0ibWwt
+YW5ub3VuY2UiPgogPHRpdGxlPlRoZSBuZXRmaWx0ZXItYW5ub3VuY2UgbWFp
+bGluZ2xpc3Q8L3RpdGxlPgogPHBhcmE+CmRpZmYgLXVyTiBob21lcGFnZS94
+bWwvbGF5b3V0LnhtbCBob21lcGFnZS5uZXcveG1sL2xheW91dC54bWwKLS0t
+IGhvbWVwYWdlL3htbC9sYXlvdXQueG1sCTIwMDQtMDEtMTAgMDM6NDE6NTIu
+MDAwMDAwMDAwICswNTMwCisrKyBob21lcGFnZS5uZXcveG1sL2xheW91dC54
+bWwJMjAwNC0wMS0yOCAxMDoxODozMi41Mjc4MTAyODggKzA1MzAKQEAgLTEx
+MSw2ICsxMTEsMTAgQEAKIAkJCTx0b2NlbnRyeSBwYWdlPSJzZWN1cml0eS8y
+MDAzLTA4LTAxLW5hdC1zYWNrLnhtbCIgZmlsZW5hbWU9IjIwMDMtMDgtMDEt
+bmF0LXNhY2suaHRtbCIvPgogCQk8L3RvY2VudHJ5PgogCQk8dG9jZW50cnkg
+cGFnZT0iY29udGFjdC54bWwiIGZpbGVuYW1lPSJjb250YWN0Lmh0bWwiPgor
+CQkJPHRvY2VudHJ5IGlkPSJsaXN0LXJ1bGVzIiBocmVmPSIvY29udGFjdC5o
+dG1sI2xpc3QtcnVsZXMiPgorCQkJCTx0aXRsZT5UaGUgbmV0ZmlsdGVyIG1h
+aWxpbmdsaXN0IHJ1bGVzPC90aXRsZT4KKwkJCQk8dGl0bGVhYmJyZXY+TGlz
+dCBSdWxlczwvdGl0bGVhYmJyZXY+CisJCQk8L3RvY2VudHJ5PgogCQkJPHRv
+Y2VudHJ5IGlkPSJ0b2MtY29udGFjdC1tbC1hbm5vdW5jZSIgaHJlZj0iL2Nv
+bnRhY3QuaHRtbCNtbC1hbm5vdW5jZSI+CiAJCQkJPHRpdGxlPlRoZSBuZXRm
+aWx0ZXIgYW5ub3VuY2UgbWFpbGluZ2xpc3Q8L3RpdGxlPgogCQkJCTx0aXRs
+ZWFiYnJldj5uZXRmaWx0ZXItYW5ub3VuY2UgbGlzdDwvdGl0bGVhYmJyZXY+
+Cg==
 
---0-1772142110-1075264406=:45263--
+--0-173423258-1075265649=:8716--
