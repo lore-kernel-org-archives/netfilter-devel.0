@@ -1,15 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: separation of sysctl and tcp-window-tracking patch?
-Date: Thu, 12 Dec 2002 10:02:49 +0100 (CET)
+From: Peter Hoare <Peter.Hoare@signal.qinetiq.com>
+Subject: changing packets with libipq
+Date: Thu, 12 Dec 2002 12:12:12 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0212120955290.14108-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.44.0212120252370.3113-100000@shieldbreaker.l33tskillz.org>
+Message-ID: <3DF87D1C.B276B46@signal.qinetiq.com>
+Reply-To: peteh@signal.qinetiq.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------CE24D1F796DA77CBCB12AF2E"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: James Ralston <qralston+ml.netfilter-devel@andrew.cmu.edu>
-In-Reply-To: <Pine.LNX.4.44.0212120252370.3113-100000@shieldbreaker.l33tskillz.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,29 +19,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 12 Dec 2002, James Ralston wrote:
+This is a multi-part message in MIME format.
+--------------CE24D1F796DA77CBCB12AF2E
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-> I absolutely agree.  I would *really* like to be able to tune various
-> netfilter-related settings via /proc, regardless of my opinions on the
-> tcp-window-tracking patch.
->
-> (My specific need is related to DNS service: namely, in many cases, 30
-> seconds to establish a UDP session simply isn't enough time to permit
-> a reply to an outstanding DNS query.  I want to be able to up that
-> timeout to something closer to 60 or 120 seconds.)
+We are having problems in trying to use the userspace libipq to change
+incoming packets to the kernel. We are picking up UDP packets off the
+pre-routing queue, changing the packet header and checksums and then
+accepting the new packet back through the ipq_set_verdict() call with
+NF_ACCEPT.
 
-Please note, that the timeout settings via /proc introduced in the
-tcp-window-tracking patch are global. You cannot raise the UDP timeout
-values just for DNS.
+This new packet is being delivered quite happily to an end-user
+application on the local machine  but if the packet is to be forwarded
+through this host to another machine it appears to be dropped by the
+kernel. Is there a limit to what we are allowed to change in the packet
+through libipq? (There are some hints in the documentation to do with
+caching fields in the skb that may be the cause of our problem). Our
+guess is that because we are significantly changing the header that the
+new packet is no longer being recognised as related to the old one? 
 
-Also, we have to handle the backward compatibility issue of
-/proc/sys/net/ipv4/ip_conntrack_max, if the introduction of
-/proc/sys/net/ipv4/netfilter/ is accepted.
+Is what we are doing not possible using libipq? If not do we have to
+write a kernel module to do it or is there any other way to do it in
+userspace?
 
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Thank you
+
+Peter Hoare
+--------------CE24D1F796DA77CBCB12AF2E
+Content-Type: text/x-vcard; charset=us-ascii;
+ name="Peter.Hoare.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Description: Card for Peter Hoare
+Content-Disposition: attachment;
+ filename="Peter.Hoare.vcf"
+
+begin:vcard 
+n:Hoare;Peter 
+tel;fax:+44 1684 894389
+tel;work:+44 1684 896438
+x-mozilla-html:TRUE
+url:www.qinetiq.com
+org:QinetiQ;Sensors and Information Processing
+version:2.1
+email;internet:peteh@signal.qinetiq.com
+title:Principal Scientist
+adr;quoted-printable:version:2.1;;E204 =0D=0AQinetiQ=0D=0ASt Andrews Road;Malvern;Worcs;WR14 3PS;UK
+note;quoted-printable:The Information contained in this e-mail and any subsequent =0D=0Acorrespondence is private and is intended solely for the =0D=0Aintended recipient(s). For those other than the intended recipient =0D=0Aany disclosure, copying, distribution, or any action taken or =0D=0Aomitted to be taken in reliance on such information is prohibited =0D=0Aand may be unlawful.=0D=0A=0D=0AThe views expressed above are entirely those of the  writer and =0D=0Ado not represent the views, policy or understanding of any other =0D=0Aperson or official body.
+fn:Pete Hoare
+end:vcard
+
+--------------CE24D1F796DA77CBCB12AF2E--
