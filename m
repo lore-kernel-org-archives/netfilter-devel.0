@@ -1,16 +1,14 @@
-From: Patrick Schaaf <bof@bof.de>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Subject: Re: Security flaw in Stateful filtering ??????
-Date: Thu, 6 Jun 2002 21:12:11 +0200
+Date: Thu, 6 Jun 2002 21:11:33 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020606211211.B21880@oknodo.bof.de>
-References: <3CFF9A00.2070805@cs.auc.dk> <20020606195706.A21880@oknodo.bof.de> <3CFFAB1C.902@cs.auc.dk>
+Message-ID: <Pine.LNX.4.21.0206062101120.11802-100000@dns.toxicfilms.tv>
+References: <3CFFAF5D.4010103@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Emmanuel Fleury <fleury@cs.auc.dk>
-Content-Disposition: inline
-In-Reply-To: <3CFFAB1C.902@cs.auc.dk>; from fleury@cs.auc.dk on Thu, Jun 06, 2002 at 08:34:04PM +0200
+To: netfilter-devel@lists.samba.org
+In-Reply-To: <3CFFAF5D.4010103@cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,53 +19,25 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > The behaviour is intentional. The reason is "connection pickup". Imagine
-> > a situation where the firewall reboots. All active conntracking information
-> > will be lost. With the observed behaviour, connections are "relearned"
-> > on the fly as they create new traffic.
+> > I belive that state NEW says: a packet never seen before. A tuple that
+> > does not exist in currect tracked connections table.
 > 
-> I simply disagree with you on this point (sorry :-/).
+> So, what are the INVALID packets ?????
+quote:
+"A packet which could not be identified for some
+ reason: this includes running out of memory and ICMP errors which
+ don't correspond to any known connection."
 
-Umm. No need to be sorry. Disagreement are what spans up a problem domain.
+> After this, I was assuming that we were in the ESTABLISHED state.
+Hmm, i think we are in established just after the first SYN.
+so the SYN/ACK and ACK are ESTABLISHED, as having the same parameters as
+the first SYN. Same tuple.
 
-> I wouldn't accept to have such a flaw in my firewall just because of
-> an hypothetic reboot of one of my gateway !!!!
+So i think conntrack works irregardles of the protocol seen.
 
-That's your policy choice. I may have others, in other situations.
+If this is true (i am going to research that), that would mean my
+assumption regarding how conntrack wroks is true.
 
-> Of course, I could be wrong,
 
-In your policy choice? Unlikely.
-
-> but in this case this 'feature' should be
-> highly documented and be disabled as default. IMHO.
-
-Any sensible patch to the current documentation has a good chance of being
-applied immediately.
-
-Disabling the current behaviour is out of the question. iptables is used
-as-is in the field.
-
-> One of the major argument in favor of the stateful inspection is that
-> it prevents from a lot of weird scans (NULL scan, X-MAS scan, ACK scan,
-> ...).
-
-My personal "must have" reason is proper per-tcp-connection NAT, i.e. the
-ability to change rules without breaking already-active connections.
-
-That's not dependant on reboot/pickup, so I probably personally wouldn't
-care in most setups where I used iptables' conntracking in the past.
-
-But if I learned that such a radical change were imminent, I'd be very
-alert to recall where it may bite me in my "installed base", and I'd
-probably miss one or two.
-
-> Anyway, I should browse the archive of the mailing-list and try to
-> convinced myself how foolish I am. :-)
-
-Just remember that you are arguing out of your current view of where to
-utilize iptables, and that you can easily implement the no-pickup policy
-using a suitable rule "idiom", or using one of the explicit patches.
-
-all the best, and low jitter to your students' measurements
-  Patrick
+Regards,
+Maciej
