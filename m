@@ -1,22 +1,16 @@
-From: Martin Wilck <Martin.Wilck@Fujitsu-Siemens.com>
-Subject: Re: ip_conntrack_hash() problem
-Date: 05 Sep 2002 20:24:35 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] New target: SWITCH
+Date: Thu, 5 Sep 2002 11:55:31 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1031250277.9785.175.camel@biker.pdb.fsc.net>
-References: <1031210342.9785.159.camel@biker.pdb.fsc.net>
-	<20020905115208.4D0A02C064@lists.samba.org>
-	<20020905135440.A10805@wotan.suse.de>  <20020905195547.A21899@oknodo.bof.de>
+Message-ID: <20020905095531.GH1064@naboo.lincon.Uni-Koeln.DE>
+References: <200209042334.g84NYEg03822@gonzalo.arana>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Andi Kleen <ak@suse.de>, Rusty Russell <rusty@rustcorp.com.au>,
-   Harald
-	Welte <laforge@gnumonks.org>,
-   Netfilter Mailing List <netfilter-devel@lists.netfilter.org>,
-   Linux Kernel mailing list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20020905195547.A21899@oknodo.bof.de>
+To: garana@uolsinectis.com.ar
+Content-Disposition: inline
+In-Reply-To: <200209042334.g84NYEg03822@gonzalo.arana>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -27,20 +21,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Am Don, 2002-09-05 um 19.55 schrieb Patrick Schaaf:
-> As a short time fix, seeing that it's mostly even hash bucket counts
-> that give a problem, I would still propose just making the bucket count
-> the nearest odd number, i.e. basically htable_size |= 1 in the startup code.
+On Wed, Sep 04, 2002 at 08:34:14PM -0300, garana@uolsinectis.com.ar wrote:
+> Hi,
 > 
-> I don't expect any user to notice such a miniscule change.
+>   I am developing a new target which should redirect
+> packets to a given host, no matter what routing table
+> says.
+>   This, with the aid of the random_patch (written by
+> <fabrice@celestix.com>) should enable a Linux box
+> to do a layer 3,4 switch work.
+>   When I try to add a rule with this target:
 
-Well then, as most people seem to think this is the way to go, let's do
-it, and hope that Rusty's patch will be ready for prime-time soon.
+First of all, thanks for your contribution.
 
-Martin
+However, if this ever is to be included into patch-o-matic or the
+kernel, you _must_ adhere to /usr/src/linux/Documentation/CodingStyle.
+
+This includes indentation and c++ (//) comments.
 
 -- 
-Martin Wilck                Phone: +49 5251 8 15113
-Fujitsu Siemens Computers   Fax:   +49 5251 8 20409
-Heinz-Nixdorf-Ring 1	    mailto:Martin.Wilck@Fujitsu-Siemens.com
-D-33106 Paderborn           http://www.fujitsu-siemens.com/primergy
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
