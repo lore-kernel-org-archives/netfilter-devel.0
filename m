@@ -1,16 +1,19 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4.x] Fix ipchains MASQUEARDE oops
-Date: Thu, 4 Dec 2003 10:36:03 -0800
+Subject: Re: [PATCH 2.4.x] IPv6 multicast (MLD,IGMP) code bypasses netfilter
+ hooks
+Date: Thu, 4 Dec 2003 10:37:19 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031204103603.333f3a7b.davem@redhat.com>
-References: <20031204093757.GA7680@obroa-skai.de.gnumonks.org>
+Message-ID: <20031204103719.56038dba.davem@redhat.com>
+References: <20031122090330.GB2745@obroa-skai.de.gnumonks.org>
+	<20031123154344.3e2b0b1a.davem@redhat.com>
+	<20031204090121.GD16635@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031204093757.GA7680@obroa-skai.de.gnumonks.org>
+In-Reply-To: <20031204090121.GD16635@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +24,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 4 Dec 2003 15:07:57 +0530
+On Thu, 4 Dec 2003 14:31:21 +0530
 Harald Welte <laforge@netfilter.org> wrote:
 
-> Please apply the following patch (on top of 2.4.23).  It fixes an oops
-> that was introduced during  2.4.23 when we did a change in the NAT core
-> but forgot to update the compatibility layer.  2.6.x already contains
-> that fix.
+> Now that the other Dave's fix has made it in 2.6.0-test11, I have merged
+> it (untested, but compiles) with 2.4.x.
 > 
-> Please apply, thanks.
+> Dave, would you consider applying this to to 2.4.x ?
 
-Applied, thanks Harald.
-
-> Which raises another issue... do you think it would still be possible to
-> rip out the ipfwadm and ipchains compatibility layer from 2.6.x?  I'm
-> just _asking_, if it was still possible - not asking you to do it.
-
-I think we could have done this say 2 or 3 months ago.  I would
-have supported such a move.  But now is certainly too late.
-
-Put it on your 2.7.1 TODO list :)
+Done, thanks for catching this Harald.
