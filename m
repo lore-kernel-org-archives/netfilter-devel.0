@@ -1,17 +1,16 @@
 From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [PATCH] associate user defined name with rule match
-Date: Wed, 18 Sep 2002 23:47:57 +0200
+Subject: Re: [PATCH] User defined udp and tcp conntrack state timeouts
+Date: Wed, 18 Sep 2002 23:45:34 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020918214757.GD10465@oknodo.bof.de>
-References: <Pine.LNX.4.44L.0209172244330.10390-102000@hunger.screamingdaemon.com>
+Message-ID: <20020918214534.GC10465@oknodo.bof.de>
+References: <Pine.LNX.4.44L.0209180137170.10390-101000@hunger.screamingdaemon.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@gnumonks.org>, netfilter-devel@lists.netfilter.org,
-  netfilter@lists.netfilter.org
+Cc: Harald Welte <laforge@gnumonks.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Jay Schulist <jschlst@linux-sna.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L.0209172244330.10390-102000@hunger.screamingdaemon.com>
+In-Reply-To: <Pine.LNX.4.44L.0209180137170.10390-101000@hunger.screamingdaemon.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,18 +21,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Sep 17, 2002 at 10:48:04PM -0700, Jay Schulist wrote:
-> Here is a new match which allows the user to associate a name with a rule.
-> It is a very simple match, but it is useful if the user needs an easy way
-> to track a rule by name.
+> The timeout values are based on connection tracking states and are in
+> linux hertz (HZ).
 
-I don't understand. Do you mean "tag with some string, so we can later
-easily grep for it"? No real match operation, just a way to attach some
-text to a rule?
+Why why why? It's a user interface. The users know seconds. Don't bother
+them with that hertz stuff. Using hertz units are guaranteed to change,
+eventually, and then both human habit, and boot scripts, will suddenly
+(upon a kernel upgrade) start to do silly things.
 
-If that's it, I vote to rename the thing "comment", and please permit
-arbitrary quoted strings (with proper escaping for iptables-restore's
-benefit).
+Better avoid it in the first place, and convert internally, if it's
+not too much hassle. Isn't there a suitable sysctl helper for this
+situation? I vaguely remember something like that. Show seconds to
+the user, convert to internal format (eg. HZ) upon modification.
 
-best regards & thanks for your work
+best regards
   Patrick
