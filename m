@@ -1,10 +1,13 @@
-From: "dpeng" <y030730@njupt.edu.cn>
-Subject: how can i implement a^b in the kernel!
-Date: Mon, 14 Mar 2005 11:13:46 +0800
-Message-ID: <310770189.13003@njupt.edu.cn>
+From: "Vishwas Manral" <Vishwas@sinett.com>
+Subject: Netfilter Rule database
+Date: Mon, 14 Mar 2005 03:14:26 -0800
+Message-ID: <BB6D74C75CC76A419B6D6FA7C38317B26A25DB@sinett-sbs.SiNett.LAN>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=====000_Dragon322030665743_====="
-To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -16,21 +19,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi,
 
---=====000_Dragon322030665743_=====
-Content-Type: text/plain;
-      charset="GB2312"
-Content-Transfer-Encoding: 8bit
+I have been trying to understand the iptables code.=20
 
-hi,
-	i want to implemnet a^b in my kernel object. but, we know there are not math lib in currently kernel version, and i can not find code which have been implemented by linux_kernel hacker at our open community.
-	are there someone have implemented it or know some ready code? please, help me!thanks very much!
-regards
- 				
+I was able to understand to some extent the code in the netfilter
+directory, but have been unable to understand how the user and the
+kernel space interaction happen for the rules (not for the packets).
+Also where and how the rules are stored in the kernel? Any pointer to
+the file I need to look at would be helpful.
 
-　　　　　　　　dpeng
-　　　　　　　　y030730@njupt.edu.cn
-　　　　　　　　　　2005-03-14
-
---=====000_Dragon322030665743_=====--
+Thanks,
+Vishwas
