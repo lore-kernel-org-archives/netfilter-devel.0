@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [FWD][PATCH] conntrack endianes
-Date: Fri, 23 May 2003 22:33:06 +0200
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: dropping support for ipfwadm/ipchains (Re: when IPVS into netfilter?)
+Date: Fri, 23 May 2003 23:11:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030523203306.GY3077@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44L.0305200945070.21231-100000@alpha.zarz.agh.edu.pl>
+Message-ID: <3ECE8E9F.1090107@drugphish.ch>
+References: <3EB44BE7.3070602@wanadoo.es> <3EBCE288.5020801@drugphish.ch> <3EBEACBC.2090202@wanadoo.es> <3EC9DC59.6010006@drugphish.ch> <20030523195201.GO3077@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ia6OAXuaU8F3AWLD"
-Cc: netfilter-devel@lists.netfilter.org, Jakub Bogusz <qboosh@pld.org.pl>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Xose Vazquez Perez <xose@wanadoo.es>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Wojciech Sas Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L.0305200945070.21231-100000@alpha.zarz.agh.edu.pl>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,52 +21,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald,
 
---Ia6OAXuaU8F3AWLD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> So this would make something like 2*(iptables_included-ipchains_included).
+> But then the question is whether we are talking about stable kernels or
+> development kernels?
 
-On Tue, May 20, 2003 at 09:47:21AM +0200, Wojciech Sas Cieciwa wrote:
+I'd say development, that's how I interprete that "formula" und the 
+wording around it, so it would be 2.7 then. But this is entirely up to 
+you guys.
 
-> This patch fixes bugs related to machine endianess (harmless on
-> little-endians, but causing that some of conntrack modules don't
-> work on big-endian machines).
+> I think ipfwadm can be dropped safely, but ipchains will have to stay.
 
-thanks again. =20
+Good, I just wanted to establish if the part my previous patch was 
+against is going to remain for the 2.6 timeline. This seems to be the 
+case then.
 
-> * the real problem: the way that ip_conntrack_tuple structures were
->   initialized was wrong - in compound literals port number was catched
->   by the first dst.u union element, which is int64_t (so port was
->   stored in 2 least significant bytes, i.e. 6 bytes after beginning of
->   dst.u.tcp or dst.u.udp element).
->   This fix uses C99 field specifiers.
+>>The second one is, which makes the whole LVS code as non-intrusive as 
+>>even possible. I think the netfilter community could live with two more 
+>>ifdef-blocks, right? :)
+>  
+> We certainly don't mind.  However, having IPVS specific ifdefs in the
+> mainline kernel while IPVS is outside the mainstream kernel sounds a bit
+> odd to me.   I think in general this is discouraged...
 
-This is a problem that doesn't occur as long as you don't apply the pptp
-patch.  It was known but not fixed for quite some time.
+:) Of course. The idea is to submit LVS in overviewable chunks to the 
+respective kernel lieutnants. The patch I posted is actually the only 
+part where we change anything of the existing kernel tree. The rest are 
+new files (also thanks to the cool Kconfig).
 
-I assume that this will close at least two bugzilla bugs, thanks a lot.
+I only wanted to ask if those two ifdef'd hooks would be acceptable for 
+you guys without sending the whole ipvs patch. You can have a look at it 
+for yourselves:
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+http://www.linux-vs.org/software/kernel-2.5/linux-2.5.69-ipvs-1.1.5.patch.gz
 
---Ia6OAXuaU8F3AWLD
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+zoWCXaXGVTD0i/8RArCeAJ9hej/RLRKU0b+OgoIdpCRLzo+zGgCfcH6e
-kee+EAwCKc2mUOQWih8wkEQ=
-=qDaP
------END PGP SIGNATURE-----
-
---Ia6OAXuaU8F3AWLD--
+Thanks for you time and the positive answer. See you at OLS,
+Roberto Nibali, ratz
+-- 
+echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
