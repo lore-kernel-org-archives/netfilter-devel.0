@@ -1,18 +1,15 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: using a hash table for netfilter tables?
-Date: Thu, 24 Apr 2003 14:47:06 -0400
+From: Eicke Friedrich <tady@gmx.net>
+Subject: Re: Feasability of Protocol Filtering
+Date: Thu, 24 Apr 2003 21:38:28 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030424184706.GM8524@ns.snowman.net>
-References: <20030424062148.GE3374@oknodo.bof.de> <Pine.LNX.4.33.0304241510150.8241-100000@fantomas.insite.com.br>
+Message-ID: <3EA83D34.8040909@gmx.net>
+References: <3EA7056F.2050601@gmx.net> <1051137456.28404.34.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iUV/lbBrmPtUT9dM"
-Cc: Patrick Schaaf <bof@bof.de>,
-   "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andre Uratsuka Manoel <andre@insite.com.br>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0304241510150.8241-100000@fantomas.insite.com.br>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1051137456.28404.34.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +20,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Martin Josefsson wrote:
+> I do something similar here, no problem to do two stringmatches on a
+> 100Mbit/s link.
+What about throughput, packets per second and latency? Do you have any experiences? I'm 
+going to face a 100MBit/sec link in a couple of months so any hints are appreciated. By 
+the way it's a Linux Bridge with netfilter support that has nothing else to do than 
+marking p2p-packets and put them in a HTB class to reduce the "wasted" bandwidth.
 
---iUV/lbBrmPtUT9dM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> If using the Boyer-Moore algorithm instead you get it down to ~3k cycles
+> / kB when searching for a 5 byte string (cpu usage decreases with string
+> length)
+Maybe it's not so important for my project because i know the exact position in the 
+payload where the string has to be so i don't search the whole packet but just the 
+specific position in the payload.
+For this purpose i use memcmp(kazaa) or memchr(edonkey) - maybe there is a way to improve 
+this?
 
-* Andre Uratsuka Manoel (andre@insite.com.br) wrote:
-> 	That's interesting. I'm checking it out, it just doesn't seem to
-> be ready for what I need to do... I have a simpler solution, that just
-> requires lots of tables. BTW, it already works, but I have to multiply th=
-e=20
-> number of tables an order of magnitude now.
+int
+search_kazaa (char *needle, char *haystack, int needle_len)
+{
+     char *t = haystack;
 
-I'm just curious but what is it that you're doing that requires so many
-tables?  Perhaps there's a better way to do it...
+     t += 20;		//skippin tcp-header
 
-	Stephen
+     if (memcmp(t, needle, needle_len) == 0)
+         return 1;
+     else
+         return 0;
 
---iUV/lbBrmPtUT9dM
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+}
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+This is the one for kazaa where needle is the string "GET /.hash=" and haystack is the 
+ip-packet. Next one is similar but i'm just searching for 0xe3 and 0x47 (edonkey get 
+segment command).
 
-iD8DBQE+qDEprzgMPqB3kigRAopOAJ92jNi1K1QZucpAysj8tSYDGeNCagCfXZuP
-KjetbZSSte9ux5UU/k6H9Hc=
-=uzSW
------END PGP SIGNATURE-----
+int
+search_edk (char *haystack)
+{
+     char *t = haystack;
 
---iUV/lbBrmPtUT9dM--
+     t += 20;		//skippin tcp-header
+     if (memchr(t, 0xe3, 1) == 0)
+         return 0;
+     else
+         t += 5;		//jump to command position
+         if (memchr(t, 0x47, 1) != 0) return 1;
+         else return 0;
+
+}
+
+
+Best regards,
+Eicke.
