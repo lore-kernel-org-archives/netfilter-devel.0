@@ -1,18 +1,16 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [PATCH}: Make MARK target terminate (resend)
-Date: Fri, 5 Jul 2002 21:25:26 +0200
+From: Iain Barnes <zenadsl3030@zen.co.uk>
+Subject: Re: FYI: QUEUE & ipqmpd bugs
+Date: 05 Jul 2002 23:27:15 +0100
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020705212526.E13116@oknodo.bof.de>
-References: <20020702142447.GI18333@naboo.rchrd.phub.net.cable.rogers.com> <Pine.LNX.4.33.0207031255220.17202-100000@blackhole.kfki.hu> <20020704235831.GO20357@naboo.ists.dartmouth.edu> <200207051201.21457.fabrice@celestix.com> <20020705142127.GK21280@naboo.ists.dartmouth.edu>
+Message-ID: <1025908035.1335.1.camel@desktop>
+References: <003301c2242d$7fca2e40$0689cb8a@etbx180>
+	  <20020705191526.GS21280@naboo.ists.dartmouth.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	Fabrice MARIE <fabrice@celestix.com>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel <netfilter-devel@lists.samba.org>
-Content-Disposition: inline
-In-Reply-To: <20020705142127.GK21280@naboo.ists.dartmouth.edu>; from laforge@gnumonks.org on Fri, Jul 05, 2002 at 04:21:27PM +0200
+To: netfilter-devel@lists.samba.org
+In-Reply-To: <20020705191526.GS21280@naboo.ists.dartmouth.edu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,26 +21,53 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
-
-On Fri, Jul 05, 2002 at 04:21:27PM +0200, Harald Welte wrote:
+On Fri, 2002-07-05 at 20:15, Harald Welte wrote:
+> On Fri, Jul 05, 2002 at 04:08:54PM +0200, Jean-Michel Hemstedt wrote:
+> > FYI,
+> > 
+> > I upgraded to iptables-1.2.6a (user & kernel-2.4.18 patches)
+> > and got the following (maybe known) problems:
+> > 
+> > - QUEUE target is NOK with kernel compiled with CONFIG_IP_NF_QUEUE=m
+> >   => the packets are queued, but ipq_create_handle() returns 
+> >      "can't create netlink socket"
+> >      "ERROR: Unable to create netlink socket: Connection refused"
+> >     (problem with exported symbols?)
+> >   =>quick fix: compile kernel with CONFIG_IP_NF_QUEUE=y
 > 
-> > You could just add a boolean field 'terminating' to the iptables_target.
-> > Then, make sure iptables abort and complains if it sees more than one
-> > terminating target being requested in a single rule.
+> I think james should be able to answer that.
+
+The problem is that the ip_queue module isn't loaded automagically
+when a program requires it. I have no idea if this can be fixed or not
+but the problem is known and can easily be corrected by simply
+
+insmod ip_queue
+
+
 > 
-> no, it's not about how to distinguish it internally.  It was more like:
-> How does the user know which targets terminate and which don't [just by
-> looking at the name or it's usage]
-
-Random notice: the same question waits for the user who wants to understand
-the action of some "previous user defined chain" he just sees. Does that
-user defined chain terminate in any case?
-
-My point? iptables rulesets tend to become sufficiently complex in a
-short time so that "vague inspection" won't make a given ruleset
-easily understandable. IMHO that's a tribute to the flexibility
-we have with iptables. Engage brain before making modifications.
-
-have a nice weekend
-  Patrick
+> > - ipqmpd-0.3: default verdict NF_ACCEPT is not applied when no
+> >   process has attached to it. In fact ipqmpd starts, but it seems
+> >   that it never receives any packet (in ipq_inp). When one process
+> >   attaches to it, with a mark different from the queued packet, then
+> >   the default NF_ACCEPT is applied correctly. When all processes have
+> >   detached from ipqmpd, the default NF_ACCEPT continues to be applied
+> >   correctly.
+> 
+> ever looked at the CVS repository? 
+> http://www.gnumonks.org/cgi-bin/cvsweb.cgi/ipqmpd/
+> 
+> None of that code has been touched since 22 months... I wrote ipqmpd for
+> fun, and nobody really seemed to use it.  Feel free to submit patches or
+> take over maintainership of ipqmpd :)
+> 
+> > kr,
+> > -jmhe-               He who expects nothing shall never be disappointed
+> 
+> -- 
+> Live long and prosper
+> - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+> ============================================================================
+> GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+> V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+-- 
+Iain Barnes <zenadsl3030@zen.co.uk>
