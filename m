@@ -1,17 +1,19 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: tcp-window-tracking.patch question
-Date: Fri, 20 Sep 2002 09:05:31 +0200 (CEST)
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] User defined udp and tcp conntrack state timeouts
+Date: Fri, 20 Sep 2002 11:21:50 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0209200839370.21253-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.44.0209191558570.15133-100000@laptop1.agatha>
+Message-ID: <20020920112150.Z3810@sunbeam.de.gnumonks.org>
+References: <20020919084658.J3810@sunbeam.de.gnumonks.org> <Pine.LNX.4.44L.0209182252170.18297-101000@hunger.screamingdaemon.com> <20020919204619.W3810@sunbeam.de.gnumonks.org> <1032467747.5564.42.camel@tux>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="B8XbdO3LMJiqT+9q"
+Cc: Jay Schulist <jschlst@linux-sna.org>,
+	Jay Schulist <jschulist@bivio.net>, Patrick Schaaf <bof@bof.de>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Oskar Andreasson <blueflux@koffein.net>,
-	Jay Schulist <jschulist@bivio.net>,
-	Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <Pine.LNX.4.44.0209191558570.15133-100000@laptop1.agatha>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+Content-Disposition: inline
+In-Reply-To: <1032467747.5564.42.camel@tux>; from gandalf@wlug.westbo.se on Thu, Sep 19, 2002 at 10:35:47PM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,40 +24,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-On Thu, 19 Sep 2002, Oskar Andreasson wrote:
+--B8XbdO3LMJiqT+9q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Quick question, do you know if the tcp-window-tracking patch will enter
-> the main kernel tree, or if it is considered at all?
+> Harald, you'll add the scoreboard entry?
 
-It'll enter the main kernel tree one time.
+I have changed write permissions to the score subdirectory, so you can do
+it yourself.
 
-However, the problem encountered on kashyyyk (long mail delays due to
-packets marked as out of window) must be sorted out before considering a
-submission.
+> /Martin
 
-> Reason I am wondering is since I've pretty much based my ipsysctl
-> documentation on your code, and I would hate to "put it down" just because
-> this is not even close to how the final implementation will look:). My
-> mistake if so, but still annoying.
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
+=20
+V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
-That's another corner of the patch. I introduced the
-/proc/net/ipv4/netfilter/ directory in order to keep all the
-netfilter-related parameters separated - I believe it's much nicer, makes
-easier to introduce new entries and it follows the source tree structure
-as well.
+--B8XbdO3LMJiqT+9q
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Jay Schulist has just submitted a patch ('User defined udp and tcp
-conntrack state timeouts') which implements the same feature but he keeps
-the new knobs in /proc/net/ipv4/.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-A decision should be taken on the systcl interface of netfilter.
+iD8DBQE9iuiuXaXGVTD0i/8RAiViAJ0X3D9Rp5qnB1BfIGHVZJqhNoUxQQCeNL/4
+YG8ddGjwfIeNb0If+Zj2BCU=
+=NzdE
+-----END PGP SIGNATURE-----
 
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--B8XbdO3LMJiqT+9q--
