@@ -1,14 +1,16 @@
-From: "=?Windows-1252?Q?Antonio_E._Mart=EDnez?=" <Antonio.Martinez@iic.uam.es>
-Subject: Connection Tracking and FIN+ACK packets
-Date: Wed, 26 Jun 2002 12:09:48 +0200
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: NAT, not doing route_me_harder?
+Date: Wed, 26 Jun 2002 12:18:38 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <00d301c21cf9$9a96be40$2e14f496@iic.uam.es>
+Message-ID: <20020626101838.GA9824@balabit.hu>
+References: <20020626084136.GA25908@balabit.hu> <200206261113.16886.hno@marasystems.com> <20020626095557.GB4140@balabit.hu> <200206261204.23831.hno@marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <200206261204.23831.hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -19,36 +21,47 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I am not sure if this matter has been discussed previously... If that's
-true, please, point me to the place where the answer is...
+On Wed, Jun 26, 2002 at 12:04:23PM +0200, Henrik Nordstrom wrote:
+> Balazs Scheidler wrote:
+> > I think I now understand, have my packets marked in local OUTPUT, route
+> > based on that mark, and SNAT based on the marks. Is this the way you
+> > suggested? Hmm.. this sounds reasonable on the programmer's perspective,
+> > but is difficult to maintain from the user's: it needs two rules.
+> 
+> Yes, it requires three custom rules rather than two (there is also the routing 
+> policy rule)
+> 
+> Having NAT reroute all packets due to source nat transformations would be a 
+> significant performance impact only to support the corner cases where it is 
+> handy..
 
-I am using netfilter on a screening router, and I detected that FIN+ACK
-packets coming from web sites are blocked by the firewall.
-For the moment, I am using a configuration to allow "flat" access from my
-internal network, allowing responses from external sites, with these
-iptables rules:
+Why? The rerouting would be triggered only if the user requests it, so
+normal path would not be affected. And as routing decisions are heavily
+cached, it is said (I think it was Harald who said that) that routing
+decisions are not expensive. It would add a simple bit-test in normal path,
+and a second routing decision if explicitly requested:
 
-iptables -A FORWARD -v -i $IFINT -s $IPINT -m state --state
-NEW,ESTABLISHED -j ACCEPT
-iptables -A FORWARD -v -i $IFEXT -s $IPANY -m state --state ESTABLISHED -j
-ACCEPT
+something like this in ip_nat_fn(), after do_bindings is called:
 
-(I think variables are "self explained"...)
+	saddr = (*pskb)->nh.iph->saddr;
+	daddr = (*pskb)->nh.iph->daddr;
 
-According to "IPTables connection tracking" document, the closure proceeds
-in this way:
+	ret = do_bindings(ct, ctinfo, info, hooknum, pskb);
+	if (ret != NF_DROP && ret != NF_STOLEN && (ct->flags & IP_NAT_REROUTE)) {
+	        if (((*pskb)->nh.iph->saddr != saddr || (*pskb)->nh.iph->daddr != daddr))
+	                ret = (ip_route_me_harder(pskb) == 0) ? ret : NF_DROP;
+	
+	}
+	return ret;
 
-       Client                    Server
-                        .........
-   FIN+ACK   --->
-                        <---        ACK
-                        <---     FIN+ACK
-         ACK      --->
+This could also be extended with the local output case, so ip_nat_fn() and
+ip_nat_local_fn() could be merged. (the if condition would become:
 
-It seems status "ESTABLISHED" is finished with the first "FIN+ACK" package
-sent by the client, and then last "FIN+ACK" package, coming from the Server,
-is rejected by the firewall rules. Am I correct? If the answer is "yes", are
-there any way (or fix) to solve that?
-And if I am wrong, please, tell me... Thank you very much.
+if (ret != NF_DROP && ret != NF_STOLEN && (hooknum == NF_IP_LOCAL_OUT || ct->flags & IP_NAT_REROUTE)) {
+	...
+}
 
-Best regards. Antonio.
+
+-- 
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
