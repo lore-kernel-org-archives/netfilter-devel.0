@@ -1,17 +1,21 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6 1/14]: Fix non-existant config option CONFIG_NF_DEBUG
-Date: Tue, 22 Jun 2004 01:20:01 +0200
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH 2.6 1/14]: Fix non-existant config option
+ CONFIG_NF_DEBUG
+Date: Mon, 21 Jun 2004 16:27:13 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40D76D21.90000@trash.net>
-References: <20040621193851.GF24374@sunbeam.de.gnumonks.org>	<20040621144452.15fbe009.davem@redhat.com>	<20040621224456.GJ24374@sunbeam.de.gnumonks.org> <20040621160138.2738c8e1.davem@redhat.com>
+Message-ID: <20040621162713.21bf28a0.davem@redhat.com>
+References: <20040621193851.GF24374@sunbeam.de.gnumonks.org>
+	<20040621144452.15fbe009.davem@redhat.com>
+	<20040621224456.GJ24374@sunbeam.de.gnumonks.org>
+	<20040621160138.2738c8e1.davem@redhat.com>
+	<40D76D21.90000@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
- netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-In-Reply-To: <20040621160138.2738c8e1.davem@redhat.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <40D76D21.90000@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,21 +26,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
-> The person who codes the patch (in this case Patrick), the person
-> who first integrates it (you) and me all have to sign off on the
-> patch.
-> 
-> I don't care if you use bitkeeper or not, but you have to give me
-> the Signed-off-by: lines in your email descriptions or someplace
-> similar.
+On Tue, 22 Jun 2004 01:20:01 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-In this case Harald just passed the patchset on, so all mistakes are
-mine. The 2.4 patches didn't include any Signed-off-by: lines because
-I was under the impression that Marcelo doesn't require them. All 2.6
-patches had them at the end of the patch description, but I'll be happy
-to include them directly in the changeset comments next time I prepare
-a patchset.
+> The 2.4 patches didn't include any Signed-off-by: lines because
+> I was under the impression that Marcelo doesn't require them.
 
-Regards
-Patrick
+He doesn't, but I do them anyways.
