@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: 3 target treatment
-Date: Thu, 6 Mar 2003 12:19:52 +0100
+From: "Ian Latter" <Ian.Latter@mq.edu.au>
+Subject: Re: 2.4.20 and user space ICMP REDIRECT
+Date: Sun, 09 Mar 2003 10:01:57 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030306111952.GB25556@sunbeam.de.gnumonks.org>
-References: <3E65B570.5DA3802D@ie.cuhk.edu.hk> <200303052308.55624.fabrice@netfilter.org> <20030305181405.GD4880@sunbeam.de.gnumonks.org> <3E66DDFA.6759F728@ie.cuhk.edu.hk>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="z6Eq5LdranGa6ru8"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <200303090001.h2901wq08424@singularity.tronunltd.com>
+Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
+Content-Type: text/plain; charset="us-ascii"
+Cc: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Philip Ho <cbho@ie.cuhk.edu.hk>
-Content-Disposition: inline
-In-Reply-To: <3E66DDFA.6759F728@ie.cuhk.edu.hk>
+To: "Patrick Schaaf" <bof@bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,53 +18,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> >   Harald's name came up in the kernel code (of course ;-) some
+> > place like ip_nat_core (sample of the interesting bit below - but
+> > not incl Harald ref) ..  is there something like this in the kernel
+> > that is causing me problems?
+> 
+> You said you are doing this, and seeing the problem, without any
+> active iptables rules, right? And you see suitable counters go up?
+Yeah, no active rules, and I didn't check counters without the rules,
+but with a single permit rule, its counter didn't go up, so my gut
+feeling is that its either not iptables, or tables is doing something and
+not reporting it.
 
---z6Eq5LdranGa6ru8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 06, 2003 at 01:34:50PM +0800, Philip Ho wrote:
-> Hi Fabrice and Harald
->=20
-> After I tried DSCP target, I have a bit of idea. I guess to update the fr=
-ag.
-> field, I have to add source code like libipt_DSCP.c and libipt_dscp_helpe=
-r.c
->=20
-> But I cannot find in the sources explicit reference of the position of DS=
-CP
-> field relative to IP header. Can you tell me the reason, please?
+> > Ie -  Is there some sort of safe guard or config option that I'm missing?
+> 
+> I would almost bet that this is a generic feature of the network stack.
+> The linux-net mailing list would probably be the more helpful place
+> to ask.  I strongly doubt that is has anything to do with netfilter
+> or iptables.  You could easily try to prove that, by recompiling the
+> kernel to not contain any iptables stuff.
+Thanks Patrick ... I'll go and find linux-net and ask them ...
 
-pleaes read the netfilter hacking HOWTO and my netfilter programming
-tutorial (www.gnumonks.org/presentations/netfilter-programming-*)
 
-and to answer the question: less /usr/src/linux/net/ipv4/netfilter/ipt_DSCP=
-.c
+ 
+> best regards
+>   Patrick
+> 
+> 
 
-> Regards,
-> philip
-
---=20
-- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-Programming is like sex: One mistake and you have to support it your lifeti=
-me
-
---z6Eq5LdranGa6ru8
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+Zy7YXaXGVTD0i/8RAl8gAJwOszX+7V4mPcy+MjaNNh4M+fqZ/gCgrNZ1
-kbNWOfPcnXm8nHuxz3g0Pyk=
-=n1KQ
------END PGP SIGNATURE-----
-
---z6Eq5LdranGa6ru8--
+--
+Ian Latter
+Internet and Networking Security Officer
+Macquarie University
