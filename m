@@ -1,16 +1,17 @@
-From: Ciaran Deignan <ciaran.deignan@netcelo.com>
-Subject: Re: snat and ICMP question
-Date: Wed, 09 Oct 2002 13:16:27 +0200
+From: Roberto Nibali <ratz@tac.ch>
+Subject: Re: TCP window tracking patch status query for further design considerations
+Date: Wed, 09 Oct 2002 15:20:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DA4100B.79866BC0@netcelo.com>
-References: <3DA30D48.3EA0E56E@netcelo.com> <200210081500.06505.marian@ti.com> <3DA400B9.390A17F7@netcelo.com>
+Message-ID: <3DA42D39.5050403@tac.ch>
+References: <Pine.LNX.4.33.0210090012060.24530-100000@blackhole.kfki.hu> <3DA35A8C.6040201@drugphish.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+   Netfilter-devel
+ <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Marian Stagarescu <marian@ti.com>,
-	netfilter-devel@lists.netfilter.org,
-	Matthieu Marc <matthieu.marc@netcelo.com>
+To: Roberto Nibali <ratz@drugphish.ch>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,35 +22,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
+>> You send too big packets with the DF bit set, but you block the
+>> correspondig ICMP error messages (see the kernel log above) as well.
+>  
+> D'oh, apologies to the netfilter-devel list for this embarrassing posting.
 
+I've just realized that the tests I did were done over a VPN link with an MTU of 
+1200 :(. I've fixed my setup on the packet filter as follows:
 
-> > > iptables -t mangle -A PREROUTING --in-interface ipsec+ \
-> > >                         -j MARK --set-mark 1
-> > > iptables -t nat -A POSTROUTING -m mark --mark 1 \
-> > >                                 -j MASQUERADE
-> >
+ip link set dev eth0 mtu 1200 && ip route flush cache
 
-> config. Actually, the web server is on the private interface.
-> 
-> The ICMP error message contains the real address of the
-> remote user. Do you think I should mark ICMP messages
-> on the OUTPUT chain? I must try that...
+I will now go back and delve into testing the TCP window tracking patch.
 
-I tried adding the following rule, but that didn't change
-anything:
-
-	iptables -t mangle -A OUTPUT -p ICMP -j MARK --set-mark 1
-
-Is there any way I could cause the ICMP error to be
-generated before the packet is de-nated?
-
-Ciaran
-
+Regards,
+Roberto Nibali, ratz
 -- 
-+---------------------------------------------------------+
-Ciaran Deignan                              04 38 49 87 27
-
-Netcelo SA - IPsec VPN Solutions    http://www.netcelo.com/
-18-20 rue Henri Barbusse - BP 2501, 38035 Grenoble Cedex 2
-+---------------------------------------------------------+
+echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
