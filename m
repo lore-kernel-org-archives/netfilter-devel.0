@@ -1,48 +1,46 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: SVN woes
-Date: Fri, 8 Oct 2004 02:35:13 +0200
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041008003513.GU13901@sunbeam.de.gnumonks.org>
-References: <7C9884991ADAE0479C14F10C858BCDF5679559@alderaan.smgtec.com>
+Subject: Re: [PATCH 2.6] ip_nat_ftp - manip at the right place
+Date: Sat, 11 Sep 2004 23:57:46 +0200
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040911215746.GF19871@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.58.0409111042580.1315@u.domain.uli>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0M7E0x35R+W+EAky"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Daniel Chemko <dchemko@smgtec.com>
+	protocol="application/pgp-signature"; boundary="MZf7D3rAEoQgPanC"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+        netdev@oss.sgi.com, Rusty Russell <rusty@rustcorp.com.au>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Julian Anastasov <ja@ssi.bg>
 Content-Disposition: inline
-In-Reply-To: <7C9884991ADAE0479C14F10C858BCDF5679559@alderaan.smgtec.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.58.0409111042580.1315@u.domain.uli>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
 
---0M7E0x35R+W+EAky
+--MZf7D3rAEoQgPanC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 07, 2004 at 01:41:49PM -0700, Daniel Chemko wrote:
->  http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk=20
+On Sat, Sep 11, 2004 at 10:53:53AM +0300, Julian Anastasov wrote:
+> 	Hello,
 >=20
-> An Exception Has Occurred
+> 	This is a resend/resync for v2.6.9-rc1-bk17: change the
+> way the ip_nat_ftp helper manipulates the packets:
+>=20
+> - no manips =3D> no fixup
+>=20
+> - check the direction, do manip once and at the same time when the
+> headers are changed
 
-I'm sorry for this inconvenience.  I have no idea what caused the
-problem at this moment.  The repository is now recovered and working
-again, but I fear it will get stuck again, since the cause of that
-problem is yet unknown.
+I agree with this change, but shouldn't we make it consistently over all
+NAT helpers?  In case you didn't check yet, and assuming that this is
+applicable to other helpers as well:  Please include patches for other
+protocol helpers as well.
 
->     self.repos =3D repos.svn_repos_open(rootpath, self.pool)
-> SubversionException: ("Berkeley DB error while opening 'revisions' table
-> for filesystem /data/svn/netfilter.org/netfilter/db:\nCannot allocate
-> memory", 160029)
+Thanks!
 
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -53,17 +51,17 @@ problem is yet unknown.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---0M7E0x35R+W+EAky
+--MZf7D3rAEoQgPanC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBZeDBXaXGVTD0i/8RAjKZAKCP8/wka2OPiDPpkW4C3/YeSDDcsQCfVuqT
-jSnwD9Zoodg8kKYP7or0AfA=
-=G/KR
+iD8DBQFBQ3TaXaXGVTD0i/8RAmTxAJ9ktGTt1eOru0wIrLid2gEjMRFJBwCgpNx0
+pnQyfK2GmkS3WA73Nvpu/SE=
+=CJnS
 -----END PGP SIGNATURE-----
 
---0M7E0x35R+W+EAky--
+--MZf7D3rAEoQgPanC--
