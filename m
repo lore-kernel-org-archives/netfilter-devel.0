@@ -1,8 +1,8 @@
 From: Patrick Schaaf <bof@bof.de>
 Subject: Re: rp_filter
-Date: Sat, 28 Dec 2002 09:46:14 +0100
+Date: Sat, 28 Dec 2002 10:17:30 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021228084614.GB440@oknodo.bof.de>
+Message-ID: <20021228091730.GC440@oknodo.bof.de>
 References: <20021227211113.GK677@ns>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -20,17 +20,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen,
+Stephen & all,
 
 >   Can we *please* move the rp_filter cruft into the firewalling code
 >   proper?
 
-If that's not a joke, please take your cruisade to the linux-net mailing
-list. It is not up to netfilter / iptables developers to even think
-about removal of base network stack features, in my opinion. Convince
-Dave Miller and Alexey Kusnetsov (speling probably wrong, sorry).
+Upon thinking a bit more about your request, there is one thing
+that annoys me about rp_filter, and where iptables may eventually
+help: there was (and probably is) the idea of a DROP table, where
+you can LOG packets coming from all kinds of drop sites within
+the network stack. It would be great if I had a way to LOG packets
+rejected by rp_filter. IMHO the big problem to the unwary end-user,
+is the _invisibility_ of the drops caused by rp_filter.
 
-I'll refrain from speaking against the idea itself, here.
+A simple net_ratelimit()ed printk() in the appropriate place, would
+already help a lot. If you walk your request over to linux-net, maybe
+you could make that your fallback position :-)
 
 best regards
   Patrick
