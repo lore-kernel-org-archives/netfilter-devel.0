@@ -1,22 +1,12 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: [PATCH 9/18] Netfilter:  Clean up the kmod handling code in
-	iptables.c
-Date: 06 Jan 2005 09:28:23 -0500
-Message-ID: <1105021703.2315.51.camel@jzny.localdomain>
-References: <1104896029.20582.72.camel@localhost.localdomain>
-	<20050105181249.GS26856@postel.suug.ch>
-	<1104973817.20582.110.camel@localhost.localdomain>
-	<20050106013031.GT26856@postel.suug.ch>
-Reply-To: hadi@cyberus.ca
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH NFSIM]: Fix invalid IP checksums on 64bit
+Date: Thu, 06 Jan 2005 15:29:59 +0100
+Message-ID: <41DD4B67.6010205@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>,
-	Rusty Russell <rusty@rustcorp.com.au>, Netfilter development mailing list
-	<netfilter-devel@lists.netfilter.org>, rmk@arm.linux.org.uk
+Content-Type: multipart/mixed; boundary="------------080904070103020601010108"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Graf <tgraf@suug.ch>
-In-Reply-To: <20050106013031.GT26856@postel.suug.ch>
+To: Rusty Russell <rusty@rustcorp.com.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,29 +18,79 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2005-01-05 at 20:30, Thomas Graf wrote:
+This is a multi-part message in MIME format.
+--------------080904070103020601010108
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> > I looked harder at this, and I prefer this patch:
-> 
-> Looks fine to me.
+IP checksums are calculated wrong on 64 bit because too large types are 
+used.
+This patch fixes them and a couple of unrelated snprintf-sizeof-warnings 
+in the
+same file. I still get invalid TCP checksums, but couldn't locate the 
+problem yet.
 
-Thanks Thomas for catching this.
-Patch looks good from here too. Andrew caught the unexported
-ipt_find_target for completion.
 
-BTW, do we have a sane IDE maintainer yet?[1] If we do, maybe its time i
-joined lk list again ;-> I have been waiting for a decade to fulfil that
-promise;-> 
-At some point Alan took over - but Alans sanity is somewhere on the edge
-of genius and insanity - so i wasnt sure which side of the line he was
-going to end up on after he took over.  As Russell King puts it in not
-so many words "What is it with Linux IDE and its maintainers?". Alas! my
-attempts to monitor Alan were short lived.
 
-I hear the new guy may be ok - but at times conflicting sentiments cross
-my path about him. So still watching ...
+--------------080904070103020601010108
+Content-Type: text/x-patch;
+ name="4.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="4.diff"
 
-cheers,
-jamal
-[1] Ok, theres actually some moral to this caffeine tale;-> netdev cc
-for net patches.
+Index: core/ipv4/ipv4.c
+===================================================================
+--- core/ipv4/ipv4.c	(revision 3578)
++++ core/ipv4/ipv4.c	(working copy)
+@@ -565,7 +565,7 @@
+ 	iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
+ }
+ 
+-static inline unsigned short from32to16(unsigned long x)
++static inline unsigned short from32to16(unsigned int x)
+ {
+ 	/* add up 16-bit and 16-bit for 16+c bit */
+ 	x = (x & 0xffff) + (x >> 16);
+@@ -574,10 +574,10 @@
+ 	return x;
+ }
+ 
+-static unsigned long do_csum(const unsigned char * buff, int len)
++static unsigned int do_csum(const unsigned char * buff, int len)
+ {
+ 	int odd, count;
+-	unsigned long result = 0;
++	unsigned int result = 0;
+ 
+ 	if (len <= 0)
+ 		return 0;
+@@ -819,7 +819,7 @@
+ 	switch (iph->protocol) {
+ 	case IPPROTO_ICMP:
+ 		icmph = (struct icmphdr *)(iph + 1);
+-		ptr += sprintf(ptr, "%u %u ",
++		ptr += sprintf(ptr, "%Zu %u ",
+ 		       iplen - sizeof(struct icmphdr), iph->protocol);
+ 
+ 		if (len < sizeof(struct icmphdr)) {
+@@ -855,7 +855,7 @@
+ 
+ 	case IPPROTO_UDP:
+ 		udph = (struct udphdr *)(iph + 1);
+-		ptr += sprintf(ptr, "%u %u ",
++		ptr += sprintf(ptr, "%Zu %u ",
+ 		       iplen - sizeof(struct udphdr), iph->protocol);
+ 
+ 		if (len < sizeof(struct udphdr)) {
+@@ -891,7 +891,7 @@
+ 		tcph = (struct tcphdr *)(iph + 1);
+ 		if (len < sizeof(struct tcphdr)) {
+ 			/* Assume no tcp options... */
+-			ptr += sprintf(ptr, "%u %u ",
++			ptr += sprintf(ptr, "%Zu %u ",
+ 				       iplen - sizeof(*tcph), iph->protocol);
+ 
+ 			ptr += sprintf(ptr, "-TRUNCATED-");
+
+--------------080904070103020601010108--
