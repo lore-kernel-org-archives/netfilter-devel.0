@@ -1,18 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [2.4.23] compile / link error in net/ipv4/netfilter
-Date: Tue, 2 Dec 2003 13:53:33 +0530
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.4.23 masquerading broken?
+Date: Tue, 02 Dec 2003 18:25:22 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031202082333.GI546@obroa-skai.de.gnumonks.org>
-References: <20031201202853.A31914@netdirect.ca>
+Message-ID: <3FCCCB02.5070203@trash.net>
+References: <20031202165653.GJ615@gaast.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="w3uUfsyyY1Pqa/ej"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: linux-kernel@vger.kernel.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Frey <cdfrey@netdirect.ca>
-Content-Disposition: inline
-In-Reply-To: <20031201202853.A31914@netdirect.ca>
+To: Wilmer van der Gaast <lintux@lintux.cx>
+In-Reply-To: <20031202165653.GJ615@gaast.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,49 +22,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Wilmer van der Gaast wrote:
 
---w3uUfsyyY1Pqa/ej
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>For security reasons, I upgraded to 2.4.23 last night. Now, suddenly, IP
+>masquerading seems to be broken. When I use SNAT instead of
+>masquerading, everything works.
+>
+>Unfortunately, I think it's hard to reproduce the problem. Right after
+>booting .23 for the first time, everything seemed to be okay. The
+>problems started just an hour ago, after having the server running for
+>fifteen hours without any problems.
+>
+>Unfortunately there's not much more information I can provide. I can
+>attach my iptables/rule/route file and keep my machine running in case
+>anyone needs/wants more information. For now I'll just stick with SNAT.
+>It works good enough for me.
+>  
+>
 
-On Mon, Dec 01, 2003 at 08:28:31PM -0500, Chris Frey wrote:
-> Hi,
->=20
-> Using gcc 3.2.3.
->=20
-> When compiling 2.4.23, it stops during the compile with these errors:
+Can you check the ringbuffer for error messages ? What happens
+to the packets when masquerading fails ?
 
-how did you get the .config you have attached?
-
-You have COMPAT_IPCHAINS activated at the same time as COMPAT_IPFWADM!
-
-This is illegal, and 'make menuconfig' or 'make xconfig' should not
-allow you to combine the two of them.  Please describe how you managed
-to do that ;)
-
-Greetings from india,
-	Harald.
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---w3uUfsyyY1Pqa/ej
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/zEwaXaXGVTD0i/8RAiKPAJ9dRrA65mf8HZOpdqBIQkKeBmL7AgCeIVJ0
-jFghCpdLN4Ot8C29c3eSiCk=
-=cuSN
------END PGP SIGNATURE-----
-
---w3uUfsyyY1Pqa/ej--
+Best regards,
+Patrick
