@@ -1,19 +1,23 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [RFC] ct_sync 0.15 (corrected)
-Date: Thu, 26 Aug 2004 12:00:06 +0200 (CEST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Missing ipt_osf.h in p-o-m (kernel 2.6)
+Date: Thu, 26 Aug 2004 12:21:22 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0408261015001.16945@blackhole.kfki.hu>
-References: <1092407190.2402.120.camel@nienna.balabit>
-	<20040819110646.GJ3921@sunbeam.de.gnumonks.org>
-	<1092917551.2425.28.camel@nienna.balabit>
+Message-ID: <Pine.LNX.4.61.0408261219210.7376@filer.marasystems.com>
+References: <20040818223233.GA317@cerbere.dyndns.info>
+	<20040819094720.GZ3921@sunbeam.de.gnumonks.org>
+	<4127E920.2080100@trash.net>
+	<Pine.LNX.4.58.0408241134530.13212@blackhole.kfki.hu>
+	<20040824104945.GR26877@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.61.0408241435260.7021@filer.marasystems.com>
+	<Pine.LNX.4.58.0408241447140.13212@blackhole.kfki.hu>
+	<Pine.LNX.4.61.0408241647300.9087@filer.marasystems.com>
+	<Pine.LNX.4.58.0408261103190.17019@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <1092917551.2425.28.camel@nienna.balabit>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0408261103190.17019@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,60 +28,14 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 19 Aug 2004, KOVACS Krisztian wrote:
+On Thu, 26 Aug 2004, Jozsef Kadlecsik wrote:
 
-> > >      3. There are a few things in the connection tracking code which
-> > >         are incompatible with replication "by design". For example,
-> > >         the expectfn() function in the expectation structure is such:
-> > >         simply, there is no way to replicate a stand-alone function
-> > >         pointer which could point to any arbitrary function.
-> >
-> > Yes, indeed.  we could look up the symbol name in the symbol table and
-> > replicate that ;)   Crude hack, but it would work.
->
->   Unfortunately I don't think it would work... AFAIK there is no symbol
-> table information in 2.4 kernels and usually these functions are
-> declared as static anyway. Moreover, take a look at the H.323 helper, it
-> uses this expectfn function to set the helper of the conntrack to an
-> unregistered helper structure... I think there is no point in making
-> ct_sync overly complicated; these helpers should be fixed instead. (I
-> don't know why the H.323 does things this way, but it is completely
-> hopeless to replicate things like this.)
+> If we put the file into each linux-x.y.z directory up to 2.6.8, we are
+> copying the same file between directories in spite of the efforts of
+> avoiding that.
 
-We could add the expect function to the ip_conntrack_helper structure and
-identify it by the helper name in the update messages. The unregistered
-helper in the H.323 conntrack/nat module could be registered with an
-invalid, never matching port and let the expect function handle it as
-before (because the real port is dynamic). I think that'd be sufficient in
-solving the replication problem.
+If there is that many Linux version dependencies of the extension yes, but 
+I doubt this will be the case very often.
 
-Unfortunately we cannot fix the H.323 protocol. :-)
-
-> > > 	 One more example could be TCP window tracking, I don't think we
-> > > 	 have the necessary bandwidth and CPU time to send an update
-> > > 	 message after each and every received TCP packet... Any idea
-> > > 	 how we could solve these problems?
-> >
-> > We already do this since the timeout is updated with every packet.  So
-> > at this point, I see not much difference.  Jozsef and I agreed some time
-> > in the past, that if we don't replicate all the window information, in
-> > the event of a slave being propagated to master, the new master should
-> > disable windowtracking or switch into a lazy mode.
->
->   Indeed, the timeout is updated with every packet. However, we do not
-> generate an update message for IPCT_REFRESH events at the moment. On the
-> other hand, we replicate the timeout changes when a state change occurs
-> as well, so I don't worry about incorrect (relative) timeout values at
-> all.
-
-That's still fine with TCP window tracking. Just as Harald wrote, we can
-switch to lazy mode on the slaves. But to be honest, that is the least
-verified part of the window tracking code.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+Henrik
