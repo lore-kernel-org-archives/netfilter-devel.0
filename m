@@ -1,18 +1,14 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH 1/3] Netfilter: Remove ip_conntrack_tuple_hash "ctrack"
-Date: Tue, 25 Jan 2005 18:46:33 +1100
-Message-ID: <1106639193.19186.50.camel@localhost.localdomain>
-References: <1105444254.19331.43.camel@localhost.localdomain>
-	<m3k6q52ubw.fsf@igel.m5r.de>
-	<1106535381.19666.6.camel@localhost.localdomain>
-	<jellajqguc.fsf@sykes.suse.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] TCP window tracking retransmission handling
+Date: Tue, 25 Jan 2005 09:33:02 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0501250909570.9430@blackhole.kfki.hu>
+References: <20050125060705.GA32479@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andreas Schwab <schwab@suse.de>
-In-Reply-To: <jellajqguc.fsf@sykes.suse.de>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20050125060705.GA32479@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,68 +20,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2005-01-24 at 11:08 +0100, Andreas Schwab wrote:
-> Rusty Russell <rusty@rustcorp.com.au> writes:
-> 
-> > On Sat, 2005-01-22 at 19:26 +0100, Andreas Schwab wrote:
-> >> Doesn't this break the iptables conntrack module on big-endian systems?
-> >
-> > I don't see why... we only need 8 bits for the protocol, and we used to
-> > use 16 (because we had them).  I wanted to add a field, so I reduced
-> > protonum to 8 bits and added another 8 bit field.
-> 
-> iptables uses this structure internally.  If it also uses it inside a
-> kernel interface then you have broken the kernel ABI.
+Hi Phil,
 
-Sorry, I misunderstood.  You're right.
+On Mon, 24 Jan 2005, Phil Oester wrote:
 
-Name: Avoid breaking userspace due to tuple change
-Status: Trivial, Compiled
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+> Under certain circumstances (high latency WAN links for instance), ack
+> packets get stacked up and arrive in bulk.  The current TCP window
+> tracking code interprets these numerous acks as retransmits, and
+> if there are >= 3 retransmits sequentially, it resets the timeout on
+> a conntrack to 5 minutes.
+>
+> This is trivially reproducible on a high latency link by an 'ls -lR'
+> on a large-ish tree.  In my test case, 8 ack packets arrived sequentially
+> at the end of the listing.  While the seq numbers on those packets
+> were indeed identical (which the current code tests for), they were acking
+> unique packets, and thus clearly do not qualify as retransmissions.
+>
+> The problem lies in the fact that the code currently only examines
+> the seq number of the arriving packet, but does not also look at the
+> seq number being acked.  The patch below adds this additional check.
+> Unfortunately, it adds another int32 to ip_ct_tcp, but I could think
+> of no other fool-proof way of fixing it (short of ripping out the
+> retransmission test altogether).
 
-Andreas Schwab <schwab@suse.de> points out that the ipt_conntrack
-match exposes "struct ip_conntrack_tuple" to userspace, and we changed
-it recently.  Make it use a "special" one, to avoid breaking
-compatibility.
+If we really want to attempt to detect resent packets, then I agree with
+you and the proposed solution. I was reluctant to add another field to
+ip_ct_tcp, but that cannot be avoided in order to do the job properly.
 
-Index: linux-2.6.11-rc2-bk2-Netfilter/include/linux/netfilter_ipv4/ipt_conntrack.h
-===================================================================
---- linux-2.6.11-rc2-bk2-Netfilter.orig/include/linux/netfilter_ipv4/ipt_conntrack.h	2005-01-11 14:21:11.000000000 +1100
-+++ linux-2.6.11-rc2-bk2-Netfilter/include/linux/netfilter_ipv4/ipt_conntrack.h	2005-01-25 18:22:29.588143064 +1100
-@@ -22,11 +22,32 @@
- #define IPT_CONNTRACK_STATUS	0x40
- #define IPT_CONNTRACK_EXPIRES	0x80
- 
-+/* This is exposed to userspace, so remains frozen in time. */
-+struct ip_conntrack_old_tuple
-+{
-+	struct {
-+		__u32 ip;
-+		union {
-+			__u16 all;
-+		} u;
-+	} src;
-+
-+	struct {
-+		__u32 ip;
-+		union {
-+			__u16 all;
-+		} u;
-+
-+		/* The protocol. */
-+		u16 protonum;
-+	} dst;
-+};
-+
- struct ipt_conntrack_info
- {
- 	unsigned int statemask, statusmask;
- 
--	struct ip_conntrack_tuple tuple[IP_CT_DIR_MAX];
-+	struct ip_conntrack_old_tuple tuple[IP_CT_DIR_MAX];
- 	struct in_addr sipmsk[IP_CT_DIR_MAX], dipmsk[IP_CT_DIR_MAX];
- 
- 	unsigned long expires_min, expires_max;
+[However, from another point of view, we actually could get rid of the
+feeble attempt of detecting resent packets (and thus the retrans and
+last_end fields) with the price of possible dangling connections in the
+conntrack table. The current code handles just fine "reopening" stuck
+connections.]
 
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
