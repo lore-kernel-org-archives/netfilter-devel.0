@@ -1,11 +1,12 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] iptables segfault on -D
-Date: Thu, 3 Feb 2005 16:55:37 -0800
-Message-ID: <20050204005537.GA25682@linuxace.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 2.6.11 0/4]: Netfilter fixes
+Date: Fri, 04 Feb 2005 04:05:02 +0100
+Message-ID: <4202E65E.2030008@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="nFreZHaLTZJo0R7j"
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,37 +18,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Dave,
 
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I hope these patches can still make it in 2.6.11. The TCP window tracking
+bug seems quite important to me, but I haven't actually heard complains 
+besides
+Phil's yet. The others patches aren't very serious, but the patches are 
+pretty
+trivial.
 
-Using latest 1.3.0-rc1 snapshot, a rule delete causes a segfault:
+You can pull all changes from bk://212.42.230.204/nf-2.6
 
-# iptables -A foo -p tcp --dport 1234   
-# iptables -D foo -p tcp --dport 1234
-Segmentation fault
-
-Problem is caused by a superfluous memset which memsets a greater-
-than-malloced area.  Patch below.
-
-Phil
+Thanks,
+Patrick
 
 
+<nib:cookinglinux.org>:
+  o [NETFILTER]: Fix ip_conntrack_ftp crash with debugging enabled
 
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-sigsegv
+<sjean:cookinglinux.org>:
+  o [NETFILTER]: Use GFP_ATOMIC in ipt_hashlimit
 
---- ipt-orig/libiptc/libiptc.c	2005-02-01 08:45:56.000000000 -0800
-+++ ipt-new/libiptc/libiptc.c	2005-02-03 16:51:46.000000000 -0800
-@@ -2047,7 +2047,6 @@
- 
- 	counterlen = sizeof(STRUCT_COUNTERS_INFO)
- 			+ sizeof(STRUCT_COUNTERS) * new_number;
--	memset(repl, 0, sizeof(*repl) + (*handle)->entries->size);
- 
- 	/* These are the old counters we will get from kernel */
- 	repl->counters = malloc(sizeof(STRUCT_COUNTERS)
+Pablo Neira:
+  o [NETFILTER]: fix iptables userspace build
 
---nFreZHaLTZJo0R7j--
+Phil Oester:
+  o [NETFILTER]: Improve TCP window tracking retransmission detection
