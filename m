@@ -1,16 +1,16 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: REJECT target
-Date: Thu, 26 Jun 2003 17:19:47 +0200
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: [PATCH] Add arptables mangle module
+Date: Thu, 26 Jun 2003 18:41:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030626151947.GA10045@oknodo.bof.de>
-References: <Pine.LNX.4.33.0306260830550.10452-100000@blackhole.kfki.hu> <1012141349.20030626165642@habitat-b.de>
+Message-ID: <200306261841.42008.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: DarKRaveR <DarKRaveR@habitat-b.de>
+To: David S.Miller <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <1012141349.20030626165642@habitat-b.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +21,179 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> Okay, admitted. I would be glad to do that in the filtering table, the
-> question is: How can I identify those packets, when the were modified
-> in the nat table ?
+Hello Dave,
 
-One approach that I used in some places, and which could be workable
-for your scenario, is to use the MARK target at mangle/PREROUTING,
-and then use the mark match both in the NAT decision, and in the
-filter table. The firewall mark stays with the packet, regardless
-of application of a NAT action.
+Here's the patch for 2.4.21
 
-The CONNMARK stuff may be even more useful / cover more cases.
+cheers,
+Bart
 
-best regards
-  Patrick
+--- linux-2.4.21/net/ipv4/netfilter/Makefile.old	2003-06-26 18:24:05.000000000 +0200
++++ linux-2.4.21/net/ipv4/netfilter/Makefile	2003-06-26 18:24:32.000000000 +0200
+@@ -100,6 +100,7 @@ obj-$(CONFIG_IP_NF_TARGET_TCPMSS) += ipt
+ 
+ # generic ARP tables
+ obj-$(CONFIG_IP_NF_ARPTABLES) += arp_tables.o
++obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
+ 
+ # just filtering instance of ARP tables for now
+ obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
+--- linux-2.4.21/net/ipv4/netfilter/Config.in.old	2003-06-26 18:24:12.000000000 +0200
++++ linux-2.4.21/net/ipv4/netfilter/Config.in	2003-06-26 18:25:53.000000000 +0200
+@@ -113,6 +113,9 @@ tristate 'ARP tables support' CONFIG_IP_
+ if [ "$CONFIG_IP_NF_ARPTABLES" != "n" ]; then
+   dep_tristate '  ARP packet filtering' CONFIG_IP_NF_ARPFILTER $CONFIG_IP_NF_ARPTABLES 
+ fi
++if [ "$CONFIG_IP_NF_ARPTABLES" != "n" ]; then
++  dep_tristate '  ARP payload mangling' CONFIG_IP_NF_ARP_MANGLE $CONFIG_IP_NF_ARPTABLES
++fi
+ 
+ # Backwards compatibility modules: only if you don't build in the others.
+ if [ "$CONFIG_IP_NF_CONNTRACK" != "y" ]; then
+--- linux-2.4.21/Documentation/Configure.help.old	2003-06-26 18:23:27.000000000 +0200
++++ linux-2.4.21/Documentation/Configure.help	2003-06-26 18:23:43.000000000 +0200
+@@ -3052,6 +3052,11 @@ CONFIG_IP6_NF_TARGET_MARK
+   If you want to compile it as a module, say M here and read
+   <file:Documentation/modules.txt>.  If unsure, say `N'.
+ 
++ARP payload mangling
++CONFIG_IP_NF_ARP_MANGLE
++  Allows altering the ARP packet payload: source and destination
++  hardware and network addresses.
++
+ TCP Explicit Congestion Notification support
+ CONFIG_INET_ECN
+   Explicit Congestion Notification (ECN) allows routers to notify
+--- /dev/null	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.4.21/net/ipv4/netfilter/arpt_mangle.c	2003-06-26 18:26:13.000000000 +0200
+@@ -0,0 +1,101 @@
++/* module that allows mangling of the arp payload */
++#include <linux/module.h>
++#include <linux/netfilter_arp/arpt_mangle.h>
++#include <net/sock.h>
++
++static unsigned int
++target(struct sk_buff **pskb, unsigned int hooknum, const struct net_device *in,
++   const struct net_device *out, const void *targinfo, void *userinfo)
++{
++	const struct arpt_mangle *mangle = targinfo;
++	struct arphdr *arp;
++	unsigned char *arpptr;
++	int pln, hln;
++
++	if (skb_shared(*pskb) || skb_cloned(*pskb)) {
++		struct sk_buff *nskb;
++
++		nskb = skb_copy(*pskb, GFP_ATOMIC);
++		if (!nskb)
++			return NF_DROP;
++		if ((*pskb)->sk)
++			skb_set_owner_w(nskb, (*pskb)->sk);
++		kfree_skb(*pskb);
++		*pskb = nskb;
++	}
++
++	arp = (*pskb)->nh.arph;
++	arpptr = (*pskb)->nh.raw + sizeof(*arp);
++	pln = arp->ar_pln;
++	hln = arp->ar_hln;
++	/* We assume that hln was checked in the match */
++	if (mangle->flags & ARPT_MANGLE_SDEV) {
++		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
++		   (arpptr + hln > (**pskb).tail))
++			return NF_DROP;
++		memcpy(arpptr, mangle->src_devaddr, hln);
++	}
++	arpptr += hln;
++	if (mangle->flags & ARPT_MANGLE_SIP) {
++		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
++		   (arpptr + pln > (**pskb).tail))
++			return NF_DROP;
++		memcpy(arpptr, &mangle->u_s.src_ip, pln);
++	}
++	arpptr += pln;
++	if (mangle->flags & ARPT_MANGLE_TDEV) {
++		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
++		   (arpptr + hln > (**pskb).tail))
++			return NF_DROP;
++		memcpy(arpptr, mangle->tgt_devaddr, hln);
++	}
++	arpptr += hln;
++	if (mangle->flags & ARPT_MANGLE_TIP) {
++		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
++		   (arpptr + pln > (**pskb).tail))
++			return NF_DROP;
++		memcpy(arpptr, &mangle->u_t.tgt_ip, pln);
++	}
++	return mangle->target;
++}
++
++static int
++checkentry(const char *tablename, const struct arpt_entry *e, void *targinfo,
++   unsigned int targinfosize, unsigned int hook_mask)
++{
++	const struct arpt_mangle *mangle = targinfo;
++
++	if (mangle->flags & ~ARPT_MANGLE_MASK ||
++	    !(mangle->flags & ARPT_MANGLE_MASK))
++		return 0;
++
++	if (mangle->target != NF_DROP && mangle->target != NF_ACCEPT &&
++	   mangle->target != ARPT_CONTINUE)
++		return 0;
++	return 1;
++}
++
++static struct arpt_target arpt_mangle_reg
++= {
++        .name		= "mangle",
++        .target		= target,
++        .checkentry	= checkentry,
++        .me		= THIS_MODULE,
++};
++
++static int __init init(void)
++{
++	if (arpt_register_target(&arpt_mangle_reg))
++		return -EINVAL;
++
++	return 0;
++}
++
++static void __exit fini(void)
++{
++	arpt_unregister_target(&arpt_mangle_reg);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
+--- /dev/null	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.4.21/include/linux/netfilter_arp/arpt_mangle.h	2003-06-26 18:26:47.000000000 +0200
+@@ -0,0 +1,26 @@
++#ifndef _ARPT_MANGLE_H
++#define _ARPT_MANGLE_H
++#include <linux/netfilter_arp/arp_tables.h>
++
++#define ARPT_MANGLE_ADDR_LEN_MAX sizeof(struct in_addr)
++struct arpt_mangle
++{
++	char src_devaddr[ARPT_DEV_ADDR_LEN_MAX];
++	char tgt_devaddr[ARPT_DEV_ADDR_LEN_MAX];
++	union {
++		struct in_addr src_ip;
++	} u_s;
++	union {
++		struct in_addr tgt_ip;
++	} u_t;
++	u_int8_t flags;
++	int target;
++};
++
++#define ARPT_MANGLE_SDEV 0x01
++#define ARPT_MANGLE_TDEV 0x02
++#define ARPT_MANGLE_SIP 0x04
++#define ARPT_MANGLE_TIP 0x08
++#define ARPT_MANGLE_MASK 0x0f
++
++#endif /* _ARPT_MANGLE_H */
