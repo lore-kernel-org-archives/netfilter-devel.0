@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: use of vmalloc within netfilter (was Re: [ANNOUNCE] IP sets)
-Date: Mon, 23 Feb 2004 19:33:32 +0100
+From: Chee Yong TAN <chee_yong_tan@hotmail.com>
+Subject: Re: Sending back out A TCP Packet from netfilter
+Date: Tue, 24 Feb 2004 10:18:10 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040223183332.GN13386@sunbeam.de.gnumonks.org>
-References: <20040218081250.20edb2b5.ak@suse.de> <Pine.LNX.4.33.0402231812460.20487-200000@blackhole.kfki.hu>
+Message-ID: <403AB462.6080404@hotmail.com>
+References: <Pine.LNX.4.44.0402231518470.1686-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A2x6GFCQWVc4i5ud"
-Cc: Andi Kleen <ak@suse.de>, gandalf@wlug.westbo.se,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0402231812460.20487-200000@blackhole.kfki.hu>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0402231518470.1686-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,44 +21,176 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Henrik Nordstrom wrote:
 
---A2x6GFCQWVc4i5ud
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Mon, 23 Feb 2004, Chee Yong TAN wrote:
+> 
+> 
+>>I have tried to follow the codes closely but seems that it kills the 
+>>interrupt handler. I keep getting Oops with that dread Aiyee killing the 
+>>interrupt handler
+> 
+> 
+> Then show us what you have done and maybe we can help spotting the error?
 
-On Mon, Feb 23, 2004 at 06:19:12PM +0100, Jozsef Kadlecsik wrote:
-> Attached is a possible solution to avoid using vmalloc. The difference
-> should really be measured. Any takers? :-)
+OK The aiyee was due to memory leak.
+I resolve that but it does not work on loop back now :(
+Code As Follows
 
-Thanks Jozsef,
+static inline void tcp_checksum(struct iphdr *ip, struct tcphdr *tcp)
+{
+	tcp->check=0;
+	tcp->check = (csum_tcpudp_magic(ip->saddr,
+			ip->daddr,
+			ntohs(ip->tot_len) - (ip->ihl<<2),
+			IPPROTO_TCP,
+			csum_partial((u_char *)tcp,
+				ntohs(ip->tot_len) - (ip->ihl<<2),0)));
+	return;
+}
+static void connection_attach(struct sk_buff *new_skb, struct nf_ct_info 
+*nfct)
+{
+	void (*attach)(struct sk_buff *, struct nf_ct_info *);
+	
+	/* Avoid module unload race with ip_ct_attach being NULLed out */
+	if (nfct && (attach = ip_ct_attach) != NULL)
+		attach(new_skb, nfct);
+}
+static inline void rewrite_packet(struct sk_buff *sb)
+{
+struct iphdr	*ip = sb->nh.iph;
+struct tcphdr	*tcp = (struct tcphdr *)((sb->data) + (ip->ihl * 4));
+unsigned int	len = (ntohs(ip->tot_len) - ((ip->ihl * 4) + (tcp->doff *4)));	
+u32		tmp_long;
+u16		tmp_short;
+unsigned char				tmp_ether[ETH_ALEN];
+sb->pkt_type = PACKET_OUTGOING;
 
-I am currently into some netfilter/iptables profiling anyway and will
-give your patch a try.  Expect some results until wednesday.
+memset(tmp_ether,0x0,ETH_ALEN);
+memcpy(tmp_ether,sb->mac.ethernet->h_dest,ETH_ALEN);
+memcpy(sb->mac.ethernet->h_dest,sb->mac.ethernet->h_source,ETH_ALEN);
+memcpy(sb->mac.ethernet->h_source,tmp_ether,ETH_ALEN);
+tmp_long = ip->saddr;
+ip->saddr = ip->daddr;
+ip->daddr = tmp_long;
+tmp_short = tcp->source;
+tcp->source = tcp->dest;
+tcp->dest = tmp_short;
+tmp_long= tcp->ack_seq;
+tcp->ack_seq = htons(ntohs(tcp->seq) + len);
+tcp->seq = tmp_long;
+tcp->ack = 1;
+tcp->psh = 1;
+tcp->rst = 0;
+tcp->syn = 0;
+tcp->urg = 0;
+tcp->fin = 0;
+tcp->window = 0;
+tcp->urg_ptr = 0;
+sb->nh.iph->ttl = MAXTTL;
+	/* Set DF, id = 0 */
+sb->nh.iph->frag_off = htons(IP_DF);
+sb->nh.iph->id = 0;		
+}
+static inline struct rtable *route_packet(struct sk_buff *skb, int hook)
+{
+	struct iphdr *iph = skb->nh.iph;
+	struct dst_entry *odst;
+	struct rt_key key = {};
+	struct rtable *rt;
+	
+	if (hook != NF_IP_FORWARD)
+	{
+		key.dst = iph->saddr;
+		if (hook == NF_IP_LOCAL_IN)
+			key.src = iph->daddr;
+		key.tos = RT_TOS(iph->tos);
+		
+		if (ip_route_output_key(&rt, &key) != 0)
+			return NULL;
+	}
+	else
+	{
+		/* non-local src, find valid iif to satisfy
+		* rp-filter when calling ip_route_input. */
+		key.dst = iph->daddr;
+		if (ip_route_output_key(&rt, &key) != 0)
+			return NULL;
+	
+		odst = skb->dst;
+		if (ip_route_input(skb, iph->saddr, iph->daddr,
+			RT_TOS(iph->tos), rt->u.dst.dev) != 0)
+		{
+			dst_release(&rt->u.dst);
+			return NULL;
+		}
+		dst_release(&rt->u.dst);
+		rt = (struct rtable *)skb->dst;
+		skb->dst = odst;
+	}
+	
+	if (rt->u.dst.error)
+	{
+		dst_release(&rt->u.dst);
+		rt = NULL;
+	}
+	
+	return rt;
+}
+/* The following code is part of the hook function */
+if ((rt = route_packet(sb, hook)) == NULL)
+	return NF_DROP;
+hh_len = (rt->u.dst.dev->hard_header_len + 15)&~15;
+nskb = skb_copy_expand(sb, hh_len, skb_tailroom(sb),GFP_ATOMIC);
+if (!nskb)
+{
+	dst_release(&rt->u.dst);
+	return NF_DROP;
+}
+dst_release(nskb->dst);
+nskb->dst = &rt->u.dst;
+/* This packet will not be the same as the other: clear nf fields */
+#ifdef CONFIG_NETFILTER
+nf_conntrack_put(nskb->nfct);
+nskb->nfct = NULL;
+nskb->nfmark=0;
+nskb->nfcache = 0;
+#ifdef CONFIG_NETFILTER_DEBUG
+nskb->nf_debug=0;
+#endif
+#endif /*CONFIG_NETFILTER*/	
+nip = nskb->nh.iph;
+ntcp = (struct tcphdr *)((nskb->data) + (nip->ihl * 4));
+ndata = (unsigned char *)((nskb->data) + (nip->ihl * 4) + 
+(ntcp->doff *4));		
+memcpy(&ndata[sizeof(__u32)],&cmd,sizeof(cmd));
+memset(&ndata[sizeof(__u32)+ sizeof(cmd)],0x0,sizeof(struct 
+pf_rules_record));
+memcpy(&ndata[sizeof(__u32)+ sizeof(cmd)],userinfo,sizeof(struct 
+pf_rules_record));
+rewrite_packet(nskb);
+				
+tcp_checksum(nip,ntcp);
+nskb->nh.iph->check = 0;
+nskb->nh.iph->check = ip_fast_csum((unsigned char *)nskb->nh.iph, 
+nskb->nh.iph->ihl);
+if (nskb->len > nskb->dst->pmtu)
+{
+	kfree_skb(nskb);
+	return NF_DROP;
+}
+
+connection_attach(nskb, sb->nfct);
+NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, nskb, NULL, 
+nskb->dst->dev,ip_finish_output);               	
+/*
+  * Drop the Packet :p
+  */
+return NF_DROP;	
 
 
-> Jozsef
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---A2x6GFCQWVc4i5ud
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAOkd8XaXGVTD0i/8RAr0yAJ9QcC2QDc0hDcjx6sO+oNKbbHqPKwCfbdDd
-7KhT2NyzGzpnp7+aW8bXrt8=
-=GCK2
------END PGP SIGNATURE-----
-
---A2x6GFCQWVc4i5ud--
+> 
+> Regards
+> Henrik
+> 
