@@ -1,12 +1,15 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] TCP window tracking retransmission handling
-Date: Mon, 24 Jan 2005 22:07:05 -0800
-Message-ID: <20050125060705.GA32479@linuxace.com>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: [PATCH] IRC Zero Port Fix
+Date: Tue, 25 Jan 2005 18:08:48 +1100
+Message-ID: <1106636928.19186.47.camel@localhost.localdomain>
+References: <1106412163.7965.10.camel@debian>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="wRRV7LY7NUeQGEoC"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Ian Kumlien <pomac@vapor.com>
+In-Reply-To: <1106412163.7965.10.camel@debian>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,67 +21,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 2005-01-22 at 17:42 +0100, Ian Kumlien wrote:
+> Hi, 
+> 
+> I just noticed that the dcc helper doesn't work, it just sets the source
+> ip to 0. And since i have no clue of that code, i choose not to dive in
+> to it with no prior knowledge to structures and stuff.. I decided to ask
+> you instead.
+> 
+> So is this known?
+> And you don't do anything to the size with the new code right?
 
---wRRV7LY7NUeQGEoC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Here's the fix, thanks for the bug report.
 
-Under certain circumstances (high latency WAN links for instance), ack
-packets get stacked up and arrive in bulk.  The current TCP window
-tracking code interprets these numerous acks as retransmits, and
-if there are >= 3 retransmits sequentially, it resets the timeout on
-a conntrack to 5 minutes.
+Rusty (who just learnt a lot about the IRC protocol).
 
-This is trivially reproducible on a high latency link by an 'ls -lR'
-on a large-ish tree.  In my test case, 8 ack packets arrived sequentially
-at the end of the listing.  While the seq numbers on those packets
-were indeed identical (which the current code tests for), they were acking
-unique packets, and thus clearly do not qualify as retransmissions.
+Name: IRC Zero Port Fix
+Status: Tested under nfsim, booted under qemu
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-The problem lies in the fact that the code currently only examines
-the seq number of the arriving packet, but does not also look at the
-seq number being acked.  The patch below adds this additional check.
-Unfortunately, it adds another int32 to ip_ct_tcp, but I could think
-of no other fool-proof way of fixing it (short of ripping out the
-retransmission test altogether).
+Ian Kumlien reported that new NAT code started sending out DCC
+requests with 0 as the IP address.  That prompted me to write a simple
+IRC test case, which both illustrated the bug, and found another one
+in that the wrong expectation was being set up when NAT occurred.
 
-Phil
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
-
-
---wRRV7LY7NUeQGEoC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ack
-
-diff -ru linux-orig/include/linux/netfilter_ipv4/ip_conntrack_tcp.h linux-new/include/linux/netfilter_ipv4/ip_conntrack_tcp.h
---- linux-orig/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2004-12-24 16:34:31.000000000 -0500
-+++ linux-new/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2005-01-25 00:31:46.772442512 -0500
-@@ -41,6 +41,7 @@
- 	u_int8_t	retrans;	/* Number of retransmitted packets */
- 	u_int8_t	last_index;	/* Index of the last packet */
- 	u_int32_t	last_seq;	/* Last sequence number seen in dir */
-+	u_int32_t	last_ack;	/* Last sequence number seen in opposite dir */
- 	u_int32_t	last_end;	/* Last seq + len */
- };
+Index: linux-2.6.11-rc2-bk2-Netfilter/net/ipv4/netfilter/ip_nat_irc.c
+===================================================================
+--- linux-2.6.11-rc2-bk2-Netfilter.orig/net/ipv4/netfilter/ip_nat_irc.c	2005-01-24 11:14:14.000000000 +1100
++++ linux-2.6.11-rc2-bk2-Netfilter/net/ipv4/netfilter/ip_nat_irc.c	2005-01-25 16:30:31.006522720 +1100
+@@ -83,7 +83,10 @@
+ 	 *              0x01, \n:  terminators
+ 	 */
  
-diff -ru linux-orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c linux-new/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
---- linux-orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-01-25 00:46:13.192726608 -0500
-+++ linux-new/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-01-25 00:43:35.340723760 -0500
-@@ -665,11 +665,13 @@
- 		if (*index == TCP_ACK_SET) {
- 			if (state->last_dir == dir
- 			    && state->last_seq == seq
-+			    && state->last_ack == ack
- 			    && state->last_end == end)
- 				state->retrans++;
- 			else {
- 				state->last_dir = dir;
- 				state->last_seq = seq;
-+				state->last_ack = ack;
- 				state->last_end = end;
- 				state->retrans = 0;
- 			}
+-	sprintf(buffer, "%u %u", ntohl(exp->tuple.src.ip), port);
++	/* AAA = "us", ie. where server normally talks to. */
++	sprintf(buffer, "%u %u",
++		ntohl(exp->master->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip),
++		port);
+ 	DEBUGP("ip_nat_irc: Inserting '%s' == %u.%u.%u.%u, port %u\n",
+ 	       buffer, NIPQUAD(exp->tuple.src.ip), port);
+ 
+Index: linux-2.6.11-rc2-bk2-Netfilter/net/ipv4/netfilter/ip_conntrack_irc.c
+===================================================================
+--- linux-2.6.11-rc2-bk2-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_irc.c	2005-01-24 11:14:14.000000000 +1100
++++ linux-2.6.11-rc2-bk2-Netfilter/net/ipv4/netfilter/ip_conntrack_irc.c	2005-01-25 16:46:57.998477136 +1100
+@@ -209,9 +209,14 @@
+ 			DEBUGP("tcph->seq = %u\n", th->seq);
+ 			seq = ntohl(th->seq) + (addr_beg_p - ib_ptr);
+ 
++			/* We refer to the reverse direction ("!dir")
++			 * tuples here, because we're expecting
++			 * something in the other * direction.
++			 * Doesn't matter unless NAT is happening.  */
+ 			exp->tuple = ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
+-				  { ct->tuplehash[dir].tuple.src.ip, { .tcp = { htons(dcc_port) } },
++				  { ct->tuplehash[!dir].tuple.dst.ip,
++				    { .tcp = { htons(dcc_port) } },
+ 				    IPPROTO_TCP }});
+ 			exp->mask = ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
 
---wRRV7LY7NUeQGEoC--
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
