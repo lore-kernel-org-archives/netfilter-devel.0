@@ -1,16 +1,15 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: TCPMSS target for IPv6
-Date: Mon, 15 Dec 2003 10:26:06 +0900 (JST)
+From: "Maciej Soltysiak" <solt@dns.toxicfilms.tv>
+Subject: Re: [RFC]correction - cloned skbs - if i am right there is a bug in ipt_ECN.c
+Date: Mon, 15 Dec 2003 12:44:05 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200312150127.KAA00902@toshiba.co.jp>
-References: <20031211122649.GA25739@clipper.ens.fr>
+Message-ID: <006401c3c300$c3fed520$0e25fe0a@southpark.ae.poznan.pl>
+References: <002701c3c0ea$e26efa70$0e25fe0a@southpark.ae.poznan.pl> <003001c3c0eb$ede8cb50$0e25fe0a@southpark.ae.poznan.pl> <20031213085805.GG8950@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: nicolas.george@ens.fr
-In-Reply-To: <20031211122649.GA25739@clipper.ens.fr>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,41 +20,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Yeey, another bug squashed. Thanks Harald.
+Glad to be useful :-)
 
-Hi, Nicolas,
+I know my contributions are small, but I think I ought to start keeping
+track of them, hehe.
 
-From: Nicolas George <nicolas.george@ens.fr>
-Date: Thu, 11 Dec 2003 13:26:49 +0100
-
-> I am really missing the TCPMSS target for IPv6. With IPv6, MSS value is
-> not only a problem with "criminally braindead ISPs", but also with
-> IPv6-over-IPv4 tunnels: if the fragmentation problem arises in the IPv4
-> world, an ICMPv4 "fragmentation needed" is sent, but it can not be
-> converted into an ICMPv6 "too big", so path MTU discovery does not work.
-
-Please read subsection 3.2. in RFC 2893 .
-
-> As far as I can see, the code for iptables and ip6tables is really
-> similar, so it should be quite straightforward to port IPv4 TCPMSS to
-> IPv6 for someone that already knows the usual kernel network structures
-> (which is, alas, not my case yet).
-
-Do we have any other cases that TCPMSS is needed ? I think MTU issues should be
-solved in IPv6 stack (and lower layer in the case that MTU < 1280)
-and RFCs say so. So I think we don't need it.
-
-> 
-> Regards,
-> 
-> -- 
->   Nicolas George
-
-----------------------------------------
-Yasuyuki KOZAKAI
-
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
-
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+Regards,
+Maciej
