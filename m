@@ -1,11 +1,12 @@
-From: diegows@linux.org.ar (Diego Woitasen (Lanux))
-Subject: [PATCH] quota per ip
-Date: Mon, 30 Jun 2003 12:38:18 -0300 (ART)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [PATCH] IPv6 port of the quota match.
+Date: Mon, 30 Jun 2003 18:54:55 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030630153818.46D05117760@superhijitus>
-Cc: netfilter-devel@lists.netfilter.org, gandalf@wlug.westbo.se
+Message-ID: <Pine.LNX.4.51.0306301853230.6416@dns.toxicfilms.tv>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: samj@samj.net
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -16,617 +17,455 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch add support for quotas per source ip. Please I wan 't to hear your opinion about this.
+Hello,
 
-Thanks.
+this patch is an IPv6 port of the quota match.
 
+ patch-o-matic/base/quota.patch.ipv6                |  263 +++++++++++++++++++++
+ patch-o-matic/base/quota.patch.ipv6.config.in      |    2
+ patch-o-matic/base/quota.patch.ipv6.configure.help |    8
+ patch-o-matic/base/quota.patch.ipv6.help           |   12
+ patch-o-matic/base/quota.patch.ipv6.makefile       |    2
+ userspace/extensions/.quota-test6                  |    3
+ userspace/extensions/libip6t_quota.c               |  116 +++++++++
+ 7 files changed, 406 insertions(+)
 
+Regards,
+Maciej
 
-diff -urN -X dontdiff linux-2.4.20-orig/include/linux/netfilter_ipv4/ipt_quota.h linux-2.4.20/include/linux/netfilter_ipv4/ipt_quota.h
---- linux-2.4.20-orig/include/linux/netfilter_ipv4/ipt_quota.h	Wed Dec 31 21:00:00 1969
-+++ linux-2.4.20/include/linux/netfilter_ipv4/ipt_quota.h	Wed May 21 12:38:05 2003
-@@ -0,0 +1,20 @@
-+#ifndef _IPT_QUOTA_H
-+#define _IPT_QUOTA_H
+Here goes:
+
+diff -Nru netfilter.orig/patch-o-matic/base/quota.patch.ipv6 netfilter/patch-o-matic/base/quota.patch.ipv6
+--- netfilter.orig/patch-o-matic/base/quota.patch.ipv6	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/patch-o-matic/base/quota.patch.ipv6	2003-06-28 13:34:37.000000000 +0200
+@@ -0,0 +1,263 @@
++diff -Nru linux-2.4.21.orig/include/linux/netfilter_ipv6/ip6t_quota.h linux-2.4.21/include/linux/netfilter_ipv6/ip6t_quota.h
++--- linux-2.4.21.orig/include/linux/netfilter_ipv6/ip6t_quota.h	1970-01-01 01:00:00.000000000 +0100
+++++ linux-2.4.21/include/linux/netfilter_ipv6/ip6t_quota.h	2003-06-28 13:25:10.000000000 +0200
++@@ -0,0 +1,11 @@
+++#ifndef _IP6T_QUOTA_H
+++#define _IP6T_QUOTA_H
+++
+++/* print debug info in both kernel/netfilter module & iptable library */
+++/* #define DEBUG_IP6T_QUOTA */
+++
+++struct ip6t_quota_info {
+++        u_int64_t quota;
+++};
+++
+++#endif /*_IP6T_QUOTA_H */
++diff -Nru linux-2.4.21.orig/net/ipv6/netfilter/Config.in linux-2.4.21/net/ipv6/netfilter/Config.in
++--- linux-2.4.21.orig/net/ipv6/netfilter/Config.in	2003-06-28 13:24:11.000000000 +0200
+++++ linux-2.4.21/net/ipv6/netfilter/Config.in	2003-06-28 13:28:03.000000000 +0200
++@@ -17,6 +17,7 @@
++ if [ "$CONFIG_IP6_NF_IPTABLES" != "n" ]; then
++ # The simple matches.
++   dep_tristate '  limit match support' CONFIG_IP6_NF_MATCH_LIMIT $CONFIG_IP6_NF_IPTABLES
+++  dep_tristate '  quota match support' CONFIG_IP6_NF_MATCH_QUOTA $CONFIG_IP6_NF_IPTABLES
++   dep_tristate '  MAC address match support' CONFIG_IP6_NF_MATCH_MAC $CONFIG_IP6_NF_IPTABLES
++   dep_tristate '  Random match support' CONFIG_IP6_NF_MATCH_RANDOM $CONFIG_IP6_NF_IPTABLES
++   dep_tristate '  Nth match support' CONFIG_IP6_NF_MATCH_NTH $CONFIG_IP6_NF_IPTABLES
++diff -Nru linux-2.4.21.orig/net/ipv6/netfilter/Config.in~ linux-2.4.21/net/ipv6/netfilter/Config.in~
++--- linux-2.4.21.orig/net/ipv6/netfilter/Config.in~	1970-01-01 01:00:00.000000000 +0100
+++++ linux-2.4.21/net/ipv6/netfilter/Config.in~	2003-06-28 13:20:06.000000000 +0200
++@@ -0,0 +1,89 @@
+++#
+++# IP netfilter configuration
+++#
+++mainmenu_option next_comment
+++comment '  IPv6: Netfilter Configuration'
+++
+++#tristate 'Connection tracking (required for masq/NAT)' CONFIG_IP6_NF_CONNTRACK
+++#if [ "$CONFIG_IP6_NF_CONNTRACK" != "n" ]; then
+++#  dep_tristate '  FTP protocol support' CONFIG_IP6_NF_FTP $CONFIG_IP6_NF_CONNTRACK
+++#fi
+++
+++if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++  tristate 'Userspace queueing via NETLINK (EXPERIMENTAL)' CONFIG_IP6_NF_QUEUE
+++fi
+++
+++tristate 'IP6 tables support (required for filtering/masq/NAT)' CONFIG_IP6_NF_IPTABLES
+++if [ "$CONFIG_IP6_NF_IPTABLES" != "n" ]; then
+++# The simple matches.
+++  dep_tristate '  limit match support' CONFIG_IP6_NF_MATCH_LIMIT $CONFIG_IP6_NF_IPTABLES
+++  dep_tristate '  MAC address match support' CONFIG_IP6_NF_MATCH_MAC $CONFIG_IP6_NF_IPTABLES
+++  dep_tristate '  Random match support' CONFIG_IP6_NF_MATCH_RANDOM $CONFIG_IP6_NF_IPTABLES
+++  dep_tristate '  Nth match support' CONFIG_IP6_NF_MATCH_NTH $CONFIG_IP6_NF_IPTABLES
+++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++    dep_tristate '    Fuzzy match support' CONFIG_IP6_NF_MATCH_FUZZY $CONFIG_IP6_NF_FILTER
+++  fi
+++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++    dep_tristate '  Routing header match support (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_RT $CONFIG_IP6_NF_IPTABLES
+++  fi
+++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++    dep_tristate '  Hop-by-Hop and Dst opts header match (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_OPTS $CONFIG_IP6_NF_IPTABLES
+++  fi
+++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++    dep_tristate '  Fragmentation header match support (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_FRAG $CONFIG_IP6_NF_IPTABLES
+++  fi
+++  dep_tristate '  HL match support' CONFIG_IP6_NF_MATCH_HL $CONFIG_IP6_NF_IPTABLES
+++  dep_tristate '  Multiple port match support' CONFIG_IP6_NF_MATCH_MULTIPORT $CONFIG_IP6_NF_IPTABLES
+++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++    dep_tristate '  Owner match support (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_OWNER $CONFIG_IP6_NF_IPTABLES
+++  fi
+++#  dep_tristate '  MAC address match support' CONFIG_IP6_NF_MATCH_MAC $CONFIG_IP6_NF_IPTABLES
+++  dep_tristate '  netfilter MARK match support' CONFIG_IP6_NF_MATCH_MARK $CONFIG_IP6_NF_IPTABLES
+++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++    dep_tristate '  IPv6 Extension Headers Match (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_IPV6HEADER $CONFIG_IP6_NF_IPTABLES
+++  fi
+++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++    dep_tristate '  AH/ESP match support (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_AHESP $CONFIG_IP6_NF_IPTABLES
+++  fi
+++  dep_tristate '  Packet Length match support' CONFIG_IP6_NF_MATCH_LENGTH $CONFIG_IP6_NF_IPTABLES
+++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++    dep_tristate '  EUI64 address check (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_EUI64 $CONFIG_IP6_NF_IPTABLES
+++  fi
+++#  dep_tristate '  Multiple port match support' CONFIG_IP6_NF_MATCH_MULTIPORT $CONFIG_IP6_NF_IPTABLES
+++#  dep_tristate '  TOS match support' CONFIG_IP6_NF_MATCH_TOS $CONFIG_IP6_NF_IPTABLES
+++#  if [ "$CONFIG_IP6_NF_CONNTRACK" != "n" ]; then
+++#    dep_tristate '  Connection state match support' CONFIG_IP6_NF_MATCH_STATE $CONFIG_IP6_NF_CONNTRACK $CONFIG_IP6_NF_IPTABLES
+++#  fi
+++#  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++#    dep_tristate '  Unclean match support (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_UNCLEAN $CONFIG_IP6_NF_IPTABLES
+++#    dep_tristate '  Owner match support (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_OWNER $CONFIG_IP6_NF_IPTABLES
+++#  fi
+++
+++# The targets
+++  dep_tristate '  Packet filtering' CONFIG_IP6_NF_FILTER $CONFIG_IP6_NF_IPTABLES
+++  if [ "$CONFIG_IP6_NF_FILTER" != "n" ]; then
+++    dep_tristate '    REJECT target support' CONFIG_IP6_NF_TARGET_REJECT $CONFIG_IP6_NF_FILTER
+++  fi
+++  if [ "$CONFIG_IP6_NF_FILTER" != "n" ]; then
+++    dep_tristate '    HL target support' CONFIG_IP6_NF_TARGET_HL $CONFIG_IP6_NF_FILTER
+++  fi
+++  if [ "$CONFIG_IP6_NF_FILTER" != "n" ]; then
+++    dep_tristate '    LOG target support' CONFIG_IP6_NF_TARGET_LOG $CONFIG_IP6_NF_FILTER
+++  fi
+++
+++#  if [ "$CONFIG_IP6_NF_FILTER" != "n" ]; then
+++#    dep_tristate '    REJECT target support' CONFIG_IP6_NF_TARGET_REJECT $CONFIG_IP6_NF_FILTER
+++#    if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+++#      dep_tristate '    MIRROR target support (EXPERIMENTAL)' CONFIG_IP6_NF_TARGET_MIRROR $CONFIG_IP6_NF_FILTER
+++#    fi
+++#  fi
+++
+++  dep_tristate '  Packet mangling' CONFIG_IP6_NF_MANGLE $CONFIG_IP6_NF_IPTABLES
+++  if [ "$CONFIG_IP6_NF_MANGLE" != "n" ]; then
+++#    dep_tristate '    TOS target support' CONFIG_IP6_NF_TARGET_TOS $CONFIG_IP_NF_MANGLE
+++    dep_tristate '    MARK target support' CONFIG_IP6_NF_TARGET_MARK $CONFIG_IP6_NF_MANGLE
+++  fi
+++  #dep_tristate '  LOG target support' CONFIG_IP6_NF_TARGET_LOG $CONFIG_IP6_NF_IPTABLES
+++fi
+++
+++endmenu
++diff -Nru linux-2.4.21.orig/net/ipv6/netfilter/Makefile linux-2.4.21/net/ipv6/netfilter/Makefile
++--- linux-2.4.21.orig/net/ipv6/netfilter/Makefile	2003-06-28 13:24:11.000000000 +0200
+++++ linux-2.4.21/net/ipv6/netfilter/Makefile	2003-06-28 13:27:21.000000000 +0200
++@@ -31,6 +31,7 @@
++ obj-$(CONFIG_IP6_NF_TARGET_MARK) += ip6t_MARK.o
++ obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
++ obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.o
+++obj-$(CONFIG_IP6_NF_QUEUE) += ip6_quota.o
++ obj-$(CONFIG_IP6_NF_TARGET_LOG) += ip6t_LOG.o
 +
-+#include <linux/list.h>
++ obj-$(CONFIG_IP6_NF_MATCH_RANDOM) += ip6t_random.o
++diff -Nru linux-2.4.21.orig/net/ipv6/netfilter/Makefile~ linux-2.4.21/net/ipv6/netfilter/Makefile~
++--- linux-2.4.21.orig/net/ipv6/netfilter/Makefile~	1970-01-01 01:00:00.000000000 +0100
+++++ linux-2.4.21/net/ipv6/netfilter/Makefile~	2003-06-28 13:20:06.000000000 +0200
++@@ -0,0 +1,42 @@
+++#
+++# Makefile for the netfilter modules on top of IPv6.
+++#
+++# Note! Dependencies are done automagically by 'make dep', which also
+++# removes any old dependencies. DON'T put your own dependencies here
+++# unless it's something special (ie not a .c file).
+++#
+++# Note 2! The CFLAGS definition is now in the main makefile...
+++
+++O_TARGET := netfilter.o
+++
+++export-objs := ip6_tables.o
+++
+++# Link order matters here.
+++obj-$(CONFIG_IP6_NF_IPTABLES) += ip6_tables.o
+++obj-$(CONFIG_IP6_NF_MATCH_LIMIT) += ip6t_limit.o
+++obj-$(CONFIG_IP6_NF_MATCH_MARK) += ip6t_mark.o
+++obj-$(CONFIG_IP6_NF_MATCH_LENGTH) += ip6t_length.o
+++obj-$(CONFIG_IP6_NF_MATCH_MAC) += ip6t_mac.o
+++obj-$(CONFIG_IP6_NF_MATCH_FUZZY) += ip6t_fuzzy.o
+++obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
+++obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o ip6t_dst.o
+++obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) += ip6t_ipv6header.o
+++obj-$(CONFIG_IP6_NF_MATCH_FRAG) += ip6t_frag.o
+++obj-$(CONFIG_IP6_NF_MATCH_AHESP) += ip6t_esp.o ip6t_ah.o
+++obj-$(CONFIG_IP6_NF_MATCH_EUI64) += ip6t_eui64.o
+++obj-$(CONFIG_IP6_NF_MATCH_MULTIPORT) += ip6t_multiport.o
+++obj-$(CONFIG_IP6_NF_MATCH_OWNER) += ip6t_owner.o
+++obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
+++obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
+++obj-$(CONFIG_IP6_NF_TARGET_MARK) += ip6t_MARK.o
+++obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
+++obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.o
+++obj-$(CONFIG_IP6_NF_TARGET_LOG) += ip6t_LOG.o
+++
+++obj-$(CONFIG_IP6_NF_MATCH_RANDOM) += ip6t_random.o
+++
+++obj-$(CONFIG_IP6_NF_MATCH_NTH) += ip6t_nth.o
+++obj-$(CONFIG_IP6_NF_TARGET_HL) += ip6t_HL.o
+++obj-$(CONFIG_IP6_NF_MATCH_HL) += ip6t_hl.o
+++
+++include $(TOPDIR)/Rules.make
++diff -Nru linux-2.4.21.orig/net/ipv6/netfilter/ip6t_quota.c linux-2.4.21/net/ipv6/netfilter/ip6t_quota.c
++--- linux-2.4.21.orig/net/ipv6/netfilter/ip6t_quota.c	1970-01-01 01:00:00.000000000 +0100
+++++ linux-2.4.21/net/ipv6/netfilter/ip6t_quota.c	2003-06-28 13:27:06.000000000 +0200
++@@ -0,0 +1,83 @@
+++/*
+++ * netfilter module to enforce network quotas
+++ *
+++ * Sam Johnston <samj@samj.net>
+++ *
+++ * IPv6 port by Maciej Soltysiak <solt@dns.toxicfilms.tv>
+++ */
+++#include <linux/module.h>
+++#include <linux/skbuff.h>
+++#include <linux/spinlock.h>
+++#include <linux/interrupt.h>
+++
+++#include <linux/netfilter_ipv6/ip6_tables.h>
+++#include <linux/netfilter_ipv6/ip6t_quota.h>
+++
+++MODULE_LICENSE("GPL");
+++
+++static spinlock_t quota_lock = SPIN_LOCK_UNLOCKED;
+++
+++static int
+++match(const struct sk_buff *skb,
+++      const struct net_device *in,
+++      const struct net_device *out,
+++      const void *matchinfo,
+++      int offset, const void *hdr, u_int16_t datalen, int *hotdrop)
+++{
+++
+++        struct ip6t_quota_info *q = (struct ip6t_quota_info *) matchinfo;
+++
+++        spin_lock_bh(&quota_lock);
+++
+++        if (q->quota >= datalen) {
+++                /* we can afford this one */
+++                q->quota -= datalen;
+++                spin_unlock_bh(&quota_lock);
+++
+++#ifdef DEBUG_IP6T_QUOTA
+++                printk("IP6T Quota OK: %llu datlen %d \n", q->quota, datalen);
+++#endif
+++                return 1;
+++        }
+++
+++        /* so we do not allow even small packets from now on */
+++        q->quota = 0;
+++
+++#ifdef DEBUG_IP6T_QUOTA
+++        printk("IP6T Quota Failed: %llu datlen %d \n", q->quota, datalen);
+++#endif
+++
+++        spin_unlock_bh(&quota_lock);
+++        return 0;
+++}
+++
+++static int
+++checkentry(const char *tablename,
+++           const struct ip6t_ip6 *ip6,
+++           void *matchinfo, unsigned int matchsize, unsigned int hook_mask)
+++{
+++        /* TODO: spinlocks? sanity checks? */
+++        if (matchsize != IP6T_ALIGN(sizeof (struct ip6t_quota_info)))
+++                return 0;
+++
+++        return 1;
+++}
+++
+++static struct ip6t_match quota_match
+++    = { {NULL, NULL}, "quota", &match, &checkentry, NULL, THIS_MODULE };
+++
+++static int __init
+++init(void)
+++{
+++        return ip6t_register_match(&quota_match);
+++}
+++
+++static void __exit
+++fini(void)
+++{
+++        ip6t_unregister_match(&quota_match);
+++}
+++
+++module_init(init);
+++module_exit(fini);
+++
+diff -Nru netfilter.orig/patch-o-matic/base/quota.patch.ipv6.config.in netfilter/patch-o-matic/base/quota.patch.ipv6.config.in
+--- netfilter.orig/patch-o-matic/base/quota.patch.ipv6.config.in	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/patch-o-matic/base/quota.patch.ipv6.config.in	2003-06-28 13:32:01.000000000 +0200
+@@ -0,0 +1,2 @@
++  dep_tristate '  limit match support' CONFIG_IP6_NF_MATCH_LIMIT $CONFIG_IP6_NF_IPTABLES
++  dep_tristate '  quota match support' CONFIG_IP6_NF_MATCH_QUOTA $CONFIG_IP6_NF_IPTABLES
+diff -Nru netfilter.orig/patch-o-matic/base/quota.patch.ipv6.configure.help netfilter/patch-o-matic/base/quota.patch.ipv6.configure.help
+--- netfilter.orig/patch-o-matic/base/quota.patch.ipv6.configure.help	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/patch-o-matic/base/quota.patch.ipv6.configure.help	2003-06-28 13:32:34.000000000 +0200
+@@ -0,0 +1,8 @@
++CONFIG_IP6_NF_MATCH_LIMIT
++quota match support
++CONFIG_IP6_NF_MATCH_QUOTA
++  This match implements network quotas.
 +
-+/* print debug info in both kernel/netfilter module & iptable library */
-+/* #define DEBUG_IPT_QUOTA */
++  If you want to compile it as a module, say M here and read
++  Documentation/modules.txt.  If unsure, say `N'.
 +
-+#define IPT_QUOTA				0x0001
-+#define IPT_IPDSTQUOTA				0x0002
-+#define IPT_QUOTA_FLAG_NEGATE		   	0x0004
-+#define IPT_QUOTA_FLAG_COUNT_FULL		0x0009
+diff -Nru netfilter.orig/patch-o-matic/base/quota.patch.ipv6.help netfilter/patch-o-matic/base/quota.patch.ipv6.help
+--- netfilter.orig/patch-o-matic/base/quota.patch.ipv6.help	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/patch-o-matic/base/quota.patch.ipv6.help	2003-06-28 13:33:41.000000000 +0200
+@@ -0,0 +1,12 @@
++Author: Sam Johnston <samj@samj.net>
++Ported: Maciej Soltysiak <solt@dns.toxicfilms.tv>
++Status: worksforme
 +
-+struct ipt_quota_info {
-+	u_int64_t quota;	
-+	u_int16_t flags;
-+	struct list_head *ipquota_hash;
-+};
++This option adds CONFIG_IP6_NF_MATCH_QUOTA, which implements network
++quotas by decrementing a byte counter with each packet.
 +
-+#endif /*_IPT_QUOTA_H*/
-diff -urN -X dontdiff linux-2.4.20-orig/net/ipv4/netfilter/ipt_quota.c linux-2.4.20/net/ipv4/netfilter/ipt_quota.c
---- linux-2.4.20-orig/net/ipv4/netfilter/ipt_quota.c	Wed Dec 31 21:00:00 1969
-+++ linux-2.4.20/net/ipv4/netfilter/ipt_quota.c	Wed May 21 12:38:17 2003
-@@ -0,0 +1,381 @@
-+/* 
-+ * netfilter module to enforce network quotas
++Supported options are:
++--quota <bytes>
++  The quota in bytes.
++
++   This is an IPv6 port from IPv4 module.
+diff -Nru netfilter.orig/patch-o-matic/base/quota.patch.ipv6.makefile netfilter/patch-o-matic/base/quota.patch.ipv6.makefile
+--- netfilter.orig/patch-o-matic/base/quota.patch.ipv6.makefile	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/patch-o-matic/base/quota.patch.ipv6.makefile	2003-06-28 13:38:38.000000000 +0200
+@@ -0,0 +1,2 @@
++obj-$(CONFIG_IP6_NF_TARGET_LOG) += ip6t_LOG.o
++obj-$(CONFIG_IP6_NF_MATCH_QUOTA) += ip6t_quota.o
+diff -Nru netfilter.orig/userspace/extensions/.quota-test6 netfilter/userspace/extensions/.quota-test6
+--- netfilter.orig/userspace/extensions/.quota-test6	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/userspace/extensions/.quota-test6	2003-06-30 18:49:57.000000000 +0200
+@@ -0,0 +1,3 @@
++#!/bin/sh
++[ -f $KERNEL_DIR/include/linux/netfilter_ipv6/ip6t_quota.h ] && echo quota
++
+diff -Nru netfilter.orig/userspace/extensions/libip6t_quota.c netfilter/userspace/extensions/libip6t_quota.c
+--- netfilter.orig/userspace/extensions/libip6t_quota.c	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/userspace/extensions/libip6t_quota.c	2003-06-30 18:49:45.000000000 +0200
+@@ -0,0 +1,116 @@
++/*
++ * Shared library add-on to ip6tables to add quota support
 + *
 + * Sam Johnston <samj@samj.net>
 + *
-+ * 20 May 2003: Diego Woitasen (diegows@linux.org.ar):
-+ *	- new quota per destination ip
-+ * 29 Apr 2003: Brad Fisher (brad@info-link.net):
-+ *	- ! inverse match and add the option to count total packet size
-+ *	    (headers + data)
-+ *
++ * IPv6 Port: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 + */
++#include <stdio.h>
++#include <stdlib.h>
++#include <getopt.h>
++#include <ip6tables.h>
 +
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/spinlock.h>
-+#include <linux/interrupt.h>
-+#include <linux/vmalloc.h>
-+#include <linux/ip.h>
-+#include <linux/tcp.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_quota.h>
-+#include <linux/netfilter_ipv4/ip_conntrack.h>
-+#include <linux/proc_fs.h>
-+#include <linux/netfilter_ipv4/lockhelp.h>
-+#include <linux/sysctl.h>
++#include <linux/netfilter_ipv6/ip6t_quota.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
 +
-+/* I don't need this DW */
-+#define ASSERT_READ_LOCK(x)
-+#define ASSERT_WRITE_LOCK(x)
-+
-+#include <linux/netfilter_ipv4/listhelp.h>
-+
-+#define QUOTA_KEY(ip) (ip % quota_hash_size)
-+
-+MODULE_LICENSE("GPL");
-+
-+static spinlock_t quota_lock = SPIN_LOCK_UNLOCKED;
-+
-+static int kmem = 0;
-+static int vmem = 0;
-+static int hashsize = 0;
-+static int quota_hash_size = 0;
-+static int ipquota_kmem_max = 0;	/* max struct ipquota that could be alloc. */
-+
-+static kmem_cache_t *ipquota_cache;
-+
-+MODULE_PARM(hashsize, "i");
-+MODULE_PARM(ipquota_kmem_max, "i");
-+
-+struct ipquota {
-+	struct list_head list;
-+	u_int32_t ip;
-+	u_int64_t quota;
++static struct option opts[] = {
++        {"quota", 1, 0, '1'},
++        {0}
 +};
 +
-+#ifdef CONFIG_SYSCTL
-+
-+static struct ctl_table_header *ip_quota_sysctl_header;
-+
-+static ctl_table ipquota_table[] = {
-+	{4048, "ipquota_kmem_max", &ipquota_kmem_max, sizeof (ipquota_kmem_max),
-+	 0644, NULL, proc_dointvec}
-+	,
-+	{0}
-+};
-+
-+static ctl_table ipquota_table_dir[] = {
-+	{NET_IPV4, "ipv4", NULL, 0, 0555, ipquota_table, 0, 0, 0, 0, 0},
-+	{0}
-+};
-+
-+static ctl_table ipquota_table_root[] = {
-+	{CTL_NET, "net", NULL, 0, 0555, ipquota_table_dir, 0, 0, 0, 0, 0},
-+	{0}
-+};
-+
-+#endif
-+
-+static inline void *
-+quota_alloc(void)
-+{
-+
-+	if (kmem > ipquota_kmem_max)
-+		return NULL;
-+	kmem++;
-+	return kmem_cache_alloc(ipquota_cache, GFP_ATOMIC);
-+
-+}
-+
-+static inline void
-+quota_free(void *tmp_if)
-+{
-+
-+	kmem--;
-+	kmem_cache_free(ipquota_cache, tmp_if);
-+
-+}
-+
-+static inline void *
-+quota_valloc(size_t size)
-+{
-+
-+	vmem++;
-+	return vmalloc(size);
-+
-+}
-+
-+static inline void
-+quota_vfree(void *tmp_if)
-+{
-+
-+	vmem--;
-+	vfree(tmp_if);
-+
-+}
-+
-+static inline int
-+quota_cmpfn(const struct ipquota *ipquota_tmp, u_int32_t ip)
-+{
-+
-+	return ipquota_tmp->ip == ip;
-+
-+}
-+
-+static struct ipquota *
-+quota_get(struct ipt_quota_info *info, u_int32_t ip)
-+{
-+
-+	struct list_head *bucket;
-+	struct ipquota *ipquota_tmp;
-+
-+	bucket = &info->ipquota_hash[QUOTA_KEY(ip)];
-+
-+	ipquota_tmp = LIST_FIND(bucket, quota_cmpfn, struct ipquota *, ip);
-+
-+	if (!ipquota_tmp) {
-+		ipquota_tmp = quota_alloc();
-+		if (!ipquota_tmp) {
-+			printk(KERN_ERR
-+			       "unable to create ipquota item (quota_alloc),"
-+			       "ipquota_kmem_max reached");
-+			return ipquota_tmp;
-+		}
-+
-+		ipquota_tmp->ip = ip;
-+		ipquota_tmp->quota = 0;
-+		list_append(bucket, ipquota_tmp);
-+	}
-+	return ipquota_tmp;
-+
-+}
-+
-+static int
-+quota_hash_init(struct ipt_quota_info *info)
-+{
-+
-+	int i;
-+
-+	info->ipquota_hash =
-+	    quota_valloc(sizeof (struct list_head) * quota_hash_size);
-+
-+	if (!info->ipquota_hash) {
-+		printk(KERN_ERR "Unable to create quota_hash\n");
-+		return (-1);
-+	}
-+
-+	for (i = 0; i < quota_hash_size; i++)
-+		INIT_LIST_HEAD(&info->ipquota_hash[i]);
-+
-+	return (quota_hash_size);
-+
-+}
-+
-+static int
-+quota_hash_destroy(struct ipt_quota_info *info)
-+{
-+
-+	int i;
-+
-+	for (i = 0; i < quota_hash_size; i++) {
-+		struct list_head *pos_tmp, *n_tmp;
-+		list_for_each_safe(pos_tmp, n_tmp, &info->ipquota_hash[i]) {
-+			list_del(pos_tmp);
-+			quota_free(pos_tmp);
-+		}
-+
-+	}
-+	quota_vfree(info->ipquota_hash);
-+
-+}
-+
-+static int
-+match(const struct sk_buff *skb,
-+      const struct net_device *in,
-+      const struct net_device *out,
-+      const void *matchinfo,
-+      int offset, const void *hdr, u_int16_t datalen, int *hotdrop)
-+{
-+
-+	struct ipt_quota_info *q = (struct ipt_quota_info *) matchinfo;
-+
-+	if (q->flags & IPT_QUOTA_FLAG_COUNT_FULL)
-+		datalen = skb->len;
-+
-+	spin_lock_bh(&quota_lock);
-+
-+	if (q->flags & IPT_QUOTA) {
-+		if (q->quota >= datalen) {
-+			/* we can afford this one */
-+			q->quota -= datalen;
-+			goto quota;
-+		}
-+		/* so we do not allow even small packets from now on */
-+		q->quota = 0;
-+	} else if (q->flags & IPT_IPDSTQUOTA) {
-+
-+		struct ipquota *ipquota_tmp;
-+
-+		ipquota_tmp = quota_get(q, skb->nh.iph->daddr);
-+		if (!ipquota_tmp)
-+			goto xquota;
-+
-+		if ((ipquota_tmp->quota + datalen) < q->quota) {
-+			ipquota_tmp->quota += datalen;
-+			goto quota;
-+		} else
-+			goto xquota;
-+
-+	}
-+
-+      xquota:
-+	spin_unlock_bh(&quota_lock);
-+
-+#ifdef DEBUG_IPT_QUOTA
-+	printk("IPT Quota Failed: max=%llu\n", q->quota);
-+#endif
-+
-+	if (q->flags & IPT_QUOTA_FLAG_NEGATE)
-+		return 1;
-+	return 0;
-+
-+      quota:
-+	spin_unlock_bh(&quota_lock);
-+
-+#ifdef DEBUG_IPT_QUOTA
-+	printk("IPT Quota OK: %llu datlen %d \n", q->quota, datalen);
-+#endif
-+
-+	if (q->flags & IPT_QUOTA_FLAG_NEGATE)
-+		return 0;
-+	return 1;
-+
-+}
-+
-+static int
-+checkentry(const char *tablename,
-+	   const struct ipt_ip *ip,
-+	   void *matchinfo, unsigned int matchsize, unsigned int hook_mask)
-+{
-+
-+	struct ipt_quota_info *info = (struct ipt_quota_info *) matchinfo;
-+
-+	/* TODO: spinlocks? sanity checks? */
-+	if (matchsize != IPT_ALIGN(sizeof (struct ipt_quota_info)))
-+		return 0;
-+
-+	if (info->flags & IPT_IPDSTQUOTA)
-+		if (quota_hash_init(info) < 0)
-+			return 0;
-+
-+	return 1;
-+
-+}
-+
++/* print usage */
 +static void
-+destroy(void *matchinfo, unsigned int size)
++help(void)
 +{
-+
-+	struct ipt_quota_info *q = (struct ipt_quota_info *)
-+	    matchinfo;
-+
-+	if (q->flags & IPT_IPDSTQUOTA) {
-+		quota_hash_destroy(q);
-+	}
-+
++        printf("quota options:\n"
++               " --quota quota			quota (bytes)\n" "\n");
 +}
 +
-+static struct ipt_match quota_match = {
-+	{NULL, NULL}, "quota", &match, &checkentry, &destroy, THIS_MODULE
++/* initialise match */
++static void
++init(struct ip6t_entry_match *m, unsigned int *nfcache)
++{
++        /* no can cache */
++        *nfcache |= NFC_UNKNOWN;
++}
++
++/* print matchinfo */
++static void
++print(const struct ip6t_ip *ip, const struct ip6t_entry_match *match, int numeric)
++{
++        struct ip6t_quota_info *q = (struct ip6t_quota_info *) match->data;
++        printf("quota: %llu bytes", (unsigned long long) q->quota);
++}
++
++/* save matchinfo */
++static void
++save(const struct ip6t_ip *ip, const struct ip6t_entry_match *match)
++{
++        struct ip6t_quota_info *q = (struct ip6t_quota_info *) match->data;
++        printf("--quota %llu ", (unsigned long long) q->quota);
++}
++
++/* parse quota option */
++static int
++parse_quota(const char *s, u_int64_t * quota)
++{
++        *quota = strtoull(s, (char **) NULL, 10);
++
++#ifdef DEBUG_IP6T_QUOTA
++        printf("Quota: %llu\n", *quota);
++#endif
++
++        if (*quota == -1)
++                exit_error(PARAMETER_PROBLEM, "quota invalid: '%s'\n", s);
++        else
++                return 1;
++}
++
++/* parse all options, returning true if we found any for us */
++static int
++parse(int c, char **argv, int invert, unsigned int *flags,
++      const struct ip6t_entry *entry,
++      unsigned int *nfcache, struct ip6t_entry_match **match)
++{
++        struct ip6t_quota_info *info = (struct ip6t_quota_info *) (*match)->data;
++
++        switch (c) {
++        case '1':
++                if (check_inverse(optarg, &invert, NULL, 0))
++                        exit_error(PARAMETER_PROBLEM, "quota: unexpected '!'");
++                if (!parse_quota(optarg, &info->quota))
++                        exit_error(PARAMETER_PROBLEM,
++                                   "bad quota: '%s'", optarg);
++                break;
++
++        default:
++                return 0;
++        }
++        return 1;
++}
++
++/* no final check */
++static void
++final_check(unsigned int flags)
++{
++}
++
++struct ip6tables_match quota = { NULL,
++        "quota",
++        IPTABLES_VERSION,
++        IP6T_ALIGN(sizeof (struct ip6t_quota_info)),
++        IP6T_ALIGN(sizeof (struct ip6t_quota_info)),
++        &help,
++        &init,
++        &parse,
++        &final_check,
++        &print,
++        &save,
++        opts
 +};
 +
-+int
-+read_kmem(char *buf, char **start,
-+	  off_t offset, int count, int *eof, void *data)
++void
++_init(void)
 +{
-+
-+	*start = NULL;
-+	*eof = 1;
-+	return (sprintf(buf, "%d\n", kmem));
++        register_match6(&quota);
 +}
-+
-+int
-+read_vmem(char *buf, char **start,
-+	  off_t offset, int count, int *eof, void *data)
-+{
-+
-+	*start = NULL;
-+	*eof = 1;
-+	return (sprintf(buf, "%d\n", vmem));
-+}
-+
-+static int __init
-+init(void)
-+{
-+
-+	ipquota_cache =
-+	    kmem_cache_create("ipquota", sizeof (struct ipquota), 0,
-+			      SLAB_HWCACHE_ALIGN, NULL, NULL);
-+
-+	if (!ipquota_cache) {
-+		printk(KERN_ERR "Unable to create ipquota slab cache\n");
-+		return -1;
-+	}
-+
-+	/* Idea from tcp.c: use 1/16384 of memory.  On i386: 32MB
-+	 * machine has 256 buckets.  >= 1GB machines have 8192 buckets. */
-+	if (hashsize) {
-+		quota_hash_size = hashsize;
-+	} else {
-+		quota_hash_size = (((num_physpages << PAGE_SHIFT) / 16384)
-+				   / sizeof (struct list_head));
-+		if (num_physpages > (1024 * 1024 * 1024 / PAGE_SIZE))
-+			quota_hash_size = 8192;
-+		if (quota_hash_size < 16)
-+			quota_hash_size = 16;
-+	}
-+
-+	if (!ipquota_kmem_max)
-+		ipquota_kmem_max = 8 * quota_hash_size;
-+
-+	create_proc_read_entry("ipquota_kmem", 600, proc_net, read_kmem, NULL);
-+	create_proc_read_entry("ipquota_vmem", 600, proc_net, read_vmem, NULL);
-+
-+#ifdef CONFIG_SYSCTL
-+	ip_quota_sysctl_header = register_sysctl_table(ipquota_table_root, 0);
-+	if (ip_quota_sysctl_header == NULL) {
-+		kmem_cache_destroy(ipquota_cache);
-+		remove_proc_entry("ipquota_kmem", NULL);
-+		remove_proc_entry("ipquota_vmem", NULL);
-+		return -1;
-+	}
-+#endif
-+
-+	printk(KERN_INFO
-+	       "quota/ipquota initialized (ipquota_kmem_max %d, buckets %d)\n",
-+	       ipquota_kmem_max, quota_hash_size);
-+
-+	return ipt_register_match(&quota_match);
-+
-+}
-+
-+static void __exit
-+fini(void)
-+{
-+
-+	remove_proc_entry("ipquota_kmem", NULL);
-+	remove_proc_entry("ipquota_vmem", NULL);
-+
-+	kmem_cache_destroy(ipquota_cache);
-+
-+	ipt_unregister_match(&quota_match);
-+
-+#ifdef CONFIG_SYSCTL
-+	unregister_sysctl_table(ip_quota_sysctl_header);
-+#endif
-+
-+}
-+
-+module_init(init);
-+module_exit(fini);
-  dep_tristate '  limit match support' CONFIG_IP_NF_MATCH_LIMIT $CONFIG_IP_NF_IPTABLES
-  dep_tristate '  quota match support' CONFIG_IP_NF_MATCH_QUOTA $CONFIG_IP_NF_IPTABLES
-CONFIG_IP_NF_MATCH_LIMIT
-quota match support
-CONFIG_IP_NF_MATCH_QUOTA
-  This match implements network quotas and quotas per destination ip.
-
-  If you want to compile it as a module, say M here and read
-  Documentation/modules.txt.  If unsure, say `N'.
-
-Author: Sam Johnston <samj@samj.net>
-Status: worksforme
-
-This option adds CONFIG_IP_NF_MATCH_QUOTA, which implements network
-quotas by decrementing a byte counter with each packet.
-Also implements quota per destination ip address. 
-(Diego Woitasen <diegows@linux.org.ar>)
-
-Supported options are:
---quota <bytes>
-  The quota in bytes.
-  
---ipdstquota <bytes>
-  The quota per destination ip address in bytes
-
-obj-$(CONFIG_IP_NF_MATCH_LIMIT) += ipt_limit.o
-obj-$(CONFIG_IP_NF_MATCH_QUOTA) += ipt_quota.o
-/*
- * Shared library add-on to iptables to add quota support
- *
- * Sam Johnston <samj@samj.net>
- *
- * 2003/04/02 Diego Woitasen (diegows@linux.org.ar) add quota per dst ip 
- *
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <iptables.h>
-
-#include <linux/netfilter_ipv4/ipt_quota.h>
-#include <linux/netfilter_ipv4/ip_tables.h>
-
-static struct option opts[] = {
-  {"quota", 1, 0, IPT_QUOTA},
-  {"ipdstquota", 1, 0, IPT_IPDSTQUOTA},
-  {"count-headers", 0, 0, IPT_QUOTA_FLAG_COUNT_FULL},
-  {0}
-};
-
-/* print usage */
-static void
-help (void)
-{
-  printf ("quota options:\n\n"
-	  " --quota [!] quota			quota (bytes)\n"
-	  " --ipdstquota [!] quota		quota per ip (bytes)\n"
-	  "\n"
-	  " --count-headers		count headers as well as data\n");
-}
-
-/* initialise match */
-static void
-init (struct ipt_entry_match *m, unsigned int *nfcache)
-{
-
-  struct ipt_quota_info *info = (struct ipt_quota_info *) m->data;
-
-  info->flags = 0;
-  info->quota = 0;
-  info->ipquota_hash = NULL;
-
-  /* no can cache */
-  *nfcache |= NFC_UNKNOWN;
-
-}
-
-/* print matchinfo */
-static void
-print (const struct ipt_ip *ip, const struct ipt_entry_match *match,
-       int numeric)
-{
-  struct ipt_quota_info *q = (struct ipt_quota_info *) match->data;
-
-  if (IPT_QUOTA & q->flags)
-    printf ("quota");
-  else if (IPT_IPDSTQUOTA & q->flags)
-    printf ("ipdstquota");
-  if (IPT_QUOTA_FLAG_NEGATE & q->flags)
-    printf (" ! ");
-  printf ("%llu bytes", (unsigned long long) q->quota);
-  if (IPT_QUOTA_FLAG_COUNT_FULL & q->flags)
-    printf (" (incl. headers)");
-
-}
-
-/* save matchinfo */
-static void
-save (const struct ipt_ip *ip, const struct ipt_entry_match *match)
-{
-  struct ipt_quota_info *q = (struct ipt_quota_info *) match->data;
-
-  if (IPT_QUOTA & q->flags)
-    printf ("--quota");
-  else if (IPT_IPDSTQUOTA & q->flags)
-    printf ("--ipdstquota");
-  if (IPT_QUOTA_FLAG_NEGATE & q->flags)
-    printf (" ! ");
-  printf (" %llu", (unsigned long long) q->quota);
-  if (IPT_QUOTA_FLAG_COUNT_FULL & q->flags)
-    printf (" --count-headers");
-
-}
-
-/* parse quota option */
-static int
-parse_quota (const char *s, struct ipt_quota_info *quota, int c)
-{
-
-  if (s && (*s == '-'))
-    exit_error (PARAMETER_PROBLEM, "quota invalid: '%s'\n", s);
-
-  quota->quota = strtoull (s, (char **) NULL, 10);
-
-#ifdef DEBUG_IPT_QUOTA
-  printf ("Quota: %llu\n", quota->quota);
-#endif
-
-  if (quota->quota == -1)
-    exit_error (PARAMETER_PROBLEM, "quota invalid: '%s'\n", s);
-  else
-    return 1;
-
-}
-
-/* parse all options, returning true if we found any for us */
-static int
-parse (int c, char **argv, int invert, unsigned int *flags,
-       const struct ipt_entry *entry,
-       unsigned int *nfcache, struct ipt_entry_match **match)
-{
-  struct ipt_quota_info *info = (struct ipt_quota_info *) (*match)->data;
-
-  switch (c)
-    {
-    case IPT_QUOTA_FLAG_COUNT_FULL:
-      if (check_inverse (optarg, &invert, NULL, 0))
-	exit_error (PARAMETER_PROBLEM, "count-headers: unexpected '!'");
-      info->flags |= IPT_QUOTA_FLAG_COUNT_FULL;
-      break;
-    case IPT_QUOTA:
-    case IPT_IPDSTQUOTA:
-      if ((info->flags & IPT_QUOTA) && (info->flags & IPT_IPDSTQUOTA))
-	exit_error (PARAMETER_PROBLEM,
-		    "syntax error: you can't use --quota and --ipdstquota");
-      check_inverse (optarg, &invert, &optind, 0);
-      if (invert)
-	info->flags |= IPT_QUOTA_FLAG_NEGATE;
-      parse_quota (argv[optind - 1], info, c);
-      info->flags |= (u_int16_t) c;
-      *flags = 1;
-      break;
-    default:
-      exit_error (PARAMETER_PROBLEM, "unknown option: try --help");
-      return 0;
-    }
-  return 1;
-}
-
-/* no final check */
-static void
-final_check (unsigned int flags)
-{
-
-  if (flags != 1)
-    exit_error (PARAMETER_PROBLEM, "quota: missing arguments");
-
-}
-
-struct iptables_match quota = { NULL,
-  "quota",
-  NETFILTER_VERSION,
-  IPT_ALIGN (sizeof (struct ipt_quota_info)),
-  IPT_ALIGN (sizeof (struct ipt_quota_info)),
-  &help,
-  &init,
-  &parse,
-  &final_check,
-  &print,
-  &save,
-  opts
-};
-
-void
-_init (void)
-{
-  register_match (&quota);
-}
