@@ -1,11 +1,14 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Fw: Fw: [Bugme-new] [Bug 4180] New: masquarade and source ip
-Date: Mon, 7 Feb 2005 11:42:12 -0800
-Message-ID: <20050207114212.024a09bb.davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fw: Fw: [Bugme-new] [Bug 4180] New: masquarade and source ip
+Date: Mon, 07 Feb 2005 21:15:50 +0100
+Message-ID: <4207CC76.8040500@trash.net>
+References: <20050207114212.024a09bb.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: Rusty Russell <rusty@rustcorp.com.au>, netfilter-devel@lists.netfilter.org
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20050207114212.024a09bb.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,51 +20,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+David S. Miller wrote:
 
-Didn't this get changed on purpose?
+>Didn't this get changed on purpose?
+>
+Yes. One thing we could do to make it more consistent is treat
+local packets the same way as forwarded ones in MASQUERADE, then
+at least all packets would have the same source address. This check
+currently prevents local packets from beeing masqueraded:
 
-Begin forwarded message:
+        /* FIXME: For the moment, don't do local packets, breaks
+           testsuite for 2.3.49 --RR */
+        if ((*pskb)->sk)
+                return NF_ACCEPT;
 
-Date: Mon, 7 Feb 2005 11:18:22 -0800
-From: Andrew Morton <akpm@osdl.org>
-To: netdev@oss.sgi.com
-Cc: spied@yandex.ru
-Subject: Fw: [Bugme-new] [Bug 4180] New: masquarade and source ip
+I'm not sure if we can simply remove it, maybe Rusty remembers :)
 
+Regards
+Patrick
 
-
-
-Begin forwarded message:
-
-Date: Mon, 7 Feb 2005 10:16:56 -0800
-From: bugme-daemon@osdl.org
-To: bugme-new@lists.osdl.org
-Subject: [Bugme-new] [Bug 4180] New: masquarade and source ip
-
-
-http://bugme.osdl.org/show_bug.cgi?id=4180
-
-           Summary: masquarade and source ip
-    Kernel Version: 2.6.10
-            Status: NEW
-          Severity: normal
-             Owner: laforge@gnumonks.org
-         Submitter: spied@yandex.ru
-
-
-i try next on router (eth0 - inernet, eth1 - localnet):
-
-ip addr add eth0 1.2.3.4
-ip addr add eth0 2.3.4.5
-
-ip route add default via 2.3.4.6 src 2.3.4.5
-
-iptables  -t nat -A POSTROUTING -s 10.0.0.0/8 -d ! 10.0.0.0/8 -j MASQUERADE
-
-if i do ping www.google.com from router source ip is 2.3.4.5, but if i do ping
-from local network source ip is 1.2.3.4 (i think it's wrong)
-
-with older kernel source ip is always set to 2.3.4.5
-
-------- You are receiving this mail because: -------
-You are on the CC list for the bug, or are watching someone who is.
+>
+>Begin forwarded message:
+>
+>if i do ping www.google.com from router source ip is 2.3.4.5, but if i do ping
+>from local network source ip is 1.2.3.4 (i think it's wrong)
+>
+>with older kernel source ip is always set to 2.3.4.5
+>
+>
