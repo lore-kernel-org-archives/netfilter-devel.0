@@ -1,65 +1,43 @@
-From: Zeeshan Ali <zeelists@yahoo.com>
-Subject: Re: [ANNOUNCE] nfsim - netfilter simulation environment
-Date: Wed, 7 Jan 2004 11:25:30 -0800 (PST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040107192530.99189.qmail@web60701.mail.yahoo.com>
-References: <200401072029.03638.jeremy@redfishsoftware.com.au>
+From: Ramin Dousti <ramin@cannon.eng.us.uu.net>
+Subject: Re: TTL patch buggy?
+Date: Wed, 7 Jan 2004 15:36:24 -0500
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <20040107203624.GA20346@cannon.eng.us.uu.net>
+References: <Pine.LNX.4.44.0401071709030.4717-100000@filer.marasystems.com> <1073502275.16972.10.camel@jasiiitosh.nexusmgmt.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200401072029.03638.jeremy@redfishsoftware.com.au>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: Henrik Nordstrom <hno@marasystems.com>, netfilter@lists.netfilter.org,
+   Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
+Content-Disposition: inline
+In-Reply-To: <1073502275.16972.10.camel@jasiiitosh.nexusmgmt.com>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello again,
-  OK, all those errors seems to be gone but now i get
-these errors:
+On Wed, Jan 07, 2004 at 02:04:36PM -0500, John A. Sullivan III wrote:
 
-gcc -Wstrict-prototypes -Wunused -Wall -g -ggdb -Wa,-W
--I. -I/home/zak/downloads/nfsim/core
--I/home/zak/downloads/nfsim/kernelenv/include
--I/home/zak/downloads/nfsim/netfilter/include  -c -o
-core/netfilter.o core/netfilter.c
-core/netfilter.c:453: conflicting types for
-`nf_hook_slow'
-/home/zak/downloads/nfsim/core/core.h:166: previous
-declaration of `nf_hook_slow'
-core/netfilter.c: In function `nf_hook_slow':
-core/netfilter.c:472: warning: implicit declaration of
-function `br_read_lock_bh'
-core/netfilter.c:472: `BR_NETPROTO_LOCK' undeclared
-(first use in this function)core/netfilter.c:472:
-(Each undeclared identifier is reported only once
-core/netfilter.c:472: for each function it appears
-in.)
-core/netfilter.c:501: warning: implicit declaration of
-function `br_read_unlock_bh'
-core/netfilter.c: In function `nf_reinject':
-core/netfilter.c:512: `BR_NETPROTO_LOCK' undeclared
-(first use in this function)core/netfilter.c: In
-function `ip_route_me_harder':
-core/netfilter.c:568: structure has no member named
-`bound_dev_if'
-core/netfilter.c:581: warning: implicit declaration of
-function `ip_dev_find'
-core/netfilter.c:581: warning: assignment makes
-pointer from integer without a cast
-core/netfilter.c:587: structure has no member named
-`bound_dev_if'
-make[1]: *** [core/netfilter.o] Error 1
-make[1]: Leaving directory
-`/home/zak/downloads/nfsim/netfilter'
-make: *** [netfilter/netfilter.o] Error 2
+> 
+> Thank you very much but could you please explain this a bit more.
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Hotjobs: Enter the "Signing Bonus" Sweepstakes
-http://hotjobs.sweepstakes.yahoo.com/signingbonus
+The whole TTL concept is meant to deal with the routing loops. Just
+imagine what happens if there is a routing loop between your gateway
+and the ISP's upstream router. The packets would be bouncing back and
+forth forever (until your gateway is rebooted) and the throughput
+of your bandwidth would drop to +-zerro.
+
+Now if you anticipate no routing loop (which is extremely unlikely
+in the current architecture of how the ISP's do business) you should
+be fine. However, these routing loops could happen when people start
+mixing the TTL-increments with MIRROR:
+
+http://www.netfilter.org/security/2001-08-22-mirror.html
+
+Ramin
