@@ -1,13 +1,13 @@
-From: "Eduard Calvo (B-teljpa) EXP JAN 03" <ecalvo@mat.upc.es>
-Subject: Problems with un-masqueraded packets
-Date: Thu, 12 Dec 2002 18:29:42 +0100
+From: Aaron Eppert <eppertan@cs.rose-hulman.edu>
+Subject: libiptc and setsockopt
+Date: Thu, 12 Dec 2002 16:23:34 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1039714182.3df8c78629632@wmail-mat.upc.es>
+Message-ID: <20021212212334.GA2841@cs.rose-hulman.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,152 +18,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
- 
-  Hi gurus! 
- 
-  I have made a ip queue handler wich is capable to do SNAT before routing 
-with the forwarded packets. In POSTROUTING, I do MASQUERADING over the nat'ed 
-addresses. Could someone tell me the way the un-masked paquets traverse the 
-netfilter hooks and when their source addres is changed? My box is doing 
-something strange because it does not replace the source address with the 
-address the packet has when it was masqued ( I mean, the address I put by 
-force ); it replace the address with the ORIGINAL address the packet has ( 
-before I changed it). This surprise me a lot. I want to do a tracking of the 
-packet through my box, but I do not understant the way it goes. 
- 
-  Do you have any idea? 
-  Thanks in advanced. 
- 
-                                        Eduard. 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-  
 
--------------------------------------------------
-This mail sent through IMP: http://horde.org/imp/
+libiptc's iptc_commit(...) commit function appears to be
+erroring out on rather valid data in the portion that 
+does a setsockopt() on SO_SET_REPLACE.  The errno that is
+set appears to be EAGAIN.  Can anyone shed a bit of light
+on the situation as to why this may happen.  My application
+is (unfortunately) using pthreads and all calls to libiptc
+functions are wrapped with a mutex to prevent anyone from
+calling into the library twice as I noticed it is hardly
+thread safe.  
+
+Thank you for your time,
+
+Aaron Eppert
