@@ -1,10 +1,10 @@
 From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2.4 7/10]: fixes for ip6t_ipv6header
-Date: Wed, 01 Dec 2004 17:07:13 +0900 (JST)
-Message-ID: <200412010807.iB187E5f000100@toshiba.co.jp>
+Subject: [PATCH 2.4 8/10]: fixes for ip6t_multiport
+Date: Wed, 01 Dec 2004 17:07:30 +0900 (JST)
+Message-ID: <200412010807.iB187UVY006278@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Wed_Dec__1_17:07:13_2004_009)--"
+	boundary="--Next_Part(Wed_Dec__1_17:07:30_2004_838)--"
 Content-Transfer-Encoding: 7bit
 Cc: usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -20,93 +20,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Wed_Dec__1_17:07:13_2004_009)--
+----Next_Part(Wed_Dec__1_17:07:30_2004_838)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-This patch fixes following bugs in ip6t_ipv6header.c
 
-	- The cast of the pointer to the next IPv6 extension header is wrong.
-	- The logical operation is wrong. These fixes intends
-	- soft mode without invert flag "!"
-		match if the packet contains all of the specified headers.
+This patch fixes following bugs in ip6t_multiport.c,
 
-	- soft mode with invert flag "!"
-		match if the packet DOESN'T contain all of the specified
-		headers.
-
-	- strict mode without invert flag "!"
-		match if the packet contains JUST ONLY the specified headers.
-		if the packet doesn't contain some specified headers or
-		contains unspecified headers, the packet doesn't match with
-		rule.
-
-	- strict mode with invert flag "!"
-		NOT MATCH if the packet contains JUST ONLY the specified
-		headers. Otherwise, match. So, if the packet contains some
-		specified headers and DOESN'T contain other specified headers,
-		the packet MATCHES with rule.
+	- missing check the size of the preference data.
+	- IP6T_INV_PROTO should check with not ip->flags but ip->invflags.
 
 Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 
-Regards,
 -----------------------------------------------------------------
 Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Wed_Dec__1_17:07:13_2004_009)--
+
+----Next_Part(Wed_Dec__1_17:07:30_2004_838)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="ipv6header.patch"
+Content-Disposition: inline; filename="multiport.patch"
 
---- linux-2.4.28-rc1/./net/ipv6/netfilter/ip6t_ipv6header.c	2003-11-29 03:26:21.000000000 +0900
-+++ linux-2.4.28-rc1-extfix/./net/ipv6/netfilter/ip6t_ipv6header.c	2004-11-10 00:51:45.000000000 +0900
-@@ -63,7 +63,7 @@ ipv6header_match(const struct sk_buff *s
- 			break;
- 		}
- 
--		hdr=(struct ipv6_opt_hdr *)skb->data+ptr;
-+		hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
- 
- 		/* Calculate the header length */
-                 if (nexthdr == NEXTHDR_FRAGMENT) {
-@@ -107,10 +107,14 @@ ipv6header_match(const struct sk_buff *s
- 		temp |= MASK_PROTO;
- 
- 	if (info->modeflag)
--		return (!( (temp & info->matchflags)
--			^ info->matchflags) ^ info->invflags);
--	else
--		return (!( temp ^ info->matchflags) ^ info->invflags);
-+		return !((temp ^ info->matchflags ^ info->invflags)
-+			 & info->matchflags);
-+	else {
-+		if (info->invflags)
-+			return temp != info->matchflags;
-+		else
-+			return temp == info->matchflags;
-+	}
- }
- 
- static int
-@@ -120,11 +124,17 @@ ipv6header_checkentry(const char *tablen
- 		      unsigned int matchsize,
- 		      unsigned int hook_mask)
+--- linux-2.4.28-rc1/./net/ipv6/netfilter/ip6t_multiport.c	2001-10-31 08:08:12.000000000 +0900
++++ linux-2.4.28-rc1-extfix/./net/ipv6/netfilter/ip6t_multiport.c	2004-11-10 00:51:45.000000000 +0900
+@@ -74,9 +74,12 @@ checkentry(const char *tablename,
  {
-+	const struct ip6t_ipv6header_info *info = matchinfo;
-+
- 	/* Check for obvious errors */
- 	/* This match is valid in all hooks! */
--	if (matchsize != IP6T_ALIGN(sizeof(struct ip6t_ipv6header_info))) {
-+	if (matchsize != IP6T_ALIGN(sizeof(struct ip6t_ipv6header_info)))
+ 	const struct ip6t_multiport *multiinfo = matchinfo;
+ 
++	if (matchsize != IP6T_ALIGN(sizeof(struct ip6t_multiport)))
 +		return 0;
 +
-+	/* invflags is 0 or 0xff in hard mode */
-+	if ((!info->modeflag) && info->invflags != 0x00
-+			      && info->invflags != 0xFF)
- 		return 0;
--	}
- 
- 	return 1;
- }
+ 	/* Must specify proto == TCP/UDP, no unknown flags or bad count */
+ 	return (ip->proto == IPPROTO_TCP || ip->proto == IPPROTO_UDP)
+-		&& !(ip->flags & IP6T_INV_PROTO)
++		&& !(ip->invflags & IP6T_INV_PROTO)
+ 		&& matchsize == IP6T_ALIGN(sizeof(struct ip6t_multiport))
+ 		&& (multiinfo->flags == IP6T_MULTIPORT_SOURCE
+ 		    || multiinfo->flags == IP6T_MULTIPORT_DESTINATION
 
-----Next_Part(Wed_Dec__1_17:07:13_2004_009)----
+----Next_Part(Wed_Dec__1_17:07:30_2004_838)----
