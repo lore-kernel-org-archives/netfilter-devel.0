@@ -1,9 +1,9 @@
 From: "David S. Miller" <davem@redhat.com>
 Subject: Re: [PATCH] fix netfilter refcounting [was Re: Conntrack leak
  (2.6.2rc2)]
-Date: Tue, 3 Feb 2004 09:48:08 -0800
+Date: Tue, 3 Feb 2004 10:27:12 -0800
 Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040203094808.2bb3640a.davem@redhat.com>
+Message-ID: <20040203102712.02626ed5.davem@redhat.com>
 References: <Pine.LNX.4.33.0402031629150.11737-100000@blackhole.kfki.hu>
 	<Pine.LNX.4.33.0402031825170.11950-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
@@ -24,11 +24,8 @@ Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
 > and the system forwards fragmented packets. It turned out that an
 > nf_conntrack_put was missing from ip_copy_metadata:
 
-Yeah, but... look at what you patched.
+Nevermind my previous email, it was a total thinko... you're patch
+is obviously correct and we had this same damn exact problem with
+the bridging skbuff nf objects as well. (see changeset 1.1474.41.3)
 
->  	/* Connection association is same as pre-frag packet */
-> +	nf_conntrack_put(to->nfct);
->  	to->nfct = from->nfct;
->  	nf_conntrack_get(to->nfct);
-
-What about that comment?
+I'll apply your patch and push to Linus now.  Thanks.
