@@ -1,46 +1,67 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
-Subject: Re: deleting a conntrack record
-Date: Thu, 17 Jun 2004 12:17:39 -0400
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <876ef97a04061709173c8f1a09@mail.gmail.com>
-References: <876ef97a0406170807663b89e0@mail.gmail.com> <40D1C088.4090307@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Deadlocks
+Date: Thu, 17 Jun 2004 18:20:15 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <40D1C4BF.8070605@trash.net>
+References: <20040609180909.GA11445@linuxace.com> <1087156709.11287.8.camel@ws> <20040615044723.GA16891@linuxace.com> <40CE95DE.9090703@trash.net> <20040617155946.GA28564@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-net-owner@vger.kernel.org>
-To: netdev <netdev@oss.sgi.com>, linux-net <linux-net@vger.kernel.org>,
-	netfilter <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <40D1C088.4090307@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20040617155946.GA28564@linuxace.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 17 Jun 2004 18:02:16 +0200, Patrick McHardy <kaber@trash.net> wrote:
-> Why don't you just adjust the timeout values in
-> /proc/sys/net/ipv4/netfilter ?
+Phil Oester wrote:
+> Yes, my statement was not clear at all.  What I meant was something like:
+> 
+> cpu 1:
+>   conntrack helper calls ip_conntrack_expect_related
+> 
+> cpu 2:
+>   nat helper calls ip_conntrack_change_expect
+> 
+> CPU 2 ends up causing a duplicate expectation, because the nat helper
+> changed the expectation to match the one created by cpu 1.
 
-Can't, because I only want to shorten the lifespans of some particular
-TCP connections and also when I delete a record I need to do some
-other stuff that's associated with the destruction of that connection.
- 
-> The function passed to ip_ct_selective_cleanup is supposed to decide
-> if a conntrack should be destroyed by returning 0/1, not to do it
-> itself. ip_ct_selective_cleanup tries to destroy the already destroyed
-> conntrack.
+This can't happen because ip_conntrack_change_expect in is called under
+read_locked ip_conntrack_lock and checks for duplicates and
+ip_conntrack_expect_related write_locks ip_conntrack_lock and checks
+for duplicates. ip_conntrack_change_expect additionally write_locks
+ip_conntrack_expect_tuple_lock so it won't race with itself on another
+CPU.
 
-This results in a memory leak in the conntrack slab cache. If you
-don't call ip_conntrack_put(), the conntrack entry leaves the
-ip_ct_selective_cleanup() function with a value >0 and thus is a
-permanent part of the scenery in RAM. As well, its been removed from
-the conntrack hash table, so it no longer appears in
-/proc/net/ip_conntrack, but you can see the effects by viewing
-/proc/slabinfo.
+> 
+> I do see duplicate expectations occasionally:
+> 
+> # grep EXP /proc/net/ip_conntrack 
+> EXPECTING: - use=1 proto=6 src=10.20.116.197 dst=10.20.153.248 sport=0 dport=4309 
+> EXPECTING: - use=1 proto=6 src=10.20.116.197 dst=10.20.153.248 sport=0 dport=4309 
+> 
+> which may or may not be related to the above.
 
-I have printed the integral value of the ct_general.use variable out
-in order to confirm this on many occassions. If this is not the case,
-then something extremely weird is going on with my kernel.
+Probably not, unless I missed something. I'm going to see if I can find
+something else.
 
-(btw, the kernel is a kernel.org 2.4.26 with the clear_fpu and the
-2.4.26 LKCD (from the ML) patch applied)
+> 
+> In any event, I have applied your patch to 2.6.7, and am running it.  Typically
+> the box would not last more than a couple days, so I'll let you know what 
+> happens.
 
--- 
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+Great, I'm really interested ..
+
+Regards
+Patrick
+
+> 
+> Phil
+> 
