@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] port physdev to ip6tables
-Date: Mon, 13 Sep 2004 01:17:14 +0200
+Subject: Re: [PATCH] ipp2p 0.6.1-2
+Date: Mon, 13 Sep 2004 00:30:43 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <4144D8FA.2040903@trash.net>
-References: <200409111259.28468.bdschuym@pandora.be>
+Message-ID: <4144CE13.5060104@trash.net>
+References: <41418BC2.7030705@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <200409111259.28468.bdschuym@pandora.be>
+To: Eicke Friedrich <tady@gmx.net>
+In-Reply-To: <41418BC2.7030705@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +21,16 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bart De Schuymer wrote:
+Eicke Friedrich wrote:
 
->Hi,
+> Hi again,
 >
->Attached are 2 patches, one against kernel 2.6.8.1 and the other against the 
->iptables userspace CVS. They add the physdev module to ip6tables. The physdev 
->module is quite essential for people wanting to filter bridged IPv6 frames.
->
-Thanks, I've applied the userspace patch and will send the kernel patch
-to Dave soon.
+> another patch for ipp2p. It covers a case that occured after the first
+> patch was send to the list. Please apply on top of the first patch.
+> Sorry for that.
+
+
+Also applied.
 
 Regards
 Patrick
-
->
->cheers,
->Bart
->  
->
