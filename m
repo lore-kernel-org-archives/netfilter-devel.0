@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] peer_pid checking in ip_queue
-Date: Tue, 23 Mar 2004 23:44:15 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Adding packet metadata
+Date: Wed, 24 Mar 2004 01:06:31 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4060BDBF.8050407@trash.net>
-References: <40601AE4.5070206@eurodev.net> <406072ED.8060304@trash.net> <40607DAC.2090404@eurodev.net>
+Message-ID: <Pine.LNX.4.44.0403240105250.15222-100000@filer.marasystems.com>
+References: <20040323162352.78749.qmail@web13904.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
- Harald Welte <laforge@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40607DAC.2090404@eurodev.net>
+To: Scott MacKay <scottmackay@yahoo.com>
+In-Reply-To: <20040323162352.78749.qmail@web13904.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,47 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Hi Patrick,
-> 
-> Patrick McHardy wrote:
-> 
->> peer_pid is protected by queue_lock, you move it out of the locked
->> section. This leads to a small race which can cause message loss. Not 
->> sure if it's bad though as netlink is unreliable itself.
-> 
-> 
-> yes it's true, well if i'm not wrong, this small race could happen for 
-> first packets which are going to be
-> enqueued, is it?.
+On Tue, 23 Mar 2004, Scott MacKay wrote:
 
-It can happen if peer_pid is checked outside the locked section on one
-CPU and changed on another at the same time. I don't consider it
-important, as the exact point in time at which the first packet will be
-received is non-deterministic for userspace anyway. But we can probably
-also do it without a race-conditions, ipq_build_packet_message
-read_locks queue_lock, directly after that it is write_locked by
-ipq_enqueue_packet. As multiple threads will queue at the write_lock
-anyway it seems we can just replace it by a spin_lock and lock the
-entire section. But let me think some more about it ..
+> I wanted to mark up packets with information as they pass thru the
+> system. Basically, I want to associate some data with a packet during
+> PREROUTING/raw (to read info prior to conntrack) and then get that
+> information back during PREROUTING/mangle.  Is there a module already
+> written which could perform this?
+
+MARK should be able to do this.
+
+> It is not something I would need to have accessible to the iptables
+> program, though I will probably need to adjust some code to make it
+> accessible to my ip_queue userspace application...
+
+The MARK value is available (read-only) via ip_queue.
 
 Regards
-Patrick
-
-> 
-> For example, two packets arrive almost at the same time, ip_queue 
-> allocates space for both new entries to be enqueued, first packet is not 
-> enqueued because peer_pid is 0 but, in that moment, the user space 
-> program binds to ip_queue's netlink sockets, but entry for second packet 
-> is already created and peer_pid is not 0 anymore, so this packet is 
-> enqueue. With my patch, both packets will be lost, with current 
-> implementation one is lost and the other one is enqueued.
-> 
-> By other hand, I think that if user programs hungs or dies, we stress 
-> the kernel allocating
-> and releasing memory all the time. So, my question is, is really a 
-> problem losing these packets?
-> 
-> thanks for the feedback,
-> Pablo
-> 
+Henrik
