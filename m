@@ -1,21 +1,17 @@
-From: Simon Kirby <sim@netnation.com>
-Subject: Re: REJECT using invalid data
-Date: Fri, 10 Dec 2004 06:49:42 -0800
-Message-ID: <20041210144942.GA19709@netnation.com>
-References: <Pine.LNX.4.53.0412072347080.2736@bizon.gios.gov.pl>
-	<41B642A1.9030807@eurodev.net>
-	<20041208005216.GA7958@netnation.com>
-	<Pine.LNX.4.53.0412101310210.1288@bizon.gios.gov.pl>
-	<20041210131050.GB9398@netnation.com>
-	<Pine.LNX.4.53.0412101439530.6072@bizon.gios.gov.pl>
+From: Cedric de Launois <delaunois@info.ucl.ac.be>
+Subject: Re: [PATCH] info file for ROUTE target
+Date: Fri, 10 Dec 2004 10:03:25 +0100
+Message-ID: <1102669404.11255.29.camel@descartes.info.ucl.ac.be>
+References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
+	<20041209195706.GA4121@oknodo.bof.de>  <41B8EB72.50502@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: "netfilter-devel@lists.netfilter.org"
+	<netfilter-devel@lists.netfilter.org>, Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <ole@ans.pl>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.53.0412101439530.6072@bizon.gios.gov.pl>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41B8EB72.50502@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,56 +23,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Dec 10, 2004 at 02:52:29PM +0100, Krzysztof Oledzki wrote:
+Le ven 10/12/2004 =E0 01:18, Patrick McHardy a =E9crit :
+> >I also made a new contribution, my --tee extension to ROUTE, which als=
+o
+> >went completely uncommented.
+> >
+> >https://lists.netfilter.org/pipermail/netfilter-devel/2004-November/01=
+7515.html
+> >
+> I'll apply this if Cedric is fine with it.
 
-> No, REJECT does not DROP. It sends back an error packet in response. So it
-> sends response to broken packets.
+In fact, I advised Patrick (Schaaf) to collect reactions related to its
+tee extension from this list. This is because --tee duplicates a packet,
+which could cause DoS security problems if not used carefully.
+Thanks to conntrack, we can avoid flooding ourself with duplicated
+packets. My fear is that you could still have something like this :
 
-Yes, but if REJECT can't REJECT it, it very well better DROP instead. 
-Would you rather it ACCEPT it?
+          PC1                                    PC2
 
-> Oh, but what if protocol filed is broken? With one bit error we can
-> accidently match for example igmp packets with -p tcp.
+      orig packet    =20
+           |
+           v                  dup pkt 1
+   [ROUTE --tee --gw PC2] -------------------------.
+         | |   ^                                   |
+         | |   |                                   v
+         | |   '-----dup pkt 2 ---------- [ROUTE --tee --gw PC1]
+         | |                                      | |
+         v v                                      v v
+ Flood of duplicated packets            Flood of duplicated packets
 
-"tcp", "udp", "igmp", etc., are in the IP header, which better be checked
-by that point as well.  That is what I'm saying in my previous message. 
-"-p tcp" by itself is matching in only the IP header, which has a
-separate checksum.
+So we cannot make sure that people don't shoot themself. But anyway,
+people using the ROUTE target are warned enough by pom...
+Maybe I'm too paranoid ?
 
-> Not only for logging. You can use this to protect some hosts with
-> broken IP stack like for example unpatched Win95/98, etc.
+However, I think the --tee extension can really be useful. For example
+to inspect pkt on other machine(s) and detect problems at line rate.
 
-I'm not against a feature to actually match broken packets in any way. 
-I'm just saying that not checking the checksum and skipping such packets
-with the rule "-p tcp --dport 80" is wrong.
+Since the ROUTE target is still an experimental target, my position is
+to promote innovative (though sometimes risky) extensions. If the
+extension introduces too many problems, I reserve the right to remove
+it.
 
-> So maybe broken packets should go a to different table (broken) and not
-> traversal other tables and conntrack? Or any other smart solution.
+Thus, let's apply the patch ;)
 
-Possibly.  The kernel would need to know all protocols in order to be
-able to filter them before any other rules, though.
+Regards,
 
-Let me make this very clear.  I am talking only about the bad checksum
-case, and not about strange or "unclean" packets in any other way.
-
-Would you ever really ever want to accept a packet with a corrupted
-checksum?  Would it ever be useful?
-
-Ideally, "-p tcp" could check just the checksums up to the IP level and
-NOT the tcp checksum.  "-p tcp" with any other TCP-specific option would
-then check the TCP checksum.
-
-So, we could have an example ruleset like this that should work as
-expected:
-
-iptables -A FORWARD -d windows_box -m broken --broken-win -J DROP
-iptables -A FORWARD -m unclean --some-unclean -m limit ... -J LOG
-iptables -A FORWARD -p tcp --dport 80 -J ACCEPT
-iptables -A FORWARD -p tcp -j REJECT --reject-with tcp-reset
-
-The above rules would protect the Windows box, log corrupted packets,
-accept TCP port 80 packets that don't have a corrupted TCP checksum,
-REJECT any other valid TCP packet with a TCP RST, DROP invalid TCP
-packets, and follow the policy for the rest.  Simple.
-
-Simon-
+Cedric
