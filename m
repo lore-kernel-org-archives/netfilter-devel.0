@@ -1,14 +1,11 @@
-From: "James Williams" <jameswilliams-1@comcast.net>
-Subject: nf_register_hook problem
-Date: Tue, 15 Jul 2003 16:44:03 -0800
+From: "Stephan Jager" <Stephan@medz.org>
+Subject: Re: H.323 conntrack patch
+Date: Tue, 15 Jul 2003 20:37:30 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <005c01c34b33$5af35e60$6401a8c0@williams>
-Reply-To: "James Williams" <jameswilliams-1@comcast.net>
-Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0059_01C34AF0.4C5F0D10"
+Message-ID: <200307151837.h6FIbUwT006094@alpha.medz.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: mzieba-netfilter@mail.biuro.medianet.pl
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,53 +16,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Tue, 15 Jul 2003, mzieba-netfilter@mail.biuro.medianet.pl wrote:
 
-------=_NextPart_000_0059_01C34AF0.4C5F0D10
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+> On Tue, Jul 15, 2003 at 03:00:10PM +0200, Stephan Jager wrote:
 
-All-
+> Jul 14 10:45:20 nat kernel: ct_h245_help: new RTCP/RTP requested
+> 192.168.2.101:->193.192.xxx.xxx:19422
+> Jul 14 10:45:20 nat kernel: ct_h245_help: new RTCP/RTP requested
+> 192.168.2.101:->193.192.xxx.xxx:19423
+> 
+> but only one h323_data_fixup for that packet. I just can't find example
+> code of multiple expectation per packet to look, how it should be done. ;)
 
-I am building a LKM. I'd like this module to be a netfilter. I can build =
-the module no problem. Upon trying /sbin/insmod <module> I get the error =
-"unresolved symbol nf_register_hook." Any thoughts? I've tried building =
-the netfilter options in as modules and as part of the kernel. So far no =
-luck. Some direction in this matter is greatly appreciated. Also if a =
-sample .config file can be provided with netfilter propely configured, =
-that would be great.
+So our question: Can you have more expectations for one packet? It does 
+not seem to word at least.
 
-Thanks,
-James
-------=_NextPart_000_0059_01C34AF0.4C5F0D10
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1141" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>All-</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I am building a LKM. I'd like this =
-module to be a=20
-netfilter. I can build the module no problem. Upon trying /sbin/insmod=20
-&lt;module&gt; I get the error "unresolved symbol nf_register_hook." Any =
-
-thoughts? I've tried building the netfilter options in as modules and as =
-part of=20
-the kernel. So far no luck. Some direction in this matter is greatly=20
-appreciated. Also if a sample .config file can be provided with =
-netfilter=20
-propely configured, that would be great.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Thanks,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>James</FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_0059_01C34AF0.4C5F0D10--
+Stephan
