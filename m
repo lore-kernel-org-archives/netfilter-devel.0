@@ -1,32 +1,30 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: Recent C99 patches to net/ipv4/netfilter
-Date: Tue, 11 Mar 2003 16:08:57 -0800 (PST)
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <20030311.160857.120322500.davem@redhat.com>
-References: <20030311202750.GC4808@debian>
-	<20030311.141652.31265629.davem@redhat.com>
-	<20030311223205.GD4808@debian>
+From: Bobo <boboaq@163.com>
+Subject: How to log all the packets through netfilter?
+Date: Wed, 12 Mar 2003 18:34:8 +0800
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030312103355.9C1FF1C9C2DCC@sm206.163.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="GB2312"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-net@vger.kernel.org
-Return-path: <linux-net-owner@vger.kernel.org>
-To: ahaas@airmail.net
-In-Reply-To: <20030311223205.GD4808@debian>
+Cc: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter@lists.netfilter.org <netfilter@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: Art Haas <ahaas@airmail.net>
-   Date: Tue, 11 Mar 2003 16:32:05 -0600
+ Hello:
 
-   On Tue, Mar 11, 2003 at 02:16:52PM -0800, David S. Miller wrote:
-   >    From: Art Haas <ahaas@airmail.net>
-   >    Date: Tue, 11 Mar 2003 14:27:50 -0600
-   >    
-   >    Should I send the patches again, or is this something that can be
-   >    resolved by Linus repulling the changeset?
-   >    
-   > Just resend please, thanks.
-   
-   These should still apply cleanly. Thanks for taking these again.
+        While using IPtables,I am now trying to log all the packets the firewall receives.
 
-Applied (really, I did do it this time :-), thanks.
+     Now,I could log such packets that match the set rules.If receive some packet which does 
+not meet any rules in a chain,how to log it?
+   I have set the default polity of a chain  "drop" action.
+
+     Thanks.
