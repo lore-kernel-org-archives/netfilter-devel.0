@@ -1,32 +1,32 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH] iptables cannot be compiled with 2.6.7
-Date: Fri, 18 Jun 2004 21:44:32 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406182142010.25898-100000@blackhole.kfki.hu>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
+Subject: Re: Iptables-1.2.9/10 compile failure with linux 2.6.7 headers
+Date: Sat, 19 Jun 2004 07:51:28 +0900 (JST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040619.075128.106025605.yoshfuji@linux-ipv6.org>
+References: <40D31EA6.5030207@ThinRope.net>
+	<20040619.021818.04202102.yoshfuji@linux-ipv6.org>
+	<40D3361B.5020304@ThinRope.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>,
-	<netfilter@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org, yoshfuji@linux-ipv6.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: kalin@ThinRope.net, andrew@walrond.org
+In-Reply-To: <40D3361B.5020304@ThinRope.net>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+In article <40D3361B.5020304@ThinRope.net> (at Sat, 19 Jun 2004 03:36:11 +0900), Kalin KOZHUHAROV <kalin@ThinRope.net> says:
 
-The 08_linux-2.6.7-user_attr.patch has been added to patch-o-matic-ng,
-which fixes the compile-problem of iptables using 2.6.7 source tree.
+> As far as I understand from this patch, this should be applied to the system headers...
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Patch is for current linux-2.5 bk tree,
+not for linux-headers.
+
+Please try to patch your kernel and set KERNEL_DIR to 
+/path/to/your/kernel when you compile iptables.
+
+Thanks.
+
+--yoshfuji
