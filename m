@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: libipt_conntrack.c iptables-save bug [PATCH]
-Date: Thu, 5 Dec 2002 21:15:45 +0100
+Subject: Re: Patch for libiptc
+Date: Thu, 5 Dec 2002 21:17:59 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021205201545.GF11068@naboo.club.berlin.ccc.de>
-References: <20021126033032.45cb1c4b.rh0209ms@arcor.de>
+Message-ID: <20021205201759.GG11068@naboo.club.berlin.ccc.de>
+References: <200211250422.gAP4Mu4F016168@garrick.ustu.ru>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hK8Uo4Yp55NZU70L"
+	protocol="application/pgp-signature"; boundary="hTiIB9CRvBOLTyqY"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Michael Schwendt <rh0209ms@arcor.de>
+To: Alexander Pazdnikov <sasha@cnit.ustu.ru>
 Content-Disposition: inline
-In-Reply-To: <20021126033032.45cb1c4b.rh0209ms@arcor.de>
+In-Reply-To: <200211250422.gAP4Mu4F016168@garrick.ustu.ru>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,17 +23,22 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---hK8Uo4Yp55NZU70L
+--hTiIB9CRvBOLTyqY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 26, 2002 at 03:30:32AM +0100, Michael Schwendt wrote:
+On Mon, Nov 25, 2002 at 09:23:17AM +0500, Alexander Pazdnikov wrote:
+> 	Hello.
+>   Patch for function is_same() in libiptc4.c (in libiptc6.c all ok)
 
-> libipt_conntrack.c in several places also lacks a white-space
-> character after the '!' prefix of an invertable argument.
+Has already been fixed in the latest release (see
+http://cvs.netfilter.org/cgi-bin/cvsweb/netfilter/userspace/libiptc/libip4t=
+c.c.diff?r1=3D1.14&r2=3D1.15)
 
-thanks, patch applied.
+> Best Wishes
+> Alexander Pazdnikov
+
 
 --=20
 Live long and prosper
@@ -46,7 +51,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---hK8Uo4Yp55NZU70L
+--hTiIB9CRvBOLTyqY
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -54,9 +59,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE977PxXaXGVTD0i/8RAnHuAJ9WjXxoLymmNT5Hw1hPBSykWab+nQCeO/LU
-Ycdt2oxxDSD2VF7KhqfWsTQ=
-=6ExO
+iD8DBQE977R3XaXGVTD0i/8RAkhEAKCWQK474Ebux2MTCrbh2JtATPftBgCgs6On
+YF2LKve7aagBjFujQPbThi8=
+=/v/k
 -----END PGP SIGNATURE-----
 
---hK8Uo4Yp55NZU70L--
+--hTiIB9CRvBOLTyqY--
