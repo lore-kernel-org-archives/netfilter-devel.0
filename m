@@ -1,15 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Stephane Ouellette <ouellettes@videotron.ca>
 Subject: Re: [PATCH] for some issues in tcp window tracking patch
-Date: Sat, 22 May 2004 14:54:38 +0200 (CEST)
+Date: Sat, 22 May 2004 09:04:02 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405221440310.10540-100000@blackhole.kfki.hu>
-References: <40AE8A42.9060908@eurodev.net>
+Message-ID: <40AF4FC2.1060808@videotron.ca>
+References: <Pine.LNX.4.44.0405220040040.28306-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7BIT
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40AE8A42.9060908@eurodev.net>
+To: Henrik Nordstrom <hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,50 +20,90 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 22 May 2004, Pablo Neira wrote:
+Henrik Nordstrom wrote:
 
-> conntrack->timeout.function is death_by_timeout -> which calls
-> ip_conntrack_put -> which calls nf_conntrack_put  which decrements
-> refcount and if zero, we release the conntrack.
+>On Fri, 21 May 2004, Patrick McHardy wrote:
 >
-> Now we return -NF_whatever, from conntrack core we call
-> nf_conntrack_put, so same thing, we reduce refcount and if zero, we
-> release the conntrack.
+>  
 >
-> I don't know if I'm missing anything but we are decrementing twice
-> conntrack refcount, at worst we could try to release an already released
-> conntrack. Am I missing anything?
-
-No, that's fine. The conntrack entry goes away when all references are
-released and it springs into existence with refcount 1 (conntrack itself).
-Then when we attach the conntrack entry to a packet, the refcount is
-incremented so that it can't disappear under us. We just decrement
-those values here to destroy conntrack.
-
-> >- tcph->ack should be tcph->ack_seq in tcp_packet at TCP_CONNTRACK_CLOSE
-> >  case
-> >- inlined segment_seq_plus_len
-> >- explicit drop of SYN/ACK when the state machine is out of sync
-> >- releasing lock moved up, after setting timeout parameter in tcp_packet
-> >- IPS_ASSURED_BIT is checked before set in tcp_packet
-> >- SACK support added
+>>I missed that question. It's probably not neccessary, we will get a
+>>small race when zapping conntracks, but according to this comment in
+>>unreplied() we already have one anyway.
+>>    
+>>
 >
-> two issues missing:
-> - sender->loose decrements misplaced
-
-I missed to add that to the 'done' list above.
-
-> - use of defined flags in tcp.h
+>What I thought.. a __set_bit should be sufficient here, right?
 >
-> and pending that you give your ok:
-> - fine grain locking for private tcp helper info
+>Is there any good description somewhere on how these memory barriers 
+>works and when they are needed, or more precisely what is the difference 
+>between set_bit and __set_bit in terms of when/how/why each should be 
+>used?
+>  
+>
 
-Yep, those are not included yet - SACK was more important to add.
+Henrick,
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+    some CPUs can reorder memory accesses in order to optimize bus 
+usage.  Compilers can reorder instructions to optimize cache and 
+register usage. Memory barriers are used to avoid races when the order 
+of execution is important.
+
+    For example, suppose you create a proc file with create_proc_entry() :
+
+myprocfile = create_proc_entry( . . . );
+myprocfile->fops = my_driver_proc_fops;
+myprocfile->data = &my_data_structure;
+.
+.
+.
+
+
+    Many people don't check that "data" is not NULL in the file 
+operation procedures and that's OK as long as you can make sure that the 
+"data" pointer is set BEFORE you set the "fops" pointer...  So, here's 
+our example reworked :
+
+myprocfile = create_proc_entry( . . . );
+myprocfile->data = &my_data_structure;
+myprocfile->fops = my_driver_proc_fops;
+.
+.
+.
+
+
+    This is much better but still imperfect.  GCC could reorder the 
+instructions to better use the cache and/or processor registers.  We 
+need to introduce a write memory barrier to GARANTEE that the "data" 
+pointer is set BEFORE the "fops" pointer :
+
+myprocfile = create_proc_entry( . . . );
+myprocfile->data = &my_data_structure;
+wmb();
+myprocfile->fops = my_driver_proc_fops;
+.
+.
+.
+
+   In this case, a write memory barriers forbids write accesses to cross 
+the barrier in either direction.  That's our garantee that "data" is 
+ALWAYS valid inside the file operation procedures...
+
+Regards,
+
+Stephane Ouellette
+
+>But in this case there is many races.. a test_bit followed  by a set_bit 
+>is not atomic unles governed by a surrounding lock independent of if 
+>there is memory barriers of not around the operations, and the flushing of 
+>unconfirmed sessions is inherently racy anyway without strict locking. If 
+>there is strict locking then memory barriers in the set_bit should be 
+>completely irrelevant. Right?
+>
+>Regards
+>Henrik
+>
+
+   
+
+>  
+>
