@@ -1,15 +1,14 @@
-From: Kevin White <kwhite@secureinteriors.com>
-Subject: Re: "Proper" way to transparent proxy?
-Date: Wed, 09 Oct 2002 21:15:21 -0400
+From: "wizard" <caster@postech.ac.kr>
+Subject: [More Question] TIMEBLOCK
+Date: Thu, 10 Oct 2002 17:37:50 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DA4D4A9.8030607@secureinteriors.com>
-References: <3DA48D59.7060109@secureinteriors.com> <20021009204018.GA15171@oknodo.bof.de>
+Message-ID: <CKEGJOPDOMNNFIGIMICAOEGPCBAA.caster@postech.ac.kr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="ks_c_5601-1987"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,17 +19,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> For the benefit of the eternal (hope hope hope) google, I am using
-> the exact code below, compiled like this:
-> 
-> 	gcc -c preload_getsockname.c
-> 	ld -o preload_getsockname.so -shared preload_getsockname.o -ldl
-> 
-> as an LD_PRELOAD file for a very ancient squid binary. In production
-> on some handful on boxes. You probably only need the 'getsockopt' line.
 
-Great...thanks tons.  I'll put it into action...
+ I still have a question about timeblock,
 
-Thanks again!
+ I use timeblock with crontab. and  there is some problem with this method.
 
-Kevin
+ for example
+
+ 1) there is a rule that  netfiler with conntrack accept packet from
+10.0.0.1 to 10.0.1.1 on the term from 6 AM to 7 AM.(on top of FORWARD chain
+, there is rule for Established and Related packet ACCEPTING.
+
+ 2) there is a connection on 6:30 AM, and user continue his job with telnet
+,so conntrack entry is not destroyed from timeout.
+
+ 3) When it is past 7 AM , the rule acceping telnet will be vanished by
+crond , but telnet session will be survive, because of it's session and
+ the rule accepting Established packet.
+
+
+ so. I cannot apply drop rule immidatly for the connection  which is
+accepted before , until connection entry is destory by the kernel timer.
+
+ I want to apply drop rule to the connection still using.
+
+ how can i do this  sustaining the Established accept rule on the top of
+FORWARD chain?
