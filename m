@@ -1,17 +1,17 @@
-From: Oscar Fudd <ofudd@speed-test.net>
-Subject: Re: [TYPO] patch to cvs libipt_string.c
-Date: 30 Apr 2003 19:53:59 -0700
+From: Willy Tarreau <willy@w.ods.org>
+Subject: Re: [PATCH] patch-o-matic fixes
+Date: Wed, 30 Apr 2003 23:49:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1051757639.4728.172.camel@scotty.cafe.5gnetworks.com>
-References: <Pine.LNX.4.44.0304281524370.22672-100000@blimp.psdhost.net>
-	 <20030430160134.GF685@sunbeam.de.gnumonks.org>
+Message-ID: <20030430214957.GA8011@alpha.home.local>
+References: <20030430085332.GA32392@alpha.home.local> <20030430153222.GC685@sunbeam.de.gnumonks.org> <1051717921.8200.151.camel@tux.rsn.bth.se> <20030430162835.GA4546@alpha.home.local> <1051721066.8214.158.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Willy Tarreau <willy@w.ods.org>, Harald Welte <laforge@netfilter.org>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030430160134.GF685@sunbeam.de.gnumonks.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+Content-Disposition: inline
+In-Reply-To: <1051721066.8214.158.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,28 +22,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Also, patch-o-matic says to not use this module with linux kernel 2.4.9.
-Does it work with kernels after 2.4.9?  It looks like it does; could the
-patch-o-matic help message be changed to say so?  I've been avoiding
-this module because of that message...  :-)
-  
-http://cvs.netfilter.org/netfilter/patch-o-matic/extra/string.patch.help?rev=1.3&content-type=text/x-cvsweb-markup
+On Wed, Apr 30, 2003 at 06:44:26PM +0200, Martin Josefsson wrote:
+> Please get a current patch-o-matic from cvs and try again.
 
--THIS PATCH DOES NOT WORK WITH KERNEL 2.4.9 !!!
-+THIS PATCH DOES NOT WORK WITH KERNEL 2.4.9 OR OLDER !!!
+I've just rechecked with a fresh 2.4.20 + patch-2.4.21-rc1 + cset-1.1141
+from kernel.org, and a fresh p-o-m-20030429 from netfilter.org, and I can
+only reproduce the problem if I don't enable 24_conntrack-nosysctl (as you
+said). Once it's applied, tcp-window-tracking applies correctly. I don't
+really know why I wasn't including it, because I had marked it as one to
+avoid because of a conflict it would have caused in an earlier version, or
+against a broken kernel... Strange...
 
-On Wed, 2003-04-30 at 09:01, Harald Welte wrote:
-> On Mon, Apr 28, 2003 at 03:29:31PM -0700, ofudd@psdhost.net wrote:
-> > Hi!
-> > 
-> > I downloaded iptables from CVS today, enabled the string matching
-> > feature, and tried to compile the userspace tools.  Compilation failed
-> > due to a typo.
-> > 
-> > In ./netfilter/userspace/extensions/libipt_string.c:
+> > 		pending/12_conntrack_nat_dependancy
 > 
-> This is bugzilla bug 89, which has been fixed now.
+> This patch doesn't even exist in p-o-m anymore.
+
+Yes, I know that but it's still listed here because I maintain a list of
+patches to avoid, which makes frequent rebuilds far easier.
+
+> > 		extra/ip_conntrack-timeouts
 > 
-> > ofudd@psdhost.net
--- 
-Oscar Fudd <ofudd@speed-test.net>
+> This one is incompatible with extra/tcp-window-tracking.patch
+> 
+> The dependencies in p-o-m won't allow you to try applying both these
+> patches at the same time (unless you use force)
+
+I know, but it's on my avoid-list too, because if I apply it by mistake,
+I only see the conflict on the last one... tcp-window-tracking, so I
+prefer drop it from the start.
+
+Well, it seems that my list initiated to make my life easier fooled me
+instead, this time !
+
+Thanks for your help, Harald and Martin, and sorry for the noise.
+
+Regards,
+Willy
