@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Netfilter problem with new 2.4.22
-Date: Sun, 21 Sep 2003 16:34:23 +0200
+Subject: Re: Netfilter on an IXDP-2400/2800
+Date: Sun, 21 Sep 2003 16:12:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030921143423.GE20986@sunbeam.de.gnumonks.org>
-References: <3F697788.8080103@isfera.ru> <3F6A2632.6030005@trash.net>
+Message-ID: <20030921141244.GC20986@sunbeam.de.gnumonks.org>
+References: <20030915140411.GA3166@mandark.chaos.lab>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IMjqdzrDRly81ofr"
-Cc: Diadon <diadon@isfera.ru>, netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="wq9mPyueHGvFACwf"
+Cc: netfilter-devel@lists.netfilter.org, hadi@cyberus.ca
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Frank Meerkoetter <meerkoetter@stud.fbi.fh-darmstadt.de>
 Content-Disposition: inline
-In-Reply-To: <3F6A2632.6030005@trash.net>
+In-Reply-To: <20030915140411.GA3166@mandark.chaos.lab>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,33 +23,37 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---IMjqdzrDRly81ofr
+--wq9mPyueHGvFACwf
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 18, 2003 at 11:40:02PM +0200, Patrick McHardy wrote:
-> Hi Diadon,
-> the problem seems to be that a dst for local input doesn't carry pmtu=20
-> information, the pmtu is set by rt_set_nexthop which is skipped for
-> local input.=20
+On Mon, Sep 15, 2003 at 04:04:11PM +0200, Frank Meerkoetter wrote:
 
-Thanks for debugging the problem, Patrick.
+> during the next 6 month i've maybe the possibility to play around with an=
 =20
-> I've attached two possible fixes for this. The first one restores
-> behaviour from before the routing changes for LOCAL_OUT, the other one
-> removes the check since obviously "Never happens" is not true anymore
-> (and it is not an error). Another possibility would be something like
-> "if (nskb->dst->pmtu && nskb->len > nskb->dst->pmtu)  ..."
-> Someone from the coreteam should comment which solution is prefered.
+> intel network processor board [1].
+>=20
+> The IXP-2400 is a processor based on the xscale architecture, running at=
+=20
+> 600Mhz [2]. It contains among other things 8 io-processors, called=20
+> microengines which are optimized for packet-processing. The setup will=20
+> most probably have a quad gigabit ethernet card.
+>=20
+> A first idea for a project was to modify the netfilter framework to make =
+use
+> of the special hardware features of this platform.
+>=20
+> Could someone please comment on the usefullness/feasibility of such a=20
+> modification?
 
-I'd actually prefer the last solution (together with a comment why
-nskb->dst-pmtu can be zero).=20
+Please contact Jamal (hadi@cyberus.ca), he has way more understanding
+about such systems than I have [and is  believed to have done quite some wo=
+rk
+in the direction you are heading].
 
-I've included the patch into 'submitted' (will send it to davem later)
-
-> Regards,
-> Patrick
+> sincerely=20
+>   Frank Meerkoetter
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,16 +65,16 @@ I've included the patch into 'submitted' (will send it to davem later)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---IMjqdzrDRly81ofr
+--wq9mPyueHGvFACwf
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/bbbvXaXGVTD0i/8RAtznAKCvy2RlBQ4y86iWkWe3G37q5RQjmgCeI6lT
-lZOtnNKD22rDNhDO5nhBUfA=
-=qDBP
+iD8DBQE/bbHcXaXGVTD0i/8RAqZbAJ91gjBeQoM6CTUeoqJsF04Za0rlUQCfQSKO
+NRSlNQyorhKNeapnG/xNB2M=
+=vZjB
 -----END PGP SIGNATURE-----
 
---IMjqdzrDRly81ofr--
+--wq9mPyueHGvFACwf--
