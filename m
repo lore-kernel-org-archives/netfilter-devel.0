@@ -1,17 +1,12 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: [PATCH-2.4-POM] NF_REPEAT was ignored !
-Date: Wed, 22 Oct 2003 12:25:56 +0200
+From: "dimitri borjac" <dimitri_borjac@hotmail.com>
+Subject: iptables and SPI...
+Date: Wed, 22 Oct 2003 16:44:51 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031022102556.GA10540@alpha.home.local>
-References: <20031008094447.GL25743@sunbeam.de.gnumonks.org> <Pine.LNX.4.33.0310090854360.22077-100000@blackhole.kfki.hu>
+Message-ID: <Law10-F124Y6YHkidcD0000000d@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, netfilter@lists.netfilter.org,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0310090854360.22077-100000@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,63 +17,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi!
+i sent this question to the user list but maybe you would have more precise 
+answers ...
 
-after updating the production firewalls to handle the CW->CL state, I saw the
-rate of drops decrease, but not as much as I would have expected it to.
+I'd like to know if it's possible to use the current version of iptables in 
+order to NAT different VPN established between different NATted hosts and 1 
+remote gateway (the same gateway for all of them) ?  Such a NAT would be 
+made by watching both addresses, ports and SPIs...
 
-I captured lots of data (/p/n/ip_conntrack, logs, tcpdump) and discovered
-another problem with tcp_window_tracking that I could easily reproduce on
-a lab : if a client reused a port too early, then the SYN/ACK from the
-server was dropped, and the client could only connect after the next SYN
-retransmit. I simply checked it with nc -p 1234 server 80. The first one
-succeeds immediately, the second one needs 3 seconds to establish. There
-is a logical explication to this :
+In other words :  is it possible for iptables to go and check the SPI field
+in the ESP Header of the IPsec packet in ESP tunnel mode ?
 
-The client completes a first connection to server:80 with spt=1234. A few
-seconds later, he reuses the same port to initiate a new connection to the
-server. The firewall still sees the connection in TIME_WAIT state, so its
-state matrix switches it to SYN_SENT  (orig:sTW--(SY)-->sSS).
+Hope i make me clear enough :)
+Thanks in advance !
 
-In ip_conntrack_proto_tcp.c:tcp_packet(), there is a test for this case. The
-existing session is deleted and NF_REPEAT is returned so that the caller tries
-again (here, ip_conntrack_core.c:ip_conntrack_in()). This one simply returns
-the same code NF_REPEAT to its caller which will call it again (nf_iterate()).
+Dimo
 
-The problem is that once ip_conntrack_in() is called again with the same pskb,
-it already has its ->nfct filled, so ip_conntrack_in() immediately returns
-NF_ACCEPT without doing any lookup. The result is that the SYN is passed to
-the server, and the deleted session is not recreated. When the server replies
-with a SYN/ACK, this one has no matching session it is blocked by the firewall
-rules. Then, 3 seconds later, the client retransmits its SYN, which reaches
-the firewall without any matching session, and correctly initiates a new one.
-
-The solution is to correctly clear the ->nfct field in ip_conntrack_in() if
-we return NF_REPEAT. This is what the following patch does. It's to be applied
-to 2.4+POM-20030912, but I'm confident it may be easily applied and/or ported
-to later versions.
-
-I've not checked yet if the mainline conntrack code is also affected, but this
-could be possible.
-
-Regards,
-Willy
-
-
---- ./net/ipv4/netfilter/ip_conntrack_core.c.orig	Tue Oct 21 14:21:08 2003
-+++ ./net/ipv4/netfilter/ip_conntrack_core.c	Tue Oct 21 16:14:53 2003
-@@ -856,6 +861,14 @@
- 	IP_NF_ASSERT((*pskb)->nfct);
- 
- 	ret = proto->packet(ct, (*pskb)->nh.iph, (*pskb)->len, ctinfo);
-+
-+	if (ret == NF_REPEAT) {
-+		/* we must loop here again */
-+		nf_conntrack_put((*pskb)->nfct);
-+		(*pskb)->nfct = NULL;
-+		return ret;
-+	}
-+
- 	if (ret == -1) {
- 		/* Invalid */
- 		nf_conntrack_put((*pskb)->nfct);
+_________________________________________________________________
+MSN Messenger 6  http://g.msn.fr/FR1001/866 : ajoutez une image à votre 
+pseudo pour dialoguer avec vos amis
