@@ -1,94 +1,38 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [RESEND][PATCH] net/ipv6/netfilter warnings removal
-Date: Wed, 23 Apr 2003 14:38:32 +0200 (CEST)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.51.0304231434540.4838@dns.toxicfilms.tv>
-References: <Pine.LNX.4.51.0304051607310.32140@dns.toxicfilms.tv>
- <Pine.LNX.4.51.0304072115010.19830@dns.toxicfilms.tv>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH] iprange match support
+Date: Wed, 23 Apr 2003 15:32:41 +0200 (CEST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.33.0304231529580.19390-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: alan@lxorguk.ukuu.org.uk, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: linux-kernel@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.51.0304072115010.19830@dns.toxicfilms.tv>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 Hello,
 
-There are simple warnings to remove in 4 files there, here are the
-warnings:
-net/ipv6/netfilter/ip6t_rt.c: In function `match':
-net/ipv6/netfilter/ip6t_rt.c:133: warning: assignment from incompatible
-pointer type
-net/ipv6/netfilter/ip6t_frag.c: In function `match':
-net/ipv6/netfilter/ip6t_frag.c:150: warning: assignment from incompatible
-pointer type
-net/ipv6/netfilter/ip6t_esp.c: In function `match':
-net/ipv6/netfilter/ip6t_esp.c:126: warning: assignment from incompatible
-pointer type
-net/ipv6/netfilter/ip6t_ah.c: In function `match':
-net/ipv6/netfilter/ip6t_ah.c:136: warning: assignment from incompatible
-pointer type
+I have added the iprange match support to cvs.
 
-And here is the patch to remove those by using casts.
+The new match makes possible to match source/destination IP addresses
+against inclusive IP address ranges.
 
-It applies both to 2.4.20+ and 2.5.67+.
+Examples:
 
-Regards,
-Maciej
+iptables -A FORWARD -m iprange --src-range 192.168.1.5-192.168.1.124 -j ACCEPT
+iptables -A FORWARD -m iprange --dst-range 10.0.0.0-10.5.255.255.255 -j ACCEPT
 
-
-diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.c
---- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c	2003-04-11 18:41:29.000000000 +0200
-+++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.c	2003-04-11 18:49:41.000000000 +0200
-@@ -133,7 +133,7 @@
-        		return 0;
-        }
-
--       ah=skb->data+ptr;
-+       ah = (struct ahhdr *) (skb->data + ptr);
-
-        DEBUGP("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
-        DEBUGP("RES %04X ", ah->reserved);
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.ko differ
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.o differ
-diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.c
---- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c	2003-04-11 18:41:29.000000000 +0200
-+++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.c	2003-04-11 18:48:24.000000000 +0200
-@@ -123,7 +123,7 @@
-        		return 0;
-        }
-
--	esp=skb->data+ptr;
-+	esp = (struct esphdr *) (skb->data + ptr);
-
- 	DEBUGP("IPv6 ESP SPI %u %08X\n", ntohl(esp->spi), ntohl(esp->spi));
-
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.ko differ
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.o differ
-diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.c
---- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c	2003-04-11 18:41:29.000000000 +0200
-+++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.c	2003-04-11 18:48:09.000000000 +0200
-@@ -147,7 +147,7 @@
-        		return 0;
-        }
-
--       frag=skb->data+ptr;
-+       frag = (struct fraghdr *) (skb->data + ptr);
-
-        DEBUGP("IPv6 FRAG LEN %u %u ", hdrlen, frag->hdrlen);
-        DEBUGP("INFO %04X ", frag->info);
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.ko differ
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.o differ
-diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_rt.c
---- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c	2003-04-11 18:41:29.000000000 +0200
-+++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_rt.c	2003-04-11 18:53:36.000000000 +0200
-@@ -130,7 +130,7 @@
-        		return 0;
-        }
-
--       route=skb->data+ptr;
-+       route = (struct ipv6_rt_hdr *) (skb->data + ptr);
-
-        DEBUGP("IPv6 RT LEN %u %u ", hdrlen, route->hdrlen);
-        DEBUGP("TYPE %04X ", route->type);
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
