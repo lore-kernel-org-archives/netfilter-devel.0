@@ -1,14 +1,13 @@
-From: Miguel Angel Alvarez <maacruz@usuarios.retecal.es>
-Subject: GPL violation by router manufacturer Conceptronic
-Date: Thu, 16 Dec 2004 20:37:42 +0100
-Message-ID: <200412162037.42367.maacruz@usuarios.retecal.es>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: initial ct_sync port for Linux 2.6
+Date: Fri, 17 Dec 2004 00:10:00 +0100
+Message-ID: <41C215C8.1070905@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,54 +19,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all! 
 
- I have found what may be (it surely seems to be) a GPL violation by 
-Conceptronic (it was Tulip computers some years ago).
- They sell a router, actual model is C100BRS4H. Their web page is 
-http://www.conceptronic.net, go to products->networking and you'll find it 
-here. 
- 
- A friend of mine bought one today.
- I first ran nmap against this device, and identified it as running linux 
-2.4.18-2.4.20 
- Then I asked my friend to look for GPL notices and source code on the 
-documentation and he could find none. 
- So, I went to the manufacturers web to look it myself, and could find no 
-reference to linux or GPL code. What I found was and actual update to the 
-router's ROM. 
- The download site is 
-http://download.tulip.com/support/Conceptronic/Network/C100BRS4H/ 
-After i downloaded it (C100BRS4H_2.97.bin) and ran the strings command i found 
-the following significative strings: 
- webpages-6104k.bin 
- vmlinux.bin 
+   Hi,
 
- I couldn't dig more since I don't know what proccessor has the device nor 
-what compression algorithm they are using. 
- The rest was garbage, so i suposse this are two compressed files. 
- I searched in google, but i couldn't find any reference to this particular 
-violation, just another violation in a wireless router from same 
-manufacturer.
+   In the last few days I've started porting ct_sync to Linux 2.6 and=20
+Pablo Neira's new notifier API. This evening I managed to get it compile=20
+and work on my UML-based "test system", so I thought it's time to=20
+publish the code. However, since the 2.6 port is still in heavy=20
+development, and because of my difficulties with the Netfilter SVN the=20
+code is aveilable in a public GNU Arch archive repository here:
 
-This is nmap output: 
- Starting nmap 3.50 ( http://www.insecure.org/nmap/ ) at 2004-12-16 16:58 CET 
- Interesting ports on (my friend's IP): 
- (The 1651 ports scanned but not shown below are in state: closed) 
- PORT STATE SERVICE 
- 53/tcp filtered domain 
- 80/tcp filtered http 
- 515/tcp filtered printer 
- 631/tcp filtered ipp 
- 8080/tcp open http-proxy 
- 9100/tcp filtered jetdirect 
- 9111/tcp filtered DragonIDSConsole 
- 9152/tcp filtered ms-sql2000 
- Device type: general purpose 
- Running: Linux 2.4.X 
- OS details: Linux 2.4.18 - 2.4.20 (X86) 
- Uptime 0.116 days (since Thu Dec 16 14:11:32 2004) 
- 
- Nmap run completed -- 1 IP address (1 host up) scanned in 27.013 seconds
--- 
-Don't see the world trought a window, be open{source}minded, and be free :-)
+   http://people.netfilter.org/hidden/archives/2004-public
+
+   For those of you unexperienced with tla, you can get the code using=20
+the following magic incantations:
+
+$ tla register-archive hidden@sch.bme.hu--2004-public \=20
+http://people.netfilter.org/hidden/archives/2004-public
+$ tla get -A hidden@sch.bme.hu--2004-public netfilter-ha--mainline--1.0
+
+   The repository contains the complete patchset for Linux 2.6.9, plus=20
+the ported ct_sync code. I've done some changes in the code itself as wel=
+l:
+
+- simplified conntrack entry manipulation code while trying to minimize=20
+necessary core conntrack patches
+- ct_sync does not depend on ctnetlink anymore, only Pablo Neira's new=20
+per-packet conntrack notifier patch is necessary
+- the patchtree for 2.6.9 still contains the connmark patch, which has=20
+been included in the mainline kernel recently, so it won't be necessary=20
+for 2.6.10
+- polling support in the receive thread has also been included, this=20
+feature is especially experimental (comments welcome)
+
+   Unfortunately I did not have time to update the README yet, it's=20
+slightly outdated when describing the patching process required to=20
+compile ct_sync. However, with a little imagination everyone should be=20
+able to guess which changes to apply to the commands in the README. :)
+
+   Of course, there are a couple of known bugs in the code as well, and=20
+the whole 2.6 tree is even more experimental than the 2.4 variant of the=20
+code.
+
+--=20
+   KOV=C1CS, Kriszti=E1n
