@@ -1,33 +1,61 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Extremely slow network with e1000 & ip_conntrack
-Date: Thu, 11 Dec 2003 09:25:17 +0100 (CET)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.44.0312110921540.23401-100000@filer.marasystems.com>
-References: <20031211072608.GF22826@sunbeam.de.gnumonks.org>
+From: Rodrigo Severo <rodrigo@fabricadeideias.com>
+Subject: ip_pool -x not working.
+Date: Thu, 04 Dec 2003 18:36:56 -0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3FCF9AE8.3010506@fabricadeideias.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "David S. Miller" <davem@redhat.com>,
-	Stephen Lee <mukansai@emailplus.org>,
-	<scott.feldman@intel.com>, <netfilter-devel@lists.netfilter.org>,
-	<linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031211072608.GF22826@sunbeam.de.gnumonks.org>
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 11 Dec 2003, Harald Welte wrote:
+Dear list,
 
-> yes, this is certainly a problem - but not with conntrack, only with
-> nat.  So maybe we should add a safeguard, preventing
-> iptables_nat/ipchains/ipfwadm from being loaded when TSO on any
-> interface is enabled?  Or at least print a warining in syslog?
 
-TSO can be enabled while NAT is running so you better do this in the 
-packet flow or if there is a suitable notifier hook that can be used.
+I am testing the ip pool match and target.
 
-Most firewalls etc load the ruleset before activating the 
-interfaces, i..e before even loading the nic drivers, so there is no 
-interfaces to look at when iptables_nat is loaded.
+I'm having problems with the ippool userspace support tool.
 
-Regards
-Henrik
+I can't make neither -x nor the -X POOL options work. I always get a 
+"IP_POOL_DESTROY POOL failed: Device or resource busy" message. The POOL=
+ 
+isn't used yet anywhere, I'm justing testing pool creation by now.
+
+Is it a bug or am I doing something wrong?
+
+I am not sure there is someone working on the ip pool functionality.
+
+I wrote Patrick Schaaf, the former maintainer of this patch. He told me 
+that he never implemented pool destruction. He also mentioned that 
+Joackim Axelsson probably is the ip pool man presently.
+
+Is there anybody working on it? I'm willing to help.
+
+BTW, I'm messing with ip pool based on the assumption that using an ip 
+pool would give me faster results than having circa 180 rules for 
+different ip addresses as I have now. Am I right?
+
+
+Thanks in advance for your attention,
+
+Rodrigo Severo
+
+-- 
+----------------------------------------------------
+Rodrigo Severo
+F=E1brica de Id=E9ias
+Fone: +55(61)321 1357
+Fax: +55(61)223 1712
+SBS - Quadra 2 - Ed. Empire Center - Sala 1301
+Bras=EDlia/DF - Brasil
+CEP: 70.070-904
+----------------------------------------------------
