@@ -1,15 +1,17 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: Libipq terminating application abnormally!!
-Date: Sat, 04 Dec 2004 23:23:08 +0100
-Message-ID: <41B238CC.1020105@eurodev.net>
-References: <20041204122025.6819.qmail@webmail32.rediffmail.com>
+From: "Richard" <richard@o-matrix.org>
+Subject: RE: check timer active
+Date: Sun, 5 Dec 2004 09:26:01 -1000
+Message-ID: <EINSTEINObLLAeSQzWA000068c7@einstein.systemmetrics.com>
+References: <1102253409.3889.2.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, jmorris@intercode.com.au
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Manzoor <hpmanzoor@rediffmail.com>
-In-Reply-To: <20041204122025.6819.qmail@webmail32.rediffmail.com>
+To: "'Krisztian Kovacs'" <hidden@sch.bme.hu>,
+	"'Henrik Nordstrom'" <hno@marasystems.com>
+In-Reply-To: <1102253409.3889.2.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Manzoor wrote:
+>   Hi,
+> 
+> On Sat, 2004-12-04 at 15:55 +0100, Henrik Nordstrom wrote:
+> > > ct->timeout->list.next != NULL
+> > >
+> > > test_bit(IPS_CONFIRMED_BIT, &ct->status)
+> >
+> > The two is at most if not all times equal as all active conntrack
+> entries
+> > have a timeout of some sort, but maybe it is possible for the timeout to
+> > be established before the conntrack becomes confirmed or something..
+> 
+>   It is definitely possible if you use ct_sync. Replicated entries on
+> the slave nodes do not have their timers started, but are in the hash
+> tables.
+> 
 
->  
->I have created an IP based bandwidth management program which filters the packets coming through the machine using a traditional Token Bucket algorithm. It works right for sometime. But when I tested it for 3-4 hours by running the program in Redhat Linux 9, libipq terminates the program giving the following message:
->
->"passer:recieved message truncated."
->  
->
+I am writing a new target to manipulate the expire value of a conntrack,
+i.e. (ct->timeout.expires). If the expire timeout is not fired, it uses the
+timeout value. If it is, it uses jiffies+timeout. In order to check what
+state it is at, I'd use "ct->timeout->list.next!=NULL)", right?
 
-could you post the code or the part of code which is spotting that error 
-message?
-
---
-Pablo
+Thanks,
+Richard
