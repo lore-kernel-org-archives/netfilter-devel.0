@@ -1,10 +1,10 @@
-From: "Hans Jorgensen" <jorgensenhans@hotmail.com>
-Subject: FTP and connection tracking
-Date: Fri, 13 Dec 2002 15:16:10 +0100
+From: Roland Kuhn <rkuhn@e18.physik.tu-muenchen.de>
+Subject: small buglet in iptables-save with "-m mac"
+Date: Tue, 10 Dec 2002 15:26:30 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F445ldfZWjSeKg1bzuD00006800@hotmail.com>
+Message-ID: <Pine.LNX.4.44.0212101518580.1838-100000@pc40.e18.physik.tu-muenchen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,41 +17,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear list
+Hi!
 
-I am currently developing an application which is using DNAT and 
-masquerading. First an incoming packet is DNAT'ed to have as specific dest. 
-ip. The it is masquerading when it is leaving the decided interface.
+Please Cc: me as I'm not on the list.
 
-This works fine, but when I use FTP, the following shows up in the kernel 
-log:
+This small buglet is biting me since quite a while, so I got the 1.2.7a source 
+to see if it is fixed, and it isn't: if you try iptables-save on a rule with 
+inverted MAC matching (e.g. "-m mac --mac-source ! xx:xx:xx:xx:xx:xx") you'll 
+end up with "-m mac --mac !xx:xx:xx:xx:xx:xx", which doesn't work because of the 
+missing space between the ! and the MAC. The patch below should fix it (tested 
+on RH7.2, kernel 2.4.20).
 
-<4>ip_conntrack_in: related packet for c3a22310
-<4>nat_expected: We have a connection!
-<4>nat_expected: PASV cmd. 192.168.1.254->192.168.4.1
-<4>nat_expected: IP to 192.168.4.1
-<4>Found best for tuple c3d69db8: 6 10.0.0.8:1026 -> 192.168.4.1:11697
-<4>nat_expected: We have a connection!
-<4>nat_expected: PASV cmd. 192.168.1.254->192.168.4.1
-<4>nat_expected: IP to 192.168.1.254
-<4>Found best for tuple c3d69cf0: 6 192.168.1.254:1026 -> 192.168.4.1:11697
-<4>Altering reply tuple of c3a22310 to tuple c3d69cd0: 6 192.168.4.1:11697 
--> 192.168.1.254:1026
-<4>Mangling c3ad4140: SRC to 192.168.1.254 1026
-<4>Confirming conntrack c3a22310
+--- libipt_mac.c.bak    Tue Dec 10 15:16:34 2002
++++ libipt_mac.c        Tue Dec 10 15:17:04 2002
+@@ -90,7 +90,7 @@
+ {
+        unsigned int i;
 
-My question is:
-Why does: "We have a connection!" and the following lines show up two times? 
-Is the connection data traversing the same chain twice?
-
-Does anybody know where I can find more information on how the code in 
-connection tracking and NAT works?
-
-Thanks in advance.
-
-/Hans
+-       printf("%s%02X", invert ? "!" : "", macaddress[0]);
++       printf("%s%02X", invert ? "! " : "", macaddress[0]);
+        for (i = 1; i < ETH_ALEN; i++)
+                printf(":%02X", macaddress[i]);
+        printf(" ");
 
 
-_________________________________________________________________
-STOP MORE SPAM with the new MSN 8 and get 2 months FREE* 
-http://join.msn.com/?page=features/junkmail
+Ciao,
+					Roland
+
++---------------------------+-------------------------+
+|    TU Muenchen            |                         |
+|    Physik-Department E18  |  Raum    3558           |
+|    James-Franck-Str.      |  Telefon 089/289-12592  |
+|    85747 Garching         |                         |
++---------------------------+-------------------------+
+
+"If you think NT is the answer, you didn't understand the question."
+						- Paul Stephens
