@@ -1,9 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.4 10/18]: Fix check for ESP header size in ip6t_esp
-Date: Mon, 20 Dec 2004 08:15:07 +0100
-Message-ID: <41C67BFB.1070004@trash.net>
+Subject: [PATCH 2.4 11/18]: Backport fixes for ip6t_eui64
+Date: Mon, 20 Dec 2004 08:15:11 +0100
+Message-ID: <41C67BFF.3060307@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070504050304090700060404"
+Content-Type: multipart/mixed; boundary="------------040002010109010704050908"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -19,47 +19,51 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070504050304090700060404
+--------------040002010109010704050908
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Fix check for ESP header size in ip6t_esp. 2.6 already gets
-it right by using struct ip_esp_hdr from include/linux/ip.h.
+Backport fixes for ip6t_eui64.
 
 
---------------070504050304090700060404
+--------------040002010109010704050908
 Content-Type: text/x-patch;
- name="10.diff"
+ name="11.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="10.diff"
+ filename="11.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/12/05 23:17:12+01:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Fix check for ESP header size in ip6t_esp
+#   2004/12/05 23:19:08+01:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: Backport fixes for ip6t_eui64
+#   
+#   User cannot insert rule with eui64 match to FORWARD chain.
 #   
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv6/netfilter/ip6t_esp.c
-#   2004/12/05 23:17:10+01:00 yasuyuki.kozakai@toshiba.co.jp +1 -0
-#   [NETFILTER]: Fix check for ESP header size in ip6t_esp
+# net/ipv6/netfilter/ip6t_eui64.c
+#   2004/12/05 23:19:06+01:00 yasuyuki.kozakai@toshiba.co.jp +1 -1
+#   [NETFILTER]: Backport fixes for ip6t_eui64
+#   
+#   User cannot insert rule with eui64 match to FORWARD chain.
 #   
 #   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv6/netfilter/ip6t_esp.c b/net/ipv6/netfilter/ip6t_esp.c
---- a/net/ipv6/netfilter/ip6t_esp.c	2004-12-20 07:01:16 +01:00
-+++ b/net/ipv6/netfilter/ip6t_esp.c	2004-12-20 07:01:16 +01:00
-@@ -22,6 +22,7 @@
- 
- struct esphdr {
- 	__u32   spi;
-+	__u32   seq_no;
- };
- 
- /* Returns 1 if the spi is matched by the range, 0 otherwise */
+diff -Nru a/net/ipv6/netfilter/ip6t_eui64.c b/net/ipv6/netfilter/ip6t_eui64.c
+--- a/net/ipv6/netfilter/ip6t_eui64.c	2004-12-20 07:01:24 +01:00
++++ b/net/ipv6/netfilter/ip6t_eui64.c	2004-12-20 07:01:24 +01:00
+@@ -58,7 +58,7 @@
+ {
+ 	if (hook_mask
+ 	    & ~((1 << NF_IP6_PRE_ROUTING) | (1 << NF_IP6_LOCAL_IN) |
+-		(1 << NF_IP6_PRE_ROUTING) )) {
++		(1 << NF_IP6_FORWARD))) {
+ 		printk("ip6t_eui64: only valid for PRE_ROUTING, LOCAL_IN or FORWARD.\n");
+ 		return 0;
+ 	}
 
---------------070504050304090700060404--
+--------------040002010109010704050908--
