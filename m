@@ -1,17 +1,10 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [OT] Mailing-list oddities
-Date: Wed, 29 Oct 2003 01:36:50 +0100
+From: Philip Craig <philipc@snapgear.com>
+Subject: [PATCH] TCPMSS --clamp-mss-to-pmtu should use MTU of incoming interface
+Date: Wed, 29 Oct 2003 14:11:21 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F9F0BA2.4030407@trash.net>
-References: <3F9E2731.2000306@trash.net>	 <1067338448.773.3.camel@elendil.intranet.cartel-securite.net> <1067365629.13999.20.camel@tux.rsn.bth.se>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Cedric Blancher <blancher@cartel-securite.fr>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <200310290411.h9T4BLm4020882@philipc1.sw.moreton.com.au>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1067365629.13999.20.camel@tux.rsn.bth.se>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,18 +15,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Martin,
+Ideally, the TCPMSS --clamp-mss-to-pmtu option would clamp the MSS to
+the PMTU from the dst to the src.  Currently, it uses the PMTU from the
+packet filter to the dst, which will just be the MTU of the outgoing
+interface if PMTU discovery hasn't occurred yet.  This patch better
+approximates the full PMTU by including the MTU of the incoming
+interface.
 
-Martin Josefsson wrote:
+Regards,
+Phil
 
->This is a closed list so someone has to approve non-member posts.
->That doesn't happen very frequently.
->  
->
-
-Very reasonable explanation ;) I've read most of the mails by now so
-I can't tell which were affected, but I believe there were also mails
-from Bart arriving late. I'm going to keep an eye on this ..
-
-Best regards,
-Patrick
+--- linux-2.4.x/net/ipv4/netfilter/ipt_TCPMSS.c	7 Jan 2002 23:16:13 -0000	1.1.1.2
++++ linux-2.4.x/net/ipv4/netfilter/ipt_TCPMSS.c	28 Oct 2003 06:47:26 -0000
+@@ -45,7 +45,7 @@
+ 	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
+ 	struct tcphdr *tcph;
+ 	struct iphdr *iph;
+-	u_int16_t tcplen, newtotlen, oldval, newmss;
++	u_int16_t tcplen, newtotlen, oldval, newmss, mtu;
+ 	unsigned int i;
+ 	u_int8_t *opt;
+ 
+@@ -91,8 +91,20 @@
+ 		       			"ipt_tcpmss_target: unknown or invalid path-MTU (%d)\n", (*pskb)->dst->pmtu);
+ 			return NF_DROP; /* or IPT_CONTINUE ?? */
+ 		}
++		mtu = (*pskb)->dst->pmtu;
+ 
+-		newmss = (*pskb)->dst->pmtu - sizeof(struct iphdr) - sizeof(struct tcphdr);
++		if (in) {
++			if (in->mtu <= (sizeof(struct iphdr) + sizeof(struct tcphdr))) {
++				if (net_ratelimit())
++					printk(KERN_ERR
++		       				"ipt_tcpmss_target: invalid interface MTU (%d)\n", in->mtu);
++				return NF_DROP; /* or IPT_CONTINUE ?? */
++			}
++			if (in->mtu < mtu)
++				mtu = in->mtu;
++		}
++
++		newmss = mtu - sizeof(struct iphdr) - sizeof(struct tcphdr);
+ 	} else
+ 		newmss = tcpmssinfo->mss;
+ 
