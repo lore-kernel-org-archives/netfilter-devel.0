@@ -1,17 +1,17 @@
-From: "Glover George" <dime@gulfsales.com>
-Subject: RE: MSN Messenger ALG
-Date: Fri, 28 Jun 2002 12:40:38 -0500
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: conntrack performance/DoS formula
+Date: Fri, 28 Jun 2002 10:53:37 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <001301c21eca$edb3b600$7200a8c0@blue>
-References: <20020628170403.GB11348@pc.ilinx>
+Message-ID: <15644.41633.528107.723418@isis.cs3-inc.com>
+References: <15643.31140.525551.843205@isis.cs3-inc.com>
+	<20020628082339.I2890@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "'Brian J. Murrell'" <80b664d7b3eb11641a57346257febc3d@interlinx.bc.ca>,
-	<netfilter-devel@lists.samba.org>
-In-Reply-To: <20020628170403.GB11348@pc.ilinx>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20020628082339.I2890@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,81 +22,41 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> On Fri, Jun 28, 2002 at 08:46:57AM -0500, Glover George wrote:
-> >
-> > UPnP is finishing up a security mechanism to add on to the UPnP spec
-for
-> > version 1.0,
-> 
-> Any pointers to these mechanisms?  I can't think of anything that
-> would work, in real life.  The issue is who can a UPnP gateway trust?
-> In the definition of "who" is "who is running the app?", as well as
-> "what is the app?" among other quesitons.
+Patrick Schaaf writes:
 
-The only pointers I can give is if you can't trust the apps on the
-system, the just hold off on making it work for a business like
-environment, or somewhere where you're really worried about it.  It
-works great for home networks, which for the moment is all it should be
-intended for.  I make no claims that someone should use this in a
-productive environment where security is at the utmost concern.
+ > > I assume that the hash function maps a connection to each bucket
+ > > with equal probability, P = 1/B.
+ > 
+ > Can you find an analysis that permits some non-uniformity, given as
+ > a parameter?  I am pretty sure that the hash function we use for
+ > conntracking is nonuniform in lots of real world cases. Thus, if
+ > you want to propose using that probability derived length limit,
+ > then you must prove uniformity of our hash function.
 
-That said, I am planning on adding some port/ip verifications, but
-that's not the best solution.  The best solution is to wait for the
-security aspects of UPnP to be implemented in the spec, and then for
-Microsoft to catch up (which as we've seen with the file transfer option
-in Messenger, has taken them ridiculously far too long  - since 4.0 to
-now, it's still not fixed).
+The effect of nonuniformity in the hash function is very easy to
+analyze.  It just changes the probability of different buckets.
+For any bucket b the same formula works, just replacing P with P[b].
+So if we take the most commonly used bucket, call its probability P',
+then a pessimistic approximation is that the chance of a new
+connection encountering a full bucket is given by the earlier formula
+with the number of buckets reduced to 1/P'.
 
-Maybe I should start prefixing these emails out with, if this is for a
-home network, but be sure to read the SECURITY doc included in the
-distribution.
+ > I have the vague feeling (being a programmer, not a mathematician :)
+ > that even small nonuniformities will have large impact on your
+ > probability distribution.
+I guess it depends on what you consider "small" non-uniformities.
+I think the opposite is true.
+The danger in a hash function is that there will be a high correlation
+among the hashes of the items that arrive.  In this case I don't see
+much danger.  
 
+ > May I suggest a different, experimental approach: extract the hash function
+ > from the code, creating a small userlevel tool which reads in the saved
+ > contents of some /proc/net/ip_conntrack, and with a hash bucket and limit
+ > specified on the commandline, counts the distribution for that specific
+ > set of connections, maybe comparing it with the theoretical prediction,
+ > resulting in a "how does that real world conntrack table fit to theory"
+ > metric? Once done, such a tool could permit command line selection of
+ > different hash functions, for comparison.
 
-> 
-> It seems that everybody wants this UPnP gateway for MSN Messenger, but
-> in my security policy, MS applications are automaticlly excluded from
-> using the UPnP gateway due to MS's constant obvious disregard for
-> security in favour of doing whatever they need to to make things work.
-> 
-> > and version 2.0 of UPnP is not far off, so security
-> > mechanisms are being put in place.
-> 
-> Again, anything I can read?
->
-
-It takes Microsoft years to do anything, as well as process my
-application to the UPnP members forums.  I'm in contact with the guys at
-Thomson Multimedia (formerly owned by Alcatel) who does the modems and
-routers, who is currently a member, and he has notified me of it.  Trust
-me, I'm taking this up as a college research project (UPnP on linux) and
-it won't just go away.  We'll be including Linux's 2 cents in there, for
-whatever good it will do.
-
- 
-> > But for the moment, AS WITH
-> > ANYTHING, if you take proper precautions to ensure that your rules
-in
-> > iptables will prevent any untrusted machines
-> 
-> Machines is not so much the issue as apps on those machines.  I am not
-> giving an MS machine access to the gateway because there is a trusted
-> app on it that wants to use the gateway when there are also untrusted
-> apps on the same machine or easily installable on the same machine.
-> 
-> Security for a UPnP gateway needs to be more fine grained than just
-> trusting machines.
-> 
-
-I agree.  Some form of authentication between the apps and the gateway.
-
-> > from access UPnP gateway in
-> > the first place, then you don't have these problems.  Sure an app
-could
-> > request it, but so what?  An app could fake itself into being h.323
-as
-> > well.
-> 
-> Right.  It is this faking that needs to be addressed.  How do I
-> know that an app that is claiming to be "trusted app foo" really is
-> foo.
-> 
+Sounds easy enough.  You have some "real" (or at least "realistic") data?
