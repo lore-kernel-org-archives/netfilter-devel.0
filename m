@@ -1,12 +1,12 @@
 From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [2/2] osf: fixed /proc reading bug
-Date: Sun, 22 Aug 2004 01:03:58 +0400
+Subject: [1/2] osf: fixed matching bug.
+Date: Sun, 22 Aug 2004 01:03:53 +0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040822010358.79048eda@zanzibar.2ka.mipt.ru>
+Message-ID: <20040822010353.34801a4f@zanzibar.2ka.mipt.ru>
 Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="Multipart=_Sun__22_Aug_2004_01_03_58_+0400_V4XlUrVC=eCdGEmk"
+ boundary="Multipart=_Sun__22_Aug_2004_01_03_53_+0400_5voKYf6utvlQO4/2"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
@@ -22,11 +22,14 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---Multipart=_Sun__22_Aug_2004_01_03_58_+0400_V4XlUrVC=eCdGEmk
+--Multipart=_Sun__22_Aug_2004_01_03_53_+0400_5voKYf6utvlQO4/2
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-Fixed buffer overflow when reading rules from /proc file.
+Fixed matching bug - when we have match and have options to process
+not only first one but all, then we may rewrite fmatch value
+with FMATCH_WRONG parameters. Later osf will create decision based on
+the latest fmatch value, but not the fact that osf had match before.
 
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
@@ -34,35 +37,27 @@ Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
 Only failure makes us experts. -- Theo de Raadt
 
-
---Multipart=_Sun__22_Aug_2004_01_03_58_+0400_V4XlUrVC=eCdGEmk
-Content-Type: application/octet-stream;
- name="ipt_osf.diff.1"
+--Multipart=_Sun__22_Aug_2004_01_03_53_+0400_5voKYf6utvlQO4/2
+Content-Type: text/plain;
+ name="ipt_osf.diff"
 Content-Disposition: attachment;
- filename="ipt_osf.diff.1"
-Content-Transfer-Encoding: base64
+ filename="ipt_osf.diff"
+Content-Transfer-Encoding: 7bit
 
-LS0tIG5ldGZpbHRlcl9jdnMvcGF0Y2gtby1tYXRpYy1uZy9vc2YvbGludXgtMi42L25ldC9pcHY0
-L25ldGZpbHRlci9pcHRfb3NmLmMJMjAwNC0wOC0yMiAwMDo1NDo0NC4wMDAwMDAwMDAgKzA0MDAK
-KysrIG5ldGZpbHRlcl9jdnMvcGF0Y2gtby1tYXRpYy1uZy9vc2YvbGludXgtMi42L25ldC9pcHY0
-L25ldGZpbHRlci9pcHRfb3NmLmMJMjAwNC0wOC0yMCAyMjozNjoyNC4wMDAwMDAwMDAgKzA0MDAK
-QEAgLTE4Miw3ICsxODUsNiBAQAogCQlvcHRzaXplID0gdGNwLT5kb2ZmKjQgLSBzaXplb2Yoc3Ry
-dWN0IHRjcGhkcik7CiAJfQogCi0JCiAJLyogQWN0dWFsbHkgd2UgY2FuIGNyZWF0ZSBoYXNoL3Rh
-YmxlIG9mIGFsbCBnZW5yZXMgYW5kIHNlYXJjaAogCSAqIG9ubHkgaW4gYXBwcm9wcmlhdGUgcGFy
-dCwgYnV0IGhlcmUgaXMgaW5pdGlhbCB2YXJpYW50LAogCSAqIHNvIHdpbGwgdXNlIHNsb3cgcGF0
-aC4KQEAgLTYwMSw5ICs2MDMsMTAgQEAKIHsKIAlzdHJ1Y3QgbGlzdF9oZWFkICplbnQ7CiAJc3Ry
-dWN0IG9zZl9maW5nZXIgKmYgPSBOVUxMOwotCWludCBpOworCWludCBpLCBfX2NvdW50LCBlcnI7
-CiAJCiAJKmVvZiA9IDE7CisJX19jb3VudCA9IGNvdW50OwogCWNvdW50ID0gMDsKIAogCXJlYWRf
-bG9ja19iaCgmb3NmX2xvY2spOwpAQCAtNjEzLDEwICs2MTYsMTMgQEAKIAogCQlsb2coIiVzIFsl
-c10iLCBmLT5nZW5yZSwgZi0+ZGV0YWlscyk7CiAJCQotCQljb3VudCArPSBzcHJpbnRmKGJ1Zitj
-b3VudCwgIiVzIC0gJXNbJXNdIDogJXMiLCAKKwkJZXJyID0gc25wcmludGYoYnVmK2NvdW50LCBf
-X2NvdW50LWNvdW50LCAiJXMgLSAlc1slc10gOiAlcyIsIAogCQkJCQlmLT5nZW5yZSwgZi0+dmVy
-c2lvbiwKIAkJCQkJZi0+c3VidHlwZSwgZi0+ZGV0YWlscyk7Ci0JCQorCQlpZiAoZXJyIDwgMCkK
-KwkJCWJyZWFrOworCQllbHNlCisJCQljb3VudCArPSBlcnI7CiAJCWlmIChmLT5vcHRfbnVtKQog
-CQl7CiAJCQlsb2dhKCIgT1BUOiAiKTsKQEAgLTYzMCw3ICs2MzYsMTEgQEAKIAkJCX0KIAkJfQog
-CQlsb2dhKCJcbiIpOwotCQljb3VudCArPSBzcHJpbnRmKGJ1Zitjb3VudCwgIlxuIik7CisJCWVy
-ciA9IHNucHJpbnRmKGJ1Zitjb3VudCwgX19jb3VudC1jb3VudCwgIlxuIik7CisJCWlmIChlcnIg
-PCAwKQorCQkJYnJlYWs7CisJCWVsc2UKKwkJCWNvdW50ICs9IGVycjsKIAl9CiAJcmVhZF91bmxv
-Y2tfYmgoJm9zZl9sb2NrKTsKIAo=
+--- netfilter_cvs/patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c	2004-07-18 00:10:43.000000000 +0400
++++ netfilter_cvs/patch-o-matic-ng/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c	2004-08-20 21:55:22.000000000 +0400
+@@ -411,8 +413,11 @@
+ 		}
+ 	}
+ 
+-	read_unlock(&osf_lock);
++	if (fcount)
++		fmatch = FMATCH_OK;
+ 
++	read_unlock(&osf_lock);
++	
+ 	return (fmatch == FMATCH_OK)?1:0;
+ }
+ 
 
---Multipart=_Sun__22_Aug_2004_01_03_58_+0400_V4XlUrVC=eCdGEmk--
+--Multipart=_Sun__22_Aug_2004_01_03_53_+0400_5voKYf6utvlQO4/2--
