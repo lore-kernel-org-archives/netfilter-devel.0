@@ -1,16 +1,16 @@
-From: "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
-Subject: Re: [PATCH] conntracker/nat helper for Microsoft Media Services
-Date: 24 Sep 2002 14:35:34 +0200
+From: James Morris <jmorris@intercode.com.au>
+Subject: [PATCH] export find_task_by_pid() for 2.5.38
+Date: Tue, 24 Sep 2002 22:54:36 +1000 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1032870935.6100.10.camel@xbox>
-References: <1032732902.574.99.camel@exile>
-	<20020924133925.M3810@sunbeam.de.gnumonks.org>
+Message-ID: <Mutt.LNX.4.44.0209242252160.1028-100000@blackbird.intercode.com.au>
+References: <200209230019.g8N0JmvC003642@jebril.pi.be>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-l8D045+H+jinyeDhfSvr"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Ingo Molnar <mingo@elte.hu>, <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20020924133925.M3810@sunbeam.de.gnumonks.org>
+To: "Michel Eyckmans (MCE)" <mce@pi.be>
+In-Reply-To: <200209230019.g8N0JmvC003642@jebril.pi.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,110 +21,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 23 Sep 2002, Michel Eyckmans (MCE) wrote:
 
---=-l8D045+H+jinyeDhfSvr
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-On Tue, 2002-09-24 at 13:39, Harald Welte wrote:
-> Thanks a lot for contributing this helper to the netfilter project, I have
-> committed your patch to CVS right now.
+> By the way, 2.3.38 gives me this:
 > 
-> However, there is a small remaining issue:
-> 
-... 
-> 
-> Those hunks should not be part of the .patch itself, but seperate pom-files,
-> since this clashes with other helpers.  See 
-> netfilter/patch-o-matic/talk-conntrack-nat.patch.ip_conntrack.h*
-> 
-> Please submit an incremental diff against the code which is now in CVS.
-> Thanks.
+> depmod: *** Unresolved symbols in /lib/modules/2.5.38/kernel/net/ipv4/netfilter/ipt_owner.o
+> depmod:         find_task_by_pid
 > 
 
-My mistake. Patch attached. Sorry for the inconvenience.
+Below is a patch which exports the function, which used to be an inline.  
+(This is also an issue for ip6t_owner).
 
-Regards,
-Filip
+- James
+-- 
+James Morris
+<jmorris@intercode.com.au>
 
---=-l8D045+H+jinyeDhfSvr
-Content-Disposition: attachment; filename=diff.mms.ip_conntrack.h.fixup.20020924-1
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/x-patch; name=diff.mms.ip_conntrack.h.fixup.20020924-1;
-	charset=ISO-8859-15
-
-diff -urN netfilter-orig/patch-o-matic/extra/mms-conntrack-nat.patch netfil=
-ter-changed/patch-o-matic/extra/mms-conntrack-nat.patch
---- netfilter-orig/patch-o-matic/extra/mms-conntrack-nat.patch	2002-09-24 1=
-3:49:09.000000000 +0200
-+++ netfilter-changed/patch-o-matic/extra/mms-conntrack-nat.patch	2002-09-2=
-4 14:08:12.000000000 +0200
-@@ -1,29 +1,3 @@
--diff -urN -X dontdiff linux-2.4.20-pre7/include/linux/netfilter_ipv4/ip_co=
-nntrack.h linux-2.4.20-pre7-mms/include/linux/netfilter_ipv4/ip_conntrack.h
----- linux-2.4.20-pre7/include/linux/netfilter_ipv4/ip_conntrack.h	2002-09-=
-22 19:50:53.000000000 +0200
--+++ linux-2.4.20-pre7-mms/include/linux/netfilter_ipv4/ip_conntrack.h	2002=
--09-17 04:08:25.000000000 +0200
--@@ -60,12 +60,14 @@
-- /* Add protocol helper include file here */
-- #include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
-- #include <linux/netfilter_ipv4/ip_conntrack_irc.h>
--+#include <linux/netfilter_ipv4/ip_conntrack_mms.h>
--=20
-- /* per expectation: application helper private data */
-- union ip_conntrack_expect_help {
-- 	/* insert conntrack helper private data (expect) here */
-- 	struct ip_ct_ftp_expect exp_ftp_info;
-- 	struct ip_ct_irc_expect exp_irc_info;
--+	struct ip_ct_mms_expect exp_mms_info;
--=20
-- #ifdef CONFIG_IP_NF_NAT_NEEDED
-- 	union {
--@@ -79,6 +81,7 @@
-- 	/* insert conntrack helper private data (master) here */
-- 	struct ip_ct_ftp_master ct_ftp_info;
-- 	struct ip_ct_irc_master ct_irc_info;
--+	struct ip_ct_mms_master ct_mms_info;
-- };
--=20
-- #ifdef CONFIG_IP_NF_NAT_NEEDED
- diff -urN -X dontdiff linux-2.4.20-pre7/include/linux/netfilter_ipv4/ip_co=
-nntrack_mms.h linux-2.4.20-pre7-mms/include/linux/netfilter_ipv4/ip_conntra=
-ck_mms.h
- --- linux-2.4.20-pre7/include/linux/netfilter_ipv4/ip_conntrack_mms.h	1970=
--01-01 01:00:00.000000000 +0100
- +++ linux-2.4.20-pre7-mms/include/linux/netfilter_ipv4/ip_conntrack_mms.h	=
-2002-09-17 04:08:25.000000000 +0200
-diff -urN netfilter-orig/patch-o-matic/extra/mms-conntrack-nat.patch.ip_con=
-ntrack.h netfilter-changed/patch-o-matic/extra/mms-conntrack-nat.patch.ip_c=
-onntrack.h
---- netfilter-orig/patch-o-matic/extra/mms-conntrack-nat.patch.ip_conntrack=
-.h	1970-01-01 01:00:00.000000000 +0100
-+++ netfilter-changed/patch-o-matic/extra/mms-conntrack-nat.patch.ip_conntr=
-ack.h	2002-09-24 14:10:13.000000000 +0200
-@@ -0,0 +1,2 @@
-+/* Add protocol helper include file here */
-+#include <linux/netfilter_ipv4/ip_conntrack_mms.h>
-diff -urN netfilter-orig/patch-o-matic/extra/mms-conntrack-nat.patch.ip_con=
-ntrack.h-2 netfilter-changed/patch-o-matic/extra/mms-conntrack-nat.patch.ip=
-_conntrack.h-2
---- netfilter-orig/patch-o-matic/extra/mms-conntrack-nat.patch.ip_conntrack=
-.h-2	1970-01-01 01:00:00.000000000 +0100
-+++ netfilter-changed/patch-o-matic/extra/mms-conntrack-nat.patch.ip_conntr=
-ack.h-2	2002-09-24 14:11:42.000000000 +0200
-@@ -0,0 +1,2 @@
-+	/* insert conntrack helper private data (expect) here */
-+	struct ip_ct_mms_expect exp_mms_info;
-diff -urN netfilter-orig/patch-o-matic/extra/mms-conntrack-nat.patch.ip_con=
-ntrack.h-3 netfilter-changed/patch-o-matic/extra/mms-conntrack-nat.patch.ip=
-_conntrack.h-3
---- netfilter-orig/patch-o-matic/extra/mms-conntrack-nat.patch.ip_conntrack=
-.h-3	1970-01-01 01:00:00.000000000 +0100
-+++ netfilter-changed/patch-o-matic/extra/mms-conntrack-nat.patch.ip_conntr=
-ack.h-3	2002-09-24 14:12:16.000000000 +0200
-@@ -0,0 +1,2 @@
-+	/* insert conntrack helper private data (master) here */
-+	struct ip_ct_mms_master ct_mms_info;
-
---=-l8D045+H+jinyeDhfSvr--
+diff -urN -X dontdiff linux-2.5.38.orig/kernel/Makefile linux-2.5.38.w1/kernel/Makefile
+--- linux-2.5.38.orig/kernel/Makefile	Tue Sep 24 19:23:03 2002
++++ linux-2.5.38.w1/kernel/Makefile	Tue Sep 24 22:14:47 2002
+@@ -3,7 +3,7 @@
+ #
+ 
+ export-objs = signal.o sys.o kmod.o context.o ksyms.o pm.o exec_domain.o \
+-		printk.o platform.o suspend.o dma.o
++		printk.o platform.o suspend.o dma.o pid.o
+ 
+ obj-y     = sched.o fork.o exec_domain.o panic.o printk.o \
+ 	    module.o exit.o itimer.o time.o softirq.o resource.o \
+diff -urN -X dontdiff linux-2.5.38.orig/kernel/pid.c linux-2.5.38.w1/kernel/pid.c
+--- linux-2.5.38.orig/kernel/pid.c	Tue Sep 24 19:23:03 2002
++++ linux-2.5.38.w1/kernel/pid.c	Tue Sep 24 22:23:56 2002
+@@ -23,6 +23,7 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/bootmem.h>
++#include <linux/module.h>
+ 
+ #define PIDHASH_SIZE 4096
+ #define pid_hashfn(nr) ((nr >> 8) ^ nr) & (PIDHASH_SIZE - 1)
+@@ -217,3 +218,5 @@
+ 		attach_pid(current, i, 0);
+ 	}
+ }
++
++EXPORT_SYMBOL(find_task_by_pid);
