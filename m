@@ -1,14 +1,18 @@
-From: "Nedko Nedev" <nedco@unacs.bg>
-Subject: iptables dropping wrong packets
-Date: Wed, 5 Mar 2003 19:56:11 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: ip_conntrack
+Date: Wed, 5 Mar 2003 19:10:10 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001901c2e340$848891b0$8268493e@coldunacs>
+Message-ID: <20030305181010.GC4880@sunbeam.de.gnumonks.org>
+References: <200303040107.28400.alchemyx@uznam.net.pl> <20030304073324.GI25876@oknodo.bof.de> <200303040927.33460.alchemyx@uznam.net.pl> <200303051649.52167.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="koi8-r"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="IQvoI1rdlCKiYEYW"
+Cc: Patrick Schaaf <bof@bof.de>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Micha? Margula <alchemyx@uznam.net.pl>
+Content-Disposition: inline
+In-Reply-To: <200303051649.52167.alchemyx@uznam.net.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,48 +24,53 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
+--IQvoI1rdlCKiYEYW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Mar 05, 2003 at 04:49:52PM +0100, Micha? Margula wrote:
+=20
+> After few tens of hours of working, got that message once again. So shoul=
+d I=20
+> rise that number to let say 512000 or maybe one million? Or maybe somethi=
+ng=20
+> wrong with my system?
 
-Hi,
+is there something particular about your installation? =20
 
-looks like some of correct packes are droped
+Possible causes:
 
-table mangle
+Do you have asymmetric routing? =20
+Are you running a 2.4.20 kernel without applying 'submitted' from p-o-m?
 
-Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
-num   pkts bytes target     prot opt in     out     source
-destination
+BTW: If you really have 256k/512k connections: remember to increase the
+hash bucket size.
 
-1    36142    16M ACCEPT     all  --  *      *       0.0.0.0/0
-0.0.0.0/0         TOS match 0x00
-2     168K    54M ACCEPT     all  --  *      *       0.0.0.0/0
-0.0.0.0/0         TOS match 0x10
-3       27       1782 LOG            all  --  *      *       0.0.0.0/0
-0.0.0.0/0         LOG  flags 0 level 4
-4       27       1782 DROP         all  --  *      *       0.0.0.0/0
-0.0.0.0/0
+> Micha? Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/ +)
+> "W ?yciu pi?kne s? tylko chwile" [Ryszard Riedel]
 
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-in log we can see packets with TOS 0x0  also packets with TOS 0x10
+--IQvoI1rdlCKiYEYW
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Mar  5 04:32:10 proliant kernel: IN=eth0 OUT=eth1 SRC=62.176.73.4
-DST=62.176.105.30 LEN=76 TOS=0x00 PREC=0xC0
-Mar  5 04:32:15 proliant kernel: IN=eth0 OUT=eth1 SRC=62.176.73.4
-DST=62.176.105.30 LEN=76 TOS=0x00 PREC=0xC0
-Mar  5 04:32:18 proliant kernel: IN=eth1 OUT=eth0 SRC=212.5.149.252
-DST=212.5.134.3 LEN=87 TOS=0x00 PREC=0xC0
-Mar  5 04:32:19 proliant kernel: IN=eth0 OUT=eth2 SRC=62.176.73.4
-DST=62.176.106.69 LEN=88 TOS=0x00 PREC=0xC0
-Mar  5 04:32:19 proliant kernel: IN=eth0 OUT=eth1 SRC=62.176.73.4
-DST=62.176.105.30 LEN=76 TOS=0x00 PREC=0xC0
-Mar  5 04:32:29 proliant kernel: IN=eth0 OUT=eth2 SRC=195.230.9.159
-DST=62.176.106.69 LEN=48 TOS=0x00 PREC=0x8
-Mar  5 04:32:31 proliant kernel: IN=eth0 OUT=eth1 SRC=62.176.73.4
-DST=62.176.105.30 LEN=76 TOS=0x00 PREC=0xC0
-Mar  5 04:32:32 proliant kernel: IN=eth0 OUT=eth2 SRC=195.230.9.159
-DST=62.176.106.69 LEN=48 TOS=0x00 PREC=0x8
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-mandrake Linux version 2.4.19-16mdksmp, iptables v1.2.6a
-Is there some solution?
-10x in advance
-Nedko
+iD8DBQE+Zj2CXaXGVTD0i/8RAkD3AJ9MeEgAqj/dHYWNZC1uhAbjsCIqNwCglyWN
+kjnxwho0R+QqrQDTr9lEEaw=
+=FExm
+-----END PGP SIGNATURE-----
+
+--IQvoI1rdlCKiYEYW--
