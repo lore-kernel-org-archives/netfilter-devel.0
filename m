@@ -1,16 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: init_conntrack optimization
-Date: Wed, 25 Feb 2004 16:58:57 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Help Needed in Connection Tracking/NAT
+Date: Wed, 25 Feb 2004 01:14:13 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <403CC641.6010206@eurodev.net>
-References: <403C97A5.7070109@eurodev.net> <20040225144054.GB13386@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0402250104170.18273-100000@filer.marasystems.com>
+References: <1077631840.3772.48.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090909010206040008020301"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040225144054.GB13386@sunbeam.de.gnumonks.org>
+To: Nagaraj G <gnraj@teneoris.com>
+In-Reply-To: <1077631840.3772.48.camel@localhost.localdomain>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,162 +20,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090909010206040008020301
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Tue, 24 Feb 2004, Nagaraj G wrote:
 
-Hi again Harald,
+> I am a developer working on a new application module (NAT ALG) using the
+> netfilter NAT/ConnTrack framework.
+> 
+> I am using Linux 2.4.10 kernel.
 
-Harald Welte wrote:
+Please upgrade. There has been substantial changes in the NAT framework
+interface in later Linux-2.4 releases.
 
->>With this patch, if an expectation is not found for the conntrack, it 
->>will look for an helper and go out, this way we save three "if's". By 
->>other hand, if an expectation is found we save one "if".
->>    
->>
->
->yes, thanks for the patch.  It definitely makes the code more readable.
->If it really makes a difference in performance - I don't know.
->
->The compiler will certainly not recompute the value of 'expected', and
->since it also knows that expected is not written to, it could actually
->optimize here.  Whether gcc is smart enough to do so, I don't know.. one
->would have to look at the generated assembly code.
->
->  
->
-well, I'm not a compiler geek so I don't know either. But it's true,
-it's more readable :-). So maybe "optimization" wasn't the correct subject.
+> 3. In one scenario, the response packet comes from MY_PORT destined to
+> MY_PORT. In this scenario, my Nat_Expect function gets called for
+> MANIP_DST and I supply the destIp and destPort (which again is MY_PORT)
+> of the internal host in multi_range structure and call nat_setup_info.
+> After this I attach my helper to the info supplied. After this, I get
+> called into my Nat_Help routine to handle this packet for the contents
+> which I do and complete the packet. After this, for all the outgoing
+> packets destined to MY_PORT, I don't see my Nat_Help routine getting
+> called. The packets go out without the content being mangled.
 
->>I consider that the general case is that an expectation is not found, 
->>isn't it? because most connection tracked by the system don't need a 
->>helper, so they not need to handle expectations.
->>    
->>
->
->yes.  Maybe it's even worth using 'if (unlikely(expected))' in that
->case.
->
->  
->
-I didn't modify the patch, well I think it's ok anyway.
+Ok. This case is different as MY_PORT is not the destination port. I am 
+not sure how to set the NAT helper protocol of expected connections once 
+accepted.
 
->>BTW, can we consider that if there's no helper for a given tuple, it 
->>won't have expectations? because while writing the patch i had more 
->>ideas, maybe this could be optimized a bit more. Well, I'm not sure...
->>    
->>
->
->No, this is an invalid assumption. 
->  
->
-ok, thanks!
+> 4. In another scenario, the response packet comes from a new port Y
+> destined to MY_PORT. In this scenario also, I do the same things as in 3
+> above. But, in this case, I get called for all future packets going out.
 
->>hope that i'm not missing anything! if so, please let me know.
->>    
->>
->
->looks fine to me.  would you mind submitting a patch syncing 2.4.x to
->your changes?  Thanks.
->  
->
-I attached the patch for the 2.4.x tree.
+I think these will be automatically recognised to use the same NAT helper
+due to the destination port of the connection being MY_PORT. Not sure if
+this is intentional or not (probably should not as it is an expected
+connection, not a new connection).
 
-Pablo
-
---------------090909010206040008020301
-Content-Type: text/plain;
- name="init_conntrack.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="init_conntrack.patch"
-
---- ../linux-2.4.25-old/net/ipv4/netfilter/ip_conntrack_core.c	2004-02-18 14:36:32.000000000 +0100
-+++ net/ipv4/netfilter/ip_conntrack_core.c	2004-02-25 16:46:30.000000000 +0100
-@@ -708,42 +708,50 @@
- 			     struct ip_conntrack_expect *, tuple);
- 	READ_UNLOCK(&ip_conntrack_expect_tuple_lock);
- 
--	/* If master is not in hash table yet (ie. packet hasn't left
--	   this machine yet), how can other end know about expected?
--	   Hence these are not the droids you are looking for (if
--	   master ct never got confirmed, we'd hold a reference to it
--	   and weird things would happen to future packets). */
--	if (expected && !is_confirmed(expected->expectant))
--		expected = NULL;
--
--	/* Look up the conntrack helper for master connections only */
--	if (!expected)
--		conntrack->helper = ip_ct_find_helper(&repl_tuple);
--
--	/* If the expectation is dying, then this is a looser. */
--	if (expected
--	    && expected->expectant->helper->timeout
--	    && ! del_timer(&expected->timeout))
--		expected = NULL;
--
- 	if (expected) {
--		DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
--			conntrack, expected);
--		/* Welcome, Mr. Bond.  We've been expecting you... */
--		IP_NF_ASSERT(master_ct(conntrack));
--		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
--		conntrack->master = expected;
--		expected->sibling = conntrack;
--		LIST_DELETE(&ip_conntrack_expect_list, expected);
--		expected->expectant->expecting--;
--		nf_conntrack_get(&master_ct(conntrack)->infos[0]);
--	}
--	atomic_inc(&ip_conntrack_count);
-+		/* If master is not in hash table yet (ie. packet hasn't left
-+		   this machine yet), how can other end know about expected?
-+		   Hence these are not the droids you are looking for (if
-+                   master ct never got confirmed, we'd hold a reference to it
-+                   and weird things would happen to future packets). */
-+		if (!is_confirmed(expected->expectant)) {
-+			
-+			conntrack->helper = ip_ct_find_helper(&repl_tuple);
-+			goto end;
-+		}
-+
-+		/* Expectation is dying... */
-+		if (expected->expectant->helper->timeout
-+		    && ! del_timer(&expected->timeout)) {
-+			goto end;	
-+		}
-+
-+                DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
-+                       conntrack, expected);
-+                /* Welcome, Mr. Bond.  We've been expecting you... */
-+                IP_NF_ASSERT(master_ct(conntrack));
-+                __set_bit(IPS_EXPECTED_BIT, &conntrack->status);
-+                conntrack->master = expected;
-+                expected->sibling = conntrack;
-+                LIST_DELETE(&ip_conntrack_expect_list, expected);
-+                expected->expectant->expecting--;
-+                nf_conntrack_get(&master_ct(conntrack)->infos[0]);
-+
-+		/* this is a braindead... */
-+	        atomic_inc(&ip_conntrack_count);
-+	        WRITE_UNLOCK(&ip_conntrack_lock);
-+
-+	        if (expected->expectfn)
-+			expected->expectfn(conntrack);
-+
-+		goto ret;
-+        } else 
-+                conntrack->helper = ip_ct_find_helper(&repl_tuple);
-+
-+end:	atomic_inc(&ip_conntrack_count);
- 	WRITE_UNLOCK(&ip_conntrack_lock);
- 
--	if (expected && expected->expectfn)
--		expected->expectfn(conntrack);
--	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
-+ret:	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
- }
- 
- /* On success, returns conntrack ptr, sets skb->nfct and ctinfo */
-
---------------090909010206040008020301--
+Regards
+Henrik
