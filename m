@@ -1,15 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: I don't understand what goes where, very confused about POM-ng
-Date: Wed, 5 May 2004 23:19:51 +0200 (CEST)
+From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+Subject: Re: [PATCH] ROUTE target fixes for --iif
+Date: Wed, 5 May 2004 10:43:33 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405052142180.31384-100000@blackhole.kfki.hu>
-References: <4099406D.4080606@rtij.nl>
+Message-ID: <20040505144333.GA17752@ti64.telemetry-investments.com>
+References: <20040504200151.GA30514@ti64.telemetry-investments.com> <1083758659.2743.8.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="LQksG6bCIzRHxTLp"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martijn Lievaart <netfilter-devel@rtij.nl>
-In-Reply-To: <4099406D.4080606@rtij.nl>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+Content-Disposition: inline
+In-Reply-To: <1083758659.2743.8.camel@descartes.info.ucl.ac.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,81 +22,106 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 5 May 2004, Martijn Lievaart wrote:
 
-> Well, there are also linux-2.4 trees. So at first sight it would seem
-> that linux-<version>/ is specific to that version and plain linux/ is
-> for any version. But it seemes the linux/ is a synonym for linux-2.4 right?
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-No, that's a catch-all for all versions not matched by any linux-x.x
-directories (same for linux.patch). But practically, yes. :-)
-README.newpatches is a little bit terse, probably...
+On Wed, May 05, 2004 at 02:04:19PM +0200, Cedric de Launois wrote:
+> Concerning the TTL, what happens if you re-inject the packet
+> on the same interface ? If you don't decrement the TTL, you
+> might introduce a loop, no ? Could you check this ?
+ 
+D'oh!  You are of course correct that it will loop (and I've verified that
+it does).  I had previously been using
 
-The logic behind the version matching is as follows:
+	iptables -t mangle -A PREROUTING -i hdlc\+ -j TTL --ttl-inc 1
 
-First, we have got branches (see the config) file. A branch is a
-collection of versions where theoretically a single patch is always
-applicable for all versions in the branch. For linux kernel trees,
-currently we have got two branches: linux-2.4.x and linux-2.6.x
-(linux-2.5.x not supported). If we want to patch a kernel by pom, then the
-kernel version must be in one of the branches otherwise the kernel is not
-supported by pom, and additionally the oldest kernel patch in the updates
-directory for the given branch gives us the oldest supported kernel in
-that branch.
+to get the desired behavior, but changed ROUTE because the above seemed
+inelegant.   The original behavior is indeed the safer course.  The attached
+patch backs out the TTL change.
 
-There might be that even in a branch, there are kernel releases which
-requires different patch versions of a patch. So when matching a patch
-with the kernel we want to patch, the biggest smaller or equal patch
-version than the kernel version wins.
+> > I'm using the ROUTE target --iif functionality, in combination with the
+> > teql round-robin packet scheduler, to remap incoming packets on multiple
+> > interfaces (in this case hdlc[0-3]) to teql0.  [teql only schedules outgoing
+> > packets; incoming packets appear on the underlying interfaces.]
+> 
+> Great, maybe could you detail this example so that it can be
+> added in the netfilter pom documentation ?
 
-Let's see an example: kernel versions we want to patch are from 2.4.27 to
-2.4.31, but patch versions we have got are linux.patch, linux-2.4.28.patch
-and linux-2.4.30.patch.  Then the result of the matching is
+Sure.
 
-	kernel version		matched patch version
-	linux-2.4.27		linux.patch
-	linux-2.4.28		linux-2.4.28.patch
-	linux-2.4.29		linux-2.4.28.patch
-	linux-2.4.30		linux-2.4.30.patch
-	linux-2.4.31		linux-2.4.30.patch
+The teql per-packet round-robin scheduler is used to aggregate
+the sending bandwidth on several slave interfaces; see the top of
+linux/net/sched/sch_teql.c for usage and caveats.
+[For Ethernet, the bonding driver is preferred.]
 
-Patches from different branches are of course exluded as candidates from
-the matching.
+Per-packet scheduling is most useful when a single flow might exceed
+the bandwidth of the individual interfaces, as is commonly the case with
+T1 links.
 
-When searching for the best match, the patch candidate must also fulfil
-the version requirements specified for it in the info file. Just to cite
-the example from README.newpatches: if we have got linux.patch and
-linux-2.4.25.patch where the latter is valid for kernel 2.4.25 only, but
-linux.patch can be applied for kernels before and after 2.4.25 too, then
-one must specify the following in the info file:
+Using WAN interfaces hdlc[0-3] on a 4 T1/E1 WAN card, one might do
+the following:
 
-Requires: linux-2.4.25.patch == 2.4.25
+	modprobe sch_teql
+	for i in 0 1 2 3
+		ip link set dev hdlc${i} up
+		sysctl -w net.ipv4.conf.hdlc${i}.rp_filter=0
+		tc qdisc add dev hdlc${i} root teql0
+	done
+	ip link set dev teql0 up
+	sysctl -w net.ipv4.conf.teql0.rp_filter=0
+	ip address add $IPADDR peer $REMIP dev teql0
+	ip route add default via $REMIP dev teql0
 
-Otherwise linux-2.4.25.patch would match kernels >= 2.4.25 as well.
+Since teql0 is a send-only interface, incoming packets appear on the slave
+hdlc* interfaces, and the usual caveats regarding asymmetric routing apply.
+E.g., Quagga OSPF implements its own reverse-path filtering neighbor logic;
+replies from peers that are received on the wrong interface are dropped.
 
-The same version matching logic is applied for the directory tree with
-the ladds/whole-files.
+The following rule causes all incoming packets on the hdlc* interfaces to appear
+to have been received on teql0:
 
-pom supports multiple projects, like linux kernel tree and iptables source
-tree patches stored in the same pom. Of course the version matching logic
-is valid for all projects.
+	iptables -t mangle -A PREROUTING -i hdlc\+ -j TTL --ttl-inc 1
+	iptables -t mangle -A PREROUTING -i hdlc\+ -j ROUTE --iif teql0
 
-The updates directory handled in a special way: patches are implicitly
-dependent from all the previous patches in the same branch. All patches
-for a branch are applicable for any project version matching the branch
-and have got equal or greater version than the oldest patch for the branch
-in the updates directory.
+The TTL increment is required to avoid dropping packets, as multicast
+and broadcast packets are typically sent with TTL = 1.  In this example,
+Quagga also sets TTL = 1 on packets that it sends to its peers.
 
-> Clear. Someone, please copy
-> XOR/linux/include/linux/netfilter_ipv4/ipt_XOR.h to
-> XOR/linux-2.6/include/linux/netfilter_ipv4/ipt_XOR.h in CVS.
+Regards,
 
-OK, I'll do that.
+	Bill Rugolsky
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="netfilter-route-target-ttl-backout.patch"
+
+--- patch-o-matic-ng/ROUTE/linux/net/ipv4/netfilter/ipt_ROUTE.c.ttl	2004-05-04 15:09:35.000000000 -0400
++++ patch-o-matic-ng/ROUTE/linux/net/ipv4/netfilter/ipt_ROUTE.c	2004-05-05 09:44:20.000000000 -0400
+@@ -249,8 +249,8 @@
+ 	/* If we are at PREROUTING or INPUT hook
+ 	 * the TTL isn't decreased by the IP stack
+ 	 */
+-	if (route_info->iif[0] == '\0' && (hooknum == NF_IP_PRE_ROUTING ||
+-	    hooknum == NF_IP_LOCAL_IN)) {
++	if (hooknum == NF_IP_PRE_ROUTING ||
++	    hooknum == NF_IP_LOCAL_IN) {
+ 
+ 		struct iphdr *iph = skb->nh.iph;
+ 
+--- patch-o-matic-ng/ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c.ttl	2004-05-04 15:11:07.000000000 -0400
++++ patch-o-matic-ng/ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	2004-05-05 09:45:18.000000000 -0400
+@@ -251,8 +251,8 @@
+ 	/* If we are at PREROUTING or INPUT hook
+ 	 * the TTL isn't decreased by the IP stack
+ 	 */
+-	if (route_info->iif[0] == '\0' && (hooknum == NF_IP_PRE_ROUTING ||
+-	    hooknum == NF_IP_LOCAL_IN)) {
++	if (hooknum == NF_IP_PRE_ROUTING ||
++	    hooknum == NF_IP_LOCAL_IN) {
+ 
+ 		struct iphdr *iph = skb->nh.iph;
+ 
+
+--LQksG6bCIzRHxTLp--
