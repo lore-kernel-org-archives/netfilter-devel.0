@@ -1,12 +1,14 @@
-From: Stephen Jones <hivemynd@hivemynd.net>
-Subject: pptp-conntrack-nat will not apply to 2.4.29 - Workaround
-Date: Sat, 22 Jan 2005 01:45:06 -0600
-Message-ID: <41F20482.4090300@hivemynd.net>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [PATH 1/2] Fix SNAT/DNAT target size checks
+Date: Sat, 22 Jan 2005 14:59:15 +0100
+Message-ID: <1106402355.20995.15.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-9FIKeF/eOM5E5XwTTwHW"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,50 +20,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello devel-list!
 
-I was attempting to bake a 2.4.29 kernel this weekend and ran into a 
-problem with applying the pptp-conntrack-nat patch from 
-patch-o-matic-ng-20040621 and as well from the svn version 3605.
+--=-9FIKeF/eOM5E5XwTTwHW
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-The iptables source is for 1.2.11
+Hi Patrick
 
-The error from patch-o-matic ./runme is:
+This patch fixes two size checks in the checkentry() for SNAT and DNAT
+targets.
+The patch to remove support for multiple ranges forgot to use
+IPT_ALIGN()
+This isn't a problem on x86 but other archs like parisc are affected and
+thus can't add any SNAT/DNAT rules.
 
-"unable to find ladd slot in src 
-/usr/src/linux-2.4.29/net/ipv4/netfilter/Config.in"
+Reported and tested by a user on irc.
 
-I compared the Config.in files from a clean 2.4.28 to the one from 
-2.4.29, and the only difference:
+Please submit this patch to davem for inclusion in 2.6.11 (-rc2 was just
+released)
 
-# Output of:
-diff --normal /linux-2.4.28-clean/net/ipv4/netfilter/Config.in 
-/linux-2.4.29-clean/net/ipv4/netfilter/Config.in
-69d68
-<       bool '    NAT of local connections (READ HELP)' 
-CONFIG_IP_NF_NAT_LOCAL
+diff -X /home/gandalf/dontdiff.ny -urNp linux-2.6.11-rc2/net/ipv4/netfilter=
+/ip_nat_rule.c linux-2.6.11-rc2.align/net/ipv4/netfilter/ip_nat_rule.c
+--- linux-2.6.11-rc2/net/ipv4/netfilter/ip_nat_rule.c	2005-01-22 12:17:40.0=
+00000000 +0100
++++ linux-2.6.11-rc2.align/net/ipv4/netfilter/ip_nat_rule.c	2005-01-22 14:5=
+5:45.000000000 +0100
+@@ -181,7 +181,7 @@ static int ipt_snat_checkentry(const cha
+ 		return 0;
+ 	}
+=20
+-	if (targinfosize !=3D sizeof(struct ip_nat_multi_range_compat)) {
++	if (targinfosize !=3D IPT_ALIGN(sizeof(struct ip_nat_multi_range_compat))=
+) {
+ 		DEBUGP("SNAT: Target size %u wrong for %u ranges\n",
+ 		       targinfosize, mr->rangesize);
+ 		return 0;
+@@ -214,7 +214,7 @@ static int ipt_dnat_checkentry(const cha
+ 		return 0;
+ 	}
+=20
+-	if (targinfosize !=3D sizeof(struct ip_nat_multi_range_compat)) {
++	if (targinfosize !=3D IPT_ALIGN(sizeof(struct ip_nat_multi_range_compat))=
+) {
+ 		DEBUGP("DNAT: Target size %u wrong for %u ranges\n",
+ 		       targinfosize, mr->rangesize);
+ 		return 0;
+=20
+--=20
+/Martin
 
+--=-9FIKeF/eOM5E5XwTTwHW
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-I got the pptp-conntrack-nat patch to apply by simply adding that line 
-back to the /net/ipv4/netfilter/Config.in that is included with the 
-2.4.29 sources.  The problem is the match line in the:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-/patch-o-matic-ng-XXXX/pptp-conntrack-nat/linux/net/ipv4/netfilter/Config.in.ladd_2
+iD8DBQBB8lwzWm2vlfa207ERAv17AKCfc1IuTPYlAsTctcTbguBSNHFQWQCgnmnD
+JwI5yxELkG/wlBadEJjUixQ=
+=0Job
+-----END PGP SIGNATURE-----
 
-file is looking for:
-
-       bool '    NAT of local connections (READ HELP)' 
-CONFIG_IP_NF_NAT_LOCAL
-
-
-in the /net/ipv4/netfilter/Config.in file, and it is no longer there.
-
-I don't know enough about the structure of the Config.in files to 
-suggest an appropriate, permanent solution :(
-
-I then remove the unneeded line before compiling the kernel sources.
-
-PS: The nat-reservations patch is incompatible with the 
-pptp-conntrack-nat patch, perhaps a check in the pom-ng could prevent 
-people from accidentally "shooting themselves in the foot" with these 
-two? :)
+--=-9FIKeF/eOM5E5XwTTwHW--
