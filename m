@@ -1,11 +1,11 @@
-From: Markus Schaber <markus.schaber@student.uni-ulm.de>
-Subject: Problem with IP-Pools
-Date: Thu, 28 Nov 2002 16:29:21 +0100
+From: =?gb2312?B?1cXMzg==?= <zhangtao@nari-china.com>
+Subject: add netfilter hooks to my own protocol stack?
+Date: Thu, 28 Nov 2002 09:10:55 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021128162921.2b2a721d.markus.schaber@student.uni-ulm.de>
+Message-ID: <002001c2967b$03a0aa40$e264900a@narizhangtao>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0019_01C296BE.0EDA37D0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,34 +18,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
 
-I'm using the IP Pools extension form Patch-O-matic, and now have the
-problem that it tends to kill the machine on SMP. (I just killed our
-backup firewall two times this day...)
+------=_NextPart_000_0019_01C296BE.0EDA37D0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-The symptoms are that a "ippools -n blah" with an already existing pool
-blah sometimes hangs, eating up more and more processor time, and
-the process cannot be killed even with SIGKILL. "shutdown -r" and
-"reboot" also refuse to work (they shut down most services, but don't
-actually reboot the machine). The machine gets more and more sloppy, and
-after about 2 or 3 minutes, it doesn't respond on network and local
-serial console.
+aSdtIGEgY2hpbmVzZSBzdHVkZW50cyFpIGhhdmUgaW1wbGVtZW50IG15IG93biBwcm90b2NvbCBz
+dGFjayAtIHBuc3MsIGkNCndhbnQgdG8gYWRkZWQgICBuZXRmaWx0ZXIgaG9va3MgdG8gdGhlIHBu
+c3MsaG93IGNhbiBpIGRvIGl0IQ0KdGhhbmtzIQ0KICAgICAgICAgICAgICAgICAgICAgICAgICB6
+aGFuZ3Rhbw0K
 
-I suspect there's a race condition on SMP.
+------=_NextPart_000_0019_01C296BE.0EDA37D0
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-I mailed Patrick Schaaf (the creator of the iptables patch), and he said
-that he never tested it on SMP, and currently doesn't have time to look
-into it.
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KDQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4wMC4yNjAwLjAi
+IG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8Qk9EWSBiZ0NvbG9y
+PSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj5pJ20gYSBjaGluZXNlIHN0dWRlbnRzIWkmbmJz
+cDtoYXZlIGltcGxlbWVudCZuYnNwO215IG93biANCnByb3RvY29sIHN0YWNrJm5ic3A7LSBwbnNz
+LCBpIHdhbnQgdG8gYWRkZWQgJm5ic3A7IG5ldGZpbHRlciBob29rcyB0byB0aGUgDQpwbnNzLGhv
+dyBjYW4gaSBkbyBpdCE8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj50aGFua3MhPC9G
+T05UPjwvRElWPg0KPERJVj48Rk9OVCANCnNpemU9Mj4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsgDQp6aGFuZ3RhbzwvRk9OVD48L0RJVj48L0JPRFk+PC9IVE1MPg0K
 
-He pointed me to this list and told me that Joackim Axelsson has a
-modified version, but didn't publish it yet.
-
-Can anyone help or reproduce this problem? Is Joackim here?
-
-Thanks,
-Markus
--- 
-Markus Schaber - http://www.schabi.de/
-
-Schabi's Flohmarkt unter http://schabi.de/flohmarkt
+------=_NextPart_000_0019_01C296BE.0EDA37D0--
