@@ -1,12 +1,16 @@
-From: "Yoav Zamir" <yoav_zamm@hotmail.com>
-Subject: Reset regarded as a new session
-Date: Mon, 28 Jun 2004 15:46:50 +0300
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: Deadlocks
+Date: Tue, 29 Jun 2004 10:54:26 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY7-F70KywM6iYOU3I000463e7@hotmail.com>
+Message-ID: <20040629175426.GA25242@linuxace.com>
+References: <20040609180909.GA11445@linuxace.com> <1087156709.11287.8.camel@ws> <20040615044723.GA16891@linuxace.com> <40CE95DE.9090703@trash.net> <20040617155946.GA28564@linuxace.com> <40D1C4BF.8070605@trash.net> <20040618171214.GA750@linuxace.com> <40D62FDB.8090904@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----=_NextPart_000_25f2_24ef_2566"
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <40D62FDB.8090904@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,158 +21,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Well, the box has now lasted 7 days without a deadlock, so I'd venture
+to say your patch has solved the issue, and should probably be added to
+mainline.
 
-------=_NextPart_000_25f2_24ef_2566
-Content-Type: text/plain; format=flowed
+Thanks for the help
 
-It seems like iptables doesn't treat correctly a session I have created.
-The situation is as follows:
-I have two machines (A-holds a program that is a TCP client, B-TCP server).
-A contains an SNAT & DNAT that alter the ip-addresses of the outgoing 
-sessions.
+Phil
 
-Now (in chronological order):
-A opens a session (sends a SYN, recieves SYN ACK).
-A sends some data (and recieves acks).
-A closes the connection: (Sends a FIN)
-B sends an ACK to the FIN (that contains data(!)).
-A sends a RST to B (because data was recieved in the FINACK(?)), but at this 
-point the NAT sends it with altered IP addresses - as though the session has 
-already ended and the reset packet belongs to a new session. This packet 
-also has bad chksum.
-B tries to send FIN packets (with the correct IP addresses), but recieves no 
-acknowledgements to them; Thus leaving the session stuck on the server in 
-the mode LAST_ACK.
-
-The NAT configuration and a plot of tethereal is attached.
-
-Regards,
-Yoav.
-
-_________________________________________________________________
-Add photos to your messages with MSN 8. Get 2 months FREE*. 
-http://join.msn.com/?page=features/featuredemail
-
-------=_NextPart_000_25f2_24ef_2566
-Content-Type: text/plain; name="table_config.txt"; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment; filename="table_config.txt"
-
-Chain PREROUTING (policy ACCEPT)
-target     prot opt source               destination
-
-Chain POSTROUTING (policy ACCEPT)
-target     prot opt source               destination
-SNAT       tcp  --  anywhere             anywhere            tcp 
-spts:20000:29999 to:3.2.46.172-3.19.11.33:20000-30000
-
-Chain OUTPUT (policy ACCEPT)
-target     prot opt source               destination
-DNAT       tcp  --  anywhere             anywhere            tcp 
-spts:20000:29999 to:2.3.31.18-2.12.21.34:11111-22222
-
-
-------=_NextPart_000_25f2_24ef_2566
-Content-Type: application/octet-stream; name="NATRSTRotate.log"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="NATRSTRotate.log"
-
-Q29tcGlsZWQgYnkgdGV0aGVyZWFsLCBiYXNlZCBvbiB0Y3BkdW1wOg0KDQog
-IDEgICAwLjAwMDAwMCAgMy42LjEwNC4xNTQgLT4gMi43Ljg4LjI1NSAgIFRD
-UCAyMDAwMCA+IDIwMDAwIFtTWU5dIFNlcT0wIEFjaz0wIFdpbj01ODQwIExl
-bj0wIE1TUz0xNDYwIFRTVj01MTQwNzEwIFRTRVI9MCBXUz0wDQogIDIgICAw
-LjAwMTQzNyAgIDIuNy44OC4yNTUgLT4gMy42LjEwNC4xNTQgIFRDUCAyMDAw
-MCA+IDIwMDAwIFtTWU4sIEFDS10gU2VxPTAgQWNrPTEgV2luPTU3OTIgTGVu
-PTAgTVNTPTE0NjAgVFNWPTUxMDkxNjcgVFNFUj01MTQwNzEwIFdTPTANCiAg
-MyAgIDAuMDAxNDc3ICAzLjYuMTA0LjE1NCAtPiAyLjcuODguMjU1ICAgVENQ
-IDIwMDAwID4gMjAwMDAgW0FDS10gU2VxPTEgQWNrPTEgV2luPTU4NDAgTGVu
-PTAgVFNWPTUxNDA3MTIgVFNFUj01MTA5MTY3DQogIDQgICAwLjAwMTU1MSAg
-My42LjEwNC4xNTQgLT4gMi43Ljg4LjI1NSAgIFRDUCAyMDAwMCA+IDIwMDAw
-IFtBQ0tdIFNlcT0xIEFjaz0xIFdpbj01ODQwIExlbj0xNDQ4IFRTVj01MTQw
-NzEyIFRTRVI9NTEwOTE2Nw0KICA1ICAgMC4wMDE1NzUgIDMuNi4xMDQuMTU0
-IC0+IDIuNy44OC4yNTUgICBUQ1AgMjAwMDAgPiAyMDAwMCBbQUNLXSBTZXE9
-MTQ0OSBBY2s9MSBXaW49NTg0MCBMZW49MTQ0OCBUU1Y9NTE0MDcxMiBUU0VS
-PTUxMDkxNjcNCiAgNiAgIDAuMDEwMjg0ICAgMi43Ljg4LjI1NSAtPiAzLjYu
-MTA0LjE1NCAgVENQIDIwMDAwID4gMjAwMDAgW0FDS10gU2VxPTEgQWNrPTE0
-NDkgV2luPTg2ODggTGVuPTAgVFNWPTUxMDkxNzUgVFNFUj01MTQwNzEyDQog
-IDcgICAwLjAxMDMwNyAgMy42LjEwNC4xNTQgLT4gMi43Ljg4LjI1NSAgIFRD
-UCAyMDAwMCA+IDIwMDAwIFtQU0gsIEFDS10gU2VxPTI4OTcgQWNrPTEgV2lu
-PTU4NDAgTGVuPTE0NDggVFNWPTUxNDA3MjEgVFNFUj01MTA5MTc1DQogIDgg
-ICAwLjAxMDMxOCAgMy42LjEwNC4xNTQgLT4gMi43Ljg4LjI1NSAgIFRDUCAy
-MDAwMCA+IDIwMDAwIFtQU0gsIEFDS10gU2VxPTQzNDUgQWNrPTEgV2luPTU4
-NDAgTGVuPTY1OCBUU1Y9NTE0MDcyMSBUU0VSPTUxMDkxNzUNCiAgOSAgIDAu
-MDIyNDUwICAgMi43Ljg4LjI1NSAtPiAzLjYuMTA0LjE1NCAgVENQIFtUQ1Ag
-RHVwIEFDSyA2IzFdIFtUQ1AgUHJldmlvdXMgc2VnbWVudCBsb3N0XSAyMDAw
-MCA+IDIwMDAwIFtBQ0tdIFNlcT03IEFjaz0xNDQ5IFdpbj04Njg4IExlbj0w
-IFRTVj01MTA5MTg4IFRTRVI9NTE0MDcxMiBTTEU9MTcwOTYyMjExNyBTUkU9
-MTcwOTYyMzU2NQ0KIDEwICAgMC4wMjQ3MDQgICAyLjcuODguMjU1IC0+IDMu
-Ni4xMDQuMTU0ICBUQ1AgW1RDUCBEdXAgQUNLIDYjMl0gMjAwMDAgPiAyMDAw
-MCBbQUNLXSBTZXE9NyBBY2s9MTQ0OSBXaW49ODY4OCBMZW49MCBUU1Y9NTEw
-OTE5MCBUU0VSPTUxNDA3MTIgU0xFPTE3MDk2MjIxMTcgU1JFPTE3MDk2MjQy
-MjMNCiAxMSAgIDAuMjEzMTcyICAzLjYuMTA0LjE1NCAtPiAyLjcuODguMjU1
-ICAgVENQIFtUQ1AgUmV0cmFuc21pc3Npb25dIDIwMDAwID4gMjAwMDAgW0FD
-S10gU2VxPTE0NDkgQWNrPTEgV2luPTU4NDAgTGVuPTE0NDggVFNWPTUxNDA5
-MjMgVFNFUj01MTA5MTc1DQogMTIgICAwLjIxNTkxNiAgIDIuNy44OC4yNTUg
-LT4gMy42LjEwNC4xNTQgIFRDUCBbVENQIFJldHJhbnNtaXNzaW9uXSAyMDAw
-MCA+IDIwMDAwIFtQU0gsIEFDS10gU2VxPTEgQWNrPTE0NDkgV2luPTg2ODgg
-TGVuPTYgVFNWPTUxMDkzODEgVFNFUj01MTQwNzEyIFNMRT0xNzA5NjIyMTE3
-IFNSRT0xNzA5NjI0MjIzDQogMTMgICAwLjIxNTk0MCAgMy42LjEwNC4xNTQg
-LT4gMi43Ljg4LjI1NSAgIFRDUCAyMDAwMCA+IDIwMDAwIFtBQ0tdIFNlcT01
-MDAzIEFjaz03IFdpbj01ODQwIExlbj0wIFRTVj01MTQwOTI2IFRTRVI9NTEw
-OTM4MQ0KIDE0ICAgMC4yMTYwMjUgIDMuNi4xMDQuMTU0IC0+IDIuNy44OC4y
-NTUgICBUQ1AgMjAwMDAgPiAyMDAwMCBbRklOLCBBQ0tdIFNlcT01MDAzIEFj
-az03IFdpbj01ODQwIExlbj0wIFRTVj01MTQwOTI2IFRTRVI9NTEwOTM4MQ0K
-IDE1ICAgMC4yMjE4MTUgICAyLjcuODguMjU1IC0+IDMuNi4xMDQuMTU0ICBU
-Q1AgMjAwMDAgPiAyMDAwMCBbQUNLXSBTZXE9NyBBY2s9NTAwMyBXaW49MTE1
-ODQgTGVuPTAgVFNWPTUxMDkzODcgVFNFUj01MTQwOTIzDQogMTYgICAwLjIy
-MjE0MCAgIDIuNy44OC4yNTUgLT4gMy42LjEwNC4xNTQgIFRDUCAyMDAwMCA+
-IDIwMDAwIFtQU0gsIEFDS10gU2VxPTcgQWNrPTUwMDQgV2luPTExNTg0IExl
-bj02IFRTVj01MTA5Mzg3IFRTRVI9NTE0MDkyNg0KIDE3ICAgMC4yMjIyMTEg
-IDMuNi4xMDQuMjMyIC0+IDIuNy44OS43NyAgICBUQ1AgMjAwMDAgPiAyMDAw
-MCBbUlNUXSBTZXE9MCBBY2s9MCBXaW49MCBbQ0hFQ0tTVU0gSU5DT1JSRUNU
-XSBMZW49MA0KIDE4ICAgMC4yMjI0NjggICAyLjcuODguMjU1IC0+IDMuNi4x
-MDQuMTU0ICBUQ1AgMjAwMDAgPiAyMDAwMCBbRklOLCBQU0gsIEFDS10gU2Vx
-PTEzIEFjaz01MDA0IFdpbj0xMTU4NCBMZW49NiBUU1Y9NTEwOTM4NyBUU0VS
-PTUxNDA5MjYNCiAxOSAgIDAuMjIyNDk0ICAzLjYuMTA0LjIzNCAtPiAyLjcu
-ODkuNzkgICAgVENQIDIwMDAwID4gMjAwMDAgW1JTVF0gU2VxPTAgQWNrPTAg
-V2luPTAgW0NIRUNLU1VNIElOQ09SUkVDVF0gTGVuPTANCiAyMCAgIDAuNDIy
-ODU2ICAgMi43Ljg4LjI1NSAtPiAzLjYuMTA0LjE1NCAgVENQIFtUQ1AgUmV0
-cmFuc21pc3Npb25dIDIwMDAwID4gMjAwMDAgW0ZJTiwgUFNILCBBQ0tdIFNl
-cT03IEFjaz01MDA0IFdpbj0xMTU4NCBMZW49MTIgVFNWPTUxMDk1ODggVFNF
-Uj01MTQwOTI2DQogMjEgICAwLjQyMjg4NyAgMy42LjEwNC4yMzYgLT4gMi43
-Ljg5LjgxICAgIFRDUCAyMDAwMCA+IDIwMDAwIFtSU1RdIFNlcT0wIEFjaz0w
-IFdpbj0wIFtDSEVDS1NVTSBJTkNPUlJFQ1RdIExlbj0wDQogMjIgICAwLjgy
-NDc3NiAgIDIuNy44OC4yNTUgLT4gMy42LjEwNC4xNTQgIFRDUCBbVENQIFJl
-dHJhbnNtaXNzaW9uXSAyMDAwMCA+IDIwMDAwIFtGSU4sIFBTSCwgQUNLXSBT
-ZXE9NyBBY2s9NTAwNCBXaW49MTE1ODQgTGVuPTEyIFRTVj01MTA5OTkwIFRT
-RVI9NTE0MDkyNg0KIDIzICAgMC44MjQ4MzcgIDMuNi4xMDQuMjM4IC0+IDIu
-Ny44OS44MyAgICBUQ1AgMjAwMDAgPiAyMDAwMCBbUlNUXSBTZXE9MCBBY2s9
-MCBXaW49MCBbQ0hFQ0tTVU0gSU5DT1JSRUNUXSBMZW49MA0KIDI0ICAgMS42
-Mjg2MTYgICAyLjcuODguMjU1IC0+IDMuNi4xMDQuMTU0ICBUQ1AgW1RDUCBS
-ZXRyYW5zbWlzc2lvbl0gMjAwMDAgPiAyMDAwMCBbRklOLCBQU0gsIEFDS10g
-U2VxPTcgQWNrPTUwMDQgV2luPTExNTg0IExlbj0xMiBUU1Y9NTExMDc5NCBU
-U0VSPTUxNDA5MjYNCiAyNSAgIDEuNjI4NjQzICAzLjYuMTA0LjI0MCAtPiAy
-LjcuODkuODUgICAgVENQIDIwMDAwID4gMjAwMDAgW1JTVF0gU2VxPTAgQWNr
-PTAgV2luPTAgW0NIRUNLU1VNIElOQ09SUkVDVF0gTGVuPTANCiAyNiAgIDMu
-MjM2Mjk5ICAgMi43Ljg4LjI1NSAtPiAzLjYuMTA0LjE1NCAgVENQIFtUQ1Ag
-UmV0cmFuc21pc3Npb25dIDIwMDAwID4gMjAwMDAgW0ZJTiwgUFNILCBBQ0td
-IFNlcT03IEFjaz01MDA0IFdpbj0xMTU4NCBMZW49MTIgVFNWPTUxMTI0MDIg
-VFNFUj01MTQwOTI2DQogMjcgICAzLjIzNjM0MSAgMy42LjEwNC4yNDIgLT4g
-Mi43Ljg5Ljg3ICAgIFRDUCAyMDAwMCA+IDIwMDAwIFtSU1RdIFNlcT0wIEFj
-az0wIFdpbj0wIFtDSEVDS1NVTSBJTkNPUlJFQ1RdIExlbj0wDQogMjggICA2
-LjQ1MTY2MyAgIDIuNy44OC4yNTUgLT4gMy42LjEwNC4xNTQgIFRDUCBbVENQ
-IFJldHJhbnNtaXNzaW9uXSAyMDAwMCA+IDIwMDAwIFtGSU4sIFBTSCwgQUNL
-XSBTZXE9NyBBY2s9NTAwNCBXaW49MTE1ODQgTGVuPTEyIFRTVj01MTE1NjE4
-IFRTRVI9NTE0MDkyNg0KIDI5ICAgNi40NTE2OTkgIDMuNi4xMDQuMjQ0IC0+
-IDIuNy44OS44OSAgICBUQ1AgMjAwMDAgPiAyMDAwMCBbUlNUXSBTZXE9MCBB
-Y2s9MCBXaW49MCBbQ0hFQ0tTVU0gSU5DT1JSRUNUXSBMZW49MA0KIDMwICAx
-Mi44ODM0MTcgICAyLjcuODguMjU1IC0+IDMuNi4xMDQuMTU0ICBUQ1AgW1RD
-UCBSZXRyYW5zbWlzc2lvbl0gMjAwMDAgPiAyMDAwMCBbRklOLCBQU0gsIEFD
-S10gU2VxPTcgQWNrPTUwMDQgV2luPTExNTg0IExlbj0xMiBUU1Y9NTEyMjA1
-MCBUU0VSPTUxNDA5MjYNCiAzMSAgMTIuODgzNDYxICAzLjYuMTA0LjI0NiAt
-PiAyLjcuODkuOTEgICAgVENQIDIwMDAwID4gMjAwMDAgW1JTVF0gU2VxPTAg
-QWNrPTAgV2luPTAgW0NIRUNLU1VNIElOQ09SUkVDVF0gTGVuPTA=
-
-
-------=_NextPart_000_25f2_24ef_2566--
+On Mon, Jun 21, 2004 at 02:46:19AM +0200, Patrick McHardy wrote:
+> Not sure either, but it's a start. Have you tried running the box with
+> netfilter debugging enabled ? Please also apply the ip_nf_assert fix
+> from pom-ng, otherwise CONFIG_NETFILTER_DEBUG won't help much.
+> BTW: Is the box a router or is conntrack running on the FTP server
+> itself ?
+> 
+> >Unless you've got any other ideas, may have to revert this box to non-SMP
+> >so I can have a peaceful weekend ;-)
+> 
+> No more ideas currently .. ;(
