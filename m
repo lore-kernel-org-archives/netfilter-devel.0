@@ -1,8 +1,7 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH] ip_conntrack: Fix cleanup path when sysctl registration
-	fails
-Date: Thu, 30 Dec 2004 19:28:46 +1100
-Message-ID: <1104395327.20956.7.camel@localhost.localdomain>
+Subject: [PATCH] Fix proc removal in ip_conntrack_standalone
+Date: Thu, 30 Dec 2004 17:56:11 +1100
+Message-ID: <1104389771.20956.4.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -20,35 +19,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Fix cleanup path when sysctl registration fails
+Name: Fix proc removal in ip_conntrack_standalone
 Status: Tested under nfsim
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-nfsim gains sysctl support, and sure enough, --failtest uncovered an
-unregister when the registration had failed.
+Someone thought it would be clever if proc code ignores removal of
+non-existent entries.  Hence, we missed that
+/proc/net/stat/ip_conntrack is never removed on module removal or init
+failure.
+
+Found by nfsim.
 
 Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_standalone.c
 ===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-12-30 19:18:06.170896368 +1100
-+++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-12-30 19:18:29.426361000 +1100
-@@ -791,7 +791,8 @@
- 	ip_ct_sysctl_header = register_sysctl_table(ip_ct_net_table, 0);
- 	if (ip_ct_sysctl_header == NULL) {
- 		printk("ip_conntrack: can't register to sysctl.\n");
--		goto cleanup;
-+		ret = -ENOMEM;
-+		goto cleanup_localinops;
- 	}
- #endif
- 
-@@ -800,6 +801,7 @@
-  cleanup:
- #ifdef CONFIG_SYSCTL
-  	unregister_sysctl_table(ip_ct_sysctl_header);
-+ cleanup_localinops:
- #endif
- 	nf_unregister_hook(&ip_conntrack_local_in_ops);
-  cleanup_inoutandlocalops:
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-12-30 17:39:26.910760688 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-12-30 17:39:52.719837112 +1100
+@@ -820,8 +820,8 @@
+ 	nf_unregister_hook(&ip_conntrack_defrag_ops);
+  cleanup_proc_stat:
+ #ifdef CONFIG_PROC_FS
+-	proc_net_remove("ip_conntrack_stat");
+-cleanup_proc_exp:
++	remove_proc_entry("ip_conntrack", proc_net_stat);
++ cleanup_proc_exp:
+ 	proc_net_remove("ip_conntrack_expect");
+  cleanup_proc:
+ 	proc_net_remove("ip_conntrack");
 
 -- 
 A bad analogy is like a leaky screwdriver -- Richard Braakman
