@@ -1,12 +1,12 @@
-From: paridhi bansal <paridhibansal@yahoo.com>
-Subject: Problem with ICMP NAT
-Date: Wed, 5 Feb 2003 01:48:40 -0800 (PST)
+From: Kirk Bauer <kirk@kaybee.org>
+Subject: Layer-7 HTTP Matching Module
+Date: Tue, 4 Feb 2003 09:29:53 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030205094840.15787.qmail@web10806.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0302040925160.12235-100000@kaybee.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,48 +17,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!!!
+I was thinking it would be nice to enhance my traffic shaping rules
+(using 'tc') to make decisions about HTTP based on the type of content
+being sent.  If, for example, the page has a content type of text/html,
+I want it to be a fairly high priority.  Then, image/jpeg could be a
+lower priority.
 
-I am developing an application whereby i am
-implementing NAT..I am using iptables..Using libipq i
-am queuing the pkts. I am queueing the pkts at
-following hooks:
-Input
-Prerouting
-Postrouting
-Output(nat)
+I think I could do this with the 'string' module of iptables -- i.e.
+look for the string "Content-type: text/html" and set a TOS flag or a
+firewall mark.  The 'tc' command can then be used to give these packets
+higher priority.
 
-Now my nat is working fine with TCP pkts..let's say
-we have a situation like:
-m/c A on LAN with ip say 172.10.1.12
-m/c B that is doing NAT with ips 172.10.1.13 and
-151.2.125.6
-m/c C on Internet with Ip 151.2.125.78
+But I think it might be nice to have a true layer 7 matching module.
+You could do:
 
-Now A sends a TCP req to C..the request goes natted
-and the return pkt comes at B's 151 interface, it nats
-it back to m/c A's ip..This retuurn pkt enters
-PREROUTING hook, then postrouing hook..All this is
-working fine..
+-m --content-type 'text/html' --host 'www.mydomain.com'
 
-Problem is here:
-If A sends an ICMP request to C, iCMP requst gets
-natted so that it appears to come from B..Now C sends
-back the ICMP reply to C..HOWEVER, this ICMP pkt does
-not enter prerouting hook..it directly entrs INPUT
-hook..so my application cannot do natting and m/c A
-shows request timed out..
+It seems that if the string matching module is possible, then this is
+also possible.  
 
-Can this problem be solved somehow?????Is it possible
-to redirect a pkt from Input hook to some other
-hook???
+Does such a module exist or is it being developed?  If not, I may write
+one when I have time if other people think it would be useful.
 
-Regards,
-Paridhi
-
-
-
-__________________________________________________
-Do you Yahoo!?
-Yahoo! Mail Plus - Powerful. Affordable. Sign up now.
-http://mailplus.yahoo.com
+-- 
+Kirk Bauer <kirk@kaybee.org>
+http://linux.kaybee.org | www.autorpm.org | www.logwatch.org
