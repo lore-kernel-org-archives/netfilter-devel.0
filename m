@@ -1,14 +1,14 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH] netfilter: Fix cleanup in ipt_recent should
-	ipt_registrater_match error
-Date: Sat, 01 Jan 2005 15:57:27 +1100
-Message-ID: <1104555447.2791.29.camel@localhost.localdomain>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] Fix RST handling in ip_conntrack_proto_tcp.c
+Date: Sat, 1 Jan 2005 15:59:20 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0501011551420.15783@blackhole.kfki.hu>
+References: <1104511137.3821.20.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andrew Morton <akpm@osdl.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1104511137.3821.20.camel@tux.rsn.bth.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,38 +20,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Fix cleanup in ipt_recent should ipt_registrater_match error
-Status: Tested under nfsim
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Hi Martin,
 
-When ipt_registrater_match() fails, ipt_recent doesn't remove its proc
-entry.  Found by nfsim.
+On Fri, 31 Dec 2004, Martin Josefsson wrote:
 
-Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_recent.c
-===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ipt_recent.c	2005-01-01 12:07:56.364981672 +1100
-+++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_recent.c	2005-01-01 12:11:44.159351664 +1100
-@@ -959,7 +959,7 @@
- /* Kernel module initialization. */
- static int __init init(void)
- {
--	int count;
-+	int err, count;
- 
- 	printk(version);
- #ifdef CONFIG_PROC_FS
-@@ -983,7 +983,10 @@
- 	if(debug) printk(KERN_INFO RECENT_NAME ": ip_list_hash_size: %d\n",ip_list_hash_size);
- #endif
- 
--	return ipt_register_match(&recent_match);
-+	err = ipt_register_match(&recent_match);
-+	if (err)
-+		remove_proc_entry("ipt_recent", proc_net);
-+	return err;
- }
- 
- /* Kernel module destruction. */
+> Your latest patch contained a change to the RST handling.
+> The change was that an RST is ignored if the previous packet was an ACK.
+> This is happens all the time. I know it was intended as a fix for the
+> SYN - ACK probe - RST sequence but it breaks normal usage. The problem
+> is that connections that end with RST never get their state changed and
+> are left in ESTABLISHED state with a large timeout.
 
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Ouch!
+
+> The patch below adds a check for
+> !test_bit(IPS_ASSURED_BIT, &conntrack->status) so your change will only
+> be active for unassured connections. Maybe you have a better idea for
+> how to fix both cases.
+>
+> This patch has been tested by a user that reported the problem on irc
+> and it fixes the problem for him. I'm also running it on a machine with
+> lots of traffic and it fixes the problem for me as well.
+>
+> Please make sure something that fixes the problem is submitted fairly
+> quickly.
+
+I think your patch should  be submitted immediately. The introduced bug is
+too bad to leave it linger on.
+
+> <hint> A tcp-state/windowtracking testcase for nfsim would be great
+> </hint> :)
+
+Yep, I got Rusty's message as well :-) Time to dig out the initial tests
+from the old cvs and convert them to nfsim with new cases added.
+
+> --- linux-2.6.10-rc3-bk14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c.orig	2004-12-30 19:48:33.000000000 +0100
+> +++ linux-2.6.10-rc3-bk14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-12-30 19:49:46.000000000 +0100
+> @@ -906,7 +906,8 @@ static int tcp_packet(struct ip_conntrac
+>  		if (index == TCP_RST_SET
+>  		    && ((test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
+>  		         && conntrack->proto.tcp.last_index <= TCP_SYNACK_SET)
+> -		        || conntrack->proto.tcp.last_index == TCP_ACK_SET)
+> +		        || (!test_bit(IPS_ASSURED_BIT, &conntrack->status)
+> +			 && conntrack->proto.tcp.last_index == TCP_ACK_SET))
+>  		    && after(ntohl(th->ack_seq),
+>  		    	     conntrack->proto.tcp.last_seq)) {
+>  			/* Ignore RST closing down invalid SYN or ACK
+>
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
