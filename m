@@ -1,16 +1,13 @@
-From: "bunty " <bunty123_4@rediffmail.com>
-Subject: kernel functions in module
-Date: 30 Nov 2004 08:58:59 -0000
-Message-ID: <20041130085859.12552.qmail@webmail36.rediffmail.com>
-Reply-To: bunty  <bunty123_4@rediffmail.com>
+From: "Udo van den Heuvel" <udovdh@xs4all.nl>
+Subject: String match for 2.6?
+Date: Mon, 29 Nov 2004 16:46:54 +0100
+Message-ID: <002001c4d62a$a69416b0$450aa8c0@hierzo>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset=iso-8859-1
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Cc: netdev@oss.sgi.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,8 +19,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  =0Ahello,=0A            can it be possible to increase size of packet in =
-kernel module? If kernel source code uses skb_push,skb_pull,skb_put,skb_all=
-oc etc. then can same functions be used in kernl module also?I want to incr=
-ease size of packet by 8 bytes in netfilter kernel module? is there any ano=
-ther approach suitable?=0Aregards,=0Aparag.
+Hello,
+
+Can anyone here comment on the status of the string match for the 2.6 =
+kernel
+series?
+Yes, I asked this before but got no reply and I recall some progress on =
+the
+string match was discussed some time ago.
+I would very much like to be able to use a string match on 2.6.x but I =
+am no
+coder. :-(
+What are the current issues, when could we test the functionality?
+
+Kind regards,
+Udo
