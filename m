@@ -1,15 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Deadlocks
-Date: Thu, 10 Jun 2004 10:07:16 +0200 (CEST)
+From: Cedric de Launois <delaunois@info.ucl.ac.be>
+Subject: Re: [PATCH] ipt_ROUTE build fix
+Date: Thu, 10 Jun 2004 10:23:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406101002170.1962-100000@blackhole.kfki.hu>
-References: <20040609180909.GA11445@linuxace.com>
+Message-ID: <1086855832.570.2.camel@descartes.info.ucl.ac.be>
+References: <20040530000459.GA2389@alpha.home.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="=-ZFasdJfd9QDNgS5AYklb"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20040609180909.GA11445@linuxace.com>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20040530000459.GA2389@alpha.home.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,27 +19,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 9 Jun 2004, Phil Oester wrote:
 
-> For the past 3 months I've been experiencing deadlocks on some heavily
-> used gateway/firewall boxes which started after upgrading from 2.4.20.
->
-> I can confirm that moving back to 2.4.20 stops the hangs, moving to 2.4.21
-> (or any kernel after that) makes them return.  I am in the process of testing
-> out each individual 2.4.21-pre to find out where exactly the problem is.
->
-> In the interim, I've collected some SysRq output which may help in the
-> analysis.  Below are two separate lockups on a 2.6.6 kernel.  Anyone have
-> any bright ideas?
+--=-ZFasdJfd9QDNgS5AYklb
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Could you try out the 05_linux-2.4.26-orphaned_expect.patch or
-05_linux-2.6.6-orphaned_expect.patch depending on the kernel
-from pom-ng/updates? I think that is the fix for your lockups.
+Le dim 30/05/2004 a 02:04, Willy Tarreau a ecrit :
+> Hi all,
+> 
+> I had to include the following patch to build ipt_ROUTE as a module
+> under 2.4.27-pre3 (ip_fast_csum not found). I believe it broke not too
+> long ago but was lazy enough to check when since the patch is 1-line.
+> Patch against pom-ng-040528. 
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Ok. Thanks. The rediff-ed patch is attached.
+
+Jozsef ? please apply,
+
+Cedric
+
+
+--=-ZFasdJfd9QDNgS5AYklb
+Content-Disposition: attachment; filename=ipt_ROUTE-csum-include.patch
+Content-Type: text/x-patch; name=ipt_ROUTE-csum-include.patch; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+--- patch-o-matic-ng/ROUTE/linux/net/ipv4/netfilter/ipt_ROUTE.c.orig	2004-05-14 09:08:03.000000000 +0200
++++ patch-o-matic-ng/ROUTE/linux/net/ipv4/netfilter/ipt_ROUTE.c	2004-06-09 16:27:05.000000000 +0200
+@@ -19,6 +19,7 @@
+ #include <net/ip.h>
+ #include <net/route.h>
+ #include <net/icmp.h>
++#include <net/checksum.h>
+ 
+ #if 0
+ #define DEBUGP printk
+
+--=-ZFasdJfd9QDNgS5AYklb--
