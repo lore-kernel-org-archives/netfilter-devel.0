@@ -1,12 +1,14 @@
-From: mustaq ali <mushi_j@yahoo.com>
-Subject: Debugging iptables in kernel
-Date: Fri, 11 Oct 2002 12:03:57 -0700 (PDT)
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [PATCH] fix locking in conntrack-speed-locking and
+	conntrack_expect_lock_removal
+Date: 11 Oct 2002 21:46:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021011190357.49300.qmail@web13507.mail.yahoo.com>
+Message-ID: <1034365604.25973.71.camel@tux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-s8SE/03JfFSXAw1UMQQp"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Rusty Russell <rusty@rustcorp.com.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,22 +19,61 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Everyone,
 
-I am trying to add my own code into iptables source
-code. For that i want to debug iptables when it is
-running in kernel. I am using kdevelop as IDE and
-debugger. Actually i should be able to debug iptables
-as a standalone application  using kdevelop. But i
-want to debug the iptables when it is running inside
-the kernel. I am using kernel 2.4, Mandrake 9.0,
-iptables 1.2.7a and kdevelop 2.1. I would appreciate
-if you share your experiences in this case.
+--=-s8SE/03JfFSXAw1UMQQp
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Thanks,
-Mustaq
+Hi Rusty,
 
-__________________________________________________
-Do you Yahoo!?
-Faith Hill - Exclusive Performances, Videos & More
-http://faith.yahoo.com
+I've attached two small fixes against your patches on kernel.org.
+
+I think they're quite obvious so I won't describe them here.
+
+I'll see if I can get the testmachine up and running to actually test
+your patches and see how much diffrence they make on a 2-way SMP.
+
+-- 
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
+
+--=-s8SE/03JfFSXAw1UMQQp
+Content-Disposition: attachment; filename=conntrack-speed-locking.lockfix.diff
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; name=conntrack-speed-locking.lockfix.diff;
+	charset=ISO-8859-15
+
+--- conntrack-speed-locking.patch.orig	2002-10-11 20:54:01.000000000 +0200
++++ conntrack-speed-locking.patch	2002-10-11 21:13:32.000000000 +0200
+@@ -81,7 +81,7 @@
+ +								\
+ +		hash_a =3D hash_conntrack(tuple_a);		\
+ +		hash_b =3D hash_conntrack(tuple_b);		\
+-+		if (hash_a < hash_b) {				\
+++		if (hash_a > hash_b) {				\
+ +			op(&ip_conntrack_hash[hash_a].lock);	\
+ +			op(&ip_conntrack_hash[hash_b].lock);	\
+ +		} else if (hash_a < hash_b) {			\
+
+--=-s8SE/03JfFSXAw1UMQQp
+Content-Disposition: attachment; filename=conntrack_expect_lock_removal.lockfix.diff
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; name=conntrack_expect_lock_removal.lockfix.diff;
+	charset=ISO-8859-15
+
+--- conntrack_expect_lock_removal.patch.orig	2002-10-11 21:18:52.000000000 =
++0200
++++ conntrack_expect_lock_removal.patch	2002-10-11 21:21:23.000000000 +0200
+@@ -125,7 +125,7 @@
+  	}
+ -=09
+ -	return -1;
+-+	WRITE_UNLOCK(&ip_conntrack_expect);
+++	WRITE_UNLOCK(&ip_conntrack_lock);
+ +	return ret;
+  }
+ =20
+
+--=-s8SE/03JfFSXAw1UMQQp--
