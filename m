@@ -1,12 +1,14 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH]: fixed debug message in ftp module
-Date: Thu, 10 Mar 2005 06:28:15 +0900 (JST)
-Message-ID: <200503092128.j29LSF2O027427@toshiba.co.jp>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2.6.11.2 1/1] ipt_sctp chunk map definition too large
+Date: Wed, 09 Mar 2005 22:30:39 +0100
+Message-ID: <422F6AFF.4050602@trash.net>
+References: <422F69BB.3010301@jetfuelsoftware.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Mar_10_06:28:15_2005_804)--"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+To: Tim Ozor <tozor@jetfuelsoftware.com>
+In-Reply-To: <422F69BB.3010301@jetfuelsoftware.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,41 +20,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Mar_10_06:28:15_2005_804)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Tim Ozor wrote:
+> Greetings,
+> 
+> In the process of implementing a native Java iptables API, I discovered 
+> a bug in the ipt_sctp.h header file where the chunkmap is defined too 
+> large. This obviously does not affect execution, but will result in 
+> increased memory useage in libiptc, or in my case the java process.
 
+Unfortunately we can't fix it this way since it breaks userspace
+compatiblity. You might be able to retain compatiblity using Rusty's
+new revision stuff, but I doubt it's worth it.
 
-This patch fixes debug message which notifies wrong sequence number.
-old_seq_aft_nl_set is no longer used.
-
-Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozkaai@toshiba.co.jp>
-
-Regards,
-
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
-
-
-----Next_Part(Thu_Mar_10_06:28:15_2005_804)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="ct_ftp_dmsg.patch"
-
---- linux-2.6.11/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-03-10 05:46:42.000000000 +0900
-+++ linux-2.6.11-fixed/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-03-10 05:48:22.000000000 +0900
-@@ -331,8 +331,10 @@
- 	if (!find_nl_seq(ntohl(th->seq), ct_ftp_info, dir)) {
- 		/* Now if this ends in \n, update ftp info. */
- 		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u) or %s(%u)\n",
--		       ct_ftp_info->seq_aft_nl[0][dir] 
--		       old_seq_aft_nl_set ? "":"(UNSET) ", old_seq_aft_nl);
-+		       ct_ftp_info->seq_aft_nl_num[dir] > 0 ? "" : "(UNSET)",
-+		       ct_ftp_info->seq_aft_nl[dir][0],
-+		       ct_ftp_info->seq_aft_nl_num[dir] > 1 ? "" : "(UNSET)",
-+		       ct_ftp_info->seq_aft_nl[dir][1]);
- 		ret = NF_ACCEPT;
- 		goto out_update_nl;
- 	}
-
-----Next_Part(Thu_Mar_10_06:28:15_2005_804)----
+Regards
+Patrick
