@@ -1,14 +1,11 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] MASQUERADE not flushing conntracks on ip change
-Date: Mon, 8 Nov 2004 02:17:47 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0411080215020.8242@filer.marasystems.com>
-References: <20041102210440.GA1851@linuxace.com> <418999B2.3070600@trash.net>
+From: Sven Anders <anders@anduras.de>
+Subject: Unique rule ID?!
+Date: Mon, 08 Nov 2004 12:04:05 +0100
+Message-ID: <418F52A5.7010700@anduras.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------090102050903000804040800"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <418999B2.3070600@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,19 +17,71 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 4 Nov 2004, Patrick McHardy wrote:
+This is a multi-part message in MIME format.
+--------------090102050903000804040800
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-> I think we should revert to the old behaviour for all interfaces.
-> When MASQUERADE was using a route-lookup for selecting the source
-> there were good reasons for using MASQUERADE on devices with statically
-> configured adresses, and some people (like me) still do it today.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-If this is what you want create another "Automatic SNAT" target without 
-the flush logics.
+Hello!
 
-Presonally my opinion is that SNAT does the job just fine in static 
-configurations, but I can imagine a few complex multilink setups where 
-automatic selection of the SNAT IP may be preferable.
+I've wrote my own litte tool so set the ip-tables rule in the kernel. It works
+nicely, but now I have some trouble with the byte and packet counters and need
+some ideas...
+
+Instead of manipulating the existing kernel tables (by reading the current
+table from the kernel, changing it and writing it back - like the iptables tool.)
+it reads the complete table definitions from config file and commits it to the
+kernel. Unfortunatly it currently zeros out all counters.
+
+Because I cannot be sure, what changes are made to the config file (from one commit
+to the next), I have to identify each rule for sure. If I could mark any rule I
+set with an unique id, it would be easy. Sadly, I did not found any field in the
+netfilter rules structure to do this... I found an 'comment' match extension, which
+I could misuse for it, but this would be an hack.
+
+Or are there any unique identifiers to each rule (which would not change from one
+kernel commit to the next) that I missed?
+
+If I decide to add an ID field to the kernel's rule structure (and implement the
+code for giving each new rule an unique ID), would you be interested to accept
+these patch to the offical netfilter tree? If you argue against it with the
+used memory, do you really think 2-4 bytes per rule is too much? What is the biggest
+useful size of an netfilter table? 1000 rules (= 4 Kbytes for IDs),
+10000 rules (= 40KB)? If so much rules are in place, don't you think you have to
+use chains? ;-)
+
+Additionaly this unique ID, once it's implemented, could be used for a better
+identification of matching rules in the LOG/ULOG targets. You didn't have to
+wonder which rule matched and could use the prefix field for other things.
+Maybe this ID could be useful for synchronizing kernel tables when playing
+with high-availablity...
+
+What do you think about this ideas
+Any other ideas?!
 
 Regards
-Henrik
+~ Sven
+
+- --
+~ Sven Anders <anders@anduras.de>
+
+~ ANDURAS service solutions AG
+~ Innstraße 71 - 94036 Passau - Germany
+~ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+
+Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
+Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
+Vorsitzender des Aufsichtsrats: Dipl. Kfm. Karlheinz Antesberger
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD4DBQFBj1Kl5lKZ7Feg4EcRAoRqAJiU5J4cMkt5nCNTL3CV/00byYu6AJ4zR+ZR
+cnS0tI9dKMFBUEXGeVrj/Q==
+=URiF
+-----END PGP SIGNATURE-----
+
+--------------090102050903000804040800--
