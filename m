@@ -1,38 +1,55 @@
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: Re: [nf-failover] ct_sync for Linux 2.6.10
-Date: Tue, 11 Jan 2005 15:20:00 +0100
-Message-ID: <1105453200.9187.1.camel@nienna.balabit>
-References: <1105399340.2948.29.camel@krak.odu>
-	<1105447763.17258.5.camel@shreya1.diwancomputing.com>
+From: Peter Bieringer <pb@bieringer.de>
+Subject: Re: (usagi-users 03190) Re: netfilter6: ICMPv6 type 143 doesn't
+ match
+Date: Tue, 11 Jan 2005 20:56:35 +0100
+Message-ID: <60EEE488578EBAD1D9924A43@worker.muc.bieringer.de>
+References: <6050E336B1A0D7D8E70C66F3@t1mobil.muc.aerasec.de>
+ <200412270417.iBR4HZRG021429@toshiba.co.jp>
+ <20041227.100205.102356251.yoshfuji@linux-ipv6.org>
+ <EA4274721EC980393BB13B5E@worker.muc.bieringer.de>
+ <20050110131709.GB16911@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter-devel list <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <1105447763.17258.5.camel@shreya1.diwancomputing.com>
-To: madhav@diwancomputing.com
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: yasuyuki.kozakai@toshiba.co.jp, netdev@oss.sgi.com, laforge@gnumonks.org,
+        kaber@trash.net, netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: usagi-users@linux-ipv6.org
+In-Reply-To: <20050110131709.GB16911@suse.de>
+Content-Disposition: inline
+Sender: netdev-bounce@oss.sgi.com
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
 
-  Hi,
 
-2005-01-11, k keltez=E9ssel 07.49-kor Madhav Diwan ezt =EDrta:
-> The following compile time errors were found after patching stock k=
-ernel
-> 2.6.10  with ct-cync big patch
+--On Monday, January 10, 2005 02:17:09 PM +0100 Olaf Kirch <okir@suse.de>
+wrote:
 
-  Thanks, I'll take care of these. Some of these happen only if
-debugging is turned off, probably that's why I did not see them. :)
+> On Sat, Jan 08, 2005 at 12:45:14PM +0100, Peter Bieringer wrote:
+>> -               ptr = IPV6_HDR_LEN;
+>> +               ptr = ((u8*)skb->nh.raw - skb->data) + IPV6_HDR_LEN;
+> [...]
+>> But it won't help :-((
+> 
+> The following works for me on 2.6.8:
+> 
+> 		ptr = ((char *) ipv6 - (char *) skb->data) + IPV6_HDR_LEN;
+> 
+> Older 2.6 kernels also do not call ipv6_skip_exthdr() in icmp6_match();
+> more recent kernels fix this.
+> 
+> Olaf
 
---=20
-KOVACS Krisztian <hidden@sch.bme.hu>
+
+I'll be very happy now that I can report that on a recompiled 2.6.10
+(latest Fedora Core 3 update), this patch works for me. I will file a RH
+bugzilla entry for that and the esp match problem.
+
+Thank you all very much for helping!
+
+        Peter
+-- 
+Dr. Peter Bieringer                     http://www.bieringer.de/pb/
+GPG/PGP Key 0x958F422D               mailto: pb at bieringer dot de 
+Deep Space 6 Co-Founder and Core Member  http://www.deepspace6.net/
