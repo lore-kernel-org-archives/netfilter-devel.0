@@ -1,15 +1,14 @@
-From: Yasuyuki Kozakai <kozakai@isl.rdc.toshiba.co.jp>
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Subject: [Patch]: IPv6 Connection Tracking
-Date: Wed, 24 Sep 2003 17:00:23 +0900 (JST)
+Date: Wed, 24 Sep 2003 20:59:12 +0900 (JST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030924.170023.46120771.kozakai@isl.rdc.toshiba.co.jp>
+Message-ID: <20030924.205912.33488943.kozakai@isl.rdc.toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Wed_Sep_24_17:00:23_2003_460)--"
+ boundary="--Next_Part(Wed_Sep_24_20:59:12_2003_427)--"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,16 +19,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Wed_Sep_24_17:00:23_2003_460)--
+----Next_Part(Wed_Sep_24_20:59:12_2003_427)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Hello, Harald,
+I resend this message because I misstook my mail address.
+I'm sorry about duplicated messages if you received.
 
-I'm writing to you for the first time.
+-----------------------
+Hello,
 I'm a member of USAGI Project.
 
-A few months ago, I told in Netfilter developer mailing list that I was coding
+A few months ago, I told in Netfilter developer mailinglist that I was coding
 IPv6 Connection Tracking in Linux 2.5, 2.6.
 I completed that, so I send a patch.
 
@@ -40,19 +41,19 @@ The summaries are below.
 		* multiple expectations can be used.
 	- Fragmented packets is handled as below, so "Path MTU Discovery"
 	  isn't disturbed, and can be reduced copying skb.
-		1. The skb is cloned, and original skb isn't touched.
-		2. the cloned skbs are reassembled into one skb. The codes for
+		1. clone skb, and original skb isn't touched.
+		2. cloned skbs are reassembled into one skb. the codes for
 		   this processing are based on net/ipv6/reassembly.c
-		3. The reassembled packet is tracked.
-		4. "nf_ct_info" of reassembled skb is set to original skbs.
-		5. The original skbs are passed to next hook function
+		3. reassembled packet is tracked.
+		4. set nf_ct_info of reassembled skb to original skbs.
+		5. original skbs are passed to next hook function
 		   at PREROUTING. (none functions in present)
-		6. The reassembled packet is discarded.
+		6. reassembled packet is discarded.
 	- The offset at protocol header is passed to the various functions
 	  in order to parse Extension Headers at once. 
 	- NAT is not supported
 	- Multicast packets aren't handled.
-	- Recent patches in patch-o-matic/submitted/* are followed up.
+	- Resent patches in patch-o-matic/submitted/* are followed up.
 
 I tested by using regular packets:
 	- TCP, UDP, ICMPv6 Echo, ICMPv6 Error, FTP, Fragmented UDP packets
@@ -60,8 +61,8 @@ I tested by using regular packets:
 and illegal packets:
 	- TCP, FTP, ICMPV6 Error with incorrect checksum
 	- TCP, FTP with incorrect sequence number
-	- illegal Fragmented UDP packets
-	- unknown Extension Header, truncated Extension Header
+	- irregular Fragmented UDP packets
+	- unknown Extension Header
 	- and so on.
 
 The codes handling multiple expectations aren't be tested, because I don't know
@@ -80,7 +81,7 @@ Toshiba Corporation
 yasuyuki.kozakai@toshiba.co.jp
 ----------------------------------------
 
-----Next_Part(Wed_Sep_24_17:00:23_2003_460)--
+----Next_Part(Wed_Sep_24_20:59:12_2003_427)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline; filename="conntrack6.patch"
@@ -5393,4 +5394,4 @@ diff -Nur linux-2.6.0-test5/net/netsyms.c linux-2.6.0-test5-ct6/net/netsyms.c
  #include <linux/netfilter_ipv4.h>
  EXPORT_SYMBOL(ip_route_me_harder);
 
-----Next_Part(Wed_Sep_24_17:00:23_2003_460)----
+----Next_Part(Wed_Sep_24_20:59:12_2003_427)----
