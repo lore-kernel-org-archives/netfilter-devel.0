@@ -1,16 +1,17 @@
-From: Patrick Schaaf <bof@bof.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: Bug (?) in ipt_reject doesn't follow policy routing (2.4.x)
-Date: Mon, 14 Apr 2003 09:59:33 +0200
+Date: Mon, 14 Apr 2003 10:49:07 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030414075933.GJ18520@oknodo.bof.de>
-References: <Pine.LNX.4.21.0304132035370.31823-100000@debian.besselink>
+Message-ID: <3E9A7603.6030607@trash.net>
+References: <Pine.LNX.4.21.0304132035370.31823-100000@debian.besselink> <20030414075933.GJ18520@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Leen Besselink <leen@wirehub.nl>,
+ netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Leen Besselink <leen@wirehub.nl>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.21.0304132035370.31823-100000@debian.besselink>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20030414075933.GJ18520@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,41 +22,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-HiHo,
+Patrick Schaaf wrote:
 
-> OK, first the situation...
-> 
-> I use policy routing to decide (based on the from-address) on what
-> out-interface to send a packet (and thus a different sender IP-address and
-> gateway).
-> 
-> But... when I use reject-with tcp-reset, for a port on a host on the
-> network behind my firewall, the tcp-reset-packet goes over the wrong
-> interface.
+>Maybe, if you can answer these questions, we'll be able to understand
+>your problem. Maybe somebody can do that even without those answers,
+>but the silence you received up to now indicates that's unlikely.
+>  
+>
 
-I don't understand that description fully. Let's be more specific.
-You have an outside host O, a policy router P, and an inside target T.
-Further assume that O sends in packets on P.eth0, and T sits on P.eth1.
+May I ? ;)
 
-1) when O sends a packet to P, P will see a source-NATted address Q, right?
-   If not, what did you mean with 'thus a different sender IP-address'?
+Without beeing specific to his setup, the problem he describes is
+that ipt_REJECT (and others) always choose lsrc to be 0 if it's 
+non-local for
+the routing decision. I'll just make a simple example:
 
-2) is the reject-with-tcp-reset rule on P or T?
+Routing Rules (incomplete):
+1000: from 10.0.0.0/8 lookup abc
+32766:  from all lookup main
 
-3) in the situation you describe, O tries to send to T?
+Routing tables (incomplete):
+abc: default via 192.168.0.1 dev eth0
+main: default via 172.20.0.1 dev eth1
 
-4) when the RST goes out the wrong interface, what interface is that,
-   and on what interface did the packet come in?
+So all packets except those with src=10.0.0.0/8 should go through 
+172.20.0.1.
+When ipt_REJECT send a reject for any non-local address in 10.0.0.0/8 it 
+chooses
+lsrc=0 for the routing lookup, so it ends up with default route of table 
+main
+instead of table abc.
 
-5) how do the source and destination IP addresses of that RST packet
-   look at PREROUTING?
+I wonder why ip_route_input isn't used, this should eliminate the need for
+using different information from what is contained in the actual packet for
+the routing lookup ..
 
-6) how do the source and destination IP addresses of that RST packet
-   look at POSTROUTING / on the outgoing wire?
-
-Maybe, if you can answer these questions, we'll be able to understand
-your problem. Maybe somebody can do that even without those answers,
-but the silence you received up to now indicates that's unlikely.
-
-best regards
-  Patrick
+Bye,
+Patrick
