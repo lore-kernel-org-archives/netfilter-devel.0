@@ -1,14 +1,15 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Re: QUEUE, large udp message failure
-Date: Thu, 6 May 2004 14:53:31 -0700 (PDT)
+From: Kenneth =?iso-8859-1?q?Aafl=F8y?= <keaafloy@online.no>
+Subject: 2.6.6-rc3 - "ip_conntrack_in: Frag of proto 17" (udp) with kNFS r/wsize > 8192
+Date: Fri, 7 May 2004 04:11:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040506215331.31054.qmail@web13906.mail.yahoo.com>
-References: <200405061528.16034.rmiller@duskglow.com>
+Message-ID: <200405070411.48918.keaafloy@online.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200405061528.16034.rmiller@duskglow.com>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,54 +20,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I actually have tried it with 65535 (and larger, since
-I think the buffer space is also used for the packet
-msg), same problem. I am quite positive the 24K
-message I make is the largest being processed, so the
-64000 buffer should be large enough).   One thought I
-have not looked at yet; I use a static buffer to read
-in ipq_read().  I then allocate a buffer large enough
-to hold the returned data, memcpy the buffer over, and
-then call ipq_msg_type(), ipt_get_packet, etc.  Could
-this be causing any problems? 
+Hi!
 
+I hope this problem has not been reported before or that I'm not just picking 
+up on some user-keyboard troubles, I've read over the archives, but could not 
+find anything relevat to this issue.
 
---- Russell Miller <rmiller@duskglow.com> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> On Thursday 06 May 2004 14:45, Scott MacKay wrote:
-> 
-> > Where PACKET_SIZE_MAX is 64000.  I have a normal
-> > ipq_read() loop using the readBuffer and it
-> normally
-> > works fine, allowing me to do my stuff with the
-> > packet.
-> > The problem comes in when I get a large message
-> > (tested was 24000 bytes).  ipq_read fails.  I
-> added
-> > some debug and it seems to be in
-> > ipq_netlink_recvfrom() where the recvfrom() fails
-> with
-> > errno=105.  Is there some artifical cap on the
-> size of
-> > a message which can be passed to the QUEUE target?
-> >
-> Don't know if this helps, but:
-> 
-> The payload size can be as high as 65536 bytes.  If
-> your buffer is not large 
-> enough to receive the payload, ipq_read will return
-> with ENOBUFS, which means 
-> your buffer is not large enough.  I bet if you set
-> PACKET_SIZE_MAX to 65536, 
-> that problem goes away.
+I've come across some strange behavior with a nfs server running on 2.6.6-rc3 
+today. My clients is also running this version. Basically when I set the NFS 
+client r/wsize = 8192, or remove the connection tracking netfilter modules 
+the problem goes away. If I set the r/wsize to 16834 and the conntrack module 
+is loaded I end up in the code segment below. When this happens the NFS 
+client will almost lose connection with the server, and print a lot of;
+NFS server not responding, still trying. NFS server OK.
 
+I've also tried 2.6.5, and the error is present there too, but not the segment 
+below, so I got no warning. I have not yet tried any lower version of the 
+kernel yet, but will do so if it's requested. I could also have provided you 
+with extensive information about my setup's, but I belive it's a minor 
+problem with the reassembly of fragmented packets. 
 
+ip_conntrack_core.c:798
+    /* Never happen */
+    if ((*pskb)->nh.iph->frag_off & htons(IP_OFFSET)) {
+        if (net_ratelimit()) {
+        printk(KERN_ERR "ip_conntrack_in: Frag of proto %u (hook=%u)\n",
+               (*pskb)->nh.iph->protocol, hooknum);
+        }
+        return NF_DROP;
+    }
 
-	
-		
-__________________________________
-Do you Yahoo!?
-Win a $20,000 Career Makeover at Yahoo! HotJobs  
-http://hotjobs.sweepstakes.yahoo.com/careermakeover 
+Does anybody have a solution for the problem exept making (manually) sure that 
+any client does not request a r/wsize above 8192?
+
+Kenneth
