@@ -1,15 +1,16 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: Re: why I cann't compile the program?
-Date: Tue, 25 Nov 2003 08:01:05 +0100
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: "ip_tables: table screwed up!" on pom 20031023 - raw patch?
+Date: Tue, 25 Nov 2003 09:34:50 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FC2FE31.50305@gmx.de>
-References: <E1AOSBp-0003rO-Sc@vishnu.netfilter.org>
+Message-ID: <Pine.LNX.4.33.0311250933550.13765-100000@blackhole.kfki.hu>
+References: <Pine.LNX.4.44.0311241445490.17111-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: William Stearns <wstearns@pobox.com>,
+	ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <E1AOSBp-0003rO-Sc@vishnu.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0311241445490.17111-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,45 +21,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 24 Nov 2003, Henrik Nordstrom wrote:
 
-Hello,
-
-
-Fangweiwei wrote:
-
->----------------------------------------------
->I try to compile it using: gcc test.c 
->  
+> On Fri, 21 Nov 2003, Henrik Nordstrom wrote:
 >
-try compiling it with
+> > Unfortunately my problem is still there.. and now the UML kernel config is
+> > very close to what we use on "real" boxes..
+>
+> FYI: My problem with corrupted tables on iptables-restore have been
+> isolated with 99.9% certainity as a odd UML kernel memory management
+> issue.
 
-gcc -o test test.c -lipq
+Thank you for reporting back your results!
 
-This will link it with the ipq library (which you of course must have
-installed).
-
->but it gives me some msg as following:
->
->/tmp/ccYcdyBh.o: In function `die':
->/tmp/ccYcdyBh.o(.text+0xf): undefined reference to `ipq_perror'
->/tmp/ccYcdyBh.o(.text+0x1d): undefined reference to `ipq_destroy_handle'
->/tmp/ccYcdyBh.o: In function `main':
->/tmp/ccYcdyBh.o(.text+0x41): undefined reference to `ipq_create_handle'
->/tmp/ccYcdyBh.o(.text+0x7b): undefined reference to `ipq_set_mode'
->/tmp/ccYcdyBh.o(.text+0xb5): undefined reference to `ipq_read'
->/tmp/ccYcdyBh.o(.text+0xe3): undefined reference to `ipq_message_type'
->/tmp/ccYcdyBh.o(.text+0x12a): undefined reference to `ipq_get_msgerr'
->/tmp/ccYcdyBh.o(.text+0x157): undefined reference to `ipq_get_packet'
->/tmp/ccYcdyBh.o(.text+0x17e): undefined reference to `ipq_set_verdict'
->collect2: ld returned 1 exit status
->
->----------------------------------------------
->
->can you help me? thanks a lot.
->
->　　　　　　　　Fangweiwei
->　　　　　　　　fangweiwei@tom.com
->　　　　　　　　　　2003-11-25
->
-
-Sven
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
