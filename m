@@ -1,17 +1,15 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: limit and negation
-Date: Tue, 09 Nov 2004 16:14:42 +0100
-Message-ID: <1100013282.4439.1.camel@porky>
-References: <1099995187.4318.15.camel@porky>
-	<33091.66.11.161.14.1100010503.squirrel@66.11.161.14>
+From: Harald Welte <laforge@netfilter.org>
+Subject: New draft document on nat / traversal / hole punching (with Dan
+	Kegel)
+Date: Tue, 9 Nov 2004 16:49:46 +0100
+Message-ID: <20041109154946.GD22257@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-FijopYn4Kv0ihmTYz66L"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="mPYgjWmOFizS0g23"
+Cc: coreteam@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nicolas Bouliane <nib@cookinglinux.org>
-In-Reply-To: <33091.66.11.161.14.1100010503.squirrel@66.11.161.14>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,36 +22,43 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-FijopYn4Kv0ihmTYz66L
-Content-Type: text/plain
+--mPYgjWmOFizS0g23
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2004-11-09 at 09:28 -0500, Nicolas Bouliane wrote:
-> bash-2.05b# iptables -A OUTPUT -m limit --limit ! 1/sec -j LOG
-> --log-prefix "over"
-> iptables v1.2.11: Unexpected `!' after --limit
-> Try `iptables -h' or 'iptables --help' for more information.
-> bash-2.05b#
+Hi!
 
-I try this one too, but it should not accept this command as it does
-now :
->> iptables -A OUTPUT -m limit ! --limit 1/s -j LOG --log-prefix "over"
+On the IETF behave list, I received a link to a yet unpublished draft
+that can be seen as a successor to the old 'kegel draft' (now also
+authored by a whole group).  It should be a good reading for anyone who
+wans to thoroughly understand the problem and see proposed solutions.
 
-BR,
+It now covers both, UDP and TCP.
+
+http://www.brynosaurus.com/pub/os/nat.pdf
+
 --=20
-Eric Leblond <eric@inl.fr>
-INL
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---=-FijopYn4Kv0ihmTYz66L
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+--mPYgjWmOFizS0g23
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQBBkN7hnxA7CdMWjzIRArmTAJ0Xy/lLoNyrrPFDfblVvqlWCQJNHwCffRRb
-7k+VQp3T23O5BsDGPfFg6Go=
-=0IHo
+iD8DBQFBkOcaXaXGVTD0i/8RAlK7AJ4mPrjZnolqRwU/0QK3T/EgAZ3QVACdE6+J
+L9kw+LHsAHQghLxRtJeQ0XI=
+=B8f+
 -----END PGP SIGNATURE-----
 
---=-FijopYn4Kv0ihmTYz66L--
+--mPYgjWmOFizS0g23--
