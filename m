@@ -1,17 +1,20 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Syncookie firewall
-Date: Thu, 6 Jun 2002 19:32:04 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: 06 Jun 2002 19:48:14 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206061932.04510.hno@marasystems.com>
-References: <20020606020322.05BF64258@lists.samba.org> <15615.36281.187120.257236@isis.cs3-inc.com>
+Message-ID: <1023385694.4894.50.camel@tux>
+References: <3CFF9A00.2070805@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.samba.org>,
+	Mikkel Christiansen <mixxel@cs.auc.dk>,
+	Mikkel Refsgaard Bech <mrb@cs.auc.dk>,
+	Torben Vinther Schmidt <mariachi@cs.auc.dk>,
+	Carsten Stiborg <stiborg@cs.auc.dk>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: don-nf@isis.cs3-inc.com (Don Cohen),
-	netfilter-devel@lists.samba.org
-In-Reply-To: <15615.36281.187120.257236@isis.cs3-inc.com>
+To: Emmanuel Fleury <fleury@cs.auc.dk>
+In-Reply-To: <3CFF9A00.2070805@cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,32 +25,41 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Don Cohen wrote:
+On Thu, 2002-06-06 at 19:21, Emmanuel Fleury wrote:
 
-> Why do you think that's better than simply forwarding packets with
-> sequence/ack# translation?  Surely it's less efficient.  And it raises
-> questions about how much data to buffer between the two and how that
-> can be controlled.
+[snip]
+> I am just quoting their mail here:
+ 
+[snip again]
 
-Because there is no good way to know the servers TCP options before you have 
-opened the TCP connection to the server, and you do not want to open the TCP 
-connection to the server before the client has acknowledged the connection...
+> For short:
+> - ACK packets are classified as NEW (without opening a connection),
+> - Therefore, allowing NEW packets allow all the ACK packets to go
+>    through,
+> - And consequently, in this setting, you can perform ACK scanning
+>    if you just trust the documentation...
+> 
+> Actually, I don't know what to answer to them. Has somebody any clue to
+> explain this ?
 
-Adjusting the sequence numbers is the simple part of the picture. Does not 
-worry me.. this is what the NAT engine is doing.
+Tell them (well  they are probably the ones cc'd :) to read through the
+netfilter and netfilter-devel mailinglist archives as there's been
+discussions about this.
 
-What worries me is
+And tell them that they should look at the conntrack-tcp-nopickup patch
+in patch-o-matic. This patch disables the exact thing described here.
 
-  * Window scaling
-  * Timestamp
-  * ECN
+I recently mailed a patch against patch-o-matic that improves the
+conntrack-tcp-nopickup patch so you can change the behaviour at runtime.
 
-and a number of other end-to-end TCP options that depend on correct 
-negotiation during SYN.
+The newest tcp-window-tracking patch also has support for disabling this
+type of connection pickup.
 
-Sure, window scaling and ECN can be set by configuration if you know your 
-server, but there is no good way to deal with the timestamp option short of 
-forcibly filter it out entirely from the TCP stream.
+If you apply the conntrack-tcp-nopickup patch these ACK's will be marked
+as INVALID instead of NEW.
 
-Regards
-Henrik
+-- 
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
