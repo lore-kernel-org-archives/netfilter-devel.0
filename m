@@ -1,16 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ippool -X not working
-Date: Tue, 9 Dec 2003 08:25:21 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: ip_conntrack_get
+Date: Tue, 9 Dec 2003 09:51:53 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0312090823230.5206-100000@blackhole.kfki.hu>
-References: <1070905216.813.11.camel@tux.rsn.bth.se>
+Message-ID: <Pine.LNX.4.44.0312090916320.23521-100000@filer.marasystems.com>
+References: <3FD5486A.6060007@deansoft.com.tw>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Rodrigo Severo <rodrigo.lists@fabricadeideias.com>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: pablo neira <pablo@eurodev.net>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1070905216.813.11.camel@tux.rsn.bth.se>
+To: Jesse Peng <jesse@deansoft.com.tw>
+In-Reply-To: <3FD5486A.6060007@deansoft.com.tw>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 8 Dec 2003, Martin Josefsson wrote:
+On Tue, 9 Dec 2003, Jesse Peng wrote:
 
-> Maybe it's time someone wrote a small installation-howto, and maybe
-> replaced the code in netfilter cvs with this code as it works a lot
-> better than the old code (the old code might work well with Henrik's
-> patches, I've never used them...)
-> There's still some work to be done on ippool, the question is like
-> always when it will be done... nobody knows.
+> while a new ip_conntrack cache initiates, every member 
+> infos[i](nf_ct_info structure) then be charged with the same address 
+> value pointing to the ip_conntrack cache's begining address(it's the 
+> address of its first member nf_conntrack structure naming ct_general also).
 
-I'm working on ippool: the main goal is to add sub/port pools to the
-current version.
+Right.. now I get why this construct is looking like it does. It is a 
+tradeoff "wasting" some space per conntrack to limit the mount of fields 
+needed in the skb.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+By using this construct both the ctinfo and conntrack can be derived from
+a single pointer in the skb.
+
+For systems using conntrack a lot it would be more efficient to extend the
+skb with one more field for ctinfo, but as it is good if the skb is the
+same regardless if conntrack is enabled or not and this construct is a
+good tradeoff.
+
+It is however possible to reduce the size of this construct considerably 
+to just one byte per ctinfo.
+
+Thanks
+Henrik
