@@ -1,11 +1,18 @@
-From: Jonas Berlin <jberlin@niksula.hut.fi>
-Subject: [PATCH] conntrack-acct "workaround" for 2.6.9+
-Date: Thu, 17 Feb 2005 02:20:32 +0200
-Message-ID: <4213E350.8060604@niksula.hut.fi>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [RFC] string matching based packet classification/filtering
+Date: Thu, 17 Feb 2005 02:00:57 +0100
+Message-ID: <4213ECC9.30502@eurodev.net>
+References: <20050215203211.GL31837@postel.suug.ch>
+	<42126C9B.5060406@eurodev.net>
+	<20050216223038.GQ31837@postel.suug.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Cc: netdev@oss.sgi.com,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Harald Welte <laforge@gnumonks.org>
+To: Thomas Graf <tgraf@suug.ch>
+In-Reply-To: <20050216223038.GQ31837@postel.suug.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,23 +24,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-patch-o-matic-ng fails to detect that conntrack-acct is already applied 
-(I don't know how it does the detection) and thus fails when trying to 
-apply it.
+Thomas Graf wrote:
 
-However, if an empty file called linux-2.6.9.patch is placed in the 
-conntrack-acct/ directory, everything works just fine.
+>>Actually I wanted to contact Harald after this friday, once I'm done 
+>>with my exams. I'd like to merge my work with his libqsearch hackings 
+>>that were about to be finished.
+>>    
+>>
+>
+>Thinking about it, we can use the architecture to implement a regular
+>expression match. The pattern would consist of an array of tokens
+>in the form of:
+>
+>struct regexp_token
+>{
+>	__u8 type;
+>	__u8 recur;
+>	__u8 value;
+>	__u8 unused;
+>};
+>  
+>
 
-I noticed this problem when I was trying to patch connbytes into the 
-kernel (which depends on conntrack-acct). After adding the empty patch 
-file, connbytes also went in just fine.
+Yes, this is a good idea. This could be useful to match things like 
+interrogation marks or asterisks that are usually used as wildcard.
 
-So unless there's a better way of fixing it in the patch-o-matic-ng 
-detection code, maybe someone with commit rights just create an empty 
-conntrack-acct/linux-2.6.9.patch file :)
+>where type would be
+>  - specific character (must match `value')
+>  - wildcard
+>  - digit
+>  - xdigit
+>  - alpha ...
+>
+>and recur
+> - 1
+> - 0..1
+> - 0..n
+> - 1..0
+>
+>The matching algorithm would parse the array as a finite automation
+>eating up byte by byte in the text.
+>
 
-(I verified that the original patch worked until 2.6.8 ; hence my choice 
-of 2.6.9)
+Looks good but Boyer-Moore algorithm doesn't need this at all. BM 
+doesn't support wildcards like '*' because of the shiftings that it uses 
+to look for matches. This issue together with memory consumption are two 
+limitations that we have to live with if we want to use BM. Anyway I 
+think it's worth it because we can perform search in O(n/m).
 
--- 
-- xkr47
+--
+Pablo
