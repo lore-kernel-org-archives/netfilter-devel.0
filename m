@@ -1,17 +1,12 @@
-From: Jean-Francois Dive <jef@linuxbe.org>
-Subject: Re: RFC 2694 and iptables
-Date: Wed, 6 Nov 2002 11:40:52 +1100
+From: "Pito Breizh" <pito_breizh@hotmail.com>
+Subject: Memory leak problem
+Date: Wed, 06 Nov 2002 10:47:41 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021106004052.GF484@gnoll.homeip.net>
-References: <3DC6A4E7.30708@gemplus.com> <20021105061017.25960.qmail@web40310.mail.yahoo.com>
+Message-ID: <F76W2ufyWOxbCJnEMzA000311db@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Didier Tournier <Didier.TOURNIER@gemplus.com>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kevin McConnell <kevymac@yahoo.com>
-Content-Disposition: inline
-In-Reply-To: <20021105061017.25960.qmail@web40310.mail.yahoo.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,54 +17,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
-Well, you're riht this does not look usefull in his case, but this
-does not mean this is not usefull at all..
+I've got a problem of memory leak with iptables. I'm using iptables
+1.2.7a. I've linked libiptc.a and iptables.o with my application.
 
-It may be used to interconnect with NAT to network which have the same
-address space: make each network look at the other one as another 
-network prefix than what it is. This sounds bad network design and
-i agree, but this is a real world situation where, for exemple, 2 
-mega corp's merges and changing the network prefix is not a feasable
-thing. Off course, then, dns payload manipulation is usefull.
+I'm setting up some NAT rules by using do_command and iptc_commit
+functions.
 
-JeF
+I've seen a mail on netfilter-devel list (dated of 2 september) dealing
+with this problems. Here is this mail :
 
-On Mon, Nov 04, 2002 at 10:10:17PM -0800, Kevin McConnell wrote:
-> 
-> --- Didier Tournier <Didier.TOURNIER@gemplus.com>
-> wrote:
-> > Hi,
-> > I would like to build a dns alg with iptables.
-> > The main role of a dns alg is to modify DNS response
-> > packet by replacing 
-> > private IP address with public ones.
-> 
-> Before you go trying to implement this module, you do
-> of course realize that there isn't a need for this,
-> right? The current bind9 is perfectly capable of
-> coexisting on a host that has both RFC 1918 addresses
-> and real addresses, and depending on what clients ask
-> it for resolution, it can define a "view" of what the
-> internet/intranet should look like for them. Before
-> you go putting too much effort for this, please look
-> into seeing if this can solve what you are trying to
-> accomplish. If not, then please reword your statement
-> to explain what you are trying to do.
-> 
-> 
-> =====
-> Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
-> 
-> __________________________________________________
-> Do you Yahoo!?
-> HotJobs - Search new jobs daily now
-> http://hotjobs.yahoo.com/
+>You expect the iptables source components to be more than a short->running 
+>one-shot application; you expect them to be usable in a library in a 
+>longer-running process. That expectation is wrong, the current userlevel 
+>iptables source was not designed with that goal in mind.
 
--- 
+>This is currently tackled by some developers (not me), who are working
+>on an all-new userlevel and user/kernel interface that _is_ designed
+>to support efficient use from many different userlevel applications.
 
--> Jean-Francois Dive
---> jef@linuxbe.org
+>However, as far as I know, this reimplementation is currently not
+>in a form that you may use.
 
-  There is no such thing as randomness.  Only order of infinite
-  complexity.  - _The Holographic Universe_, Michael Talbot
+>best regards
+>  Patrick
+
+First of all, I would want to know if the developers team in charge of
+the developement of the new userlevel interface is on this list?
+
+Secondly, are there news about this subject ? If developement's
+resources are needed, perhaps I can help !
+
+Best regards,
+   Mickael
+
+
+
+
+
+_________________________________________________________________
+MSN Search, le moteur de recherche qui pense comme vous ! 
+http://search.msn.fr/worldwide.asp
