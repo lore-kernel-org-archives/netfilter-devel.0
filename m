@@ -1,13 +1,14 @@
-From: Evrim ULU <evrim@core.gen.tr>
-Subject: IP Queue Conntrack info patch
-Date: Fri, 18 Apr 2003 18:19:49 +0300
+From: Peter Stamfest <peter@stamfest.at>
+Subject: Re: Accessing iptables from within an application...
+Date: Fri, 18 Apr 2003 18:52:16 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EA01795.8070301@core.gen.tr>
+Message-ID: <Pine.LNX.4.44.0304181847410.10014-100000@peter.stamf.pr.at>
+References: <Pine.LNX.4.44.0303261733140.25652-100000@peter.stamf.pr.at>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030804000900010907070305"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0303261733140.25652-100000@peter.stamf.pr.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,97 +19,95 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030804000900010907070305
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi,
+Hello, 
 
-First post so, flames>>/dev/null ehe:-)
+I do not like to follow up my own posts, but because there was not a 
+single reaction I felt I should repeat my proposals. Maybe this time 
+around I can provoke some reactions ;-)
 
+Even a "this is complete nonsense" would count towards my "reaction 
+counter".
 
-We were coding a userspace firewall and saw there exists no conntrack 
-info in ipq_packet_msg_t so added it in an ugly fashion. (with my dear 
-*friend* Aycan Irican<aycan@core.gen.tr>) Maybe someone will publish a 
-better patch in future.
+Thus: 
 
-My question is about arp packets.
+Regarding an API to access iptables:
 
-I'm trying to process arp packets via ip_queue. I couldn't make the 
-below code segment work. I've looked into ip_queue module and saw 
-payload is taken from skb->data. I don't know what the skb->data pointer 
-really points but i know that if packet is an ip_protocol pack, i can make
+On Wed, 26 Mar 2003, Peter Stamfest wrote:
+> 
+> On Wed, 26 Mar 2003, Harald Welte wrote:
+> 
+> > no.  There is no API outside the iptables command to access this
+> > information.  We've discovered this as a design mistake, but fixing this
+> > requires the whole architecture to change.
+> > 
+> 
+> FWIW, some thoughts about it and some things I changed for myself, I might 
+> repeat things discussed previously - if so do not hesitate to flame me...
+> 
+> 1 libiptc.a, libip6tc.a plus the iptables.o and ip6tables.o files contain 
+>   most of what is needed for an API
+> 
+> 2 the splitting of libiptc and libip6tc  using a common libiptc.c and 
+>   #including it is not an example of "good" C-programming, however, the 
+>   fact that it (libiptc.c) contains functions common to both libraries 
+>   leads to trouble when using BOTH ipv4 and ipv6 versions.
+> 
+> 3 The modules and the libraries are STDOUT-centric. So many printfs all 
+>   over the place. And sometimes this is the only way to get at some 
+>   information.
+> 
+> 4 There is no proper way to query a module for its configuration settings 
+>   besides the stuff that just printf's it.
+> 
+> Some possible solutions:
+> 
+> ad 1: IMHO the functionality in ip(6)tables.o useful to be in a proper API 
+> should be moved into the libip(6)tc libraries. After all: libraries are 
+> there to hold generally useful functionality.
+> 
+> ad 2: take out _common_ code from libiptc.c so that it becomes possible to 
+> link with both libiptc and libip6tc
+> 
+> ad 3: Replace all the calls to "printf" in all the modules by some 
+> "iptables_printf" function and use that function to actually put the 
+> information anywhere it is needed. Provide a way to change the way 
+> information is "printed". I implemented this using a "vprintf"-style 
+> function to be registered with this mechanism. I ALREADY HAVE A PATCH 
+> DOING THIS. (sorry for shouting). Beware: the patch (trivial as it is) has 
+> an incredible size of 163k (it mostly changes printf -> iptables_printf.
+> 
+> ad 4: Extend the module API with a proper way to query for these
+> informations. Provide a fall-back mechanism using the 
+> (iptables_)printf-based if such methods aren't available (good for a 
+> transition period).
+> 
+> What do you think? Personally, I could use this for my iptables-snmp
+> project, that currently is able to actually present most settings of a
+> rule via SNMP. This will finally allow tools like MRTG (or a similar toll
+> I am currently developing) to be used to monitor rules. Eg. here is an
+> example of the information it is able to provide for a given rule
+> (incidentally the counters are 0, but be assured that they can be read):
+> 
+> IPTABLES-MIB::ruleIndex.1.0.1 = INTEGER: 1
+> IPTABLES-MIB::chainIndexR.1.0.1 = INTEGER: 0
+> IPTABLES-MIB::tableIndexR.1.0.1 = INTEGER: 1
+> IPTABLES-MIB::chainNameR.1.0.1 = STRING: "INPUT"
+> IPTABLES-MIB::chainTableNameR.1.0.1 = STRING: "filter"
+> IPTABLES-MIB::ruleOctets.1.0.1 = Counter64: 0
+> IPTABLES-MIB::rulePackets.1.0.1 = Counter64: 0
+> IPTABLES-MIB::chainRule.1.0.1 = STRING: ";p 6;s 192.168.3.0/24;j ACCEPT;tcp spt:666"
+> IPTABLES-MIB::sourceIP.1.0.1 = IpAddress: 192.168.3.0
+> IPTABLES-MIB::sourceMask.1.0.1 = IpAddress: 255.255.255.0
+> IPTABLES-MIB::destinationIP.1.0.1 = IpAddress: 0.0.0.0
+> IPTABLES-MIB::destinationMask.1.0.1 = IpAddress: 0.0.0.0
+> IPTABLES-MIB::matches.1.0.1 = STRING: ";tcp spt:666"
+> 
+> I know that the proposed changes are at the core of the iptables
+> utilities, but eventually something will have to be done about it. I would
+> like to compare this to eg. rpm and its librpm: did anybody think about an
+> API when first inventing something like RPM?? I think the same thing 
+> happened to iptables.
+> 
 
-iphdr = (struct iphdr *)p->payload
-
-Also, i know that iphdr and arphdr are both network layer headers in 
-skbuff structure so, it must run correctly.  When i run it, if protocol 
-is ARP, i'm getting 40 bytes of payload which does not fit into arphdr 
-(also not in struct ether_arp *) correctly.
-
-void handle_packet(ipq_packet_msg_t *p)
-{
-proto = ntohs(p->hw_protocol);
-switch(proto) {
-	case ETH_P_ARP:
-         case ETH_P_RARP:
-             g_message("got ARP packet");
-	    process_arp(p);
-}
-
-int process_arp(ipq_packet_msg_t *p)
-{
-     struct arphdr *arp = p->payload;
-     /* PROBLEM , arphdr is not correct */
-     switch(ntohs(arp->ar_op)) {
-     case ARPOP_REQUEST:
-	g_message("Got arp request");
-	break;
-     }
-}
-
-Thnx.
-Evrim.
-
---------------030804000900010907070305
-Content-Type: text/plain;
- name="ip_queue_conntrack.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ip_queue_conntrack.diff"
-
---- /usr/src/linux-2.4.20/net/ipv4/netfilter/ip_queue.c	2003-02-15 00:04:41.000000000 +0200
-+++ /usr/src/linux/net/ipv4/netfilter/ip_queue.c	2003-04-01 20:23:21.000000000 +0300
-@@ -252,6 +252,10 @@
- 				                                   pmsg->hw_addr);
- 	}
- 	
-+	if (!ip_conntrack_get(entry->skb, &pmsg->conntrack)) {
-+		printk("Matrix has you!\n");
-+		goto nlmsg_failure;
-+	}
- 	if (data_len)
- 		memcpy(pmsg->payload, entry->skb->data, data_len);
- 		
---- /usr/src/linux-2.4.20/include/linux/netfilter_ipv4/ip_queue.h	2003-02-15 00:04:41.000000000 +0200
-+++ /usr/src/linux/include/linux/netfilter_ipv4/ip_queue.h	2003-04-01 20:12:17.000000000 +0300
-@@ -17,6 +17,8 @@
- #include <net/if.h>
- #endif	/* ! __KERNEL__ */
- 
-+#include <linux/netfilter_ipv4/ip_conntrack.h>
-+
- /* Messages sent from kernel */
- typedef struct ipq_packet_msg {
- 	unsigned long packet_id;	/* ID of queued packet */
-@@ -30,6 +32,7 @@
- 	unsigned short hw_type;		/* Hardware type */
- 	unsigned char hw_addrlen;	/* Hardware address length */
- 	unsigned char hw_addr[8];	/* Hardware address */
-+	enum ip_conntrack_info conntrack;
- 	size_t data_len;		/* Length of packet data */
- 	unsigned char payload[0];	/* Optional packet data */
- } ipq_packet_msg_t;
-
---------------030804000900010907070305--
+peter
