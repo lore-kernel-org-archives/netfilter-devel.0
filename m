@@ -1,12 +1,12 @@
-From: Kessler Eyal <saneeyal@techst02.technion.ac.il>
-Subject: Help with configuring the ip_nat_snmp_basic module
-Date: Tue, 9 Jul 2002 14:50:24 +0300 (IDT)
+From: "Eyal k" <lalala103@hotmail.com>
+Subject: What is ip_nat_snmp_basic's interface?
+Date: Tue, 09 Jul 2002 17:27:11 +0300
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.GSO.4.33.0207091444140.13626-100000@techst02.technion.ac.il>
+Message-ID: <F127T34CnsdreDIOZWe00008c35@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -19,9 +19,15 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 Hi. I'm having difficulties setting up the ip_nat_snmp_basic module.
-I can't seem to find information how to define mapping rules for it,
-There's no documentation of anything alike in iptables and ipchains.
+I can't seem to find information how to define mapping rules for it, there's 
+no documentation of anything alike in iptables and ipchains.
 If any of you could shed a light on this, I would be grateful.
 
 Thanx in advance,
 Eyal
+
+
+
+
+_________________________________________________________________
+Chat with friends online, try MSN Messenger: http://messenger.msn.com
