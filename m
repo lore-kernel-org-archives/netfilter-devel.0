@@ -1,12 +1,13 @@
-From: Shlomi Fish <shlomif@vipe.technion.ac.il>
-Subject: Netfilter Project for Adoption: IP-Noise Simulator
-Date: Thu, 24 Jul 2003 12:29:18 +0300 (IDT)
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: oops in replace_in_hashes
+Date: Fri, 25 Jul 2003 10:57:31 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.56.0307241224590.14555@vipe.technion.ac.il>
+Message-ID: <20030725085731.GA5776@balabit.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,28 +18,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-The IP-Noise Simulator is a simulator for noise at the IP level for the
-Linux kernel or as a standalone program. I am looking for a new maintainer
-for the project:
+I've stumbled into a similar oops in replace_in_hashes  that somebody else
+has already reported. It was suggested to move to 2.4.21 but it still
+Oopses. It was also suggested to use the latest netfilter patches from
+patch-o-matic, because a refcounting bug was introduced in 2.4.21.
 
-http://www-comnet.technion.ac.il/~cn1w02/
+I checked out those patches and it seemed to me that they are only relevant
+if conntrack and/or nat helpers are in use.
 
-IP-Noise Simulator is open-source software. The original parts are dually
-licensed under the GPL/MIT X11 license, and two derived modules are GPL
-and LGPL.
+In our situation we do not have _any_ helpers loaded, only TPROXY generates
+dynamic NAT mappings as they are needed. Is it possible that the reference
+counting problem affects us?
 
-Regards,
-
-	Shlomi Fish
-
-
-
-----------------------------------------------------------------------
-Shlomi Fish        shlomif@vipe.technion.ac.il
-Home Page:         http://t2.technion.ac.il/~shlomif/
-
-An apple a day will keep a doctor away. Two apples a day will keep two
-doctors away.
-
-	Falk Fish
+-- 
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
