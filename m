@@ -1,10 +1,9 @@
-From: Wojciech 'Sas' Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: HOPLIMIT
-Date: Mon, 16 Feb 2004 14:19:42 +0100 (CET)
+Date: Mon, 16 Feb 2004 13:23:04 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58L.0402161413310.6865@alpha.zarz.agh.edu.pl>
-References: <Pine.LNX.4.58L.0402161307250.2317@alpha.zarz.agh.edu.pl>
- <006801c3f482$5f28a190$0e25fe96@pysiak>
+Message-ID: <Pine.LNX.4.44.0402161319410.13183-100000@filer.marasystems.com>
+References: <006801c3f482$5f28a190$0e25fe96@pysiak>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
@@ -23,32 +22,16 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Mon, 16 Feb 2004, Maciej Soltysiak wrote:
 
-> > In HOPLIMIT module file has name ip6t_HL.c but Makefile requires 
-> > ip6t_HOPLIMIT.o, and ip6t_HL.c required ip6t_HOPLIMIT.h which not exist.
-> > exist include/linux/netfilter_ipv6/ip6t_HL.h
 > Hmm, what kernel is that ? Which version and is it
 > a vanilla or a distro kernel?
 > 
 > I wrote the modules as *_HL everywhere and I do not
 > recall changing their names ever :-)
 
-kernel from PLD 2.6.3, but patch-o-matic-ng from CVS.
-version of ip6t_JL.c is 1.1 
-===================================================================
-File: ip6t_HL.c        	Status: Up-to-date
+Looks like the files are partially renamed in patch-o-matic-ng.
 
-   Working revision:	1.1
-   Repository revision:	1.1	/cvspublic/patch-o-matic-ng/HOPLIMIT/linux/net/ipv6/netfilter/ip6t_HL.c,v
-   Sticky Tag:		(none)
-   Sticky Date:		(none)
-   Sticky Options:	(none)
+The patch name, Makefile.ldadd and #include refers to HOPLIMIT while the 
+files are named HL
 
-grep -i include ip6t_HL.c | grep ip6t 
-#include <linux/netfilter_ipv6/ip6_tables.h>
-#include <linux/netfilter_ipv6/ip6t_HOPLIMIT.h>
-                               ^^^^^^^^^^^^^^^
-
-					Sas.
--- 
-{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
-{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
+Regards
+Henrik
