@@ -1,14 +1,16 @@
-From: Manickavel Subramaniraj <MSubramaniraj@MEGISTO.com>
-Subject: UDP based Transparent Proxy
-Date: Mon, 27 Jan 2003 18:51:50 -0500
+From: "Ruud van den Brink" <ruud@stress.utwente.nl>
+Subject: RE: Bug in ip_nat_core.c, introduced in 2.4.19pre4 and still persisting in 2.4.20
+Date: Sun, 26 Jan 2003 11:23:53 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <C3F7A1AD0781F84784B5528466CA09DD04F4B9@megisto-sql1>
+Message-ID: <000001c2c525$06ead3f0$026ba8c0@DEEPBLUE>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C2C65F.0FA1CD10"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: 
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,41 +21,64 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+Hi Harald,
 
-------_=_NextPart_001_01C2C65F.0FA1CD10
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Earlier this month, I reported the bug below. At that time, you asked if =
+I
+did enable the feature "NAT of local connections". I didn't. However,
+enabling this feature doesn't solve the problem. Also with this feature
+turned on; when I undo the patch introduced in 2.4.19-pre3 it works, =
+when I
+use the "standard" 2.4.20 kernel it doesn't work.
 
-I am in process of implementing UDP based Transparent Proxy based on the
-RedHat 8.0.( Kernel 2.4.18-3). I am seeing lot of talk about UDP based
-transproxy implementation. I am not sure how to implement. Please help me in
-this regard.
- 
-Thanks
-vel..
+Let me know if I can be of any help again...
 
-------_=_NextPart_001_01C2C65F.0FA1CD10
-Content-Type: text/html;
-	charset="iso-8859-1"
+Regards,
+Ruud.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+Ps. I lost my Inbox short after you sent me your e-mail. You asked me to =
+use
+another mailinglist than coreteam@netfilter.org, I hope I picked the =
+good
+one.
 
-
-<META content="MSHTML 5.00.3103.1000" name=GENERATOR></HEAD>
-<BODY>
-<DIV><FONT face=Arial size=2><SPAN class=092245223-27012003>I am in process of 
-implementing UDP based Transparent Proxy based on the RedHat 8.0.( Kernel 
-2.4.18-3). I am seeing lot of talk about UDP based transproxy implementation. I 
-am not sure how to implement. Please help me in this regard.</SPAN></FONT></DIV>
-<DIV><FONT face=Arial size=2><SPAN 
-class=092245223-27012003></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT face=Arial size=2><SPAN 
-class=092245223-27012003>Thanks</SPAN></FONT></DIV>
-<DIV><FONT face=Arial size=2><SPAN 
-class=092245223-27012003>vel..</SPAN></FONT></DIV></BODY></HTML>
-
-------_=_NextPart_001_01C2C65F.0FA1CD10--
+> -----Original Message-----
+> From: Ruud van den Brink [mailto:ruud@stress.utwente.nl]
+> Sent: maandag 6 januari 2003 20:32
+> To: 'coreteam@netfilter.org'
+> Subject: Bug in ip_nat_core.c, introduced in 2.4.19pre4 and still
+> persisting in 2.4.20
+>=20
+> Hi netfilter team,
+>=20
+> I have been using the 2.4.16 kernel for a while, and recently I =
+upgraded
+> to 2.4.19. At that time, CIPE (a VPN application) refused to work in
+> conjunction with NAT. Today I finally found some time to trace the =
+problem
+> in the Kernel source.
+>=20
+> In the patch from 2.4.19-pre2 to 2.4.19-pre3, you applied a patch for
+> ip_nat_core.c:
+>=20
+> @@ -494,7 +498,10 @@
+>  static unsigned int opposite_hook[NF_IP_NUMHOOKS]
+>  =3D { [NF_IP_PRE_ROUTING] =3D NF_IP_POST_ROUTING,
+>      [NF_IP_POST_ROUTING] =3D NF_IP_PRE_ROUTING,
+> -    [NF_IP_LOCAL_OUT] =3D NF_IP_POST_ROUTING
+> +#ifdef CONFIG_IP_NF_NAT_LOCAL
+> +    [NF_IP_LOCAL_OUT] =3D NF_IP_LOCAL_IN,
+> +    [NF_IP_LOCAL_IN] =3D NF_IP_LOCAL_OUT,
+> +#endif
+>  };
+>=20
+> If I undo this patch, everything works fine again. My knowledge about =
+the
+> kernel and about the netfilter in particular is not sufficient to give =
+any
+> input on what exactly is incorrect here, or if it is correct but it is =
+a
+> bug in Cipe - for that reason I cc'ed Olaf Titz in.
+>=20
+> Kind regards,
+> Ruud.
