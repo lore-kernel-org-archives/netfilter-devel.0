@@ -1,13 +1,14 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [CORRECTED][PATCH] net/ipv6/netfilter warning removal 2.[45]
-Date: Fri, 11 Apr 2003 19:36:45 +0200 (CEST)
+From: Ilguiz Latypov <ilguiz@nit.ca>
+Subject: Re: extra/pptp-conntrack-nat.patch
+Date: Fri, 11 Apr 2003 15:12:58 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0304111933550.18066@dns.toxicfilms.tv>
+Message-ID: <Pine.LNX.4.44.0304111409550.15504-100000@localhost.localdomain>
+References: <3E96F002.5000700@fl.priv.at>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: linux-kernel@vger.kernel.org
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <3E96F002.5000700@fl.priv.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,79 +19,80 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-Joe Perches pointed out a mistake in the previous patch, here's a
-corrected version.
-there are simple warning to remove in 4 files there, here are the
-warnings:
-net/ipv6/netfilter/ip6t_rt.c: In function `match':
-net/ipv6/netfilter/ip6t_rt.c:133: warning: assignment from incompatible pointer type
-net/ipv6/netfilter/ip6t_frag.c: In function `match':
-net/ipv6/netfilter/ip6t_frag.c:150: warning: assignment from incompatible pointer type
-net/ipv6/netfilter/ip6t_esp.c: In function `match':
-net/ipv6/netfilter/ip6t_esp.c:126: warning: assignment from incompatible pointer type
-net/ipv6/netfilter/ip6t_ah.c: In function `match':
-net/ipv6/netfilter/ip6t_ah.c:136: warning: assignment from incompatible pointer type
+Friedrich,
 
-And here is the patch to remove those by using casts.
+On Fri, 11 Apr 2003, Friedrich Lobenstock wrote:
 
-It applies both to 2.4.20 and 2.5.67.
+> > If this is true, you would be affected by the modules' rewriting of call
+> > IDs in one direction only when you were running the unmodified version.
+>
+> I don't see a connection to a bad checksum here?
 
-Regards,
-Maciej
+If you were connecting from the Linux NAT box itself without the local NAT
+option, then the unmodified connection tracking modules would keep your
+connection tracked yet not rewrite the call ID's in replies.
 
-diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.c
---- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c	2003-04-11 18:41:29.000000000 +0200
-+++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.c	2003-04-11 18:49:41.000000000 +0200
-@@ -133,7 +133,7 @@
-        		return 0;
-        }
+Changing the module to not track bad checksum connections would "fix" the
+above issue by relying on bad TCP checksums.
 
--       ah=skb->data+ptr;
-+       ah = (struct ahhdr *) (skb->data+ptr);
+But I understand that this wasn't your case.
 
-        DEBUGP("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
-        DEBUGP("RES %04X ", ah->reserved);
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.ko differ
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.o differ
-diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.c
---- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c	2003-04-11 18:41:29.000000000 +0200
-+++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.c	2003-04-11 18:48:24.000000000 +0200
-@@ -123,7 +123,7 @@
-        		return 0;
-        }
+The following chart represents my understanding of the PPTP tracking
+modules capabilities in their current state.  I assumed that uncommenting
+the "return NF_ACCEPT" statement in question is equivalent to not tracking
+a connection with bad TCP checksum.
 
--	esp=skb->data+ptr;
-+	esp = (struct esphdr *) (skb->data+ptr);
+One can see from that chart that not tracking bad checksum connections
+will only benefit the "no local NAT support, connection from the NAT box,
+bad checksum"  scenario.  On the other hand, in case of connections from
+behind the NAT box, the suggested change will prevent from more than one
+bad checksum connection at a time.
 
- 	DEBUGP("IPv6 ESP SPI %u %08X\n", ntohl(esp->spi), ntohl(esp->spi));
+The current decision to keep that statement commented means the latter
+case casualty outweighed the advantages of the former case in the author's
+mind.
 
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.ko differ
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.o differ
-diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.c
---- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c	2003-04-11 18:41:29.000000000 +0200
-+++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.c	2003-04-11 18:48:09.000000000 +0200
-@@ -147,7 +147,7 @@
-        		return 0;
-        }
+I don't understand how the change helped you in the latter case while
+theoretically it should only make things worse there.
 
--       frag=skb->data+ptr;
-+       frag = (struct fraghdr *) (skb->data+ptr);
+Thanks,
 
-        DEBUGP("IPv6 FRAG LEN %u %u ", hdrlen, frag->hdrlen);
-        DEBUGP("INFO %04X ", frag->info);
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.ko differ
-Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.o differ
-diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_rt.c
---- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c	2003-04-11 18:41:29.000000000 +0200
-+++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_rt.c	2003-04-11 18:53:36.000000000 +0200
-@@ -130,7 +130,7 @@
-        		return 0;
-        }
+--
+Ilguiz Latypov
+Net Integration Technologies, Inc
 
--       route=skb->data+ptr;
-+       route = (struct ipv6_rt_hdr *) (skb->data+ptr);
+tel. +1 (514) 281 9191 x 117
 
-        DEBUGP("IPv6 RT LEN %u %u ", hdrlen, route->hdrlen);
-        DEBUGP("TYPE %04X ", route->type);
+
+                                 connection from       connection from
+                               behind the NAT box    the NAT box itself
+
+                               good TCP   bad TCP     good TCP   bad TCP
+                               checksum   checksum    checksum   checksum
+
+
+      no PPTP modules             1          1           +          +
+
+
+   unmodified PPTP modules        +          +           -          -
+ without the local NAT option
+
+   unmodified PPTP modules        +          +           +          +
+  with the local NAT option
+
+ uncommented "return NF_ACCEPT"
+    for bad TCP checksums         +          1           -          +
+ without the local NAT option
+
+ uncommented "return NF_ACCEPT"
+    for bad TCP checksums         +          1           +          +
+  with the local NAT option
+
+
+------------------
++: Any number of connections of given class is treated correctly.
+-: No connection possible.
+1: Only one connection at a time will work in these cases.  If this refers
+   to the "behind the NAT box" connections, no connections from the NAT
+   box itself should be allowed for this to work.
