@@ -1,38 +1,94 @@
-From: "Wojciech \"Sas\" Cieciwa" <cieciwa@alpha.zarz.agh.edu.pl>
-Subject: [Q] CVS snap 20030418 ...
-Date: Wed, 23 Apr 2003 14:18:14 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44L.0304231409130.29708-100000@alpha.zarz.agh.edu.pl>
-References: <20030422065302.31170.13388.Mailman@kashyyyk>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [RESEND][PATCH] net/ipv6/netfilter warnings removal
+Date: Wed, 23 Apr 2003 14:38:32 +0200 (CEST)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.51.0304231434540.4838@dns.toxicfilms.tv>
+References: <Pine.LNX.4.51.0304051607310.32140@dns.toxicfilms.tv>
+ <Pine.LNX.4.51.0304072115010.19830@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030422065302.31170.13388.Mailman@kashyyyk>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: alan@lxorguk.ukuu.org.uk, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.51.0304072115010.19830@dns.toxicfilms.tv>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
-Hi,
+There are simple warnings to remove in 4 files there, here are the
+warnings:
+net/ipv6/netfilter/ip6t_rt.c: In function `match':
+net/ipv6/netfilter/ip6t_rt.c:133: warning: assignment from incompatible
+pointer type
+net/ipv6/netfilter/ip6t_frag.c: In function `match':
+net/ipv6/netfilter/ip6t_frag.c:150: warning: assignment from incompatible
+pointer type
+net/ipv6/netfilter/ip6t_esp.c: In function `match':
+net/ipv6/netfilter/ip6t_esp.c:126: warning: assignment from incompatible
+pointer type
+net/ipv6/netfilter/ip6t_ah.c: In function `match':
+net/ipv6/netfilter/ip6t_ah.c:136: warning: assignment from incompatible
+pointer type
 
-My friend find strange situation.
-He can't reload netfilter modules.
-lsmod says that modules isn't loaded, but insmod says that module is loaded.
-And netfilter isn't usable.
+And here is the patch to remove those by using casts.
 
-Sorry, for so stupid describe, but I don't use netfilter so hard like him.
+It applies both to 2.4.20+ and 2.5.67+.
 
-Is this bug in netfilter or in our kernel ?
+Regards,
+Maciej
 
-Thanx.
-					Sas.
--- 
-{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
-{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
+
+diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.c
+--- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c	2003-04-11 18:41:29.000000000 +0200
++++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.c	2003-04-11 18:49:41.000000000 +0200
+@@ -133,7 +133,7 @@
+        		return 0;
+        }
+
+-       ah=skb->data+ptr;
++       ah = (struct ahhdr *) (skb->data + ptr);
+
+        DEBUGP("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
+        DEBUGP("RES %04X ", ah->reserved);
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.ko differ
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.o differ
+diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.c
+--- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c	2003-04-11 18:41:29.000000000 +0200
++++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.c	2003-04-11 18:48:24.000000000 +0200
+@@ -123,7 +123,7 @@
+        		return 0;
+        }
+
+-	esp=skb->data+ptr;
++	esp = (struct esphdr *) (skb->data + ptr);
+
+ 	DEBUGP("IPv6 ESP SPI %u %08X\n", ntohl(esp->spi), ntohl(esp->spi));
+
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.ko differ
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.o differ
+diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.c
+--- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c	2003-04-11 18:41:29.000000000 +0200
++++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.c	2003-04-11 18:48:09.000000000 +0200
+@@ -147,7 +147,7 @@
+        		return 0;
+        }
+
+-       frag=skb->data+ptr;
++       frag = (struct fraghdr *) (skb->data + ptr);
+
+        DEBUGP("IPv6 FRAG LEN %u %u ", hdrlen, frag->hdrlen);
+        DEBUGP("INFO %04X ", frag->info);
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.ko differ
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.o differ
+diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_rt.c
+--- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c	2003-04-11 18:41:29.000000000 +0200
++++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_rt.c	2003-04-11 18:53:36.000000000 +0200
+@@ -130,7 +130,7 @@
+        		return 0;
+        }
+
+-       route=skb->data+ptr;
++       route = (struct ipv6_rt_hdr *) (skb->data + ptr);
+
+        DEBUGP("IPv6 RT LEN %u %u ", hdrlen, route->hdrlen);
+        DEBUGP("TYPE %04X ", route->type);
