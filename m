@@ -1,13 +1,20 @@
-From: Bruce Guenter <lists-netfilter-devel@bruce-guenter.dyndns.org>
-Subject: Variable-length data?
-Date: Wed, 15 Sep 2004 11:18:14 -0600
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH]: fixed kernel panic when trying to find tcp option
+Date: Wed, 15 Sep 2004 10:22:36 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040915171814.GA30824@em.ca>
+Message-ID: <20040915102236.6100ea14.davem@davemloft.net>
+References: <200409151136.i8FBajor029883@toshiba.co.jp>
+	<20040915084335.6944eebe.davem@davemloft.net>
+	<20040915085049.7a7d45f0.davem@davemloft.net>
+	<200409151720.i8FHKJAC002371@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
+        yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200409151720.i8FHKJAC002371@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,15 +25,13 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Greetings.
+On Thu, 16 Sep 2004 02:20:18 +0900 (JST)
+Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> wrote:
 
-I have written a simple filter for matching multiple network masks in a
-list.  From what I can see, the actual netfilter data has to be constant
-sized.  Is this true, or is there an easy way to have a non-fixed size
-list of addresses (for example)?  It seems rather wasteful to allocate a
-large array when only a small one is needed.
+> If you do it, all tcp packets which has no option will be dropped
+> in the case of adding tcp-option match rule.
 
-Thanks.
--- 
-Bruce Guenter <bruceg@em.ca> http://em.ca/~bruceg/ http://untroubled.org/
-OpenPGP key: 699980E8 / D0B7 C8DD 365D A395 29DA  2E2A E96F B2DC 6999 80E8
+You are right.
+
+Did your patch return "invert" from tcp_find_option() when optlen
+is zero?  I deleted it, sorry.
