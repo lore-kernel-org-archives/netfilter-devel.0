@@ -1,16 +1,13 @@
-From: Andras Kis-Szabo <kisza@securityaudit.hu>
-Subject: Re: [RESEND][PATCH] Hop Limit match/target for IPv6
-Date: Thu, 02 Jan 2003 20:39:50 +0100
+From: Aaron Eppert <eppertan@cs.rose-hulman.edu>
+Subject: libipq and reinjecting packets
+Date: Thu, 2 Jan 2003 15:22:49 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1041536390.938.1.camel@arwen.middleearth.hu>
-References: <Pine.LNX.4.44.0301021931270.8422-100000@dns.toxicfilms.tv>
+Message-ID: <20030102202249.GA9354@cs.rose-hulman.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
-Cc: Netfilter Devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-reply-to: <Pine.LNX.4.44.0301021931270.8422-100000@dns.toxicfilms.tv>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +18,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-> The patch i send lately, has a nested comment which fails to compile
-> Like this:
-> /* bla
->  * bla */
->  */
-> 
-> Just need to remove the nested */ in the middle there.
-> 
-> It appears twice in include/linux/netfilter_ipv6/ip6t_HL.h in
-> the netfilter include directory and in the patch-o-matic kernel patch.
-Could You send the modified patch to the list?
+The application I am currently writing is experiencing a few oddities
+that I am hoping someone may clear up.  
 
-Regards,
+Program's basic layout:
 
-	kisza
+1) ipq_read()
+2) ipq_set_verdict()
+3) accept()
 
--- 
-    Andras Kis-Szabo       Security Development, Design and Audit
--------------------------/        Zorp, NetFilter and IPv6
- kisza@SecurityAudit.hu /------------------------------------------->
+Somewhere between ipq_set_verdict() and accept() a packet gets lossed,
+which is why it leads me to believe it is in the netfilter kernel
+code.  When the reinjected packet gets lossed, accept() will hang 
+indefinitely.  Now, a potential solution is using select() around
+the accept() call, but select() also causes rather painful issues.
+
+Bottom line, ipq_set_verdict() and then immediately going to an
+accept() should not cause a problem.
+
+Any insight would be greatly appreciated.
+
+Aaron
