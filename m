@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: fix for ipt_TCPMSS
-Date: Wed, 9 Oct 2002 16:54:51 +0200
+Subject: Re: problem ULOG when high loaded
+Date: Wed, 9 Oct 2002 16:56:33 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021009165451.W13233@sunbeam.de.gnumonks.org>
-References: <20021006115312.GA1936@whiskey.dummy.lan>
+Message-ID: <20021009165633.X13233@sunbeam.de.gnumonks.org>
+References: <CKEGJOPDOMNNFIGIMICAOEFACBAA.caster@postech.ac.kr>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oNVW4gaiVGQBzhrj"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="bDDjztrZmyyMv72E"
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Lennart Poettering <mz6e657466696c746572@itaparica.org>
+To: "wizard" <caster@postech.ac.kr>
 Content-Disposition: inline
-In-Reply-To: <20021006115312.GA1936@whiskey.dummy.lan>; from mz6e657466696c746572@itaparica.org on Sun, Oct 06, 2002 at 01:53:12PM +0200
+In-Reply-To: <CKEGJOPDOMNNFIGIMICAOEFACBAA.caster@postech.ac.kr>; from caster@postech.ac.kr on Mon, Oct 07, 2002 at 06:11:40PM +0900
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,32 +23,30 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---oNVW4gaiVGQBzhrj
+--bDDjztrZmyyMv72E
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Oct 06, 2002 at 01:53:12PM +0200, Lennart Poettering wrote:
-> Hi!
+On Mon, Oct 07, 2002 at 06:11:40PM +0900, wizard wrote:
+> Hi, netfilter developers~
 >=20
-> While looking at the source code of the TCPMSS target I noticed a
-> simple error: the target makes an expanded copy of the skb if
-> needed. However, this copy is no longer owned by the original "struct
-> sock". The attached patch fixes this.
+>  I have a Question about ULOG ..
 >=20
-> If the skb is copied without this fix the kernel will oops short time
-> after, when some code tries to access the attached "struct sock", which is
-> NULL.
+>  if my linuxbox works on 50000 forwarding packet per second, and try to l=
+og all packet ,
 >=20
-> The code of TCPMSS isn't perfect anyway since the skb is copied twice
-> under certain circumstances. This is not needed.
->=20
-> Nobody ever triggered this error, as it seems. Nonetheless, it is an
-> error.
+>  is it possible..?
 
-your patch seems fine to me.  I have asked Marc Boucher (as the original
-author) to confirm this bug.
-> lp
+This of course depends on=20
+
+a) your hardware
+b) what kind of logging software (and logging output format) you use in=20
+   userspace
+c) how much of the packet needs to be copied to userspace.
+
+I have users who've positively reported logging a 100MBit connection at
+full wire speed [with real-world packets, _not_ 64bytes].
 
 --=20
 Live long and prosper
@@ -61,7 +59,7 @@ Live long and prosper
 as
  I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---oNVW4gaiVGQBzhrj
+--bDDjztrZmyyMv72E
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -69,9 +67,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9pEM6XaXGVTD0i/8RAjS4AKCQJQBT00+sqp6cavEFh2bL/Ox93wCfbOfw
-M1NQ9WkE7Z9JOSAGH1eTh94=
-=6j/d
+iD8DBQE9pEOgXaXGVTD0i/8RAjOOAJ0SoW8w6mZr8Yz+eKk+ffWwk4FAuQCfXPJa
+IfEoRotfYyqdujRlDRvUwAs=
+=PzW8
 -----END PGP SIGNATURE-----
 
---oNVW4gaiVGQBzhrj--
+--bDDjztrZmyyMv72E--
