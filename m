@@ -1,16 +1,17 @@
-From: Lukas Ruf <ruf@rawip.org>
-Subject: Re: iptables 1.2.11 and kernel 2.6.7
-Date: Fri, 2 Jul 2004 16:22:00 +0200
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Subject: RE: information
+Date: Fri, 2 Jul 2004 21:19:28 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040702142200.GE11721@tik.ee.ethz.ch>
-References: <20040702135147.GC11721@tik.ee.ethz.ch> <876ef97a04070207051e15f80a@mail.gmail.com>
-Reply-To: PLEASE REPLY TO THE LIST <dev_null@rawip.org>
+Message-ID: <200407021820.i62IKBMX017587@madinah.ccse.kfupm.edu.sa>
+References: <1088780591.40e5792fcc3a0@webmail.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter List" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter development <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <876ef97a04070207051e15f80a@mail.gmail.com>
+To: "'Babar Qaisrani'" <baqb03@student.bth.se>
+In-Reply-To: <1088780591.40e5792fcc3a0@webmail.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,55 +22,125 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> Tobias DiPasquale <codeslinger@gmail.com> [2004-07-02 16:07]:
->
-> On Fri, 2 Jul 2004 15:51:47 +0200, Lukas Ruf <ruf@rawip.org> wrote:
-> > Has anyone experienced the same problems?  I could not find any answer
-> > in the archive.
-> >
-> > If anyone would be interested in patch, please indicate and I will
-> > create one.
->
-> The patch in the following post fixes (at least) the DECLARE_MUTEX()
-> problem for me. The issue was that the system headers were being used
-> and not the headers in the kernel source tree:
->
-> http://lists.netfilter.org/pipermail/netfilter/2004-June/053639.html
->
-> However, the build process then fails during
-> extensions/libipt_recent.c in the following manner:
->
-> fearless:~/iptables-1.2.11> make KERNEL_DIR=/usr/src/linux
-> Extensions found: IPv4:recent IPv6:ah IPv6:esp IPv6:frag
-> IPv6:ipv6header IPv6:hbh IPv6:dst IPv6:rt
-> gcc -O2 -Wall -Wunused -Iinclude/ -DIPTABLES_VERSION=\"1.2.11\"  -fPIC
-> -o extensions/libipt_ah_sh.o -c extensions/libipt_ah.c
-> ld -shared  -o extensions/libipt_ah.so extensions/libipt_ah_sh.o
-[...]
-> gcc -O2 -Wall -Wunused -Iinclude/ -DIPTABLES_VERSION=\"1.2.11\"  -fPIC
-> -o extensions/libipt_recent_sh.o -c extensions/libipt_recent.c
-> extensions/libipt_recent.c:9:45: linux/netfilter_ipv4/ipt_recent.h: No
-> such file or directory
-> extensions/libipt_recent.c: In function `init':
-> extensions/libipt_recent.c:77: error: dereferencing pointer to incomplete type
-[...]
-> make: *** [extensions/libipt_recent_sh.o] Error 1
-> fearless:~/iptables-1.2.11>
->
-> I am running on Gentoo Linux with a vanilla 2.6.7 kernel. I rebuilt
-> the bzImage and modules in preparation for building iptables 1.2.11
-> and they are in /usr/src/linux. Anyone have any ideas?
->
-> P.S. Sorry if you feel I've hijacked your thread, but I think I'm
-> pretty on-topic. If not, I can post again outside.
->
+I got the libipq/QUEUE part working but the problem is that it only works
+for the first time. For example, if I want to drop all icmp packets, it
+will, but if I change the nfmark from drop to accept and then recompile my
+libipq program, it does not work and the dropping policy is maintained. Same
+for the other way around. 
+Regards,
 
-This is no problem.  It's pretty much the same problem, I presume.
-So far, I have not made use of recent...
+Muhammad R. Sami 
+Research Assistant, 
+Computer Engineering Department 
+P.O.Box 354 
+King Fahd University of Petroleum & Minerals 
+Dhahran 31261 
+Saudi Arabia. 
+Tel: +96638601423 
+Cell: +96657982951 
+www.ccse.kfupm.edu.sa/sami
 
-wbr,
-Lukas
--- 
-Lukas Ruf           | Wanna know anything about raw |
-<http://www.lpr.ch> | IP? -> <http://www.rawip.org> |
-eMail Style Guide: <http://www.rawip.org/style.html>|
+-----Original Message-----
+From: Babar Qaisrani [mailto:baqb03@student.bth.se] 
+Sent: Friday, July 02, 2004 6:03 PM
+To: Muhammad R. Sami
+Subject: RE: information
+
+well
+install the missing module !
+
+most probably either ui have to recompile the Kernel or install module
+....depending on ur Linux distro
+im using Debian
+I installed iptables-dev , my guess is 
+i think used the default kernel settings for 2.4.26
+
+guess looking up guides in NETFILTER web site would be good start as well!
+
+Regards
+Babar Qaisrani
+
+
+Quoting "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>:
+
+> 
+> -----Original Message-----
+> From: Babar Qaisrani [mailto:baqb03@student.bth.se] 
+> Sent: Friday, July 02, 2004 5:23 PM
+> To: Muhammad R. Sami
+> Subject: RE: information
+> 
+> AOA
+> well u do that by following 
+> /locationofiptables/iptables -A Queue Name(OUTPUT|INPUT|FORWARD) -p
+protocol
+> name -j QUEUE
+> e.g 
+> /usr/sbin/iptables -A OUTPUT -p ip -j QUEUE --------- I have done this
+> 
+> REMEMBER do this before --------------------here I am having problems
+> (FATAL: module not found)
+> /sbin/modprobe iptable_filter 
+> /sbin/modprobe ip_queue
+> 
+> hope it helps !
+>  
+> 
+> Regards
+> Babar Qaisrani
+> 
+> 
+> Quoting "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>:
+> 
+> > May I know exactly how you queue your packets to the userspace
+application
+> > as I also want to use libipq and QUEUE but am having problems. I mailed
+my
+> > case earlier to the list. I am simply following the example in the
+manpage
+> > of libipq. But it does not seem to work.
+> > Regards,
+> > 
+> > Muhammad R. Sami 
+> > Research Assistant, 
+> > Computer Engineering Department 
+> > P.O.Box 354 
+> > King Fahd University of Petroleum & Minerals 
+> > Dhahran 31261 
+> > Saudi Arabia. 
+> > Tel: +96638601423 
+> > Cell: +96657982951 
+> > www.ccse.kfupm.edu.sa/sami
+> > -----Original Message-----
+> > From: netfilter-devel-admin@lists.netfilter.org
+> > [mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Babar
+> > Qaisrani
+> > Sent: Tuesday, June 29, 2004 10:06 PM
+> > To: netfilter-devel@lists.netfilter.org
+> > Subject: information
+> > 
+> > Hello All,
+> > 
+> > I am developing some code using Lib IPQ and User Space queuing . i have 
+> > set the Server to put incoming packets in Queue .
+> > The IP ID on the IP Header i get is used as a Referance Counter.
+> > My Question is : Is the IP ID in the IP Packet re numbered in IP Queue 
+> > some how?
+> > im sorry if this Question is answered before ..
+> > 
+> > Thanks
+> > Babar
+> > 
+> > 
+> > 
+> > 
+> 
+> 
+> -------------------------------------------------
+> This mail sent through IMP: http://horde.org/imp/
+> 
+> 
+
+
+-------------------------------------------------
+This mail sent through IMP: http://horde.org/imp/
