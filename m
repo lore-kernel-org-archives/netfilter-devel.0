@@ -1,14 +1,15 @@
-From: wanghtb@legend.com.cn
-Subject: Re: How does iptables redirect a packet that is not addressed to its local
- machine
-Date: Thu, 8 Apr 2004 09:47:15 +0800
+From: zhi wang <pangy2004@yahoo.com>
+Subject: Re: How does iptables redirect a packet that is not addressed to its local machine
+Date: Wed, 7 Apr 2004 22:44:18 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <OF05773CF7.D82960E2-ON48256E70.00096C5F@legend.com.cn>
+Message-ID: <20040408054418.1592.qmail@web41701.mail.yahoo.com>
+References: <BAY7-DAV19wEsGmjm0800027007@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Cc: zheyinli@hotmail.com
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Develop <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Grace Li <zheyinli@hotmail.com>
+In-Reply-To: <BAY7-DAV19wEsGmjm0800027007@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,33 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, I wonder if the Client and the Server are in the same network,
-under which the Gateway will send a ICMP Redirect message to
-make the Client access Server directly.
+> Client (192.168.1.134) tries to connect to port 1888 of Server
+> (192.168.1.115) through Gateway (192.168.1.1).  In the Gateway, the iptables
+> has been instructed to redirect traffic on port 1888 to 2000 (iptables -t
+> nat -A PREROUTING -i eth0 -p tcp --dport 1888 -j REDIRECT -to-port 2000 ).
 
-Please check netmask of the Machines and use tcpdump packet in the 
-Gateway to see what happens:-)
+At the client execute:
+traceroute -n 192.168.1.115
+to make sure that the client DID send the packet to the gateway
 
->Hi,
->
->I am just wondering if anybody could explain what happened in the =
->following experiments:
-
->Client (192.168.1.134) tries to connect to port 1888 of Server
->(192.168.1.115) through Gateway (192.168.1.1).  In the Gateway, the =
->iptables
->has been instructed to redirect traffic on port 1888 to 2000 (iptables =
->-t
->nat -A PREROUTING -i eth0 -p tcp --dport 1888 -j REDIRECT -to-port 2000 =
->).
->
->The results of my experiments is that the application on Gateway who =
->listens
->to port 2000 could not get anything, while Server receives everything
->expected on its port 1888. So my question is that did iptables do =
->anything
->here?
->
->Many thanks,
->
->Grace
+__________________________________
+Do you Yahoo!?
+Yahoo! Small Business $15K Web Design Giveaway 
+http://promotions.yahoo.com/design_giveaway/
