@@ -1,12 +1,13 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: Re: [PATCH 0/4] Updated IPSEC NAT patches for 2.6.11
-Date: Thu, 03 Mar 2005 13:10:28 -0800
-Message-ID: <42277D44.4080207@shorewall.net>
-References: <1108667319.21912.14.camel@leto.cs.pocnet.net>
+From: Peter Lenci <peterlenci@yahoo.ca>
+Subject: Re: Iptables Match on Direction (IP_CT_IS_REPLY)
+Date: Fri, 4 Mar 2005 04:35:42 -0500 (EST)
+Message-ID: <20050304093542.23600.qmail@web90010.mail.scd.yahoo.com>
+References: <9151ac2a05022712376c099fb4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060308050903030909060403"
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1108667319.21912.14.camel@leto.cs.pocnet.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+To: Filip Sneppe <filip.sneppe@gmail.com>
+In-Reply-To: <9151ac2a05022712376c099fb4@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,72 +19,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060308050903030909060403
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi Filip
 
-Christophe Saout wrote:
-> Hi,
+ --- Filip Sneppe <filip.sneppe@gmail.com> wrote: 
+> On Sat, 26 Feb 2005 07:43:03 -0500 (EST), Peter Lenci
+> <peterlenci@yahoo.ca> wrote:
+> > Is there a possibility to access flag IP_CT_IS_REPLY from an iptables
+> > command?
+> > 
+> > I have only spotted the "--direction original|reply|both" option from
+> > the connbytes patch
+> > (http://www.netfilter.org/patch-o-matic/pom-extra.html#pom-extra-connbytes)
+> > but then I would prefer not to waste memory by counting bytes.
+> > 
 > 
-> I've forward-ported Patrick McHardy's patches that make the kernel IPSEC
-> work with NAT.
-> 
-> Since there probably won't be any more big changes between 2.6.11-rc4
-> and the final 2.6.11 I'm posting them now.
-> 
-> The biggest change is in the last patch (ipsec-04-policy-checks.diff). I
-> needed to rewrite nf_nat_decode_session4 due to the big NAT changes. I
-> hope I got everything right. I couldn't find a situation where it
-> failed.
-> I also added a missing return in nat_route_key_compare that made the
-> kernel fail with certain compiler flags.
-> 
+> The "conntrack" match should do what you are looking for. From the help
+> option:
 
-Here's another little patch that allows iptables to compile cleanly
-against a kernel tree that has the IPSEC NAT patches applied.
+I studied conntrack but didn't find a way to read the direction
+of the packet. In fact I was thinking about writing a patch for that
+module to add an option "--direction original|reply|both".
 
--Tom
--- 
-Tom Eastep    \ Off-list replies are cheerfully ignored
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
-PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
+How exactly would you determine the direction with conntrack?
 
---------------060308050903030909060403
-Content-Type: text/x-patch;
- name="ipsec-05-iptablescompile.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ipsec-05-iptablescompile.diff"
+Regards
+Peter
 
-diff -Naur linux-2.6.11.orig/include/linux/netfilter_ipv4.h linux-2.6.11/include/linux/netfilter_ipv4.h
---- linux-2.6.11.orig/include/linux/netfilter_ipv4.h	2005-03-03 10:55:24.895484995 -0800
-+++ linux-2.6.11/include/linux/netfilter_ipv4.h	2005-03-03 10:55:13.496133352 -0800
-@@ -7,8 +7,10 @@
- 
- #include <linux/config.h>
- #include <linux/netfilter.h>
-+#ifdef __KERNEL__
- #include <linux/netdevice.h>
- #include <net/protocol.h>
-+#endif
- 
- /* IP Cache bits. */
- /* Src IP address. */
-diff -Naur linux-2.6.11.orig/include/net/ip.h linux-2.6.11/include/net/ip.h
---- linux-2.6.11.orig/include/net/ip.h	2005-03-03 10:54:34.418212127 -0800
-+++ linux-2.6.11/include/net/ip.h	2005-03-03 10:54:25.250342049 -0800
-@@ -30,8 +30,10 @@
- #include <linux/netdevice.h>
- #include <linux/inetdevice.h>
- #include <linux/in_route.h>
-+#ifdef __KERNEL__
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv4.h>
-+#endif
- #include <net/route.h>
- #include <net/arp.h>
- #include <net/snmp.h>
-
---------------060308050903030909060403--
+______________________________________________________________________ 
+Post your free ad now! http://personals.yahoo.ca
