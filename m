@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: "Ian Latter" <Ian.Latter@mq.edu.au>
 Subject: Re: Mangle on a Connection, not on a Packet
-Date: Fri, 17 Oct 2003 07:03:56 +0200 (CEST)
+Date: Fri, 17 Oct 2003 15:10:39 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0310170658280.17002-100000@filer.marasystems.com>
-References: <200310170326.h9H3QVK17619@singularity.tronunltd.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <200310170510.h9H5Adv17981@singularity.tronunltd.com>
+Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
+Content-Type: text/plain; charset="us-ascii"
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ian Latter <Ian.Latter@mq.edu.au>
-In-Reply-To: <200310170326.h9H3QVK17619@singularity.tronunltd.com>
+To: "Henrik Nordstrom" <hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,35 +18,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 17 Oct 2003, Ian Latter wrote:
+> > possible?  (and I'd need that mark to be made free when
+> > the connection is removed from netfilter).
+> 
+> Then you need something a little more advanced than CONNMARK I think.
 
-> 1. for my input/output rules I would add rules to send any
-> new connections on my "special ports/protos" to the 
-> CONNMARK target for marking .. but I'd want an arbitrary
-> unique mark per connection, not a static one .. is this 
-> possible?  (and I'd need that mark to be made free when
-> the connection is removed from netfilter).
+ok ..
 
-Then you need something a little more advanced than CONNMARK I think.
+ 
+> From your description it sounds like you could be using the conntract 
+> handle as is. This will give you an arbitrary integer of size (void *).
 
->From your description it sounds like you could be using the conntract 
-handle as is. This will give you an arbitrary integer of size (void *).
+Hmm .. this would be good ...
+ 
+> The conntrack mark is available as ct->mark.
+> 
+> Examle code snipped accessing the conntrack mark:
+> 
+>       enum ip_conntrack_info ctinfo;
+>       struct ip_conntrack *ct = ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
+>       if (!ct)
+>           return 0;
+> 
+>       mark = ct->mark;
 
-> 2. in the mangle table, I would use connmark matching to
-> send all marked connections to the XOR target .. but am
-> I able to access the arbitrary unique mark from within
-> the XOR target module itself (programatically)?
+This was the bit that had me thinking .. if this was implemented in the XOR
+target .. with rules sending NEW and other traffic to that target .. then
+unmarked conns could be marked (and seeds could be seeded) while
+marked ones could be referenced and dealt with ..
 
-The conntrack mark is available as ct->mark.
+The only issue that would be left then is removed connections .. is there
+a substantial scratch space available within the conntrack structure(s) ?
+Ie; would I be able to attach the key to the connection, such that when the
+connection is destroyed I don't need to worry about deallocating structures
+or structure memory within the target ?   Or would this be something that
+I would (or should) need to add to ip_conntrack.h ..   like ..
 
-Examle code snipped accessing the conntrack mark:
++#if defined(CONFIG_IP_NF_CONNTRACK_CRYPTO)
++	unsigned long key_xor;
++#endif
 
-      enum ip_conntrack_info ctinfo;
-      struct ip_conntrack *ct = ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
-      if (!ct)
-          return 0;
 
-      mark = ct->mark;
+Hmm .. I think I'm almost there .. thanks for your help Henrick.
 
-Regards
-Henrik
+
+
+
+--
+Ian Latter
+Internet and Networking Security Officer
+Macquarie University
