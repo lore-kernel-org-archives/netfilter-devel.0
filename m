@@ -1,12 +1,22 @@
-From: "Abdul Malik Abbasi" <abdulmalikabasi@hotmail.com>
-Subject: Problem with Voic Chat and Yahoo and msn
-Date: Thu, 02 Jan 2003 11:46:14 +0000
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCHSET] Multiarch kconfig cleanup
+Date: Fri, 3 Jan 2003 00:05:08 +0100 (MET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F92TMnKXkKo7G45MvpX00008378@hotmail.com>
+Message-ID: <Pine.GSO.4.21.0301022358340.6446-100000__38576.7736276195$1041617842@vervain.sonytel.be>
+References: <20030102182038.GZ17053@louise.pinerecords.com>
 Mime-Version: 1.0
-Content-Type: text/html
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Linus Torvalds <torvalds@transmeta.com>,
+	Jeff Garzik <jgarzik@pobox.com>, zaitcev@redhat.com,
+	"David S. Miller" <davem@redhat.com>,
+	Linux Kernel Development <linux-kernel@vger.kernel.org>,
+	sparclinux@vger.kernel.org,
+	Linux/m68k <linux-m68k@lists.linux-m68k.org>,
+	netfilter-devel@lists.samba.org, phillim2@comcast.net,
+	Russell King <rmk@arm.linux.org.uk>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: Tomas Szepe <szepe@pinerecords.com>
+In-Reply-To: <20030102182038.GZ17053@louise.pinerecords.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,41 +27,57 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-<html><div style='background-color:'><DIV></DIV>
-<DIV></DIV>
-<P>Dear sir ,</P>
-<P>i have installed Squid on Redhat Linux 8.0. my network Clients are unable to to connaact with yahoo and&nbsp; msn chat , and webcams. please tell me what i shall will do for it </P>
-<P>thanks</P>
-<P><BR><BR><BR>&nbsp;</P>
-<DIV></DIV>
-<DIV></DIV>
-<DIV></DIV>
-<DIV>Abdul Malik Abbasi</DIV>
-<DIV></DIV>
-<DIV>System Administrator</DIV>
-<DIV></DIV>
-<DIV></DIV>
-<HR>
+On Thu, 2 Jan 2003, Tomas Szepe wrote:
+> On with the [mainly networking oriented] Kconfig clean-up saga.
+> 
+> This is the first time I'm trying to get more than 3 people to work
+> together so I'd be grateful if you didn't kick me too hard should I have
+> screwed up.
 
-<DIV></DIV>
-<DIV></DIV>
-<DIV></DIV>
-<DIV>Softmehr IT <FONT size=2>Solution Provider</FONT></DIV>
-<DIV></DIV>
-<DIV><FONT size=2>86 South Wali Center , Office No. 1</FONT></DIV>
-<DIV></DIV>
-<DIV><FONT size=2>Blue Area, Islamabad, PAKISTAN.</FONT></DIV>
-<DIV></DIV>
-<DIV><FONT size=2>Phone +92 51 2274306 , +92 512275249</FONT></DIV>
-<DIV></DIV>
-<DIV><FONT size=2>URL: <A href="http://www.softmehr.com/"><FONT size=2>http://www.softmehr.com</FONT></A><FONT size=2> </FONT></FONT></DIV>
-<DIV></DIV>
-<DIV></DIV>
-<HR>
+> 19/36  x15-arch-m68k          SPECIAL: Tear down m68k NETDEVICES config 
 
-<DIV></DIV>
-<DIV></DIV>
-<DIV></DIV>
-<DIV></DIV>
-<DIV></DIV>
-<DIV></DIV></div><br clear=all><hr>Add photos to your e-mail with MSN 8. <a href="http://g.msn.com/8HMMEN/2021">Get 2 months FREE*.</a> </html>
+Looks OK.
+
+> 20/36  x15-arch-m68k_nommu    Tear down m68k_nommu NETDEVICES config
+
+Not under our jurisdiction.
+
+> 34/36  x15-net.2-m68k         2/2 -""- (and re-add m68k specific drivers)
+
+Actually CONFIG_ARIADNE2 and CONFIG_NE2K_ZORRO are the same. We introduced the
+latter in the old Configure.help when the Ariadne II driver got X-Surf support,
+but forgot to replace the former in the Makefile logic. And the driver is still
+called ariadne2.c.
+
+linux-m68k: Should we kill CONFIG_NE2K_ZORRO, or kill CONFIG_ARIADNE2 and
+rename the driver to ne2k-zorro.c?
+
+> 35/36  x16                    Add the unified NETDEVICES submenu
+
+Looks OK.
+
+> sparc32 and m68k are special in that they define their specific netdevices
+> in arch/{sparc,m68k}/Kconfig.
+
+Mainly to avoid seeing too many entries for devices we can't support (e.g. old
+ISA adapters)...
+
+> ACKLIST is as follows, i.e. people listed please ACK at least:
+> 	(m68k people)		#19, #20, #34, #35
+
+> x86 seems to work as expected.  I also tried to compile sparc32 but found
+> out 2.5.54 vanilla itself was broken for it -- the .config looked sane,
+> though.
+
+Disclaimer: I didn't try to compile, I just looked at the patches.
+
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
