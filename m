@@ -1,15 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: NF fields in sk_buff
-Date: Wed, 04 Feb 2004 14:50:09 +0100
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: Re: Packet checksum
+Date: Wed, 4 Feb 2004 05:54:29 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4020F891.4040704@eurodev.net>
-References: <401A7C04.8060803@netlab.hut.fi>
+Message-ID: <20040204135429.46779.qmail@web13904.mail.yahoo.com>
+References: <4020F2C5.6030805@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: emmanuel@netlab.hut.fi, netfilter-devel@lists.netfilter.org
-In-Reply-To: <401A7C04.8060803@netlab.hut.fi>
+To: Pablo Neira <pablo@eurodev.net>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <4020F2C5.6030805@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,24 +19,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi emmanuel,
+TY!  
 
-Emmanuel Guiton wrote:
+-Scott
 
-> Hi!
+--- Pablo Neira <pablo@eurodev.net> wrote:
+> Hi Scott,
+> 
+> Scott MacKay wrote:
+> 
+> >When, in the great scheme of things, does packet
+> >checksum (and potential packet drop for bad
+> checksums)
+> >occur?  Is there a particular point in the
+> netfilter
+> >process or does it occur before/after the chains?
+> >  
+> >
+> AFAIK, the ip header checksum is done before the
+> packet gets the 
+> NF_PREROUTING hook,
+> so the packet will be drop before it hits netfilter.
+> 
+> Have a look at the ip_rcv(...) function 
 >
-> I want to send a "built-by-hand" packet on the local hook. In the 
-> sk_buff structure, there is two fields, nfmark and nfcache, which  I 
-> don't really understand. Can someone give me a quick briefing on these 
-> two fields?
-> Quick search with google made me feel that I don't need them anyway 
-> and that I can leave them blank. Right?
+(http://lxr.linux.no/source/net/ipv4/ip_input.c#L418)
+> 
+> could anyone confirm this?
+> 
+> cheers,
+> Pablo
+> 
 
 
-I know something about nfcache, I think that it's a Rusty's idea to 
-improve the performance and avoid that a packet hits all the hooks but 
-it wasn't implemented. See netfilter hacking how-to. section 4.5.
-
-I think that you are right, you could leave them blank.
-
-Pablo
+__________________________________
+Do you Yahoo!?
+Yahoo! SiteBuilder - Free web site building tool. Try it!
+http://webhosting.yahoo.com/ps/sb/
