@@ -1,16 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] kernel panic with rpc.patch
-Date: Fri, 03 Sep 2004 03:52:13 +0200
+From: Martijn Lievaart <m@rtij.nl>
+Subject: Re: Port forwarding with iptables
+Date: Thu, 02 Sep 2004 09:24:07 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <4137CE4D.7070702@trash.net>
-References: <20040902232357.GA18422@linuxace.com>
+Message-ID: <4136CA97.5010901@rtij.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <netfilter@linuxace.com>
-In-Reply-To: <20040902232357.GA18422@linuxace.com>
+To: "=?ISO-8859-15?Q?KUCKAERTZ_R=E9gis_-_NVISION?=" <regis@nvision.lu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,44 +19,56 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
+KUCKAERTZ R=E9gis - NVISION wrote:
 
->Some useless __MOD_INC_USE_COUNT macros make rpc patch panic on boot.
->The below removes them.  Boot tested.
+>Hello,
 >
->This fixes bugzilla #50
+>Our ISP only allows connections coming from a well-defined list of IP
+>addresses. Since we must be able to log on to our servers no matter whe=
+re we
+>are, I just thought using iptables on one host having one of the author=
+ized
+>IP addresses would be the solution.
+>
+>So I went on reading iptables docs and howtos, but as you might guess I
+>couldn't stand how to do it exactly. Let's put it correctly stated: eve=
+ry
+>incoming connection to, say, port 3999 of my host ($HOST_IP) should be
+>forwarded to port 123 of the protected server ($SERVER_IP). I tried the
+>following two rules:
+>
+>$IPTABLES -t nat -A PREROUTING -p tcp --dst $HOST_IP --dport 3999 -j DN=
+AT
+>--to-destination $SERVER_IP:123
+>
+>   This one should do the forwarding
 >  
 >
 
-Applied, but wondering on second thought. There are still two
-__MOD_DEC_USE_COUNT left, and __MOD_INC_USE_COUNT does actually
-do something :) Why are they useless ?
+This one looks fine.
 
-Regards
-Patrick
-
+>$IPTABLES -t nat -a POSTROUTING -p tcp --dst $SERVER_IP --dport 123 -j
+>MASQUERADE
 >
->
->Phil
->
->
+>   ... and this one should masquerade
 >  
 >
->------------------------------------------------------------------------
->
->diff -ru pom-orig/rpc/linux/net/ipv4/netfilter/ipt_rpc.c pom-new/rpc/linux/net/ipv4/netfilter/ipt_rpc.c
->--- pom-orig/rpc/linux/net/ipv4/netfilter/ipt_rpc.c	2003-12-18 13:48:00.000000000 -0500
->+++ pom-new/rpc/linux/net/ipv4/netfilter/ipt_rpc.c	2004-09-02 19:09:56.599859208 -0400
->@@ -394,10 +394,6 @@
-> {
-> 	int port;
-> 
->-	DEBUGP("incrementing usage counts\n");
->-	__MOD_INC_USE_COUNT(ip_conntrack_rpc_udp);
->-	__MOD_INC_USE_COUNT(ip_conntrack_rpc_tcp);
->-
-> 	/* If no port given, default to standard RPC port */
-> 	if (ports[0] == 0)
-> 		ports[0] = RPC_PORT;
->  
->
+
+That looks non sensical, what are you trying to accomplish? Drop this 
+line of thought. MASQUERADE is for when you connect through a 
+dynamically assigned IP address, e.g. dial-up.
+
+What you need is a rule in FORWARD to allow the packets to pass. 
+Assuming you accept ESTABLISHED (and RELATED) packets somewhere, so the 
+replies are handled automagically, you just need to add a rule like
+
+# by now the packet has been updated with a new destination, allow it in=
+.
+
+$IPTABLES -A FORWARD -p tcp --dst $SERVER_IP --dport 123 -j ACCEPT
+
+BTW, these kind of questions are better directed to the user list, not t=
+he development list.
+
+Cheers,
+M4
