@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: several small patches
-Date: Mon, 16 Jun 2003 00:21:36 +0200
+From: "Ricky Foo" <blue_pion@hotmail.com>
+Subject: Direction Confusion
+Date: Mon, 16 Jun 2003 04:06:58 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EECF170.6070002@trash.net>
-References: <3EECBFF1.2070503@trash.net>
+Message-ID: <Sea2-F28lQtNFoNEwBI0002375a@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <3EECBFF1.2070503@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,20 +17,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi again,
+Hi all,
 
-Patrick McHardy wrote:
+For the netbios name service protocol, it is not request-reply based. I have 
+observed from ethereal that the client machine will send a request out but 
+will not receive back any replies. Thus for the similar code segment part 
+below for my case, what should I put since the connection will never be 
+"established" or "related" nor "reply" in any sense?
 
->
-> 5. ip-conntrack-expect-drop-refcnt.diff:
-> drop master conntrack refcnt before setting expectant = NULL in
-> remove_expectations. untested but seems to make sense.
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+this is the part for FTP:
+
+	/* Until there's been traffic both ways, don't look in packets. */
+	if (ctinfo != IP_CT_ESTABLISHED
+	    && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY) {
+		printk("ftp: Conntrackinfo = %u\n", ctinfo);
+		return NF_ACCEPT;
+	}
 
 
-this patch seems to fix the ip_conntrack unload-loop. I can reliably
-trigger the loop by unloading ip_conntrack after unloading an
-conntrack helper which is helping some connection. No problems
-with this patch applied.
+    Ricky
 
-Best regards,
-Patrick
+_________________________________________________________________
+Get 10mb of inbox space with MSN Hotmail Extra Storage 
+http://join.msn.com/?pgmarket=en-sg
