@@ -1,14 +1,17 @@
-From: Zeeshan Ali <zeelists@yahoo.com>
+From: Jeremy Kerr <jeremy@redfishsoftware.com.au>
 Subject: Re: [ANNOUNCE] nfsim - netfilter simulation environment
-Date: Wed, 7 Jan 2004 03:50:10 -0800 (PST)
+Date: Wed, 7 Jan 2004 20:02:03 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040107115010.96814.qmail@web60702.mail.yahoo.com>
-References: <200401071044.18059.jeremy@redfishsoftware.com.au>
+Message-ID: <200401072002.03196.jeremy@redfishsoftware.com.au>
+References: <20040107115010.96814.qmail@web60702.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200401071044.18059.jeremy@redfishsoftware.com.au>
+In-Reply-To: <20040107115010.96814.qmail@web60702.mail.yahoo.com>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,53 +22,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-  A very nice idea & work indeed. But when i tried to
-build the only available snapshot, i got these errors:
+Hi there,
 
-[zak@zeenix nfsim]$ make
-awk 'BEGIN { FS="=" } /[A-Z0-9_]=(.*)/ { print
-"#define "$1" "$2; }' < .config >
-kernelenv/include/linux/config.h
-doc/gen-help core/tui.c > core/tui.c.helped.c
-warning: failed to load external entity
-"doc/link-xhtml/xhtml/docbook.xsl"
-compilation error: file doc/xhtml.xsl line 8 element
-import
-xsl:import : unable to load
-doc/link-xhtml/xhtml/docbook.xsl
--:1: error: Document is empty
- 
-^
--:1: error: Start tag expected, '<' not found
- 
-^
-doc/gen-help: line 20: links: command not found
-warning: failed to load external entity
-"doc/link-xhtml/xhtml/docbook.xsl"
-compilation error: file doc/xhtml.xsl line 8 element
-import
-xsl:import : unable to load
-doc/link-xhtml/xhtml/docbook.xsl
--:1: error: Document is empty
- 
-^
--:1: error: Start tag expected, '<' not found
- 
-^
-doc/gen-help: line 20: links: command not found
-gcc -Wstrict-prototypes -Wunused -Wall -g -ggdb -Wa,-W
--I. -I/home/zak/downloads/nfsim/core
--I/home/zak/downloads/nfsim/kernelenv/include
--I/home/zak/downloads/nfsim/netfilter/include  -c -o
-core/tui.o core/tui.c.helped.c
-core/tui.c.helped.c: In function `tui_help_help':
-core/tui.c.helped.c:128: parse error before ')' token
-core/tui.c.helped.c: In function `tui_exit_help':
-core/tui.c.helped.c:148: parse error before ')' token
-make: *** [core/tui.o] Error 1
+> xsl:import : unable to load
+> doc/link-xhtml/xhtml/docbook.xsl
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Hotjobs: Enter the "Signing Bonus" Sweepstakes
-http://hotjobs.sweepstakes.yahoo.com/signingbonus
+Looks like you don't have the doc/link-xhtml symlink set up correctly (which 
+is required to process the help functions for each file). Depending on which 
+distribution you're using, you'll need to manually create the links. On my 
+system, they are:
+
+doc/link-dtd -> /usr/share/sgml/docbook/xml-dtd-4.2-1.0-17
+doc/link-xhtml -> /usr/share/sgml/docbook/xsl-stylesheets
+
+The link-xhtml symlink is the important one, and it needs the 
+xhtml/docbook.xsl file within - which is provided (on Redhat) by the 
+docbook-style-xsl package or (on Debian) docbook-xsl
+
+If you find the proper place for the link, let me know and I'll add 
+autodetection to the Makefile.
+
+
+Jeremy
