@@ -1,116 +1,39 @@
-From: "Richard B. Johnson" <root@chaos.analogic.com>
+From: "Fao, Sean" <Sean.Fao@capitalgenomix.com>
 Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
-Date: Wed, 22 Sep 2004 10:13:07 -0400 (EDT)
+Date: Wed, 22 Sep 2004 10:19:07 -0400
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.53.0409221005260.25803@chaos.analogic.com>
-References: <1095721742.5886.128.camel@bach> <20040921143613.2dc78e2f.Ballarin.Marc@gmx.de>
- <1095803902.1942.211.camel@bach> <20040922003646.3a84f4c5.Ballarin.Marc@gmx.de>
- <20040921153600.2e732ea6.davem@davemloft.net> <20040922013516.753044db.Ballarin.Marc@gmx.de>
- <4150C448.5040604@trash.net> <20040922153707.2cc1d886.Ballarin.Marc@gmx.de>
- <Pine.LNX.4.61.0409221556010.14486@jjulnx.backbone.dif.dk>
-Reply-To: root@chaos.analogic.com
+Message-ID: <415189DB.6090003@capitalgenomix.com>
+References: <1095721742.5886.128.camel@bach>  <20040921143613.2dc78e2f.Ballarin.Marc@gmx.de> <1095803902.1942.211.camel@bach> <Pine.LNX.4.53.0409220735080.2066@chaos.analogic.com> <Pine.LNX.4.58.0409221347010.23967@tux.rsn.bth.se> <Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Marc Ballarin <Ballarin.Marc@gmx.de>,
-	Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
-	rusty@rustcorp.com.au, torvalds@osdl.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265773AbUIVOOM@vger.kernel.org>
-To: Jesper Juhl <juhl-lkml@dif.dk>
-In-Reply-To: <Pine.LNX.4.61.0409221556010.14486@jjulnx.backbone.dif.dk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Marc Ballarin <Ballarin.Marc@gmx.de>,
+	Linus Torvalds <torvalds@osdl.org>,
+	netfilter-devel@lists.netfilter.org,
+	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265817AbUIVOXz@vger.kernel.org>
+To: root@chaos.analogic.com
+In-Reply-To: <Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 22 Sep 2004, Jesper Juhl wrote:
+Richard B. Johnson wrote:
 
-> On Wed, 22 Sep 2004, Marc Ballarin wrote:
+>I guess I'll have to convert 1340 lines of ipchains commands to
+>iptables -yech!
 >
-> > Date: Wed, 22 Sep 2004 15:37:07 +0200
-> > From: Marc Ballarin <Ballarin.Marc@gmx.de>
-> > To: Patrick McHardy <kaber@trash.net>
-> > Cc: davem@davemloft.net, rusty@rustcorp.com.au, torvalds@osdl.org,
-> >     netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-> > Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
-> >
-> > On Wed, 22 Sep 2004 02:16:08 +0200
-> > Patrick McHardy <kaber@trash.net> wrote:
-> >
-> > > Fixed by this patch.
-> >
-> > Yes, works fine. Does this mean that ipchains was broken for a while, but
-> > no one complained?
-> >
-> > Anyway, here is another trivial patch against -bk7 that adds runtime
-> > warnings. IMO most users are going to miss compile time warnings, or
-> > won't even compile kernels themselves.
-> >
+>I had convert something to ipchains a couple of years ago.
+>That's when I only had to kill-off only about 100 spam-hosts.
 >
-> I like having runtime info as well as a compile time warning, but maybe
-> the message should mention that iptables is staying and people should
-> migrate??
+>Now I gotta convert again. Soon they'll be replacing `ls`
+>with `echo *` and nothing will work.
 >
-> > +	printk(KERN_WARNING
-> > +		"Warning: ipchains is obsolete, and will be removed soon!\n");
-> > +
->
-> Perhaps something like this instead:
->
-> "Warning: ipchains is obsolete, and will be removed soon. Please migrate to iptables."
->
->
-> --
-> Jesper Juhl
 
-FYI. I just migrated to iptables. The code downloaded from the Debian
-site did not compile cleanly, but enough worked to make most of the
-shared libraries and the iptables executable.
+iptables is a much better firewall than ipchains and, in my opinion, 
+anybody using ipchains should upgrade to iptables.  I, for one, am quite 
+pleased to see that ipchains will be removed.
 
-The total time to do everything was slightly under 2 hours.
-
-The errors from the distribution are:
-
-
-cc -O2 -Wall -Wunused -I/usr/src/linux-2.4.26/include -Iinclude/ -DNETFILTER_VERSION=\"1.2.6a\"  -fPIC -o extensions/libipt_ECN_sh.o -c extensions/libipt_ECN.c
-extensions/libipt_ECN.c: In function `parse':
-extensions/libipt_ECN.c:51: `IPT_ECN_OP_REMOVE' undeclared (first use in this function)
-extensions/libipt_ECN.c:51: (Each undeclared identifier is reported only once
-extensions/libipt_ECN.c:51: for each function it appears in.)
-extensions/libipt_ECN.c: In function `print':
-extensions/libipt_ECN.c:82: `IPT_ECN_OP_REMOVE' undeclared (first use in this function)
-extensions/libipt_ECN.c:83: warning: unreachable code at beginning of switch statement
-extensions/libipt_ECN.c: In function `save':
-extensions/libipt_ECN.c:99: `IPT_ECN_OP_REMOVE' undeclared (first use in this function)
-extensions/libipt_ECN.c:100: warning: unreachable code at beginning of switch statement
-
-make: [extensions/libipt_ECN_sh.o] Error 1 (ignored)
-ld -shared -o extensions/libipt_ECN.so extensions/libipt_ECN_sh.o
-ld: cannot open extensions/libipt_ECN_sh.o: No such file or directory
-make: [extensions/libipt_ECN.so] Error 1 (ignored)
-
-
-ip6tables.o: In function `addr_to_host':
-ip6tables.o(.text+0x4d8): undefined reference to `getnameinfo'
-ip6tables.o: In function `parse_hostnetworkmask':
-ip6tables.o(.text+0x731): undefined reference to `in6addr_any'
-ip6tables.o: In function `print_firewall':
-ip6tables.o(.text+0x19e7): undefined reference to `in6addr_any'
-collect2: ld returned 1 exit status
-make: [ip6tables] Error 1 (ignored)
-
-
-The build command was:
-
-#
-#!/bin/sh
-#
-#make pending-patches KERNEL_DIR=/usr/src/linux-`uname -r`
-make -i  KERNEL_DIR=/usr/src/linux-`uname -r`
-
-
-The pending patches resulted in many rejects but the kernel
-was virgin 2.4.26.
-
-
-Cheers,
-Dick Johnson
-Penguin : Linux version 2.4.26 on an i686 machine (5570.56 BogoMips).
-            Note 96.31% of all statistics are fiction.
+-- 
+Sean
