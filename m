@@ -1,15 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [PATCH] RFC3514 packet filtering
-Date: Fri, 02 Apr 2004 03:12:54 +0200
+Date: Fri, 2 Apr 2004 04:07:59 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <406CBE16.7090409@eurodev.net>
-References: <20040401120638.GB30129@soton.ac.uk>
+Message-ID: <Pine.LNX.4.44.0404020332290.11217-100000@filer.marasystems.com>
+References: <406CBE16.7090409@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Hugo Mills <hugo@soton.ac.uk>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Hugo Mills <hugo@soton.ac.uk>,  netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040401120638.GB30129@soton.ac.uk>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <406CBE16.7090409@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,150 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-mmm, 1st april? evil bit? a RFC made last year but 1st april? and the 
-implementation is posted 1th april but one year later... mmm...
+On Fri, 2 Apr 2004, Pablo Neira wrote:
 
-regards,
-Pablo
+> mmm, 1st april? evil bit? a RFC made last year but 1st april? and the 
+> implementation is posted 1th april but one year later... mmm...
+> 
+> regards,
+> Pablo
+> 
+> P.S: mmm... hehehehehehe. Please if so, laugh at me, but there's 
+> something which is not serious here... anyway, am I missing anything?
 
-P.S: mmm... hehehehehehe. Please if so, laugh at me, but there's 
-something which is not serious here... anyway, am I missing anything?
+Maybe you should read the RFC... it has some "interesting" ideas on how to
+secure the Internet which could (if it worked) eleminate the need for 
+advanced firewalls..
 
-Hugo Mills wrote:
+But one interesting detail.. when reading this patch I noticed the IP_CE
+bit reference.. this is defined using the same bit as evil bit.. I can not
+find which RFC this IP_CE bit is supposedly defined, only the CE bit in
+ECN which is a completely different bit. I wonder if this is a bug or just
+old remains from some early draft before the first ECN RFC... IP_CE is
+only used logging purposes from ipt_LOG.c and FreeSWAN ipsec_tunnel.c..
 
->   This patch provides an RFC3514 filter for iptables. This is the
->kernel half of the patch, against 2.6.5-rc3.
->
->   Please cc: replies to me -- I'm having some trouble subscribing to
->linux-kernel at the moment.
->
->   Hugo.
->
->diff -uNr linux-2.6/include/linux/netfilter_ipv4/ipt_evil.h linux-2.6-ipt-evil/include/linux/netfilter_ipv4/ipt_evil.h
->--- linux-2.6/include/linux/netfilter_ipv4/ipt_evil.h	1970-01-01 00:00:00.000000000 +0000
->+++ linux-2.6-ipt-evil/include/linux/netfilter_ipv4/ipt_evil.h	2004-03-15 22:05:34.268945232 +0000
->@@ -0,0 +1,7 @@
->+#ifndef _IPT_EVIL_H
->+#define _IPT_EVIL_H
->+
->+struct ipt_evil_info {
->+	int	invert;
->+};
->+#endif /*_IPT_EVIL_H*/
->diff -uNr linux-2.6/include/net/ip.h linux-2.6-ipt-evil/include/net/ip.h
->--- linux-2.6/include/net/ip.h	2003-09-08 19:50:16.000000000 +0000
->+++ linux-2.6-ipt-evil/include/net/ip.h	2004-03-15 20:43:33.349763049 +0000
->@@ -71,6 +71,7 @@
-> 
-> /* IP flags. */
-> #define IP_CE		0x8000		/* Flag: "Congestion"		*/
->+#define IP_EVIL	0x8000		/* Flag: "Evil" (RFC 3514)	*/
-> #define IP_DF		0x4000		/* Flag: "Don't Fragment"	*/
-> #define IP_MF		0x2000		/* Flag: "More Fragments"	*/
-> #define IP_OFFSET	0x1FFF		/* "Fragment Offset" part	*/
->diff -uNr linux-2.6/net/ipv4/netfilter/Kconfig linux-2.6-ipt-evil/net/ipv4/netfilter/Kconfig
->--- linux-2.6/net/ipv4/netfilter/Kconfig	2004-03-15 21:47:01.353917514 +0000
->+++ linux-2.6-ipt-evil/net/ipv4/netfilter/Kconfig	2004-03-15 20:56:08.577655525 +0000
->@@ -274,6 +274,15 @@
-> 
-> 	  To compile it as a module, choose M here.  If unsure, say N.
-> 
->+config IP_NF_MATCH_EVIL
->+	tristate "Evil bit match support"
->+	depends on IP_NF_IPTABLES
->+	help
->+	  Matches the "Evil" bit in the IP header. See RFC 3514 for 
->+	  details.
->+
->+	  To compile it as a module, choose M here.  If unsure, say N.
->+
-> # The targets
-> config IP_NF_FILTER
-> 	tristate "Packet filtering"
->diff -uNr linux-2.6/net/ipv4/netfilter/Makefile linux-2.6-ipt-evil/net/ipv4/netfilter/Makefile
->--- linux-2.6/net/ipv4/netfilter/Makefile	2003-09-08 19:49:57.000000000 +0000
->+++ linux-2.6-ipt-evil/net/ipv4/netfilter/Makefile	2004-03-15 20:59:18.934937734 +0000
->@@ -66,6 +66,8 @@
-> 
-> obj-$(CONFIG_IP_NF_MATCH_PHYSDEV) += ipt_physdev.o
-> 
->+obj-$(CONFIG_IP_NF_MATCH_EVIL) += ipt_evil.o
->+
-> # targets
-> obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
-> obj-$(CONFIG_IP_NF_TARGET_TOS) += ipt_TOS.o
->diff -uNr linux-2.6/net/ipv4/netfilter/ipt_evil.c linux-2.6-ipt-evil/net/ipv4/netfilter/ipt_evil.c
->--- linux-2.6/net/ipv4/netfilter/ipt_evil.c	1970-01-01 00:00:00.000000000 +0000
->+++ linux-2.6-ipt-evil/net/ipv4/netfilter/ipt_evil.c	2004-03-15 21:16:21.991019291 +0000
->@@ -0,0 +1,67 @@
->+/* (C) 2004 Hugo Mills <hugo@carfax.org.uk>
->+ * Structure copied/stolen from ipt_pkttype.c
->+ *
->+ * This program is free software; you can redistribute it and/or modify
->+ * it under the terms of the GNU General Public License version 2 as
->+ * published by the Free Software Foundation.
->+ */
->+
->+#include <linux/module.h>
->+#include <linux/skbuff.h>
->+#include <linux/if_ether.h>
->+#include <linux/if_packet.h>
->+#include <net/ip.h>
->+
->+#include <linux/netfilter_ipv4/ipt_evil.h>
->+#include <linux/netfilter_ipv4/ip_tables.h>
->+
->+MODULE_LICENSE("GPL");
->+MODULE_AUTHOR("Hugo Mills <hugo@carfax.org.uk>");
->+MODULE_DESCRIPTION("IP tables match to match on evil bit (RFC 3514)");
->+
->+static int match(const struct sk_buff *skb,
->+      const struct net_device *in,
->+      const struct net_device *out,
->+      const void *matchinfo,
->+      int offset,
->+      int *hotdrop)
->+{
->+    const struct ipt_evil_info *info = matchinfo;
->+
->+	if(skb->nh.iph->frag_off & __constant_htons(IP_EVIL))
->+		return !info->invert;
->+
->+	return info->invert;
->+}
->+
->+static int checkentry(const char *tablename,
->+		   const struct ipt_ip *ip,
->+		   void *matchinfo,
->+		   unsigned int matchsize,
->+		   unsigned int hook_mask)
->+{
->+	if (matchsize != IPT_ALIGN(sizeof(struct ipt_evil_info)))
->+		return 0;
->+
->+	return 1;
->+}
->+
->+static struct ipt_match evil_match = {
->+	.name		= "evil",
->+	.match		= &match,
->+	.checkentry	= &checkentry,
->+	.me		= THIS_MODULE,
->+};
->+
->+static int __init init(void)
->+{
->+	return ipt_register_match(&evil_match);
->+}
->+
->+static void __exit fini(void)
->+{
->+	ipt_unregister_match(&evil_match);
->+}
->+
->+module_init(init);
->+module_exit(fini);
->
->
->  
->
+Regards
+Henrik
