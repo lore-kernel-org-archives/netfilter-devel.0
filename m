@@ -1,14 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 9/9]: fixes the bug which fails to find
- conntrack
-Date: Tue, 22 Mar 2005 23:10:06 +0900 (JST)
-Message-ID: <200503221410.j2MEA7Wb029617@toshiba.co.jp>
+From: Nguyen Dinh Nam <64vn@cardvn.net>
+Subject: is this make sense: iptables -A PREROUTING -t nat -j SNAT --to
+	0.0.0.0
+Date: Tue, 22 Mar 2005 21:47:36 +0700
+Message-ID: <42403008.9070006@cardvn.net>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Tue_Mar_22_23:10:06_2005_284)--"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: kaber@trash.net
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,40 +18,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Tue_Mar_22_23:10:06_2005_284)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Currently, SNAT/MASQ is only allowed in POSTROUTING/nat so at the 
+internet gateway, everyone is doing something like this:
+iptables -A POSTROUTING -t nat -o $external_interface -j SNAT --to 
+$external_ip
 
+But I think that this approach is more interesting
+iptables -A PREROUTING -t nat -j SNAT --to 0.0.0.0
 
-This patch fixes the bug which fails to find conntrack in getorigdst()
-for IPv6.
+The rule clears the source IP address from the packet, later, routing 
+code will bind an ip address to the packet based on routing decision. In 
+the case where the host has several internet providers, the traditional 
+method needs several rules, as well as using CONNMARK to bind each TCP 
+connection to only one internet provider. If this new approach is 
+possible, it'll simplify the problem tremendously
 
-Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
-
-
-----Next_Part(Tue_Mar_22_23:10:06_2005_284)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="09-fixed-getorigdst.patch"
-
-diff -Nur linux-2.6.11-nfct-getorigdst/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c linux-2.6.11-nfct-fixed-getorigdst/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
---- linux-2.6.11-nfct-getorigdst/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c	2005-03-22 21:14:03.000000000 +0900
-+++ linux-2.6.11-nfct-fixed-getorigdst/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c	2005-03-22 21:15:05.000000000 +0900
-@@ -422,10 +422,11 @@
- 	ipv6_addr_copy((struct in6_addr *)tuple.dst.u3.ip6, &np->daddr);
- 	tuple.src.u.tcp.port = inet->sport;
- 	tuple.dst.u.tcp.port = inet->dport;
-+	tuple.src.l3num = PF_INET6;
- 	tuple.dst.protonum = IPPROTO_TCP;
- 
- 	/* We only do TCP at the moment: is there a better way? */
--	if (strcmp(sk->sk_prot->name, "TCP")) {
-+	if (strcmp(sk->sk_prot->name, "TCPv6")) {
- 		DEBUGP("IPV6 ORIGINAL_DST: Not a TCP socket\n");
- 		return -ENOPROTOOPT;
- 	}
-
-----Next_Part(Tue_Mar_22_23:10:06_2005_284)----
+I've never touched netfilter source code so I don't know if it's 
+possible, it may be just a stupid idea.
