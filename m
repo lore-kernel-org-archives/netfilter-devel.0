@@ -1,15 +1,18 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: MARK-Operations problems
-Date: Wed, 7 Jul 2004 21:57:53 +1000
+From: Mohammad Rehan Sami <sami@ccse.kfupm.edu.sa>
+Subject: Re: [mpls-linux-general] TCINDEX HOWTO
+Date: Thu, 08 Jul 2004 01:42:24 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040707115753.GA22265@samad.com.au>
+Message-ID: <1089240144.40ec7c50c0dd7@webmail.ccse.kfupm.edu.sa>
+References: <200407071909.i67J9wMX014381@madinah.ccse.kfupm.edu.sa> <20040707193216.GB22432@mindspring.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
-Cc: Fabrice MARIE <fabrice@netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Cc: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>,
+   MPLS Linux List <mpls-linux-general@lists.sourceforge.net>,
+   Netfilter List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: <jleu@mindspring.com>, "James R. Leu" <jleu@mindspring.com>
+In-Reply-To: <20040707193216.GB22432@mindspring.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,61 +23,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Both
 
---ew6BAiZeqk4r7MaW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Quoting "James R. Leu" <jleu@mindspring.com>:
 
-Hi
-
-I seem to be having some problem with the MARK-operations patch from
-pom-ng.
-
-I have applied a few patches together on a debian 2.6.7
-
-nf_reset
-policy
-MARK-operations
-REJECT
-proc-no-internal-targets init_conntrack-optimize ipt_helper-invert-fix nf-l=
-og connlimit dstlimit mport nth raw
-TARPIT CLASSIFY CLASSIFY_more-hooks comment dstlimit=20
-iprange
-dropped-table
-pool
-osf
-
-I build a static linked iptables for testing but when I attempt to run
-this command=20
-
-iptables -t mangle -I PREROUTING 1  -j MARK  --or-mark 0x1
-I get iptables: Target problem
-and this is dmesg MARK: targinfosize 8 !=3D 4
-
-
-interesting is when i run this command against the static link iptables
-iptables -t mangle -I PREROUTING 1  -j MARK  --set-mark 0x1
-I get the same error, but it works okay when I use the orginial (unpatch
-iptables command)
-
-any suggestions on how to track down the error or where might be the
-best place to look
-
-Thanks
-Alex
-
---ew6BAiZeqk4r7MaW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFA6+VBkZz88chpJ2MRArDQAKCxQ04blNU+EU43wtfi3fBLkg4NuACgwtla
-c9Ha+1rtrm5sO8m6S89Uwt8=
-=35SZ
------END PGP SIGNATURE-----
-
---ew6BAiZeqk4r7MaW--
+> On Wed, Jul 07, 2004 at 10:12:08PM +0300, Muhammad R. Sami wrote:
+> > I am unable to find any information on how to use tcindex filter nor
+> are
+> > there any examples (or at least I could not find them:-(). Can any one
+> > please provide me with a short tutorial and some examples particularly
+> on
+> > how to use exp2tc or tc2exp instructions.
+> 
+> Do you mean "howto use tcindex for queuing" or "howto use tcindex for
+> EXP mapping"?
+> 
+> > Regards,  
+> > 
+> >  
+> > 
+> > Muhammad R. Sami 
+> > Research Assistant, 
+> > Computer Engineering Department 
+> > P.O.Box 354 
+> > King Fahd University of Petroleum & Minerals 
+> > Dhahran 31261 
+> > Saudi Arabia. 
+> > Tel: +96638601423 
+> > Cell: +96657982951 
+> > www.ccse.kfupm.edu.sa/sami
+> > 
+> >  
+> > 
+> > 
+> > 
+> > 
+> > 
+> > -------------------------------------------------------
+> > This SF.Net email sponsored by Black Hat Briefings & Training.
+> > Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
+> > digital self defense, top technical experts, no vendor pitches, 
+> > unmatched networking opportunities. Visit www.blackhat.com
+> > _______________________________________________
+> > mpls-linux-general mailing list
+> > mpls-linux-general@lists.sourceforge.net
+> > https://lists.sourceforge.net/lists/listinfo/mpls-linux-general
+> 
+> -- 
+> James R. Leu
+> jleu@mindspring.com
+> 
+> 
