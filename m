@@ -1,16 +1,16 @@
-From: Brad Fisher <brad@info-link.net>
-Subject: Re: [PATCH] pom-ng patchlet to add 'goto' type jumps
-Date: Thu, 13 May 2004 11:11:58 -0500
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Minor fix for patchlets which modify multiple projects
+Date: Thu, 13 May 2004 20:08:40 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40A39E4E.8A72F85C@info-link.net>
-References: <Pine.LNX.4.44.0405130102100.7624-100000@filer.marasystems.com> <40A2E5F0.7080705@trash.net>
+Message-ID: <40A3B9A8.2040202@trash.net>
+References: <40A2754C.F4AA6CEF@info-link.net> <40A2E52C.3010103@trash.net> <40A39DC6.C3F78CA3@info-link.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Henrik Nordstrom <hno@marasystems.com>,
-        Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Brad Fisher <brad@info-link.net>
+In-Reply-To: <40A39DC6.C3F78CA3@info-link.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,27 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
+Brad Fisher wrote:
+> 
+> I don't think your patch is quite right.  You can end up having the same project listed multiple
+> times with your patch, which is why I used the separate hash - key collisions are reduced to single
+> entries.  I guess as long as it is no problem for a project to be processed multiple times, then
+> your patch will be OK, but if that isn't the case, you may want to look into it again.
 
-> Henrik Nordstrom wrote:
->
-> >On Wed, 12 May 2004, Brad Fisher wrote:
-> >
-> >
-> >>Please let me know if it is/is'nt acceptable for pom inclusion.  I'd
-> >>like to see it included someday...
-> >>
-> >>
-> >
-> >I support this even if I am not using the patch and probably never will..
-> >
-> >
->
-> Thanks, I've added it to CVS.
->
-> Regards
-> Patrick
+You're right, I just experienced that problem with the raw table patch.
+Applying your original patch now, thanks.
 
-Thanks for adding it!  I really appreciate it.
-
--Brad
+Regards
+Patrick
