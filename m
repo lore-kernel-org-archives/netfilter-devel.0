@@ -1,14 +1,13 @@
-From: "Wei Ming Long" <WEI_Ming_Long@dsi.a-star.edu.sg>
-Subject: Re: Can iptables do this?
-Date: Thu, 12 Jun 2003 15:33:45 +0800
+From: "Jack" <jack@cosmism.com>
+Subject: the definition of function iptc_init
+Date: Thu, 12 Jun 2003 15:37:49 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <see89d65.074@gwia>
+Message-ID: <00c801c330b5$8b68c960$0b00a8c0@haf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_00C5_01C330F8.9438F810"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <jon_webb@binary-one.com>,<netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,62 +18,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Correct me if I'm wrong, when the laptop with the preconfigured static ip
-comes into the network, it will do a arp broadcast to find the mac address of
-it's gateway, so can iptables capture this arp packet (at the same time reply
-to this arp request), extract the mac address and keep this in a table so that
-the next time this same laptop sends a http request packet out onto the
-network, the mac address in the packet header is extracted & mapped to the
-private ip address before resending this same http request packet out into the
-internet cloud. When the http reply packet comes back, iptables will look up
-the mac address <--> private ip table and then send this reply packet back to
-the laptop. 
+This is a multi-part message in MIME format.
 
-Is this all possible? or is it possible to add code to netfilter to achieve
-this? I'm prepared to write code to netfilter to do this if not already
-possible but just want to make sure that this feature or functionality is not
-already present so that I don't have to do redundant job.
+------=_NextPart_000_00C5_01C330F8.9438F810
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-Thanks
-Matthew
+U29ycnkgZm9yIGRpc3R1cmJpbmcgeW91IGFsbA0KSSBqdXN0IGJlZ2luIHRvIHN0dWR5IHRoZSBz
+b3VyY2UgY29kZS4NCkkgY291bGQgbm90IGZpbmQgdGhlIGRlZmluaXRpb24gb2YgZnVuY3Rpb24g
+aXB0Y19pbml0LiANClBsZWFzZSBnaXZlIG1lIGEgaGludC4NCnRoYW5rcw==
 
+------=_NextPart_000_00C5_01C330F8.9438F810
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
->>> J Webb <jon_webb@binary-one.com> 06/12/03 12:05PM >>>
-That is more of a Mobile-IP type issue. A laptop with any old ip address 
-will not be able to talk to the rest of your network (or gateway) 
-properly unless it has an IP on that network. ARP, among other things, 
-will be completely broken. The laptops with the pre-configured static 
-IP's would have to set themselves to use your internal gateway, and 
-unless they are in the same network, they will have no route to that, or 
-any other, host. I believe IPTables can't help you here.
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
+MC4yODAwLjExNDEiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
+Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj4NCjxESVY+PEZPTlQgc2l6
+ZT0yPlNvcnJ5IGZvciBkaXN0dXJiaW5nIHlvdSBhbGw8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05U
+IHNpemU9Mj5JIGp1c3QgYmVnaW4gdG8gc3R1ZHkgdGhlIHNvdXJjZSBjb2RlLjwvRk9OVD48L0RJ
+Vj4NCjxESVY+PEZPTlQgc2l6ZT0yPkkgY291bGQgbm90IGZpbmQgdGhlIGRlZmluaXRpb24gb2Yg
+ZnVuY3Rpb24gPC9GT05UPjxGT05UIA0Kc2l6ZT0yPmlwdGNfaW5pdC4gPC9GT05UPjwvRElWPg0K
+PERJVj48Rk9OVCBzaXplPTI+UGxlYXNlIGdpdmUgbWUgYSBoaW50LjwvRk9OVD48L0RJVj4NCjxE
+SVY+PEZPTlQgc2l6ZT0yPnRoYW5rczwvRk9OVD48L0RJVj48L0ZPTlQ+PC9ESVY+PC9CT0RZPjwv
+SFRNTD4NCg==
 
-- Jon
-
-Wei Ming Long wrote:
-
->Hi Everyone,
->I have posted this question before but got no response, so I'm posting it
->again, please pardon me if you have seen this before.
->I have a wireless network with my linux machine as a gateway between the
->internet & my internal wireless network. I have iptables running on the
->gateway & also a dhcp server to serve out ip addresses to the client
-laptops.
->I also run the Squid proxy server on the gateway to proxy http requests. I
-use
->iptables to redirect http traffic to Squid and to do nat for the internal
->network.
->My question is this: what if a laptop with a preconfigured static ip
-address
->comes into the internal network or worse, 2 client laptops with identical
->preconfigured static ip addresses enter into network, can iptables do nat
->based on mac address <--> public ip address mapping besides the usual
-private
->ip address <--> public ip address mapping?
->
->Please help. Thanks.
->
->Best regards
->Matthew
->
->  
->
+------=_NextPart_000_00C5_01C330F8.9438F810--
