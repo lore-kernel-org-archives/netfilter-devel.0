@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: more about martians
-Date: Thu, 22 Apr 2004 09:54:31 +0200 (CEST)
+From: Ozgur AKAN <akan@aiqa.com>
+Subject: __signed__ ?
+Date: Thu, 22 Apr 2004 10:58:51 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404220943170.1524-100000@filer.marasystems.com>
-References: <20040422033242.86850.qmail@web40706.mail.yahoo.com>
+Message-ID: <40877B3B.5070808@aiqa.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@lists.netfilter.org, <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+ boundary="------------050007020503010302000706"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: udo <udovdh@yahoo.com>
-In-Reply-To: <20040422033242.86850.qmail@web40706.mail.yahoo.com>
+To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,45 +18,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 21 Apr 2004, udo wrote:
+This is a multi-part message in MIME format.
+--------------050007020503010302000706
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I only want to offer ssh to the outside world (lan and
-> wan) on port 22 while still being able to run sshd at
-> non-root privs.
-> Say port 2222 for non-root reasons but port 2222 must
-> not interfere and best not be visible to the outside
-> world.
+I am working on netfilter source. I see that there are some definations like
 
-Then set up a private IP alias (on the lo interface if you like, does not
-matter), firewall all access to that IP just in case and NAT the SSH
-sessions to this IP, not 127.X.
+typedef __unsigned__ int __s32;
 
-Or simply run SSH on port 2222, nat to this port and firewall any direct 
-access to port 2222 with a "-j REJECT --reject-with tcp-reset" to make it 
-look like port 2222 is not used.
+1- what does __signed__ mean? what is the difference from signed?
+2- I can not find the corrosponding code of ...ipv4/netfilter/ip_tables.c in cvs.netfilter.org. 
+Is in cvs.netfilter.org only userspace programs shown?
 
-> > The loopback addresses (127.X/8) are handled very
-> > special.
-> 
-> I found out.
-> Why?
+thanks,
+-- 
+Ozgur Akan
 
-Because it is considered a security violation if these is accessed from 
-outside the box.
 
-> It's just another interface.
+--------------050007020503010302000706
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-lo is just another interface, and you can give any IP addresses to it.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-9">
+  <title></title>
+</head>
+<body text="#000000" bgcolor="#ffffff">
+<pre><font face="microsoft-verdana-iso10646-1">I am working on netfilter source. I see that there are some definations like
 
-127.X is not just another IP. It is the loopback IP address range defined 
-by IP as not reachable outside the box. And when you ask iptables to NAT 
-sessions to this IP you make the TCP/IP stack very upset thinking that 
-someone is trying to abuse your server. As iptables runs outside of the 
-TCP/IP stack it looks to your TCP/IP stack as if the sending station did 
-attempt to send packets addressed to 127.0.0.1.
+typedef __unsigned__ int __s32;
+</font>
+1- what does __signed__ mean? what is the difference from signed?
+2- I can not find the corrosponding code of ...ipv4/netfilter/ip_tables.c in cvs.netfilter.org. 
+Is in cvs.netfilter.org only userspace programs shown?</pre>
+<pre class="moz-signature" cols="72">thanks,
+-- 
+Ozgur Akan
+</pre>
+</body>
+</html>
 
-It is not lo that is hidden from the outside world, it is the 127.X IP 
-addresses.
-
-Regards
-Henrik
+--------------050007020503010302000706--
