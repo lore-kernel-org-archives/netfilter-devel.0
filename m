@@ -1,18 +1,15 @@
-From: William Stearns <wstearns@pobox.com>
-Subject: Re: Converting patch-o-matic over to 2.6 kernel format - should be
- ready to go.
-Date: Sun, 23 Nov 2003 01:43:13 -0500 (EST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: IPv6 multicast (MLD,IGMP) code bypasses netfilter hooks
+Date: Sat, 22 Nov 2003 10:03:30 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311230125100.21895-100000@sparrow>
-References: <20031117080641.GA22919@sunbeam.de.gnumonks.org>
-Reply-To: William Stearns <wstearns@pobox.com>
+Message-ID: <20031122090330.GB2745@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
-   William Stearns <wstearns@pobox.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gj572EiMnwbLXET9"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031117080641.GA22919@sunbeam.de.gnumonks.org>
+To: netdev@oss.sgi.com
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,58 +20,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Good morning, Harald, all,
 
-On Mon, 17 Nov 2003, Harald Welte wrote:
+--gj572EiMnwbLXET9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On Sun, Nov 16, 2003 at 05:01:55PM -0500, William Stearns wrote:
-> > 	I've written a converter that pulls in the lines from pom's
-> > .config.in and .configure.help files and creates a something.patch.Kconfig
-> > file, ready to be used on a 2.6 kernel.  The converter tool is at
-> > http://www.stearns.org/pom26convert .  I've included a sample output; the
-> > HL.patch.ipv6.config.in and HL.patch.ipv6.configure.help files were 
-> > converted over to the HL.patch.ipv6.Kconfig .  The converter warned the 
-> > user at run-time that it wasn't able to handle the if/fi lines in 
-> > .config.in; the person running it will probably have to do some cleanup 
-> > work on perhaps 20% of the files.
-> 
-> thanks a lot!
+Hi!
 
-	I'm glad to.
+At least to me it was not known (until very recently) that the IPv6
+multicast code in net/ipv6/mcast.c bypasses the netfilter hooks - but it
+does.
 
-> I am in the process of re-writing patch-o-matic in a more general way,
-[snip]
-> However, my idea was to have a higher level language where one could say
-> "add the following member to struct foobar", or "create a new config
-> option FOO dependent on BAR" - independent of the kernel version.
+I don't have the time to work on this right now, just wanted to drop a
+note to netdev that people are aware of this issue.
 
-	I think I won't take you up on the project; it sounds like a fun 
-one, but I, too, am jammed for time.
-	My short term project is to get a 2.6 kernel going on 
-patch-o-matic, so I took the easy way out and taught runme enough to work 
-with 2.6 trees.  It turns out the changes are not all that large; the 
-patch is only 4k.
-http://www.stearns.org/patches/patch-o-matic-20031122.runme-26-patch
-	For this runme to work, you need to create the Kconfig files with 
-http://www.stearns.org/pom26convert/pom26convert (simply run 
+This basically means that you cannot do packet filtering with ip6tables
+on outgoing MLD packets.
 
-pom26convert *.patch *.patch.ipv6
+If anyone wants to write a patch before I get the time:  Feel free to do
+so.
 
-in each pom subdirectory (it'll tell you if any manual cleanups have to be
-made).  Now runme has the .Kconfig files it needs.
-	Harald, would you consider this patch as at least a temporary 
-solution?  Please don't tell me I'm the only person that wants to use 
-patch-o-matic on 2.6... :-)
-	Cheers,
-	- Bill
+Dave: I think this would be post 2.6.0 stuff, wouldn't it?
 
----------------------------------------------------------------------------
-        "If you think technology can solve your security problems, then
-you don't understand the problems and you don't understand the
-technology."
-        -- Bruce Schneier, Secrets and Lies
---------------------------------------------------------------------------
-William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
-rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
-Linux articles at:                         http://www.opensourcedigest.com
---------------------------------------------------------------------------
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--gj572EiMnwbLXET9
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/vyZhXaXGVTD0i/8RAhXMAJ9HwavVXbQRWHJKDypYudZuQREYjQCgkPUW
+G76+cbhcjLfrabhJ54YTMLY=
+=M8kW
+-----END PGP SIGNATURE-----
+
+--gj572EiMnwbLXET9--
