@@ -1,16 +1,13 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH]: fixed kernel panic when trying to find tcp option
-Date: Wed, 15 Sep 2004 08:43:35 -0700
+From: Bruce Guenter <lists-netfilter-devel@bruce-guenter.dyndns.org>
+Subject: Variable-length data?
+Date: Wed, 15 Sep 2004 11:18:14 -0600
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040915084335.6944eebe.davem@davemloft.net>
-References: <200409151136.i8FBajor029883@toshiba.co.jp>
+Message-ID: <20040915171814.GA30824@em.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200409151136.i8FBajor029883@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +18,15 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 15 Sep 2004 20:36:44 +0900 (JST)
-Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> wrote:
+Greetings.
 
-> This patch fixed panic on 2.6.9-rc2 when trying to find tcp option
-> in the packet which has no option.
-> 
-> If not fixed yet, please apply this patch.
+I have written a simple filter for matching multiple network masks in a
+list.  From what I can see, the actual netfilter data has to be constant
+sized.  Is this true, or is there an easy way to have a non-fixed size
+list of addresses (for example)?  It seems rather wasteful to allocate a
+large array when only a small one is needed.
 
-This patch is unnecessary, you might want to explain how
-this condition can possibly occur.
-
-All callers, well there is only one, make sure optlen is
-non-zero.
-
-Here is the call site in tcp_match():
-
-	if (tcpinfo->option) {
-		if (th->doff * 4 < sizeof(_tcph)) {
-			*hotdrop = 1;
-			return 0;
-		}
-		if (!tcp_find_option(tcpinfo->option, skb,
-				     th->doff*4 - sizeof(_tcph),
-				     tcpinfo->invflags & IPT_TCP_INV_OPTION,
-				     hotdrop))
-			return 0;
-	}
-
-If the optlen would be zero, second if() passes and we
-set *hotdrop to 1 and return.
-
-This is why tcp_find_option() uses BUG_ON(!optlen), it means
-that callers must check this.
-
-You must be changing this code or using it is some other way,
-if so you must make sure you check for non-zero optlen before
-invoking tcp_find_option().
+Thanks.
+-- 
+Bruce Guenter <bruceg@em.ca> http://em.ca/~bruceg/ http://untroubled.org/
+OpenPGP key: 699980E8 / D0B7 C8DD 365D A395 29DA  2E2A E96F B2DC 6999 80E8
