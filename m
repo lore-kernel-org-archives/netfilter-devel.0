@@ -1,15 +1,15 @@
-From: Nuutti Kotivuori <naked@iki.fi>
-Subject: Re: differences between win and unix tcp clients.
-Date: Wed, 17 Mar 2004 05:31:55 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: real time stateful filtering question
+Date: Wed, 17 Mar 2004 08:13:43 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <87wu5kp2s4.fsf@aka.i.naked.iki.fi>
-References: <024b01c40b4f$e3341620$3f32a8c0@ds.ig.com.br> <courier.40572942.00001232@ma.rtij.nl>
+Message-ID: <Pine.LNX.4.44.0403170807250.4188-100000@filer.marasystems.com>
+References: <NEBBJFIAIKIHKGJDONCDAEMMCCAA.smith-peter@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: peter smith <smith-peter@comcast.net>
+In-Reply-To: <NEBBJFIAIKIHKGJDONCDAEMMCCAA.smith-peter@comcast.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,31 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-netfilter-devel@rtij.nl wrote:
-> Fabiano Reis writes:
->> Conclusion: I think this was because the Windows implementation of
->> TCP detects something different on this connection, maybe it
->> detects in some way that there is a filter on the server side and
->> this is why the time for the error message take so long to
->> appear. Am I right? Is there a workaround for this problem? I need
->> to make windows think that the server is really "down" and that is
->> why i´m writting to you people.
->
-> You are right, tcp/ip stacks are different. In this the difference
-> shows case the filtered port will send back a host-unreachable while
-> the closed port will send back a TCP-reset. It is best to always
-> send back a TCP reset when rejecting tcp, all stacks react good to
-> this (they better do, it's in the RFC). So add a --with-tcp-reset to
-> jour reject and you should be OK.
+On Mon, 15 Mar 2004, peter smith wrote:
 
-Send TCP reset if you wish to get immediate response.
+> Unfortunately, packets sent on the data channel are also in your receive
+> buffer, and get processed by netfilter *before* the "PORT COMMAND" packet
+> gets processed by the userland monitor, or before the monitor can
+> sucessfully re-program the netfilter filter list. So they are dropped,
+> silently.
 
-TCP/IP stacks which interrupt connection attempts on ICMP
-host-unreachable are broken implementations. ICMP messages are
-advisory and insecure. The message shown, host unreachable, is merely
-advisory - the actual thing the machine is telling you is that the
-connection timed out and that in _addition_ a host unreachable message
-was received during the timeout which might very well be related, but
-which is not definitive.
+This is a somewhat bad example as FTP does not do anything with the data 
+channel until a response to the PORT command is seen and thus there can 
+not be such race window there.
 
--- Naked
+For most other protocols with "related" channels the same criteria is also
+true. But there probably is some protocols not waiting for a response to
+their control message before starting to use the "related" channel and
+where the race you discuss can occur.
+
+You can minimize the race by running your session tracking in the kernel 
+as conntrack protocol helpers, but even then there will be a small race 
+window if the appliaction does not wait for some response to the control 
+message before starting to use the related connection.
+
+Regards
+Henrik
