@@ -1,14 +1,16 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] for some issues in tcp window tracking patch
-Date: Mon, 17 May 2004 01:48:01 +0200
+Subject: Re: [PATCH] for some issues in tcp window tracking patch
+Date: Mon, 17 May 2004 01:51:14 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40A7FDB1.8080607@eurodev.net>
+Message-ID: <40A7FE72.60305@eurodev.net>
+References: <40A7FDB1.8080607@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060605080604010203070004"
+ boundary="------------050409030207000004000609"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
  Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <40A7FDB1.8080607@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,106 +22,18 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060605080604010203070004
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+--------------050409030207000004000609
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Jozsef,
+Hi again,
 
-I'm having a look at your tcp-window-tracking patch, I made some 
-modifications. Attached to this email a patch which applies to an 
-already applied patch (I know, a bit tricky), but I just wanted to show 
-you clearly my modifications. After you've reviewed this email, I have 
-no problem to send a patch which applies to the CVS with the stuff that 
-you considered that it's ok.
+please wrong patch, use this one instead.
 
-Well, let me comment you a bit the patch.
-
-a) Use flags defined in tcp.h instead of bsd flags: I found that these 
-flags are already defined in linux with different names in tcp.h, so we 
-could use linux flags instead.
-
--#define        TH_FIN  0x01
--#define        TH_SYN  0x02
-...
-
------ snipped from tcp.h ----
-#define TCPCB_FLAG_FIN 0x01
-#define TCPCB_FLAG_SYN 0x02
-...
-
-b) check that tcp is not malformed (doff has a faked value): I trust the 
-value of skb->len, so we could use it to check that the doff is correct 
-instead of that skb_copy_bits and that buff var, couldn't we?
-
-+       if ((skb->len - iph->ihl*4 - sizeof(struct tcphdr) == tcph->doff*4)
-+            && tcph->doff*4 < sizeof(struct tcphdr)) {
-
-I added this to the unclean function.
-
-c) I replaced this:
-
--       } else if ((old_state == TCP_CONNTRACK_SYN_RECV
--                   || old_state == TCP_CONNTRACK_ESTABLISHED)
--                  && new_state == TCP_CONNTRACK_ESTABLISHED) {
--               /* Set ASSURED if we see see valid ack in ESTABLISHED 
-after SYN_RECV
--                  or a valid answer for a picked up connection. */
--                       set_bit(IPS_ASSURED_BIT, &conntrack->status);
-
-for this:
-
-+       case TCP_CONNTRACK_ESTABLISHED:
-+               if ((old_state == TCP_CONNTRACK_SYN_RECV
-+                    || old_state == TCP_CONNTRACK_ESTABLISHED)
-+                    && !test_bit(IPS_ASSURED_BIT, &conntrack->status)) {
-+                       /* Set ASSURED if we see see valid ack in 
-ESTABLISHED
-+                        * after SYN_RECV or a valid answer for a picked
-+                        * up connection. */
-+                       set_bit(IPS_ASSURED_BIT, &conntrack->status);
-+               }
-
-actually I also added that test_bit, so the bit assured is set once.
-
-d) I think that we don't need this anymore, this is part of the old 
-tracking:
-
--       if (!test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)) {
--               /* If only reply is a RST, we can consider ourselves not 
-to           
--                  have an established connection: this is a fairly common
--                  problem case, so we can delete the 
-conntrack                       
--                  immediately.  --RR */
--               if (tcph->rst) 
-{                                                      
--                       WRITE_UNLOCK(&tcp_lock);
--                       if 
-(del_timer(&conntrack->timeout))                           
--                               conntrack->timeout.function((unsigned 
-long)conntrack);
--                       return 
-NF_ACCEPT;                                             
--               }
-
-because this should be always check in TCP_CONNTRACK_CLOSE which is, if 
-i'm not wrong, the state that we reach when a rst is received.
-
-e) I defined an inline __u32 segment_seq_plus_len instead a macro, it 
-gives me more flexibility.
-
-f) Do you think that it's interesting adding fine grain locking in 
-tcp-window-tracking?
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-May/015166.html
-
-I'm still understanding the current secuence tracking, I have some ideas 
-but I want to think a bit more about them, I'll let you know.
-
-regards,
+Sorry,
 Pablo
 
---------------060605080604010203070004
+--------------050409030207000004000609
 Content-Type: text/x-patch;
  name="tcp-win.patch"
 Content-Transfer-Encoding: 7bit
@@ -127,7 +41,7 @@ Content-Disposition: inline;
  filename="tcp-win.patch"
 
 --- net/ipv4/netfilter/ip_conntrack_proto_tcp.c~	2004-05-17 00:35:52.000000000 +0200
-+++ net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-05-17 00:33:54.000000000 +0200
++++ net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-05-17 00:58:42.000000000 +0200
 @@ -368,9 +368,12 @@
     we doesn't have to deal with fragments. 
  */
@@ -299,6 +213,15 @@ Content-Disposition: inline;
  		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
  			nf_log_packet(PF_INET, 0, skb, NULL, NULL, 
  				  "ip_conntrack_tcp: INVALID: invalid state ");
+@@ -795,7 +784,7 @@
+ 		if (index == TCP_RST_SET
+ 		    && test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
+ 		    && conntrack->proto.tcp.stored_seq <= TCP_SYNACK_SET
+-		    && after(ntohl(tcph->ack), conntrack->proto.tcp.last_seq)) {
++		    && after(ntohl(tcph.ack), conntrack->proto.tcp.last_seq)) {
+ 			/* Ignore RST closing down invalid SYN we had let trough. */ 
+ 		    	WRITE_UNLOCK(&tcp_lock);
+ 			if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
 @@ -804,23 +793,32 @@
  			return NF_ACCEPT;
  		}
@@ -435,4 +358,4 @@ Content-Disposition: inline;
  			conntrack->proto.tcp.seen[0].td_maxwin = 1;
  		conntrack->proto.tcp.seen[0].td_maxend =
 
---------------060605080604010203070004--
+--------------050409030207000004000609--
