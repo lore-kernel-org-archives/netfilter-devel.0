@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: libipulog question (again)
-Date: Thu, 5 Sep 2002 11:56:26 +0200
+From: Nick Eggleston <netfilter-devel@nick.corplink.net>
+Subject: conntrack state change logging
+Date: Thu, 5 Sep 2002 11:07:34 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020905095626.GI1064@naboo.lincon.Uni-Koeln.DE>
-References: <Pine.LNX.4.44.0209041924230.2080-100000@localhost.localdomain>
+Message-ID: <Pine.LNX.4.33.0209051100260.3007-100000@strut.corplink.net>
+References: <20020620211242.V2543@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jCrbxBqMcLqd4mOl"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rob McMillen <rvmcmil@cablespeed.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0209041924230.2080-100000@localhost.localdomain>
+To: <netfilter-devel@lists.samba.org>
+In-Reply-To: <20020620211242.V2543@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,47 +19,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Is there a framework for logging activity in the conntrack database?
 
---jCrbxBqMcLqd4mOl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+For example, I might want a log entry generated when:
 
-On Wed, Sep 04, 2002 at 07:34:37PM -0400, Rob McMillen wrote:
-> Hope this is the right medium.  I am really having problems with ULOG.  I=
-=20
-> have a simple rule
->=20
-> iptables -A OUTPUT -d 192.168.0.1 -j ULOG
+* a new entry is added
+* an entry is removed normally (standard tcp fin removal)
+* an entry is timed-out
+* state of an entry is changed
 
-what is the version of ipt_ULOG.c? where did you get libipulog from
-(from which iptables package?)
+or course, i would want to be able to filter based on regular iptables
+expressions, like source address, port destination address, port etc.
 
-> Thanks in advance,
-> Rob
+One application of this would be to create log entries for tcp connections
+to a certain port, which would capture session length, bytes and packets
+for each session.
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
-=20
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+Can this be done easily?
 
---jCrbxBqMcLqd4mOl
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Thanks,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Nick
 
-iD8DBQE9dypKXaXGVTD0i/8RAhYVAKCYaz4H9zJKEv8yG5nwulxtJwDT/wCdEcLA
-Cv1uCB11Z9mjrs+2acCeXx4=
-=x1VN
------END PGP SIGNATURE-----
-
---jCrbxBqMcLqd4mOl--
+-- 
+Nick Eggleston
+Consultant
+Data Communications Consulting, Inc.
+6320 Rucker Road, Suite E
+Indianapolis, IN  46220
+317/726-0295 x18
+317/202-2445 (fax)
