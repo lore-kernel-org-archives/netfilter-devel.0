@@ -1,16 +1,12 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: NAT changing src-port
-Date: Mon, 01 Mar 2004 17:51:05 +0100
+From: "王海涛 " <wanght@tsinghua.org.cn>
+Subject: what is the semantic meaning of find_appropriate_src()
+Date: Mon, 01 Mar 2004 23:03:27 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1078159865.675.82.camel@nienna.balabit>
-References: <DAELKAPIKOFAFFKELNHOEEDBCAAA.listuser@epygi.de>
-Mime-Version: 1.0
+Message-ID: <E1AxoxH-0008BT-NG@vishnu.netfilter.org>
+Reply-To: "王海涛 " <wanght@tsinghua.org.cn>
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nikolai Dahlem <listuser@epygi.de>
-In-Reply-To: <DAELKAPIKOFAFFKELNHOEEDBCAAA.listuser@epygi.de>
+To: netfilter-devel@lists.netfilter.org  
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,18 +17,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I have studied the netfilter/iptables code for serval months, but I can not
+understand the
+semantic meaning of function find_appropriate_src(), which is called by
+get_unique_tuple().
 
-  Hi,
+I can not figure in what situation it can return TRUE and  I think even in the
+situation it can return TRUE, it is still meaningless. I designed and tried some
+DNAT/SNAT examples, but none of them can make find_appropriate_src() return TRUE.
 
-On Mon, 2004-03-01 at 13:16, Nikolai Dahlem wrote:
-> request is not recognized. How can I get the port the new (changed)
-> port from netfilter, to change the payload accordingly in my
-> NAT-helper ?
+So, I wonder what is the object of designing the find_appropriate_src()? 
 
-  After setting up the NAT mappings with ip_nat_setup_info(), the new
-source port is ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.all (ct is a
-pointer to your conntrack structure).
-
--- 
- Regards,
-   Krisztian KOVACS
+Thx!
