@@ -1,15 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] h323 module unloading fix
-Date: Wed, 09 Feb 2005 00:10:55 +0100
-Message-ID: <420946FF.107@trash.net>
-References: <20050208145908.GS6878@sunbeam.de.gnumonks.org>
+Subject: Re: [PATCH] Get icmp ratelimit from sysctl in ipt_REJECT.c
+Date: Wed, 09 Feb 2005 00:34:37 +0100
+Message-ID: <42094C8D.1030009@trash.net>
+References: <20050208042943.7284.qmail@web60602.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050208145908.GS6878@sunbeam.de.gnumonks.org>
+Cc: netfilter-devel@lists.netfilter.org
+To: Duncan Palmer <dunk_palmer@yahoo.com>
+In-Reply-To: <20050208042943.7284.qmail@web60602.mail.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +20,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
+Duncan Palmer wrote:
 
->Hi!
+>Hi,
 >
->If you unload the ip_conntrack_h323 module while a h323 session is in
->progress, the conntrack table is left with corrupted entries (->helper
->pointer still pointing to a now no longer existing h245 helper).
+>Whilst working on a netfilter module, I noticed a
+>comment in ipt_REJECT.c saying 'FIXME: Use sysctl
+>number. --RR' before a call to xrlim_allow(). This is
+>fixed in the attached patch (against 2.6.11-rc2-mm1,
+>but applies cleanly to rc3-mm1 as well).
 >
->This is because the h245 helper is not registered with the core, and
->therefore the helper_unregister() function will only be called for h245,
->but not for h245.
->
->The proposed solution:
->
->1) to make ip_conntrack_core:ip_conntrack_helper_unregister() work with
->   a helper that was never registered (and thus has an empty list.next)
->2) to have ip_conntrack_h323 unregister the h245 helper.
->
->Any comments?
->
-You can initialize helper->list and replace LIST_DELETE by list_del, 
-then you
-can avoid the check for list.next. But I think splitting the code to evict
-expectations and expected conntracks from ip_conntrack_helper_unregister is
-a cleaner solution.
+I was never convinced of using xrlim_allow in ipt_REJECT. We
+already have the limit match, which allows to set limits in
+the ruleset. The current of of xrlim_allow is actually broken,
+the max number of tokens in the dst_entry is limited by the timeout
+value, so both icmp.c and ipt_REJECT.c are limited by the smaller
+of both timeouts when ICMPs are sent by both. ipt_REJECT also
+doesn't care about icmp_ratemask and uses up token for types
+that shouldn't be limited. So we can either remove it entirely
+or use icmpv4_xrlim_allow. If there are no objections I would
+prefer to remove it.
 
 Regards
 Patrick
