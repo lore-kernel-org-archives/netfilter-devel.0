@@ -1,14 +1,16 @@
-From: "=?utf-8?B?6auY5bOwQOe9keaYkw==?=" <zpeak@163.com>
-Subject: In iptables ,I can not write file , (atteched source file) ,Help me
-Date: Sat, 26 Apr 2003 13:48:14 +0800
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Help me ,Help me .
+Date: Sat, 26 Apr 2003 08:05:03 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <00bd01c30bb7$6e44cff0$01e7a8c0@zpeak>
+Message-ID: <20030426060503.GB7766@oknodo.bof.de>
+References: <000c01c30bb1$ad85a640$01e7a8c0@zpeak>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: cyberyam <zpeak@cyberyam.com>
+Content-Disposition: inline
+In-Reply-To: <000c01c30bb1$ad85a640$01e7a8c0@zpeak>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,55 +21,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGVsbG86DQogICAgSSBwcm9ncmFtIHRoZSBmaXJld2FsbCB1c2VkIHRoZSBpcHRhYmxlIHVuZGVy
-IGxpbnV4ICxUaGUga2VybmVsIGlzIDIuNC4xOCAsDQpJIHNlZSAsIHRoZSBzeXNfb3BlbiBpcyBj
-YWxsIGZyb20gdXNlcnNwYWNlICxzbyBpIGNvbnZlcnQga2VybmVsc3BhY2UgdG8gdXNlcnNwYWNl
-ICwNCiANCiANCmJ1dCBmYWlsZWQgKFRoZSBzb3VyY2UgaXMgYXR0ZWNoZWQgKS4NCkkgY291bid0
-IGNhbGwgdGhlIHN5c3RlbSBjYWxsICxleGFtcGxlIHN5c19vcGVuICxzeXNfY2xvc2UsIA0KVGhl
-IHByb2JsZW0gaXMgaSBjb3VsZCd0IHdyaXRlIGZpbGUgLHdoYXQgY2FuIGkgZG8gLA0KIG1tX3Nl
-Z21lbnRfdCBvbGRfZnMgPWdldF9mcygpIDsNCg0KICAgIHNldF9mcyhuZXdfZnMpIDsNCiANCiBm
-ZCA9IHN5c19vcGVuKHBhdGhuYW1lLE9fV1JPTkxZfE9fQ1JFQVQsU19JUlVTUnxTX0lXVVNSKTsN
-CiBwcmludGsoImZkIGlzIFslZF0iLGZkKTsNCiBzeXNfd3JpdGUoZmQsIk1haWwgaGFzIGRldmVs
-b3BlIHN1Y2Vzc2VzICwgIiwyMCkgOyANCiBzeXNfY2xvc2UoZmQpOw0KIA0Kc2V0X2ZzKG9sZF9m
-cykgOw0KIA0KDQp3aGVuIHRoZSBwYWNrZXQgaXMgYWNjb3IgLHRoZSBtYWNoaW5lIHdpbGwgcGFu
-aWMgLA0KdGhlIGVycm9yIGlzIDoNCiANCmVycm9yIC4uLi4gDQprZXJuZWwgcGFuaWMgOkFpZWUs
-a2lsbGluZyBpbnRlcnJ1cHQgaGFuZGxlciEgDQpJbiBpbnRlcnJ1cHQgaGFuZGxlciAtIG5vdCBz
-eW5jaW5nIA0KDQogICAgUGxlYXNlIGhlbHAgbWUgLFRoYW5rIHlvdSAuDQogICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB5b3VycyB6cGVh
-ayANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIA0KIA0KLyotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQ0KICpBdHRlY2hlZCB0aGUgc291cmNlIGFuZCB0aGUgcHJvYmxlbSANCi0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0qLw0KI2lmbmRlZiBfX0tFUk5FTF9fDQojZGVm
-aW5lIF9fS0VSTkVMX18NCiNlbmRpZg0KI2lmbmRlZiBNT0RVTEUNCiNkZWZpbmUgTU9EVUxFDQoj
-ZW5kaWYNCiANCiNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4NCiNpbmNsdWRlIDxsaW51eC9za2J1
-ZmYuaD4NCiNpbmNsdWRlIDxsaW51eC9uZXRkZXZpY2UuaD4NCiNpbmNsdWRlIDxsaW51eC9jb25m
-aWcuaD4NCiNpbmNsdWRlIDxsaW51eC9pcC5oPg0KI2luY2x1ZGUgPGxpbnV4L3RjcC5oPg0KI2lu
-Y2x1ZGUgPGxpbnV4L3VkcC5oPg0KI2luY2x1ZGUgPGxpbnV4L3NwaW5sb2NrLmg+DQojaW5jbHVk
-ZSA8YXNtLWkzODYvc2VnbWVudC5oPg0KI2luY2x1ZGUgPGFzbS1pMzg2L3VhY2Nlc3MuaD4NCiNp
-bmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2NC5oPg0KDQogDQogDQoNCnN0YXRpYyB1bnNpZ25l
-ZCBpbnQgbXlmaXJld2FsbCh1bnNpZ25lZCBpbnQgaG9va251bSxzdHJ1Y3Qgc2tfYnVmZiAqKnNr
-YiwNCiAgY29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKmluLA0KICBjb25zdCBzdHJ1Y3QgbmV0X2Rl
-dmljZSAqb3V0LGludCAoKm9rZm4pKHN0cnVjdCBza19idWZmKikpDQp7DQogbW1fc2VnbWVudF90
-IG9sZF9mcyA9Z2V0X2ZzKCkgOw0KIG1tX3NlZ21lbnRfdCBuZXdfZnMgPWdldF9kcygpOw0KIHBy
-aW50aygiVGhlIG9sZCBmcyBpcyBbJWx1XVxuIixvbGRfZnMuc2VnKSA7DQogcHJpbnRrKCJUaGUg
-bmV3dyBmcyBpcyBbJWx1XVxuICIsbmV3X2ZzLnNlZykgOw0KDQovKiBJIGZvdW5kIHRoZSBvbGRf
-ZnMgYW5kICBuZXdfZnMgaXMgaW4gdGhlIHNhbWUgYWRkcmVzcyAgDQogICogQnV0IGluIG90aGVy
-IG1vZHVsZSBpcyBkaWZmZXJlbnQgLHdoeSxjYW4geW91IHRlbGwgbWUgDQoqLyANCiANCiANCiBp
-bnQgZmQgPSAwOw0KIGNoYXIgcGF0aG5hbWVbNTBdID0iL3Rlc3QvbG9nLzgubWFpbCIgOw0KIA0K
-c2V0X2ZzKG5ld19mcykgOw0KIA0KIGZkID0gc3lzX29wZW4ocGF0aG5hbWUsT19XUk9OTFl8T19D
-UkVBVCxTX0lSVVNSfFNfSVdVU1IpOw0KIHByaW50aygiZmQgaXMgWyVkXSIsZmQpOw0KIHN5c193
-cml0ZShmZCwiTWFpbCBoYXMgZGV2ZWxvcGUgc3VjZXNzZXMgLCAiLDIwKSA7IA0KIHN5c19jbG9z
-ZShmZCk7DQogDQpzZXRfZnMob2xkX2ZzKSA7DQogDQogDQogcmV0dXJuIE5GX0FDQ0VQVDsNCg0K
-fQ0KIA0Kc3RhdGljIHN0cnVjdCBuZl9ob29rX29wcyBpcGxpbWl0ZmlsdGVyPQ0Kew0KIHtOVUxM
-LE5VTEx9LA0KIG15ZmlyZXdhbGwsDQogUEZfSU5FVCwNCiBORl9JUF9QUkVfUk9VVElORywNCiBO
-Rl9JUF9QUklfRklMVEVSDQp9Ow0KIA0KaW50IGluaXRfbW9kdWxlKHZvaWQpDQp7DQogbW1fc2Vn
-bWVudF90IG9sZF9mcyA9Z2V0X2ZzKCkgOw0KIG1tX3NlZ21lbnRfdCBuZXdfZnMgPWdldF9kcygp
-Ow0KIHByaW50aygiVGhlKiogb2xkIGZzIGlzIFslbHVdXG4iLG9sZF9mcy5zZWcpIDsNCiBwcmlu
-dGsoIlRoZSoqIG5ld3cgZnMgaXMgWyVsdV1cbiAiLG5ld19mcy5zZWcpIDsNCiByZXR1cm4gbmZf
-cmVnaXN0ZXJfaG9vaygmaXBsaW1pdGZpbHRlcik7DQp9DQogDQp2b2lkIGNsZWFudXBfbW9kdWxl
-KHZvaWQpDQp7DQogbmZfdW5yZWdpc3Rlcl9ob29rKCZpcGxpbWl0ZmlsdGVyKTsNCn0NCiANCi0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQ0KZ2NjIC1EX19LRVJORUxfXyAtV0FMTCAtSSAvdXNyL3NyYy9saW51eC4yLjQuMTgvaW5jbHVk
-ZSAgbXlmaXJld2FsbC5jIA0KIA==
+Hello, unnamed entity calling itself 'cyberyam' and 'zpeak',
+
+> I coun't call the system call ,example sys_open ,sys_close, 
+> The problem is i could't write file ,what can i do ,
+
+You can learn that the kernel is not user mode. There's an awful lot to learn.
+
+Iptables kernel modules do not run in process context, so you are not able
+to do any filesystem I/O from them.
+
+If you do not understand the answer, see/ask http://www.kernelnewbies.org/
+
+>From your example code, I gather that you want to send an email when
+some condition happens. See the existing, well established 'ULOG' target
+for a working, proper approach to that task. No need for kernel programming,
+as far as I can tell. See http://gnumonks.org/projects/ulogd
+
+regards
+  Patrick
