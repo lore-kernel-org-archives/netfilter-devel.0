@@ -1,16 +1,20 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004@gmx.net>
-Subject: Re: [PATCH] remove overzealous checks in REJECT target
-Date: Thu, 16 Dec 2004 00:31:47 +0100
-Message-ID: <41C0C963.4040309@gmx.net>
-References: <41AD67A3.6090608@gmx.net>
-	<200412020617.iB26H6ut018405@toshiba.co.jp>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [netfilter-core] [2.6 patch] net/ipv4/netfilter/: misc
+	possible cleanups
+Date: Thu, 16 Dec 2004 12:40:48 +1100
+Message-ID: <1103161248.2200.7.camel@localhost.localdomain>
+References: <20041215011931.GD12937@stusta.de>
+	<20041215090322.GA2862@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netdev@oss.sgi.com, Netfilter Core Team <coreteam@netfilter.org>,
+	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
+	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Adrian Bunk <bunk@stusta.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200412020617.iB26H6ut018405@toshiba.co.jp>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041215090322.GA2862@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +26,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki Kozakai schrieb:
-> I think so. This check isn't needed.
-> 
-> And I found strange codes after this check: directly access to the data
-> in skb.h and overwriting ICMP header with same data.
-> 
-> I think we should use skb_header_pointer() to get UDP/ICMP header.
-> 
-> Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+On Wed, 2004-12-15 at 10:03 +0100, Harald Welte wrote:
+> On Wed, Dec 15, 2004 at 02:19:31AM +0100, Adrian Bunk wrote:
+> > The patch below contains the following possible cleanups:
+...
+> As you might be aware, netfilter/iptables has an enormously large
+> codebase (I'd say even larger than what is in the tree) in the so-called
+> patch-o-matic subsystem.  The abovementioned exports facilitate those
+> modulse, and A certain amount of those new modules (especially the ones
+> requiring the functions above) are scheduled for mainline inclusion over
+> the next couple of months.
 
-When will this patch get into mainline?
+True, but some of these cleanups are genuine.  Deleting code also
+increases the coverage of the testsuite: I've put this in my patch set
+and will merge them in pieces.  At the rate I work, those that are
+needed in the next few months won't be deleted.  If patches are not due
+to be merged in that timeframe, it'd be nice if they contained the
+exports etc. that they need rather than relying on long-term unused
+features of the tree.
 
-Regards,
-Carl-Daniel
+Cheers,
+Rusty.
 -- 
-http://www.hailfinger.org/
+A bad analogy is like a leaky screwdriver -- Richard Braakman
