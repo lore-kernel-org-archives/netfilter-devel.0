@@ -1,17 +1,21 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: iptables versioning feature causes ABI breakage
-Date: 24 Mar 2005 07:46:04 -0500
-Message-ID: <1111668363.1039.64.camel@jzny.localdomain>
-References: <1111666300.1037.40.camel@jzny.localdomain>
-	<20050324123305.GE18694@sunbeam.de.gnumonks.org>
-Reply-To: hadi@cyberus.ca
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: building libctnetlink
+Date: Thu, 24 Mar 2005 13:58:31 +0100
+Message-ID: <4242B977.1030607@eurodev.net>
+References: <423BF227.8030502@outerspace.dyndns.org>	
+	<423BF4DC.2070902@outerspace.dyndns.org>	
+	<1111335091.2523.46.camel@lap-ufomechanic>	
+	<1111335425.2523.49.camel@lap-ufomechanic>
+	<423DF940.100@eurodev.net>	
+	<1111412190.2716.55.camel@lap-ufomechanic>
+	<423F007F.2060102@eurodev.net>
+	<1111667756.2526.19.camel@lap-ufomechanic>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050324123305.GE18694@sunbeam.de.gnumonks.org>
+Cc: netfilter-devel@lists.netfilter.org
+To: oscar@ufomechanic.net
+In-Reply-To: <1111667756.2526.19.camel@lap-ufomechanic>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +27,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2005-03-24 at 07:33, Harald Welte wrote:
-
-> > versions;->). In the future please please remember there are other
-> > users of these goods other than iptables.
+Just another UFO mechanic wrote:
+> I am still trying to compile libctnetlink and libnfnetlink I cannot find
+> a whole lot of info on it. I have 2 questions
 > 
-> well, the versioning was developed about the same time that you got your
-> tc interface included, if I'm not mistaken.
+> When I try compile
+> I get the error
+> libctnetlink.c:32:39 linux/nfnetlink_conntrack.h: No such file or
+> directory
 
-You are probably correct.
-The tc code has been around since about 2.6.8 and the ipt code probably
-went in around 2.6.9/10; there has been fixes made to net/sched/ipt.c
-when general interfaces were changed i cant rememember what that was.. 
+Have you applied `nfnetlink-ctnetlink-0.13' in pom-ng? Add 
+-I/your/kernel/include/path to your compilation script.
 
-In any case, we can make it better going forward to reduce maintainance
-overhead on my part. As i was saying earlier - I am stealing a lot of
-the code from iptables - so if it is that shareable, maybe it could be
-converted to a library.
 
-cheers,
-jamal
+> Secondly
+> Because this should be in linux/* this tells me that it may belong to an
+> older kernel or something that is now deprecated, is that so ? I am
+> trying to compile on 2.6.10
+
+Unfortunately that won't work with your current kernel, AFAIK those 
+patches work fine for most 2.4.x releases. Anyhow I'm currently working 
+on porting them to 2.6.11 so you could wait until I post them in the 
+mailing list.
+
+--
+Pablo
