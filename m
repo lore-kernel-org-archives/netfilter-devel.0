@@ -1,15 +1,15 @@
-From: Wim Ceulemans <wim.ceulemans@able.be>
-Subject: Re: Routing decision?
-Date: Thu, 18 Sep 2003 15:39:17 +0200
+From: "Vijay Angelo" <vijay.angelo@indscape.com>
+Subject: please help me with iptc_insert_entry..
+Date: Thu, 18 Sep 2003 19:46:36 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F69B585.50203@able.be>
-References: <Pine.LNX.4.44.0309181507020.21129-100000@filer.marasystems.com>
+Message-ID: <000101c37def$7908c720$1d01a8c0@pdcindscape.com>
+Reply-To: <vijay.angelo@indscape.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_1063892355-22680-4"
-Cc: netfilter-devel@lists.netfilter.org, dev@able.be
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0309181507020.21129-100000@filer.marasystems.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,58 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format...
+hi
 
-------------=_1063892355-22680-4
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+actually i m developing an application using libiptc library..
 
-Ok, thanks Henrik, we will try the mark in the mangle table.
+i am not able to insert a rule using the iptc_insert_entry..function
+My REQUIREMENT :
 
-Regards
-Wim
+the rule is like this:
+ iptables -t nat -A PREROUTING -p tcp -s 192.168.1.5 -j ACCEPT
 
-Henrik Nordstrom wrote:
+I want to do this..with iptc_insert_entry..
+please write the code and send..i am struggling for past two days..
 
->On Thu, 18 Sep 2003, Wim Ceulemans wrote:
->
->  
->
->>Ok, but the problem is that setting a mark on the packet isn't 
->>considered as a change to the packet, since marks only live in
->>the kernel and have no effect on the packet.
->>    
->>
->
->Changing marks are considered a change in the packet in this context.
->
->If mangle OUTPUT changes any of Source IP, Destination IP, ToS or nfmark
->then the packet is automatically rerouted by iptables.
->
->Regards
->Henrik
->
->  
->
+i m very eagerly waiting to see the reply..
 
-
--- 
-Wim Ceulemans
-R&D Engineer
-
-Secure Internet Communication with aXs Guard
-
-Able NV
-Leuvensesteenweg 282 - B-3190 Boortmeerbeek - Belgium
-Phone: + 32 15 50.44.00 - Fax: + 32 15 50.44.09
-E-mail: wim.ceulemans@able.be
-
-
-
---
-Security check on this e-mail has been done by aXs GUARD
-(http://www.axsguard.com)
-
-
-------------=_1063892355-22680-4--
+thanking you
+vijay
