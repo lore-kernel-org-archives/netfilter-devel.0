@@ -1,13 +1,15 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Re:RPC conntrack code status
-Date: Sat, 27 Mar 2004 10:47:41 +1000
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: mask for interface
+Date: Sat, 27 Mar 2004 01:56:02 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200403270047.i2R0lfv12960@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
-Cc: <andreas@conectiva.com.br>, netfilter-devel@lists.netfilter.org
+Message-ID: <Pine.LNX.4.44.0403270155130.11373-100000@filer.marasystems.com>
+References: <406440F3.8010203@aiqa.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Eduardo Pereira Habkost" <ehabkost@conectiva.com.br>
+To: Ozgur AKAN <akan@aiqa.com>
+In-Reply-To: <406440F3.8010203@aiqa.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,48 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 26 Mar 2004, Ozgur AKAN wrote:
 
-
-Hello Eduardo,
-
-  I don't know about its permanent inclusion, but from the dev side,
-I had half of the code I needed to be able to add a caching system
-to the module (so that RPC calls that didn't go to the portmapper
-first could still be resolved using a slab cache of current RPC
-map ents + a cache refresher to retrieve new map ents when
-desired from the portmapper) - I then wanted to add a modifier that
-would only allow a source IP to see the map ents of calls that it
-was allowed to make (otherwise the rpc portmapper could still be
-used for information gathering).  It was not near completion, and 
-I have spent the past 6months on openMosix rather than my 
-netfilter code (due to need mostly).
-
-  I don't actively use the current code - but I haven't had any
-complaints with it -- outside of a lack of support for the rsh-via-rpc
-required for one of the backup solutions - which I didn't get back to.
-
-
-
------ Original Message -----
->From: "Eduardo Pereira Habkost" <ehabkost@conectiva.com.br>
->To: <netfilter-devel@lists.netfilter.org>
->Subject:  RPC conntrack code status
->Date: Fri, 26 Mar 2004 11:55:54 -0300
->
+> Hi,
 > 
-> Hi, All,
+> In the manual of iptables there is nothing about the mask value of an 
+> interface. + sign at the end of a few characters of an interface means 
+> any interface which begins with this name will match.
 > 
-> I've been looking at the Netfilter RPC conntrack module, and I would
-> like to know the status of the permanent inclusion of this module. Is
-> this module considered stable and there are plans to include it, soon?
-> 
-> Regards,
-> 
-> -- 
-> Eduardo
-> 
+> Again what I wonder is the why iniface_mask value is used???
 
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
+Again, it is used for the + wildcard.
+
+In theory it could be used for other things as well, but only the + 
+wildcard is implemented in the iptables application.
+
+Regards
+Henrik
