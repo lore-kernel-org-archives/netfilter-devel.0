@@ -1,16 +1,20 @@
-From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: [PATCH] let submitted/61_nulldev_alignment match official kernel
- 2.4.25 in pom-20040409
-Date: Sun, 11 Apr 2004 14:01:01 +0200
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: pom-20040409: patches that break iptables-1.2.9-20040409,
+ kernel 2.4.25 or pom's runme
+Date: Sun, 11 Apr 2004 16:16:11 +0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4079337D.4010207@fl.priv.at>
-Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <20040411161611.3c7541b9.johnpol@2ka.mipt.ru>
+References: <407928B7.6040505@fl.priv.at>
+	<20040411155523.1fd06a78.johnpol@2ka.mipt.ru>
+	<40793201.4070906@fl.priv.at>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------070501060408050308010503"
-Cc: Tommi Virtanen <tv@debian.org>
+ boundary="Multipart=_Sun__11_Apr_2004_16_16_11_+0400_6+Ky=VzYS2/KImk/"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Friedrich Lobenstock <fl@fl.priv.at>
+In-Reply-To: <40793201.4070906@fl.priv.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,51 +26,66 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070501060408050308010503
-Content-Type: text/plain; charset=us-ascii; format=flowed
+
+--Multipart=_Sun__11_Apr_2004_16_16_11_+0400_6+Ky=VzYS2/KImk/
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-Hi!
+On Sun, 11 Apr 2004 13:54:41 +0200
+Friedrich Lobenstock <fl@fl.priv.at> wrote:
 
-Tommi I have you CC'd as you are the author of this patch.
+> > What sources do you use?
+> > You need CVS pom-ng + CVS iptables/extensions/libipt_osf.c for
+> > successfull compilation.
+> > 
+> > IPT_OSF_NETLINK is defined in
+> > patch-o-matic-ng/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h:
+> > 
+> > #define IPT_OSF_NETLINK		8
+> > 
+> > 
+> > With CVS pom-ng and CVS iptables/extensions/libipt_osf.c I can
+> > compile both libipt_osf.so and ipt_osf.o ( using my own scripts, but
+> > it doesn't matter).
+> 
+> I use plain pom, not pom-ng! Otherwise I would have written pom-ng in
+> the subject.
 
-Here is a patch for the submitted/61_nulldev_alignment patch in
-pom-20040409 (not pom-ng!) that matches the latest official changes
-in kernel 2.4.25.
+Yep.
+POM is deprecated is not supported any more.
+I think it will dissapear in the near future.
 
--- 
-MfG / Regards
-Friedrich Lobenstock
+Attached patch disables netlink notification but should not be applied
+to CVS libipt_osf.c, it is only for those who use POM instead of POM-NG.
 
---------------070501060408050308010503
-Content-Type: text/plain;
- name="patch-submitted-61_nulldev_alignment-patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch-submitted-61_nulldev_alignment-patch"
+> 
+> > Thank you for review.
+> 
+> You're welcome.
+> 
+> -- 
+> MfG / Regards
+> Friedrich Lobenstock
 
---- patch-o-matic-20040409/submitted/61_nulldev_alignment.patch.pre-2.4.25	2004-04-11 14:45:23.000000000 +0200
-+++ patch-o-matic-20040409/submitted/61_nulldev_alignment.patch	2004-04-11 14:45:38.000000000 +0200
-@@ -1,16 +1,11 @@
----- linux-2.4.orig/net/ipv4/netfilter/ip_tables.c	2003-12-26 19:24:46.000000000
--+0200
--+++ linux-2.4/net/ipv4/netfilter/ip_tables.c	2003-12-26 18:58:30.000000000 +0200
--@@ -260,7 +278,11 @@ ipt_do_table(struct sk_buff **pskb,
-+--- linux-2.4.24/net/ipv4/netfilter/ip_tables.c	2003-08-25 04:44:44.000000000 -0700
-++++ linux-2.4.25/net/ipv4/netfilter/ip_tables.c	2004-02-18 05:36:32.000000000 -0800
-+@@ -259,7 +259,7 @@
-  	     struct ipt_table *table,
-  	     void *userdata)
-  {
- -	static const char nulldevname[IFNAMSIZ] = { 0 };
--+	/* Pointer to nulldevname may be dereferenced as unsigned
--+	   long* in ip_packet_match. We need to guarantee
--+	   sufficient alignment here. */
--+	static const char nulldevname[IFNAMSIZ]
--+		__attribute__((__aligned__(__alignof__ (unsigned long)))) = {0};
-++	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long)))) = { 0 };
-  	u_int16_t offset;
-  	struct iphdr *ip;
-  	void *protohdr;
 
---------------070501060408050308010503--
+	Evgeniy Polyakov ( s0mbre )
+
+Only failure makes us experts. -- Theo de Raadt
+
+--Multipart=_Sun__11_Apr_2004_16_16_11_+0400_6+Ky=VzYS2/KImk/
+Content-Type: application/octet-stream;
+ name="diff"
+Content-Disposition: attachment;
+ filename="diff"
+Content-Transfer-Encoding: base64
+
+LS0tIC9ob21lL3MwbWJyZS9hV29yay9vc2YvbGliaXB0X29zZi5jCVNhdCBKYW4gMzEgMTk6NTc6
+MzkgMjAwNAorKysgbGliaXB0X29zZi5jCVN1biBBcHIgMTEgMTY6MTI6NDIgMjAwNApAQCAtMTAz
+LDEwICsxMDMsMTIgQEAKIAkJCWluZm8tPmZsYWdzIHw9IElQVF9PU0ZfTE9HOwogCQkJYnJlYWs7
+CiAJCWNhc2UgJzQnOiAvKiAtLW5ldGxpbmsgKi8KKyNpZiAwCiAJCQlpZiAoKmZsYWdzICYgSVBU
+X09TRl9ORVRMSU5LKQogCQkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sICJDYW4ndCBz
+cGVjaWZ5IG11bHRpcGxlIHNtYXJ0IHBhcmFtZXRlciIpOwogCQkJKmZsYWdzIHw9IElQVF9PU0Zf
+TkVUTElOSzsKIAkJCWluZm8tPmZsYWdzIHw9IElQVF9PU0ZfTkVUTElOSzsKKyNlbmRpZgogCQkJ
+YnJlYWs7CiAJCWRlZmF1bHQ6CiAJCQlyZXR1cm4gMDsK
+
+--Multipart=_Sun__11_Apr_2004_16_16_11_+0400_6+Ky=VzYS2/KImk/--
