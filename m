@@ -1,64 +1,51 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [patch] voluntary-preempt-2.6.9-rc1-bk4-Q8
-Date: Thu, 2 Sep 2004 09:46:04 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040902074604.GA21144@elte.hu>
-References: <OF04883085.9C3535D2-ON86256F00.0065652B@raytheon.com> <20040902063335.GA17657@elte.hu> <20040902065549.GA18860@elte.hu> <1094108653.11364.26.camel@krustophenia.net> <20040902071525.GA19925@elte.hu> <1094110289.11364.32.camel@krustophenia.net>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Port forwarding with iptables
+Date: Thu, 2 Sep 2004 10:28:21 +0200 (CEST)
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <Pine.LNX.4.61.0409021025440.17962@filer.marasystems.com>
+References: <200409020414.i824Eh7e032212@xanadu.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Mark_H_Johnson@raytheon.com, "K.R. Foley" <kr@cybsft.com>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	Felipe Alfaro Solana <lkml@felipe-alfaro.com>,
-	Daniel Schmitt <pnambic@unu.nu>,
-	alsa-devel <alsa-devel@lists.sourceforge.net>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267777AbUIBHos@vger.kernel.org>
-To: Lee Revell <rlrevell@joe-job.com>
-Content-Disposition: inline
-In-Reply-To: <1094110289.11364.32.camel@krustophenia.net>
+Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: =?iso-8859-1?Q?KUCKAERTZ_R=E9gis_-_NVISION?= <regis@nvision.lu>
+In-Reply-To: <200409020414.i824Eh7e032212@xanadu.marasystems.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 1 Sep 2004, [iso-8859-1] KUCKAERTZ R=E9gis - NVISION wrote:
 
-* Lee Revell <rlrevell@joe-job.com> wrote:
+> $IPTABLES -t nat -A PREROUTING -p tcp --dst $HOST_IP --dport 3999 -j DN=
+AT
+> --to-destination $SERVER_IP:123
 
-> > these all seem to be single-packet processing latencies - it would be
-> > quite hard to make those codepaths preemptible.
-> 
-> I suspected as much, these are not a problem.  The large latencies
-> from reading the /proc filesystem are a bit worrisome (trace1.txt), I
-> will report these again if they still happen with Q8.
+Ok.
 
-conntrack's ct_seq ops indeed seems to have latency problems - the quick
-workaround is to disable conntrack.
+>   This one should do the forwarding
+>
+> $IPTABLES -t nat -a POSTROUTING -p tcp --dst $SERVER_IP --dport 123 -j
+> MASQUERADE
+>
+>   ... and this one should masquerade
 
-The reason for the latency is that ct_seq_start() does a read_lock() on
-ip_conntrack_lock and only ct_seq_stop() releases it - possibly
-milliseconds later. But the whole conntrack /proc code is quite flawed:
+This should probably be a SNAT.
 
-        READ_LOCK(&ip_conntrack_lock);
+Please describe your network in a little more detail. Is the station wher=
+e=20
+you are running NAT a router (two network cards, ISP on one side, interna=
+l=20
+stations on other side) or just a host on the network?
 
-        if (*pos >= ip_conntrack_htable_size)
-                return NULL;
+Are you trying to connect from the Internet to internal stations/servers=20
+in your Network, or the other way around?
 
-        bucket = kmalloc(sizeof(unsigned int), GFP_KERNEL);
-        if (!bucket) {
-                return ERR_PTR(-ENOMEM);
-        }
-        *bucket = *pos;
-        return bucket;
-
-#1: we kmalloc(GFP_KERNEL) with a spinlock held and softirqs off - ouch!
-
-#2: why does it do the kmalloc() anyway? It could store the position in
-    the seq pointer just fine. No need to alloc an integer pointer to
-    store the value in ...
-
-#3: to fix the latency, ct_seq_show() could take the ip_conntrack_lock 
-    and could check the current index against ip_conntrack_htable_size. 
-    There's not much point in making this non-preemptible, there's 
-    a 4K granularity anyway.
-
-Rusty, what's going on in this code?
-
-	Ingo
+Regards
+Henrik
