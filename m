@@ -1,16 +1,15 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
-Date: Tue, 16 Mar 2004 18:28:37 +0100
+From: Nuutti Kotivuori <naked@iki.fi>
+Subject: Re: Floods
+Date: Wed, 17 Mar 2004 05:25:15 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1079458116.843.62.camel@nienna.balabit>
-References: <Pine.LNX.4.33.0403121424070.20054-100000@blackhole.kfki.hu>
+Message-ID: <874qsoqhno.fsf@aka.i.naked.iki.fi>
+References: <200403141930.29602.alchemyx@uznam.net.pl> <877jxmuopm.fsf@aka.i.naked.iki.fi>
+ <200403152031.27399.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0403121424070.20054-100000@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,30 +20,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Micha wrote:
+> Dnia pon 15. marca 2004 16:14, Nuutti Kotivuori napisa³:
+>> Micha wrote:
+>>> What do you recommend? Unfortunately connlimit does not work with
+>>> UDP packets (no wonder - UDP is conection less). What should I do? 
+>>> I even thought about switch to FreeBSD (sic! :<).
+>>
+>> See if the 'dstlimit' would help in your case. It is in
+>> patch-o-matic.
+>
+> But it does not support '--mode srcip' and I failed trying to adpot
+> patch from before few months that tried to add that option.
 
-  Hi,
+The patch-o-matic help is outdated, this is what it supports now:
 
-On Fri, 2004-03-12 at 14:30, Jozsef Kadlecsik wrote:
-> >   Jozsef, and others pursuing this ugly thing. Please take a look at
-> > http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014442.html
-> > and probably the thread about find_appropriate_src(). I'd be really glad
-> > to have someone answer it, or somehow show some interest in it.
-> 
-> I'll try to look at it. Unfortunately at the moment I'm very busy with
-> issues from the institute I work for. Sigh. Hopefully I'll find some
-> time-slot...
+,----
+| --dstlimit-mode <mode>         mode
+|                                        dstip
+|                                        dstip-dstport
+|                                        srcip-dstip
+|                                        srcip-dstip-dstport
+`----
 
-  I can reliably reproduce the bug. One of the IPs of the host is
-10.1.0.1. Only one NAT rule is needed:
+There is no srcip mode, but srcip-dstip might be enough for you.
 
-# iptables -t nat -A PREROUTING -p tcp -s 10.1.0.0/16 --dport 80 -j
-REDIRECT --to-ports 8080
-
-  Then try to connect to port 80 of 10.1.0.1. The connection gets stuck
-in SYN_SENT state, and when it times out, corrupts its REPLY_DIR hash
-chain. Note that LOCAL_NAT is _off_, so this connection won't have a
-null binding allocated.
-
--- 
- Regards,
-   Krisztian KOVACS
+-- Naked
