@@ -1,35 +1,52 @@
-From: Leandro Melo de Sales <leandroal@gmail.com>
-Subject: Nat types implemented by IPTABLES - STUN issue
-Date: Wed, 5 Jan 2005 16:28:42 -0300
-Message-ID: <5bc4c45705010511286ee56a0d@mail.gmail.com>
-Reply-To: Leandro Melo de Sales <leandroal@gmail.com>
+From: Brian Gunlogson <bmg300@yahoo.com>
+Subject: Re: Matching 10000's of IP ranges (solution)
+Date: Wed, 5 Jan 2005 13:01:22 -0800 (PST)
+Message-ID: <20050105210122.49276.qmail@web41511.mail.yahoo.com>
+References: <1104776274.3277.22.camel@jasiiitosh.opensourcedevel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter developers list <netfilter-devel@lists.netfilter.org>,
+	Netfilter users list <netfilter@lists.netfilter.org>
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: "John A. Sullivan III" <jsullivan@opensourcedevelopmentcorp.com>
+In-Reply-To: <1104776274.3277.22.camel@jasiiitosh.opensourcedevel.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi folks,
+Your solutions were way too slow. So I wrote a module that does a binary search to find ip ranges
+in a sorted list. Would netfilter be interested in the source code? I don't have the desire to put
+it into patch-o-matic format, but that shouldn't be hard to do. Also, It was built to read the
+ranges from a file, but I don't know how to pass a dynamic ammount of memory from iptables to the
+kernel module so they must be hardcoded into the module.
 
- I'm using an implementation for STUN (RFC 3489:
-http://www.faqs.org/rfcs/rfc3489.html) written in JAVA
-(http://stun4j.dev.java.net/).
- In this RFC, they describes some nats variations (see STUN RFC
-chapter 5) some of them supported by STUN specification, like: Full
-Cone, Restricted Cone, Port Restricted Cone and Symmetric.
- So, I have a simple question for iptables developers: what types of
-nat iptables supports?
+Brian G.
 
-Thank you in advanced...
+--- "John A. Sullivan III" <jsullivan@opensourcedevelopmentcorp.com> wrote:
 
-Leandro.
+> > What is a reasonable way to match around 80000 IP ranges with iptables?
+> The iprange patch will enable you to define ranges in iptables.  If you
+> do not want to patch, you can use SubnetCreator
+> (http://subnetcreator.sourceforge.net).
+> 
+> You will also want to ensure that you load the rules with iptables-
+> restore or iptables-restore -n rather than using a script with lots of
+> iptables commands.  At your size, individual iptables commands would
+> take forever to load.
+> -- 
+> John A. Sullivan III
+
+
+
+		
+__________________________________ 
+Do you Yahoo!? 
+Read only the mail you want - Yahoo! Mail SpamGuard. 
+http://promotions.yahoo.com/new_mail 
