@@ -1,18 +1,23 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@linux-ipv6.org>
-Subject: Re: [PATCH 2.6] iptables CLUSTERIP target
-Date: Thu, 21 Oct 2004 08:18:37 +0900 (JST)
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH] Change masquerade code to use first IP address of
+	interface.
+Date: Thu, 21 Oct 2004 10:50:49 +1000
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041021.081837.99226422.yoshfuji@linux-ipv6.org>
-References: <20041020223828.GP19899@sunbeam.de.gnumonks.org>
+Message-ID: <1098319849.10571.155.camel@localhost.localdomain>
+References: <E1CKBtq-0005FC-00@gondolin.me.apana.org.au>
+	<Pine.LNX.4.61.0410201123200.25590@filer.marasystems.com>
+	<20041020104650.GA20868@gondor.apana.org.au>
+	<Pine.LNX.4.61.0410201300580.28452@filer.marasystems.com>
+	<20041020111245.GA22703@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: yoshfuji@linux-ipv6.org, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org, lmb@suse.de
+Cc: netdev@oss.sgi.com,
+	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
+	Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20041020223828.GP19899@sunbeam.de.gnumonks.org>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <20041020111245.GA22703@gondor.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +28,24 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <20041020223828.GP19899@sunbeam.de.gnumonks.org> (at Thu, 21 Oct 2004 00:38:28 +0200), Harald Welte <laforge@netfilter.org> says:
+On Wed, 2004-10-20 at 21:12, Herbert Xu wrote:
+> On Wed, Oct 20, 2004 at 01:04:51PM +0200, Henrik Nordstrom wrote:
+> > On Wed, 20 Oct 2004, Herbert Xu wrote:
+> > 
+> > >I mean
+> > >
+> > >	rt = (struct rtable *)(*pskb)->dst;
+> > >	newsrc = inet_select_addr(out, rt->rt_gateway, RT_SCOPE_UNIVERSE);
+> > 
+> > IIRC we are not allowed to access this here, but I may be wrong.. If we 
+> 
+> Why? POST_ROUTING is called in three places in ip_output.c and they all
+> give a valid dst.  In fact ip_refrag in ip_conntrack_standalone.c is also
+> accessing skb->dst.
 
-> Apart from the usual netfilter-specific file additions and
-> Kconfig/Makefile patches, this needs to export proc_file_operations in
-> order to get the reference counting of certain data objects right.  I
-> hope this change is acceptable.
+Yeah, I like it.  Please send patch on top of mine to Dave, and we'll
+see what blows up.
 
-Please use seq_file instead.  Thanks.
-
---yoshfuji
+Rusty.
+-- 
+Anyone who quotes me in their signature is an idiot -- Rusty Russell
