@@ -1,10 +1,14 @@
-From: "Shen Rong" <rshen@udtech.com.cn>
-Subject: dynamic rule for bi-directional udp conversation
-Date: Sun, 28 Sep 2003 21:44:56 +0800
+From: Patrick McHardy <kaber@trash.net>
+Subject: {PATCH]: fix expectation eviction order
+Date: Sun, 28 Sep 2003 23:36:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <039b01c385c6$b4449c40$e600a8c0@udtech.net>
+Message-ID: <3F775469.6070107@trash.net>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------070208040101020907050407"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -15,62 +19,200 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------070208040101020907050407
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-   Sorry for long mail.:)
+Hi Harald,
+this patch fixes the order in which expectations are evicted when a helper
+specifies IP_CT_HELPER_F_REUSE_EXPECT. Currently each new expectation
+is added at the beginning of the masters sibling list and when max_expected
+is reached the first non-established one on the list is reused (which gives
+LIFO behaviour).
 
-   We use dnat & snat to dynamically maintain the
-RTP stream between the hosts from the internal
-network and external network. When the two parties'
-IP address and UDP port is determined, our application
-will create dnat & snat rules dynamically to masquerade
-the internal IP address. Just like the following pic.
+This patch
+- adds new expectation at end of masters sibling list
+- uses list_for_each_entry for finding oldest one
+- changes nat-core to walk backwards through sibling list when calling 
+nat-helpers
+  help function so offsets are valid even if a packet is mangled 
+multiple times
+  (assuming multiple expectations from one packet have increasing offsets).
 
-Host A       ------   gateway  -----    Host B
-192.168.0.2  192.168.0.1   1.1.1.1      1.1.1.2
+Tested:
+- Expectations are evicted in correct order
+- NAT helpers are called in correct order in case of multiple 
+expectation from one packet
 
-Say A will use the UDP 10000 as it's receiving port, and
-use UDP 10001 as it's sending port(source port). B will
-use the UDP 20000/20001 as it's receiving/sending port.
-Since the RTP stream is bi-directional, we should dynamically
-create two rules for the conversation:
+Attached are patches for 2.4 and 2.6, they are basically the same except 
+for the offset.
 
-iptables -t nat -A PREROUTING -d 1.1.1.1 -p udp \
-         --destination-port 50000 -j DNAT \
-         --to-destination 192.168.0.2:10000
+Best regards,
+Patrick
 
-iptables -t nat -A POSTROUTING -d 1.1.1.2 -p udp \
-         --destination-port 20000 -j SNAT \
-         --to-source 1.1.1.1:50000
+--------------070208040101020907050407
+Content-Type: text/plain;
+ name="2.4-expect-evict-order.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="2.4-expect-evict-order.diff"
 
-We create the above two rules only with the dest. information
-as match since we only know these information when creating
-the rules. As you see, we want to use only one port (50000)
-as the receiving/sending port on the gateway whatever A and
-B use.
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1134  -> 1.1135 
+#	net/ipv4/netfilter/ip_conntrack_core.c	1.26    -> 1.27   
+#	net/ipv4/netfilter/ip_nat_core.c	1.20    -> 1.21   
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/09/28	kaber@trash.net	1.1135
+# [NETFILTER]: Fix expectation eviction order
+# --------------------------------------------
+#
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c	Sun Sep 28 20:01:46 2003
++++ b/net/ipv4/netfilter/ip_conntrack_core.c	Sun Sep 28 20:01:46 2003
+@@ -972,7 +972,6 @@
+ 		}
+ 	} else if (related_to->helper->max_expected && 
+ 		   related_to->expecting >= related_to->helper->max_expected) {
+-		struct list_head *cur_item;
+ 		/* old == NULL */
+ 		if (!(related_to->helper->flags & 
+ 		      IP_CT_HELPER_F_REUSE_EXPECT)) {
+@@ -997,21 +996,14 @@
+ 		       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip));
+  
+ 		/* choose the the oldest expectation to evict */
+-		list_for_each(cur_item, &related_to->sibling_list) { 
+-			struct ip_conntrack_expect *cur;
+-
+-			cur = list_entry(cur_item, 
+-					 struct ip_conntrack_expect,
+-					 expected_list);
+-			if (cur->sibling == NULL) {
+-				old = cur;
++		list_for_each_entry(old, &related_to->sibling_list, 
++		                                      expected_list)
++			if (old->sibling == NULL)
+ 				break;
+-			}
+-		}
+ 
+-		/* (!old) cannot happen, since related_to->expecting is the
+-		 * number of unconfirmed expects */
+-		IP_NF_ASSERT(old);
++		/* We cannot fail since related_to->expecting is the number
++		 * of unconfirmed expectations */
++		IP_NF_ASSERT(old && old->sibling == NULL);
+ 
+ 		/* newnat14 does not reuse the real allocated memory
+ 		 * structures but rather unexpects the old and
+@@ -1043,7 +1035,7 @@
+ 	atomic_set(&new->use, 1);
+ 	
+ 	/* add to expected list for this connection */	
+-	list_add(&new->expected_list, &related_to->sibling_list);
++	list_add_tail(&new->expected_list, &related_to->sibling_list);
+ 	/* add to global list of expectations */
+ 	list_prepend(&ip_conntrack_expect_list, &new->list);
+ 	/* add and start timer if required */
+diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
+--- a/net/ipv4/netfilter/ip_nat_core.c	Sun Sep 28 20:01:46 2003
++++ b/net/ipv4/netfilter/ip_nat_core.c	Sun Sep 28 20:01:46 2003
+@@ -810,7 +810,7 @@
+ 
+ 		/* Have to grab read lock before sibling_list traversal */
+ 		READ_LOCK(&ip_conntrack_lock);
+-		list_for_each(cur_item, &ct->sibling_list) { 
++		list_for_each_prev(cur_item, &ct->sibling_list) { 
+ 			exp = list_entry(cur_item, struct ip_conntrack_expect, 
+ 					 expected_list);
+ 					 
 
-The problem is if the data packets come from the outside first,
-they will match the DNAT rule, like that:
-original pkt: dest. 1.1.1.1:50000       src 1.1.1.2:20001
-DNATed pkt:   dest. 192.168.0.2:10000   src 1.1.1.2:20001
+--------------070208040101020907050407
+Content-Type: text/plain;
+ name="2.6-expect-evict-order.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="2.6-expect-evict-order.diff"
 
-IIRC, the packets will leads to the following conntrack:
-original:   dest. 1.1.1.1:50000   src 1.1.1.2:20001
-reply:      dest. 1.1.1.2:20001   src 192.168.0.2:10000
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1354  -> 1.1355 
+#	net/ipv4/netfilter/ip_conntrack_core.c	1.37    -> 1.38   
+#	net/ipv4/netfilter/ip_nat_core.c	1.32    -> 1.33   
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/09/28	kaber@trash.net	1.1355
+# [NETFILTER]: Fix expectation eviction order
+# --------------------------------------------
+#
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c	Sun Sep 28 20:17:48 2003
++++ b/net/ipv4/netfilter/ip_conntrack_core.c	Sun Sep 28 20:17:48 2003
+@@ -950,7 +950,6 @@
+ 		}
+ 	} else if (related_to->helper->max_expected && 
+ 		   related_to->expecting >= related_to->helper->max_expected) {
+-		struct list_head *cur_item;
+ 		/* old == NULL */
+ 		if (!(related_to->helper->flags & 
+ 		      IP_CT_HELPER_F_REUSE_EXPECT)) {
+@@ -975,21 +974,14 @@
+ 		       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip));
+  
+ 		/* choose the the oldest expectation to evict */
+-		list_for_each(cur_item, &related_to->sibling_list) { 
+-			struct ip_conntrack_expect *cur;
+-
+-			cur = list_entry(cur_item, 
+-					 struct ip_conntrack_expect,
+-					 expected_list);
+-			if (cur->sibling == NULL) {
+-				old = cur;
++		list_for_each_entry(old, &related_to->sibling_list, 
++		                                      expected_list)
++			if (old->sibling == NULL)
+ 				break;
+-			}
+-		}
+ 
+-		/* (!old) cannot happen, since related_to->expecting is the
+-		 * number of unconfirmed expects */
+-		IP_NF_ASSERT(old);
++		/* We cannot fail since related_to->expecting is the number
++		 * of unconfirmed expectations */
++		IP_NF_ASSERT(old && old->sibling == NULL);
+ 
+ 		/* newnat14 does not reuse the real allocated memory
+ 		 * structures but rather unexpects the old and
+@@ -1021,7 +1013,7 @@
+ 	atomic_set(&new->use, 1);
+ 	
+ 	/* add to expected list for this connection */	
+-	list_add(&new->expected_list, &related_to->sibling_list);
++	list_add_tail(&new->expected_list, &related_to->sibling_list);
+ 	/* add to global list of expectations */
+ 	list_prepend(&ip_conntrack_expect_list, &new->list);
+ 	/* add and start timer if required */
+diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
+--- a/net/ipv4/netfilter/ip_nat_core.c	Sun Sep 28 20:17:48 2003
++++ b/net/ipv4/netfilter/ip_nat_core.c	Sun Sep 28 20:17:48 2003
+@@ -804,7 +804,7 @@
+ 
+ 		/* Have to grab read lock before sibling_list traversal */
+ 		READ_LOCK(&ip_conntrack_lock);
+-		list_for_each(cur_item, &ct->sibling_list) { 
++		list_for_each_prev(cur_item, &ct->sibling_list) { 
+ 			exp = list_entry(cur_item, struct ip_conntrack_expect, 
+ 					 expected_list);
+ 					 
 
-But the packets from the internal network will use 10001 as source
-port, so they won't match this conntrack, thus the IP Conntrack will
-create another conntrack for them. It sounds ok, but in fact, after
-the internal packets match the SNAT rule, they are all dropped, since
-the NAT code can't find unique tuple (50000 is already used by the first
-conntrack) for them as the SNAT rule says. Though I could use another
-port (say 50001) to create the SNAT rule, but it will leads to two
-un-replied conntrack, which may be filtered by stateful filter rule.
-
-So far, I don't want to write a helper/expecter module for our application
-since there are already ALG there. So, is there any other solution for
-my problem? Thanks a lot.
-
-
---
-Shenrong
+--------------070208040101020907050407--
