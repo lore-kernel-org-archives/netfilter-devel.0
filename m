@@ -1,12 +1,13 @@
-From: "Robert K. Johnson" <johnson60@llnl.gov>
-Subject: problems with MAC address matching
-Date: Fri, 27 Sep 2002 15:51:25 -0700
+From: Michael Kunze <mkunze@ambora.de>
+Subject: conntrack read locking problem still exists
+Date: Sat, 28 Sep 2002 18:45:50 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.1.0.14.2.20020927152856.056e1c10@poptop.llnl.gov>
+Message-ID: <3D95DCBE.3080407@ambora.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,22 +18,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hi all,
 
-I am currently using netfilter that comes with the Linux kernel 2.4.3.
-I am not able to update to a newer kernel version because the platform
-is an embedded device that has custom drivers specially created for
-use with the 2.4.3 kernel.  I have observed two problems with MAC
-address filtering:
+i read similar messages on the list from time to time, but the issue 
+seems not to have been resolved so far.
 
-(1) broadcast packets that go out from the device and then back in do
-not contain a MAC address (according to log) and so fail the MAC check
+ASSERT ip_conntrack_core.c:94 &ip_conntrack_lock_R0c1132e0 readlocked
+ASSERT ip_conntrack_core.c:1063 &ip_conntrack_lock not readlocked
+ASSERT: ip_nat_core.c:841 &ip_conntrack_lock not readlocked
 
-(2) large packets (1536 on the wire) do not contain a MAC address (according to
-log) and so fail the MAC check
+My kernel is linux-2.4.20-pre8 with recent cvs netfilter applied on 
+i386, but the same effect applies for vanilla 2.4.19
 
-I was wondering if there are known problems that I may be able to fix in my
-version of netfilter.  I came across the MAC match bug that was exhibited
-for really small packets, I am not sure if that could also apply to these 
-problem.
-I will give that a try next.  Please email your responses.  Thank you.
+BTW, the ip_conntrack_protocol_destroy.patch breaks when running ./runme 
+pending claiming it can't patch the source tree.
+
+Cheers
+Michael
