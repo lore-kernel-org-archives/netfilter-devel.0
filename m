@@ -1,13 +1,19 @@
-From: Paul Ionescu <i_p_a_u_l@yahoo.com>
-Subject: Re: Active SIP conntrack/NAT development?
-Date: Wed, 05 Jan 2005 16:47:56 +0200
-Message-ID: <pan.2005.01.05.14.47.54.64681@yahoo.com>
-References: <412CA9D2.4030506@starnetworks.us>
+From: Erwin Van de Velde <erwin.vandevelde@gmail.com>
+Subject: Re: MAC Filtering
+Date: Wed, 5 Jan 2005 17:12:18 +0100
+Message-ID: <200501051712.18817.erwin.vandevelde@gmail.com>
+References: <200501051425.36450.erwin.vandevelde@gmail.com>
+	<17648.213.236.112.75.1104937880.squirrel@213.236.112.75>
+Reply-To: erwin.vandevelde@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Martijn Lievaart <m@rtij.nl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <17648.213.236.112.75.1104937880.squirrel@213.236.112.75>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,26 +25,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Kevin,
+Hi,
 
-Did you start working for SIP/SDP/RTP conntrack/NAT helpers ?
-If yes, can you tell me what is their status.
-I am also interested in this, but I cannot find anything useful.
+I don't want to bridge, I only said I have to when using ebtables. I need MAC 
+filtering without bridging... I'm fully aware of the fact that iptables works 
+on layer 3 and that MAC is layer 2, however if it can filter on source MAC 
+addresses, why can't it filter on destination MAC addresses?
 
-Thanks,
-Paul
+Best regards,
+Erwin
 
-On Wed, 25 Aug 2004 08:01:38 -0700, Kevin P. Fleming wrote:
-> After perusing the list archives, I see that two or three people in the
-> past year or so have started working on SIP/SDP/RTP conntrack/NAT helpers,
-> but none of them have apparently gotten to a usable state.
-> 
-> I want to get this done, I need to be able to use it soon :-) I am willing
-> to put the time in to make this work, and I believe I have enough skills
-> to get it done.
-> 
-> If there are any starting points out there (other than the code that
-> Dominik posted a year ago) I'd appreciate pointers to them, otherwise I'll
-> just take the existing FTP/H.323 examples and go from there. Also, if
-> there are any available docs on making helpers that will work with both
-> 2.4 and 2.6 kernels that would be appreciated as well.
+
+> If you bridge, you cannot use iptables. Ip tables operates on layer 3
+> (routed) and the destination MAC is always the MAC of the firewall.
+> Ebtables operates on layer 2 (switched) and can filter traffic based on
+> source and destination MAC address.
+>
+> So I think ebtables is exactly what you need.
+>
+> HTH,
+> Martijn Lievaart
