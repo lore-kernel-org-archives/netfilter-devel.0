@@ -1,47 +1,28 @@
-From: Joshua Kwan <joshk@triplehelix.org>
-Subject: Re: Linux 2.6.9-rc1
-Date: Wed, 25 Aug 2004 20:14:03 -0700
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <412D557B.1090500@triplehelix.org>
-References: <Pine.LNX.4.58.0408240031560.17766@ppc970.osdl.org>	<412CDFEE.1010505@triplehelix.org>	<20040825203206.GS5824@sunbeam.de.gnumonks.org> <20040825164401.12259308.davem@redhat.com>
+From: "Sumit Pandya" <sumit@elitecore.com>
+Subject: RE: Some one knows how to implement policy routing with iptables?
+Date: Thu, 26 Aug 2004 12:04:07 +0530
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <HGEFKOBCHAIJDIEJLAKDMEJKCAAA.sumit@elitecore.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="Windows-1252"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266867AbUHZDOO@vger.kernel.org>
-To: "David S. Miller" <davem@redhat.com>
-In-Reply-To: <20040825164401.12259308.davem@redhat.com>
+Cc: hanbo163com@163.com
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: 
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-David S. Miller wrote:
-| And adding an export of ip_nat_find_helper (ie. without the two underscore
-| prefix).  Why?
-|
-| If we need to export one, then we need to export both.
-
-Exporting both was the only way I could get it to compile. On the other
-hand, the fix seems to have worked without any further repercussions.
-
-- --
-Joshua Kwan
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iQIVAwUBQS1Ve6OILr94RG8mAQLEIhAAqzFjNVxhFmCvj2nYwbMa8l3I7SJdzrFf
-ge1Rua8ktQMOemVebWuReQLsAYm70MCS/JJujAk25raZVTNHtzazNd/bJ03pbjnO
-xcUVt+JK1OzWJcoQYvzJRhDGzrY7GHn/93P0DK5+ROSYBAUVzBT6rO67cJBpsM7V
-t4PVpgMFVpw/sP53sR3uyUSotSPVIHrXnsplyiAvCxhz+y14zwRI9QEhKmRVzjhb
-PlJBooRMmB0rb6l1JATAp3EVpJsA6CBczMd0nsQV478r05OVZkkWcTHT5IlFv2Dr
-k3tDotHKK0FQuqDHULQeuqVWP9Sl35Zp/hEzZQNjywptC0LG7e3x21N/BahuqqaJ
-w+CkunMK4QkmizJNgMHC/CDeaJP1ZlhV9G0V7pTwojjatO4TmQFEtNbaVhaQziCv
-0wx2qeM4nASFyiXwcWR1WSZ4K37NRVYNPlpeAo9QKaW54HZ/tar44bqAMfuAtaqP
-yBNxAT58daPrOT2/ePnbzEMReueMiaWDBoJuzoHxhZ6thbubviYT0iitHKagckeU
-JKKZsKi9t4SJydDZ2pjbFx9bzO4EC6sgjB7YT/1N6ulubu8DFsZYNEfax3n8NgNX
-zmeaVYD/ezUjE5dKXU45PB0KhySDx396x2nh5kcbXPl0NcB8oRX5Hrh/KgOlEbEa
-allwXmgYrYA=
-=d+1T
------END PGP SIGNATURE-----
+> From: "Robbert" <hanbo163com@163.com>
+> 
+> Some one knows how to implement policy routing with iptables?
+> Can I do that ONLY with iptabales?
+	Have you seen ROUTE target?
