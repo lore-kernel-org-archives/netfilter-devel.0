@@ -1,15 +1,18 @@
-From: "Wojciech \"Sas\" Cieciwa" <cieciwa@alpha.zarz.agh.edu.pl>
-Subject: [PATCH] fuzzy.patch and fuzzy6.patch.ipv6
-Date: Mon, 28 Apr 2003 17:13:15 +0200 (CEST)
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: Re: [PTCH 2.5.68] netfilter using Read Copy Update
+Date: Mon, 28 Apr 2003 08:57:21 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44L.0304281710230.12878-100000@alpha.zarz.agh.edu.pl>
-References: <20030427094949.GF990@sunbeam.de.gnumonks.org>
- <20030427.173804.13764775.davem@redhat.com>
+Message-ID: <20030428085721.15966de4.shemminger@osdl.org>
+References: <20030427132413.GP990@sunbeam.de.gnumonks.org>
+	<20030428062622.5F0FE2C4D3@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+   davem@redhat.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030427.173804.13764775.davem@redhat.com>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <20030428062622.5F0FE2C4D3@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,74 +23,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 28 Apr 2003 14:24:30 +1000
+Rusty Russell <rusty@rustcorp.com.au> wrote:
 
-Hi,
-This is small patch to fix toruble on PPC with netfilter in module.
-[Without this compiler generate "unresolved symbols"]
+> In message <20030427132413.GP990@sunbeam.de.gnumonks.org> you write:
+> > 
+> > --K0mDTbuGRobClnW5
+> > Content-Type: text/plain; charset=us-ascii
+> > Content-Disposition: inline
+> > Content-Transfer-Encoding: quoted-printable
+> > 
+> > On Thu, Apr 24, 2003 at 09:04:06AM -0700, Stephen Hemminger wrote:
+> > > This is an update to netfilter core that uses the read-copy-update
+> > > instead of brlock.  The code is similar to my earlier patch but less
+> > > invasive.
+> > 
+> > I will try to review this patch and eventually push it to David Miller.
+> 
+> There is a fundamental flaw in the nf_reinject code: when a packet is
+> reinjected, it makes an attempt to figure out if the hook which sent
+> it to queue in the first place has vanished, and if so it drops the
+> packet.
+> 
+> Of course, this is racy (it compares nf_hook_ops addresses) but
+> "mostly works".  The best solution is to hold a reference to the hook
+> so it can't vanish.
+> 
+> Stephen, it should be simple for you to rework your patch on top of
+> this one.
+> 
 
-Thanx.
-				Sas.
-
-
---- fuzzy.patch.org	Wed Sep  4 16:11:30 2002
-+++ fuzzy.patch	Mon Apr 28 17:06:58 2003
-@@ -59,7 +59,7 @@
- + Expressed in percentage
- +*/
- +
--+#define PAR_LOW		0.01
-++#define PAR_LOW		1/100
- +#define PAR_HIGH	1
- +
- +static spinlock_t fuzzy_lock = SPIN_LOCK_UNLOCKED ;
-@@ -138,7 +138,7 @@
- +       howlow  = mf_low(info->mean_rate,info->minimum_rate,info->maximum_rate);
- +
- +    info->acceptance_rate = (u_int8_t) \
--+		           ( PAR_LOW*howhigh + PAR_HIGH*howlow ) ;
-++		           ( howhigh*PAR_LOW + PAR_HIGH*howlow ) ;
- +
- +    /* In fact , the above defuzzification would require a denominator
- +       proportional to (howhigh+howlow) but , in this particular case ,
-@@ -158,7 +158,7 @@
- +		get_random_bytes((void *)(&random_number), 1);
- +
- +		/*  If within the acceptance , it can pass => don't match */
--+		if ( random_number <= 2.55 * info->acceptance_rate )
-++		if ( random_number <= (255 * info->acceptance_rate) / 100 )
- +			return 0 ;
- +		else
- +			return 1; /* It can't pass ( It matches ) */
---- fuzzy6.patch.ipv6.org	Fri Apr 11 12:27:54 2003
-+++ fuzzy6.patch.ipv6	Mon Apr 28 17:07:51 2003
-@@ -60,7 +60,7 @@
- + Expressed in percentage
- +*/
- +
--+#define PAR_LOW		0.01
-++#define PAR_LOW		1/100
- +#define PAR_HIGH	1
- +
- +static spinlock_t fuzzy_lock = SPIN_LOCK_UNLOCKED;
-@@ -138,7 +138,7 @@
- +		howlow  = mf_low(info->mean_rate,info->minimum_rate,info->maximum_rate);
- +
- +		info->acceptance_rate = (u_int8_t) \
--+				(PAR_LOW * howhigh + PAR_HIGH * howlow);
-++				(howhigh * PAR_LOW + PAR_HIGH * howlow);
- +
- +	/* In fact, the above defuzzification would require a denominator
- +	 * proportional to (howhigh+howlow) but, in this particular case,
-@@ -158,7 +158,7 @@
- +		get_random_bytes((void *)(&random_number), 1);
- +
- +		/*  If within the acceptance , it can pass => don't match */
--+		if (random_number <= 2.55 * info->acceptance_rate)
-++		if (random_number <= (255 * info->acceptance_rate) / 100)
- +			return 0;
- +		else
- +			return 1; /* It can't pass (It matches) */
-
--- 
-{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
-{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
+Okay, that makes sense.
