@@ -1,17 +1,17 @@
-From: Esteban <eribicic@sinectis.com>
-Subject: Re: [NEW TARGET] MARKCB connection marking balancing
-Date: 03 Mar 2003 12:31:11 -0300
+From: Harald Welte <laforge@netfilter.org>
+Subject: iptables.8 manpage not complete
+Date: Mon, 3 Mar 2003 18:25:20 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1046705471.2728.150.camel@debian>
-References: <3E62AF18.8010000@zobniow.priv.pl>
-	<200303031653.47644.fabrice@netfilter.org>
+Message-ID: <20030303172520.GD11384@sunbeam.de.gnumonks.org>
+References: <200302132039.58656.bdschuym@pandora.be> <20030214072944.GI14794@sunbeam.de.gnumonks.org> <20030218164739.GF445@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0/kgSOzhNoDC5T3a"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: fabrice@netfilter.org
-In-Reply-To: <200303031653.47644.fabrice@netfilter.org>
+To: =?iso-8859-1?Q?Herv=E9?= Eychenne <rv@wallfire.org>
+Content-Disposition: inline
+In-Reply-To: <20030218164739.GF445@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,63 +22,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-what is that nth? i couldnt find in iptables man page.
-where can i find more information?
-thanks,
 
-ps: is there any diference between using -j SNAT --to-source and -j
-MASQUERADE? ive got static ip address on my internet connection? 
+--0/kgSOzhNoDC5T3a
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-cause ive got my internal network masqueraded and i try to use fwmarks
-in preroutinng to route to another  gw i have (iproute2)..and it works
-(packets goes from internal to destination over the gw i choose) but
-they dont come back because nat is not applyed and ofcourse, internal
-packets are not routeable packets (10.0.0.0/24)..any idea? that would be
-a smooth solution for balance traffic.
+On Tue, Feb 18, 2003 at 05:47:40PM +0100, Herv=E9 Eychenne wrote:
+> > What also is on my TODO list for some time:  Put manpage sections for
+> > all recently-added-to-mainstream-kernel matches+targets.  I think the
+> > manpage hasn't been synced with the by-default available matches/targets
+> > for quite some time.
+>=20
+> Oh, really?
+> It seems to me that my last patch added the missing matches and
+> targets, and that none has been added since (although I remember
+> having posted a request on netfilter-devel about the possible
+> inclusion of NETMAP in mainstream kernel and received no answer...).
 
-On Mon, 2003-03-03 at 05:53, Fabrice MARIE wrote:
-> 
-> Dzien Dobre Maciek,
-> 
-> On Monday 03 March 2003 09:25, Maciek Zobniow wrote:
-> > Hi all!
-> >   This is my first message to this list and I want to annouce a first
-> > version of my new netfilter module for connection tracking balancing.
-> > First maybe I will try to describe what this target should do:
-> > I made this as a solution for balancing connections from one LAN,
-> > betewen a few providers links, but I think that is possible to find
-> > another good usages for this target.
-> > Idea is quite simply: each connection (yes, connection not packet) which
-> > arrived to this target is marked. It recive one mark which is use for
-> > marking all packets  from this connection. Marks are sharing by choosen
-> > algorithm (for now I implemented RR, WRR and special one- basing on
-> > amout of data for each mark for last 1000 packets).
-> > [...]
-> 
-> Just out of curiosity, how different is that from using the nth match
-> to do RR SNATting ?
-> 
-> [
-> i.e, Taken from the example section of the patch:
-> 
-> iptables -t nat -A POSTROUTING -o eth0 -m nth --counter 7 --every 3 --packet 0 -j SNAT --to-source 10.0.0.5
-> iptables -t nat -A POSTROUTING -o eth0 -m nth --counter 7 --every 3 --packet 1 -j SNAT --to-source 10.0.0.6
-> iptables -t nat -A POSTROUTING -o eth0 -m nth --counter 7 --every 3 --packet 2 -j SNAT --to-source 10.0.0.7
-> 
-> This example evenly splits connections between the three SNAT addresses.
-> ]
-> 
-> Using nth, we use the fact that only the first packet of connections need to be SNATed.
-> This extension to the nth original patch was made by Richard. I haven't tried it myself yet though
-> as I have only one ISP :-)
-> 
-> Have a nice day,
-> 
-> Fabrice.
-> --
-> Fabrice MARIE
-> 
-> "Silly hacker, root is for administrators"
->        -Unknown
-> 
-> 
+the 'helper' match present in 2.4.20 is at least one example which is
+not in the manpage yet. We already had this in 1.2.7a!
+
+>  Herve
+=20
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--0/kgSOzhNoDC5T3a
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+Y5AAXaXGVTD0i/8RAkhmAJ0UV/bUkjvDR5GBg0AIvqSdgR7JEQCgju//
+y+dSa0QfjFA5K5jBXp/TAqY=
+=CugK
+-----END PGP SIGNATURE-----
+
+--0/kgSOzhNoDC5T3a--
