@@ -1,55 +1,124 @@
-From: Andrew Morton <akpm@digeo.com>
-Subject: Re: Sleeping function called from illegal context at slab.c:1378
-Date: Mon, 23 Sep 2002 11:30:10 -0700
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3D8F5DB2.A3E36E16@digeo.com>
-References: <1032804558.28404.13.camel@spc9.esa.lanl.gov>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] conntracker/nat helper for Microsoft Media Services
+Date: Tue, 24 Sep 2002 13:39:25 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20020924133925.M3810@sunbeam.de.gnumonks.org>
+References: <1032732902.574.99.camel@exile>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: lkml <linux-kernel@vger.kernel.org>,
-	netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Steven Cole <scole@lanl.gov>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RlRfhCwT9rWq1FZx"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
+Content-Disposition: inline
+In-Reply-To: <1032732902.574.99.camel@exile>; from filip.sneppe@cronos.be on Mon, Sep 23, 2002 at 12:15:01AM +0200
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-That's a bug in ip_fw_ctl().  It's calling convert_ipfw()
-inside FWC_WRITE_LOCK_IRQ(&ip_fw_lock, flags);
 
-But convert_ipfw() does kmalloc(GFP_KERNEL).
+--RlRfhCwT9rWq1FZx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Sep 23, 2002 at 12:15:01AM +0200, Filip Sneppe (Cronos) wrote:
+> Hi,
+>=20
+> This is a connection tracking/nat helper for Microsoft (Streaming) Media
+> Services, both in patch-o-matic format and as a diff against
+> 2.4.20-pre7 (the patch requires newnat).
+
+Thanks a lot for contributing this helper to the netfilter project, I have
+committed your patch to CVS right now.
+
+However, there is a small remaining issue:
+
+@@ -60,12 +60,14 @@                                                        =
+    =20
+ /* Add protocol helper include file here */                               =
+    =20
+ #include <linux/netfilter_ipv4/ip_conntrack_ftp.h>                        =
+    =20
+ #include <linux/netfilter_ipv4/ip_conntrack_irc.h>                        =
+    =20
++#include <linux/netfilter_ipv4/ip_conntrack_mms.h>                        =
+    =20
+                                                                           =
+    =20
+ /* per expectation: application helper private data */                    =
+    =20
+ union ip_conntrack_expect_help {                                          =
+    =20
+        /* insert conntrack helper private data (expect) here */           =
+    =20
+        struct ip_ct_ftp_expect exp_ftp_info;                              =
+    =20
+        struct ip_ct_irc_expect exp_irc_info;                              =
+    =20
++       struct ip_ct_mms_expect exp_mms_info;                              =
+    =20
+                                                                           =
+    =20
+ #ifdef CONFIG_IP_NF_NAT_NEEDED                                            =
+    =20
+        union {                                                            =
+    =20
+@@ -79,6 +81,7 @@                                                          =
+    =20
+        /* insert conntrack helper private data (master) here */           =
+    =20
+        struct ip_ct_ftp_master ct_ftp_info;                               =
+    =20
+        struct ip_ct_irc_master ct_irc_info;                               =
+    =20
++       struct ip_ct_mms_master ct_mms_info;                               =
+    =20
+ };                                                                        =
+    =20
+                                                                           =
+    =20
+ #ifdef CONFIG_IP_NF_NAT_NEEDED                           =20
 
 
-Steven Cole wrote:
-> 
-> Hi Andrew,
-> 
-> Are these traced warnings of any use to you?
-> 
-> If so, here is one.  This one was from
-> 
-> "Sleeping function called from illegal context at slab.c:1378"
-> 
-> on bootup of 2.5.38-mm2:
-> 
-> Trace; c0119986 <__might_sleep+56/5d>
-> Trace; c0135166 <kmalloc+66/1f0>
-> Trace; c0271e03 <convert_ipfw+63/130>
-> Trace; c02721c0 <ip_fw_ctl+2f0/4d0>
-> Trace; c026a023 <sock_fn+63/80>
-> Trace; c012ff2e <find_get_page+2e/60>
-> Trace; c0130db5 <filemap_nopage+115/310>
-> Trace; c012d8ef <do_no_page+2ef/390>
-> Trace; c012b5ba <pte_alloc_map+ea/150>
-> Trace; c023471a <nf_sockopt+fa/150>
-> Trace; c0234790 <nf_setsockopt+20/30>
-> Trace; c0242fda <ip_setsockopt+74a/910>
-> Trace; c02255de <sock_map_fd+be/120>
-> Trace; c022562a <sock_map_fd+10a/120>
-> Trace; c0263995 <inet_setsockopt+25/30>
-> Trace; c02269d6 <sys_setsockopt+56/70>
-> Trace; c0227026 <sys_socketcall+1a6/200>
-> Trace; c0114ea0 <do_page_fault+0/436>
-> Trace; c01099b1 <error_code+2d/38>
-> Trace; c0108f6f <syscall_call+7/b>
-> 
-> Steven
+Those hunks should not be part of the .patch itself, but seperate pom-files,
+since this clashes with other helpers.  See=20
+netfilter/patch-o-matic/talk-conntrack-nat.patch.ip_conntrack.h*
+
+Please submit an incremental diff against the code which is now in CVS.
+Thanks.
+
+> Regards,
+> Filip
+
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long =
+as
+ I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--RlRfhCwT9rWq1FZx
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9kE7tXaXGVTD0i/8RAvNHAJ9R71bfIlNBYmEwO45qiYMjslidKgCfa671
+p20iG5+J+4hOjbr8PNlz+mk=
+=junW
+-----END PGP SIGNATURE-----
+
+--RlRfhCwT9rWq1FZx--
