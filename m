@@ -1,15 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Reviewing a piece of code, locking questions
-Date: Sat, 29 May 2004 00:59:22 +0200 (CEST)
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: new ipt_ACCOUNT version
+Date: Sat, 29 May 2004 15:27:43 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405290048400.2189-101000@filer.marasystems.com>
-References: <40B7B31E.8040001@gmx.de>
+Message-ID: <200405291527.43712.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-1500120849-1085785162=:2189"
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_P/IuAaf2+gfwiKO"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Matthias Dettling <m-dettling@gmx.de>
-In-Reply-To: <40B7B31E.8040001@gmx.de>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,294 +19,1252 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
 
----1463811839-1500120849-1085785162=:2189
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+--Boundary-00=_P/IuAaf2+gfwiKO
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Fri, 28 May 2004, Matthias Dettling wrote:
+Hi Patrick,
 
-> Can someone look at the code to see if there are any mistakes? 
-> Especially the parts with locking should be reviewed because I am really 
-> unsure if I have locked properly. Do I need a "WRITE_LOCK" or only a 
-> "READ_LOCK", is "&ip_conntrack_lock" right or need I 
-> "&ip_conntrack_expect_tuple" or even some other locking?
+> I'm still not sure what to do about those long (?) > 80 chars lines.
+> My "prefix" ipt_account_ uses a lot of space, maybe I should
+> change it to something like "acc_". Other ideas?
 
-No obvious errors from what I could tell.
+I now fixed the too long lines issue. Attached is the new version.
+Is it CVS ready?
 
-You need a READ_LOCK.
+The website (http://www.intra2net.com/opensource/ipt_ACCOUNT/) contains
+the updated userspace counterparts (with short line lenghts, too ;-))
 
-WRITE_LOCK is only needed if you are to modify the ip_conntrack table, 
-which you are obviously not doing.
+Thomas
 
-> An other question I have is if it is legal to modifiy the structure 
-> "ipt_conntrack_info" in "ipt_conntrack.h" or could this cause problems 
-> or errors?
+--Boundary-00=_P/IuAaf2+gfwiKO
+Content-Type: text/x-chdr;
+  charset="iso-8859-1";
+  name="ipt_ACCOUNT.h"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="ipt_ACCOUNT.h"
 
-It is legal, but will invalidate binary compatibility with existing 
-iptables binaries having another libipt_conntrack compiled..
+/***************************************************************************
+ *   Copyright (C) 2004 by Intra2net AG                                    *
+ *   opensource@intra2net.com                                              *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License                  *
+ *   version 2 as published by the Free Software Foundation;               *
+ *                                                                         *
+ ***************************************************************************/
 
-> I have added 2 arrays with the ports of the related connection for the 
-> matching as also extended the flag fields (see above).
+#ifndef _IPT_ACCOUNT_H
+#define _IPT_ACCOUNT_H
 
-To simplify the kernel code you could store the ports in network byte 
-order in the match structure.. this way you do not need to translate the 
-port fields while matching in the kernel.
+#define ACCOUNT_MAX_TABLES 32
+#define ACCOUNT_TABLE_NAME_LEN 32
+#define ACCOUNT_MAX_HANDLES 10
 
-> If all should be OK, how can I publish the modification, that it could 
-> be part of later versions of iptables and the kernel, because I think it 
-> could be interesting for others too?
+/* Structure for the userspace part of ipt_ACCOUNT */
+struct ipt_acc_info {
+    u_int32_t net_ip;
+    u_int32_t net_mask;
+    char table_name[ACCOUNT_TABLE_NAME_LEN];
+    int32_t table_nr;
+};
 
-As a tarball with the files to go into patch-o-matic-ng. This includes 
-both the patching to the kernel and userspace.
+/* Internal table structure, generated by check_entry() */
+struct ipt_acc_table {
+    char name[ACCOUNT_TABLE_NAME_LEN];        /* name of the table */
+    unsigned int ip;                          /* base IP of network */
+    unsigned int netmask;                     /* netmask of the network */
+    unsigned char depth;                      /* size of network: 
+                                                 0: 8 bit, 1: 16bit, 2: 24 bit */
+    unsigned int refcount;                    /* refcount of this table. 
+                                                 if zero, destroy it */
+    unsigned int itemcount;                   /* number of IPs in this table */
+    void *data;                               /* pointer to the actual data, 
+                                                 depending on netmask */
+};
 
-  conntrack_port/	(or whatever you want to name your patch)
-	linux.patch	kernel changes
-	iptables.patch	userspace changes
-	info		meta info describing your patch
-	help		short blurb documenting your patch
+/* Internal handle structure */
+struct ipt_acc_handle {
+    unsigned int ip;                          /* base IP of network. Used for 
+                                                 caculating the final IP during
+                                                 get_data() */
+    unsigned char depth;                      /* size of network. See above for 
+                                                 details */
+    unsigned int itemcount;                   /* number of IPs in this table */
+    void *data;                               /* pointer to the actual data, 
+                                                 depending on size */
+};
 
-While you are at it you may want to also merge the other conntrack matches 
-I posted a long time ago.. [attached as a conntrack2 match]
+/* Handle structure for communication with the userspace library */
+struct ipt_acc_handle_sockopt {
+    unsigned int handle_nr;                   /* Used for HANDLE_FREE */
+    char name[ACCOUNT_TABLE_NAME_LEN];        /* Used for HANDLE_PREPARE_READ/
+                                                 HANDLE_READ_FLUSH */
+    unsigned int itemcount;                   /* Used for HANDLE_PREPARE_READ/
+                                                 HANDLE_READ_FLUSH */
+};
 
-Regards
-Henrik
+/* Used for every IP entry 
+   Size is 16 bytes so that 256 (class C network) * 16 
+   fits in one kernel (zero) page */
+struct ipt_acc_ip {
+    unsigned int src_packets;
+    unsigned int src_bytes;
+    unsigned int dst_packets;
+    unsigned int dst_bytes;
+};
 
----1463811839-1500120849-1085785162=:2189
-Content-Type: APPLICATION/x-gzip; name="conntrack2.tgz"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0405290059220.2189@filer.marasystems.com>
-Content-Description: 
-Content-Disposition: attachment; filename="conntrack2.tgz"
+/*
+    Used for every IP when returning data
+*/
+struct ipt_acc_handle_ip {
+    unsigned int ip;
+    unsigned int src_packets;
+    unsigned int src_bytes;
+    unsigned int dst_packets;
+    unsigned int dst_bytes;
+};
 
-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
-T4fzXafmm2Z6/NYJPVZlVVZlVVZlVVZlVVZlVVZlVVLKvwHf5VBlAKAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
----1463811839-1500120849-1085785162=:2189--
+/*
+    The IPs are organized as an array so that direct slot
+    calculations are possible.
+    Only 8 bit networks are preallocated, 16/24 bit networks
+    allocate their slots when needed -> very efficent.
+*/
+struct ipt_acc_mask_24 {
+    struct ipt_acc_ip ip[256];
+};
+
+struct ipt_acc_mask_16 {
+    struct ipt_acc_mask_24 *mask_24[256];
+};
+
+struct ipt_acc_mask_8 {
+    struct ipt_acc_mask_16 *mask_16[256];
+};
+
+#endif /*_IPT_ACCOUNT_H*/
+
+--Boundary-00=_P/IuAaf2+gfwiKO
+Content-Type: text/x-csrc;
+  charset="iso-8859-1";
+  name="ipt_ACCOUNT.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="ipt_ACCOUNT.c"
+
+/***************************************************************************
+ *   This is a module which is used for counting packets.                  *
+ *   See http://www.intra2net.com/opensource/ipt_account                   *
+ *   for further information                                               *
+ *                                                                         * 
+ *   Copyright (C) 2004 by Intra2net AG                                    *
+ *   opensource@intra2net.com                                              *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License                  *
+ *   version 2 as published by the Free Software Foundation;               *
+ *                                                                         *
+ ***************************************************************************/
+
+#include <linux/module.h>
+#include <linux/skbuff.h>
+#include <linux/ip.h>
+#include <linux/spinlock.h>
+#include <net/icmp.h>
+#include <net/udp.h>
+#include <net/tcp.h>
+#include <linux/netfilter_ipv4/ip_tables.h>
+
+struct in_device;
+#include <net/route.h>
+#include <linux/netfilter_ipv4/ipt_ACCOUNT.h>
+
+#if 0
+#define DEBUGP printk
+#else
+#define DEBUGP(format, args...)
+#endif
+
+#if (PAGE_SIZE < 4096)
+#error "ipt_ACCOUNT needs at least a PAGE_SIZE of 4096"
+#endif
+
+struct ipt_acc_table *ipt_acc_tables = NULL;
+struct ipt_acc_handle *ipt_acc_handles = NULL;
+void *ipt_acc_tmpbuf = NULL;
+
+/* Spinlock used for manipulating the current accounting tables/data */
+static spinlock_t ipt_acc_lock = SPIN_LOCK_UNLOCKED;
+/* Spinlock used for manipulating userspace handles/snapshot data */
+static spinlock_t ipt_acc_userspace_lock = SPIN_LOCK_UNLOCKED;
+
+
+/* Recursive free of all data structures */
+void ipt_acc_data_free(void *data, unsigned char depth)
+{
+    /* Empty data set */
+    if (!data)
+        return;
+
+    /* Free for 8 bit network */
+    if (depth == 0) {
+        free_page((unsigned long)data);
+        data = NULL;
+        return;
+    }
+
+    /* Free for 16 bit network */
+    if (depth == 1) {
+        struct ipt_acc_mask_16 *mask_16 = (struct ipt_acc_mask_16 *)data;
+        unsigned int b;
+        for (b=0; b <= 255; b++) {
+            if (mask_16->mask_24[b] != 0) {
+                free_page((unsigned long)mask_16->mask_24[b]);
+                mask_16->mask_24[b] = NULL;
+            }
+        }
+        free_page((unsigned long)data);
+        data = NULL;
+        return;
+    }
+
+    /* Free for 24 bit network */
+    if (depth == 2) {
+        unsigned int a, b;
+        for (a=0; a <= 255; a++) {
+            if (((struct ipt_acc_mask_8 *)data)->mask_16[a]) {
+                struct ipt_acc_mask_16 *mask_16 = (struct ipt_acc_mask_16*)
+                                   ((struct ipt_acc_mask_8 *)data)->mask_16[a];
+                
+                for (b=0; b <= 255; b++) {
+                    if (mask_16->mask_24[b]) {
+                        free_page((unsigned long)mask_16->mask_24[b]);
+                        mask_16->mask_24[b] = NULL;
+                    }
+                }
+                free_page((unsigned long)mask_16);
+                mask_16 = NULL;
+            }
+        }
+        free_page((unsigned long)data);
+        data = NULL;
+        return;
+    }
+
+    printk("ACCOUNT: ipt_acc_data_free called with unknown depth: %d\n", 
+           depth);
+    return;
+}
+
+/* Look for existing table / insert new one. 
+   Return internal ID or -1 on error */
+int ipt_acc_table_insert(char *name, unsigned int ip, unsigned int netmask)
+{
+    unsigned int i;
+
+    DEBUGP("ACCOUNT: ipt_acc_table_insert: %s, %u.%u.%u.%u/%u.%u.%u.%u\n",
+                                         name, NIPQUAD(ip), NIPQUAD(netmask));
+
+    /* Look for existing table */
+    for (i = 0; i < ACCOUNT_MAX_TABLES; i++) {
+        if (strncmp(ipt_acc_tables[i].name, name, 
+                    ACCOUNT_TABLE_NAME_LEN) == 0) {
+            DEBUGP("ACCOUNT: Found existing slot: %d - "
+                   "%u.%u.%u.%u/%u.%u.%u.%u\n", i, 
+                   NIPQUAD(ipt_acc_tables[i].ip), 
+                   NIPQUAD(ipt_acc_tables[i].netmask));
+
+            if (ipt_acc_tables[i].ip != ip 
+                || ipt_acc_tables[i].netmask != netmask) {
+                printk("ACCOUNT: Table %s found, but IP/netmask mismatch. "
+                       "IP/netmask found: %u.%u.%u.%u/%u.%u.%u.%u\n",
+                       name, NIPQUAD(ipt_acc_tables[i].ip), 
+                       NIPQUAD(ipt_acc_tables[i].netmask));
+                return -1;
+            }
+
+            ipt_acc_tables[i].refcount++;
+            DEBUGP("ACCOUNT: Refcount: %d\n", ipt_acc_tables[i].refcount);
+            return i;
+        }
+    }
+
+    /* Insert new table */
+    for (i = 0; i < ACCOUNT_MAX_TABLES; i++) {
+        /* Found free slot */
+        if (ipt_acc_tables[i].name[0] == 0) {
+            DEBUGP("ACCOUNT: Found free slot: %d\n", i);
+
+            strncpy (ipt_acc_tables[i].name, name, ACCOUNT_TABLE_NAME_LEN-1);
+
+            ipt_acc_tables[i].ip = ip;
+            ipt_acc_tables[i].netmask = netmask;
+
+            /* Calculate netsize */
+            unsigned int j, calc_mask, netsize=0;
+            calc_mask = htonl(netmask);
+            for (j = 31; j > 0; j--) {
+                if (calc_mask&(1<<j))
+                    netsize++;
+                else
+                    break;
+            }
+
+            /* Calculate depth from netsize */
+            if (netsize >= 24)
+                ipt_acc_tables[i].depth = 0;
+            else if (netsize >= 16)
+                ipt_acc_tables[i].depth = 1;
+            else if(netsize >= 8)
+                ipt_acc_tables[i].depth = 2;
+
+            DEBUGP("ACCOUNT: calculated netsize: %u -> "
+                   "ipt_acc_table depth %u\n", netsize, 
+                   ipt_acc_tables[i].depth);
+
+            ipt_acc_tables[i].refcount++;
+            if ((ipt_acc_tables[i].data
+                = (void *)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+                printk("ACCOUNT: out of memory for data of table: %s\n", name);
+                memset(&ipt_acc_tables[i], 0, 
+                       sizeof(struct ipt_acc_table));
+                return -1;
+            }
+
+            return i;
+        }
+    }
+
+    /* No free slot found */
+    printk("ACCOUNT: No free table slot found (max: %d). "
+           "Please increase ACCOUNT_MAX_TABLES.\n", ACCOUNT_MAX_TABLES);
+    return -1;
+}
+
+static int ipt_acc_checkentry(const char *tablename,
+                                  const struct ipt_entry *e,
+                                  void *targinfo,
+                                  unsigned int targinfosize,
+                                  unsigned int hook_mask)
+{
+    struct ipt_acc_info *info = targinfo;
+
+    if (targinfosize != IPT_ALIGN(sizeof(struct ipt_acc_info))) {
+        DEBUGP("ACCOUNT: targinfosize %u != %u\n",
+               targinfosize, IPT_ALIGN(sizeof(struct ipt_acc_info)));
+        return 0;
+    }
+
+    spin_lock_bh(&ipt_acc_lock);
+    int table_nr = ipt_acc_table_insert(info->table_name, info->net_ip,
+                                            info->net_mask);
+    if (table_nr == -1) {
+        printk("ACCOUNT: Table insert problem. Aborting\n");
+        spin_unlock_bh(&ipt_acc_lock);
+        return 0;
+    }
+    /* Table nr caching so we don't have to do an extra string compare 
+       for every packet */
+    info->table_nr = table_nr;
+
+    spin_unlock_bh(&ipt_acc_lock);
+
+    return 1;
+}
+
+void ipt_acc_deleteentry(void *targinfo, unsigned int targinfosize)
+{
+    unsigned int i;
+    struct ipt_acc_info *info = targinfo;
+
+    if (targinfosize != IPT_ALIGN(sizeof(struct ipt_acc_info))) {
+        DEBUGP("ACCOUNT: targinfosize %u != %u\n",
+               targinfosize, IPT_ALIGN(sizeof(struct ipt_acc_info)));
+    }
+
+    spin_lock_bh(&ipt_acc_lock);
+
+    DEBUGP("ACCOUNT: ipt_acc_deleteentry called for table: %s (#%d)\n", 
+           info->table_name, info->table_nr);
+
+    info->table_nr = -1;    /* Set back to original state */
+
+    /* Look for table */
+    for (i = 0; i < ACCOUNT_MAX_TABLES; i++) {
+        if (strncmp(ipt_acc_tables[i].name, info->table_name, 
+                    ACCOUNT_TABLE_NAME_LEN) == 0) {
+            DEBUGP("ACCOUNT: Found table at slot: %d\n", i);
+
+            ipt_acc_tables[i].refcount--;
+            DEBUGP("ACCOUNT: Refcount left: %d\n", 
+                   ipt_acc_tables[i].refcount);
+
+            /* Table not needed anymore? */
+            if (ipt_acc_tables[i].refcount == 0) {
+                DEBUGP("ACCOUNT: Destroying table at slot: %d\n", i);
+                ipt_acc_data_free(ipt_acc_tables[i].data, 
+                                      ipt_acc_tables[i].depth);
+                memset(&ipt_acc_tables[i], 0, 
+                       sizeof(struct ipt_acc_table));
+            }
+
+            spin_unlock_bh(&ipt_acc_lock);
+            return;
+        }
+    }
+
+    /* Table not found */
+    printk("ACCOUNT: Table %s not found for destroy\n", info->table_name);
+    spin_unlock_bh(&ipt_acc_lock);
+}
+
+void ipt_acc_depth0_insert(struct ipt_acc_mask_24 *mask_24,
+                               unsigned int net_ip, unsigned int netmask,
+                               unsigned int src_ip, unsigned int dst_ip,
+                               unsigned int size, unsigned int *itemcount)
+{
+    unsigned char is_src = 0, is_dst = 0;
+
+    DEBUGP("ACCOUNT: ipt_acc_depth0_insert: %u.%u.%u.%u/%u.%u.%u.%u "
+           "for net %u.%u.%u.%u/%u.%u.%u.%u, size: %u\n", NIPQUAD(src_ip), 
+           NIPQUAD(dst_ip), NIPQUAD(net_ip), NIPQUAD(netmask), size);
+
+    /* Check if src/dst is inside our network. */
+    /* Special: net_ip = 0.0.0.0/0 gets stored as src in slot 0 */
+    if (!netmask)
+        src_ip = 0;
+    if ((net_ip&netmask) == (src_ip&netmask))
+        is_src = 1;
+    if ((net_ip&netmask) == (dst_ip&netmask) && netmask)
+        is_dst = 1;
+
+    if (!is_src && !is_dst) {
+        DEBUGP("ACCOUNT: Skipping packet %u.%u.%u.%u/%u.%u.%u.%u "
+               "for net %u.%u.%u.%u/%u.%u.%u.%u\n", NIPQUAD(src_ip), 
+               NIPQUAD(dst_ip), NIPQUAD(net_ip), NIPQUAD(netmask));
+        return;
+    }
+
+    /* Check if this entry is new */
+    char is_src_new_ip = 0, is_dst_new_ip = 0;
+
+    /* Calculate array positions */
+    unsigned char src_slot = (unsigned char)((src_ip&0xFF000000) >> 24);
+    unsigned char dst_slot = (unsigned char)((dst_ip&0xFF000000) >> 24);
+
+    /* Increase size counters */
+    if (is_src) {
+        /* Calculate network slot */
+        DEBUGP("ACCOUNT: Calculated SRC 8 bit network slot: %d\n", src_slot);
+        if (!mask_24->ip[src_slot].src_packets 
+            && !mask_24->ip[src_slot].dst_packets)
+            is_src_new_ip = 1;
+
+        mask_24->ip[src_slot].src_packets++;
+        mask_24->ip[src_slot].src_bytes+=size;
+    }
+    if (is_dst) {
+        DEBUGP("ACCOUNT: Calculated DST 8 bit network slot: %d\n", dst_slot);
+        if (!mask_24->ip[dst_slot].src_packets 
+            && !mask_24->ip[dst_slot].dst_packets)
+            is_dst_new_ip = 1;
+
+        mask_24->ip[dst_slot].dst_packets++;
+        mask_24->ip[dst_slot].dst_bytes+=size;
+    }
+
+    /* Increase itemcounter */
+    DEBUGP("ACCOUNT: Itemcounter before: %d\n", *itemcount);
+    if (src_slot == dst_slot) {
+        if (is_src_new_ip || is_dst_new_ip) {
+            DEBUGP("ACCOUNT: src_slot == dst_slot: %d, %d\n", 
+                   is_src_new_ip, is_dst_new_ip);
+            (*itemcount)++;
+        }
+    } else {
+        if (is_src_new_ip) {
+            DEBUGP("ACCOUNT: New src_ip: %u.%u.%u.%u\n", NIPQUAD(src_ip));
+            (*itemcount)++;
+        }
+        if (is_dst_new_ip) {
+            DEBUGP("ACCOUNT: New dst_ip: %u.%u.%u.%u\n", NIPQUAD(dst_ip));
+            (*itemcount)++;
+        }
+    }
+    DEBUGP("ACCOUNT: Itemcounter after: %d\n", *itemcount);
+}
+
+void ipt_acc_depth1_insert(struct ipt_acc_mask_16 *mask_16, 
+                               unsigned int net_ip, unsigned int netmask, 
+                               unsigned int src_ip, unsigned int dst_ip,
+                               unsigned int size, unsigned int *itemcount)
+{
+    /* Do we need to process src IP? */
+    if ((net_ip&netmask) == (src_ip&netmask)) {
+        unsigned char slot = (unsigned char)((src_ip&0x00FF0000) >> 16);
+        DEBUGP("ACCOUNT: Calculated SRC 16 bit network slot: %d\n", slot);
+
+        /* Do we need to create a new mask_24 bucket? */
+        if (!mask_16->mask_24[slot] && (mask_16->mask_24[slot] = 
+             (void *)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+            printk("ACCOUNT: Can't process packet because out of memory!\n");
+            return;
+        }
+
+        ipt_acc_depth0_insert((struct ipt_acc_mask_24 *)mask_16->mask_24[slot],
+                                  net_ip, netmask, src_ip, 0, size, itemcount);
+    }
+
+    /* Do we need to process dst IP? */
+    if ((net_ip&netmask) == (dst_ip&netmask)) {
+        unsigned char slot = (unsigned char)((dst_ip&0x00FF0000) >> 16);
+        DEBUGP("ACCOUNT: Calculated DST 16 bit network slot: %d\n", slot);
+
+        /* Do we need to create a new mask_24 bucket? */
+        if (!mask_16->mask_24[slot] && (mask_16->mask_24[slot] 
+            = (void *)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+            printk("ACCOUT: Can't process packet because out of memory!\n");
+            return;
+        }
+
+        ipt_acc_depth0_insert((struct ipt_acc_mask_24 *)mask_16->mask_24[slot],
+                                  net_ip, netmask, 0, dst_ip, size, itemcount);
+    }
+}
+
+void ipt_acc_depth2_insert(struct ipt_acc_mask_8 *mask_8, 
+                               unsigned int net_ip, unsigned int netmask,
+                               unsigned int src_ip, unsigned int dst_ip,
+                               unsigned int size, unsigned int *itemcount)
+{
+    /* Do we need to process src IP? */
+    if ((net_ip&netmask) == (src_ip&netmask)) {
+        unsigned char slot = (unsigned char)((src_ip&0x0000FF00) >> 8);
+        DEBUGP("ACCOUNT: Calculated SRC 24 bit network slot: %d\n", slot);
+
+        /* Do we need to create a new mask_24 bucket? */
+        if (!mask_8->mask_16[slot] && (mask_8->mask_16[slot] 
+            = (void *)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+            printk("ACCOUNT: Can't process packet because out of memory!\n");
+            return;
+        }
+
+        ipt_acc_depth1_insert((struct ipt_acc_mask_16 *)mask_8->mask_16[slot],
+                                  net_ip, netmask, src_ip, 0, size, itemcount);
+    }
+
+    /* Do we need to process dst IP? */
+    if ((net_ip&netmask) == (dst_ip&netmask)) {
+        unsigned char slot = (unsigned char)((dst_ip&0x0000FF00) >> 8);
+        DEBUGP("ACCOUNT: Calculated DST 24 bit network slot: %d\n", slot);
+
+        /* Do we need to create a new mask_24 bucket? */
+        if (!mask_8->mask_16[slot] && (mask_8->mask_16[slot] 
+            = (void *)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+            printk("ACCOUNT: Can't process packet because out of memory!\n");
+            return;
+        }
+
+        ipt_acc_depth1_insert((struct ipt_acc_mask_16 *)mask_8->mask_16[slot],
+                                  net_ip, netmask, 0, dst_ip, size, itemcount);
+    }
+}
+
+static unsigned int ipt_acc_target(struct sk_buff **pskb,
+                                       unsigned int hooknum,
+                                       const struct net_device *in,
+                                       const struct net_device *out,
+                                       const void *targinfo,
+                                       void *userinfo)
+{
+    const struct ipt_acc_info *info = 
+        (const struct ipt_acc_info *)targinfo;
+    unsigned int src_ip = (*pskb)->nh.iph->saddr;
+    unsigned int dst_ip = (*pskb)->nh.iph->daddr;
+    unsigned int size = ntohs((*pskb)->nh.iph->tot_len);
+
+    spin_lock_bh(&ipt_acc_lock);
+
+    if (ipt_acc_tables[info->table_nr].name[0] == 0) {
+        printk("ACCOUNT: ipt_acc_target: Invalid table id %u. "
+               "IPs %u.%u.%u.%u/%u.%u.%u.%u\n", info->table_nr, 
+               NIPQUAD(src_ip), NIPQUAD(dst_ip));
+        spin_unlock_bh(&ipt_acc_lock);
+        return IPT_CONTINUE;
+    }
+
+    /* 8 bit network or "any" network */
+    if (ipt_acc_tables[info->table_nr].depth == 0) {
+        /* Count packet and check if the IP is new */
+        ipt_acc_depth0_insert(
+            (struct ipt_acc_mask_24 *)ipt_acc_tables[info->table_nr].data,
+            ipt_acc_tables[info->table_nr].ip, 
+            ipt_acc_tables[info->table_nr].netmask,
+            src_ip, dst_ip, size, &ipt_acc_tables[info->table_nr].itemcount);
+        spin_unlock_bh(&ipt_acc_lock);
+        return IPT_CONTINUE;
+    }
+
+    /* 16 bit network */
+    if (ipt_acc_tables[info->table_nr].depth == 1) {
+        ipt_acc_depth1_insert(
+            (struct ipt_acc_mask_16 *)ipt_acc_tables[info->table_nr].data,
+            ipt_acc_tables[info->table_nr].ip, 
+            ipt_acc_tables[info->table_nr].netmask,
+            src_ip, dst_ip, size, &ipt_acc_tables[info->table_nr].itemcount);
+        spin_unlock_bh(&ipt_acc_lock);
+        return IPT_CONTINUE;
+    }
+
+    /* 24 bit network */
+    if (ipt_acc_tables[info->table_nr].depth == 2) {
+        ipt_acc_depth2_insert(
+            (struct ipt_acc_mask_8 *)ipt_acc_tables[info->table_nr].data,
+            ipt_acc_tables[info->table_nr].ip, 
+            ipt_acc_tables[info->table_nr].netmask,
+            src_ip, dst_ip, size, &ipt_acc_tables[info->table_nr].itemcount);
+        spin_unlock_bh(&ipt_acc_lock);
+        return IPT_CONTINUE;
+    }
+
+    printk("ACCOUNT: ipt_acc_target: Unable to process packet. "
+           "Table id %u. IPs %u.%u.%u.%u/%u.%u.%u.%u\n", 
+           info->table_nr, NIPQUAD(src_ip), NIPQUAD(dst_ip));
+
+    spin_unlock_bh(&ipt_acc_lock);
+    return IPT_CONTINUE;
+}
+
+/*
+    Functions dealing with "handles":
+    Handles are snapshots of a accounting state.
+    
+    read snapshots are only for debugging the code
+    and are very expensive concerning speed/memory
+    compared to read_and_flush.
+    
+    The functions aren't protected by spinlocks themselves
+    as this is done in the ioctl part of the code.
+*/
+
+/*
+    Find a free handle slot. Normally only one should be used,
+    but there could be two or more applications accessing the data
+    at the same time.
+*/
+int ipt_acc_handle_find_slot(void)
+{
+    unsigned int i;
+    /* Insert new table */
+    for (i = 0; i < ACCOUNT_MAX_HANDLES; i++) {
+        /* Found free slot */
+        if (ipt_acc_handles[i].data == NULL) {
+            /* Don't "mark" data as used as we are protected by a spinlock 
+               by the calling function. handle_find_slot() is only a function
+               to prevent code duplication. */
+            return i;
+        }
+    }
+
+    /* No free slot found */
+    printk("ACCOUNT: No free handle slot found (max: %u). "
+           "Please increase ACCOUNT_MAX_HANDLES.\n", ACCOUNT_MAX_HANDLES);
+    return -1;
+}
+
+int ipt_acc_handle_free(unsigned int handle)
+{
+    if (handle >= ACCOUNT_MAX_HANDLES) {
+        printk("ACCOUNT: Invalid handle for ipt_acc_handle_free() specified:"
+               " %u\n", handle);
+        return -EINVAL;
+    }
+
+    ipt_acc_data_free(ipt_acc_handles[handle].data, 
+                          ipt_acc_handles[handle].depth);
+    memset (&ipt_acc_handles[handle], 0, sizeof (struct ipt_acc_handle));
+    return 0;
+}
+
+/* Prepare data for read without flush. Use only for debugging!
+   Real applications should use read&flush as it's way more efficent */
+int ipt_acc_handle_prepare_read(char *tablename, unsigned int *count)
+{
+    int handle, i, table_nr=-1;
+
+    for (i = 0; i < ACCOUNT_MAX_TABLES; i++)
+        if (strncmp(ipt_acc_tables[i].name, tablename, 
+            ACCOUNT_TABLE_NAME_LEN) == 0) {
+            table_nr = i;
+            break;
+        }
+
+    if (table_nr == -1) {
+        printk("ACCOUNT: ipt_acc_handle_prepare_read(): "
+               "Table %s not found\n", tablename);
+        return -1;
+    }
+
+    /* Can't find a free handle slot? */
+    if ((handle = ipt_acc_handle_find_slot()) == -1)
+        return -1;
+
+    /* Fill up handle structure */
+    ipt_acc_handles[handle].ip = ipt_acc_tables[table_nr].ip;
+    ipt_acc_handles[handle].depth = ipt_acc_tables[table_nr].depth;
+    ipt_acc_handles[handle].itemcount = ipt_acc_tables[table_nr].itemcount;
+
+    /* allocate "root" table */
+    if ((ipt_acc_handles[handle].data = 
+         (void*)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+        printk("ACCOUNT: out of memory for root table "
+               "in ipt_acc_handle_prepare_read()\n");
+        memset (&ipt_acc_handles[handle], 0, 
+                sizeof(struct ipt_acc_handle));
+        return -1;
+    }
+
+    /* Recursive copy of complete data structure */
+    unsigned int depth = ipt_acc_handles[handle].depth;
+    if (depth == 0) {
+        memcpy(ipt_acc_handles[handle].data, 
+               ipt_acc_tables[table_nr].data, 
+               sizeof(struct ipt_acc_mask_24));
+    } else if (depth == 1) {
+        struct ipt_acc_mask_16 *src_16 = 
+            (struct ipt_acc_mask_16 *)ipt_acc_tables[table_nr].data;
+        struct ipt_acc_mask_16 *network_16 =
+            (struct ipt_acc_mask_16 *)ipt_acc_handles[handle].data;
+        unsigned int b;
+
+        for (b = 0; b <= 255; b++) {
+            if (src_16->mask_24[b]) {
+                if ((network_16->mask_24[b] = 
+                     (void*)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+                    printk("ACCOUNT: out of memory during copy of 16 bit "
+                           "network in ipt_acc_handle_prepare_read()\n");
+                    ipt_acc_data_free(ipt_acc_handles[handle].data, depth);
+                    memset (&ipt_acc_handles[handle], 0, 
+                            sizeof(struct ipt_acc_handle));
+                    return -1;
+                }
+
+                memcpy(network_16->mask_24[b], src_16->mask_24[b], 
+                       sizeof(struct ipt_acc_mask_24));
+            }
+        }
+    } else if(depth == 2) {
+        struct ipt_acc_mask_8 *src_8 = 
+            (struct ipt_acc_mask_8 *)ipt_acc_tables[table_nr].data;
+        struct ipt_acc_mask_8 *network_8 = 
+            (struct ipt_acc_mask_8 *)ipt_acc_handles[handle].data;
+        unsigned int a;
+
+        for (a = 0; a <= 255; a++) {
+            if (src_8->mask_16[a]) {
+                if ((network_8->mask_16[a] = 
+                     (void*)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+                    printk("ACCOUNT: out of memory during copy of 24 bit network"
+                           " in ipt_acc_handle_prepare_read()\n");
+                    ipt_acc_data_free(ipt_acc_handles[handle].data, depth);
+                    memset (&ipt_acc_handles[handle], 0, 
+                            sizeof(struct ipt_acc_handle));
+                    return -1;
+                }
+
+                memcpy(network_8->mask_16[a], src_8->mask_16[a], 
+                       sizeof(struct ipt_acc_mask_16));
+
+                struct ipt_acc_mask_16 *src_16 = src_8->mask_16[a];
+                struct ipt_acc_mask_16 *network_16 = network_8->mask_16[a];
+                unsigned int b;
+
+                for (b = 0; b <= 255; b++) {
+                    if (src_16->mask_24[b]) {
+                        if ((network_16->mask_24[b] = 
+                             (void*)get_zeroed_page(GFP_ATOMIC)) == NULL) {
+                            printk("ACCOUNT: out of memory during copy of 16 bit"
+                                   " network in ipt_acc_handle_prepare_read()\n");
+                            ipt_acc_data_free(ipt_acc_handles[handle].data,
+                                                  depth);
+                            memset (&ipt_acc_handles[handle], 0, 
+                                    sizeof(struct ipt_acc_handle));
+                            return -1;
+                        }
+
+                        memcpy(network_16->mask_24[b], src_16->mask_24[b], 
+                               sizeof(struct ipt_acc_mask_24));
+                    }
+                }
+            }
+        }
+    }
+
+    *count = ipt_acc_tables[table_nr].itemcount;
+    return handle;
+}
+
+/* Prepare data for read and flush it */
+int ipt_acc_handle_prepare_read_flush(char *tablename, unsigned int *count)
+{
+    int handle, i, table_nr=-1;
+
+    for (i = 0; i < ACCOUNT_MAX_TABLES; i++)
+        if (strncmp(ipt_acc_tables[i].name, tablename, 
+                    ACCOUNT_TABLE_NAME_LEN) == 0) {
+            table_nr = i;
+            break;
+        }
+
+    if (table_nr == -1) {
+        printk("ACCOUNT: ipt_acc_handle_prepare_read_flush(): "
+               "Table %s not found\n", tablename);
+        return -1;
+    }
+
+    /* Can't find a free handle slot? */
+    if ((handle = ipt_acc_handle_find_slot()) == -1)
+        return -1;
+
+    /* Try to allocate memory */
+    void *new_data_page = (void*)get_zeroed_page(GFP_ATOMIC);
+    if (!new_data_page)
+    {
+        printk("ACCOUNT: ipt_acc_handle_prepare_read_flush(): "
+               "Out of memory!\n");
+        return -1;
+    }
+
+    /* Fill up handle structure */
+    ipt_acc_handles[handle].ip = ipt_acc_tables[table_nr].ip;
+    ipt_acc_handles[handle].depth = ipt_acc_tables[table_nr].depth;
+    ipt_acc_handles[handle].itemcount = ipt_acc_tables[table_nr].itemcount;
+    ipt_acc_handles[handle].data = ipt_acc_tables[table_nr].data;
+    *count = ipt_acc_tables[table_nr].itemcount;
+
+    /* "Flush" table data */
+    ipt_acc_tables[table_nr].data = new_data_page;
+    ipt_acc_tables[table_nr].itemcount = 0;
+
+    return handle;
+}
+
+/* Copy 8 bit network data into a prepared buffer.
+   We only copy entries != 0 to increase performance.
+*/
+void ipt_acc_handle_copy_data(void *to_user, int *pos, 
+                                  struct ipt_acc_mask_24 *data,
+                                  unsigned int net_ip, unsigned int net_OR_mask)
+{
+    struct ipt_acc_handle_ip handle_ip;
+    unsigned int handle_ip_size = sizeof (struct ipt_acc_handle_ip);
+    
+    unsigned int i;
+    
+    for (i = 0; i <= 255; i++) {
+        if (data->ip[i].src_packets || data->ip[i].dst_packets) {
+            handle_ip.ip = net_ip | net_OR_mask | (i<<24);
+            
+            handle_ip.src_packets = data->ip[i].src_packets;
+            handle_ip.src_bytes = data->ip[i].src_bytes;
+            handle_ip.dst_packets = data->ip[i].dst_packets;
+            handle_ip.dst_bytes = data->ip[i].dst_bytes;
+
+            /* Temporary buffer full? Flush to userspace */
+            if (*pos+handle_ip_size >= PAGE_SIZE) {
+                copy_to_user(to_user, ipt_acc_tmpbuf, *pos);
+                *pos = 0;
+            }
+            memcpy(ipt_acc_tmpbuf+*pos, &handle_ip, handle_ip_size);
+            *pos += handle_ip_size;
+        }
+    }
+}
+   
+/* Copy the data from our internal structure 
+   We only copy entries != 0 to increase performance.
+   Overwrites ipt_acc_tmpbuf.
+*/
+int ipt_acc_handle_get_data(unsigned int handle, void *to_user)
+{
+    unsigned int tmpbuf_pos=0;
+
+    if (handle >= ACCOUNT_MAX_HANDLES) {
+        printk("ACCOUNT: invalid handle for ipt_acc_handle_get_data() "
+               "specified: %u\n", handle);
+        return -1;
+    }
+
+    if (ipt_acc_handles[handle].data == NULL) {
+        printk("ACCOUNT: handle %u is BROKEN: Contains no data\n", handle);
+        return -1;
+    }
+
+    unsigned int net_ip = ipt_acc_handles[handle].ip;
+    unsigned int depth = ipt_acc_handles[handle].depth;
+
+    /* 8 bit network */
+    if (depth == 0) {
+        struct ipt_acc_mask_24 *network = 
+            (struct ipt_acc_mask_24*)ipt_acc_handles[handle].data;
+        ipt_acc_handle_copy_data(to_user, &tmpbuf_pos, network, net_ip, 0);
+        
+        /* Flush remaining data to userspace */
+        if (tmpbuf_pos)
+            copy_to_user(to_user, ipt_acc_tmpbuf, tmpbuf_pos);
+
+        return 0;
+    }
+
+    /* 16 bit network */
+    if (depth == 1) {
+        struct ipt_acc_mask_16 *network_16 = 
+            (struct ipt_acc_mask_16*)ipt_acc_handles[handle].data;
+        unsigned int b;
+        for (b = 0; b <= 255; b++) {
+            if (network_16->mask_24[b]) {
+                struct ipt_acc_mask_24 *network = 
+                    (struct ipt_acc_mask_24*)network_16->mask_24[b];
+                ipt_acc_handle_copy_data(to_user, &tmpbuf_pos, network, 
+                                             net_ip, (b << 16));
+            }
+        }
+
+        /* Flush remaining data to userspace */
+        if (tmpbuf_pos)
+            copy_to_user(to_user, ipt_acc_tmpbuf, tmpbuf_pos);
+
+        return 0;
+    }
+
+    /* 24 bit network */
+    if (depth == 2) {
+        struct ipt_acc_mask_8 *network_8 = 
+            (struct ipt_acc_mask_8*)ipt_acc_handles[handle].data;
+        unsigned int a, b;
+        for (a = 0; a <= 255; a++) {
+            if (network_8->mask_16[a]) {
+                struct ipt_acc_mask_16 *network_16 = 
+                    (struct ipt_acc_mask_16*)network_8->mask_16[a];
+                for (b = 0; b <= 255; b++) {
+                    if (network_16->mask_24[b]) {
+                        struct ipt_acc_mask_24 *network = 
+                            (struct ipt_acc_mask_24*)network_16->mask_24[b];
+                        ipt_acc_handle_copy_data(to_user, &tmpbuf_pos, network,
+                                                 net_ip, (a << 8) | (b << 16));
+                    }
+                }
+            }
+        }
+
+        /* Flush remaining data to userspace */
+        if (tmpbuf_pos)
+            copy_to_user(to_user, ipt_acc_tmpbuf, tmpbuf_pos);
+
+        return 0;
+    }
+    
+    return -1;
+}
+
+static int ipt_acc_set_ctl(struct sock *sk, int cmd, 
+                               void *user, unsigned int len)
+{
+    struct ipt_acc_handle_sockopt handle;
+    int ret = -EINVAL;
+
+    if (!capable(CAP_NET_ADMIN))
+        return -EPERM;
+
+    switch (cmd) {
+    case IPT_SO_SET_ACCOUNT_HANDLE_FREE:
+        if (len != sizeof(struct ipt_acc_handle_sockopt)) {
+            printk("ACCOUNT: ipt_acc_set_ctl: wrong data size (%u != %u) "
+                   "for IPT_SO_SET_HANDLE_FREE\n", 
+                   len, sizeof(struct ipt_acc_handle_sockopt));
+            break;
+        }
+
+        if (copy_from_user (&handle, user, len)) {
+            printk("ACCOUNT: ipt_acc_set_ctl: copy_from_user failed for "
+                   "IPT_SO_SET_HANDLE_FREE\n");
+            break;
+        }
+
+        spin_lock_bh(&ipt_acc_userspace_lock);
+        ret = ipt_acc_handle_free(handle.handle_nr);
+        spin_unlock_bh(&ipt_acc_userspace_lock);
+        break;
+    case IPT_SO_SET_ACCOUNT_HANDLE_FREE_ALL: {
+            unsigned int i;
+            spin_lock_bh(&ipt_acc_userspace_lock);
+            for (i = 0; i < ACCOUNT_MAX_HANDLES; i++)
+                ipt_acc_handle_free(i);
+            spin_unlock_bh(&ipt_acc_userspace_lock);
+            ret = 0;
+            break;
+        }
+    default:
+        printk("ACCOUNT: ipt_acc_set_ctl: unknown request %i\n", cmd);
+    }
+
+    return ret;
+}
+
+static int ipt_acc_get_ctl(struct sock *sk, int cmd, void *user, int *len)
+{
+    struct ipt_acc_handle_sockopt handle;
+    int ret = -EINVAL;
+
+    if (!capable(CAP_NET_ADMIN))
+        return -EPERM;
+
+    switch (cmd) {
+    case IPT_SO_GET_ACCOUNT_PREPARE_READ_FLUSH:
+    case IPT_SO_GET_ACCOUNT_PREPARE_READ:
+        if (*len < sizeof(struct ipt_acc_handle_sockopt)) {
+            printk("ACCOUNT: ipt_acc_get_ctl: wrong data size (%u != %u) "
+                   "for IPT_SO_GET_ACCOUNT_PREPARE_READ/READ_FLUSH\n",
+                   *len, sizeof(struct ipt_acc_handle_sockopt));
+            break;
+        }
+
+        if (copy_from_user (&handle, user, 
+                            sizeof(struct ipt_acc_handle_sockopt))) {
+            return -EFAULT;
+            break;
+        }
+
+        spin_lock_bh(&ipt_acc_lock);
+        spin_lock_bh(&ipt_acc_userspace_lock);
+        if (cmd == IPT_SO_GET_ACCOUNT_PREPARE_READ_FLUSH)
+            handle.handle_nr = ipt_acc_handle_prepare_read_flush(
+                                   handle.name, &handle.itemcount);
+        else
+            handle.handle_nr = ipt_acc_handle_prepare_read(
+                                   handle.name, &handle.itemcount);
+        spin_unlock_bh(&ipt_acc_userspace_lock);
+        spin_unlock_bh(&ipt_acc_lock);
+
+        if (handle.handle_nr == -1) {
+            return -EINVAL;
+            break;
+        }
+
+        if (copy_to_user(user, &handle, 
+                         sizeof(struct ipt_acc_handle_sockopt))) {
+            return -EFAULT;
+            break;
+        }
+        ret = 0;
+        break;
+    case IPT_SO_GET_ACCOUNT_GET_DATA:
+        if (*len < sizeof(struct ipt_acc_handle_sockopt)) {
+            printk("ACCOUNT: ipt_acc_get_ctl: wrong data size (%u != %u)"
+                   " for IPT_SO_GET_ACCOUNT_PREPARE_READ/READ_FLUSH\n",
+                   *len, sizeof(struct ipt_acc_handle_sockopt));
+            break;
+        }
+
+        if (copy_from_user (&handle, user, 
+                            sizeof(struct ipt_acc_handle_sockopt))) {
+            return -EFAULT;
+            break;
+        }
+
+        if (handle.handle_nr >= ACCOUNT_MAX_HANDLES) {
+            return -EINVAL;
+            break;
+        }
+
+        if (*len < ipt_acc_handles[handle.handle_nr].itemcount
+                   * sizeof(struct ipt_acc_handle_ip)) {
+            printk("ACCOUNT: ipt_acc_get_ctl: not enough space (%u < %u)"
+                   " to store data from IPT_SO_GET_ACCOUNT_GET_DATA\n",
+                   *len, ipt_acc_handles[handle.handle_nr].itemcount
+                   * sizeof(struct ipt_acc_handle_ip));
+            ret = -ENOMEM;
+            break;
+        }
+
+        spin_lock_bh(&ipt_acc_userspace_lock);
+        ret = ipt_acc_handle_get_data(handle.handle_nr, user);
+        spin_unlock_bh(&ipt_acc_userspace_lock);
+        if (ret) {
+            printk("ACCOUNT: ipt_acc_get_ctl: ipt_acc_handle_get_data"
+                   " failed for handle %u\n", handle.handle_nr);
+            break;
+        }
+
+        ret = 0;
+        break;
+    case IPT_SO_GET_ACCOUNT_GET_HANDLE_USAGE: {
+            if (*len < sizeof(struct ipt_acc_handle_sockopt)) {
+                printk("ACCOUNT: ipt_acc_get_ctl: wrong data size (%u != %u)"
+                       " for IPT_SO_GET_ACCOUNT_GET_HANDLE_USAGE\n",
+                       *len, sizeof(struct ipt_acc_handle_sockopt));
+                break;
+            }
+
+            /* Find out how many handles are in use */
+            unsigned int i;
+            handle.itemcount = 0;
+            spin_lock_bh(&ipt_acc_userspace_lock);
+            for (i = 0; i < ACCOUNT_MAX_HANDLES; i++)
+                if (ipt_acc_handles[i].data)
+                    handle.itemcount++;
+            spin_unlock_bh(&ipt_acc_userspace_lock);
+
+            if (copy_to_user(user, &handle, 
+                             sizeof(struct ipt_acc_handle_sockopt))) {
+                return -EFAULT;
+                break;
+            }
+            ret = 0;
+            break;
+        }
+    case IPT_SO_GET_ACCOUNT_GET_TABLE_NAMES: {
+            spin_lock_bh(&ipt_acc_lock);
+
+            /* Determine size of table names */
+            unsigned int size = 0, i;
+            for (i = 0; i < ACCOUNT_MAX_TABLES; i++) {
+                if (ipt_acc_tables[i].name[0] != 0)
+                    size += strlen (ipt_acc_tables[i].name) + 1;
+            }
+            size += 1;    /* Terminating NULL character */
+
+            if (*len < size) {
+                spin_unlock_bh(&ipt_acc_lock);
+                printk("ACCOUNT: ipt_acc_get_ctl: not enough space (%u < %u)"
+                       " to store table names\n", *len, size);
+                ret = -ENOMEM;
+                break;
+            }
+            /* Copy table names to userspace */
+            char *tnames = user;
+            for (i = 0; i < ACCOUNT_MAX_TABLES; i++) {
+                if (ipt_acc_tables[i].name[0] != 0) {
+                    int len = strlen (ipt_acc_tables[i].name) + 1;
+                    /* copy string + terminating zero */
+                    copy_to_user(tnames, ipt_acc_tables[i].name, len);
+                    tnames += len;
+                }
+            }
+            /* Append terminating zero */
+            i = 0;
+            copy_to_user(tnames, &i, 1);
+            spin_unlock_bh(&ipt_acc_lock);
+            ret = 0;
+            break;
+        }
+    default:
+        printk("ACCOUNT: ipt_acc_get_ctl: unknown request %i\n", cmd);
+    }
+
+    return ret;
+}
+
+static struct ipt_target ipt_acc_reg = {
+    {
+        NULL, NULL
+    },
+    "ACCOUNT",
+    ipt_acc_target,
+    ipt_acc_checkentry,
+    ipt_acc_deleteentry,
+    THIS_MODULE
+};
+
+static struct nf_sockopt_ops ipt_acc_sockopts = {
+    {
+        NULL, NULL
+    },
+    PF_INET,
+    IPT_SO_SET_ACCOUNT_HANDLE_FREE,
+    IPT_SO_SET_ACCOUNT_MAX+1,
+    ipt_acc_set_ctl,
+    IPT_SO_GET_ACCOUNT_PREPARE_READ,
+    IPT_SO_GET_ACCOUNT_MAX+1,
+    ipt_acc_get_ctl,
+    0,
+    NULL
+};
+
+static int __init init(void)
+{
+    if ((ipt_acc_tables = 
+         kmalloc(ACCOUNT_MAX_TABLES * 
+                 sizeof(struct ipt_acc_table), GFP_KERNEL)) == NULL) {
+        printk("ACCOUNT: Out of memory allocating account_tables structure");
+        return -EINVAL;
+    }
+    memset(ipt_acc_tables, 0, 
+           ACCOUNT_MAX_TABLES * sizeof(struct ipt_acc_table));
+
+    if ((ipt_acc_handles = 
+         kmalloc(ACCOUNT_MAX_HANDLES * 
+                 sizeof(struct ipt_acc_handle), GFP_KERNEL)) == NULL) {
+        printk("ACCOUNT: Out of memory allocating account_handles structure");
+        kfree (ipt_acc_tables);
+        ipt_acc_tables = NULL;
+        return -EINVAL;
+    }
+    memset(ipt_acc_handles, 0, 
+           ACCOUNT_MAX_HANDLES * sizeof(struct ipt_acc_handle));
+
+    /* Allocate one page as temporary storage */
+    if ((ipt_acc_tmpbuf = (void*)__get_free_page(GFP_KERNEL)) == NULL) {
+        printk("ACCOUNT: Out of memory for temporary buffer page\n");
+        kfree(ipt_acc_tables);
+        kfree(ipt_acc_handles);
+        ipt_acc_tables = NULL;
+        ipt_acc_handles = NULL;
+        return -EINVAL;
+    }
+
+    /* Register setsockopt */
+    if (nf_register_sockopt(&ipt_acc_sockopts) < 0) {
+        printk("ACCOUNT: Can't register sockopts. Aborting\n");
+
+        kfree(ipt_acc_tables);
+        kfree(ipt_acc_handles);
+        free_page((unsigned long)ipt_acc_tmpbuf);
+        ipt_acc_tables = NULL;
+        ipt_acc_handles = NULL;
+        ipt_acc_tmpbuf = NULL;
+
+        return -EINVAL;
+    }
+
+    if (ipt_register_target(&ipt_acc_reg))
+        return -EINVAL;
+
+    return 0;
+}
+
+static void __exit fini(void)
+{
+    ipt_unregister_target(&ipt_acc_reg);
+
+    nf_unregister_sockopt(&ipt_acc_sockopts);
+
+    kfree(ipt_acc_tables);
+    kfree(ipt_acc_handles);
+    free_page((unsigned long)ipt_acc_tmpbuf);
+
+    ipt_acc_tables = NULL;
+    ipt_acc_handles = NULL;
+    ipt_acc_tmpbuf = NULL;
+}
+
+module_init(init);
+module_exit(fini);
+MODULE_LICENSE("GPL");
+
+--Boundary-00=_P/IuAaf2+gfwiKO--
