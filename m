@@ -1,15 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Iptable Extension Arg question
-Date: Fri, 12 Mar 2004 08:19:13 +0100 (CET)
+Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
+Date: Fri, 12 Mar 2004 08:26:18 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403120811330.29532-100000@filer.marasystems.com>
-References: <Pine.LNX.4.44.0403111655320.13639-100000@lhotse.up.edu>
+Message-ID: <Pine.LNX.4.44.0403120822210.29532-100000@filer.marasystems.com>
+References: <Pine.LNX.4.33.0403120802180.20054-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Jonathan Cooper <netfilter@jonc.me.uk>,
+   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: John Fastabend <jfastabe@up.edu>
-In-Reply-To: <Pine.LNX.4.44.0403111655320.13639-100000@lhotse.up.edu>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0403120802180.20054-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,50 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 11 Mar 2004, John Fastabend wrote:
+On Fri, 12 Mar 2004, Jozsef Kadlecsik wrote:
 
-> 1) on line 92 of libipt_TOS.c where it says
-> 	struct ipt_tos_target_info *tosinfo = 
-> 		(struct ipt_tos_target_info *)(*target)->data;
->   
->    does this mean that the args from the command line are stored in 
-> target->data?
+> Recompile the kernel modules, start your system and try to trigger the
+> bug. Then please send me the kernel log messages or post the URL to
+> download from.
 
-Yes, or more precicely that the pointer to the target specific argument 
-structure is.
-
-> And if so does that mean I will have to pass the args another way if I
-> am trying to pass a couple ip addresses which would be longer then data
-> which is an unsigned char. i think.
-
-No. Each target defines its argument structure. Can be of any size.
-
-> 2) what does the struct option opts[] on line 50 do? Its used in the 
-> iptables_target 
-> struct below, but where does it show up in the module code?
-
-It defines the command line arguments understood by the target specific 
-userspace module used by the iptables command to translate your command 
-line into the required kernel structure.
-
-> 3) finally how do the args get used in ipt_TOS.c, it looks to me that they 
-> are passed in through targinfo. so maybe the above questions will show me 
-> how to get the arguments into targinfo.
-
-It is.
-
-> If the args are in targinfo what is the userinfo pointer for?
-
-userinfo is not used and can be ignored.
-
-
-There is also some information on how this works on the general level in
-the netfilter hacking howto document, but reading the source of a couple
-of targets provides more detail than the howto.
-
-> ps if this is the wrong list for this type of question just ignore it.
-
-It is 100% the correct list for this type of question.
+One more hint: If your system freezes dead then connect a serial console
+to collect the log messages. For details on how to set up a serial console
+see linux/Documentation/serial-console.txt
 
 Regards
 Henrik
