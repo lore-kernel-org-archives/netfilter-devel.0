@@ -1,10 +1,10 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: CLASSIFY target in POSTROUTING only?
-Date: Fri, 04 Mar 2005 13:30:21 +0200
-Message-ID: <422846CD.30105@outerspace.dyndns.org>
+Date: Fri, 04 Mar 2005 12:45:38 +0100
+Message-ID: <42284A62.6040305@trash.net>
 References: <20050304112306.29481.qmail@web90007.mail.scd.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: Peter Lenci <peterlenci@yahoo.ca>
@@ -20,33 +20,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
 Peter Lenci wrote:
+> Hi all
+> 
+> The CLASSIFY extension can only be used in the POSTROUTING chain of the
+> mangle table. Is there a technical reason for this or is it just an aid
+> to prevent misconfiguration? In particular I'd like to use the CLASSIFY
+> target in the PREROUTING table (in combination with ingress tcp shaping
+> with the IMQ device).
 
-| Hi all
+The CLASSIFY target is useable in LOCAL_OUT/FORWARD/POST_ROUTING.
+PRE_ROUTING is not possible because the value will be overwritten
+in ip_forward(). For IMQ you could simply remove that restriction.
 
-Hello there :)
-
-| The CLASSIFY extension can only be used in the POSTROUTING chain of the
-| mangle table. Is there a technical reason for this or is it just an aid
-| to prevent misconfiguration? In particular I'd like to use the CLASSIFY
-| target in the PREROUTING table (in combination with ingress tcp shaping
-| with the IMQ device).
-
-If you do the shaping on the IMQ device, I think you can do the shaping
-in POSTROUTING, since the ingress shaping is done in the "egress" part
-of the IMQ device anyway. You may have to configure the "AA AB BA BB"
-IMQ setting in menuconfig for it to work though. If you can't figure it
-out, I can try looking into it myself later when I have better time.
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCKEbFxyF48ZTvn+4RAu0jAJ9x99KPsNdNiJVMsDIE1vQGMsG5jQCeMeTP
-mq61NBECGpTwJUo84vTXCc8=
-=qSJP
------END PGP SIGNATURE-----
+Regards
+Patrick
