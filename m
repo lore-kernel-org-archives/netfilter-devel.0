@@ -1,18 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: 2.4.23 masquerading broken?
-Date: Sat, 10 Jan 2004 22:59:54 +0100
+Subject: Re: [PATCH] Unaligend accesses nulldevname
+Date: Sun, 11 Jan 2004 11:01:37 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040110215954.GC20706@sunbeam.de.gnumonks.org>
-References: <20031202165653.GJ615@gaast.net> <3FCCCB02.5070203@trash.net>
+Message-ID: <20040111100137.GH20706@sunbeam.de.gnumonks.org>
+References: <20040107230011.GG23133@tpkurt.garloff.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QRj9sO5tAVLaXnSD"
-Cc: Wilmer van der Gaast <lintux@lintux.cx>, linux-kernel@vger.kernel.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="k+G3HLlWI7eRTl+h"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Kurt Garloff <garloff@suse.de>,
+	Linux kernel list <linux-kernel@vger.kernel.org>,
+	netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <3FCCCB02.5070203@trash.net>
+In-Reply-To: <20040107230011.GG23133@tpkurt.garloff.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,40 +24,50 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---QRj9sO5tAVLaXnSD
+--k+G3HLlWI7eRTl+h
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Dec 02, 2003 at 06:25:22PM +0100, Patrick McHardy wrote:
-> Wilmer van der Gaast wrote:
+On Thu, Jan 08, 2004 at 12:00:11AM +0100, Kurt Garloff wrote:
+> Hi,
 >=20
-> >For security reasons, I upgraded to 2.4.23 last night. Now, suddenly, IP
-> >masquerading seems to be broken. When I use SNAT instead of
-> >masquerading, everything works.
-> >
-> >Unfortunately, I think it's hard to reproduce the problem. Right after
-> >booting .23 for the first time, everything seemed to be okay. The
-> >problems started just an hour ago, after having the server running for
-> >fifteen hours without any problems.
-> >
-> >Unfortunately there's not much more information I can provide. I can
-> >attach my iptables/rule/route file and keep my machine running in case
-> >anyone needs/wants more information. For now I'll just stick with SNAT.
-> >It works good enough for me.
+> I found an excessive amount of unaligned accesses on my AXP workstation
+> and tracked it down to ip_packet_match() in the ip_tables module.
+> indev and outdev are not properly aligned if set to nulldevname in
+> ipt_do_table().
+> This destroys the benefits of comparing names in units of (long) and
+> on architectures with expensive unaligned accesses (such as ia64 or
+> alpha), it even hurts a lot.
 
-This seems to be the same as=20
-http://www.ussg.iu.edu/hypermail/linux/kernel/0312.0/0465.html
-and https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=3D144
+Thanks for submitting your patch, this is the same bug report as
+https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=3D84
 
-I've committed the proposed fix (from #144) into patch-o-matic/pending.
+> Find attached a patch against 2.6.0. A similar patch is needed for 2.4,
+> also attached.
 
-Comments?
+the fix is already in our patch-o-matic CVS tree, and I'm going to
+submit this to davem together with some other fixes I have pending.
 
-> Patrick
+> Looking at ip_packet_match(), I have two more thoughts:
+> * It should not be inlined. It's too large to benefit from inlining,
+>   IMHO. (OTOH, it's only called from one place, so it does not
+>   really matter.)
 
-Patrick,=20
+That is the idea.  It's just split in two functions to make it more
+readable.  It's never intended to be called from somewhere else.
 
+> * There's a comment about the compiler being able to unroll the 2/4
+>   (64/32bit) iter loop which is not completely appropriate: We don't
+>   pass -funroll-loops, so gcc does not do it :-(
+>   It would be beneficial though.
+
+I'm not a compiler geek.  Thanks for pointing this out, I will do some
+testing and look at the compiler output to see what is happening.
+
+> Regards,
+> --=20
+> Kurt Garloff  <garloff@suse.de>                            Cologne, DE=20
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -68,7 +78,7 @@ Patrick,=20
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---QRj9sO5tAVLaXnSD
+--k+G3HLlWI7eRTl+h
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -76,9 +86,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAAHXaXaXGVTD0i/8RApnTAJ9BPiyzvYufU5wLgQy4FzBhrZoafgCgsZS9
-3KIOH6AlBZsrCsM/GbQBOHc=
-=JRqR
+iD8DBQFAAR8BXaXGVTD0i/8RAnAuAJ9qhRHsnQQI8azLx5p+I1S3vBKw0wCeKoio
+v2pIw8coqEg5TomqGflYo70=
+=D2yY
 -----END PGP SIGNATURE-----
 
---QRj9sO5tAVLaXnSD--
+--k+G3HLlWI7eRTl+h--
