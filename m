@@ -1,60 +1,74 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Time match in mangle/POSTROUTING?
-Date: Wed, 03 Dec 2003 01:49:10 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FCD3306.50603@trash.net>
-References: <3FCD2AA1.6F5E0225@info-link.net> <3FCD305F.4040406@trash.net>
+From: Wilmer van der Gaast <lintux@lintux.cx>
+Subject: Re: 2.4.23 masquerading broken?
+Date: Wed, 3 Dec 2003 01:45:19 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20031203004518.GL615@gaast.net>
+References: <20031202165653.GJ615@gaast.net> <3FCCCB02.5070203@trash.net> <20031202173358.GK615@gaast.net> <3FCD20F1.6090800@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-  fabrice@netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Brad Fisher <brad@info-link.net>
-In-Reply-To: <3FCD305F.4040406@trash.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lHuqAdgBYNjQz/wy"
+Cc: linux-kernel@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3FCD20F1.6090800@trash.net>
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
 
-> POSTROUTING packets don't neccessarily have a timestamp since packets are
-> stamped when they are received which doesn't happen for locally generated
-> traffic. In the source I can see an option "kerneltime" which uses
-> gettimeofday, this should work fine in any chain. The patch does work in
-> OUTPUT, it uses kerneltime automatically then (and also unneccesarrily
-> in FORWARD). A correct fix would require using kerneltime in OUTPUT
-> and POSTROUTING and the skb stamp otherwise.
+--lHuqAdgBYNjQz/wy
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Patrick McHardy (kaber@trash.net) wrote:
+> It may be related to using advances routing features ..
+> Can you give information about the specific IPs ? Is it local traffic ?
+>=20
+It happens when a packet to a host outside 130.89.*.* is routed through
+the eth1 (130.89.203.37) interface. That happens with any traffic not
+=66rom .9.11 or .9.13. .9.11 and .9.13 don't have any problems, their
+traffic is routed to the other Internet interface without any problems.
+
+Also, traffic to 130.89.*.* from any host is routed to eth1 correctly
+and "even" works.
+
+So, in short:
+
+192.168.9.10 -=3D> 130.89.1.1 works, through eth1
+192.168.9.11 -=3D> 130.89.1.1 works, through eth1
+192.168.9.10 -=3D> www.google.com doesn't work
+192.168.9.11 -=3D> www.google.com works, through hensema (which is what I w=
+ant)
+
+Also, trying to ping www.google.com through eth1 (hensema is the default
+interface) from the bugging machine directly works.
+
+I hope this clarifies something... If not, I can do some more testing
+tomorrow.
 
 
-Even better, in POSTROUTING only use the kerneltime when the skb stamp
-is unset, that way you save expensive gettimeofday calls for forwarded 
-packets.
-To make it clean, just remove the kerneltime option completely and only
-look if the stamp is set or unset.
+Greetings,
 
->
-> Best regards,
-> Patrick
->
->
->
-> Brad Fisher wrote:
->
->> I'm curious why the time match doesn't work in POSTROUTING?  I have an
->> application where it would be helpful to use it as such and was
->> wondering if there was a good technical reason why it shouldn't work.
->> If I modified the source to allow it to be added to the POSTROUTING
->> chain, would it work as expected?  I'm assuming it won't be as simple as
->> that...
->>
->> -Brad
->>  
->>
->
+Wilmer van der Gaast.
+
+--=20
++-------- .''`.     - -- ---+  +        - -- --- ---- ----- ------+
+| lintux : :'  :  lintux.cx |  | OSS Programmer   www.bitlbee.org |
+|   at   `. `~'  debian.org |  | www.algoritme.nl   www.lintux.cx |
++--- -- -  ` ---------------+  +------ ----- ---- --- -- -        +
+
+--lHuqAdgBYNjQz/wy
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (GNU/Linux)
+
+iD8DBQE/zTIeeYWXmuMwQFERArivAKCQNREsKcLv/l31Oycd/IkZKXYGNACg4j5b
+CZf0WYfXAxYP25RLQOOQExY=
+=okAz
+-----END PGP SIGNATURE-----
+
+--lHuqAdgBYNjQz/wy--
