@@ -1,15 +1,14 @@
-From: "Ranjeet Shetye" <ranjeet.shetye@zultys.com>
-Subject: nf_debug.c version 0.2
-Date: Wed, 18 Dec 2002 12:49:52 -0800
+From: Patrick McHardy <kaber@trash.net>
+Subject: [RESEND}: owner socket lookup
+Date: Thu, 19 Dec 2002 18:03:54 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000001c2a6d7$03cea910$0100a8c0@zultys.com>
-References: <20021217230706.GB25448@oknodo.bof.de>
+Message-ID: <3E01FBFA.9020706@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0001_01C2A693.F5ACEFB0"
+ boundary="------------060702090208030902070103"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20021217230706.GB25448@oknodo.bof.de>
+To: Harald Welte <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,805 +20,253 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
-
-------=_NextPart_000_0001_01C2A693.F5ACEFB0
-Content-Type: text/plain;
-	charset="us-ascii"
+--------------060702090208030902070103
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
+Hi Harald,
 
-This code is more complete and works well enough for me. Let me know if
-you run into any problems.
+about two or three month ago i sent you a pom-patch for the owner match 
+so it also works in
+PREROUTING and INPUT chains. I never received a final response from you. 
+Please just tell
+me your decision so i know it didn't got lost.
 
-If the interconnection complexity of the various NAT structs intimidates
-you, this code should help clear up the internal organization. As
-before, use it absolutely SPARINGLY.
+This version has bugfixes, the first one had some mixups (saddr instead 
+of daddr for
+udp_v4_lookup) and also didn't release sockets after lookups.
 
-Thanks to everyone for pointing out mistakes / corrections /
-improvements and helping me.
+Thanks,
+Patrick
 
-Ranjeet Shetye
-Senior Software Engineer
-Zultys Technologies
-771 Vaqueros Avenue
-Sunnyvale  CA  94085
-USA
-Ranjeet.Shetye@Zultys.com
-http://www.zultys.com/
+--------------060702090208030902070103
+Content-Type: text/plain;
+ name="owner-v4-pom.diff-2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="owner-v4-pom.diff-2"
 
-------=_NextPart_000_0001_01C2A693.F5ACEFB0
-Content-Type: application/octet-stream;
-	name="nf_debug.h"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="nf_debug.h"
+diff -urN patch-o-matic-20020825-orig/extra/owner-socketlookup.patch patch-o-matic-20020825/extra/owner-socketlookup.patch
+--- patch-o-matic-20020825-orig/extra/owner-socketlookup.patch	1970-01-01 01:00:00.000000000 +0100
++++ patch-o-matic-20020825/extra/owner-socketlookup.patch	2002-12-19 17:51:24.000000000 +0100
+@@ -0,0 +1,201 @@
++diff -urN linux-2.4.19-clean/include/net/tcp.h linux-2.4.19/include/net/tcp.h
++--- linux-2.4.19-clean/include/net/tcp.h	2002-08-03 02:39:46.000000000 +0200
+++++ linux-2.4.19/include/net/tcp.h	2002-12-19 17:42:45.000000000 +0100
++@@ -140,6 +140,7 @@
++ extern void tcp_bucket_unlock(struct sock *sk);
++ extern int tcp_port_rover;
++ extern struct sock *tcp_v4_lookup_listener(u32 addr, unsigned short hnum, int dif);
+++extern struct sock *tcp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 hnum, int dif);
++ 
++ /* These are AF independent. */
++ static __inline__ int tcp_bhashfn(__u16 lport)
++diff -urN linux-2.4.19-clean/include/net/udp.h linux-2.4.19/include/net/udp.h
++--- linux-2.4.19-clean/include/net/udp.h	2001-11-22 20:47:15.000000000 +0100
+++++ linux-2.4.19/include/net/udp.h	2002-12-19 17:42:45.000000000 +0100
++@@ -69,6 +69,8 @@
++ extern int	udp_ioctl(struct sock *sk, int cmd, unsigned long arg);
++ extern int	udp_disconnect(struct sock *sk, int flags);
++ 
+++extern struct sock *udp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 dport, int dif);
+++
++ extern struct udp_mib udp_statistics[NR_CPUS*2];
++ #define UDP_INC_STATS(field)		SNMP_INC_STATS(udp_statistics, field)
++ #define UDP_INC_STATS_BH(field)		SNMP_INC_STATS_BH(udp_statistics, field)
++diff -urN linux-2.4.19-clean/net/ipv4/netfilter/ipt_owner.c linux-2.4.19/net/ipv4/netfilter/ipt_owner.c
++--- linux-2.4.19-clean/net/ipv4/netfilter/ipt_owner.c	2002-12-19 17:43:07.000000000 +0100
+++++ linux-2.4.19/net/ipv4/netfilter/ipt_owner.c	2002-12-19 17:47:38.000000000 +0100
++@@ -2,17 +2,26 @@
++    locally generated outgoing packets.
++ 
++    Copyright (C) 2000 Marc Boucher
+++
+++   08/28/2002 Patrick McHardy <kaber@trash.net> 
+++   		- Modified to also match properties of receiving sockets
++  */
++ #include <linux/module.h>
++ #include <linux/skbuff.h>
++ #include <linux/file.h>
+++#include <linux/ip.h>
+++#include <linux/tcp.h>
+++#include <linux/udp.h>
++ #include <net/sock.h>
+++#include <net/tcp.h>
+++#include <net/udp.h>
+++#include <net/route.h>
++ 
++ #include <linux/netfilter_ipv4/ipt_owner.h>
++ #include <linux/netfilter_ipv4/ip_tables.h>
++ 
++ static int
++-match_comm(const struct sk_buff *skb, const char *comm)
+++match_comm(const struct sock *sk, const char *comm)
++ {
++ 	struct task_struct *p;
++ 	struct files_struct *files;
++@@ -28,7 +37,7 @@
++ 		if(files) {
++ 			read_lock(&files->file_lock);
++ 			for (i=0; i < files->max_fds; i++) {
++-				if (fcheck_files(files, i) == skb->sk->socket->file) {
+++				if (fcheck_files(files, i) == sk->socket->file) {
++ 					read_unlock(&files->file_lock);
++ 					task_unlock(p);
++ 					read_unlock(&tasklist_lock);
++@@ -44,7 +53,7 @@
++ }
++ 
++ static int
++-match_pid(const struct sk_buff *skb, pid_t pid)
+++match_pid(const struct sock *sk, pid_t pid)
++ {
++ 	struct task_struct *p;
++ 	struct files_struct *files;
++@@ -59,7 +68,7 @@
++ 	if(files) {
++ 		read_lock(&files->file_lock);
++ 		for (i=0; i < files->max_fds; i++) {
++-			if (fcheck_files(files, i) == skb->sk->socket->file) {
+++			if (fcheck_files(files, i) == sk->socket->file) {
++ 				read_unlock(&files->file_lock);
++ 				task_unlock(p);
++ 				read_unlock(&tasklist_lock);
++@@ -75,10 +84,10 @@
++ }
++ 
++ static int
++-match_sid(const struct sk_buff *skb, pid_t sid)
+++match_sid(const struct sock *sk, pid_t sid)
++ {
++ 	struct task_struct *p;
++-	struct file *file = skb->sk->socket->file;
+++	struct file *file = sk->socket->file;
++ 	int i, found=0;
++ 
++ 	read_lock(&tasklist_lock);
++@@ -119,41 +128,67 @@
++       int *hotdrop)
++ {
++ 	const struct ipt_owner_info *info = matchinfo;
+++	struct sock *sk = NULL;
+++	int ret = 0;
++ 
++-	if (!skb->sk || !skb->sk->socket || !skb->sk->socket->file)
++-		return 0;
+++	if (out) {
+++		sk = skb->sk;
+++	} else {
+++		struct iphdr *iph = skb->nh.iph;
+++		if (iph->protocol == IPPROTO_TCP) {
+++			struct tcphdr *tcph =
+++				(struct tcphdr*)((u_int32_t*)iph + iph->ihl);
+++			sk = tcp_v4_lookup(iph->saddr, tcph->source,
+++					   iph->daddr, tcph->dest,
+++					   ((struct rtable*)skb->dst)->rt_iif);
+++		} else if (iph->protocol == IPPROTO_UDP) {
+++			struct udphdr *udph =
+++				(struct udphdr*)((u_int32_t*)iph + iph->ihl);
+++			sk = udp_v4_lookup(iph->saddr, udph->source, iph->daddr,
+++					   udph->dest, skb->dev->ifindex);
+++		}
+++	} 
+++					
+++	if (!sk || !sk->socket || !sk->socket->file)
+++		goto out;
++ 
++ 	if(info->match & IPT_OWNER_UID) {
++-		if((skb->sk->socket->file->f_uid != info->uid) ^
+++		if((sk->socket->file->f_uid != info->uid) ^
++ 		    !!(info->invert & IPT_OWNER_UID))
++-			return 0;
+++			goto out;
++ 	}
++ 
++ 	if(info->match & IPT_OWNER_GID) {
++-		if((skb->sk->socket->file->f_gid != info->gid) ^
+++		if((sk->socket->file->f_gid != info->gid) ^
++ 		    !!(info->invert & IPT_OWNER_GID))
++-			return 0;
+++			goto out;
++ 	}
++ 
++ 	if(info->match & IPT_OWNER_PID) {
++-		if (!match_pid(skb, info->pid) ^
+++		if (!match_pid(sk, info->pid) ^
++ 		    !!(info->invert & IPT_OWNER_PID))
++-			return 0;
+++			goto out;
++ 	}
++ 
++ 	if(info->match & IPT_OWNER_SID) {
++-		if (!match_sid(skb, info->sid) ^
+++		if (!match_sid(sk, info->sid) ^
++ 		    !!(info->invert & IPT_OWNER_SID))
++-			return 0;
+++			goto out;
++ 	}
++ 
++ 	if(info->match & IPT_OWNER_COMM) {
++-		if (!match_comm(skb, info->comm) ^
+++		if (!match_comm(sk, info->comm) ^
++ 		    !!(info->invert & IPT_OWNER_COMM))
++-			return 0;
+++			goto out;
++ 	}
++ 
++-	return 1;
+++	ret = 1;
+++
+++out:
+++	if (in && sk)
+++		sock_put(sk);
+++
+++	return ret;
++ }
++ 
++ static int
++@@ -164,8 +199,10 @@
++            unsigned int hook_mask)
++ {
++         if (hook_mask
++-            & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING))) {
++-                printk("ipt_owner: only valid for LOCAL_OUT or POST_ROUTING.\n");
+++            & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING) |
+++		(1 << NF_IP_LOCAL_IN)  | (1 << NF_IP_PRE_ROUTING))) {
+++                printk("ipt_owner: only valid for LOCAL_OUT, LOCAL_IN, "
+++		       "POST_ROUTING or PRE_ROUTING.\n");
++                 return 0;
++         }
++ 
++diff -urN linux-2.4.19-clean/net/netsyms.c linux-2.4.19/net/netsyms.c
++--- linux-2.4.19-clean/net/netsyms.c	2002-08-03 02:39:46.000000000 +0200
+++++ linux-2.4.19/net/netsyms.c	2002-12-19 17:42:45.000000000 +0100
++@@ -588,4 +588,9 @@
++ EXPORT_SYMBOL(net_call_rx_atomic);
++ EXPORT_SYMBOL(softnet_data);
++ 
+++#if defined(CONFIG_IP_NF_MATCH_OWNER)||defined(CONFIG_IP_NF_MATCH_OWNER_MODULE)
+++EXPORT_SYMBOL(tcp_v4_lookup);
+++EXPORT_SYMBOL(udp_v4_lookup);
+++#endif /* CONFIG_IP_NF_MATCH_OWNER */
+++
++ #endif  /* CONFIG_NET */
+diff -urN patch-o-matic-20020825-orig/extra/owner-socketlookup.patch.help patch-o-matic-20020825/extra/owner-socketlookup.patch.help
+--- patch-o-matic-20020825-orig/extra/owner-socketlookup.patch.help	1970-01-01 01:00:00.000000000 +0100
++++ patch-o-matic-20020825/extra/owner-socketlookup.patch.help	2002-12-19 17:31:05.000000000 +0100
+@@ -0,0 +1,13 @@
++Author: Patrick McHardy <kaber@trash.net>
++Status: working
++
++The patch allows you to use the owner match in the INPUT/PREROUTING chains to
++match properties of the receiving socket.
++
++Example:
++
++	# Allow packets coming in on eth0 to sockets owned be local user
++	# kaber
++	
++	iptables -A INPUT -i eth0 -m owner --uid-owner kaber -j ACCEPT
++
 
-=0A=
-#ifndef _NF_DEBUG_H_=0A=
-#define _NF_DEBUG_H_=0A=
-=0A=
-/* Written by Ranjeet dot Shetye at Zultys dot com */=0A=
-=0A=
-#include <linux/types.h>=0A=
-#include <linux/init.h>=0A=
-#include <linux/netfilter.h>=0A=
-#include <linux/ip.h>=0A=
-#include <linux/tcp.h>=0A=
-#include <linux/if.h>=0A=
-=0A=
-#include <linux/netfilter_ipv4/ip_nat.h>=0A=
-#include <linux/netfilter_ipv4/ip_nat_rule.h>=0A=
-#include <linux/netfilter_ipv4/ip_nat_protocol.h>=0A=
-=0A=
-void my_print_ip_nat_hash (const struct ip_nat_hash * hash);=0A=
-void my_print_ip_nat_helper (const struct ip_nat_helper * helper);=0A=
-void my_print_ip_conntrack_dir (const enum ip_conntrack_dir * dir);=0A=
-void my_print_ip_nat_info_manip (const struct ip_nat_info_manip * manip);=0A=
-void my_print_ip_nat_seq (const struct ip_nat_seq * seq);=0A=
-void my_print_tcp_conntrack_state (const enum tcp_conntrack * state);=0A=
-void my_print_ip_ct_tcp (const struct ip_ct_tcp * tcp);=0A=
-void my_print_ip_ct_ftp (const struct ip_ct_ftp * ftp);=0A=
-void my_print_ip_ct_irc (const struct ip_ct_irc * irc);=0A=
-void my_print_atomic_t (const atomic_t * atom);=0A=
-void my_print_ip_ct_icmp (const struct ip_ct_icmp * icmp);=0A=
-void my_print_timer_list (const struct timer_list * timerlist);=0A=
-void my_print_ip_conntrack_tuple_hash (const struct =
-ip_conntrack_tuple_hash * hash);=0A=
-void my_print_ip_conntrack_manip_proto (const union =
-ip_conntrack_manip_proto * manip_proto);=0A=
-void my_print_ip_nat_range (const struct ip_nat_range * range);=0A=
-void my_print_nf_conntrack (const struct nf_conntrack * nfc_ptr);=0A=
-void my_print_list_head (const struct list_head * list);=0A=
-void my_print_ip_conntrack_expect (const struct ip_conntrack_expect * =
-expect);=0A=
-void my_print_ip_conntrack_helper (const struct ip_conntrack_helper * =
-helper);=0A=
-void my_print_nf_ct_info (const struct nf_ct_info * info);=0A=
-void my_print_ip_nat_info (const struct ip_nat_info * info);=0A=
-void my_print_ip_conntrack (const struct ip_conntrack *conntrack);=0A=
-void my_print_ip_conntrack_tuple (const struct ip_conntrack_tuple =
-*tuple);=0A=
-void my_print_ip_nat_manip_type (const enum ip_nat_manip_type * =
-maniptype);=0A=
-void my_print_ip_conntrack_manip (const struct ip_conntrack_manip * =
-manip);=0A=
-=0A=
-#endif /* _NF_DEBUG_H_ */=0A=
-
-------=_NextPart_000_0001_01C2A693.F5ACEFB0
-Content-Type: application/octet-stream;
-	name="nf_debug.c"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="nf_debug.c"
-
-=0A=
-/* Written by Ranjeet dot Shetye at Zultys dot com */=0A=
-=0A=
-#include <linux/types.h>=0A=
-#include <linux/init.h>=0A=
-#include <linux/netfilter.h>=0A=
-#include <linux/ip.h>=0A=
-#include <linux/tcp.h>=0A=
-#include <linux/if.h>=0A=
-=0A=
-#include <linux/netfilter_ipv4/ip_nat.h>=0A=
-#include <linux/netfilter_ipv4/ip_nat_rule.h>=0A=
-#include <linux/netfilter_ipv4/ip_nat_protocol.h>=0A=
-=0A=
-#include "nf_debug.h"=0A=
-=0A=
-atomic_t nf_debug_indent =3D { 0 };=0A=
-=0A=
-#if 0=0A=
-	/* printk ("%s () at %s:%d ", __FUNCTION__, __FILE__, __LINE__); */\=0A=
-#endif /* 0 */=0A=
-=0A=
-unsigned char tabs[] =3D "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";=0A=
-=0A=
-#define NF_DPF(format, args...) \=0A=
-{\=0A=
-	printk ("%.*s", nf_debug_indent.counter, tabs);\=0A=
-	printk (format,##args);\=0A=
-}=0A=
-=0A=
-void my_print_ip_nat_hash (const struct ip_nat_hash * hash)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (hash =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_nat_hash:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_nat_hash::list is of type struct list_head\n");=0A=
-	my_print_list_head (&(hash->list));=0A=
-=0A=
-	NF_DPF ("ip_nat_hash::conntrack is of type struct ip_conntrack\n");=0A=
-	my_print_ip_conntrack (hash->conntrack);=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_nat_helper (const struct ip_nat_helper * helper)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (helper =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_nat_helper:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_nat_helper::list is of type struct list_head [helper =
-TBD]\n");=0A=
-	/* my_print_list_head (&(helper->list)); */=0A=
-=0A=
-	NF_DPF ("ip_nat_helper::mask is of type struct ip_conntrack_tuple =
-[helper TBD]\n");=0A=
-	/* my_print_ip_conntrack_tuple (&(helper->mask)); */=0A=
-=0A=
-	NF_DPF ("ip_nat_helper::tuple is of type struct ip_conntrack_tuple =
-[helper TBD]\n");=0A=
-	/* my_print_ip_conntrack_tuple (&(helper->tuple)); */=0A=
-=0A=
-	NF_DPF ("ip_nat_helper::name [helper TBD]\n");=0A=
-	/* NF_DPF ("ip_nat_helper::name =3D %s\n", helper->name); */=0A=
-=0A=
-	NF_DPF ("ip_nat_helper::(*help) [helper TBD]\n");=0A=
-	/* NF_DPF ("ip_nat_helper::(*help) =3D %p\n", helper->help); */=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_conntrack_dir (const enum ip_conntrack_dir * dir)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (dir =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_conntrack_dir:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	switch (*dir)=0A=
-	{=0A=
-		case IP_CT_DIR_MAX:=0A=
-			NF_DPF ("ip_conntrack_dir::IP_CT_DIR_MAX\n");=0A=
-			break;=0A=
-		case IP_CT_DIR_ORIGINAL:=0A=
-			NF_DPF ("ip_conntrack_dir::IP_CT_DIR_ORIGINAL\n");=0A=
-			break;=0A=
-		case IP_CT_DIR_REPLY:=0A=
-			NF_DPF ("ip_conntrack_dir::IP_CT_DIR_REPLY\n");=0A=
-			break;=0A=
-		default:=0A=
-			NF_DPF ("ip_conntrack_dir::%d (Unknown)\n", *dir);=0A=
-			break;=0A=
-	}=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_nat_info_manip (const struct ip_nat_info_manip * manip)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (manip =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_nat_info_manip:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_nat_info_manip::direction is of type u_int8_t\n");=0A=
-	my_print_ip_conntrack_dir ((enum ip_conntrack_dir *) =
-&(manip->direction));=0A=
-=0A=
-	NF_DPF ("ip_nat_info_manip::hooknum =3D %u\n", manip->hooknum);=0A=
-=0A=
-	NF_DPF ("ip_nat_info_manip::maniptype is of type u_int8_t\n");=0A=
-	my_print_ip_nat_manip_type ((enum ip_nat_manip_type *) =
-&(manip->maniptype));=0A=
-=0A=
-	NF_DPF ("ip_nat_info_manip::manip is of type struct =
-ip_conntrack_manip\n");=0A=
-	my_print_ip_conntrack_manip (&(manip->manip));=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_nat_seq (const struct ip_nat_seq * seq)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (seq =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_nat_seq:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_nat_seq::correction_pos =3D %u\n", seq->correction_pos);=0A=
-	NF_DPF ("ip_nat_seq::offset_before =3D %d\n", seq->offset_before);=0A=
-	NF_DPF ("ip_nat_seq::offset_after =3D %d\n", seq->offset_after);=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_tcp_conntrack_state (const enum tcp_conntrack * state)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (state =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to enum tcp_conntrack:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	switch (*state)=0A=
-	{=0A=
-		case TCP_CONNTRACK_NONE:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_NONE\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_ESTABLISHED:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_ESTABLISHED\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_SYN_SENT:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_SYN_SENT\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_SYN_RECV:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_SYN_RECV\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_FIN_WAIT:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_FIN_WAIT\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_TIME_WAIT:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_TIME_WAIT\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_CLOSE:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_CLOSE\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_CLOSE_WAIT:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_CLOSE_WAIT\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_LAST_ACK:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_LAST_ACK\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_LISTEN:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_LISTEN\n");=0A=
-			break;=0A=
-		case TCP_CONNTRACK_MAX:=0A=
-			NF_DPF ("tcp_conntrack::TCP_CONNTRACK_MAX\n");=0A=
-			break;=0A=
-		default:=0A=
-			NF_DPF ("tcp_conntrack::%d (Unknown)\n", *state);=0A=
-			break;=0A=
-	}=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_ct_tcp (const struct ip_ct_tcp * tcp)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (tcp =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_ct_tcp:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_ct_tcp::handshake_ack =3D %u\n", tcp->handshake_ack);=0A=
-=0A=
-	NF_DPF ("ip_ct_tcp::state is of type enum tcp_conntrack\n");=0A=
-	my_print_tcp_conntrack_state (&(tcp->state));=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_ct_ftp (const struct ip_ct_ftp * ftp)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (ftp =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_ct_ftp:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_ct_ftp:: [TBD]\n");=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_ct_irc (const struct ip_ct_irc * irc)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (irc =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_ct_irc:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_ct_irc:: [TBD]\n");=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_atomic_t (const atomic_t * atom)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (atom =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to atomic_t:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("atomic_t::counter =3D %d\n", atom->counter);=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_ct_icmp (const struct ip_ct_icmp * icmp)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (icmp =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_ct_icmp:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_ct_icmp::count is of type atomic_t\n");=0A=
-	my_print_atomic_t (&(icmp->count));=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_timer_list (const struct timer_list * timerlist)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (timerlist =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to timer_list:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-	NF_DPF ("timer_list::data =3D %lu\n", timerlist->data);=0A=
-	NF_DPF ("timer_list::expires =3D %lu\n", timerlist->expires);=0A=
-	NF_DPF ("timer_list::(*function) =3D %p\n", timerlist->function);=0A=
-=0A=
-	NF_DPF ("timer_list::list is of type struct list_head\n");=0A=
-	my_print_list_head (&(timerlist->list));=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_conntrack_tuple_hash (const struct =
-ip_conntrack_tuple_hash * hash)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (hash =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_conntrack_tuple_hash:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-	NF_DPF ("ip_conntrack_tuple_hash::list is of type struct list_head\n");=0A=
-	my_print_list_head (&(hash->list));=0A=
-=0A=
-	NF_DPF ("ip_conntrack_tuple_hash::tuple is of type struct =
-ip_conntrack_tuple\n");=0A=
-	my_print_ip_conntrack_tuple (&(hash->tuple));=0A=
-=0A=
-	NF_DPF ("ip_conntrack_tuple_hash::ctrack is of type struct ip_conntrack =
-* (pointer back to parent)\n");=0A=
-	/* my_print_ip_conntrack (hash->ctrack); */=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_conntrack_manip_proto (const union =
-ip_conntrack_manip_proto * manip_proto)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (manip_proto =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_conntrack_manip_proto:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-	NF_DPF ("ip_conntrack_manip_proto::Union of all, icmp.id, tcp.port, "=0A=
-			"udp.port =3D %d\n", manip_proto->all);=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_nat_range (const struct ip_nat_range * range)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (range =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_nat_range:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_nat_range::flags =3D %d\n", range->flags);=0A=
-	NF_DPF ("ip_nat_range::min_ip =3D 0x%08X\n", range->min_ip);=0A=
-	NF_DPF ("ip_nat_range::max_ip =3D 0x%08X\n", range->max_ip);=0A=
-=0A=
-	NF_DPF ("ip_nat_range::min is of type union =
-ip_conntrack_manip_proto\n");=0A=
-	my_print_ip_conntrack_manip_proto (&(range->min));=0A=
-=0A=
-	NF_DPF ("ip_nat_range::max is of type union =
-ip_conntrack_manip_proto\n");=0A=
-	my_print_ip_conntrack_manip_proto (&(range->max));=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_nf_conntrack (const struct nf_conntrack * nfc_ptr)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (nfc_ptr =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to nf_conntrack:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("nf_conntrack::use.counter =3D %d\n", nfc_ptr->use.counter);=0A=
-	NF_DPF ("nf_conntrack::(*destroy) =3D %p\n", nfc_ptr->destroy);=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_list_head (const struct list_head * list)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (list =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("list_head:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("list_head::next is of type struct list_head\n");=0A=
-	my_print_list_head (list->next);=0A=
-=0A=
-	NF_DPF ("list_head::prev is of type struct list_head\n");=0A=
-	my_print_list_head (list->prev);=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_conntrack_expect (const struct ip_conntrack_expect * =
-expect)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (expect =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_conntrack_expect:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-	NF_DPF ("ip_conntrack_expect::expectant is of type struct =
-ip_conntrack\n");=0A=
-	my_print_ip_conntrack (expect->expectant);=0A=
-=0A=
-	NF_DPF ("ip_conntrack_expect::list is of type struct list_head\n");=0A=
-	my_print_list_head (&(expect->list));=0A=
-=0A=
-	NF_DPF ("ip_conntrack_expect::mask is of type struct =
-ip_conntrack_tuple\n");=0A=
-	my_print_ip_conntrack_tuple (&(expect->mask));=0A=
-=0A=
-	NF_DPF ("ip_conntrack_expect::tuple is of type struct =
-ip_conntrack_tuple\n");=0A=
-	my_print_ip_conntrack_tuple (&(expect->tuple));=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_conntrack_helper (const struct ip_conntrack_helper * =
-helper)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (helper =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("ip_conntrack_helper:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_conntrack_helper::list is of type struct list_head [helper =
-TBD]\n");=0A=
-	/* my_print_list_head (helper->list); */=0A=
-=0A=
-	NF_DPF ("ip_conntrack_helper::mask is of type struct ip_conntrack_tuple =
-[helper TBD]\n");=0A=
-	/* my_print_ip_conntrack_tuple (&(helper->mask)); */=0A=
-=0A=
-	NF_DPF ("ip_conntrack_helper::tuple is of type struct =
-ip_conntrack_tuple [helper TBD]\n");=0A=
-	/* my_print_ip_conntrack_tuple (&(helper->tuple)); */=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_nf_ct_info (const struct nf_ct_info * info)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (info =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to nf_nt_info:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("nf_ct_info::master is of type struct nf_conntrack *\n");=0A=
-	my_print_nf_conntrack (info->master);=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_nat_info (const struct ip_nat_info * info)=0A=
-{=0A=
-	int i =3D 0;=0A=
-=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (info =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_nat_info:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_nat_info::byipsproto is of type struct ip_nat_hash\n");=0A=
-	my_print_ip_nat_hash (&(info->byipsproto));=0A=
-=0A=
-	NF_DPF ("ip_nat_info::bysource is of type struct ip_nat_hash\n");=0A=
-	my_print_ip_nat_hash (&(info->bysource));=0A=
-=0A=
-	NF_DPF ("ip_nat_info::helper is of type struct ip_nat_helper *\n");=0A=
-	my_print_ip_nat_helper (info->helper);=0A=
-=0A=
-	NF_DPF ("ip_nat_info::initialized =3D %d\n", info->initialized);=0A=
-=0A=
-	NF_DPF ("ip_nat_info::manips[IP_NAT_MAX_MANIPS] is an array of type =
-struct ip_nat_info_manip\n");=0A=
-	for (i =3D 0; i < IP_NAT_MAX_MANIPS; i++)=0A=
-	{=0A=
-		NF_DPF ("ip_nat_info::manips[%d]\n", i);=0A=
-		my_print_ip_nat_info_manip (&(info->manips[i]));=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_nat_info::mtype is of type struct ip_nat_mapping_type * =
-(deprecated)\n");=0A=
-=0A=
-	NF_DPF ("ip_nat_info::num_manips =3D %d\n", info->num_manips);=0A=
-=0A=
-	NF_DPF ("ip_nat_info::seq[IP_CT_DIR_MAX] is an array of type struct =
-ip_nat_seq\n");=0A=
-	for (i =3D 0; i < IP_CT_DIR_MAX; i++)=0A=
-	{=0A=
-		NF_DPF ("ip_nat_info::seq[%d]\n", i);=0A=
-		my_print_ip_nat_seq (&(info->seq[i]));=0A=
-	}=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_conntrack (const struct ip_conntrack *conntrack)=0A=
-{=0A=
-	int i =3D 0;=0A=
-=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (conntrack =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_conntrack:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_conntrack::ct_general is of type struct nf_conntrack\n");=0A=
-	my_print_nf_conntrack (&(conntrack->ct_general));=0A=
-=0A=
-	NF_DPF ("ip_conntrack::expected is of type struct =
-ip_conntrack_expect\n");=0A=
-	my_print_ip_conntrack_expect (&(conntrack->expected));=0A=
-=0A=
-	NF_DPF ("ip_conntrack::help.ct_ftp_info is of type struct ip_ct_ftp\n");=0A=
-	my_print_ip_ct_ftp (&(conntrack->help.ct_ftp_info));=0A=
-=0A=
-	NF_DPF ("ip_conntrack::help.ct_irc_info	is of type struct ip_ct_irc\n");=0A=
-	my_print_ip_ct_irc (&(conntrack->help.ct_irc_info));=0A=
-=0A=
-	NF_DPF ("ip_conntrack::helper is of type struct ip_conntrack_helper\n");=0A=
-	my_print_ip_conntrack_helper (conntrack->helper);=0A=
-=0A=
-	NF_DPF ("ip_conntrack::infos[IP_CT_NUMBER] is an array of type =
-nf_ct_info\n");=0A=
-	for (i =3D 0; i < IP_CT_NUMBER; i++)=0A=
-	{=0A=
-		NF_DPF ("ip_conntrack::infos[%d]\n", i);=0A=
-		my_print_nf_ct_info (&(conntrack->infos[i]));=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_conntrack::master is of type struct nf_ct_info\n");=0A=
-	my_print_nf_ct_info (&(conntrack->master));=0A=
-=0A=
-	NF_DPF ("ip_conntrack::nat is of type struct nat (anonymous)\n");=0A=
-	NF_DPF ("ip_conntrack::nat.masq_index=3D%d\n", =
-conntrack->nat.masq_index);=0A=
-=0A=
-	NF_DPF ("ip_conntrack::nat.info is of type struct ip_nat_info\n");=0A=
-	my_print_ip_nat_info (&(conntrack->nat.info));=0A=
-=0A=
-	NF_DPF ("ip_conntrack::Union of tcp of type struct ip_ct_tcp, and icmp =
-of type struct ip_ct_icmp\n");=0A=
-	my_print_ip_ct_tcp (&(conntrack->proto.tcp));=0A=
-	my_print_ip_ct_icmp (&(conntrack->proto.icmp));=0A=
-=0A=
-	NF_DPF ("ip_conntrack::status =3D %lu\n", conntrack->status);=0A=
-=0A=
-	NF_DPF ("ip_conntrack::timeout is of type struct timer_list\n");=0A=
-	my_print_timer_list (&(conntrack->timeout));=0A=
-=0A=
-	NF_DPF ("ip_conntrack::tuplehash[IP_CT_DIR_MAX] is an array of type =
-struct ip_conntrack_tuple_hash\n");=0A=
-	for (i =3D 0; i < IP_CT_DIR_MAX; i++)=0A=
-	{=0A=
-		NF_DPF ("ip_conntrack::tuplehash[%d]\n", i);=0A=
-		my_print_ip_conntrack_tuple_hash (&(conntrack->tuplehash[i]));=0A=
-	}=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_conntrack_tuple (const struct ip_conntrack_tuple *tuple)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (tuple =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_conntrack_tuple:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_conntrack_tuple::dst.ip =3D 0x%08X\n", tuple->dst.ip);=0A=
-	NF_DPF ("ip_conntrack_tuple::dst.protonum =3D %d\n", =
-tuple->dst.protonum);=0A=
-	NF_DPF ("ip_conntrack_tuple::Union of dst.u.all, dst.u.icmp.type & =
-dst.u.icmp.port, dst.u.tcp.port, "=0A=
-			"dst.u.udp.port =3D %d\n", tuple->dst.u.all);=0A=
-=0A=
-	NF_DPF ("ip_conntrack_tuple::src is of type struct =
-ip_conntrack_manip\n");=0A=
-	my_print_ip_conntrack_manip (&(tuple->src));=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_nat_manip_type (const enum ip_nat_manip_type * =
-maniptype)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (maniptype =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to enum ip_nat_manip_type:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	switch (*maniptype)=0A=
-	{=0A=
-		case IP_NAT_MANIP_SRC:=0A=
-			NF_DPF ("ip_nat_manip_type::IP_NAT_MANIP_SRC\n");=0A=
-			break;=0A=
-		case IP_NAT_MANIP_DST:=0A=
-			NF_DPF ("ip_nat_manip_type::IP_NAT_MANIP_DST\n");=0A=
-			break;=0A=
-		default:=0A=
-			NF_DPF ("ip_nat_manip_type::%d (Unknown)\n", *maniptype);=0A=
-			break;=0A=
-	}=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-=0A=
-void my_print_ip_conntrack_manip (const struct ip_conntrack_manip * =
-manip)=0A=
-{=0A=
-	atomic_inc (&nf_debug_indent);=0A=
-=0A=
-	if (manip =3D=3D NULL)=0A=
-	{=0A=
-		NF_DPF ("pointer to ip_conntrack_manip:: is NULL\n");=0A=
-		atomic_dec (&nf_debug_indent);=0A=
-		return;=0A=
-	}=0A=
-=0A=
-	NF_DPF ("ip_conntrack_manip::ip =3D 0x%08X\n", manip->ip);=0A=
-=0A=
-	NF_DPF ("ip_conntrack_manip::u is of type struct =
-ip_conntrack_manip_proto\n");=0A=
-	my_print_ip_conntrack_manip_proto (&(manip->u));=0A=
-=0A=
-	atomic_dec (&nf_debug_indent);=0A=
-	return;=0A=
-}=0A=
-
-------=_NextPart_000_0001_01C2A693.F5ACEFB0--
+--------------060702090208030902070103--
