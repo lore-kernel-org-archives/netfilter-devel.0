@@ -1,13 +1,18 @@
-From: "Lars Lockenvitz" <L.Locke@web.de>
-Subject: CTINFO2DIR
-Date: Fri, 03 Sep 2004 17:00:06 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2.6] 2/2:  Fix NAT helper locking
+Date: Fri, 03 Sep 2004 17:53:21 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1451315369@web.de>
+Message-ID: <41389371.2030009@trash.net>
+References: <20040903070234.GQ26263@sunbeam.de.gnumonks.org>
+	<20040903002453.77beee16.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20040903002453.77beee16.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,14 +23,25 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+David S. Miller wrote:
 
-my modules for clearcase connection tracking use the funktion CTINFO2DIR(c=
-tinfo) . With kernel 2.4 isn=B4t it a problem bur with kernel version 2.6.8 =
-are all packets I send for testing are from the receiver.
-Does anybody know this problem and can help me=3F
+>Applied both patches, but the first had serious offsets
+>and the second had to be applied by hand due to rejects
+>against the current 2.6.x sources.
+>
+>Ummm... wow what ancient tree did you patch against
+>Harald?  The tree you patched against didn't even have the
+>skb_header_pointer() changes in it, that's caveman
+>era :-)  That's what caused the rejects.
+>  
+>
+My fault, I put the patches into patch-o-matic about two or
+three weeks ago and didn't expect they wouldn't apply anymore
+so quickly :)
 
-Regards
-=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F
-Verschicken Sie romantische, coole und witzige Bilder per SMS!
-Jetzt neu bei WEB.DE FreeMail: http://freemail.web.de/=3Fmc=3D021193
+>
+>Anyways, I merged it all in cleanly.
+>
+Thanks.
+
+Patrick
