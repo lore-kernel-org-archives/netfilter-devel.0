@@ -1,15 +1,13 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] TCP window tracking over-window handling
-Date: Wed, 2 Feb 2005 08:00:09 -0800
-Message-ID: <20050202160009.GB30465@linuxace.com>
-References: <20050128234334.GA20713@linuxace.com>
-	<Pine.LNX.4.58.0502021017590.24272@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] Release of iptables-1.3.0rc1
+Date: Wed, 2 Feb 2005 08:04:44 -0800
+Message-ID: <20050202160444.GC30465@linuxace.com>
+References: <20050202154449.GA30465@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/mixed; boundary="d6Gm4EdcadzBjdND"
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0502021017590.24272@blackhole.kfki.hu>
+In-Reply-To: <20050202154449.GA30465@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +19,87 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Feb 02, 2005 at 10:46:01AM +0100, Jozsef Kadlecsik wrote:
-> That implies then that the receiver is broken as well, by accepting and
-> ack-ing out of window segments. But it is true, we anticipate the
-> behaviour of the receiver here, which we shouldn't.
 
-The receiver was a linux 2.6.10 box, so not an uncommon OS ;-)  The original
-problem was noted by clients on Win2K and WinXP against the same FTP server.
+--d6Gm4EdcadzBjdND
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> The current code follows closely TCP/IP Illustrated vol 2, p. 954: Trim
-> Segment so Data is Within Window.
+On Wed, Feb 02, 2005 at 07:44:49AM -0800, Phil Oester wrote:
+> > The netfilter coreteam proudly presents:
+> >	iptables version 1.3.0rc1
 > 
-> Do you know the OS of the communicating parties? Weren't window scaling or
-> SACK negotiated?
+> One note: the userspace side of multiport inversion has not yet
+> been merged (while the kernel side has).
+> 
+> Phil
 
-The FTP server was an NT 4.0 box running IIS 3.0 ftp service.  As noted
-above, receiver was the Linux firewall itself.  There was no window
-scaling or SACK involved.  
+Err...included again here for easy patching :)
 
-> With your proposed patch, we'd actually drop the oow segment. Could you
-> check that it won't cause problems (besides more logging generated :-)?
 
-I agree -- the oow segment is dropped, but this at least doesn't break
-the communication.  Without this patch, I cannot complete a large (5mb)
-download from this server.  With this patch, it never fails.
 
-Reviewing the ipfilter code, it doesn't seem the author included this check.
-So what was the rationale for including it in the netfilter version?  I
-can't think of what it is protecting us from.
+--d6Gm4EdcadzBjdND
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-mport-ipt2
 
-Phil
+diff -ru iptables-orig/extensions/libipt_multiport.c iptables-new/extensions/libipt_multiport.c
+--- iptables-orig/extensions/libipt_multiport.c	2005-01-03 04:51:58.000000000 -0500
++++ iptables-new/extensions/libipt_multiport.c	2005-01-22 15:33:44.637388800 -0500
+@@ -31,13 +31,13 @@
+ {
+ 	printf(
+ "multiport v%s options:\n"
+-" --source-ports port[,port:port,port...]\n"
++" --source-ports [!] port[,port:port,port...]\n"
+ " --sports ...\n"
+ "				match source port(s)\n"
+-" --destination-ports port[,port:port,port...]\n"
++" --destination-ports [!] port[,port:port,port...]\n"
+ " --dports ...\n"
+ "				match destination port(s)\n"
+-" --ports port[,port:port,port]\n"
++" --ports [!] port[,port:port,port]\n"
+ "				match both source and destination port(s)\n",
+ IPTABLES_VERSION);
+ }
+@@ -255,8 +255,7 @@
+ 	}
+ 
+ 	if (invert)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "multiport does not support invert");
++		multiinfo->invert = 1;
+ 
+ 	if (*flags)
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -362,6 +361,9 @@
+ 		break;
+ 	}
+ 
++	if (multiinfo->invert)
++		printf("! ");
++
+ 	for (i=0; i < multiinfo->count; i++) {
+ 		printf("%s", i ? "," : "");
+ 		print_port(multiinfo->ports[i], ip->proto, numeric);
+@@ -422,6 +424,9 @@
+ 		break;
+ 	}
+ 
++	if (multiinfo->invert)
++		printf("! ");
++
+ 	for (i=0; i < multiinfo->count; i++) {
+ 		printf("%s", i ? "," : "");
+ 		print_port(multiinfo->ports[i], ip->proto, 1);
+diff -ru iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h
+--- iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-03 04:37:07.000000000 -0500
++++ iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-22 15:30:21.372289792 -0500
+@@ -24,5 +24,6 @@
+ 	u_int8_t count;				/* Number of ports */
+ 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
+ 	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
++	u_int8_t invert;			/* Invert flag */
+ };
+ #endif /*_IPT_MULTIPORT_H*/
+
+--d6Gm4EdcadzBjdND--
