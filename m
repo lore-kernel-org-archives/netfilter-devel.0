@@ -1,13 +1,16 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: timeout storms make the box unresponsive
-Date: Fri, 25 Jul 2003 20:56:44 +0200
+Subject: Re: oops in replace_in_hashes
+Date: Fri, 25 Jul 2003 22:08:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725185644.GA7625@balabit.hu>
+Message-ID: <20030725200837.GC7814@balabit.hu>
+References: <20030725085731.GA5776@balabit.hu> <Pine.LNX.4.52.0307251104001.5333@tux.rsn.bth.se> <20030725135020.GA6433@balabit.hu> <20030725173555.GA7458@balabit.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Martin Josefsson <gandalf@wlug.westbo.se>
 Content-Disposition: inline
+In-Reply-To: <20030725173555.GA7458@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,32 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Fri, Jul 25, 2003 at 07:35:56PM +0200, Balazs Scheidler wrote:
+> > As I see it is quite unlikely that the same memory area is used for
+> > different purposes when a kmem_cache is used, as kmem_cache tries to reuse
+> > blocks. I therefore think that we face a use-after-free conntrack scenario.
+> > 
+> > Any other thoughts, hints?
+> 
+> One little addition, which might prove to be important, is that the bogus
+> next pointer which is tried to be dereferenced contains the IP address of the
+> last SNAT mapping that was being made. The manips array of the ip_nat_info
+> structure is only a couple of bytes away, hm... 
 
-while trying to reproduce the oops in replace_in_hashes, I compiled a kernel
-with netfilter debug enabled. From time-to-time the box simply freezes for a
-minute or two, and then continues working as if nothing had happened.
+I think I've found something, but I am afraid it is tproxy specific, so it
+might not be the same.
 
-I understand that a kernel with assertions enabled will be slower, but I did
-not see this behaviour with the previous kernel and the same load. I've
-pressed SysRq+ShowPC and fed that through a ksymoops to see what's going on.
-It turned out that ip_nat_cleanup_conntrack() was working (or waiting for
-ip_nat_lock).
+my tproxy patch does not verify whether the NAT manip associated with the
+current hook has already been set up, or not. E.g. this code is missing:
 
-My test setup is an SMP box (dual Athlon MP 1800+), and I'm downloading
-files from a custom webserver using 7 client PCs, with apachebench, each
-starting 500 concurrent threads. As there are many connections (each HTTP
-session downloads 1k data without keepalive) many connections end at the
-same time, thus many of them exit the TIME_WAIT state at the same time. (I
-have about 100k entries in /proc/net/ip_conntrack) 
+                if (!(info->initialized & (1 << maniptype))) {
+			ip_nat_setup_info()
+		}
 
-When the box is not frozen, it is otherwise completely responsive, and is
-processing 30k interrupts/sec happily.
+Looking at the comments in the code, it might happen that the same packet
+traverses the hooks several times, and this might mean that the array
+holding NAT manips is overflowed.
 
-Maybe we should consider removing expired entries from the NAT hash at a
-single go, instead of the current lock-remove-unlock for each entry. Or
-create a cleanup thread which cleans up conntrack entries regularly, but not
-in the timer interrupt context.
+My question is: how and which packets might be retransmitted like this? Are
+those taken as NEW or ESTABLISHED?
 
 -- 
 Bazsi
