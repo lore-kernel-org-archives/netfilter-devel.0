@@ -1,15 +1,18 @@
-From: zhi wang <pangy2004@yahoo.com>
-Subject: Re: current pom-ng's nfnetlink doesn't apply cleanly to kernel 2.4.22
-Date: Sun, 18 Apr 2004 03:10:22 -0700 (PDT)
+From: "Tarek W." <faqmaster@iptables.org>
+Subject: Re: question regarding iptables tuning (was Re: iptables denial of
+	services)
+Date: Sun, 18 Apr 2004 16:29:18 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040418101022.15235.qmail@web41703.mail.yahoo.com>
-References: <Pine.LNX.4.44.0404181102460.4242-100000@filer.marasystems.com>
+Message-ID: <1082294958.2304.17.camel@carve.personal.localdomain>
+References: <Pine.LNX.4.44.0404171843020.22016-100000@filer.marasystems.com>
+	 <408167F2.9060501@fl.priv.at> <408180C7.6080302@eurodev.net>
+	 <40818C75.8010609@fl.priv.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Develop <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0404181102460.4242-100000@filer.marasystems.com>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <40818C75.8010609@fl.priv.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,48 +23,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
-> Maybe the patch does indeed depend on some other patch not listed in the
-> dependencies. Where does it fail?  
+On Sat, 2004-04-17 at 22:58, Friedrich Lobenstock wrote:
+> Pablo Neira wrote on 17.04.2004 21:08 MET:
+> > Hi Friedrich,
+> > 
+> > Friedrich Lobenstock wrote:
+> > 
+> >> Any suggestions for those parameters that are based on your experiences?
+> > 
+> > 
+> > maybe this could be interesting for you, it's related to conntrack system.
+> > 
+> > http://www.wallfire.org/misc/netfilter_conntrack_perf.txt
+> > http://bei.bof.de/
+> > 
+> > I don't know how up to date they are, actually they are still in my 
+> > queue of things to be read ;-).
 > 
-I apply the nfnetlink, and the result is as:
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] f
-apply_dependencies: successfully applied netfilter-docbook
-apply_dependencies: successfully applied nf-log
-apply_dependencies: successfully applied raw
-apply_dependencies: unable to apply dependent ctstat: ERROR (2 rejects out of
-15 hunks)
+> BIG THANKS for the links!
+> 
+> May I suggest to add the first link to the faq?
 
-There is one .rej file generated: ip_conntrack_core.c.rej.
-For example, the first several lines of it read:
-       ***************
-       *** 61,71 ****
-       static LIST_HEAD(helpers);
-       unsigned int ip_conntrack_htable_size = 0;
-       int ip_conntrack_max = 0;
-     - static atomic_t ip_conntrack_count = ATOMIC_INIT(0);
-       struct list_head *ip_conntrack_hash;
-       static kmem_cache_t *ip_conntrack_cachep;
-       struct ip_conntrack ip_conntrack_untracked;
-                                                                               
-                                             
-       extern struct ip_conntrack_protocol ip_conntrack_generic_protocol;
-                                                                               
-                                             
-       static inline int proto_cmpfn(const struct ip_conntrack_protocol *curr,
-       --- 61,73 ----
-       ......
-It is because ip_conntrack_max is defined as a static global variable in the
-original 2.4.22 kernel, maybe some other patches has changed it silently:).
+it will be, the answer will also reflect this thread... unfortunately,
+there remains the matter of a missing Makefile to generate the FAQ from
+the latest xml sources, if anybody would like to contribute one, please
+submit it to this list.
 
-----
-Regards
-wang,zhi
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-Yahoo! Photos: High-quality 4x6 digital prints for 25¢
-http://photos.yahoo.com/ph/print_splash
+if anybody would like to take a peek at the latest FAQ in html, it's
+available at http://ticallion.lonecoder.net/pub/faq/, when the Makefile
+issue is resolved, it will be available at netfilter.org
