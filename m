@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: How to take over TCP connection from userspace process?
-Date: Tue, 21 Oct 2003 19:31:38 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: ctnetlink questions
+Date: Tue, 21 Oct 2003 21:54:07 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031021173138.GC12049@sunbeam.de.gnumonks.org>
-References: <006701c397a5$9c13fee0$d32f110a@yrhd> <20031021134729.GB12049@sunbeam.de.gnumonks.org> <20031021145537.GA25030@superhijitus.linux.org.ar>
+Message-ID: <Pine.LNX.4.44.0310212149340.7523-100000@filer.marasystems.com>
+References: <3F95630A.3090507@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="U+BazGySraz5kW0T"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Diego Woitasen (Lanux)" <diegows@linux.org.ar>
-Content-Disposition: inline
-In-Reply-To: <20031021145537.GA25030@superhijitus.linux.org.ar>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <3F95630A.3090507@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,56 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 21 Oct 2003, Patrick McHardy wrote:
 
---U+BazGySraz5kW0T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Ok there's another problem, for fast lookups by id (we don't want to
+> search the entire hash) we need to encode the hash chain of a tuple 
+> in the id. We basically have two choices now for the remaining bits:
 
-On Tue, Oct 21, 2003 at 11:55:37AM -0300, Diego Woitasen (Lanux) wrote:
-> Runhua is talking about other issue, I think. He is talking about
-> forward quickly ESTABLISHED connections, without traversing all rules.
+You can always make the userspace ID larger by including the bucket
+number. There is no need to extend the ID stored in the conntrack for
+this as it is already known.
 
-this is policy, not mechanism.  ip_conntrack provides a mechanism (for
-tracking connections).  How you use that information, is policy.  Policy
-is expressed by the ruleset or other local configuration.
-
-> I think that this will be implemented in the new version of iptables (I
-> thought about this from time ago). For example, for every connection we
-> have an entry in conntrack table, the entry must hold information about
-> filter rules that was consulted in the first packet of that connection.
-> Then the packets of an ESTABLISHED connection will be pass directly
-> without rule check.
-> For this we need a new field(s) en struct skb that hold the necessary
-> info, and the nf_hook() will  check this field(s) for a quickly return.
-
-no new field required at all.  That is exactly how ip_conntrack is used
-today.  Your first (or one of the first) rules willbe 'accept all
-ESTABLSHED' traffic.  Thus, you iterate only over a single rule for
-every _but_ the first packet.
-
-> Diego Woitasen
-> LUGar
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---U+BazGySraz5kW0T
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/lW16XaXGVTD0i/8RApQVAJ4xUQDUBrkuGzY3f0VX9enDS859HACfQJYi
-nIp7yia7YTUZfsEjZvF2ddw=
-=P7Gv
------END PGP SIGNATURE-----
-
---U+BazGySraz5kW0T--
+Regards
+Henrik
