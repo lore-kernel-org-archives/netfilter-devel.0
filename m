@@ -1,65 +1,81 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] iptables cannot be compiled with 2.6.7
-Date: Wed, 23 Jun 2004 14:45:58 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406231440410.5967-100000@blackhole.kfki.hu>
-References: <08dc01c458c9$38c19ce0$2601010a@bluereef.local>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
+Subject: Re: 2.6.7-bk6 fails module compile -- iptable_raw.c
+Date: Wed, 23 Jun 2004 22:42:03 +0900 (JST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040623.224203.122414746.yoshfuji@linux-ipv6.org>
+References: <200406231256.IAA28505@clem.clem-digital.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>,
-	<netfilter@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andrew Hall <temp02@bluereef.com.au>
-In-Reply-To: <08dc01c458c9$38c19ce0$2601010a@bluereef.local>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: davem@redhat.com, clem@clem.clem-digital.net
+In-Reply-To: <200406231256.IAA28505@clem.clem-digital.net>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 23 Jun 2004, Andrew Hall wrote:
+In article <200406231256.IAA28505@clem.clem-digital.net> (at Wed, 23 Jun 2004 08:56:08 -0400 (EDT)), Pete Clements <clem@clem.clem-digital.net> says:
 
-> This patch was already there.
+> FYI:  (gcc version 2.95.4)
+> 
+>   CC [M]  net/ipv4/netfilter/iptable_raw.o
+> net/ipv4/netfilter/iptable_raw.c:57: unknown field `target_size' specified in initializer
+> net/ipv4/netfilter/iptable_raw.c:57: warning: missing braces around initializer
+> net/ipv4/netfilter/iptable_raw.c:57: warning: (near initialization for `initial_table.entries[0].target.target.u')
+> net/ipv4/netfilter/iptable_raw.c:71: unknown field `target_size' specified in initializer
+> net/ipv4/netfilter/iptable_raw.c:85: unknown field `user' specified in initializer
+> net/ipv4/netfilter/iptable_raw.c:87: unknown field `name' specified in initializer
+> net/ipv4/netfilter/iptable_raw.c:87: warning: excess elements in union initializer
+> net/ipv4/netfilter/iptable_raw.c:87: warning: (near initialization for `initial_table.term.target.target.u')
+> make[3]: *** [net/ipv4/netfilter/iptable_raw.o] Error 1
+> make[2]: *** [net/ipv4/netfilter] Error 2
+> make[1]: *** [net/ipv4] Error 2
+> make: *** [net] Error 2
 
-I sent my mail just after I committed the patch in cvs. However my mail
-was delayed by 4 days on the mailing list server.
+Please try this.
 
-> It is the 07_linux patch that seems to be missing..
+===== net/ipv4/netfilter/iptable_raw.c 1.2 vs edited =====
+--- 1.2/net/ipv4/netfilter/iptable_raw.c	2004-06-22 06:39:19 +09:00
++++ edited/net/ipv4/netfilter/iptable_raw.c	2004-06-23 22:35:44 +09:00
+@@ -54,7 +54,9 @@
+ 		     },
+ 		     .target = { 
+ 			  .target = { 
+-				  .u.target_size = IPT_ALIGN(sizeof(struct ipt_standard_target)),
++				  .u = {
++					  .target_size = IPT_ALIGN(sizeof(struct ipt_standard_target)),
++				  },
+ 			  },
+ 			  .verdict = -NF_ACCEPT - 1,
+ 		     },
+@@ -68,7 +70,9 @@
+ 		     },
+ 		     .target = {
+ 			     .target = {
+-				     .u.target_size = IPT_ALIGN(sizeof(struct ipt_standard_target)),
++				     .u = {
++					     .target_size = IPT_ALIGN(sizeof(struct ipt_standard_target)),
++				     },
+ 			     },
+ 			     .verdict = -NF_ACCEPT - 1,
+ 		     },
+@@ -82,9 +86,11 @@
+ 		},
+ 		.target = {
+ 			.target = {
+-				.u.user = {
+-					.target_size = IPT_ALIGN(sizeof(struct ipt_error_target)), 
+-					.name = IPT_ERROR_TARGET,
++				.u = {
++					.user = {
++						.target_size = IPT_ALIGN(sizeof(struct ipt_error_target)), 
++						.name = IPT_ERROR_TARGET,
++					},
+ 				},
+ 			},
+ 			.errorname = "ERROR",
 
-Yes. There are problems in creating a proper 07_linux patch. It seems
-either we add a really huge patch to the cvs or we have to spend a lot of
-time to shrink it, without breaking the kernel.
-
-Pleas do not top-post.
-
-Best regards,
-Jozsef
-
-> ----- Original Message -----
-> From: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
-> To: <netfilter-devel@lists.netfilter.org>; <netfilter@lists.netfilter.org>
-> Sent: Saturday, June 19, 2004 5:44 AM
-> Subject: [PATCH] iptables cannot be compiled with 2.6.7
->
-> > Hello,
-> >
-> > The 08_linux-2.6.7-user_attr.patch has been added to patch-o-matic-ng,
-> > which fixes the compile-problem of iptables using 2.6.7 source tree.
-> >
-> > Best regards,
-> > Jozsef
-> > -
-> > E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-> > PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> > Address : KFKI Research Institute for Particle and Nuclear Physics
-> >           H-1525 Budapest 114, POB. 49, Hungary
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-- 
+Hideaki YOSHIFUJI @ USAGI Project <yoshfuji@linux-ipv6.org>
+GPG FP: 9022 65EB 1ECF 3AD1 0BDF  80D8 4807 F894 E062 0EEA
