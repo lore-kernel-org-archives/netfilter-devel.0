@@ -1,15 +1,16 @@
-From: Kiran Kumar <immidi_kiran@yahoo.com>
-Subject: Re: Help writing netfilter match
-Date: Mon, 29 Mar 2004 19:59:08 -0800 (PST)
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Re: change ip address in the hook
+Date: Tue, 30 Mar 2004 08:13:53 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040330035908.46877.qmail@web14001.mail.yahoo.com>
-References: <406E0129@minerva.ex.ac.uk>
+Message-ID: <40690211.4030606@netlab.hut.fi>
+References: <20040328215738.GA19392@mail.xprtsol.com>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Richard Bishop <R.J.Bishop@exeter.ac.uk>,
-  netfilter-devel@lists.netfilter.org
-In-Reply-To: <406E0129@minerva.ex.ac.uk>
+To: lmn@mail.xprtsol.com
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,38 +21,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---- Richard Bishop <R.J.Bishop@exeter.ac.uk> wrote:
-> 
-> This is compiled with the command  "gcc -shared -o
-> libipt_net.so
-> -DIPTABLES_VERSION=\"1.2.9\"
-> -I/usr/src/linux/include libipt_net.c"  and the
-> .so file placed in /lib/iptables. Incidentally I'm
-> compiling and running on
-> Debian with kernel 2.4.24-1-k7.
 
-  Why dont you use the existing Makefiles for "make"
-and "make install"? They would put the proper
-libraries in the proper places.
+Hi!
 
-> 
-> As root I then run "iptables -A INPUT -m net --help"
-> and get "iptables v1.2.9:
-> Couldn't load match `net'". I've obviously missed
-> something somewhere - can
-> somebody point me in the right direction please?! 
+Can you be a bit more precise in what you do when you "change the ip 
+address of a packet in the LOCAL_OUT hook and let it send out"? What are 
+all the operations you do? Which address (source / destination) do you 
+change? Do you calculate a new IP checksum after having changed the IP 
+address?
 
-  The iptables binary looks for the shared library in
-the directory IPT_LIB_DIR (look for it in iptables.c).
-So, iptables would be looking for libipt_net.so in
-this directory. Making the .so available at the proper
-location will solve the problem.
+       Emmanuel
 
-=====
-Regards,
-Kiran Kumar Immidi
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Finance Tax Center - File online. File on time.
-http://taxes.yahoo.com/filing.html
+lmn@mail.xprtsol.com wrote:
+
+>Hi,
+>
+>For example, I want to change the ip address of a packet in the LOCAL_OUT hook and let it send out, but I didn't see the packet on the wire. (Route for the modified ip addresses existed.) Similar things happen for the PRE_ROUTING hook. This is like doing the NAT manually.
+>
+>If I use iptables command to add a rule doing the similar function, I can see the packet was sent out. So what is the difference inside these two approaches?
+>
+>Thanks,
+>
+>LMN
+>
+>  
+>
