@@ -1,14 +1,18 @@
-From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-Subject: How do I use ip_conntrack_destroyed?
-Date: Wed, 03 Dec 2003 14:05:43 +0200
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: nf_conntrack (l3 independent conntrack)
+Date: Wed, 03 Dec 2003 21:48:29 +0900 (JST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FCDD197.6050700@netlab.hut.fi>
-Reply-To: emmanuel@netlab.hut.fi
+Message-ID: <200312031249.VAA29743@toshiba.co.jp>
+References: <20031118165138.GO5075@sunbeam.de.gnumonks.org>
+	<200311190246.LAA10515@toshiba.co.jp>
+	<20031119132444.GW5075@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+In-Reply-To: <20031119132444.GW5075@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,22 +23,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hei!
+Hi, Harald and all,
 
-I am writing a new target module which needs to be aware about the 
-number of conntracks that are currently known for a particular 
-destination. Thus, to make my counter I wish to detect when a conntrack 
-is destroyed. I have noticed the following in ip_conntrack.h :
+I've got the permission to publish my nf_conntrack.
 
-/* Call me when a conntrack is destroyed. */
-extern void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack);
+In this code, nf_conntrack_tuple use "union" in the l3 part.
+But anyway, I send it.
 
-So I guess it particularly fits with my needs. But what about using it?
+This is alpha version, please use on your responsibility.
 
-Does it work so that I have to write something like:
-ip_conntrack_destroyed = &my_counter_function
-in my ipt_xxxx_target function and then do my stuff in my_counter_function?
+And please don't forget that nf_conntrack.o don't work with ip_conntrack.o.
 
-Can anyone confirm/invalidate this, please?
+Regards,
 
-             Emmanuel
+----------------------------------------
+Yasuyuki KOZAKAI
+
+Communication Platform Laboratory,
+Corporate Research & Development Center,
+Toshiba Corporation
+
+yasuyuki.kozakai@toshiba.co.jp
+----------------------------------------
