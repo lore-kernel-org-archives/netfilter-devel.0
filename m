@@ -1,19 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]Re: NAT before IPsec with 2.6
-Date: Sun, 01 Feb 2004 15:52:38 +0100
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [PATCH] make multiple invocations of do_command() behave sane
+Date: Sun, 01 Feb 2004 22:43:24 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <401D12B6.5030707@trash.net>
-References: <20040127103917.GC11761@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0401271207160.16067-100000@filer.marasystems.com> <20040127130739.GR11761@sunbeam.de.gnumonks.org> <20040128000938.GH11761@sunbeam.de.gnumonks.org> <401777B4.9020000@trash.net> <20040128103000.GP11761@sunbeam.de.gnumonks.org>
+Message-ID: <1075671804.19762.23.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090304080202010903000104"
-Cc: Henrik Nordstrom <hno@marasystems.com>,
- Willy Tarreau <willy@w.ods.org>,
- Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
- netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-ylG/vhSwIMppsc4Xlsar"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040128103000.GP11761@sunbeam.de.gnumonks.org>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,536 +17,295 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090304080202010903000104
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-I've hacked together a working version, it's a ugly hack but
-it shows what parts are required for getting NAT working.
-Comments are welcome.
-
-The patch is split into three parts: 01-hooks.diff, 02-nat-original.diff 
-  and 03-nat-reply.diff. I'm going to discuss each part seperately.
-
-01-hooks.diff:
-This patch adds the required hooks. Locally generated and forwarded
-packets pass through POST_ROUTING before beeing encypted and pass
-through LOCAL_OUT afterwards. This is currently not consistent with
-input packets which pass through PRE_ROUTING and LOCAL_IN encrypted
-and then again after beeing decapsulated from a tunnel-mode
-encapsulation. This means packets from nested tunnels will pass
-multiple times, packets from transport-mode connections won't pass
-the hook after decryption at all.
-
-02-nat-original.diff:
-This patch adds policy lookups to ip_route_me_harder and changes
-ip_nat_standalone to reroute in both LOCAL_OUT and POST_ROUTING
-if the routing key or the key used for policy lookups changed.
-This allows to NAT packets and have the correct policy applied
-to them afterwards.
-
-Since the POST_ROUTING hook is called with ip_finish_output2 as outfn
-the packets which have a transformer-dst_entry after ip_route_me_harder
-are manually confirmed (conntrack) and passed to dst_output. These
-packets will be passed through LOCAL_OUT after encryption has been done.
-There is a danger of loops, the encrypted packets could be natted in
-LOCAL_OUT and POST_ROUTING again and again match a policy.
-
-The packets matching a policy after rerouting in LOCAL_OUT don't need
-this kind of special handling, LOCAL_OUT is called with dst_output
-as outfn. They are currently not passwd through POST_ROUTING before
-encryption, which I just noticed while writing this mail.
-
-03-nat-reply.diff:
-This patch changes xfrm_policy_check to lookup the correct policy
-for input packets after NAT has been applied. Unfortunately some
-policy checks are performed after skb->nfct has been released so
-I had to introduce a leak.
-
-To summarize the problems:
-- Not completely consistens picture wrt. hooks passed and ordering.
-Should be easily fixable.
-- loop danger. suggestions ?
-- nat information required at socket receive time for policy checks,
-currently achieved by introducing a leak. possible solution is to
-store the required data in new skb fields, it's only 6 bytes ..
-
-What is currently working is the following:
-- Filter traffic before/after encryption (more or less)
-- SNAT/DNAT packets and have correct policies applied, including none
-- Have policy checks find correct policy for SNAT/DNAT/SNAT+DNATed
-packets
+--=-ylG/vhSwIMppsc4Xlsar
+Content-Type: multipart/mixed; boundary="=-Q1ppZO881dG+OCD2PxMA"
 
 
-Regards,
-Patrick
+--=-Q1ppZO881dG+OCD2PxMA
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
---------------090304080202010903000104
-Content-Type: text/plain;
- name="01-hooks.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01-hooks.diff"
+Hi
 
-===== net/ipv4/ah4.c 1.29 vs edited =====
---- 1.29/net/ipv4/ah4.c	Sat Jan 24 19:08:48 2004
-+++ edited/net/ipv4/ah4.c	Sat Jan 31 16:26:44 2004
-@@ -6,6 +6,8 @@
- #include <net/ah.h>
- #include <linux/crypto.h>
- #include <linux/pfkeyv2.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
- #include <net/icmp.h>
- #include <asm/scatterlist.h>
- 
-@@ -54,6 +56,11 @@
- 	return 0;
- }
- 
-+static inline int ah_finish_output(struct sk_buff *skb)
-+{
-+	return NET_XMIT_BYPASS;
-+}
-+
- static int ah_output(struct sk_buff *skb)
- {
- 	int err;
-@@ -144,6 +151,18 @@
- 	if ((skb->dst = dst_pop(dst)) == NULL) {
- 		err = -EHOSTUNREACH;
- 		goto error_nolock;
-+	}
-+	/* final packet goes through LOCAL_OUT hook */
-+	if (skb->dst->xfrm == NULL) {
-+#ifdef CONFIG_NETFILTER
-+		nf_conntrack_put(skb->nfct);
-+		skb->nfct = NULL;
-+#ifdef CONFIG_NETFILTER_DEBUG
-+		skb->nf_debug = 0;
-+#endif
-+#endif
-+		return NF_HOOK(AF_INET, NF_IP_LOCAL_OUT, skb, NULL,
-+		               skb->dst->dev, ah_finish_output);
- 	}
- 	return NET_XMIT_BYPASS;
- 
-===== net/ipv4/esp4.c 1.35 vs edited =====
---- 1.35/net/ipv4/esp4.c	Mon Aug 18 13:14:38 2003
-+++ edited/net/ipv4/esp4.c	Sat Jan 31 16:26:33 2004
-@@ -8,6 +8,8 @@
- #include <linux/crypto.h>
- #include <linux/pfkeyv2.h>
- #include <linux/random.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
- #include <net/icmp.h>
- #include <net/udp.h>
- 
-@@ -20,6 +22,11 @@
- 	__u8		proto;
- };
- 
-+static inline int esp_finish_output(struct sk_buff *skb)
-+{
-+	return NET_XMIT_BYPASS;
-+}
-+
- int esp_output(struct sk_buff *skb)
- {
- 	int err;
-@@ -198,6 +205,18 @@
- 	if ((skb->dst = dst_pop(dst)) == NULL) {
- 		err = -EHOSTUNREACH;
- 		goto error_nolock;
-+	}
-+	/* final packet goes through LOCAL_OUT hook */
-+	if (skb->dst->xfrm == NULL) {
-+#ifdef CONFIG_NETFILTER
-+		nf_conntrack_put(skb->nfct);
-+		skb->nfct = NULL;
-+#ifdef CONFIG_NETFILTER_DEBUG
-+		skb->nf_debug = 0;
-+#endif
-+#endif
-+		return NF_HOOK(AF_INET, NF_IP_LOCAL_OUT, skb, NULL,
-+		               skb->dst->dev, esp_finish_output);
- 	}
- 	return NET_XMIT_BYPASS;
- 
-===== net/ipv4/ip_forward.c 1.9 vs edited =====
---- 1.9/net/ipv4/ip_forward.c	Sun Mar 23 11:21:28 2003
-+++ edited/net/ipv4/ip_forward.c	Sat Jan 31 16:27:11 2004
-@@ -51,6 +51,10 @@
- 	if (unlikely(opt->optlen))
- 		ip_forward_options(skb);
- 
-+	if (skb->dst->xfrm != NULL)
-+		return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, NULL, skb->dst->dev,
-+		               dst_output);
-+
- 	return dst_output(skb);
- }
- 
-===== net/ipv4/ip_output.c 1.48 vs edited =====
---- 1.48/net/ipv4/ip_output.c	Wed Dec 17 21:06:18 2003
-+++ edited/net/ipv4/ip_output.c	Sat Jan 31 16:27:22 2004
-@@ -122,6 +122,14 @@
- 	return ttl;
- }
- 
-+static inline int ip_dst_output(struct sk_buff *skb)
-+{
-+	if (skb->dst->xfrm != NULL)
-+		return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, NULL,
-+		               skb->dst->dev, dst_output);
-+	return dst_output(skb);
-+}
-+
- /* 
-  *		Add an ip header to a skbuff and send it out.
-  *
-@@ -164,7 +172,7 @@
- 
- 	/* Send it out. */
- 	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
--		       dst_output);
-+		       ip_dst_output);
- }
- 
- static inline int ip_finish_output2(struct sk_buff *skb)
-@@ -386,7 +394,7 @@
- 	skb->priority = sk->sk_priority;
- 
- 	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
--		       dst_output);
-+		       ip_dst_output);
- 
- no_route:
- 	IP_INC_STATS(IpOutNoRoutes);
-@@ -1164,7 +1172,7 @@
- 
- 	/* Netfilter gets whole the not fragmented skb. */
- 	err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, 
--		      skb->dst->dev, dst_output);
-+		      skb->dst->dev, ip_dst_output);
- 	if (err) {
- 		if (err > 0)
- 			err = inet->recverr ? net_xmit_errno(err) : 0;
-===== net/ipv4/xfrm4_input.c 1.9 vs edited =====
---- 1.9/net/ipv4/xfrm4_input.c	Fri Aug  8 06:17:15 2003
-+++ edited/net/ipv4/xfrm4_input.c	Sat Jan 31 14:23:52 2004
-@@ -130,6 +130,13 @@
- 			dst_release(skb->dst);
- 			skb->dst = NULL;
- 		}
-+#ifdef CONFIG_NETFILTER
-+		nf_conntrack_put(skb->nfct);
-+		skb->nfct = NULL;
-+#ifdef CONFIG_NETFILTER_DEBUG
-+		skb->nf_debug = 0;
-+#endif
-+#endif
- 		netif_rx(skb);
- 		return 0;
- 	} else {
+While writing a small script for managing my firewallrules I ran into a
+small problem with iptables-restore.
+The problem is that it doesn't respect the order of matches in a rule.
 
---------------090304080202010903000104
-Content-Type: text/plain;
- name="02-nat-original.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02-nat-original.diff"
+Example.
+Run iptables-restore on the lines below:
+*filter
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT=20
+-A INPUT -p tcp -m tcp --dport 25 -m state --state NEW -j ACCEPT=20
+COMMIT
 
-===== net/core/netfilter.c 1.26 vs edited =====
---- 1.26/net/core/netfilter.c	Sun Sep 28 18:34:18 2003
-+++ edited/net/core/netfilter.c	Sun Feb  1 14:39:46 2004
-@@ -25,6 +25,7 @@
- #include <linux/icmp.h>
- #include <net/sock.h>
- #include <net/route.h>
-+#include <net/xfrm.h>
- #include <linux/ip.h>
- 
- #define __KERNEL_SYSCALLS__
-@@ -627,6 +628,9 @@
- 	struct flowi fl = {};
- 	struct dst_entry *odst;
- 	unsigned int hh_len;
-+#ifdef CONFIG_XFRM
-+	struct xfrm_policy_afinfo *afinfo;
-+#endif
- 
- 	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
- 	 * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
-@@ -665,6 +669,16 @@
- 	if ((*pskb)->dst->error)
- 		return -1;
- 
-+#ifdef CONFIG_XFRM
-+	afinfo = xfrm_policy_get_afinfo(AF_INET);
-+	if (afinfo != NULL) {
-+		afinfo->decode_session(*pskb, &fl);
-+		xfrm_policy_put_afinfo(afinfo);
-+		if (xfrm_lookup(&(*pskb)->dst, &fl, (*pskb)->sk, 1) != 0)
-+			return -1;
-+	}
-+#endif
-+
- 	/* Change in oif may mean change in hh_len. */
- 	hh_len = (*pskb)->dst->dev->hard_header_len;
- 	if (skb_headroom(*pskb) < hh_len) {
-===== net/ipv4/netfilter/ip_conntrack_standalone.c 1.23 vs edited =====
---- 1.23/net/ipv4/netfilter/ip_conntrack_standalone.c	Fri Dec  5 21:30:11 2003
-+++ edited/net/ipv4/netfilter/ip_conntrack_standalone.c	Sat Jan 31 14:37:49 2004
-@@ -481,6 +481,7 @@
- EXPORT_SYMBOL(ip_conntrack_alter_reply);
- EXPORT_SYMBOL(ip_conntrack_destroyed);
- EXPORT_SYMBOL(ip_conntrack_get);
-+EXPORT_SYMBOL(__ip_conntrack_confirm);
- EXPORT_SYMBOL(need_ip_conntrack);
- EXPORT_SYMBOL(ip_conntrack_helper_register);
- EXPORT_SYMBOL(ip_conntrack_helper_unregister);
-===== net/ipv4/netfilter/ip_nat_standalone.c 1.28 vs edited =====
---- 1.28/net/ipv4/netfilter/ip_nat_standalone.c	Fri Oct  3 08:26:55 2003
-+++ edited/net/ipv4/netfilter/ip_nat_standalone.c	Sun Feb  1 11:21:29 2004
-@@ -160,6 +160,46 @@
- 	return do_bindings(ct, ctinfo, info, hooknum, pskb);
- }
- 
-+struct flow_key
-+{
-+	u_int32_t addr;
-+#ifdef CONFIG_XFRM
-+	u_int16_t port;
-+#endif
-+};
-+
-+static inline void
-+flow_key_get(struct sk_buff *skb, struct flow_key *key, int which)
-+{
-+	struct iphdr *iph = skb->nh.iph;
-+
-+	key->addr = which ? iph->daddr : iph->saddr;
-+#ifdef CONFIG_XFRM
-+	key->port = 0;
-+	if (iph->protocol == IPPROTO_TCP || iph->protocol == IPPROTO_UDP) {
-+		u_int16_t *ports = (u_int16_t *)(skb->nh.raw + iph->ihl*4);
-+		key->port = ports[which];
-+	}
-+#endif
-+}
-+
-+static inline int
-+flow_key_compare(struct sk_buff *skb, struct flow_key *key, int which)
-+{
-+	struct iphdr *iph = skb->nh.iph;
-+	
-+	if (key->addr != (which ? iph->daddr : iph->saddr))
-+		return 1;
-+#ifdef CONFIG_XFRM
-+	if (iph->protocol == IPPROTO_TCP || iph->protocol == IPPROTO_UDP) {
-+		u_int16_t *ports = (u_int16_t *)(skb->nh.raw + iph->ihl*4);
-+		if (key->port != ports[which])
-+			return 1;
-+	}
-+#endif
-+	return 0;
-+}
-+
- static unsigned int
- ip_nat_out(unsigned int hooknum,
- 	   struct sk_buff **pskb,
-@@ -167,6 +207,9 @@
- 	   const struct net_device *out,
- 	   int (*okfn)(struct sk_buff *))
- {
-+	struct flow_key k;
-+	unsigned int ret;
-+
- 	/* root is playing with raw sockets. */
- 	if ((*pskb)->len < sizeof(struct iphdr)
- 	    || (*pskb)->nh.iph->ihl * 4 < sizeof(struct iphdr))
-@@ -189,7 +232,25 @@
- 			return NF_STOLEN;
- 	}
- 
--	return ip_nat_fn(hooknum, pskb, in, out, okfn);
-+	flow_key_get(*pskb, &k, 0);
-+	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
-+
-+	if (ret != NF_DROP && ret != NF_STOLEN
-+	    && flow_key_compare(*pskb, &k, 0)) {
-+		if (ip_route_me_harder(pskb) != 0)
-+			ret = NF_DROP;
-+		else if ((*pskb)->dst->xfrm != NULL) {
-+			/* packet matches policy after ip_route_me_harder -
-+			 * need to manually direct packet to transformers */
-+			/* WARNING: loop danger */
-+			ret = ip_conntrack_confirm(*pskb);
-+			if (ret != NF_DROP) {
-+				dst_output(*pskb);
-+				ret = NF_STOLEN;
-+			}
-+		}
-+	}
-+	return ret;
- }
- 
- #ifdef CONFIG_IP_NF_NAT_LOCAL
-@@ -200,7 +261,7 @@
- 		const struct net_device *out,
- 		int (*okfn)(struct sk_buff *))
- {
--	u_int32_t saddr, daddr;
-+	struct flow_key k;
- 	unsigned int ret;
- 
- 	/* root is playing with raw sockets. */
-@@ -208,14 +269,14 @@
- 	    || (*pskb)->nh.iph->ihl * 4 < sizeof(struct iphdr))
- 		return NF_ACCEPT;
- 
--	saddr = (*pskb)->nh.iph->saddr;
--	daddr = (*pskb)->nh.iph->daddr;
--
-+	flow_key_get(*pskb, &k, 1);
- 	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
-+
- 	if (ret != NF_DROP && ret != NF_STOLEN
--	    && ((*pskb)->nh.iph->saddr != saddr
--		|| (*pskb)->nh.iph->daddr != daddr))
--		return ip_route_me_harder(pskb) == 0 ? ret : NF_DROP;
-+	    && flow_key_compare(*pskb, &k, 1)) {
-+		if (ip_route_me_harder(pskb) != 0)
-+			ret = NF_DROP;
-+	}
- 	return ret;
- }
- #endif
+Then run iptables-save -t filter (irrelevant lines removed):
+*filter
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT=20
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 25 -j ACCEPT=20
+COMMIT
 
---------------090304080202010903000104
-Content-Type: text/plain;
- name="03-nat-reply.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="03-nat-reply.diff"
+The order of the matches in the second rule as been adopted to match the
+order of the first rule. This is inconsistent which how the regular
+iptables command does, it doesn't impose any weird policy.
+(this doesn't happen if you split the above rules into two files and add
+each separately with --noflush (--noflush or not doesn't matter if both
+rules are loaded at the same time)
 
-===== include/linux/netfilter.h 1.6 vs edited =====
---- 1.6/include/linux/netfilter.h	Wed Jun 25 00:36:10 2003
-+++ edited/include/linux/netfilter.h	Sun Feb  1 14:39:16 2004
-@@ -166,5 +166,21 @@
- #define NF_HOOK(pf, hook, skb, indev, outdev, okfn) (okfn)(skb)
- #endif /*CONFIG_NETFILTER*/
- 
-+#ifdef CONFIG_XFRM
-+#ifdef CONFIG_IP_NF_NAT_NEEDED
-+struct flowi;
-+extern void nf_nat_decode_session4(struct sk_buff *skb, struct flowi *fl);
-+
-+static inline void
-+nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family)
-+{
-+	if (family == AF_INET)
-+		nf_nat_decode_session4(skb, fl);
-+}
-+#else /* CONFIG_IP_NF_NAT_NEEDED */
-+#define nf_nat_decode_session(skb, fl, family)
-+#endif /* CONFIG_IP_NF_NAT_NEEDED */
-+#endif /* CONFIG_XFRM */
-+
- #endif /*__KERNEL__*/
- #endif /*__LINUX_NETFILTER_H*/
-===== net/core/netfilter.c 1.26 vs edited =====
---- 1.26/net/core/netfilter.c	Sun Sep 28 18:34:18 2003
-+++ edited/net/core/netfilter.c	Sun Feb  1 14:39:46 2004
-@@ -681,6 +695,49 @@
- 
- 	return 0;
- }
-+
-+#if defined(CONFIG_IP_NF_NAT_NEEDED) && defined(CONFIG_XFRM)
-+#include <linux/netfilter_ipv4/ip_conntrack.h>
-+#include <linux/netfilter_ipv4/ip_nat.h>
-+
-+void nf_nat_decode_session4(struct sk_buff *skb, struct flowi *fl)
-+{
-+	struct ip_conntrack *ct;
-+	struct ip_nat_info_manip *m;
-+	struct ip_conntrack_tuple *tuple;
-+	unsigned int i;
-+
-+	if (skb->nfct == NULL)
-+		return;
-+	ct = (struct ip_conntrack *)skb->nfct->master;
-+
-+	for (i = 0; i < ct->nat.info.num_manips; i++) {
-+		m = &ct->nat.info.manips[i];
-+		if (m->direction != IP_CT_DIR_REPLY)
-+			continue;
-+		tuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-+
-+		if (m->hooknum == NF_IP_PRE_ROUTING &&
-+		    m->maniptype == IP_NAT_MANIP_DST) {
-+			/* SNAT rule reply mangling */
-+			fl->fl4_dst = tuple->dst.ip;
-+			if (tuple->dst.protonum == IPPROTO_TCP ||
-+			    tuple->dst.protonum == IPPROTO_UDP)
-+				fl->fl_ip_dport = tuple->dst.u.tcp.port;
-+		}
-+#ifdef CONFIG_IP_NF_NAT_LOCAL
-+		else if (m->hooknum == NF_IP_LOCAL_IN &&
-+		         m->maniptype == IP_NAT_MANIP_SRC) {
-+			/* DNAT rule reply mangling */
-+			fl->fl4_src = tuple->src.ip;
-+			if (tuple->dst.protonum == IPPROTO_TCP ||
-+			    tuple->dst.protonum == IPPROTO_UDP)
-+				fl->fl_ip_sport = tuple->src.u.tcp.port;
-+		}
-+#endif
-+	}
-+}
-+#endif /* CONFIG_IP_NF_NAT_NEEDED && CONFIG_XFRM */
- 
- int skb_ip_make_writable(struct sk_buff **pskb, unsigned int writable_len)
- {
-===== net/ipv4/ip_input.c 1.20 vs edited =====
---- 1.20/net/ipv4/ip_input.c	Mon Sep 29 04:05:42 2003
-+++ edited/net/ipv4/ip_input.c	Sat Jan 31 21:30:52 2004
-@@ -207,12 +207,14 @@
- 
- 	__skb_pull(skb, ihl);
- 
-+#if 0
- #ifdef CONFIG_NETFILTER
- 	/* Free reference early: we don't need it any more, and it may
-            hold ip_conntrack module loaded indefinitely. */
- 	nf_conntrack_put(skb->nfct);
- 	skb->nfct = NULL;
- #endif /*CONFIG_NETFILTER*/
-+#endif
- 
-         /* Point into the IP datagram, just past the header. */
-         skb->h.raw = skb->data;
-===== net/xfrm/xfrm_policy.c 1.47 vs edited =====
---- 1.47/net/xfrm/xfrm_policy.c	Wed Jan 14 08:30:19 2004
-+++ edited/net/xfrm/xfrm_policy.c	Sun Feb  1 13:57:09 2004
-@@ -21,6 +21,7 @@
- #include <linux/workqueue.h>
- #include <linux/notifier.h>
- #include <linux/netdevice.h>
-+#include <linux/netfilter.h>
- #include <net/xfrm.h>
- #include <net/ip.h>
- 
-@@ -908,6 +909,7 @@
- 
- 	if (_decode_session(skb, &fl, family) < 0)
- 		return 0;
-+	nf_nat_decode_session(skb, &fl, family);
- 
- 	/* First, check used SA against their selectors. */
- 	if (skb->sp) {
+So what causes this... This is how it works in the regular iptables
+command:
 
---------------090304080202010903000104--
+We keep a list of loaded matches in iptables.c
+All matches in this list have a field called 'used' that's always set to
+0 in do_command(). When we find a match in a rule we lookup the match by
+calling find_match() which searches the iptables_matches linked-list and
+loads the match if it wasn't present and then it sets 'used' to 1 for
+the match.
+This is repeated for each match in the rule. So in the end we have a
+linked-list with all the matches the rule contained.
+Then generate_entry() is called which loops through this linked-list
+skipping the matches where 'used' is 0. (it's never 0 with the regular
+iptables command). So we find the matches in the correct order, just
+like we are used to.
+
+Now comes iptables-restore which calls do_command() for each rule.
+Remember that do_command() zeroes the 'used' field for all matches.
+find_match() gets called for each match we find in the rule, for the
+first rule this goes exactly like above. But for the second and futher
+rules it's a bit diffrent. We call find_match() for the first match in
+the second rule, this time we find the match without having to load it
+and 'used' gets set to 1. This is repeated for all matches in the second
+rule. Then generate_entry() gets called, and guess what, it loops
+through iptables_matches in the order they were loaded, not the order
+the matches were found in this rule. So we end up with the correct
+matches but not in the order we specified them, we get the order they
+were loaded.
+
+With the attached patch the behaviour passes my sane-o-meter.
+iptables-restore of the above rules and then iptables-save gives:
+*filter
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT=20
+-A INPUT -p tcp -m tcp --dport 25 -m state --state NEW -j ACCEPT=20
+COMMIT
+
+Which is what I'd expect.
+
+The patch is lightly tested, it seems to work just fine but as always,
+testers are needed :)
+It adds some memory-allocations and linked-list management. I havn't
+benchmarked these changes, but I hope they don't increase the runtime
+too much.
+
+If noone screams too loud I'm going to merge the patch into cvs sometime
+soon.
+
+--=20
+/Martin
+
+--=-Q1ppZO881dG+OCD2PxMA
+Content-Disposition: attachment; filename=iptables-matchlist.diff
+Content-Type: text/x-patch; name=iptables-matchlist.diff; charset=ISO-8859-15
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtdXJOIC4uL2N2cy9kZXYvaXB0YWJsZXMvaW5jbHVkZS9pcHRhYmxlcy5oIGlwdGFibGVz
+L2luY2x1ZGUvaXB0YWJsZXMuaA0KLS0tIC4uL2N2cy9kZXYvaXB0YWJsZXMvaW5jbHVkZS9pcHRh
+Ymxlcy5oCTIwMDMtMDMtMDMgMDk6MDg6MzcuMDAwMDAwMDAwICswMTAwDQorKysgaXB0YWJsZXMv
+aW5jbHVkZS9pcHRhYmxlcy5oCTIwMDQtMDItMDEgMjE6MDc6NTUuMDAwMDAwMDAwICswMTAwDQpA
+QCAtNCw2ICs0LDEzIEBADQogI2luY2x1ZGUgImlwdGFibGVzX2NvbW1vbi5oIg0KICNpbmNsdWRl
+ICJsaWJpcHRjL2xpYmlwdGMuaCINCiANCitzdHJ1Y3QgaXB0YWJsZXNfcnVsZV9tYXRjaA0KK3sN
+CisJc3RydWN0IGlwdGFibGVzX3J1bGVfbWF0Y2ggKm5leHQ7DQorDQorCXN0cnVjdCBpcHRhYmxl
+c19tYXRjaCAqbWF0Y2g7DQorfTsNCisNCiAvKiBJbmNsdWRlIGZpbGUgZm9yIGFkZGl0aW9uczog
+bmV3IG1hdGNoZXMgYW5kIHRhcmdldHMuICovDQogc3RydWN0IGlwdGFibGVzX21hdGNoDQogew0K
+QEAgLTUwLDcgKzU3LDYgQEANCiAJdW5zaWduZWQgaW50IG9wdGlvbl9vZmZzZXQ7DQogCXN0cnVj
+dCBpcHRfZW50cnlfbWF0Y2ggKm07DQogCXVuc2lnbmVkIGludCBtZmxhZ3M7DQotCXVuc2lnbmVk
+IGludCB1c2VkOw0KICNpZmRlZiBOT19TSEFSRURfTElCUw0KIAl1bnNpZ25lZCBpbnQgbG9hZGVk
+OyAvKiBzaW11bGF0ZSBsb2FkaW5nIHNvIG9wdGlvbnMgYXJlIG1lcmdlZCBwcm9wZXJseSAqLw0K
+ICNlbmRpZg0KQEAgLTEzNCw3ICsxNDAsNyBAQA0KIH07DQogDQogZXh0ZXJuIHN0cnVjdCBpcHRh
+Ymxlc190YXJnZXQgKmZpbmRfdGFyZ2V0KGNvbnN0IGNoYXIgKm5hbWUsIGVudW0gaXB0X3RyeWxv
+YWQpOw0KLWV4dGVybiBzdHJ1Y3QgaXB0YWJsZXNfbWF0Y2ggKmZpbmRfbWF0Y2goY29uc3QgY2hh
+ciAqbmFtZSwgZW51bSBpcHRfdHJ5bG9hZCk7DQorZXh0ZXJuIHN0cnVjdCBpcHRhYmxlc19tYXRj
+aCAqZmluZF9tYXRjaChjb25zdCBjaGFyICpuYW1lLCBlbnVtIGlwdF90cnlsb2FkLCBzdHJ1Y3Qg
+aXB0YWJsZXNfcnVsZV9tYXRjaCAqKm1hdGNoKTsNCiANCiBleHRlcm4gaW50IGRlbGV0ZV9jaGFp
+bihjb25zdCBpcHRfY2hhaW5sYWJlbCBjaGFpbiwgaW50IHZlcmJvc2UsDQogCQkJaXB0Y19oYW5k
+bGVfdCAqaGFuZGxlKTsNCmRpZmYgLXVyTiAuLi9jdnMvZGV2L2lwdGFibGVzL2lwdGFibGVzLXNh
+dmUuYyBpcHRhYmxlcy9pcHRhYmxlcy1zYXZlLmMNCi0tLSAuLi9jdnMvZGV2L2lwdGFibGVzL2lw
+dGFibGVzLXNhdmUuYwkyMDAzLTA1LTAyIDE3OjMwOjExLjAwMDAwMDAwMCArMDIwMA0KKysrIGlw
+dGFibGVzL2lwdGFibGVzLXNhdmUuYwkyMDA0LTAyLTAxIDIxOjA3OjUwLjAwMDAwMDAwMCArMDEw
+MA0KQEAgLTExMSw3ICsxMTEsNyBAQA0KIAkJCWNvbnN0IHN0cnVjdCBpcHRfaXAgKmlwKQ0KIHsN
+CiAJc3RydWN0IGlwdGFibGVzX21hdGNoICptYXRjaA0KLQkJPSBmaW5kX21hdGNoKGUtPnUudXNl
+ci5uYW1lLCBUUllfTE9BRCk7DQorCQk9IGZpbmRfbWF0Y2goZS0+dS51c2VyLm5hbWUsIFRSWV9M
+T0FELCBOVUxMKTsNCiANCiAJaWYgKG1hdGNoKSB7DQogCQlwcmludGYoIi1tICVzICIsIGUtPnUu
+dXNlci5uYW1lKTsNCmRpZmYgLXVyTiAuLi9jdnMvZGV2L2lwdGFibGVzL2lwdGFibGVzLmMgaXB0
+YWJsZXMvaXB0YWJsZXMuYw0KLS0tIC4uL2N2cy9kZXYvaXB0YWJsZXMvaXB0YWJsZXMuYwkyMDA0
+LTAxLTMxIDE1OjA2OjIxLjAwMDAwMDAwMCArMDEwMA0KKysrIGlwdGFibGVzL2lwdGFibGVzLmMJ
+MjAwNC0wMi0wMSAyMTo1NToxMy4wMDAwMDAwMDAgKzAxMDANCkBAIC02NjEsNyArNjYxLDcgQEAN
+CiB9DQogDQogc3RydWN0IGlwdGFibGVzX21hdGNoICoNCi1maW5kX21hdGNoKGNvbnN0IGNoYXIg
+Km5hbWUsIGVudW0gaXB0X3RyeWxvYWQgdHJ5bG9hZCkNCitmaW5kX21hdGNoKGNvbnN0IGNoYXIg
+Km5hbWUsIGVudW0gaXB0X3RyeWxvYWQgdHJ5bG9hZCwgc3RydWN0IGlwdGFibGVzX3J1bGVfbWF0
+Y2ggKiptYXRjaGVzKQ0KIHsNCiAJc3RydWN0IGlwdGFibGVzX21hdGNoICpwdHI7DQogDQpAQCAt
+Njc4LDcgKzY3OCw3IEBADQogCQlpZiAoZGxvcGVuKHBhdGgsIFJUTERfTk9XKSkgew0KIAkJCS8q
+IEZvdW5kIGxpYnJhcnkuICBJZiBpdCBkaWRuJ3QgcmVnaXN0ZXIgaXRzZWxmLA0KIAkJCSAgIG1h
+eWJlIHRoZXkgc3BlY2lmaWVkIHRhcmdldCBhcyBtYXRjaC4gKi8NCi0JCQlwdHIgPSBmaW5kX21h
+dGNoKG5hbWUsIERPTlRfTE9BRCk7DQorCQkJcHRyID0gZmluZF9tYXRjaChuYW1lLCBET05UX0xP
+QUQsIE5VTEwpOw0KIA0KIAkJCWlmICghcHRyKQ0KIAkJCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9Q
+Uk9CTEVNLA0KQEAgLTcwMiwxNSArNzAyLDI0IEBADQogCX0NCiAjZW5kaWYNCiANCi0JaWYgKHB0
+cikNCi0JCXB0ci0+dXNlZCA9IDE7DQorCWlmIChwdHIgJiYgbWF0Y2hlcykgew0KKwkJc3RydWN0
+IGlwdGFibGVzX3J1bGVfbWF0Y2ggKippOw0KKwkJc3RydWN0IGlwdGFibGVzX3J1bGVfbWF0Y2gg
+Km5ld2VudHJ5Ow0KKw0KKwkJbmV3ZW50cnkgPSBmd19tYWxsb2Moc2l6ZW9mKHN0cnVjdCBpcHRh
+Ymxlc19ydWxlX21hdGNoKSk7DQorDQorCQlmb3IgKGkgPSBtYXRjaGVzOyAqaTsgaSA9ICYoKmkp
+LT5uZXh0KTsNCisJCW5ld2VudHJ5LT5tYXRjaCA9IHB0cjsNCisJCW5ld2VudHJ5LT5uZXh0ID0g
+TlVMTDsNCisJCSppID0gbmV3ZW50cnk7DQorCX0NCiANCiAJcmV0dXJuIHB0cjsNCiB9DQogDQog
+LyogQ2hyaXN0b3BoZSBCdXJraSB3YW50cyBgLXAgNicgdG8gaW1wbHkgYC1tIHRjcCcuICAqLw0K
+IHN0YXRpYyBzdHJ1Y3QgaXB0YWJsZXNfbWF0Y2ggKg0KLWZpbmRfcHJvdG8oY29uc3QgY2hhciAq
+cG5hbWUsIGVudW0gaXB0X3RyeWxvYWQgdHJ5bG9hZCwgaW50IG5vbG9va3VwKQ0KK2ZpbmRfcHJv
+dG8oY29uc3QgY2hhciAqcG5hbWUsIGVudW0gaXB0X3RyeWxvYWQgdHJ5bG9hZCwgaW50IG5vbG9v
+a3VwLCBzdHJ1Y3QgaXB0YWJsZXNfcnVsZV9tYXRjaCAqKm1hdGNoZXMpDQogew0KIAl1bnNpZ25l
+ZCBpbnQgcHJvdG87DQogDQpAQCAtNzE4LDkgKzcyNyw5IEBADQogCQljaGFyICpwcm90b25hbWUg
+PSBwcm90b190b19uYW1lKHByb3RvLCBub2xvb2t1cCk7DQogDQogCQlpZiAocHJvdG9uYW1lKQ0K
+LQkJCXJldHVybiBmaW5kX21hdGNoKHByb3RvbmFtZSwgdHJ5bG9hZCk7DQorCQkJcmV0dXJuIGZp
+bmRfbWF0Y2gocHJvdG9uYW1lLCB0cnlsb2FkLCBtYXRjaGVzKTsNCiAJfSBlbHNlDQotCQlyZXR1
+cm4gZmluZF9tYXRjaChwbmFtZSwgdHJ5bG9hZCk7DQorCQlyZXR1cm4gZmluZF9tYXRjaChwbmFt
+ZSwgdHJ5bG9hZCwgbWF0Y2hlcyk7DQogDQogCXJldHVybiBOVUxMOw0KIH0NCkBAIC0xMDE4LDcg
+KzEwMjcsNyBAQA0KIAkJZXhpdCgxKTsNCiAJfQ0KIA0KLQlpZiAoZmluZF9tYXRjaChtZS0+bmFt
+ZSwgRE9OVF9MT0FEKSkgew0KKwlpZiAoZmluZF9tYXRjaChtZS0+bmFtZSwgRE9OVF9MT0FELCBO
+VUxMKSkgew0KIAkJZnByaW50ZihzdGRlcnIsICIlczogbWF0Y2ggYCVzJyBhbHJlYWR5IHJlZ2lz
+dGVyZWQuXG4iLA0KIAkJCXByb2dyYW1fbmFtZSwgbWUtPm5hbWUpOw0KIAkJZXhpdCgxKTsNCkBA
+IC0xMTQ4LDcgKzExNTcsNyBAQA0KIAkgICAgY29uc3Qgc3RydWN0IGlwdF9pcCAqaXAsDQogCSAg
+ICBpbnQgbnVtZXJpYykNCiB7DQotCXN0cnVjdCBpcHRhYmxlc19tYXRjaCAqbWF0Y2ggPSBmaW5k
+X21hdGNoKG0tPnUudXNlci5uYW1lLCBUUllfTE9BRCk7DQorCXN0cnVjdCBpcHRhYmxlc19tYXRj
+aCAqbWF0Y2ggPSBmaW5kX21hdGNoKG0tPnUudXNlci5uYW1lLCBUUllfTE9BRCwgTlVMTCk7DQog
+DQogCWlmIChtYXRjaCkgew0KIAkJaWYgKG1hdGNoLT5wcmludCkNCkBAIC0xMzY0LDIwICsxMzcz
+LDE2IEBADQogfQ0KIA0KIHN0YXRpYyB1bnNpZ25lZCBjaGFyICoNCi1tYWtlX2RlbGV0ZV9tYXNr
+KHN0cnVjdCBpcHRfZW50cnkgKmZ3KQ0KK21ha2VfZGVsZXRlX21hc2soc3RydWN0IGlwdF9lbnRy
+eSAqZncsIHN0cnVjdCBpcHRhYmxlc19ydWxlX21hdGNoICptYXRjaGVzKQ0KIHsNCiAJLyogRXN0
+YWJsaXNoIG1hc2sgZm9yIGNvbXBhcmlzb24gKi8NCiAJdW5zaWduZWQgaW50IHNpemU7DQotCXN0
+cnVjdCBpcHRhYmxlc19tYXRjaCAqbTsNCisJc3RydWN0IGlwdGFibGVzX3J1bGVfbWF0Y2ggKm1h
+dGNocDsNCiAJdW5zaWduZWQgY2hhciAqbWFzaywgKm1wdHI7DQogDQogCXNpemUgPSBzaXplb2Yo
+c3RydWN0IGlwdF9lbnRyeSk7DQotCWZvciAobSA9IGlwdGFibGVzX21hdGNoZXM7IG07IG0gPSBt
+LT5uZXh0KSB7DQotCQlpZiAoIW0tPnVzZWQpDQotCQkJY29udGludWU7DQotDQotCQlzaXplICs9
+IElQVF9BTElHTihzaXplb2Yoc3RydWN0IGlwdF9lbnRyeV9tYXRjaCkpICsgbS0+c2l6ZTsNCi0J
+fQ0KKwlmb3IgKG1hdGNocCA9IG1hdGNoZXM7IG1hdGNocDsgbWF0Y2hwID0gbWF0Y2hwLT5uZXh0
+KQ0KKwkJc2l6ZSArPSBJUFRfQUxJR04oc2l6ZW9mKHN0cnVjdCBpcHRfZW50cnlfbWF0Y2gpKSAr
+IG1hdGNocC0+bWF0Y2gtPnNpemU7DQogDQogCW1hc2sgPSBmd19jYWxsb2MoMSwgc2l6ZQ0KIAkJ
+CSArIElQVF9BTElHTihzaXplb2Yoc3RydWN0IGlwdF9lbnRyeV90YXJnZXQpKQ0KQEAgLTEzODYs
+MTQgKzEzOTEsMTEgQEANCiAJbWVtc2V0KG1hc2ssIDB4RkYsIHNpemVvZihzdHJ1Y3QgaXB0X2Vu
+dHJ5KSk7DQogCW1wdHIgPSBtYXNrICsgc2l6ZW9mKHN0cnVjdCBpcHRfZW50cnkpOw0KIA0KLQlm
+b3IgKG0gPSBpcHRhYmxlc19tYXRjaGVzOyBtOyBtID0gbS0+bmV4dCkgew0KLQkJaWYgKCFtLT51
+c2VkKQ0KLQkJCWNvbnRpbnVlOw0KLQ0KKwlmb3IgKG1hdGNocCA9IG1hdGNoZXM7IG1hdGNocDsg
+bWF0Y2hwID0gbWF0Y2hwLT5uZXh0KSB7DQogCQltZW1zZXQobXB0ciwgMHhGRiwNCiAJCSAgICAg
+ICBJUFRfQUxJR04oc2l6ZW9mKHN0cnVjdCBpcHRfZW50cnlfbWF0Y2gpKQ0KLQkJICAgICAgICsg
+bS0+dXNlcnNwYWNlc2l6ZSk7DQotCQltcHRyICs9IElQVF9BTElHTihzaXplb2Yoc3RydWN0IGlw
+dF9lbnRyeV9tYXRjaCkpICsgbS0+c2l6ZTsNCisJCSAgICAgICArIG1hdGNocC0+bWF0Y2gtPnVz
+ZXJzcGFjZXNpemUpOw0KKwkJbXB0ciArPSBJUFRfQUxJR04oc2l6ZW9mKHN0cnVjdCBpcHRfZW50
+cnlfbWF0Y2gpKSArIG1hdGNocC0+bWF0Y2gtPnNpemU7DQogCX0NCiANCiAJbWVtc2V0KG1wdHIs
+IDB4RkYsDQpAQCAtMTQxMSwxMyArMTQxMywxNCBAQA0KIAkgICAgIHVuc2lnbmVkIGludCBuZGFk
+ZHJzLA0KIAkgICAgIGNvbnN0IHN0cnVjdCBpbl9hZGRyIGRhZGRyc1tdLA0KIAkgICAgIGludCB2
+ZXJib3NlLA0KLQkgICAgIGlwdGNfaGFuZGxlX3QgKmhhbmRsZSkNCisJICAgICBpcHRjX2hhbmRs
+ZV90ICpoYW5kbGUsDQorCSAgICAgc3RydWN0IGlwdGFibGVzX3J1bGVfbWF0Y2ggKm1hdGNoZXMp
+DQogew0KIAl1bnNpZ25lZCBpbnQgaSwgajsNCiAJaW50IHJldCA9IDE7DQogCXVuc2lnbmVkIGNo
+YXIgKm1hc2s7DQogDQotCW1hc2sgPSBtYWtlX2RlbGV0ZV9tYXNrKGZ3KTsNCisJbWFzayA9IG1h
+a2VfZGVsZXRlX21hc2soZncsIG1hdGNoZXMpOw0KIAlmb3IgKGkgPSAwOyBpIDwgbnNhZGRyczsg
+aSsrKSB7DQogCQlmdy0+aXAuc3JjLnNfYWRkciA9IHNhZGRyc1tpXS5zX2FkZHI7DQogCQlmb3Ig
+KGogPSAwOyBqIDwgbmRhZGRyczsgaisrKSB7DQpAQCAtMTYxNiwyMCArMTYxOSwxNiBAQA0KIA0K
+IHN0YXRpYyBzdHJ1Y3QgaXB0X2VudHJ5ICoNCiBnZW5lcmF0ZV9lbnRyeShjb25zdCBzdHJ1Y3Qg
+aXB0X2VudHJ5ICpmdywNCi0JICAgICAgIHN0cnVjdCBpcHRhYmxlc19tYXRjaCAqbWF0Y2hlcywN
+CisJICAgICAgIHN0cnVjdCBpcHRhYmxlc19ydWxlX21hdGNoICptYXRjaGVzLA0KIAkgICAgICAg
+c3RydWN0IGlwdF9lbnRyeV90YXJnZXQgKnRhcmdldCkNCiB7DQogCXVuc2lnbmVkIGludCBzaXpl
+Ow0KLQlzdHJ1Y3QgaXB0YWJsZXNfbWF0Y2ggKm07DQorCXN0cnVjdCBpcHRhYmxlc19ydWxlX21h
+dGNoICptYXRjaHA7DQogCXN0cnVjdCBpcHRfZW50cnkgKmU7DQogDQogCXNpemUgPSBzaXplb2Yo
+c3RydWN0IGlwdF9lbnRyeSk7DQotCWZvciAobSA9IG1hdGNoZXM7IG07IG0gPSBtLT5uZXh0KSB7
+DQotCQlpZiAoIW0tPnVzZWQpDQotCQkJY29udGludWU7DQotDQotCQlzaXplICs9IG0tPm0tPnUu
+bWF0Y2hfc2l6ZTsNCi0JfQ0KKwlmb3IgKG1hdGNocCA9IG1hdGNoZXM7IG1hdGNocDsgbWF0Y2hw
+ID0gbWF0Y2hwLT5uZXh0KQ0KKwkJc2l6ZSArPSBtYXRjaHAtPm1hdGNoLT5tLT51Lm1hdGNoX3Np
+emU7DQogDQogCWUgPSBmd19tYWxsb2Moc2l6ZSArIHRhcmdldC0+dS50YXJnZXRfc2l6ZSk7DQog
+CSplID0gKmZ3Ow0KQEAgLTE2MzcsMTggKzE2MzYsMjggQEANCiAJZS0+bmV4dF9vZmZzZXQgPSBz
+aXplICsgdGFyZ2V0LT51LnRhcmdldF9zaXplOw0KIA0KIAlzaXplID0gMDsNCi0JZm9yIChtID0g
+bWF0Y2hlczsgbTsgbSA9IG0tPm5leHQpIHsNCi0JCWlmICghbS0+dXNlZCkNCi0JCQljb250aW51
+ZTsNCi0NCi0JCW1lbWNweShlLT5lbGVtcyArIHNpemUsIG0tPm0sIG0tPm0tPnUubWF0Y2hfc2l6
+ZSk7DQotCQlzaXplICs9IG0tPm0tPnUubWF0Y2hfc2l6ZTsNCisJZm9yIChtYXRjaHAgPSBtYXRj
+aGVzOyBtYXRjaHA7IG1hdGNocCA9IG1hdGNocC0+bmV4dCkgew0KKwkJbWVtY3B5KGUtPmVsZW1z
+ICsgc2l6ZSwgbWF0Y2hwLT5tYXRjaC0+bSwgbWF0Y2hwLT5tYXRjaC0+bS0+dS5tYXRjaF9zaXpl
+KTsNCisJCXNpemUgKz0gbWF0Y2hwLT5tYXRjaC0+bS0+dS5tYXRjaF9zaXplOw0KIAl9DQogCW1l
+bWNweShlLT5lbGVtcyArIHNpemUsIHRhcmdldCwgdGFyZ2V0LT51LnRhcmdldF9zaXplKTsNCiAN
+CiAJcmV0dXJuIGU7DQogfQ0KIA0KK3ZvaWQgY2xlYXJfcnVsZV9tYXRjaGVzKHN0cnVjdCBpcHRh
+Ymxlc19ydWxlX21hdGNoICoqbWF0Y2hlcykNCit7DQorCXN0cnVjdCBpcHRhYmxlc19ydWxlX21h
+dGNoICptYXRjaHAsICp0bXA7DQorDQorCWZvciAobWF0Y2hwID0gKm1hdGNoZXM7IG1hdGNocDsp
+IHsNCisJCXRtcCA9IG1hdGNocC0+bmV4dDsNCisJCWZyZWUobWF0Y2hwKTsNCisJCW1hdGNocCA9
+IHRtcDsNCisJfQ0KKw0KKwkqbWF0Y2hlcyA9IE5VTEw7DQorfQ0KKw0KIGludCBkb19jb21tYW5k
+KGludCBhcmdjLCBjaGFyICphcmd2W10sIGNoYXIgKip0YWJsZSwgaXB0Y19oYW5kbGVfdCAqaGFu
+ZGxlKQ0KIHsNCiAJc3RydWN0IGlwdF9lbnRyeSBmdywgKmUgPSBOVUxMOw0KQEAgLTE2NjQsNiAr
+MTY3Myw4IEBADQogCWNvbnN0IGNoYXIgKnBjbnQgPSBOVUxMLCAqYmNudCA9IE5VTEw7DQogCWlu
+dCByZXQgPSAxOw0KIAlzdHJ1Y3QgaXB0YWJsZXNfbWF0Y2ggKm07DQorCXN0cnVjdCBpcHRhYmxl
+c19ydWxlX21hdGNoICptYXRjaGVzID0gTlVMTDsNCisJc3RydWN0IGlwdGFibGVzX3J1bGVfbWF0
+Y2ggKm1hdGNocDsNCiAJc3RydWN0IGlwdGFibGVzX3RhcmdldCAqdGFyZ2V0ID0gTlVMTDsNCiAJ
+c3RydWN0IGlwdGFibGVzX3RhcmdldCAqdDsNCiAJY29uc3QgY2hhciAqanVtcHRvID0gIiI7DQpA
+QCAtMTY4MiwxMCArMTY5Myw4IEBADQogDQogCS8qIGNsZWFyIG1mbGFncyBpbiBjYXNlIGRvX2Nv
+bW1hbmQgZ2V0cyBjYWxsZWQgYSBzZWNvbmQgdGltZQ0KIAkgKiAod2UgY2xlYXIgdGhlIGdsb2Jh
+bCBsaXN0IG9mIGFsbCBtYXRjaGVzIGZvciBzZWN1cml0eSkqLw0KLQlmb3IgKG0gPSBpcHRhYmxl
+c19tYXRjaGVzOyBtOyBtID0gbS0+bmV4dCkgew0KKwlmb3IgKG0gPSBpcHRhYmxlc19tYXRjaGVz
+OyBtOyBtID0gbS0+bmV4dCkNCiAJCW0tPm1mbGFncyA9IDA7DQotCQltLT51c2VkID0gMDsNCi0J
+fQ0KIA0KIAlmb3IgKHQgPSBpcHRhYmxlc190YXJnZXRzOyB0OyB0ID0gdC0+bmV4dCkgew0KIAkJ
+dC0+dGZsYWdzID0gMDsNCkBAIC0xODI2LDcgKzE4MzUsNyBAQA0KIA0KIAkJCS8qIGlwdGFibGVz
+IC1wIGljbXAgLWggKi8NCiAJCQlpZiAoIWlwdGFibGVzX21hdGNoZXMgJiYgcHJvdG9jb2wpDQot
+CQkJCWZpbmRfbWF0Y2gocHJvdG9jb2wsIFRSWV9MT0FEKTsNCisJCQkJZmluZF9tYXRjaChwcm90
+b2NvbCwgVFJZX0xPQUQsIE5VTEwpOw0KIA0KIAkJCWV4aXRfcHJpbnRoZWxwKCk7DQogDQpAQCAt
+MTkzMSw3ICsxOTQwLDcgQEANCiAJCQkJZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwNCiAJ
+CQkJCSAgICJ1bmV4cGVjdGVkICEgZmxhZyBiZWZvcmUgLS1tYXRjaCIpOw0KIA0KLQkJCW0gPSBm
+aW5kX21hdGNoKG9wdGFyZywgTE9BRF9NVVNUX1NVQ0NFRUQpOw0KKwkJCW0gPSBmaW5kX21hdGNo
+KG9wdGFyZywgTE9BRF9NVVNUX1NVQ0NFRUQsICZtYXRjaGVzKTsNCiAJCQlzaXplID0gSVBUX0FM
+SUdOKHNpemVvZihzdHJ1Y3QgaXB0X2VudHJ5X21hdGNoKSkNCiAJCQkJCSArIG0tPnNpemU7DQog
+CQkJbS0+bSA9IGZ3X2NhbGxvYygxLCBzaXplKTsNCkBAIC0yMDIzLDE4ICsyMDMyLDE2IEBADQog
+CQkJCQkgICAgICAgYXJndiwgaW52ZXJ0LA0KIAkJCQkJICAgICAgICZ0YXJnZXQtPnRmbGFncywN
+CiAJCQkJCSAgICAgICAmZncsICZ0YXJnZXQtPnQpKSkgew0KLQkJCQlmb3IgKG0gPSBpcHRhYmxl
+c19tYXRjaGVzOyBtOyBtID0gbS0+bmV4dCkgew0KLQkJCQkJaWYgKCFtLT51c2VkKQ0KLQkJCQkJ
+CWNvbnRpbnVlOw0KLQ0KLQkJCQkJaWYgKG0tPnBhcnNlKGMgLSBtLT5vcHRpb25fb2Zmc2V0LA0K
+KwkJCQlmb3IgKG1hdGNocCA9IG1hdGNoZXM7IG1hdGNocDsgbWF0Y2hwID0gbWF0Y2hwLT5uZXh0
+KSB7DQorCQkJCQlpZiAobWF0Y2hwLT5tYXRjaC0+cGFyc2UoYyAtIG1hdGNocC0+bWF0Y2gtPm9w
+dGlvbl9vZmZzZXQsDQogCQkJCQkJICAgICBhcmd2LCBpbnZlcnQsDQotCQkJCQkJICAgICAmbS0+
+bWZsYWdzLA0KKwkJCQkJCSAgICAgJm1hdGNocC0+bWF0Y2gtPm1mbGFncywNCiAJCQkJCQkgICAg
+ICZmdywNCiAJCQkJCQkgICAgICZmdy5uZmNhY2hlLA0KLQkJCQkJCSAgICAgJm0tPm0pKQ0KKwkJ
+CQkJCSAgICAgJm1hdGNocC0+bWF0Y2gtPm0pKQ0KIAkJCQkJCWJyZWFrOw0KIAkJCQl9DQorCQkJ
+CW0gPSBtYXRjaHAgPyBtYXRjaHAtPm1hdGNoIDogTlVMTDsNCiANCiAJCQkJLyogSWYgeW91IGxp
+c3RlbiBjYXJlZnVsbHksIHlvdSBjYW4NCiAJCQkJICAgYWN0dWFsbHkgaGVhciB0aGlzIGNvZGUg
+c3Vjay4gKi8NCkBAIC0yMDYyLDEzICsyMDY5LDEzIEBADQogCQkJCWlmIChtID09IE5VTEwNCiAJ
+CQkJICAgICYmIHByb3RvY29sDQogCQkJCSAgICAmJiAoIWZpbmRfcHJvdG8ocHJvdG9jb2wsIERP
+TlRfTE9BRCwNCi0JCQkJCQkgICBvcHRpb25zJk9QVF9OVU1FUklDKSANCisJCQkJCQkgICBvcHRp
+b25zJk9QVF9OVU1FUklDLCBOVUxMKSANCiAJCQkJCXx8IChmaW5kX3Byb3RvKHByb3RvY29sLCBE
+T05UX0xPQUQsDQotCQkJCQkJCW9wdGlvbnMmT1BUX05VTUVSSUMpDQorCQkJCQkJCW9wdGlvbnMm
+T1BUX05VTUVSSUMsIE5VTEwpDQogCQkJCQkgICAgJiYgKHByb3RvX3VzZWQgPT0gMCkpDQogCQkJ
+CSAgICAgICApDQogCQkJCSAgICAmJiAobSA9IGZpbmRfcHJvdG8ocHJvdG9jb2wsIFRSWV9MT0FE
+LA0KLQkJCQkJCSAgICAgICBvcHRpb25zJk9QVF9OVU1FUklDKSkpIHsNCisJCQkJCQkgICAgICAg
+b3B0aW9ucyZPUFRfTlVNRVJJQywgJm1hdGNoZXMpKSkgew0KIAkJCQkJLyogVHJ5IGxvYWRpbmcg
+cHJvdG9jb2wgKi8NCiAJCQkJCXNpemVfdCBzaXplOw0KIAkJCQkJDQpAQCAtMjA5NywxMSArMjEw
+NCw4IEBADQogCQlpbnZlcnQgPSBGQUxTRTsNCiAJfQ0KIA0KLQlmb3IgKG0gPSBpcHRhYmxlc19t
+YXRjaGVzOyBtOyBtID0gbS0+bmV4dCkgew0KLQkJaWYgKCFtLT51c2VkKQ0KLQkJCWNvbnRpbnVl
+Ow0KLQ0KLQkJbS0+ZmluYWxfY2hlY2sobS0+bWZsYWdzKTsNCisJZm9yIChtYXRjaHAgPSBtYXRj
+aGVzOyBtYXRjaHA7IG1hdGNocCA9IG1hdGNocC0+bmV4dCkgew0KKwkJbWF0Y2hwLT5tYXRjaC0+
+ZmluYWxfY2hlY2sobWF0Y2hwLT5tYXRjaC0+bWZsYWdzKTsNCiAJfQ0KIA0KIAlpZiAodGFyZ2V0
+KQ0KQEAgLTIyMjAsNyArMjIyNCw3IEBADQogCQkJICogY2hhaW4uICovDQogCQkJZmluZF90YXJn
+ZXQoanVtcHRvLCBMT0FEX01VU1RfU1VDQ0VFRCk7DQogCQl9IGVsc2Ugew0KLQkJCWUgPSBnZW5l
+cmF0ZV9lbnRyeSgmZncsIGlwdGFibGVzX21hdGNoZXMsIHRhcmdldC0+dCk7DQorCQkJZSA9IGdl
+bmVyYXRlX2VudHJ5KCZmdywgbWF0Y2hlcywgdGFyZ2V0LT50KTsNCiAJCX0NCiAJfQ0KIA0KQEAg
+LTIyMzUsNyArMjIzOSw3IEBADQogCQlyZXQgPSBkZWxldGVfZW50cnkoY2hhaW4sIGUsDQogCQkJ
+CSAgIG5zYWRkcnMsIHNhZGRycywgbmRhZGRycywgZGFkZHJzLA0KIAkJCQkgICBvcHRpb25zJk9Q
+VF9WRVJCT1NFLA0KLQkJCQkgICBoYW5kbGUpOw0KKwkJCQkgICBoYW5kbGUsIG1hdGNoZXMpOw0K
+IAkJYnJlYWs7DQogCWNhc2UgQ01EX0RFTEVURV9OVU06DQogCQlyZXQgPSBpcHRjX2RlbGV0ZV9u
+dW1fZW50cnkoY2hhaW4sIHJ1bGVudW0gLSAxLCBoYW5kbGUpOw0KQEAgLTIyOTYsNSArMjMwMCw3
+IEBADQogCWlmICh2ZXJib3NlID4gMSkNCiAJCWR1bXBfZW50cmllcygqaGFuZGxlKTsNCiANCisJ
+Y2xlYXJfcnVsZV9tYXRjaGVzKCZtYXRjaGVzKTsNCisNCiAJcmV0dXJuIHJldDsNCiB9DQo=
+
+--=-Q1ppZO881dG+OCD2PxMA--
+
+--=-ylG/vhSwIMppsc4Xlsar
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBAHXL7Wm2vlfa207ERAnRPAJsG1b4b1FJVkPpMfA7MN0HZMfE8rwCeNqKj
+7wKBCARyJqsLHVeSUPRMI5A=
+=dkcM
+-----END PGP SIGNATURE-----
+
+--=-ylG/vhSwIMppsc4Xlsar--
