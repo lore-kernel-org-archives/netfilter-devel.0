@@ -1,16 +1,12 @@
-From: "Samuel Jean" <sj-netfilter@cookinglinux.org>
-Subject: Re: [BUG] ipt_SAME rule can't be deleted
-Date: Mon, 6 Dec 2004 15:59:45 -0500 (EST)
-Message-ID: <51066.142.169.215.10.1102366785.squirrel@142.169.215.10>
-References: <20041204150223.GA10247@dfbbb.opencjk.org>
-	<Pine.LNX.4.61.0412060821280.10926@filer.marasystems.com>
+From: Simon Kirby <sim@netnation.com>
+Subject: REJECT using invalid data
+Date: Mon, 6 Dec 2004 17:01:31 -0800
+Message-ID: <20041207010130.GC4757@netnation.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.61.0412060821280.10926@filer.marasystems.com>
-To: "Henrik Nordstrom" <hno@marasystems.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,29 +18,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, December 6, 2004 2:34 am, Henrik Nordstrom said:
+Hello,
 
->          u_int32_t *iparray;
->
-> If I am right the same problem applies to -m limit and any other extens=
-ion
-> storing private kernel side stuff within it's info data..
->
+After some recent interesting network issues involving an onboard Tigon3
+card with faulty buffer memory, we discovered that netfilter has some
+issues with handling corrupted packets.  This took quite some time to
+diagnose, I might add. :)
 
-If I am right too,
-This wouldn't happen if we moved u_int32_t *iparray at end of structure.
-Then, registering the target plugin that way :
+It appears that a packet with a bad TCP checksum will be disregarded by
+the state tracking code (and apparently shows up as "INVALID").  Fine.
 
-    .size            =3D IPT_ALIGN(sizeof(struct ipt_same_info)),
-    .userspacesize   =3D offsetof(struct ipt_same_info, iparray),
+However, the same packet will then likely continue traversing rules until
+it hits some kind of REJECT rule.  REJECT can be set to reject with a
+tcp-reset or some ICMP response at this point.  If so, it will actually
+use the possibly-incorrect information from the bad TCP packet and send a
+rejection packet.  As far as I can tell, this is a bug.
 
-Would fix this inconveniant.
+What happens as a result of this is that any corrupted packet will result
+in TCP sessions being immediately terminated.  This is bad because
+normally TCP would retransmit and recover from the error.
 
+I'm quite busy but I can look at creating a patch for this if nobody has
+any immediate objections (or already knows how to easily make the patch). 
 
-> Regards
-> Henrik
->
-Best regards,
+Thanks,
 
-Samuel
-CookingLinux TM
+Simon-
