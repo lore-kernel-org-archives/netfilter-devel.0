@@ -1,15 +1,13 @@
-From: Cedric de Launois <delaunois@info.ucl.ac.be>
-Subject: [PATCH] [RESEND] ROUTE target
-Date: 18 Jul 2003 10:37:42 +0200
+From: "Andriy T. Yanko" <wireless@wireless.org.ua>
+Subject: PROBLEM: I got  OOPS messsage and crash ip_queue module
+Date: Fri, 18 Jul 2003 12:28:14 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1058517461.25182.139.camel@descartes>
-References: <1056465726.2457.30.camel@descartes>
+Message-ID: <20030718122814.1d0facd5.wireless@wireless.org.ua>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-AZIPASWbWqSGlr6v4TGk"
+Content-Type: text/plain; charset=KOI8-U
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1056465726.2457.30.camel@descartes>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,503 +18,283 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+BUG REPORT:
 
---=-AZIPASWbWqSGlr6v4TGk
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by info.ucl.ac.be id h6I8YPYb000616
+[1.] I got  OOPS messsage and crash ip_queue module
 
-This is a resend of the ROUTE patch I sent nearly one month ago.
-Please apply or give me comments.
+[2.] I using  own program (gladiator with libipq ) that use ip_queue kernel module.
+After some hours of work   my program crash because crash ip_queue and I see OOPS kernel message.
+After that i can not rmmod ip_queue and insmod ip_queue. Kernel said module ip_queue is deleted.
 
-Cedric
+[3.] networking/kernel
 
-Le mar 24/06/2003 =E0 16:42, Cedric de Launois a =E9crit :
-> Hi !
->=20
-> Here is a new version of the ROUTE target. Following discussions,
-> it seems that there is a need to make the ROUTE target also a
-> non-final target. So I added a new option --force. When not using
-> this option, the behaviour is to set the route and continue traversal.
-> When using this option, the behaviour is as before, i.e. the packet
-> is sent and the packet is stolen. This remains useful when we have
-> to force the use of an interface (rather unfrequent).
->=20
-> Changes :
-> - ipt_ROUTE.c :=20
->      added --force option
->      cosmetic changes
-> - ipt_ROUTE.h : added --force option
-> - libipt_ROUTE.c : added --force option
-> - ROUTE.patch.config.in : target kernel option now depends on
->      CONFIG_IP_NF_MANGLE kernel option
->=20
-> The patch is against current cvs.
->=20
-> Cedric
->=20
+[4.] Kernel version 
+root@spider:/usr/src/linux# cat /proc/version
+Linux version 2.4.21-brnf (root@spider) (gcc version 3.2.2) #1 Tue Jul 8 20:59:18 EEST 2003
+See below about patch.
 
---=-AZIPASWbWqSGlr6v4TGk
-Content-Disposition: attachment; filename=ROUTE.cvs.patch
-Content-Type: text/x-patch; name=ROUTE.cvs.patch; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by info.ucl.ac.be id h6I8YPYb000616
+[5.]  root@spider:/home/wireless# ksymoops <oops.txt
+ksymoops 2.4.8 on i586 2.4.21-brnf.  Options used
+     -V (default)
+     -k /proc/ksyms (default)
+     -l /proc/modules (default)
+     -o /lib/modules/2.4.21-brnf/ (default)
+     -m /usr/src/linux/System.map (default)
 
-diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch netfilter/patch-=
-o-matic/extra/ROUTE.patch
---- netfilter.orig/patch-o-matic/extra/ROUTE.patch	2003-06-24 15:10:12.00=
-0000000 +0200
-+++ netfilter/patch-o-matic/extra/ROUTE.patch	2003-06-24 15:22:19.0000000=
-00 +0200
-@@ -1,7 +1,7 @@
- diff -Nru linux.orig/include/linux/netfilter_ipv4/ipt_ROUTE.h linux/incl=
-ude/linux/netfilter_ipv4/ipt_ROUTE.h
----- linux.orig/include/linux/netfilter_ipv4/ipt_ROUTE.h	Thu Jan  1 01:00=
-:00 1970
--+++ linux/include/linux/netfilter_ipv4/ipt_ROUTE.h	Tue Dec 17 16:49:04 2=
-002
--@@ -0,0 +1,18 @@
-+--- linux.orig/include/linux/netfilter_ipv4/ipt_ROUTE.h	1970-01-01 01:00=
-:00.000000000 +0100
-++++ linux/include/linux/netfilter_ipv4/ipt_ROUTE.h	2003-06-24 10:40:54.0=
-00000000 +0200
-+@@ -0,0 +1,22 @@
- +/* Header file for iptables ipt_ROUTE target
- + *
- + * (C) 2002 by C=E9dric de Launois <delaunois@info.ucl.ac.be>
-@@ -14,23 +14,27 @@
- +#define IPT_ROUTE_IFNAMSIZ 16
- +
- +struct ipt_route_target_info {
--+	char oif[IPT_ROUTE_IFNAMSIZ];
--+	char iif[IPT_ROUTE_IFNAMSIZ];
--+	unsigned int gw;
-++	char      oif[IPT_ROUTE_IFNAMSIZ];      /* Output Interface Name */
-++	char      iif[IPT_ROUTE_IFNAMSIZ];      /* Input Interface Name  */
-++	u_int32_t gw;                           /* IP address of gateway */
-++	u_int8_t  flags;
- +};
- +
-++/* Values for "flags" field */
-++#define IPT_ROUTE_FORCE        0x01
-++
- +#endif /*_IPT_ROUTE_H_target*/
- diff -Nru linux.orig/net/ipv4/netfilter/ipt_ROUTE.c linux/net/ipv4/netfi=
-lter/ipt_ROUTE.c
----- linux.orig/net/ipv4/netfilter/ipt_ROUTE.c	Thu Jan  1 01:00:00 1970
--+++ linux/net/ipv4/netfilter/ipt_ROUTE.c	Wed Feb 26 17:25:39 2003
--@@ -0,0 +1,359 @@
-+--- linux.orig/net/ipv4/netfilter/ipt_ROUTE.c	1970-01-01 01:00:00.000000=
-000 +0100
-++++ linux/net/ipv4/netfilter/ipt_ROUTE.c	2003-06-24 15:19:15.000000000 +=
-0200
-+@@ -0,0 +1,370 @@
- +/*
- + * This implements the ROUTE target, which enables you to setup unusual
- + * routes not supported by the standard kernel routing table.
- + *
- + * Copyright (C) 2002 Cedric de Launois <delaunois@info.ucl.ac.be>
- + *
--+ * v 1.6 2003/02/26
-++ * v 1.8 2003/06/24
- + *
- + * This software is distributed under GNU GPL v2, 1991
- + */
-@@ -56,7 +60,7 @@
- +/* Try to route the packet according to the routing keys specified in
- + * route_info. Keys are :
- + *  - ifindex :=20
--+ *      0 if no oif prefered,=20
-++ *      0 if no oif preferred,=20
- + *      otherwise set to the index of the desired oif
- + *  - route_info->gw :
- + *      0 if no gateway specified,
-@@ -88,9 +92,10 @@
- +	if (route_info->gw)
- +		key.dst =3D route_info->gw;
- +=09
--+	/* Trying to route the packet with the standard routing table. */
-++	/* Trying to route the packet using the standard routing table. */
- +	if ((err =3D ip_route_output_key(&rt, &key))) {
--+		DEBUGP("ipt_ROUTE: couldn't route pkt (err: %i)",err);
-++		if (net_ratelimit())=20
-++			DEBUGP("ipt_ROUTE: couldn't route pkt (err: %i)",err);
- +		return -1;
- +	}
- +=09
-@@ -101,7 +106,6 @@
- +	/* Success if no oif specified or if the oif correspond to the=20
- +	 * one desired */
- +	if (!ifindex || rt->u.dst.dev->ifindex =3D=3D ifindex) {
--+		/* Drop old route. */
- +		skb->dst =3D &rt->u.dst;
- +		skb->dev =3D skb->dst->dev;
- +		return 1;
-@@ -111,8 +115,9 @@
- +	 * specified by the user. This may happen because the dst address
- +	 * is one of our own addresses.
- +	 */
--+	DEBUGP("ipt_ROUTE: failed to route as desired (oif: %i)",=20
--+	       rt->u.dst.dev->ifindex);
-++	if (net_ratelimit())=20
-++		DEBUGP("ipt_ROUTE: failed to route as desired gw=3D%u.%u.%u.%u oif=3D=
-%i (got oif=3D%i)\n",=20
-++		       NIPQUAD(route_info->gw), ifindex, rt->u.dst.dev->ifindex);
- +=09
- +	return 0;
- +}
-@@ -159,64 +164,70 @@
- +static unsigned int route_oif(const struct ipt_route_target_info *route=
-_info,
- +			      struct sk_buff *skb)=20
- +{
--+	int err;
- +	unsigned int ifindex =3D 0;
- +	struct net_device *dev_out =3D NULL;
- +
- +	/* The user set the interface name to use.
- +	 * Getting the current interface index.
- +	 */
--+	if ((dev_out =3D dev_get_by_name(route_info->oif)))
-++	if ((dev_out =3D dev_get_by_name(route_info->oif))) {
- +		ifindex =3D dev_out->ifindex;
--+	else=20
-++	} else {
- +		/* Unknown interface name : packet dropped */
-++		if (net_ratelimit())=20
-++			DEBUGP("ipt_ROUTE: oif interface %s not found\n", route_info->oif);
- +		return NF_DROP;
--+=09
--+	DEBUGP(KERN_DEBUG "oif index of %s is %i\n", route_info->oif, ifindex)=
-;
--+
--+
--+	/* Trying the standard way of routing packets */
--+	err =3D route(skb, ifindex, route_info);
--+	if (err=3D=3D1) {
--+		DEBUGP(KERN_DEBUG "ROUTE oif ok, skb->dev->index=3D%i\n",
--+		       skb->dev->ifindex);
--+
--+		dev_put(dev_out);
--+		ip_direct_send(skb);
--+		return NF_STOLEN;
- +	}
- +
--+	if (err) {
-++	/* Trying the standard way of routing packets */
-++	switch (route(skb, ifindex, route_info)) {
-++	case 1:
- +		dev_put(dev_out);
--+		return NF_DROP;
--+	}
-++		if (route_info->flags & IPT_ROUTE_FORCE) {
-++			ip_direct_send(skb);
-++			return NF_STOLEN;
-++		}
- +
--+	/* Failed to send to oif. Trying the hard way */
-++		return IPT_CONTINUE;
- +
--+	DEBUGP(KERN_DEBUG "HARD ROUTING\n");
-++	case 0:
-++		/* Failed to send to oif. Trying the hard way */
-++		if (!(route_info->flags & IPT_ROUTE_FORCE))
-++			return NF_DROP;
- +
--+	/* We have to force the use of an interface.
--+	 * This interface must be a tunnel interface since
--+	 * otherwise we can't guess the hw address for
--+	 * the packet. For a tunnel interface, no hw address
--+	 * is needed.
--+	 */
--+	if ((dev_out->type !=3D ARPHRD_TUNNEL)
--+	    && (dev_out->type !=3D ARPHRD_IPGRE)) {
--+		DEBUGP("ipt_ROUTE: can't guess the hw addr !\n");
-++		if (net_ratelimit())=20
-++			DEBUGP("ipt_ROUTE: forcing the use of %i\n",
-++			       ifindex);
-++
-++		/* We have to force the use of an interface.
-++		 * This interface must be a tunnel interface since
-++		 * otherwise we can't guess the hw address for
-++		 * the packet. For a tunnel interface, no hw address
-++		 * is needed.
-++		 */
-++		if ((dev_out->type !=3D ARPHRD_TUNNEL)
-++		    && (dev_out->type !=3D ARPHRD_IPGRE)) {
-++			if (net_ratelimit())=20
-++				DEBUGP("ipt_ROUTE: can't guess the hw addr !\n");
-++			dev_put(dev_out);
-++			return NF_DROP;
-++		}
-++=09
-++		/* Send the packet. This will also free skb
-++		 * Do not go through the POST_ROUTING hook because=20
-++		 * skb->dst is not set and because it will probably
-++		 * get confused by the destination IP address.
-++		 */
-++		skb->dev =3D dev_out;
-++		dev_direct_send(skb);
-++		dev_put(dev_out);
-++		return NF_STOLEN;
-++	=09
-++	default:
-++		/* Unexpected error */
- +		dev_put(dev_out);
- +		return NF_DROP;
- +	}
--+=09
--+	/* Send the packet. This will also free skb
--+	 * Do not go through the POST_ROUTING hook because=20
--+	 * skb->dst is not set and because it will probably
--+	 * get confused by the destination IP address.
--+	 */
--+	skb->dev =3D dev_out;
--+	dev_direct_send(skb);
--+	dev_put(dev_out);
--+	return NF_STOLEN;
- +}
- +
- +
-@@ -229,11 +240,12 @@
- +	/* Getting the current interface index. */
- +	if ((dev_out =3D dev_get_by_name(route_info->iif)))
- +		ifindex =3D dev_out->ifindex;
--+	else=20
-++	else {
- +		/* Unknown interface name : packet dropped */
-++		if (net_ratelimit())=20
-++			DEBUGP("ipt_ROUTE: iif interface %s not found\n", route_info->oif);
- +		return NF_DROP;
--+
--+	DEBUGP(KERN_DEBUG "iif index of %s is %i\n", route_info->iif, ifindex)=
-;
-++	}
- +
- +	skb->dev =3D dev_out;
- +	dst_release(skb->dst);
-@@ -251,12 +263,11 @@
- +	if (route(skb, 0, route_info)!=3D1)
- +		return NF_DROP;
- +
--+	DEBUGP(KERN_DEBUG "ROUTE gw ok, skb->dev->index=3D%i\n",
--+	       skb->dev->ifindex);
--+
--+	ip_direct_send(skb);
--+
--+	return NF_STOLEN;
-++	if (route_info->flags & IPT_ROUTE_FORCE) {
-++		ip_direct_send(skb);
-++		return NF_STOLEN;
-++	} else
-++		return IPT_CONTINUE;
- +}
- +
- +
-@@ -308,12 +319,14 @@
- +	 * when a packet is leaving with dst address =3D=3D our address.
- +	 * Good idea ? Dunno. Need advice.
- +	 */
--+	nf_conntrack_put(skb->nfct);
--+	skb->nfct =3D NULL;
--+	skb->nfcache =3D 0;
-++	if (route_info->flags & IPT_ROUTE_FORCE) {
-++		nf_conntrack_put(skb->nfct);
-++		skb->nfct =3D NULL;
-++		skb->nfcache =3D 0;
- +#ifdef CONFIG_NETFILTER_DEBUG
--+	skb->nf_debug =3D 0;
-++		skb->nf_debug =3D 0;
- +#endif
-++	}
- +
- +	if (route_info->oif[0])=20
- +		return route_oif(route_info, *pskb);
-@@ -324,8 +337,10 @@
- +	if (route_info->gw)=20
- +		return route_gw(route_info, *pskb);
- +
--+	DEBUGP(KERN_DEBUG "ipt_ROUTE: no parameter !\n");
--+	return NF_ACCEPT;
-++	if (net_ratelimit())=20
-++		DEBUGP(KERN_DEBUG "ipt_ROUTE: no parameter !\n");
-++
-++	return IPT_CONTINUE;
- +}
- +
- +
-diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch.config.in netfil=
-ter/patch-o-matic/extra/ROUTE.patch.config.in
---- netfilter.orig/patch-o-matic/extra/ROUTE.patch.config.in	2003-06-24 1=
-5:10:12.000000000 +0200
-+++ netfilter/patch-o-matic/extra/ROUTE.patch.config.in	2003-06-24 12:46:=
-28.000000000 +0200
-@@ -1,2 +1,2 @@
--  dep_tristate '  LOG target support' CONFIG_IP_NF_TARGET_LOG $CONFIG_IP=
-_NF_IPTABLES
--  dep_tristate '  ROUTE target support' CONFIG_IP_NF_TARGET_ROUTE $CONFI=
-G_IP_NF_IPTABLES
-+    dep_tristate '    MARK target support' CONFIG_IP_NF_TARGET_MARK $CON=
-FIG_IP_NF_MANGLE
-+    dep_tristate '    ROUTE target support' CONFIG_IP_NF_TARGET_ROUTE $C=
-ONFIG_IP_NF_MANGLE
-diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch.configure.help n=
-etfilter/patch-o-matic/extra/ROUTE.patch.configure.help
---- netfilter.orig/patch-o-matic/extra/ROUTE.patch.configure.help	2003-06=
--24 15:10:12.000000000 +0200
-+++ netfilter/patch-o-matic/extra/ROUTE.patch.configure.help	2003-06-24 1=
-1:33:25.000000000 +0200
-@@ -8,8 +8,8 @@
-   packet is the router itself. The ROUTE target is also able to change t=
-he=20
-   incoming interface of a packet.
-=20
--  This target does never modify the packet and is a final target.
--  It has to be used inside the mangle table.
-+  The target can be or not a final target and has to be used inside the=20
-+  mangle table.
-=20
-  =20
-   If you want to compile it as a module, say M here and read
-diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch.help netfilter/p=
-atch-o-matic/extra/ROUTE.patch.help
---- netfilter.orig/patch-o-matic/extra/ROUTE.patch.help	2003-06-24 15:10:=
-12.000000000 +0200
-+++ netfilter/patch-o-matic/extra/ROUTE.patch.help	2003-06-24 12:35:59.00=
-0000000 +0200
-@@ -8,24 +8,29 @@
-   packet is the router itself. The ROUTE target is also able to change t=
-he=20
-   incoming interface of a packet.
-=20
--  This target does never modify the packet and is a final target.
--  It has to be used inside the mangle table.
-+  The target has to be used inside the mangle table.
-=20
-   ROUTE target options:
--    --oif   ifname    Send the packet out using `ifname' network interfa=
-ce.
-+    --oif   ifname    Route the packet through `ifname' network interfac=
-e
-     --iif   ifname    Change the packet's incoming interface to `ifname'.
-     --gw    ip        Route the packet via this gateway.
-+    --force           Force the use of the interface and send the packet.
-+
-+  The --force option can be used together with --oif or --gw. When using
-+  this option, the target becomes a final target. Otherwise, the route
-+  is simply set for the packet.
-=20
-   Examples :
-=20
--  To redirect all outgoing icmp packet to the eth1 interface :
--  # iptables -A POSTROUTING -t mangle -p icmp -j ROUTE --oif eth1
-+  To force all outgoing icmp packet to go through the eth1 interface=20
-+  (final target) :
-+  # iptables -A POSTROUTING -t mangle -p icmp -j ROUTE --oif eth1 --forc=
-e
-=20
-   To tunnel all incoming http packets :
-   # iptables -A PREROUTING -t mangle -p tcp --dport 80 -j ROUTE --oif tu=
-nl1
-=20
--  To force the next-hop used for ssh packets :
--  # iptables -A PREROUTING -t mangle -p tcp --dport 22 -j ROUTE --gw w.x=
-.y.z
-+  To change the the next-hop used for ssh packets :
-+  # iptables -A POSTROUTING -t mangle -p tcp --dport 22 -j ROUTE --gw w.=
-x.y.z
-=20
-   To change the incoming network interface from eth0 to eth1 for icmp pa=
-ckets :
-   # iptables -A PREROUTING -t mangle -p icmp -i eth0 -j ROUTE --iif eth1
-diff -Nru netfilter.orig/userspace/extensions/libipt_ROUTE.c netfilter/us=
-erspace/extensions/libipt_ROUTE.c
---- netfilter.orig/userspace/extensions/libipt_ROUTE.c	2003-06-24 15:10:1=
-2.000000000 +0200
-+++ netfilter/userspace/extensions/libipt_ROUTE.c	2003-06-24 15:19:48.000=
-000000 +0200
-@@ -1,5 +1,6 @@
- /* Shared library add-on to iptables to add ROUTE target support.
-- * Author : C=E9dric de Launois, <delaunois@info.ucl.ac.be>
-+ * Author : Cedric de Launois, <delaunois@info.ucl.ac.be>
-+ * v 1.8 2003/06/24
-  */
-=20
- #include <stdio.h>
-@@ -20,17 +21,19 @@
- {
- 	printf(
- "ROUTE target v%s options:\n"
--"  --oif   \tifname \t\tSend the packet out using `ifname' network inter=
-face\n"
-+"  --oif   \tifname \t\tRoute the packet through `ifname' network interf=
-ace\n"
- "  --iif   \tifname \t\tChange the packet's incoming interface to `ifnam=
-e'\n"
- "  --gw    \tip     \t\tRoute the packet via this gateway\n"
-+"  --force \t       \t\tForce the use of the interface and send the pack=
-et\n"
- "\n",
--IPTABLES_VERSION);
-+"1.8");
- }
-=20
- static struct option opts[] =3D {
- 	{ "oif", 1, 0, '1' },
- 	{ "iif", 1, 0, '2' },
- 	{ "gw", 1, 0, '3' },
-+	{ "force", 0, 0, '4' },
- 	{ 0 }
- };
-=20
-@@ -44,6 +47,7 @@
- 	route_info->oif[0] =3D '\0';
- 	route_info->iif[0] =3D '\0';
- 	route_info->gw =3D 0;
-+	route_info->flags =3D 0;
- }
-=20
-=20
-@@ -111,6 +115,10 @@
- 		*flags |=3D IPT_ROUTE_OPT_GW;
- 		break;
-=20
-+	case '4':
-+		route_info->flags |=3D IPT_ROUTE_FORCE;
-+		break;
-+
- 	default:
- 		return 0;
- 	}
-@@ -124,7 +132,7 @@
- {
- 	if (!flags)
- 		exit_error(PARAMETER_PROBLEM,
--		           "ROUTE target: one parameter is required");
-+		           "ROUTE target: a oif, iif or gw parameter is required");
- }
-=20
-=20
-@@ -149,6 +157,10 @@
- 		struct in_addr ip =3D { route_info->gw };
- 		printf("gw %s ", inet_ntoa(ip));
- 	}
-+
-+	if (route_info->flags & IPT_ROUTE_FORCE)
-+		printf("force");
-+
- }
-=20
-=20
-@@ -168,6 +180,9 @@
- 		struct in_addr ip =3D { route_info->gw };
- 		printf("--gw %s ", inet_ntoa(ip));
- 	}
-+
-+	if (route_info->flags & IPT_ROUTE_FORCE)
-+		printf("--force ");
- }
-=20
-=20
+Warning: You did not tell me where to find symbol information.  I will
+assume that the log matches the kernel and modules that are running
+right now and I'll use the default options above for symbol resolution.
+If the current kernel and/or modules do not match the log, you can get
+more accurate output by telling me the kernel version and where to find
+map, modules, ksyms etc.  ksymoops -h explains the options.
 
---=-AZIPASWbWqSGlr6v4TGk--
+Jul 17 15:15:42 spider kernel: Unable to handle kernel NULL pointer dereference at virtual address 00000008
+Jul 17 15:15:42 spider kernel: c01faeef
+Jul 17 15:15:42 spider kernel: *pde = 00000000
+Jul 17 15:15:42 spider kernel: Oops: 0000
+Jul 17 15:15:42 spider kernel: CPU:    0
+Jul 17 15:15:42 spider kernel: EIP:    0010:[<c01faeef>]    Not tainted
+Using defaults from ksymoops -t elf32-i386 -a i386
+Jul 17 15:15:42 spider kernel: EFLAGS: 00010246
+Jul 17 15:15:42 spider kernel: eax: 00000000   ebx: 00000001   ecx: c1a3e6a0   edx: c1a88400
+Jul 17 15:15:42 spider kernel: esi: c0541cc0   edi: 00000002   ebp: 00000002   esp: c1a83d0c
+Jul 17 15:15:42 spider kernel: ds: 0018   es: 0018   ss: 0018
+Jul 17 15:15:42 spider kernel: Process gladiatord (pid: 194, stackpage=c1a83000)
+Jul 17 15:15:42 spider kernel: Stack: c02fc790 c05418e0 c05418e0 00000001 00000012 c2977077 c1a3e6a0 c0541cc0
+Jul 17 15:15:42 spider kernel:        00000001 c06ece70 c2977866 c05418e0 00000001 c06ece70 c1dd26e0 00000001
+Jul 17 15:15:42 spider kernel:        c297794f c06ece70 00000000 c06ece60 c2977f39 c06ece70 00000012 0000000c
+Jul 17 15:15:42 spider kernel: Call Trace:    [<c2977077>] [<c2977866>] [<c297794f>] [<c2977f39>] [<c2977a2e>]
+Jul 17 15:15:42 spider kernel:   [<c0200ae8>] [<c0200467>] [<c02008d0>] [<c01edf2c>] [<c01ef0b9>] [<c01edb09>]
+Jul 17 15:15:43 spider kernel:   [<c01fad65>] [<c0205bed>] [<c0205de0>] [<c01f4f4a>] [<c01ef49c>] [<c01070b3>]
+Jul 17 15:15:43 spider kernel: Code: 8b 50 08 85 d2 74 0d ff 8a e8 00 00 00 0f 94 c0 84 c0 75 2c
+
+
+>>EIP; c01faeef <nf_reinject+df/1e0>   <=====
+
+>>ecx; c1a3e6a0 <_end+173e55c/2670f1c>
+>>edx; c1a88400 <_end+17882bc/2670f1c>
+>>esi; c0541cc0 <_end+241b7c/2670f1c>
+>>esp; c1a83d0c <_end+1783bc8/2670f1c>
+
+Trace; c2977077 <[ip_queue]ipq_issue_verdict+17/30>
+Trace; c2977866 <[ip_queue]ipq_set_verdict+46/60>
+Trace; c297794f <[ip_queue]ipq_receive_peer+3f/60>
+Trace; c2977f39 <[ip_queue]ipq_rcv_skb+e9/11c>
+Trace; c2977a2e <[ip_queue]ipq_rcv_sk+5e/b0>
+Trace; c0200ae8 <netlink_data_ready+48/60>
+Trace; c0200467 <netlink_unicast+247/2a0>
+Trace; c02008d0 <netlink_sendmsg+1c0/250>
+Trace; c01edf2c <sock_sendmsg+5c/90>
+Trace; c01ef0b9 <sys_sendmsg+159/1b0>
+Trace; c01edb09 <move_addr_to_user+49/60>
+Trace; c01fad65 <nf_hook_slow+a5/150>
+Trace; c0205bed <ip_rcv+17d/210>
+Trace; c0205de0 <ip_rcv_finish+0/210>
+Trace; c01f4f4a <netif_receive_skb+15a/210>
+Trace; c01ef49c <sys_socketcall+18c/1b0>
+Trace; c01070b3 <system_call+33/40>
+
+Code;  c01faeef <nf_reinject+df/1e0>
+00000000 <_EIP>:
+Code;  c01faeef <nf_reinject+df/1e0>   <=====
+   0:   8b 50 08                  mov    0x8(%eax),%edx   <=====
+Code;  c01faef2 <nf_reinject+e2/1e0>
+   3:   85 d2                     test   %edx,%edx
+Code;  c01faef4 <nf_reinject+e4/1e0>
+   5:   74 0d                     je     14 <_EIP+0x14>
+Code;  c01faef6 <nf_reinject+e6/1e0>
+   7:   ff 8a e8 00 00 00         decl   0xe8(%edx)
+Code;  c01faefc <nf_reinject+ec/1e0>
+   d:   0f 94 c0                  sete   %al
+Code;  c01faeff <nf_reinject+ef/1e0>
+  10:   84 c0                     test   %al,%al
+Code;  c01faf01 <nf_reinject+f1/1e0>
+  12:   75 2c                     jne    40 <_EIP+0x40>
+
+
+1 warning issued.  Results may not be reliable.
+
+[6.] A small shell script or example program which triggers the  problem (if possible)
+no
+
+[7.] Environment
+
+[7.1.] Software (add the output of the ver_linux script here)
+root@spider:/usr/src/linux# sh scripts/ver_linux
+Linux spider 2.4.21-brnf #1 Tue Jul 8 20:59:18 EEST 2003 i586 unknown
+Gnu C                  3.2.2
+Gnu make               3.80
+util-linux             2.11z
+mount                  2.11z
+modutils               2.4.22
+e2fsprogs              1.32
+reiserfsprogs          3.6.4
+PPP                    2.4.1
+Linux C Library        2.3.1
+Dynamic linker (ldd)   2.3.1
+Linux C++ Library      5.0.2
+Procps                 3.1.6
+Net-tools              1.60
+Kbd                    1.08
+Sh-utils               2.0
+Modules Loaded         ipip bridge tun iptable_mangle iptable_nat ip_conntrack iptable_filter ip_queue fealnx mii
+
+[7.2.] root@spider:/usr/src/linux# cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 5
+model           : 4
+model name      : Pentium MMX
+stepping        : 3
+cpu MHz         : 166.193
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : yes
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr mce cx8 mmx
+bogomips        : 331.77
+
+[7.3.] Module information 
+ipip                    6724   1
+bridge                 22940   1
+tun                     4160   3
+iptable_mangle          2072   0 (autoclean) (unused)
+iptable_nat            16152   1 (autoclean)
+ip_conntrack           18344   1 (autoclean) [iptable_nat]
+iptable_filter          1612   1 (autoclean)
+ip_queue                5420   0
+fealnx                 10864   2
+mii                     2304   0 [fealnx]
+
+[7.4.] Loaded driver and hardware information (/proc/ioports, /proc/iomem)
+cat /proc/ioports
+0000-001f : dma1
+0020-003f : pic1
+0040-005f : timer
+0060-006f : keyboard
+0080-008f : dma page reg
+00a0-00bf : pic2
+00c0-00df : dma2
+00f0-00ff : fpu
+01f0-01f7 : ide0
+03c0-03df : vga+
+03f6-03f6 : ide0
+0cf8-0cff : PCI conf1
+f4f0-f4ff : Intel Corp. 82371SB PIIX3 IDE [Natoma/Triton II]
+  f4f0-f4f7 : ide0
+  f4f8-f4ff : ide1
+f800-f8ff : MYSON Technology Inc SURECOM EP-320X-S 100/10M Ethernet PCI Adapter (#2)
+  f800-f8ff : òÑ
+fc00-fcff : MYSON Technology Inc SURECOM EP-320X-S 100/10M Ethernet PCI Adapter
+  fc00-fcff : òÑ
+
+cat /proc/iomem
+00000000-0009fbff : System RAM
+0009fc00-0009ffff : reserved
+000a0000-000bffff : Video RAM area
+000c0000-000c7fff : Video ROM
+000f0000-000fffff : System ROM
+00100000-01ffffff : System RAM
+  00100000-00246ffa : Kernel code
+  00246ffb-002bf93f : Kernel data
+f8000000-fbffffff : S3 Inc. 86c775/86c785 [Trio 64V2/DX or /GX]
+fedff800-fedffbff : MYSON Technology Inc SURECOM EP-320X-S 100/10M Ethernet PCI Adapter (#2)
+  fedff800-fedffbff : òÑ
+fedffc00-fedfffff : MYSON Technology Inc SURECOM EP-320X-S 100/10M Ethernet PCI Adapter
+  fedffc00-fedfffff : òÑ
+fffe0000-ffffffff : reserved
+
+[7.5.] PCI information ('lspci -vvv' as root)
+lspci -vvv
+00:00.0 Host bridge: Intel Corp. 430HX - 82439HX TXC [Triton II] (rev 03)
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort+ >SERR- <PERR-
+        Latency: 32
+
+00:06.0 Ethernet controller: MYSON Technology Inc SURECOM EP-320X-S 100/10M Ethernet PCI Adapter
+        Subsystem: Surecom Technology: Unknown device 1320
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
+        Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 64 (8000ns min, 16000ns max), cache line size 08
+        Interrupt: pin A routed to IRQ 9
+        Region 0: I/O ports at fc00 [size=256]
+        Region 1: Memory at fedffc00 (32-bit, non-prefetchable) [size=1K]
+        Expansion ROM at <unassigned> [disabled] [size=64K]
+        Capabilities: [88] Power Management version 2
+                Flags: PMEClk- DSI- D1+ D2- AuxCurrent=375mA PME(D0-,D1+,D2-,D3hot+,D3cold+)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+00:07.0 Ethernet controller: MYSON Technology Inc SURECOM EP-320X-S 100/10M Ethernet PCI Adapter
+        Subsystem: Surecom Technology: Unknown device 1320
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
+        Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 64 (8000ns min, 16000ns max), cache line size 08
+        Interrupt: pin A routed to IRQ 11
+        Region 0: I/O ports at f800 [size=256]
+        Region 1: Memory at fedff800 (32-bit, non-prefetchable) [size=1K]
+        Expansion ROM at <unassigned> [disabled] [size=64K]
+        Capabilities: [88] Power Management version 2
+                Flags: PMEClk- DSI- D1+ D2- AuxCurrent=375mA PME(D0-,D1+,D2-,D3hot+,D3cold+)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+00:0d.0 VGA compatible controller: S3 Inc. 86c775/86c785 [Trio 64V2/DX or /GX] (rev 14) (prog-if 00 [VGA])
+        Subsystem: S3 Inc. 86C775 Trio64V2/DX, 86C785 Trio64V2/GX
+        Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Interrupt: pin A routed to IRQ 0
+        Region 0: Memory at f8000000 (32-bit, non-prefetchable) [size=64M]
+        Expansion ROM at <unassigned> [disabled] [size=64K]
+
+00:0f.0 ISA bridge: Intel Corp. 82371SB PIIX3 ISA [Natoma/Triton II] (rev 01)
+        Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+
+00:0f.1 IDE interface: Intel Corp. 82371SB PIIX3 IDE [Natoma/Triton II] (prog-if 80 [Master])
+        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 32
+        Region 4: I/O ports at f4f0 [size=16]
+
+
+[7.6.] SCSI information (from /proc/scsi/scsi)
+cat /proc/scsi/scsi
+cat: /proc/scsi/scsi: No such file or directory
+
+[7.7.] Other information that might be relevant to the problem
+       (please look in /proc and include all information that you
+       think to be relevant):
+
+[X.] Other notes, patches, fixes, workarounds:
+I patched  2.4.21 kernel  with ebtables-brnf_vs_2.4.21.diff  (http://ebtables.sourceforge.net/)
+I have other server with same patched kernel but there is all right,
+
+I use tunnel interface and send all forward traffic to ip_queue module .
+Maybe ip_queue crash when traffic  is not from physical device?
+
+modprobe ipip
+ip tunnel add netcity mode ipip local 192.168.7.100 remote 192.168.2.100 ttl 64
+ip link set netcity up
+ip addr add 192.168.9.2/30 dev netcity
+ip route add 192.168.2.0/24 dev eth0 via 192.168.7.101
+ip route add 193.109.80.0/24 dev eth0 via 192.168.7.101
+ip route add default dev netcity via 192.168.9.1
+
+iptables -A FORWARD  -i eth1 -o netcity -j QUEUE
+ptables -A FORWARD  -i netcity -o eth1 -j QUEUE
+
+-- 
+Andriy T. Yanko
+System Administrator
+MPP MEDIA
++38 0332 770752
++38 03322 47856
+ATY1-RIPE
+ATY1-UANIC
+
+wireless@wireless.org.ua
+*   Avoid The Gates of Hell use Linux
