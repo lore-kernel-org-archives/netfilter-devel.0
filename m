@@ -1,9 +1,9 @@
-From: Essien Ita Essien <essiene@datavibe.net>
-Subject: compiling libipq example
-Date: Fri, 25 Feb 2005 09:36:48 +0100
-Message-ID: <421EE3A0.7000804@datavibe.net>
+From: Peter Lenci <peterlenci@yahoo.ca>
+Subject: Iptables Match on Direction (IP_CT_IS_REPLY)
+Date: Sat, 26 Feb 2005 07:43:03 -0500 (EST)
+Message-ID: <20050226124304.13105.qmail@web90010.mail.scd.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060500090409080501070308"
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -16,184 +16,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060500090409080501070308
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi there
 
-Hi,
+Is there a possibility to access flag IP_CT_IS_REPLY from an iptables
+command?
 
-I'm trying to follow the tutorial in the libipq man page, with just a 
-little modification, and i get a compile error when i try to access the 
-ipq_packet_msg_t structure. I've checked where ipq_packet_msg_t is 
-defined, and found it in <linux/netfilter_ipv4/ip_queue.h>, which i've 
-found is conditionally included in <libipq.h> already. I even tried 
-including straight into the program.
+I have only spotted the "--direction original|reply|both" option from
+the connbytes patch
+(http://www.netfilter.org/patch-o-matic/pom-extra.html#pom-extra-connbytes)
+but then I would prefer not to waste memory by counting bytes.
 
-Any ideas what i'm doing wrong?
+Regards
+Peter
 
-thanks.
-
-The error i get is:
-
-first.c: In function `main':
-first.c:47: error: dereferencing pointer to incomplete type
-first.c:51: error: dereferencing pointer to incomplete type
-
-
-
-The program is:
-
-#include <stdio.h>
-#include <linux/netfilter.h>
-#include <libipq.h>
-#include <linux/ip.h>
-#include <linux/tcp.h>
-
-
-
-#define BUFSIZE 2048
-
-static void die(struct ipq_handle *h)
-{
-	ipq_perror("passer");
-	ipq_destroy_handle(h);
-	exit(1);
-}
-
-
-int main(int argc, char **argv)
-{
-	int status;
-	unsigned char buf[BUFSIZE];
-
-
-	struct ipq_handle *h;
-	h = ipq_create_handle(0,PF_INET);
-	if (!h)
-		die(h);
-
-
-	status = ipq_set_mode(h,IPQ_COPY_PACKET,BUFSIZE);
-	if (status < 0)
-		die(h);
-
-	while (1) {
-		status = ipq_read(h,buf,BUFSIZE,0);
-		if (status < 0)
-			die(h);
-
-		switch(ipq_message_type(buf)) {
-			case NLMSG_ERROR:
-				fprintf(stderr,"Recieved Error Message: %d\n",ipq_get_msgerr(buf));
-				break;
-
-			case IPQM_PACKET: {
-				struct ipq_packet_msg_t *m = ipq_get_packet(buf);
-				struct iphdr *ip = (struct iphdr*) m->payload; /*this line give the 
-error*/
-				fprintf(stdout,"Saddr: %d\nDaddr: %d\n",ip->saddr,ip->daddr);
-
-				
-				status = ipq_set_verdict(h,m->packet_id,NF_ACCEPT,0,NULL); /*this 
-line also borks*/
-				if (status < 0)
-					die(h);
-
-				break;
-
-				}
-
-			default:
-				fprintf(stderr,"Unknown Message Type!\n");
-		}
-
-	}
-
-	ipq_destroy_handle(h);
-	return 0;
-}
-
---------------060500090409080501070308
-Content-Type: text/plain;
- name="first.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="first.c"
-
-#include <stdio.h>
-#include <linux/netfilter.h>
-#include <libipq.h>
-#include <linux/ip.h>
-#include <linux/tcp.h>
-
-
-
-#define BUFSIZE 2048
-
-static void die(struct ipq_handle *h)
-{
-	ipq_perror("passer");
-	ipq_destroy_handle(h);
-	exit(1);
-}
-
-
-int main(int argc, char **argv)
-{
-	int status;
-	unsigned char buf[BUFSIZE];
-
-
-	struct ipq_handle *h;
-	h = ipq_create_handle(0,PF_INET);
-	if (!h)
-		die(h);
-
-
-	status = ipq_set_mode(h,IPQ_COPY_PACKET,BUFSIZE);
-	if (status < 0)
-		die(h);
-
-	while (1) {
-		status = ipq_read(h,buf,BUFSIZE,0);
-		if (status < 0)
-			die(h);
-
-		switch(ipq_message_type(buf)) {
-			case NLMSG_ERROR:
-				fprintf(stderr,"Recieved Error Message: %d\n",ipq_get_msgerr(buf));
-				break;
-
-			case IPQM_PACKET: {
-				struct ipq_packet_msg_t *m = ipq_get_packet(buf);
-				struct iphdr *ip = (struct iphdr*) m->payload; /*this line give the error*/
-				fprintf(stdout,"Saddr: %d\nDaddr: %d\n",ip->saddr,ip->daddr);
-
-				
-				status = ipq_set_verdict(h,m->packet_id,NF_ACCEPT,0,NULL); /*this line also borks*/
-				if (status < 0)
-					die(h);
-
-				break;
-
-				}
-
-			default:
-				fprintf(stderr,"Unknown Message Type!\n");
-		}
-
-	}
-
-	ipq_destroy_handle(h);
-	return 0;
-}
-
-
-
-
-
-
-
-
---------------060500090409080501070308--
+______________________________________________________________________ 
+Post your free ad now! http://personals.yahoo.ca
