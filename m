@@ -1,13 +1,16 @@
-From: "kesineni sai pratap" <kesineni@woojininc.net>
-Subject: it is possible to use inet_addr
-Date: Tue, 3 Aug 2004 14:30:31 +0900
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: it is possible to use inet_addr
+Date: Tue, 03 Aug 2004 09:09:42 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000a01c4791a$fe672660$a06464c0@kesineni>
+Message-ID: <410F3A36.1060906@eurodev.net>
+References: <000a01c4791a$fe672660$a06464c0@kesineni>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0007_01C47966.6E001220"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: kesineni sai pratap <kesineni@woojininc.net>
+In-Reply-To: <000a01c4791a$fe672660$a06464c0@kesineni>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,52 +21,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi,
 
-------=_NextPart_000_0007_01C47966.6E001220
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+This question is not netfilter related at all, maybe linux-net is a 
+better place, anyway...
 
-Hello,
+kesineni sai pratap wrote:
 
-          Iam changing  netif_receive_skb () function in  in =
-/usr/src/linux/net/core/dev.c.i  unable  to use inet_addr function in =
-netif_receive_skb function. It is possible to use inet_addr function in =
-netif_receive-skb function, if possible how can use.
+> Hello,
+>  
+>           Iam changing  netif_receive_skb () function in  in 
+> /usr/src/linux/net/core/dev.c.i  unable  to use inet_addr function in 
+> netif_receive_skb function.
 
-thanks & regards
-LEO
 
-------=_NextPart_000_0007_01C47966.6E001220
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+because that function doesn't exist in kernel space. The kernel is 
+written in C but it doesn't implement all the standard C functions 
+available in user space.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1458" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Hello,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial=20
-size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Iam =
+If you do want to use something that function, you should implement by 
+yourself or steal it from elsewhere.
 
-changing&nbsp; netif_receive_skb () function in&nbsp; in=20
-/usr/src/linux/net/core/dev.c.</FONT><FONT face=3DArial size=3D2>i&nbsp; =
-
-unable&nbsp;&nbsp;to use inet_addr function in netif_receive_skb =
-function. It is=20
-possible to use inet_addr function in netif_receive-skb function, if =
-possible=20
-how can use.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>thanks &amp; regards</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>LEO</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_0007_01C47966.6E001220--
+regards,
+Pablo
