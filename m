@@ -1,17 +1,14 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH]: fix all iptables problems with '!' (hopefully)
-Date: Tue, 7 Jan 2003 21:16:43 +0100
+Subject: [ANNOUNCE] Current netfilter/iptables development
+Date: Tue, 7 Jan 2003 21:27:40 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030107201643.GY9467@sunbeam.de.gnumonks.org>
-References: <35565.195.97.5.193.1041816667.squirrel@fs.tsaousis.gr> <20030106020219.GC423@comet.rv-int> <3E193B0E.9030602@trash.net> <36373.195.97.5.193.1041856153.squirrel@fs.tsaousis.gr> <3E19A1D8.7080605@trash.net> <20030107171526.GL1353@sunbeam.de.gnumonks.org> <3E1B222B.5030009@trash.net>
+Message-ID: <20030107202740.GA9467@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="B0ZU/rjo5v6h4DpE"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="Eb2dXAwtBqAM4EkP"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <3E1B222B.5030009@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +20,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---B0ZU/rjo5v6h4DpE
+--Eb2dXAwtBqAM4EkP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 07, 2003 at 07:53:31PM +0100, Patrick McHardy wrote:
+Hi!
 
-> Thats the reason why i was unsure weather to send the patch or not ;)
+For those of you who were under the impression that I've had disappeared
+into a black hole recently, I can assure you, I haven't ;)
 
-I see.=20
+At least concluding from my netfilter-related activity (see CVS
+changelogs) today I am not...
 
-> What about if i convert all matches to only show "!" in boolean context=
-=20
-> in the helptexts and change check_inverse and what else might be
-> neccessary to enforce this ?
+I am planning to catch up with all pending bugfixes and other
+contributed patches until the end of this week.
 
-I think this is a wise idea.
+Starting at Jan 11 I will also put iptables CVS into the 1.2.8 feature
+freeze to ensure we will have a recent stable iptables release.
 
-> What about backward-compatibility ?
+So this is my call for all of those, whom I might have missed lately
+(Nov/Dec 2002).  If you tried to submit something, and=20
+	- it didn't show up in CVS yet
+	- you didn't receive a comment from me that it will not go in
 
-This is usually not my idea of being user-friendly... but considering
-how much trouble we've had with this over the last couple of months, I'm
-willing to sacrifice a bit of backwards compatibility.
+Please retransmit NOW !
 
-To everyone: Please feel free to protest.
-
-> Regards,
-> Patrick
+Thanks,
+	Harald (who suddenly finds himself in extreme-netfiltering-mode again)
 
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -61,7 +58,7 @@ To everyone: Please feel free to protest.
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---B0ZU/rjo5v6h4DpE
+--Eb2dXAwtBqAM4EkP
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -69,9 +66,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+GzWrXaXGVTD0i/8RAiE0AJ9p67FSJvCiU00K0+DhYXAlaT+4vQCeLe1e
-kA5pu8gGmA8GoSMV9GKr82Q=
-=U+xy
+iD8DBQE+Gzg8XaXGVTD0i/8RAuNoAJ9zp2HdRUVFDwtq8M+amCS1X+5A3gCdGenA
+noW6OK4WBSvfHYASjtzIxAw=
+=pbE1
 -----END PGP SIGNATURE-----
 
---B0ZU/rjo5v6h4DpE--
+--Eb2dXAwtBqAM4EkP--
