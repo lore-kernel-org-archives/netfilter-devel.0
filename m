@@ -1,15 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [RFC] unidirectional NAT
-Date: Wed, 12 Jun 2002 12:59:44 +0200 (CEST)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [PATCH] Unused bit check to Unclean module
+Date: Wed, 12 Jun 2002 15:57:12 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206121257510.11762-100000@blackhole.kfki.hu>
-References: <20020612104337.GA18405@balabit.hu>
+Message-ID: <Pine.LNX.4.21.0206121555010.18030-200000@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.samba.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-23717851-1960581079-1023890232=:18030"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Balazs Scheidler <bazsi@balabit.hu>
-In-Reply-To: <20020612104337.GA18405@balabit.hu>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,25 +17,84 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 12 Jun 2002, Balazs Scheidler wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-> > > Is you patch available somewhere?
-> >
-> > Not yet, but real soon I'll post it :-).
->
-> Can you send me what you have available? I'd like to close my transparency
-> project, and so I'd be willing to contribute to the conntrack exemption
-> project :)
+---23717851-1960581079-1023890232=:18030
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-I'm ready with the patch but it must pass at least some testing before it
-can be released.
+Hello,
 
-Can you wait one more day? :-)
+as suggested by Jozsef, i moved my IP unused bit check to the Unclean
+module.
+
+Here is the patch to netfilter root directory.
 
 Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-WWW-Home: http://www.kfki.hu/~kadlec
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Maciej Soltysiak
+
+
+---23717851-1960581079-1023890232=:18030
+Content-Type: TEXT/plain; name="unclean_ubit.diff"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.21.0206121557120.18030@dns.toxicfilms.tv>
+Content-Description: unclean unused bit patch
+Content-Disposition: attachment; filename="unclean_ubit.diff"
+
+ZGlmZiAtdXJOIG5ldGZpbHRlci91c2Vyc3BhY2UvcGF0Y2gtby1tYXRpYy9i
+YXNlL2lwdF91bmNsZWFuLXViaXQucGF0Y2guaGVscCBteW5ldGZpbHRlci91
+c2Vyc3BhY2UvcGF0Y2gtby1tYXRpYy9iYXNlL2lwdF91bmNsZWFuLXViaXQu
+cGF0Y2guaGVscA0KLS0tIG5ldGZpbHRlci91c2Vyc3BhY2UvcGF0Y2gtby1t
+YXRpYy9iYXNlL2lwdF91bmNsZWFuLXViaXQucGF0Y2guaGVscAlUaHUgSmFu
+ICAxIDAxOjAwOjAwIDE5NzANCisrKyBteW5ldGZpbHRlci91c2Vyc3BhY2Uv
+cGF0Y2gtby1tYXRpYy9iYXNlL2lwdF91bmNsZWFuLXViaXQucGF0Y2guaGVs
+cAlUdWUgSnVuIDExIDE4OjMwOjE5IDIwMDINCkBAIC0wLDAgKzEsMzIgQEAN
+CitBdXRob3I6IE1hY2llaiBTb2x0eXNpYWsgPHNvbHRAZG5zLnRveGljZmls
+bXMudHY+DQorU3RhdHVzOiBXb3JrcyBmb3IgbWUNCisNCitUaGlzIHBhdGNo
+IGV4dGVuZHMgdW5jbGVhbidzIG1vZHVsZSB0byBtYXRjaCBwYWNrZXRzIHdp
+dGggSVAgdW51c2VkIGJpdA0KK3NldC4gIFRoaXMgYml0IGlzIHRoZSBmaXJz
+dCBiaXQgaW4gZnJhZ21lbnRhdGlvbiBvZmZzZXQgb2YgdGhlIElQIGhlYWRl
+ci4NCitUaGUgb2Zmc2V0IGNvbnRhaW5zIDIgZmllbGRzOg0KKyAgMyBiaXQg
+ZnJhZ21lbnRhdGlvbiBmbGFncw0KKyAxMyBiaXQgZnJhZ21lbnRhdGlvbiBv
+ZmZzZXQNCisNCitFeGVycHQgZnJvbSBSRkMgNzkxOg0KKw0KKyBGbGFnczog
+IDMgYml0cw0KKw0KKyAgICBWYXJpb3VzIENvbnRyb2wgRmxhZ3MuDQorDQor
+ICAgICAgQml0IDA6IHJlc2VydmVkLCBtdXN0IGJlIHplcm8NCisgICAgICBC
+aXQgMTogKERGKSAwID0gTWF5IEZyYWdtZW50LCAgMSA9IERvbid0IEZyYWdt
+ZW50Lg0KKyAgICAgIEJpdCAyOiAoTUYpIDAgPSBMYXN0IEZyYWdtZW50LCAx
+ID0gTW9yZSBGcmFnbWVudHMuDQorDQorICAgICAgICAgIDAgICAxICAgMg0K
+KyAgICAgICAgKy0tLSstLS0rLS0tKw0KKyAgICAgICAgfCAgIHwgRCB8IE0g
+fA0KKyAgICAgICAgfCAwIHwgRiB8IEYgfA0KKyAgICAgICAgKy0tLSstLS0r
+LS0tKw0KKw0KKw0KK1RoaXMgYWRkcyB3aGF0IGkgc2VlIGFzIGEgc2VjdXJp
+dHkgZmVhdHVyZSB0byB0aGUgdW5jbGVhbiBtYXRjaCwgYXMgdGhlIGJpdA0K
+K21heSBiZSB1c2VkIGluIHZlcnkgZGlzY3JldGUgT1MgZmluZ2VycHJpbnRp
+bmcgYXMgZGVzY3JpYmVkIGJ5IE9maXIgQXJraW4NCitpbiAiVW52ZXJpZmll
+ZCBGaWVsZHMgLSBBIFByb2JsZW0gd2l0aCBGaXJld2FsbHMgJiBGaXJld2Fs
+bCBUZWNobm9sb2d5DQorVG9kYXkiIGF2YWlsYWJsZSB0byByZWFkIGF0Og0K
+K2h0dHA6Ly93d3cuc3lzLXNlY3VyaXR5LmNvbS9hcmNoaXZlL3BhcGVycy9V
+bnZlcmlmaWVkX0ZpZWxkc18xLjAucGRmDQoraHR0cDovL3d3dy5zeXMtc2Vj
+dXJpdHkuY29tL2FyY2hpdmUvcGFwZXJzL1VudmVyaWZpZWRfRmllbGRzXzEu
+MC5wcw0KZGlmZiAtdXJOIG5ldGZpbHRlci91c2Vyc3BhY2UvcGF0Y2gtby1t
+YXRpYy9iYXNlL2lwdF91bmNsZWFuLXViaXQucGF0Y2h+IG15bmV0ZmlsdGVy
+L3VzZXJzcGFjZS9wYXRjaC1vLW1hdGljL2Jhc2UvaXB0X3VuY2xlYW4tdWJp
+dC5wYXRjaH4NCi0tLSBuZXRmaWx0ZXIvdXNlcnNwYWNlL3BhdGNoLW8tbWF0
+aWMvYmFzZS9pcHRfdW5jbGVhbi11Yml0LnBhdGNofglUaHUgSmFuICAxIDAx
+OjAwOjAwIDE5NzANCisrKyBteW5ldGZpbHRlci91c2Vyc3BhY2UvcGF0Y2gt
+by1tYXRpYy9iYXNlL2lwdF91bmNsZWFuLXViaXQucGF0Y2h+CVR1ZSBKdW4g
+MTEgMTk6MTA6MjAgMjAwMg0KQEAgLTAsMCArMSwyMCBAQA0KK2RpZmYgLU5y
+dSBteWxpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcHRfdW5jbGVhbi5jIGxp
+bnV4L25ldC9pcHY0L25ldGZpbHRlci9pcHRfdW5jbGVhbi5jDQorLS0tIG15
+bGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF91bmNsZWFuLmMJVGh1IEph
+biAgMSAwMTowMDowMCAxOTcwDQorKysrIGxpbnV4L25ldC9pcHY0L25ldGZp
+bHRlci9pcHRfdW5jbGVhbi5jCVR1ZSBKdW4gIDQgMTM6MzU6MzQgMjAwMg0K
+K0BAIC01MjIsNiArNTIyLDEyIEBADQorIAkJcmV0dXJuIDA7DQorIAl9DQor
+IA0KKysJLyogQ0hFQ0s6IERvIG5vdCB1c2Ugd2hhdCBpcyB1bnVzZWQuDQor
+KwkgKiBGaXJzdCBiaXQgb2YgZnJhZ21lbnRhdGlvbiBmbGFncyBzaG91bGQg
+YmUgdW51c2VkLg0KKysJICogTWF5IGJlIHVzZWQgYnkgT1MgZmluZ2VycHJp
+bnRpbmcgdG9vbHMuDQorKwkgKiAwNCBKdW4gMjAwMiwgTWFjaWVqIFNvbHR5
+c2lhaywgc29sdEBkbnMudG94aWNmaWxtcy50dg0KKysJICovDQorKwlpZiAo
+bnRvaHMoaXBoLT5mcmFnX29mZik+PjE1KSB7DQorKwkJbGltcGsoIklQIHVu
+dXNlZCBiaXQgc2V0XG4iKTsNCisrCQlyZXR1cm4gMDsNCisrCX0NCisrDQor
+IAkvKiBQZXItcHJvdG9jb2wgY2hlY2tzLiAqLw0KKyAJc3dpdGNoIChpcGgt
+PnByb3RvY29sKSB7DQorIAljYXNlIElQUFJPVE9fSUNNUDoNCg==
+---23717851-1960581079-1023890232=:18030--
