@@ -1,16 +1,18 @@
-From: DarKRaveR <DarKRaveR@habitat-b.de>
-Subject: Re: libiptc/rules with MAC match
-Date: Thu, 13 Feb 2003 06:14:53 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: route_me_harder
+Date: Thu, 13 Feb 2003 10:27:51 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <15940504432.20030213061453@habitat-b.de>
-References: <647994215.20030212211303@habitat-b.de>
-Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
+Message-ID: <20030213092751.GF28593@sunbeam.de.gnumonks.org>
+References: <009a01c2d32e$de8268c0$3a64a8c0@srini>
+Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="f+W+jCU1fRNres8c"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <647994215.20030212211303@habitat-b.de>
+To: Srini <srini@dlink.co.in>
+Content-Disposition: inline
+In-Reply-To: <009a01c2d32e$de8268c0$3a64a8c0@srini>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,69 +23,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello list,
 
-Okay, I kinda tried out some things.
+--f+W+jCU1fRNres8c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I use libiptc to get a rule ...
-there's destinations source, etc.
-if target_offset is bigger than sizeof(struct ipt_entry),
-there's a match present.
-elems points to the first match ...
-If I cast it to ipt_entry_match, and then check the vars in that
-structure, I can see various sizes etc.
-u.user.name gives me 'mac'.
+On Thu, Feb 13, 2003 at 12:39:30PM +0530, Srini wrote:
+> Dear Harald,
+>  We are using Linux 7.1 kernel 2.4.7-10, =20
 
-but, what I am wondering:
-where can I find the actual mac address ?
-there ipt_entry_match.data, but the data in there didn't make too much
-sense ...
+There is no Linux 7.1.  Do you mean RedHat 7.1, SuSE 7.1, ... ?
+And why are you using such a very old kernel?
 
-Can anyone help me out on that ?
+> in our vpn application we are getting route_me_harder: no more route
+> error.
 
-And how can I construct a rule myself, that does mac matching ?
-I am kinda stuck !
+what is 'your vpn application' ?
 
-Wednesday, February 12, 2003, 9:13:03 PM, you wrote:
+> can you please explain, why it occurs. what exactly it is looking for.
+> Please give reply. appreciated your help.
 
-D> Hello netfilter-devel ppl,
+I need to have a full description of your setup, including the
+firewalling ruleset and a description of your network.
 
-D>   I got some questions concerning libiptc and acquiring rules and setting
-D>   rules with it. I read all documents I could find, as well as part of
-D>   iptable sources and the header files etc. .
-D>   Yet there's some things I don't seem to get straight.
+Please submit all this information to http://bugzilla.netfilter.org/
 
-D>   If I fetch the rules of a chain, I'll get a struct ipt_entry (well,
-D>   actually a pointer, but this won'T matter for now). There's all
-D>   kinda src,dst ips,netmasks etc. flags.
+thanks.
 
-D>   Within this struct there an ipt_ip struct, with the properties:
-D>   char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
-D>   unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
+> Regards
+> - Srini
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
-D>   What's the difference between those two ?
+--f+W+jCU1fRNres8c
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-D>   The other thing is, assuming I have a rule, which matches a MAC
-D>   Adress, how do I get the MAC Adress (and if such a matching is in
-D>   the rule). From what I've understood, there's the target_offset
-D>   counter, which helps me on that.
-D>   IT seems to describe the size of a memmory block, so basicly, if I
-D>   sub the size of the ipt_entry structure, I get the size of the
-D>   matches, or actually, behind the ipt_entry in the memory space there
-D>   seems to be a flat array, with matches ?
-D>   The other thing is, if I want to set such a rule, with mac matching,
-D>   even if I properly construct that memory block, what do I need to
-D>   take care about, alignment stuff etc. ?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-D>   Even more intriguing is the following question to me:
+iD8DBQE+S2UXXaXGVTD0i/8RAhH5AJ9mhD43oScr2tm+EZTFWjEHlztUIQCfYaAM
+TgBTarE/WIMV3q9+bD5sQno=
+=miiV
+-----END PGP SIGNATURE-----
 
-D>   I can see, there's a function to get the target.
-D>   Assuming I want to set a rule, how do I set the target properly, and
-D>   how do I set a MAC matching ?
-
-D>   I couldn't find anything in particular on that and would apprechiate
-D>   any help on that.
-  
--- 
-Best regards,
- DarKRaveR                            mailto:DarKRaveR@habitat-b.de
+--f+W+jCU1fRNres8c--
