@@ -1,16 +1,16 @@
-From: "Richard" <richard@o-matrix.org>
-Subject: RE: target for modifying conntrack timeout value
-Date: Tue, 30 Nov 2004 22:13:40 -1000
-Message-ID: <EINSTEINLR95CBUzN8I000063f8@einstein.systemmetrics.com>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: target for modifying conntrack timeout value
+Date: Wed, 1 Dec 2004 09:54:48 +0100
+Message-ID: <20041201085448.GE4605@oknodo.bof.de>
 References: <20041201070025.GD4605@oknodo.bof.de>
+	<EINSTEINLR95CBUzN8I000063f8@einstein.systemmetrics.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "'Patrick Schaaf'" <bof@bof.de>
-In-reply-to: <20041201070025.GD4605@oknodo.bof.de>
+To: Richard <richard@o-matrix.org>
+Content-Disposition: inline
+In-Reply-To: <EINSTEINLR95CBUzN8I000063f8@einstein.systemmetrics.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,53 +22,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+Hi Richard,
 
-I would expect that the new target will just modify the time left for the
-connection. One can 'match' state to see the conditions to change it. So it
-is up to the user to decide what value to use for a certain state.
+> I am thinking to use "ip_ct_refresh" to change the current value of
+> conntrack. If it is feasible, the module shouldn't be too hard to write.
 
-My specific application is for SIP. SIP sends out REGISTER messages to the
-outside server. The server would send any call to the inside client via its
-NAT address. If the conntrack is no longer there, the inside client can't
-receive any SIP message and won't get any call. It needs to keep the
-conntrack active far larger than the 3 minutes default.
+conntrack timeouts are set anew for each packet of the connection,
+on input, as far as I can tell. Your calling ip_ct_refresh will at
+most apply until the next packet of the connection comes by.
 
-I am thinking to use "ip_ct_refresh" to change the current value of
-conntrack. If it is feasible, the module shouldn't be too hard to write.
+> My specific application is for SIP. SIP sends out REGISTER messages to the
+> outside server. The server would send any call to the inside client via its
+> NAT address. If the conntrack is no longer there, the inside client can't
+> receive any SIP message and won't get any call. It needs to keep the
+> conntrack active far larger than the 3 minutes default.
 
-Thanks,
-Richard
+Ah. So you would want packet from client->server extend the timeout
+to say six hours, so that the eventual incoming call signalling
+server->client finds its way to the (hopefully not shut down or
+rebooted) SIP end device behind the NAT box.
 
-> -----Original Message-----
-> From: Patrick Schaaf [mailto:bof@bof.de]
-> Sent: Tuesday, November 30, 2004 9:00 PM
-> To: Richard
-> Cc: 'Kiran Kumar Immidi'; netfilter-devel@lists.netfilter.org
-> Subject: Re: target for modifying conntrack timeout value
-> 
-> Hello Richard,
-> 
-> > This would change the timeout value for all udp conntrack. I'd like to
-> have
-> > more granular control, e.g. after match of certain ports or other
-> > conditions.
-> 
-> This does not exist, yet, for all I know.
-> 
-> It would require a new data field for each conntrack, "override_timeout".
-> 
-> And then, there would be the interesting question of what to do for
-> state changes. UDP is easy, but TCP has a load of states it goes
-> through when the session comes down. Each state transition is coupled
-> to a per-new-state timeout value. Now, if you give a specific
-> override_timeout,
-> what to do with it when the next state transition occurs?
-> 
-> Finally, why do you think you need that? What is so special about your
-> setup that, after one UDP conntrack times out, the next packet for the
-> same pair of addresses cannot just create a new, equivalent conntrack?
-> That would be normal operation - what is different for you?
-> 
-> best regards
->   Patrick
+That should indeed work by calling ip_ct_refresh (ip_ct_refresh_acct
+in 2.6, it seems) in e.g. filter, matching --dport 5060. Just make
+sure you do it in front of any '-m state --state ESTABLISHED -j ACCEPT'
+rules.
+
+Go ahead, write such a target.
+
+best regards
+  Patrick
+
+(btw, could you please not top-post?)
