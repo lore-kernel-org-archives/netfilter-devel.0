@@ -1,15 +1,13 @@
-From: "Martin Bene" <martin.bene@icomedias.com>
-Subject: Problem with pptp nat/contrack
-Date: Fri, 24 Oct 2003 15:47:24 +0200
+From: Dirk Morris <dmorris@metavize.com>
+Subject: -m physdev iptables: Invalid Argument
+Date: Fri, 24 Oct 2003 11:13:14 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4D618F6493CE064A844A5D496733D667031D64@freedom.icomedias.com>
+Message-ID: <3F996BBA.5070106@metavize.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Content-Class: urn:content-classes:message
-To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,43 +18,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Trying to use pptp nat/contrack modules to access VPN server on the =
-internet
-from a client(W2k, SP2) behind my nat/firewall iptables machine.
+I'm running 2.6.0-test8 using the -m physdev --physdev-in (or 
+--physdev-out) and I'm getting invalid argument.
+This is with iptables 1.2.9-rc1.
 
-Kernel: 2.4.20
-Versions used: iptables 1.2.9rc1
-pom from cvs snapshot (20031007)
+This problem is referenced in a couple places on the web:
+http://small.dropbear.id.au/docs/adslfirewall.html
 
-Network setup:
-192.168.168.175 (netmask 255.255.255.0) =3D=3D> cisco1 192.168.168.1 =
-=3D=3D>
-cisco2 192.168.120.2 =3D=3D> linux nat box 192.168.120.1 =3D=3D> =
-(internet) =3D=3D> VPN
-PPTP Server (WatchGuard Technologies, Inc.)
+Is this a bug? (if so I can do a formal bug report)
+Or has this functionality been dropped?
+If so, how can I filter based on the ethernet device of a bridged packet?
 
-WITHOUT ip_nat_pptp, ip_conntrack_pptp, ip_conntrack_proto_gre,
-ip_nat_proto_gre loaded:=20
-Connection to external VPN Server works, but just one client at a time =
-may
-access the VPN server.
+~/ # sudo /sbin/iptables -m physdev -t mangle -A FORWARD --physdev-in 
+eth0 -p udp --source 10.0.0.0/255.255.255.0  --destination-port 7:7 -j 
+DIVERT --to-port 20259
+iptables: Invalid argument
+~/ # sudo /sbin/iptables -m physdev -t nat -A PREROUTING --physdev-in 
+eth0 -p tcp --source 10.0.0.0/255.255.255.0  --destination-port 7:7 -j 
+REDIRECT --to-port 20259
+iptables: Invalid argument
 
-WITH the above modules loaded:=20
-Connection can't be established. Packet dump shows: gre encapsulated ppp =
-conf
-req going out; returning (ppp conf rej) packets show up on the firewall
-external interface, but don't show up on  the internal =
-interface/network;
-instead they end up being blocked by INPUT firewall - rules; looks like =
-they
-aren't correctly associated with the gre expectation and end up being =
-treated
-as destined for the firewall locally. iptables configuration/rules were =
-not
-changed from previous test, so I'd expect the ruleset to be OK.
-cat /proc/net/ip_conntrac lists the gre expectation as unreplied.
-
-Any Idea where to start looking?
-
-
-Yours, Martin
+-dmorris
