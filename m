@@ -1,17 +1,15 @@
-From: "Andrew Hall" <temp02@bluereef.com.au>
-Subject: Re: i wanna know exact difference between NETFILTER and IPTABLES
-Date: Thu, 5 Feb 2004 10:46:03 +1100
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [ANNOUNCE] New Core Team Member - Patrick McHardy
+Date: Thu, 05 Feb 2004 00:38:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <031901c3eb79$0ccbd140$2601010a@bluereef.local>
-References: <Pine.LNX.4.44.0402042317330.19469-100000@filer.marasystems.com>
+Message-ID: <1075937929.19762.366.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-xs8OIU/Msa0u8a62Ubvz"
+Cc: coreteam@netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Henrik Nordstrom" <hno@marasystems.com>,
-	"rohit persaie" <persaie@yahoo.co.in>
+To: Netfilter <netfilter@lists.netfilter.org>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	netfilter-announce@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,50 +20,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I remember reading quite awhile ago about a proposed change to both the
-interface iptables uses and the mechanics of kernel applied rule
-replacement. Something about being able to make singular atomic changes to
-each rule rather than replace whole tables. Can you (Henrik) or anyone else
-shed some light on where this thinking currently stands, whether there's
-been a new specification generated to which the core developers are working,
-or whether there is in fact some code. I understand that Harald had done
-some work on the iptables2 interface? Is this part of this new proposed
-interface?
 
-I think everyone would be interested in a quick synopses of where things are
-broadly at, in the world of Netfilter.
+--=-xs8OIU/Msa0u8a62Ubvz
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Andrew.
------ Original Message -----
-From: "Henrik Nordstrom" <hno@marasystems.com>
-To: "rohit persaie" <persaie@yahoo.co.in>
-Cc: <netfilter-devel@lists.netfilter.org>
-Sent: Thursday, February 05, 2004 9:21 AM
-Subject: Re: i wanna know exact difference between NETFILTER and IPTABLES
+The Netfilter Core Team is proud to announce the addition of
+Patrick McHardy as a new member.
+
+He has repetedly demonstrated high insight and coding standards in many
+areas of the project. His hard and dedicated work has significantly
+improved the quality of the codebase.
+
+By joining the Core Team, Patrick will definitely help advance the
+development of the Netfilter project to a higher level.
+
+Welcome Patrick!
+
+Martin,
+on behalf of the Netfilter Core Team.
+
+diff -u -1 -r1.1 iptables.8.in
+--- iptables/iptables.8.in	22 Jan 2004 15:04:24 -0000	1.1
++++ iptables/iptables.8.in	4 Feb 2004 23:33:29 -0000
+@@ -457,3 +457,3 @@
+ The Netfilter Core Team is: Marc Boucher, Martin Josefsson, Jozsef Kadlecs=
+ik,=20
+-James Morris, Harald Welte and Rusty Russell.
++Patrick McHardy, James Morris, Harald Welte and Rusty Russell.
+ .PP
 
 
-> On Wed, 4 Feb 2004, rohit persaie wrote:
->
-> > netfilter(acts at kernel level )
-> >
-> > and iptables ( works at user level)
->
-> Netfilter provides the hooks required for the iptables firewall to access
-> the packets within the Linux kernel. Both run within the kernel. See the
-> netfilter hacking guide for details.
->
-> To control the ruleset of the iptables firewall kernel the userspace
-> program iptables is used. This program is responsible for compiling your
-> firewall ruleset into binary form used by the iptables kernel. The
-> communication is using getsockopt calls, but this is not really of
-> interest to anyone except for the iptables core as it is all wrapped up
-> nicely. The exact deatils of the communication between the iptables
-> userspace and kernel is not specified in detail other than the source. The
-> official interface for talking to the iptables kernel is the iptables
-> command.
->
-> Regards
-> Henrik
->
->
+--=-xs8OIU/Msa0u8a62Ubvz
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBAIYKIWm2vlfa207ERAqqZAJ9jvXOYUmdhvOMyDdwBlX0QyxWD5gCff/gq
+cwuckcb/eOdYMcauVxddNI8=
+=dxSO
+-----END PGP SIGNATURE-----
+
+--=-xs8OIU/Msa0u8a62Ubvz--
