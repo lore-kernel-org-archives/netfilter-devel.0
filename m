@@ -1,15 +1,18 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH] IRC Zero Port Fix
-Date: Tue, 25 Jan 2005 18:08:48 +1100
-Message-ID: <1106636928.19186.47.camel@localhost.localdomain>
-References: <1106412163.7965.10.camel@debian>
+Subject: Re: [PATCH 1/3] Netfilter: Remove ip_conntrack_tuple_hash "ctrack"
+Date: Tue, 25 Jan 2005 18:46:33 +1100
+Message-ID: <1106639193.19186.50.camel@localhost.localdomain>
+References: <1105444254.19331.43.camel@localhost.localdomain>
+	<m3k6q52ubw.fsf@igel.m5r.de>
+	<1106535381.19666.6.camel@localhost.localdomain>
+	<jellajqguc.fsf@sykes.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ian Kumlien <pomac@vapor.com>
-In-Reply-To: <1106412163.7965.10.camel@debian>
+To: Andreas Schwab <schwab@suse.de>
+In-Reply-To: <jellajqguc.fsf@sykes.suse.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,66 +24,68 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2005-01-22 at 17:42 +0100, Ian Kumlien wrote:
-> Hi, 
+On Mon, 2005-01-24 at 11:08 +0100, Andreas Schwab wrote:
+> Rusty Russell <rusty@rustcorp.com.au> writes:
 > 
-> I just noticed that the dcc helper doesn't work, it just sets the source
-> ip to 0. And since i have no clue of that code, i choose not to dive in
-> to it with no prior knowledge to structures and stuff.. I decided to ask
-> you instead.
+> > On Sat, 2005-01-22 at 19:26 +0100, Andreas Schwab wrote:
+> >> Doesn't this break the iptables conntrack module on big-endian systems?
+> >
+> > I don't see why... we only need 8 bits for the protocol, and we used to
+> > use 16 (because we had them).  I wanted to add a field, so I reduced
+> > protonum to 8 bits and added another 8 bit field.
 > 
-> So is this known?
-> And you don't do anything to the size with the new code right?
+> iptables uses this structure internally.  If it also uses it inside a
+> kernel interface then you have broken the kernel ABI.
 
-Here's the fix, thanks for the bug report.
+Sorry, I misunderstood.  You're right.
 
-Rusty (who just learnt a lot about the IRC protocol).
-
-Name: IRC Zero Port Fix
-Status: Tested under nfsim, booted under qemu
+Name: Avoid breaking userspace due to tuple change
+Status: Trivial, Compiled
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-Ian Kumlien reported that new NAT code started sending out DCC
-requests with 0 as the IP address.  That prompted me to write a simple
-IRC test case, which both illustrated the bug, and found another one
-in that the wrong expectation was being set up when NAT occurred.
+Andreas Schwab <schwab@suse.de> points out that the ipt_conntrack
+match exposes "struct ip_conntrack_tuple" to userspace, and we changed
+it recently.  Make it use a "special" one, to avoid breaking
+compatibility.
 
-Index: linux-2.6.11-rc2-bk2-Netfilter/net/ipv4/netfilter/ip_nat_irc.c
+Index: linux-2.6.11-rc2-bk2-Netfilter/include/linux/netfilter_ipv4/ipt_conntrack.h
 ===================================================================
---- linux-2.6.11-rc2-bk2-Netfilter.orig/net/ipv4/netfilter/ip_nat_irc.c	2005-01-24 11:14:14.000000000 +1100
-+++ linux-2.6.11-rc2-bk2-Netfilter/net/ipv4/netfilter/ip_nat_irc.c	2005-01-25 16:30:31.006522720 +1100
-@@ -83,7 +83,10 @@
- 	 *              0x01, \n:  terminators
- 	 */
+--- linux-2.6.11-rc2-bk2-Netfilter.orig/include/linux/netfilter_ipv4/ipt_conntrack.h	2005-01-11 14:21:11.000000000 +1100
++++ linux-2.6.11-rc2-bk2-Netfilter/include/linux/netfilter_ipv4/ipt_conntrack.h	2005-01-25 18:22:29.588143064 +1100
+@@ -22,11 +22,32 @@
+ #define IPT_CONNTRACK_STATUS	0x40
+ #define IPT_CONNTRACK_EXPIRES	0x80
  
--	sprintf(buffer, "%u %u", ntohl(exp->tuple.src.ip), port);
-+	/* AAA = "us", ie. where server normally talks to. */
-+	sprintf(buffer, "%u %u",
-+		ntohl(exp->master->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip),
-+		port);
- 	DEBUGP("ip_nat_irc: Inserting '%s' == %u.%u.%u.%u, port %u\n",
- 	       buffer, NIPQUAD(exp->tuple.src.ip), port);
++/* This is exposed to userspace, so remains frozen in time. */
++struct ip_conntrack_old_tuple
++{
++	struct {
++		__u32 ip;
++		union {
++			__u16 all;
++		} u;
++	} src;
++
++	struct {
++		__u32 ip;
++		union {
++			__u16 all;
++		} u;
++
++		/* The protocol. */
++		u16 protonum;
++	} dst;
++};
++
+ struct ipt_conntrack_info
+ {
+ 	unsigned int statemask, statusmask;
  
-Index: linux-2.6.11-rc2-bk2-Netfilter/net/ipv4/netfilter/ip_conntrack_irc.c
-===================================================================
---- linux-2.6.11-rc2-bk2-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_irc.c	2005-01-24 11:14:14.000000000 +1100
-+++ linux-2.6.11-rc2-bk2-Netfilter/net/ipv4/netfilter/ip_conntrack_irc.c	2005-01-25 16:46:57.998477136 +1100
-@@ -209,9 +209,14 @@
- 			DEBUGP("tcph->seq = %u\n", th->seq);
- 			seq = ntohl(th->seq) + (addr_beg_p - ib_ptr);
+-	struct ip_conntrack_tuple tuple[IP_CT_DIR_MAX];
++	struct ip_conntrack_old_tuple tuple[IP_CT_DIR_MAX];
+ 	struct in_addr sipmsk[IP_CT_DIR_MAX], dipmsk[IP_CT_DIR_MAX];
  
-+			/* We refer to the reverse direction ("!dir")
-+			 * tuples here, because we're expecting
-+			 * something in the other * direction.
-+			 * Doesn't matter unless NAT is happening.  */
- 			exp->tuple = ((struct ip_conntrack_tuple)
- 				{ { 0, { 0 } },
--				  { ct->tuplehash[dir].tuple.src.ip, { .tcp = { htons(dcc_port) } },
-+				  { ct->tuplehash[!dir].tuple.dst.ip,
-+				    { .tcp = { htons(dcc_port) } },
- 				    IPPROTO_TCP }});
- 			exp->mask = ((struct ip_conntrack_tuple)
- 				{ { 0, { 0 } },
+ 	unsigned long expires_min, expires_max;
 
 -- 
 A bad analogy is like a leaky screwdriver -- Richard Braakman
