@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: iptables and SPI...
-Date: Sun, 2 Nov 2003 16:06:23 +0100
+Subject: Re: [NETFILTER] Some more informations
+Date: Sun, 2 Nov 2003 16:42:28 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031102150623.GX1536@sunbeam.de.gnumonks.org>
-References: <Law10-F126ORH9HWP5R0002a333@hotmail.com>
+Message-ID: <20031102154228.GD1536@sunbeam.de.gnumonks.org>
+References: <mnet1.1066738475.26722.florian.pouradier@netcourrier.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vS2hnRoLMmJ4tslQ"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="snImcH6YoPvXmXT+"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: dimitri borjac <dimitri_borjac@hotmail.com>
+To: florian.pouradier@netcourrier.com
 Content-Disposition: inline
-In-Reply-To: <Law10-F126ORH9HWP5R0002a333@hotmail.com>
+In-Reply-To: <mnet1.1066738475.26722.florian.pouradier@netcourrier.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,59 +23,45 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---vS2hnRoLMmJ4tslQ
+--snImcH6YoPvXmXT+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Oct 31, 2003 at 03:32:46PM +0000, dimitri borjac wrote:
-> what i'm trying to do is to perform NAT based on IP_addresses/Ports/SPIs.
+On Tue, Oct 21, 2003 at 02:14:35PM +0200, florian.pouradier@netcourrier.com=
+ wrote:
+> Hi,
 >=20
-> The situation would be different users NATted by a common local gateway=
-=20
-> (all the users are located on the same private network), making each one =
-an=20
-> IPsec tunnel (using ESP) to the same remote gateway.
->=20
-> The different tunnels start from each user, go through the local gateway=
-=20
-> (which NATts the users) and end at the remote gateway.
+> these last days, I'm interested in coding in netfilter. I read a few
+> (good) papers from you on this topic.
 
-ok, so we are talking about=20
+Thanks, you're welcome !
 
-- NAT'ing the IKE connection on port 500
-and=20
-- NAT'ing the AH/ESP connection that is proto AH or ESP and has no port
-  but just the SPI.
+> I have a good experience in C programming, but never in kernel nor in
+> advanced network.
 
-Basically what you are asking for, is ip_conntrack_{proto,nat}_{ah,esp}.c
+that's not a problem in general.
 
-> The problem for the local gateway is to NAT the different VPN, based on t=
-he=20
-> private IP adresses of the users, the ports used (port 50 for ESP...) and=
-=20
-> the SPIs (in order to distinguish the different tunnels).
+> I would like to develop a netfilter module to change "on the fly" data
+> from protocols, like NNTP.
 
-it's l4 protocol 50, not port 50.
+I doubt that netfilter (or any other packet filter) is the right way to
+do that.   The major problem is that you don't have stream reassembly,
+but just the packets themselves.  So somebody could send the data in one
+byte packets, and you'd never be able to match [and replace] data in the
+stream.
 
-> The problem is not for the chosen ipsec implementation since the local=20
-> gateway only NATts and forwards the ispec packets.=20
+> I can't really see whether the NAT helper modules architecture is
+> suitable for this kind of manipulation. I can see it changing some
+> data (for the FTP PORT command as an example), but always for related
+> connections. The module I would like to write won't imply a new
+> connection, so I would like to know your opinion about this.
 
-oh yes, with standard ipsec you will run into problems.  IPsec does
-generally NOT work across NAT boxes, unless you use the UDP
-encapsulation mechanism.  Please try to read some general information
-about IPsec and NAT.
+You can perfectly implement it as a  NAT helper module.  Nobody forces a
+nat helper to raise expectations. see the SNMP helper as an example.
 
-> But with the current version of iptables, is it possible for the local
-> gateway to perform NAT based on the SPIs (and @IP and ports...) ?  (i
-> saw that extracting the SPI from the ESP header is possible thx to
-> last p-o-m... but NAT with it ?)
-
-no, however it is easy to implement.  The problem is 'just' that it
-still wouldn't work because of IPsec's shortcomings wrt. NAT.
-
-> Regards,
-> dimo
+> Thanks in advance,
+> Florian Pouradier.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -87,16 +73,16 @@ still wouldn't work because of IPsec's shortcomings wrt. NAT.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---vS2hnRoLMmJ4tslQ
+--snImcH6YoPvXmXT+
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/pR1vXaXGVTD0i/8RAoZLAKCycO7MFZfEhomR6upW89zBus/5rQCglTAa
-G31vYhk+ifhqYfZb9x8t4Bw=
-=GgCk
+iD8DBQE/pSXkXaXGVTD0i/8RAlTTAKCjIpgNdbFBQPj4ossfRoMjx8nnvgCeLuPy
+mpKFkJ+39VU2//mdCX7J1zY=
+=V5l/
 -----END PGP SIGNATURE-----
 
---vS2hnRoLMmJ4tslQ--
+--snImcH6YoPvXmXT+--
