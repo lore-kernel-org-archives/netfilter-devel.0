@@ -1,18 +1,13 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: Call for testing: patch-o-matic-ng
-Date: Tue, 6 Jan 2004 14:37:54 +0100
+From: Michal Margula <alchemyx@uznam.net.pl>
+Subject: runme
+Date: Tue, 6 Jan 2004 15:17:22 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040106133754.GB1142@eychenne.org>
-References: <20040105132256.GA4074@eychenne.org> <Pine.LNX.4.33.0401061016250.16609-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.58L.0401061514080.17738@gandalf.uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0401061016250.16609-100000@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,21 +18,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jan 06, 2004 at 11:32:15AM +0100, Jozsef Kadlecsik wrote:
+Hello!
 
-> Scanning my machine, I could not find a perl module which implements th=
-e
-> deb dependecy checking. :-(
+=09Yesterday I was fighting with patch-o-matic. It was complaining=20
+about "bad substitution" at some line. After few minutes of googling, i=20
+found out that runme is bash-based shell. So it requires bash to run. OK,=
+=20
+fine. But in header it has #!/bin/sh and it shouldn't. Some distribution=20
+(PLD for example) use other shells like pdksh for /bin/sh.=20
 
-Yes, apt is in C++... If someone feels like writing this in Perl and
-incorporate it into CPAN, I think it would be interesting for quite a
-few people, as version and dependency checking is not only needed in
-Debian, obviously. :-)
+Solution is simple - changing #!/bin/sh into #!/bin/bash and everything=20
+should be fine. I don't know if I should to report it at=20
+bugs.netfilter.org or maybe someone can commit a change to CVS?
 
- Herve
+Thanks.
 
 --=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/ +)
+"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
