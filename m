@@ -1,16 +1,17 @@
-From: Andrej Ricnik <andrej@paradise.net.nz>
-Subject: How/where does the kernel map packets to an application ...
-Date: Thu, 15 Jan 2004 09:10:30 +1300
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's brain broke!)
+Date: Wed, 14 Jan 2004 16:20:47 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401150910.32898.andrej@paradise.net.nz>
-Reply-To: andrej@paradise.net.nz
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <20040114221944.AFA6B2C003@lists.samba.org>
+References: <20040113115428.GO20206@sunbeam.de.gnumonks.org>
+Cc: Patrick McHardy <kaber@trash.net>, kuznet@ms2.inr.ac.ru,
+	fenio@o2.pl, davem@redhat.com, linux-net@vger.kernel.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	boris@boris.ca, email@cs-ware.de, Jan.Schubert@GMX.li
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-Content-description: clearsigned data
+To: Harald Welte <laforge@netfilter.org>
+In-reply-to: Your message of "Tue, 13 Jan 2004 12:54:28 BST."
+             <20040113115428.GO20206@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,37 +22,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Guys,
+In message <20040113115428.GO20206@sunbeam.de.gnumonks.org> you write:
+> > Yes, this is the best.  It always does *something*, and is
+> > predictable.  People with really complex routing shouldn't really use
+> > MASQUERADE, since it's designed for a specific, simple case.
+> 
+> No, I really disagree with that.  I still don't understand what the
+> problem was with the old solution.  We haven't received any complaints,
+> at least not that I can remember.
 
-and sorry for asking this here, I'm aware of the fact that
-this isn't quite the right list to do so, in fact, I don't even
-know how to word my question properly, so please bear
-with me.
+I'm not so sure.  We know Patrick's solution will work.  Yes it might
+break things.
 
-Since you're pretty close to what I suspect to be the right
-layer to be looking at I hope someone might understand
-what I'm on about :)
+> And as long as we don't provide a more sophisticated MASQUERADE
+> replacement target, we shouldn't change the behaviour at all.
+> 
+> You cannot use SNAT for the dynamic IP address case, because it doesn't
+> flush the tables.
 
-My idea is to write an addition to netfilter that will check=20
-the originating application of an IP request against a list
-of allowed files, and if I handle that well enough, integrate
-a roster of user/application to check whether a request is
-legal or not.
+We should probably do "-j SNAT --dynamic" for this case.
 
-My question is:
-At which point does the kernel determine which application
-a incoming packet is meant for? Imagine one user having
-mozilla and opera open, using both for browsing. Another
-user having a links session in a console. How does the
-kernel determine which application is meant to receive
-a incoming packet on port 80? I hope that once I under-
-stand how this works I could for instance use lsof or a
-tool the like to intercept illegal requests by matching=20
-against application name/path ...
+> And there are lots of users that have multiple DSL-dynip links these
+> days, trying to statically or dynamically balance web requests between
+> them, etc.
 
-If this is a FAQ, or just plain stupid, please throw me a
-link to appropriate documentation.
+In that case, the interfaces are different, (ppp0 vs ppp1) so no
+problem.  You need something more complex to trigger the problem
+AFAICT.
 
-Thanks in advance, and thanks for your patience,
-Cheers,
-Tink
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
