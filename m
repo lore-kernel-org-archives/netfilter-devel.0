@@ -1,15 +1,11 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: netfilter performance question
-Date: Sat, 02 Apr 2005 11:04:59 +0000
-Message-ID: <1112439899.3430.5.camel@localhost.localdomain>
-References: <20050322122438.C70026@imperator.sieradz.info>
+From: Robert de Bath <robert$@mayday.cix.co.uk>
+Subject: Iptables 1.3.1 still not very fast.
+Date: Fri, 1 Apr 2005 21:47:05 +0100 (BST)
+Message-ID: <0f598b09cef38490@mayday.cix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcin Szczepaniak <szczepan@sieradz.info>
-In-Reply-To: <20050322122438.C70026@imperator.sieradz.info>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,25 +17,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op di, 22-03-2005 te 12:42 +0000, schreef Marcin Szczepaniak:
-> I've tested two configurations of kernel (i am using 2.6 kernel tree):
-> first - no netfilter enabled - my device was able to bridge 70 Mbit of 
-> traffic.
-> second - netfilter compiled in, but no rules applied - traffic is only 20 
-> Mbit :( Adding some test rules has minor affect to traffic. Simply 
-> existence of netfiler makes maximal possible traffic to be equal one third 
-> of that when only routing exists in kernel.
+Okay, I'll admit is it a LOT faster that 1.2.11 it still seems to take a 
+long time with big tables.
 
-Are you using connection tracking? Then try to minimize the overload of
-it, see
-http://ebtables.sourceforge.net/brnf-faq.html#quiz1
+An example:
+I have a program (I've called iptrange) that will take a file full of ip 
+address ranges (192.168.42.10 192.168.42.25) and converts them into a set
+of iptables chains that invokes another chain if the source (or dest) 
+matches ie:
 
-> Then I found ebtables. As much simplier than netfilter it should be also 
-> much faster. But there is no way to use only ebtables. Netfilter must be 
-> enabled in .config if you want use ebtables.
+iptables -N CHECK
+iptables -A CHECK -s 192.168.42.10/31 -j FOUND
+iptables -A CHECK -s 192.168.42.12/30 -j FOUND
+iptables -A CHECK -s 192.168.42.16/29 -j FOUND
+iptables -A CHECK -s 192.168.42.24/31 -j FOUND
 
-Ebtables with simple rules won't be faster than iptables with simple
-rules and connection tracking disabled.
+The good bit is that it will create a tree of subchains so that the
+matching is efficient for large numbers of ip addresses.
 
-cheers,
-Bart
+This works well for a few hundred address ranges; I use it to match
+recent 'evil' ips and ranges from dshield.org.
+
+However, when I tried a 50000 range list from http://blocklist.org I
+ran into problems.  After conversion it created 20000 chains with a
+total of 70000 rules.  This tables took about an hour to load using
+iptables-1.2.11!
+
+Version 1.3.1 of libiptc is a LOT faster at about 5 minutes to do the
+load. But this still seems very slow when it takes about half a second
+to generate and print out the iptables rules to a script.
+
+I hate to think how slow it would be with a million ranges; assuming 
+it can be loaded it looks like it would be about 300000 chains, 1.3M
+rules and about 100 rules checked per packet (to pick some figures out
+of a single test) so it should be useable ...
+
+BTW: iptables-restore is slower than my iptrange!
+
+My problem is that I think that libiptc looks evil and I really don't
+want to dive into messing with that code. So how can I help to make
+libiptc run as fast as I'd like it to?
+
+-- 
+Rob.                          (Robert de Bath <robert$ @ debath.co.uk>)
