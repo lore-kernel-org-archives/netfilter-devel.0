@@ -1,47 +1,42 @@
-From: James Courtier-Dutton <James@superbug.co.uk>
-Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
-Date: Wed, 22 Sep 2004 12:52:04 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <41516764.8030205@superbug.co.uk>
-References: <1095721742.5886.128.camel@bach>  <20040921143613.2dc78e2f.Ballarin.Marc@gmx.de> <1095803902.1942.211.camel@bach> <Pine.LNX.4.53.0409220735080.2066@chaos.analogic.com>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [nf-failover] NAT support for peer-to-peer games
+Date: Wed, 22 Sep 2004 14:00:21 +0200
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <1095854420.2678.10.camel@nienna.balabit>
+References: <00d901c49fb3$2dea51f0$e310f43e@manowar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Rusty Russell <rusty@rustcorp.com.au>,
-	Marc Ballarin <Ballarin.Marc@gmx.de>,
-	Linus Torvalds <torvalds@osdl.org>,
-	netfilter-devel@lists.netfilter.org,
-	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S264726AbUIVLwN@vger.kernel.org>
-To: root@chaos.analogic.com
-In-Reply-To: <Pine.LNX.4.53.0409220735080.2066@chaos.analogic.com>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "Serguei I. Ivantsov" <manowar@gsc-game.kiev.ua>
+In-Reply-To: <00d901c49fb3$2dea51f0$e310f43e@manowar>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Richard B. Johnson wrote:
-> On Wed, 22 Sep 2004, Rusty Russell wrote:
-> 
-> 
->>On Tue, 2004-09-21 at 22:36, Marc Ballarin wrote:
->>
->>>On Tue, 21 Sep 2004 09:09:02 +1000
->>>"Rusty Russell (IBM)" <rusty@au1.ibm.com> wrote:
->>>
->>>
->>>>Name: Warn that ipchains and ipfwadm are going away
->>>>Status: Trivial
->>>>Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
->>>
-> What replaces the firewall stuff? It can't just "go away"!
-> 
-> Cheers,
-> Dick Johnson
 
-ipchains and ipfwadm are very old firewall implementations.
-The current linux firewall code is called "iptables" and that has been 
-present for a long time time, and that is staying.
+  Hi,
 
-So, the linux kernel still has firewall features, even with ipchains and 
-ipfwadm removed.
+2004-09-21, k keltez=E9ssel 10:15-kor Serguei I. Ivantsov ezt =EDrta:
+> http://www.hasenstein.com/HyperNews/get/linux-ip-nat/97.html
 
-James
+  In theory, all of this is implemented by Netfilter at the moment.
+Based on http://alumnus.caltech.edu/~dank/peer-nat.html, Netfilter has
+some code to make sure that all packets sent from a single local UDP
+port are mapped to the same public IP and port. Unfortunately this code
+is broken at the moment, but the fix should be really easy. (AFAIK Rusty
+already has some patches to fix this.)
+
+PS: please don't send emails like this to the netfilter-failover list,
+it's really offtopic there. Use netfilter-devel instead.
+
+--=20
+ Regards,
+   Krisztian KOVACS
