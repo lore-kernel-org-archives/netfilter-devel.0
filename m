@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: performance issues (nat / conntrack)
-Date: Thu, 27 Jun 2002 13:24:48 +0200
+Subject: Re: MSN Messenger ALG
+Date: Thu, 27 Jun 2002 13:26:23 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020627112448.GC9003@naboo.rchrd.phub.net.cable.rogers.com>
-References: <Pine.LNX.4.33.0206251548230.539-100000@blackhole.kfki.hu> <38143.203.134.158.15.1025144505.squirrel@iw.k1k2.com>
+Message-ID: <20020627112623.GD9003@naboo.rchrd.phub.net.cable.rogers.com>
+References: <NEBBLANGHHJHJJOGHIJGCEAGCCAA.amirk@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Andrew Smith <nfml@k1k2.com>
+To: Amir Khandani <amirk@broadcom.com>
 Content-Disposition: inline
-In-Reply-To: <38143.203.134.158.15.1025144505.squirrel@iw.k1k2.com>
+In-Reply-To: <NEBBLANGHHJHJJOGHIJGCEAGCCAA.amirk@broadcom.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,29 +21,18 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 27, 2002 at 12:21:45PM +1000, Andrew Smith wrote:
-> This gives a good example when being able to set the timeout dependant
-> upon specific factors (e.g. port/protocol) would be good rather than a
-> global timeout that suits specific cases and does not match many cases
-> - and causes a severe problem for a limited set of cases
+On Wed, Jun 26, 2002 at 11:44:14AM -0700, Amir Khandani wrote:
+> Hi,
+> Is there a ALG for MSN Messenger in iptables? I need that to get file
+> transfer and voice working between NATed clients.
 
-Sorry, but we've had this discussion over and over again. Go to the list
-archives and look for tuneable timeouts.
+I assume you are talking about the SIP protocol?
 
-The conclusion of this discussion was, that we need to cope with all
-cases without any tuning being necessarry. 
+No, nobody came up to either write or sponsor support for SIP yet. It's
+a fairly complex protocol...
 
-btw: For the 'ping' case, the icmp echo reply is closing the connection
-anyway.
-
-conntrack is mostly about tracking layer 3+4 protocol state.  And this
-should happen as transparent as possible, so assumptions about the
-application are made.  [conntrack helpers are an exemption, and be sure
-I would be much happier if we didn't need to have them].
-
-
-> -Cheers
-> -Andrew
+> thanks for any help,
+> -amir
 
 -- 
 Live long and prosper
