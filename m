@@ -1,16 +1,15 @@
-From: Johan Ankarloo <johan.ankarloo@volvo.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: DNAT/SNAT and logging
-Date: Wed, 21 Jan 2004 19:48:35 +0100
+Date: Wed, 21 Jan 2004 21:16:52 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1074710915.16080.4.camel@ankarloo.got.volvo.net>
-References: <Pine.LNX.4.44.0401211303450.6443-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0401212112170.12563-100000@filer.marasystems.com>
+References: <1074710915.16080.4.camel@ankarloo.got.volvo.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0401211303450.6443-100000@filer.marasystems.com>
+To: Johan Ankarloo <johan.ankarloo@volvo.com>
+In-Reply-To: <1074710915.16080.4.camel@ankarloo.got.volvo.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,43 +20,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-So you don't think that this is a lot of work just to get the logging to
-work correctly? I mean that this is something that ( in my opinion )
-should be done out of the box so to say. 
+On Wed, 21 Jan 2004, Johan Ankarloo wrote:
 
-How should this be done through /dev/net/ip_conntrack? Do you have any
-examples?
+> So you don't think that this is a lot of work just to get the logging to
+> work correctly? I mean that this is something that ( in my opinion )
+> should be done out of the box so to say. 
 
-//Johan
+It is some work, but not very much.
 
-On Wed, 2004-01-21 at 13:05, Henrik Nordstrom wrote:
-> On Wed, 21 Jan 2004, Johan Ankarloo wrote:
-> 
-> > I'm not shure i agree. The problem here is that the logging is done
-> > seperate from the modules that mangle the packets.
-> 
-> Yes, and so is the NAT rules.
-> 
-> > The right way ( for me ) would be to have the mangle modules send the
-> > logging information to the logging module. In this way the mangle
-> > modules could say what has been altered in the packet.
-> 
-> If you log the addressing information from conntrack then this is exacly
-> what is done.
-> 
-> Regards
-> Henrik
--- 
-Mvh
- 
-Johan Ankarloo
-Volvo IT
-Network & Security Engineer
-Tel: +46 31 32 70949
- 
-====================================================================
-This message may contain confidential and/or proprietary information,
-and is intended only for the person/entity to whom it was originally
-addressed. The content of this message may contain private views and
-opinions which do not constitute a formal disclosure or commitment
-unless specifically stated.
+> How should this be done through /dev/net/ip_conntrack?
+
+When I say conntrack I mean in the kernel, not the proc files. By writing 
+another LOG target using the information from conntrack rather than the 
+packet you can log the information you requested.
+
+See the LOG target and the conntrack match for details, also read the NAT 
+& Conntrack sections of the hacking howto.
+
+The most tricky part is when to log the first packet of the session. This
+has to be done after all information has been entered into the session,
+i.e. after any SNAT targets have been applied.
+
+Another approach is to look into using ctnetlink for detailed session
+logging. This is something we are currently implementing.
+
+Regards
+Henrik
