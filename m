@@ -1,18 +1,15 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: bug: -j REDIRECT broken with bridge in 2.6.0-test3
-Date: Tue, 26 Aug 2003 21:14:38 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: policy routing on locally generated packets
+Date: Tue, 26 Aug 2003 21:37:04 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200308262114.38176.bdschuym@pandora.be>
-References: <3F3AEDEF.2000108@metavize.com> <3F4A9AA7.2070604@metavize.com> <200308260812.08884.bdschuym@pandora.be>
+Message-ID: <Pine.LNX.4.44.0308262127040.16076-100000@filer.marasystems.com>
+References: <1061887675.1273.37.camel@drs0.manchotnetworks.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: dmorris <dmorris@metavize.com>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <200308260812.08884.bdschuym@pandora.be>
-Content-Disposition: inline
+To: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>
+In-Reply-To: <1061887675.1273.37.camel@drs0.manchotnetworks.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,17 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 26 August 2003 08:12, Bart De Schuymer wrote:
-> On Tuesday 26 August 2003 01:24, dmorris wrote:
-> > Does anyone have *any* idea where I could look to start solving this?
-> > Can anyone confirm?
-> > It is still present in 2.6.0-test4 on my test machines.
->
-> I think this should be fixed with the patch Harald sent to Dave, see the
-> thread "Fix ipt_REJECT if used on bridge". I don't see it in Linus' tree
-> yet.
+On 26 Aug 2003, lartc@manchotnetworks.net wrote:
 
-Never mind that, I misread REDIRECT for REJECT.
+> So I am searching for a hopefully simple way to implement this without
+> having to recompile a bunch of stuff.
 
-cheers,
-Bart
+NAT of local connections can be of help here I think.
+
+Also, there was some discussion regarding marking and rerouting of local 
+packets some year ago. It was supposed to be fixed somehow (by NAT I 
+think..)
+
+Regards
+Henrik
