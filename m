@@ -1,16 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH/RFC] core/netfilter.c: possible use of freed skb
-Date: Sun, 27 Jul 2003 15:50:30 -0700
+Subject: Re: [TRIVIAL] place IPv4 netfilter submenu where it belongs
+Date: Sun, 27 Jul 2003 16:09:42 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030727155030.2ce4e22e.davem@redhat.com>
-References: <200307271655.15937.bdschuym@pandora.be>
+Message-ID: <20030727160942.647707d8.davem@redhat.com>
+References: <20030726200646.GF16160@louise.pinerecords.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <200307271655.15937.bdschuym@pandora.be>
+To: Tomas Szepe <szepe@pinerecords.com>
+In-Reply-To: <20030726200646.GF16160@louise.pinerecords.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,14 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 27 Jul 2003 16:55:15 +0200
-Bart De Schuymer <bdschuym@pandora.be> wrote:
+On Sat, 26 Jul 2003 22:06:46 +0200
+Tomas Szepe <szepe@pinerecords.com> wrote:
 
-> In nf_reinject(), info->okfn(skb) is called when the verdict is NF_ACCEPT.
-> This okfn deals with the skb and is responsible for freeing the skb.
-> Unfortunately the current code in nf_reinject() still uses this possibly
-> freed skb.
-> The patch below fixes this without introducing any new code.
+> $subj
+> 
+> Patch against -bk3.
 
-This patch looks OK to me, can I get an ACK from the
-netfilter folks?
+This doesn't look right at all.
+
+Netfilter is for many protocols other than ipv4 (ipv6, bridging,
+decnet, etc.) so putting it under ipv4 makes not much sense
+to me.
+
+If anything, probably the "depends on INET" could need correction.
