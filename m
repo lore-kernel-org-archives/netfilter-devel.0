@@ -1,17 +1,18 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: iptables: memory allocation problem
-Date: Tue, 23 Dec 2003 00:58:55 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Call for testing: patch-o-matic-ng
+Date: Mon, 22 Dec 2003 13:00:47 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031222235855.GE7269@eychenne.org>
-References: <20031216182959.GA1216@eychenne.org> <20031220121218.GA1370@eychenne.org> <1071923429.24067.76.camel@tux.rsn.bth.se>
+Message-ID: <20031222120047.GK5058@obroa-skai.de.gnumonks.org>
+References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <1072086985.1031.7.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nywXBoy70X0GaB8B"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+To: KOVACS Krisztian <hidden@balabit.hu>
 Content-Disposition: inline
-In-Reply-To: <1071923429.24067.76.camel@tux.rsn.bth.se>
+In-Reply-To: <1072086985.1031.7.camel@nienna.balabit>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,34 +23,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Dec 20, 2003 at 01:30:29PM +0100, Martin Josefsson wrote:
 
-> On Sat, 2003-12-20 at 13:12, Herve Eychenne wrote:
+--nywXBoy70X0GaB8B
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > Well, anyway, as conntrack listing locks conntrack state, don't you
-> > think we should definitely provide a way to read ip_conntrack_count
-> > through /proc/sys/net/ipv4/netfilter/ip_conntrack_count ? (aka
-> > "Yet Another Oneliner Patch For Patch-O-Matic")
+On Mon, Dec 22, 2003 at 10:56:26AM +0100, KOVACS Krisztian wrote:
+>   I've tried it, and had some problems with it. Namely, the following
+> error message (Debian woody and sid, perl 5.6.1 and 5.8.2):
+>=20
+> hidden@big:~/patch-o-matic-ng$ ./runme=20
+> Examining kernel in /usr/src/linux-2.4.22-tproxy113
+> Can't bless non-reference value at /usr/share/perl/5.6.1/Term/Cap.pm line=
+ 136.
 
-> Just a quick response before I vanish for some christmas vacation.
+thanks, I'll apply your fix.
 
-> Look at extra/ctstat.patch*
-> Apply it and download the util, it will give you what you want and more=
-.
-
-Ok, let me put it differently... :-)
-This patch is interesting, and it adds so little overhead that I don't
-understand why it isn't already in submitted.
-
-If, for any reason, the coreteam doesn't want to include it as-is,
-then we could consider adding ip_conntrack_count to /proc, and add a
-kernel config option (defaulting to no) for conntrack stats.
-What do you think?
-
- Herve
+>  Regards,
+>    Krisztian KOVACS
 
 --=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--nywXBoy70X0GaB8B
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/5tzvXaXGVTD0i/8RAo10AJwLuEZoeK+G7oR0XUjU20+zLCM8lQCfWoxT
+IbWUwPRe2sEJzGLjSdoEkvo=
+=a4qt
+-----END PGP SIGNATURE-----
+
+--nywXBoy70X0GaB8B--
