@@ -1,19 +1,23 @@
-From: Tomas Szepe <szepe@pinerecords.com>
+From: Jeff Garzik <jgarzik@pobox.com>
 Subject: Re: [PATCHSET] Multiarch kconfig cleanup
-Date: Thu, 2 Jan 2003 22:31:55 +0100
+Date: Thu, 02 Jan 2003 18:10:12 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030102213155.GF17053__3286.34918337247$1041618061@louise.pinerecords.com>
-References: <20030102182038.GZ17053@louise.pinerecords.com> <Pine.LNX.4.44.0301021152350.3665-100000@home.transmeta.com>
+Message-ID: <3E14C6D4.1040506__18481.5964232714$1041618127@pobox.com>
+References: <Pine.GSO.4.21.0301022358340.6446-100000@vervain.sonytel.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: jgarzik@pobox.com, zaitcev@redhat.com, davem@redhat.com,
-	linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-m68k@lists.linux-m68k.org, netfilter-devel@lists.samba.org,
-	phillim2@comcast.net, rmk@arm.linux.org.uk
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Tomas Szepe <szepe@pinerecords.com>,
+	Linus Torvalds <torvalds@transmeta.com>, zaitcev@redhat.com,
+	"David S. Miller" <davem@redhat.com>,
+	Linux Kernel Development <linux-kernel@vger.kernel.org>,
+	sparclinux@vger.kernel.org,
+	Linux/m68k <linux-m68k@lists.linux-m68k.org>,
+	netfilter-devel@lists.samba.org, phillim2@comcast.net,
+	Russell King <rmk@arm.linux.org.uk>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Linus Torvalds <torvalds@transmeta.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0301021152350.3665-100000@home.transmeta.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+In-Reply-To: <Pine.GSO.4.21.0301022358340.6446-100000@vervain.sonytel.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,22 +28,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> [torvalds@transmeta.com]
->
-> > This is the first time I'm trying to get more than 3 people to work
-> > together so I'd be grateful if you didn't kick me too hard should I have
-> > screwed up.
-> 
-> I'd really like to see the organizational patches first (ie the 
-> net/Kconfig type of changes), and leave the "conditional menu" patches for 
-> later, especially as they would seem to be improved by an extension to the 
-> config language (ie the "menucond" thing).
-> 
-> Also, I don't fetch patches, I'd much rather just be mailbombed.
+Geert Uytterhoeven wrote:
+> linux-m68k: Should we kill CONFIG_NE2K_ZORRO, or kill CONFIG_ARIADNE2 and
+> rename the driver to ne2k-zorro.c?
 
-In a minute, I'm sending the organizational stuff rediffed,
-that's patches 15-36 from the original batch as 1-22.  I'll
-only send to Linus & CC lkml.
+I'm not linux-m68k, but let me add my small voice in preference to the 
+latter, using ne2k-zorro as the name across the board.
 
--- 
-Tomas Szepe <szepe@pinerecords.com>
+If I had my druthers, I would s/pcnet_cs/ne2k_cs/ too...  hmmmmmm  :)
