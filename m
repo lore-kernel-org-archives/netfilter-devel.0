@@ -1,13 +1,14 @@
-From: =?ISO-8859-1?Q?S=EDlvia?= Andreia Oliveira Rocha <srocha@ncc.up.pt>
-Subject: Netfilter Question - NF_QUEUE
-Date: Fri, 09 Jul 2004 18:44:40 +0100
+From: "arny" <arny@arny.ro>
+Subject: Re: iptables freeze
+Date: Sat, 10 Jul 2004 12:37:08 +0300 (EEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1089395079.2776.73.camel@khocegas>
-Reply-To: srocha@ncc.up.pt
+Message-ID: <53007.193.231.247.183.1089452228.squirrel@193.231.247.183>
+References: <40244.83.103.143.1.1089327153.squirrel@83.103.143.1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+In-Reply-To: <40244.83.103.143.1.1089327153.squirrel@83.103.143.1>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -19,19 +20,8 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+>  WORKING. The box is booting without errors and not freez anymore.
+> Now let see after 24H if it is OK.
 
-My name is S=EDlvia and I'm beginning to study the NetFilter Architecture=
-.
-
-I've got a very simple question, I'd like to know more about the
-NF_QUEUE hook.
-
-It is said that this hook is usually used to pass information to
-UserSpace, my question is, if somewhere a package is "popped" from the
-skb and a NF_QUEUE isn't invoked afterwords is the package lost? I guess
-it isn't, because a package is only drops on a NF_DROP verdict, but I'm
-getting rather confused studying an application that uses NetFilter.
-
-Thank U a lot for your attention,
-S=EDlvia
+The box freeze again but nothing in logs about iptables. I think the
+memory is bad.
