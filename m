@@ -1,14 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: Multiple Targets
-Date: Sat, 19 Feb 2005 09:28:51 +0100
-Message-ID: <20050219082851.GA18228@oknodo.bof.de>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re[2]: Multiple Targets
+Date: Sat, 19 Feb 2005 10:23:31 +0100
+Message-ID: <1589344960.20050219102331@dns.toxicfilms.tv>
 References: <7174b1e405021900052b4545c4@mail.gmail.com>
+	<20050219082851.GA18228@oknodo.bof.de>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-To: Ben La Monica <ben.lamonica@gmail.com>
-Content-Disposition: inline
-In-Reply-To: <7174b1e405021900052b4545c4@mail.gmail.com>
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20050219082851.GA18228@oknodo.bof.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,53 +21,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> I'm writing a firewall application for ISPs, and I'm realizing that my
-> tables could potentially get very long because there is no way to
-> perform multiple targets on a matched rule.
+Hello Patrick,
 
-There is: it is called user-defined chains.
+Saturday, February 19, 2005, 9:28:51 AM, you wrote:
+> Problem: target options. How would the commandline parser see that
+> --set-mark belongs to MARK, and --log-prefix belongs to LOG? What
+> about the hypothetical case of several targets having target options
+> with identical names?
+This is all very interesting.
+But do we want this because we want just better looking rulesets or
+have it optimized in sense of matchinge the packets?
 
-Of course, seeing your example, you would need one such user-defined
-chain for each different MARK value you want to set. Oh, and RETURN
-would need to return two levels, as you seem to allude to near the
-end of your posting. (BTW, I think THAT would be a generally
-useful extension, -j RETURN --up NR)
+I think the latter. So how about leaving the iptables semantics left as
+they are, but changing it so it does recognize rules with identical
+matching rules and somehow compiling the two (or more) of them into
+a single rule that kernel-space would understand.
+Example:
 
-That approach is impractical. "user-defined chains" is an easy answer,
-but not a complete solution, as your examples clearly illustrate.
+We write these 3 rules:
+iptables -A INPUT -p tcp --dport 53 -j LOG --log-prefix "foo: "
+iptables -A INPUT -p tcp --dport 53 -j MARK --set-mark 1
+iptables -A INPUT -p tcp --dport 53 -j ACCEPT
 
-Unfortunately your proposals also appear to be very ambitiuous.
+iptables reads these 3 rules but creates one complex rule for that in
+kernel-space that would read:
+match tcp dport 53 packets on INPUT and do
+1) LOG --log-prefix "foo: "
+2) MARK --set-mark 1
+3) ACCEPT
 
-> I had the idea of allowing multiple targets, as long as the targets
-> before the last were non-terminating. Following on my example above,
-> it would look something like this:
-> 
-> iptables -N auth
-> iptables -A auth -i int+ -m mac --mac-source 00:00:00:00:00:00 -j
-> MARK,RETURN --set-mark 1
-> iptables -A auth -i int+ -m mac --mac-source 00:00:00:00:00:01 -j
-> MARK,RETURN --set-mark 2
-> ... n ...
-> iptables -A auth -i int+ -m mac --mac-source FF:FF:FF:FF:FF:FF -j
-> MARK,RETURN --set-mark n
-> 
-> This way, you could chain several targets together, and it would
-> execute them all until it hit a target that would decide the fate of
-> the packet. You could mark, log, and accept a packet with a single
-> match if you wanted to.
+Of course there can be only one rule that ends with a returning verdict:
+ACCEPT,DROP,REJECT.
 
-Problem: target options. How would the commandline parser see that
---set-mark belongs to MARK, and --log-prefix belongs to LOG? What
-about the hypothetical case of several targets having target options
-with identical names?
+This way only the kernel core since some new version would do this,
+others would do it the standard way. Binary compatibility retained.
 
-Apart from that, the approach will certainly break binary compatibility
-with the former iptables, and thus WILL NOT BE DONE in the iptables
-framework, because binary compatibility is considered GOD.
-
-Harald, what does pkttables bring to the table in this regard?
-
-Generally, I think the reasoning behind wanting such a feature, is sound.
-
-best regards
-  Patrick
+-- 
+Best regards,
+Maciej
