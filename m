@@ -1,88 +1,65 @@
-From: Alistair Tonner <Alistair@nerdnet.ca>
-Subject: FYI only - bug filed downstream - Gentoo-dev-sources 2.6.10-r5
-	iptables 1.2.11 kernel panic udp_manip_pkt
-Date: Sat, 5 Feb 2005 17:54:23 -0500
-Message-ID: <200502051754.24311.Alistair@nerdnet.ca>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Usage of CONNMARK
+Date: Sun, 6 Feb 2005 01:51:38 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0502060136540.22104@filer.marasystems.com>
+References: <42032EC5.4090303@multitech.co.in>
+	<Pine.LNX.4.61.0502041515360.10050@filer.marasystems.com>
+	<42047777.3030102@multitech.co.in>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	netfilter@lists.netfilter.org
+To: Vinod Chandran <vinod_chandran@multitech.co.in>
+In-Reply-To: <42047777.3030102@multitech.co.in>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 5 Feb 2005, Vinod Chandran wrote:
 
- Please note I am filing this downstream first -- this is an FYI
+> Currently, from the FTP helper if DROP is given, the packets are not getting 
+> dropped since the conntrack entry exists and also since from where the helper 
+> routine is called, there is no check for return value of NF_DROP. Hence when 
+> NF_DROP is returned, inside ip_conntrack_in, I set the conntrack value
+>      ct->mark = 1
+> However this CONNMARK value is getting applicable only from the next packet 
+> ownwards.
 
- kernel 2.6.10 (gentoo-dev-sources gentoo-2.6.10-r5) 
- iptables 1.2.11 
- 
- kernel built, booted and running,  iptables REBUILT after kernel build, 
-pointing into new kernel
+I do not follow. Conntract helpers can return NF_DROP to drop the packets, 
+and this will cause the packet to be dropped. This is actively used today 
+by the FTP helper when an partial request is received.
 
- Kernel Panic, not syncing:
- 
- EIP upd_manip_pkt + 0xbb/0xd0 -- iptable_nat
- eax: c9eb3f44 ebx: d21c4844  ecx: 00000001 edx: 00000000
- esi: d2592858 edi: c05c2ddc ebp: c05c2cd8 esp: c05c2cc0
- ds 007b es 007b ss0068
+>From ip_conntrack_in:
 
- process swapper pid 0 threadinfo c05c2000 task c04dcba0
+         if (ret != NF_DROP && ct->helper) {
+                 ret = ct->helper->help(*pskb, ct, ctinfo);
+ 	[...]
 
- results from a downstream windows 2k system logging onto MSN
+ 	return ret;
+}
 
- This box is using ip route2 dual routing loadbalanced through two upstream 
-providers successfully.  The same signon is successfull on gentoo-dev-sources 
-2.6.9-r11 with iptables 1.2.11 (even after the rebuild of iptables against 
-2.6.9-r5!)
+> If on the other hand, say I try to change the mark value, (*pskb)->nfmark ( I 
+> assume it contains the MARK indicator), and put a rule in the 
+> KEEP_STATE_FORWARD chain to drop packets with the specific mark value, the 
+> kernel is panicing , with a BUG in sched.c. I also get panic if I call 
+> nf_conntrack_put.
 
- I don't have a ksymoops breakdown yet -- the oops doesn't get saved of course 
-and I'm not 100% on using ksymoops manually yet. *grin*
+Setting the nfmark like this (MARK) should work, and should not panic your 
+system.
 
- the backtrace shows 
- icmp_reply_translation -> manip_pkt -> error_code -> OOPS.
-
- I see only a few changes between the two kernels in ip_nat_proto_udp.c:
-
-diff 
-ip_nat_proto_udp.c /usr/src/linux-2.6.9-gentoo-r11/net/ipv4/netfilter/ip_nat_proto_udp.c
-86c86
-<             unsigned int iphdroff,
----
-        >             unsigned int hdroff,
-90d89
-<       struct iphdr *iph = (struct iphdr *)((*pskb)->data + iphdroff);
-92d90
-<       unsigned int hdroff = iphdroff + iph->ihl*4;
-102c100
-<               oldip = iph->saddr;
----
-      >               oldip = (*pskb)->nh.iph->saddr;
-106c104
-<               oldip = iph->daddr;
----
-      >               oldip = (*pskb)->nh.iph->daddr;
+In addition, setting the connection mark from helpers called in 
+ip_conntrack_in should be available in all iptables chains.
 
 
- I'm still looking, but if anyone sees anything glaringly obvious, please 
-holler at me on netfilter@lists.netfilter.org 
+All three of your problems makes no sense to me. All should work (return 
+NF_DROP from helpers, setting the connection mark, setting the nfmark).
 
- Thanks for all the great work Netfilter
-
- Alistair Tonner
- RSO Unix support admin
-
- and linux addict.
-
-
-
- 
+Regards
+Henrik
