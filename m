@@ -1,15 +1,13 @@
-From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: Re: How to limit the rate of the TCP connections from a subnet?
-Date: Mon, 08 Nov 2004 07:01:20 -0500
-Message-ID: <418F6010.4050308@cookinglinux.org>
-References: <MHEFLEOMPIPCIFEKLNIPEEGGCAAA.lu.peng.louis@163.com>
+From: "VERMA, Arabinda" <arabindav@mcl.kaist.ac.kr>
+Subject: Redarding option field in IP header
+Date: Mon, 8 Nov 2004 21:05:00 +0900
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAA4KYiumjovkGzII2UjNX4pMKAAAAQAAAAlnOFxRO5Gk+SZf7E5+4aNAEAAAAA@mcl.kaist.ac.kr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "lu.peng" <lu.peng.louis@163.com>
-In-Reply-To: <MHEFLEOMPIPCIFEKLNIPEEGGCAAA.lu.peng.louis@163.com>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +19,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-lu.peng wrote:
+Hello Everyone,
 
->Hi, all,
->
->      I want to limit the rate of the TCP connections of every single ip from a specific subnet, but i can't find a good way to do that.
->  
->
-So, that's netfilter@lists.netfilter.org question ?
+ 
 
-> <>
-> I have studied two matches:
-> 1, 'connlimit' match
-> but unfortunately, 'connlimit' match provide two ways to limit the sum
-> of the TCP connections:
-> 1) single IP
-> 2) whole subnet not every single ip of the subnet
-> and most importantly, it can not limit the rate , just limit the sum
-> of the TCP connections.
->
-> 2, 'limit' matches:
-> I can use '-p tcp --syn -m limit --limit 6/m ......' to limit the rate
-> of the TCP connections of the whole subnet or single ip. if i want to
-> limit the rate of every single ip of the specific subnet, I should set
-> a ule for every ip.
-> what i want is : only one rule can achieve ---limit the rate of the
-> TCP connections of every single ip from a specific subnet.
->
-And what about 'recent' match ?
+I have a query regarding the adding option field of IP header. Is it
+possible to add or remove option field in IP header using netfilter? 
+
+ 
+
+If it is possible, what has to be done with the in the TCP/IP stack of
+the OS? I am using Redhat 8.0. Does it involve kernel compilation?
+
+ 
+
+Your help would be highly appreciate. Please let me know if you need
+further information.
+
+ 
+
+Thanks and regards
+
+Devel
