@@ -1,38 +1,41 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [RFC] IPv4 Netfilter hook priorities for SELinux
-Date: Tue, 6 Jan 2004 20:13:11 +0100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040106191311.GH934@obroa-skai.de.gnumonks.org>
-References: <Xine.LNX.4.44.0401061046390.7530-100000@thoron.boston.redhat.com>
+Subject: Re: [PATCH] iptables-restore.c bugfix
+Date: Tue, 6 Jan 2004 20:10:15 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040106191015.GF934@obroa-skai.de.gnumonks.org>
+References: <20040105043950.GA4796@orthanc.gambrl01.md.comcast.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="U3s59FfKcByyGl+j"
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-        "David S. Miller" <davem@redhat.com>,
-        Stephen Smalley <sds@epoch.ncsc.mil>
-Return-path: <netdev-bounce@oss.sgi.com>
-To: James Morris <jmorris@redhat.com>
+	protocol="application/pgp-signature"; boundary="nhYGnrYv1PEJ5gA2"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Michael Rash <mbr@cipherdyne.org>
 Content-Disposition: inline
-In-Reply-To: <Xine.LNX.4.44.0401061046390.7530-100000@thoron.boston.redhat.com>
-Errors-to: netdev-bounce@oss.sgi.com
+In-Reply-To: <20040105043950.GA4796@orthanc.gambrl01.md.comcast.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---U3s59FfKcByyGl+j
+--nhYGnrYv1PEJ5gA2
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 06, 2004 at 11:01:03AM -0500, James Morris wrote:
-=20
-> Does anyone have any objections to the patch below (which I'd propose for=
-=20
-> 2.6.2), or other comments?
+On Sun, Jan 04, 2004 at 11:39:50PM -0500, Michael Rash wrote:
+> The attached (trivial) patch fixes bug 171 in the netfilter bugzilla.
 
-Thanks James, I am perfectly fine with your patch.  Feel free to put
-them into netfilter_arp.h and netfilter_ipv6.h, too.
+thanks, I am actually reading the bugzilla buglog and thus use the
+patches from there.
 
-> - James
+> --Mike
+> Michael Rash
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -44,7 +47,7 @@ them into netfilter_arp.h and netfilter_ipv6.h, too.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---U3s59FfKcByyGl+j
+--nhYGnrYv1PEJ5gA2
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -52,9 +55,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/+wjGXaXGVTD0i/8RAjFRAJ9Mub15xR+99zCM+eZgCi04/P3XCACeLCmI
-B9EEK83mrXSiQN6i549VcP4=
-=vGvz
+iD8DBQE/+wgXXaXGVTD0i/8RAgKFAKCwZdRHDaeWyZBu4Ns9R+sMeiDe/wCfUVjS
+jwj+XBFw1XwXK/K9695YZlU=
+=MlWb
 -----END PGP SIGNATURE-----
 
---U3s59FfKcByyGl+j--
+--nhYGnrYv1PEJ5gA2--
