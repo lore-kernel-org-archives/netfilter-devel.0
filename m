@@ -1,14 +1,11 @@
-From: "Nicolas Bouliane" <nib@cookinglinux.org>
-Subject: Re: [testsuite] ipt_tos
-Date: Mon, 20 Dec 2004 01:20:26 -0500 (EST)
-Message-ID: <33003.66.11.161.14.1103523626.squirrel@66.11.161.14>
-References: <32914.66.11.161.14.1103516524.squirrel@66.11.161.14>
+From: Philip Craig <philipc@snapgear.com>
+Subject: [PATCH] fix iptables-restore escaping of quotes
+Date: Mon, 20 Dec 2004 16:31:57 +1000
+Message-ID: <41C671DD.2070207@snapgear.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;boundary="----=_20041220012026_31529"
-Cc: netfilter-devel@lists.netfilter.org, sjean@cookinglinux.org
+Content-Type: multipart/mixed; boundary="------------060509060001060309060409"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <32914.66.11.161.14.1103516524.squirrel@66.11.161.14>
-To: rusty@rustcorp.com.au
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,47 +17,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_20041220012026_31529
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+This is a multi-part message in MIME format.
+--------------060509060001060309060409
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi Rusty,
+iptables-restore was losing a character at the start of the parameter
+for every escaped quote within the parameter.
 
-Since libipt_tos works well, I kick the sim out from 'expected-failure'
-and did some clean-up. Its life was kinda short, eh! :-)
+This is of signifance when there are " characters in log prefixes.
+Note that iptables-save can't generate escaped quotes;  I am
+generating the input for iptables-restore from a script.
 
-Cheers
+-- 
+Philip Craig - SnapGear, A CyberGuard Company - http://www.SnapGear.com
 
-- acidfu
-------=_20041220012026_31529
-Content-Type: text/x-patch; name="23ipt_tos-bad-args.sim.patch"
-Content-Disposition: attachment; filename="23ipt_tos-bad-args.sim.patch"
-Content-Transfer-Encoding: quoted-printable
+--------------060509060001060309060409
+Content-Type: text/plain;
+ name="iptables-escape-quote.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="iptables-escape-quote.patch"
 
---- 23ipt_tos-bad-args.sim.old	2004-12-20 00:44:10.000000000 -0500
-+++ 23ipt_tos-bad-args.sim	2004-12-20 00:47:58.000000000 -0500
-@@ -3,10 +3,6 @@
- iptables -A INPUT -m tos --tos 1
-=20
- # Check if inputing the same option twice overwrite previous one.
--# This should ring the bell, but doesn't now.
--# I sent a patch to nf-devel.
--# someone can apply it please ?. thanks.
--# https://lists.netfilter.org/pipermail/netfilter-devel/2004-December/01=
-7824.html
- expect iptables iptables: command failed
- iptables -A INPUT -m tos --tos 2 --tos 4
-=20
-------=_20041220012026_31529
-Content-Type: text/x-patch; name="expected-failures.patch"
-Content-Disposition: attachment; filename="expected-failures.patch"
-Content-Transfer-Encoding: quoted-printable
+Index: iptables-restore.c
+===================================================================
+--- iptables-restore.c	(revision 3377)
++++ iptables-restore.c	(working copy)
+@@ -336,12 +336,15 @@
+ 			param_start = parsestart;
+ 			
+ 			for (curchar = parsestart; *curchar; curchar++) {
++				if (*curchar == '\\' && *(curchar+1) == '"') {
++					if (quote_open) {
++						memmove(curchar, curchar+1,
++							strlen(curchar+1));
++						continue;
++					}
++				}
+ 				if (*curchar == '"') {
+-					/* quote_open cannot be true if there
+-					 * was no previous character.  Thus, 
+-					 * curchar-1 has to be within bounds */
+-					if (quote_open && 
+-					    *(curchar-1) != '\\') {
++					if (quote_open) {
+ 						quote_open = 0;
+ 						*curchar = ' ';
+ 					} else {
 
---- expected-failures.old	2004-12-20 00:50:20.000000000 -0500
-+++ expected-failures	2004-12-20 00:50:32.000000000 -0500
-@@ -26,4 +26,3 @@
- linux:2.6.10*:03NAT/21loopback.sim
- iptables:*:01iptables/26ipt_ttl-out-of-range.sim
- iptables:1.2*:01iptables/36ipt_multiport-bad-args-complain.sim
--iptables:*:01iptables/23ipt_tos-bad-args.sim
-------=_20041220012026_31529--
+--------------060509060001060309060409--
