@@ -1,66 +1,83 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC, PATCH 4/5]: netfilter+ipsec - policy lookup
-Date: Fri, 19 Mar 2004 17:34:58 +0100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <405B2132.6060403@trash.net>
-References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CF17.8090907@trash.net> <20040319115130.GE29066@gondor.apana.org.au>
+From: "Accardi, Kristen C" <kristen.c.accardi@intel.com>
+Subject: RE: connection destruction question
+Date: Fri, 19 Mar 2004 10:04:03 -0800
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <F3DAEAD1F408F44FA1AF0BFAC11FEF9510DEF1@orsmsx408.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@redhat.com>, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <20040319115130.GE29066@gondor.apana.org.au>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+content-class: urn:content-classes:message
+To: "Unit Zero" <onyx@zero.fdns.net>, "Kristen Carlson" <kristenc@cs.pdx.edu>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Herbert Xu wrote:
-> On Thu, Mar 18, 2004 at 05:32:23PM +0100, Patrick McHardy wrote:
-> 
->>@@ -635,7 +636,6 @@
->> #ifdef CONFIG_IP_ROUTE_FWMARK
->> 		fl.nl_u.ip4_u.fwmark = (*pskb)->nfmark;
->> #endif
->>-		fl.proto = iph->protocol;
-> 
-> 
-> Better call __ip_route_output_key rather than not setting proto because
-> you'll need proto in xfrm_lookup.
-> 
-> 
->> 		if (ip_route_output_key(&rt, &fl) != 0)
->> 			return -1;
->> 
-> 
-> 
->>@@ -661,6 +661,20 @@
->> 	
->> 	if ((*pskb)->dst->error)
->> 		return -1;
->>+
->>+#ifdef CONFIG_XFRM
->>+	if (!(IPCB(*pskb)->flags & IPSKB_XFRM_TRANSFORMED)) {
->>+		struct xfrm_policy_afinfo *afinfo;
->>+
->>+		afinfo = xfrm_policy_get_afinfo(AF_INET);
->>+		if (afinfo != NULL) {
->>+			afinfo->decode_session(*pskb, &fl);
->>+			xfrm_policy_put_afinfo(afinfo);
->>+			if (xfrm_lookup(&(*pskb)->dst, &fl, (*pskb)->sk, 0) != 0)
->>+				return -1;
->>+		}
->>+	}
->>+#endif
-> 
-> 
-> If we can reinject transport packets then we can move this back into
-> the if clause.
+Thank you, that does interest me.  It does seem to match my needs more
+closely than the other patch. I also have realized that my approach of
+making a helper module to be notified when connections were created
+wasn't going to work since I realized it would only be called on the
+master connection and not on any of the related connections, and I need
+to see state changes for all connections.  I will take a look at the
+patch and see if it works out.
 
-I don't understand the relationship to transport mode packets. I used an
-explicit call to xfrm_lookup so packets with non-local source are also
-handled. We also need to protect against loops, packets which are
-already transformed should not be transformed again.
+By the way, what are your plans for this patch?  I always hate the idea
+of using a patch I actually have to maintain myself :), although of
+course I will do that if that's what it takes to get my job done.
 
-Regards
-Patrick
+Kristen
+
+
+
+-----Original Message-----
+From: netfilter-devel-admin@lists.netfilter.org
+[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Unit
+Zero
+Sent: Friday, March 19, 2004 7:34 AM
+To: Kristen Carlson
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: connection destruction question
+
+
+
+
+On Wed, 10 Mar 2004, Kristen Carlson wrote:
+
+> Hello,
+> Is there a way to be notified in a kernel module=20
+> when a connection is destroyed?  I have a nice helper
+> module that would like to know when connections are destroyed
+> so it can do some internal cleanup work.=20
+> Thanks,
+> Kristen
+>=20
+
+Actually I ran into the exact same issue not long ago with a module I've
+
+been working on. My solution was to add a couple lines here and there in
+
+conntrack_core.c and ip_conntrack.h to implement a notifier chain and=20
+export register/unregister routines from the ip_conntrack module,
+allowing=20
+other modules to add callback functions to the chain. The notifier chain
+
+is then called from various parts of the conntrack_core code with an=20
+event-code and a struct ip_conntrack ptr reference when conntracks are=20
+created, destroyed (either explicitly or by timeout), become confirmed,=20
+or become replied.
+
+I've got a small patch that I put together about a month ago which has=20
+my modifications described above. I'm pretty sure it will apply cleanly=20
+to a 2.4.24-25 kernel source tree, but if not the modifications are
+pretty=20
+straight forward. Just thought it might be of interest.
+
+- V. M. Condino
