@@ -1,19 +1,16 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: RAM and conntrack performance: first draft of the document is online
-Date: Fri, 28 Nov 2003 12:00:50 +0100
+From: IP v6 <inet6@mail.be>
+Subject: Re: Outgoing interface selection by source address
+Date: Fri, 28 Nov 2003 12:03:37 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031128110050.GA1004@alpha.home.local>
-References: <20031126034231.GA1044@eychenne.org> <Pine.LNX.4.44.0311260512440.6942-100000@filer.marasystems.com> <20031127045620.GA2740@eychenne.org>
+Message-ID: <22606056.1070017417140.JavaMail.Administrator@pumbaa>
+References: <Pine.LNX.4.44.0311271701570.26866-100000@filer.marasystems.com>
+Reply-To: IP v6 <inet6@mail.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Henrik Nordstrom <hno@marasystems.com>,
-   "Laurence J. Lane" <ljlane@debian.org>,
-   Harald Welte <laforge@netfilter.org>,
-   Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-Content-Disposition: inline
-In-Reply-To: <20031127045620.GA2740@eychenne.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0311271701570.26866-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,20 +21,9 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 27, 2003 at 05:56:20AM +0100, Herve Eychenne wrote:
- 
-> Context: I have a Debian testing (sarge) with kernel-image-2.4.22-1-686
-> package and 512MB of RAM.  I should then logically get ip_conntrack
-> module initialized with 4096 buckets (size of the netfilter conntrack hash
-> table, that should be computed automatically by netfilter code according
-> to the amount of RAM), but I can read 4091 in syslog message.
-> 4091 is better (prime number), but I cannot understand why I get this value
-> instead of 4096, as nothing particular is done for the moment in
-> netfilter code to ensure that the computed value will be a prime number.
+I think it can be done with ROUTE-ipv6 patch made by Cedric de Launois. I asked a question about this a while ago as I had a compile error with it (it's fixed already btw) but I never got to actually test it due to lack of time but I believe it can be done with that, it's in POM cvs in extra/, have a look :)
 
-Perhaps you have a small portion of this RAM dedicated to a video RAM so
-that the amount of system ram is slightly lower than 512 MB (eg: 510 MB).
-Then, dividing this would give you something which is not a power of 2.
-
-Cheers,
-Willy
+-Robby
+-----------------------------------------------------
+Mail.be, WebMail and Virtual Office
+http://www.mail.be
