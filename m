@@ -1,14 +1,17 @@
-From: Max Kellermann <max@duempel.org>
+From: Herve Eychenne <rv@wallfire.org>
 Subject: Re: [PATCH pom-ng 0/5] RFC: ip_nat|conntrack_h323.c on 2.6,
 	first preview
-Date: Wed, 19 Jan 2005 09:48:56 +0100
-Message-ID: <20050119084856.GA15765@roonstrasse.net>
+Date: Wed, 19 Jan 2005 09:56:15 +0100
+Message-ID: <20050119085615.GD10200@eychenne.org>
 References: <20050119004332.GA12629@roonstrasse.net>
 	<Pine.LNX.4.58.0501190900080.10476@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: Max Kellermann <max@duempel.org>, netfilter-devel@lists.netfilter.org,
+	Robert Iakobashvili <roberti@GoNetworks.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Content-Disposition: inline
 In-Reply-To: <Pine.LNX.4.58.0501190900080.10476@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -22,32 +25,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/01/19 09:30, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
-> If you want to write a decent helper, then ethereal has got a H.323
-> (ASN) decoder written in C, which could probably be re-used. :-)
+On Wed, Jan 19, 2005 at 09:30:38AM +0100, Jozsef Kadlecsik wrote:
 
-Good idea. This parser already helped me during development.
+> On Wed, 19 Jan 2005, Max Kellermann wrote:
 
-> As for the patch, thus we would overwrite the 2.4 version in pom-ng.
-> Please put all the files into a h323-conntrack-nat/linux-2.6
-> subdirectory so that the support for 2.4 can be kept. (The
-> README.newpatches file in pom-ng describes in detail how to create a
-> new patch.)
+> > I have worked a bit on porting the H.323 conntrack module to Linux
+> > 2.6. Here is my first preview. Both connection tracking and NAT work
+> > well in my home network (gnomemeeting and ohphone, tunneling
+> > disabled).
+> >
+> > It's still the old brute force method, no real protocol evaluation is
+> > performed. I will implement that the "right" way after the port to th=
+e
+> > Linux 2.6 API is finished and tested. The current algorithm is not
+> > recommended for production environments, because it is insecure,
+> > sometimes buggy and horribly inefficient.
 
-Ok.
+> Yes, exactly. That was why I refrained from porting it to 2.6...
 
-Someone with svn access should copy the directory
-h323-conntrack-nat/linux to h323-conntrack-nat/linux-2.6. After that,
-I can send patches which modify these copies.
+> If you want to write a decent helper, then ethereal has got a H.323 (AS=
+N)
+> decoder written in C, which could probably be re-used. :-)
 
-> 
-> Please note, pom-ng is unable to take into account the extra version.
-> As requirements you should speficy something like
-> 
-> Requires: linux-2.6 >= 2.6.11
+Yes... but do we really want a big ASN-1 parser in the kernel?
+Is there a nice way to have it rely on kernel facilities, while staying i=
+n
+userspace though?
 
-Will this still work with the old 2.4 version then? Is this dependency
-ignored when the user wants the old version (and thus only has kernel
-2.4)?
+ Herve
 
-Max
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
