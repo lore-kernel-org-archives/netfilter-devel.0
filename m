@@ -1,15 +1,13 @@
-From: Vasilii Alferov <Vasilii.Alferov@gmail.com>
-Subject: Some protection from DDOS with iptables.
-Date: Thu, 10 Mar 2005 14:12:34 +0500
-Message-ID: <200503101412.34203.Vasilii.Alferov@gmail.com>
-References: <200503081526.32310.scarab@echostar.pl> <423007AE.8030402@rhcs.de>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: current in OUTPUT
+Date: Thu, 10 Mar 2005 14:13:34 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0503101412070.3198@tux.rsn.bth.se>
+References: <42304342.3050009@evtek.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <423007AE.8030402@rhcs.de>
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+To: Juha Heljoranta <juha.heljoranta@evtek.fi>
+In-Reply-To: <42304342.3050009@evtek.fi>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +19,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I need to block a kind of http requests, containing filenames zoo.jpg and 
-zo2.jpg. These requests go from virus Bagle and hardly load our web server.
+On Thu, 10 Mar 2005, Juha Heljoranta wrote:
 
-Rejecting or dropping these requests with string match isn't a solution, since 
-it leaves unfinished connection with apache and it spawns hige number of 
-threads in just a second.
+> 'current' macro is not guaranteed to give a task that originated packet
+> when OUTPUT chain is been processed, right?
 
-Another try was to limit incoming connections. But it denies legal users from 
-accessing our websites, and allowing virii to do it.
+Right, there's some things that isn't sent from process context. Delayed
+ACKs (timer context) and icmp replies (softirq context) are two examples.
 
-I'd like to have a rule closing connection on receiving certain string or met 
-another condition. Is it possible with iptables?
+/Martin
