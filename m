@@ -1,14 +1,12 @@
-From: Illes Marton <illes.marton@balabit.hu>
-Subject: PATCH: u32 match patch errors
-Date: Mon, 28 Jul 2003 00:08:14 +0200
+From: Stelios Sidiroglou-Douskos <ss1759@cs.columbia.edu>
+Subject: IPIP and SNAT
+Date: Wed, 30 Jul 2003 11:37:23 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030727220814.GA928@c3.hu>
+Message-ID: <Pine.GSO.4.31.0307301130240.13487-100000@disco.cs.columbia.edu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ibTvN161/egqYuK8"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-Resent-Message-Id: <E19hMqa-0000X6-00@octane>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,53 +18,18 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ibTvN161/egqYuK8
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+I am having some trouble with SNAT and my IPIP implementation. I have the
+ipip part working (I use code from ipip.c) but when I clear the nfct field
+of the sk_buff that packet that gets fwd to the other interface doesn't
+get NATed. I tried not clearing conntrack but obviously that results in
+the packets not matching up when they return.
 
-Hi,
+Do I have to rebuild the conntrack tuple and insert it back? If so, is
+there a code or a helper function to do just that?
 
-In the POM the u32 match misses some files:
-u32.patch.config.in
-u32.patch.configure.help
-u32.patch.makefile
+thanks in advance,
 
-Please find them attached
-
-Marton
--- 
-
---ibTvN161/egqYuK8
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: attachment; filename="u32.patch.config.in"
-
-  dep_tristate '  LENGTH match support' CONFIG_IP_NF_MATCH_LENGTH $CONFIG_IP_NF_IPTABLES
-  dep_tristate '  U32 match support' CONFIG_IP_NF_MATCH_U32 $CONFIG_IP_NF_U32
-
---ibTvN161/egqYuK8
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: attachment; filename="u32.patch.configure.help"
-
-CONFIG_IP_NF_MATCH_LENGTH
-U32 patch support
-CONFIG_IP_NF_MATCH_U32
-  U32 allows you to extract quantities of up to 4 bytes from a packet,
-  AND them with specified masks, shift them by specified amounts and
-  test whether the results are in any of a set of specified ranges.
-  The specification of what to extract is general enough to skip over
-  headers with lengths stored in the packet, as in IP or TCP header
-  lengths.
-
-  Details and examples are in the kernel module source.
+stelios.
 
 
---ibTvN161/egqYuK8
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: attachment; filename="u32.patch.makefile"
-
-obj-$(CONFIG_IP_NF_MATCH_LENGTH) += ipt_length.o
-
-obj-$(CONFIG_IP_NF_MATCH_U32) += ipt_u32.o
-
-
---ibTvN161/egqYuK8--
+p.s Please reply to this address directly also.
