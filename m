@@ -1,61 +1,54 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Linux 2.4.23-pre1
-Date: Thu, 28 Aug 2003 16:56:35 +0200
+Subject: Re: 2.4.22-bk2 and 2.4.23-pre1 broke routing
+Date: Thu, 28 Aug 2003 16:55:41 +0200
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3F4E1823.7060600@trash.net>
-References: <pcKD.6BP.19@gated-at.bofh.it> <200308280850.h7S8oxGx001862@pc.skynet.be>
+Message-ID: <3F4E17ED.8070801@trash.net>
+References: <20030828140549.GA698@rdlg.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------010606010609010307090100"
-Cc: linux-kernel@vger.kernel.org,
+ boundary="------------020901090604030400000205"
+Cc: Linux-Kernel <linux-kernel@vger.kernel.org>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@lists.netfilter.org>
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Hans Lambrechts <hans.lambrechts@skynet.be>
-In-Reply-To: <200308280850.h7S8oxGx001862@pc.skynet.be>
+To: "Robert L. Harris" <Robert.L.Harris@rdlg.net>
+In-Reply-To: <20030828140549.GA698@rdlg.net>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010606010609010307090100
+--------------020901090604030400000205
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Please try this patch.
+Please try this patch, i think it should fix it.
 
 Regards,
 Patrick
 
-Hans Lambrechts wrote:
+Robert L. Harris wrote:
 
->Greetings,
+>I'm running 2.4.22 now and have a NAT behind my firewall as well as IPv6
+>happily run through unixcore.com.  I upgraded to 2.4.22-bk2 last night
+>to fix an odd problem where I can't ssh-6 to one host.  All of a sudden
+>it all works within the nat but nothing behind the firewall can get out
+>from behind to the real work though the firewall still can.  Recompiled
+>trying 2.4.23-pre1 and I get the exact same behavior.  All 3 use the
+>same .config file.
 >
->  
+>The only noticable change I can see is a bunch of messages:
 >
->>Harald Welte:
->>  o [NETFILTER]: Backport iptables AH/ESP fixes from 2.6.x
->>  o [NETFILTER]: Fix uninitialized return in iptables tftp
->>  o [NETFILTER]: NAT optimization
->>  o [NETFILTER]: Conntrack optimization (LIST_DELETE)
->>
->>    
->>
+>Aug 27 22:09:10 wally kernel: MASQUERADE: No route: Rusty's brain broke!
+>Aug 27 22:09:16 wally kernel: MASQUERADE: No route: Rusty's brain broke!
+>Aug 27 22:09:16 wally kernel: MASQUERADE: No route: Rusty's brain broke!
 >
 >
->I see this in my log:
->
->Aug 28 10:45:44 pc kernel: MASQUERADE: No route: Rusty's brain broke!
->Aug 28 10:46:10 pc last message repeated 13 times
->Aug 28 10:48:42 pc kernel: NET: 1 messages suppressed.
->Aug 28 10:48:42 pc kernel: MASQUERADE: No route: Rusty's brain broke!
->Aug 28 10:48:43 pc kernel: MASQUERADE: Route sent us somewhere else.
->
->Forwarding and masquerading doesn't work anymore.
->
->Hans
+>As soon as I reverted to 2.4.22 everything works great again.  Attaching
+>my .config.  Please contact me directly if you need any additional
+>testing done.
 >  
 >
 
---------------010606010609010307090100
+--------------020901090604030400000205
 Content-Type: text/plain;
  name="x.diff"
 Content-Transfer-Encoding: 7bit
@@ -74,4 +67,4 @@ Content-Disposition: inline;
                  /* Funky routing can do this. */
                  if (net_ratelimit())
 
---------------010606010609010307090100--
+--------------020901090604030400000205--
