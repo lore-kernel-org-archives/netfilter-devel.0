@@ -1,15 +1,14 @@
-From: <Atanu.Mondal@infineon.com>
-Subject: Calling multiple times ip_nat_mangle_tcp_packet()
-Date: Fri, 2 Jul 2004 14:50:35 +0530
+From: Lukas Ruf <ruf@rawip.org>
+Subject: iptables 1.2.11 and kernel 2.6.7
+Date: Fri, 2 Jul 2004 15:51:47 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <04EE7AD0450F7B498BA216312943A1A1155585@blrse201.ap.infineon.com>
+Message-ID: <20040702135147.GC11721@tik.ee.ethz.ch>
+Reply-To: PLEASE REPLY TO THE LIST <dev_null@rawip.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; x-action=pgp-signed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter development <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +19,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I am mangling SIP Message Header and data and for this I am calling
-ip_nat_mangle_tcp_packet() funtion for
-each line which need to adjust its IP Address.. The problem I am facing
-is with TCP seq numbering..
-The ip_nat_resize_packet() function takes care of the seq numbering
-inside ip_nat_mangle_tcp_packet() but
-it takes care of the adjustment for only the 1st call.. Any subsequent
-call to ip_nat_mangle_tcp_packet=20
-does not adjust the offset_before and offset_after parameters and the it
-remains what it was in the first
-call.=20
-In the return direction the ack and seq no is adjusted as per the offset
-set in the 1st call..which is wrong.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Can somebody help me out in understanding how to do it... Or do I need
-to writeout my  own function. ???
+Today, I realized two problems: with kernel 2.6.7 when builing iptables
+1.2.11 for ipv4 and ipv6:
 
-Atanu
+In the files:
+    include/libiptc/libip6tc.h
+    include/libiptc/libiptc.h
+
+1. : __user is not known as found in both
+    include/linux/netfilter_ipv6/ip6_tables.h:261
+    include/linux/netfilter_ipv4/ip_tables.h:255
+
+2. : DECLARE_MUTEX() is not known outside of the kernel for both
+    DECLARE_MUTEX(ip6t_mutex) and DECLARE_MUTEX(ipt_mutex)
+    as defined in the same files:
+    include/linux/netfilter_ipv6/ip6_tables.h
+    include/linux/netfilter_ipv4/ip_tables.h
+
+I fixed the problems by #define'ing __user ifndef before in the
+libiptc files, and moving DECLARE_MUTEX() into the #ifdef __KERNEL__
+statement in the ip_tables.h files.
+
+Has anyone experienced the same problems?  I could not find any answer
+in the archive.
+
+If anyone would be interested in patch, please indicate and I will
+create one.
+
+Thanks.
+
+wbr,
+Lukas
+- -- 
+Lukas Ruf           | Wanna know anything about raw |
+<http://www.lpr.ch> | IP? -> <http://www.rawip.org> |
+eMail Style Guide: <http://www.rawip.org/style.html>|
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFA5WhzXf8zDoH8+EURAmg/AJsGzGy1CNvVLJrKPn+ppDehZS4f9gCglLc0
+1zCWo4Icb8oHec7iHq7kESk=
+=GY2R
+-----END PGP SIGNATURE-----
