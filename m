@@ -1,17 +1,17 @@
-From: allen <aef@prismnet.com>
-Subject: Re: [NEW EXTENSION] Condition Match
-Date: Tue, 29 Oct 2002 22:43:07 -0600
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: iptables --syn and kernel behavior
+Date: Wed, 30 Oct 2002 09:34:54 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200210292243.07631.aef@prismnet.com>
-References: <3DBED94E.1030107@videotron.ca>
+Message-ID: <20021030093454.I8635@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0210201836020.17904-100000@roope.top.tkukoulu.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0k24IdCjZr+ZpLJG"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Stephane Ouellette <ouellettes@videotron.ca>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <3DBED94E.1030107@videotron.ca>
+To: Tero Pelander <tpeland@tkukoulu.fi>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0210201836020.17904-100000@roope.top.tkukoulu.fi>; from tpeland@tkukoulu.fi on Sun, Oct 20, 2002 at 06:51:38PM +0300
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,37 +23,52 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
+--0k24IdCjZr+ZpLJG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tuesday 29 October 2002 12:54 pm, Stephane Ouellette wrote:
->    I developped last week a new extension to Netfilter in order to
-> enable or disable a set of rules using /proc files.
+On Sun, Oct 20, 2002 at 06:51:38PM +0300, Tero Pelander wrote:
+> According to a message that appeared in bugtraq linux 2.4.19 allows=20
+> opening new connections with SYN and RST set, ACK reset.=20
 
+Well, according to my understanding of TCP, this is a bug in the TCP
+stack then.
 
-Yeah, as others have said, the idea is definitely cool.
+> Iptables has option "--syn" that tries to protect from new connections=20
+> but unfortunately the described packet would get through such rule.
 
-I hate to admit that I might use it this way.  God help me...
+sure? (see below)
 
-I'm having visions of debugging impossibly complex
-booboo's, and chasing after phantom problems that
-appear and disappear and not remembering that
-I or someone had done or could have done this.
+> --man iptables--
+>   --syn
+>     It is equivalent to --tcp-flags SYN,RST,ACK SYN.
 
-Can you think of a way to implement far greater
-"manageability"
+Which means that RST and ACK have to be 0, and SYN has to be 1.
 
-?
+Where is your problem?  Have you actually tested what you are claiming?
 
-Or what are your thoughts about that ?
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
-Maybe it is a "user-be-ware" thing best left to
-some odd application to keep track of.
+--0k24IdCjZr+ZpLJG
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Hmn...
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-But... the "rules" would appear though... right ?
+iD8DBQE9v5muXaXGVTD0i/8RAkeeAKCh7IT9tE+L0C1edEDcGU07ZpOjigCcDPg8
+o/PLoEkF99CA6PZiGglluvc=
+=mg/0
+-----END PGP SIGNATURE-----
 
-With an "iptables -L" ?
-
-And current "state" ?
-
--AEF
+--0k24IdCjZr+ZpLJG--
