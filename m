@@ -1,13 +1,14 @@
-From: zhongyu <xxx@mail.goldenhope.com.cn>
-Subject: I write a oracle9 conntrack/nat module
-Date: Thu, 25 Dec 2003 10:34:48 +0800
+From: "=?GB2312?Q?=D6=A3=B4=AB=B2=A8?=" <zhengcb@netpower.com.cn>
+Subject: the solution to synflood on netfilter
+Date: Thu, 25 Dec 2003 18:11:38 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E8AD17E6-3682-11D8-B808-000A95B170F8@mail.goldenhope.com.cn>
-Mime-Version: 1.0 (Apple Message framework v609)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Message-ID: <200312251800109.SM00864@zhengcb>
+Mime-Version: 1.0
+Content-Type: text/plain;
+      charset="GB2312"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter dev <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,7 +19,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-it worked for me :-)
-anyone can download it from
-http://www.goldenhope.com.cn/source/050_conntrack_nat_oracle.patch
-happy christmas everyone.
+
+Check Point has two implementations on preventing synflood.  
+
+One is to intercepts the syn packets between the client and the server. The firewall
+sends a syn/ack packet to the client on behalf of the server when it receives a syn
+packet. If the firewall received the Ack from the client,it will start another 3-way
+handshake with the server. If not, the connection will be timeout on the firewall, 
+without influncing on the server.
+
+The other way is the firewall forward all the syn packets to the server. After get the
+syn/ack from the server, the firewall sends a ack to the server on behalf of the client,
+so that the connection on the server is removed from the half-opened queue immediately.
+The if the ack from the client is received, the connection on the firewall is validated.
+If not, the connection is timeout. And firewall sends a rst to the server.
+	
+I think it is possible to implement some methods similar to that on Checkpoint
+in netfilter. Then synflood could be prevented with a netfilter firewall.
+
+Any idea on that? thanks.
+	
+regards,
+Jack Zheng
+zhengcb@netpower.com.cn
