@@ -1,13 +1,18 @@
-From: Samir Bellabes <samir.bellabes@wanadoo.fr>
-Subject: [PATCH] Compilling error with 63_getorigdst-tuple-zero.patch
-Date: Tue, 16 Sep 2003 15:34:57 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: missing ipt_unclean support in 2.6test5
+Date: Mon, 15 Sep 2003 11:52:04 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F671181.6030004@wanadoo.fr>
+Message-ID: <20030915095204.GC777@obroa-skai.de.gnumonks.org>
+References: <20030914200347.GA811@baryon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Bu8it7iiRSEf40bY"
+Cc: coreteam@netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: garde@benben.com
+Content-Disposition: inline
+In-Reply-To: <20030914200347.GA811@baryon>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,102 +23,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
 
-i'm running linux 2.4.22 and i apply patch-o-matic from CVS, updated=20
-yesterday..
-When "make modules" I got this :
+--Bu8it7iiRSEf40bY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-first,
+On Sun, Sep 14, 2003 at 10:03:47PM +0200, garde@benben.com wrote:
+> Hi Harald,
+>=20
+> I just saw ipt_unclean matching support was removed from the 2.6 tree, is=
+ there a place I can find=20
+> some background on the reason behind this? Couldn't find anything on
+> the lkml or google that provided a better reason than "we feel it's a
+> rather insecure part of the netfilter code".
 
-make[2]: D=E9pendance circulaire=20
-/usr/src/linux-2.4.22/include/linux/netfilter_ipv4/ip_conntrack_helper.h=20
-<- /usr/src/linux-2.4.22/include/linux/netfilter_ipv4/ip_conntrack.h=20
-abandonn=E9e.
+What more background do you want to have?  The netfilter coreteam has
+made this decision at the recent netfilter developer conference, because
+we think it is a dangerous match.
 
-a #include recall himself.. is this a problem ?
+Filtering like the unclean match can easily introduce
+forwards-comaptibility problems.  Just look what happened when the ECN
+bits in the ip and tcp header had been defined for congestion
+notification by the IETF: suddenly everybody sending packets adhering to
+this new standard was unable to reach any machine/network protected by a
+netfilter/iptables firewall that used the unclean match.
 
-second,
+We just want to make sure that this doesn't ever happen again.  We were
+unable to remove ipt_unclean in 2.4.x because of compatibility reasons.
+But now in 2.6 it is easy to have it removed.
 
-gcc -D__KERNEL__ -I/usr/src/linux-2.4.22/include -Wall=20
--Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common=20
--fomit-frame-pointer -pipe -mpreferred-stack-boundary=3D2 -march=3Di686=20
--malign-functions=3D4 -DMODULE -DMODVERSIONS -include=20
-/usr/src/linux-2.4.22/include/linux/modversions.h  -nostdinc=20
--iwithprefix include -DKBUILD_BASENAME=3Dip_conntrack_core  -c -o=20
-ip_conntrack_core.o ip_conntrack_core.c
-ip_conntrack_core.c: In function `getorigdst':
-ip_conntrack_core.c:1310: invalid type argument of `->'
-ip_conntrack_core.c:1310: invalid type argument of `->'
+> Michiel v/d Garde
+> Operations Engineer
+> MarketXS.com BV
 
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
 
-i think the correct patch 63_getorigdst-tuple-zero.patch have to be :
+--Bu8it7iiRSEf40bY
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude=20
-'*.ver' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej'=20
---exclude '*.cmd' --exclude '*.mod.c' --exclude '*~'=20
-linux-2.4.22-plain/include/linux/netfilter_ipv4/ip_conntrack_tuple.h=20
-linux-2.4.22-getorig/include/linux/netfilter_ipv4/ip_conntrack_tuple.h
----=20
-linux-2.4.22-plain/include/linux/netfilter_ipv4/ip_conntrack_tuple.h     =
-  =20
-2002-02-25 20:38:13.000000000 +0100
-+++=20
-linux-2.4.22-getorig/include/linux/netfilter_ipv4/ip_conntrack_tuple.h   =
-  =20
-2003-09-05 17:04:20.000000000 +0200
-@@ -62,6 +62,14 @@
-        } dst;
- };
-=20
-+/* This is optimized opposed to a memset of the whole structure. =20
-Everything we
-+ * really care about is the  source/destination unions */
-+#define IP_CT_TUPLE_BLANK(tuple)                               \
-+       do {                                                    \
-+               (tuple)->src.u.all =3D 0;                           \
-+               (tuple)->dst.u.all =3D 0;                           \
-+       } while (0)
-+
- enum ip_conntrack_dir
- {
-        IP_CT_DIR_ORIGINAL,
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude=20
-'*.ver' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej'=20
---exclude '*.cmd' --exclude '*.mod.c' --exclude '*~'=20
-linux-2.4.22-plain/net/ipv4/netfilter/ip_conntrack_core.c=20
-linux-2.4.22-getorig/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-2.4.22-plain/net/ipv4/netfilter/ip_conntrack_core.c  =20
-2003-08-25 13:44:44.000000000 +0200
-+++ linux-2.4.22-getorig/net/ipv4/netfilter/ip_conntrack_core.c=20
-2003-09-05 17:04:20.000000000 +0200
-@@ -1303,9 +1303,14 @@
- getorigdst(struct sock *sk, int optval, void *user, int *len)
- {
-        struct ip_conntrack_tuple_hash *h;
--       struct ip_conntrack_tuple tuple =3D { { sk->rcv_saddr, { .tcp =3D=
- {=20
-sk->sport } } },
--                                           { sk->daddr, { .tcp =3D {=20
-sk->dport } },
--                                             IPPROTO_TCP } };
-+       struct ip_conntrack_tuple tuple;
-+
-+       IP_CT_TUPLE_BLANK(&tuple);
-+       tuple.src.ip =3D sk->rcv_saddr;
-+       tuple.src.u.tcp.port =3D sk->sport;
-+       tuple.dst.ip =3D sk->daddr;
-+       tuple.dst.u.tcp.port =3D sk->dport;
-+       tuple.dst.protonum =3D IPPROTO_TCP;
-=20
-        /* We only do TCP at the moment: is there a better way? */
-        if (strcmp(sk->prot->name, "TCP") !=3D 0) {
+iD8DBQE/ZYvDXaXGVTD0i/8RAt9uAJ9Zqd0bg3+JMyk9I+1S74Y0HUMe/ACggNXd
+nJtt79IPTSzoK9rudJcVU0E=
+=ryZ6
+-----END PGP SIGNATURE-----
 
-
-thanks to correct, as far as i'm a newbie, i could be incorrect..
-
-thanks for your work !
-
-Samir Bellabes
-samir.bellabes@wanadoo.fr
+--Bu8it7iiRSEf40bY--
