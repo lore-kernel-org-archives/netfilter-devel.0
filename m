@@ -1,14 +1,13 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Usagi IPv6 Conntrack
-Date: Wed, 7 Jul 2004 17:31:41 +1000
+From: Daimonion <daimonion@misanthropos.de>
+Subject: ip_conntrack cleanup on reconnection?
+Date: Mon, 05 Jul 2004 15:20:28 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040707073141.GJ22729@samad.com.au>
+Message-ID: <opsan10edrkwfgqe@starbug.karlshof.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YrlhzR9YrZtruaFS"
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,39 +18,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!
 
---YrlhzR9YrZtruaFS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have a with my DSL uplink reconnects (ppp restart) for kernels with  
+higher versions than 2.4.23.
+I am using Teamspeak (TS) connected to a public server.
+With 2.4.23 I can restart the ppp-connection and my TS-client still keeps  
+connected with the TS-server, which
+I appreciate. But eversince 2.4.25 or 2.6.x a ppp reconnect disconnects  
+the TS-client and I have to reconnect
+manually.
+Additionally, if I played a game (Enemy Territory) while getting  
+disconnected, I can?t reconnect to that
+server anymore for a while. It seems like an entry in ip_conntrack  
+prevents me from reconnecting (UDP) until
+it has timed out.
 
-Hi
+Any suggestions, or ideas on this one?
 
-I remember seeing some email before about ipv6 conntracking, is sombody
-looking into bring this across into netfilter or the kernel (sorry not
-sure of the path it would normally take either usagi -> netfilter ->
-kernel or usagi -> kernel).
+Having a look at net/ip_MASQUARDE.c the ip_conntrack list should be empty  
+after a device was down (cleanup?), but
+the list still is full of entries.
+Shouldnt the list be empty or, at least rewritten with the new  
+ip-addresses?
 
-Does any one have a set of patches or a procedure to merge in the usagi
-net/ipv6/netfiler stuff. =20
-
-Can I just replace the one in my kernel tree (using a debian base) with
-the usagi directory ?
-
-Thanks
-Alex
-
---YrlhzR9YrZtruaFS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFA66bdkZz88chpJ2MRAtLbAKC6+PN2uzODBEEDjAUyEAHSBKzOLQCg8C62
-AQ9dcBqTf5I0+1Z6+RdFVDg=
-=ULli
------END PGP SIGNATURE-----
-
---YrlhzR9YrZtruaFS--
+Regards,
+Richard
