@@ -1,18 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: "unclean" ?bug? with dell dns
-Date: Mon, 9 Sep 2002 22:40:33 +0200 (CEST)
+From: Guillaume Morin <guillaume@morinfr.org>
+Subject: [PATCH] fix unclean udp checksum check
+Date: Tue, 10 Sep 2002 16:33:43 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0209092237510.2819-100000@blackhole.kfki.hu>
-References: <200209091948.1734@ellinger.de>
+Message-ID: <20020910143343.GA22297@morinfr.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Guillaume Morin <guillaume@morinfr.org>,
-	Yannick Le Saint <y.lesaint@free.fr>,
-	<netfilter@lists.netfilter.org>,
-	<netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rainer Ellinger <rainer@ellinger.de>
-In-Reply-To: <200209091948.1734@ellinger.de>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,31 +18,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 9 Sep 2002, Rainer Ellinger wrote:
+Hi folk,
 
-> Guillaume Morin wrote:
-> > >  When i "dig www.euro.dell.com", i get in syslog :
-> > I'd say that unclean matches the packet because of a checksum
-> > mismatch. There must be a buggy router between you and the server.
->
-> I ran into the same problem and can also confirm that this is a problem
-> with dell's nameserver or a system on dell's side. Further
-> investigation with ethereal showed that matching pakets had their udp
-> crc set to 0x0000. My questions are:
->
-> Should this condition really considered harmful and matched by unclean?
+unclean does not handle udp packets with a null checksum, altough udp
+checksums are not mandatory.
 
-I don't think so. UDP checksumming is not mandatory, but the unclean
-module accepts only packets with valid checksums.
+Here is the (trivial) patch which fixes that :
 
-> Why is there no corresponding log message from the unclean module?
+diff -uNr linux-2.4.19-vanilla/net/ipv4/netfilter/ipt_unclean.c linux/net/ipv4/netfilter/ipt_unclean.c
+--- linux-2.4.19-vanilla/net/ipv4/netfilter/ipt_unclean.c	2002-09-10 16:06:50.000000000 +0200
++++ linux/net/ipv4/netfilter/ipt_unclean.c	2002-09-10 16:22:57.000000000 +0200
+@@ -211,7 +211,7 @@
+ 
+ 	/* Bad checksum?  Don't print, just say it's unclean. */
+ 	/* FIXME: SRC ROUTE packets won't match checksum --RR */
+-	if (!more_frags && !embedded
++	if (!more_frags && !embedded && udph->check
+ 	    && csum_tcpudp_magic(iph->saddr, iph->daddr, datalen, IPPROTO_UDP,
+ 				 csum_partial((char *)udph, datalen, 0)) != 0)
+ 		return 0;
 
-Because the unclean module does not log packets with invalid checksums.
+Please apply.
 
 Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+-- 
+Guillaume Morin <guillaume@morinfr.org>
+
+              Linux is user friendly. Linux is not idiot friendly
+             If you don't understand that, use Windows (Anonymous)
