@@ -1,12 +1,17 @@
-From: Rajesh Mishra <rajesh_mish@yahoo.com>
-Subject: dest addr using transparent proxy...
-Date: Thu, 14 Nov 2002 01:22:44 -0800 (PST)
+From: "Alexandre Carlos" <alexandre@redes.unb.br>
+Subject: IPTABLES problem
+Date: Mon, 18 Nov 2002 13:16:46 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021114092244.92383.qmail@web40908.mail.yahoo.com>
+Message-ID: <039c01c28f1d$e6ad3610$1543a8c0@sanches>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: <Regina.Tsujiguchi@stj.gov.br>,
+   "Pim Van Heuven" <pim.vanheuven@intec2.rug.ac.be>,
+   "RSVP" <ds_mpls@atlantis.rug.ac.be>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,14 +22,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I just started using the transparent proxy
-functionality and wanted to know how to get the
-destination IP address in my proxy server.
+My experimental backbone is the following:
 
-Thanks
-Rajesh
+                                         B
+                                    3.4/|\2.4
+                                       /5.4\
+                                      /   |    \
+   (A1)                     1.3/     |     \2.2
+10.1.1.2--10.1.1.1 -- A     |      C----192.168.67.91---192.168.67.90 (C1=
+)
+                                1.1\    |     /4.2
+                                      \   |    /
+                                       \5.3/
+                                    1.3\|/4.3
+                                         D
 
-__________________________________________________
-Do you Yahoo!?
-Yahoo! Web Hosting - Let the expert host your site
-http://webhosting.yahoo.com
+I=B4m using IPTABLES version 1.2.4-dscp do set up the tos value of the
+packets. I=B4m creating the following rule on A and C
+
+iptables -A PREROUTING -t mangle -p icmp -j FTOS --set-ftos 0x28 or
+iptables -A FORWARD -t mangle -p icmp -j FTOS --set-ftos 0x28
+
+But when i try do ping from A1 to C1 or from C1 to A1
+
+The chechshum of the ip on the reply message is incorrect, so the packet =
+is
+droped on (B) or (D)
+
+I would like to know, how can i avoid dropping the packet and still using
+the same version of iptables and rules
+
+Alex
