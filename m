@@ -1,13 +1,13 @@
-From: "Michael Varga" <mike.varga@cavium.com>
-Subject: netfilter hook not working with fragments
-Date: Wed, 9 Feb 2005 21:59:04 -0800
-Message-ID: <19c901c50f35$a4afb8b0$a610a8c0@niche>
+From: Jonas Berlin <jberlin@niksula.hut.fi>
+Subject: Re: netfilter & ipv6
+Date: Thu, 10 Feb 2005 16:07:15 +0200
+Message-ID: <420B6A93.3080005@niksula.hut.fi>
+References: <42086F50.9090504@niksula.hut.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>,
-	<netfilter@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <42086F50.9090504@niksula.hut.fi>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,13 +19,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Jonas Berlin wrote:
 
-I wrote a NF_IP_PRE_ROUTING hook to capture packets
-for an IPSec implimentation.
+> 3. If I succeed porting something, what should I name the patch to be 
+> sent to patch-o-matic-ng? I don't think I could just extend the 
+> existing ones as that would suggest the original authors have 
+> something to do with it and also some of them also are pending or 
+> already included in the ekernel. So, would CLASSIFY_v6 be an 
+> acceptable name for the ipv6 version of CLASSIFY?
 
-Is there a way to make netfilter assemble fragments before=20
-recieving them in my netfilter hook?
+After twisting some bits around, my CLASSIFY_v6 seems to work 
+succesfully, however the naming is awkward since the name of the name of 
+the module essentially determines the name of the target, the module 
+etc. So one has to write
 
-thanks
-Mike
+  ip6tables ... -j CLASSIFY_v6 --set-class 1:20
+
+Although this works fine, having some modules with suffix _v6 and some 
+not is just plain confusing. Is there any way to reuse the CLASSIFY for 
+ipv6 name without conflicting with the CLASSIFY module already in pom? 
+Maybe I missed something?
+
+-- 
+- xkr47
