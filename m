@@ -1,16 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] ROUTE target fixes for --iif
-Date: Wed, 5 May 2004 19:26:38 +0200 (CEST)
+From: Martijn Lievaart <netfilter-devel@rtij.nl>
+Subject: Re: I don't understand what goes where, very confused about POM-ng
+Date: Wed, 05 May 2004 20:00:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405051925410.31016-100000@blackhole.kfki.hu>
-References: <20040505144333.GA17752@ti64.telemetry-investments.com>
+Message-ID: <40992BB6.9030805@rtij.nl>
+References: <4099210C.40309@rtij.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Cedric de Launois <delaunois@info.ucl.ac.be>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
-In-Reply-To: <20040505144333.GA17752@ti64.telemetry-investments.com>
+To: Martijn Lievaart <netfilter-devel@rtij.nl>
+In-Reply-To: <4099210C.40309@rtij.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +21,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 5 May 2004, Bill Rugolsky Jr. wrote:
+Martijn Lievaart wrote:
 
-> On Wed, May 05, 2004 at 02:04:19PM +0200, Cedric de Launois wrote:
-> > Concerning the TTL, what happens if you re-inject the packet
-> > on the same interface ? If you don't decrement the TTL, you
-> > might introduce a loop, no ? Could you check this ?
->
-> D'oh!  You are of course correct that it will loop (and I've verified that
-> it does).  I had previously been using
->
-> 	iptables -t mangle -A PREROUTING -i hdlc\+ -j TTL --ttl-inc 1
->
-> to get the desired behavior, but changed ROUTE because the above seemed
-> inelegant.   The original behavior is indeed the safer course.  The attached
-> patch backs out the TTL change.
+> As an alternative, would it be possible to just create a 
+> linux-2.6.patch file that applies after the 2.4 patch has applied? 
+> This would be a good solution because many patches need only minor 
+> modifications to newly added files (especially only ipt_xxx.c) to make 
+> them run under 2.6.
 
-Patch is applied. Quick fixes are highly appreciated. :-)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Damn, that does not work. The test before applying fails because the new 
+file is not there yet. Seems like a nice feature to add though, but that 
+would require a lot of trickery I think.
+
+Regards,
+Martijn Lievaart
