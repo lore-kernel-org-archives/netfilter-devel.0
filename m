@@ -1,14 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH] tcp window tracking patch with SACK support
-Date: Fri, 18 Oct 2002 13:09:43 +0200 (CEST)
+From: "Pascal C. Kocher" <pascal.kocher@netbeat.biz>
+Subject: Link load balancing and failover
+Date: Fri, 18 Oct 2002 14:17:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0210181255170.10340-100000@blackhole.kfki.hu>
-References: <20021017163909.GO344@pc.ilinx>
+Message-ID: <08690CFFD361A946AE65793A726D276902DEE3@smirnoff.netbeat-security.ch>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+content-class: urn:content-classes:message
 To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20021017163909.GO344@pc.ilinx>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,27 +20,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hello list!
 
-As it was reported several times on the mailing list, the tcp window
-tracking patch could cause long SMTP delays in some cases.
+I'm currently thinking about an easy way to enable failover internet
+link loadbalancing without having to use BGP4 for outgoing
+communication. For this the netfilter framework seems to be a good way
+to go.
 
-After dumping a lot of traffic and replaying the streams it turned
-out that the book-keeping inside the patch could go out of sync when SACK
-was used. In another words, SACK was not supported by the patch and it
-could cause legitimate packets to be blocked.
+This idea is not about state sync between to netfilter machines, but
+Internet link loadbalancing.
 
-I have committed the new tcp-window-tracking.patch with SACK support in
-the cvs.
+For this you would need 2 (or more) ISPs.
+The idea is the following:
+- A packet ist destined for a server on the Internet, and the rules let
+the packet pass.
+- The packet ist SNATted to the IP of ISP A and ISP B (packet
+duplication necessary). Note that we must have two expectations in the
+conntrack table. The packets are sent to the corresponding router.
+- The first packet which resolves an expectation will be used for this
+connection. The expectation for the later packet will be deleted.
 
-It'd be very helpful if sites which experienced the long SMTP delays could
-give a try to the new version of the patch and then send a report: 'yeah,
-it's seems to be OK' or 'nope, still bad'. :-)
+This enables us to ensure that the connections always take the fastest
+path and if a link goes down, it would still work.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Is there a way to do this in netfilter or am I way off? What would be
+the implication on any protocol helpers (ftp, irc, etc.)?
+
+Things to think about also are how to handle incoming connections to a
+DMZ or similar. Currently I see only the way of multiple A-records in a
+DNS server.
+
+What do you guys think about this?
+
+Greetings,
+Pascal.
