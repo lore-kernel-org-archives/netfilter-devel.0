@@ -1,200 +1,52 @@
-From: Adrian Bunk <bunk@fs.tum.de>
-Subject: [2.6 patch] netfilter/ip_nat_snmp_basic.c: fix inlines
-Date: Wed, 14 Jul 2004 23:19:09 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040714211909.GQ7308@fs.tum.de>
+From: "Samuel Jean" <sjean@cookinglinux.org>
+Subject: Working on a match extension (ipt_gateway)
+Date: Wed, 14 Jul 2004 21:05:55 -0400 (EDT)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <33216.207.236.166.71.1089853555.squirrel@207.236.166.71>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265893AbUGNVVy@vger.kernel.org>
-To: James Morris <jmorris@intercode.com.au>
-Content-Disposition: inline
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Trying to compile net/ipv4/netfilter/ip_nat_snmp_basic.c in 
-2.6.8-rc1-mm1 using gcc 3.4 results in the following compile error:
+Hello,
 
-<--  snip  -->
+I'm working on an extension used to match packets by next-hop ip.
+It is only valid with FORWARD & POST_ROUTING hooks.
+It gets the routing decision via (struct rtable*)skb->dst
+and it works quite well.
 
-...
-  CC      net/ipv4/netfilter/ip_nat_snmp_basic.o
-net/ipv4/netfilter/ip_nat_snmp_basic.c: In function `snmp_trap_decode':
-net/ipv4/netfilter/ip_nat_snmp_basic.c:612: sorry, unimplemented: 
-inlining failed in call to 'mangle_address': function body not available
-net/ipv4/netfilter/ip_nat_snmp_basic.c:896: sorry, unimplemented: called from here
-make[3]: *** [net/ipv4/netfilter/ip_nat_snmp_basic.o] Error 1
+I just finished on Linux 2.6 and I'm about to do it on 2.4.
 
-<--  snip  -->
+I've done it after reading that unanswered post :
+http://lists.netfilter.org/pipermail/netfilter/2004-July/054199.html
 
-The patch below moves an inlined function above the place where it is 
-called the first time.
+Please, could someone answer my questions :
 
-An alternative approach would be to remove the inline.
+1) Is that match useless? (Can this be done without such a match)
 
+2) In case it isn't, how do I send the match?
 
-diffstat output:
- net/ipv4/netfilter/ip_nat_snmp_basic.c |  142 ++++++++++++-------------
- 1 files changed, 71 insertions(+), 71 deletions(-)
+   A tarball with libipt_gateway.c, ipt_gateway.c and ipt_gateway.h ?
+   (Any directory structure ?)
 
+I'm sorry for both questions. As you can see, it's my first real work
+on netfilter.
 
+There's a start to anything.
 
-Signed-off-by: Adrian Bunk <bunk@fs.tum.de>
+Thanks a lot,
 
---- linux-2.6.7-mm6-full-gcc3.4/net/ipv4/netfilter/ip_nat_snmp_basic.c.old	2004-07-09 02:18:23.000000000 +0200
-+++ linux-2.6.7-mm6-full-gcc3.4/net/ipv4/netfilter/ip_nat_snmp_basic.c	2004-07-09 02:21:00.000000000 +0200
-@@ -862,6 +862,77 @@
- 	return 1;
- }
- 
-+/* 
-+ * Fast checksum update for possibly oddly-aligned UDP byte, from the
-+ * code example in the draft.
-+ */
-+static void fast_csum(unsigned char *csum,
-+                      const unsigned char *optr,
-+                      const unsigned char *nptr,
-+                      int odd)
-+{
-+	long x, old, new;
-+	
-+	x = csum[0] * 256 + csum[1];
-+	
-+	x =~ x & 0xFFFF;
-+	
-+	if (odd) old = optr[0] * 256;
-+	else old = optr[0];
-+	
-+	x -= old & 0xFFFF;
-+	if (x <= 0) {
-+		x--;
-+		x &= 0xFFFF;
-+	}
-+	
-+	if (odd) new = nptr[0] * 256;
-+	else new = nptr[0];
-+	
-+	x += new & 0xFFFF;
-+	if (x & 0x10000) {
-+		x++;
-+		x &= 0xFFFF;
-+	}
-+	
-+	x =~ x & 0xFFFF;
-+	csum[0] = x / 256;
-+	csum[1] = x & 0xFF;
-+}
-+
-+/* 
-+ * Mangle IP address.
-+ * 	- begin points to the start of the snmp messgae
-+ *      - addr points to the start of the address
-+ */
-+static inline void mangle_address(unsigned char *begin,
-+                                  unsigned char *addr,
-+                                  const struct oct1_map *map,
-+                                  u_int16_t *check)
-+{
-+	if (map->from == NOCT1(*addr)) {
-+		u_int32_t old;
-+		
-+		if (debug)
-+			memcpy(&old, (unsigned char *)addr, sizeof(old));
-+			
-+		*addr = map->to;
-+		
-+		/* Update UDP checksum if being used */
-+		if (*check) {
-+			unsigned char odd = !((addr - begin) % 2);
-+			
-+			fast_csum((unsigned char *)check,
-+			          &map->from, &map->to, odd);
-+			          
-+		}
-+		
-+		if (debug)
-+			printk(KERN_DEBUG "bsalg: mapped %u.%u.%u.%u to "
-+			       "%u.%u.%u.%u\n", NIPQUAD(old), NIPQUAD(*addr));
-+	}
-+}
-+
- static unsigned char snmp_trap_decode(struct asn1_ctx *ctx,
-                                       struct snmp_v1_trap *trap,
-                                       const struct oct1_map *map,
-@@ -952,77 +1023,6 @@
- 	printk("\n");
- }
- 
--/* 
-- * Fast checksum update for possibly oddly-aligned UDP byte, from the
-- * code example in the draft.
-- */
--static void fast_csum(unsigned char *csum,
--                      const unsigned char *optr,
--                      const unsigned char *nptr,
--                      int odd)
--{
--	long x, old, new;
--	
--	x = csum[0] * 256 + csum[1];
--	
--	x =~ x & 0xFFFF;
--	
--	if (odd) old = optr[0] * 256;
--	else old = optr[0];
--	
--	x -= old & 0xFFFF;
--	if (x <= 0) {
--		x--;
--		x &= 0xFFFF;
--	}
--	
--	if (odd) new = nptr[0] * 256;
--	else new = nptr[0];
--	
--	x += new & 0xFFFF;
--	if (x & 0x10000) {
--		x++;
--		x &= 0xFFFF;
--	}
--	
--	x =~ x & 0xFFFF;
--	csum[0] = x / 256;
--	csum[1] = x & 0xFF;
--}
--
--/* 
-- * Mangle IP address.
-- * 	- begin points to the start of the snmp messgae
-- *      - addr points to the start of the address
-- */
--static inline void mangle_address(unsigned char *begin,
--                                  unsigned char *addr,
--                                  const struct oct1_map *map,
--                                  u_int16_t *check)
--{
--	if (map->from == NOCT1(*addr)) {
--		u_int32_t old;
--		
--		if (debug)
--			memcpy(&old, (unsigned char *)addr, sizeof(old));
--			
--		*addr = map->to;
--		
--		/* Update UDP checksum if being used */
--		if (*check) {
--			unsigned char odd = !((addr - begin) % 2);
--			
--			fast_csum((unsigned char *)check,
--			          &map->from, &map->to, odd);
--			          
--		}
--		
--		if (debug)
--			printk(KERN_DEBUG "bsalg: mapped %u.%u.%u.%u to "
--			       "%u.%u.%u.%u\n", NIPQUAD(old), NIPQUAD(*addr));
--	}
--}
--
- /*
-  * Parse and mangle SNMP message according to mapping.
-  * (And this is the fucking 'basic' method).
+--=20
+Samuel Jean
+SysAdmin & NetAdmin
+at cookinglinux.org
