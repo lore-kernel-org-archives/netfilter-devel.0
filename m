@@ -1,12 +1,13 @@
-From: =?iso-8859-2?Q?Jaros=B3aw?= Pyszny <arghil@tlen.pl>
-Subject: [PATCH]70_expect-evict-order.patch (cosmetic patch)
-Date: 08 Nov 2003 14:08:16 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: raw table breaks iptables binary compatibility
+Date: Sun, 9 Nov 2003 02:12:43 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1068296896.18243.28.camel@lx.siec>
+Message-ID: <Pine.LNX.4.44.0311090204280.25676-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-xZ4m7b/Mbf3s7w2QzooO"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,47 +18,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a followup to the message I sent on 30 Oct after noticing binary 
+compatibility with older iptables releases was broken after applying 
+p-o-m/base.
 
---=-xZ4m7b/Mbf3s7w2QzooO
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Other unrelated events has identified this being due to the raw table
+patch. This patch modifies ipt_entry by adding two more fields and this
+totally breaks binary compatibility with iptables binaries compiled for
+kernels with/without the raw table.
 
-s/whcih/which/ in *.help files
-Jarek
--- 
-8  \\|||//  Jaroslaw J. Pyszny <arghil@tlen.pl>
-b   (o|o)    AUROX Linux developer ("Vitae,non scholae,discimus")
-i  --\_/--   Linux user: #96704    (http://counter.li.org)
-t =-> 8-bit. komputer(y) - daj znac jesli chcesz sie pozbyc <-=
+linux-2.4.22-log/include/linux/netfilter_ipv4/ip_tables.h 
+linux-2.4.22-raw/include/linux/netfilter_ipv4/ip_tables.h
+--- linux-2.4.22-log/include/linux/netfilter_ipv4/ip_tables.h   2003-09-17 
+17:15:00.000000000 +0200
++++ linux-2.4.22-raw/include/linux/netfilter_ipv4/ip_tables.h   2003-09-28 
+14:19:16.000000000 +0200
+@@ -134,6 +134,12 @@
+        /* Back pointer */
+        unsigned int comefrom;
 
---=-xZ4m7b/Mbf3s7w2QzooO
-Content-Disposition: attachment; filename=expect-evict-order.diff
-Content-Type: text/x-patch; name=expect-evict-order.diff; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
++       /* Name of the chain */
++       char *chainname;
++       
++       /* Rule number in the chain. */
++       u_int32_t rulenum;
++
+        /* Packet and byte counters. */
+        struct ipt_counters counters;
 
-diff -urN netfilter/patch-o-matic/pending/70_expect-evict-order.patch.help netfilter.new/patch-o-matic/pending/70_expect-evict-order.patch.help
---- netfilter/patch-o-matic/pending/70_expect-evict-order.patch.help	2003-09-30 21:54:16.000000000 +0200
-+++ netfilter.new/patch-o-matic/pending/70_expect-evict-order.patch.help	2003-11-08 14:04:01.000000000 +0100
-@@ -1,7 +1,7 @@
- Author: Patrick McHardy <kaber@trash.net>
- Status: Pending for kernel inclusion, needs testing
- 
--This patch fixes the order in whcih expectations are evicted when a helper
-+This patch fixes the order in which expectations are evicted when a helper
- specifies IP_CT_HELPER_F_REUSE_EXPECT.  Prior to that patch, each new
- expectation is added at the beginning of the masters sibling list.  When
- max_expected is reached, the first non-established one on the list is reused
-diff -urN netfilter/patch-o-matic_2.5/pending/70_expect-evict-order.patch.help netfilter.new/patch-o-matic_2.5/pending/70_expect-evict-order.patch.help
---- netfilter/patch-o-matic_2.5/pending/70_expect-evict-order.patch.help	2003-09-30 21:54:16.000000000 +0200
-+++ netfilter.new/patch-o-matic_2.5/pending/70_expect-evict-order.patch.help	2003-11-08 14:03:53.000000000 +0100
-@@ -1,7 +1,7 @@
- Author: Patrick McHardy <kaber@trash.net>
- Status: Pending for kernel inclusion, needs testing
- 
--This patch fixes the order in whcih expectations are evicted when a helper
-+This patch fixes the order in which expectations are evicted when a helper
- specifies IP_CT_HELPER_F_REUSE_EXPECT.  Prior to that patch, each new
- expectation is added at the beginning of the masters sibling list.  When
- max_expected is reached, the first non-established one on the list is reused
 
---=-xZ4m7b/Mbf3s7w2QzooO--
+
+I don't quite see why these are required for the 'raw' table. Seems to be 
+related to debugging or error management on rulesets incompatible with 
+'raw'. In any case the effect is probably not that desireable from a 
+p-o-m/base patch..
+
+Regards
+Henrik
