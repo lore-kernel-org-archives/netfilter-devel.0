@@ -1,14 +1,15 @@
-From: Romp <romp@siil.net>
-Subject: Re: problem with iplimit
-Date: Sat, 26 Oct 2002 11:26:53 +0300 (EEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ip_conntrack-timeouts conflicts with tcp-window-tracking
+Date: Mon, 28 Oct 2002 12:29:52 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.43.0210261122460.1050-100000@nuhkija.sise>
-References: <03c501c27ad4$9e5ac740$060110ac@localdomain>
+Message-ID: <Pine.LNX.4.33.0210281225160.1385-100000@blackhole.kfki.hu>
+References: <20021025203433.GJ23228@pc.ilinx>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <03c501c27ad4$9e5ac740$060110ac@localdomain>
+To: <netfilter@interlinx.bc.ca>
+In-Reply-To: <20021025203433.GJ23228@pc.ilinx>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,17 +20,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> The problem appears every time I try to use this module.
-> if I set --limit-above to 2 and try to open third connection, system will drop it (ok).
-> But if I try to open this connection again (while previous 2 connections are still active), system will accept it (!).
-> Since, almost every connection will be accepted (!).
-> Note that if I close all connections, and try to make described test again, all will happen again.
->
+On Fri, 25 Oct 2002 netfilter@interlinx.bc.ca wrote:
 
-the problem (and fix) is also described at
-http://lists.netfilter.org/pipermail/netfilter-devel/2002-May/007818.html
+> Which should I prefer, or should I merge them by taking the bulk of
+> the tcp-window-tracking patch and replace the references to timeout
+> constants with the sysctl controlled timeout values that
+> ip_conntrack-timeouts provides?
+[...]
+> I sure like the idea of the tcp window tracking patch and would like it,
+> but I also like being able to control timeouts via sysctl rather than
+> having to use defined constants.
 
-unfortunately, the patch provided does not solve the problem (at least for
-me)
+The tcp-window-tracking patch do provide sysctl control of all the timeout
+parameters. Please read the help file.
 
-romp
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
