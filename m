@@ -1,13 +1,14 @@
-From: Michael Rash <mbr@cipherdyne.org>
-Subject: [PATCH] Trivial space char fix for --log-prefix
-Date: Fri, 5 Dec 2003 02:20:41 -0500
+From: "Ghacker" <ghacker@super.inha.ac.kr>
+Subject: [Q] Please answer me about modifying sk_buff( or packet anywayz...)
+Date: Sun, 7 Dec 2003 17:52:33 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031205072041.GA5672@orthanc.gambrl01.md.comcast.net>
+Message-ID: <000501c3bc9f$74e3e460$8926f6a5@ghacker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,50 +19,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello -
-
-This patch adds a space character to the --log-prefix string if the
-user did not have it already.  This prevents the "IN=" field in
-iptables log messages from being obscured by a --log-prefix that
-doesn't have a space.
-
---Mike
-
-Michael Rash
-http://www.cipherdyne.org
-Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
-
-
-diff -u -r1.14 libipt_LOG.c
---- libipt_LOG.c	11 Aug 2003 19:58:56 -0000	1.14
-+++ libipt_LOG.c	5 Dec 2003 07:15:45 -0000
-@@ -107,6 +107,7 @@
-       struct ipt_entry_target **target)
- {
- 	struct ipt_log_info *loginfo = (struct ipt_log_info *)(*target)->data;
-+	unsigned short int addspc_f = 0, prefix_len = 0;
- 
- 	switch (c) {
- 	case '!':
-@@ -131,12 +132,21 @@
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Unexpected `!' after --log-prefix");
- 
--		if (strlen(optarg) > sizeof(loginfo->prefix) - 1)
-+		prefix_len = strlen(optarg);
-+		if (optarg[strlen(optarg)-1] != ' ') {
-+			/* we need to add a space */
-+			addspc_f = 1;
-+			prefix_len++;
-+		}
-+
-+		if (prefix_len > sizeof(loginfo->prefix) - 1)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Maximum prefix length %u for --log-prefix",
- 				   sizeof(loginfo->prefix) - 1);
- 
- 		strcpy(loginfo->prefix, optarg);
-+		if (addspc_f)
-+			loginfo->prefix[prefix_len-1] = ' ';
- 		*flags |= IPT_LOG_OPT_PREFIX;
- 		break;
+SGkuLi4gZXZlcnlvbmUuLg0KDQpGaXJzdCBvZiBhbGwuLiBUaGFueCB0byB5b3UgZm9yIHJlYWRp
+bmcuLi4gYW5kIGZvcmdpdmUgIG15IHBvb3IgZW5nbGlzaC4uIDooDQoNCkkgaGF2ZSBhIHByb2Js
+ZW0gdGhhdCBtb2RpZnlpbmcgcGFja2V0IHdpdGggbmV0ZmlsdGVyLi4NCg0KTXkgcHJvZ3JhbSBp
+cyBkZXZpZGVkIGluIDIgcGFydC4uKHNlcnZlciBhbmQgY2xpZW50IHByb2dyYW1tZWQgaW4ga2Vy
+bmVsIG1vZHVsZSkNCg0KVGhlIENsaWVudCBwcm9ncmFtKGFjdHVhbGx5IE5GX0lQX0xPQ0FMX09V
+VCBob29rIGZ1bmN0aW9uKSBtb2RpZnkgcHJvdG9jb2wgZmllbGQgb2YgaXAgaGVhZGVyIGluIHNr
+X2J1ZmYuLg0KDQpGb3IgZXhhbXBsZS4uIGlmIFRDUCBwYWNrZXQgaXMgaG9va2VkLCBJIGNoYW5n
+ZSB0aGUgcHJvdG9jb2wgZmllbGQgb2YgaXAgaGVhZGVyIDYgdG8gMjI0KEl0J3MgcmFuZG9tbHkg
+c2VsZWN0ZWQuLikgYW5kIHJldHVybiBORl9BQ0NFUFQNCg0KQW5kLi4gU2VydmVyIHByb2dyYW0o
+b2J2aW91c2x5IE5GX0lQX0xPQ0FMX0lOIGhvb2sgZnVuY3Rpb24pIG1vZGlmeSBwcm90b2NvbCBm
+aWVsZCBvZiBpcCBoZWFkZXIgdG9vLiBhbmQgcmV0dXJuIE5GX0FDQ0VQVA0KDQpJbiBzZXJ2ZXIg
+Y2FzZS4uIGlmIGhvb2tlZCBpbiBwYWNrZXQncyBwcm90b2NvbCBmaWVsZCBvZiBpcCBoZWFkZXIg
+aXMgMjI0KEl0IGlzIGEgbW9kaWZpZWQgcGFja2V0IGJ5IGNsaWVudCBwcm9ncmFtKSwgaXQganVz
+dCBjaGFuZ2UgdGhlIG51bWJlciB0byA2IGFuZCByZXR1cm4gTkZfQUNDRVBUDQoNClNvIEkgdGVz
+dCB0aGlzIHByb2dyYW0uLiBJdCBpcyBzdWNjZXNmdWwgZm9yIGNsaWVudCB0byBzZXJ2ZXIgY29u
+bmVjdGlvbi4uKHRlc3RlZCBpbiB0ZWxuZXQuIHNzaC4gZnRwLCBodHRwKQ0KQnV0IEkgdHJ5IHRv
+IGNvbm5lY3Qgc2VydmVyIHRvIGNsaWVudCwgaXQncyBpbXBvc3NpYmxlLi4NCg0KQ2xpZW50IHNl
+bmQgYSBTWU4mQUNLIHBhY2tldC4uLiBidXQgU2VydmVyIHJlY2VpdmVkIGFueXRoaW5nLi4gKCBJ
+IGNoZWNrIHRoaXMgaW4gTkZfSVBfUFJFX1JPVVRJTkcgYW5kIE5GX0lQX1BPU1RfUk9VVElORykN
+Cg0KSG93IGNhbiBJIHNvbHZlIHRoaXMgcHJvYmxlbS4uPyAgVGhhbnggYWdhaW4uLiBmb3IgcmVh
+ZGluZy4u
