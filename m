@@ -1,15 +1,14 @@
-From: Juha Heljoranta <juha.heljoranta@evitech.fi>
-Subject: Re: iptables target conflict?  ROUTE and MASQUERADE [off-topic]
-Date: 16 Dec 2003 16:23:57 +0200
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: NAT breaks my TCP SYN/ACK?
+Date: Tue, 16 Dec 2003 17:41:09 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1071584637.1714.52.camel@jazz>
-References: <BAY13-F105p0oKHV3SF000296b7@hotmail.com>
+Message-ID: <3FDF2795.500@netlab.hut.fi>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <BAY13-F105p0oKHV3SF000296b7@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,46 +19,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2003-12-16 at 10:55, Wu Nick wrote:
-> However, 
-> I've 
-> got several pppoe connections at the same time to connect the Internet.  I 
-> dial 
-> up several pppoe connections at the same time, and I'm using ROUTE to 
-> redirect 
-> packets to different ppp interfaces.  But this will defeat the design of 
-> MASQUERADE. That is, I'd like to send packets out from different ppp 
-> interfaces 
-> and their source IP addresses needed to be changed to the IP addess of the 
-> specific ppp interface.  Do you have any idea about how to do?
+Hei!
 
-Don't know what you are up to but it sounds like "load balancing" to me.
-I have three pppoe connections "balancing" traffic from intranet to
-internet.
+I've written a target module which for the moment performs only a simple 
+redirection as follows (I took masquerade and redirect as examples to 
+write this):
 
-I have to use two computers to do the trick:
-   intranet --> computer 1 --> computer 2 --> internet
+    newrange= ((struct ip_nat_multi_range)
+    {
+        1,
+        {{
+            IP_NAT_RANGE_PROTO_SPECIFIED | IP_NAT_RANGE_MAP_IPS,
+            new_ip_target,
+            new_ip_target,
+            {sd_data->min_napt_port},
+            {sd_data->max_napt_port}
+        }}
+    });
 
-I have several computers in my intranet (x.x.0.0). Computer 1 does
-   -t nat -A POSTROUTING -o ethx  -s x.x.0.0 \
-     -j SNAT --to-source  x.x.1.20-x.x.1.22
-That is, gives random ip for outgoing connection (this is the
-"balancing"). Computer 2 does
-   -t nat -A POSTROUTING -o ppp0 -s x.x.1.20 -j  MASQUERADE
-   -t nat -A POSTROUTING -o ppp1 -s x.x.1.21 -j  MASQUERADE
-   -t nat -A POSTROUTING -o ppp2 -s x.x.1.22 -j  MASQUERADE
-and
-   ip rule add from x.x.1.20 table pppoe0
-   ip rule add from x.x.1.21 table pppoe1
-   ip rule add from x.x.1.22 table pppoe2
+ip_nat_setup_info(conntrack, &newrange, hooknum)  /*hooknum is pre-routing*/
 
-Problems with the solution: 1/3 rd of the passive ftp connection
-attempts fail. Masquerade will broke if ip changes for any ppp (this
-might be distribution specific problem).
 
-There are probably far more elegant solutions. Using singe computer to
-do the job wasn't possible at the time I build it. Nowadays, dunno.
+In my tests, I'm trying from a host at adress X to reach a website at 
+address Y. However this website does not exist on that address but on 
+address Z. Thus, basically in my target, I change address Y for Z. But 
+the connection to the website is refused, and tcpdump shows the following:
 
-Regards,
-Juha Heljoranta
-juha.heljoranta-AT-evitech.fi
+17:25:21.568709 11.11.11.10.1262 > 10.10.10.10.www: SWE 
+1338652779:1338652779(0) win 5840 <mss 1460,sackOK,timestamp 
+8306468[|tcp]> (DF)
+17:25:21.569136 10.10.10.10.www > 11.11.11.10.1262: R 0:0(0) ack 
+1338652780 win 0 (DF)
+
+(while if it was working it should be:
+17:24:04.590007 11.11.11.10.1261 > 10.10.10.10.www: SWE 
+1266184733:1266184733(0) win 5840 <mss 1460,sackOK,timestamp 
+8298770[|tcp]> (DF)
+17:24:04.590344 10.10.10.10.www > 11.11.11.10.1261: SE 
+312659779:312659779(0) ack 1266184734 win 5792 <mss 
+1460,sackOK,timestamp 8644814[|tcp]> (DF)
+)
+
+Does anyone has an idea about what happens to my SYN/ACK packet? Why is 
+it modified like that?
+
+               Emmanuel
