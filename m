@@ -1,15 +1,15 @@
-From: Emmanuel Fleury <fleury@cs.auc.dk>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: Security flaw in Stateful filtering ??????
-Date: Sun, 09 Jun 2002 09:03:27 +0200
+Date: Sun, 9 Jun 2002 10:29:28 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <3D02FDBF.6070005@cs.auc.dk>
-References: <3D007D73.9030609@cs.auc.dk> <3D016699.9010301@cs.auc.dk> <20020608102140.C23410@oknodo.bof.de> <200206081402.17562@henrik.marasystems.com>
-Reply-To: netfilter-devel@lists.samba.org
+Message-ID: <20020609102928.F23410@oknodo.bof.de>
+References: <3D007D73.9030609@cs.auc.dk> <3D016699.9010301@cs.auc.dk> <20020608102140.C23410@oknodo.bof.de> <200206081402.17562@henrik.marasystems.com> <3D02FDBF.6070005@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
+Content-Disposition: inline
+In-Reply-To: <3D02FDBF.6070005@cs.auc.dk>; from fleury@cs.auc.dk on Sun, Jun 09, 2002 at 09:03:27AM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,81 +20,42 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+> Thanks a lot for pointing ip_conntrack_core.c and explain all this !
 
-Excellent.
+Agreed. Thanks, Henrik.
 
-Thanks a lot for pointing ip_conntrack_core.c and explain all this !
-
-
-Henrik Nordstrom wrote:
+> The problem is that the definition of the HOWTO states that NEW match:
 > 
-
-....
-
-> The above states are "ctinfo" and is derived from the conntrack state 
-> flags and the packet currently being processed. The actual conntrack 
-> state flags are:
+>      A packet which creates a new connection.
 > 
-> ASSURED
-> The protocol (TCP/UDP/IMCP...) has seen the initiation and 
-> establishment of this connection. For TCP this requires seeing the 
-> whole SYN -> SYN+ACK -> ACK transition, for UDP and ICMP it simply is 
-> seeing traffic in both directions..
+> That's not true if you consider this from the protocol point of view
+
+I think you are correct here; there's an ambiguity here, and I'd wish
+connection tracking would be called flow tracking or something. However,
+it's too late for that, now.
+
+Realistically, I think that the docs would be best augmented by an extra
+chapter on "why does the man-in-the-middle say connection to different
+things than the protocols". Bad title, I know, but instead of explaining
+the difference partially and clumsily everywhere it matters, a lucid extra
+part of the docs would be preferrable (and then reference that where it
+matters).
+
+> > Of these, only ASSURED is directly dependent on the TCP connection 
+> > tracking state, the others are only dependent on the ability of 
+> > identifying which connection the packet may belong to.
 > 
-> SEEN_REPLY
-> There has been traffic seen in both directions on this connection. 
-> This is what makes conntrack packet state ESTABLISHED.
-> 
-> EXPECTED
-> This connection is identified as belonging to another connection. This 
-> is what makes conntrack packet state RELATED.
-> 
-> If neither of SEEN_REPLY or EXPECTED is true for the connection then 
-> the packet state is NEW.
+> Actually, ASSURED seems to be related to all the protocols which
+> expect a confirmation from the receiver before establishing the
+> connection (but in your case only TCP need a confirmation. UDP and
+> ICMP does not need this). Right ?
 
-Ok.
+Right, I think. If another protocol parallel to TCP comes along which has
+such a setup phase (SCTP comes to mind), it could be handled likewise.
+Also, I could imagine special TCP conntrack helpers to go even further,
+and defer the ASSURED marking to a point where more of the connection
+is known, e.g. real data has been seen in one direction, and correctly
+acked.
 
-I think I can see now why you didn't went to much in depth in the
-packet-filtering HOWTO. The stateful module could require a full HOWTO
-for itself if you want to fully understand it... :-/
-
-The problem is that the definition of the HOWTO states that NEW match:
-
-     A packet which creates a new connection.
-
-That's not true if you consider this from the protocol point of view
-(and the confusion is happening very often). I could suggest something
-like:
-
-     A packet which creates a new entry in the connection table
-     (Warning: NEW is matching all the packets which are creating a
-      connection in the considered protocol plus some others. For
-      example, considering the TCP protocol, an ACK packet which is not
-      part of an existing connection will also match the state NEW).
-
-If you are agree on this modification, I'll do the patch against the
-CVS archive.
-
-(By the way, I can add also my proposition in the FAQ if everybody is
-  agree).
-
-
-All suggestions or modifications are welcome.
-
-> Of these, only ASSURED is directly dependent on the TCP connection 
-> tracking state, the others are only dependent on the ability of 
-> identifying which connection the packet may belong to.
-
-Actually, ASSURED seems to be related to all the protocols which
-expect a confirmation from the receiver before establishing the
-connection (but in your case only TCP need a confirmation. UDP and
-ICMP does not need this). Right ?
-
-Regards
--- 
-Emmanuel
-
-Go not to Usenet for counsel, for it will say both
-no, and yes, and no, and yes, and no, ....
-   -- Unknown
+best regards
+  Patrick
