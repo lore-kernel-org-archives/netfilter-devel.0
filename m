@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [1/1] OSF: pom-ng - linux-2.6.
-Date: Mon, 03 Jan 2005 00:31:20 +0100
-Message-ID: <41D88448.6080701@trash.net>
-References: <1102503533.3363.48.camel@uganda>	<1102503753.3363.50.camel@uganda>	<41B74C8C.20607@trash.net>
-	<20041212181351.22570bf6@zanzibar.2ka.mipt.ru>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: skb_ip_make_writable and skbs not owned by a socket
+Date: Mon, 3 Jan 2005 00:57:57 +0100
+Message-ID: <20050102235757.GA26856@postel.suug.ch>
+References: <41D86571.6070501@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: "David S. Miller" <davem@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>,
+	Jamal Hadi Salim <hadi@cyberus.ca>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: johnpol@2ka.mipt.ru
-In-Reply-To: <20041212181351.22570bf6@zanzibar.2ka.mipt.ru>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <41D86571.6070501@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,28 +23,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Evgeniy Polyakov wrote:
+* Patrick McHardy <41D86571.6070501@trash.net> 2005-01-02 22:19
+> skb_ip_make_writable copies the packet as soon as the data area needs
+> to be touched. This is of course necessary for packets generated locally,
+> but can't we mangle the data area of skbs with skb->sk == NULL without
+> copying them ?
 
->On Wed, 08 Dec 2004 19:48:44 +0100
->Patrick McHardy <kaber@trash.net> wrote:
->
->>Anyhow, it still needs to handle non-linear skbs. Have a look
->>at the other matches and their use of skb_header_pointer.
->>
->
->Sure.
->Patch attached, although I do not quite understand what should be 
->done with a poor skb to move IP and TCP headers into the fragments...
->
-Applied, sorry for the delay. Copying the ip-header is not necessary,
-but the TCP header may be nonlinear because of defragmentation.
-
->P.P.S. I do not have 2.4 sources but if 2.4 has skb_header_pointer
->(as long as it has skb_copy_bits()) patch can be applied against it
->as well, but path in diff should be changed. If needed it is attached
->as well.
->
-2.4 doesn't need this change, netfilter always gets linearized skbs.
-
-Regards
-Patrick
+Theoretically there could be a driver for a S/G capable nic producing
+pskbs. I'm not aware of such a driver though. Assuming there is no
+such driver at the moment, the question is whether to make all the
+paths aware as a precaution (net/sched/ is not aware as of now). I
+think everyone would agree if there wasn't such ia high possible
+performance impact respectively saving. Thoughts?
