@@ -1,22 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: Mon, 27 Sep 2004 15:39:05 +0200
+From: "Piotr =?iso-8859-2?Q?Gasid=B3o?="
+	<quaker@pandora.barbara.ds.polsl.gliwice.pl>
+Subject: Re: [PATCH] account match seq_file update [RESEND of RESEND]
+Date: Mon, 27 Sep 2004 16:21:03 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040927133904.GP3236@sunbeam.de.gnumonks.org>
-References: <1092407190.2402.120.camel@nienna.balabit>
-	<1095993739.1044.9.camel@jzny.localdomain>
-	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
-	<1096290473.1075.64.camel@jzny.localdomain>
+Message-ID: <20040927142103.GA18298@barbara.eu.org>
+References: <20040926100202.GA8843@barbara.eu.org> <415817CF.3010007@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="axAiL0GWw9slBjba"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
-	KOVACS Krisztian <hidden@balabit.hu>
+	protocol="application/pgp-signature";
+	boundary="=_pandora.barbara.ds.polsl.gliwice.pl-19501-1096294863-0001-2"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: jamal <hadi@cyberus.ca>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <1096290473.1075.64.camel@jzny.localdomain>
+In-Reply-To: <415817CF.3010007@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,62 +23,47 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
---axAiL0GWw9slBjba
-Content-Type: text/plain; charset=us-ascii
+--=_pandora.barbara.ds.polsl.gliwice.pl-19501-1096294863-0001-2
+Content-Type: text/plain; charset=iso-8859-2
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 27, 2004 at 09:07:53AM -0400, jamal wrote:
-> I think it would be better to separate the election process (who is
-> master) from the syncing code. For some reason i thought this separation
-> was there (and that all you had to do was bag some /proc entry).=20
-> i.e if VRRP is the code that makes the decision that it wants you to be
-> the master, thats how you become master. If someothericandohabetter (eg
-> forCES) protocol wants you to be the master, thats how you become the
-> master. There is no point in inventing a new HA scheme.
-> And if you do it should probably be in user space (there is no
-> perfomance issues with it) i.e its such a protocol (in user space) that=
-=20
-> should tell your syncing code to send syncs or not.
-> Unless i missed something fundamental.
+On pon, 27/09, 03:38:23, Patrick McHardy wrote:
+> iptables-based accounting is deprecated, so I expect
+> we will remove the account/ACCOUNT match from pom-ng at some
+> point.
 
-I totally agree with you, jamal.  And in fact this is exactly what we
-have.  You tell one box it is master, and it becomes master.   You tell
-a box it is slave, and it becomes slave.
+Yes. I've read Harald Welte announce. I think, that module should stay
+till some userspace accounting tool based on /proc/net/ip_conntrack
+fields will be created.
 
-There is just a minor addition in one case, where we want to safeguard
-against a (currently) invalid mode of operation.  As soon as ct_sync
-supports multiple master, this safeguard will certainly be removed.
-
-But for the current code, unless somebody shows to me that it severely
-limits some use of ct_sync, or it causes practical problems, I don't see
-why we should remove this safeguard.
-
-> cheers,
-> jamal
+My module is mostly used by small ISP (lets say "home" ISP, 100-200
+users) as source for rrdtool to create traffic graphs for each IP. It
+was developed to replace 200-400 traffic accounting rules with single
+one.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Piotr 'QuakeR' Gasid=B3o, BOFH @ pandora.barbara.eu.org
+############## sending lusers to /dev/null since 1998
+##### Waiting for tomorrow, for a little ray of light
+### Waiting for tomorrow just to see your smile again
 
---axAiL0GWw9slBjba
+--=_pandora.barbara.ds.polsl.gliwice.pl-19501-1096294863-0001-2
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
 Content-Description: Digital signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-iD8DBQFBWBf4XaXGVTD0i/8RAv1JAJ42JSws2ff0CGY+a1FoBRtrR39kswCgmdhu
-YOv2FkAZx+up3AjZ0fWL8To=
-=67Bp
+iD8DBQFBWCHPgEmu6PNADqoRAlI+AJ9vepzYnfys99oiAe7bFhDlT4f2/QCcDM2T
+uH8xlNANxESAu+tu2ZFO6CI=
+=MTYr
 -----END PGP SIGNATURE-----
 
---axAiL0GWw9slBjba--
+--=_pandora.barbara.ds.polsl.gliwice.pl-19501-1096294863-0001-2--
