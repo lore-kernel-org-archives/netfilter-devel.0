@@ -1,16 +1,13 @@
-From: Bart De Schuymer <bart.de.schuymer@pandora.be>
-Subject: [PATCH] (trivial) memory leakage in userspace iptables.c::merge_options()
-Date: Wed, 26 Jun 2002 23:17:24 +0200
+From: qhou <qhou_acornsoft@sohu.com>
+Subject: Q: Can I get handled on "conntrack" DESTROY, without ip_conntrack_destroyed()
+Date: Thu, 27 Jun 2002 09:50:34 +0800 (CST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206262317.24869.bart.de.schuymer@pandora.be>
-References: <20020613175053.J2543@sunbeam.de.gnumonks.org> <200206131931.23688.hno@marasystems.com> <200206150014.28710.bart.de.schuymer@pandora.be>
+Message-ID: <1270026.1025142634777.JavaMail.postfix@mailsrv10.mail.sohu.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="------------Boundary-00=_0H0C2EFM3N7P6I044WNM"
+Content-Type: text/plain; charset="GB2312"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	netfilter-devel@lists.samba.org
-In-Reply-To: <200206150014.28710.bart.de.schuymer@pandora.be>
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,36 +19,12 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---------------Boundary-00=_0H0C2EFM3N7P6I044WNM
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+There will be a conflict if we use ip_conntrack_destroyed() to handle it,
+for ONLY one single function can register on it. AFAIK, it is used by the NAT...
 
-Hello,
+I think if it is necessary to make a handle for it,
+then I can release the private data in my module with ease,
+or I should repeated implement the destroy algorithm.
 
-This is just a small patch that free's unused memory in=20
-iptables.c::merge_options(). It's vs the file in the CVS.
-
---=20
-cheers,
-Bart
---------------Boundary-00=_0H0C2EFM3N7P6I044WNM
-Content-Type: text/x-diff;
-  charset="iso-8859-1";
-  name="iptables.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="iptables.c.diff"
-
---- iptables.c.old	Mon Jun 24 14:37:29 2002
-+++ iptables.c	Wed Jun 26 23:05:34 2002
-@@ -986,6 +986,8 @@
- 		merge[num_old + i].val += *option_offset;
- 	}
- 	memset(merge + num_old + num_new, 0, sizeof(struct option));
-+	if (oldopts != original_opts)
-+		free(oldopts);
- 
- 	return merge;
- }
-
---------------Boundary-00=_0H0C2EFM3N7P6I044WNM--
+Any IDEA is welcome,
+Thanks
