@@ -1,16 +1,15 @@
-From: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson)
-Subject: Re: cttest-0.1
-Date: Sun, 7 Jul 2002 07:46:07 +0200
+From: don-cs3@isis.cs3-inc.com (Don Cohen)
+Subject: hashing answers
+Date: Sun, 7 Jul 2002 01:26:40 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020707054607.GL3729@aaricia.hemmet.chalmers.se>
-References: <20020706224109.GH3729@aaricia.hemmet.chalmers.se> <20020705165354.GD3729@aaricia.hemmet.chalmers.se> <53889.203.134.158.15.1025935801.squirrel@iw.k1k2.com> <20020706091259.F13116@oknodo.bof.de> <20020706172342.H13116@oknodo.bof.de> <20020706211451.GG3729@aaricia.hemmet.chalmers.se> <20020706224109.GH3729@aaricia.hemmet.chalmers.se> <5.1.0.14.0.20020707013649.00bfce68@sss.dnsalias.net> <20020707042341.GK3729@aaricia.hemmet.chalmers.se>
+Message-ID: <15655.64320.272481.341687@isis.cs3-inc.com>
+References: <200207022303.g62N3No03454@baskerville.CS.Arizona.EDU>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Svenning Sorensen <sss@sss.dnsalias.net>,
-	Patrick Schaaf <bof@bof.de>, netfilter-devel@lists.samba.org
-Content-Disposition: inline
-In-Reply-To: <20020707042341.GK3729@aaricia.hemmet.chalmers.se>
+To: netfilter-devel@lists.samba.org
+In-Reply-To: <200207022303.g62N3No03454@baskerville.CS.Arizona.EDU>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,36 +20,58 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-2002-07-07 06:23:41+0200, Joakim Axelsson <gozem@aaricia.hemmet.chalmers.se> ->
-> 
-> res = ((key->sip & 0xF0F0F0F0) >> 4) | ((key->sip & 0x0F0F0F0F) << 4);
-> res *= 0x47441DFB;
-> res ^= key->dip ^ key->proto;
-> res ^= (key->dport << 16) ^ key->sport;
-> res *= 0x57655A7D;
-> res ^= (res >> 24);
-> res ^= (res >> 8);
-> 
-> I think this solution will make the two random constanst enough independent
-> to make it impossible to attack one, any, bucket. Better solutions on the
-> two constants are welcome.
-> 
 
-It can still be calculated backwards to attack i think. However leting one
-constant multiply (the first) and one xor should make it harder to attack
-one any bucket. It even gives a slightly better distribution and removing
-one muliplication is good. I also made an or of the ports. Makes no
-difference but in reading.
+I see why table sizes that are powers of two don't work well
+in the ABCD(EF) algorithm and how to fix it.  Similarly why
+multiples of 2 in A-F cause trouble.
 
-res = ((key->sip & 0xF0F0F0F0) >> 4) | ((key->sip & 0x0F0F0F0F) << 4);
-res *= 0x47441DFB;
-res ^= key->dip ^ key->proto;
-res ^= ((key->dport << 16) | key->sport);
-res ^= 0x57655A7D;
-res ^= (res >> 24);
-res ^= (res >> 8); 
+Suppose your modulus is 2^i.
 
-Now someone else have to take a look at it. I digged my head into a corner.
+[Sorry, I mix c notation with normal math:
+ ^ means expt, << means shift]
 
--- 
-/Joakim Axelsson A.K.A Gozem@EFnet & OPN
+In the term A*srcip only the bottom i bits of srcip and A matter.
+Consider A = Ahigh<<i + Alow and
+         srcip = shigh<<i + slow
+with slow and Alow < 2^i
+
+Then A*srcip =
+ Alow * slow + 
+ 1<<i * (Ahigh * slow + Alow * shigh) +
+ 1<<(i+i) * Ahigh * shigh
+which, mod 2^i is Alow*slow mod 2^i
+
+If you want to use 2^i as a modulus then in order to make every part
+of the input count you have to process it in chunks no larger than
+i bits.  So for my standard test table size of 8K (2^13) it's not even
+good enough to split ip addresses in half and use ports as-is - all
+these 16 bit quantities are ignoring the top 3 bits.  
+
+Similarly, if we use 32 bit arithmetic in the ABCD algorithm, even if
+the modulus is odd, the high order bit of srcip can only affect
+srcip*A in the high order bit, and even then only if A is odd!  In
+fact, if A has i multiples of 2 then the top i bits of srcip have no
+effect on the intermediate 32 bit result, and hence no effect on the
+final answer.
+
+On the other hand, if you want a table size or 1M (2^20) then it's not
+good enough to take the sum of a bunch of products of pairs of 8-bit
+quantities - the answer would only be on the order of n*2^16 where n
+is the number of terms.  This problem can be solved by multiplying 
+the 8 bit pieces of key by secret random numbers that are much larger
+than 8 bits so as to spread the result across the larger modulus.
+
+This all suggests the safe thing would be to take very small pieces of
+the key (in the ultimate case, single bits) and multiply each by its
+own constant which is large enough to supply bits to the whole
+modulus.  Of course, the smaller the pieces and the bigger the
+modulus, the more multiplies you have to do.  (I did get the
+theoretically expected results for my 8K table by processing the
+data one byte at a time.)
+
+At the moment I think it's a reasonable compromise to require the
+modulus to be odd and break the key into 16 bit pieces.  If we
+multiply 16 bit pieces of key by 16 bit random numbers, then each
+bit of key affects 16 bits of intermediate result, and the fact that 
+the modulus is odd means that each of these bits affects the
+remainder. 
