@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] big endian patch against netfilter after PPTP NAT pat ch
-Date: Sun, 9 Feb 2003 10:29:11 +0100
+Subject: Re: standalone target module??
+Date: Sun, 9 Feb 2003 10:44:15 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030209092911.GO13269@naboo.fugue.com>
-References: <771F217D7A4AF84494632457889470A412D77E@bcmsg011.corp.ads> <3E41A7BC.20209@snapgear.com>
+Message-ID: <20030209094415.GQ13269@naboo.fugue.com>
+References: <33492.192.168.1.5.1044308966.squirrel@secure.a2hd.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OGLMwEELQbPC02lM"
-Cc: Chris Poon <Chris.Poon@TELUS.COM>,
-	"'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="1R6ZDISWaA1muLP0"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Philip Craig <philipc@snapgear.com>
+To: Andy Schmeder <andy@a2hd.com>
 Content-Disposition: inline
-In-Reply-To: <3E41A7BC.20209@snapgear.com>
+In-Reply-To: <33492.192.168.1.5.1044308966.squirrel@secure.a2hd.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,39 +23,50 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---OGLMwEELQbPC02lM
+--1R6ZDISWaA1muLP0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 06, 2003 at 10:09:32AM +1000, Philip Craig wrote:
-> No, the masks the helpers currently use are the correct mask
-> for what they need.  For example, the ftp helper wants the
-> mask to cover the IP address and the TCP port.  The TCP port
-> is still only 16 bits regardless of what changes are made to
-> the structure, so the mask must still be 0xffff.
->=20
-> The problem is that they are storing the mask in the u.all
-> member of the union, rather than the specific member that
-> they are interested in.  So if the total size of union
-> changes, the mask getting stored will no longer match up
-> with the appropriate member, depending on endianness and
-> padding.
->=20
-> The proper fix is what Harald said: zero out the structure, and
-> store the mask in the specific member, rather than u.all.
-> Once they are fixed properly, they will also work for any
-> future changes to the tuple structure.
+On Mon, Feb 03, 2003 at 01:49:26PM -0800, Andy Schmeder wrote:
 
-yes.  David Miller has indicated that he wants us to use
-individual-member initialization instead of our '{{{{ }}, }}' stuff.
-So maybe this is the time to do the change - or at least use named
-initializers like '{ asdf: 0xffff, }'
+> I would like, if possible, to write this as a loadable standalone kernel
+> module.  For simplicity, I would prefer to be able to build and test my
+> module without having to patch the kernel source.  Is this feasible?
 
-> Paul Mielke posted a patch a few weeks ago that fixed the ftp
-> helper and the SO_ORIGINAL_DST ioctl.
+Yes, it is.
 
-I'll try to find it in the folder, I seem to have overlooked it, thanks.
+> So far I have tried to copy the ipt_MIRROR.c code, change a couple of
+> things, compile as a ipt_MYTARGET.o, insmod ipt_MYTARGET.o.  Netfilter
+> does not seem to find the new target.  'iptables -A INPUT -i eth1 -j
+> MYTARGET' causes iptables to look for /lib/iptables/libipt_MYTARGET.so.
+
+of course.
+
+> The next thing I tried was to run 'ld -shared -o
+> /lib/iptables/libipt_MYTARGET.so ipt_MYTARGET.o'.  This generates a number
+> of undefined symbols for any of the kernel functions; which makes me think
+> that the .so files in /lib/iptables are not actually kernel modules...=20
+> unfortunately the files there have been strip'd so I have no idea what is
+> in them.
+
+You seem to have misunderstood how iptables extensions are working.
+There are always two parts, one in userspace and one in the kernel.
+Please look at the source of libipt_MIRROR.c in the
+'userspace/extensions' directory of the netfilter CVS tree.  This is the
+userspace counterpart to ipt_MIRROR.c inside the kernel.
+
+> What I am really seeking is an example Makefile for building a standalone
+> netfilter target as a module.  Does such a thing exist?  I have already
+> google'd my eyes out trying to solve this problem with no luck so far.
+
+No.  But it shouldn't be any different than creating a makefile for any
+other out-of-kernel compilation (like pcmcia-cs, linux-wlan-ng, etc.).
+Please look for examples there, in order to see how to get the
+compile-options right, etc.
+
+> Thanks for your time,
+> Andy.
 
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -67,7 +77,7 @@ I'll try to find it in the folder, I seem to have overlooked it, thanks.
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---OGLMwEELQbPC02lM
+--1R6ZDISWaA1muLP0
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -75,9 +85,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+Rh9nXaXGVTD0i/8RAgmaAJ9CSY+p1SMpfgT92MWYTX+Nrya9CQCeM37p
-9fKH88rVvrXlXc68jBNl6rc=
-=zA/b
+iD8DBQE+RiLvXaXGVTD0i/8RArpsAKCAFHiRloHhArYbVWc4nX4FYYWL2ACeIMz9
+rZ8MKoB9QJQyoFP656m+nk0=
+=lNPW
 -----END PGP SIGNATURE-----
 
---OGLMwEELQbPC02lM--
+--1R6ZDISWaA1muLP0--
