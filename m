@@ -1,18 +1,23 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] new match extension `flow'
-Date: Wed, 10 Nov 2004 19:12:11 +0100
-Message-ID: <419259FB.9080008@eurodev.net>
-References: <20041028020550.GA10097@wsc.edu> <41829ADC.2090708@eurodev.net>
-	<20041031063813.GA29402@wsc.edu> <4184F9AD.9040902@eurodev.net>
-	<20041104022039.GA25749@wsc.edu> <418CEB7A.9080505@eurodev.net>
-	<20041108025241.GA4850@wsc.edu>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: New draft document on nat / traversal / hole punching (with
+	Dan Kegel)
+Date: Thu, 11 Nov 2004 15:23:17 +1100
+Message-ID: <1100146997.9643.30.camel@localhost.localdomain>
+References: <20041109154946.GD22257@sunbeam.de.gnumonks.org>
+	<1100024526.6496.10.camel@tux.rsn.bth.se>
+	<1100043724.25963.19.camel@localhost.localdomain>
+	<20041110162500.GA7485@sunbeam.de.gnumonks.org>
+	<1100133056.9643.23.camel@localhost.localdomain>
+	<20041110162627.30723691.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
+	gandalf@wlug.westbo.se, coreteam@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Josh Samuelson <josamue1@wsc.edu>
-In-Reply-To: <20041108025241.GA4850@wsc.edu>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20041110162627.30723691.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,83 +29,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Josh,
+On Wed, 2004-11-10 at 16:26 -0800, David S. Miller wrote:
+> On Thu, 11 Nov 2004 11:30:56 +1100
+> Rusty Russell <rusty@rustcorp.com.au> wrote:
+> 
+> > Ew... Dave, please drop that patch as it was crap.
+> > 
+> > I merged two patches (a cleanup and the fix) and didn't re-test.
+> > 
+> > I'll fix, test and re-send.
+> 
+> Please send something relative, I just pushed your change
+> to Linus.
 
-Josh Samuelson wrote:
+Here it is.  Turns out it's a noop change.
 
->>Some comments:
->>
->>    
->>
->>>diff -Pru linux-2.6.9/include/linux/netfilter_ipv4/ip_cte_flow.h 
->>>linux-2.6.9-flow/include/linux/netfilter_ipv4/ip_cte_flow.h
->>>--- linux-2.6.9/include/linux/netfilter_ipv4/ip_cte_flow.h	1969-12-31 
->>>18:00:00.000000000 -0600
->>>+++ linux-2.6.9-flow/include/linux/netfilter_ipv4/ip_cte_flow.h 2004-11-03 
->>>19:10:13.000000000 -0600
->>>
->>>
->>>      
->>>
->>I see two possibilities here:
->>
->>a) move ip_cte_flow.[h|c] to ipt_flow.[h|c], matches always fit in a file.
->>b) rename ip_cte_flow to ip_conntrack_flow_stats, this could be a module 
->>which generates stats about current connections going through the firewall.
->>
->>I need to give more spins to this issue.
->>
->>Any comments?
->>
->>Pablo
->>    
->>
->
->In regards to ip_cte_flow.[h|c], I wasn't sure how to handle this module
->with respect to the filesystem namespace.  Those files don't provide
->any of the match functionality; it just tracks the flows from the CTE
->API, exports a few functions, the linked list of flows and provides
->"/proc/net/ip_cte_flow" file.  All of which I'm sure you know by the
->source, but just to provide some context for those who perhaps haven't
->glanced at it.  The main reason I called ip_cte_flow was because it's
->built on/requires 'CTE' functionality.  I figure there is the
->potential for a lot of modules needing the CTE API
->
+Name: Cleanup find_appropriate_src() Fix
+Status: Tested under nfsim
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-At this moment I can't imagine any other match/target which could use 
-this CTE API, do you have anything in mind? I mean, I think that if only 
-the flow match uses it (and noone else could benefit of it), it should 
-go inside the flow match. In case that someone else could use it, then 
-it makes sense for me to provide such API.
+The fix to find_appropriate_src left a stupid test, which has no
+effect but is incoherent at best.  It covers a corner case: if a
+previous connection from this source was mapped onto a different IP
+address (because it was explicitly told to), should the next one be
+mapped that was as well, if no explicit rule says to remap the src IP?
 
-> and perhaps the need
->to separate those files that require it into a differing filesystem
->namespace that can't really be classified as a match/target, etc?
->If you prefer ip_conntrack_flow_stats, I'm really not partial to
->anything.
->  
->
+eg. Admin says "NAT connections with DST 10.* to SRC 10.0.0.1", and a
+machine sends out a UDP from SRC=a.b.c.d:p to 10.* (which gets
+remapped to SRC=10.0.0.1:p), then sends from the same SRC=a.b.c.d:p to
+a non-10.*, should we also map the second one to 10.0.0.1:p?
 
-I don't mind about the name either. I think that maybe it could be used 
-to generate statistics about the current connections going through the 
-firewall, in that case it makes sense creating a module in the namespace 
-of ip_conntrack_whatever.
+I think the answer is yes: unless the user explicitly tells us to map
+into a particular range, we should follow the Kegel draft.
 
-But I think that those statistics could be done with an user space 
-program via ctnetlink API (netlink sockets), so this makes me thinks 
-that we should put all the stuff in a single ipt_flow file.
+--- working-2.6.10-rc1-bk19-fix-source-matching/net/ipv4/netfilter/ip_nat_core.c.~1~	2004-11-11 12:17:30.000000000 +1100
++++ working-2.6.10-rc1-bk19-fix-source-matching/net/ipv4/netfilter/ip_nat_core.c	2004-11-11 12:27:16.000000000 +1100
+@@ -128,16 +128,13 @@
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < mr->rangesize; i++) {
+-		/* If we are allowed to map IPs, then we must be in the
+-		   range specified, otherwise we must be unchanged. */
++		/* If we are supposed to map IPs, then we must be in the
++		   range specified. */
+ 		if (mr->range[i].flags & IP_NAT_RANGE_MAP_IPS) {
+ 			if (ntohl(tuple->src.ip) < ntohl(mr->range[i].min_ip)
+ 			    || (ntohl(tuple->src.ip)
+ 				> ntohl(mr->range[i].max_ip)))
+ 				continue;
+-		} else {
+-			if (tuple->src.ip != tuple->src.ip)
+-				continue;
+ 		}
+ 
+ 		if (!(mr->range[i].flags & IP_NAT_RANGE_PROTO_SPECIFIED)
 
->The ipt_flow.[h|c] file builds on top of the prior module to provide the
->match functionality and to track network/mask based flows.  I separated the
->two because I can see the need to track the flows via /proc outside of the
->iptables match.  I.e. to just have a quick glance at who may be responsible
->for a sudden burst of flows.  Or to allow for other match modules
->to build on top of it in ways that my simple match module lacks, etc.
->
->Those are my thoughts on why I did things the way I did.  :)
->  
->
-
-nice, see your next email :)
-
-Pablo
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
