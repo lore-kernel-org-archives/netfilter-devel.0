@@ -1,17 +1,15 @@
-From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Subject: Re: TTL patch buggy?
-Date: Tue, 06 Jan 2004 17:18:48 -0500
+From: "zhaoyao" <zhaoyao@harbournetworks.com>
+Subject: Re: Re: READ_LOCK?
+Date: Wed, 7 Jan 2004 9:27:14 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1073426586.15282.13.camel@jasiiitosh.nexusmgmt.com>
-References: <1073055732.2995.4.camel@jasiiitosh.nexusmgmt.com>
-	 <20040106185613.GB934@obroa-skai.de.gnumonks.org>
+Message-ID: <E1Ae2Yv-0006R4-Ei@vishnu.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+      charset="GB2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040106185613.GB934@obroa-skai.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>,
+ netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,37 +20,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Ugh!! I'll have to see if I can find it.  I'm sure I deleted it.  It was
-just an obscure reference to a bug in TTL but was not specific.  We are
-planning to not only use the TTL patch in ISCS to create stealth
-firewalls but also to secure communications between internal and DMZ
-systems by allowing admins to set TTL on a per service basis to allow
-the DMZ <-> Internal flow to only have enough life to live on the site
-and not to be set anywhere else on the Internet.  We think this is a
-pretty interesting feature and hence are keen on the TTL patch working. 
-Thanks for the update - John
+Harald Welte,=C4=FA=BA=C3=A3=A1
 
-On Tue, 2004-01-06 at 13:56, Harald Welte wrote:
-> On Fri, Jan 02, 2004 at 10:02:13AM -0500, John A. Sullivan III wrote:
-> > I noticed a recent post on the netfilter list about the TTL patch
-> > being buggy.  
-> 
-> Could you please point me to that posting (either message-id or a URL
-> pointing to the archives?)
-> 
-> > We were planning to make extensive use of it in the ISCS
-> > project.  I've not seen anything recent about such a bug in a google
-> > search.  Is there currently a known problem with this patch? Thanks -
-> 
-> I (the author) am not aware of any current problem.
-> 
-> If there are bugs/problems, they should be submitted to
-> bugzilla.netfilter.org
-> 
-> > John
--- 
-John A. Sullivan III
-Chief Technology Officer
-Nexus Management
-+1 207-985-7880
-john.sullivan@nexusmgmt.com
+Yes,as you know in 2.4 or 2.6, bh is similar to softirq, 
+WRITE_LOCK is write_lock_bh(&a)
+if u write_lock_bh(&a), obviously other cpu can't enter this=
+ critical region, 
+but already in softirq, why lock bh again. softirq can't=
+ reenter.
+so lock bh is not useful.
+>On Sun, Jan 04, 2004 at 02:53:03PM +0800, zhaoyao wrote:
+>> netfilter-devel,hello!
+>> In init_conntrack, why will READ_LOCK or WRITE_LOCK, we'are=
+ already in
+>> bh, why lock it again?
+>
+>ip_conntrack is part of netfilter, which in turn is part of the=
+ 2.4.x
+>and 2.6.x kernel.  Both 2.4 and 2.6 kernel series don't have a=
+ 'bottom
+>half' for the network stack anymore.  Instead, softirq's are=
+ used.
+>Softirq's are fully parallelized, i.e. they can run on any=
+ number of
+>cpu's simultaneously.
+>
+>> ????????????????????2004-01-04
+>
+>-- 
+>- Harald Welte <laforge@netfilter.org>            =
+ http://www.netfilter.org/
+>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>  "Fragmentation is like classful addressing -- an interesting=
+ early
+>   architectural error that shows how much experimentation was=
+ going
+>   on while IP was being designed."                    -- Paul=
+ Vixie
+
+=3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D
+=09=09=09
+
+=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=D6=C2
+=C0=F1=A3=A1
+ 
+=09=09=09=09 
+=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1zhaoyao
+=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1zhaoyao@harbournetworks.com
+=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A12004-01-07
