@@ -1,87 +1,63 @@
-From: Steve Hill <steve-5X2ZMFkmWHHQXOPxS62xeg@public.gmane.org>
-Subject: memory leak related to bridging, conntrack and frags in 2.6.0
-Date: Fri, 12 Dec 2003 19:55:55 +0000 (GMT)
-Sender: ebtables-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0312121948321.8670-200000@sorbus2.navaho>
+From: "Maciej Soltysiak" <solt@dns.toxicfilms.tv>
+Subject: [RFC] cloned skbs - if i am right there is a bug in ipt_ECN.c
+Date: Fri, 12 Dec 2003 21:02:25 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <002701c3c0ea$e26efa70$0e25fe0a@southpark.ae.poznan.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-863298270-1071258955=:8670"
-Return-path: <ebtables-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-   <ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>,
-   <netfilter-devel-wool9L35kiczKOhml7GhPkB+6BGkLq7r@public.gmane.org>
-Errors-To: ebtables-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
-	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
-	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ebtables-devel>
+Content-Type: text/plain;
+	charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime-oOUblnuQwHKola3qYQ6TW/IULO3mGbRi9nwVQlTi/Pw@public.gmane.org for more info.
+Hello,
 
---8323328-863298270-1071258955=:8670
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+maybe it is just me, but how should I read this?
+        /* raw socket (tcpdump) may have clone of incoming
+         * skb: don't disturb it --RR */
+        if (skb_cloned(*pskb) && !(*pskb)->sk) {
+                struct sk_buff *nskb = skb_copy(*pskb, GFP_ATOMIC);
+                if (!nskb)
+                        return NF_DROP;
+                kfree_skb(*pskb);
+                *pskb = nskb;
+                iph = (*pskb)->nh.iph;
+        }
 
+What does this part of code do? I see it this way:
+It checks if the skb is cloned and if it does not have a socket.
+If that is the case, it tries to make a copy, if it succeeds, we are using
+the internals of the new skb.
+Why is that? Does this code apply when I am or am I not using
+raw sockets. Why are raw sockets to be left unchanged?
 
-Sorry for the cross-post - I thought this would be of interest to all the 
-lists and also wasn't sure where the best people to help hang out.
+I know it may sound lame. All of this came out when I was hacking
+on some netfilter module and noticed, that there might be a bug in
+ipt_ECN.c:
 
-With both conntrack and bridging turned on in the 2.6.0test11 kernel, 
-sending fragmented packets over the bridge reveals a memory leak 
-(specifically, forwarding packets from any interface to a bridge).  The 
-memory that is leaking seems to be being allocated on line 299 on 
-net/bridge/br_netfilter.c:
+in set_ect_tcp() we have:
+                kfree_skb(*pskb);
+                *pskb = nskb;
+                iph = (*pskb)->nh.iph;
+        }
 
-        if ((nf_bridge = nf_bridge_alloc(skb)) == NULL)
-                return NF_DROP;
-  
-Only the first fragment gets freed later on.
+But iph is not used, we are using tcph later on in the code, so we should:
+                tcph = (*pskb)->nh.tcph;
 
-The patch attached fixes the problem by freeing nf_bridge when the 
-packets are defragmented, however I am sure this is not the right place 
-to do this.  Where would the skb's for the fragments usually get freed?
+If this is not a bug, that line could be at least removed, because iph is
+not used.
 
--- 
+If this my mail shows my ignorance with reading some docs, please show me
+which should i read.
 
-- Steve Hill
-Senior Software Developer                        Email: steve-5X2ZMFkmWHHQXOPxS62xeg@public.gmane.org
-Navaho Technologies Ltd.                           Tel: +44-870-7034015
-
-        ... Alcohol and calculus don't mix - Don't drink and derive! ...
-
-
---8323328-863298270-1071258955=:8670
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="bridge-memleak.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0312121955550.8670-P6xViTKO+D9l6dsDrSIFUQ@public.gmane.org>
-Content-Description: 
-Content-Disposition: attachment; filename="bridge-memleak.patch"
-
-ZGlmZiAtdXJOIGxpbnV4LTIuNi4wLXRlc3QxMS52YW5pbGxhL25ldC9pcHY0
-L2lwX2ZyYWdtZW50LmMgbGludXgtMi42LjAtdGVzdDExLmJyaWRnZS9uZXQv
-aXB2NC9pcF9mcmFnbWVudC5jDQotLS0gbGludXgtMi42LjAtdGVzdDExLnZh
-bmlsbGEvbmV0L2lwdjQvaXBfZnJhZ21lbnQuYwkyMDAzLTEyLTEyIDE5OjI3
-OjA3LjAwMDAwMDAwMCArMDAwMA0KKysrIGxpbnV4LTIuNi4wLXRlc3QxMS5i
-cmlkZ2UvbmV0L2lwdjQvaXBfZnJhZ21lbnQuYwkyMDAzLTEyLTEyIDE5OjQy
-OjUwLjAwMDAwMDAwMCArMDAwMA0KQEAgLTU5Miw2ICs1OTIsMTIgQEANCiAJ
-YXRvbWljX3N1YihoZWFkLT50cnVlc2l6ZSwgJmlwX2ZyYWdfbWVtKTsNCiAN
-CiAJZm9yIChmcD1oZWFkLT5uZXh0OyBmcDsgZnAgPSBmcC0+bmV4dCkgew0K
-KyNpZmRlZiBDT05GSUdfQlJJREdFX05FVEZJTFRFUg0KKwkJaWYgKGZwLT5u
-Zl9icmlkZ2UpIHsNCisJCQluZl9icmlkZ2VfcHV0KGZwLT5uZl9icmlkZ2Up
-Ow0KKwkJCWZwLT5uZl9icmlkZ2UgPSBOVUxMOw0KKwkJfTsNCisjZW5kaWYN
-CiAJCWhlYWQtPmRhdGFfbGVuICs9IGZwLT5sZW47DQogCQloZWFkLT5sZW4g
-Kz0gZnAtPmxlbjsNCiAJCWlmIChoZWFkLT5pcF9zdW1tZWQgIT0gZnAtPmlw
-X3N1bW1lZCkNCg==
---8323328-863298270-1071258955=:8670--
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: IBM Linux Tutorials.
-Become an expert in LINUX or just sharpen your skills.  Sign up for IBM's
-Free Linux Tutorials.  Learn everything from the bash shell to sys admin.
-Click now! http://ads.osdn.com/?ad_id=1278&alloc_id=3371&op=click
+Regards,
+Maciej
