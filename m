@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] man page: alphabetize extensions + add physdev entry
-Date: Fri, 14 Feb 2003 08:29:45 +0100
+From: Ryan Hagelstrom <rhagelstrom@atcorp.com>
+Subject: Setting sk_buff->dst
+Date: Wed, 12 Feb 2003 13:31:26 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030214072944.GI14794@sunbeam.de.gnumonks.org>
-References: <200302132039.58656.bdschuym@pandora.be>
+Message-ID: <01C2D29B.0B49B960.rhagelstrom@atcorp.com>
+Reply-To: "rhagelstrom@atcorp.com" <rhagelstrom@atcorp.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2NLGdgz3UMHa/lqP"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-Content-Disposition: inline
-In-Reply-To: <200302132039.58656.bdschuym@pandora.be>
+To: "netfilter-devel@lists.netfilter.org"
+	 <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,50 +20,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---2NLGdgz3UMHa/lqP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm trying to send out packets from the kernel level from my module. I have 
+the packet built correctly and I have a net_device that I'd like to send 
+the packet out on. From what I have been playing around with it appears 
+that the dst field needs to be filled out correctly for the packet to be 
+sent over the wire. I set the dst field currently with the following code 
+but in setting that field it seems that it selects the device to send out 
+on as well.
 
-On Thu, Feb 13, 2003 at 08:39:58PM +0100, Bart De Schuymer wrote:
-> Hello Harald,
->=20
-> here's the patch.
+I'm curious if there is a method to specifiy the device to output on 
+reguardless of what   ip_route_output_key() sets up or without calling that 
+function at all? If not is there a way to manually modify the routing table 
+within my module?
 
-thanks, applied.  Can I ask you to do the same for ip6tables.8 to be
-consistent?  Thanks.
+Thanks
 
-What also is on my TODO list for some time:  Put manpage sections for
-all recently-added-to-mainstream-kernel matches+targets.  I think the
-manpage hasn't been synced with the by-default available matches/targets
-for quite some time.  If anybody could pick this up, I'd be very happy.
+Ryan Hagelstrom
 
-> cheers,
-> Bart
+	struct rtable *rt;
+	struct rt_key key = { dst:iph->daddr,
+			src:iph->saddr,
+			oif:skb->sk ? skb->sk->bound_dev_if : 0,
+			tos:RT_TOS(iph->tos)|RTO_CONN,
+  };
 
+  if (ip_route_output_key(&rt, &key) != 0)
+  {
+    return -EINVAL;
+  }
+  dst_release(skb->dst);
 
+  skb->dst = &rt->u.dst
+	
+	dev = skb->dst->dev;
+	dst = skb->dst;
+	hh = dst->hh;
+	ip = skb->nh.iph;
+	skb->dev = dev;
 
---=20
-- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
+	if (hh)
+	{
+		read_lock_bh(&hh->hh_lock);
+		memcpy(skb->data - 16, hh->hh_data, 16);
+		read_unlock_bh(&hh->hh_lock);
+		skb_push(skb, hh->hh_len);
+		return hh->hh_output(skb);
+	}
 
---2NLGdgz3UMHa/lqP
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+TJroXaXGVTD0i/8RAoJWAJ4qWJRDCzpJXWLPimt4Ej0R2nhNpgCfT2jY
-92HugrlQMANY18QoR/3LW+8=
-=SR6Y
------END PGP SIGNATURE-----
-
---2NLGdgz3UMHa/lqP--
+	else if (dst->neighbour)
+		return dst->neighbour->output(skb);
