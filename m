@@ -1,16 +1,14 @@
 From: Chris Wilson <chris@netservers.co.uk>
-Subject: Re: [PATCH] Orphaned expectations
-Date: Wed, 21 Apr 2004 12:17:48 +0100 (BST)
+Subject: Re: MAC/IP pair match submission
+Date: Wed, 21 Apr 2004 17:42:08 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404211215030.726-100000@chris.camcom.co.uk>
-References: <4085B33A.2080805@eurodev.net>
+Message-ID: <Pine.LNX.4.44.0404211726250.726-100000@chris.camcom.co.uk>
+References: <Pine.LNX.4.44.0404081333110.29813-100000@chris.camcom.co.uk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-   <kernel@linuxace.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4085B33A.2080805@eurodev.net>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.44.0404081333110.29813-100000@chris.camcom.co.uk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +19,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Hi all,
 
-> a) a new conntrack is created.
-> b) a helper is asigned to this conntrack.
-> c) and if this helper exists (case of tftp helper), it is also called.
-> 
-> So now, with only an udp packet, we have a conntrack which is not 
-> confirmed with an expectation associated, and as Phil pointed out, if 
-> this conntrack is destroyed the expectation keeps there forever.
+I would like to announce a new version of the "macmatch" patch, v0.0.5. 
+This increases the size of the /proc write buffer, to fix some problems 
+with long interface names, and includes a fix for an error message that 
+was logged at too low a priority.
 
-Thanks very much for your explanation. So, to prevent this from happening, 
-what is the best thing to do?
+The download locations have also changed. You can find all the 
+documentation (that exists so far) at:
 
-1. Audit all helpers to check that they don't create expectations to 
-unconfirmed conntracks
+  [http://www.firerack.com/devel/iptables_macmatch]
 
-2. Modify destroy_conntrack to destroy any associated expectations, 
-whether or not the conntrack is confirmed (presumably right now it only 
-does so if the conntrack is confirmed? hence the problem?)
+and download the source code itself at:
+
+  [http://www.firerack.com/downloads/iptables_macmatch]
+
+I still haven't heard from anyone regarding integration into POM. Can 
+anyone tell me if there is a procedure for this, or someone who I should 
+be pestering, or if there's a reason why this isn't appropriate for POM?
 
 Cheers, Chris.
 -- 
