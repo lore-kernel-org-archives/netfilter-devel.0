@@ -1,17 +1,17 @@
-From: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: policy routing on locally generated packets
-Date: 25 Aug 2003 20:53:27 +0200
+Date: Mon, 25 Aug 2003 21:07:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1061837608.1333.9.camel@drs0.manchotnetworks.net>
-References: <1061813400.1289.36.camel@drs0.manchotnetworks.net>
-	<3F4A01BE.1090805@trash.net>  <3F4A2795.3030805@trash.net>
+Message-ID: <20030825190750.GH423@oknodo.bof.de>
+References: <1061813400.1289.36.camel@drs0.manchotnetworks.net> <3F4A01BE.1090805@trash.net> <3F4A2795.3030805@trash.net> <1061837608.1333.9.camel@drs0.manchotnetworks.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+  netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <3F4A2795.3030805@trash.net>
+To: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>
+Content-Disposition: inline
+In-Reply-To: <1061837608.1333.9.camel@drs0.manchotnetworks.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,30 +22,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Again patrick,
+> This would provide a way to fiddle with the packet properties without
+> the neccesity of changing bind() in a specific application ... or would
+> it? 
 
+Regarding this path, two comments:
 
-On Mon, 2003-08-25 at 17:13, Patrick McHardy wrote:
-> I don't know what i was thinking, this patch is going to confuse
-> all kinds of stuff (especially conntrack & nat). Sorry.
-> Patrick
+1) you can most easily LD_PRELOAD a small bit of library which replaces
+bind() and friends, and does the thing you want.
+2) the chbind functionality of http://www.solucorp.qc.ca/miscprj/s_context.hc
+is a somewhat more / somewhat less intrusive method.
 
-Please don't be sorry -- your insight is so valuable.
+What about mangle/PREROUTING? Doesn't it / shouldn't it sit before a
+routing decision for locally generated packets?
 
-I had a suspician that performing a full lookup afterward could create
-more problems than it would solve.
-
-So, I suppose (and humbly suggest) that the logical extension of this
-thread would be that netfilter allow control over the output routing
-process itself, thereby granting the administrator a means of
-influencing route selection, src address, interface, etc.
-
-iptables --append OUTROUTE ...
-
-This would provide a way to fiddle with the packet properties without
-the neccesity of changing bind() in a specific application ... or would
-it? 
-
-Sleep Well.
-
-Charles
+best regards
+  Patrick
