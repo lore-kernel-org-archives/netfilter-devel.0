@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Problems with 25_natcore-nohelper patch
-Date: Fri, 4 Jul 2003 20:29:17 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [PATCH] fix correct_cache() in libiptc.c
+Date: 05 Jul 2003 15:19:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030704182917.GV7073@sunbeam.de.gnumonks.org>
-References: <200305081512.31038.raivis@mt.lv> <Pine.GSO.4.03.10305090250510.7371-100000@shemp.vdata.com>
+Message-ID: <1057411145.12437.128.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4eYdsOpNbj/aD8un"
-Cc: Raivis Bucis <raivis@mt.lv>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jeff Hall <hall@vdata.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.03.10305090250510.7371-100000@shemp.vdata.com>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,88 +19,168 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald,
 
---4eYdsOpNbj/aD8un
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I got a report on irc that iptables -X didn't work like it used to.
+Seems related to your libiptc work... you touched it last, you get to
+check all new patches against it :)
 
-On Fri, May 09, 2003 at 03:14:09AM -0400, Jeff Hall wrote:
 
-> Did you also apply the patches below? They're from a message to Harald
-> Welte on 2003/4/8 and I believe they pertain to the problem you're
-> having.
->=20
-> I tested the pptp client from sourceforge.net on a machine also running
-> a PoPToP server and was able to make a successful outgoing connection from
-> that machine.
->=20
-> If these patches don't solve your problem, let me know and I'll send you
-> all the pertinent sources.
+Test-cases:
+filter table is empty.
 
-> On Thu, 8 May 2003, Raivis Bucis wrote:
->=20
-> > I would like to inform you that width 25_natcore-nohelper patch PPTP
-> > NAT stops working correctly. Specifically PPTP client (PAC) on the
-> > box that has ip_nat_pptp.o loaded doesn't work.
-> >=20
-> > Since PPTP NAT allways changes callerID, it is required that
-> > pptp_nat helper is also allways called, but pptp client TCP
-> > controlling connection doesn't have any manips, and only associated
-> > GRE conntrack has manips for callerID changing. So pptp_nat helper
-> > can not change callerID in controll connection and PPTP doesn't work
-> > anymore.
-> >=20
-> > Is this a known problem?
-> >=20
-> > Raivis
+# ./iptables -N HELLO
+# ./iptables -N world
+# ./iptables -X
+#
 
-Since I didn't receive any update on this issue:  Raivis, ist the
-problem now solved when this patchlet from Jeffs original mail (also
-submitted to the mainstream kernel since 2.4.20)had been applied?
+Nothing wrong here.
 
-> --- ip_nat_standalone.c.prepatch        Sun Mar 16 01:41:45 2003
-> +++ ip_nat_standalone.c Thu Apr  3 19:52:09 2003
-> @@ -121,8 +121,13 @@
->  			if (ct->master
->  			    && master_ct(ct)->nat.info.helper
->  			    && master_ct(ct)->nat.info.helper->expect) {
-> -				ret =3D call_expect(master_ct(ct), pskb,=20
-> +				if(master_ct(ct)->nat.info.num_manips) {
-> +					ret =3D call_expect(master_ct(ct), pskb,=20
->  						hooknum, ct, info);
-> +				} else {
-> +					WRITE_UNLOCK(&ip_nat_lock);
-> +					return NF_ACCEPT;
-> +				}
->  			} else {
->  #ifdef CONFIG_IP_NF_NAT_LOCAL
 
-alternatively, please try a 2.4.21 kernel with the pptp patch from
-patch-o-matic and tell me if the problem still persists.
+Just switching the order of chains...
 
-thanks.
+# ./iptables -N world
+# ./iptables -N HELLO
+# ./iptables -X
+iptables: No chain/target/match by that name
+#
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Huh?
 
---4eYdsOpNbj/aD8un
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+The cause of this is that chains aren't removed in the order they were
+created, they are removed in sorted order and the code for deletion of a
+chain is currently somewhat busted.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+Now I've added
 
-iD8DBQE/Bcd9XaXGVTD0i/8RAnuCAJ98naGQVkOGALneAAPsRKQxif1+wgCdGDot
-G4+mMlYy1Pqps7BFNnhOn98=
-=QvTJ
------END PGP SIGNATURE-----
+printf("Deleting chain: %s\n", cc->name);
 
---4eYdsOpNbj/aD8un--
+in libiptc/libiptc.c:481
+
+
+Lets go back to the first testcase which seemed to work.
+
+# ./iptables -N HELLO
+# ./iptables -N world
+# ./iptables -X
+Deleting chain: FORWARD
+Deleting chain: OUTPUT
+Deleting chain: HELLO
+#
+
+That's not right.
+
+Let's see what it does in the testcase that really failed...
+
+# ./iptables -N world
+# ./iptables -N HELLO
+# ./iptables -X
+Deleting chain: world
+iptables: No chain/target/match by that name
+#
+
+Ok this is weird.
+
+If you add more printf's you see that TC_DELETE_CHAIN() gets called for
+the HELLO chain and find_label() finds it and then delete_rules() is
+called. delete_rules() calls correct_cache() which thinks it should
+delete the chain called world instead.
+And then TC_DELETE_CHAIN() is called for the world chain and now
+cache_num_chains has been decremented by one so it doesn't find the
+world chain which is last.
+
+I've found two errors in the code, patch below.
+
+--- userspace/libiptc/libiptc.c.orig	2003-06-28 18:30:40.000000000 +0200
++++ userspace/libiptc/libiptc.c	2003-07-04 22:15:54.000000000 +0200
+@@ -471,15 +471,15 @@
+ 
+ 		if (delta < 0) {
+ 			/* take care about deleted chains */
+-			if (cc->start_off >= offset+delta
+-			    && cc->end_off <= offset) {
++			if (cc->start_off > offset
++			    && cc->end_off < offset-delta) {
+ 				/* this chain is within the deleted range,
+ 				 * let's remove it from the cache */
+ 				void *start;
+ 				unsigned int size;
+ 
+ 				h->cache_num_chains--;
+-				if (i+1 >= h->cache_num_chains)
++				if (i == h->cache_num_chains)
+ 					continue;
+ 				start = &h->cache_chain_heads[i+1];
+ 				size = (h->cache_num_chains-i)
+
+
+
+With this patch it becomes:
+
+# ./iptables -N HELLO
+# ./iptables -N world
+# ./iptables -X
+Deleting chain: HELLO
+Deleting chain: world
+#
+
+Much better.
+
+
+# ./iptables -N world
+# ./iptables -N HELLO
+# ./iptables -X
+Deleting chain: HELLO
+Deleting chain: world
+#
+
+Ahh. Both cases work like they should.
+
+Now it selects the correct chain to delete.
+And the off-by-one bug causes it to do nothing when it comes to the
+second-last chain which is wrong, it should do the memory-copies for all
+deleted chains except when it's the last chain that's beeing deleted.
+
+I'm not sure if my new limits in the first if-statement are 100%
+correct. I don't know the code that well, and honestly I never want to,
+I got enough exposure for several lifetimes last night. The code is
+absolutely horrible...
+
+Oh yes, this fix actually makes iptables-restore work again...
+
+filter table is once again empty:
+Without patch:
+
+# ./iptables -A INPUT
+# ./iptables -A FORWARD
+# ./iptables -A OUTPUT
+# ./iptables-save > file
+# ./iptables-restore < file
+Deleting chain: INPUT
+Deleting chain: FORWARD
+iptables-restore: line 13 failed
+#
+
+With the patch above it works fine. And it only deletes user-defined
+chains that exist before iptables-restore is run. (which is none in this
+simple testcase)
+
+
+I have one more thing I want you to look at, once again in
+correct_cache()...
+
+                if (cc->start_off > offset)
+                        cc->start_off += delta;
+
+                if (cc->end_off >= offset)
+                        cc->end_off += delta;
+
+Shouldn't that really be moved up into the part where chains are deleted
+and turned into an unconditional loop that adds delta (which is
+negative) for all moved chains? What if several chains are deleted at
+once? Currently that isn't done but correct_cache() implies that it
+supports it because it doesn't stop looking for deleted chains after the
+first one is found.
+
+-- 
+/Martin
