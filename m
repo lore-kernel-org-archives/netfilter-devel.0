@@ -1,15 +1,15 @@
-From: Michael Gundlach <gundlach@cs.uga.edu>
-Subject: Re: PREROUTING doesn't catch all packets?
-Date: Wed, 19 Feb 2003 17:50:49 -0500
+From: Willi Dyck <wdyck@gmx.net>
+Subject: Bug #2
+Date: Thu, 20 Feb 2003 00:50:24 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030219175049.B8641@cs.uga.edu>
-References: <20030219141830.A8641@cs.uga.edu> <20030219201931.GA16304@oknodo.bof.de>
+Message-ID: <20030219235024.GA1228@tekilla.homeip.net>
+Reply-To: netfilter-devel@lists.netfilter.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20030219201931.GA16304@oknodo.bof.de>; from bof@bof.de on Wed, Feb 19, 2003 at 09:19:31PM +0100
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,27 +20,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Yep, that did the trick.  thanks a lot.
 
-michael
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed Feb 19, 2003 at 09:19PM, Patrick Schaaf wrote:
+  "locally-generated icmp-frag-needed not correctly NATed when mtu
+   transition happens on nat box"
 
-> > iptables -t nat
-> 
-> The NAT table NEVER sees any packet belonging to already existing
-> conntrack entries. The sole purpose of the NAT table is to select
-> NAT actions for NEW conntrack entries.
-> 
-> Thus, the behaviour you see, is the desired mode of operation,
-> regardless of bridging. It is the way the NAT table is intended
-> to operate.
-> 
-> > I need to use PREROUTING for an application that is modifying
-> the destination IP of incoming packets, so "use the FORWARDING chain
-> instead" isn't a sufficient answer.
-> 
-> The answer may be "use the PREROUTING chain of the '-t mangle' table".
-> 
-> best regards
->   Patrick
+I see in the Bugzilla system that there is a fix available but not yet
+tested enough to be implemented.
+Could someone please send me this fix (patch). I'd like to test it
+because today I've discovered that problem too and would like to help if
+possible. Many thanks in advance.
+
+Gru=DF/Regards
+
+Willi
+
+--=20
+the three great virtues of a programmer:
+laziness, impatience and hubris.
+        Lary Wall
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iEYEARECAAYFAj5UGEAACgkQesP/Zk6Ni9YGvgCeNcZwKKwNHxZeLBhZ/xmC4u+L
+TlkAmQGTMGl+jigBxstF/jUlmr9gEOBJ
+=eDb5
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
