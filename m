@@ -1,16 +1,14 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: writing a fragmentation-needed patch
-Date: Sun, 30 Mar 2003 11:35:14 +0200
+From: Bobo <boboaq@163.com>
+Subject: How to account traffic in IPTABLES?
+Date: Sun, 30 Mar 2003 21:47:52 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030330093514.GA1098@oknodo.bof.de>
-References: <3E85D60D.7040304@rtij.nl>
+Message-ID: <20030330134802.CF9351C462B39@sm204.163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset="GB2312"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@lists.netfilter.org <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martijn Lievaart <m@rtij.nl>
-Content-Disposition: inline
-In-Reply-To: <3E85D60D.7040304@rtij.nl>
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +19,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> I have written a patch for ipt_REJECT that enables iptables to send back 
-> fragmentation-needed. This is useful for testing PMTUD problems. It 
-> works for me now, but needs some polishing before I release it.
-> 
-> Questions:
-> - Would such a patch have a chance to be submitted to pom?
+ HI
 
-Two questions:
+      I use the iptables + squid as the gateway of one LAN,and it is very good in fact.
 
-- why is it a patch against REJECT, instead of a standalone target?
-- how would you concretely use it to test PMTUD problems?
+   Now,I would like to get the traffic accounting of each IP of the LAN.
 
-best regards
-  Patrick
+  How to get these data ? Does IPtables contain these data?
+
+  Are there some tools for traffic accounting of iptables?
+
+  I could use perl and shell programing.Could I analyze the log file of iptables to account?
+
+  Thanks
