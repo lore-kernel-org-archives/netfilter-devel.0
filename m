@@ -1,19 +1,19 @@
 From: Harald Welte <laforge@gnumonks.org>
 Subject: Re: Comments about IPT_ALIGN
-Date: Fri, 31 Jan 2003 12:57:58 +0100
+Date: Fri, 31 Jan 2003 12:51:07 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131115758.GX9073@naboo.cybercafe42>
-References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu> <3E33C665.9080106@fugmann.dhs.org> <20030126152227.A6811@linux.karinthy.hu> <3E342355.1030707@hipac.org> <20030126204358.B9418@linux.karinthy.hu> <3E346A9A.5020305@hipac.org> <20030127014304.A10076@linux.karinthy.hu> <3E350B13.8010502@hipac.org>
+Message-ID: <20030131115107.GV9073@naboo.cybercafe42>
+References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu> <3E33C665.9080106@fugmann.dhs.org> <3E33E96A.5080903@hipac.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5tINJiUS2/Dn5Rhr"
-Cc: Laszlo Valko <valko@linux.karinthy.hu>,
-	Anders Fugmann <afu@fugmann.dhs.org>,
+	protocol="application/pgp-signature"; boundary="ZaW/dtY/7oMe/vLp"
+Cc: Anders Fugmann <afu@fugmann.dhs.org>,
+	Laszlo Valko <valko@linux.karinthy.hu>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Thomas Heinz <creatix@hipac.org>
 Content-Disposition: inline
-In-Reply-To: <3E350B13.8010502@hipac.org>
+In-Reply-To: <3E33E96A.5080903@hipac.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,19 +25,23 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---5tINJiUS2/Dn5Rhr
+--ZaW/dtY/7oMe/vLp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jan 27, 2003 at 11:33:55AM +0100, Thomas Heinz wrote:
-> 2) Define the kernel-user communication in terms of a network protocol
->    (anyway, I guess this will be the case if netfilter communication is
->    converted to netlink).
+On Sun, Jan 26, 2003 at 02:58:02PM +0100, Thomas Heinz wrote:
+=20
+> Actually this is not true for some existing targets and matches, e.g.:
+ [...]
 
-No, not really. The matchinfo / targetinfo structures are just passed
-through as opaque data objects, the iptnetlink/pkttnetlink layer doesn't
-look inside at all.
+> Since I assume that ULOG and MARK work perfectly on sparc64 I must
+> be missing something that makes the internal memory layout of the
+> structs (i.e. the member offsets) equal in user and kernel space
+> (or my assumption is wrong ;-).
+
+I'd rather think of your assumption as being wrong.  I have never tested
+ULOG on sparc64 so far. But thanks for bringing up this issue.
 
 > Regards,
 > Thomas
@@ -53,7 +57,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---5tINJiUS2/Dn5Rhr
+--ZaW/dtY/7oMe/vLp
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -61,9 +65,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+OmTGXaXGVTD0i/8RAglTAJwLwKFPzwjK1fpUGXJskirETMRuYwCgjOti
-MnNXziWe+QzEhiQOHtdRUa0=
-=qgp8
+iD8DBQE+OmMrXaXGVTD0i/8RAuEaAKCz8EHEnc++7zHTJQ1fnOPUfD0cMgCfTRvW
+A3d1wrbyWkgEx1pPV1oNu9w=
+=ufci
 -----END PGP SIGNATURE-----
 
---5tINJiUS2/Dn5Rhr--
+--ZaW/dtY/7oMe/vLp--
