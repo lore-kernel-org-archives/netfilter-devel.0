@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Phil Oester <kernel@linuxace.com>
 Subject: Re: [PATCH] Fix hang on netfilter module unload
-Date: Tue, 15 Mar 2005 20:25:17 +0100
-Message-ID: <4237369D.8080408@trash.net>
+Date: Tue, 15 Mar 2005 11:46:02 -0800
+Message-ID: <20050315194602.GA3487@linuxace.com>
 References: <20050315050641.GA334@linuxace.com>
-	<20050315172330.GA3130@linuxace.com>
+	<20050315172330.GA3130@linuxace.com> <4237369D.8080408@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050315172330.GA3130@linuxace.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4237369D.8080408@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,30 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
->>So we are leaking conntracks for some reason that we must diagnose.
-> 
-> 
-> No...the app is leaking skbs.  Since the skb never goes away (at least
-> until closing the app), the conntrack can thus not go away.  Isn't
-> it better for us to work around stupid apps like this?  Seems preferable
-> to not hang the box on iptables restart/unload, eh?
+On Tue, Mar 15, 2005 at 08:25:17PM +0100, Patrick McHardy wrote:
+> I guess by leaking you mean doesn't pull them of the receive queue.
+> Anyhow, the reference to the conntrack is dropped before packets
+> are delivered to the protocols, so this can't be the reason. Do
+> you have a reproducable test-case ?
 
-I guess by leaking you mean doesn't pull them of the receive queue.
-Anyhow, the reference to the conntrack is dropped before packets
-are delivered to the protocols, so this can't be the reason. Do
-you have a reproducable test-case ?
+On a box with modular iptables, a DHCP interface, and NetworkManager
+set to run on boot:
 
->>But this is cheating, of course that the module will unload if we set 
->>all refcounts to 1 we won't spin forever in the i_see_dead_people loop 
->>but we are leaking somewhere anyway.
-> 
-> 
-> Well, again, the admin has asked to unload iptables -- should we unload,
-> or lockup the box?
+1) boot box
+2) verify ip_conntrack_count and wc -l /proc/net/ip_conntrack are both 0
+3) NetworkManager stop
+4) ifdown eth0
+5) NetworkManager start
 
-Unload - after fixing the leaks :) If we cover it up this way it will
-never get fixed properly.
+NM seems to never release the reference to at least one of its
+conntracks (sometimes more than one).  At this point, a conntrack
+has been cleaned from lists but not destroyed, and the counts
+shown in #2 will not match.  
 
-Regards
-Patrick
+It seems to me we should still track conntracks which are cleaned
+but not yet destroyed, no?  Isn't it possible for a malicious
+app to screw us here by intentionally getting the counts out of
+whack?
+
+Phil
