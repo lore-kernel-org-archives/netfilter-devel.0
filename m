@@ -1,16 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: About connbytes
-Date: Tue, 9 Nov 2004 10:04:22 +0100
-Message-ID: <20041109090422.GQ22257@sunbeam.de.gnumonks.org>
-References: <419052E5.4080609@koba.com.ar>
+From: Eric Leblond <eric@inl.fr>
+Subject: limit and negation
+Date: Tue, 09 Nov 2004 11:13:07 +0100
+Message-ID: <1099995187.4318.15.camel@porky>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wwtQuX191/I956S7"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature";
+	boundary="=-smuDy5UC2syHdEgux0I+"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "koba@koba.com.ar" <koba@koba.com.ar>
-Content-Disposition: inline
-In-Reply-To: <419052E5.4080609@koba.com.ar>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,47 +20,39 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---wwtQuX191/I956S7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-smuDy5UC2syHdEgux0I+
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 09, 2004 at 02:17:25AM -0300, koba@koba.com.ar wrote:
-> Hello,
-> 	I've been trying to get the connbytes module working but apparently=20
-> 	the CVS/SVN libipt_connbytes.c is outdated (for example it uses sinfo->f=
-rom=20
-> instead of sinfo->count.from). If you've been mantaining it, can you=20
-> send me your latest version?
+Hi,
 
-Which particular version of ipt_connbytes are you talking about?
+On a discussion yesterday on #netfilter, someone point out that the
+limit seems to have problem with negation.
+Man page announce it is supported, but when doing this test :
+iptables rules set :
+iptables -A OUTPUT -m limit --limit 1/s -j LOG --log-prefix "under"
+iptables -A OUTPUT -m limit ! --limit 1/s -j LOG --log-prefix "over"
 
-at least the 2.6.x version from subversion appears to use 'count.from'
-consistently.
+It seems that the rules match the same packets (same ID on tcp flows).
 
-I don't have anything else than current subversion.
+I never had to use limit with a negation, but there's at least a problem
+in the man page.
 
+BR,
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Eric Leblond <eric@inl.fr>
+INL
 
---wwtQuX191/I956S7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+--=-smuDy5UC2syHdEgux0I+
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD4DBQFBkIgWXaXGVTD0i/8RAgJjAJjfC7gILN7jwTVNsfFP/hIUaKjDAJ9U5Fuf
-k8RiN2P4SpqJcbfwoibNLA==
-=IrfL
+iD8DBQBBkJgynxA7CdMWjzIRArMDAJ9L9ZXR8KzHK1o1xrW4oO/Sth7WJgCbBi/E
+UbQp9lCvENX19n5mmB/Chro=
+=Dm7X
 -----END PGP SIGNATURE-----
 
---wwtQuX191/I956S7--
+--=-smuDy5UC2syHdEgux0I+--
