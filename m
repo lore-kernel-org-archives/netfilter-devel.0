@@ -1,14 +1,16 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: new REBOOT target
-Date: Mon, 28 Feb 2005 10:06:35 +0100
-Message-ID: <20050228090635.GA25632@roonstrasse.net>
-References: <20050226215628.C7D1.LARK@linux.net.cn>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [1/1] ipt_osf: fix ipt_osf compilation on some distros.
+Date: Sun, 27 Feb 2005 20:10:20 +0300
+Message-ID: <20050227201020.289d1cbe@zanzibar.2ka.mipt.ru>
+References: <1109308057.6728.54.camel@uganda>
+	<4221F609.3060305@trash.net>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-To: Wang Jian <lark@linux.net.cn>
-Content-Disposition: inline
-In-Reply-To: <20050226215628.C7D1.LARK@linux.net.cn>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4221F609.3060305@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,24 +22,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/02/26 15:30, Wang Jian <lark@linux.net.cn> wrote:
-> # iptables -I INPUT -p icmp -j REBOOT --passphrase pass [--offset offset]
-> [--hard (0|1)]
+On Sun, 27 Feb 2005 17:32:09 +0100
+Patrick McHardy <kaber@trash.net> wrote:
 
-Ugly hack for an ugly problem ;) - still, it's an interesting idea for
-people plagued with such a problem.
+> Evgeniy Polyakov wrote:
+> > Some distros have magical header mess, which leads to undefined struct
+> > tcphdr, 
+> > when net/tcp.h is not included directly.
+> > Following patch workarounds it.
+> 
+> You should include linux/tcp.h for struct tcphdr. You probably also
+> don't need the other net/ includes, for struct iphdr use linux/ip.h,
+> sock.h shouldn't be needed at all.
 
-You have implemented the "--passphrase" parameter in your REBOOT
-target, but that "--passphrase" is in fact a match, not a target
-parameter. Targets should not perform a test on the packet, it's not
-their task (it should not assume the packet is ICMP either, that drops
-a lot of flexibility). You should implement this part as a match
-module.
+net/ip.h is needed due to IP_DF bit.
+linux/sock.h is not needed but instead ipt_osf.c requires inetdevice.h
+due to in_dev_get() usage.
 
-Maybe someone has already written such a module.. look at
-patch-o-matic.
+> > 
+> > P.S. Should I resend lost patch with Subject line 
+> > "[1/1] libipt_osf: fix iptables-1.3.0rc1 compilation.", which moves
+> > kernel headers in ipt_osf.h into appropriate ifdef/endif?
+> 
+> Yes, please.
 
-In contrary, "--hard" is not a match, it controls what REBOOT should
-do in detail, so this is one ok.
+Both patches will be sent in 2 next e-mails.
+ 
+> Regards
+> Patrick
 
-Max
+
+	Evgeniy Polyakov
+
+Only failure makes us experts. -- Theo de Raadt
