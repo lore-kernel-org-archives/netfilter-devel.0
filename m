@@ -1,16 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.6] remove ipt_unclean match from 2.6.x
-Date: Sun, 24 Aug 2003 04:52:16 -0700
+Subject: Re: [PATCH 2.6] remove EXPERIMENTAL mark from some netfilter stuff
+Date: Sun, 24 Aug 2003 04:53:59 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030824045216.33ad75d5.davem@redhat.com>
-References: <20030823211926.GF6750@sunbeam.de.gnumonks.org>
+Message-ID: <20030824045359.5afa0d2f.davem@redhat.com>
+References: <20030824084352.GN6750@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030823211926.GF6750@sunbeam.de.gnumonks.org>
+In-Reply-To: <20030824084352.GN6750@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,10 +21,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 23 Aug 2003 23:19:26 +0200
+On Sun, 24 Aug 2003 10:43:52 +0200
 Harald Welte <laforge@netfilter.org> wrote:
 
-> We have decided to remove the unclean match, since it is considered
-> a potentially dangerous function of the current iptables code.
+> The following patch removes the outdated EXPERIMENTAL dependency on lots
+> of netfitler stuff in 2.6.0-test4 kernel.  
 
 Applied, thanks.
