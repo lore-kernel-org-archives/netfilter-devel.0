@@ -1,20 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Pablo Neira <pablo@eurodev.net>
 Subject: Re: NetFilter unclean modue in 2.6.x kernels
-Date: Mon, 24 Jan 2005 10:22:41 +0100
-Message-ID: <20050124092241.GC14460@sunbeam.de.gnumonks.org>
-References: <200501220013.56429.sov.rbsec@gmail.com>
-	<20050121233328.GU14460@sunbeam.de.gnumonks.org>
+Date: Mon, 24 Jan 2005 11:21:51 +0100
+Message-ID: <41F4CC3F.7070505@eurodev.net>
+References: <200501220013.56429.sov.rbsec@gmail.com>	<20050121233328.GU14460@sunbeam.de.gnumonks.org>
 	<Pine.LNX.4.58.0501240922370.6574@blackhole.kfki.hu>
-	<20050124085704.GA14460@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.58.0501241009530.6574@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J9FDM06y/La6Wdcu"
-Cc: "Oleg V. Sapon" <sov.rbsec@gmail.com>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, "Oleg V. Sapon" <sov.rbsec@gmail.com>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0501241009530.6574@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0501240922370.6574@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,42 +23,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Jozsef Kadlecsik wrote:
 
---J9FDM06y/La6Wdcu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>Hi Harald,
+>
+>On Sat, 22 Jan 2005, Harald Welte wrote:
+>
+>  
+>
+>>On Sat, Jan 22, 2005 at 12:13:56AM +0300, Oleg V. Sapon wrote:
+>>    
+>>
+>>> Can you help locate unclean module for 2.6.x kernel or we must use
+>>> source files from 2.6.0-test4?
+>>>      
+>>>
+>>I fear nobody did that port to recent 2.6.x and put it into
+>>patch-o-matic :(
+>>
+>>I just did that with the old code from 2.6.0-testX.  I didn't have the
+>>time to give it any runtime testing, but at least it compiled (after
+>>fixing up some includes).
+>>    
+>>
+>
+>I also ported the unclean patch to 2.6 some time ago. The main reason I
+>did not post it was the slightly modified API.
+>
+>The port I created verifies the checksums as well, relying on hardware
+>checksums when possible. 
+>
 
-On Mon, Jan 24, 2005 at 10:13:36AM +0100, Jozsef Kadlecsik wrote:
+Hm, the error API makes sure that we don't start a session in the 
+connection tracking with unclean packets (since kernel 2.6.6). So 
+something like:
 
-> As far as I remember, the main concern was due to the ckecking of the
-> reserved fields, which can cause forward-incompatibility. Was something
-> else against the match? Just asking :-)
+iptables -m state INVALID -j ULOG
 
-yes, that's basically it, IIRC.
+should be enough to log evil packets.
 
-> Jozsef
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+The checkings aren't so strict as those that the unclean module used to 
+do but with a couple of patches I could tighten that. Actually I 
+remember a discussion with Jozsef about this. As far as I can remember 
+he didn't like so much the idea of putting half of the unclean module there.
 
---J9FDM06y/La6Wdcu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFB9L5hXaXGVTD0i/8RAlGvAKCooFcuTcL8RUkeGdBUVS08f4gJnACgq6uC
-JgNQvViTvVerjOmz0+AH4yI=
-=kqmv
------END PGP SIGNATURE-----
-
---J9FDM06y/La6Wdcu--
+--
+Pablo
