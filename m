@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: ip_tables.h does not compile when using g++
-Date: Sun, 15 Sep 2002 13:20:07 +0200
+Subject: Re: [PATCH] Small fixes to Polish FAQ
+Date: Sun, 15 Sep 2002 13:25:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020915132007.H3810@sunbeam.de.gnumonks.org>
-References: <1032005243.9337.19.camel@localhost.localdomain>
+Message-ID: <20020915132537.J3810@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0209132051260.8309-200000@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xm2jbj1ALIzH4cD6"
-Cc: netfilter List <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="P+5wBWHyMmVhWeqO"
+Cc: netfilter-devel@lists.samba.org, sfrost@netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Scott Andrew Baillie <sbaillie@bigpond.net.au>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Content-Disposition: inline
-In-Reply-To: <1032005243.9337.19.camel@localhost.localdomain>; from sbaillie@bigpond.net.au on Sat, Sep 14, 2002 at 12:07:22PM +0000
+In-Reply-To: <Pine.LNX.4.44.0209132051260.8309-200000@dns.toxicfilms.tv>; from solt@dns.toxicfilms.tv on Fri, Sep 13, 2002 at 08:53:41PM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,49 +23,30 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---xm2jbj1ALIzH4cD6
+--P+5wBWHyMmVhWeqO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Sep 14, 2002 at 12:07:22PM +0000, Scott Andrew Baillie wrote:
-> The file linux-2.4.19/include/linux/netfilter_ipv4/ip_tables.h is
-> included by user space programs as well as the kernel, hence I think
-> that it should compile using g++.
-
-You are right.
-
-> This patch makes it compile. Patch is also attached.
+On Fri, Sep 13, 2002 at 08:53:41PM +0200, Maciej Soltysiak wrote:
+> Hi,
 >=20
+> Here are some small fixes to the FAQ/pl.
 >=20
-> diff -ur linux-2.4.19/include/linux/netfilter_ipv4/ip_tables.h
-> linux-2.4.19-new/include/linux/netfilter_ipv4/ip_tables.h
-> --- linux-2.4.19/include/linux/netfilter_ipv4/ip_tables.h	Mon Feb 25
-> 19:38:13 2002
-> +++ linux-2.4.19-new/include/linux/netfilter_ipv4/ip_tables.h	Sat Sep 14
-> 11:11:01 2002
-> @@ -292,7 +292,7 @@
->  static __inline__ struct ipt_entry_target *
->  ipt_get_target(struct ipt_entry *e)
->  {
-> -	return (void *)e + e->target_offset;
-> +	return ((struct ipt_entry_target *)((char *)e + e->target_offset));
+> Unfortunately, the Netfilter website still contains the old, unupdated
+> FAQ, i have written to the webmaster but there was no response :(
 
-why does it have to be (char *) ? There are no characters involved, hence
-it (in the spirit of this gcc extension) should be (void *).
+I'm sorry, I have read the email but somehow I'm not sure how active our cu=
+rrent
+Webmaster (stephen frost) is...
 
-The typecast to struct ipt_entry_target is correct, however.
+I'm now going to take care of this.
 
-Does it compile with=20
-
-	return ((struct ipt_entry_target *)((void *)e + e->target_offset));
-
-If yes, I will submit this modified version of  your patch.
+Stephen: Are you busy at the moment? Are you lacking some privileges on
+kashyyyk.netfilter.org?
 
 > Regards,
-> Scott.
-
-
+> Maciej Soltysiak
 
 --=20
 Live long and prosper
@@ -78,7 +59,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---xm2jbj1ALIzH4cD6
+--P+5wBWHyMmVhWeqO
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -86,9 +67,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9hGznXaXGVTD0i/8RAs6tAJ4pBdBJpBiQu6QwxK+LBjSQvA+WsACggjji
-oW1DxIFOlF3XrUSxrO4I0Gk=
-=SyRb
+iD8DBQE9hG4xXaXGVTD0i/8RAt33AKCM+WyRhy1Vw1IcnS8jhb+9TmdneACfURu2
+fPO1vDosIjQ/Yk42fwsLMNo=
+=grgc
 -----END PGP SIGNATURE-----
 
---xm2jbj1ALIzH4cD6--
+--P+5wBWHyMmVhWeqO--
