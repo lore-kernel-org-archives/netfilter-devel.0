@@ -1,17 +1,18 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] Add bridged IPv6 packet filtering
-Date: Thu, 02 Sep 2004 13:40:06 +0900 (JST)
+From: Willy Tarreau <willy@w.ods.org>
+Subject: Re: [RFC] ct_sync 0.15 (corrected)
+Date: Thu, 2 Sep 2004 07:10:11 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200409020440.i824e8Jl020613@toshiba.co.jp>
-References: <200409012234.26310.bdschuym@pandora.be>
+Message-ID: <20040902051011.GA1453@alpha.home.local>
+References: <1092407190.2402.120.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: davem@redhat.com, netfilter-devel@lists.netfilter.org,
-	usagi-core@linux-ipv6.org, yasuyuki.kozakai@toshiba.co.jp
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	jamal <hadi@cyberus.ca>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: bdschuym@pandora.be
-In-Reply-To: <200409012234.26310.bdschuym@pandora.be>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Content-Disposition: inline
+In-Reply-To: <1092407190.2402.120.camel@nienna.balabit>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,49 +23,28 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
 Hi,
 
-From: Bart De Schuymer <bdschuym@pandora.be>
-Date: Wed, 1 Sep 2004 22:34:26 +0200
+>	One more
+>         example could be TCP window tracking, I don't think we have
+>         the necessary bandwidth and CPU time to send an update message
+>         after each and every received TCP packet... Any idea how we
+>         could solve these problems?
 
-> Hi Dave,
-> 
-> >From reading Yasuyuki's reply and the specific code, the IPv6 checks
-> before giving a bridged packet to ip6tables should now be accurate.
-> 
-> These are the changes made to the original patch:
-> 
-> - *	Aug 28 2004: add IPv6 filtering (bdschuym)
-> + *	Sep 01 2004: add IPv6 filtering (bdschuym)
-> 
-> @@ -321,11 +321,12 @@ static unsigned int br_nf_pre_routing_ip
->  			goto inhdr_error;
->  	}
->  	if (hdr->nexthdr == NEXTHDR_HOP) {
-> -		skb->h.raw = (u8*)(hdr+1);
-> -#if 0
-> -		if (ipv6_parse_hopopts(skb, offsetof(struct ipv6hdr, nexthdr))<0)
-> +		/* We only check the length. A bridge shouldn't do any
-> +		 * hop-by-hop stuff anyway. */
-> +		unsigned char *raw = (u8*)(skb->nh.ipv6h+1);
-> +
-> +		if ((raw + ((int)(raw[1]+1)<<3)) - skb->data > skb_headlen(skb))
->  			goto inhdr_error;
-> -#endif
+I don't really agree on the bandwidth argument : a small TCP packet with
+only an ACK or a control flag is 40 bytes. This is 12 bytes more than the
+smallest UDP packet, so if you can update a connection with at most 12 bytes,
+you can use links of the same nature. BTW, I don't think you should send one
+packet per connection. You should queue updates into a list, and build the
+update packet from this list. This way, you eliminate the IP+UDP header (28
+bytes) for all updates except the first one, which means you then have 40
+bytes to update a connection without using more bandwidth. I'm not saying
+this is much enough for every case, but I think that depending on the type
+of message (creation, update, destruction), we might do things with this.
 
-You forgot to find "Jumbo Payload Option" in Hop-by-Hop Options header.
-Other options may exist in this header.
-
-And please truncate packet if actual packet length is greater than
-Jumbo Payload Length + IPv6 header length.
-
-Maybe you need to write the function that finds "Jumbo Payload Option" by
-parsing Hop-by-Hop Options header, checks the payload length, and truncates
-packet if necessary.
-
-I think it is not preferable to call ipv6_parse_hopopts() at this point.
-Because Hop-by-Hop Options header may include other options and
-ipv6_hop_jumbo() may send ICMPv6 error.
+If you don't want to synchronize TCP windows, you might also turn the slave
+in a "lazy mode" for existing connections when it becomes master. This is a
+bit dirty, but might be an acceptable trade-off.
 
 Regards,
+Willy
