@@ -1,14 +1,15 @@
-From: Octavio / Super <alvarezp@octavio.ods.org>
-Subject: Re: microsoft messenger protocol helper
-Date: Sat, 15 Mar 2003 13:21:14 -0800
+From: James Morris <jmorris@intercode.com.au>
+Subject: Re: [PATCH]  dead code elimination in ip6_queue.c
+Date: Sun, 16 Mar 2003 11:54:45 +1100 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.2.0.9.0.20030315132103.00bbc9c0@192.168.0.1>
-References: <000001c2eb36$0c2aad40$0301a8c0@viper>
+Message-ID: <Pine.LNX.4.44.0303161154050.29463-100000@blackbird.intercode.com.au>
+References: <3E736A61.6020907@videotron.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
-In-Reply-To: <000001c2eb36$0c2aad40$0301a8c0@viper>
+To: Stephane Ouellette <ouellettes@videotron.ca>
+In-Reply-To: <3E736A61.6020907@videotron.ca>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,32 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Try compiling with -DMODULE and -D__KERNEL__. I don't know if -DMODVERSIONS should be used or not. Do not ask for a linked file, just compiled, like this:
+On Sat, 15 Mar 2003, Stephane Ouellette wrote:
 
-gcc -DMODULE -D__KERNEL__ -c source.c -o output.o
+> Folks,
+> 
+>    the following patch removes dead code in ip6_queue.c
+> 
 
-At least that's what I was trying to use. I had several other errors because I had a problem with my distro, but I wish you luck.
+Incorrect, see NLMSG_PUT().
 
-Octavio.
 
-At 10:01 p.m. 15/03/2003 +0100, Silvester Verdonskchot wrote:
->Hi All,
->
->I want to make a connection tracking helper / nat helper for the
->Microsoft messenger protocol. I read the netfilter hacking guide.
->There's one thing that's not clear to me.
->How do I get my new module compiled with the rest of netfilter? I tried
->compiling it separately and I get warnings about not using certain
->include files outside the kernel.
->
->Can anybody help me with this?
->
->Thanks
->
->Silvester
-
----
-/**************************************************
-Octavio Alvarez (aka: Super, Doogie)
-ICQ# 42020731. MSN_ID: alvarezp2000@h0tmail.com
-**************************************************/
+- James
+-- 
+James Morris
+<jmorris@intercode.com.au>
