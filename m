@@ -1,16 +1,17 @@
-From: "Paul Albert" <palbert@rovingplanet.com>
-Subject: RE: Ctnetlink?
-Date: Mon, 3 Nov 2003 16:53:36 -0700
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Ctnetlink?
+Date: Tue, 04 Nov 2003 01:40:40 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <661F9268BBA8CB4EB92CC12B8C42F06912ECA0@pluto.rovingplanet.com>
+Message-ID: <3FA6F588.9060406@trash.net>
+References: <661F9268BBA8CB4EB92CC12B8C42F06912ECA0@pluto.rovingplanet.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+ netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: "Harald Welte" <laforge@netfilter.org>
+To: Paul Albert <palbert@rovingplanet.com>
+In-Reply-To: <661F9268BBA8CB4EB92CC12B8C42F06912ECA0@pluto.rovingplanet.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,26 +22,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Paul Albert wrote:
 
+>Is the only way to learn more about this to apply it through the POM and
+>check out some of the code?  I would like to learn more, but I'm not
+>sure how to go about this ...
+>
+>Much thanks,
+>Paul
+>  
+>
 
->> Will this provide me a command-line interface to remove connections=20
->> from ip_conntrack?
+You can find some incomplete but partial working code at
+http://trash.net/~kaber/ctnetlink (ct.tar.gz I believe).
+It's a command-line tool I used for testing ctnetlink.
+It also includes a ctnetlink monitor. It's probably enough
+for a start but beware that ctnetlink interface is not
+stable at all and may change any minute ;) Most stuff
+that is currently in place will probably stay, but you
+never know ..
 
->no, but you can easily write one that sends the respective netlink
-messages to the=20
->ctnetlink core.
-
-That is quite attractive.  Thanks for writing such a piece of code!
-
-
->> Is there more documentation on this?
-
->no.
-
-
-Is the only way to learn more about this to apply it through the POM and
-check out some of the code?  I would like to learn more, but I'm not
-sure how to go about this ...
-
-Much thanks,
-Paul
+Best regards,
+Patrick
