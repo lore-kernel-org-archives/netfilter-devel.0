@@ -1,12 +1,17 @@
-From: Paul Mielke <paulm@routefree.com>
-Subject: PPTP connection tracking
-Date: Sun, 19 Jan 2003 15:01:09 -0800
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: target_info read only?
+Date: Tue, 21 Jan 2003 10:58:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4.2.0.58.20030119145120.00b1c6f0@avocetgw>
+Message-ID: <20030121095826.GL15225@sunbeam.de.gnumonks.org>
+References: <3E2C883F.7070707@hipac.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="451BZW+OUuJBCAYj"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Thomas Heinz <creatix@hipac.org>
+Content-Disposition: inline
+In-Reply-To: <3E2C883F.7070707@hipac.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,153 +22,66 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Greetings netfilter-devel denizens,
 
-I have taken the PPTP connection tracking patch version 1.11
-and applied it to the 2.4.20 kernel's version of netfilter. 
-I then applied Philip Craig's subsequent patch to get his
-fixes.  I would like to express my appreciation for the
-excellent work done by Philip, Harald and the other folks
-who have contributed to the PPTP/GRE connection tracking
-implementation.
+--451BZW+OUuJBCAYj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-In the course of getting this to work on my target systems,
-it became clear that our situation differs from those of
-the previous developers in the following respects:
+On Tue, Jan 21, 2003 at 12:37:35AM +0100, Thomas Heinz wrote:
+> Hi
+>=20
+> A netfilter target (struct ipt_entry_target) can contain an
+> arbitrary amount of private data which is delivered to the
+> target function in case the corresponding rule matches.
 
-1)  In our case, we need to support the PPTP server running
-on the firewall machine itself, as well as the pass-through
-cases.
+true.
 
-2)  At least one of our platforms is big-endian.
+> Now it would be possible for the target function to modify
+> the private data although I haven't seen any target that
+> does this. In contrast to targets this behaviour is quite
+> normal for matches, especially stateful ones.
 
-The change required to make 1) work is pretty straightforward.
-Case 2) is a bit uglier.
+true.
 
-The thing that prevented case 1) from working is the following
-fragment in the routine ip_nat_fn() in ip_nat_standalone.c starting
-around line 111:
+> 1) Is there any target (kernel and cvs) that already modifies
+>    its private data (maybe I have overlooked one)?
 
-         case IP_CT_NEW:
-#ifdef CONFIG_IP_NF_NAT_LOCAL
-                 /* LOCAL_IN hook doesn't have a chain and thus doesn't care
-                  * about new packets -HW */
-                 if (hooknum == NF_IP_LOCAL_IN)
-                         return NF_ACCEPT;
-#endif
+Not that I am aware of....  You might want to look for the PSD target (yes,
+it was a target before it became a match).  This was years ago.
 
-The result of this code in the CONFIG_IP_NF_NAT_LOCAL case is that
-the rest of the NAT initialization code gets skipped for a LOCAL_IN
-packet.  This means that one direction of the manipulations doesn't
-get set up.  The way I think about it is that hook NF_IP_LOCAL_IN
-is the equivalent of NF_POST_ROUTING for an INPUT packet.  The
-DST manip gets initialized in NF_PRE_ROUTING, but if you skip
-this code for LOCAL_IN then the SRC manip doesn't get initialized
-on the first inbound packet.  By the time the reply is sent, the
-connection entry is already hashed and it's too late to mess with
-it.  My solution was just to turn the
+> 2) If ! 1) is there any reason for which targets might want
+>    to write to their private data buffer and if not can
+>    I assume that netfilter targets must (sort of unwritten law
+>    like) treat their private data as read only?
 
-#ifdef CONFIG_IP_NF_NAT_LOCAL
+no. they can.  But please note that (like matchinfo) you are operating
+on per-cpu local data.  So in an SMP system, there will be one targinfo
+per cpu.
 
-into
+> Regards,
+> Thomas
 
-#if 0
+--=20
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
-thus removing this section of code.  Things seem to work fine after
-this change, but perhaps there are other cases that I don't understand
-in which this change would break things.  Harald, do you see any harm
-in this solution?
+--451BZW+OUuJBCAYj
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-The endianness issue is a good deal uglier.  The root cause of the
-problem is that the PPTP conntrack patch adds a 32 bit element to
-the union ip_conntrack_manip_proto and also to the corresponding
-destination portion of ip_conntrack_tuple, making them both a mix
-of 16 bit and 32 bit elements.  There are a number of places in the
-netfilter code that use structure initializers to set a value for 
-one of these structures and it now does the wrong thing on a big-
-endian machine.  In fact, I claim it also does a more subtly
-incorrect thing on a little-endian machine.  Consider the following
-example from ftp_nat_expected() in ip_nat_ftp.c:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-         /* ... unless we're doing a MANIP_DST, in which case, make
-            sure we map to the correct port */
-         if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_DST) {
-                 mr.range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
-                 mr.range[0].min = mr.range[0].max
-                         = ((union ip_conntrack_manip_proto)
-                                 { htons(exp_ftp_info->port) });
+iD8DBQE+LRnCXaXGVTD0i/8RAiv1AJ0fvX9bEQ5gsjB2Hc04yzt0KW6CZgCghQXQ
+055PXcC23ClEwEZp2HPXFQE=
+=Zt87
+-----END PGP SIGNATURE-----
 
-The structure "mr" is (struct ip_nat_multi_range) and is declared
-on the stack and never explicitly cleared.  The code generated by
-the compiler we're using (gcc 2.95.2) does a 16 bit store word into
-the address of the min and max elements.  This puts the data in
-the right place on an LE cpu, but in the wrong place on a BE cpu.
-On an LE cpu, the upper 16 bits of the union remain unitialized,
-which may also cause problems depending on how the union is referenced
-later.
-
-Unfortunately this idiom exists in a number of places.  I'm in
-the process of looking for more, but I have already found and fixed
-two bugs caused by this endianness issue.  Diffs are attached below.
-
-Comments?
-
-Regards,
-Paul Mielke
-BroadOn Communications Corp.
-
-diff -u netfilter-2.4.20_philpatch/net/ipv4/netfilter/ip_nat_ftp.c netfilter_pptfixes/net/ipv4/netfilter/ip_nat_ftp.c
---- netfilter-2.4.20_philpatch/net/ipv4/netfilter/ip_nat_ftp.c	2002-11-28 18:53:15.000000000 -0500
-+++ netfilter_pptp_fixes/net/ipv4/netfilter/ip_nat_ftp.c	2003-01-17 16:03:30.000000000 -0500
-@@ -47,6 +47,7 @@
-  
-  	DEBUGP("nat_expected: We have a connection!\n");
-  	exp_ftp_info = &ct->master->help.exp_ftp_info;
-+	memset((void *)&mr, 0, sizeof (struct ip_nat_multi_range));
-  
-  	LOCK_BH(&ip_ftp_lock);
-  
-@@ -82,9 +83,8 @@
-  	   sure we map to the correct port */
-  	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_DST) {
-  		mr.range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
--		mr.range[0].min = mr.range[0].max
--			= ((union ip_conntrack_manip_proto)
--				{ htons(exp_ftp_info->port) });
-+		mr.range[0].min.tcp.port = mr.range[0].max.tcp.port =
-+			htons(exp_ftp_info->port);
-  	}
-  	return ip_nat_setup_info(ct, &mr, hooknum);
-  }
-@@ -182,6 +182,7 @@
-  	DEBUGP("FTP_NAT: seq %u + %u in %u\n",
-  	       expect->seq, ct_ftp_info->len,
-  	       ntohl(tcph->seq));
-+	memset((void *)&newtuple, 0, sizeof(struct ip_conntrack_tuple));
-  
-  	/* Change address inside packet to match way we're mapping
-  	   this connection. */
-diff -u netfilter-2.4.20_philpatch/net/ipv4/netfilter/ip_conntrack_core.c netfilter_pptp_fixes/net/ipv4/netfilter/ip_conntrack_core.c
---- netfilter-2.4.20_philpatch/net/ipv4/netfilter/ip_conntrack_core.c	2002-12-08 23:12:10.000000000 -0500
-+++ netfilter_pptp_fixes/net/ipv4/netfilter/ip_conntrack_core.c	2003-01-17 16:09:21.000000000 -0500
-@@ -1302,9 +1302,14 @@
-  getorigdst(struct sock *sk, int optval, void *user, int *len)
-  {
-  	struct ip_conntrack_tuple_hash *h;
--	struct ip_conntrack_tuple tuple = { { sk->rcv_saddr, { sk->sport } },
--					    { sk->daddr, { sk->dport },
--					      IPPROTO_TCP } };
-+	struct ip_conntrack_tuple tuple;
-+
-+	memset((void *)&tuple, 0, sizeof (struct ip_conntrack_tuple));
-+	tuple.src.ip = sk->rcv_saddr;
-+	tuple.src.u.tcp.port = sk->sport;
-+	tuple.dst.ip = sk->daddr;
-+	tuple.dst.u.tcp.port = sk->dport;
-+	tuple.dst.protonum = IPPROTO_TCP;
-  
-  	/* We only do TCP at the moment: is there a better way? */
-  	if (strcmp(sk->prot->name, "TCP") != 0) {
-
-Paul Mielke                        paulm@routefree.com
-RouteFree, Inc.                   (650) 739-5377
+--451BZW+OUuJBCAYj--
