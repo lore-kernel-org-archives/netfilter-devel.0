@@ -1,14 +1,16 @@
-From: Michael Bauer <mihi@ch3cooh.org>
-Subject: iptables Parseing Bug
-Date: Tue, 1 Jul 2003 21:21:22 +0200
+From: "William da Rocha Lima" <wrochal@linuxit.com.br>
+Subject: Re: Error in rules DNAT
+Date: Fri, 4 Jul 2003 10:23:30 +0000 (UTC)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030701192122.GA22816@nacl.ch3cooh.org>
+Message-ID: <001101c343ff$2d83ce00$0100000a@william>
+References: <Pine.LNX.4.44.0306291601130.24424-100000@laptop1.agatha>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jI8keyz6grp/JLjh"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "Oskar Andreasson" <blueflux@koffein.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,50 +19,67 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Date: Sun, 6 Jul 2003 17:42:48 -0300
 List-Id: netfilter-devel.vger.kernel.org
 
+It leaves me to be more direct, for that I understand the rule without - i
+ethX does not connect the IP that requisite and yes gateway.
+====================
+William da Rocha Lima
+wrochal@linuxit.com.br
+www.linuxit.com.br
 
---jI8keyz6grp/JLjh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+----- Original Message ----- 
+From: "Oskar Andreasson" <blueflux@koffein.net>
+To: "William da Rocha Lima" <wrochal@linuxit.com.br>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Sunday, June 29, 2003 11:03 AM
+Subject: Re: Error in rules DNAT
 
-Hi all,
-While rewriting my firewall rules I found a Bug in iptables/ip6tables
-command line parsing, it interpretes the correct beginning of an
-argument as the whole argument. For example:
 
-iptables -A INPUT -p tcp --sp 22 -j ACCEPT
-
-works, it interpretes --sp as --sport. This is that far no problem.
-But what if you construct something like:
-
-iptables -A INPUT -p tcp -m mport --sport 22 --dports 1:1024 -j ACCEPT
-
-it fails with the error:
-
-iptables v1.2.8: multiport can only have one option
-
-because it interpretes --sport as --sports. I worked around that useing
---sport before -m mport, but it took a long time getting the error I
-made. I know it's only cosmetics, but it's a bug ;)
-
-greetings mihi
---=20
-=2Eplan: Get an ibook
-	-> check http://unet.univie.ac.at/~a9900470/ibook
-
---jI8keyz6grp/JLjh
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (OpenBSD)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE/Ad8yduFamyGEthkRAtY6AKC0YafwiglLS0qRNZBE6sSu90tlKACgz1Hp
-r/3IGrk1QtQdFrZ2pCLE+MQ=
-=qZhk
------END PGP SIGNATURE-----
-
---jI8keyz6grp/JLjh--
+> Hi William,
+>
+> Sorry to say this, but I must ask, what are you talking about?
+>
+> On Sat, 5 Jul 2003, William da Rocha Lima wrote:
+>
+> > Oskar Andreasson,
+> >
+> > Verifies that rule DNAT this incorrect one:
+> > iptables - t nat - the PREROUTING - p tcp - d 15,45,23,67 -- dport 80 -
+j
+> > DNAT -- to-destination 192,168,1,1
+> >
+> > the correct one is:
+> >
+> > iptables - t nat - the PREROUTING - p tcp - i ethX - d 15,45,23,67 -- 
+> > dport - 80 j DNAT -- to-destination 192,168,1,1
+> >
+> > being that ethX is entrance interface
+> >
+> > Articles write iam:
+> >
+http://www.linuxit.com.br/modules.php?name=Sections&op=viewarticle&artid=21
+> >
+> > bye,
+> >
+> > ====================
+> > William da Rocha Lima
+> > wrochal@linuxit.com.br
+> > www.linuxit.com.br
+> >
+> >
+> >
+>
+> -- 
+> ----
+> Oskar Andreasson
+> http://www.frozentux.net
+> http://iptables-tutorial.frozentux.net
+> http://ipsysctl-tutorial.frozentux.net
+> mailto:blueflux@koffein.net
+>
+>
+>
+>
+>
