@@ -1,18 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: A humble request
-Date: Fri, 23 Jan 2004 09:20:00 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Compiling IPTables-1.2.9 with Linux Kernel 2.4.6
+Date: Fri, 23 Jan 2004 11:20:25 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0401230918440.30826@tux.rsn.bth.se>
-References: <20040122220714.10159.qmail@web60702.mail.yahoo.com>
- <1070.12.76.44.225.1074815673.squirrel@nmibwkrf1.nexusmgmt.com>
- <20040123053213.GD12725@lbsd.net>
+Message-ID: <Pine.LNX.4.44.0401231119000.12080-100000@filer.marasystems.com>
+References: <400FCD11.2A953624@multitech.co.in>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>,
-	Zeeshan Ali <zeelists@yahoo.com>, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nigel Kukard <nkukard@lbsd.net>
-In-Reply-To: <20040123053213.GD12725@lbsd.net>
+To: Brindha M P <brindha@multitech.co.in>
+In-Reply-To: <400FCD11.2A953624@multitech.co.in>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,20 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 23 Jan 2004, Nigel Kukard wrote:
+On Thu, 22 Jan 2004, Brindha M P wrote:
 
-> I third that motion!
->
-> On Thu, Jan 22, 2004 at 06:54:33PM -0500, John A. Sullivan III wrote:
-> > I second that motion!
-> >
-> > > Hello,
-> > >    Most of the mailing-lists that i have subscribed
-> > > to, follow a tradition that make it quite easy to
-> > > identify emails: they add a prefix at the beginning of
-> > > each email's topic. Would'nt it be better if we do the
-> > > same too. Bye.
+>     We face errors while compiling IPTables - 1.2.9 with Linux Kernel
+> 2.4.6.
+> 
+> Kernel is compiled with Network packet filtering as inbuilt, IPTables
+> support
+> as inbuilt (other sub-options included as module)
+> 
+> Looks like the user-space iptables source code is referencing header
+> files which is not present in the Kernel code.
 
-Learn how to filter email into folders.
+According to the Changelog mostly any version should work, but if in doubt 
+try using a release not too far from the date of the Linux kernel release.
 
-/Martin
+Regards
+Henrik
