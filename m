@@ -1,15 +1,14 @@
-From: Fabio Spelta <fabio.spelta@tiscali.it>
-Subject: Re: Which version of libipq? (or: "How to compile "OSFPE" "?)
-Date: 16 Feb 2003 09:41:32 +0000
+From: "Andrew.hall" <temp02@bluereef.com.au>
+Subject: Preroute selection order
+Date: Mon, 10 Feb 2003 14:24:53 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1045388493.1183.5.camel@vaniglia>
-References: <1045307166.1157.37.camel@vaniglia>
+Message-ID: <003901c2d0b3$f9fce8a0$2601010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1045307166.1157.37.camel@vaniglia>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,23 +19,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> gcc -Inetfilter/userspace/include/libipq/ -lnetfilter/userspace/libipq/
-> osfpe.c : 
-> 
-> /usr/bin/ld: cannot find -lnetfilter/userspace/libipq/
-> collect2: ld returned 1 exit status
+Hello,
 
-Sorry, I have forgotten to say that I _have_ compiled "libipq" with
-"make" before doing that. I also have installed the libreries (
-# make install-devel
-)
-But I cannot find a way to compile the tool, anyway.
+When writing (for example) a new table, can someone please tell me how
+netfilter orders the tables that register to listen on a particular hook
+such as PREROUTE? I assume that there is a defined pecking order to which
+tables get accessed first?
 
-Thank you guys
+Thanks,
 
--- 
-  Fabio Spelta
-  
-   email:  spelta@linux.it
-   jabber: febs@jabber.linux.it
-   ecdl project: http://ecdllibre.sf.net
+Andrew.
