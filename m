@@ -1,11 +1,12 @@
-From: Torsten Luettgert <t.luettgert@pressestimmen.de>
-Subject: TCPLAG still requires iptables version 1.2.3
-Date: Fri, 11 Mar 2005 12:39:27 +0100
-Message-ID: <1110541167.14794.6.camel@scaramouche>
+From: Andre Majorel <aym-retliften@teaser.fr>
+Subject: Packet does NOT satisfy hashlimit
+Date: Fri, 11 Mar 2005 13:25:10 +0100
+Message-ID: <20050311122510.GA10604@teaser.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
-To: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,21 +18,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hello all.
 
-iptables/extensions/libipt_TCPLAG.c requires the iptables version
-to be 1.2.3 and thus will compile, but not run:
+Is there any specific reason why hashlimit does not support
+inversion, or is it just that no-one has got around to doing it ?
 
-static struct iptables_target targ =3D
-{
-next:	          0,
-name:             "TCPLAG",
-version:          "1.2.3",
-size:             IPT_ALIGN( sizeof( struct ipt_tcplag )),
-...
+By "supporting inversion", I mean being able to write
 
-Changing "1.2.3" to IPTABLES_VERSION does the trick.
-Could you change this in svn please?
+  iptables ... -m hashlimit ! --hashlimit 1/s -j DROP
 
-Thanks,
-Torsten L=FCttgert <t.luettgert@pressestimmen.de>
+--=20
+Andr=E9 Majorel <URL:http://www.teaser.fr/~amajorel/>
+Do not use this account for regular correspondence.
+See the URL above for contact information.
