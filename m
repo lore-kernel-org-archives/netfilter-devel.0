@@ -1,17 +1,17 @@
-From: Tom Marshall <tommy@home.tig-grr.com>
-Subject: Re: dynamic rule for bi-directional udp conversation
-Date: Mon, 29 Sep 2003 13:16:39 -0700
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: {PATCH]: fix expectation eviction order
+Date: Tue, 30 Sep 2003 21:54:27 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030929201639.GA25065@home.tig-grr.com>
-References: <039b01c385c6$b4449c40$e600a8c0@udtech.net>
+Message-ID: <20030930195427.GC734@obroa-skai.de.gnumonks.org>
+References: <3F775469.6070107@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="uXxzq0nDebZQVNAZ"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Shen Rong <rshen@udtech.com.cn>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <039b01c385c6$b4449c40$e600a8c0@udtech.net>
+In-Reply-To: <3F775469.6070107@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,39 +23,42 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---vtzGhvizbBRQ85DL
+--uXxzq0nDebZQVNAZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Sep 28, 2003 at 09:44:56PM +0800, Shen Rong wrote:
-> Hi,
->=20
->    Sorry for long mail.:)
->=20
->    We use dnat & snat to dynamically maintain the
-> RTP stream between the hosts from the internal
-> network and external network.
+On Sun, Sep 28, 2003 at 11:36:41PM +0200, Patrick McHardy wrote:
+> Hi Harald,
+> this patch fixes the order in which expectations are evicted when a helper
+> specifies IP_CT_HELPER_F_REUSE_EXPECT. Currently each new expectation
+> is added at the beginning of the masters sibling list and when max_expect=
+ed
+> is reached the first non-established one on the list is reused (which giv=
+es
+> LIFO behaviour).
 
-What is your control protocol?  RTSP, SIP, or other?
-
+Committed to CVS now.
 --=20
-More Wartime News: Bush denies reports that he hired psychic Miss Cleo to
-channel Alexander the Great. "I did not have psychic relations with Aunt
-Jemima," said chief executive.
-        -- Tatsuya Ishida, http://sinfest.net/
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---vtzGhvizbBRQ85DL
+--uXxzq0nDebZQVNAZ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-iEYEARECAAYFAj94kyYACgkQFMm9uvwPXW407ACeJC/SUv0F0MgpPAC+EXP0OY2v
-J0cAn3FvAuFMuq4ZXGcXWXz2IsLbvK0b
-=2pzw
+iD8DBQE/ed9zXaXGVTD0i/8RAvV3AJ9LagKJPuAAwdn3qAVQmTPCtw3PEQCeLsmQ
+RXPVQHFdJnXVmSo+4RYnBh4=
+=Aut7
 -----END PGP SIGNATURE-----
 
---vtzGhvizbBRQ85DL--
+--uXxzq0nDebZQVNAZ--
