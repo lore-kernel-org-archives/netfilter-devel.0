@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] cosmetic update to ip6t_ipv6header
-Date: Thu, 2 Oct 2003 18:22:37 +0200
+Subject: [PATCH 2.4] fix SO_ORIGINAL_DST gestsockopt()
+Date: Thu, 2 Oct 2003 18:36:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031002162237.GS5758@sunbeam.de.gnumonks.org>
+Message-ID: <20031002163616.GU5758@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VQx8a0J3gVIvXT58"
+	protocol="application/pgp-signature"; boundary="KpVviUS5LkgMNJxi"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,25 +21,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---VQx8a0J3gVIvXT58
-Content-Type: multipart/mixed; boundary="9Qa/g5WmKbBEiQ5Y"
+--KpVviUS5LkgMNJxi
+Content-Type: multipart/mixed; boundary="dJYoYR7BBxNWbWWH"
 Content-Disposition: inline
 
 
---9Qa/g5WmKbBEiQ5Y
+--dJYoYR7BBxNWbWWH
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Davem!
 
-Please apply the following patch to your 2.6 tree, thanks.
+Please apply the following patch to your 2.4 tree, thanks.
 
 
-Author: Maciej Soltysiak
-Status: Trivial
+Author: Harald Welte <laforge@netfilter.org>
+Status: Submitted at 2.4.23-preX time
 
-This patch removes unused destroy callback in ip6t_ipv6header.c
+This patch fixes the SO_ORIGINAL_DST sockopt() call, which was broken by
+endianness fixes that went in 2.4.22.
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -50,48 +52,77 @@ This patch removes unused destroy callback in ip6t_ipv6header.c
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---9Qa/g5WmKbBEiQ5Y
+--dJYoYR7BBxNWbWWH
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="85_ipv6header.patch"
+Content-Disposition: attachment; filename="63_getorigdst-tuple-zero.patch"
 Content-Transfer-Encoding: quoted-printable
 
---- linux-2.6.0-test6-plain/net/ipv6/netfilter/ip6t_ipv6header.c	2003-10-02=
- 18:32:18.000000000 +0200
-+++ linux-2.6.0-test6-ipv6header/net/ipv6/netfilter/ip6t_ipv6header.c	2003-=
-10-02 18:32:28.000000000 +0200
-@@ -126,18 +126,11 @@
- 	return 1;
- }
-=20
--static void
--ipv6header_destroy(void *matchinfo,
--		   unsigned int matchinfosize)
--{
--	return;
--}
--
- static struct ip6t_match ip6t_ipv6header_match =3D {
- 	.name		=3D "ipv6header",
- 	.match		=3D &ipv6header_match,
- 	.checkentry	=3D &ipv6header_checkentry,
--	.destroy	=3D &ipv6header_destroy,
-+	.destroy	=3D NULL,
- 	.me		=3D THIS_MODULE,
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.4.22-plain/include/linux/ne=
+tfilter_ipv4/ip_conntrack_tuple.h linux-2.4.22-getorig/include/linux/netfil=
+ter_ipv4/ip_conntrack_tuple.h
+--- linux-2.4.22-plain/include/linux/netfilter_ipv4/ip_conntrack_tuple.h	20=
+02-02-25 20:38:13.000000000 +0100
++++ linux-2.4.22-getorig/include/linux/netfilter_ipv4/ip_conntrack_tuple.h	=
+2003-09-05 17:04:20.000000000 +0200
+@@ -62,6 +62,14 @@
+ 	} dst;
  };
 =20
++/* This is optimized opposed to a memset of the whole structure.  Everythi=
+ng we
++ * really care about is the  source/destination unions */
++#define IP_CT_TUPLE_U_BLANK(tuple) 				\
++	do {							\
++		(tuple)->src.u.all =3D 0;				\
++		(tuple)->dst.u.all =3D 0;				\
++	} while (0)
++
+ enum ip_conntrack_dir
+ {
+ 	IP_CT_DIR_ORIGINAL,
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.4.22-plain/net/ipv4/netfilt=
+er/ip_conntrack_core.c linux-2.4.22-getorig/net/ipv4/netfilter/ip_conntrack=
+_core.c
+--- linux-2.4.22-plain/net/ipv4/netfilter/ip_conntrack_core.c	2003-08-25 13=
+:44:44.000000000 +0200
++++ linux-2.4.22-getorig/net/ipv4/netfilter/ip_conntrack_core.c	2003-09-05 =
+17:04:20.000000000 +0200
+@@ -1303,9 +1303,14 @@
+ getorigdst(struct sock *sk, int optval, void *user, int *len)
+ {
+ 	struct ip_conntrack_tuple_hash *h;
+-	struct ip_conntrack_tuple tuple =3D { { sk->rcv_saddr, { .tcp =3D { sk->s=
+port } } },
+-					    { sk->daddr, { .tcp =3D { sk->dport } },
+-					      IPPROTO_TCP } };
++	struct ip_conntrack_tuple tuple;
++
++	IP_CT_TUPLE_U_BLANK(&tuple);
++	tuple.src.ip =3D sk->rcv_saddr;
++	tuple.src.u.tcp.port =3D sk->sport;
++	tuple.dst.ip =3D sk->daddr;
++	tuple.dst.u.tcp.port =3D sk->dport;
++	tuple.dst.protonum =3D IPPROTO_TCP;
+=20
+ 	/* We only do TCP at the moment: is there a better way? */
+ 	if (strcmp(sk->prot->name, "TCP") !=3D 0) {
 
---9Qa/g5WmKbBEiQ5Y--
+--dJYoYR7BBxNWbWWH--
 
---VQx8a0J3gVIvXT58
+--KpVviUS5LkgMNJxi
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/fFDNXaXGVTD0i/8RAqPYAJ9aT5ASGnN9AJiP1UUN93v6f2aOhgCcDddZ
-ZOMDAH/GFMuhLaxWnx27/lQ=
-=PCoS
+iD8DBQE/fFQAXaXGVTD0i/8RAkH5AJ49enlE8seZnToVNdpJJDXEahFqtACgnEaI
+0lnu4Ez/ua1iLZ4tytt78Ig=
+=0aBB
 -----END PGP SIGNATURE-----
 
---VQx8a0J3gVIvXT58--
+--KpVviUS5LkgMNJxi--
