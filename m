@@ -1,18 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] MASQUERADE handling of device events
-Date: Tue, 9 Nov 2004 08:53:13 -0800
-Message-ID: <20041109165313.GA13205@linuxace.com>
-References: <20041107181825.GA3522@linuxace.com> <418F9952.5030004@trash.net>
-	<20041108161511.GA6754@linuxace.com> <418F9DD4.20202@trash.net>
-	<20041108163457.GB6754@linuxace.com>
-	<20041108215525.GA8766@linuxace.com> <4190A44F.7010509@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: ctnetlink & helper_locking_fix conflict
+Date: Tue, 9 Nov 2004 18:11:06 +0100
+Message-ID: <20041109171106.GF22257@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.61.0411090808200.30695@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bnBIwIKtMHAVL+3z"
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <4190A44F.7010509@trash.net>
+In-Reply-To: <Pine.LNX.4.61.0411090808200.30695@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,34 +22,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 09, 2004 at 12:04:47PM +0100, Patrick McHardy wrote:
-> You're right. I have to admit, I'm not too happy about the unpredictable
-> behaviour we get with this patch and multiple ppp devices. So one last
-> attempt to convince people. The old behaviour was to kill conntracks once
-> the device goes down. I think killing conntracks when the IP is deleted
-> makes more sense. Since the IP has to be deleted manually, except when
-> the device goes away, people can simply not delete IP addresses for
-> devices that don't go away, than nothing will get removed. pppd can be
-> taught to keep the device alive. The attached patch adds a program
-> alloc-ppp to pre-allocate ppp-devices and teaches pppd to attach to them.
-> The device never goes away, if ppp doesn't delete the IP address the
-> conntracks won't be killed. It could easily be integrated in a more handy
-> way in pppd. So this could also be done entirely in userspace, without
-> the unpredictable behaviour.
 
-Is this the unpredictable behaviour you refer to:
+--bnBIwIKtMHAVL+3z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-ppp0 down -> clear assured bit on ppp0 conntracks
-ppp1 down -> clear assured bit on ppp1 conntracks
-ppp0 up with same ip -> all ppp1 conntracks get cleared since that ip
-			no longer exists on box
-ppp1 up with same ip -> loser
+On Tue, Nov 09, 2004 at 08:13:33AM +0100, Henrik Nordstrom wrote:
+> Hi,
+>=20
+> there is a conflict between the above two patches. The helper_locking_fix=
+=20
+> removes the locks from the helpers, but ctnetlink adds code using these=
+=20
+> locks.
+>=20
+> >From reading the code I think the helper side locking should be removed=
+=20
+> from the ctnetlink additions as well, but just wanted to verify with you.
 
-Not much we can do about that except revert to the old behaviour of
-dropping all conntracks on interface down, but that does seem silly
-for 'mostly static' pppoe users.
+I think it is safe.  We're holding a write lock on ip_conntrack_lock and
+thus it's safe to change the helper data.
 
-Obviously I'd vote for the 'friendlier' method, but bottom line is current
-behaviour is broken and should be fixed somehow...
+If you have a fix for ctnetlink, that would be appreciated
 
-Phil
+> Regards
+> Henrik
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--bnBIwIKtMHAVL+3z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBkPoqXaXGVTD0i/8RAkbwAKCY3PGkECyVYhSQez/6/DJ8sjmZswCfQ6iH
+Heh/K12eRSt7mCeIrhRpRI4=
+=9k6C
+-----END PGP SIGNATURE-----
+
+--bnBIwIKtMHAVL+3z--
