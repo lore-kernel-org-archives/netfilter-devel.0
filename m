@@ -1,16 +1,13 @@
-From: "Brian J. Murrell" <netfilter@interlinx.bc.ca>
-Subject: Re: separation of sysctl and tcp-window-tracking patch?
-Date: 13 Dec 2002 16:45:02 -0500
+From: Venkatesh Prasad Ranganath <vranganath@cox.net>
+Subject: question about ipt_table_info structure
+Date: Sat, 14 Dec 2002 03:01:57 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1039815902.6247.8.camel@pc>
-References: <1039702486.2373.17.camel@pc>
-	 <Pine.LNX.4.44.0212130314131.2834-100000@shieldbreaker.l33tskillz.org>
-	 <20021213120625.GA21253@oknodo.bof.de>
+Message-ID: <3DFAF385.6040707@cox.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-0K8nv8fp5ETNxv/vII6k"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20021213120625.GA21253@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,48 +19,46 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-0K8nv8fp5ETNxv/vII6k
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2002-12-13 at 07:06, Patrick Schaaf wrote:
-> > Failing a helper, I'm unable to come up with anything better than
-> > adjusting timeouts on a per-port basis...
->=20
-> What about a single new target, CTTIMEOUT or something, having a single
-> parameter, a relative timeout in seconds. Whenever that target hits,
-> and we have a connection hanging off our skb, the connection's timeout
-> will be refreshed to now+the_given_timeout.
+Hi,
 
-I guess because the idea of a parameter to set the timeout has been
-floated before (by me and by others before me) and turned down (by
-Rusty) in favour of a (tunable) table in the UDP conntracker.  This
-would be to further autoconfiguration which Rusty is a great fan of.
+I am using netfilter/iptables (1.2.7a) in a project (which may end up 
+contributing to netfilter/iptable branch if it succeeds).  Hence, I was 
+browsing the kernel space netfilter/iptables code.  I am able to follow 
+the code except for a few glitches.
 
+1> What is the purpose of underflow field in ipt_replace?  Where is it used?
+2> What is the purpose of term field in struct initial_table in 
+iptables_filter.c?  Where is it used?
+3> What is the purpose of ipt_replace structure?  Where is it used?
+4> What is the purpose of table field in ipt_table?  It is not used at 
+any time during filtering.  (or am I wrong about this?)  If it is used, 
+where is it used?
+5> Is it correct to say that ACCEPT, DROP, QUEUE, and RETURN are the 
+builtin targets?
 
-> I have not thought about the interplay with the current automatic
-> timeout selection. Anybody?
+Also, can someone comment if my understanding of part of 
+netfilter/iptable as given below is correct.
+"Each rule that can be added via iptables command is represented via a 
+set of data rather than a single piece of data.  Each criterion to be 
+satisfied for the entire rule to be satisfied is represented as a match. 
+ If all of the match/criterion are satisfied then target (linked at the 
+end of the sequence of matches) associated with the rule is executed. 
+ Hence, there is only one target with a rule, but may be multiple matches."
 
-Which is probably why doing it in the udp conntracker, in a tunable
-table is the current way of thinking.  Should not be too difficult in
-fact.  I would attempt it myself if I could get a decent stretch of
-hacking time.
+Finally, are there any documents that discuss the performance of and 
+issues related (if any) to netfilter/iptables?  In particular, I am 
+looking for documents which may have identified bottlenecks or have 
+pointers to locations in which to look for such opportunities. Benchmark 
+results and/or test run results would also be helpful.  I am just piggy 
+backing this last question along with the others and I would understand 
+if someone replied "google would be a good place to start" ;-)
 
-b.
+waiting for reply,
 
---=20
-Brian J. Murrell <netfilter@interlinx.bc.ca>
+-- 
 
---=-0K8nv8fp5ETNxv/vII6k
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQA9+lTdl3EQlGLyuXARAuorAKCxXf8Lc0HXGDu+ut7vF1mUJm1fVwCfR1oC
-zXJqfP3yiMHnAjkXbtzrmwg=
-=2njc
------END PGP SIGNATURE-----
-
---=-0K8nv8fp5ETNxv/vII6k--
+Venkatesh Prasad Ranganath,
+Dept. Computing and Information Science,
+Kansas State University, US.
+web: http://www.cis.ksu.edu/~rvprasad
