@@ -1,15 +1,18 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: (no subject)
-Date: Sun, 15 Feb 2004 00:36:32 +0100
+From: Nagaraj G <gnraj@teneoris.com>
+Subject: Re: Help needed on standalone nat for opening new ports inside the
+	code
+Date: Sun, 15 Feb 2004 10:29:04 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <402EB100.9080601@eurodev.net>
-References: <01L6LLAK8FJC0007Z9@cc.uab.es>
+Message-ID: <1076821144.13168.39.camel@localhost.localdomain>
+References: <1076755824.13168.10.camel@localhost.localdomain>
+	 <402E03C4.20007@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: scp@bbs-ce.uab.es, netfilter-devel@lists.netfilter.org
-In-Reply-To: <01L6LLAK8FJC0007Z9@cc.uab.es>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <402E03C4.20007@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,35 +23,144 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Thanks for the reply
 
-scp@bbs-ce.uab.es wrote:
+I am not using the max_expected field as I am only registering NAT and
+not CONN_TRACK module as mine is a standalone NAT and I don't have
+connections to manage since each packet is a new one for me on a
+different connection.
 
->Hi all!!
->
->I'm new in the netfilter-devel list. I'm a computer science enginieering student
->in the last year. Currently I'm working in my final project :)
->
->Well... my first question:
->
->I'm coding a module that uses netfilter to detect some DDoS attacks, like
->synflooding, icmpflooding, etc... The way to detect is based on an adaptative
->treslhold algorithm. The behaviour of the algorithm must be changed if I modify
->some parameters. The idea is that these parameters could be modified when I
->want, I mean to say to the module "the new values are n=3 k=2, etc...". Then I
->need a communication between user-space and kernel-space. What is the best way
->to do it? I have readed some documentation about using ioctl but I'm not sure if
->this is the best way. I know that iptables uses getsockopt to build the rules in
->the netfilter-space (kernel space) but I don't understand how it does.
->
+Here is the registration code for the NAT Helper module. It's not that
+every time I get error. I get success sometimes from the expect_related
+call; but still the packets from the remote host never come in unless a
+port-forward rule is set-up.
 
-Actually I prefer using netlink sockets to communicate user process with 
-the kernel, for example you could use the current libnfnetlink library 
-available in the CVS or define your own library.
+One more thing. I use ip_conntrack_change_expect to allocate a new port
+for my data mangling.
 
-If you still want to use setsockopt/getsockopt, have a look at the 
-netfilter hacking HOW-TO which describes the way to register the action 
-performed by getsockopt/setsockopt that you defined.
+Please let me know what could be wrong in this code or in something else
+I might be doing wrong.
 
-best regards,
-Pablo
+Regards,
+GNR
+
+
+static 
+unsigned int 
+My_Nat_Help(
+    struct ip_conntrack *ct,            /* Connection Tracking Data */
+    struct ip_conntrack_expect *exp,    /* Connection Track Expect Data
+*/
+    struct ip_nat_info *info,           /* NAT Info */
+    enum ip_conntrack_info ctinfo,      /* Connection Track Info */
+    unsigned int hooknum,               /* Hook Number */
+    struct sk_buff **pSkb               /* Packet */
+    )
+{
+        struct ip_conntrack_expect newExpect, *newExp;
+
+/* Mangle the packet here */
+/* I use change_expect to allocate a new port */
+.
+.
+.
+
+/* Here I create the connection for my new incoming packet */
+                DEBUGP("Setting up incoming connection\n");
+                
+                /* Clear Expect Structure */
+                memset(&newExpect, 0, sizeof(newExpect));
+
+                newExp = &newExpect;
+                
+                newExp->tuple.src.ip = htonl(pIpHdr->daddr);
+                newExp->tuple.src.u.udp.port = 0;
+                newExp->tuple.dst.ip = htonl(pIpHdr->saddr);
+                newExp->tuple.dst.protonum = IPPROTO_UDP;
+                newExp->tuple.dst.u.udp.port = MY_PORT;
+
+                newExp->mask.src.ip = 0xFFFFFFFF;
+                newExp->mask.src.u.udp.port = 0xFFFF;
+                newExp->mask.dst.ip = 0xFFFFFFFF;
+                newExp->mask.dst.protonum = 0xFFFF;
+                newExp->mask.dst.u.udp.port = 0xFFFF;
+
+                newExp->expectfn = NULL;
+
+                ret = ip_conntrack_expect_related(ct, newExp);
+                if(ret)
+                {
+                        DEBUGP("expect_related returned error for 5060
+in %d\n", ret);
+                }
+
+}
+
+
+static struct ip_nat_helper my_ip_nat_helper_reg = 
+{ 
+        { NULL, NULL },
+        "myname",                               /* name */
+        (IP_NAT_HELPER_F_STANDALONE | IP_NAT_HELPER_F_ALWAYS),   /*
+flags */
+        THIS_MODULE,                               /* module */
+        { { 0, { .udp = { __constant_htons(MY_PORT) } } }, /* tuple */
+          { 0, { 0 }, IPPROTO_UDP } },
+        { { 0, { .udp = { 0xFFFF } } },         /* mask */
+          { 0, { 0 }, 0xFFFF } },
+        My_Nat_Help,                           /* helper */
+        NULL /*My_Nat_Expected*/                        /* expectfn */
+};
+
+
+static 
+void 
+fini(
+    void
+    )
+{
+    ip_nat_helper_unregister(&my_ip_nat_helper_reg);
+}
+
+static 
+int 
+__init my_nat_init(
+    void
+    )
+{
+        int ret;
+
+        ret = ip_nat_helper_register(&my_ip_nat_helper_reg);
+
+    if (ret) 
+    {
+        printk("ip_nat_sip: ERROR registering\n");
+        
+        fini();
+        
+        return ret;
+    }
+
+}
+
+
+On Sat, 2004-02-14 at 16:47, Patrick McHardy wrote:
+> Nagaraj G wrote:
+> > Hello,
+> > 
+> > I am writing a new netfilter application module where-in I have to
+> > mangle each and every packet. So, I have made the module as a standalone
+> > NAT with NAT_ALWAYS flag defined.
+> > 
+> > ...
+> >
+> > I tried doing ip_conntrack_expect_related(). But it fails with -16
+> > (EBUSY).
+> 
+> EBUSY is returned when max_expected is not set and the expectation
+> clashes with existing ones. My guess is that you haven't initialized
+> the mask of the expectation properly. If that's not it, please post
+> the relevant sections of code, that makes it easier for people to help.
+> 
+> Regards,
+> Patrick
