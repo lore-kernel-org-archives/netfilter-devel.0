@@ -1,14 +1,21 @@
-From: =?iso-8859-2?Q?Maciej_So=B3tysiak?= <maciej.soltysiak@ae.poznan.pl>
-Subject: [POM PATCHES] IPv6 ports of time and quota matches
-Date: Tue, 23 Dec 2003 16:52:23 +0100
+From: Unknown <unknown@unknown.invalid>
+Subject: Re: Call for testing: patch-o-matic-ng
+Date: Tue, 23 Dec 2003 13:56:17 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000501c3c96c$c1f02e60$0e25fe0a@southpark.ae.poznan.pl>
+Message-ID: <938.639490823512$1073046243@news.gmane.org>
+References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <plopm3zndjoexg.fsf@drizzt.kilobug.org> <20031223173022.GA3879@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+  Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+From: Alistair Tonner <>
+To: Harald Welte <laforge@netfilter.org>,
+  =?iso-8859-1?q?Ga=EBl=20Le=20Mignot?= <kilobug@freesurf.fr>
+In-Reply-To: <20031223173022.GA3879@obroa-skai.de.gnumonks.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,18 +26,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On December 23, 2003 12:30 pm, Harald Welte wrote:
+> On Tue, Dec 23, 2003 at 02:13:15PM +0100, Ga=EBl Le Mignot wrote:
 
-I noticed I have two patchsets left behind, never included in patch-o-matic
-These are IPv6 ports of the time and quota matches.
+<< much snippage >>
+=09
+> yes, indeed.  There are numerous patches that would not work in the
+> 2.6.x kernels.  They have yet to be identified.  Once they are
+> identified, we can put a special "requires" tag into the 'info' file of
+> those patches.
+>
+> This way the 2.4 only patches would only be offered if you have a 2.4.x
+> kernel source (and vice-versa).
+>
+> You could help us in finding out which patches compile and which ones
+> don't.
+	Oh my ... more work for the weekend ... I'll go grab POM-ng shortly ...=20
+	(I'm building 2.6.0 kernel on a test basis at the moment)
 
-Here they are:
-http://soltysiak.com/patches/netfilter/userspace/time6.patch
-http://soltysiak.com/patches/netfilter/userspace/ip6t_quota.diff
 
-I just tested if they still apply to cvs, they do.
-pom-ng ports of these will come later on if you decide to include those
-at all.
-
-Regards,
-Maciej
+> > --
+> > Gael Le Mignot "Kilobug" - kilobug@nerim.net - http://kilobug.free.fr
