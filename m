@@ -1,19 +1,12 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: An oops while running 2.5.65-mm2
-Date: 22 Mar 2003 00:59:42 +0100
+From: Jeff Hall <hall@vdata.com>
+Subject: PPTP connection tracking and NAT patches
+Date: Fri, 21 Mar 2003 21:05:12 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1048291181.1105.38.camel@tux.rsn.bth.se>
-References: <3E7A1ABF.7050402@tmsusa.com>
-	 <20030320122931.0d2f208f.akpm@digeo.com>
-	 <1048209554.1103.21.camel@tux.rsn.bth.se>
+Message-ID: <Pine.GSO.4.03.10303212057150.27231-100000@shemp.vdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: jjs <jjs@tmsusa.com>, linux-kernel@vger.kernel.org,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andrew Morton <akpm@digeo.com>
-In-Reply-To: <1048209554.1103.21.camel@tux.rsn.bth.se>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,58 +17,9 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2003-03-21 at 02:19, Martin Josefsson wrote:
-
-> You are correct. It was a list_del() that caused it (at least I think
-> so, it's 2am right now).
-> 
-> 1. conntrack helper adds an expectation and adds that to a list hanging
-> of off a connection.
-> 
-> 2. the expected connection arrives. the expectation is still on the
-> list.
-> 
-> 3. the original connection that caused the expectation terminates but
-> the expectation still thinks it's added to the list.
-> 
-> 4. the expected connection terminates and list_del() is called to remove
-> it from the list which doesn't exist anymore. boom!
-
-Ok, the previous patch was a little bit incorrect. It did fix the use
-after free bug (which can cause corruption if the slabmemory is
-reallocated before we write to it) but lost some internal information.
-I can't see that we use this anywhere after this point but here's the
-proper patch.
-
-Sorry about that.
-
-
---- linux-2.5.64-bk10/net/ipv4/netfilter/ip_conntrack_core.c.orig	2003-03-21 01:42:57.000000000 +0100
-+++ linux-2.5.64-bk10/net/ipv4/netfilter/ip_conntrack_core.c	2003-03-22 00:43:28.000000000 +0100
-@@ -274,6 +274,7 @@
- 		 * the un-established ones only */
- 		if (exp->sibling) {
- 			DEBUGP("remove_expectations: skipping established %p of %p\n", exp->sibling, ct);
-+			exp->expectant = NULL;
- 			continue;
- 		}
- 
-@@ -327,9 +328,11 @@
- 	WRITE_LOCK(&ip_conntrack_lock);
- 	/* Delete our master expectation */
- 	if (ct->master) {
--		/* can't call __unexpect_related here,
--		 * since it would screw up expect_list */
--		list_del(&ct->master->expected_list);
-+		if (ct->master->expectant) {
-+			/* can't call __unexpect_related here,
-+			 * since it would screw up expect_list */
-+			list_del(&ct->master->expected_list);
-+		}
- 		kfree(ct->master);
- 	}
- 	WRITE_UNLOCK(&ip_conntrack_lock);
--- 
-/Martin
-
-Never argue with an idiot. They drag you down to their level, then beat you with experience.
+The explanation I gave for the problem running the PoPToP server in my
+previous message was incorrect. What I should have said was that without
+CONFIG_IP_NF_NAT_LOCAL there is no LOCAL_IN hook, and pptp_nat_expected
+is not called to setup the SRC manip in the original direction (no manip
+is required) AND the DST manip in the reply direction. The missing DST
+manip in the reply direction broke the connection.
