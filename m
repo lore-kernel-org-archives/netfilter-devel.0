@@ -1,16 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: "ip_tables: table screwed up!" on pom 20031023 - raw patch?
-Date: Tue, 25 Nov 2003 09:34:50 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: how to reinject the packet to the net
+Date: Tue, 25 Nov 2003 10:58:54 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0311250933550.13765-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.44.0311241445490.17111-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0311251054340.29093-100000@filer.marasystems.com>
+References: <E1AOS1t-0003iC-Kg@vishnu.netfilter.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: William Stearns <wstearns@pobox.com>,
-	ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0311241445490.17111-100000@filer.marasystems.com>
+To: Fangweiwei <fangweiwei@tom.com>
+In-Reply-To: <E1AOS1t-0003iC-Kg@vishnu.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 24 Nov 2003, Henrik Nordstrom wrote:
+On Tue, 25 Nov 2003, Fangweiwei wrote:
 
-> On Fri, 21 Nov 2003, Henrik Nordstrom wrote:
->
-> > Unfortunately my problem is still there.. and now the UML kernel config is
-> > very close to what we use on "real" boxes..
->
-> FYI: My problem with corrupted tables on iptables-restore have been
-> isolated with 99.9% certainity as a odd UML kernel memory management
-> issue.
+> I want to use the libipq to capture the packets and then reinject it to
+> the net.but I cann't find the function to do it? can you help me?
 
-Thank you for reporting back your results!
+When you are done with the packet you call ipq_set_verdict(). Details are
+found in the documentation. libipq is very well documented with man pages
+for every function used and a good overview describing
+how it all fits together when writing a libipq application, including a 
+silly sample application.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+Henrik
