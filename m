@@ -1,14 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: MARK target
-Date: Tue, 14 Dec 2004 15:17:24 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0412141517010.26770@filer.marasystems.com>
-References: <47D438A0510BD611B9470002A58EDAE70770A82A@mchh2a6e.mchh.siemens.de>
+From: Tom Eastep <teastep@shorewall.net>
+Subject: Re: [Patch] ipsec-nat patches for 2.6.9
+Date: Tue, 14 Dec 2004 10:47:04 -0800
+Message-ID: <1103050024.22667.34.camel@ursa.shorewall.net>
+References: <C7150F785DD9414B9F5B74FEBD08A322155891@ma-sv-ex2003.bkvision.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Stindl Wolfgang EXT <Wolfgang.Stindl.extern@icn.siemens.de>
-In-Reply-To: <47D438A0510BD611B9470002A58EDAE70770A82A@mchh2a6e.mchh.siemens.de>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <C7150F785DD9414B9F5B74FEBD08A322155891@ma-sv-ex2003.bkvision.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,19 +20,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 14 Dec 2004, Stindl Wolfgang EXT wrote:
+On Mon, 2004-10-25 at 10:19 +0200, Ronald Moesbergen wrote:
+> Hi,
+>  
+> Serveral people have requested updated patches to be able to use NAT
+> with ipsec. I have "fixed" the following pom-ng patches so they apply
+> (and work) with kernel 2.6.9:
+> 
+> ipsec-01-output-hooks
+> ipsec-02-input-hooks
+> ipsec-03-policy-lookup
+> ipsec-04-policy-checks
+> 
+> I hope someone finds them useful.
 
-> When I try to enter an iptables rule with the MARK target, I get the following error
->
-> Iptables: Target problem
-> (the console shows MARK: targinfosize 4 != 8)
->
-> How can I solve this problem?
->
-> Kernel: 2.4.26 smp
-> Iptables v 1.2.11
+What is the timeline for getting these patches (and policy match) into
+the kernel.org tree? The next major release of Shorewall relies on them
+for native 2.6 IPSEC support.  
 
-What CPU type?
-
-Regards
-Henrik
+-Tom
+-- 
+Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
+Shoreline,     \ http://shorewall.net
+Washington USA  \ teastep@shorewall.net
+PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
