@@ -1,16 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Future of CONNMARK (was Re: MASQUERADE: Route sent us somewhere
- else (was Re: Fw: Rusty's brain broke!)
-Date: Tue, 20 Jan 2004 08:12:38 +0100 (CET)
+From: "HakRz1" <HakRz1@punkass.com>
+Subject: ip_conntrack_ftp.c kernel source more ports
+Date: Mon, 19 Jan 2004 23:38:08 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401200811470.23963-100000@filer.marasystems.com>
-References: <Pine.LNX.4.44.0401200743490.23963-100000@filer.marasystems.com>
+Message-ID: <001101c3df28$5a342ac0$0100a8c0@hak>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-In-Reply-To: <Pine.LNX.4.44.0401200743490.23963-100000@filer.marasystems.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,14 +19,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 20 Jan 2004, Henrik Nordstrom wrote:
+Hello,
+    im trying to make a big security flaw in my network but i want to try
+anyways ...what im trying to do is make ip_conntrack_ftp monitor all non
+standard ports instead of defualt 21
+ i know ip_conntrack_ftp.h is where it gets port 21 defined
+is there anyway to make it monitor all FTP ports without typing in all ports
+manually
 
-> What the above means is that the average user will always have a manpage 
-> which correctly reflects the capabilities of the iptables package he has 
-> been provided by his distributor, including any p-o-m patches the 
-> distributor may have selected to be part of their distribution.
+i know alot of you dont like this idea but the way i figure it is to get
+Active FTP to work on non standard ports ( or even using pasv) you cant
+close the firewall can only close ports 1-1080 for pasv to work
+if i can get this module to work with all ports then i can enable
+established and related  connections only...sounds secure to me more so than
+before with ports 1-1080 :)
 
-Correction: What my proposed patch gives ..
+Hope somone can help me with this
 
-Regards
-Henrik
+also i already know about modprobe ip_conntrack_ftp ports=...etc but this is
+a hassle to do
+
+im running kernel 2.6.0 / iptables v1.2.8 / slackware 9.1
+
+Thanks
