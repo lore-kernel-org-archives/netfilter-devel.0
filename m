@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Looking for IPtables developers - Need help at core of iptables (not configuration)
-Date: Sun, 1 Aug 2004 18:59:29 +0200
+Subject: Re: Logging NAT translations?
+Date: Sun, 1 Aug 2004 19:01:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040801165929.GB14539@sunbeam2>
-References: <5.2.0.9.2.20040727115216.00aa0a30@pop.benesconsulting.com>
+Message-ID: <20040801170153.GC14539@sunbeam2>
+References: <87isc7on6q.fsf@ion.xlipstream.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="H+4ONPRPur6+Ovig"
+	protocol="application/pgp-signature"; boundary="f+W+jCU1fRNres8c"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Leon Bene <leon@benesconsulting.com>
+To: Chris Green <cmg@dok.org>
 Content-Disposition: inline
-In-Reply-To: <5.2.0.9.2.20040727115216.00aa0a30@pop.benesconsulting.com>
+In-Reply-To: <87isc7on6q.fsf@ion.xlipstream.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,25 +23,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---H+4ONPRPur6+Ovig
+--f+W+jCU1fRNres8c
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 27, 2004 at 11:59:38AM -0700, Leon Bene wrote:
-> I am using iptables in Redhats' release (ES) of Linux. In version 7.1 of=
-=20
-> Redhat (iptables 1.2.1a) it forwarded packets just fine. Now with iptable=
-s=20
-> 1.2.8 the outbound traffic hangs for about 5 seconds on rapid small packe=
-t=20
-> transmissions.
+On Wed, Jul 28, 2004 at 05:07:41PM -0400, Chris Green wrote:
 
-iptables-1.2.1a/1.2.8 are the userspace programs only, they never see or
-touch a single packet - all happens in the kernel.
+> The closest I've found is nfnetlink-ctnetlink. =20
 
-Please describe more detailed what particular problem you seem to be
-encountering.
+Yes, this should provide you with all information you need.
+
+> Anyone know what the status of this is?  I know it doesn't work with
+> 2.6 and I've been told it doesn't work with recent 2.4s either.
+
+then someone needs to do some porting/merging work... patches
+appreciated ;)
+
+This is still not in the mainline kernel, because the netlink message
+format is still not stable.
+
+> Cheers,
+> Chris
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -53,7 +56,7 @@ encountering.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---H+4ONPRPur6+Ovig
+--f+W+jCU1fRNres8c
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -61,9 +64,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBDSFxXaXGVTD0i/8RArlVAJ97gVeqtSmJHUC57YpEWa8MfhGWPgCeIqSC
-TVF+xUWK9r2pzGTPQ/5TVqM=
-=WVjg
+iD8DBQFBDSIBXaXGVTD0i/8RAktGAKC085vxEGMYvbnoqkYuEyubr+VWuwCgjjeZ
+nBkLrcVkBFbzRkwlMEobP4Y=
+=ljVf
 -----END PGP SIGNATURE-----
 
---H+4ONPRPur6+Ovig--
+--f+W+jCU1fRNres8c--
