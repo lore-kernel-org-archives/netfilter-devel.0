@@ -1,19 +1,20 @@
-From: Bill Davidsen <davidsen@tmr.com>
+From: Tomas Carnecky <tom@dbservice.com>
 Subject: Re: [Coverity] Untrusted user data in kernel
-Date: Fri, 17 Dec 2004 13:37:16 -0500
-Message-ID: <41C3275C.2010505@tmr.com>
-References: <41C2FF99.3020908@tmr.com><Xine.LNX.4.44.0412170144410.12579-100000@thoron.boston.redhat.com> <Pine.LNX.4.61.0412171108340.4216@chaos.analogic.com>
+Date: Fri, 17 Dec 2004 20:18:15 +0100
+Message-ID: <41C330F7.4000806@dbservice.com>
+References: <41C26DD1.7070006@trash.net> <Xine.LNX.4.44.0412170144410.12579-100000@thoron.boston.redhat.com> <41C2FF99.3020908@tmr.com> <Pine.LNX.4.61.0412171108340.4216@chaos.analogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: James Morris <jmorris@redhat.com>, Patrick McHardy <kaber@trash.net>,
-        Bryan Fulton <bryan@coverity.com>, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <netdev-bounce@oss.sgi.com>
+Cc: Bill Davidsen <davidsen@tmr.com>,
+	James Morris <jmorris@redhat.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Bryan Fulton <bryan@coverity.com>, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262120AbULQTN5@vger.kernel.org>
 To: linux-os@analogic.com
 In-Reply-To: <Pine.LNX.4.61.0412171108340.4216@chaos.analogic.com>
-Sender: netdev-bounce@oss.sgi.com
-Errors-to: netdev-bounce@oss.sgi.com
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 linux-os wrote:
@@ -22,19 +23,7 @@ linux-os wrote:
 >> James Morris wrote:
 >>
 >>> On Fri, 17 Dec 2004, Patrick McHardy wrote:
->>>
->>>
->>>> James Morris wrote:
->>>>
->>>>
->>>>> This at least needs CAP_NET_ADMIN.
->>>>>
->>>>
->>>> It is already checked in do_ip6t_set_ctl(). Otherwise anyone could
->>>> replace iptables rules :)
->>>
->>>
->>>
+ >>>
 >>> That's what I meant, you need the capability to do anything bad :-)
 >>
 >>
@@ -47,15 +36,13 @@ linux-os wrote:
 > I can, as root, do `cp /dev/zero /dev/mem` and have the most
 > spectacular crask you've evet seen. I can even make my file-
 > systems unrecoverable.
+> 
 
-But that's not the type of thing you would do by accident. The kernel 
-can't protect against deliberate abuse by trusted users, nor should it. 
-But the type of problem caused by an application program bug can, and I 
-believe should, be caught.
+But the difference between you example (cp /dev/zero /dev/mem) and 
+passing unchecked data to the kernel is... you _can_ check the data and 
+do something about it if you discover that the data is not valid/within 
+a range/whatever even if the user has full permissions.
+No same person would do a 'cp /dev/zero /dev/mem', but passing bad data 
+is more likely to happen, badly written userspace configuration tools etc.
 
-The difference between "oops" and "take that!"
-
--- 
-    -bill davidsen (davidsen@tmr.com)
-"The secret to procrastination is to put things off until the
-  last possible moment - but no longer"  -me
+tom
