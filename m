@@ -1,16 +1,13 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: Call for testing: patch-o-matic-ng
-Date: Mon, 22 Dec 2003 10:56:26 +0100
+From: Jon Webb <jon_webb@binary-one.com>
+Subject: multicast group traffic filtering
+Date: Mon, 22 Dec 2003 01:54:04 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1072086985.1031.7.camel@nienna.balabit>
-References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org>
+Message-ID: <3FE6BF3C.9030400@binary-one.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-BFNFXJX/ctnSZIed6unh"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031221122445.GC5058@obroa-skai.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,51 +18,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi everyone,
+I am trying to think of a way to handle a multicast test network. We 
+have a setup that may require having a multicast router in a network 
+that contains other multicast activity. This extra router would only 
+want to route multicast traffic (control and data) for a specific 
+multicast group (our test group), ignoring all other multicast traffic 
+not part of that group. I know that the matching code is able to match 
+on a multicast packet type, but I need to match on a specific group. I 
+looked around the docs, but have been unable to find any kind of --match 
+type support for multicast group ID's or some sort of IGMP connection 
+tracking/handling. Is there something I missed? Can this be done with 
+existing tools? Or else, could this be easily constructed?
 
---=-BFNFXJX/ctnSZIed6unh
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+Thanks,
+Jon
 
-
-  Hi,
-
-2003-12-21, v keltezéssel 13:24-kor Harald Welte ezt írta:
-> I would like to have people start testing/using pom-ng and report errors
-> back to me (via email).
-
-  I've tried it, and had some problems with it. Namely, the following
-error message (Debian woody and sid, perl 5.6.1 and 5.8.2):
-
-hidden@big:~/patch-o-matic-ng$ ./runme 
-Examining kernel in /usr/src/linux-2.4.22-tproxy113
-Can't bless non-reference value at /usr/share/perl/5.6.1/Term/Cap.pm line 136.
-
-  The patch attached fixed the problem.
-
--- 
- Regards,
-   Krisztian KOVACS
-
---=-BFNFXJX/ctnSZIed6unh
-Content-Disposition: attachment; filename=tgetent.diff
-Content-Type: text/x-patch; name=tgetent.diff; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
-
-Index: runme
-===================================================================
-RCS file: /cvspublic/netfilter/patch-o-matic-ng/runme,v
-retrieving revision 1.7
-diff -u -r1.7 runme
---- runme	21 Dec 2003 19:03:23 -0000	1.7
-+++ runme	22 Dec 2003 09:47:15 -0000
-@@ -201,7 +201,7 @@
- }
- 
- if (defined($ENV{TERM})) {
--	my $terminal = Term::Cap->Tgetent();
-+	my $terminal = Tgetent Term::Cap {};
- 	$clrscr = $terminal->Tputs('cl', 1);
- }
- 
-
---=-BFNFXJX/ctnSZIed6unh--
+-------------
+jon_webb@binary-one.com
+jonwebb@soe.ucsc.edu
+Computer Communications Research Group
+University of California, Santa Cruz
