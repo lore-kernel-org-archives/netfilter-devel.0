@@ -1,24 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf_conntrack [was Re: [PATCH 1/4] RFC: fast string matching
- infrastrure for netfilter]
-Date: Fri, 14 Jan 2005 19:02:54 +0100
-Message-ID: <41E8094E.9070508@trash.net>
-References: <41E1AECD.6020209@eurodev.net> <41E1B9F1.7010106@trash.net>
-	<Pine.LNX.4.58.0501102041430.28819@blackhole.kfki.hu>
-	<41E2E631.3060102@trash.net>
-	<20050110212807.GZ18568@sunbeam.de.gnumonks.org>
-	<41E73258.7030002@trash.net>
-	<1105686102.7311.101.camel@localhost.localdomain>
-	<20050114083731.GI9070@sunbeam.de.gnumonks.org>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Add inversion to multiport match
+Date: Fri, 14 Jan 2005 10:10:30 -0800
+Message-ID: <20050114181030.GA3598@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Rusty Russell <rusty@rustcorp.com.au>, Pablo Neira <pablo@eurodev.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/mixed; boundary="EVF5PPMfhYS0aIcm"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050114083731.GI9070@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,21 +18,129 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
 
->>Does that mean I should *not* send the expectation and NAT patches to
->>DaveM now?  (Posted before the ct_extend patches):
->>
->
->I was wondering all the time why we keep talking about maintainance mode
->for ip_conntrack and the coincidential spike in new development for
->ip_conntrack.
->
->I think if we push it into ip_conntrack, we need to make sure
->nf_conntrack is in sync at the same time - otherwise poor Yasuyuki has
->to (again) sync all the changes... I think he did that often enough...
->
-I'm willing to take care of this after Rusty's patches are in.
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards
-Patrick
+Should add this to rev1 of multiport before 2.6.11 comes out.
+
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-mport-kern
+
+diff -ru linux-orig/include/linux/netfilter_ipv4/ipt_multiport.h linux-mport/include/linux/netfilter_ipv4/ipt_multiport.h
+--- linux-orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-07 20:51:06.293435976 -0500
++++ linux-mport/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-06 19:55:28.000000000 -0500
+@@ -25,5 +25,6 @@
+ 	u_int8_t count;				/* Number of ports */
+ 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
+ 	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
++	u_int8_t invert;			/* Invert flag */
+ };
+ #endif /*_IPT_MULTIPORT_H*/
+diff -ru linux-orig/net/ipv4/netfilter/ipt_multiport.c linux-mport/net/ipv4/netfilter/ipt_multiport.c
+--- linux-orig/net/ipv4/netfilter/ipt_multiport.c	2005-01-07 20:51:06.404419104 -0500
++++ linux-mport/net/ipv4/netfilter/ipt_multiport.c	2005-01-07 20:53:23.468582184 -0500
+@@ -64,30 +64,31 @@
+ 
+ 			if (minfo->flags == IPT_MULTIPORT_SOURCE
+ 			    && src >= s && src <= e)
+-				return 1;
++				return 1 ^ minfo->invert;
+ 			if (minfo->flags == IPT_MULTIPORT_DESTINATION
+ 			    && dst >= s && dst <= e)
+-				return 1;
++				return 1 ^ minfo->invert;
+ 			if (minfo->flags == IPT_MULTIPORT_EITHER
+ 			    && ((dst >= s && dst <= e)
+ 				|| (src >= s && src <= e)))
+-				return 1;
++				return 1 ^ minfo->invert;
+ 		} else {
+ 			/* exact port matching */
+ 			duprintf("src or dst matches with %d?\n", s);
++
+ 			if (minfo->flags == IPT_MULTIPORT_SOURCE
+ 			    && src == s)
+-				return 1;
++				return 1 ^ minfo->invert;
+ 			if (minfo->flags == IPT_MULTIPORT_DESTINATION
+ 			    && dst == s)
+-				return 1;
++				return 1 ^ minfo->invert;
+ 			if (minfo->flags == IPT_MULTIPORT_EITHER
+ 			    && (src == s || dst == s))
+-				return 1;
++				return 1 ^ minfo->invert;
+ 		}
+ 	}
+  
+- 	return 0;
++ 	return minfo->invert;
+ }
+ 
+ static int
+
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-mport-ipt
+
+diff -ru iptables-orig/extensions/libipt_multiport.c iptables-new/extensions/libipt_multiport.c
+--- iptables-orig/extensions/libipt_multiport.c	2005-01-03 04:51:58.000000000 -0500
++++ iptables-new/extensions/libipt_multiport.c	2005-01-07 20:08:07.000000000 -0500
+@@ -31,13 +31,13 @@
+ {
+ 	printf(
+ "multiport v%s options:\n"
+-" --source-ports port[,port:port,port...]\n"
++" --source-ports [!] port[,port:port,port...]\n"
+ " --sports ...\n"
+ "				match source port(s)\n"
+-" --destination-ports port[,port:port,port...]\n"
++" --destination-ports [!] port[,port:port,port...]\n"
+ " --dports ...\n"
+ "				match destination port(s)\n"
+-" --ports port[,port:port,port]\n"
++" --ports [!] port[,port:port,port]\n"
+ "				match both source and destination port(s)\n",
+ IPTABLES_VERSION);
+ }
+@@ -255,8 +255,7 @@
+ 	}
+ 
+ 	if (invert)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "multiport does not support invert");
++		multiinfo->invert = 1;
+ 
+ 	if (*flags)
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -362,6 +361,9 @@
+ 		break;
+ 	}
+ 
++	if (multiinfo->invert)
++		printf("! ");
++
+ 	for (i=0; i < multiinfo->count; i++) {
+ 		printf("%s", i ? "," : "");
+ 		print_port(multiinfo->ports[i], ip->proto, numeric);
+diff -ru iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h
+--- iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-03 04:37:07.000000000 -0500
++++ iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-06 20:37:38.000000000 -0500
+@@ -24,5 +24,6 @@
+ 	u_int8_t count;				/* Number of ports */
+ 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
+ 	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
++	u_int8_t invert;			/* Invert flag */
+ };
+ #endif /*_IPT_MULTIPORT_H*/
+
+--EVF5PPMfhYS0aIcm--
