@@ -1,72 +1,61 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Netfilter and source address selection
-Date: Wed, 5 Nov 2003 00:39:09 +0100 (CET)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311050029170.16903-100000@filer.marasystems.com>
-References: <20031104112421.GC30148@iwoars.net>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: Announce: NetKeeper Firewall For Linux
+Date: 04 Nov 2003 22:00:37 -0500
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <1068001237.1064.31.camel@jzny.localdomain>
+References: <1067285612.552.9.camel@aphrodite.olympus.net>
+	 <20031028014223.129933be.davem@redhat.com>
+	 <1067335655.10628.7.camel@rade7.s.cs.auc.dk>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Themel <themel@iwoars.net>
-In-Reply-To: <20031104112421.GC30148@iwoars.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: "David S. Miller" <davem@redhat.com>, netfilter-devel@lists.netfilter.org,
+        netdev@oss.sgi.com, Mikkel Christiansen <mixxel@cs.auc.dk>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Emmanuel Fleury <fleury@cs.auc.dk>
+In-Reply-To: <1067335655.10628.7.camel@rade7.s.cs.auc.dk>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 4 Nov 2003, Thomas Themel wrote:
+Hi,
 
-> This results in the packet being sent out via the route it matches after
-> being mangled, but with the source address of the route it matched
-> before being mangled.
+On Tue, 2003-10-28 at 05:07, Emmanuel Fleury wrote:
+> Hi,
+> 
+> On Tue, 2003-10-28 at 10:42, David S. Miller wrote:
+> > On Mon, 27 Oct 2003 21:13:32 +0100
+> > Emmanuel Fleury <fleury@cs.auc.dk> wrote:
+> > 
+> > > For more details check out the netkeeper web-site:
+> > >     http://www.cs.auc.dk/~fleury/netkeeper/
+> > 
+> > You may want to have a look at:
+> > 
+> >   http://www.cyberus.ca/~hadi/patches/action/README
+> > 
+> > which I believe is the way to implement these kinds
+> > of things.
+> 
+> Actually, that is exactly the direction which we have been aiming at.
 
-Yes, and there is two solutions to this
 
-a) Teach the application to bind to the correct address before initiating 
-the connection.
+You seem to be attempting to replicate that functionalilty actually;->
+(as opposed to using it). Therefore you are going to miss a lot of good
+things. What was posted already is just the beggining.
+If you want to incorporate i can send you the latest patches (posted
+patches have intentional bugs to see who is actually testing). You seem
+to be already hooking into netfilter btw so not sure how easy it would
+be for you;
+Why do you have a limit to 8 actions?
 
-b) Use SNAT in the OUTPUT nat chain to assign the correct source address 
-to the connection.
+BTW, since you compile your filters, how fast are you at adding rules?
+What about dynamic in kernel rules (such as those that may be created by
+contracking) - do you have to cross to user space to compile them?
+- Is there any reason you move the commit decision to the kernel?
+Could this not have been done in user space?
+I have doubts how fast you can install rules - which is a fundamental
+measure of good filters.
 
-
-The reason why this happens is because the TCP/UDP kernel needs to know 
-the source IP address when generating the SYN packet, and with netfilter 
-running outside of the TCP/UDP kernel it has no influence over this 
-process.
-
-> 1. The source address selection code (that would be ip_route_connect in
->    include/net/route.h?)does not only a routing table lookup, but the
->    full code path (ie routing, OUTPUT chain, rerouting) including
->    netfilter and thus gets the source address right immediately. 
-
-Problem is that for the packet to be sent to netfilter it first needs to 
-exists, and for the packet to exists the upper level protocol needs to 
-know the source address..
-
-> 2. The socket/skb (I know very little about the networking code, so my
->    terminology might be all wrong) is somehow flagged as 'locally
->    originating' and its source address is replaced when it is routed
->    again.
-
-This might be doable.. add a flag to the skb indicating that the source 
-address is dynamically assigned, hinting to the mangle table that it needs 
-to SNAT the connection if the resulting route is using another source 
-address..
-
-> [3. Explicitly do a SNAT in POSTROUTING. However, this requires that
->     the netfilter rules be kept in sync with the routing and strikes
->     me as Not The Right Thing to do.]
-
-But.. it would not be hard to write a SNAT target which takes the address 
-fom the route entry, and I think this is the best solution to the problem. 
-To not break local socket binding the flag discussed above should also be 
-added.
-
-Regards
-Henrik
+cheers,
+jamal
