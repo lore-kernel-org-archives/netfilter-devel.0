@@ -1,17 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: init_conntrack() low hanging fruit
-Date: Sun, 7 Jul 2002 13:40:53 +0200
+From: Patrick Schaaf <bof@bof.de>
+Subject: cttest-0.3
+Date: Sun, 7 Jul 2002 15:17:03 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200207071340.53733@henrik.marasystems.com>
-References: <20020707123754.K13116@oknodo.bof.de> <20020707125141.L13116@oknodo.bof.de>
+Message-ID: <20020707151703.M13116@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20020707125141.L13116@oknodo.bof.de>
+To: netfilter-devel@lists.samba.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,26 +18,19 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 07 July 2002 12.51, Patrick Schaaf wrote:
-> Just spotted one more thing, rediff appended. Now that I've saved
-> some horizontal screen real estate, the drop error can be
-> single-line again...
+There is now a "cttest-0.3" at http://bei.bof.de/cttest-0.3.tar.gz.
 
-drop_next should most likely be made voilatile to protect from 
-compiler optimization evilness, and you may need to care for 
-alignment etc.... using atomic_t as proposed earlier feels like a 
-good bet.
+Also see
+	http://bei.bof.de/ex2
+	http://bei.bof.de/ex2rt
+	http://bei.bof.de/ex2abcd
+	http://bei.bof.de/ex2crc
+for four example runs contrasting different hash function approaches
+on my transproxy dataset.
 
-   static atomic_t drop_next = ATOMIC_INIT(0);
-   int victim = atomic_read(&drop_next);
-   int next = victim + 1;
-   atomic_set(&drop_next, (next < ip_conntrack_htable_size) ? next : 
-0);
+I incorporated hash functions from recent mails of Don and Joakim. Thanks!
 
-To other readers: We do not need to SMP synchronize here.. only SMP 
-criteria is that the value cannot be badly corrupted by concurrent 
-read/write to produce a invalid reading. It does not matter if a few 
-(or even many) iterations of drop_next is lost/forgotten/skipped.
+The code has been augmented with some comments.
 
-Regards
-Henrik
+best regards
+  Patrick
