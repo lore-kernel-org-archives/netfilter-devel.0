@@ -1,17 +1,17 @@
-From: Roberto Nibali <ratz@tac.ch>
-Subject: Re: [NF-HIPAC] Performance test results available
-Date: Tue, 01 Oct 2002 11:08:24 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: matching "many of one kind"
+Date: Tue, 1 Oct 2002 12:01:02 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3D996608.5060902@tac.ch>
-References: <200209260003.10724.nf@hipac.org> <3D92BBBD.1050609@cs.auc.dk> <200209262117.20361.mbellion@hipac.org>
+Message-ID: <Pine.LNX.4.33.0210011119160.8527-100000@blackhole.kfki.hu>
+References: <20020921093322.GB282@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Emmanuel Fleury <fleury@cs.auc.dk>,
-   Netfilter-devel
- <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@gnumonks.org>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: mbellion@hipac.org
+To: Patrick Schaaf <bof@bof.de>,
+	Joakim Axelsson <gozem@aaricia.hemmet.chalmers.se>
+In-Reply-To: <20020921093322.GB282@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,70 +22,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hi Patrick,
 
->>1) How does behave the CPU load during your test ?
->>As you are using very powerful machines (which is not often the case in
->>reality for firewalls and router), I was really wandering how the CPU
->>power can affect your method.
+On Sat, 21 Sep 2002, Patrick Schaaf wrote:
 
-It is certainly often the case in daily business. But concerning CPU load I did 
-some testing this weekend and I will continue testing. Results are phantastic so 
-far. Almost no performance issues.
+> > > However, in general, I'm not so sure that it makes sense to expand
+> > > all kinds of match options into multidimensional specification
+> > > languages for arbitrary subsets of their keyspaces, with all kinds
+> > > of option specific shortcut forms for how ranges and patterns are
+> > > written. Each option becomes its own mini-language. I don't like.
+> >
+> > You seem to be reading my mind.  I already had this issue with the
+> > multiport match (I never liked it, in fact) - and I have the same
+> > trouble with this kind of patches.  Somebody seems to be solving a
+> > particular problem (efficiency?) the wrong way.
+>
+> Do you have an idea about how to solve these efficiency problems?
+> I think we do have genuine cases on our hands that profit immensely
+> from such compact specification of more or less large one-dimensional
+> alternative lists. My ippool extension was born out of one such case,
+> where a small bitmap can replace hundreds of source or destination
+> IP specifications. Jay's multi-device-list, with his application
+> needing to match "one of 100 devices" out of a larger set, is
+> another good case.
+>
+> With ippool, I decided to hide the "detailed list of set members"
+> in the ippool management, i.e. kept it away from normal rule
+> specification, so the rule management itself does not need a
+> more complicated API. This "trick" may as well be used for the
+> device list stuff, or for more complex multiport things (those
+> would be two new flavors of pools).
 
-> Sorry, we don't have information about that available. We will have to do 
-> additional tests with less powerfull machines to examine that.
+In my opinion, we should accept and generalize ippool as the standard way
+to express multiple possibilities of the same kind for iptables. The
+matches could be extended as plain and ippool-aware ones, so that one
+could write rules like
 
-Yes, do that.
+-i interface-pool -s address-pool -sport port-pool etc.
 
->>2) How much space was used to store each of the rulessets ?
+It'd involve extending ippool (nfpool) according to Joakim Axelsson's
+suggestion by hash, list, btree and subpool pools as well.
 
-cat /proc/slabinfo
+> In any case, before the iptables matches and targets become even
+> more baroque, I'd like to know what the core team things about
+> these issues.
 
-It's 64 bytes per rule, plus an additional 64 when inserting the first ~1000 
-slab objects, depending on the tree balance.
-
->>Your representation seems to be compact, but I was wandering how ?
->>Maybe a comparison with the size of the iptables rulessets could
->>be relevant.
-
-I've done it and it is amazing. A short overview gave me following rough outline 
-with a PIII 500MHz 512KB L2, kernel 2.4.20pre8:
-
-raw TCP (MTU sized packets) throughput                     : 88.5 Mbit/s
-10000 non-matching rules before the matching one (iptables):  3.4 Mbit/s
-10000 non-matching rules before the matching one (nf-hipac): 85.2 Mbit/s
-
-> The memory usage of our algorithm isn't that much dependent on the number of 
-> rules. It's much more dependent on the structure of the ruleset and the type 
-> of the used rules. It is e.g. possible that a ruleset with 100 rules uses 
-> more memory than a ruleset with 10.000 rules. There are case where nf-hipac 
-> uses less memory than iptables and there are case where nf-hipac consumes 
-> really a huge amount of memory.
-
-Memory is not an issue nowadays :)
-
-And you can always check /proc/net/nf-hipac
-
-> It's not possible to easily describe the memory usage of nf-hipac. It depends 
-> on a lot of factors and interactions of different rule types.
-> Our algorithm is designed to have an acceptable memory usage for realistic 
-> rulesets. In the tests we made we didn't use realistic rulesets, but 
-> completely synthetic ones in order to simultate theoretical worst case 
-> performance of the algorithm.
-
-For some people 300 rules are realistic, for our company 3000+ rules are realistic.
-
-> We haven't wrote down memory usage during the tests, so we don't have the 
-> numbers available. But as already said, the rulesets were completely 
-> syntetic, so the numbers probably don't say much about the algorithm anyway.
-> I only remember that memory usage was pretty huge with that synthetic 
-> rulesets.
-
-I will conduct further test this coming weekend. An thursday I will present some 
-result at the linuxday.lu expo in Luxembourg.
+I completely agree with your message: the goal is to keep the interface
+both clean and flexible. The proper way for multi-foo matching is to use
+generalized pools, not introducing individual matches for every new
+multi-foo.
 
 Best regards,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
