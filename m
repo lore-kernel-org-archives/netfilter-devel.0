@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [2/2] osf: fixed /proc reading bug
-Date: Mon, 23 Aug 2004 20:33:37 +0200
+Subject: Re: [PATCH] conntrack match typo
+Date: Mon, 23 Aug 2004 20:42:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <412A3881.7030306@trash.net>
-References: <20040822010358.79048eda@zanzibar.2ka.mipt.ru>	 <4127CCF9.2030505@trash.net>	 <Pine.LNX.4.61.0408220142220.21373@filer.marasystems.com>	 <4127E586.5000707@trash.net> <1093251429.21197.8.camel@uganda>	 <4129BF18.3010204@trash.net>  <1093257059.21197.106.camel@uganda>	 <1093257554.21197.121.camel@uganda> <1093260922.21197.156.camel@uganda>
+Message-ID: <412A3A8D.8010800@trash.net>
+References: <20040821215419.GA29488@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: johnpol@2ka.mipt.ru
-In-Reply-To: <1093260922.21197.156.camel@uganda>
+To: Phil Oester <phil@linuxace.com>
+In-Reply-To: <20040821215419.GA29488@linuxace.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,10 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Evgeniy Polyakov wrote:
+Phil Oester wrote:
 
->I'm not smoking bad crack, but it needs to be __count <= count + err;
->Attached.
+>Status option should use IPT_CONNTRACK_STATUS, not IPT_CONNTRACK_STATE.
+>Originally noticed by M. J. Pomraning. 
+>
+>This fixes bug #194
 >  
 >
-This one looks fine, applied.
+Applied, thanks.
+
+Regards
+Patrick
+
+>Phil
+> 
+>
+>diff -ru ipt-orig/extensions/libipt_conntrack.c ipt-new/extensions/libipt_conntrack.c
+>--- ipt-orig/extensions/libipt_conntrack.c      2004-06-14 18:02:17.000000000 -0400
+>+++ ipt-new/extensions/libipt_conntrack.c       2004-08-21 17:51:05.507406408 -0400
+>@@ -492,7 +492,7 @@
+> 
+>        if(sinfo->flags & IPT_CONNTRACK_STATUS) {
+>                printf("%sctstatus ", optpfx);
+>-               if (sinfo->invflags & IPT_CONNTRACK_STATE)
+>+               if (sinfo->invflags & IPT_CONNTRACK_STATUS)
+>                        printf("! ");
+>                print_status(sinfo->statusmask);
+>        }
+>
+>  
+>
