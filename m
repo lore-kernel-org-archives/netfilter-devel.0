@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] admin-prohibited option. Let us look at it again.
-Date: Sat, 24 May 2003 13:39:34 +0200
+Subject: Re: [nkukard@lbsd.net: Re: Experimental RTSP modules]
+Date: Sat, 24 May 2003 14:11:26 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030524113934.GA3077@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.51.0304091927060.13250@dns.toxicfilms.tv> <slrnbcn8rd.440.lunz@stoli.localnet>
+Message-ID: <20030524121126.GB3077@sunbeam.de.gnumonks.org>
+References: <20030524074054.GB14062@lbsd.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kM/PxlMMHsUUNZZW"
+	protocol="application/pgp-signature"; boundary="UJXkkAiHhNbsaLO7"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jason Lunz <lunz@falooley.org>
+To: Nigel Kukard <nkukard@lbsd.net>
 Content-Disposition: inline
-In-Reply-To: <slrnbcn8rd.440.lunz@stoli.localnet>
+In-Reply-To: <20030524074054.GB14062@lbsd.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,35 +23,63 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---kM/PxlMMHsUUNZZW
+--UJXkkAiHhNbsaLO7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 21, 2003 at 04:02:05PM +0000, Jason Lunz wrote:
+On Sat, May 24, 2003 at 09:40:54AM +0200, Nigel Kukard wrote:
+> > >  * IPv6 modules
+> >=20
+> > ipv6 is not supported by conntrack or NAT, so I guess that's going to be
+> > hard to support :)  This is has been discussed quite a number of times
+> > on the devel list.
+> >=20
+> > > Hints for implementing IPv6 conntrack and nat modules especially appr=
+eciated
+> > > (why are there no IRC or FTP modules for IPv6?)
+> >=20
+>=20
+> hrmmm... what is missing in supporting IPv6? Ok, I've read most of the po=
+sts
+> about code duplication if you copied IPv4 and modified it to support IPv6,
+> changing all the function names along the way. Maybe we should have a=20
+> discussion about how to move forward? What needs to be done, planning ...=
+=20
+> etc to integrate the IPv4 and new IPv6 conntrack into 1 easy to use inter=
+face.
 
-> So my question is, since this has been known about since January and
-> netfilter 1.2.8 was released last month, what's holding up the inclusion
-> of this feature? What needs to be done to get it included? Why didn't it
-> go into 1.2.8? Not supporting RFC 1812 out of the box is a bug, IMO.
+Well, what is basically clear is that we don't want a simple 'port' to
+IPv6.  The new conntrack should be layer 3 independent.  So abstracting
+it on level higher (like we now have layer 4 modules like
+ip_conntrack_proto_tcp.c, we should have something like
+net_conntrack_l3proto_{ipv4,ipv6}.c).
 
-I've just simply overlooked that issue.  Maintaining iptables with all
-the contributions/extensions can sometimes be a quite complex task - and
-sometimes something gets lost. Sorry.
+This way the connection tracking code can be used for any other kind of
+connection (think about LLC, ...) and also for connections with two ends
+in different layer 3 protocols.  IPv4 <-> IPv6 transition NAT people
+would definitely like that.
 
-> Also, I checked to see whether it was feasible to code it so that the
-> userspace could attempt to add an admin-prohibited rule, then fall back
-> to host- or -net-prohibited if that fails on the running kernel. The
-> problem is that it doesn't fail. In linux 2.4.20, the check() function
-> in ipt_REJECT.c doesn't care whether it recognizes the reject type or
-> not, and happily adds a rule with a bogus type if one is passed. Should
-> something like the patch below be applied?
+The biggest problem we introduce is:  Yet a bigger ip_conntrack, because
+the tuples will grow. instead of two 32bit addresses  we now have two
+128bit addresses.  This means 48 bytes more per conntrack entry,
+independent if it is ipv6 (and really needs that space) or isn't (and
+has empty space.
 
-it might be a good idea for the future.  It doesn't help us with our
-current problem (since it's the old kernels which will default to DROP
-right now).
+Solutions?  Well, we could have differently-sized conntrack structs,
+depending on their l3 protocol(s).  This would mean we'd have to shift
+l3 specific members to the end of the structure, and all generic
+members to the front.  Then have one slab cache for every l3 protocol.
 
-> Jason
+> I would be more than happy to lend a few of my developers to help with IP=
+v6=20
+> support. Most of our work revolves around networking under linux, and we
+> are busy moving over to IPv6, so it will help every1.
+
+This sounds extremely interesting :)
+
+> Regards
+> Nigel
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -63,16 +91,16 @@ right now).
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---kM/PxlMMHsUUNZZW
+--UJXkkAiHhNbsaLO7
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+z1n2XaXGVTD0i/8RAouQAJwJ72VJ1cWEEi4outz4MyIrmTU+7ACePn7W
-aEaaDQn0NkwTjVYwuNpNu20=
-=XheD
+iD8DBQE+z2FuXaXGVTD0i/8RApCNAKCs9+x9qBbtpu19mHvhnOFeW1LjnACdG1Vb
+WVn8+5eVmtUtB1ysMw3JHhE=
+=hsNf
 -----END PGP SIGNATURE-----
 
---kM/PxlMMHsUUNZZW--
+--UJXkkAiHhNbsaLO7--
