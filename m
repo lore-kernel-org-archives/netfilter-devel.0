@@ -1,13 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 2/2] extensions conversion to C99 structure initialization
- and MARK target modification
-Date: Sat, 25 Dec 2004 22:32:03 +0100
-Message-ID: <41CDDC53.7070700@eurodev.net>
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: netfilter6: ICMPv6 type 143 doesn't match
+Date: Mon, 27 Dec 2004 13:17:34 +0900 (JST)
+Message-ID: <200412270417.iBR4HZRG021429@toshiba.co.jp>
+References: <6050E336B1A0D7D8E70C66F3@t1mobil.muc.aerasec.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010703060706050806080505"
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: usagi-users@linux-ipv6.org, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org, kaber@trash.net, laforge@gnumonks.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: pb@bieringer.de
+In-Reply-To: <6050E336B1A0D7D8E70C66F3@t1mobil.muc.aerasec.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,167 +22,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010703060706050806080505
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi,
+From: Peter Bieringer <pb@bieringer.de>
+Date: Sat, 25 Dec 2004 18:47:52 +0100
 
-This patch makes all structures use C99 initization, I needed this to 
-add the versioning stuff. Actually, I've spent one hour on this... but 
-it was too late when I changed my mind and decided to add a single line 
-in every file. I was already possesed by a penguin... hope that it's 
-worth it anyway.
+> I tried several rules (don't wonder about the wrong order, it was a try and 
+> error -I insert, uppest rule was inserted last):
+> 
+> # ip6tables -vn -L OUTPUT
+> Chain OUTPUT (policy DROP 4 packets, 4872 bytes)
+>  pkts bytes target     prot opt in     out     source 
+> destination
+>     2   192 ACCEPT     all      *      eth0    ::/0                 ::/0
+>     0     0 ACCEPT     icmpv6    *      *       ::/0                 ::/0
+>     0     0 ACCEPT     icmpv6    *      *       ::/0                 ::/0 
+> ipv6-icmp type 143
+>     0     0 ACCEPT     icmpv6    *      *       ::/0 
+> ff02::/16          ipv6-icmp type 143
+>     0     0 ACCEPT     icmpv6    *      *       ::/0 
+> ff02::/16          ipv6-icmp type 143
+>     0     0 ACCEPT     icmpv6    *      *       ::/0 
+> ff02::16/128       ipv6-icmp type 143
+> 
+> Packet dump:
+> 
+> 18:46:07.984044 :: > ff02::16: HBH (rtalert: 0x0000) (padn)[icmp6 sum ok] 
+> icmp6: type-#143 [hlim 1] (len 56)
+>         0x0000:  6000 0000 0038 0001 0000 0000 0000 0000  `....8..........
+>         0x0010:  0000 0000 0000 0000 ff02 0000 0000 0000  ................
+>         0x0020:  0000 0000 0000 0016 3a00 0502 0000 0100  ........:.......
+>         0x0030:  8f00 6b6a 0000 0002 0400 0000 ff05 0000  ..kj............
+>         0x0040:  0000 0000 0000 0000 0001 0003 0400 0000  ................
+>         0x0050:  ff02 0000 0000 0000 0000 0000 0001 0002  ................
+> 
+> I wonder that only the proto "all" rule matches such packet.
 
-Anyway, the most important thing here is the example of how to extend a 
-target/match to register a new version. Please see libipt_MARK.c
+Well, the Multicast Listener Report seems that skb->data != skb->nh.ipv6h
+when interface is up. But IPv6 netfilter modules assumes that
+skb->data == skb->nh.ipv6h like IPv4 netfilter modules.
 
-Sorry, it's gzip'ed, too big for the mailling list (65K).
+folks, is this wrong or bad asumption ? If so, I'll fix this problem in
+many modules as follows.
 
---
-Pablo
+--- linux-2.6.10/net/ipv6/netfilter/ip6_tables.c	2004-12-27 11:26:57.000000000 +0900
++++ linux-2.6.10-fixed/net/ipv6/netfilter/ip6_tables.c	2004-12-27 11:28:23.000000000 +0900
+@@ -222,7 +222,7 @@
+ 		u_int16_t hdrlen;	/* Header */
+ 		u_int16_t _fragoff = 0, *fp = NULL;
+ 
+-		ptr = IPV6_HDR_LEN;
++		ptr = ((u8*)skb->nh.ipv6h - skb->data) + IPV6_HDR_LEN;
+ 
+ 		while (ip6t_ext_hdr(currenthdr)) {
+ 	                /* Is there enough space for the next ext header? */
 
---------------010703060706050806080505
-Content-Type: application/gzip;
- name="extensions-C99.patch.gz"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="extensions-C99.patch.gz"
 
-H4sICEjLzUEAA2V4dGVuc2lvbnMtQzk5LnBhdGNoAO1de3fbNrL/W/4UWG2TyJGY6OF3t7l1
-HW/Xu35d29l792z3aGmStngtkSpJOUl78t0vBgCfAEFQJCNp25ye0gJnhsAAPwweg8GZY1qf
-jtDUvrfnwdhwHWdqz+zgjbH1XfV/W5qmCUS3Op71bPu266DRqH+4vdXtdoVkH13vyXYekeHO
-P29vff890gbDYW+wj7rs+f33W+jLFtpCfqAHtoEf3sIIEBak308tfzzTA2OCIpnoO/TrltZy
-9Jl11Gq1o/R2D6c+Wx5k6ah1dn13/MP56e3476c3t2dXl/DSt38BFvxqfHx+9uNlBxLch078
-wTjnY9t5cLe3gW3hY6Fz3bAov/vw4FuBjK1n6oFOWCfWdI6/CA/4aTt2gH/CA37Odc+HDJEn
-JDzYjj4dGxPLeDpK/iDEnu0AM3mS0ujP1hFqkSf8tj4Fnj5254GP84j/v9VtvQEltVrfoZSW
-cDpTE37D6wm/hoK26MsSmsKMKVUhLEFdWZgb1ASfperCCaAoSKAKwwlEUwiSmM5wWkJPOD2l
-NeAAdREGqjcoHVYYpFDF4YRYc5BjUB368i00yGfXNtEYvt6BP7e3zlJAu7n6cHdaP8iYWBnA
-IhIeXMPBoDfsoy48B4cxuLY0Ci94pvEV6N6jFSDPXQTWlobRhS4/nJ/jJoXwvzb5VJv9EqCK
-Jee2EyKWfSMG1fJcLxmYyN8MSeTvEEXkRxo89D0DDvnBQAN/U6zk9D1J3UDHgwiqcIOBBkTV
-lIRZqKx6ICZUQhZlS8oIsfaSA9vLNNpIUh7aXubC7SWPt5eVATd/CoLPc6t+yEWCZaBLEAls
-2u6QwA6eDHa0qw7ZOkT531I05mKR2jrGQi0dtNEkINnLCpBkEtTRKGQoACISIBHlQhEpYJHX
-jRSLsZ7qQWNWCSWBKGBfBoOoAIRIDYWoCgzv7s7rhyARKoMfIxBArwdjyR4dSL59jW4numeZ
-wObp3mekm6aG5QVu1JLQg+uhYGIhLBLRrnELodeoc7KNhv1+H91/Rn/RPX1qov+xprjj/9NU
-xyyP1vePzmLmOk/+G/zrHfDgZvsafXNmpnXTe0aDN3sga/i2v/t2eIgGo6P+wdFgDzFJ6PTT
-HH2z1aXc3xBRkIW7ie3joYr76OkzhP80bdyE7Hvch5togSuB5juwvJmPx1box8sP6Mfrc2B9
-S3WxswvdT5c9STf0K+pDp0OqtmgQABqJRgCYvNXGKWRkLRpQy9o75kuModUpw26lFfYprciy
-tzJmvRV1JK3QoJORLyoy56yUXP+BUh0ILXk9nUeyjCU7jgzrehlupNhlnF3/fefq+u729u7m
-7Lr+ziMjXtaNcKR8h7J7SEw5foQQwr2K4wYTIMP9CNUQ+mgh03VeBbgLebJAG/h7b968ASjK
-jTxrhamc8APv1Gtla9/n7Xl/pUPnVDEUhtDZYi+Dv34RyvrriCVFKF2c3dxc3dSPoVCuDDwx
-DY+aHTrv3Immnb+qwWBme57r8e2ffmulDZ8aBQx+Uo8A7HQy1GWUqgIGWtbisWtU9uZaP1Jp
-/qiw/SMpAKKShc0/Sli29cPiEeY0nppZ3GSiixY3IzKB8RhRHMAzNB9k5gI2fEw007HnPUTS
-emjQQ21NaytODKNv83CJXlWYGEYy1KeGOSxf19RklJOyMkiMsKS66lsQTWui5EBPKGAjTdR8
-8tk3recG1mlCwdJ1mphItDzaZ8uj/fQ6zUOnjVRhyL7Ag5C9qLI2QyWUWJsRMawCfiwjCkO8
-WEs1rcxkVFB2ZYZn30jUzRbTwJ67XgP7fgnRMuSlyATY26ETK3gujb3oGzz6olcV8BfJUAIf
-T70K5EW5UMBeUkf1oC+lg5LQy/KuL+6yW3+n789uTk/uGtj9iyRLNwATVIIV0Z19uhmBnyHQ
-vqjNxjzLtAWTsfB7SyNr7Oisusee7jxaCvDKZVnNFiAoRmULMNZUHfgSKaEUyHIE1DH3+/om
-TjdNr5kdwFiyDHZJKgHsDke9wQGGHX0C7EKnlq2crjsUyJxaGORa7TB9qaX3kFlx/V1AXsMi
-fP78i6QkSxjjBMmAgoosEVcQkUdKWQGgCcQjBQmMElpmmQQJwILy0IIycMnA4+T8+Pb27M//
-qB8esWQZPJJUAnj0D6hVws/QKiH67+5k/JfxxfFfO8YUVK+9w/pwPTv4vP3u3WCvx96fXfLv
-C0eNrPs2prrv2w+fedMWZrrKugkTXtrNRcq4EjMX5kjB0iUUV9MKSo42yq6j5ItZ3/GlxOhN
-LecxmNSP6VCuDNExjQDPI4bn0UHG5YVydZKVQpNIXaDX28T4ae+I65/atI/y8+il6RWwm8iY
-EmRF9KuY9NF8KMA00lA9IM2UvyQ2ee6NhORE9ycNuVgnRMuAmSLjsTmCGeAAdUeJGWC01qJp
-Ebc2IY1Ksz7Nbc9CLxao3UOe9s54eHxD0xTxGUnkIRq9qoDSSIY6UHNY3r4V+SSniXtojjW/
-SnRH+Ym9cVKgTuq0Hlzz6ioJbYEAKGyrlMI3tUN4WPzyy+f6OwMmVtYRRCRiA02cwWIDHWFZ
-1OiIKPo3j2LysgKCqXBl9ArIV4HDhEpUdhVDJdUDybQOSsKRY95IXF0c3/73h9Ob4/cNnLNI
-ypY6vaToRKute2y1dS9c9lFdbZ3p/s8Cz5fog7/d5VbQTI7tS6lns9dY1xBx729PGnDQpFJl
-KAspRPgaMXyNuG1DTcMjC830jTnqf3rRH36C8atJ14ggVXV5CGh5IEKeKpg8YFe3eDz1SoBH
-dFk8q2SqqcfQpYpe0s5leTcSdBfHN39rwsCBVLlpoxSCvfp+b4Dnj/gx6hPIZSs3RFbYnMgm
-aReUPn4esEJ2wc2RQXWr24avsfMW6PmFz1ym/aOfnDZ+ixAF80z3ntCzPl1YiP93i1mdh5gk
-ZtUdU876A65R7zM6vnxPzlAwKR/tYJIV5XpUUpGoqxskE4X/jxuFQG/dL1vd7GlnqgvSZv75
-L7IbBAc32qFC2sRTsN9Drwav0Jde5lRHN1cWrgsmriuV14WXoQrjl8P4JVNK/G5E34U56eKc
-dMn5mzPcym19Cvst5LAKqXDqFp9sK+RUbxLJlhN44aIteh300MLx7UfHMhFxvnUeDB3jka1v
-HPQOUHd3v0fHW/SfgRtTgLIS0Wvy6IVUuV98Tf/Y3iJbcUkvBVzu5GIyeg0p8Bemw0DvSGm3
-O6FguuCJ1SQTPn7uJ+R3i+QTcv4TuMtp+bhB4mlLx9gmrcnQfQuq+4gocG+nN9hB3YNRb29I
-TapnBQvPQYMMrrHut7qkmwRcQ00YPWRMdA8rDH/zuUdqx3awGeCq7GGqP/rQfgqqRqFOSFci
-1cOgnNoGwprBnPYD6tCcb4Mc65ONMwVu253r45vji9O705vx9c0VxvQFFK3VokP2qGs7Qic6
-nArx55YBGylxr9ZD7Ygh0WG5XqLPCT7ahgW+UJCVVA12EzWIpYRl1d7NXBP2j8FIQjbGt6d3
-0MZatBD4zYD8vPcs/enbSMywSAzuKBXEjIrEXN1IpZjWg44HzkQIa4F9SIcusvtH+wG/R387
-vbk8PR/v7Yw/3OJO9Pr45HQ8GrKqgvNxzuM4cMfOYnZveePptIN7PlwVpJvC/6GXidzhv7Zx
-vf7RmvpWroSMACG/Y9oPhe0DtX/QTUQaB7Ul/37hv8JdKJXPajkGXsow0E4yMQ7ppMDFWiiB
-NpTiD2FCUZPVWq2EKUu33GvdwwO8wPKSttj2kWf9vLA9yyQNsyS/SqvPfEIwsEjoAfohkSpI
-F5FUxXLoFZWhHVlteZNM1x3dDAP+OL9TFw+zyP9IUyJ98eGwt0OOjh/2Bv1hoUGLTSR5RoYN
-VIFbsOXZBrNhHH++JUPfQcPoKHBs01+xMSvkSZk0/KGuyoeoYUt/K573kRrDtUPdRlsJTWew
-KmxMlBw3Iy4X9hy9tucSk8UpH1OmFE9aoULpBsuoZMCrP2Em0p0wtRm0m07aBtLVihUJL6Ke
-OcOJzYGAE8O5kPPq5gjxnBj/HOMXGE7K6pJgsMvGmbd41uWTIebCgfEuqAyUQ1RqOyREDExt
-4bj3DM5t+oHpLkQjUZi/5bYFtYbwn4o4bq2F9NdLoQ60LAOdqqLXDGFigOUojRtAcfiKGSNT
-KWcM4RUzhlY1y/clnI3L0IUKl6w9wekzyEkVr/tMPag53+cxNbZulqsQhROdVEE1udzzyF3G
-+T5XylquobHORFoPgN/6qsKzphaGGn49qFA1g1qqZiCqGpysVjshYX4FhRSZOgqTU9UUJnI1
-hV+E60DcgieZqHjWo+3joTUrW+dl2POI30CxiSlJr5bi/mw6q3+5lImVrZdGJIJdisGIbrYP
-IudvNru4OT0+v6DnfY/QP9wFmi38eHng35pGpL5KHoASbUUTKr7nJclV4rMBf4nAbDz5Kvbl
-STZy9gdDjdTT16YLXBLHHPNa9qxFuxO4JhxT98z6IRdLlqEuSSWIO0GdXHYOUuEOC0YxoUge
-T+GbspDCas8HUPJlzcEolMcpYcEUNvcSOqgAIlZoFcjEpE0DhItIUR0ecG7//nNg+c2EpGCi
-i0JSRGSic0ksNuFhNjahaXuWAZtFuCLUwxPCW0Gk0CgXFSNQEBnlIlAIWFZhlYhikgPQvMNP
-SVV1azr9xOuh7LkJkYCvbLByTz6Vg2TgNgBGIlQGQ0YgCg66w4KD7mQAiFk6dA6O/+qhviIC
-MTGPP5xYAXmYWx1zHPEq0IYzoWDLqFbqGQsmi10SXBnWjRwHXl9dNRD4k0qV4SqkEHk4M9ew
-0ajsQXcQPHfdKfvNwwm+WiWQC8hWj+LCUa/E+SujFAV4MS3Vg6+UFkoCLMu7kQj7893Vbf0I
-o1JlCAspRMsabOw4GOY4Xz5APxw7Xz5Qcwapqs6XD0JzBnmqgD9gV8cfT70S/D0wmybHHNNM
-PZhLlbwk5rK8G4k5D8913SaWE5lc6XpiRCOybX12eoePVKZpuNSe/hid2LP8xTR48/PCDYpW
-EfEX84740NxUWUsE4epLiRz1V9q4yWpCwcxFqqlpUTFZ9LJrihnejQTdwjGmlu7Uj7pIsAx2
-CSLBeuKQricOldYTaQNiAnlIsRebF8VWUkoFuMTFXgYv6xK+uf7otXoDYRz0ghAOel74hj0W
-vmGPPx0qa+u6wHLoVSIw6BMlc5EgW8Vqg150AJSFNZqoL+kVWQla4iwSCoMYTRKGYW0jFwli
-6pl+0FBMhViyDChJKkFEhWGfRlQYkgCy2YgKIXNtARVCgTzYwjcVIBeKUB+siTnEZ/tTtKuP
-pRBmR263KHwTuq1npMfpreRoT8BfRukNW0lRF5DuAYhbCOkGyllKp4mIR05RuCMnL9bRcEDi
-qHTZM3bRjv/FfQGu2ic8mafYd4IJC1lGUwvmZ44oyJFTKcKRUya8EUe8CsQ6SoGNnBqjGjnL
-hzRy/gPiGc10o4Gg0SBUGi6aEoguiGVD02E2shhm6aTiiuEEUVAx7Z3vGRDOUTWqtG4I4knr
-RiWfVqOML6uxetjhTOTBDiVDSBO11IO7ZLlL4i7DupG4uzu+uT5rIIh0KFd6n15EI1gD2aV3
-+eyWvMsHP+aiISv91uZeYkXLVbwyH5Vzk5c9GmnpQTBtwCMDhEo9MihBHXdG4r9xKrk6kF3n
-84j8xZyE3a/t9kiS3/puj2QO7LKrI8lhKBZm5ZCFWTksd3Uk88YIptkg1jhpqfjVmE8xdHWa
-spao1XKXE1ZIuccJKXZNHifB0hviGdb17DUyvcTt5XED1pBKlfUTIYVg4jekrlvwLOlh4ju6
-wBTCp367Yb1AJ8UIYjqqA0K/x/ZKGmFjPvOb8IxkcqWmOKIRbXUz0zOKTQ8NMoBZ6OpJGGBE
-2UOSfE7gJEnSq/hJEgH0KyUcJnO5VuI5SXKjYMlCZdVkzERKKGvVcmRsJB7B49rTgwauM4kl
-F50bCKlEG4TsFqG9/eWv65KcFYAvVzwqACLKnRTgOVZ6UEDlmkqmp3owyOmgJP5E/DkbjWsO
-PlIHjRxpK4JdRCI6KTBgJwUGmZVPwtRh1pD8mOn+UzUUkuQKECT86vgTkK8H+HJPwdUIvHTh
-S6KOY95Ic3d23Uycy1CuDHMxjSjALNtu2EleTJSJp+E/gZPzlPg42/M4dobrKeEwcrAXx8+g
-2asARSq4dAwNCduKDiCE4TQKwBkprB50ivVQEqW5QjYSrZY/rx+qRKgMp4ygPnc1LJCHG06s
-gDXMrQSuJN0qDB3+vpLPGtVGtx6nNVboktCJudYXKxl8uB8dy6sfIUysDCMRiWC5kt3JNYyv
-/GChKlWwQgTzaCHJFfBC+NVtkoB8Fegh2VCwRKF26jFE6cKXRBHHvL5gkjmjNHSHucL95ZK7
-y2nshO4wG0MhuxgidKzIua+86l3l6veUr/6OctX7yeu9m3zZe8k38U7yy9O787PLBuZXkWAZ
-dhJEogX+PXaWbY+/js6ZErf2FzZxl5ya2jv4rTqjcqxgajtPiVhQWqvNMrPU7jPOAXiQFe49
-J+ma3HnmyylHUFz2ejAUl7MkiFKM64siiSU6PbmsH01EqAxJjIBH0R44rewxpxXm8pHkQfeu
-57kfLRNNLP3Znn5GD547y1zsI3I7IdzE7WQwYH4nB2/7+2jQP+rvHO0MJX4nbyEktmNMF6aF
-/uQHpu2+mbxLp0F0dUiks7gd2hHs7ZQJ12UZgrN1ONcVjCfmVh+ScsRfN8QoLr6C6aT6qAf0
-yQKXhH2GdSOBvxgNGziaCkKlx1IpgWDwuUuPgrNnYlcAs6TcofHv3OuVhUc6R0PBodXRsAKw
-MLcSppJ0X/XgN+io0IpSHdQDJlbSkjiKudYXQtlQCvMGjhEQodIgCvOcYwSj3SGEYu2SZ8LY
-hGPKvNiic4O94AIkzKscCMDcJYIjZIlXEmU1pQk5YKhu6gFMsvAlUZNhXU/oZL0ejy8auN6U
-SpV6PTIKwXztgDlkHRzy8zVNc1zTDxRcQEKnP9xGBI6Q+OtV9p6x0BJbzxz1atwfYc292P2R
-aqamfedkyctuO2d41xNNxU5Wpg0xThvxsgpFF7hZxWQ82A7xVAhP7OiD7mtlbwfM9MuRQOZx
-T/dyqLsQfUFWPqL9HFHz0VhY0fwWEAlLuNhnQhGUZCaOQlHz0Vg8gqj1aGE0grjxaOlYBNnG
-o4XnkOO2o7FABFHT0VJhCFjTSe1/JbWmuAsmjcbKlz2LO1kMByF3PbEccsFXKZRDBm+2MWtg
-45hKlaEspBBMnw6oIyM8Fc+zUZyBSN5wQWoVTw3MruabkSRcxfAPMqAw8mP6qMkRgxW6rOtF
-zLaRRgoit+n1o4aJlcEmIhEYJnKTRfdwxKNG1FyIpOyciSCGvGknUnJgI0JE6hpPIig9jluW
-JwmoLKg4YOWAiwNYFmRJoMlVJodYqMDlMSZRiQLU5Nzri7gMyj6cX/1YP8ioVBnGQgrRNdv0
-9gr2VPbXYPOJxdR9TO98waeW2vYCUYqnLjOkX2HzKyynHCWs7DUt2iULWXbpLsO7vgCRmKT/
-vbqpHytEqAwqjEDBGIkOJ+e1Hyw1hgkCnOCUpWCC+RRRkqasASTcPe85peRAglIooSWvByTJ
-MpbESIZ1vSCCVON3nFxf3DYQsTuUK43fEdGILyOjUbtHovU7ciWl77MIVdEZS/yH6pKe8Gwl
-zVH1s5VlT1Wufl1P6TRlpJ56sJcpfEn48dzrhUBFAJq+0cBiA5UqjxVp5Pmp77JTk7uZU5OE
-p2NSqMHfPWSmzzYPlENDGoJlCUitFBLSmJcJB5mlXk1kR0PNw53ppo7FPa70JYGX5d1I2ME5
-lyYCxoFUecQ4SiHyMGQHJ0fZg5PkruP4nuMeCv/2n9TDCYhPbUFq1VuPy113vHLIKR7PYpqp
-x9KlSl4SblnejYSbPX/eweRYjQ0E70gJly6wpwlFPvJ01xieSwcMSHxlTCkEK/AxTaUjk/GX
-ShyYzGFayQI9pyuV5fqU8mpatRdopewKvljERuI1sGcNRBagUqUxdhgFD81ddpnMbnyZzNvX
-aALbfIGLcD2hKKb0NjaQfmDpJkSJi2tsu4fwNNGw0JPlOdYUPkUvsnbcgHgi31v4e7M5iaP3
-cWI5INVDpjW1AstH3mJqoY92MEGvtPeviN9wQQAf/IE8/MO7KtNMO+sMIgqoHVH1EkVeicNi
-rAqFkD1UNTVNMW2570gZtW0qlnGbnllOA+fRIsFy15GISDDm7e+TNVH2zDjT5/qOEInUcwRa
-XjosD3lZKSoPkVAmKI+AoSF4wV/cPJEmJpxBQhXQN9GEUQwkQqM0acwWlLKWi70jkpBFFUnk
-nENIqsA/hKQnXWx4hFFW3k2EFj3rKUJSE2Arhza4xbF+qFGpMpyFFKJY5OwCxGF88LPVsuf0
-wkkI9ABtp3O/eAADSaoM/70dTjNNnwStUxz8gkze3EHqb+Ym0lgRCmNZppl6rN1v/vbRm9O/
-np40EH81lCsDYEwjgOB+n0JwX3QTomf9n2UEGhlbvvDpbYiQMiYN6p/2v0hzUd3YoLw8Bmn+
-qnj/00ypHwAQ0K9kb4NmRAGMkYrqgWNGASUByXNvJCQhr01EGQnlyiAZ0/CQZB6VB3xkyBe+
-plFO9BP+8VMbIzK5zYH+C7X/gNroCLXboZFUAig1DFQ0j0+aXgGfVIA6PkX0q7CUTNfF8Iw0
-VAxPFje+AGIZDSjCmufaSGBent5dHF83EmuByC0ItcBoRLaSndzZz6zBdux5D9EuXWXbI774
-Aoa4M9dcTPkzPBdX7z+cn14eX5wui7uND2ieUlDh8kxSYXVYyd+jmycg+cPx+fHlSQMn6SLB
-MlAmiErsTsIIlg5a4bKqceCOTTcILLPzUi+eM7ImeK9PdccQnLBjWfrt3jbANKNgHGNV/Q7L
-mmG5MBvw0CFCpbEUzLzDQCMagYQ9VS/4NgUeNzixSpwEU+0YUJLu68ZJMFVO/1Al1DPlY0Ut
-OdWLudYXH1m/0asmnEavijxGr/LcRXeZu+juSLDAAt6igetD+OP+kMQ/xr/oxA3/oTySdEUe
-o1eV3EVdv3TA4zye1QweXRW30asafUb50pcEm1jC+gJPYphOzj/c3p3enDUwi0uIlgEyRSYy
-Vezc6iheZoGNcxW4GdOFH1ieLTBb0VerbPOF4sfBY5nNvny2lQAwyo+CoUuqrR40irVREpA5
-QtCGgpLcYV4/IJlYGRgjEtGiCvPp3t8XHacgnNr9wvPDS7897R35qbioSQTwQA1vol96y0EP
-rEI3l5AoujJ+ZSuZpLgKQAzVUtM2Q0JJii4unMo21QLaczK7bMKnlAmW+5NGRCLIsSHpfjwk
-Lbp3MXSKJGJFXqPkRSWPUSKhjLeogGE1nqIkI0ruoaGW6sFXVgUlzZuAfSOhNvfNBvxaQKjU
-rYUSiOC1y+C1K5jxYTZtYmsQBNvXPlr24yQ0bPgNnflN7DF5PaavVf1bfFPg3uKbVbxbfLOE
-c0uWeCW+Lb6p4tpCtFKTZ0ui2GUdW9KsG4m9943cKvy+8Fbh903cKmwKbxV+/5u+VdhktwoX
-QOr979cKN3WtcCN3ChdeKCwG186QDh3Zs8TQMRCdqw0qHavF3KpH2ZvFEFRl4a3ACiAKjPrW
-+1mhyy5BGmu63t/98u0W2kLPrm1uobHt2EHn2bXN7a3/B9n8SMyg/wAA
---------------010703060706050806080505--
+Regards,
+
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
