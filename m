@@ -1,29 +1,18 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: Tue, 28 Sep 2004 22:57:23 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Fw: [Bug 133788] New: ip_conntrack_in: Frag of proto 17
+Date: Wed, 29 Sep 2004 00:05:32 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040928205723.GA23352@zion.homelinux.com>
-References: <1096374273.7192.27.camel@nienna.balabit>
-	<Pine.LNX.4.61.0409281432550.31930@filer.marasystems.com>
-	<1096376252.7192.47.camel@nienna.balabit>
-	<1096377276.8661.252.camel@jzny.localdomain>
-	<1096379957.1026.5.camel@jzny.localdomain>
-	<Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
-	<1096383406.7192.165.camel@nienna.balabit>
-	<Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
-	<20040928180425.GA21097@zion.homelinux.com>
-	<Pine.LNX.4.61.0409282042150.2167@filer.marasystems.com>
+Message-ID: <20040928220532.GN29961@sunbeam.de.gnumonks.org>
+References: <20040928130512.57479400.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
-Cc: Harald Welte <laforge@netfilter.org>, Jamal Hadi Salim <hadi@znyx.com>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
-	KOVACS Krisztian <hidden@balabit.hu>
+	protocol="application/pgp-signature"; boundary="IYV9cRr2u6rjcP4B"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0409282042150.2167@filer.marasystems.com>
+In-Reply-To: <20040928130512.57479400.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -35,67 +24,62 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---45Z9DzgjV8m4Oswq
-Content-Type: text/plain; charset=iso-8859-1
+--IYV9cRr2u6rjcP4B
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-
-Hi Henrik,
-
-On Tue, Sep 28, 2004 at 08:47:15PM +0200, Henrik Nordstrom told us:
-> >And when using multicast, we also would have to make sure that the=20
-> >initial packet which causes a new connection to be set up is handled by=
+On Tue, Sep 28, 2004 at 01:05:12PM -0700, David S. Miller wrote:
 =20
-> >only one node...how??
->=20
-> By hashing of the original tuple, dividing the address space among the=20
-> currently active firewalls.
->=20
->=20
-> The main problem for unicast active-active firewalls is how to handle loa=
-d=20
-> distribution, failover and recovery in an sane manner without requiring a=
-=20
-> load balancer infront of the firewalls.
+> If this is true, we need to fix this soon.
 
-I just thought about this all some more the last few hours and came to
-kind of like the same conclusions. While unicast clustering surely
-might be more scalable because each node just sees the traffic it is
-responsible for, the problem is that the whole traffic must be split
-before the firewall cluster. So one would need another special high tech
-don't-know-what switch or something like that, so another possible point
-of failure...with multicasting, this won't be a problem, as the traffic
-will be automagically distruted among the nodes. And if one of the nodes
-goes down for some reason, the other nodes will also take over this
-nodes' traffic as soon as they realize this nodes' failure and so one of
-the hashing function's parameters is adjusted to represent the new
-situation...!?
+Agreed. =20
 
+I think I've seen something similar in the past, though it was some
+broken code in my experimental tree ;). ip_conntrack on an NFS server
+has always had a bad history, I have to admit :(
 
-Thanks for enlightening my, Henrik :-)
+Big question number 1:
+First of all, why would a local loopback nfs mount do any fragmenting
+in the first place?  'lo' has a MTU of 16k, so why would any piece of
+code in the output path build fragments, even with rsize/wsize=3D8192?
 
-Sven
+The conntrack message basically means that at NF_IP_PRE_ROUTING we
+suddenly see fragmented packets.  This "can never happen" since at the
+same PRE_ROUTING hook we defragment just before
+via ip_conntrack_defrag() -> ip_ct_gather_frags() -> ip_defrag()
 
->=20
-> Regards
-> Henrik
+Big question number 2:
+How can a fragment survive ip_defrag() ?
+
+Big question number 3:
+What is this magic 8k limit?  ip_conntrack doesn't impose any arbitrary
+size limitations to packets... and we just use the normal
+defragmentation code.
+
+I'm more than puzzled about this, need to do some testing.
 
 --=20
-Linux zion 2.6.9-rc1-mm4 #1 Tue Sep 7 12:57:19 CEST 2004 i686 athlon i386 G=
-NU/Linux
- 22:41:48  up 2 days, 21:55,  2 users,  load average: 0.10, 0.04, 0.01
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---45Z9DzgjV8m4Oswq
-Content-Type: application/pgp-signature
+--IYV9cRr2u6rjcP4B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBWdAzo4FAdB2PneQRAqlqAJ9SzHKlCSqyT9wT2+PtfgQ3DdUIpACeN8rm
-dZjB4n4uvOgpuP/J/GerP1I=
-=AmbX
+iD8DBQFBWeAsXaXGVTD0i/8RAqjGAKCQ4QKUTb72RDu2cm2wo8Pj1BnLOgCePl+8
+ClZqRV1ZHl63rHhlY1wDXx8=
+=gEWF
 -----END PGP SIGNATURE-----
 
---45Z9DzgjV8m4Oswq--
+--IYV9cRr2u6rjcP4B--
