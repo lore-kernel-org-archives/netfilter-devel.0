@@ -1,9 +1,10 @@
-From: Marcin Szczepaniak <szczepan@sieradz.info>
-Subject: netfilter performance question
-Date: Tue, 22 Mar 2005 12:42:53 +0000 (GMT)
-Message-ID: <20050322122438.C70026@imperator.sieradz.info>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK 0/8]: conflict symbols and getorigdst issue/bugs
+Date: Tue, 22 Mar 2005 22:33:53 +0900 (JST)
+Message-ID: <200503221333.j2MDXsJk006741@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -16,31 +17,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi !
+Hi, Patrick,
 
-I am working on ethernet bridge device based on embedded linux and ADM5120 
-chip. I want basic firewall funcionality in my kernel, but i dont need 
-most of netfilter advanced features. Simply filtering based on source and 
-dst ip address, source and dst port number and protocol type is everything 
-what i need.
+These are patches for nf_conntrack which
+	- unify common enums/flags in ip_conntrack and nf_conntrack,
+	  as we talked,
+	- fix other conflicts by changing he name of them in nf_conntrack,
+	- change SO_ORIGINAL_DST to IPV6_ORIGINAL_DST in netfilter_ipv6.h
+	  SO_* are socket level option names, not IP level. This doesn't
+	  change netfilter_ipv4.h because of compatibility issue.
+	- fix the bug which cannot find the target conntrack.
 
-I've tested two configurations of kernel (i am using 2.6 kernel tree):
-first - no netfilter enabled - my device was able to bridge 70 Mbit of 
-traffic.
-second - netfilter compiled in, but no rules applied - traffic is only 20 
-Mbit :( Adding some test rules has minor affect to traffic. Simply 
-existence of netfiler makes maximal possible traffic to be equal one third 
-of that when only routing exists in kernel.
+BTW, getorigdst() for IPv6 connection is really useful ? IPv6 connections
+are not NATed, then I think it's meaningless to call it.
+If it looks like it's useless, deleting it is fine with me.
+If not, please apply patches I send (08, 09).
 
-Then I found ebtables. As much simplier than netfilter it should be also 
-much faster. But there is no way to use only ebtables. Netfilter must be 
-enabled in .config if you want use ebtables.
+Moreover, IPV6_ORIGINAL_DST is 80 in the current. Is this value really
+appropriate ?
 
-So i have two questions:
-
-1. Is it possible to simplify netfilter somehow ? I need only very basic
-    filtering (no statefull inspection, only IP header based packet
-    filtering) ? I need it to be much faster and much simplier than it is
-    now. Maybe there is any 'light' version of netfiler ?
-
-2. Is it possible to use only ebtables, without netfilter ?
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
