@@ -1,82 +1,70 @@
-From: Julian Anastasov <ja@ssi.bg>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's
  brain broke!)
-Date: Thu, 15 Jan 2004 01:42:10 +0200 (EET)
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.58.0401150057550.1124@u.domain.uli>
-References: <200401141611.TAA06882@yakov.inr.ac.ru>
+Date: Thu, 15 Jan 2004 01:29:53 +0100 (CET)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.44.0401150128190.4927-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	Rusty Russell <rusty@rustcorp.com.au>, fenio@o2.pl,
-	davem@redhat.com, linux-net@vger.kernel.org, kaber@trash.net,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>, boris@boris.ca,
-	email@cs-ware.de, Jan.Schubert@GMX.li
-Return-path: <linux-net-owner@vger.kernel.org>
-To: kuznet@ms2.inr.ac.ru
-In-Reply-To: <200401141611.TAA06882@yakov.inr.ac.ru>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-	Hello,
 
-On Wed, 14 Jan 2004 kuznet@ms2.inr.ac.ru wrote:
+---------- Forwarded message ----------
+Date: Wed, 14 Jan 2004 23:50:44 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+To: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Harald Welte <laforge@netfilter.org>
+Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's
+    brain broke!) 
 
-> > Why was it wrong to specify skb->dst->dev->ifindex of the previous
-> > 'real' routing decision as key to our current routing decision?
->
-> Because in the situtation when ip_route_output_key() with oif=0 returns result
-> different of previous ip_route_output_key() you get undefined result.
->
-> I expected that you do ip_route_output_key() on _rewritten_ address,
+On Wed, 14 Jan 2004, Rusty Russell wrote:
 
-	Nobody does output route on maddr, it is present only in 2.2
+> > And there are lots of users that have multiple DSL-dynip links these
+> > days, trying to statically or dynamically balance web requests between
+> > them, etc.
+> 
+> In that case, the interfaces are different, (ppp0 vs ppp1) so no
+> problem.  You need something more complex to trigger the problem
+> AFAICT.
 
-> in this case you have to _drop_ packet if routing contradicts to firewalling
-> rules or to send the packet via that interface which routng requires.
-> You cannot just blindly send packet to some random interface, when
-> firewalling rules are illegal.
+Consider a firewall connected with ethernet to multiple DSL links not
+using PPP-over-ethernet.
 
-	Ah, no, you explain the 2.2 algorithm. 2.4 uses output
-route only for the first packet, just to select maddr. While
-2.2 uses 2nd route call by maddr for all next packets, 2.4
-relies only on the routing cache for them.
+But i can not say I consider such setup sane in the DSL-dynip case, nor
+how to overcome such trivial issues such as address assignment as such
+setups generally use DHCP over the modem to assign the address and it is a
+little hard to direct the DHCP request to the correct modem over a
+broadcast ethernet.
 
-	IMO, the rules should be:
+A better case is the case of having multiple links from the same ethernet 
+and wanting to SNAT based on the route taken. Masquerade with route lookup 
+does this kind of magically by the route local source address field.
 
-1. packet should not change its outdev after routing (firewalling
-expectation)
+Hmm.. doesn't the SKB already have the route information by the time of
+POSTROUTING? If so, why not simply use the route information already
+there? MASQUERADE should never change the route taken, only the source
+address of the packet so there should not be a need for an additional 
+route lookup, and as the packet is already routed there should be no need 
+to dig into the interface to find addressing informations..
 
-	In the discussed case, oif is provided only for the
-1st packet in connection, providing oif=0 easily breaks
-the above rule when multipath route is used - the input
-route can return oif1 while the output route can return oif2.
-Note the main thing: the goal before now was that oif is
-provided to keep one packet to its outdev, not two packets
-to same outdev, because:
+I.e. why not use something like the following to find the source address 
+in MASQUERADE:
 
-2. different packets from one NAT connection still can be routed
-through alive path (possibly different outdev) after the initial
-path fails. This looks valid as long as we route by maddr which is
-true for 2.2 but not for 2.4. Currently, such routing by maddr for
-all next packets is not implemented in 2.4 with the excuse of
-saving one routing call. With the current tools it can be done
-with the cost of 2nd route call (the 1st is the input route).
+    ((struct rtable*)skb->dst)->rt_src
 
-	Now I'll remind you about my lsrc routing argument which
-allows to route properly NAT connections by providing lsrc=maddr
-in a ROUTING hook, only with single input route - a combination
-from the current input and output route logic. It can be used
-exactly from NAT because relying on the routing cache for binding
-long living connections to its path is wrong.
-
-	If this sounds complex, returning to the previous way
-of providing oif still works better than now.
-
-> Alexey
+Only worry is if there is POSTROUTING cases where skb->dst is not an
+rtable (superset of dst_entry).
 
 Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Henrik
