@@ -1,51 +1,71 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] netfilter/ipt_tcpmss.c: remove an unused function
-Date: Fri, 29 Oct 2004 02:21:13 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20041029002113.GP29142@stusta.de>
-References: <20041028230202.GV3207@stusta.de>
+From: Josh Samuelson <josamue1@wsc.edu>
+Subject: Re: [PATCH] new match extension `flow'
+Date: Thu, 28 Oct 2004 15:15:25 -0500
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <20041028201525.GA30087@wsc.edu>
+References: <20041028020550.GA10097@wsc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net,
-        netdev@oss.sgi.com, linux-kernel@vger.kernel.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: coreteam@netfilter.org, Marc Boucher <marc@mbsi.ca>
+Content-Type: multipart/mixed; boundary="h31gzZEtNLTqOjlF"
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20041028230202.GV3207@stusta.de>
-Errors-to: netdev-bounce@oss.sgi.com
+In-Reply-To: <20041028020550.GA10097@wsc.edu>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[ this time without the problems due to a digital signature... ]
 
-The patch below removes an unused function from 
-net/ipv4/netfilter/ipt_tcpmss.c
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+After thinking about it for a bit, this match could be used in more tables
+then just the filter table.  These patches make it so the prior patch
+works in all tables but raw.
 
-diffstat output:
- net/ipv4/netfilter/ipt_tcpmss.c |   12 ------------
- 1 files changed, 12 deletions(-)
+-Josh
 
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment;
+	filename="linux-2.6.9-flow-20041028-noraw.diff"
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-
---- linux-2.6.10-rc1-mm1-full/net/ipv4/netfilter/ipt_tcpmss.c.old	2004-10-28 23:51:17.000000000 +0200
-+++ linux-2.6.10-rc1-mm1-full/net/ipv4/netfilter/ipt_tcpmss.c	2004-10-28 23:51:28.000000000 +0200
-@@ -87,18 +87,6 @@
- 			       info->invert, hotdrop);
- }
+diff -Pru linux-2.6.9-flow-20041027/net/ipv4/netfilter/ipt_flow.c linux-2.6.9-flow-20041028/net/ipv4/netfilter/ipt_flow.c
+--- linux-2.6.9-flow-20041027/net/ipv4/netfilter/ipt_flow.c	2004-10-28 13:49:20.430784272 -0500
++++ linux-2.6.9-flow-20041028/net/ipv4/netfilter/ipt_flow.c	2004-10-28 13:49:54.800559272 -0500
+@@ -77,8 +77,8 @@
+ 	if (matchsize != IPT_ALIGN(sizeof(struct ipt_flow_info)))
+ 		return 0;
  
--static inline int find_syn_match(const struct ipt_entry_match *m)
--{
--	const struct ipt_tcp *tcpinfo = (const struct ipt_tcp *)m->data;
--
--	if (strcmp(m->u.kernel.match->name, "tcp") == 0
--	    && (tcpinfo->flg_cmp & TH_SYN)
--	    && !(tcpinfo->invflags & IPT_TCP_INV_FLAGS))
--		return 1;
--
--	return 0;
--}
--
- static int
- checkentry(const char *tablename,
-            const struct ipt_ip *ip,
+-	if (strcmp(tablename, "filter") != 0) {
+-		printk(KERN_WARNING "flow: can only be used in \"filter\" table, not \"%s\"\n", tablename);
++	if (strcmp(tablename, "raw") == 0) {
++		printk(KERN_WARNING "flow: can not by used in the \"raw\" table\n");
+ 		return(0);
+ 	}
+ 
+
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment;
+	filename="iptables-1.2.11-flow-20041028-noraw.diff"
+
+diff -Pru iptables-1.2.11-flow-20041027/extensions/libipt_flow.man iptables-1.2.11-flow-20041028/extensions/libipt_flow.man
+--- iptables-1.2.11-flow-20041027/extensions/libipt_flow.man	2004-10-28 14:56:07.752578760 -0500
++++ iptables-1.2.11-flow-20041028/extensions/libipt_flow.man	2004-10-28 14:54:42.386556368 -0500
+@@ -1,6 +1,6 @@
+ This module, when combined with connection tracking, allows access to
+ IP, ICMP, TCP and UDP flow counts per source IP address (IP_CT_DIR_ORIGINAL
+-state from ip_conntrack)  This match module can only be used in the filter
++state from ip_conntrack)  This match module can not be used in the raw
+ table.
+ .TP
+ .BI "--maxip "   "n"
+
+--h31gzZEtNLTqOjlF--
