@@ -1,14 +1,16 @@
-From: "Ranjeet Shetye" <ranjeet.shetye@zultys.com>
-Subject: How do I add a 1:1 port-forwarding capability for a DNAT port-range to NetFilter ?
-Date: Fri, 13 Dec 2002 10:01:32 -0800
+From: "Brian J. Murrell" <netfilter@interlinx.bc.ca>
+Subject: Re: separation of sysctl and tcp-window-tracking patch?
+Date: 13 Dec 2002 16:45:02 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000d01c2a2d1$ab576050$0100a8c0@zultys.com>
+Message-ID: <1039815902.6247.8.camel@pc>
+References: <1039702486.2373.17.camel@pc>
+	 <Pine.LNX.4.44.0212130314131.2834-100000@shieldbreaker.l33tskillz.org>
+	 <20021213120625.GA21253@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-0K8nv8fp5ETNxv/vII6k"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20021213120625.GA21253@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,48 +22,48 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-This is what I posted on the user-mailing list yesterday.
+--=-0K8nv8fp5ETNxv/vII6k
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
----------------------------------------------------------------
-DNAT:
+On Fri, 2002-12-13 at 07:06, Patrick Schaaf wrote:
+> > Failing a helper, I'm unable to come up with anything better than
+> > adjusting timeouts on a per-port basis...
+>=20
+> What about a single new target, CTTIMEOUT or something, having a single
+> parameter, a relative timeout in seconds. Whenever that target hits,
+> and we have a connection hanging off our skb, the connection's timeout
+> will be refreshed to now+the_given_timeout.
 
-Is it possible to have a SINGLE (DNAT?) rule that will let me do 1:1
-port-forwarding over a range of ports while doing Destination NAT.
+I guess because the idea of a parameter to set the timeout has been
+floated before (by me and by others before me) and turned down (by
+Rusty) in favour of a (tunable) table in the UDP conntracker.  This
+would be to further autoconfiguration which Rusty is a great fan of.
 
-e.g. Any incoming connections to 64.1.0.20:100-101 need to be mapped to
-172.16.0.100:200-201 for the TCP protocol.
-such that a connection to port 101 will ALWAYS map to port 201 and a
-connection to port 100 will ALWAYS map to port 200.
 
-Under current DNAT port range scenario, the connection goes to the
-lowest port that is free e.g. a port 101 connection will be DNATt'ed to
-port 200 if port 200 is free.
+> I have not thought about the interplay with the current automatic
+> timeout selection. Anybody?
 
-The reason for wanting a 1:1 rule is for X windows and other fat port
-ranges. Dont want hundreds of rules in there if one can do the job. Can
-IPTables do it ? If so how ? If not, I guess I'll have to get in touch
-with the developers for tips on a good starting point.
----------------------------------------------------------------
+Which is probably why doing it in the udp conntracker, in a tunable
+table is the current way of thinking.  Should not be too difficult in
+fact.  I would attempt it myself if I could get a decent stretch of
+hacking time.
 
-The answer I got is that basically I have to modify the nat code. I have
-been reading the code for the last 2-3 days but I am competely lost as
-to where to start. Should I make the change in ip_nat_setup_info or
-get_unique_tuple or manip_pkt ? Any pointers/any help here is
-appreciated.
+b.
 
-Also, if anyone has an architectural diagram of NetFilter :D (mapping
-out the interactions between the various layers/components), that would
-be heaven!!!
+--=20
+Brian J. Murrell <netfilter@interlinx.bc.ca>
 
-Thanks in advance,
+--=-0K8nv8fp5ETNxv/vII6k
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-Ranjeet Shetye
-Senior Software Engineer
-Zultys Technologies
-771 Vaqueros Avenue
-Sunnyvale  CA  94085
-USA
-Ranjeet.Shetye@Zultys.com
-http://www.zultys.com/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
- 
+iD8DBQA9+lTdl3EQlGLyuXARAuorAKCxXf8Lc0HXGDu+ut7vF1mUJm1fVwCfR1oC
+zXJqfP3yiMHnAjkXbtzrmwg=
+=2njc
+-----END PGP SIGNATURE-----
+
+--=-0K8nv8fp5ETNxv/vII6k--
