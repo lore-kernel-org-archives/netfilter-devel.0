@@ -1,17 +1,15 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: iptables and external processes
-Date: Thu, 19 Feb 2004 14:26:31 +0100
+From: Jose Monteiro <jfmonteiro@netvisao.pt>
+Subject: Re: ipt_limit module with sun4u architectures
+Date: Thu, 19 Feb 2004 17:50:14 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1077197191.3684.13.camel@tech004.alphalink.fr>
-References: <Pine.LNX.4.44.0402172303080.3844-100000@filer.marasystems.com>
-	 <20040217161130.K27680@tempest.prismnet.com>
-	 <1077060658.2011.19.camel@ca.gts.nexusmgmt.com>
+Message-ID: <20040219175014.GA12545@primewebs.net>
+References: <20040210184338.GA3237@primewebs.net> <20040214202227.GV7756@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-/C/QSrEwdueAsiWDZqle"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-In-Reply-To: <1077060658.2011.19.camel@ca.gts.nexusmgmt.com>
+To: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20040214202227.GV7756@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,47 +20,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, Feb 14, 2004 at 09:22:27PM +0100, Harald Welte wrote:
+> I'm not aware of any possible workaround that would not make all 32bit
+> architectures require to recompile their iptables userspace :(
+> 
+> https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=94
 
---=-/C/QSrEwdueAsiWDZqle
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+The thing is, old ultrasparcs can be reused as firewalls. But now, the os/software issue comes.
 
-Le mer 18/02/2004 =E0 00:30, John A. Sullivan III a =E9crit :
+Suppose for instance, that management demands messenger audio/video through the firewall, even after being told about the riscs involved. sysadmins refuse to trade the existing sun4u/ipfilter solution for a m$ one, and they happen to have an unused ultrasparc.
 
-> We are looking to set up a light-weight user authentication service for
-> wireless.  We know the Nu-FW folks have done a good job of creating a
-> robust user authentication service
+porting intel's upnp sdk for solaris is out of the question, so other unix must be loaded. thinking of a *bsd is pointless because the existing ports of this sdk do not cleanly (if at all) compiles under a sun4u.
 
-Thank you :-)
+So we are left with the linux solution. debian's sparc port is ok, and upnpd/linux-igd compiles fine.
 
->  but we think that we can take some of
-> the practices we have learned from using the excellent Qt toolkit to
-> create a simple client service that will pre-authenticate to a Linux
-> wireless access-point.
+Now comes the iptables logging issue. If we log, the firewall is DoS'ed with a simple nmapping, so ipt_limit must be used, and because it cannot be used in 64bit/kernel 32bit/userland architectures, we are left with a perfectly running firewall but without any logging of its activity.
 
-Using nufw you can authenticate packets by connection and avoid any
-problem with spoofing. I think we've to get rid of the old association
-User<->IP that brings too much complexity and a lot of problems.
+Since this bug is already very old (2003-05-29), and probably there aren't that few sun4u/linux/iptables users as it could be supposed (partly because of the line of reasoning above, who knows), i was coming for the help of you guys to see if a patch is made available.
 
-If you like some help on how to implement nufw protocols (to be able
-write a graphical client to nufw) I'm at your disposal.
-
-BR,
---=20
-Eric Leblond
-NuFW, Now User Filtering Works (http://www.nufw.org)
-
---=-/C/QSrEwdueAsiWDZqle
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e=2E?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBANLmHnxA7CdMWjzIRAscHAJ9YmpeWqRJ+qSgjuJ0OboLeDk4MZgCfXWuX
-rAT+dpglfQqj6GRliMxNjyg=
-=P+cZ
------END PGP SIGNATURE-----
-
---=-/C/QSrEwdueAsiWDZqle--
+Thx,
+Jose
