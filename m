@@ -1,17 +1,16 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [jorge@dti2.net: Re: Fw: PROBLEM: PATCH for 2.4.23-pre4 and up
- hang on one system]
-Date: Wed, 12 Nov 2003 00:47:00 -0800
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: RE: Memory leaks in ip_conntrack?
+Date: Wed, 12 Nov 2003 13:54:43 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031112004700.69796de6.davem@redhat.com>
-References: <20031112083357.GA19776@obroa-skai.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0311121353180.26788-100000@blackhole.kfki.hu>
+References: <EFBADA8C200C2B418DA39734FD15475B0B2061@skat.sky.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: marcelo.tosatti@cyclades.com.br, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter@lists.netfilter.org>,
+	"'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20031112083357.GA19776@obroa-skai.de.gnumonks.org>
+To: Kishore Dharmavaram <kishored@servgate.com>
+In-Reply-To: <EFBADA8C200C2B418DA39734FD15475B0B2061@skat.sky.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,27 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 12 Nov 2003 09:33:57 +0100
-Harald Welte <laforge@gnumonks.org> wrote:
+On Tue, 11 Nov 2003, Kishore Dharmavaram wrote:
 
-> Since there is now a second bug report on that 'fix', I think it's
-> better to back it out for 2.4.23.  The code has been without that 'fix'
-> for the whole 2.4.x time, and it didn't seem to cause any real problem.
-> 
-> So rather than fixing the theoretical case, I'd say we keep the code
-> like before (please revert the below patch) and make user complaints go
-> away.
-> 
-> We'll try to investigate this further, but not before 2.4.23.
+> It seems some patches were already applied on base 2.4.20 kernel netfilter
+> sources that iam working with, is there a way to findout what patches were
+> applied on netfilter code? and are some must-apply patches for 2.4.20?, if
+> so can you please give me a list or pointout few?
 
-Ok, no problem.
+Run './runme extra' from patch-o-matic with pointing to the correct kernel
+tree and don't apply any patches. The already applied ones will be listed
+on your screen.
 
-Marcelo, you can revert this change in your tree simply by
-running the following command:
-
-	bk cset -x1.1063.41.4
-
-Please do so, thanks everyone.
-
-We can reinvestigate this in 2.4.24 if we figure out what was
-wrong.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
