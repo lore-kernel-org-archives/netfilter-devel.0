@@ -1,16 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: default behavior & skb_linearize
-Date: Fri, 15 Aug 2003 20:28:52 +0200
+From: "Yong Li" <sdssly@sina.com>
+Subject: IP fragment question?
+Date: Sat, 16 Aug 2003 09:47:57 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030815182851.GB3190@oknodo.bof.de>
-References: <200308151756.h7FHus514738@p2.parker.boston.ma.us>
+Message-ID: <000c01c36398$6d9d9ad0$bb42f2da@win2ken>
+References: <20030731222640.2767.4272.Mailman@kashyyyk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Brad Parker <brad@parker.boston.ma.us>
-Content-Disposition: inline
-In-Reply-To: <200308151756.h7FHus514738@p2.parker.boston.ma.us>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,21 +20,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> I want to so some work with iptables in a 2.4.20 kernel.
+Hello All,
 
-Try a current kernel. Apply patch-o-matic/pending from CVS.
+I installed a hook on IP FORWARD point. If I modify the skb len > MTU. the
+packet cannot be sent. However, I foun Linux calls the ip fragment function
+in the ip xmit function in ip_output.c. Why this modified skb missing?
 
-> aside: I am assuming that if I turn on netfilter and connection tracking
-> the "default" (i.e. no external rules loaded via iptables) should pass
-> everything and the kernel nfs client should continue to work.  This is
-> true, yes?
+Do I need to perform the IP fragment task?
 
-An emphatic YES: that's how it _should_ be.
+If so, can I perform the task in this hook function?
 
-> I can send the interesting parts of my .config if needed.
-
-Only with a current kernel, I fear. 2.4.20, as far as I remember,
-is supposed to be broken in the iptables area.
-
-best regards
-  Patrick
+Thank you
