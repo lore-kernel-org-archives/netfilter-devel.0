@@ -1,17 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
-Date: Wed, 17 Mar 2004 11:51:54 +0100 (CET)
+Subject: Re: blocking/allowing particular protocol
+Date: Wed, 17 Mar 2004 12:00:35 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403171145200.6035-100000@filer.marasystems.com>
-References: <1079516281.4874.11.camel@vijay>
+Message-ID: <Pine.LNX.4.44.0403171152170.6035-100000@filer.marasystems.com>
+References: <0C674B14EAEBD61196D900B0D03DB49F01C1EA52@blrw502w.blr.infineon.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: KOVACS Krisztian <hidden@balabit.hu>,
-   Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-   netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
-In-Reply-To: <1079516281.4874.11.camel@vijay>
+To: "Kumar Shobhit (IFIN DC COM)" <Shobhit.Kumar@infineon.com>
+In-Reply-To: <0C674B14EAEBD61196D900B0D03DB49F01C1EA52@blrw502w.blr.infineon.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,18 +20,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 17 Mar 2004, Vijaya Chandra Vupputuri wrote:
+On Wed, 17 Mar 2004, Kumar Shobhit (IFIN DC COM) wrote:
 
-> 've tried to do the same but I don't seem to have any problem on a test
-> box with redhat 7.3 (2.4.18-3)
+> I am pretty new to all this stuff. I want to know if it is possible to
+> block/allow a particular protocol. For example, HTTP can work on various
+> ports, So instead of blocking/allowing a particular port can I
+> allow/block HTTP itself i.e to allow HTTP traffic on any port.
 
-And you have built your kernel with CONFIG_IP_NF_LOCAL_NAT disabled in
-your kernel config? This is required to enable the assymetry in the NAT
-code mentioned by KOVACS.
+It is not possible to reliably identify HTTP traffic, and further this is 
+extremely hard to do correctly at packet level simply because you can not 
+at all see the protocol data unless you accept the session to be set up 
+and even allow forwarding of protocol payload until the protocol can be 
+reliably identified by its payload.
 
-At least in the RedHat 2.4.20-28.7 kernel CONFIG_IP_NF_LOCAL_NAT is
-enabled by default, so unless you have built a custom RedHat kernel with
-this disabled you should not see the issue mentioned.
+The best way to do this reliably is by proxies. Set up a HTTP proxy and
+have your clients configured to use this. Then block any direct access to
+Internet not using the proxy.
+
+> Another question which I couldn't find an answer to is, when in the
+> conntrack/NAT code is the ip_nat_info structure initialized
+
+It is set up by the NAT targets/helpers by calling ip_nat_setup_info, or
+implicitly by the NAT table if there is no NAT target in the hook.
 
 Regards
 Henrik
