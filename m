@@ -1,15 +1,16 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: ipt_recent-0.2.0 BETA
-Date: Fri, 7 Jun 2002 11:41:04 -0400
+From: Guillaume Morin <guillaume@morinfr.org>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Fri, 7 Jun 2002 20:36:00 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020607154104.GA9519@ns>
+Message-ID: <20020607183600.GD630@morinfr.org>
+References: <E17G6im-0000FK-00@wagner.rustcorp.com.au> <3D006B9E.1040809@cs.auc.dk> <200206071105.42881.hno@marasystems.com> <3D007D73.9030609@cs.auc.dk> <20020607094319.GA595@morinfr.org> <3D00839F.6000103@cs.auc.dk> <20020607101713.GB595@morinfr.org> <3D009951.5090004@cs.auc.dk> <20020607133300.GD595@morinfr.org> <3D00CDB4.3060605@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Cc: Netfilter User List <netfilter@lists.samba.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Netfilter Devel List <netfilter-devel@lists.samba.org>
+To: netfilter-devel@lists.samba.org
 Content-Disposition: inline
+In-Reply-To: <3D00CDB4.3060605@cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,43 +21,31 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Emmanuel,
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Dans un message du 07 Jun à 17:13, Emmanuel Fleury écrivait :
+> >The documentation is correct because it means
+> >the connection in the conntrack sense NOT in the TCP sense.
+> 
+> I disagree on this point. The documentation is not correct.
+> 
+> Or, at least, the documentation is not precise enough to figure out
+> this particular point (and this can lead the users to have some flaws
+> in their firewall).
 
-Hey all,
+The documentation is correct because it assumes you understand
+"connection" as a conntrack entry. I do agree that it should be 
+more explicit.
 
-  There have been some questions on these lists regarding my 'recent'
-  module and just wanted to drop a short note letting people know that
-  I've released a *BETA* version of the module on my site
-  (http://snowman.net) at http://snowman.net/projects/ipt_recent/ .
-  This is still very much beta code.  I've tested it some on a spare
-  machine that I have but have not yet put it on my production firewall.
+> The funny thing is that if you have a bad ruleset, you can easily be
+> DOSed by some external people which are just sending random ACK packets.
+> 
+> Those ACKs will create entries in your connection table as ESTABLISHED
+> connections with a time-out of.... 5 days !!!!! 8-)
 
-  I'd love to hear feedback from people on how well it works for them.
-  I'll be doing some more testing of all the various module options,
-  iptables options and stress testing with my test machine and once I
-  think it's stable enough will put it on my production firewall.  A few
-  days or maybe a week after that I'll submit a patch against the
-  Netfilter CVS tree to update the version there.
+Well no, since the concerned box will reply with a RST.
 
-	Thanks,
-  =09
-		Stephen
+-- 
+Guillaume Morin <guillaume@morinfr.org>
 
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9ANQPrzgMPqB3kigRAiIUAJ940n1oRa9YR5s1FQeqXf+yHm7TMgCfZDUm
-AMO98A6KTyN3rJSuQv67crI=
-=Jrm2
------END PGP SIGNATURE-----
-
---T4sUOijqQbZv57TR--
+              Why critize what you don't understand ? (Sepultura)
