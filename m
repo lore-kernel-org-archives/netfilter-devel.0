@@ -1,17 +1,17 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
 Subject: Re: performance issues (nat / conntrack)
-Date: Tue, 25 Jun 2002 17:13:02 +0200
+Date: Tue, 25 Jun 2002 17:22:49 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020625151302.GA21293@balabit.hu>
-References: <01ff01c21c45$c90eb2a0$0489cb8a@etbx180> <Pine.LNX.4.33.0206251548230.539-100000@blackhole.kfki.hu>
+Message-ID: <20020625152249.GB21293@balabit.hu>
+References: <021a01c21c4b$47b2f2b0$0489cb8a@etbx180> <Pine.LNX.4.33.0206251636130.539-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Cc: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>,
-	netfilter-devel@lists.samba.org
+	Harald Welte <laforge@gnumonks.org>, netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0206251548230.539-100000@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0206251636130.539-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,27 +22,26 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 25, 2002 at 04:17:54PM +0200, Jozsef Kadlecsik wrote:
+On Tue, Jun 25, 2002 at 04:53:33PM +0200, Jozsef Kadlecsik wrote:
 > On Tue, 25 Jun 2002, Jean-Michel Hemstedt wrote:
-> > > The book-keeping overhead is at least doubled compared to the
-> > > conntrack-only case - this explains pretty well the results you got.
-> >
-> > what do you mean by 'book-keeping' ?
-> > Does NAT do a lookup even if there are no rules?
+> > PS: could anybody redo similar tests so that we can compare the results
+> >     and stop killing the messenger, please? ;o)
 > 
-> I have to write again: even if there are no any rules, NULL
-> mapping happens and new connections must be put into both nat hashes.
+> Sorry if I look harsh, it's not my intention at all. We were simply over
+> almost exaclty the same arguments several times. And those resulted
+> neither pinpointing real flaws in the system, nor better algorithms.
 
-This should not explain the performance degradation others found. If no
-rules are found in the table, the conntrack entry is added to the NAT
-hashes. (place_in_hashes() function), this involves adding the entry to two
-linked lists (changes two pointers per list), and then calling do_bindings()
-which does nothing (num_manips == 0) except for calling helpers, which
-should be none, if helper modules are not loaded.
+no only head pointers for hashes are preallocated. conntrack structures
+themselves are allocated by the slab allocator: kmem_cache_alloc() called in
+init_conntrack() which initializes a single conntrack entry.
 
-Adding entries to the NAT hashes doesn't involve memory allocation (NAT info
-is stored in ip_conntrack), therefore I don't see the reason for the 50%
-performance decrease.
+So the initial memory allocations for conntrack and nat are
+
+conntrack: htable_size * 8 
+
+(8 is sizeof(list_head))
+
+nat: 2 * htable_size * 8
 
 -- 
 Bazsi
