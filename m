@@ -1,13 +1,17 @@
 From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: ct_sync for Linux 2.6.10
-Date: Tue, 11 Jan 2005 00:22:19 +0100
-Message-ID: <1105399340.2948.29.camel@krak.odu>
+Subject: Re: [nf-failover] ct_sync for Linux 2.6.10
+Date: Tue, 11 Jan 2005 15:20:00 +0100
+Message-ID: <1105453200.9187.1.camel@nienna.balabit>
+References: <1105399340.2948.29.camel@krak.odu>
+	<1105447763.17258.5.camel@shreya1.diwancomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel list <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter-devel list <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+In-reply-to: <1105447763.17258.5.camel@shreya1.diwancomputing.com>
+To: madhav@diwancomputing.com
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,41 +26,13 @@ List-Id: netfilter-devel.vger.kernel.org
 
   Hi,
 
-  After some more hacking on ct_sync, I've finally committed the Linux
-2.6 version to a separate branch in the Netfilter SVN repository. The
-README file and the example scripts have been updated to reflect the
-numerous changes I've made while doing the porting and some
-restructuring. The changes include:
+2005-01-11, k keltez=E9ssel 07.49-kor Madhav Diwan ezt =EDrta:
+> The following compile time errors were found after patching stock k=
+ernel
+> 2.6.10  with ct-cync big patch
 
-      * some important parameters of ct_sync can be tuned on-the-fly
-        using sysctl; the path under /proc has changed as well (see
-        README for more information)
-      * the required patchset touching core Netfilter parts has been
-        substantially simplified (many thanks to Pablo Neira for his new
-        per-packet conntrack notifiers patch)
-      * loadable module arguments have changed, the only mandatory
-        parameter is 'syncdev'
-      * the internal NOTRACK hook can be disabled (although this is not
-        recommended and may cause severe problems if used without the
-        necessary NOTRACK rules in place)
+  Thanks, I'll take care of these. Some of these happen only if
+debugging is turned off, probably that's why I did not see them. :)
 
-  All the code can be found in the SVN repository at:
-
-  http://svn.netfilter.org/netfilter/branches/netfilter-ha/linux-2.6
-
-or alternatively in my public GNU Arch (tla) archive here:
-
-  http://people.netfilter.org/hidden/archives/2005-public
-
-  To simplify the lengthy and complicated kernel patching procedure
-using quilt, I've created a single patch of the current ct_sync snapshot
-for Linux 2.6.10, it's available here:
-
-  http://people.netfilter.org/hidden/ct_sync/snapshots/
-
-  As always, I have to point out that this version of ct_sync has had
-very limited testing until now, so it's still experimental quality code
-not recommended for production systems.
-
--- 
-  Krisztian Kovacs
+--=20
+KOVACS Krisztian <hidden@sch.bme.hu>
