@@ -1,16 +1,18 @@
-From: Thomas Poehnitzsch <thomas.poehnitzsch@informatik.tu-chemnitz.de>
-Subject: Re: libiptc/rules with MAC match
-Date: Wed, 12 Feb 2003 22:05:22 +0100
+From: DarKRaveR <DarKRaveR@habitat-b.de>
+Subject: Re[2]: libiptc/rules with MAC match
+Date: Wed, 12 Feb 2003 22:53:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030212210522.GG30133@calix.csn.tu-chemnitz.de>
+Message-ID: <13014040629.20030212225349@habitat-b.de>
 References: <647994215.20030212211303@habitat-b.de>
+ <20030212210522.GG30133@calix.csn.tu-chemnitz.de>
+Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CGDBiGfvSTbxKZlW"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <647994215.20030212211303@habitat-b.de>
+To: Thomas Poehnitzsch <thomas.poehnitzsch@informatik.tu-chemnitz.de>
+In-Reply-To: <20030212210522.GG30133@calix.csn.tu-chemnitz.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,66 +23,55 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Thomas,
 
---CGDBiGfvSTbxKZlW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Kewl, thanx for that so far, it sounds really promising, now the term
+'mask' makes sense and it opens a whole new arsenal of possibilities
+how to define rules. I really never came across this, but this might
+really help me, I could gather all vlan devices on on NIC, nice stuff,
+thnx.
 
-Hi,
+Wednesday, February 12, 2003, 10:05:22 PM, you wrote:
 
-On Wed, Feb 12, 2003 at 09:13:03PM +0100, DarKRaveR wrote:
+TP> Hi,
 
->   Within this struct there an ipt_ip struct, with the properties:
->   char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
->   unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
->=20
->   What's the difference between those two ?
+TP> On Wed, Feb 12, 2003 at 09:13:03PM +0100, DarKRaveR wrote:
 
-just have a look at parse_interface() in $IPT_SOURCE/iptables.c or
-ip_packet_match() in $KERNELDIR/net/ipv4/netfilter/ip_tables.c.
+>>   Within this struct there an ipt_ip struct, with the properties:
+>>   char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
+>>   unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
+>> 
+>>   What's the difference between those two ?
 
-
-To make a long story short:=20
-
-Iptables allows you to specify a device like this: "-i eth+", which
-means all devices that start with "eth".
-
-In this example iniface would contain: "eth+", whereas iniface_mask
-contains something like { 0xFF,0xFF,0xFF,NULL }.
-
-So when iptables comes to compare the actual device with the device
-specified in the rule it compares only the first 3 caracters.
-
-Example:
-
-eth1  actual device of packet
-eth+  device in rule
-1110  mask (see every "1" as a "0xFF" for a character comparator)
-----
-eth   -> match
+TP> just have a look at parse_interface() in $IPT_SOURCE/iptables.c or
+TP> ip_packet_match() in $KERNELDIR/net/ipv4/netfilter/ip_tables.c.
 
 
-At least this is how I understood the sources.
+TP> To make a long story short: 
 
-Ciao!
-    Thomas
+TP> Iptables allows you to specify a device like this: "-i eth+", which
+TP> means all devices that start with "eth".
 
---=20
-In theory, there is no difference between theory and practice.
-In practice, there is.
+TP> In this example iniface would contain: "eth+", whereas iniface_mask
+TP> contains something like { 0xFF,0xFF,0xFF,NULL }.
 
---CGDBiGfvSTbxKZlW
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+TP> So when iptables comes to compare the actual device with the device
+TP> specified in the rule it compares only the first 3 caracters.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+TP> Example:
 
-iD8DBQE+SrcRT7fd1jhuy5cRAvqzAJsFsOCWZ5IsTVLuhoRDZ+zLvPHfuQCePx3b
-KT2ZBQZGWKtEXLwyIIH37Sg=
-=Th26
------END PGP SIGNATURE-----
+TP> eth1  actual device of packet
+TP> eth+  device in rule
+TP> 1110  mask (see every "1" as a "0xFF" for a character comparator)
+TP> ----
+eth   ->> match
 
---CGDBiGfvSTbxKZlW--
+
+TP> At least this is how I understood the sources.
+
+TP> Ciao!
+TP>     Thomas
+
+-- 
+Best regards,
+ DarKRaveR                            mailto:DarKRaveR@habitat-b.de
