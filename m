@@ -1,12 +1,17 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: About a patch to unclean module.
-Date: Fri, 21 Jun 2002 21:00:04 +0200 (CEST)
+From: Stephen Frost <sfrost@snowman.net>
+Subject: Re: [ANNOUNCE] netfilter/iptables Anonymous CVS has been moved
+Date: Fri, 21 Jun 2002 15:55:08 -0400
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.21.0206212050210.23485-100000@dns.toxicfilms.tv>
+Message-ID: <20020621195508.GO9519@ns>
+References: <20020620213808.X2543@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oDC9hS5pdmSx9NIc"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: Harald Welte <laforge@gnumonks.org>
+Content-Disposition: inline
+In-Reply-To: <20020620213808.X2543@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -17,23 +22,35 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-I may say now, that I have finished writing the module, updating the
-lipipt_unclean.c, I have created the patches to the netfilter tree.
+--oDC9hS5pdmSx9NIc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-But, suppose, Harald applies the patch. It will change libipt_unclean.c
-in a way, that withougt running patch-o-matic it will not compile, because
-it uses an include file
-KERNEL_DIR/include/linux/netfilter_ipv4/ipt_unclean.h which will be only
-available after patching the kernel tree.
+* Harald Welte (laforge@gnumonks.org) wrote:
+> The anonymous CVS repository for the netfilter/iptables project has been
+> moved.
 
-So how do we solve that?
-I see it by adding ipt_unclean.h to the netfilter tree.
+Harald,
 
-Or maybe I am missing something or forgetting about something, some simple
-solution.
+  Is there anything we need to do to get back on the netfilter
+  cvs-commits list?  I havn't seen any commits since the 18th so I'm
+  guessing either we have to subscribe to a new list or you're still
+  working on getting that part up again?
 
+  	Stephen
 
-Regards,
-Maciej Soltysiak
+--oDC9hS5pdmSx9NIc
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9E4ScrzgMPqB3kigRAkgDAJ9ZVdzTMAa5h5j0D2nOUERHSMq3twCeN3uD
+KWVsRB7PvPFpHHLjw/Bnm1o=
+=aTLu
+-----END PGP SIGNATURE-----
+
+--oDC9hS5pdmSx9NIc--
