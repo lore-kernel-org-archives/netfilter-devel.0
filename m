@@ -1,11 +1,11 @@
-From: Don Mahurin <dmahurin@dma.org>
-Subject: New netfilter modules: RELAY, SOURCE, DEST
-Date: Fri, 04 Jun 2004 16:33:22 -0700
+From: James Morris <jmorris@redhat.com>
+Subject: Developers please read: changes in Netfilter.
+Date: Fri, 4 Jun 2004 19:55:57 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40C106C2.3050605@dma.org>
+Message-ID: <Xine.LNX.4.44.0406041936330.14989-100000@thoron.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@oss.sgi.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,33 +18,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have written some new netfilter/iptables modules that do the following:
+Netfilter developers should be aware of a changeset now merged into Linus'
+bk tree.  A section of code in nf_hook_slow() which invalidates hardware
+checksums and recalculates them on output paths has been removed and
+pushed up to the Netfilter components which actually mangle packets (e.g.
+NAT).
 
-RELAY - smart UDP relay, that learns and relays packets from and to the 
-endpoint pair that connect to each port in a specified range. The 
-source, destination and checksums of relayed packets are adjusted. This 
-is useful for servers that act as a middle man in a large number of UDP 
-data connections. A /proc interface is implemented to manage ports. The 
-/proc interface replaced a netlink interface which remains in the driver.
-I have tested the RELAY for about 2000 bi-directional channels with over 
-900Mbs of data.
+What this means is that any new code, or out of tree code (e.g. POM) needs
+to be reviewed to ensure that it handles hardware checksumming correctly
+itself, as the netfilter core code no longer does this.  (Although note 
+that NAT targets/helpers are covered automatically).
 
-SOURCE - mangles packets changing the source address without the 
-overhead and connection tracking associated with NAT.
+Briefly, what needs to be done is: before mangling a packet in a way which
+might affect the TCP or UDP checksum, if the packet has hardware
+checksumming enabled, call skb_checksum_help().
 
-DEST - mangles packets changing the destination address without the 
-overhead and connection tracking associated with NAT.
+For more details & code examples, refer to the changeset info:
+<http://linux.bkbits.net:8080/linux-2.5/cset@40c002854YGOfqN8yOMFH8gC2xarLw?nav=index.html|ChangeSet@-1d>
+<http://linux.bkbits.net:8080/linux-2.5/cset@40c0e261NUNg6uPWlw-lTjG5StoDwQ?nav=index.html|ChangeSet@-1d>
 
-I have put together the changes in patch-o-matic-ng format, but I am not 
-sure where to send that.
 
-http://berkeley.innomedia.com/pub/source/ipt_relay/
-http://berkeley.innomedia.com/pub/source/ipt_relay/README.txt
-http://berkeley.innomedia.com/pub/source/ipt_relay/linux/patch-o-matic-ng/
 
-Note that currently, the RELAY module requires an allow-spoofing patch, 
-as when RELAY is used normally in PREROUTING, it changes the destination 
-to the other endpoint and the source to itself. Then the spoofing check 
-code sees this as an external packet pretending to be itself.
-
--don
+- James
+-- 
+James Morris
+<jmorris@redhat.com>
