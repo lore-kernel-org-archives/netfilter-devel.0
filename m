@@ -1,13 +1,18 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] Fix LIST_INSERT breakage
-Date: Tue, 23 Mar 2004 17:02:30 -0800
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] peer_pid checking in ip_queue
+Date: Wed, 24 Mar 2004 03:11:42 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040324010230.GA4144@linuxace.com>
+Message-ID: <4060EE5E.3020202@trash.net>
+References: <Pine.LNX.4.44.0403240106490.15222-100000@filer.marasystems.com> <4060D969.9040900@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+ netfilter-devel@lists.netfilter.org,
+ Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4060D969.9040900@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,35 +23,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In 2.4.25, this patch was included:
+Pablo Neira wrote:
+> Hi,
+> 
+> Henrik Nordstrom wrote:
+> 
+>> What about when the user program closes? How bad it is to have read 
+>> the pid and then there is no userspace there?
+>>  
+>>
+> As Patrick pointed out before, netlink is not reliable, so it will drop 
+> the packets sent to an user space which doesn't exist without 
+> notification. But if the user space program closes properly, peer_pid 
+> will be reset. Have a look at ipq_rcv_nl_event and netlink_release. 
+> AFAIK, if the user space program hangs or dies, kernel will release the 
+> socket later, so for quite some time netlink will drop packets. Am I right?
 
-http://linux.bkbits.net:8080/linux-2.4/cset@3fcc5cc99cChx6Q0shnhIlekWT1-5Q?nav=index.html|ChangeSet@-4M
+Well, if it hangs the socket buffer will fill over time until
+it reaches its limits, but there is nothing we can do. But
+we can do something for the almost-known-no-listener case :)
 
-which has a questionable change in LIST_INSERT due to the disappearing
-cmpfn.  But it appears this macro is unused anywhere in the tree, so perhaps
-removing it is better than fixing it?
+Regards
+Patrick
 
-Phil Oester
-
-
-
---- include/linux/netfilter_ipv4/listhelp.h-orig        2004-03-23 19:57:00.696775216 -0500
-+++ include/linux/netfilter_ipv4/listhelp.h     2004-03-23 20:01:09.603032216 -0500
-@@ -89,17 +89,6 @@
-        list_add(new, head);
- }
- 
--/* Insert according to ordering function; insert before first true. */
--#define LIST_INSERT(head, new, cmpfn)                          \
--do {                                                           \
--       struct list_head *__i;                                  \
--       ASSERT_WRITE_LOCK(head);                                \
--       list_for_each(__i, (head))                              \
--               if ((new), (typeof (new))__i)                   \
--                       break;                                  \
--       list_add((struct list_head *)(new), __i->prev);         \
--} while(0)
--
- /* If the field after the list_head is a nul-terminated string, you
-    can use these functions. */
- static inline int __list_cmp_name(const void *i, const char *name)
+> 
+> regards,
+> Pablo
+> 
