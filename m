@@ -1,15 +1,12 @@
-From: Raivis Bucis <raivis@mt.lv>
-Subject: kernel crash [problem with helpers]
-Date: Wed, 26 May 2004 14:12:32 +0300
+From: Natty McButterpants <ipv6natlover@yahoo.com>
+Subject: NAT for IPv6 FINISHED!!!!!
+Date: Mon, 24 May 2004 14:19:02 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200405261412.32587.raivis@mt.lv>
+Message-ID: <20040524211902.69395.qmail@web90004.mail.scd.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="0-271857283-1085433542=:67125"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,42 +17,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-ip_conntrack assumes that expect->expectant->helper allways will be non null, 
-but that is not allways the case.
+--0-271857283-1085433542=:67125
+Content-Type: text/plain; charset=us-ascii
 
-When tftp conntrack is used, on first received UDP packet, tfp helper adds 
-expectation. If it gets NATed later to some other port, 
-ip_conntrack_alter_reply will set its helper to NULL, but expectation is 
-still kept, and when expected conntrack is created, its master conntrack 
-doesn't have helper anymore. This leads to kernel oops in list_conntracks 
-when reading "/proc/net/ip_conntrack", etc.
+Gentlemen,
+     We have finished the NAT development for IPv6.  It properly translates ICMPv6, UDP, and TCP packets.  We still need to clean up the code, perform a few more tests and what not.  We used ping6, traceroute6, and rlogin along with Ethereal and staring at a lot of tcpdump hex output in order to test the NAT.  We have not yet ported over support for application level stuff like TFTP, FTP, etc, but it does not appear to be too difficult and we may get that out at some point.  Additionally, we need to compile in DNAT support into the ip6tables user-space tool, as right now SNAT is all that is compiled in.  The code is rough, but it works, and as soon as we get it annotated and cleaned up into a tarball, we'll send it out to whomever wants it.  
+ 
+In response to Jozsef Kadlecsik's question:
+>     I hope this work is based on Yasuyuki Kozakai's nf_conntrack
+>generalization...
+>
+>Best regards,
+>Jozsef
 
-Therefore I propose following fix:
+     Yes, we used USAGI's 2.6.5 kernel with their included connection tracking suite to develop and test our NAT.  We only had to make a few minor modifications.
+ 
+ 
+ 
 
-diff -u -r1.13 ip_conntrack_core.c
---- ip_conntrack_core.c 9 Jan 2004 07:52:10 -0000       1.13
-+++ ip_conntrack_core.c 26 May 2004 11:05:23 -0000
-@@ -1139,10 +1139,13 @@
-        DUMP_TUPLE(newreply);
+		
+---------------------------------
+Do you Yahoo!?
+Friends.  Fun. Try the all-new Yahoo! Messenger
+--0-271857283-1085433542=:67125
+Content-Type: text/html; charset=us-ascii
 
-        conntrack->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
--       if (!conntrack->master)
--               conntrack->helper = LIST_FIND(&helpers, helper_cmp,
--                                             struct ip_conntrack_helper *,
--                                             newreply);
-+       if (!conntrack->master) {
-+               struct ip_conntrack_helper *newhelper;
-+               newhelper = LIST_FIND(&helpers, helper_cmp,
-+                                     struct ip_conntrack_helper *,
-+                                     newreply);
-+               if (newhelper) conntrack->helper = newhelper;
-+       }
-        WRITE_UNLOCK(&ip_conntrack_lock);
-
-        return 1;
-
-
-Or maybe, we should check whether it has expectations before looking for new 
-helper.
-
-Raivis Bucis
+<DIV>Gentlemen,</DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp; We have finished the NAT development for IPv6.&nbsp; It properly translates ICMPv6, UDP, and TCP packets.&nbsp; We still need to clean up the code, perform a few more tests and what not.&nbsp; We used ping6, traceroute6, and rlogin along with Ethereal and staring at a lot of tcpdump hex output in order to test the NAT.&nbsp; We have not yet ported over support for application level stuff like TFTP, FTP, etc, but it does not appear to be too difficult and we may get that out at some point.&nbsp; Additionally, we need to compile in DNAT support into the ip6tables user-space tool, as right now SNAT is all that is compiled in.&nbsp; The code is rough, but it works, and as soon as we get it annotated and cleaned up into a tarball, we'll send it out to whomever wants it.&nbsp; </DIV>
+<DIV>&nbsp;</DIV>
+<DIV>In response to Jozsef Kadlecsik's question:</DIV>
+<DIV>&gt;&nbsp;&nbsp;&nbsp;&nbsp; I hope this work is based on Yasuyuki Kozakai's nf_conntrack<BR>&gt;generalization...<BR>&gt;<BR>&gt;Best regards,<BR>&gt;Jozsef<BR></DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp; Yes, we used USAGI's 2.6.5 kernel with their included connection tracking suite to develop and test our NAT.&nbsp; We only had to make a few minor modifications.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV><p>
+		<hr size=1><font face=arial size=-1>Do you Yahoo!?<br>Friends.  Fun. <a href="http://messenger.yahoo.com/">Try the all-new Yahoo! Messenger</a>
+--0-271857283-1085433542=:67125--
