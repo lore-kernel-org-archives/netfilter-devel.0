@@ -1,8 +1,8 @@
 From: Jay Schulist <jschlst@linux-sna.org>
-Subject: [PATCH] associate user defined name with rule match
-Date: Tue, 17 Sep 2002 22:48:04 -0700 (PDT)
+Subject: [PATCH] flow statistic match
+Date: Tue, 17 Sep 2002 23:44:38 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44L.0209172244330.10390-102000@hunger.screamingdaemon.com>
+Message-ID: <Pine.LNX.4.44L.0209172337160.10390-102000@hunger.screamingdaemon.com>
 Mime-Version: 1.0
 Content-Type: MULTIPART/Mixed; BOUNDARY="-1463811839-1663971492-1032326430=:10390"
 Cc: netfilter-devel@lists.netfilter.org,
@@ -29,96 +29,129 @@ Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
 Content-ID: <Pine.LNX.4.44L.0209172244332.10390@hunger.screamingdaemon.com>
 
 Hello Harald,
-Here is a new match which allows the user to associate a name with a rule.
-It is a very simple match, but it is useful if the user needs an easy way
-to track a rule by name.
+Here is a new match which adds per tuple packet and byte statistics along
+with allowing the user to match on the number of bytes and packets for a
+flow.
 
 Iptables userspace patch is against a clean iptables-1.2.7a
 Kernel patch is against a clean linux-2.4.19
 
-name v1.2.7a options:
- --n name                       name to associate with rule
+# cat /proc/net/ip_conntrack
+tcp      6 432000 ESTABLISHED src=192.168.1.3 dst=192.168.1.100 sport=22
+dport=3368 pkts=39 bytes=4024 src=192.168.1.100 dst=192.168.1.3 sport=3368
+dport=22 pkts=47 bytes=3512 use=1
+
+flow v1.2.7a options:
+   --lt-packet  num             Match on less than 'num' packet.
+   --lt-byte    num             Match on less than 'num' byte.
+   --gt-packet num              Match on greater than or equal 'num' packet.
+   --gt-byte   num              Match on greater than or equal 'num' byte.
 
 Thanks,
 jay-s.
 
 ---1463811839-1663971492-1032326430=:10390
-Content-Type: APPLICATION/octet-stream; name="linux-2.4.19-name-match-2002091811.diff.gz"
+Content-Type: APPLICATION/octet-stream; name="linux-2.4.19-flow-match-2002091812.diff.gz"
 Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44L.0209172248040.10390@hunger.screamingdaemon.com>
+Content-ID: <Pine.LNX.4.44L.0209172344380.10390@hunger.screamingdaemon.com>
 Content-Description: 
-Content-Disposition: attachment; filename="linux-2.4.19-name-match-2002091811.diff.gz"
+Content-Disposition: attachment; filename="linux-2.4.19-flow-match-2002091812.diff.gz"
 
-H4sICO4SiD0CA2xpbnV4LTIuNC4xOS1uYW1lLW1hdGNoLTIwMDIwOTE4MTEu
-ZGlmZgClV3tz2jgQ/7t8ii3ptIB5N03zaDPhKCHpETdTnLmb6XU8wpaxipE9
-spyWy+S730o25hVIcmXAI6/28dO+tLjM86AmEhMCxpNftXZ9v946qjkBJbzB
-uBMkLm3orQan0mOBpMJm0e1+g0XS5mRK6/6K6FOFCrVa7TdsvviLuvCJOvC2
-Ba2j42YTv7g4OCoYhvG/AGmNQxpB6xCareP24XHrCNrNZrtwdga1ZrUJRqt6
-CGdnBWOPedylHtiX15Ztdq569gUSkcI4XSNmxuHDFuu2JKOAxnX/tGAUjFiK
-xJEwBwV3BeOF4xMB6u2bUnx+Y3atyy+mfdX5WxkZ9MzvJwXjHn97lLvMg0Zl
-GQJUGgV3V4wRUUNjyaE1uiH32LjO+Kofd3Fui+YumRfngkEnGQO00c/Hb4+O
-9w9Sh2+EcKeatbhhMhwu4tZ+Vz0AA5/vVeQAwKXoc8FiSSSFNwDowL51AVMi
-HR/iJIpCId9A94t5ftlHP9rmObra6l7YGeOrlS10dOePQW/4kGbLGjxBreJ6
-uk7pRNM4fora7vXVcLhNs7Gp2VT59rhelVU78GL+fYPi6j6+mNbXTvfPIrz8
-CEVehO8nIH3KlcAmEAwsp45kIYeU9jioodWx1lHlVregBWXdY88ujisywToP
-6KMJOmd8RmnMRX6vMnItG4XRXiqMg7YqDHymhRGOftRelbb5tgzGR92VdETq
-4Q5+7E+DXsfMJRKuj7tTJk3WXCRNcpQwtkqoNMz5df9G/QXYA0nEmMr4QWNW
-52u/Z9lfe597XSuXTl9R/rmZkJt2Hg3JgvUZ2bAQesZl97ieRUa8fXf8rrlx
-xb3f13ccXiMLwWO11hdVVo0yBBLHocNUgRJ9PcFPJn1ciySgdewwFfXDao5m
-go19CSWnrG3BaAafyQyGjp8EWPbw4Ufs+EEsz2IyHZF6KManubjlsxgiEY4F
-mYJDOIwoCOqimGCjROJxQgHTEEPHcJ3grSxUawE89zSG0FMvWlHfvIE+5VSQ
-AK6TUcAcGDCH8hjhowVFiX1UgeCU/LmgFIahJ38SgW8haiaqJdU3UeFyGY/y
-QphIIHwGKCwIlzMFkk2jQGGc07QiBDilAm94jt5lAUtZPSY5xS7v4ZpARIRk
-ThLgFBAlIgrjJe8OEaWCu+N0nnYQHsKlkrAg1sINNWyszyboRhU6NYmsb8lZ
-lM0o6zuJGz1IjyejxPMe3MLMdOktwsuGnkdnpPmEdvrseerqy6ebQc8eXHZ7
-5rBXKvavB8XySWrUg+ZiaHOTSDAuvRK6CzO8CthG4nq9XgZNn2R0qMLent4r
-q3kriOkTVMwns3TAwzRyAPkKhq6kkhNyrIFs8IsntnIbVNB9VVjZwpPaqdug
-wnhVXeHqs5UHc3Cu4TZkLlS0Oca9MJdFFJiBXkzXOH1XVCGxcbt1YEvAzCcB
-5StiFT+UrggjPNzdnI6FKRPBoXWSvWMLSbsF1oJE0+O6zrx75Qjc65IgUAWB
-kwAksSpcwbDBYGthmLhClRBQLsUsrWOsM5WGqY5lPzo+dSaaMXOmnpgrOhFU
-4uTAN/ylUotF6M9ohWebv9Qn4TEbc4StvKBZYvYv3c7ih+HEnpJ4suIpTL5S
-LqymIjWwdwaXfbOkKKFXWvsnUC6X4W7ZiP5kuVlk/JYEiFnJvvyH6xRfY81i
-01zs3G/GLYtN5twlCGkYFZBs+XEJzR2YN4NBVT/hvgr5RlEJFJcIr7XwMmER
-uyVqqi5/tS4uh3ZayZD+01mOP9iYqAxh4qOkIvdQSqozCDrGNo2dIq2714vT
-lNcOruNv2/QXqsXSZptq08HmCRrTnqoRltRDbWQ0pb6k1CPtP74W9yqGDwAA
-
+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
 ---1463811839-1663971492-1032326430=:10390
-Content-Type: APPLICATION/octet-stream; name="iptables-1.2.7a-name-match-2002091811.diff.gz"
+Content-Type: APPLICATION/octet-stream; name="iptables-1.2.7a-flow-match-2002091812.diff.gz"
 Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44L.0209172248041.10390@hunger.screamingdaemon.com>
+Content-ID: <Pine.LNX.4.44L.0209172344381.10390@hunger.screamingdaemon.com>
 Content-Description: 
-Content-Disposition: attachment; filename="iptables-1.2.7a-name-match-2002091811.diff.gz"
+Content-Disposition: attachment; filename="iptables-1.2.7a-flow-match-2002091812.diff.gz"
 
-H4sICMERiD0CA2lwdGFibGVzLTEuMi43YS1uYW1lLW1hdGNoLTIwMDIwOTE4
-MTEuZGlmZgCdVuFy2kYQ/i09xZZMEkACg+2SGNcZExtnaDB2ATedSTrMWTrg
-Bumk0Z2waep37+4JYQx2Q8sY3+m0u7f77be7+GI8hkqS9kDEmt0GXFXq1f3q
-O1bxAs7kHr/XXCoRSbV3yWZ8LAK+KfmcjF2pVHa3aF0kAlrpBOAIagfNw8Nm
-vQb7tdq+7TjOLtdZX7gPAx5D/T3U6s39RvPnRmbg9BQqB24DnAP3CE5Pbbi+
-GLX/GI4G3c7H5gmbghdJqRPmzcBXXgzck8BVDFMexDwB4YUxBFxO9BQCEQoN
-IfPwm8wgTAMt4ijREN1JFI1nWi9iDkoz6bPEp43moNEofkOlQEf41QGkfgyp
-NGjAea81hPPB2TW0z3rQvfoEl63+Z/w3+O2m3W+dt+Gy0+9f9aHfPu/022dD
-3PxKy6B12YYBaQ/Pri8HAxheDeAGDVCIjbUYeSoahyaQeWPHUFYhkPPkbe6X
-DbbzCnVmHCQLOcRMewghRRIsQIwh0lOCgo65AhbHgeB+1XbWUHdOSNV2bHgF
-wymHcRQE0Z2QE7S7ABlpuEXDCVdcahduU40pCmPiHdoOgcnFHVtUnyTSORkO
-u8gTExb66O9O6kDcosyIXKp6/0a1J4K70fuJiqHoOffgoA71o2athn+4aRz9
-iOPbVtaI/q558P6R6DW3Bk7drdfeE9WdvTIMpixBDbSRsGQBzPcrkUQiri6k
-PZ5m6VRpTCyoQnkP8yyQoqnP4RelfRFVpx/WzyTX/u3GmdIJpnHr0MfbNw4n
-XEex3jjMXdo4DoRM7/fwPix0zZORiOeHeytESBalfWwDksN5++PNJ6jREQZ/
-gUWmEUO4mwqkaYzeaQURMipVbMIh5IrWLFyqVuHBPBK+7VD1F2lbsp3vtmMZ
-1XHRdgoGp/lrNBOTadX8Jgt4DJWKNBhalmVECFalIk9QD7gTWHNJGnAUdm2n
-cz1sfey2B6Pf2/1B56pXOradB/J56QPimHp6eQMt6uufcALkyHcooAmou1Bz
-4W39LTy4dFpD9YfjZdgdKbRggfjLVAxWFRbjMzEKFCsuryI4sdySxchIQzl0
-sUMpMZFIHgwdynLsMazpJR5raibacijkOEIfi1tvSmHlg880Q++skIeK66IR
-NhEodDIabyqVCBArvxL+PoHexdnopve5d/WlR68SrtNE5qg9k2mWKKQ29o0Q
-G1meqmPI9JDzScqpW2GzcACAUsRkjvcaUBi57RhjRQLBc8HDeoJymSWTuWuA
-EXLOE72J1jhgE+Ua4/jBEaM0bEINZbO8APRK+aUMlc36P/JRXGqu0kL6yFA0
-WvRKhmWWxxQnejXpgax78SJLW+UDmXGBEPhKiEm/Uv/TJMyysrjx2nr2fJtw
-NstusLBCGY6ZzGKWCKiR2MMqoUZtlVIhWYB4c292jAOKAIy5J8YLUFHI9ZQ6
-zTapx6Q1MlrFJ7gaz5ZoYeaLP+UHlsXvBWKbJFFSvG71cawO2/3Rdf8KS/TS
-hazi+T1ejs1jRZNC6VkiXj/2mFXtEWzPuGp6SnGLGyKGsoh/wJ1VmdKykqU4
-ZRryRHjLSLe019hBoSNBXhApGdPrHFn2wAwPanevFXaiNVIYRHIpKJTWYBmw
-OY0aRCSVVGN0zwob9NtULDV//DWQhNQ8cWwgiFuwgUJLL4K2C1o7IQMbn51x
-WsVPAH0rvFbfCtsg5VafwerRvhmFS8+zH0w4AaB30+0u820SUVg+bI6Ux+NR
-q9v51Cu+1Gn/q+AbGo35nkZIvjdtMn9YK8PVewo2f6AsLvc03vLhlRXGyEym
-temb8IlQNPoNGsU3OY4P9j/MhBkJvgwAAA==
+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
+P6fVUuH7FgAA
 ---1463811839-1663971492-1032326430=:10390--
