@@ -1,16 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: patch-o-matic-ng release candidate in cvs
-Date: Tue, 11 May 2004 11:04:39 +0200 (CEST)
+Subject: Re: [PATCH] ROUTE target : IP csum recalculation fix at INPUT chain
+Date: Tue, 11 May 2004 11:07:48 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405111103400.13357-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.44.0405092357270.14931-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.33.0405111107200.13357-100000@blackhole.kfki.hu>
+References: <1084202805.2743.55.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Willy TARREAU <willy@w.ods.org>,
-	<netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Rickard Molin <rickard.molin@businessecurity.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0405092357270.14931-100000@filer.marasystems.com>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+In-Reply-To: <1084202805.2743.55.camel@descartes.info.ucl.ac.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +21,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 10 May 2004, Henrik Nordstrom wrote:
+On Mon, 10 May 2004, Cedric de Launois wrote:
 
-> On Sun, 9 May 2004, Willy TARREAU wrote:
->
-> > While INFOP needs at least 2 arguments :
-> >
-> >    #define INFOP(fmt, args...) printk(KERN_INFO "%s: %s: " fmt, __FILE__, __FUNCTION__, ## args)
->
-> Actually I think the bug is that there is no space infront of the comma in
-> the ## expansion. To limit the conflicts with C99 the GNU CPP varargs
-> comma magics is only activated if there is a space infront of the comma
-> like in this example from the GNU CPP manual:
->
->      #define eprintf(format, args...) fprintf (stderr, format , ##args)
+> Here is the (re-diffed) patch from Rickard that fix this bug.
 
-Yes, exactly. Patch is applied, thank you both.
+Patch is applied, thank you.
 
 Best regards,
 Jozsef
