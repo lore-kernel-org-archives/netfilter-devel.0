@@ -1,13 +1,13 @@
-From: Ivan Mitev <imitev@obs.bg>
-Subject: status of ipsec patches with >=2.6.8
-Date: Sat, 11 Sep 2004 17:24:22 +0200
+From: "Lars Lockenvitz" <L.Locke@web.de>
+Subject: pc stand still after using module
+Date: Mon, 13 Sep 2004 10:29:18 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040911152422.GC28465@obs.bg>
+Message-ID: <1470957170@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,19 +18,32 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hi all
+Hi,
 
-a few weeks back, i tested quite deeply the new 2.6 ipsec stack along with netfilter and patrick's pom-ng ipsec patches, and i didn't encounter any big problem.
+I have a modules for connection tracking of clearcase packets.
+After adjustment from kernel 2.4.27 to 2.6.8 my pc is standing still after=
+ using this module.
+The only things I changed are the pameters of the help function.
 
-now that i want to make the switch from test to pre-production, i don't manage to patch iptables/kernel anymore with a 2.6.8.1 kernel; i tested with both stable and CVS versions of pom-ng and iptables ; (and i really need a kernel >= 2.6.7-mm2 because of hugeTLB stuff and new 3ware drivers).
+From:
+static int help (const struct iphdr *iph, size=5Ft len,
+                        struct ip=5Fconntrack *ct, enum ip=5Fconntrack into ct=
+info)
 
-any idea about the status of recent kernels ? (on harald's blog, i see that there is some work on it, but no indication of success - Thu, 22 Jul 2004). any pointer ?
+To:
+static int help (struct sk=5Fbuff *skb, struct ip=5Fconntrack *ct, enum ip=5Fcon=
+ntrack=5Finfo ctinfo)
 
-another question for the maintainers, more with politics: do you plan to try to merge the ipsec patches into the mainline kernel (especialy with the patches modifying the way packets hit the hooks ) ? or are they condamned to stay in pom-ng's extras ?
+Now the modules works, but then the pc doesn=B4t  recognizes anything.
 
-in other words, do you plan that most of the "ipsec people" will use these patches, or are they provided for convenience, with the majority of people using the current - strange - ipsec packet travelling.
 
-sorry for these rather stupid questions, but i couldn't find a clue browsing the lists, and there's not a lot of feedback for the ipsec patches.  since i'm building a quite complex "advanced router" suitable for many of our firewalls, i'm feared to spend a consequent amount of time on something that might be deprecated soon.
+Does anybody have a similar problem and know how to solve it, or have anyb=
+ody else any idea.
+Please help me, please!!!
 
-thanx !
-ivan
+Regards
+
+Lars
+=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F
+WEB.DE Video-Mail - Sagen Sie mehr mit bewegten Bildern
+Informationen unter: http://freemail.web.de/=3Fmc=3D021199
