@@ -1,17 +1,19 @@
-From: "Andrew Hall" <temp02@bluereef.com.au>
-Subject: Re: state of play for TCP-window-tracking patch
-Date: Fri, 28 Nov 2003 13:24:11 +1100
+From: Willy Tarreau <willy@w.ods.org>
+Subject: Re: RAM and conntrack performance: first draft of the document is online
+Date: Fri, 28 Nov 2003 12:00:50 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <00db01c3b556$b5adb160$2601010a@bluereef.local>
-References: <Pine.LNX.4.33.0311140933500.30266-100000@blackhole.kfki.hu>
+Message-ID: <20031128110050.GA1004@alpha.home.local>
+References: <20031126034231.GA1044@eychenne.org> <Pine.LNX.4.44.0311260512440.6942-100000@filer.marasystems.com> <20031127045620.GA2740@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+   "Laurence J. Lane" <ljlane@debian.org>,
+   Harald Welte <laforge@netfilter.org>,
+   Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
-	"Henrik Nordstrom" <hno@marasystems.com>
+To: Herve Eychenne <rv@wallfire.org>
+Content-Disposition: inline
+In-Reply-To: <20031127045620.GA2740@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,37 +24,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+On Thu, Nov 27, 2003 at 05:56:20AM +0100, Herve Eychenne wrote:
+ 
+> Context: I have a Debian testing (sarge) with kernel-image-2.4.22-1-686
+> package and 512MB of RAM.  I should then logically get ip_conntrack
+> module initialized with 4096 buckets (size of the netfilter conntrack hash
+> table, that should be computed automatically by netfilter code according
+> to the amount of RAM), but I can read 4091 in syslog message.
+> 4091 is better (prime number), but I cannot understand why I get this value
+> instead of 4096, as nothing particular is done for the moment in
+> netfilter code to ensure that the computed value will be a prime number.
 
-I haven't seen any announcement for your 2.6 release of
-tcp-windows-tracking, so I was wondering how it's coming along?
+Perhaps you have a small portion of this RAM dedicated to a video RAM so
+that the amount of system ram is slightly lower than 512 MB (eg: 510 MB).
+Then, dividing this would give you something which is not a power of 2.
 
------ Original Message -----
-From: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
-To: "Henrik Nordstrom" <hno@marasystems.com>
-Cc: "Andrew Hall" <temp02@bluereef.com.au>;
-<netfilter-devel@lists.netfilter.org>
-Sent: Friday, November 14, 2003 7:37 PM
-Subject: Re: state of play for TCP-window-tracking patch
-
-
-> On Fri, 14 Nov 2003, Henrik Nordstrom wrote:
->
-> > > There were so many changes that I'm delaying the release of the new
-code;
-> > > cleaning up and final testings are required. The port to 2.6 is ready.
-> >
-> > Any time plan for "public" consumtion? ;-)
->
-> Definitely before the end of next week.
->
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : KFKI Research Institute for Particle and Nuclear Physics
->           H-1525 Budapest 114, POB. 49, Hungary
->
->
->
+Cheers,
+Willy
