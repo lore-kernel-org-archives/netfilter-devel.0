@@ -1,14 +1,16 @@
-From: "Ferry Huberts" <ferry@Hupie.com>
-Subject: snat dropping packets???
-Date: Sat, 16 Oct 2004 14:59:58 +0200 (CEST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2.6] connection tracking events
+Date: Sat, 16 Oct 2004 15:21:06 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <34896.192.168.0.192.1097931598.squirrel@192.168.0.192>
-Reply-To: ferry@Hupie.com
+Message-ID: <41712042.2000505@trash.net>
+References: <20041015175406.GK17516@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041015175406.GK17516@obroa-skai.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,38 +21,28 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all!
+Hi Harald,
 
-I have a problem with dropped packets and I suspect netfilter connection
-tracking.
+Harald Welte wrote:
 
-The setup: I have set up a box doing full NAT for a box behind it: DNAT in
-PREROUTING and SNAT in POSTROUTING.
+>Hi!
+>
+>Since we decided at the netfilter developer workshop that we want to
+>split conntrack events from the rest of ctnetlink, I've now done that
+>(and ported it to use percpu allocations).  This is needed mostly for 
+>ct_sync.
+>  
+>
+I've already did this in Erlangen. Pablo is currently working with
+Krizstian on this patch.
 
-The situation:
-There seem to be multiple things going on. I can not put my finger on it.
+>Totally untested, but seems to compile.  Comments welcome.
+>
+>As it is quite non-intrusive, I think we should consider it for
+>post-2.6.9.
+>  
+>
+Agreed.
 
-1. When there is (heavy) traffic coming into the box towards itself or the
-box behind it (for which the NAT is done) at the time of configuring these
-iptables rules at startup, there seem to be false/incorrect connection
-tracking records.
-
-2. When looking at the situation with tcpdump, I see packets being sent
-out to the interface, but I do not see them on the wire. As I understand,
-tcpdump hooks in before POSTROUTING, so I suspect SNAT/POSTROUTING from
-dropping my packets.
-
-My question:
---> under what conditions are packets dropped? help! :-)
-going through the kernel code seemed a bit too daunting at this time, I
-thought the people here would have quicker answers...
-
-
-Also, my external address is a DHCP assigned address and when it changes,
-the old connection tracking records are in the way and should be flushed.
-But I have no idea on how to accomplish this... help! :-)
-I can not use MASQ because I have actually two external DHCP addresses:
-one for the box itself and one for the box behind it...
-
---
-Ferry Huberts
+Regards
+Patrick
