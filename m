@@ -1,39 +1,38 @@
-From: Nivedita Singhvi <niv@us.ibm.com>
-Subject: Re: [PATCH] Prevent crash on ip_conntrack removal
-Date: Mon, 23 Aug 2004 17:45:20 -0700
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <412A8FA0.1010707@us.ibm.com>
-References: <OF4320C747.75C5E93A-ON88256EF9.00744FBA-88256EF9.00750996@us.ibm.com>
+From: Matthew Strait <quadong@users.sourceforge.net>
+Subject: Re: [PATCH] l7-filter for pom (2)
+Date: Mon, 23 Aug 2004 20:16:40 -0500 (CDT)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.60.0408232015230.4521@localhost.localdomain>
+References: <Pine.LNX.4.60.0408151944550.15521@localhost.localdomain>
+ <20040819104443.GG3921@sunbeam.de.gnumonks.org>
+ <Pine.LNX.4.60.0408231825530.4521@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, "David S. Miller" <davem@redhat.com>,
-        laforge@netfilter.org, netdev@oss.sgi.com, netdev-bounce@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org, okir@suse.de
-Return-path: <netdev-bounce@oss.sgi.com>
-To: David Stevens <dlstevens@us.ibm.com>
-In-Reply-To: <OF4320C747.75C5E93A-ON88256EF9.00744FBA-88256EF9.00750996@us.ibm.com>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org,
+    l7-filter-developers@lists.sourceforge.net
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <Pine.LNX.4.60.0408231825530.4521@localhost.localdomain>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-David Stevens wrote:
+>> - Don't have printk() in per-packet codepath without net_ratelimit() or
+>>  you will be DoS'ed
+>
+> The code should not print anything unless debugging is enabled.  I'm assuming 
+> that no one will enable debugging unless they are in a controlled 
+> environment.  And when debugging, it would be bad to have most of the 
+> messages dropped.  Is this still not ok in your view?
 
-> So, one solution would be to set skb->dst for the head (if NULL)  based
-> on a non-null fragment skb->dst. I believe that would prevent the problem
-> case without dropping the fragment, since it'll be processed post-routing
-> only if one of the frags is.
+(Replying to self.)  Sorry, I wasn't thinking hard enough.  Obviously, I 
+should have rate limits on the error messages, if not the debugging 
+messages.
 
-This would be more performant than dropping the frags, and
-requiring a retransmit (or lack thereof, depending on protocol).
-
-> When I was looking at it, I wondered if conntrack really has a need to
-> reassemble itself, though. Couldn't it let IP do the reassembling and
-
-I asked Harald this when I met him last, and he said it
-does need to. So I don't think this (having conntrack
-reassemble) is avoidable, unfortunately.
-
-Of course, fragmentation, on the other hand, :), ...
-
-thanks,
-Nivedita
+-matthew
