@@ -1,17 +1,10 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack tree
-Date: Thu, 17 Mar 2005 17:31:41 +0900 (JST)
-Message-ID: <200503170831.j2H8VgbY014017@toshiba.co.jp>
-References: <423889E6.1000703@trash.net>
-	<200503161954.j2GJsIhi017839@toshiba.co.jp>
-	<42389136.3050900@trash.net>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: [PATCH] connrate missing exports fixed
+Date: Thu, 17 Mar 2005 16:19:55 +0200
+Message-ID: <4239920B.30906@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	yasuyuki.kozakai@toshiba.co.jp
-To: kaber@trash.net
-In-Reply-To: <42389136.3050900@trash.net>
+Content-Type: multipart/mixed; boundary="------------090808040708090608080606"
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,52 +16,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------090808040708090608080606
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi, Patrick,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-OK, I agree introducing nf_ct_ops.
+Connrate is missing two exports, which makes the kernel compilation fail if
+either ip_conntrack or ipt_connrate is compiled as a module.
 
-But in the current, it's not acceptable to introduce nf_conntrack_common
-as you said in other mail. I think it needs many changes to ip_conntrack and
-ip_nat, it may be difficult to change nf_conn structure
-(e.g. optimization), and it will confuse us - What we unify is ?
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
 
-My suggestion is pulling out common definitions of enum and flags to some
-common header files, and making {ip,nf}_conntrack*.h include them.
-No change to ip_conntrack_*.c is necessary.
+iD8DBQFCOZIExyF48ZTvn+4RAjevAKC6SzOT/tsdGJzP1x2j359krZeQbgCfdhT9
+//cw9X54GzQDQT70H+5LeBs=
+=A3ZE
+-----END PGP SIGNATURE-----
 
-Regards,
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+--------------090808040708090608080606
+Content-Type: text/x-patch;
+ name="connrate-export-fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="connrate-export-fix.patch"
 
+Index: connrate/linux/net/ipv4/netfilter/ip_conntrack_rate.c
+===================================================================
+--- connrate/linux/net/ipv4/netfilter/ip_conntrack_rate.c	(revision 3800)
++++ connrate/linux/net/ipv4/netfilter/ip_conntrack_rate.c	(working copy)
+@@ -129,3 +129,6 @@
+ 	READ_UNLOCK(&rate_lock);
+ 	return rate;
+ }
++
++EXPORT_SYMBOL(ip_conntrack_rate_count);
++EXPORT_SYMBOL(ip_conntrack_rate_get);
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 16 Mar 2005 21:04:06 +0100
-
-> Yasuyuki KOZAKAI wrote:
-> >>That won't work when nf_conntrack is already loaded. Do you think
-> >>it is necessary to allow people to build both as modules?
-> > 
-> > 
-> > You're right. #ifdef or other staff is needed.
-> 
-> If we go the way Joszef propsed, namely having something like
-> a global struct nf_ct_ops *, we can simply add a flag to it
-> which specifies which conntrack is usec.
-> 
-> >>                                                          It would
-> >>be easier to just force them to choose, and would probably result
-> >>in more people actually using it since ip_conntrack wouldn't be used
-> >>by default anymore.
-> > 
-> > But I want this flexibility if possible so that we can test matches/targets
-> > with ip_conntrack/nf_conntrack without recompiling.
-> 
-> I see that it would be useful for testing, but I fear that it will
-> result in additional complexity and bugs with little gain for users.
-> Let's see how it works out, if it really does cause a lot of extra
-> complexity it would prefer to only allow one at a time.
-> 
-> Regards
-> Patrick
-> 
+--------------090808040708090608080606--
