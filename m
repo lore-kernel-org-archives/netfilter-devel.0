@@ -1,77 +1,39 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Re: [PATCH] Fix ip_queue for bridged packets
-Date: Tue, 28 Oct 2003 11:09:42 -0800 (PST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031028190942.92198.qmail@web13908.mail.yahoo.com>
-References: <200310280002.12023.bdschuym@pandora.be>
+From: David Mosberger <davidm@napali.hpl.hp.com>
+Subject: Re: status of ipchains in 2.6?
+Date: Tue, 28 Oct 2003 11:25:10 -0800
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <16286.49814.27138.219567@napali.hpl.hp.com>
+References: <200310280127.h9S1RM5d002140@napali.hpl.hp.com>
+	<20031028015032.734caf21.davem@redhat.com>
+	<16286.44522.275791.73904@napali.hpl.hp.com>
+	<20031028095747.2cdb57e7.davem@redhat.com>
+Reply-To: davidm@hpl.hp.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200310280002.12023.bdschuym@pandora.be>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Transfer-Encoding: 7bit
+Cc: davidm@hpl.hp.com, linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031028095747.2cdb57e7.davem@redhat.com>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Caught this in the middle, so not sure all the
-details...is this concerning the ebtable bridge patch?
-If I uses the QUEUE target in PREROUTING to packet
-mangle, is there an issue since I think PF_BRIDGE
-comes after that?
--Scott
+>>>>> On Tue, 28 Oct 2003 09:57:47 -0800, "David S. Miller" <davem@redhat.com> said:
 
---- Bart De Schuymer <bdschuym@pandora.be> wrote:
-> On Monday 27 October 2003 09:04, David S. Miller
-> wrote:
-> > I thought we were taking care of this stuff via
-> other means?
-> >
-> > This problem feels like an old one to me, and it's
-> why we added all
-> > the bridge netfilter objects to struct sk_buff,
-> right?  Why doesn't
-> > that take care of this instance of the problem?
-> 
-> The thing is, we currently only copy the Ethernet
-> header to 
-> skb->nf_bridge->data at PF_BRIDGE/POST_ROUTING. So,
-> if the queue happens 
-> earlier, the Ethernet header is lost.
-> Another solution is not trusting the iptables
-> modules and doing the copy to 
-> skb->nf_bridge->data earlier at
-> PF_BRIDGE/PRE_ROUTING and 
-> PF_BRIDGE/LOCAL_OUT. After each faked PF_INET hook
-> we'd have to copy the 
-> skb->nf_bridge->data back to the Ethernet header
-> since we don't trust the 
-> iptables modules.
-> This is doable, but kind of ugly and I'd prefer the
-> explicit copy by the 
-> iptables module itself. Most iptables modules don't
-> copy skb's around anyway. 
-> One could argue that this makes the iptables
-> ip_queue module a tiny bit slower 
-> when dealing with non-bridged traffic, but if the
-> user compiled her kernel 
-> with bridge_netfilter support one would think she
-> needs it.
-> But I'll change it if anyone objects to the easy
-> fix.
-> 
-> cheers,
-> Bart
-> 
-> 
+  David> On Tue, 28 Oct 2003 09:56:58 -0800 David Mosberger
+  David> <davidm@napali.hpl.hp.com> wrote:
 
+  >> >>>>> On Tue, 28 Oct 2003 01:50:32 -0800, "David S. Miller"
+  >> <davem@redhat.com> said:
 
-__________________________________
-Do you Yahoo!?
-Exclusive Video Premiere - Britney Spears
-http://launch.yahoo.com/promos/britneyspears/
+  >> $ fgrep -i ipchain MAINTAINERS
+
+  David> Try netfilter, ipchains is a part of netfilter.
+
+I took ipchains not being mentioned in MAINTAINERS as a sign that
+nobody wanted to hear bug reports about it, hence my choice of lkml.
+Perhaps you prefer to flame people rather than making it easier
+for them to find the right mailing-list?
+
+	--david
