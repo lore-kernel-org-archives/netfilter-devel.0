@@ -1,15 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] make happy cracking message more verbose
-Date: Fri, 7 Nov 2003 01:27:45 +0100 (CET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: QUEUE target: fragmented IP appears in reversed order
+Date: Fri, 7 Nov 2003 02:38:12 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311070119110.2662-100000@filer.marasystems.com>
-References: <Pine.LNX.4.51.0311062049040.953@dns.toxicfilms.tv>
+Message-ID: <20031107013812.GG5741@sunbeam.de.gnumonks.org>
+References: <20031106215706.GA10641@skunk.one.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hD6P3ib1XCFtz2ni"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <Pine.LNX.4.51.0311062049040.953@dns.toxicfilms.tv>
+To: michal salaban <emes@pld-linux.org>
+Content-Disposition: inline
+In-Reply-To: <20031106215706.GA10641@skunk.one.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,35 +22,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 6 Nov 2003, Maciej Soltysiak wrote:
 
-> I have one question about it.
-> 
-> If we have:
-> 
-> 	int len = (*pskb)->nh.iph->ihl * 4;
-> 
-> Is it possible to have a NULL pointer dereference here with (*pskb)->nh
-> being NULL in:
-> ip_conntrack_local()
-> ipt_local_out_hook()
-> ipt_local_hook()
-> ip6t_local_out_hook()
-> ip6t_local_hook()
+--hD6P3ib1XCFtz2ni
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Shoul not be possible. iptables is a IP layer thing, and nh.iph is set 
-before the IP layer is called..
+On Thu, Nov 06, 2003 at 10:57:06PM +0100, michal salaban wrote:
 
-nh is just a union (not a pointer) of all the network layer protocols
-known to the skb structure.
+> is that OK? does kernel IP layer send fragments reversed (don't believe)
+> or netfilter changes order for some reason?
 
+is ip_conntrack loaded?
 
-But I do have a question.. shouln't the ipv6 code use nh.ipv6h and struct
-ipv6hdr? The ipv6 code deals with IPv6 headers doesn't it? I notice both
-the original code and your changes uses nh.iph which looks plain wrong in
-any code dealing with IPv6 packets. Until this is corrected you probably 
-should leave those "#if 0" shields there to prevent the code from being 
-active..
+> michal salaban -|- emes (at) pld-linux.org -|- jabber: emes@jabber.org
 
-Regards
-Henrik
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--hD6P3ib1XCFtz2ni
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/qveEXaXGVTD0i/8RAt/PAJ98BeVH5N2vw6MYIih47au579AcHQCfWYo4
+78pWDuB136Z4vpmipCpiSmg=
+=bs5v
+-----END PGP SIGNATURE-----
+
+--hD6P3ib1XCFtz2ni--
