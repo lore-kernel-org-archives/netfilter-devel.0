@@ -1,14 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: iptables denial of services
-Date: Sat, 17 Apr 2004 18:49:12 +0200 (CEST)
+Subject: Re: ip6_queue.o for 2.4.20 kernel with gcc version 3.2.
+Date: Sat, 17 Apr 2004 18:53:55 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404171843020.22016-100000@filer.marasystems.com>
-References: <4081114A.40808@fl.priv.at>
+Message-ID: <Pine.LNX.4.44.0404171849450.22016-100000@filer.marasystems.com>
+References: <BAY14-DAV38tc13WOmQ0001b84c@hotmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <4081114A.40808@fl.priv.at>
+To: Dev <devietf@hotmail.com>
+In-Reply-To: <BAY14-DAV38tc13WOmQ0001b84c@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,25 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 17 Apr 2004, Friedrich Lobenstock wrote:
+On Sat, 17 Apr 2004, Dev wrote:
 
-> What if the server you are talking about is a server farm? Then an iptables 
-> gateway that does connection track on the way may as well "die" before the 
-> servers "die" because of overload.
+> Dear netfilter developers
+> 
+> If any has the ip6_queue.o module compiled in the 2.4.20 kernel ( with
+> gcc 3.2.2-5 for red hat)..please let me know
+> 
+> If any one has can you please send it as an attachment to me
 
-If you have a very large farm and does not tune conntrack accordingly then
-yes this can happen. It will not die, but it may be the case that it does
-not accept as many sessions as your server farm and thereby not allowing
-the server farm to be fully utilized.
+Would be of little use to you as it needs to be compiled for the exact 
+same RedHat kernel and architecture as you are using (which you btw did 
+not specify).
 
-> Can you give some details about those limits? Are there any numbers 
-> availabe that relate that to memory/cpu/....?
+Just build your own kernel and add the module to your kernel config. See 
+the RedHat documentation on how to rebuild the RedHat kernels. It is not a 
+complicated thing to do.
 
-The default number of sessions is based on amount of memory but can
-easily be tuned at boot time.. or even runtime but then with a slight
-performance penalty.
-
-http://www.netfilter.org/documentation/FAQ/netfilter-faq-3.html#ss3.7
+I do not think you will find many on this list using standard RedHat
+kernels. Compiling modules to a custom kernel is so much easier than to
+try to tweak the build process to build additional modules to a original
+RedHat kernel RPM.
 
 Regards
 Henrik
