@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: libipq, kernel panics/oopses, and other undesirable traits
-Date: Tue, 17 Aug 2004 02:44:25 +0200
+Date: Tue, 17 Aug 2004 02:53:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <412154E9.7040905@trash.net>
-References: <E1BwO5M-000718-NF@giant.mindlink.net>	 <1092692707.22731.1687.camel@marx.mindlink.net>	 <41213777.9050701@trash.net> <1092703243.22731.1778.camel@marx.mindlink.net>
+Message-ID: <41215701.6030501@trash.net>
+References: <E1BwO5M-000718-NF@giant.mindlink.net> <1092692707.22731.1687.camel@marx.mindlink.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Matt Walters <mattw@parasun.com>
-In-Reply-To: <1092703243.22731.1778.camel@marx.mindlink.net>
+In-Reply-To: <1092692707.22731.1687.camel@marx.mindlink.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +23,15 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Matt Walters wrote:
 
->On Mon, 2004-08-16 at 15:38, Patrick McHardy wrote:
->  
+>	I'm interested in doing further development for netfilter.  Please feel
+>free to add my name to a list somewhere or something.
 >
->>skb_tailroom should return 0 in this case and the skb should be linearized
->>by skb_copy_expand already. The check isn't triggered because this line is
->>wrong:
->>
->>diff = v->data_len - e->skb->len
->>
->>skb->len is the total length, including fragments. If we want to copy to it,
->>we either need to linearize it or look at skb_headlen(skb). It's complicated
->>getting everything right, I need to think about it some more.
->>    
->>
->
->	Yeah, and for some twisted reason I was figuring on skb_copy_bits to do
->that (since it *does* unwind fragment lists, etc).  My apologies for the
->waste of bandwidth.
->  
->
-No problem, your testing provided valuable information about the cause 
-of the
-problem.
+I missed this before. You are already on the only list, the development 
+list ;)
+There is no official contributor-list, but we always welcome help. If you're
+looking for things to do, we have multiple todo-lists in CVS. I can also 
+give
+you some additional pointers if you want.
 
 Regards
 Patrick
