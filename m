@@ -1,16 +1,17 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: RE: real time stateful filtering question
-Date: Wed, 17 Mar 2004 17:13:45 +0100 (CET)
+Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
+Date: Wed, 17 Mar 2004 17:35:22 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403171650450.11069-100000@filer.marasystems.com>
-References: <NEBBJFIAIKIHKGJDONCDMENJCCAA.smith-peter@comcast.net>
+Message-ID: <Pine.LNX.4.44.0403171734230.11069-200000@filer.marasystems.com>
+References: <1079530631.810.117.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@gnumonks.org>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-1397364434-1079541322=:11069"
+Cc: Vijaya Chandra Vupputuri <vijay@tachyontech.net>,
+   Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+   netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: peter smith <smith-peter@comcast.net>
-In-Reply-To: <NEBBJFIAIKIHKGJDONCDMENJCCAA.smith-peter@comcast.net>
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <1079530631.810.117.camel@nienna.balabit>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,46 +22,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 17 Mar 2004, peter smith wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-> My application is *not* participating in the network level session(s). It is
-> not an end-station. I am building a monitor application - like an IDS -
-> which simply sniffs the wire by installing a filter at a well known port,
-> and waits for sessions on that port, and then installs filters for data
-> sessions that are related to the initial control session. I simply used FTP
-> as an example of a protocol that behaves this way...
+---1463811839-1397364434-1079541322=:11069
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-This important distinction to make is if this sniffing device inline with
-the traffic (forwarding), or just passively listening?
+On Wed, 17 Mar 2004, KOVACS Krisztian wrote:
 
-If passively listening then netfilter is not the tool for the job, and you 
-must make sure packet processing can keep up with the rate needed as you 
-can not delay traffic.
+> On Wed, 2004-03-17 at 14:04, Henrik Nordstrom wrote:
+> > nothing. Thinking.. ah, now I get it. The problem is that you are doing
+> > traffic local->local and that the NAT code then gets confused as it sees
+> > the same packet twice in each direction, and as no null mapping was
+> > created the first time for the "local" side PREROUTING tries to when it
+> > sees the traffic coming "in" (from itself).
+> 
+>   Yes, this is the case.
 
-If inline, then all of what has been discussed applies, including the 
-exaplanation why your expected window is permanently shut close in most 
-protocols (certainly for FTP).
-
-> I wanted to use netfilter as-is, and do application level parsing of FTP
-> commands, etc, in my userland code.
-
-Which is entirely fine if you are inline. See earlier discussion.
-
-> I believe that while the backlog queue is processed in the kernel, in-order,
-> the fact that the packet containing the FTP "PORT" command isn't processed
-> by my userland application level decode until a context switch occurs makes
-> it impossible to guarantee that the userland application level decode will
-> get to process the PORT command packet will be seen before data channel
-> packets are discarded
-
-Not at all. The FTP protocol does not progress to use the data channel 
-until the response to the PORT command is seen. If you are executing 
-inline using netfilter QUEUE then this will not happen until your 
-userspace program has processed the PORT command and allowed it to be 
-forwarded. End of story.
-
-If you are not executing inline in the traffic stream then it is another 
-business, but then netfilter is also not the proper tool for the job.
+The attached patch MAY fix this issue (completely untested, I always 
+compile with CONFIG_IP_NF_LOCAL_NAT enabled).
 
 Regards
 Henrik
+
+---1463811839-1397364434-1079541322=:11069
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="renat_confirmed.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.44.0403171735220.11069@filer.marasystems.com>
+Content-Description: 
+Content-Disposition: attachment; filename="renat_confirmed.patch"
+
+LS0tIGlwX25hdF9zdGFuZGFsb25lLmMtMi40LjI1CVdlZCBNYXIgMTcgMTc6
+MjM6MzMgMjAwNA0KKysrIGlwX25hdF9zdGFuZGFsb25lLmMJV2VkIE1hciAx
+NyAxNzozMzoyOCAyMDA0DQpAQCAtMTE0LDcgKzExNCwxNiBAQA0KIAkJV1JJ
+VEVfTE9DSygmaXBfbmF0X2xvY2spOw0KIAkJLyogU2VlbiBpdCBiZWZvcmU/
+ICBUaGlzIGNhbiBoYXBwZW4gZm9yIGxvb3BiYWNrLCByZXRyYW5zLA0KIAkJ
+ICAgb3IgbG9jYWwgcGFja2V0cy4uICovDQotCQlpZiAoIShpbmZvLT5pbml0
+aWFsaXplZCAmICgxIDw8IG1hbmlwdHlwZSkpKSB7DQorCQlpZiAoIShpbmZv
+LT5pbml0aWFsaXplZCAmICgxIDw8IG1hbmlwdHlwZSkpDQorI2lmbmRlZiBD
+T05GSUdfSVBfTkZfTkFUX0xPQ0FMDQorCQkgICAgLyogSWYgdGhpcyBzZXNz
+aW9uIGhhcyBhbHJlYWR5IGJlZW4gY29uZmlybWVkIHdlIG11c3Qgbm90DQor
+CQkgICAgICogdG91Y2ggaXQgYWdhaW4gZXZlbiBpZiB0aGVyZSBpcyBubyBt
+YXBwaW5nIHNldCB1cC4NCisJCSAgICAgKiBDYW4gb25seSBoYXBwZW4gb24g
+bG9jYWwtPmxvY2FsIHRyYWZmaWMgd2l0aA0KKwkJICAgICAqIENPTkZJR19J
+UF9ORl9OQVRfTE9DQUwgZGlzYWJsZWQuDQorCQkgICAgICovDQorCQkgICAg
+JiYgY3QtPnN0YXR1cyAmIElQU19DT05GSVJNRUQNCisjZW5kaWYNCisJCSAg
+ICApIHsNCiAJCQl1bnNpZ25lZCBpbnQgcmV0Ow0KIA0KIAkJCWlmIChjdC0+
+bWFzdGVyDQo=
+---1463811839-1397364434-1079541322=:11069--
