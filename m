@@ -1,18 +1,18 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] remove exessive timer updates (3/4)
-Date: 13 Jun 2002 18:17:41 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: New target 'ROUTE' - cvs patch
+Date: Thu, 13 Jun 2002 18:05:34 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1023985062.19816.368.camel@tux>
-References: <1023365846.845.26.camel@tux> <1023873045.19812.95.camel@tux>
-	<1023908549.19812.106.camel@tux>
-	<200206131407.39752@henrik.marasystems.com>
+Message-ID: <20020613180534.L2543@sunbeam.de.gnumonks.org>
+References: <1023799780.3120.56.camel@descartes>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0aF+6pWUK5w8WdCh"
 Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <200206131407.39752@henrik.marasystems.com>
+To: =?iso-8859-1?Q?C=E9dric_de_Launois_=3Cdelaunoi=40info=2Eucl=2Eac=2Ebe?=@samba.org,
+	=?iso-8859-1?Q?=3E?=@samba.org
+Content-Disposition: inline
+In-Reply-To: <1023799780.3120.56.camel@descartes>; from delaunoi@info.ucl.ac.be on Tue, Jun 11, 2002 at 02:49:40PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,32 +23,53 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2002-06-13 at 14:07, Henrik Nordstrom wrote:
-> On Wednesday 12 June 2002 21:02, Martin Josefsson wrote:
-> 
-> > It adds a new parameter to ip_ct_refresh called force, if set to
-> > non-zero a timer update will be forced.
-> 
-> Hmm.. this may be a little hard to enforce at all times..
-> 
-> Why don't you make the filter simply filter out any timer updates that 
-> would increase the timer by less than HZ?
-> 
->   change = new_interval - current_remaining_time
-> 
->   if (change < 0 || change >= HZ)
->      update the timer
-> 
-> Feels both cleaner and safer to me..
 
-This sounds like a very good idea, it's a good thing I have you guys to
-straighten me out :)
+--0aF+6pWUK5w8WdCh
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Will send new patch later this evening. And I'll even test it before
-sending :)
+On Tue, Jun 11, 2002 at 02:49:40PM +0200, C=E9dric de Launois wrote:
+> Hi,
+>=20
+> Here is the patch against the current CVS tree to include the new
+> target 'ROUTE'. The patches have been tested, they work fine for me.
+> Doing
+>    patch -p0 < ROUTE.cvs.patch
+> in the same directory as netfilter/ should apply the patch correctly.
 
--- 
-/Martin
+great. applied.
 
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+two minor modifications:
+
+1) move it to 'extra', since we consider it as experimental at the moment.
+2) remove your change to extensions/Makefile.  Only targets in the kernel
+   (or to be submitted to the kernel soon) are in extensions/Makefile.
+
+> C=E9dric de Launois
+
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
+=20
+V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+
+--0aF+6pWUK5w8WdCh
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9CMLNXaXGVTD0i/8RAmL7AJ9Qcig5XP6QjnS4TOO6HSbis5YoDgCfaw7l
+0nDranQ3+p/Bm1bf9IpHlx0=
+=0sam
+-----END PGP SIGNATURE-----
+
+--0aF+6pWUK5w8WdCh--
