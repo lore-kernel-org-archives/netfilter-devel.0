@@ -1,17 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Some one knows how to implement policy routing with iptables?
-Date: Thu, 26 Aug 2004 16:39:15 +0200 (CEST)
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: 2.4.27 POM?
+Date: Thu, 26 Aug 2004 08:13:41 -0700 (PDT)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408261636550.10523@filer.marasystems.com>
-References: <002e01c48b0e$31b253f0$8e5f78ca@nic.ecnu.edu.cn>
-	<Pine.LNX.4.61.0408260917380.5483@filer.marasystems.com>
-	<002b01c48b6e$f86a3570$8e5f78ca@nic.ecnu.edu.cn>
+Message-ID: <20040826151341.59534.qmail@web13902.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robbert <hanbo163com@163.com>
-In-Reply-To: <002b01c48b6e$f86a3570$8e5f78ca@nic.ecnu.edu.cn>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +17,25 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 26 Aug 2004, Robbert wrote:
+Is there a POM for 2.4.27?  I am trying to add the raw
+table under 2.4.27 with iptables-1.2.11.  I apply the
+nf-log with runme OK, but when I try to use the runme
+to add the raw table, I get:
 
-> Yeah,I have seen the ROUTE target,which is useful to force the use of an 
-> interface or a next hop and to change the incoming interface of a packet 
-> by options --oif,--iif,--gw.However,are these enough? I mean,something 
-> depend on TOS,or something like that?
+Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?]
+y
+cannot apply (19 rejects out of 22 hunks)
+newfile: 3 files missing, unable to revert
+apply_dependency: unable to apply dependent nf-log
 
-ROUTE just sets the route this packet should take once you have classified 
-the packet. How you classify packets is of no concern to the ROUTE target.
 
-> And,how can I use ROUTE target to implements policy routing? Some one 
-> give me a sample?
+Any ideas?
 
-By building iptables rules assigning different routes to different 
-packets.
 
-But most people do policy routing via the mark and normal route rules. See 
-Linux Advanced Routing documentation references earlier in this thread.
 
-Regards
-Henrik
+	
+		
+__________________________________
+Do you Yahoo!?
+New and Improved Yahoo! Mail - 100MB free storage!
+http://promotions.yahoo.com/new_mail 
