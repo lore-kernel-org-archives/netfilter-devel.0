@@ -1,10 +1,17 @@
-From: "Stephan Jager" <netfilter@medz.org>
-Subject: H.323 conntrack patch
-Date: Mon, 14 Jul 2003 17:39:24 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH]: fix ipt_helper locking
+Date: Mon, 14 Jul 2003 09:55:47 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200307141539.h6EFdOwT002543@alpha.medz.org>
+Message-ID: <20030714075546.GD6538@naboo>
+References: <Pine.LNX.4.44.0307121242060.30873-200000@gw.localnet>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sgneBHv3152wZ8jf"
+Cc: gandalf@wlug.westbo.se, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0307121242060.30873-200000@gw.localnet>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -15,40 +22,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-(I'm new here, so if I	post too much/too little information, please tell 
-me so)
+--sgneBHv3152wZ8jf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm trying to use the H.323 conntrack module for my AddPac Voicefinder 
-device. It seems that it works only "half" in my situation.
-I've turned on debugging for the h323 modules, but I could not see 
-anything suspicous in the first place.
+On Sat, Jul 12, 2003 at 12:44:30PM +0200, Patrick McHardy wrote:
+> Hi Martin,
+> this patch fixes locking of ipt_helper. We need to hold ip_conntrack_lock
+> when dereferencing exp->expectant.
 
-The function: "static int h225_help" contains a 
-ip_conntrack_expect_related call, which seems to work. (it registers a 
-incoming call derived from the h.225 package). This one is called first in 
-sequence. Those packages are going to my Voicefinder device 
-(private network)without problems.
+Thanks, I'll apply it to CVS once I return to some IP connectivity (I'm
+travelling right now)
 
-Furthermore, in the "static int h245_help" function, there is also a 
-ip_conntrack_expect_related call. This one is also registered (twice), but 
-connections for this conntrack are not going to my private network. (this 
-is registered 2nd and 3th) It seems that netfilter does not match those 
-packages, altough the logging says so.
+> Best regards,
+> Patrick
 
-Perhaps anybody can see at the code if there's anything obvious wrong? I 
-can give you a full package-state + debug logging, but I guess thats too 
-much for now.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Is there a good way to see the way a package flows? I've trying to turn on 
-logging in the ip_conntrack_core, but thats way too much :)
+--sgneBHv3152wZ8jf
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-If I've got this running, I'm going to write a H.245 RAS (gatekeeper) 
-module, but I need to get this protocol running first fine.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-With regards,
+iD8DBQE/EmICXaXGVTD0i/8RAuXHAJ49ccDJzaHiSenoP/E/Yju40t87zACeIxsG
+doToxT9CPBnL4w9PVTP9aGo=
+=zfDI
+-----END PGP SIGNATURE-----
 
-Stephan
-
------- End of forwarded message -------
+--sgneBHv3152wZ8jf--
