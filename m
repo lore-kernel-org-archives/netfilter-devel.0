@@ -1,12 +1,16 @@
-From: Wojciech 'Sas' Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
-Subject: HOPLIMIT
-Date: Mon, 16 Feb 2004 13:11:20 +0100 (CET)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Very first try: ipt_connrate patch.
+Date: Mon, 16 Feb 2004 12:18:16 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58L.0402161307250.2317@alpha.zarz.agh.edu.pl>
+Message-ID: <4030A6F8.5030606@trash.net>
+References: <87bro9fiqq.fsf@iki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter developmnet mailing list <netfilter-devel@lists.netfilter.org>
+To: Nuutti Kotivuori <naked@iki.fi>
+In-Reply-To: <87bro9fiqq.fsf@iki.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,13 +21,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Nuutti Kotivuori wrote:
+> I would be glad to get as many comments about it as early as
+> possible, also on the usefulness of what I'm doing here.
 
-In HOPLIMIT module file has name ip6t_HL.c but Makefile requires 
-ip6t_HOPLIMIT.o, and ip6t_HL.c required ip6t_HOPLIMIT.h which not exist.
-exist include/linux/netfilter_ipv6/ip6t_HL.h
+> +void
+> +ip_conntrack_rate_count(struct ip_conntrack_rate *ctr,
+> +			unsigned int len)
+> +{
+> +	u_int32_t new_bytes;
+> +	unsigned long now = jiffies;
+> +
+> +	new_bytes = (ctr->avgrate * IP_CONNTRACK_RATE_INTERVAL +
+> +		     len * IP_CONNTRACK_RATE_SCALE);
+> +	if(new_bytes > MAX_TOKENS_IN_WINDOW)
+> +		new_bytes = MAX_TOKENS_IN_WINDOW;
+> +	ctr->avgrate = new_bytes / (now - xchg(&ctr->prev, now) +
+> +				    IP_CONNTRACK_RATE_INTERVAL);
+> +}
 
-Rename works OK.
-					Sas.
--- 
-{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
-{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
+You need locking here. Other CPUs can change ctr->avgrate between
+reading and updating it. The xchg operation becomes unneccessary
+with proper locking.
+
+Regards,
+Patrick
