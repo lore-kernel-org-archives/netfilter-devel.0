@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: fix all iptables problems with '!' (hopefully)
-Date: Tue, 07 Jan 2003 19:53:31 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: iptables u32 match code for review/testing/...
+Date: Tue, 7 Jan 2003 19:53:00 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E1B222B.5030009@trash.net>
-References: <35565.195.97.5.193.1041816667.squirrel@fs.tsaousis.gr> <20030106020219.GC423@comet.rv-int> <3E193B0E.9030602@trash.net> <36373.195.97.5.193.1041856153.squirrel@fs.tsaousis.gr> <3E19A1D8.7080605@trash.net> <20030107171526.GL1353@sunbeam.de.gnumonks.org>
+Message-ID: <20030107185300.GN1353@sunbeam.de.gnumonks.org>
+References: <200212271854.gBRIsf131987@isis.cs3-inc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jnYfR+Q8IWTs8BNa"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20030107171526.GL1353@sunbeam.de.gnumonks.org>
+To: Don Cohen <don-nf@isis.cs3-inc.com>
+Content-Disposition: inline
+In-Reply-To: <200212271854.gBRIsf131987@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,32 +22,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
 
->On Mon, Jan 06, 2003 at 04:33:44PM +0100, Patrick McHardy wrote:
->  
->
->>In fact ! is used in many matches in a non-boolean context.
->>After the patch is applied, both it always possible
->>(! --uid-owner xxx / --uid-owner ! xxx).
->>It would still be nice to have the helptexts unified concerning
->>the use of '!', i think.
->>    
->>
->
->This is why I'm still unsure whether to apply your patch or not.
->
->I'd rather like to enforce one unique syntax than offering two different
->options giving the same result (and possibly causing confusion with the
->user).
->  
->
-Thats the reason why i was unsure weather to send the patch or not ;)
-What about if i convert all matches to only show "!" in boolean context 
-in the
-helptexts and change check_inverse and what else might be neccessary to 
-enforce this ?
-What about backward-compatibility ?
+--jnYfR+Q8IWTs8BNa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
-Patrick
+On Fri, Dec 27, 2002 at 10:54:41AM -0800, Don Cohen wrote:
+
+Ok, here the comments you requested
+
+> /* *** What's this about?
+>    Must fit inside union ipt_matchinfo: 16 bytes */
+
+What do you mean by this?=20
+
+> /* *** any way to allow for an arbitrary number of elements?
+>    for now I settle for a limit of 10 of each */
+
+no way. At least not with the current kernel/userspace interface :(
+
+--=20
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--jnYfR+Q8IWTs8BNa
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+GyIMXaXGVTD0i/8RAhKhAJ9I6lc2oxc0v+vHT/ffSlRrcqoe+wCfQdMy
+KufwMtlAGOZ0pQIZ+AHrqfQ=
+=vy5d
+-----END PGP SIGNATURE-----
+
+--jnYfR+Q8IWTs8BNa--
