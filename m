@@ -1,13 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [Fwd: NAT counting]
-Date: 06 Feb 2003 16:35:55 +0100
+From: Kevin McConnell <kevymac@yahoo.com>
+Subject: Re: [Fwd: NAT counting]
+Date: Thu, 6 Feb 2003 08:09:03 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1044545755.21354.9.camel@tux.rsn.bth.se>
+Message-ID: <20030206160903.69064.qmail@web40302.mail.yahoo.com>
+References: <1044545755.21354.9.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>,
+  Netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <1044545755.21354.9.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,30 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Maybe this could be interesting to someone?
 
------Forwarded Message-----
+--- Martin Josefsson <gandalf@wlug.westbo.se> wrote:
+> Maybe this could be interesting to someone?
 
-From: Stephen Clark <sclark46@earthlink.net>
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Subject: NAT counting
-Date: 06 Feb 2003 09:46:44 -0500
-
-Hi all,
-
-Is Linux being fixed to prevent this?
+This is actually documented at the nmap site too.. 
+http://www.insecure.org/nmap
+Not exactly a new subject. But there are some
+workarounds there. Perhaps you might think about
+passing that on to the kernel mailing list too...
 
 
-"how to remotely count the number of machines hiding behind a NAT box" 
-<http://www.research.att.com/%7Esmb/papers/fnat.pdf> /
+=====
+Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
 
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
--- 
-/Martin
-
-Never argue with an idiot. They drag you down to their level, then beat you with experience.
+__________________________________________________
+Do you Yahoo!?
+Yahoo! Mail Plus - Powerful. Affordable. Sign up now.
+http://mailplus.yahoo.com
