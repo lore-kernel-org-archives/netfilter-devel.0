@@ -1,16 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Counter problem in a new nat target.
-Date: Thu, 11 Dec 2003 09:20:58 +0100 (CET)
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: e1000 with ip_conntrack at 40k/s upload
+Date: Thu, 11 Dec 2003 09:25:13 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312110918060.23401-100000@filer.marasystems.com>
-References: <3FD7E26F.2020209@deansoft.com.tw>
+Message-ID: <3FD829E9.20003@balabit.hu>
+References: <20031211011949.GA4664@ddiworld.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Emmanuel Guiton <emmanuel@netlab.hut.fi>,
-   <netfilter-devel@lists.netfilter.org>, KOVACS Krisztian <hidden@balabit.hu>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jesse Peng <jesse@deansoft.com.tw>
-In-Reply-To: <3FD7E26F.2020209@deansoft.com.tw>
+To: joel reed <jreed@ddiworld.com>
+In-Reply-To: <20031211011949.GA4664@ddiworld.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,21 +21,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 11 Dec 2003, Jesse Peng wrote:
 
-> The conntrack->help.Private_connection_helper_info and 
-> conntrack->nat.help.Private_nat_helper supposed not that much accused 
-> been abused.
+   Hi,
 
-There is not a problem using these from the helpers, but using these from
-a target will give problems if such helper is ever used in the system for 
-the same traffic as the target.
+joel reed wrote:
+> When i run 2.6.0-test11 with an e1000 card and ip_conntrack
+> i get 40k/s upload speed. with the exact same config on
+> 2.4.22-1.2129.nptlsmp i get 6M/s uploads. download speed is
+> never effected.
+> 
+> this issue was reported previously:
+> http://lists.netfilter.org/pipermail/netfilter/2003-October/047436.html
 
-By designing the solution using these fields you absolutely rule out the 
-possibility to combine the solution with conntrack/nat helpers.
+   Isn't this the recently solved ip_conntrack && TSO problem? Maybe you 
+should check out the LKML thread on the issue, and try David Millers patch:
 
-Adding a new field is trivial and does not cause any conflicts. It is open 
-source after all.
+   http://lkml.org/lkml/2003/12/5/179
 
-Regards
-Henrik
+-- 
+   Regards,
+     Krisztian KOVACS
