@@ -1,16 +1,19 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: ip_nat_snmp_basic issue!
-Date: Wed, 06 Apr 2005 09:36:51 +1000
-Message-ID: <1112744211.24374.5.camel@localhost.localdomain>
-References: <WorldClient-F200504051323.AA23210105@basirat.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
+Date: Tue, 5 Apr 2005 21:48:06 -0700
+Message-ID: <20050406044806.GA9711@linuxace.com>
+References: <20050402202438.GA2968@linuxace.com> <4250435E.1090309@trash.net>
+	<20050403235320.GB28850@linuxace.com>
+	<20050404044033.GA1847@linuxace.com> <4250FA72.3020502@trash.net>
+	<20050404204716.GA4067@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
-	jamesm@redhat.com
+Content-Type: multipart/mixed; boundary="qDbXVdCdHGoSgWSk"
+Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Mohsen Basirat <mohsen@basirat.com>
-In-Reply-To: <WorldClient-F200504051323.AA23210105@basirat.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <20050404204716.GA4067@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +25,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2005-04-05 at 13:23 -0500, Mohsen Basirat wrote:
-> Dear Rusty,
-> 
-> I was trying to use ip_nat_snmp_basic but unfortantly it does not work. I
-> just googled and found out that you have been following the issues w/ this
-> module and added some code for the 2.6.11-rc2.
-> So would u mind let me know how I can make this module work! 
-> I just modprobe the module and define one SNAT,DNAT but nothing hapens!
-> It does not change the ip addresses in the payload !
-> I am using kernel 2.6.11.6 and iptables 1.2.11.
-> 
-> here is the iptables nat rules:
-> iptables -t nat -A PREROUTING -d 192.168.201.185 -i eth0 -j DNAT
-> --to-destination 10.21.1.4
-> iptables -t nat -A POSTROUTING -s 10.21.1.4 -o eth0 -j SNAT --to-source
-> 192.168.201.185
-> 
-> Rusty, I will be so thankful if u help me figure it out.
 
-It was converted to the new netfilter stuff, but without a testcase in
-nfsim, I don't know if it actually works.  I keep hoping someone will
-write the testcase and we'll be able to see what I broke...
+--qDbXVdCdHGoSgWSk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-James, you bored with that crypto crap yet?
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+On Mon, Apr 04, 2005 at 01:47:16PM -0700, Phil Oester wrote:
+> So as it stands, only retransmits on positive sizediff are handled
+> properly.  But my original check to compensate for this was flawed,
+> since seq != correction_pos when entering adjust_tcp_sequence - but
+> it does seem clear we cannot blindly -= offset_after.
+
+I've become more convinced that this is the correct approach.  Anticipating
+that you will too, below is an updated patch with comments added.
+
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--qDbXVdCdHGoSgWSk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ftpstable
+
+diff -ru linux-orig/net/ipv4/netfilter/ip_nat_helper.c linux-stable/net/ipv4/netfilter/ip_nat_helper.c
+--- linux-orig/net/ipv4/netfilter/ip_nat_helper.c	2005-03-02 02:37:49.000000000 -0500
++++ linux-stable/net/ipv4/netfilter/ip_nat_helper.c	2005-04-06 00:42:48.736295496 -0400
+@@ -72,15 +72,23 @@
+ 
+ 	LOCK_BH(&ip_nat_seqofs_lock);
+ 
+-	/* SYN adjust. If it's uninitialized, or this is after last
+-	 * correction, record it: we don't handle more than one
+-	 * adjustment in the window, but do deal with common case of a
+-	 * retransmit */
+-	if (this_way->offset_before == this_way->offset_after
+-	    || before(this_way->correction_pos, seq)) {
+-		    this_way->correction_pos = seq;
+-		    this_way->offset_before = this_way->offset_after;
+-		    this_way->offset_after += sizediff;
++	/* SYN adjust. In the case of a retransmit, ip_nat_seq_adjust has
++	 * added offset_before to client's seq, so subtract it to test
++	 * for retransmit here */
++	if (seq - this_way->offset_before != this_way->correction_pos) {
++		/* If it's uninitialized, or this is after last correction,
++		 * record it. We don't handle more than one adjustment in
++		 * the window */
++		seq -= this_way->offset_after;
++		if (this_way->offset_before == this_way->offset_after
++		    || before(this_way->correction_pos, seq)) {
++			/* Since ip_nat_seq_adjust has added
++			 * offset_after, subtract it to store
++			 * the client's seq in correction_pos */
++			this_way->correction_pos = seq;
++			this_way->offset_before = this_way->offset_after;
++			this_way->offset_after += sizediff;
++		}
+ 	}
+ 	UNLOCK_BH(&ip_nat_seqofs_lock);
+ 
+
+--qDbXVdCdHGoSgWSk--
