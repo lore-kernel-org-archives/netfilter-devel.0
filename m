@@ -1,16 +1,12 @@
-From: "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
-Subject: Re: [PATCH 2.4/2.5]
-Date: 29 Jun 2003 22:20:53 +0200
+From: Adrian Bularca <abularca@yahoo.com>
+Subject: netfilter router extension
+Date: Thu, 26 Jun 2003 03:16:35 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1056918054.1068.96.camel@exile>
-References: <1056913883.1068.70.camel@exile>  <1056915465.9614.59.camel@pc>
+Message-ID: <20030626101635.11034.qmail@web11207.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Brian J. Murrell" <netfilter@interlinx.bc.ca>
-In-Reply-To: <1056915465.9614.59.camel@pc>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,19 +17,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2003-06-29 at 21:37, Brian J. Murrell wrote:
-> 
-> I am having a hard time thinking of a scenario where a client would want
-> to listen on a port other than it's default and/or listen on multiple
-> ports for commands from the backup server.
-> 
-Well not a lot of common scenarios, I will give you that, but
-I just figured that in some situations, people run services 
-on different ports, not the standard ports the services are normally
-associated with. Sometimes because those ports are blocked by
-another firewall, sometimes to confuse portscanners. I just
-figured that the other conntrackers in the kernel had this
-feature so I added it to your code...
 
-Regards,
-Filip
+Hello,
+
+I want to develop a netfilter extension capable of
+filtering and also of routing of specific 
+multicast packets, which are also modified. The main
+idea is to intercept the incoming multicast packets on
+one 
+network card, processing/changing and sending them on
+another network card. The first 
+part, the filtering function raises no problems. The
+changing and the routing of the 
+multicast packets is the part that we didn't manage to
+handle.
+I am using the NF_IP_PREROUTING hook to process the
+incoming packets and the NF_IP_LOCAL_OUT hook
+to sent them as they are originating from the host.
+Sending the packet to the LOCAL_OUT hook, using 
+the NF_HOOK or event ip_send() function crashes the
+system.
+I would appreciate your ideas and suggestions on this
+issue.
+
+Thank you,
+Adrian Bularca
+
+
+__________________________________
+Do you Yahoo!?
+SBC Yahoo! DSL - Now only $29.95 per month!
+http://sbc.yahoo.com
