@@ -1,17 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: Bug#150467: user-defined chains vs. iptables module names
-Date: Fri, 21 Jun 2002 10:10:55 +0200
+Date: Fri, 21 Jun 2002 09:47:44 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020621101055.E5183@oknodo.bof.de>
-References: <20020620145619.GA1404@mail.nontoxic.org> <Pine.LNX.4.33.0206210940180.30045-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.33.0206210940180.30045-100000@blackhole.kfki.hu>
+References: <20020620145619.GA1404@mail.nontoxic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Laurence J. Lane" <ljlane@nontoxic.org>,
-	netfilter-devel@lists.samba.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0206210940180.30045-100000@blackhole.kfki.hu>; from kadlec@blackhole.kfki.hu on Fri, Jun 21, 2002 at 09:47:44AM +0200
+To: "Laurence J. Lane" <ljlane@nontoxic.org>
+In-Reply-To: <20020620145619.GA1404@mail.nontoxic.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,45 +20,25 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> The built-in chain and target names are all fully capitalized.
-> What about the simple restriction that user-defined chain name cannot be a
-> string consisting of capitalized letters only.
+On Thu, 20 Jun 2002, Laurence J. Lane wrote:
 
-This is again breaking backwards compatibility. For example, most of my
-rulesets contain two chains, named "RD" and "LRD". The first does the
-"REJECT with limit, then DROP" stance, and the second puts a "LOG with
-limit" in front of that. As both chains are "designed" to be used with
-the same ease as REJECT or DROP, the "ALL CAPS" naming makes eminent
-sense to me.
+> The problem deals with user-defined chain names clashing with iptables
+> module names. Basically, it's entirely possible to create a user-defined
+> chain with the same name (case sensitive)  as a target module, but the
+> new chain cannot be used as a jump target.
 
-Let me make a different proposal, providing backward compatibility while
-giving active control over the ambiguity:
+We've already seen proposals to solve the problem, but please, we must
+maintain as much backward compatibility as possible. Every syntactical
+(and semantical) change results only confusion.
 
-- permit the definition of user defined chains having the same name as
-  a possible target. This is now the case by chance, depending on whether
-  an extension module is loaded, or not. My proposal is to permit it
-  in all cases.
-- when a user defined chain with the same name as a builtin target gets
-  created, make all references to that target now refer to the new user-defined
-  chain. This is the radical step, I think. If I define a chain named "LOG",
-  all my logging targets would now refer to it.
-- provide special syntax to call builtin targets, only. This may be a new
-  command line option, or it may be as simple as putting "+" in front of
-  the target name.
+The built-in chain and target names are all fully capitalized.
+What about the simple restriction that user-defined chain name cannot be a
+string consisting of capitalized letters only.
 
-Here's an example of what I mean:
-
-iptables -A INPUT bla bla bla -j LOG
-...
-iptables -N LOG
-iptables -A LOG -m limit --limit 1/s -j +LOG --log-prefix "FILTER: "
-
-After that sequence, the INPUT chain LOG would jump to the new LOG chain,
-and the "+LOG" there would call the real builtin target.
-
-The only drawback I can see now, is that builtin targets take arguments,
-while user defined chains don't. Anyway, what do you all think of the
-above general proposal?
-
-best regards
-  Patrick
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+WWW-Home: http://www.kfki.hu/~kadlec
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
