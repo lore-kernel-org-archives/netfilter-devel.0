@@ -1,15 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4.x] Fix ipchains MASQUEARDE oops
-Date: Thu, 4 Dec 2003 15:07:57 +0530
+Subject: Re: sending event to user space
+Date: Thu, 4 Dec 2003 17:19:08 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031204093757.GA7680@obroa-skai.de.gnumonks.org>
+Message-ID: <20031204114908.GD7680@obroa-skai.de.gnumonks.org>
+References: <3FCDF1EB.1070803@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+	protocol="application/pgp-signature"; boundary="zS7rBR6csb6tI2e1"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: pablo neira <pablo@eurodev.net>
 Content-Disposition: inline
+In-Reply-To: <3FCDF1EB.1070803@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,42 +23,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---mP3DRpeJDSE+ciuQ
+--zS7rBR6csb6tI2e1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave!
+On Wed, Dec 03, 2003 at 03:23:17PM +0100, pablo neira wrote:
+> Hi list!
+>=20
+> I programmed a dummy module for netfilter which tries to match a packet=
+=20
+> and if it does, it will do nothing (NF_ACCEPT) but I would want it to=20
+> send an event to a program in user space to do something, how can I do th=
+at?
 
-Please apply the following patch (on top of 2.4.23).  It fixes an oops
-that was introduced during  2.4.23 when we did a change in the NAT core
-but forgot to update the compatibility layer.  2.6.x already contains
-that fix.
+That is not really netfilter related at all.  You could create a /proc
+file and write something to it, you could use netlink sockets, you could
+use any means that the kernel provides for communication with userspace
+processes...
+=20
+> Thanks!
+> Pablo
 
-Please apply, thanks.
-
-Which raises another issue... do you think it would still be possible to
-rip out the ipfwadm and ipchains compatibility layer from 2.6.x?  I'm
-just _asking_, if it was still possible - not asking you to do it.
-This would certainly not affect stability, since we just delete a couple
-of whole files...
-I think the time has come to remove that kludge, especially since with
-2.7.x we will get yet another generation of the linux packet filter.
-
---- linux.old/net/ipv4/netfilter/ip_fw_compat_masq.c	2002-11-29 05:22:53.00=
-0000000 +0530
-+++ linux/net/ipv4/netfilter/ip_fw_compat_masq.c	2003-12-04 14:54:06.000000=
-000 +0530
-@@ -91,9 +91,6 @@
- 			WRITE_UNLOCK(&ip_nat_lock);
- 			return ret;
- 		}
--
--		place_in_hashes(ct, info);
--		info->initialized =3D 1;
- 	} else
- 		DEBUGP("Masquerading already done on this conn.\n");
- 	WRITE_UNLOCK(&ip_nat_lock);
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -67,16 +55,16 @@ I think the time has come to remove that kludge, especially since with
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---mP3DRpeJDSE+ciuQ
+--zS7rBR6csb6tI2e1
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/zwCLXaXGVTD0i/8RAqOAAKCgJb2vtW/6lgC1tEOFXDOAcD5KFACfTgwR
-k68DrGN0j7ZyPvykrhCu9Oc=
-=kv17
+iD8DBQE/zx9KXaXGVTD0i/8RAvncAJ9K4ywgDPh6CkD3tosl/tjDMNh88gCeLEkE
+7z/8OMQFlgLpArkjXpxfZi4=
+=JDjR
 -----END PGP SIGNATURE-----
 
---mP3DRpeJDSE+ciuQ--
+--zS7rBR6csb6tI2e1--
