@@ -1,12 +1,14 @@
-From: Didier Tournier <Didier.TOURNIER@gemplus.com>
-Subject: RFC 2694 and iptables.
-Date: Mon, 04 Nov 2002 17:20:30 +0100
+From: Peter Lee <mclee@sfu.ca>
+Subject: netfilter for IPv6
+Date: Tue, 05 Nov 2002 16:37:41 PST
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DC69E4E.6080503@gemplus.com>
+Message-ID: <200211060037.gA60bf6K016283@rm-rstar.sfu.ca>
+Reply-To: Peter Lee <mclee@sfu.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: binary
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+Content-Disposition: inline
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -19,35 +21,17 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
-I would like to build a dns alg with iptables.
-The main role of a dns alg is to modify DNS response packet by replacing 
-private IP address with public ones.
 
-I ask anybody if it is a good idea to build a new module target and in 
-this case if I have to rebuild the kernel or if I could build it in user 
-space by using libipq?
-Is there any litterature on how to add a new target module for iptables.
+I found some sample test code written by Harald Welte for the netfilter
+packet queuing to userspace. I am wondering is there any similar sample code
+that work for IPv6? Please help. I stuck with this for quite some time
+already.
 
-Thanks in advance for your help
-Didier Tournier
+I found the sample code for IPv4 at the following link:
 
-French version :
-
-Bonjour,
-
-Je souhaite écrire un target pour iptables. Celle-ci remplira la 
-fonction DNS-ALG pour IPV4.
-La fonction principale de ce DNSALG sera de remplacer une adresse privée 
-par une publique. (cf RFC 2694).
-
-Pouvez vous me guider un peu sur les points suivant.
-
-Si j'écris un module. dois-je obligatoirement recompiler le noyau ou 
-puis je simplement écrire un shared object.
-Ou puis je trouver des exemple de makefiles pour ce type de shared objects.
-Qu'elle littérature me conseillez vous pour cet exercice?
-Est il possible d'écrire une target en utilisant libipq?
-
-Merci d'avance pour votre aide.
-Didier Tournier
-Gemplus Application research labs.
+Thanks.
+Peter Lee
+M.Eng. Student
+Simon Fraser University
+http://lists.netfilter.org/pipermail/netfilter-devel/2000-November/000146.ht
+ml
