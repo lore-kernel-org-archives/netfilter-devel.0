@@ -1,16 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Netfilter logo
-Date: Mon, 4 Apr 2005 11:01:24 +0200
-Message-ID: <20050404090124.GO9155@sunbeam.de.gnumonks.org>
-References: <519389109.20050403103603@stud.tue.nl>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: [patch] Fix ipt_ACCOUNT for large networks
+Date: Mon, 4 Apr 2005 11:02:57 +0200
+Message-ID: <200504041102.57717.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NPukt5Otb9an/u20"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Peter Surda <shurdeek@routehat.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <519389109.20050403103603@stud.tue.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,43 +22,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Patrick,
 
---NPukt5Otb9an/u20
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+attached is a small patch to fix the ACCOUNT target
+for large networks. The bug was introduced when
+the code was more modularized.
 
-On Sun, Apr 03, 2005 at 10:36:03AM +0200, Sander Eikelenboom wrote:
-> Hi All,
->=20
-> I was just wondering ..., shouldn't the netfilter logo include kernel "2.=
-6"
-> also by now ?
+Kudos go to Peter Surda for finding the bug.
 
-it should be 2.4+, or maybe even without any version number.  However, I
-think we have more important work to do at the moment than to worry
-about that :)
+Cheers,
+Thomas
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
 
---NPukt5Otb9an/u20
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+diff -u -r -p ipt_ACCOUNT/linux/net/ipv4/netfilter/ipt_ACCOUNT.c ipt_ACCOUNT.fixed/linux/net/ipv4/netfilter/ipt_ACCOUNT.c
+--- ipt_ACCOUNT/linux/net/ipv4/netfilter/ipt_ACCOUNT.c  2005-04-04 10:36:22.000000000 +0200
++++ ipt_ACCOUNT.fixed/linux/net/ipv4/netfilter/ipt_ACCOUNT.c    2005-04-04 10:36:57.802104874 +0200
+@@ -714,9 +714,9 @@ int ipt_acc_handle_copy_data(void *to_us
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCUQJkXaXGVTD0i/8RApgyAKCoKIkmRR4LNPpZn59XzRyCb1e0jACgpdl4
-I9uwx5IJK1I0dlxpnFnKCYI=
-=JdBv
------END PGP SIGNATURE-----
-
---NPukt5Otb9an/u20--
+             /* Temporary buffer full? Flush to userspace */
+             if (*pos+handle_ip_size >= PAGE_SIZE) {
+-                *pos = 0;
+                 if (copy_to_user(to_user, ipt_acc_tmpbuf, *pos))
+                     return -EFAULT;
++                *pos = 0;
+             }
+             memcpy(ipt_acc_tmpbuf+*pos, &handle_ip, handle_ip_size);
+             *pos += handle_ip_size;
