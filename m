@@ -1,15 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Connection tracking bug with DNAT?
-Date: Wed, 7 Apr 2004 00:57:04 +0200 (CEST)
+From: Christian Riechmann <riechmann@fgan.de>
+Subject: Can a TCP-PDU being tunneled within a UDP-packet be accepted ?
+Date: Tue, 6 Apr 2004 15:56:08 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404070041380.15387-100000@filer.marasystems.com>
-References: <20040406160739.33702.qmail@web21327.mail.yahoo.com>
+Message-ID: <20040406135608.GA1625@rie.rie.priv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: bussmann@fgan.de
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Old Cowhand <oldcowhanddoug@yahoo.com>
-In-Reply-To: <20040406160739.33702.qmail@web21327.mail.yahoo.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,83 +19,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 6 Apr 2004, Old Cowhand wrote:
+Hello,
 
-> Do you have a configuration that accomplishes these?
-> 
-> The destination address of the traffic MUST NOT be an
-> address configured on the NAT gateway.  The simplest
-> example is from my original post:
-> 
->                                    |--Web server
->        eth0                   eth1 |  192.168.64.15/24
-> PC---------------Linux 2.4.19-------
-> 172.16.1.2/30    172.16.1.1/30     |
->                  192.168.64.1/24   |--Web server
->                                       192.168.64.5/24
-> 
-> My DNAT rule:
-> 
-> iptables -t nat -A PREROUTING -s 172.16.1.2 -d 192.168.64.5 -p tcp --dport 80 -j DNAT --to 192.168.64.15
+Here is what I want to do:
+I would like to encapsulate a TCP-PDU within a new PDU, which shall be
+transmitted as a UDP-PDU to the recipient. On the recipients site the
+TCP-PDU shall be decapsulated out of the UDP-PDU and with the verdict
+ACCEPTED shall begiven back to the kernel for further processing.
 
-The exact same rule works fine here.. and is a type of rule I use quite 
-often.
+The software I am using:
+I am using IPv6 with ip6tables 1.2.9 and Linux kernel 2.6.4.
 
-and no, I certainly do not have the server IPs configured on the gateway.
+What I can see:
+On the sending host ipq_read shows the TCP-PDU, this TCP-PDU is encapsulated
+and sent out as UDP-PDU (tcpdump shows the UDP-PDU).
+On the receiving host the transmitted UDP-PDU is received, the encapsulated
+TCP-PDU is decapsulated and this TCP-PDU is given to ipq_set_verdict with
+the action-parameter set to ACCEPT.
+Now the PROBLEM: This accepted TCP-PDU does not arrive at the application!
 
+I should mention, that this problem does not occur when instead of
+TCP-PDUs ICMP- or UDP-PDUs are encapsulated, transmitted and decapsulated.
 
+Hoping somebody can give me a hint to solve this problem.
 
-client:
+Thanks in advance
 
-# ip addr show
-2: eth0: <BROADCAST,MULTICAST,ALLMULTI,UP> mtu 1544 qdisc pfifo_fast qlen 1000
-    link/ether 00:00:ea:a5:b8:35 brd ff:ff:ff:ff:ff:ff
-    inet 172.16.1.2/30 scope global eth0
-
-# ip ro ls
-172.16.1.0/30 dev eth0  proto kernel  scope link  src 172.16.1.2 
-default via 172.16.1.1 dev eth0 
-
-gw:
-
-# ip addr show
-2: eth0: <BROADCAST,MULTICAST,ALLMULTI,UP> mtu 1544 qdisc pfifo_fast qlen 1000
-    link/ether 00:00:33:0b:c1:52 brd ff:ff:ff:ff:ff:ff
-    inet 172.16.1.1/30 scope global eth0
-3: eth1: <BROADCAST,MULTICAST,ALLMULTI,UP> mtu 1544 qdisc pfifo_fast qlen 1000
-    link/ether 00:00:1f:8a:6e:7c brd ff:ff:ff:ff:ff:ff
-    inet 192.168.64.1/24 scope global eth1
-
-# ip ro ls
-172.16.1.0/30 dev eth0  proto kernel  scope link  src 172.16.1.1 
-192.168.64.0/24 dev eth1  proto kernel  scope link  src 192.168.64.1 
-
-# iptables-save
-*nat
-:PREROUTING ACCEPT [4:240]
-:POSTROUTING ACCEPT [1:60]
-:OUTPUT ACCEPT [0:0]
--A PREROUTING -s 172.16.1.2 -d 192.168.64.5 -p tcp -m tcp --dport 80 -j DNAT --to-destination 192.168.64.15 
-COMMIT
-
-server:
-
-# ip addr 
-2: eth0: <BROADCAST,MULTICAST,ALLMULTI,UP> mtu 1544 qdisc pfifo_fast qlen 1000
-    link/ether 00:00:0a:26:67:1b brd ff:ff:ff:ff:ff:ff
-    inet 192.168.64.15/24 scope global eth0
-# ip ro ls
-192.168.64.0/24 dev eth0  proto kernel  scope link  src 192.168.64.15 
-default via 192.168.64.1 dev eth0 
-
-server listening on port 80.
-
-
-Connection from 172.16.1.2 to 192.168.64.5 tcp port 80 gets properly sent
-to 192.168.64.15 port 80 instead of the requested address.
-
-192.168.64.5 not even up and running, but also works if there is a server 
-running with this IP.
-
-Regards
-Henrik
+Christian
+-- 
+Christian Riechmann    E-Mail: riechmann@fgan.de
+c/o FGAN/FKIE          Tel: (+49) 228/9435 345,378
+Neuenahrer Strasse 20  Fax: (+49) 228/9435 685
+D-53343 Wachtberg, Germany
