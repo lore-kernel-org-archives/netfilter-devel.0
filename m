@@ -1,18 +1,12 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: network/performance problem
-Date: Fri, 12 Mar 2004 17:10:59 +0100 (CET)
+From: Jorge Garcia <anarkophobia@latinmail.com>
+Subject: fisrt post on the list whit a few questions
+Date: Fri, 12 Mar 2004 12:22:42 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0403121706270.28810@tux.rsn.bth.se>
-References: <20040311152728.GA11472@mtholyoke.edu> <20040311151559.72706624.akpm@osdl.org>
- <20040311233525.GA14065@mtholyoke.edu> <40518CDC.7090805@trash.net>
+Message-ID: <20040312172242.24681180EE@smtp.latinmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Ron Peterson <rpeterso@mtholyoke.edu>,
-	Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="latinmail.com_linux02101.dn.net_ae9910002c321cd0e2b62431821f9110"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <40518CDC.7090805@trash.net>
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,41 +17,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 12 Mar 2004, Patrick McHardy wrote:
 
-> >>c024c0d4 ip_conntrack_expect_related                  47   0.0368
-> >>c0105250 default_idle                               2817  70.4250
-> >>c024bae0 init_conntrack                             3053   3.7232
-> >>00000000 total                                      5962   0.0041
-> >>
-> >>It appears that netfilter has gone berzerk and is taking your machine out.
-> >>
-> >>Are you really sure that nothing is sitting there injecting new rules all
-> >>the time?
-> >
-> >
-> > You mean a script calling 'iptables' to dynamically add rules?  Nothing
-> > like that at all.  I dumped the current rules below.
-> >
-> > Are you looking at the init_conntrack numbers?  While they seem, in the
-> > long run, to be getting larger, they're not increasing monotonically.
-> > My ping latencies, and the CPU percentage consumed by ksoftirqd_CPU0
-> > just go up and and up (albeit slowly).
-> >
->
-> The size-128 slab keeps growing over time, I suspect something is
-> registering lots of expectations. init_conntrack has to walk the
-> entire list for each new connection. Which helpers are you using ?
-> Please also post the content of /proc/net/ip_conntrack and your
-> config.
+--latinmail.com_linux02101.dn.net_ae9910002c321cd0e2b62431821f9110
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-If you want to see the numbers of expectations registered per second you
-can apply the ctstat patch from patch-o-matic and download the small
-utility mentioned in the helpfile.
+Hi, Im from Montevideo Uruguay, so u have to excuse my english.
+Im using netfilter iptables for about 4 months and i really like the pr=
+oduct, now im reading about the netfilter programming modules that i fi=
+nd in a phrack article.
+The modules dont do ehat is expected to do, like in list2.c the program=
+ filter input and output interfaces.
+If i want to filter only incoming packets, how do i do that??
+My second question its about security, the security advisories on the p=
+age are old ones and doesnt work for new kernels.
+I want to know if is there any vulneability more new for testing becous=
+e im writing a paper about netfilter security in spanish.
+Sorry if my questions are too "silly" for u, im not an expert but i wan=
+t to be.Thanx
+FrediX
 
-I can prepare a regular patch for you if it sounds interesting.
-We can add a counter for the number of expectations in the linked-list as
-well in order to debug this. (the ctstat patch only adds counters for
-new/deleted expectations)
-
-/Martin
+http://www.latinmail.com - La forma m=E1s c=F3moda de enviar y recibir =
+tus e-mails
+--latinmail.com_linux02101.dn.net_ae9910002c321cd0e2b62431821f9110--
