@@ -1,57 +1,41 @@
-From: "Eble, Dan" <DanE@aiinet.com>
-Subject: RE: Re:  Any way of knowing a packet's been defragmented
-Date: Thu, 5 Aug 2004 10:58:17 -0400
-Sender: bridge-bounces@lists.osdl.org
-Message-ID: <C0170D0AF1277849A4B4518034F855DD0CFC55@aiexchange.ai.aiinet.com>
+From: bdschuym@pandora.be
+Subject: Re: [Bridge] Re:  Any way of knowing a packet's been defragmented
+Date: Thu, 05 Aug 2004 15:02:14 +0000
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <W1746121773184611091718134@asteria.telenet-ops.be>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============27441117608308874=="
-Cc: bridge <bridge@osdl.org>,
-   netfilter-devel <netfilter-devel@lists.netfilter.org>,
-   Bart De Schuymer <bdschuym@pandora.be>, shemminger@osdl.org
-Return-path: <bridge-bounces@lists.osdl.org>
-Content-class: urn:content-classes:message
-To: "Henrik Nordstrom" <hno@marasystems.com>
-List-Unsubscribe: <http://lists.osdl.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/bridge>
-List-Post: <mailto:bridge@lists.osdl.org>
-List-Help: <mailto:bridge-request@lists.osdl.org?subject=help>
-List-Subscribe: <http://lists.osdl.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.osdl.org?subject=subscribe>
-Errors-To: bridge-bounces@lists.osdl.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel" <netfilter-devel@lists.netfilter.org>,
+	"bridge" <bridge@osdl.org>, shemminger@osdl.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: "Henrik Nordstrom" <hno@marasystems.com>,
+	"Bart De Schuymer" <bdschuym@pandora.be>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---===============27441117608308874==
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8bit
+>----- Oorspronkelijk bericht -----
+>Van
+: Henrik Nordstrom [mailto:hno@marasystems.com]
+>Verzonden
+: donderdag
+, augustus
+ 5, 2004 01:10 PM
+>Eh.. I do not claim to be a bridge guru, but won't such bridge cause 
+>serious havoc on the network much like PMTU blackholes does?
 
-> -----Original Message-----
-> From: Henrik Nordstrom [mailto:hno@marasystems.com] 
+Someone who sets up such a bridge should obviously know what she is doing. That's not our problem.
 
-> The check should be after all 
-> netfilter hooks just before the packet is given to the NIC 
-> driver, dropped 
-> on transmit because it can not be sent out on the target media, not 
-> dropped in "bridge forwarding" because it seems to be bigger than the 
-> intended target device.
+>You should either reject creating such bridge, or make sure to fragment 
+>packets including ICMP MUST FRAGMENT generation when not allowed (which 
+>requires an IP).
 
-That makes sense.
-
-Regards,
-Dan
-
-
---===============27441117608308874==
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-_______________________________________________
-Bridge mailing list
-Bridge@lists.osdl.org
-http://lists.osdl.org/mailman/listinfo/bridge
-
---===============27441117608308874==--
+It's connection tracking that is responsible for the defragmentation and connection tracking WILL refragment the packets, BUT only if the bridge code doesn't drop the packet first.
+The bridge code should obviously not send any ICMP message.
