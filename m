@@ -1,13 +1,20 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH] nf-log and raw patch fixes
-Date: Mon, 29 Sep 2003 11:54:35 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [Patch]: IPv6 Connection Tracking
+Date: Mon, 29 Sep 2003 10:42:46 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0309291130280.2237-100000@blackhole.kfki.hu>
+Message-ID: <20030929084246.GE654@obroa-skai.de.gnumonks.org>
+References: <1064515680.995.41.camel@localhost> <Pine.LNX.4.44.0309252151180.11253-100000@netcore.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SFyWQ0h3ruR435lw"
+Cc: Andras Kis-Szabo <kisza@securityaudit.hu>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
+	Netfilter Devel <netfilter-devel@lists.netfilter.org>,
+	Netdev <netdev@oss.sgi.com>, usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Pekka Savola <pekkas@netcore.fi>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0309252151180.11253-100000@netcore.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,42 +25,74 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
 
-I have committed the new nf-log and raw patches in the cvs.
+--SFyWQ0h3ruR435lw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-pending/40_nf-log.patch:
-	- It hasn't got an userspace part anymore.
+On Thu, Sep 25, 2003 at 09:57:47PM +0300, Pekka Savola wrote:
+> First, a meta-comment:
+>=20
+> What I fear is that in the end, nothing gets done because having the goal
+> set to perfection.  If there is no energy to drive through the
+> L3-independent connecting tracking, the end result is that the user
+> does not have this feature=20
 
-userspace/raw.patch:
-	- The userspace part can safely be applied, the patched source
-	  will compile even with non-raw kernels.
-	- The fragmentation bug with untracked packets reported on
-	  netfilter-devel is solved by forcing defragmentation when
-	  the NOTRACK target is in use. The NOTRACK target depends
-	  on ip_conntrack (already did), and ip_conntrack_in is split
-	  into two parts: defragging and connection tracking. For
-	  the defragging part of conntrack a new priority is introduced,
-	  which precedes the raw table. Thus in the raw table (when
-	  conntrack/NOTRACK is used) we see full packets only.
-	- I removed the checking for already existing connections
-	  in the NOTRACK target.
-	- The handling of TRACEd packets is improved, so that there is
-	  no performance penalty just by compiling in the support.
-	  It required introducing two new fields in ip[6]t_entry for
-	  storing the pointer to the chainname and a rulenum value.
-	  I think this makes the target really useful. Until now
-	  the general suggestion was not to compile in the TRACE target
-	  into an in-production kernel due to the overhead, but that
-	  prevented the checking of real life rules. From now on one
-	  can compile in, switch on/off tracing without performance
-	  penalty (not counting producing the logs, but that's
-	  unavoidable).
+well, that's the reason why I'd like to see it in=20
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> (remember ip6tables REJECT target?  That must have been sitting in
+> netfilter for some 2+ years, and not having been integrated in the
+> mainline kernel and the users still do not have the feature!).
+
+Mh, nobody has bugged me about that in all those 2 years.  At least I
+don't remember somebody asking me for kernel inclusion...=20
+
+Since ipv4 REJECT has now changed
+
+> So, my personal take is:
+>  - if a L3-independent conn tracking can be done *quickly*, fine,
+
+I've started to write a small paper about the envisioned desgign.  It
+doesn't look all that complicated, if somebody can concentrate on this
+job.  I personally (as indicated before) do not have the time to work on
+that issue.  But I'm happy to give advise.
+
+>  - if not, just merge the current one, start working on L3 independent=20
+> conn tracking, and add it when available.
+
+I understand your point.  However, I fear to be the one responsible of
+keeping ip6_conntrack in sync with ip_conntrack.  If there is a
+volunteer (maybe Yasuyuki?) who would really commit himself to look at
+which changes go into ip_conntack, and sending me patches to sync
+ip6_conntrack, I'd be more inclined to submit ip6_conntrack to the
+mainline kernel. =20
+
+> .. but I'm not the one who's answering the support emails, so in all=20
+> fairness, I should be silent now..
+
+;)
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--SFyWQ0h3ruR435lw
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/d/CGXaXGVTD0i/8RAuZsAJ9+gG8tUawwy3u+4BTicBOkZdrZrgCfd7g2
+k4SWLLMxIJc463EcS4hSfBM=
+=SWcD
+-----END PGP SIGNATURE-----
+
+--SFyWQ0h3ruR435lw--
