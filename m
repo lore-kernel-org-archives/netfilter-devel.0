@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: ctnetlink questions
-Date: Mon, 20 Oct 2003 05:09:08 +0200
+Date: Mon, 20 Oct 2003 08:34:22 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F9351D4.3070704@trash.net>
-References: <Pine.LNX.4.44.0310200244580.17141-100000@filer.marasystems.com> <3F934FFD.7090700@trash.net>
+Message-ID: <Pine.LNX.4.44.0310200820260.23179-100000@filer.marasystems.com>
+References: <3F934FFD.7090700@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Henrik Nordstrom <hno@marasystems.com>,
- Harald Welte <laforge@netfilter.org>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 In-Reply-To: <3F934FFD.7090700@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -22,26 +21,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
+On Mon, 20 Oct 2003, Patrick McHardy wrote:
 
-> - we can use some sorting algorithm which benefits from pre-sorted 
-> input. this would
->  give better average performance. IIRC new conntracks are added at the 
-> head of the
->  chains, so if we sort and walk backwards through the chains we only 
-> have to resort
->  after an id counter wrap. Sorting is also pretty easy in that case: 
-> move all entries at
->  head of list whose id is smaller than the last one's to the tail 
-> while preserving order,
->  stop at first one thats bigger. This also means we only need the 
-> write lock in a very
->  very rare case. 
+> Sounds like a nice solution. I favour the permanent resorting for these 
+> reasons:
 
+> - all temporary memory allocations should be released before
+> ctnetlink_dump is left, not in ctnetlink_done since we don't know if and
+> when the read will continue. this means sorting multiple times is
+> required.
 
-One small addition, this it not completly correct we need to resort more 
-often, but never
-before the first counter wrap.
+Sorting multiple times is indeed needed if not doing a permanent resort,
+as you do not want to keep the bucket locked for a long period. Even if 
+you knew the read would continue you can not save the temporary sorted 
+list.
 
-Best regards,
-patrick
+> - we can use some sorting algorithm which benefits from pre-sorted
+> input. this would give better average performance. IIRC new conntracks
+> are added at the head of the chains, so if we sort and walk backwards
+> through the chains we only have to resort after an id counter wrap.
+
+Could work. In such case the bucket should at most times be sorted
+naturally with no need to resort. There is a few theoretical races
+where entries may be inserted in another order (more so on SMP), but these
+are hopefully relatively rare.
+
+Regards
+Henrik
