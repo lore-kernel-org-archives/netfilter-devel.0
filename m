@@ -1,13 +1,13 @@
 From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH][COSMETIC]  libip6t_fuzzy.c
-Date: Tue, 12 Aug 2003 13:45:36 -0400
+Subject: [PATCH][TRIVIAL]  Unused variable in libipt_LOG.c and libip6t_LOG.c
+Date: Sun, 03 Aug 2003 20:15:52 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F3927C0.8040102@videotron.ca>
+Message-ID: <3F2DA5B8.8040109@videotron.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_UfCiCjGqZfy9BubaAmEcag)"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_n8Lcigrvc1Fb84POAPIh1g)"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Harald Welte <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,91 +20,88 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---Boundary_(ID_UfCiCjGqZfy9BubaAmEcag)
+--Boundary_(ID_n8Lcigrvc1Fb84POAPIh1g)
 Content-type: text/plain; charset=us-ascii; format=flowed
 Content-transfer-encoding: 7BIT
 
 Harald,
 
-   this patch includes:
+   the following two patches remove an unused variable in save() and 
+convert all structure initialization to C99.
 
-1- Indentation fixes,
-2- Reduce the number of calls to printf(),
-3- C99 initializers.
+Regards,
 
-Please apply.
-
-Stephane.
+Stephane Ouellette
 
 
---Boundary_(ID_UfCiCjGqZfy9BubaAmEcag)
-Content-type: text/plain; name=libip6t_fuzzy.c.patch; CHARSET=US-ASCII
+--Boundary_(ID_n8Lcigrvc1Fb84POAPIh1g)
+Content-type: text/plain; name=libipt_LOG.c.patch; CHARSET=US-ASCII
 Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=libip6t_fuzzy.c.patch
+Content-disposition: inline; filename=libipt_LOG.c.patch
 
---- netfilter.orig/userspace/extensions/libip6t_fuzzy.c	Sat Jun 14 10:08:53 2003
-+++ netfilter/userspace/extensions/libip6t_fuzzy.c	Mon Aug 11 22:16:27 2003
-@@ -34,9 +34,9 @@
- };
+--- netfilter/userspace/extensions/libipt_LOG.c	Mon Jul 14 16:01:29 2003
++++ netfilter.fixed/userspace/extensions/libipt_LOG.c	Sun Aug  3 19:54:50 2003
+@@ -26,12 +26,12 @@
+ }
  
  static struct option opts[] = {
--	{ "lower-limit", 1 , 0 , '1' } ,
--	{ "upper-limit", 1 , 0 , '2' } ,
+-	{ "log-level", 1, 0, '!' },
+-	{ "log-prefix", 1, 0, '#' },
+-	{ "log-tcp-sequence", 0, 0, '1' },
+-	{ "log-tcp-options", 0, 0, '2' },
+-	{ "log-ip-options", 0, 0, '3' },
 -	{ 0 }
-+	{ .name = "lower-limit", .has_arg = 1, .flag = 0, .val = '1' },
-+	{ .name = "upper-limit", .has_arg = 1, .flag = 0, .val = '2' },
++	{ .name = "log-level",        .has_arg = 1, .flag = 0, .val = '!' },
++	{ .name = "log-prefix",       .has_arg = 1, .flag = 0, .val = '#' },
++	{ .name = "log-tcp-sequence", .has_arg = 0, .flag = 0, .val = '1' },
++	{ .name = "log-tcp-options",  .has_arg = 0, .flag = 0, .val = '2' },
++	{ .name = "log-ip-options",   .has_arg = 0, .flag = 0, .val = '3' },
 +	{ .name = 0 }
  };
  
- /* Initialize data structures */
-@@ -64,8 +64,8 @@
-       unsigned int *nfcache,
-       struct ip6t_entry_match **match)
+ /* Initialize the target. */
+@@ -52,15 +52,15 @@
+ };
+ 
+ static struct ipt_log_names ipt_log_names[]
+-= { { "alert", LOG_ALERT },
+-    { "crit", LOG_CRIT },
+-    { "debug", LOG_DEBUG },
+-    { "emerg", LOG_EMERG },
+-    { "error", LOG_ERR },		/* DEPRECATED */
+-    { "info", LOG_INFO },
+-    { "notice", LOG_NOTICE },
+-    { "panic", LOG_EMERG },		/* DEPRECATED */
+-    { "warning", LOG_WARNING }
++= { { .name = "alert",   .level = LOG_ALERT },
++    { .name = "crit",    .level = LOG_CRIT },
++    { .name = "debug",   .level = LOG_DEBUG },
++    { .name = "emerg",   .level = LOG_EMERG },
++    { .name = "error",   .level = LOG_ERR },		/* DEPRECATED */
++    { .name = "info",    .level = LOG_INFO },
++    { .name = "notice",  .level = LOG_NOTICE },
++    { .name = "panic",   .level = LOG_EMERG },		/* DEPRECATED */
++    { .name = "warning", .level = LOG_WARNING }
+ };
+ 
+ static u_int8_t
+@@ -225,7 +225,6 @@
  {
--
--struct ip6t_fuzzy_info *fuzzyinfo = (struct ip6t_fuzzy_info *)(*match)->data;
-+	struct ip6t_fuzzy_info *fuzzyinfo =
-+		(struct ip6t_fuzzy_info *)(*match)->data;
+ 	const struct ipt_log_info *loginfo
+ 		= (const struct ipt_log_info *)target->data;
+-	unsigned int i = 0;
  
- 	u_int32_t num;
+ 	if (strcmp(loginfo->prefix, "") != 0)
+ 		printf("--log-prefix \"%s\" ", loginfo->prefix);
+@@ -243,18 +242,18 @@
  
-@@ -99,7 +99,7 @@
- 	if (string_to_number(optarg,1,MAXFUZZYRATE,&num) == -1 || num < 1)
- 		exit_error(PARAMETER_PROBLEM,"BAD --upper-limit");
- 
--		fuzzyinfo->maximum_rate = num ;
-+		fuzzyinfo->maximum_rate = num;
- 
- 		*flags |= IP6T_FUZZY_OPT_MAXIMUM;
- 
-@@ -123,8 +123,8 @@
- 	const struct ip6t_fuzzy_info *fuzzyinfo
- 		= (const struct ip6t_fuzzy_info *)match->data;
- 
--	printf(" fuzzy: lower limit = %u pps - upper limit = %u pps ",fuzzyinfo->minimum_rate,fuzzyinfo->maximum_rate);
--
-+	printf(" fuzzy: lower limit = %u pps - upper limit = %u pps ",
-+		fuzzyinfo->minimum_rate, fuzzyinfo->maximum_rate);
- }
- 
- /* Saves the union ip6t_targinfo in parsable form to stdout. */
-@@ -134,24 +134,22 @@
- 	const struct ip6t_fuzzy_info *fuzzyinfo
- 		= (const struct ip6t_fuzzy_info *)match->data;
- 
--	printf("--lower-limit %u ",fuzzyinfo->minimum_rate);
--	printf("--upper-limit %u ",fuzzyinfo->maximum_rate);
--
-+	printf("--lower-limit %u --upper-limit %u ",
-+		fuzzyinfo->minimum_rate, fuzzyinfo->maximum_rate);
- }
- 
--struct ip6tables_match fuzzy_match
+ static
+ struct iptables_target log
 -= { NULL,
--    "fuzzy",
+-    "LOG",
 -    IPTABLES_VERSION,
--    IP6T_ALIGN(sizeof(struct ip6t_fuzzy_info)),
--    IP6T_ALIGN(sizeof(struct ip6t_fuzzy_info)),
+-    IPT_ALIGN(sizeof(struct ipt_log_info)),
+-    IPT_ALIGN(sizeof(struct ipt_log_info)),
 -    &help,
 -    &init,
 -    &parse,
@@ -112,20 +109,111 @@ Content-disposition: inline; filename=libip6t_fuzzy.c.patch
 -    &print,
 -    &save,
 -    opts
-+struct ip6tables_match fuzzy_match = {
-+	.name          = "fuzzy",
-+	.version       = IPTABLES_VERSION,
-+	.size          = IP6T_ALIGN(sizeof(struct ip6t_fuzzy_info)),
-+	.userspacesize = IP6T_ALIGN(sizeof(struct ip6t_fuzzy_info)),
-+	.help          = &help,
-+	.init          = &init,
-+	.parse         = &parse,
-+	.final_check   = &final_check,
-+	.print         = &print,
-+	.save          = &save,
-+	.extra_opts    = opts
++= {
++    .name          = "LOG",
++    .version       = IPTABLES_VERSION,
++    .size          = IPT_ALIGN(sizeof(struct ipt_log_info)),
++    .userspacesize = IPT_ALIGN(sizeof(struct ipt_log_info)),
++    .help          = &help,
++    .init          = &init,
++    .parse         = &parse,
++    .final_check   = &final_check,
++    .print         = &print,
++    .save          = &save,
++    .extra_opts    = opts
  };
  
  void _init(void)
 
---Boundary_(ID_UfCiCjGqZfy9BubaAmEcag)--
+--Boundary_(ID_n8Lcigrvc1Fb84POAPIh1g)
+Content-type: text/plain; name=libip6t_LOG.c.patch; CHARSET=US-ASCII
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=libip6t_LOG.c.patch
+
+--- netfilter/userspace/extensions/libip6t_LOG.c	Mon Jul 14 16:01:29 2003
++++ netfilter.fixed/userspace/extensions/libip6t_LOG.c	Sun Aug  3 20:02:57 2003
+@@ -26,12 +26,12 @@
+ }
+ 
+ static struct option opts[] = {
+-	{ "log-level", 1, 0, '!' },
+-	{ "log-prefix", 1, 0, '#' },
+-	{ "log-tcp-sequence", 0, 0, '1' },
+-	{ "log-tcp-options", 0, 0, '2' },
+-	{ "log-ip-options", 0, 0, '3' },
+-	{ 0 }
++	{ .name = "log-level",        .has_arg = 1, .flag = 0, .val = '!' },
++	{ .name = "log-prefix",       .has_arg = 1, .flag = 0, .val = '#' },
++	{ .name = "log-tcp-sequence", .has_arg = 0, .flag = 0, .val = '1' },
++	{ .name = "log-tcp-options",  .has_arg = 0, .flag = 0, .val = '2' },
++	{ .name = "log-ip-options",   .has_arg = 0, .flag = 0, .val = '3' },
++	{ .name = 0 }
+ };
+ 
+ /* Initialize the target. */
+@@ -52,15 +52,15 @@
+ };
+ 
+ static struct ip6t_log_names ip6t_log_names[]
+-= { { "alert", LOG_ALERT },
+-    { "crit", LOG_CRIT },
+-    { "debug", LOG_DEBUG },
+-    { "emerg", LOG_EMERG },
+-    { "error", LOG_ERR },		/* DEPRECATED */
+-    { "info", LOG_INFO },
+-    { "notice", LOG_NOTICE },
+-    { "panic", LOG_EMERG },		/* DEPRECATED */
+-    { "warning", LOG_WARNING }
++= { { .name = "alert",   .level = LOG_ALERT },
++    { .name = "crit",    .level = LOG_CRIT },
++    { .name = "debug",   .level = LOG_DEBUG },
++    { .name = "emerg",   .level = LOG_EMERG },
++    { .name = "error",   .level = LOG_ERR },		/* DEPRECATED */
++    { .name = "info",    .level = LOG_INFO },
++    { .name = "notice",  .level = LOG_NOTICE },
++    { .name = "panic",   .level = LOG_EMERG },		/* DEPRECATED */
++    { .name = "warning", .level = LOG_WARNING }
+ };
+ 
+ static u_int8_t
+@@ -225,7 +225,6 @@
+ {
+ 	const struct ip6t_log_info *loginfo
+ 		= (const struct ip6t_log_info *)target->data;
+-	unsigned int i = 0;
+ 
+ 	if (strcmp(loginfo->prefix, "") != 0)
+ 		printf("--log-prefix \"%s\" ", loginfo->prefix);
+@@ -243,18 +242,18 @@
+ 
+ static
+ struct ip6tables_target log
+-= { NULL,
+-    "LOG",
+-    IPTABLES_VERSION,
+-    IP6T_ALIGN(sizeof(struct ip6t_log_info)),
+-    IP6T_ALIGN(sizeof(struct ip6t_log_info)),
+-    &help,
+-    &init,
+-    &parse,
+-    &final_check,
+-    &print,
+-    &save,
+-    opts
++= {
++    .name          = "LOG",
++    .version       = IPTABLES_VERSION,
++    .size          = IP6T_ALIGN(sizeof(struct ip6t_log_info)),
++    .userspacesize = IP6T_ALIGN(sizeof(struct ip6t_log_info)),
++    .help          = &help,
++    .init          = &init,
++    .parse         = &parse,
++    .final_check   = &final_check,
++    .print         = &print,
++    .save          = &save,
++    .extra_opts    = opts
+ };
+ 
+ void _init(void)
+
+--Boundary_(ID_n8Lcigrvc1Fb84POAPIh1g)--
