@@ -1,16 +1,15 @@
-From: vecna@s0ftpj.org
-Subject: possible target SBALANCE ?
-Date: Mon, 28 Apr 2003 17:07:27 +0200
+From: "Wojciech \"Sas\" Cieciwa" <cieciwa@alpha.zarz.agh.edu.pl>
+Subject: [PATCH] fuzzy.patch and fuzzy6.patch.ipv6
+Date: Mon, 28 Apr 2003 17:13:15 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030428150727.GA10325@dns2.italway.it>
-References: <200304192142.h3JLg1S03466@fokkensr.vertis.nl> <20030428091332.GB29390@dns2.italway.it> <20030428134713.GA12364@oknodo.bof.de>
+Message-ID: <Pine.LNX.4.44L.0304281710230.12878-100000@alpha.zarz.agh.edu.pl>
+References: <20030427094949.GF990@sunbeam.de.gnumonks.org>
+ <20030427.173804.13764775.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qDbXVdCdHGoSgWSk"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20030428134713.GA12364@oknodo.bof.de>
+In-Reply-To: <20030427.173804.13764775.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,66 +21,73 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qDbXVdCdHGoSgWSk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
+This is small patch to fix toruble on PPC with netfilter in module.
+[Without this compiler generate "unresolved symbols"]
 
-(sorry for my bad english :)
+Thanx.
+				Sas.
 
-On Mon, Apr 28, 2003 at 03:47:13PM +0200, Patrick Schaaf wrote:
-> I use 'grep conntrack /proc/slabinfo' for this task (first number column
-> is the number of conntracks currently allocated).
-uu :) I ever listen about :) tnx :)
 
-> Regarding your patch, it introduces another new place for cache line
-> pingpong, happening with the same frequency as creation of new conntracks.
-excuse me, what do you mean with pingpong ?
+--- fuzzy.patch.org	Wed Sep  4 16:11:30 2002
++++ fuzzy.patch	Mon Apr 28 17:06:58 2003
+@@ -59,7 +59,7 @@
+ + Expressed in percentage
+ +*/
+ +
+-+#define PAR_LOW		0.01
+++#define PAR_LOW		1/100
+ +#define PAR_HIGH	1
+ +
+ +static spinlock_t fuzzy_lock = SPIN_LOCK_UNLOCKED ;
+@@ -138,7 +138,7 @@
+ +       howlow  = mf_low(info->mean_rate,info->minimum_rate,info->maximum_rate);
+ +
+ +    info->acceptance_rate = (u_int8_t) \
+-+		           ( PAR_LOW*howhigh + PAR_HIGH*howlow ) ;
+++		           ( howhigh*PAR_LOW + PAR_HIGH*howlow ) ;
+ +
+ +    /* In fact , the above defuzzification would require a denominator
+ +       proportional to (howhigh+howlow) but , in this particular case ,
+@@ -158,7 +158,7 @@
+ +		get_random_bytes((void *)(&random_number), 1);
+ +
+ +		/*  If within the acceptance , it can pass => don't match */
+-+		if ( random_number <= 2.55 * info->acceptance_rate )
+++		if ( random_number <= (255 * info->acceptance_rate) / 100 )
+ +			return 0 ;
+ +		else
+ +			return 1; /* It can't pass ( It matches ) */
+--- fuzzy6.patch.ipv6.org	Fri Apr 11 12:27:54 2003
++++ fuzzy6.patch.ipv6	Mon Apr 28 17:07:51 2003
+@@ -60,7 +60,7 @@
+ + Expressed in percentage
+ +*/
+ +
+-+#define PAR_LOW		0.01
+++#define PAR_LOW		1/100
+ +#define PAR_HIGH	1
+ +
+ +static spinlock_t fuzzy_lock = SPIN_LOCK_UNLOCKED;
+@@ -138,7 +138,7 @@
+ +		howlow  = mf_low(info->mean_rate,info->minimum_rate,info->maximum_rate);
+ +
+ +		info->acceptance_rate = (u_int8_t) \
+-+				(PAR_LOW * howhigh + PAR_HIGH * howlow);
+++				(howhigh * PAR_LOW + PAR_HIGH * howlow);
+ +
+ +	/* In fact, the above defuzzification would require a denominator
+ +	 * proportional to (howhigh+howlow) but, in this particular case,
+@@ -158,7 +158,7 @@
+ +		get_random_bytes((void *)(&random_number), 1);
+ +
+ +		/*  If within the acceptance , it can pass => don't match */
+-+		if (random_number <= 2.55 * info->acceptance_rate)
+++		if (random_number <= (255 * info->acceptance_rate) / 100)
+ +			return 0;
+ +		else
+ +			return 1; /* It can't pass (It matches) */
 
-> That is not a good idea, it's not the way hashing is supposed to work.
-> There is no need for ordering anywhere, so no need to sort anything,
-> as a mergesort would do.
-> If you have overly long hash chains, use more hash buckets, and, if
-> neccessary, a better distributing hash function.
-umh, I've always view as hard work the calling of __ip_conntrack_find,
-that call LIST_FIND that one check at the wrong possibility all present
-connection tracked ...
-
-but, about the subject of the list, on the documentation of a switch=20
-for compactPCI arch
-(http://www.znyx.com/products/software/openarchitect/default.htm)
-them explain our system for make a traffic division more or less similar
-to a load balancer, them suppose that statistically all internet connection
-should be (more or less) equally distributed if is applied a matematic=20
-computation over session params (ip source, ip dest, source porc, dest port=
-).
-
-if we take a look at the last byte of ip addres and port, we could use
-this number and associate them (with a simple LAST_BYTENUMBER % POSSIBLE_OU=
-TPUT)
-to one output interface, for make load balancing applied to session
-without doing session tracking. (because on between direction
-of sessions, ip source ip dest source port dest port, is alwayes the some,
-also with inverted position).
-
-I've some time to use for make a possible -j SBALANCE target for do
-a forward on a list of output interface ... did you think that
-should be nice ?=20
-
-bye,
-~c
-
---qDbXVdCdHGoSgWSk
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+rUOvqso6AcJ1LUsRAqolAJ9OLhxkWweL0hR4R03XvtGO+5YAdgCeN4hz
-uOJZ9Ud2tVnOE6zJX+nILo0=
-=bIAN
------END PGP SIGNATURE-----
-
---qDbXVdCdHGoSgWSk--
+-- 
+{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
+{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
