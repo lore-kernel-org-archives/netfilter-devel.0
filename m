@@ -1,16 +1,12 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [PATCH][RFC] Race in ip_conntrack_alter_reply
-Date: Mon, 17 May 2004 11:04:12 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: [patch, cosmetic] CONNMARK update to minimize conflicts
+Date: Mon, 17 May 2004 11:26:50 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1084784652.1909.43.camel@nienna.balabit>
-References: <20040516210616.GA20291@linuxace.com>
+Message-ID: <Pine.LNX.4.44.0405171123280.10765-200000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-1510554117-1084786010=:10765"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20040516210616.GA20291@linuxace.com>
+To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +17,98 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-  Hi,
+---1463811839-1510554117-1084786010=:10765
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-2004-05-16, v keltezéssel 23:06-kor Phil Oester ezt írta:
-> I am still experiencing near daily deadlocks on a few heavily used
-> firewalls here (on all kernels from ~2.4.2x - 2.6.6).
-> 
-> In searching for a solution, I noticed that back in September 2003,
-> Rusty Russell pointed out the possibility of a race in ip_conntrack_alter_reply
-> and offered the below patch.
-> 
-> The relevant threads are:
-> 
-> http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/012368.html
-> http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/012388.html
-> 
-> And the patch is included below.
+Attached is a trivial update to convert the last remaining linux.patch 
+fragments to suitable .ladd files. This should resolve any conflicts 
+CONNMARK may have with other patches, at least if CONNMARK is applied 
+last..
 
-  Does it fix your problems? There were conversations on problems with
-ip_nat_setup_info() stuck in endless loop, but I did not experience any
-problems up to now. Could you provide some more info about your setup?
+There is no change in the resulting code, just the patch format.
 
--- 
- Regards,
-   Krisztian KOVACS
+Regards
+Henrik
+
+---1463811839-1510554117-1084786010=:10765
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="CONNMARK.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.44.0405171126500.10765@filer.marasystems.com>
+Content-Description: 
+Content-Disposition: attachment; filename="CONNMARK.patch"
+
+SW5kZXg6IENPTk5NQVJLL2luZm8NCj09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0N
+ClJDUyBmaWxlOiAvY3ZzcHVibGljL3BhdGNoLW8tbWF0aWMtbmcvQ09OTk1B
+UksvaW5mbyx2DQpyZXRyaWV2aW5nIHJldmlzaW9uIDEuMg0KZGlmZiAtdSAt
+cjEuMiBpbmZvDQotLS0gQ09OTk1BUksvaW5mbwkyMCBEZWMgMjAwMyAxNzoy
+NjoyMyAtMDAwMAkxLjINCisrKyBDT05OTUFSSy9pbmZvCTE3IE1heSAyMDA0
+IDA5OjIyOjM4IC0wMDAwDQpAQCAtMSw0ICsxLDMgQEANCiBBdXRob3I6IEhl
+bnJpayBOb3Jkc3Ryb20gPGhub0BtYXJhc3lzdGVtcy5jb20+DQogU3RhdHVz
+OiB3b3JraW5nDQogUmVwb3NpdG9yeTogZXh0cmENCi1EZXBlbmRzOiAhY29u
+bmJ5dGVzDQpJbmRleDogQ09OTk1BUksvbGludXgucGF0Y2gNCj09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT0NClJDUyBmaWxlOiBDT05OTUFSSy9saW51eC5wYXRj
+aA0KZGlmZiAtTiBDT05OTUFSSy9saW51eC5wYXRjaA0KLS0tIENPTk5NQVJL
+L2xpbnV4LnBhdGNoCTggTWF5IDIwMDQgMTQ6Mjk6MTAgLTAwMDAJMS41DQor
+KysgL2Rldi9udWxsCTEgSmFuIDE5NzAgMDA6MDA6MDAgLTAwMDANCkBAIC0x
+LDI1ICswLDAgQEANCi1kaWZmIC11TiAtLWV4Y2x1ZGUgLiogLS1leGNsdWRl
+ICoubyBsaW51eC0yLjQuMy1wcmUzL25ldC9pcHY0L25ldGZpbHRlci9pcF9j
+b25udHJhY2tfc3RhbmRhbG9uZS5jIGxpbnV4LTIuNC4zLXByZTMtdW1sL25l
+dC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jDQot
+LS0tIGxpbnV4LTIuNC4zLXByZTMvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nv
+bm50cmFja19zdGFuZGFsb25lLmMJVGh1IEF1ZyAxMCAyMTozNToxNSAyMDAw
+DQotKysrIGxpbnV4LTIuNC4zLXByZTMtdW1sL25ldC9pcHY0L25ldGZpbHRl
+ci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jCVdlZCBNYXIgMjEgMTM6MDQ6
+MTkgMjAwMQ0KLUBAIC05Miw2ICs5Miw5IEBADQotIAkJbGVuICs9IHNwcmlu
+dGYoYnVmZmVyICsgbGVuLCAiW1VOQ09ORklSTUVEXSAiKTsNCi0gCWxlbiAr
+PSBzcHJpbnRmKGJ1ZmZlciArIGxlbiwgInVzZT0ldSAiLA0KLSAJCSAgICAg
+ICBhdG9taWNfcmVhZCgmY29ubnRyYWNrLT5jdF9nZW5lcmFsLnVzZSkpOw0K
+LSsjaWYgZGVmaW5lZChDT05GSUdfSVBfTkZfQ09OTlRSQUNLX01BUkspDQot
+KwlsZW4gKz0gc3ByaW50ZihidWZmZXIgKyBsZW4sICJtYXJrPSVsZCAiLCBj
+b25udHJhY2stPm1hcmspOw0KLSsjZW5kaWYNCi0gCWxlbiArPSBzcHJpbnRm
+KGJ1ZmZlciArIGxlbiwgIlxuIik7DQotIA0KLSAJcmV0dXJuIGxlbjsNCi0t
+LS0gbGludXgtMi40LjQtcHJlMS1obm8vbmV0L2lwdjQvbmV0ZmlsdGVyL2lw
+X2Nvbm50cmFja19jb3JlLmMJRnJpIE1heSAgMyAxNTo0MjoyNiAyMDAyDQot
+KysrIGxpbnV4LTIuNC40LXByZTEtdW1sL25ldC9pcHY0L25ldGZpbHRlci9p
+cF9jb25udHJhY2tfY29yZS5jCUZyaSBNYXkgIDMgMTU6NDQ6MTEgMjAwMg0K
+LUBAIC03MjQsNiArNzI0LDkgQEANCi0gCQlfX3NldF9iaXQoSVBTX0VYUEVD
+VEVEX0JJVCwgJmNvbm50cmFjay0+c3RhdHVzKTsNCi0gCQljb25udHJhY2st
+Pm1hc3RlciA9IGV4cGVjdGVkOw0KLSAJCWV4cGVjdGVkLT5zaWJsaW5nID0g
+Y29ubnRyYWNrOw0KLSsjaWYgQ09ORklHX0lQX05GX0NPTk5UUkFDS19NQVJL
+DQotKwkJY29ubnRyYWNrLT5tYXJrID0gZXhwZWN0ZWQtPmV4cGVjdGFudC0+
+bWFyazsNCi0rI2VuZGlmDQotIAkJTElTVF9ERUxFVEUoJmlwX2Nvbm50cmFj
+a19leHBlY3RfbGlzdCwgZXhwZWN0ZWQpOw0KLSAJCWV4cGVjdGVkLT5leHBl
+Y3RhbnQtPmV4cGVjdGluZy0tOw0KLSAJCW5mX2Nvbm50cmFja19nZXQoJm1h
+c3Rlcl9jdChjb25udHJhY2spLT5pbmZvc1swXSk7DQpJbmRleDogQ09OTk1B
+UksvbGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3Jl
+LmMubGFkZA0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KUkNTIGZpbGU6IENP
+Tk5NQVJLL2xpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tf
+Y29yZS5jLmxhZGQNCmRpZmYgLU4gQ09OTk1BUksvbGludXgvbmV0L2lwdjQv
+bmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3JlLmMubGFkZA0KLS0tIC9kZXYv
+bnVsbAkxIEphbiAxOTcwIDAwOjAwOjAwIC0wMDAwDQorKysgQ09OTk1BUksv
+bGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3JlLmMu
+bGFkZAkxNyBNYXkgMjAwNCAwOToyMjozOCAtMDAwMA0KQEAgLTAsMCArMSw0
+IEBADQorCQlleHBlY3RlZC0+c2libGluZyA9IGNvbm50cmFjazsNCisjaWYg
+Q09ORklHX0lQX05GX0NPTk5UUkFDS19NQVJLDQorCQljb25udHJhY2stPm1h
+cmsgPSBleHBlY3RlZC0+ZXhwZWN0YW50LT5tYXJrOw0KKyNlbmRpZg0KSW5k
+ZXg6IENPTk5NQVJLL2xpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25u
+dHJhY2tfc3RhbmRhbG9uZS5jLmxhZGQNCj09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT0NClJDUyBmaWxlOiBDT05OTUFSSy9saW51eC9uZXQvaXB2NC9uZXRmaWx0
+ZXIvaXBfY29ubnRyYWNrX3N0YW5kYWxvbmUuYy5sYWRkDQpkaWZmIC1OIENP
+Tk5NQVJLL2xpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tf
+c3RhbmRhbG9uZS5jLmxhZGQNCi0tLSAvZGV2L251bGwJMSBKYW4gMTk3MCAw
+MDowMDowMCAtMDAwMA0KKysrIENPTk5NQVJLL2xpbnV4L25ldC9pcHY0L25l
+dGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jLmxhZGQJMTcgTWF5
+IDIwMDQgMDk6MjI6MzggLTAwMDANCkBAIC0wLDAgKzEsNCBAQA0KKwkJICAg
+ICAgIGF0b21pY19yZWFkKCZjb25udHJhY2stPmN0X2dlbmVyYWwudXNlKSk7
+DQorI2lmIGRlZmluZWQoQ09ORklHX0lQX05GX0NPTk5UUkFDS19NQVJLKQ0K
+KwlsZW4gKz0gc3ByaW50ZihidWZmZXIgKyBsZW4sICJtYXJrPSVsZCAiLCBj
+b25udHJhY2stPm1hcmspOw0KKyNlbmRpZg0K
+---1463811839-1510554117-1084786010=:10765--
