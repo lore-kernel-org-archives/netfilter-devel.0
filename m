@@ -1,19 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and
- optimization
-Date: Sun, 01 Aug 2004 19:08:59 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: adding field into conntrack
+Date: Sun, 1 Aug 2004 19:19:30 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <410D23AB.2070203@trash.net>
-References: <200406250457.NAA07080@toshiba.co.jp> <Pine.LNX.4.33.0406251133230.11001-100000@blackhole.kfki.hu> <20040721213653.GR27487@obroa-skai.de.gnumonks.org> <200407290609.PAA13928@toshiba.co.jp> <20040801164653.GA10656@sunbeam2>
+Message-ID: <20040801171930.GD14539@sunbeam2>
+References: <1091042173.4107fb7d2cabf@mail.crocetta.org> <1091060982.28111.30.camel@bach>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
-	kadlec@blackhole.kfki.hu, netfilter-devel@lists.netfilter.org,
-	kisza@securityaudit.hu, usagi-core@linux-ipv6.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="eheScQNz3K90DVRs"
+Cc: sandr8@crocetta.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040801164653.GA10656@sunbeam2>
+To: Rusty Russell <rusty@rustcorp.com.au>
+Content-Disposition: inline
+In-Reply-To: <1091060982.28111.30.camel@bach>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,37 +22,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
 
->On Thu, Jul 29, 2004 at 03:09:02PM +0900, Yasuyuki Kozakai wrote:
->  
->
->>I got time to implement your idea. How about this ? (not tested)
->>
->>	struct tcphdr hdr;
->>	struct tcphdr *tcph
->>
->>	tcph = skb_get_bits(skb, &hdr, skb->nh.iph->ihl*4, sizeof(hdr));
->>
->>If skb is neither shared nor cloned, this function linearize up to tcp header
->>and returns the pointer to tcp header in skb.
->>
->>Otherwise, copies tcp header to "hdr" and return the pointer to it.
->>If error, return NULL.
->>    
->>
->
->This sounds like a very sane approach to me.  
->
->Since we don't have stable API's in 2.6.x anymore (kernel summit
->decision), we could even put this in our pending queue of patches for
->something like 2.6.10/2.6.11
->
->What does eveybody else think?  Comments?
->  
->
-The number of copies will still depend on the ruleset with non-linear skbs.
-skb_linearize_partial sounds like a much better idea to me.
+--eheScQNz3K90DVRs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards
-Patrick
+On Thu, Jul 29, 2004 at 10:29:43AM +1000, Rusty Russell wrote:
+> On Thu, 2004-07-29 at 05:16, sandr8@crocetta.org wrote:
+
+> > would you mind if i add two 32 bits fields to the cnntrack structure?
+> > i can surround them with an ifdef to have them only if the module i
+> > am writing is configured. Their aim would be to count how many bytes
+> > were transmitted on each side of the connection.
+>=20
+> 	I believe there's already a patch like that, or one in progress.=20
+> You're not the only one who want this.
+
+Yes, please see the 'conntrack-acct' patch in patch-o-matic-ng CVS.
+
+> Rusty.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--eheScQNz3K90DVRs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBDSYiXaXGVTD0i/8RAllRAJ40ya3d4teKTbGDLLi3IxD4ONyK1gCgnvz5
+5EbRDwF5ra7D7GdjwPqbPNQ=
+=ZUgW
+-----END PGP SIGNATURE-----
+
+--eheScQNz3K90DVRs--
