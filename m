@@ -1,15 +1,14 @@
-From: "Hime Junior" <hime@engineer.com>
-Subject: Re: fuzzy match pseudo-bug
-Date: Mon, 09 Sep 2002 09:13:57 -0500
+From: netfilter@interlinx.bc.ca
+Subject: tunable udp timeout (again)
+Date: Mon, 9 Sep 2002 14:08:53 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020909141357.57407.qmail@mail.com>
+Message-ID: <20020909180853.GP7416@pc.ilinx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Mh8CTEa8Ax54aLHp"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-To: laforge@gnumonks.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,46 +20,62 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
------ Original Message -----
-From: Harald Welte <laforge@gnumonks.org>
-Date: Sat, 7 Sep 2002 17:29:09 +0200 
-To: "Hime Junior" <hime@engineer.com>
-Subject: Re: fuzzy match pseudo-bug
+--Mh8CTEa8Ax54aLHp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- Dear Harald:
+Just over a year ago I asked a question
+(http://lists.netfilter.org/pipermail/netfilter-devel/2001-May/001217.html)
+about whether the UDP (non-streaming -- i.e. session setup) timeout
+could be configured on a rule-by-rule basis for protocols that require
+more than the (default) 30 seconds to reply to a UDP request.
 
-> > 
-> >  I don´t think it´s worth to apply a patch to eliminate a space character in
-> >  the source code .  After all , the compiler has to cope with this (that is
-> >  not a bug in the code) and if it doesn´t , somebody has to correct its
-> >  scanner (lexical analyser) .
-> 
-> You are misunderstanding the problem...
-> the '\' _has_ to be at the end of a line, since it is an escape-character
-> for the following newline at the end of the line.  If you add a space between
-> the \ and the end of line, you are escaping this space character and not 
-> the end of line character (\n).
-> 
+Daniel Stone replied
+(http://lists.netfilter.org/pipermail/netfilter-devel/2001-May/001218.html):
 
- OK - you are right and I understand that . But my point is not about
-how the things are , but how they should be . I don´t wish to bore all of you with unimportant details , but what I suggested was a 
-different (and smarter - I think) compiler behavior that , 
-after all , just emitted a (undesirable) warning .
- As a compiler writer , I couldn´t resist - I´m sorry...
+  There was a long discussion about this (see: "[POLICY FLAW] UDP
+  connection timeout" or somesuch), and it was decided that it
+  wouldn't go in, and we'd all sit around waiting for a better
+  solution to arrive :\
 
-> >  But , if you think it´s worth to eliminate the space character , it´ll be a
-> >  pleasure to send a new file ( ipt_fuzzy.c ) .
-> 
-> I have modified the ipt_fuzzy.c file by myself.  
-> 
-    I couldn´t expect better !
+And Rusty also replied
+(http://lists.netfilter.org/pipermail/netfilter-devel/2001-June/001350.html=
+):
 
-    Thanks a lot and congratulations for the excellent job.
+  It looks like the next approach to tweaking UDP should be a table
+  inside the UDP module which defines behavior and timeouts for
+  individual ports.  Of course, with a module param to modify/add to
+  the table.
 
+Has anything (more than
+/proc/sys/net/ipv4/netfilter/ip_conntrack_udp_timeout) been done about
+this problem?  ip_conntrack_udp_timeout is good for the general case
+of UDP timeouts, but when 99% of the traffic falls within that timeout
+and only 1% needs a longer timeout, it would be better to be able to
+configure that 1% as an exception.
 
-                     Hime
+I agree that "auto-determination" of the timeout using a table and
+port numbers is ideal, but if I were to patch iptables and netfilter
+to allow the specification of a timeout on the iptables command line
+would it be rejected as not the right solution or would be accepted as
+an interim solution to the lookup table?
 
--- 
-__________________________________________________________
-Sign-up for your own FREE Personalized E-mail at Mail.com
-http://www.mail.com/?sr=signup
+b.
+
+--=20
+Brian J. Murrell
+
+--Mh8CTEa8Ax54aLHp
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
+
+iD8DBQE9fOO0l3EQlGLyuXARAnfxAJwIQZF5L0IWWTfGSAJCjMZ1jKKL5ACfXIYd
+HXojUd2WGYHQwQjBBGTcaM8=
+=so7y
+-----END PGP SIGNATURE-----
+
+--Mh8CTEa8Ax54aLHp--
