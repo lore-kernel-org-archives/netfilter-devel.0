@@ -1,16 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: iptables/extensions/libipt_time.c missing include
-Date: Tue, 27 Jan 2004 11:57:45 +0100
+Subject: Re: [BUG] Netfilter in Linux 2.6.1
+Date: Tue, 27 Jan 2004 12:00:19 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127105745.GG11761@sunbeam.de.gnumonks.org>
-References: <wazza.877jzj8ll6.fsf@message.id> <20040123095234.GA4595@wavehammer.waldi.eu.org>
+Message-ID: <20040127110019.GH11761@sunbeam.de.gnumonks.org>
+References: <20040123160319.GA2733@schottelius.org> <20040123114205.014be03b.davem@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lQSB8Tqijvu1+4Ba"
+	protocol="application/pgp-signature"; boundary="HuscSE0D68UGttcd"
+Cc: Nico Schottelius <nico-linux-net@schottelius.org>,
+	linux-net@vger.kernel.org, gregor@tecmafia.de,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David S. Miller" <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <20040123095234.GA4595@wavehammer.waldi.eu.org>
+In-Reply-To: <20040123114205.014be03b.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,24 +25,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---lQSB8Tqijvu1+4Ba
+--HuscSE0D68UGttcd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 23, 2004 at 10:52:34AM +0100, Bastian Blank wrote:
-> On Fri, Jan 23, 2004 at 03:06:45AM +0100, laurent.ml@linuxfr.org wrote:
-> > Tell me if I'm wrong, it seems an include is missing in
-> > extensions/libipt_time.c from iptables cvs.
-> > (line 302 : offsetof)
+On Fri, Jan 23, 2004 at 11:42:05AM -0800, David S. Miller wrote:
+> On Fri, 23 Jan 2004 17:03:19 +0100
+> Nico Schottelius <nico-linux-net@schottelius.org> wrote:
 >=20
-> You should use <stddef.h> instead of <linux/stddef.h>.
+> > Is that right?
+> >=20
+> > This looks for me like bug in netfilter...
+>=20
+> Netfilter first sees the pre-encrypted SSH TCP packets before they are
+> encapsulated in ESP, and thus your rules say to drop those.
+>=20
+> That's just how things work currently.
 
-At least on my debian machines /usr/include/stddef.h doesn't exist.
-
-Thus, I'm accepting the patch.
-
-> Bastian
+JFYI: We're currently discussing how to proceed with this issue on
+netfilter-devel (Thread started at
+http://lists.netfilter.org/pipermail/netfilter-devel/2004-January/013879.ht=
+ml)
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -51,7 +58,7 @@ Thus, I'm accepting the patch.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---lQSB8Tqijvu1+4Ba
+--HuscSE0D68UGttcd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -59,9 +66,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAFkQpXaXGVTD0i/8RAhZrAKCNrI8jHSYySN8lthaw7CwrU4LTBQCdHJ9R
-khAYgndUgibstgoXW2b53SI=
-=Nciv
+iD8DBQFAFkTDXaXGVTD0i/8RArS9AJ9out+GO5iEJXRQFEski3XyGRPI+gCbBM41
+APjOapnCHcNMnGF9kiFrZiU=
+=s4oW
 -----END PGP SIGNATURE-----
 
---lQSB8Tqijvu1+4Ba--
+--HuscSE0D68UGttcd--
