@@ -1,16 +1,13 @@
-From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: Re: Memory Loading
-Date: Mon, 19 Apr 2004 22:27:28 +0200
+From: Norman Zhang <norman.zhang@rd.arkonnetworks.com>
+Subject: Missing Options from pomng
+Date: Mon, 19 Apr 2004 13:56:43 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40843630.6060908@fl.priv.at>
-References: <40842F4C.6050608@rocksteady.com>
-Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <40843D0B.5050501@rd.arkonnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <40842F4C.6050608@rocksteady.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,29 +18,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick Turley wrote on 19.04.2004 21:58 MET:
-> Our system has potentially a few thousand firewall rules. I need to find 
-> out the amount of memory these that firewall rules consume. If you have 
-> this information at hand, or can point me to a useful web site, that 
-> would be great. Failing that, a pointer to specific source files would 
-> also be marvelous.
-> 
+Hi,
 
-Would be interesting to know what you find out about this.
+Is h323-conntrack-nat from pomng supported in kernel 2.4.26? I added the 
+patch using 'KERNEL_DIR=/usr/src/linux ./runme extra', but couldn't find 
+the configurable option in kernel, when I compile the kernel. 
+Requirement for the patch saids kernel < 2.6. Please help.
 
-# iptables -L -n | wc -l
-    6323                       (minus some few lines of text output)
-
-That's 99.8% "accounting-only" rules with 0.2% filtering rules.
-
-BTW I have set hashsize = ip_conntrack_max = 1785961. Therefore max. 510 MB 
-will be allocate to conntrack. That much max. memory for conntrach will 
-probably never be needed at all, but the memory is there, so why not ;-). I 
-think this had more influence on the memory usage than all the rules 
-together. No exact numbers to compare with, sorry.
-
-How many rules would you want to install?
-
--- 
-MfG / Regards
-Friedrich Lobenstock
+Regards,
+Norman
