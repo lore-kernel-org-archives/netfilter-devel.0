@@ -1,16 +1,18 @@
-From: "Marcelo Barbosa Lima" <mlima@cpqd.com.br>
-Subject: ICMP NDISC: fake message with non-255 Hop Limit received: 254 - error message
-Date: Thu, 3 Apr 2003 16:58:46 -0300
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] 2.4.x new amanda conntrack + NAT support
+Date: Mon, 31 Mar 2003 17:55:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <D49EA2F934FFAD45B337C07A9753C00E01B3C25B@MAILSRV1.aquarius.cpqd.com.br>
+Message-ID: <20030331155541.GD28962@sunbeam.de.gnumonks.org>
+References: <20030330200750.GZ7718@sunbeam.de.gnumonks.org> <20030331.070910.52982765.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: <netfilter@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NtwzykIc2mflq5ck"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	sfrost@snowman.net
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: "David S. Miller" <davem@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20030331.070910.52982765.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,14 +23,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-	We were doing tests with Ip6tables and we noticed a curious event after =
-that rules are created and loaded. After some few minutes,  the messages =
-"ICMP NDISC: fake message with non-255 Hop Limit received: 254" are =
-shown in display. If I do "ip6tables -F" after some few seconds this =
-messages are not printed in the screen again. Is there any bug regarding =
-to Neighbor Discovery Protocol and Ip6tables?=20
-Thanks and Regards,
+--NtwzykIc2mflq5ck
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-		Marcelo.
+On Mon, Mar 31, 2003 at 07:09:10AM -0800, David S. Miller wrote:
+>=20
+> Harald, what is the state of ipt_recent?  Will I see it soon?
+
+The author (Stephen Frost) has just told me yesterday on IRC that he is
+about to release his new version.=20
+
+After he has released it, I will put it in iptables CVS and do some
+review+testing.  My guess is that this will take one week.  After that,
+I'll push it to you.
+
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
+
+--NtwzykIc2mflq5ck
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+iGT9XaXGVTD0i/8RAjdGAJwOZA6cdiZBh/chY/qNv/ajdWNs+wCgkpQy
+ar6cpLJwte0s8an9qDTdyJU=
+=Qkef
+-----END PGP SIGNATURE-----
+
+--NtwzykIc2mflq5ck--
