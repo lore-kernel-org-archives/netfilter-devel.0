@@ -1,18 +1,14 @@
-From: Marian Stagarescu <marian@ti.com>
-Subject: Re: snat and ICMP question
-Date: Wed, 9 Oct 2002 09:34:03 -0400
+From: "Benton Pena" <bpena@centennialrd.com.do>
+Subject: Fw: Kernel panic: Aiee, killing interrupt handler!
+Date: Mon, 7 Oct 2002 11:36:08 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200210090934.03315.marian@ti.com>
-References: <3DA30D48.3EA0E56E@netcelo.com> <3DA400B9.390A17F7@netcelo.com> <3DA4100B.79866BC0@netcelo.com>
+Message-ID: <004701c26e17$41add650$e8f412ac@centennialrd.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ciaran Deignan <ciaran.deignan@netcelo.com>,
-   netfilter-devel@lists.netfilter.org,
-   Matthieu Marc <matthieu.marc@netcelo.com>
-In-Reply-To: <3DA4100B.79866BC0@netcelo.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,41 +19,80 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-for a quick test you can try to masquerade all and see if the error persi=
-sts:
 
-iptables -t nat -A POSTROUTING -o outgoing-interface -j MASQUERADE.
-
-can you post the icmp error message ?
-
-an ICMP does have an outter ip hdr and an inner ip dhr
-the inner ip hdr is the ip hdr of the dgram that caused the error,=20
-hence should be the web server ip.
-the outer ip hdr should be NATed address if you do the above masquerading=
-=2E
-
-marian
+----- Original Message -----
+From: "Benton Pena" <bpena@centennialrd.com.do>
+To: <shorewall-users@shorewall.net>
+Sent: Monday, October 07, 2002 10:52 AM
+Subject: Fw: Kernel panic: Aiee, killing interrupt handler!
 
 
-
-On Wednesday 09 October 2002 07:16 am, Ciaran Deignan wrote:
-> > > > iptables -t mangle -A PREROUTING --in-interface ipsec+ \
-> > > >                         -j MARK --set-mark 1
-> > > > iptables -t nat -A POSTROUTING -m mark --mark 1 \
-> > > >                                 -j MASQUERADE
-> >
-> > config. Actually, the web server is on the private interface.
-> >
-> > The ICMP error message contains the real address of the
-> > remote user. Do you think I should mark ICMP messages
-> > on the OUTPUT chain? I must try that...
 >
-> I tried adding the following rule, but that didn't change
-> anything:
+> Hi, all
 >
-> =09iptables -t mangle -A OUTPUT -p ICMP -j MARK --set-mark 1
+> I just installed shorewall ver. 1.3.9a on a:
 >
-> Is there any way I could cause the ICMP error to be
-> generated before the packet is de-nated?
+> mobile:~ # uname -a
+> Linux mobile 2.4.14 #1 Mon Nov 12 11:25:00 GMT 2001 sparc64 unknown
 >
-> Ciaran
+> when i try to ssh to it i get from the console:
+>
+> Kernel panic: Aiee, killing interrupt handler!
+> In interrupt handler - not syncing
+>
+> after this, the server hang up and do not get any logs about what
+happened.
+> if anyone have seen this, please help.
+>
+> shorewall is configured to firewall this only host:
+>
+> interfaces file:
+> #ZONE    INTERFACE      BROADCAST       OPTIONS
+> net     eth0            detect          noping,norfc1918,routefilter
+>
+> the policy file:
+> #SOURCE         DEST            POLICY          LOG LEVEL
+LIMIT:BURST
+> fw              net             DROP            info
+> net             fw              DROP            info
+> all             all             REJECT          info
+>
+> the rules file:
+>
+############################################################################
+> ##
+> #ACTION  SOURCE         DEST            PROTO   DEST    SOURCE
+ORIGINAL
+> #                                               PORT    PORT(S)    DEST
+>
+> #SSH administration depend on hosts.allow
+> ACCEPT  net             fw              tcp     ssh
+>
+> #request from host
+> ACCEPT  fw              net             tcp     domain,ssh,80,443,25,110
+> ACCEPT  fw              net             udp     domain,ntp,110
+> ACCEPT  fw              net             icmp    8
+>
+>  #mysql
+> ACCEPT  net             fw              tcp     3306
+> ACCEPT  net             fw              udp     3306
+>
+> #www
+> ACCEPT  net             fw              tcp     80
+> ACCEPT  net             fw              udp     80
+> ACCEPT  net             fw              tcp     443
+> ACCEPT  net             fw              udp     443
+> #smtp
+> ACCEPT  net             fw              tcp     25
+>
+> #pop3
+> ACCEPT  net             fw              tcp     110
+> ACCEPT  net             fw              udp     110
+>
+> #ftp
+> ACCEPT  net             fw              tcp     21
+>
+> Benton Pena
+> (809) 444-8027
+>
+>
