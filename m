@@ -1,16 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Counter problem in a new nat target.
-Date: Wed, 10 Dec 2003 12:15:48 +0100 (CET)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH] tcp-window-tracking patch, updated
+Date: Wed, 10 Dec 2003 13:18:24 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312101211500.9708-100000@filer.marasystems.com>
-References: <3FD6FCB5.20205@netlab.hut.fi>
+Message-ID: <Pine.LNX.4.33.0312101315340.7667-100000@blackhole.kfki.hu>
+References: <Pine.LNX.4.33.0312091121400.5228-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Jesse Peng <jesse@deansoft.com.tw>,
-   KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-In-Reply-To: <3FD6FCB5.20205@netlab.hut.fi>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.33.0312091121400.5228-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,33 +19,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 10 Dec 2003, Emmanuel Guiton wrote:
+Hi,
 
-> Thus, if I could get a pointer to this user data when decreasinging my 
-> counters, the problem would be solved.
+The last chunk of modifications was missing from the patch released
+yesterday: p-o-m has now been updated with the correct version.
+Sorry for the confusion - thanks for Willy for spotting this.
 
-Won't work, and very dangerous.
-
-You should maintain the storage within your module, and then add pointers 
-to this to conntrack and the target userinfo.
-
-> I don't think it really fits in the ip_conntrack_destroyed function but
-> why not in the notifier function?
-
-They are the same, and both fits well (except that ip_conntrack_destroyed 
-is reserved for use by NAT).
-
-> What about modifying the conntrack notifier system so that it includes
-> also a pointer to the user data, or then make a brand new notifier
-> system (because at first sight I don't see how to include a pointer to
-> the user data in the current conntrack notifier system)?
-
-You don't. You need to store the information you need in the conntrack if 
-it cannot be derived from the addressing information or other information 
-already present in conntrack.
-
-I would really recommend you to extend conntrack with a custom field for 
-the purpose than to abuse the helper slots.
-
-Regards
-Henrik
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
