@@ -1,15 +1,12 @@
-From: =?iso-8859-1?q?graham=20g?= <grinna369@yahoo.com.au>
-Subject: Re: COPS Backend
-Date: Mon, 5 May 2003 00:23:30 +1000 (EST)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [PATCH] string match compilation on 2.4.9
+Date: Sun, 4 May 2003 17:19:32 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030504142330.29152.qmail@web13305.mail.yahoo.com>
-References: <20030427123509.GU990@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.51.0305041712240.1987@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-852154147-1052058210=:25575"
-Content-Transfer-Encoding: 8bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="-23717851-1980701081-1052061572=:2002"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20030427123509.GU990@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,44 +17,119 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-852154147-1052058210=:25575
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
+---23717851-1980701081-1052061572=:2002
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Not directly related to iptables/netfilter as such, but I am currently working on an implementation of the COPS and COPS-PR protocol stack in Java. The idea is that you can use a Policy Based Management tool to define global network security policies. These policies are then distributed to various firewall devices with COPS-PR, where the policies are enforced. Of course, the system could also ship out policies to other network devices, such as COPS enabled routers, IPsec gateways etc.Im working with Linux boxes at the moment and am working on a very simple proto-type that simply calls the iptables user space tool to add / delete firewall rules when policies are shipped to the device. Anyway suggestions, comments or ideas from anyone would be much appreciated . Development is still in the extreme early stages.  
-Harald Welte <laforge@netfilter.org> wrote:On Wed, Apr 16, 2003 at 11:55:39AM +1000, graham g wrote:
-> 
-> Hello
-> Has anyone looked into developing a COPS interface for iptables as a
-> means of remote configuration of multiple distributed firewalls ? 
+Hi,
 
-not that the netfilter core team is aware of. 
+we all know that the string match does not work on 2.4.9 because
+2.4.9 had a different definition of the min/max macros.
 
-If you are planning to implement something into this direction, please
-feel free to discuss it on this mailinglist.
+I know that Martin said that we are not supporting kernels <2.4.18 anyway,
+but there are patches in pom that still may be used be people with 2.4.9
+and other < 2.4.18 kernels.
 
--- 
-- Harald Welte http://www.netfilter.org/
-============================================================================
-"Fragmentation is like classful addressing -- an interesting early
-architectural error that shows how much experimentation was going
-on while IP was being designed." -- Paul Vixie
-> ATTACHMENT part 2 application/pgp-signature 
+Please consider this patch for the patch-o-matic.
 
+Regards,
+Maciej
 
----------------------------------
-Yahoo! Mobile
-- Check & compose your email via SMS on your Telstra or Vodafone mobile.
---0-852154147-1052058210=:25575
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+diff -Nru netfilter.orig/patch-o-matic/extra/string.patch netfilter/patch-o-matic/extra/string.patch
+--- netfilter.orig/patch-o-matic/extra/string.patch	2003-05-03 14:31:54.000000000 +0200
++++ netfilter/patch-o-matic/extra/string.patch	2003-05-04 17:06:29.000000000 +0200
+@@ -26,12 +26,14 @@
+ diff -urN linux.orig/net/ipv4/netfilter/ipt_string.c linux/net/ipv4/netfilter/ipt_string.c
+ --- linux.orig/net/ipv4/netfilter/ipt_string.c	Thu Jan  1 01:00:00 1970
+ +++ linux/net/ipv4/netfilter/ipt_string.c	Thu Feb 21 20:26:09 2002
+-@@ -0,0 +1,216 @@
++@@ -0,0 +1,222 @@
+ +/* Kernel module to match a string into a packet.
+ + *
+ + * Copyright (C) 2000 Emmanuel Roger  <winfield@freegates.be>
+ + *
+ + * ChangeLog
+++ *	04.05.2003: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+++ *		Fixed 2.4.9 broken max macro usage.
+ + *	19.02.2002: Gianni Tedesco <gianni@ecsc.co.uk>
+ + *		Fixed SMP re-entrancy problem using per-cpu data areas
+ + *		for the skip/shift tables.
+@@ -106,7 +108,11 @@
+ +
+ +		sk = skip[haystack[right_end - i]];
+ +		sh = shift[i];
+++#if LINUX_VERSION_CODE == KERNEL_VERSION(2,4,9)
+++		right_end = max(int , right_end - i + sk, right_end + sh);
+++#else
+ +		right_end = max(right_end - i + sk, right_end + sh);
+++#endif
+ +	}
+ +
+ +	return NULL;
+diff -Nru netfilter.orig/patch-o-matic/extra/string.patch.help netfilter/patch-o-matic/extra/string.patch.help
+--- netfilter.orig/patch-o-matic/extra/string.patch.help	2003-05-03 14:31:54.000000000 +0200
++++ netfilter/patch-o-matic/extra/string.patch.help	2003-05-04 17:07:11.000000000 +0200
+@@ -1,8 +1,6 @@
+ Author: Emmanuel Roger <winfield@freegates.be>
+-Status: Working, not with kernel 2.4.9
++Status: Working
 
-<DIV><BR>Not directly related to iptables/netfilter as such, but I am currently working on an implementation of the COPS and COPS-PR protocol stack in Java. The idea is that you can use a Policy Based Management tool to define global network security policies. These policies are then distributed to various firewall devices with COPS-PR, where the policies are enforced. Of course, the system could also ship out policies to other network devices, such as COPS enabled routers, IPsec gateways etc.Im working with Linux boxes at the moment and am working on a very simple proto-type that simply calls the iptables user space tool to add / delete firewall rules when policies are shipped to the device. Anyway suggestions, comments&nbsp;or ideas from anyone would be much appreciated . Development is still in the extreme early stages.</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>
-<DIV><BR><B><I>Harald Welte &lt;laforge@netfilter.org&gt;</I></B> wrote:</DIV>
-<BLOCKQUOTE style="PADDING-LEFT: 5px; MARGIN-LEFT: 5px; BORDER-LEFT: #1010ff 2px solid">On Wed, Apr 16, 2003 at 11:55:39AM +1000, graham g wrote:<BR>&gt; <BR>&gt; Hello<BR>&gt; Has anyone looked into developing a COPS interface for iptables as a<BR>&gt; means of remote configuration of multiple distributed firewalls ? <BR><BR>not that the netfilter core team is aware of. <BR><BR>If you are planning to implement something into this direction, please<BR>feel free to discuss it on this mailinglist.<BR><BR>-- <BR>- Harald Welte <LAFORGE@NETFILTER.ORG>http://www.netfilter.org/<BR>============================================================================<BR>"Fragmentation is like classful addressing -- an interesting early<BR>architectural error that shows how much experimentation was going<BR>on while IP was being designed." -- Paul Vixie<BR>&gt; ATTACHMENT part 2 application/pgp-signature </BLOCKQUOTE><p><br><hr size=1>
-<a href="http://au.rd.yahoo.com/mail/tagline/?http://au.mobile.yahoo.com/sms/mail/index.html" target=_blank><b>Yahoo! Mobile</b></a><br>
-- Check & compose your email via SMS on your Telstra or Vodafone mobile.
---0-852154147-1052058210=:25575--
+ This patch adds CONFIG_IP_NF_MATCH_STRING which allows you to
+ match a string in a whole packet.
+
+-THIS PATCH DOES NOT WORK WITH KERNEL 2.4.9 !!!
+-
+---23717851-1980701081-1052061572=:2002
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="string.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.51.0305041719320.2002@dns.toxicfilms.tv>
+Content-Description: string.patch
+Content-Disposition: attachment; filename="string.patch"
+
+ZGlmZiAtTnJ1IG5ldGZpbHRlci5vcmlnL3BhdGNoLW8tbWF0aWMvZXh0cmEv
+c3RyaW5nLnBhdGNoIG5ldGZpbHRlci9wYXRjaC1vLW1hdGljL2V4dHJhL3N0
+cmluZy5wYXRjaA0KLS0tIG5ldGZpbHRlci5vcmlnL3BhdGNoLW8tbWF0aWMv
+ZXh0cmEvc3RyaW5nLnBhdGNoCTIwMDMtMDUtMDMgMTQ6MzE6NTQuMDAwMDAw
+MDAwICswMjAwDQorKysgbmV0ZmlsdGVyL3BhdGNoLW8tbWF0aWMvZXh0cmEv
+c3RyaW5nLnBhdGNoCTIwMDMtMDUtMDQgMTc6MDY6MjkuMDAwMDAwMDAwICsw
+MjAwDQpAQCAtMjYsMTIgKzI2LDE0IEBADQogZGlmZiAtdXJOIGxpbnV4Lm9y
+aWcvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9zdHJpbmcuYyBsaW51eC9uZXQv
+aXB2NC9uZXRmaWx0ZXIvaXB0X3N0cmluZy5jDQogLS0tIGxpbnV4Lm9yaWcv
+bmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9zdHJpbmcuYwlUaHUgSmFuICAxIDAx
+OjAwOjAwIDE5NzANCiArKysgbGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lw
+dF9zdHJpbmcuYwlUaHUgRmViIDIxIDIwOjI2OjA5IDIwMDINCi1AQCAtMCww
+ICsxLDIxNiBAQA0KK0BAIC0wLDAgKzEsMjIyIEBADQogKy8qIEtlcm5lbCBt
+b2R1bGUgdG8gbWF0Y2ggYSBzdHJpbmcgaW50byBhIHBhY2tldC4NCiArICoN
+CiArICogQ29weXJpZ2h0IChDKSAyMDAwIEVtbWFudWVsIFJvZ2VyICA8d2lu
+ZmllbGRAZnJlZWdhdGVzLmJlPg0KICsgKiANCiArICogQ2hhbmdlTG9nDQor
+KyAqCTA0LjA1LjIwMDM6IE1hY2llaiBTb2x0eXNpYWsgPHNvbHRAZG5zLnRv
+eGljZmlsbXMudHY+DQorKyAqCQlGaXhlZCAyLjQuOSBicm9rZW4gbWF4IG1h
+Y3JvIHVzYWdlLg0KICsgKgkxOS4wMi4yMDAyOiBHaWFubmkgVGVkZXNjbyA8
+Z2lhbm5pQGVjc2MuY28udWs+DQogKyAqCQlGaXhlZCBTTVAgcmUtZW50cmFu
+Y3kgcHJvYmxlbSB1c2luZyBwZXItY3B1IGRhdGEgYXJlYXMNCiArICoJCWZv
+ciB0aGUgc2tpcC9zaGlmdCB0YWJsZXMuDQpAQCAtMTA2LDcgKzEwOCwxMSBA
+QA0KICsJCQ0KICsJCXNrID0gc2tpcFtoYXlzdGFja1tyaWdodF9lbmQgLSBp
+XV07ICANCiArCQlzaCA9IHNoaWZ0W2ldOw0KKysjaWYgTElOVVhfVkVSU0lP
+Tl9DT0RFID09IEtFUk5FTF9WRVJTSU9OKDIsNCw5KQ0KKysJCXJpZ2h0X2Vu
+ZCA9IG1heChpbnQgLCByaWdodF9lbmQgLSBpICsgc2ssIHJpZ2h0X2VuZCAr
+IHNoKTsNCisrI2Vsc2UNCiArCQlyaWdodF9lbmQgPSBtYXgocmlnaHRfZW5k
+IC0gaSArIHNrLCByaWdodF9lbmQgKyBzaCk7ICANCisrI2VuZGlmDQogKwl9
+DQogKw0KICsJcmV0dXJuIE5VTEw7DQpkaWZmIC1OcnUgbmV0ZmlsdGVyLm9y
+aWcvcGF0Y2gtby1tYXRpYy9leHRyYS9zdHJpbmcucGF0Y2guaGVscCBuZXRm
+aWx0ZXIvcGF0Y2gtby1tYXRpYy9leHRyYS9zdHJpbmcucGF0Y2guaGVscA0K
+LS0tIG5ldGZpbHRlci5vcmlnL3BhdGNoLW8tbWF0aWMvZXh0cmEvc3RyaW5n
+LnBhdGNoLmhlbHAJMjAwMy0wNS0wMyAxNDozMTo1NC4wMDAwMDAwMDAgKzAy
+MDANCisrKyBuZXRmaWx0ZXIvcGF0Y2gtby1tYXRpYy9leHRyYS9zdHJpbmcu
+cGF0Y2guaGVscAkyMDAzLTA1LTA0IDE3OjA3OjExLjAwMDAwMDAwMCArMDIw
+MA0KQEAgLTEsOCArMSw2IEBADQogQXV0aG9yOiBFbW1hbnVlbCBSb2dlciA8
+d2luZmllbGRAZnJlZWdhdGVzLmJlPg0KLVN0YXR1czogV29ya2luZywgbm90
+IHdpdGgga2VybmVsIDIuNC45DQorU3RhdHVzOiBXb3JraW5nDQogDQogVGhp
+cyBwYXRjaCBhZGRzIENPTkZJR19JUF9ORl9NQVRDSF9TVFJJTkcgd2hpY2gg
+YWxsb3dzIHlvdSB0bw0KIG1hdGNoIGEgc3RyaW5nIGluIGEgd2hvbGUgcGFj
+a2V0Lg0KIA0KLVRISVMgUEFUQ0ggRE9FUyBOT1QgV09SSyBXSVRIIEtFUk5F
+TCAyLjQuOSAhISENCi0NCg==
+
+---23717851-1980701081-1052061572=:2002--
