@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: iptables u32 match patch-o-matic (attempt)
-Date: Fri, 31 Jan 2003 11:19:19 +0100
+Subject: Re: Hi, new version is out...
+Date: Fri, 31 Jan 2003 13:03:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131101919.GD9073@naboo.cybercafe42>
-References: <20030128234654.29362.28104.Mailman@kashyyyk> <15927.22044.618895.821767@isis.cs3-inc.com>
+Message-ID: <20030131120326.GZ9073@naboo.cybercafe42>
+References: <20030129020254.48207.qmail@web20909.mail.yahoo.com> <20030130002452.GI27561@calix.csn.tu-chemnitz.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cHMo6Wbp1wrKhbfi"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="VgNP6wxEowREGVu+"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Don Cohen <don-netf@isis.cs3-inc.com>
+To: netfilter developer mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <15927.22044.618895.821767@isis.cs3-inc.com>
+In-Reply-To: <20030130002452.GI27561@calix.csn.tu-chemnitz.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +22,36 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---cHMo6Wbp1wrKhbfi
+--VgNP6wxEowREGVu+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 28, 2003 at 08:18:36PM -0800, Don Cohen wrote:
-Content-Description: message body text
+On Thu, Jan 30, 2003 at 01:24:52AM +0100, Thomas Poehnitzsch wrote:
+> Hi Daniel,
+>=20
+> On Tue, Jan 28, 2003 at 11:02:54PM -0300, Daniel E. Testa wrote:
+>=20
+> > Hi everybody... I'm sorry for the delay of gtk-iptables v1.3.2. It adds
+> > as new feature the selection of interfaces, some visual improvements
+> > and more   cleaned code.=20
+>=20
+> it is nice to see a developer trying to ease the use of netfilter for
+> mere mortals. You are probably doing quite a good job with your program
+> (haven't tested it yet), _but_ in my humble opinion this is the wrong
+> place for your announcements.
 
->  > no. I'm really surprised that it seems to be that difficult to explain
->  > in which format the patches are submitted in the ideal case.
-> Me too.  Perhaps it would be worth while to store several of these
-> ideal patches on the netfilter site as examples we could try to
-> emulate.
+Yes, I have to agree with Thomas.  This is a develoment mailinglist, not
+an announcement mailinglist.  Information about your gtk-iptables
+program might be useful for netfilter users (the other list), but isn't
+very interesting for netfilter _developers_.
 
-mh. that would be an idea, though there are quite some in the
-mailinglist archives.  Maybe this is something for the FAQ (which needs
-lots of updates anyway *sigh*).
+There is also a netfilter-announce mailinglist, but this one is only for
+official publications of the netfitler/iptables project, I cannot offer
+you write access to this list either :(
 
->  > So please just send me anything you have and I will bring it into the
->  > correct format as soon as I have some time left.
-> An offer I can't refuse.  Thank you VERY much.
-
-;) It will appear in CVS soon.
-
+> Ciao!
+>     Thomas
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -58,7 +63,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---cHMo6Wbp1wrKhbfi
+--VgNP6wxEowREGVu+
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -66,9 +71,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+Ok2nXaXGVTD0i/8RAlzWAJ4olN0MAM4vH4kp1NEMqQKVTbuGRwCcDmMW
-6CyeDKA0ffNEzOEYNUPCcJU=
-=/8rP
+iD8DBQE+OmYOXaXGVTD0i/8RAkx5AJ0VGU5iWoaPItdoml3JmBNstpJiPQCdH8+G
+syG1/8touLL7pObqFsqN41o=
+=YSdv
 -----END PGP SIGNATURE-----
 
---cHMo6Wbp1wrKhbfi--
+--VgNP6wxEowREGVu+--
