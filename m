@@ -1,17 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [RFC] Event Cache per-cpu
-Date: Tue, 9 Nov 2004 18:13:19 +0100
-Message-ID: <20041109171319.GG22257@sunbeam.de.gnumonks.org>
-References: <418FC922.9080004@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] MASQUERADE handling of device events
+Date: Tue, 09 Nov 2004 18:44:39 +0100
+Message-ID: <41910207.1090309@trash.net>
+References: <20041107181825.GA3522@linuxace.com> <418F9952.5030004@trash.net>
+	<20041108161511.GA6754@linuxace.com> <418F9DD4.20202@trash.net>
+	<20041108163457.GB6754@linuxace.com>
+	<20041108215525.GA8766@linuxace.com> <4190A44F.7010509@trash.net>
+	<20041109165313.GA13205@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0uCeA/GhJk5vQd80"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <418FC922.9080004@eurodev.net>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20041109165313.GA13205@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,75 +25,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Phil Oester wrote:
 
---0uCeA/GhJk5vQd80
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>On Tue, Nov 09, 2004 at 12:04:47PM +0100, Patrick McHardy wrote:
+>  
+>
+>>You're right. I have to admit, I'm not too happy about the unpredictable
+>>behaviour we get with this patch and multiple ppp devices. So one last
+>>attempt to convince people. The old behaviour was to kill conntracks once
+>>the device goes down. I think killing conntracks when the IP is deleted
+>>makes more sense. Since the IP has to be deleted manually, except when
+>>the device goes away, people can simply not delete IP addresses for
+>>devices that don't go away, than nothing will get removed. pppd can be
+>>taught to keep the device alive. The attached patch adds a program
+>>alloc-ppp to pre-allocate ppp-devices and teaches pppd to attach to them.
+>>The device never goes away, if ppp doesn't delete the IP address the
+>>conntracks won't be killed. It could easily be integrated in a more handy
+>>way in pppd. So this could also be done entirely in userspace, without
+>>the unpredictable behaviour.
+>>    
+>>
+>
+>Is this the unpredictable behaviour you refer to:
+>
+>ppp0 down -> clear assured bit on ppp0 conntracks
+>ppp1 down -> clear assured bit on ppp1 conntracks
+>ppp0 up with same ip -> all ppp1 conntracks get cleared since that ip
+>			no longer exists on box
+>ppp1 up with same ip -> loser
+>  
+>
+Yes. It gives unpredictable behaviour and no way to avoid it.
+If ppp1 comes up first - ppp0 is the loser. If only one goes
+down at a time - nobody looses.
 
-On Mon, Nov 08, 2004 at 08:29:38PM +0100, Pablo Neira wrote:
-> Hi all,
-> c) per packet cache. I don't see any possible race with this approach at=
-=20
-> the moment, but I'll need to use the nfcache field in skbuff. I prefer=20
-> this than adding a new field to a skbuff, I think that Davem won't like=
-=20
-> that.
+>Not much we can do about that except revert to the old behaviour of
+>dropping all conntracks on interface down, but that does seem silly
+>for 'mostly static' pppoe users.
+>
+>Obviously I'd vote for the 'friendlier' method, but bottom line is current
+>behaviour is broken and should be fixed somehow...
+>  
+>
 
-seems fine to me.
+I think deterministic behaviour is more friendly than something
+working only under certain conditions and doing strange stuff
+the remaining time. I would like to hear Harald's opinion.
 
-> There's 15 bits in nfcache available now (because IPVS guys are using=20
-> one in private). My last patch has 11 events.
-
-who authorized IPVS people to use that bit ? It's ours, and we fought
-hard for it  ;)  [just kidding, but I didn't know that before].
-
-> enum ip_conntrack_events
-> {
->       IPCT_NEW,                       /* New conntrack                */
->       IPCT_RELATED,                   /* Expected connection          */
->       IPCT_DESTROY,                   /* Destroyed conntrack          */
->       IPCT_STATUS,                    /* Status has changed           */
->       IPCT_REFRESH,                   /* Timer has been refreshed     */
->       IPCT_PROTOINFO,                 /* Update of protocol info      */
->       IPCT_PROTOINFO_VOLATILE,        /* Volatile protocol info       */
->       IPCT_HELPER,                    /* New helper for conntrack     */
->       IPCT_HELPINFO,                  /* Update of helper info        */
->       IPCT_HELPINFO_VOLATILE,         /* Volatile helper info         */
->       IPCT_NATINFO,                   /* NAT info                     */
-> };
->=20
-> Patrick suggests that we could run out of bits soon if events go in=20
-> nfcache, that's true. To fix that, could we remove this stuff in=20
-> netfilter_ipv4.h, nobody is using it ?
-
-No, I think this can be removed, nobody has ever used nfcache the way it
-was originally intended.
-
-> Please, comments welcome.
-> Pablo
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---0uCeA/GhJk5vQd80
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBkPqvXaXGVTD0i/8RAi0pAJ9HPxB21r/tLaNhhsFj/YNbeXNgaACggbZ5
-nSyQKB8VS4Fo0WWqBGr8VTs=
-=LfoW
------END PGP SIGNATURE-----
-
---0uCeA/GhJk5vQd80--
+Regards
+Patrick
