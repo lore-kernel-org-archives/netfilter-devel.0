@@ -1,30 +1,78 @@
-From: "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>
+From: aksingh@hss.hns.com
 Subject: RE: FW: injecting new packets into the netfilter
-Date: Wed, 30 Jun 2004 11:03:26 +0530
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BNELKLECKCDLOPNOBHFHMEBOJEAA.mayank_kumar@intersolutions.stpn.soft.net>
-References: <OF7F81886A.9A4F0468-ON65256EC3.001C9B46@hss.hns.com>
+Date: Wed, 30 Jun 2004 11:26:38 +0530
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <OF28D234F3.39DA9A12-ON65256EC3.001F3E0D@hss.hns.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <aksingh@hss.hns.com>, <netfilter@lists.netfilter.org>,
-   <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <OF7F81886A.9A4F0468-ON65256EC3.001C9B46@hss.hns.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=US-ASCII
+Cc: <netfilter@lists.netfilter.org>, <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
+
+
+
+
+
+Hi,
+
+    I dont know what you mean by kernel thread ... but one solutuion is
+that once you get the packet(inside your hook funcstion), have other
+functions that you call from there to process the packet, and then finally
+return NF_STOLEN. Or you can make an skbuff queue of yr own(a skb queue of
+the module that you make), you can add the buffer to the queue, and return
+NF_STOLEN, once you return NF_STOLEN control would return to your kernel
+modulw only when you get the next packet, so you'll probably have to
+process each packet as it comes and take whatever decision you want to then
+and there. Look at the kernel source to see how TCP works, that would give
+you a better idea.  As far as new packets are to be injected as done by
+libnet, in kernel too you can easily make a packet of your own, but like
+libnet there wont be anything to help you, and hence youll have to make the
+packet yourself, that shldnt be difficult I believe. For a TCP packet for
+example, fill the tcphdr struct yourself in a kernel module,attach an ip
+header in front, allocate an skbuff, let skb->data point to the ipheader of
+yr packet, then call "netif_rx"(or someother function exported by kernel),
+that will again queue the new packet at IP,you will have to distinguish
+between this packet and any packet that you did not generate because
+otherwise  ull be caught in a loop, so use nfmark field of skbuff, set that
+to a particular value then for that in yr hook function return NF_ACCEPT,
+to let ti go its way, else process the packet.
+
+Though doing this wont be trivial, it is not impossible either, it can be
+done. do let me know how it goes if you try this and if you make netif_rx
+work.
+
+HTH
+Amit
+
+
+
+
+"Mayank Kumar"
+<mayank_kumar@intersolutions.stpn.soft.net>@lists.netfilter.org on
+06/30/2004 11:03:26 AM
+
+Sent by:    netfilter-admin@lists.netfilter.org
+
+
+To:    Amit Kumar Singh/HSS@HSS, <netfilter@lists.netfilter.org>,
+       <netfilter-devel@lists.netfilter.org>
+cc:
+
+Subject:    RE: FW: injecting new packets into the netfilter
+
 
 Hi Amit
 thanks again. the last part is still not clear.
-I want to know how can u send new packets in the kernel the 
+I want to know how can u send new packets in the kernel the
 same way libnet does. The idea is that after i have returned
 NF_STOLEN from inside my hook functions in the kernel modules,
 i want to queue them toa kernel thread. the thread does processing
