@@ -1,17 +1,22 @@
-From: Willy TARREAU <willy@w.ods.org>
+From: "David S. Miller" <davem@redhat.com>
 Subject: Re: [PATCH-2.4.26] ip6tables cleanup
-Date: Mon, 29 Mar 2004 00:38:05 +0200
+Date: Sun, 28 Mar 2004 15:00:27 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040328223805.GA27147@pcw.home.local>
-References: <20040328042608.GA17969@logos.cnet> <20040328115439.GA24421@pcw.home.local> <m2d66wsrg2.fsf@p4.localdomain> <20040328200932.GA19852@pcw.home.local> <20040328123318.63c54ee8.davem@redhat.com>
+Message-ID: <20040328150027.6095cfee.davem@redhat.com>
+References: <20040328042608.GA17969@logos.cnet>
+	<20040328115439.GA24421@pcw.home.local>
+	<m2d66wsrg2.fsf@p4.localdomain>
+	<20040328200932.GA19852@pcw.home.local>
+	<20040328123318.63c54ee8.davem@redhat.com>
+	<20040328223805.GA27147@pcw.home.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: petero2@telia.com, marcelo.tosatti@cyclades.com,
-   linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+        linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <20040328123318.63c54ee8.davem@redhat.com>
+To: Willy TARREAU <willy@w.ods.org>
+In-Reply-To: <20040328223805.GA27147@pcw.home.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,24 +27,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-David,
+On Mon, 29 Mar 2004 00:38:05 +0200
+Willy TARREAU <willy@w.ods.org> wrote:
 
-I sent last one too quickly, it needs this one to compile :
+> I sent last one too quickly, it needs this one to compile :
 
-diff -urN linux-2.4.26-rc1/include/net/ipv6.h linux-2.4.26-rc1-ipv6/include/net/ipv6.h
---- linux-2.4.26-rc1/include/net/ipv6.h	Mon Mar 29 00:18:38 2004
-+++ linux-2.4.26-rc1-ipv6/include/net/ipv6.h	Mon Mar 29 00:36:39 2004
-@@ -321,8 +321,8 @@
- 						    struct ipv6_txoptions *opt,
- 						    u8 *proto);
- 
--extern int			ipv6_skip_exthdr(struct sk_buff *, int start,
--					         u8 *nexthdrp, int len);
-+extern int			ipv6_skip_exthdr(const struct sk_buff *,
-+					int start, u8 *nexthdrp, int len);
- 
- extern int 			ipv6_ext_hdr(u8 nexthdr);
- 
+I know, I fixed this already when I tried to compile your
+original version :-)
 
-Sorry for the noise,
-Willy
+Thanks.
