@@ -1,16 +1,13 @@
-From: hewa0000@student.mh.se
-Subject: Rule matching question [iptables code structure]
-Date: Tue, 06 May 2003 14:56:45 +0200
+From: =?gb2312?B?uN+35UDN+NLX?= <zpeak@163.com>
+Subject: Who can tell me ,Where the sk_buffer comes from  in ipt_ULOG.c
+Date: Thu, 8 May 2003 20:02:51 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <df0d10589.10589df0d__8860.95471582866$1052559784@student.mh.se>
+Message-ID: <000a01c31559$c0ece890$01e7a8c0@zpeak>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0007_01C3159C.CE779210"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org
-Content-language: sv
-Content-Disposition: inline
-Resent-Message-Id: <E19EQQ0-0006Uo-00@kashyyyk.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,46 +18,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-[Please mail us personally (oan@itm.mh.se) as well
-as mailing the list since we are not members of this
-mail-list]
+This is a multi-part message in MIME format.
 
-We have a quite difficult question for all you elite
-people.... =)
- 
-When we add a rule to iptables that filter on
-MAC-address (or IP address and port for that
-matter). Does iptables ONLY check for the
-MAC-address option (alas in that case we filter on
-MAC-address)?.
+------=_NextPart_000_0007_01C3159C.CE779210
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-Based on a the report "Performance analysis of the
-Linux firewall on a host" by James Harris and
-Americo J. Melara. It is stated that for each check
-if the MAC-address in the rule match the given
-MAC-address, the Iptables-algorithm ALWAYS checks
-all possibilities (MAC-address, IP, Port, Protocol,
-Interface..). 
-Does anyone know this to be the truth?
+SGVsbG8sZnJpbmVkcw0KICAgIEkgYW0gdmVyeSBwdXp6bGVkICx3aGVyZSBjb21lcyBmcm9tIHRo
+ZSBza19idWZmZXIgaW4gaXB0X1VMT0cuYywNCkkgd2FudCB0byBpbXBsZW1lbnQgaXQgLGRvIHlv
+dSBoYXZlIHNvbWUgYWR2aXNlcyA/DQogICAgVGhhbmtzIGZvciByZWFkaW5nIG1haWwuDQpSZWdh
+cmRzLg0KICAgIHpwZWFrICAgICA=
 
-We are currently working on a big project where we
-use big lists of rules that are based on MAC and
-IP-addresses. And we are trying to understand why
-these lists of rules crave so much computation power
-to execute.
+------=_NextPart_000_0007_01C3159C.CE779210
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-If Iptables always run a check for every possible
-way to match our packet with a single rule
-(ip,mac,protocol,interface...) it consumes alot more
-(actually we belive it to be around 6 times as much
-according to the nature of the algorithm) as necessary. 
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
+MC4yODAwLjExNDEiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
+Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj5IZWxsbyxmcmluZWRzPC9G
+T05UPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7IEkgYW0gdmVy
+eSBwdXp6bGVkICx3aGVyZSBjb21lcyBmcm9tIHRoZSANCnNrX2J1ZmZlciBpbiBpcHRfVUxPRy5j
+LDwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQgc2l6ZT0yPkkgd2FudCB0byBpbXBsZW1lbnQgaXQg
+LGRvIHlvdSBoYXZlIHNvbWUgYWR2aXNlcyANCj88L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIHNp
+emU9Mj4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDtUaGFua3MgZm9yIHJlYWRpbmcgbWFpbC48L0ZP
+TlQ+PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj5SZWdhcmRzLjwvRk9OVD48L0RJVj4NCjxESVY+
+PEZPTlQgc2l6ZT0yPiZuYnNwOyZuYnNwOyZuYnNwOyANCnpwZWFrJm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7PC9GT05UPiZuYnNwOzwvRElWPjwvQk9EWT48L0hUTUw+DQo=
 
-Optimally the algorithm would ONLY check for a
-MAC-Address match if that is what we are filtering
-on. We truly hope this also is the case. But please,
-someone who knows this :-) :
-Answer us!
-
-Sincerly,
-Open Access Networks Project MidSweden University.
-oan@itm.mh.se
+------=_NextPart_000_0007_01C3159C.CE779210--
