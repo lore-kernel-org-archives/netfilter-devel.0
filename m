@@ -1,14 +1,13 @@
-From: Patrick McHardy <kaber@cvs.netfilter.org>
-Subject: [PATCH] fix a similar bug to ip6t_TTL.c in ip6t_HL.c
-Date: Wed, 28 Jul 2004 12:35:27 +0200
+From: Leon Bene <leon@benesconsulting.com>
+Subject: Looking for IPtables developers - Need help at core of
+  iptables (not configuration)
+Date: Tue, 27 Jul 2004 11:59:38 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <516930513.20040728123527@dns.toxicfilms.tv>
+Message-ID: <5.2.0.9.2.20040727115216.00aa0a30@pop.benesconsulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Resent-Message-Id: <E1Bplmt-0001uC-I7@vishnu.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,28 +18,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+I am using iptables in Redhats' release (ES) of Linux. In version 7.1 of 
+Redhat (iptables 1.2.1a) it forwarded packets just fine. Now with iptables 
+1.2.8 the outbound traffic hangs for about 5 seconds on rapid small packet 
+transmissions.
 
-A similar bug to the one fixed by kaber exists in
-patch-o-matic-ng/HOPLIMIT/linux/net/ipv6/netfilter/ip6t_HL.c
+I am not asking for support just a question about iptables 1.2.8. It looks 
+like iptables 1.2.1a just passed on packets and did not keep track of the 
+number of unanswered packets, with 1.2.8 it behaves like it keeps track of 
+unanswered packets and stops (waits) once the buckets are filled until some 
+packets clear. Is this true? I am trying to understand the differences in 
+1.2.1a and 1.2.8 that would lead to the hanging.
 
-Please apply,
-Regards,
-Maciej
+Thanks, and if I need to pay or donate then tell me where and I am happy to 
+do so.
 
-Index: ip6t_HL.c
-===================================================================
-RCS file: /cvspublic/patch-o-matic-ng/HOPLIMIT/linux/net/ipv6/netfilter/ip6t_HL.c,v
-retrieving revision 1.3
-diff -u -r1.3 ip6t_HL.c
---- ip6t_HL.c   5 Mar 2004 09:30:26 -0000       1.3
-+++ ip6t_HL.c   28 Jul 2004 10:33:07 -0000
-@@ -36,7 +36,7 @@
-                                new_hl = 255;
-                        break;
-                case IP6T_HL_DEC:
--                       new_hl = ip6h->hop_limit + info->hop_limit;
-+                       new_hl = ip6h->hop_limit - info->hop_limit;
-                        if (new_hl < 0)
-                                new_hl = 0;
-                        break;
+Leon Bene'
