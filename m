@@ -1,16 +1,13 @@
-From: "Jeremy Davis" <jeremy@slicenet.net>
-Subject: RE: port-based filtering of ESP packets with in-kernel IPsec?
-Date: Wed, 30 Jul 2003 11:45:03 -0400
+From: Peteris Krumins <peteris@lf.lv>
+Subject: ip_queue, is this safe:
+Date: Fri, 01 Aug 2003 13:50:50 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <KAEOKILOFJNGKODBFBLJKEDCCNAA.jeremy@slicenet.net>
-References: <1059540296.16545.305.camel@k7.localnet>
+Message-ID: <3F2A460A.5050005@lf.lv>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1059540296.16545.305.camel@k7.localnet>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,46 +18,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I guess I need to get a develop kernel and do some testing.  Purdue aye, I
-just moved from Indianapolis, had many friends that attended Purdue.  Been
-there a time or two myself.
+Hello,
 
-Jeremy Davis
-Security Analyst
-Slice Networks
+  I have written an application which uses ip_queue mechanism to quickly
+  push (of course only some) packets from kernel space to user space.
+  (The packets are queued in PREROUTING, mangle)
+  The application is quite big and i bet i have made several mistakes,
+  leaving unpleasent buffer overflows and something more.
 
------Original Message-----
-From: netfilter-admin@lists.netfilter.org
-[mailto:netfilter-admin@lists.netfilter.org]On Behalf Of Rick Kennell
-Sent: Wednesday, July 30, 2003 12:45 AM
-To: netfilter-devel@lists.netfilter.org; netfilter@lists.netfilter.org
-Subject: port-based filtering of ESP packets with in-kernel IPsec?
+  what i am interested in is if this is safe to write:
+
+---
+  [...]
+  struct iphdr *ip;
+  ip = (struct iphdr *)packet->payload;
+
+  if (ip->protocol == IPPROTO_TCP) {
+      struct tcphdr *tcp;
+
+      tcp = (struct tcphdr *)(packet->payload + ip->ihl*4);
+      [...]
+  }
+  [...]
+---
+
+  i am doubting:
+  tcp = (struct tcphdr *)(packet->payload + ip->ihl*4);
+
+  because ip->ihl could be faked, couldnt it? The packet would get queued
+  and if ip->ihl is something faked, using the tcp pointer i'd get a
+  segfault, wouldn't i?
 
 
-I asked about this last week in the general netfilter list, but it
-appears that most folks are still using FreeS/WAN for IPsec.
-
-I'm using the in-kernel IPsec and want to be able to filter ESP packets
-based on protocol or port number.  These values are encapsulated in the
-ESP payload and are unavailable to netfilter.  If I were using
-FreeS/WAN, I could use standard netfilter techniques on the ipsec0
-device.  With the in-kernel IPsec, there's no extra pseudo-device with
-which to examine unencapsulated ESP packets.
-
-It looks too me like netfilter sees the packet as ESP in all chains in
-all tables.  (I'd be delighted to be corrected.)
-
-Since ESP packets that reach the mangle INPUT chain are destined for a
-local process, why not unencapsulate them just before that point?  It
-might still be nice to have an indication that this was once an ESP
-packet for filtering, but that could be done by setting a mark in the
-mangle PREROUTING chain.
-
-I realize that this would probably require some heavy lifting in the
-network layer to accomplish this nesting of functionality.
-
-Am I missing something obvious?
-
---
-Rick Kennell <kennell@ecn.purdue.edu>
-Purdue University School of Electrical and Computer Engineering
+P.Krumins
