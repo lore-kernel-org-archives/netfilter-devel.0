@@ -1,13 +1,19 @@
-From: Rodrigo Severo <rodrigo.lists@fabricadeideias.com>
-Subject: ippool -X not working
-Date: Fri, 05 Dec 2003 10:38:32 -0200
+From: Stephen Lee <mukansai@emailplus.org>
+Subject: Re: Extremely slow network with e1000 & ip_conntrack
+Date: Fri, 05 Dec 2003 22:25:53 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FD07C48.9040801@fabricadeideias.com>
+Message-ID: <20031205222541.3427.MUKANSAI@emailplus.org>
+References: <20031205045020.4C0E.MUKANSAI@emailplus.org> <3FCF9497.3030708@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Lee <mukansai@emailplus.org>,
+   "Feldman, Scott" <scott.feldman@intel.com>,
+   Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+   linux-kernel@vger.kernel.org, "David S. Miller" <davem@redhat.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jeff Garzik <jgarzik@pobox.com>
+In-Reply-To: <3FCF9497.3030708@pobox.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,44 +24,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear list,
+Hi,
 
+Okay, I reproduced it with tg3 on 2.6.0-test11 as well, by turning on
+TSO with ethtool.  So it does seem to be an incompatibility between TSO
+& conntrack.
 
-I am testing the ip pool match and target.
+"David S. Miller" <davem@redhat.com> wrote:
+> This workaround explains everything.  The TSO packets have to be
+> "un-TSO'd" in order for netfilter to look at the packet and parse
+> the contents.  This means copying all the data around, allocating
+> several networking buffers, etc.
 
-I'm having problems with the ippool userspace support tool.
+But, if netfilter needs to see all the contents in order to function,
+shouldn't TSO break other parts of netfilter as well?  Why is only
+conntrack affected?
 
-I can't make neither -x nor the -X POOL options work. I always get a 
-"IP_POOL_DESTROY POOL failed: Device or resource busy" message. The POOL=
- 
-isn't used yet anywhere, I'm justing testing pool creation by now.
+Jeff Garzik <jgarzik@pobox.com> wrote:
+> Regardless, the problem is identified -- when TSO+conntrack is present,
+> we "TSO" net traffic then "un-TSO" it.
 
-Is it a bug or am I doing something wrong?
+This "un-TSO"ing more or less defeats the purpose of TSO, right?  
 
-I am not sure there is someone working on the ip pool functionality.
+> It's simply better to not use TSO at all, for this case.
 
-I wrote Patrick Schaaf, the former maintainer of this patch. He told me 
-that he never implemented pool destruction. He also mentioned that 
-Joackim Axelsson probably is the ip pool man presently.
+If that is the case, I suppose so.
 
-Is there anybody working on it? I'm willing to help.
-
-BTW, I'm messing with ip pool based on the assumption that using an ip 
-pool would give me faster results than having circa 180 rules for 
-different ip addresses as I have now. Am I right?
-
-
-Thanks in advance for your attention,
-
-Rodrigo Severo
-
--- 
-----------------------------------------------------
-Rodrigo Severo
-F=E1brica de Id=E9ias
-Fone: +55(61)321 1357
-Fax: +55(61)223 1712
-SBS - Quadra 2 - Ed. Empire Center - Sala 1301
-Bras=EDlia/DF - Brasil
-CEP: 70.070-904
-----------------------------------------------------
+Thanks,
+Stephen
