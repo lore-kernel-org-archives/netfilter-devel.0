@@ -1,17 +1,11 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] Resend: Add inversion to multiport match
-Date: Sat, 22 Jan 2005 12:45:21 -0800
-Message-ID: <20050122204521.GA1176@linuxace.com>
-References: <20050122174123.GA9269@linuxace.com>
-	<1106421939.20995.28.camel@tux.rsn.bth.se>
+From: Guilherme Cesar Soares Ruppert <ruppert@las.ic.unicamp.br>
+Subject: Libipq Help!! How to steal UDP traffic?
+Date: Sat, 22 Jan 2005 19:26:00 -0200 (BRST)
+Message-ID: <Pine.LNX.4.61.0501221918080.6027@quasar.las.ic.unicamp.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="k1lZvvs/B4yU6o8G"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-Content-Disposition: inline
-In-Reply-To: <1106421939.20995.28.camel@tux.rsn.bth.se>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,85 +18,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi everyone, please I need some help!!
 
-On Sat, Jan 22, 2005 at 08:25:39PM +0100, Martin Josefsson wrote:
-> Phil, the userspace part only adds inverted printout to print_v1() not
-> to save_v1()
-> Either send an updated patch or I'll fix that up when applying it after
-> Patrick has submitted the kernel part.
+I'm developing a program that needs to intercept an UDP traffic generated 
+locally by another application. It's like a tunnel. My program will 
+steal the outgoing packets from the application (in the same machine) and 
+will send to a tcp tunnel.
 
-Indeed -- appologies.  Attached is corrected userspace patch.
+I am using Libipq to do that, but I have a BIG problem. After send the 
+UDP packets to my tunnel, I need to DROP the packets because I don't want 
+them to be sent over the network. So I am doing:
+ipq_set_verdict(handle, m->packet_id, NF_DROP, 0, NULL);
 
-Phil
+But the problem is that when I drop the packet, the application that 
+generated the packet remains blocked in sendto() until the packet is 
+accepted. When I change to NF_ACCEPT, the application doesn't block but 
+the packets are sent to the network and I don't want it.
 
+How could I drop a packet silently, without blocking the application? Is
+there any way to intercept outgoing packets locally without let the
+applications notice that their packet were stolen?
 
+Here is the same example using netcat:
+$ iptables -A OUTPUT -p udp -j QUEUE
+$ echo "Test" | nc -n -u 10.1.1.23 800
+And this last remains blocked, not returning to shell.
 
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-mport-ipt2
+I tested will ping (icmp echo) also and the same happened, but ping didn't
+block. Instead, it said "operation not permitted".
 
-diff -ru iptables-orig/extensions/libipt_multiport.c iptables-new/extensions/libipt_multiport.c
---- iptables-orig/extensions/libipt_multiport.c	2005-01-03 04:51:58.000000000 -0500
-+++ iptables-new/extensions/libipt_multiport.c	2005-01-22 15:33:44.637388800 -0500
-@@ -31,13 +31,13 @@
- {
- 	printf(
- "multiport v%s options:\n"
--" --source-ports port[,port:port,port...]\n"
-+" --source-ports [!] port[,port:port,port...]\n"
- " --sports ...\n"
- "				match source port(s)\n"
--" --destination-ports port[,port:port,port...]\n"
-+" --destination-ports [!] port[,port:port,port...]\n"
- " --dports ...\n"
- "				match destination port(s)\n"
--" --ports port[,port:port,port]\n"
-+" --ports [!] port[,port:port,port]\n"
- "				match both source and destination port(s)\n",
- IPTABLES_VERSION);
- }
-@@ -255,8 +255,7 @@
- 	}
- 
- 	if (invert)
--		exit_error(PARAMETER_PROBLEM,
--			   "multiport does not support invert");
-+		multiinfo->invert = 1;
- 
- 	if (*flags)
- 		exit_error(PARAMETER_PROBLEM,
-@@ -362,6 +361,9 @@
- 		break;
- 	}
- 
-+	if (multiinfo->invert)
-+		printf("! ");
-+
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
- 		print_port(multiinfo->ports[i], ip->proto, numeric);
-@@ -422,6 +424,9 @@
- 		break;
- 	}
- 
-+	if (multiinfo->invert)
-+		printf("! ");
-+
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
- 		print_port(multiinfo->ports[i], ip->proto, 1);
-diff -ru iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h
---- iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-03 04:37:07.000000000 -0500
-+++ iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-22 15:30:21.372289792 -0500
-@@ -24,5 +24,6 @@
- 	u_int8_t count;				/* Number of ports */
- 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
- 	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
-+	u_int8_t invert;			/* Invert flag */
- };
- #endif /*_IPT_MULTIPORT_H*/
+Please give me some hope!!! :-)
 
---k1lZvvs/B4yU6o8G--
+Thanks
+
+Guilherme Ruppert
