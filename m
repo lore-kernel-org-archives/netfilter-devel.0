@@ -1,11 +1,10 @@
-From: Norman Zhang <norman.zhang@rd.arkonnetworks.com>
-Subject: Missing Options from pomng
-Date: Mon, 19 Apr 2004 13:56:43 -0700
+From: "Grace Li" <zheyinli@hotmail.com>
+Subject: Can iptables REDIRECT traffic to a range of ports in one command?
+Date: Mon, 19 Apr 2004 17:25:50 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40843D0B.5050501@rd.arkonnetworks.com>
+Message-ID: <BAY7-F619fiD0yzNrUD0005c8b5@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,12 +17,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Guys,
 
-Is h323-conntrack-nat from pomng supported in kernel 2.4.26? I added the 
-patch using 'KERNEL_DIR=/usr/src/linux ./runme extra', but couldn't find 
-the configurable option in kernel, when I compile the kernel. 
-Requirement for the patch saids kernel < 2.6. Please help.
+I would like to intercept traffic to a range of ports, say port 2000-3000 to 
+one port locally, say port 3333. I am wondering if there is a simple way to 
+do it, like specify a range in iptables instead of writing a script to 
+speficy for each port?
 
-Regards,
-Norman
+Thanks,
+
+Grace
+
+_________________________________________________________________
+Tired of spam? Get advanced junk mail protection with MSN Premium   
+http://join.msn.com/?pgmarket=en-ca&page=byoa/prem&xAPID=1994&DI=1034&SU=http://hotmail.com/enca&HL=Market_MSNIS_Taglines
