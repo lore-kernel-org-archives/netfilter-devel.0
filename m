@@ -1,14 +1,11 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] Fix hang on netfilter module unload
-Date: Tue, 15 Mar 2005 13:57:02 +0100
-Message-ID: <4236DB9E.2020003@eurodev.net>
-References: <20050315050641.GA334@linuxace.com>
+From: Borja Pacheco <bpacheco@acisa.es>
+Subject: Bug in math time?
+Date: Tue, 15 Mar 2005 16:07:09 +0100
+Message-ID: <1110899229.9798.18.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050315050641.GA334@linuxace.com>
+To: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,30 +17,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Phil,
+Dear all, 
 
-Phil Oester wrote:
-> Unfortunately, conntracks occasionally get pinned by an skb which for
-> some reason or another won't go away.  So ct_general->use never reduces
-> to 1 for these conntracks
+is this a bug into the syntax parser of the match module time?
 
-So we are leaking conntracks for some reason that we must diagnose.
+/usr/local/sbin/iptables -t mangle -I _Od172.16.11.8S170777c0 1 -m time
+--timestop 2005:03:15:15:59:35 -j RETURN
+iptables v1.3.1: invalid time `2005:03:15:15:59:35' specified, should be
+HH:MM format
+Try `iptables -h' or 'iptables --help' for more information.
 
+If it's not, could anybody tell me why am I wrong?
 
-> @@ -1019,8 +1021,11 @@
->  	if (!h)
->  		h = LIST_FIND_W(&unconfirmed, do_iter,
->  				struct ip_conntrack_tuple_hash *, iter, data);
-> +	if (!h)
-> +		h = LIST_FIND_W(&cleaned, do_iter,
-> +				struct ip_conntrack_tuple_hash *, iter, data);
->  	if (h)
-> -		atomic_inc(&tuplehash_to_ctrack(h)->ct_general.use);
-> +		atomic_set(&tuplehash_to_ctrack(h)->ct_general.use, 1);
-
-But this is cheating, of course that the module will unload if we set 
-all refcounts to 1 we won't spin forever in the i_see_dead_people loop 
-but we are leaking somewhere anyway.
-
---
-Pablo
+Best regards
