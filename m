@@ -1,14 +1,17 @@
-From: kadlec@blackhole.kfki.hu (Jozsef Kadlecsik)
-Subject: [ANNOUNCE] New Core Team Member -  Martin Josefsson
-Date: Mon, 12 May 2003 09:19:24 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] ip_conntrack_irc, allowance for quoted filenames
+Date: Mon, 12 May 2003 09:53:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030512071924.GA2458@blackhole.kfki.hu>
+Message-ID: <20030512075341.GE3344@sunbeam.de.gnumonks.org>
+References: <3EBEFB08.4070903@keyaccess.nl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+	protocol="application/pgp-signature"; boundary="kVXhAStRUZ/+rrGn"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Rene Herman <rene.herman@keyaccess.nl>
 Content-Disposition: inline
+In-Reply-To: <3EBEFB08.4070903@keyaccess.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,42 +23,55 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---0OAP2g/MAC+5xKAE
+--kVXhAStRUZ/+rrGn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-The Netfilter Core Team is proud to announce the addition Martin=20
-Josefsson as a new member.
+On Mon, May 12, 2003 at 03:38:16AM +0200, Rene Herman wrote:
+> Resend, this time _with_ patch ...
+>=20
+> [ please keep me in CC, not subscribed ]
+>=20
+> When the irssi (www.irssi.org) IRC client is asked to DCC SEND a file
+> with a filename containing spaces, it does so by leaving the spaces
+> intact and quoting the filename (""). ip_conntrack_irc.c:parse_dcc()
+> however can't handle the embedded spaces.
 
-Martin is a dedicated member of the Netfilter development community
-with high insight and coding standards, who has already been responsible=20
-for several parts of the codebase.=20
-=20
-By joining to the Core Team, Martin will definitely help to give a new=20
-momentum to the development of Netfilter.
+Thanks a lot, I will include your patch.
 
-Welcome Martin!
+This is, however, an irssi extension.  the DCC specification does not
+include support for spaces in filenames, neither does the ircII
+implementation.
 
-Jozsef,
-on behalf of the Netfilter Core Team.
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> I haven't checked other clients but I assume they might do the same. Is
+> the attached hack (against 2.4.20) acceptable? Should this be solved
+> differently and/or elsewhere?
 
---0OAP2g/MAC+5xKAE
+no, it's perfectly fine.
+
+> Rene.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--kVXhAStRUZ/+rrGn
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-iEYEARECAAYFAj6/SvwACgkQ3Yy3sUcNuWRZVgCgmxc5NgJ2616plJC1BX27Ejpl
-QKwAn0oniNo3alXg+K0xXxMbU6osUSEx
-=Iqjo
+iD8DBQE+v1L5XaXGVTD0i/8RAh20AJoDJNbrytRRln4pM3uz8m9/e6SoygCeN1jP
+cSx8ElLuKQlfvbsEx2evUnY=
+=jboh
 -----END PGP SIGNATURE-----
 
---0OAP2g/MAC+5xKAE--
+--kVXhAStRUZ/+rrGn--
