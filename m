@@ -1,14 +1,13 @@
 From: Thomas Heinz <creatix@hipac.org>
 Subject: Re: Comments about IPT_ALIGN
-Date: Sun, 26 Jan 2003 17:50:21 +0100
+Date: Sun, 26 Jan 2003 18:06:32 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E3411CD.3050603@hipac.org>
-References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu> <3E33C665.9080106@fugmann.dhs.org> <3E33E96A.5080903@hipac.org> <20030126152650.B6811@linux.karinthy.hu>
+Message-ID: <3E341598.5060907@hipac.org>
+References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Anders Fugmann <afu@fugmann.dhs.org>,
- netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Laszlo Valko <valko@linux.karinthy.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -24,61 +23,39 @@ List-Id: netfilter-devel.vger.kernel.org
 Hi Laszlo
 
 You wrote:
->>     - limit: struct ipt_rateinfo {
->>                      u_int32_t avg;    /* Average secs between packets 
->>* scale */
->>                      u_int32_t burst;  /* Period multiplier for upper 
->>limit. */
->>                     /* Used internally by the kernel */
->>                     unsigned long prev;
->>                     u_int32_t credit;
->>                     u_int32_t credit_cap, cost;
->>
->>                     /* Ugly, ugly fucker. */
->>                     struct ipt_rateinfo *master;
->>              };
->>
->>       The unsigned long prev in the middle does not hurt because it
->>       is automatically 8 byte aligned by avg and burst. Because
->>       the pointer (master) is at the end of the struct it does not
->>       cause any problems except that the whole struct must be
->>       aligned correctly.
+> This is not too surprising. Both of them are RISC processors with
+> strict alignment restrictions. I guess even with a 32bit sparc
+> gcc, a 64bit unsigned integer gets aligned to 64bit just to make life
+> easier
+
+Yes, in fact this is the case. Just take a look at the output of
+struct t64 on sparc64 in my first posting.
+
+> Now the problem comes if you have only 32bit integers in the first
+> structure and 64bit integers in the second one: you have to either
+> use IPT_ALIGN again (which we would like to get rid of), or we
+> have to make sure the first structure gets aligned to 64bit.
+> We could introduce an extra variablke just for this at the end
+> like:
 > 
-> The structure is aligned correctly, however the offsets of the fields,
-> and sizeof() is different, so it does not work.
-
-Ah yes of course, as the size of unsigned long differs in user and
-kernel space every member after prev has a different offset.
-So the limit match is a valid example :)
-
-> Well, I wrote a hack that makes the layout the same, but that's
-> rather ugly (I call it workaround :).
-
-I just flew over it. Sorry, I must have overlooked it before.
-
->>BTW, pointers and arrays of pointers within target or match
->>structs can be forced to have the 8 byte alignment requirement
->>(on sparc64 and parisc64) by simply putting them into a
->>union: union {void *p; __u64 pad;}
+> 	u_int64_t dummy[0];
+> }
 > 
-> Yes, that's true, except for the fact that you will have to deal
-> with endianness as well, if you are interested in actually exchanging
-> data... 
+> Or we could do something like that in netfilter:
+> 
+> 	struct ipt_entry entries[0];
+> }
+> 
+> This latter version is better if we know what kind structure will follow,
+> because it will not increase the size of the structure unnecessarily on
+> platforms without alignment restrictions.
 
-The only match/target I'm aware of that has a pointer in its info
-struct is the limit match. Generally this is necessary for each
-match/target that does not treat the info data as read only on a
-smp system (at least with the current infrastructure as each cpu has
-its own match/target info).
+Yes, very good point. Another way would be to introduce a new type
+for this purpose which is u_int32_t on 32 bit architectures and
+u_int64_t on 64 bit architectures or just use long instead if
+sizeof(long) always works the expected way.
 
-Anyway, I don't see a reason why one wants to exchange a valid pointer
-between user and kernel space.
-
-> And don't forget the size change that brings in on every 32-bit
-> platform effectively killing compatibility...
-
-One could use #ifdef's for compatibility purpose but as I read you
-don't like these :-)
+Anyway this is just a question of personal taste.
 
 
 Thomas
