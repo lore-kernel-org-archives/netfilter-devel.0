@@ -1,15 +1,16 @@
-From: UMEZAWA Takeshi <umezawa@deneb.freemail.ne.jp>
-Subject: Re: 'state' match and ICMP time-exceeded
-Date: Tue, 19 Nov 2002 23:56:09 +0900
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: dest addr using transparent proxy...
+Date: Fri, 22 Nov 2002 19:03:21 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DDA5109122.4A5FUMEZAWA@deneb.freemail.ne.jp>
-References: <3DDA49BE0.4A5EUMEZAWA@deneb.freemail.ne.jp>
+Message-ID: <20021122180321.GA25615@balabit.hu>
+References: <20021114092244.92383.qmail@web40908.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <3DDA49BE0.4A5EUMEZAWA@deneb.freemail.ne.jp>
+To: Rajesh Mishra <rajesh_mish@yahoo.com>
+Content-Disposition: inline
+In-Reply-To: <20021114092244.92383.qmail@web40908.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,17 +21,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, Nov 14, 2002 at 01:22:44AM -0800, Rajesh Mishra wrote:
+> I just started using the transparent proxy
+> functionality and wanted to know how to get the
+> destination IP address in my proxy server.
 
-On Tue, 19 Nov 2002 23:25:02 +0900
-UMEZAWA Takeshi <umezawa@deneb.freemail.ne.jp> wrote:
+search google for SO_ORIGINAL_DST (hint it is a getsockopt)
 
-> If no NATing rule is given to host0, this problem does not occur.
-
-Sorry, I have misread my memo of test result.
-
-This problem does occur without NATing rule.
-The problem is probably not related to NAT.
-
-  +---------------------------------------------------------------+
- / UMEZAWA Takeshi (FAMILY Given) <umezawa@deneb.freemail.ne.jp> /
-+---------------------------------------------------------------+
+-- 
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
