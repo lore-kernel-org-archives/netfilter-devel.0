@@ -1,18 +1,14 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: xdmcp
-Date: Sat, 9 Nov 2002 22:03:19 +0100
+From: Ola Nordstrom <ola@triblock.com>
+Subject: icmp hdr incorrect in skbuff
+Date: Mon, 11 Nov 2002 02:41:48 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021109210318.GA8951@naboo.de.gnumonks.org>
-References: <E131E9F1848D0148813EAF06A846608FD776F0@w2ks-e2k.iconos.be>
+Message-ID: <20021111074147.GA29344@fork.triblock.com>
+Reply-To: ola@triblock.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
-Cc: Min Li <li9@expert.ics.purdue.edu>, linux96@netsarang.com,
-	netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="/9DWx/yDrRhgMJTb"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sneppe Filip <Filip.Sneppe@cronos.be>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <E131E9F1848D0148813EAF06A846608FD776F0@w2ks-e2k.iconos.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,71 +20,167 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---LQksG6bCIzRHxTLp
+--/9DWx/yDrRhgMJTb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Nov 09, 2002 at 02:35:42PM +0100, Sneppe Filip wrote:
-> Hi Min,
->=20
-> I think the problem is that the xdmcp protocol requires a special
-> helper module to add the necessary connection expectations, since
-> it appears to open random connections, like ftp for instance.
+I've been trying to write a module to manipulate icmp packets using
+the netfilter hooks but the skbuff headers seem to be improperly set
+in the skbuff that I am getting via the nf_hook.
 
-true.
+often (*skb)->h.icmph->type points to some other place inside the
+skbuff, so checking weather (*skb)->h.icmph->type == ICMP_ECHO doesn't
+work. However manually offsetting directly to where type field is
+inside the icmp portion of the buffer always yeilds the correct value
+(this offcourse is also verified since the ping cames back)
 
-> This raises an interesting question: Here:
-> http://cvs.netfilter.org/cgi-bin/cvsweb/netfilter-extensions/helpers/xdmc=
-p/
-> is some work on a conntrack helper/nat module by Hojae Lee, apparently.
+I've attached a snipplet which will illustrate the problem, loading
+the module on a workstation and simply doing a ping -c 3 othermachine
+gives:
 
-yes. It is a module written by Hojae Lee, and while it apparently seems
-to work, it raises a couple of fundamental security problems.
+Nov 11 02:32:38 [kernel] icmp_error: pr:  ICMP_ECHOREPLY manual icmp
+type offset gives: 8
+Nov 11 02:33:45 [kernel] icmp_error: pr: manual icmp type offset
+gives: 8 
+Nov 11 02:33:48 [kernel] icmp_error: pr: manual icmp type offset
+gives: 8
 
-I didn't want to put this code in netfilter patch-o-matic, since it
-definitely would introduce security vulnerabilities.
+The first log is obviously wrong since the echo reply will never pass
+thru the post routing hook. The 2nd too just show that the icmp hdr is
+wrong since "ICMP_ECHO" is not printed when infact the icmp type is 8.
 
-Unfortunately I didn't get around fixing that code yet, so it remains
-unchanged in CVS for now.
+Why is the icmphdr not properly set inside the skbuff ? If anyone
+could veryify this behavior (bug?) please let me know. Or is my
+knowledge of how skbuffs should work flawed ?
 
-> I've never heard any noise about this, the code is not available in
-> standard patch-o-matic, and I am also wondering what the whole
-> /netfilter-extensions CVS directory is all about ?
-> Perhaps Harald knows more about this...
+I am running 2.4.19.
 
-the netfilter-extensions CVS directory has been discussed on
-netfilter-devel before.  The idea is to have the _real_ code in CVS, not
-the patches.   From netfilter-extensions the patches are generated,
-which will then be put into patch-o-matic.
+Thanks,
+Ola
 
-CVS is meant for source code, not for patches.
+--/9DWx/yDrRhgMJTb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="icmp_error.c"
 
-> Regards,
-> Filip
+/*
+ * icmp_error.c
+ *
+ * cc -D__KERNEL__ -DMODULE -DCONFIG_NETFILTER * -I/usr/src/linux/include -O -Wall -g -D__SMP__ -DSMP -c * icmp_error.c -o icmp_error.o
+ */
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
-=20
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+#include <linux/config.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <linux/errno.h>
+#include <asm/uaccess.h> /* copy_from_user() */
+#include <net/checksum.h> 
+#include <asm/checksum.h>  /* ip_compute_csum() */
+#include <linux/net.h>
+#include <linux/ip.h>
+#include <linux/in.h>
+#include <linux/netfilter.h>
+#include <linux/netfilter_ipv4.h>
+#include <linux/skbuff.h>
+#include <linux/types.h>
+#include <linux/string.h>
+#include <linux/locks.h>
+#include <linux/icmp.h>
 
---LQksG6bCIzRHxTLp
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+#define	MODULE_NAME "icmp_error"
+#define	MODULE_VERSION "0.1"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+/* print line of info */
+#define linfo(fmt, args...)	printk(KERN_INFO MODULE_NAME ": " fmt "\n", ## args)
+/* print info msgs */
+#define binfo(fmt, args...)	printk(KERN_INFO MODULE_NAME ": " fmt, ## args)
+/* print info msg */
+#define info(fmt, args...)	printk(fmt, ## args)
 
-iD8DBQE9zXgWXaXGVTD0i/8RAhFJAJ95mNPTcOhwm1qeM8bFEegZyRnPgACgqiUL
-mnj3vRFcMioSvCsHf4NcbKk=
-=bWGa
------END PGP SIGNATURE-----
+/*
+ * this function is called when packets enter the postrouting 
+ * (packets about to hit wire)
+ */
+static unsigned int hook_post_routing(unsigned int hook,
+           			struct sk_buff **skb,
+           			const struct net_device *indev,
+           			const struct net_device *outdev,
+           			int (*okfn)(struct sk_buff *))
+{
+	struct iphdr *iph = (*skb)->nh.iph;
+	unsigned char *type;
 
---LQksG6bCIzRHxTLp--
+	MOD_INC_USE_COUNT;
+
+	/*
+	 * check for ICMP packets, ignore all others
+	 */
+	if (iph->protocol != IPPROTO_ICMP) 
+		goto out;
+
+
+        binfo("pr: ");
+
+        if ((*skb)->h.icmph->type == ICMP_ECHO) {
+		info("ICMP_ECHO ");	
+	} else if ((*skb)->h.icmph->type == ICMP_ECHOREPLY) {
+		info("ICMP_ECHOREPLY ");	
+	} else {
+                /* goto out; */
+		;
+	}
+
+	type = (*skb)->nh.raw;
+	type += 20; /* assume iphdr is 20 bytes, no options */
+
+	info("manual icmp type offset gives: %u ", *type);
+
+out:
+	info("\n");
+	MOD_DEC_USE_COUNT;
+
+	return NF_ACCEPT;
+}
+
+/*
+ * the hook operations structure
+ * fed to netfilter during initialization
+ */
+static struct nf_hook_ops icmp_mon_post_routing_ops
+= { { NULL, NULL }, hook_post_routing, PF_INET, NF_IP_POST_ROUTING, 0 };
+/* = { { NULL, NULL }, hook_post_routing, PF_INET, NF_IP_LOCAL_OUT, 0 }; */
+/* = { { NULL, NULL }, hook_post_routing, PF_INET, NF_IP_LOCAL_IN, 0 }; */
+
+static int __init init(void)
+{
+	/*
+	 * create and register the post routing hook
+	 */
+	if (nf_register_hook(&icmp_mon_post_routing_ops) != 0) {
+		linfo("unable to register post routing hooks");
+		return -ENOMEM;
+	}
+	
+	linfo("%s version %s loaded", MODULE_NAME, MODULE_VERSION);
+	return 0;
+}
+
+static void __exit fini(void)
+{
+	/*
+	 * remove the netfilter hooks
+	 */
+	nf_unregister_hook(&icmp_mon_post_routing_ops);
+	linfo("%s version %s unloaded", MODULE_NAME, MODULE_VERSION);
+}
+
+module_init(init);
+module_exit(fini);
+
+MODULE_AUTHOR("Ola Nordstrom <ola@triblock.com>");
+MODULE_DESCRIPTION("FOO");
+MODULE_LICENSE("GPL");
+
+EXPORT_NO_SYMBOLS;
+
+--/9DWx/yDrRhgMJTb--
