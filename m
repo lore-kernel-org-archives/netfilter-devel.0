@@ -1,16 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: NAT and locally bound sockets
-Date: Tue, 2 Jul 2002 16:21:36 +0200
+Subject: Re: [PATCH}: Make MARK target terminate (resend)
+Date: Tue, 2 Jul 2002 16:24:47 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020702142136.GG18333@naboo.rchrd.phub.net.cable.rogers.com>
-References: <20020529164926.GA9003@gort.ecn.purdue.edu> <20020530153247.I7658@sunbeam.de.gnumonks.org> <20020701163232.GB7090@lucky>
+Message-ID: <20020702142447.GI18333@naboo.rchrd.phub.net.cable.rogers.com>
+References: <3D1D81F8.9080309@trash.net> <200206291236.36997@henrik.marasystems.com> <20020701075018.GA440@balabit.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: shuey@purdue.edu
+To: Balazs Scheidler <bazsi@balabit.hu>
 Content-Disposition: inline
-In-Reply-To: <20020701163232.GB7090@lucky>
+In-Reply-To: <20020701075018.GA440@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,51 +23,32 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 01, 2002 at 11:32:32AM -0500, Michael Shuey wrote:
-> On Thu, May 30, 2002 at 03:32:47PM +0200, Harald Welte wrote:
-> > Interestingly I don't remember this bug.  I (and nobody else) has added
-> > something to the TODO list about this either. Maybe it somehow got lost :(
+On Mon, Jul 01, 2002 at 09:50:18AM +0200, Balazs Scheidler wrote:
+> On Sat, Jun 29, 2002 at 12:36:36PM +0200, Henrik Nordstrom wrote:
+> > On Saturday 29 June 2002 11.46, Patrick McHardy wrote:
+> > So the question to the Netfilter core team is if it would be OK to add 
+> > a new option and "module class" to the userspace tools, and have the 
+> > existing IPT_CONTINUE targets dual-register as both a target and a 
+> > match. I can try to whip something together if this is seen as 
+> > something acceptable. Should be fully backwards/forward compatible 
+> > with existing rulesets with only a minimal amount of code 
+> > duplication. The only compability issue is that if you make use the 
+> > new feature then you cannot go back to a older userspace or kernel..
 > 
-> I can't fault that; heck, I just took a month to reply to this email.
-> 
-> I looked up the previous comment about this issue:
-> 
-> http://lists.samba.org/pipermail/netfilter-devel/2002-January/003041.html
-> 
-> > Are you aware thet netfilter/iptables NAT is [in IETF terms] 'symmetric nat',
-> > which means that we can use the same port on the NAT gw multiple times, as
-> > long as the tuple (consisting out of srcip,dstip,srcport,dstport,l4proto) is
-> > unique.
-> 
-> Yes, I am aware that netfilter provides symmetric nat.  Unfortunately, its
-> port selection can provide a tuple that is _not_ unique.
+> I for one would second a feature like this. I see a good number of places
+> where it could be used (the long standing missing -l option is one example)
 
-mmh... not exactly.  I understand that there is a problem, but the tuple is
-always unique - as long as there is any tuple!
+It is definitely useful.  I'd love to have this additional flexibility.
+A couple of issues, though:
 
-In the case where you just bind to an udp port, but haven't sent any
-packets yet, somebody else can use a tuple including that port - which
-of course clashes if the local port then starts sending packets to the
-same destip/destport as the now-used tuple -> boom.
+1) definitely 2.5.x thing - thus it should wait until pkt_tables becomes
+   more apparent
+2) I think this heavily confuses users, since a target can now be used
+   as a 'match'.  The current concept of netfilter/iptables is very
+   clear and well-defined.  Adding kludges like this sort-of breaks this
+   concept...  
 
-> In this scenario, think about the tuple for a moment.  Since all clients and
-> the natbox are mounting the same NFS server, selecting the same port by
-> default, using UDP across the board, the connection tuples are (after SNAT)
-> going to be very similar - they only differ in srcport.  Normally that would
-> be just fine; however, with a high level of traffic the NAT system would
-> occaisionally select a srcport that was already in use by the NFS client local
-> to natbox.  That's not fine - it causes quite a few NFS timeouts, retransmits,
-> etc. on natbox.
-
-so you need to include your nat box itself into the SNAT rule. 
-
-> A proper fix would have to involve TCP as well (as a similar problem most
-> likely exists there, it just crops up much less frequently).
-
-mh. the issue with TCP is the same: if you bind to a socket and not use
-it for quite some time, before you actually innitiate any connection.
-
-> Mike Shuey
+> Bazsi
 
 -- 
 Live long and prosper
