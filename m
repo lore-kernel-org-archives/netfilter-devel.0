@@ -1,51 +1,36 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Idea: Check session source and destination
-Date: Mon, 26 Apr 2004 16:44:34 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404261640210.6443-100000@filer.marasystems.com>
-References: <427EA2C2-9787-11D8-8B47-000A957FD99E@src.no>
+From: Parag Nemade <cranium2003@yahoo.com>
+Subject: HELP ipt_hook: happy cracking message
+Date: Mon, 26 Apr 2004 08:12:20 -0700 (PDT)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040426151220.85059.qmail@web41403.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>,
-   <netfilter@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Mike Andersen <mike@src.no>
-In-Reply-To: <427EA2C2-9787-11D8-8B47-000A957FD99E@src.no>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Cc: netdev@oss.sgi.com, linux-net@vger.kernel.org,
+        netfilter <netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: kernerl mail <linux-kernel@vger.kernel.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 26 Apr 2004, Mike Andersen wrote:
+hi,
+        i modified kernel so that it will create
+/proc/net/myproc file entry.
+the function of this entry is to crate a 16 byte char
+string from random no.s
+i used net_srandom and net_random and sys_time for
+that puspose. the problem is that i write program to
+generate string after 120 seconds but it is changing
+contents of myproc file every seconds. what can i do?
+ Also i am getting ipt_hook: happy cracking. message
+again and again why?
+regards,
+parag.
 
-> iptables -A FORWARD -m conntrack --ctorigdst <int_ip> -j ACCEPT
-> iptables -A FORWARD -j DROP
 
-Works here..
-
-> I then look more closely at the state table (/proc/net/ip_conntrack)  
-> and see that there are two sets of source definition, and two sets for  
-> the destination:
-
-One is the ORIGINAL direction, the other the REPLY direction. Each is 
-matched independently by the "conntrack" match (--ctorigdst vs 
---ctreplydst).
-
-> Any idea of why the "-m conntrack --ctorigdst <int_ip>" also passes  
-> through traffic where int_ip is the source of the session?
-
-Does work like intended here and only matches where it is the original
-destination. But I am using this for packet filtering, not mirroring.  
-Not that I see any difference. Also I am using an extended version of the
-conntrack match which can match additional deatils such as ports etc,
-based on the conntrack match found in patch-o-matic-ng. (see
-netfilter-devel discussions some many months ago).. but that should not 
-make any difference either.
-
-Regards
-Henrik
+=09
+	=09
+__________________________________
+Do you Yahoo!?
+Yahoo! Photos: High-quality 4x6 digital prints for 25=A2
+http://photos.yahoo.com/ph/print_splash
