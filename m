@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_dstlimit spinlock fixup
-Date: Mon, 23 Aug 2004 20:47:06 +0200
+Subject: Re: [PATCH] Cleanup ttl match option parsing
+Date: Mon, 23 Aug 2004 20:54:39 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <412A3BAA.6000708@trash.net>
-References: <20040822153348.GA20301@linuxace.com>
+Message-ID: <412A3D6F.8070801@trash.net>
+References: <20040822173856.GA20772@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kadlec@blackhole.kfki.hu
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20040822153348.GA20301@linuxace.com>
+In-Reply-To: <20040822173856.GA20772@linuxace.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,53 +23,79 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Phil Oester wrote:
 
->Since ipt_dstlimit makes use of MUST_BE_LOCKED macro, compiling
->without CONFIG_NETFILTER_DEBUG causes errors.  Fix below.
+>The below patch allows the ttl match to be used with other matches
+>without assuming it 'owns' all options.  For example, this command
+>currently causes the '...TTL option twice error':
 >
->Similar patch posted by Samir Bellabes a few days ago, but this one
->removes an unneeded #ifdef pair
+>iptables -A foo -d 1.2.3.4 -m ttl --ttl-eq 1 -m state --state NEW -j ACCEPT
 >
->This fixes bugzilla #225
+>But works with the below patch.
+>
+>This fixes bugzilla #183
 >  
 >
-
-Jozsefs conntrack_locking patch has the same problem, I wonder if we
-should introduce a spinlock_debug_t (if that is not taken yet) or
-better yet, kill lockhelp.h.
+I get rejects with this patch, please send it again as attachment.
 
 Regards
 Patrick
 
+
 >Phil
 >
 >
->diff -ru pom-orig/dstlimit/linux-2.6/net/ipv4/netfilter/ipt_dstlimit.c pom-new/dstlimit/linux-2.6/net/ipv4/netfilter/ipt_dstlimit.c
->--- pom-orig/dstlimit/linux-2.6/net/ipv4/netfilter/ipt_dstlimit.c       2004-02-22 19:15:45.000000000 -0500
->+++ pom-new/dstlimit/linux-2.6/net/ipv4/netfilter/ipt_dstlimit.c        2004-08-22 11:30:10.156485400 -0400
->@@ -83,7 +83,11 @@
->        struct dstlimit_cfg cfg;        /* config */
+>
+>diff -ru ipt-orig/extensions/libipt_ttl.c ipt-new/extensions/libipt_ttl.c
+>--- ipt-orig/extensions/libipt_ttl.c    2002-05-29 09:08:16.000000000 -0400
+>+++ ipt-new/extensions/libipt_ttl.c     2004-08-22 13:07:01.161108504 -0400
+>@@ -40,10 +40,6 @@
+>        check_inverse(optarg, &invert, &optind, 0);
+>        value = atoi(argv[optind-1]);
 > 
->        /* used internally */
->+#ifdef CONFIG_NETFILTER_DEBUG
->+       struct spinlock_debug lock;     /* lock for list_head */
->+#else
->        spinlock_t lock;                /* lock for list_head */
->+#endif
->        u_int32_t rnd;                  /* random seed for hash */
->        struct timer_list timer;        /* timer for gc */
->        atomic_t count;                 /* number entries in table */
->@@ -212,7 +216,11 @@
->        atomic_set(&hinfo->count, 0);
->        atomic_set(&hinfo->use, 1);
->        hinfo->rnd = 0;
->+#ifdef CONFIG_NETFILTER_DEBUG
->+       hinfo->lock.l = SPIN_LOCK_UNLOCKED;
->+#else
->        hinfo->lock = SPIN_LOCK_UNLOCKED;
->+#endif
->        hinfo->pde = create_proc_entry(minfo->name, 0, dstlimit_procdir);
->        if (!hinfo->pde) {
->                vfree(hinfo);
+>-       if (*flags) 
+>-               exit_error(PARAMETER_PROBLEM, 
+>-                               "Can't specify TTL option twice");
+>-
+>        if (!optarg)
+>                exit_error(PARAMETER_PROBLEM,
+>                                "ttl: You must specify a value");
+>@@ -56,8 +52,6 @@
+> 
+>                        /* is 0 allowed? */
+>                        info->ttl = value;
+>-                       *flags = 1;
+>-
+>                        break;
+>                case '3':
+>                        if (invert) 
+>@@ -66,8 +60,6 @@
+> 
+>                        info->mode = IPT_TTL_LT;
+>                        info->ttl = value;
+>-                       *flags = 1;
+>-
+>                        break;
+>                case '4':
+>                        if (invert)
+>@@ -76,14 +68,17 @@
+> 
+>                        info->mode = IPT_TTL_GT;
+>                        info->ttl = value;
+>-                       *flags = 1;
+>-
+>                        break;
+>                default:
+>                        return 0;
+> 
+>        }
+> 
+>+       if (*flags) 
+>+               exit_error(PARAMETER_PROBLEM, 
+>+                               "Can't specify TTL option twice");
+>+       *flags = 1;
+>+
+>        return 1;
+> }
+> 
 >
 >  
 >
