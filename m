@@ -1,18 +1,15 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: netfilter FAQ: correction to answer about UNREPLIED connections
-Date: Wed, 8 Oct 2003 11:30:41 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: please report iptables-1.2.9rc1  bugs!
+Date: Thu, 9 Oct 2003 01:29:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031008093041.GK25743@sunbeam.de.gnumonks.org>
-References: <87ekyam77o.fsf@orcus.priv.at>
+Message-ID: <20031008232953.GQ25743@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hk6Zb6cduJ+I0Tmj"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="xFawzEZLoq+g1Byu"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Robert Bihlmeyer <robbe@orcus.priv.at>
+To: Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <87ekyam77o.fsf@orcus.priv.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,81 +21,48 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---hk6Zb6cduJ+I0Tmj
+--xFawzEZLoq+g1Byu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Sep 21, 2003 at 06:34:03PM +0200, Robert Bihlmeyer wrote:
-> Hi,
+Hi!
 
-sorry for the late reply.  I'm cc'ing netfilter-devel, since this might
-be of interest to other people.
+I know that already about 2600 people have downloaded the iptables
+1.2.9rc1 package from the netfilter server (ftp and http downloads
+only).
 
-> the FAQ states
->=20
-> > The answer is easy: UNREPLIED entries are temporary entries, i.e. as
-> > soon as we run out of connection tracking entries (we reach
-> > /proc/sys/net/ipv4/ip_conntrack_max), we delete old UNREPLIED
-> > entries.
->=20
-> As I read the source (linux 2.4.22), only entries without the ASSURED
-> bit are dropped early. I have a number of connections in my table that
-> are ESTABLISHED, UNREPLIED and ASSURED at the same time (I'm using the
-> tcp-window-tracking patch, FWIW).
+Yet, I have not received a single bug report / comment / ... so far.
 
-There is a bit of confusion what ESTABLISHED means.  There are two
-ESTABLISHED. =20
+Again, this is a test release.  If you are running this on your machine
+and experience any problems, please report back to us (preferredly via
+http://bugzilla.netfilter.org/).
 
-a) TCP state (printed in /proc/net/ip_conntrack)
+if there are no bug reports until sunday (oct-12), I will have to assume
+that there are no bugs - and thus release the final 1.2.9 version.
 
-b) connection state (as used with the -m state --state match)
-
-here it means that the state of the connection is ESTABLISHED.  An
-ESTABLISHED connection must have had a NEW packet before - and it can
-never be ESTABLISHED without having seen at least one reply packet.=20
-
-ASSURED is a bit set by the UDP and TCP helpers only.  For TCP it means
-that we have seen a valid ACK in ESTABLISHED conntrack state, after SYN_RECV
-tcp state.  For UDP it means that we've seen a matchin reply packet
-(inverted tuple).  The general meaning is 'we are sure there is a
-connection from all we can tel'.
-
-UNREPLIED means we have only seen packets in one direction.  So the
-following combination in /proc/ip_conntrack is certainly invalid:
-
-[UNREPLIED] [ASSURED]
-
-How could we be sure about a connection, if we have not seen a reply
-packet before?
-
-> Either I'm experiencing a bug, and UNREPLIED connections should never
-> get ASSURED, or the FAQ is wrong. Even in the former case ASSURED
-> could get mentioned as the real criteria.
-
-yes, indeed.  Thanks for the correction.
-
-> Robbe
+thanks.
 
 --=20
-- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D
-Programming is like sex: One mistake and you have to support it your lifeti=
-me
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---hk6Zb6cduJ+I0Tmj
+--xFawzEZLoq+g1Byu
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/g9lBXaXGVTD0i/8RAsq8AJ9N2CDQD3YoCY3Ly2Gr+HStB9R5yQCaAiQj
-SF1Yd6ZwP5cm/jElC0d5xOw=
-=6+Dp
+iD8DBQE/hJ3xXaXGVTD0i/8RAr0KAJ9ZQvgvIVGmylCL1Wlk4znBeW+nvwCfX8Vx
+j0bmp90NuQP6hjdtrosL/wQ=
+=JEYH
 -----END PGP SIGNATURE-----
 
---hk6Zb6cduJ+I0Tmj--
+--xFawzEZLoq+g1Byu--
