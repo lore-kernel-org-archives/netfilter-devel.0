@@ -1,14 +1,14 @@
-From: "luotian" <Tim.Luo@360DegreeWeb.com>
-Subject: bysource hash table in NAT
-Date: Mon, 30 Dec 2002 13:03:23 +0800
+From: luotian@oceanus.com.cn
+Subject: How to use the bysource hash table in NAT
+Date: Mon, 30 Dec 2002 15:04:21 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <NHBBIGKDOLJODKIIJPEEEEBBCAAA.Tim.Luo@360DegreeWeb.com>
+Message-ID: <20021230070421.18704.qmail@sina37-22.sina.com.cn>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+  charset="gb2312"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,7 +19,7 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-aGksDQpXaG8gY2FuIGhlbHAgbWU/IEkgZG9uJ3Qga25vdyAgd2h5IHRoZSBieXNvdXJjZSBoYXNo
-IHRhYmxlIG9mIE5BVCBpcyB1c2VkIGluICBpcF9uYXRfY29yZS5jIC4gDQpUaGUgYnlpcHNwcm90
-byBoYXNoIHRhYmxlIGlzIHVzZWQgdG8gc2VsZWN0IGFuIElQIGFkZHJlc3MgLiAgSXMgaXQgcmln
-aHQgPw==
+hi,
+I have a question about the source code of netfilter. Who can help me? 
+I don't know  why the bysource hash table of NAT is used in  ip_nat_core.c . Can I remove it?
+The byipsproto hash table is used to select an IP address .  Is it right ?
