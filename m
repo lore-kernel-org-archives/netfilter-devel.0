@@ -1,13 +1,18 @@
-From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH]    Less printf() calls for libip6t_esp.c
-Date: Tue, 12 Aug 2003 14:08:12 -0400
+From: Harald Welte <laforge@netfilter.org>
+Subject: [ANNOUNCE] netfilter.org systems downtime
+Date: Fri, 22 Aug 2003 16:41:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F392D0C.7080104@videotron.ca>
+Message-ID: <20030822144105.GE11901@sunbeam.de.gnumonks.org>
+Reply-To: coreteam@netfilter.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_xz+fvCo7yXQURT0lFq5Hwg)"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GYkYyJI7bObpCn+O"
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter-workshop@lists.netfilter.org, coreteam@netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,102 +23,65 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
---Boundary_(ID_xz+fvCo7yXQURT0lFq5Hwg)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+--GYkYyJI7bObpCn+O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Harald,
+Hi!
 
-    this attached patch contains C99 initializers and printf() 
-simplifications fo libip6t_esp.c.
+Due to an unfortunate event [*] the main netfilter.org system had become
+unavailable from Aug 19 to Aug 22.  =20
 
-    Please apply.
+The long downtime was caused by the netfilter developer workshop, which
+distracted the netfilter developers from doing any system
+administration.
 
-Stephane
+This caused all @netfilter.org mail addresses, the mailinglist, CVS,
+rsync, ftp and www access to be unavailable.
 
+I have now migrated the www, ftp, rsync, anoncvs and mail services to
+different machines.  However, bugzilla.netfilter.org and CVSweb as well
+as the list archives will remain unavailable until the replacement
+server is activated.
 
---Boundary_(ID_xz+fvCo7yXQURT0lFq5Hwg)
-Content-type: text/plain; name=libip6t_esp.c.patch; CHARSET=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=libip6t_esp.c.patch
+The replacement server will be in place at some point this evening/night
+and should be up by midnight GMT.
 
---- netfilter.orig/userspace/extensions/libip6t_esp.c	Wed May 29 09:08:16 2002
-+++ netfilter/userspace/extensions/libip6t_esp.c	Mon Aug 11 21:57:45 2003
-@@ -19,8 +19,8 @@
- }
- 
- static struct option opts[] = {
--	{ "espspi", 1, 0, '1' },
--	{0}
-+	{ .name = "espspi", .has_arg = 1, .flag = 0, .val = '1' },
-+	{ .name = 0 }
- };
- 
- static u_int32_t
-@@ -29,7 +29,7 @@
- 	unsigned long int spi;
- 	char* ep;
- 
--	spi =  strtoul(spistr,&ep,0) ;
-+	spi = strtoul(spistr, &ep, 0);
- 
- 	if ( spistr == ep ) {
- 		exit_error(PARAMETER_PROBLEM,
-@@ -117,17 +117,10 @@
- 	const char *inv = invert ? "!" : "";
- 
- 	if (min != 0 || max != 0xFFFFFFFF || invert) {
--		printf("%s", name);
--		if (min == max) {
--			printf(":%s", inv);
--			printf("%u", min);
--		} else {
--			printf("s:%s", inv);
--			printf("%u",min);
--			printf(":");
--			printf("%u",max);
--		}
--		printf(" ");
-+		if (min == max)
-+			printf("%s:%s%u ", name, inv, min);
-+		else
-+			printf("%ss:%s%u:%u ", name, inv, min, max);
- 	}
- }
- 
-@@ -168,19 +161,18 @@
- }
- 
- static
--struct ip6tables_match esp
--= { NULL,
--    "esp",
--    IPTABLES_VERSION,
--    IP6T_ALIGN(sizeof(struct ip6t_esp)),
--    IP6T_ALIGN(sizeof(struct ip6t_esp)),
--    &help,
--    &init,
--    &parse,
--    &final_check,
--    &print,
--    &save,
--    opts
-+struct ip6tables_match esp = {
-+	.name          = "esp",
-+	.version       = IPTABLES_VERSION,
-+	.size          = IP6T_ALIGN(sizeof(struct ip6t_esp)),
-+	.userspacesize = IP6T_ALIGN(sizeof(struct ip6t_esp)),
-+	.help          = &help,
-+	.init          = &init,
-+	.parse         = &parse,
-+	.final_check   = &final_check,
-+	.print         = &print,
-+	.save          = &save,
-+	.extra_opts    = opts
- };
- 
- void
+All your pending emails will be delivered, since we have plenty of backup=
+=20
+MX'es.
 
---Boundary_(ID_xz+fvCo7yXQURT0lFq5Hwg)--
+We are sorry for the inconvenience, but assure you that we are doing
+everything we can to minimize downtime.
+
+Special thanks to Florian Sippel <fun@noris.net> and Alexander Ruff
+<ruff@exodus.franken.de>, who are taking care of physically replacing
+the servers (hosted 500km away from my current location).
+
+[*] We will provide more details about the exact type of event soon
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--GYkYyJI7bObpCn+O
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE/RiuBNfqJzMqajVsRApZNAJ9qXFyDVyOA+kWGZIMBY5t8xmWhGQCgpKdz
+mYw4QDzgAqHgD61JRX5i2W4=
+=yBsE
+-----END PGP SIGNATURE-----
+
+--GYkYyJI7bObpCn+O--
