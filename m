@@ -1,14 +1,14 @@
-From: <alnsn@yandex.ru>
-Subject: H.323 status
-Date: Wed, 31 Mar 2004 19:11:49 +0400
+From: Lockenvitz Jan EXT <Jan.Lockenvitz.extern@icn.siemens.de>
+Subject: RPC Conntrack - DUMP - fragmentation
+Date: Wed, 31 Mar 2004 17:13:08 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040331151149.GA3644@x1000.localdomain>
+Message-ID: <47D438A0510BD611B9470002A58EDAE703BE6962@mchh2a6e.mchh.siemens.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C41732.AC686846"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "'netfilter-devel@lists.netfilter.org'"
+	 <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,47 +19,69 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-{This is second attempt since first attempt to post seems to fail}
+------_=_NextPart_001_01C41732.AC686846
+Content-Type: text/plain
 
 Hi,
-Do you have any progress in H.323 conntrack since my last post?
-http://lists.netfilter.org/pipermail/netfilter-devel/2003-October/012776.html
 
-I've taken a quick look at netfilter-* archive. There is a permanent
-interest (though modest, a little bit more then a couple of messages
-per month). I saw a post with a promise to implement it this year (not
-sure it was a promise, may be it's only a hope).
-My questions are, (a) what parser is supposed to be used to parse H.323
-data and (b) is there any plan to integrate H.323 with QoS
-(CONFIG_NET_SCHED).
+we (my colleague and me) tried to track NFS  between two LINUX boxes with the 
+RPC Conntracking modules installed via P-O-M. Well, we wondered why this was not working.
+So we had a look into the sources.
+It loks like the RPC modules cannot handle DUMP requests and responses (only GET
+seems to be possible). So we (mainly my colleague) started to insert some code for the
+DUMP packets. And it is already working some how ;-)
 
-I still don't know about new H.323 parser used in ethereal. It may
-become a good ground for userspace h323-conntrack. Is this it?
-I hope to have some time this year to finish my callback-based parser.
-After some optimization applied it could be used even in kernel space.
-BTW question. Is it possible in conntrack to change IP verstion during
-packet forwarding? I expect a positive answer. If this is the case,
-a length of IP address encoded in H.323 data may be changed. It
-complicates the implementation but I hope only a little.
---
-Alexander Nasonov
-Independent Developer & Consultant
+And now the Problem: The DUMP Response is listing all RPC Services the Server offers and 
+so the packet length would be about 400 Byte. And the packet is fragmentet !!
+Well, I don't know why the TCP packet needs to be fragmentet at 400 byte? The MTU is set to 1500.
+Our main problem is, how can we handle the fragmented packets in the netfilter achitecture???
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+We can already check whether the DUMP response is fragmeted or not. But we don't know how
+to concatenate the information from both fragments.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+Thanx in advance,
+Jan
 
-iD8DBQFAat+1K8n/CZPtRx4RAsorAKCpMnzmC2sYv5Qa+IF9v9AQxEdj/gCfV7MZ
-lVmNZRzFU4cY6nISdFfa//o=
-=cAF0
------END PGP SIGNATURE-----
+------_=_NextPart_001_01C41732.AC686846
+Content-Type: text/html
 
---Nq2Wo0NMKNjxTN9z--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=us-ascii">
+<META NAME="Generator" CONTENT="MS Exchange Server version 5.5.2657.73">
+<TITLE>RPC Conntrack - DUMP - fragmentation</TITLE>
+</HEAD>
+<BODY>
+
+<P><FONT SIZE=2 FACE="Arial">Hi,</FONT>
+</P>
+
+<P><FONT SIZE=2 FACE="Arial">we (my colleague and me) tried to track NFS&nbsp; between two LINUX boxes with the </FONT>
+<BR><FONT SIZE=2 FACE="Arial">RPC Conntracking modules installed via P-O-M. Well, we wondered why this was not working.</FONT>
+<BR><FONT SIZE=2 FACE="Arial">So we had a look into the sources.</FONT>
+<BR><FONT SIZE=2 FACE="Arial">It loks like the RPC modules cannot handle DUMP requests and responses (only GET</FONT>
+<BR><FONT SIZE=2 FACE="Arial">seems to be possible). So we (mainly my colleague) started to insert some code for the</FONT>
+<BR><FONT SIZE=2 FACE="Arial">DUMP packets. And it is already working some how ;-)</FONT>
+</P>
+
+<P><FONT SIZE=2 FACE="Arial">And now the Problem: The DUMP Response is listing all RPC Services the Server offers and </FONT>
+<BR><FONT SIZE=2 FACE="Arial">so the packet length would be about 400 Byte. And the packet is fragmentet !!</FONT>
+<BR><FONT SIZE=2 FACE="Arial">Well, I don't know why the TCP packet needs to be fragmentet at 400 byte? The MTU is set to 1500.</FONT>
+<BR><FONT SIZE=2 FACE="Arial">Our main problem is, how can we handle the fragmented packets in the netfilter achitecture???</FONT>
+</P>
+
+<P><FONT SIZE=2 FACE="Arial">We can already check whether the DUMP response is fragmeted or not. But we don't know how</FONT>
+<BR><FONT SIZE=2 FACE="Arial">to concatenate the information from both fragments.</FONT>
+</P>
+
+<P><FONT SIZE=2 FACE="Arial">Thanx in advance,</FONT>
+<BR><FONT SIZE=2 FACE="Arial">Jan</FONT>
+</P>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01C41732.AC686846--
