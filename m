@@ -1,16 +1,17 @@
-From: Roberto Nibali <ratz@drugphish.ch>
-Subject: Re: scripts for adding rulesets for performance testing?
-Date: Tue, 04 Nov 2003 12:46:23 +0100
+From: "Nikolai Dahlem" <listuser@epygi.de>
+Subject: RE: NAT problem with related connections
+Date: Tue, 4 Nov 2003 14:41:59 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FA7918F.5030501@drugphish.ch>
-References: <20031009211452.GA16165@sirius.cs.pdx.edu>
+Message-ID: <DAELKAPIKOFAFFKELNHOCEAJCAAA.listuser@epygi.de>
+References: <20031103153941.GF5081@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kristen Carlson <kristenc@cs.pdx.edu>
-In-Reply-To: <20031009211452.GA16165@sirius.cs.pdx.edu>
+To: "Harald Welte" <laforge@netfilter.org>
+In-Reply-To: <20031103153941.GF5081@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,24 +22,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Mon, Nov 03, 2003 at 01:28:29PM +0100, Nikolai Dahlem wrote:
+>> -----Original Message-----
+>> From: Harald Welte [mailto:laforge@netfilter.org]
+>> Sent: Montag, 3. November 2003 12:08
+>> To: Nikolai Dahlem
+>> Cc: Netfilter Development Mailinglist
+>> Subject: Re: NAT problem with related connections
+>>
+>> On Mon, Nov 03, 2003 at 11:15:40AM +0100, Nikolai Dahlem wrote:
 
-> Hi there.  I'm doing some performance testing of iptables with increasing
-> rulesets and am wondering if anybody already has some scripts for adding
-> rules (many many rules) that they would like to share?  I noticed in the
-> archives that the nf-hipac folks had posted a link to a script they had used
-> for their performance testing which seemed to do exactly what I wanted, 
-> but the link is busted. 
+>take the example of FTP (more common, and I already forgot most SIP
+>relevant stuff):
 
-Ok, it's up again, DNS hasn't been propagated yet. The link to the 
-script, in case you still need it, is:
+>client: 1.2.3.4, firewall: 10.20.30.40, ftp-server: 9.9.9.9
 
-http://69.55.226.176/~ratz/genrules.sh
+>packet received: client -> server PORT 1,2,3,4,5,6
+>	- conntrack helper raises expectation 9.9.9.9:any->1.2.3.4:(5<<16 & 6)
+>	- nat helper alters packet payload to PORT 10,20,30,40,5,6
+>	- nat helper alters expectation to 9.9.9.9:any->10.20.30.40:(5<<16 & 6)
 
-I hope to continue my test conducts with the recent development all in 
-netfilter, nf-hipac, tc action and OpenBSD pf.
+Ok, this is understood. Sorry, if I didn't describe my problem properly.
 
-Best regards,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
+What I got is :
+
+client 1.2.3.4, firewall: 10.20.30.40, ext. client: 9.9.9.9 (simplified, no
+SIP-server)
+client:INIVTE message 1.2.3.4:5000 -> ext.client
+ext.client: OK message 9.9.9.9:6000 -> client
+conntrack raises the correct expectations and all
+client 1.2.3.4:5000 via firewall (changes sport to 1024) -> ext.client
+9999:6000
+ext.client 9.9.9.9:6000 via firewall -> client 1.2.3.4:5000
+connection tracking doesn't see a connection, because the firewall changed
+the sport to 1024,
+but ext.client is answering to 6000.
+
+So what do you think of raising the expectation after the INVITE packet,
+instead of after the OK packet.
+This way I'd be able to rewrite to the correct port,  but at this moment
+there is no info about the ext.client,
+so what should I enter in the expect-tuple ?
+
+
+kind regards
+
+Nikolai Dahlem
