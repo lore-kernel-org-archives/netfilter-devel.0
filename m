@@ -1,15 +1,17 @@
-From: Roberto Nibali <ratz@tac.ch>
-Subject: Re: rp_filter
-Date: Wed, 08 Jan 2003 13:38:37 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: Corruption on mangle/INPUT when MARKing packets
+Date: Wed, 8 Jan 2003 18:07:33 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E1C1BCD.7030504@tac.ch>
-References: <20021227211113.GK677@ns> <20021228091730.GC440@oknodo.bof.de>
+Message-ID: <20030108170733.GR9467@sunbeam.de.gnumonks.org>
+References: <37584.195.97.5.193.1041644841.squirrel@fs.tsaousis.gr> <20030106125230.GE9467@sunbeam.de.gnumonks.org> <3E19AE4F.5020908@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/eSpIzx5LyAe5lwl"
+Cc: Costa Tsaousis <costa@tsaousis.gr>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3E19AE4F.5020908@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,48 +22,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
->>  Can we *please* move the rp_filter cruft into the firewalling code
->>  proper?
 
-I agree with Patrick on that it is not an intelligent idea to touch core network 
-stuff in the netfilter code. Especially I seem to see more and more routing 
-related POM patches for netfilter while I wonder what issues people really have 
-with the current routing code which is where rp_filter belongs to?
+--/eSpIzx5LyAe5lwl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Upon thinking a bit more about your request, there is one thing
-> that annoys me about rp_filter, and where iptables may eventually
-> help: there was (and probably is) the idea of a DROP table, where
-> you can LOG packets coming from all kinds of drop sites within
-> the network stack. It would be great if I had a way to LOG packets
+On Mon, Jan 06, 2003 at 05:26:55PM +0100, Patrick McHardy wrote:
+> I think the problem lies within ip_route_me_harder. It is called on=20
+> mangled packets in the INPUT chain
+> and changes skb->dst with new route after setting key.src =3D 0 if it's=
+=20
+> not a local address.
 
-I've once started it but due to the network core's diversity in handling such 
-cases I've stopped doing it. You get everything from silent drop via kfree over 
-skb_free over return EINVAL over goto drop and so on ...
+well spotted. This is exactly the problem.
 
-> rejected by rp_filter. IMHO the big problem to the unwary end-user,
-> is the _invisibility_ of the drops caused by rp_filter.
+So the question is: Do we really need to call route_me_harder() in the
+INPUT chain?  We could argue that if somebody wants to do a change
+affecting the routing decision should make that change before the
+routing decison, not after it. =20
 
-That is a general nuisance and setting verbose_route_log and log_martians 
-already helps a bit but most of the FIB related errors don't get logged. I know 
-what you're talking about, I've even once started to debug tcpdump because of a 
-badly set rp_filter value while doing asymmetric routing in a load balanced 
-environment. It sucks rocks!!
+If we agree on this change, the solution is easy. Just call
+ipt_route_hook() instead of ipt_local_hook() at NF_IP_LOCAL_IN.
 
-> A simple net_ratelimit()ed printk() in the appropriate place, would
-> already help a lot. If you walk your request over to linux-net, maybe
-> you could make that your fallback position :-)
+Otherwise we'd need a seperate route_me_harder function for the case of
+non-local packets.  But I don't think this makes sense at all.
 
-netdev or linux-net might be the best place to discuss it, yes. As a start you 
-could patch ../linux/net/ipv4/fib_frontend.c:fib_validate_source(). Check for 
-the rpf variable and follow it's invariants.
+Patch attached (and put into 'pending').=20
 
-I don't agree with putting a net_ratelimit() on every network related place for 
-logging. I took them out in my kernels because I rather have a system that can 
-filter less packets but log the most packets than having a packet filter that 
-can filter a lot but where syslogd doesn't get enough computing time anymore to 
-read the printk ringbuffer.
+Thanks.
 
-Best regards,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
+> Regards,
+> Patrick
+
+--=20
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--/eSpIzx5LyAe5lwl
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+HFrVXaXGVTD0i/8RAjUEAKCHKwPILke/06XH6FgMfex58ySBEQCcDiYX
+qWQXDwWkFIi/1iAvWgJFYyw=
+=/nD1
+-----END PGP SIGNATURE-----
+
+--/eSpIzx5LyAe5lwl--
