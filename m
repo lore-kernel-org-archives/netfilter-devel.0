@@ -1,17 +1,15 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [RFC] Die to NOTRACK/TRACE, long live MARK!
-Date: Sat, 22 May 2004 14:38:20 +0200 (CEST)
+Subject: Re: [PATCH] for some issues in tcp window tracking patch
+Date: Sat, 22 May 2004 14:54:38 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405211416341.8045-100000@blackhole.kfki.hu>
-References: <40AD659B.7090107@trash.net>
+Message-ID: <Pine.LNX.4.33.0405221440310.10540-100000@blackhole.kfki.hu>
+References: <40AE8A42.9060908@eurodev.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Philip Craig <philipc@snapgear.com>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	<netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <40AD659B.7090107@trash.net>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <40AE8A42.9060908@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,42 +20,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 21 May 2004, Patrick McHardy wrote:
+On Sat, 22 May 2004, Pablo Neira wrote:
 
-> Instead of modifying the nf_mark value (which I don't think we should
-> do), we could just let the mark target perform the same operations that
-> NOTRACK/TRACE perform, namely attaching a dummy-conntrack (NOTRACK)
-> and setting a bit in nfcache (TRACE). For the tcp-window-tracking
-> spoofed-rst protection we could set a bit in the conntrack structure.
-> I suppose this feature need to be enabled on a per-connection base
-> anyway. Unfortunately adding NOTRACK functionality to MARK in this
-> way would create a dependency on ip_conntrack. Maybe we should add
-> it to CONNMARK ?
+> conntrack->timeout.function is death_by_timeout -> which calls
+> ip_conntrack_put -> which calls nf_conntrack_put  which decrements
+> refcount and if zero, we release the conntrack.
+>
+> Now we return -NF_whatever, from conntrack core we call
+> nf_conntrack_put, so same thing, we reduce refcount and if zero, we
+> release the conntrack.
+>
+> I don't know if I'm missing anything but we are decrementing twice
+> conntrack refcount, at worst we could try to release an already released
+> conntrack. Am I missing anything?
 
-Hm. Actually, as we already use a bit in nfcache for TRACE, we could
-reserve bits generally:
+No, that's fine. The conntrack entry goes away when all references are
+released and it springs into existence with refcount 1 (conntrack itself).
+Then when we attach the conntrack entry to a packet, the refcount is
+incremented so that it can't disappear under us. We just decrement
+those values here to destroy conntrack.
 
-#define NFC_HOOKS_MASK			0x0000FFFF
-#define NFC_FLAGS_MASK			0xFFFF0000
+> >- tcph->ack should be tcph->ack_seq in tcp_packet at TCP_CONNTRACK_CLOSE
+> >  case
+> >- inlined segment_seq_plus_len
+> >- explicit drop of SYN/ACK when the state machine is out of sync
+> >- releasing lock moved up, after setting timeout parameter in tcp_packet
+> >- IPS_ASSURED_BIT is checked before set in tcp_packet
+> >- SACK support added
+>
+> two issues missing:
+> - sender->loose decrements misplaced
 
-/* Special netfilter flags */
+I missed to add that to the 'done' list above.
 
-#define NFC_PKT_FLAGS_MASK		0x00FF0000
-#define NFC_CT_FLAGS_MASK		0xFF000000
+> - use of defined flags in tcp.h
+>
+> and pending that you give your ok:
+> - fine grain locking for private tcp helper info
 
-#define NFC_FLAG_TRACE			0x00010000
-#define NFC_FLAG_NOTRACK		0x00020000
-#define NFC_FLAG_CT_TCP_SYNRST		0x01000000
-
-The lower half could be manipulated by MARK while the upper half by
-CONNMARK. But the latter would require a new element in ip_conntrack
-itself and I wouldn' really like to make it bigger.
-Do we really need an unsigned long to store the status? :-)
-
-> PS: Joszef, I changed your address to @netfilter.org, your mailserver
-> doesn't like me.
-
-I whitelisted you, sorry for the inconvenience.
+Yep, those are not included yet - SACK was more important to add.
 
 Best regards,
 Jozsef
