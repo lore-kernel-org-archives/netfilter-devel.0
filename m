@@ -1,14 +1,17 @@
-From: Finite <wiretapped@gmail.com>
-Subject: reproducible panic on 2.6.8.1
-Date: Thu, 30 Sep 2004 01:15:06 -0700
+From: "Andrew Hall" <andrew.hall@bluereef.com.au>
+Subject: Re: Multiple Address specification or match
+Date: Thu, 30 Sep 2004 18:46:36 +1000
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <bb51a00204093001151728a13@mail.gmail.com>
-Reply-To: Finite <wiretapped@gmail.com>
+Message-ID: <001d01c4a6c9$fec61c10$2201010a@bluereef.local>
+References: <018201c4a6ab$a1ecb6c0$2201010a@bluereef.local>
+	<415BAAF0.6030907@rediffmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Swapnil Nagle" <swapsn@rediffmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,34 +22,27 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Greetings.
+Yes you're right, I meant 'or'd not 'anded' together.
 
-First let me say thank-you for netfilter; I have lost count of the
-number of firewalls I've built with it. Excellent software!
+----- Original Message -----
+From: "Swapnil Nagle" <swapsn@rediffmail.com>
+To: "Temp02" <temp02@bluereef.com.au>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Thursday, September 30, 2004 4:42 PM
+Subject: Re: Multiple Address specification or match
 
-Now onto the problem...
-I just built linux 2.6.8.1 and am now having a very reproducible
-kernel panic. After running my firewall script which should enable
-simple masquerading from one interface to another, the machine will
-panic as soon as it receives a packet which would be REJECTed. For
-instance, under my current configuration, ICMP packets sent to the
-router's IP from a machine on the LAN match the default REJECT policy,
-and will trigger the panic every time. Also, under this kernel, the
-masquerading doesn't work; packets are forwarded out to the net, but
-the replies never make it back out to the LAN (ie maybe connection
-tracking isn't working?). Even stranger, masquerading *did* work
-momentarily when I first tried it (before the first panic) but hasn't
-worked at all (under this kernel) since then. And if I flush the
-tables, nothing I do will make it panic, but when I reload the rules
-it will panic as soon as it tries to REJECT something.
 
-Everything seems to work perfectly fine under my other kernel
-(debian's "2.4.18-bf24").
-
-I don't know how to get the full text of the kernel panic (how do I do
-that btw?), but I copied down the end of it:
-Code: 0f 0b 5f 5b 00 80 7f 44 c0 83 c4 14 5b c3 90 8d b4 26 00 00 00
-Kernel panic: fatal exception in interrupt
-In interrupt handler - not syncing
-
-Thanks for any help!
+>
+> >How difficult would it be to extend netfilter/iptables to allow multiple
+> >source/destination address pairs (with negation) 'anded' together, as
+in -s
+> >192.168.0.0/24 -s 10.0.0.0/8 -s ! 230.22.22.0/24. Or a match to do this
+same
+> >thing?
+> >
+> >
+> How can the source address be "anded" ?
+> The source address cannot be both 192.168.0.1 and 10.0.0.1.
+>
+> -- Swapnil
+>
