@@ -1,13 +1,16 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: [PATCH} iptables-save and -m conntrack (Repost)
-Date: Tue, 04 May 2004 11:06:12 -0700
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE] pom-ng new release
+Date: Tue, 04 May 2004 17:11:54 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4097DB94.1020505@shorewall.net>
+Message-ID: <4097B2BA.7000500@trash.net>
+References: <Pine.LNX.4.33.0405041202330.26840-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040505010405010101090201"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development <netfilter-devel@lists.netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0405041202330.26840-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,40 +21,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040505010405010101090201
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Jozsef Kadlecsik wrote:
 
-Currently, the iptables-save output produced by the connection tracking 
-match module contains DNS names rather than IP addresses. This causes a 
-subsequent iptables-restore using that output to fail. The attached 
-trivial patch corrects the problem.
+>- reported bugs and improvements fixed/incorporated:
+>    - dependency clashing did not work (Jim Gifford)
+>
+>      [Could any Perl guru explain in plain English while the code
+>
+>      for my $dep (@{$$patchlet{info}{depends}}) {
+>		$dep =~ s/^!//;
+>      }
+>  
+>
 
--Tom
--- 
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
+My local Perl guru is surprised, too, but if you really want
+to modify only $dep (why, it's scope is just the loop?), you
+can just assign $dep it to a new variable and modify this
+one, in this case the content of the array won't be touched.
 
+Regards
+Patrick
 
---------------040505010405010101090201
-Content-Type: text/plain;
- name="iptables-1.2.9.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="iptables-1.2.9.diff"
-
---- extensions/libipt_conntrack.c~	2003-10-07 11:54:30.000000000 -0700
-+++ extensions/libipt_conntrack.c	2004-04-28 19:01:08.000000000 -0700
-@@ -504,7 +504,7 @@
- /* Saves the matchinfo in parsable form to stdout. */
- static void save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
- {
--	matchinfo_print(ip, match, 0, "--");
-+	matchinfo_print(ip, match, 1, "--");
- }
- 
- static
-
---------------040505010405010101090201--
+>      modifies the content of array $patchlet{info}{depends} too??]
+>
+>    - broken out patches are supported (KOVACS Krisztian)
+>    - ignore case in runme (syrius.ml)
+>
+>Please check out and try the new code. Bugreports, suggestion for
+>improvements are welcomed!
+>
+>Best regards,
+>Jozsef
+>-
+>E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+>PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+>Address : KFKI Research Institute for Particle and Nuclear Physics
+>          H-1525 Budapest 114, POB. 49, Hungary
+>
+>
+>  
+>
