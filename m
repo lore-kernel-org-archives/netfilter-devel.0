@@ -1,13 +1,17 @@
-From: "PAUL FABRICIO VILLACRESES LEON" <paulvillacreses@hotmail.com>
-Subject: How block port tcp using library iptables
-Date: Fri, 03 Jan 2003 01:08:21 +0000
+From: Tomas Szepe <szepe@pinerecords.com>
+Subject: [PATCHSET] Multiarch kconfig cleanup
+Date: Thu, 2 Jan 2003 19:20:38 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F84Kljq65Rn8P5o7P6u000007a2@hotmail.com>
+Message-ID: <20030102182038.GZ17053__30849.927038844$1041617983@louise.pinerecords.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: sumit@elitecore.com
+To: torvalds@transmeta.com, jgarzik@pobox.com, zaitcev@redhat.com,
+	davem@redhat.com, linux-kernel@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+	netfilter-devel@lists.samba.org, phillim2@comcast.net,
+	rmk@arm.linux.org.uk
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,110 +22,85 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
+On with the [mainly networking oriented] Kconfig clean-up saga.
 
+This is the first time I'm trying to get more than 3 people to work
+together so I'd be grateful if you didn't kick me too hard should I have
+screwed up.
 
-Hi
+I'm not including the patches, because that would mean everyone receives
+a 115K bundle.  Instead,
 
-Sumit Pandya and all netfilter-devel's menbers
+wget -r http://www.pinerecords.com/kala/linux/2.5.54-config-cleanup/
 
-white Paul Villacreses Leon
-Student
-ESPOL UNIVERSIY - ECUADOR
+will get you:
 
-topic :contents transparent firewall
+    #  filename (s/\.diff//)  short description
+(BEGIN yesterday's stuff)
+ 1/36  x01                    Create a parent entry for gigabit eth interfaces
+ 2/36  x02                    Show the 10/100 megabit eth submenu conditionally
+ 3/36  x03                    Show the arcnet submenu conditionally
+ 4/36  x04                    Show the wireless LAN submenu conditionally
+ 5/36  x05                    Show the tokenring submenu conditionally
+ 6/36  x06                    Show the WAN submenu conditionally
+ 7/36  x07                    Show the NET_PCMCIA submenu conditionally
+ 8/36  x08                    Show the ATM drivers submenu conditionally
+ 9/36  x09                    Make CONFIG_ACPI the parent of the ACPI submenu
+10/36  x10                    Show the PCMCIA/CardBus submenu conditionally
+11/36  x11                    Show the PCI hotplug submenu conditionally
+12/36  x12                    Show the PCMCIA SCSI submenu conditionally
+13/36  x13                    Show the QOS submenu conditionally
+14/36  x14                    Overhaul netfilter configuration
+(END yesterday's stuff)
+(START netdev unification)
+15/36  x15-arch-alpha         Tear down alpha NETDEVICES config
+16/36  x15-arch-arm           Tear down arm NETDEVICES config
+17/36  x15-arch-cris          Tear down cris NETDEVICES config
+18/36  x15-arch-ia64          Tear down ia64 NETDEVICES config
+19/36  x15-arch-m68k          SPECIAL: Tear down m68k NETDEVICES config 
+20/36  x15-arch-m68k_nommu    Tear down m68k_nommu NETDEVICES config
+21/36  x15-arch-mips32        Tear down mips32 NETDEVICES config
+22/36  x15-arch-mips64        Tear down mips64 NETDEVICES config
+23/36  x15-arch-parisc        Tear down parisc NETDEVICES config
+24/36  x15-arch-ppc           Tear down ppc NETDEVICES config
+25/36  x15-arch-ppc64         Tear down ppc64 NETDEVICES config
+26/36  x15-arch-sparc32       SPECIAL: Tear down sparc32 NETDEVICES config
+27/36  x15-arch-sparc64       Tear down sparc64 NETDEVICES config
+28/36  x15-arch-superh        Tear down superh NETDEVICES config
+29/36  x15-arch-v850          Tear down v850 NETDEVICES config
+30/36  x15-arch-x86           Tear down x86 NETDEVICES config
+31/36  x15-arch-x86_64        Tear down x86_64 NETDEVICES config
+32/36  x15-net.0              Show the atm submenu depending on architecture
+33/36  x15-net.1-sparc        1/2 Add missing bus dependencies to netdev menus
+34/36  x15-net.2-m68k         2/2 -""- (and re-add m68k specific drivers)
+35/36  x16                    Add the unified NETDEVICES submenu
+36/36  x17                    Bring the "Networking support" menu to life
+(END netdev unification)
 
-I have this:
+sparc32 and m68k are special in that they define their specific netdevices
+in arch/{sparc,m68k}/Kconfig.
 
-Internet -----| eth0 | -------  bridge --------- | eth1 | ---- LAN Proteted
+ACKLIST is as follows, i.e. people listed please ACK at least:
+	Jeff Garzik		more or less all (sorry)
+	Pete Zaitcev		#26, #32, #33, #35
+	David Miller		#26, #27, #32, #33, #35
+	Russell King		#16, #35
+	Mike Phillips		#5
+	(m68k people)		#19, #20, #34, #35
+	(ACPI team)		#9
+	(netfilter team)	#14
+	Linus Torvalds		all (sorry)
 
-1.- I Used linux RedHat 8 kernel linux2.4.18-19
-2.- I use the module bridge.o for bridge eth0 to eth1
-2.- I have a C program , this capture packets .
-3.- I use libpcap.a  to capture the packet and libiptc.a(iptables1.2.6.a) 
-for block
+The patches are to be applied sequentially.  Everything is against 2.5.54.
 
-4.- whith libiptc.a read rules in iptables and add new rules in chain 
-FORWARD
-5.- My program put the rule and block ip_src,ip_dst asn ip_p(IP protocol)
+If you want to just test the patchset, grab & apply
+http://www.pinerecords.com/kala/linux/2.5.54-config-cleanup/all/all.diff.gz
 
-But I need :
+x86 seems to work as expected.  I also tried to compile sparc32 but found
+out 2.5.54 vanilla itself was broken for it -- the .config looked sane,
+though.
 
-1.- Block port TCP like (ftp 21 ,telnet 23,DNS 53, tftp 69 snmp 161 etc..)
-2.- The library libiptc whith yours struct ipt_entry don't enable me block 
-port tcp
-3.- Redirect with NAT but using a library not script
-
-2 questions?
-
-How block port tcp using library libiptc or another libraty?
-i read about struct ipt_tcp but i don't understand when i work whith this 
-struct.
-
-In the library  libiptc.a create new rule is basic only suport ACCEPT, DROP, 
-RETURN
-i need to accept DNAT and SNAT. How enable this.
-
-Please answer me
-
-thank you very much
-
-
-
-
-
-
->From: "Sumit Pandya" <sumit@elitecore.com>
->To: "PAUL" <paulvillacreses@hotmail.com>
->CC: <netfilter-devel@lists.samba.org>
->Subject: RE: Request for a Beginning in libiptc and libipq
->Date: Thu, 28 Mar 2002 19:24:19 +0530
->
->Hi Paul,
->	I'm still not sure why you wanted to automate such process at kernel 
->level.
->But Its really an interesting thought. Ya It took a little long time to 
->move
->on your problem, but I've a hope to achieve this. You know me too usually
->take interest in such adventures, so I took you personally ;-)
->	Anyway from your description I'd define your goal as "Making System Calls
->from Kernel Space". I got this idea by khttpd module of kernel, and I got
->same deal on Internet from website of very popular Linux Identity
->"Alessandro Rubini". Just go through his guide on link
->http://www.linux.it/kerneldocs/ksys/ksys.html.
->
-> >> 2.- Can I use libiptc or another lib or *.h  for manipulate the packet
->and
-> >> compare with a file with IP's and enable go to the QUEUE without 
->scripts
-> >> below, for example:
-> >> iptables -I FORWARD -j QUEUE or
-> >> iptables -t mangle -I PREROUTING -j QUEUE
->	To achieve this you require to write your own "Target" for netfilter, like
->ACECPT,REJECT,... Easiest to look into target "TOS".
->
-> >> 3.- Why using table  "mangle" for sent the packet to the QUEUE  in
-> >> PREROUTING  the catch of the packet  is more fast than using the QUEUE 
->in
-> >> the table "filter" in FORWARD.
->	It depends on which traffic you wanted to intercept. If you Implement 
->QUEUE
->in FORWARD then you will miss all those packets ehich intended to host. 
->Just
->a Silly question here: Do you have clear idea of how packet travel into
->netfilter code? Which chains are travel and in which order? Don't get
->annoyed, from yours "see the comments...Step Table Chain Comment... " I can
->say that you have little idea atleast ;-).
->
-> >> 4.- In the HOW-TO hacking-netfilter i read some functionality using
->KERNEL
-> >> function for add rules i read this but How can I do ?
->	It would be nice if you snapped that part of documentation in this mail.
->
->-- Sumit
->
-
-
-_________________________________________________________________
-MSN 8 with e-mail virus protection service: 2 months FREE* 
-http://join.msn.com/?page=features/virus
+-- 
+Tomas Szepe <szepe@pinerecords.com>
