@@ -1,15 +1,15 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH] Add mark to packet from libipq
-Date: Thu, 16 Oct 2003 09:23:40 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Help in netfilter kernel module
+Date: Thu, 16 Oct 2003 09:25:02 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1066289019.20545.30.camel@porky>
-References: <Pine.LNX.4.44.0310160902520.6046-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0310160911240.6046-100000@filer.marasystems.com>
+References: <20031016025527.23285.qmail@web13108.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-qILOUQxFAPOK9f1xVsOT"
-Cc: netfilter-devel@lists.netfilter.org, nufw-devel@nongnu.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0310160902520.6046-100000@filer.marasystems.com>
+To: =?iso-8859-1?q?Daryl=20ong?= <yjong1977extramail@yahoo.com.sg>
+In-Reply-To: <20031016025527.23285.qmail@web13108.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,62 +20,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 16 Oct 2003, Daryl ong wrote:
 
---=-qILOUQxFAPOK9f1xVsOT
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+>    i am a new developer in this netfilter module.  i am developing a
+> kernel module on a rehat linux 8 and using iptables v1.2.6a.  i came
+> across a problem when i want to kfree_skb(skb).
 
-Le jeu 16/10/2003 =C3=A0 09:08, Henrik Nordstrom a =C3=A9crit :
-> On Thu, 16 Oct 2003, Eric Leblond wrote:
->=20
-> I have one question regarding the mark mask value in the kernel message..=
- =20
-> what is the purpose of this? Todays implementation looks rather wasteful
-> as the userspace may just as well apply the mask before the value is sent
-> to the kernel.
-> If you are to have a mask I propose this mask indicates which bits to sav=
-e=20
-> of the original mark, not a mask to the new mark value. I.e. something=20
-> like this:
->=20
->             /* set mark of associated skb */
->             entry->skb->nfmark =3D vmsg->nfmark | (entry->skb->nfmark & v=
-msg->mask);
->=20
-> (alernately mask may be inverted)
+> i have try to use NF_DROP to drop the packet if it doesnt match what i
+> want to filter away.  But as netfilter currently didnt filter for
+> PF_PACKET, my packet is able to go up to application layer.  So i
+> intended to use kfree_skb but encounter the error.  Please tell me if
+> there is any solutions.  Thank you.
 
-That's what I was wanted ! I was too tired yesterday to see the huge
-error I've done. I've found it at the end of my sleep ;-) you're mail
-give the answer.
-One other question I have it's whether or not it necessary to add
-verdict value in the message if using mark sys call ?
-If we mark the packet we wen to let it pass trough the gateway...
+If you want to drop a packet from netfilter you MUST NF_DROP it.  Freeing
+it with kfree_skb won't help, and if done carelessly will really crash
+things as the kernel expects the skb reference to be there.
 
-It will require some work (modification of some functions in ip_queue)
-to do so but it's maybe a cleaner way to do.
+I do not think you can filter PF_PACKET sockets using netfilter. These get 
+the packet very early in the processing chain while netfilter operates 
+at the IPv4/IPv6 layers.
 
-> but in reality this is not needed either as the userspace knows the
-> original mask and can a apply whatever transformations it likes=20
-> when giving the new verdict mask.
+In netfilter you can
 
-How could userspace knows it ?
+a) Drop the packet via NF_DROP. This also terminates the session if you
+are using conntrack.
 
-BR,
---=20
-Eric Leblond
-Nufw, Now User Filtering Works (http://www.nufw.org)
+b) Replace/modify the packet, making further processing see another
+packet. See for example ipt_TCPMSS.c for a simple example of how to
+replace a packet (this is a iptables module, but the same rules in how to
+replace/modify a packet applies to a netfilter module)
 
---=-qILOUQxFAPOK9f1xVsOT
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e=2E?=
+c) Steal the packet, stopping further processing of this packet without 
+terminating the session. (NF_STOLEN verdict)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+In all three cases I think the original packet is still sent to PF_PACKET 
+sockets for the reason outlined above.
 
-iD8DBQA/jkd7nxA7CdMWjzIRAmdgAJ91tifbZKAhQ4LI+zipRCD/4fvLwwCfZHlj
-yy3j97FV0R3nnf9WNsP43iw=
-=p45F
------END PGP SIGNATURE-----
-
---=-qILOUQxFAPOK9f1xVsOT--
+Regards
+Henrik
