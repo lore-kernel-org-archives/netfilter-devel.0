@@ -1,16 +1,17 @@
-From: Patrick Schaaf <bof@bof.de>
+From: Harald Welte <laforge@gnumonks.org>
 Subject: Re: performance issues (nat / conntrack)
-Date: Tue, 25 Jun 2002 15:52:56 +0200
+Date: Tue, 25 Jun 2002 14:47:44 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020625155256.B527@oknodo.bof.de>
-References: <Pine.LNX.4.33.0206251238390.4927-100000@blackhole.kfki.hu> <021a01c21c4b$47b2f2b0$0489cb8a@etbx180>
+Message-ID: <20020625124744.GB7975@naboo.ols.wavesec.org>
+References: <008201c21a96$88eb6520$0489cb8a@etbx180> <Pine.LNX.4.33.0206251238390.4927-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Cc: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>,
+	netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Content-Disposition: inline
-In-Reply-To: <021a01c21c4b$47b2f2b0$0489cb8a@etbx180>; from jean-michel.hemstedt@alcatel.be on Tue, Jun 25, 2002 at 03:21:56PM +0200
+In-Reply-To: <Pine.LNX.4.33.0206251238390.4927-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,14 +22,32 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jean-Michel,
+On Tue, Jun 25, 2002 at 01:33:13PM +0200, Jozsef Kadlecsik wrote:
+> From where do you think that the module usage counter reports how many
+> packets/connections are handled (currently? totally?) by the module.
+> There is no whatsoever connection!
 
-> PS: could anybody redo similar tests so that we can compare the results
->     and stop killing the messenger, please? ;o)
+one should also consider the performance impact this would have !!!
 
-Just so you don't get the wrong impression: I am not trying to shoot
-the messenger, I'm trying to shoot incomplete messages. Please, don't
-become discouraged in further investigating the situation!
+> According to your first mail, the machine has 256M RAM and you issued
+> 
+> insmod ip_conntrack 16384
+> 
+> That requires 16384*8*~600byte ~= 75MB non-swappable RAM.
+> 
+> When you issued "iptables -t nat -L", the system tried to reserve plus
+> 2x75MB. That's in total pretty near to all your available physical RAM
+> and the machine might died in swapping.
 
-best regards
-  Patrick
+??? Why should listing an IP table try to reserve twice the size of the
+conntrack table?
+
+> Regards,
+> Jozsef
+
+-- 
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
