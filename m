@@ -1,16 +1,12 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH 2.6] optimization of ip_conntrack_proto_tcp:tcp_packet()
-Date: Tue, 30 Mar 2004 12:42:39 +0200
+From: Sara Kostandy <skostandy@yahoo.com>
+Subject: Packet Fragementation
+Date: Tue, 30 Mar 2004 03:08:58 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40694F1F.9070409@eurodev.net>
-References: <20040329103348.GC1528@sunbeam.de.gnumonks.org> <20040329201722.7a22cf7c.davem@redhat.com>
+Message-ID: <20040330110858.69086.qmail@web80809.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="0-1828101538-1080644938=:68906"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>,
- netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040329201722.7a22cf7c.davem@redhat.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,26 +17,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi davem,
+--0-1828101538-1080644938=:68906
+Content-Type: text/plain; charset=us-ascii
 
-David S. Miller wrote:
+We're developing an XML firewall application as part of our senior graduation project. We are using Linux 2.4 and queuing packets to be handled in user-space. However the packets arriving are fragmented, and so are more difficult to deal with. Is there a way to defragment them before they are queued to user-space?? 
 
->For example, how it is valid, in this change, to blindly accept a
->RESET packet to kill a conntrack entry before verifying the sequence
->number(s) (as appropriate per rfc793 rules)?
->  
->
-as current tcp tracking doesn't perform so strong tcp transitions 
-checking, there won't be any problems. Joszef Kadlecsik is working on a 
-full featured tcp tracking system which will take care of this stuff, 
-but it still needs a bit of time.
 
->This looks really suspicious to me.
->  
->
-Actually, I think that this change won't modify the current behaviour of 
-the tcp connection tracking system because the conntrack will be drop 
-sooner or later if a rst is received.
+---------------------------------
+Do you Yahoo!?
+Yahoo! Finance Tax Center - File online. File on time.
+--0-1828101538-1080644938=:68906
+Content-Type: text/html; charset=us-ascii
 
-regards,
-Pablo
+<DIV>We're developing an XML firewall application as part of our senior graduation project. We are using Linux 2.4 and queuing packets to be handled in user-space. However the packets arriving are fragmented, and so are more difficult to deal with. Is there a way to defragment them before they are queued to user-space?? </DIV><p><hr size=1><font face=arial size=-1>Do you Yahoo!?<br>
+<a href="http://taxes.yahoo.com/filing.html"><b>Yahoo! Finance Tax Center</a></b> - File online. File on time.
+--0-1828101538-1080644938=:68906--
