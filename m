@@ -1,12 +1,15 @@
-From: Steve Hill <steve@navaho.co.uk>
-Subject: Conntrack leak (2.6.2rc2)
-Date: Fri, 30 Jan 2004 15:09:01 +0000 (GMT)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: NAT & FORWARDING
+Date: Fri, 30 Jan 2004 16:40:52 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0401301500010.19876@sorbus2.navaho>
+Message-ID: <Pine.LNX.4.44.0401301635121.9279-100000@filer.marasystems.com>
+References: <003601c3e673$78521a60$3d40000a@wisdom>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Srinivasa Hebbar <sshebbar@yahoo.com>
+In-Reply-To: <003601c3e673$78521a60$3d40000a@wisdom>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,28 +20,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 29 Jan 2004, Srinivasa Hebbar wrote:
 
-I'm using the 2.6.2rc2 kernel and have a strange connection tracking 
-problem - when using unfragmented packets every thing is fine - a new 
-connection is made and init_conntrack() is called, and as the session is 
-timed out by conntrack, destroy_conntrack() is called.  Absolutely fine.
+> I have a situation that if the dest. IP address of the packet is
+> for the local node, then apply NAT rule, otherwise it should simply
+> forward the packet according to the routing table.
+> 
+> How can I achieve the above?
 
-However, if I start a connection with a fragmented packet (i.e. my MTU 
-is 1500 bytes, so "ping -c 1 -s 2500 172.16.0.1" sends a packet consisting 
-of 2 fragments), init_conntrack() is called as usual, but when the session 
-is timed out destroy_conntrack() never gets called.  This means that the 
-memory for the connection is never freed and ip_conntrack_count is never 
-decremented.  However, the connection is still removed from the hash 
-table.  This means that it leaks memory, and eventually reaches 
-ip_conntrack_max and starts dropping new connections.
+You need to know which addresses are local. Other than this it is just to 
+do it. DNAT is done in PREROUTING and can change the destination freely.
 
-Another oddity I came across while trying to debug the problem is that 
-__kfree_skb() seems to be getting called very frequently, even when the 
-network is completely idle - is that right?
+If you want to be able to NAT sessions initiated by the local node then 
+you need to enable NAT of local sessions in the kernel build.
 
-
-- Steve Hill
-Senior Software Developer                        Email: steve@navaho.co.uk
-Navaho Technologies Ltd.                           Tel: +44-870-7034015
-
-        ... Alcohol and calculus don't mix - Don't drink and derive! ...
+Regards
+Henrik
