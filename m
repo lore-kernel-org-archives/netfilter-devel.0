@@ -1,16 +1,16 @@
 From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: NAT before IPsec with 2.6
-Date: Fri, 23 Jan 2004 07:57:49 +0100
+Subject: Re: filter for adding/checking TCP MD5 option
+Date: Fri, 23 Jan 2004 08:11:09 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040123065749.GA16708@alpha.home.local>
-References: <400E7095.9040709@suse.cz>
+Message-ID: <20040123071109.GB16708@alpha.home.local>
+References: <E1Aitrb-0004cA-00@services3.virtu.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Michal Ludvig <mludvig@suse.cz>
+To: Remco van Mook <remco@virtu.nl>
 Content-Disposition: inline
-In-Reply-To: <400E7095.9040709@suse.cz>
+In-Reply-To: <E1Aitrb-0004cA-00@services3.virtu.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,28 +23,52 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-On Wed, Jan 21, 2004 at 01:29:09PM +0100, Michal Ludvig wrote:
-> So I hacked up this simple solution - I understand that it won't be 
-> accepted as-is, because now the POSTROUTING chain is reached twice (once 
-> from ip_forward and once from ip_output). But anyways - is this a 
-> correct approach and should I go this way with some cleanups?
+On Tue, Jan 20, 2004 at 12:12:20PM +0100, Remco van Mook wrote:
+ 
+> # iptables -t mangle -A OUTPUT -p tcp -d 1.2.3.4 --dport 179 -j TCPMD5
+> --md5-key=s3cr3t
+> # iptables -t mangle -A PREROUTING -p tcp -s 1.2.3.4 --dport 179 -j TCPMD5
+> --md5-key=s3cr3t
 
-I don't know if it's a correct approach, but I really think that all tables
-and chains should apply to a consistent level of encapsulation, whatever it
-is. Before, it was easy to process the packet at different levels because it
-was sent to one (or even several) interemediate virtual interfaces. To keep
-control of what goes in and out, now we should :
+ 
+> The first line would do something as follows:
+> - decrease MSS to make the extra option fit (a staggering 18 bytes extra in
+> the TCP header)
+> - calculate the MD5 based on the key and the information contained in the
+> packet
+> - insert the TCP MD5 option field, recalculate checksum and send the packet
+> on its way
 
-  1) re-evaluate all previously evaluated chains when a packet has been
-     decapsulated ;
-  2) re-inject encapsulated packets into the output & postrouting chains
-     (it's a locally generated packet after all, it has no reason to bypass
-     output filtering).
-  3) keep assigned fwmark between passes so that we can track what each
-     packet does.
+ok
 
-I believe that 1) & 3) are already done, but I don't know if there's a general
-consensus towards or against 2).
+> The second line would:
+> - check whether the MD5 matches the key
+> - DROP the packet if it doesn't match
+> - if the MD5 matches, strip off the MD5 option field, recalculate checksum
+> and treat the packet as if nothing happened
+
+nok. the target should not drop the packet itself, you should write a match
+which only accepts valid MD5. And the target would only have to strip MD5.
+This allows all standard constructions, logging, etc... :
+
+# iptables -t mangle -N novalidmd5
+# iptables -t mangle -A novalidmd5 -j LOG --log-prefix "invalid MD5: "
+# iptables -t mangle -A novalidmd5 -j DROP
+
+# iptables -t mangle -A PREROUTING -p tcp -s 1.2.3.4 --dport 179 ! -m tcpmd5
+ --md5-key=s3cr3t -j novalidmd5
+# iptables -t mangle -A PREROUTING -p tcp -s 1.2.3.4 --dport 179 -j STRIPTCPMD5
+
+Moreover, if '-m tcpmd5' without md5key could match any MD5 packet, it would
+allow to direct the packet to a user chain reponsible to check between
+several known secrets, or to systematically strip the MD5 for example.
+
+> As I'm a complete newbie when it comes to netfilter development, could
+> anybody provide me some pointers on how to do
+> this in the right way ?
+
+I think that everyone does the same : take a simple match/target, remove
+the simple code, insert yours and start to understand how it works ;-)
 
 Cheers,
 Willy
