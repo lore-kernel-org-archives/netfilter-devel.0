@@ -1,20 +1,16 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
-Subject: Re: (usagi-core 18584) Re: [PATCH]: 1st step to remove
- skb_linearize() in ip6_tables.c and optimization
-Date: Thu, 24 Jun 2004 22:48:29 +0900 (JST)
+From: "John A. Sullivan III" <jsullivan@opensourcedevelopmentcorp.com>
+Subject: Re: Altering destination ethernet device
+Date: Fri, 25 Jun 2004 10:03:59 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040624.224829.125081590.yoshfuji@linux-ipv6.org>
-References: <200406241304.WAA12656@toshiba.co.jp>
-	<Pine.LNX.4.33.0406241510140.8190-100000@blackhole.kfki.hu>
+Message-ID: <1088172238.30481.16.camel@localhost>
+References: <20040625130142.54545.qmail@web13907.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net,
-	netfilter-devel@lists.netfilter.org, laforge@netfilter.org,
-	kisza@securityaudit.hu
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: usagi-core@linux-ipv6.org, kadlec@blackhole.kfki.hu
-In-Reply-To: <Pine.LNX.4.33.0406241510140.8190-100000@blackhole.kfki.hu>
+To: Scott MacKay <scottmackay@yahoo.com>
+In-Reply-To: <20040625130142.54545.qmail@web13907.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,16 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <Pine.LNX.4.33.0406241510140.8190-100000@blackhole.kfki.hu> (at Thu, 24 Jun 2004 15:25:54 +0200 (CEST)), Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> says:
-
-> I'm unfamiliar with the deep magic behind IPv6: I simply assumed that
-> linear headers up to the transport protocol headers in IPv6 would just be
-> fine and enough for the matches. That'd require an ugly processing header
-> by header in skb_ip6_make_headers_linear ;-), I think.
-
-It is full of beauty to process header by header.
-Skip processing extension header is BAD idea.
-You cannot (and shouldn't) see next header (or payload)
-until you really process the current header.
-
---yoshfuji
+On Fri, 2004-06-25 at 09:01, Scott MacKay wrote:
+> Hello,
+>    Sorry if this was asked before by someone, but is
+> it possible to alter the destination interface for a
+> packet?  In example, if I have a packet coming in eth0
+> which could go out either eth1 or eth2, is there any
+> way to force it to eth2?   I would be looking for a
+> programming solution because the actual interface
+> selected will be based on some critea which is
+> programmed.  If it is possible, I would likely select
+> the new interface in mangle/POSTROUTING unless it
+> needed to be elsewhere.
+<snip>
+This may be better suited to iproute2.  To read the documentation, look
+for a file named ip-cref.ps in your distribution.  There is a brief
+slide show on using it in the training section at
+http://iscs.sourceforge.net but it is directed towards using it with
+FreeS/WAN.  I do not know what APIs are available. - John
+-- 
+Open Source Development Corporation
+Financially sustainable open source development
+http://www.opensourcedevelopmentcorp.com
