@@ -1,12 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] rsh helper handling of ip_conntrack_helper->name
-Date: Thu, 11 Nov 2004 13:02:58 -0800
-Message-ID: <20041111210258.GB25504@linuxace.com>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] rsh helper handling of ip_conntrack_helper->name
+Date: Thu, 11 Nov 2004 22:28:55 +0100
+Message-ID: <1100208535.6496.33.camel@tux.rsn.bth.se>
+References: <20041111210258.GB25504@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="zx4FCpZtqtKETZ7O"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-RV2cVzTgD2Z71zsQeLsb"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20041111210258.GB25504@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,60 +23,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---zx4FCpZtqtKETZ7O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-RV2cVzTgD2Z71zsQeLsb
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-RSH helper doesn't properly handle name registration of multiple ports.
-Patch below fixes.
+On Thu, 2004-11-11 at 22:02, Phil Oester wrote:
+> RSH helper doesn't properly handle name registration of multiple ports.
+> Patch below fixes.
+>=20
+> This fixes 1/2 of bugzilla #90
 
-This fixes 1/2 of bugzilla #90
+Both RSH and RPC patches applied, thanks.
 
-Phil
+--=20
+/Martin
 
+--=-RV2cVzTgD2Z71zsQeLsb
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
---zx4FCpZtqtKETZ7O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-rsh
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-diff -ru pom-orig/rsh/linux/net/ipv4/netfilter/ip_conntrack_rsh.c pom-new/rsh/linux/net/ipv4/netfilter/ip_conntrack_rsh.c
---- pom-orig/rsh/linux/net/ipv4/netfilter/ip_conntrack_rsh.c	2003-12-18 10:48:01.000000000 -0800
-+++ pom-new/rsh/linux/net/ipv4/netfilter/ip_conntrack_rsh.c	2004-10-28 21:54:47.258745971 -0700
-@@ -254,14 +254,14 @@
- }
- 
- static struct ip_conntrack_helper rsh_helpers[MAX_PORTS];
-+static char rsh_names[MAX_PORTS][10];
- 
- static void fini(void);
- 
- static int __init init(void)
- {
- 	int port, ret;
--	static char name[10];
--
-+	char *tmpname;
- 
- 	/* If no port given, default to standard RSH port */
- 	if (ports[0] == 0)
-@@ -270,12 +270,13 @@
- 	for (port = 0; (port < MAX_PORTS) && ports[port]; port++) {
- 		memset(&rsh_helpers[port], 0, sizeof(struct ip_conntrack_helper));
- 
--                if (ports[port] == RSH_PORT)
--                        sprintf(name, "rsh");
--                else
--                        sprintf(name, "rsh-%d", port);
-+		tmpname = &rsh_names[port][0];
-+		if (ports[port] == RSH_PORT)
-+			sprintf(tmpname, "rsh");
-+		else
-+			sprintf(tmpname, "rsh-%d", ports[port]);
-+		rsh_helpers[port].name = tmpname;
- 
--		rsh_helpers[port].name = name;
- 		rsh_helpers[port].me = THIS_MODULE;
- 		rsh_helpers[port].max_expected = 1;
- 		rsh_helpers[port].flags = IP_CT_HELPER_F_REUSE_EXPECT;
+iD8DBQBBk9mXWm2vlfa207ERAojWAKC73iYT5NKQ6E+lKj0ahm93SLgHKgCgklh6
+shlthrx/OhhFYCpuqacTpG4=
+=gssA
+-----END PGP SIGNATURE-----
 
---zx4FCpZtqtKETZ7O--
+--=-RV2cVzTgD2Z71zsQeLsb--
