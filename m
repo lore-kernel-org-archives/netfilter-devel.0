@@ -1,16 +1,16 @@
-From: c0g <c0g@wp.pl>
-Subject: Re: raw patch = kernel panic :(
-Date: Mon, 06 Oct 2003 21:30:39 +0200
+From: Dirk Morris <dmorris@metavize.com>
+Subject: Re: bug: -j REDIRECT broken with bridge in 2.6.0-test3
+Date: Mon, 06 Oct 2003 15:13:51 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F81C2DF.3030501@wp.pl>
-References: <Pine.LNX.4.33.0310061238480.15175-100000@blackhole.kfki.hu>
+Message-ID: <3F81E91F.5090304@metavize.com>
+References: <3F3AEDEF.2000108@metavize.com> <3F4A9AA7.2070604@metavize.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0310061238480.15175-100000@blackhole.kfki.hu>
+To: dmorris <dmorris@metavize.com>
+In-Reply-To: <3F4A9AA7.2070604@metavize.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +21,93 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is still present in 2.6.0-test6.
+I'm more than willing to help find this issue if someone gives me a 
+pointer to go on.
+Narrowing it down to the changes in kernel versions is impossible due to
+the fact that the bridge wasnt working at all for quite a while.
 
-|>I applied raw-patch from CVS patch-o-matic (20031003), and it appears
-|>that loading rule in PREROUTING chain of table raw causes kernel panic.
-|
-|
-| Yes, that was due to a stupid bug in the NOTRACK target. I have applied
-| the fixed patch in p-o-m. Sorry for the previous buggy release.
+Thanks,
+-dirk morris
 
-Great! Thanks.
-
-- --
-c0g@wp.pl
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQE/gcLfPqmVt5WhbA8RAmEgAKCS62bNCPIBSBH8YufYDdBxoxTiXQCfaLUI
-ygtDICgaQ5aaTj1l8b3LZ0A=
-=eHLR
------END PGP SIGNATURE-----
+>
+>> bug: -j REDIRECT broken with bridge in 2.6.0-test3
+>>
+>> Sorry if this has already been reported, well known,
+>> or I'm doing something obviously wrong.
+>> Please email me if I can help, or give any other info.
+>>
+>> [1.] One line summary of the problem:      -j REDIRECT does not work 
+>> with a bridge in 2.6.0-test3
+>>
+>> [2.] Full description of the problem/report:
+>>
+>>    -j REDIRECT --to-port 2000 works fine as a router, but not as a 
+>> bridge
+>>    this appeared sometime between 2.5.68 and 2.6.0-test3
+>>
+>>    WORKING EXAMPLE:
+>>    (A) <-----> (B) <-----> (C)
+>>
+>>    where A is 10.0.0.10 and C is 10.10.10.10
+>>    and B's left  interface is 10.0.0.0/255.255.255.0
+>>    and B's right interface is 10.10.10.0/255.255.255.0
+>>    with echo 1 >proc/sys/net/ipv4/ip_forward
+>>
+>>    On: B do the following
+>>    iptables -t nat -A PREROUTING -p tcp --destination-port 7:7 -j 
+>> REDIRECT --to-port 2000
+>>    netcat -l -p 2000
+>>
+>>    Then on C:
+>>    telnet (A) 7
+>>    <connects to netcat on B as expected>
+>>
+>>    NON-WORKING EXAMPLE:
+>>    (A) <-----> (B) <-----> (C)
+>>
+>>    where A is 10.0.0.10 and C is 10.0.0.020
+>>    and B is a bridge of IP 10.0.0.15
+>>
+>>    On: B do the following
+>>    iptables -t nat -A PREROUTING -p tcp --destination-port 7:7 -j 
+>> REDIRECT --to-port 2000
+>>    netcat -l -p 2000
+>>
+>>    Then on C:
+>>    telnet (A) 7
+>>    Connecting ...
+>>
+>>    The SYN just seems to get dropped somewhere.
+>>    The SYN does not reach A (according to tcpdump)
+>>
+>>
+>> [3.] Keywords (i.e., modules, networking, kernel):
+>>
+>>    networking, netfilter, ethernet bridge
+>>
+>> [4.] Kernel version (from /proc/version):
+>>
+>>    Linux version 2.6.0-test3 (dmorris@bebe) (gcc version 3.3.1 
+>> 20030626 (Debian prerelease)) #2 Wed Aug 13 12:59:35 PDT 2003
+>>
+>> [5.] Output of Oops.. message (if applicable) with symbolic information
+>>     resolved (see Documentation/oops-tracing.txt)
+>>
+>>    None
+>>
+>> [6.] A small shell script or example program which triggers the
+>>     problem (if possible)
+>>
+>>    Refer to above
+>>
+>> [7.] Environment
+>>
+>>    The middle machine is described in depth at:
+>>
+>>    http://neogenen.com/bugreport_details2.txt
+>>
+>>
+>
+>
+>
