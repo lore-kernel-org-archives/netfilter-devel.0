@@ -1,15 +1,15 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: [PATCH] ipt_recent-0.2.2
-Date: Mon, 1 Jul 2002 07:27:31 -0400
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH}: Make MARK target terminate (resend)
+Date: Mon, 1 Jul 2002 14:08:03 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020701112731.GQ21742@ns>
+Message-ID: <Pine.LNX.4.33.0207011230071.12444-100000@blackhole.kfki.hu>
+References: <200207011211.21398.hno@marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ShzQXCswyqjgWi6k"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.samba.org>
-Content-Disposition: inline
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <200207011211.21398.hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,92 +20,44 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 1 Jul 2002, Henrik Nordstrom wrote:
 
---ShzQXCswyqjgWi6k
-Content-Type: multipart/mixed; boundary="Kuk/n493crKO4rgR"
-Content-Disposition: inline
+> > - rewrite the IPT_CONTINUE targets as matches
+>
+> I am not very fond of this.. besides the order dependency it also has the
+> question on how to easily determine what will happen with the packet.. No
+> obvious distinction between something that matches packets and something that
+> modifies packets or internal system state (conntrack, nfmark, ippools etc..).
 
+Nothing much can be do about order dependecy except the clear
+documentation of the feature. When the prestate/raw table will be ready
+(oh well, time...) then it'll be a good aid in spotting misconfigured
+rules.
 
---Kuk/n493crKO4rgR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I see that the apparent distinction between true matches and matches with
+side effect would be lost compared to the case of separated matches,
+actions. Hoewer, would it help to the end user if there were a separated
+interface to the matches with side-effect (actions)?
 
-Harald,
+What would be the rule for an action name? I fear it would create a
+confusion about which module is a match, which one is an action if an
+action name would be lowercased.
 
-  Sending this again with hopes that it will get in before the next
-  official release.  Just a small bugfix, thanks.
+Something new must be introduced. The question is which one more coherent
+*and* more user-friendly.
 
-Changelog:
-  - If not SET and not found, return immediately instead of flipping the
-    hash entries first (in the event of a collision).
+> > In my opinion the match solution would be better, cleaner.
+>
+> So your current opinion is that the IPT_CONTINUE targets should be rewritten
+> as matches?
 
---Kuk/n493crKO4rgR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="ipt_recent-0.2.2.patch"
+This is my current personal opinion. The naming issue of actions really
+disturbs me.
 
-diff -uNr netfilter-old/userspace/patch-o-matic/extra/recent.patch netfilter/userspace/patch-o-matic/extra/recent.patch
---- netfilter-old/userspace/patch-o-matic/extra/recent.patch	Fri Jun 21 09:49:01 2002
-+++ netfilter/userspace/patch-o-matic/extra/recent.patch	Fri Jun 21 10:10:13 2002
-@@ -26,7 +26,7 @@
- +#endif /*_IPT_RECENT_H*/
- diff -uNr linux-2.4.18-clean/net/ipv4/netfilter/ipt_recent.c linux-2.4.18/net/ipv4/netfilter/ipt_recent.c
- --- linux-2.4.18-clean/net/ipv4/netfilter/ipt_recent.c	Wed Dec 31 19:00:00 1969
--+++ linux-2.4.18/net/ipv4/netfilter/ipt_recent.c	Mon Jun 17 20:13:00 2002
-++++ linux-2.4.18/net/ipv4/netfilter/ipt_recent.c	Fri Jun 21 10:06:15 2002
- @@ -0,0 +1,786 @@
- +/* Kernel module to check if the source address has been seen recently. */
- +#include <linux/module.h>
-@@ -51,7 +51,7 @@
- +static int debug = 0;
- +
- +#define RECENT_NAME	"ipt_recent"
--+#define RECENT_VER	"v0.2.1"
-++#define RECENT_VER	"v0.2.2"
- +
- +static char version[] =
- +KERN_INFO RECENT_NAME " " RECENT_VER ": Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n";
-@@ -394,6 +394,13 @@
- +			hash_result = (hash_result + 1) % ip_list_hash_size;
- +		}
- +	}
-++
-++	if(hash_table[hash_result] == -1 && !(info->check_set & IPT_RECENT_SET)) {
-++		/* IP not in list and not asked to SET */
-++		spin_unlock_bh(&curr_table->list_lock);
-++		return ans;
-++	}
-++
- +	/* Check if we need to handle the collision, do not need to on REMOVE */
- +	if(orig_hash_result != hash_result && !(info->check_set & IPT_RECENT_REMOVE)) {
- +		if(debug) printk(KERN_INFO "ipt_recent: match(): Collision in hash table. (or: %d,hr: %d,oa: %u,ha: %u)\n",
-@@ -431,13 +438,6 @@
- +	if(hash_table[hash_result] == -1) {
- +		if(debug) printk(KERN_INFO "ipt_recent: match(): New table entry. (hr: %d,ha: %u)\n",
- +				 hash_result, addr);
--+
--+		/* New item, find place to put it */
--+		if(!(info->check_set & IPT_RECENT_SET)) {
--+			/* IP not in list and not asked to SET */
--+			spin_unlock_bh(&curr_table->list_lock);
--+			return ans;
--+		}
- +
- +		/* New item found and IPT_RECENT_SET, so we need to add it */
- +		location = time_info[curr_table->time_pos].position;
-
---Kuk/n493crKO4rgR--
-
---ShzQXCswyqjgWi6k
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9IDyjrzgMPqB3kigRAjnyAJ98JGQf/ZXc3aa5LEnPyfaUNolOxwCfZsFu
-6nbsBOfGiNIu6M8/HT3rDs0=
-=1neU
------END PGP SIGNATURE-----
-
---ShzQXCswyqjgWi6k--
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+WWW-Home: http://www.kfki.hu/~kadlec
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
