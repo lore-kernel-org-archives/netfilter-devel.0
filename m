@@ -1,14 +1,13 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Augmenting conntrack
-Date: Tue, 14 Oct 2003 04:50:26 -0700 (PDT)
+From: "Nguyen Binh Phuong" <phuongnb@sunyard.net.tw>
+Subject: port parameter of ftp conntrack module
+Date: Mon, 13 Oct 2003 14:55:47 +0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031014115026.61399.qmail@web13905.mail.yahoo.com>
-References: <3F8350CA.6040904@vialink.com.br>
+Message-ID: <001a01c3915f$6be869a0$fe0210ac@phuongnb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0017_01C3919A.16062B40"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <3F8350CA.6040904@vialink.com.br>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,57 +18,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello, 
+This is a multi-part message in MIME format.
 
-I have been playing around with the QUEUE target of
-iptables, mainly looking at simple packet mangling.  I
-have been able to hunt thru code thanks to help from
-the list, but think I may still have a issue to
-resolve.
+------=_NextPart_000_0017_01C3919A.16062B40
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-I want to perform some simple packet content
-manipulation for TCP data, using the QUEUE interface
-(since I so far have not done any kernel level
-programming).  From a simple approach, I want to
-mangle traffic going out a specific port on machine A
-and de-mangle it when it comes in a specific port on
-machine B.  My mangling only occurs on the payload of
-TCP packets, not on the header so all the routing and
-stuff should be OK.  I was planning to insert it into
-PREROUTING (to catch it coming in) and POSTROUTING (to
-catch it going out) on the interface.  
-My current concern is connection tracking, mainly
-because I believe NAT uses conntrack information. 
-Looking at NF_IP_PRI values, it looks like CONNTRACK
-may be called before I can de-mangle which I would
-think can cause problems.
-The only things I can think of which might work would
-be to change the NF_IP_PRI_CONNTRACK value to be
-higher than MANGLE (ugly, doubt it would work), alter
-the conntrack module to de-mangle what it sees so it
-can establish connection tracking OK (also ugly and
-not sure where I would start), or maybe a conntrack
-helper module (saw amanda did this, was not sure if I
-could specify a fairly wide criterea).  
-I was wondering, are there any thoughts on how to best
-proceed or even on documentation that would help me
-understand the netfilter & conntrack mechanism better?
+Hello,=20
+When I issue this command:
+    iptables -A INPUT -m helper --helper ftp -j ACCEPT
+I don't know:
+1/ How can ftp conntrack module is called inside kernel?
+2/ How can ftp conntrack module get ports parameter inside kernel? Who =
+does transmit value of port parameter to init() function of =
+ip_conntrack_ftp.c?
+Pls help me!
+Thanks in advance,
+Nguyen Binh Phuong
+R&D Dept, Sunyard Embedded Tech Company.
 
+------=_NextPart_000_0017_01C3919A.16062B40
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2600.0" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>
+<DIV><FONT face=3DArial size=3D2><FONT face=3DArial =
+size=3D2>Hello,</FONT>=20
+<DIV>When&nbsp;I issue this command:</DIV>
+<DIV>&nbsp;&nbsp;&nbsp; iptables -A&nbsp;INPUT -m helper --helper ftp=20
+-j&nbsp;ACCEPT</DIV>
+<DIV>I don't know:</DIV>
+<DIV>1/ How can ftp conntrack module is called inside kernel?</DIV>
+<DIV>2/ How can ftp conntrack module get ports parameter inside kernel? =
+Who does=20
+transmit <STRONG>value of port parameter</STRONG> to <STRONG>init() =
+function of=20
+ip_conntrack_ftp.c?</STRONG></DIV>
+<DIV><FONT face=3DArial size=3D2>Pls help me!</FONT></DIV>
+<DIV>Thanks in advance,</DIV></FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>Nguyen Binh Phuong<BR>R&amp;D Dept, =
+Sunyard=20
+Embedded Tech Company.</FONT></FONT></DIV></DIV></BODY></HTML>
 
-
-
-
-
-
-
-
-
-
-
-
-
-__________________________________
-Do you Yahoo!?
-The New Yahoo! Shopping - with improved product search
-http://shopping.yahoo.com
+------=_NextPart_000_0017_01C3919A.16062B40--
