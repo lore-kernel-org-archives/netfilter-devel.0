@@ -1,18 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH]Re: NAT before IPsec with 2.6
-Date: Wed, 28 Jan 2004 01:09:38 +0100
+From: Andreas Jellinghaus <aj@dungeon.inka.de>
+Subject: Re: NAT before IPsec with 2.6
+Date: Tue, 27 Jan 2004 22:13:33 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040128000938.GH11761@sunbeam.de.gnumonks.org>
-References: <20040127103917.GC11761@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0401271207160.16067-100000@filer.marasystems.com> <20040127130739.GR11761@sunbeam.de.gnumonks.org>
+Message-ID: <pan.2004.01.27.21.13.32.754125@dungeon.inka.de>
+References: <20040124082252.GA19035@alpha.home.local> <Pine.LNX.4.44.0401241015470.32723-100000@filer.marasystems.com> <20040124092721.GA19140@alpha.home.local> <20040127103917.GC11761@sunbeam.de.gnumonks.org> <20040127132725.GA14685@openoffice.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l4IMblsHEWQg+b+m"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>, Willy Tarreau <willy@w.ods.org>,
-	Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
-	netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20040127130739.GR11761@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,262 +19,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 27 Jan 2004 14:27:25 +0100, Valentijn Sessink wrote:
 
---l4IMblsHEWQg+b+m
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Hello,
+> 
+> At Tue, Jan 27, 2004 at 11:39:18AM +0100, Harald Welte wrote:
+>> I also disagree that an ESP packet should be trated as locally
+>> generated (and thus iterate over OUTPUT).
+> 
+> This is what happens with incoming packets: they hit INPUT twice.
 
-Hi!
+yes, but once before and once after decryption. use either fwmark
+or an ipip tunnel interface to destinguish between already decrypted
+and was-never-encrypted packets. 
 
-[please ignore the last message, I mistakenly sent an outdated, incomplete=
-=20
- patch]
+> On output, however, things are not so transparant. A packet hits OUTPUT,
+> then gets encrypted. A totally different packet hits POSTROUTING. This makes
+> no sense.
 
-I've now hacked a preliminary patch.  Be warned, I didn't even test if
-it compiles.  Maybe someone who actually has a running 2.6.x ipsec setup
-can give it a try.
+use an interface, and you will see the packet twice, plus the interface
+does the route lookup on the encrypted packet. so no ugly hacks in the
+routing table are necessary.
 
-What it should be doing
-- traverse the additional chains as described in the last email
-- have connection tracking recognize two seperate connections, one
-  for the decapsulated traffic, one for the encapsulated
-- thus, even SNAT/DNAT should be working.
-- locally-encapsulated traffic shows up with input device "ah4" or
-  "esp4" in POSTROUTING.
-- locally-encapsulated traffic shows up with output device "ah4" or
-  "esp4" in OUTPUT.
+(ugly hacks scenario: consider a road warrior.
+he is 192.168.3.2 and his vpn gateway is 192.168.3.1. he wants to put
+the company net on that GW address. But without a GW he doesn't know
+on which interface to put it. it could be either wlan (if the tunnel
+is established with his wireless lan card), or the eth0 interface
+(if he is using ethernet cable to connect to the net).
+sure, the ipsec software could manipulate the routing table after
+altering local and remote tunnel endpoints, but that is an ugly hack
+and a bad design.)
 
-What is missing (TODO):
-- no dummy device names in INPUT/PREROUTING for locally-decapsulated
-  packets.  This is somewhat harder
-- no real output device shown in OUTPUT for locally-encapsulated
-  packets.  I'm not sure if it is legal to typecast the just-popped
-  dst_entry to 'struct rtable' and derive the output interface from
-  there.
+[symetry]
 
-Please give feedback.
+that does not work:
+netfilter wants NAT to be the first thing for incoming packets
+and the last thing for outgoing packets. thats symetry.
 
-P.S.: Yes, the #ifdef's are ugly. I know.
+but you want ipsec encryption and decryption as soon as possible:
+both before looking at the routing table.
 
+mixing those two will never result in symetry. if you try it
+(routing before encapsulation), the result has problems.
 
-diff -Nru linuxppc25bh-031218-orinoco_monitor-gpl/net/ipv4/ah4.c linuxppc25=
-bh-031218-orinoco_monitor-gpl-netfipsec/net/ipv4/ah4.c
---- linuxppc25bh-031218-orinoco_monitor-gpl/net/ipv4/ah4.c	2003-12-18 11:39=
-:26.000000000 +0100
-+++ linuxppc25bh-031218-orinoco_monitor-gpl-netfipsec/net/ipv4/ah4.c	2004-0=
-1-28 01:08:59.430015104 +0100
-@@ -7,8 +7,15 @@
- #include <linux/crypto.h>
- #include <linux/pfkeyv2.h>
- #include <net/icmp.h>
-+#include <linux/netfilter_ipv4.h>
- #include <asm/scatterlist.h>
-=20
-+static struct net_device *ah_dummydev;
-+
-+static int ah_xmit_bypass(struct sk_buff *skb)
-+{
-+	return NET_XMIT_BYPASS;
-+}
-=20
- /* Clear mutable options and find final destination to substitute
-  * into IP header for icv calculation. Options are already checked
-@@ -54,7 +61,7 @@
- 	return 0;
- }
-=20
--static int ah_output(struct sk_buff *skb)
-+static int ah_output_finish(struct sk_buff *skb)
- {
- 	int err;
- 	struct dst_entry *dst =3D skb->dst;
-@@ -145,7 +152,17 @@
- 		err =3D -EHOSTUNREACH;
- 		goto error_nolock;
- 	}
--	return NET_XMIT_BYPASS;
-+
-+#ifdef CONFIG_NETFILTER
-+	nf_conntrack_put(skb->nfct);
-+	skb->nfct =3D NULL;
-+#ifdef CONFIG_NETFILTER_DEBUG
-+	skb->nf_debug =3D 0;
-+#endif
-+#endif
-+
-+	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, ah_dummydev, NULL,
-+		       ah_xmit_bypass);
-=20
- error:
- 	spin_unlock_bh(&x->lock);
-@@ -154,6 +171,12 @@
- 	return err;
- }
-=20
-+static int ah_output(struct sk_buff *skb)
-+{
-+	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, skb->dev, ah_dummydev,
-+		       ah_output_finish);
-+}
-+
- int ah_input(struct xfrm_state *x, struct xfrm_decap_state *decap, struct =
-sk_buff *skb)
- {
- 	int ah_hlen;
-@@ -354,11 +377,18 @@
- 		xfrm_unregister_type(&ah_type, AF_INET);
- 		return -EAGAIN;
- 	}
-+	ah_dummydev =3D alloc_netdev(0, "ah4", NULL);
-+	if (!ah_dummydev) {
-+		printk(KERN_INFO "ip ah init: can't allocate dummydev\n");
-+		inet_del_protocol(&ah4_protocol, IPPROTO_AH);
-+		xfrm_unregister_type(&ah_type, AF_INET);
-+	}
- 	return 0;
- }
-=20
- static void __exit ah4_fini(void)
- {
-+	free_netdev(ah_dummydev);
- 	if (inet_del_protocol(&ah4_protocol, IPPROTO_AH) < 0)
- 		printk(KERN_INFO "ip ah close: can't remove protocol\n");
- 	if (xfrm_unregister_type(&ah_type, AF_INET) < 0)
-diff -Nru linuxppc25bh-031218-orinoco_monitor-gpl/net/ipv4/esp4.c linuxppc2=
-5bh-031218-orinoco_monitor-gpl-netfipsec/net/ipv4/esp4.c
---- linuxppc25bh-031218-orinoco_monitor-gpl/net/ipv4/esp4.c	2003-12-18 11:3=
-8:22.000000000 +0100
-+++ linuxppc25bh-031218-orinoco_monitor-gpl-netfipsec/net/ipv4/esp4.c	2004-=
-01-28 01:09:19.610947136 +0100
-@@ -8,6 +8,7 @@
- #include <linux/crypto.h>
- #include <linux/pfkeyv2.h>
- #include <linux/random.h>
-+#include <linux/netfilter_ipv4.h>
- #include <net/icmp.h>
- #include <net/udp.h>
-=20
-@@ -20,7 +21,16 @@
- 	__u8		proto;
- };
-=20
--int esp_output(struct sk_buff *skb)
-+static struct net_device *esp_dummydev;
-+
-+/* dummy function for netfilter.  esp_output_finish() has to return
-+ * that particular value upon success */
-+static int esp_xmit_bypass(struct sk_buff *skb)
-+{
-+	return NET_XMIT_BYPASS;
-+}
-+
-+static int esp_output_finish(struct sk_buff *skb)
- {
- 	int err;
- 	struct dst_entry *dst =3D skb->dst;
-@@ -199,7 +209,17 @@
- 		err =3D -EHOSTUNREACH;
- 		goto error_nolock;
- 	}
--	return NET_XMIT_BYPASS;
-+
-+#ifdef CONFIG_NETFILTER
-+	nf_conntrack_put(skb->nfct);
-+	skb->nfct =3D NULL;
-+#ifdef CONFIG_NETFILTER_DEBUG
-+	skb->nf_debug =3D 0;
-+#endif
-+#endif
-+	/* FIXME: return real destination device */
-+	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, esp_dummydev, NULL,
-+		       esp_xmit_bypass);
-=20
- error:
- 	spin_unlock_bh(&x->lock);
-@@ -208,6 +228,12 @@
- 	return err;
- }
-=20
-+int esp_output(struct sk_buff *skb)
-+{
-+	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, skb->dev, esp_dummydev,
-+		       esp_output_finish);
-+}
-+
- /*
-  * Note: detecting truncated vs. non-truncated authentication data is very
-  * expensive, so we only support truncated data, which is the recommended
-@@ -596,11 +622,19 @@
- 		xfrm_unregister_type(&esp_type, AF_INET);
- 		return -EAGAIN;
- 	}
-+	esp_dummydev =3D alloc_netdev(0, "esp4", NULL);
-+	if (!esp_dummydev) {
-+		printk(KERN_INFO "ip esp init: can't allocate dummydev\n");
-+		inet_del_protocol(&esp4_protocol, IPPROTO_ESP);
-+		xfrm_unregister_type(&esp_type, AF_INET);
-+		return -EAGAIN;
-+	}
- 	return 0;
- }
-=20
- static void __exit esp4_fini(void)
- {
-+	free_netdev(esp_dummydev);
- 	if (inet_del_protocol(&esp4_protocol, IPPROTO_ESP) < 0)
- 		printk(KERN_INFO "ip esp close: can't remove protocol\n");
- 	if (xfrm_unregister_type(&esp_type, AF_INET) < 0)
-diff -Nru linuxppc25bh-031218-orinoco_monitor-gpl/net/ipv4/xfrm4_input.c li=
-nuxppc25bh-031218-orinoco_monitor-gpl-netfipsec/net/ipv4/xfrm4_input.c
---- linuxppc25bh-031218-orinoco_monitor-gpl/net/ipv4/xfrm4_input.c	2004-01-=
-28 00:50:36.204730840 +0100
-+++ linuxppc25bh-031218-orinoco_monitor-gpl-netfipsec/net/ipv4/xfrm4_input.=
-c	2004-01-28 00:51:39.557099816 +0100
-@@ -6,6 +6,8 @@
-  *		Split up af-specific portion
-  *	Derek Atkins <derek@ihtfp.com>
-  *		Add Encapsulation support
-+ *	Harald Welte <laforge@netfilter.org>
-+ *		Drop conntrack reference before calling netif_rx()
-  * =09
-  */
-=20
-@@ -130,6 +132,13 @@
- 			dst_release(skb->dst);
- 			skb->dst =3D NULL;
- 		}
-+#ifdef CONFIG_NETFILTER
-+		nf_conntrack_put(skb->nfct);
-+		skb->nfct =3D NULL;
-+#ifdef CONFIG_NETFILTER_DEBUG
-+		skb->nf_debug =3D 0;
-+#endif
-+#endif
- 		netif_rx(skb);
- 		return 0;
- 	} else {
---
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---l4IMblsHEWQg+b+m
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFAFv3CXaXGVTD0i/8RAgMjAJ0QG8MKEXaRcIEgnMWkx3oK1I2AAgCfTS72
-U96J0G9rOaXYmq2xRHhgunc=
-=wnPm
------END PGP SIGNATURE-----
-
---l4IMblsHEWQg+b+m--
+Andreas
