@@ -1,16 +1,12 @@
-From: Philippe Biondi <biondi@cartel-securite.fr>
-Subject: Re: ICMP DNAT bug fix no longer applies?
-Date: Thu, 24 Apr 2003 15:42:11 +0200 (CEST)
+From: mihai berendei <mberendei@yahoo.com>
+Subject: sendmail delivery problem
+Date: Thu, 24 Apr 2003 07:44:33 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0304241539121.12543-100000@deneb.intranet.cartel-securite.net>
-References: <Pine.LNX.4.44.0304241412470.24242-100000@localhost>
+Message-ID: <20030424144433.4381.qmail@web9903.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, John McEleney <john@netservers.co.uk>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Wilson <chris@netservers.co.uk>
-In-Reply-To: <Pine.LNX.4.44.0304241412470.24242-100000@localhost>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,36 +17,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all!
+hi!
+i'm using sendmail 8.12.5 on red hat linux 8.0; in the
+mail log i've found the following entries repeating:
 
-On Thu, 24 Apr 2003, Chris Wilson wrote:
+Apr 22 12:01:59 linux sendmail[5724]: h3M81wxo005724:
+timeout waiting for input from somehost during message
+collect
 
-> Does anyone know why the DNAT bug fix hasn't been incorporated into
-> the main codebase yet?
+Apr 22 12:01:59 linux sendmail[5724]: h3M81wxo005724:
+from=<someone@somedomain>, size=0, class=0, nrcpts=1,
+msgid=<200304220801.h3M81wxo005724@mymachine>,
+proto=ESMTP, daemon=MTA, relay=samehost [someip]
 
-AFAIK, this patch was too intrusive into the IP layer of the linux kernel
-to be included.
+Apr 22 12:01:59 linux sendmail[5724]: h3M81wxo005724:
+to=<someone@mydomain>, delay=01:00:00, pri=30000,
+stat=timeout waiting for input during message collect
 
-But I've seen this some times ago :
+and the message will not be delivered to it's
+recipient; there are only a small number of ip's from
+whom i can't receive e-mails, the rest of them
+functioning normally;
+why is happening this timeout waiting? the strange
+thing is that message size=0 and msgid = <2003....
+@mymachine instead of hismachine, hisdomain or
+whatever;
+it is possible that what the authors of netfilter
+themselves call "criminally brain-dead ISPs or
+servers" -# as i've read in this iptables tutorial:
+http://iptables-tutorial.frozentux.net/iptables-tutorial.html
+#- causes this timeout waiting?
+ 
+can someone help me with this problem? please send me
+your advice!
+thank you in advanced!
 
-Summary of changes from v2.4.21-pre5 to v2.4.21-pre6
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
-[...]
-
-<laforge@netfilter.org>:
-  o [NETFILTER]: fix NAT ICMP reply translation of inner packet
-[...]
-
-
-I see that as the so long waited fix. Harald, do you confirm that ?
-
-
-
---=20
-Philippe Biondi <biondi@ cartel-securite.fr> Cartel S=E9curit=E9
-Security Consultant/R&D                      http://www.cartel-securite.f=
-r
-Phone: +33 1 44 06 97 94                     Fax: +33 1 44 06 97 99
-PGP KeyID:3D9A43E2  FingerPrint:C40A772533730E39330DC0985EE8FF5F3D9A43E2
+__________________________________________________
+Do you Yahoo!?
+The New Yahoo! Search - Faster. Easier. Bingo
+http://search.yahoo.com
