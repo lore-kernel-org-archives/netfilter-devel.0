@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: iptables-save saves invalid negative --uid-owner expressions.
-Date: Mon, 6 Jan 2003 13:34:14 +0100
+Subject: Re: Corruption on mangle/INPUT when MARKing packets
+Date: Mon, 6 Jan 2003 13:52:30 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030106123414.GD9467@sunbeam.de.gnumonks.org>
-References: <35565.195.97.5.193.1041816667.squirrel@fs.tsaousis.gr> <20030106020219.GC423@comet.rv-int>
+Message-ID: <20030106125230.GE9467@sunbeam.de.gnumonks.org>
+References: <37584.195.97.5.193.1041644841.squirrel@fs.tsaousis.gr>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GOzekVbrLdOLv44p"
+	protocol="application/pgp-signature"; boundary="ugCSa1rMkiCAmd9S"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?iso-8859-1?Q?Herv=E9?= Eychenne <rv@wallfire.org>
+To: Costa Tsaousis <costa@tsaousis.gr>
 Content-Disposition: inline
-In-Reply-To: <20030106020219.GC423@comet.rv-int>
+In-Reply-To: <37584.195.97.5.193.1041644841.squirrel@fs.tsaousis.gr>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,49 +23,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---GOzekVbrLdOLv44p
-Content-Type: text/plain; charset=iso-8859-1
+--ugCSa1rMkiCAmd9S
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jan 06, 2003 at 03:02:19AM +0100, Herv=E9 Eychenne wrote:
-> On Mon, Jan 06, 2003 at 03:31:07AM +0200, Costa Tsaousis wrote:
+On Sat, Jan 04, 2003 at 03:47:21AM +0200, Costa Tsaousis wrote:
+
+> During a few experiments I made I believe I have found a bug in
+> iptables.=20
 >=20
->  Hi,
+> To reproduce the bug, type:
 >=20
-> > I believe I have faced another, not-mentioned-in-2002, bug:
-> > [...]
-> > then iptables-save gives this:
-> >=20
-> > -A OUTPUT -d ! 127.0.0.1 -p tcp -m owner --uid-owner !squid -m tcp --dp=
-ort
-> > 80 -j DNAT --to-destination 127.0.0.1:3128
-> >=20
-> > which produces a "user '!squid' not found" error when restored.
+> # /etc/init.d/iptables stop
+> # iptables -t mangle -A INPUT -p icmp -j MARK --set-mark 1
 >=20
-> It seems to me that no single week passes without any post about this
-> kind of error (no space before a negation) in some save output module.
-> Sigh.
+> Now, this host will be unpingable.
 
-Your observation is true.
 
-> I must admit it seems quite strange to me that noone in the coreteam
-> didn't do that already. (hope I won't hurt anybody's feelings too
-> much though) ;-)
+This is really strange.  I can perfectly reproduce the bug, but I cannot
+see how this happens.  the whole net/ipv4/icmp.c code doesn't do
+anything with the nfmark of the original skb.
 
-The problem is that we are mostly talking about contributed extensions,
-and nobody seems to test the save() and restore() functions of their
-extensions properly.
-
-> Would someone who's even more fed up than me with these recurrent
-> messages have time to audit the whole bunch of existing modules in
-> the CVS tree and fix this particular kind of problem _once and for all_?
-
-It can even be automatized by a script...
-
-> Thanks in advance,
->  Herve
+I'll have to investigate this further. Stay tuned.
 =20
+Thanks for reporting the bug...
+
+> Kind Regards
+> Costa Tsaousis
 
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -76,7 +61,7 @@ It can even be automatized by a script...
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---GOzekVbrLdOLv44p
+--ugCSa1rMkiCAmd9S
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -84,9 +69,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+GXfGXaXGVTD0i/8RApWaAJwJrET/+mr33jmVK7MDhWUtwd3FugCfZqv7
-AYHgOE/91MXkHPrOPnGKLZg=
-=7ym5
+iD8DBQE+GXwOXaXGVTD0i/8RAgdcAJ9nOWN5RQaWJbuu4de0wjsVXuzLwQCfcP/q
+BFJo5Xhp1bGgDNbcBz5qiDQ=
+=REqf
 -----END PGP SIGNATURE-----
 
---GOzekVbrLdOLv44p--
+--ugCSa1rMkiCAmd9S--
