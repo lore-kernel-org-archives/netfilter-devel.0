@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: tos 0x62
-Date: Fri, 20 Sep 2002 17:01:00 +0200
+Subject: Re: [PATCH] newnat conntrack/nat core support for UDP protocols
+Date: Fri, 20 Sep 2002 17:13:08 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020920170100.H3810@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0209171317130.6328-100000@webdev.ines.ro>
+Message-ID: <20020920171308.N3810@sunbeam.de.gnumonks.org>
+References: <20020816080649.GD2264@pc.ilinx>
 Mime-Version: 1.0
 Content-Type: application/pgp; x-action=sign; format=text
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter@interlinx.bc.ca
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andrei Ivanov <andrei.ivanov@ines.ro>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline; filename="msg.pgp"
-In-Reply-To: <Pine.LNX.4.44.0209171317130.6328-100000@webdev.ines.ro>; from andrei.ivanov@ines.ro on Tue, Sep 17, 2002 at 01:22:48PM +0300
+In-Reply-To: <20020816080649.GD2264@pc.ilinx>; from netfilter@interlinx.bc.ca on Fri, Aug 16, 2002 at 04:07:17AM -0400
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,22 +24,30 @@ List-Id: netfilter-devel.vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-On Tue, Sep 17, 2002 at 01:22:48PM +0300, Andrei Ivanov wrote:
+On Fri, Aug 16, 2002 at 04:07:17AM -0400, netfilter@interlinx.bc.ca wrote:
+> Please find below a patch to modify some existing and add some new
+> convenience functions to the newnat core conntrack and nat functions.
 > 
-> Hello,
-> I'm trying to filter packets which have a TOS value of 0x62, and it seems
-> I cannot.
+> In summary:
+> 
+>  - make ip_nat_resize_packet more generic (TCP and UDP)
+>  - optimize away the memmove in ip_nat_mangle_tcp_packet when the
+>    replacement string is the same size as the match string
+>  - add ip_nat_mangle_udp_packet
 
-because it's an invalid TOS value.
+aren't you missing that UDP packets can have no checksums, and we thus should
+not calculate one?
 
-> I tried the tos module, but it only knows valid tos values.
+If this is true, please fix this problem and resubmit.
 
-right.
+>  - add ip_nat_mangle_multi_udp_packet
 
-> I looked for the ftos module from patch-o-matic, but it seems it has been
-> obsoleted by DSCP and ECN module.
+As stated in my other mail, I don't really see the need for this function.
+We shouldn't bloat the code and add more API functions for a little gain
+in efficiency in some rare cases.
 
-yes. they also only accept allowed combinations of the bit.
+> Thanx,
+> b.
 
 - -- 
 Live long and prosper
@@ -51,7 +59,7 @@ V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9izgsXaXGVTD0i/8RAiPqAJ4oml9PvP1LNV/nnu9+Xhg8OJhSqQCfdG24
-ceKiBU0A7cqmceCAqmcrGLk=
-=XY5H
+iD8DBQE9izsEXaXGVTD0i/8RAuHEAKCURi8S57EpMJ+za2/MFZHSy0SvpgCfevFD
+ve0TRRMGU/ua/a9MdnfPP7U=
+=Kv41
 -----END PGP SIGNATURE-----
