@@ -1,16 +1,16 @@
-From: Peter Zion <pzion@nit.ca>
-Subject: Re: [PATCH] PPTP connection tracking: fixed oops during PPTP connect
- when interface under heavy load
-Date: Tue, 01 Feb 2005 10:18:54 -0500
-Message-ID: <41FF9DDE.2050401@nit.ca>
-References: <41DD887D.6080007@nit.ca>
-	<20050201104002.GV6878@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ip_queue.c inefficiencies?
+Date: Wed, 02 Feb 2005 16:18:04 +0100
+Message-ID: <4200EF2C.1030808@trash.net>
+References: <6.2.0.14.2.20050118185904.047393e0@pop.mindspring.com>
+	<20050201131128.GF6878@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org,
+	Michael StJohns <mstjohns@mindspring.com>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050201104002.GV6878@sunbeam.de.gnumonks.org>
+In-Reply-To: <20050201131128.GF6878@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,32 +24,22 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Harald Welte wrote:
 
->On Thu, Jan 06, 2005 at 01:50:37PM -0500, Peter Zion wrote:
->  
+>On Tue, Jan 18, 2005 at 07:18:32PM -0500, Michael StJohns wrote:
 >
->>Summary:
->>
->>If PPTP connection tracking is running on a machine and certain PPTP
->>packets arrive out of order, or preceding packets never made
->>it to the machine, the PPTP connection tracking code will
->>dereference NULL pointers.  Reproduction steps are to attempt PPTP 
->>connections to the machine on an interface under heavy load.
->>    
+>>The patch below does two things:  It adds some /proc visible counters to 
+>>count the packets dropped because they couldn't be queued to either kernel 
+>>or user space; it adds a check early on in ipq_enqueue_packet to check and 
+>>see if the kernel queue is full before trying to send the packet to user 
+>>space.
 >>
 >
->That's really strange.  Can you please elaborate more?
->  
+>I think your patch is perfectly valid and looks fine.  
 >
-I'm afraid I can't: I don't pretend to understand exactly what the 
-problem is.  In our case we were seeing random kernel oopses under heavy 
-load, and once we managed to create the series of reproduction steps 
-that I listed in the original email it was exactly the same NULL pointer 
-dereference every time.  Simply checking the pointer before 
-dereferencing it, as done in my patch, "fixed" the problem in the sense 
-that the kernel no longer locks up, and we have not seen any further 
-problems under heavy load since applying the patch.
+>Patrick, if you don't see any problems, could you add it to your queue
+>of pending patches? Thanks!
+>
+The patch doesn't apply to current -bk. Michael, can you please send a new
+patch against the latest -bk kernel ?
 
-The best I can offer you is help in isolating the problem.  If, for 
-instance, you made a patch with debugging output that would help you 
-isolate the problem, I would be happy to run it against our reproduction 
-steps and tell you what happens.
+Regards
+Patrick
