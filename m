@@ -1,13 +1,16 @@
-From: Jakub Urban <jakub.urban@smidl.cz>
-Subject: iptables accounting and promiscuous mode
-Date: Thu, 21 Nov 2002 19:08:01 +0100
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Netfilter and IPPROTO_RAW
+Date: Sun, 24 Nov 2002 10:55:10 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DDD2101.3030006@smidl.cz>
+Message-ID: <20021124095510.GB14672@oknodo.bof.de>
+References: <00ba01c28ffe$3bc9a0d0$6a00a8c0@witbe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Paul Rolland <rol@as2917.net>
+Content-Disposition: inline
+In-Reply-To: <00ba01c28ffe$3bc9a0d0$6a00a8c0@witbe>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,17 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hi all
+> My problem is that one of the program we are using is sending
+> its packets to a socket that has been created by :
+> theSocket = socket(PF_INET, SOCK_RAW, IPPROTO_RAW);
+> and it seems from all the tests I've conducted that these packets
+> are bypassing all the rules aboved mentionned...
 
-it's posible to use iptables for passive IP accounting on linux box with 
-one NIC sets to promisc mode?
-if yes - which version?
-if no - is this feature plan to the future?
+Correct, as far as I know. Using RAW sockets is not "normal".
+iptables caters to what "normal" usage needs. And that's basically
+a good thing.
 
-i cant't find any info in the docs, i only find patch for iptables-1.2.3 
-on 
-http://www.fokus.gmd.de/research/cc/glone/employees/sebastian.zander/private/netfilter.html 
+> Is there a way to interact on packets sent to such a socket ?
 
+Change the app, or give it an LD_PRELOAD library overwriting
+the recvmsg/sendmsg calls, or change the kernel so RAW sockets
+have netfilter hooks. Those are your possibilities. Good luck.
 
-thanks
-jakub urban
+best regards
+  Patrick
