@@ -1,12 +1,15 @@
-From: "Raghu-kisore Neelisetti" <neelira@auburn.edu>
-Subject: how to compile netfiletr hook programs??
-Date: Mon, 21 Mar 2005 01:07:50 -0600
-Message-ID: <s23e1e6f.085@TMIA1.AUBURN.EDU>
+From: Michel Pereira <michel@michel.eti.br>
+Subject: Re: 2.6.11 corrupting FTP session
+Date: Sun, 20 Mar 2005 14:58:23 -0300
+Message-ID: <1111341503.423db9bfcffb7@webmail.conectcor.com.br>
+References: <1111176664.423b35d80b351@webmail.conectcor.com.br>
+	<423DA1FB.6030209@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <423DA1FB.6030209@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,14 +21,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-i am newbie to linux. I had a tough compiling a simple netfilter hook
-program (would simply drop the packets). I would appreciate if you could
-provide me with step by step instructions to compile the netfilter
-programs. Iam using Fedora core 3 and kernel version is 2.6.9. I would
-be happy if you cold send make file necessary to compile the code.
-please let me know i f have to install any thing to be able to use
-netfilter.
+Quoting Patrick McHardy <kaber@trash.net>:
+> What is your setup (NAT rules, network topology between client and
+> server)?
 
-Thanks in advance.
-raghu. 
+   Firewall (a) -> Server on DMZ. (NAT of internal network connections)
+   Firewall (b) -> Internal Network (without NAT of connections)
+
+   b - iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+   b - iptables -A FORWARD -s myip -d 0/0 -m state --state NEW -j ACCEPT
+
+   a - iptables -t nat -A PREROUTING -p TCP -s 0/0 -d 200.162.38.71 --dpo=
+rt 21
+-j DNAT --to IPonDMZ
+
+Thank you
+--
+Michel Pereira
+michel.pereira@eurorscg.com
++55 11 5105 0570
++55 11 5105 0569
+www.eurorscg4d.com.br
+Euro RSCG 4D
+
+Unix Sex: unzip;strip;touch;finger;mount;fsck;more;yes;umount;sleep
+
+
+----------------------------------------------------------------
+Conectcor - velocidade com qualidade
+www.conectcor.com.br
