@@ -1,16 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Possible ip_defrag DoS ?
-Date: Sun, 16 Feb 2003 21:31:38 +0100
+From: DarKRaveR <DarKRaveR@habitat-b.de>
+Subject: ip_contrack table full ?
+Date: Sun, 16 Feb 2003 23:41:47 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E4FF52A.4070800@trash.net>
-References: <20030215232635.25928.78900.Mailman@kashyyyk> <15950.60635.389199.836425@isis.cs3-inc.com> <3E4F0881.70302@trash.net> <15951.10496.914173.716313@isis.cs3-inc.com> <3E4F8660.5020409@trash.net> <20030216201154.GA30787@sunbeam.de.gnumonks.org>
+Message-ID: <18436282631.20030216234147@habitat-b.de>
+Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030216201154.GA30787@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,13 +19,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-PS: i like your new signature ;)
+Hello list,
 
-Harald Welte wrote:
+  I got an issue with ip_contrack module. I have a router here, with
+  ip_contrack enabled, because I need the REDIRECT target. Earlier
+  this day, the system wrecked, because the ip_contrack table was
+  obviously full. How could this happen, with just 6 users ?
+  I assume every connection is put in that table, so it should be
+  kinda 'big'. Is there any way to modify the size of that table. Or
+  is it some sort of leak ? For example, if a connection was not
+  closed properly, when does the entry in ip_contrack get dropped ?
+
+  I hope somebody can help me on this, because if this happens with 6
+  users, what is going to happen, when there's approx 1000 users ?
+
 -- 
-
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-============================================================================
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Best regards,
+ DarKRaveR                          mailto:DarKRaveR@habitat-b.de
