@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: i think this i a kernel bug
-Date: Sat, 25 Oct 2003 22:04:01 +0200 (CEST)
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [netfilter-core] linux-2.6.0-testX ipchains oops in NAT
+Date: Sun, 26 Oct 2003 17:19:38 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0310252200490.14678-100000@filer.marasystems.com>
-References: <1067098665.18990.1.camel@tux.rsn.bth.se>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Message-ID: <20031026063626.D0FCE2C04B@lists.samba.org>
+References: <3F97B874.CB12C184@fy.chalmers.se>
+Cc: Harald Welte <laforge@netfilter.org>, coreteam@netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	davem@redhat.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kaspars Zeme <Kaspars.Zeme@delfi.lv>
-In-Reply-To: <1067098665.18990.1.camel@tux.rsn.bth.se>
+To: Andy Polyakov <appro@fy.chalmers.se>
+In-reply-to: Your message of "Thu, 23 Oct 2003 13:16:04 +0200."
+             <3F97B874.CB12C184@fy.chalmers.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +21,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+In message <3F97B874.CB12C184@fy.chalmers.se> you write:
+> It's perfectly reproducible with eth0:1. In other words I
 
-> > Oct 25 17:10:06 cs kernel: LIST_DELETE: ip_conntrack_core.c:301 `&ct->tuplehash[IP_CT_DIR_REPLY]'(de7be444) not in &ip_conntrack_hash [hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple)].
-> > 
-> > notes:
-> > 
-> > i  can  not show you /proc/modules because the box just hangs up after
-> > some  time  and  i  can't  get  that information.
+Thanks for the excellent help Andy!
 
-A long shot, but have you verified the memory of your box? Try memtest86..
+Found it by inspection from Andy's description.
 
-You should be able to get /proc/modules from the console with the box 
-disconnected from the network I think. If this is a conntrack bug the 
-problem should only be seen if there is any traffic processed by 
-conntrack.
+We updated ip_nat_setup_info to set the initialized flag and call
+place_in_hashes, but *didn't* change the call in ip_fw_compat_masq.c
+which also calls place_in_hashes() itself (again!).  Result: corrupt
+list, and next thing which lands in the same hash bucket goes boom.
 
-Regards
-Henrik
+This should fix it.
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+
+Name: ipchains/ipfwadm compat changes for new ip_nat_setup_info
+Author: Rusty Russell
+Status: Experimental
+
+D: We updated ip_nat_setup_info to set the initialized flag and call
+D: place_in_hashes, but *didn't* change the call in ip_fw_compat_masq.c
+D: which also calls place_in_hashes() itself (again!).  Result: corrupt
+D: list, and next thing which lands in the same hash bucket goes boom.
+D: 
+D: Thanks to Andy Polyakov for chasing this down.
+
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .17896-linux-2.6.0-test9/net/ipv4/netfilter/ip_fw_compat_masq.c .17896-linux-2.6.0-test9.updated/net/ipv4/netfilter/ip_fw_compat_masq.c
+--- .17896-linux-2.6.0-test9/net/ipv4/netfilter/ip_fw_compat_masq.c	2003-09-22 10:28:14.000000000 +1000
++++ .17896-linux-2.6.0-test9.updated/net/ipv4/netfilter/ip_fw_compat_masq.c	2003-10-26 17:17:30.000000000 +1100
+@@ -91,9 +91,6 @@ do_masquerade(struct sk_buff **pskb, con
+ 			WRITE_UNLOCK(&ip_nat_lock);
+ 			return ret;
+ 		}
+-
+-		place_in_hashes(ct, info);
+-		info->initialized = 1;
+ 	} else
+ 		DEBUGP("Masquerading already done on this conn.\n");
+ 	WRITE_UNLOCK(&ip_nat_lock);
