@@ -1,16 +1,16 @@
 From: Pablo Neira <pablo@eurodev.net>
 Subject: Re: sparc64 match module - bug id 94
-Date: Thu, 06 May 2004 16:39:40 +0200
+Date: Thu, 06 May 2004 16:56:28 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <409A4E2C.1060907@eurodev.net>
-References: <20040505065402.GA18440@hamachi.radom.org> <409A4BBB.9080401@eurodev.net> <Pine.LNX.4.58.0405061546210.24101@chris.camcom.co.uk>
+Message-ID: <409A521C.5020406@eurodev.net>
+References: <Pine.LNX.4.44.0405061211230.29759-100000@filer.marasystems.com> <1083852576.1822.18.camel@nienna.balabit>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Wilson <chris@netservers.co.uk>,
+To: KOVACS Krisztian <hidden@balabit.hu>,
  Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.58.0405061546210.24101@chris.camcom.co.uk>
+In-Reply-To: <1083852576.1822.18.camel@nienna.balabit>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Chris,
+Hi Krisztian,
 
-Chris Wilson wrote:
+KOVACS Krisztian wrote:
 
->>Please, if I'm missing something, kill me softly. Is there anything 
->>wrong in fixing up the problem with the following patch?
->>    
->>
->
->Yes, unfortunately. The rate limit is supposed to be per-rule, not global. 
->If you do this then you can't really use more than one limit rule 
->in your ruleset, or you will get very unpredictable results (and very 
->different from the current behaviour).
+>  A possible hack: let's define two separate structures, one for
+>in-kernel use, and one for the userspace.
 >  
 >
 
-Oh, sure, I missed that. It's not so easy to fix up.
+I thought about that possibility, it's an interesting hack, but I think 
+that the problem is much more specific, we have only this problem with 
+ipt_limit. Actually, when we have some internal match information which 
+is shared by some processors, we need to know which one is the selected 
+to work with. So, we could add a pointer to the master of internal match 
+data in struct ipt_entry_match. what do you think?
 
-thanks!
+regards,
 Pablo
