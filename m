@@ -1,16 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Iptables acting as a load balancer
-Date: Wed, 4 Aug 2004 21:40:14 +0200 (CEST)
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Any way of knowing a packet's been defragmented
+Date: Wed, 4 Aug 2004 22:54:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0408042137370.18805-100000@filer.marasystems.com>
-References: <200408041619.SAA09183@mail.nexusat.it>
+Message-ID: <200408042254.41978.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "'Netfilter Mailinglist'" <netfilter@lists.netfilter.org>,
-   "'Netfilter Development Mailinglist'" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: bridge <bridge@osdl.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Giovanni Costagliola <giovanni.costagliola@nexusat.it>
-In-Reply-To: <200408041619.SAA09183@mail.nexusat.it>
+To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,32 +21,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 4 Aug 2004, Giovanni Costagliola wrote:
+Hello,
 
-> Q1: Does iptables allow a state-balancing? Or it simple span the packets on
-> the range of IPs? (I further guess: Has it any reasonable sense?)
+Due to a recent change in the bridge code, we now need a way of knowing if
+a packet has been defragmented. The bridge code now checks on the packet
+size and drops packets that are too big for the output port. Defragmented
+packets will get refragmented later, so they shouldn't be dropped.
+I've been reading the defragmentation code and can't find an easy way of
+knowing if a packet has been defragmented.
+It's easy to check for a changed size of the skb of course, but a mangle
+target could be responsible for a changed size too, probably.
+So, my question: is there currently a fast way to know this?
+If not, would the netfilter core team oppose to adding a
+NFC_DEFRAGMENTED flag for the nf_cache field of the skb, which is set
+by the defragmentation code?
 
-iptables does not have any reasonable sense for load balancing. It is not 
-what it is designed for.
+To be more concrete, I've attached the proposed addition below.
 
-> Q2: What happens in the case a target IPs doesn't respond yet? In other
-> words Is iptables able to recognize an host failure?
+cheers,
+Bart
 
-Not the job of iptables, but there is plenty of other software doing this.
-
-> Q3: Provided my needs, and supposing I'll receive negative answers, does
-> exists some free/gpled solution feasible to me
-
-For the low-level load balancing look into Linux Virtual Server / IPVS. 
-Standard part of the Linux kernel. For the host monitoring see LVS/IPVS 
-related software (there is several good options).
-
-> Q4: Provided iptables fit positively to Q1 and Q2, does anyone experimented
-> the solution? Any feedback to the regard?
-
-Have played with implementing NAT based load balancing ontop of 
-netfilter NAT. It is technically doable but is missing some small pieces 
-of accounting to make it work in a nice manner.
-
-Regards
-Henrik
+--- linux-2.6.8-rc2-bk9/include/linux/netfilter.h.old	2004-08-04 22:46:45.000000000 +0200
++++ linux-2.6.8-rc2-bk9/include/linux/netfilter.h	2004-08-04 22:47:49.000000000 +0200
+@@ -24,6 +24,7 @@
+    <= 0x2000 is used for protocol-flags. */
+ #define NFC_UNKNOWN 0x4000
+ #define NFC_ALTERED 0x8000
++#define NFC_DEFRAGMENTED 0x10000
+ 
+ #ifdef __KERNEL__
+ #include <linux/config.h>
+--- linux-2.6.8-rc2-bk9/net/ipv4/netfilter/ip_conntrack_core.c.old	2004-08-04 22:46:32.000000000 +0200
++++ linux-2.6.8-rc2-bk9/net/ipv4/netfilter/ip_conntrack_core.c	2004-08-04 22:48:20.000000000 +0200
+@@ -1212,7 +1212,7 @@ ip_ct_gather_frags(struct sk_buff *skb)
+ 	}
+ 
+ 	ip_send_check(skb->nh.iph);
+-	skb->nfcache |= NFC_ALTERED;
++	skb->nfcache |= NFC_ALTERED | NFC_DEFRAGMENTED;
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 	/* Packet path as if nothing had happened. */
+ 	skb->nf_debug = olddebug;
