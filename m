@@ -1,16 +1,13 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: Trouble with PPTP
-Date: Thu, 16 Oct 2003 09:06:18 -0700
+From: Ned Ren <nedren@yahoo.com>
+Subject: IS THIS A BUG? (ip_conntrack_core.c)
+Date: Thu, 16 Oct 2003 18:52:03 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031016090618.A8133@ns1.theoesters.com>
-References: <000c01c39322$c9fbcf40$01d2a8c0@adm.ae.wroc.pl>
+Message-ID: <20031017015203.4800.qmail@web80510.mail.yahoo.com>
+Reply-To: nedren@yahoo.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andrzej Kozak <kozak@manager.ae.wroc.pl>
-Content-Disposition: inline
-In-Reply-To: <000c01c39322$c9fbcf40$01d2a8c0@adm.ae.wroc.pl>; from kozak@manager.ae.wroc.pl on Wed, Oct 15, 2003 at 03:46:49PM +0200
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +18,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Rebuild iptables userspace using the patched kernel for the headers.
+Hi,
+ 
+Maybe I'm not seeing deep enough, or maybe this is a
+bug? Could someone explain this code to me pls? This
+code is in all kernel versions.
+ 
+"ip_conntrack_core.c"
+static int early_drop(struct list_head *chain)
+{
+ ......
 
-Phil Oester
+ if (del_timer(&h->ctrack->timeout)) {
+  death_by_timeout((unsigned long)h->ctrack); <====
+  dropped = 1;
+ }
+ ip_conntrack_put(h->ctrack); <==== ????
+ return dropped;
+}
 
-On Wed, Oct 15, 2003 at 03:46:49PM +0200, Andrzej Kozak wrote:
-> Hello!
-> When I patched my 2.4.22 kernel with pptp-conntrack-nat -DNAT and -SNAT is broken if I use iptables with -t nat
-> I get message: iptables: Invalid argument
-> Iptables v. 1.2.8
-> I need establish connect from my security network to outside VPN server.
-> 
-> best regards
-> 
-> Andrew Kozak
+At the end of death_by_timeout(), there is already an
+ip_conntrack_put(contrack). Is this double freeing
+here? Probably this is not causing any problems, but
+is this a bug? 
+
+And same thing in ip_ct_selective_cleanup().
+
+
+Thank you!!
+
+Ned
