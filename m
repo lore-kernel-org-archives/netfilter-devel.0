@@ -1,46 +1,42 @@
-From: Euan de Kock <euan@gekko.co.zw>
-Subject: libiptc - Final Clarification
-Date: Wed, 08 Oct 2003 12:18:38 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F83E47E.5060207@gekko.co.zw>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: 2.6 IPSEC + SNAT
+Date: Wed, 8 Oct 2003 22:56:06 +1000
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20031008125606.GA31685@gondor.apana.org.au>
+References: <20031001121648.GA8755@gondor.apana.org.au> <200310071251.QAA32679@yakov.inr.ac.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@redhat.com, jmorris@redhat.com, linux-net@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org
+Return-path: <linux-net-owner@vger.kernel.org>
+To: kuznet@ms2.inr.ac.ru
+Content-Disposition: inline
+In-Reply-To: <200310071251.QAA32679@yakov.inr.ac.ru>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have just read through the last years worth of archives, trying to 
-find info on using libiptc as an API for developing an app.
+On Tue, Oct 07, 2003 at 04:51:22PM +0400, kuznet@ms2.inr.ac.ru wrote:
+> 
+> I thought about this (ages ago, so this can be stale)
+> The verdict was that self-consistent picture is possible only
+> when NAT rules are integral part of SPD. It does not look like
+> a stimulating idea. :-)
 
- From what I have found...
+That's very scary indeed :)
 
-libiptc is NOT intended to be used as an API, but is for internal use only.
+Hmm you've just given me another reason to strengthen the policy
+check :) If two or more disjoint real addresses are SNATed
+into one address before entering an IPSEC tunnel, then the SA
+selectors cannot protect us at all if it has to use real addresses.
 
-In every archive for this year (and probably every other year), people 
-are trying to use libiptc as an API, some succesfully, but most not.
+> I do not understand this. In this case IPsec is to be applied to _translated_
+> packet, is not it? Am I wrong? If I am not wrong, there is no place to add
+> an additional hook.
 
-So now my comments...
+You're right.  There is no place for it currently.
 
-It is clear that the demand for such an API is high, and the slew of 
-apps based around a netfilter API would greatly benefit the entire 
-community.
-
-I would like to request that such an API be included in the development 
-framework of netfilter. I understand that this will require some work, 
-but once done, the standardisation of the API will also simplify future 
-enhancements to the core system too.
-
-Please can I elicit some comments on this.
-
-Many Thanks,
-
-Euan de Kock, Ruwa, Zimbabwe.
+Cheers,
+-- 
+Debian GNU/Linux 3.0 is out! ( http://www.debian.org/ )
+Email:  Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
