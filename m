@@ -1,8 +1,8 @@
-From: jamal <hadi@cyberus.ca>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: 29 Sep 2004 10:23:59 -0400
+Date: Wed, 29 Sep 2004 17:02:55 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1096467839.1021.59.camel@jzny.localdomain>
+Message-ID: <Pine.LNX.4.61.0409291659310.13941@filer.marasystems.com>
 References: <1092407190.2402.120.camel@nienna.balabit>
 	<1095993739.1044.9.camel@jzny.localdomain>
 	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
@@ -21,18 +21,15 @@ References: <1092407190.2402.120.camel@nienna.balabit>
 	<Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
 	<1096424069.1046.84.camel@jzny.localdomain>
 	<Pine.LNX.4.61.0409291000490.11661@filer.marasystems.com>
-	<10964
-Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: Harald Welte <laforge@netfilter.org>,
 	netfilter-devel <netfilter-devel@lists.netfilter.org>,
 	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
 	KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0409291527520.13941@filer.marasystems.com>
+To: jamal <hadi@cyberus.ca>
+In-Reply-To: <1096467839.1021.59.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -43,48 +40,31 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2004-09-29 at 09:41, Henrik Nordstrom wrote:
-> On Wed, 29 Sep 2004, Jamal Hadi Salim wrote:
+On Wed, 29 Sep 2004, jamal wrote:
 
-[..]
+> Where this becomes an issue is if your responses come back faster than
+> you can synchronize state. If you are going across big bad internet
+> where latencies start in the ms range, then the issue becomes less
+> challenging.
 
-> if you want to have an active-active firewall using unicast distribution 
-> then your network (not the firewall) must somehow ensure that traffic in 
-> both directions goes via the correct firewall with no asymmetric data 
-> flows.
+Problem is you don't really know.
 
-Lets assume symetry.
-My goal is to make _all_ firewalls in the cluster the "correct" firewall
+If it was the case that when you received the reply packet you could know 
+the state of this has not yet been syncronized then no problem, but before 
+the state has been syncronized you don't know it is reply traffic.
 
-> >> Your distribution must be 100% equal on
-> >> both sides.
-> >
-> > Given above assumption, why do i need this?
-> 
-> because syncronosation of the firewalls is not instantaneous or atomic. 
-> There is a delay before a state change on one firewall is replicated to 
-> all other firewalls.
+> I think what you describe above needs to be done in the case of response
+> latency being lower than update latency. i.e its not a bad option. It
+> will slow down the setup time but thats only for the firts new packet.
 
-Where this becomes an issue is if your responses come back faster than
-you can synchronize state. If you are going across big bad internet
-where latencies start in the ms range, then the issue becomes less
-challenging. 
+Only if you accept sloppy connection tracking without TCP windows etc. 
+With netfilter conntrack moving to full tracking it is no longer the case 
+and you will need relatively frequent syncronizations during the session, 
+not only the first packet.
 
-> > I was assuming all along we have agreed that all necessary state would
-> > be synced. Yes, this may generate a lot of traffic, but it does seem to
-> > be neccessary evil.
-> 
-> Syncing state in absolute realtime is in my opinion not an option. This 
-> would require delaying forwarding of every packet until the state change 
-> inflicted by this packet has been fully replicated to all nodes in the 
-> cluster, which in terms of performance is some orders of magnitude worse 
-> than using the multicast approach to have the traffic distributed among 
-> the nodes.
+> The impact on susbequent packets in the flow should be low.
 
-I think what you describe above needs to be done in the case of response
-latency being lower than update latency. i.e its not a bad option. It
-will slow down the setup time but thats only for the firts new packet.
-The impact on susbequent packets in the flow should be low.
+Hopefully.
 
-cheers,
-jamal
+Regards
+Henrik
