@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: bug: -j REDIRECT broken with bridge in 2.6.0-test3
-Date: Tue, 7 Oct 2003 12:00:15 +0200
+Subject: Re: raw patch = kernel panic :(
+Date: Tue, 7 Oct 2003 12:52:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031007100015.GO18246@sunbeam.de.gnumonks.org>
-References: <3F3AEDEF.2000108@metavize.com> <3F4A9AA7.2070604@metavize.com> <3F81E91F.5090304@metavize.com>
+Message-ID: <20031007105237.GR18246@sunbeam.de.gnumonks.org>
+References: <20031006142214.GM5758@sunbeam.de.gnumonks.org> <Pine.LNX.4.33.0310071154220.17604-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yQDbd2FCF2Yhw41T"
+	protocol="application/pgp-signature"; boundary="Zbynv6TNPa9FrOf6"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Dirk Morris <dmorris@metavize.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Content-Disposition: inline
-In-Reply-To: <3F81E91F.5090304@metavize.com>
+In-Reply-To: <Pine.LNX.4.33.0310071154220.17604-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,26 +23,26 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---yQDbd2FCF2Yhw41T
+--Zbynv6TNPa9FrOf6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 06, 2003 at 03:13:51PM -0700, Dirk Morris wrote:
-> This is still present in 2.6.0-test6.
-> I'm more than willing to help find this issue if someone gives me a=20
-> pointer to go on.
-> Narrowing it down to the changes in kernel versions is impossible due to
-> the fact that the bridge wasnt working at all for quite a while.
+On Tue, Oct 07, 2003 at 12:12:12PM +0200, Jozsef Kadlecsik wrote:
+> > So I don't really see the need for raw.patch having a userspace part at
+> > all.
+> >
+> > Did I miss something?
+>=20
+> No, then there's no problem. I did not think of simply releasing a new
+> iptables snapshot.
 
-I'm really sorry, but I don't have any 'easy' instructions on how to
-hunt this down.  I've now added it to my TODO list, but I'm not sure
-when I'll be able to dig into that problem.
+I'm about to release 1.2.9 anyway, so I'll add the userspace part of the
+raw patch now.
 
-Could you _pleae_ open a bugzilla.netfilter.org bug about this (if there
-is none yet) to make sure this issue doesn't get lost?
+> Best regards,
+> Jozsef
 
-> -dirk morris
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -53,16 +53,16 @@ is none yet) to make sure this issue doesn't get lost?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---yQDbd2FCF2Yhw41T
+--Zbynv6TNPa9FrOf6
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/go6vXaXGVTD0i/8RAggcAJ0WNGnXiufodY0JSQ/sy3+HniBBVwCgkHNs
-PrajsXxUxF78afcba0nbDws=
-=L1Cx
+iD8DBQE/gpr1XaXGVTD0i/8RAgH6AJ9h/4/xE7LGpUD2ed0vU2GnPVHd8QCeN8Hj
+G2BN34WIJlpDhiRTIHeqTrM=
+=6fds
 -----END PGP SIGNATURE-----
 
---yQDbd2FCF2Yhw41T--
+--Zbynv6TNPa9FrOf6--
