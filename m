@@ -1,16 +1,12 @@
-From: "Jim Gifford" <maillist@jg555.com>
-Subject: Re: Bug-Report 3-19-03 patch-o-matic-ng
-Date: Fri, 2 Apr 2004 11:52:59 -0800
+From: zhi wang <pangy2004@yahoo.com>
+Subject: Re: find_appropriate_src() BUG also exist in 2.4.24
+Date: Fri, 2 Apr 2004 18:01:19 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <030901c418ec$19f3c0d0$d100a8c0@W2RZ8L4S02>
-References: <Pine.LNX.4.33.0403221004140.24116-100000@blackhole.kfki.hu>
+Message-ID: <20040403020119.1945.qmail@web41707.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Developer" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
+To: Netfilter Develop <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,89 +17,80 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Update on the problem, it occurs more then the example I gave in the
-original email(original problem included)
+>Still consider  a simple SNAT, without CONFIG_IP_NF_NAT_LOCAL selected 
+>
+>[ Client A ] -----> [ Box B ] ----> [ Server C ]
+>iptalbes -A POSTROUTING -t nat -p udp  -j SNAT --to-source B:2000-3000
 
-The problem is that patch-o-matic is not check the Already applied line
-before attempting to patch.
+>when two udp connection built:
+>ct1: ORIG A.1---> C.1   REPLY  C.1 ---> B.2000
+>ct2: ORIG B.2000 ---> C.2 REPLY C.2 ---> B.2000
 
-Here is the newer version of the problem
-First of all let me walk you through the steps I used to create this
-problem.
+>then the third will hang on the system
 
-I apply the nf-log patch. It applies correctly.
-I apply the TRACE patch. It bombs with the error apply_dependencies: unable
-to apply dependent nf-log: cannot apply (22 rejects out of 24 hunks)
+>B.2000 ---> C.1
 
-Here is a complete screen of the error.
+After some email communication with wanght@legend, and cleared my own
+misunderstander, I agree that this is a bug. The following steps can faithfully
+hang the linux 2.4.24 machine.
+     [1.1.1.2]<--->[1.1.1.1  2.2.2.1] <--->[2.2.2.2]
+     iptalbes -A POSTROUTING -t nat -j SNAT --to-source 2.2.2.1:2000-3000
 
-Welcome to Patch-o-matic (1.15)!
+1. Deselect the CONFIG_IP_NF_NAT_LOCAL.
+   set up the route:
+   at [1.1.1.2]: ip route add 2.2.2.0/24 via 1.1.1.1
+   at [2.2.2.2]: ip route add 1.1.1.0/24 via 2.2.2.1
+   at [1.1.1.1]: echo 1 > /proc/sys/net/ipv4/ip_forward
 
-Kernel:         /usr/src/linux
-Iptables:       /usr/src/iptables
+2. at [2.2.2.2] execute:
+   nc -l -p 1023
+   nc -l -p 1024
 
-Each patch is a new feature: many have minimal impact, some do not.
-Almost every one has bugs, so don't apply what you don't need!
--------------------------------------------------------
-Already applied: init_conntrack-optimize ipt_helper-invert-fix nf-log
-proc-no-internal-targets NETMAP SAME TTL connlimit fuzzy iprange nth sctp
-CLASSIFY IPMARK
+3. at [1.1.1.2] execute:
+   nc -n -p 1023 2.2.2.2 1023
+   at [1.1.1.1], assume port 2000 is used. that is, there is a conntrack:
+             {1.1.1.2:1023-->2.2.2.2:1023, 2.2.2.2:1023-->2.2.2.1:2000}
 
-Testing TRACE... not applied
-The TRACE patch:
-   Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-   Status: Testing.
+4. at [1.1.1.1] execute:
+   nc -n -s 2.2.2.1 -p 2000 2.2.2.2 1024
+   then another conntrack will be created:
+             {2.2.2.1:2000-->2.2.2.2:1024,  2.2.2.2:1024-->2.2.2.1:2000}
 
-
-   This patch adds the TRACE target to the raw table.
-
-   The TRACE target can be used to trace how the packet "flows trough"
-   your tables and rules. When a packet marked with the TRACE target
-   matches any rule, the system logs the packet with the following
-   prefix:
-
-        TRACE: tablename/chainname/rulenum packet
-
-   BEWARE: if you apply this patch, you loose backward compatibility
-   with your current iptables binary, so you *must* recompile
-   the userspace program as well.
-
------------------------------------------------------------------
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-apply_dependencies: unable to apply dependent nf-log: cannot apply (22
-rejects out of 24 hunks)
------------------------------------------------------------------
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?]
+5. at [1.1.1.1] again execute:
+   nc -n -s 2.2.2.1 -p 2000 2.2.2.2 1023
+   Then NF will try to create a conntrack with:
+             {2.2.2.1:2000-->2.2.2.2:1023, 2.2.2.2:1023-->2.2.2.1:2000}
+   This will trigger the dead loop.
 
 
-The original problem was
+Why CONFIG_IP_NF_NAT_LOCAL disabled:
+   When CONFIG_IP_NF_NAT_LOCAL is enabled, a null binding will be allocated at
+LOCAL_OUT hook. While a LOCAL_OUT hook is consided for DNAT, nat will not call
+find_appropriate_src, and it will try to do implicit source NAT. So, the
+conntrack will be change to something like {2.2.2.1:2000-->2.2.2.2:1023,
+2.2.2.2:1023-->2.2.2.1:2001} before the POSTROUTING hook is called, dead loop
+will NOT occur. I believe this DNAT identity is the power of
+CONFIG_IP_NF_NAT_LOCAL. It covers this and the LIST_DELETE bug. Because it is
+consided as DNAT, the PREROUTING hook will NOT call ip_nat_rule_find in
+LIST_DELETE bug setup. 
 
- Welcome to Patch-o-matic (1.15)!
+Current 2.6 kernel has fixed this bug. It should be used in current 2.4 kernel
+also.
 
- Kernel:         /usr/src/linux
- Iptables:       /usr/src/iptables
+Some thoughts:
+The purpose of find_appropriate_src as stated by the comment in the source
+code, "If this srcip/proto/src-proto-part is currently mapped,and that same
+mapping gives a unique tuple within the given range, use that". I am just
+wondering why we can't be the first to use that mapping, if it is valid within
+the given range?
 
- Each patch is a new feature: many have minimal impact, some do not.
- Almost every one has bugs, so don't apply what you don't need!
- -------------------------------------------------------
- Already applied: init_conntrack-optimize ipt_helper-invert-fix nf-log
-NETMAP
- SAME TTL connlimit fuzzy iprange mport nth sctp CLASSIFY
- iptables-loopcheck-speedup netfilter-docbook
 
- Testing tcp-window-tracking... not applied
- The tcp-window-tracking patch:
-    Author: Jozsef Kadlecsik
-   Status: proven to be quite stable, but still experimental
+=====
+--
+Regards
+Wang, zhi
 
- Now for the error message
- -----------------------------------------------------------------
- Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
- present 'ctstat' conflicts with to-be-installed 'tcp-window-tracking'
- -----------------------------------------------------------------
- Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
- apply_dependencies: unable to apply dependent nf-log: cannot apply (22
- rejects out of 24 hunks)
- -----------------------------------------------------------------
-
-As you notice ctstat is not installed and nf-log is installed.
+__________________________________
+Do you Yahoo!?
+Yahoo! Small Business $15K Web Design Giveaway 
+http://promotions.yahoo.com/design_giveaway/
