@@ -1,14 +1,15 @@
-From: Oskar Andreasson <blueflux@koffein.net>
-Subject: [announce] upcoming iptables tutorial 1.2.0, online and (possibly) bookshape
-Date: Wed, 31 Mar 2004 17:01:01 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Packet Fragementation
+Date: Wed, 31 Mar 2004 17:08:58 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040331170101.B26160@www.haringstad.com>
+Message-ID: <Pine.LNX.4.44.0403311708100.21410-100000@filer.marasystems.com>
+References: <20040331140404.16955.qmail@web13907.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org,
-	netfilter-devel@lists.netfilter.org, lartc@mailman.ds9a.nl
-Content-Disposition: inline
+To: Scott MacKay <scottmackay@yahoo.com>
+In-Reply-To: <20040331140404.16955.qmail@web13907.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,28 +20,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Everyone,
+On Wed, 31 Mar 2004, Scott MacKay wrote:
 
-It's been quite some time since you last heard from me but... it's about time I make a minor announcement.
+> You are the god!!!! TY so much :)
+> Actually, NF_IP_PRI_RAW is -300 (at least 2.4.25
+> kernel patch) , so I am golden.
 
-Before I say anything else, I would like to let people know that I am contemplating printing a book version of the new version of the tutorial. If you are interested, let me know at http://iptables-tutorial.frozentux.net/interest.php. If the turnout is large enough, I will make everything I can to make a printed series. It would be much appreciated if people could spread this around, so to make it known. 
+Just a copy-paste error on my part..
 
-I have by now added 5 chapters to the iptables tutorial, updated most parts so that it covers 2.4 and 2.6 kernels, and iptables 1.2.9, fixed a lot of old bugs and problems, split down chapters to get a more uniform size on all chapters, et cetera. 
+> Ah good.  So it sounds like I can add in my packet
+> altering code in mangle/POST_ROUTING (where I have
+> unfragmented packets ready to head out) and then my
+> packet de-altering code in raw/PRE_ROUTING (where I
+> will have de-fragmented packets that have not yet been
+> examined for session/conn track yet) and I will be a
+> Happy Camper.
 
-The new chapters are these:
+>From what I can tell this should work yes.
 
-* tcp/ip introduction
-* ip filtering introduction
-* nat introduction
-* debugging chapter
-* graphical user interfaces
-
-it is also updated in these areas
-
-* Up to date coverage of all targets/matches in 2.6.4 kernel and 2.4.24
-* Additional installation notes on different distributions.
-* and much more...
-
-For a complete table of contents of the current version on the writing desk, look at http://iptables-tutorial.frozentux.net/iptables-tutorial-ng-toc.txt.
-
-Thank you!
+Regards
+Henrik
