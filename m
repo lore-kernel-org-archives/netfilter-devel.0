@@ -1,11 +1,11 @@
-From: Rodrigo Severo <rodrigo.lists@fabricadeideias.com>
-Subject: Re: iptables target conflict?  ROUTE and MASQUERADE
-Date: Tue, 16 Dec 2003 10:13:29 -0200
+From: Juha Heljoranta <juha.heljoranta@evitech.fi>
+Subject: Re: iptables target conflict?  ROUTE and MASQUERADE [off-topic]
+Date: 16 Dec 2003 16:23:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FDEF6E9.8060401@fabricadeideias.com>
+Message-ID: <1071584637.1714.52.camel@jazz>
 References: <BAY13-F105p0oKHV3SF000296b7@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Big5
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -20,49 +20,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Wu Nick wrote:
+On Tue, 2003-12-16 at 10:55, Wu Nick wrote:
+> However, 
+> I've 
+> got several pppoe connections at the same time to connect the Internet.  I 
+> dial 
+> up several pppoe connections at the same time, and I'm using ROUTE to 
+> redirect 
+> packets to different ppp interfaces.  But this will defeat the design of 
+> MASQUERADE. That is, I'd like to send packets out from different ppp 
+> interfaces 
+> and their source IP addresses needed to be changed to the IP addess of the 
+> specific ppp interface.  Do you have any idea about how to do?
 
-> That is, I'd like to send packets out from different ppp interfaces
-> and their source IP addresses needed to be changed to the IP addess of
-> the specific ppp interface. Do you have any idea about how to do?
+Don't know what you are up to but it sounds like "load balancing" to me.
+I have three pppoe connections "balancing" traffic from intranet to
+internet.
 
-I have been doing this kind of thing for 2 pppoe connections with the
-following setup:
+I have to use two computers to do the trick:
+   intranet --> computer 1 --> computer 2 --> internet
 
-In PREROUTING, table mangle, I mark the packets for each ppp:
-iptables -A PREROUTING -t mangle -j MARK --set-mark 0x1 -p tcp --dport 80-82
-iptables -A PREROUTING -t mangle -j MARK --set-mark 0x2 -p tcp --dport 25
+I have several computers in my intranet (x.x.0.0). Computer 1 does
+   -t nat -A POSTROUTING -o ethx  -s x.x.0.0 \
+     -j SNAT --to-source  x.x.1.20-x.x.1.22
+That is, gives random ip for outgoing connection (this is the
+"balancing"). Computer 2 does
+   -t nat -A POSTROUTING -o ppp0 -s x.x.1.20 -j  MASQUERADE
+   -t nat -A POSTROUTING -o ppp1 -s x.x.1.21 -j  MASQUERADE
+   -t nat -A POSTROUTING -o ppp2 -s x.x.1.22 -j  MASQUERADE
+and
+   ip rule add from x.x.1.20 table pppoe0
+   ip rule add from x.x.1.21 table pppoe1
+   ip rule add from x.x.1.22 table pppoe2
 
-I create routing rules (not routing entries) that will effectivelly
-separate the packets for each pppoe connection:
-ip rule add fwmark 1 pref 110 table adsl1
-ip rule add fwmark 2 pref 120 table adsl2
+Problems with the solution: 1/3 rd of the passive ftp connection
+attempts fail. Masquerade will broke if ip changes for any ppp (this
+might be distribution specific problem).
 
-Finally, in the POSTROUTING, table nat, I SNAT the packets for each
-ppppoe connection:
-iptables -A POSTROUTING -t nat -o ppp0 -j SNAT --to-source
-<ppp0_valid_address>
-iptables -A POSTROUTING -t nat -o ppp1 -j SNAT --to-source
-<ppp1_valid_address>
+There are probably far more elegant solutions. Using singe computer to
+do the job wasn't possible at the time I build it. Nowadays, dunno.
 
-A few comments:
-
-I created this setup more than 2 years ago, before the CONFIG_IP_NF_TARGET_ROUTE and the CONFIG_IP_NF_NAT_LOCAL existed. I'm not sure that nowadays this is the best approach. It surelly was the only one that worked for me in 2000.
-
-Using SNAT instead of MASQUERADE means that I have to recreate the nat rules each time a pppoe connection goes up. I had to do this because MASQUERADE wouldn't work on locally generated connections, only SNAT.
-
-
-I hope all this is of any help,
-
-Rodrigo Severo
-
--- 
-----------------------------------------------------
-Rodrigo Severo
-Fa'brica de Ide'ias
-Fone: +55(61)321 1357
-Fax: +55(61)223 1712
-SBS - Quadra 2 - Ed. Empire Center - Sala 1301
-Brasi'lia/DF - Brasil
-CEP: 70.070-904
-----------------------------------------------------
+Regards,
+Juha Heljoranta
+juha.heljoranta-AT-evitech.fi
