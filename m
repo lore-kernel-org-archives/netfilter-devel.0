@@ -1,85 +1,58 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: Announce: NetKeeper Firewall For Linux
-Date: 17 Nov 2003 09:21:58 -0500
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <1069076627.1075.15.camel@jzny.localdomain>
-References: <1067285612.552.9.camel@aphrodite.olympus.net>
-	 <20031028014223.129933be.davem@redhat.com>
-	 <1067335655.10628.7.camel@rade7.s.cs.auc.dk>
-	 <1068001237.1064.31.camel@jzny.localdomain>
-	 <1068046114.31636.92.camel@rade7.s.cs.auc.dk>
-	 <1068089345.1020.17.camel@jzny.localdomain>
-	 <1068114376.1532.115.camel@rade7.s.cs.auc.dk>
-	 <1068211670.1031.49.camel@jzny.localdomain>  <3FAE9B9B.60007@cs.auc.dk>
-Reply-To: hadi@cyberus.ca
+From: William Stearns <wstearns@pobox.com>
+Subject: Re: Documentation for the u32 module
+Date: Mon, 17 Nov 2003 09:43:17 -0500 (EST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.44.0311170940310.22726-100000@sparrow>
+References: <20031117085601.GD22919@sunbeam.de.gnumonks.org>
+Reply-To: William Stearns <wstearns@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Emmanuel Fleury <fleury@cs.auc.dk>, "David S. Miller" <davem@redhat.com>,
-        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Mikkel Christiansen <mixxel@cs.auc.dk>
-In-Reply-To: <3FAE9B9B.60007@cs.auc.dk>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Fabrice Marie <fabrice@netfilter.org>,
+   ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031117085601.GD22919@sunbeam.de.gnumonks.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Good day, Harald, all,
+[cc list trimmed]
 
-On Sun, 2003-11-09 at 14:55, Mikkel Christiansen wrote:
+On Mon, 17 Nov 2003, Harald Welte wrote:
 
-> >
-> Integrate your classifer like any other tc
-> >classifier and then you dont have to look at my code unless you really
-> >want to.  
-> >
+> On Sat, Nov 15, 2003 at 05:06:38PM -0500, William Stearns wrote:
+> > > Would you be willing to merge your u32 documentation with that?
+> > 
+> > 	Harald, I'd be honored to!
 > 
-> If we integrate it would mean a new/alternative interface
-> to tc where you compile the filter/configuratoin before
-> uploading.
+> ;) don't exaggerate.
 
-Why cant you use the same interface that exists today - the one that is
-used to load new filter rules?
+	I wasn't.  *sincere smile* It's an honor to have even my simplest
+patches used in Linux.
 
->  We believe this is a good thing since it allows
-> admins to (syntax) check the filter before inserting it.
-
-Sure. It will be nice to have something like that in user space.
-
-> I believe the guys from shorewall sees this as a missing
-> feature of iptables.
+> > http://www.stearns.org/patches/netfilter-extensions-HOWTO.1.31.sgml
 > 
-> Would you consider such an interface for tc good are bad?
-> 
+> ok, i've merged your patch to our CVS repository.  Will do a homepage
+> update soon, so it becomes visible to the public.
 
-Refer to my comment above: I dont think you need anything new. Look at a
-simple classifier like fwmark and comment if you need something new.
+	Thanks so much for doing that.
+	Cheers,
+	- Bill
 
-> >Isnt the state database another classifier and therefore you will be
-> >faced with the same challenges for it? 
-> >I dont think you wuill get a free ride putting the state lookups
-> >somewhere else.
-> >
-> current scheme cant handle dynamic rules - and it will
-> be a while (if ever) before it can.
-> 
-
-Please think about that problem - otherwise you get an C in your course
-work from me ;-> (F would be too harsh ;->)
-
-> >
-> >Couldnt you, knowing the rules already existing check for breakage in
-> >user space?
-> >
-> no - if someone decided to write their own "client/compiler" in
-> userspace they could potentially produce a broken IDD - that
-> could crash the kernel!
-> 
-
-I think it is nice to have a feature that does the verification in
-user space before downloading.  
-I didnt understand what you mean that someone else writes their own
-"client/compiler". Arent you the one in charge of this compiler?
-Why would you allow other people to write this compiler?
-
-cheers,
-jamal
+---------------------------------------------------------------------------
+	"The Arkansas legislature passed a law that states that the
+Arkansas River can rise no higher than to the Main Street bridge in
+Little Rock."
+(Courtesy of slashdot.org)
+--------------------------------------------------------------------------
+William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
+rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
+Linux articles at:                         http://www.opensourcedigest.com
+--------------------------------------------------------------------------
