@@ -1,16 +1,18 @@
-From: Filip Sneppe <filip.sneppe@cronos.be>
-Subject: Re: mangle MSS via tcp_manip_pkt() in ip_nat_proto_tcp.c [patch]
-Date: 18 Jul 2003 19:16:18 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] [RESEND] ROUTE target
+Date: 20 Jul 2003 20:15:10 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1058548579.616.2.camel@sloth>
-References: <BE229ADC976AC343830DFF9BC159FAEB011E46AA@KUEXCHANGE.kvhinternal.kvhi>
+Message-ID: <1058724909.8305.307.camel@tux.rsn.bth.se>
+References: <1056465726.2457.30.camel@descartes>
+	 <1058517461.25182.139.camel@descartes>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Michael Glaum <mglaum@kvh.com>
-In-Reply-To: <BE229ADC976AC343830DFF9BC159FAEB011E46AA@KUEXCHANGE.kvhinternal.kvhi>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+In-Reply-To: <1058517461.25182.139.camel@descartes>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +23,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2003-07-18 at 16:57, Michael Glaum wrote:
-[...] 
-> I tried several things, e.g. pathMTU, etc but in view of severe time
-> constraints I decided to HACK tcp_manip_pkt() in ip_nat_proto_tcp.c
-> so that when it does source and destination address translation it also
-> drops the MSS on outgoing and incoming packets to be below 1360. This
-> appears to work. I didn't even bother to check if the packets had
-> tcphdr->syn ==1 set.
-> 
-> Please advise if there is a more elegant way to do this!
+On Fri, 2003-07-18 at 10:37, Cedric de Launois wrote:
+> This is a resend of the ROUTE patch I sent nearly one month ago.
+> Please apply or give me comments.
+>=20
+> Cedric
+>=20
+> Le mar 24/06/2003 =E0 16:42, Cedric de Launois a =E9crit :
+> > Hi !
+> >=20
+> > Here is a new version of the ROUTE target. Following discussions,
+> > it seems that there is a need to make the ROUTE target also a
+> > non-final target. So I added a new option --force. When not using
+> > this option, the behaviour is to set the route and continue traversal.
+> > When using this option, the behaviour is as before, i.e. the packet
+> > is sent and the packet is stolen. This remains useful when we have
+> > to force the use of an interface (rather unfrequent).
 
-Hi Michael,
+My concern is that even though this target isn't included in the kernel
+it's a bad idea to change the current behaviour if it can be avoidable.
+I mean this target has existed in pom for quite some time (just over 1
+year) and if the behaviour changes it might make for some surprises for
+its users. Sure the options has changed names over time but that's the
+sort of change that users notice quite easily. A subtle change that
+suddenly continues traversing rules might lead to weird things.
 
-The easiest way to achieve your goal is to use the TCPMSS target
-(that exists in the standard kernel for a long time now) to set
-the MSS of the packets going out via the satellite link.
+It's your target but I'd like you to think about this and maybe rename
+the new option and leave the default as is.
 
-Regards,
-Filip
+--=20
+/Martin
