@@ -1,12 +1,14 @@
-From: zhi wang <pangy2004@yahoo.com>
-Subject: LIST_DELETE bug tracked
-Date: Wed, 31 Mar 2004 06:58:33 -0800 (PST)
+From: Oskar Andreasson <blueflux@koffein.net>
+Subject: [announce] upcoming iptables tutorial 1.2.0, online and (possibly) bookshape
+Date: Wed, 31 Mar 2004 17:01:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040331145833.8569.qmail@web41704.mail.yahoo.com>
+Message-ID: <20040331170101.B26160@www.haringstad.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Develop <netfilter-devel@lists.netfilter.org>
+To: netfilter@lists.netfilter.org,
+	netfilter-devel@lists.netfilter.org, lartc@mailman.ds9a.nl
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,87 +19,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In a post by KOVACS Krisztian,
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014584.html,
-he declared that the LIST_DELETE bug can be reliably
-reproduced, which is first reported by Jonathan
-Cooper. The bug is really  responsive :). I reproduced
-it by executing the following commands at my host
-10.0.0.2:
-1. iptables -t nat -A PREROUTING -s 10.0.0.0/24 -p tcp
---dport 80 -j REDIRECT --to-port 8080
-2. nc -l -p 8080
-3. nc -n 10.0.0.2 80
+Hi Everyone,
 
-To make my life a litter easier, I unpluged all the
-Ethernet cables to reduce the noise.
+It's been quite some time since you last heard from me but... it's about time I make a minor announcement.
 
-The result is really interesting. Let me introduce
-some notation first.
+Before I say anything else, I would like to let people know that I am contemplating printing a book version of the new version of the tutorial. If you are interested, let me know at http://iptables-tutorial.frozentux.net/interest.php. If the turnout is large enough, I will make everything I can to make a printed series. It would be much appreciated if people could spread this around, so to make it known. 
 
-Notation: let [1] represents the PREROUTING hook of
-netfilter; [2], the LOCAL IN hook; [3], the FORWARD
-hook; [4], the POSTROUTING hook; and [5] the LOCAL OUT
-hook.
+I have by now added 5 chapters to the iptables tutorial, updated most parts so that it covers 2.4 and 2.6 kernels, and iptables 1.2.9, fixed a lot of old bugs and problems, split down chapters to get a more uniform size on all chapters, et cetera. 
 
-When "nc -n 10.0.0.2 80" is executed, client nc will
-send the packet 10.0.0.2:32768 --> 10.0.0.2:80. It
-first travles through [5], then [4]. A conntrack, call
-it CT1, is created and CONFIRMED for the packet. The
-tuples of CT1 are {Orignal 10.0.0.2:32768
--->10.0.0.2:80  REPLY 10.0.0.2:80-->10.0.0.2:32768}.
-CT1 is hashed to the buckets determined by these two
-tuples. 
+The new chapters are these:
 
-Then, the packet loops back through the loopback
-interface. This time, the packet goes through [1] and
-[2] hooks. The conntrack code is smart enough to know
-that it is related to CT1. No conntrack lookup is
-necessary. Then the redirect rule goes into effect.
-When redirected to localhost, redirect target will
-create a range (ip_nat_multi_range) of from 127.0.0.1
-to 127.0.0.1. The redirect target changes CT1's reply
-tuple to 127.0.0.1:8080-->10.0.0.2:32768. Because CT1
-is already confirmed, no confirmation takes place.
-Unfortunately, when CT1's reply tuple is changed by
-ip_conntrack_alter_reply, it's still linked into the
-bucket determined by its old tuples,{Orignal
-10.0.0.2:32768 -->10.0.0.2:80  REPLY
-10.0.0.2:80-->10.0.0.2:32768}. So, there is no way to
-find CT1 through 127.0.0.1:8080-->10.0.0.2:32768.
+* tcp/ip introduction
+* ip filtering introduction
+* nat introduction
+* debugging chapter
+* graphical user interfaces
 
-Then the packet arrives at the kernel and is delieved
-to listening nc which replies with the packet
-127.0.0.1:8080 --> 10.0.0.2:32768. This packet also
-hits [5], and [4] first. Because we can't find CT1
-through 127.0.0.1:8080-->10.0.0.2:32768, a new
-conntrack is created and confirmed, call it CT2. CT2
-has two tuples of {Orignal
-127.0.0.1:8080-->10.0.0.2:32768 -->10.0.0.2:80  REPLY
-10.0.0.2:32768-->127.0.0.1:8080}.  The packet then
-goes through [1] and [2], no redirection occurs. At
-last it is sent to client nc. 
+it is also updated in these areas
 
-Client nc replies with a RST packet which is
-successfully delieved to listening nc, and tcp_packet
-will destory CT2. 
+* Up to date coverage of all targets/matches in 2.6.4 kernel and 2.4.24
+* Additional installation notes on different distributions.
+* and much more...
 
-This is why the client nc sticks in SYN_SENT state,
-CT1 sticks in UNREPLIED state, and there are transit
-conntracks going up and down. When CT1 times out
-finally, the LIST_DELETE bug shows up.
+For a complete table of contents of the current version on the writing desk, look at http://iptables-tutorial.frozentux.net/iptables-tutorial-ng-toc.txt.
 
-Mar 31 17:37:53 ip2 kernel: clean_from_lists(ce149060)
-Mar 31 17:37:53 ip2 kernel: LIST_DELETE:
-ip_conntrack_core.c:302
-`&ct->tuplehash[IP_CT_DIR_REPLY]'(ce149084) not in
-&ip_conntrack_hash[hr].
-
-It should not be of too much difficult to fix it now.
-I am too tired to do it now, maybe some one can do it
-for us :). 
-
-__________________________________
-Do you Yahoo!?
-Yahoo! Finance Tax Center - File online. File on time.
-http://taxes.yahoo.com/filing.html
+Thank you!
