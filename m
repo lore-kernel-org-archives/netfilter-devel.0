@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] Re: Fw: Re: 2.4.22-bk2 and 2.4.23-pre1 broke routing
-Date: Sat, 30 Aug 2003 20:55:10 +0200
+Subject: Re: New logging module
+Date: Sat, 30 Aug 2003 21:04:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030830185510.GD17715@sunbeam.de.gnumonks.org>
-References: <20030829041620.15eb0796.davem@redhat.com>
+Message-ID: <20030830190453.GE17715@sunbeam.de.gnumonks.org>
+References: <200308251459.03014.mailinglists@futureware.at>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HENu/cXyPKFN4XCQ"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="HSVPcR81XVhxeM7P"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: pg@futureware.at
 Content-Disposition: inline
-In-Reply-To: <20030829041620.15eb0796.davem@redhat.com>
+In-Reply-To: <200308251459.03014.mailinglists@futureware.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +23,44 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---HENu/cXyPKFN4XCQ
-Content-Type: text/plain; charset=us-ascii
+--HSVPcR81XVhxeM7P
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 29, 2003 at 04:16:20AM -0700, David S. Miller wrote:
-> Please review...
+On Mon, Aug 25, 2003 at 02:59:02PM +0200, Philipp G=FChring wrote:
+> Hi,
+>=20
+> I developed a Netfilter module, that collects and logs the traffic of all=
+ IP=20
+> addresses of several subnets, and dumps the traffic log regulary in a sim=
+ilar=20
+> format as ipt_LOG, so that it can transparently replace the normal loggin=
+g=20
+> module.
 
-Hi Dave!
+Why did you do that?  I think it's from an architectural point of view
+the wrong choice.  ipt_ULOG was invented for the sole reason that string
+processing and parsing/interpretation of logged packets should not be
+done inside a softirq inside the kernel.  All this should be offloaded
+to userspace.
 
-The fix is correct.  However, I would like to ask you to include the
-below patch.  The only difference is that it inserts the new line=20
-3 lines above.
+and: iptables rules are not an ideal infrastructure for accounting
+anyway.
 
-Please apply, thanks.
+> It was developed to enhance the speed of our traffic analysis software, b=
+y=20
+> filtering and aggregating the packets directly in the kernel instead of t=
+he=20
+> userspace.
 
-=3D=3D=3D=3D=3D net/ipv4/netfilter/ipt_MASQUERADE.c 1.6 vs edited =3D=3D=3D=
-=3D=3D
---- 1.6/net/ipv4/netfilter/ipt_MASQUERADE.c	Tue Aug 12 11:30:12 2003
-+++ edited/net/ipv4/netfilter/ipt_MASQUERADE.c	Fri Aug 29 02:09:24 2003
-@@ -87,6 +87,7 @@
- 	key.dst =3D (*pskb)->nh.iph->daddr;
- 	key.src =3D 0; /* Unknown: that's what we're trying to establish */
- 	key.tos =3D RT_TOS((*pskb)->nh.iph->tos)|RTO_CONN;
-+	key.oif =3D 0;
- #ifdef CONFIG_IP_ROUTE_FWMARK
- 	key.fwmark =3D (*pskb)->nfmark;
- #endif
+So what you really want is a session log, similar to netflow?  This
+should be easy to implement with adding packet/byte counters to struct
+ip_conntrack.  Several people have been working on session-log systems
+based on netfilter/iptables.
+
+> Many greetings,
+> Philipp G=FChring
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,16 +72,16 @@ Please apply, thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---HENu/cXyPKFN4XCQ
+--HSVPcR81XVhxeM7P
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/UPMOXaXGVTD0i/8RAguBAJ9HNysPxXsxp8U5/T5XWP1h/9W5WgCgqs2y
-R2J+TfsSiF0kk6Q8uF49HpQ=
-=89Gu
+iD8DBQE/UPVVXaXGVTD0i/8RAs6CAKCn3YFl78fDoITHFm16WLceFOZ+JwCeI8FC
+6TZt/Rcbr527WxW+aDHvc5g=
+=oH4d
 -----END PGP SIGNATURE-----
 
---HENu/cXyPKFN4XCQ--
+--HSVPcR81XVhxeM7P--
