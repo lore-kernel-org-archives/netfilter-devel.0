@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [new filter] simple packet authentication
-Date: Tue, 27 Jan 2004 11:43:03 +0100
+Subject: Re: SIP ALG and netfilter
+Date: Tue, 27 Jan 2004 11:45:43 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127104303.GD11761@sunbeam.de.gnumonks.org>
-References: <200401222204.04861.alexandre.becoulet@epita.fr> <0de101c3e147$648fa910$2601010a@bluereef.local> <200401230216.08607.alexandre.becoulet@epita.fr>
+Message-ID: <20040127104543.GE11761@sunbeam.de.gnumonks.org>
+References: <20040122212258.17112.qmail@web20805.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SFyWQ0h3ruR435lw"
+	protocol="application/pgp-signature"; boundary="hwvH6HDNit2nSK4j"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Alexandre Becoulet <alexandre.becoulet@epita.fr>
+To: Siddhartha Gavirneni <siddh_g2@yahoo.com>
 Content-Disposition: inline
-In-Reply-To: <200401230216.08607.alexandre.becoulet@epita.fr>
+In-Reply-To: <20040122212258.17112.qmail@web20805.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,33 +23,38 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---SFyWQ0h3ruR435lw
+--hwvH6HDNit2nSK4j
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 23, 2004 at 02:16:08AM +0100, Alexandre Becoulet wrote:
-> On Friday 23 January 2004 01:25, Andrew Hall wrote:
->=20
-> > This is a neat idea although I'd probably be a bit wary to use the IP ID
-> > field when considering it's use with fragments.
->=20
-> Sure, using the IP ID field could be an issue. The module will not mangle=
-=20
-> fragmented packets (offset > 0 or MF flag set). That's why packets have t=
-o be=20
-> mangled before being routed. At least, it should work for locally-generat=
-ed=20
-> packets, and for packets reaching the first gateway. It should not be use=
-full=20
-> to mangle the packet later.
+On Thu, Jan 22, 2004 at 01:22:58PM -0800, Siddhartha Gavirneni wrote:
+> Hi,
+>   I am new to this list, and I am here because I would
+> like to develop a SIP ALG for netfilter. And for this
+> purpose, I need help from you guys.
 
-well, there is one problem... once you have IP_DF set, the Fragment ID
-is believed to be ueseless.  Linux in fact is setting it to zero, at
-least in some cases, for performance reasons (contention on the id
-counter).  So I could  imagine some weird implementations that would
-then discard the IPid at some later point in the forwarding path of your
-packet.
+Great.  I suppose you are talking about free software development?
+=20
+> Firstly, I tried searching for the SNMP ALG's source
+> code, but could not find it. I would like to use that
+> to understand the ALG approach for netfilter.
+
+ip_nat_snmp.c
+
+SNMP might not be the best example, since it only is a NAT helper, but
+no conntrack helper.  Please look for ip_{conntrack,nat}_ftp.c for an
+easy example... and ip_{conntrack,nat}_h323.c for a more sophisticated
+one.
+
+> Second, is there anyone else working on this? If yes,
+> who is it, and can I contact those developers?
+
+Please talk to Nikolai Dahlem <listuser@epygi.de>, he was working on
+such a solution.=20
+
+> Thank you,
+> Siddharth.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -61,7 +66,7 @@ packet.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---SFyWQ0h3ruR435lw
+--hwvH6HDNit2nSK4j
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -69,9 +74,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAFkC3XaXGVTD0i/8RAhy7AKCQlOUESbbeAYKMCU7AxmNOSbEa2QCgpRWR
-PlFXZAidhZhv6uA7OkJpbRM=
-=INHo
+iD8DBQFAFkFXXaXGVTD0i/8RAn/YAJ4zkwhBtTd+5U8CpnkmXAI5bRhqeACfbeSl
+4oEwNQD4ek4nt/tvnkQaGDQ=
+=mpFS
 -----END PGP SIGNATURE-----
 
---SFyWQ0h3ruR435lw--
+--hwvH6HDNit2nSK4j--
