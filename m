@@ -1,15 +1,13 @@
-From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH]  Re: [PATCH]  libipt_string.c issue with save()
-Date: Sun, 27 Apr 2003 11:56:18 -0400
+From: "Craig Mahonchak" <cmahonchak@mystrotv.com>
+Subject: Multicast not showing up in PRE_ROUTING hook?
+Date: Fri, 25 Apr 2003 09:45:35 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EABFDA2.3030602@videotron.ca>
-References: <3EA46781.6010000@videotron.ca>
- <20030427125514.GE990@sunbeam.de.gnumonks.org>
+Message-ID: <000701c30b41$b68d5000$790e8f0a@mystro.mystrotv.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_KuZ0g2Q1cC4n64IaIc2MOA)"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0008_01C30B0F.6BF2E000"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,50 +20,55 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---Boundary_(ID_KuZ0g2Q1cC4n64IaIc2MOA)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+------=_NextPart_000_0008_01C30B0F.6BF2E000
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Harald Welte wrote:
+I have a weird thing I am seeing.. I have a PRE_ROUTING hook setup in a
+netfilter module looking for packets bound for a specific destination
+address.. mostly multicast.  I can see all the packets bound for 239.0.0.1
+with no problem however anything bound for 239.0.0.2, 239.0.0.3, 239.0.0.4,
+etc.. do not show up.  But, when I run tcpdump on that interface and the
+interface goes in to promiscuous mode they magically appear in my
+PRE_ROUTING hook.
 
->On Mon, Apr 21, 2003 at 05:49:53PM -0400, Stephane Ouellette wrote:
->  
->
->>Folks,
->>
->>  the attached patch contains the following modifications:
->>    
->>
->
->thanks, applied
->
->  
->
-Harald,
+Any ideas?
 
-   I noticed that you applied the first patch I sent you, it contains a 
-typo.  The attached patch fixes the error in question.
-The error was introduced by hitting the "undo" key in my editor.
+Thanks for the help.
 
-Stephane.
+------=_NextPart_000_0008_01C30B0F.6BF2E000
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.0.4630.0">
+<TITLE>Multicast not showing up in PRE_ROUTING hook?</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/rtf format -->
 
+<P><FONT SIZE=3D2 FACE=3D"Arial">I have a weird thing I am seeing.. I =
+have a PRE_ROUTING hook setup in a netfilter module looking for packets =
+bound for a specific destination address.. mostly multicast.&nbsp; I can =
+see all the packets bound for 239.0.0.1 with no problem however anything =
+bound for 239.0.0.2, 239.0.0.3, 239.0.0.4, etc.. do not show up.&nbsp; =
+But, when I run tcpdump on that interface and the interface goes in to =
+promiscuous mode they magically appear in my PRE_ROUTING =
+hook.</FONT></P>
 
---Boundary_(ID_KuZ0g2Q1cC4n64IaIc2MOA)
-Content-type: text/plain; name=libipt_string.c.patch; CHARSET=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=libipt_string.c.patch
+<P><FONT SIZE=3D2 FACE=3D"Arial">Any ideas?</FONT>
+<BR>
 
---- netfilter-orig/userspace/extensions/libipt_string.c	Sun Apr 27 11:50:00 2003
-+++ netfilter-fixed/userspace/extensions/libipt_string.c	Mon Apr 21 23:37:45 2003
-@@ -202,7 +202,7 @@
- 	const struct ipt_string_info *info =
- 	    (const struct ipt_string_info*) match->data;
- 
--	printf("--string %s%s ", (info->invert) ? "! ", "", info->string);
-+	printf("--string %s%s ", (info->invert) ? "! " : "", info->string);
- }
- 
- 
+<BR><FONT SIZE=3D2 FACE=3D"Arial">Thanks for the help.</FONT>
+</P>
 
---Boundary_(ID_KuZ0g2Q1cC4n64IaIc2MOA)--
+</BODY>
+</HTML>
+------=_NextPart_000_0008_01C30B0F.6BF2E000--
