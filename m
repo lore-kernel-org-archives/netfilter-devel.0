@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] ip_nat_cuseeme NAT helper
-Date: Wed, 26 Feb 2003 18:22:22 +0100
+Subject: Re: [PATCH] snort hex strings and libipt_string.c (revisited)
+Date: Wed, 26 Feb 2003 18:27:13 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030226172222.GG8883@sunbeam.de.gnumonks.org>
-References: <1045530785.1570.12.camel@exile>
+Message-ID: <20030226172713.GI8883@sunbeam.de.gnumonks.org>
+References: <20030218180344.B23930@orthanc.gambrl01.md.comcast.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lIrNkN/7tmsD/ALM"
+	protocol="application/pgp-signature"; boundary="nOM8ykUjac0mNN89"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
+To: Michael Rash <mbr@cipherdyne.com>
 Content-Disposition: inline
-In-Reply-To: <1045530785.1570.12.camel@exile>
+In-Reply-To: <20030218180344.B23930@orthanc.gambrl01.md.comcast.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,24 +23,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---lIrNkN/7tmsD/ALM
+--nOM8ykUjac0mNN89
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 18, 2003 at 02:13:05AM +0100, Filip Sneppe (Cronos) wrote:
-> Hi Harald & others,
->=20
-> This implements a NAT helper for the CuSeeMe protocol, both as a
-> patch against 2.4.20 and as a patch-o-matic patch.
+On Tue, Feb 18, 2003 at 06:03:44PM -0500, Michael Rash wrote:
 
-thanks, I have added your patch to patch-o-matic.
+Ok, just forget about my last mail.  I should read netfilter-devel more
+often ;)
 
-But please consider a update based on the comment by Laszlo Valko about
-strict alignment issues...
+> Ok, after thinking about it a bit more I removed the --hex-string
+> option in favor of a more flexible strategy.  Snort signatures can
+> have content fields that mix both ascii and hex strings like so:
 
-> Regards,
-> Filip
+great. I'll apply your patch to cvs right now.
+=20
+> BTW, snort2iptables was the inspiration for this patch.  Thanks
+> for the great original idea!
+
+Of course this all is a big hack.  What you should be doing if you
+really want to do massive string/pattern searching in the kernel is
+something like libqsearch for the kernel
+
+(http://www.cartel-securite.fr/pbiondi/libqsearch.html)
+
+> Michael Rash
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -52,7 +60,7 @@ strict alignment issues...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---lIrNkN/7tmsD/ALM
+--nOM8ykUjac0mNN89
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -60,9 +68,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+XPfOXaXGVTD0i/8RAuyJAJ9Y1FKW5WHKXcuqMEtcQgy5DR3UywCgi37W
-nQ7tAXD3n7ZI8eVH9sVWAGk=
-=W6Os
+iD8DBQE+XPjxXaXGVTD0i/8RAghKAJ9w/oI56XJk0uVenmphzAWtICE1KgCfTNdc
+w9oRr9iHdX+nv46JiVWRmm4=
+=kiLv
 -----END PGP SIGNATURE-----
 
---lIrNkN/7tmsD/ALM--
+--nOM8ykUjac0mNN89--
