@@ -1,15 +1,18 @@
-From: Roberto Nibali <ratz@tac.ch>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
 Subject: Re: Problem with IP-Pools
-Date: Fri, 06 Dec 2002 14:00:23 +0100
+Date: 06 Dec 2002 14:20:38 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DF09F67.30504@tac.ch>
-References: <20021128162921.2b2a721d.markus.schaber@student.uni-ulm.de>	<20021205201113.GD11068@naboo.club.berlin.ccc.de> <20021205224314.3c38afec.markus.schaber@student.uni-ulm.de>
+Message-ID: <1039180838.30495.104.camel@tux>
+References: <20021128162921.2b2a721d.markus.schaber@student.uni-ulm.de>
+	<20021205201113.GD11068@naboo.club.berlin.ccc.de>
+	<20021205224314.3c38afec.markus.schaber@student.uni-ulm.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Markus Schaber <markus.schaber@student.uni-ulm.de>
+In-Reply-To: <20021205224314.3c38afec.markus.schaber@student.uni-ulm.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,32 +23,78 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On Thu, 2002-12-05 at 22:43, Markus Schaber wrote:
+> Harald Welte wrote:
+>
+> > I think the pool stuff is pretty much unmaintained as of now, sorry.
+> > It was a contribution to the project, and the original author (Gerd
+> > Knorr, IIRC) has abandoned it.
 
-> You see, we're doing Gigabit ethernet here (about 600 MBit upstream
-> bandwidth), and our largest host group currently has 9497 Entries.
-> That's just too much for the usual O(n) method, one table containing one
-> match rule per host, and building some tree-like tables to cut down the
-> pass time to O(log(n)) is a maintenance nightmare.
+No no, not at all. It's true that the original author (Patrick Shaaf)
+doesn't maintain it anymore. Joakim Axelsson found it lacking a lot of
+features so he rewrote it into the new ippool. The new ippool is modular
+like iptables so you have one module per pool-type. And it actually has
+the flush feature.
 
-I'm in kind of the same situation but I have solved it more or less. Please 
-contact me privately so we can discuss about it.
+It has three diffrent pool-types, null (just an skeleton), bitmap and
+macipmap (like bitmap but also matches macaddresses).
+
+I use the macipmap pool in three production routers (SMP) here and I've
+never had any problems with ippool in them. I only had a few crashes
+when I wrote macipmap :)
+
+There are still some things missing, here's the most important ones that
+come to mind:
+	Need to push the locking down into the pooltypes.
+	Implement save/restore functionality.
+	And of course more pooltypes :)
+
+The new ippool should be integrated into the netfilter cvs (up to Joakim
+to decide) or the old ippool ripped out.
+The main things before it could be integrated would be to fix ipt_pool
+and ipt_POOL and the iptables userspace parts so they report sensible
+errors, not just errorcodes like now.
+
+You can find the current version (0.3.2a) here:
+
+http://gandalf.hjorten.nu/ippool/
+
+(I hope it compiles :)
+
+The kernel part isn't a patch, it's a bunch of loose files you have to
+copy and then modify Config.in and Makefile manually.
+
 
 > Not to mention the time to load an iptable with some tens of thousands
 > of entries, we cannot wait half an hour for our firewall to boot up.
 
-:) I know that problem. I'm working on a solution myself.
-
+ippool won't eliminate the load time yet, still needs the save/restore
+functionality (shouldn't be hard to implement at all).
+ 
+> Currently, my Boss does real-life testing using single processor
+> kernels, and it seems that it works using current hardware (although I
+> don't know yet how it performed during the peak times), and it seems to
+> manage the traffic and to be rather stable.
+> 
 > If you know another method of managing such high traffic and host number
 > combinations, we'd love to hear about it, because we _really_ want to
 > leave Checkpoint.
 
-I am surprised that checkpoint could handle such a configuration. We had to give 
-up on checkpoint long ago because it wasn't able to handle hundreds of different 
-NAPT configuration per interface correctly without stumbling over its own 
-internal tables.
+nfhipac (I think that was the name) and tc-firewall (Jamal wrote it when
+he found out about the O(n) iptables thing) comes to mind, they aren't
+O(n), they use binary trees of some kind. I havn't used either of them
+so I can't say how well they work and if they are stable.
 
-Just contact me offline so we can discuss things. Regards,
-Roberto Nibali, ratz
+Would be nice to have some kind of general classification thing in the
+kernel (that isn't O(n) but behaves like a linear scan like nfhipac
+does) so that with one classification we get both routing, tc, ipsec, 
+firewall info. Currently they all do their own classifications...
+
+
+Good luck.
+ 
 -- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
