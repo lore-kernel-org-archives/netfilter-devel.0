@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: maintaining per rule counters
-Date: Sun, 13 Apr 2003 18:36:32 +0200
+Subject: Re: [PATCH] ownercmd for ip6tables
+Date: Sun, 13 Apr 2003 18:27:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030413163632.GY1922@sunbeam.de.gnumonks.org>
-References: <3E958792.8040501@Linux.ie>
+Message-ID: <20030413162759.GX1922@sunbeam.de.gnumonks.org>
+References: <3E92F3C4.9070908@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dXvu6+ixFx2ZffE8"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="OowMmFE4aK71mEhh"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Padraig@Linux.ie
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <3E958792.8040501@Linux.ie>
+In-Reply-To: <3E92F3C4.9070908@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +23,24 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---dXvu6+ixFx2ZffE8
-Content-Type: text/plain; charset=iso-8859-1
+--OowMmFE4aK71mEhh
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 10, 2003 at 04:02:42PM +0100, Padraig@Linux.ie wrote:
-> Hi I'm afraid I can't subscribe to the mailing list at present?
->=20
-> Anyway I have a fairly simple requirement to maintain per
-> rule packet & byte counts that are timestamped and sent
-> to userspace every 1ms (packet clocked).
->=20
-> My question is where is the best place to store the 1ms of counters.
-> Can I create a target module and put the data in the *targinfo
-> I.E. is targinfo global to the target module or per rule.
+On Tue, Apr 08, 2003 at 06:07:32PM +0200, Patrick McHardy wrote:
+> This patch adds support for the --owner-cmd option to ip6t_owner.
+> I have this lying around for about 9 month and i can not remember
+> if i ever tested it and i have no ipv6 network available (sorry).
 
-it is per rule.  if you want something global, you need to dynamically
-allocate some private memory at module load time (or rule load time).
+I'm applying it to CVS now, since iptables-1.2.8 has been released now.
+There's plenty of time left to test the ownercmd before another
+iptables-release.
 
-> The ideal would be if it was dynamically allocated per rule and
-> was just big enough for my counters+timestamp. What determines
-> the size?
+Please note that I am applying the userspace part immediately.
 
-it is not dynamically allocated per rule, but once allocated per rule in
-which it is used.
-
-> cheers,
-> P=E1draig.
+> Bye,
+> Patrick
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,7 +52,7 @@ which it is used.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---dXvu6+ixFx2ZffE8
+--OowMmFE4aK71mEhh
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -70,9 +60,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+mZIQXaXGVTD0i/8RAoLXAJ0cwqNcVt2vfIR6SYzwmypBtp6MyACgp7tN
-fagM6iF+9/qPsxsTXBNCVJk=
-=pjaP
+iD8DBQE+mZAPXaXGVTD0i/8RAoXfAJ9yGWqyX9UWZ1OlwBW1gd8wtEew9gCgm2v2
+kAVgf20iiVtkV6y+pl+42Wk=
+=7DDq
 -----END PGP SIGNATURE-----
 
---dXvu6+ixFx2ZffE8--
+--OowMmFE4aK71mEhh--
