@@ -1,15 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: "John A. Sullivan III" <jsullivan@opensourcedevelopmentcorp.com>
 Subject: Re: Creating rules without the /sbin/iptables command?
-Date: Fri, 19 Mar 2004 00:45:41 +0100 (CET)
+Date: Thu, 18 Mar 2004 06:29:06 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403190042550.32344-100000@filer.marasystems.com>
-References: <40599AC4.6030504@nk.nl>
+Message-ID: <1079609346.2009.9.camel@localhost>
+References: <Pine.LNX.4.44.0403180022440.15641-100000@filer.marasystems.com>
+	 <40594EFE.2000004@nk.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Victor Julien <victor@nk.nl>
-In-Reply-To: <40599AC4.6030504@nk.nl>
+In-Reply-To: <40594EFE.2000004@nk.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,19 +22,125 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 18 Mar 2004, Victor Julien wrote:
-
-> using 'iptables-restore' (without noflush) is there a way to preserve 
-> the accounting data from the first rule?
-
-Then you must use incremental commands, keepint the accounting rule 
-untouched.
-
-> Is this what the -c option of iptables-restore is for?
-
-No. This instructs iptables-restore to restore any packet/byte counters 
-found in the input data. Without this option any such counters is ignored 
-and the installed rules have zeroed counters.
-
-Regards
-Henrik
+On Thu, 2004-03-18 at 02:25, Victor Julien wrote:
+> Henrik Nordstrom wrote:
+> > On Wed, 17 Mar 2004, Victor Julien wrote:
+> > 
+> > 
+> >>This might be a big improvement, but it leaves me with one possible 
+> >>problem. When adding and removing rules on-the-fly i can't use this 
+> >>method, right?
+> > 
+> > 
+> > You can. There is a --noflush option to iptables-restore to not flush the
+> > existing rules, allowing you to use iptables-restore to add/modify/delete
+> > existing rules without having to specify the whole ruleset.
+> > 
+> > 
+> >>Wouldn't it be nice if there was an c function which i could call, which 
+> >>would do all the checking and other stuff the commandline iptables does, 
+> >>  but, because its a c-function, way faster? Would it be easy (or even 
+> >>possible) to implement such a function?
+> > 
+> > 
+> > Such C function would only be marginally faster than having a pipe to 
+> > iptables-restore.
+> > 
+> > iptables-restore has the exact same capabilities as iptables, only 
+> > difference is that iptables-restore is batch oriented compiling all your 
+> > changes and then uploading them into the kernel in one single call while 
+> > iptables makes one modification to the table per call.
+> > 
+> > iptables-restore accepts the exact same set of commands as iptables with 
+> > only some minor syntactical sugar differences
+> > 
+> > Syntax for iptables-restore input is
+> > 
+> > *tablename
+> > start working on rules in table "tablename". Equivalent to the -t option 
+> > to iptables.
+> > 
+> > :chainname policy
+> > specifies the default policy for chain "chainname". Equivalent to the 
+> > iptables -P command. Probably also works just fine to use the -P command 
+> > but I have not tried.
+> > 
+> > COMMIT
+> > Uploads the current table (specified by *tablename) to the kernel.
+> > 
+> > #....
+> > Input lines starting with # are assumed to be comments and are ignored
+> > 
+> > Any other lines are assumed to be iptables commands per the iptables 
+> > syntax specification.
+> > 
+> > iptables commands may be prefixed by [packetcnt:bytecnt] which gets
+> > automatically translated into --set-counters packetcnt bytecnt before the
+> > command is executed within iptables-restore. The two syntaxes are
+> > equivalent.
+> > 
+> > 
+> > Don't be fooled by the fact that iptables-save only uses the -A command or
+> > by the name iptables-restore. What iptables-restore is is a batch version
+> > of iptables with all the capabilities of iptables, not just a tool to
+> > restore complete tables saved by iptables-save.
+> > 
+> > Regards
+> > Henrik
+> > 
+> > 
+> 
+> Okay, lets see if I understand what you mean. Say i have an initial 
+> ruleset which looks like this, loaded with 'iptables-restore':
+> 
+> *filter
+> :FORWARD DROP
+> -A FORWARD -p tcp -s 192.168.0.1 --dport 80 -j ACCEPT
+> -A FORWARD -p tcp -s 192.168.0.2 --dport 80 -j ACCEPT
+> -A FORWARD -p tcp -s 192.168.0.3 --dport 80 -j ACCEPT
+> COMMIT
+> 
+> and sometime later i want to replace 192.168.0.2 by 192.168.0.4 (in 
+> exacty the same place):
+> 
+> *filter
+> :FORWARD DROP
+> -D FORWARD -p tcp -s 192.168.0.2 --dport 80 -j ACCEPT
+> -I FORWARD 2 -p tcp -s 192.168.0.4 --dport 80 -j ACCEPT
+> COMMIT
+> 
+> and then 'iptables-restore -n', right?
+I believe that is correct although I also believe you can dispense with
+the :FORWARD DROP since you already had it in the first rule set and
+could also use 
+-R FORWARD 2 -p tcp -s 192.168.0.4 --dport -j ACCEPT
+to just replace the rule although I confess to never having tried that
+in an iptables-restore file
+> 
+> But the easiest way is to recreate the initial ruleset with the updated 
+> rules would be:
+> 
+> *filter
+> :FORWARD DROP
+> -A FORWARD -p tcp -s 192.168.0.1 --dport 80 -j ACCEPT
+> -A FORWARD -p tcp -s 192.168.0.4 --dport 80 -j ACCEPT
+> -A FORWARD -p tcp -s 192.168.0.3 --dport 80 -j ACCEPT
+> COMMIT
+> 
+> and then just call iptables-restore. This way i wont have to calculate 
+> where i want to insert the rules, this can be quite complex on many 
+> changes in large rulessets. Is this correct?
+Yes, although when ISCS is released (http://iscs.sourceforge.net), it
+will provide an alternative to having to track rule order (massive
+oversimplification here but it is not the topic at hand).
+> 
+> The last method should still be way faster than my current method, i 
+> guess. Is this right?
+I have found it to be dramatically faster - John
+> 
+> Regards,
+> Victor
+-- 
+Open Source Development Corporation
+Financially Sustainable open source development
+http://www.opensourcedevelopmentcorp.com
