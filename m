@@ -1,14 +1,13 @@
-From: netfilter@interlinx.bc.ca
-Subject: Weird results with tcp-window-tracking patch
-Date: Wed, 6 Nov 2002 10:32:59 -0500
+From: Michael Schwendt <rh0209ms@arcor.de>
+Subject: [PATCH] save inverted MAC match
+Date: Wed, 6 Nov 2002 17:21:19 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021106153259.GC12743@pc.ilinx>
+Message-ID: <20021106172119.609b16f8.rh0209ms@arcor.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rQ2U398070+RC21q"
+Content-Type: multipart/mixed;
+ boundary="Multipart_Wed__6_Nov_2002_17:21:19_+0100_082520a8"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,66 +19,63 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---rQ2U398070+RC21q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--Multipart_Wed__6_Nov_2002_17:21:19_+0100_082520a8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-I have the tcp-window-tracking patch applied to my firewall's kernel.
-For reference, the dates on the first hunk in the
-=2E/extra/tcp-window-tracking.patch are as follows:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---- linux-2.4.19-base/include/linux/netfilter_ipv4/ip_conntrack_tcp.h Fri O=
-ct 18 11:38:10 2002
-+++ linux-2.4.19-tcp-window/include/linux/netfilter_ipv4/ip_conntrack_tcp.h=
- Fri Oct 18 11:56:35 2002
+The "mac" userspace extension contains a minor bug for both IPv4 and
+IPv6. Upon printing/saving a rule which matches inverted MAC
+addresses, a space character is missing between the '!' prefix and
+the MAC address. Hence iptables-restore fails to parse the output of
+iptables-save. iptables 1.2.5, 1.2.6a, 1.2.7a and CVS are affected.
 
-Anyway, I have been seeing some strange results from the patch.  I
-have lots of these from the last 12 or so hours:
+Steps to reproduce:
 
-04:16:48 kernel SRC=3D195.33.98.115 DST=3D205.210.52.208 LEN=3D64 TOS=3D0x0=
-0 PREC=3D0x00 TTL=3D37 ID=3D1 PROTO=3DTCP SPT=3D57376 DPT=3D53 SEQ=3D232119=
-966 ACK=3D1365344649 WINDOW=3D2048 RES=3D0x00 SYN URGP=3D0 ip_conntrack_tcp=
-: INVALID: Out of window data; SEQ is under the lower bound (retransmitted =
-already ACKed data)=20
-04:16:49 kernel SRC=3D195.33.98.115 DST=3D205.210.52.208 LEN=3D64 TOS=3D0x0=
-0 PREC=3D0x00 TTL=3D37 ID=3D2 PROTO=3DTCP SPT=3D57380 DPT=3D53 SEQ=3D291116=
-2149 ACK=3D4054392719 WINDOW=3D2048 RES=3D0x00 SYN URGP=3D0 ip_conntrack_tc=
-p: INVALID: Out of window data; SEQ is under the lower bound (retransmitted=
- already ACKed data)=20
-04:16:50 kernel SRC=3D195.33.98.115 DST=3D205.210.52.208 LEN=3D64 TOS=3D0x0=
-0 PREC=3D0x00 TTL=3D37 ID=3D3 PROTO=3DTCP SPT=3D57382 DPT=3D53 SEQ=3D210422=
-3658 ACK=3D1098213046 WINDOW=3D2048 RES=3D0x00 SYN URGP=3D0 ip_conntrack_tc=
-p: INVALID: Out of window data; SEQ is under the lower bound (retransmitted=
- already ACKed data)=20
+  iptables -N test
+  iptables -I test -m mac --mac-source ! 01:02:03:04:05:06
+  iptables-save | iptables-restore
 
-It seems to me that these are just regular run-of-the-mill initial SYN
-packets (i.e. packet one of the TCP three-way handshake) for TCP DNS
-queries of my name server (even though I don't have one -- from the
-number of both UDP and TCP DNS queries I am getting, the previous
-owner of my IP address must have a name server running).
+Further reference:
 
-Why would these be flagged as "Out of window data" packets when in
-reality they are just a simple violation of the rules I have
-installed?  Doesn't there have to be an established TCP session in
-order to determine if there is any "Out of window data"?
+  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=77337
 
-b.
-
---=20
-Brian J. Murrell
-
---rQ2U398070+RC21q
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
+- -- 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
+Version: GnuPG v1.0.6 (GNU/Linux)
 
-iD8DBQE9yTYrl3EQlGLyuXARAvDXAKCmdqJOY9UeX2IUbPVo8ihM9sr7awCdHyxu
-Ue71hUxIktWyXF85ztBjKyU=
-=Oubi
+iD8DBQE9yUF+0iMVcrivHFQRAoq1AJ44yEEvEBrsCcmVmKsOT1ouMgkZVACggArR
+Wor0AECzGmXPdLCpo8qmwZQ=
+=jYEu
 -----END PGP SIGNATURE-----
 
---rQ2U398070+RC21q--
---rQ2U398070+RC21q--
+--Multipart_Wed__6_Nov_2002_17:21:19_+0100_082520a8
+Content-Type: application/octet-stream;
+ name="iptables-1.2.7a-invertmac.patch"
+Content-Disposition: attachment;
+ filename="iptables-1.2.7a-invertmac.patch"
+Content-Transfer-Encoding: base64
+
+UmVkIEhhdCBMaW51eCBidWcgIzc3MzM3OiBBZGQgbWlzc2luZyBzcGFjZSBiZXR3ZWVuICchJyBh
+bmQgTUFDCmFkZHJlc3MgdXBvbiBwcmludGluZy9zYXZpbmcgcnVsZXMuCgpkaWZmIC1OYXVyIGlw
+dGFibGVzLTEuMi43YS1vcmlnL2V4dGVuc2lvbnMvbGliaXA2dF9tYWMuYyBpcHRhYmxlcy0xLjIu
+N2EvZXh0ZW5zaW9ucy9saWJpcDZ0X21hYy5jCi0tLSBpcHRhYmxlcy0xLjIuN2Etb3JpZy9leHRl
+bnNpb25zL2xpYmlwNnRfbWFjLmMJV2VkIE1heSAyOSAxNTowODoxNiAyMDAyCisrKyBpcHRhYmxl
+cy0xLjIuN2EvZXh0ZW5zaW9ucy9saWJpcDZ0X21hYy5jCVdlZCBOb3YgIDYgMTY6NTA6MTcgMjAw
+MgpAQCAtOTAsNyArOTAsNyBAQAogewogCXVuc2lnbmVkIGludCBpOwogCi0JcHJpbnRmKCIlcyUw
+MlgiLCBpbnZlcnQgPyAiISIgOiAiIiwgbWFjYWRkcmVzc1swXSk7CisJcHJpbnRmKCIlcyUwMlgi
+LCBpbnZlcnQgPyAiISAiIDogIiIsIG1hY2FkZHJlc3NbMF0pOwogCWZvciAoaSA9IDE7IGkgPCBF
+VEhfQUxFTjsgaSsrKQogCQlwcmludGYoIjolMDJYIiwgbWFjYWRkcmVzc1tpXSk7CiAJcHJpbnRm
+KCIgIik7CmRpZmYgLU5hdXIgaXB0YWJsZXMtMS4yLjdhLW9yaWcvZXh0ZW5zaW9ucy9saWJpcHRf
+bWFjLmMgaXB0YWJsZXMtMS4yLjdhL2V4dGVuc2lvbnMvbGliaXB0X21hYy5jCi0tLSBpcHRhYmxl
+cy0xLjIuN2Etb3JpZy9leHRlbnNpb25zL2xpYmlwdF9tYWMuYwlXZWQgTWF5IDI5IDE1OjA4OjE2
+IDIwMDIKKysrIGlwdGFibGVzLTEuMi43YS9leHRlbnNpb25zL2xpYmlwdF9tYWMuYwlXZWQgTm92
+ICA2IDE2OjUwOjMwIDIwMDIKQEAgLTkwLDcgKzkwLDcgQEAKIHsKIAl1bnNpZ25lZCBpbnQgaTsK
+IAotCXByaW50ZigiJXMlMDJYIiwgaW52ZXJ0ID8gIiEiIDogIiIsIG1hY2FkZHJlc3NbMF0pOwor
+CXByaW50ZigiJXMlMDJYIiwgaW52ZXJ0ID8gIiEgIiA6ICIiLCBtYWNhZGRyZXNzWzBdKTsKIAlm
+b3IgKGkgPSAxOyBpIDwgRVRIX0FMRU47IGkrKykKIAkJcHJpbnRmKCI6JTAyWCIsIG1hY2FkZHJl
+c3NbaV0pOwogCXByaW50ZigiICIpOwo=
+
+--Multipart_Wed__6_Nov_2002_17:21:19_+0100_082520a8--
