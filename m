@@ -1,22 +1,45 @@
-From: aksingh@hss.hns.com
-Subject: Re: FW: injecting new packets into the netfilter
-Date: Wed, 30 Jun 2004 10:49:59 +0530
-Sender: netfilter-admin@lists.netfilter.org
-Message-ID: <OF7F81886A.9A4F0468-ON65256EC3.001C9B46@hss.hns.com>
+From: "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>
+Subject: RE: FW: injecting new packets into the netfilter
+Date: Wed, 30 Jun 2004 11:03:26 +0530
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <BNELKLECKCDLOPNOBHFHMEBOJEAA.mayank_kumar@intersolutions.stpn.soft.net>
+References: <OF7F81886A.9A4F0468-ON65256EC3.001C9B46@hss.hns.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <netfilter-admin@lists.netfilter.org>
-To: "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>,
-        <netfilter@lists.netfilter.org>, <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: <aksingh@hss.hns.com>, <netfilter@lists.netfilter.org>,
+   <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <OF7F81886A.9A4F0468-ON65256EC3.001C9B46@hss.hns.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
+
+Hi Amit
+thanks again. the last part is still not clear.
+I want to know how can u send new packets in the kernel the 
+same way libnet does. The idea is that after i have returned
+NF_STOLEN from inside my hook functions in the kernel modules,
+i want to queue them toa kernel thread. the thread does processing
+in its own manner and sends them out using some other mechanism. what is
+that mechanism?? I hope u are understanding my point..
+regds
+Mayank
+
+-----Original Message-----
+From: aksingh@hss.hns.com [mailto:aksingh@hss.hns.com]
+Sent: Wednesday, June 30, 2004 10:50 AM
+To: Mayank Kumar; netfilter@lists.netfilter.org;
+netfilter-devel@lists.netfilter.org
+Subject: Re: FW: injecting new packets into the netfilter
+
 
 
 
