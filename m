@@ -1,18 +1,16 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] [RESEND] ROUTE target
-Date: 20 Jul 2003 20:15:10 +0200
+Subject: Re: ip_packet_match causing kernel crash (?)
+Date: 20 Jul 2003 20:35:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1058724909.8305.307.camel@tux.rsn.bth.se>
-References: <1056465726.2457.30.camel@descartes>
-	 <1058517461.25182.139.camel@descartes>
+Message-ID: <1058726157.8305.309.camel@tux.rsn.bth.se>
+References: <1057104632.3f0222f82da97@webmail.pacific.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Cedric de Launois <delaunois@info.ucl.ac.be>
-In-Reply-To: <1058517461.25182.139.camel@descartes>
+To: dwu@zipworld.com.au
+In-Reply-To: <1057104632.3f0222f82da97@webmail.pacific.net.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,33 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2003-07-18 at 10:37, Cedric de Launois wrote:
-> This is a resend of the ROUTE patch I sent nearly one month ago.
-> Please apply or give me comments.
->=20
-> Cedric
->=20
-> Le mar 24/06/2003 =E0 16:42, Cedric de Launois a =E9crit :
-> > Hi !
-> >=20
-> > Here is a new version of the ROUTE target. Following discussions,
-> > it seems that there is a need to make the ROUTE target also a
-> > non-final target. So I added a new option --force. When not using
-> > this option, the behaviour is to set the route and continue traversal.
-> > When using this option, the behaviour is as before, i.e. the packet
-> > is sent and the packet is stolen. This remains useful when we have
-> > to force the use of an interface (rather unfrequent).
+On Wed, 2003-07-02 at 02:10, dwu@zipworld.com.au wrote:
+> Hi,
+> 
+> I'm seeing a kernel crash in the netfilter section of the kernel and is trying 
+> to get some help in tracking down the problem.
+> 
+> In my test environment, I see that the crash occurs if there is a mismatch 
+> between the ip address in the iptables entry and the incoming packet, when the 
+> function ip_packet_match from the file ip_tables.c returns 0.
+> 
+> Analysing the code in ip_tables.c, in the function ipt_do_table, if the 
+> ip_packet_match return 0, then it looks at the next ipt_entry (see the code 
+> around line 384). It looks to me as if there is no way for the loop to get out 
+> of the "do { ... } while (!hotdrop)" loop if ip_packet_match always return 0 
+> (?) Is this causing the kernel crash in my test environment.
 
-My concern is that even though this target isn't included in the kernel
-it's a bad idea to change the current behaviour if it can be avoidable.
-I mean this target has existed in pom for quite some time (just over 1
-year) and if the behaviour changes it might make for some surprises for
-its users. Sure the options has changed names over time but that's the
-sort of change that users notice quite easily. A subtle change that
-suddenly continues traversing rules might lead to weird things.
+There's always a rule at the end that matches all packets, the default
+policy.
 
-It's your target but I'd like you to think about this and maybe rename
-the new option and leave the default as is.
-
---=20
+-- 
 /Martin
