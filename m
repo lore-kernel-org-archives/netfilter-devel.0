@@ -1,12 +1,14 @@
 From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: [PATCH] REJECT for 2.6.9+
-Date: Sat, 19 Mar 2005 11:34:31 +0200
-Message-ID: <423BF227.8030502@outerspace.dyndns.org>
+Subject: Re: [PATCH] REJECT for 2.6.9+
+Date: Sat, 19 Mar 2005 11:46:04 +0200
+Message-ID: <423BF4DC.2070902@outerspace.dyndns.org>
+References: <423BF227.8030502@outerspace.dyndns.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-ripemd160;
 	protocol="application/pgp-signature";
-	boundary="------------enigC2DA8EAD52458DDB43290A19"
+	boundary="------------enigCF7C353C973B2BA62672723A"
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <423BF227.8030502@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,25 +21,34 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigC2DA8EAD52458DDB43290A19
-Content-Type: multipart/mixed; boundary="------------010108080607070707040101"
+--------------enigCF7C353C973B2BA62672723A
+Content-Type: multipart/mixed; boundary="------------060609090802000205030007"
 
 This is a multi-part message in MIME format.
---------------010108080607070707040101
+--------------060609090802000205030007
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 
-Because include/linux/netfilter_ipv6/ip6t_REJECT.h was removed in 2.6.9, the
-pom-ng module REJECT does not apply anymore. So this patch adds a 2.6.9
-branch which is identical to 2.6 except the .h file is added.
+Jonas Berlin wrote:
 
-The empty patch file is there so that the original patch won't be attempted.
+> Because include/linux/netfilter_ipv6/ip6t_REJECT.h was removed in 2.6.9=
+,=20
+> the
+> pom-ng module REJECT does not apply anymore. So this patch adds a 2.6.9=
 
--- 
+> branch which is identical to 2.6 except the .h file is added.
+>=20
+> The empty patch file is there so that the original patch won't be=20
+> attempted.
+
+Retry; enigmail produced a badly signed mail.. :/
+
+--=20
 - xkr47
 
+(enigmail temporary hack to make mail 8-bit: =E5=E4=F6)
 
---------------010108080607070707040101
+--------------060609090802000205030007
 Content-Type: text/x-patch;
  name="REJECT-2.6.9.patch"
 Content-Transfer-Encoding: 7bit
@@ -549,10 +560,9 @@ Index: pom/REJECT/linux-2.6.9/net/ipv6/netfilter/Kconfig.ladd
 +	  If you want to compile it as a module, say M here and read
 +	  Documentation/modules.txt.  If unsure, say `N'.
 
+--------------060609090802000205030007--
 
---------------010108080607070707040101--
-
---------------enigC2DA8EAD52458DDB43290A19
+--------------enigCF7C353C973B2BA62672723A
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -560,9 +570,9 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCO/InxyF48ZTvn+4RA2JkAKDoJhw069K5RfSEcvDkWMt2iwOtZACgx0O+
-0VlYL/tSgMgCjRDpUD7w8Xs=
-=m+MW
+iD8DBQFCO/TcxyF48ZTvn+4RA0/hAKCeWRAQl2jtH2CD2GLXjmmX19f2MgCgz9z8
+AM/kZTmi11S43trKLyiMp10=
+=bdDf
 -----END PGP SIGNATURE-----
 
---------------enigC2DA8EAD52458DDB43290A19--
+--------------enigCF7C353C973B2BA62672723A--
