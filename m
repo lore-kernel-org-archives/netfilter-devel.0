@@ -1,16 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Altering destination ethernet device
-Date: Fri, 25 Jun 2004 16:39:47 +0200 (CEST)
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Subject: Userspace queuing
+Date: Fri, 25 Jun 2004 21:11:07 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406251637550.4846-100000@filer.marasystems.com>
-References: <20040625141628.93477.qmail@web13903.mail.yahoo.com>
+Message-ID: <200406251811.i5PIBlMX013526@madinah.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "John A. Sullivan III" <jsullivan@opensourcedevelopmentcorp.com>,
-   <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Scott MacKay <scottmackay@yahoo.com>
-In-Reply-To: <20040625141628.93477.qmail@web13903.mail.yahoo.com>
+To: "Netfilter List" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +19,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 25 Jun 2004, Scott MacKay wrote:
+Is there a way to perform userspace queuing in iptables? If yes can I have
+some example codes.
 
-> Cool.  I will look at that.  I did see some routing
-> type info at http://lartc.org/ (Linux Advanced Routing
-> & Traffic Control), but nothing to the degree of
-> control I wanted.  I figured since I am already
-> grabbing packets in netfilter I would see about
-> altering them while I had em :)
+Regards,
 
-See the ROUTE target in iptables for some hints. Does all your need in
-terms or (re)programmed routing and much more...
+ 
 
-Regards
-Henrik
+Muhammad R. Sami 
+Research Assistant, 
+Computer Engineering Department 
+P.O.Box 354 
+King Fahd University of Petroleum & Minerals 
+Dhahran 31261 
+Saudi Arabia. 
+Tel: +96638601423 
+Cell: +96657982951 
+www.ccse.kfupm.edu.sa/sami
+
+ 
