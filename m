@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [ANNOUNCE] IP sets
-Date: Tue, 17 Feb 2004 13:57:10 +0100
+From: Vineet Mehta <extreme@zayanionline.com>
+Subject: possible ipt_MASQUERADE.c bug
+Date: Tue, 17 Feb 2004 16:19:35 +0300 (AST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040217125710.GA981@sunbeam.de.gnumonks.org>
-References: <20040214212340.GC7756@sunbeam.de.gnumonks.org> <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.44.0402171613120.26321-100000@sillypoint.zayanionline.com>
+References: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,54 +19,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+while working on Fedora kernel version 2.4.22-1.2115.nptl code i found out 
+that one of the DEBUGP(...) statement had problem with variable name.
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+DEBUGP("masquerade_check: bad table `%s'.\n", table);
 
-On Tue, Feb 17, 2004 at 10:58:21AM +0100, Jozsef Kadlecsik wrote:
-> > One of the first issues that I ran into was the use of vmalloc.
-> > Please refer to http://lwn.net/Articles/57800/.
->=20
-> Thank you pointing out the article! Let's consider the current version of
-> ipset as the first, beta release (as it is :-). Actually, Linus'
-> description when vmalloc is valid fits to the vmalloc usage in ipset
-> (large arrays allocated), but I'll work on to eliminate it.
+instead of
 
-I just added another use of vmalloc: dstlimit.  I have to fix that, too.
+DEBUGP("masquerade_check: bad table `'%s'.\n", tablename);
 
-It would be interesting though, to know how much of a performance
-penalty it implies.
+i also checked on vanilla kernel 2.4.22 also and it had the same problem.
 
-> OK!
+i dont know if its already done but here is the patch atatched.
 
-Ok, I'll reorganize CVS later today.
+Regards,
+extreme
 
-> Best regards,
-> Jozsef
+***********
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAMg+mXaXGVTD0i/8RArCvAJ4zGVFTmcbCSiw/I/1Y4FDKNaO1wgCfRPga
-1FB8WwLmLkqW9Ch62FrakTA=
-=1LGc
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
+diff -Nur linux-2.4.22-1.2115.nptl/net/ipv4/netfilter/ipt_MASQUERADE.c new/net/ipv4/netfilter/ipt_MASQUERADE.c
+--- linux-2.4.22-1.2115.nptl/net/ipv4/netfilter/ipt_MASQUERADE.c	2003-10-29 23:18:34.000000000 +0300
++++ new/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-02-18 06:49:11.000000000 +0300
+@@ -32,7 +32,7 @@
+ 	const struct ip_nat_multi_range *mr = targinfo;
+ 
+ 	if (strcmp(tablename, "nat") != 0) {
+-		DEBUGP("masquerade_check: bad table `%s'.\n", table);
++		DEBUGP("masquerade_check: bad table `%s'.\n", tablename);
+ 		return 0;
+ 	}
+ 	if (targinfosize != IPT_ALIGN(sizeof(*mr))) {
+ 
