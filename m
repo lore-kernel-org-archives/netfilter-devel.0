@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: -m limit problem
-Date: Mon, 20 Sep 2004 23:52:52 +0200 (CEST)
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] ip6t_REJECT on ppc
+Date: Mon, 20 Sep 2004 15:32:47 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0409202329180.18874@filer.marasystems.com>
-References: <1e0e01c49f56$7f61b490$523e000a@sirijus>
+Message-ID: <20040920223247.GA373@linuxace.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="6c2NcOVqGQ03X4Wi"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Darius Tribandis <sirijus@kobra.ktu.lt>
-In-Reply-To: <1e0e01c49f56$7f61b490$523e000a@sirijus>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,32 +18,38 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 21 Sep 2004, Darius Tribandis wrote:
 
-> /usr/sbin/iptables -t nat -N httpinfo
-> /usr/sbin/iptables -t nat -A PREROUTING -p tcp -s USERIP -m mac --mac-source
-> AA:AA:BB:BB:CC:CC -m multiport --destination-port 80,8080,3128 -j httpinfo
-> /usr/sbin/iptables -t nat -A httpinfo -p tcp -s 10.5.4.14 -m limit --limit
-> 1/day --limit-burst 1 -j DNAT --to LOCALIP:5454
->
-> sometimes i nead some times per day do like this:
->
-> /usr/sbin/iptables -t nat -F PREROUTING
-> /usr/sbin/iptables -t nat -A PREROUTING -p tcp -s USERIP -m mac --mac-source
-> AA:AA:BB:BB:CC:CC -m multiport --destination-port 80,8080,3128 -j httpinfo
->
-> here problem begins.
-> i am not modifaing httpinfo table but i geting redirect after every reload
-> like this.
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Due to the way limit stores it's counters the counters are reset each time 
-you modify the ruleset in the same table (nat in your case).
+As noted by Pavel Sikora, PPC platform has no optimized version of
+csum_ipv6_magic.  As such, ip6t_REJECT does not build on that
+platform without including the generic version.  The patch below
+does this.
 
-In theory it may be possible to modify the iptables kernel API to allow 
-limit to keep it's counters while modifying the iptable, but in reality 
-the best method is to modify limit to keep it's counters in a more sane 
-place than within the iptable matchdata.. (or more realistic, write an 
-alternative match implementation using separate counters).
+Compile tested on i386 - Pavel tested the patch below on PPC.
 
-Regards
-Henrik
+This fixes bugzilla #226.
+
+Phil
+
+
+
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ip6treject
+
+diff -ru pom-orig/REJECT/linux-2.6/net/ipv6/netfilter/ip6t_REJECT.c pom-new/REJECT/linux-2.6/net/ipv6/netfilter/ip6t_REJECT.c
+--- pom-orig/REJECT/linux-2.6/net/ipv6/netfilter/ip6t_REJECT.c	2004-03-26 00:39:33.000000000 -0800
++++ pom-new/REJECT/linux-2.6/net/ipv6/netfilter/ip6t_REJECT.c	2004-09-20 15:27:22.070527392 -0700
+@@ -22,6 +22,7 @@
+ #include <net/ipv6.h>
+ #include <net/tcp.h>
+ #include <net/icmp.h>
++#include <net/ip6_checksum.h>
+ #include <net/ip6_fib.h>
+ #include <net/ip6_route.h>
+ #include <net/flow.h>
+
+--6c2NcOVqGQ03X4Wi--
