@@ -1,18 +1,17 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
+From: "Yong" <sdssly@sina.com>
 Subject: Re: ipq+AF8-set+AF8-verdict problem in bridge+-iptables
-Date: Thu, 17 Jul 2003 08:01:03 +0200
+Date: Thu, 17 Jul 2003 14:09:49 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200307170801.04051.bdschuym@pandora.be>
-References: <003e01c34c0d$ca8c3d20$8101a8c0@dev>
+Message-ID: <005501c34c2a$08f35cd0$8101a8c0@dev>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-7"
-Content-Transfer-Encoding: 7bit
+	charset="utf-7"
+Content-Transfer-Encoding: base64
 Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Yong" <sdssly@sina.com>, "Harald Welte" <laforge@netfilter.org>
-In-Reply-To: <003e01c34c0d$ca8c3d20$8101a8c0@dev>
-Content-Disposition: inline
+To: "Bart De Schuymer" <bdschuym@pandora.be>,
+	"Harald Welte" <laforge@netfilter.org>
+References: +ADw-001e01c34b36+ACQ-f8e94460+ACQ-8101a8c0+AEA-dev+AD4- +ADw-200307161949.54239.bdschuym+AEA-pandora.be+AD4-
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,15 +22,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday 17 July 2003 04:47, Yong wrote:
-> I am using the bridge-nf-0.0.7-against-2.4.19.diff patch. I cannot find the
-> skb->nf_bridge member. It seems that I need to use another patch. Is it
-> true? Can I add the bridge-nf-0.0.10-against-2.4.20.diff patch directly on
-> my Linux 2.4.20?
-
-I'd use 2.4.21 with the 2.4-ebtables-brnf patch, see 
-http://sourceforge.net/projects/ebtables/
-
-
-cheers,
-Bart
+SGkgQmFydCwNCg0KSSBoYXZlIGFkZGVkIHRoZSAwLjAuMTAgcGF0Y2ggYW5kIHlvdXIgcGF0Y2gu
+IEkgY2FuIHNlbmQgdGhlIGxhcmdlIElDTVAgcGFja2V0IG5vdy4gVGhhbmsgeW91IGZvciB5b3Vy
+IGhlbHArQUNFLQ0KDQpZb25nDQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTog
+K0FDSS1CYXJ0IERlIFNjaHV5bWVyK0FDSS0gK0FEdy1iZHNjaHV5bStBRUEtcGFuZG9yYS5iZStB
+RDQtDQpUbzogK0FDSS1Zb25nK0FDSS0gK0FEdy1zZHNzbHkrQUVBLXNpbmEuY29tK0FENEFPdy0g
+K0FDSS1IYXJhbGQgV2VsdGUrQUNJLSArQUR3LWxhZm9yZ2UrQUVBLW5ldGZpbHRlci5vcmcrQUQ0
+LQ0KQ2M6ICtBRHctbmV0ZmlsdGVyLWRldmVsK0FFQS1saXN0cy5uZXRmaWx0ZXIub3JnK0FENC0N
+ClNlbnQ6IFRodXJzZGF5LCBKdWx5IDE3LCAyMDAzIDE6NDkgQU0NClN1YmplY3Q6IFJlOiBpcHEr
+QUY4LXNldCtBRjgtdmVyZGljdCBwcm9ibGVtIGluIGJyaWRnZSstaXB0YWJsZXMNCg0KDQorQUQ0
+LSBPbiBXZWRuZXNkYXkgMTYgSnVseSAyMDAzIDAzOjA5LCBZb25nIHdyb3RlOg0KK0FENC0gK0FE
+NC0gIEkgd2FudCB0byB1c2UgdGhlIGlwdGFibGUrQUY4LXF1ZXVlIGluIGJyaWRnZSstaXB0YWJs
+ZXMgZW52aXJvbm1lbnQuIEkgY2FuIGdldA0KK0FENC0gK0FENC0gdGhlIHBhY2tldCBpbiB1c2Vy
+c3BhY2UgdXNpbmcgLWogUVVFVUUgY29tbWFuZC4gSG93ZXZlciwgSWYgSSBjaGFuZ2UgdGhlDQor
+QUQ0LSArQUQ0LSBwYWNrZXQgc2l6ZS4gZm9yIGV4YW1wbGUsIEkgY2hhbmdlIHRoZSBwaW5nIGlj
+bXAgcGFja2V0IHNpemUgdG8gNDAwLCB0aGUNCitBRDQtICtBRDQtIHBhY2tldCBFdGhlcm5ldCBo
+ZWFkZXIgaXMgY2hhbmdlZC4gSW4gbXkgdGVzdCwgdGhlIE1BQyBhZGRyZXNzIGlzIGNoYW5nZWQN
+CitBRDQtICtBRDQtIHRvIDB4ZmZmZmZmZmZmZi4gSSBjYW4gY2FwdHVyZSB0aGlzIHBhY2tldCB1
+c2luZyBzbmlmZmVyIHRvb2wuIFNpbmNlIHRoZQ0KK0FENC0gK0FENC0gTUFDIGFkZHJlc3MgaXMg
+Y2hhbmdlZCwgdGhlIG90aGVyIGNvbXB1dGVyIGNhbm5vdCByZWNlaXZlIHRoZSBJQ01QIHBhY2tl
+dC4NCitBRDQtIA0KK0FENC0gK0FENC0gIEl0IHNlZW1zIHRoYXQgdGhlIGJyaWRnZSBpcHRhYmxl
+cyBwYXRjaCBjaGFuZ2VkIHNvbWV0aGluZyBpbiB0aGUgZnVuY3Rpb24NCitBRDQtICtBRDQtIGlw
+cStBRjgtc2V0K0FGOC12ZXJkaWN0KCkuDQorQUQ0LSANCitBRDQtIFBsZWFzZSB0ZXN0IHRoZSBw
+YXRjaCBiZWxvdy4NCitBRDQtIA0KK0FENC0gY2hlZXJzLA0KK0FENC0gQmFydA0KK0FENC0gDQor
+QUQ0LSAtLS0gbGludXgtMi42LjAtdGVzdDEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwK0FGOC1xdWV1
+ZS5jLm9sZCAyMDAzLTA3LTE2IDE5OjM1OjA3LjAwMDAwMDAwMCArLTAyMDANCitBRDQtICstKy0r
+LSBsaW51eC0yLjYuMC10ZXN0MS9uZXQvaXB2NC9uZXRmaWx0ZXIvaXArQUY4LXF1ZXVlLmMgMjAw
+My0wNy0xNiAxOTozOTowNS4wMDAwMDAwMDAgKy0wMjAwDQorQUQ0LSArQUVBQVFBLSAtMzUzLDYg
+Ky0zNTMsMTEgK0FFQUFRQS0gaXBxK0FGOC1tYW5nbGUrQUY4LWlwdjQoaXBxK0FGOC12ZXJkaWN0
+K0FGOC1tc2crQUY4LXQgK0FDby12LCBzdA0KK0FENC0gICArQUgwLQ0KK0FENC0gICBpZiAoZS0r
+QUQ0LXNrYi0rQUQ0LXNrKQ0KK0FENC0gICBza2IrQUY4LXNldCtBRjgtb3duZXIrQUY4LXcobmV3
+c2tiLCBlLStBRDQtc2tiLStBRDQtc2spK0FEcy0NCitBRDQtICstK0FDTS1pZiBkZWZpbmVkKENP
+TkZJRytBRjgtQlJJREdFKSArQUh3QWZBLSBkZWZpbmVkKENPTkZJRytBRjgtQlJJREdFK0FGOC1N
+T0RVTEUpDQorQUQ0LSArLSAvK0FDby0gYnJpZGdlZCBwYWNrZXRzIGFscmVhZHkgaGF2ZSB0aGVp
+ciBFdGhlcm5ldCBoZWFkZXIgK0FDby0vDQorQUQ0LSArLSBpZiAoZS0rQUQ0LXNrYi0rQUQ0LW5m
+K0FGOC1icmlkZ2UpDQorQUQ0LSArLSBtZW1jcHkobmV3c2tiLStBRDQtZGF0YSAtIDE2LCBlLStB
+RDQtc2tiLStBRDQtZGF0YSAtIDE2LCAxNikrQURzLQ0KK0FENC0gKy0rQUNNLWVuZGlmDQorQUQ0
+LSAgIGtmcmVlK0FGOC1za2IoZS0rQUQ0LXNrYikrQURzLQ0KK0FENC0gICBlLStBRDQtc2tiICtB
+RDAtIG5ld3NrYitBRHMtDQorQUQ0LSAgICtBSDAtDQorQUQ0LSANCitBRDQtIA0KK0FENC0g
