@@ -1,8 +1,8 @@
 From: "yangrunhua" <yangrunhua@njupt.edu.cn>
 Subject: RE: How to take over TCP connection from userspace process?
-Date: Wed, 22 Oct 2003 11:44:56 +0800
+Date: Wed, 22 Oct 2003 11:50:44 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <006f01c3984e$e045fce0$d32f110a@yrhd>
+Message-ID: <007001c3984f$aff2f740$d32f110a@yrhd>
 References: <20031021134729.GB12049@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
