@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Coverity] Untrusted user data in kernel
-Date: Fri, 17 Dec 2004 06:25:37 +0100
-Message-ID: <41C26DD1.7070006@trash.net>
-References: <Xine.LNX.4.44.0412170012040.12382-100000@thoron.boston.redhat.com>
+Subject: Re: [PATCH] Introducing the Change API
+Date: Fri, 17 Dec 2004 06:28:55 +0100
+Message-ID: <41C26E97.8000805@trash.net>
+References: <41B236F6.9090405@eurodev.net> <41B36E59.5020800@trash.net>
+	<20041216124049.GF10165@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Bryan Fulton <bryan@coverity.com>, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>, KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: James Morris <jmorris@redhat.com>
-In-Reply-To: <Xine.LNX.4.44.0412170012040.12382-100000@thoron.boston.redhat.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041216124049.GF10165@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,52 +23,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-James Morris wrote:
+Harald Welte wrote:
 
->This at least needs CAP_NET_ADMIN.
+>On Sun, Dec 05, 2004 at 09:23:53PM +0100, Patrick McHardy wrote:
 >
-It is already checked in do_ip6t_set_ctl(). Otherwise anyone could
-replace iptables rules :)
-
-Regards
-Patrick
-
->
->On Thu, 16 Dec 2004, Bryan Fulton wrote:
 >  
 >
->>////////////////////////////////////////////////////////
->>// 3:   /net/ipv6/netfilter/ip6_tables.c::do_replace  //
->>////////////////////////////////////////////////////////
->> 
->>- tainted unsigned scalar tmp.num_counters multiplied and passed to
->>vmalloc (1161) and memset (1166) which could overflow or be too large
->>
->>Call to function "copy_from_user" TAINTS argument "tmp"
->>
->>1143            if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
->>1144                    return -EFAULT;
->>
->>...
->>
->>TAINTED variable "((tmp).num_counters * 16)" was passed to a tainted
->>sink.
->>
->>1161            counters = vmalloc(tmp.num_counters * sizeof(struct
->>ip6t_counters));
->>1162            if (!counters) {
->>1163                    ret = -ENOMEM;
->>1164                    goto free_newinfo;
->>1165            }
->>
->>TAINTED variable "((tmp).num_counters * 16)" was passed to a tainted
->>sink.
->>
->>1166            memset(counters, 0, tmp.num_counters * sizeof(struct
->>ip6t_counters));
->>
+>>I think that depends on what we want to do with ip_conntrack once
+>>nf_conntrack is merged. Since I really don't feel like keeping
+>>three codebases in sync (ip_conntrack 2.4 + 2.6 and nf_conntrack),
+>>I would prefer to remove it. If we do this, it doesn't make much
+>>sense to add further features to it. But I'm not sure what Harald's
+>>and Krisztian's plans are for ct_sync, so they might disagree with me.
 >>    
 >>
 >
+>I think we should move to nf_conntrack ASAP.  All new
+>code/features/API's should be developed on top of nf_conntrack.  We
+>really should put ip_conntrack into a maintainance-only mode once
+>nf_conntrack becomes mainline.
 >  
 >
+Agreed.
+
+>Actually I only want to do some nf_conntrack vs. ip_conntrack
+>benchmarking, which I never got aroun doing up to now :(  With a little
+>luck, I can do this over the weekend.  If the results are acceptable,
+>nf_conntrack will be submitted maybe as soon as 2.6.11. 
+>  
+>
+I would like to give it some cleanup first. Since it doesn't need to
+deal with ipchains compatibility there is a lot possible cleanup.
+I will probably do this in the next couple of weeks.
+
+Regards
+Patrick
