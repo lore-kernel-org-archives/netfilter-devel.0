@@ -1,12 +1,15 @@
-From: Max Kellermann <max@duempel.org>
-Subject: linux 2.6.10: ip_conntrack table overflowing
-Date: Tue, 4 Jan 2005 13:40:34 +0100
-Message-ID: <20050104124034.GA28010@roonstrasse.net>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: linux 2.6.10: ip_conntrack table overflowing
+Date: Tue, 04 Jan 2005 14:31:47 +0100
+Message-ID: <1104845507.4725.31.camel@nienna.balabit>
+References: <20050104124034.GA28010@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <20050104124034.GA28010@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,36 +21,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-yesterday, we upgraded four servers from 2.6.9 to 2.6.10. 12 hours
-later (last night), all of them stopped responding; the conntrack
-tables were full:
+  Hi,
 
-Jan  3 21:03:31 cfapro01 kernel: ip_conntrack: table full, dropping
-packet.
+2005-01-04, k keltez=E9ssel 13.40-kor Max Kellermann ezt =EDrta:
+> yesterday, we upgraded four servers from 2.6.9 to 2.6.10. 12 hours
+> later (last night), all of them stopped responding; the conntrack
+> tables were full:
+>=20
+> Jan  3 21:03:31 cfapro01 kernel: ip_conntrack: table full, dropping
+> packet.
+>=20
+> We rebooted, and now there are more than 30000 connections in
+> /proc/net/ip_conntrack, but netstat only shows 400; example:
+>=20
+> tcp      6 421183 ESTABLISHED src=3DXXremoteXX dst=3DYYlocalYY
+> sport=3D29800 dport=3D80 src=3DYYlocalYY dst=3DXXremoteXX sport=3D80
+> dport=3D29800 [ASSURED] mark=3D0 use=3D1
 
-We rebooted, and now there are more than 30000 connections in
-/proc/net/ip_conntrack, but netstat only shows 400; example:
+  Seems to be the problem already reported and fixed by Martin. Take a
+look at
 
-tcp      6 421183 ESTABLISHED src=XXremoteXX dst=YYlocalYY
-sport=29800 dport=80 src=YYlocalYY dst=XXremoteXX sport=80
-dport=29800 [ASSURED] mark=0 use=1
+https://lists.netfilter.org/pipermail/netfilter-devel/2004-December/01790=
+8.html
 
-Seems like conntrack hasn't notice the connection has gone away
-already, and will keep these for 5 days (default timeout). We have now
-worked around this bug by reducing the timeout to 1 hour, I hope this
-keeps the table from filling up until the "real" bug is found and
-fixed.
+for the detailed description and the patch fixing the bug.
 
-Some information about the hardware:
-- compaq, dual xeon p4, serverworks mainboard, 4 GB RAM
-- cciss controller
-- bcm57xx, intel e100 network adapters
-
-We have KDB enabled on the four machines; they are still up and
-running, with these stale connections. If someone needs more
-information, let me know.
-
-Regards,
-Max Kellermann
+--=20
+ Regards,
+  Krisztian Kovacs
