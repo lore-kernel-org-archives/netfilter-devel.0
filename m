@@ -1,14 +1,15 @@
-From: Ian Norton <bredroll@darkspace.org.uk>
-Subject: Re: ipsec implementation using netfilter
-Date: Sat, 19 Mar 2005 11:31:37 +0000
-Message-ID: <20050319113137.GA28048@earth.dsh.org.uk>
-References: <20050319065622.45027.qmail@web31402.mail.mud.yahoo.com>
+From: Christophe Saout <christophe@saout.de>
+Subject: Re: NAT behind IPSEC GW working OK - please review patch
+Date: Sat, 19 Mar 2005 19:27:29 +0100
+Message-ID: <1111256850.19630.11.camel@leto.cs.pocnet.net>
+References: <DB15CAD558452949A35006D66C5C5A99010F8B@nav-post.navcorp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-To: avinash m <kukzme@yahoo.com>
-Content-Disposition: inline
-In-Reply-To: <20050319065622.45027.qmail@web31402.mail.mud.yahoo.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-Op5rRGHg/Tu9rVq3bjmc"
+Cc: netfilter-devel@lists.netfilter.org, Andrew Hall <temp02@bluereef.com.au>
+To: Robert Borger <bborger@navcorp.com>
+In-Reply-To: <DB15CAD558452949A35006D66C5C5A99010F8B@nav-post.navcorp.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,58 +21,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi there,
 
-I Have recently (almost) completed work on building an ipcomp implementation
-using netfilter to handle packet input. It works, but have you ever heard of a
-'filter' that lets stuff through and makes it bigger or smaller :-) 
+--=-Op5rRGHg/Tu9rVq3bjmc
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-In the same way as IMQD is used for ingress and egress queuing, it 'is'
-possible to do these things in netfilter but it really isnt the place to build
-this sort of thing, (my ipcomp system happily interoperates with the 2.6ipcomp
-on other machines but really doesnt make sense when observing packets at my end
-with ethereal)
+Am Freitag, den 11.03.2005, 11:38 -0600 schrieb Robert Borger:
 
-building another driver maybe called hw_ipsec shouldnt be that hard, i should
-imagine it would have the same interfaces to the kernel as the current ipsec.
+> After the patches where applied, the packets
+> got out the tunnel and returned via the tunnel
+> as expected, but were dropped during forwarding.
+>=20
+> It appeared that the packet was still considered
+> to be an part of the encrypted stream and there
+> was no policy to forward it to the local subnet.
+>=20
+> I changed the "xfrm_policy_check" function in
+> "./include/net/xfrm.h" to allow forwarding if
+> the "decap_done" flag is set.
+>=20
+> [...]
 
-Ian
+> Then I made this change to "xfrm.h":
+>=20
+> static inline int xfrm_policy_check(struct sock *sk, int dir, struct sk_b=
+uff
+> *skb, unsigned short family)
+> {
+>   if (sk && sk->sk_policy[XFRM_POLICY_IN])
+>     return __xfrm_policy_check(sk, dir, skb, family);
+> 	=09
+>   return(!xfrm_policy_list[dir] && !skb->sp) ||
+>     (skb->sp && skb->sp->decap_done) || /* Added this line */
+>     (skb->dst->flags & DST_NOPOLICY) ||
+>     __xfrm_policy_check(sk, dir, skb, family);
+> }
 
-On Fri, Mar 18, 2005 at 10:56:21PM -0800, avinash m wrote:
-> Hi 
-> 
->   I am a newbie trying to implement ipsec in transport
-> mode. i am new to writing networking code too.
-> 
-> The crypto algorithms are actually implemented on a
-> crypto accelerator card which can be programmed using
-> some registers to setup an encryption/decryption
-> sessions. The security associations are also stored in
-> the crypto card.  
-> 
-> I have seen the openswan.org but that didnt get me
-> anywhere. I am also not clear hoe i could place this
-> customization into the existing ipsec stack(if i could
-> understand that)
-> 
->  Now i am of the idea of implementing this using the
-> netfilter module. I am planning to place hook on the
-> loca input and local output hooks. The packets are
-> then sent to the card for enc/dec.
-> 
-> I this the right way to implement? if not could i get
-> some pointers to do this the right way.
-> 
-> Thanx in advance.
-> shawn
-> 
-> 
-> 		
-> __________________________________ 
-> Do you Yahoo!? 
-> Yahoo! Small Business - Try our new resources site!
-> http://smallbusiness.yahoo.com/resources/ 
-> 
+I can confirm that this fixes the problem you described.
+(I'm using the IPSEC+NAT patches I forward-ported for 2.6.11).
 
--- 
-Ian Norton-Badrul
+The line you added should be enclosed in an pair of #ifdef
+CONFIG_NETFILTER and #endif.
+
+
+--=-Op5rRGHg/Tu9rVq3bjmc
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBCPG8RZCYBcts5dM0RAv9iAJ9h0YpnYmUfkNQ9rLfkCLzR50OYUQCeI15S
+sjoOY9Jqz5ACr2vg6IismUo=
+=efIu
+-----END PGP SIGNATURE-----
+
+--=-Op5rRGHg/Tu9rVq3bjmc--
