@@ -1,17 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: RAM and conntrack performance
-Date: Tue, 25 Nov 2003 21:57:23 +0100
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [FUN] New target: passive OS fingerprinting.
+Date: Wed, 26 Nov 2003 04:34:56 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031125205723.GE2971@obroa-skai.de.gnumonks.org>
-References: <20031028151032.GD726@eychenne.org> <20031103081240.GQ1536@sunbeam.de.gnumonks.org> <20031125153543.GD1082@eychenne.org>
+Message-ID: <20031126043456.00a40ae1.johnpol@2ka.mipt.ru>
+References: <20031124020436.334cf2c6.johnpol@2ka.mipt.ru>
+	<20031124101806.GI4888@obroa-skai.de.gnumonks.org>
+	<20031124230108.752aab76.johnpol@2ka.mipt.ru>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OZkY3AIuv2LYvjdk"
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Wed__26_Nov_2003_04_34_56_+0300_wLpT4dkeApe=Fyg6"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-Content-Disposition: inline
-In-Reply-To: <20031125153543.GD1082@eychenne.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031124230108.752aab76.johnpol@2ka.mipt.ru>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,138 +24,170 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---OZkY3AIuv2LYvjdk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--Multipart=_Wed__26_Nov_2003_04_34_56_+0300_wLpT4dkeApe=Fyg6
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 25, 2003 at 04:35:43PM +0100, Herve Eychenne wrote:
-> On Mon, Nov 03, 2003 at 09:12:40AM +0100, Harald Welte wrote:
->=20
-> > On Tue, Oct 28, 2003 at 04:10:32PM +0100, Herve Eychenne wrote:
->=20
->  Hi!
->=20
-> Thank you very much for your detailled answer, Harald.
-> Sorry for the delay. I'm currently writing this little document, based ma=
-inly
-> on your answers.
->=20
-> > > I think it would be good to end up with a small document which would
-> > > give every detail about how to choose optimal values for HASHSIZE and
-> > > CONNTRACK_MAX, and every other mean to get the best out of the
-> > > conntracking/NAT system...
->=20
-> > I guess there hasn't been any performance testing.  Ideally you'd have
-> > as many buckets as you have conntrack entries in the system.  However,
-> > every bucket will=20
->=20
-> Something was lost in space... Will? ;-)
+Hi, Harald.
+ 
+> > You could maybe add a '--log' option to the match or whatever... but
+> > I really don't think it's a good idea to have the same code
+> > replicated as match and as target.
 
-hm. don't remember what i wanted to say.   oh, yes. every bucket will
-occupy some space, whether there are any connections in that bucket or
-not.
+Here is new patchset.
+Patches were made against previous patchset applied.
 
-> > >   What about HASHSIZE default value? How to read it at runtime?
->=20
-> So, it cannot be read at runtime, I suppose... It would be really nice,
-> though... would /proc be ok?
+It adds:
 
-yes. It is printed at startup via syslog, however.
+revision 1.9
+date: 2003/11/26 01:00:02;  author: s0mbre;  state: Exp;  lines: +3 -2
+Added hops-to-source destination logging.
+----------------------------
+revision 1.8
+date: 2003/11/26 00:44:02;  author: s0mbre;  state: Exp;  lines: +21 -3
+Extended ``smartness'':
+if source address is in our local network, than check initial TTL,
+else do not use TTL.
+----------------------------
+revision 1.7
+date: 2003/11/25 23:48:28;  author: s0mbre;  state: Exp;  lines: +26 -10
+Fixed various bugs in option processing.
+Added '%' handling in WSS (was broken in fingerprints loading part).
 
-> We could put a "else" here.
-> BTW, why this hard limit of 8192? On really high-speed and high-loaded
-> networks, you may perfectly want to set to an upper value...
+Please test and apply.
 
-yes, and you can if you do so by hand.  however, just because a system
-has loads of ram, it doesn't mean it will actually do lots of
-connections... there are people using computers for something else than
-firewalling ;)
+> > -- 
+> > - Harald Welte <laforge@netfilter.org>            
+> > http://www.netfilter.org/
 
-> > > - HASHSIZE should be an odd number, and even better: a prime number.
-> > >   What happens when you set it to an even number, or a non-prime numb=
-er?
->=20
-> > hash distribution will be less optimal.
->=20
-> But reading the algorithm, hashsize is never automatically set to a
-> prime number... but an even one. So how do you explain
-> that I have 4091 (which is probably a prime number, right?) buckets on
-> my system by default?
 
-maybe you're running a different kernel?
+	Evgeniy Polyakov ( s0mbre )
 
-> > > - CONNTRACK_MAX can be modified at run time with /proc. What does it
-> > >   do exactly (when shrinked, when extended)?
->=20
-> You don't really answer to my question: what happens when you set
-> conntrack_max to a smaller number than the currently stored conntrack
-> entries? I suppose conntrack entries are deleted? According to which
-> criterias?
+--Multipart=_Wed__26_Nov_2003_04_34_56_+0300_wLpT4dkeApe=Fyg6
+Content-Type: application/octet-stream;
+ name="pom-ipt_osf.patch"
+Content-Disposition: attachment;
+ filename="pom-ipt_osf.patch"
+Content-Transfer-Encoding: base64
 
-no, there are none deleted.  we just skip creating new ones until the
-number has dropped below the limit.  There is no special case for that,
-we just chek >=3D conntrack_max at conntrack allocation time.
+LS0tIG5ldGZpbHRlci9wYXRjaC1vLW1hdGljL2Jhc2Uvb3NmLnBhdGNoCVdlZCBOb3YgMjYgMDQ6
+MDk6MDEgMjAwMworKysgbmV0ZmlsdGVyL3BhdGNoLW8tbWF0aWMvYmFzZS9vc2YucGF0Y2gJV2Vk
+IE5vdiAyNiAwNDoxMzoyMCAyMDAzCkBAIC0xLDYgKzEsNiBAQAogLS0tIGxpbnV4L25ldC9pcHY0
+L25ldGZpbHRlci9pcHRfb3NmLmMJVGh1IE9jdCAzMCAyMTozMToyMyAyMDAzCi0rKysgbGludXgv
+bmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9vc2YuYwlNb24gTm92IDI0IDIxOjEyOjM3IDIwMDMKLUBA
+IC0wLDAgKzEsNzMzIEBACisrKysgbGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9vc2YuYwlX
+ZWQgTm92IDI2IDA0OjAzOjQ5IDIwMDMKK0BAIC0wLDAgKzEsNzY4IEBACiArLyoKICsgKiBpcHRf
+b3NmLmMKICsgKgpAQCAtNDQsNiArNDQsNyBAQAogKyNpbmNsdWRlIDxsaW51eC9zcGlubG9jay5o
+PgogKyNpbmNsdWRlIDxsaW51eC9jdHlwZS5oPgogKyNpbmNsdWRlIDxsaW51eC9saXN0Lmg+Cisr
+I2luY2x1ZGUgPGxpbnV4L2luZXRkZXZpY2UuaD4KICsKICsjaW5jbHVkZSA8bmV0L3NvY2suaD4K
+ICsjaW5jbHVkZSA8bmV0L2lwLmg+CkBAIC03Myw5ICs3NCwxMCBAQAogKwogK3N0YXRpYyByd2xv
+Y2tfdCBvc2ZfbG9jayA9IFJXX0xPQ0tfVU5MT0NLRUQ7CiArc3RhdGljIHN0cnVjdCBsaXN0X2hl
+YWQJZmluZ2VyX2xpc3Q7CQotKwogK3N0YXRpYyBpbnQgbWF0Y2goY29uc3Qgc3RydWN0IHNrX2J1
+ZmYgKiwgY29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKiwgY29uc3Qgc3RydWN0IG5ldF9kZXZpY2Ug
+KiwKLSsJCSAgICAgIGNvbnN0IHZvaWQgKiwgaW50LCBjb25zdCB2b2lkICosIHVfaW50MTZfdCwg
+aW50ICopOworKwkJICAgICAgY29uc3Qgdm9pZCAqLCBpbnQsIAorKwkJICAgICAgY29uc3Qgdm9p
+ZCAqLCB1X2ludDE2X3QsIAorKwkJICAgICAgaW50ICopOwogK3N0YXRpYyBpbnQgY2hlY2tlbnRy
+eShjb25zdCBjaGFyICosIGNvbnN0IHN0cnVjdCBpcHRfaXAgKiwgdm9pZCAqLAogKwkJICAgICAg
+ICAgICB1bnNpZ25lZCBpbnQsIHVuc2lnbmVkIGludCk7CiArCkBAIC04OSwxMiArOTEsMjkgQEAK
+ICsJVEhJU19NT0RVTEUgCiArfTsKICsKLStzdGF0aWMgaW5saW5lIGludCBzbWFydF9kZWModW5z
+aWduZWQgbG9uZyBmbGFncywgdW5zaWduZWQgY2hhciBpcF90dGwsIHVuc2lnbmVkIGNoYXIgZl90
+dGwpCisrc3RhdGljIGlubGluZSBpbnQgc21hcnRfZGVjKGNvbnN0IHN0cnVjdCBza19idWZmICpz
+a2IsIHVuc2lnbmVkIGxvbmcgZmxhZ3MsIHVuc2lnbmVkIGNoYXIgZl90dGwpCiAreworKwlzdHJ1
+Y3QgaXBoZHIgKmlwID0gc2tiLT5uaC5pcGg7CisrCiArCWlmIChmbGFncyAmIElQVF9PU0ZfU01B
+UlQpCisrCXsKKysJCXN0cnVjdCBpbl9kZXZpY2UgKmluX2RldiA9IGluX2Rldl9nZXQoc2tiLT5k
+ZXYpOworKworKwkJZm9yX2lmYShpbl9kZXYpCisrCQl7CisrCQkJaWYgKGluZXRfaWZhX21hdGNo
+KGlwLT5zYWRkciwgaWZhKSkKKysJCQl7CisrCQkJCWluX2Rldl9wdXQoaW5fZGV2KTsKKysJCQkJ
+cmV0dXJuIChpcC0+dHRsID09IGZfdHRsKTsKKysJCQl9CisrCQl9CisrCQllbmRmb3JfaWZhKGlu
+X2Rldik7CisrCQkKKysJCWluX2Rldl9wdXQoaW5fZGV2KTsKICsJCXJldHVybiAxOworKwl9CiAr
+CWVsc2UKLSsJCXJldHVybiAoaXBfdHRsID09IGZfdHRsKTsKKysJCXJldHVybiAoaXAtPnR0bCA9
+PSBmX3R0bCk7CiArfQogKwogK3N0YXRpYyBpbnQKQEAgLTE1NCw3ICsxNzMsNyBAQAogKwkJZm1h
+dGNoID0gRk1BVENIX1dST05HOwogKwogKwkJaWYgKHRvdGxlbiA9PSBmLT5zcyAmJiBkZiA9PSBm
+LT5kZiAmJiAKLSsJCQlzbWFydF9kZWMoaW5mby0+ZmxhZ3MsIGlwLT50dGwsIGYtPnR0bCkpCisr
+CQkJc21hcnRfZGVjKHNrYiwgaW5mby0+ZmxhZ3MsIGYtPnR0bCkpCiArCQl7CiArCQkJdW5zaWdu
+ZWQgbG9uZyBmb3B0c2l6ZTsKICsJCQlpbnQgb3B0bnVtOwpAQCAtMjE1LDE3ICsyMzQsMjcgQEAK
+ICsJCQkJCQkvKiBTa2lwIGtpbmQgYW5kIGxlbmd0aCBmaWVsZHMqLwogKwkJCQkJCW9wdHAgKz0g
+MjsgCiArCi0rCQkJCQkJaWYgKGYtPm9wdFtvcHRudW1dLndjLndjICE9IDApCisrCQkJCQkJaWYg
+KGYtPm9wdFtvcHRudW1dLndjLnZhbCAhPSAwKQogKwkJCQkJCXsKICsJCQkJCQkJdW5zaWduZWQg
+bG9uZyB0bXAgPSAwOwogKwkJCQkJCQkKICsJCQkJCQkJLyogSG1tbS4uLiBJdCBsb29rcyBhIGJp
+dCB1Z2x5LiA6KSAqLwotKwkJCQkJCQltZW1jcHkoJnRtcCwgJmYtPm9wdFtvcHRudW1dLndjLnZh
+bCwgCisrCQkJCQkJCW1lbWNweSgmdG1wLCBvcHRwLCAKICsJCQkJCQkJCShsZW4gPiBzaXplb2Yo
+dW5zaWduZWQgbG9uZyk/CiArCQkJCQkJCQkgCXNpemVvZih1bnNpZ25lZCBsb25nKTpsZW4pKTsK
+LSsKLSsJCQkJCQkJdG1wID0gbnRvaGwodG1wKTsKLSsJCQkJCQkJaWYgKHRtcCAhPSBmLT5vcHRb
+b3B0bnVtXS53Yy52YWwpCisrCQkJCQkJCS8qIDIgKyAyOiBvcHRsZW4oMiBieXRlcykgKyAKKysJ
+CQkJCQkJICogCWtpbmQoMSBieXRlKSArIGxlbmd0aCgxIGJ5dGUpICovCisrCQkJCQkJCWlmIChs
+ZW4gPT0gNCkgCisrCQkJCQkJCQl0bXAgPSBudG9ocyh0bXApOworKwkJCQkJCQllbHNlCisrCQkJ
+CQkJCQl0bXAgPSBudG9obCh0bXApOworKworKwkJCQkJCQlpZiAoZi0+b3B0W29wdG51bV0ud2Mu
+d2MgPT0gJyUnKQorKwkJCQkJCQl7CisrCQkJCQkJCQlpZiAoKHRtcCAlIGYtPm9wdFtvcHRudW1d
+LndjLnZhbCkgIT0gMCkKKysJCQkJCQkJCQlmbWF0Y2ggPSBGTUFUQ0hfT1BUX1dST05HOworKwkJ
+CQkJCQl9CisrCQkJCQkJCWVsc2UgaWYgKHRtcCAhPSBmLT5vcHRbb3B0bnVtXS53Yy52YWwpCiAr
+CQkJCQkJCQlmbWF0Y2ggPSBGTUFUQ0hfT1BUX1dST05HOwogKwkJCQkJCX0KICsJCQkJCX0KQEAg
+LTI0Niw3ICsyNzUsNyBAQAogKwkJCQlzd2l0Y2ggKGNoZWNrX1dTUykKICsJCQkJewogKwkJCQkJ
+Y2FzZSAwOgotKwkJCQkJCWlmICh3aW5kb3cgPT0gZi0+d3NzLnZhbCkKKysJCQkJCQlpZiAoZi0+
+d3NzLnZhbCA9PSAwIHx8IHdpbmRvdyA9PSBmLT53c3MudmFsKQogKwkJCQkJCQlmbWF0Y2ggPSBG
+TUFUQ0hfT0s7CiArCQkJCQkJYnJlYWs7CiArCQkJCQljYXNlIDE6IC8qIE1TUyAqLwpAQCAtMjU0
+LDExICsyODMsMTEgQEAKICsJCQkJCQkJZm1hdGNoID0gRk1BVENIX09LOwogKwkJCQkJCWJyZWFr
+OwogKwkJCQkJY2FzZSAyOiAvKiBNVFUgKi8KLSsJCQkJCQlpZiAod2luZG93ID09IGYtPndzcy52
+YWwqKG1zcys0MCkpCisrCQkJCQlpZiAod2luZG93ID09IGYtPndzcy52YWwqKG1zcys0MCkpCiAr
+CQkJCQkJCWZtYXRjaCA9IEZNQVRDSF9PSzsKICsJCQkJCQlicmVhazsKICsJCQkJCWNhc2UgMzog
+LyogTU9EICovCi0rCQkJCQkJaWYgKHdpbmRvdyAlIGYtPndzcy52YWwgPT0gMCkKKysJCQkJCQlp
+ZiAoKHdpbmRvdyAlIGYtPndzcy52YWwpID09IDApCiArCQkJCQkJCWZtYXRjaCA9IEZNQVRDSF9P
+SzsKICsJCQkJCQlicmVhazsKICsJCQkJfQpAQCAtMjY4LDEwICsyOTcsMTIgQEAKICsJCQlpZiAo
+Zm1hdGNoID09IEZNQVRDSF9PSykKICsJCQl7CiArCQkJCWZjb3VudCsrOwotKwkJCQlsb2coIiVz
+IFslc106ICV1LiV1LiV1LiV1OiV1IC0+ICV1LiV1LiV1LiV1OiV1XG4iLCAKLSsJCQkJCWYtPmdl
+bnJlLCBmLT5kZXRhaWxzLAorKwkJCQlsb2coIiVzIFslczolczolc10gOiAldS4ldS4ldS4ldTol
+dSAtPiAldS4ldS4ldS4ldToldSBob3BzPSVkXG4iLCAKKysJCQkJCWYtPmdlbnJlLCBmLT52ZXJz
+aW9uLAorKwkJCQkJZi0+c3VidHlwZSwgZi0+ZGV0YWlscywKICsJCQkJCU5JUFFVQUQoaXAtPnNh
+ZGRyKSwgbnRvaHModGNwLT5zb3VyY2UpLAotKwkJCQkJTklQUVVBRChpcC0+ZGFkZHIpLCBudG9o
+cyh0Y3AtPmRlc3QpKTsKKysJCQkJCU5JUFFVQUQoaXAtPmRhZGRyKSwgbnRvaHModGNwLT5kZXN0
+KSwKKysJCQkJCWYtPnR0bCAtIGlwLT50dGwpOwogKwkJCQlpZiAoKGluZm8tPmZsYWdzICYgSVBU
+X09TRl9MT0cpICYmIAogKwkJCQkJaW5mby0+bG9nbGV2ZWwgPT0gSVBUX09TRl9MT0dMRVZFTF9G
+SVJTVCkKICsJCQkJCWJyZWFrOwpAQCAtNTk3LDcgKzYyOCwxMiBAQAogKwkJCWVsc2UgCiArCQkJ
+CWZpbmdlci0+d3NzLnZhbCA9IHNpbXBsZV9zdHJ0b3VsKHBiZWcrMSwgTlVMTCwgMTApOwogKwkJ
+fQotKwkJaWYgKGlzZGlnaXQocGJlZ1swXSkpCisrCQllbHNlIGlmIChwYmVnWzBdID09ICclJykK
+KysJCXsKKysJCQlmaW5nZXItPndzcy53YyA9ICclJzsKKysJCQlmaW5nZXItPndzcy52YWwgPSBz
+aW1wbGVfc3RydG91bChwYmVnKzEsIE5VTEwsIDEwKTsKKysJCX0KKysJCWVsc2UgaWYgKGlzZGln
+aXQocGJlZ1swXSkpCiArCQl7CiArCQkJZmluZ2VyLT53c3Mud2MgPSAwOwogKwkJCWZpbmdlci0+
+d3NzLnZhbCA9IHNpbXBsZV9zdHJ0b3VsKHBiZWcsIE5VTEwsIDEwKTsKQEAgLTczMyw4ICs3Njks
+OCBAQAogK01PRFVMRV9MSUNFTlNFKCJHUEwiKTsKICtNT0RVTEVfQVVUSE9SKCJFdmdlbml5IFBv
+bHlha292IDxqb2hucG9sQDJrYS5taXB0LnJ1PiIpOwogK01PRFVMRV9ERVNDUklQVElPTigiUGFz
+c2l2ZSBPUyBmaW5nZXJwcmludCBtYXRjaGluZy4iKTsKLS0tLSBsaW51eC9pbmNsdWRlL2xpbnV4
+L25ldGZpbHRlcl9pcHY0L2lwdF9vc2YuaCAJVGh1IE9jdCAzMCAyMTozMToyMyAyMDAzCi0rKysg
+bGludXgvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfb3NmLmgJTW9uIE5vdiAyNCAx
+ODozMzo0MiAyMDAzCistLS0gbGludXgvaW5sdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwdF9v
+c2YuaAlUaHUgT2N0IDMwIDIxOjMxOjIzIDIwMDMKKysrKyBsaW51eC9pbmx1ZGUvbGludXgvbmV0
+ZmlsdGVyX2lwdjQvaXB0X29zZi5oCU1vbiBOb3YgMjQgMTg6MzM6NDIgMjAwMwogQEAgLTAsMCAr
+MSwxMzAgQEAKICsvKgogKyAqIGlwdF9vc2YuaApAQCAtNzY0LDEwICs4MDAsMTAgQEAKICsjZGVm
+aW5lIE1BWERFVExFTgkJNjQKICsKICsjZGVmaW5lIElQVF9PU0ZfR0VOUkUJCTEKLSsjZGVmaW5l
+IElQVF9PU0ZfU01BUlQJCTIKKysjZGVmaW5lCUlQVF9PU0ZfU01BUlQJCTIKICsjZGVmaW5lIElQ
+VF9PU0ZfTE9HCQk0CiArCi0rI2RlZmluZSBJUFRfT1NGX0xPR0xFVkVMX0FMTAkJMAorKyNkZWZp
+bmUgSVBUX09TRl9MT0dMRVZFTF9BTEwJMAogKyNkZWZpbmUgSVBUX09TRl9MT0dMRVZFTF9GSVJT
+VAkxCiArCiArI2luY2x1ZGUgPGxpbnV4L2xpc3QuaD4K
 
-> But if we take conntrack_max =3D hashsize,
-> size_of_mem_available_for_ct is still around 300 * ip_conntrack_max
-> (on my system, it is not 300, but exactly 292)
-> So I simply think that on firewall-only machines with 512Mo, we should
-> simply use conntrack_max =3D hashsize without any questioning.
+--Multipart=_Wed__26_Nov_2003_04_34_56_+0300_wLpT4dkeApe=Fyg6
+Content-Type: application/octet-stream;
+ name="pom-ipt_osf.patch.help"
+Content-Disposition: attachment;
+ filename="pom-ipt_osf.patch.help"
+Content-Transfer-Encoding: base64
 
-yes.  but just because your suse or redhat default packetfilter script
-modprobes ip_conntrack, there is no way we can assume that this is a
-firewall-only machine.
+LS0tIG5ldGZpbHRlci9wYXRjaC1vLW1hdGljL2Jhc2Uvb3NmLnBhdGNoLmhlbHAJV2VkIE5vdiAy
+NiAwNDowOTowNSAyMDAzCisrKyBuZXRmaWx0ZXIvcGF0Y2gtby1tYXRpYy9iYXNlL29zZi5wYXRj
+aC5oZWxwCVdlZCBOb3YgMjYgMDQ6MjI6MDEgMjAwMwpAQCAtMzMsMTIgKzMzLDEyIEBACiAJI2lw
+dGFibGVzIC1JIElOUFVUIC1qIEFDQ0VQVCAtcCB0Y3AgLW0gb3NmIC0tZ2VucmUgTGludXggLS1s
+b2cgMSAtLXNtYXJ0CiAKIAlJbiBzeXNsb2cgeW91IGZpbmQgc29tZXRoaW5nIGxpa2UgdGhpczoK
+LQlpcHRfb3NmOiBXaW5kb3dzIFtXaW5kb3dzIFhQIFBybyBTUDEsIDIwMDAgU1AzXTogMTEuMjIu
+MzMuNTU6NDAyNCAtPiAxMS4yMi4zMy40NDoxMzkKLQlpcHRfb3NmOiBVbmtub3duOiAxNjM4NDox
+MDY6MTo0ODowMjA0MDVCNDAxMDEwNDAyIDQ0LjMzLjIyLjExOjEyMzkgLT4gMTEuMjIuMzMuNDQ6
+ODAKKwlpcHRfb3NmOiBXaW5kb3dzIFsyMDAwOlNQMzpXaW5kb3dzIFhQIFBybyBTUDEsIDIwMDAg
+U1AzXTogMTEuMjIuMzMuNTU6NDAyNCAtPiAxMS4yMi4zMy40NDoxMzkgaG9wcz0wCisJaXB0X29z
+ZjogVW5rbm93bjogMTYzODQ6MTA2OjE6NDg6MDIwNDA1QjQwMTAxMDQwMiA0NC4zMy4yMi4xMTox
+MjM5IC0+IDExLjIyLjMzLjQ0OjgwIGhvcHM9NQogCiAgIC0tc21hcnQKICAgCWlmIHByZXNlbnQs
+IE9TRiB3aWxsIHVzZSBzb21lIHNtYXJ0bmVzcyB0byBkZXRlcm1pbmUgcmVtb3RlIE9TLgotCU5v
+dyBvbmx5IG5vdCB1c2UgVFRMKCB3aXRoIGl0IGZhciByZW1vdGUgbWFjaGluZXMgY2FuIGJlIGRl
+dGVybWluZWQpLgorCU9TRiB3aWxsIHVzZSBpbml0aWFsIFRUTCBvbmx5IGlmIHNvdXJjZSBvZiBj
+b25uZWN0aW9uIGlzIGluIG91ciBsb2NhbCBuZXR3b3JrLgogCiAgIElmIHlvdSBzYXkgWSBoZXJl
+LCB0cnkgaXB0YWJsZXMgLW0gb3NmIC0taGVscCBmb3IgbW9yZSBpbmZvcm1hdGlvbi4KIAo=
 
-> Oh, BTW, what happens if hashsize > conntrack_max?
-
-nothing.  you will waste memory by keeping empty buckets.
-
-> And what happens exactly when the number of active sessions exceeds
-> conntrack max?
-
-at this time, please read the comments in the code.  we try to evict old
-unconfirmed conntracks.
-
-> > yes.  You just don't do that.  You configure your firewall, and put it
-> > in place.  You should know your network traffic beforehand and configure
-> > it correctly.
->=20
-> That's not always that simple. Suppose you're working for a company for w=
-hich
-> availability and performance is critical... and suppose the growing
-> network traffic forces you to increase your bandwidth by about 10.
-> Well, in these sort of cases, you certainly want to avoid to reboot
-> (and loose connections) too much, believe me.
-> Yes, netfilter is sometimes used in these kind of companies. And
-> yes, I sometimes happen to do some missions for them.
-> And no, I can hardly give you any names. ;-)
-
-well, patches are welcome ;)
-
->  Herve
-=20
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---OZkY3AIuv2LYvjdk
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/w8IzXaXGVTD0i/8RAk9KAKCwKq6uUYIcQjbZqAvN2MNYlhI1jwCfRgLJ
-qkduSQounL9X3dJsSI/IJBY=
-=gHKn
------END PGP SIGNATURE-----
-
---OZkY3AIuv2LYvjdk--
+--Multipart=_Wed__26_Nov_2003_04_34_56_+0300_wLpT4dkeApe=Fyg6--
