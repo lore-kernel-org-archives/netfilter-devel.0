@@ -1,18 +1,12 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [RFC]: ip_conntrack breaks UDP PMTU
-Date: Fri, 14 Feb 2003 15:55:21 +0100
+From: "Andrej Ricnik" <lemmetink@hotmail.com>
+Subject: Re: accounting
+Date: Sat, 15 Feb 2003 01:10:02 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030214145521.GB17921@sunbeam.de.gnumonks.org>
-References: <20030214080612.GN14794@sunbeam.de.gnumonks.org> <3E4CF238.2030207@trash.net>
+Message-ID: <F70HM4nPCkkds4rvdnC0000935b@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	coreteam@netfilter.org
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <3E4CF238.2030207@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,58 +17,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+>Hi,
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>as for the logging of traffic, this is really easy. You could use an
+>iptables rule, as DarKRaveR suggested, or just use snmp
+>(interfaces.ifTable.ifEntry.ifInOctets*).
 
-On Fri, Feb 14, 2003 at 02:42:16PM +0100, Patrick McHardy wrote:
+>But for the assurance of a given limit, you will need a lot more.
+Well, I could insert the traffic details (source/dest, size, time)
+in a postgres table and run a query from a cron-job every five
+minutes which certainly would suffice my limits...
 
-> Usually all fragments except the last one will have equal size, so the
-> fragment sizes can be stored as (size, boundary) tuples. I would
-> suggest making the max.
 
-yes, usually.  But if we implement this 'fragment-backlog', we should do
-it as good as possible. =20
+>Stop working, look here:
+>https://rnvs.informatik.tu-chemnitz.de/Dynshaper/
+>
+>It is already up and running, doing everything you can dream of: shaping
+>to a given limit, dynamic traffic adjustment based on long term traffic
+>analysis, database backend, IP based class allocation, Web-Frontend,
+>Database-Backend, ... and it's GPL!
 
-I see people already whining about 'firewall can be detected because
-overlapping fragments are not present after passing through' or stuff
-like this :((
+>The only disadvantage: it seems there is only a German documentation.
+Well, I downloaded it and read the docs... I don't think it
+QUITE does what I want, because in this setup it will allow
+the kids to hog the transfer as long as I'm not on, and only
+pull the throttle once they used up all the transfer volume?
+Maybe my German is a bit rusty, and I got it wrong, though ...
 
-> number of different fragment sizes fixed or controllable via sysctl and=
-=20
-> set it to some low default (like 4). This would reduce the amount of
-> memory per reassembled packet to 4 * (2b + 2b) =3D 16b.
 
-so what do we do if the number is exceeded?  fallback to current
-behaviour?
 
-Thanks for your feedback.
+>Ciao!
+>     Thomas
 
-> Bye,
-> Patrick
 
---=20
-- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
+Cheers from windy Wellington,
+Tink
 
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+-----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GCM/IT/O d-(++)@ a C+(+++)@ UL++>+++ P+>+++ L++ E+@ W+@ N+ o? K? w---@(+) 
+O+++(+)@ M-@ V? PS+ PE- Y+ PGP++ t- 5- X- R-(*) tv-@ b+ DI++ D-- G++ !e* 
+h--- r++ z?
+------END GEEK CODE BLOCK------
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
 
-iD8DBQE+TQNZXaXGVTD0i/8RAneFAJ0XOHUnfLqb1pCEf/1vdG0KLcGndwCfViGZ
-r968R7AOGZV8bmHlRjiZHXU=
-=DQhn
------END PGP SIGNATURE-----
-
---pf9I7BMVVzbSWLtt--
+_________________________________________________________________
+Add photos to your messages with MSN 8. Get 2 months FREE*. 
+http://join.msn.com/?page=features/featuredemail
