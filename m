@@ -1,15 +1,14 @@
-From: James Morris <jmorris@intercode.com.au>
-Subject: Re: [libipq] Buffer size
-Date: Sat, 15 Jun 2002 09:36:07 +1000 (EST)
+From: Harald Welte <laforge@gnumonks.org>
+Subject: [ANNOUNCE] Feature Freeze for iptables-1.2.7
+Date: Sat, 15 Jun 2002 11:59:09 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Mutt.LNX.4.44.0206150933330.12359-100000@blackbird.intercode.com.au>
-References: <1147.131.227.137.82.1024071685.squirrel@ike.ee.surrey.ac.uk>
+Message-ID: <20020615115909.M2543@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.samba.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="h1Kgj0J7YauQlxie"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: eem1wc@eim.surrey.ac.uk
-In-Reply-To: <1147.131.227.137.82.1024071685.squirrel@ike.ee.surrey.ac.uk>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.samba.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,36 +19,41 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 14 Jun 2002 eem1wc@eim.surrey.ac.uk wrote:
 
-> Hi... 
-> 
->    I am currently using iptables (1.2.5) and libipq to develop a user program 
-> (using the QUEUE target) that would introduce an extra delay for packets going 
-> through a bridge (bridge-utils-0.9.5). While using ping, the program works 
-> fine. But when i test it with Microsoft Netmeeting to transmit voice (no video 
-> yet), i quickly receive a message as below:-
-> 
-> read(): Failed to received netlink message: No buffer space available
-> 
+--h1Kgj0J7YauQlxie
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This is the kernel side socket buffer running out of space because the 
-userspace application can't keep up with the traffice.
+Hi!
 
-> My questions:
-> [1] how big is this buffer?
-> [2] how can i go about to solve this problem? I typically need to introduce a 
-> round-trip delay of 500ms (i.e. 250ms from src to dest through the bridge)?
-> [3] can i do anything to enlarge this buffer?
-> 
+I'm announcing a feature freeze for the iptables-1.2.7 release starting
+at 24 Jun 2002. After this date, only bugfixes will be accepted.  The
+1.2.7 release will most likely be out by Jul 01.
 
-Please see:
-http://lists.samba.org/pipermail/netfilter-devel/2001-June/001346.html
+Thanks.
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
+=20
+V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
-Time to add this to the FAQ...
+--h1Kgj0J7YauQlxie
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-- James
--- 
-James Morris
-<jmorris@intercode.com.au>
+iD8DBQE9Cw/sXaXGVTD0i/8RAkVUAJ4uEnn/xPmxxngbXJ6tkCyieYWUKwCeKtLl
+t+aqBeWPwRXaXzxAxah4T2g=
+=XaVY
+-----END PGP SIGNATURE-----
+
+--h1Kgj0J7YauQlxie--
