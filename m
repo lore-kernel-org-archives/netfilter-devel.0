@@ -1,15 +1,17 @@
-From: Kishore Dharmavaram <kishored@servgate.com>
-Subject: RE: Memory leaks in ip_conntrack?
-Date: Tue, 11 Nov 2003 16:49:12 -0800
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [jorge@dti2.net: Re: Fw: PROBLEM: PATCH for 2.4.23-pre4 and up
+ hang on one system]
+Date: Wed, 12 Nov 2003 00:47:00 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B2061@skat.sky.com>
+Message-ID: <20031112004700.69796de6.davem@redhat.com>
+References: <20031112083357.GA19776@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Cc: netfilter@lists.netfilter.org, "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: marcelo.tosatti@cyclades.com.br, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: 'Jozsef Kadlecsik' <kadlec@blackhole.kfki.hu>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20031112083357.GA19776@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,37 +22,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef & All,
-It seems some patches were already applied on base 2.4.20 kernel netfilter
-sources that iam working with, is there a way to findout what patches were
-applied on netfilter code? and are some must-apply patches for 2.4.20?, if
-so can you please give me a list or pointout few?
-Thanks,
-Kishore
+On Wed, 12 Nov 2003 09:33:57 +0100
+Harald Welte <laforge@gnumonks.org> wrote:
 
------Original Message-----
-From: Jozsef Kadlecsik [mailto:kadlec@blackhole.kfki.hu]
-Sent: Tuesday, November 11, 2003 3:35 PM
-To: Kishore Dharmavaram
-Cc: netfilter@lists.netfilter.org; 'netfilter-devel@lists.netfilter.org'
-Subject: RE: Memory leaks in ip_conntrack?
+> Since there is now a second bug report on that 'fix', I think it's
+> better to back it out for 2.4.23.  The code has been without that 'fix'
+> for the whole 2.4.x time, and it didn't seem to cause any real problem.
+> 
+> So rather than fixing the theoretical case, I'd say we keep the code
+> like before (please revert the below patch) and make user complaints go
+> away.
+> 
+> We'll try to investigate this further, but not before 2.4.23.
 
+Ok, no problem.
 
-On Tue, 11 Nov 2003, Kishore Dharmavaram wrote:
+Marcelo, you can revert this change in your tree simply by
+running the following command:
 
-> I verified & I find my 2.4.20 is already patched with UNCONFIRMED
-> connections fix: http://www.netfilter.org/security/2003-08-01-listadd.html
->
-> > Did you apply any patches from patch-o-matic? If yes, which one?
+	bk cset -x1.1063.41.4
 
-There are other patches in p-o-m. Didn't you apply anything else?
-Say the nfnetlink/ctnetlink patch? It is known that there was a buggy
-version of that which screwed up the internal conntrack counter.
+Please do so, thanks everyone.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+We can reinvestigate this in 2.4.24 if we figure out what was
+wrong.
