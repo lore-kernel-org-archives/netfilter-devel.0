@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] peer_pid checking in ip_queue
-Date: Sun, 28 Mar 2004 00:50:04 +0100
+Subject: Re: [CHECKER] 33 missing null checks
+Date: Sun, 28 Mar 2004 11:47:45 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4066132C.7010004@trash.net>
-References: <40601AE4.5070206@eurodev.net> <406072ED.8060304@trash.net> <40607DAC.2090404@eurodev.net> <4060BDBF.8050407@trash.net> <20040327212013.GD26945@sunbeam.de.gnumonks.org>
+Message-ID: <40669F41.3060100@trash.net>
+References: <5.2.1.1.2.20040327225419.01930cc8@kash.pobox.stanford.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira <pablo@eurodev.net>,  netfilter-devel@lists.netfilter.org
+Cc: linux-kernel@vger.kernel.org,  mc@cs.stanford.edu,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040327212013.GD26945@sunbeam.de.gnumonks.org>
+To: Ken Ashcraft <kash@stanford.edu>
+In-Reply-To: <5.2.1.1.2.20040327225419.01930cc8@kash.pobox.stanford.edu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +22,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Tue, Mar 23, 2004 at 11:44:15PM +0100, Patrick McHardy wrote:
+Ken Ashcraft wrote:
+> I'm from the Stanford Metacompilation research group where we use static 
+> analysis to find bugs.  I'm trying a new technique, so I would 
+> appreciate feedback on these error reports.
 > 
->>It can happen if peer_pid is checked outside the locked section on one
->>CPU and changed on another at the same time. I don't consider it
->>important, as the exact point in time at which the first packet will be
->>received is non-deterministic for userspace anyway. But we can probably
->>also do it without a race-conditions, ipq_build_packet_message
->>read_locks queue_lock, directly after that it is write_locked by
->>ipq_enqueue_packet. As multiple threads will queue at the write_lock
->>anyway it seems we can just replace it by a spin_lock and lock the
->>entire section. But let me think some more about it ..
-> 
-> 
-> any results so far?  If not, I will just postpone this minor issue.
+> I found these errors by comparing implementations of the same 
+> interface.  If functions are assigned to the same function pointer (same 
+> field of some struct), I assume that the functions are called from the 
+> same context.  Therefore, they should treat their incoming parameters 
+> similarly.  In this case, before dereferencing pointers, the functions 
+> should either check the pointers for null or not check the pointers for 
+> null.  Any contradiction is an error.
 
-Not yet, but I will get to it next week.
+This one is invalid. The iptables targets and matches check if they are
+called from a valid hook. MASQUERADE for example can only be used in
+the POST_ROUTING hook, and out should always be != NULL there.
 
+Regards
+Patrick
+
+> There are 33 reports below.  Each report contains first a reference to 
+> an EXAMPLE or a place where the parameter is checked.  That reference is 
+> followed by a COUNTER(example) or a place where the parameter is not 
+> checked.  After that is a code snippet from the counter example.  The 
+> type of the function pointer (struct foo.bar) can be found in the 
+> COUNTER field: [COUNTER=struct foo.bar-param_num].
 > 
+> Unfortunately, many of these errors had only one EXAMPLE and one 
+> COUNTER.  It may be that some of the null checks are spurious.  You can 
+> see the number of EXAMPLEs for a report in the [ex=i] field of the 
+> COUNTER line.
 > 
->>Regards
->>Patrick
+> Thanks for any feedback,
+> Ken Ashcraft
 > 
+> ---------------------------------------------------------
+> [BUG]
+> /home/kash/interface/linux-2.6.3/net/ipv4/netfilter/ipt_MASQUERADE.c:128:masquerade_target: 
+> ERROR:DEREF: Not checking arg out [COUNTER=struct ipt_target.target-2] 
+> [fit=3] [fit_fn=1] [fn_ex=0] [fn_counter=1] [ex=2] [counter=1] [z = 
+> -2.25170500701057] [fn-z = -4.35889894354067]
+>     newsrc = rt->rt_src;
+>     DEBUGP("newsrc = %u.%u.%u.%u\n", NIPQUAD(newsrc));
+>     ip_rt_put(rt);
 > 
+>     WRITE_LOCK(&masq_lock);
 > 
+> Error --->
+>     ct->nat.masq_index = out->ifindex;
+>     WRITE_UNLOCK(&masq_lock);
+> 
+>     /* Transfer from original range. */
+> ---------------------------------------------------------
