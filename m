@@ -1,12 +1,16 @@
-From: Natty McButterpants <ipv6natlover@yahoo.com>
-Subject: NAT for IPv6 FINISHED!!!!!
-Date: Mon, 24 May 2004 14:19:02 -0700 (PDT)
+From: Kenneth =?iso-8859-1?q?Aafl=F8y?= <keaafloy@online.no>
+Subject: Fwd: Explanation: Was: Please Remove: Mike Andersen
+Date: Tue, 25 May 2004 12:49:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040524211902.69395.qmail@web90004.mail.scd.yahoo.com>
+Message-ID: <200405251249.57273.keaafloy@online.no>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-271857283-1085433542=:67125"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: mike@src.no
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,39 +21,85 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-271857283-1085433542=:67125
-Content-Type: text/plain; charset=us-ascii
+Hi,
 
-Gentlemen,
-     We have finished the NAT development for IPv6.  It properly translates ICMPv6, UDP, and TCP packets.  We still need to clean up the code, perform a few more tests and what not.  We used ping6, traceroute6, and rlogin along with Ethereal and staring at a lot of tcpdump hex output in order to test the NAT.  We have not yet ported over support for application level stuff like TFTP, FTP, etc, but it does not appear to be too difficult and we may get that out at some point.  Additionally, we need to compile in DNAT support into the ip6tables user-space tool, as right now SNAT is all that is compiled in.  The code is rough, but it works, and as soon as we get it annotated and cleaned up into a tarball, we'll send it out to whomever wants it.  
- 
-In response to Jozsef Kadlecsik's question:
->     I hope this work is based on Yasuyuki Kozakai's nf_conntrack
->generalization...
->
->Best regards,
->Jozsef
+Mike Andersen requested that I should forward this as an explaination that =
+he=20
+was not the source of the bulk mail-transfer recently expirienced. He state=
+s=20
+that he was removed from the list, but I don't know if he's able to re-join=
+=20
+or not. If the list-maintainers please could get in contact with him to sor=
+t=20
+this out, it would be nice.
 
-     Yes, we used USAGI's 2.6.5 kernel with their included connection tracking suite to develop and test our NAT.  We only had to make a few minor modifications.
- 
- 
- 
+Kenneth
 
-		
----------------------------------
-Do you Yahoo!?
-Friends.  Fun. Try the all-new Yahoo! Messenger
---0-271857283-1085433542=:67125
-Content-Type: text/html; charset=us-ascii
+=2D---------  Forwarded Message  ----------
 
-<DIV>Gentlemen,</DIV>
-<DIV>&nbsp;&nbsp;&nbsp;&nbsp; We have finished the NAT development for IPv6.&nbsp; It properly translates ICMPv6, UDP, and TCP packets.&nbsp; We still need to clean up the code, perform a few more tests and what not.&nbsp; We used ping6, traceroute6, and rlogin along with Ethereal and staring at a lot of tcpdump hex output in order to test the NAT.&nbsp; We have not yet ported over support for application level stuff like TFTP, FTP, etc, but it does not appear to be too difficult and we may get that out at some point.&nbsp; Additionally, we need to compile in DNAT support into the ip6tables user-space tool, as right now SNAT is all that is compiled in.&nbsp; The code is rough, but it works, and as soon as we get it annotated and cleaned up into a tarball, we'll send it out to whomever wants it.&nbsp; </DIV>
-<DIV>&nbsp;</DIV>
-<DIV>In response to Jozsef Kadlecsik's question:</DIV>
-<DIV>&gt;&nbsp;&nbsp;&nbsp;&nbsp; I hope this work is based on Yasuyuki Kozakai's nf_conntrack<BR>&gt;generalization...<BR>&gt;<BR>&gt;Best regards,<BR>&gt;Jozsef<BR></DIV>
-<DIV>&nbsp;&nbsp;&nbsp;&nbsp; Yes, we used USAGI's 2.6.5 kernel with their included connection tracking suite to develop and test our NAT.&nbsp; We only had to make a few minor modifications.</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV><p>
-		<hr size=1><font face=arial size=-1>Do you Yahoo!?<br>Friends.  Fun. <a href="http://messenger.yahoo.com/">Try the all-new Yahoo! Messenger</a>
---0-271857283-1085433542=:67125--
+Subject: Explanation: Was: Please Remove: Mike Andersen
+Date: Tuesday 25 May 2004 12:21
+=46rom: Mike Andersen <mike@src.no>
+To: Kenneth Aafl=F8y <keaafloy@online.no>
+
+On May 23, 2004, at 04:27, Kenneth Aafl=F8y wrote:
+> This mail is going out because in the last hour or so, I and probably
+> the rest of the list has received 20-25 copies of his last mail, and fran=
+kly
+> I'm getting tierd of deleting it. Please remove him from the list untill
+> he can correct his behavior.
+
+=46irst of all, I can't do anything other than to say I'm sorry for all
+of those repeated emails created with my name as the sender.  I have
+checked everything locally here, and there is no sign that this emails
+are coming from me or any machines located at my site.  Take a look at
+the headers of those emails, you'll see that there is no sign of my
+outgoing email server there:
+
+Received: from mail by tor.linnett.no with spam-scanned (Exim 3.36 #1
+(Debian))
+	id 1BRhEV-0005XP-00
+	for <mike@src.no>; Sun, 23 May 2004 02:52:56 +0200
+Received: from lakshmi.netfilter.org ([62.128.28.23] ident=3Dmail)
+	by tor.linnett.no with esmtp (Exim 3.36 #1 (Debian))
+	id 1BRhEV-0005XL-00
+	for <mike@src.no>; Sun, 23 May 2004 02:52:55 +0200
+Received: from [213.95.27.115] (helo=3Dvishnu)
+	by lakshmi.netfilter.org with esmtp (Exim 4.22 #1 (Debian))
+	id 1BRhCI-0001im-J7; Sun, 23 May 2004 02:50:38 +0200
+Received: from [217.11.129.86] (helo=3Dnet.2-ec.com)
+	by vishnu.netfilter.org with esmtp (Exim 4.22 #1 (Debian))
+	id 1BRh75-0003q6-JO
+	for <netfilter-devel@lists.netfilter.org>; Sun, 23 May 2004 02:45:15
++0200
+Received: from www.tmuras.2000.cd (net.2-ec.com [217.11.129.86])
+	by net.2-ec.com (8.12.11/8.12.11) with SMTP id i4N0jKAG001841;
+	Sun, 23 May 2004 02:45:20 +0200
+Received: from 80.53.224.38
+         (GloportMail authenticated user pa1083622795)
+         by www.tmuras.2000.cd with HTTP;
+         Sun, 23 May 2004 02:45:20 +0200 (CEST)
+Message-ID: <1584.80.53.224.38.1085273120.squirrel@www.tmuras.2000.cd>
+
+Also, take a look at the User-Agent, Reply-To and the Content-Type
+headers:
+
+	Reply-To: nexor@mybaby.cd
+
+	User-Agent: GloportMail/1.4.2
+	(I'm using Mail.app for osx, and don't announce it)
+
+	Content-Type: text/plain;charset=3Diso-8859-2
+	(I use iso-8859-1)
+
+I would kindly ask you to forward this information to the list as an
+explanation that those emails are not generated by me, or from any
+machines under my control.
+
+
+mike
+=2D-
+"It is a lesson which all history teaches wise men, to put trust in
+  ideas, and not in circumstances."            --Ralph Waldo Emerson
+
+=2D------------------------------------------------------
