@@ -1,13 +1,17 @@
-From: Brad Fisher <brad@info-link.net>
-Subject: Suggestion for RETURN target
-Date: Tue, 02 Dec 2003 18:35:43 -0600
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Time match in mangle/POSTROUTING?
+Date: Wed, 03 Dec 2003 01:37:51 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FCD2FDF.69796CD5@info-link.net>
+Message-ID: <3FCD305F.4040406@trash.net>
+References: <3FCD2AA1.6F5E0225@info-link.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+  fabrice@netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Brad Fisher <brad@info-link.net>
+In-Reply-To: <3FCD2AA1.6F5E0225@info-link.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,49 +22,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Would it be possible to modify the RETURN target in such a way that it
-could return to an arbitrary chain in the call stack instead of only to
-the previous chain?  For example, something like:
+POSTROUTING packets don't neccessarily have a timestamp since packets are
+stamped when they are received which doesn't happen for locally generated
+traffic. In the source I can see an option "kerneltime" which uses
+gettimeofday, this should work fine in any chain. The patch does work in
+OUTPUT, it uses kerneltime automatically then (and also unneccesarrily
+in FORWARD). A correct fix would require using kerneltime in OUTPUT
+and POSTROUTING and the skb stamp otherwise.
 
-    iptables -N chain2
-    ... other rules for chain2 ...
-    iptables -A chain2 -j RETURN --return-to 2
+Best regards,
+Patrick
 
-    iptables -N chain1
-    iptables -A chain1 <matches> -j chain2
-    iptables -A chain1 -j DROP
 
-    iptables -A FORWARD -j chain1
 
-In the above example, the DROP rule in chain1 would never get executed
-when the chain2 rule matched since the RETURN target in chain2 would
-"return-to" the 2nd to last chain in the call stack instead of the
-calling chain.  Perhaps "return-to" isn't the best name...  Something
-like "return-levels" or similar would work just as well for me.  The
-current behavior would be maintained if the additional parameter was not
-given.
+Brad Fisher wrote:
 
-If this isn't a possibility, then what about a way to attach a second
-(or third, etc?) target to a rule?  The targets would execute in
-sequence, with certain obvious ones such as ACCEPT/DROP/REJECT/etc
-stopping target execution.  With this, I could write the example above
-as follows:
-
-    iptables -N chain2
-    ... other rules for chain2 ...
-
-    iptables -N chain1
-    iptables -A chain1 <matches> -j chain2,RETURN
-    iptables -A chain1 -j DROP
-
-    iptables -A FORWARD -j chain1
-
-Where the sequence "-j chain2,RETURN" means execute chain2, then if it
-returns execute a RETURN to the previous chain.
-
-Either of these two approaches would allow me to reduce my ruleset 1/2
-the rules currently required.
-
-Anyway, just thought I'd thow it out there to see what others think.
-
--Brad
+>I'm curious why the time match doesn't work in POSTROUTING?  I have an
+>application where it would be helpful to use it as such and was
+>wondering if there was a good technical reason why it shouldn't work.
+>If I modified the source to allow it to be added to the POSTROUTING
+>chain, would it work as expected?  I'm assuming it won't be as simple as
+>that...
+>
+>-Brad
+>  
+>
