@@ -1,91 +1,40 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH]: invalid unregister sysctl table for conntrack
-Date: Wed, 09 Jun 2004 23:04:44 +0900 (JST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200406091404.XAA23742@toshiba.co.jp>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [netfilter-core] memory leak with IP connection tracking and
+	IP forwarding
+Date: Wed, 09 Jun 2004 17:05:09 +0200
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <1086793508.1785.21.camel@nienna.balabit>
+References: <200405041305.55627.tspat@de.ibm.com>
+	 <200405041602.26635.tspat@de.ibm.com>
+	 <20040517071453.GE26147@obroa-skai.de.gnumonks.org>
+	 <200405180829.10869.tspat@de.ibm.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Wed_Jun__9_23:04:44_2004_590)--"
-Content-Transfer-Encoding: 7bit
-Cc: usagi-core@linux-ipv6.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: linux-net@vger.kernel.org,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <linux-net-owner@vger.kernel.org>
+To: tspat@gmx.de
+In-Reply-To: <200405180829.10869.tspat@de.ibm.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Wed_Jun__9_23:04:44_2004_590)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
+  Hi,
 
-Hi,
+2004-05-18, k keltez=E9ssel 08:29-kor Thomas Spatzier ezt =EDrta:
+> > > On the router I issue a 'watch -n 1 cat /proc/meminfo'.
+> > > Then I do a 'ping -f -s 64000' from one host to another host via =
+the
+> > > router. On each update of my watch above there are about 10 MB of=
+ memory
+> > > (MemFree) missing.
 
-These patches fix the bug that access null pointer
-when failed to register sysctl table for ip_conntrack.
+  I've tried to reproduce this with 2.4.25 and 2.6.6, but couldn't find
+any leaks... Can you tell me something more specific about your kernel
+config and the ruleset on the firewall? Can you reproduce the same with
+ip_conntrack loaded but without any iptables rules?
 
-Regards,
+--=20
+ Regards,
+   Krisztian KOVACS
 
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
-
-
-----Next_Part(Wed_Jun__9_23:04:44_2004_590)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="conntrack-sysctl-2.4.patch"
-
---- linux-2.4.27-pre5/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-02-18 22:36:32.000000000 +0900
-+++ linux-2.4.27-pre5-fixed/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-06-09 23:00:04.454479720 +0900
-@@ -377,7 +377,8 @@
- 	ip_ct_sysctl_header = register_sysctl_table(ip_ct_net_table, 0);
- 	if (ip_ct_sysctl_header == NULL) {
- 		printk("ip_conntrack: can't register to sysctl.\n");
--		goto cleanup;
-+		ret = -ENOMEM;
-+		goto cleanup_localinops;
- 	}
- #endif
- 
-@@ -386,6 +387,7 @@
-  cleanup:
- #ifdef CONFIG_SYSCTL
-  	unregister_sysctl_table(ip_ct_sysctl_header);
-+ cleanup_localinops:
- #endif
- 	nf_unregister_hook(&ip_conntrack_local_in_ops);
-  cleanup_inoutandlocalops:
-
-----Next_Part(Wed_Jun__9_23:04:44_2004_590)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="conntrack-sysctl-2.6.patch"
-
---- linux-2.6.7-rc3/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-06-09 21:00:34.000000000 +0900
-+++ linux-2.6.7-rc3-fixed/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-06-09 22:58:28.765026728 +0900
-@@ -540,7 +540,8 @@
- 	ip_ct_sysctl_header = register_sysctl_table(ip_ct_net_table, 0);
- 	if (ip_ct_sysctl_header == NULL) {
- 		printk("ip_conntrack: can't register to sysctl.\n");
--		goto cleanup;
-+		ret = -ENOMEM;
-+		goto cleanup_localinops;
- 	}
- #endif
- 
-@@ -549,6 +550,7 @@
-  cleanup:
- #ifdef CONFIG_SYSCTL
-  	unregister_sysctl_table(ip_ct_sysctl_header);
-+ cleanup_localinops:
- #endif
- 	nf_unregister_hook(&ip_conntrack_local_in_ops);
-  cleanup_inoutandlocalops:
-
-----Next_Part(Wed_Jun__9_23:04:44_2004_590)----
