@@ -1,15 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: netfilter programming
-Date: Sat, 27 Mar 2004 01:58:26 +0100 (CET)
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Sequence number translation explanations.
+Date: Sat, 27 Mar 2004 18:00:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403270156400.11373-100000@filer.marasystems.com>
-References: <20040326191014.A11AE3D960@smtp.latinmail.com>
+Message-ID: <4065A500.8060107@netlab.hut.fi>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jorge Garcia <anarkophobia@latinmail.com>
-In-Reply-To: <20040326191014.A11AE3D960@smtp.latinmail.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,18 +19,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 26 Mar 2004, Jorge Garcia wrote:
+Hi!
 
-> hi, i need some info about how netfilter drops packages fot their source
-> adress and tcp ports becouse its not very clear for me.
+I need to translate sequence numbers between the two networks that are 
+separated by the firewall. In fact, I just need to translate on of them 
+(so tcph->ack_seq in one direction, and tcph->seq in the opposite 
+direction).
+I found the ip_nat_seq stucture and the ip_nat_seq_adjust function but I 
+do not understand them. Particularly this "correction_pos", what is it?
 
-It is not very clear to me what you are asking for.  Netfilter does not
-drop packets on it's own, an iptables rulesed does according to your
-instructions..
+Could someone provide me with some explanations?
 
-There is a great deal of information on Netfilter programming in the 
-Netfilter Hacking Howto. What is not mentioned there can be found in the 
-source or by asking here on netfilter-devel.
-
-Regards
-Henrik
+             Emmanuel
