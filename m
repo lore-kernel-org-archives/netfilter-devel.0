@@ -1,13 +1,17 @@
-From: Jan Holmberg <jan@artech.net>
-Subject: Fix ipt_TCPMSS.c for kernel 2.5.47
-Date: Wed, 13 Nov 2002 17:58:17 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: SIP
+Date: Tue, 19 Nov 2002 21:54:29 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DD284A9.EA60D065@artech.net>
+Message-ID: <20021119205429.GK2867@naboo.club.berlin.ccc.de>
+References: <000a01c28573$ff6900c0$1301a8c0@tcte.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0XhtP95kHFp3KGBe"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: ?????? <ych@tcte.com.cn>
+Content-Disposition: inline
+In-Reply-To: <000a01c28573$ff6900c0$1301a8c0@tcte.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,35 +22,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
 
+--0XhtP95kHFp3KGBe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Minor fix for ipt_TCPMSS.c since pmtu don't exsist anymore...
+On Wed, Nov 06, 2002 at 05:07:56PM +0800, ?????? wrote:
+> dose iptables support SIP now? I want it to make my IP phone work. thank =
+you.
 
+no, there is no conntrack/NAT helper for SIP yet.
 
-*** linux-2.5.47-org/net/ipv4/netfilter/ipt_TCPMSS.c Thu Nov 14 01:24:42
-2002
---- linux-2.5.47/net/ipv4/netfilter/ipt_TCPMSS.c Mon Nov 11 04:28:16
-2002
-***************
-*** 92,98 ****
-     return NF_DROP; /* or IPT_CONTINUE ?? */
-    }
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
+=20
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
-!   newmss = dst_pmtu((*pskb)->dst->pmtu) - sizeof(struct iphdr) -
-sizeof(struct tcphdr);
-   } else
-    newmss = tcpmssinfo->mss;
+--0XhtP95kHFp3KGBe
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
---- 92,98 ----
-     return NF_DROP; /* or IPT_CONTINUE ?? */
-    }
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-!   newmss = dst_pmtu((*pskb)->dst) - sizeof(struct iphdr) -
-sizeof(struct tcphdr);
-   } else
-    newmss = tcpmssinfo->mss;
+iD8DBQE92qUFXaXGVTD0i/8RAmbXAKCo5sYdD037UjkW5ixDF/LkgFxOzQCghi1q
+Jn4Le+WabVD/wwY8H5fZESQ=
+=YTfV
+-----END PGP SIGNATURE-----
 
-regards
-
-Jan Holmberg, sysadm artech
+--0XhtP95kHFp3KGBe--
