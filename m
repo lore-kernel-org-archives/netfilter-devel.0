@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: FW: PPTP problem
-Date: Fri, 25 Jul 2003 22:50:38 +0200
+Subject: Re: PPTP connection tracker
+Date: Sat, 26 Jul 2003 00:40:10 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725205038.GE3244@sunbeam.de.gnumonks.org>
-References: <007e01c34d35$c413e730$0440a8c0@SC2003002>
+Message-ID: <20030725224010.GG14321@naboo>
+References: <200307211915.23035.jjackson@vortech.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A40sgxQLUpGaial+"
+	protocol="application/pgp-signature"; boundary="G6nVm6DDWH/FONJq"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Enrico Demarin <enricod@videotron.ca>
+To: Joshua Jackson <jjackson@vortech.net>
 Content-Disposition: inline
-In-Reply-To: <007e01c34d35$c413e730$0440a8c0@SC2003002>
+In-Reply-To: <200307211915.23035.jjackson@vortech.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,28 +23,48 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---A40sgxQLUpGaial+
+--G6nVm6DDWH/FONJq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 18, 2003 at 04:06:20PM +0200, Enrico Demarin wrote:
-> Hi Harald,
+On Mon, Jul 21, 2003 at 07:15:23PM -0400, Joshua Jackson wrote:
+> Greetings,
 >=20
-> From what I understood , the problem is here :
->=20
-> It seems to consider the answer of the server as a new gre connection
-> instead of "tracking" the existing one... ;/
+> Just curious if you have had any feedback on the PPTP connection
+> tracking code in the 20030107 patch-o-matic.  I implemented it in a
+> firewall product of mine for a while and had numerous complaints that
+> all PPTP connectivity through the firewall was broken.
 
-could you then please show me the expectation(s) generated? (you need to
-look at the end of /proc/net/ip_conntrack while the connection is
-established).
+without a verbose description about the exact problem, I cannot debug
+the problem.  I need to know
 
-> - Enrico
+- client and server OS/version
+- information about the network
+- configuration of the PPTP-related ruleset
+- log of erroneously dropped packets (if any)
+- behaviour of expectations and GRE entries in /proc/net/ip_conntrack
+  while session was established
+- probably also packet dumps/traces (tcpdump, ethereal) needed.
+
+> I have removed the code from the kernel for now, but still get a lot of=
 =20
-> > -----Original Message-----
+> complaints about only being able to use a single PPTP session.
 
-Pleaes don't fullquote.
+of course, since you cannot support more than one session without the
+PPTP helper.
+
+> If there have been any updates to this code, is there a place I can downl=
+oad=20
+> it?
+
+yes, check out patch-o-matic from CVS, or go to
+http://netfilter.org/documentation/pomlist/pom-extra.html#pptp-conntrack-nat
+
+
+> Joshua Jackson
+> Vortech Consulting
+> http://www.vortech.net
 
 --=20
 - Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
@@ -55,16 +75,16 @@ Pleaes don't fullquote.
 Programming is like sex: One mistake and you have to support it your lifeti=
 me
 
---A40sgxQLUpGaial+
+--G6nVm6DDWH/FONJq
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE/IZgdXaXGVTD0i/8RArdEAKCvOnt7gVTeCYdOxQFH3avPLH9vXQCfZICw
-F0exkHYSxkAoEuui4rqegzs=
-=E5vI
+iD8DBQE/IbHJXaXGVTD0i/8RApA3AJ9r54dC9tiiNQmXInbdMltdJhKL3wCeJXcy
+gb9ZlQ1wgUcExGDhW4I97UM=
+=exdr
 -----END PGP SIGNATURE-----
 
---A40sgxQLUpGaial+--
+--G6nVm6DDWH/FONJq--
