@@ -1,11 +1,11 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [PATCH] Add mark to packet from libipq
-Date: Thu, 16 Oct 2003 02:09:17 +0200
+From: =?iso-8859-1?q?Daryl=20ong?= <yjong1977extramail@yahoo.com.sg>
+Subject: Help in netfilter kernel module
+Date: Thu, 16 Oct 2003 10:55:27 +0800 (CST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1066262957.20541.15.camel@porky>
+Message-ID: <20031016025527.23285.qmail@web13108.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-9eIRmeSpHDOYQ9xnQj2s"
-Cc: nufw-devel@nongnu.org
+Content-Type: multipart/alternative; boundary="0-1335691291-1066272927=:22511"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,144 +18,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+--0-1335691291-1066272927=:22511
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
---=-9eIRmeSpHDOYQ9xnQj2s
-Content-Type: multipart/mixed; boundary="=-v1cOGNsx2GBn5e3bku2B"
+Hi
+   i am a new developer in this netfilter module.  i am developing a kernel module on a rehat linux 8 and using iptables v1.2.6a.  i came across a problem when i want to kfree_skb(skb).  When i compile my source code with this command: gcc -march=i486 -03 -D__KERNEL__ -DLINUX -DMODULE -DMODVERSIONS -I/lib/modules/linux/build/linclude -c test.c test.o, it compiles with no error.  But when i try to insmod test.o.  it prompts me an error with test.o: unresolved symbol __kfree_skb.  
+ 
+i have try to use NF_DROP to drop the packet if it doesnt match what i want to filter away.  But as netfilter currently didnt filter for PF_PACKET, my packet is able to go up to application layer.  So i intended to use kfree_skb but encounter the error.  Please tell me if there is any solutions.  Thank you.
+ 
+Regards,
+Daryl
 
+ Yahoo! Photos
+- A free party for the most "shiok" photo. Join now!
+--0-1335691291-1066272927=:22511
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
---=-v1cOGNsx2GBn5e3bku2B
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-I've done really slight modification to the ip_queue module and to
-lip_ipq to add a fonction that can change the mark of a packet and set a
-verdict to it (its name is ipq_set_vwmark).
-
-It permits to NuFW to add a mark equal to user id on packet, thus
-enabling to set up a users based QOS, accounting, ...=20
-
-BR,
---=20
-Eric Leblond
-Nufw, Now User Filtering Works (http://www.nufw.org)
-
---=-v1cOGNsx2GBn5e3bku2B
-Content-Disposition: attachment; filename=libipq.diff
-Content-Type: text/x-patch; name=libipq.diff; charset=UTF-8
-Content-Transfer-Encoding: base64
-
-ZGlmZiAtcnUgaXB0YWJsZXMtMS4yLjgub3JpZy9pbmNsdWRlL2xpYmlwcS9saWJpcHEuaCBpcHRh
-Ymxlcy0xLjIuOC9pbmNsdWRlL2xpYmlwcS9saWJpcHEuaA0KLS0tIGlwdGFibGVzLTEuMi44Lm9y
-aWcvaW5jbHVkZS9saWJpcHEvbGliaXBxLmgJMjAwMy0xMC0xNiAwMTo1MzowOC4wMDAwMDAwMDAg
-KzAyMDANCisrKyBpcHRhYmxlcy0xLjIuOC9pbmNsdWRlL2xpYmlwcS9saWJpcHEuaAkyMDAzLTEw
-LTE2IDAxOjU1OjEzLjAwMDAwMDAwMCArMDIwMA0KQEAgLTc5LDYgKzc5LDE0IEBADQogICAgICAg
-ICAgICAgICAgICAgICBzaXplX3QgZGF0YV9sZW4sDQogICAgICAgICAgICAgICAgICAgICB1bnNp
-Z25lZCBjaGFyICpidWYpOw0KIA0KK2ludCBpcHFfc2V0X3Z3bWFyayhjb25zdCBzdHJ1Y3QgaXBx
-X2hhbmRsZSAqaCwNCisgICAgICAgICAgICAgICAgICAgIGlwcV9pZF90IGlkLA0KKyAgICAgICAg
-ICAgICAgICAgICAgdW5zaWduZWQgaW50IHZlcmRpY3QsDQorICAgICAgICAgICAgICAgICAgICB1
-bnNpZ25lZCBpbnQgbmZtYXJrLA0KKyAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgaW50IG1h
-c2ssDQorICAgICAgICAgICAgICAgICAgICBzaXplX3QgZGF0YV9sZW4sDQorICAgICAgICAgICAg
-ICAgICAgICB1bnNpZ25lZCBjaGFyICpidWYpOw0KKw0KIGludCBpcHFfY3RsKGNvbnN0IHN0cnVj
-dCBpcHFfaGFuZGxlICpoLCBpbnQgcmVxdWVzdCwgLi4uKTsNCiANCiBjaGFyICppcHFfZXJyc3Ry
-KHZvaWQpOw0KZGlmZiAtcnUgaXB0YWJsZXMtMS4yLjgub3JpZy9saWJpcHEvbGliaXBxLmMgaXB0
-YWJsZXMtMS4yLjgvbGliaXBxL2xpYmlwcS5jDQotLS0gaXB0YWJsZXMtMS4yLjgub3JpZy9saWJp
-cHEvbGliaXBxLmMJMjAwMy0xMC0xNiAwMTo1ODo0Ni4wMDAwMDAwMDAgKzAyMDANCisrKyBpcHRh
-Ymxlcy0xLjIuOC9saWJpcHEvbGliaXBxLmMJMjAwMy0xMC0xNiAwMDoyNzo1OC4wMDAwMDAwMDAg
-KzAyMDANCkBAIC0zNDgsNiArMzQ4LDU2IEBADQogCXJldHVybiBpcHFfbmV0bGlua19zZW5kbXNn
-KGgsICZtc2csIDApOw0KIH0NCiANCitpbnQgaXBxX3NldF92d21hcmsoY29uc3Qgc3RydWN0IGlw
-cV9oYW5kbGUgKmgsDQorICAgICAgICAgICAgICAgICAgICBpcHFfaWRfdCBpZCwNCisgICAgICAg
-ICAgICAgICAgICAgIHVuc2lnbmVkIGludCB2ZXJkaWN0LA0KKyAgICAgICAgICAgICAgICAgICAg
-dW5zaWduZWQgbG9uZyBuZm1hcmssDQorICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25n
-IG1hc2ssDQorICAgICAgICAgICAgICAgICAgICBzaXplX3QgZGF0YV9sZW4sDQorICAgICAgICAg
-ICAgICAgICAgICB1bnNpZ25lZCBjaGFyICpidWYpDQorew0KKwl1bnNpZ25lZCBjaGFyIG52ZWNz
-Ow0KKwlzaXplX3QgdGxlbjsNCisJc3RydWN0IG5sbXNnaGRyIG5saDsNCisJaXBxX3BlZXJfbXNn
-X3QgcG07DQorCXN0cnVjdCBpb3ZlYyBpb3ZbM107DQorCXN0cnVjdCBtc2doZHIgbXNnOw0KKw0K
-KwltZW1zZXQoJm5saCwgMCwgc2l6ZW9mKG5saCkpOw0KKwlubGgubmxtc2dfZmxhZ3MgPSBOTE1f
-Rl9SRVFVRVNUOw0KKwlubGgubmxtc2dfdHlwZSA9IElQUU1fVldNQVJLOw0KKwlubGgubmxtc2df
-cGlkID0gaC0+bG9jYWwubmxfcGlkOw0KKwltZW1zZXQoJnBtLCAwLCBzaXplb2YocG0pKTsNCisJ
-cG0ubXNnLnZ3bWFyay52YWx1ZSA9IHZlcmRpY3Q7DQorCXBtLm1zZy52d21hcmsuaWQgPSBpZDsN
-CisJcG0ubXNnLnZ3bWFyay5kYXRhX2xlbiA9IGRhdGFfbGVuOw0KKwlwbS5tc2cudndtYXJrLm5m
-bWFyayA9IG5mbWFyazsNCisJcG0ubXNnLnZ3bWFyay5tYXNrID0gbWFzazsNCisJaW92WzBdLmlv
-dl9iYXNlID0gJm5saDsNCisJaW92WzBdLmlvdl9sZW4gPSBzaXplb2YobmxoKTsNCisJaW92WzFd
-Lmlvdl9iYXNlID0gJnBtOw0KKwlpb3ZbMV0uaW92X2xlbiA9IHNpemVvZihwbSk7DQorCXRsZW4g
-PSBzaXplb2YobmxoKSArIHNpemVvZihwbSk7DQorCW52ZWNzID0gMjsNCisJaWYgKGRhdGFfbGVu
-ICYmIGJ1Zikgew0KKwkJaW92WzJdLmlvdl9iYXNlID0gYnVmOw0KKwkJaW92WzJdLmlvdl9sZW4g
-PSBkYXRhX2xlbjsNCisJCXRsZW4gKz0gZGF0YV9sZW47DQorCQludmVjcysrOw0KKwl9DQorCW1z
-Zy5tc2dfbmFtZSA9ICh2b2lkICopJmgtPnBlZXI7DQorCW1zZy5tc2dfbmFtZWxlbiA9IHNpemVv
-ZihoLT5wZWVyKTsNCisJbXNnLm1zZ19pb3YgPSBpb3Y7DQorCW1zZy5tc2dfaW92bGVuID0gbnZl
-Y3M7DQorCW1zZy5tc2dfY29udHJvbCA9IE5VTEw7DQorCW1zZy5tc2dfY29udHJvbGxlbiA9IDA7
-DQorCW1zZy5tc2dfZmxhZ3MgPSAwOw0KKwlubGgubmxtc2dfbGVuID0gdGxlbjsNCisJcmV0dXJu
-IGlwcV9uZXRsaW5rX3NlbmRtc2coaCwgJm1zZywgMCk7DQorfQ0KKw0KKw0KKw0KIC8qIE5vdCBp
-bXBsZW1lbnRlZCB5ZXQgKi8NCiBpbnQgaXBxX2N0bChjb25zdCBzdHJ1Y3QgaXBxX2hhbmRsZSAq
-aCwgaW50IHJlcXVlc3QsIC4uLikNCiB7DQo=
-
---=-v1cOGNsx2GBn5e3bku2B
-Content-Disposition: attachment; filename=ip_queue.diff
-Content-Type: text/plain; name=ip_queue.diff; charset=UTF-8
-Content-Transfer-Encoding: base64
-
-LS0tIGxpbnV4Lm9yaWcvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX3F1ZXVlLmMJMjAwMy0xMC0xNiAw
-MTo0NjoyNy4wMDAwMDAwMDAgKzAyMDANCisrKyBsaW51eC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBf
-cXVldWUuYwkyMDAzLTEwLTE2IDAwOjMxOjAyLjAwMDAwMDAwMCArMDIwMA0KQEAgLTQxNyw2ICs0
-MTcsMzMgQEANCiB9DQogDQogc3RhdGljIGludA0KK2lwcV9zZXRfdndtYXJrKHN0cnVjdCBpcHFf
-dndtYXJrX21zZyAqdm1zZywgdW5zaWduZWQgaW50IGxlbikNCit7DQorCXN0cnVjdCBpcHFfcXVl
-dWVfZW50cnkgKmVudHJ5Ow0KKw0KKwlpZiAodm1zZy0+dmFsdWUgPiBORl9NQVhfVkVSRElDVCkN
-CisJCXJldHVybiAtRUlOVkFMOw0KKw0KKwllbnRyeSA9IGlwcV9maW5kX2RlcXVldWVfZW50cnko
-aWRfY21wLCB2bXNnLT5pZCk7DQorCWlmIChlbnRyeSA9PSBOVUxMKQ0KKwkJcmV0dXJuIC1FTk9F
-TlQ7DQorCWVsc2Ugew0KKwkJaW50IHZlcmRpY3QgPSB2bXNnLT52YWx1ZTsNCisJCQ0KKwkJaWYg
-KHZtc2ctPmRhdGFfbGVuICYmIHZtc2ctPmRhdGFfbGVuID09IGxlbikNCisJCQlpZiAoaXBxX21h
-bmdsZV9pcHY0KChpcHFfdmVyZGljdF9tc2dfdCAqKXZtc2csIGVudHJ5KSA8IDApDQorCQkJCXZl
-cmRpY3QgPSBORl9EUk9QOw0KKw0KKwkJLyogc2V0IG1hcmsgb2YgYXNzb2NpYXRlZCBza2IgKi8N
-CisJCWVudHJ5LT5za2ItPm5mbWFyayA9IHZtc2ctPm5mbWFyayAmIHZtc2ctPm1hc2s7DQorCQkN
-CisJCWlwcV9pc3N1ZV92ZXJkaWN0KGVudHJ5LCB2ZXJkaWN0KTsNCisJCXJldHVybiAwOw0KKwl9
-DQorfQ0KKw0KKw0KK3N0YXRpYyBpbnQNCiBpcHFfcmVjZWl2ZV9wZWVyKHN0cnVjdCBpcHFfcGVl
-cl9tc2cgKnBtc2csDQogICAgICAgICAgICAgICAgICB1bnNpZ25lZCBjaGFyIHR5cGUsIHVuc2ln
-bmVkIGludCBsZW4pDQogew0KQEAgLTQzOCw2ICs0NjUsMTQgQEANCiAJCQlzdGF0dXMgPSBpcHFf
-c2V0X3ZlcmRpY3QoJnBtc2ctPm1zZy52ZXJkaWN0LA0KIAkJCSAgICAgICAgICAgICAgICAgICAg
-ICAgICBsZW4gLSBzaXplb2YoKnBtc2cpKTsNCiAJCQlicmVhazsNCisgICAgICAgIGNhc2UgSVBR
-TV9WV01BUks6DQorCQlpZiAocG1zZy0+bXNnLnZlcmRpY3QudmFsdWUgPiBORl9NQVhfVkVSRElD
-VCkNCisJCQlzdGF0dXMgPSAtRUlOVkFMOw0KKwkJZWxzZQ0KKwkJCXN0YXR1cyA9IGlwcV9zZXRf
-dndtYXJrKCZwbXNnLT5tc2cudndtYXJrLA0KKwkJCSAgICAgICAgICAgICAgICAgICAgICAgICBs
-ZW4gLSBzaXplb2YoKnBtc2cpKTsNCisJCQlicmVhazsNCisNCiAJZGVmYXVsdDoNCiAJCXN0YXR1
-cyA9IC1FSU5WQUw7DQogCX0NCi0tLSBsaW51eC5vcmlnL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVy
-X2lwdjQvaXBfcXVldWUuaAkyMDAzLTEwLTE2IDAxOjQ3OjAxLjAwMDAwMDAwMCArMDIwMA0KKysr
-IGxpbnV4L2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfcXVldWUuaAkyMDAzLTEwLTE1
-IDIzOjM2OjIxLjAwMDAwMDAwMCArMDIwMA0KQEAgLTQ3LDEwICs0NywyMSBAQA0KIAl1bnNpZ25l
-ZCBjaGFyIHBheWxvYWRbMF07CS8qIE9wdGlvbmFsIHJlcGxhY2VtZW50IHBhY2tldCAqLw0KIH0g
-aXBxX3ZlcmRpY3RfbXNnX3Q7DQogDQordHlwZWRlZiBzdHJ1Y3QgaXBxX3Z3bWFya19tc2cgew0K
-Kwl1bnNpZ25lZCBpbnQgdmFsdWU7CQkvKiBWZXJkaWN0IHRvIGhhbmQgdG8gbmV0ZmlsdGVyICov
-DQorCXVuc2lnbmVkIGxvbmcgaWQ7CQkvKiBQYWNrZXQgSUQgZm9yIHRoaXMgdmVyZGljdCAqLw0K
-KwlzaXplX3QgZGF0YV9sZW47CQkvKiBMZW5ndGggb2YgcmVwbGFjZW1lbnQgZGF0YSAqLw0KKwl1
-bnNpZ25lZCBjaGFyIHBheWxvYWRbMF07CS8qIE9wdGlvbmFsIHJlcGxhY2VtZW50IHBhY2tldCAq
-Lw0KKwl1bnNpZ25lZCBsb25nIG5mbWFyazsJCS8qIE1hcmsgZm9yIHRoZSBQYWNrZXQgKi8NCisJ
-dW5zaWduZWQgbG9uZyBtYXNrOwkgICAgICAgIC8qIE1hcmsgTWFzayBmb3IgdGhlIFBhY2tldCAq
-Lw0KK30gaXBxX3Z3bWFya19tc2dfdDsNCisNCisNCiB0eXBlZGVmIHN0cnVjdCBpcHFfcGVlcl9t
-c2cgew0KIAl1bmlvbiB7DQogCQlpcHFfdmVyZGljdF9tc2dfdCB2ZXJkaWN0Ow0KIAkJaXBxX21v
-ZGVfbXNnX3QgbW9kZTsNCisgICAgICAgICAgICAgICAgaXBxX3Z3bWFya19tc2dfdCB2d21hcms7
-DQogCX0gbXNnOw0KIH0gaXBxX3BlZXJfbXNnX3Q7DQogDQpAQCAtNjcsNiArNzgsNyBAQA0KICNk
-ZWZpbmUgSVBRTV9NT0RFCShJUFFNX0JBU0UgKyAxKQkJLyogTW9kZSByZXF1ZXN0IGZyb20gcGVl
-ciAqLw0KICNkZWZpbmUgSVBRTV9WRVJESUNUCShJUFFNX0JBU0UgKyAyKQkJLyogVmVyZGljdCBm
-cm9tIHBlZXIgKi8gDQogI2RlZmluZSBJUFFNX1BBQ0tFVAkoSVBRTV9CQVNFICsgMykJCS8qIFBh
-Y2tldCBmcm9tIGtlcm5lbCAqLw0KLSNkZWZpbmUgSVBRTV9NQVgJKElQUU1fQkFTRSArIDQpDQor
-I2RlZmluZSBJUFFNX1ZXTUFSSwkoSVBRTV9CQVNFICsgNCkJCS8qIFZlcmRpY3QgYW5kIG1hcmsg
-ZnJvbSBwZWVyICovDQorI2RlZmluZSBJUFFNX01BWAkoSVBRTV9CQVNFICsgNSkNCiANCiAjZW5k
-aWYgLypfSVBfUVVFVUVfSCovDQo=
-
---=-v1cOGNsx2GBn5e3bku2B--
-
---=-9eIRmeSpHDOYQ9xnQj2s
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e=2E?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQA/jeGtnxA7CdMWjzIRAhdJAJ9A6GvjAO6+aoie1c+IpsReaSy9oQCfbTqT
-QkQrCIO9Mq99l6m3Vnp/sWI=
-=pw5f
------END PGP SIGNATURE-----
-
---=-9eIRmeSpHDOYQ9xnQj2s--
+<DIV>Hi</DIV>
+<DIV>&nbsp;&nbsp; i am a new developer in this netfilter module.&nbsp; i am developing a kernel module&nbsp;on a&nbsp;rehat linux 8 and using iptables v1.2.6a.&nbsp; i came across a problem when i want to kfree_skb(skb).&nbsp; When i compile my source code with this command: gcc -march=i486 -03 -D__KERNEL__ -DLINUX -DMODULE -DMODVERSIONS -I/lib/modules/linux/build/linclude -c test.c test.o, it compiles with no error.&nbsp; But when i try to insmod test.o.&nbsp; it prompts me an error with test.o: unresolved symbol __kfree_skb.&nbsp; </DIV>
+<DIV>&nbsp;</DIV>
+<DIV>i have try to use NF_DROP to drop the packet if it doesnt match what i want to filter away.&nbsp; But as netfilter currently didnt filter for PF_PACKET, my packet is able to go up to application layer.&nbsp; So i intended to use kfree_skb but encounter the error.&nbsp; Please tell me if there is any solutions.&nbsp; Thank you.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Regards,</DIV>
+<DIV>Daryl</DIV><p><img src=http://sg.yimg.com/i/sg/icons/16/photos.gif>&nbsp;<b><a 
+href="http://sg.rd.yahoo.com/mail/tagline/?http://sg.photos.yahoo.com" 
+target=_blank>Yahoo! Photos</a></b><br><small>- A free party for the most "shiok" photo. <a href="http://sg.rd.yahoo.com/mail/tagline/?http://sg.yahoo.com/shiok" target=_blank><b>Join now!</b></a></small>
+--0-1335691291-1066272927=:22511--
