@@ -1,15 +1,15 @@
 From: Richard Scobie <richard@sauce.co.nz>
 Subject: Re: H.323 progress.
-Date: Wed, 19 May 2004 08:03:41 +1200
+Date: Wed, 19 May 2004 08:14:17 +1200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40AA6C1D.2000105@sauce.co.nz>
-References: <Pine.LNX.4.33.0405181044330.32272-100000@blackhole.kfki.hu>
+Message-ID: <40AA6E99.20900@sauce.co.nz>
+References: <40A9431D.8020404@sauce.co.nz> <2291.1084889170@marajade.sandelman.ottawa.on.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.33.0405181044330.32272-100000@blackhole.kfki.hu>
+In-Reply-To: <2291.1084889170@marajade.sandelman.ottawa.on.ca>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,38 +20,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-
+Michael Richardson wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
 > 
-> I abandoned the H.323 helper modules because in the present form they work
-> only in the most simple cases and the modules cannot be improved without
-> really implementing a H.323 parser. That, however, would require too much
-> time from me, dedicated to this single task.
 > 
-> If you have got such equipments as Via Video and Tandberg, better set up a
-> H.323 gatekeeper in proxy mode and configure the firewall to allow the
-> traffic to/from the gatekeeper in the port range you specified. Such
-> setups work fine and reliably. (However, it seems some Microsoft
-> netmeeting versions don't obey to communicate fully trough the proxy.)
 > 
+>>>>>>"Richard" == Richard Scobie  writes:
+> 
+>     Richard> I have a FreeSwan IPsec VPN between 2 iptables NAT boxes.
+> 
+>   Okay. But this, you mean that you have two boxes that normally perform
+> NAT, but the VPN otherwise connects the two private networks? (I am
+> asking to confirm this)
 
-Hi Jozsef,
+Two offices each with an iptables firewall and a site to site VPN 
+between them - the video gear is configured to connect to each others 
+private network address through the VPN.
 
-Thank you very much for your reply. I have spent some time experimenting 
-with gnuGK as a proxy in the following test setup:
+>     Richard> With H.323 videoconferencing equipment from both Via Video
+>     Richard> and Tandberg, I have been unable to get complete connection
+>     Richard> between both ends through the VPN - 90+ % of the time,
+>     Richard> video connects both ways and audio only one.
+> 
+>   I'm ignorant of how the proxies work. If you have a VPN, why do you
+> need them?  I'd think you need them only when trying to pass through the
+> NAT, rather than go around it.
 
-Tandberg(192.168.3.0/24)->IptablesNAT-VPN(10.0.0.0/24)->IptablesNAT-VPN->
-
------>Tandberg(192.168.4.0/24)
-|---->gnuGK in H.323 proxy mode (192.168.4.0/24)
-
-Again, this does not complete all connections.
-
-Your suggestion seems to be to configure the Tandbergs to use the 
-10.0.0.0/24 addresses, port forwarded through to gnuGK. Is this 
-functionally different to what I have? If so, perhaps I am having 
-compatibilty problems with gnuGK and Tandberg.
-
-Kind regards,
+I think the proxies are required to negotiate the correct call setup, 
+because the iptables H.323 helper modules (which are still required in 
+this setup as NAT is involved), as Jozsef mentioned above, do not always 
+get it right.
 
 Richard
