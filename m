@@ -1,19 +1,13 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PTCH 2.5.68] netfilter using Read Copy Update
-Date: Tue, 29 Apr 2003 01:26:30 -0700 (PDT)
+From: "Ian Latter" <Ian.Latter@mq.edu.au>
+Subject: Re: Bug in rpc conntrack modules
+Date: Tue, 29 Apr 2003 20:38:59 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030429.012630.27801614.davem@redhat.com>
-References: <20030427132413.GP990@sunbeam.de.gnumonks.org>
-	<20030428062622.5F0FE2C4D3@lists.samba.org>
-	<20030428102307.0d2718d3.shemminger@osdl.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: rusty@rustcorp.com.au, laforge@netfilter.org,
-        netfilter-devel@lists.netfilter.org
+Message-ID: <200304291039.h3TAd1C01171@singularity.tronunltd.com>
+Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
+Content-Type: text/plain; charset="us-ascii"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: shemminger@osdl.org
-In-Reply-To: <20030428102307.0d2718d3.shemminger@osdl.org>
+To: "Martin Josefsson" <gandalf@wlug.westbo.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,13 +18,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: Stephen Hemminger <shemminger@osdl.org>
-   Date: Mon, 28 Apr 2003 10:23:07 -0700
 
-   Addition to Rusty's patch that uses C99 initializers for the 
-   Netfilter Ethernet bridge routing hooks table.
-   
-   Dave if you apply Rusty's for the queue/module/reinject race then
-   please apply this.
-   
-Applied, thanks.
+Hello Martin,
+
+  I am the last guy to have done work on that code - so its more than
+likely that this is my fault (as I reworked most of it).  ... this also
+means that the rsh conntrack nat module probably also has this
+fault.
+
+ If you still need that change made, let me know .. I should have my
+dev box back next week.
+
+
+Thanks,
+
+
+
+----- Original Message -----
+>From: "Martin Josefsson" <gandalf@wlug.westbo.se>
+>To: "Netfilter-devel" <netfilter-devel@lists.netfilter.org>
+>Subject:  Re: Bug in rpc conntrack modules
+>Date: Mon, 28 Apr 2003 00:51:00 +0200
+>
+> On Mon, 2003-04-28 at 00:47, Martin Josefsson wrote:
+> > Hi Marcelo.
+> 
+> Ok that mail bounced,
+> reason: 550 5.1.1 <marcelo.lima@mailhost.ic.unicamp.br>... User unknown
+> 
+> I guess I'll have to fix it myself then.
+> 
+> -- 
+> /Martin
+> 
+> 
+
+--
+Ian Latter
+Internet and Networking Security Officer
+Macquarie University
