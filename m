@@ -1,17 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: don-nf@isis.cs3-inc.com (Don Cohen)
 Subject: Re: defense against conntrack attacks
-Date: Sun, 16 Jun 2002 22:55:23 +0200
+Date: Sun, 16 Jun 2002 15:57:19 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206162255.24397@henrik.marasystems.com>
-References: <20020615132638.84C444509@lists.samba.org> <15627.49630.258601.138681@isis.cs3-inc.com> <20020616221633.J2543@sunbeam.de.gnumonks.org>
+Message-ID: <15629.6095.353639.29180@isis.cs3-inc.com>
+References: <20020615132638.84C444509@lists.samba.org>
+	<15627.49630.258601.138681@isis.cs3-inc.com>
+	<20020616221633.J2543@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	don-nf@isis.cs3-inc.com (Don Cohen)
+To: Harald Welte <laforge@gnumonks.org>
 In-Reply-To: <20020616221633.J2543@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
@@ -23,54 +23,83 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 16 June 2002 22.16, Harald Welte wrote:
+Harald Welte writes:
+ > On Sat, Jun 15, 2002 at 03:38:22PM -0700, Don Cohen wrote:
+ > 
+ > > Here's a summary of some experiments that show this is true ...
+ > 
+ > thanks, this is the kind of testing/benchmarkin which is appreciated.
+ > 
+ > > These were done with 200MHz machines, one generating packets and
+ > > the other forwarding.  They're connected by a 100Mbit link.
+I should also have mentioned, 2.4.3 kernel.
+The code might have changed a fair amount since then.
 
-> > If you recall my posting in April, you won't be surprised that I
-> > want to put the connection creation code well after the current
-> > postrouting hook.  After that hook the packet is enqueued for
-> > traffic control, and it can be dropped between then and when it
-> > is dequeued to be sent.  So I'd like to create a new hook after
-> > that dequeue, and this is where I propose to create the
-> > connection record.
->
-> This sounds odd.  First, this is too revolutionary to the overall
-> concept.
->
-> Second, you need conntrack information before postrouting:
->
-> - for doing DNAT [which _needs_ to happen before the routing
-> decision] - for any stateful rules in the FORWARD chain of the
-> filter table - for any stateful rules in the INPUT chain of the
-> filter table
+ ...
+ > > This shows that conntrack is a bottleneck, at least dealing with new
+ > > packets.
+ > 
+ > there are a couple of issues related to this:
+ > 
+ > 1 the number of hash buckets in your conntrack hash table (this is a module
+ >   loadtime parameter and the default depends on your systems total RAM size)
+ > 2 the conntrack hash function.  If all (or more/most) connections would end
+ >   up in the same couple of buckets, performance would suffer significantly.
+ > 3 did you see any messages in your kernel log ?  any OOM messages?
+ >   I could imagine that the kernel has difficulties allocating the needed
+ >   memory for conntrack entries
 
+The only log messages I see that appear to be related are:
+Jun 14 14:52:25 router1 kernel: ip_tables: (c)2000 Netfilter core team
+and
+Jun 14 15:01:10 router1 kernel: ip_conntrack (1024 buckets, 8192 max)
+(I see several of those since I rmmod'ed and reloaded conntrack
+several times).
+I assumed without looking that the hash function would be mostly
+different when only the destination port changed, which is what I was
+doing.  Attacking the hash function is yet another approach that I was
+planning to worry about, but I haven't gotten there yet.
+(Anyone have ideas about defense against such an attack?  I have a few
+that seem pretty obvious.) 
 
-This proposal reminds me a lot of a similar proposal I made some 
-(many) months ago.
+ > > I conclude that if the code for creating new connections could be made
+ > > faster (it would have to be MUCH faster) there would be some benefit
+ > > in doing so.  I've not looked at that.  I presume whoever wrote it was
+ > > at least trying to make it efficient.  If anyone thinks this is a
+ > > promising approach, please feel free to say so.
+ > 
+ > the question would be:  what exactly is so slow? why is it slow?
 
-Instead of creating the conntrack entry upon entry, create it "just in 
-time", i.e. when first code requiring a conntrack entry is executed. 
-Simply put any call to ip_conntrack_get().
+Of course, anyone who knows how to improve the code should please
+speak up.  I still hope to read and understand it, but if/when I get
+there I expect I'll then understand why it has to take as long as it
+does as opposed to seeing how to fix it.
 
-This would be
+ > > What I'm really interested in is a defense that, e.g., rate limits
+ > > syns.  The problem I see in the current implementation (again, correct
+ > > me if I'm wrong) is that the very first thing that happens when a
+ > > packet arrives is that conntrack processes it, and this includes the
+ > > code for creating a conntrack record in the case where there is none.
+ > 
+ > yes, I think Jozsef is working on a 'conntrack exemption table' where you
+ > could tell it that certain [maybe above a certain limit] packets are 
+ > not conntracked.
 
-  Any NAT target
-  Any state/conntrack match
-  etc..
-  with a counter-measure in the nat table to not cause it to 
-automatically initiate tracking (today calls ip_conntrack_get to tell 
-if the packet should enter the table or not).
+Isn't that disastrous?  For instance, NAT can't work in that case,
+right?  And any rules that refer to conntrack state.  Unless you just
+drop the packets, of course.  And yes, that's what I want to do, but
+of course I have some ideas about how to decide WHICH packets to drop.
 
-This approach makes the "conntrack exception" quite natural in most 
-ruleset by my opinion; if you don't have any state or NAT rules 
-touching the connection then it won't be tracked, but adds a bit of 
-complexity to the design and collides with the sub-goal of being able 
-to later add NAT rules without the risk of disturbing existing 
-connections.
+ > Second, you need conntrack information before postrouting:
+ > 
+ > - for doing DNAT [which _needs_ to happen before the routing decision]
+ > - for any stateful rules in the FORWARD chain of the filter table
+ > - for any stateful rules in the INPUT chain of the filter table
 
-After our discussions the last time manual excepmtion is probably 
-preferable I think. Less risk of confusion over what is being tracked 
-and what not, and considerably less of a design change. But I have 
-not yet fully given up the "just in time" idea.
+The question is how much data is needed for those things.  A lot
+depends on where the actual expense is, which I don't yet know.
 
-Regards
-Henrik
+I'll mention my other plan, which I was beginning to like better anyway.
+It's a version of IMQ that runs before conntrack and rate limits the
+"expensive" packets.  This could even read conntrack state in order to
+decide which packets were expensive.
