@@ -1,19 +1,18 @@
-From: "Gerd v. Egidy" <lists@egidy.de>
-Subject: Re: condition and 2.6
-Date: Sun, 29 Feb 2004 15:28:01 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [ANNOUNCE] call for testing of patch-o-matic-ng
+Date: Sun, 29 Feb 2004 15:29:39 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200402291528.01679.lists@egidy.de>
-References: <200402290210.35962.lists@egidy.de> <20040229110711.GJ7790@sunbeam.de.gnumonks.org>
-Reply-To: gerd@egidy.de
+Message-ID: <20040229142939.GE15558@sunbeam.de.gnumonks.org>
+References: <20040229101116.GA10012@pcw.home.local> <Pine.LNX.4.44.0402291121270.25361-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="l+goss899txtYvYf"
+Cc: Willy TARREAU <willy@w.ods.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040229110711.GJ7790@sunbeam.de.gnumonks.org>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0402291121270.25361-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,42 +23,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> This comment is meant as:
->
-> "Since nobody provided us with a 2.6.x port yet, and I have very limited
-> time for such porting, and I personnaly dislike the condition match
-> anyway, I marked it as 2.4.x only - since the 2.4.x patch doesn't work
-> for 2.6.x"
 
-Thank you for the clarification.
+--l+goss899txtYvYf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > What do you dislike? Is it the idea or the implementation? Do you know of
-> > any bugs or possible problems in the code - especially with 2.6?
->
-> The idea of having /proc files control how the ruleset behaves.  This is
-> an ugly kludge for our less-than-optimal ruleset change performance.
-> Apart from that I cannot really see why this has to be solved in the
-> kernel and not by some userspace daemon that updates the ruleset
-> whenever a change is needed.
+On Sun, Feb 29, 2004 at 11:25:06AM +0100, Henrik Nordstrom wrote:
+> On Sun, 29 Feb 2004, Willy TARREAU wrote:
+>=20
+> >   - first, I didn't find how to specify where my iptables sources is
+> >     installed, so I had to enter it by hand each time I restarted it.
+> >     I did not find any env variable in the perl code, and I must say
+> >     that my understanding of perl is, hmmm.. very limited.
+>=20
+> There is a --path=3D option which can specify the path to both iptables a=
+nd=20
+> the kernl.
 
-I don't mind that much about ruleset change speed. The different conditions 
-for my firewall are changed by different scripts and I can't make sure that 
-only one is running at a time. So I fear a race like this:
+JFYI: I just changed that option to have a more obvious name (and not encode
+two path names within a single parameter), as well as documentign it via
+'./runme --help'
 
-Program 1: iptc_init
-Program 2: iptc_init
-Program 1: modify rule A
-Program 2: modify rule B
-Program 1: iptc_commit
-Program 2: iptc_commit
+> Regards
+> Henrik
 
-As far as I understand the libiptc code, the result will be that the changes 
-done by program 1 will be lost. Is that correct or have I misunderstood the 
-code?
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-The condition module offers a lot more atomicity and I can be sure that two 
-scripts don't interfere with each other.
+--l+goss899txtYvYf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Kind regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-Gerd
+iD8DBQFAQfdTXaXGVTD0i/8RAk3QAJ44H1ahnEt9A4KINbfclwNcETrywgCfb5sC
+nC34krY4H5SnunF6oRjXuF8=
+=Ue3S
+-----END PGP SIGNATURE-----
+
+--l+goss899txtYvYf--
