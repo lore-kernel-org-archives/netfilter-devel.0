@@ -1,14 +1,16 @@
-From: Bob Arctor <curious@pb194.luban.sdi.tpnet.pl>
-Subject: udp REJECT....
-Date: Mon, 27 Jan 2003 05:13:19 +0100
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: udp REJECT....
+Date: Mon, 27 Jan 2003 08:43:22 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200301270513.19862.curious@pb194.luban.sdi.tpnet.pl>
+Message-ID: <20030127074322.GA18340@oknodo.bof.de>
+References: <200301270513.19862.curious@pb194.luban.sdi.tpnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Bob Arctor <curious@pb194.luban.sdi.tpnet.pl>
+Content-Disposition: inline
+In-Reply-To: <200301270513.19862.curious@pb194.luban.sdi.tpnet.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,76 +21,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hello... i have problems with dDoS attacks, and would like to set up my l=
-inux=20
-routers dDoS proof and not being relays like most of available commercial=
-=20
-routers.
+On Mon, Jan 27, 2003 at 05:13:19AM +0100, Bob Arctor wrote:
+> hello... i have problems with dDoS attacks, and would like to set up my linux 
+> routers dDoS proof
+[SNIP]
 
-i am not very skilled in using iptables, but as far i know it is not poss=
-ible=20
-to write following rule :
+In practise, the limit match is all you need for the scenario you
+described. Find out how many UDP packets your supposed victim
+sends during normal operation, and limit to two times that.
 
-ip A is attacker ip V is victim.
+I usually use a user-defined chain like this:
 
-R is our router.
+# LRD for LOG/REJECT/DROP
+iptables -N LRD
+iptables -A LRD -m limit --limit 1/s -j LOG --log-prefix 'LRD: '
+iptables -A LRD -p tcp -m limit --limit 2/s -j REJECT --reject-with tcp-reset
+iptables -A LRD -m limit --limit 2/s -j REJECT
+iptables -A LRD -j DROP
 
-udp packets go from A to V via R . Victim have soft/alive admin and start=
-s to=20
-reject packtets from Attacker (udp flood) . they go via same route - beca=
-use=20
-they're rejected. so first router hitted by them should be R .
+Now, everywhere you now use '-j REJECT', use '-j LRD', instead.
 
-router should then block 10x packets recieved from attacker - by rejectin=
-g=20
-them too, instead of forwarding them to victim.
-so for each rejected packtet from victim router should reject next 10 pac=
-kets=20
-recieved from attacker .  this way victim'll recieve only 1/10 of origina=
-l=20
-packets coming from attacker. it would be also nice to add feature to=20
-dynamically set how much packets Router should reject.
-this way there is also possible shaping of traffic while Victim have=20
-congested connection - by rejecting packets which can't fit queue. this w=
-ay=20
-Attacker can stop sending packets for a while, while they would be droppe=
-d=20
-anyway, so it could reduce network load ...
+If this does not cover your needs, look into the iplimit target
+(in patch-o-matic), which does the limit thing per source IP,
+instead of globally.
 
-i think something like syncookies plugin could help - because it have to=20
-build up new iptables rule basing on analyse of incoming packets...
-
-i think about quick nasty hack :=20
-forward all rejected packets back to forward queue (to it's input)
-deny forwarding of rejected packets (on output of this queue, so victim'l=
-l=20
-not recieve his own rejected packets back, but they'll pass thru forward=20
-queue anyway...)
-apply TBF on each forward queue  and set it up so it would 'overflow' onl=
-y if=20
-rejected packet is in . when overflowed it should block all traffic.
-i think there is iptables rule for counting packets. it should be set up =
-this=20
-way, that this 'locked' state would last for at least 10 packets no matte=
-r=20
-rejected or not.=20
-
-this is very ugly, as you need to set up tbf queue with detecting of reje=
-cted=20
-packet presence and drop queue for each rejected packet on out of this qu=
-eue=20
-for each udp port you forward...
-but if someone owns powerfull machine for router - it is better than leav=
-ing=20
-machine unprotected acting as dDoS relay.
-
-
-i know this solution contains many logical errors, i would be gratefull i=
-f=20
-someone at least tried to understand what i meant, and wrote working=20
-solution...=20
-
-
-
---=20
---=20
+hope this helps
+  Patrick
