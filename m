@@ -1,14 +1,11 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [netfilter-core] ip_conntrack problems
-Date: Mon, 17 Jan 2005 11:05:08 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0501171100440.29249@tux.rsn.bth.se>
-References: <200501142250.55955.gondim@intnet.com.br>
+From: =?ISO-8859-2?Q?Tom=E1=B9_Macek?= <maca02@atlas.cz>
+Subject: cannot kmalloc nor vmalloc
+Date: Mon, 17 Jan 2005 20:00:55 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0501171957130.8115@maca.fortech.cz>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcelo Gondim <gondim@intnet.com.br>
-In-Reply-To: <200501142250.55955.gondim@intnet.com.br>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,27 +17,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 14 Jan 2005, Marcelo Gondim wrote:
+Hi, I'm just developing a new "match" (like ipt_limit for example) iptables module under RH FC 2, kernel 2.6.5-1.328.
+If I make a request for about 100 kB of memory in the registered match function in my module by means of kmalloc(size, GPF_ATOMIC) and set it via memset() to zero, the computer freezes with kernel panic and debugging output. Maybe it has not enaugh memory. I tried something more and never got more than about 40 kB.
 
-> Hi Core Team,
+Then I tried to get more memory with the vmalloc() function. But vmalloc() is called with the GPF_KERNEL flag, so I cannot use it in the interrupt = I cannot use it in the match function. The vmalloc gives also the debugging output to the log, but it does not freezes the computer when called from inside the match function.
 
-Hi, this mail should have been sent to the
-netfilter-devel@lists.netfilter.org list.
+I also tried to get large chunk of memory outside the match function, just before I register the match - in the __init() of my module, and I was able to get more than 100 MB via vmalloc().
 
-> When our network is infected with any worm(netbios worm), as doing drop of
-> package and using the kernel 2.6.10, this after some time (more or less one
-> day), stop to send and receive packages and presents table errors conntrack
-> full. I saw that as putting 65535 in ip_conntrack_max and when I alterate the
-> timeouts it does not work.
->
-> I returned to kernel 2.4, specifically the kernel 2.4.28 and the problems
-> stopped. Does it exist any reason for that to happen?
+How can I get bigger chunk of memory in the interrupt? I will need more (about 5-10) chunks of 100 kB memory.
 
-This is a known bug which has been fixed. Either upgrade to 2.6.11-rc1 or
-apply the patch at this location:
-http://people.netfilter.org/gandalf/patches/conntrack-fix-rst.patch
+Any help will be very appreciated!
 
-Kernel 2.4.28 is known to have an ARP bug which can make it loose contact
-with machines on the same subnet.
-
-/Martin
+Tomas
