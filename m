@@ -1,378 +1,632 @@
-From: Art Haas <ahaas@airmail.net>
-Subject: [PATCH] Add C99 initializers for some ipv4/netfilter files
-Date: Fri, 7 Mar 2003 10:44:32 -0600
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <20030307164432.GF2247@debian>
+From: "Daniel Beckham" <danbeck-netfilter-devel@dealnews.com>
+Subject: Netfilter won't forward if tcp packets contain large payloads
+Date: Fri, 7 Mar 2003 11:38:38 -0600
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <02d301c2e4d0$69fd65a0$0a02010a@danbeck>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-net-owner@vger.kernel.org>
-To: netfilter-devel@lists.netfilter.org, linux-net@vger.kernel.org
-Content-Disposition: inline
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_02CC_01C2E49E.188A7CD0"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: "Netfilter Devel" <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
+This is a multi-part message in MIME format.
 
-Here is the patch set for the ipv4/netfilter files mentioned in the
-ipv6/netfilter mail.
+------=_NextPart_000_02CC_01C2E49E.188A7CD0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Art Haas
+I'm sending this in html format hoping the tcpdump lines won't wrap.  If =
+that's a problem for anyone, please let me know and I will resend in =
+text only.
 
-===== net/ipv4/netfilter/arptable_filter.c 1.2 vs edited =====
---- 1.2/net/ipv4/netfilter/arptable_filter.c	Mon Feb 10 04:35:55 2003
-+++ edited/net/ipv4/netfilter/arptable_filter.c	Thu Mar  6 19:28:01 2003
-@@ -111,9 +111,14 @@
-     }
- };
- 
--static struct arpt_table packet_filter
--= { { NULL, NULL }, "filter", &initial_table.repl,
--    FILTER_VALID_HOOKS, RW_LOCK_UNLOCKED, NULL, THIS_MODULE };
-+static struct arpt_table packet_filter = {
-+	.name		= "filter",
-+	.table		= &initial_table.repl,
-+	.valid_hooks	= FILTER_VALID_HOOKS,
-+	.lock		= RW_LOCK_UNLOCKED,
-+	.private	= NULL,
-+	.me		= THIS_MODULE,
-+};
- 
- /* The work comes in here from netfilter.c */
- static unsigned int arpt_hook(unsigned int hook,
-@@ -125,9 +130,17 @@
- 	return arpt_do_table(pskb, hook, in, out, &packet_filter, NULL);
- }
- 
--static struct nf_hook_ops arpt_ops[]
--= { { { NULL, NULL }, arpt_hook, NF_ARP, NF_ARP_IN, 0 },
--    { { NULL, NULL }, arpt_hook, NF_ARP, NF_ARP_OUT, 0 }
-+static struct nf_hook_ops arpt_ops[] = {
-+	{
-+		.hook		= arpt_hook,
-+		.pf		= NF_ARP,
-+		.hooknum	= NF_ARP_IN,
-+	},
-+	{
-+		.hook		= arpt_hook,
-+		.pf		= NF_ARP,
-+		.hooknum	= NF_ARP_OUT,
-+	},
- };
- 
- static int __init init(void)
-===== net/ipv4/netfilter/ip_conntrack_standalone.c 1.13 vs edited =====
---- 1.13/net/ipv4/netfilter/ip_conntrack_standalone.c	Mon Mar  3 03:25:39 2003
-+++ edited/net/ipv4/netfilter/ip_conntrack_standalone.c	Thu Mar  6 19:16:30 2003
-@@ -226,17 +226,34 @@
- 
- /* Connection tracking may drop packets, but never alters them, so
-    make it the first hook. */
--static struct nf_hook_ops ip_conntrack_in_ops
--= { { NULL, NULL }, ip_conntrack_in, PF_INET, NF_IP_PRE_ROUTING,
--	NF_IP_PRI_CONNTRACK };
--static struct nf_hook_ops ip_conntrack_local_out_ops
--= { { NULL, NULL }, ip_conntrack_local, PF_INET, NF_IP_LOCAL_OUT,
--	NF_IP_PRI_CONNTRACK };
-+static struct nf_hook_ops ip_conntrack_in_ops = {
-+	.hook		= ip_conntrack_in,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_PRE_ROUTING,
-+	.priority	= NF_IP_PRI_CONNTRACK,
-+};
-+
-+static struct nf_hook_ops ip_conntrack_local_out_ops = {
-+	.hook		= ip_conntrack_local,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_LOCAL_OUT,
-+	.priority	= NF_IP_PRI_CONNTRACK,
-+};
-+
- /* Refragmenter; last chance. */
--static struct nf_hook_ops ip_conntrack_out_ops
--= { { NULL, NULL }, ip_refrag, PF_INET, NF_IP_POST_ROUTING, NF_IP_PRI_LAST };
--static struct nf_hook_ops ip_conntrack_local_in_ops
--= { { NULL, NULL }, ip_confirm, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_LAST-1 };
-+static struct nf_hook_ops ip_conntrack_out_ops = {
-+	.hook		= ip_refrag,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_POST_ROUTING,
-+	.priority	= NF_IP_PRI_LAST,
-+};
-+
-+static struct nf_hook_ops ip_conntrack_local_in_ops = {
-+	.hook		= ip_confirm,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_LOCAL_IN,
-+	.priority	= NF_IP_PRI_LAST-1,
-+};
- 
- static int init_or_cleanup(int init)
- {
-===== net/ipv4/netfilter/ip_fw_compat.c 1.11 vs edited =====
---- 1.11/net/ipv4/netfilter/ip_fw_compat.c	Wed Feb 19 14:23:25 2003
-+++ edited/net/ipv4/netfilter/ip_fw_compat.c	Thu Mar  6 19:20:22 2003
-@@ -216,21 +216,40 @@
- 	return -ip_fw_ctl(optval, &tmp_fw, len);
- }
- 
--static struct nf_hook_ops preroute_ops
--= { { NULL, NULL }, fw_in, PF_INET, NF_IP_PRE_ROUTING, NF_IP_PRI_FILTER };
-+static struct nf_hook_ops preroute_ops = {
-+	.hook		= fw_in,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_PRE_ROUTING,
-+	.priority	= NF_IP_PRI_FILTER,
-+};
- 
--static struct nf_hook_ops postroute_ops
--= { { NULL, NULL }, fw_in, PF_INET, NF_IP_POST_ROUTING, NF_IP_PRI_FILTER };
-+static struct nf_hook_ops postroute_ops = {
-+	.hook		= fw_in,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_POST_ROUTING,
-+	.priority	= NF_IP_PRI_FILTER,
-+};
- 
--static struct nf_hook_ops forward_ops
--= { { NULL, NULL }, fw_in, PF_INET, NF_IP_FORWARD, NF_IP_PRI_FILTER };
-+static struct nf_hook_ops forward_ops = {
-+	.hook		= fw_in,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_FORWARD,
-+	.priority	= NF_IP_PRI_FILTER,
-+};
- 
--static struct nf_hook_ops local_in_ops
--= { { NULL, NULL }, fw_confirm, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_LAST - 1 };
-+static struct nf_hook_ops local_in_ops = {
-+	.hook		= fw_confirm,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_LOCAL_IN,
-+	.priority	= NF_IP_PRI_LAST - 1,
-+};
- 
--static struct nf_sockopt_ops sock_ops
--= { { NULL, NULL }, PF_INET, 64, 64 + 1024 + 1, &sock_fn, 0, 0, NULL,
--    0, NULL };
-+static struct nf_sockopt_ops sock_ops = {
-+	.pf		= PF_INET,
-+	.set_optmin	= 64,
-+	.set_optmax	= 64 + 1024 + 1,
-+	.set		= &sock_fn,
-+};
- 
- extern int ipfw_init_or_cleanup(int init);
- 
-===== net/ipv4/netfilter/ip_nat_rule.c 1.7 vs edited =====
---- 1.7/net/ipv4/netfilter/ip_nat_rule.c	Sat Feb 22 18:15:34 2003
-+++ edited/net/ipv4/netfilter/ip_nat_rule.c	Thu Mar  6 19:11:39 2003
-@@ -101,9 +101,13 @@
-     }
- };
- 
--static struct ipt_table nat_table
--= { { NULL, NULL }, "nat", &nat_initial_table.repl,
--    NAT_VALID_HOOKS, RW_LOCK_UNLOCKED, NULL, THIS_MODULE };
-+static struct ipt_table nat_table = {
-+	.name		= "nat",
-+	.table		= &nat_initial_table.repl,
-+	.valid_hooks	= NAT_VALID_HOOKS,
-+	.lock		= RW_LOCK_UNLOCKED,
-+	.me		= THIS_MODULE,
-+};
- 
- /* Source NAT */
- static unsigned int ipt_snat_target(struct sk_buff **pskb,
-@@ -270,10 +274,17 @@
- 	return ret;
- }
- 
--static struct ipt_target ipt_snat_reg
--= { { NULL, NULL }, "SNAT", ipt_snat_target, ipt_snat_checkentry, NULL };
--static struct ipt_target ipt_dnat_reg
--= { { NULL, NULL }, "DNAT", ipt_dnat_target, ipt_dnat_checkentry, NULL };
-+static struct ipt_target ipt_snat_reg = {
-+	.name		= "SNAT",
-+	.target		= ipt_snat_target,
-+	.checkentry	= ipt_snat_checkentry,
-+};
-+
-+static struct ipt_target ipt_dnat_reg = {
-+	.name		= "DNAT",
-+	.target		= ipt_dnat_target,
-+	.checkentry	= ipt_dnat_checkentry,
-+};
- 
- int __init ip_nat_rule_init(void)
- {
-===== net/ipv4/netfilter/ip_nat_standalone.c 1.16 vs edited =====
---- 1.16/net/ipv4/netfilter/ip_nat_standalone.c	Mon Mar  3 03:15:36 2003
-+++ edited/net/ipv4/netfilter/ip_nat_standalone.c	Thu Mar  6 19:23:24 2003
-@@ -225,18 +225,36 @@
- /* We must be after connection tracking and before packet filtering. */
- 
- /* Before packet filtering, change destination */
--static struct nf_hook_ops ip_nat_in_ops
--= { { NULL, NULL }, ip_nat_fn, PF_INET, NF_IP_PRE_ROUTING, NF_IP_PRI_NAT_DST };
-+static struct nf_hook_ops ip_nat_in_ops = {
-+	.hook		= ip_nat_fn,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_PRE_ROUTING,
-+	.priority	= NF_IP_PRI_NAT_DST,
-+};
-+
- /* After packet filtering, change source */
--static struct nf_hook_ops ip_nat_out_ops
--= { { NULL, NULL }, ip_nat_out, PF_INET, NF_IP_POST_ROUTING, NF_IP_PRI_NAT_SRC};
-+static struct nf_hook_ops ip_nat_out_ops = {
-+	.hook		= ip_nat_out,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_POST_ROUTING,
-+	.priority	= NF_IP_PRI_NAT_SRC,
-+};
-+
- /* Before packet filtering, change destination */
--static struct nf_hook_ops ip_nat_local_out_ops
--= { { NULL, NULL }, ip_nat_local_fn, PF_INET, NF_IP_LOCAL_OUT, NF_IP_PRI_NAT_DST };
-+static struct nf_hook_ops ip_nat_local_out_ops = {
-+	.hook		= ip_nat_local_fn,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_LOCAL_OUT,
-+	.priority	= NF_IP_PRI_NAT_DST,
-+};
- 
- #ifdef CONFIG_IP_NF_NAT_LOCAL
--static struct nf_hook_ops ip_nat_local_in_ops
--= { { NULL, NULL }, ip_nat_fn, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_NAT_SRC };
-+static struct nf_hook_ops ip_nat_local_in_ops = {
-+	.hook		= ip_nat_fn,
-+	.pf		= PF_INET,
-+	.hooknum	= NF_IP_LOCAL_IN,
-+	.priority	= NF_IP_PRI_NAT_SRC,
-+};
- #endif
- 
- /* Protocol registration. */
-===== net/ipv4/netfilter/iptable_filter.c 1.4 vs edited =====
---- 1.4/net/ipv4/netfilter/iptable_filter.c	Mon Feb 10 04:35:55 2003
-+++ edited/net/ipv4/netfilter/iptable_filter.c	Thu Mar  6 19:02:48 2003
-@@ -81,9 +81,13 @@
-     }
- };
- 
--static struct ipt_table packet_filter
--= { { NULL, NULL }, "filter", &initial_table.repl,
--    FILTER_VALID_HOOKS, RW_LOCK_UNLOCKED, NULL, THIS_MODULE };
-+static struct ipt_table packet_filter = {
-+	.name		= "filter",
-+	.table		= &initial_table.repl,
-+	.valid_hooks	= FILTER_VALID_HOOKS,
-+	.lock		= RW_LOCK_UNLOCKED,
-+	.me		= THIS_MODULE
-+};
- 
- /* The work comes in here from netfilter.c. */
- static unsigned int
-@@ -114,11 +118,25 @@
- 	return ipt_do_table(pskb, hook, in, out, &packet_filter, NULL);
- }
- 
--static struct nf_hook_ops ipt_ops[]
--= { { { NULL, NULL }, ipt_hook, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_FILTER },
--    { { NULL, NULL }, ipt_hook, PF_INET, NF_IP_FORWARD, NF_IP_PRI_FILTER },
--    { { NULL, NULL }, ipt_local_out_hook, PF_INET, NF_IP_LOCAL_OUT,
--		NF_IP_PRI_FILTER }
-+static struct nf_hook_ops ipt_ops[] = {
-+	{
-+		.hook		= ipt_hook,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_LOCAL_IN,
-+		.priority	= NF_IP_PRI_FILTER,
-+	},
-+	{
-+		.hook		= ipt_hook,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_FORWARD,
-+		.priority	= NF_IP_PRI_FILTER,
-+	},
-+	{
-+		.hook		= ipt_local_out_hook,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_LOCAL_OUT,
-+		.priority	= NF_IP_PRI_FILTER,
-+	},
- };
- 
- /* Default to forward because I got too much mail already. */
-===== net/ipv4/netfilter/iptable_mangle.c 1.8 vs edited =====
---- 1.8/net/ipv4/netfilter/iptable_mangle.c	Mon Feb 10 04:35:55 2003
-+++ edited/net/ipv4/netfilter/iptable_mangle.c	Thu Mar  6 19:07:33 2003
-@@ -114,9 +114,13 @@
-     }
- };
- 
--static struct ipt_table packet_mangler
--= { { NULL, NULL }, "mangle", &initial_table.repl,
--    MANGLE_VALID_HOOKS, RW_LOCK_UNLOCKED, NULL, THIS_MODULE };
-+static struct ipt_table packet_mangler = {
-+	.name		= "mangle",
-+	.table		= &initial_table.repl,
-+	.valid_hooks	= MANGLE_VALID_HOOKS,
-+	.lock		= RW_LOCK_UNLOCKED,
-+	.me		= THIS_MODULE,
-+};
- 
- /* The work comes in here from netfilter.c. */
- static unsigned int
-@@ -167,17 +171,37 @@
- 	return ret;
- }
- 
--static struct nf_hook_ops ipt_ops[]
--= { { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_PRE_ROUTING, 
--	NF_IP_PRI_MANGLE },
--    { { NULL, NULL }, ipt_local_hook, PF_INET, NF_IP_LOCAL_IN,
--	NF_IP_PRI_MANGLE },
--    { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_FORWARD,
--	NF_IP_PRI_MANGLE },
--    { { NULL, NULL }, ipt_local_hook, PF_INET, NF_IP_LOCAL_OUT,
--	NF_IP_PRI_MANGLE },
--    { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_POST_ROUTING,
--	NF_IP_PRI_MANGLE }
-+static struct nf_hook_ops ipt_ops[] = {
-+	{
-+		.hook		= ipt_route_hook,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_PRE_ROUTING, 
-+		.priority	= NF_IP_PRI_MANGLE,
-+	},
-+	{
-+		.hook		= ipt_local_hook,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_LOCAL_IN,
-+		.priority	= NF_IP_PRI_MANGLE,
-+	},
-+	{
-+		.hook		= ipt_route_hook,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_FORWARD,
-+		.priority	= NF_IP_PRI_MANGLE,
-+	},
-+	{
-+		.hook		= ipt_local_hook,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_LOCAL_OUT,
-+		.priority	= NF_IP_PRI_MANGLE,
-+	},
-+	{
-+		.hook		= ipt_route_hook,
-+		.pf		= PF_INET,
-+		.hooknum	= NF_IP_POST_ROUTING,
-+		.priority	= NF_IP_PRI_MANGLE,
-+	},
- };
- 
- static int __init init(void)
--- 
-They that can give up essential liberty to obtain a little temporary safety
-deserve neither liberty nor safety.
- -- Benjamin Franklin, Historical Review of Pennsylvania, 1759
+I'm encountering a strange issue with my firewall configuration whereas =
+tcp packets with large payloads just disappear into the ether.  I've =
+gone over my configuration with everyone in the Netfilter User mailing =
+list and it appears that my configuration is correct as far as I can =
+tell for what I'm trying to do.  I'm wondering if I could be =
+encountering a bug of some sort.
+
+To explain my network situation, I'm connecting two private subnets =
+through an OpenVPN tunnel.  My local subnet here is 10.1.2.0 and the =
+remote private subnet is 10.1.1.0.  The local subnet is behind a =
+netfilter firewall providing DNAT/SNAT to the outside world and also =
+providing routing through the tunnel.  A abridged version of my firewall =
+configuration looks like this:
+
+eth0: public interface to the internet
+eth1: private interface to local subnet
+tun0: OpenVPN tunnel to remote private subnet
+
+iptables -A FORWARD -i tun+ -j ACCEPT
+iptables -A FORWARD -i tap+ -j ACCEPT
+iptables -A FORWARD -i eth1 -j ACCEPT
+iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+iptables -t nat -A PREROUTING -d 129.41.69.137 -p all -j DNAT =
+--to-destination 10.1.1.7
+
+iptables -t nat -A POSTROUTING -s 10.1.1.7 -p tcp -j SNAT --to =
+129.41.69.137
+iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to-source =
+207.111.175.68
+
+The firewall machine is a RH 7.3 install with kernel 2.4.18.
+
+The problem is that for internal reasons (laptops, administration, =
+etc.), I need all traffic headed to our public mail server =
+(129.41.69.137) to be routed through the tunnel instead of the public =
+interface eth0.
+
+I've attempted handle this by DNAT'ing traffic destined for =
+129.41.69.137 to 10.1.1.7 which will be routed to the tunnel and then =
+SNAT'ing the traffic back from 10.1.1.7 to 129.41.69.137 after it come =
+back from the tunnel.
+
+This appears to work just fine, except that certain protocols were =
+failing.  I.e. checking mail over IMAP worked fine, but sending an email =
+would die.  Getting directory listings from ftp would work fine, but =
+uploading a file would die.
+
+To try to discern the problem, I dumped three interfaces, the local eth1 =
+interface where the traffic originated, the tun0 interface on the local =
+firewall here and the tun0 interface on the remote VPN endpoint.  Below =
+is the output.  =20
+
+>From the data below, it's obvious that any outgoing packets with a full =
+payload (the payload size is 1460)
+=20
+i.e. 09:29:05.797718 10.1.2.10.3969 > 129.41.69.137.smtp: . =
+165:1625(1460) ack 125 win 64116 (DF)
+
+never make it to the local tun0 tunnel interface.   This is why incoming =
+imap appears to work just fine, but sending mail doesn't.
+=20
+Again, this seems a bit crazy as my FORWARD chain specifically allows =
+any traffic to and from eth1 and tun0 and I'm not even aware of an easy =
+way to tell the firewall to drop packets of varying sizes.
+=20
+Is this a bug?  If not, what on earth is going on?
+=20
+Thank you,
+
+Daniel Beckham
+dealnews.com, Inc.
+
+=20
+Tcpdump of an email being sent: =20
+ =20
+Local side eth1 (private network) interface:
+=20
+09:29:04.986096 10.1.2.10.3969 > 129.41.69.137.smtp: S =
+266730469:266730469(0) win 64240 <mss 1460,nop,nop,sackOK> (DF)
+09:29:05.031723 129.41.69.137.smtp > 10.1.2.10.3969: S =
+361700781:361700781(0) ack 266730470 win 5840 <mss 1460,nop,nop,sackOK> =
+(DF)
+09:29:05.032012 10.1.2.10.3969 > 129.41.69.137.smtp: . ack 1 win 64240 =
+(DF)
+09:29:05.070351 129.41.69.137.smtp > 10.1.2.10.3969: P 1:30(29) ack 1 =
+win 5840 (DF)
+09:29:05.071015 10.1.2.10.3969 > 129.41.69.137.smtp: P 1:15(14) ack 30 =
+win 64211 (DF)
+09:29:05.116376 129.41.69.137.smtp > 10.1.2.10.3969: . ack 15 win 5840 =
+(DF)
+09:29:05.117139 129.41.69.137.smtp > 10.1.2.10.3969: P 30:53(23) ack 15 =
+win 5840 (DF)
+09:29:05.122880 10.1.2.10.3969 > 129.41.69.137.smtp: P 15:50(35) ack 53 =
+win 64188 (DF)
+09:29:05.158861 129.41.69.137.smtp > 10.1.2.10.3969: P 53:61(8) ack 50 =
+win 5840 (DF)
+09:29:05.159354 10.1.2.10.3969 > 129.41.69.137.smtp: P 50:81(31) ack 61 =
+win 64180 (DF)
+09:29:05.199376 129.41.69.137.smtp > 10.1.2.10.3969: P 61:69(8) ack 81 =
+win 5840 (DF)
+09:29:05.217234 10.1.2.10.3969 > 129.41.69.137.smtp: P 81:87(6) ack 69 =
+win 64172 (DF)
+09:29:05.253760 129.41.69.137.smtp > 10.1.2.10.3969: P 69:82(13) ack 87 =
+win 5840 (DF)
+09:29:05.461468 10.1.2.10.3969 > 129.41.69.137.smtp: . ack 82 win 64159 =
+(DF)
+09:29:05.489124 129.41.69.137.smtp > 10.1.2.10.3969: P 69:82(13) ack 87 =
+win 5840 (DF)
+09:29:05.489289 10.1.2.10.3969 > 129.41.69.137.smtp: . ack 82 win 64159 =
+(DF)
+09:29:05.637796 10.1.2.10.3969 > 129.41.69.137.smtp: P 87:93(6) ack 82 =
+win 64159 (DF)
+09:29:05.674856 129.41.69.137.smtp > 10.1.2.10.3969: P 82:95(13) ack 93 =
+win 5840 (DF)
+09:29:05.675104 10.1.2.10.3969 > 129.41.69.137.smtp: P 93:128(35) ack 95 =
+win 64146 (DF)
+09:29:05.711681 129.41.69.137.smtp > 10.1.2.10.3969: P 95:103(8) ack 128 =
+win 5840 (DF)
+09:29:05.712122 10.1.2.10.3969 > 129.41.69.137.smtp: P 128:159(31) ack =
+103 win 64138 (DF)
+09:29:05.760198 129.41.69.137.smtp > 10.1.2.10.3969: P 103:111(8) ack =
+159 win 5840 (DF)
+09:29:05.760453 10.1.2.10.3969 > 129.41.69.137.smtp: P 159:165(6) ack =
+111 win 64130 (DF)
+09:29:05.796963 129.41.69.137.smtp > 10.1.2.10.3969: P 111:125(14) ack =
+165 win 5840 (DF)
+*** the packet size changes here once the email data is being sent to =
+the mail server ***
+09:29:05.797718 10.1.2.10.3969 > 129.41.69.137.smtp: . 165:1625(1460) =
+ack 125 win 64116 (DF)
+09:29:05.797843 10.1.2.10.3969 > 129.41.69.137.smtp: . 1625:3085(1460) =
+ack 125 win 64116 (DF)
+09:29:05.797966 10.1.2.10.3969 > 129.41.69.137.smtp: . 3085:4545(1460) =
+ack 125 win 64116 (DF)
+09:29:05.797994 10.1.2.10.3969 > 129.41.69.137.smtp: P 4545:4763(218) =
+ack 125 win 64116 (DF)
+09:29:05.798031 10.1.2.10.3969 > 129.41.69.137.smtp: P 4763:4768(5) ack =
+125 win 64116 (DF)
+09:29:05.834387 129.41.69.137.smtp > 10.1.2.10.3969: . ack 165 win 5840 =
+<nop,nop,sack sack 1 {4545:4763} > (DF)
+09:29:05.846822 129.41.69.137.smtp > 10.1.2.10.3969: . ack 165 win 5840 =
+<nop,nop,sack sack 1 {4545:4768} > (DF)
+09:29:05.847323 10.1.2.10.3969 > 129.41.69.137.smtp: . 165:1625(1460) =
+ack 125 win 64116 (DF)
+09:29:05.847445 10.1.2.10.3969 > 129.41.69.137.smtp: . 1625:3085(1460) =
+ack 125 win 64116 (DF)
+09:29:05.847568 10.1.2.10.3969 > 129.41.69.137.smtp: . 3085:4545(1460) =
+ack 125 win 64116 (DF)
+09:29:06.555338 10.1.2.10.3969 > 129.41.69.137.smtp: . 165:1625(1460) =
+ack 125 win 64116 (DF)
+09:29:08.195721 10.1.2.10.3969 > 129.41.69.137.smtp: . 165:1625(1460) =
+ack 125 win 64116 (DF)
+09:29:11.367205 10.1.2.10.3969 > 129.41.69.137.smtp: . 165:1625(1460) =
+ack 125 win 64116 (DF)
+09:29:17.819496 10.1.2.10.3969 > 129.41.69.137.smtp: . 165:1625(1460) =
+ack 125 win 64116 (DF)
+09:29:30.614817 10.1.2.10.3969 > 129.41.69.137.smtp: . 165:1625(1460) =
+ack 125 win 64116 (DF)
+
+=20
+Firewall on the local side of the tunnel: (tun0)
+=20
+09:29:04.986164 10.1.2.10.3969 > 10.1.1.7.smtp: S 266730469:266730469(0) =
+win 64240 <mss 1460,nop,nop,sackOK> (DF)
+09:29:05.031684 10.1.1.7.smtp > 10.1.2.10.3969: S 361700781:361700781(0) =
+ack 266730470 win 5840 <mss 1460,nop,nop,sackOK> (DF)
+09:29:05.032048 10.1.2.10.3969 > 10.1.1.7.smtp: . ack 1 win 64240 (DF)
+09:29:05.070314 10.1.1.7.smtp > 10.1.2.10.3969: P 1:30(29) ack 1 win =
+5840 (DF)
+09:29:05.071048 10.1.2.10.3969 > 10.1.1.7.smtp: P 1:15(14) ack 30 win =
+64211 (DF)
+09:29:05.116340 10.1.1.7.smtp > 10.1.2.10.3969: . ack 15 win 5840 (DF)
+09:29:05.117105 10.1.1.7.smtp > 10.1.2.10.3969: P 30:53(23) ack 15 win =
+5840 (DF)
+09:29:05.122915 10.1.2.10.3969 > 10.1.1.7.smtp: P 15:50(35) ack 53 win =
+64188 (DF)
+09:29:05.158822 10.1.1.7.smtp > 10.1.2.10.3969: P 53:61(8) ack 50 win =
+5840 (DF)
+09:29:05.159389 10.1.2.10.3969 > 10.1.1.7.smtp: P 50:81(31) ack 61 win =
+64180 (DF)
+09:29:05.199339 10.1.1.7.smtp > 10.1.2.10.3969: P 61:69(8) ack 81 win =
+5840 (DF)
+09:29:05.217269 10.1.2.10.3969 > 10.1.1.7.smtp: P 81:87(6) ack 69 win =
+64172 (DF)
+09:29:05.253722 10.1.1.7.smtp > 10.1.2.10.3969: P 69:82(13) ack 87 win =
+5840 (DF)
+09:29:05.461527 10.1.2.10.3969 > 10.1.1.7.smtp: . ack 82 win 64159 (DF)
+09:29:05.489089 10.1.1.7.smtp > 10.1.2.10.3969: P 69:82(13) ack 87 win =
+5840 (DF)
+09:29:05.489324 10.1.2.10.3969 > 10.1.1.7.smtp: . ack 82 win 64159 (DF)
+09:29:05.637836 10.1.2.10.3969 > 10.1.1.7.smtp: P 87:93(6) ack 82 win =
+64159 (DF)
+09:29:05.674820 10.1.1.7.smtp > 10.1.2.10.3969: P 82:95(13) ack 93 win =
+5840 (DF)
+09:29:05.675137 10.1.2.10.3969 > 10.1.1.7.smtp: P 93:128(35) ack 95 win =
+64146 (DF)
+09:29:05.711645 10.1.1.7.smtp > 10.1.2.10.3969: P 95:103(8) ack 128 win =
+5840 (DF)
+09:29:05.712153 10.1.2.10.3969 > 10.1.1.7.smtp: P 128:159(31) ack 103 =
+win 64138 (DF)
+09:29:05.760162 10.1.1.7.smtp > 10.1.2.10.3969: P 103:111(8) ack 159 win =
+5840 (DF)
+09:29:05.760485 10.1.2.10.3969 > 10.1.1.7.smtp: P 159:165(6) ack 111 win =
+64130 (DF)
+09:29:05.796928 10.1.1.7.smtp > 10.1.2.10.3969: P 111:125(14) ack 165 =
+win 5840 (DF)
+09:29:05.798040 10.1.2.10.3969 > 10.1.1.7.smtp: P 4545:4763(218) ack 125 =
+win 64116 (DF)
+09:29:05.798086 10.1.2.10.3969 > 10.1.1.7.smtp: P 4763:4768(5) ack 125 =
+win 64116 (DF)
+09:29:05.834350 10.1.1.7.smtp > 10.1.2.10.3969: . ack 165 win 5840 =
+<nop,nop,sack sack 1 {4545:4763} > (DF)
+09:29:05.846786 10.1.1.7.smtp > 10.1.2.10.3969: . ack 165 win 5840 =
+<nop,nop,sack sack 1 {4545:4768} > (DF)
+
+
+Remote side of the tunnel: (tun0)
+=20
+12:08:10.673521 10.1.2.10.3969 > 10.1.1.7.smtp: S 266730469:266730469(0) =
+win 64240 <mss 1460,nop,nop,sackOK> (DF)
+12:08:10.674685 10.1.1.7.smtp > 10.1.2.10.3969: S 361700781:361700781(0) =
+ack 266730470 win 5840 <mss 1460,nop,nop,sackOK> (DF)
+12:08:10.718701 10.1.2.10.3969 > 10.1.1.7.smtp: . ack 1 win 64240 (DF)
+12:08:10.722990 10.1.1.7.smtp > 10.1.2.10.3969: P 1:30(29) ack 1 win =
+5840 (DF)
+12:08:10.761777 10.1.2.10.3969 > 10.1.1.7.smtp: P 1:15(14) ack 30 win =
+64211 (DF)
+12:08:10.762026 10.1.1.7.smtp > 10.1.2.10.3969: . ack 15 win 5840 (DF)
+12:08:10.762144 10.1.1.7.smtp > 10.1.2.10.3969: P 30:53(23) ack 15 win =
+5840 (DF)
+12:08:10.809779 10.1.2.10.3969 > 10.1.1.7.smtp: P 15:50(35) ack 53 win =
+64188 (DF)
+12:08:10.810126 10.1.1.7.smtp > 10.1.2.10.3969: P 53:61(8) ack 50 win =
+5840 (DF)
+12:08:10.846437 10.1.2.10.3969 > 10.1.1.7.smtp: P 50:81(31) ack 61 win =
+64180 (DF)
+12:08:10.851162 10.1.1.7.smtp > 10.1.2.10.3969: P 61:69(8) ack 81 win =
+5840 (DF)
+12:08:10.905777 10.1.2.10.3969 > 10.1.1.7.smtp: P 81:87(6) ack 69 win =
+64172 (DF)
+12:08:10.906068 10.1.1.7.smtp > 10.1.2.10.3969: P 69:82(13) ack 87 win =
+5840 (DF)
+12:08:11.139331 10.1.1.7.smtp > 10.1.2.10.3969: P 69:82(13) ack 87 win =
+5840 (DF)
+12:08:11.148104 10.1.2.10.3969 > 10.1.1.7.smtp: . ack 82 win 64159 (DF)
+12:08:11.177095 10.1.2.10.3969 > 10.1.1.7.smtp: . ack 82 win 64159 (DF)
+12:08:11.324853 10.1.2.10.3969 > 10.1.1.7.smtp: P 87:93(6) ack 82 win =
+64159 (DF)
+12:08:11.325240 10.1.1.7.smtp > 10.1.2.10.3969: P 82:95(13) ack 93 win =
+5840 (DF)
+12:08:11.363484 10.1.2.10.3969 > 10.1.1.7.smtp: P 93:128(35) ack 95 win =
+64146 (DF)
+12:08:11.363818 10.1.1.7.smtp > 10.1.2.10.3969: P 95:103(8) ack 128 win =
+5840 (DF)
+12:08:11.412066 10.1.2.10.3969 > 10.1.1.7.smtp: P 128:159(31) ack 103 =
+win 64138 (DF)
+12:08:11.412477 10.1.1.7.smtp > 10.1.2.10.3969: P 103:111(8) ack 159 win =
+5840 (DF)
+12:08:11.447083 10.1.2.10.3969 > 10.1.1.7.smtp: P 159:165(6) ack 111 win =
+64130 (DF)
+12:08:11.449412 10.1.1.7.smtp > 10.1.2.10.3969: P 111:125(14) ack 165 =
+win 5840 (DF)
+12:08:11.486836 10.1.2.10.3969 > 10.1.1.7.smtp: P 4545:4763(218) ack 125 =
+win 64116 (DF)
+=20
+
+
+
+------=_NextPart_000_02CC_01C2E49E.188A7CD0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2723.2500" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY>
+<DIV><FONT face=3DArial size=3D2>I'm sending this in html format hoping =
+the tcpdump=20
+lines won't wrap.&nbsp; If that's a problem for anyone, please let me =
+know and I=20
+will resend in text only.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I'm encountering a strange issue with =
+my firewall=20
+configuration whereas tcp packets with large payloads just disappear =
+into the=20
+ether.&nbsp; I've gone over my configuration with everyone in the =
+Netfilter User=20
+mailing list and it appears that my configuration is correct as far as I =
+can=20
+tell for what I'm trying to do.&nbsp; I'm wondering if I could be =
+encountering a=20
+bug of some sort.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>To explain my network situation, I'm =
+connecting two=20
+private subnets through an OpenVPN tunnel.&nbsp; My local subnet here is =
+
+10.1.2.0 and the remote private subnet is 10.1.1.0.&nbsp; The local =
+subnet is=20
+behind a netfilter firewall providing DNAT/SNAT to the outside world and =
+also=20
+providing routing through the tunnel.&nbsp; A abridged version of my =
+firewall=20
+configuration looks like this:</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>eth0: public interface to the =
+internet<BR>eth1:=20
+private interface to local subnet<BR>tun0: OpenVPN tunnel to remote =
+private=20
+subnet</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>iptables -A FORWARD -i tun+ -j =
+ACCEPT<BR>iptables=20
+-A FORWARD -i tap+ -j ACCEPT<BR>iptables -A FORWARD -i eth1 -j=20
+ACCEPT<BR>iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j=20
+ACCEPT</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>iptables -t nat -A PREROUTING -d =
+129.41.69.137 -p=20
+all -j DNAT --to-destination 10.1.1.7</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>iptables -t nat -A POSTROUTING -s =
+10.1.1.7 -p tcp=20
+-j SNAT --to 129.41.69.137<BR>iptables -t nat -A POSTROUTING -o eth0 -j =
+SNAT=20
+--to-source 207.111.175.68</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>The firewall machine is a RH 7.3 =
+install with=20
+kernel 2.4.18.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>The problem is that for internal =
+reasons (laptops,=20
+administration, etc.), I need all traffic headed to our public mail =
+server=20
+(129.41.69.137) to be routed through the tunnel instead of the public =
+interface=20
+eth0.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I've attempted handle this by DNAT'ing =
+traffic=20
+destined for 129.41.69.137 to 10.1.1.7 which will be routed to the =
+tunnel and=20
+then SNAT'ing the traffic back from 10.1.1.7 to 129.41.69.137 after it =
+come back=20
+from the tunnel.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>This appears to work just fine, except =
+that certain=20
+protocols were failing.&nbsp; I.e. checking mail over IMAP worked fine, =
+but=20
+sending an email would die.&nbsp; Getting directory listings from ftp =
+would work=20
+fine, but uploading a file would die.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>To try to discern the problem, I dumped =
+three=20
+interfaces, the local eth1 interface where the traffic originated, the =
+tun0=20
+interface on the local firewall here and the tun0 interface on the =
+remote VPN=20
+endpoint.&nbsp; Below is the output.&nbsp;&nbsp; </FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>From the data below, it's obvious that =
+any outgoing=20
+packets with a full payload (the payload size is 1460)<BR>&nbsp;<BR>i.e. =
+
+09:29:05.797718 10.1.2.10.3969 &gt; 129.41.69.137.smtp: . 165:1625(1460) =
+ack 125=20
+win 64116 (DF)</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>never make it to the local tun0 tunnel=20
+interface.&nbsp;&nbsp; This is why incoming imap appears to work just =
+fine, but=20
+sending mail doesn't.<BR>&nbsp;<BR>Again, this seems a bit crazy as my =
+FORWARD=20
+chain specifically allows any traffic to and from eth1 and tun0 and I'm =
+not even=20
+aware of an easy way to tell the firewall to drop packets of varying=20
+sizes.<BR>&nbsp;<BR>Is this a bug?&nbsp; If not, what on earth is going=20
+on?<BR>&nbsp;<BR>Thank you,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Daniel Beckham<BR>dealnews.com, =
+Inc.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>&nbsp;<BR>Tcpdump of an email being =
+sent:&nbsp;=20
+<BR>&nbsp; <BR>Local side eth1 (private network)=20
+interface:<BR>&nbsp;<BR>09:29:04.986096 10.1.2.10.3969 &gt; =
+129.41.69.137.smtp:=20
+S 266730469:266730469(0) win 64240 &lt;mss 1460,nop,nop,sackOK&gt;=20
+(DF)<BR>09:29:05.031723 129.41.69.137.smtp &gt; 10.1.2.10.3969: S=20
+361700781:361700781(0) ack 266730470 win 5840 &lt;mss =
+1460,nop,nop,sackOK&gt;=20
+(DF)<BR>09:29:05.032012 10.1.2.10.3969 &gt; 129.41.69.137.smtp: . ack 1 =
+win=20
+64240 (DF)<BR>09:29:05.070351 129.41.69.137.smtp &gt; 10.1.2.10.3969: P =
+1:30(29)=20
+ack 1 win 5840 (DF)<BR>09:29:05.071015 10.1.2.10.3969 &gt; =
+129.41.69.137.smtp: P=20
+1:15(14) ack 30 win 64211 (DF)<BR>09:29:05.116376 129.41.69.137.smtp =
+&gt;=20
+10.1.2.10.3969: . ack 15 win 5840 (DF)<BR>09:29:05.117139 =
+129.41.69.137.smtp=20
+&gt; 10.1.2.10.3969: P 30:53(23) ack 15 win 5840 (DF)<BR>09:29:05.122880 =
+
+10.1.2.10.3969 &gt; 129.41.69.137.smtp: P 15:50(35) ack 53 win 64188=20
+(DF)<BR>09:29:05.158861 129.41.69.137.smtp &gt; 10.1.2.10.3969: P =
+53:61(8) ack=20
+50 win 5840 (DF)<BR>09:29:05.159354 10.1.2.10.3969 &gt; =
+129.41.69.137.smtp: P=20
+50:81(31) ack 61 win 64180 (DF)<BR>09:29:05.199376 129.41.69.137.smtp =
+&gt;=20
+10.1.2.10.3969: P 61:69(8) ack 81 win 5840 (DF)<BR>09:29:05.217234=20
+10.1.2.10.3969 &gt; 129.41.69.137.smtp: P 81:87(6) ack 69 win 64172=20
+(DF)<BR>09:29:05.253760 129.41.69.137.smtp &gt; 10.1.2.10.3969: P =
+69:82(13) ack=20
+87 win 5840 (DF)<BR>09:29:05.461468 10.1.2.10.3969 &gt; =
+129.41.69.137.smtp: .=20
+ack 82 win 64159 (DF)<BR>09:29:05.489124 129.41.69.137.smtp &gt; =
+10.1.2.10.3969:=20
+P 69:82(13) ack 87 win 5840 (DF)<BR>09:29:05.489289 10.1.2.10.3969 &gt;=20
+129.41.69.137.smtp: . ack 82 win 64159 (DF)<BR>09:29:05.637796 =
+10.1.2.10.3969=20
+&gt; 129.41.69.137.smtp: P 87:93(6) ack 82 win 64159 =
+(DF)<BR>09:29:05.674856=20
+129.41.69.137.smtp &gt; 10.1.2.10.3969: P 82:95(13) ack 93 win 5840=20
+(DF)<BR>09:29:05.675104 10.1.2.10.3969 &gt; 129.41.69.137.smtp: P =
+93:128(35) ack=20
+95 win 64146 (DF)<BR>09:29:05.711681 129.41.69.137.smtp &gt; =
+10.1.2.10.3969: P=20
+95:103(8) ack 128 win 5840 (DF)<BR>09:29:05.712122 10.1.2.10.3969 &gt;=20
+129.41.69.137.smtp: P 128:159(31) ack 103 win 64138 =
+(DF)<BR>09:29:05.760198=20
+129.41.69.137.smtp &gt; 10.1.2.10.3969: P 103:111(8) ack 159 win 5840=20
+(DF)<BR>09:29:05.760453 10.1.2.10.3969 &gt; 129.41.69.137.smtp: P =
+159:165(6) ack=20
+111 win 64130 (DF)<BR>09:29:05.796963 129.41.69.137.smtp &gt; =
+10.1.2.10.3969: P=20
+111:125(14) ack 165 win 5840 (DF)<BR>*** the packet size changes here =
+once the=20
+email data is being sent to the mail server ***<BR>09:29:05.797718=20
+10.1.2.10.3969 &gt; 129.41.69.137.smtp: . 165:1625(1460) ack 125 win =
+64116=20
+(DF)<BR>09:29:05.797843 10.1.2.10.3969 &gt; 129.41.69.137.smtp: .=20
+1625:3085(1460) ack 125 win 64116 (DF)<BR>09:29:05.797966 10.1.2.10.3969 =
+&gt;=20
+129.41.69.137.smtp: . 3085:4545(1460) ack 125 win 64116 =
+(DF)<BR>09:29:05.797994=20
+10.1.2.10.3969 &gt; 129.41.69.137.smtp: P 4545:4763(218) ack 125 win =
+64116=20
+(DF)<BR>09:29:05.798031 10.1.2.10.3969 &gt; 129.41.69.137.smtp: P =
+4763:4768(5)=20
+ack 125 win 64116 (DF)<BR>09:29:05.834387 129.41.69.137.smtp &gt;=20
+10.1.2.10.3969: . ack 165 win 5840 &lt;nop,nop,sack sack 1 {4545:4763} =
+&gt;=20
+(DF)<BR>09:29:05.846822 129.41.69.137.smtp &gt; 10.1.2.10.3969: . ack =
+165 win=20
+5840 &lt;nop,nop,sack sack 1 {4545:4768} &gt; (DF)<BR>09:29:05.847323=20
+10.1.2.10.3969 &gt; 129.41.69.137.smtp: . 165:1625(1460) ack 125 win =
+64116=20
+(DF)<BR>09:29:05.847445 10.1.2.10.3969 &gt; 129.41.69.137.smtp: .=20
+1625:3085(1460) ack 125 win 64116 (DF)<BR>09:29:05.847568 10.1.2.10.3969 =
+&gt;=20
+129.41.69.137.smtp: . 3085:4545(1460) ack 125 win 64116 =
+(DF)<BR>09:29:06.555338=20
+10.1.2.10.3969 &gt; 129.41.69.137.smtp: . 165:1625(1460) ack 125 win =
+64116=20
+(DF)<BR>09:29:08.195721 10.1.2.10.3969 &gt; 129.41.69.137.smtp: . =
+165:1625(1460)=20
+ack 125 win 64116 (DF)<BR>09:29:11.367205 10.1.2.10.3969 &gt;=20
+129.41.69.137.smtp: . 165:1625(1460) ack 125 win 64116 =
+(DF)<BR>09:29:17.819496=20
+10.1.2.10.3969 &gt; 129.41.69.137.smtp: . 165:1625(1460) ack 125 win =
+64116=20
+(DF)<BR>09:29:30.614817 10.1.2.10.3969 &gt; 129.41.69.137.smtp: . =
+165:1625(1460)=20
+ack 125 win 64116 (DF)</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>&nbsp;<BR>Firewall on the local side of =
+the tunnel:=20
+(tun0)<BR>&nbsp;<BR>09:29:04.986164 10.1.2.10.3969 &gt; 10.1.1.7.smtp: S =
+
+266730469:266730469(0) win 64240 &lt;mss 1460,nop,nop,sackOK&gt;=20
+(DF)<BR>09:29:05.031684 10.1.1.7.smtp &gt; 10.1.2.10.3969: S=20
+361700781:361700781(0) ack 266730470 win 5840 &lt;mss =
+1460,nop,nop,sackOK&gt;=20
+(DF)<BR>09:29:05.032048 10.1.2.10.3969 &gt; 10.1.1.7.smtp: . ack 1 win =
+64240=20
+(DF)<BR>09:29:05.070314 10.1.1.7.smtp &gt; 10.1.2.10.3969: P 1:30(29) =
+ack 1 win=20
+5840 (DF)<BR>09:29:05.071048 10.1.2.10.3969 &gt; 10.1.1.7.smtp: P =
+1:15(14) ack=20
+30 win 64211 (DF)<BR>09:29:05.116340 10.1.1.7.smtp &gt; 10.1.2.10.3969: =
+. ack 15=20
+win 5840 (DF)<BR>09:29:05.117105 10.1.1.7.smtp &gt; 10.1.2.10.3969: P =
+30:53(23)=20
+ack 15 win 5840 (DF)<BR>09:29:05.122915 10.1.2.10.3969 &gt; =
+10.1.1.7.smtp: P=20
+15:50(35) ack 53 win 64188 (DF)<BR>09:29:05.158822 10.1.1.7.smtp &gt;=20
+10.1.2.10.3969: P 53:61(8) ack 50 win 5840 (DF)<BR>09:29:05.159389=20
+10.1.2.10.3969 &gt; 10.1.1.7.smtp: P 50:81(31) ack 61 win 64180=20
+(DF)<BR>09:29:05.199339 10.1.1.7.smtp &gt; 10.1.2.10.3969: P 61:69(8) =
+ack 81 win=20
+5840 (DF)<BR>09:29:05.217269 10.1.2.10.3969 &gt; 10.1.1.7.smtp: P =
+81:87(6) ack=20
+69 win 64172 (DF)<BR>09:29:05.253722 10.1.1.7.smtp &gt; 10.1.2.10.3969: =
+P=20
+69:82(13) ack 87 win 5840 (DF)<BR>09:29:05.461527 10.1.2.10.3969 &gt;=20
+10.1.1.7.smtp: . ack 82 win 64159 (DF)<BR>09:29:05.489089 10.1.1.7.smtp =
+&gt;=20
+10.1.2.10.3969: P 69:82(13) ack 87 win 5840 (DF)<BR>09:29:05.489324=20
+10.1.2.10.3969 &gt; 10.1.1.7.smtp: . ack 82 win 64159 =
+(DF)<BR>09:29:05.637836=20
+10.1.2.10.3969 &gt; 10.1.1.7.smtp: P 87:93(6) ack 82 win 64159=20
+(DF)<BR>09:29:05.674820 10.1.1.7.smtp &gt; 10.1.2.10.3969: P 82:95(13) =
+ack 93=20
+win 5840 (DF)<BR>09:29:05.675137 10.1.2.10.3969 &gt; 10.1.1.7.smtp: P =
+93:128(35)=20
+ack 95 win 64146 (DF)<BR>09:29:05.711645 10.1.1.7.smtp &gt; =
+10.1.2.10.3969: P=20
+95:103(8) ack 128 win 5840 (DF)<BR>09:29:05.712153 10.1.2.10.3969 &gt;=20
+10.1.1.7.smtp: P 128:159(31) ack 103 win 64138 (DF)<BR>09:29:05.760162=20
+10.1.1.7.smtp &gt; 10.1.2.10.3969: P 103:111(8) ack 159 win 5840=20
+(DF)<BR>09:29:05.760485 10.1.2.10.3969 &gt; 10.1.1.7.smtp: P 159:165(6) =
+ack 111=20
+win 64130 (DF)<BR>09:29:05.796928 10.1.1.7.smtp &gt; 10.1.2.10.3969: P=20
+111:125(14) ack 165 win 5840 (DF)<BR>09:29:05.798040 10.1.2.10.3969 &gt; =
+
+10.1.1.7.smtp: P 4545:4763(218) ack 125 win 64116 =
+(DF)<BR>09:29:05.798086=20
+10.1.2.10.3969 &gt; 10.1.1.7.smtp: P 4763:4768(5) ack 125 win 64116=20
+(DF)<BR>09:29:05.834350 10.1.1.7.smtp &gt; 10.1.2.10.3969: . ack 165 win =
+5840=20
+&lt;nop,nop,sack sack 1 {4545:4763} &gt; (DF)<BR>09:29:05.846786 =
+10.1.1.7.smtp=20
+&gt; 10.1.2.10.3969: . ack 165 win 5840 &lt;nop,nop,sack sack 1 =
+{4545:4768} &gt;=20
+(DF)</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><BR><FONT face=3DArial size=3D2>Remote side of the tunnel:=20
+(tun0)<BR>&nbsp;<BR>12:08:10.673521 10.1.2.10.3969 &gt; 10.1.1.7.smtp: S =
+
+266730469:266730469(0) win 64240 &lt;mss 1460,nop,nop,sackOK&gt;=20
+(DF)<BR>12:08:10.674685 10.1.1.7.smtp &gt; 10.1.2.10.3969: S=20
+361700781:361700781(0) ack 266730470 win 5840 &lt;mss =
+1460,nop,nop,sackOK&gt;=20
+(DF)<BR>12:08:10.718701 10.1.2.10.3969 &gt; 10.1.1.7.smtp: . ack 1 win =
+64240=20
+(DF)<BR>12:08:10.722990 10.1.1.7.smtp &gt; 10.1.2.10.3969: P 1:30(29) =
+ack 1 win=20
+5840 (DF)<BR>12:08:10.761777 10.1.2.10.3969 &gt; 10.1.1.7.smtp: P =
+1:15(14) ack=20
+30 win 64211 (DF)<BR>12:08:10.762026 10.1.1.7.smtp &gt; 10.1.2.10.3969: =
+. ack 15=20
+win 5840 (DF)<BR>12:08:10.762144 10.1.1.7.smtp &gt; 10.1.2.10.3969: P =
+30:53(23)=20
+ack 15 win 5840 (DF)<BR>12:08:10.809779 10.1.2.10.3969 &gt; =
+10.1.1.7.smtp: P=20
+15:50(35) ack 53 win 64188 (DF)<BR>12:08:10.810126 10.1.1.7.smtp &gt;=20
+10.1.2.10.3969: P 53:61(8) ack 50 win 5840 (DF)<BR>12:08:10.846437=20
+10.1.2.10.3969 &gt; 10.1.1.7.smtp: P 50:81(31) ack 61 win 64180=20
+(DF)<BR>12:08:10.851162 10.1.1.7.smtp &gt; 10.1.2.10.3969: P 61:69(8) =
+ack 81 win=20
+5840 (DF)<BR>12:08:10.905777 10.1.2.10.3969 &gt; 10.1.1.7.smtp: P =
+81:87(6) ack=20
+69 win 64172 (DF)<BR>12:08:10.906068 10.1.1.7.smtp &gt; 10.1.2.10.3969: =
+P=20
+69:82(13) ack 87 win 5840 (DF)<BR>12:08:11.139331 10.1.1.7.smtp &gt;=20
+10.1.2.10.3969: P 69:82(13) ack 87 win 5840 (DF)<BR>12:08:11.148104=20
+10.1.2.10.3969 &gt; 10.1.1.7.smtp: . ack 82 win 64159 =
+(DF)<BR>12:08:11.177095=20
+10.1.2.10.3969 &gt; 10.1.1.7.smtp: . ack 82 win 64159 =
+(DF)<BR>12:08:11.324853=20
+10.1.2.10.3969 &gt; 10.1.1.7.smtp: P 87:93(6) ack 82 win 64159=20
+(DF)<BR>12:08:11.325240 10.1.1.7.smtp &gt; 10.1.2.10.3969: P 82:95(13) =
+ack 93=20
+win 5840 (DF)<BR>12:08:11.363484 10.1.2.10.3969 &gt; 10.1.1.7.smtp: P =
+93:128(35)=20
+ack 95 win 64146 (DF)<BR>12:08:11.363818 10.1.1.7.smtp &gt; =
+10.1.2.10.3969: P=20
+95:103(8) ack 128 win 5840 (DF)<BR>12:08:11.412066 10.1.2.10.3969 &gt;=20
+10.1.1.7.smtp: P 128:159(31) ack 103 win 64138 (DF)<BR>12:08:11.412477=20
+10.1.1.7.smtp &gt; 10.1.2.10.3969: P 103:111(8) ack 159 win 5840=20
+(DF)<BR>12:08:11.447083 10.1.2.10.3969 &gt; 10.1.1.7.smtp: P 159:165(6) =
+ack 111=20
+win 64130 (DF)<BR>12:08:11.449412 10.1.1.7.smtp &gt; 10.1.2.10.3969: P=20
+111:125(14) ack 165 win 5840 (DF)<BR>12:08:11.486836 10.1.2.10.3969 &gt; =
+
+10.1.1.7.smtp: P 4545:4763(218) ack 125 win 64116=20
+(DF)<BR>&nbsp;<BR></FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
+
+------=_NextPart_000_02CC_01C2E49E.188A7CD0--
