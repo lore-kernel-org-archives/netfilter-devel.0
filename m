@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Fw: [PATCH 2.4.22] looseUDP support
-Date: Thu, 15 Apr 2004 02:58:21 +0200 (CEST)
+From: Ivan Mitev <imitev@obs.bg>
+Subject: netfilter/ipsec packet flow
+Date: Wed, 14 Apr 2004 20:37:49 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404150253450.31850-100000@filer.marasystems.com>
-References: <004001c42283$950d8d50$2901080a@askeysh.com.cn>
+Message-ID: <20040414173749.GA6170@obs.bg>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Daniel Chemko <dchemko@smgtec.com>, <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: John Ho <john_ho@sh.askey.com.tw>
-In-Reply-To: <004001c42283$950d8d50$2901080a@askeysh.com.cn>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +18,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 15 Apr 2004, John Ho wrote:
+hi
 
-> Or, as Mr. Henrik mentioned, create a custom DNAT target for every
-> online game protocol of this type? Because our device need to pass the
-> Microsoft UPnP IGDtest suite and without the looseUDP support it will
-> always fail at NAT traversal test group. Thanks.
+sorry if that sounds like a stupid question; but let's ask, as more people
+should be concerned by that when they'll migrate their freeswan/2.4 to 2.6's
+ipsec... 
 
-You don't need one per protocol, just a simple one which consists of two 
-targets
+1- is this 2.6 ipsec packet flow "freezed" ? 
 
-a) A "remember me" target which tells that traffic should now be NAT:ed 
-into this station, used on outgoing sessions.
+            [incoming packet]
+                    |<-----------------. 
+                    v                  |
+               PREROUTING              |
+    dest!=local?  /  \  dest==local?   |
+                /      \               |
+         FORWARD        LOCAL_IN       |
+             |            |            |
+             |      (ipsec?decrypt:nop)|
+             |            |   \        / dest!=local ?
+             |            |    `------'
+             v            v  dest==local ?
 
-b) A DNAT type target using the information recorded by the "remember me" 
-target to have incoming sesions forwarded to the selected "loose" 
-forwarding station..
+(excellent ascii-art stolen from willy tarreau in
+http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014464.html
+in a discussion about patrick's new netfilter/ipsec patches)
 
-You only need full blown helpers if you want to support multiple clients 
-on the inside of your gateway at the same time.
+because for those of us that need to begin to migrate to 2.6 and that have
+very complex traffic control done with mangle/fwmark, it's important to know
+where ipsec packets will be seen twice (encrypted/de-encrypted). (and where
+they won't be seen, eg. encrypted ESP/AH pkts in OUTPUT/filter ?) 
 
-Regards
-Henrik
+
+2- does the ipsec policy match by patrick McHardy is considered as the
+"standard" way of matching de-encrypted packets ? (eg. compared to the earlier
+fwmark hack), or are there other ways ?
+
+
+...or do some netfilter core developers have other design ideas ? (i'm talking
+only of the packet flow here; not the internals/implementation)
+
+
+
+question for patrick: does the last patch in pom-ng change the design above ?
+("The input patch is replaced with a new version which...")
+(http://lists.netfilter.org/pipermail/netfilter-devel/2004-April/014977.html) 
+
+another thing (sorry for the lengthy post), can someone put patrick's xfig pic
+somewhere (or send it to me); i don't manage to "unbase64" it.
+(http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014469.html)
+
+
+oh, and btw let me know if i can help with testing - i have a full 2.6 network
+testbed here ...
+
+thanks !
+
+ivan
