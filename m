@@ -1,15 +1,13 @@
-From: "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
-Subject: [PATCH] Re: RV: Problems installing Netfilter extensions
-Date: 20 Jun 2003 11:36:32 +0200
+From: Patrick McHardy <kaber@stinky.trash.net>
+Subject: [PATCH]: fix potential use after free in destroy_conntrack
+Date: Fri, 20 Jun 2003 12:44:14 +0200 (MEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1056101793.633.15.camel@exile>
-References: <000901c336e7$bb9b5390$0300000a@juan>
+Message-ID: <Pine.GSO.4.42.0306201236020.20652-200000@stinky.trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-Mz4opHtNIWjgyC6y9Vr8"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-851401618-1056105854=:20652"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Juan Torres <islero77@telefonica.net>
-In-Reply-To: <000901c336e7$bb9b5390$0300000a@juan>
+To: harald.welte@gnumonks.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,100 +18,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
---=-Mz4opHtNIWjgyC6y9Vr8
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+---559023410-851401618-1056105854=:20652
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-On Fri, 2003-06-20 at 06:52, Juan Torres wrote:
+Hi Harald,
+i missed this in my last patch (remove ct->master double check),
+the reference to the master conntrack should not be dropped
+until the expectation has deleted itself from the list.
+This makes the last patch obsolete.
 
-> 			# make all install
-> 
-> 	This last step doesn't work!! When I execute this command in the
-> userspace/ subdirectory inside the patch-o-matic directory, It appears
-> an error saying that It can't find the "all" option (or something
-> similar), I have proved to do "make all" and "make install", but it
-> doesn't work anyway
-> 
-> 
-> 	What I'm not doing properly??
-> 
-Hi Juan,
+Best regards,
+Patrick
 
-There appears to be an error in the Netfilter extensions HOWTO.
-As you can see from the INSTALL file in the userspace directory,
-there is no "make all", only a "make" to build the binaries.
+---559023410-851401618-1056105854=:20652
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="ip_conntrack-destroy.diff"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.GSO.4.42.0306201244140.20652@stinky.trash.net>
+Content-Description: 
+Content-Disposition: attachment; filename="ip_conntrack-destroy.diff"
 
-I think the patch below updates the documentation to reflect
-this. Thanks for pointing this out.
-
-Regards,
-Filip
-
---=-Mz4opHtNIWjgyC6y9Vr8
-Content-Disposition: attachment; filename=docufix.diff
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/x-patch; name=docufix.diff; charset=ANSI_X3.4-1968
-
-diff -urN netfilter/documentation/HOWTO/de/netfilter-extensions-HOWTO.sgml =
-netfilter-docfix/documentation/HOWTO/de/netfilter-extensions-HOWTO.sgml
---- netfilter/documentation/HOWTO/de/netfilter-extensions-HOWTO.sgml	2002-1=
-0-22 12:15:19.000000000 +0200
-+++ netfilter-docfix/documentation/HOWTO/de/netfilter-extensions-HOWTO.sgml=
-	2003-06-20 11:28:41.000000000 +0200
-@@ -181,7 +181,7 @@
-=20
- <tscreen>
- <verb>
--# make all install
-+# make; make install
- </verb>
- </tscreen>
-=20
-diff -urN netfilter/documentation/HOWTO/fr/netfilter-extensions-HOWTO.sgml =
-netfilter-docfix/documentation/HOWTO/fr/netfilter-extensions-HOWTO.sgml
---- netfilter/documentation/HOWTO/fr/netfilter-extensions-HOWTO.sgml	2003-0=
-3-10 01:16:56.000000000 +0100
-+++ netfilter-docfix/documentation/HOWTO/fr/netfilter-extensions-HOWTO.sgml=
-	2003-06-20 11:29:25.000000000 +0200
-@@ -242,7 +242,7 @@
-=20
- <tscreen>
- <verb>
--# make all install
-+# make; make install
- </verb>
- </tscreen>
-=20
-diff -urN netfilter/documentation/HOWTO/netfilter-extensions-HOWTO.sgml net=
-filter-docfix/documentation/HOWTO/netfilter-extensions-HOWTO.sgml
---- netfilter/documentation/HOWTO/netfilter-extensions-HOWTO.sgml	2003-06-0=
-1 12:01:32.000000000 +0200
-+++ netfilter-docfix/documentation/HOWTO/netfilter-extensions-HOWTO.sgml	20=
-03-06-20 11:27:35.000000000 +0200
-@@ -235,7 +235,7 @@
-=20
- <tscreen>
- <verb>
--# make all install
-+# make; make install
- </verb>
- </tscreen>
-=20
-diff -urN netfilter/documentation/HOWTO/pl/netfilter-extensions-HOWTO.sgml =
-netfilter-docfix/documentation/HOWTO/pl/netfilter-extensions-HOWTO.sgml
---- netfilter/documentation/HOWTO/pl/netfilter-extensions-HOWTO.sgml	2002-0=
-2-09 10:47:39.000000000 +0100
-+++ netfilter-docfix/documentation/HOWTO/pl/netfilter-extensions-HOWTO.sgml=
-	2003-06-20 11:30:21.000000000 +0200
-@@ -178,7 +178,7 @@
-=20=0D
- <tscreen>=0D
- <verb>=0D
--# make all install=0D
-+# make; make install=0D
- </verb>=0D
- </tscreen>=0D
-=20=0D
-
---=-Mz4opHtNIWjgyC6y9Vr8--
+PT09PT0gbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3JlLmMg
+MS4yMSB2cyBlZGl0ZWQgPT09PT0NCi0tLSAxLjIxL25ldC9pcHY0L25ldGZp
+bHRlci9pcF9jb25udHJhY2tfY29yZS5jCUZyaSBKdW4gMjAgMDU6Mzc6NTYg
+MjAwMw0KKysrIGVkaXRlZC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRy
+YWNrX2NvcmUuYwlGcmkgSnVuIDIwIDEyOjMzOjIzIDIwMDMNCkBAIC0zMTMs
+OSArMzEzLDYgQEANCiAJSVBfTkZfQVNTRVJUKGF0b21pY19yZWFkKCZuZmN0
+LT51c2UpID09IDApOw0KIAlJUF9ORl9BU1NFUlQoIXRpbWVyX3BlbmRpbmco
+JmN0LT50aW1lb3V0KSk7DQogDQotCWlmIChjdC0+bWFzdGVyICYmIG1hc3Rl
+cl9jdChjdCkpDQotCQlpcF9jb25udHJhY2tfcHV0KG1hc3Rlcl9jdChjdCkp
+Ow0KLQ0KIAkvKiBUbyBtYWtlIHN1cmUgd2UgZG9uJ3QgZ2V0IGFueSB3ZWly
+ZCBsb2NraW5nIGlzc3VlcyBoZXJlOg0KIAkgKiBkZXN0cm95X2Nvbm50cmFj
+aygpIE1VU1QgTk9UIGJlIGNhbGxlZCB3aXRoIGEgd3JpdGUgbG9jaw0KIAkg
+KiB0byBpcF9jb25udHJhY2tfbG9jayEhISAtSFcgKi8NCkBAIC0zMzIsOSAr
+MzI5LDEyIEBADQogDQogCS8qIERlbGV0ZSBvdXIgbWFzdGVyIGV4cGVjdGF0
+aW9uICovDQogCWlmIChjdC0+bWFzdGVyKSB7DQotCQkvKiBjYW4ndCBjYWxs
+IF9fdW5leHBlY3RfcmVsYXRlZCBoZXJlLA0KLQkJICogc2luY2UgaXQgd291
+bGQgc2NyZXcgdXAgZXhwZWN0X2xpc3QgKi8NCi0JCWxpc3RfZGVsKCZjdC0+
+bWFzdGVyLT5leHBlY3RlZF9saXN0KTsNCisJCWlmIChjdC0+bWFzdGVyLT5l
+eHBlY3RhbnQpIHsNCisJCQkvKiBjYW4ndCBjYWxsIF9fdW5leHBlY3RfcmVs
+YXRlZCBoZXJlLA0KKwkJCSAqIHNpbmNlIGl0IHdvdWxkIHNjcmV3IHVwIGV4
+cGVjdF9saXN0ICovDQorCQkJbGlzdF9kZWwoJmN0LT5tYXN0ZXItPmV4cGVj
+dGVkX2xpc3QpOw0KKwkJCWlwX2Nvbm50cmFja19wdXQoY3QtPm1hc3Rlci0+
+ZXhwZWN0YW50KTsNCisJCX0NCiAJCWtmcmVlKGN0LT5tYXN0ZXIpOw0KIAl9
+DQogCVdSSVRFX1VOTE9DSygmaXBfY29ubnRyYWNrX2xvY2spOw0K
+---559023410-851401618-1056105854=:20652--
