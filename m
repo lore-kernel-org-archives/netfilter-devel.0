@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ctnetlink delete conntrack performance
-Date: Tue, 15 Mar 2005 19:57:47 +0100
-Message-ID: <4237302B.5040606@trash.net>
-References: <422C3A1B.5080604@ingate.com> <422C5370.9050204@trash.net>
-	<42372984.9090807@ingate.com>
+Subject: Re: [17/*] [NET] Replace dst_pmtu with dst_mtu
+Date: Tue, 15 Mar 2005 20:02:26 +0100
+Message-ID: <42373142.6090902@trash.net>
+References: <20050214221433.GB18465@gondor.apana.org.au>	<20050214221607.GC18465@gondor.apana.org.au>	<20050306213214.7d8a143d.davem@davemloft.net>	<20050307103536.GB7137@gondor.apana.org.au>	<20050308102741.GA23468@gondor.apana.org.au>	<20050314102614.GA9610@gondor.apana.org.au>	<20050314105313.GA21001@gondor.apana.org.au>	<20050314111002.GA29156@gondor.apana.org.au>	<20050315091904.GA6256@gondor.apana.org.au>	<20050315095837.GA7130@gondor.apana.org.au>	<20050315100522.GA7275@gondor.apana.org.au>
+	<20050315102450.0f3f1618.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, KOVACS Krisztian <hidden@balabit.hu>
-To: Marcus Sundberg <marcus@ingate.com>
-In-Reply-To: <42372984.9090807@ingate.com>
+Cc: kuznet@ms2.inr.ac.ru,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Herbert Xu <herbert@gondor.apana.org.au>, netdev@oss.sgi.com
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20050315102450.0f3f1618.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,35 +23,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marcus Sundberg wrote:
-> Patrick McHardy wrote:
->>
->> You can't drop the reference before calling the timeout function.
+David S. Miller wrote:
+> On Tue, 15 Mar 2005 21:05:22 +1100
+> Herbert Xu <herbert@gondor.apana.org.au> wrote:
 > 
-> Makes sense ofcourse, so just reversing the calls should be fine?
-
-Yes.
-
->> BTW: There is no ip_ct_death_by_timeout() AFAICT. Can you send a
->> new patch ?
+>>At this point the only remaining user of dst_pmtu is ipt_REJECT which
+>>will go away either when we use icmp_send in there or when I replace
+>>it with dst_mtu.
 > 
-> Sure, what is the prefered form? There are currently two versions of the
-> original patch in netfilter SVN: 
-> netfilter-ha/patches/nfnetlink-ctnetlink.patch
-> and patch-o-matic-ng/nfnetlink-ctnetlink-0.13. Do you prefer a patch 
-> against
-> any of the patches, a patch replacing any of them, or a patch against the
-> patched code? :-)
+> 
+> Yes, I saw that posting on netfilter-devel where you asked Rusty
+> why icmp_send() wasn't directly used even though it appears it
+> should be.
 
-I prefer a patch against patch-o-matic, changing just this part.
-Not sure if it is also needed for the netfilter-ha patch, Krisztian ?
-
-> Also, is there anyone else working on ctnetlink currently, or planning
-> to work on it? Is the goal to get it into the standard kernel, and if
-> so what must be done before that?
-
-No, we won't try to get it into the kernel. If someone ports it over
-to nf_conntrack we will think about it.
+I would prefer to keep it seperately. I have planned to remove xrlim
+from ipt_REJECT so it behaves similar for TCP and ICMP. Limits should
+then be handled by the limit match. This can't be done if we switch to
+icmp_send().
 
 Regards
 Patrick
