@@ -1,12 +1,17 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Rule optimization scheme openbsd-like
-Date: Mon, 13 Oct 2003 10:25:00 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: About tcp conntrack with UNREPLIED and ESTABLISHED
+Date: Mon, 13 Oct 2003 10:15:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0310131004000.17633@dns.toxicfilms.tv>
+Message-ID: <20031013081529.GC21521@sunbeam.de.gnumonks.org>
+References: <E1A8sgG-0005by-HU@kashyyyk.netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0lnxQi9hkpPO77W3"
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: qianunix <qianunix@126.com>
+Content-Disposition: inline
+In-Reply-To: <E1A8sgG-0005by-HU@kashyyyk.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,57 +22,57 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-someone on LKML writing in 'thoughts for 2.7' about netfilter development,
-handed me a fistful of links related to openbsd's pf.
+--0lnxQi9hkpPO77W3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Out of them I only read one document so far:
-http://www.benzedrine.cx/pf-paper.html
+On Mon, Oct 13, 2003 at 10:45:20AM +0800, qianunix wrote:
+> When I was using netfilter,rebooted system,then I found a conntrack:
 
-This document explains some pf's features, one of them is:
+_please_ always tell us which particular kernel version you are running,
+and which patches from patch-o-matic you might have applied to that
+kernel.
 
-[... exerpt from the document ...]
+> tcp      6 430290 ESTABLISHED src=3D61.172.241.50 dst=3D1.2.3.4 sport=3D2=
+1 dport=3D1055 [UNREPLIED] src=3D1.2.3.4 dst=3D61.172.241.50 sport=3D1055 d=
+port=3D21 use=3D1
+>=20
+> the srp 1.2.3.4 is my firewall, and my doubt is that why the sport is 21?=
+=20
 
-2.8. Transparent rule set evaluation optimization
+because somebody seems to have opened a connection from that source.
+You can verify this by running netstat.  It could also be a spoofed
+connection, since it is yet unreplied and we don't know if your iptables
+filtering ruleset has any anti-spoofing rules in place.
 
-pf automatically optimizes the evaluation of the rule set. If a group of
-consecutive rules all contain the same parameter, e.g., ``source address
-equals 10.1.2.3,'' and a packet does not match this parameter when the
-first rule of the group is evaluated, the whole group of rules is skipped,
-as the packet can not possibly match any of the rules in the group.
+> I think 21 must be a dport, and that UNREPLIED and ESTABLISHED is
+> here, it is impossible, so I think the tcp conntrack with UNREPLIED is
+> invalid,don't you think so?  please help me,thanks.
+=20
+Yes.  This seems like either a 2.4.10 or a 2.4.20 kernel to me?
 
-[... exerpt from the document ...]
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-This feature would be really nice to have in Netfilter, any ruleset would
-benefit from this without loss of performance against normal rule-by-rule
-evaluation.
+--0lnxQi9hkpPO77W3
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-What do you think? Is anyone working on this
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-Also, I noticed that personally I am actually using an optimization like
-this just by using a good ruleset. Consider a ruleset that would be
-designed like so:
+iD8DBQE/il8hXaXGVTD0i/8RAqaDAJ9XqOs+FXWYZDxuZCPbRbW38BjyRwCeJb7k
+VpYg9RJd0HeuIb8m1rj67D4=
+=l/S+
+-----END PGP SIGNATURE-----
 
-iptables -N tcpcheck
-iptables -A tcpcheck -p tcp --syn --dport 80 -j ACCEPT
-...
-iptables -A tcpcheck -j REJECT
-
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-iptables -A INPUT -p tcp -j tcpcheck
-iptables -A INPUT -p icmp -j icmpcheck
-iptables -A INPUT -p udp -j udpcheck
-iptables -A INPUT -j LOG
-
-This ruleset actually works similarily to 'skip-steps' mentioned in
-the document thanks to the -p tcp -j tcpcheck rules. This sorts the rules
-evalution into groups, and skips the rules that would not be matched for
-sure. The parameter used is the protocol type.
-
-It might be a good rule writing technique to add to the HOWTO or to write
-a HOWTO on rule writing technique.
-
-
-Regards,
-Maciej
+--0lnxQi9hkpPO77W3--
