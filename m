@@ -1,10 +1,10 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: expect.timeout ... when?
-Date: Mon, 18 Aug 2003 21:30:32 +1000
+From: Eric Leblond <eric@regit.org>
+Subject: libipq and timestamp
+Date: 18 Aug 2003 15:36:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200308181130.h7IBUYo04085@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
+Message-ID: <1061213776.21582.9.camel@tech004.alphalink.fr>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-M5TYBvK0BZ+ohDdr9TYW"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,56 +17,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Howdy,
 
-  If a conntracker does not set the expect.timeout value, when
-does an expectation expire?  To put it another way, when does
-the expect memory get freed?
+--=-M5TYBvK0BZ+ohDdr9TYW
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-  Last Friday,  I left an experimental module running in my dev
-box's kernel for the weekend ... the module was dodgy .. didn't do
-proper checking on the expect master connection.  The dev box
-didnt have any netfilter rules and only stock-kernel in-built netfilter
-modules (for 2.4.21) other than my dodgy-mod.
+Hi,
 
-  By the following monday morning morning, my dodgy-mod had
-accepted so many new masters and set up so many new
-expectations that I, as a single user running vi over an ssh
-session, saw each key-stroke swapped out to disk -- all the
-system memory was waaaaaay gone.
+I did not manage to get the timestamp of a packet in the message given
+by libipq. It is just 0.
+Is there something to do to have it fill in ?
 
-  Doing an 'rmmod' on my dodgy-mod freed all of the missing
-memory.  The module's big fault was that it set up an expect for
-just about anything that hit it ... but of course, none of the
-expectations were ever confirmed.  The module had no .timeout
-set, and no .max_expected set.
+Thanks in advance,
+--=20
+Eric Leblond <eric@regit.org>
+GnuFw : http://www.gnufw.org
 
-  Soooo, looking at modules such as the ftp conntracker where
-the timeout is not set ... but max_expected is set ( == 1) .. then
-is there a DoS condition that can be setup by causing  a single
-unmatched ftp session?
+--=-M5TYBvK0BZ+ohDdr9TYW
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-  Just doing a quick sanity check on my thinking here ... [single
-user server systems running out of memory in 60 hours, keeps
-me awake at night; makes one appreciate the value of poorly
-spec'd boxen tho].
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-Ta,
+iD8DBQA/QNZQnxA7CdMWjzIRAvniAJ9mXgB1Sy0IQoW7uGrNDPnp6z9rMACeMg0w
+kDSIIgbTEAQgNX9xaQ3qjiU=
+=xqyW
+-----END PGP SIGNATURE-----
 
-
-
-BTW, how's the netfilter.org web hit count going since you guys
-started going with the "raunchy programmer" campaign? ;-)   
-
-     http://gnumonks.org/static/photos/laforge-lsm-kilt.jpg
-
-
-Cute skirt LaForge ;-))
-
-
-
-
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
+--=-M5TYBvK0BZ+ohDdr9TYW--
