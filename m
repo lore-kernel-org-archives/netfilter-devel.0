@@ -1,10 +1,16 @@
-From: "Stephan Jager" <netfilter@medz.org>
-Subject: re: nat and conntrack helper howto question
-Date: Sat, 02 Aug 2003 22:21:38 +0200
+From: Peteris Krumins <newsgroups@lf.lv>
+Subject: Re[2]: ip_queue, is this safe:
+Date: Sun, 3 Aug 2003 00:33:58 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200308022021.h72KLcVi000813@alpha.medz.org>
+Message-ID: <8229894986.20030803003358@lf.lv>
+References: <Mutt.LNX.4.44.0308020114120.29556-100000@excalibur.intercode.com.au>
+Reply-To: Peteris Krumins <newsgroups@lf.lv>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Mutt.LNX.4.44.0308020114120.29556-100000@excalibur.intercode.com.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -15,62 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Friday, August 1, 2003, 6:25:18 PM, you wrote:
 
-I'd made a simple wrapper for my h225ras patch, but somehow something is 
-going wrong. When insmodding the module, it does get the init, but when 
-sending packages to the 1719/udp port, the helper function is not 
-kicking in. Did I make some obvious bug? I looked at cuseeme and 
-snmp_basic nat's, which are both doing the same it seems but could not 
-find the difference.
+JM> On Fri, 1 Aug 2003, Peteris Krumins wrote:
 
-Stephan
+>>   i am doubting:
+>>   tcp = (struct tcphdr *)(packet->payload + ip->ihl*4);
 
-My code:
+JM> To start with, this pointer arithmetic is incorrect, you need something 
+JM> like:
+
+JM>         tcph = (void *) iph + iph->ihl * 4;
+
+>> 
+>>   because ip->ihl could be faked, couldnt it? The packet would get queued
+>>   and if ip->ihl is something faked, using the tcp pointer i'd get a
+>>   segfault, wouldn't i?
+
+JM> The kernel drops received packets with a too-large ihl before the
+JM> prerouting hook.  For locally generated packets of this type (e.g. root is
+JM> playing games with raw sockets), iptables 'accepts' them without 
+JM> traversing any more rules on the chain -- they won't make it to the 
+JM> QUEUE target.
+
+JM> You will however need to validate any transport+ header lengths against 
+JM> the length of the packet.
 
 
-#include <linux/module.h>
-#include <linux/netfilter.h>
-#include <linux/netfilter_ipv4.h>
-#include <linux/netfilter_ipv4/ip_nat.h>
-#include <linux/netfilter_ipv4/ip_nat_helper.h>
-#include <net/udp.h>
+Thanks for the answer!
 
-#define H225RAS_PORT 1719
 
-static unsigned int nat_help(struct ip_conntrack *ct,
-                             struct ip_conntrack_expect *exp,
-                             struct ip_nat_info *info,
-                             enum ip_conntrack_info ctinfo,
-                             unsigned int hooknum,
-                             struct sk_buff **pskb)
-{
-        printk("nat help for h225ras entered"); // but this is not happening
-        return NF_ACCEPT;
-}
-
-static struct ip_nat_helper h225ras = { 
-        { NULL, NULL },
-        "h225ras",
-        IP_NAT_HELPER_F_STANDALONE,
-        THIS_MODULE,
-        { { 0, { __constant_htons(H225RAS_PORT) } },
-          { 0, { 0 }, IPPROTO_UDP } },
-        { { 0, { 0xFFFF } },
-          { 0, { 0 }, 0xFFFF } },
-        nat_help, NULL };
-
-static int __init init(void)
-{
-        printk("H225ras: init\n");
-        return ip_nat_helper_register(&h225ras);
-}
-
-static void __exit fini(void)
-{
-        ip_nat_helper_unregister(&h225ras);
-}
-
-module_init(init);
-module_exit(fini);
-MODULE_LICENSE("GPL");
+P.Krumins
