@@ -1,17 +1,13 @@
-From: "Alexandre Carlos" <alexandre@redes.unb.br>
-Subject: IPTABLES problem
-Date: Mon, 18 Nov 2002 13:16:46 -0300
+From: Jan Holmberg <jan@artech.net>
+Subject: Fix ipt_TCPMSS.c for kernel 2.5.47
+Date: Wed, 13 Nov 2002 17:58:17 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <039c01c28f1d$e6ad3610$1543a8c0@sanches>
+Message-ID: <3DD284A9.EA60D065@artech.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: <Regina.Tsujiguchi@stj.gov.br>,
-   "Pim Van Heuven" <pim.vanheuven@intec2.rug.ac.be>,
-   "RSVP" <ds_mpls@atlantis.rug.ac.be>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,34 +18,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-My experimental backbone is the following:
+Hi all,
 
-                                         B
-                                    3.4/|\2.4
-                                       /5.4\
-                                      /   |    \
-   (A1)                     1.3/     |     \2.2
-10.1.1.2--10.1.1.1 -- A     |      C----192.168.67.91---192.168.67.90 (C1=
-)
-                                1.1\    |     /4.2
-                                      \   |    /
-                                       \5.3/
-                                    1.3\|/4.3
-                                         D
 
-I=B4m using IPTABLES version 1.2.4-dscp do set up the tos value of the
-packets. I=B4m creating the following rule on A and C
+Minor fix for ipt_TCPMSS.c since pmtu don't exsist anymore...
 
-iptables -A PREROUTING -t mangle -p icmp -j FTOS --set-ftos 0x28 or
-iptables -A FORWARD -t mangle -p icmp -j FTOS --set-ftos 0x28
 
-But when i try do ping from A1 to C1 or from C1 to A1
+*** linux-2.5.47-org/net/ipv4/netfilter/ipt_TCPMSS.c Thu Nov 14 01:24:42
+2002
+--- linux-2.5.47/net/ipv4/netfilter/ipt_TCPMSS.c Mon Nov 11 04:28:16
+2002
+***************
+*** 92,98 ****
+     return NF_DROP; /* or IPT_CONTINUE ?? */
+    }
 
-The chechshum of the ip on the reply message is incorrect, so the packet =
-is
-droped on (B) or (D)
+!   newmss = dst_pmtu((*pskb)->dst->pmtu) - sizeof(struct iphdr) -
+sizeof(struct tcphdr);
+   } else
+    newmss = tcpmssinfo->mss;
 
-I would like to know, how can i avoid dropping the packet and still using
-the same version of iptables and rules
+--- 92,98 ----
+     return NF_DROP; /* or IPT_CONTINUE ?? */
+    }
 
-Alex
+!   newmss = dst_pmtu((*pskb)->dst) - sizeof(struct iphdr) -
+sizeof(struct tcphdr);
+   } else
+    newmss = tcpmssinfo->mss;
+
+regards
+
+Jan Holmberg, sysadm artech
