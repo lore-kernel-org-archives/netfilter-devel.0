@@ -1,19 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and
- optimization
-Date: Fri, 25 Jun 2004 12:01:37 +0200 (CEST)
+From: Eicke Friedrich <tady@gmx.net>
+Subject: pom-ng include question
+Date: Fri, 25 Jun 2004 12:27:31 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406251133230.11001-100000@blackhole.kfki.hu>
-References: <200406250457.NAA07080@toshiba.co.jp>
+Message-ID: <40DBFE13.6080700@gmx.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	<netfilter-devel@lists.netfilter.org>,
-	Harald Welte <laforge@netfilter.org>, <kisza@securityaudit.hu>,
-	<usagi-core@linux-ipv6.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200406250457.NAA07080@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,48 +18,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Dear list,
 
-On Fri, 25 Jun 2004, Yasuyuki Kozakai wrote:
+I've developed an iptables/netfilter extension to detect P2P traffic
+called IPP2P.  It can be used to prohibit P2P traffic (by dropping
+matches) or combined with connection tracking, CONNMARK and a packet
+scheduler for traffic shaping of P2P traffic. I did a lot of testing
+and also got much positive feedback of users. So it can be considered
+as stable. The official homepage is located at:
+http://rnvs.informatik.uni-leipzig.de/ipp2p/index_en.html
 
-> > >Sorry, I misstook. But why nf_hook_slow() ? I think users expect that
-> > >skb is not linearized if ip_tables.ko is not loaded.
-> > >Then how about ipt_do_table() or hooks in iptable_filter.c ?
-> > >
-> > It would be nice if the skb_copy_bits calls in conntrack and nat copying
-> > only the transport protocol headers could be removed as well. We could
-> > register for the PREROUTING hook with highest priority and linearize the
-> > headers when a global flag is set. ip_conntrack and ip_tables would both
-> > set this flag.
->
-> flag is good idea. But in the case of IPv6, the fact remains that
-> skipping IPv6 ext headers are needed to find transport protocol.
+As an example for traffic shaping look at the following picture. I
+used an eDonkey client and gave it as much upload bandwidth as
+possible. After a while I used IPP2P on a bridge for traffic shaping
+to 2MBits/sec without changing the client setting. The result looked
+like this:
+http://rnvs.informatik.uni-leipzig.de/ipp2p/delay/color_tp_60e_5p_p2p_src-1.png
 
-- conntrack requires linearized protocol headers
-	- with the TCP window tracking code it means the complete
-	  TCP header, including the options due to the SACK support
-- nat requires writable protocol headers, including the TCP options
-  due to the SACK support
-- raw/filter tables require linearized protocol headers in general (we can
-  safely assume port matching rules :-)
-- mark table requires writable protocol headers if we mangle the packet
-  headers
-
-So I think when any component of netfilter is enabled, we can assume that
-at least linearized protocol headers are required. Therefore I suggested
-to add such a function to nf_hook_slow.
-
-We cannot add (back) a general skb_linearize: that was a constant complain
-against netfilter from performance reason and was therefore removed.
-
-In order to spare skipping again and again the extension headers in IPv6,
-wouldn't it make sense to add a new argument to the hook functions which
-argument would point then to the protocol header?
+So if you believe there could be a benefit of such an extension I'll
+create a patch for pom-ng.
 
 Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Eicke.
