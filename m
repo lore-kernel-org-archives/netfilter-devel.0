@@ -1,16 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: it is possible to use inet_addr
-Date: Tue, 03 Aug 2004 09:09:42 +0200
+From: Dung Nguyen Anh <dnguyenanh@yahoo.com>
+Subject: how to handle both ipv4 and ipv6 in libipq
+Date: Tue, 3 Aug 2004 00:42:47 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <410F3A36.1060906@eurodev.net>
-References: <000a01c4791a$fe672660$a06464c0@kesineni>
+Message-ID: <20040803074247.93560.qmail@web41507.mail.yahoo.com>
+References: <20040803070402.31635.3641.Mailman@vishnu.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: kesineni sai pratap <kesineni@woojininc.net>
-In-Reply-To: <000a01c4791a$fe672660$a06464c0@kesineni>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040803070402.31635.3641.Mailman@vishnu.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,26 +19,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Dear all,
 
-This question is not netfilter related at all, maybe linux-net is a 
-better place, anyway...
+I want use lipipq to capture ipv4 and ipv6 packets by
+libipq, but the libipq is only support one.
+So I modify the following:
+- add 2 fd sockets in ipq_handle to support ipv4
+(NETLINK_FIREWALL) and ipv6 (NETLINK_IP6_FW)
+- In ipq_create_handle(), create both 2 sockets and
+binding them.
+- in ipq_netlink_recvfrom() select on 2 fds, if have
+packet comming, then process at proper file
+descriptor. the current fd will be keep in structure
+to support for ipq_set_verdict()
 
-kesineni sai pratap wrote:
+I write the program to capture and display info of
+packets receiving, it run ok both ipv4/ipv6 packets.
 
-> Hello,
->  
->           Iam changing  netif_receive_skb () function in  in 
-> /usr/src/linux/net/core/dev.c.i  unable  to use inet_addr function in 
-> netif_receive_skb function.
+But, in some cases, I want when to get a ipv4 packet I
+need reinject a ipv6 packet (instead of ipv4 packet).
+If I use verdict to put ipv6 packet to kernel at ipv4
+queue, then it is not go through more, may it is drop
+because in-proper queue
+
+I am newbie for make target in netfilter, so I woud
+like to know how-to reinject a ipv6 to queue6 when I
+am standing ipv4 queue?
+or what's mechanism in netfilter can help me to do
+following:
+- capture all ipv4/ipv6
+- reinject any type of packet (ipv6/ipv4)
+
+I appreciate your help.
 
 
-because that function doesn't exist in kernel space. The kernel is 
-written in C but it doesn't implement all the standard C functions 
-available in user space.
 
-If you do want to use something that function, you should implement by 
-yourself or steal it from elsewhere.
 
-regards,
-Pablo
+		
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail - You care about security. So do we.
+http://promotions.yahoo.com/new_mail
