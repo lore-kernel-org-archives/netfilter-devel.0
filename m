@@ -1,15 +1,17 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH] ip_nat_ftp doesn't register any ports by default.
-Date: Thu, 16 Sep 2004 08:07:06 +1000
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: per-cpu table information
+Date: Thu, 16 Sep 2004 00:36:02 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1095286006.1940.5.camel@bach>
+Message-ID: <20040915223602.GF2678@sunbeam.de.gnumonks.org>
+References: <41402D9E.5050906@rediffmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-        lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CXFpZVxO6m2Ol4tQ"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Linus Torvalds <torvalds@osdl.org>
+To: Swapnil Nagle <swapsn@rediffmail.com>
+Content-Disposition: inline
+In-Reply-To: <41402D9E.5050906@rediffmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,27 +22,47 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Linus, please apply ASAP.  This would be embarrassing: ip_nat_ftp broke
-in recent conversion to module_param_array().
 
-Name: Fix ip_nat_ftp registration when no ports= arg
-Status: Trivial
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+--CXFpZVxO6m2Ol4tQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-FTP NAT module doesn't register anything with no args.  Oops.
+On Thu, Sep 09, 2004 at 03:47:02PM +0530, Swapnil Nagle wrote:
+>=20
+> Hi all,
+>=20
+> Why is the table information (ipt_table_info to be specific) duplicated=
+=20
+> for each CPU in ipt_table?
 
-diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .6124-linux-2.6.9-rc2-bk2/net/ipv4/netfilter/ip_nat_ftp.c .6124-linux-2.6.9-rc2-bk2.updated/net/ipv4/netfilter/ip_nat_ftp.c
---- .6124-linux-2.6.9-rc2-bk2/net/ipv4/netfilter/ip_nat_ftp.c	2004-09-16 00:17:16.000000000 +1000
-+++ .6124-linux-2.6.9-rc2-bk2.updated/net/ipv4/netfilter/ip_nat_ftp.c	2004-09-16 08:05:38.000000000 +1000
-@@ -297,7 +297,7 @@ static int __init init(void)
- 	char *tmpname;
- 
- 	if (ports_c == 0)
--		ports[ports_c] = FTP_PORT;
-+		ports[ports_c++] = FTP_PORT;
- 
- 	for (i = 0; i < ports_c; i++) {
- 		ftp[i].tuple.dst.protonum = IPPROTO_TCP;
+Because we don't need any locking and we don't have cache line ping-pong
+between the CPU's, if there is no shared data.
 
--- 
-Anyone who quotes me in their signature is an idiot -- Rusty Russell
+> Regards,
+> Swapnil.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--CXFpZVxO6m2Ol4tQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBSMPSXaXGVTD0i/8RAqpUAKCmvsUVlvQUd9I/YkknimnZ9OEZvgCffgG+
+Jmi9M0KX7XHltXRXaflLO9A=
+=65EE
+-----END PGP SIGNATURE-----
+
+--CXFpZVxO6m2Ol4tQ--
