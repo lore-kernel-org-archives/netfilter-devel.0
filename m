@@ -1,16 +1,16 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: Status of IPv6 conn-tracking in 2.4.x series ?
-Date: Thu, 13 Nov 2003 22:03:21 +0900 (JST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [jorge@dti2.net: Re: Fw: PROBLEM: PATCH for 2.4.23-pre4 and up
+ hang on one system]
+Date: Thu, 13 Nov 2003 15:46:35 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200311131303.WAA28664@toshiba.co.jp>
-References: <20031113010159.GD835@mea-ext.zmailer.org>
+Message-ID: <Pine.LNX.4.44.0311131544200.20048-100000@filer.marasystems.com>
+References: <20031112004700.69796de6.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: matti.aarnio@zmailer.org
-In-Reply-To: <20031113010159.GD835@mea-ext.zmailer.org>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20031112004700.69796de6.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,36 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 12 Nov 2003, David S. Miller wrote:
 
-Hi,
-
-From: Matti Aarnio <matti.aarnio@zmailer.org>
-Date: Thu, 13 Nov 2003 03:01:59 +0200
-
-> Dear Netfilter-devel,
+> On Wed, 12 Nov 2003 09:33:57 +0100
+> Harald Welte <laforge@gnumonks.org> wrote:
 > 
-> Could somebody tell to me, what is present status in IPv6
-> connection-tracking filters of netfilter codes ?  Having
-> browsed your CVS, there are some versions of such, and
-> tantalizing glimpses of somebody doing development in
-> some bitkeeper somewhere...
+> > Since there is now a second bug report on that 'fix', I think it's
+> > better to back it out for 2.4.23.  The code has been without that 'fix'
+> > for the whole 2.4.x time, and it didn't seem to cause any real problem.
+> > 
+> > So rather than fixing the theoretical case, I'd say we keep the code
+> > like before (please revert the below patch) and make user complaints go
+> > away.
+> > 
+> > We'll try to investigate this further, but not before 2.4.23.
 
-If you want to use ip6_conntrack ASAP, you can find the patch in archives
-of this list(24 Sep. 2003).
+It would probably be good to move the patch (74_nat-range-fix.patch) out
+from submitted to extra or pending to reflect the current status of this
+patch.
 
-Or in USAGI kernel, too. http://www.linux-ipv6.org/
-
-BTW, this patch works only with Linux 2.6. If you want to use it with
-Linux 2.4, some changes are needed. ex) replace synchronize_net() to
-br_write_{un}lock_bh(), fix the codes related to nf_reinject() in
-ip6_conntrack_reasm.c.
-
-----------------------------------------
-Yasuyuki KOZAKAI
-
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
-
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+Regards
+Henrik
