@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] remove exessive timer updates (3/4)
-Date: Tue, 11 Jun 2002 09:59:22 +0200
+Subject: Re: [Fwd: Bug fixed]
+Date: Tue, 11 Jun 2002 10:21:31 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020611095922.G11177@sunbeam.de.gnumonks.org>
-References: <1023365846.845.26.camel@tux>
+Message-ID: <20020611102131.I11177@sunbeam.de.gnumonks.org>
+References: <1023699042.19837.77.camel@tux>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fCcDWlUEdh43YKr8"
-Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
+	protocol="application/pgp-signature"; boundary="LYw3s/afESlflPpp"
+Cc: Netfilter-devel <netfilter-devel@lists.samba.org>,
+	zhongyu <zhongyu@ecfounder.com>
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: Martin Josefsson <gandalf@wlug.westbo.se>
 Content-Disposition: inline
-In-Reply-To: <1023365846.845.26.camel@tux>; from gandalf@wlug.westbo.se on Thu, Jun 06, 2002 at 02:24:04PM +0200
+In-Reply-To: <1023699042.19837.77.camel@tux>; from gandalf@wlug.westbo.se on Mon, Jun 10, 2002 at 10:50:42AM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,23 +24,24 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---fCcDWlUEdh43YKr8
+--LYw3s/afESlflPpp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 06, 2002 at 02:24:04PM +0200, Martin Josefsson wrote:
-> This patch adds a check to ip_ct_refresh() so it doesn't update the
-> timer of a connection unless it's been >HZ ticks since the last update.
-> both del_timer() and add_timer() disables interrupts while
-> removing/inserting the timer, no reason to do this for each packet.
+> From: zhongyu <zhongyu@ecfounder.com>
+> To: netfilter@lists.samba.org
+> Subject: Bug fixed
+> Date: 10 Jun 2002 16:23:34 +0800
+>=20
+> Fix iptable_nat's memory leak problem.
 
-ok.  I'm postponing this stuff for after 2.4.20 time, since for 2.4.19
-we already have enough netfilter [and core networking changes], and for 2.4=
-.20
-there will be the newnat merge.
+ouch. thanks. How can something as obvious as this bug survive for that=20
+long time?
 
-> /Martin
+I'll pass this on for kernel inclusion immediately.
+
+Could you tell us your real name for the scoreboard? thanks.
 
 --=20
 Live long and prosper
@@ -52,7 +54,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---fCcDWlUEdh43YKr8
+--LYw3s/afESlflPpp
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -60,9 +62,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9Ba3ZXaXGVTD0i/8RAtXgAKCaO1q6xex8wOu2f5Zia0yQpb0s7gCffdy1
-3qo8/q8Ap/54uFZB8dvXmrs=
-=I+qn
+iD8DBQE9BbMKXaXGVTD0i/8RAgXJAJsGfTOLzw5ctx5v3CR1DrUg1rexNQCdEAO8
++i0ZLBEUm+oNC/+HrYx2fDY=
+=asC1
 -----END PGP SIGNATURE-----
 
---fCcDWlUEdh43YKr8--
+--LYw3s/afESlflPpp--
