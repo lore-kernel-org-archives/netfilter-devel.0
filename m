@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: TTL patch buggy?
-Date: Tue, 6 Jan 2004 19:56:13 +0100
+Subject: Re: announce: HOWTO on Legato NetWorker firewall
+Date: Tue, 6 Jan 2004 19:58:07 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040106185613.GB934@obroa-skai.de.gnumonks.org>
-References: <1073055732.2995.4.camel@jasiiitosh.nexusmgmt.com>
+Message-ID: <20040106185807.GC934@obroa-skai.de.gnumonks.org>
+References: <20040103162422.A5224@D5E02895.kabel.telenet.be>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
+	protocol="application/pgp-signature"; boundary="VywGB/WGlW4DM4P8"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
+To: David Stes <stes@pandora.be>
 Content-Disposition: inline
-In-Reply-To: <1073055732.2995.4.camel@jasiiitosh.nexusmgmt.com>
+In-Reply-To: <20040103162422.A5224@D5E02895.kabel.telenet.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,28 +23,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---dTy3Mrz/UPE2dbVg
+--VywGB/WGlW4DM4P8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 02, 2004 at 10:02:13AM -0500, John A. Sullivan III wrote:
-> I noticed a recent post on the netfilter list about the TTL patch
-> being buggy. =20
+On Sat, Jan 03, 2004 at 04:24:22PM +0100, David Stes wrote:
+>=20
+> Hi,
+>=20
+> I'd like to announce a document (HOWTO) on setting up a stateful
+> connection tracking Linux iptables/netfilter firewall for Legato NetWorke=
+r.
+>=20
+> See:
+>=20
+> 	http://users.pandora.be/stes/nsrfw04.html
 
-Could you please point me to that posting (either message-id or a URL
-pointing to the archives?)
+thanks, i've added a link to the links section of our homepage.
 
-> We were planning to make extensive use of it in the ISCS
-> project.  I've not seen anything recent about such a bug in a google
-> search.  Is there currently a known problem with this patch? Thanks -
 
-I (the author) am not aware of any current problem.
-
-If there are bugs/problems, they should be submitted to
-bugzilla.netfilter.org
-
-> John
+> Regards,
+> David Stes
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -56,7 +56,7 @@ bugzilla.netfilter.org
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---dTy3Mrz/UPE2dbVg
+--VywGB/WGlW4DM4P8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -64,9 +64,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/+wTMXaXGVTD0i/8RAo1JAJ9k2yY7lwfDd3+gkWQNZSVAxDWOBgCdH1R+
-482m02F7m0DCspd5AeAviMs=
-=m9Bh
+iD8DBQE/+wU/XaXGVTD0i/8RAgPZAJ0fzb5JphKbHfIqysCrdKIiQzNC8ACfZglM
+N0PsQjnazcXO4asJNEhacyo=
+=e8kN
 -----END PGP SIGNATURE-----
 
---dTy3Mrz/UPE2dbVg--
+--VywGB/WGlW4DM4P8--
