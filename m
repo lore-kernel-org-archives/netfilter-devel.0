@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: can tcp stream reassembly be done in netfilter
-Date: Sat, 30 Aug 2003 21:06:14 +0200
+Subject: Re: memory leak problems
+Date: Sat, 30 Aug 2003 21:10:23 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030830190613.GF17715@sunbeam.de.gnumonks.org>
-References: <200308261011937.SM00856@zhengcb> <Pine.LNX.4.53.0308271030240.2748@oskar-lap.agatha>
+Message-ID: <20030830191023.GG17715@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0308270250100.12780-100000@mx.nextra.ro>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MvEh5MSbieV/1Yst"
-Cc: zhengchuanbo <zhengcb@netpower.com.cn>,
-	netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="8Bkcj4NmnZ79d4W7"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Oskar Andreasson <blueflux@koffein.net>
+To: Gergely Imre <gimre@nextra.ro>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.53.0308271030240.2748@oskar-lap.agatha>
+In-Reply-To: <Pine.LNX.4.44.0308270250100.12780-100000@mx.nextra.ro>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,30 +23,51 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---MvEh5MSbieV/1Yst
+--8Bkcj4NmnZ79d4W7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 27, 2003 at 10:35:10AM +0200, Oskar Andreasson wrote:
-> On Tue, 26 Aug 2003, zhengchuanbo wrote:
+On Wed, Aug 27, 2003 at 03:10:00AM +0300, Gergely Imre wrote:
 >=20
-> > 	Can netfilter do the tcp stream reassembly? I mean something like
-> > what snort do in the stream process. I wish this could be done in the
-> > kernel.
+> hi
 >=20
-> No, netfilter is a packet filter. It works on a per packet basis, below
-> the transport layer. Actually it does do some work on the transport layer,
-> but not much, and definitely not a lot of work on the application layers.
->=20
-> All of this comes down to one thing, netfilter simply doesnt care about
-> streams. That's when you should use snort or proxy solutions of one sort
-> or another.
+> i'm trying to write some traffic-meter program, using the routines from=
+=20
+> iptables 1.2.8. i have some problems. it looks like there is some memory=
+=20
+> leak. i've tried the following code:
 
-Thanks for this excellent reply. =20
+could you please try iptables version 1.38 from CVS?  There have been
+lots of fixes since 1.2.8 was released.  Please see
+http://cvs.netfilter.org/netfilter/userspace/libiptc/libiptc.c?rev=3D1.38
 
-I have to add that there is a project for linux kernel stream reassembly
-and pattern-matching:  libqsearch.  Try google :)
+Late versions might still be a bit instable, since I've reimplemented
+parts of libiptc.   So 1.38 should be the most stable and bugfree
+version available.
+
+> now, i looked in the code, and found that iptc_init, and iptc_firs_rule=
+=20
+> too, is doing some malloc. when/where will be that memory freed?=20
+> itc_first_rule is calling a subroutine named populate_cache that is doing=
+=20
+> some malloc.
+> where and how do i suppose to free up that memory after finished working=
+=20
+> with the handle, and i want a new snapshot of the rules? i was calling=20
+> iptc_init once every second on a fairly large chains (around 1000 rules),=
+=20
+> and after a minute or so, i saw that the program took more and more=20
+> memory from the system. what can i do? will this be fixed soon, or just=
+=20
+> i'm not using the code the right way?
+
+in that old code included in 1.2.8 indeed has memory leaks.  libiptc was
+_never meant_ to be used by something other than one-shot executables
+like iptables itself.  This is why the original authors chose not to
+care about memory usage.
+
+> thanks
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -59,16 +79,16 @@ and pattern-matching:  libqsearch.  Try google :)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---MvEh5MSbieV/1Yst
+--8Bkcj4NmnZ79d4W7
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/UPWlXaXGVTD0i/8RAvoPAKCNvzD4pLnyUcxL6y/08GU8cfvULQCfYPxF
-fhHZTP+r1gkBSaEv3iDodH8=
-=BQg0
+iD8DBQE/UPafXaXGVTD0i/8RAvrIAKCKQQsEwiU0trp8vlHKsPduTbxv2QCgqITl
+Up6UEZ2paGqGfAo0xngEDdc=
+=Ie6I
 -----END PGP SIGNATURE-----
 
---MvEh5MSbieV/1Yst--
+--8Bkcj4NmnZ79d4W7--
