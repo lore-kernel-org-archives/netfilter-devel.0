@@ -1,8 +1,8 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: PATCH: extra conntrack stats
-Date: Mon, 5 May 2003 11:24:32 +0200 (CEST)
+Date: Mon, 5 May 2003 14:38:15 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0305051119550.607-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.33.0305051435300.607-100000@blackhole.kfki.hu>
 References: <1051912724.3824.41.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
@@ -42,7 +42,10 @@ On 2 May 2003, Martin Josefsson wrote:
 > during a DDoS but deny all new inbound with as little overhead as
 > possible.
 
-I see. I'll try to add it without introducing a new NFC flag.
+Oh, there is no need for a flag: that was a bug in the NOTRACK target.
+It should have not marked packets belonging to existing connections.
+
+Thank you for spotting this.
 
 Best regards,
 Jozsef
