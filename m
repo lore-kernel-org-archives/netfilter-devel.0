@@ -1,7 +1,7 @@
 From: Borja Pacheco <bpacheco@acisa.es>
-Subject: Bug in math time?
-Date: Tue, 15 Mar 2005 16:07:09 +0100
-Message-ID: <1110899229.9798.18.camel@localhost>
+Subject: [Fwd: Bug in math time?]
+Date: Tue, 15 Mar 2005 16:12:44 +0100
+Message-ID: <1110899564.9801.22.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -17,6 +17,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Dear all,
+
+I've found my mistake... i should use datestop instead of timestop.
+I am so sorry... 
+
+--------- Mensaje reenviado --------
+De: Borja Pacheco <bpacheco@acisa.es>
+Para: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
+Asunto: Bug in math time?
+Fecha: Tue, 15 Mar 2005 16:07:09 +0100
 Dear all, 
 
 is this a bug into the syntax parser of the match module time?
