@@ -1,12 +1,12 @@
-From: Roberto Jung Drebes <drebes@inf.ufrgs.br>
-Subject: Simple sk_buff question
-Date: Mon, 29 Nov 2004 10:53:33 -0200
-Message-ID: <AD262F6C-4205-11D9-B8CC-000A957B2B6C@inf.ufrgs.br>
-Mime-Version: 1.0 (Apple Message framework v619)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Remove use of 'mangle' from DNAT/SNAT
+Date: Mon, 29 Nov 2004 17:51:53 -0800
+Message-ID: <20041130015153.GA3703@linuxace.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="RnlQjJ0d97Da+TV1"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,24 +18,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello there,
 
-I am working in a simple netfilter module, and in some situations it 
-has to duplicate received IP packets. It does this with something like:
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-clone_skb = skb_clone(skb, GFP_ATOMIC);
-ip_rcv(clone_skb, clone_skb->dev, NULL);
-return NF_ACCEPT;
+At least one user (via bugzilla) was confused by the use of the word
+mangle in the man entries for DNAT and SNAT.  Might as well clarify 
+it...trivial patch below.
 
-Should I call kfree_skb(clone_skb) after the ip_rcv(), or will the 
-cloned sk_buff be freed when it reaches upper level protocols?
+This closes bugzilla #261.
 
-Sorry if the question is really not netfilter specific, but it is 
-related to another question I will do next.
+Phil
 
-Thanks in advance,
 
--- 
-Roberto Jung Drebes <drebes@inf.ufrgs.br>
-Porto Alegre, RS - Brasil
-http://www.inf.ufrgs.br/~drebes/
+
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-clarifymangle
+
+diff -ru ipt-orig/extensions/libipt_DNAT.man ipt-new/extensions/libipt_DNAT.man
+--- ipt-orig/extensions/libipt_DNAT.man	2004-01-22 07:04:24.000000000 -0800
++++ ipt-new/extensions/libipt_DNAT.man	2004-11-29 17:43:24.793557534 -0800
+@@ -5,9 +5,9 @@
+ and
+ .B OUTPUT
+ chains, and user-defined chains which are only called from those
+-chains.  It specifies that the destination address of the packet
+-should be modified (and all future packets in this connection will
+-also be mangled), and rules should cease being examined.  It takes one
++chains.  It specifies that the destination address of this packet
++(and any future packets associated with this connection) should be
++modified, and rules should cease being examined.  It takes one
+ type of option:
+ .TP
+ .BR "--to-destination " "\fIipaddr\fP[-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
+diff -ru ipt-orig/extensions/libipt_SNAT.man ipt-new/extensions/libipt_SNAT.man
+--- ipt-orig/extensions/libipt_SNAT.man	2004-01-22 07:04:24.000000000 -0800
++++ ipt-new/extensions/libipt_SNAT.man	2004-11-29 17:47:58.291064181 -0800
+@@ -2,9 +2,9 @@
+ .B nat
+ table, in the
+ .B POSTROUTING
+-chain.  It specifies that the source address of the packet should be
+-modified (and all future packets in this connection will also be
+-mangled), and rules should cease being examined.  It takes one type
++chain.  It specifies that the source address of this packet (and any
++future packets associated with this connection) should be modified,
++and rules should cease being examined.  It takes one type
+ of option:
+ .TP
+ .BR "--to-source  " "\fIipaddr\fP[-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
+
+--RnlQjJ0d97Da+TV1--
