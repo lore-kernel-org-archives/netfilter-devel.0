@@ -1,10 +1,11 @@
 From: =?ISO-8859-1?Q?C=E9dric?= de Launois <delaunoi@info.ucl.ac.be>
-Subject: [PATCH] use of mangle table enforced for ROUTE target
-Date: 20 Sep 2002 14:41:21 +0200
+Subject: [PATCH] update for ROUTE target in Netfilter-Extension HOWTO
+	[ENG][FR]
+Date: 20 Sep 2002 15:19:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1032525681.3132.9.camel@descartes>
+Message-ID: <1032527991.15787.18.camel@descartes>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-8kONKAU4jjzureSOkEVw"
+Content-Type: multipart/mixed; boundary="=-kXS3HyfiNhDAfsSPa8KD"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,112 +19,151 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-8kONKAU4jjzureSOkEVw
+--=-kXS3HyfiNhDAfsSPa8KD
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+Fabrice,
 
-Here is a patch against the current CVS tree to enforce the use
-of the mangle table for the ROUTE target.
+Here are two patches to update the Netfilter-Extension HOWTO, concerning
+the ROUTE target.
 
-The mangle table is the natural place for this target.
-Since this target may crash the kernel if it is used inside
-the nat table (the interaction with nat is not well understood), I=20
-now force the use of the mangle table for the target.
+The first one [netfilter-extensions-HOWTO.sgml.PATCH] is against
+the english version of the sgml master.
+The second patch is against [netfilter-extensions-HOWTO.sgml.PATCH-FR]
+is against the french version.
 
-A patch against the Netfilter Extension HOWTO will soon follow to
-reflect this change.
-
-C=E9dric de Launois
+C=E9dric
 
 
-
---=-8kONKAU4jjzureSOkEVw
-Content-Disposition: attachment; filename=ROUTE.cvs.patch
+--=-kXS3HyfiNhDAfsSPa8KD
+Content-Disposition: attachment; filename=netfilter-extensions-HOWTO.sgml.PATCH
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/x-patch; charset=ISO-8859-15
+Content-Type: text/x-diff; charset=ISO-8859-15
 
-diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch netfilter/patch-o-=
-matic/extra/ROUTE.patch
---- netfilter.orig/patch-o-matic/extra/ROUTE.patch	Mon Jun 24 12:20:53 2002
-+++ netfilter/patch-o-matic/extra/ROUTE.patch	Fri Sep 20 14:39:16 2002
-@@ -21,16 +21,12 @@
- +#endif /*_IPT_ROUTE_H_target*/
- diff -Nru linux.orig/net/ipv4/netfilter/ipt_ROUTE.c linux/net/ipv4/netfilt=
-er/ipt_ROUTE.c
- --- linux.orig/net/ipv4/netfilter/ipt_ROUTE.c	Thu Jan  1 01:00:00 1970
--+++ linux/net/ipv4/netfilter/ipt_ROUTE.c	Thu Jun 20 14:22:59 2002
--@@ -0,0 +1,267 @@
-++++ linux/net/ipv4/netfilter/ipt_ROUTE.c	Fri Sep 20 14:23:26 2002
-+@@ -0,0 +1,269 @@
- +/*
--+ * This is a module which is used for directly resending a received packe=
-t to
-++ * This is a module which is used for directly sending a received packet =
-to
- + * an interface specified by the user.
--+ * This module is particularly useful when the destination IP address is =
-an
--+ * address owned by the router itself. Packets with such addresses are lo=
-cally
--+ * delivered by the kernel and cannot be forwarded using the standard rou=
-ting=20
--+ * mechanisms.
--+
-++ *
- + * Based on code from: ipt_MIRROR.c and various sources.
- + *
- + * Copyright (C) 2002 Cedric de Launois <delaunois@info.ucl.ac.be>
-@@ -252,6 +248,12 @@
- +				 unsigned int targinfosize,
- +				 unsigned int hook_mask)
- +{
-++	if (strcmp(tablename, "mangle") !=3D 0) {
-++		printk("ipt_ROUTE: bad table `%s', use the `mangle' table.\n",
-++		       tablename);
-++		return 0;
-++	}
-++
- +	if (hook_mask & ~(1 << NF_IP_PRE_ROUTING)) {
- +		printk("ipt_ROUTE: bad hook\n");
- +		return 0;
-diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch.help netfilter/pat=
-ch-o-matic/extra/ROUTE.patch.help
---- netfilter.orig/patch-o-matic/extra/ROUTE.patch.help	Mon Jun 24 12:20:53=
- 2002
-+++ netfilter/patch-o-matic/extra/ROUTE.patch.help	Fri Sep 20 13:56:08 2002
-@@ -1,13 +1,15 @@
- Author: C=E9dric de Launois <delaunois@info.ucl.ac.be>
- Status: In Development/Works for me
-  =20
--  This option adds a `ROUTE' target, which allows you to directly resend
-+  This option adds a `ROUTE' target, which allows you to directly send
-   a received packet through a specified interface, even and especially
-   if the packet IP address is one of the router itself. Those packets=20
-   are locally delivered and cannot be forwarded to another computer=20
-   using the standard routing mechanisms.
+--- netfilter-extensions-HOWTO.sgml.orig	Wed Jul 24 11:05:14 2002
++++ netfilter-extensions-HOWTO.sgml	Fri Sep 20 14:52:06 2002
+@@ -1093,8 +1093,6 @@
+ Send the packet directly through the interface with the name specified.
+ <tag>--ifindex index</>
+ Send the packet directly through the interface with the index specified.
+-This is Useful when you want to remove a rule with an interface which does=
+n't
+-exist anymore (e.g. a tunnel which has been destroyed).
+ </descrip>
 =20
--  ROUTE target v1.2.7 options:
-+  This target is to be used inside the mangle table.
+ <p>
+@@ -1106,7 +1104,7 @@
+=20
+ <p>
+ A solution is to simply reroute packets with destination port 22 to the
+-computer having the same IP as the router and hosting the ssh service,
++computer having the same IP as the router, and hosting the ssh service,
+ thanks to this ROUTE target and an ipip tunnel.
+=20
+ <p>
+@@ -1130,22 +1128,21 @@
+ would add the following rules :
+=20
+ <tscreen><verb>
+-# iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 22 -j ROUTE --iface=
+ tunl1
+-# iptables -A PREROUTING -t nat -i tunl1 --j ROUTE --iface eth0
++# iptables -A PREROUTING -t mangle -i eth0 -p tcp --dport 22 -j ROUTE --if=
+ace tunl1
++# iptables -A PREROUTING -t mangle -i tunl1 --j ROUTE --iface eth0
+=20
+ # iptables -L PREROUTING -t nat
+ Chain PREROUTING (policy ACCEPT)
+ target     prot opt source               destination        =20
+-ROUTE      tcp  --  anywhere             anywhere           tcp dpt:ssh RO=
+UTE iface tunl1(7)=20
+-ROUTE      all  --  anywhere             anywhere           ROUTE iface et=
+h0(3)=20
++ROUTE      tcp  --  anywhere             anywhere           tcp dpt:ssh RO=
+UTE iface tunl1=20
++ROUTE      all  --  anywhere             anywhere           ROUTE iface et=
+h0
+ </verb></tscreen>
+=20
+ <p>
+ The first rule is for rerouting packet coming from the Internet, and the s=
+econd
+-one is for rerouting all packets coming from the host. The value shown ins=
+ide parentheses
+-after the interface name is the interface index. We use the nat table
+-because this table provides a PREROUTING hook, but this does not imply any=
+ packet
+-alteration.=20
++one is for rerouting all packets coming from the host. The ROUTE target ca=
+n only
++be inserted inside the mangle table, in the PREROUTING chain.
 +
-+  ROUTE target options:
-     --iface   name            Send the packet directly through iface name.
-     --ifindex index           Send the packet directly through iface index=
-.
 =20
-@@ -18,8 +20,8 @@
-   computer having the same IP as the router and hosting the ssh service,
-   thanks to this ROUTE target and an ipip tunnel.
-=20
--  # iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 22 -j ROUTE --ifa=
-ce tunl1
--  # iptables -A PREROUTING -t nat -i tunl1 --j ROUTE --iface eth0
-+  # iptables -A PREROUTING -t mangle -i eth0 -p tcp --dport 22 -j ROUTE --=
-iface tunl1
-+  # iptables -A PREROUTING -t mangle -i tunl1 --j ROUTE --iface eth0
-=20
-=20
- =20
+ <sect>New connection tracking patches
+ <p>
 
---=-8kONKAU4jjzureSOkEVw--
+--=-kXS3HyfiNhDAfsSPa8KD
+Content-Disposition: attachment; filename=netfilter-extensions-HOWTO.sgml.PATCH-FR
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-15
+
+--- netfilter-extensions-HOWTO.sgml.orig	Wed Jul 24 11:05:14 2002
++++ netfilter-extensions-HOWTO.sgml	Fri Sep 20 14:55:45 2002
+@@ -1129,7 +1129,7 @@
+=20
+ <p>
+ Une solution est de simplement rerouter les paquets dont le port de destin=
+ation est 22
+-vers l'ordinateur ayant la m=EAme adresse que le routeur, et habritant le =
+serveur ssh.
++vers l'ordinateur ayant la m=EAme adresse que le routeur, et h=E9bergeant =
+le serveur ssh.
+ Ceci peut se faire gr=E2ce =E0 cette target ROUTE, en utilisant un tunnel =
+IPIP.
+=20
+ <p>
+@@ -1153,23 +1153,21 @@
+ les r=E8gles suivantes :
+=20
+ <tscreen><verb>
+-# iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 22 -j ROUTE --iface=
+ tunl1
+-# iptables -A PREROUTING -t nat -i tunl1 --j ROUTE --iface eth0
++# iptables -A PREROUTING -t mangle -i eth0 -p tcp --dport 22 -j ROUTE --if=
+ace tunl1
++# iptables -A PREROUTING -t mangle -i tunl1 --j ROUTE --iface eth0
+=20
+ # iptables -L PREROUTING -t nat
+ Chain PREROUTING (policy ACCEPT)
+ target     prot opt source               destination        =20
+-ROUTE      tcp  --  anywhere             anywhere           tcp dpt:ssh RO=
+UTE iface tunl1(7)=20
+-ROUTE      all  --  anywhere             anywhere           ROUTE iface et=
+h0(3)=20
++ROUTE      tcp  --  anywhere             anywhere           tcp dpt:ssh RO=
+UTE iface tunl1
++ROUTE      all  --  anywhere             anywhere           ROUTE iface et=
+h0
+ </verb></tscreen>
+=20
+ <p>
+ La premi=E8re r=E8gle reroute les paquets venant de l'Internet et les envo=
+ie dans le tunnel.
+ La seconde r=E8gle reroute vers l'Internet tous les paquets venant de l'h=
+=F4te (c'est-=E0-dire
+-les paquets sortant du tunnel). La valeur indiqu=E9e entre parenth=E8ses a=
+pr=E8s le nom
+-de l'interface est l'index de celle-ci. Nous utilisons la table nat parce =
+qu'elle
+-fournit une cha=EEne PREROUTING, mais ceci n'implique aucunement une modif=
+ication des
+-paquets.
++les paquets sortant du tunnel). Cette target ne peut =EAtre ins=E9r=E9e qu=
+e dans la table
++'mangle', dans la cha=EEne PREROUTING.
+=20
+ <sect>Les nouveaux patches de suivi de connexion
+ <p>
+
+--=-kXS3HyfiNhDAfsSPa8KD--
