@@ -1,14 +1,14 @@
-From: "George" <George@xorgate.com>
-Subject: Generalized helper module
-Date: Mon, 27 Dec 2004 16:19:31 -0600
-Message-ID: <GJECKKGCEGFDAGCADOGBIEBJCAAA.George@Xorgate.COM>
-Reply-To: Perler@xorgate.com
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: [PATCH] netfilter: Fix cleanup in ipt_recent should
+	ipt_registrater_match error
+Date: Sat, 01 Jan 2005 15:57:27 +1100
+Message-ID: <1104555447.2791.29.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Andrew Morton <akpm@osdl.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,30 +20,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I occasionally I delve into netfilter problems and often find a desire for a
-general purpose helper module.
-This time I stumbled across ROPE.  Ref: http://www.lowth.com/rope/
-However, it would be nice if the inspection and parameter syntax was
-abbreviated such that it could be easily used in the iptables command line
-and along the lines of the Ethereal display filter syntax.  It would need
-the ability to signify RELATED packets. I should be easy to write a
-dedicated helper module from the generalized syntax, in order to improve on
-a generalized crutch.
+Name: Fix cleanup in ipt_recent should ipt_registrater_match error
+Status: Tested under nfsim
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-... Which brings me back around to my current needs.
+When ipt_registrater_match() fails, ipt_recent doesn't remove its proc
+entry.  Found by nfsim.
 
-I'm trying to get netfilter to pass Doom3 server traffic.  The server is on
-the private side of a two interface Linux netfilter router.  So far it
-appears (I may have missed some the packet details) that the local server
-registers itself with a Internet master-server using UDP dst port 27666.
-Internet clients then attempt to connect to the local server by directly
-sending UDP port 27666.  I want the initial outgoing master-server packets
-from the internal Doom3 server to tag any incoming UDP dst 27666 packets as
-RELATED, such that netfilter DNATS them back to the local Doom3 server.
-Currently, I do not think that the payload has any data that is required to
-make this work (but I may be wrong).
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_recent.c
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ipt_recent.c	2005-01-01 12:07:56.364981672 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ipt_recent.c	2005-01-01 12:11:44.159351664 +1100
+@@ -959,7 +959,7 @@
+ /* Kernel module initialization. */
+ static int __init init(void)
+ {
+-	int count;
++	int err, count;
+ 
+ 	printk(version);
+ #ifdef CONFIG_PROC_FS
+@@ -983,7 +983,10 @@
+ 	if(debug) printk(KERN_INFO RECENT_NAME ": ip_list_hash_size: %d\n",ip_list_hash_size);
+ #endif
+ 
+-	return ipt_register_match(&recent_match);
++	err = ipt_register_match(&recent_match);
++	if (err)
++		remove_proc_entry("ipt_recent", proc_net);
++	return err;
+ }
+ 
+ /* Kernel module destruction. */
 
-Comments please.
-
-I do not subscribe to the netfilter-dev mailing list, so I you could
-directly CC me, I would appreciate it.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
