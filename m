@@ -1,14 +1,14 @@
-From: "chuanbo zheng" <zhengcb@netpower.com.cn>
-Subject: about the tcp connection state
-Date: Sun, 15 Feb 2004 18:51:26 +0800
+From: Vineet Mehta <extreme@zayanionline.com>
+Subject: Reading ICMP packet data
+Date: Sun, 15 Feb 2004 18:41:22 +0300 (AST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040215183662.SM00868@guozheng>
+Message-ID: <Pine.LNX.4.44.0402151827300.18606-100000@sillypoint.zayanionline.com>
+References: <20040215183662.SM00868@guozheng>
 Mime-Version: 1.0
-Content-Type: text/plain;
-      charset="GB2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040215183662.SM00868@guozheng>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,22 +19,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I am making a new TARGET for iptables which tries to read the ICMP 
+ECHO/ECHO-REPLY packets data payload. Now my problem is how do i know that 
+the packet contains data i.e. 
 
-In ip_conntrack_proto_tcp.c=3D=3D>tcp_new()=A3=ACthe newconntrack is set=
- to,
- =09newconntrack
-=09=09=3D tcp_conntracks[0][get_conntrack_index(tcph)]
-=09=09[TCP_CONNTRACK_NONE];
-I noticed in the difination of tcp_conntracks,=
- tcp_conntracks[0][2][TCP_CONNTRACK_NONE]
-will be TCP_CONNTRACK_ESTABLISHED. then when an ACK packet=
- without SYN is received by
-netfilter, the state would be directly changed to ESTABLISHED. Is=
- there reason for doing
-like this? or I made some mistake.
+IP Header+ICMP header+Data
 
-thanks.
+and not
 
-regards,
-Jack
-zhengcb@netpower.com.cn
+IP header+ICMP header
+
+coz i see some utilities which will not send data part.
+
+my TARGET hooks on NF_IP_INPUT_IN and i m using kernel 2.4.22.
+
+Thanks
+extreme
