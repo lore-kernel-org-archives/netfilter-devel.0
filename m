@@ -1,15 +1,12 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: tcp-windows-tracking and 2.6.6
-Date: Sat, 15 May 2004 13:41:02 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: [BUG] Netfilter ipt_owner deadlock (fwd)
+Date: Sun, 16 May 2004 14:06:52 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40A601CE.1070602@eurodev.net>
-References: <87hduiez82.fsf@thorr.asgardr.info>
+Message-ID: <Pine.LNX.4.44.0405161406060.30410-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <87hduiez82.fsf@thorr.asgardr.info>
+To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,28 +17,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Daniel,
+Found on linux-net
 
-See
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-May/015260.html
+---------- Forwarded message ----------
+Date: Fri, 14 May 2004 17:19:05 +0200
+From: Christophe Saout <christophe@saout.de>
+To: linux-net@vger.kernel.org
+Subject: [BUG] Netfilter ipt_owner deadlock
 
-regards,
-Pablo
+Hi,
 
-Daniel 'NebuchadnezzaR' Dehennin wrote:
+there's a nasty problem with the ipt_owner netfilter code:
 
->Hello,
->
->tcp-windows-tracking do not apply on 2.6.6:
->patching file net/ipv4/netfilter/ip_conntrack_proto_tcp.c
->Hunk #4 FAILED at 712.
->Hunk #5 succeeded at 857 (offset 2 lines).
->Hunk #6 succeeded at 953 (offset 2 lines).
->1 out of 6 hunks FAILED -- saving rejects to file net/ipv4/netfilter/ip_conntrack_proto_tcp.c.rej
->
->It does not look as a trivial fix for me so I let expert resolve the
->problem ;-)
->
->Thanks.
->  
->
+It does a spin_lock(&files->file_lock), sometimes from softirq context.
+This can lead to deadlocks on SMP systems. The lock must not be taken
+from softirq context because the rest of the kernel doesn't use
+spin_lock_bh.
+
+On a UP machine (that had an SMP compiled kernel) the machine repeatedly
+locked up after approx. five minutes. SysRQ shows backtraces like fput
+-> timer interrupt -> softirq -> ipv4 -> netfilter -> ipt_owner -> hang.
+
+I don't see a clean solution for this (except for changing all the
+spin_locks to spin_lock_bhs which I think is way too aggressive).
+
+Any ideas?
+
+
