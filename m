@@ -1,18 +1,16 @@
-From: DarKRaveR <DarKRaveR@habitat-b.de>
-Subject: Re[2]: libiptc/rules with MAC match
-Date: Wed, 12 Feb 2003 22:53:49 +0100
+From: Oskar Berggren <beo@sgs.o.se>
+Subject: Re: Need IPSTATS
+Date: Thu, 13 Feb 2003 00:30:00 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <13014040629.20030212225349@habitat-b.de>
-References: <647994215.20030212211303@habitat-b.de>
- <20030212210522.GG30133@calix.csn.tu-chemnitz.de>
-Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
+Message-ID: <3E4AD8F8.9020101@sgs.o.se>
+References: <3E4A86DF.50807@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Poehnitzsch <thomas.poehnitzsch@informatik.tu-chemnitz.de>
-In-Reply-To: <20030212210522.GG30133@calix.csn.tu-chemnitz.de>
+To: Eicke Friedrich <tady@gmx.net>
+In-Reply-To: <3E4A86DF.50807@gmx.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,55 +21,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Thomas,
+Eicke Friedrich wrote:
+> Hi there,
+> 
+> I'm looking for the source code of IPSTATS by Oskar Berggren. Also, if 
+> you have some links/tutorials/explainations on writing iptables 
+> extensions don't hesitate sending them to me. Thank you in advance.
+> 
+> Cheers,
+> Eicke.
+> 
+> 
 
-Kewl, thanx for that so far, it sounds really promising, now the term
-'mask' makes sense and it opens a whole new arsenal of possibilities
-how to define rules. I really never came across this, but this might
-really help me, I could gather all vlan devices on on NIC, nice stuff,
-thnx.
+You can find the current version at
 
-Wednesday, February 12, 2003, 10:05:22 PM, you wrote:
+     http://www.sgs.studenthem.gu.se/ipstats-0.8.5.tar.gz
 
-TP> Hi,
+This is just a temporary location, I won't guarantee how long it
+will be accessible there.
 
-TP> On Wed, Feb 12, 2003 at 09:13:03PM +0100, DarKRaveR wrote:
-
->>   Within this struct there an ipt_ip struct, with the properties:
->>   char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
->>   unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
->> 
->>   What's the difference between those two ?
-
-TP> just have a look at parse_interface() in $IPT_SOURCE/iptables.c or
-TP> ip_packet_match() in $KERNELDIR/net/ipv4/netfilter/ip_tables.c.
-
-
-TP> To make a long story short: 
-
-TP> Iptables allows you to specify a device like this: "-i eth+", which
-TP> means all devices that start with "eth".
-
-TP> In this example iniface would contain: "eth+", whereas iniface_mask
-TP> contains something like { 0xFF,0xFF,0xFF,NULL }.
-
-TP> So when iptables comes to compare the actual device with the device
-TP> specified in the rule it compares only the first 3 caracters.
-
-TP> Example:
-
-TP> eth1  actual device of packet
-TP> eth+  device in rule
-TP> 1110  mask (see every "1" as a "0xFF" for a character comparator)
-TP> ----
-eth   ->> match
-
-
-TP> At least this is how I understood the sources.
-
-TP> Ciao!
-TP>     Thomas
+/Oskar
 
 -- 
-Best regards,
- DarKRaveR                            mailto:DarKRaveR@habitat-b.de
+/----------------------------------------------------------------------\
+| Oskar Berggren        beo@sgs.o.se                                   |
+| Network and Software Engineer                     SGS Datanätgrupp   |
+|                                                   Gothenburg, Sweden |
+\----------------------------------------------------------------------/
