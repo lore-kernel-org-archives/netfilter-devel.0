@@ -1,81 +1,55 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ANNOUNCE] call for testing of patch-o-matic-ng
-Date: Wed, 25 Feb 2004 19:28:28 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040225182828.GP13386@sunbeam.de.gnumonks.org>
+From: "rruegner" <robowarp@gmx.de>
+Subject: Re: [ANNOUNCE] call for testing of patch-o-matic-ng
+Date: Wed, 25 Feb 2004 20:31:47 +0100
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <001101c3fbd6$0310ed80$32640a0a@robopc>
+References: <20040225182828.GP13386@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dUCTBDm4d+mXXNar"
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter Mailinglist" <netfilter@lists.netfilter.org>
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: "Harald Welte" <laforge@netfilter.org>,
+	"Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald,
 
---dUCTBDm4d+mXXNar
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+do you mean something like this ?
+fresh 2.6.3 kernel with patch-o-matic-ng-20040224
 
-Hi!
+Welcome to Patch-o-matic (1.13)!
 
-I've been trying to finish patch-o-matic-ng during the last week.  At
-least for 2.6.x kernels (specifically: 2.6.3) it seems to work just
-fine.  It doesn't offer you any patches that are incompatible with 2.6
-or have not yet been ported.
+Kernel:         /usr/src/linux
+Iptables:       /usr/src/iptables
 
-However, more testing is definitely needed before an official release.
+Each patch is a new feature: many have minimal impact, some do not.
+Almost every one has bugs, so don't apply what you don't need!
+-------------------------------------------------------
+Already applied:
 
-This is where you come in :)  If you want to help, please grab the
-latest patch-o-matic-ng, either from CVS or as snapshot.  Do some
-testing, especially with 2.4.x kernels.
+Not all requirements fulfilled for quake3-conntrack-nat, skipping:
+ requirement 'linux < 2.6.0' not fulfilled
 
-If you end up in any strange behaviour (like .rej rejects in the kernel
-tree, patches that apply cleanly but don't compile, patches that apply
-and compile cleanly but crash the machine, ...) - please report it back
-to the netfilter-devel mailinglist.
+Excellent! Source trees are ready for compilation.
 
-btw: It might be advisable to use ftp/www mirrors like
-ftp.hu.netfilter.org /   www.hu.netfilter.org , since tomorrow is a
-scheduled downtime of the main netfilter site.
-
-Thanks,
-	Harald.
-
-p.s.: Yes, the nf_log patch does currently not apply against 2.6.x.
-This is know, and not really a bug since it fails gracefully.  Somebody
-just needs to updat it. =20
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---dUCTBDm4d+mXXNar
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAPOlMXaXGVTD0i/8RAl/AAJ42I0E5WpGZf8b45b+7wVsp5cIe9ACgstKG
-CzQ+rdWB9yappsNsT1HDXLg=
-=qyBB
------END PGP SIGNATURE-----
-
---dUCTBDm4d+mXXNar--
+your rewrite seems to work , but the h323 which i could compile in the past
+was rejected too
+is this current state of art ?
+Regards Robert
+----- Original Message ----- 
+From: "Harald Welte" <laforge@netfilter.org>
+To: "Netfilter Development Mailinglist"
+<netfilter-devel@lists.netfilter.org>
+Cc: "Netfilter Mailinglist" <netfilter@lists.netfilter.org>
+Sent: Wednesday, February 25, 2004 7:28 PM
+Subject: [ANNOUNCE] call for testing of patch-o-matic-ng
