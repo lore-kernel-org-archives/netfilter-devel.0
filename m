@@ -1,15 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: How/where does the kernel map packets to an application ...
-Date: Thu, 15 Jan 2004 08:10:16 +0100 (CET)
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Side effect? - Re: Changing the content of tcp timeouts in ip_conntrack_proto_tcp.c
+Date: Thu, 15 Jan 2004 10:26:08 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401150801330.11137-100000@filer.marasystems.com>
-References: <200401150910.32898.andrej@paradise.net.nz>
+Message-ID: <40064EA0.3050603@netlab.hut.fi>
+References: <Pine.LNX.4.44.0401141203530.29640-100000@filer.marasystems.com>	 <40053873.6000806@netlab.hut.fi> <1074084643.15865.6.camel@nienna.balabit> <400542BD.6050706@netlab.hut.fi>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andrej Ricnik <andrej@paradise.net.nz>
-In-Reply-To: <200401150910.32898.andrej@paradise.net.nz>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,38 +20,86 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 15 Jan 2004, Andrej Ricnik wrote:
+Hi!
 
-> My idea is to write an addition to netfilter that will check 
-> the originating application of an IP request against a list
-> of allowed files, and if I handle that well enough, integrate
-> a roster of user/application to check whether a request is
-> legal or not.
+I was a bit optimistic in my last e-mail. Compilation is totally ok, 
+insertion of the modules in the kernel seems to go fine... until I want 
+to use them. The nat table does not work anymore.
+The ip_tables module seems to be there:
+pc104:# iptables -L   
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination        
 
-Doesn't this exists already.. checking. You should be able to use the
-owner match for this purpose.
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination        
 
-> At which point does the kernel determine which application
-> a incoming packet is meant for?
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination  
 
-Ah, incoming packets. Then the situation is a little harder. The owner 
-match only works on outgoing packets.
+But if I try the nat table:
+pc104:# iptables -t nat -L
+modprobe: Can't locate module ip_tables
+iptables v1.2.9: can't initialize iptables table `nat': Table does not 
+exist (do you need to insmod?)
+Perhaps iptables or your kernel needs to be upgraded.
 
-> Imagine one user having mozilla and opera open, using both for browsing.
-> Another user having a links session in a console.
+If I do not add my function in ip_conntrack_standalone.c, everything's 
+ok (well except that I can't use my funciton of course).
+To be very precise I just added the following:
 
-For this, matching outgoing packets is sufficient. Allows you to control 
-which applications are allowed to initiate sessions to the network.
+In ip_conntrack_standalone.c:
+EXPORT_SYMBOL(ip_ct_proto_tcp_set_timeouts);
 
-For incoming packets you use conntrack to allow only packets belonging to 
-sessions accepted above.
+In ip_conntrack.h:
+extern void ip_ct_proto_tcp_set_timeous(/datatypes/);
 
-> How does the kernel determine which application is meant to receive a
-> incoming packet on port 80?
+In ip_conntrack_proto_tcp.c:
+void ip_ct_proto_tcp_set_tcp_timeouts(unsigned long new_value, ...)
+{
+    ...
+    ip_ct_tcp_timeout_established = new_value SECS;
+    ...
+}
 
-By the socket the packet belongs to. Known to iptables on outgoing 
-packets, but on incoming packets the socket is not yet known as this 
-is determined by the TCP/UDP layers which are after iptables.
+And the calls to the function in ipt_MY_TARGET.c:
+ip_ct_proto_tcp_set_timeouts(/values/);
 
-Regards
-Henrik
+
+What do I do wrong?
+
+           Emmanuel
+
+
+
+Emmanuel Guiton wrote:
+
+> KOVACS Krisztian wrote:
+>
+>>  Hi,
+>>
+>> On Wed, 2004-01-14 at 13:39, Emmanuel Guiton wrote:
+>>  
+>>
+>>>> Looks like you have not exported this function from ip_conntrack. 
+>>>> To use a function from another module than it is defined in the 
+>>>> function must first be exported from the module where it is defined.
+>>>>     
+>>>
+>>> Well, I think I did. I defined my function in the 
+>>> ip_conntrack_proto_tcp.c and I exported its prototype in 
+>>> ip_conntrack.h.
+>>> Then I call it in my target module which also uses ip_conntrack.h.
+>>>   
+>>
+>>
+>>  You have to explicitly export it using the EXPORT_SYMBOL() (or
+>> EXPORT_SYMBOL_GPL) macro in ip_conntrack_standalone.c. It has a lot of
+>> other exported symbols, just add another one.
+>>
+>>  
+>>
+> Right, it's working now.
+> Thanks!
+>
+>           Emmanuel
+>
