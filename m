@@ -1,59 +1,66 @@
-From: jpiszcz <jpiszcz@lucidpixels.com>
-Subject: Re: [Fwd: Question with printk warnings in ip_conntrack with 2.4.20.]
-Date: Fri, 06 Dec 2002 09:27:46 -0500
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3DF0B3E2.8060104@lucidpixels.com>
-References: <Pine.LNX.4.33.0212061448500.2648-100000@blackhole.kfki.hu>
+From: Mateusz Golicz <mtg@elsat.net.pl>
+Subject: [BUG] nth match: using more than 1 counter
+Date: Sat, 7 Dec 2002 13:49:13 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20021207124913.GA15801@fouk.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Sure:
 
-http://installkernel.tripod.com/tcpdump.log.bz2
+Hello,
 
-Jozsef Kadlecsik wrote:
+  The userspace part of the nth match (BTW, quite an useful one)
+seems to be a bit broken. (at least in the CVS version from the
+WWW frontend (don't know if there are any other ones ;), i'm
+new to netfilter developement): http://cvs.netfilter.org/cgi-bin/cvsweb/~checkout~/netfilter/userspace/extensions/libipt_nth.c)
 
->On Thu, 5 Dec 2002, jpiszcz wrote:
->
->  
->
->>Stange?  I am just using vcheck (perl script) that goes out and checks
->>out software for the latest versions.
->>    
->>
->
->If the script uses active mode FTP and when that is refused by the server
->reverts back to passive mode, that is a natural explanation for such log
->entries.
->
->Could you record by tcpdump at least one such FTP session?
->
->  
->
->>Will there possibly be a /proc or kernel config option for warnings such
->>as these?
->>    
->>
->
->In my opinion a new directory tree /proc/sys/net/ipv4/netfilter is
->required so that tuning options could be easily added to the system.
->But that implies backward (in)compatibily issues...
->
->Regards,
->Jozsef
->-
->E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
->PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
->Address : KFKI Research Institute for Particle and Nuclear Physics
->          H-1525 Budapest 114, POB. 49, Hungary
->
->
->
->  
->
+around line 102, in parse(), there is a fragment doing some
+checks concerning the --every option:
+
+--- CUT ---
+                nthinfo->packet = 0xFF;
+                if(!(*flags & IPT_NTH_OPT_EVERY))
+                {
+                        nthinfo->counter = 0;
+                }
+--- CUT ---
+
+... but actually, the IPT_NTH_OPT_EVERY flag is
+set only in this function, but after this part. So, if
+you specify --every after --counter, the previous nthinfo->counter
+will be always lost, which will make the match behave quite improperly in
+case you use more than a one counter... i guess this check should be
+something like:
+
+--- CUT ---
+--- extensions/libipt_nth.c.old Sat Dec  7 05:47:47 2002
++++ extensions/libipt_nth.c     Sat Dec  7 05:29:28 2002
+@@ -100,7 +101,7 @@
+                nthinfo->every = num-1;
+                nthinfo->startat = 0;
+                 nthinfo->packet = 0xFF;
+-                if(!(*flags & IPT_NTH_OPT_EVERY))
++                if(!(*flags & IPT_NTH_OPT_COUNTER))
+                 {
+                         nthinfo->counter = 0;
+                 }
+--- CUT ---
+
+Matthew Golicz, IP Network Dept., Cable Television "Elsat" Ltd.
+-- 
+______________________________________________________________________
+mteg <mtg@elsat.net.pl>       * MG452-RIPE *            Mateusz Golicz
+* ,,I just had a thought I have seen everything in this lifetime, but*
+* now I sit here and watch a cyborg diving ... in her spare time!''  *
