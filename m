@@ -1,77 +1,225 @@
-From: Bart De Schuymer <bart.de.schuymer@pandora.be>
-Subject: [PATCH][RFC] ipt_REJECT.c - nf_bridge source and
-Date: Sat, 2 Nov 2002 20:32:45 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200211022032.46007.bart.de.schuymer@pandora.be>
-References: <20021102153451.N8635@sunbeam.de.gnumonks.org> <200211021530.EREjZ0McAA@gate.tbc.sub.de> <20021102185730.S8635@sunbeam.de.gnumonks.org>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
+ <yoshfuji@linux-ipv6.org>
+Subject: [PATCH] IPv6: Functions Clean-up
+Date: Sun, 03 Nov 2002 11:54:27 +0900 (JST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20021103.115427.104445233.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20021102185730.S8635@sunbeam.de.gnumonks.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: davem@redhat.com, kuznet@ms2.inr.ac.ru, usagi@linux-ipv6.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
+   netfilter-devel@lists.netfilter.org
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hello!
 
-A discussion on the Linux bridge mailing list showed the following proble=
-ms:
-1. send_reset() does a skb_copy() and doesn't yet initialize the nf_bridg=
-e
-skbuff field.
-2. send_unreach() seems to copy the wrong source IP address in the ICMP
-message. Namely, it seems to always use an IP address of the router as
-source IP address. Is that a bug?
+This patch cleans up functions in ipv6 stack:
 
-The following patch solves both problems.
-If the second issue is a bug then the 2.4 kernel needs a fix too.
+ - export route6_me_harder() as ip6_route_harder() and
+   use it from net/ipv6/netfilter/ip6_queue.c.
+ - make ip6_addr_prefix() to generate prefix of given address and
+   prefix length, instead of doing "ipv6_copy_addr() then
+   ipv6_wash_prefix()."
 
-cheers,
-Bart
+Patch is against 2.5.45.
 
---- linux-2.5.45/net/ipv4/netfilter/ipt_REJECT.c=09Thu Oct 31 01:43:38 20=
-02
-+++ linux-2.5.45-new/net/ipv4/netfilter/ipt_REJECT.c=09Sat Nov  2 18:58:4=
-4 2002
-@@ -76,6 +76,10 @@
- =09nskb->nf_debug =3D 0;
- #endif
- =09nskb->nfmark =3D 0;
-+#if defined(CONFIG_BRIDGE) || defined(CONFIG_BRIDGE_MODULE)
-+=09nf_bridge_put(nskb->nf_bridge);
-+=09nskb->nf_bridge =3D NULL;
+Thanks in advance.
+
+-------------------------------------------------------------------
+Patch-Name: Functions Clean-up
+Patch-Id: FIX_2_5_45_FUNC_CLEANUP-20021102
+Patch-Author: YOSHIFUJI Hideaki / USAGI Project <yoshfuji@linux-ipv6.org>
+Credit: YOSHIFUJI Hideaki / USAGI Project <yoshfuji@linux-ipv6.org>
+-------------------------------------------------------------------
+Index: include/net/ip6_route.h
+===================================================================
+RCS file: /cvsroot/usagi/usagi-backport/linux25/include/net/ip6_route.h,v
+retrieving revision 1.1.1.1
+retrieving revision 1.1.1.1.16.1
+diff -u -r1.1.1.1 -r1.1.1.1.16.1
+--- include/net/ip6_route.h	7 Oct 2002 10:22:46 -0000	1.1.1.1
++++ include/net/ip6_route.h	2 Nov 2002 14:50:30 -0000	1.1.1.1.16.1
+@@ -30,6 +30,8 @@
+ extern struct dst_entry *	ip6_route_output(struct sock *sk,
+ 						 struct flowi *fl);
+ 
++extern int			ip6_route_harder(struct sk_buff *skb);
++
+ extern void			ip6_route_init(void);
+ extern void			ip6_route_cleanup(void);
+ 
+Index: net/ipv6/ip6_output.c
+===================================================================
+RCS file: /cvsroot/usagi/usagi-backport/linux25/net/ipv6/ip6_output.c,v
+retrieving revision 1.1.1.3
+retrieving revision 1.1.1.3.6.1
+diff -u -r1.1.1.3 -r1.1.1.3.6.1
+--- net/ipv6/ip6_output.c	30 Oct 2002 09:43:18 -0000	1.1.1.3
++++ net/ipv6/ip6_output.c	2 Nov 2002 14:50:30 -0000	1.1.1.3.6.1
+@@ -134,7 +134,7 @@
+ 
+ 
+ #ifdef CONFIG_NETFILTER
+-static int route6_me_harder(struct sk_buff *skb)
++int ip6_route_harder(struct sk_buff *skb)
+ {
+ 	struct ipv6hdr *iph = skb->nh.ipv6h;
+ 	struct dst_entry *dst;
+@@ -152,7 +152,7 @@
+ 
+ 	if (dst->error) {
+ 		if (net_ratelimit())
+-			printk(KERN_DEBUG "route6_me_harder: No more route.\n");
++			printk(KERN_DEBUG "ip6_route_harder: No more route.\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -168,7 +168,7 @@
+ {
+ #ifdef CONFIG_NETFILTER
+ 	if (skb->nfcache & NFC_ALTERED){
+-		if (route6_me_harder(skb) != 0){
++		if (ip6_route_harder(skb) != 0){
+ 			kfree_skb(skb);
+ 			return -EINVAL;
+ 		}
+Index: net/ipv6/ipv6_syms.c
+===================================================================
+RCS file: /cvsroot/usagi/usagi-backport/linux25/net/ipv6/ipv6_syms.c,v
+retrieving revision 1.1.1.1
+retrieving revision 1.1.1.1.16.1
+diff -u -r1.1.1.1 -r1.1.1.1.16.1
+--- net/ipv6/ipv6_syms.c	7 Oct 2002 10:20:36 -0000	1.1.1.1
++++ net/ipv6/ipv6_syms.c	2 Nov 2002 14:50:30 -0000	1.1.1.1.16.1
+@@ -1,4 +1,5 @@
+ 
++#include <linux/config.h>
+ #include <linux/module.h>
+ #include <net/protocol.h>
+ #include <net/ipv6.h>
+@@ -11,6 +12,9 @@
+ EXPORT_SYMBOL(register_inet6addr_notifier);
+ EXPORT_SYMBOL(unregister_inet6addr_notifier);
+ EXPORT_SYMBOL(ip6_route_output);
++#ifdef CONFIG_NETFILTER
++EXPORT_SYMBOL(ip6_route_harder);
 +#endif
-=20
- =09tcph =3D (struct tcphdr *)((u_int32_t*)nskb->nh.iph + nskb->nh.iph->i=
-hl);
-=20
-@@ -222,6 +226,9 @@
- =09=09if (ip_route_output_key(&rt, &fl))
- =09=09=09return;
- =09}
-+
-+=09saddr =3D iph->daddr;
-+
- =09/* RFC says return as much as we can without exceeding 576 bytes. */
- =09length =3D skb_in->len + sizeof(struct iphdr) + sizeof(struct icmphdr=
-);
-=20
-@@ -256,7 +263,7 @@
- =09iph->ttl =3D MAXTTL;
- =09ip_select_ident(iph, &rt->u.dst, NULL);
- =09iph->protocol=3DIPPROTO_ICMP;
--=09iph->saddr=3Drt->rt_src;
-+=09iph->saddr=3Dsaddr;
- =09iph->daddr=3Drt->rt_dst;
- =09iph->check=3D0;
- =09iph->check =3D ip_fast_csum((unsigned char *)iph, iph->ihl);
+ EXPORT_SYMBOL(addrconf_lock);
+ EXPORT_SYMBOL(ipv6_setsockopt);
+ EXPORT_SYMBOL(ipv6_getsockopt);
+Index: net/ipv6/route.c
+===================================================================
+RCS file: /cvsroot/usagi/usagi-backport/linux25/net/ipv6/route.c,v
+retrieving revision 1.1.1.4
+retrieving revision 1.1.1.4.6.1
+diff -u -r1.1.1.4 -r1.1.1.4.6.1
+--- net/ipv6/route.c	30 Oct 2002 09:43:18 -0000	1.1.1.4
++++ net/ipv6/route.c	2 Nov 2002 14:52:05 -0000	1.1.1.4.6.1
+@@ -573,15 +573,17 @@
+    Remove it only when all the things will work!
+  */
+ 
+-static void ipv6_wash_prefix(struct in6_addr *pfx, int plen)
++static void ipv6_addr_prefix(struct in6_addr *pfx,
++			     const struct in6_addr *addr, int plen)
+ {
+ 	int b = plen&0x7;
+-	int o = (plen + 7)>>3;
++	int o = plen>>3;
+ 
++	memcpy(prefix, addr, o);
+ 	if (o < 16)
+ 		memset(pfx->s6_addr + o, 0, 16 - o);
+ 	if (b != 0)
+-		pfx->s6_addr[plen>>3] &= (0xFF<<(8-b));
++		pfx->s6_addr[o] = addr->s6_addr[o]&(0xff00 >> b);
+ }
+ 
+ static int ipv6_get_mtu(struct net_device *dev)
+@@ -654,16 +656,16 @@
+ 			goto out;
+ 	}
+ 
+-	ipv6_addr_copy(&rt->rt6i_dst.addr, &rtmsg->rtmsg_dst);
++	ipv6_addr_prefix(&rt->rt6i_dst.addr, 
++			 &rtmsg->rtmsg_dst, rtmsg->rtmsg_dst_len);
+ 	rt->rt6i_dst.plen = rtmsg->rtmsg_dst_len;
+ 	if (rt->rt6i_dst.plen == 128)
+ 	       rt->u.dst.flags = DST_HOST;
+-	ipv6_wash_prefix(&rt->rt6i_dst.addr, rt->rt6i_dst.plen);
+ 
+ #ifdef CONFIG_IPV6_SUBTREES
+-	ipv6_addr_copy(&rt->rt6i_src.addr, &rtmsg->rtmsg_src);
++	ipv6_addr_prefix(&rt->rt6i_src.addr, 
++			 &rtmsg->rtmsg_src, rtmsg->rtmsg_src_len);
+ 	rt->rt6i_src.plen = rtmsg->rtmsg_src_len;
+-	ipv6_wash_prefix(&rt->rt6i_src.addr, rt->rt6i_src.plen);
+ #endif
+ 
+ 	rt->rt6i_metric = rtmsg->rtmsg_metric;
+Index: net/ipv6/netfilter/ip6_queue.c
+===================================================================
+RCS file: /cvsroot/usagi/usagi-backport/linux25/net/ipv6/netfilter/ip6_queue.c,v
+retrieving revision 1.1.1.2
+retrieving revision 1.1.1.2.14.1
+diff -u -r1.1.1.2 -r1.1.1.2.14.1
+--- net/ipv6/netfilter/ip6_queue.c	8 Oct 2002 03:15:20 -0000	1.1.1.2
++++ net/ipv6/netfilter/ip6_queue.c	2 Nov 2002 14:50:30 -0000	1.1.1.2.14.1
+@@ -326,45 +326,6 @@
+ 	return status;
+ }
+ 
+-/*
+- * Taken from net/ipv6/ip6_output.c
+- *
+- * We should use the one there, but is defined static
+- * so we put this just here and let the things as
+- * they are now.
+- *
+- * If that one is modified, this one should be modified too.
+- */
+-static int
+-route6_me_harder(struct sk_buff *skb)
+-{
+-	struct ipv6hdr *iph = skb->nh.ipv6h;
+-	struct dst_entry *dst;
+-	struct flowi fl;
+-
+-	fl.proto = iph->nexthdr;
+-	fl.fl6_dst = &iph->daddr;
+-	fl.fl6_src = &iph->saddr;
+-	fl.oif = skb->sk ? skb->sk->bound_dev_if : 0;
+-	fl.fl6_flowlabel = 0;
+-	fl.uli_u.ports.dport = 0;
+-	fl.uli_u.ports.sport = 0;
+-
+-	dst = ip6_route_output(skb->sk, &fl);
+-
+-	if (dst->error) {
+-		if (net_ratelimit())
+-			printk(KERN_DEBUG "route6_me_harder: No more route.\n");
+-		return -EINVAL;
+-	}
+-
+-	/* Drop old route. */
+-	dst_release(skb->dst);
+-
+-	skb->dst = dst;
+-	return 0;
+-}
+-
+ static int
+ ipq_mangle_ipv6(ipq_verdict_msg_t *v, struct ipq_queue_entry *e)
+ {
+@@ -410,7 +371,7 @@
+ 		struct ipv6hdr *iph = e->skb->nh.ipv6h;
+ 		if (ipv6_addr_cmp(&iph->daddr, &e->rt_info.daddr) ||
+ 		    ipv6_addr_cmp(&iph->saddr, &e->rt_info.saddr))
+-			return route6_me_harder(e->skb);
++			return ip6_route_harder(e->skb);
+ 	}
+ 	return 0;
+ }
