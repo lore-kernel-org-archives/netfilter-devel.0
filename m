@@ -1,12 +1,11 @@
-From: Zhao yao <zhaoyao73@yahoo.com.cn>
-Subject: death_by_timeout
-Date: Wed, 13 Oct 2004 19:51:06 +0800 (CST)
+From: Jvalencia <tigrezno@log01.org>
+Subject: Developing with libipq
+Date: Thu, 14 Oct 2004 19:20:19 +0100
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041013115106.79239.qmail@web53807.mail.yahoo.com>
+Message-ID: <20041014192019.3832d581.tigrezno@log01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: 8bit
-Cc: laforge@netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,39 +18,22 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-maillist gone wrong? these days no mails?
-I have one question!
+Hi all, i'm new to netfilter and just started trying some simple things.
+I've made a program (simple program) to take a packet and print its metadata.
+The output is this:
 
-hi, developers!
-
-
- I have a question about clean_from_lists!
-
- In this function, we will delete conntrack hash from
-hash table, but if
-under smp,
- one cpu in early_drop, it will drop one conntrack
-then call
-death_by_timeout;
- another cpu in ip_ct_selective_cleanup, it will kill
-the same conntrack
-and then call death_by_timeout.
-
-first cpu clean_from_lists, and then another cpu enter
-clean_from_lists, it
-found that this ct hash
-is not in hash table(it can't found, just oops!).
-
-I don't know i am right? this is just a example, i
-mean is that possible?
+ID of queued packet: 3413885640
+Netfilter mark value: 0
+Packet arrival time (seconds): 0
+Packet arrival time (+useconds): 0
+Netfilter hook we rode in on: 3
+Name of incoming interface: 
+Name of outcoming interface: eth0
+Hardware protocol: 0
+Hardware type: 0
+Hardware address length: (null)
+Hardware address: 
+Length of packet data: 0
 
 
-thank you!
-
-Best regards£°
-
-
-_________________________________________________________
-Do You Yahoo!? 
-œ”” œ‰Ã´–°£ø—≈ª¢µÁ” ◊‘÷˙¿©»›£°
-http://cn.rd.yahoo.com/mail_cn/tag/10m/*http://cn.mail.yahoo.com/event/10m.html
+Is this result valid? most values are 0
