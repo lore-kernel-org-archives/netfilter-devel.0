@@ -1,16 +1,17 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: a question about ipv4 multicast and NAT
-Date: Mon, 25 Aug 2003 10:32:13 +0200
+From: Flavio Pescuma <flavio@marasystems.com>
+Subject: Re: how to clear the conntrack table!
+Date: 27 Jun 2003 11:28:11 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030825083213.GA423@oknodo.bof.de>
-References: <20030825082134.GB23526@linuxasylum.net>
+Message-ID: <1056706091.4078.26.camel@alba>
+References: <006301c3630d$7c163260$5b01aa0a@nightmare>
+	 <20030823210837.GE6750@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Decoy <yangzehui@boco.com.cn>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Samuele Giovanni Tonon <samu@mclink.it>
-Content-Disposition: inline
-In-Reply-To: <20030825082134.GB23526@linuxasylum.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030823210837.GE6750@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,19 +22,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Aug 25, 2003 at 10:21:34AM +0200, Samuele Giovanni Tonon wrote:
-> after some research on iptables and how to make work igmp through 
-> nat i came to the conclusion that there isn't still an implementation
-> of how to NAT multicast connection from private networks to multicast
-> sessions.
+You could look into using the patch I send some day ago.  the you could
+set all connection to unconfirmed, and then set you rule set so that al
+unconfirmed packets pass the rule set
 
-Did you find earlier discussion on this topic?
 
-> I would like to know if you are planning to do add this feature , 
-> because i think that many people could be happy to have this.
+/flavio
 
-Can you please outline what such an implementation would entail?
-Please be very specific.
-
-best regards
-  Patrick
+On Sat, 2003-08-23 at 23:08, Harald Welte wrote:
+> On Fri, Aug 15, 2003 at 05:13:05PM +0800, Decoy wrote:
+> > Hi!
+> > 
+> > how can I clear the conntrack table?!
+> 
+> unfortunately there is currently no other way than to unload and reload the
+> ip_conntrack module :(
+> 
+> > Thanks very much!
+> > dec0y
