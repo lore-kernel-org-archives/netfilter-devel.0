@@ -1,13 +1,14 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: [PATCH] Iptables multiport match fix
-Date: 09 Jul 2002 22:21:36 +0200
+From: "Shipman, Jeffrey E" <jeshipm@sandia.gov>
+Subject: a question on marking packets
+Date: Tue, 9 Jul 2002 15:10:22 -0600
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <agfhe4$eh3$2@main.gmane.org>
+Message-ID: <03781128C7B74B4DBC27C55859C9D73809840653@es06snlnt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain;
+ charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: "'netfilter-devel@lists.samba.org'" <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,30 +19,20 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+I have a situation where I need to be able to
+mark packets on the NF_IP_LOCAL_IN hook that
+match certain patterns we will be watching
+for. This because after accept the packet and 
+the response packet is generated (NF_IP_LOCAL_OUT),
+we must be able to know how to modify this packet
+depending on the results from that incoming
+packet. Does anyone have some advice how to properly
+mark these packets so we can do this? Any tips
+or direction on where to look would be most
+appreciated.
 
-The multiport match checks for the IPT_INV_PROTO flag in the 'flags'
-member of struct ipt_ip instead of in the 'invflags' member.
+TIA, 
 
-diff -ur linux.current/net/ipv4/netfilter/ipt_multiport.c linux-mine/net/ipv4/netfilter/ipt_multiport.c
---- linux-2.4.19-rc1/net/ipv4/netfilter/ipt_multiport.c	Tue Jun 20 23:32:27 2000
-+++ linux/net/ipv4/netfilter/ipt_multiport.c	Tue Jul  9 10:43:23 2002
-@@ -78,7 +78,7 @@
- 
- 	/* Must specify proto == TCP/UDP, no unknown flags or bad count */
- 	return (ip->proto == IPPROTO_TCP || ip->proto == IPPROTO_UDP)
--		&& !(ip->flags & IPT_INV_PROTO)
-+		&& !(ip->invflags & IPT_INV_PROTO)
- 		&& matchsize == IPT_ALIGN(sizeof(struct ipt_multiport))
- 		&& (multiinfo->flags == IPT_MULTIPORT_SOURCE
- 		    || multiinfo->flags == IPT_MULTIPORT_DESTINATION
-
-(Where should I send this btw? The kernel part of iptables doesn't
-seem to be in the netfilter CVS. Was I supposed to create a p-o-m
-patch? Or send it directly to Marcelo?)
-
-//Marcus
--- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Firewall Developer, Ingate Systems AB |  http://www.ingate.com/
+Jeff Shipman - CCD
+Sandia National Laboratories
+(505) 844-1158 / MS-1372
