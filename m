@@ -1,16 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: Can IP MF and DF flags be set simulataneously
-Date: Sat, 21 Sep 2002 10:59:12 +0200
+From: "Toshihiro Sonoda" <toshihiro@jp.fujitsu.com>
+Subject: Re: [PATCH] update for ROUTE target in Netfilter-Extension HOWTO [ENG][FR]
+Date: Sat, 21 Sep 2002 18:11:20 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020921085912.GA282@oknodo.bof.de>
-References: <20020920235513.30242.qmail@web11901.mail.yahoo.com>
+Message-ID: <006b01c2614e$d9ed8300$fb01a8c0@monday>
+References: <200209201617.g8KGHNfc009408@marajade.sandelman.ottawa.on.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Vijay Gullapalli <vjgullapalli@yahoo.com>
-Content-Disposition: inline
-In-Reply-To: <20020920235513.30242.qmail@web11901.mail.yahoo.com>
+To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,51 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Vijay,
 
-please take your question to a more general forum related to IP
-networking, this mailing list is too specific in scope.
+hi, I have one question.
 
-If you find that something is to be illegal here (which I doubt),
-and iptables/netfilter does a wrong thing (that the rest of the
-IP stack does right), then please come back.
-
-Sorry if I seem harsh, but we can't cover all quirks of the TCP/IP
-protocol suite here. This is no educational facility.
-
-Finally, one hint: fragments of packets can and will be further
-fragmented, when you have more than two MTUs in the path of
-the packet. That's why I doubt that your suspicion is correct.
-
-best regards
-  Patrick
-
-On Fri, Sep 20, 2002 at 04:55:13PM -0700, Vijay Gullapalli wrote:
-> Hi,
 > 
-> I came across this list when searching for TCP SYN
-> Proxy links on google. And I have a very basic
-> question about IP fragment flags DF (don't fragment)
-> and MF (more fragment) usage. If this is not the right
-> forum, please excuse me.
+>     >> I agree that the interaction with NAT is confusing at present.
 > 
-> While monitoring NFS/UDP traffic between two Linux
-> machines, I noticed that when Path MTU is turned on,
-> the IP header has both the DF and MF bits set at the
-> time. Is it legal to have have both flags set at the
-> same time? Isn't it enough to have just the DF bit set
-> to do Path MTU discovery?
+>     dric> The ROUTE target is now to be inserted in the mangle table.  This
+>     dric> means that the ROUTE target applies before NAT (mangle table has
+>     dric> higher priority than nat table, but lower than conntrack table).
+>     dric> So there is no longer interactions with the NAT.
 > 
-> Having both on at the same time goes against these
-> flags usage described in Internet Protocol RFC 791.
-> Are there any other RFCs which supercede RFC 791 and
-> describe how/why these flags should be allowed to be
-> set at the same time.
+>   NAT is done in POSTROUTING, unless you mean the un-NAT stuff, which I
+> don't understand.
 > 
-> Thank you,
-> Vijay Gullapalli
-> 
-> __________________________________________________
-> Do you Yahoo!?
-> New DSL Internet Access from SBC & Yahoo!
-> http://sbc.yahoo.com
+
+I think NAT is not done in POSTROUTING in this case.
+
+Packets, which are matched by the rule of 'ROUTE tareget',
+flow as following route.
+
+-> [mangle: PREROUTING]->[some tunnel device]->
+         [OUTPUT]->[POSTROUTING]-> send to another machine.
+
+The packets go through the POSTROUTING, but netfilter does not use 
+the NAT tables matching rule in the POSTROUTING, because of 
+hook of mangle tables.
+
+Is that OK? or Do I mistake?
+
+If I am right, I want to send masqueraded packets to ROUTE target.
+ 
