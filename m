@@ -1,14 +1,16 @@
 From: "yong" <sdssly@sina.com>
-Subject: How to use the Intercept.c example in iptables?
-Date: Fri, 6 Jun 2003 11:31:21 +0800
+Subject: Re: How to use the Intercept.c example in iptables?
+Date: Fri, 6 Jun 2003 13:23:38 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001601c32bdc$1b2b2e00$6f01a8c0@li>
+Message-ID: <003501c32beb$c9e0d5d0$6f01a8c0@li>
+References: <6330DC96389A924A804F52FA3848930E888E48@MBXSRV26.stu.nus.edu.sg>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="gb2312"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: base64
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: "Colin Cyrille" <engp2437@nus.edu.sg>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,10 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGVsbG8gQWxsLA0KDQpJIHdhbnQgdG8gdXNlIHRoZSBsaWJpcHEsIEkgZW5jb3VudGVyZWQgYW4g
-ZXJyb3IgbWVzc2FnZSB3aXRoIHRoZSBJbnRlcmNlcHRzLmMgZXhhbXBsZToNCg0KIy4vYS5vdXQg
-TE9DQUxfSU4gRFJPUCA1IDUNCg0KR2V0IHRoZSBlcnJvciBtZXNzYWdlOg0KDQpJbnRlcmNlcHQ6
-IGNvbm5lY3Rpb24gcmVmdXNlZA0KSW50ZXJjZXB0OiBmYWlsZWQgdG8gc2VuZCBuZXRsaW5rIG1l
-c3NhZ2U6IGlsbGVnYWwgc2Vlaw0KDQpUaGUgaXBxX2NyZWF0ZV9oYW5kbGUgZnVuY3Rpb24gcmV0
-dXJuZXMgdGhlIGFib3ZlIGVycm9yIG1lc3NhZ2UuIEhvdyB0byB1c2UgdGhpcyBleGFtcGxlPw0K
-DQpUaGFua3MgaW4gYWR2YW5jZSE=
+VGhhbmsgeW91IGZvciB5b3VyIGhlbHAuIHByb2JsZW0gcmVzb2x2ZWQhIEkgZGlkIG5vdCBsb2Fk
+IHRoZSBpcF9xdWV1ZSBtb2R1bGUhDQoNCkFub3RoZXIgcXVlc3Rpb24sIGlzIHRoZXJlIGFueSBt
+b3JlIGV4YW1wbGVzIGFuZCB0dXRvcmlhbHMgYWJvdXQgdGhlIG5ldGZpbHRlcj8gSSB3YW50IHRv
+IGVuY3J5cHQgVENQIGRhdGEsIGRvIGkgbXVzdCB1c2UgdXNlciBzcGFjZSBhcHBsaWN0aW9uPyBD
+YW4gSSB1c2UgYSBtb2R1bGUgdG8gcHJvY2VzcyBpdD8NCg0KVGhhbmsgeW91IGFnYWluIQ0KDQpZ
+b25nDQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIkNvbGluIEN5cmlsbGUi
+IDxlbmdwMjQzN0BudXMuZWR1LnNnPg0KVG86ICJ5b25nIiA8c2Rzc2x5QHNpbmEuY29tPg0KU2Vu
+dDogRnJpZGF5LCBKdW5lIDA2LCAyMDAzIDEyOjQ0IFBNDQpTdWJqZWN0OiBSRTogSG93IHRvIHVz
+ZSB0aGUgSW50ZXJjZXB0LmMgZXhhbXBsZSBpbiBpcHRhYmxlcz8NCg0KDQpIYXZlIHlvdSBsb2Fk
+ZWQgdGhlIGZvbGxvd2luZyBtb2R1bGVzIDoNCg0KIyBtb2Rwcm9iZSBpcF9xdWV1ZQ0KIyBtb2Rw
+cm9iZSBpcHRhYmxlX2ZpbHRlcg0KDQpBbmQgc2V0IHVwIHVyIGZpbHRlcmluZyANCg0KI2lwdGFi
+bGVzIC1BIC4uLi4uLiAtaiBRVUVVRQ0KDQoNCkN5cmlsbGUNCg0KLS0tLS1PcmlnaW5hbCBNZXNz
+YWdlLS0tLS0NCkZyb206IHlvbmcgW21haWx0bzpzZHNzbHlAc2luYS5jb21dIA0KU2VudDogRnJp
+ZGF5LCBKdW5lIDA2LCAyMDAzIDExOjMxIEFNDQpUbzogbmV0ZmlsdGVyLWRldmVsQGxpc3RzLm5l
+dGZpbHRlci5vcmcNClN1YmplY3Q6IEhvdyB0byB1c2UgdGhlIEludGVyY2VwdC5jIGV4YW1wbGUg
+aW4gaXB0YWJsZXM/DQoNCg0KSGVsbG8gQWxsLA0KDQpJIHdhbnQgdG8gdXNlIHRoZSBsaWJpcHEs
+IEkgZW5jb3VudGVyZWQgYW4gZXJyb3IgbWVzc2FnZSB3aXRoIHRoZQ0KSW50ZXJjZXB0cy5jIGV4
+YW1wbGU6DQoNCiMuL2Eub3V0IExPQ0FMX0lOIERST1AgNSA1DQoNCkdldCB0aGUgZXJyb3IgbWVz
+c2FnZToNCg0KSW50ZXJjZXB0OiBjb25uZWN0aW9uIHJlZnVzZWQNCkludGVyY2VwdDogZmFpbGVk
+IHRvIHNlbmQgbmV0bGluayBtZXNzYWdlOiBpbGxlZ2FsIHNlZWsNCg0KVGhlIGlwcV9jcmVhdGVf
+aGFuZGxlIGZ1bmN0aW9uIHJldHVybmVzIHRoZSBhYm92ZSBlcnJvciBtZXNzYWdlLiBIb3cgdG8N
+CnVzZSB0aGlzIGV4YW1wbGU/DQoNClRoYW5rcyBpbiBhZHZhbmNlIQ0KDQo=
