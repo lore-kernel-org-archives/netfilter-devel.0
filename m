@@ -1,16 +1,18 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: iptables on sparc64 platform?
-Date: 15 Sep 2002 14:58:21 +0200
+From: Stephen Frost <sfrost@snowman.net>
+Subject: Re: [PATCH] Small fixes to Polish FAQ
+Date: Sun, 15 Sep 2002 15:42:22 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1032094701.28097.150.camel@tux>
-References: <20020314153419.GA5152@margo.student.utwente.nl>
+Message-ID: <20020915194222.GT24872@ns>
+References: <Pine.LNX.4.44.0209132051260.8309-200000@dns.toxicfilms.tv> <20020915132537.J3810@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature";
-	boundary="=-AfTVVjaJ8a4DyPElOViv"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BBw4iOnA9FNdCxVc"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Simon Oosthoek <simon@cal003100.student.utwente.nl>
-In-Reply-To: <20020314153419.GA5152@margo.student.utwente.nl>
+To: Harald Welte <laforge@gnumonks.org>,
+	Maciej Soltysiak <solt@dns.toxicfilms.tv>,
+	netfilter-devel@lists.samba.org
+Content-Disposition: inline
+In-Reply-To: <20020915132537.J3810@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,68 +24,47 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-AfTVVjaJ8a4DyPElOViv
-Content-Type: multipart/mixed; boundary="=-TgttfE71HGdGSbXMIeX0"
-
-
---=-TgttfE71HGdGSbXMIeX0
-Content-Type: text/plain
+--BBw4iOnA9FNdCxVc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2002-03-14 at 16:34, Simon Oosthoek wrote:
+* Harald Welte (laforge@gnumonks.org) wrote:
+> I'm sorry, I have read the email but somehow I'm not sure how active our =
+current
+> Webmaster (stephen frost) is...
+>=20
+> I'm now going to take care of this.
+>=20
+> Stephen: Are you busy at the moment? Are you lacking some privileges on
+> kashyyyk.netfilter.org?
 
-> The reason I have doubts about the quality of the modules on 64 bit sparc=
- is
-> that the iptables command gives an invalid argument error when using the =
--m
-> limit option. The ipt_limit module is in memory (according to lsmod).
+Unfortunately I've been pretty busy and I wasn't sure where we were at
+the moment...  I recall you mentioning that you wanted things generated
+from the account on kashyyyk but I wasn't sure if that started
+immediately or not.  Sorry I havn't been around much, as I mentioned in
+my email regarding the update to my patch I'm closing on a house at the
+end of this month and school is keeping me pretty busy.
 
-Hi Simon, sorry for the very very late reply.
+I'll log in and look around some and see if I can figure things out.
+I'll also try and come up with the last list of 'issues' that I had and
+determine if they're current still since I don't think I had gotten a
+response on them...
 
-It seems I made a patch for libipt_limit.c when I read this mail but it
-seems I never sent it to anyone :( I found it when I was cleaning up a
-bit.
+	Sorry,
 
-Do you still have this problem?
-I don't know if this patch will solve the problem but if you want you
-can give it a try.
+		Stephen
 
---=20
-/Martin
-
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
-
---=-TgttfE71HGdGSbXMIeX0
-Content-Disposition: attachment; filename=libipt_limit-diff
-Content-Type: text/plain; name=libipt_limit-diff; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-
---- netfilter/userspace/extensions/libipt_limit.c.orig	Tue Jul 30 11:56:40 =
-2002
-+++ netfilter/userspace/extensions/libipt_limit.c	Tue Jul 30 11:57:28 2002
-@@ -183,7 +183,7 @@
-     "limit",
-     IPTABLES_VERSION,
-     IPT_ALIGN(sizeof(struct ipt_rateinfo)),
--    offsetof(struct ipt_rateinfo, prev),
-+    IPT_ALIGN(sizeof(struct ipt_rateinfo)),
-     &help,
-     &init,
-     &parse,
-
---=-TgttfE71HGdGSbXMIeX0--
-
---=-AfTVVjaJ8a4DyPElOViv
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+--BBw4iOnA9FNdCxVc
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.0.7 (GNU/Linux)
 
-iD8DBQA9hIPtWm2vlfa207ERApMGAJ9h5pKZ6RwAkFvYFn8cUJHc2MgkDgCfeG7T
-sb1vsqfdjc6qmKgJHXTH7EA=
-=dgGg
+iD8DBQE9hOKerzgMPqB3kigRAtEmAKCAjgpHsUtA3dWPWXaKN8LT7Lpn3wCgi4bF
+MvOysD/5EpF9FaQkWSjM/tI=
+=ET7a
 -----END PGP SIGNATURE-----
 
---=-AfTVVjaJ8a4DyPElOViv--
+--BBw4iOnA9FNdCxVc--
