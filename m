@@ -1,12 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Where is the 2003 workshop summary
-Date: Fri, 16 Jan 2004 17:51:46 +0100 (CET)
+Subject: Re: manual connection adding to ip_conntrack hash table
+Date: Fri, 16 Jan 2004 17:53:47 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401161734210.30706-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0401161721460.30706-100000@filer.marasystems.com>
+References: <14603099.20040116153336@post.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Konrad D." <darnok@post.pl>
+In-Reply-To: <14603099.20040116153336@post.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,11 +20,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Is the workshop summary available for online reading somwhere? Can not 
-find it linked from the home page.
+On Fri, 16 Jan 2004, Konrad D. wrote:
 
-The draft in the CVS looks interesting, apart from the syntax errors 
-preventing it from being compiled and the missing introduction..
+> I'm in the course of writing my thesis about connection tracking in netfilter,
+> it's sad but I need help. So I'm asking for help you, the netfilter developers.
+> Topic of my thesis is High Availability Firewall.
+
+There has been several projects aiming to add connection tracking
+synchronisation/failover to netfiler, but so far it is not completed.
+
+The most current and active is netfilter-ha which can be browsed at
+http://cvs.netfilter.org/netfilter-ha/ with mailinglist at 
+http://lists.netfilter.org/mailman/listinfo/netfilter-failover
 
 Regards
 Henrik
