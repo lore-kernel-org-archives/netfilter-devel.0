@@ -1,16 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Asym. router has problems with full ip_conntrack table in
-	2.4.20
-Date: 27 Jan 2003 12:40:26 +0100
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Asym. router has problems with full ip_conntrack table in 2.4.20
+Date: Mon, 27 Jan 2003 13:24:59 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1043667626.4275.30.camel@tux.rsn.bth.se>
+Message-ID: <20030127122459.GB18340@oknodo.bof.de>
 References: <20030127112653.GB9209@westend.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Christian Hammers <ch@westend.com>
+Content-Disposition: inline
 In-Reply-To: <20030127112653.GB9209@westend.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -22,27 +21,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2003-01-27 at 12:26, Christian Hammers wrote:
+> I use kernel 2.4.20 and iptables filter (no NAT or stateful filtering!) on
+> a router that is part of a large network and has many asymetric routes
+> i.e. inbound packages of some connections go over this host but replies
+> are send via another router. Therefore stateful packet filtering would
+> have no chance to get some kind of ESTABLISHED state or similar and is
+> completely disabled.
 
-[big snip]
-> I can reproduce on my desktop machine that the /proc files are active
-> without having ipt_conntrack.o loaded and that I really have packet loss
-> when the tables fill up!
+ESTABLISHED is reached unidirectional, as soon as a packet successfully
+passes through your box. If the return direction is completely different,
+then those conntrack entries won't be ASSURED, and will be preferentially
+reaped when the tracking table is full.
 
-ipt_conntrack != ip_conntrack
+> Now sadly the /proc/net/ip_conntrack still exists and slowly fills up,
 
-ipt_conntrack is a match to match on conntrack states.
-ip_conntrack is the connectiontracking.
+Can you characterize what kinds of connections fill up the table?
+The normal timeouts should still apply, and I _think_ that the
+TCP state engine should work, too (i.e. properly terminated
+TCP connections should be flushed in short time, once the FINs
+are seen).
 
-Remove ip_conntrack and all should be fine.
+Somebody please correct me loudly, if that is not true.
 
-This isn't a development related issue, please post further problems on
-this matter to netfilter@lists.netfilter.org
-(and remove this list from the recipients)
-(I'm sending my reply to the list you mailed just to let people know
-that I've already answered your mail)
+However, you appear to not want conntracking at all. You write:
 
--- 
-/Martin
+> lsmod shows only the following (relevant), ipt_conntrack.o is
+> at least compiled and installed in /lib/modules/* although not loaded.
+> 	ipt_MARK                 800   0  (autoclean)
+> 	iptable_mangle          2208   0  (autoclean)
+> 	ipt_LOG                 3200   2  (autoclean)
+> 	iptable_filter          1760   1  (autoclean)
+> 	ip_tables              13184   4  [ipt_MARK iptable_mangle ipt_LOG iptable_filter]
+> 
+> I currently have:
+> 	lx01:/home/ch# wc -l /proc/net/ip_conntrack 
+> 	  25963 /proc/net/ip_conntrack
+> (all normal traffic, 99% in state [UNREPLIED] due to asymetric routing)
 
-Never argue with an idiot. They drag you down to their level, then beat you with experience.
+You CANNOT have /proc/net/ip_conntrack if ip_conntrack.o is a module,
+and not loaded. Thus, it is almost certain that the kernel you run,
+has ip_conntrack compiled in. Please check the boot messages; there
+should be a mention of "ip_conntrack", which also tells you the
+boottime ip_conntrack_max selection.
+
+best regards
+  Patrick
