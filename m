@@ -1,16 +1,17 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: Re: [PATCH nfsim] RFC: quote control and 8bit characters in the
-	data portion
-Date: Sat, 12 Feb 2005 01:31:57 +0100
-Message-ID: <20050212003156.GA16948@zion.homelinux.com>
-References: <20050211225628.GA27755@roonstrasse.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] kill NFC_* stuff in iptables [was Re: iptables compile
+ error: NFC_IP_TOS undeclared]
+Date: Sat, 12 Feb 2005 02:32:56 +0100
+Message-ID: <420D5CC8.1060600@trash.net>
+References: <Pine.GSO.4.33.0502101758010.19216-100000@indigo>	<420B8623.9050308@niksula.hut.fi>	<420B9ED0.1020303@trash.net>
+	<420BEB36.7080209@eurodev.net> <420D0276.5080200@trash.net>
+	<420D27DB.9000608@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="82I3+IH0IqGh5yIs"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Max Kellermann <max@duempel.org>
-Content-Disposition: inline
-In-Reply-To: <20050211225628.GA27755@roonstrasse.net>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <420D27DB.9000608@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,48 +23,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Pablo Neira wrote:
 
---82I3+IH0IqGh5yIs
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Patrick McHardy wrote:
+>
+>> Why didn't you remove it entirely instead ?
+>
+> true :), patch attached. I've gzip'ed it, it's too big for sending it 
+> in clear text.
 
+Thanks a lot. Hopeing I don't annoy you .. I haven't actually checked
+the API, but can't we remove all those now empty init functions ?
+If not I think it would be nicer to change the API to check for
+->init == NULL instead of leaving all these empty funtion bodies around.
 
-Hi Max,
+> Next step, what do you think about removing nfcache passed as 
+> parameter from the iptables API?
 
-On Fri, Feb 11, 2005 at 11:56:28PM +0100, Max Kellermann told us:
-> Any more ideas? What else can be done to improve nfsim's support for
-> binary protocols? Maybe unescape everything before checking
-> expectations?
+I don't think we can remove it from struct ipt_entry without
+breaking userspace compatibility. But we could stop using it.
 
-one thing I could think about and what would be quite handy IMHO would
-be to give packet input to nfsim from tcpdump files. So one could make
-some captures of packets on the wire and then feed them to nfsim for
-testing. Unfortunately, I didn't have time to think a little bit more
-about this...
-
-
-Sven
-
->=20
-> Max
->=20
-
---=20
-Linux zion 2.6.11-rc2-mm1 #1 Fri Jan 28 18:13:44 CET 2005 i686 athlon i386 =
-GNU/Linux
- 01:25:16 up 14 days,  7:06,  1 user,  load average: 0.08, 0.02, 0.01
-
---82I3+IH0IqGh5yIs
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQFCDU58o4FAdB2PneQRAqh+AJ96wgOpfjM5C2ppof5ByS1OVcRfTACdEaYa
-30Od2r/qHt5Q6+xEWfR4YVg=
-=63By
------END PGP SIGNATURE-----
-
---82I3+IH0IqGh5yIs--
+Regards
+Patrick
