@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: New match ipt_nexthop
-Date: Wed, 15 Sep 2004 23:46:08 +0200
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: [PATCH] ip_nat_ftp doesn't register any ports by default.
+Date: Thu, 16 Sep 2004 08:07:06 +1000
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <4148B820.3040301@trash.net>
-References: <4148ABD0.9070203@cookinglinux.org>
+Message-ID: <1095286006.1940.5.camel@bach>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org,
+        lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Samuel Jean <sj-netfilter@cookinglinux.org>
-In-Reply-To: <4148ABD0.9070203@cookinglinux.org>
+To: Linus Torvalds <torvalds@osdl.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,29 +20,27 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Samuel Jean wrote:
+Linus, please apply ASAP.  This would be embarrassing: ip_nat_ftp broke
+in recent conversion to module_param_array().
 
-> Hi,
->
-> Attached is a pom-ng style patch that makes possible to match the 
-> next-hop ipv4 of a packet.
+Name: Fix ip_nat_ftp registration when no ports= arg
+Status: Trivial
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
+FTP NAT module doesn't register anything with no args.  Oops.
 
-Please attach the plain files next time.
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal .6124-linux-2.6.9-rc2-bk2/net/ipv4/netfilter/ip_nat_ftp.c .6124-linux-2.6.9-rc2-bk2.updated/net/ipv4/netfilter/ip_nat_ftp.c
+--- .6124-linux-2.6.9-rc2-bk2/net/ipv4/netfilter/ip_nat_ftp.c	2004-09-16 00:17:16.000000000 +1000
++++ .6124-linux-2.6.9-rc2-bk2.updated/net/ipv4/netfilter/ip_nat_ftp.c	2004-09-16 08:05:38.000000000 +1000
+@@ -297,7 +297,7 @@ static int __init init(void)
+ 	char *tmpname;
+ 
+ 	if (ports_c == 0)
+-		ports[ports_c] = FTP_PORT;
++		ports[ports_c++] = FTP_PORT;
+ 
+ 	for (i = 0; i < ports_c; i++) {
+ 		ftp[i].tuple.dst.protonum = IPPROTO_TCP;
 
->
-> Should work with both 2.4 and 2.6 but still in testing.
->
-> Notice that, for an unknown reason, the 2.6 Kconfig.ladd is appended 
-> to the end of Kconfig. I'll be quite happy if someone could fix it and 
-> tell me what was wrong. (I'm sorry for the inconvenient.)
->
-> Bad and good comments are welcome!
-
-
-We already have the realm match in the kernel, which matches the
-routing realms. Is there anything you can't do with the realm
-match but with your new match ?
-
-Regards
-Patrick
+-- 
+Anyone who quotes me in their signature is an idiot -- Rusty Russell
