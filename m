@@ -1,8 +1,8 @@
 From: Mohammad Rehan Sami <sami@ccse.kfupm.edu.sa>
 Subject: Re: [mpls-linux-general] TCINDEX HOWTO
-Date: Thu, 08 Jul 2004 01:42:24 +0300
+Date: Thu, 08 Jul 2004 01:42:30 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1089240144.40ec7c50c0dd7@webmail.ccse.kfupm.edu.sa>
+Message-ID: <1089240150.40ec7c568b257@webmail.ccse.kfupm.edu.sa>
 References: <200407071909.i67J9wMX014381@madinah.ccse.kfupm.edu.sa> <20040707193216.GB22432@mindspring.com>
 Mime-Version: 1.0
 Content-Type: text/plain
