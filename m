@@ -1,14 +1,12 @@
-From: Peter Lee <mclee@sfu.ca>
-Subject: Re: netfilter for IPv6
-Date: Mon, 04 Nov 2002 15:23:55 PST
+From: Didier Tournier <Didier.TOURNIER@gemplus.com>
+Subject: RFC 2694 and iptables.
+Date: Mon, 04 Nov 2002 17:20:30 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200211042323.gA4NNt6K016793@rm-rstar.sfu.ca>
-Reply-To: Peter Lee <mclee@sfu.ca>
+Message-ID: <3DC69E4E.6080503@gemplus.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: binary
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Content-Disposition: inline
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -20,55 +18,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Thank you for your quick respond. In fact, I am porting an ad hoc routing
-protocol called AODV, written in user space. The original author make use of
-netfilter to retrive ip packet from the kernel to user space. I am
-personally not familiar with netfilter and I am looking for more information
-how to use netfilter hook for both IPv4 and IPv6.
+Hi,
+I would like to build a dns alg with iptables.
+The main role of a dns alg is to modify DNS response packet by replacing 
+private IP address with public ones.
 
-Thanks again.
-Peter
+I ask anybody if it is a good idea to build a new module target and in 
+this case if I have to rebuild the kernel or if I could build it in user 
+space by using libipq?
+Is there any litterature on how to add a new target module for iptables.
 
-On Tue, 5 Nov 2002 00:13:00 +0100 netfilter-devel@lists.netfilter.org wrote:
+Thanks in advance for your help
+Didier Tournier
 
-> On Mon, Nov 04, 2002 at 03:09:10PM -0800, Peter Lee wrote:
-> > Hi,
-> >=20
-> 
-> hi. please direct netfilter-related questions to
-> netfilter-devel@lists.netfilter.org
-> 
-> > Is there any good tutorial on how to use netfilter hooks for IPv6? I'm
-> st= uck
-> > in the middle of porting an IPv4 protocol to IPv6. Please help.
-> 
-> There is no difference between netfilter hooks for ipv4 and ipv6. You=20
-> use them exactly the same way.
-> 
-> However, if you are porting a protocol, netfilter shouldn't be involved at
+French version :
 
-> all.	Transport Protocols (layer 4) are dealt with in the standard network
+Bonjour,
 
-> stack
-> 
-> > Peter Lee
-> > M.Eng. Student
-> > Simon Fraser University
-> 
-> --=20
-> Live long and prosper
-> - Harald Welte / laforge@gnumonks.org 	    http://www.gnumonks.org/
+Je souhaite écrire un target pour iptables. Celle-ci remplira la 
+fonction DNS-ALG pour IPV4.
+La fonction principale de ce DNSALG sera de remplacer une adresse privée 
+par une publique. (cf RFC 2694).
 
->
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+Pouvez vous me guider un peu sur les points suivant.
 
->
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+Si j'écris un module. dois-je obligatoirement recompiler le noyau ou 
+puis je simplement écrire un shared object.
+Ou puis je trouver des exemple de makefiles pour ce type de shared objects.
+Qu'elle littérature me conseillez vous pour cet exercice?
+Est il possible d'écrire une target en utilisant libipq?
 
->
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-
-> =3D
-> "If this were a dictatorship, it'd be a heck of a lot easier, just so long
-
->  as I'm the dictator."	--  George W. Bush Dec 18, 2000
+Merci d'avance pour votre aide.
+Didier Tournier
+Gemplus Application research labs.
