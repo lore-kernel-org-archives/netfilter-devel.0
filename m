@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Raw Sockets and Netfiter
-Date: Wed, 26 Mar 2003 16:32:56 +0100
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] remove unnecessary initialization to 0
+Date: Wed, 26 Mar 2003 16:45:10 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030326153256.GA21953@sunbeam.de.gnumonks.org>
-References: <001701c2f29d$20afe1e0$6b01a8c0@COURVOISIER> <20030325072544.GI18652@oknodo.bof.de>
+Message-ID: <3E81CB06.90208@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iytlPraCFSCqrfnM"
-Cc: Ethan Dameron <efd@duke.edu>, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------060806040107040802020305"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-Content-Disposition: inline
-In-Reply-To: <20030325072544.GI18652@oknodo.bof.de>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,46 +18,83 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------060806040107040802020305
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---iytlPraCFSCqrfnM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch removes a couple of unnecessary memset()s for
+data which is located in the bss segment.
 
-On Tue, Mar 25, 2003 at 08:25:44AM +0100, Patrick Schaaf wrote:
-> On Tue, Mar 25, 2003 at 02:06:59AM -0500, Ethan Dameron wrote:
-> > If I have a an IP datagram in userspace and I send it via a raw socket
-> > created with socket(PF_INET, SOCK_RAW, IPPROTO_RAW) using the send()
-> > system call, will this packet traverse the netfilter chains?
->=20
-> No. Raw sockets bypass the TCP/IP stack. Netfilter hooks, and
-> consequently iptables, sit inside the IP stack.
+Regards,
+Patrick
 
-PF_PACKET sockets bypass the TCP/IP stack.
+--------------060806040107040802020305
+Content-Type: text/plain;
+ name="netfilter-nobssinit.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="netfilter-nobssinit.diff"
 
-PF_INET/SOCK_RAW sockets still travers the TCP/IP stack.
+diff -urN a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- a/net/ipv4/netfilter/ip_conntrack_ftp.c	2002-11-29 00:53:15.000000000 +0100
++++ b/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-03-26 16:35:51.000000000 +0100
+@@ -405,7 +405,6 @@
+ 		ports[0] = FTP_PORT;
+ 
+ 	for (i = 0; (i < MAX_PORTS) && ports[i]; i++) {
+-		memset(&ftp[i], 0, sizeof(struct ip_conntrack_helper));
+ 		ftp[i].tuple.src.u.tcp.port = htons(ports[i]);
+ 		ftp[i].tuple.dst.protonum = IPPROTO_TCP;
+ 		ftp[i].mask.src.u.tcp.port = 0xFFFF;
+diff -urN a/net/ipv4/netfilter/ip_conntrack_irc.c b/net/ipv4/netfilter/ip_conntrack_irc.c
+--- a/net/ipv4/netfilter/ip_conntrack_irc.c	2002-11-29 00:53:15.000000000 +0100
++++ b/net/ipv4/netfilter/ip_conntrack_irc.c	2003-03-26 16:35:32.000000000 +0100
+@@ -259,8 +259,6 @@
+ 
+ 	for (i = 0; (i < MAX_PORTS) && ports[i]; i++) {
+ 		hlpr = &irc_helpers[i];
+-		memset(hlpr, 0,
+-		       sizeof(struct ip_conntrack_helper));
+ 		hlpr->tuple.src.u.tcp.port = htons(ports[i]);
+ 		hlpr->tuple.dst.protonum = IPPROTO_TCP;
+ 		hlpr->mask.src.u.tcp.port = 0xFFFF;
+diff -urN a/net/ipv4/netfilter/ip_nat_ftp.c b/net/ipv4/netfilter/ip_nat_ftp.c
+--- a/net/ipv4/netfilter/ip_nat_ftp.c	2002-11-29 00:53:15.000000000 +0100
++++ b/net/ipv4/netfilter/ip_nat_ftp.c	2003-03-26 16:35:41.000000000 +0100
+@@ -306,9 +306,6 @@
+ 		ports[0] = FTP_PORT;
+ 
+ 	for (i = 0; (i < MAX_PORTS) && ports[i]; i++) {
+-
+-		memset(&ftp[i], 0, sizeof(struct ip_nat_helper));
+-
+ 		ftp[i].tuple.dst.protonum = IPPROTO_TCP;
+ 		ftp[i].tuple.src.u.tcp.port = htons(ports[i]);
+ 		ftp[i].mask.dst.protonum = 0xFFFF;
+diff -urN a/net/ipv4/netfilter/ip_nat_irc.c b/net/ipv4/netfilter/ip_nat_irc.c
+--- a/net/ipv4/netfilter/ip_nat_irc.c	2002-11-29 00:53:15.000000000 +0100
++++ b/net/ipv4/netfilter/ip_nat_irc.c	2003-03-26 16:35:21.000000000 +0100
+@@ -243,9 +243,6 @@
+ 
+ 	for (i = 0; (i < MAX_PORTS) && ports[i] != 0; i++) {
+ 		hlpr = &ip_nat_irc_helpers[i];
+-		memset(hlpr, 0,
+-		       sizeof(struct ip_nat_helper));
+-
+ 		hlpr->tuple.dst.protonum = IPPROTO_TCP;
+ 		hlpr->tuple.src.u.tcp.port = htons(ports[i]);
+ 		hlpr->mask.src.u.tcp.port = 0xFFFF;
+diff -urN a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+--- a/net/ipv4/netfilter/ipt_ULOG.c	2002-11-29 00:53:15.000000000 +0100
++++ b/net/ipv4/netfilter/ipt_ULOG.c	2003-03-26 16:36:11.000000000 +0100
+@@ -320,7 +320,6 @@
+ 
+ 	/* initialize ulog_buffers */
+ 	for (i = 0; i < ULOG_MAXNLGROUPS; i++) {
+-		memset(&ulog_buffers[i], 0, sizeof(ulog_buff_t));
+ 		init_timer(&ulog_buffers[i].timer);
+ 		ulog_buffers[i].timer.function = ulog_timer;
+ 		ulog_buffers[i].timer.data = i;
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---iytlPraCFSCqrfnM
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+gcgoXaXGVTD0i/8RAvsjAJ9IkGwUb/khrYUtfSLZ52isJ3G6iACdE6wJ
-bVQwOivpIVJIgk8DQnDd3Xk=
-=4hxF
------END PGP SIGNATURE-----
-
---iytlPraCFSCqrfnM--
+--------------060806040107040802020305--
