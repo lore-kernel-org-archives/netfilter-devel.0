@@ -1,15 +1,16 @@
-From: Kenneth =?iso-8859-1?q?Aafl=F8y?= <keaafloy@online.no>
-Subject: 2.6.6-rc3 - "ip_conntrack_in: Frag of proto 17" (udp) with kNFS r/wsize > 8192
-Date: Fri, 7 May 2004 04:11:48 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: sparc64 match module - bug id 94
+Date: Fri, 7 May 2004 08:20:20 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200405070411.48918.keaafloy@online.no>
+Message-ID: <Pine.LNX.4.44.0405070816560.9465-100000@filer.marasystems.com>
+References: <Pine.LNX.4.33.0405061729170.1102-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: KOVACS Krisztian <hidden@balabit.hu>, dan radom <netfilter@radom.org>,
+   netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0405061729170.1102-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,37 +21,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+On Thu, 6 May 2004, Jozsef Kadlecsik wrote:
 
-I hope this problem has not been reported before or that I'm not just picking 
-up on some user-keyboard troubles, I've read over the archives, but could not 
-find anything relevat to this issue.
+> Just a thought: in 'pool' there was a similar problem and it was solved in
+> 'set' by keeping the kernel info structures in an array. Then instead of
+> the pointer like above, the user part stored the index of the
+> corresponding structure in the array.
 
-I've come across some strange behavior with a nfs server running on 2.6.6-rc3 
-today. My clients is also running this version. Basically when I set the NFS 
-client r/wsize = 8192, or remove the connection tracking netfilter modules 
-the problem goes away. If I set the r/wsize to 16834 and the conntrack module 
-is loaded I end up in the code segment below. When this happens the NFS 
-client will almost lose connection with the server, and print a lot of;
-NFS server not responding, still trying. NFS server OK.
+Fully possible, but will break binary compatibility.
 
-I've also tried 2.6.5, and the error is present there too, but not the segment 
-below, so I got no warning. I have not yet tried any lower version of the 
-kernel yet, but will do so if it's requested. I could also have provided you 
-with extensive information about my setup's, but I belive it's a minor 
-problem with the reassembly of fragmented packets. 
+Better for now to simply have a suitable #ifdef _KERNEL_ to redefine 
+*master in userspace on SPARC64 as "int64_t". The only question which has 
+not been fully identified is how userspace can determine this is SPARC64 
+with a 32-bit userspace, but actually it just needs to determine it is 
+SPARC64..
 
-ip_conntrack_core.c:798
-    /* Never happen */
-    if ((*pskb)->nh.iph->frag_off & htons(IP_OFFSET)) {
-        if (net_ratelimit()) {
-        printk(KERN_ERR "ip_conntrack_in: Frag of proto %u (hook=%u)\n",
-               (*pskb)->nh.iph->protocol, hooknum);
-        }
-        return NF_DROP;
-    }
-
-Does anybody have a solution for the problem exept making (manually) sure that 
-any client does not request a r/wsize above 8192?
-
-Kenneth
+Regards
+Henrik
