@@ -1,9 +1,14 @@
-From: achurch@achurch.org (Andrew Church)
-Subject: [PATCH] Fix oops on bad entry list
-Date: Wed, 19 Jun 2002 09:57:31 JST
+From: Fabrice MARIE <fabrice@celestix.com>
+Subject: Fwd: simple error in extensions/libipt_ROUTE.c extensions/libipt_IMQ.c
+Date: Thu, 20 Jun 2002 20:23:24 +0800
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <3d0fd9cc.63276@achurch.org>
-Content-Type: text/plain; charset=ISO-2022-JP
+Message-ID: <200206202023.24978.fabrice@celestix.com>
+Reply-To: fabrice@celestix.com
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8bit
+Cc: Alexey Talikov <alexey_talikov@texlab.com.uz>
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
@@ -16,60 +21,42 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-[Note: I am not subscribed to netfilter-devel; please CC me on any replies]
 
-     The patch below fixes an oops that occurs in Linux kernels
-<= 2.4.19-pre10 if an entry list passed to IPT_SO_SET_REPLACE contains an
-entry with a jump to an invalid position (into the middle of another entry
-or outside the list).
 
-  --Andrew Church
-    achurch@achurch.org
-    http://achurch.org/
+Hello,
 
---- net/ipv4/netfilter/ip_tables.c.old	Fri Jun  7 11:50:39 2002
-+++ net/ipv4/netfilter/ip_tables.c	Wed Jun 19 09:49:01 2002
-@@ -739,6 +739,7 @@
- 			   unsigned int *i)
- {
- 	unsigned int h;
-+	struct ipt_standard_target *t;
- 
- 	if ((unsigned long)e % __alignof__(struct ipt_entry) != 0
- 	    || (unsigned char *)e + sizeof(struct ipt_entry) >= limit) {
-@@ -751,6 +752,35 @@
- 		duprintf("checking: element %p size %u\n",
- 			 e, e->next_offset);
- 		return -EINVAL;
-+	}
-+
-+	if (e->target_offset + sizeof(struct ipt_entry_target)
-+	    >= e->next_offset) {
-+		duprintf("checking: element %p size %u target %u\n",
-+			 e, e->next_offset, e->target_offset);
-+		return -EINVAL;
-+	}
-+
-+	/* If the target is another chain, make sure the pointer is valid */
-+	t = (void *)ipt_get_target(e);
-+	if (strcmp(t->target.u.user.name, IPT_STANDARD_TARGET) == 0
-+	    && t->verdict >= 0) {
-+		int checkpos = 0;
-+		if (t->verdict >= newinfo->size) {
-+			duprintf("checking: element %p: jump target %u"
-+				 " out of range", e, t->verdict);
-+			return -EINVAL;
-+		}
-+		while (checkpos < t->verdict) {
-+			struct ipt_entry *e2;
-+			e2 = (void *)newinfo->entries + checkpos;
-+			checkpos += e2->next_offset;
-+		}
-+		if (checkpos > t->verdict) {
-+			duprintf("checking: element %p: jump target %u"
-+				 " invalid", e, t->verdict);
-+			return -EINVAL;
-+		}
- 	}
- 
- 	/* Check hooks & underflows */
+This mail would be more appropriate in netfilter-devel,
+especially if you want the coreteam to notice/fix it.
+
+Have a nice day,
+
+Fabrice.
+
+----------  Forwarded Message  ----------
+Subject: simple error in extensions/libipt_ROUTE.c extensions/libipt_IMQ.c
+Date: Thu, 20 Jun 2002 16:17:50 +0500
+From: Alexey Talikov <alexey_talikov@texlab.com.uz>
+To: netfilter@lists.samba.org
+
+Simple error in extensions/libipt_ROUTE.c
+line 24 and 127 need change NETFILTER_VERSION to IPTABLES_VERSION
+also
+extensions/libipt_IMQ.c
+line 18 and 87 need change NETFILTER_VERSION to IPTABLES_VERSION
+-----------------------------------
+mailto:alexey_talikov@texlab.com.uz
+BR
+Alexey Talikov
+FORTEK
+-----------------------------------
+
+-------------------------------------------------------
+
+--
+Fabrice MARIE
+Senior R&D Engineer
+Celestix Networks
+http://www.celestix.com/
+
+"Silly hacker, root is for administrators"
+       -Unknown
