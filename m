@@ -1,14 +1,17 @@
-From: "Jack" <jack@cosmism.com>
-Subject: where's the definition of function iptc_init
-Date: Sat, 14 Jun 2003 21:19:32 +0800
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [RESEND][TRIVIAL][PATCH] 25_natcore-nohelper.patch compile
+	problem (fwd)
+Date: 14 Jun 2003 16:04:56 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <01b101c33277$9b157e80$0b00a8c0@haf>
+Message-ID: <1055599495.15681.71.camel@tux.rsn.bth.se>
+References: <Pine.LNX.4.51.0306131744310.11867@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <Pine.LNX.4.51.0306131744310.11867@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,7 +22,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-KHNlbmQgYWdhaW4gaW4gdHh0IGZvcm1hdCkNCkhpIGFsbA0KU29ycnkgZm9yIGRpc3R1cmJpbmcg
-eW91IGFsbA0KSSBqdXN0IGJlZ2luIHRvIHN0dWR5IHRoZSBzb3VyY2UgY29kZS4NCkkgY291bGQg
-bm90IGZpbmQgdGhlIGRlZmluaXRpb24gb2YgZnVuY3Rpb24gaXB0Y19pbml0LiANCiBQbGVhc2Ug
-Z2l2ZSBtZSBhIGhpbnQuDQp0aGFua3MNCg0K
+On Fri, 2003-06-13 at 17:45, Maciej Soltysiak wrote:
+> Hi,
+> 
+> 25_natcore-nohelper.patch applied to the kernel will not compile with
+> gcc3.3 (i think 3.2 too)
+
+Thanks applied.
+
+-- 
+/Martin
