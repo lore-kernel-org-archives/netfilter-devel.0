@@ -1,16 +1,14 @@
-From: Roberto Nibali <ratz@drugphish.ch>
-Subject: Re: dropping support for ipfwadm/ipchains (Re: when IPVS into netfilter?)
-Date: Fri, 23 May 2003 23:11:59 +0200
+From: Nigel Kukard <nkukard@lbsd.net>
+Subject: [nkukard@lbsd.net: Re: Experimental RTSP modules]
+Date: Sat, 24 May 2003 09:40:54 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3ECE8E9F.1090107@drugphish.ch>
-References: <3EB44BE7.3070602@wanadoo.es> <3EBCE288.5020801@drugphish.ch> <3EBEACBC.2090202@wanadoo.es> <3EC9DC59.6010006@drugphish.ch> <20030523195201.GO3077@sunbeam.de.gnumonks.org>
+Message-ID: <20030524074054.GB14062@lbsd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Xose Vazquez Perez <xose@wanadoo.es>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,42 +19,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
 
-> So this would make something like 2*(iptables_included-ipchains_included).
-> But then the question is whether we are talking about stable kernels or
-> development kernels?
+--FkmkrVfFsRoUs1wW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'd say development, that's how I interprete that "formula" und the 
-wording around it, so it would be 2.7 then. But this is entirely up to 
-you guys.
+> >  * IPv6 modules
+>=20
+> ipv6 is not supported by conntrack or NAT, so I guess that's going to be
+> hard to support :)  This is has been discussed quite a number of times
+> on the devel list.
+>=20
+> > Hints for implementing IPv6 conntrack and nat modules especially apprec=
+iated
+> > (why are there no IRC or FTP modules for IPv6?)
+>=20
 
-> I think ipfwadm can be dropped safely, but ipchains will have to stay.
+hrmmm... what is missing in supporting IPv6? Ok, I've read most of the posts
+about code duplication if you copied IPv4 and modified it to support IPv6,
+changing all the function names along the way. Maybe we should have a=20
+discussion about how to move forward? What needs to be done, planning ...=
+=20
+etc to integrate the IPv4 and new IPv6 conntrack into 1 easy to use interfa=
+ce.
 
-Good, I just wanted to establish if the part my previous patch was 
-against is going to remain for the 2.6 timeline. This seems to be the 
-case then.
+I would be more than happy to lend a few of my developers to help with IPv6=
+=20
+support. Most of our work revolves around networking under linux, and we
+are busy moving over to IPv6, so it will help every1.
 
->>The second one is, which makes the whole LVS code as non-intrusive as 
->>even possible. I think the netfilter community could live with two more 
->>ifdef-blocks, right? :)
->  
-> We certainly don't mind.  However, having IPVS specific ifdefs in the
-> mainline kernel while IPVS is outside the mainstream kernel sounds a bit
-> odd to me.   I think in general this is discouraged...
 
-:) Of course. The idea is to submit LVS in overviewable chunks to the 
-respective kernel lieutnants. The patch I posted is actually the only 
-part where we change anything of the existing kernel tree. The rest are 
-new files (also thanks to the cool Kconfig).
+Regards
+Nigel
 
-I only wanted to ask if those two ifdef'd hooks would be acceptable for 
-you guys without sending the whole ipvs patch. You can have a look at it 
-for yourselves:
 
-http://www.linux-vs.org/software/kernel-2.5/linux-2.5.69-ipvs-1.1.5.patch.gz
 
-Thanks for you time and the positive answer. See you at OLS,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
+
+
+--FkmkrVfFsRoUs1wW
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+zyIGKoUGSidwLE4RAr4wAKCf2r5/Qe/pKLgMxh5zc/KS/fhegQCdEGdU
+hjhxzk9ygB1A2yOIAF8Pdgs=
+=uE6x
+-----END PGP SIGNATURE-----
+
+--FkmkrVfFsRoUs1wW--
