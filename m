@@ -1,16 +1,17 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: can a netfilter hook interact with userspace ?
-Date: Thu, 22 Jul 2004 11:17:53 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: using netfilter with mpls
+Date: Wed, 21 Jul 2004 16:40:45 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40FF8641.1080607@eurodev.net>
-References: <2CC2CB3C95C3D311ABAC009027DCD77E019690D6@flyhalf.pactolus.com>
+Message-ID: <20040721204045.GM27487@obroa-skai.de.gnumonks.org>
+References: <026301c44e59$b892c9a0$248610ac@pc.ccse.kfupm.edu.sa> <1087157097.11287.16.camel@ws> <00c101c451f0$0622a070$248610ac@pc.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZY5CS28jBCfb727c"
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Horton, Dave" <dhorton@pactolus.com>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <2CC2CB3C95C3D311ABAC009027DCD77E019690D6@flyhalf.pactolus.com>
+To: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Content-Disposition: inline
+In-Reply-To: <00c101c451f0$0622a070$248610ac@pc.ccse.kfupm.edu.sa>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,34 +22,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Dave,
 
-Horton, Dave wrote:
+--ZY5CS28jBCfb727c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->Thank you, both the example code and the netfilter hacking how to were
->helpful as far as how to write the kernel side of things.  However, I'm
->unclear how the user program needs to be written, and the how-to doesn't
->seem to address this.  I'm quite familiar with sockets programming, though
->not in this context (user-kernel communication), and I am wondering exactly
->how the user program creates the socket (via socket() I assume, but what
->params?) in such a way as to "connect" to my kernel module, such that calls
->it issues to getsockopt and setsockopt call my handler.  Sorry for the dumb
->question and I will gladly read the relevant docs (or even better: sample
->code) if someone can point me to them, but I scoured the netfilter hacking
->howto and didn't find the info I need.
->
->  
->
+On Mon, Jun 14, 2004 at 12:14:40PM +0300, Muhammad R. Sami wrote:
+> Can you please help me on writing this MPLS match/target and if
+> iptables is not a good solution than where should I focus.
 
-Krisztian Kovacs wrote some time ago an user space program and the 
-kernel part (patch) to send information to the connection tracking 
-system via getsockopt/setsockopt. I think that it's a nice sample code 
-of how to use getsockopt/setsockopt to retrieve/pass information from/to 
-kernel space.
+First of all, we need to get the new MPLS implementation into the 2.6.x
+kernel, then we can start adding support for MPLS packet filtering.
 
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-May/015385.html
+> regards
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-hope that it helps.
+--ZY5CS28jBCfb727c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-regards,
-Pablo
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFA/tTMXaXGVTD0i/8RAmcKAJ9seJJZ/Mwh/YIa189CF+CW0pOBhwCgqNeJ
+jSMmkpaj6VT337jFd9M062w=
+=wARh
+-----END PGP SIGNATURE-----
+
+--ZY5CS28jBCfb727c--
