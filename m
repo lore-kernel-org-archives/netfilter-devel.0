@@ -1,64 +1,85 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Question in install uml-patch-2.4.20-8
-Date: Mon, 17 Nov 2003 12:04:05 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031117110405.GG22919@sunbeam.de.gnumonks.org>
-References: <20031116192827.42820.qmail@mail.com>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: Announce: NetKeeper Firewall For Linux
+Date: 17 Nov 2003 09:21:58 -0500
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <1069076627.1075.15.camel@jzny.localdomain>
+References: <1067285612.552.9.camel@aphrodite.olympus.net>
+	 <20031028014223.129933be.davem@redhat.com>
+	 <1067335655.10628.7.camel@rade7.s.cs.auc.dk>
+	 <1068001237.1064.31.camel@jzny.localdomain>
+	 <1068046114.31636.92.camel@rade7.s.cs.auc.dk>
+	 <1068089345.1020.17.camel@jzny.localdomain>
+	 <1068114376.1532.115.camel@rade7.s.cs.auc.dk>
+	 <1068211670.1031.49.camel@jzny.localdomain>  <3FAE9B9B.60007@cs.auc.dk>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E69HUUNAyIJqGpVn"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Xiaonan Lu <zplxn@mail.com>
-Content-Disposition: inline
-In-Reply-To: <20031116192827.42820.qmail@mail.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Emmanuel Fleury <fleury@cs.auc.dk>, "David S. Miller" <davem@redhat.com>,
+        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Mikkel Christiansen <mixxel@cs.auc.dk>
+In-Reply-To: <3FAE9B9B.60007@cs.auc.dk>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---E69HUUNAyIJqGpVn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sun, 2003-11-09 at 14:55, Mikkel Christiansen wrote:
 
-On Sun, Nov 16, 2003 at 02:28:27PM -0500, Xiaonan Lu wrote:
-> Hi,=20
-> I am a new guy to netfilter. I met some problems in my installation of
-> uml. when I type : patch -p0 < uml-patch-2.4.20-8, it runs a little
-> while and show up these error:=20
+> >
+> Integrate your classifer like any other tc
+> >classifier and then you dont have to look at my code unless you really
+> >want to.  
+> >
+> 
+> If we integrate it would mean a new/alternative interface
+> to tc where you compile the filter/configuratoin before
+> uploading.
 
-Well, what does the user-mode-linux project have to do with netfilter
-development?  This is the netfilter development mailinglist.
+Why cant you use the same interface that exists today - the one that is
+used to load new filter rules?
 
-> Thanks a lot.=20
+>  We believe this is a good thing since it allows
+> admins to (syntax) check the filter before inserting it.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Sure. It will be nice to have something like that in user space.
 
---E69HUUNAyIJqGpVn
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+> I believe the guys from shorewall sees this as a missing
+> feature of iptables.
+> 
+> Would you consider such an interface for tc good are bad?
+> 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+Refer to my comment above: I dont think you need anything new. Look at a
+simple classifier like fwmark and comment if you need something new.
 
-iD8DBQE/uKslXaXGVTD0i/8RAkMFAJ90adJzZT9nsNZGqu1kKt0UAx/S5wCeOeCo
-tX2ecqyQKBe8qK+zfhdsnZk=
-=9a9V
------END PGP SIGNATURE-----
+> >Isnt the state database another classifier and therefore you will be
+> >faced with the same challenges for it? 
+> >I dont think you wuill get a free ride putting the state lookups
+> >somewhere else.
+> >
+> current scheme cant handle dynamic rules - and it will
+> be a while (if ever) before it can.
+> 
 
---E69HUUNAyIJqGpVn--
+Please think about that problem - otherwise you get an C in your course
+work from me ;-> (F would be too harsh ;->)
+
+> >
+> >Couldnt you, knowing the rules already existing check for breakage in
+> >user space?
+> >
+> no - if someone decided to write their own "client/compiler" in
+> userspace they could potentially produce a broken IDD - that
+> could crash the kernel!
+> 
+
+I think it is nice to have a feature that does the verification in
+user space before downloading.  
+I didnt understand what you mean that someone else writes their own
+"client/compiler". Arent you the one in charge of this compiler?
+Why would you allow other people to write this compiler?
+
+cheers,
+jamal
