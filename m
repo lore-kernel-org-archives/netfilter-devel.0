@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: New Kernel
-Date: Mon, 9 Dec 2002 19:48:25 +0100
+From: "Gael Mauleon" <gmauleon@free.fr>
+Subject: Re: Concerning ULOG and the MAC logging bug
+Date: Mon, 9 Dec 2002 20:28:27 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021209184825.GQ2223@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.21.0211291139050.18092-100000@kin.neutel.net.co>
+Message-ID: <002601c29fb9$260345b0$0200a8c0@KevlarPC>
+References: <003101c29ca5$289c8b40$0200a8c0@KevlarPC> <20021209183930.GN2223@sunbeam.de.gnumonks.org>
+Reply-To: "Gael Mauleon" <gmauleon@free.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DBUa/BSa4z6QPQv1"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: root <root@neutel.net.co>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.21.0211291139050.18092-100000@kin.neutel.net.co>
+To: "Harald Welte" <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,46 +22,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---DBUa/BSa4z6QPQv1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I think I had read the ulog_packet struct the wrong way.
+That's why i was talking about the payload, but it was mistake.
 
-On Fri, Nov 29, 2002 at 11:39:37AM -0500, root wrote:
-> Dear sirs:
->=20
-> I have this question:
->=20
-> I have downloaded the latest kernel 2.4.20. Do I need to apply your
-> Patch-O-Matic to this kernel? or it has been applied already?
+So the else is probably more efficient :)
+But in absolute, i think memset  on a struct is probably
+more efficient than many strncpy in some "else" statements.
 
-If you are talking about bugfixes, you don't need to -  there are no
-pending big bugfixes for 2.4.20.
+Thx for the reply :)
 
-> Thank you,
-> Charles
+----- Original Message ----- 
+From: "Harald Welte" <laforge@gnumonks.org>
+To: "Gael Mauleon" <gmauleon@free.fr>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Monday, December 09, 2002 7:39 PM
+Subject: Re: Concerning ULOG and the MAC logging bug
 
---=20
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---DBUa/BSa4z6QPQv1
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Indeed this is an alternative solution. The question is: What is more
+efficient: Memsetting the whole structure or a potential branch
+introduced by the 'else' clause.  
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+And: What do you mean by 'payload can be exploited with wrong data'. Are
+you talking about the to-be-logged packet which will become the payload
+of the netlink message?  How could this contain wrong data?
 
-iD8DBQE99OV5XaXGVTD0i/8RAsE0AKCVA0N621jiko6Fl0fEtmYAlGmRAQCcCU8K
-xy+gMlutGbt5eweKu0/Qu34=
-=NS+j
------END PGP SIGNATURE-----
+> And let me know if there is a better way to tell about bugs and put
+> some code changes.
 
---DBUa/BSa4z6QPQv1--
+for code changes we usually use unified diff (diff -u) between original
+and changed code.  It can easily be read by a human being and also
+automatically applied in case we really want to accept this change.
