@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: skb_ip_make_writable and skbs not owned by a socket
-Date: Tue, 18 Jan 2005 00:13:35 +0100
-Message-ID: <41EC469F.6010605@trash.net>
-References: <41D86571.6070501@trash.net>	<20050113213122.7e70c3c2.davem@davemloft.net>	<41E75FA4.907@trash.net>
-	<20050117135029.04e6580f.davem@davemloft.net>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: New patches
+Date: Tue, 18 Jan 2005 13:53:37 +1100
+Message-ID: <1106016817.30801.30.camel@localhost.localdomain>
+References: <00be01c4fc0c$ddd6b760$5746370a@nsp.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20050117135029.04e6580f.davem@davemloft.net>
+To: VeNoMouS <venom@gen-x.co.nz>
+In-Reply-To: <00be01c4fc0c$ddd6b760$5746370a@nsp.local>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +21,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
+On Mon, 2005-01-17 at 09:49 +1300, VeNoMouS wrote:
+> Ive written a bidirectional matching patch and rewritten the quota
+> patch to include packet header length as well into the quota these
+> patches can be found at http://www.gen-x.co.nz/patches/ Ive included a
+> patch for iptables-1.2.11 for the bidirectional match perhaps these
+> can be entered into PoM?
 
->This code is doing something different.  Even if we unclone and
->unshare the SKB, the packet header portion can still be non-linear.
->
->It will be possible for devices to create this situation on receive.
->That's why we have all the pskb_may_pull() checks in all the major
->ipv4 protocol input paths.
->
-The patch already calls pskb_may_pull for unshared/uncloned skbs, so it
-linearizes them up to the requested size. It just replaces skb_copy by
-pskb_may_pull when the data area of unshared/uncloned skbs needs to be
-mangled.
+OK, first step is to grab the latest subversion tree and patch against
+that.  Secondly, I'd suggest:
 
-Regards
-Patrick
+1) Rename to "bidir" since "bidirectional" is a little long,
+2) Use a single structure, rather than separating into two.
+3) Don't define "IP", use *flags = 1, and you don't need to check
+   for it anywhere else.
+
+You might want to consider the merits of allow TCP/UDP ports, too.  I
+don't know if this is a good idea or even has clear semantics.
+
+Cheers,
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
