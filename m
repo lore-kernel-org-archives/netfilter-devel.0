@@ -1,16 +1,18 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: filter for adding/checking TCP MD5 option
-Date: Fri, 23 Jan 2004 08:11:09 +0100
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: A humble request
+Date: Fri, 23 Jan 2004 09:20:00 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040123071109.GB16708@alpha.home.local>
-References: <E1Aitrb-0004cA-00@services3.virtu.nl>
+Message-ID: <Pine.LNX.4.58.0401230918440.30826@tux.rsn.bth.se>
+References: <20040122220714.10159.qmail@web60702.mail.yahoo.com>
+ <1070.12.76.44.225.1074815673.squirrel@nmibwkrf1.nexusmgmt.com>
+ <20040123053213.GD12725@lbsd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>,
+	Zeeshan Ali <zeelists@yahoo.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Remco van Mook <remco@virtu.nl>
-Content-Disposition: inline
-In-Reply-To: <E1Aitrb-0004cA-00@services3.virtu.nl>
+To: Nigel Kukard <nkukard@lbsd.net>
+In-Reply-To: <20040123053213.GD12725@lbsd.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,54 +23,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Fri, 23 Jan 2004, Nigel Kukard wrote:
 
-On Tue, Jan 20, 2004 at 12:12:20PM +0100, Remco van Mook wrote:
- 
-> # iptables -t mangle -A OUTPUT -p tcp -d 1.2.3.4 --dport 179 -j TCPMD5
-> --md5-key=s3cr3t
-> # iptables -t mangle -A PREROUTING -p tcp -s 1.2.3.4 --dport 179 -j TCPMD5
-> --md5-key=s3cr3t
+> I third that motion!
+>
+> On Thu, Jan 22, 2004 at 06:54:33PM -0500, John A. Sullivan III wrote:
+> > I second that motion!
+> >
+> > > Hello,
+> > >    Most of the mailing-lists that i have subscribed
+> > > to, follow a tradition that make it quite easy to
+> > > identify emails: they add a prefix at the beginning of
+> > > each email's topic. Would'nt it be better if we do the
+> > > same too. Bye.
 
- 
-> The first line would do something as follows:
-> - decrease MSS to make the extra option fit (a staggering 18 bytes extra in
-> the TCP header)
-> - calculate the MD5 based on the key and the information contained in the
-> packet
-> - insert the TCP MD5 option field, recalculate checksum and send the packet
-> on its way
+Learn how to filter email into folders.
 
-ok
-
-> The second line would:
-> - check whether the MD5 matches the key
-> - DROP the packet if it doesn't match
-> - if the MD5 matches, strip off the MD5 option field, recalculate checksum
-> and treat the packet as if nothing happened
-
-nok. the target should not drop the packet itself, you should write a match
-which only accepts valid MD5. And the target would only have to strip MD5.
-This allows all standard constructions, logging, etc... :
-
-# iptables -t mangle -N novalidmd5
-# iptables -t mangle -A novalidmd5 -j LOG --log-prefix "invalid MD5: "
-# iptables -t mangle -A novalidmd5 -j DROP
-
-# iptables -t mangle -A PREROUTING -p tcp -s 1.2.3.4 --dport 179 ! -m tcpmd5
- --md5-key=s3cr3t -j novalidmd5
-# iptables -t mangle -A PREROUTING -p tcp -s 1.2.3.4 --dport 179 -j STRIPTCPMD5
-
-Moreover, if '-m tcpmd5' without md5key could match any MD5 packet, it would
-allow to direct the packet to a user chain reponsible to check between
-several known secrets, or to systematically strip the MD5 for example.
-
-> As I'm a complete newbie when it comes to netfilter development, could
-> anybody provide me some pointers on how to do
-> this in the right way ?
-
-I think that everyone does the same : take a simple match/target, remove
-the simple code, insert yours and start to understand how it works ;-)
-
-Cheers,
-Willy
+/Martin
