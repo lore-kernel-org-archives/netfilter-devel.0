@@ -1,15 +1,17 @@
-From: Jose Monteiro <jfmonteiro@netvisao.pt>
-Subject: Re: ipt_limit module with sun4u architectures
-Date: Thu, 19 Feb 2004 17:50:14 +0000
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] Very first try: ipt_connrate patch.
+Date: Thu, 19 Feb 2004 19:28:18 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040219175014.GA12545@primewebs.net>
-References: <20040210184338.GA3237@primewebs.net> <20040214202227.GV7756@sunbeam.de.gnumonks.org>
+Message-ID: <20040219182818.GF4797@sunbeam.de.gnumonks.org>
+References: <87bro9fiqq.fsf@iki.fi> <20040214201444.GS7756@sunbeam.de.gnumonks.org> <87ptcfahm4.fsf@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FoLtEtfbNGMjfgrs"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+To: Nuutti Kotivuori <naked@iki.fi>
 Content-Disposition: inline
-In-Reply-To: <20040214202227.GV7756@sunbeam.de.gnumonks.org>
+In-Reply-To: <87ptcfahm4.fsf@iki.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,23 +22,58 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Feb 14, 2004 at 09:22:27PM +0100, Harald Welte wrote:
-> I'm not aware of any possible workaround that would not make all 32bit
-> architectures require to recompile their iptables userspace :(
-> 
-> https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=94
 
-The thing is, old ultrasparcs can be reused as firewalls. But now, the os/software issue comes.
+--FoLtEtfbNGMjfgrs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Suppose for instance, that management demands messenger audio/video through the firewall, even after being told about the riscs involved. sysadmins refuse to trade the existing sun4u/ipfilter solution for a m$ one, and they happen to have an unused ultrasparc.
+On Mon, Feb 16, 2004 at 04:22:11AM +0200, Nuutti Kotivuori wrote:
+> This is intentional. 'prev' is used to store a jiffies value, as by
+> the comment - which is an unsigned long on all platforms I
+> believe. 'avgrate' is again something calculated internally in the
+> algorithm, and it should be 32 bits to keep the assumptions I make
+> valid.
 
-porting intel's upnp sdk for solaris is out of the question, so other unix must be loaded. thinking of a *bsd is pointless because the existing ports of this sdk do not cleanly (if at all) compiles under a sun4u.
+the issue is sparc64, which has 32bit userspace and 64bit kernelspace.
+So libipt_XX.c will be compiled with a 32bit unsigned long, and the
+kernel with a 64bit unsigned long :(
 
-So we are left with the linux solution. debian's sparc port is ok, and upnpd/linux-igd compiles fine.
+> > instead of adding it here, please include a .connrate-test file
+>=20
+> Actually I did - but at some testing phase and due to the contorted
+> way debian builds the iptables package, I couldn't get it to
+> automatically detect connrate - so I went the easy way on the first
+> time. I also wasn't sure if just adding the -test file would be
+> enough, but I guess it is.
 
-Now comes the iptables logging issue. If we log, the firewall is DoS'ed with a simple nmapping, so ipt_limit must be used, and because it cannot be used in 64bit/kernel 32bit/userland architectures, we are left with a perfectly running firewall but without any logging of its activity.
+yes, it is.  The .test file checks against your currently installed
+kernel source tree.  if the kernel source doesn't have the connrate
+kernel patch applied, then it won't build the libipt_connrate plugin.
 
-Since this bug is already very old (2003-05-29), and probably there aren't that few sun4u/linux/iptables users as it could be supposed (partly because of the line of reasoning above, who knows), i was coming for the help of you guys to see if a patch is made available.
+> -- Naked
 
-Thx,
-Jose
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--FoLtEtfbNGMjfgrs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFANQBCXaXGVTD0i/8RAkRTAKCozHTwLkjKgUdgRIX54mTZBlRNCwCgoVTG
+WNEWy8Kb0ZCS8PmjUPuZ6EI=
+=ny/q
+-----END PGP SIGNATURE-----
+
+--FoLtEtfbNGMjfgrs--
