@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 3/4] iptables part to match strings
-Date: Sun, 09 Jan 2005 23:23:32 +0100
-Message-ID: <41E1AEE4.2020106@eurodev.net>
+Subject: [PATCH 4/4] conntrack ftp helper modification to use new infrastrure
+Date: Sun, 09 Jan 2005 23:23:43 +0100
+Message-ID: <41E1AEEF.9050005@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060509060007080405090707"
+Content-Type: multipart/mixed; boundary="------------060700060605040309030907"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,142 +19,228 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060509060007080405090707
+--------------060700060605040309030907
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Attached the modification for iptables.
+Attached the modifications for the ftp helper to use the functions 
+provided with the new infrastructure.
+
+Two important notes:
+
+* I must confess that I don't see the point of using the new 
+infrastructure at all for the ftp helper (no way, I didn't drive nuts, 
+not yet :o) but I see that it could be useful for the amanda helper 
+which does a strstr search. So, please consider this just an example, 
+read and drop it to /dev/null.
+* This doesn't apply on top of lastest rusty's helper simplifications.
 
 --
 Pablo
 
---------------060509060007080405090707
+--------------060700060605040309030907
 Content-Type: text/x-patch;
- name="iptables-string.patch"
+ name="string-ftp.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="iptables-string.patch"
+ filename="string-ftp.patch"
 
-Index: extensions/libipt_string.c
-===================================================================
---- extensions/libipt_string.c	(revision 3514)
-+++ extensions/libipt_string.c	(working copy)
-@@ -3,6 +3,9 @@
-  * Copyright (C) 2000 Emmanuel Roger  <winfield@freegates.be>
-  *
-  * ChangeLog
-+ *     07.01.2005: Pablo Neira Ayuso <pablo@eurodev.net>
-+ *     	       Adapated for the new match string.
-+ * 
-  *     29.12.2003: Michael Rash <mbr@cipherdyne.org>
-  *             Fixed iptables save/restore for ascii strings
-  *             that contain space chars, and hex strings that
-@@ -21,11 +24,12 @@
- #include <stdlib.h>
- #include <getopt.h>
- #include <ctype.h>
-+#include <stddef.h> /* for 'offsetof' */
- 
- #include <iptables.h>
- #include <linux/netfilter_ipv4/ipt_string.h>
+===== net/ipv4/netfilter/ip_conntrack_ftp.c 1.24 vs edited =====
+--- 1.24/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-10-20 10:12:06 +02:00
++++ edited/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-01-09 21:57:27 +01:00
+@@ -20,17 +20,17 @@
+ #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
+ #include <linux/moduleparam.h>
 +#include <linux/netfilter_ipv4/nf_string_match.h>
  
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Rusty Russell <rusty@rustcorp.com.au>");
+ MODULE_DESCRIPTION("ftp connection tracking helper");
+ 
+-/* This is slow, but it's simple. --RR */
+-static char ftp_buffer[65536];
 -
- /* Function which prints out usage message. */
- static void
- help(void)
-@@ -56,7 +60,7 @@
- static void
- parse_string(const unsigned char *s, struct ipt_string_info *info)
- {	
--	if (strlen(s) <= BM_MAX_NLEN) strcpy(info->string, s);
-+	if (strlen(s) <= MAX_PATLEN) strcpy(info->pattern, s);
- 	else exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
+ static DECLARE_LOCK(ip_ftp_lock);
+ struct module *ip_conntrack_ftp = THIS_MODULE;
+ 
++#define FTP_BUFSIZE 64
++
+ #define MAX_PORTS 8
+ static int ports[MAX_PORTS];
+ static int ports_c;
+@@ -56,30 +56,35 @@
+ 	char skip;
+ 	char term;
+ 	enum ip_ct_ftp_type ftptype;
++	struct nf_string_match *sm;
+ 	int (*getnum)(const char *, size_t, u_int32_t[], char);
+ } search[] = {
+ 	{
+ 		IP_CT_DIR_ORIGINAL,
+ 		"PORT",	sizeof("PORT") - 1, ' ', '\r',
+ 		IP_CT_FTP_PORT,
++		NULL,
+ 		try_rfc959,
+ 	},
+ 	{
+ 		IP_CT_DIR_REPLY,
+ 		"227 ",	sizeof("227 ") - 1, '(', ')',
+ 		IP_CT_FTP_PASV,
++		NULL,
+ 		try_rfc959,
+ 	},
+ 	{
+ 		IP_CT_DIR_ORIGINAL,
+ 		"EPRT", sizeof("EPRT") - 1, ' ', '\r',
+ 		IP_CT_FTP_EPRT,
++		NULL,
+ 		try_eprt,
+ 	},
+ 	{
+ 		IP_CT_DIR_REPLY,
+ 		"229 ", sizeof("229 ") - 1, '(', ')',
+ 		IP_CT_FTP_EPSV,
++		NULL,
+ 		try_epsv_response,
+ 	},
+ };
+@@ -188,15 +193,19 @@
  }
  
-@@ -101,7 +105,7 @@
- 				exit_error(PARAMETER_PROBLEM,
- 					"Bad literal placement at end of string");
- 			}
--			info->string[sindex] = s[i+1];
-+			info->pattern[sindex] = s[i+1];
- 			i += 2;  /* skip over literal char */
- 			literal_f = 0;
- 		} else if (hex_f) {
-@@ -123,20 +127,20 @@
- 			if (! sscanf(hextmp, "%x", &schar))
- 				exit_error(PARAMETER_PROBLEM,
- 					"Invalid hex char `%c'", s[i]);
--			info->string[sindex] = (char) schar;
-+			info->pattern[sindex] = (char) schar;
- 			if (s[i+2] == ' ')
- 				i += 3;  /* spaces included in the hex block */
- 			else
- 				i += 2;
- 		} else {  /* the char is not part of hex data, so just copy */
--			info->string[sindex] = s[i];
-+			info->pattern[sindex] = s[i];
- 			i++;
- 		}
--		if (sindex > BM_MAX_NLEN)
-+		if (sindex > MAX_PATLEN)
- 			exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
- 		sindex++;
+ /* Return 1 for match, 0 for accept, -1 for partial. */
+-static int find_pattern(const char *data, size_t dlen,
++static int find_pattern(const struct sk_buff *skb, size_t dlen,
+ 			const char *pattern, size_t plen,
+ 			char skip, char term,
+ 			unsigned int *numoff,
+ 			unsigned int *numlen,
+ 			u_int32_t array[6],
++			struct nf_string_match *sm,
+ 			int (*getnum)(const char *, size_t, u_int32_t[], char))
+ {
+-	size_t i;
++	size_t i, size;
++	unsigned char *data = NULL;
++	unsigned int offset = 0;
++	unsigned char __data[FTP_BUFSIZE];
+ 
+ 	DEBUGP("find_pattern `%s': dlen = %u\n", pattern, dlen);
+ 	if (dlen == 0)
+@@ -209,33 +218,31 @@
+ 		else return 0;
  	}
--	info->len = sindex;
-+	info->patlen = sindex;
- }
  
+-	if (strnicmp(data, pattern, plen) != 0) {
+-#if 0
+-		size_t i;
+-
+-		DEBUGP("ftp: string mismatch\n");
+-		for (i = 0; i < plen; i++) {
+-			DEBUGP("ftp:char %u `%c'(%u) vs `%c'(%u)\n",
+-				i, data[i], data[i],
+-				pattern[i], pattern[i]);
+-		}
+-#endif
++	if (!nf_string_match_search(skb, sm, &offset))
+ 		return 0;
+-	}
  
-@@ -160,7 +164,7 @@
- 		parse_string(argv[optind-1], stringinfo);
- 		if (invert)
- 			stringinfo->invert = 1;
--		stringinfo->len=strlen((char *)&stringinfo->string);
-+		stringinfo->patlen = strlen(stringinfo->pattern);
- 		*flags = 1;
- 		break;
++	if ((size = (skb->len - offset - 1)) > (FTP_BUFSIZE - 1))
++		size = FTP_BUFSIZE - 1;
++			
++	data = skb_header_pointer(skb, offset, size, __data);
++	BUG_ON(data == NULL);
++	
+ 	DEBUGP("Pattern matches!\n");
+ 	/* Now we've found the constant string, try to skip
+ 	   to the 'skip' character */
+-	for (i = plen; data[i] != skip; i++)
++	for (i = plen; i < size && data[i] != skip; i++)
+ 		if (i == dlen - 1) return -1;
  
-@@ -246,12 +250,12 @@
- 	const struct ipt_string_info *info =
- 	    (const struct ipt_string_info*) match->data;
+ 	/* Skip over the last character */
+ 	i++;
  
--	if (is_hex_string(info->string, info->len)) {
-+	if (is_hex_string(info->pattern, info->patlen)) {
- 		printf("STRING match %s", (info->invert) ? "!" : "");
--		print_hex_string(info->string, info->len);
-+		print_hex_string(info->pattern, info->patlen);
- 	} else {
- 		printf("STRING match %s", (info->invert) ? "!" : "");
--		print_string(info->string, info->len);
-+		print_string(info->pattern, info->patlen);
++	if (i >= size)
++		return -1;
++
+ 	DEBUGP("Skipped up to `%c'!\n", skip);
+ 
+ 	*numoff = i;
+-	*numlen = getnum(data + i, dlen - i, array, term);
++	*numlen = getnum(data + i, size - i, array, term);
+ 	if (!*numlen)
+ 		return -1;
+ 
+@@ -249,7 +256,7 @@
+ {
+ 	unsigned int dataoff, datalen;
+ 	struct tcphdr _tcph, *th;
+-	char *fb_ptr;
++	char *fb_ptr, __fb_ptr;
+ 	u_int32_t old_seq_aft_nl;
+ 	int old_seq_aft_nl_set, ret;
+ 	u_int32_t array[6] = { 0 };
+@@ -283,15 +290,14 @@
+ 	datalen = skb->len - dataoff;
+ 
+ 	LOCK_BH(&ip_ftp_lock);
+-	fb_ptr = skb_header_pointer(skb, dataoff,
+-				    skb->len - dataoff, ftp_buffer);
++	fb_ptr = skb_header_pointer(skb, skb->len - 1, 1, &__fb_ptr);
+ 	BUG_ON(fb_ptr == NULL);
+ 
+ 	old_seq_aft_nl_set = ct_ftp_info->seq_aft_nl_set[dir];
+ 	old_seq_aft_nl = ct_ftp_info->seq_aft_nl[dir];
+ 
+ 	DEBUGP("conntrack_ftp: datalen %u\n", datalen);
+-	if (fb_ptr[datalen - 1] == '\n') {
++	if (*fb_ptr == '\n') {
+ 		DEBUGP("conntrack_ftp: datalen %u ends in \\n\n", datalen);
+ 		if (!old_seq_aft_nl_set
+ 		    || after(ntohl(th->seq) + datalen, old_seq_aft_nl)) {
+@@ -321,13 +327,14 @@
+ 	for (i = 0; i < ARRAY_SIZE(search); i++) {
+ 		if (search[i].dir != dir) continue;
+ 
+-		found = find_pattern(fb_ptr, skb->len - dataoff,
++		found = find_pattern(skb, skb->len - dataoff,
+ 				     search[i].pattern,
+ 				     search[i].plen,
+ 				     search[i].skip,
+ 				     search[i].term,
+ 				     &matchoff, &matchlen,
+ 				     array,
++				     search[i].sm,
+ 				     search[i].getnum);
+ 		if (found) break;
  	}
- }
- 
-@@ -263,12 +267,12 @@
- 	const struct ipt_string_info *info =
- 	    (const struct ipt_string_info*) match->data;
- 
--	if (is_hex_string(info->string, info->len)) {
-+	if (is_hex_string(info->pattern, info->patlen)) {
- 		printf("--hex-string %s", (info->invert) ? "! ": "");
--		print_hex_string(info->string, info->len);
-+		print_hex_string(info->pattern, info->patlen);
- 	} else {
- 		printf("--string %s", (info->invert) ? "! ": "");
--		print_string(info->string, info->len);
-+		print_string(info->pattern, info->patlen);
+@@ -419,6 +426,8 @@
+ 				ports[i]);
+ 		ip_conntrack_helper_unregister(&ftp[i]);
  	}
++	for (i = 0; i < 4; i++)
++		nf_string_match_destroy(search[i].sm);
  }
  
-@@ -277,7 +281,7 @@
-     .name          = "string",
-     .version       = IPTABLES_VERSION,
-     .size          = IPT_ALIGN(sizeof(struct ipt_string_info)),
--    .userspacesize = IPT_ALIGN(sizeof(struct ipt_string_info)),
-+    .userspacesize = offsetof(struct ipt_string_info, invert),
-     .help          = &help,
-     .init          = &init,
-     .parse         = &parse,
+ static int __init init(void)
+@@ -428,6 +437,16 @@
+ 
+ 	if (ports_c == 0)
+ 		ports[ports_c++] = FTP_PORT;
++
++	for (i = 0; i < 4; i++) {
++		search[i].sm = nf_string_match_create(search[i].pattern,
++						      search[i].plen);
++		if (!search[i].sm) {
++			int k;
++			for (k = i - 1; k > 0; k--)
++				nf_string_match_destroy(search[k].sm);
++		}
++	}
+ 
+ 	for (i = 0; i < ports_c; i++) {
+ 		ftp[i].tuple.src.u.tcp.port = htons(ports[i]);
 
---------------060509060007080405090707--
+--------------060700060605040309030907--
