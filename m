@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: Ozgur AKAN <akan@aiqa.com>
 Subject: Re: prohibiting iptables to insert a rule twice
-Date: Thu, 6 May 2004 13:21:28 +0200 (CEST)
+Date: Thu, 06 May 2004 14:38:03 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405061320210.30218-100000@filer.marasystems.com>
-References: <4099FB89.3000604@aiqa.com>
+Message-ID: <409A239B.2040409@aiqa.com>
+References: <Pine.LNX.4.44.0405061320210.30218-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-9; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ozgur AKAN <akan@aiqa.com>
-In-Reply-To: <4099FB89.3000604@aiqa.com>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0405061320210.30218-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,16 +21,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 6 May 2004, Ozgur AKAN wrote:
 
-> I am working on a patch for iptables.c to prohibit inserting the same 
-> rule twice. Inserting same rule twice does not cause any problems but 
-> also is not meaningful.
+>non-terminal rules can be quite meaningful to have more than once in some 
+>situaions.
+>  
+>
+hmm.. can you please give an example?  I can not imagine when it shall 
+be meaningful.
 
-This is only true for terminal rules.
-
-non-terminal rules can be quite meaningful to have more than once in some 
-situaions.
-
-Regards
-Henrik
+-- 
+Ozgur Akan
