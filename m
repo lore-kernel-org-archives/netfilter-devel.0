@@ -1,18 +1,18 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] This add support for quota per destination ip to quota
-	match.
-Date: 29 Jun 2003 19:50:47 +0200
+Subject: Re: fixes to CVS iptables.8 and ip6tables.8 man pages
+Date: 29 Jun 2003 20:01:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1056909047.750.11.camel@tux.rsn.bth.se>
-References: <3EFC4EA3.7020505@linux.org.ar>
+Message-ID: <1056909718.717.14.camel@tux.rsn.bth.se>
+References: <20030603011200.GF581@eychenne.org>
+	 <1055601536.15678.85.camel@tux.rsn.bth.se>
+	 <20030624194602.GA4086@eychenne.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Sam Johnston <samj@samj.net>
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Diego Woitasen <diegows@linux.org.ar>
-In-Reply-To: <3EFC4EA3.7020505@linux.org.ar>
+To: Herve Eychenne <rv@wallfire.org>
+In-Reply-To: <20030624194602.GA4086@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,17 +23,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2003-06-27 at 16:03, Diego Woitasen wrote:
-> Please, I wan 't to hear commentaries about this. I 'm newbie...
+On Tue, 2003-06-24 at 21:46, Herve Eychenne wrote:
 
-Please submit this to the author of the quota match. Send it as a patch
-against patch-o-matic. And don't wrap lines.
+> > > - Martin added as Core Team Member (Jozsef)
+> 
+> > If you look at the patch it looks like Jozsef does twice as much work as
+> > the rest of us... 
+> 
+> Oh my god.  Not only he does twice, but he seemed to have stolen your
+> own work... shame on him. ;-)
 
-A change like this has to go through the original author unless
-he/she/it doesn't want to touch the stuff anymore.
+Yes he's one bad puppy :)
 
-Personally I'd like to see one more feature, the ability to have quota
-per source ip as well.
+> > If you fix that part so it's corrent and resubmit the patches again I'll
+> > probably apply it :)
+> 
+> I'm sorry.  Fixed.
+> So here are the corrected patches, with another fix:
+> the complete removal of -C (which still appeared in the SYNOPSIS).
+
+Thanks, applied.
 
 -- 
 /Martin
