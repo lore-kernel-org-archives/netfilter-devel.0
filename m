@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] fix 'icmp-type all' problem in iptables
-Date: Wed, 26 Feb 2003 19:26:09 +0100
+Subject: [PATCH] fix typo in ftp conntrack helper
+Date: Wed, 26 Feb 2003 20:02:29 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030226182609.GS8883@sunbeam.de.gnumonks.org>
+Message-ID: <20030226190229.GC15997@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="v4cNTr+tRGSs1txX"
+	protocol="application/pgp-signature"; boundary="Qbvjkv9qwOGw/5Fx"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,49 +21,50 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---v4cNTr+tRGSs1txX
+--Qbvjkv9qwOGw/5Fx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-Here is the first of yet another set of iptables bugfixes for 2.4.x and 2.5=
-.x:
+Please apply this (obvious) cosmetic fix,
 
-Up to now the problem was:
-	'-p icmp ' matches all icmp packets
-	'-p icmp -m icmp' matches _only_ ICMP type 0 :(
+Thanks.
 
-This is now fixed by initializing the field in userspace to the bogus
-icmp type 0xFF.  Old kernels (prior to this patch) would then match
-packets with icmp-type 255 [which should never happen since it is
-undefined).  New kernels with this patch have an explicit check for the
-'magic value' 0xFF.
-
-See also: https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=
-=3D37
-
-Credits go to  Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
-
-Please apply, thanks.
-
-diff -urN linux-2.4.20/net/ipv4/netfilter/ip_tables.c linux-2.4.20-icmp/net=
-/ipv4/netfilter/ip_tables.c
---- linux-2.4.20/net/ipv4/netfilter/ip_tables.c Fri Nov 29 00:53:15 2002
-+++ linux-2.4.20-icmp/net/ipv4/netfilter/ip_tables.c    Sun Feb 23 12:58:32=
- 2003
-@@ -1630,7 +1630,7 @@
-                     u_int8_t type, u_int8_t code,
-                     int invert)
- {
--       return (type =3D=3D test_type && code >=3D min_code && code <=3D ma=
-x_code)
-+       return ((test_type =3D=3D 0xFF) || (type =3D=3D test_type && code >=
-=3D min_code && code <=3D max_code))
-                ^ invert;
+--- linux/net/ipv4/netfilter/ip_conntrack_ftp.c	2002-11-29 00:53:15.0000000=
+00 +0100
++++ linux.new/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-01-10 16:53:57.000=
+000000 +0100
+@@ -32,7 +32,7 @@
+=20
+ static int try_rfc959(const char *, size_t, u_int32_t [], char);
+ static int try_eprt(const char *, size_t, u_int32_t [], char);
+-static int try_espv_response(const char *, size_t, u_int32_t [], char);
++static int try_epsv_response(const char *, size_t, u_int32_t [], char);
+=20
+ static struct ftp_search {
+ 	enum ip_conntrack_dir dir;
+@@ -65,7 +65,7 @@
+ 		IP_CT_DIR_REPLY,
+ 		"229 ", sizeof("229 ") - 1, '(', ')',
+ 		IP_CT_FTP_EPSV,
+-		try_espv_response,
++		try_epsv_response,
+ 	},
+ };
+=20
+@@ -157,7 +157,7 @@
  }
-
+=20
+ /* Returns 0, or length of numbers: |||6446| */
+-static int try_espv_response(const char *data, size_t dlen, u_int32_t arra=
+y[6],
++static int try_epsv_response(const char *data, size_t dlen, u_int32_t arra=
+y[6],
+ 			     char term)
+ {
+ 	char delim;
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -74,7 +75,7 @@ x_code)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---v4cNTr+tRGSs1txX
+--Qbvjkv9qwOGw/5Fx
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -82,9 +83,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+XQbBXaXGVTD0i/8RAvymAJ49GzgjAxjK+bO1e+7VaV3/7ZtOdACdEvAX
-tAEa13zyLq4acqyZ/JpLhOM=
-=VFqi
+iD8DBQE+XQ9FXaXGVTD0i/8RAr++AJ4tFPc/jTHtwxJWHaYXmS5U8S3aPACfcpRr
+tSsqYTujST2datYOJmrGlAI=
+=CWzD
 -----END PGP SIGNATURE-----
 
---v4cNTr+tRGSs1txX--
+--Qbvjkv9qwOGw/5Fx--
