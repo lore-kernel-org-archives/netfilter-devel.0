@@ -1,14 +1,15 @@
-From: Peter Surda <shurdeek@routehat.org>
+From: Sven-Haegar Koch <haegar@sdinet.de>
 Subject: Re: netfilter efficiency
-Date: Fri, 21 Jan 2005 14:30:14 +0100
-Message-ID: <20050121133013.GF31012@soldats.localdomain>
+Date: Fri, 21 Jan 2005 14:42:30 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0501211440290.17007@mercury.sdinet.de>
 References: <005c01c4ff19$508ade80$c0de623e@MAURO>
+	<7958.142.169.215.10.1106314775.squirrel@142.169.215.10>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: MauroTablo' <m.tablo@libero.it>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <005c01c4ff19$508ade80$c0de623e@MAURO>
+To: Samuel Jean <sj-netfilter@cookinglinux.org>
+In-Reply-To: <7958.142.169.215.10.1106314775.squirrel@142.169.215.10>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,30 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jan 20, 2005 at 06:56:04PM +0100, MauroTablo' wrote:
-> Hi all.
-hi
+On Fri, 21 Jan 2005, Samuel Jean wrote:
 
-> The question is: iptables confronts the TCP packet with all my 90 rules, or
-> it confronts the packet ONLY WITH rules for tcp packets (-p tcp)?  In other
-> words, is there a function in netfilter that looks up to the protocol type
-> of a transit packet and decides which rules to confront the packet with?
-You can optimise this like this:
-iptables -N tcp
-iptables -N udp
-iptables -N icmp
-iptables -A FORWARD -p tcp -j tcp
-iptables -A FORWARD -p udp -j udp
-iptables -A FORWARD -p icmp -j icmp
-iptables -A tcp my tcp rules
-iptables -A udp my udp rules
-iptables -A icmp my icmp rules
+> On Thu, January 20, 2005 12:56 pm, MauroTablo' said:
 
-> Thank you.
-> Mauro.
-Bye,
+>> [...]
+>> The question is: iptables confronts the TCP packet with all my 90 rules,
+>> or it confronts the packet ONLY WITH rules for tcp packets (-p tcp)?
+[...]
+> By now, your packets just hit every rules and test against your -p proto.
 
-Peter Surda (Shurdeek) <shurdeek@routehat.org>, ICQ 10236103, +436505122023
+To speed up you can use subchains.
+
+iptables -N mytcpchain
+iptables -A mytcpchain ....
+iptables -A FORWARD -p tcp -j mytcpchain
+iptables -A FORWARD -p udp -j myudpchain  etc etc
+
+That way iptables needs to check only a subset of your rules.
+
+c'ya
+sven
 
 -- 
-  Hello, this is Bill Gates and I pronounce Monopoly, er, Windows as Windows.
+
+The Internet treats censorship as a routing problem, and routes around it.
+(John Gilmore on http://www.cygnus.com/~gnu/)
