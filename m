@@ -1,13 +1,17 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] ipt_helper-invert-fix is < 2.4.27
-Date: Fri, 1 Oct 2004 15:49:46 -0700
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: iptables as a state machine
+Date: Sat, 02 Oct 2004 10:44:54 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041001224946.GC30842@linuxace.com>
+Message-ID: <415E6A86.6040707@drugphish.ch>
+References: <20040930193955.6fa24afc.davem@davemloft.net>
+	<61687.63.170.215.71.1096602469.squirrel@www.osdl.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="/Uq4LBwYP4y1W6pO"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: shemminger@osdl.org
+In-Reply-To: <61687.63.170.215.71.1096602469.squirrel@www.osdl.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,35 +22,31 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> Have you looked at nf-hipac.  It works and is fast but is limited
+> to 2.4 right now.  It's on my to do list...
 
---/Uq4LBwYP4y1W6pO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I've started porting it as well, except a few locking issues and some 
+Makefile hazzle I should be done with it. I can send it to you in private.
 
-The ipt_helper-invert-fix isn't needed on 2.4.27, but because of
-some other changes in the vicinity pom-ng can't determine it has
-already been applied.  This breaks --batch mode on 2.4.  Add a 
-proper requires entry.
+Having seen a lot of packet classification and matching schemes lately 
+I'm a bit in favour of the IDD based approach described in [1]. The 
+proof of concept implementation, which lacks a big amount of features 
+still, can be found at [2]. I probably favour that since I teach Linear 
+Algebra at college myself :)
 
-This patch, combined with the previous two pom-ng patches makes
-runme --batch work again on 2.4, and closes bugzilla #241 (but
-come 2.4.28, it will likely break again)
+An last but not least, I've written a short overview paper on the 3 
+currently available "alternatives" to netfilter [3], which are "tc 
+action", "nf-hipac" and "compact filter". However I unfortunately was 
+required to write it in german; so it might not be of much use to a lot 
+of people on this list.
 
-Phil
+[1] http://www.cs.auc.dk/~mixxel/papers/icn04.pdf
+[2] http://www.cs.aau.dk/~mixxel/cf/
+[3] 
+http://pubwww.hsz-t.ch/~rnibali/downloads/FACHSTUDIUM/seminar/Ersatz_fuer_iptables_als_filter/iptables_ersatz.pdf
 
-
-
---/Uq4LBwYP4y1W6pO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ipthelper
-
-diff -ruN pom-orig/ipt_helper-invert-fix/info pom-new/ipt_helper-invert-fix/info
---- pom-orig/ipt_helper-invert-fix/info	2004-03-17 20:09:05.000000000 -0500
-+++ pom-new/ipt_helper-invert-fix/info	2004-10-01 18:38:39.485828512 -0400
-@@ -1,3 +1,4 @@
- Author: Patrick McHardy <kaber@trash.net>
- Status: Pending for kernel inclusion
-+Requires: linux-2.4 < 2.4.27
- Repository: pending
-
---/Uq4LBwYP4y1W6pO--
+Best regards,
+Roberto Nibali, ratz
+-- 
+echo 
+'[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
