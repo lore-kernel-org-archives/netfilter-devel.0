@@ -1,15 +1,14 @@
-From: Jim Gifford <maillist@jg555.com>
-Subject: Re: IPTables 1.3.0 on RaQ2
-Date: Tue, 08 Mar 2005 14:59:15 -0800
-Message-ID: <422E2E43.1070709@jg555.com>
-References: <42292642.6030504@jg555.com>
-	<20050305125710.GP30487@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Having trouble building a new connection tracker helper module
+Date: Wed, 09 Mar 2005 00:00:13 +0100
+Message-ID: <422E2E7D.5040409@trash.net>
+References: <8B888AAAAB0FD31189590008C79184432644807B@zbl6c002.corpeast.baynetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050305125710.GP30487@sunbeam.de.gnumonks.org>
+To: Chad Goss <chgoss@nortel.com>
+In-Reply-To: <8B888AAAAB0FD31189590008C79184432644807B@zbl6c002.corpeast.baynetworks.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +20,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I solved the issue, it does happen with 1.3.1 also, the problem is the 
-headers, even after fixed the headers it still bombed. Here is the 
-message I posted on linux-mips list.
+Chad Goss wrote:
+> Hi folks,
+> 
+> I am trying to compile a new connection tracker helper module, I have
+> 1) downloaded 2.6.10 kernel source 
+> 
+> 2) built a fresh kernel from that source
+> 
+> 3) created a new file "ip_conntrack_cftp.c" in
+> $KERNEL_DIR/net/ipv4/netfilter/
+>   (basically just copied the file ip_conntrack_tftp.c and changed all of
+> "tftp" text to "cftp", "TFTP" to "CFTP"
+> 
+> 4) created a new file "ip_conntrack_cftp.h" in
+> $KERNEL_DIR/include/linux/netfilter_ipv4, 
+>   (copied ip_conntrack_tftp.h to ip_conntrack_cftp.h and made the
+> adjustments to the text strings)
+> 
+> 5) updated the $KERNEL_DIR/net/ipv4/netfilter/Makefile adding a line
+> 	# connection tracking helpers
+> 	obj-$(CONFIG_IP_NF_CFTP) += ip_conntrack_cftp.o
+> 	
+> 
+> 6) attempted to make that directory "make -C $KERNEL_DIR  M=`pwd`
+> 	(executed from $KERNEL_DIR/net/ipv4/netfilter/ )
+> 
+> 
+> But, I don't see any .ko, or .o or .mod.c files getting created... What step
+> am I missing?
 
-I found the culprit, but don't know what the proper fix is.
+Kconfig. Without a config option, your Makefile addition will
+always evaluate to obj-n += ...
 
-File - What to remove or comment out
-/usr/src/linux/include/asm/cpu-features.h - #include 
-<cpu-feature-overrides.h>
-/usr/src/linux/include/asm/addrspace.h -  #include <spaces.h>
-
-But it still fails, because it looks at the headers in /usr/include and 
-the ones is /usr/src/linux/include, which is what the problem is. Namely 
-socket.h, it tries to include both versions.
-
-What I noticed is some of the mips architectures includes have these 
-files and some do not.
-
-A workaround for those who use the linux-libc-headers to build iptables 
-with the following commands, but I would still comment out those files 
-to prevent other build issues later
-
-make KERNEL_DIR=/usr
-
-But I'm not sure of the stability and the functionality.
-
--- 
-----
-Jim Gifford
-maillist@jg555.com
+Regards
+Patrick
