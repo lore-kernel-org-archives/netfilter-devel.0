@@ -1,16 +1,19 @@
-From: mqe@usr.fi
-Subject: Re: Kernel 2.6.2 and "string" match patch (pom-ng)
-Date: Sat, 14 Feb 2004 23:00:45 +0200 (EET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: ctnetlink questions
+Date: Sat, 14 Feb 2004 21:03:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3923.193.166.136.195.1076792445.squirrel@webmail.usr.fi>
-References: <402827FC.2000209@teczowe.eu.org>
+Message-ID: <20040214200326.GQ7756@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.33.0310200909590.12485-100000@blackhole.kfki.hu> <Pine.LNX.4.44.0310201107510.23768-100000@filer.marasystems.com> <20040206185242.GM2312@obroa-skai.de.gnumonks.org> <4028D0E5.8000003@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hSZb4FHl1C2xfsUy"
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-Reply-To: <402827FC.2000209@teczowe.eu.org>
-To: "Leszek Zur" <lzur@teczowe.eu.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4028D0E5.8000003@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,40 +24,57 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-To be honest, i have not checked what is going on with that smp_num_cpus.
-It has moved / changed name or something like that. Anyhow, i modified
-ipt_string.c just to fit my machine. smp_num_cpus is number of processors,
-so I just changed it to "1". Though, this is not product environment - i
-will look that more as soon as i have time.
 
+--hSZb4FHl1C2xfsUy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Tue, Feb 10, 2004 at 01:39:01PM +0100, Patrick McHardy wrote:
+> I can make my peace with not having a unique identity for each conntrack
+> over time,=20
 
-> make bzImage
-> ...
->    CC      net/ipv4/netfilter/ipt_tos.o
->    CC      net/ipv4/netfilter/ipt_string.o
-> net/ipv4/netfilter/ipt_string.c: In function `search_sublinear':
-> net/ipv4/netfilter/ipt_string.c:55: warning: subscript has type `char'
-> net/ipv4/netfilter/ipt_string.c:80: warning: subscript has type `char'
-> net/ipv4/netfilter/ipt_string.c: In function `string_freeup_data':
-> net/ipv4/netfilter/ipt_string.c:166: `smp_num_cpus' undeclared (first
-> use in this function)
-> net/ipv4/netfilter/ipt_string.c:166: (Each undeclared identifier is
-> reported only once
-> net/ipv4/netfilter/ipt_string.c:166: for each function it appears in.)
-> net/ipv4/netfilter/ipt_string.c: At top level:
-> net/ipv4/netfilter/ipt_string.c:176: warning: initialization from
-> incompatible pointer type
-> net/ipv4/netfilter/ipt_string.c: In function `init':
-> net/ipv4/netfilter/ipt_string.c:184: `smp_num_cpus' undeclared (first
-> use in this function)
-> make[3]: *** [net/ipv4/netfilter/ipt_string.o] Error 1
-> make[2]: *** [net/ipv4/netfilter] Error 2
-> make[1]: *** [net/ipv4] Error 2
-> make: *** [net] Error 2
->
->
-> has anybody been using the string match from the patch-o-matic-ng
-> with kernel 2.6.x yet?
->
-> Leszek
+Thanks :)
+
+> but the other use for IDs was to continue an interrupted
+> dump at the right place, how can we solve this ? The problematic case
+> is when a single hash-chain doesn't fit into an skb. We need to remember
+> the last one dumped somehow, and be able to continue at the next one
+> not dumped even when the last one dumped is gone when the dump
+> continues.
+
+We'd have to ensure that a single hash chain is not longer than what we
+could put into one skb.  This can be done by limiting the maximum number
+of entries in a bucket (and then rehash).  Also, we should increase the
+default number of hash buckets to reduce the probability that this might
+happen.
+
+Also, Jozsef proposed a flip/flop bit mechanism that would solve that
+problem.  What do you say to his proposal?
+
+> Patrick
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--hSZb4FHl1C2xfsUy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFALn8OXaXGVTD0i/8RAg2YAJwLrkjCoVonEYUkpgZV36Sizsp2bQCfZhha
+7H0DpdQlHGlmNjUjVEbVv/I=
+=oVn/
+-----END PGP SIGNATURE-----
+
+--hSZb4FHl1C2xfsUy--
