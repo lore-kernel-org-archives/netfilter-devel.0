@@ -1,16 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: TCPMSS target for IPv6
-Date: Wed, 17 Dec 2003 20:36:31 +0100 (CET)
+Subject: Re: Feature suggestion: internal logdrop table
+Date: Wed, 17 Dec 2003 20:45:25 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312172005030.18802-100000@filer.marasystems.com>
-References: <20031215210705.GA2326@clipper.ens.fr>
+Message-ID: <Pine.LNX.4.44.0312172036520.18802-100000@filer.marasystems.com>
+References: <3FE0706A.9000308@pp3.inet.fi>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
-   <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nicolas George <nicolas.george@ens.fr>
-In-Reply-To: <20031215210705.GA2326@clipper.ens.fr>
+To: Markus Saarinen <markus.saarinen@pp3.inet.fi>
+In-Reply-To: <3FE0706A.9000308@pp3.inet.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,60 +20,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 15 Dec 2003, Nicolas George wrote:
+On Wed, 17 Dec 2003, Markus Saarinen wrote:
 
-> You are right, the problem is adressed, and it should work. Alas, there
-> is difference between what is written in RFC and what programmers really
-> do.
+> Would it be possible to have a 'logdrop' target coded into iptables?
 
-And generally those differences makes failures and interoperability
-issues.
+Jost copy LOG and make a terminal version of LOG, or extend the LOG target 
+with options to indicate that the rule is terminal.
 
-> Unfortunately, I do not control any part of the tunnel itself (it is a
-> 6to4 tunnel), so I can not track the exact problem, and even less
-> correct it. The only solution I see to avoid freezed TCP connections is
-> to advertise a small enough MSS. I can do that by globally lowering my
-> MTU, but this is a quite ugly solution. Being able to do that on a
-> per-IP basis would be great.
+But I guess that the reason why this is not done is because "terminal" log 
+is just as often used with other actions such as ACCEPT/REJECT making the 
+number of combinations very large.
 
-MTU and MSS is different things. MTU is here and now for sending this IP
-packet on this path, MSS is end-to-end telling the other end how large TCP
-segments you can accept (after defrag).  There is no problem in setting up
-routing with a different MTU depending the desitnation to work around
-broken equipment where PMTU-discovery does not work, except that the IPv6
-routing implementation in Linux maybe is a little short when it comes to
-advanced routing..
+What have been discussed before is making a log match instead of a target. 
+This would allow log to be used within any other rule in a clean manner. 
+But unfortunately this discussion got sidetracked on other issues and 
+apparently no such match was made.
 
-By modifying the MSS below the assumed Path-MTU (minus headers) you avoid
-the Path-MTU discovery problem for return traffic as there will not be any
-packets much larget than the MSS, and if done in both directions it can
-work around MTU problems in both directions for TCP traffic.
+This would make the example rules look like:
 
-But is does not solve the underlying MTU problem, and you may still risk
-running into MTU issues especially if there is non-TCP traffic involved as 
-MSS only applies to TCP, not UDP/AH/ESP/Whatever.
+  -A INPUT -s subnet1 -d somewhere -m log --log-prefix "fromsubnet1" -J DROP
+  -A INPUT -s subnet2 -d somewhere -m log --log-prefix "fromsubnet2" -J DROP
 
-> My point is that we do not need TCPMSS less for IPv6 than for IPv4
-> (except that IPv6 itself is seldom used): the goal of such a target is
-> to workaround bogus infrastructures ("criminally braindead ISPs"), and
-> there seems to exist as much of those for IPv6 as for IPv4 (and anyway
-> tunnels give us the worst of both worlds).
+> From a bit of Googling, i've seen that quite many people actually
+> create these log-drop chains by hand (myself included).
 
-Partly agreed, but I disagree with the use of MSS to work around Path-MTU
-problems to begin with. Modifying MSS has other applications which may be
-useful howenver (even if I do not remember any right now).
+Yes, this is the common solution to the problem. However when using 
+--log-prefix is creates very many chains (one per --log-prefix).
 
-PMTU issues (not PMTU discovery as such) is relatively rare unless there
-is tunnels involved. Any tunneling equipment not properly (automatically
-or manually) handling PMTU at the endpoints is broken and needs to be
-fixed now. There may be a slight delay in PMTU-discovery for tunnels while
-the tunnel as such adjusts its MTU but this should not be larger than 2
-packets, one on for the PMTUD of the tunnel as such, another for the PMTUD
-of the "client" traffic.
+> so think it would actually be a quite useful feature. Not to mention the few
+> clockticks my firewall would save when it could just drop the packet
+> from the same rule without traversing back to the original chain and
+> parsing a new rule ;-)
 
-If the tunnieling equipment does not handle PMTU of the tunnel then you 
-better make sure the tunnel is only set up over a path where the PMTU is 
-priorly known allowing the MTU to be set correctly for the tunnel.
+For now use custom chains making the target of the packet. This saves you
+from duplicating all the matches. So your main chains matches the packet
+to your rules, and target chains decides on what should be done with the 
+packet including log/nolog etc.. The CPU difference is not large between 
+using custom chains and using a combined rule like discussed above, the 
+main difference is in how easy the ruleset is to maintain.
 
 Regards
 Henrik
