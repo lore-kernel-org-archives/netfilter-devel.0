@@ -1,17 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: pom-ng TRACE patch: unable to find ladd slot in src
- ./net/ipv6/Config.in
-Date: Tue, 17 Feb 2004 23:48:50 +0100 (CET)
+From: "bruno.plantier@ensimag.imag.fr" <plantieb@ensisun.imag.fr>
+Subject: Creating and adding a new patch.
+Date: Tue, 17 Feb 2004 15:47:45 +0100 (MET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402172337330.11839-100000@blackhole.kfki.hu>
-References: <5.2.1.1.2.20040217230231.00b25e18@wheresmymailserver.com>
+Message-ID: <Pine.GSO.4.40.0402171459280.23205-100000@ensisun>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <carl@compsup.net>,
-	Netfilter development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Robby <inet6@mail.be>
-In-Reply-To: <5.2.1.1.2.20040217230231.00b25e18@wheresmymailserver.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,22 +17,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Feb 2004, Robby wrote:
+Hi!,
 
-> Well, I'm currently busy with it and I have a patch and mail ready for
-> sending, but I'm not sending it as it seems to be breaking some things in a
-> "make menuconfig".
-[...]
+first, please excuse me if this question as already been asked, but I red
+all the faqs (including the Contributing part of the netfilter extension
+HOWTO) and most of the mailing archive and couldnt find a full answer.
 
-p-o-m-ng hasn't yet been announced as a ready to use, in production
-system. There can be bugs and it's incomplete in some areas.
-And all of the patches in p-o-m-ng is currently for the 2.4 series,
-some of them definitely has to be ported to 2.6.
+I am about to start the development of a patch in order to add some user
+friendly netbus filtering rules into netfilter (not using u32, cause it'd
+imply the user  knows the internal structure of a netbus packet).
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Here are my questions:
+
+1) I've red that the patching system have recently been updated from pom
+to pom-ng, changing the structure of the patches. So i imagine the file
+NEWPATCHES from Paul Russel is now obsoleted (no more .patch files
+containing diff output?). I was wondering if there were (or will be?)
+another file explaining the procedure to create a new patch (If there
+isnt,  i imagine i would discover it by myself, thanks to the other
+patches.. but I'd rather ask fist :) )
+
+2) When  my patch will be done, what's the procedure to submit it in order
+to share it with the community? I assume the cvs is read only for
+anonymous  access, and only core developpers have write access. Do i need
+to submit it on this mailing, contact someone or do something else special?
+
+Thanks for your help,
+
+Regards,
+
+--
+Bruno PLANTIER
