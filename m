@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [ANNOUNCE] iptables-1.2.8 feature freeze
-Date: Mon, 31 Mar 2003 14:12:21 +0200
+From: Thomas Heinz <creatix@hipac.org>
+Subject: Re: Table duplication on smp machine
+Date: Mon, 31 Mar 2003 14:06:42 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030331121221.GL7718@sunbeam.de.gnumonks.org>
-References: <20030330202322.GA7718@sunbeam.de.gnumonks.org> <Pine.LNX.4.51.0303311351520.14297@dns.toxicfilms.tv>
+Message-ID: <3E882F52.1040705@hipac.org>
+References: <3E881DD6.8090206@hipac.org> <20030331110709.GE7718@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="roRPt/Cw7eYGd+Rv"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.51.0303311351520.14297@dns.toxicfilms.tv>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,46 +20,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald
 
---roRPt/Cw7eYGd+Rv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for your quick reply.
 
-On Mon, Mar 31, 2003 at 01:53:11PM +0200, Maciej Soltysiak wrote:
-> Hi Harald,
->=20
-> > Please test the CVS snapshot of today (will be published in 2 hours,
-> > just before midnight german time). The snapshot will be available at
-> > ftp://ftp.netfilter.org/pub/iptables/snapshot/iptables-1.2.7a-20030330.=
-tar.bz2
-> Ok, it is a typo here, look:
+You wrote:
+> it's not only write locking.  Even if there was a locking mechanism in
+> place, and we didn't care about it's performance. 
+> 
+> What we are really caring about is cacheline ping-pong.  If you have a
+> single piece of data (like a counter) that is written by different cpu's
+> all the time, you will always invalidate the cached values in the other
+> cpu's cachelines.
 
-Thanks, I knew  this one.  Thought it has been fixed, though ?!?.
+I see. If this is the main reason it would suffice to have _one_ ruleset
+for all cpu's but a block of counters for each rule like this:
+                   ----------------------------------------
+                   |          counter for cpu 0           |
+                   |--------------------------------------|
+                   |          cache-align padding         |
+                   |--------------------------------------|
+                   |                                      |
+                  ...                                    ...
+                   |--------------------------------------|
+                   |          cache-align padding         |
+                   |--------------------------------------|
+                   |          counter for cpu n           |
+                   |--------------------------------------|
 
-Anyway, applied your patch.
+Right?
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+> Depends on what you think of 'a lot of space'.  In all my practical
+> setups, the connection tracking table is significantly larger (by orders
+> of magnitude) than the iptables ruleset.
 
---roRPt/Cw7eYGd+Rv
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Hm, in the above scheme the padding could be up to 112 bytes on x86
+which means that the netfilter scheme does not waste a byte if the
+average rule is <= 112 bytes.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Anyway, I was more concerned about the reasons behind the table
+duplication than waste of memory.
 
-iD8DBQE+iDClXaXGVTD0i/8RAh5gAKCgDbqjbzsC3ZIz/m+kbBzuPLHJhQCfUqo8
-OUiR/ShAZluVmik3gNTQYgs=
-=ptUb
------END PGP SIGNATURE-----
 
---roRPt/Cw7eYGd+Rv--
+Thomas
