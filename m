@@ -1,12 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: patch-o-matic-ng release candidate in cvs
-Date: Fri, 7 May 2004 17:03:35 +0200 (CEST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: bug report/fix for 'proc-no-internal-targets' patch
+Date: Fri, 07 May 2004 17:36:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405071658020.4133-100000@blackhole.kfki.hu>
+Message-ID: <409BACE1.4040805@trash.net>
+References: <409B5BF9.5040103@microbus.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Robbie Dinn <robbie@microbus.com>
+In-Reply-To: <409B5BF9.5040103@microbus.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,21 +21,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Robbie Dinn wrote:
+> Hello Patrick,
+> 
+> I would like to report a trivial bug in the proc-no-internal-targets
+> patch in patch-o-matic-ng which I recently downloaded from CVS.
+> 
+> I was able to fix it myself.
 
-In the last few days a couple of changes happened in pom-ng:
+Thanks Robbie, patch applied.
 
-- a bug in Netfilter_POM.pm was fixed (thanks to Krisztian for the
-  bugreport)
-- *all* linux-2.6 trees was fixed by a script and manually checked
-  wether the tree corresponds to the pom-ng
+Regards
+Patrick
 
-Please try it out and report me any pending issue.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> 
+> I am working with kernel-2.6.6-rc3-mm2 + patch-o-matic from CVS.
+> I believe the 2.4.XX kernel has the same problem.
+> 
