@@ -1,15 +1,17 @@
-From: "kesineni sai pratap" <kesineni@woojininc.net>
-Subject: how to route the packet in my case
-Date: Sat, 7 Aug 2004 10:16:03 +0900
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ip_queue and fragments
+Date: Sat, 07 Aug 2004 21:20:25 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000c01c47c1c$1bb14f30$0201020a@kesineni>
-References: <20040806115856.29384.42526.Mailman@vishnu.netfilter.org>
+Message-ID: <41152B79.1020302@trash.net>
+References: <411236FF.4080405@eurodev.net> <41124142.3030600@trash.net> <4113B551.2030107@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4113B551.2030107@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,41 +22,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Guys ,
+Pablo Neira wrote:
 
-I have some problem , to route the packet
+> thanks for your suggestions, I've applied them to my patch.
 
-i made network like this
+Actually your first patch was fine and my suggestion was stupid ;)
+I'm going to put it in pom-ng later tonight.
 
-10.2.1.2 and 10.2.1.3 are in same network. 10.2.1.2  gateway is 10.2.1.3.
-10.1.1.30 gateway is 10.1.1.254.
-
-10.1.1.30 have three interfaces , first interface goes to 10.1.1.254, second
-interface goes to 10.2.1.3 , third interface goes to 10.2.1.2.  10.2.1.2 and
-10.2.1.3 are bridged.  if bridge is enabled packet s from 10.2.1.2 go
-through bridge to reach 10.2.1.3.
-
-But my requirement is i want send 10.2.1.2 packets to routing module to send
-the packets to 10.2.1.3.
-
-iam finding way 10.2.1.2 packets to reach 10.2.1.3, iam getting problem in
-ip_route_input_slow() because
-
-
-
-another step is  if(err = fib_lookup(&key,&res))!=0)
-                        {
-                            if(!IN_DEV_FORWARD(in_dev))
-                                  goto e_inval;
-                            goto no_route;
-                         }
-
-this steps , my system hang out.
-
-
-How can i over come this problem
-
-anybody help me
-
-bye
-sai pratap kesineni
+Regards
+Patrick
