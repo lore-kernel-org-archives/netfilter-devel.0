@@ -1,18 +1,15 @@
-From: Fabrice MARIE <fabrice@netfilter.org>
-Subject: Re: [PATCH] Update for ROUTE target in Netfilter-Extension-HOWTO
-	[En]
-Date: Tue, 18 May 2004 23:16:09 +0800
+From: Brad Fisher <brad@info-link.net>
+Subject: Re: [PATCH] comment match port to pom-ng
+Date: Tue, 18 May 2004 10:06:56 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1084893368.2159.1.camel@laptop>
-References: <1084892035.8170.6.camel@descartes.info.ucl.ac.be>
-Reply-To: fabrice@netfilter.org
+Message-ID: <40AA2690.8A693A6A@info-link.net>
+References: <Pine.LNX.4.33.0405180110430.31252-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Cedric de Launois <delaunois@info.ucl.ac.be>
-In-Reply-To: <1084892035.8170.6.camel@descartes.info.ucl.ac.be>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,24 +20,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Jozsef Kadlecsik wrote:
 
-Hi,
+> On Wed, 12 May 2004, Brad Fisher wrote:
+>
+> > Attached is a tar file containing the comment match I wrote a while back
+> > (Also posted before for old POM with no response:
+> > http://marc.theaimsgroup.com/?l=netfilter-devel&m=107056927528485&w=2).
+> > I've ported it to pom-ng, and it should work for 2.4 kernels fine.
+> > Haven't tested 2.6 kernels, but will hopefully get a chance soon.
+>
+> Patch is added to pom-ng. :-)
+> It is marked as for 2.4 only in the info file, because it won't work with
+> 2.6 (API changed).
 
-On Tue, 2004-05-18 at 16:53 +0200, Cedric de Launois wrote:
-> Hi,
-> Here is a patch that updates the documentation about the ROUTE target in
-> the netfilter-extension-HOWTO.
-> The patch also adds an example from Bill Rugolsky.
-> The patch is against the sgml master.
-> Cedric
+Thanks!  I'll try to get a 2.6 version of the patch together then :)  BTW, is
+there any 2.6 specific documentation out there beyond the source?
 
-Thanks Cedric. Patch applied. Any French translation ? ;-)
+> Best regards,
+> Jozsef
 
-Have a nice day,
-
-Fabrice.
---
-Fabrice MARIE
-
-"Silly hacker, root is for administrators"
-       -Unknown
+-Brad Fisher
