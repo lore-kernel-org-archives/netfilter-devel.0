@@ -1,17 +1,12 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [RFC] CONNMARK getsockopt/setsockopt functionality
-Date: Mon, 24 May 2004 13:32:31 +0200
+From: Chris Wilson <chris@netservers.co.uk>
+Subject: conntrack match and locking
+Date: Mon, 24 May 2004 16:29:04 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1085398351.1848.30.camel@nienna.balabit>
-References: <1085125075.1782.36.camel@nienna.balabit>
-	 <Pine.LNX.4.58.0405241212230.27895@chris.camcom.co.uk>
+Message-ID: <Pine.LNX.4.58.0405241628000.27895@chris.camcom.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Wilson <chris@netservers.co.uk>
-In-Reply-To: <Pine.LNX.4.58.0405241212230.27895@chris.camcom.co.uk>
+To: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,19 +17,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all,
 
-  Hi Chris,
+The conntrack match from POM-ng doesn't appear to do any locking while 
+accessing conntrack structures. Is that a problem? If so, how can I fix 
+it? I can submit a patch if someone can tell me what lock(s) I need to 
+hold.
 
-2004-05-24, h keltezéssel 13:17-kor Chris Wilson ezt írta:
-> I think I found a small problem with this patch. I'm using 2.4.26 plus 
-> latest CVS POM-ng, and after patching with your patch, the kernel doesn't 
-> compile.
-
-  Thanks for the fix. Your patch is obviously correct, somehow I
-succeeded in messing up the patch :)
-
-  I hope it's otherwise correct.
-
+Cheers, Chris.
 -- 
- Regards,
-   Krisztian KOVACS
+_  __ __     _
+ / __/ / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
+/ (_  ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
+\__/_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
