@@ -1,11 +1,11 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: pending/63_getorigdst-tuple-zero syntax error
-Date: Tue, 9 Sep 2003 11:19:11 +0200
+Subject: iptables userspace build patch (CLASSIFY & NETMAP extensions)
+Date: Tue, 9 Sep 2003 12:40:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200309091104.19260@henrik.marasystems.com>
+Message-ID: <200309091239.43164@henrik.marasystems.com>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="------------Boundary-00=_ZJWXNW84N3N510UJVHU1"
+  boundary="------------Boundary-00=_PB0YQU5S71J7PD1P7TSC"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,51 +19,59 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---------------Boundary-00=_ZJWXNW84N3N510UJVHU1
+--------------Boundary-00=_PB0YQU5S71J7PD1P7TSC
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
-Harald:
+Both CLASSIFY and NETMAP are optional extensions and should not be 
+built unless supported by the kernel headers.
 
-The current IP_CT_TUPLE_BLANK() macro expansion does not protect it's 
-arguments, making a syntax error in ip_conntrack_core when the macro 
-is used IP_CT_TUPLE_BLANK(&tuple);
+This patch removes both from the default set of extensions and adds a 
+new test for CLASSIFY.
 
-This expands to &tuple->memberfield which is not what is expected.. 
-(&tuple)->memberfield or tuple.memberfield would work.
+ * removes the double dependency warning on NETMAP and allows the 
+already defined test for NETMAP to function correcly to allow 
+iptables to build even if the kernel is not patched with base/NETMAP
 
-The attached patch adds the required parantesis around the macro 
-argument expansions giving (&tuple)->member in the expansion.
+ * allows iptables userspace to be built even if the kernel is not 
+patched with extras/CLASSIFY
 
 Regards
 Henrik
 
 
---------------Boundary-00=_ZJWXNW84N3N510UJVHU1
+--------------Boundary-00=_PB0YQU5S71J7PD1P7TSC
 Content-Type: text/x-diff;
   charset="us-ascii";
-  name="63_getorigdst-tuple-zero-parantesis.patch"
+  name="iptables-extensions.patch"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="63_getorigdst-tuple-zero-parantesis.patch"
+Content-Disposition: attachment; filename="iptables-extensions.patch"
 
-Index: pending/63_getorigdst-tuple-zero.patch
+Index: extensions/.CLASSIFY-test
 ===================================================================
-RCS file: /cvspublic/netfilter/patch-o-matic/pending/63_getorigdst-tuple-zero.patch,v
-retrieving revision 1.2
-diff -u -w -p -r1.2 63_getorigdst-tuple-zero.patch
---- pending/63_getorigdst-tuple-zero.patch	5 Sep 2003 15:13:15 -0000	1.2
-+++ pending/63_getorigdst-tuple-zero.patch	9 Sep 2003 08:58:16 -0000
-@@ -9,8 +9,8 @@ diff -Nru --exclude .depend --exclude '*
- + * really care about is the  source/destination unions */
- +#define IP_CT_TUPLE_BLANK(tuple) 				\
- +	do {							\
--+		tuple->src.u.all = 0;				\
--+		tuple->dst.u.all = 0;				\
-++		(tuple)->src.u.all = 0;				\
-++		(tuple)->dst.u.all = 0;				\
- +	} while (0)
- +
-  enum ip_conntrack_dir
+RCS file: extensions/.CLASSIFY-test
+diff -N extensions/.CLASSIFY-test
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ extensions/.CLASSIFY-test	9 Sep 2003 10:32:18 -0000
+@@ -0,0 +1,2 @@
++#! /bin/sh
++[ -f $KERNEL_DIR/linux/netfilter_ipv4/ipt_CLASSIFY.h ] && echo CLASSIFY
+Index: extensions/Makefile
+===================================================================
+RCS file: /cvspublic/netfilter/userspace/extensions/Makefile,v
+retrieving revision 1.33
+diff -u -w -p -r1.33 Makefile
+--- extensions/Makefile	23 Aug 2003 22:10:11 -0000	1.33
++++ extensions/Makefile	9 Sep 2003 10:32:18 -0000
+@@ -5,7 +5,7 @@
+ # header files are present in the include/linux directory of this iptables
+ # package (HW)
+ #
+-PF_EXT_SLIB:=ah connlimit conntrack dscp ecn esp helper icmp iprange length limit mac mark multiport owner physdev pkttype realm rpc standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TARPIT TCPMSS TOS TTL ULOG
++PF_EXT_SLIB:=ah connlimit conntrack dscp ecn esp helper icmp iprange length limit mac mark multiport owner physdev pkttype realm rpc standard state tcp tcpmss tos ttl udp unclean CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR REDIRECT REJECT SAME SNAT TARPIT TCPMSS TOS TTL ULOG
+ PF6_EXT_SLIB:=eui64 hl icmpv6 length limit mac mark multiport owner standard tcp udp HL LOG MARK
+ 
+ # Optionals
 
---------------Boundary-00=_ZJWXNW84N3N510UJVHU1--
+--------------Boundary-00=_PB0YQU5S71J7PD1P7TSC--
