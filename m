@@ -1,16 +1,17 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: to solve the performance problem of netfilter
-Date: Wed, 17 Dec 2003 16:55:54 +0100
+From: Nicolas George <nicolas.george@ens.fr>
+Subject: Re: TCPMSS target for IPv6
+Date: Mon, 15 Dec 2003 22:07:05 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1071676553.1058.48.camel@nienna.balabit>
-References: <32301.1071658647@www15.gmx.net>  <3FE075CC.2060707@tac.ch>
+Message-ID: <20031215210705.GA2326@clipper.ens.fr>
+References: <20031211122649.GA25739@clipper.ens.fr> <200312150127.KAA00902@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Cc: tady@gmx.net, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GvXjxJ+pjyke8COw"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <3FE075CC.2060707@tac.ch>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200312150127.KAA00902@toshiba.co.jp>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,40 +23,66 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-  Hi,
+--GvXjxJ+pjyke8COw
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-2003-12-17, sze keltezéssel 16:27-kor Roberto Nibali ezt írta:
-> >>I tested the throughput of our linux firewall. the result is as follows,
-> >>	linux(no netfilter)					580kpps
-> >>	with netfilter(no ip_conntrack)	    450kpps
-> >>	with ip_conntrack					295kpps
-> >>So the throughput dropped about 40% when with ip_conntrack.
-> >  
-> > I can _not_ approve your results. I'm currently running a firewall
-> > using conntrack with much more throughput than you mentioned above. I
-> > did an (udp only for the moment) investigation on the latency
-> > introduced by a netfilter firewall but could not find any significant
-> > throughput decrease.  If someone is interessted have a look at
-> > 
-> > http://rnvs.informatik.uni-leipzig.de/ipp2p/
-> 
-> I fail to see how you had more throughput than he had. Unless I'm completely 
-> mistaken, he's referring to kilo packets per second (kpps) which if you would 
-> translate it to your measurements means that your UDP sender maxed out at 65kpps 
-> with 64Bytes UDP packets. This is not comparable.
+Le quintidi 25 frimaire, an CCXII, Yasuyuki Kozakai a =E9crit=A0:
+>> IPv6-over-IPv4 tunnels: if the fragmentation problem arises in the IPv4
+>> world, an ICMPv4 "fragmentation needed" is sent, but it can not be
+>> converted into an ICMPv6 "too big", so path MTU discovery does not work.
+> Please read subsection 3.2. in RFC 2893 .
 
-  Jozsef Kadlecsik has also done some benchmarking of ip_conntrack in a
-Gigabit environment. The slides of his presentation prepared for the
-Netfilter Workshop held in Budapest can be found at 
+You are right, the problem is adressed, and it should work. Alas, there
+is difference between what is written in RFC and what programmers really
+do.
 
-http://www.netfilter.org/~kadlec/workshop-2003-budapest/benchmark.sxi
+> Do we have any other cases that TCPMSS is needed ? I think MTU issues
+> should be solved in IPv6 stack (and lower layer in the case that MTU <
+> 1280) and RFCs say so. So I think we don't need it.
 
-  It contains tuning tips also, and is very interesting indeed. However,
-I'd like to see NAT benchmarks as well. Jozsef mentioned that NAT
-performance is horrible compared to conntrack, and it would be really
-useful if bottlenecks could be identified. Would an OProfile benchmark
-be useful?
+I believe we all agree that things should work alone. But if that was
+true, we would have enough IP addresses for everyone and programs with
+powerful control access and no buffer overflows, and so no need for
+nterilter, isn't it?
 
--- 
- Regards,
-   Krisztian KOVACS
+I did not beg for IPv6/TCPMSS just because I thought it was cool stuff.
+I have a precise problem, where packets of the wrong size will get lost
+without any ICMP, and therfore TCP connections freeze as soon as a large
+segment is sent. It involves an IPv4 tunnel, and the sizes fit, so I
+guess the problem comes from lost ICMPv4.
+
+Unfortunately, I do not control any part of the tunnel itself (it is a
+6to4 tunnel), so I can not track the exact problem, and even less
+correct it. The only solution I see to avoid freezed TCP connections is
+to advertise a small enough MSS. I can do that by globally lowering my
+MTU, but this is a quite ugly solution. Being able to do that on a
+per-IP basis would be great.
+
+My point is that we do not need TCPMSS less for IPv6 than for IPv4
+(except that IPv6 itself is seldom used): the goal of such a target is
+to workaround bogus infrastructures ("criminally braindead ISPs"), and
+there seems to exist as much of those for IPv6 as for IPv4 (and anyway
+tunnels give us the worst of both worlds).
+
+The rant is finished, you can resume your normal activities.
+
+Regards,
+
+--=20
+  Nicolas George
+
+--GvXjxJ+pjyke8COw
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (SunOS)
+
+iD8DBQE/3iJ4sGPZlzblTJMRAgP4AKCzPGPO0S6WHUFhxHOsWnbfq4lZnwCbBbGo
+0rxEVyn42rug+/HzfwSD5QY=
+=mgml
+-----END PGP SIGNATURE-----
+
+--GvXjxJ+pjyke8COw--
