@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: For netfilter ipt_ops, init() and nf_register_hook()
-Date: Wed, 30 Oct 2002 09:42:13 +0100
+Subject: Re: bad counters on Sparc resolved?
+Date: Wed, 30 Oct 2002 09:49:55 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021030094213.M8635@sunbeam.de.gnumonks.org>
-References: <F225AtxXuGSkXlVg2R20000850c@hotmail.com>
+Message-ID: <20021030094955.S8635@sunbeam.de.gnumonks.org>
+References: <20021025081214.GD5018@balabit.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nbmc0BhO2pdgImje"
+	protocol="application/pgp-signature"; boundary="9hGs/gFH0GqcBdeq"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Shen Qiyu" <shenqiyu@hotmail.com>
+To: Balazs Scheidler <bazsi@balabit.hu>
 Content-Disposition: inline
-In-Reply-To: <F225AtxXuGSkXlVg2R20000850c@hotmail.com>; from shenqiyu@hotmail.com on Wed, Oct 23, 2002 at 03:15:44PM +0800
+In-Reply-To: <20021025081214.GD5018@balabit.hu>; from bazsi@balabit.hu on Fri, Oct 25, 2002 at 10:12:14AM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,22 +23,24 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---nbmc0BhO2pdgImje
+--9hGs/gFH0GqcBdeq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 23, 2002 at 03:15:44PM +0800, Shen Qiyu wrote:
->  list_add(&reg->list, i->prev);
+On Fri, Oct 25, 2002 at 10:12:14AM +0200, Balazs Scheidler wrote:
+> Hi,
+>=20
+> I was interested whether the problem with iptables on UltraSparc has been
+> resolved? IIRC there was a problem with counters due to the 64/32 bit
+> kernel/userspace.
 
-> It seems that in list_add(&reg->list, i->prev), only a {NULL, NULL} list=
-=20
-> head is added, so how it run?
+no. I'm happy for any suggestions.  I am also willing to give anybody who
+is interested in debuggin the problem root access (incl. serial console)
+to an Ultra5.
 
-a {NULL, NULL} list head is added to i->prev, an already-existing list head.
+> Bazsi
 
-> Regards.
-> =20
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -49,7 +51,7 @@ Live long and prosper
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---nbmc0BhO2pdgImje
+--9hGs/gFH0GqcBdeq
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -57,9 +59,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9v5tkXaXGVTD0i/8RAho0AJ9g+l7UddWHPN6VRk2adOKCsFVKCACfZGXh
-Fvl0OPnAxxtOtEszMmtizTA=
-=Ezub
+iD8DBQE9v50yXaXGVTD0i/8RAvSRAKCruxc/4Crs12SD+0HUcX9yqCW6GQCfdYKJ
+i6upS7NNFdkNX1zL9v1CNvE=
+=/DkG
 -----END PGP SIGNATURE-----
 
---nbmc0BhO2pdgImje--
+--9hGs/gFH0GqcBdeq--
