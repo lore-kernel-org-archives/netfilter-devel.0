@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: subject-prefixing of ml postings (was Re: A humble request)
-Date: Tue, 27 Jan 2004 11:54:51 +0100
+Subject: Re: iptables/extensions/libipt_time.c missing include
+Date: Tue, 27 Jan 2004 11:57:45 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127105451.GF11761@sunbeam.de.gnumonks.org>
-References: <20040122220714.10159.qmail@web60702.mail.yahoo.com>
+Message-ID: <20040127105745.GG11761@sunbeam.de.gnumonks.org>
+References: <wazza.877jzj8ll6.fsf@message.id> <20040123095234.GA4595@wavehammer.waldi.eu.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FoLtEtfbNGMjfgrs"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="lQSB8Tqijvu1+4Ba"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Zeeshan Ali <zeelists@yahoo.com>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20040122220714.10159.qmail@web60702.mail.yahoo.com>
+In-Reply-To: <20040123095234.GA4595@wavehammer.waldi.eu.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,64 +22,24 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---FoLtEtfbNGMjfgrs
+--lQSB8Tqijvu1+4Ba
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 22, 2004 at 02:07:14PM -0800, Zeeshan Ali wrote:
-> Hello,
->    Most of the mailing-lists that i have subscribed
-> to, follow a tradition that make it quite easy to
-> identify emails: they add a prefix at the beginning of
-> each email's topic. Would'nt it be better if we do the
-> same too. Bye.
+On Fri, Jan 23, 2004 at 10:52:34AM +0100, Bastian Blank wrote:
+> On Fri, Jan 23, 2004 at 03:06:45AM +0100, laurent.ml@linuxfr.org wrote:
+> > Tell me if I'm wrong, it seems an include is missing in
+> > extensions/libipt_time.c from iptables cvs.
+> > (line 302 : offsetof)
+>=20
+> You should use <stddef.h> instead of <linux/stddef.h>.
 
-This is mostly done on mailinglists for non-technical people.  People
-who don't understand=20
+At least on my debian machines /usr/include/stddef.h doesn't exist.
 
-a) how the email system works
-b) how to use their email client
+Thus, I'm accepting the patch.
 
-As I can expect anybody involved with netfilter (even more with
-netfilter development) to not fit into any of those categories,
-I strongly oppose that proposal.
-
-Why?
-
-Because the netfilter/iptalbes lists (like any other reasonable
-mailinglists, at least all of the 100+ that I'm on) insert special
-headers that allow you to identify mailinglist postings without putting
-garbage into the subject line.
-
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=3Dhe=
-lp>   =20
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>                    =
-     List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilte=
-r-devel>,=20
-        <mailto:netfilter-devel-request@lists.netfilter.org?subject=3Dsubsc=
-ribe>=20
-List-Id: discussion about netfilter development <netfilter-devel.lists.netf=
-ilter.org>          =20
-
-So you just configure your email reader or procmail or sieve or whatever
-your favourite filtering system is to match on the "List-ID" header.
-Even proprietary end-user oriented products like Outlook or Netscape
-Mail can do that...
-
-> Do you Yahoo!?
-
-No, despite their constant advertisement efforts.
-
-P.S.: I can also expect anybody who posts to this list to put
-_REASONABLE_ subject lines into their postings.  A subject line where
-one could conclude the matter of the request, not just that it is some
-request.
-
-P.P.S.: Would anybody be willing to make a docbook-website XML document
-for our new homepage about 'how to use the netfilter/iptables
-mailinglists' with content like the above one?  That would be really
-appreciated.
+> Bastian
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -92,7 +51,7 @@ appreciated.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---FoLtEtfbNGMjfgrs
+--lQSB8Tqijvu1+4Ba
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -100,9 +59,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAFkN7XaXGVTD0i/8RAueqAJ0cLDKNAgpsp93Fl3Xza0jqYHeXLQCgksSU
-Wgb5byYz9CXnrTFcXdjf+oE=
-=fNva
+iD8DBQFAFkQpXaXGVTD0i/8RAhZrAKCNrI8jHSYySN8lthaw7CwrU4LTBQCdHJ9R
+khAYgndUgibstgoXW2b53SI=
+=Nciv
 -----END PGP SIGNATURE-----
 
---FoLtEtfbNGMjfgrs--
+--lQSB8Tqijvu1+4Ba--
