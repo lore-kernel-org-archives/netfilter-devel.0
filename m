@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 4/19]: Enable ip6t_LOG.c to work without skb_linearize()
-Date: Mon, 25 Oct 2004 02:48:58 +0200
+Subject: [PATCH 2.6 2/19]: Change MASQUERADE to Use Device Address Directly
+Date: Mon, 25 Oct 2004 02:48:46 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C4D7A.8090508@trash.net>
+Message-ID: <417C4D6E.8060702@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070607040905090101040407"
+Content-Type: multipart/mixed; boundary="------------080207070501070409040303"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,500 +19,125 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070607040905090101040407
+--------------080207070501070409040303
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Convert ip6t_LOG to skb_header_pointer, fix multiple bugs.
+Rusty's MASQUERADE patch: Use inet_select_addr for getting source
+address and clear ASSURED bit when interface goes down.
 
 
 
---------------070607040905090101040407
+--------------080207070501070409040303
 Content-Type: text/x-patch;
- name="04.diff"
+ name="02.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="04.diff"
+ filename="02.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/10/19 02:15:21+02:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Enable ip6t_LOG.c to work without skb_linearize()
+#   2004/10/19 02:08:50+02:00 rusty@rustcorp.com.au 
+#   [NETFILTER]: Change MASQUERADE to Use Device Address Directly
 #   
-#   This patch enables ip6t_LOG.c to work without skb_linearize().
+#   Instead of doing a dubious route lookup, just use the first IP address
+#   of the (dynamic) interface.  Also, reset assured bit so after masq
+#   connections can be cleaned up if memory pressure.
 #   
-#   I changed a large part of this file. At first, ip6_nexthdr() is deleted
-#   to prevent multiple call of skb_header_pointer() at dump_packet() and
-#   ip6_nexthdr().
-#      
-#   And the following bugs are fixed. The first bug is fixed by introducing
-#   skb_header_pointer(), then I didn't separate patches.
-#   
-#       - No check with skb->len. Then invalid memory access may occur.
-#   
-#       - If packet is fragmented and it's not first fragment, nonexistent
-#         extension headers is tried to parse.
-#   
-#       - All headers which aren't TCP/UDP/ICMPv6 are treated as IPv6
-#         extension header.
-#     
-#       - The encrypted data after ESP is tried to parse.
-#      
-#       - ntohl() for ID in Fragment header is missing.
-#      
-#       - If doff*4 of TCP header is less than sizeof(struct tcphdr),
-#         TCP options are tried to parse.
-#      
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv6/netfilter/ip6t_LOG.c
-#   2004/10/19 02:14:54+02:00 yasuyuki.kozakai@toshiba.co.jp +178 -99
-#   [NETFILTER]: Enable ip6t_LOG.c to work without skb_linearize()
+# net/ipv4/netfilter/ipt_MASQUERADE.c
+#   2004/10/19 02:08:24+02:00 rusty@rustcorp.com.au +18 -29
+#   [NETFILTER]: Change MASQUERADE to Use Device Address Directly
 #   
-#   This patch enables ip6t_LOG.c to work without skb_linearize().
+#   Instead of doing a dubious route lookup, just use the first IP address
+#   of the (dynamic) interface.  Also, reset assured bit so after masq
+#   connections can be cleaned up if memory pressure.
 #   
-#   I changed a large part of this file. At first, ip6_nexthdr() is deleted
-#   to prevent multiple call of skb_header_pointer() at dump_packet() and
-#   ip6_nexthdr().
-#      
-#   And the following bugs are fixed. The first bug is fixed by introducing
-#   skb_header_pointer(), then I didn't separate patches.
-#   
-#       - No check with skb->len. Then invalid memory access may occur.
-#   
-#       - If packet is fragmented and it's not first fragment, nonexistent
-#         extension headers is tried to parse.
-#   
-#       - All headers which aren't TCP/UDP/ICMPv6 are treated as IPv6
-#         extension header.
-#     
-#       - The encrypted data after ESP is tried to parse.
-#      
-#       - ntohl() for ID in Fragment header is missing.
-#      
-#       - If doff*4 of TCP header is less than sizeof(struct tcphdr),
-#         TCP options are tried to parse.
-#      
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
---- a/net/ipv6/netfilter/ip6t_LOG.c	2004-10-22 03:37:43 +02:00
-+++ b/net/ipv6/netfilter/ip6t_LOG.c	2004-10-22 03:37:43 +02:00
-@@ -40,120 +40,166 @@
- #define DEBUGP(format, args...)
- #endif
+diff -Nru a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
+--- a/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-10-22 03:37:12 +02:00
++++ b/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-10-22 03:37:12 +02:00
+@@ -82,7 +82,6 @@
+ 	const struct ip_nat_multi_range *mr;
+ 	struct ip_nat_multi_range newrange;
+ 	u_int32_t newsrc;
+-	struct rtable *rt;
  
--struct esphdr {
--	__u32   spi;
--}; /* FIXME evil kludge */
--        
- /* Use lock to serialize, so printks don't overlap */
- static spinlock_t log_lock = SPIN_LOCK_UNLOCKED;
+ 	IP_NF_ASSERT(hooknum == NF_IP_POST_ROUTING);
  
--/* takes in current header and pointer to the header */
--/* if another header exists, sets hdrptr to the next header
--   and returns the new header value, else returns IPPROTO_NONE */
--static u_int8_t ip6_nexthdr(u_int8_t currenthdr, u_int8_t **hdrptr)
--{
--	u_int8_t hdrlen, nexthdr = IPPROTO_NONE;
+@@ -96,36 +95,12 @@
+ 	                    || ctinfo == IP_CT_RELATED + IP_CT_IS_REPLY));
+ 
+ 	mr = targinfo;
 -
--	switch(currenthdr){
--		case IPPROTO_AH:
--		/* whoever decided to do the length of AUTH for ipv6
--		in 32bit units unlike other headers should be beaten...
--		repeatedly...with a large stick...no, an even LARGER
--		stick...no, you're still not thinking big enough */
--			nexthdr = **hdrptr;
--			hdrlen = (*hdrptr)[1] * 4 + 8;
--			*hdrptr = *hdrptr + hdrlen;
--			break;
--		/*stupid rfc2402 */
--		case IPPROTO_DSTOPTS:
--		case IPPROTO_ROUTING:
--		case IPPROTO_HOPOPTS:
--			nexthdr = **hdrptr;
--			hdrlen = (*hdrptr)[1] * 8 + 8;
--			*hdrptr = *hdrptr + hdrlen;
--			break;
--		case IPPROTO_FRAGMENT:
--			nexthdr = **hdrptr;
--			*hdrptr = *hdrptr + 8;
--			break;
--	}	
--	return nexthdr;
--}
+-	{
+-		struct flowi fl = { .nl_u = { .ip4_u =
+-					      { .daddr = (*pskb)->nh.iph->daddr,
+-						.tos = (RT_TOS((*pskb)->nh.iph->tos) |
+-							RTO_CONN),
+-#ifdef CONFIG_IP_ROUTE_FWMARK
+-						.fwmark = (*pskb)->nfmark
+-#endif
+-					      } } };
+-		if (ip_route_output_key(&rt, &fl) != 0) {
+-			/* Funky routing can do this. */
+-			if (net_ratelimit())
+-				printk("MASQUERADE:"
+-				       " No route: Rusty's brain broke!\n");
+-			return NF_DROP;
+-		}
+-		if (rt->u.dst.dev != out) {
+-			if (net_ratelimit())
+-				printk("MASQUERADE:"
+-				       " Route sent us somewhere else.\n");
+-			ip_rt_put(rt);
+-			return NF_DROP;
+-		}
++	newsrc = inet_select_addr(out, 0, RT_SCOPE_UNIVERSE);
++	if (!newsrc) {
++		printk("MASQUERADE: %s ate my IP address\n", out->name);
++		return NF_DROP;
+ 	}
+ 
+-	newsrc = rt->rt_src;
+-	DEBUGP("newsrc = %u.%u.%u.%u\n", NIPQUAD(newsrc));
+-	ip_rt_put(rt);
 -
- /* One level of recursion won't kill us */
- static void dump_packet(const struct ip6t_log_info *info,
--			struct ipv6hdr *ipv6h, int recurse)
-+			const struct sk_buff *skb, unsigned int ip6hoff,
-+			int recurse)
- {
--	u_int8_t currenthdr = ipv6h->nexthdr;
--	u_int8_t *hdrptr;
-+	u_int8_t currenthdr;
- 	int fragment;
-+	struct ipv6hdr _ip6h, *ih;
-+	unsigned int ptr;
-+	unsigned int hdrlen = 0;
+ 	WRITE_LOCK(&masq_lock);
+ 	ct->nat.masq_index = out->ifindex;
+ 	WRITE_UNLOCK(&masq_lock);
+@@ -157,6 +132,18 @@
+ 	return ret;
+ }
+ 
++static inline int
++connect_unassure(const struct ip_conntrack *i, void *_ina)
++{
++	struct in_ifaddr *ina = _ina;
 +
-+	ih = skb_header_pointer(skb, ip6hoff, sizeof(_ip6h), &_ip6h);
-+	if (ih == NULL) {
-+		printk("TRUNCATED");
-+		return;
-+	}
- 
- 	/* Max length: 88 "SRC=0000.0000.0000.0000.0000.0000.0000.0000 DST=0000.0000.0000.0000.0000.0000.0000.0000" */
--	printk("SRC=%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ", NIP6(ipv6h->saddr));
--	printk("DST=%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ", NIP6(ipv6h->daddr));
-+	printk("SRC=%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ", NIP6(ih->saddr));
-+	printk("DST=%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ", NIP6(ih->daddr));
- 
- 	/* Max length: 44 "LEN=65535 TC=255 HOPLIMIT=255 FLOWLBL=FFFFF " */
- 	printk("LEN=%Zu TC=%u HOPLIMIT=%u FLOWLBL=%u ",
--	       ntohs(ipv6h->payload_len) + sizeof(struct ipv6hdr),
--	       (ntohl(*(u_int32_t *)ipv6h) & 0x0ff00000) >> 20,
--	       ipv6h->hop_limit,
--	       (ntohl(*(u_int32_t *)ipv6h) & 0x000fffff));
-+	       ntohs(ih->payload_len) + sizeof(struct ipv6hdr),
-+	       (ntohl(*(u_int32_t *)ih) & 0x0ff00000) >> 20,
-+	       ih->hop_limit,
-+	       (ntohl(*(u_int32_t *)ih) & 0x000fffff));
- 
- 	fragment = 0;
--	hdrptr = (u_int8_t *)(ipv6h + 1);
--	while (currenthdr != IPPROTO_NONE) {
--		if ((currenthdr == IPPROTO_TCP) ||
--		    (currenthdr == IPPROTO_UDP) ||
--		    (currenthdr == IPPROTO_ICMPV6))
--			break;
-+	ptr = ip6hoff + sizeof(struct ipv6hdr);
-+	currenthdr = ih->nexthdr;
-+	while (currenthdr != NEXTHDR_NONE && ip6t_ext_hdr(currenthdr)) {
-+		struct ipv6_opt_hdr _hdr, *hp;
++	/* We reset the ASSURED bit on all connections, so they will
++	 * get reaped under memory pressure. */
++	if (i->nat.masq_index == ina->ifa_dev->dev->ifindex)
++		clear_bit(IPS_ASSURED_BIT, (unsigned long *)&i->status);
++	return 0;
++}
 +
-+		hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
-+		if (hp == NULL) {
-+			printk("TRUNCATED");
-+			return;
-+		}
-+
- 		/* Max length: 48 "OPT (...) " */
--		printk("OPT ( ");
-+		if (info->logflags & IP6T_LOG_IPOPT)
-+			printk("OPT ( ");
-+
- 		switch (currenthdr) {
- 		case IPPROTO_FRAGMENT: {
--			struct frag_hdr *fhdr = (struct frag_hdr *)hdrptr;
-+			struct frag_hdr _fhdr, *fh;
+ static int masq_inet_event(struct notifier_block *this,
+ 			   unsigned long event,
+ 			   void *ptr)
+@@ -166,6 +153,8 @@
+ 	 * entries. */
+ 	if (event == NETDEV_UP)
+ 		ip_ct_selective_cleanup(device_cmp, ptr);
++	else if (event == NETDEV_DOWN)
++		ip_ct_selective_cleanup(connect_unassure, ptr);
  
--			/* Max length: 11 "FRAG:65535 " */
--			printk("FRAG:%u ", ntohs(fhdr->frag_off) & 0xFFF8);
-+			printk("FRAG:");
-+			fh = skb_header_pointer(skb, ptr, sizeof(_fhdr),
-+						&_fhdr);
-+			if (fh == NULL) {
-+				printk("TRUNCATED ");
-+				return;
-+			}
-+
-+			/* Max length: 6 "65535 " */
-+			printk("%u ", ntohs(fh->frag_off) & 0xFFF8);
- 
- 			/* Max length: 11 "INCOMPLETE " */
--			if (fhdr->frag_off & htons(0x0001))
-+			if (fh->frag_off & htons(0x0001))
- 				printk("INCOMPLETE ");
- 
--			printk("ID:%08x ", fhdr->identification);
-+			printk("ID:%08x ", ntohl(fh->identification));
- 
--			if (ntohs(fhdr->frag_off) & 0xFFF8)
-+			if (ntohs(fh->frag_off) & 0xFFF8)
- 				fragment = 1;
- 
-+			hdrlen = 8;
-+
- 			break;
- 		}
- 		case IPPROTO_DSTOPTS:
- 		case IPPROTO_ROUTING:
- 		case IPPROTO_HOPOPTS:
-+			if (fragment) {
-+				if (info->logflags & IP6T_LOG_IPOPT)
-+					printk(")");
-+				return;
-+			}
-+			hdrlen = ipv6_optlen(hp);
- 			break;
- 		/* Max Length */
- 		case IPPROTO_AH:
-+			if (info->logflags & IP6T_LOG_IPOPT) {
-+				struct ip_auth_hdr _ahdr, *ah;
-+
-+				/* Max length: 3 "AH " */
-+				printk("AH ");
-+
-+				if (fragment) {
-+					printk(")");
-+					return;
-+				}
-+
-+				ah = skb_header_pointer(skb, ptr, sizeof(_ahdr),
-+							&_ahdr);
-+				if (ah == NULL) {
-+					/*
-+					 * Max length: 26 "INCOMPLETE [65535 	
-+					 *  bytes] )"
-+					 */
-+					printk("INCOMPLETE [%u bytes] )",
-+					       skb->len - ptr);
-+					return;
-+				}
-+
-+				/* Length: 15 "SPI=0xF1234567 */
-+				printk("SPI=0x%x ", ntohl(ah->spi));
-+
-+			}
-+
-+			hdrlen = (hp->hdrlen+2)<<2;
-+			break;
- 		case IPPROTO_ESP:
- 			if (info->logflags & IP6T_LOG_IPOPT) {
--				struct esphdr *esph = (struct esphdr *)hdrptr;
--				int esp = (currenthdr == IPPROTO_ESP);
-+				struct ip_esp_hdr _esph, *eh;
- 
- 				/* Max length: 4 "ESP " */
--				printk("%s ",esp ? "ESP" : "AH");
-+				printk("ESP ");
-+
-+				if (fragment) {
-+					printk(")");
-+					return;
-+				}
-+
-+				/*
-+				 * Max length: 26 "INCOMPLETE [65535 bytes] )"
-+				 */
-+				eh = skb_header_pointer(skb, ptr, sizeof(_esph),
-+							&_esph);
-+				if (eh == NULL) {
-+					printk("INCOMPLETE [%u bytes] )",
-+					       skb->len - ptr);
-+					return;
-+				}
-+
-+				/* Length: 16 "SPI=0xF1234567 )" */
-+				printk("SPI=0x%x )", ntohl(eh->spi) );
- 
--				/* Length: 15 "SPI=0xF1234567 " */
--				printk("SPI=0x%x ", ntohl(esph->spi) );
--				break;
- 			}
-+			return;
- 		default:
--			break;
-+			/* Max length: 20 "Unknown Ext Hdr 255" */
-+			printk("Unknown Ext Hdr %u", currenthdr);
-+			return;
- 		}
--		printk(") ");
--		currenthdr = ip6_nexthdr(currenthdr, &hdrptr);
-+		if (info->logflags & IP6T_LOG_IPOPT)
-+			printk(") ");
-+
-+		currenthdr = hp->nexthdr;
-+		ptr += hdrlen;
- 	}
- 
- 	switch (currenthdr) {
- 	case IPPROTO_TCP: {
--		struct tcphdr *tcph = (struct tcphdr *)hdrptr;
-+		struct tcphdr _tcph, *th;
- 
- 		/* Max length: 10 "PROTO=TCP " */
- 		printk("PROTO=TCP ");
-@@ -161,51 +207,69 @@
- 		if (fragment)
- 			break;
- 
-+		/* Max length: 25 "INCOMPLETE [65535 bytes] " */
-+		th = skb_header_pointer(skb, ptr, sizeof(_tcph), &_tcph);
-+		if (th == NULL) {
-+			printk("INCOMPLETE [%u bytes] ", skb->len - ptr);
-+			return;
-+		}
-+
- 		/* Max length: 20 "SPT=65535 DPT=65535 " */
- 		printk("SPT=%u DPT=%u ",
--		       ntohs(tcph->source), ntohs(tcph->dest));
-+		       ntohs(th->source), ntohs(th->dest));
- 		/* Max length: 30 "SEQ=4294967295 ACK=4294967295 " */
- 		if (info->logflags & IP6T_LOG_TCPSEQ)
- 			printk("SEQ=%u ACK=%u ",
--			       ntohl(tcph->seq), ntohl(tcph->ack_seq));
-+			       ntohl(th->seq), ntohl(th->ack_seq));
- 		/* Max length: 13 "WINDOW=65535 " */
--		printk("WINDOW=%u ", ntohs(tcph->window));
--		/* Max length: 9 "RES=0x3F " */
--		printk("RES=0x%02x ", (u_int8_t)(ntohl(tcp_flag_word(tcph) & TCP_RESERVED_BITS) >> 22));
-+		printk("WINDOW=%u ", ntohs(th->window));
-+		/* Max length: 9 "RES=0x3C " */
-+		printk("RES=0x%02x ", (u_int8_t)(ntohl(tcp_flag_word(th) & TCP_RESERVED_BITS) >> 22));
- 		/* Max length: 32 "CWR ECE URG ACK PSH RST SYN FIN " */
--		if (tcph->cwr)
-+		if (th->cwr)
- 			printk("CWR ");
--		if (tcph->ece)
-+		if (th->ece)
- 			printk("ECE ");
--		if (tcph->urg)
-+		if (th->urg)
- 			printk("URG ");
--		if (tcph->ack)
-+		if (th->ack)
- 			printk("ACK ");
--		if (tcph->psh)
-+		if (th->psh)
- 			printk("PSH ");
--		if (tcph->rst)
-+		if (th->rst)
- 			printk("RST ");
--		if (tcph->syn)
-+		if (th->syn)
- 			printk("SYN ");
--		if (tcph->fin)
-+		if (th->fin)
- 			printk("FIN ");
- 		/* Max length: 11 "URGP=65535 " */
--		printk("URGP=%u ", ntohs(tcph->urg_ptr));
-+		printk("URGP=%u ", ntohs(th->urg_ptr));
- 
- 		if ((info->logflags & IP6T_LOG_TCPOPT)
--		    && tcph->doff * 4 != sizeof(struct tcphdr)) {
-+		    && th->doff * 4 > sizeof(struct tcphdr)) {
-+			u_int8_t _opt[60 - sizeof(struct tcphdr)], *op;
- 			unsigned int i;
-+			unsigned int optsize = th->doff * 4
-+					       - sizeof(struct tcphdr);
-+
-+			op = skb_header_pointer(skb,
-+						ptr + sizeof(struct tcphdr),
-+						optsize, _opt);
-+			if (op == NULL) {
-+				printk("OPT (TRUNCATED)");
-+				return;
-+			}
- 
- 			/* Max length: 127 "OPT (" 15*4*2chars ") " */
- 			printk("OPT (");
--			for (i =sizeof(struct tcphdr); i < tcph->doff * 4; i++)
--				printk("%02X", ((u_int8_t *)tcph)[i]);
-+			for (i =0; i < optsize; i++)
-+				printk("%02X", op[i]);
- 			printk(") ");
- 		}
- 		break;
- 	}
- 	case IPPROTO_UDP: {
--		struct udphdr *udph = (struct udphdr *)hdrptr;
-+		struct udphdr _udph, *uh;
- 
- 		/* Max length: 10 "PROTO=UDP " */
- 		printk("PROTO=UDP ");
-@@ -213,14 +277,21 @@
- 		if (fragment)
- 			break;
- 
-+		/* Max length: 25 "INCOMPLETE [65535 bytes] " */
-+		uh = skb_header_pointer(skb, ptr, sizeof(_udph), &_udph);
-+		if (uh == NULL) {
-+			printk("INCOMPLETE [%u bytes] ", skb->len - ptr);
-+			return;
-+		}
-+
- 		/* Max length: 20 "SPT=65535 DPT=65535 " */
- 		printk("SPT=%u DPT=%u LEN=%u ",
--		       ntohs(udph->source), ntohs(udph->dest),
--		       ntohs(udph->len));
-+		       ntohs(uh->source), ntohs(uh->dest),
-+		       ntohs(uh->len));
- 		break;
- 	}
- 	case IPPROTO_ICMPV6: {
--		struct icmp6hdr *icmp6h = (struct icmp6hdr *)hdrptr;
-+		struct icmp6hdr _icmp6h, *ic;
- 
- 		/* Max length: 13 "PROTO=ICMPv6 " */
- 		printk("PROTO=ICMPv6 ");
-@@ -228,16 +299,23 @@
- 		if (fragment)
- 			break;
- 
-+		/* Max length: 25 "INCOMPLETE [65535 bytes] " */
-+		ic = skb_header_pointer(skb, ptr, sizeof(_icmp6h), &_icmp6h);
-+		if (ic == NULL) {
-+			printk("INCOMPLETE [%u bytes] ", skb->len - ptr);
-+			return;
-+		}
-+
- 		/* Max length: 18 "TYPE=255 CODE=255 " */
--		printk("TYPE=%u CODE=%u ", icmp6h->icmp6_type, icmp6h->icmp6_code);
-+		printk("TYPE=%u CODE=%u ", ic->icmp6_type, ic->icmp6_code);
- 
--		switch (icmp6h->icmp6_type) {
-+		switch (ic->icmp6_type) {
- 		case ICMPV6_ECHO_REQUEST:
- 		case ICMPV6_ECHO_REPLY:
- 			/* Max length: 19 "ID=65535 SEQ=65535 " */
- 			printk("ID=%u SEQ=%u ",
--				ntohs(icmp6h->icmp6_identifier),
--				ntohs(icmp6h->icmp6_sequence));
-+				ntohs(ic->icmp6_identifier),
-+				ntohs(ic->icmp6_sequence));
- 			break;
- 		case ICMPV6_MGM_QUERY:
- 		case ICMPV6_MGM_REPORT:
-@@ -246,7 +324,7 @@
- 
- 		case ICMPV6_PARAMPROB:
- 			/* Max length: 17 "POINTER=ffffffff " */
--			printk("POINTER=%08x ", ntohl(icmp6h->icmp6_pointer));
-+			printk("POINTER=%08x ", ntohl(ic->icmp6_pointer));
- 			/* Fall through */
- 		case ICMPV6_DEST_UNREACH:
- 		case ICMPV6_PKT_TOOBIG:
-@@ -254,13 +332,14 @@
- 			/* Max length: 3+maxlen */
- 			if (recurse) {
- 				printk("[");
--				dump_packet(info, (struct ipv6hdr *)(icmp6h + 1), 0);
-+				dump_packet(info, skb, ptr + sizeof(_icmp6h),
-+					    0);
- 				printk("] ");
- 			}
- 
- 			/* Max length: 10 "MTU=65535 " */
--			if (icmp6h->icmp6_type == ICMPV6_PKT_TOOBIG)
--				printk("MTU=%u ", ntohl(icmp6h->icmp6_mtu));
-+			if (ic->icmp6_type == ICMPV6_PKT_TOOBIG)
-+				printk("MTU=%u ", ntohl(ic->icmp6_mtu));
- 		}
- 		break;
- 	}
-@@ -328,7 +407,7 @@
- 			printk(" ");
- 	}
- 
--	dump_packet(loginfo, ipv6h, 1);
-+	dump_packet(loginfo, skb, (u8*)skb->nh.ipv6h - skb->data, 1);
- 	printk("\n");
- 	spin_unlock_bh(&log_lock);
+ 	return NOTIFY_DONE;
  }
 
---------------070607040905090101040407--
+--------------080207070501070409040303--
