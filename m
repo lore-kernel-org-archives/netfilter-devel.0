@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] datalen variable unused in ftp helper.
-Date: Tue, 09 Mar 2004 22:48:18 +0100
+From: Alexander Samad <alex@samad.com.au>
+Subject: Re: [PATCH]: latest netfilter+ipsec patches
+Date: Wed, 10 Mar 2004 13:45:26 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <404E3BA2.8030408@trash.net>
-References: <404E0A4D.3070303@eurodev.net> <404E2AC5.1080803@trash.net> <404E350F.8060608@eurodev.net>
+Message-ID: <20040310024526.GF1072@samad.com.au>
+References: <20040128103000.GP11761@sunbeam.de.gnumonks.org> <401D12B6.5030707@trash.net> <40301AB2.2030103@trash.net> <40337D63.6080602@trash.net> <20040218220337.GA3193@alpha.home.local> <40356624.6050209@trash.net> <4047AE0E.1080003@trash.net> <20040304231141.GA1782@alpha.home.local> <20040304234236.GB4995@samad.com.au> <4047DF27.6090904@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Y1L3PTX8QE8cb2T+"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <404E350F.8060608@eurodev.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <4047DF27.6090904@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,39 +21,101 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Hi Patrick,
-> 
-> Patrick McHardy wrote:
-> 
->>> --- linux-2.6.3/net/ipv4/netfilter/ip_conntrack_ftp.c    2004-03-09 
->>> 18:49:21.000000000 +0100
->>> +++ linux-2.6.3-old/net/ipv4/netfilter/ip_conntrack_ftp.c    
->>> 2004-02-18 04:59:06.000000000 +0100
->>> @@ -281,7 +281,7 @@
->>>      datalen = skb->len - dataoff;
->>
->>
->>
->> ^^ Shouldn't the patch remove the variable entirely then ?
-> 
-> 
-> 
-> I'm not sure what's better. Adding a new parameter to the stack is cheap 
-> and this way I'm sure that gcc won't generate code to calculate skb->len 
-> - dataoff over and over again. I'm not a compiler geek, so I could be 
-> wrong :-). If you think that removing datalen is a better solution, 
-> please let me know and I'll post the patch.
 
-No I don't think so, I was confused by your patch which is reversed,
-so I thought you wanted to remove the variable. It is used quite often,
-so that doesn't make much sense. In the right order, your patch is
-fine ;)
+--Y1L3PTX8QE8cb2T+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards
-Patrick
+Patrick=20
 
-> 
-> regards,
-> Pablo
-> 
+I seem to have found a bug in your patches, but only when used in
+conjuction with Herbert's mangle patch.
+
+It seems like there is a loop caused when the packet traverses the
+tablesi, in particular ip_route_me_harder.
+
+I tested this on my laptop with debian 2.6.3-2 source with these patches
+that you provided on this thread, as well as the Herbert mangle patch.
+
+It seem like the packet on the way out gets encapsulated and then the
+encrypted packets try to get re encrypted.
+
+example ipsec.conf
+
+conn wireless
+	left=3D10.0.4.129
+	leftsubnet=3D0/0
+	authby=3Dsecret
+	pfs=3Dno
+	auto=3Dadd
+	right=3D%defaultroute
+
+By the dump it looks like a loop, I added a printk("%d\n", iph->protocol);=
+=20
+in ip_route_me_harder just before Herberts fix to test that.
+
+When I changed the config to look like this
+
+
+conn wireless
+	left=3D10.0.4.129
+	leftsubnet=3D10.6.0/24
+	authby=3Dsecret
+	pfs=3Dno
+	auto=3Dadd
+	right=3D%defaultroute
+
+It worked fine
+
+
+Any other question ask, I have deb's of the image and headers too if you
+want.
+
+Alex
+
+
+On Fri, Mar 05, 2004 at 03:00:07AM +0100, Patrick McHardy wrote:
+> Alexander Samad wrote:
+> >Q do I understand right that encrypted packets can or can't be acted
+> >upon by the hooks in LOCAL_IN.
+> >
+> >Or another way of putting it does a packet travel the tables twice once
+> >as an encrypted packet and once as a de crypted packet ?
+>=20
+> Exactly, input looks like this:
+>=20
+> (encrypted) PRE_ROUTING -> LOCAL_IN ->
+> (plain) PRE_ROUTING -> LOCAL_IN/FORWARD
+>=20
+> output looks like this:
+>=20
+> (plain) FORWARD/LOCAL_OUT -> POST_ROUTING ->
+> (encrypted) LOCAL_OUT -> POST_ROUTING
+>=20
+> This is the same as with freeswan, only without the ipsec
+> devices, the policy match can be used as a easy replacement
+> for them (-m policy --pol ipsec).
+>=20
+> Regards,
+> Patrick
+>=20
+> >
+> >Alex
+> >
+> >
+
+--Y1L3PTX8QE8cb2T+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAToFGkZz88chpJ2MRAsRcAJ99GWUvd1Y2Gm10PFDuX3o+11Z8JwCeKtqJ
+A/oVSuOFvoSJJYquHDPUmqM=
+=WNk6
+-----END PGP SIGNATURE-----
+
+--Y1L3PTX8QE8cb2T+--
