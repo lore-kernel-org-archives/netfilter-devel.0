@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 16/19]: Fix multiple bugs in hbh match
-Date: Mon, 25 Oct 2004 02:50:01 +0200
+Subject: [PATCH 2.6 19/19]: fix stats in __ip_conntrack_confirm
+Date: Mon, 25 Oct 2004 02:50:11 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C4DB9.3080502@trash.net>
+Message-ID: <417C4DC3.3060604@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070607000108050203090301"
+Content-Type: multipart/mixed; boundary="------------010804030804050500000509"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,199 +19,65 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070607000108050203090301
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+--------------010804030804050500000509
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Fix multiple bugs in hbh match:
-
-- The cast of the pointer to the next IPv6 extension header is wrong.
-- hdrlen may underflow.
-- (u16)*optdesc causes to alignment problem.
-- The calculation of the offset to next option is wrong. In the case
-  that the type isn't 0, it should be "Opt Data Len" field + 2
-  (see RFC2460).
+net_rx_softirq can preempt the calling process while incrementing the stats,
+call CONNTRACK_STAT_INC within the locked section.
 
 
 
---------------070607000108050203090301
+--------------010804030804050500000509
 Content-Type: text/x-patch;
- name="16.diff"
+ name="19.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="16.diff"
+ filename="19.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/10/25 00:43:08+02:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Fix multiple bugs in hbh match
+#   2004/10/25 01:11:17+02:00 pablo@eurodev.net 
+#   [NETFILTER]: fix stats in __ip_conntrack_confirm
 #   
-#   This patch fixes the following bugs in ip6t_hbh.c.
-#     - The cast of the pointer to the next IPv6 extension header is wrong.
-#     - hdrlen may underflow.
-#     - (u16)*optdesc causes to alignment problem.
-#     - The calculation of the offset to next option is wrong. In the case
-#       that the type isn't 0, it should be "Opt Data Len" field + 2
-#       (see RFC2460).
+#   net_rx_softirq can preempt the calling process while incrementing the stats.
+#   I think that we can fix this moving both CONNTRACK_STAT_INC to the locked
+#   section. 
 #   
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv6/netfilter/ip6t_hbh.c
-#   2004/10/25 00:43:01+02:00 yasuyuki.kozakai@toshiba.co.jp +38 -36
-#   [NETFILTER]: Fix multiple bugs in hbh match
+# net/ipv4/netfilter/ip_conntrack_core.c
+#   2004/10/25 01:11:10+02:00 pablo@eurodev.net +3 -2
+#   [NETFILTER]: fix stats in __ip_conntrack_confirm
 #   
-#   This patch fixes the following bugs in ip6t_hbh.c.
-#     - The cast of the pointer to the next IPv6 extension header is wrong.
-#     - hdrlen may underflow.
-#     - (u16)*optdesc causes to alignment problem.
-#     - The calculation of the offset to next option is wrong. In the case
-#       that the type isn't 0, it should be "Opt Data Len" field + 2
-#       (see RFC2460).
+#   net_rx_softirq can preempt the calling process while incrementing the stats.
+#   I think that we can fix this moving both CONNTRACK_STAT_INC to the locked
+#   section. 
 #   
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
---- a/net/ipv6/netfilter/ip6t_hbh.c	2004-10-25 01:13:52 +02:00
-+++ b/net/ipv6/netfilter/ip6t_hbh.c	2004-10-25 01:13:52 +02:00
-@@ -19,8 +19,6 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_opts.h>
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c	2004-10-25 01:14:06 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_core.c	2004-10-25 01:14:06 +02:00
+@@ -434,13 +434,14 @@
+ 		add_timer(&ct->timeout);
+ 		atomic_inc(&ct->ct_general.use);
+ 		set_bit(IPS_CONFIRMED_BIT, &ct->status);
+-		WRITE_UNLOCK(&ip_conntrack_lock);
+ 		CONNTRACK_STAT_INC(insert);
++		WRITE_UNLOCK(&ip_conntrack_lock);
+ 		return NF_ACCEPT;
+ 	}
  
--#define LOW(n)		(n & 0x00FF)
--
- #define HOPBYHOP	1
- 
- MODULE_LICENSE("GPL");
-@@ -47,8 +45,8 @@
-  *  	0	-> invariant
-  *  	1	-> can change the routing
-  *  (Type & 0x1F) Type
-- *      0	-> PAD0 (only 1 byte!)
-- *      1	-> PAD1 LENGTH info (total length = length + 2)
-+ *      0	-> Pad1 (only 1 byte!)
-+ *      1	-> PadN LENGTH info (total length = length + 2)
-  *      C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
-  *      5	-> RTALERT 2 x x
-  */
-@@ -70,7 +68,8 @@
-        unsigned int ptr;
-        unsigned int hdrlen = 0;
-        unsigned int ret = 0;
--       u_int16_t *optdesc = NULL;
-+       u8 *opttype = NULL;
-+       unsigned int optlen;
-        
-        /* type of the 1st exthdr */
-        nexthdr = skb->nh.ipv6h->nexthdr;
-@@ -97,7 +96,7 @@
-                      break;
-               }
- 
--              hdr=(void *)(skb->data)+ptr;
-+	      hdr = (void *)(skb->data + ptr);
- 
-               /* Calculate the header length */
-                 if (nexthdr == NEXTHDR_FRAGMENT) {
-@@ -159,7 +158,7 @@
-        		return 0;
-        }
- 
--       optsh=(void *)(skb->data)+ptr;
-+       optsh = (void *)(skb->data + ptr);
- 
-        DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
- 
-@@ -175,7 +174,6 @@
-                            ((optinfo->hdrlen == hdrlen) ^
-                            !!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
- 
--       temp = len = 0;
-        ptr += 2;
-        hdrlen -= 2;
-        if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
-@@ -186,48 +184,52 @@
- 		DEBUGP("Strict ");
- 		DEBUGP("#%d ",optinfo->optsnr);
- 		for(temp=0; temp<optinfo->optsnr; temp++){
--			optdesc = (void *)(skb->data)+ptr;
-+			/* type field exists ? */
-+			if (ptr > skb->len - 1 || hdrlen < 1)
-+				break;
-+			opttype = (void *)(skb->data + ptr);
+-	WRITE_UNLOCK(&ip_conntrack_lock);
+ 	CONNTRACK_STAT_INC(insert_failed);
++	WRITE_UNLOCK(&ip_conntrack_lock);
 +
- 			/* Type check */
--			if ( (unsigned char)*optdesc != 
--				(optinfo->opts[temp] & 0xFF00)>>8 ){
-+			if (*opttype != (optinfo->opts[temp] & 0xFF00)>>8){
- 				DEBUGP("Tbad %02X %02X\n",
--						(unsigned char)*optdesc,
--						(optinfo->opts[temp] &
--						 0xFF00)>>8);
-+				       *opttype,
-+				       (optinfo->opts[temp] & 0xFF00)>>8);
- 				return 0;
- 			} else {
- 				DEBUGP("Tok ");
- 			}
- 			/* Length check */
--			if (((optinfo->opts[temp] & 0x00FF) != 0xFF) &&
--				(unsigned char)*optdesc != 0){
--				if ( ntohs((u16)*optdesc) != 
--						optinfo->opts[temp] ){
--					DEBUGP("Lbad %02X %04X %04X\n",
--							(unsigned char)*optdesc,
--							ntohs((u16)*optdesc),
--							optinfo->opts[temp]);
-+			if (*opttype) {
-+				u16 spec_len;
-+
-+				/* length field exists ? */
-+				if (ptr > skb->len - 2 || hdrlen < 2)
-+					break;
-+				optlen = *((u8 *)(skb->data + ptr + 1));
-+				spec_len = optinfo->opts[temp] & 0x00FF;
-+
-+				if (spec_len != 0x00FF && spec_len != optlen) {
-+					DEBUGP("Lbad %02X %04X\n", optlen,
-+					       spec_len);
- 					return 0;
--				} else {
--					DEBUGP("Lok ");
- 				}
--			}
--			/* Step to the next */
--			if ((unsigned char)*optdesc == 0){
--				DEBUGP("PAD0 \n");
--				ptr++;
--				hdrlen--;
-+				DEBUGP("Lok ");
-+				optlen += 2;
- 			} else {
--				ptr += LOW(ntohs(*optdesc));
--				hdrlen -= LOW(ntohs(*optdesc));
--				DEBUGP("len%04X \n", 
--					LOW(ntohs(*optdesc)));
-+				DEBUGP("Pad1\n");
-+				optlen = 1;
- 			}
--			if (ptr > skb->len || ( !hdrlen && 
--				(temp != optinfo->optsnr - 1))) {
-+
-+			/* Step to the next */
-+			DEBUGP("len%04X \n", optlen);
-+
-+			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
-+			    (temp < optinfo->optsnr - 1)) {
- 				DEBUGP("new pointer is too large! \n");
- 				break;
- 			}
-+			ptr += optlen;
-+			hdrlen -= optlen;
- 		}
- 		if (temp == optinfo->optsnr)
- 			return ret;
+ 	return NF_DROP;
+ }
+ 
 
---------------070607000108050203090301--
+--------------010804030804050500000509--
