@@ -1,14 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
 Subject: Re: NAT question
-Date: Wed, 30 Jun 2004 13:55:29 +0200 (CEST)
+Date: Wed, 30 Jun 2004 17:56:17 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406301351530.7534-100000@filer.marasystems.com>
+Message-ID: <1088598377.27704.5.camel@vijay>
 References: <20040630113602.963604C052@spy10.spymac.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kiran Kumar Immidi <immidi@spymac.com>
+To: immidi@spymac.com
 In-Reply-To: <20040630113602.963604C052@spy10.spymac.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -20,22 +21,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 30 Jun 2004, Kiran Kumar Immidi wrote:
+If A and B send packets to a server, say google.com:80 using the local
+port 10000, when the pkts get SNATed on C, the source ports would be
+different from 10000 (21000 and 32000 for example) and when google.com
+sends back the packets to those new port numbers, conntrack would change
+the dst-port numbers to 10000 along with the dst-ip address.
 
-> When packets are being masqueraded from multiple machines through a NAT box,
-> how would the response be identified as part of a particular connection.
+Regards,
+Vijaya Chandra Vupputuri,
+Tachyon Technologies. 
 
-By it's ip:port tuple (both source and destination).
-
-> So, if we have (identical, as regards port numbers and dest ip address)
-> packets from A and B snatted at C, how is the reply (to C) identified as
-> belonging to either A or B?
-
-By which port on C the reply traffic is addressed to.
-
-The NAT engine always guarantees that at least one field in the address 
-tuple (source ip,port destination ip,port) is different as required to 
-correctly identify individual connections for all involved.
-
-Regards
-Henrk
+On Wed, 2004-06-30 at 17:06, Kiran Kumar Immidi wrote:
+> Hi,
+>   When packets are being masqueraded from multiple machines through a NAT box,
+> how would the response be identified as part of a particular connection. So, if
+> we have (identical, as regards port numbers and dest ip address) packets from A
+> and B snatted at C, how is the reply (to C) identified as belonging to either A
+> or B? There does not seem to be any information in the packet to distinguish it.
+> Regards,
+> Kiran Kumar Immidi
+> 
+> ---- Cool Things Happen When Mac Users Meet! Join the community in Boston this July: www.macworldexpo.com
+> 
+> 
