@@ -1,18 +1,14 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: Bug with netfilter and NFS server on same machine (fwd)
-Date: Thu, 5 Dec 2002 21:21:19 +0100
+From: "Gael Mauleon" <gmauleon@free.fr>
+Subject: Concerning ULOG and the MAC logging bug
+Date: Thu, 5 Dec 2002 22:27:48 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021205202119.GH11068@naboo.club.berlin.ccc.de>
-References: <Pine.LNX.4.44.0211231342530.3237-100000@sparrow>
+Message-ID: <003101c29ca5$289c8b40$0200a8c0@KevlarPC>
+Reply-To: "Gael Mauleon" <gmauleon@free.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jRdC2OsRnuV8iIl8"
-Cc: ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Lars Knudsen <gandalfit@virgilio.it>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_002E_01C29CAD.8A3D3EA0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: William Stearns <wstearns@pobox.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0211231342530.3237-100000@sparrow>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,72 +19,181 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---jRdC2OsRnuV8iIl8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------=_NextPart_000_002E_01C29CAD.8A3D3EA0
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Nov 23, 2002 at 01:44:45PM -0500, William Stearns wrote:
-> Good day, Lars,
-> 	Whether or not the netfilter list was able to find an answer, it=20
-> might still make sense to CC that list.
+Hi, I am new here so excuse me first for my bad english and then for all
+mistake i can make :))
 
-yup, definitely.
+So I found a bug in ULOG concerning the logging of MAC Address, =
+searching the
+list archive i  found a patch from Harald  Welte but I think a better =
+one can be=20
+written in this, but since i am new to kernel/netfilter coding perhaps =
+that's not the way to
+do it .....
 
-> The problem is this: A machine running linux 2.4.18 or 2.4.19 works just=
+(ipt_ULOG.c) :
+
+---------------------------------------------
+Line 210
+
+        pm =3D NLMSG_DATA(nlh);
+        memset(pm, 0, sizeof(ulog_packet_msg_t));
 =20
-> fine when running just the kernel nfsd. A single client connected to the=
+        /* copy hook, prefix, timestamp, payload, etc. */=20
+        pm->data_len =3D copy_len;
+        pm->timestamp_sec =3D (*pskb)->stamp.tv_sec;
+        pm->timestamp_usec =3D (*pskb)->stamp.tv_usec;=20
+        pm->mark =3D (*pskb)->nfmark;
+        pm->hook =3D hooknum;
+        if (loginfo->prefix[0] !=3D '\0')=20
+                strncpy(pm->prefix, loginfo->prefix, =
+sizeof(pm->prefix));
 =20
-> server with 100Mbit ethernet sees throughput of 5-10MByte/sec even after=
+        if (in && in->hard_header_len > 0
+            && (*pskb)->mac.raw !=3D (void *) (*pskb)->nh.iph
+            && in->hard_header_len <=3D ULOG_MAC_LEN) {
+                memcpy(pm->mac, (*pskb)->mac.raw, in->hard_header_len);
+                pm->mac_len =3D in->hard_header_len;=20
+        }=20
+
+        if (in)=20
+                strncpy(pm->indev_name, in->name, =
+sizeof(pm->indev_name));
 =20
-> an hour or two of continous transfers. If the nfs server is also running=
+        if (out)=20
+                strncpy(pm->outdev_name, out->name, =
+sizeof(pm->outdev_name));
 =20
-> iptables the throughput is initially the same (5-10MByte/sec) but after=
-=20
-> a while (200MByte-500MByte total transfer) the client starts reporting=20
-> "nfs server not responding" followed after a while by "nfs server OK"=20
-> and of course the transfer rate goes way down (< 1MByte/sec). Using=20
-> tcpdump on the client seems to indicate that some packets have their=20
-> headers garbled - wrong fragment ids being the typical error.
+        if (copy_len)=20
+                memcpy(pm->payload, (*pskb)->data, copy_len);=20
 
-this sounds like a problem with nfs's exceptionally large packet size
-(up to 8k) and the resulting udp fragments, which need to get
-defragmented and refragmented while conntrack is done.
+------------------------------------------------
 
-Apart from that I don't have any idea.  I run lots of linux nfs servers
-on machines which have conntrack running, without ever encountering the
-problem you are describing.  There has to be something special about
-your setup(s) we are missing here.
+Since the payload can also be exploited with wrong data , i would prefer =
+a memset
+solution like this to the else solution proposed. And we can then erase =
+all the else.
 
-Any idea?
+Please let me know, what do you think of it.
+And let me know if there is a better way to tell about bugs and put some =
+code changes.
 
-Thanks.
+Thx.
 
-> \Lars Knudsen
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
-=20
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---jRdC2OsRnuV8iIl8
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+------=_NextPart_000_002E_01C29CAD.8A3D3EA0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2719.2200" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>Hi, I am new here so excuse me first =
+for my bad=20
+english and then for all</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>mistake i can make :))</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>So I found a bug in ULOG concerning the =
+logging of=20
+MAC Address, searching the</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>list archive i&nbsp; found a patch from =
 
-iD8DBQE977U/XaXGVTD0i/8RArkSAJ9v4akb330zQSxvnPfkj0nZV3pX5wCgn2pf
-qCA4BYmEL2jAA3wTnDVqf/w=
-=jfSX
------END PGP SIGNATURE-----
+Harald&nbsp; Welte but I think a better one can be </FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>written in this, but since i am new=20
+to&nbsp;kernel/netfilter coding perhaps that's not the way =
+to</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>do it .....</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>(ipt_ULOG.c) :</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial=20
+size=3D2>---------------------------------------------</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>Line 210</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial =
+size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pm =3D=20
+NLMSG_DATA(nlh);<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+memset(pm, 0,=20
+sizeof(ulog_packet_msg_t));<BR>&nbsp;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;=20
+/* copy hook, prefix, timestamp, payload, etc. */=20
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pm-&gt;data_len =3D=20
+copy_len;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+pm-&gt;timestamp_sec =3D=20
+(*pskb)-&gt;stamp.tv_sec;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+pm-&gt;timestamp_usec =3D (*pskb)-&gt;stamp.tv_usec;=20
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pm-&gt;mark =3D=20
+(*pskb)-&gt;nfmark;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+pm-&gt;hook =3D=20
+hooknum;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if =
+(loginfo-&gt;prefix[0]=20
+!=3D '\0')=20
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;=20
+strncpy(pm-&gt;prefix, loginfo-&gt;prefix,=20
+sizeof(pm-&gt;prefix));<BR>&nbsp;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;=20
+if (in &amp;&amp; in-&gt;hard_header_len &gt;=20
+0<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+&amp;&amp; (*pskb)-&gt;mac.raw !=3D (void *)=20
+(*pskb)-&gt;nh.iph<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;=20
+&amp;&amp; in-&gt;hard_header_len &lt;=3D ULOG_MAC_LEN)=20
+{<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;=20
+memcpy(pm-&gt;mac, (*pskb)-&gt;mac.raw,=20
+in-&gt;hard_header_len);<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+pm-&gt;mac_len =3D in-&gt;hard_header_len;=20
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; } </FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial =
+size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (in)=20
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;=20
+strncpy(pm-&gt;indev_name, in-&gt;name,=20
+sizeof(pm-&gt;indev_name));<BR>&nbsp;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;=20
+if (out)=20
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;=20
+strncpy(pm-&gt;outdev_name, out-&gt;name,=20
+sizeof(pm-&gt;outdev_name));<BR>&nbsp;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;=20
+if (copy_len)=20
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;=20
+memcpy(pm-&gt;payload, (*pskb)-&gt;data, copy_len); <BR></DIV>
+<DIV>------------------------------------------------<BR></DIV></FONT>
+<DIV><FONT face=3DArial size=3D2>Since the payload can also be exploited =
+with wrong=20
+data , i would prefer a memset</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>solution like this to the else solution =
+proposed.=20
+And we can then erase all the else.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Please let me know, what do you think =
+of=20
+it.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>And let me know if there is a better =
+way to tell=20
+about bugs and put some code changes.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Thx.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
 
---jRdC2OsRnuV8iIl8--
+------=_NextPart_000_002E_01C29CAD.8A3D3EA0--
