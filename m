@@ -1,14 +1,17 @@
-From: Christian Hammers <ch@westend.com>
-Subject: Asym. router has problems with full ip_conntrack table in 2.4.20
-Date: Mon, 27 Jan 2003 12:26:53 +0100
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: Asym. router has problems with full ip_conntrack table in
+	2.4.20
+Date: 27 Jan 2003 12:40:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030127112653.GB9209@westend.com>
+Message-ID: <1043667626.4275.30.camel@tux.rsn.bth.se>
+References: <20030127112653.GB9209@westend.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Christian Hammers <ch@westend.com>
+In-Reply-To: <20030127112653.GB9209@westend.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,47 +22,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello
+On Mon, 2003-01-27 at 12:26, Christian Hammers wrote:
 
-I use kernel 2.4.20 and iptables filter (no NAT or stateful filtering!) on
-a router that is part of a large network and has many asymetric routes
-i.e. inbound packages of some connections go over this host but replies
-are send via another router. Therefore stateful packet filtering would
-have no chance to get some kind of ESTABLISHED state or similar and is
-completely disabled.
+[big snip]
+> I can reproduce on my desktop machine that the /proc files are active
+> without having ipt_conntrack.o loaded and that I really have packet loss
+> when the tables fill up!
 
-Now sadly the /proc/net/ip_conntrack still exists and slowly fills up,
-which leads to the following message after a while of uptime:
+ipt_conntrack != ip_conntrack
 
-	ip_conntrack: table full, dropping packet.
+ipt_conntrack is a match to match on conntrack states.
+ip_conntrack is the connectiontracking.
 
-The /proc/sys/net/ipv4/ip_conntrack_max exists, too. 
-I can play around with it but even "-1" or "0" do not seem to disable the
-table, nor to flush it.
-I have reboodet the maching already.
-lsmod shows only the following (relevant), ipt_conntrack.o is
-at least compiled and installed in /lib/modules/* although not loaded.
-	ipt_MARK                 800   0  (autoclean)
-	iptable_mangle          2208   0  (autoclean)
-	ipt_LOG                 3200   2  (autoclean)
-	iptable_filter          1760   1  (autoclean)
-	ip_tables              13184   4  [ipt_MARK iptable_mangle ipt_LOG iptable_filter]
+Remove ip_conntrack and all should be fine.
 
-I currently have:
-	lx01:/home/ch# wc -l /proc/net/ip_conntrack 
-	  25963 /proc/net/ip_conntrack
-(all normal traffic, 99% in state [UNREPLIED] due to asymetric routing)
-	
-I can reproduce on my desktop machine that the /proc files are active
-without having ipt_conntrack.o loaded and that I really have packet loss
-when the tables fill up!
-
-TIA & bye,
-
--christian-
+This isn't a development related issue, please post further problems on
+this matter to netfilter@lists.netfilter.org
+(and remove this list from the recipients)
+(I'm sending my reply to the list you mailed just to let people know
+that I've already answered your mail)
 
 -- 
-Christian Hammers             WESTEND GmbH  |  Internet-Business-Provider
-Technik                       CISCO Systems Partner - Authorized Reseller
-                              Lütticher Strasse 10     Tel 0241/701333-11
-ch@westend.com                D-52064 Aachen              Fax 0241/911879
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat you with experience.
