@@ -1,15 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Unique IDs for rules?
-Date: Mon, 19 Jan 2004 18:52:14 +0100 (CET)
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: Need for ether level in userspace
+Date: Mon, 19 Jan 2004 10:03:22 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401191851480.13021-100000@filer.marasystems.com>
-References: <200401191738.26995.lists@edeca.net>
+Message-ID: <20040119180322.31887.qmail@web13908.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: david@edeca.net
-In-Reply-To: <200401191738.26995.lists@edeca.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,13 +17,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 19 Jan 2004, David Cannings wrote:
+Hello,
+   I need to get access to a packet's ethernet packet
+from a QUEUE userspace application.  It looks like
+only the payload is provided, though there is a
+hw_addr field from the message (which I think is
+empty, looking at the ip_queue.c source code.
 
-> Is it "safe" to jump like this from both input and output chains to one 
-> shared chain?
+Is there any way to get the source/dst ether address
+other than mangling the userspace message?
 
-Yes, but this is now material for the netfilter list, not 
-netfilter-devel..
-
-Regards
-Henrik
+__________________________________
+Do you Yahoo!?
+Yahoo! Hotjobs: Enter the "Signing Bonus" Sweepstakes
+http://hotjobs.sweepstakes.yahoo.com/signingbonus
