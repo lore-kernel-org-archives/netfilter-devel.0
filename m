@@ -1,48 +1,34 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Oops in replace_in_hashes (ip_net_core.c) 2.4.19
-Date: 01 Jul 2003 23:05:51 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1057093550.720.58.camel@tux.rsn.bth.se>
-References: <S261808AbTGAJfh/20030701093537Z+14616@vger.kernel.org>
-	 <20030701.024732.71580915.davem@redhat.com>
+From: Marcelo Tosatti <marcelo@conectiva.com.br>
+Subject: Re: [2.4 patch] netfilter Configure.help cleanup
+Date: Wed, 2 Jul 2003 16:25:05 -0300 (BRT)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.55L.0307021624510.17865@freak.distro.conectiva>
+References: <20030630051516.AAEC12C220@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: mikesmith1@btconnect.com, linux-net@vger.kernel.org,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-In-Reply-To: <20030701.024732.71580915.davem@redhat.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Adrian Bunk <bunk@fs.tum.de>, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, linux-net@vger.kernel.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <20030630051516.AAEC12C220@lists.samba.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2003-07-01 at 11:47, David S. Miller wrote:
 
-> I believe 2.4.21 has a fix for this, but the netfilter
-> experts will know better.
+Make that go through davem, please.
 
-(Dave, it's netfilter-devel@lists.netfilter.org)
-(to the rest, the original report can be found on linux-net)
+On Mon, 30 Jun 2003, Rusty Russell wrote:
 
-It looks like list-corruption.
-
-ip_conntrack_core.c:665
-byipsproto[ipsprotohash].next points into space.
-
-I can't see anything obvious right now, my eyelids are very heavy so
-I'll continue looking tomorrow.
-
-There's a small possibility that this is caused by the modify-after-free
-bug that's fixed in 2.4.21 (but unfortunately introduced some
-refcounting bugs, patches are on the way to Dave, they can be found in
-netfilter patch-o-matic as well).
-
--- 
-/Martin
+> In message <20030627233357.GN24661@fs.tum.de> you write:
+> > - remove useless short descriptions above CONFIG_*
+>
+> > -Connection tracking (required for masq/NAT)
+> >  CONFIG_IP_NF_CONNTRACK
+>
+> Can you really do this?  A quick skim didn't find anyone else skipping
+> this line...
+>
+> Thanks,
+> Rusty.
+> --
+>   Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+>
