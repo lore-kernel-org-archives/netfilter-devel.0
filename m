@@ -1,17 +1,17 @@
 From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: NAT before IPsec with 2.6
-Date: Sat, 24 Jan 2004 09:22:52 +0100
+Subject: Re: filter for adding/checking TCP MD5 option
+Date: Sat, 24 Jan 2004 09:37:30 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040124082252.GA19035@alpha.home.local>
-References: <Pine.LNX.4.44.0401231521350.13626-100000@filer.marasystems.com> <200401230751.40618.teastep@shorewall.net>
+Message-ID: <20040124083730.GB19035@alpha.home.local>
+References: <Pine.LNX.4.44.0401231248320.12080-100000@filer.marasystems.com> <Pine.LNX.4.58.0401232037420.22515@biereco.slashme.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Henrik Nordstrom <hno@marasystems.com>, Michal Ludvig <mludvig@suse.cz>,
+Cc: Henrik Nordstrom <hno@marasystems.com>,
    netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
+To: Remco van Mook <remco@virtu.nl>
 Content-Disposition: inline
-In-Reply-To: <200401230751.40618.teastep@shorewall.net>
+In-Reply-To: <Pine.LNX.4.58.0401232037420.22515@biereco.slashme.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,19 +22,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Fri, Jan 23, 2004 at 08:59:24PM +0100, Remco van Mook wrote:
 
-On Fri, Jan 23, 2004 at 07:51:40AM -0800, Tom Eastep wrote:
- 
-> I'm concerned that passing the unencrypted packet through POSTROUTING 
-> apparently makes it impossible for firewall rules to enforce encryption to a 
-> remote host or network.
+> > Note: As this is TCP payload dependent you need to make sure packets are
+> > defragmented before processed. This is most easily accomplished by
+> > depending on conntrack.
+> >
 > 
-> It's my opinion that when the ipsec<n> devices where eliminated, the baby got 
-> thrown out with the bath water.
+> ...which is precisely something I'm not too happy about. A box running tcpmd5
+> would typically be a router handling positively *huge* amounts of data.
 
-That was my point too. Even if the packet is only encapsulated, from an IP
-point of view, this is a completely new locally generated packet, and we
-need to be able to apply filtering before and after encapsulation.
+For this you can play with the NOTRACK target to escape tracking for normally
+routed packets.
 
+> Filtering is kept to an absolute minimum, and for the filtering I'm currently
+> using nf-hipac, not netfilter.
+
+Unless I'm wrong, nf-hipac's goal is to allow to keep maximum performance with
+*huge* amounts of rules.
+
+> Adding a dependency on conntrack would, correct
+> me if I'm wrong, require any connection that comes through the box to be
+> tracked. Tens of thousands of connections would wind up in conntrack and eat
+> loads of cpu.
+
+For info, I have installed two netfilter boxes (P4/2.4 GHz) load-balanced
+behind 30 Mbps traffic. Last time I checked, there were 60k sessions in
+/proc/net/ip_conntrack and they received 1k sessions/second (all logged).
+All this with less than 12% CPU usage. Admittedly, there only are about
+one hundred rules.
+
+> The way BGP is organised, fragmented BGP packets would be horribly braindead
+> and should not ever occur in the wild. I know that this doesn't fix the
+> problem you described, but I would also very much like to see how a box from
+> Vendor C or Vendor J would behave if it would get its BGP session handed to
+> it in fragments, with MD5 enabled.
+
+So you can log and drop BGP fragments to ensure that there's no problem.
+IIRC, the routers in front of the firewalls described above already block
+all fragments, and use BGP without problem.
+
+Cheers,
 Willy
