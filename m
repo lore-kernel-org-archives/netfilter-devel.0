@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] Efficient matching of many IP blocks
-Date: Wed, 9 Jun 2004 00:41:48 +0200 (CEST)
+From: Florian Boelstler <euphoria@web.de>
+Subject: Handling incoming DCC session
+Date: Wed, 09 Jun 2004 01:04:28 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406090040370.30134-100000@filer.marasystems.com>
-References: <Pine.LNX.4.44.0406082024010.5747-100000@peter.stamf.pr.at>
+Message-ID: <40C645FC.7080505@web.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Peter Stamfest <peter@stamfest.at>
-In-Reply-To: <Pine.LNX.4.44.0406082024010.5747-100000@peter.stamf.pr.at>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,30 +18,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 8 Jun 2004, Peter Stamfest wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> I know that some of you d/l'ed the README and the tgz, so what do people 
-> think about
-> 
-> * the concept?
+Hi,
 
-Similar to ippool/ipset if I understood you correctly.
+a long time ago someone posted a patch for 2.4.18 kernels [1], which
+allowed incoming DCCs get caught by a default 'related' rule.
 
-> * the interface?
+As far as I know this patch wasn't applied by the module maintainer.
+Unfortunately the sources have changed in the meantime and the patch
+doesn't work anymore.
 
-No opinion.
+I was trying to adapt the patch to kernel 2.6.5. But I don't have enough
+knowledge to successfully modify it.
 
-> * the implementation?
+Is there anybody out there who owns a patch for 2.6.x series?
+Or could assist me in creating a patch? :)
 
-No opinion.
 
-> * the likelihood to add this to netfilter proper?
+Thanks for your help!
 
-Depends on the fate of or integration with ipset I think..
+  Florian
 
-> * the porting to 2.6 and creating the equivalent ipv6 module?
 
-No opinion.
+[1]
+http://lists.netfilter.org/pipermail/netfilter-devel/2002-July/008665.html
 
-Regards
-Henrik
+
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFAxkX8wT2gPfZm6tURApwQAJ4xeY22pdzupZWEu1ikejppOn814ACeLdrM
+jPLpvzQ1NvEs97rRzsWftjA=
+=elf+
+-----END PGP SIGNATURE-----
