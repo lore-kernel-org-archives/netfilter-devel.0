@@ -1,61 +1,39 @@
-From: "Joel Linuxdude" <linuxlists@hotmail.com>
-Subject: Some dumb questions...
-Date: Sun, 03 Nov 2002 02:32:34 -0500
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>
+From: Andras Kis-Szabo <kisza@securityaudit.hu>
+Subject: Re: [PATCH] IPv6: Functions Clean-up
+Date: Sun, 03 Nov 2002 14:00:14 +0100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <1036328414.1048.3.camel@arwen>
+References: <20021103.115427.104445233.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
+Cc: linux-kernel@vger.kernel.org, Netdev <netdev@oss.sgi.com>,
+   Netfilter Devel <netfilter-devel@lists.netfilter.org>,
+   "David S. Miller" <davem@redhat.com>, kuznet@ms2.inr.ac.ru,
+   usagi@linux-ipv6.org
+Return-path: <netdev-bounce@oss.sgi.com>
+In-reply-to: <20021103.115427.104445233.yoshfuji@linux-ipv6.org>
+To: YOSHIFUJI Hideaki / =?UTF-8?Q?=E5=90=89=E8=97=A4=E8=8B=B1?=
+ =?UTF-8?Q?=E6=98=8E?= <yoshfuji@linux-ipv6.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-I was referred to this list by one of the Netfilter guys on order to gleen 
-some information needed to write a decent
-tutorial/reference guide.
+Hello,
 
-WARNING: POSSIBLE DUMB QUESTIONS. (But, ask me if I care!)
+>  - export route6_me_harder() as ip6_route_harder() and
+>    use it from net/ipv6/netfilter/ip6_queue.c.
+Opsz!
+At the extension parser code we got that decision that we should use
+our own parser in the Netfilter code! (And we should not to trust in the
+kernel.)
+This patch removes one function from the Netfilter code and forces the
+Netfilter to use a similar function from the kernel's one!
 
-QUESTION: Would a packet created on the Netfilter PC first
-go through the OUTPUT chain and then through POSTROUTING?
-If so, what TABLE??? NAT? What about FILTER? I assume:
-NetFilter system -> (nat)OUTPUT -> (nat)POSTROUTING -> Eth0 -> Internet
+Regards,
 
-QUESTION: Absolutely everything coming INTO an interface
-first goes to (nat)PREROUTING, right?
-
-QUESTION: Netfilter PC has 3 workstations over Eth1 and they
-are SNATing through Eth0 and out to the internet. What if
-somebody conversing with the workstation over...say...
-IRC gets the IP of the workstation (It would be the Netfilter
-PC's IP) and pings it.....Of course, it would be pinging
-the Netfilter PC and NOT the workstation, right? The workstation
-would not even see any ICMP packets at all, right?
-
-QUESTION: Where is the most effective place to stop spoofed
-packets or block a port?
-A) -t nat PREROUTING ???
-B) -t filter INPUT (for local) and -t filter FORWARD (for LAN)?
-C) Either A or B would work fine.
-D) None. You're way off.
-
-
-THANK YOU VERY MUCH! These answers will help me out a lot.
-
-Joel
-
-
-
-
-
-
-_________________________________________________________________
-Choose an Internet access plan right for you -- try MSN! 
-http://resourcecenter.msn.com/access/plans/default.asp
+	kisza
+ 
+-- 
+    Andras Kis-Szabo       Security Development, Design and Audit
+-------------------------/        Zorp, NetFilter and IPv6
+ kisza@SecurityAudit.hu /------------------------------------------->
