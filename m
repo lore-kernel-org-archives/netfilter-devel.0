@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
+From: netfilter@interlinx.bc.ca
 Subject: Re: How to create a "persistent" expectation with newnat?
-Date: Wed, 26 Feb 2003 22:15:45 +0100
+Date: Wed, 26 Feb 2003 17:18:17 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030226211545.GI15997@sunbeam.de.gnumonks.org>
-References: <20030224051810.GB7523@pc.ilinx> <20030225044337.GA4113@pc.ilinx> <20030226174145.GN8883@sunbeam.de.gnumonks.org> <20030226204009.GA11142@pc.ilinx>
+Message-ID: <20030226221816.GA4557@pc.ilinx>
+References: <200302262211.h1QMBUm21885@singularity.tronunltd.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YQEH9CATo+4lan7A"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@interlinx.bc.ca
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20030226204009.GA11142@pc.ilinx>
+In-Reply-To: <200302262211.h1QMBUm21885@singularity.tronunltd.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,86 +22,73 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---YQEH9CATo+4lan7A
+--lrZ03NoBR/3+SXJZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Feb 26, 2003 at 03:40:10PM -0500, netfilter@interlinx.bc.ca wrote:
-
-> > > In any case, what makes me suspect that this is the wrong solution is
-> > > that (back to the "use" counter) while the expectation does not seem
-> > > to disappear on me (good) the use counter increments indefinately.  It
-> > > is at:
-> >=20
-> > if you increment the use counter,
+On Thu, Feb 27, 2003 at 08:11:29AM +1100, Ian Latter wrote:
 >=20
-> I am not touching the counter, myself.  However, every time I repost
-> the expectation with:
->=20
-> static int gnutella_expectfn(struct ip_conntrack *ct)
-> {
->=20
->     struct ip_conntrack *master;
->     master =3D master_ct(ct);
->     if (!master) {
->         DEBUGP(" no master!!!\n");
->         return 0;
->     }
->=20
->     ip_conntrack_expect_related(master, ct->master);
->=20
->     return 0;
-> }
+> Howdy netfilter-dude,
 
-This was not what I was thinking about. You would try to put the same
-struct onto the list again.  Bad things will happen.  You will need to
-allocate a new struct ip_conntrack_expect, initialize it with tuple/mask
-and then call expect_related on this newly-allocated struct.
+Howdy pardner.  :-)
 
-I did mean 'the same expectation' on a logical level, not 'the same
-piece of memory representing the expectation'.
+>   Wouldn't most of your problems go away if you set the expectation
+> on the outbound connection?
 
-> > the structure will never be deleted
-> > from kernel memory and you will run out of memory.
->=20
-> If I can trust that it's freed from kernel memory when it disappears
-> in /proc/net/ip_conntrack,=20
+I do that.  And it works while there are outbound connections.  But as
+I described in my last message, there might be some time (quite a bit
+of time in fact) between outgoing connections.  Indeed, once you have
+been on the network long enough and your address gets known to enough
+other peers on the network, you will start to see enough incoming
+connections that you no longer make outgoing connections to keep the
+"minimum connections" count up.
 
-No, please look at the code.  /proc/ip_conntrack lists _unfulfilled_
-expectations.  once the 'slave' connection arrives and fulfills the
-expectation, it will no longer appear in /proc/net/ip_conntrack.
+Since there potentially can be no outgoing connections after the first
+few, it is these incoming connections that need to keep the "flywheel"
+(of inbound expectations) going.
 
-In fact the structure will be allocated until the slave struct
-ip_conntrack dies (and thus drops the 'use' count of the master struct=20
-ip_conntrack_expect.
+> Ie.  If I was to alter my rsh module to
+> do gnutella, on what you've said below, I would look for the one=20
+> outbound connection (client to server --- or client to universe in p2p),
+> setup an expectation on the inbound connections (universe to client)
+> for either an unlimited or numbered count of each type, then handle
+> these connections.
 
-I've tried to describe this in documentation/newnat-summary.txt.
+But the expectation will go away when either of a) it times out, or b)
+the master connection goes away.  It is for both of these reasons that
+the expectation needs to continually be renewed (even when your only
+connections are inbound).  It needs to be attached to an ESTABLISHED
+connection and not be timed out.
 
-> b.
-> Brian J. Murrell
+>   In this way you will also avoid hassles later with NAT ....
+
+For inbound connections, I don't know that there are NAT issues yet.
+I don't think anything in the payload needs to be altered.  I have not
+looked that deeply yet.
+
+> So, generally, my feeling from netfilter is that you track the
+> outbound and expect the inbound ...
+
+Generally, I agree with you -- for protocols where this is in fact the
+case.
+
+b.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Brian J. Murrell
 
---YQEH9CATo+4lan7A
+--lrZ03NoBR/3+SXJZ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+XS6BXaXGVTD0i/8RAjo2AJ9iGkMDb9lwzSy4iHnFSxvt1BYHyACgkrgR
-aNwPabDRyMQJLAtCC/7+Mqo=
-=iu8a
+iD8DBQE+XT0ol3EQlGLyuXARAqCzAKDXRnwraWQccs62y4pCmehR+6CxigCeNp0g
+oiRglQiz+YU07VgJyzCNc9E=
+=mU1X
 -----END PGP SIGNATURE-----
 
---YQEH9CATo+4lan7A--
+--lrZ03NoBR/3+SXJZ--
+--lrZ03NoBR/3+SXJZ--
