@@ -1,18 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: PPTP connection tracking
-Date: Tue, 18 Feb 2003 10:38:12 +0100
+From: paridhi bansal <paridhibansal@yahoo.com>
+Subject: Problem with IPtables/Netfilter hooks
+Date: Tue, 18 Feb 2003 03:40:34 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030218093812.GM11812@sunbeam.de.gnumonks.org>
-References: <4.2.0.58.20030119145120.00b1c6f0@avocetgw> <20030217190023.GF11812@sunbeam.de.gnumonks.org> <3E51836B.8030207@snapgear.com>
+Message-ID: <20030218114034.47859.qmail@web10802.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lrvsYIebpInmECXG"
-Cc: Harald Welte <laforge@netfilter.org>, Paul Mielke <paulm@routefree.com>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Philip Craig <philipc@snapgear.com>
-Content-Disposition: inline
-In-Reply-To: <3E51836B.8030207@snapgear.com>
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,47 +17,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!!
 
---lrvsYIebpInmECXG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I am a newbie to iptables...I was trying to understand
+the hooks defined in netfilter.With natting enabled,
+every pkt shld ideally come to Prerouting hook and
+then only move to input hook if it is for local m/c
+itself or forward hook if it is to be forwardedand
+finally to postrouting..
+This is what i have understood..and i hope this is
+correct..If not,,pls correct me and give ur comments..
 
-On Tue, Feb 18, 2003 at 10:50:51AM +1000, Philip Craig wrote:
-> >Can you please test if your setup works with this patch?
->=20
-> Paul and I have tested that the attached patch fixes the problem.
-> It is similar to yours, except that it returns earlier.  I don't
-> think the calls to place_in_hashes() and do_bindings() are
-> necessary if we just need to return NF_ACCEPT without doing any
-> NAT?
+But my analysis of pkts says that sometimes, the pkts
+meant for the local machine come directly to the input
+hook rather than the prerouting hook..Is it
+right?????Is yes, why/when does this happen??If no,
+can what can be the case when this happens??
 
-yes, but  I can imagine the case where somebody actually _does_ want to
-do some nat from the expectfn() - and we should keep that option open...
+Paridhi
 
-> Philip Craig - philipc@snapgear.com - http://www.SnapGear.com
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---lrvsYIebpInmECXG
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+Uf8EXaXGVTD0i/8RAtfQAJ0Xdt0s6quvY65iHDeMwDXUX+TUbQCdE7CN
-/+BBCddbeJlu/5QhKvIxdTM=
-=As4X
------END PGP SIGNATURE-----
-
---lrvsYIebpInmECXG--
+__________________________________________________
+Do you Yahoo!?
+Yahoo! Shopping - Send Flowers for Valentine's Day
+http://shopping.yahoo.com
