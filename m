@@ -1,12 +1,18 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: runme --exclude does not like xxx.patch arguments
-Date: Sun, 12 Oct 2003 09:16:53 +0200 (CEST)
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: pending/69_amanda-helpers.patch does not apply to 2.4.22?
+Date: Sun, 12 Oct 2003 12:52:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0310120912380.26419-100000@filer.marasystems.com>
+Message-ID: <1065955978.29179.67.camel@tux.rsn.bth.se>
+References: <Pine.LNX.4.44.0310112315200.14720-100000@filer.marasystems.com>
+	 <1065913241.29186.4.camel@tux.rsn.bth.se>  <3F88C9AB.5010306@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <3F88C9AB.5010306@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,29 +23,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-The --exclude option in it's current incarnation is a litle inconsequent 
-in that it expexts patches to be named without .patch while included 
-patches are expected to be named with .patch.
+On Sun, 2003-10-12 at 05:25, Patrick McHardy wrote:
 
-This small patch extends the --exclude option to also accept patches to be 
-named as xxx.patch 
+> >Patrick, do you think you could fix it up?
+> >
+> 
+> This should do it.
 
-Index: runme
-===================================================================
-RCS file: /cvspublic/netfilter/patch-o-matic/runme,v
-retrieving revision 1.48
-diff -u -w -p -r1.48 runme
---- runme       10 Aug 2003 09:44:16 -0000      1.48
-+++ runme       12 Oct 2003 07:12:00 -0000
-@@ -1044,7 +1044,7 @@ DONE=
- until [ $DONE ];
- do
-     PROCESSED=
--    SEEN="$EXCLUDED "
-+    SEEN="${EXCLUDED//.patch/} "
-     process_patches $PATCHES
-     DONE=1
- done 
+Almost, I still have a reject in ip_nat_amanda.c
 
-Regards
-Henrik
+-- 
+/Martin
