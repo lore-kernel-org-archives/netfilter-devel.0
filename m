@@ -1,14 +1,14 @@
-From: "Gil Shai" <GilS@GoNetworks.com>
-Subject: RE: Changing the Ethernet header
-Date: Sun, 20 Feb 2005 08:40:33 +0200
-Message-ID: <7DC268DDBA95E14D8572DF824F92789E03EEEE@gn-ex01.Go80211.com>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH 2/2] ipt_hashlimit.c: hash only once
+Date: Sun, 20 Feb 2005 15:39:25 +0100
+Message-ID: <4218A11D.5060008@eurodev.net>
+References: <421428F2.4030404@cookinglinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-Content-class: urn:content-classes:message
-To: "Kevin P. Fleming" <kpfleming@starnetworks.us>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+To: sjean@cookinglinux.org
+In-Reply-To: <421428F2.4030404@cookinglinux.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,25 +20,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-That would be a nice solution but the problem is that I need to use this
-for an application that will need to add different VLAN headers for
-different Ips. There could be many Ips and it will be done dynamically.
+Samuel Jean wrote:
 
-Gil=20
+> Name: hash only once
+> Status: Tested on Linux 2.6.10.
+>          Patch against 2.6.11-rc4-bk2
+>          Incremental to previous hlist_head patch [1/2]
+> Signed-off-by: Samuel Jean <sjean@cookinglinux.org>
+>
+> Harald: this patch might be crap.
+>
+> I couldn't find the reason on why we initialize random seed only on 
+> first entry.
 
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Kevin
-P. Fleming
-Sent: Friday, February 18, 2005 7:43 AM
-Cc: netfilter-devel@lists.netfilter.org
-Subject: Re: Changing the Ethernet header
 
-Gil Shai wrote:
+I posted something similar some time ago, please read:
 
-> I am trying to create a rule that causes packets going to a certain IP
+https://lists.netfilter.org/pipermail/netfilter-devel/2004-April/014969.html
 
-> to have a certain VLAN header.
-
-So create a VLAN interface, bind an address to it, and add a host route
-for that IP to go out via that interface.
+--
+Pablo
