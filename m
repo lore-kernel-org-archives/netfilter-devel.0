@@ -1,7 +1,7 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 1/3] Call directly from Conntrack to NAT helpers (ftp only)
-Date: Wed, 05 Jan 2005 21:30:09 +1100
-Message-ID: <1104921009.20582.101.camel@localhost.localdomain>
+Subject: -PATCH 2/3] Call directly from Conntrack to NAT helpers: others
+Date: Wed, 05 Jan 2005 21:33:58 +1100
+Message-ID: <1104921238.20582.104.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -19,580 +19,333 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Call NAT Helper Modules Directly from Conntrack Modules, fixup FTP
+Name: Fix Up IRC, AMANDA and TFTP Helpers
+Status: Compiled on 2.6.10-rc2-bk6
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Status: Tested under nfsim
 
-Currently connection tracking and NAT helper modules for a protocol
-interact only indirectly (the conntrack module places information in
-the conntrack structure, which the NAT module pulls out).
+Fixes up the other helpers for direct conntrack->NAT helper calling.
 
-This leads to several issues:
-1) Both modules must know what port to watch, and must match.
-2) Identifying the particular packet which created the connection
-   is cumbersome (TCP) or impossible (UDP).
-3) The connection tracking code sets up an expectation which the
-   NAT code then has to change.
-4) The lack of direct symbol dependencies means we have to contrive
-   one, since they are functionally dependent.
-
-Here is the current code flow:
-FTP CONTROL PACKET:
-NF_IP_PRE_ROUTING:
-   ip_conntrack_in
-      resolve_normal_ct
-         init_conntrack: sets ct->helper to ip_conntrack_ftp.c:help()
-   ct->help(): if PORT/PASV command:
-      Sets exp->help.exp_ftp_info to tcp seq number of data.
-      ip_conntrack_expect(): expects the connection
-
-   ip_nat_setup_info: sets ct->nat.info->helper to ip_nat_ftp.c:help()
-   ip_nat_fn:
-      proto->exp_matches_pkt: if packet matches expectation
-      ct->nat.info->helper(): If packet going client->server,
-            and packet data is one in ct_ftp_info:
-         ftp_data_fixup():
-            ip_conntrack_change_expect(): change the expectation
-            Modify packet contents with new address.
-
-NF_IP_POST_ROUTING:
-   ip_nat_fn
-      ct->nat.info->helper(): If packet going server->client,
-            and packet data is one in ct_ftp_info:
-         ftp_data_fixup():
-            ip_conntrack_change_expect(): change the expectation
-            Modify packet contents with new address.
-
-FTP DATA (EXPECTED) CONNECTION FIRST PACKET:
-NF_IP_PRE_ROUTING:
-   ip_conntrack_in
-      resolve_normal_ct
-         init_conntrack: set ct->master.
-   ip_nat_fn:
-      master->nat.info.helper->expect()
-         Set up source NAT mapping to match FTP control connection.
-
-NF_IP_PRE_ROUTING:
-   ip_nat_fn:
-      master->nat.info.helper->expect()
-         Set up dest NAT mapping to match FTP control connection.
-
-
-The new flow looks like this:
-FTP CONTROL PACKET:
-NF_IP_PRE_ROUTING:
-   ip_conntrack_in
-      resolve_normal_ct
-         init_conntrack: sets ct->helper to ip_conntrack_ftp.c:help()
-
-NF_IP_POST_ROUTING:
-   ip_confirm:
-      ct->helper->help:
-         If !ip_nat_ftp_hook: ip_conntrack_expect().
-         ip_nat_ftp: 
-            set exp->oldproto to old port.
-            ip_conntrack_change_expect(): change the expectation
-            set exp->expectfn to ftp_nat_expected.
-            Modify packet contents with new address.
-
-FTP DATA (EXPECTED) CONNECTION FIRST PACKET:
-NF_IP_PRE_ROUTING:
-   ip_conntrack_in
-      resolve_normal_ct
-         init_conntrack: set ct->master.
-         call exp->expectfn (ftp_nat_expected):
-             call ip_nat_follow_master().
-
-The big changes are that the ip_nat_ftp module sets ip_conntrack_ftp's
-ip_nat_ftp_hook when it initializes, so it calls the NAT code directly
-when a packet containing the expect information is found by the
-conntrack helper: and this interface can carry all the information
-these two want to share.  Also, that conntrack helper is called as the
-packet leaves the box, so there are no issues with expectations being
-set up before the packet has been filtered.  The NAT helper doesn't
-need to register and duplicate the conntrack ports.
-
-The other trick is ip_nat_follow_master(), which does the NAT setup
-all at once (source and destination NAT as required) such that the
-expected connection is NATed the same way the master connection
-was.
-
-We also call ip_conntrack_tcp_update() (which I incidentally neatened)
-after mangling a TCP packet; ip_nat_seq_adjust() does this, but now
-mangling is done at the last possible moment, after
-ip_nat_seq_adjust() was already called.
-
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_core.c
+Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_amanda.c
 ===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_nat_core.c	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_core.c	2005-01-05 18:47:04.533044496 +1100
-@@ -490,20 +490,6 @@
- 	return 1;
- }
+--- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_amanda.c	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_amanda.c	2005-01-05 21:24:56.964103872 +1100
+@@ -44,14 +44,22 @@
+ static char amanda_buffer[65536];
+ static DECLARE_LOCK(amanda_buffer_lock);
  
--static inline int exp_for_packet(struct ip_conntrack_expect *exp,
--			         struct sk_buff *skb)
--{
--	struct ip_conntrack_protocol *proto;
--	int ret = 1;
--
--	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
--	proto = ip_ct_find_proto(skb->nh.iph->protocol);
--	if (proto->exp_matches_pkt)
--		ret = proto->exp_matches_pkt(exp, skb);
--
--	return ret;
--}
--
- /* Do packet manipulations according to binding. */
- unsigned int
- do_bindings(struct ip_conntrack *ct,
-@@ -512,8 +498,7 @@
- 	    unsigned int hooknum,
- 	    struct sk_buff **pskb)
+-static int help(struct sk_buff *skb,
++unsigned int (*ip_nat_amanda_hook)(struct sk_buff **pskb,
++				   struct ip_conntrack *ct,
++				   enum ip_conntrack_info ctinfo,
++				   unsigned int matchoff,
++				   unsigned int matchlen,
++				   struct ip_conntrack_expect *exp);
++EXPORT_SYMBOL_GPL(ip_nat_amanda_hook);
++
++static int help(struct sk_buff **pskb,
+                 struct ip_conntrack *ct, enum ip_conntrack_info ctinfo)
  {
--	unsigned int i;
--	struct ip_nat_helper *helper;
-+	int i, ret = NF_ACCEPT;
- 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
- 	int proto = (*pskb)->nh.iph->protocol;
+ 	struct ip_conntrack_expect *exp;
+-	struct ip_ct_amanda_expect *exp_amanda_info;
+ 	char *data, *data_limit, *tmp;
+ 	unsigned int dataoff, i;
+ 	u_int16_t port, len;
++	int ret = NF_ACCEPT;
  
-@@ -538,75 +523,32 @@
- 			}
- 		}
+ 	/* Only look at packets from the Amanda server */
+ 	if (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL)
+@@ -62,17 +70,17 @@
+ 	ip_ct_refresh_acct(ct, ctinfo, NULL, master_timeout * HZ);
+ 
+ 	/* No data? */
+-	dataoff = skb->nh.iph->ihl*4 + sizeof(struct udphdr);
+-	if (dataoff >= skb->len) {
++	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++	if (dataoff >= (*pskb)->len) {
+ 		if (net_ratelimit())
+-			printk("amanda_help: skblen = %u\n", skb->len);
++			printk("amanda_help: skblen = %u\n", (*pskb)->len);
+ 		return NF_ACCEPT;
  	}
--	helper = info->helper;
--	READ_UNLOCK(&ip_nat_lock);
--
--	if (helper) {
--		struct ip_conntrack_expect *exp = NULL;
--		struct list_head *cur_item;
--		int ret = NF_ACCEPT;
--		int helper_called = 0;
  
-+	if (info->helper) {
- 		DEBUGP("do_bindings: helper existing for (%p)\n", ct);
+ 	LOCK_BH(&amanda_buffer_lock);
+-	skb_copy_bits(skb, dataoff, amanda_buffer, skb->len - dataoff);
++	skb_copy_bits(*pskb, dataoff, amanda_buffer, (*pskb)->len - dataoff);
+ 	data = amanda_buffer;
+-	data_limit = amanda_buffer + skb->len - dataoff;
++	data_limit = amanda_buffer + (*pskb)->len - dataoff;
+ 	*data_limit = '\0';
  
- 		/* Always defragged for helpers */
- 		IP_NF_ASSERT(!((*pskb)->nh.iph->frag_off
- 			       & htons(IP_MF|IP_OFFSET)));
+ 	/* Search for the CONNECT string */
+@@ -96,36 +104,41 @@
+ 			break;
  
--		/* Have to grab read lock before sibling_list traversal */
--		READ_LOCK(&ip_conntrack_lock);
--		list_for_each_prev(cur_item, &ct->sibling_list) { 
--			exp = list_entry(cur_item, struct ip_conntrack_expect, 
--					 expected_list);
--					 
--			/* if this expectation is already established, skip */
--			if (exp->sibling)
--				continue;
--
--			if (exp_for_packet(exp, *pskb)) {
--				/* FIXME: May be true multiple times in the
--				 * case of UDP!! */
--				DEBUGP("calling nat helper (exp=%p) for packet\n", exp);
--				ret = helper->help(ct, exp, info, ctinfo, 
--						   hooknum, pskb);
--				if (ret != NF_ACCEPT) {
--					READ_UNLOCK(&ip_conntrack_lock);
--					return ret;
--				}
--				helper_called = 1;
--			}
--		}
--		/* Helper might want to manip the packet even when there is no
--		 * matching expectation for this packet */
--		if (!helper_called && helper->flags & IP_NAT_HELPER_F_ALWAYS) {
--			DEBUGP("calling nat helper for packet without expectation\n");
--			ret = helper->help(ct, NULL, info, ctinfo, 
--					   hooknum, pskb);
--			if (ret != NF_ACCEPT) {
--				READ_UNLOCK(&ip_conntrack_lock);
--				return ret;
--			}
--		}
--		READ_UNLOCK(&ip_conntrack_lock);
--		
--		/* Adjust sequence number only once per packet 
--		 * (helper is called at all hooks) */
--		if (proto == IPPROTO_TCP
--		    && (hooknum == NF_IP_POST_ROUTING
--			|| hooknum == NF_IP_LOCAL_IN)) {
--			DEBUGP("ip_nat_core: adjusting sequence number\n");
--			/* future: put this in a l4-proto specific function,
--			 * and call this function here. */
--			if (!ip_nat_seq_adjust(pskb, ct, ctinfo))
--				ret = NF_DROP;
--		}
--
--		return ret;
-+		ret = info->helper->help(ct, NULL, info, ctinfo, hooknum,pskb);
-+	}
-+	READ_UNLOCK(&ip_nat_lock);
- 
--	} else 
--		return NF_ACCEPT;
-+	/* FIXME: NAT/conntrack helpers should set ctinfo &
-+	 * CT_INFO_RESYNC on packets, so we don't have to adjust all
-+	 * connections with conntrack helpers --RR */
-+	if (ct->helper
-+	    && proto == IPPROTO_TCP
-+	    && (hooknum == NF_IP_POST_ROUTING || hooknum == NF_IP_LOCAL_IN)) {
-+		DEBUGP("ip_nat_core: adjusting sequence number\n");
-+		/* future: put this in a l4-proto specific function,
-+		 * and call this function here. */
-+		if (!ip_nat_seq_adjust(pskb, ct, ctinfo))
+ 		exp = ip_conntrack_expect_alloc();
+-		if (exp == NULL)
++		if (exp == NULL) {
 +			ret = NF_DROP;
-+	}
+ 			goto out;
++		}
++
++		exp->expectfn = NULL;
  
--	/* not reached */
+ 		exp->tuple.src.ip = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip;
++		exp->tuple.src.u.tcp.port = 0;
+ 		exp->tuple.dst.ip = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
+ 		exp->tuple.dst.protonum = IPPROTO_TCP;
++		exp->tuple.dst.u.tcp.port = htons(port);
++
+ 		exp->mask.src.ip = 0xFFFFFFFF;
++		exp->mask.src.u.tcp.port = 0;
+ 		exp->mask.dst.ip = 0xFFFFFFFF;
+ 		exp->mask.dst.protonum = 0xFFFF;
+ 		exp->mask.dst.u.tcp.port = 0xFFFF;
+ 
+-		exp_amanda_info = &exp->help.exp_amanda_info;
+-		exp_amanda_info->offset = tmp - amanda_buffer;
+-		exp_amanda_info->port   = port;
+-		exp_amanda_info->len    = len;
+-
+-		exp->tuple.dst.u.tcp.port = htons(port);
+-
+-		ip_conntrack_expect_related(exp, ct);
++		if (ip_nat_amanda_hook)
++			ret = ip_nat_amanda_hook(pskb, ct, ctinfo,
++						 tmp - amanda_buffer,
++						 len, exp);
++		else if (ip_conntrack_expect_related(exp, ct) != 0)
++			ret = NF_DROP;
+ 	}
+ 
+ out:
+ 	UNLOCK_BH(&amanda_buffer_lock);
+-	return NF_ACCEPT;
 +	return ret;
  }
  
- static inline int tuple_src_equal_dst(const struct ip_conntrack_tuple *t1,
-Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_nat_helper.h
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_nat_helper.h	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_nat_helper.h	2005-01-05 18:47:04.534044344 +1100
-@@ -30,12 +30,6 @@
- 			     enum ip_conntrack_info ctinfo,
- 			     unsigned int hooknum,
- 			     struct sk_buff **pskb);
--
--	/* Returns verdict and sets up NAT for this connection */
--	unsigned int (*expect)(struct sk_buff **pskb,
--			       unsigned int hooknum,
--			       struct ip_conntrack *ct,
--			       struct ip_nat_info *info);
- };
- 
- extern int ip_nat_helper_register(struct ip_nat_helper *me);
-@@ -65,4 +59,8 @@
- extern int ip_nat_seq_adjust(struct sk_buff **pskb, 
- 			     struct ip_conntrack *ct, 
- 			     enum ip_conntrack_info ctinfo);
-+
-+/* Setup NAT on this expected conntrack so it follows master, but goes
-+ * to port ct->master->saved_proto. */
-+extern void ip_nat_follow_master(struct ip_conntrack *ct);
- #endif
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_standalone.c
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-01-05 18:47:04.535044192 +1100
-@@ -364,8 +364,20 @@
- 			       const struct net_device *out,
- 			       int (*okfn)(struct sk_buff *))
- {
-+	struct ip_conntrack *ct;
-+	enum ip_conntrack_info ctinfo;
-+
-+	/* This is where we call the helper: as the packet goes out. */
-+	ct = ip_conntrack_get(*pskb, &ctinfo);
-+	if (ct && ct->helper) {
-+		unsigned int ret;
-+		ret = ct->helper->help(pskb, ct, ctinfo);
-+		if (ret != NF_ACCEPT)
-+			return ret;
-+	}
-+
- 	/* We've seen it coming out the other side: confirm it */
--	return ip_conntrack_confirm(*pskb);
-+	return ip_conntrack_confirm(pskb);
+ static struct ip_conntrack_helper amanda_helper = {
+ 	.max_expected = ARRAY_SIZE(conns),
+ 	.timeout = 180,
+-	.flags = IP_CT_HELPER_F_REUSE_EXPECT,
+ 	.me = THIS_MODULE,
+ 	.help = help,
+ 	.name = "amanda",
+@@ -148,6 +161,5 @@
+ 	return ip_conntrack_helper_register(&amanda_helper);
  }
  
- static unsigned int ip_conntrack_defrag(unsigned int hooknum,
-@@ -899,7 +911,6 @@
- EXPORT_SYMBOL(ip_ct_find_helper);
- EXPORT_SYMBOL(ip_conntrack_expect_alloc);
- EXPORT_SYMBOL(ip_conntrack_expect_related);
--EXPORT_SYMBOL(ip_conntrack_change_expect);
- EXPORT_SYMBOL(ip_conntrack_unexpect_related);
- EXPORT_SYMBOL_GPL(ip_conntrack_expect_find_get);
- EXPORT_SYMBOL_GPL(ip_conntrack_expect_put);
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_helper.c
+-PROVIDES_CONNTRACK(amanda);
+ module_init(init);
+ module_exit(fini);
+Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_snmp_basic.c
 ===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_nat_helper.c	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_helper.c	2005-01-05 18:47:04.534044344 +1100
-@@ -196,6 +196,8 @@
- 	adjust_tcp_sequence(ntohl(tcph->seq),
- 			    (int)rep_len - (int)match_len,
- 			    ct, ctinfo);
-+	/* Tell connection tracking about seq change, to expand window */
-+	ip_conntrack_tcp_update(*pskb, ct, CTINFO2DIR(ctinfo));
- 	return 1;
- }
- 			
-@@ -404,6 +406,49 @@
- 	return 1;
+--- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_nat_snmp_basic.c	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_snmp_basic.c	2005-01-05 20:52:38.586782016 +1100
+@@ -1309,26 +1309,24 @@
  }
  
-+/* We look at the master's nat fields without ip_nat_lock.  This works
-+   because the master's NAT must be fully initialized, because we
-+   don't match expectations set up by unconfirmed connections.  We
-+   can't grab the lock because we hold the ip_conntrack_lock, and that
-+   would be backwards from other locking orders. */
-+static void ip_nat_copy_manip(struct ip_nat_info *master,
-+			      struct ip_conntrack_expect *exp,
-+			      struct ip_conntrack *ct)
-+{
-+	struct ip_nat_range range;
-+	unsigned int i;
-+
-+	range.flags = IP_NAT_RANGE_MAP_IPS;
-+
-+	/* Find what master is mapped to (if any), so we can do the same. */
-+	for (i = 0; i < master->num_manips; i++) {
-+		if (master->manips[i].direction != exp->dir)
-+			continue;
-+
-+		range.min_ip = range.max_ip = master->manips[i].manip.ip;
-+
-+		/* If this is a DST manip, map port here to where it's
-+		 * expected. */
-+		if (master->manips[i].maniptype == IP_NAT_MANIP_DST) {
-+			range.flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
-+			range.min = range.max = exp->saved_proto;
-+		}
-+		ip_nat_setup_info(ct, &range, master->manips[i].hooknum);
-+	}
-+}
-+
-+/* Setup NAT on this expected conntrack so it follows master. */
-+/* If we fail to get a free NAT slot, we'll get dropped on confirm */
-+void ip_nat_follow_master(struct ip_conntrack *ct)
-+{
-+	struct ip_nat_info *master = &ct->master->expectant->nat.info;
-+
-+	/* This must be a fresh one. */
-+	BUG_ON(ct->nat.info.initialized);
-+
-+	ip_nat_copy_manip(master, ct->master, ct);
-+}
-+
- static inline int
- helper_cmp(const struct ip_nat_helper *helper,
- 	   const struct ip_conntrack_tuple *tuple)
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_ftp.c
+ static struct ip_nat_helper snmp = { 
+-	{ NULL, NULL },
+-	"snmp",
+-	0,
+-	THIS_MODULE,
+-	{ { 0, { .udp = { __constant_htons(SNMP_PORT) } } },
+-	  { 0, { 0 }, IPPROTO_UDP } },
+-	{ { 0, { .udp = { 0xFFFF } } },
+-	  { 0, { 0 }, 0xFFFF } },
+-	nat_help, NULL };
++	.name = "snmp",
++	.me = THIS_MODULE,
++	.tuple = { { 0, { .udp = { __constant_htons(SNMP_PORT) } } },
++		   { 0, { 0 }, IPPROTO_UDP } },
++	.mask = { { 0, { .udp = { 0xFFFF } } },
++		  { 0, { 0 }, 0xFFFF } },
++	.help = nat_help,
++};
+  
+ static struct ip_nat_helper snmp_trap = { 
+-	{ NULL, NULL },
+-	"snmp_trap",
+-	0,
+-	THIS_MODULE,
+-	{ { 0, { .udp = { __constant_htons(SNMP_TRAP_PORT) } } },
+-	  { 0, { 0 }, IPPROTO_UDP } },
+-	{ { 0, { .udp = { 0xFFFF } } },
+-	  { 0, { 0 }, 0xFFFF } },
+-	nat_help, NULL };
++	.name = "snmp_trap",
++	.me = THIS_MODULE,
++	.tuple = { { 0, { .udp = { __constant_htons(SNMP_TRAP_PORT) } } },
++		   { 0, { 0 }, IPPROTO_UDP } },
++	.mask = { { 0, { .udp = { 0xFFFF } } },
++		  { 0, { 0 }, 0xFFFF } },
++	.help = nat_help,
++};
+ 
+ /*****************************************************************************
+  *
+Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h
 ===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_nat_ftp.c	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_ftp.c	2005-01-05 18:47:04.536044040 +1100
-@@ -1,13 +1,3 @@
--/* FTP extension for TCP NAT alteration. */
+--- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack.h	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h	2005-01-05 21:24:56.964103872 +1100
+@@ -303,15 +303,5 @@
+ 
+ #define CONNTRACK_STAT_INC(count) (__get_cpu_var(ip_conntrack_stat).count++)
+ 
+-/* eg. PROVIDES_CONNTRACK(ftp); */
+-#define PROVIDES_CONNTRACK(name)                        \
+-        int needs_ip_conntrack_##name;                  \
+-        EXPORT_SYMBOL(needs_ip_conntrack_##name)
 -
--/* (C) 1999-2001 Paul `Rusty' Russell
-- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
+-/*. eg. NEEDS_CONNTRACK(ftp); */
+-#define NEEDS_CONNTRACK(name)                                           \
+-        extern int needs_ip_conntrack_##name;                           \
+-        static int *need_ip_conntrack_##name __attribute_used__ = &needs_ip_conntrack_##name
 -
- #include <linux/module.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/ip.h>
-@@ -30,71 +20,8 @@
+ #endif /* __KERNEL__ */
+ #endif /* _IP_CONNTRACK_H */
+Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_tftp.c
+===================================================================
+--- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_tftp.c	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_tftp.c	2005-01-05 21:24:56.965103720 +1100
+@@ -38,15 +38,22 @@
  #define DEBUGP(format, args...)
  #endif
  
--#define MAX_PORTS 8
--static int ports[MAX_PORTS];
--static int ports_c;
+-static int tftp_help(struct sk_buff *skb,
++unsigned int (*ip_nat_tftp_hook)(struct sk_buff **pskb,
++				 struct ip_conntrack *ct,
++				 enum ip_conntrack_info ctinfo,
++				 struct ip_conntrack_expect *exp);
++EXPORT_SYMBOL_GPL(ip_nat_tftp_hook);
++
++static int tftp_help(struct sk_buff **pskb,
+ 		     struct ip_conntrack *ct,
+ 		     enum ip_conntrack_info ctinfo)
+ {
+ 	struct tftphdr _tftph, *tfh;
+ 	struct ip_conntrack_expect *exp;
++	unsigned int ret = NF_ACCEPT;
+ 
+-	tfh = skb_header_pointer(skb,
+-				 skb->nh.iph->ihl * 4 + sizeof(struct udphdr),
++	tfh = skb_header_pointer(*pskb,
++				 (*pskb)->nh.iph->ihl*4+sizeof(struct udphdr),
+ 				 sizeof(_tftph), &_tftph);
+ 	if (tfh == NULL)
+ 		return NF_ACCEPT;
+@@ -61,7 +68,7 @@
+ 
+ 		exp = ip_conntrack_expect_alloc();
+ 		if (exp == NULL)
+-			return NF_ACCEPT;
++			return NF_DROP;
+ 
+ 		exp->tuple = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
+ 		exp->mask.src.ip = 0xffffffff;
+@@ -73,7 +80,10 @@
+ 		DEBUGP("expect: ");
+ 		DUMP_TUPLE(&exp->tuple);
+ 		DUMP_TUPLE(&exp->mask);
+-		ip_conntrack_expect_related(exp, ct);
++		if (ip_nat_tftp_hook)
++			ret = ip_nat_tftp_hook(pskb, ct, ctinfo, exp);
++		else if (ip_conntrack_expect_related(exp, ct) != 0)
++			ret = NF_DROP;
+ 		break;
+ 	case TFTP_OPCODE_DATA:
+ 	case TFTP_OPCODE_ACK:
+@@ -120,7 +130,6 @@
+ 		tftp[i].mask.src.u.udp.port = 0xFFFF;
+ 		tftp[i].max_expected = 1;
+ 		tftp[i].timeout = 0;
+-		tftp[i].flags = IP_CT_HELPER_F_REUSE_EXPECT;
+ 		tftp[i].me = THIS_MODULE;
+ 		tftp[i].help = tftp_help;
+ 
+@@ -144,7 +153,5 @@
+ 	return(0);
+ }
+ 
+-PROVIDES_CONNTRACK(tftp);
 -
--module_param_array(ports, int, &ports_c, 0400);
--
- /* FIXME: Time out? --RR */
+ module_init(init);
+ module_exit(fini);
+Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_amanda.c
+===================================================================
+--- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_nat_amanda.c	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_amanda.c	2005-01-05 21:24:56.965103720 +1100
+@@ -31,118 +31,63 @@
+ MODULE_DESCRIPTION("Amanda NAT helper");
+ MODULE_LICENSE("GPL");
  
 -static unsigned int
--ftp_nat_expected(struct sk_buff **pskb,
--		 unsigned int hooknum,
--		 struct ip_conntrack *ct,
--		 struct ip_nat_info *info)
--{
--	struct ip_nat_range range;
--	u_int32_t newdstip, newsrcip, newip;
--	struct ip_ct_ftp_expect *exp_ftp_info;
--
+-amanda_nat_expected(struct sk_buff **pskb,
+-                    unsigned int hooknum,
+-                    struct ip_conntrack *ct,
+-                    struct ip_nat_info *info)
++static unsigned int help(struct sk_buff **pskb,
++			 struct ip_conntrack *ct,
++			 enum ip_conntrack_info ctinfo,
++			 unsigned int matchoff,
++			 unsigned int matchlen,
++			 struct ip_conntrack_expect *exp)
+ {
 -	struct ip_conntrack *master = master_ct(ct);
--	
+-	struct ip_ct_amanda_expect *exp_amanda_info;
+-	struct ip_nat_range range;
+-	u_int32_t newip;
+-
 -	IP_NF_ASSERT(info);
 -	IP_NF_ASSERT(master);
--
--	IP_NF_ASSERT(!(info->initialized & (1<<HOOK2MANIP(hooknum))));
--
--	DEBUGP("nat_expected: We have a connection!\n");
--	exp_ftp_info = &ct->master->help.exp_ftp_info;
--
--	if (exp_ftp_info->ftptype == IP_CT_FTP_PORT
--	    || exp_ftp_info->ftptype == IP_CT_FTP_EPRT) {
--		/* PORT command: make connection go to the client. */
--		newdstip = master->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip;
--		newsrcip = master->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
--		DEBUGP("nat_expected: PORT cmd. %u.%u.%u.%u->%u.%u.%u.%u\n",
--		       NIPQUAD(newsrcip), NIPQUAD(newdstip));
--	} else {
--		/* PASV command: make the connection go to the server */
--		newdstip = master->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip;
--		newsrcip = master->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
--		DEBUGP("nat_expected: PASV cmd. %u.%u.%u.%u->%u.%u.%u.%u\n",
--		       NIPQUAD(newsrcip), NIPQUAD(newdstip));
--	}
+-	IP_NF_ASSERT(!(info->initialized & (1 << HOOK2MANIP(hooknum))));
 -
 -	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC)
--		newip = newsrcip;
+-		newip = master->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
 -	else
--		newip = newdstip;
+-		newip = master->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip;
 -
--	DEBUGP("nat_expected: IP to %u.%u.%u.%u\n", NIPQUAD(newip));
--
--	/* We don't want to manip the per-protocol, just the IPs... */
+-	/* We don't want to manip the per-protocol, just the IPs. */
 -	range.flags = IP_NAT_RANGE_MAP_IPS;
 -	range.min_ip = range.max_ip = newip;
 -
--	/* ... unless we're doing a MANIP_DST, in which case, make
--	   sure we map to the correct port */
 -	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_DST) {
+-		exp_amanda_info = &ct->master->help.exp_amanda_info;
 -		range.flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
 -		range.min = range.max
 -			= ((union ip_conntrack_manip_proto)
--				{ .tcp = { htons(exp_ftp_info->port) } });
+-				{ .udp = { htons(exp_amanda_info->port) } });
 -	}
+-
 -	return ip_nat_setup_info(ct, &range, hooknum);
 -}
 -
- static int
- mangle_rfc959_packet(struct sk_buff **pskb,
- 		     u_int32_t newip,
-@@ -102,7 +29,8 @@
- 		     unsigned int matchoff,
- 		     unsigned int matchlen,
- 		     struct ip_conntrack *ct,
--		     enum ip_conntrack_info ctinfo)
-+		     enum ip_conntrack_info ctinfo,
-+		     u32 *seq)
- {
- 	char buffer[sizeof("nnn,nnn,nnn,nnn,nnn,nnn")];
- 
-@@ -111,6 +39,7 @@
- 
- 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
- 
-+	*seq += strlen(buffer) - matchlen;
- 	return ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, matchoff, 
- 					matchlen, buffer, strlen(buffer));
- }
-@@ -123,7 +52,8 @@
- 		   unsigned int matchoff,
- 		   unsigned int matchlen,
- 		   struct ip_conntrack *ct,
--		   enum ip_conntrack_info ctinfo)
-+		   enum ip_conntrack_info ctinfo,
-+		   u32 *seq)
- {
- 	char buffer[sizeof("|1|255.255.255.255|65535|")];
- 
-@@ -131,6 +61,7 @@
- 
- 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
- 
-+	*seq += strlen(buffer) - matchlen;
- 	return ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, matchoff, 
- 					matchlen, buffer, strlen(buffer));
- }
-@@ -143,7 +74,8 @@
- 		   unsigned int matchoff,
- 		   unsigned int matchlen,
- 		   struct ip_conntrack *ct,
--		   enum ip_conntrack_info ctinfo)
-+		   enum ip_conntrack_info ctinfo,
-+		   u32 *seq)
- {
- 	char buffer[sizeof("|||65535|")];
- 
-@@ -151,6 +83,7 @@
- 
- 	DEBUGP("calling ip_nat_mangle_tcp_packet\n");
- 
-+	*seq += strlen(buffer) - matchlen;
- 	return ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, matchoff, 
- 					matchlen, buffer, strlen(buffer));
- }
-@@ -159,181 +92,77 @@
- 		     unsigned int,
- 		     unsigned int,
- 		     struct ip_conntrack *,
--		     enum ip_conntrack_info)
-+		     enum ip_conntrack_info,
-+		     u32 *seq)
- = { [IP_CT_FTP_PORT] = mangle_rfc959_packet,
-     [IP_CT_FTP_PASV] = mangle_rfc959_packet,
-     [IP_CT_FTP_EPRT] = mangle_eprt_packet,
-     [IP_CT_FTP_EPSV] = mangle_epsv_packet
- };
- 
--static int ftp_data_fixup(const struct ip_ct_ftp_expect *exp_ftp_info,
--			  struct ip_conntrack *ct,
--			  struct sk_buff **pskb,
--			  u32 tcp_seq,
--			  enum ip_conntrack_info ctinfo,
--			  struct ip_conntrack_expect *expect)
-+/* So, this packet has hit the connection tracking matching code.
-+   Mangle it, and change the expectation to match the new version. */
-+static unsigned int ip_nat_ftp(struct sk_buff **pskb,
-+			       struct ip_conntrack *ct,
-+			       enum ip_conntrack_info ctinfo,
-+			       enum ip_ct_ftp_type type,
-+			       unsigned int matchoff,
-+			       unsigned int matchlen,
-+			       struct ip_conntrack_expect *exp,
-+			       u32 *seq)
- {
- 	u_int32_t newip;
+-static int amanda_data_fixup(struct ip_conntrack *ct,
+-                             struct sk_buff **pskb,
+-                             enum ip_conntrack_info ctinfo,
+-                             struct ip_conntrack_expect *exp)
+-{
+-	struct ip_ct_amanda_expect *exp_amanda_info;
+-	struct ip_conntrack_tuple t = exp->tuple;
+ 	char buffer[sizeof("65535")];
  	u_int16_t port;
--	struct ip_conntrack_tuple newtuple;
-+	int dir = CTINFO2DIR(ctinfo);
++	unsigned int ret;
  
--	DEBUGP("FTP_NAT: seq %u + %u in %u\n",
--	       expect->seq, exp_ftp_info->len, tcp_seq);
-+	DEBUGP("FTP_NAT: type %i, off %u len %u\n", type, matchoff, matchlen);
- 
--	/* Change address inside packet to match way we're mapping
--	   this connection. */
--	if (exp_ftp_info->ftptype == IP_CT_FTP_PASV
--	    || exp_ftp_info->ftptype == IP_CT_FTP_EPSV) {
--		/* PASV/EPSV response: must be where client thinks server
--		   is */
--		newip = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
--		/* Expect something from client->server */
--		newtuple.src.ip = 
--			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip;
--		newtuple.dst.ip = 
--			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
--	} else {
--		/* PORT command: must be where server thinks client is */
--		newip = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
--		/* Expect something from server->client */
--		newtuple.src.ip = 
--			ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip;
--		newtuple.dst.ip = 
--			ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
--	}
--	newtuple.dst.protonum = IPPROTO_TCP;
--	newtuple.src.u.tcp.port = expect->tuple.src.u.tcp.port;
-+	/* Connection will come from wherever this packet goes, hence !dir */
-+	newip = ct->tuplehash[!dir].tuple.dst.ip;
+-	/* Alter conntrack's expectations. */
+-	exp_amanda_info = &exp->help.exp_amanda_info;
+-	t.dst.ip = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip;
+-	for (port = exp_amanda_info->port; port != 0; port++) {
+-		t.dst.u.tcp.port = htons(port);
+-		if (ip_conntrack_change_expect(exp, &t) == 0)
++	/* Connection comes from client. */
 +	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
-+	exp->dir = !dir;
++	exp->dir = IP_CT_DIR_ORIGINAL;
 +
 +	/* When you see the packet, we need to NAT it the same as the
-+	 * this one. */
++	 * this one (ie. same IP: it will be TCP and master is UDP). */
 +	exp->expectfn = ip_nat_follow_master;
- 
- 	/* Try to get same port: if not, try to change it. */
--	for (port = exp_ftp_info->port; port != 0; port++) {
--		newtuple.dst.u.tcp.port = htons(port);
--
--		if (ip_conntrack_change_expect(expect, &newtuple) == 0)
++
++	/* Try to get same port: if not, try to change it. */
 +	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
 +		int err;
 +		exp->tuple.dst.u.tcp.port = htons(port);
@@ -605,91 +358,221 @@ Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_ftp.c
 -	if (port == 0)
 -		return 0;
 -
--	if (!mangle[exp_ftp_info->ftptype](pskb, newip, port,
--					  expect->seq - tcp_seq,
--					  exp_ftp_info->len, ct, ctinfo))
--		return 0;
- 
--	return 1;
+-	sprintf(buffer, "%u", port);
+-	return ip_nat_mangle_udp_packet(pskb, ct, ctinfo,
+-	                                exp_amanda_info->offset,
+-	                                exp_amanda_info->len,
+-	                                buffer, strlen(buffer));
 -}
--
+ 
 -static unsigned int help(struct ip_conntrack *ct,
--			 struct ip_conntrack_expect *exp,
--			 struct ip_nat_info *info,
--			 enum ip_conntrack_info ctinfo,
--			 unsigned int hooknum,
--			 struct sk_buff **pskb)
+-                         struct ip_conntrack_expect *exp,
+-                         struct ip_nat_info *info,
+-                         enum ip_conntrack_info ctinfo,
+-                         unsigned int hooknum,
+-                         struct sk_buff **pskb)
 -{
--	struct iphdr *iph = (*pskb)->nh.iph;
--	struct tcphdr _tcph, *tcph;
--	unsigned int datalen;
--	int dir;
--	struct ip_ct_ftp_expect *exp_ftp_info;
--
--	if (!exp)
--		DEBUGP("ip_nat_ftp: no exp!!");
--
--	exp_ftp_info = &exp->help.exp_ftp_info;
+-	int dir = CTINFO2DIR(ctinfo);
+-	int ret = NF_ACCEPT;
 -
 -	/* Only mangle things once: original direction in POST_ROUTING
 -	   and reply direction on PRE_ROUTING. */
--	dir = CTINFO2DIR(ctinfo);
 -	if (!((hooknum == NF_IP_POST_ROUTING && dir == IP_CT_DIR_ORIGINAL)
--	      || (hooknum == NF_IP_PRE_ROUTING && dir == IP_CT_DIR_REPLY))) {
--		DEBUGP("nat_ftp: Not touching dir %s at hook %s\n",
--		       dir == IP_CT_DIR_ORIGINAL ? "ORIG" : "REPLY",
--		       hooknum == NF_IP_POST_ROUTING ? "POSTROUTING"
--		       : hooknum == NF_IP_PRE_ROUTING ? "PREROUTING"
--		       : hooknum == NF_IP_LOCAL_OUT ? "OUTPUT" : "???");
+-	      || (hooknum == NF_IP_PRE_ROUTING && dir == IP_CT_DIR_REPLY)))
 -		return NF_ACCEPT;
+-
+-	/* if this exectation has a "offset" the packet needs to be mangled */
+-	if (exp->help.exp_amanda_info.offset != 0)
+-		if (!amanda_data_fixup(ct, pskb, ctinfo, exp))
+-			ret = NF_DROP;
+-	exp->help.exp_amanda_info.offset = 0;
 +	if (port == 0) {
 +		ip_conntrack_expect_put(exp);
 +		return NF_DROP;
- 	}
++	}
  
--	/* We passed tcp tracking, plus ftp helper: this must succeed. */
--	tcph = skb_header_pointer(*pskb, iph->ihl * 4, sizeof(_tcph), &_tcph);
--	BUG_ON(!tcph);
--
--	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
--	/* If it's in the right range... */
--	if (between(exp->seq + exp_ftp_info->len,
--		    ntohl(tcph->seq),
--		    ntohl(tcph->seq) + datalen)) {
--		if (!ftp_data_fixup(exp_ftp_info, ct, pskb, ntohl(tcph->seq),
--				    ctinfo, exp))
--			return NF_DROP;
--	} else {
--		/* Half a match?  This means a partial retransmisison.
--		   It's a cracker being funky. */
--		if (net_ratelimit()) {
--			printk("FTP_NAT: partial packet %u/%u in %u/%u\n",
--			       exp->seq, exp_ftp_info->len,
--			       ntohl(tcph->seq),
--			       ntohl(tcph->seq) + datalen);
--		}
-+	if (!mangle[type](pskb, newip, port, matchoff, matchlen, ct, ctinfo,
-+			  seq)) {
++	sprintf(buffer, "%u", port);
++	ret = ip_nat_mangle_udp_packet(pskb, ct, ctinfo,
++				       matchoff, matchlen,
++				       buffer, strlen(buffer));
++	if (ret != NF_ACCEPT)
 +		ip_conntrack_unexpect_related(exp);
- 		return NF_DROP;
- 	}
- 	return NF_ACCEPT;
+ 	return ret;
  }
  
--static struct ip_nat_helper ftp[MAX_PORTS];
--static char ftp_names[MAX_PORTS][10];
+-static struct ip_nat_helper ip_nat_amanda_helper;
 -
--/* Not __exit: called from init() */
+ static void __exit fini(void)
+ {
+-	ip_nat_helper_unregister(&ip_nat_amanda_helper);
++	ip_nat_amanda_hook = NULL;
++	/* Make sure noone calls it, meanwhile. */
++	synchronize_net();
+ }
+ 
+ static int __init init(void)
+ {
+-	struct ip_nat_helper *hlpr = &ip_nat_amanda_helper;
+-
+-	hlpr->tuple.dst.protonum = IPPROTO_UDP;
+-	hlpr->tuple.src.u.udp.port = htons(10080);
+-	hlpr->mask.src.u.udp.port = 0xFFFF;
+-	hlpr->mask.dst.protonum = 0xFFFF;
+-	hlpr->help = help;
+-	hlpr->flags = 0;
+-	hlpr->me = THIS_MODULE;
+-	hlpr->expect = amanda_nat_expected;
+-	hlpr->name = "amanda";
+-
+-	return ip_nat_helper_register(hlpr);
++	BUG_ON(ip_nat_amanda_hook);
++	ip_nat_amanda_hook = help;
++	return 0;
+ }
+ 
+-NEEDS_CONNTRACK(amanda);
+ module_init(init);
+ module_exit(fini);
+Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_tftp.c
+===================================================================
+--- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_nat_tftp.c	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_tftp.c	2005-01-05 21:27:06.988337184 +1100
+@@ -38,168 +38,32 @@
+ MODULE_DESCRIPTION("tftp NAT helper");
+ MODULE_LICENSE("GPL");
+ 
+-#define MAX_PORTS 8
+-
+-static int ports[MAX_PORTS];
+-static int ports_c = 0;
+-module_param_array(ports, int, &ports_c, 0400);
+-MODULE_PARM_DESC(ports, "port numbers of tftp servers");
+-
+-#if 0
+-#define DEBUGP(format, args...) printk("%s:%s:" format, \
+-                                       __FILE__, __FUNCTION__ , ## args)
+-#else
+-#define DEBUGP(format, args...)
+-#endif
+-static unsigned int 
+-tftp_nat_help(struct ip_conntrack *ct,
+-	      struct ip_conntrack_expect *exp,
+-	      struct ip_nat_info *info,
+-	      enum ip_conntrack_info ctinfo,
+-	      unsigned int hooknum,
+-	      struct sk_buff **pskb)
++static unsigned int help(struct sk_buff **pskb,
++			 enum ip_conntrack_info ctinfo,
++			 struct ip_conntrack_expect *exp)
+ {
+-	int dir = CTINFO2DIR(ctinfo);
+-	struct tftphdr _tftph, *tfh;
+-	struct ip_conntrack_tuple repl;
+-
+-	if (!((hooknum == NF_IP_POST_ROUTING && dir == IP_CT_DIR_ORIGINAL)
+-	      || (hooknum == NF_IP_PRE_ROUTING && dir == IP_CT_DIR_REPLY))) 
+-		return NF_ACCEPT;
+-
+-	if (!exp) {
+-		DEBUGP("no conntrack expectation to modify\n");
+-		return NF_ACCEPT;
+-	}
+-
+-	tfh = skb_header_pointer(*pskb,
+-				 (*pskb)->nh.iph->ihl*4+sizeof(struct udphdr),
+-				 sizeof(_tftph), &_tftph);
+-	if (tfh == NULL)
++	exp->saved_proto.udp.port = exp->tuple.dst.u.tcp.port;
++	exp->dir = IP_CT_DIR_REPLY;
++	exp->expectfn = ip_nat_follow_master;
++	if (ip_conntrack_expect_related(exp) != 0) {
++		ip_conntrack_expect_put(exp);
+ 		return NF_DROP;
+-
+-	switch (ntohs(tfh->opcode)) {
+-	/* RRQ and WRQ works the same way */
+-	case TFTP_OPCODE_READ:
+-	case TFTP_OPCODE_WRITE:
+-		repl = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
+-		DEBUGP("");
+-		DUMP_TUPLE(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+-		DUMP_TUPLE(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+-		DEBUGP("expecting: ");
+-		DUMP_TUPLE(&repl);
+-		DUMP_TUPLE(&exp->mask);
+-		ip_conntrack_change_expect(exp, &repl);
+-		break;
+-	default:
+-		DEBUGP("Unknown opcode\n");
+-	}               
+-
+-	return NF_ACCEPT;
+-}
+-
+-static unsigned int 
+-tftp_nat_expected(struct sk_buff **pskb,
+-		  unsigned int hooknum,
+-		  struct ip_conntrack *ct, 
+-		  struct ip_nat_info *info) 
+-{
+-	const struct ip_conntrack *master = ct->master->expectant;
+-	const struct ip_conntrack_tuple *orig = 
+-			&master->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+-	struct ip_nat_range range;
+-#if 0
+-	const struct ip_conntrack_tuple *repl =
+-			&master->tuplehash[IP_CT_DIR_REPLY].tuple;
+-	struct udphdr _udph, *uh;
+-
+-	uh = skb_header_pointer(*pskb,
+-				(*pskb)->nh.iph->ihl*4,
+-				sizeof(_udph), &_udph);
+-	if (uh == NULL)
+-		return NF_DROP;
+-#endif
+-
+-	IP_NF_ASSERT(info);
+-	IP_NF_ASSERT(master);
+-	IP_NF_ASSERT(!(info->initialized & (1 << HOOK2MANIP(hooknum))));
+-
+-	range.flags = IP_NAT_RANGE_MAP_IPS;
+-
+-	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC) {
+-		range.min_ip = range.max_ip = orig->dst.ip; 
+-		DEBUGP("orig: %u.%u.%u.%u:%u <-> %u.%u.%u.%u:%u "
+-			"newsrc: %u.%u.%u.%u\n",
+-                        NIPQUAD((*pskb)->nh.iph->saddr), ntohs(uh->source),
+- 			NIPQUAD((*pskb)->nh.iph->daddr), ntohs(uh->dest),
+-			NIPQUAD(orig->dst.ip));
+-	} else {
+-		range.min_ip = range.max_ip = orig->src.ip;
+-		range.min.udp.port = range.max.udp.port = orig->src.u.udp.port;
+-		range.flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
+-
+-		DEBUGP("orig: %u.%u.%u.%u:%u <-> %u.%u.%u.%u:%u "
+-			"newdst: %u.%u.%u.%u:%u\n",
+-                        NIPQUAD((*pskb)->nh.iph->saddr), ntohs(uh->source),
+-                        NIPQUAD((*pskb)->nh.iph->daddr), ntohs(uh->dest),
+-                        NIPQUAD(orig->src.ip), ntohs(orig->src.u.udp.port));
+ 	}
+-
+-	return ip_nat_setup_info(ct, &range, hooknum);
++	return NF_ACCEPT;
+ }
+ 
+-static struct ip_nat_helper tftp[MAX_PORTS];
+-static char tftp_names[MAX_PORTS][10];
+-
 -static void fini(void)
 +static void __exit fini(void)
  {
 -	int i;
 -
--	for (i = 0; i < ports_c; i++) {
--		DEBUGP("ip_nat_ftp: unregistering port %d\n", ports[i]);
--		ip_nat_helper_unregister(&ftp[i]);
+-	for (i = 0 ; i < ports_c; i++) {
+-		DEBUGP("unregistering helper for port %d\n", ports[i]);
+-		ip_nat_helper_unregister(&tftp[i]);
 -	}
-+	ip_nat_ftp_hook = NULL;
++	ip_nat_tftp_hook = NULL;
 +	/* Make sure noone calls it, meanwhile. */
 +	synchronize_net();
  }
@@ -700,726 +583,550 @@ Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_ftp.c
 -	char *tmpname;
 -
 -	if (ports_c == 0)
--		ports[ports_c++] = FTP_PORT;
+-		ports[ports_c++] = TFTP_PORT;
 -
 -	for (i = 0; i < ports_c; i++) {
--		ftp[i].tuple.dst.protonum = IPPROTO_TCP;
--		ftp[i].tuple.src.u.tcp.port = htons(ports[i]);
--		ftp[i].mask.dst.protonum = 0xFFFF;
--		ftp[i].mask.src.u.tcp.port = 0xFFFF;
--		ftp[i].help = help;
--		ftp[i].me = THIS_MODULE;
--		ftp[i].flags = 0;
--		ftp[i].expect = ftp_nat_expected;
+-		memset(&tftp[i], 0, sizeof(struct ip_nat_helper));
 -
--		tmpname = &ftp_names[i][0];
--		if (ports[i] == FTP_PORT)
--			sprintf(tmpname, "ftp");
+-		tftp[i].tuple.dst.protonum = IPPROTO_UDP;
+-		tftp[i].tuple.src.u.udp.port = htons(ports[i]);
+-		tftp[i].mask.dst.protonum = 0xFFFF;
+-		tftp[i].mask.src.u.udp.port = 0xFFFF;
+-		tftp[i].help = tftp_nat_help;
+-		tftp[i].flags = 0;
+-		tftp[i].me = THIS_MODULE;
+-		tftp[i].expect = tftp_nat_expected;
+-
+-		tmpname = &tftp_names[i][0];
+-		if (ports[i] == TFTP_PORT)
+-			sprintf(tmpname, "tftp");
 -		else
--			sprintf(tmpname, "ftp-%d", i);
--		ftp[i].name = tmpname;
--
--		DEBUGP("ip_nat_ftp: Trying to register for port %d\n",
--				ports[i]);
--		ret = ip_nat_helper_register(&ftp[i]);
+-			sprintf(tmpname, "tftp-%d", i);
+-		tftp[i].name = tmpname;
+-		
+-		DEBUGP("ip_nat_tftp: registering for port %d: name %s\n",
+-			ports[i], tftp[i].name);
+-		ret = ip_nat_helper_register(&tftp[i]);
 -
 -		if (ret) {
--			printk("ip_nat_ftp: error registering "
--			       "helper for port %d\n", ports[i]);
+-			printk("ip_nat_tftp: unable to register for port %d\n",
+-				ports[i]);
 -			fini();
 -			return ret;
 -		}
 -	}
--
 -	return ret;
-+	BUG_ON(ip_nat_ftp_hook);
-+	ip_nat_ftp_hook = ip_nat_ftp;
++	BUG_ON(ip_nat_tftp_hook);
++	ip_nat_tftp_hook = help;
 +	return 0;
  }
  
--NEEDS_CONNTRACK(ftp);
+ module_init(init);
+Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_irc.c
+===================================================================
+--- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_nat_irc.c	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_irc.c	2005-01-05 21:24:56.965103720 +1100
+@@ -1,5 +1,6 @@
+ /* IRC extension for TCP NAT alteration.
+  * (C) 2000-2001 by Harald Welte <laforge@gnumonks.org>
++ * (C) 2004 Rusty Russell <rusty@rustcorp.com.au> IBM Corporation
+  * based on a copy of RR's ip_nat_ftp.c
+  *
+  * ip_nat_irc.c,v 1.16 2001/12/06 07:42:10 laforge Exp
+@@ -8,12 +9,6 @@
+  *      modify it under the terms of the GNU General Public License
+  *      as published by the Free Software Foundation; either version
+  *      2 of the License, or (at your option) any later version.
+- *
+- *	Module load syntax:
+- * 	insmod ip_nat_irc.o ports=port1,port2,...port<MAX_PORTS>
+- *	
+- * 	please give the ports of all IRC servers You wish to connect to.
+- *	If You don't specify ports, the default will be port 6667
+  */
+ 
+ #include <linux/module.h>
+@@ -35,66 +30,21 @@
+ #define DEBUGP(format, args...)
+ #endif
+ 
+-#define MAX_PORTS 8
+-static int ports[MAX_PORTS];
+-static int ports_c;
+-
+ MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
+ MODULE_DESCRIPTION("IRC (DCC) NAT helper");
+ MODULE_LICENSE("GPL");
+-module_param_array(ports, int, &ports_c, 0400);
+-MODULE_PARM_DESC(ports, "port numbers of IRC servers");
+ 
+ /* FIXME: Time out? --RR */
+ 
+-static unsigned int
+-irc_nat_expected(struct sk_buff **pskb,
+-		 unsigned int hooknum,
+-		 struct ip_conntrack *ct,
+-		 struct ip_nat_info *info)
+-{
+-	struct ip_nat_range range;
+-	u_int32_t newdstip, newsrcip, newip;
+-
+-	struct ip_conntrack *master = master_ct(ct);
+-
+-	IP_NF_ASSERT(info);
+-	IP_NF_ASSERT(master);
+-
+-	IP_NF_ASSERT(!(info->initialized & (1 << HOOK2MANIP(hooknum))));
+-
+-	DEBUGP("nat_expected: We have a connection!\n");
+-
+-	newdstip = master->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip;
+-	newsrcip = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip;
+-	DEBUGP("nat_expected: DCC cmd. %u.%u.%u.%u->%u.%u.%u.%u\n",
+-	       NIPQUAD(newsrcip), NIPQUAD(newdstip));
+-
+-	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC)
+-		newip = newsrcip;
+-	else
+-		newip = newdstip;
+-
+-	DEBUGP("nat_expected: IP to %u.%u.%u.%u\n", NIPQUAD(newip));
+-
+-	/* We don't want to manip the per-protocol, just the IPs. */
+-	range.flags = IP_NAT_RANGE_MAP_IPS;
+-	range.min_ip = range.max_ip = newip;
+-
+-	return ip_nat_setup_info(ct, &range, hooknum);
+-}
+-
+-static int irc_data_fixup(const struct ip_ct_irc_expect *exp_irc_info,
+-			  struct ip_conntrack *ct,
+-			  struct sk_buff **pskb,
+-			  enum ip_conntrack_info ctinfo,
+-			  struct ip_conntrack_expect *expect)
++static unsigned int help(struct sk_buff **pskb,
++			 struct ip_conntrack *ct,
++			 enum ip_conntrack_info ctinfo,
++			 unsigned int matchoff,
++			 unsigned int matchlen,
++			 struct ip_conntrack_expect *exp)
+ {
+-	u_int32_t newip;
+-	struct ip_conntrack_tuple t;
+-	struct iphdr *iph = (*pskb)->nh.iph;
+-	struct tcphdr *tcph = (void *) iph + iph->ihl * 4;
+ 	u_int16_t port;
++	unsigned int ret;
+ 
+ 	/* "4294967296 65635 " */
+ 	char buffer[18];
+@@ -103,21 +53,30 @@
+ 	       expect->seq, exp_irc_info->len,
+ 	       ntohl(tcph->seq));
+ 
+-	newip = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
+-
+-	/* Alter conntrack's expectations. */
+-	t = expect->tuple;
+-	t.dst.ip = newip;
+-	for (port = exp_irc_info->port; port != 0; port++) {
+-		t.dst.u.tcp.port = htons(port);
+-		if (ip_conntrack_change_expect(expect, &t) == 0) {
+-			DEBUGP("using port %d", port);
++	/* Reply comes from server. */
++	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
++	exp->dir = IP_CT_DIR_REPLY;
++
++	/* When you see the packet, we need to NAT it the same as the
++	 * this one. */
++	exp->expectfn = ip_nat_follow_master;
++
++	/* Try to get same port: if not, try to change it. */
++	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
++		int err;
++
++		exp->tuple.dst.u.tcp.port = htons(port);
++		atomic_inc(&exp->use);
++		err = ip_conntrack_expect_related(exp, ct);
++		/* Success, or retransmit. */
++		if (!err || err == -EEXIST)
+ 			break;
+-		}
++	}
+ 
++	if (port == 0) {
++		ip_conntrack_expect_put(exp);
++		return NF_DROP;
+ 	}
+-	if (port == 0)
+-		return 0;
+ 
+ 	/*      strlen("\1DCC CHAT chat AAAAAAAA P\1\n")=27
+ 	 *      strlen("\1DCC SCHAT chat AAAAAAAA P\1\n")=28
+@@ -132,131 +91,31 @@
+ 	 *              0x01, \n:  terminators
+ 	 */
+ 
+-	sprintf(buffer, "%u %u", ntohl(newip), port);
++	sprintf(buffer, "%u %u", ntohl(exp->tuple.src.ip), port);
+ 	DEBUGP("ip_nat_irc: Inserting '%s' == %u.%u.%u.%u, port %u\n",
+-	       buffer, NIPQUAD(newip), port);
+-
+-	return ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
+-					expect->seq - ntohl(tcph->seq),
+-					exp_irc_info->len, buffer, 
+-					strlen(buffer));
+-}
+-
+-static unsigned int help(struct ip_conntrack *ct,
+-			 struct ip_conntrack_expect *exp,
+-			 struct ip_nat_info *info,
+-			 enum ip_conntrack_info ctinfo,
+-			 unsigned int hooknum, 
+-			 struct sk_buff **pskb)
+-{
+-	struct iphdr *iph = (*pskb)->nh.iph;
+-	struct tcphdr *tcph = (void *) iph + iph->ihl * 4;
+-	unsigned int datalen;
+-	int dir;
+-	struct ip_ct_irc_expect *exp_irc_info;
+-
+-	if (!exp)
+-		DEBUGP("ip_nat_irc: no exp!!");
+-		
+-	exp_irc_info = &exp->help.exp_irc_info;
+-
+-	/* Only mangle things once: original direction in POST_ROUTING
+-	   and reply direction on PRE_ROUTING. */
+-	dir = CTINFO2DIR(ctinfo);
+-	if (!((hooknum == NF_IP_POST_ROUTING && dir == IP_CT_DIR_ORIGINAL)
+-	      || (hooknum == NF_IP_PRE_ROUTING && dir == IP_CT_DIR_REPLY))) {
+-		DEBUGP("nat_irc: Not touching dir %s at hook %s\n",
+-		       dir == IP_CT_DIR_ORIGINAL ? "ORIG" : "REPLY",
+-		       hooknum == NF_IP_POST_ROUTING ? "POSTROUTING"
+-		       : hooknum == NF_IP_PRE_ROUTING ? "PREROUTING"
+-		       : hooknum == NF_IP_LOCAL_OUT ? "OUTPUT" : "???");
+-		return NF_ACCEPT;
+-	}
+-	DEBUGP("got beyond not touching\n");
++	       buffer, NIPQUAD(exp->tuple.src.ip), port);
+ 
+-	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
+-	/* Check whether the whole IP/address pattern is carried in the payload */
+-	if (between(exp->seq + exp_irc_info->len,
+-		    ntohl(tcph->seq),
+-		    ntohl(tcph->seq) + datalen)) {
+-		if (!irc_data_fixup(exp_irc_info, ct, pskb, ctinfo, exp))
+-			return NF_DROP;
+-	} else { 
+-		/* Half a match?  This means a partial retransmisison.
+-		   It's a cracker being funky. */
+-		if (net_ratelimit()) {
+-			printk
+-			    ("IRC_NAT: partial packet %u/%u in %u/%u\n",
+-			     exp->seq, exp_irc_info->len,
+-			     ntohl(tcph->seq),
+-			     ntohl(tcph->seq) + datalen);
+-		}
+-		return NF_DROP;
+-	}
+-	return NF_ACCEPT;
++	ret = ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
++				       matchoff, matchlen, buffer, 
++				       strlen(buffer));
++	if (ret != NF_ACCEPT)
++		ip_conntrack_unexpect_related(exp);
++	return ret;
+ }
+ 
+-static struct ip_nat_helper ip_nat_irc_helpers[MAX_PORTS];
+-static char irc_names[MAX_PORTS][10];
+-
+-/* This function is intentionally _NOT_ defined as  __exit, because
+- * it is needed by init() */
+-static void fini(void)
++static void __exit fini(void)
+ {
+-	int i;
+-
+-	for (i = 0; i < ports_c; i++) {
+-		DEBUGP("ip_nat_irc: unregistering helper for port %d\n",
+-		       ports[i]);
+-		ip_nat_helper_unregister(&ip_nat_irc_helpers[i]);
+-	} 
++	ip_nat_irc_hook = NULL;
++	/* Make sure noone calls it, meanwhile. */
++	synchronize_net();
+ }
+ 
+ static int __init init(void)
+ {
+-	int ret = 0;
+-	int i;
+-	struct ip_nat_helper *hlpr;
+-	char *tmpname;
+-
+-	if (ports_c == 0)
+-		ports[ports_c++] = IRC_PORT;
+-
+-	for (i = 0; i < ports_c; i++) {
+-		hlpr = &ip_nat_irc_helpers[i];
+-		hlpr->tuple.dst.protonum = IPPROTO_TCP;
+-		hlpr->tuple.src.u.tcp.port = htons(ports[i]);
+-		hlpr->mask.src.u.tcp.port = 0xFFFF;
+-		hlpr->mask.dst.protonum = 0xFFFF;
+-		hlpr->help = help;
+-		hlpr->flags = 0;
+-		hlpr->me = THIS_MODULE;
+-		hlpr->expect = irc_nat_expected;
+-
+-		tmpname = &irc_names[i][0];
+-		if (ports[i] == IRC_PORT)
+-			sprintf(tmpname, "irc");
+-		else
+-			sprintf(tmpname, "irc-%d", i);
+-		hlpr->name = tmpname;
+-
+-		DEBUGP
+-		    ("ip_nat_irc: Trying to register helper for port %d: name %s\n",
+-		     ports[i], hlpr->name);
+-		ret = ip_nat_helper_register(hlpr);
+-
+-		if (ret) {
+-			printk
+-			    ("ip_nat_irc: error registering helper for port %d\n",
+-			     ports[i]);
+-			fini();
+-			return 1;
+-		}
+-	}
+-	return ret;
++	BUG_ON(ip_nat_irc_hook);
++	ip_nat_irc_hook = help;
++	return 0;
+ }
+ 
+-NEEDS_CONNTRACK(irc);
 -
  module_init(init);
  module_exit(fini);
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_tftp.h
 ===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-01-05 18:47:04.536044040 +1100
-@@ -707,9 +707,9 @@
+--- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack_tftp.h	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_tftp.h	2005-01-05 21:24:56.964103872 +1100
+@@ -13,4 +13,9 @@
+ #define TFTP_OPCODE_ACK		4
+ #define TFTP_OPCODE_ERROR	5
  
- #ifdef CONFIG_IP_NF_NAT_NEEDED
- /* Update sender->td_end after NAT successfully mangled the packet */
--int ip_conntrack_tcp_update(struct sk_buff *skb,
--			    struct ip_conntrack *conntrack, 
--			    int dir)
-+void ip_conntrack_tcp_update(struct sk_buff *skb,
-+			     struct ip_conntrack *conntrack, 
-+			     enum ip_conntrack_dir dir)
- {
- 	struct iphdr *iph = skb->nh.iph;
- 	struct tcphdr *tcph = (void *)skb->nh.iph + skb->nh.iph->ihl*4;
-@@ -735,8 +735,6 @@
- 		sender->td_scale, 
- 		receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
- 		receiver->td_scale);
--		
--	return 1;
- }
-  
- #endif
-@@ -1061,22 +1059,6 @@
- 	return 1;
- }
-   
--static int tcp_exp_matches_pkt(struct ip_conntrack_expect *exp,
--			       const struct sk_buff *skb)
--{
--	const struct iphdr *iph = skb->nh.iph;
--	struct tcphdr *th, _tcph;
--	unsigned int datalen;
--
--	th = skb_header_pointer(skb, iph->ihl * 4,
--				sizeof(_tcph), &_tcph);
--	if (th == NULL)
--		return 0;
--	datalen = skb->len - iph->ihl*4 - th->doff*4;
--
--	return between(exp->seq, ntohl(th->seq), ntohl(th->seq) + datalen);
--}
--
- struct ip_conntrack_protocol ip_conntrack_protocol_tcp =
- {
- 	.proto 			= IPPROTO_TCP,
-@@ -1087,6 +1069,5 @@
- 	.print_conntrack 	= tcp_print_conntrack,
- 	.packet 		= tcp_packet,
- 	.new 			= tcp_new,
--	.exp_matches_pkt	= tcp_exp_matches_pkt,
- 	.error			= tcp_error,
- };
-Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack.h	2005-01-05 18:46:49.463335440 +1100
-+++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h	2005-01-05 18:47:04.537043888 +1100
-@@ -3,13 +3,6 @@
- /* Connection state tracking for netfilter.  This is separated from,
-    but required by, the NAT layer; it can also be used by an iptables
-    extension. */
--
--#include <linux/config.h>
--#include <linux/netfilter_ipv4/ip_conntrack_tuple.h>
--#include <linux/bitops.h>
--#include <linux/compiler.h>
--#include <asm/atomic.h>
--
- enum ip_conntrack_info
- {
- 	/* Part of an established connection (either direction). */
-@@ -49,6 +42,13 @@
- 	IPS_CONFIRMED = (1 << IPS_CONFIRMED_BIT),
- };
- 
-+#ifdef __KERNEL__
-+#include <linux/config.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_tuple.h>
-+#include <linux/bitops.h>
-+#include <linux/compiler.h>
-+#include <asm/atomic.h>
++unsigned int (*ip_nat_tftp_hook)(struct sk_buff **pskb,
++				 struct ip_conntrack *ct,
++				 enum ip_conntrack_info ctinfo,
++				 struct ip_conntrack_expect *exp);
 +
- #include <linux/netfilter_ipv4/ip_conntrack_tcp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_icmp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_sctp.h>
-@@ -70,20 +70,6 @@
- #include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_irc.h>
- 
--/* per expectation: application helper private data */
--union ip_conntrack_expect_help {
--	/* insert conntrack helper private data (expect) here */
--	struct ip_ct_amanda_expect exp_amanda_info;
--	struct ip_ct_ftp_expect exp_ftp_info;
--	struct ip_ct_irc_expect exp_irc_info;
--
--#ifdef CONFIG_IP_NF_NAT_NEEDED
--	union {
--		/* insert nat helper private data (expect) here */
--	} nat;
--#endif
--};
--
- /* per conntrack: application helper private data */
- union ip_conntrack_help {
- 	/* insert conntrack helper private data (master) here */
-@@ -100,8 +86,6 @@
- };
- #endif
- 
--#ifdef __KERNEL__
--
- #include <linux/types.h>
- #include <linux/skbuff.h>
- 
-@@ -148,14 +132,17 @@
- 	struct ip_conntrack_tuple tuple, mask;
- 
- 	/* Function to call after setup and insertion */
--	int (*expectfn)(struct ip_conntrack *new);
-+	void (*expectfn)(struct ip_conntrack *new);
- 
--	/* At which sequence number did this expectation occur */
--	u_int32_t seq;
--  
--	union ip_conntrack_expect_proto proto;
-+#ifdef CONFIG_IP_NF_NAT_NEEDED
-+	/* This is the original per-proto part, used to map the
-+	 * expected connection the way the recipient expects. */
-+	union ip_conntrack_manip_proto saved_proto;
-+	/* Direction relative to the master connection. */
-+	enum ip_conntrack_dir dir;
-+#endif
- 
--	union ip_conntrack_expect_help help;
-+	union ip_conntrack_expect_proto proto;
- };
- 
- struct ip_conntrack_counter
-@@ -267,9 +254,9 @@
- 
- /* These are for NAT.  Icky. */
- /* Update TCP window tracking data when NAT mangles the packet */
--extern int ip_conntrack_tcp_update(struct sk_buff *skb,
--				   struct ip_conntrack *conntrack,
--				   int dir);
-+extern void ip_conntrack_tcp_update(struct sk_buff *skb,
-+				    struct ip_conntrack *conntrack,
-+				    enum ip_conntrack_dir dir);
- 
- /* Call me when a conntrack is destroyed. */
- extern void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack);
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_ftp.c
+ #endif /* _IP_CT_TFTP */
+Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_irc.c
 ===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-01-05 18:47:04.537043888 +1100
-@@ -39,6 +39,16 @@
- static int loose;
- module_param(loose, int, 0600);
+--- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_irc.c	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_irc.c	2005-01-05 21:24:56.965103720 +1100
+@@ -43,6 +43,14 @@
+ static char irc_buffer[65536];
+ static DECLARE_LOCK(irc_buffer_lock);
  
-+unsigned int (*ip_nat_ftp_hook)(struct sk_buff **pskb,
++unsigned int (*ip_nat_irc_hook)(struct sk_buff **pskb,
 +				struct ip_conntrack *ct,
 +				enum ip_conntrack_info ctinfo,
-+				enum ip_ct_ftp_type type,
 +				unsigned int matchoff,
 +				unsigned int matchlen,
-+				struct ip_conntrack_expect *exp,
-+				u32 *seq);
-+EXPORT_SYMBOL_GPL(ip_nat_ftp_hook);
++				struct ip_conntrack_expect *exp);
++EXPORT_SYMBOL_GPL(ip_nat_irc_hook);
 +
- #if 0
- #define DEBUGP printk
- #else
-@@ -243,24 +253,53 @@
- 	return 1;
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_DESCRIPTION("IRC (DCC) connection tracking helper");
+ MODULE_LICENSE("GPL");
+@@ -98,7 +106,7 @@
+ 	return 0;
  }
  
 -static int help(struct sk_buff *skb,
-+/* Look up to see if we're just after a \n. */
-+static int find_nl_seq(u16 seq, const struct ip_ct_ftp_master *info, int dir)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < info->seq_aft_nl_num[dir]; i++)
-+		if (info->seq_aft_nl[dir][i] == seq)
-+			return 1;
-+	return 0;
-+}
-+
-+/* We don't update if it's older than what we have. */
-+static void update_nl_seq(u16 nl_seq, struct ip_ct_ftp_master *info, int dir)
-+{
-+	unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
-+
-+	/* Look for oldest: if we find exact match, we're done. */
-+	for (i = 0; i < info->seq_aft_nl_num[dir]; i++) {
-+		if (info->seq_aft_nl[dir][i] == nl_seq)
-+			return;
-+
-+		if (oldest == info->seq_aft_nl_num[dir]
-+		    || before(info->seq_aft_nl[dir][i], oldest))
-+			oldest = i;
-+	}
-+
-+	if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER)
-+		info->seq_aft_nl[dir][info->seq_aft_nl_num[dir]++] = nl_seq;
-+	else if (oldest != NUM_SEQ_TO_REMEMBER)
-+		info->seq_aft_nl[dir][oldest] = nl_seq;
-+}
-+
 +static int help(struct sk_buff **pskb,
- 		struct ip_conntrack *ct,
- 		enum ip_conntrack_info ctinfo)
+ 		struct ip_conntrack *ct, enum ip_conntrack_info ctinfo)
  {
- 	unsigned int dataoff, datalen;
- 	struct tcphdr _tcph, *th;
- 	char *fb_ptr;
--	u_int32_t old_seq_aft_nl;
--	int old_seq_aft_nl_set, ret;
--	u_int32_t array[6] = { 0 };
-+	int ret;
-+	u32 seq, array[6] = { 0 };
+ 	unsigned int dataoff;
+@@ -106,11 +114,10 @@
+ 	char *data, *data_limit, *ib_ptr;
  	int dir = CTINFO2DIR(ctinfo);
- 	unsigned int matchlen, matchoff;
- 	struct ip_ct_ftp_master *ct_ftp_info = &ct->help.ct_ftp_info;
  	struct ip_conntrack_expect *exp;
--	struct ip_ct_ftp_expect *exp_ftp_info;
+-	struct ip_ct_irc_expect *exp_irc_info = NULL;
 -
- 	unsigned int i;
--	int found = 0;
-+	int found = 0, ends_in_nl;
++	u32 seq;
+ 	u_int32_t dcc_ip;
+ 	u_int16_t dcc_port;
+-	int i;
++	int i, ret = NF_ACCEPT;
+ 	char *addr_beg_p, *addr_end_p;
  
- 	/* Until there's been traffic both ways, don't look in packets. */
- 	if (ctinfo != IP_CT_ESTABLISHED
-@@ -269,46 +308,35 @@
- 		return NF_ACCEPT;
+ 	DEBUGP("entered\n");
+@@ -127,23 +134,23 @@
  	}
  
+ 	/* Not a full tcp header? */
 -	th = skb_header_pointer(skb, skb->nh.iph->ihl*4,
 +	th = skb_header_pointer(*pskb, (*pskb)->nh.iph->ihl*4,
  				sizeof(_tcph), &_tcph);
  	if (th == NULL)
  		return NF_ACCEPT;
  
--	dataoff = skb->nh.iph->ihl*4 + th->doff*4;
-+	dataoff = (*pskb)->nh.iph->ihl*4 + th->doff*4;
  	/* No data? */
--	if (dataoff >= skb->len) {
--		DEBUGP("ftp: skblen = %u\n", skb->len);
-+	if (dataoff >= (*pskb)->len) {
-+		DEBUGP("ftp: pskblen = %u\n", (*pskb)->len);
+-	dataoff = skb->nh.iph->ihl*4 + th->doff*4;
+-	if (dataoff >= skb->len)
++	dataoff = (*pskb)->nh.iph->ihl*4 + th->doff*4;
++	if (dataoff >= (*pskb)->len)
  		return NF_ACCEPT;
- 	}
--	datalen = skb->len - dataoff;
-+	datalen = (*pskb)->len - dataoff;
  
- 	LOCK_BH(&ip_ftp_lock);
--	fb_ptr = skb_header_pointer(skb, dataoff,
--				    skb->len - dataoff, ftp_buffer);
-+	fb_ptr = skb_header_pointer(*pskb, dataoff,
-+				    (*pskb)->len - dataoff, ftp_buffer);
- 	BUG_ON(fb_ptr == NULL);
+ 	LOCK_BH(&irc_buffer_lock);
+-	ib_ptr = skb_header_pointer(skb, dataoff,
+-				    skb->len - dataoff, irc_buffer);
++	ib_ptr = skb_header_pointer(*pskb, dataoff,
++				    (*pskb)->len - dataoff, irc_buffer);
+ 	BUG_ON(ib_ptr == NULL);
  
--	old_seq_aft_nl_set = ct_ftp_info->seq_aft_nl_set[dir];
--	old_seq_aft_nl = ct_ftp_info->seq_aft_nl[dir];
+ 	data = ib_ptr;
+-	data_limit = ib_ptr + skb->len - dataoff;
++	data_limit = ib_ptr + (*pskb)->len - dataoff;
+ 
+ 	/* strlen("\1DCC SENT t AAAAAAAA P\1\n")=24
+ 	 * 5+MINMATCHLEN+strlen("t AAAAAAAA P\1\n")=14 */
+@@ -195,19 +202,15 @@
+ 			}
+ 
+ 			exp = ip_conntrack_expect_alloc();
+-			if (exp == NULL)
++			if (exp == NULL) {
++				ret = NF_DROP;
+ 				goto out;
 -
--	DEBUGP("conntrack_ftp: datalen %u\n", datalen);
--	if (fb_ptr[datalen - 1] == '\n') {
--		DEBUGP("conntrack_ftp: datalen %u ends in \\n\n", datalen);
--		if (!old_seq_aft_nl_set
--		    || after(ntohl(th->seq) + datalen, old_seq_aft_nl)) {
--			DEBUGP("conntrack_ftp: updating nl to %u\n",
--			       ntohl(th->seq) + datalen);
--			ct_ftp_info->seq_aft_nl[dir] = 
--						ntohl(th->seq) + datalen;
--			ct_ftp_info->seq_aft_nl_set[dir] = 1;
--		}
--	}
-+	ends_in_nl = (fb_ptr[datalen - 1] == '\n');
-+	seq = ntohl(th->seq) + datalen;
+-			exp_irc_info = &exp->help.exp_irc_info;
++			}
  
--	if(!old_seq_aft_nl_set ||
--			(ntohl(th->seq) != old_seq_aft_nl)) {
--		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u)\n",
-+	/* Look up to see if we're just after a \n. */
-+	if (!find_nl_seq(ntohl(th->seq), ct_ftp_info, dir)) {
-+		/* Now if this ends in \n, update ftp info. */
-+		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u) or %s(%u)\n",
-+		       ct_ftp_info->seq_aft_nl[0][dir] 
- 		       old_seq_aft_nl_set ? "":"(UNSET) ", old_seq_aft_nl);
- 		ret = NF_ACCEPT;
--		goto out;
-+		goto out_update_nl;
- 	}
+ 			/* save position of address in dcc string,
+ 			 * necessary for NAT */
+ 			DEBUGP("tcph->seq = %u\n", th->seq);
+-			exp->seq = ntohl(th->seq) + (addr_beg_p - ib_ptr);
+-			exp_irc_info->len = (addr_end_p - addr_beg_p);
+-			exp_irc_info->port = dcc_port;
+-			DEBUGP("wrote info seq=%u (ofs=%u), len=%d\n",
+-				exp->seq, (addr_end_p - _data), exp_irc_info->len);
++			seq = ntohl(th->seq) + (addr_beg_p - ib_ptr);
  
- 	/* Initialize IP array to expected address (it's not mentioned
-@@ -321,7 +349,7 @@
- 	for (i = 0; i < ARRAY_SIZE(search); i++) {
- 		if (search[i].dir != dir) continue;
+ 			exp->tuple = ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
+@@ -216,24 +219,21 @@
+ 			exp->mask = ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
+ 				  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+-
+ 			exp->expectfn = NULL;
+-
+-			DEBUGP("expect_related %u.%u.%u.%u:%u-%u.%u.%u.%u:%u\n",
+-				NIPQUAD(exp->tuple.src.ip),
+-				ntohs(exp->tuple.src.u.tcp.port),
+-				NIPQUAD(exp->tuple.dst.ip),
+-				ntohs(exp->tuple.dst.u.tcp.port));
+-
+-			ip_conntrack_expect_related(exp, ct);
+-
++			if (ip_nat_irc_hook)
++				ret = ip_nat_irc_hook(pskb, ct, ctinfo, 
++						      addr_beg_p - ib_ptr,
++						      addr_end_p - addr_beg_p,
++						      exp);
++			else if (ip_conntrack_expect_related(exp, ct) != 0)
++				ret = NF_DROP;
+ 			goto out;
+ 		} /* for .. NUM_DCCPROTO */
+ 	} /* while data < ... */
  
--		found = find_pattern(fb_ptr, skb->len - dataoff,
-+		found = find_pattern(fb_ptr, (*pskb)->len - dataoff,
- 				     search[i].pattern,
- 				     search[i].plen,
- 				     search[i].skip,
-@@ -344,7 +372,7 @@
- 		goto out;
- 	} else if (found == 0) { /* No match */
- 		ret = NF_ACCEPT;
--		goto out;
-+		goto out_update_nl;
- 	}
- 
- 	DEBUGP("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
-@@ -354,20 +382,17 @@
- 	/* Allocate expectation which will be inserted */
- 	exp = ip_conntrack_expect_alloc();
- 	if (exp == NULL) {
--		ret = NF_ACCEPT;
-+		ret = NF_DROP;
- 		goto out;
- 	}
- 
--	exp_ftp_info = &exp->help.exp_ftp_info;
-+	/* We refer to the reverse direction ("!dir") tuples here,
-+	 * because we're expecting something in the other direction.
-+	 * Doesn't matter unless NAT is happening.  */
-+	exp->tuple.dst.ip = ct->tuplehash[!dir].tuple.dst.ip;
- 
--	/* Update the ftp info */
- 	if (htonl((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3])
--	    == ct->tuplehash[dir].tuple.src.ip) {
--		exp->seq = ntohl(th->seq) + matchoff;
--		exp_ftp_info->len = matchlen;
--		exp_ftp_info->ftptype = search[i].ftptype;
--		exp_ftp_info->port = array[4] << 8 | array[5];
--	} else {
-+	    != ct->tuplehash[dir].tuple.src.ip) {
- 		/* Enrico Scholz's passive FTP to partially RNAT'd ftp
- 		   server: it really wants us to connect to a
- 		   different IP address.  Simply don't record it for
-@@ -381,28 +406,42 @@
- 		   problem (DMZ machines opening holes to internal
- 		   networks, or the packet filter itself). */
- 		if (!loose) {
--			ip_conntrack_expect_put(exp);
- 			ret = NF_ACCEPT;
--			goto out;
-+			ip_conntrack_expect_put(exp);
-+			goto out_update_nl;
- 		}
-+		exp->tuple.dst.ip = htonl((array[0] << 24) | (array[1] << 16)
-+					 | (array[2] << 8) | array[3]);
- 	}
- 
--	exp->tuple = ((struct ip_conntrack_tuple)
--		{ { ct->tuplehash[!dir].tuple.src.ip,
--		    { 0 } },
--		  { htonl((array[0] << 24) | (array[1] << 16)
--			  | (array[2] << 8) | array[3]),
--		    { .tcp = { htons(array[4] << 8 | array[5]) } },
--		    IPPROTO_TCP }});
-+	exp->tuple.src.ip = ct->tuplehash[!dir].tuple.src.ip;
-+	exp->tuple.dst.u.tcp.port = htons(array[4] << 8 | array[5]);
-+	exp->tuple.src.u.tcp.port = 0; /* Don't care. */
-+	exp->tuple.dst.protonum = IPPROTO_TCP;
- 	exp->mask = ((struct ip_conntrack_tuple)
- 		{ { 0xFFFFFFFF, { 0 } },
- 		  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
- 
- 	exp->expectfn = NULL;
- 
--	/* Ignore failure; should only happen with NAT */
--	ip_conntrack_expect_related(exp, ct);
--	ret = NF_ACCEPT;
-+	/* Now, NAT might want to mangle the packet, and register the
-+	 * (possibly changed) expectation itself. */
-+	if (ip_nat_ftp_hook)
-+		ret = ip_nat_ftp_hook(pskb, ct, ctinfo, search[i].ftptype,
-+				      matchoff, matchlen, exp, &seq);
-+	else {
-+		/* Can't expect this?  Best to drop packet now. */
-+		if (ip_conntrack_expect_related(exp, ct) != 0)
-+			ret = NF_DROP;
-+		else
-+			ret = NF_ACCEPT;
-+	}
-+
-+out_update_nl:
-+	/* Now if this ends in \n, update ftp info.  Seq may have been
-+	 * adjusted by NAT code. */
-+	if (ends_in_nl)
-+		update_nl_seq(seq, ct_ftp_info,dir);
   out:
- 	UNLOCK_BH(&ip_ftp_lock);
- 	return ret;
-@@ -460,7 +499,5 @@
- 	return 0;
+ 	UNLOCK_BH(&irc_buffer_lock);
+-	return NF_ACCEPT;
++	return ret;
  }
  
--PROVIDES_CONNTRACK(ftp);
+ static struct ip_conntrack_helper irc_helpers[MAX_PORTS];
+@@ -268,7 +268,6 @@
+ 		hlpr->mask.dst.protonum = 0xFFFF;
+ 		hlpr->max_expected = max_dcc_channels;
+ 		hlpr->timeout = dcc_timeout;
+-		hlpr->flags = IP_CT_HELPER_F_REUSE_EXPECT;
+ 		hlpr->me = ip_conntrack_irc;
+ 		hlpr->help = help;
+ 
+@@ -305,7 +304,5 @@
+ 	}
+ }
+ 
+-PROVIDES_CONNTRACK(irc);
 -
  module_init(init);
  module_exit(fini);
-Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_ftp.h
+Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_irc.h
 ===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack_ftp.h	2005-01-05 18:46:49.463335440 +1100
-+++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_ftp.h	2005-01-05 18:47:04.538043736 +1100
-@@ -20,24 +20,25 @@
- 	IP_CT_FTP_EPSV,
- };
+--- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack_irc.h	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_irc.h	2005-01-05 21:24:56.964103872 +1100
+@@ -14,24 +14,17 @@
+ #ifndef _IP_CONNTRACK_IRC_H
+ #define _IP_CONNTRACK_IRC_H
  
--/* This structure is per expected connection */
--struct ip_ct_ftp_expect
--{
--	/* We record seq number and length of ftp ip/port text here: all in
--	 * host order. */
+-/* We record seq number and length of irc ip/port text here: all in
+-   host order. */
 -
-- 	/* sequence number of IP address in packet is in ip_conntrack_expect */
--	u_int32_t len;			/* length of IP address */
--	enum ip_ct_ftp_type ftptype;	/* PORT or PASV ? */
--	u_int16_t port; 		/* TCP port that was to be used */
+-/* This structure is per expected connection */
+-struct ip_ct_irc_expect
+-{
+-	/* length of IP address */
+-	u_int32_t len;
+-	/* Port that was to be used */
+-	u_int16_t port;
 -};
 -
-+#define NUM_SEQ_TO_REMEMBER 2
  /* This structure exists only once per master */
- struct ip_ct_ftp_master {
--	/* Next valid seq position for cmd matching after newline */
--	u_int32_t seq_aft_nl[IP_CT_DIR_MAX];
-+	/* Valid seq positions for cmd matching after newline */
-+	u_int32_t seq_aft_nl[IP_CT_DIR_MAX][NUM_SEQ_TO_REMEMBER];
- 	/* 0 means seq_match_aft_nl not set */
--	int seq_aft_nl_set[IP_CT_DIR_MAX];
-+	int seq_aft_nl_num[IP_CT_DIR_MAX];
+ struct ip_ct_irc_master {
  };
  
-+struct ip_conntrack_expect;
-+
-+/* For NAT to hook in when we find a packet which describes what other
-+ * connection we should expect. */
-+extern unsigned int (*ip_nat_ftp_hook)(struct sk_buff **pskb,
+-
+ #ifdef __KERNEL__
++extern unsigned int (*ip_nat_irc_hook)(struct sk_buff **pskb,
 +				       struct ip_conntrack *ct,
 +				       enum ip_conntrack_info ctinfo,
-+				       enum ip_ct_ftp_type type,
 +				       unsigned int matchoff,
 +				       unsigned int matchlen,
-+				       struct ip_conntrack_expect *exp,
-+				       u32 *seq);
- #endif /* _IP_CONNTRACK_FTP_H */
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_standalone.c
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_nat_standalone.c	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_nat_standalone.c	2005-01-05 18:47:04.538043736 +1100
-@@ -55,15 +55,6 @@
- 			         : ((hooknum) == NF_IP_LOCAL_IN ? "LOCAL_IN"  \
- 				    : "*ERROR*")))
++				       struct ip_conntrack_expect *exp);
  
--static inline int call_expect(struct ip_conntrack *master,
--			      struct sk_buff **pskb,
--			      unsigned int hooknum,
--			      struct ip_conntrack *ct,
--			      struct ip_nat_info *info)
+ #define IRC_PORT	6667
+ 
+Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_amanda.h
+===================================================================
+--- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack_amanda.h	2005-01-05 19:41:10.000000000 +1100
++++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_amanda.h	2005-01-05 21:24:56.964103872 +1100
+@@ -2,11 +2,11 @@
+ #define _IP_CONNTRACK_AMANDA_H
+ /* AMANDA tracking. */
+ 
+-struct ip_ct_amanda_expect
 -{
--	return master->nat.info.helper->expect(pskb, hooknum, ct, info);
--}
+-	u_int16_t port;		/* port number of this expectation */
+-	u_int16_t offset;	/* offset of port in ctrl packet */
+-	u_int16_t len;		/* length of the port number string */
+-};
 -
- static unsigned int
- ip_nat_fn(unsigned int hooknum,
- 	  struct sk_buff **pskb,
-@@ -131,21 +122,13 @@
- 		if (!(info->initialized & (1 << maniptype))) {
- 			unsigned int ret;
- 
--			if (ct->master
--			    && master_ct(ct)->nat.info.helper
--			    && master_ct(ct)->nat.info.helper->expect) {
--				ret = call_expect(master_ct(ct), pskb, 
--						  hooknum, ct, info);
--			} else {
--				/* LOCAL_IN hook doesn't have a chain!  */
--				if (hooknum == NF_IP_LOCAL_IN)
--					ret = alloc_null_binding(ct, info,
--								 hooknum);
--				else
--					ret = ip_nat_rule_find(pskb, hooknum,
--					                       in, out, ct,
--					                       info);
--			}
-+			/* LOCAL_IN hook doesn't have a chain!  */
-+			if (hooknum == NF_IP_LOCAL_IN)
-+				ret = alloc_null_binding(ct, info, hooknum);
-+			else
-+				ret = ip_nat_rule_find(pskb, hooknum,
-+						       in, out, ct,
-+						       info);
- 
- 			if (ret != NF_ACCEPT) {
- 				WRITE_UNLOCK(&ip_nat_lock);
-@@ -396,4 +379,5 @@
- EXPORT_SYMBOL(ip_nat_used_tuple);
- EXPORT_SYMBOL(ip_nat_find_helper);
- EXPORT_SYMBOL(__ip_nat_find_helper);
-+EXPORT_SYMBOL(ip_nat_follow_master);
- MODULE_LICENSE("GPL");
-Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-01-05 18:46:49.463335440 +1100
-+++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-01-05 18:47:04.538043736 +1100
-@@ -44,10 +44,6 @@
- 	/* Called when a conntrack entry is destroyed */
- 	void (*destroy)(struct ip_conntrack *conntrack);
- 
--	/* Has to decide if a expectation matches one packet or not */
--	int (*exp_matches_pkt)(struct ip_conntrack_expect *exp,
--			       const struct sk_buff *skb);
--
- 	int (*error)(struct sk_buff *skb, enum ip_conntrack_info *ctinfo,
- 		     unsigned int hooknum);
- 
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2005-01-05 18:46:49.403344560 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2005-01-05 18:47:04.539043584 +1100
-@@ -494,13 +494,6 @@
- 	return 1;
- }
- 
--static int sctp_exp_matches_pkt(struct ip_conntrack_expect *exp,
--				const struct sk_buff *skb)
--{
--	/* To be implemented */
--	return 0;
--}
--
- struct ip_conntrack_protocol ip_conntrack_protocol_sctp = { 
- 	.proto 		 = IPPROTO_SCTP, 
- 	.name 		 = "sctp",
-@@ -511,7 +504,6 @@
- 	.packet 	 = sctp_packet, 
- 	.new 		 = sctp_new, 
- 	.destroy 	 = NULL, 
--	.exp_matches_pkt = sctp_exp_matches_pkt, 
- 	.me 		 = THIS_MODULE 
- };
- 
-Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_helper.h
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack_helper.h	2005-01-05 18:46:49.463335440 +1100
-+++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_helper.h	2005-01-05 18:47:04.539043584 +1100
-@@ -25,7 +25,7 @@
- 	
- 	/* Function to call when data passes; return verdict, or -1 to
-            invalidate. */
--	int (*help)(struct sk_buff *skb,
-+	int (*help)(struct sk_buff **pskb,
- 		    struct ip_conntrack *ct,
- 		    enum ip_conntrack_info conntrackinfo);
- };
-@@ -42,8 +42,6 @@
- /* Add an expected connection: can have more than one per connection */
- extern int ip_conntrack_expect_related(struct ip_conntrack_expect *exp,
- 				       struct ip_conntrack *related_to);
--extern int ip_conntrack_change_expect(struct ip_conntrack_expect *expect,
--				      struct ip_conntrack_tuple *newtuple);
- extern void ip_conntrack_unexpect_related(struct ip_conntrack_expect *exp);
- 
- #endif /*_IP_CONNTRACK_HELPER_H*/
-Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_core.h
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack_core.h	2005-01-05 18:46:49.463335440 +1100
-+++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ip_conntrack_core.h	2005-01-05 18:47:04.539043584 +1100
-@@ -34,14 +34,14 @@
- ip_conntrack_find_get(const struct ip_conntrack_tuple *tuple,
- 		      const struct ip_conntrack *ignored_conntrack);
- 
--extern int __ip_conntrack_confirm(struct sk_buff *skb);
-+extern int __ip_conntrack_confirm(struct sk_buff **pskb);
- 
- /* Confirm a connection: returns NF_DROP if packet must be dropped. */
--static inline int ip_conntrack_confirm(struct sk_buff *skb)
-+static inline int ip_conntrack_confirm(struct sk_buff **pskb)
- {
--	if (skb->nfct
--	    && !is_confirmed((struct ip_conntrack *)skb->nfct))
--		return __ip_conntrack_confirm(skb);
-+	if ((*pskb)->nfct
-+	    && !is_confirmed((struct ip_conntrack *)(*pskb)->nfct))
-+		return __ip_conntrack_confirm(pskb);
- 	return NF_ACCEPT;
- }
- 
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-05 18:47:03.908139496 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-05 18:47:04.540043432 +1100
-@@ -394,13 +394,13 @@
- 
- /* Confirm a connection given skb; places it in hash table */
- int
--__ip_conntrack_confirm(struct sk_buff *skb)
-+__ip_conntrack_confirm(struct sk_buff **pskb)
- {
- 	unsigned int hash, repl_hash;
- 	struct ip_conntrack *ct;
- 	enum ip_conntrack_info ctinfo;
- 
--	ct = ip_conntrack_get(skb, &ctinfo);
-+	ct = ip_conntrack_get(*pskb, &ctinfo);
- 
- 	/* ipt_REJECT uses ip_conntrack_attach to attach related
- 	   ICMP/TCP RST packets in other direction.  Actual packet
-@@ -782,16 +782,6 @@
- 		return -ret;
- 	}
- 
--	if (ret != NF_DROP && ct->helper) {
--		ret = ct->helper->help(*pskb, ct, ctinfo);
--		if (ret == -1) {
--			/* Invalid */
--			CONNTRACK_STAT_INC(invalid);
--			nf_conntrack_put((*pskb)->nfct);
--			(*pskb)->nfct = NULL;
--			return NF_ACCEPT;
--		}
--	}
- 	if (set_reply)
- 		set_bit(IPS_SEEN_REPLY_BIT, &ct->status);
- 
-@@ -994,47 +984,6 @@
- 	return ret;
- }
- 
--/* Change tuple in an existing expectation */
--int ip_conntrack_change_expect(struct ip_conntrack_expect *expect,
--			       struct ip_conntrack_tuple *newtuple)
--{
--	int ret;
--
--	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
--	WRITE_LOCK(&ip_conntrack_expect_tuple_lock);
--
--	DEBUGP("change_expect:\n");
--	DEBUGP("exp tuple: "); DUMP_TUPLE(&expect->tuple);
--	DEBUGP("exp mask:  "); DUMP_TUPLE(&expect->mask);
--	DEBUGP("newtuple:  "); DUMP_TUPLE(newtuple);
--	if (expect->ct_tuple.dst.protonum == 0) {
--		/* Never seen before */
--		DEBUGP("change expect: never seen before\n");
--		if (!ip_ct_tuple_equal(&expect->tuple, newtuple) 
--		    && LIST_FIND(&ip_conntrack_expect_list, expect_clash,
--			         struct ip_conntrack_expect *, newtuple, &expect->mask)) {
--			/* Force NAT to find an unused tuple */
--			ret = -1;
--		} else {
--			memcpy(&expect->ct_tuple, &expect->tuple, sizeof(expect->tuple));
--			memcpy(&expect->tuple, newtuple, sizeof(expect->tuple));
--			ret = 0;
--		}
--	} else {
--		/* Resent packet */
--		DEBUGP("change expect: resent packet\n");
--		if (ip_ct_tuple_equal(&expect->tuple, newtuple)) {
--			ret = 0;
--		} else {
--			/* Force NAT to choose again the same port */
--			ret = -1;
--		}
--	}
--	WRITE_UNLOCK(&ip_conntrack_expect_tuple_lock);
--	
--	return ret;
--}
--
- /* Alter reply tuple (maybe alter helper).  This is for NAT, and is
-    implicitly racy: see __ip_conntrack_confirm */
- void ip_conntrack_alter_reply(struct ip_conntrack *conntrack,
++struct ip_conntrack_expect;
++extern unsigned int (*ip_nat_amanda_hook)(struct sk_buff **pskb,
++					  struct ip_conntrack *ct,
++					  enum ip_conntrack_info ctinfo,
++					  unsigned int matchoff,
++					  unsigned int matchlen,
++					  struct ip_conntrack_expect *exp);
+ #endif /* _IP_CONNTRACK_AMANDA_H */
 
 -- 
 A bad analogy is like a leaky screwdriver -- Richard Braakman
