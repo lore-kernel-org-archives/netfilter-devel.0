@@ -1,13 +1,14 @@
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: initial ct_sync port for Linux 2.6
-Date: Fri, 17 Dec 2004 00:10:00 +0100
-Message-ID: <41C215C8.1070905@sch.bme.hu>
+From: Gordan Bobic <gordan@bobich.net>
+Subject: Userspace (QUEUE) Filter Verdict Targets, REJECT and TARPIT
+Date: Fri, 17 Dec 2004 10:17:21 +0000
+Message-ID: <200412171017.21908.gordan@bobich.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,47 +20,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-   Hi,
+I am trying to write a configurable userspace packet filter for handling huge 
+numbers of complex rules (I need it for hundreds of thousands of rules). The 
+problem that I am finding is that the libipq only seems to offer ACCEPT and 
+DROP verdict targets for userspace filters.
 
-   In the last few days I've started porting ct_sync to Linux 2.6 and=20
-Pablo Neira's new notifier API. This evening I managed to get it compile=20
-and work on my UML-based "test system", so I thought it's time to=20
-publish the code. However, since the 2.6 port is still in heavy=20
-development, and because of my difficulties with the Netfilter SVN the=20
-code is aveilable in a public GNU Arch archive repository here:
+Is there a way to set REJECT or TARPIT as targets? I ask because it is nice to 
+respond with REJECT to non-hostile hosts so that they don't get tied with 
+connections when DROP is used. Similarly, it would be nice to be able to 
+TARPIT the hostile hosts to slow them down. At the moment, the only way I can 
+think of to handle this is to set a DROP verdict but then send out a custom 
+made raw packet using something like libnet, but this would rather complicate 
+the code I am developing (but if it's the only option, so be it, I guess).
 
-   http://people.netfilter.org/hidden/archives/2004-public
+Finally - is there a way to practically handle TARPIT in a resource-cheap way 
+when conntrack is used? My packet filter needs to operate in a NAT 
+enfironment, so conntrack is not something I can avoid using.
 
-   For those of you unexperienced with tla, you can get the code using=20
-the following magic incantations:
+Best regards.
 
-$ tla register-archive hidden@sch.bme.hu--2004-public \=20
-http://people.netfilter.org/hidden/archives/2004-public
-$ tla get -A hidden@sch.bme.hu--2004-public netfilter-ha--mainline--1.0
-
-   The repository contains the complete patchset for Linux 2.6.9, plus=20
-the ported ct_sync code. I've done some changes in the code itself as wel=
-l:
-
-- simplified conntrack entry manipulation code while trying to minimize=20
-necessary core conntrack patches
-- ct_sync does not depend on ctnetlink anymore, only Pablo Neira's new=20
-per-packet conntrack notifier patch is necessary
-- the patchtree for 2.6.9 still contains the connmark patch, which has=20
-been included in the mainline kernel recently, so it won't be necessary=20
-for 2.6.10
-- polling support in the receive thread has also been included, this=20
-feature is especially experimental (comments welcome)
-
-   Unfortunately I did not have time to update the README yet, it's=20
-slightly outdated when describing the patching process required to=20
-compile ct_sync. However, with a little imagination everyone should be=20
-able to guess which changes to apply to the commands in the README. :)
-
-   Of course, there are a couple of known bugs in the code as well, and=20
-the whole 2.6 tree is even more experimental than the 2.4 variant of the=20
-code.
-
---=20
-   KOV=C1CS, Kriszti=E1n
+Gordan
