@@ -1,15 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Stange ip_conntrack (newnat) behaviour.
-Date: Tue, 4 Jun 2002 10:06:21 +0200 (CEST)
+From: Philip Craig <philipc@snapgear.com>
+Subject: [PATCH] NAT for unreplied connections
+Date: Tue, 04 Jun 2002 18:43:54 +1000
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206040957240.6390-100000@blackhole.kfki.hu>
-References: <200206031640.g53Ge3j14419@mint.home.net>
+Message-ID: <3CFC7DCA.9030801@snapgear.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "A. van Schie" <a.van.schie@quicknet.nl>
-In-Reply-To: <200206031640.g53Ge3j14419@mint.home.net>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,55 +18,74 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 3 Jun 2002, A. van Schie wrote:
+Hi,
 
-> > > What I find strange is that it starts with 2 almost the same packets
-> > > (except for ip_id), and that they both get the conntrack state NEW!
-> >
-> > What else state should they got? But those first two packets looks
-> > strange, that's true.
->
-> I expected that conntrack gives the second packet the state ESTABLISHED,
-> because all fields that conntrack checks are equal, or is there some other
-> special tcp connection tracking code that I missed.
+The nat table is only used for the first packet in each
+connection.  This poses a problem if the events such as the
+following occur:
 
->From conntrack point of view all parameters of the first two packets are
-identical, so the second one is a resent packet. There was no response
-yet from the destination, therefore the state remains the same: NEW.
+1. TCP SYN packet sent, but no reply received.
 
-> And I didn't expected the third "response" packet to be DROPPED.
+2. iptables rules change or routing table changes such that
+the TCP SYN packet should be NATed differently.
 
-This is the first response. :-). But it should not be dropped. :-(
+3. TCP SYN packet resent, but is NATed using the conntrack
+created by the initial conntrack, and so it never reaches its
+destination, or the reply is never received.
 
-> > > I think there is a problem in conntrack,
-> > > maybe the newnat patch or the "double packet" is introduced in the
-> > > kernel.
-> >
-> > If you suspect something like that, then start tcpdumping both involved
-> > interfaces and look at the generated logs.
->
-> I'm not to handy with that tool, I hope that the current netfilter logging is enough
-> to see what has happend.
+Currently, the only solution for this is to create a new
+connection, often requiring the application to be killed and
+restarted.  This can happen for UDP connections and pings
+too.
 
-If you suspect that the kernel generates packets just out of the blue,
-then the netfilter logging alone won't help. One has to compare what one
-can catch on the interface itself (by tcpdump) and compare the result with
-the netfilter logging.
+I searched in the list archives and found one other person
+has noticed this problem too, but there were no replies:
 
-> > Did you applied other patches from p-o-m?
-[..]
->                  extra/tcp-window-tracking
+http://lists.samba.org/pipermail/netfilter-devel/2002-January/003166.html
 
-Don't you see any logs about out of window packets?
+I've included a patch which changes the IP conntracking such
+that the conntrack is recreated if a packet is sent in the
+original direction before any replies are seen.
 
-If yes, I'd suggest to use the new version of the tcp-window-tracking
-patch. There were problems with window scaling support in the older
-versions of the patch, which could break connections.
+This solves my current problems, but my testing is fairly
+minimal so far.  Can anyone see any problems with this patch,
+or have a better solution?
+
+One problem may be that since the new conntrack may not have
+the same source port as the original, UDP protocols that
+don't require replies immediately after the first packet may
+fail.
 
 Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-WWW-Home: http://www.kfki.hu/~kadlec
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Phil
+
+
+--- linux-2.4.x/net/ipv4/netfilter/ip_conntrack_core.c	2 Oct 2001 09:36:12 -0000	1.1.1.2
++++ linux-2.4.x/net/ipv4/netfilter/ip_conntrack_core.c	4 Jun 2002 07:52:40 -0000	1.3
+@@ -584,6 +584,16 @@
+
+  	/* look for tuple match */
+  	h = ip_conntrack_find_get(&tuple, NULL);
++ 
+if (h && !(h->ctrack->status & IPS_SEEN_REPLY)
++ 
+		&& DIRECTION(h) == IP_CT_DIR_ORIGINAL) {
++ 
+	/* No reply yet, so recreate the conntrack in case the
++ 
+	   NAT rules have changed. */
++ 
+	if (del_timer(&h->ctrack->timeout)) {
++ 
+		death_by_timeout((unsigned long)h->ctrack);
++ 
+		ip_conntrack_put(h->ctrack);
++ 
+		h = NULL;
++ 
+	}
++ 
+}
+  	if (!h) {
+  		h = init_conntrack(&tuple, proto, skb);
+  		if (!h)
