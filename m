@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: iptables bad byte counter?!?
-Date: Thu, 6 Jun 2002 07:42:43 +0200
+Subject: Re: any body help me...
+Date: Thu, 6 Jun 2002 07:43:34 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020606074243.G28940@sunbeam.de.gnumonks.org>
-References: <1023304055.2845.69.camel@cygnus> <200206052129.54254.hno@marasystems.com>
+Message-ID: <20020606074334.H28940@sunbeam.de.gnumonks.org>
+References: <20020606045302.HM.00000000000zGSd@www81.hanmail.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5UGlQXeG3ziZS81+"
-Cc: Torge Szczepanek <netfilter-devel@szczepanek.de>,
-	netfilter-devel@lists.samba.org
+	protocol="application/pgp-signature"; boundary="bygAmIonOAIqBxQB"
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: "bob" <netfilter@hanmail.net>
 Content-Disposition: inline
-In-Reply-To: <200206052129.54254.hno@marasystems.com>; from hno@marasystems.com on Wed, Jun 05, 2002 at 09:29:54PM +0200
+In-Reply-To: <20020606045302.HM.00000000000zGSd@www81.hanmail.net>; from netfilter@hanmail.net on Thu, Jun 06, 2002 at 04:53:02AM +0900
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -24,34 +23,16 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---5UGlQXeG3ziZS81+
+--bygAmIonOAIqBxQB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 05, 2002 at 09:29:54PM +0200, Henrik Nordstrom wrote:
-> Torge Szczepanek wrote:
->=20
-> > I am getting byte counters like this:
-> >
-> > 18446744073707058701
->=20
-> Very much looks like a negative number.. the above is the same as 64 bit=
-=20
-> integer -2492915 printed as a unsigned value.
->=20
-> > The byte counters differ (18446744073707 is mostly the same) so I think
-> > this might be an overflow of a (longint?!?) counter.
->=20
-> Very unlikely as it is 64 bits in size and unsigned..
+On Thu, Jun 06, 2002 at 04:53:02AM +0900, bob wrote:
 
-no, this is clearly a problem within the 32bit-userspace / 64bit kernelspace
-handling of iptables.
-
-Don't assume any reasonable value to be in the counters on sparc64.
-
-> Regards
-> Henrik
+HTML is not the right format for an email.  emails are either plain 7 bit a=
+scii
+or mime encoded text.
 
 --=20
 Live long and prosper
@@ -64,7 +45,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---5UGlQXeG3ziZS81+
+--bygAmIonOAIqBxQB
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -72,9 +53,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE8/vZSXaXGVTD0i/8RAkvcAJ9EnIvG6XgHM1WDyJNAvQaOZIfelgCeJJzl
-3sl2E03iwzVgE5d14kAH9bc=
-=7pDJ
+iD8DBQE8/vaGXaXGVTD0i/8RAmHtAKCP4ukvPnrLoyrweE1ZZsfbvzDq/gCffaOs
+QazVrwdPqrWWW3aK0l7quhY=
+=LKjC
 -----END PGP SIGNATURE-----
 
---5UGlQXeG3ziZS81+--
+--bygAmIonOAIqBxQB--
