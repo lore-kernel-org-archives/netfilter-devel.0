@@ -1,98 +1,84 @@
-From: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
-Subject: Re: [PATCH] IPv6: Miscellaneous clean-ups
-Date: Fri, 4 Oct 2002 02:09:23 -0300
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20021004050923.GA2728@conectiva.com.br>
-References: <20021004.011315.05129566.yoshfuji@linux-ipv6.org> <20021003.103617.04446177.davem@redhat.com> <20021004.073642.125593159.yoshfuji@linux-ipv6.org>
+From: Lennart Poettering <mz6e657466696c746572@itaparica.org>
+Subject: libipq + packet mangling + MTU
+Date: Fri, 4 Oct 2002 17:34:01 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20021004153401.GA23867@whiskey.dummy.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@redhat.com, linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
-   netfilter-devel@lists.netfilter.org, usagi@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J2SCkAp4GZ/dPZZf"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20021004.073642.125593159.yoshfuji@linux-ipv6.org>
-Errors-to: netdev-bounce@oss.sgi.com
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Em Fri, Oct 04, 2002 at 07:36:42AM +0900, YOSHIFUJI Hideaki / ?$B5HF#1QL@ escreveu:
-> In article <20021003.103617.04446177.davem@redhat.com> (at Thu, 03 Oct 2002 10:36:17 -0700 (PDT)), "David S. Miller" <davem@redhat.com> says:
-> 
-> >    -	addr.s6_addr[15] = 1;
-> >    +	addr.s6_addr32[3] = __constant_htonl(0x00000001);
-> >     
-> > Do not use __constant_htonl() in runtime code, use htonl().
-> > Arnaldo de Melo told you this the other day for another one
-> > of your patches, so you must fix this kind of stuff up before
-> > I'll apply any of your patches which have this problem.
-> 
-> I saw many __constant_{hton,ntoh}{s,l}()s, so fixed.
-> 
->       1. use s6_addrXX instead of in6_u.s6_addrXX.
->       2. avoid using magic number.
->       3. use 32bit constants.
->  -->  4. avoid __constant_{hton,ntoh}{l,s}() in runtime code.
 
-Thank you, some still were left, but that is not a problem, we can go on fixing
-it, as long as we don't introduce new instances, its OK.
- 
-> ===================================================================
-> RCS file: /cvsroot/usagi/usagi-backport/linux24/net/ipv6/addrconf.c,v
-> retrieving revision 1.1.1.1
-> diff -u -r1.1.1.1 addrconf.c
-> --- net/ipv6/addrconf.c	2002/08/20 09:47:02	1.1.1.1
-> +++ net/ipv6/addrconf.c	2002/10/03 22:16:13
-> @@ -172,7 +172,7 @@
->  
->  	if ((addr->s6_addr32[0] | addr->s6_addr32[1]) == 0) {
->  		if (addr->s6_addr32[2] == 0) {
-> -			if (addr->in6_u.u6_addr32[3] == 0)
-> +			if (addr->s6_addr32[3] == 0)
->  				return IPV6_ADDR_ANY;
->  
->  			if (addr->s6_addr32[3] == __constant_htonl(0x00000001))
-                                                  ^^^^^^^^^^^
-                                                  ^^^^^^^^^^^
-not needed as well.
+--J2SCkAp4GZ/dPZZf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Index: net/ipv6/icmp.c
-> ===================================================================
-> RCS file: /cvsroot/usagi/usagi-backport/linux24/net/ipv6/icmp.c,v
-> retrieving revision 1.1.1.1
-> retrieving revision 1.1.1.1.12.1
-> diff -u -r1.1.1.1 -r1.1.1.1.12.1
-> --- net/ipv6/icmp.c	2002/08/20 09:47:02	1.1.1.1
-> +++ net/ipv6/icmp.c	2002/09/12 09:41:58	1.1.1.1.12.1
-> @@ -198,7 +198,7 @@
->  		u8 type;
->  		if (skb_copy_bits(skb, ptr+offsetof(struct icmp6hdr, icmp6_type),
->  				  &type, 1)
-> -		    || !(type & 0x80))
-> +		    || !(type & ICMPV6_INFOMSG_MASK))
+Hi!
 
-nice, no magic numbers.
+I am currently working on a new target for netfilter which modifies
+packages and, as a side effect, may enlarge packets by some bytes. I
+have currently a working prototype in userspace using libipq. It
+already works quite fine, but suffers by one problem:
 
-> RCS file: /cvsroot/usagi/usagi-backport/linux24/net/ipv6/netfilter/ip6_queue.c,v
-> retrieving revision 1.1.1.1
-> retrieving revision 1.1.1.1.12.2
-> diff -u -r1.1.1.1 -r1.1.1.1.12.2
-> --- net/ipv6/netfilter/ip6_queue.c	2002/08/20 09:47:02	1.1.1.1
-> +++ net/ipv6/netfilter/ip6_queue.c	2002/09/19 03:57:51	1.1.1.1.12.2
-> @@ -306,14 +306,8 @@
->  	 */
->  	if (e->info->hook == NF_IP_LOCAL_OUT) {
->  		struct ipv6hdr *iph = e->skb->nh.ipv6h;
-> -		if (!(   iph->daddr.in6_u.u6_addr32[0] == e->rt_info.daddr.in6_u.u6_addr32[0]
-> -                      && iph->daddr.in6_u.u6_addr32[1] == e->rt_info.daddr.in6_u.u6_addr32[1]
-> -                      && iph->daddr.in6_u.u6_addr32[2] == e->rt_info.daddr.in6_u.u6_addr32[2]
-> -                      && iph->daddr.in6_u.u6_addr32[3] == e->rt_info.daddr.in6_u.u6_addr32[3]
-> -		      && iph->saddr.in6_u.u6_addr32[0] == e->rt_info.saddr.in6_u.u6_addr32[0]
-> -		      && iph->saddr.in6_u.u6_addr32[1] == e->rt_info.saddr.in6_u.u6_addr32[1]
-> -		      && iph->saddr.in6_u.u6_addr32[2] == e->rt_info.saddr.in6_u.u6_addr32[2]
-> -		      && iph->saddr.in6_u.u6_addr32[3] == e->rt_info.saddr.in6_u.u6_addr32[3]))
-> +		if (ipv6_addr_cmp(&iph->daddr, &e->rt_info.daddr) ||
-> +		    ipv6_addr_cmp(&iph->saddr, &e->rt_info.saddr))
+If the MTU of a device ist e.g. 1500 bytes, a packet may be enlarged
+to 1520 bytes. (just an example) the kernel drops such large packages,
+since they are larger than the MTU.
 
-Cool, thank you.
+I read on some mails regarding a project calles SPS
+(http://ds9a.nl/sps/) that the same thing would not occur in kernel
+space (as a real netfilter module), since the kernel would
+automatically fragment the packets correctly. Thus a packet of 1500
+bytes would result in a packet of 1500 bytes and another of
+20+ip-header-length. However, this will slow down the things
+massively.
 
-- Arnaldo
+Is there any sane way to get this fixed correctly?=20
+
+I would like to see a second MTU-value attached to each network device
+which specifies a higher limit than the normal MTU. Packets which are
+larger than this second MTU get dropped, packets which are larger than
+the normal MTU but smaller than that special MTU are accepted. So that
+I would be able to set the normal mtu to 1480 and the effective MTU to
+1500 and be happy this way. Is there anything like this available in
+the Linux kernel currently?
+
+Can anyone suggest me a better fix for this problem?
+
+Maybe there is a simple sysctl variable that may modify the packet
+size the kernel splits its TCP stream with?
+
+Any suggestions?
+
+Thanks,
+  Lennart
+
+--=20
+name { Lennart Poettering } mail { lennart@poettering.de }
+icq { 11060553 } www { http://www.poettering.de/lennart/ }
+loc { hamburg, germany } pgp { 0x1A015CC4 } hack { .phi. }
+
+--J2SCkAp4GZ/dPZZf
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (GNU/Linux)
+
+iD8DBQE9nbTpMn8mlRoBXMQRAigMAJ9k4HAiDCaFFidSvilFAYvDj4kx3QCePmdB
+3JLwWt6tZJfxGcyuH0BgCqg=
+=BPnI
+-----END PGP SIGNATURE-----
+
+--J2SCkAp4GZ/dPZZf--
