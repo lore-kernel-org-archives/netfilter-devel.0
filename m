@@ -1,20 +1,22 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [PATCH] info file for ROUTE target
-Date: Fri, 10 Dec 2004 09:43:50 +0100
-Message-ID: <20041210084350.GB4121@oknodo.bof.de>
-References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
-	<20041209195706.GA4121@oknodo.bof.de>
-	<20041209212420.GD591@ti64.telemetry-investments.com>
-	<1102667864.11255.2.camel@descartes.info.ucl.ac.be>
+From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+Subject: Re: TCP window tracking has bad side effects
+Date: Fri, 10 Dec 2004 12:22:17 -0500
+Message-ID: <20041210172217.GA4323@ti64.telemetry-investments.com>
+References: <20041201110253.GA9536@suse.de>
+	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
+	<20041201153903.GA16807@suse.de>
+	<Pine.LNX.4.58.0412030942320.30157@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
+	<20041209162656.GA9569@suse.de>
+Reply-To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "netfilter-devel@lists.netfilter.org"
-	<netfilter-devel@lists.netfilter.org>, Patrick Schaaf <bof@bof.de>,
-	"Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+Cc: Ludwig Nussel <ludwig.nussel@suse.de>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Cedric de Launois <delaunois@info.ucl.ac.be>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <1102667864.11255.2.camel@descartes.info.ucl.ac.be>
+In-Reply-To: <20041209162656.GA9569@suse.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,15 +28,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> > Presumably ip6t_ROUTE.c requires an out-of-line version of ndisc_get_neigh()
-> > to be exported.
-> 
-> Agree.
+On Thu, Dec 09, 2004 at 05:26:56PM +0100, Ludwig Nussel wrote:
+> Seems to work. The client machine no longer drops the packet and
+> properly sends RST.
+ 
+Jozsef,
 
-I'm curious - why aren't such functions EXPORT_SYMBOL_GPLled?
-Same question applies to the out-of-line ip_finish_output2 in ROUTE.
-Methinks that would be much nicer. Is this a policy, or is it just
-a communication problem?
+Will you push this to DaveM for 2.6.10?
 
-best regards
-  Patrick
+Thanks.
+
+	Bill Rugolsky
