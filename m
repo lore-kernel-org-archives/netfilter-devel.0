@@ -1,17 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: How can I get these packets in the user space application?
-Date: Thu, 9 Dec 2004 23:36:36 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0412092335480.3900@filer.marasystems.com>
-References: <4EE0CBA31942E547B99B3D4BFAB348112588BA@mail.esn.co.in>
-	<Pine.LNX.4.61.0412081632530.19244@filer.marasystems.com>
-	<41B7EF28.9070904@rocsys.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] info file for ROUTE target
+Date: Fri, 10 Dec 2004 01:16:46 +0100
+Message-ID: <41B8EAEE.4070701@trash.net>
+References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org,
-	"Mukund JB." <mukundjb@esntechnologies.co.in>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ravi Kumar <ravivsn@rocsys.com>
-In-Reply-To: <41B7EF28.9070904@rocsys.com>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+In-Reply-To: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +21,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 9 Dec 2004, Ravi Kumar wrote:
+Cedric de Launois wrote:
 
-> Lets say we wish to modify the packets in user space, then I think QUEUE is 
-> not the way, is my understanding right?
-
-QUEUE is the way for this. As part of the verdict from the userspace 
-application you can include a modified packet payload.
-
-see the libipq documentation.
+>Hi,
+>
+>This little patch is to allow the ROUTE target to be applied by pom-ng
+>on kernel >= 2.6.0. The patch just removes the "Requires: linux < 2.6.0"
+>line from the ROUTE/info file.
+>
+>Please apply ;)
+>  
+>
+Applied, thanks.
 
 Regards
-Henrik
+Patrick
