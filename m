@@ -1,15 +1,14 @@
-From: Alan Hourihane <alanh@fairlite.demon.co.uk>
-Subject: Re: iptables & libipt_set/SET.c problem
-Date: Thu, 15 Jul 2004 13:02:46 +0100
+From: Christopher Soghoian <chris@dubfire.net>
+Subject: Netfilter logging from the kernel
+Date: Wed, 14 Jul 2004 13:21:28 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040715120246.GH2585@fairlite.demon.co.uk>
-References: <20040715115348.GG2585@fairlite.demon.co.uk>
+Message-ID: <20040714132128.A30620@sphinx.mythic-beasts.com>
+Reply-To: chris@dubfire.net
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20040715115348.GG2585@fairlite.demon.co.uk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,23 +19,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jul 15, 2004 at 12:53:48PM +0100, Alan Hourihane wrote:
-> In iptables 1.2.11 there are two extensions...
-> 
-> extensions/libipt_set.c
-> extensions/libipt_SET.c
-> 
-> which appear to be doing the same thing, but the SET version appears to
-> have a few more features.
- 
-Ignore this piece, my infinite wisdom....
+Hi all,
 
-But this piece still holds....
+We're working on a project here @ IBM Zurich, that will most likely
+involve some netfilter stuff.
 
-> There's also the problem that both of these extensions are looking for
-> the file ../ipset/libipt_set.h which doesn't exist and so the build fails
-> at the dependencies stage.
-> 
-> Is there a problem with the 1.2.11 package ??
+We're interested in locking down machines, in an attempt to
+limit what a hacker can do if he is able to break into them.
 
-Alan.
+All of these machines will have a iptables firewall in place,
+limiting the outbound traffic.
+
+Thus, the first thing an attacker would do after breaking in
+would be to attempt to remove the firewall rules.
+
+While we cannot defend against this, assuming he has gained root
+access, we would at least like to make the machine tamper evident.
+
+Initially, we thought that we could modify the iptables binary to
+print out something to syslog every time a change to the rules
+is made - however, it would be easy enough for the attacker to
+copy over a virgin copy of iptables.
+
+Thus, the logging code must be in the kernel, and not in the
+iptables binary.
+
+We would ideally like to see a log message sent to the
+syslog every time an iptables rule is added/modified/removed.
+
+Does anyone know if there is anything in place right now that
+would allow this?
+
+If nothing exists, how difficult would it be to whip something
+like this up? Could you point me to the right part of the code
+where I'd need to add my additional functionality.
+
+Cheers,
+
+Chris
