@@ -1,15 +1,16 @@
-From: "Wei Ming Long" <WEI_Ming_Long@dsi.a-star.edu.sg>
-Subject: Can iptables do this?
-Date: Thu, 12 Jun 2003 11:04:33 +0800
+From: Matthew Natalier <matthewn@snapgear.com>
+Subject: Re: can netfilter capture internal network packet?
+Date: 12 Jun 2003 13:24:22 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <see85e4d.066@gwia>
+Message-ID: <1055388262.3967.84.camel@matthewn1.sw.moreton.com.au>
+References: <001101c32cd0$14bdf940$010aa8c0@toowoomba>
+	 <20030611120439.GJ32593@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>,
-	<Harald Welte<laforge@netfilter.org>>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20030611120439.GJ32593@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +21,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Everyone,
-I have posted this question before but got no response, so I'm posting it
-again, please pardon me if you have seen this before.
-I have a wireless network with my linux machine as a gateway between the
-internet & my internal wireless network. I have iptables running on the
-gateway & also a dhcp server to serve out ip addresses to the client laptops.
-I also run the Squid proxy server on the gateway to proxy http requests. I use
-iptables to redirect http traffic to Squid and to do nat for the internal
-network.
-My question is this: what if a laptop with a preconfigured static ip address
-comes into the internal network or worse, 2 client laptops with identical
-preconfigured static ip addresses enter into network, can iptables do nat
-based on mac address <--> public ip address mapping besides the usual private
-ip address <--> public ip address mapping?
+Calvin,
 
-Please help. Thanks.
+The ebtables project might interest you.
 
-Best regards
-Matthew
+http://ebtables.sourceforge.net/
+
+You can intercept packets by putting a bridge between A and B.
+
+Cheers
+
+Matt
+
+
+> On Sat, Jun 07, 2003 at 06:37:50PM +1000, calvin wrote:
+> Dear all,
+>  
+> I got a serious problem with my netfilter programe.
+>  
+> what i am trying to do is capture a packet frmo A to B in the same network
+> and direct it to QUEUE.
+
+> My setup is
+>  
+> A      B
+>  \       /
+>   \     /
+>   HUB
+>      | (eth0)
+>    GW
+>      |(eth1)
+>      |
+>      |
+
+>  is that possible to: when A send a message to B port 1700 (for example) ,
+>  the iptales in GW can grep the packet and put into queue for processing and
+>  put it back to the line?
+> 
+
+Cheers
+
+Matt
+
+-- 
+Matthew Natalier, Systems Programmer, SnapGear, Inc.
+Ph: +61 7 3435 2805, Fx: +61 7 3891 3630
+Email: matthewn@snapgear.com, Web: http://www.SnapGear.com
