@@ -1,15 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: re: conntrack hash function comparison
-Date: Tue, 21 Jan 2003 12:12:51 +0100 (CET)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Question: Variable sized matchinfo
+Date: Tue, 21 Jan 2003 12:42:16 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0301211136020.19820-100000@blackhole.kfki.hu>
-References: <15916.59019.853598.788888@isis.cs3-inc.com>
+Message-ID: <3E2D3218.1040805@trash.net>
+References: <20030120232634.24011.21218.Mailman@kashyyyk> <15916.60267.562015.732567@isis.cs3-inc.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Don Cohen <don-netf@isis.cs3-inc.com>
-In-Reply-To: <15916.59019.853598.788888@isis.cs3-inc.com>
+In-Reply-To: <15916.60267.562015.732567@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,99 +21,66 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Don Cohen wrote:
 
-On Mon, 20 Jan 2003, Don Cohen wrote:
-
->  > Please look trough the web pages and comment it.
+> > I want to write a match where it would be nice to pass a variable sized 
+> > matchinfo to kernelspace.
+>The answer when I asked this question in connection with u32 was no.
+>In fact,
+>I asked:
+>  > Would it work to make that 10 into a module parm (or three) ?
+>Harald answered:
+>  unfortunately not.  The size of this structure needs to be known at
+>  compile time of the kernel and iptables userspace (and they have to be
+>  the same, obviously).
 >
-> I see several hash functions have been added since I last looked.
-> Aftr some search I see the code in http://bei.bof.de/
-> (I suggest a reference to it from the advertised page.)
 
-I added the reference to cttest to the frontpage as well.
+Oops, i probably missed that.
+Anyway this doesn't seem to be real problem, you could just pass pointers
+and copy_from_user the data. The probleme there is the match is not informed
+if its not needed anymore, so no chance to free the memory.
 
-The extended cttest source I used hasn't been sent back to Patrick yet,
-because depending on the answer from the author, I might have to remove
-the buzhash code from the source.
+>
+> > Is this possible ? I want to avoid always using the largest possible 
+> > values (2^16 + a few bytes).
+> > The data in question is a bpf program compiled with pcap_compile ..
+> > This is probably not the most useful match but i think it beats u32 
+> > because bpf syntax is already well-known
+> > and very pleasant to use.
+>Thanks for the reference.  I'll read about it.  I assume you mean the
+>u32 I posted recently.
+>So far the bpf language doesn't strike me as pleasant to use compared
+>to the small language I made up for u32, but maybe that's just cause
+>I'm not used to it.  
+>I gather 2^16 is the maximum possible size of a bpf program.
+>
 
-> This code looks a bit old.  Below is the version I'm using at
-> present.  I suggest you try testing this version too.
+no they are not limited in size AFAIK. I recently portet PPP_FILTERs to 
+isdn and
+they chose a limit of 2^16 which sounds sane. But i missed its not 2^16 
+bytes
+but 2^16 * sizeof(struct sock_fprog). If you want to look at a example 
+for using
+sk_run_filter (matches bpf code in kernel) you can look at it at 
+http://trash.net/~kaber
 
-Fine, I'll test it.
+>How about supplying several different variants of your module,
+>one that has data size 128 bytes, another with size 1K, another 8K
+>and finally 64K.
+>  
+>
 
-> I expect it will be a little slower (using long numbers) but
-> a little better, for instance, on table sizes that are powers of 2.
+no i decided its too ugly to do stuff like this without beeing able to 
+either pass a variable-sized
+struct from userspace (the size-check is done by the module itself, so 
+no problem there) or allocate
+the memory in kernelspace myself (and free it afterwards). Both doesn't 
+seem like a big problem to do,
+but it's not worth it for a just-for-fun match. Another uglyness is it 
+is not possible to display the bpf
+code in userspace with iptables -L because its already compiled and 
+optimized. IIRC you ran into the same
+problem with u32.
+If anyone would really like a bpf match tell me and i might reconsider.
 
-I don't think we should restrict ourselves to hashes which work with any
-kind of hashsize. Be the hast as fast as possible and as good as possible
-:-).
-
-> A few details:
-> - The ABCD(EF) algorithms were actually suggested to me by Rich
-> Schroeppel.
-
-Then credicts goes to him and to you as well.
-
-> - I don't see what you consider odd about the random results.
-
-I believe the random hash should give a smooth distribution of the
-entries. But for example in the case of the matrix dataset/8191 hash size
-it gives:
-
-Count   Length  CT
-5       21      0.14%
-3       20      0.22%
-11      19      0.50%
-29      18      1.19%
-50      17      2.32%
-99      16      4.43%
-180     15      8.02%
-290     14      13.41%
-445     13      21.11%
-662     12      31.67%
-833     11      43.85%
-1011    10      57.29%
-1051    9       69.87%
-1046    8       80.99%
-911     7       89.47%
-716     6       95.18%
-442     5       98.12%
-254     4       99.47%
-105     3       99.89%
-38      2       99.99%
-7       1       100.00%
-3       0       100.00%
-
-The number of the longest hash buckets is out of the distribution - there
-are more of them than the hash buckets just shorter than the longest one.
-(As I wrote on the pages, we actually test the random number generator in
-Linux too so I count these examples as the indication of little
-weaknesses in the generator.) This is the very reason why I "measured" the
-distances from the ideal hash instead.
-
-> The idea behind ABCD(EF) is that the coefficients A,B,C,D(,E,F) are
-> secrets, chosen randomly by each connection tracking machine.
-> So far I don't know how this can be attacked.  My current code assumes
-> that, if it can be attacked at all, this will at least take a long
-> time.  The solution is that (1) I detect that the current coeffecients
-> are not working as well as expected (simply that some bucket gets
-> filled past a very unlikely threshold), and in that case (2) we choose
-> new randome coeffecients and rehash everything (which probably takes
-> less than a second unless you have millions of connections).
-
-I don't really like the idea of rehashing if the hash function is
-(so) strong.
-
-What is your opinion on the abcdx variant, where the four random
-multipliers were chosen so that at any bit postition in the four
-numbers there are exactly two zeros and two ones (similarly to the
-rtable in buzhash, http://www.cl.cam.ac.uk/users/kw217/pub/Hash.adt.ps.gz).
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Patrick
