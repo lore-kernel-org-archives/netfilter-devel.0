@@ -1,15 +1,15 @@
-From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: Re: [PATCH]  dead code elimination in ip6_queue.c
-Date: Sun, 16 Mar 2003 23:47:12 -0500
+From: "zhengchuanbo" <zhengcb@netpower.com.cn>
+Subject: Re: Re: can netfilter support sql*net?
+Date: Fri, 14 Mar 2003 16:9:32 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E755350.4090807@videotron.ca>
-References: <Pine.LNX.4.44.0303161154050.29463-100000@blackbird.intercode.com.au>
+Message-ID: <200303141605250.SM00856@zhengcb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7BIT
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+      charset="GB2312"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: James Morris <jmorris@intercode.com.au>
+To: Harald Welte <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,30 +20,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-James Morris wrote:
 
->On Sat, 15 Mar 2003, Stephane Ouellette wrote:
+>On Fri, Mar 07, 2003 at 10:29:22AM +0800, zhengchuanbo wrote:
+>> 
+>> we use oracle server, with sql*net dynamic port(not MTS). i tried to
+>> find a patch for sql*net,but failed. is there any solution for
+>> netfilter to support sql*net?
 >
->  
+>I am not very familiar with the technical details on protocol level of
+>oracle sql*net.  But if it uses a dynamic port, you would need a
+>conntrack/nat helper.
 >
->>Folks,
->>
->>   the following patch removes dead code in ip6_queue.c
->>
->>    
->>
+>We are not aware of any development of such a helper for netfilter.
 >
->Incorrect, see NLMSG_PUT().
->
->
->- James
->  
+>btw: the list address is no longer @lists.samba.org, but
+>     @lists.netfilter.org
 >
 
-James,
+  yes,sql*net just uses a dynamic port.  it works like this,1)the client connect to port 1521 on server,2)the server tell client a dynamic port,3)the client connect to the dynamic port.
+  i think it's much more simple than ftp. i analized the ip_conntrack_ftp,and wanted to write a module to support that. but i'm a newbie on that,so i wish i could get some help on how to write such a module.
+  thanks.
 
-   I'm sorry.  I didn't check the macros...
-
-   Thank you for pointing my mistake.
-
-Stephane
+chuanbo zheng
+	
+	
+>> chuanbo zheng
+>
+>-- 
+>- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+>============================================================================
+>Programming is like sex: One mistake and you have to support it your lifetime
+>-----BEGIN PGP SIGNATURE-----
+>Version: GnuPG v1.0.6 (GNU/Linux)
+>Comment: For info see http://www.gnupg.org
+>
+>iD8DBQE+a8yLXaXGVTD0i/8RAkHFAJ4uJi46qiC5peI4k7gtQPz5yLPhIQCffcUE
+>QPx+osDjieq4ctobhCAE7z8=
+>=SYCl
+>-----END PGP SIGNATURE-----
