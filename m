@@ -1,17 +1,14 @@
-From: William Stearns <wstearns@pobox.com>
-Subject: Re: IDS with Netfilter framework
-Date: Sun, 2 Jun 2002 20:18:20 -0400 (EDT)
+From: "Dave Hawkes" <daveh@cadlink.com>
+Subject: ECN target in cvs broken?
+Date: Sun, 2 Jun 2002 22:38:07 -0400
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.44.0206022016400.4845-100000@sparrow.websense.net>
-References: <200206021356.18726.asribas@geleira.org>
-Reply-To: William Stearns <wstearns@pobox.com>
+Message-ID: <000f01c20aa7$b1aee300$3e08a8c0@davehh>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: ML-netfilter-devel <netfilter-devel@lists.samba.org>,
-	William Stearns <wstearns@pobox.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Adriano Ribeiro <asribas@geleira.org>
-In-Reply-To: <200206021356.18726.asribas@geleira.org>
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,31 +19,16 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Good day, Adriano,
+I think there may be a typo in the ECN code recently commited to CVS
 
-On Sun, 2 Jun 2002, Adriano Ribeiro wrote:
+line 12 in ipt_ecn.h
 
-> I like of development a IDS using netfilter framework, its possible???
-> Somebody think about this??? Actually everybody speak of the libpcap and
-> libnet, etc. But i think that netfilter, it's the best.
+is
 
-	http://www.stearns.org/snort2iptables/
+#include <linux/netfilter_ipv4/ipt_dcsp.h>
 
-> Sorry, my poor english.
+should be(?)
 
-	Don't worry about it - you're the one doing the translation work; 
-thanks!
-	Cheers,
-	- Bill
+#include <linux/netfilter_ipv4/ipt_dscp.h>
 
----------------------------------------------------------------------------
-	"Microsoft consistently stubs it toe on all matters concerning
-professional business ethics in the pursuit of ever higher
-profitability.  Perhaps Microsoft's staff needs ethics counseling or an
-ombudsman to temper their sharp business practices.
-	- Bob Brent
-	Courtesy of http://www.eastsidejournal.com/sited/story/html/92560
---------------------------------------------------------------------------
-William Stearns (wstearns@pobox.com).  Mason, Buildkernel, named2hosts, 
-and ipfwadm2ipchains are at:                        http://www.stearns.org
---------------------------------------------------------------------------
+Dave Hawkes
