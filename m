@@ -1,15 +1,15 @@
-From: "Ryan W. Maple" <ryan@guardiandigital.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: PPTP conntrack/NAT Problems
-Date: Wed, 25 Feb 2004 17:12:57 -0500 (EST)
+Date: Thu, 26 Feb 2004 01:18:22 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0402251710390.29202@mastermind.inside.guardiandigital.com>
-References: <Pine.LNX.4.44.0402252307540.32183-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0402260112110.1149-100000@filer.marasystems.com>
+References: <Pine.LNX.4.58.0402251710390.29202@mastermind.inside.guardiandigital.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0402252307540.32183-100000@filer.marasystems.com>
+To: "Ryan W. Maple" <ryan@guardiandigital.com>
+In-Reply-To: <Pine.LNX.4.58.0402251710390.29202@mastermind.inside.guardiandigital.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,33 +20,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 25 Feb 2004, Ryan W. Maple wrote:
 
-Henrik,
+> That much I know -- I was just wondering exactly what CVS revisions
+> comprised "version 1.13" of the PPTP patches so I could determine if I in
+> fact had "version 1.13" or not.
 
-On Wed, 25 Feb 2004, Henrik Nordstrom wrote:
+The CVS revision of Version 1.13 of the patch is 1.13.
 
-> On Wed, 25 Feb 2004, Ryan W. Maple wrote:
->
-> > I cannot find it _anywhere_.  The latest POM has revisions 1.9 (conntrack)
-> > and 1.5 (nat) while the netfilter-extensions repository has 1.10/1.6.
-> > Could somebody please tell me exactly which of these (if either) are
-> > "version 1.13"?
->
-> The version in patch-o-matic and patch-o-matic-ng is version 1.13.
->
-> The version number posted is from the CVS revision number of the main
-> patch file in patch-o-matic CVS, not the version numbers listed in the
-> specific components making up the patch.
+> Guess it's back to the drawing board.  I thought the issue I was having
+> was fixed in "version 1.13" but I guess not.
 
-That much I know -- I was just wondering exactly what CVS revisions
-comprised "version 1.13" of the PPTP patches so I could determine if I in
-fact had "version 1.13" or not.
+Probably.
 
-Guess it's back to the drawing board.  I thought the issue I was having
-was fixed in "version 1.13" but I guess not.
+> Is there anything else you need to do on the machine to allow incoming
+> PPTP connections (to pptpd) while NAT'ing outbound PPTP?
 
-Is there anything else you need to do on the machine to allow incoming
-PPTP connections (to pptpd) while NAT'ing outbound PPTP?
+You should not need more than to allow the incoming PPTP connection and 
+RELATED traffic.. but it is entirely possible there is some conflict or 
+missing details for handling local pptp endpoints.
 
-Thanks,
-Ryan
+Regards
+Henrik
