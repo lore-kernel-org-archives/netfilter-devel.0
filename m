@@ -1,13 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: [morrcr@hotmail.com: IP6Tables Development]
-Date: Mon, 21 Oct 2002 13:03:41 +0200
+From: "Javier Martin" <martin@trymedia.com>
+Subject: RE: Wrong count on bytes
+Date: Mon, 21 Oct 2002 12:34:25 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021021110341.GW3039@naboo.club.berlin.ccc.de>
+Message-ID: <002101c27938$dded96a0$8432a8c0@mcpollo>
+References: <20021019063938.GA19783@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="9Ek0hoCL9XbhcSqy"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: "'Patrick Schaaf'" <bof@bof.de>
+In-Reply-To: <20021019063938.GA19783@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,102 +22,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> >   Chain OUTPUT (policy ACCEPT 410429507 packets, 581914465274 bytes)
+> >   Chain OUTPUT (policy ACCEPT 410555345 packets, 582099636248 bytes)
+> > 
+> > I'm using the following rules:
+> > 
+> >   iptables -I INPUT -i eth0 --destination x.x.x.x
+> >   iptables -I OUTPUT -o eth0 --source x.x.x.x
+> 
+> Maybe you are using these rules, but you certainly are not 
+> showing their counters in the two lines above. You are 
+> showing the chain defaults of the OUTPUT chain, counting 
+> anything _not_ covered by terminating earlier rules.
 
---9Ek0hoCL9XbhcSqy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hmmm.. If I display the bytes conters per IP, they show similar numbers
+(ie. Exceeding 100 mbit/sec).
 
-could somebody please pick this up? thanks.
+> I'd guess that your chain defaults cover localhost 
+> communication and other stuff besides that which you thing 
+> you want to measure.
 
--- 
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+I think localhost has nothing to do with this. There is no traffic
+through the lo interface at all.
 
---9Ek0hoCL9XbhcSqy
-Content-Type: message/rfc822
-Content-Disposition: inline
+On the other hand, if the server is not peaking at the ethernet maximum
+100 Mbit/sec, the numbers more or less match. For example, if I get 60
+Mbit/sec from the driver, I will also get 60 Mb/sec from iptables. BUT
+things change when the server saturates. So my guess is the following:
 
-Return-Path: X-Sieve: cmu-sieve 2.0
-Received: from mail by coruscant.gnumonks.org with spam-scanned (Exim 3.34 #1)
-	id 183Z33-0001Sw-00
-	for laforge@gnumonks.org; Mon, 21 Oct 2002 11:40:34 +0200
-Received: from dav36.law15.hotmail.com ([64.4.22.93] helo=hotmail.com)
-	by coruscant.gnumonks.org with esmtp (Exim 3.34 #1)
-	id 183Z33-0001St-00
-	for laforge@gnumonks.org; Mon, 21 Oct 2002 11:40:33 +0200
-Received: from mail pickup service by hotmail.com with Microsoft SMTPSVC;
-	 Mon, 21 Oct 2002 02:40:31 -0700
-X-Originating-IP: [148.88.152.195]
-From: "Craig Morrall" <morrcr@hotmail.com>
-To: <laforge@gnumonks.org>,
-	<kisza@sch.bme.hu>
-Subject: IP6Tables Development
-Date: Mon, 21 Oct 2002 10:40:29 +0100
-MIME-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0011_01C278EE.46382770"
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2800.1106
-X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2800.1106
-Message-ID: <DAV36PumSeAkRH3ALZ900003f05@hotmail.com>
-X-OriginalArrivalTime: 21 Oct 2002 09:40:31.0442 (UTC) FILETIME=[E5958320:01C278E5]
+The server is trying to throw more than 100 Mbit/sec. Iptables accounts
+each packet that passes through the OUTPUT chain, but as the network
+card has reached is limit, it starts dropping frames. Those frames are
+not actually transmited, but in fact they account from the iptables
+point of view.
 
-This is a multi-part message in MIME format.
+So what iptables measures when the server saturates is the minimum
+amount of bytes that 'could have been' transmitted if the interface was
+faster.
 
-------=_NextPart_000_0011_01C278EE.46382770
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+I don't know if this theory is correct, but at least satisfies me :-)
 
-Hi,
-    I was just wondering if you created IP6Tables for Linux. It's just =
-that I'm trying to develop an IPv6 firewall for my final year project. =
-Are IP6Tables secure enough to use commercially for a wireless Ipv6 =
-network? I was also wondering if I could help you by developing a web =
-based user interface for IP6tables using Samba. Essentially a c program =
-would run as part of the back end. The C program would generate a script =
-file according to user input. This way a system admin could alter the =
-firewall rules from any machine.
-   Thanks,
-              Craig.
-------=_NextPart_000_0011_01C278EE.46382770
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Hi,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>&nbsp;&nbsp;&nbsp; I was just wondering =
-if you=20
-created IP6Tables for Linux. It's just that&nbsp;I'm trying to develop =
-an IPv6=20
-firewall for my final year project. Are IP6Tables secure enough to use=20
-commercially for a wireless Ipv6 network? I was also wondering if I =
-could help=20
-you by developing a web based user interface for IP6tables using Samba.=20
-Essentially a c program would run as part of the back end. The C program =
-would=20
-generate a script file according to user input. This way a system admin =
-could=20
-alter the firewall rules from any machine.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>&nbsp;&nbsp; Thanks,</FONT></DIV>
-<DIV><FONT face=3DArial=20
-size=3D2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;=20
-Craig.</FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_0011_01C278EE.46382770--
-
-
---9Ek0hoCL9XbhcSqy--
+Javier
