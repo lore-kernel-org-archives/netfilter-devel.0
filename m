@@ -1,15 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: policy routing on locally generated packets
-Date: Tue, 26 Aug 2003 21:37:04 +0200 (CEST)
+Date: Tue, 26 Aug 2003 21:40:10 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0308262127040.16076-100000@filer.marasystems.com>
-References: <1061887675.1273.37.camel@drs0.manchotnetworks.net>
+Message-ID: <Pine.LNX.4.44.0308262137540.16076-100000@filer.marasystems.com>
+References: <20030826110913.GI423@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>,
+   netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>
-In-Reply-To: <1061887675.1273.37.camel@drs0.manchotnetworks.net>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20030826110913.GI423@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,16 +21,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On 26 Aug 2003, lartc@manchotnetworks.net wrote:
+On Tue, 26 Aug 2003, Patrick Schaaf wrote:
 
-> So I am searching for a hopefully simple way to implement this without
-> having to recompile a bunch of stuff.
+> To me, it could/would be the most logical extension to make PREROUTING
+> also see outbound locally generated packets, before the routing step.
 
-NAT of local connections can be of help here I think.
+Problem is that the packet does not really exists yet.. the routing which 
+assigns source address is done on the socket, not on a packet. This 
+special routing only occurs once per unbound socket.
 
-Also, there was some discussion regarding marking and rerouting of local 
-packets some year ago. It was supposed to be fixed somehow (by NAT I 
-think..)
+Exception: This routing occurs on each UDP packet with unspecified source 
+address, but again the routing is done separately from the actual packet I 
+think..
 
 Regards
 Henrik
