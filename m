@@ -1,117 +1,151 @@
-From: Dirk Morris <dmorris@metavize.com>
-Subject: ip_conntrack CLOSE_WAIT issue.
-Date: Tue, 27 Jan 2004 13:23:42 -0800
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4016D6DE.4040801@metavize.com>
+From: Ville Nuorvala <vnuorval@tcs.hut.fi>
+Subject: Re: [PATCH|RFC] IPv6 netfilter: a module for complete proxy ND
+ support
+Date: Tue, 27 Jan 2004 22:58:02 +0200 (EET)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <Pine.LNX.4.58.0401272244360.28384@rhea.tcs.hut.fi>
+References: <Pine.LNX.4.58.0401151705500.29722@rhea.tcs.hut.fi>
+ <20040116.001317.73950271.yoshfuji@linux-ipv6.org>
+ <Pine.LNX.4.58.0401151719160.29722@rhea.tcs.hut.fi>
+ <20040116.005443.92504522.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: TEXT/PLAIN; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org, davem@redhat.com, netdev@oss.sgi.com,
+        kuznet@ms2.inr.ac.ru
+Return-path: <netdev-bounce@oss.sgi.com>
+To: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
+In-Reply-To: <20040116.005443.92504522.yoshfuji@linux-ipv6.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-my conntrack table on machines are building up with tons of connections 
-in the CLOSE_WAIT state.
-Because the timeout is so long, they stick around until the table fills up.
+Hello,
 
-Why are these connections not transitioning to the full closed state?
-tcpdump shows that the full Fin/Fin-Ack/Ack takes place at the end of 
-these connections, but they still stick around.
+netdev apparently ate my reply, but let me do a recap:
 
+On Fri, 16 Jan 2004, YOSHIFUJI Hideaki / [iso-2022-jp] =B5=C8=C6=A3=B1=D1=
+=CC=C0 wrote:
 
-In the following example, timmy is running an echo server on port 7000.
+> So, all usage of pneigh_XXX() is not for rfc2461 but for proxy arp.
+> 1) We need to consider how to implement rfc2461-proxy.
+> 2) We need to revisit all usages in net/ipv6.
 
+No, the pneigh_XXX() *is* the way to do RFC2461 proxying :)
+I think Thaler's extended "proxy ARP" for IPv6 needs some other framework.
 
-~ # cat /proc/net/ip_conntrack| grep 7000                     [dmorris @ 
-timmy]
-<nothing>
+I still haven't had the time to check how proxy ARP really works in IPv4,
+so I might have misunderstood this line in arp.c (line 763):
 
-~ # s tcpdump "host bebe"                                  [dmorris @ timmy]
-...
-13:10:15.436354 bebe.43035 > timmy.7000: . ack 10 win 5840 
-<nop,nop,timestamp 164347449 1498713> (DF)
-13:10:17.702593 bebe.43035 > timmy.7000: F 10:10(0) ack 10 win 5840 
-<nop,nop,timestamp 164347675 1498713> (DF)
-13:10:17.702841 timmy.7000 > bebe.43035: F 10:10(0) ack 11 win 5792 
-<nop,nop,timestamp 1500980 164347675> (DF)
-13:10:17.703086 bebe.43035 > timmy.7000: . ack 11 win 5840 
-<nop,nop,timestamp 164347675 1500980> (DF)
+"(arp_fwd_proxy(in_dev, rt) || pneigh_lookup(&arp_tbl, &tip, dev, 0)))) {=
+"
 
-now on bebe I did:
+I think the first check is for proxy ARP, and the second for a router
+acting as proxy.
 
-~ # netcat timmy 7000                                          [dmorris 
-@ bebe]
-aoesutnh
-aoesutnh
+In a similar case for IPv6, we would first need to check for the Thaler
+IPv6 "proxy ARP", then for the RFC2461 router as a proxy case.
 
-Ctrl-C
-~#
+> > In the current implementation the proxying router captures the multic=
+ast
+> > queries since it has joined the solicited-node multicast group, but i=
+t
+> > doesn't capture the unicast queries.
+>
+> It is VERY strange to handle multicast / unicast in different way.
+> I really hate such a hetero (or an inconsistent) implementation.
 
-This causes the connection opening (not shown) and closing you see in 
-the tcpdump above.
+Well, we still need some way to have the router capture some packets (the
+unicast NS messages) it would normally forward.>
 
-But the connection never leaves the conntrack table.
+> > This is what I want to fix.
+>
+> I understand the issue, but the fix is unappropriate.
 
-~ # cat /proc/net/ip_conntrack| grep 7000                     [dmorris @ 
-timmy]
-tcp      6 257147 CLOSE_WAIT src=10.0.0.44 dst=10.0.0.187 sport=43035 
-dport=7000 src=10.0.0.187 dst=10.0.0.44 sport=7000 dport=43035 [ASSURED] 
-use=1
+How about this fix? I think it's cleaner than the one I proposed
+earlier. The down side with it is that all nodes, no matter if they are
+acting as proxies or not, will have to do some extra comparisons each tim=
+e
+they receive a packet.
 
+Perhaps this is an acceptable trade off for the architectual cleannes
 
-I realize I could just turn 
-/proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_timeout_close_wait, is 
-that the fix or is this not supposed to happen?
-This happens on two similar machines, in both 2.4.18 and 2.6.0-test8
-
+Regards,
+Ville
 
 
-info on timmy:
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or high=
+er.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1520  -> 1.1521
+#	net/ipv6/ip6_input.c	1.14    -> 1.15
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 04/01/27	vnuorval@dsl-hkigw1o3c.dial.inet.fi	1.1521
+# A proxy needs to capture and process Neighbor Solicitations on behalf o=
+f the proxied node.
+# Normal multicast NS messages are already handled by the existing neigbo=
+r discovery code,
+# but unicast NS messages used for Neighbor Unreachability Detection are =
+not.
+#
+# To fix this, the proxy has to look through all packets sent to a proxie=
+d address in order to
+# filter out the NS messages for local processing.
+# --------------------------------------------
+#
+diff -Nru a/net/ipv6/ip6_input.c b/net/ipv6/ip6_input.c
+--- a/net/ipv6/ip6_input.c	Tue Jan 27 22:07:00 2004
++++ b/net/ipv6/ip6_input.c	Tue Jan 27 22:07:00 2004
+@@ -46,13 +46,42 @@
+ #include <net/addrconf.h>
+ #include <net/xfrm.h>
 
-~ 
-#                                                                                         
-[dmorris @ timmy]
-~ # uname 
--a                                                                                
-[dmorris @ timmy]
-Linux timmy 2.6.0-test8 #4 SMP Tue Dec 16 15:55:23 PST 2003 i686 unknown
-~ # ifconfig 
-eth0                                                                           
-[dmorris @ timmy]
-eth0      Link encap:Ethernet  HWaddr 00:40:05:A0:20:07 
-          inet addr:10.0.0.187  Bcast:10.0.0.255  Mask:255.255.255.0
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:6487 errors:1 dropped:0 overruns:0 frame:0
-          TX packets:5717 errors:24 dropped:0 overruns:0 carrier:24
-          collisions:0 txqueuelen:1000
-          RX bytes:793932 (775.3 KiB)  TX bytes:1599858 (1.5 MiB)
-          Interrupt:11 Base address:0xac00
++static inline int ip6_proxy_chk(struct sk_buff *skb)
++{
++	struct ipv6hdr *hdr =3D skb->nh.ipv6h;
 
-~ # netstat 
--rn                                                                             
-[dmorris @ timmy]
-Kernel IP routing table
-Destination     Gateway         Genmask         Flags   MSS Window  irtt 
-Iface
-10.0.0.0        0.0.0.0         255.255.255.0   U         0 0          0 
-eth0
-0.0.0.0         10.0.0.1        0.0.0.0         UG        0 0          0 
-eth0
-~ # netstat | grep CLOSE_WAIT | wc 
--l                                                       [dmorris @ timmy]
-      0
-~ # cat /proc/net/ip_conntrack| grep CLOSE_WAIT | wc 
--l                                     [dmorris @ timmy]
-     10
++	if (ipv6_addr_type(&hdr->daddr)&IPV6_ADDR_UNICAST &&
++	    pneigh_lookup(&nd_tbl, &hdr->daddr, skb->dev, 0)) {
++		u8 nexthdr =3D hdr->nexthdr;
++		int offset;
++		struct icmp6hdr msg;
++
++		if (ipv6_ext_hdr(nexthdr)) {
++			offset =3D ipv6_skip_exthdr(skb, sizeof(*hdr), &nexthdr,
++						  skb->len - sizeof(*hdr));
++			if (offset < 0)
++				return 0;
++		} else
++			offset =3D sizeof(struct ipv6hdr);
++
++		/* capture unicast NUD probes on behalf of the proxied node */
++
++		if (nexthdr =3D=3D IPPROTO_ICMPV6 &&
++		    !skb_copy_bits(skb, offset, &msg, sizeof(msg)) &&
++		    msg.icmp6_type =3D=3D NDISC_NEIGHBOUR_SOLICITATION) {
++			return 1;
++		}
++	}
++	return 0;
++}
 
+ static inline int ip6_rcv_finish( struct sk_buff *skb)
+ {
+-	if (skb->dst =3D=3D NULL)
++	if (skb->dst =3D=3D NULL) {
++		if (ip6_proxy_chk(skb))
++			return ip6_input(skb);
+ 		ip6_route_input(skb);
+-
++	}
+ 	return dst_input(skb);
+ }
 
-Thanks,
--Dirk
+--
+Ville Nuorvala
+Research Assistant, Institute of Digital Communications,
+Helsinki University of Technology
+email: vnuorval@tcs.hut.fi, phone: +358 (0)9 451 5257
