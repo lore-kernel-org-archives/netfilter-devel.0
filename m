@@ -1,20 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Questions about your dual Opteron packetfiltering tests
-Date: Tue, 7 Sep 2004 10:41:51 +0200
+From: Eicke Friedrich <tady@gmx.net>
+Subject: [PATCH] IPP2P update to 0.6.1
+Date: Fri, 10 Sep 2004 11:17:03 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040907084151.GG16651@obroa-skai.de.gnumonks.org>
-References: <20040716015152.GA29337@soohrt.org>
-	<20040716131829.GC2214@obroa-skai.de.gnumonks.org>
-	<20040906205653.GA4626@soohrt.org>
+Message-ID: <4141710F.7040303@gmx.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OgApRN/oydYDdnYz"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Harald Welte <laforge@gnumonks.org>
+Content-Type: multipart/mixed; boundary="------------060503050508080906010205"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Karsten Desler <kdesler@soohrt.org>
-Content-Disposition: inline
-In-Reply-To: <20040906205653.GA4626@soohrt.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,106 +17,310 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------060503050508080906010205
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---OgApRN/oydYDdnYz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi folks,
 
-On Mon, Sep 06, 2004 at 10:56:53PM +0200, Karsten Desler wrote:
-> Hi,
->=20
-> again referring to your Weblog about the Sun V20z boxes for high-speed
-> packet filtering:
-> After spending a few days googling and trying to recreate results that
-> are at least somewhere around your numbers, I'm out of ideas.
-> Just two quick questions:
->         a) How? :), or
->         b) is that the expected 'ip_tables performance sucks'-performance?
+a patch against latest pom-ng snapshot is attached containing an
+update to the current ipp2p code. It offers first support for WinMX
+packets (beta - please come back to me with any feedback) and some
+code cleanup (spaces). Please apply.
 
-no, you're definitely getting worse results.  However, I never tested
-with packet sizes > 64bytes, since I was only interested in the worst
-case performance.
-=20
-> I'm using two Opteron 244 on a Tyan S2882 mainboard with 2gb of RAM
-> and a vanilla 64bit 2.6.9-rc1-bk11 kernel.
+Regards,
+Eicke.
 
-- 32bit kernels are faster for packet formwarding (5-10%)
-- how fast are your pci busses?  (I had PCI-X 133)
-- how fast is your memory (I had DDR400) _VERY_ important!
+PS: is the script creating daily snapshots of pom-ng at
+ftp.netfilter.org not running?
 
-> - e1000 is compiled with NAPI.
-> - tso is activated for both cards
+--------------060503050508080906010205
+Content-Type: text/plain;
+ name="ipp2p-0.6.1.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ipp2p-0.6.1.diff"
 
-tso doesn't make any difference for packet filtering
+diff -Nru patch-o-matic-ng-orig/ipp2p/iptables/extensions/libipt_ipp2p.c patch-o-matic-ng-new/ipp2p/iptables/extensions/libipt_ipp2p.c
+--- patch-o-matic-ng-orig/ipp2p/iptables/extensions/libipt_ipp2p.c	2004-07-13 13:43:15.000000000 +0200
++++ patch-o-matic-ng-new/ipp2p/iptables/extensions/libipt_ipp2p.c	2004-09-10 11:06:34.442282680 +0200
+@@ -1,4 +1,3 @@
+-
+ #include <stdio.h>
+ #include <netdb.h>
+ #include <string.h>
+@@ -19,18 +18,19 @@
+     printf(
+     "IPP2P v%s options:\n"
+     " --ipp2p	Grab all known p2p packets\n"
+-    " --ipp2p-data	Grab all known p2p data packets\n"    
+-    " --edk		Grab all known eDonkey/eMule/Overnet packets\n"    
++    " --ipp2p-data	Grab all known p2p data packets\n"
++    " --edk		Grab all known eDonkey/eMule/Overnet packets\n"
+     " --edk-data	Grab all eDonkey/eMule/Overnet data packets\n"
+     " --dc		Grab all known Direct Connect packets\n"
+     " --dc-data	Grab all Direct Connect data packets\n"
+-    " --kazaa	Grab all KaZaA packets\n"    
++    " --kazaa	Grab all KaZaA packets\n"
+     " --kazaa-data	Grab all KaZaA data packets\n"
+-    " --gnu		Grab all Gnutella packets\n"    
++    " --gnu		Grab all Gnutella packets\n"
+     " --gnu-data	Grab all Gnutella data packets\n"
+-    " --bit		Grab all BitTorrent packets\n"    
++    " --bit		Grab all BitTorrent packets\n"
+     " --apple	Grab all AppleJuice packets (beta - just a few tests until now)\n"
+     " --soul		SoulSeek (beta - handle with care)\n"
++    " --winmx	WinMX (beta - handle with care)\n"
+     "\nNote that the follwing options will have the same meaning:\n"
+     " '--ipp2p' is equal to '--edk --dc --kazaa --gnu'\n"
+     " '--ipp2p-data' is equal to '--edk-data --dc-data --kazaa-data --gnu-data'\n"
+@@ -43,18 +43,19 @@
+ 
+ static struct option opts[] = {
+         { "ipp2p", 0, 0, '1' },
+-        { "edk", 0, 0, '2' },	
+-        { "ipp2p-data", 0, 0, '3' },		
++        { "edk", 0, 0, '2' },
++        { "ipp2p-data", 0, 0, '3' },
+         { "kazaa-data", 0, 0, '4' },
+-        { "edk-data", 0, 0, '5' },	
++        { "edk-data", 0, 0, '5' },
+         { "dc-data", 0, 0, '6' },
+ 	{ "dc", 0, 0, '7' },
+-	{ "gnu-data", 0, 0, '8' },	
++	{ "gnu-data", 0, 0, '8' },
+ 	{ "gnu", 0, 0, '9' },
+ 	{ "kazaa", 0, 0, 'a' },
+ 	{ "bit", 0, 0, 'b' },
+-	{ "apple", 0, 0, 'c' },	
+-	{ "soul", 0, 0, 'd' },	
++	{ "apple", 0, 0, 'c' },
++	{ "soul", 0, 0, 'd' },
++	{ "winmx", 0, 0, 'e' },
+         {0}
+ };
+ 
+@@ -348,6 +349,18 @@
+ 	    break;																											
+ 
+ 
++	case 'e':		/*cmd: winmx*/
++            if ((*flags & IPP2P_WINMX) == IPP2P_WINMX)
++            exit_error(PARAMETER_PROBLEM,
++                                "ipp2p: `--winmx' may only be "
++                                "specified once!");
++	    if (invert) exit_error(PARAMETER_PROBLEM, "ipp2p: invert [!] is not allowed!");
++
++            *flags += IPP2P_WINMX;
++	    info->cmd = *flags;
++	    break;																											
++
++
+ 	default:
+             exit_error(PARAMETER_PROBLEM,
+ 	    "\nipp2p-parameter problem: for ipp2p usage type: iptables -m ipp2p --help\n");
+@@ -377,17 +390,18 @@
+     printf("ipp2p v%s", IPP2P_VERSION);
+     if ((info->cmd & SHORT_HAND_IPP2P) == SHORT_HAND_IPP2P) printf(" --ipp2p");
+     if ((info->cmd & SHORT_HAND_DATA) == SHORT_HAND_DATA) printf(" --ipp2p-data");
+-    if ((info->cmd & IPP2P_KAZAA) == IPP2P_KAZAA) printf(" --kazaa");        
++    if ((info->cmd & IPP2P_KAZAA) == IPP2P_KAZAA) printf(" --kazaa");
+     if ((info->cmd & IPP2P_DATA_KAZAA) == IPP2P_DATA_KAZAA) printf(" --kazaa-data");
+-    if ((info->cmd & IPP2P_DATA_GNU) == IPP2P_DATA_GNU) printf(" --gnu-data");    
++    if ((info->cmd & IPP2P_DATA_GNU) == IPP2P_DATA_GNU) printf(" --gnu-data");
+     if ((info->cmd & IPP2P_GNU) == IPP2P_GNU) printf(" --gnu");
+-    if ((info->cmd & IPP2P_EDK) == IPP2P_EDK) printf(" --edk");    
+-    if ((info->cmd & IPP2P_DATA_EDK) == IPP2P_DATA_EDK) printf(" --edk-data");    
++    if ((info->cmd & IPP2P_EDK) == IPP2P_EDK) printf(" --edk");
++    if ((info->cmd & IPP2P_DATA_EDK) == IPP2P_DATA_EDK) printf(" --edk-data");
+     if ((info->cmd & IPP2P_DATA_DC) == IPP2P_DATA_DC) printf(" --dc-data");
+-    if ((info->cmd & IPP2P_DC) == IPP2P_DC) printf(" --dc");    
+-    if ((info->cmd & IPP2P_BIT) == IPP2P_BIT) printf(" --bit");        
+-    if ((info->cmd & IPP2P_APPLE) == IPP2P_APPLE) printf(" --apple");    
+-    if ((info->cmd & IPP2P_SOUL) == IPP2P_SOUL) printf(" --soul");        
++    if ((info->cmd & IPP2P_DC) == IPP2P_DC) printf(" --dc");
++    if ((info->cmd & IPP2P_BIT) == IPP2P_BIT) printf(" --bit");
++    if ((info->cmd & IPP2P_APPLE) == IPP2P_APPLE) printf(" --apple");
++    if ((info->cmd & IPP2P_SOUL) == IPP2P_SOUL) printf(" --soul");
++    if ((info->cmd & IPP2P_WINMX) == IPP2P_WINMX) printf(" --winmx");
+     printf(" ");
+ }
+ 			    						   
+@@ -400,17 +414,18 @@
+     
+     if ((info->cmd & SHORT_HAND_IPP2P) == SHORT_HAND_IPP2P) printf("--ipp2p ");
+     if ((info->cmd & SHORT_HAND_DATA) == SHORT_HAND_DATA) printf("--ipp2p-data ");
+-    if ((info->cmd & IPP2P_KAZAA) == IPP2P_KAZAA) printf("--kazaa ");        
++    if ((info->cmd & IPP2P_KAZAA) == IPP2P_KAZAA) printf("--kazaa ");
+     if ((info->cmd & IPP2P_DATA_KAZAA) == IPP2P_DATA_KAZAA) printf("--kazaa-data ");
+-    if ((info->cmd & IPP2P_DATA_GNU) == IPP2P_DATA_GNU) printf("--gnu-data ");    
++    if ((info->cmd & IPP2P_DATA_GNU) == IPP2P_DATA_GNU) printf("--gnu-data ");
+     if ((info->cmd & IPP2P_GNU) == IPP2P_GNU) printf("--gnu ");
+-    if ((info->cmd & IPP2P_EDK) == IPP2P_EDK) printf("--edk ");    
+-    if ((info->cmd & IPP2P_DATA_EDK) == IPP2P_DATA_EDK) printf("--edk-data ");    
++    if ((info->cmd & IPP2P_EDK) == IPP2P_EDK) printf("--edk ");
++    if ((info->cmd & IPP2P_DATA_EDK) == IPP2P_DATA_EDK) printf("--edk-data ");
+     if ((info->cmd & IPP2P_DATA_DC) == IPP2P_DATA_DC) printf("--dc-data ");
+-    if ((info->cmd & IPP2P_DC) == IPP2P_DC) printf("--dc ");    
+-    if ((info->cmd & IPP2P_BIT) == IPP2P_BIT) printf("--bit ");        
+-    if ((info->cmd & IPP2P_APPLE) == IPP2P_APPLE) printf("--apple ");    
+-    if ((info->cmd & IPP2P_SOUL) == IPP2P_SOUL) printf("--soul ");        
++    if ((info->cmd & IPP2P_DC) == IPP2P_DC) printf("--dc ");
++    if ((info->cmd & IPP2P_BIT) == IPP2P_BIT) printf("--bit ");
++    if ((info->cmd & IPP2P_APPLE) == IPP2P_APPLE) printf("--apple ");
++    if ((info->cmd & IPP2P_SOUL) == IPP2P_SOUL) printf("--soul ");
++    if ((info->cmd & IPP2P_WINMX) == IPP2P_WINMX) printf("--winmx ");
+ }
+ 
+ 		
+diff -Nru patch-o-matic-ng-orig/ipp2p/iptables/extensions/libipt_ipp2p.man patch-o-matic-ng-new/ipp2p/iptables/extensions/libipt_ipp2p.man
+--- patch-o-matic-ng-orig/ipp2p/iptables/extensions/libipt_ipp2p.man	2004-07-13 13:43:15.000000000 +0200
++++ patch-o-matic-ng-new/ipp2p/iptables/extensions/libipt_ipp2p.man	2004-09-10 09:36:30.031877944 +0200
+@@ -26,6 +26,9 @@
+ .B "--soul "
+ Matches some SoulSeek packets. Considered as beta, use careful!
+ .TP
++.B "--winmx "
++Matches some WinMX packets. Considered as beta, use careful!
++.TP
+ .B "--edk-data "
+ Matches eDonkey control packets initiating a download.
+ .TP
+diff -Nru patch-o-matic-ng-orig/ipp2p/linux/include/linux/netfilter_ipv4/ipt_ipp2p.h patch-o-matic-ng-new/ipp2p/linux/include/linux/netfilter_ipv4/ipt_ipp2p.h
+--- patch-o-matic-ng-orig/ipp2p/linux/include/linux/netfilter_ipv4/ipt_ipp2p.h	2004-07-13 13:43:15.000000000 +0200
++++ patch-o-matic-ng-new/ipp2p/linux/include/linux/netfilter_ipv4/ipt_ipp2p.h	2004-09-10 09:30:02.129848016 +0200
+@@ -1,6 +1,6 @@
+ #ifndef __IPT_IPP2P_H
+ #define __IPT_IPP2P_H
+-#define IPP2P_VERSION "0.6"
++#define IPP2P_VERSION "0.6.1"
+ 
+ struct ipt_p2p_info {
+     int cmd;    
+@@ -22,5 +22,6 @@
+ #define IPP2P_BIT		1024
+ #define IPP2P_APPLE		2048
+ #define IPP2P_SOUL		4096
++#define IPP2P_WINMX		8192
+ 
+ #endif /*__IPT_IPP2P_H*/
+diff -Nru patch-o-matic-ng-orig/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c patch-o-matic-ng-new/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c
+--- patch-o-matic-ng-orig/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c	2004-07-13 13:43:15.000000000 +0200
++++ patch-o-matic-ng-new/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 11:01:56.511534576 +0200
+@@ -35,6 +35,37 @@
+ 
+ }
+ 
++/*Search for WinMX commands*/
++int
++search_winmx (unsigned char *haystack, int packet_len, int head_len)
++{
++    unsigned char *t = haystack;
++    int c;
++    t += head_len;
++
++    if (((packet_len - head_len) == 4) && (memcmp(t, "SEND", 4) == 0))  return 1;
++    if (packet_len < (head_len + 10)) return 0;
++
++    if (memcmp(t, "SEND", 4) == 0){
++        c = head_len + 4;
++        t += 4;
++        while (c < packet_len - 5) {
++            if ((t[0] == 0x20) && (t[1] == 0x22)) {
++                c += 2;
++                t += 2;
++                while (c < packet_len - 2) {
++                    if ((t[0] == 0x22) && (t[1] == 0x20)) return 1;
++                    t++;
++                    c++;
++                }
++            }
++            t++;
++            c++;
++        }
++    }
++    return 0;
++
++} /*search_winmx*/
+ 
+ /*Search for appleJuice commands*/
+ int
+@@ -330,6 +361,7 @@
+     {IPP2P_BIT,SHORT_HAND_NONE,40, &search_bittorrent},
+     {IPP2P_APPLE,SHORT_HAND_NONE,20, &search_apple},
+     {IPP2P_SOUL,SHORT_HAND_NONE,20, &search_soul},
++    {IPP2P_WINMX,SHORT_HAND_NONE,20, &search_winmx},
+     {0,0,0,NULL}
+ };
+ 
+diff -Nru patch-o-matic-ng-orig/ipp2p/linux-2.6/include/linux/netfilter_ipv4/ipt_ipp2p.h patch-o-matic-ng-new/ipp2p/linux-2.6/include/linux/netfilter_ipv4/ipt_ipp2p.h
+--- patch-o-matic-ng-orig/ipp2p/linux-2.6/include/linux/netfilter_ipv4/ipt_ipp2p.h	2004-07-13 13:43:15.000000000 +0200
++++ patch-o-matic-ng-new/ipp2p/linux-2.6/include/linux/netfilter_ipv4/ipt_ipp2p.h	2004-09-10 09:29:22.119930448 +0200
+@@ -1,6 +1,6 @@
+ #ifndef __IPT_IPP2P_H
+ #define __IPT_IPP2P_H
+-#define IPP2P_VERSION "0.6"
++#define IPP2P_VERSION "0.6.1"
+ 
+ struct ipt_p2p_info {
+     int cmd;    
+@@ -22,5 +22,6 @@
+ #define IPP2P_BIT		1024
+ #define IPP2P_APPLE		2048
+ #define IPP2P_SOUL		4096
++#define IPP2P_WINMX		8192
+ 
+ #endif /*__IPT_IPP2P_H*/
+diff -Nru patch-o-matic-ng-orig/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c patch-o-matic-ng-new/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c
+--- patch-o-matic-ng-orig/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c	2004-07-13 13:43:15.000000000 +0200
++++ patch-o-matic-ng-new/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 11:02:17.171393800 +0200
+@@ -32,6 +32,38 @@
+ }
+ 
+ 
++/*Search for WinMX commands*/
++int
++search_winmx (unsigned char *haystack, int packet_len, int head_len)
++{
++    unsigned char *t = haystack;
++    int c;
++    t += head_len;
++
++    if (((packet_len - head_len) == 4) && (memcmp(t, "SEND", 4) == 0))  return 1;
++    if (packet_len < (head_len + 10)) return 0;
++
++    if (memcmp(t, "SEND", 4) == 0){
++        c = head_len + 4;
++        t += 4;
++        while (c < packet_len - 5) {
++            if ((t[0] == 0x20) && (t[1] == 0x22)) {
++                c += 2;
++                t += 2;
++                while (c < packet_len - 2) {
++                    if ((t[0] == 0x22) && (t[1] == 0x20)) return 1;
++                    t++;
++                    c++;
++                }
++            }
++            t++;
++            c++;
++        }
++    }
++    return 0;
++
++} /*search_winmx*/
++
+ /*Search for appleJuice commands*/
+ int
+ search_apple (unsigned char *haystack, int packet_len, int head_len)
+@@ -326,6 +358,7 @@
+     {IPP2P_BIT,SHORT_HAND_NONE,40, &search_bittorrent},
+     {IPP2P_APPLE,SHORT_HAND_NONE,20, &search_apple},
+     {IPP2P_SOUL,SHORT_HAND_NONE,20, &search_soul},
++    {IPP2P_WINMX,SHORT_HAND_NONE,20, &search_winmx},
+     {0,0,0,NULL}
+ };
+ 
 
-> - I've increased ip_conntrack_htable_size to 65536.
-
-maybe still too little,
-
-> - My traffic is largely udp traffic (around 90%) with a distribution of:
->     20%  0  -   75 bytes,
->     60% 76  -  150 bytes,
->     10% 151 -  225 bytes and
->     10% 226 - 1500 bytes
->=20
-> Thanks in advance,
->  Karsten
->=20
-> eth0 is:
-> 0000:01:01.0 Ethernet controller: Intel Corp. 82545EM Gigabit Ethernet Co=
-ntroller (Fiber) (rev 01)
-> eth1 is:
-> 0000:01:03.0 Ethernet controller: Intel Corp. 82546GB Gigabit Ethernet Co=
-ntroller (rev 03)
-
-This seems like both e1000 seem to be attached to the same PCI bus,
-which is probably also not good for highest performance
-> /proc/interrupts:
->            CPU0       CPU1
->   0:   67093304          0    IO-APIC-edge  timer
->   8:          4          0    IO-APIC-edge  rtc
->   9:          0          0   IO-APIC-level  acpi
-> 169:     117226          0   IO-APIC-level  libata
-> 201:  213918484          0   IO-APIC-level  eth0
-> 209:         11  211891491   IO-APIC-level  eth1
-
-are you sure you have NAPI enabled?  You shouldn't get that much
-interrupts if using NAPI and going into saturation
-
-> net/ipv4/conf/all/rp_filter=3D1
-
-never ever enable rp_filter, that makes a huge difference.  rp_filter is
-not even recommended as default, and probably Debian is the only
-distribution doing that mistake (read netdev archives on this).
-
-> wc -l /proc/net/ip_conntrack
-> 54243 /proc/net/ip_conntrack
-
-Ok.  I was testing single-flow UDP performance, not 50k different
-flows...
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---OgApRN/oydYDdnYz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBPXRNXaXGVTD0i/8RAp5bAJ9Jh0IzSeAFPWp6giGZPSrbAbci2gCfS79T
-VZf1Anz70Tnxzz3yp+PIw6E=
-=3/91
------END PGP SIGNATURE-----
-
---OgApRN/oydYDdnYz--
+--------------060503050508080906010205--
