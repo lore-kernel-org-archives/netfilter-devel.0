@@ -1,14 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: LibIPQ issue
-Date: Mon, 07 Mar 2005 14:10:03 +0100
-Message-ID: <422C52AB.4030801@trash.net>
-References: <e54bc1880503070451419fc57@mail.gmail.com>
+Subject: Re: ctnetlink delete conntrack performance
+Date: Mon, 07 Mar 2005 14:13:20 +0100
+Message-ID: <422C5370.9050204@trash.net>
+References: <422C3A1B.5080604@ingate.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: =?ISO-8859-1?Q?S=E9rgio_Bernardino?= <sergio.bernardino@gmail.com>
-In-Reply-To: <e54bc1880503070451419fc57@mail.gmail.com>
+To: Marcus Sundberg <marcus@ingate.com>
+In-Reply-To: <422C3A1B.5080604@ingate.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,20 +20,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sérgio Bernardino wrote:
+Marcus Sundberg wrote:
+> When the CTNL_MSG_DELCONNTRACK function of the ctnetlink patch is
+> used it calls ip_ct_selective_cleanup() to remove the conntrack.
 > 
-> iptables -t filter -A OUTPUT -p ip -j QUEUE
+> This is highly ineffective (depending on how many hash buckets you
+> have ofcourse - I had 131007 of them when performing the test :-)
 > 
-> I can alter the destination address of the outgoing packet (for
-> example, a packet that goes from A to B becomes a packet that goes
-> from A to A, a localhost packet), and it all works fine.
-> I seems like i'm doing something wrong but i can't quite figure out
-> what. Any ideas?
+> Is there any reason I'm missing (except that maybe the code should
+> go into it's own function) for not simply doing it this way:
 
-Packets in LOCAL_OUT are manually rerouted by ip_queue. Packets
-mangled in PRE_ROUTING should be routed correctly according to
-the data contained in the new packet. Could it be that you are
-testing on loopback ?
+You can't drop the reference before calling the timeout function.
+BTW: There is no ip_ct_death_by_timeout() AFAICT. Can you send a
+new patch ?
 
 Regards
 Patrick
