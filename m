@@ -1,15 +1,17 @@
-From: Unit Zero <onyx@zero.fdns.net>
-Subject: Re: connection destruction question
-Date: Fri, 19 Mar 2004 10:34:05 -0500 (EST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC, PATCH 3/5]: netfilter+ipsec - input hooks
+Date: Fri, 19 Mar 2004 17:17:30 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.56L0.0403190908580.7279@zero.fdns.net>
-References: <200403110051.i2B0pYU0025941@sirius.cs.pdx.edu>
+Message-ID: <405B1D1A.6050700@trash.net>
+References: <20040308110331.GA20719@gondor.apana.org.au>	<404C874D.4000907@trash.net>	<20040308115858.75cdddca.davem@redhat.com>	<4059CF0E.3050708@trash.net> <20040318221523.07298f03.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="1938989634-149102851-1079710445=:7279"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: herbert@gondor.apana.org.au,  netdev@oss.sgi.com,
+ netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kristen Carlson <kristenc@cs.pdx.edu>
-In-Reply-To: <200403110051.i2B0pYU0025941@sirius.cs.pdx.edu>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20040318221523.07298f03.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,140 +22,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
-
---1938989634-149102851-1079710445=:7279
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-
-
-
-On Wed, 10 Mar 2004, Kristen Carlson wrote:
-
-> Hello,
-> Is there a way to be notified in a kernel module 
-> when a connection is destroyed?  I have a nice helper
-> module that would like to know when connections are destroyed
-> so it can do some internal cleanup work. 
-> Thanks,
-> Kristen
+David S. Miller wrote:
+> 
+> Be careful!  xfrm4_tunnel handles both uncompressed ipcomp packets
+> _and_ IPIP encapsulator device packets.  Yet you will intepret usage
+> of the ipprot as 'xfrm_prot==1' in all cases.
+> 
+> Yes this is ugly... if we added some kind of flag bit-mask to sk_buff,
+> would that allow an easier implementation?
 > 
 
-Actually I ran into the exact same issue not long ago with a module I've 
-been working on. My solution was to add a couple lines here and there in 
-conntrack_core.c and ip_conntrack.h to implement a notifier chain and 
-export register/unregister routines from the ip_conntrack module, allowing 
-other modules to add callback functions to the chain. The notifier chain 
-is then called from various parts of the conntrack_core code with an 
-event-code and a struct ip_conntrack ptr reference when conntracks are 
-created, destroyed (either explicitly or by timeout), become confirmed, 
-or become replied.
-
-I've got a small patch that I put together about a month ago which has 
-my modifications described above. I'm pretty sure it will apply cleanly 
-to a 2.4.24-25 kernel source tree, but if not the modifications are pretty 
-straight forward. Just thought it might be of interest.
-
-- V. M. Condino
---1938989634-149102851-1079710445=:7279
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="ip_conntrack_notify_hack.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.56L0.0403191034050.7279@zero.fdns.net>
-Content-Description: conntrack-notifiers patch
-Content-Disposition: attachment; filename="ip_conntrack_notify_hack.patch"
-
-LS0tIGxpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfY29y
-ZS5jCTIwMDQtMDItMTkgMDM6MTE6MTQuMDAwMDAwMDAwIC0wNTAwDQorKysg
-bGludXgtbmZoYWNrL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tf
-Y29yZS5jCTIwMDQtMDItMjMgMTk6MzQ6NTAuMDAwMDAwMDAwIC0wNTAwDQpA
-QCAtNjQsNiArNjQsMTcgQEANCiBzdGF0aWMgYXRvbWljX3QgaXBfY29ubnRy
-YWNrX2NvdW50ID0gQVRPTUlDX0lOSVQoMCk7DQogc3RydWN0IGxpc3RfaGVh
-ZCAqaXBfY29ubnRyYWNrX2hhc2g7DQogc3RhdGljIGttZW1fY2FjaGVfdCAq
-aXBfY29ubnRyYWNrX2NhY2hlcDsNCitzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sg
-KmlwX2N0X25vdGlmeV9jaGFpbiA9IE5VTEw7DQorDQoraW50IHJlZ2lzdGVy
-X2Nvbm50cmFja19ub3RpZmllcihzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5i
-KQ0KK3sNCisgIHJldHVybiBub3RpZmllcl9jaGFpbl9yZWdpc3RlcigmaXBf
-Y3Rfbm90aWZ5X2NoYWluLCBuYik7DQorfQ0KKw0KK2ludCB1bnJlZ2lzdGVy
-X2Nvbm50cmFja19ub3RpZmllcihzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5i
-KQ0KK3sNCisgIHJldHVybiBub3RpZmllcl9jaGFpbl91bnJlZ2lzdGVyKCZp
-cF9jdF9ub3RpZnlfY2hhaW4sIG5iKTsNCit9DQogDQogZXh0ZXJuIHN0cnVj
-dCBpcF9jb25udHJhY2tfcHJvdG9jb2wgaXBfY29ubnRyYWNrX2dlbmVyaWNf
-cHJvdG9jb2w7DQogDQpAQCAtMzE1LDYgKzMyNiw4IEBADQogCUlQX05GX0FT
-U0VSVChhdG9taWNfcmVhZCgmbmZjdC0+dXNlKSA9PSAwKTsNCiAJSVBfTkZf
-QVNTRVJUKCF0aW1lcl9wZW5kaW5nKCZjdC0+dGltZW91dCkpOw0KIA0KKwlu
-b3RpZmllcl9jYWxsX2NoYWluKCZpcF9jdF9ub3RpZnlfY2hhaW4sIElQX0NU
-X05PVElGWV9ERVNUUk9ZRUQsICh2b2lkKiljdCk7DQorCQ0KIAkvKiBUbyBt
-YWtlIHN1cmUgd2UgZG9uJ3QgZ2V0IGFueSB3ZWlyZCBsb2NraW5nIGlzc3Vl
-cyBoZXJlOg0KIAkgKiBkZXN0cm95X2Nvbm50cmFjaygpIE1VU1QgTk9UIGJl
-IGNhbGxlZCB3aXRoIGEgd3JpdGUgbG9jaw0KIAkgKiB0byBpcF9jb25udHJh
-Y2tfbG9jayEhISAtSFcgKi8NCkBAIC03OTEsMTkgKzc5NywyMiBAQA0KIAkJ
-aWYgKHRlc3RfYml0KElQU19TRUVOX1JFUExZX0JJVCwgJmgtPmN0cmFjay0+
-c3RhdHVzKSkgew0KIAkJCURFQlVHUCgiaXBfY29ubnRyYWNrX2luOiBub3Jt
-YWwgcGFja2V0IGZvciAlcFxuIiwNCiAJCQkgICAgICAgaC0+Y3RyYWNrKTsN
-CisJCQkgICAgICBpZigqY3RpbmZvICE9IElQX0NUX0VTVEFCTElTSEVEKQ0K
-IAkJICAgICAgICAqY3RpbmZvID0gSVBfQ1RfRVNUQUJMSVNIRUQ7DQogCQl9
-IGVsc2UgaWYgKHRlc3RfYml0KElQU19FWFBFQ1RFRF9CSVQsICZoLT5jdHJh
-Y2stPnN0YXR1cykpIHsNCiAJCQlERUJVR1AoImlwX2Nvbm50cmFja19pbjog
-cmVsYXRlZCBwYWNrZXQgZm9yICVwXG4iLA0KIAkJCSAgICAgICBoLT5jdHJh
-Y2spOw0KIAkJCSpjdGluZm8gPSBJUF9DVF9SRUxBVEVEOw0KKwkJCW5vdGlm
-aWVyX2NhbGxfY2hhaW4oJmlwX2N0X25vdGlmeV9jaGFpbiwgSVBfQ1RfTk9U
-SUZZX1JFTEFURUQsICh2b2lkICopaC0+Y3RyYWNrKTsNCiAJCX0gZWxzZSB7
-DQogCQkJREVCVUdQKCJpcF9jb25udHJhY2tfaW46IG5ldyBwYWNrZXQgZm9y
-ICVwXG4iLA0KIAkJCSAgICAgICBoLT5jdHJhY2spOw0KIAkJCSpjdGluZm8g
-PSBJUF9DVF9ORVc7DQorCQkJbm90aWZpZXJfY2FsbF9jaGFpbigmaXBfY3Rf
-bm90aWZ5X2NoYWluLCBJUF9DVF9OT1RJRllfTkVXLCAodm9pZCAqKWgtPmN0
-cmFjayk7DQogCQl9DQogCQkqc2V0X3JlcGx5ID0gMDsNCiAJfQ0KIAlza2It
-Pm5mY3QgPSAmaC0+Y3RyYWNrLT5pbmZvc1sqY3RpbmZvXTsNCiAJcmV0dXJu
-IGgtPmN0cmFjazsNCiB9DQogDQpAQCAtODkzLDYgKzg5NCwxMCBAQA0KIAkJ
-CXJldHVybiBORl9BQ0NFUFQ7DQogCQl9DQogCX0NCisJDQorCWlmKHNldF9y
-ZXBseSAmJiAoISB0ZXN0X2JpdChJUFNfU0VFTl9SRVBMWV9CSVQsICZjdC0+
-c3RhdHVzKSkpDQorCQlub3RpZmllcl9jYWxsX2NoYWluKCZpcF9jdF9ub3Rp
-ZnlfY2hhaW4sIElQX0NUX05PVElGWV9FU1RBQkxJU0hFRCwgKHZvaWQgKilj
-dCk7DQorCQ0KIAlpZiAoc2V0X3JlcGx5KQ0KIAkJc2V0X2JpdChJUFNfU0VF
-Tl9SRVBMWV9CSVQsICZjdC0+c3RhdHVzKTsNCiANCkBAIC01MTQsMiArNTA5
-LDQgQEANCiBFWFBPUlRfU1lNQk9MX0dQTChpcF9jb25udHJhY2tfZmluZF9n
-ZXQpOw0KIEVYUE9SVF9TWU1CT0xfR1BMKGlwX2Nvbm50cmFja19wdXQpOw0K
-K0VYUE9SVF9TWU1CT0wocmVnaXN0ZXJfY29ubnRyYWNrX25vdGlmaWVyKTsN
-CitFWFBPUlRfU1lNQk9MKHVucmVnaXN0ZXJfY29ubnRyYWNrX25vdGlmaWVy
-KTsNCi0tLSBsaW51eC9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lw
-X2Nvbm50cmFjay5oCTIwMDQtMDItMTkgMTI6NDY6MzMuMDAwMDAwMDAwIC0w
-NTAwDQorKysgbGludXgtbmZoYWNrL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVy
-X2lwdjQvaXBfY29ubnRyYWNrLmgJMjAwNC0wMi0yMyAxOTo0MDo1OC4wMDAw
-MDAwMDAgLTA1MDANCkBAIC0yMTAsMiArMjEwLDM4IEBADQoNCisvKg0KKyAq
-IFYuIE0uIENvbmRpbm8gMjAwNC8wMi8yNCAtLSBNeSBSRUFMTFkgcXVpY2st
-bi1kaXJ0eSBjb25udHJhY2sNCisgKiBldmVudCBub3RpZmljYXRpb24gaGFj
-ay4gSXQgIndvcmtzIGZvciBtZSIuLi4gSSB0ZXN0ZWQgdGhpcyBvdXQNCisg
-KiBmb3IgYWJvdXQgNSBtaW51dGVzIGxhc3QgbmlnaHQgYW5kIGdvdCBpdCBi
-YXNpY2FsbHkgd29ya2luZw0KKyAqICJidWcgZnJlZSIgKGkuZS4gZ290IHRo
-cm91Z2ggYSB3aG9sZSBIVFRQIGNvbm5lY3QsIGNsb3NlIGFuZA0KKyAqIHRo
-ZW4gY29ubnRyYWNrIGZpbmFsbHkgdGltaW5nIG91dCBhbmQgZGVzdHJ1Y3Rp
-bmcsIHdpdGhvdXQNCisgKiBldmVuIHNvIG11Y2ggYXMgYW4gdW5oYXBweS1s
-b29raW5nIHByaW50aygpIGZyb20gYW55dGhpbmcgOikNCisgKg0KKyAqIGN1
-cnJlbnRseSBpIGFtIHVzaW5nIHRoaXMgY29kZSBmb3IgYSBzZXBhcmF0ZSBp
-cF9zdGF0aXN0aWNzDQorICogY29sbGVjdGlvbiBtb2R1bGUgKG1haW50YWlu
-aW5nIGhhc2hlcyBmb3IgdmFyaW91cyBkaWZmZXJlbnQNCisgKiBncm91cHMg
-b2YgY29ubmVjdGlvbnMsIHNvIHRoYXQgbWF0Y2hlcyBsaWtlIGNvbm5saW1p
-dCBjYW4gYmUNCisgKiBwZXJmb3JtZWQgd2l0aCBhIHNpbmdsZSBoYXNoLWxv
-b2t1cCwgaW5zdGVhZCBvZiBjcmVhdGluZyBhbmQNCisgKiBtYW5hZ2luZyBh
-biBlbnRpcmUgaGFzaCB0YWJsZSBhbGwgaW50ZXJuYWxseSBmb3IgYSBzaW5n
-bGUNCisgKiBtYXRjaC4pIEkgcGxhbiBvbiBleHRlbmRpbmcgdGhlIGNvbm50
-cmFja19ub3RpZmllcnMgc3R1ZmYNCisgKiBoZXJlIG11Y2ggbW9yZSwgc28g
-SSB3aWxsIGJlIHBvc3RpbmcgbXVjaCBtb3JlIGZpbmFsaXplZA0KKyAqIHZl
-cnNpb24gb24gbmV0ZmlsdGVyLWRldmVsIGluIHRoZSBmdXR1cmUuDQorICoN
-CisgKiBmZWVsIGZyZWUgdG8gY29udGFjdCBtZSBhdCA8b255eEB6ZXJvLmZk
-bnMubmV0PiBvcg0KKyAqIDxvbnl4QHNxdWlycmVsc291cC5uZXQ+IGlmIHlv
-dSB3YW50IHRvIGRpc2N1c3MgYW55dGhpbmcNCisgKiBhYm91dCB0aGlzIGNv
-ZGUuICAtIFYuIE0uIENvbmRpbm8gDQorICovDQorDQorZW51bSBpcF9jdF9u
-b3RpZnlfZXZlbnQgew0KKwlJUF9DVF9OT1RJRllfTk9ORSA9IDAsDQorCUlQ
-X0NUX05PVElGWV9ORVcgPSAxLA0KKwlJUF9DVF9OT1RJRllfUkVMQVRFRCA9
-IDIsDQorCUlQX0NUX05PVElGWV9FU1RBQkxJU0hFRCA9IDMsDQorCUlQX0NU
-X05PVElGWV9SRVBMSUVEID0gNCwNCisJSVBfQ1RfTk9USUZZX0RFU1RST1lF
-RCA9IDUNCit9Ow0KKyANCitleHRlcm4gc3RydWN0IG5vdGlmaWVyX2Jsb2Nr
-ICppcF9jdF9ub3RpZnlfY2hhaW47DQorDQorZXh0ZXJuIGludCByZWdpc3Rl
-cl9jb25udHJhY2tfbm90aWZpZXIoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpu
-Yik7DQorZXh0ZXJuIGludCB1bnJlZ2lzdGVyX2Nvbm50cmFja19ub3RpZmll
-cihzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5iKTsNCisNCisNCiAvKiBnZXQg
-bWFzdGVyIGNvbm50cmFjayB2aWEgbWFzdGVyIGV4cGVjdGF0aW9uICovDQo=
-
---1938989634-149102851-1079710445=:7279--
+I can't imagine how. Best would be to avoid the xfrm_prot flag
+completely. Maybe we can add a flag to xfrm_state which indicates
+that this is the last xfrm specified in the policy ?
