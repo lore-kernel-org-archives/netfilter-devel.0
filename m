@@ -1,15 +1,15 @@
-From: "Maarten Wijnants" <maarten.wijnants@pandora.be>
-Subject: Re: libipq and QUEUE
-Date: Thu, 31 Mar 2005 09:57:18 +0200
-Message-ID: <001d01c535c7$4316aa10$642813ac@in.edm.luc.ac.be>
-References: <424BA123.7080003@stud.ntnu.no>
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: iptables 1.3.1 crashes on iptables-restore
+Date: Thu, 31 Mar 2005 10:18:10 +0200
+Message-ID: <424BB242.6070809@drugphish.ch>
+References: <20050330034616.GA8639@samad.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=response
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?iso-8859-1?Q?J=F8rn_Andre_Berntzen?= <jornandr@stud.ntnu.no>,
-	"Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+To: Alexander Samad <alex@samad.com.au>
+In-Reply-To: <20050330034616.GA8639@samad.com.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,50 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jorn,
+> when I try to do a iptables-restore with about 800 lines I get a
+> segmentation fault.
+> What is the most expediant way to track this problem down ?
 
-It IS possible to change the destination address of a packet in userspace=
-=20
-using libipq and the QUEUE target. However, if you do this, it is my=20
-experience NO rerouting will occur. For example, if you change a packet's=
-=20
-destination from X to Y using libipq and subsequently reinsert the packet=
- in=20
-the kernel, the packet will still be delivered to machine X, although the=
-=20
-header of the packet will specify it is destined for machine Y! If you wa=
-nt=20
-rerouting to occur, I think you are better off with the NAT table (I myse=
-lf=20
-have no experience with this).
+o Compile and link iptables with debugging info.
+o Before you run the command make sure you have the core file size
+   settings to unlimited (ulimit -c unlimited).
+o Run your command.
+o You should have a core file in your directory.
+o gdb -q core /path/to/iptables-restore
+o bt
 
-greetings,
-Maarten
+Send the output to this list. Hope that is expedient enough ;).
 
------ Original Message -----=20
-From: "J=F8rn Andre Berntzen" <jornandr@stud.ntnu.no>
-To: "Netfilter Development Mailinglist"=20
-<netfilter-devel@lists.netfilter.org>
-Sent: Thursday, March 31, 2005 9:05 AM
-Subject: libipq and QUEUE
-
-
-Hi
-
-I'm trying to write a redirect code that will change the destination
-address
-on specific packets using libipq and trying to avoid coding a
-kernel-module.
- From reading the man page on libipq and the functions one should be able
-to manipulate the packet, update the checksum and reinject the packet to
-kernel.
-
-Has anyone here done this successfully or am I on the wrong path?
-Is it possible to change the destination address using the ipq library an=
-d
-the QUEUE target or does one have to make a module for doing this?
-
-Any help is greatly appreciated.
-
-Regards,
-J=F8rn Andre
+Cheers,
+Roberto Nibali, ratz
+-- 
+echo 
+'[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
