@@ -1,17 +1,14 @@
-From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
-Subject: RE: Problems using libipq/QUEUE
-Date: Wed, 30 Jun 2004 20:03:32 +0300
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: Re: Sample POM adding packet value field?
+Date: Wed, 30 Jun 2004 10:26:02 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200406301704.i5UH4EMX025110@madinah.ccse.kfupm.edu.sa>
-References: <Pine.LNX.4.44.0406301857210.12023-100000@filer.marasystems.com>
+Message-ID: <20040630172602.333.qmail@web13902.mail.yahoo.com>
+References: <Pine.LNX.4.44.0406301859020.12023-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: "Netfilter List" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'Henrik Nordstrom'" <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0406301857210.12023-100000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0406301859020.12023-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,44 +19,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I am simply using the same example in the manpage. The nfmark is being used
-within the libipq application program (status = ipq_set_verdict(h,
-m->packet_id,
-                                                         NF_ACCEPT, 0,
-NULL);.
+Very true, but what I was looking for is an existing
+POM item which did that, namely extend the skbuff and
+such to provide an extra field (I assume in a patch
+and support routines), kinda like 'if MARK was
+distributed via POM'...something to help me see what
+needs to get patched where to add some skbuff
+persistent data.
+Do you know if CONNMARK actually extends skbuff or
+does it play with connection tracking structures?
+-Scott
 
-Still it doesn't seem to work
-Regards,
 
-Muhammad R. Sami 
-Research Assistant, 
-Computer Engineering Department 
-P.O.Box 354 
-King Fahd University of Petroleum & Minerals 
-Dhahran 31261 
-Saudi Arabia. 
-Tel: +96638601423 
-Cell: +96657982951 
-www.ccse.kfupm.edu.sa/sami
 
------Original Message-----
-From: Henrik Nordstrom [mailto:hno@marasystems.com] 
-Sent: Wednesday, June 30, 2004 7:59 PM
-To: Muhammad R. Sami
-Cc: Netfilter List
-Subject: Re: Problems using libipq/QUEUE
-
-On Wed, 30 Jun 2004, Muhammad R. Sami wrote:
-
-> iptables -A OUTPUT -p icmp -j QUEUE
+--- Henrik Nordstrom <hno@marasystems.com> wrote:
+> On Wed, 30 Jun 2004, Scott MacKay wrote:
 > 
-> Now this should queue all originating ping packets and then depending on
-the
-> NF mark action will be taken. But it seems that regardless of the NF mark,
-> all icmp traffic is blocked. As I remove the above rule from the iptables,
-> things work fine.
+> > Are there any POM additions which would add a data
+> > field to packets, much like how MARK does?
+> 
+> No, there simply is no fields available in the
+> skbuff for this..
+> 
+> What there is is CONNMARK which adds per-connection
+> mark attributes within 
+> netfilter.
+> 
+> There is also a proposed patch to allow for
+> selective bit mask operations 
+> on the nfmark (MARK).
+> 
+> Regards
+> Henrik
+> 
+> 
 
-You don't seem to be using the nfmark in this simple ruleset...
 
-Regards
-Henrik
+
+	
+		
+__________________________________
+Do you Yahoo!?
+New and Improved Yahoo! Mail - 100MB free storage!
+http://promotions.yahoo.com/new_mail 
