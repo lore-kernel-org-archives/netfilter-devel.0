@@ -1,15 +1,17 @@
-From: Richard Bishop <r.j.bishop@ex.ac.uk>
-Subject: Re: libipq/payload doubt
-Date: Wed, 19 May 2004 11:02:52 +0100
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] for some issues in tcp window tracking patch
+Date: Wed, 19 May 2004 12:14:10 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1084960972.40ab30cc0af1c@chloride.lan.uchange.co.uk>
-References: <20040519062032.GA32401@maluco.com.br>
+Message-ID: <40AB3372.5030606@eurodev.net>
+References: <Pine.LNX.4.33.0405191030380.2202-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="-MOQ1084960971bc14a5d76751848cc64b0c467226061d"
-Cc: Netfilter Devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------020607080100010701070206"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ulysses Almeida <munky@maluco.com.br>
-In-Reply-To: <20040519062032.GA32401@maluco.com.br>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+ Patrick McHardy <kaber@trash.net>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.33.0405191030380.2202-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,75 +22,229 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This message is in MIME format.
+This is a multi-part message in MIME format.
+--------------020607080100010701070206
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
----MOQ1084960971bc14a5d76751848cc64b0c467226061d
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Hi Jozsef,
 
+Jozsef Kadlecsik wrote:
 
-Hi,
+>>>>f) Do you think that it's interesting adding fine grain locking in
+>>>>tcp-window-tracking?
+>>>>http://lists.netfilter.org/pipermail/netfilter-devel/2004-May/015166.html
+>>>>        
+>>>>
+>>>First I was not quite convinced, but yes, I think it'd worth. However I
+>>>believe we should introduce a generic per data locking in ip_conntrack
+>>>instead of just a per TCP data locking. Thus there were no need the extra
+>>>per protocol-helper locks either.
+>>>
+>>>      
+>>>
+>>yes, that would be also ok, but some other helpers like udp don't need
+>>it, so is it worthy adding that field to the conntrack structure?
+>>    
+>>
+>
+>After thinking on it again, you're right, but I meant the
+>application protocol-helper locks. If there is a TCP data lock, then there
+>is no need for (TCP based) application protocol-helper locks.
+>  
+>
 
-Quoting Ulysses Almeida <munky@maluco.com.br>:
+so you mean that we could use a single lock to protect both protocol and 
+application helper private information, don't you? but in the case of 
+the ftp helper the lock is protecting that global buffer, so your 
+assumption would be wrong, wouldn't it?
 
-> This daemon, just look for tcp packges, and print
-> some infos on stdout. It's printing IP src and dst address, and now
-> i'm trying to print src and dst TCP port address, but, I don't know
-> why, when I print those info, I can't get expected ports. port 80 is
-> showed as 20480.
-> 
-> Do I have to convert something before printing in human readable format?
+I know that connection tracking shouldn't drop packets (in theory), but 
+I think that it would be ok if we can add set an option via sysctl with 
+the default return value. I mean, if we saw an unclean packet, return 
+NF_DROP, just let the administrator choose how aggresive his tcp 
+tracking is.
 
+More feedback, I restructured the skeleton of the tcp_packet function, 
+attached a patch. I moved up the call to the tcp_in_window function, so 
+at first we check if a packets complies with Guido's four boundaries. 
+Then we check if we saw a FIN packet which is out the boundaries so we 
+came to the old state. And we get in the switch... I added both 
+checkings which were performed after tcp_in_window (rst and set 
+connection as assured) in the switch. Can you see any problem on this 
+approach? if it's ok, I think it could sanitize the current structure of 
+tcp_packet.
 
-As one of the other guys said, the port discrepancy is an 'endian' problem.
+regards,
+Pablo
 
-Try this code (attached) - I had exactly the same problem when I first started
-playing around with ipq.  Bear in mind that I've skipped out all of the code for
-setting up the ipq handle etc, though if you've had it recieving packets then
-you'll have this already.
+--------------020607080100010701070206
+Content-Type: text/x-patch;
+ name="pablo.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="pablo.patch"
 
-Good luck!
+--- net/ipv4/netfilter/ip_conntrack_proto_tcp.c~	2004-05-18 11:51:02.000000000 +0200
++++ net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-05-19 11:42:20.000000000 +0200
+@@ -518,9 +518,6 @@
+ 		 */
+ 		seq = end = sender->td_end;
+ 		
+-	if (sender->loose)
+-		sender->loose--;
+-
+ 	DEBUGP("tcp_in_window: src=%u.%u.%u.%u:%hu dst=%u.%u.%u.%u:%hu seq=%u ack=%u win=%u end=%u trim=%u\n",
+ 		NIPQUAD(iph->saddr), ntohs(tcph->source), NIPQUAD(iph->daddr), ntohs(tcph->dest),
+ 		seq, ack, win, end, 
+@@ -549,6 +546,8 @@
+ 	     after(seq, sender->td_end - receiver->td_maxwin - 1) &&
+ 	     before(ack, receiver->td_end + 1) &&
+ 	     after(ack, receiver->td_end - MAXACKWINDOW(sender)))) {
++
++		sender->loose--;
+ 	    	/*
+ 		 * Take into account window scaling (RFC 1323).
+ 		 */
+@@ -719,6 +718,7 @@
+ 	struct tcphdr *tcph = (struct tcphdr *)buff;
+ 	unsigned long timeout;
+ 	unsigned int index;
++	enum ip_conntrack_dir last_dir = conntrack->proto.tcp.last_dir;
+ 	
+ 	/* Smaller that minimal TCP header? */
+ 	if (skb_copy_bits(skb, iph->ihl * 4, buff, sizeof(*tcph)) != 0)
+@@ -734,19 +734,34 @@
+ 	if (unclean(skb, iph, tcph))
+ 		return -NF_ACCEPT;
+ 	
+-	WRITE_LOCK(&tcp_lock);
+-	old_state = conntrack->proto.tcp.state;
+ 	dir = CTINFO2DIR(ctinfo);
+ 	index = get_conntrack_index(tcph);
+-	new_state = tcp_conntracks[dir][index][old_state];
++	WRITE_LOCK(&tcp_lock);
++	old_state = conntrack->proto.tcp.state;
++	conntrack->proto.tcp.stored_seq = index;
++
++	if (!tcp_in_window(&conntrack->proto.tcp, dir, skb, iph, tcph)) {
++		/* Invalid packet */
++		WRITE_UNLOCK(&tcp_lock);
++		return -NF_ACCEPT;
++	}
++
++	/* If FIN was trimmed off, don't change state. */
++	if (index != conntrack->proto.tcp.stored_seq) 
++		new_state = 
++		     tcp_conntracks[dir][conntrack->proto.tcp.stored_seq][old_state];
++	else 
++		new_state = tcp_conntracks[dir][index][old_state];
++
++	conntrack->proto.tcp.state = new_state;
+ 
+ 	switch (new_state) {
+ 	case TCP_CONNTRACK_IGNORE:
+ 		/* Either SYN in ORIGINAL, or SYN/ACK in REPLY direction. */
+ 		if (index == TCP_SYNACK_SET
+-		    && conntrack->proto.tcp.stored_seq == TCP_SYN_SET
+-		    && conntrack->proto.tcp.last_dir != dir
+-		    && after(ntohl(tcph->ack_seq), conntrack->proto.tcp.last_seq)) {
++		    && (old_state == TCP_CONNTRACK_SYN_SENT 
++			    || old_state == TCP_CONNTRACK_SYN_RECV)
++		    && last_dir != dir) {
+ 			/* This SYN/ACK acknowledges a SYN that we earlier ignored 
+ 			 * as invalid. This means that the client and the server 
+ 			 * are both in sync, while the firewall is not. We kill 
+@@ -762,9 +777,6 @@
+ 		    		conntrack->timeout.function((unsigned long)conntrack);
+ 		    	return -NF_ACCEPT;
+ 		}
+-		conntrack->proto.tcp.stored_seq = index;
+-		conntrack->proto.tcp.last_dir = dir;
+-		conntrack->proto.tcp.last_seq = ntohl(tcph->seq);
+ 		
+ 		WRITE_UNLOCK(&tcp_lock);
+ 		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
+@@ -794,8 +806,8 @@
+ 	case TCP_CONNTRACK_CLOSE:
+ 		if (index == TCP_RST_SET
+ 		    && test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
+-		    && conntrack->proto.tcp.stored_seq <= TCP_SYNACK_SET
+-		    && after(ntohl(tcph->ack), conntrack->proto.tcp.last_seq)) {
++		    && (old_state == TCP_CONNTRACK_SYN_SENT
++			    || old_state == TCP_CONNTRACK_SYN_RECV)) {
+ 			/* Ignore RST closing down invalid SYN we had let trough. */ 
+ 		    	WRITE_UNLOCK(&tcp_lock);
+ 			if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
+@@ -803,49 +815,41 @@
+ 					  "ip_conntrack_tcp: INVALID: invalid RST (ignored) ");
+ 			return NF_ACCEPT;
+ 		}
++
++		if (!test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)) {
++		/* If only reply is a RST, we can consider ourselves not to
++		   have an established connection: this is a fairly common
++		   problem case, so we can delete the conntrack
++		   immediately.  --RR */
++			if (tcph->rst) {
++				WRITE_UNLOCK(&tcp_lock);
++				if (del_timer(&conntrack->timeout))
++					conntrack->timeout.function((unsigned long)conntrack);
++				return NF_ACCEPT;
++			}
++		}
+ 		/* Just fall trough */
++	case TCP_CONNTRACK_ESTABLISHED:
++		if ((old_state == TCP_CONNTRACK_SYN_RECV
++		    || old_state == TCP_CONNTRACK_ESTABLISHED)
++		    && !test_bit(IPS_ASSURED_BIT, &conntrack->status)) 
++		/* Set ASSURED if we see see valid ack in ESTABLISHED after SYN_RECV 
++		   or a valid answer for a picked up connection. */
++			set_bit(IPS_ASSURED_BIT, &conntrack->status);
+ 	default:
+ 		/* Keep compilers happy. */
+ 		break;
+ 	}
+ 
+-	conntrack->proto.tcp.stored_seq = index;
+-	if (!tcp_in_window(&conntrack->proto.tcp, dir, skb, iph, tcph)) {
+-		/* Invalid packet */
+-		WRITE_UNLOCK(&tcp_lock);
+-		return -NF_ACCEPT;
+-	}
+-	/* If FIN was trimmed off, don't change state. */
+-	new_state = tcp_conntracks[dir][conntrack->proto.tcp.stored_seq][old_state];
+-
+ 	DEBUGP("tcp_conntracks: src=%u.%u.%u.%u:%hu dst=%u.%u.%u.%u:%hu syn=%i ack=%i fin=%i rst=%i old=%i new=%i\n",
+ 		NIPQUAD(iph->saddr), ntohs(tcph->source), NIPQUAD(iph->daddr), ntohs(tcph->dest),
+ 		(tcph->syn ? 1 : 0), (tcph->ack ? 1 : 0), (tcph->fin ? 1 : 0), (tcph->rst ? 1 : 0),
+ 		old_state, new_state);
+ 
+-	conntrack->proto.tcp.state = new_state;
+ 	timeout = conntrack->proto.tcp.retrans >= ip_ct_tcp_max_retrans
+ 		  && *tcp_timeouts[new_state] > ip_ct_tcp_timeout_max_retrans ?
+ 		  ip_ct_tcp_timeout_max_retrans : *tcp_timeouts[new_state];
+ 
+-	if (!test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)) {
+-		/* If only reply is a RST, we can consider ourselves not to
+-		   have an established connection: this is a fairly common
+-		   problem case, so we can delete the conntrack
+-		   immediately.  --RR */
+-		if (tcph->rst) {
+-			WRITE_UNLOCK(&tcp_lock);
+-			if (del_timer(&conntrack->timeout))
+-				conntrack->timeout.function((unsigned long)conntrack);
+-			return NF_ACCEPT;
+-		}
+-	} else if ((old_state == TCP_CONNTRACK_SYN_RECV
+-		    || old_state == TCP_CONNTRACK_ESTABLISHED)
+-		   && new_state == TCP_CONNTRACK_ESTABLISHED) {
+-		/* Set ASSURED if we see see valid ack in ESTABLISHED after SYN_RECV 
+-		   or a valid answer for a picked up connection. */
+-			set_bit(IPS_ASSURED_BIT, &conntrack->status);
+-	}
+ 	WRITE_UNLOCK(&tcp_lock);
+ 	ip_ct_refresh(conntrack, timeout);
+ 
 
-
-Richard
-
--- 
-Richard Bishop
-Third Year Undergraduate
-Department of Computer Science
-University of Exeter. UK
-
-
----MOQ1084960971bc14a5d76751848cc64b0c467226061d
-Content-Type: application/octet-stream; name="ipq_test"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="ipq_test"
-
-CgojaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyLmg+CiNpbmNsdWRlIDxsaWJpcHEvbGliaXBxLmg+
-CiNpbmNsdWRlIDxzdGRpby5oPgojaW5jbHVkZSA8bGludXgvaXAuaD4KI2luY2x1ZGUgPG5ldGlu
-ZXQvaW4uaD4KI2luY2x1ZGUgPGxpbnV4L3RjcC5oPgoKCmludCBtYWluKGludCBhcmdjLCBjaGFy
-ICoqYXJndikgewoKCXN0cnVjdCBpcHFfaGFuZGxlICpoOwoJdW5zaWduZWQgY2hhciBidWZmZXJb
-QlVGU0laRV07CgoJc3RydWN0IGlwaGRyICppcGg7CglzdHJ1Y3QgdGNwaGRyICp0Y3A7CgkKCQoJ
-CgkKCS8qIC4uLi4gQ29kZSBmb3Igc2V0dGluZyB1cCBpcF9xdWV1ZSBjb25uZWN0aW9uIGV0YyBo
-ZXJlIC4uLiAqLwoJCgoJZG8gewoJCgkJc3RhdHVzID0gaXBxX3JlYWQoaCwgYnVmZmVyLCBCVUZT
-SVpFLCAwKTsKCQkKCQlpZiAoc3RhdHVzIDwwKSB7CgkJCXByaW50ZigiU29tZXRoaW5nIHdlbnQg
-d3JvbmcgcmVhZGluZyBkYXRhXG4iKTsKCQkJY29udGludWU7CgkJfQoJCgkJc3dpdGNoKGlwcV9t
-ZXNzYWdlX3R5cGUoYnVmZmVyKSkgewoJCQkKCQkJLyogSWYgdGhpcyBpcyBhbiBlcnJvciBtZXNz
-YWdlICovCgkJCWNhc2UgTkxNU0dfRVJST1I6IHsKCQkJCXByaW50ZigiSXBxIHNhaWQgc29tZXRo
-aW5nIGJhZC4gRXJyb3IgbnVtYmVyICVkXG4iLGlwcV9nZXRfbXNnZXJyKGJ1ZmZlcikpOwoJCQl9
-CgkJCQoJCQkvKiBPdGhlcndpc2UgdGhpcyB3aWxsIGJlIGEgZGF0YSBwYWNrZXQgKi8KCQkJY2Fz
-ZSBJUFFNX1BBQ0tFVDogewoJCQkJCgkJCQlwcmludGYoIkdvdCBhIHBhY2tldCFcbiIpOwoJCQkJ
-CgkJCQlpcHFfcGFja2V0X21zZ190ICptZXNzID0gaXBxX2dldF9wYWNrZXQoYnVmZmVyKTsKCQkJ
-CQoJCQkJCgkJCQkvKiBPYnRhaW4gYm90aCBhIGlwIGFuZCB0Y3AgaGVhZGVyIGZvciB0aGlzIHBh
-Y2tldCBieSBjYXN0aW5nIGl0IGludG8gdGhlIHJlbGV2YW50IHN0cnVjdHVyZXMgKi8KCQkJCWlw
-aCA9IChzdHJ1Y3QgaXBoZHIqKW1lc3MtPnBheWxvYWQ7CgkJCQl0Y3AgPSAoc3RydWN0IHRjcGhk
-ciopICgodm9pZCAqKSBpcGggKyBpcGgtPmlobCo0KTsKCQkJCQoJCQkJCgkJCQkvKiBHZXQgdGhl
-IHNvdXJjZSBhbmQgZGVzdGluYXRpb24gcG9ydHMgZm9yIHRoaXMgY29ubmVjdGlvbiBmcm9tIHRo
-ZSB0Y3AgaGVhZGVyICovCgkJCQlfX3UxNiBzcG9ydCA9IG50b2hzKCB0Y3AtPnNvdXJjZSk7CgkJ
-CQlfX3UxNiBkcG9ydCA9IG50b2hzKCB0Y3AtPmRlc3QpOwoJCQkJCgkJCQkKCQkJCXByaW50Zigi
-U291cmNlIEFkZHI6ICVzXG4iLGluZXRfbnRvYShpcGgtPnNhZGRyKSk7CgkJCQlwcmludGYoIkRl
-c3QgQWRkcjogJXNcbiIsaW5ldF9udG9hKGlwaC0+ZGFkZHIpKTsKCQkJCXByaW50ZigiU291cmNl
-IFBvcnQ6ICVkXG4iLHNwb3J0KTsKCQkJCXByaW50ZigiRGVzdGluIFBvcnQ6ICVkXG5cbiIsZHBv
-cnQpOwoJCQkJCgkJCQkKCQkJfQoJCQkKCQl9CgkJCgl9CgkKfQ==
-
----MOQ1084960971bc14a5d76751848cc64b0c467226061d--
+--------------020607080100010701070206--
