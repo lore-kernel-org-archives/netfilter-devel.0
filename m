@@ -1,8 +1,8 @@
-From: "Javier Martin" <martin@trymedia.com>
-Subject: Wrong count on bytes
-Date: Fri, 18 Oct 2002 14:40:41 -0700
+From: "JooChul-Lee" <rune@etri.re.kr>
+Subject: wrong getnum function name for reply of EPSV
+Date: Sat, 19 Oct 2002 10:33:23 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <003001c276ef$01c5b270$8432a8c0@mcpollo>
+Message-ID: <004201c2770f$83a66490$b470fe81@runic>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -19,59 +19,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Hi. folks
 
-I'm getting confusing numbers from the iptables counters. The numbres
-apparently show that the output bandwidth is >140 Mbit/sec on a 100
-Mbit/sec.
+While I am reading ip_conntrack_ftp codes I found some typo. :)
 
-I'm running:
+The function name of getnum for reply of EPSV should be
+"try_epsv_response" I think. (not try_espv_response)
 
-- RH 7.3
-- Kernel 2.4.18 (RH release is 2.4.18-10)
-- iptables 1.2.5 (RH release 1.2.5-3).
+In my guess, this is some kind of mistake (just typo) ;-)
 
-This server is running an intel EEPRO100 nic with own intel's driver
-(e100.o). The driver provides byte accounting at
-/proc/net/PRO_LAN_Adapters/eth0.info, and this number differs BY FAR
-from iptables. If I run the following script:
+regards.
 
-  cat /proc/net/PRO_LAN_Adapters/eth0.info |grep Tx_Bytes
-  iptables -L -n -v -x |grep OUTPUT
-  sleep 10
-  cat /proc/net/PRO_LAN_Adapters/eth0.info |grep Tx_Bytes
-  iptables -L -n -v -x |grep OUTPUT
-
-This is the result:
-
-  Tx_Bytes                  2501299733
-  Chain OUTPUT (policy ACCEPT 410429507 packets, 581914465274 bytes)
-  Tx_Bytes                  2626036933
-  Chain OUTPUT (policy ACCEPT 410555345 packets, 582099636248 bytes)
-
-Substract the numbers, then divide by 10 seconds and you will have the
-speed rate:
-
-  Intel's driver counter:   95,17 Mbit/sec
-  iptables:                141,27 Mbit/sec!?!?
-
-The driver's counter is correct as the server is truly under heavy
-traffic load and the rate is peaking at the ethernet limit. But the
-iptables number is way not coherent.
-
-I'm using the following rules:
-
-  iptables -I INPUT -i eth0 --destination x.x.x.x
-  iptables -I OUTPUT -o eth0 --source x.x.x.x
-
-And x.x.x.x is an address added to the eth0 device via the iproute's ip
-command:
-
-  ip address add x.x.x.x dev eth0
-
-I also have some queue discipline filters for bandwidth shaping which I
-don't really believe they have anything to do.
-
-Please help!
-
-Javier
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+JooChul, Lee (ETRI)
+Electronics and Telecommunications Research Institute.
+161 Kajong-dong, Yusong-Gu, TAEJON, 305-350, KOREA
+E-mail : rune@etri.re.kr
+Tel : +82-042-860-1021
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- 
