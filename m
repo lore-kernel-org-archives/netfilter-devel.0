@@ -1,15 +1,16 @@
-From: Oliver Sommer <uzo@dungeon.de>
-Subject: Q:how to use another logging facility than "kern"
-Date: Sat, 8 Jun 2002 14:00:31 +0200
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Q:how to use another logging facility than "kern"
+Date: Sat, 8 Jun 2002 14:23:54 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206081400.31892.uzo@dungeon.de>
-Reply-To: oliver@dungeon.de
+Message-ID: <20020608142354.E23410@oknodo.bof.de>
+References: <200206081400.31892.uzo@dungeon.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: oliver@dungeon.de
+Content-Disposition: inline
+In-Reply-To: <200206081400.31892.uzo@dungeon.de>; from uzo@dungeon.de on Sat, Jun 08, 2002 at 02:00:31PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,20 +21,22 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello !
-hope this is the right list & you're not annoyed.
-What I am looking for:
-- logging the netflter logs to an own file (think it would be a great fea=
-ture=20
-for the LOG target).
-I was looking all over the web and also a bit through the source code of=20
-netfilter, but found nothing.
+> hope this is the right list & you're not annoyed.
 
-- isn't there a particular piece of code where I can manually change kern=
- to=20
-local4 or whatsoever?
-- or is there another option/module/patch-o-matic I've overseen?
+As a usage question, the user mailinglist, netfilter@lists.samba.org,
+would have been the right place to ask.
 
-thx a lot to all netfilter developers, it's a great software for me 8^)=20
+> What I am looking for:
 
-regards, Oliver Sommer
+> - isn't there a particular piece of code where I can manually change kern to 
+> local4 or whatsoever?
+
+Use the --log-level option of the log target.
+
+> - logging the netflter logs to an own file (think it would be a great feature 
+> for the LOG target).
+
+Use the ULOG target, and a userspace logging daemon of your liking.
+
+best regards
+  Patrick
