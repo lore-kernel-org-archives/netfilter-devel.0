@@ -1,14 +1,15 @@
-From: "Martijn Lievaart" <m@rtij.nl>
+From: Cedric Blancher <blancher@cartel-securite.fr>
 Subject: RE: LAND check: 2.4.20
-Date: Tue, 15 Mar 2005 17:42:56 +0100 (CET)
-Message-ID: <19921.213.236.112.75.1110904976.squirrel@213.236.112.75>
+Date: Tue, 15 Mar 2005 17:52:36 +0100
+Message-ID: <1110905556.5602.84.camel@anduril.intranet.cartel-securite.net>
 References: <BB6D74C75CC76A419B6D6FA7C38317B26A263D@sinett-sbs.SiNett.LAN>
+	<19921.213.236.112.75.1110904976.squirrel@213.236.112.75>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-In-Reply-To: <BB6D74C75CC76A419B6D6FA7C38317B26A263D@sinett-sbs.SiNett.LAN>
-To: "Vishwas Manral" <Vishwas@sinett.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org, Vishwas Manral <Vishwas@sinett.com>
+To: Martijn Lievaart <m@rtij.nl>
+In-Reply-To: <19921.213.236.112.75.1110904976.squirrel@213.236.112.75>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,21 +21,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Vishwas Manral said:
-> Hi Martin/ folks,
->
-> Thanks. That was a lot of help. Can you point me to the code where the
-> checks have been made?
+Le mardi 15 mars 2005 =E0 17:42 +0100, Martijn Lievaart a =E9crit :
+> They should be in your ruleset or you can use the Linux built in routing
+> checks.
 
-They should be in your ruleset or you can use the Linux built in routing
-checks. If you have an interface that connects to specific networks, there
-is no reason to accept packets from another interface with a source
-address in those specific networks. Your ruleset can and should check for
-that. That should catch the LAND attack.
+There are 2 major cases :
 
-Obviously this does not work for every firewall, if you have some complex
-multirouting scenario this may not be possible. But that is typically not
-a firewall protecting Windows hosts, so in practice that should not be a
-problem.
+	. Packet is seen by a filtering box, then rp_filter should
+	  destroy the packet as source is not routed through receiving
+	  interface.
+	. Packet is received by destination, then routing code will
+	  destroy it as a packet with local IP as source must be
+	  received on loopback.
 
-M4
+I don't think there's a real security issue that implies hardcoding.
+
+
+--=20
+http://sid.rstack.org/
+PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
+>> Hi! I'm your friendly neighbourhood signature virus.
+>> Copy me to your signature file and help me spread!
