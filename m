@@ -1,10 +1,10 @@
 From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2.4 6/10]: fixes for ip6t_hbh
-Date: Wed, 01 Dec 2004 17:06:49 +0900 (JST)
-Message-ID: <200412010806.iB186okg029435@toshiba.co.jp>
+Subject: [PATCH 2.4 7/10]: fixes for ip6t_ipv6header
+Date: Wed, 01 Dec 2004 17:07:13 +0900 (JST)
+Message-ID: <200412010807.iB187E5f000100@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Wed_Dec__1_17:06:49_2004_587)--"
+	boundary="--Next_Part(Wed_Dec__1_17:07:13_2004_009)--"
 Content-Transfer-Encoding: 7bit
 Cc: usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -20,171 +20,93 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Wed_Dec__1_17:06:49_2004_587)--
+----Next_Part(Wed_Dec__1_17:07:13_2004_009)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-
-This patch fixes the following bugs in ip6t_hbh.c.
+This patch fixes following bugs in ip6t_ipv6header.c
 
 	- The cast of the pointer to the next IPv6 extension header is wrong.
+	- The logical operation is wrong. These fixes intends
+	- soft mode without invert flag "!"
+		match if the packet contains all of the specified headers.
 
-	- hdrlen may underflow.
+	- soft mode with invert flag "!"
+		match if the packet DOESN'T contain all of the specified
+		headers.
 
-	- (u16)*optdesc causes to alignment problem.
+	- strict mode without invert flag "!"
+		match if the packet contains JUST ONLY the specified headers.
+		if the packet doesn't contain some specified headers or
+		contains unspecified headers, the packet doesn't match with
+		rule.
 
-	- The calculation of the offset to next option is wrong. In the case
-	  that the type isn't 0, it should be "Opt Data Len" field + 2
-	  (see RFC2460).
+	- strict mode with invert flag "!"
+		NOT MATCH if the packet contains JUST ONLY the specified
+		headers. Otherwise, match. So, if the packet contains some
+		specified headers and DOESN'T contain other specified headers,
+		the packet MATCHES with rule.
 
 Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 
+Regards,
 -----------------------------------------------------------------
 Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Wed_Dec__1_17:06:49_2004_587)--
+----Next_Part(Wed_Dec__1_17:07:13_2004_009)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="hbh.patch"
+Content-Disposition: inline; filename="ipv6header.patch"
 
---- linux-2.4.28-rc1/./net/ipv6/netfilter/ip6t_hbh.c	2003-06-13 23:51:39.000000000 +0900
-+++ linux-2.4.28-rc1-extfix/./net/ipv6/netfilter/ip6t_hbh.c	2004-11-10 00:51:45.000000000 +0900
-@@ -11,8 +11,6 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_opts.h>
- 
--#define LOW(n)		(n & 0x00FF)
--
- #define HOPBYHOP	1
- 
- EXPORT_NO_SYMBOLS;
-@@ -40,8 +38,8 @@ MODULE_AUTHOR("Andras Kis-Szabo <kisza@s
-  *  	0	-> invariant
-  *  	1	-> can change the routing
-  *  (Type & 0x1F) Type
-- *      0	-> PAD0 (only 1 byte!)
-- *      1	-> PAD1 LENGTH info (total length = length + 2)
-+ *      0	-> Pad1 (only 1 byte!)
-+ *      1	-> PadN LENGTH info (total length = length + 2)
-  *      C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
-  *      5	-> RTALERT 2 x x
-  */
-@@ -64,7 +62,8 @@ match(const struct sk_buff *skb,
-        unsigned int ptr;
-        unsigned int hdrlen = 0;
-        unsigned int ret = 0;
--       u_int16_t *optdesc = NULL;
-+       u8 *opttype = NULL;
-+       unsigned int optlen;
-        
-        /* type of the 1st exthdr */
-        nexthdr = skb->nh.ipv6h->nexthdr;
-@@ -91,7 +90,7 @@ match(const struct sk_buff *skb,
-                      break;
-               }
- 
--              hdr=(void *)(skb->data)+ptr;
-+	      hdr = (void *)(skb->data + ptr);
- 
-               /* Calculate the header length */
-                 if (nexthdr == NEXTHDR_FRAGMENT) {
-@@ -153,7 +152,7 @@ match(const struct sk_buff *skb,
-        		return 0;
-        }
- 
--       optsh=(void *)(skb->data)+ptr;
-+       optsh = (void *)(skb->data + ptr);
- 
-        DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
- 
-@@ -169,7 +168,6 @@ match(const struct sk_buff *skb,
-                            ((optinfo->hdrlen == hdrlen) ^
-                            !!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
- 
--       temp = len = 0;
-        ptr += 2;
-        hdrlen -= 2;
-        if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
-@@ -180,48 +178,52 @@ match(const struct sk_buff *skb,
- 		DEBUGP("Strict ");
- 		DEBUGP("#%d ",optinfo->optsnr);
- 		for(temp=0; temp<optinfo->optsnr; temp++){
--			optdesc = (void *)(skb->data)+ptr;
-+			/* type field exists ? */
-+			if (ptr > skb->len - 1 || hdrlen < 1)
-+				break;
-+			opttype = (void *)(skb->data + ptr);
-+
- 			/* Type check */
--			if ( (unsigned char)*optdesc != 
--				(optinfo->opts[temp] & 0xFF00)>>8 ){
-+			if (*opttype != (optinfo->opts[temp] & 0xFF00)>>8){
- 				DEBUGP("Tbad %02X %02X\n",
--						(unsigned char)*optdesc,
--						(optinfo->opts[temp] &
--						 0xFF00)>>8);
-+				       *opttype,
-+				       (optinfo->opts[temp] & 0xFF00)>>8);
- 				return 0;
- 			} else {
- 				DEBUGP("Tok ");
- 			}
- 			/* Length check */
--			if (((optinfo->opts[temp] & 0x00FF) != 0xFF) &&
--				(unsigned char)*optdesc != 0){
--				if ( ntohs((u16)*optdesc) != 
--						optinfo->opts[temp] ){
--					DEBUGP("Lbad %02X %04X %04X\n",
--							(unsigned char)*optdesc,
--							ntohs((u16)*optdesc),
--							optinfo->opts[temp]);
-+			if (*opttype) {
-+				u16 spec_len;
-+
-+				/* length field exists ? */
-+				if (ptr > skb->len - 2 || hdrlen < 2)
-+					break;
-+				optlen = *((u8 *)(skb->data + ptr + 1));
-+				spec_len = optinfo->opts[temp] & 0x00FF;
-+
-+				if (spec_len != 0x00FF && spec_len != optlen) {
-+					DEBUGP("Lbad %02X %04X\n", optlen,
-+					       spec_len);
- 					return 0;
--				} else {
--					DEBUGP("Lok ");
- 				}
--			}
--			/* Step to the next */
--			if ((unsigned char)*optdesc == 0){
--				DEBUGP("PAD0 \n");
--				ptr++;
--				hdrlen--;
-+				DEBUGP("Lok ");
-+				optlen += 2;
- 			} else {
--				ptr += LOW(ntohs(*optdesc));
--				hdrlen -= LOW(ntohs(*optdesc));
--				DEBUGP("len%04X \n", 
--					LOW(ntohs(*optdesc)));
-+				DEBUGP("Pad1\n");
-+				optlen = 1;
- 			}
--			if (ptr > skb->len || ( !hdrlen && 
--				(temp != optinfo->optsnr - 1))) {
-+
-+			/* Step to the next */
-+			DEBUGP("len%04X \n", optlen);
-+
-+			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
-+			    (temp < optinfo->optsnr - 1)) {
- 				DEBUGP("new pointer is too large! \n");
- 				break;
- 			}
-+			ptr += optlen;
-+			hdrlen -= optlen;
+--- linux-2.4.28-rc1/./net/ipv6/netfilter/ip6t_ipv6header.c	2003-11-29 03:26:21.000000000 +0900
++++ linux-2.4.28-rc1-extfix/./net/ipv6/netfilter/ip6t_ipv6header.c	2004-11-10 00:51:45.000000000 +0900
+@@ -63,7 +63,7 @@ ipv6header_match(const struct sk_buff *s
+ 			break;
  		}
- 		if (temp == optinfo->optsnr)
- 			return ret;
+ 
+-		hdr=(struct ipv6_opt_hdr *)skb->data+ptr;
++		hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
+ 
+ 		/* Calculate the header length */
+                 if (nexthdr == NEXTHDR_FRAGMENT) {
+@@ -107,10 +107,14 @@ ipv6header_match(const struct sk_buff *s
+ 		temp |= MASK_PROTO;
+ 
+ 	if (info->modeflag)
+-		return (!( (temp & info->matchflags)
+-			^ info->matchflags) ^ info->invflags);
+-	else
+-		return (!( temp ^ info->matchflags) ^ info->invflags);
++		return !((temp ^ info->matchflags ^ info->invflags)
++			 & info->matchflags);
++	else {
++		if (info->invflags)
++			return temp != info->matchflags;
++		else
++			return temp == info->matchflags;
++	}
+ }
+ 
+ static int
+@@ -120,11 +124,17 @@ ipv6header_checkentry(const char *tablen
+ 		      unsigned int matchsize,
+ 		      unsigned int hook_mask)
+ {
++	const struct ip6t_ipv6header_info *info = matchinfo;
++
+ 	/* Check for obvious errors */
+ 	/* This match is valid in all hooks! */
+-	if (matchsize != IP6T_ALIGN(sizeof(struct ip6t_ipv6header_info))) {
++	if (matchsize != IP6T_ALIGN(sizeof(struct ip6t_ipv6header_info)))
++		return 0;
++
++	/* invflags is 0 or 0xff in hard mode */
++	if ((!info->modeflag) && info->invflags != 0x00
++			      && info->invflags != 0xFF)
+ 		return 0;
+-	}
+ 
+ 	return 1;
+ }
 
-----Next_Part(Wed_Dec__1_17:06:49_2004_587)----
+----Next_Part(Wed_Dec__1_17:07:13_2004_009)----
