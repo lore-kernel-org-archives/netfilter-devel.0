@@ -1,9 +1,8 @@
 From: "yong" <sdssly@sina.com>
-Subject: How to use the libipq to process TCP data?
-Date: Fri, 6 Jun 2003 11:19:15 +0800
+Subject: How to use the Intercept.c example in iptables?
+Date: Fri, 6 Jun 2003 11:31:21 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000901c32bda$69537d50$6f01a8c0@li>
-References: <20030605222647.5193.20098.Mailman@kashyyyk>
+Message-ID: <001601c32bdc$1b2b2e00$6f01a8c0@li>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="gb2312"
@@ -20,7 +19,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGVsbCBBbGwsDQoNCkkgd2FudCB0byB1c2UgbGliaXBxIHRvIHByb2Nlc3MgVENQIGRhdGEgaW4g
-dXNlcnNwYWNlLiBIb3dldmVyLCBJIGRpZCBub3QgZmluZCBhbnkgZG9jdW1lZW50cyBhYm91dCB0
-aGUgbGliaXBxLCBpcyB0aGVyZSBhbnkgZXhhbXBsZXMgb3IgZnVuY3Rpb24gZG9jdW1lbnRzIGFi
-b3V0IHRoaXMgbGliPw0KDQp0aGFua3MgaW4gYWR2YW5jZSENCg0KWW9uZw==
+SGVsbG8gQWxsLA0KDQpJIHdhbnQgdG8gdXNlIHRoZSBsaWJpcHEsIEkgZW5jb3VudGVyZWQgYW4g
+ZXJyb3IgbWVzc2FnZSB3aXRoIHRoZSBJbnRlcmNlcHRzLmMgZXhhbXBsZToNCg0KIy4vYS5vdXQg
+TE9DQUxfSU4gRFJPUCA1IDUNCg0KR2V0IHRoZSBlcnJvciBtZXNzYWdlOg0KDQpJbnRlcmNlcHQ6
+IGNvbm5lY3Rpb24gcmVmdXNlZA0KSW50ZXJjZXB0OiBmYWlsZWQgdG8gc2VuZCBuZXRsaW5rIG1l
+c3NhZ2U6IGlsbGVnYWwgc2Vlaw0KDQpUaGUgaXBxX2NyZWF0ZV9oYW5kbGUgZnVuY3Rpb24gcmV0
+dXJuZXMgdGhlIGFib3ZlIGVycm9yIG1lc3NhZ2UuIEhvdyB0byB1c2UgdGhpcyBleGFtcGxlPw0K
+DQpUaGFua3MgaW4gYWR2YW5jZSE=
