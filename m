@@ -1,15 +1,17 @@
-From: =?iso-8859-1?Q?Herv=E9?= Eychenne <rv@wallfire.org>
-Subject: modified iptables manpage
-Date: Mon, 5 Jul 2004 13:57:40 +0200
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Subject: RE: Classifying packets with the CLASSIFY Target
+Date: Mon, 5 Jul 2004 15:14:17 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040705115740.GD21294@eychenne.org>
+Message-ID: <200407051212.i65CC8MX001686@madinah.ccse.kfupm.edu.sa>
+References: <Pine.LNX.4.44.0407051204230.24656-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter List" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Laurence J. Lane" <ljlane@debian.org>
-Content-Disposition: inline
+To: "'Henrik Nordstrom'" <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0407051204230.24656-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +22,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
- Hi,
+I went through some examples on creating root handles and classes attached
+to these handles. What I understand is that even when using the CLASSIFY
+target, I still have to create these handles and classes? Am I right?
+Regards,
 
-I saw that the last iptables Debian package version (1.2.9-10) includes
-patches to iptables, in particular to the original manpage. Did I miss
-your requests in order to make these changes in the upstream manpage?
-The nature of the patches doesn't matter (they are small)... but don't
-you think that the fair way to do things is to forward wishes to upstream=
-,
-so that everyone could benefit from the improvements, instead of keeping
-them for Debian users only?
+Muhammad R. Sami 
+Research Assistant, 
+Computer Engineering Department 
+P.O.Box 354 
+King Fahd University of Petroleum & Minerals 
+Dhahran 31261 
+Saudi Arabia. 
+Tel: +96638601423 
+Cell: +96657982951 
+www.ccse.kfupm.edu.sa/sami
+-----Original Message-----
+From: netfilter-devel-admin@lists.netfilter.org
+[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Henrik
+Nordstrom
+Sent: Monday, July 05, 2004 1:10 PM
+To: Muhammad R. Sami
+Cc: Netfilter List
+Subject: Re: Classifying packets with the CLASSIFY Target
 
-Note: I'll submit a patch to the manpage (with other small changes as wel=
-l)
-during the week.
+On Mon, 5 Jul 2004, Muhammad R. Sami wrote:
 
- Herve
+> Now as the author states that the above command "Classifies packets of an
+> established session between 40 and 100 bytes", I would like to ask what
+does
+> 1:10 exactly mean.
 
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)  Homepage:          http://www.eychenne.org/
-v_/_ WallFire project:  http://www.wallfire.org/
+It is a classid within the Linux traffic shaper class hierarchy, defined
+by using the tc command.
+
+See the Linux traffic shaping howto and related documentation on how to 
+define traffic shaper classes.
+
+Using the CLASSIFY target in iptables is an alternative method of 
+classifying packets for the Linux traffic shaper, complementing the 
+tc filter scheme.
+
+Regards
+Henrik
