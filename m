@@ -1,13 +1,15 @@
-From: "Nix N. Nix" <nix@go-nix.ca>
-Subject: Minor modification of function dcc_parse in ip_conntrack_irc.c
-Date: Tue, 10 Aug 2004 16:34:41 -0400
+From: Nikola Ciprich <nikola.ciprich@linuxbox.cz>
+Subject: p-o-m: nf-log fix
+Date: Tue, 10 Aug 2004 13:05:47 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1092170081.9955.12.camel@dana.go-nix.ca>
+Message-ID: <1092135947.2905.346.camel@develbox.linuxbox.cz>
+Reply-To: nikola.ciprich@linuxbox.cz
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: kadlec@blackhole.kfki.hu
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,44 +20,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Hi, I think there is small bug in nf-log p'o'm patchset,
+can You please apply following patch: (in case it is correct)
 
-The dcc_parse function in ip_conntrack_irc.c has a shortcoming:
+diff -Naur patch-o-matic-ng-20040809/nf-log/linux-2.4.patch
+patch-o-matic-ng-20040809-nf-log_fix/nf-log/linux-2.4.patch
+--- patch-o-matic-ng-20040809/nf-log/linux-2.4.patch    2004-02-19
+12:36:55.000000000 +0100
++++ patch-o-matic-ng-20040809-nf-log_fix/nf-log/linux-2.4.patch
+2004-08-10 12:07:10.644846287 +0200
+@@ -402,7 +402,7 @@
+ +      }
+ +
+ +      /* if threshold is reached, send message to userspace */
+-+      if (qlen >= loginfo.qthreshold) {
+++      if (ub->qlen >= loginfo.qthreshold) {
+ +              if (loginfo.qthreshold > 1)
+ +                      nlh->nlmsg_type = NLMSG_DONE;
+ +      }
 
-\1DCC <command> <param> <ip> <port> [<size>]\1\n
+thanks,
+n.
 
-...is the format of a DCC command (where <size> is optional).
+-- 
+-------------------------------------
+Nikola CIPRICH
+LinuxBox.cz, s.r.o.
+28. rijna 168, 709 01 Ostrava
 
-dcc_parse is responsible for finding the ip and port in this string.  It
-gets the string starting at <param>.  Unfortunately, so far, dcc_parse
-assumed that <param> does not contain any spaces.  Thus, the module
-failed to track connections implied by a string of the form
+tel.:   +420 596 603 142
+fax:    +420 596 621 273
+mobil:  +420 777 093 799
+www.linuxbox.cz
 
-\1DCC SEND "The Big Movie.avi" 10289477 1011 37546262\1\n
-
-I have remedied this problem by having it check whether there's a double
-quote and, if so, loop on to the corresponding closing double quote
-before resuming normal processing:
-
---- ip_conntrack_irc.c  2003-11-28 13:26:21.000000000 -0500
-+++ mod.ip_conntrack_irc.c      2004-08-10 16:07:49.000000000 -0400
-@@ -83,6 +83,14 @@
-        ad_end_p        returns pointer to last byte of addr data */
- {
-  
-+       /* file names with spaces in them are double-quoted */
-+       if ('"' == *data && data <= data_end - 12) {
-+               *data++ ;
-+               while (*data++ != '"')
-+                       if (data > data_end - 12)
-+                               return -1;
-+       }
-+
-        /* at least 12: "AAAAAAAA P\1\n" */
-        while (*data++ != ' ')
-                if (data > data_end - 12)
-
-This fixes the problem with spaces in file names, and does not affect
-DCC CHAT, because, in those cases, <param> always= chat .
-
-I have tested this in kernel vanilla 2.4.24.
+mobil servis: +420 737 238 656
+email servis: servis@linuxbox.cz
+-------------------------------------
