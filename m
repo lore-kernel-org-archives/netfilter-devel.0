@@ -1,15 +1,18 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: SNAT and IP ID
-Date: Fri, 2 May 2003 11:54:21 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: PATCH: extra conntrack stats
+Date: Fri, 2 May 2003 14:18:38 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030502095420.GI15143@oknodo.bof.de>
-References: <20030502070651.GG15143@oknodo.bof.de> <20030502090512.834482C085@lists.samba.org>
+Message-ID: <Pine.LNX.4.33.0305021411200.7105-100000@blackhole.kfki.hu>
+References: <20030501112613.GC26924@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
+	Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
+	Rusty Russell <rusty@rustcorp.com.au>, Patrick Schaaf <bof@bof.de>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20030502090512.834482C085@lists.samba.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030501112613.GC26924@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,31 +23,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+On Thu, 1 May 2003, Harald Welte wrote:
 
-I have a question that seems too simple, somehow. Anyway, out with it:
+> I would really like to see a simple patch changing the hash function
+> before.  This patch can be pushed to davem after a relatively short time
+> period of testing, since it shouldn't touch too much of the conntrack
+> core.
 
-Given a basic SNAT application, with two hosts on the left,
-an iptables box in the middle, and a server to the right.
-By using SNAT, both hosts's source IP addresses are changed
-to a single shared source IP address, on the way from the
-iptables box, to the server.
+Still sitting and chewing the problem which hash function to choose,
+decided yet undecided...
 
-Every packet sent by our two hosts, has a 16-bit IP ID field,
-for use in fragmentation and reassembly. Together with source and
-destination IP addresses, the ID field provides the key under which
-the server will gather incoming fragments belonging to the same
-IP packet.
+I'm working on an updated raw patch (+ splitted up to internal logging +
+raw patches) and an updated and further tuned tcp window tracking patch (+
+splitted up to proc + tcp window tracking patches). It'll take probably
+one more week and then I'll submit a patch on a better hash function for
+conntrack.
 
-Now, consider both hosts sending out an IP packet with identical ID
-field. Will the IDs be made unique by the SNAT process? If not, what
-happens when, after the SNAT, the packets get fragmented on their
-way to the server? The server cannot sanely reassemble.
-
-Has this been discussed here, before?  Googling [1] results in quite a
-set of hits that mention the issue, it seems customary to ignore it?
-
-best regards
-  Patrick
-
-[1] http://www.google.de/search?q=NAT+fragmentation+problems+IP+ID
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
