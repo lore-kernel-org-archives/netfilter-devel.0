@@ -1,12 +1,11 @@
-From: "Martin Koniczek" <martin@koniczek.de>
-Subject: Re: pptp-conntrack-nat - problem
-Date: Wed, 6 Apr 2005 10:52:39 +0200
-Message-ID: <04d701c53a86$012a1150$9c01a8c0@vaion>
-References: <1112691812.22295.4.camel@sas> <20050405152410.GA7423@linuxace.com>
+From: "Alexander Stieglecker" <a.stieglecker@gmx.net>
+Subject: ICMP error handling in CLUSTERIP
+Date: Wed, 6 Apr 2005 11:41:39 +0200
+Message-ID: <000001c53a8c$d5910290$aa28abc1@Vagabond>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -20,22 +19,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->> I try apply pptp-conntrack downloaded directly from SVN
->> and I got error:
->> Kernel:   2.6.11, /home/users/cieciwa/rpm/BUILD/linux-2.6.11.6
-> 
-> It doesn't work with kernels > 2.6.10 at the moment.
+Hi,=20
 
-is it much work to make it work with current kernels?
-or is there some inofficial "roadmap"/estimates?
-or can one outline the steps needed, so i could try my own luck?
+when I browsed through the CLUSTERIP target function I discovered the
+following pice of code:
 
-i have great interest for this module to work with kernels >2.6.10
-(also needing h323-conntrack-nat, connbytes, connrate)
-(nice2have owner-socketlookup, owner-supgids, TRACE,
-dropped-table, unclean which all seem not to work with 2.6.11.6)
-at least, the patches cannot be apllied - perhaps because of changes
-which are already in the kernel? mostly ladd troubles...
+/* special case: ICMP error handling. conntrack distinguishes between
+ * error messages (RELATED) and information requests (see below) */
+if ((*pskb)->nh.iph->protocol =3D=3D IPPROTO_ICMP
+    && (ctinfo =3D=3D IP_CT_RELATED=20
+	|| ctinfo =3D=3D IP_CT_IS_REPLY+IP_CT_IS_REPLY))
+	return IPT_CONTINUE;
 
-sincerly,
-    martin koniczek
+IP_CT_IS_REPLY+IP_CT_IS_REPLY equals six which is greater than =
+IP_CT_NUMBER.
+Shouldn't it be something like IP_CT_IS_RELATED+IP_CT_IS_REPLY?
