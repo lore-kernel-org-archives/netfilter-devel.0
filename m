@@ -1,17 +1,15 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's brain broke!)
-Date: Wed, 14 Jan 2004 16:20:47 +1100
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: How/where does the kernel map packets to an application ...
+Date: Thu, 15 Jan 2004 00:48:04 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040114221944.AFA6B2C003@lists.samba.org>
-References: <20040113115428.GO20206@sunbeam.de.gnumonks.org>
-Cc: Patrick McHardy <kaber@trash.net>, kuznet@ms2.inr.ac.ru,
-	fenio@o2.pl, davem@redhat.com, linux-net@vger.kernel.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	boris@boris.ca, email@cs-ware.de, Jan.Schubert@GMX.li
+Message-ID: <4005D534.9050401@eurodev.net>
+References: <200401150910.32898.andrej@paradise.net.nz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-reply-to: Your message of "Tue, 13 Jan 2004 12:54:28 BST."
-             <20040113115428.GO20206@sunbeam.de.gnumonks.org>
+To: andrej@paradise.net.nz, netfilter-devel@lists.netfilter.org
+In-Reply-To: <200401150910.32898.andrej@paradise.net.nz>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,34 +20,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <20040113115428.GO20206@sunbeam.de.gnumonks.org> you write:
-> > Yes, this is the best.  It always does *something*, and is
-> > predictable.  People with really complex routing shouldn't really use
-> > MASQUERADE, since it's designed for a specific, simple case.
-> 
-> No, I really disagree with that.  I still don't understand what the
-> problem was with the old solution.  We haven't received any complaints,
-> at least not that I can remember.
+Hi Andrei,
 
-I'm not so sure.  We know Patrick's solution will work.  Yes it might
-break things.
+Andrej Ricnik wrote:
 
-> And as long as we don't provide a more sophisticated MASQUERADE
-> replacement target, we shouldn't change the behaviour at all.
-> 
-> You cannot use SNAT for the dynamic IP address case, because it doesn't
-> flush the tables.
+>Hi Guys,
+>
+>and sorry for asking this here, I'm aware of the fact that
+>this isn't quite the right list to do so, in fact, I don't even
+>know how to word my question properly, so please bear
+>with me.
+>
+>Since you're pretty close to what I suspect to be the right
+>layer to be looking at I hope someone might understand
+>what I'm on about :)
+>
+>My idea is to write an addition to netfilter that will check 
+>the originating application of an IP request against a list
+>of allowed files, and if I handle that well enough, integrate
+>a roster of user/application to check whether a request is
+>legal or not.
+>
+>My question is:
+>At which point does the kernel determine which application
+>a incoming packet is meant for?
+>
 
-We should probably do "-j SNAT --dynamic" for this case.
+Actually, netfilter can't know for which application is that packet 
+coming for, because it works in the network/transport (level 3/4 of OSI 
+model) layer, I mean that netfilter can only manages data packets (they 
+are contained in a network buffer, see the structure skbuff). What you 
+want do is packet filtering from the application layer.
 
-> And there are lots of users that have multiple DSL-dynip links these
-> days, trying to statically or dynamically balance web requests between
-> them, etc.
+> Imagine one user having
+>mozilla and opera open, using both for browsing. Another
+>user having a links session in a console. How does the
+>kernel determine which application is meant to receive
+>a incoming packet on port 80? I hope that once I under-
+>stand how this works I could for instance use lsof or a
+>tool the like to intercept illegal requests by matching 
+>against application name/path ...
+>
+if it's only web traffic, it will be a good idea performing the 
+filtering via proxy.
 
-In that case, the interfaces are different, (ppp0 vs ppp1) so no
-problem.  You need something more complex to trigger the problem
-AFAICT.
-
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+cheers,
+Pablo
