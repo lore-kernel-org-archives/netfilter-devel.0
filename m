@@ -1,19 +1,16 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: [PATCH] modification in current protocol helper API to handle error/unclean packets
-Date: Tue, 22 Jun 2004 18:18:29 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: How to fill a ipt_entry structure to add a rule using
+ iptc_append_entry()
+Date: Tue, 22 Jun 2004 19:28:40 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040622161829.GA22966@alpha.home.local>
-References: <20040622043928.GA21406@alpha.home.local> <Pine.LNX.4.33.0406221440450.2546-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.44.0406221926260.25113-100000@filer.marasystems.com>
+References: <20040622154903.GK24374@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Henrik Nordstrom <hno@marasystems.com>, Pablo Neira <pablo@eurodev.net>,
-   Martin Josefsson <gandalf@wlug.westbo.se>,
-   Patrick McHardy <kaber@trash.net>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0406221440450.2546-100000@blackhole.kfki.hu>
+To: babula allu <allubabula@yahoo.com>
+In-Reply-To: <20040622154903.GK24374@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,61 +21,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+On Tue, 22 Jun 2004, Harald Welte wrote:
 
-On Tue, Jun 22, 2004 at 03:17:55PM +0200, Jozsef Kadlecsik wrote:
- 
-> In the second and third case you are unable to override the decision of
-> conntrack on how it treated the packet. If you let trough the second
-> category of the packet, it won't hurt. However, if the SYNs in the third
-> case are dropped by your rule, then conntrack's attempt to do its job
-> properly is defeated. In all case conntrack can log the packets.
+> On Tue, Jun 22, 2004 at 04:47:55AM -0700, babula allu wrote:
+> > Hi,
+> > 
+> > 
+> > I am trying to add a simple rule to INPUT chain using
+> > iptc_append_entry  but it fails.It says invalid
+> > argument.
+> > 
+> >  I also tried sending the same ipt_entry structure
+> > which was returned by the iptc_first_rule API.In this
+> > case iptc_append _entry doesn't return an error but
+> > iptables -L doesn't display the rule in the list also.
+> > 
+> > If somebody knows about the cause and solution please
+> > help me.
 > 
-> What would be the purpose of the extension you propose? Logging is already
-> supported if one wish to monitor such packets.
+> 1) please read http://www.netfilter.org/contact.html
+> 
+> 2) libiptc is not a public interface, we do not encourage neither
+>    support anybody using it.
 
-There are several uses to this :
-  - being able to log *every* ignored packet with the same mechanism as the
-    other ones (LOG, ULOG, QUEUE, ...). For that, the cleanest solution for
-    the administrator would be a match. But indeed, it might not need to be
-    a state match, but sort of a sub-state. Something like "ok, the packet
-    is valid, but here are some precisions : it has been ignored".
 
-  - being able to send a TCP RST for packets which don't belong to any
-    session, and/or for those with invalid flags for the session state,
-    but not for those which belong to a known session with bad sequence
-    numbers. This would allow the firewall to help some hosts to close
-    dead sessions without revealing anything about the configuration.
+Instead use the iptables / iptables-restore command interfaces.
 
-Something such as the following might sometimes be helpful :
+For large modifications iptables-restore is recommended. Accepts the same 
+commands as iptables, plus some more for the "transaction support" (see 
+output of iptables-save)
 
-----
-
-# only log ignored SYNs but not ignored RSTs
-iptables -A FORWARD -m state --state ESTABLISHED --reason IGNORED \
-    -p tcp --syn -j LOG --log-prefix "Ignoring this SYN: "
-# send an RST for session-less packets
-iptables -A FORWARD -p tcp --flags RST NONE -m state --state INVALID \
-    --reason NOSESSION -j send_reset
-# send an RST for out-of-sync SYN/ACK packets
-iptables -A FORWARD -p tcp --flags ALL SYN,ACK -m state --state INVALID \
-    --reason BADFLAGS -j send_reset
-# send an RST for out-of-sync ACK packets in SYN_SENT/SYN_RECV state
-iptables -A FORWARD -p tcp --flags SYN,ACK,FIN,RST ACK -m state \
-    --state INVALID --reason BADFLAGS -j send_reset
-iptables -A send_reset -m limit --limit 100/s -j REJECT --reject-with tcp-reset
-iptables -A send_reset -m limit --limit 10/s -j LOG --log-prefix "possible scan or old packet "
-iptables -A send_reset -j DROP
-
-----
-
-These are all cases I encounter in production at a rate of about ten times a
-second at the peak, and which could be greatly reduced if I had the ability
-to tell the client that it's worthless retransmitting.
-
-I know what Linus says, talk is cheap, show me the code... I have no code
-for this, but since I have had this idea in mind now for a long time, I
-might come up one day with a few lines, and I'd like to do it cleanly.
-
-Regards,
-Willy
+Regards
+Henrik
