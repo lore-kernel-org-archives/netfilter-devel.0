@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH}: Make MARK target terminate (resend)
-Date: Tue, 2 Jul 2002 17:45:23 +0200
+From: Harald Welte <laforge@sunbeam.franken.de>
+Subject: Re: ip_conntrack_lock not readlocked
+Date: Tue, 2 Jul 2002 18:02:05 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020702154523.GO18333@naboo.rchrd.phub.net.cable.rogers.com>
-References: <200206291236.36997@henrik.marasystems.com> <Pine.LNX.4.33.0207011037260.12444-100000@blackhole.kfki.hu>
+Message-ID: <20020702160205.GQ18333@naboo.rchrd.phub.net.cable.rogers.com>
+References: <3D21B499.141D270C@isd.uni-stuttgart.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Henrik Nordstrom <hno@marasystems.com>,
-	netfilter-devel <netfilter-devel@lists.samba.org>
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Albrecht Melan <melan@isd.uni-stuttgart.de>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0207011037260.12444-100000@blackhole.kfki.hu>
+In-Reply-To: <3D21B499.141D270C@isd.uni-stuttgart.de>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,61 +21,30 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 01, 2002 at 11:47:09AM +0200, Jozsef Kadlecsik wrote:
-> On Sat, 29 Jun 2002, Henrik Nordstrom wrote:
+On Tue, Jul 02, 2002 at 04:11:37PM +0200, Albrecht Melan wrote:
+> Hi,
 > 
-> [...]
-> > I proposed adding a new class of iptables things between matches and
-> > targets, being neither a match for filtering or a target that
-> > determines the ultimate fate of the packet. The names proposed for
-> > these in the discussion was modifiers or actions.
-> 
-> I believe we have four possibilities
-> 
-> - multiple targets
-> 
->   It has been rejected several times with good reasons: too error-prone
->   for the users and it would require heavy modifications both in the
->   kernel and the userspace.
+>  I'm using a kernel of version 2.4.18 where module-support is disabled
+> together with iptables-1.2.6a ( all compiled by myself).
+>  I applied patches to netfilter  using POM.
 
-the 'too heavy modification' issue is not really a problem anymore,
-since the undergoing 'pkt_tables' rewrite [shared infrastructure for
-iptables, ip6tables, arptables] and the linked-list rewrite.
+which patches?
 
-> - a new class: actions
-> 
->   With the new class, we would have to following skeleton of a rule:
-> 
-> 	IP match data
-> 	list of matches
-> 	list of actions
-> 	single target
-> 
->   Using any action would make sense only when the target is ACCEPT and
->   alike, so the actions function as 'always true' matches.
-> 
->   One also has to note, that we have a nice, visible separation of matches
->   and targets by name: matches are lowercased, while targets are
->   uppercased. How could actions be fit into this scheme? How could one
->   decide by glimpse that we are speaking about a match, action or
->   target?
-> 
->   [I'd name the new class as 'action' instead of 'modifier', because '-m'
->   is reserverd but '-a' is not.]
+>  The following messages are seen in  my log-file
+>         ASSERT: ip_nat_core.c: 743 &ip_conntrack_lock not readlocked
+>         ASSERT:ip_conntrack_core.c: 973 &ip_conntrack_lock readlocked
 
-this sounds the most reasonable idea to me. 
+how often do you see them? Do they have always the same  line number?
+Could you send me a grep on all 'ASSERT:' entries in your syslog?
 
-> In my opinion the match solution would be better, cleaner.
+What kind of machine are you running?
 
-I think introducing actions would be the way to go. but I'm not really
-convinced of any of the 'solutions'.
-
-> Regards,
-> Jozsef
+>  Thanks for your help
+>      Albrecht
 
 -- 
 Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+- Harald Welte / laforge@sunbeam.franken.de    http://www.sunbeam.franken.de
 ============================================================================
 GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
