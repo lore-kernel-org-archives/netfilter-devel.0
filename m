@@ -1,42 +1,111 @@
-From: Piotrek Kaczmarek <kaczorek@k.daleka.net>
-Subject: Re: accounting NAT-ed packets
-Date: Sun, 19 Dec 2004 23:48:50 +0100
-Message-ID: <20041219224850.GA25652@daleka.net>
-References: <20041219101257.GA16236@daleka.net>
+From: Samuel Jean <sj-netfilter@cookinglinux.org>
+Subject: [testsuite] ipt_length
+Date: Sun, 19 Dec 2004 21:32:26 -0500
+Message-ID: <41C639BA.4000708@cookinglinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20041219101257.GA16236@daleka.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------060801070007080503080104"
+Cc: netfilter-devel@lists.netfilter.org,
+	Nicolas Bouliane <nib@cookinglinux.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Rusty Russell <rusty@rustcorp.com.au>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Dec 19, 2004 at 11:12:57AM +0100, Piotrek Kaczmarek wrote:
-> Hello,
-> 
-> I want to account all traffic from the address assigned to the linux box
-> (including NAT, locally generated traffic), but i can't. The rule
-> iptables -t mangle -A POSTROUTING -s 213.25.213.42
-> seems not to ,,catch'' NAT-ed packets, only locally generated traffic.
-> 
-> Is there any method to ,,catch'' packets after NAT with netfilter?
+This is a multi-part message in MIME format.
+--------------060801070007080503080104
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I've found a solution. I've added POSTROUTING chain to the raw table but with
-higher priority than a nat table, so it is now possible to intercept
-packets with nat-ed source addresses. You can download patch from
-http://k.daleka.net/iptable_raw.patch
+Hi rusty,
 
-Could you consider applying this? I couldn't find other solution to do this.
+I broke my head to do a complete test against TCP, UDP and ICMP.
+Once I finished, I looked at ipt_length.c to obviously open my eyes
+on the fact we test against the IP header.
 
--- 
-Piotrek Kaczmarek
+Should be not so bad..
+
+Damnit :)
+
+--peejix
+
+--------------060801070007080503080104
+Content-Type: text/plain;
+ name="39ipt_length.sim"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="39ipt_length.sim"
+
+# Send 5 packets with different length where datalen 0 & 4 are out of range.
+# As it tests against the ip header, whatever layer4 proto we use is OK.
+# TCP with no data ends up with a packet of 40 bytes.
+
+iptables -I INPUT -m length --length 41:43 -j DROP
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 6 1 2 SYN
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 1 6 1 2 SYN
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 2 6 1 2 SYN
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 3 6 1 2 SYN
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 4 6 1 2 SYN
+iptables -D INPUT -m length --length 41:43 -j DROP
+
+# Invert the whole thing
+iptables -I INPUT -m length ! --length 41:43 -j DROP
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 6 1 2 SYN
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 1 6 1 2 SYN
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 2 6 1 2 SYN
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 3 6 1 2 SYN
+expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
+gen_ip IF=eth0 192.168.0.2 192.168.0.1 4 6 1 2 SYN
+iptables -D INPUT -m length ! --length 41:43 -j DROP
+
+--------------060801070007080503080104
+Content-Type: text/plain;
+ name="38ipt_length-bad-args.sim"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="38ipt_length-bad-args.sim"
+
+# Test a normal straight rule (expecting: success)
+iptables -I INPUT -m length --length 100
+iptables -D INPUT -m length --length 100
+iptables -I INPUT -m length --length 100:200
+iptables -D INPUT -m length --length 100:200
+iptables -I INPUT -m length --length :100
+iptables -D INPUT -m length --length :100
+iptables -I INPUT -m length --length 100:
+iptables -D INPUT -m length --length 100:
+iptables -I INPUT -m length --length :
+iptables -D INPUT -m length --length :
+
+
+# Test both invert argument (expecting: success)
+iptables -I INPUT -m length ! --length 100
+iptables -I INPUT -m length --length ! 100
+
+# Twin options are not allowed (expecting: failure)
+expect iptables iptables: command failed
+iptables -I INPUT -m length --length 100 --length 50
+
+# Bad arguments (expecting: failure)
+expect iptables iptables: command failed
+iptables -I INPUT -m length --length -1
+expect iptables iptables: command failed
+iptables -I INPUT -m length --length 50:100:150
+
+--------------060801070007080503080104--
