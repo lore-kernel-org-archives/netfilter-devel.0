@@ -1,15 +1,15 @@
-From: Chris Wilson <chris@netservers.co.uk>
-Subject: Re: TOS target broken wrt ECN (was RFC 1349)
-Date: Thu, 29 Apr 2004 18:31:15 +0100 (BST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: TOS target broken wrt RFC 1349
+Date: Thu, 29 Apr 2004 19:58:32 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0404291748430.5102@chris.camcom.co.uk>
-References: <Pine.LNX.4.44.0404290113410.17188-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0404291809060.29329-100000@filer.marasystems.com>
+References: <Pine.LNX.4.58.0404291448500.5102@chris.camcom.co.uk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0404290113410.17188-100000@filer.marasystems.com>
+To: Chris Wilson <chris@netservers.co.uk>
+In-Reply-To: <Pine.LNX.4.58.0404291448500.5102@chris.camcom.co.uk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,43 +20,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Henrik,
+On Thu, 29 Apr 2004, Chris Wilson wrote:
 
-Sorry to bother you again, but based on the information in the RFCs 
-(condensed):
+> OK, thank you for clearing that up for me. However, either tcpdump or the
+> kernel must be wrong, because when I set TOS to 0x02, tcpdump says that I
+> set the ECT bit! (I know you will all say that tcpdump is wrong :-)
 
-  RFC 1349:
+It is a matter on conflicting RFCs.
 
-         0     1     2     3     4     5     6     7
-      +-----+-----+-----+-----+-----+-----+-----+-----+
-      |   PRECEDENCE    |          TOS          | MBZ |
-      +-----+-----+-----+-----+-----+-----+-----+-----+
+Both RFC 1349 (obsolete TOS RFC) and RFC 3168 (ECN) defines different
+meanings of bit #6 (0x02).
 
-  RFC 2474:
+STD 5 (RFC 791). Defines 3 bits precedence and 3 bits type of service. 
+The last 2 bits (#6, #7) is undefined.
 
-        0   1   2   3   4   5   6   7
-      +---+---+---+---+---+---+---+---+
-      |         DSCP          |  CU   |
-      +---+---+---+---+---+---+---+---+
+RFC 1349. Defines 3 bits of precedence (STD 5) and 4 bits of TOS. This
+matches the Linux TOS definitions. Only 1 bit undefined of the TOS octet
+in this RFC (MBZ, Must Be Zero)
 
-  RFC 3168:
+RFC 2474. Defines 6 bits of DS, combining the precendence and TOS bits of
+STD 5 as one single 6 bit field. The code pints xxx000 is defined in the
+same manner as the Precedence of STD 5. The last 2 bits of the TOS octet
+is left undefined.
 
-         0     1     2     3     4     5     6     7
-      +-----+-----+-----+-----+-----+-----+-----+-----+
-      |          DS FIELD, DSCP           | ECN FIELD |
-      +-----+-----+-----+-----+-----+-----+-----+-----+
+RFC 1349 defines the two unused bits of RFC 2474 for use by ECN.
 
-Would you say that the bits allocated to ECN overlap with the old TOS and 
-MBZ fields (as it appears to me now), rather than the bit order being 
-reversed in one or two of these diagrams?
+> Well, it doesn't give you full power over the TOS octet, see ipt_TOS.c:
+> 
+>         if (tos != IPTOS_LOWDELAY
+>             && tos != IPTOS_THROUGHPUT
+>             && tos != IPTOS_RELIABILITY
+>             && tos != IPTOS_MINCOST
+>             && tos != IPTOS_NORMALSVC) {
+>                 printk(KERN_WARNING "TOS: bad tos value %#x\n", tos);
+>                 return 0;
+>         }
 
-If so, then the TOS target is dangerous since it will disrupt the 
-operation of ECN, and the documentation should mention that. I'd be happy 
-to write a patch to update it if people are interested.
+Ugh.. did not know of this. But ok.. this is not good. The TOS is far to
+overloaded to assume that one wants to use on obsoleted RFC.. In addition
+for all practical purposes Precedence is a form of TOS and is why it is 
+included in DS (and is in fact the only defined codepoints of DS)
 
-Cheers, Chris.
--- 
-_  __ __     _
- / __/ / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
-/ (_  ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
-\__/_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
+Regards
+Henrik
