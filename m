@@ -1,18 +1,13 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: Re: defense against conntrack attacks
-Date: Sun, 16 Jun 2002 15:57:19 -0700
+From: Patrick McHardy <kaber@trash.net>
+Subject: PATCH: make MARK target terminate
+Date: Mon, 17 Jun 2002 05:46:09 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15629.6095.353639.29180@isis.cs3-inc.com>
-References: <20020615132638.84C444509@lists.samba.org>
-	<15627.49630.258601.138681@isis.cs3-inc.com>
-	<20020616221633.J2543@sunbeam.de.gnumonks.org>
+Message-ID: <3D0D5B81.7010106@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.samba.org
+Content-Type: multipart/mixed;
+ boundary="------------080309030808090901030203"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20020616221633.J2543@sunbeam.de.gnumonks.org>
+To: netfilter-devel <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,83 +18,118 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte writes:
- > On Sat, Jun 15, 2002 at 03:38:22PM -0700, Don Cohen wrote:
- > 
- > > Here's a summary of some experiments that show this is true ...
- > 
- > thanks, this is the kind of testing/benchmarkin which is appreciated.
- > 
- > > These were done with 200MHz machines, one generating packets and
- > > the other forwarding.  They're connected by a 100Mbit link.
-I should also have mentioned, 2.4.3 kernel.
-The code might have changed a fair amount since then.
+This is a multi-part message in MIME format.
+--------------080309030808090901030203
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
- ...
- > > This shows that conntrack is a bottleneck, at least dealing with new
- > > packets.
- > 
- > there are a couple of issues related to this:
- > 
- > 1 the number of hash buckets in your conntrack hash table (this is a module
- >   loadtime parameter and the default depends on your systems total RAM size)
- > 2 the conntrack hash function.  If all (or more/most) connections would end
- >   up in the same couple of buckets, performance would suffer significantly.
- > 3 did you see any messages in your kernel log ?  any OOM messages?
- >   I could imagine that the kernel has difficulties allocating the needed
- >   memory for conntrack entries
+Hi.
 
-The only log messages I see that appear to be related are:
-Jun 14 14:52:25 router1 kernel: ip_tables: (c)2000 Netfilter core team
-and
-Jun 14 15:01:10 router1 kernel: ip_conntrack (1024 buckets, 8192 max)
-(I see several of those since I rmmod'ed and reloaded conntrack
-several times).
-I assumed without looking that the hash function would be mostly
-different when only the destination port changed, which is what I was
-doing.  Attacking the hash function is yet another approach that I was
-planning to worry about, but I haven't gotten there yet.
-(Anyone have ideas about defense against such an attack?  I have a few
-that seem pretty obvious.) 
+The attached patch adds a new option --terminate to the MARK target 
+which lets the user choose
+if MARK should return IPT_CONTINUE (normal behaviour) or NF_ACCEPT (to 
+terminate further rule processing).
+This can be useful if you have complex marking rules, f.e. for QoS.
+The current patch is against a clean MARK target, if anyone wishes i can 
+also make a patch which will apply after MARK-operations.
+A CONNMARK patch will follow but currently CONNMARK doesn't apply clean 
+against 2.4.18/2.4.19-pre10 ..
 
- > > I conclude that if the code for creating new connections could be made
- > > faster (it would have to be MUCH faster) there would be some benefit
- > > in doing so.  I've not looked at that.  I presume whoever wrote it was
- > > at least trying to make it efficient.  If anyone thinks this is a
- > > promising approach, please feel free to say so.
- > 
- > the question would be:  what exactly is so slow? why is it slow?
+Bye,
+Patrick
 
-Of course, anyone who knows how to improve the code should please
-speak up.  I still hope to read and understand it, but if/when I get
-there I expect I'll then understand why it has to take as long as it
-does as opposed to seeing how to fix it.
+--------------080309030808090901030203
+Content-Type: text/plain;
+ name="iptables-terminate.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="iptables-terminate.diff"
 
- > > What I'm really interested in is a defense that, e.g., rate limits
- > > syns.  The problem I see in the current implementation (again, correct
- > > me if I'm wrong) is that the very first thing that happens when a
- > > packet arrives is that conntrack processes it, and this includes the
- > > code for creating a conntrack record in the case where there is none.
- > 
- > yes, I think Jozsef is working on a 'conntrack exemption table' where you
- > could tell it that certain [maybe above a certain limit] packets are 
- > not conntracked.
+diff -urN userspace-clean/patch-o-matic/extra/MARK-terminate.patch userspace/patch-o-matic/extra/MARK-terminate.patch
+--- userspace-clean/patch-o-matic/extra/MARK-terminate.patch	Thu Jan  1 01:00:00 1970
++++ userspace/patch-o-matic/extra/MARK-terminate.patch	Mon Jun 17 05:36:21 2002
+@@ -0,0 +1,23 @@
++diff -urN linux/include/linux/netfilter_ipv4/ipt_MARK.h linux-2.4.18-terminate/include/linux/netfilter_ipv4/ipt_MARK.h
++--- linux/include/linux/netfilter_ipv4/ipt_MARK.h	Fri Mar 17 19:56:20 2000
+++++ linux-2.4.18-terminate/include/linux/netfilter_ipv4/ipt_MARK.h	Mon Jun 17 05:07:29 2002
++@@ -3,6 +3,7 @@
++ 
++ struct ipt_mark_target_info {
++ 	unsigned long mark;
+++	u_int8_t terminate;
++ };
++ 
++ #endif /*_IPT_MARK_H_target*/
++diff -urN linux/net/ipv4/netfilter/ipt_MARK.c linux-2.4.18-terminate/net/ipv4/netfilter/ipt_MARK.c
++--- linux/net/ipv4/netfilter/ipt_MARK.c	Sun Sep 30 21:26:08 2001
+++++ linux-2.4.18-terminate/net/ipv4/netfilter/ipt_MARK.c	Mon Jun 17 05:07:58 2002
++@@ -21,7 +21,7 @@
++ 		(*pskb)->nfmark = markinfo->mark;
++ 		(*pskb)->nfcache |= NFC_ALTERED;
++ 	}
++-	return IPT_CONTINUE;
+++	return markinfo->terminate ? NF_ACCEPT : IPT_CONTINUE;
++ }
++ 
++ static int
+diff -urN userspace-clean/patch-o-matic/extra/MARK-terminate.patch.help userspace/patch-o-matic/extra/MARK-terminate.patch.help
+--- userspace-clean/patch-o-matic/extra/MARK-terminate.patch.help	Thu Jan  1 01:00:00 1970
++++ userspace/patch-o-matic/extra/MARK-terminate.patch.help	Mon Jun 17 05:36:21 2002
+@@ -0,0 +1,9 @@
++Author: Patrick McHardy <kaber@trash.net>
++Status: Working
++
++This patch adds a new option --terminate to MARK to terminate chain traversal.
++
++# iptables -t mangle -A PREROUTING -m tos --tos 0x08 -j MARK --set-mark 0x15 --terminate
++
++***** WARNING ***** This patch also patch the userspace directory which means that you
++                    you have to recompile and reinstall the iptables package after that.
+diff -urN userspace-clean/patch-o-matic/extra/MARK-terminate.patch.userspace userspace/patch-o-matic/extra/MARK-terminate.patch.userspace
+--- userspace-clean/patch-o-matic/extra/MARK-terminate.patch.userspace	Thu Jan  1 01:00:00 1970
++++ userspace/patch-o-matic/extra/MARK-terminate.patch.userspace	Mon Jun 17 05:36:21 2002
+@@ -0,0 +1,42 @@
++diff -urN extensions/libipt_MARK.c extensions/libipt_MARK.c
++--- extensions/libipt_MARK.c	Wed May 29 15:08:16 2002
+++++ extensions/libipt_MARK.c	Mon Jun 17 05:21:16 2002
++@@ -26,6 +26,7 @@
++ 
++ static struct option opts[] = {
++ 	{ "set-mark", 1, 0, '1' },
+++	{ "terminate", 0, 0, '2' },
++ 	{ 0 }
++ };
++ 
++@@ -57,6 +58,10 @@
++ 		*flags = 1;
++ 		break;
++ 
+++	case '2':
+++		markinfo->terminate = 1;
+++		break;
+++		
++ 	default:
++ 		return 0;
++ 	}
++@@ -88,6 +93,9 @@
++ 		(const struct ipt_mark_target_info *)target->data;
++ 	printf("MARK set ");
++ 	print_mark(markinfo->mark, numeric);
+++	
+++	if (markinfo->terminate)
+++		printf("terminate ");
++ }
++ 
++ /* Saves the union ipt_targinfo in parsable form to stdout. */
++@@ -98,6 +106,9 @@
++ 		(const struct ipt_mark_target_info *)target->data;
++ 
++ 	printf("--set-mark 0x%lx ", markinfo->mark);
+++
+++	if (markinfo->terminate)
+++		printf("--terminate ");
++ }
++ 
++ static
 
-Isn't that disastrous?  For instance, NAT can't work in that case,
-right?  And any rules that refer to conntrack state.  Unless you just
-drop the packets, of course.  And yes, that's what I want to do, but
-of course I have some ideas about how to decide WHICH packets to drop.
-
- > Second, you need conntrack information before postrouting:
- > 
- > - for doing DNAT [which _needs_ to happen before the routing decision]
- > - for any stateful rules in the FORWARD chain of the filter table
- > - for any stateful rules in the INPUT chain of the filter table
-
-The question is how much data is needed for those things.  A lot
-depends on where the actual expense is, which I don't yet know.
-
-I'll mention my other plan, which I was beginning to like better anyway.
-It's a version of IMQ that runs before conntrack and rate limits the
-"expensive" packets.  This could even read conntrack state in order to
-decide which packets were expensive.
+--------------080309030808090901030203--
