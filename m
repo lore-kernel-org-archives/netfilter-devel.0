@@ -1,16 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: conntrack match and locking
-Date: Fri, 28 May 2004 14:06:30 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: 64bit changes in cvs
+Date: Fri, 28 May 2004 14:19:49 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40B72B46.9050908@eurodev.net>
-References: <Pine.LNX.4.44.0405261804070.31237-100000@filer.marasystems.com> <Pine.LNX.4.58.0405271104570.27895@chris.camcom.co.uk>
+Message-ID: <Pine.LNX.4.58.0405281413510.7322@tux.rsn.bth.se>
+References: <1085609520.969.128.camel@tux.rsn.bth.se> <40B727C9.4090604@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Wilson <chris@netservers.co.uk>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.58.0405271104570.27895@chris.camcom.co.uk>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <40B727C9.4090604@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,44 +20,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Chris,
+On Fri, 28 May 2004, Pablo Neira wrote:
 
-Chris Wilson wrote:
+> Hi Martin,
 
->Is there some documentation which describes this process? I didn't find 
->anything in the netfilter hacking HOWTO.
+Hi Pablo
+
+> I sent a patch to add autoconf some time ago, actually to fix this issue
+> with 32bit in user space, 64 bit in kernel space architectures.
 >
+> Well, I just want to reopen some discussion if possible, if you consider
+> that autoconf is more than we need for iptables it's ok I will understand.
 
-no, only source code, have a look at netfilter-docbook patch which has 
-comments about all functions used in ip_conntrack_core.c, but the 
-current schema used is not documented.
+I know almost nothing about autoconf (more than I think it's very bloated
+:), I'll see if I can make some time to actually look at it.
 
-> Are the conntrack entries 
->(original and reply) actually spin_locked, or just held in memory by the 
->reference?
+> Please see:
+> http://lists.netfilter.org/pipermail/netfilter-devel/2004-May/015245.html
+> http://lists.netfilter.org/pipermail/netfilter-devel/2004-May/015246.html
 >
-
-Actually this is the process, when we read a conntrack from the 
-conntrack table we read_lock the table and increase its refcount (see 
-ip_conntrack_get). We don't lock a conntrack, we lock the table while 
-reading the conntrack/tuples pair.
-
-To write a conntrack, that is, we want to add/destroy/modify a conntrack 
-, we write lock the table.
-
-At this moment we lock the whole table, Joszef has some patches to make 
-fine grain locking (instead of locking the whole table, per bucket 
-locking) in pom-ng still in testing phase.
-
-> If two packets are being processed at the same time on an SMP 
->machine, who holds what locks?
->  
+> >I've reworked the part of the makefile that tries to detect if you are
+> >compiling a 32bit iptables against a 64bit kernel. I hope it works...
+> >
+> >
 >
+> What did you use? uname stuff? I'll promise to have a look at CVS when
+> having some spare time.
 
-As I told you, we only lock the table when reading/writing new entries, 
-once we get the conntrack, we increase the refcount. Have also a look at 
-ip_conntrack_put to understand the way refcounts are used when 
-destroying a conntrack.
+Just remember that I never said it was pretty... :)
+I use uname and check the BITS_PER_LONG macro in the kernel we are
+compiling against and I try to determine if we are compiling 32bit or
+64bit. It isn't pretty but it's an improvement over the previous version.
+As that blindly said that uname -m == sparc64 always was 32bit userspace
+(and the extra define wasn't propagated to the extensions/ directory)
 
-regards,
-Pablo
+It seems to do the right(tm) thing on x86, sparc64 (32/64bit userspace)
+and alpha, don't have access to more architectures.
+
+/Martin
