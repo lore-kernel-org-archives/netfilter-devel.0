@@ -1,17 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Problem with sk_buff - part 2
-Date: Fri, 7 Jun 2002 21:29:37 +0200
+From: Ben Reser <ben@reser.org>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Fri, 7 Jun 2002 14:48:48 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206072129.37965.hno@marasystems.com>
-References: <003d01c20e58$4a85f880$c9907450@CHICCA>
+Message-ID: <20020607214848.GS28055@titanium.brain.org>
+References: <E17G6im-0000FK-00@wagner.rustcorp.com.au> <20020607015247.L11214@thot.informatik.uni-kl.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "Damiano Bolzoni" <damiano.bolzoni@tin.it>,
-	<netfilter-devel@lists.samba.org>
-In-Reply-To: <003d01c20e58$4a85f880$c9907450@CHICCA>
+To: netfilter-devel@lists.samba.org
+Content-Disposition: inline
+In-Reply-To: <20020607015247.L11214@thot.informatik.uni-kl.de>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,17 +20,18 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Damiano Bolzoni wrote:
-> Thank you for answer!
-> I thought that was a problem like that.
-> What call I have to make? which parameters have to pass?
+On Fri, Jun 07, 2002 at 01:52:47AM +0200, Joerg Mayer wrote:
+> If their firewall reboots and is running iptables and thus Linux: How
+> long will it be down? Which application will actually survive the down-
+> time? Does this application really matter?
 
-It is not as simple. The TCP/IP stack is not designed to have others poke 
-around into it..
+Even with about 3 or 4 minutes to reboot I rarely lose connections when
+I reboot my firewall.
 
-See tcp_ipv4.c:tcp_v4_rcv().
+-- 
+Ben Reser <ben@reser.org>
+http://ben.reser.org
 
-Can you explain again why you want to access the socket from netfilter?
-
-Regards
-Henrik
+We tend to see all wars through the lens of the current conflict, and we
+mine history for lessons convenient to the present purpose.
+- Brian Hayes
