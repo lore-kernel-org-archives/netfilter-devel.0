@@ -1,13 +1,15 @@
-From: "Zheng Chuanbo" <zhengcb@netpower.com.cn>
-Subject: What's wrong with the netfilter cvs?
-Date: Wed, 17 Nov 2004 08:51:21 +0800
-Message-ID: <200411170847164.SM02460@zhengcb>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: What's wrong with the netfilter cvs?
+Date: Tue, 16 Nov 2004 16:37:08 -0800
+Message-ID: <20041116163708.3877f97d.davem@davemloft.net>
+References: <200411170847164.SM02460@zhengcb>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+To: "Zheng Chuanbo" <zhengcb@netpower.com.cn>
+In-Reply-To: <200411170847164.SM02460@zhengcb>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,24 +21,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Wed, 17 Nov 2004 08:51:21 +0800
+"Zheng Chuanbo" <zhengcb@netpower.com.cn> wrote:
 
-I tried to checkout the current netfilter code from netfilter cvs server.
-But for several days I always failed. And when I tried to browse with web,
-It also reported some error. So Is there something wrong with the cvs server?
-Or I made some mistake? 
+> I tried to checkout the current netfilter code from netfilter cvs server.
 
-The cvs command I used is as below,
+It has been converted from CVS to Subversion, see this
+list posting:
 
-[root@netfilter]# export CVSROOT=:pserver:cvs@pserver.netfilter.org:/cvspublic
-[root@netfilter]# cvs login
-Logging in to :pserver:cvs@pserver.netfilter.org:2401/cvspublic
-CVS password: 
-cvs [login aborted]: connect to pserver.netfilter.org(213.95.27.115):2401 failed: Connection refused
-
-Please cc. Thanks.
-
-Regards,
-Jack Zheng
-
-zhengcb@netpower.com.cn
+http://lists.netfilter.org/pipermail/netfilter-devel/2004-October/017078.html
