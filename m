@@ -1,14 +1,13 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: Help ip-limit
-Date: Tue, 15 Mar 2005 02:11:59 +0200
-Message-ID: <4236284F.8010600@outerspace.dyndns.org>
-References: <200503140925.28555.denilson@bnet.com.br>
+From: "Vishwas Manral" <Vishwas@sinett.com>
+Subject: Help: Netfilter Rule database
+Date: Mon, 14 Mar 2005 20:17:04 -0800
+Message-ID: <BB6D74C75CC76A419B6D6FA7C38317B26A263B@sinett-sbs.SiNett.LAN>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: denilson@bnet.com.br
-In-Reply-To: <200503140925.28555.denilson@bnet.com.br>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,49 +19,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-Denilson Guedes Duarte wrote:
+Could someone tell me how rules get stored in the various chains in the
+ipTables module in the kernel? Any pointer to the code or documentation
+would help.
 
-| I reading for a iptables because I need to make a solution to my case:
-| I have a sever that I use only to redirect packets to another sever, I
-control by IP source like example:
-|
-| iptables -A INPUT -s 200.sss.sss.sss -j ACCEPT -p tcp --dport 23
-| /usr/sbin/iptables -t nat -A PREROUTING -s 200.sss.sss.sss -j DNAT -d
-200.lll.lll.lll -p tcp --dport 23 --to 172.ddd.ddd.ddd:23
-|
-| /usr/sbin/iptables -t nat -A POSTROUTING -j SNAT -d 172.ddd.ddd.ddd -p tcp
-- --dport 23 --to-source 172.aaa.aaa.aaa
-|
-| 200.sss.sss.sss = IP source Client
-| 200.lll.lll.lll = IP Server localhost - extern IP
-| 172.ddd.ddd.ddd = IP destination Server
-| 172.aaa.aaa.aaa = IP configured to accept conections on 172.ddd.ddd.ddd
-|
-| I want to control the limit of conections by IP source simultaneous-use,
-Ex. IP 200.sss.sss.sss can use 3 conections in the same time.
-|
-| It's possible?
+I know NETLINK_FIREWALL sockets are used for transferring packets to
+user space. What do we use for transferring iptables rules to the kernel
+from the user space?
 
-Yes, by using the "connlimit" patch in patch-o-matic:
+Thanks,
+Vishwas
 
-~  http://www.no.netfilter.org/patch-o-matic/pom-base.html#pom-base-connlimit
+-----Original Message-----
+From: netfilter-devel-bounces@lists.netfilter.org
+[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of
+Vishwas Manral
+Sent: Monday, March 14, 2005 4:44 PM
+To: netfilter-devel@lists.netfilter.org
+Subject: Netfilter Rule database
 
-So after you install that, I think you could do like this on the router:
+Hi,
 
-iptables -A FORWARD -p tcp --syn --dport 23 -m connlimit \
-~      --connlimit-above 3 -j REJECT
+I have been trying to understand the iptables code.=20
 
-This should reject new connections if there are already 3 open connections.
+I was able to understand to some extent the code in the netfilter
+directory, but have been unable to understand how the user and the
+kernel space interaction happen for the rules (not for the packets).
+Also where and how the rules are stored in the kernel? Any pointer to
+the file I need to look at would be helpful.
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCNihNxyF48ZTvn+4RArqOAKCz1M7oHsbCg69NlvSIbdZsv2WD6ACeJvrg
-KZyVzvwz06x2v8PSR/fCFIg=
-=suCS
------END PGP SIGNATURE-----
+Thanks,
+Vishwas
