@@ -1,10 +1,11 @@
-From: Marek Figielski <raptorek@cki.net.pl>
-Subject: suggestion, p-o-m, iplimit for ipv6 protocol
-Date: Tue, 22 Apr 2003 22:08:33 +0200 (CEST)
+From: vdb128 <vdb128@stargate.kotnet.org>
+Subject: [RFE] DNAT extension source routing
+Date: Thu, 17 Apr 2003 17:00:49 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.50.0304222153490.22016-100000@cki.net.pl>
+Message-ID: <200304171500.h3HF0nIl020352@stargate.kotnet.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,18 +18,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+-> [RFE] DNAT extension source routing
+Dear all,
 
-I am user of iptables and p-o-m. At the moment there is no netfilter
-allowing to limit outgoing connections via ip6 (like iplimit for ipv4). Of
-course I know that there is 'limit' for ip6tables, but his practical application is a little
-other than ipt 'iplimit'. I think that 'iplimit' from iptables written for
-ipv6 protocol (for ip6tables) would be good idea. I hope You'll think about it.
+I was wondering if it is possible to combine DNAT and source routing (ip rule).
+In practice, a statement like 
 
-Greetings.
-Yours faithfully.
+ iptables -t nat -A OUTPUT -o $KETH -s $KIPADDR -d $KULBLOCK -p tcp --dport 25 \
+   -j DNAT --to-destination $KULFWD --use-source $KIPADDR
 
--- 
-Marek "Raptorek" Figielski
-raptorek<at>cki<dot>net<dot>pl
-Network administrator @ rzeczna.pl, vanilla.pl
-6Bone handle: RAPI1-6BONE
+would be very handy.  For now, I REDIRECT to a tproxy(8) listen port and use
+the bind($KIPADDR) connect($KULFWD) sequence for the outgoing connection.
+
+-------
+
+The logic for this setup is as follows.  The host $KULFWD is reachable via
+two interfaces, but 
+
+  $KULFWD via $KGATEWAY dev $KETH   forwards anything  (kotnet)
+  $KULFWD via $UGATEWAY dev $UETH   only forward selected domains (upc)
+
+So if I DNAT to it, it must be via $KETH.  This is done via source routing
+ip rule ls:
+
+0:      from all lookup local 
+11000:  from 10.67.56.0/22 lookup kotnet 
+11005:  from 195.162.202.40/29 lookup upc 
+32766:  from all lookup main 
+32767:  from all lookup default 
