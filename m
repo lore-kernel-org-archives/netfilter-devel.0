@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Building on case-insensitive filesystems
-Date: Mon, 18 Oct 2004 15:42:55 +0200
+Subject: Re: nf_conntrack_core: port to module_param
+Date: Mon, 18 Oct 2004 15:45:50 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041018134255.GG21927@sunbeam.de.gnumonks.org>
-References: <4171780F.1070909@kegel.com>
+Message-ID: <20041018134550.GH21927@sunbeam.de.gnumonks.org>
+References: <200410160010.40500.michal@rokos.info>
+	<200410172131.i9HLVrVF010252@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TU+u6i6jrDPzmlWF"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="TdkiTnkLhLQllcMS"
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dan Kegel <dank@kegel.com>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <4171780F.1070909@kegel.com>
+In-Reply-To: <200410172131.i9HLVrVF010252@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,64 +24,26 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---TU+u6i6jrDPzmlWF
+--TdkiTnkLhLQllcMS
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dan :)
+On Mon, Oct 18, 2004 at 06:31:52AM +0900, Yasuyuki Kozakai wrote:
+> And, I'm changing many parts and afraid of double work. After more some
+> changes and tests, I'll send the latest nf_conntrack (or commit it to tree
+> in netfilter site). I use the branch for nf_conntrack in USAGI tree as
+> snapshot only. Moreover, I think that almost people check nf_conntrack
+> in only netfilter site.
 
-On Sat, Oct 16, 2004 at 12:35:43PM -0700, Dan Kegel wrote:
-> Seems like ipt_mark_target.h might be a better name for
-> that latter file.  That would let developers who have
-> MacOSX or Windows laptops successfully unpack the
-> Linux source tree on their computers' case-insensitive filesystems.
+Plese note that we have migrated from CVS to subversion meanwhile.  I
+will give you a subversion key and instructions in seperate private
+email laater today.
 
-This has been discussed on the list before, the general result was IIRC
-that we don't really care, sorry.
+I'm looking forward to see your synchronized nf_conntrack version, let's
+hope we can include it soon.
 
-Next time somebody comes along and says well, your more-than-8.3chars
-long filenames won't work on my DOS system. =20
-
-iptables fundamentally relies on the destinction:
-
-lowercase =3D=3D match module
-uppercase =3D=3D target module
-
-You can't just fix this by renaming kernel source files.
-
-If I read your patch correctly, the resulting modules will have
-different names.  This will break auto-loading of match and target
-extensions, and it will break userspace compatibility with the userspace
-iptables program.
-
-Also, the userspace iptables program has the same assumption, so without
-changing the whole chain
-	- kernel file names
-	- module autoloading
-	- userspace filenames
-	- userspace plugin autoloading
-it will not work.
-
-Also, imagine what happens if someone tries to run an old userspace
-program and a new kernel or vice versa.  If we ever adopt a renaming
-scheme, it would have to work both forward and backwards compatible, we
-can't just change this within a stable kernel series.
-
-> Here's the patch I've been using to do a rename and fix Makefiles to matc=
-h:
-=20
-> This is part of a larger effort to make life easier for
-> embedded Linux developers who are stuck developing on Windows
-> or Mac systems; see discussion at
-
-You should actually start an opposite effort:  Make it harder for them,
-so it is enough pain to switch to a linux development system.  Please
-note, this is my personal opinion - not to be conflicted with the
-technical reasons given above.
-
-> - Dan
-
+> Regards,
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -91,7 +54,7 @@ technical reasons given above.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---TU+u6i6jrDPzmlWF
+--TdkiTnkLhLQllcMS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -99,9 +62,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBc8hfXaXGVTD0i/8RAjcFAJ9WBze/ceB0xBR5q6jRqQYPToNNeQCeLKeX
-bYf3u3r0hFICPw9b5GAQb3Q=
-=nYf1
+iD8DBQFBc8kOXaXGVTD0i/8RAv4hAKCPVUGZgT/lOF59G7hEEjmqEJnIcQCeNHtB
+/rFDnmjZ+9TJyAImiyIZceU=
+=ULSy
 -----END PGP SIGNATURE-----
 
---TU+u6i6jrDPzmlWF--
+--TdkiTnkLhLQllcMS--
