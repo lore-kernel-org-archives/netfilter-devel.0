@@ -1,40 +1,76 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [netfilter-core] memory leak with IP connection tracking and
-	IP forwarding
-Date: Wed, 09 Jun 2004 17:05:09 +0200
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <1086793508.1785.21.camel@nienna.balabit>
-References: <200405041305.55627.tspat@de.ibm.com>
-	 <200405041602.26635.tspat@de.ibm.com>
-	 <20040517071453.GE26147@obroa-skai.de.gnumonks.org>
-	 <200405180829.10869.tspat@de.ibm.com>
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Subject: using netfilter with mpls
+Date: Wed, 9 Jun 2004 22:41:12 +0300
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <026301c44e59$b892c9a0$248610ac@pc.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-net@vger.kernel.org,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <linux-net-owner@vger.kernel.org>
-To: tspat@gmx.de
-In-Reply-To: <200405180829.10869.tspat@de.ibm.com>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0260_01C44E72.DDB06620"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
-  Hi,
+------=_NextPart_000_0260_01C44E72.DDB06620
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-2004-05-18, k keltez=E9ssel 08:29-kor Thomas Spatzier ezt =EDrta:
-> > > On the router I issue a 'watch -n 1 cat /proc/meminfo'.
-> > > Then I do a 'ping -f -s 64000' from one host to another host via =
-the
-> > > router. On each update of my watch above there are about 10 MB of=
- memory
-> > > (MemFree) missing.
+I am a newbee to netfilter. Can I use netfilter along with MPLS to =
+identify packets with special payload and then set EXP bits to certain =
+value in the MPLS header.
+regards
 
-  I've tried to reproduce this with 2.4.25 and 2.6.6, but couldn't find
-any leaks... Can you tell me something more specific about your kernel
-config and the ruleset on the firewall? Can you reproduce the same with
-ip_conntrack loaded but without any iptables rules?
+------------
 
---=20
- Regards,
-   Krisztian KOVACS
+Muhammad R. Sami
+Research Assistant,
+Computer Engineering Department
+P.O.Box 354
+King Fahd University of Petroleum & Minerals
+Dhahran 31261
+Saudi Arabia.
+Tel: +96638601423
+Cell: +96657982951
+www.ccse.kfupm.edu.sa/sami
+------=_NextPart_000_0260_01C44E72.DDB06620
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1400" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DVerdana size=3D1>I am a newbee to netfilter. Can I use =
+netfilter=20
+along with MPLS to identify packets with special payload and then set =
+EXP bits=20
+to certain value in the MPLS header.</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D1>regards</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D1></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DVerdana size=3D1>------------</FONT></DIV>
+<DIV><FONT face=3DVerdana size=3D1></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DVerdana size=3D1>Muhammad R. Sami<BR>Research=20
+Assistant,<BR>Computer Engineering Department<BR>P.O.Box 354<BR>King =
+Fahd=20
+University of Petroleum &amp; Minerals<BR>Dhahran 31261<BR>Saudi =
+Arabia.<BR>Tel:=20
++96638601423<BR>Cell: +96657982951<BR><A=20
+href=3D"http://www.ccse.kfupm.edu.sa/sami">www.ccse.kfupm.edu.sa/sami</A>=
+</FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_0260_01C44E72.DDB06620--
