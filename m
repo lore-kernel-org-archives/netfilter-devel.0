@@ -1,15 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: IPv6 multicast (MLD,IGMP) code bypasses netfilter hooks
-Date: Sat, 22 Nov 2003 10:03:30 +0100
+Subject: Re: Netfilter extensions howto
+Date: Sun, 23 Nov 2003 07:53:41 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031122090330.GB2745@obroa-skai.de.gnumonks.org>
+Message-ID: <20031123065341.GA2858@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.44.0311221356270.21895-100000@sparrow> <200311231236.43927.fabrice@netfilter.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gj572EiMnwbLXET9"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="Dxnq1zWXvFF0Q93v"
+Cc: William Stearns <wstearns@pobox.com>,
+	ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netdev@oss.sgi.com
+To: Fabrice MARIE <fabrice@netfilter.org>
 Content-Disposition: inline
+In-Reply-To: <200311231236.43927.fabrice@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,27 +24,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gj572EiMnwbLXET9
+--Dxnq1zWXvFF0Q93v
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Sun, Nov 23, 2003 at 12:36:43PM +0800, Fabrice MARIE wrote:
+>=20
+> Hello,
+>=20
+> On Sunday 23 November 2003 03:00, William Stearns wrote:
+> > Good day, Fabrice, Harald,
+> > A few questions about the extensions howto, if I may.
+> > Fabrice, are you still the maintainer?=20
+>=20
+> Yes I am still the maintainer. I didn't find much time
+> to compile by myself the missing extensions though.
+> Of course, if you send me a patch, I'll be happy to apply it
+> to enhance this HOWTO.
+>=20
+> > Should contributions go through you, to the netfilter-devel list,
+> > or to webmaster@netfilter.org?=20
+>=20
+> I think it's better if you don't disturb the core-team with these,
+> as they are busy with real code :) You can send it to me and
+> CC the devel list so that interested people can see it as well.
+> Then I'll apply it right away.
 
-At least to me it was not known (until very recently) that the IPv6
-multicast code in net/ipv6/mcast.c bypasses the netfilter hooks - but it
-does.
-
-I don't have the time to work on this right now, just wanted to drop a
-note to netdev that people are aware of this issue.
-
-This basically means that you cannot do packet filtering with ip6tables
-on outgoing MLD packets.
-
-If anyone wants to write a patch before I get the time:  Feel free to do
-so.
-
-Dave: I think this would be post 2.6.0 stuff, wouldn't it?
+JFYI: I've already applied the u32 patch
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -53,16 +63,16 @@ Dave: I think this would be post 2.6.0 stuff, wouldn't it?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---gj572EiMnwbLXET9
+--Dxnq1zWXvFF0Q93v
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/vyZhXaXGVTD0i/8RAhXMAJ9HwavVXbQRWHJKDypYudZuQREYjQCgkPUW
-G76+cbhcjLfrabhJ54YTMLY=
-=M8kW
+iD8DBQE/wFl0XaXGVTD0i/8RAijUAJ9hRmVXl/+sUuOO6kSPZDg8itaDBQCgrnI9
+L8agF6CCqyoX8zHTMYQqjVA=
+=nOqU
 -----END PGP SIGNATURE-----
 
---gj572EiMnwbLXET9--
+--Dxnq1zWXvFF0Q93v--
