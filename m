@@ -1,16 +1,15 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4.23] pending ip_queue_maxlen fix
-Date: Tue, 2 Dec 2003 00:14:23 -0800
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: raw/NOTRACK + TARPIT = good idea?
+Date: Tue, 2 Dec 2003 10:13:31 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031202001423.48cb8510.davem@redhat.com>
-References: <20031130121650.GC1506@obroa-skai.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0312020944470.23251-100000@filer.marasystems.com>
+References: <14014030.1070339924765.JavaMail.Administrator@pumbaa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031130121650.GC1506@obroa-skai.de.gnumonks.org>
+To: IP v6 <inet6@mail.be>
+In-Reply-To: <14014030.1070339924765.JavaMail.Administrator@pumbaa>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,13 +20,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 30 Nov 2003 17:46:50 +0530
-Harald Welte <laforge@netfilter.org> wrote:
+On Tue, 2 Dec 2003, IP v6 wrote:
 
-> Somehow the attached fix didn't make it into 2.4.23.  I thought I had
-> submitted this before, but I must have be mistaken.  Anyway, please make sure
-> this included in 2.4.24.
+> I would like to do this also but I don't quite understand what you mean
+> with "take care both directions for the tarpitted sessions".
 
-It was not an OOPS or security fix, therefore I queued it into
-my 2.4.24-pre1 pending tree, which I just asked Marcelo to
-pull from.
+What I think Harald is saying is that you need to NOTRACK packets in both
+directions of the TARPIT:ed sessions.  If not conntrack might pick up the
+session on the first faked reply packet sent by TARPIT.
+
+But then this does not seem to be the case. It seems TARPIT sends the
+reply packets directly to the network interface bypassing the netfilter
+hooks, so this does not seem to be needed.
+
+Regards
+Henrik
