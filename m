@@ -1,16 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: Connection Tracking and FIN+ACK packets
-Date: Wed, 26 Jun 2002 17:00:31 +0200
+From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
+Subject: Re: performance issues (nat / conntrack)
+Date: Wed, 26 Jun 2002 20:04:19 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020626150031.GD8557@naboo.rchrd.phub.net.cable.rogers.com>
-References: <00d301c21cf9$9a96be40$2e14f496@iic.uam.es>
+Message-ID: <04f801c21d3b$e5395150$0489cb8a@etbx180>
+References: <20020625151007.980D14140@lists.samba.org> <15640.41407.432907.402311@isis.cs3-inc.com> <046a01c21c91$dd980b80$0489cb8a@etbx180> <20020626145011.GC8557@naboo.rchrd.phub.net.cable.rogers.com>
+Reply-To: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Antonio.Martinez@iic.uam.es
-Content-Disposition: inline
-In-Reply-To: <00d301c21cf9$9a96be40$2e14f496@iic.uam.es>
+To: "Harald Welte" <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,15 +22,36 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 26, 2002 at 12:09:48PM +0200, Antonio E. Mart?nez wrote:
-> I am not sure if this matter has been discussed previously... If that's
-> true, please, point me to the place where the answer is...
+> > (strange thing is that ethernet irq's reported by procinfo are 
+> >  decreasing when the machine is overloaded. It suppose that it 
+> >  means either that irq's are not even caught by the kernel/driver, 
+> >  which is quite worrying, or either that irq's counters refer to 
+> >  'processessed' interrupts)
+> 
+> are you using a driver which uses the irq mitigation interface of 2.4.x
+> or the NAPI of 2.5.x ?
 
-yes. please look at the list archives.
+no. (is it available for non Gigabit ethernets?). I'm using 3c905-TX.
 
--- 
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+one explanation could be that, SYN packets are 'lost'/not processed, and
+there are thus no additional SYN/ACK,ACK (at least), and thus no extra 
+flow (each connection was made of about 10 packets). Since packets 
+don't get forwarded, the same applies for the other interface. 
+It means also that most retransmissions get lost.
+
+> 
+> > Harld: could you ask to your kernel specialist what is the weakpoint of
+> > kmem_cache_alloc()? (locks, allocs, ...), and how we could possibly
+> > improve it (batch alloc, but isn't it already the case?)
+> 
+> I don't think that the slab allocator is the bottleneck. please show me
+> profiling data pointing this out.
+> 
+
+yesss, facts... but in the mean time, grabbing info/experience/feelings 
+from 'non involved' people could be instructive. what do they say?
+
+> - Harald Welte
+
+kr,
+-jmhe-
