@@ -1,16 +1,10 @@
-From: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson)
-Subject: Re: cttest-0.1
-Date: Sat, 6 Jul 2002 23:14:51 +0200
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: conntrack hashing - ABCDEF
+Date: Sat, 6 Jul 2002 14:13:24 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020706211451.GG3729@aaricia.hemmet.chalmers.se>
-References: <20020705165354.GD3729@aaricia.hemmet.chalmers.se> <53889.203.134.158.15.1025935801.squirrel@iw.k1k2.com> <20020706091259.F13116@oknodo.bof.de> <20020706172342.H13116@oknodo.bof.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Message-ID: <200207062113.g66LDOV13922@isis.cs3-inc.com>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
-Content-Disposition: inline
-In-Reply-To: <20020706172342.H13116@oknodo.bof.de>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,78 +15,83 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-2002-07-06 17:23:42+0200, Patrick Schaaf <bof@bof.de> ->
-> Hi all,
-> 
-> I have released http://bei.bof.de/cttest-0.2.tar.gz. It is now easier
-> to modify the list of sizes and hashes that should be plotted, and
-> there's timing code for the hash functions, together with average
-> used list length analysis.
-> 
 
-Me and Martin Josefsson has tested the new cttest-0.2. Martin also took the
-idea of using the hash-function that the routingcache uses in Linux:
+No new theory, but some data collected with small modification
+to cttest using originally posted data (no duplicates), -u.
 
-res = ((key->dip & 0xF0F0F0F0) >> 4) | ((key->dip & 0x0F0F0F0F) << 4);
-res ^= key->sip ^ key->tos;
-res ^= (res >> 16);
-res ^= (res >> 8););
+ int A = 0x47441DFB,
+   B = 0x57655A7D,
+   C = 0x1C7F1D2D,
+   D = 0xDF91D737,
+   E = 0x2F6FE8DB,
+   F = 0x39E5C2D7;
 
-Together we tried to make one that fitted for conntrack. Since we don't
-understand completly why the things are done as they are, there might be
-some more tuning where can be done to this function:
+ static u32 hash_conntrack(struct ct_key *key)
+ {
+  return
+    (A * key->sip
+     + B * key->dip
+     + C * key->sport
+     + D * key->dport
+     + E * key->proto) ^ F;
 
-static u32 hash_rt(struct ct_key *key)
-{
-        u32 res;
+The columns 0-6 below correspond to left shifting A-F by that many
+bits.  (Note they all start odd.)  Each entry in the table reports
+the max bucket size for one run of cttest.
 
-        PER_HASH_TIMER_1(       
-                res = ((key->dip & 0xF0F0F0F0) >> 4) | ((key->dip & 0x0F0F0F0F) << 4);
-                res ^= key->sip ^ key->proto;
-                res ^= key->dport ^ key->sport;
-                res ^= (res >> 16);
-                res ^= (res >> 8);
-        );
-        
-        return res;
-}
-
-Also with this idea of using power of (^), we tested the abcd hash using
-power of instead of just adding the values up:
-
-static u32 hash_abcd_power(struct ct_key *key)
-{
-        u32 res;
-
-        PER_HASH_TIMER_1(
-                res = (0x47441DFB * key->sip)
-                ^ (0x57655A7D * key->dip)
-                ^ (0x1C7F1D2D * key->sport)
-                ^ (0xDF91D738 * key->dport)
-                ^ key->proto;
-        );
-        return res;
-}
-
-Results can be viewed at the following url with my 85K entry conntrack:
-http://aaricia.hemmet.chalmers.se/~gozem/cttest-0.2/rt/
-
-Conculsions are that the rt-hash is just as fast as abcd and has a good
-distribusion, even on the 2^n hash-sizes. This concludes us and with the
-fact that we are going to use prime-hashsizes that this rt-hash is the best
-alternitive we have right now. rt uses about 21 cycles on my CPU and abcd
-about 22. crc32 is up on 134.
-
-The tests was computed on my (Dual) Athlon MP 1800+ (1533Mhz), with ECC/REG
-DDR266 memory. Ofcouse only using one CPU.
-
-For the test of your prime.c I can't say more than its not even measureable
-on my computer. But I got a very fast CPU.
-
->time ./prime 3457675589
-3457675579
-0.000u 0.000s 0:00.00 0.0%	0+0k 0+0io 87pf+0w
+My conclusion from below is that it's probably fine to just
+make the table size odd and choose A-F randomly.  
 
 
--- 
-/Joakim Axelsson A.K.A Gozem@EFnet & OPN
+[total number of entries: 32866]
+all table sizes approx 8K
+
+For reference,
+P(n) = probability that a given bucket is length n, 
+E(n) = expected # buckets of length n
+ n   P    E
+ 18 2e-7  .002
+ 17 1e-6  .008
+ 16 4e-6  .03
+ 15 2e-5  .14
+ 14 6e-5  .5
+ 13 2e-4  2
+
+
+table size   A-F end with how many 0 bits        comment
+             0     1     2    3    4    5    6
+
+ -s 8192:    127   218   414			2^13
+
+ -s 8160:    24    34    44   62   92		5 factors of 2
+
+ -s 8176:    21    27    37   54		4 factors of 2
+
+ -s 8184:    15    20    32   53		3 factors of 2
+ -s 8200:    16    20
+
+ -s 8188:    16    19    32   35		2 factors of 2
+ -s 8196:    14    21
+
+ -s 8190:    12    21    20			1 factor of 2
+ -s 8194:    15    21    19
+
+ -s 8189:    15    13    13   13   13   14   15 odd non-prime table sizes
+ -s 8187:    14    12    14   15   15   14   15
+ -s 8185:    13    12    14   13   15   14   15
+ -s 8183:    13    13    12   12   13   14   16
+
+ -s 8191:    13    14    14   16   12   13   14 prime table sizes
+ -s 8179:    13    14    15   17   16   14   16
+ -s 8171:    13    15    14   14   16   15   18
+ -s 8209:    14    13    13   13   13   14   15  ... (see below) 38
+
+E and F, btw do not much influence these numbers.
+They're included to make it harder to attack.
+A little more data with -s 8209:
+If A-F are all left shifted 16, max bucket size is 38,
+ only A-E are shifted 16 - 35
+ only A-D are shifted 16 - 37
+ only A-C are shifted 16 - 30
+ only A-B are shifted 16 - 30
+ only A shifted 16       - 20
