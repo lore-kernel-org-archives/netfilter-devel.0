@@ -1,17 +1,13 @@
-From: Matteo Croce <rootkit85@yahoo.it>
-Subject: Re: UNWANTED state
-Date: Thu, 30 Dec 2004 01:39:48 +0100
-Message-ID: <200412300139.49266.rootkit85@yahoo.it>
-References: <200412300042.18561.rootkit85@yahoo.it>
-	<20041229235657.GA11573@linuxace.com>
+From: Samuel <sj-netfilter@cookinglinux.org>
+Subject: [testsuite] ipt_recent
+Date: Thu, 30 Dec 2004 01:16:26 -0500
+Message-ID: <41D39D3A.8050308@cookinglinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------060108030909010507020704"
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+	Nicolas Bouliane <nib@cookinglinux.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20041229235657.GA11573@linuxace.com>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,40 +19,221 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> On Thu, Dec 30, 2004 at 12:42:17AM +0100, Matteo Croce wrote:
-> Perhaps you should consider using:
->
-> --dport 113 -j REJECT --reject-with tcp-reset
-> instead of hacking the kernel to disable icmp rejects?
->
+This is a multi-part message in MIME format.
+--------------060108030909010507020704
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-# iptables -I INPUT 1 -p tcp --dport 4567 -j REJECT --reject-with tcp-reset
-# hping3 127.0.0.1 -p 4567 -S
-HPING 127.0.0.1 (lo 127.0.0.1): S set, 40 headers + 0 data bytes
-len=40 ip=127.0.0.1 ttl=255 DF id=0 sport=4567 flags=RA seq=0 win=0 rtt=0
+Hi rusty,
 
+Here's the testcase for the ipt_recent module.
 
---reject-with tcp-reset sends RST/ACK that are dropped by my firewall
+Note that it really doesn't behave like I think it should.
 
-> Why do you care if people get an icmp unreachable when
-> the service is down?  You aren't making the box more secure IMO by not
-> allowing the icmp error outbound.
+Cheers,
 
-Tryng to reduce at minimum unneeded traffic is a sort of protection against 
-DOS.
-Let's say i have a 4096/400 ADSL.
-Someone with a ~512kbit upload can send me an large amount of data on a closed 
-port with something like 'hping3 <IP> -S -p <PORT> --flood', and my 400kbit 
-upload
-will be unable to send 512Kbit of RST/ACKs.
-If i drop unwanted data, the attacker needs an upload of ~4200Kbit
-to dos my box, since he need to fill my download instead of my upload.
+--peejix
 
-And having such a target will avoid open/close ports as needed, since only 
-used ports are available.
+--------------060108030909010507020704
+Content-Type: text/plain;
+ name="40ipt_recent.sh"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="40ipt_recent.sh"
 
--- 
-  .""`.     Matteo Croce <rootkit85@yahoo.it>
- : :"  :    proud Debian admin and user
- `. `"`
-   `-  Debian - when you have better things to do than fix a system
+#! /bin/sh
+{
+
+##
+# Test #1: Incoming packets with differents source addresses
+# For each source ip .2, .3 & .4; throw 10 packets.
+# Increase kernel time after all nth packets are sent.
+# Do NOT increase time for fifth packet so we burst the balloon
+# So get NF_DROP'ed on 5th packet in a 1hit/1sec ratio.
+# 
+# Also test invert behaviour.
+
+for p in '' '! '; do # Test normal and then negated rule
+	echo iptables -I INPUT -m recent --name testcase --rsource \
+		--hitcount 1 --seconds 1 ${p}--update -j DROP
+	echo iptables -A INPUT -m recent --name testcase --set --rsource -j ACCEPT
+
+	for pkt in 1 2 3 4 5 6 7 8 9 10; do # The 10 packets we send
+		for h in 2 3 4; do # From each of 192.168.0.2, .3 & .4
+			if [ ! "$pkt" -eq "5" ]; then
+
+			[ -z $p ] && verdict=NF_ACCEPT || verdict=NF_DROP
+
+			# Fifth packet triggers the 1:1 ratio.
+			else
+			# Negation doesn't behave as it should..
+			#[ -z $p ] && verdict=NF_DROP || verdict=NF_ACCEPT
+			# FIXME: This doesn't make much sense...
+			# It always match so expect NF_DROP.
+			verdict=NF_DROP
+			fi
+
+			echo expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter $verdict '*'
+			echo gen_ip IF=eth0 192.168.0.$h 192.168.0.1 0 17 1 2
+		done
+
+		# Increasing by one triggers the 1:1 ratio, use 2.
+		[ ! "$pkt" -eq "4" ] && echo time +2
+	done
+	
+	echo iptables -D INPUT -m recent --name testcase --rsource \
+		--hitcount 1 --seconds 1 ${p}--update -j DROP
+	echo iptables -D INPUT -m recent --name testcase --set --rsource -j ACCEPT
+done
+
+##
+# Test #2: Forwarded packets with differents destination addresses
+# For each destination ip .2, .3 & .4; throw 10 packets.
+# Increase kernel time after all nth packets are sent.
+# Do NOT increase time for fifth packet so we burst the balloon
+# So get NF_DROP'ed on 5th packet in a 1hit/1sec ratio.
+#
+# This doesn't increase coverage but at least make sure
+# that feature works :)
+# 
+# Also test invert behaviour. (Isn't it cool?)
+
+for p in '' '! '; do # Test normal and then negated rule
+	echo iptables -I FORWARD -m recent --name testcase --rdest \
+		--hitcount 1 --seconds 1 ${p}--update -j DROP
+	echo iptables -A FORWARD -m recent --name testcase --set --rdest -j ACCEPT
+
+	for pkt in 1 2 3 4 5 6 7 8 9 10; do # The 10 packets we send
+		for h in 2 3 4; do # To each of 192.168.1.2, .3 & .4
+			if [ ! "$pkt" -eq "5" ]; then
+
+			[ -z $p ] && verdict=NF_ACCEPT || verdict=NF_DROP
+
+			# Fifth packet triggers the 1:1 ratio.
+			else
+			# Negation doesn't behave as it should..
+			#[ -z $p ] && verdict=NF_DROP || verdict=NF_ACCEPT
+			# FIXME: This doesn't make much sense...
+			# It always match so expect NF_DROP.
+			verdict=NF_DROP
+			fi
+
+			echo expect gen_ip hook:NF_IP_FORWARD iptable_filter $verdict '*'
+			echo gen_ip IF=eth0 192.168.0.1 192.168.1.$h 0 17 1 2
+		done
+
+		# Increasing by one triggers the 1:1 ratio, use 2.
+		[ ! "$pkt" -eq "4" ] && echo time +2
+	done
+	
+	echo iptables -D FORWARD -m recent --name testcase --rdest \
+		--hitcount 1 --seconds 1 ${p}--update -j DROP
+	echo iptables -D FORWARD -m recent --name testcase --set --rdest -j ACCEPT
+done
+
+##
+# Test #3: Using the TTL lookup feature.
+# Throw 5 packets where the 1st and 5th are twins (same TTL)
+# So get NF_DROP'ed on 5th packet
+#
+# Let's see how it behaves when we first stamp the TTL after routing
+# and do the checkup before routing. (insane scenario, I know)
+#
+# I must admit I wasn't sure of the result, nice to see it works. --peejix
+
+echo iptables -t mangle -I PREROUTING -m recent --name testcase --rsource \
+	--rttl --rcheck -j DROP
+echo iptables -I INPUT -m recent --name testcase --set --rttl --rsource -j ACCEPT
+
+for ttl in 50 51 52 53; do # The 4 packets we send
+	echo expect gen_ip hook:NF_IP_PRE_ROUTING iptable_mangle NF_ACCEPT '*'
+	echo gen_ip IF=eth0 TTL=$ttl 192.168.0.2 192.168.0.1 0 17 1 2
+done
+
+# The 5th packet that matches the TTL stamped
+echo expect gen_ip hook:NF_IP_PRE_ROUTING iptable_mangle NF_DROP '*'
+echo gen_ip IF=eth0 TTL=50 192.168.0.2 192.168.0.1 0 17 1 2
+
+echo iptables -t mangle -D PREROUTING -m recent --name testcase --rsource \
+	--rttl --rcheck -j DROP
+echo iptables -D INPUT -m recent --name testcase --set --rttl --rsource -j ACCEPT
+
+##
+# Test #4: Using --hitcount in solo limiting 5 packets & more.
+# We expect to NF_DROP 5th and 6th packet. IMO
+#
+# FIXME: Actually it only drops 6th packet. Shouldn't this
+#			acts the same on 5th packet ?
+echo iptables -I INPUT -m recent --name testcase --rsource \
+	--hitcount 5 --rcheck -j DROP
+echo iptables -A INPUT -m recent --name testcase --set --rsource -j ACCEPT
+
+for pkt in 1 2 3 4 5; do # The 4 packets we send + an unexpected 5th
+	echo expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT '*'
+	echo gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 17 1 2
+done
+
+# The 5th and 6th packet _should_ get NF_DROP verdict
+# However, only sixth packet will do. (Bug?)
+echo expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP '*'
+echo gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 17 1 2
+
+echo iptables -D INPUT -m recent --name testcase --rsource \
+	--hitcount 5 --rcheck -j DROP
+echo iptables -D INPUT -m recent --name testcase --set --rsource -j ACCEPT
+
+##
+# Test #5: Using --seconds in solo with a 1 seconds lap.
+#
+
+echo iptables -I INPUT -m recent --name testcase --rsource \
+		--seconds 1 --update -j DROP
+echo iptables -A INPUT -m recent --name testcase --set --rsource -j ACCEPT
+
+for pkt in 1 2 3 4 5; do # The 5 packets we send
+	# We do not increase time for 3rd packet. hence we expect NF_DROP
+	[ ! "$pkt" -eq "3" ] && { verdict=NF_ACCEPT; echo time +2; } || verdict=NF_DROP
+	echo expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter $verdict '*'
+	echo gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 17 1 2
+done
+
+echo iptables -D INPUT -m recent --name testcase --rsource \
+		--seconds 1 --update -j DROP
+echo iptables -D INPUT -m recent --name testcase --set --rsource -j ACCEPT
+
+##
+# Test #6: Simplest scenario to introduce --remove thingie.
+# (1) A new address is tagged (NF_ACCEPT)
+# (2) The address match, so we remove from the list. (NF_DROP)
+# (3) Back to step 1.
+# 
+
+echo iptables -I INPUT -m recent --name testcase --rsource --remove -j DROP
+echo iptables -A INPUT -m recent --name testcase --set --rsource -j ACCEPT
+
+for loop in 1 2 3; do # Try this 3 time
+	for pkt in 1 2; do # Send 2 packets
+		[ "$pkt" -eq "2" ] && verdict=NF_DROP || verdict=NF_ACCEPT
+	
+		echo expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter $verdict '*'
+		echo gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 17 1 2
+	done
+done
+
+echo iptables -D INPUT -m recent --name testcase --rsource --remove -j DROP
+echo iptables -D INPUT -m recent --name testcase --set --rsource -j ACCEPT
+
+##
+# Test #7: Look for arguments that don't fit together
+# --update, --set, --rcheck and --update are action parms.
+for parm1 in '--update' '--set' '--rcheck' '--update'; do
+	for parm2 in '--update' '--set' '--rcheck' '--update'; do
+		echo expect iptables iptables: command failed
+		echo iptables -I INPUT -m recent --name testcase $parm1 $parm2
+	done
+done
+
+} > $TMPFILE
+$NFSIM $NFSIM_ARGS < $TMPFILE
+
+--------------060108030909010507020704--
