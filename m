@@ -1,16 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] cleanup for random seed initialization ip_conntrack_hash_rnd
-Date: Tue, 13 Apr 2004 10:19:31 +0200
+From: "Colin Paton" <cozzarp@hotmail.com>
+Subject: Re: PPTP connttrack problem - 'unexpecting' performed too early?
+Date: Tue, 13 Apr 2004 13:31:51 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <407BA293.1090207@eurodev.net>
-References: <407B1E91.5090206@eurodev.net> <20040412233025.GF1424@sunbeam.de.gnumonks.org>
+Message-ID: <BAY13-F4JacRZ21n9x80005e0d9@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
- netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040412233025.GF1424@sunbeam.de.gnumonks.org>
+To: philipc@snapgear.com
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,30 +18,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+Hi,
 
-Harald Welte wrote:
+>Your log doesn't have any debug info from ip_nat_pptp.c or
+>ip_nat_proto_gre.c.  Have you insmod'ed them?  If you haven't then
+>that would explain why the keymap is wrong.
 
->On Tue, Apr 13, 2004 at 12:56:17AM +0200, Pablo Neira wrote:
->  
->
->>Hi Harald and list,
->>
->>Attached a clean up for the initialization of the random seed used in 
->>ip_conntrack. With this patch the random seed is initialized once when 
->>ip_conntrack is loaded instead of checking every time a conntrack is 
->>created whether it was already initialized or not. If I'm missing 
->>something, please let me know.
->>    
->>
->
->yes, you are missing that there might not be sufficient entropy yet at
->the time ip_conntrack is loaded (or, for that matter, consider a
->statically linked ip_conntrack).
->  
->
-ok, that's makes me understand the reason why the initialization is done 
-that way.
+D'oh!
 
-thanks,
-Pablo
+These modules weren't installed - I added them, as you suggested, and 
+everything seems to work OK now!
+
+I had originally built 'GRE protocol support' and 'PPTP protocol support' 
+into the kernel - but if I build them as modules, then
+
+modprobe ip_nat_pptp
+modprobe ip_nat_proto_gre
+
+...then everything works!
+
+Thanks so much for your advice. I was busy going down a blind alleyway 
+trying to figure out when the expects should be deleted - but didn't realise 
+that they were incorrect. I'm still not quite sure why it worked when I kept 
+them in, but it does appear to work properly now!
+
+Thanks,
+
+Colin
+
+_________________________________________________________________
+It's fast, it's easy and it's free. Get MSN Messenger today! 
+http://www.msn.co.uk/messenger
