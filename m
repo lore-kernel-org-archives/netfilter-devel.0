@@ -1,16 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Netfilter as an application
-Date: Fri, 16 Jan 2004 23:40:51 +0100 (CET)
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] 2.6 owner-socketlookup
+Date: Sat, 17 Jan 2004 02:56:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401162327430.32690-100000@filer.marasystems.com>
-References: <20040116214721.82710.qmail@web40301.mail.yahoo.com>
+Message-ID: <4008964A.7040807@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Allen Francom <aef@tempest.prismnet.com>,
-   <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------020109000607040507010600"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: kernel_learner <kernel_learner@yahoo.com>
-In-Reply-To: <20040116214721.82710.qmail@web40301.mail.yahoo.com>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,43 +19,279 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 16 Jan 2004, kernel_learner wrote:
+This is a multi-part message in MIME format.
+--------------020109000607040507010600
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> What exactly does the netfilter use from the Linux kernel?
+Hi Harald,
 
-Not much. It is essentially a separate entity called by the hooks in the 
-Linux TCP/IP stack.
+this is the 2.6 version of the owner-socketlookup patch, I had some requests for this.
+I don't know what the current prefered format for patch submission is, so plain patch
+attached. Please add to patch-o-matic.
 
-There is some dependencies on routing etc, but this is only relevant if
-you are planning on doing stuff related to routing such as mangle or NAT.
-
-> Where exactly does it interact with the kernel? 
-
-The kernel sends packets to the Netfilter modules via the netfilter 
-hooks.
-
-If netfilter selects to delay a packet then the packet is later 
-reintroduced to the kernel via the nf_reinject() function.
-
-The userspace communicates with iptables via getsockopt() calls to install 
-iptables rulesets etc.
-
-Netfilter is fully contained in the netfilter directories and headers,
-plus some support functions in net/core/netfilter.c taking care of the
-gory details of registering new hook handlers, getsockopt operations etc.
+Regards,
+Patrick
 
 
-The Netfilter hacking howto guide has some good information on how a 
-Netfilter module such as iptables interacts with the kernel.
+--------------020109000607040507010600
+Content-Type: text/plain;
+ name="2.6-owner-socketlookup.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="2.6-owner-socketlookup.diff"
 
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/01/17 02:24:55+01:00 kaber@trash.net 
+#   Lookup sockets for incoming packets in ipt_owner
+# 
+# net/ipv4/udp.c
+#   2004/01/17 02:24:48+01:00 kaber@trash.net +1 -0
+#   Lookup sockets for incoming packets in ipt_owner
+# 
+# net/ipv4/tcp_ipv4.c
+#   2004/01/17 02:24:48+01:00 kaber@trash.net +1 -0
+#   Lookup sockets for incoming packets in ipt_owner
+# 
+# net/ipv4/netfilter/ipt_owner.c
+#   2004/01/17 02:24:48+01:00 kaber@trash.net +69 -24
+#   Lookup sockets for incoming packets in ipt_owner
+# 
+# include/net/udp.h
+#   2004/01/17 02:24:48+01:00 kaber@trash.net +2 -0
+#   Lookup sockets for incoming packets in ipt_owner
+# 
+# include/net/tcp.h
+#   2004/01/17 02:24:48+01:00 kaber@trash.net +1 -0
+#   Lookup sockets for incoming packets in ipt_owner
+# 
+diff -Nru a/include/net/tcp.h b/include/net/tcp.h
+--- a/include/net/tcp.h	Sat Jan 17 02:26:01 2004
++++ b/include/net/tcp.h	Sat Jan 17 02:26:01 2004
+@@ -162,6 +162,7 @@
+ extern void tcp_bucket_unlock(struct sock *sk);
+ extern int tcp_port_rover;
+ extern struct sock *tcp_v4_lookup_listener(u32 addr, unsigned short hnum, int dif);
++extern struct sock *tcp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 hnum, int dif);
+ 
+ /* These are AF independent. */
+ static __inline__ int tcp_bhashfn(__u16 lport)
+diff -Nru a/include/net/udp.h b/include/net/udp.h
+--- a/include/net/udp.h	Sat Jan 17 02:26:01 2004
++++ b/include/net/udp.h	Sat Jan 17 02:26:01 2004
+@@ -74,6 +74,8 @@
+ extern int	udp_ioctl(struct sock *sk, int cmd, unsigned long arg);
+ extern int	udp_disconnect(struct sock *sk, int flags);
+ 
++extern struct sock *udp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 dport, int dif);
++
+ DECLARE_SNMP_STAT(struct udp_mib, udp_statistics);
+ #define UDP_INC_STATS(field)		SNMP_INC_STATS(udp_statistics, field)
+ #define UDP_INC_STATS_BH(field)		SNMP_INC_STATS_BH(udp_statistics, field)
+diff -Nru a/net/ipv4/netfilter/ipt_owner.c b/net/ipv4/netfilter/ipt_owner.c
+--- a/net/ipv4/netfilter/ipt_owner.c	Sat Jan 17 02:26:01 2004
++++ b/net/ipv4/netfilter/ipt_owner.c	Sat Jan 17 02:26:01 2004
+@@ -2,11 +2,18 @@
+    locally generated outgoing packets.
+ 
+    Copyright (C) 2000 Marc Boucher
++
++   03/26/2003 Patrick McHardy <kaber@trash.net>: LOCAL_IN support
+  */
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/file.h>
++#include <linux/ip.h>
++#include <linux/tcp.h>
++#include <linux/udp.h>
+ #include <net/sock.h>
++#include <net/tcp.h>
++#include <net/udp.h>
+ 
+ #include <linux/netfilter_ipv4/ipt_owner.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+@@ -16,7 +23,7 @@
+ MODULE_DESCRIPTION("iptables owner match");
+ 
+ static int
+-match_comm(const struct sk_buff *skb, const char *comm)
++match_comm(const struct sock *sk, const char *comm)
+ {
+ 	struct task_struct *g, *p;
+ 	struct files_struct *files;
+@@ -33,7 +40,7 @@
+ 			spin_lock(&files->file_lock);
+ 			for (i=0; i < files->max_fds; i++) {
+ 				if (fcheck_files(files, i) ==
+-				    skb->sk->sk_socket->file) {
++				    sk->sk_socket->file) {
+ 					spin_unlock(&files->file_lock);
+ 					task_unlock(p);
+ 					read_unlock(&tasklist_lock);
+@@ -49,7 +56,7 @@
+ }
+ 
+ static int
+-match_pid(const struct sk_buff *skb, pid_t pid)
++match_pid(const struct sock *sk, pid_t pid)
+ {
+ 	struct task_struct *p;
+ 	struct files_struct *files;
+@@ -65,7 +72,7 @@
+ 		spin_lock(&files->file_lock);
+ 		for (i=0; i < files->max_fds; i++) {
+ 			if (fcheck_files(files, i) ==
+-			    skb->sk->sk_socket->file) {
++			    sk->sk_socket->file) {
+ 				spin_unlock(&files->file_lock);
+ 				task_unlock(p);
+ 				read_unlock(&tasklist_lock);
+@@ -81,10 +88,10 @@
+ }
+ 
+ static int
+-match_sid(const struct sk_buff *skb, pid_t sid)
++match_sid(const struct sock *sk, pid_t sid)
+ {
+ 	struct task_struct *g, *p;
+-	struct file *file = skb->sk->sk_socket->file;
++	struct file *file = sk->sk_socket->file;
+ 	int i, found=0;
+ 
+ 	read_lock(&tasklist_lock);
+@@ -124,41 +131,71 @@
+       int *hotdrop)
+ {
+ 	const struct ipt_owner_info *info = matchinfo;
++	struct iphdr *iph = skb->nh.iph;
++	struct sock *sk = NULL;
++	int ret = 0;
++
++	if (out) {
++		sk = skb->sk;
++	} else {
++		if (iph->protocol == IPPROTO_TCP) {
++			struct tcphdr *tcph =
++				(struct tcphdr *)((u_int32_t *)iph + iph->ihl);
++			sk = tcp_v4_lookup(iph->saddr, tcph->source,
++			                   iph->daddr, tcph->dest,
++			                   skb->dev->ifindex);
++			if (sk && sk->sk_state == TCP_TIME_WAIT) {
++				tcp_tw_put((struct tcp_tw_bucket *)sk);
++				return ret;
++			}
++		} else if (iph->protocol == IPPROTO_UDP) {
++			struct udphdr *udph =
++				(struct udphdr *)((u_int32_t *)iph + iph->ihl);
++			sk = udp_v4_lookup(iph->saddr, udph->source, iph->daddr,
++			                   udph->dest, skb->dev->ifindex);
++		}
++	}
+ 
+-	if (!skb->sk || !skb->sk->sk_socket || !skb->sk->sk_socket->file)
+-		return 0;
++	if (!sk || !sk->sk_socket || !sk->sk_socket->file)
++		goto out;
+ 
+ 	if(info->match & IPT_OWNER_UID) {
+-		if ((skb->sk->sk_socket->file->f_uid != info->uid) ^
++		if ((sk->sk_socket->file->f_uid != info->uid) ^
+ 		    !!(info->invert & IPT_OWNER_UID))
+-			return 0;
++			goto out;
+ 	}
+ 
+ 	if(info->match & IPT_OWNER_GID) {
+-		if ((skb->sk->sk_socket->file->f_gid != info->gid) ^
++		if ((sk->sk_socket->file->f_gid != info->gid) ^
+ 		    !!(info->invert & IPT_OWNER_GID))
+-			return 0;
++			goto out;
+ 	}
+ 
+ 	if(info->match & IPT_OWNER_PID) {
+-		if (!match_pid(skb, info->pid) ^
++		if (!match_pid(sk, info->pid) ^
+ 		    !!(info->invert & IPT_OWNER_PID))
+-			return 0;
++			goto out;
+ 	}
+ 
+ 	if(info->match & IPT_OWNER_SID) {
+-		if (!match_sid(skb, info->sid) ^
++		if (!match_sid(sk, info->sid) ^
+ 		    !!(info->invert & IPT_OWNER_SID))
+-			return 0;
++			goto out;
+ 	}
+ 
+ 	if(info->match & IPT_OWNER_COMM) {
+-		if (!match_comm(skb, info->comm) ^
++		if (!match_comm(sk, info->comm) ^
+ 		    !!(info->invert & IPT_OWNER_COMM))
+-			return 0;
++			goto out;
+ 	}
+ 
+-	return 1;
++	ret = 1;
++
++out:
++	if (in && sk)
++		sock_put(sk);
++
++	return ret;
+ }
+ 
+ static int
+@@ -168,11 +205,19 @@
+            unsigned int matchsize,
+            unsigned int hook_mask)
+ {
+-        if (hook_mask
+-            & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING))) {
+-                printk("ipt_owner: only valid for LOCAL_OUT or POST_ROUTING.\n");
+-                return 0;
+-        }
++	if (hook_mask
++	    & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING) |
++	    (1 << NF_IP_LOCAL_IN))) {
++		printk("ipt_owner: only valid for LOCAL_IN, LOCAL_OUT "
++		       "or POST_ROUTING.\n");
++		return 0;
++	}
++
++	if ((hook_mask & (1 << NF_IP_LOCAL_IN))
++	    && ip->proto != IPPROTO_TCP && ip->proto != IPPROTO_UDP) {
++		printk("ipt_owner: only TCP or UDP can be used in LOCAL_IN\n");
++		return 0;
++	}
+ 
+ 	if (matchsize != IPT_ALIGN(sizeof(struct ipt_owner_info))) {
+ 		printk("Matchsize %u != %Zu\n", matchsize,
+diff -Nru a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c	Sat Jan 17 02:26:01 2004
++++ b/net/ipv4/tcp_ipv4.c	Sat Jan 17 02:26:01 2004
+@@ -2667,6 +2667,7 @@
+ EXPORT_SYMBOL(tcp_v4_connect);
+ EXPORT_SYMBOL(tcp_v4_do_rcv);
+ EXPORT_SYMBOL(tcp_v4_lookup_listener);
++EXPORT_SYMBOL(tcp_v4_lookup);
+ EXPORT_SYMBOL(tcp_v4_rebuild_header);
+ EXPORT_SYMBOL(tcp_v4_remember_stamp);
+ EXPORT_SYMBOL(tcp_v4_send_check);
+diff -Nru a/net/ipv4/udp.c b/net/ipv4/udp.c
+--- a/net/ipv4/udp.c	Sat Jan 17 02:26:01 2004
++++ b/net/ipv4/udp.c	Sat Jan 17 02:26:01 2004
+@@ -1540,6 +1540,7 @@
+ EXPORT_SYMBOL(udp_port_rover);
+ EXPORT_SYMBOL(udp_prot);
+ EXPORT_SYMBOL(udp_sendmsg);
++EXPORT_SYMBOL(udp_v4_lookup);
+ 
+ #ifdef CONFIG_PROC_FS
+ EXPORT_SYMBOL(udp_proc_register);
 
-
-Personally I find using the user-mode-linux approach very suitable if one
-want to use netfilter as an application. You then have a 100% complete
-application running iptables (or whatever) with all of the support given
-by the kernel without requiring any root privileges. Root is only required
-if you want to set up network connectivity to the host, not for
-communication between user-mode-linux nodes.
-
-Regards
-Henrik
+--------------020109000607040507010600--
