@@ -1,21 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] update to ROUTE target
-Date: 25 Jul 2003 17:27:52 +0200
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: oops in replace_in_hashes
+Date: Fri, 25 Jul 2003 19:35:56 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1059146872.675.0.camel@tux.rsn.bth.se>
-References: <1056465726.2457.30.camel@descartes>
-	 <1058517461.25182.139.camel@descartes>
-	 <1058724909.8305.307.camel@tux.rsn.bth.se>
-	 <1059126202.17206.15.camel@descartes>
-	 <Pine.LNX.4.52.0307251336050.5863@tux.rsn.bth.se>
-	 <1059138966.17205.31.camel@descartes>
+Message-ID: <20030725173555.GA7458@balabit.hu>
+References: <20030725085731.GA5776@balabit.hu> <Pine.LNX.4.52.0307251104001.5333@tux.rsn.bth.se> <20030725135020.GA6433@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Cedric de Launois <delaunois@info.ucl.ac.be>
-In-Reply-To: <1059138966.17205.31.camel@descartes>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+Content-Disposition: inline
+In-Reply-To: <20030725135020.GA6433@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -26,21 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2003-07-25 at 15:16, Cedric de Launois wrote:
-> Hi again,
+> As I see it is quite unlikely that the same memory area is used for
+> different purposes when a kmem_cache is used, as kmem_cache tries to reuse
+> blocks. I therefore think that we face a use-after-free conntrack scenario.
 > 
-> Oops, I forgot to also submit changes to the ROUTE.patch.configure.help
-> and ROUTE.patch.help files to update the descriptions of the target.
-> 
-> I also modified ROUTE.patch.configure.in in order to make the ROUTE
-> target dependent of the CONFIG_IP_NF_MANGLE kernel option (since the
-> ROUTE target must be used inside the mangle table).
-> 
-> The patch is still against the very current cvs.
-> 
-> Thanks for applying it.
+> Any other thoughts, hints?
 
-Applied
+One little addition, which might prove to be important, is that the bogus
+next pointer which is tried to be dereferenced contains the IP address of the
+last SNAT mapping that was being made. The manips array of the ip_nat_info
+structure is only a couple of bytes away, hm... 
 
 -- 
-/Martin
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
