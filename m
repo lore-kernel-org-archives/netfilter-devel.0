@@ -1,17 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: pptp-conntrack-nat kernel patch
-Date: Mon, 24 Nov 2003 11:02:36 +0100
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [FUN] New target: passive OS fingerprinting.
+Date: Mon, 24 Nov 2003 14:26:00 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031124100236.GC4888@obroa-skai.de.gnumonks.org>
-References: <WorldClient-F200311231448.AA48350041@compaenveendam.nl>
+Message-ID: <20031124142600.69dac294.johnpol@2ka.mipt.ru>
+References: <20031124020436.334cf2c6.johnpol@2ka.mipt.ru>
+	<20031124101806.GI4888@obroa-skai.de.gnumonks.org>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NKoe5XOeduwbEQHU"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bart Hofstede <bhofstede@compaenveendam.nl>
-Content-Disposition: inline
-In-Reply-To: <WorldClient-F200311231448.AA48350041@compaenveendam.nl>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031124101806.GI4888@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,58 +23,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 24 Nov 2003 11:18:06 +0100
+Harald Welte <laforge@netfilter.org> wrote:
 
---NKoe5XOeduwbEQHU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi, Harald.
 
-On Sun, Nov 23, 2003 at 02:48:35PM +0100, Bart Hofstede wrote:
-> Hello,
->=20
-> I Found your PPTP Netfilter patch at www.netfilter.org. And it was just=
-=20
-> wat i'm looking for.
+> On Mon, Nov 24, 2003 at 02:04:36AM +0300, Evgeniy Polyakov wrote:
+> > New target which trying to determine(by passive fingerprinting) 
+> > remote OS by set of parameters from initial SYN packet which was
+> > sent to us.
+> 
+> why an additional target?  I don't think it's a good idea to
+> copy+paste all that code.  
+>
+> You could maybe add a '--log' option to the match or whatever... but I
+> really don't think it's a good idea to have the same code replicated
+> as match and as target.
 
-> In the documantation of the patch ik found out that this code has=20
-> limitations.
->=20
-> Note that this code currently has limitations
-> - can only NAT connections from PNS to PAC
-> - doesnt' support multiple calls within one session
-> - you have to recompile your iptables userspace program since some=20
->   structure sizes change
->=20
-> I dont understand this. What does this mean?
+Yep, but this target was created for convenient logging.
+For example, if we only want to know, what OSes connecting to our
+server. And we can't use match, since we don't know in advance, what OS
+will connect to us. So we must enter --genre Linux, --genre OpenBSD,
+--genre AIX and so on...
 
-> I'am looking for solution with the this ability:
+Or do you propose new option for OSF match( --log), that will make OSF
+logs all corresponding fingerprints even if they will not match desired
+genre? That is defenitely good idea.
 
-this are exactly the two cases that are supported. (DNAT and SNAT of a
-single-call-per-session client->server)
 
-> Greetings,
-> Bart Hofstede
+> -- 
+> - Harald Welte <laforge@netfilter.org>            
+> http://www.netfilter.org/
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---NKoe5XOeduwbEQHU
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/wdc7XaXGVTD0i/8RAtHvAJ9NRRueZ2X+HL56+VWKYULn9v307QCfWkAC
-YVnYPbsy3KbktW93wB1YwNQ=
-=LQGL
------END PGP SIGNATURE-----
-
---NKoe5XOeduwbEQHU--
+	Evgeniy Polyakov ( s0mbre )
