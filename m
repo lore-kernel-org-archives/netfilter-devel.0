@@ -1,43 +1,45 @@
-From: Christophe Saout <christophe@saout.de>
-Subject: Re: [Bug 1764] New: conntrack oops while reading
-	/proc/net/ip_conntrack
-Date: Mon, 12 Jan 2004 11:49:17 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1073904557.7268.3.camel@leto.cs.pocnet.net>
-References: <11020000.1072813876@[10.10.2.4]>
-	 <20040103152921.76d4362e.rusty@rustcorp.com.au>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's
+ brain broke!)
+Date: Mon, 12 Jan 2004 13:08:43 +0200 (EET)
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.44.0401121259260.3121-100000@l>
+References: <4001F33A.9000802@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: "Martin J. Bligh" <mbligh@aracnet.com>,
-	linux-kernel@vger.kernel.org, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <20040103152921.76d4362e.rusty@rustcorp.com.au>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>, <kuznet@ms2.inr.ac.ru>,
+	Rusty Russell <rusty@rustcorp.com.au>, <fenio@o2.pl>,
+	<davem@redhat.com>, <linux-net@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>, <boris@boris.ca>,
+	<email@cs-ware.de>, <Jan.Schubert@GMX.li>
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4001F33A.9000802@trash.net>
 List-Id: netfilter-devel.vger.kernel.org
 
-Am Sa, den 03.01.2004 schrieb Rusty Russell um 05:29:
 
-> > http://bugme.osdl.org/show_bug.cgi?id=1764
-> > 
-> >            Summary: conntrack oops while reading /proc/net/ip_conntrack
-> >     Kernel Version: 2.6.0
-> >             Status: NEW
-> >           Severity: high
-> >              Owner: laforge@gnumonks.org
-> >          Submitter: christophe@saout.de
-> ...
-> > Apparently expect->expectant->helper is NULL in print_expect
-> > (net/ipv4/netfilter/ip_conntrack_standalone.c).
-> 
-> Um, Harald, other developers,
-> 
-> 	Shouldn't list_conntracks do READ_LOCK(&ip_conntrack_expect_tuple_lock) before walking the expect list?
-> 
-> Here's a patch.  Does it do anything?
+	Hello,
 
-The problem seems to fixed. The machine was stable the last week, before
-it crashed at least once a day.
+On Mon, 12 Jan 2004, Patrick McHardy wrote:
 
-thanks.
+> Why should we do a route lookup at all ? MASQUERADE doesn't need the
+> dst_entry but only the interface address. Using ifa_list->ifa_local
+> of the outgoing in_device seems like the simplest solution to me.
+
+	Because it is possible the output interface to be used for
+many logical subnets. In such cases it is desired maddr to be
+the preferred source address for the target. If the users do not
+want to fill the routing cache with such entries they can add
+SNAT rule for each path. The drawback is that SNAT has only -o
+match, there is no GW match. As result, we can not properly assign
+maddr in setups that have two GWs on same output interface.
+
+> Regards,
+> Patrick
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
