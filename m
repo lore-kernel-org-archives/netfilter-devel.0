@@ -1,165 +1,200 @@
-From: ntd101@blueyonder.co.uk
-Subject: new match - ipt_dynport
-Date: Wed, 14 Jul 2004 20:06:44 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40F59254.30101.67BA61@localhost>
+From: Adrian Bunk <bunk@fs.tum.de>
+Subject: [2.6 patch] netfilter/ip_nat_snmp_basic.c: fix inlines
+Date: Wed, 14 Jul 2004 23:19:09 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040714211909.GQ7308@fs.tum.de>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed; boundary=Message-Boundary-29970
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265893AbUGNVVy@vger.kernel.org>
+To: James Morris <jmorris@intercode.com.au>
+Content-Disposition: inline
 List-Id: netfilter-devel.vger.kernel.org
 
+Trying to compile net/ipv4/netfilter/ip_nat_snmp_basic.c in 
+2.6.8-rc1-mm1 using gcc 3.4 results in the following compile error:
 
---Message-Boundary-29970
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-description: Mail message body
+<--  snip  -->
 
-Hi all, 
+...
+  CC      net/ipv4/netfilter/ip_nat_snmp_basic.o
+net/ipv4/netfilter/ip_nat_snmp_basic.c: In function `snmp_trap_decode':
+net/ipv4/netfilter/ip_nat_snmp_basic.c:612: sorry, unimplemented: 
+inlining failed in call to 'mangle_address': function body not available
+net/ipv4/netfilter/ip_nat_snmp_basic.c:896: sorry, unimplemented: called from here
+make[3]: *** [net/ipv4/netfilter/ip_nat_snmp_basic.o] Error 1
 
-I've written a small match extension that allows one to match tcp/udp dst/src ports 
-against a variable accessible via the proc fs. It is so far working ok for me, but 
-consider it beta (since its only ever been run on one box :]).
+<--  snip  -->
 
-Hopefully its in a format acceptable to the list members/dev team. Any thoughts, 
-criticisms are welcome, attached in pom-ng layout with iptables extension.
+The patch below moves an inlined function above the place where it is 
+called the first time.
 
-Regards
-N. Davidson
+An alternative approach would be to remove the inline.
 
---Message-Boundary-29970
-Content-type: text/plain; charset=US-ASCII
-Content-disposition: inline
-Content-description: Attachment information.
 
-The following section of this message contains a file attachment
-prepared for transmission using the Internet MIME message format.
-If you are using Pegasus Mail, or any other MIME-compliant system,
-you should be able to save it or view it from within your mailer.
-If you cannot, please ask your system administrator for assistance.
+diffstat output:
+ net/ipv4/netfilter/ip_nat_snmp_basic.c |  142 ++++++++++++-------------
+ 1 files changed, 71 insertions(+), 71 deletions(-)
 
-   ---- File information -----------
-     File:  ipt_dynport.tar.gz
-     Date:  14 Jul 2004, 19:51
-     Size:  5575 bytes.
-     Type:  Unknown
 
---Message-Boundary-29970
-Content-type: Application/Octet-stream; name="ipt_dynport.tar.gz"; type=Unknown
-Content-disposition: attachment; filename="ipt_dynport.tar.gz"
-Content-transfer-encoding: BASE64
 
-H4sIAM2A9UAAA+09a1MjR5L+2voVOXgXJFlCDxBcgMHBgmZMGAQBjH0Xtq+36S6hNlK3th9o
-2DH//TKzqp9qCWmYwee1KmKQ1JWVlZWvyqrK6rHHgXE7FL5uPTpj1wsaX33+0mxuN3c7Hfzk
-kv/k760mgrRbrWZn+6tma6u11fkKOl+AlqkS+oHhAXzluW4wD+65+j9psfPyjx7UxYdAOL7t
-Oi9WicXlv7PVarZR/ju7na2V/F+jLCL/oX2LTyOITXPZPpoo3J1puavPFmpHJyv/dru1vfMV
-NL/EgPPlLy7/r23HHIaWgG/9wLLdzcFhKfMIZZ9/5tnOXfbZnQjccZB9FukRPS01GjcD4Qsw
-PAGuM3yEgcBvfdeDYCAgeBwLvwaTgW0O+MFAGJbwwBHC8sES5hDbWSnchj9qGIE7ss1sn0Pb
-CT80GF1RhT+2naFr3jNJUaWqc0TQt4eB8HR7/LCNVqAn5D8HmpgGIUZ9CmwTHlzbKg3EcFym
-b5XSx5I2Rs4F/fKagoaREeCAH/7uA3IPDc3f+8VZK2kgy1q9bjHYz29+BexQOMZIMIAGa1BQ
-JDpL+IHtGIQPqHnZr0DgwoMxDAX4gYucBNuBxthzTRpKmn6/ke+nXveLaYiInE2I74aeKV5G
-Qy3u6PTy5ugfZ91r/cfu1fXpRa+yX3qKeY06GZqB4iJ9+D//CgeALP8Im4QKf6wxM9dqsDkw
-fN3w7vBZC3/1hwZ9beJXpA+/bZxswFMt09RftOl1vmkTnkpP+1mlsB0bOSJJpoELJ/Aedcm0
-6qgGIXrdO4dZFEDV6ZuGORCsQNEP+P0Aem+P9fe9H3oXP/XSrMA2JYQw73VkbuCWTVSrAPK9
-QZU/GKndhzL/qh/a401uBQcHyPDLq4ubC/3m+LKCquCJIPQcaO2XNDFES36m1fuTdKt2utWb
-XDOCEx9spMzzXK98eXR1dN696V7piAklfo781EgLYrORbuGf9TEE5ngD0InQ99Aab6xVVEfL
-omSfNHG9ex8mdjAAHDThxVEwSjWMZp7RY8PzRZnEZNbAHOA8Uq2iejzUWHS28yC8IC9PUhq/
-VpJaPVc6MzQhajtLg6r8yaJVIGqUuu30Xajy3wNpWOVCiAqUFZL6oWUEBuqv5iNfEHsZTKgg
-Zs00UJyo73tao3GdWDoxloQMaR2Uukbq0QaSNoJgP/VDZgXp8sn/9C4vrm7066vj02tkOnWo
-8KQh19OA9KmwzRV14sOMoYfzyiP4Y2HafVtYa0DCRU2gP5JglhnKFH0ICrIG65EQ18m5OFYN
-mpWEOuQeuqoyifxnWQ/11q8V+DYmtIfU6GfdHvNMI4GY48doVL5n6uQnapDHwGQ9kSZ/XGSE
-b9FjAnucwHVh6Dp3UFajrkSDfKI/9K9axHb6ZLDZkklAcOSSLRWYAX7a+zFuQU1S3kNpzglr
-zklusnqZ+pxc3yymPgi4jPpY/z/Vx/KDL6k+Vk59inVHsXKe7mRAFtKduEVOd4iIIl/M02of
-FWmosxzKGcfJPcRTHbwpz/AmFVhfL6hVxFRg4YnqJB3f7cEoJB/PWvMIkTPC2UWxGGcYLT8W
-jhSn5257jO57TP3MmjriMII+5DTkhCPh2SYzINNozrQwB64ih5XMDPmolmfMRXz3R/ZHqjkF
-WcGe0rY5rRPPIq03bv5GtY0fYFi9Vst5WgZ5mkte7Bs+ppFZRNwCtGU8y2K0RWasaMtpgm88
-iLmKsIAefCHRawuKORl4PBUvwsoZYoYvKOfY179A1HPpm5Z1bgkTb8eoxZyyKV7LJCsZ+ZRW
-R5s039DseTC1QqJa3/63kFX60dnpu16ZHrj9orCvUqEGoY/4xoYpVEu33/dxcY/jKGhSA1rA
-6ch04Ma02sU26/RJv2mhQ7/pk35zuEwP+As9Sflsep76yfDEQoanLzwetAZ6QJ/0W3wIPEOn
-BR/Rih+82Cqx5ei8zooX3564s31atDNny+tqILyO/KM3Yf7AMrX/9wXOARbf/93dbbV3vmq2
-tnc6zdX+72uUmfInI/5Mfczf/2222lutSP6d9tYuwnc6zdX+76uU0s3AjvYfcYkzdCc+PLoh
-bdfJKahve2KCFeCFqCZg3Bk2BQg8LT0Yns3aU0o29Wj/tnBjDyzEZCLc4yach8PAHuOqQyI1
-DUf1RkSUfNu5G4psF5twM8g94mbCxg49uBVgUKR7i989MfaEj2EQooGSASl0NYq7cVKiltyE
-EXqGcydwqmPa+66HpMCHPSQz2QZCpP8KkX5rs1TqfjBGSPteKbIdqB/Bae/y/Q3IPSmoj+KZ
-O4ooMFrQOVyo/wZHx8fdy5sFm8uACYOhhZqHVmFz2VSRksNTunFp74pYINe5uIgUDjOYZYLc
-2ysJc+BCexctcw//bjXhsFjIjWicjNayfcYTkI6RqPdAYlqg/R9tGH+RMtP/U4D3mfp4xv/T
-cX/i/1st8v/bu7sr//8a5SgMBq63Bz2bfPyJ8WBbPjrhshNYrWYL0BPeDkNx1T2/+LF73n10
-HTqYs1x0oS5/hPeV0jUuYUJ/D37iDXQ61RuJlf3+OcpM+5dnnZ+lj+Xzfzq7u6v8j1cpz8if
-pucX97G8/Hc6O62V/F+jLCB/znJ4SR/Ly393e3tl/69SFpV/nPTyCZqwVP7fLsZ/7dY25X+t
-5P/ly/LyP3advn23aTubQ8OyFunjufi/3dnJyR/1ZbX/8yoFwBJjPfBsOocQsAFwc3EdZXCF
-Y1KFDTi+6L09faefXuq9t/r50c3x9zpB/S3zPDp/KE2jzCa8zUOrzldmof6jufWfV5a3/+VT
-gefbfxtn/a28/bc6rZX9v0bJ58jeC88Rw6Ls2ZFrhUOxVMItHw/2n83FnaorSDGmlN/QME3h
-+9MVs3OBQ2tc9HiRbN+ZsNl036/tvmOJfuTMLq8ujvW316WvOUkEYO0SecCps+A/+oEYRe4P
-aEtUbSqrTGh8Ipm8hs0dy+6XSucXJ+/PuvrR+5vvL67Ka7ldmm/n7dJsmu5meH9IR9kKy0n3
-+vgKfenpRa9MdCEW4ZNzNpB7kHho2jd/sA0+3YW+3NGJ/EQK3dnpcbd33S2vvbs8o8fRUbY3
-IcHqAWUewRBnAZ1+7+dOuqOD5AfD06BKGd9wAL33Z2d5QFYiy/ai3Ej+jUKJzxWiZunMzJSU
-dErb4vPqskzRvA37feHFCZtk/3Qw0O/rgTrvrslspgCGwrkLVB5NVbj9GidlQJUSIGRGkQSi
-TN/9qXzLB8JPf2ZkW3J9BeJsCiaUeFWGdayrH9J34IQxTkXgZ/hHn8q1OO29O+vKVAZJjR+l
-H0SDXft7SPnUoPBOhCdzEOK03NnYr456755FvjeFX31Hbee+NE4/lP3NQ2U7D8bQthCZSpIo
-acR5SrneVywK2XNAnktRahhiTieHhSj7oLWjq3RdnRPSZZaL1ABOAyBhxlljnAJHj51whHgl
-WGDYQxaTqiDqbToI0lGsgRsOy+qIaZ0ga9CEOBGK21IC48YvzQ3KMuPfbw6kzTFnGS7CfIiN
-ESr6+e0B7HQ6Wx0JGQ2zHA+skqKVsl6eUllyGueWfY0eynZELNLzo/++6h6dILLW1ky7mXh2
-IKThKMVlN1alvzVIc1AJj/PfskyMDGjabEgfNBYV85d+VSXjqnweV2xO0p6wo4NnrCnCyXcO
-fs6N+1cyqUb1kvNR3JBSyidD4s9EcHY5GID+fkSZqeSYXRCOH3pcfScCrDVdEjwGt6SPNT4y
-swMc5DB0AiHIo6PFV8s+TiUC+MTLctHVutjF7SOGx30jHAYVjaEarFNkBmj3P3Sveuin//H+
-HayhvyNUyhKUKkmGoobkhsRpSNKmcjVR7n1cL1HEqXu5XrH2QNkygSc9m+74Ue977kinJKGy
-vM1Riw2XgZNkqhxWHjCd7maxRFYe6Wu9+/bo/dmNsnupgEUOsbAPywUbxAN6GxIS3TD67ruY
-edICaU4xBwnxG784G4mZvmEgHkOj0XNTOkAzALulJGUx17mTBo+HlfOpqXzqm6Ob7mnvx6Oz
-UxKQGqp0bFODzTg26RHVcMifkOPj09vp0e1tpOQngSofaQTSxL75JkYR0SpnBnRMiatU13aS
-jLg36TnkY5z9lmPILU7oMuGLIWOWLM6TZ5iS5YpMUE7NONkxqMHnxiAhf/89PSseZqatBYbH
-kF92eDJz/2mG6jEZlhxijaeCBabjecrJE34UHEhruBJjgYt5i5yhwc6cci8o+44mAsum9BFj
-yAmBtxgnPsLI9invAnx3hC729sF2Qx8mxiMhQEPlYPdWBGgzX1z1oCwzQCqvo4NzRCTpiGRU
-FI/NoYxjvIxnnEFVFB8gGZV8MJS6HkZ37cpQmO4bBa7RLB9HGipgiSJf7ElefGvul14SvqaY
-LsWaCvNmesOm4sXCwStqMZlIOtiCw4O0BFTMRQFX2liUoOVQW1nDuE6SizKIDzKIKzCNo1Sa
-O0w1StkmL0KZw5qRnX+v01QMVf/+tpYVKy+WxIONsUjVdgrvnqVBMCCKEMiwTS0KKeGXpB6t
-kdJoJODAQpVJlIVCMdQ/tXwauIHluePPnIxOP/ZzCHHRj5RAlZKhDgC/ylx1hwAoUyFSWJaW
-HA3Ji2NuRTN8C9lUaYmzEmnSseFs4MrPde9p8U3erAa/0T2PO9dxDPJwkwFWjGTiG8V+FCPS
-+DFQpAlYcUMpQ16nG40jyrMjMYxt2h/AgEkiy1JdgaQhtUpMcD1eeOPSq9E4N+4FcAzruLeu
-RTEoxa8YkoZexuwnA4rxJ2IDQUP24DZpg+FIl22YQWgM6QK3gbbhfAd1rptQJGzaGHypPd5/
-hcKzET0TbnDul7rfPTAo3284xFFJGr6DZW4SxBLMeDHZMMpGr4ETuAO/jDKrH8pryCg4+F9y
-ifMvG6RmGtWRnGUUZ2NTjZmbnQaayQJs0ZsHz47H8oPMeOh+93Ojia4sfa7RlHJN0sqVXMlq
-FVzJTqlWFUp3ya4NPSlnFpHyXkTBtdVkNqriOg2/SF3/ETWs/0h7F2qniuCiS3riA1LoJ/tq
-hDw9Q+VGQHBl3qnhdw/sEy7+A8qNOxjrVCBaqFOcPRqX5eU7ricCEAof8EXFpoTV5MYkeiyz
-LN27J/qmi4tENsr3bF8SBgMlXL2QLSEw0umTReHCStAKkpvwzWRarBLV1JCyVScDFy2LBqOp
-y3IzpJSIlRkYC3aOWBtVygc26QwH+a52A9E70IpVCgK5cz9ioBkXSxCmUoN3by91ioa6Z3Ew
-8EYiSN0RV3t4yJafBJxcyHV44PJopQwpoxe9EtEhLHJlWOsH6EMpxqSlNfGNk36VQsgNw7RH
-iyEIvHxr+Da5osdKZq05xQY4pmaCGR5Hu3Ea8oafsEZ1WW1oEYukapB9Mw6dbZqhlPo0d7a3
-1UWa1KZmnlESDWsVQKPK02OVUqI9+VKNYOJi3IEh9609RPKEv6dAoFWHI8flJOnISmT2NF90
-pyH5ZHhsfeSbbwXOfpJYC707c57UUjp8iVXTblEP7QDO31/fYA26fW5mWJYUGqEdEhvBCllO
-NM2wJOtIheDVAN24VxrN4FSLKAeGhVNr1I8jaMcfSUbogi6oB5pYJ244tDDWNeQCxYHQiVqi
-L+CdeKlmEVfadcW8CQ7ZgJEYuQip9J2ky402FRmyjfzR0NjS7vueEGWlxfvy2RJeZHE3wne2
-5zkStvvsiiBv+TnT55Ukr1XmtcrYpfbEQ1Rb+3yzaj3SzKiFohHjkqQuIrMGLQKJHi+w9Moa
-UP3QnTi8PLz5/vRalycQ+3kYCt4QRM0SUyjY1ylzLDwgmEIo+VPQJNkbJf5HjUi+kfDJk01G
-t2UatjrdiOkqzWF8PJ1Gc13uQigGTbPm0CosMoeS/SVnJnMcX5E6U4g8V2331RtbVC/cZd4C
-It+m8Cm9sYSpoy3rGJUGeSVPpl7Cq25cioeY4zFuUlz1ApCI65k61uuR+5BxxLkxFHrjyOIj
-cycbmi3EggW37Cod8PCBmuxw9gVfZOXUIixzu52f0+ybez7AtYk+Mvz7594EMvMlIMn6SosW
-S2/K9phZNfWOGNpFK6yjN8HQ6jcCsJ2HKGKla6lo8DoDKpB4OHQ8sti9Vcautg2mdwYWWFNk
-Vw/Ikak4teB2sWJIrm28IKt3exfn3fPnKcmsBrJx/2xKMveIpymhtql5ZhEeaNqUY5katKbe
-IPKUiiaTcSYR5fRqQHkuFJ/7WF5Qnz+D3irOf4JOJYHp/hKKtAALl9OHGQhT4tey7wxIuZDM
-DXL1a/Y98qh+Xb45Ap8kXoseJ7+oTomSKtRXxiGy83P6zVckWp0Dh1L2XjZVcLBlupbYz8cY
-mZCk4OSfH43uLdsrr6Xm57XEh8ezzZRTl8G0LDEFap6fcVtc/pQxF78BK2qm9gjzM8tsmrQn
-iF5Uleq63qVLedepKCDFmqw5ITfpZST02hM7xU3sL3Seo34pSrFbmZUiRUJ/8Kl6RCSUiQR8
-9EenMq3KJ5Tl8/9+MGUC8KLZv8/n/3banVz+39YO5f+v8v++fJHChIIc3JIWp/DCRnEGbwkn
-qLFwLMpsgFyqrkYvECAH+4kXzNNpaYQmvmsOy901p5UkwGmfO50YONtgz5S/Qds1dgBy/c/e
-rAa+8Qjn8uWktK1AC0NqfeKa4Qj9JG8NqERIfzP4EGwy5pCzQ2Trf/Y2Nv9MnnB5+6ejBNrr
-WtwBPH//N5//v7W7yv9/neLe/lb/W7k4wb8C38hoKHD9Tbc0E1Q5jBg8So91/0yG8Bctz9i/
-yoV+2R3QT7n/11rd/3qVsqD8X3QbfKn7f9so/3azs7O9kv9rlKXkn7sKsWgfS8m/Q+//30JX
-sJL/a5SXyD9zFWZOH8+9/2t3t5WT/057u7mK/16jRNeXdFq56UnqOMV1enxvoLh26lpB9Lpi
-gK02/acPstqH0JfrtfQe61RjtZOqaa2pKrUnqmntqaokd0fbLqqMmv5XUX/8tmittVPUoaxT
-40idoqnXP5vT+DhBU9N2pungJEQcWLuAitSpp9bu7FB313ITV+VLuUNLpmmNVfKDzDSgs85S
-wSnfx3gHVV7A0uTlq6ITQbpyoQ7Giu9aEQA9oubqlE7e24gO5nhvVd3l0OJD3f1sXiS9Qk0l
-J8v3iln0pKxeDmY1VGp9paTFqYPycgilTu7nn3JO5j5vLTcayT73ANfrbr+f5wifCXxUV3gk
-mdHm+c95rf11PwMX7doXwvGggSHlkDlz5Qe+PMmigVuB9Beew0ZcpQOjfS37/ny6Ezjk1Isk
-g2U+EhwOI8m/Sr0QE3FNXS1U9v+M/8/ufHyij1lq/t/i+G+n1V7N/69RlpK/fPVD6Al+1e9n
-e/9Dp7mdk/92e3d7Nf+/Rine+SkdT6W5Zbd+S7O3gUqfZ8v3BTu+pRft9/5Hb/euyqqsyqqs
-yqpw+T8c3HLKAHgAAA==
+Signed-off-by: Adrian Bunk <bunk@fs.tum.de>
 
---Message-Boundary-29970--
+--- linux-2.6.7-mm6-full-gcc3.4/net/ipv4/netfilter/ip_nat_snmp_basic.c.old	2004-07-09 02:18:23.000000000 +0200
++++ linux-2.6.7-mm6-full-gcc3.4/net/ipv4/netfilter/ip_nat_snmp_basic.c	2004-07-09 02:21:00.000000000 +0200
+@@ -862,6 +862,77 @@
+ 	return 1;
+ }
+ 
++/* 
++ * Fast checksum update for possibly oddly-aligned UDP byte, from the
++ * code example in the draft.
++ */
++static void fast_csum(unsigned char *csum,
++                      const unsigned char *optr,
++                      const unsigned char *nptr,
++                      int odd)
++{
++	long x, old, new;
++	
++	x = csum[0] * 256 + csum[1];
++	
++	x =~ x & 0xFFFF;
++	
++	if (odd) old = optr[0] * 256;
++	else old = optr[0];
++	
++	x -= old & 0xFFFF;
++	if (x <= 0) {
++		x--;
++		x &= 0xFFFF;
++	}
++	
++	if (odd) new = nptr[0] * 256;
++	else new = nptr[0];
++	
++	x += new & 0xFFFF;
++	if (x & 0x10000) {
++		x++;
++		x &= 0xFFFF;
++	}
++	
++	x =~ x & 0xFFFF;
++	csum[0] = x / 256;
++	csum[1] = x & 0xFF;
++}
++
++/* 
++ * Mangle IP address.
++ * 	- begin points to the start of the snmp messgae
++ *      - addr points to the start of the address
++ */
++static inline void mangle_address(unsigned char *begin,
++                                  unsigned char *addr,
++                                  const struct oct1_map *map,
++                                  u_int16_t *check)
++{
++	if (map->from == NOCT1(*addr)) {
++		u_int32_t old;
++		
++		if (debug)
++			memcpy(&old, (unsigned char *)addr, sizeof(old));
++			
++		*addr = map->to;
++		
++		/* Update UDP checksum if being used */
++		if (*check) {
++			unsigned char odd = !((addr - begin) % 2);
++			
++			fast_csum((unsigned char *)check,
++			          &map->from, &map->to, odd);
++			          
++		}
++		
++		if (debug)
++			printk(KERN_DEBUG "bsalg: mapped %u.%u.%u.%u to "
++			       "%u.%u.%u.%u\n", NIPQUAD(old), NIPQUAD(*addr));
++	}
++}
++
+ static unsigned char snmp_trap_decode(struct asn1_ctx *ctx,
+                                       struct snmp_v1_trap *trap,
+                                       const struct oct1_map *map,
+@@ -952,77 +1023,6 @@
+ 	printk("\n");
+ }
+ 
+-/* 
+- * Fast checksum update for possibly oddly-aligned UDP byte, from the
+- * code example in the draft.
+- */
+-static void fast_csum(unsigned char *csum,
+-                      const unsigned char *optr,
+-                      const unsigned char *nptr,
+-                      int odd)
+-{
+-	long x, old, new;
+-	
+-	x = csum[0] * 256 + csum[1];
+-	
+-	x =~ x & 0xFFFF;
+-	
+-	if (odd) old = optr[0] * 256;
+-	else old = optr[0];
+-	
+-	x -= old & 0xFFFF;
+-	if (x <= 0) {
+-		x--;
+-		x &= 0xFFFF;
+-	}
+-	
+-	if (odd) new = nptr[0] * 256;
+-	else new = nptr[0];
+-	
+-	x += new & 0xFFFF;
+-	if (x & 0x10000) {
+-		x++;
+-		x &= 0xFFFF;
+-	}
+-	
+-	x =~ x & 0xFFFF;
+-	csum[0] = x / 256;
+-	csum[1] = x & 0xFF;
+-}
+-
+-/* 
+- * Mangle IP address.
+- * 	- begin points to the start of the snmp messgae
+- *      - addr points to the start of the address
+- */
+-static inline void mangle_address(unsigned char *begin,
+-                                  unsigned char *addr,
+-                                  const struct oct1_map *map,
+-                                  u_int16_t *check)
+-{
+-	if (map->from == NOCT1(*addr)) {
+-		u_int32_t old;
+-		
+-		if (debug)
+-			memcpy(&old, (unsigned char *)addr, sizeof(old));
+-			
+-		*addr = map->to;
+-		
+-		/* Update UDP checksum if being used */
+-		if (*check) {
+-			unsigned char odd = !((addr - begin) % 2);
+-			
+-			fast_csum((unsigned char *)check,
+-			          &map->from, &map->to, odd);
+-			          
+-		}
+-		
+-		if (debug)
+-			printk(KERN_DEBUG "bsalg: mapped %u.%u.%u.%u to "
+-			       "%u.%u.%u.%u\n", NIPQUAD(old), NIPQUAD(*addr));
+-	}
+-}
+-
+ /*
+  * Parse and mangle SNMP message according to mapping.
+  * (And this is the fucking 'basic' method).
