@@ -1,16 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] for some issues in tcp window tracking patch
-Date: Sat, 22 May 2004 01:01:22 +0200
+From: "Piotr =?iso-8859-2?Q?Gasid=B3o?=" <quaker@pandora.barbara.eu.org>
+Subject: Re: ip accounting
+Date: Fri, 21 May 2004 11:15:34 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40AE8A42.9060908@eurodev.net>
-References: <Pine.LNX.4.33.0405211325150.7455-100000@blackhole.kfki.hu>
+Message-ID: <20040521091534.GA17812@pandora.barbara.eu.org>
+References: <40ACAFDA.7497.4A56EAD@localhost> <200405201604.46581.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=_pandora.barbara.ds.polsl.gliwice.pl-27406-1085155637-0001-2"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.33.0405211325150.7455-100000@blackhole.kfki.hu>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Disposition: inline
+In-Reply-To: <200405201604.46581.thomas.jarosch@intra2net.com>
+Resent-Message-Id: <E1BRCYN-000640-KE@vishnu.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,76 +21,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-Jozsef Kadlecsik wrote:
+--=_pandora.barbara.ds.polsl.gliwice.pl-27406-1085155637-0001-2
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->>a) Sometimes we destroy the conntrack calling
->>conntrack->timeout.function((unsigned long)conntrack) but we are
->>returning -NF_ACCEPT, so we are calling implicitely nf_conntrack_put
->>from conntrack core, could we have any unexpected problem?
->>    
->>
->
->Good catch, this is one of the rare cases where conntrack must explicitly
->drop the packet, so the return value should be -NF_DROP. (-NF_ACCEPT does
->not guarantee that the packet will truly be dropped, as it was discussed
->in the previous mail.)
->  
->
+On czw, 20/05, 04:04:46, Thomas Jarosch wrote:
+> Hello Toholj,
+>=20
+> > I heard that there was a discussion about "accounting based on ip addre=
+ss
+> > upl/dnl". If that's right, could someone send me the whole story?
+>=20
+> There are currently four ways to do traffic account:
+> (...)
+> 2. Use the ipt_account match from here:
+> http://www.barbara.eu.org/~quaker/ipt_account/
+> (Wasn't there an english version somewhere?)
 
-still one question, some tracing:
+Please use ipt_account, 0.2.x tree. It can be found here:
+http://www.barbara.eu.org/~quaker/ipt_account2/
 
-conntrack->timeout.function is death_by_timeout -> which calls 
-ip_conntrack_put -> which calls nf_conntrack_put  which decrements 
-refcount and if zero, we release the conntrack.
+English documentation:
+http://www.barbara.eu.org/~quaker/ipt_account2/english/mini-howto.txt
 
-Now we return -NF_whatever, from conntrack core we call 
-nf_conntrack_put, so same thing, we reduce refcount and if zero, we 
-release the conntrack.
+ipt_account version 0.2.x will be soon submitted to netfilter cvs,
+replacing old one (version 0.1.x).
 
-I don't know if I'm missing anything but we are decrementing twice 
-conntrack refcount, at worst we could try to release an already released 
-conntrack. Am I missing anything?
- 
+--=20
+Piotr 'QuakeR' Gasid=B3o, BOFH @ pandora.barbara.eu.org
+############## sending lusers to /dev/null since 1998
+##### Waiting for tomorrow, for a little ray of light
+### Waiting for tomorrow just to see your smile again
 
->Actually, I'm really glad that there are guys who goes trough the code,
->work hard to understand and try to improve, optimize it.
->
+--=_pandora.barbara.ds.polsl.gliwice.pl-27406-1085155637-0001-2
+Content-Type: application/pgp-signature
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I do also appreciate that some people like you consider that my efforts 
-are not a waste of time :-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-> We have been
->planning to submit the code for kernel inclusion for a long time, but
->it cannot be done lightheartedly, without a wider (known) test base and
->code scrutinizing by more people.
->  
->
+iD8DBQFArci2gEmu6PNADqoRAjw2AKCQuST3BF9Or/h2eejWdLwnF5IY5QCbBnYO
+vOgjhdhKL9buVipoY1u4Ib8=
+=jRn3
+-----END PGP SIGNATURE-----
 
-I think that this could be an interesting new feature, as well as those 
-patches to make fine grain locking in conntrack which still need some 
-spins and Patrick's ipsec... well, there are interesting stuff in pom-ng.
-
->Compared to the cvs version, the following modifications has been added to
->my tree:
->
->- tcph->ack should be tcph->ack_seq in tcp_packet at TCP_CONNTRACK_CLOSE
->  case
->- inlined segment_seq_plus_len
->- explicit drop of SYN/ACK when the state machine is out of sync
->- releasing lock moved up, after setting timeout parameter in tcp_packet
->- IPS_ASSURED_BIT is checked before set in tcp_packet
->- SACK support added
->  
->
-
-two issues missing:
-- sender->loose decrements misplaced
-- use of defined flags in tcp.h
-
-and pending that you give your ok:
-- fine grain locking for private tcp helper info
-
-regards,
-Pablo
+--=_pandora.barbara.ds.polsl.gliwice.pl-27406-1085155637-0001-2--
