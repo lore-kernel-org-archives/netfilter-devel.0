@@ -1,13 +1,13 @@
-From: sam@cerbere.dyndns.info (Samir Bellabes)
-Subject: ip_conntrack_count broken - kernel 2.6 - New patch
-Date: Sun, 15 Aug 2004 15:17:40 +0200
+From: dragon <dragon@earthquake.hu>
+Subject: 1.2.11 compile error
+Date: 15 Aug 2004 15:46:59 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040815131740.GA23767@cerbere.dyndns.info>
+Message-ID: <1092584819.2136.9.camel@ekmek.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="OXfL5xGRrasGEqWY"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,73 +18,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi
 
---OXfL5xGRrasGEqWY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I tryd to compile iptables-1.2.11 with kernel 2.6.7, grsec 2.0.1 and I
+have this error.
 
-Hi Harald,
-   The ip_conntrack_count is broken with kernel 2.6.8.
-   This patch, which do the same thing, applies correctly.
+bash-2.05b# make
+Extensions found: IPv4:recent IPv6:ah IPv6:esp IPv6:frag IPv6:ipv6header
+IPv6:hbh IPv6:dst IPv6:rt
+cc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/
+-DIPTABLES_VERSION=\"1.2.11\"  -fPIC -o extensions/libipt_ah_sh.o -c
+extensions/libipt_ah.c
+In file included from include/libiptc/libiptc.h:6,
+                 from include/iptables.h:5,
+                 from extensions/libipt_ah.c:8:
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:255: warning:
+declaration does not declare anything
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:255: warning: no
+semicolon at end of struct or union
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:255: error:
+parse error before ',' token
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:259: error:
+parse error before '}' token
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:339: warning:
+type defaults to `int' in declaration of `DECLARE_MUTEX'
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:339: warning:
+parameter names (without types) in function declaration
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:339: warning:
+`DECLARE_MUTEX' declared `static' but never defined
+make: *** [extensions/libipt_ah_sh.o] Error 1
+bash-2.05b# 
 
-thanks.
 
--- 
-samir bellabes
-sam@cerbere.dyndns.info
+It is a kernel bug or I make wrong something?
 
---OXfL5xGRrasGEqWY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="linux-2.6-ip_conntrack_count.patch"
+gcc 3.3.4, glibc 2.3.3.
 
-diff -Nru --exclude '*~' linux-2.6.8/include/linux/sysctl.h linux-2.6.8-conntrack_count/include/linux/sysctl.h
---- linux-2.6.8/include/linux/sysctl.h	2004-08-15 03:34:57.000000000 +0200
-+++ linux-2.6.8-conntrack_count/include/linux/sysctl.h	2004-08-15 03:47:25.000000000 +0200
-@@ -410,6 +410,7 @@
- 	NET_IPV4_NF_CONNTRACK_ICMP_TIMEOUT=12,
- 	NET_IPV4_NF_CONNTRACK_GENERIC_TIMEOUT=13,
- 	NET_IPV4_NF_CONNTRACK_BUCKETS=14,
-+	NET_IPV4_NF_CONNTRACK_COUNT=15,
- };
-  
- /* /proc/sys/net/ipv6 */
-diff -Nru --exclude '*~' linux-2.6.8/net/ipv4/netfilter/ip_conntrack_core.c linux-2.6.8-conntrack_count/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-2.6.8/net/ipv4/netfilter/ip_conntrack_core.c	2004-08-15 03:34:58.000000000 +0200
-+++ linux-2.6.8-conntrack_count/net/ipv4/netfilter/ip_conntrack_core.c	2004-08-15 03:42:59.000000000 +0200
-@@ -65,7 +65,7 @@
- static LIST_HEAD(helpers);
- unsigned int ip_conntrack_htable_size = 0;
- int ip_conntrack_max;
--static atomic_t ip_conntrack_count = ATOMIC_INIT(0);
-+atomic_t ip_conntrack_count = ATOMIC_INIT(0);
- struct list_head *ip_conntrack_hash;
- static kmem_cache_t *ip_conntrack_cachep;
- struct ip_conntrack ip_conntrack_untracked;
-diff -Nru --exclude '*~' linux-2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c linux-2.6.8-conntrack_count/net/ipv4/netfilter/ip_conntrack_standalone.c
---- linux-2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-08-15 03:34:58.000000000 +0200
-+++ linux-2.6.8-conntrack_count/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-08-15 03:46:11.000000000 +0200
-@@ -312,6 +312,7 @@
- 
- /* From ip_conntrack_core.c */
- extern int ip_conntrack_max;
-+extern atomic_t ip_conntrack_count;
- extern unsigned int ip_conntrack_htable_size;
- 
- /* From ip_conntrack_proto_tcp.c */
-@@ -346,6 +347,14 @@
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
-+		.ctl_name	= NET_IPV4_NF_CONNTRACK_COUNT,
-+		.procname	= "ip_conntrack_count",
-+		.data		= &ip_conntrack_count,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0444,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= NET_IPV4_NF_CONNTRACK_BUCKETS,
- 		.procname	= "ip_conntrack_buckets",
- 		.data		= &ip_conntrack_htable_size,
-
---OXfL5xGRrasGEqWY--
+dragon
