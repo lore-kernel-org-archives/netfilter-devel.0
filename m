@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: iptables and external processes
-Date: Wed, 18 Feb 2004 05:57:41 +0100 (CET)
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: patch for conntrack expectations
+Date: Wed, 18 Feb 2004 06:15:10 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402180552310.10256-100000@filer.marasystems.com>
-References: <1077060658.2011.19.camel@ca.gts.nexusmgmt.com>
+Message-ID: <4032F4DE.3050402@eurodev.net>
+References: <403014C5.8080102@eurodev.net> <20040217213217.GF30968@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Allen Francom <aef@prismnet.com>, <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-In-Reply-To: <1077060658.2011.19.camel@ca.gts.nexusmgmt.com>
+To: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040217213217.GF30968@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,29 +21,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Feb 2004, John A. Sullivan III wrote:
+Harald Welte wrote:
 
-> That's where the packet processing comes in.  We know what we have to do
-> to have iptables confirm that the packet is not spoofed and to track the
-> NAT.  We just needed to find a way to pass that decision back to
-> iptables to know whether to pass the packet on to the chains that were
-> built in the pre-authentication or to drop the packet as a spoof. 
-> Assuming that I have the client part and logic straight, does this seem
-> feasible? I take from the little I read about QUEUE that this is quite
-> possible.  Thanks again - John
+>This is indeed a true observation and good suggestion. 
+>
+>Hoever, I'm not sure whether it would make any measurable difference.
+>The expect was allocated on the stack [which is cheap], and now we have
+>one additional (inter-module) function call instead of the allocation of
+>a couple of bytes on the stack.  I'm not sure which one is really worse.
+>  
+>
+well, sorry because I'm going to be a bit repetitive but this way 
+everyone's going to understand my patch clearly.
 
-Nothing of what you have said indicates QUEUE can not be used from what I 
-can tell.
+in some steps:
 
-The main complication is that once you have processed the QUEUE:ed packet
-in userspace, the verdict set by the userspace is final for this hook. But
-this is rarely a problem. In most cases you can duplicate the little extra
-rules needed if any in the userspace, or have the QUEUE called from
-another hook running before your firewall hook (i.e. mangle).
+1) helper function is called
+2) a pointer to a ip_conntrack_expect structure is allocated on the stack
+3) if the pattern which we are looking for is *not* found
+    -> return NF_ACCEPT
+4) else
+    -> a ip_conntrack_expect structure is allocated in memory
+5) all the fields of the expectation are fulfilled
+6) helper calls ip_conntrack_expect_related to insert the expectation
+but it passes a pointer to a structure allocated in memory.
 
-Also, if you need to modify NAT rules while processing the packet in
-userspace then you must call QUEUE from mangle PREROUTING as this is the
-only hook which is executed before NAT.
+what's the different between this approach and the current one?
 
-Regards
-Henrik
+If the pattern which we are looking for is not found, nothing will 
+change, we just allocated less memory on the stack but of course this 
+doesn't improve the performance, so it's the same.
+
+By other hand, in the current approach if the pattern is found, the 
+function ip_conntrack_expect_related does a memcpy of a structure of 116 
+bytes (expectation) from the stack to memory. This is not needed anymore 
+since with the new approach the helper works with the future expectation 
+already allocated in memory.
+
+I also think that this will result in a cleaner API to manage the 
+expectations. well, maybe you could also use this to allocate an 
+expectation for the connection tracking replication (well... i just 
+started talking so much).
+
+>Also, 2.4.x kernel series are heading for a freeze pretty soon.
+>  
+>
+yes it's true
+
+>So if at all, such a patch would be accepted for 2.6.x.  But then I
+>would like to ask you to change all the helpers (esp. the ones in
+>patch-o-matic-ng), too.
+>  
+>
+I had a look at almost all the helpers which are in patch-o-matic-ng 
+(even the pptp helper). I have no problem about modifying them. BTW, the 
+documentation should be updated as well if this change is applied.
+
+Pablo
