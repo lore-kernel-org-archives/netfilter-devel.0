@@ -1,21 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: IPtables performance (fwd)
-Date: Wed, 28 May 2003 21:20:19 +0200
+From: Diego Woitasen <diegows@linux.org.ar>
+Subject: Re: why every time that a rule is inserted/appended....
+Date: Wed, 28 May 2003 18:26:09 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030528192019.GC12978@naboo>
-References: <Pine.LNX.4.44.0305031129230.8273-100000@localhost> <Pine.LNX.4.33.0305031750040.8241-100000@fantomas.insite.com.br>
+Message-ID: <3ED52971.8020604@linux.org.ar>
+References: <3ED2887B.5050807@linux.org.ar> <20030528183045.GB12978@naboo>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UFHRwCdBEJvubb2X"
-Cc: Chris Wilson <chris@netservers.co.uk>,
-	"netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>,
-	Robert Olsson <robban@robtex.com>,
-	John McEleney <john@netservers.co.uk>,
-	Ben McKeegan <ben@netservers.co.uk>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andre Uratsuka Manoel <andre@insite.com.br>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0305031750040.8241-100000@fantomas.insite.com.br>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -26,58 +20,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+If you are talking about iptables2, I saw that and the change seems to 
+me really interesting, but the project seems to be stopped.
+I want to help the development of this new version, as soon as has time 
+(soon I hope).
 
---UFHRwCdBEJvubb2X
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Where can i get the kernel interface? ...if exists...
 
-On Sat, May 03, 2003 at 07:39:46PM -0300, Andre Uratsuka Manoel wrote:
 
-> 	Be my guest to implement it. I thought of doing it myself, but I'm
-> still looking around and trying to understand all those structures and
-> pointers and I am still trying to find my way around.
-
-While a long train ride I recently had the time to think about your
-algorithm and I really like it.  I even started with an implementation,
-but came to the following problem:
-
-> 	Here is the pseudo-code for the algorithm:
->=20
-> -------------------------------------------------
-> 	for every chain:
-> 		paint it white=20
-> 		set chain->comefrom to 0=20
-
-how can we safely iterate over the whole table (which might contain
-loops) and paint all chains white?  I mean, if there is a loop in it,
-already the initialization-to-white function would loop indefinitely.
-
-any ideas?
-
-> 	Regards,
-> 	Andre
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---UFHRwCdBEJvubb2X
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+1QvzXaXGVTD0i/8RAoTeAJ48zmq1kyhmrtKX9s+mf7NMsyRlJQCgtTg0
-weOpncBOrDyTa0S810CJ1rk=
-=Mue9
------END PGP SIGNATURE-----
-
---UFHRwCdBEJvubb2X--
+> On Mon, May 26, 2003 at 06:34:51PM -0300, diegows wrote:
+> 
+>>...the entire table is replaced?
+> 
+> 
+> the idea was to have an atomic snapshot from the kernel, which is
+> especially important for the counters.
+> 
+> ipchains doesn't read a chain atomically and thus packets are still
+> traversing between rules are being read from the kernel.  This leads to
+> inconsistencies in 
+> 
+> 
+>>If this could be better, advise me and i try to patch that.
+> 
+> 
+> Sure it can be done better, and there have been at least two approaches
+> to introduce a new kernel/userspace interface, both based on nfnetlink.
+> 
+> However, this is not a 'small patch' but a fundamental design change.
+> 
+> [maybe I'll finally find some time to do pkttables stuff again... but
+> now there is lots of other distracting stuff like that dual opteron box
+> ;)]
+> 
