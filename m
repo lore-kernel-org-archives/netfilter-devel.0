@@ -1,18 +1,18 @@
-From: Bart De Schuymer <bart.de.schuymer@pandora.be>
-Subject: [RFC] ipt_REJECT.c - option to use different ICMP source address
-Date: Mon, 4 Nov 2002 23:43:19 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: netfilter for IPv6
+Date: Tue, 5 Nov 2002 00:13:00 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200211042343.19949.bart.de.schuymer@pandora.be>
-References: <20021102153451.N8635@sunbeam.de.gnumonks.org> <200211022032.46007.bart.de.schuymer@pandora.be> <20021104092757.C8635@sunbeam.de.gnumonks.org>
+Message-ID: <20021105001300.B8635@sunbeam.de.gnumonks.org>
+References: <200211042309.gA4N9A6K028235@rm-rstar.sfu.ca>
+Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	bridge@math.leidenuniv.nl, Pekka Savola <pekkas@netcore.fi>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xxKTo6wS8zlLE5N3"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20021104092757.C8635@sunbeam.de.gnumonks.org>
+To: Peter Lee <mclee@sfu.ca>
+Content-Disposition: inline
+In-Reply-To: <200211042309.gA4N9A6K028235@rm-rstar.sfu.ca>; from mclee@sfu.ca on Mon, Nov 04, 2002 at 03:09:10PM -0800
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,41 +23,55 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello netfilter team,
 
-Since the bridge-netfilter code is in the 2.5 kernel, Linux networking li=
-fe=20
-gets some new interesting problems.
+--xxKTo6wS8zlLE5N3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-When a bridged IP packet is forwarded (inside the bridge code) it is seen=
- by=20
-the iptables FORWARD chains.
-There the REJECT target can be used. It seems most natural that the ICMP=20
-message sent by this target should have the IP destination address of the=
-=20
-original message, as the IP source address of the ICMP message.
-This should be the normal behaviour for a bridging firewall (as pointed o=
-ut by=20
-Pekka Savola) because first of all the bridge device could have no IP, an=
-d=20
-secondly, the IP message wasn't destined for the bridging box (on the MAC=
-=20
-level) so it is not good to have its IP address as source address by defa=
-ult.
+On Mon, Nov 04, 2002 at 03:09:10PM -0800, Peter Lee wrote:
+> Hi,
+>=20
 
-So, if I were to implement code inside ipt_REJECT.c (for 2.5) that checks=
- if=20
-the packet is being bridged and we are on the NF_IP_FORWARD hook. And if =
-so,=20
-it uses the destination address of the original packet as the source addr=
-ess=20
-of the ICMP message. Would this then be accepted (if it looks ok)?
-Ofcourse, this code would only be compiled if the bridge is enabled.
+hi. please direct netfilter-related questions to
+netfilter-devel@lists.netfilter.org
 
-One can then use SNAT to force the IP address of the bridge instead of th=
-is=20
-default behaviour, if needed.
+> Is there any good tutorial on how to use netfilter hooks for IPv6? I'm st=
+uck
+> in the middle of porting an IPv4 protocol to IPv6. Please help.
+
+There is no difference between netfilter hooks for ipv4 and ipv6. You=20
+use them exactly the same way.
+
+However, if you are porting a protocol, netfilter shouldn't be involved at
+all.  Transport Protocols (layer 4) are dealt with in the standard network
+stack
+
+> Peter Lee
+> M.Eng. Student
+> Simon Fraser University
 
 --=20
-cheers,
-Bart
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--xxKTo6wS8zlLE5N3
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9xv78XaXGVTD0i/8RAkavAKCyXFeVPmyVzGsXMxqQNrpBH9ppyACfbuPr
+SSon0/7JDiedNatcChHGkjY=
+=CX6J
+-----END PGP SIGNATURE-----
+
+--xxKTo6wS8zlLE5N3--
