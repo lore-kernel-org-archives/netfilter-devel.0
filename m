@@ -1,15 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [Fwd: ip_conntrack bug and patchomatic question]
-Date: 08 Apr 2003 23:01:30 +0200
+From: Tom Marshall <tommy@home.tig-grr.com>
+Subject: Re: disturbing MTU experiment
+Date: Tue, 8 Apr 2003 14:57:58 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1049835690.1308.63.camel@tux.rsn.bth.se>
+Message-ID: <20030408215758.GA8715@home.tig-grr.com>
+References: <20030408154101.13919.89741.Mailman@kashyyyk> <16018.64600.149601.372694@isis.cs3-inc.com> <007601c2fdff$20a81790$8500a8c0@repligate>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Nadav Har'El <nyh@math.technion.ac.il>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <007601c2fdff$20a81790$8500a8c0@repligate>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,97 +21,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm forwarding this to the correct list.
 
-Jozsef, can you take a look at this?
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Nadav, the purpose of the tcp-window-tracking.patch isn't to correct the
-state-table, it's purpose is to add tcp-window-tracking and this is
-still classified as an experimental patch.
+This is obviously flamebait.  Jim Fleming is currently in his second
+suspension from posting on the IETF lists[1].  I thought that was enough
+but apparently it's driven him to other lists in pursuit of arguments.
 
-Of course we want it fixed in the vanilla kernel, don't think that we
-don't want that. If RedHat would have included the tcp-window-tracking
-patch I would have called them stupid since this patch has had problems
-in the past and it still needs a fair bit of testing.
+To answer the question, Jim, I don't even know if we're on the same planet.=
+=20
+Don't bother educating me on that issue because I won't see the reply.
 
-When a patch that correct this problem is made it will be submitted to
-the vanilla kernel.
+[1] http://www1.ietf.org/mail-archive/ietf/Current/msg19652.html
 
-Please feel free to fix the problems you see and send patches to
-netfilter-devel@lists.netfilter.org (you need to be subscribed to send
-to this list without having your mail beeing moderated)
-(so subscribe before you respond to this mail :)
- 
-/Martin
+On Tue, Apr 08, 2003 at 01:46:11PM -0500, Jim Fleming wrote:
+> Are you on the AM Internet or the FM InterNAT ?
+>=20
+> [irrelevant stuff removed]
+>=20
+> Jim Fleming
+> http://www.IPv8.info
 
------Forwarded Message-----
+--=20
+A great many people think they are thinking when they are merely
+rearranging their prejudices.
+        -- William James
 
-From: Nadav Har'El <nyh@math.technion.ac.il>
-To: netfilter@lists.netfilter.org
-Subject: ip_conntrack bug and patchomatic question
-Date: 08 Apr 2003 18:52:02 +0300
+--cWoXeonUoKmBZSoM
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Running on Redhat 8.0, I noticed an apparent bug in connection tracking:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-When a connection closes, conntrack moves it to the TIME_WAIT state that it
-holds for 2 minutes, even if TIME_WAIT is not justified and the kernel
-didn't actually go to a TIME_WAIT state in this case (i.e., the remote server
-closed the connection first).
+iEYEARECAAYFAj6TReYACgkQFMm9uvwPXW6arQCfdHc+lE4bpgGJsfKZUidu1ozM
+S18An1kFPcYtfQiwFG/74wgi4FQJtZWv
+=XSG3
+-----END PGP SIGNATURE-----
 
-Looking at the code, I saw that ip_conntrack_proto_tcp.c simple contains a
-wrong state table (at least to my understanding)! For example, here is the
-state changes on outgoing packets:
-
-   /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI      */
-   /*syn*/ {sSS, sES, sSS, sSR, sSS, sSS, sSS, sSS, sSS, sLI },
-   /*fin*/ {sTW, sFW, sSS, sTW, sFW, sTW, sCL, sTW, sLA, sLI },
-   /*ack*/ {sES, sES, sSS, sES, sFW, sTW, sCL, sCW, sLA, sES },
-   /*rst*/ {sCL, sCL, sSS, sCL, sCL, sTW, sCL, sCL, sCL, sCL },
-   /*none*/{sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV }
-
-Now, this says that when we're in the CLOSE_WAIT (sCW) state and sending
-our FIN (i.e., we finally did close()), the state goes to TIME_WAIT (sTW).
-This is *wrong*, to the best of my knowledge (and books I consulted to see
-I am not imagining things) - the state should have been LAST_ACK (sLA).
-In fact, in the table in the aforementioned code no state can ever lead
-to LAST_ACK, which makes this state completely useless - which to me is
-almost a proof there's an error somewhere in that table.
-
-I checked in Redhat 9 that came out last week, and their kernel also
-appears to include this error.
-
-I'm a netfilter development newbie, but I saw on your site that there is a
-tar of patches called "patchomatic". I wasn't exactly sure what these patches
-apply to, but I thought I'd take a look and see if any patch fixes this
-wrong state machine. I believe I found that extra/tcp-window-tracking.patch
-modifies the state machine. Indeed, the table in that patch has a CW->LA
-transition; That patch also has a lot of comments explaining this table,
-which weren't present in the code I saw in Redhat 9. But I'm afraid that the
-new state machine might have errors too, because I saw there that when we are
-in LAST_ACK state, getting an ACK changes to TIME_WAIT, but I believe the
-right new state is CLOSE...
-
-So my questions are:
-
- 1. Is there someone working on conntrack that I should send this question
-    to, or is this list the correct address?
-
- 2. Can the state table be corrected in conntrack in the vanilla kernel,
-    rather than being (half-)corrected inside a big patch doing other things,
-    and worse, a patch that Redhat doesn't seem to be picking up?
-
- 3. When this problem is finally fixed, my connection will wind up in the
-    CLOSE state in conntrack. In that state, the conntrack entry is kept for
-    10 seconds. Why is that??? The CLOSE entries are meaningless, waste memory
-    and worse, I'm afraid that perhaps they might prevent NAT from reusing
-    the same addresses again... Can't entries moved to CLOSE state be
-    removed immediately?
-
-Thanks,
-	Nadav.
-
--- 
-Nadav Har'El                        |        Tuesday, Apr 8 2003, 7 Nisan 5763
-nyh@math.technion.ac.il             |-----------------------------------------
-Phone: +972-53-245868, ICQ 13349191 |Always remember you're unique, just like
-http://nadav.harel.org.il           |everyone else.
+--cWoXeonUoKmBZSoM--
