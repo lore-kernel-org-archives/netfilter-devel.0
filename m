@@ -1,15 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Security flaw in Stateful filtering ??????
-Date: Wed, 12 Jun 2002 11:23:27 +0200 (CEST)
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: [RFC] unidirectional NAT
+Date: Wed, 12 Jun 2002 12:43:37 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206121115150.11580-100000@blackhole.kfki.hu>
-References: <015d01c21055$82f7aed0$6501a8c0@multisofteducation.com>
+Message-ID: <20020612104337.GA18405@balabit.hu>
+References: <20020605100657.GA10488@balabit.hu> <Pine.LNX.4.33.0206051209270.8715-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=iso-8859-1
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Oskar Andreasson <blueflux@koffein.net>
-In-Reply-To: <015d01c21055$82f7aed0$6501a8c0@multisofteducation.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0206051209270.8715-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,52 +21,27 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-
-On Mon, 10 Jun 2002, Oskar Andreasson wrote:
-
-> Sorry for the late reply. I never suggested that this usage (see
-> below) is only theoretical and I'm very sorry if it was misinterpreted
-> as that.
-
-Oh, no! I wanted to *second* you in this argument.
-
-Regards,
-Jozsef
-
-> ----- Original Message -----
->
-> > On Fri, 7 Jun 2002, Oskar Andreasson wrote:
+On Wed, Jun 05, 2002 at 12:11:32PM +0200, Jozsef Kadlecsik wrote:
+> On Wed, 5 Jun 2002, Balazs Scheidler wrote:
+> 
+> > Let me think a bit about it. For UDP packets I don't really need
+> > conntracking sessions, I only need to translate single packets, but I'd like
+> > to avoid messing with IP and UDP header translation myself.
 > >
-> > > Another, related, usage is
-> > > if we have a redundant firewall (I haven't seen this discussed so far
-> > > so.... Consider this:
-> > >
-> > > 1 main firewall
-> > > 1 router
-> > > and a secondary firewall.
-> > >
-> > > The three are set up in a routing zone. If the main firewall goes
-> > > down, the router will notice, and route packets through the redundant
-> > > firewall. If the NEW target was to allow only SYN packets, this would
-> > > be impossible as you can understand from this.
-> >
-> > We have been using such a redundant setup for more than a year.
-> > It's *not* theoretical.
-> >
-> > Regards,
-> > Jozsef
-> > -
-> > E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-> > WWW-Home: http://www.kfki.hu/~kadlec
-> > Address : KFKI Research Institute for Particle and Nuclear Physics
-> >           H-1525 Budapest 114, POB. 49, Hungary
-> >
-> >
->
+> > So NOTRACK is good for me, I don't need NONAT since I don't need conntrack
+> > either. The question is how you mark an skb to avoid tracking? (an idea was
+> > to use a flag in nfct, is it still true?)
+> 
+> No, I'll go with Rusty's solution: a dummy conntrack entry is used.
+> 
+> > Is you patch available somewhere?
+> 
+> Not yet, but real soon I'll post it :-).
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-WWW-Home: http://www.kfki.hu/~kadlec
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Can you send me what you have available? I'd like to close my transparency
+project, and so I'd be willing to contribute to the conntrack exemption
+project :)
+
+-- 
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
