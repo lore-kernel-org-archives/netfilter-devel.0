@@ -1,10 +1,11 @@
-From: "Laurence J. Lane" <ljlane@nontoxic.org>
-Subject: debian forwarded bug report
-Date: Sat, 18 Oct 2003 02:13:55 -0400
+From: Willy Tarreau <willy@w.ods.org>
+Subject: faster way to read conntrack state than /proc ?
+Date: Sat, 18 Oct 2003 09:42:56 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031018061355.GA17357@ljlane.net>
+Message-ID: <20031018074256.GA29942@alpha.home.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Cc: davem@redhat.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -18,8 +19,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-191486: iptables: fragmented log messages from iptables
-http://bugs.debian.org/191486
+Hello,
 
-The URL shows badly fragmented syslog ouput from iptables. I
-can not reproduce this one.
+On LKML, to someone complaining about the slowness of /proc/net/tcp, Davem
+suggested to use the netlink interface instead which was really faster. BTW,
+the guy confirmed that 'ss' took 6 seconds where 'netstat' took 15 min. So
+I was wondering if there is such an equivalent for /proc/net/ip_conntrack,
+and if not, what would be needed to implement it, because it's sometimes
+annoying to eat 100% system on production machines during several minutes
+just to get some statistics about connections status.
+
+Anyone has a clue on this ?
+
+Cheers,
+Willy
