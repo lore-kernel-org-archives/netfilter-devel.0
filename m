@@ -1,16 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: New iptables structure (was: [PATCH 1/2] ipt_MARK extension with
- backwards compatibilty...)
-Date: Mon, 29 Nov 2004 13:27:57 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0411291322050.17340@filer.marasystems.com>
-References: <1101358191.5842.26.camel@localhost.localdomain>
-	<41A7B514.9030703@eurodev.net> <41A85AC4.5080006@anduras.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+From: Roberto Jung Drebes <drebes@inf.ufrgs.br>
+Subject: Simple sk_buff question
+Date: Mon, 29 Nov 2004 10:53:33 -0200
+Message-ID: <AD262F6C-4205-11D9-B8CC-000A957B2B6C@inf.ufrgs.br>
+Mime-Version: 1.0 (Apple Message framework v619)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Anders <anders@anduras.de>
-In-Reply-To: <41A85AC4.5080006@anduras.de>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,37 +18,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 27 Nov 2004, Sven Anders wrote:
+Hello there,
 
-> -----BEGIN PGP SIGNED MESSAGE-----
->
-> Once again, we need a field more...
+I am working in a simple netfilter module, and in some situations it 
+has to duplicate received IP packets. It does this with something like:
 
-Yes, but in a completely different place, this time in a manner which can 
-be done without too much disturbance, and at the same time building a good 
-framework to allow targets & matches to evolve (which has not been 
-possible up to now).
+clone_skb = skb_clone(skb, GFP_ATOMIC);
+ip_rcv(clone_skb, clone_skb->dev, NULL);
+return NF_ACCEPT;
 
-> Wasn't there an suggestion to reuse the 'nfcache' field too??
+Should I call kfree_skb(clone_skb) after the ip_rcv(), or will the 
+cloned sk_buff be freed when it reaches upper level protocols?
 
-this because the core kernel does not allow us to add more skb fields than 
-there are today. Not related to what is being discussed now. Modifying the 
-SKB structure is simply not an option unless there is extremely good 
-reasons why.
+Sorry if the question is really not netfilter specific, but it is 
+related to another question I will do next.
 
-> Wasn't the need to an unique rule id posted?
+Thanks in advance,
 
-It was, and as a compromise we now have the COMMENT match.
-
-> Why not break compatibilty, if it hamper the development?
-
-We can within POM, but not that easily in the main kernel.
-
-> Admit it, the design has some flaws, why not eliminating them? You can 
-> not preserve the compatibility forever!
-
-This is what is being done with the pkttables design. Just takes a bit 
-longer to get there than desireable..
-
-Regards
-Henrik
+-- 
+Roberto Jung Drebes <drebes@inf.ufrgs.br>
+Porto Alegre, RS - Brasil
+http://www.inf.ufrgs.br/~drebes/
