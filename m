@@ -1,13 +1,16 @@
-From: "Kevin Smith" <ksmith@perfht.com>
-Subject: Cuseeme Patch
-Date: Mon, 7 Apr 2003 14:18:20 -0400
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: Patch Errors
+Date: 07 Apr 2003 20:27:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <NGBBLGFEALDADHNDAAFFEEFLDJAA.ksmith@perfht.com>
+Message-ID: <1049740037.26440.189.camel@tux.rsn.bth.se>
+References: <NGBBLGFEALDADHNDAAFFAEFLDJAA.ksmith@perfht.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0003_01C2FD10.8AB643E0"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Kevin Smith <ksmith@perfht.com>
+In-Reply-To: <NGBBLGFEALDADHNDAAFFAEFLDJAA.ksmith@perfht.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,58 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Mon, 2003-04-07 at 20:14, Kevin Smith wrote:
+> I was wondering where I can get a list of error codes patch o matic uses.
+> What is error 1 and error 2 mean? 
 
-------=_NextPart_000_0003_01C2FD10.8AB643E0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Error codes patch-o-matic uses?
 
-I was wondering how well the cuseeme-nat patch works in the field. Just
-looking for pros/cons  and gotchas. 
-Also is there a Minimum kernel version you need to use these patches? mine
-is RH 7.2 2.4.7-10. I have been considering upgrading it since I am probably
-in the Linux dark ages kernelwise. Since I never did one Im also looking for
-some good newbie documentation on that.
-Anyway thanks for your time,
-Kev
+Do you mean errorlevel when the runme script terminates?
+If so then it's 0 for no error and 1 for an error.
 
-------=_NextPart_000_0003_01C2FD10.8AB643E0
-Content-Type: application/ms-tnef;
-	name="winmail.dat"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="winmail.dat"
+Do you get any errors when applying patches from patch-o-matic?
+Just curious since I'm the patch-o-matic maintainer :)
 
-eJ8+IhQSAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAA5AQAAAAAAADoAAEIgAcAGAAAAElQTS5NaWNy
-b3NvZnQgTWFpbC5Ob3RlADEIAQ2ABAACAAAAAgACAAEGgAMADgAAANMHBAAHAA4AEgAAAAEABgEB
-A5AGABwGAAAlAAAACwACAAEAAAALACMAAAAAAAMAJgAAAAAACwApAAAAAAADADYAAAAAAB4AcAAB
-AAAADwAAAEN1c2VlbWUgUGF0Y2ggAAACAXEAAQAAABYAAAABwv0yEVI5VFxaaQIR17ZiAKDJ2dlL
-AAACAR0MAQAAABcAAABTTVRQOktTTUlUSEBQRVJGSFQuQ09NAAALAAEOAAAAAEAABg4AfF0FMv3C
-AQIBCg4BAAAAGAAAAAAAAAALkP4K2R7WEbZUAKDJ2dlLwoAAAAsAHw4BAAAAAgEJEAEAAADUAQAA
-0AEAACECAABMWkZ1MDqAkAMACgByY3BnMTI1FjIA+Atgbg4QMDMzTwH3AqQD4wIAY2gKwHOwZXQw
-IAcTAoB9CoGSdgiQd2sLgGQ0DGAOYwBQCwMLtSBJIHc6YQQgdwIgBIELgGcgRGhvB+B3ZWwDIHSg
-aGUgY3URIGUHgNgtbmEFQAqwdBDgFCFccmsEIAuAFVNmCJBscGQuIEoVsAVACQBvLxJhFLACEAXA
-cANgcy8LBaAGMSAAcGQgZ28fFoEUABfgCqIKgEFsc/5vFxAEIBVhCXAZsAXQC4BhB3B1bSBrBJEV
-ICBOdgSQAJACICB5CGAg/xygCYAVUBsgFbEVUh4xFmNxB5A/IG0LgBWAG0FSAEggNy4yIDIu8DQu
-Ny0PQBfgE9AQ8Lkc4CBiCeEVkBlxaRRlonUOAHJhZBSSaQVA2QCQbmMVgBPQYRxQGRFSYgGgbHkX
-FkwLgHWoeCBkCsBrGbBnB5HrHHQD8WUX4FMjRRygHOH7JTAh4CACICNxHFAHQBsRPxhaGxAHgBnx
-BHAdkXdi+wiQJTBvFaAHgAIwFjAdIpcdMRVgFjAuGpVueRPw+yRQK2FuFvEY0h1hBcAq4HUHgCwa
-lEsnMBqUEeEAAS8ACwABgAggBgAAAAAAwAAAAAAAAEYAAAAAA4UAAAAAAAADAAOACCAGAAAAAADA
-AAAAAAAARgAAAAAQhQAAAAAAAAMAB4AIIAYAAAAAAMAAAAAAAABGAAAAAFKFAAAnagEAHgAJgAgg
-BgAAAAAAwAAAAAAAAEYAAAAAVIUAAAEAAAAEAAAAOS4wAB4ACoAIIAYAAAAAAMAAAAAAAABGAAAA
-ADaFAAABAAAAAQAAAAAAAAAeAAuACCAGAAAAAADAAAAAAAAARgAAAAA3hQAAAQAAAAEAAAAAAAAA
-HgAMgAggBgAAAAAAwAAAAAAAAEYAAAAAOIUAAAEAAAABAAAAAAAAAAsADYAIIAYAAAAAAMAAAAAA
-AABGAAAAAIKFAAABAAAACwA6gAggBgAAAAAAwAAAAAAAAEYAAAAADoUAAAAAAAADADyACCAGAAAA
-AADAAAAAAAAARgAAAAARhQAAAAAAAAMAPYAIIAYAAAAAAMAAAAAAAABGAAAAABiFAAAAAAAACwBS
-gAggBgAAAAAAwAAAAAAAAEYAAAAABoUAAAAAAAADAFOACCAGAAAAAADAAAAAAAAARgAAAAABhQAA
-AAAAAAIB+A8BAAAAEAAAAAuQ/grZHtYRtlQAoMnZ2UsCAfoPAQAAABAAAAALkP4K2R7WEbZUAKDJ
-2dlLAgH7DwEAAACCAAAAAAAAADihuxAF5RAaobsIACsqVsIAAFBTVFBSWC5ETEwAAAAAAAAAAE5J
-VEH5v7gBAKoAN9luAAAAQzpcV0lORE9XU1xMb2NhbCBTZXR0aW5nc1xBcHBsaWNhdGlvbiBEYXRh
-XE1pY3Jvc29mdFxPdXRsb29rXG91dGxvb2sucHN0AAAAAwD+DwUAAAADAA00/TcAAAIBfwABAAAA
-MQAAADxOR0JCTEdGRUFMREFESE5EQUFGRkVFRkxESkFBLmtzbWl0aEBwZXJmaHQuY29tPgAAAAAD
-AAYQxMSj7gMABxBIAQAAAwAQEAAAAAADABEQAAAAAB4ACBABAAAAZQAAAElXQVNXT05ERVJJTkdI
-T1dXRUxMVEhFQ1VTRUVNRS1OQVRQQVRDSFdPUktTSU5USEVGSUVMREpVU1RMT09LSU5HRk9SUFJP
-Uy9DT05TQU5ER09UQ0hBU0FMU09JU1RIRVJFQU0AAAAALUM=
-
-------=_NextPart_000_0003_01C2FD10.8AB643E0--
+-- 
+/Martin
