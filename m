@@ -1,15 +1,16 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: Problem: ip_nat_irc.c in kernel 2.6.11.5
-Date: Tue, 22 Mar 2005 01:00:01 +1100
-Message-ID: <1111413602.27471.17.camel@localhost.localdomain>
-References: <a17b2e290503200056455a42d6@mail.gmail.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: ip_conntrack table full problem
+Date: Mon, 21 Mar 2005 15:13:59 +0100
+Message-ID: <200503211513.59943.thomas.jarosch@intra2net.com>
+References: <200503141647.42299.thomas.jarosch@intra2net.com>
+	<20050314171821.GA29034@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
-	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Andy K <crap.goes.here@gmail.com>
-In-Reply-To: <a17b2e290503200056455a42d6@mail.gmail.com>
+To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20050314171821.GA29034@linuxace.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,72 +22,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2005-03-20 at 00:56 -0800, Andy K wrote:
-> Hello,
-> 
-> I recently upgraded my system from kernel 2.6.7 to 2.6.11.5 and have
-> found that my DCC transfers no longer work inside my NAT'd network. It
-> appears that the ip_nat_irc.c code no longer takes a 'ports'
-> parameter, although it did in 2.6.7.
+> > I'm facing a problem with conntrack on a 2.4.21 kernel.
+> > One machine which firewalls a webradio reproducable
+> > becomes unresponsive every week with
+> > "ip_conntrack: table full, dropping packet."
+>
+> When this happens, what does output from this look like:
+>
+> wc -l /proc/net/ip_conntrack ; grep ip_conntrack /proc/slabinfo
 
-Yes.  (CC'd lkml so google gets a sniff of this in future).
+It happend again on Sunday night:
 
-Linus, please apply.
-Rusty.
+wc -l:
+35 /proc/net/ip_conntrack
 
-Name: Restore ports module parameter for ip_nat_ftp and ip_nat_irc
-Status: Tested on 2.6.12-rc1-bk1
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+/proc/slabinfo:
+ip_conntrack       16263  16272    320 1356 1356    1
 
-There is no "ports" parameter for the ip_nat_ftp and ip_nat_irc
-modules in 2.6.11: the ports parameter supplied to the
-ip_conntrack_ftp/ip_conntrack_irc module defines the ports.  It was
-unfortunate that we were lazy in the original implementation, and
-forced the user to duplicate the arguments.
+top:
+  9:51pm  up 7 days,  2:04,  0 users,  load average: 0.11, 0.04, 0.01
+120 processes: 119 sleeping, 1 running, 0 zombie, 0 stopped
+CPU states:  2.0% user,  0.5% system,  0.3% nice,  5.8% idle
+Mem:   253116K av,  246808K used,    6308K free,       0K shrd,   74200K buff
+Swap:  260992K av,   57580K used,  203412K free                   66160K cached
 
-Even more unfortunate, the removal of the parameter caused autoloading
-to break for various setups, with an "Unknown parameter" message.  The
-solution is to restore the parameter as a dummy, with a polite warning
-message that it is no longer neccessary.
+I'm not familiar with the slab stuff, but it looks "full" to me ;-)
 
-Index: linux-2.6.12-rc1-bk1-Netfilter/net/ipv4/netfilter/ip_nat_ftp.c
-===================================================================
---- linux-2.6.12-rc1-bk1-Netfilter.orig/net/ipv4/netfilter/ip_nat_ftp.c	2005-03-02 23:28:18.000000000 +1100
-+++ linux-2.6.12-rc1-bk1-Netfilter/net/ipv4/netfilter/ip_nat_ftp.c	2005-03-22 00:40:40.000000000 +1100
-@@ -170,5 +170,14 @@
- 	return 0;
- }
- 
-+/* Prior to 2.6.11, we had a ports param.  No longer, but don't break users. */
-+static int warn_set(const char *val, struct kernel_param *kp)
-+{
-+	printk(KERN_INFO __stringify(KBUILD_MODNAME)
-+	       ": kernel >= 2.6.10 only uses 'ports' for conntrack modules\n");
-+	return 0;
-+}
-+module_param_call(ports, warn_set, NULL, NULL, 0);
-+
- module_init(init);
- module_exit(fini);
-Index: linux-2.6.12-rc1-bk1-Netfilter/net/ipv4/netfilter/ip_nat_irc.c
-===================================================================
---- linux-2.6.12-rc1-bk1-Netfilter.orig/net/ipv4/netfilter/ip_nat_irc.c	2005-03-02 23:28:18.000000000 +1100
-+++ linux-2.6.12-rc1-bk1-Netfilter/net/ipv4/netfilter/ip_nat_irc.c	2005-03-22 00:40:33.000000000 +1100
-@@ -112,5 +112,14 @@
- 	return 0;
- }
- 
-+/* Prior to 2.6.11, we had a ports param.  No longer, but don't break users. */
-+static int warn_set(const char *val, struct kernel_param *kp)
-+{
-+	printk(KERN_INFO __stringify(KBUILD_MODNAME)
-+	       ": kernel >= 2.6.10 only uses 'ports' for conntrack modules\n");
-+	return 0;
-+}
-+module_param_call(ports, warn_set, NULL, NULL, 0);
-+
- module_init(init);
- module_exit(fini);
-
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Cheers,
+Thomas
