@@ -1,17 +1,16 @@
-From: Andras Kis-Szabo <kisza@securityaudit.hu>
-Subject: Re: [POM PATCHES] IPv6 ports of time and quota matches
-Date: Mon, 5 Jan 2004 13:12:44 +0100
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Call for testing: patch-o-matic-ng
+Date: Mon, 5 Jan 2004 13:45:46 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040105121244.GB16171@sch.bme.hu>
-References: <000501c3c96c$c1f02e60$0e25fe0a@southpark.ae.poznan.pl>
+Message-ID: <Pine.LNX.4.33.0401051336400.15139-100000@blackhole.kfki.hu>
+References: <20040105115533.GK1133@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej =?us-ascii?Q?So=3Ftysiak?= <maciej.soltysiak@ae.poznan.pl>
-Content-Disposition: inline
-In-Reply-To: <000501c3c96c$c1f02e60$0e25fe0a@southpark.ae.poznan.pl>
+To: Herve Eychenne <rv@wallfire.org>
+In-Reply-To: <20040105115533.GK1133@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,32 +21,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Maciej So=C5=82tysiak .....................................................=
-....................... (2003. december 23.)
+Hi Herve,
 
-Hi,
+On Mon, 5 Jan 2004, Herve Eychenne wrote:
 
-> I noticed I have two patchsets left behind, never included in patch-o-mat=
-ic
-> These are IPv6 ports of the time and quota matches.
-Please, be careful w/ the 'plain ports'.
-Rusty has changed the internal structure of the IPv4 parts (acording the skb
-linearization) - and these changes are missing from the IPv6 part. In IPv6
-every packets are linearized - in IPv4 you have to linearize the required
-parts avery time and in some higher-level protocols tha helper functions ha=
-ve
-benn changed.
-(We have no size parameter in the IPv6 header (like in IPv4) so we cannot s=
-eek
-in the virtual skb. We have to parse the full header every time. I think th=
-at
-a plain linearize_all is much more cheaper.)
+> I think the convention of Debian Packages files with a line like
+> Depends: zope, python2.1-popy (>= 2.0.8), python2.1-popy (<< 2.0.9)
+> would just be perfect.
 
-Regards,
+No, that's not so simple. I had just convinced Harald (:-) that we should
+keep the different versions of the same patch in one directory, like:
 
-	kisza=20
+foo/
+foo/info			# Common auxiliary files
+foo/help
+foo/linux-2.4.patch		# 2.4 speficic patch and whole files
+foo/linux-2.4/...
+foo/linux-2.6.patch		# 2.6 specific patch and whole files
+foo/linux-2.6/...
 
---=20
-    Andras Kis-Szabo       Security Development, Design and Audit
--------------------------/        Zorp, NetFilter and IPv6
- kisza@SecurityAudit.hu /----------------------------------------------->
+The Requires (in your context: Depends) lines can be added to the info
+file, which thus valid for all patch-versions. In Debian, you have one
+specific package. Here we have multiple versions of the same patch.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
