@@ -1,11 +1,10 @@
-From: Peteris Krumins <peteris@lf.lv>
-Subject: ip_queue, is this safe:
-Date: Fri, 01 Aug 2003 13:50:50 +0300
+From: Stelios Sidiroglou-Douskos <ss1759@cs.columbia.edu>
+Subject: IPIP and SNAT
+Date: Thu, 31 Jul 2003 15:30:07 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F2A460A.5050005@lf.lv>
+Message-ID: <Pine.LNX.4.44.0307311529290.2131-100000@paris.clic.cs.columbia.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,36 +17,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-  I have written an application which uses ip_queue mechanism to quickly
-  push (of course only some) packets from kernel space to user space.
-  (The packets are queued in PREROUTING, mangle)
-  The application is quite big and i bet i have made several mistakes,
-  leaving unpleasent buffer overflows and something more.
+I am having some trouble with SNAT and my IPIP implementation. I have the
+ipip part working (I use code from ipip.c) but when I clear the nfct field
+of the sk_buff that packet that gets fwd to the other interface doesn't
+get NATed. I tried not clearing conntrack but obviously that results in
+the packets not matching up when they return.
 
-  what i am interested in is if this is safe to write:
+Do I have to rebuild the conntrack tuple and insert it back? If so, is
+there a code or a helper function to do just that?
 
----
-  [...]
-  struct iphdr *ip;
-  ip = (struct iphdr *)packet->payload;
+thanks in advance,
 
-  if (ip->protocol == IPPROTO_TCP) {
-      struct tcphdr *tcp;
-
-      tcp = (struct tcphdr *)(packet->payload + ip->ihl*4);
-      [...]
-  }
-  [...]
----
-
-  i am doubting:
-  tcp = (struct tcphdr *)(packet->payload + ip->ihl*4);
-
-  because ip->ihl could be faked, couldnt it? The packet would get queued
-  and if ip->ihl is something faked, using the tcp pointer i'd get a
-  segfault, wouldn't i?
+stelios.
 
 
-P.Krumins
+p.s Please reply to this address directly also.
