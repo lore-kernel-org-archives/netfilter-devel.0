@@ -1,14 +1,16 @@
-From: Fallucchi Antonio <fallucch@cisbic.com>
-Subject: Re: Userspace queuing
-Date: Tue, 29 Jun 2004 11:08:49 +0200
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Subject: RE: Userspace queuing
+Date: Tue, 29 Jun 2004 12:18:00 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40E131A1.3060409@cisbic.com>
-References: <Pine.LNX.4.44.0406261535140.16464-100000@filer.marasystems.com> <200406280718.i5S7I1MX005242@madinah.ccse.kfupm.edu.sa> <20040628171625.GB32388@maluco.com.br>
+Message-ID: <200406290918.i5T9IfMX028725@madinah.ccse.kfupm.edu.sa>
+References: <20040628171625.GB32388@maluco.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Cc: "'Netfilter List'" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "'Ulysses Almeida'" <munky@maluco.com.br>
 In-Reply-To: <20040628171625.GB32388@maluco.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -20,59 +22,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hi,
+What I understand from the examples is that I have to create my own
+structure for my packet's application header. And then extract the payload
+using this approach:
 
-i use libipq and "QUEUE" for read the SYN  pachet sent from local 
-application...
-now I must REDIRECT all packet (width nat) to a local service (proxy).
+ipq_packet_msg_t *m = ipq_get_packet(buf);
+struct iphdr *iph = ((struct iphdr *)m->payload);
 
-I have configure the netfilter:
+where struct iphdr will be struct "myhdr"
 
-*nat
-:PREROUTING ACCEPT [4:240]
-:POSTROUTING ACCEPT [22:1306]
-:OUTPUT ACCEPT [18:1066]
--A OUTPUT -d ! 127.0.0.1 -p tcp -m tcp --dport 80 ! --tcp-flags SYN SYN 
--j DNAT --to-destination 127.0.0.1:80
--A OUTPUT -d ! 127.0.0.1 -p tcp -m tcp --dport 80 --tcp-flags SYN SYN -j 
-QUEUE
-COMMIT
+and then decide queuing policy according to what I get.
 
-or
+Am I on the right track?
+Regards,
 
-*nat
-:PREROUTING ACCEPT [4:240]
-:POSTROUTING ACCEPT [22:1306]
-:OUTPUT ACCEPT [18:1066]
--A OUTPUT -d ! 127.0.0.1 -p tcp -m tcp --dport 80 --tcp-flags SYN SYN -j 
-QUEUE
--A OUTPUT -d ! 127.0.0.1 -p tcp -m tcp --dport 80 ! --tcp-flags SYN SYN 
--j DNAT --to-destination 127.0.0.1:80
-COMMIT
+-----Original Message-----
+From: Ulysses Almeida [mailto:munky@maluco.com.br] 
+Sent: Monday, June 28, 2004 8:16 PM
+To: Muhammad R. Sami
+Cc: Netfilter List
+Subject: Re: Userspace queuing
 
-in all the solution the packets bypass the nat rule..
-there is other solution ??
+Sorry, I forgot the link http://www.glug.ucdb.br/~ulysses/libipq.html
 
-Ulysses Almeida wrote:
+  Regards
 
->Sorry, I forgot the link http://www.glug.ucdb.br/~ulysses/libipq.html
->
->  Regards
->
->On Mon, Jun 28, 2004 at 10:17:21AM +0300, Muhammad R. Sami wrote:
->  
->
->>Thanks Henrik for your help, I have 2 questions, first of all I could not
->>find anyway to extract and read packet payload through libipq, I know it has
->>a function to do so but how to use it (any examples??) and secondly is there
->>any implementation of priority queues (multiple FIFOs) at userspace using
->>libipq. If you can help me on these, I would be thankful. 
->>Regards,
->>
->>
->>
->>    
->>
->
->  
->
+On Mon, Jun 28, 2004 at 10:17:21AM +0300, Muhammad R. Sami wrote:
+> Thanks Henrik for your help, I have 2 questions, first of all I could not
+> find anyway to extract and read packet payload through libipq, I know it
+has
+> a function to do so but how to use it (any examples??) and secondly is
+there
+> any implementation of priority queues (multiple FIFOs) at userspace using
+> libipq. If you can help me on these, I would be thankful. 
+> Regards,
+> 
+> 
+> 
+
+-- 
+    .~.  Ulysses Almeida
+   / V \  munky@maluco.com.br
+ / (   ) \  Seja livre, use GNU/Linux! 
+   ^^-^^
