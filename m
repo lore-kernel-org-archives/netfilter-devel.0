@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: issue with the quota match
-Date: Sun, 03 Apr 2005 20:20:58 +0200
-Message-ID: <4250340A.8030104@trash.net>
-References: <1112030055.6205.23.camel@localhost>
-	<42491710.4090400@eurodev.net> <424979FC.8020005@info-link.net>
+Subject: Re: [PATCH] REJECT for 2.6.9+
+Date: Sun, 03 Apr 2005 20:26:49 +0200
+Message-ID: <42503569.5080406@trash.net>
+References: <423BF227.8030502@outerspace.dyndns.org> <423DA194.40100@trash.net>
+	<200503300205.j2U25fCc021930@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Brad Fisher <brad@info-link.net>
-In-Reply-To: <424979FC.8020005@info-link.net>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200503300205.j2U25fCc021930@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,16 +22,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Brad Fisher wrote:
-> I had submitted a patch at one time that added an option to the quota 
-> match to tell it to count the headers...  If anyone's interested I could 
-> post it again (or you could try searching the list archive), but it is 
-> probably a little dated at the moment since I haven't done any work on 
-> it in quite a while...
+Yasuyuki KOZAKAI wrote:
+> I wrote ip6t_REJECT so that the source address of ICMPv6 error was
+> destination address of original packet. Because of this behavior,
+> send_unreach could not use icmpv6_send().
+> But now I have found that the behavior of ipt_REJECT is different.
+> The source address of ICMP error is its node. I think the behavior of them
+> should be same. Moreover, ipt_REJECT has changed to use icmp_send() recently.
 
-This is _ip_-tables, so not counting the IP-header doesn't make much
-sense too me. I would prefer makeing this the default behaviour, with
-a warning in the help-text.
+That makes sense. Do you have any other issues with submitting
+this patch?
 
 Regards
 Patrick
