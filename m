@@ -1,14 +1,16 @@
-From: Martijn Lievaart <m@rtij.nl>
-Subject: Re: Port forwarding with iptables
-Date: Thu, 02 Sep 2004 09:24:07 +0200
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] kernel panic with rpc.patch
+Date: Thu, 2 Sep 2004 21:21:13 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <4136CA97.5010901@rtij.nl>
+Message-ID: <20040903042113.GA19923@linuxace.com>
+References: <20040902232357.GA18422@linuxace.com> <4137CE4D.7070702@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="FCuugMFkClbJLl1L"
+Cc: netfilter-devel@lists.netfilter.org, Phil Oester <netfilter@linuxace.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "=?ISO-8859-15?Q?KUCKAERTZ_R=E9gis_-_NVISION?=" <regis@nvision.lu>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4137CE4D.7070702@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,56 +21,52 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-KUCKAERTZ R=E9gis - NVISION wrote:
 
->Hello,
->
->Our ISP only allows connections coming from a well-defined list of IP
->addresses. Since we must be able to log on to our servers no matter whe=
-re we
->are, I just thought using iptables on one host having one of the author=
-ized
->IP addresses would be the solution.
->
->So I went on reading iptables docs and howtos, but as you might guess I
->couldn't stand how to do it exactly. Let's put it correctly stated: eve=
-ry
->incoming connection to, say, port 3999 of my host ($HOST_IP) should be
->forwarded to port 123 of the protected server ($SERVER_IP). I tried the
->following two rules:
->
->$IPTABLES -t nat -A PREROUTING -p tcp --dst $HOST_IP --dport 3999 -j DN=
-AT
->--to-destination $SERVER_IP:123
->
->   This one should do the forwarding
->  
->
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This one looks fine.
+On Fri, Sep 03, 2004 at 03:52:13AM +0200, Patrick McHardy wrote:
+> Phil Oester wrote:
+> 
+> >Some useless __MOD_INC_USE_COUNT macros make rpc patch panic on boot.
+> >The below removes them.  Boot tested.
+> 
+> Applied, but wondering on second thought. There are still two
+> __MOD_DEC_USE_COUNT left, and __MOD_INC_USE_COUNT does actually
+> do something :) Why are they useless ?
 
->$IPTABLES -t nat -a POSTROUTING -p tcp --dst $SERVER_IP --dport 123 -j
->MASQUERADE
->
->   ... and this one should masquerade
->  
->
+Yes, perhaps 'useless' is the wrong word -- they do something, but 
+something which is deprecated and in 2.6 netfilter nonexistent. And
+following davem's policy of no refcounts for network drivers [1], it
+seems to make sense.
 
-That looks non sensical, what are you trying to accomplish? Drop this 
-line of thought. MASQUERADE is for when you connect through a 
-dynamically assigned IP address, e.g. dial-up.
+Agreed, however, that removing the INC without also removing the DEC
+is sloppy.  Attached find a patch to do so.
 
-What you need is a rule in FORWARD to allow the packets to pass. 
-Assuming you accept ESTABLISHED (and RELATED) packets somewhere, so the 
-replies are handled automagically, you just need to add a rule like
+Phil
 
-# by now the packet has been updated with a new destination, allow it in=
-.
+[1] http://www.uwsg.iu.edu/hypermail/linux/kernel/0307.3/0403.html
 
-$IPTABLES -A FORWARD -p tcp --dst $SERVER_IP --dport 123 -j ACCEPT
 
-BTW, these kind of questions are better directed to the user list, not t=
-he development list.
 
-Cheers,
-M4
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-rpc2
+
+diff -ru pom-orig/rpc/linux/net/ipv4/netfilter/ipt_rpc.c pom-new/rpc/linux/net/ipv4/netfilter/ipt_rpc.c
+--- pom-orig/rpc/linux/net/ipv4/netfilter/ipt_rpc.c	2004-09-03 00:17:53.859176224 -0400
++++ pom-new/rpc/linux/net/ipv4/netfilter/ipt_rpc.c	2004-09-03 00:17:41.524051448 -0400
+@@ -412,10 +412,6 @@
+ {
+ 	DEBUGP("unregistering match\n");
+ 	ipt_unregister_match(&rpc_match);
+-
+-	DEBUGP("decrementing usage counts\n");
+-	__MOD_DEC_USE_COUNT(ip_conntrack_rpc_tcp);
+-	__MOD_DEC_USE_COUNT(ip_conntrack_rpc_udp);
+ }
+ 
+ 
+
+--FCuugMFkClbJLl1L--
