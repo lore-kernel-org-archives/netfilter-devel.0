@@ -1,10 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.4 1/18]: Associate locally generated ICMP errors with
- conntrack of original packet
-Date: Mon, 20 Dec 2004 08:14:06 +0100
-Message-ID: <41C67BBE.9060508@trash.net>
+Subject: [PATCH 2.4 2/18]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+Date: Mon, 20 Dec 2004 08:14:08 +0100
+Message-ID: <41C67BC0.7080502@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020409020604050807000400"
+Content-Type: multipart/mixed; boundary="------------060203040304070402050602"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -20,314 +19,558 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020409020604050807000400
+--------------060203040304070402050602
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Associate locally generated ICMP errors with conntrack of
-original packet. Slightly more intrusive than the 2.6
-version because it has to add the "skb" argument to the
-getfrag callback of ip_build_xmit. Fixes an information
-leak with DNAT, also required for the other ICMP fixes.
+Remove CONFIG_IP_NF_NAT_LOCAL, required for forth patch
+(Apply PRE_ROUTING manips in LOCAL_OUT for locally
+generated icmp errors).
 
 
---------------020409020604050807000400
+--------------060203040304070402050602
 Content-Type: text/x-patch;
- name="01.diff"
+ name="02.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="01.diff"
+ filename="02.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/12/05 21:47:00+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+#   2004/12/05 22:01:14+01:00 kaber@coreworks.de 
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/netsyms.c
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +1 -0
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# net/ipv4/netfilter/ip_nat_standalone.c
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +4 -23
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/udp.c
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +4 -2
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# net/ipv4/netfilter/ip_nat_rule.c
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -11
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/raw.c
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +2 -2
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# net/ipv4/netfilter/ip_nat_core.c
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -8
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ipt_REJECT.c
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +2 -14
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# net/ipv4/netfilter/Config.in
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/ip_output.c
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +8 -6
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# include/linux/netfilter_ipv4/ip_nat.h
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -5
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/icmp.c
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +5 -1
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# arch/sparc64/defconfig
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/core/netfilter.c
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +13 -4
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# arch/s390/defconfig
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# include/net/ip.h
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +2 -1
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# arch/ppc/defconfig
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# include/linux/netfilter.h
-#   2004/12/05 21:46:59+01:00 kaber@coreworks.de +2 -0
-#   [NETFILTER]: Associate locally generated ICMP errors with conntrack of original packet
+# arch/ppc/configs/prpmc750_defconfig
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/include/linux/netfilter.h b/include/linux/netfilter.h
---- a/include/linux/netfilter.h	2004-12-20 06:59:19 +01:00
-+++ b/include/linux/netfilter.h	2004-12-20 06:59:19 +01:00
-@@ -153,6 +153,7 @@
- extern inline struct arpt_target *
- arpt_find_target_lock(const char *name, int *error, struct semaphore *mutex);
- extern void (*ip_ct_attach)(struct sk_buff *, struct nf_ct_info *);
-+extern void nf_ct_attach(struct sk_buff *, struct sk_buff *);
+# arch/ppc/configs/pplus_defconfig
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/ppc/configs/pmac_defconfig
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/ppc/configs/pal4_defconfig
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/ppc/configs/ibmchrp_defconfig
+#   2004/12/05 22:01:13+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/ppc/configs/common_defconfig
+#   2004/12/05 22:01:12+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/ppc/configs/briq_defconfig
+#   2004/12/05 22:01:12+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/ppc/configs/apus_defconfig
+#   2004/12/05 22:01:12+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/mips64/defconfig
+#   2004/12/05 22:01:12+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/mips64/defconfig-ip27
+#   2004/12/05 22:01:12+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/mips/defconfig-mtx-1
+#   2004/12/05 22:01:12+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# arch/mips/defconfig-bosporus
+#   2004/12/05 22:01:12+01:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# Documentation/Configure.help
+#   2004/12/05 22:01:12+01:00 kaber@coreworks.de +0 -13
+#   [NETFILTER]: Remove CONFIG_IP_NF_NAT_LOCAL config option
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/Documentation/Configure.help b/Documentation/Configure.help
+--- a/Documentation/Configure.help	2004-12-20 06:59:20 +01:00
++++ b/Documentation/Configure.help	2004-12-20 06:59:20 +01:00
+@@ -3040,19 +3040,6 @@
+   If you want to compile it as a module, say M here and read
+   <file:Documentation/modules.txt>.  If unsure, say `N'.
  
- #ifdef CONFIG_NETFILTER_DEBUG
- extern void nf_dump_skb(int pf, struct sk_buff *skb);
-@@ -163,6 +164,7 @@
+-Local NAT support
+-CONFIG_IP_NF_NAT_LOCAL
+-  This option enables support for NAT of locally originated connections. 
+-  Enable this if you need to use destination NAT on connections
+-  originating from local processes on the nat box itself.
+-
+-  Please note that you will need a recent version (>= 1.2.6a)
+-  of the iptables userspace program in order to use this feature.
+-  See <http://www.iptables.org/> for download instructions.
+-
+-  If unsure, say 'N'.
+-
+-
+ Full NAT (Network Address Translation)
+ CONFIG_IP_NF_NAT
+   The Full NAT option allows masquerading, port forwarding and other
+diff -Nru a/arch/mips/defconfig-bosporus b/arch/mips/defconfig-bosporus
+--- a/arch/mips/defconfig-bosporus	2004-12-20 06:59:20 +01:00
++++ b/arch/mips/defconfig-bosporus	2004-12-20 06:59:20 +01:00
+@@ -341,7 +341,6 @@
+ CONFIG_IP_NF_NAT_NEEDED=y
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+-CONFIG_IP_NF_NAT_LOCAL=y
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_MANGLE=m
+ # CONFIG_IP_NF_TARGET_TOS is not set
+diff -Nru a/arch/mips/defconfig-mtx-1 b/arch/mips/defconfig-mtx-1
+--- a/arch/mips/defconfig-mtx-1	2004-12-20 06:59:20 +01:00
++++ b/arch/mips/defconfig-mtx-1	2004-12-20 06:59:20 +01:00
+@@ -335,7 +335,6 @@
+ CONFIG_IP_NF_NAT_NEEDED=y
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ # CONFIG_IP_NF_NAT_SNMP_BASIC is not set
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/mips64/defconfig b/arch/mips64/defconfig
+--- a/arch/mips64/defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/mips64/defconfig	2004-12-20 06:59:20 +01:00
+@@ -265,7 +265,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-CONFIG_IP_NF_NAT_LOCAL=y
+ # CONFIG_IP_NF_NAT_SNMP_BASIC is not set
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/mips64/defconfig-ip27 b/arch/mips64/defconfig-ip27
+--- a/arch/mips64/defconfig-ip27	2004-12-20 06:59:20 +01:00
++++ b/arch/mips64/defconfig-ip27	2004-12-20 06:59:20 +01:00
+@@ -265,7 +265,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-CONFIG_IP_NF_NAT_LOCAL=y
+ # CONFIG_IP_NF_NAT_SNMP_BASIC is not set
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/ppc/configs/apus_defconfig b/arch/ppc/configs/apus_defconfig
+--- a/arch/ppc/configs/apus_defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/configs/apus_defconfig	2004-12-20 06:59:20 +01:00
+@@ -199,7 +199,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/ppc/configs/briq_defconfig b/arch/ppc/configs/briq_defconfig
+--- a/arch/ppc/configs/briq_defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/configs/briq_defconfig	2004-12-20 06:59:20 +01:00
+@@ -175,7 +175,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/ppc/configs/common_defconfig b/arch/ppc/configs/common_defconfig
+--- a/arch/ppc/configs/common_defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/configs/common_defconfig	2004-12-20 06:59:20 +01:00
+@@ -180,7 +180,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/ppc/configs/ibmchrp_defconfig b/arch/ppc/configs/ibmchrp_defconfig
+--- a/arch/ppc/configs/ibmchrp_defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/configs/ibmchrp_defconfig	2004-12-20 06:59:20 +01:00
+@@ -173,7 +173,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/ppc/configs/pal4_defconfig b/arch/ppc/configs/pal4_defconfig
+--- a/arch/ppc/configs/pal4_defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/configs/pal4_defconfig	2004-12-20 06:59:20 +01:00
+@@ -172,7 +172,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/ppc/configs/pmac_defconfig b/arch/ppc/configs/pmac_defconfig
+--- a/arch/ppc/configs/pmac_defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/configs/pmac_defconfig	2004-12-20 06:59:20 +01:00
+@@ -183,7 +183,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/ppc/configs/pplus_defconfig b/arch/ppc/configs/pplus_defconfig
+--- a/arch/ppc/configs/pplus_defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/configs/pplus_defconfig	2004-12-20 06:59:20 +01:00
+@@ -175,7 +175,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/ppc/configs/prpmc750_defconfig b/arch/ppc/configs/prpmc750_defconfig
+--- a/arch/ppc/configs/prpmc750_defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/configs/prpmc750_defconfig	2004-12-20 06:59:20 +01:00
+@@ -183,7 +183,6 @@
+ CONFIG_IP_NF_NAT_NEEDED=y
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ # CONFIG_IP_NF_NAT_SNMP_BASIC is not set
+ CONFIG_IP_NF_NAT_FTP=m
+ # CONFIG_IP_NF_MANGLE is not set
+diff -Nru a/arch/ppc/defconfig b/arch/ppc/defconfig
+--- a/arch/ppc/defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/ppc/defconfig	2004-12-20 06:59:20 +01:00
+@@ -180,7 +180,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/s390/defconfig b/arch/s390/defconfig
+--- a/arch/s390/defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/s390/defconfig	2004-12-20 06:59:20 +01:00
+@@ -199,7 +199,6 @@
+ CONFIG_IP_NF_NAT_NEEDED=y
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+-CONFIG_IP_NF_NAT_LOCAL=y
+ # CONFIG_IP_NF_NAT_SNMP_BASIC is not set
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/arch/sparc64/defconfig b/arch/sparc64/defconfig
+--- a/arch/sparc64/defconfig	2004-12-20 06:59:20 +01:00
++++ b/arch/sparc64/defconfig	2004-12-20 06:59:20 +01:00
+@@ -253,7 +253,6 @@
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_NAT_AMANDA=m
+-# CONFIG_IP_NF_NAT_LOCAL is not set
+ CONFIG_IP_NF_NAT_SNMP_BASIC=m
+ CONFIG_IP_NF_NAT_IRC=m
+ CONFIG_IP_NF_NAT_FTP=m
+diff -Nru a/include/linux/netfilter_ipv4/ip_nat.h b/include/linux/netfilter_ipv4/ip_nat.h
+--- a/include/linux/netfilter_ipv4/ip_nat.h	2004-12-20 06:59:20 +01:00
++++ b/include/linux/netfilter_ipv4/ip_nat.h	2004-12-20 06:59:20 +01:00
+@@ -11,13 +11,8 @@
+ 	IP_NAT_MANIP_DST
+ };
  
- #else /* !CONFIG_NETFILTER */
- #define NF_HOOK(pf, hook, skb, indev, outdev, okfn) (okfn)(skb)
-+static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
- #endif /*CONFIG_NETFILTER*/
+-#ifndef CONFIG_IP_NF_NAT_LOCAL
+-/* SRC manip occurs only on POST_ROUTING */
+-#define HOOK2MANIP(hooknum) ((hooknum) != NF_IP_POST_ROUTING)
+-#else
+ /* SRC manip occurs POST_ROUTING or LOCAL_IN */
+ #define HOOK2MANIP(hooknum) ((hooknum) != NF_IP_POST_ROUTING && (hooknum) != NF_IP_LOCAL_IN)
+-#endif
  
- /* From arch/i386/kernel/smp.c:
-diff -Nru a/include/net/ip.h b/include/net/ip.h
---- a/include/net/ip.h	2004-12-20 06:59:19 +01:00
-+++ b/include/net/ip.h	2004-12-20 06:59:19 +01:00
-@@ -102,7 +102,8 @@
- 				      int getfrag (const void *,
- 						   char *,
- 						   unsigned int,
--						   unsigned int),
-+						   unsigned int,
-+						   struct sk_buff *),
- 				      const void *frag,
- 				      unsigned length,
- 				      struct ipcm_cookie *ipc,
-diff -Nru a/net/core/netfilter.c b/net/core/netfilter.c
---- a/net/core/netfilter.c	2004-12-20 06:59:19 +01:00
-+++ b/net/core/netfilter.c	2004-12-20 06:59:19 +01:00
-@@ -622,11 +622,20 @@
+ /* 2.3.19 (I hope) will define this in linux/netfilter_ipv4.h. */
+ #ifndef SO_ORIGINAL_DST
+diff -Nru a/net/ipv4/netfilter/Config.in b/net/ipv4/netfilter/Config.in
+--- a/net/ipv4/netfilter/Config.in	2004-12-20 06:59:20 +01:00
++++ b/net/ipv4/netfilter/Config.in	2004-12-20 06:59:20 +01:00
+@@ -66,7 +66,6 @@
+           define_tristate CONFIG_IP_NF_NAT_AMANDA $CONFIG_IP_NF_NAT
+         fi
+       fi
+-      bool '    NAT of local connections (READ HELP)' CONFIG_IP_NF_NAT_LOCAL
+       if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+         dep_tristate '    Basic SNMP-ALG support (EXPERIMENTAL)' CONFIG_IP_NF_NAT_SNMP_BASIC $CONFIG_IP_NF_NAT
+       fi
+diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
+--- a/net/ipv4/netfilter/ip_nat_core.c	2004-12-20 06:59:20 +01:00
++++ b/net/ipv4/netfilter/ip_nat_core.c	2004-12-20 06:59:20 +01:00
+@@ -198,7 +198,6 @@
+ 		return NULL;
  }
- #endif /*CONFIG_INET*/
  
--/* This does not belong here, but ipt_REJECT needs it if connection
--   tracking in use: without this, connection may not be in hash table,
--   and hence manufactured ICMP or RST packets will not be associated
--   with it. */
-+/* This does not belong here, but locally generated errors need it if connection
-+   tracking in use: without this, connection may not be in hash table, and hence
-+   manufactured ICMP or RST packets will not be associated with it. */
- void (*ip_ct_attach)(struct sk_buff *, struct nf_ct_info *);
-+
-+void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb)
-+{
-+	void (*attach)(struct sk_buff *, struct nf_ct_info *);
-+
-+	if (skb->nfct && (attach = ip_ct_attach) != NULL) {
-+		mb(); /* Just to be sure: must be read before executing this */
-+		attach(new, skb->nfct);
-+	}
-+}
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ /* If it's really a local destination manip, it may need to do a
+    source manip too. */
+ static int
+@@ -217,7 +216,6 @@
+ 	ip_rt_put(rt);
+ 	return 1;
+ }
+-#endif
  
- void __init netfilter_init(void)
- {
-diff -Nru a/net/ipv4/icmp.c b/net/ipv4/icmp.c
---- a/net/ipv4/icmp.c	2004-12-20 06:59:19 +01:00
-+++ b/net/ipv4/icmp.c	2004-12-20 06:59:19 +01:00
-@@ -281,11 +281,15 @@
-  *	Checksum each fragment, and on the first include the headers and final checksum.
-  */
-  
--static int icmp_glue_bits(const void *p, char *to, unsigned int offset, unsigned int fraglen)
-+static int icmp_glue_bits(const void *p, char *to, unsigned int offset,
-+                          unsigned int fraglen, struct sk_buff *skb)
- {
- 	struct icmp_bxm *icmp_param = (struct icmp_bxm *)p;
- 	struct icmphdr *icmph;
- 	unsigned int csum;
-+
-+	if (icmp_pointers[icmp_param->data.icmph.type].error)
-+		nf_ct_attach(skb, icmp_param->skb);
+ /* Simple way to iterate through all. */
+ static inline int fake_cmp(const struct ip_nat_hash *i,
+@@ -317,7 +315,6 @@
+ 			 * do_extra_mangle last time. */
+ 			*other_ipp = saved_ip;
  
- 	if (offset) {
- 		icmp_param->csum=skb_copy_and_csum_bits(icmp_param->skb,
-diff -Nru a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
---- a/net/ipv4/ip_output.c	2004-12-20 06:59:19 +01:00
-+++ b/net/ipv4/ip_output.c	2004-12-20 06:59:19 +01:00
-@@ -438,7 +438,8 @@
- 		  int getfrag (const void *,
- 			       char *,
- 			       unsigned int,	
--			       unsigned int),
-+			       unsigned int,
-+			       struct sk_buff *),
- 		  const void *frag,
- 		  unsigned length,
- 		  struct ipcm_cookie *ipc,
-@@ -607,7 +608,7 @@
- 		 *	User data callback
- 		 */
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ 			if (hooknum == NF_IP_LOCAL_OUT
+ 			    && *var_ipp != orig_dstip
+ 			    && !do_extra_mangle(*var_ipp, other_ipp)) {
+@@ -328,7 +325,6 @@
+ 				 * anyway. */
+ 				continue;
+ 			}
+-#endif
  
--		if (getfrag(frag, data, offset, fraglen-fragheaderlen)) {
-+		if (getfrag(frag, data, offset, fraglen-fragheaderlen, skb)) {
- 			err = -EFAULT;
- 			kfree_skb(skb);
- 			goto error;
-@@ -647,7 +648,8 @@
- 		  int getfrag (const void *,
- 			       char *,
- 			       unsigned int,	
--			       unsigned int),
-+			       unsigned int,
-+			       struct sk_buff *),
- 		  const void *frag,
- 		  unsigned length,
- 		  struct ipcm_cookie *ipc,
-@@ -721,10 +723,10 @@
- 		iph->daddr=rt->rt_dst;
- 		iph->check=0;
- 		iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
--		err = getfrag(frag, ((char *)iph)+iph->ihl*4,0, length-iph->ihl*4);
-+		err = getfrag(frag, ((char *)iph)+iph->ihl*4,0, length-iph->ihl*4, skb);
+ 			/* Count how many others map onto this. */
+ 			score = count_maps(tuple->src.ip, tuple->dst.ip,
+@@ -372,13 +368,11 @@
+ 		else {
+ 			/* Only do extra mangle when required (breaks
+                            socket binding) */
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ 			if (tuple->dst.ip != mr->range[0].min_ip
+ 			    && hooknum == NF_IP_LOCAL_OUT
+ 			    && !do_extra_mangle(mr->range[0].min_ip,
+ 						&tuple->src.ip))
+ 				return NULL;
+-#endif
+ 			tuple->dst.ip = mr->range[0].min_ip;
+ 		}
  	}
- 	else
--		err = getfrag(frag, (void *)iph, 0, length);
-+		err = getfrag(frag, (void *)iph, 0, length, skb);
+@@ -501,10 +495,8 @@
+ static unsigned int opposite_hook[NF_IP_NUMHOOKS]
+ = { [NF_IP_PRE_ROUTING] = NF_IP_POST_ROUTING,
+     [NF_IP_POST_ROUTING] = NF_IP_PRE_ROUTING,
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+     [NF_IP_LOCAL_OUT] = NF_IP_LOCAL_IN,
+     [NF_IP_LOCAL_IN] = NF_IP_LOCAL_OUT,
+-#endif
+ };
  
- 	if (err)
- 		goto error_fault;
-@@ -921,7 +923,7 @@
-  *	Fetch data from kernel space and fill in checksum if needed.
-  */
- static int ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset, 
--			      unsigned int fraglen)
-+			      unsigned int fraglen, struct sk_buff *skb)
- {
-         struct ip_reply_arg *dp = (struct ip_reply_arg*)dptr;
- 	u16 *pktp = (u16 *)to;
-diff -Nru a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
---- a/net/ipv4/netfilter/ipt_REJECT.c	2004-12-20 06:59:19 +01:00
-+++ b/net/ipv4/netfilter/ipt_REJECT.c	2004-12-20 06:59:19 +01:00
-@@ -22,18 +22,6 @@
- #define DEBUGP(format, args...)
- #endif
+ unsigned int
+diff -Nru a/net/ipv4/netfilter/ip_nat_rule.c b/net/ipv4/netfilter/ip_nat_rule.c
+--- a/net/ipv4/netfilter/ip_nat_rule.c	2004-12-20 06:59:20 +01:00
++++ b/net/ipv4/netfilter/ip_nat_rule.c	2004-12-20 06:59:20 +01:00
+@@ -138,12 +138,8 @@
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
  
--/* If the original packet is part of a connection, but the connection
--   is not confirmed, our manufactured reply will not be associated
--   with it, so we need to do this manually. */
--static void connection_attach(struct sk_buff *new_skb, struct nf_ct_info *nfct)
--{
--	void (*attach)(struct sk_buff *, struct nf_ct_info *);
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ 	IP_NF_ASSERT(hooknum == NF_IP_PRE_ROUTING
+ 		     || hooknum == NF_IP_LOCAL_OUT);
+-#else
+-	IP_NF_ASSERT(hooknum == NF_IP_PRE_ROUTING);
+-#endif
+ 
+ 	ct = ip_conntrack_get(*pskb, &ctinfo);
+ 
+@@ -221,13 +217,6 @@
+ 		return 0;
+ 	}
+ 	
+-#ifndef CONFIG_IP_NF_NAT_LOCAL
+-	if (hook_mask & (1 << NF_IP_LOCAL_OUT)) {
+-		DEBUGP("DNAT: CONFIG_IP_NF_NAT_LOCAL not enabled\n");
+-		return 0;
+-	}
+-#endif
 -
--	/* Avoid module unload race with ip_ct_attach being NULLed out */
--	if (nfct && (attach = ip_ct_attach) != NULL)
--		attach(new_skb, nfct);
--}
+ 	return 1;
+ }
+ 
+diff -Nru a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
+--- a/net/ipv4/netfilter/ip_nat_standalone.c	2004-12-20 06:59:20 +01:00
++++ b/net/ipv4/netfilter/ip_nat_standalone.c	2004-12-20 06:59:20 +01:00
+@@ -114,16 +114,7 @@
+ 		WRITE_LOCK(&ip_nat_lock);
+ 		/* Seen it before?  This can happen for loopback, retrans,
+ 		   or local packets.. */
+-		if (!(info->initialized & (1 << maniptype))
+-#ifndef CONFIG_IP_NF_NAT_LOCAL
+-		    /* If this session has already been confirmed we must not
+-		     * touch it again even if there is no mapping set up.
+-		     * Can only happen on local->local traffic with
+-		     * CONFIG_IP_NF_NAT_LOCAL disabled.
+-		     */
+-		    && !(ct->status & IPS_CONFIRMED)
+-#endif
+-		    ) {
++		if (!(info->initialized & (1 << maniptype))) {
+ 			unsigned int ret;
+ 
+ 			if (ct->master
+@@ -132,15 +123,14 @@
+ 				ret = call_expect(master_ct(ct), pskb, 
+ 						  hooknum, ct, info);
+ 			} else {
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ 				/* LOCAL_IN hook doesn't have a chain!  */
+ 				if (hooknum == NF_IP_LOCAL_IN)
+ 					ret = alloc_null_binding(ct, info,
+ 								 hooknum);
+ 				else
+-#endif
+-				ret = ip_nat_rule_find(pskb, hooknum, in, out,
+-						       ct, info);
++					ret = ip_nat_rule_find(pskb, hooknum,
++					                       in, out,
++					                       ct, info);
+ 			}
+ 
+ 			if (ret != NF_ACCEPT) {
+@@ -197,7 +187,6 @@
+ 	return ip_nat_fn(hooknum, pskb, in, out, okfn);
+ }
+ 
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ static unsigned int
+ ip_nat_local_fn(unsigned int hooknum,
+ 		struct sk_buff **pskb,
+@@ -223,7 +212,6 @@
+ 		return ip_route_me_harder(pskb) == 0 ? ret : NF_DROP;
+ 	return ret;
+ }
+-#endif
+ 
+ /* We must be after connection tracking and before packet filtering. */
+ 
+@@ -233,15 +221,12 @@
+ /* After packet filtering, change source */
+ static struct nf_hook_ops ip_nat_out_ops
+ = { { NULL, NULL }, ip_nat_out, PF_INET, NF_IP_POST_ROUTING, NF_IP_PRI_NAT_SRC};
 -
- static inline struct rtable *route_reverse(struct sk_buff *skb, int hook)
- {
- 	struct iphdr *iph = skb->nh.iph;
-@@ -187,7 +175,7 @@
- 	if (nskb->len > nskb->dst->pmtu)
- 		goto free_nskb;
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ /* Before packet filtering, change destination */
+ static struct nf_hook_ops ip_nat_local_out_ops
+ = { { NULL, NULL }, ip_nat_local_fn, PF_INET, NF_IP_LOCAL_OUT, NF_IP_PRI_NAT_DST };
+ /* After packet filtering, change source for reply packets of LOCAL_OUT DNAT */
+ static struct nf_hook_ops ip_nat_local_in_ops
+ = { { NULL, NULL }, ip_nat_fn, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_NAT_SRC };
+-#endif
  
--	connection_attach(nskb, oldskb->nfct);
-+	nf_ct_attach(nskb, oldskb);
+ /* Protocol registration. */
+ int ip_nat_protocol_register(struct ip_nat_protocol *proto)
+@@ -306,7 +291,6 @@
+ 		printk("ip_nat_init: can't register out hook.\n");
+ 		goto cleanup_inops;
+ 	}
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ 	ret = nf_register_hook(&ip_nat_local_out_ops);
+ 	if (ret < 0) {
+ 		printk("ip_nat_init: can't register local out hook.\n");
+@@ -317,16 +301,13 @@
+ 		printk("ip_nat_init: can't register local in hook.\n");
+ 		goto cleanup_localoutops;
+ 	}
+-#endif
+ 	return ret;
  
- 	NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, nskb, NULL, nskb->dst->dev,
- 		ip_finish_output);
-@@ -323,7 +311,7 @@
- 	icmph->checksum = ip_compute_csum((unsigned char *)icmph,
- 					  length - sizeof(struct iphdr));
- 
--	connection_attach(nskb, skb_in->nfct);
-+	nf_ct_attach(nskb, skb_in);
- 
- 	NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, nskb, NULL, nskb->dst->dev,
- 		ip_finish_output);
-diff -Nru a/net/ipv4/raw.c b/net/ipv4/raw.c
---- a/net/ipv4/raw.c	2004-12-20 06:59:19 +01:00
-+++ b/net/ipv4/raw.c	2004-12-20 06:59:19 +01:00
-@@ -266,7 +266,7 @@
-  */
-   
- static int raw_getfrag(const void *p, char *to, unsigned int offset,
--			unsigned int fraglen)
-+		       unsigned int fraglen, struct sk_buff *skb)
- {
- 	struct rawfakehdr *rfh = (struct rawfakehdr *) p;
- 	return memcpy_fromiovecend(to, rfh->iov, offset, fraglen);
-@@ -277,7 +277,7 @@
-  */
-  
- static int raw_getrawfrag(const void *p, char *to, unsigned int offset,
--				unsigned int fraglen)
-+				unsigned int fraglen, struct sk_buff *skb)
- {
- 	struct rawfakehdr *rfh = (struct rawfakehdr *) p;
- 
-diff -Nru a/net/ipv4/udp.c b/net/ipv4/udp.c
---- a/net/ipv4/udp.c	2004-12-20 06:59:19 +01:00
-+++ b/net/ipv4/udp.c	2004-12-20 06:59:19 +01:00
-@@ -390,7 +390,8 @@
-  *	Copy and checksum a UDP packet from user space into a buffer.
-  */
-  
--static int udp_getfrag(const void *p, char * to, unsigned int offset, unsigned int fraglen) 
-+static int udp_getfrag(const void *p, char * to, unsigned int offset,
-+                       unsigned int fraglen, struct sk_buff *skb)
- {
- 	struct udpfakehdr *ufh = (struct udpfakehdr *)p;
- 	if (offset==0) {
-@@ -417,7 +418,8 @@
-  *	Copy a UDP packet from user space into a buffer without checksumming.
-  */
-  
--static int udp_getfrag_nosum(const void *p, char * to, unsigned int offset, unsigned int fraglen) 
-+static int udp_getfrag_nosum(const void *p, char * to, unsigned int offset,
-+                             unsigned int fraglen, struct sk_buff *skb) 
- {
- 	struct udpfakehdr *ufh = (struct udpfakehdr *)p;
- 
-diff -Nru a/net/netsyms.c b/net/netsyms.c
---- a/net/netsyms.c	2004-12-20 06:59:19 +01:00
-+++ b/net/netsyms.c	2004-12-20 06:59:19 +01:00
-@@ -606,6 +606,7 @@
- EXPORT_SYMBOL(nf_setsockopt);
- EXPORT_SYMBOL(nf_getsockopt);
- EXPORT_SYMBOL(ip_ct_attach);
-+EXPORT_SYMBOL(nf_ct_attach);
- #ifdef CONFIG_INET
- #include <linux/netfilter_ipv4.h>
- EXPORT_SYMBOL(ip_route_me_harder);
+  cleanup:
+-#ifdef CONFIG_IP_NF_NAT_LOCAL
+ 	nf_unregister_hook(&ip_nat_local_in_ops);
+  cleanup_localoutops:
+ 	nf_unregister_hook(&ip_nat_local_out_ops);
+  cleanup_outops:
+-#endif
+ 	nf_unregister_hook(&ip_nat_out_ops);
+  cleanup_inops:
+ 	nf_unregister_hook(&ip_nat_in_ops);
 
---------------020409020604050807000400--
+--------------060203040304070402050602--
