@@ -1,14 +1,12 @@
-From: Bobo <boboaq@163.com>
-Subject: How to load modules needed by iptables?
-Date: Mon, 17 Mar 2003 20:9:42 +0800
+From: netfilter-devel-admin@lists.netfilter.org
+Subject: Accessing iptables from within an application...
+Date: Sun, 16 Mar 2003 19:54:50 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030317120947.67E3F1CBAA261@sm204.163.com>
+Message-ID: <Pine.LNX.4.44.0303161950120.17534-100000@peter.stamf.pr.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="GB2312"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.samba.org <netfilter@lists.samba.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org <netfilter-devel@lists.samba.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,63 +18,67 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-        
- How to load modules needed by iptables?
-   
-    While setup iptables firewall,I met a strange question.
-    I learned the following scripts frome the famous Iptables tutorail
-    wirtten by Oscar Andreasson.
-    If I input the following scripts ,and run it in a bash file.
-  ****************************
-     
- /sbin/modprobe ip_tables
-/sbin/modprobe ip_conntrack
-/sbin/modprobe iptable_filter
-/sbin/modprobe iptable_mangle
-/sbin/modprobe iptable_nat
-/sbin/modprobe ipt_LOG
-/sbin/modprobe ipt_limit
-/sbin/modprobe ipt_state
-***************************
-and the message on the screen is :
+Hello netfilter/iptables hackers,
+
+First: Great job!
+
+The project (Maybe this has been done before, if so: all the better,
+please tell me about it.): I am writing an SNMP module for net-snmp to
+access the counters of iptables rules. This is for monitoring and
+accounting with tools like mrtg and my upcoming tool I plan to release
+shortly.
+
+In order for this to work, I want to provide "meta" information about the
+rules along with the counters in order to be able to use SNMP lookups to
+find the correct counter SNMP variable (much like looking up the interface
+ID [=a potentially changing number] used to poll for interface statistics
+from the interface IP address [=a much more stable information for a given
+interface]). This already works quite well, I simply took the libiptc
+library out of the iptables distribution to use it to access the iptables
+information. (Is using libiptc a clever choice, or is there a better 
+interface somewhere else?)
 
 
-  modprobe: Can't locate module ip_tables
-modprobe: Can't locate module ip_conntrack
-modprobe: Can't locate module iptable_filter
-modprobe: Can't locate module iptable_mangle
-modprobe: Can't locate module iptable_nat
-modprobe: Can't locate module ipt_LOG
-modprobe: Can't locate module ipt_limit
+An example of what I want to access via SNMP:
 
-If I input it by hand under command line mode each time a line,I
-would not get the error message.
- Why?
- What is  the difference between modprobe and insmod?
- 
- If I run lsmod ,I could get the following messages:    
-      
-        Module                  Size  Used by
-ip_nat_irc              4416   0  (unused)
-ip_nat_ftp              3488   0  (unused)
-ip_conntrack_irc        2928   0  (unused)
-ip_conntrack_ftp        3824   0  (unused)
-ipt_MASQUERADE          1664   0  (unused)
-ipt_REJECT              3392   0  (unused)
-ipt_owner               1552   0  (unused)
-ipt_state               1024   0 
-ipt_limit               1360   0  (unused)
-iptable_nat            16528   2  [ip_nat_irc ip_nat_ftp ipt_MASQUERADE]
-iptable_mangle          2160   0  (unused)
-ip_conntrack           15824   4  [ip_nat_irc ip_nat_ftp ip_conntrack_irc ip_conntrack_ftp ipt_MASQUERADE ipt_state iptable_nat]
-ipt_LOG                 3856   0  (autoclean)
-iptable_filter          2128   0  (autoclean) (unused)
-ip_tables              10944  11  [ipt_MASQUERADE ipt_REJECT ipt_owner ipt_state ipt_limit iptable_nat iptable
+$ snmpwalk -v2c -m all -c $COMMUNITY localhost .1.3.6.1.4.1.12806.6.1.1
 
-It means there are already these modules needed by Iptables.
-Why the operation system displays "modprobe: Can't locate module ip_conntrack"?
-My operation system is REDHAT 7.2 and it was installed by default configuration.
+IPTABLES-MIB::tableIndex.0 = INTEGER: 0
+IPTABLES-MIB::tableIndex.1 = INTEGER: 1
+IPTABLES-MIB::tableName.0 = STRING: "nat"
+IPTABLES-MIB::tableName.1 = STRING: "filter"
 
-Thanks
+[..snip..]
 
-    
+IPTABLES-MIB::chainRule.0.2.0 = STRING: ";j=ACCEPT"
+IPTABLES-MIB::chainRule.1.0.0 = STRING: ";j=ACCEPT"
+IPTABLES-MIB::chainRule.1.0.1 = STRING: ";s=192.168.3.0/24;j=ACCEPT"
+IPTABLES-MIB::chainRule.1.0.2 = STRING: ";p=6;s=192.168.3.0/24;j=ACCEPT"
+
+
+Where the IPTABLES-MIB is an experimental private MIB. The chainRule 
+variables are thought to provide for a packed representation of the filter 
+rule. I plan to implement other variables to access specific information 
+later. The indices following the "chainRule" are: A table id (eg. 
+"filter"), a chain ID (eg. "OUTPUT") and a rule ID (eg. the second rule in 
+the chain).
+
+The problem now is quite obvious: How to access module specific 
+iptables extension information ("-m")? I stumbled across the "save" method 
+in the iptables modules, but this prints to stdout. Is there any similar 
+mechanism to get the same information in some other form? Even a "sprintf" 
+based solution would be OK in addition to the "printf" version to have the 
+info in a character buffer, ready to send via SNMP....
+
+If anything of this makes any sense to you: Is there any such interface 
+that I simply missed?
+
+And another question: When using the libiptc library, I need to call 
+iptc_init(tablename). How can I free the data structure I obtain through 
+this call when I no longer need it? I guess a simple "free" won't do the 
+trick? 
+
+
+thanks in advance
+
+peter
