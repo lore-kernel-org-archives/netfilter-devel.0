@@ -1,63 +1,45 @@
-From: Felipe W Damasio <felipewd@terra.com.br>
-Subject: [PATCH 3/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ipfwadm_core
-Date: Fri, 29 Aug 2003 17:09:03 -0300
-Sender: kernel-janitor-discuss-admin@lists.sourceforge.net
-Message-ID: <3F4FB2DF.3090903@terra.com.br>
+From: Oskar Andreasson <blueflux@koffein.net>
+Subject: Re: can tcp stream reassembly be done in netfilter
+Date: Sun, 31 Aug 2003 22:14:08 +0200 (CEST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.53.0308312209240.2439@oskar-lap.agatha>
+References: <200308261011937.SM00856@zhengcb> <Pine.LNX.4.53.0308271030240.2748@oskar-lap.agatha>
+ <20030830190613.GF17715@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070703010107040306020004"
-Return-path: <kernel-janitor-discuss-admin@lists.sourceforge.net>
-To: netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	kernel-janitor-discuss@lists.sourceforge.net
-Errors-To: kernel-janitor-discuss-admin@lists.sourceforge.net
-List-Help: <mailto:kernel-janitor-discuss-request@lists.sourceforge.net?subject=help>
-List-Post: <mailto:kernel-janitor-discuss@lists.sourceforge.net>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/kernel-janitor-discuss>,
-	<mailto:kernel-janitor-discuss-request@lists.sourceforge.net?subject=subscribe>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/kernel-janitor-discuss>,
-	<mailto:kernel-janitor-discuss-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=kernel-janitor-discuss>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: zhengchuanbo <zhengcb@netpower.com.cn>,
+	netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030830190613.GF17715@sunbeam.de.gnumonks.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070703010107040306020004
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sat, 30 Aug 2003, Harald Welte wrote:
 
-	Based on Randy's modified checkversion.pl script.
+>
+> I have to add that there is a project for linux kernel stream reassembly
+> and pattern-matching:  libqsearch.  Try google :)
+>
 
-	Compile fine against 2.6.0-test4.
+Hmmm, but does this hock into netfilter in any way, or does it have any
+kind of interface for tcp/ip or socket filtering etcetera? Curiosity you
+know.
 
-	Please consider applying.
-
-	Cheers,
-
-Felipe
-
---------------070703010107040306020004
-Content-Type: text/plain;
- name="ipfwadm_core.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ipfwadm_core.patch"
-
---- linux-2.6.0-test4/net/ipv4/netfilter/ipfwadm_core.c.orig	Fri Aug 29 16:45:40 2003
-+++ linux-2.6.0-test4/net/ipv4/netfilter/ipfwadm_core.c	Fri Aug 29 16:45:53 2003
-@@ -131,7 +131,6 @@
- #include <net/checksum.h>
- #include <linux/proc_fs.h>
- #include <linux/stat.h>
--#include <linux/version.h>
- 
- MODULE_LICENSE("Dual BSD/GPL");
- 
-
---------------070703010107040306020004--
+Sidenote, is the netfilter.org lists extremely dead, or is it just me not
+getting any mails...?
 
 
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+----
+Oskar Andreasson
+http://www.frozentux.net
+http://iptables-tutorial.frozentux.net
+http://ipsysctl-tutorial.frozentux.net
+mailto:blueflux@koffein.net
