@@ -1,18 +1,20 @@
-From: "Rajesh B. V." <rajeshbv@intotoinc.com>
-Subject: Re: Problem with MASQUERADE of L2TP packets
-Date: Mon, 17 Nov 2003 09:52:28 +0530
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Documentation for the u32 module
+Date: Mon, 17 Nov 2003 09:56:01 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
-References: <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
- <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10> <20031115105258.GJ656@obroa-skai.de.gnumonks.org>
+Message-ID: <20031117085601.GD22919@sunbeam.de.gnumonks.org>
+References: <20031113090530.GB2301@obroa-skai.de.gnumonks.org> <Pine.LNX.4.44.0311151659500.22726-100000@sparrow>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SO98HVl1bnMOfKZd"
+Cc: Fabrice Marie <fabrice@netfilter.org>,
+	ML-netfilter <netfilter@lists.netfilter.org>,
+	ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	webmaster@netfilter.org, Don Cohen <don-nfil@isis.cs3-inc.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031115105258.GJ656@obroa-skai.de.gnumonks.org>
-References: <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
- <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
+To: William Stearns <wstearns@pobox.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0311151659500.22726-100000@sparrow>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,48 +25,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald Welte,
 
-Thankyou very much for the response.
+--SO98HVl1bnMOfKZd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The L2TP implementation is ours. It is not free software or open source.
-I tried to trace the code. The observations are,
+On Sat, Nov 15, 2003 at 05:06:38PM -0500, William Stearns wrote:
+> > Would you be willing to merge your u32 documentation with that?
+>=20
+> 	Harald, I'd be honored to!
 
-We call " ip_finish_output () " to send the packet out. Till this function 
-call the source IP in outer IP header is intact.
-But in this function the POSTROUTING Hook function of IP tables will be 
-called. During this the NAT will happen as the masquerade rule is 
-configured for POSTROUING.
-So i am suspecting iptables handling of L2TP packets.
+;) don't exaggerate.
 
-PS:
-I saw some patches for PPTP/IPSec masquerading in net. I guess, it may also 
-be similar case for L2TP also, but which was not identified.
+> 	With the help of http://www.stearns.org/html2sgml :-), I've got=20
+> that article in sgml form, ready to go.  Fabrice, I've patched against=20
+> your 1.30 Netfilter-extensions-HOWTO.  Here are the files of interest:
+>=20
+> http://www.stearns.org/patches/netfilter-extensions-HOWTO.1.31.sgml
 
-Regards,
---Rajesh
+ok, i've merged your patch to our CVS repository.  Will do a homepage
+update soon, so it becomes visible to the public.
 
-At 11:52 AM 11/15/2003 +0100, Harald Welte wrote:
->On Thu, Nov 13, 2003 at 04:32:55PM +0530, Rajesh B. V. wrote:
-> > Hi All,
-> >
-> > We have our L2TP module which now we are integrating with Linux IPtables.
-> > We are facing problem in sending data through L2TP session.
->
->Is the source to that module public?  Is it free software?
->
->In that case we could actually have a look at the code and find where
->the issue is.
->
-> > PS:
-> > Pl. reply me as i did not subscribe to the list.
-> >
-> > Regards,
-> > --Rajesh
->
->--
->- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
->============================================================================
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
+> 	Cheers,
+> 	- Bill
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--SO98HVl1bnMOfKZd
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/uI0hXaXGVTD0i/8RAi/4AJsENdkPLtyUSlkzbNR77q9knqNTaACcDF8m
+cvZ4Rxn9E06CLEOvvd2odV0=
+=FGKJ
+-----END PGP SIGNATURE-----
+
+--SO98HVl1bnMOfKZd--
