@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: libiptc memory leak - PATCH
-Date: Wed, 30 Apr 2003 17:47:21 +0200
+Subject: Re: [PATCH] fuzzy.patch and fuzzy6.patch.ipv6
+Date: Wed, 30 Apr 2003 17:57:36 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030430154721.GD685@sunbeam.de.gnumonks.org>
-References: <3EA46FDE.6040806@i.cz> <20030427125345.GD990@sunbeam.de.gnumonks.org> <3EACD4D1.90704@i.cz>
+Message-ID: <20030430155736.GE685@sunbeam.de.gnumonks.org>
+References: <20030427094949.GF990@sunbeam.de.gnumonks.org> <20030427.173804.13764775.davem@redhat.com> <Pine.LNX.4.44L.0304281710230.12878-100000@alpha.zarz.agh.edu.pl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XMCwj5IQnwKtuyBG"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="3Pql8miugIZX0722"
+Cc: netfilter-devel@lists.netfilter.org, hime@engineer.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?iso-8859-1?B?VG9t4T8=?= Lejdar <tomas.lejdar@i.cz>
+To: Wojciech Sas Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
 Content-Disposition: inline
-In-Reply-To: <3EACD4D1.90704@i.cz>
+In-Reply-To: <Pine.LNX.4.44L.0304281710230.12878-100000@alpha.zarz.agh.edu.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,22 +23,21 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---XMCwj5IQnwKtuyBG
-Content-Type: text/plain; charset=iso-8859-1
+--3Pql8miugIZX0722
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 28, 2003 at 09:14:25AM +0200, Tom=E1? Lejdar wrote:
+On Mon, Apr 28, 2003 at 05:13:15PM +0200, Wojciech Sas Cieciwa wrote:
+>=20
 > Hi,
-> I thing there is no problem, the memory is freed only when the
-> function next_chain returns NULL and run through the chains is on the end.
-> In the next call of first_chain() is memory alocated again in=20
-> populate_cache().
+> This is small patch to fix toruble on PPC with netfilter in module.
+> [Without this compiler generate "unresolved symbols"]
 
-no, it's fine.  It was a misunderstanding. I'll apply your patch now.
-Sorry for the fuzz.
+indeed, there is no need for using floating point arithmetics at all.
 
-> T.v.L
+Hime, would the proposed changes be fine with you (as the original
+author) ?
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -50,7 +49,7 @@ Sorry for the fuzz.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---XMCwj5IQnwKtuyBG
+--3Pql8miugIZX0722
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -58,9 +57,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+r/AJXaXGVTD0i/8RAt8UAKCT9HkhaX8v2osSLrI4hO3skhs3kwCfewEu
-DqqpyKXhbbpdxj1WgReEw4g=
-=Bd8H
+iD8DBQE+r/JwXaXGVTD0i/8RAhzSAKCZdGGZLtuDE1dJea3bQ2LDMQJIewCgkHde
+f0Q4nEGkGJtKdnAlXQB6hbQ=
+=6sxL
 -----END PGP SIGNATURE-----
 
---XMCwj5IQnwKtuyBG--
+--3Pql8miugIZX0722--
