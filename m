@@ -1,15 +1,15 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] IP sets
-Date: Tue, 17 Feb 2004 10:58:21 +0100 (CET)
+Subject: Re: ipset breaks iptables compilation
+Date: Tue, 17 Feb 2004 11:12:38 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
-References: <20040214212340.GC7756@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0402171111260.10727-100000@blackhole.kfki.hu>
+References: <20040215182224.GB15567@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040214212340.GC7756@sunbeam.de.gnumonks.org>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20040215182224.GB15567@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +20,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 14 Feb 2004, Harald Welte wrote:
+On Sun, 15 Feb 2004, Harald Welte wrote:
 
-> > The IP sets support is available from the netfilter cvs repository!
->
-> Thanks a lot, I will take some time to review the code.
->
-> One of the first issues that I ran into was the use of vmalloc.
-> Please refer to http://lwn.net/Articles/57800/.
+> It seems like your inclusion of ipset broke iptables userspace compiles
+> :(
 
-Thank you pointing out the article! Let's consider the current version of
-ipset as the first, beta release (as it is :-). Actually, Linus'
-description when vmalloc is valid fits to the vmalloc usage in ipset
-(large arrays allocated), but I'll work on to eliminate it.
+The Makefile I put together? Ugghhh...
 
-> Since ipset is sufficiently independent (in fact, totally independent)
-> of iptables, we could make it a seperate package, and thus a seperate
-> cvs module.  What do you think?
+> The reason are the missing include files.   I suggest to either put them
+> into iptables/include/linux/, or (as indicated in my other mail) to put
+> iptset into a seperate cvs module (which seems to make a lot of sense to
+> me).
 
-OK!
+Yes, let's separate it from iptables.
 
 Best regards,
 Jozsef
