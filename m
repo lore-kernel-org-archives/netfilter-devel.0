@@ -1,15 +1,15 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: differences between 2.4.19 and 2.4.20?
-Date: 12 Aug 2003 10:21:36 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: possible bug in ip_nat_fn()
+Date: Wed, 13 Aug 2003 14:37:40 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1060676495.16298.12.camel@tech004.alphalink.fr>
-References: <3F381BFB.6060805@hotmail.com>
-	 <20030812081404.GA350@oknodo.bof.de>
+Message-ID: <Pine.LNX.4.33.0308131432300.5634-100000@blackhole.kfki.hu>
+References: <20030810141425.GA4906@balabit.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-qLbemtSCEWP+cILQhK0P"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030812081404.GA350@oknodo.bof.de>
+To: Balazs Scheidler <bazsi@balabit.hu>
+In-Reply-To: <20030810141425.GA4906@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,33 +20,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Bazsi,
 
---=-qLbemtSCEWP+cILQhK0P
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Sun, 10 Aug 2003, Balazs Scheidler wrote:
 
-On Tue, 2003-08-12 at 10:14, Patrick Schaaf wrote:
-> On Mon, Aug 11, 2003 at 03:43:07PM -0700, Srinivas Kommu wrote:
-> . But I'm not sure: I avoided 2.4.20
-> for some reason, but don't remember specifics.
+> The problem occurs if no ip_nat_setup_info() is called (or it fails) _AND_
+> ret == NF_ACCEPT. This is always the case in 2), when 'ret' is simply set to
+> NF_ACCEPT, and might possibly also happen if the NAT helper does not check
+> the return value of ip_nat_setup_info(), or it simply does not set up a NAT
+> mapping for the current connection.
+[...]
+> I think the solution for this problem would be a separate flag in
+> ip_nat_info->initialized which tells whether this conntrack has already been
+> hashed, or to move the hash update code to ip_nat_setup_info. I've attached
+> a patch which does the latter, and makes the place_in_hashes and
+> replace_in_hashes functions static.
 
-The possible DOS attack that was announced one week ago ?
+I think your analysis is correct and I agree with your fix as well.
 
-BR,
---=20
-Eric Leblond <eric@regit.org>
-Regit.org
+Could you report this and all your other findings in the workshop during
+presenting the TPROXY patch?
 
---=-qLbemtSCEWP+cILQhK0P
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQA/OKOPnxA7CdMWjzIRAmlYAJ47W1g7UmCwGWlimOdHhrpEwKxnzwCfd2br
-mponITmHmOh5fbhoODZW+2M=
-=Q+eU
------END PGP SIGNATURE-----
-
---=-qLbemtSCEWP+cILQhK0P--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
