@@ -1,8 +1,8 @@
 From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Again, HOPLIMIT inconsistency
-Date: Wed, 3 Mar 2004 21:00:01 +0100
+Subject: [PATCH] Fix libipt_DSCP.c help message
+Date: Wed, 3 Mar 2004 21:04:09 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <931388940.20040303210001@dns.toxicfilms.tv>
+Message-ID: <997190872.20040303210409@dns.toxicfilms.tv>
 Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -21,24 +21,27 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-I remember that Harald agreed with me to change the naming scheme
-to HL instead of HOPLIMIT.
+this patch is pretty self-explanatory, fixes the way
+the help message is displayed.
 
-I remember having sent a patch that renames HOPLIMIT in
-patch-o-matic-ng to HL (in helps and in files)
-
-It has not been applied, may I ask why?
-
-This causes inconsistency because helps say:
--j HOPLIMIT --hl-set
-and we have
-iptables/extensions/libip6t_HL.c
-Won't work :-(
-
-So, either we rename libip6t_HL.c to libip6t_HOPLIMIT.c,
-or keep it the way it is, but rename HOPLIMIT to HL in patch-o-matic-ng
-in help message (and preferably in the kernel files from IP6T_HOPLIMIT_* to
-IP6T_HL_* as it was in the beginning)
-
-Regards,
+Best regards,
 Maciej
+
+Index: libipt_DSCP.c
+===================================================================
+RCS file: /cvspublic/iptables/extensions/libipt_DSCP.c,v
+retrieving revision 1.6
+diff -u -r1.6 libipt_DSCP.c
+--- libipt_DSCP.c       7 Aug 2002 09:55:37 -0000       1.6
++++ libipt_DSCP.c       3 Mar 2004 20:02:22 -0000
+@@ -35,7 +35,7 @@
+ "                              or in hex (ex: 0x20)\n"
+ "  --set-dscp-class class      Set the DSCP field in packet header to the\n"
+ "                              value represented by the DiffServ class value.\n"
+-"                              This class may be EF,BE or any of the CSxx "
++"                              This class may be EF,BE or any of the CSxx\n"
+ "                              or AFxx classes.\n"
+ "\n"
+ "                              These two options are mutually exclusive !\
+
+ 
