@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: design-feature of nat?
-Date: Sat, 2 Nov 2002 15:34:51 +0100
+Subject: Re: [NEW EXTENSION] Condition Match
+Date: Sat, 2 Nov 2002 15:47:39 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021102153451.N8635@sunbeam.de.gnumonks.org>
-References: <200211012254.ERB510IOAA@gate.tbc.sub.de>
+Message-ID: <20021102154739.P8635@sunbeam.de.gnumonks.org>
+References: <3DBED94E.1030107@videotron.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qPRehgwKaTVCe+gW"
+	protocol="application/pgp-signature"; boundary="aHqAB8BY+idAG4VW"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: jb@is-kassel.de
+To: Stephane Ouellette <ouellettes@videotron.ca>
 Content-Disposition: inline
-In-Reply-To: <200211012254.ERB510IOAA@gate.tbc.sub.de>; from jb@moenia.de on Fri, Nov 01, 2002 at 11:52:45PM +0100
+In-Reply-To: <3DBED94E.1030107@videotron.ca>; from ouellettes@videotron.ca on Tue, Oct 29, 2002 at 01:54:06PM -0500
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,50 +23,23 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qPRehgwKaTVCe+gW
+--aHqAB8BY+idAG4VW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 01, 2002 at 11:52:45PM +0100, juergen baumann wrote:
-
-Hi Juergen.
-
-> possible design-problem within snat.
+On Tue, Oct 29, 2002 at 01:54:06PM -0500, Stephane Ouellette wrote:
+> Folks,
 >=20
-> connecting with certain source-port to any destination.
-> normal stop of this connection.
->=20
-> establishing a snat-rule which replaces the address used by the connection
-> before.
->=20
-> conencting again with same source-port to same destination.
->=20
-> neither the established snat-rule will be used, nor any further
-> packet-counter will be increased.
->=20
-> problem will not occure, if the corresponding conntrack-entry is deleted
-> before.
+>    I developped last week a new extension to Netfilter in order to=20
+> enable or disable a set of rules using /proc files.
 
-I don't really understand the problem.  Are you talking about SNAT not
-occurring as long as the old conntrack entry is still in TIME_WAIT state?
+I've added it to patch-o-matic.
 
-Please describe it a bit more verbose (you can also write directly to me
-and use german language, if you want to).
+btw: you were missing the userspace/extensions/.condition-test script :)
 
-> maybe you can fix a small bug in iptables-user, too:
->=20
-> in iptables.c (iptables6.c)
->=20
-> the long-option "rename-chain" should have a second arg of '1', not '2', =
-or
-> the option will fail.  short option 'E' does work normally.
-
-thanks, fixed.
-
-> greetings
-> jb
-
+> Enjoy !
+> Stephane.
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -77,7 +50,7 @@ Live long and prosper
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---qPRehgwKaTVCe+gW
+--aHqAB8BY+idAG4VW
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -85,9 +58,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9w+KLXaXGVTD0i/8RAhvNAJ0aPXXLy6j0DqA5eNtojn+AjRtlDACbBwYA
-n6lps9HABEhwaTA3IsevdHE=
-=lTB1
+iD8DBQE9w+WLXaXGVTD0i/8RAg8IAJ93mC+dx4txU4aBuf5PFNKgY0HsgwCgphSP
+1RLLPbshwz1e7uXMvahPJ7w=
+=ZMvg
 -----END PGP SIGNATURE-----
 
---qPRehgwKaTVCe+gW--
+--aHqAB8BY+idAG4VW--
