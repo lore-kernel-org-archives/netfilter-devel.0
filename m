@@ -1,15 +1,16 @@
-From: "Maxime Ducharme" <mducharme@cybergeneration.com>
-Subject: Re: netfilter efficiency
-Date: Fri, 21 Jan 2005 14:35:25 -0500
-Message-ID: <173b01c4fff0$5b180030$b000a8c0@cybergeneration.com>
-References: <005c01c4ff19$508ade80$c0de623e@MAURO>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: NetFilter unclean modue in 2.6.x kernels
+Date: Sat, 22 Jan 2005 00:33:28 +0100
+Message-ID: <20050121233328.GU14460@sunbeam.de.gnumonks.org>
+References: <200501220013.56429.sov.rbsec@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KS5V1uDxmEcBh2BA"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "MauroTablo'" <m.tablo@libero.it>,
-	<netfilter-devel@lists.netfilter.org>
+To: "Oleg V. Sapon" <sov.rbsec@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <200501220013.56429.sov.rbsec@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,55 +23,49 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi
+--KS5V1uDxmEcBh2BA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I think the packet will traverse every filters
-before getting dropped by the policy
+On Sat, Jan 22, 2005 at 12:13:56AM +0300, Oleg V. Sapon wrote:
+>  Can you help locate unclean module for 2.6.x kernel or we must use
+>  source files from 2.6.0-test4?
 
-suggestion :
-add a drop rule after each protocols
-if packet is tcp
+I fear nobody did that port to recent 2.6.x and put it into
+patch-o-matic :(
 
--A FORWARD -p tcp --dport 123 -j ACCEPT
-...
--A FORWARD -p tcp --dport 1234 -j ACCEPT
--A FORWARD -p tcp -j DROP
+I just did that with the old code from 2.6.0-testX.  I didn't have the
+time to give it any runtime testing, but at least it compiled (after
+fixing up some includes).
 
--A FORWARD -p udp --dport 123 -j ACCEPT
--A FORWARD -p udp --dport 1234 -j ACCEPT
-...
--A FORWARD -p udp -j DROP
+> 	Our company can test patches and even (if I can) sponsor this work.
 
-This way a tcp packet which is not allowed wont
-get to udp and icmp rules
+Please test the code that is now (Version 3605) in patch-o-matic-ng.
 
-Hope this helps
+> Oleg V. Sapon.
 
-Have a nice day
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Maxime Ducharme
-Programmeur / Spécialiste en sécurité réseau
+--KS5V1uDxmEcBh2BA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
------ Original Message ----- 
-From: "MauroTablo'" <m.tablo@libero.it>
-To: <netfilter-devel@lists.netfilter.org>
-Sent: Thursday, January 20, 2005 12:56 PM
-Subject: netfilter efficiency
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
+iD8DBQFB8ZFIXaXGVTD0i/8RAvT2AKCrIT/yBDuhe93BQiIlJRZarpY7cQCgsXBs
+N7KC6tf7NqglWt72r9vn/GU=
+=fFQk
+-----END PGP SIGNATURE-----
 
-Hi all.
-My Linux (+ iptables) based firewall has about 90 forward filtering rules,
-for tcp packets (about 30 rules), udp datagram (about 40 rules) and icmp
-messages(about 20 rules).
-Suppose that it comes a transit tcp packet that doesn't match anyone of my
-rules. So, the last rule will be applied, because it is the first one that
-matches the packet (/sbin/iptables -A FORWARD -j DROP)
-
-The question is: iptables confronts the TCP packet with all my 90 rules, or
-it confronts the packet ONLY WITH rules for tcp packets (-p tcp)?
-In other words, is there a function in netfilter that looks up to the
-protocol type of a transit packet and decides which rules to confront the
-packet with?
-
-Thank you.
-Mauro.
+--KS5V1uDxmEcBh2BA--
