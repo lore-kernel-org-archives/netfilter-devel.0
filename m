@@ -1,16 +1,14 @@
-From: "Ariel Rosenblatt" <ariel@blueslice.com>
-Subject: RE: ip_conntrack_proto_sctp INIT_ACK messages dropped
-Date: Mon, 21 Feb 2005 13:33:09 -0500
-Message-ID: <000e01c51843$d0a2e8e0$320aa8c0@blueslicemtl>
-References: <42153BEE.7@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] nfsim TCP related fixes
+Date: Mon, 21 Feb 2005 20:16:16 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0502212015190.1542@blackhole.kfki.hu>
+References: <Pine.LNX.4.58.0502210859300.834@blackhole.kfki.hu>
+	<1108999481.16083.1.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: 'Harald Welte' <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	'Kiran Kumar Immidi' <immidi@spymac.com>
-To: "'Patrick McHardy'" <kaber@trash.net>
-In-Reply-To: <42153BEE.7@trash.net>
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-415917836-1109013376=:1542"
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <1108999481.16083.1.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,153 +20,90 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
+--110391808-415917836-1109013376=:1542
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-> -----Original Message-----
-> From: Patrick McHardy [mailto:kaber@trash.net]
-> Sent: Thursday, February 17, 2005 7:51 PM
-> To: Ariel Rosenblatt
-> Cc: 'Harald Welte'; netfilter-devel@lists.netfilter.org; Kiran Kumar
-> Immidi
-> Subject: Re: ip_conntrack_proto_sctp INIT_ACK messages dropped
->=20
-> Ariel Rosenblatt wrote:
->=20
-> >Hello Patrick,
+On Tue, 22 Feb 2005, Rusty Russell wrote:
+
+> On Mon, 2005-02-21 at 09:07 +0100, Jozsef Kadlecsik wrote:
+> > Hi,
 > >
-> >That is true, the conntrack must not change after the INIT_ACK is =
-sent,
-> and
-> >as matter of fact once the endpoint sent the INIT_ACK it should do
-> nothing
-> >else to avoid DOS attacks; this until the 4-way cookie based =
-handshake is
-> >done and the TCB created. The COOKIE ECHO for an existing TCB case is
-> >handled in 5.2.4, the special case I brought up is 5.2.4.A =
-(Association
-> >restart, 5.2.4.1).
-> >
-> >The endpoint receiving the INIT_ACK is the "other" endpoint. So if =
-the
-> tag
-> >was not properly saved when the INIT message left the originating
-> endpoint
-> >the INIT_ACK generated as a reply to the unexpected INIT will get =
-dropped
-> at
-> >the INIT originating endpoint.
-> >
-> >Note that the INIT_ACK is _NOT_ unexpected as the originating =
-endpoint
-> >previously sent an INIT (unexpected INIT_ACKs should always be =
-discarded,
-> >section 5.2.3), without the patch the INIT_ACK is being silently
-> discarded.
-> >The patch saves the initialization tag for the outgoing INIT, which =
-will
-> be
-> >needed later to verify the incoming INIT_ACK. Without this a lost
-> >association (e.g. power failure) can never be re-established before =
-the
-> >ESTABLISHED_TIMEOUT (currently set to 5 days) expires.
-> >
-> >It is the destination endpoint that receives an unexpected INIT and =
-it is
-> >therefore bound to reply with an INIT_ACK, to get the 4-way handshake
-> going
-> >(section 5.2.2). However, as I mentioned above, the destination =
-endpoint
-> >shouldn't modify the existing association TCB or create a new one,
-> otherwise
-> >the destination endpoint will be vulnerable to DOS attacks.
-> >
-> >
-> As is conntrack if it modifies the saved tag of an established =
-connection
-> without looking for a valid exchange of Tie-Tags and COOKIE-ECHO, if I
-> don't
-> completely misunderstand. Someone simply needs to send an INIT for an
-> existing
-> association and can prevent further packets from getting through. But =
-I
-> think
-> you're patch is what is intended by the code, so we probably should =
-put
-> it in
-> for now. Kiran, could you have a look at Ariel's patch please ?
->=20
+> > I discovered two TCP related bugs in gen_ip: TCP SEQ and ACK numbers were
+> > converted from string to u_int16_t instead of u_int32_t and full length
+> > TCP options could not be specified.
+>
+> Don't think so: string_to_number uses int.  You couldn't specify >
+> 2billion though.  We should just make string_to_number() use unsigned
+> since noone wants -ve numbers anyway.  Other fix looks fine: feel free
+> to simply commit.
 
-You are right about the conntrack being susceptible to fraudulent INIT
-messages. This holds true for INIT-ACKs as well as the first INIT send.=20
+Yes, you are right. What about the attached patch?
 
-Saving the verification tags harms more than it helps, because it makes =
-the
-connection tracking vulnerable to dos attacks. While the goal is dumping
-invalid traffic, it could instead wind up discarding valid traffic.=20
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-415917836-1109013376=:1542
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="nfsim.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0502212016160.1542@blackhole.kfki.hu>
+Content-Description: nfsim.patch
+Content-Disposition: attachment; filename="nfsim.patch"
 
-I thought about these issues and I don't see a way of using verification
-tags without making the connection tracking susceptible to this =
-problems.
-Saving tie-tags for existing associations until the COOKIE-ECHO/ACK is
-processed could alleviate the problem. However, it will still take one
-fraudulent message to launch an attack and cause the module to discard =
-valid
-traffic or prevent the association from being established by overwriting =
-the
-valid tie-tag.=20
+ZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2RpZmYuZXhjbHVk
+ZSBuZnNpbS5vcmlnL3Rvb2xzL2dlbl9pcC5jIG5mc2ltL3Rvb2xzL2dlbl9p
+cC5jDQotLS0gbmZzaW0ub3JpZy90b29scy9nZW5faXAuYwkyMDA1LTAxLTE5
+IDE0OjA2OjMyLjAwMDAwMDAwMCArMDEwMA0KKysrIG5mc2ltL3Rvb2xzL2dl
+bl9pcC5jCTIwMDUtMDItMjEgMTg6MTc6MDQuMDAwMDAwMDAwICswMTAwDQpA
+QCAtNTYsMTMgKzU2LDEzIEBADQogCXswfQ0KIH07DQogDQotaW50IHN0cmlu
+Z190b19udW1iZXIoY29uc3QgY2hhciAqcywgaW50IG1pbiwgaW50IG1heCkN
+Cit1bnNpZ25lZCBpbnQgc3RyaW5nX3RvX251bWJlcihjb25zdCBjaGFyICpz
+LCB1bnNpZ25lZCBpbnQgbWluLCB1bnNpZ25lZCBpbnQgbWF4KQ0KIHsNCi0J
+aW50IG51bWJlcjsNCisJdW5zaWduZWQgaW50IG51bWJlcjsNCiAJY2hhciAq
+ZW5kOw0KIA0KIAkvKiBIYW5kbGUgaGV4LCBvY3RhbCwgZXRjLiAqLw0KLQlu
+dW1iZXIgPSAoaW50KXN0cnRvbChzLCAmZW5kLCAwKTsNCisJbnVtYmVyID0g
+KHVuc2lnbmVkIGludClzdHJ0b3VsKHMsICZlbmQsIDApOw0KIAlpZiAoKmVu
+ZCA9PSAnXDAnICYmIGVuZCAhPSBzKSB7DQogCQkvKiB3ZSBwYXJzZWQgYSBu
+dW1iZXIsIGxldCdzIHNlZSBpZiB3ZSB3YW50IHRoaXMgKi8NCiAJCWlmICht
+aW4gPD0gbnVtYmVyICYmIG51bWJlciA8PSBtYXgpDQpAQCAtMzk0LDExICsz
+OTQsMTMgQEANCiAJc2l6ZV90IGk7DQogDQogCS8qIE9wdGlvbnMgYXJlIHNp
+bXBsZSBjb21tYS1zZXBhcmF0ZWQgbnVtYmVyIGxpc3QuICovDQotCWZvciAo
+aSA9IDAsIHRvaz1zdHJ0b2sob3B0cywgIiwiKTsgdG9rOyB0b2s9c3RydG9r
+KE5VTEwsICIsIiksIGkrKykNCisJZm9yIChpID0gMCwgdG9rPXN0cnRvayhv
+cHRzLCAiLCIpOyANCisJICAgICB0b2sgJiYgaSA8IHNpemVvZihvcHRpb25z
+KTsNCisJICAgICB0b2s9c3RydG9rKE5VTEwsICIsIiksIGkrKykNCiAJCW9w
+dGlvbnNbaV0gPSBhdG9sKHRvayk7DQogDQotCWlmIChpID49IHNpemVvZihv
+cHRpb25zKSkgew0KLQkJbmZzaW1fbG9nKExPR19VSSwgIlRvbyBtYW55IFRD
+UCBvcHRpb25zIGAlcyciLCBvcHRzKTsNCisJaWYgKHRvaykgew0KKwkJbmZz
+aW1fbG9nKExPR19VSSwgIlRvbyBtYW55IFRDUCBvcHRpb25zOiAlcyIsIG9w
+dHMpOw0KIAkJcmV0dXJuIDE7DQogCX0NCiAJaWYgKGkgJSA0ICE9IDApIHsN
+CkBAIC00MTMsOSArNDE1LDkgQEANCiBzdGF0aWMgaW50DQogcGFyc2VfdGNw
+bnVtYmVyKGNvbnN0IGNoYXIgKm51bWJlciwgdV9pbnQzMl90ICp2YWwpDQog
+ew0KLQlpbnQgaTsNCisJdW5zaWduZWQgaW50IGk7DQogDQotCWkgPSBzdHJp
+bmdfdG9fbnVtYmVyKG51bWJlciwgMCwgSU5UX01BWCk7DQorCWkgPSBzdHJp
+bmdfdG9fbnVtYmVyKG51bWJlciwgMCwgVUlOVF9NQVgpOw0KIAlpZiAoaSA8
+IDApIHsNCiAJCW5mc2ltX2xvZyhMT0dfVUksICJJbnZhbGlkIHRjcCBudW1i
+ZXIgYCVzJyIsIG51bWJlcik7DQogCQlyZXR1cm4gMTsNCmRpZmYgLXVyTiAt
+LWV4Y2x1ZGUtZnJvbT0vdXNyL3NyYy9kaWZmLmV4Y2x1ZGUgbmZzaW0ub3Jp
+Zy90b29scy9nZW5faXAuaCBuZnNpbS90b29scy9nZW5faXAuaA0KLS0tIG5m
+c2ltLm9yaWcvdG9vbHMvZ2VuX2lwLmgJMjAwNS0wMS0xOSAxNDowNjozMi4w
+MDAwMDAwMDAgKzAxMDANCisrKyBuZnNpbS90b29scy9nZW5faXAuaAkyMDA1
+LTAyLTIxIDE4OjE4OjE4LjAwMDAwMDAwMCArMDEwMA0KQEAgLTI1LDcgKzI1
+LDcgQEANCiAJCSBjaGFyICpkdW1wX2ZsYWdzKTsNCiANCiAvKiBDb252ZXJ0
+IHN0cmluZyB0byBudW1iZXIgaW4gdGhpcyByYW5nZTogLTEgZm9yIGZhaWwu
+ICovDQotaW50IHN0cmluZ190b19udW1iZXIoY29uc3QgY2hhciAqcywgaW50
+IG1pbiwgaW50IG1heCk7DQordW5zaWduZWQgaW50IHN0cmluZ190b19udW1i
+ZXIoY29uc3QgY2hhciAqcywgdW5zaWduZWQgaW50IG1pbiwgdW5zaWduZWQg
+aW50IG1heCk7DQogDQogLyogQ29udmVydCBzdHJpbmcgb2YgZm9ybSB3Lngu
+eS56IHRvIGFuIGFkZHJlc3MuICBOVUxMIG9uIGZhaWwuICovDQogc3RydWN0
+IGluX2FkZHIgKmRvdHRlZF90b19hZGRyKGNvbnN0IGNoYXIgKmRvdHRlZCk7
+DQo=
 
-And then again, SCTP is just a transport protocol and without =
-authentication
-(e.g. IPSEC AH), it will be vulnerable to masquerading attacks as well, =
-so
-maybe SCTP connection tracking doesn't really have to protect against =
-these,
-as IPSEC would provide the needed authentication and prevent malicious
-messages from overwriting the connection tracking saved verification =
-tags.
-This is good, because we can leave things as they are and just patch the
-code for the re-starting association case.
-
-In the mean time I patched the module with the code below (please see a =
-more
-robust patch at the end of the message) to solve the saved vtag problem =
-for
-both directions.
-
-Thanks,
-
-- Ariel
-
-> Thanks,
-> Patrick
->=20
-
---- /usr/src/linux-2.6.10/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
-2005-02-04 16:22:24.000000000 -0500
-+++ ip_conntrack_proto_sctp.c   2005-02-21 13:06:58.373096368 -0500
-@@ -392,6 +392,7 @@
-                if (sch->type =3D=3D SCTP_CID_INIT=20
-                        || sch->type =3D=3D SCTP_CID_INIT_ACK) {
-                        sctp_inithdr_t _inithdr, *ih;
-+                       u_int32_t dir;
-=20
-                        ih =3D skb_header_pointer(skb, offset +
-sizeof(sctp_chunkhdr_t),
-                                                sizeof(_inithdr),
-&_inithdr);
-@@ -401,7 +402,9 @@
-                        }
-                        DEBUGP("Setting vtag %x for dir %d\n",=20
-                                        ih->init_tag, =
-CTINFO2DIR(ctinfo));
--                       conntrack->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] =
-=3D
-ih->init_tag;
-+                       dir =3D (CTINFO2DIR(ctinfo) =3D=3D =
-IP_CT_DIR_ORIGINAL)?=20
-+                           IP_CT_DIR_REPLY: IP_CT_DIR_ORIGINAL;
-+                       conntrack->proto.sctp.vtag[dir] =3D =
-ih->init_tag;
-                }
-=20
-                conntrack->proto.sctp.state =3D newconntrack;
+--110391808-415917836-1109013376=:1542--
