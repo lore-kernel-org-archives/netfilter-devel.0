@@ -1,13 +1,10 @@
-From: "Vishwas Manral" <Vishwas@sinett.com>
-Subject: RE: Help: Netfilter Rule database
-Date: Wed, 16 Mar 2005 04:42:08 -0800
-Message-ID: <BB6D74C75CC76A419B6D6FA7C38317B26A273E@sinett-sbs.SiNett.LAN>
+From: Torsten Luettgert <t.luettgert@pressestimmen.de>
+Subject: [PATCH] trivial patch for TCPLAG iptables version
+Date: Wed, 16 Mar 2005 14:07:00 +0100
+Message-ID: <1110978420.5786.9.camel@scaramouche>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="=-O0a5R8SM8XBd0vzK+IEL"
+To: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,50 +16,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-After some head scratching, I managed to figure out my way around the
-code. We register socket options in the kernel and call the action as a
-result of the setsockopt system call which is used by libiptc.=20
 
-Thanks,
-Vishwas
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of
-Vishwas Manral
-Sent: Tuesday, March 15, 2005 9:47 AM
-To: netfilter-devel@lists.netfilter.org
-Subject: Help: Netfilter Rule database
+--=-O0a5R8SM8XBd0vzK+IEL
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-Could someone tell me how rules get stored in the various chains in the
-ipTables module in the kernel? Any pointer to the code or documentation
-would help.
+iptables/extensions/libipt_TCPLAG.c from svn requires
+iptables version 1.2.3 in its struct iptables_target, so
+the TCPLAG target cannot be used from iptables other than
+1.2.3.
 
-I know NETLINK_FIREWALL sockets are used for transferring packets to
-user space. What do we use for transferring iptables rules to the kernel
-from the user space?
+The attached trivial patch sets .version to IPTABLES_VERSION,
+just as all the other libipt_*.c matches have.
 
-Thanks,
-Vishwas
+Regards,
+Torsten L=FCttgert <t.luettgert@pressestimmen.de>
 
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of
-Vishwas Manral
-Sent: Monday, March 14, 2005 4:44 PM
-To: netfilter-devel@lists.netfilter.org
-Subject: Netfilter Rule database
 
-Hi,
+--=-O0a5R8SM8XBd0vzK+IEL
+Content-Disposition: attachment; filename=TCPLAG.patch
+Content-Type: text/x-patch; name=TCPLAG.patch; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-I have been trying to understand the iptables code.=20
+--- extensions/libipt_TCPLAG.c	(revision 3795)
++++ extensions/libipt_TCPLAG.c	(working copy)
+@@ -195,7 +195,7 @@
+ {
+ next:	          0,
+ name:             "TCPLAG",
+-version:          "1.2.3",
++version:          IPTABLES_VERSION,
+ size:             IPT_ALIGN( sizeof( struct ipt_tcplag )),
+ userspacesize:    IPT_ALIGN( sizeof( struct ipt_tcplag )),
+ help:             &help,
 
-I was able to understand to some extent the code in the netfilter
-directory, but have been unable to understand how the user and the
-kernel space interaction happen for the rules (not for the packets).
-Also where and how the rules are stored in the kernel? Any pointer to
-the file I need to look at would be helpful.
-
-Thanks,
-Vishwas
+--=-O0a5R8SM8XBd0vzK+IEL--
