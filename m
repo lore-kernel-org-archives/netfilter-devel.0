@@ -1,14 +1,14 @@
-From: Olaf Rempel <razzor@kopf-tisch.de>
-Subject: Re: [iptables 1.3.0 / libiptc patch] sort chains by hooknum/names
-Date: Sat, 5 Mar 2005 00:15:33 +0100
-Message-ID: <20050305001533.66dc697b@coruscant>
-References: <20050304212114.130e2a7c@coruscant>
-	<20050304220827.GA23938@linuxace.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Iptables Match on Direction (IP_CT_IS_REPLY)
+Date: Sat, 05 Mar 2005 00:27:08 +0100
+Message-ID: <4228EECC.5000504@trash.net>
+References: <20050304093542.23600.qmail@web90010.mail.scd.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20050304220827.GA23938@linuxace.com>
+Cc: netfilter-devel@lists.netfilter.org
+To: Peter Lenci <peterlenci@yahoo.ca>
+In-Reply-To: <20050304093542.23600.qmail@web90010.mail.scd.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,22 +20,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 4 Mar 2005 14:08:27 -0800
-Phil Oester <kernel@linuxace.com> wrote:
+Peter Lenci wrote:
+> I studied conntrack but didn't find a way to read the direction
+> of the packet. In fact I was thinking about writing a patch for that
+> module to add an option "--direction original|reply|both".
+> 
+> How exactly would you determine the direction with conntrack?
 
-> Why is the old behaviour better than the current?  Any scripts you have
-> should be smart enough to check for '^Chain ______' to determine chain.
+CTINFO2DIR(ctinfo) of ctinfo returned by ip_conntrack_get gives you the
+direction. If you want to make a patch for ipt_conntrack it should be
+similar to Rusty's recent patch "Add bitops to ipt_MARK without breaking
+compatbility".
 
-It's not about scripts. I just think it's easier to understand: 
-Having the the builtins arranged like the packets traverse them, and 
-being on top of the chains they "jump" into. 
-
-I see no advantage of changing to the new behavior, only that it confuses
-people that had worked for years with the old behavior.
-
-And last but not least:
-libiptc.c:565 	/* FIXME: sort chains */
-
-I read this like: not implemented yet :)
-
-Olaf
+Regards
+Patrick
