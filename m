@@ -1,11 +1,10 @@
-From: "Laurence J. Lane" <ljlane@nontoxic.org>
-Subject: Forwarding Debian BTS reports. Is bugzilla active?
-Date: Tue, 9 Sep 2003 17:32:38 -0400
+From: Illes Marton <illes@c3.hu>
+Subject: pkttables ?
+Date: Wed, 10 Sep 2003 00:36:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030909213238.GA12759@ljlane.net>
+Message-ID: <20030909223617.GB862@c3.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: ljlane@debian.org
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,45 +18,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have a number of bug reports to forward from the Debian Bug 
-Tracking system. I don't know if they should be forwarded to
-to netfilter's Bugzilla.
+Hi All!
 
-The full list is at: http://bugs.debian.org/iptables
+I was just wondering where could I find pkttables, cause I am really
+interested in it!
 
+Is it available somewhere, or when will it be available?
 
-http://bugs.debian.org/195599
+thanks,
 
-  iptable6 REJECT does not build
-
-
-http://bugs.debian.org/207954
-
-  iptables -m physdev does not work with 2.6.x kernels.
-
-
-http://bugs.debian.org/171970
-
-  iptables handles the explicit 0/0 address as it does other 
-  addresses. 
-
-
-http://bugs.debian.org/170040
-
-  GNU longopt handling is inconsistent
-
-
-http://bugs.debian.org/177365
-
-  extra space at the end of each syslog entry
-
-
-http://bugs.debian.org/174610 (wishlist)
-
-  REJECT target with '-p tcp' should '--reject-with tcp-reset' by
-  default.
-
-
-http://bugs.debian.org/170058
-
-  mask in MARK target like in mark match
+Marton
+-- 
