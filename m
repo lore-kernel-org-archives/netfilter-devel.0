@@ -1,79 +1,78 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2.4.22-pre9] tcp connection tracking bugfix (fwd)
-Date: Fri, 1 Aug 2003 15:50:59 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030801135059.GG6894@naboo>
-References: <Pine.LNX.4.55L.0307311228090.4226@freak.distro.conectiva>
+From: Andreas Jellinghaus <aj@dungeon.inka.de>
+Subject: Re: port-based filtering of ESP packets with in-kernel IPsec?
+Date: 30 Jul 2003 16:51:41 +0200
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <1059576701.4586.20.camel__1372.17247761345$1059748465@simulacron>
+References: <1059540296.16545.305.camel@k7.localnet>
+	 <20030730142411.GD4553@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="I3tAPq1Rm2pUxvsp"
-Cc: "David S. Miller" <davem@redhat.com>,
-	Marc-Christian Petersen <m.c.p@wolk-project.de>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Marcelo Tosatti <marcelo@conectiva.com.br>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.55L.0307311228090.4226@freak.distro.conectiva>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030730142411.GD4553@sunbeam.de.gnumonks.org>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---I3tAPq1Rm2pUxvsp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+if you are using ipsec from kernel 2.6.* there is no "ipsec0"
+interface, and thus using netfilter isn't as easy as it was with
+freeswan.
 
-On Thu, Jul 31, 2003 at 12:28:28PM -0300, Marcelo Tosatti wrote:
-=20
-> Is this OK?
+three ways to solve the problem, only tried the first one so far:
+1.) configure ipsec in tunnel mode, add your tunnel ip to 
+    the outgoing interface, change the default route to
+    set the source ip to the tunnel ip.
+note: there is no routing step after encapsulating a packet
+with ipsec, there was one with freeswan, so this is different.
 
-Hi Marcelo, Dave, Marc-Christian.
+2.) set a fwmark on an esp packet, it should be there after
+    unpacking/decryption. didn't try this one.
 
-We've had this discussion over and over again, the last time in October
-2002.  My reply at that time was:
+3.) do not use the build in tunneling. use an explicit ipip tunnel.
+	that way you have the interface, can use it in netfilter,
+	can route into it, and the interface will set the right
+	source address.
 
-http://lists.netfilter.org/pipermail/netfilter-devel/2002-October/009613.ht=
-ml
+[netfilter]
+incoming encrypted packets are seen as ESP/AH in INPUT
+and then as decrypted packet in INPUT or FORWARD.
 
-Now since more and more people seem to consider this as a real problem,
-I am sort of undecided on what to do.
+outgoing packets are only seen as ESP in OUTPUT.
 
-My preferred solution still is the full TCP window tracking, which I
-personally use (and trust) for a very long time - just the original
-author still sort-of objects kernel inclusion of his code.  We're going
-to discuss this at the netfilter summit (Aug 17 - Aug 20). My goal is to
-finally submit that code after the summit.
+> > Since ESP packets that reach the mangle INPUT chain are destined for a
+> > local process, why not unencapsulate them just before that point?  
 
-Dave: If you think it's worth 'fixing' this issue for the following three
-weeks, please submit the patch to Marcelo.
+INPUT only means the ESP will be decrypted/unecapsulated.
+after that the decrypted packet will show up in INPUT or FORWARD.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+> no. My preferred solution was something like adding a netfilter hook to
+> the xfrm4 engine, exactly after decapsulation / decryption of one layer,
+> i.e.  after xfrm_type.input was called. 
+>
+> iptables could then register the INPUT chain (or probably even a
+> seperate POSTXFRM chain) in order to filter on the respective packets.
 
---I3tAPq1Rm2pUxvsp
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+you can already filter incoming packets. The problem is you
+don't know if they came in that way they look now, or if they
+came in via ESP packets and got decrypted.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+maybe decryption/unencapsulating could leave a mark on the
+packet, so we know packets without that mark came in without
+ipsec and are bad / attempts to access resources without ipsec?
+(maybe fwmark works on that. or an explicit ipip tunnel, so you
+have "ipip0" or something as incoming interface).
 
-iD8DBQE/KnBCXaXGVTD0i/8RAiMsAKC0PHxk87BA5kz4waZeS+T5rCMjQQCfddwc
-eRJf+VTvyKIRO6jHzuNfa+Q=
-=xSOg
------END PGP SIGNATURE-----
+> Any comments are appreciated.
 
---I3tAPq1Rm2pUxvsp--
+Regards, Andreas
