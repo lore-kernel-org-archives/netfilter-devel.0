@@ -1,9 +1,11 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: Tue, 28 Sep 2004 10:24:38 -0400
+Date: Tue, 28 Sep 2004 16:46:22 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <876ef97a040928072462b9f44@mail.gmail.com>
+Message-ID: <Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
 References: <1092407190.2402.120.camel@nienna.balabit>
+	<1095993739.1044.9.camel@jzny.localdomain>
+	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
 	<1096290473.1075.64.camel@jzny.localdomain>
 	<20040927133904.GP3236@sunbeam.de.gnumonks.org>
 	<1096339276.8660.30.camel@jzny.localdomain>
@@ -12,18 +14,17 @@ References: <1092407190.2402.120.camel@nienna.balabit>
 	<1096374273.7192.27.camel@nienna.balabit>
 	<Pine.LNX.4.61.0409281432550.31930@filer.marasystems.com>
 	<1096376252.7192.47.camel@nienna.balabit>
-	<Pine.LNX.4.61.0409281554150.32381@filer.marasystems.com>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+	<1096377276.8661.252.camel@jzny.localdomain>
+	<1096379957.1026.5.camel@jzny.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>, hadi@cyberus.ca,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
 	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
 	KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0409281554150.32381@filer.marasystems.com>
+To: Jamal Hadi Salim <hadi@znyx.com>
+In-Reply-To: <1096379957.1026.5.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -34,34 +35,25 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 28 Sep 2004 15:58:52 +0200 (CEST), Henrik Nordstrom
-<hno@marasystems.com> wrote:
-> On Tue, 28 Sep 2004, KOVACS Krisztian wrote:
-> 
-> > There are other solutions for that problem, for example Harald's
-> > ClusterIP code. If we could integrate that with ct_sync we would be able
-> > to do multi-master packet filter clusters without any load balancers
-> > before the cluster. If the NAT core would be integrated with ClusterIP's
-> > hash to avoid conntrack clashes we could do this without statically
-> > assigning different NAT addresses to each node.
-> 
-> Any ideas on how would this work?
-> 
-> Lets reason around the common MASQUERADE case where an internal network
-> needs to be SNAT:ed when going out to the Internet.
+On Tue, 28 Sep 2004, Jamal Hadi Salim wrote:
 
-Forgive me for bringing this back up, but...
+> Ok, I think this is Henrik may be saying as well:
+> For each of the active nodes, you give it a range of ports to use.
+> Maybe 1K ports each to start and then the ct_sync allows for nodes to
+> ask for more. A port marked as "in use" by other nodes should not be
+> used for simplicity. A node should also gc ports to the general pool.
+> Thoughts?
 
-I believe that Saru handles this problem by assigning "blocks" (a
-block being a fixed-sized range of units, e.g. 512 source ports in
-sequence) of IPs and ports to various nodes in the cluster and each
-node only handles the IP/ports in its assigned blocks. The lookup is
-just a bitop so its fast and this would handle the MASQUERADE case
-mentioned above nicely. The blocks are handed out by a userspace
-daemon as nodes enter and leave the cluster.
+Any controlled division of the tuple address space would solve the 
+NAT problem.
 
-Would this not work?
+I would use IP addresses in this scheme.. it is very nice to have NAT as 
+non-intrusive as possible preserving what can be preserved of the original 
+tuple.
 
--- 
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+There remains some delicate thinking on how to manage the traffic flows in 
+a sane manner to make sure the correct traffic is forwarded by the correct 
+node, considering failovers, recoveries etc.
+
+Regards
+Henrik
