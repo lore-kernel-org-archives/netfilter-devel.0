@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [new filter] simple packet authentication
-Date: Fri, 23 Jan 2004 13:27:40 +0100 (CET)
+Subject: Re: NAT before IPsec with 2.6
+Date: Fri, 23 Jan 2004 13:31:37 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401231326510.12080-100000@filer.marasystems.com>
-References: <0de101c3e147$648fa910$2601010a@bluereef.local>
+Message-ID: <Pine.LNX.4.44.0401231329250.12080-100000@filer.marasystems.com>
+References: <400E7095.9040709@suse.cz>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andrew Hall <temp02@bluereef.com.au>
-In-Reply-To: <0de101c3e147$648fa910$2601010a@bluereef.local>
+To: Michal Ludvig <mludvig@suse.cz>
+In-Reply-To: <400E7095.9040709@suse.cz>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,15 +20,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 23 Jan 2004, Andrew Hall wrote:
+On Wed, 21 Jan 2004, Michal Ludvig wrote:
 
-> This is a neat idea although I'd probably be a bit wary to use the IP ID
-> field when considering it's use with fragments. Perhaps a better solution
-> would be to use part of the options field which apparently DoD originally
-> planned to use for this type of IP partitioning. Also it would be good if it
-> was payload agnostic (could be used for UDP as well as TCP).
+> So I hacked up this simple solution - I understand that it won't be 
+> accepted as-is, because now the POSTROUTING chain is reached twice (once 
+> from ip_forward and once from ip_output). But anyways - is this a 
+> correct approach and should I go this way with some cleanups?
 
-AH comes in mind if you want to support any payload..
+The ip_forward call should be moved to just before where the packets gets
+encapsulated when using IPSec. When using IPSec this is the conceptual 
+POSTROUTING point in the stack for the plain packets.
+
+Other than that I see no direct problems.
 
 Regards
 Henrik
