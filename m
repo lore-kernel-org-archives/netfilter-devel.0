@@ -1,15 +1,13 @@
-From: "Yong Li" <sdssly@sina.com>
-Subject: bridge+netfilter+libipq questions
-Date: Tue, 8 Jul 2003 22:35:14 +0800
+From: "Andriy T. Yanko" <wireless@wireless.org.ua>
+Subject: how to fill ipt_entry for simple rule
+Date: Wed, 9 Jul 2003 17:02:43 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000901c3455e$28825ba0$8725e9db@win2ken>
-References: <20030707222621.16976.2349.Mailman@kashyyyk>
+Message-ID: <20030709170243.56d3b3ee.wireless@wireless.org.ua>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,14 +18,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello All,
+Hi
 
-I have set up a bridge+Iptables on Linux. I use this rule:
+I'd like create a simple rule for INPUT chain with my progam wich use libiptc  like it do iptables progam:
+iptables -A INPUT -s 192.168.1.1 - j ACCEPT
 
-iptables -A FORWARD ... -j QUEUE
+Please tell me how I must fill  ipt_entry for this simple example?
 
-I found the packet IN/OUT device are the same: our bridge port br0. I want
-to recognize the IN and OUT packet in the userspace application using the
-IN/OUT device in libipq, how to set the iptables rule?
+---------------------------------------------------------------
+...
+iptc_handle_t h;
+const struct ipt_entry e;
 
-Thank you!
+h=iptc_init("filter");
+/* now must fill struct e,  but how? */
+
+iptc_append_entry("INPUT",&e,&h);
+iptc_commit(&h);
+...
+---------------------------------------------------------------
+
+
+-- 
+Andriy T. Yanko
+wireless@wireless.org.ua
+
+*   Avoid The Gates of Hell use Linux
+**  Wenn ich sterbe, legt mir eine Birne in mein Grab ...
