@@ -1,50 +1,44 @@
-From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-Subject: Re: Changing the content of tcp timeouts in	ip_conntrack_proto_tcp.c
-Date: Wed, 14 Jan 2004 15:23:09 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <400542BD.6050706@netlab.hut.fi>
-References: <Pine.LNX.4.44.0401141203530.29640-100000@filer.marasystems.com>	 <40053873.6000806@netlab.hut.fi> <1074084643.15865.6.camel@nienna.balabit>
-Reply-To: emmanuel@netlab.hut.fi
+From: kuznet@ms2.inr.ac.ru
+Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's brain broke!)
+Date: Wed, 14 Jan 2004 19:11:33 +0300 (MSK)
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <200401141611.TAA06882@yakov.inr.ac.ru>
+References: <20040111130114.GJ20706@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: kuznet@ms2.inr.ac.ru, rusty@rustcorp.com.au (Rusty Russell),
+	fenio@o2.pl, davem@redhat.com, linux-net@vger.kernel.org,
+	kaber@trash.net,
+	netfilter-devel@lists.netfilter.org (Netfilter Development Mailinglist),
+	boris@boris.ca, email@cs-ware.de, Jan.Schubert@GMX.li
+Return-path: <linux-net-owner@vger.kernel.org>
+To: laforge@netfilter.org (Harald Welte)
+In-Reply-To: <20040111130114.GJ20706@sunbeam.de.gnumonks.org> from "Harald Welte" at Jan 11, 2004 02:01:14 PM
 List-Id: netfilter-devel.vger.kernel.org
 
-KOVACS Krisztian wrote:
+Hello!
 
->  Hi,
+> This means that ip_route_output_key() returns a route with a different
+> outgoing interface than the skb->dst->dev of our to-be-masqueraded
+> packet. =20
 >
->On Wed, 2004-01-14 at 13:39, Emmanuel Guiton wrote:
->  
->
->>>Looks like you have not exported this function from ip_conntrack. To use a 
->>>function from another module than it is defined in the function must first 
->>>be exported from the module where it is defined.
->>>      
->>>
->>Well, I think I did. I defined my function in the 
->>ip_conntrack_proto_tcp.c and I exported its prototype in ip_conntrack.h.
->>Then I call it in my target module which also uses ip_conntrack.h.
->>    
->>
->
->  You have to explicitly export it using the EXPORT_SYMBOL() (or
->EXPORT_SYMBOL_GPL) macro in ip_conntrack_standalone.c. It has a lot of
->other exported symbols, just add another one.
->
->  
->
-Right, it's working now.
-Thanks!
+> Why was it wrong to specify skb->dst->dev->ifindex of the previous
+> 'real' routing decision as key to our current routing decision?
 
-           Emmanuel
+Because in the situtation when ip_route_output_key() with oif=0 returns result
+different of previous ip_route_output_key() you get undefined result.
+
+I expected that you do ip_route_output_key() on _rewritten_ address,
+in this case you have to _drop_ packet if routing contradicts to firewalling
+rules or to send the packet via that interface which routng requires.
+You cannot just blindly send packet to some random interface, when
+firewalling rules are illegal.
+
+> As an example case where I would suspect problems: The packet could be
+> coming from a local socket, and the socket be bound to a specific
+> interface (sk->bound_dev_if).
+
+This is right observation. F.e. you could use skb->sk ? skb->sk->bound_dev_if : 0.
+
+Alexey
