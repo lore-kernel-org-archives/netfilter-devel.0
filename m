@@ -1,14 +1,16 @@
-From: DarKRaveR <DarKRaveR@habitat-b.de>
-Subject: libiptc/rules with MAC match
-Date: Wed, 12 Feb 2003 21:13:03 +0100
+From: Thomas Poehnitzsch <thomas.poehnitzsch@informatik.tu-chemnitz.de>
+Subject: Re: libiptc/rules with MAC match
+Date: Wed, 12 Feb 2003 22:05:22 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <647994215.20030212211303@habitat-b.de>
-Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
+Message-ID: <20030212210522.GG30133@calix.csn.tu-chemnitz.de>
+References: <647994215.20030212211303@habitat-b.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CGDBiGfvSTbxKZlW"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <647994215.20030212211303@habitat-b.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,45 +21,66 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello netfilter-devel ppl,
 
-  I got some questions concerning libiptc and acquiring rules and setting
-  rules with it. I read all documents I could find, as well as part of
-  iptable sources and the header files etc. .
-  Yet there's some things I don't seem to get straight.
+--CGDBiGfvSTbxKZlW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  If I fetch the rules of a chain, I'll get a struct ipt_entry (well,
-  actually a pointer, but this won'T matter for now). There's all
-  kinda src,dst ips,netmasks etc. flags.
+Hi,
 
-  Within this struct there an ipt_ip struct, with the properties:
-  char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
-  unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
+On Wed, Feb 12, 2003 at 09:13:03PM +0100, DarKRaveR wrote:
 
-  What's the difference between those two ?
+>   Within this struct there an ipt_ip struct, with the properties:
+>   char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
+>   unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
+>=20
+>   What's the difference between those two ?
 
-  The other thing is, assuming I have a rule, which matches a MAC
-  Adress, how do I get the MAC Adress (and if such a matching is in
-  the rule). From what I've understood, there's the target_offset
-  counter, which helps me on that.
-  IT seems to describe the size of a memmory block, so basicly, if I
-  sub the size of the ipt_entry structure, I get the size of the
-  matches, or actually, behind the ipt_entry in the memory space there
-  seems to be a flat array, with matches ?
-  The other thing is, if I want to set such a rule, with mac matching,
-  even if I properly construct that memory block, what do I need to
-  take care about, alignment stuff etc. ?
+just have a look at parse_interface() in $IPT_SOURCE/iptables.c or
+ip_packet_match() in $KERNELDIR/net/ipv4/netfilter/ip_tables.c.
 
-  Even more intriguing is the following question to me:
 
-  I can see, there's a function to get the target.
-  Assuming I want to set a rule, how do I set the target properly, and
-  how do I set a MAC matching ?
+To make a long story short:=20
 
-  I couldn't find anything in particular on that and would apprechiate
-  any help on that.
-  
+Iptables allows you to specify a device like this: "-i eth+", which
+means all devices that start with "eth".
 
--- 
-Best regards,
- DarKRaveR                          mailto:DarKRaveR@habitat-b.de
+In this example iniface would contain: "eth+", whereas iniface_mask
+contains something like { 0xFF,0xFF,0xFF,NULL }.
+
+So when iptables comes to compare the actual device with the device
+specified in the rule it compares only the first 3 caracters.
+
+Example:
+
+eth1  actual device of packet
+eth+  device in rule
+1110  mask (see every "1" as a "0xFF" for a character comparator)
+----
+eth   -> match
+
+
+At least this is how I understood the sources.
+
+Ciao!
+    Thomas
+
+--=20
+In theory, there is no difference between theory and practice.
+In practice, there is.
+
+--CGDBiGfvSTbxKZlW
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+SrcRT7fd1jhuy5cRAvqzAJsFsOCWZ5IsTVLuhoRDZ+zLvPHfuQCePx3b
+KT2ZBQZGWKtEXLwyIIH37Sg=
+=Th26
+-----END PGP SIGNATURE-----
+
+--CGDBiGfvSTbxKZlW--
