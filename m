@@ -1,16 +1,19 @@
-From: Chandrakanth Chereddi <kanth@hserus.net>
-Subject: Re: libipq and ip_queue
-Date: Thu, 26 Feb 2004 08:07:31 +0530
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH]: ipv6_skip_exthdr() may refer invalid memory area
+Date: Thu, 26 Feb 2004 12:48:31 +0900 (JST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040226023731.GE826@hserus.net>
-References: <20040225041703.GG19291@hserus.net> <Pine.LNX.4.44.0402252238180.32183-100000@filer.marasystems.com>
+Message-ID: <200402260349.MAA22692@toshiba.co.jp>
+References: <200402200534.OAA04081@toshiba.co.jp>
+	<20040220093027.2c03f48c.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Thu_Feb_26_12:48:31_2004_711)--"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
+        usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0402252238180.32183-100000@filer.marasystems.com>
+To: davem@redhat.com
+In-Reply-To: <20040220093027.2c03f48c.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,48 +24,58 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On 25/02/04 22:51 +0100, Henrik Nordstrom wrote:
-> On Wed, 25 Feb 2004, Chandrakanth Chereddi wrote:
+----Next_Part(Thu_Feb_26_12:48:31_2004_711)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+Hi,
+
+This patch is for linux 2.4.26-pre1 .
+
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+
+
+From: "David S. Miller" <davem@redhat.com>
+Date: Fri, 20 Feb 2004 09:30:27 -0800
+
+> On Fri, 20 Feb 2004 14:33:59 +0900 (JST)
+> Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> wrote:
 > 
-> > Marking the words *almost anything*, I had my doubts and thought that the
-> > devel list would be the best place to get further information.
+> > ipv6_skip_exthdr() refer invalid memory area in the case
+> > that packet includes Fragment Header.
+> > 
+> > please apply this patch.
+> 
+> Applied, thank you Yasuyuki-san.
 
-Thank you for your reply Henrik.
+----Next_Part(Thu_Feb_26_12:48:31_2004_711)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="linux-2.4.26-pre1-skip-exthdr.patch"
 
-> ipqueue provides you access to the IP packet and payload, but does not
-> give you access to the complete MAC header of the packet, only the
-> destination MAC address.
+diff -Nur linux-2.4.26-pre1/net/ipv6/exthdrs.c linux-2.4.26-pre1-fixed/net/ipv6/exthdrs.c
+--- linux-2.4.26-pre1/net/ipv6/exthdrs.c	2003-08-25 20:44:44.000000000 +0900
++++ linux-2.4.26-pre1-fixed/net/ipv6/exthdrs.c	2004-02-26 10:44:21.000000000 +0900
+@@ -798,8 +798,16 @@
+ 		if (skb_copy_bits(skb, start, &hdr, sizeof(hdr)))
+ 			BUG();
+ 		if (nexthdr == NEXTHDR_FRAGMENT) {
+-			struct frag_hdr *fhdr = (struct frag_hdr *) &hdr;
+-			if (ntohs(fhdr->frag_off) & ~0x7)
++			unsigned short frag_off;
++			if (skb_copy_bits(skb,
++					  start+offsetof(struct frag_hdr,
++							 frag_off),
++					  &frag_off,
++					  sizeof(frag_off))) {
++				return -1;
++			}
++
++			if (ntohs(frag_off) & ~0x7)
+ 				break;
+ 			hdrlen = 8;
+ 		} else if (nexthdr == NEXTHDR_AUTH)
 
-I don't think I will need any Layer 2 filtering, so this should not
-cause any problem.
-
-> You can modify the packet payload including IP header, but you can not
-> modify the nfmark, routing or other skb fields outside the packet payload.
-> I think there was a patch floating around to extend ipq with the ability 
-> to set the nfmark if needed some time ago (many months).
-
-nfmark and the contrack entries are not of much concern, cause they are
-specific netfilter headers. But, could you probably tell me what the
-routing entries will stop me from doing - Mirroring?, Masquerading?  I
-mean, how often does netfilter have to modify routing entries and under
-what circumstances. (Yes, I am newbie to the netfilter arch.)
-
-> In addition, packet mangling via ip_queue or in fact any netfilter hook
-> outside the same does not work well together with netfilter conntrack or
-> NAT so be careful if you plan on using any of these features.
-
-I do want to implement NAT, but in the userspace, (can this be done!!!).
-I don't plan to depend on netfilter for anything more than getting a
-packet from kernel space to user space and delivering it back to take
-the appt. action. I am guessing that this will not cause any problem,
-cause all traffic is either firewalled or mangled only through my
-application/
-
-And one last question, can I set the "policy" on a chain to "QUEUE", I
-wasn't successful in doing that on my machine though.
-
-Once again, thanks Henrik and the Netfilter development team.
-
--- 
-CCK./
-"Passion and gradualness"	-- Pavlov.
+----Next_Part(Thu_Feb_26_12:48:31_2004_711)----
