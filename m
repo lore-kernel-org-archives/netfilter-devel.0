@@ -1,13 +1,16 @@
-From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Subject: iptables and external processes
-Date: Tue, 17 Feb 2004 16:41:53 -0500
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: pom-ng TRACE patch: unable to find ladd slot in src
+ ./net/ipv6/Config.in
+Date: Tue, 17 Feb 2004 23:00:22 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1077054112.2020.12.camel@ca.gts.nexusmgmt.com>
+Message-ID: <Pine.LNX.4.44.0402172259200.3844-100000@filer.marasystems.com>
+References: <5.2.1.1.2.20040217180044.00b196a0@wheresmymailserver.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Robby <inet6@mail.be>
+In-Reply-To: <5.2.1.1.2.20040217180044.00b196a0@wheresmymailserver.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,27 +21,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-My apologies for troubling the develop list with such a question but I
-received no reply from the user list.
+On Tue, 17 Feb 2004, Robby wrote:
 
-It would solve a very difficult problem for us if we could jump a packet
-to a chain based upon the decision of a process external to iptables. 
-In other words, a packet enters the FORWARD or INPUT chains, encounters
-a rule that queries a running process.  The process extracts some
-information from the IP header and returns true or false.  iptables then
-either matches the packet if true and passes the packet to the next rule
-if false.  This sounds like the exact sort of thing a POM extension
-would do.
+> Testing TRACE... not applied
+> The TRACE patch:
+>     Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>     Status: Testing.
+> [...]
+> -----------------------------------------------------------------
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] t
+> unable to find ladd slot in src ./net/ipv6/Config.in
+> -----------------------------------------------------------------
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?]
 
-Nothing caught my eye in either POM or the iptables documentation.  Is
-this an existing functionality and I just don't see it? If not, is it
-possible to write an extension that would do such a thing?  We do not
-have the in-house expertise to do such a thing (obviously!) so we'll
-probably need to find someone to do it for us but would like to know if
-it is even possible before we pursue the matter. Thanks - John
--- 
-John A. Sullivan III
-Chief Technology Officer
-Nexus Management
-+1 207-985-7880
-john.sullivan@nexusmgmt.com
+
+Kernel version?
+
+Mind to try to make a patch to correct the problem?
+
+(the first line of the ladd file is the line after which the new option 
+should be added)
+
+Regards
+Henrik
