@@ -1,16 +1,15 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.6] NETFILTER: tcp window tracking
-Date: Sat, 24 Jul 2004 23:22:39 -0700
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: ipsec patches test: minor compilation and policy match issues
+Date: Sun, 25 Jul 2004 11:40:56 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040724232239.29bd3ee3.davem@redhat.com>
-References: <20040724153427.GV2848@obroa-skai.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0407251135260.25333-100000@filer.marasystems.com>
+References: <41005697.9060807@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Stephen Frost <sfrost@snowman.net>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040724153427.GV2848@obroa-skai.de.gnumonks.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41005697.9060807@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,48 +20,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 24 Jul 2004 11:34:27 -0400
-Harald Welte <laforge@netfilter.org> wrote:
+On Fri, 23 Jul 2004, Patrick McHardy wrote:
 
-> This is the tcp window tracking patch, incremental to all previous
-> changes.  It is now by default enabled (i.e. in 'conservative' mode).
-> If you think it's better to leave it disabled ('liberal' mode), you can
-> change ip_conntrack_tcp_be_liberal to a different default value.
+> > But seriously speaking I think conntrack may need to be split in two for
+> > this to work properly: prerouting to associate packet with connection for
+> 
+> I've thought about this, but I can't imagine how it would work, you
+> have to deal with all kinds of races ..
 
-All 12 incremental patches applied, plus this window
-tracking code.
+conntrack should be manageable in this I think, but NAT looks like a
+nightmare..  In any event it is a major change of connection tracking and 
+most likely outside what is realistic to do during a "stable" kernel 
+cycle.
 
-Three comments:
+For now I think it is better to make use of the raw table and accept the 
+duplicate policy check on ipsec traffic, if of too heavy add a skb flag 
+indicating the policy check is already done.
 
-1) Patch 7, the seq_file patch was slightly busted,
-   look at this hunk:
-
- #ifdef CONFIG_IP_NF_CT_ACCT
- static unsigned int
--print_counters(char *buffer, struct ip_conntrack_counter *counter)
-+seq_print_counters(struct seq_file *s, struct ip_conntrack_counter *counter)
- {
--	return sprintf(buffer, "packets=%llu bytes=%llu ", 
--			counter->packets, counter->bytes);
-+	return seq_printf(s, "packets=%llu bytes=%llu ",
-+			  counter->packets, counter->bytes);
- }
- #else
- #define seq_print_counters(x, y)	0
- #endif
- 
-   Hehe, last #define line should be something like:
-
--#define print_counters(x, y)	0
-+#define seq_print_counters(x, y)	0
-
-   I fixed that up by hand.
-
-2) ipt_sctp match had double slashes in the path names in
-   the diff, that confuses diffstat and thus my automated
-   scripts.
-
-3) Yes, I think the new window tracking code mode should
-   be on by default.
-
-Thanks a lot Harald.
+Regards
+Henrik
