@@ -1,34 +1,38 @@
-From: Tomas Szepe <szepe@pinerecords.com>
-Subject: Re: [TRIVIAL] place IPv4 netfilter submenu where it belongs
-Date: Mon, 28 Jul 2003 07:50:15 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20030728055015.GA32673@louise.pinerecords.com>
-References: <20030726200646.GF16160@louise.pinerecords.com> <20030727160942.647707d8.davem@redhat.com>
+From: Tim Burress <tim@variosecure.net>
+Subject: Handling Port-Unreachable Response to UDP
+Date: Mon, 28 Jul 2003 22:52:46 +0900
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3F252AAE.7000109@variosecure.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: "David S. Miller" <davem@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <20030727160942.647707d8.davem@redhat.com>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> [davem@redhat.com]
-> 
-> On Sat, 26 Jul 2003 22:06:46 +0200
-> Tomas Szepe <szepe@pinerecords.com> wrote:
-> 
-> > $subj
-> > 
-> > Patch against -bk3.
-> 
-> This doesn't look right at all.
-> 
-> Netfilter is for many protocols other than ipv4 (ipv6, bridging,
-> decnet, etc.) so putting it under ipv4 makes not much sense
-> to me.
+Hello!
 
-You're right, I'll think about this some more.
+We've been looking at a problem in which a client sends a UDP packet to 
+a server on an unused port. This generates an ICMP port-unreachable 
+packet (as usual), but we find that this same ICMP packet can then be 
+replayed back to the client over and over. Apparently it gets through 
+netfilter because our standard rules allow RELATED traffic.
 
--- 
-Tomas Szepe <szepe@pinerecords.com>
+We're wondering if an appropriate response to this situation would be to 
+destroy the conntrack entry for the UDP connection after receiving the 
+first port-unreachable? It seems like such a change would improve the 
+strength of netfilter-based firewalls, while adding only a little bit of 
+overhead when/if the client retries sending to the same UDP port several 
+times. What do people think of this idea? Is there any reason not to do it?
+
+Thanks!
+
+Tim
