@@ -1,17 +1,20 @@
-From: "Jesse Peng" <jesse@deansoft.com.tw>
-Subject: Re: Re[2]: bidirectional CONNMARK?
-Date: Fri, 11 Mar 2005 13:08:31 +0800
-Message-ID: <001c01c525f8$5e807080$0f01a8c0@jessebidwxa7q3>
-References: <20050309124806.A55C.LARK@linux.net.cn><Pine.LNX.4.61.0503091019020.6780@filer.marasystems.com>
-	<20050309174657.A56E.LARK@linux.net.cn>
-	<001801c5252e$a6c09750$0f01a8c0@jessebidwxa7q3>
-	<Pine.LNX.4.61.0503101056360.26065@filer.marasystems.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Patch for CONFIG_IP_NF_NAT_LOCAL in 2.6.11 ?
+Date: Fri, 11 Mar 2005 06:14:17 +0100
+Message-ID: <42312929.7000102@trash.net>
+References: <019201c52592$e181a4b0$0a00a8c0@alexandre>	
+	<42307E2A.5060806@trash.net>
+	<019f01c52595$dd3a56b0$0a00a8c0@alexandre>	
+	<42308509.4040902@trash.net>
+	<01cd01c5259a$89ab8dc0$0a00a8c0@alexandre>	
+	<42308B4E.3030303@trash.net>
+	<1110483093.1100.9.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: "Henrik Nordstrom" <hno@marasystems.com>
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1110483093.1100.9.camel@tux.rsn.bth.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,39 +26,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Martin Josefsson wrote:
+> On Thu, 2005-03-10 at 19:00 +0100, Patrick McHardy wrote:
+> 
+> 
+>>>but it doesn't work yet...
+>>>
+>>>what I am doing wrong ?
+>>
+>>Check if the rules are used and what happens on the network ..
+> 
+> 
+> I belive the problem is in ip_route_output_slow() line 2070 in
+> ipv4/ip_output.c in 2.6.11.2
+> 
+> make_route:
+>         if (LOOPBACK(fl.fl4_src) && !(dev_out->flags&IFF_LOOPBACK))
+>                 goto e_inval;
+> 
+> It simply does not route packets with loopback addresses out via non
+> loopback interfaces, and SNAT occurs at POSTROUTING...
+> Not sure what a good solution could be, we certainly don't want to the
+> possibility to send out packets with 127.0.0.1 as source (like some
+> windows virus got the windows stack to do by synflooding a domain that
+> later got changed into 127.0.0.1)
 
------ Original Message -----
-From: "Henrik Nordstrom" <hno@marasystems.com>
-To: "Jesse Peng" <jesse@deansoft.com.tw>
-Cc: "Wang Jian" <lark@linux.net.cn>; <netfilter-devel@lists.netfilter.org>
-Sent: Thursday, March 10, 2005 5:59 PM
-Subject: Re: Re[2]: bidirectional CONNMARK?
+Maybe we can use 0 as source if LOOPBACK(src). OTOH, I don't think we
+want to route packet with loopback source, so we may instead declare
+this as a bad testcase :)
 
-
-> On Thu, 10 Mar 2005, Jesse Peng wrote:
->
-> >>> Then you need to structure the use of CONNMARK differently, and
-> > depending
-> >>> on the direction set different marks.
-> >
-> > This doesn't work for a single session.Say,if you want packets in
-original
-> > dir be classified as 0x01 mark,
-> > but packets in reply dir be classifid as 0x02 mark.But as CTDIRMARK
-> > applied,things can be easily done.
->
-> What I meant here is to not use CONNMARK to direcly specify the nfmark of
-> the packets, but the class of the session and from this derive what the
-> mark should be.
->
-> Or another method, as Wang Jian already mentioned is to mask the CONNMARK
-> when restoring it into the packet, allowing you to for example specify the
-> nfmark 0x01 in one direction and 0x0200 in the other. There is 32 bits to
-> play with.
->
-As things getting complicated,you don't want your whole design plan fooled
-by the mask.
-But I'd admit I never come out any idea concerning the mask,you win...hmm..
-
-> Regards
-> Henrik
+Regards
+Patrick
