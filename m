@@ -1,16 +1,18 @@
 From: Chris Wilson <chris@netservers.co.uk>
 Subject: Re: IPtables performance (fwd)
-Date: Sat, 3 May 2003 11:34:34 +0100 (BST)
+Date: Sat, 3 May 2003 11:32:24 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0305031132330.8273-100000@localhost>
-References: <20030502201425.GP26924@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0305031129230.8273-100000@localhost>
+References: <Pine.LNX.4.33.0305021628100.8241-100000@fantomas.insite.com.br>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Robert Olsson <robban@robtex.com>,
-   John McEleney <john@netservers.co.uk>, Ben McKeegan <ben@netservers.co.uk>
+Cc: Harald Welte <laforge@netfilter.org>,
+   "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>,
+   Robert Olsson <robban@robtex.com>, John McEleney <john@netservers.co.uk>,
+   Ben McKeegan <ben@netservers.co.uk>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030502201425.GP26924@sunbeam.de.gnumonks.org>
+To: Andre Uratsuka Manoel <andre@insite.com.br>
+In-Reply-To: <Pine.LNX.4.33.0305021628100.8241-100000@fantomas.insite.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,18 +23,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+Hi Andre,
 
-> > Therefore, if the patched code does actually succeed in visiting each rule 
-> > once, and detecting loops, and setting the appropriate bit in comefrom, 
-> > then it's functionally equivalent to the original code, right?
-> 
-> yes. Are you claiming that it does so?
+> 	I also may be making a fool of myself (not a first), but my take
+> is this:
 
-I think so, but I'm still working on it so no promises yet =)
+It looks like you have found some very efficient algorithms (not to 
+mention a nice visual metaphor). Would you mind if I try to reimplement 
+mark_source_chains using these algorithms?
 
-How about I rewrite the function using Andre's suggested algorithms, so
-that we know it's both correct and optimally efficient?
+I'm also wondering if the two steps, loop-detection and colouring, should 
+be combined as they currently are for brevity and performance, or 
+separated for simplicity and intuitive correctness?
 
 Cheers, Chris.
 -- 
