@@ -1,24 +1,47 @@
-From: "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>
-Subject: FW: injecting new packets into the netfilter
-Date: Wed, 30 Jun 2004 10:16:59 +0530
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BNELKLECKCDLOPNOBHFHOEBNJEAA.mayank_kumar@intersolutions.stpn.soft.net>
+From: aksingh@hss.hns.com
+Subject: Re: FW: injecting new packets into the netfilter
+Date: Wed, 30 Jun 2004 10:35:40 +0530
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <OFCF2776AE.6C81672D-ON65256EC3.001BBD08@hss.hns.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Cc: <netfilter@lists.netfilter.org>, <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <aksingh@hss.hns.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
+
+
+
+
+
+hi,
+
+  pls see inline
+
+
+
+
+"Mayank Kumar"
+<mayank_kumar@intersolutions.stpn.soft.net>@lists.netfilter.org on
+06/30/2004 10:16:59 AM
+
+Sent by:    netfilter-admin@lists.netfilter.org
+
+
+To:    Amit Kumar Singh/HSS@HSS
+cc:    <netfilter@lists.netfilter.org>,
+       <netfilter-devel@lists.netfilter.org>
+
+Subject:    FW: injecting new packets into the netfilter
+
 
 Hi Amit
 i think u missed out my mail so i resending it to you
@@ -42,6 +65,12 @@ that
    relevant hooks in the netfilter based on the dest ip address
    i set. Is this true?? In this case i am constructing the packet
    completely on my own.
+   >>> yes that is true, see netfilter hooks if you have read about them,
+   catch ANY packet that passes thru the machines IP, be it raw packets
+   that you inject using libnet(they are caught first by IP_LOCAL_OUT ..
+   then they might hit other hooks), oor if they are coming from ethernet
+   or any sort of mac layer(in this case caught first by PRE_ROUTING hook
+   and then by others ) ...
 
 Now what i want to do is steal(NF_STOLEN) packets at specific hooks
 (generally pre routing)
