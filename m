@@ -1,18 +1,12 @@
-From: Fabrice MARIE <fabrice@netfilter.org>
-Subject: Re: [PATCH] Polish FAQ update.
-Date: Sat, 28 Jun 2003 07:43:31 +0800
+From: gideon olam <gideon@gideonolam.com>
+Subject: RBAC Integration
+Date: 27 Jun 2003 11:25:56 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200306280743.31074.fabrice@netfilter.org>
-References: <Pine.LNX.4.51.0306261600070.6403@dns.toxicfilms.tv> <200306280725.43347.fabrice@netfilter.org> <Pine.LNX.4.51.0306271728340.5336@dns.toxicfilms.tv>
-Reply-To: fabrice@netfilter.org
+Message-ID: <1056734756.7156.2.camel@skinny.gideonolam.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-uhfnx1CFbdjrygP2gILv"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.51.0306271728340.5336@dns.toxicfilms.tv>
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,24 +18,29 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hello,
+--=-uhfnx1CFbdjrygP2gILv
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 27 June 2003 23:29, Maciej Soltysiak wrote:
-> > Could you send the patch again, this time mime encoded ?
-> Sure.
-> > Dzi=EAkuj=EA.
-> Prosz=EA.
-> > Fabrice
-> Maciej
+Are there any plans to provide integration between iptables and the
+various rule based access control architectures available on the Linux
+platform such as RSBAC, grsecurity or selinux?
 
-This time the patch applied without a glitch. Please check that all the
-accents are still fine :)
+Thanks,
+Joe Saland, CISSP
+gideon#gideonolam.com
 
-Have a nice day,
 
-Fabrice.
---
-Fabrice MARIE
+--=-uhfnx1CFbdjrygP2gILv
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-"Silly hacker, root is for administrators"
-       -Unknown
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQA+/H4jnOx3U+/N6ccRAjvyAKCULBe4xHFP5V3cYGae1xcYp4szlwCffpBM
+nxlBOwwE1oG2RUnlBEYCoog=
+=f9Lt
+-----END PGP SIGNATURE-----
+
+--=-uhfnx1CFbdjrygP2gILv--
