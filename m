@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] netfilter ip_conntrack_irc parser fix
-Date: Fri, 25 Jul 2003 22:50:55 +0200
+Subject: [PATCH 2.4] netfilter ipt_helper locking fix
+Date: Fri, 25 Jul 2003 22:50:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725205055.GJ3244@sunbeam.de.gnumonks.org>
+Message-ID: <20030725205058.GK3244@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7HcxP2Wm84z5MHiD"
+	protocol="application/pgp-signature"; boundary="IQcO73Bte+RllADJ"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
@@ -22,79 +22,75 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---7HcxP2Wm84z5MHiD
+--IQcO73Bte+RllADJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-This is the 3rd of a set of bugfixes (all tested against 2.4.22-pre7).
+This is the 4th of a set of bugfixes (all tested against 2.4.22-pre7).
 You might need to apply them incrementally (didn't test it in a
 different order).  You will receive 2.6 merges of those patches soon.
 
+Author: Patrick McHardy <kaber@trash.net>
 
-Author: Harald Welte <laforge@netfilter.org>
-
-This patch fixes a bug in the IRC DCC command parser of ip_conntrack_irc
+Fix locking of ipt_helper.
 
 Please apply,
 
---- linux/net/ipv4/netfilter/ip_conntrack_irc.c.orig	Wed May  7 12:13:55 20=
-03
-+++ linux/net/ipv4/netfilter/ip_conntrack_irc.c	Wed May  7 13:16:00 2003
-@@ -59,7 +59,7 @@
- 	{"TSEND ", 6},
- 	{"SCHAT ", 6}
- };
--#define MAXMATCHLEN	6
-+#define MINMATCHLEN	5
-=20
- DECLARE_LOCK(ip_irc_lock);
- struct module *ip_conntrack_irc =3D THIS_MODULE;
-@@ -92,9 +92,11 @@
- 	*ip =3D simple_strtoul(data, &data, 10);
-=20
- 	/* skip blanks between ip and port */
--	while (*data =3D=3D ' ')
-+	while (*data =3D=3D ' ') {
-+		if (data >=3D data_end)=20
-+			return -1;
- 		data++;
--
-+	}
-=20
- 	*port =3D simple_strtoul(data, &data, 10);
- 	*ad_end_p =3D data;
-@@ -153,13 +155,17 @@
+diff -Nru a/net/ipv4/netfilter/ipt_helper.c b/net/ipv4/netfilter/ipt_helper=
+=2Ec
+--- a/net/ipv4/netfilter/ipt_helper.c	Sat Jul 12 04:57:37 2003
++++ b/net/ipv4/netfilter/ipt_helper.c	Sat Jul 12 04:57:37 2003
+@@ -10,6 +10,7 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/netfilter_ipv4/ip_conntrack.h>
++#include <linux/netfilter_ipv4/ip_conntrack_core.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_helper.h>
+@@ -36,6 +37,7 @@
+ 	struct ip_conntrack_expect *exp;
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
++	int ret =3D 0;
+ =09
+ 	ct =3D ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
+ 	if (!ct) {
+@@ -49,23 +51,27 @@
  	}
 =20
- 	data_limit =3D (char *) data + datalen;
--	while (data < (data_limit - (22 + MAXMATCHLEN))) {
-+
-+	/* strlen("\1DCC SEND t AAAAAAAA P\1\n")=3D24
-+	 *         5+MINMATCHLEN+strlen("t AAAAAAAA P\1\n")=3D14 */
-+	while (data < (data_limit - (19 + MINMATCHLEN))) {
- 		if (memcmp(data, "\1DCC ", 5)) {
- 			data++;
- 			continue;
- 		}
+ 	exp =3D ct->master;
++	READ_LOCK(&ip_conntrack_lock);
+ 	if (!exp->expectant) {
+ 		DEBUGP("ipt_helper: expectation %p without expectant !?!\n",=20
+ 			exp);
+-		return 0;
++		goto out_unlock;
+ 	}
 =20
- 		data +=3D 5;
-+		/* we have at least (19+MINMATCHLEN)-5 bytes valid data left */
+ 	if (!exp->expectant->helper) {
+ 		DEBUGP("ipt_helper: master ct %p has no helper\n",=20
+ 			exp->expectant);
+-		return 0;
++		goto out_unlock;
+ 	}
 =20
- 		DEBUGP("DCC found in master %u.%u.%u.%u:%u %u.%u.%u.%u:%u...\n",
- 			NIPQUAD(iph->saddr), ntohs(tcph->source),
-@@ -174,6 +180,9 @@
+ 	DEBUGP("master's name =3D %s , info->name =3D %s\n",=20
+ 		exp->expectant->helper->name, info->name);
 =20
- 			DEBUGP("DCC %s detected\n", dccprotos[i].match);
- 			data +=3D dccprotos[i].matchlen;
-+			/* we have at least
-+			 * (19+MINMATCHLEN)-5-dccprotos[i].matchlen bytes valid
-+			 * data left (=3D=3D 14/13 bytes) */
- 			if (parse_dcc((char *) data, data_limit, &dcc_ip,
- 				       &dcc_port, &addr_beg_p, &addr_end_p)) {
- 				/* unable to parse */
+-	return !strncmp(exp->expectant->helper->name, info->name,=20
+-			strlen(exp->expectant->helper->name)) ^ info->invert;
++	ret =3D !strncmp(exp->expectant->helper->name, info->name,=20
++	               strlen(exp->expectant->helper->name)) ^ info->invert;
++out_unlock:
++	READ_UNLOCK(&ip_conntrack_lock);
++	return ret;
+ }
+=20
+ static int check(const char *tablename,
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -105,16 +101,16 @@ Please apply,
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---7HcxP2Wm84z5MHiD
+--IQcO73Bte+RllADJ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/IZgvXaXGVTD0i/8RAgzaAKCEXZlW6gVqEmAEgHrRCUycw6bFrACaAouc
-uEbnYPIcZ1DhUz01X9AxmdQ=
-=7ImP
+iD8DBQE/IZgyXaXGVTD0i/8RAsCTAJ43d9Cpk6y/Z21KkrTg3HlmonSHQwCgsyNh
+/FBTgvynP4UQ7mNw4UjooK8=
+=aGnj
 -----END PGP SIGNATURE-----
 
---7HcxP2Wm84z5MHiD--
+--IQcO73Bte+RllADJ--
