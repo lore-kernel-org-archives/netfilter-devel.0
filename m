@@ -1,46 +1,72 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC, PATCH 4/5]: netfilter+ipsec - policy lookup
-Date: Sat, 20 Mar 2004 15:01:55 +0100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <405C4ED3.4030004@trash.net>
-References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CF17.8090907@trash.net> <20040319115130.GE29066@gondor.apana.org.au> <405B2132.6060403@trash.net> <20040319210525.GA479@gondor.apana.org.au>
+Subject: Re: [RFC, PATCH 5/5]: netfilter+ipsec - policy checks
+Date: Sat, 20 Mar 2004 16:58:39 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <405C6A2F.80206@trash.net>
+References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CF27.4030803@trash.net> <20040318221904.45011167.davem@redhat.com> <20040319063143.GC29442@samad.com.au> <20040320055811.GG29442@samad.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@redhat.com>, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <20040319210525.GA479@gondor.apana.org.au>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/mixed;
+ boundary="------------030104050609060706060509"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Alexander Samad <alex@samad.com.au>
+In-Reply-To: <20040320055811.GG29442@samad.com.au>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Herbert Xu wrote:
-> 
-> Actually it was me who was confused.  ip_route_me_harder can be called
-> on both incoming/outgoing packets.  That's what the if clause is trying
-> to determine.  You should only call xfrm_lookup on the outgoing path.
+This is a multi-part message in MIME format.
+--------------030104050609060706060509
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-No, ip_route_me_harder is currently (without the patches) only called
-for outgoing packets. The if-clause is there because ip_route_output
-doesn't handle packets with non-local source, and we don't want to set
-the source to 0 (as was done before) because it prevents policy routing
-from working properly. That's why we need the xfrm_lookup for both
-cases.
+Alexander Samad wrote:
+> Done some more testing and there seems to be a problem with the NAT
+> table 
+> 
+
+Thanks for the report, does this patch fix it ?
 
 Regards
 Patrick
 
-> 
-> So this should be moved back to the if clause above:
-> 
-> 		fl.proto = iph->protocol;
-> 		lookup = __ip_route_output_key;
-> #ifdef CONFIG_XFRM
-> 		if (!(IPCB(*pskb)->flags & IPSKB_XFRM_TRANSFORMED)) {
-> 			lookup = ip_route_output_key;
-> 			do_decode
-> 		}
-> #endif
-> 		if (lookup(&rt, &fl) != 0)
-> 			return -1;
+--------------030104050609060706060509
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+===== net/ipv4/raw.c 1.44 vs edited =====
+--- 1.44/net/ipv4/raw.c	Thu Mar 18 16:44:12 2004
++++ edited/net/ipv4/raw.c	Sat Mar 20 16:57:24 2004
+@@ -257,6 +257,12 @@
+ 	return 0;
+ }
+ 
++static inline int ip_dst_output(struct sk_buff *skb)
++{
++	return NF_HOOK_COND(PF_INET, NF_IP_POST_ROUTING, skb, NULL,
++	                    skb->dst->dev, dst_output, skb->dst->xfrm != NULL);
++}
++
+ static int raw_send_hdrinc(struct sock *sk, void *from, int length,
+ 			struct rtable *rt, 
+ 			unsigned int flags)
+@@ -308,7 +314,7 @@
+ 	}
+ 
+ 	err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
+-		      dst_output);
++		      ip_dst_output);
+ 	if (err > 0)
+ 		err = inet->recverr ? net_xmit_errno(err) : 0;
+ 	if (err)
+
+--------------030104050609060706060509--
