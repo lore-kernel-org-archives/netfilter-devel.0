@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: ipt_MASQUERADE.c
-Date: Tue, 21 Oct 2003 00:54:54 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: How to take over TCP connection from userspace process?
+Date: Tue, 21 Oct 2003 15:47:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031020225454.GF20288@sunbeam.de.gnumonks.org>
-References: <Law12-F115umXCr68LT0001608b@hotmail.com>
+Message-ID: <20031021134729.GB12049@sunbeam.de.gnumonks.org>
+References: <006701c397a5$9c13fee0$d32f110a@yrhd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E7i4zwmWs5DOuDSH"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo =?iso-8859-1?Q?Andr=E9s?= Martikian <pablomartikian@hotmail.com>
+To: yangrunhua <yangrunhua@njupt.edu.cn>
 Content-Disposition: inline
-In-Reply-To: <Law12-F115umXCr68LT0001608b@hotmail.com>
+In-Reply-To: <006701c397a5$9c13fee0$d32f110a@yrhd>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,47 +23,42 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---E7i4zwmWs5DOuDSH
-Content-Type: text/plain; charset=iso-8859-1
+--/9DWx/yDrRhgMJTb
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 20, 2003 at 09:44:50PM +0200, Pablo Andr=E9s Martikian wrote:
+On Tue, Oct 21, 2003 at 03:33:22PM +0800, yangrunhua wrote:
 > Hi all,
->=20
-> Sorry if this subject does not concern you. Unfortunately in the=20
-> ipt_MASQUERADE.c file I couldn't find any email address.
+> 	With the help of netfilter/iptables, is there any way to high-speed forw=
+arding between 2 already-connected TCP connections in the kernel?
 
-the MAINTAINERS file contains an entry, also see
-http://www.netfilter.org/contact.html
+I don't see how this could be related to netfilter/iptables at all.
+The normal sendfile() systemcall may be helpful to you.
 
-> The MASQUERADE feature is not working since several kernel versions. I gu=
-es=20
-> for over 4 months or something.
+> 	Thanks,
+> 				Runhua Yang
 
-please read the FAQ.  you most likely missed to recompile the iptables
-userspace program.
-
-> Pablo.
 --=20
-- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D
-Programming is like sex: One mistake and you have to support it your lifeti=
-me
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---E7i4zwmWs5DOuDSH
+--/9DWx/yDrRhgMJTb
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/lGe+XaXGVTD0i/8RAqbtAJ9V+VCeAJ/++bcfVKYdAz7W4n9ifACgkhnJ
-uHCkyhiVXQXQkiOQlNbtjm8=
-=udNF
+iD8DBQE/lTjxXaXGVTD0i/8RAgZhAJ0f/5pHzcDKuS79aQM6iHecWrA/DACff3Fr
+8E9mWW2fM1wDzCdIrd1MlvY=
+=VFP1
 -----END PGP SIGNATURE-----
 
---E7i4zwmWs5DOuDSH--
+--/9DWx/yDrRhgMJTb--
