@@ -1,18 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Unable to build iptables on linux kernel 2.6.10 + 2.6.11-rc2
- +	2.6.11-rc2-bk5
-Date: Tue, 01 Feb 2005 14:17:56 +0100
-Message-ID: <41FF8184.2070809@trash.net>
-References: <200501271553.j0RFr747004108@StraightRunning.com>
-	<41FD5F3C.1060009@eurodev.net>
-	<20050201005133.GJ31837@postel.suug.ch>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: pptp-conntrack-nat will not apply to 2.4.29 - Workaround
+Date: Tue, 1 Feb 2005 14:20:19 +0100
+Message-ID: <20050201132019.GH6878@sunbeam.de.gnumonks.org>
+References: <41F20482.4090300@hivemynd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Pablo Neira <pablo@eurodev.net>,
-	Colin Harrison <colin.harrison@virgin.net>
-To: Thomas Graf <tgraf@suug.ch>
-In-Reply-To: <20050201005133.GJ31837@postel.suug.ch>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="IPaxb0UBFekg84Ij"
+Cc: netfilter-devel@lists.netfilter.org
+To: Stephen Jones <hivemynd@hivemynd.net>
+Content-Disposition: inline
+In-Reply-To: <41F20482.4090300@hivemynd.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +21,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Graf wrote:
 
->> 		/* The protocol. */
->>-		u8 protonum;
->>+		u_int8_t protonum;
->> 
->> 		/* The direction (for tuplehash) */
->>-		u8 dir;
->>+		u_int8_t dir;
->>
->
->I think __u8 would be a better choice.
->
-Usually yes, but all netfilter headers use u_intX_t.
+--IPaxb0UBFekg84Ij
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, Jan 22, 2005 at 01:45:06AM -0600, Stephen Jones wrote:
+> I don't know enough about the structure of the Config.in files to=20
+> suggest an appropriate, permanent solution :(
+
+fixed in svn now.
+
+> PS: The nat-reservations patch is incompatible with the=20
+> pptp-conntrack-nat patch, perhaps a check in the pom-ng could prevent=20
+> people from accidentally "shooting themselves in the foot" with these=20
+> two? :)
+
+committed to svn (Reviion 3628)
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--IPaxb0UBFekg84Ij
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFB/4ITXaXGVTD0i/8RAjzEAJoCNQde6+gRceksonVDb1GWdVbvxQCfcyLu
+K4weXcmRgNtpABEjjHHnLkM=
+=qmUm
+-----END PGP SIGNATURE-----
+
+--IPaxb0UBFekg84Ij--
