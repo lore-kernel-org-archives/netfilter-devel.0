@@ -1,15 +1,15 @@
-From: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson)
-Subject: Re: cttest-0.1
-Date: Fri, 5 Jul 2002 18:10:28 +0200
+From: James Morris <jmorris@intercode.com.au>
+Subject: Re: FYI: QUEUE & ipqmpd bugs
+Date: Sat, 6 Jul 2002 02:12:01 +1000 (EST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020705161028.GB3729@aaricia.hemmet.chalmers.se>
-References: <15644.41633.528107.723418@isis.cs3-inc.com> <20020628203624.A4136@oknodo.bof.de> <15644.45834.373409.220647@isis.cs3-inc.com> <20020702144048.GM18333@naboo.rchrd.phub.net.cable.rogers.com> <20020702183242.E7684@oknodo.bof.de> <20020702183547.F7684@oknodo.bof.de> <15649.59247.55523.824241@isis.cs3-inc.com> <20020702203117.G7684@oknodo.bof.de> <20020702235206.H7684@oknodo.bof.de> <20020703041502.GH20570@aaricia.hemmet.chalmers.se>
+Message-ID: <Mutt.LNX.4.44.0207060211190.19025-100000@blackbird.intercode.com.au>
+References: <003301c2242d$7fca2e40$0689cb8a@etbx180>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.samba.org, <netfilter@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>, netfilter-devel@lists.samba.org
-Content-Disposition: inline
-In-Reply-To: <20020703041502.GH20570@aaricia.hemmet.chalmers.se>
+To: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
+In-Reply-To: <003301c2242d$7fca2e40$0689cb8a@etbx180>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,20 +20,25 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-2002-07-03 06:15:02+0200, Joakim Axelsson <gozem@aaricia.hemmet.chalmers.se> ->
+On Fri, 5 Jul 2002, Jean-Michel Hemstedt wrote:
+
+> FYI,
 > 
-> I collected this data 5am during absolut low time. I'll try again later
-> at primetime :-)
+> I upgraded to iptables-1.2.6a (user & kernel-2.4.18 patches)
+> and got the following (maybe known) problems:
+> 
+> - QUEUE target is NOK with kernel compiled with CONFIG_IP_NF_QUEUE=m
+>   => the packets are queued, but ipq_create_handle() returns 
+>      "can't create netlink socket"
+>      "ERROR: Unable to create netlink socket: Connection refused"
+>     (problem with exported symbols?)
+>   =>quick fix: compile kernel with CONFIG_IP_NF_QUEUE=y
 > 
 
-Here is a new stat with about 85K entries:
-http://aaricia.hemmet.chalmers.se/~gozem/cttest-2002-07-05_1739/
-
-Look at the 131072 original hash (which we are running until i dare reboot the
-router :-)
-
-"maximum bucket list length: 9471"
+You need to explicitly load the ip_queue module.
 
 
+- James
 -- 
-/Joakim Axelsson A.K.A Gozem@EFnet & OPN
+James Morris
+<jmorris@intercode.com.au>
