@@ -1,15 +1,12 @@
-From: Henrik Nordstrom <henrik@marasystems.com>
-Subject: Re: Buffer size
-Date: Wed, 21 Jan 2004 03:25:49 +0100 (CET)
+From: Siddhartha Gavirneni <siddh_g2@yahoo.com>
+Subject: SIP ALG and netfilter
+Date: Thu, 22 Jan 2004 13:22:58 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401210325200.30308-100000@filer.marasystems.com>
-References: <400D8871.5040304@plobe.com>
+Message-ID: <20040122212258.17112.qmail@web20805.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: XiChimos <xichimos@plobe.com>
-In-Reply-To: <400D8871.5040304@plobe.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,31 +17,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-What buffer are you referring to?
+Hi,
+  I am new to this list, and I am here because I would
+like to develop a SIP ALG for netfilter. And for this
+purpose, I need help from you guys.
 
-Regars
-Henrik
+Firstly, I tried searching for the SNMP ALG's source
+code, but could not find it. I would like to use that
+to understand the ALG approach for netfilter.
 
-On Tue, 20 Jan 2004, XiChimos wrote:
+Second, is there anyone else working on this? If yes,
+who is it, and can I contact those developers?
 
-> The application adds an IP option to every TCP packet that it sees.
-> 
-> Henrik Nordstrom wrote:
-> 
-> >On Tue, 20 Jan 2004, XiChimos wrote:
-> >
-> >  
-> >
-> >>I was looking at the code for a userspace application and noticed that 
-> >>the buffer size was 2048.
-> >>    
-> >>
-> >
-> >What kind of userspace application?
-> >
-> >Regards
-> >Henrik
-> >  
-> >
-> 
-> 
+Thank you,
+Siddharth.
+
+__________________________________
+Do you Yahoo!?
+Yahoo! SiteBuilder - Free web site building tool. Try it!
+http://webhosting.yahoo.com/ps/sb/
