@@ -1,13 +1,17 @@
-From: Craig Davison <cd@securityfocus.com>
-Subject: iptc_delete_entry or iptc_delete_num_entry?
-Date: Thu, 30 Jan 2003 19:30:09 -0700
+From: =?iso-8859-1?Q?Herv=E9?= Eychenne <rv@wallfire.org>
+Subject: Re: Static NAT Ranges?
+Date: Fri, 31 Jan 2003 17:04:02 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131023009.GB15989@securityfocus.com>
+Message-ID: <20030131160402.GG956@comet.rv-int>
+References: <200301250439.XAA31445@delanet.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Larry Stephan <jlarry@delanet.com>
 Content-Disposition: inline
+In-Reply-To: <200301250439.XAA31445@delanet.COM>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,62 +22,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Fri, Jan 24, 2003 at 11:39:58PM -0500, Larry Stephan wrote:
 
-Should I be using iptc_delete_num_entry or iptc_delete_entry to delete 
-rules from a chain? I can't seem to find documentation for the 
-parameters of iptc_delete_entry (please point me in the right direction if 
-it exists!), and I'm not 100% sure what to pass for the rulenum parameter 
-to iptc_delete_num_entry.
+ Hi,
 
-The only documentation I have for iptc_delete_num_entry is the 
-Querying-libiptc-HOWTO from the LDP, and it says that rulenum is a rule 
-number starting at 1 for the first rule.
+> I have worked both with netfilter (from ipfwadm through iptables) and with
+> some commercial firewall packages.  I must say that netfilter is a remarkably
+> capable system.  However, one feature which appears to be lacking is a
+> convenient way to NAT address ranges statically: that is, for a given range
+> of addresses, the NATted address would always differ from the original
+> address by the same fixed amount. This is handy for fixing certain routing
+> problems, as well as for changing ranges of address that may cause a
+> conflict to more acceptable ranges, a not infrequent problem when different
+> organizations establish dedicated network links.  I have attempted to find
+> something like this on the netfilter web site, but (perhaps I missed
+> something) I found nothing.
+> 
+> I was thinking that a --static option to SNAT and DNAT might do the trick.
+> For example, (line broken because it doesn't fit well):
+> 
+> iptables -s 5.6.7.0/25 -t nat -A POSTROUTING 
+> -o eth0 -j SNAT --static --to 1.2.3.64
+> 
+> would map 5.6.7.1 to 1.2.3.65, 5.6.7.2 to 1.2.3.66,...,5.6.7.126 to 1.2.3.190
 
-So let's say I want to delete every rule one at a time from a chain. Do I 
-have to manually increase my own rulenum counter for every rule, or is 
-there some way to get rulenum from an ipt_entry?
+I suppose you are looking for the NETMAP target, available in p-o-m.
 
-Example:
+Now I have a question for the coreteam... why not consider the
+inclusion of NETMAP in upstream kernel?
+It seems to me that this functionnality is quite standard, and I think
+it has proved to be stable now, don't you think?
+I have been using it in production systems for quite a long time now
+without any problem.  Why keep it experimental?
 
-iptc_handle_t htable;
-const char *chain = "INPUT";
-struct ipt_entry *entry;
-int rulenum = 0, is_chain_changed = 0;
-
-if (!(htable = iptc_init ("filter")))
-{
-  printf ("iptc_init: %s\n", iptc_strerror (errno));
-  exit(0);
-}
-
-entry = (struct ipt_entry *)iptc_first_rule (chain, &htable);
-while (entry)
-{
-  rulenum++;
-  if (!(iptc_delete_num_entry (chain, rulenum, &htable)))
-  {
-    printf ("iptc_delete_num_entry: %s\n", iptc_strerror (errno));
-    break;
-  }
-
-  is_chain_changed = 1;
-  entry = (struct ipt_entry *)iptc_next_rule (entry, &htable);
-}
-
-if (is_chain_changed)
-{
-  if (!(iptc_commit (&htable)))
-    fprintf (stderr, "iptc_commit: %s\n", iptc_strerror (errno));
-}
-
-
-Plus, is the rulenum going to change for the rest of the rules in a chain 
-if I delete a rule? If not immediately, how about after I commit?
-
-TIA for any help.
+ Herve
 
 -- 
-Craig Davison
-Symantec Corporation
-+1 (403) 213-3939 ext. 228
+ _
+(°=  Hervé Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
