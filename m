@@ -1,17 +1,16 @@
-From: "Yong" <sdssly@sina.com>
-Subject: Re: ipq+AF8-set+AF8-verdict problem in bridge+-iptables
-Date: Thu, 17 Jul 2003 14:09:49 +0800
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH]: Fix ip_conntrack_core arguments to macros
+Date: Thu, 17 Jul 2003 14:29:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <005501c34c2a$08f35cd0$8101a8c0@dev>
+Message-ID: <3F1696B1.9080409@trash.net>
+References: <Pine.LNX.4.44.0307121230550.30873-200000@gw.localnet> <20030714081214.GH6538@naboo>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-7"
-Content-Transfer-Encoding: base64
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Bart De Schuymer" <bdschuym@pandora.be>,
-	"Harald Welte" <laforge@netfilter.org>
-References: +ADw-001e01c34b36+ACQ-f8e94460+ACQ-8101a8c0+AEA-dev+AD4- +ADw-200307161949.54239.bdschuym+AEA-pandora.be+AD4-
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030714081214.GH6538@naboo>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,41 +21,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGkgQmFydCwNCg0KSSBoYXZlIGFkZGVkIHRoZSAwLjAuMTAgcGF0Y2ggYW5kIHlvdXIgcGF0Y2gu
-IEkgY2FuIHNlbmQgdGhlIGxhcmdlIElDTVAgcGFja2V0IG5vdy4gVGhhbmsgeW91IGZvciB5b3Vy
-IGhlbHArQUNFLQ0KDQpZb25nDQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTog
-K0FDSS1CYXJ0IERlIFNjaHV5bWVyK0FDSS0gK0FEdy1iZHNjaHV5bStBRUEtcGFuZG9yYS5iZStB
-RDQtDQpUbzogK0FDSS1Zb25nK0FDSS0gK0FEdy1zZHNzbHkrQUVBLXNpbmEuY29tK0FENEFPdy0g
-K0FDSS1IYXJhbGQgV2VsdGUrQUNJLSArQUR3LWxhZm9yZ2UrQUVBLW5ldGZpbHRlci5vcmcrQUQ0
-LQ0KQ2M6ICtBRHctbmV0ZmlsdGVyLWRldmVsK0FFQS1saXN0cy5uZXRmaWx0ZXIub3JnK0FENC0N
-ClNlbnQ6IFRodXJzZGF5LCBKdWx5IDE3LCAyMDAzIDE6NDkgQU0NClN1YmplY3Q6IFJlOiBpcHEr
-QUY4LXNldCtBRjgtdmVyZGljdCBwcm9ibGVtIGluIGJyaWRnZSstaXB0YWJsZXMNCg0KDQorQUQ0
-LSBPbiBXZWRuZXNkYXkgMTYgSnVseSAyMDAzIDAzOjA5LCBZb25nIHdyb3RlOg0KK0FENC0gK0FE
-NC0gIEkgd2FudCB0byB1c2UgdGhlIGlwdGFibGUrQUY4LXF1ZXVlIGluIGJyaWRnZSstaXB0YWJs
-ZXMgZW52aXJvbm1lbnQuIEkgY2FuIGdldA0KK0FENC0gK0FENC0gdGhlIHBhY2tldCBpbiB1c2Vy
-c3BhY2UgdXNpbmcgLWogUVVFVUUgY29tbWFuZC4gSG93ZXZlciwgSWYgSSBjaGFuZ2UgdGhlDQor
-QUQ0LSArQUQ0LSBwYWNrZXQgc2l6ZS4gZm9yIGV4YW1wbGUsIEkgY2hhbmdlIHRoZSBwaW5nIGlj
-bXAgcGFja2V0IHNpemUgdG8gNDAwLCB0aGUNCitBRDQtICtBRDQtIHBhY2tldCBFdGhlcm5ldCBo
-ZWFkZXIgaXMgY2hhbmdlZC4gSW4gbXkgdGVzdCwgdGhlIE1BQyBhZGRyZXNzIGlzIGNoYW5nZWQN
-CitBRDQtICtBRDQtIHRvIDB4ZmZmZmZmZmZmZi4gSSBjYW4gY2FwdHVyZSB0aGlzIHBhY2tldCB1
-c2luZyBzbmlmZmVyIHRvb2wuIFNpbmNlIHRoZQ0KK0FENC0gK0FENC0gTUFDIGFkZHJlc3MgaXMg
-Y2hhbmdlZCwgdGhlIG90aGVyIGNvbXB1dGVyIGNhbm5vdCByZWNlaXZlIHRoZSBJQ01QIHBhY2tl
-dC4NCitBRDQtIA0KK0FENC0gK0FENC0gIEl0IHNlZW1zIHRoYXQgdGhlIGJyaWRnZSBpcHRhYmxl
-cyBwYXRjaCBjaGFuZ2VkIHNvbWV0aGluZyBpbiB0aGUgZnVuY3Rpb24NCitBRDQtICtBRDQtIGlw
-cStBRjgtc2V0K0FGOC12ZXJkaWN0KCkuDQorQUQ0LSANCitBRDQtIFBsZWFzZSB0ZXN0IHRoZSBw
-YXRjaCBiZWxvdy4NCitBRDQtIA0KK0FENC0gY2hlZXJzLA0KK0FENC0gQmFydA0KK0FENC0gDQor
-QUQ0LSAtLS0gbGludXgtMi42LjAtdGVzdDEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwK0FGOC1xdWV1
-ZS5jLm9sZCAyMDAzLTA3LTE2IDE5OjM1OjA3LjAwMDAwMDAwMCArLTAyMDANCitBRDQtICstKy0r
-LSBsaW51eC0yLjYuMC10ZXN0MS9uZXQvaXB2NC9uZXRmaWx0ZXIvaXArQUY4LXF1ZXVlLmMgMjAw
-My0wNy0xNiAxOTozOTowNS4wMDAwMDAwMDAgKy0wMjAwDQorQUQ0LSArQUVBQVFBLSAtMzUzLDYg
-Ky0zNTMsMTEgK0FFQUFRQS0gaXBxK0FGOC1tYW5nbGUrQUY4LWlwdjQoaXBxK0FGOC12ZXJkaWN0
-K0FGOC1tc2crQUY4LXQgK0FDby12LCBzdA0KK0FENC0gICArQUgwLQ0KK0FENC0gICBpZiAoZS0r
-QUQ0LXNrYi0rQUQ0LXNrKQ0KK0FENC0gICBza2IrQUY4LXNldCtBRjgtb3duZXIrQUY4LXcobmV3
-c2tiLCBlLStBRDQtc2tiLStBRDQtc2spK0FEcy0NCitBRDQtICstK0FDTS1pZiBkZWZpbmVkKENP
-TkZJRytBRjgtQlJJREdFKSArQUh3QWZBLSBkZWZpbmVkKENPTkZJRytBRjgtQlJJREdFK0FGOC1N
-T0RVTEUpDQorQUQ0LSArLSAvK0FDby0gYnJpZGdlZCBwYWNrZXRzIGFscmVhZHkgaGF2ZSB0aGVp
-ciBFdGhlcm5ldCBoZWFkZXIgK0FDby0vDQorQUQ0LSArLSBpZiAoZS0rQUQ0LXNrYi0rQUQ0LW5m
-K0FGOC1icmlkZ2UpDQorQUQ0LSArLSBtZW1jcHkobmV3c2tiLStBRDQtZGF0YSAtIDE2LCBlLStB
-RDQtc2tiLStBRDQtZGF0YSAtIDE2LCAxNikrQURzLQ0KK0FENC0gKy0rQUNNLWVuZGlmDQorQUQ0
-LSAgIGtmcmVlK0FGOC1za2IoZS0rQUQ0LXNrYikrQURzLQ0KK0FENC0gICBlLStBRDQtc2tiICtB
-RDAtIG5ld3NrYitBRHMtDQorQUQ0LSAgICtBSDAtDQorQUQ0LSANCitBRDQtIA0KK0FENC0g
+Hi Harald,
+you've only added 54_ip_nat-macro-args.patch, i assume the other patch 
+was 53...
+(the conntrack part) and you forgot to add it. Could you also please 
+have a look at
+http://lists.netfilter.org/pipermail/netfilter-devel/2003-June/011869.html ?
+I believe it got lost.
+
+>Thanks for the patch, give me another day to investigate (and apply)
+>this and your other patches.
+>
+>  
+>
+>>BTW: nice talk yesterday, i've seen the slides before but it still was
+>>alot more interesting to here it directly from you. Sorry i didn't showed
+>>up anymore, i had to get some sleep fast after getting up at 7 in the
+>>morning (and drinking too much beer) ;) Are you still at linuxtag ?
+>>    
+>>
+>
+>Yes, a real pity.  I was expecting to have some chat with you.
+>Unfortunately I needed to cut down my linuxtag visit to a single day
+>(just friday to give my presentation) due to a personal issue :(
+>  
+>
+
+;( next time for sure. it's not the same but .. i usually hang out on 
+efnet, so if
+you'd like to chat you can always step by in #königkaber (don't laugh at the
+name, it wasn't meant to last ;).
+
+Bye
+Patrick
