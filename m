@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Problem with MASQUERADE of L2TP packets
-Date: Mon, 17 Nov 2003 09:38:21 +0100
+From: "Kristof Cauwel" <kristof.cauwel@pandora.be>
+Subject: multiple NAT on one box
+Date: Sun, 16 Nov 2003 12:48:09 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031117083821.GB22919@sunbeam.de.gnumonks.org>
-References: <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10> <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10> <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
+Message-ID: <000701c3ac37$81a3cbc0$0101a8c0@kc>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6sX45UoQRIJXqkqR"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Rajesh B. V." <rajeshbv@intotoinc.com>
-Content-Disposition: inline
-In-Reply-To: <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,72 +19,61 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi boys and girls,
 
---6sX45UoQRIJXqkqR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 17, 2003 at 09:52:28AM +0530, Rajesh B. V. wrote:
-> Hi Harald Welte,
->=20
-> Thankyou very much for the response.
->=20
-> The L2TP implementation is ours. It is not free software or open source.
+Just found this mailing list and I sure hope you are going to be able to
+help me... I'll get started right away by describing the situation:
+I have (let's say) 2 home networks and 1 linux gateway (kernel 2.4.22).
+Actually the 2 networks are part of the same physical network, but they are
+seperated by means of VLAN tagging. So it looks a bit like this:
 
-In this case I have to admit that I am very reluctant to assist you with
-debugging your problem.  I have never been a fan of kernel binary-only
-modules, and I have never given anybody permission to link such modules
-with any netfilter/iptables code that is held by my copyright.
+NETWORK 1              NETWORK 2
+------------------              ------------------
+         |                                     |
+      vlan1                             vlan2
+------------------------------------------------
+|             LINUX NAT BOX               |
+------------------------------------------------
+                   eth0:1/eth0:2
+                            |
+                    ---------------
+                    INTERNET
 
-> We call " ip_finish_output () " to send the packet out. Till this functio=
-n=20
-> call the source IP in outer IP header is intact.
-> But in this function the POSTROUTING Hook function of IP tables will be=
-=20
-> called. During this the NAT will happen as the masquerade rule is=20
-> configured for POSTROUING.
+--> vlan1 and vlan2 are virtual interfaces on eth1 (VLAN tagging enabled)
+--> eth0:1 and eth0:2 are aliases of eth0
 
-yes. but what is wrong about that?  If you configured masquerading to
-happen, it will happen. =20
+So I have 2 IP adresses towards the internet (one to serve network 1 and one
+to serve network 2) and 2 different networks on my LAN side. What I want to
+do is NAT all trafic comming from network 1 on the first IP and NAT all
+trafic comming from network 2 on the second IP. To make my life a bit
+easier, I've made sure that each VLAN corresponds with a whole subnet.
+I know that you can do this stuff with the NAT module that excists but this
+is a simplification of what I have to do. The idea is to create a virtual
+home gateway that serves thousands of families at a time (I don't have
+commercial plans with this, it's my thesis subject at university, just bo be
+clear on this). So you would have way more than 2 networks on the LAN side
+and I'm a bit afraid that the single nat table is gonna become too big (and
+thus to slow to search in). It will also be almost impossible to remove a
+user's nat rules if he disconnects from the service...
+My idea was to have some sort of intermediate NAT table. If I check where a
+packet came from or where it's going to (depends if it's going to or comming
+from the internet), I can identify it with a user. Each user would have it's
+own user-nat table (bit like user tables in the firewalling part of
+iptables). In the intermediate table there would be some sort of pointer to
+the user table. I hope you are getting the idea....
 
-> So i am suspecting iptables handling of L2TP packets.
+I've been browsing through the code and the howto's all weekend, but without
+huge succes I'm afraid :-( First off all, where is the nat table searched? I
+found the place where it's registered and I found a lot of code concerning
+some hash table (or is this the code where you try to find a hit in the nat
+table?). Am I correct in assuming that I would have to change code in not
+only the nat part but also the conntrack part (if so, where is the table
+updated in the conntrack code)?
 
-of course, if you use the IPv4 stack, iptables will act according to the
-configured ruleset.
+Hope you don't think I'm lazy or anything but I'm sure you can understand
+that it's not easy to be thrown in all that code... I'm just a newbie in
+this sort of stuff, trying to survive in the code jungle :-)
 
-> PS:
-> I saw some patches for PPTP/IPSec masquerading in net. I guess, it may al=
-so=20
-> be similar case for L2TP also, but which was not identified.
-
-One of the major design ideas behind l2tp was to encapsulate everything
-in UDP - and thus being able to NAT the protocol like any other
-udp-based protocol.  This is very different from AH/ESP or PPTP/GRE that
-come with their own layer 4 protocol.
-
-> Regards,
-> --Rajesh
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---6sX45UoQRIJXqkqR
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/uIj9XaXGVTD0i/8RAoS0AJ96ZR189S5/1EDywgxg7It1HG5IQACgosTV
-srcJnEWhQSB8XUvPQNWNV7A=
-=7KKm
------END PGP SIGNATURE-----
-
---6sX45UoQRIJXqkqR--
+Thanks for any comments, answers, ...
+kristof
