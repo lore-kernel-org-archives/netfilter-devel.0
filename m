@@ -1,9 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH NFSIM]: use unsigned long for nf_userspace_message args
-Date: Thu, 06 Jan 2005 15:10:46 +0100
-Message-ID: <41DD46E6.8040108@trash.net>
+Subject: [PATCH NFSIM]: Define ____cacheline_aligned
+Date: Thu, 06 Jan 2005 15:15:46 +0100
+Message-ID: <41DD4812.9070805@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010407060900080305060904"
+Content-Type: multipart/mixed; boundary="------------000308000506020003040601"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Rusty Russell <rusty@rustcorp.com.au>
@@ -19,112 +19,43 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010407060900080305060904
-Content-Type: text/plain; charset=us-ascii; format=flowed
+--------------000308000506020003040601
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-nf_userspace_message args may hold pointers, use unsigned long so they
-also fit on 64 bit.
+____cacheline_aligned is currently undefined, this makes this check in
+ip_tables.c check_entry_size_and_hooks() fail on 64 bit because
+newinfo->entries and thus e is only 4-byte aligned:
+
+        if ((unsigned long)e % __alignof__(struct ipt_entry) != 0
+            || (unsigned char *)e + sizeof(struct ipt_entry) >= limit) {
+                duprintf("Bad offset %p\n", e);
+                return -EINVAL;
+        }
+
+This patch makes it align to 8 byte.
 
 
 
---------------010407060900080305060904
+--------------000308000506020003040601
 Content-Type: text/x-patch;
- name="2.diff"
+ name="3.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="2.diff"
+ filename="3.diff"
 
-Index: core/fakesockopt.c
+Index: kernelenv/include/kernelenv.h
 ===================================================================
---- core/fakesockopt.c	(revision 3578)
-+++ core/fakesockopt.c	(working copy)
-@@ -234,8 +234,8 @@
- 	msg.args[0] = PF_INET;
- 	/*msg.args[1] = level;*/
- 	msg.args[1] = optname;
--	msg.args[2] = (int)optval;
--	msg.args[3] = (int)*optlen;
-+	msg.args[2] = (unsigned long)optval;
-+	msg.args[3] = (unsigned long)*optlen;
- 	ret = fake_syscall(&msg);
- 	*optlen = msg.args[3];
- 	return ret;
-@@ -249,8 +249,8 @@
- 	msg.args[0] = PF_INET;
- 	/*msg.args[1] = level;*/
- 	msg.args[1] = optname;
--	msg.args[2] = (int)optval;
--	msg.args[3] = (int)optlen;
-+	msg.args[2] = (unsigned long)optval;
-+	msg.args[3] = (unsigned long)optlen;
- 	return fake_syscall(&msg);
- }
+--- kernelenv/include/kernelenv.h	(revision 3578)
++++ kernelenv/include/kernelenv.h	(working copy)
+@@ -103,7 +103,7 @@
  
-Index: core/nfsockopt.h
-===================================================================
---- core/nfsockopt.h	(revision 3578)
-+++ core/nfsockopt.h	(working copy)
-@@ -45,7 +45,7 @@
- 	int len;
+ #define __init
+ #define __inline
+-#define ____cacheline_aligned
++#define ____cacheline_aligned __attribute__((aligned(8)))
  
- 	/* syscall/kernelop arguments */
--	int args[MAX_MESSAGE_ARGS];
-+	unsigned long args[MAX_MESSAGE_ARGS];
- 
- 	/* return val of the syscall/kernelop */
- 	int retval;
-Index: core/message.c
-===================================================================
---- core/message.c	(revision 3578)
-+++ core/message.c	(working copy)
-@@ -282,7 +282,7 @@
- 					  msg.args[3]);
- 			msg.retval = nf_getsockopt(NULL, msg.args[0],
- 					msg.args[1], (char *)msg.args[2],
--					&msg.args[3]);
-+					(int *)&msg.args[3]);
- 			if (strace)
- 				nfsim_log(LOG_USERSPACE,
- 					  "    getsockopt -> %s (len %i)",
-@@ -358,9 +358,9 @@
- 	msg->type = UM_KERNELOP;
- 	msg->opcode = KOP_COPY_TO_USER;
- 	msg->len = n;
--	msg->args[0] = (int)to;
--	msg->args[1] = (int)from;
--	msg->args[2] = (int)n;
-+	msg->args[0] = (unsigned long)to;
-+	msg->args[1] = (unsigned long)from;
-+	msg->args[2] = (unsigned long)n;
- 
- 	/* Keep valgrind happy.*/
- 	msg->args[3] = 0;
-@@ -393,9 +393,9 @@
- 	msg.type = UM_KERNELOP;
- 	msg.opcode = KOP_COPY_FROM_USER;
- 	msg.len = 0;
--	msg.args[0] = (int)to;
--	msg.args[1] = (int)from;
--	msg.args[2] = (int)n;
-+	msg.args[0] = (unsigned long)to;
-+	msg.args[1] = (unsigned long)from;
-+	msg.args[2] = (unsigned long)n;
- 
- 	/* Keep valgrind happy.*/
- 	msg.args[3] = 0;
-Index: core/core.c
-===================================================================
---- core/core.c	(revision 3578)
-+++ core/core.c	(working copy)
-@@ -431,7 +431,7 @@
- 		oldpath = getenv("LD_LIBRARY_PATH");
- 		path = talloc_asprintf(NULL, "%s%s%.*s",
- 				       oldpath ?:"", oldpath ? ":" : "",
--				       p - argv[0], argv[0]);
-+				       (int)(p - argv[0]), argv[0]);
- 		setenv("LD_LIBRARY_PATH", path, 1);
- 		talloc_free(path);
- 	}
+ #include <talloc.h>
+ extern void *__vmalloc_ctx;
 
---------------010407060900080305060904--
+--------------000308000506020003040601--
