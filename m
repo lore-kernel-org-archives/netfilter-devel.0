@@ -1,13 +1,16 @@
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Subject: Freeswan and Iptables on Sparc 64 and 32 - Kernel Panic
-Date: Thu, 07 Nov 2002 23:02:06 +0100
+From: Ury N. Stankevich <ury@bofh.homeunix.org>
+Subject: Re: iptables match kernel module
+Date: Mon, 4 Nov 2002 13:37:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DCAE2DE.4090708@triaton-webhosting.com>
+Message-ID: <20021104133759.1b64e222.ury@bofh.homeunix.org>
+References: <20021102221052.52974370.ury@bofh.homeunix.org>
+	<20021104120718.P8635@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: users@lists.freeswan.org, netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20021104120718.P8635@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,20 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Mon, 4 Nov 2002 12:07:18 +0100
+Harald Welte <laforge@gnumonks.org> wrote:
+ 
+> BTW: What are you trying to achieve?  Ovrall system load is not
+> important for packet filtering.  Way more important would be the CPU
+> utilization, the packets-per-second rate, ...
 
-thanks to Ken Bantoft I am now able to run freeswan on my
-Sparc Station 5 (32 Bit) and Ultra1 (64 Bit).  But there is still
-one serious problem: As soon as I use freeswan together
-with iptables I will get a kernel panic.  I do not have to use
-rules, it is sufficient to load the modules or to compile the code
-into the kernel. Ping seems to pass without causing trouble,
-but  as soon as I start an ssh-session the machine crashes.
-There are a few more problems with freeswan on both
-machines, I can supply details if they are of any use.
-The same setup (pppoe, freeswan, iptables) works perfectly
-on my Intel machine.
-Can anyone give me a hint where to look?
+my computer so slow, i wish disable some services while i compiling
+software for example. and.. this simplest thing to begin.
 
-Thanks in advance
-                                   Georg Chini
+and... can you give URL to some information about "[public] API to get
+information about the load average"?
+
+__Ury
