@@ -1,13 +1,15 @@
-From: Kevin McConnell <kevymac@yahoo.com>
-Subject: Re: ip_nat|conntrack_h323.c on 2.6
-Date: Mon, 13 Dec 2004 20:48:23 -0800 (PST)
-Message-ID: <20041214044823.48201.qmail@web50502.mail.yahoo.com>
-References: <20041209193823.GA6216@roonstrasse.net>
+From: "Manzoor " <hpmanzoor@rediffmail.com>
+Subject: Libipq implemenation has bad side-effects
+Date: 14 Dec 2004 07:15:02 -0000
+Message-ID: <20041214071502.14114.qmail@webmail29.rediffmail.com>
+Reply-To: Manzoor  <hpmanzoor@rediffmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Max Kellermann <max@duempel.org>, netfilter-devel@lists.netfilter.org
-In-Reply-To: <20041209193823.GA6216@roonstrasse.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,41 +21,8 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---- Max Kellermann <max@duempel.org> wrote:
-
-> Hi,
-> 
-> is there already a 2.6 port of the h323 conntrack
-> helper? pom-ng has
-> only an implementation for 2.4, and the info file
-> says it requires
-> linux < 2.6. If there is no port, I will do it.
-
-I believe there is not a 2.6 port of the h323
-conntrack helper at this time, as it's been asked on
-this list several dozen times at least. The general
-reply I've seen is that it was a pretty ugly hack to
-get it working and that it needed to be completely
-rewritten, and will ultimately be replaced by more up
-to date transports. I'd say, since nobody replied to
-it, that if you'd like to undertake porting it, that
-many people on this list (including myself) would be
-pretty greatful if you got working.
-
-> Max
-
-TIA ;)
-Kevin
-
-=====
-Kevin C. McConnell --RHCE # 805299480800193 since July 2, 1999-- <Red Hat Certified Engineer>
-Freedom in software, now freedom in life.
-http://www.freestateproject.org/
-
-
-		
-__________________________________ 
-Do you Yahoo!? 
-Jazz up your holiday email with celebrity designs. Learn more. 
-http://celebrity.mail.yahoo.com
+  =0AHi,=0A=0AI have tested a simple tokenbucket filtering packets in linux=
+ kernel 2.4. but it fails to work for even a couple of ping host . And brea=
+ks the application execution with "recieved message truncated"=0A=0ASo it s=
+eems to be a concertn for the developers to think about.=0A=0Amanzoor=0A=0A=
+With regards=0D=0A=0D=0A..Manzoor
