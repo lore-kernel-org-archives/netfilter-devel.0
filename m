@@ -1,17 +1,16 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: [PATCH pom-ng] H.225 parser for h323-conntrack-nat
-Date: Mon, 4 Apr 2005 16:06:39 +0200
-Message-ID: <20050404140639.GA31341@roonstrasse.net>
-References: <Pine.LNX.4.58.0504040852460.12853@blackhole.kfki.hu>
-	<20050404091035.GB28490@roonstrasse.net>
-	<20050404215535.022F.LARK@linux.net.cn>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: Re: [PATCH] new 'tcpack' match
+Date: Mon, 04 Apr 2005 16:15:43 +0200
+Message-ID: <42514C0F.4000605@gmx.net>
+References: <42464598.9040707@outerspace.dyndns.org>	<425032D5.2010302@trash.net>	<878113493.20050403233059@dns.toxicfilms.tv>	<4250848E.5040207@outerspace.dyndns.org>
+	<5810131003.20050404153025@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wang Jian <lark@linux.net.cn>
-Content-Disposition: inline
-In-Reply-To: <20050404215535.022F.LARK@linux.net.cn>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <5810131003.20050404153025@dns.toxicfilms.tv>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +22,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/04/04 16:01, Wang Jian <lark@linux.net.cn> wrote:
-[...]
-> I want to make it works under 2.6.11 or 2.6.12. I really need your help
-> to finish it in time.
+Maciej Soltysiak schrieb:
+>>I aim to fix this all with one simple netfilter match which can give an
+>>answer with simple arithmetics in one go instead of matching against a
+>>preconfigured list of possible values one by one.
 > 
-> I will spend a day (ideally) to look into the new conntrack
-> infrastructure, and then I will spend time on every conntrack involved.
-> If the old code works, I think it is not very hard to port them to new
-> infrastructure. provided that new infrastruture is stable and good.
+> Right.
+> 
+> I agree the best way to go would be to extend the tcp match with
+> the proposed semantics:
+>     --datalen [!] A[,B:C[,D]]
+> 
+> 
+> It also might be useful to match the sole header length.
+>    --headerlen [!] A[,B:C[,D]]
+> 
+> And the lenght of tcp+data
+> 
+>    --len
+> 
+> Possibly the similar for udp:
+>    --datalen, --headerlen, --len
+> 
+> And ICMP:
+>    --datalen, --len (icmp headers have fixed size)
 
-I already ported h323-conntrack-nat to 2.6.11, but my port is hidden
-in an obsolete branch in the pom-ng svn repository. Please grab my
-patch from my home page:
+Could we do this in a generic way? I'm currently rewriting the iptables
+ACCOUNT target and it could benefit from that as well.
 
- http://max.kellermann.name/projects/netfilter/h323.html
+I'd need:
+- length of whole IP packet
+- length of layer 2 frame
 
-This allows you to use h323-conntrack-nat on 2.6.11. The patches will
-be in the subversion repository soon (as discussed in this thread).
+Perhaps a generic prefix for all "length" options is appropriate?
 
-Max
+--len-header-ip
+--len-data-ip
+--len-full-ip
+--len-header-tcp
+--len-data-tcp
+--len-full-tcp
+--len-header-ether
+--len-data-ether
+--len-full-ether
+etc.
+
+I realize that some of the options above don't make that much sense,
+but you get the idea.
+
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
