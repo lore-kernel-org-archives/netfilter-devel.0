@@ -1,8 +1,8 @@
 From: Kishore Dharmavaram <kishored@servgate.com>
 Subject: RE: Memory leaks in ip_conntrack?
-Date: Mon, 10 Nov 2003 12:00:04 -0800
+Date: Mon, 10 Nov 2003 12:10:27 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B204D@skat.sky.com>
+Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B204E@skat.sky.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,66 +20,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Anthony & all,
-Yes,  iam seeing a lot of "ip_conntrack: table full, dropping packet."
-messages in dmesg. 
-ip_conntrack_max is 131072 not 13072, my mistake, '1' might have got deleted
-in my email.
+Alistair & All,
+
+I believe /proc/slabinfo gives # of conntracks being used, in my tests I
+usually find slabinfo number is same as number of entries in
+/proc/net/ip_conntrack. But, after 18hrs or so the number in /proc/slabinfo
+reaches maximum and box starts refusing connections, /proc/net/ip_conntrack
+show 20 to 30 entries, I hear /proc/net/ip_conntrack is unreliable and
+broken. Anyway, I guess I have to dig into the code.
+
+Thanks,
 -Kishore
 
 -----Original Message-----
-From: Antony Stone [mailto:Antony@Soft-Solutions.co.uk]
-Sent: Sunday, November 09, 2003 2:46 AM
+From: Alistair Tonner [mailto:Alistair@nerdnet.ca]
+Sent: Sunday, November 09, 2003 4:40 PM
 To: netfilter@lists.netfilter.org
 Subject: Re: Memory leaks in ip_conntrack?
 
 
-On Sunday 09 November 2003 6:26 am, Alistair Tonner wrote:
+	
+	Actually Anthony I'm inclined to agree with you .. I was just
+pointing out 
+that the assumption that the count in /proc/slabinfo (ip_conntrack) is  an 
+indication of the count in /proc/net/ipv4/ip_conntrack is completely 
+incorrect.  i.e. the two counters are keeping track of dfferent things.
 
-> On November 8, 2003 10:43 pm, Antony Stone wrote:
-> > On Sunday 09 November 2003 3:08 am, Kishore Dharmavaram wrote:
-> > > Hi Herald & All,
-> > >
-> > > I verified & I find my 2.4.20 is already patched with UNCONFIRMED
-> > > connections fix.
-> > >
-> > > How it possible that /proc/slabinfo shows a lot more ip_conntracks
-than
-> > > are shown in "/proc/net/ip_conntrack"?. /proc/slabinfo shows that
-> > > maximum possible conntracks, 131072, are being currently used but
-> > > /proc/net/ip_conntrack  shows only 21 connections. My box is refusing
-> > > new connections because max conntracks have reached.
-> >
-> > Are you getting any messages "ip_conntrack : table full, dropping
-packet"
-> > in your syslog or kernel log output?
-> >
-> > If not, how do you know that the box is refusing new connections because
-> > max conntracks have been reached?
->
-> 	if /proc/slabinfo is showing memory OBJECTS not CONNECTIONS.
-> 		and 13072 != 131072
->
-> 	I'm not sure what those objects are but as I follow my reading of
-slabinfo
-> *all* objects acllocated are counted in htere...   I'm not sure what all
-> gets allocated by ip_conntrack -- developers would be better at that
+	I'm curious myself (as to what is causing this gent's problem) as
+there have 
+been so many queries on this subject lately, and as I pointed out to Oskar
+we 
+*really* are starting to need a FAQ on this.  
 
-Yes, but I'm asking what evidence you have that the box is *refusing new 
-connections*, and that it is doing so *because the maximum number of 
-conntracks has been reached*?
+	i.e. -- if you think this is a problem, here's best how to determine
+if 
+iptables is causing memory issues on your system.  Frequenly folks are 
+implementing iptables and don't understand linux memory management schema 
+and the affects it has on what they see on their screens.
 
-Are you getting any messages "ip_conntrack : table full, dropping packet"
-in your syslog or kernel log output?
+	Not that I'm complaining, ... Its good learning for me as I try to
+diagnose 
+the issue on my system, but it might make new users lives easier if we had 
+the info out there to start with.
 
-Antony
 
--- 
-
-If you want to be happy for an hour, get drunk.
-If you want to be happy for a year, get married.
-If you want to be happy for a lifetime, get a garden.
-                                                     Please reply to the
-list;
-                                                           please don't CC
-me.
+	Alistair Tonner
+	nerdnet.ca
+	Senior Systems Analyst - RSS
+	
+     Any sufficiently advanced technology will have the appearance of magic.
+	Lets get magical!
