@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [RFC] updated ctnetlink patches
-Date: Sat, 31 May 2003 22:52:10 +0200
+Date: Sun, 01 Jun 2003 00:44:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030531205210.GE29312@sunbeam.de.gnumonks.org>
-References: <3ED4BD16.8030606@trash.net>
+Message-ID: <3ED9306B.6000607@trash.net>
+References: <3ED4BD16.8030606@trash.net> <20030531205210.GE29312@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rmZDAlAp7pllCg/D"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <3ED4BD16.8030606@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030531205210.GE29312@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,197 +21,216 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald,
+thanks for you suggestions.
 
---rmZDAlAp7pllCg/D
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Harald Welte wrote:
 
-On Wed, May 28, 2003 at 03:43:50PM +0200, Patrick McHardy wrote:
->=20
-> I've done some work on ctnetlink, here is what i've got so far. The=20
-> patch is still incomplete,
+>>All attributes except CTA_HELPINFO and CTA_NATINFO are implemented.
+>>
+>we should get HELPINFO implemented,
+>  
+>
+already done. i'm still reading into nat and building a userspace 
+utility for
+testing, but i will probably update the patches (without nat) in the 
+next couple
+of days.
 
-First of all, thanks a lot for contributing to ctnetlink.
+>>Also noteworthy is the fact that the NEW event is in fact CONFIRM
+>>since there is no way to access unconfirmed connections. The DESTROY
+>>event is currently in destroy_conntrack, this should probably move to
+>>clean_from_lists. 
+>>    
+>>
+>
+>ACK. We can have conntracks that are forced to live longer because some
+>sibling is still holding a refcount on it.  But userspace should get
+>notified once the entry is deactivated - that is, at the time it is
+>removed from the lists.  This change would also make it symmetric
+>(NEW==confirm, DESTROY==remove_from_lists
+>  
+>
 
-> - Attributes:
-> Removed CTA_IIF and CTA_OIF, there is no relation between conntrack and =
-=20
-> interfaces.=20
+also done.
 
-oh yes, this is I think my fault.  At that time I was doing a project
-that required interface tracking in conntrack.
+>>ip_ct_refresh is changed to only update the timer if timer.expires !=
+>>jiffies+extra_jiffies. This reduces timeout change messages to at most
+>>HZ/s instead of 1/packet. 
+>>    
+>>
+>>I'm unclear if this change introduces a race condition of some kind.
+>>    
+>>
+>
+>I don't think so.
+>  
+>
 
-> - Creation and manipulation of conntrack entries:
-> It is possible now to create and change conntrack entries. Only=20
-> confirmed entries are accessible trough ctnetlink, also only confirmed
-> ones can be created.=20
+then this change would probably also make sense for mainline kernel. i was
+even thinking about going a bit further and only doing changes if they are
+bigger than say 1s, it doesn't seem to matter. if not that, maybe reduce
+only event messages to 1/s for timer changes.
 
-Makes sense, I don't see a need for this to be changed
+>>There are currently no messages for things done on behalf of ctnetlink
+>>itself.
+>>    
+>>
+>
+>This means that listener B doesn't get notified if listener A
+>adds/changes something via ctnetlink.  This needs to get implemented in
+>order to sanely support multiple listeners
+>
 
-> All attributes except CTA_HELPINFO and CTA_NATINFO are implemented.
+yes i'm aware of that. i delayed it for now because i have to make sure
+there are no "indirect" event messages by calling conntrack functions
+from nfnetlink_conntrack that send some, so i'm waiting until that part 
+stablizes.
 
-we should get HELPINFO implemented,
+>>-Table dumping:
+>>Previous code crashed (known issue i think), 
+>>    
+>>
+>Yes, Martin has a fix for it.
+>  
+>
+>>also if it worked entries would have been dumped multiple times if
+>>there was no room in the skb while in the middle of dumping a hash
+>>chain. 
+>>    
+>>
+>
+>true, but not too problematic.  If we send the address of the conntrack
+>entry as ID to userspace, userspace could detect those copies. But it's
+>not nice, of course.
+>
 
-> For NATINFO probably another ugly pointer somewhere is required to
-> access either functions inside ip_nat_core or nat_lock without
-> requiring nat to be loaded.
+problems can occur if one chain contains more entries that there is room
+in a skb. that chain will be dumped over and over again. i don't see how
+this can be prevented without my changes.
 
-mh.
+>>With my current solution confirmed entries are assigned a unique
+>>increasing id and held in an ordered list. 
+>>    
+>>
+>
+>Mh, this is the part i really dislike (sorry).  The unique ID is IMHO
+>going to be expensive (the cacheline of this ID will always ping-pong,
+>as heavy contention is to be expected).  And the ordered list..  is it
+>really necessarry to yet again increase the size of ip_conntrack? 
+>  
+>
 
-> - Conntrack event notifications:
-> The patch adds event notifications to conntrack. Since there are very=20
-> much events, it is tried to cache them where possible and to deliver
-> all cached ones at once. Still, there are a lot. The notifications can
-> be disabled at compile time while keeping parts of ctnetlink that
-> don't rely on them working.=20
+i don't like that part either, but how could the problem mentioned
+before be solved without it ?
 
-Yes, this is the way to go.
+>>The last id successfully dumped is stored in the struct
+>>netlink_callback and after an interruption it is continued with the
+>>next one. Unfortunately this adds two new fields to struct
+>>ip_conntrack. The id field could be useful for ctnetlink itself (since
+>>tuples can be reused it is the only unique identifier).
+>>    
+>>
+>
+>yes, but passing the address of the conntrack as ID would be much easier
+>than than a unique sequential ID.
+>
+>Or what about using a timestamp as ID? it would not be unique, but at
+>least you can say something like 'entries created before jiffies==foo have
+>already been sent'.
+>
+>This still doesn't eliminate the need for the ordered list.  We need to
+>find a way around that.
+>
 
-> Also noteworthy is the fact that the NEW event is in fact CONFIRM
-> since there is no way to access unconfirmed connections. The DESTROY
-> event is currently in destroy_conntrack, this should probably move to
-> clean_from_lists.=20
+yes i would like that too. the unique id doesn't seem to be very important,
+i just mentioned it to sweeten the bigger ip_conntrack structure ;)
 
-ACK. We can have conntracks that are forced to live longer because some
-sibling is still holding a refcount on it.  But userspace should get
-notified once the entry is deactivated - that is, at the time it is
-removed from the lists.  This change would also make it symmetric
-(NEW=3D=3Dconfirm, DESTROY=3D=3Dremove_from_lists
+>>Some thoughts/problems for discussion:
+>>- There are too much messages, messages get lost if the socket receive 
+>>buffer is exhausted. I only tested on UML so it might have been just
+>>too slow.
+>>    
+>>
+>
+>did you try to increase the buffer?
+>
+yes, with uml it didn't help much. now i'm running it between my gateway
+and my workstation and there are no drops until now.
 
-> ip_ct_refresh is changed to only update the timer if timer.expires !=3D
-> jiffies+extra_jiffies. This reduces timeout change messages to at most
-> HZ/s instead of 1/packet.=20
+>>- If NEW message is lost all further changes are pointless. One could 
+>>make messages redundant by always including the attributes required to
+>>create new entries. OTOH, this is only interesting for state
+>>synchronisation, not for other listeners. 
+>>    
+>>
+>
+>No, I don't think this is necessarry.  If a sync receiver gets updates
+>for an entry it doesn't have, it can issue an request to receive a full
+>[new] copy of this entry.
+>  
+>
 
-> I'm unclear if this change introduces a race condition of some kind.
+some firewalls with failover-capabilities also seem to do periodic polls of
+the state table. i suppose it could be cheaper than event messages under 
+some
+circumstances.
 
-I don't think so.
 
-> There are currently no messages for things done on behalf of ctnetlink
-> itself.
+>>Different messages for different multicast groups ? This is probably
+>>needlessly expensive, the overhead of the extra attributes is not
+>>much.  It could of course also be handled in userspace (but with high
+>>overhead).
+>>    
+>>
+>
+>Well, I don't care about the overhead in userspace if it's about a rare
+>case (message loss).
+>
 
-This means that listener B doesn't get notified if listener A
-adds/changes something via ctnetlink.  This needs to get implemented in
-order to sanely support multiple listeners
+Currently it is not necessary to be aware of the conntrack table in 
+userspace.
+If you want to make messages redundant in userspace you'll have to replicate
+it.
 
-> -Table dumping:
-> Previous code crashed (known issue i think),=20
+>>- Helpers: should it be possible to assign arbitary helpers to 
+>>connections (respecting protocol, disrespecting ports) or not ? 
+>>    
+>>
+>
+>might be a nice feature to have, but I wouldn't consider this important
+>  
+>
+i left it out for know.
 
-Yes, Martin has a fix for it.
+>>Should connections created on behalf of ctnetlink be assigned
+>>a helper automatically if there is a matching one ?
+>>    
+>>
+>
+>yes.
+>  
+>
+i'll change that.
 
-> also if it worked entries would have been dumped multiple times if
-> there was no room in the skb while in the middle of dumping a hash
-> chain.=20
+>a couple of thoughts:
+>
+>- stuff like 'conntrack->proto.tcp = *(struct ip_ct_tcp *)p;' makes the
+>  compiler to generate inline memcpy, which is less optimal than the
+>  kernel-provided asm memcpy implementation, so let's not do this.
+>
+i'll also change that.
 
-true, but not too problematic.  If we send the address of the conntrack
-entry as ID to userspace, userspace could detect those copies. But it's
-not nice, of course.
+>- you add two new callback functions 'new' and 'change' to
+>  ip_conntrack_protocol.  Can't we unify those two somehow?
+>  
+>
+currently only difference is that change takes locks for some protocols.
+we could of course always take the lock.
 
-> With my current solution confirmed entries are assigned a unique
-> increasing id and held in an ordered list.=20
+>Thanks once again, keep up the good work.
+>  
+>
+Thanks ;)
 
-Mh, this is the part i really dislike (sorry).  The unique ID is IMHO
-going to be expensive (the cacheline of this ID will always ping-pong,
-as heavy contention is to be expected).  And the ordered list..  is it
-really necessarry to yet again increase the size of ip_conntrack?=20
-
-> The last id successfully dumped is stored in the struct
-> netlink_callback and after an interruption it is continued with the
-> next one. Unfortunately this adds two new fields to struct
-> ip_conntrack. The id field could be useful for ctnetlink itself (since
-> tuples can be reused it is the only unique identifier).
-
-yes, but passing the address of the conntrack as ID would be much easier
-than than a unique sequential ID.
-
-Or what about using a timestamp as ID? it would not be unique, but at
-least you can say something like 'entries created before jiffies=3D=3Dfoo h=
-ave
-already been sent'.
-
-This still doesn't eliminate the need for the ordered list.  We need to
-find a way around that.
-
-> Some thoughts/problems for discussion:
-> - There are too much messages, messages get lost if the socket receive=20
-> buffer is exhausted. I only tested on UML so it might have been just
-> too slow.
-
-did you try to increase the buffer?
-
-> - If NEW message is lost all further changes are pointless. One could=20
-> make messages redundant by always including the attributes required to
-> create new entries. OTOH, this is only interesting for state
-> synchronisation, not for other listeners.=20
-
-No, I don't think this is necessarry.  If a sync receiver gets updates
-for an entry it doesn't have, it can issue an request to receive a full
-[new] copy of this entry.
-
-> Different messages for different multicast groups ? This is probably
-> needlessly expensive, the overhead of the extra attributes is not
-> much.  It could of course also be handled in userspace (but with high
-> overhead).
-
-Well, I don't care about the overhead in userspace if it's about a rare
-case (message loss).
-
-> - Helpers: should it be possible to assign arbitary helpers to=20
-> connections (respecting protocol, disrespecting ports) or not ?=20
-
-might be a nice feature to have, but I wouldn't consider this important
-
-> Should connections created on behalf of ctnetlink be assigned
-> a helper automatically if there is a matching one ?
-
-yes.
-
-> - nat: masq_index is current not included in NATINFO. could it be useful ?
-
-> Ok my brain is empty now, if i remember some more i'll write a new=20
-> message ..
-
-I can imagine...
-
-a couple of thoughts:
-
-- stuff like 'conntrack->proto.tcp =3D *(struct ip_ct_tcp *)p;' makes the
-  compiler to generate inline memcpy, which is less optimal than the
-  kernel-provided asm memcpy implementation, so let's not do this.
-
-- you add two new callback functions 'new' and 'change' to
-  ip_conntrack_protocol.  Can't we unify those two somehow?
-
-> Sorry about expecting a connmark patched kernel, but i started to work=20
-> on ctnetlink because i wanted to change connection marks ..
-
-no problem, we can 'fix' this later.
-
-Thanks once again, keep up the good work.
-
-> Best regards,
-> Patrick
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---rmZDAlAp7pllCg/D
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+2RX5XaXGVTD0i/8RAqs4AKCgGRb5ZsV1eAaY+bPkAn5sPijBTgCZAfkY
-vHjdrmTqK4zwkldK0tzKlZ0=
-=DdpW
------END PGP SIGNATURE-----
-
---rmZDAlAp7pllCg/D--
+Patrick
