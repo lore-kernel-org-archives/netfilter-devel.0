@@ -1,15 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 2.4 0/18]: Netfilter resync with 2.6
-Date: Mon, 20 Dec 2004 16:55:09 -0800
-Message-ID: <20041220165509.152c058a.davem@davemloft.net>
+Date: Tue, 21 Dec 2004 10:41:40 +0100
+Message-ID: <41C7EFD4.9080006@trash.net>
 References: <41C67BBB.6010100@trash.net>
+	<20041220165509.152c058a.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41C67BBB.6010100@trash.net>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20041220165509.152c058a.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 20 Dec 2004 08:14:03 +0100
-Patrick McHardy <kaber@trash.net> wrote:
+David S. Miller wrote:
 
-> the following 18 patches resync netfilter in 2.4 with 2.6.
-> They contains the ICMP+NAT fixes, Yasuyuki's IPv6 fixes
-> and two misc. fixes.
+> Please don't put things like the Bitkeeper/etc/config changeset
+> in your tree.  I can't pull in changes like that.
 > 
-> You can pull all changes from bk://212.42.230.204/nf-2.4
+> Unfortunately, I can't even "bk undo -r" that bogus change since
+> it's not at the tip of the tree.  And I don't want to "bk cset -x"
+> the changeset since that leaves the history of this crap in there.
 
-Please don't put things like the Bitkeeper/etc/config changeset
-in your tree.  I can't pull in changes like that.
+Oops, sorry, I can't even remeber when I put this in.
 
-Unfortunately, I can't even "bk undo -r" that bogus change since
-it's not at the tip of the tree.  And I don't want to "bk cset -x"
-the changeset since that leaves the history of this crap in there.
+> 
+> Can you put together a clean tree without the Bitkeeper/etc/config
+> change in it?  Thanks.
 
-Can you put together a clean tree without the Bitkeeper/etc/config
-change in it?  Thanks.
+Sure, but it might take a few days.
+
+Regards
+Patrick
