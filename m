@@ -1,19 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: helper and handling IPv6 fragments [was Re: nf_conntrack resync
-	with 2.6.11-rc4]
-Date: Sat, 19 Feb 2005 19:50:28 +0100
-Message-ID: <20050219185028.GN29256@sunbeam.de.gnumonks.org>
-References: <200502151615.23463.michal@rokos.info>
-	<200502151654.57371.michal@rokos.info>
-	<200502161132.19312.michal@rokos.info>
-	<200502171520.j1HFKH6U029405@toshiba.co.jp>
+Subject: Re: [PATCH] conntrack-acct "workaround" for 2.6.9+
+Date: Sat, 19 Feb 2005 19:52:53 +0100
+Message-ID: <20050219185253.GO29256@sunbeam.de.gnumonks.org>
+References: <4213E350.8060604@niksula.hut.fi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LSp5EJdfMPwZcMS1"
+	protocol="application/pgp-signature"; boundary="vKFfOv5t3oGVpiF+"
 Cc: netfilter-devel@lists.netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Jonas Berlin <jberlin@niksula.hut.fi>
 Content-Disposition: inline
-In-Reply-To: <200502171520.j1HFKH6U029405@toshiba.co.jp>
+In-Reply-To: <4213E350.8060604@niksula.hut.fi>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,34 +22,26 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---LSp5EJdfMPwZcMS1
+--vKFfOv5t3oGVpiF+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Feb 18, 2005 at 12:20:16AM +0900, Yasuyuki KOZAKAI wrote:
-> Well, There seems to be some issues in IPv6 module by resent changes.
-
-ACK.
-
-> In the result, all fragments reach ipv6_confirm(). helper should not
-> track all of them, and track reassembled skb JUST ONCE.
-
-Agreed.
-
-> But how ipv6_confirm() can figure out whether helper has already tracked
-> the reassembled skb or not ?
+On Thu, Feb 17, 2005 at 02:20:32AM +0200, Jonas Berlin wrote:
+> patch-o-matic-ng fails to detect that conntrack-acct is already applied=
+=20
+> (I don't know how it does the detection) and thus fails when trying to=20
+> apply it.
 >=20
-> I think nfcache flag may help. If helper return NF_ACCEPT, ipv6_confirm()
-> set NFC_ALTERD to nfcache of it. And when other fragments reach ipv6_conf=
-irm(),
-> it can return without call helper. Of cause, we need to define the other =
-flags
-> for STOLEN/REPEAT...
+> However, if an empty file called linux-2.6.9.patch is placed in the=20
+> conntrack-acct/ directory, everything works just fine.
 
-I'm not sure if I understand this proposal correctly. Do you suggest to
-set the nfcache bit of the reassembled clone as soon as the first
-fragment has passed the helper (and returned NF_ACCEPT) ?
+conntrack-acct shouldn't be in patch-o-matic in the first place.  As we
+decided (after conntrack-acct was in) only new features / new modules
+should be part of patch-o-matic.
+
+In my current post-2.6.11 patch-o-matic branch in svn, I'm also getting
+rid of all those pathes (especially patch-o-matic-ng/conntrack-*)
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -65,7 +53,7 @@ fragment has passed the helper (and returned NF_ACCEPT) ?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---LSp5EJdfMPwZcMS1
+--vKFfOv5t3oGVpiF+
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -73,9 +61,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFCF4p0XaXGVTD0i/8RApldAJ97zpEWcffBikP9ubUfAf7WQpPOYgCgooTH
-FYp/brfQX+ChcmJETXE+4mE=
-=/ggS
+iD8DBQFCF4sEXaXGVTD0i/8RAp7MAKCsMqJDUUdRFPB5SKDJvNZZsFPmcQCcCjac
+nzPO3UQM2U68hCEI+rLIiIA=
+=HBI0
 -----END PGP SIGNATURE-----
 
---LSp5EJdfMPwZcMS1--
+--vKFfOv5t3oGVpiF+--
