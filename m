@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: conntrack and kernel log
-Date: Wed, 7 May 2003 17:00:44 +0200
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: [RFC] Additional TCP Flags in the tcp module.
+Date: Wed, 7 May 2003 17:20:06 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030507150044.GN6702@sunbeam.de.gnumonks.org>
-References: <3EB91241.8070209@gmx.net>
+Message-ID: <Pine.LNX.4.51.0305071710280.18335@dns.toxicfilms.tv>
+References: <Pine.LNX.4.51.0305071216370.14343@dns.toxicfilms.tv>
+ <20030507145852.GM6702@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pN9MePJoZbRKbUk1"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eicke Friedrich <tady@gmx.net>
-Content-Disposition: inline
-In-Reply-To: <3EB91241.8070209@gmx.net>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20030507145852.GM6702@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,47 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> Not sure whether it would be useful. But I don't think that there is any
+> danger associated with it (other than people use it in a wrong way, but
+> then that's their problem).
+:) Yes, the same as with the ecn match.
 
---pN9MePJoZbRKbUk1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> However, we already have an ecn match, that matches IP and TCP flags...
+Yes I know. I was just thinking of giving the tcp match full tcp-flags
+matching capabilities as they are possible.
 
-On Wed, May 07, 2003 at 04:03:45PM +0200, Eicke Friedrich wrote:
+If someone wants to just account packets initiating ECN connections he
+would:
+# iptables ... -p tcp --syn -m ecn --ecn-tcp-cwr --ecn-tcp-ece -j ACCEPT
 
-> How comes that the size per conntrack is at the first box smaller even=20
-> though CONNMARK is installed? I mean it uses some bytes more per entry=20
-> for the mark=3D field? Is it due to two CPU's? Sorry for this newbie=20
-> question but googlin' did not gave me an answer.
+Which i think causes more overhead than:
 
-It's because of the connection tracking helpers or nat helpers you have
-or have not patched into your kernel.  (it also makes a difference
-whether or not NAT is disabled or not.
+# iptables ... -p tcp --tcp-flags ECN,CWR,SYN ECN,CWR,SYN -j ACCEPT
 
-> Thanks for any comments,
-> Eicke.
+Because another matching module's match() is called.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---pN9MePJoZbRKbUk1
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+uR+cXaXGVTD0i/8RAudWAKCkeAED2UgO8YdmC81znFyOsqjL4ACdG8Y/
-C+8aR6YFDhdAg079noMUv/I=
-=fT+y
------END PGP SIGNATURE-----
-
---pN9MePJoZbRKbUk1--
+Regards,
+Maciej
