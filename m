@@ -1,16 +1,15 @@
-From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Subject: Re: netfilter
-Date: Thu, 27 May 2004 04:11:36 -0400
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: DIRECTION macro and conntrack_nonat
+Date: Thu, 27 May 2004 10:23:56 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1085645478.10045.10.camel@localhost>
-References: <20040526021817.16087.qmail@web13903.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.33.0405270951190.23437-100000@blackhole.kfki.hu>
+References: <40B14FC3.7020802@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: sokhan heng <sokhan2001@yahoo.com>
-In-Reply-To: <20040526021817.16087.qmail@web13903.mail.yahoo.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <40B14FC3.7020802@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,31 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2004-05-25 at 22:18, sokhan heng wrote:
-> Hi there
-> 
-> I wonder if I could ask you one question please about
-> netfilter? I wonder if it can be used to prioritise
-> traffic, by that I mean when two packets are sent to
-> the same destination, one can be delayed to let the
-> other packet pass first. if it can, can you tell me
-> what topic should I look for to get how to do that
-> please?
-> 
-> Yours sincerely
-> 
-> Sokhan H 
-<snip>
-I do not believe that is a netfilter function.  You could take a look at
-iproute2.  The documentation is frequently found in a file named
-ip-cref.ps
--- 
-John A. Sullivan III
-Chief Technology Officer
-Nexus Management
-+1 207-985-7880
-john.sullivan@nexusmgmt.com
----
-If you are interested in helping to develop a GPL enterprise class
-VPN/Firewall/Security device management console, please visit
-http://iscs.sourceforge.net 
+Hi Patrick,
+
+On Mon, 24 May 2004, Patrick McHardy wrote:
+
+> I hope I'm wrong here because I really like the patch, but won't
+> the DIRECTION macro always return IP_CT_DIR_ORIGINAL with
+> conntrack_nonat because only this tuplehash is kept in the lists ?
+
+No, you're completely right: conntrack_nonat is half-done :-(
+I'm working on the fixed version.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
