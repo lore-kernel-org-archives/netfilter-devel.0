@@ -1,15 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: MARK target extension
-Date: Thu, 10 Jun 2004 11:59:35 +0200 (CEST)
+From: "Shannon J. Field" <shannon.field@backbonesecurity.com>
+Subject: RE: Questions about Iptable extensions
+Date: Thu, 10 Jun 2004 11:05:26 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406101129490.13398-100000@filer.marasystems.com>
-References: <20040609222646.M64@metal.art.pl>
+Message-ID: <4807CA09ACACCF4BBDACF1EF2455D8B3AB8DC8@bbserver3.backbonesecurity.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Grzegorz Nosek <blackfire@metal.art.pl>
-In-Reply-To: <20040609222646.M64@metal.art.pl>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,94 +20,68 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 10 Jun 2004, Grzegorz Nosek wrote:
-
-> Taking this a little bit further, why not get rid of the /mask
-> entirely as it's not exactly obvious what it means and replace them
-> with more verbose --set-mark, --or-mark, --and-mark, --xor-mark?
-
-Because the mask is far more powerful in the --set-mark.
-
---or-mark makes sense to add as an alternative human representation as
-0x80/0x80 is not very intuitive unless one is used to work with masked
-values, and even more so if value/0 is reserved for xor (mask 0 in
-CONNMARK is today or, regardless of the value)
-
---and-mark also makes sense to add as an alternative representation of 
-0/value
-
-but both --or-mark and --and-mark can be represented in --set-mark by the
-logics of --set-mark. It is only --xor-mark which can not.
-
-
-> It would look like the mark-operations patch but should allow for
-> multiple operations per line. --set-mark would prohibit any other
-> options, --and-mark would be performed before --xor-mark. --or-mark
-> would end up as a xor and a change to the and mask, as in: xor_mark =
-> or_mark; and_mark = and_mark & ~or_mark; /* or something, I'm asleep
-> right now */
-
-If you like the userspace can allow for multiple and/or/set operations (in
-any order). xor is exclusive with the other operations however unless the 
-representation is extended with one more bitfield for xor.
-
-> One side effect would be that upon iptables-save, all ORs would change
-> to XORs "mysteriously" but there might be a way to detect ORs and
-> treat them as such (xor_mask & and_mask == 0 or thereabouts).
-
-Eh?
-
-xor is a special case and will always be xor. xor can not be combined with 
-anything else without extending the representation, and if the 
-representation is extended xor is still cleraly separate from the other 
-operation.
-
-With the following binary representation and kernel function any
-combination of set/and/or/xor can be represented:
-
-  unsigned long value, mask, xor;
-
-
-  newvalue = ((oldvalue & mask) | value) ^ xor;
-
-or alternatively
-
-  newvalue = ((oldvalue ^ xor ) & mask ) | value)
-
-
-Userspace operations:
-
-
-  --set-mark
-
-      value |= specified_value;
-      if (mask specified)
-          mask |= specified_mask;
-      else
-          mask = ~0;
-
-  --or-mark
-
-      value |= specified_value;
-      mask |= specified_value;
-
-  --and-mark becomes
-
-      if (mask = 0)
-          mask = ~0;
-      mask &= specified_value;
-
-  --xor-mark becomes
-
-      if (mask = 0)
-          mask = ~0;
-      xor |= specified_value;
-
-
-
-If you like there can be appropriate asserts to alert the user if he is 
-specifying conflicting operations on the same bit, but I am not sure if 
-this is needed other than for xor.
-
-Regards
-Henrik
+CVRoYW5rcyBmb3IgeW91ciBoZWxwIEhlbnJpayENCg0KCSANCg0KCUkgbWFkZSBhbGwgdGhlIGNo
+YW5nZXMgdG8gdGhlIGNvZGUgYW5kIGl0IGNvbXBpbGVkIGZpbmUuIE9uY2UgSSBnb3QgdGhlIGxp
+YnJhcnkgbGlua2VkIGFuZCBpbiBwbGFjZSwgSSB0cmllZCB0aGlzIGNvbW1hbmQ6DQoNCgkjIGlw
+dGFibGVzIC1BIE9VVFBVVCAtZCA2NC4xODUuNjQuMTMgLXAgdGNwIC0tZHBvcnQgODAgLW0gbGVu
+Z3RoIC0tbGVuZ3RoIDEwMDAgLWogQUNDRVBUDQoJaXB0YWJsZXM6IG1hdGNoIGBsZW5ndGgnIGhh
+cyBpbnZhbGlkIHNpemUgMi4NCgkNCg0KCUkgaGF2ZSBiZWVuIHNlYXJjaGluZyBhcm91bmQgYW5k
+IGhhdmVuJ3QgcXVpdGUgZm91bmQgd2hhdCB0aGlzIGVycm9yIG1lYW5zIG9yIGhvdyB0byBjb3Jy
+ZWN0IGl0Lg0KDQoJIA0KDQoJVGhhbmtzLA0KDQoJU2hhbm5vbg0KDQoJKiogUmV2aXNlZCBjb2Rl
+IGJlbG93ICoqDQoNCgkvKiBTaGFyZWQgbGlicmFyeSBhZGQtb24gdG8gaXB0YWJsZXMgdG8gYWRk
+IHBhY2tldCBsZW5ndGggbWF0Y2hpbmcgc3VwcG9ydC4gKi8NCgkjaW5jbHVkZSA8c3RkaW8uaD4N
+CgkjaW5jbHVkZSA8bmV0ZGIuaD4NCgkjaW5jbHVkZSA8c3RyaW5nLmg+DQoJI2luY2x1ZGUgPHN0
+ZGxpYi5oPg0KCSNpbmNsdWRlIDxnZXRvcHQuaD4NCgkjaW5jbHVkZSA8aXB0YWJsZXMuaD4NCgkv
+LyAjaW5jbHVkZTxsaW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfbGVuZ3RoLmg+DQoNCgkjaWZuZGVm
+IF9JUFRfTEVOR1RIX0gNCgkjZGVmaW5lIF9JUFRfTEVOR1RIX0gNCg0KCXN0cnVjdCBpcHRfbGVu
+Z3RoX2luZm8gew0KCSAgICAgICAgICAgICAgICB1X2ludDE2X3QgbGVuZ3RoOw0KCX07DQoJI2Vu
+ZGlmIC8qX0lQVF9MRU5HVEhfSCovDQoNCgkvKiBGdW5jdGlvbiB3aGljaCBwcmludHMgb3V0IHVz
+YWdlIG1lc3NhZ2UuICovDQoJc3RhdGljIHZvaWQNCgloZWxwKHZvaWQpDQoJew0KCSAgICAgICAg
+cHJpbnRmKCJsZW5ndGggdiVzIG9wdGlvbnM6XG4iDQoJICAgICAgICAgICAgICAiLS1sZW5ndGgg
+bGVuZ3RoICAgIE1hdGNoIHRoaXMgcGFja2V0IGxlbmd0aFxuIiwNCgkgICAgICAgICAgICAgIE5F
+VEZJTFRFUl9WRVJTSU9OKTsNCgl9DQoNCglzdGF0aWMgc3RydWN0IG9wdGlvbiBvcHRzW10gPSB7
+DQoJICAgICAgICB7ICJsZW5ndGgiLCAxLCAwLCAnMScgfSwNCgkgICAgICAgIHswfQ0KCX07DQoN
+CgkvKiBJbml0aWFsaXplIHRoZSBtYXRjaC4gKi8NCglzdGF0aWMgdm9pZA0KCWluaXQoc3RydWN0
+IGlwdF9lbnRyeV9tYXRjaCAqbSwgdW5zaWduZWQgaW50ICpuZmNhY2hlKQ0KCXsNCgkgICAgICAg
+ICpuZmNhY2hlIHw9IE5GQ19VTktOT1dOOw0KCX0NCg0KCS8qIEZ1bmN0aW9uIHdoaWNoIHBhcnNl
+cyBjb21tYW5kIG9wdGlvbnM7IHJldHVybnMgdHJ1ZSBpZiBpdA0KCSAgIGF0ZSBhbiBvcHRpb24g
+Ki8NCglzdGF0aWMgaW50DQoJcGFyc2UoaW50IGMsIGNoYXIgKiphcmd2LCBpbnQgaW52ZXJ0LCB1
+bnNpZ25lZCBpbnQgKmZsYWdzLA0KCSAgICAgIGNvbnN0IHN0cnVjdCBpcHRfZW50cnkgKmVudHJ5
+LA0KCSAgICAgIHVuc2lnbmVkIGludCAqbmZjYWNoZSwNCgkgICAgICBzdHJ1Y3QgaXB0X2VudHJ5
+X21hdGNoICoqbWF0Y2gpDQoJew0KCSAgICAgICBzdHJ1Y3QgaXB0X2xlbmd0aF9pbmZvICppbmZv
+ID0gKHN0cnVjdCBpcHRfbGVuZ3RoX2luZm8gKikoKm1hdGNoKS0+ZGF0YTsNCgkgICAgICAgaW50
+IGxlbjsNCg0KCSAgICAgICAgc3dpdGNoIChjKSB7DQoJICAgICAgICAgICAgICAgIGNhc2UgJzEn
+Og0KCSAgICAgICAgICAgICAgICAgICAgICAgIGlmICgqZmxhZ3MpDQoJICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KCSAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAibGVuZ3RoOiBgLS1sZW5ndGgnIG1h
+eSBvbmx5IGJlICINCgkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+InNwZWNpZmllZCBvbmNlIik7DQoJICAgICAgICAgICAgICAgICAgICAgICBsZW4gPSBzdHJpbmdf
+dG9fbnVtYmVyKGFyZ3Zbb3B0aW5kLTFdLCAweEZGRkYsMCwgaW5mby0+bGVuZ3RoKTsNCgkgICAg
+ICAgICAgICAgICAgICAgICAgIGlmIChsZW4gPT0gLTEpDQoJICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIGV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sDQoJICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgImxlbmd0aCBpbnZhbGlkOiBgJXMnXG4iLCBhcmd2
+W29wdGluZC0xXSk7DQoJICAgICAgICAgICAgICAgICAgICAgICAgKmZsYWdzID0gMTsNCgkgICAg
+ICAgICAgICAgICAgICAgICAgICBicmVhazsNCg0KCSAgICAgICAgICAgICAgICBkZWZhdWx0Og0K
+CSAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAwOw0KCSAgICAgICAgfQ0KCSAgICAgICAg
+cmV0dXJuIDE7DQoJfQ0KDQoJLyogRmluYWwgY2hlY2s7IG11c3QgaGF2ZSBzcGVjaWZpZWQgLS1s
+ZW5ndGguICovDQoJc3RhdGljIHZvaWQNCglmaW5hbF9jaGVjayh1bnNpZ25lZCBpbnQgZmxhZ3Mp
+DQoJew0KCSAgICAgICAgaWYgKCFmbGFncykNCgkgICAgICAgICAgICAgICAgZXhpdF9lcnJvcihQ
+QVJBTUVURVJfUFJPQkxFTSwNCgkgICAgICAgICAgICAgICAgICAgICAgICAgICAibGVuZ3RoOiBZ
+b3UgbXVzdCBzcGVjaWZ5IGAtLWxlbmd0aCciKTsNCgl9DQoNCgkvKiBDb21tb24gbWF0Y2ggcHJp
+bnRpbmcgY29kZS4gKi8NCglzdGF0aWMgdm9pZA0KCXByaW50X2xlbmd0aChzdHJ1Y3QgaXB0X2xl
+bmd0aF9pbmZvICppbmZvKQ0KCXsNCgkgICAgICAgIHByaW50ZigiJXUgIiwgaW5mby0+bGVuZ3Ro
+KTsNCgl9DQoNCgkvKiBQcmludHMgb3V0IHRoZSBtYXRjaGluZm8uICovDQoJc3RhdGljIHZvaWQN
+CglwcmludChjb25zdCBzdHJ1Y3QgaXB0X2lwICppcCwNCgkgICAgICBjb25zdCBzdHJ1Y3QgaXB0
+X2VudHJ5X21hdGNoICptYXRjaCwNCgkgICAgICBpbnQgbnVtZXJpYykNCgl7DQoJICAgICAgICBw
+cmludGYoImxlbmd0aCAiKTsNCgkgICAgICAgIHByaW50X2xlbmd0aCgoc3RydWN0IGlwdF9sZW5n
+dGhfaW5mbyAqKW1hdGNoLT5kYXRhKTsNCgl9DQoNCgkvKiBTYXZlcyB0aGUgdW5pb24gaXB0X21h
+dGNoaW5mbyBpbiBwYXJzYWJsZSBmb3JtIHRvIHN0ZG91dC4gKi8NCglzdGF0aWMgdm9pZA0KCXNh
+dmUoY29uc3Qgc3RydWN0IGlwdF9pcCAqaXAsIGNvbnN0IHN0cnVjdCBpcHRfZW50cnlfbWF0Y2gg
+Km1hdGNoKQ0KCXsNCgkgICAgICAgIHByaW50ZigiLS1sZW5ndGggIik7DQoJICAgICAgICBwcmlu
+dF9sZW5ndGgoKHN0cnVjdCBpcHRfbGVuZ3RoX2luZm8gKiltYXRjaC0+ZGF0YSk7DQoJfQ0KDQoJ
+c3RydWN0IGlwdGFibGVzX21hdGNoIGxlbmd0aA0KCT0geyBOVUxMLA0KCSAgICAibGVuZ3RoIiwN
+CgkgICAgTkVURklMVEVSX1ZFUlNJT04sDQoJICAgIHNpemVvZihzdHJ1Y3QgaXB0X2xlbmd0aF9p
+bmZvKSwNCgkgICAgc2l6ZW9mKHN0cnVjdCBpcHRfbGVuZ3RoX2luZm8pLA0KCSAgICAmaGVscCwN
+CgkgICAgJmluaXQsDQoJICAgICZwYXJzZSwNCgkgICAgJmZpbmFsX2NoZWNrLA0KCSAgICAmcHJp
+bnQsDQoJICAgICZzYXZlLA0KCSAgICBvcHRzDQoJfTsNCg0KCXZvaWQgX2luaXQodm9pZCkNCgl7
+DQoJICAgICAgICByZWdpc3Rlcl9tYXRjaCgmbGVuZ3RoKTsNCgl9DQoJDQoNCg==
