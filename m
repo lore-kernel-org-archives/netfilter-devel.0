@@ -1,12 +1,13 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Hop limit target/match inclusion.
-Date: Thu, 6 Feb 2003 16:28:15 +0100 (CET)
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [Fwd: NAT counting]
+Date: 06 Feb 2003 16:35:55 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0302061624020.6634@dns.toxicfilms.tv>
+Message-ID: <1044545755.21354.9.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,9 +18,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Maybe this could be interesting to someone?
 
-is the hop limit target/match mature enough to be included to the kernel?
+-----Forwarded Message-----
 
-Regards,
-Maciej Soltysiak
+From: Stephen Clark <sclark46@earthlink.net>
+To: linux-kernel <linux-kernel@vger.kernel.org>
+Subject: NAT counting
+Date: 06 Feb 2003 09:46:44 -0500
+
+Hi all,
+
+Is Linux being fixed to prevent this?
+
+
+"how to remotely count the number of machines hiding behind a NAT box" 
+<http://www.research.att.com/%7Esmb/papers/fnat.pdf> /
+
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+-- 
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat you with experience.
