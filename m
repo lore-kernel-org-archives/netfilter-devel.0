@@ -1,16 +1,16 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: udp REJECT....
-Date: Mon, 27 Jan 2003 08:43:22 +0100
+From: Thomas Heinz <creatix@hipac.org>
+Subject: Re: Comments about IPT_ALIGN
+Date: Mon, 27 Jan 2003 11:33:55 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030127074322.GA18340@oknodo.bof.de>
-References: <200301270513.19862.curious@pb194.luban.sdi.tpnet.pl>
+Message-ID: <3E350B13.8010502@hipac.org>
+References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu> <3E33C665.9080106@fugmann.dhs.org> <20030126152227.A6811@linux.karinthy.hu> <3E342355.1030707@hipac.org> <20030126204358.B9418@linux.karinthy.hu> <3E346A9A.5020305@hipac.org> <20030127014304.A10076@linux.karinthy.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Anders Fugmann <afu@fugmann.dhs.org>,
+ netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bob Arctor <curious@pb194.luban.sdi.tpnet.pl>
-Content-Disposition: inline
-In-Reply-To: <200301270513.19862.curious@pb194.luban.sdi.tpnet.pl>
+To: Laszlo Valko <valko@linux.karinthy.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,29 +21,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 27, 2003 at 05:13:19AM +0100, Bob Arctor wrote:
-> hello... i have problems with dDoS attacks, and would like to set up my linux 
-> routers dDoS proof
-[SNIP]
+Hi Laszlo
 
-In practise, the limit match is all you need for the scenario you
-described. Find out how many UDP packets your supposed victim
-sends during normal operation, and limit to two times that.
+You wrote:
+> On sparc, it happens to be the same. I'm not sure how much pure luck
+> or intention this is.
 
-I usually use a user-defined chain like this:
+Good point. Maybe someone else can enlighten us.
 
-# LRD for LOG/REJECT/DROP
-iptables -N LRD
-iptables -A LRD -m limit --limit 1/s -j LOG --log-prefix 'LRD: '
-iptables -A LRD -p tcp -m limit --limit 2/s -j REJECT --reject-with tcp-reset
-iptables -A LRD -m limit --limit 2/s -j REJECT
-iptables -A LRD -j DROP
+> This might even be a function of using different compiler options...
 
-Now, everywhere you now use '-j REJECT', use '-j LRD', instead.
+Ok. If we have to deal with user and kernel space having different
+alignment requirements for types of the same bit width but endianness
+can be assumed to stay (at least for solution 1)) the same we have
+(at least) two options:
 
-If this does not cover your needs, look into the iplimit target
-(in patch-o-matic), which does the limit thing per source IP,
-instead of globally.
+1) Define a set of types with fixed bit width and fixed alignment
+    requirements for each architecture which must also be made
+    available in userspace (which implies that different type
+    primitives might be used). The kernel-user structs may only use
+    these types as basic types.
 
-hope this helps
-  Patrick
+2) Define the kernel-user communication in terms of a network protocol
+    (anyway, I guess this will be the case if netfilter communication is
+    converted to netlink).
+
+> I think the "strictest alignment on this platform" should not come
+> from the compiler. It should be defined in some kernel header under
+> linux/include/asm-*.
+
+If one cannot make the necessary assumptions this is of course the only
+way to define it properly.
+
+
+Regards,
+
+Thomas
