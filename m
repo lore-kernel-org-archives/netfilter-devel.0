@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 3/6]: Convert sctp match to skb_header_pointer
-Date: Sun, 26 Sep 2004 23:52:12 +0200
+Subject: [PATCH 2.6 2/6]: make ipt_helper depend on ip_conntrack again
+Date: Sun, 26 Sep 2004 23:52:08 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41573A0C.4060309@trash.net>
+Message-ID: <41573A08.7040105@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090108000309020508070006"
+Content-Type: multipart/mixed; boundary="------------090609070602010908040503"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,129 +19,65 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090108000309020508070006
+--------------090609070602010908040503
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch converts the sctp match to skb_header_pointer.
+The "kill struct nf_ct_info" patch moved ip_conntrack_get
+to ip_conntrack.h. Before this change ipt_helper depended
+on ip_conntrack, this patch restores this behaviour. It
+also removes the EXPORT_SYMBOL for ip_conntrack_get.
 
 
 
---------------090108000309020508070006
+--------------090609070602010908040503
 Content-Type: text/x-patch;
- name="03.diff"
+ name="02.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="03.diff"
+ filename="02.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/09/26 23:16:04+02:00 kaber@coreworks.de 
-#   [NETFILTER]: Convert sctp match to skb_header_pointer
+#   2004/09/26 23:14:34+02:00 kaber@coreworks.de 
+#   [NETFILTER]: make ipt_helper depend on ipt_conntrack again
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ipt_sctp.c
-#   2004/09/26 23:15:40+02:00 kaber@coreworks.de +18 -16
-#   [NETFILTER]: Convert sctp match to skb_header_pointer
+# net/ipv4/netfilter/ipt_helper.c
+#   2004/09/26 23:14:10+02:00 kaber@coreworks.de +1 -0
+#   [NETFILTER]: make ipt_helper depend on ipt_conntrack again
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv4/netfilter/ipt_sctp.c b/net/ipv4/netfilter/ipt_sctp.c
---- a/net/ipv4/netfilter/ipt_sctp.c	2004-09-26 23:22:45 +02:00
-+++ b/net/ipv4/netfilter/ipt_sctp.c	2004-09-26 23:22:45 +02:00
-@@ -42,7 +42,7 @@
+# net/ipv4/netfilter/ip_conntrack_standalone.c
+#   2004/09/26 23:14:10+02:00 kaber@coreworks.de +0 -1
+#   [NETFILTER]: make ipt_helper depend on ipt_conntrack again
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-26 23:22:27 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-26 23:22:27 +02:00
+@@ -871,7 +871,6 @@
+ EXPORT_SYMBOL(invert_tuplepr);
+ EXPORT_SYMBOL(ip_conntrack_alter_reply);
+ EXPORT_SYMBOL(ip_conntrack_destroyed);
+-EXPORT_SYMBOL(ip_conntrack_get);
+ EXPORT_SYMBOL(need_ip_conntrack);
+ EXPORT_SYMBOL(ip_conntrack_helper_register);
+ EXPORT_SYMBOL(ip_conntrack_helper_unregister);
+diff -Nru a/net/ipv4/netfilter/ipt_helper.c b/net/ipv4/netfilter/ipt_helper.c
+--- a/net/ipv4/netfilter/ipt_helper.c	2004-09-26 23:22:27 +02:00
++++ b/net/ipv4/netfilter/ipt_helper.c	2004-09-26 23:22:27 +02:00
+@@ -107,6 +107,7 @@
+ 
+ static int __init init(void)
  {
- 	int offset;
- 	u_int32_t chunkmapcopy[256 / sizeof (u_int32_t)];
--	sctp_chunkhdr_t sch;
-+	sctp_chunkhdr_t _sch, *sch;
++	need_ip_conntrack();
+ 	return ipt_register_match(&helper_match);
+ }
  
- #ifdef DEBUG_SCTP
- 	int i = 0;
-@@ -54,38 +54,39 @@
- 
- 	offset = skb->nh.iph->ihl * 4 + sizeof (sctp_sctphdr_t);
- 	do {
--		if (skb_copy_bits(skb, offset, &sch, sizeof(sch)) < 0) {
-+		sch = skb_header_pointer(skb, offset, sizeof(_sch), &_sch);
-+		if (sch == NULL) {
- 			duprintf("Dropping invalid SCTP packet.\n");
- 			*hotdrop = 1;
- 			return 0;
-         	}
- 
- 		duprintf("Chunk num: %d\toffset: %d\ttype: %d\tlength: %d\tflags: %x\n", 
--				++i, offset, sch.type, htons(sch.length), sch.flags);
-+				++i, offset, sch->type, htons(sch->length), sch->flags);
- 
--		offset += (htons(sch.length) + 3) & ~3;
-+		offset += (htons(sch->length) + 3) & ~3;
- 
- 		duprintf("skb->len: %d\toffset: %d\n", skb->len, offset);
- 
--		if (SCTP_CHUNKMAP_IS_SET(chunkmap, sch.type)) {
-+		if (SCTP_CHUNKMAP_IS_SET(chunkmap, sch->type)) {
- 			switch (chunk_match_type) {
- 			case SCTP_CHUNK_MATCH_ANY:
- 				if (match_flags(flag_info, flag_count, 
--					sch.type, sch.flags)) {
-+					sch->type, sch->flags)) {
- 					return 1;
- 				}
- 				break;
- 
- 			case SCTP_CHUNK_MATCH_ALL:
- 				if (match_flags(flag_info, flag_count, 
--					sch.type, sch.flags)) {
--					SCTP_CHUNKMAP_CLEAR(chunkmapcopy, sch.type);
-+					sch->type, sch->flags)) {
-+					SCTP_CHUNKMAP_CLEAR(chunkmapcopy, sch->type);
- 				}
- 				break;
- 
- 			case SCTP_CHUNK_MATCH_ONLY:
- 				if (!match_flags(flag_info, flag_count, 
--					sch.type, sch.flags)) {
-+					sch->type, sch->flags)) {
- 					return 0;
- 				}
- 				break;
-@@ -120,7 +121,7 @@
-       int *hotdrop)
- {
- 	const struct ipt_sctp_info *info;
--	sctp_sctphdr_t sh;
-+	sctp_sctphdr_t _sh, *sh;
- 
- 	info = (const struct ipt_sctp_info *)matchinfo;
- 
-@@ -129,18 +130,19 @@
- 		return 0;
- 	}
- 	
--	if (skb_copy_bits(skb, skb->nh.iph->ihl*4, &sh, sizeof(sh)) < 0) {
-+	sh = skb_header_pointer(skb, skb->nh.iph->ihl*4, sizeof(_sh), &_sh);
-+	if (sh == NULL) {
- 		duprintf("Dropping evil TCP offset=0 tinygram.\n");
- 		*hotdrop = 1;
- 		return 0;
-        	}
--	duprintf("spt: %d\tdpt: %d\n", ntohs(sh.source), ntohs(sh.dest));
-+	duprintf("spt: %d\tdpt: %d\n", ntohs(sh->source), ntohs(sh->dest));
- 
--	return  SCCHECK(((ntohs(sh.source) >= info->spts[0]) 
--			&& (ntohs(sh.source) <= info->spts[1])), 
-+	return  SCCHECK(((ntohs(sh->source) >= info->spts[0]) 
-+			&& (ntohs(sh->source) <= info->spts[1])), 
- 		   	IPT_SCTP_SRC_PORTS, info->flags, info->invflags)
--		&& SCCHECK(((ntohs(sh.dest) >= info->dpts[0]) 
--			&& (ntohs(sh.dest) <= info->dpts[1])), 
-+		&& SCCHECK(((ntohs(sh->dest) >= info->dpts[0]) 
-+			&& (ntohs(sh->dest) <= info->dpts[1])), 
- 			IPT_SCTP_DEST_PORTS, info->flags, info->invflags)
- 		&& SCCHECK(match_packet(skb, info->chunkmap, info->chunk_match_type,
-  					info->flag_info, info->flag_count, 
 
---------------090108000309020508070006--
+--------------090609070602010908040503--
