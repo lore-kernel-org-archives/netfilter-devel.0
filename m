@@ -1,18 +1,13 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 9/18] Netfilter: Clean up the kmod handling code in
-	iptables.c
-Date: Wed, 5 Jan 2005 19:12:49 +0100
-Message-ID: <20050105181249.GS26856@postel.suug.ch>
-References: <1104896029.20582.72.camel@localhost.localdomain>
+From: Vivek raghunathan <vivek.raghunathan@gmail.com>
+Subject: mac dest match
+Date: Wed, 5 Jan 2005 13:18:43 -0600
+Message-ID: <645d37c505010511185e63eb1b@mail.gmail.com>
+Reply-To: Vivek raghunathan <vivek.raghunathan@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, Linus Torvalds <torvalds@osdl.org>,
-	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
-	Jamal Hadi Salim <hadi@cyberus.ca>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-Content-Disposition: inline
-In-Reply-To: <1104896029.20582.72.camel@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,112 +19,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Rusty Russell <1104896029.20582.72.camel@localhost.localdomain> 2005-01-05 14:33
-> Name: Clean up the kmod handling code in iptables.c
-> Status: Tested under nfsim
-> 
-> 4) Remove __ipt_mutex_up() and __ipt_find_target_lock() which weren't
->    used (even in patch-o-matic AFAICT).
+Hi all.
 
-Those are used by ipt action (net/sched/ipt.c).
+I am a graduate student doing wireless networking research. I am doing
+some performance analysis for a testbed implementation of a new
+routing scheme for such networks. The biggest problem in doing testing
+is that it is very difficult to create reliable network topologies
+using commercially available 802.11 cards. While I could go on about
+the problem at length, here's why I write this email.
 
-Readds __ipt_find_target_lock() and __ipt_mutex_up() and adapts ipt.c
-to correctly use it. module must be given back properly upon cleanup.
-removes the comments demanding for proper module refcnt since
-find_target_lock() takes care of this now.
+I have 3 nodes A, B, C on the same subnet and I would like to create a
+line topology:
 
-Jamal: Can you please verify?
+A -> B -> C
 
-Signed-off-by: Thomas Graf <tgraf@suug.ch>
+To do this, I need to prevent any MAC packet from A to C from getting
+across and vice versa.
 
-diff -Nru linux-2.6.10-bk8.orig/include/linux/netfilter_ipv4/ip_tables.h linux-2.6.10-bk8/include/linux/netfilter_ipv4/ip_tables.h
---- linux-2.6.10-bk8.orig/include/linux/netfilter_ipv4/ip_tables.h	2005-01-05 18:58:14.000000000 +0100
-+++ linux-2.6.10-bk8/include/linux/netfilter_ipv4/ip_tables.h	2005-01-05 18:47:43.000000000 +0100
-@@ -432,6 +432,9 @@
- extern int ipt_register_match(struct ipt_match *match);
- extern void ipt_unregister_match(struct ipt_match *match);
- 
-+extern struct ipt_target * __ipt_find_target_lock(const char *name, u8 rev);
-+extern void __ipt_mutex_up(void);
-+
- /* Furniture shopping... */
- struct ipt_table
- {
-diff -Nru linux-2.6.10-bk8.orig/net/ipv4/netfilter/ip_tables.c linux-2.6.10-bk8/net/ipv4/netfilter/ip_tables.c
---- linux-2.6.10-bk8.orig/net/ipv4/netfilter/ip_tables.c	2005-01-05 18:58:14.000000000 +0100
-+++ linux-2.6.10-bk8/net/ipv4/netfilter/ip_tables.c	2005-01-05 18:46:33.000000000 +0100
-@@ -488,6 +488,16 @@
- 	return ERR_PTR(-EPROTOTYPE);
- }
- 
-+struct ipt_target * __ipt_find_target_lock(const char *name, u8 revision)
-+{
-+	return find_target_lock(name, revision);
-+}
-+
-+void __ipt_mutex_up(void)
-+{
-+	up(&ipt_mutex);
-+}
-+
- static int match_revfn(const char *name, u8 revision, int *bestp)
- {
- 	struct ipt_match *m;
-@@ -1959,6 +1969,8 @@
- EXPORT_SYMBOL(ipt_do_table);
- EXPORT_SYMBOL(ipt_register_target);
- EXPORT_SYMBOL(ipt_unregister_target);
-+EXPORT_SYMBOL_GPL(__ipt_find_target_lock);
-+EXPORT_SYMBOL_GPL(__ipt_mutex_up);
- 
- module_init(init);
- module_exit(fini);
-diff -Nru linux-2.6.10-bk8.orig/net/sched/ipt.c linux-2.6.10-bk8/net/sched/ipt.c
---- linux-2.6.10-bk8.orig/net/sched/ipt.c	2004-12-24 22:33:49.000000000 +0100
-+++ linux-2.6.10-bk8/net/sched/ipt.c	2005-01-05 18:55:29.000000000 +0100
-@@ -60,19 +60,14 @@
- 	struct ipt_target *target;
- 	int ret = 0;
- 	struct ipt_entry_target *t = p->t;
--	target = __ipt_find_target_lock(t->u.user.name, &ret);
-+	target = __ipt_find_target_lock(t->u.user.name, t->u.user.revision);
- 
--	if (!target) {
-+	if (IS_ERR(target) || !target) {
- 		printk("init_targ: Failed to find %s\n", t->u.user.name);
- 		return -1;
- 	}
- 
- 	DPRINTK("init_targ: found %s\n", target->name);
--	/* we really need proper ref counting
--	 seems to be only needed for modules?? Talk to laforge */
--/*      if (target->me)
--              __MOD_INC_USE_COUNT(target->me);
--*/
- 	t->u.kernel.target = target;
- 
- 	__ipt_mutex_up();
-@@ -81,9 +76,6 @@
- 	    && !t->u.kernel.target->checkentry(p->tname, NULL, t->data,
- 					       t->u.target_size
- 					       - sizeof (*t), p->hook)) {
--/*              if (t->u.kernel.target->me)
--	      __MOD_DEC_USE_COUNT(t->u.kernel.target->me);
--*/
- 		DPRINTK("ip_tables: check failed for `%s'.\n",
- 			t->u.kernel.target->name);
- 		ret = -EINVAL;
-@@ -235,8 +227,12 @@
- {
- 	struct tcf_ipt *p;
- 	p = PRIV(a,ipt);
--	if (NULL != p)
-+	if (NULL != p) {
-+		struct ipt_entry_target *t = p->t;
-+		if (t && t->u.kernel.target)
-+			module_put(t->u.kernel.target->me);
- 		return tcf_hash_release(p, bind);
-+	}
- 	return 0;
- }
- 
+I am currently using iptables mac-source matching to do this. At C, I
+filter out all packets from mac address of A and vice versa. However,
+with mac-source matching, packets from A to C still cross over the
+wireless to C before being dropped at the INPUT hook at C.
+
+I plan to write a mac-dest match for iptables that lets me filter out
+packets based on destination MAC address. This will let me drop the
+packets from A to C at A before they cross the wireless rather than at
+C after they cross the wireless.
+
+I wonder if somebody else has written such a mac-dest match already ...
+
+-Vivek
