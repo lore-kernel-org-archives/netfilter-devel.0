@@ -1,12 +1,15 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Need help on 2.6.11 and pom-ng HEAD
-Date: Thu, 31 Mar 2005 17:50:24 +0800
-Message-ID: <20050331173635.01D4.LARK@linux.net.cn>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: svn.netfilter.org down again?
+Date: Thu, 31 Mar 2005 12:54:35 +0300
+Message-ID: <424BC8DB.7060303@outerspace.dyndns.org>
+References: <20050331163116.01C9.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Wang Jian <lark@linux.net.cn>
+In-Reply-To: <20050331163116.01C9.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,33 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I am working on an enterprise project that use linux + netfilter + tc as
-a QoS control device.
+Wang Jian wrote:
 
-Beside ordinary conntrack helper, the following things are needed:
+| It seems that svn.netfilter.org is out of memory.
 
- directx8-conntrack-nat
- h323-conntrack-nat
- ipp2p
- mms-conntrack-nat
- quake3-conntrack-nat
- rtsp-conntrack
- nfnetlink-ctnetlink-0.13
+It happens every now and then.. afaik LaF0rge usually fixes this. It would
+be nice with some watchdog that cheked it at some interval and restarted it
+if necessary...
 
-Some of above thigns are brought to 2.6.x only after 2.6.11. So I
-decided to use 2.6.11 or coming 2.6.12.
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-But I failed to patch 2.6.11 with HEAD of trunk of pom-ng without
-modification. I tweak 2.6.11 source code for insertion point in
-ip_conntrack.h, and the conntrack helper can be applied but can't be
-compiled. And Pablo Neira's nfnetlink-ctnetlink-0.13 patches for 2.6.11
-can't be compiled too.
-
-Can someone give me a hint on this issue?
-
-
-
--- 
-  lark
+iD8DBQFCS8jZxyF48ZTvn+4RAia8AKCCDSpTl2lWP4xnNZ2PaR+HvaKsSACguxqV
+RnLmz5eEuYFvSt0DXrw1pb4=
+=4EPQ
+-----END PGP SIGNATURE-----
