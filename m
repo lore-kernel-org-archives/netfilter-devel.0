@@ -1,8 +1,8 @@
 From: Chris Friesen <chris_friesen@sympatico.ca>
 Subject: any plan for firewalling before the packet socket hooks?
-Date: Tue, 09 Sep 2003 22:58:08 -0400
+Date: Tue, 09 Sep 2003 22:58:38 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F5E9340.9040908@sympatico.ca>
+Message-ID: <3F5E935E.5020006@sympatico.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
