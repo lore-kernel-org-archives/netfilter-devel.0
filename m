@@ -1,17 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] peer_pid checking in ip_queue
-Date: Tue, 23 Mar 2004 19:10:52 +0100
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: Adding packet metadata
+Date: Tue, 23 Mar 2004 08:23:52 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40607DAC.2090404@eurodev.net>
-References: <40601AE4.5070206@eurodev.net> <406072ED.8060304@trash.net>
+Message-ID: <20040323162352.78749.qmail@web13904.mail.yahoo.com>
+References: <Pine.LNX.4.44.0403172230510.11069-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
- netfilter-devel@lists.netfilter.org,
- Harald Welte <laforge@netfilter.org>
-In-Reply-To: <406072ED.8060304@trash.net>
+To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.44.0403172230510.11069-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,30 +19,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+Hello,
+I wanted to mark up packets with information as they
+pass thru the system.  Basically, I want to associate
+some data with a packet during PREROUTING/raw (to read
+info prior to conntrack) and then get that information
+back during PREROUTING/mangle.  Is there a module
+already written which could perform this?  It is not
+something I would need to have accessible to the
+iptables program, though I will probably need to
+adjust some code to make it accessible to my ip_queue
+userspace application...
 
-Patrick McHardy wrote:
+-Scott
 
-> peer_pid is protected by queue_lock, you move it out of the locked
-> section. This leads to a small race which can cause message loss. Not 
-> sure if it's bad though as netlink is unreliable itself.
-
-yes it's true, well if i'm not wrong, this small race could happen for 
-first packets which are going to be
-enqueued, is it?.
-
-For example, two packets arrive almost at the same time, ip_queue 
-allocates space for both new entries to be enqueued, first packet is not 
-enqueued because peer_pid is 0 but, in that moment, the user space 
-program binds to ip_queue's netlink sockets, but entry for second packet 
-is already created and peer_pid is not 0 anymore, so this packet is 
-enqueue. With my patch, both packets will be lost, with current 
-implementation one is lost and the other one is enqueued.
-
-By other hand, I think that if user programs hungs or dies, we stress 
-the kernel allocating
-and releasing memory all the time. So, my question is, is really a 
-problem losing these packets?
-
-thanks for the feedback,
-Pablo
+__________________________________
+Do you Yahoo!?
+Yahoo! Finance Tax Center - File online. File on time.
+http://taxes.yahoo.com/filing.html
