@@ -1,12 +1,16 @@
-From: netfilter-devel-admin@lists.netfilter.org
-Subject: Accessing iptables from within an application...
-Date: Sun, 16 Mar 2003 19:54:50 +0100 (CET)
+From: Ilguiz Latypov <ilatypov@infradead.org>
+Subject: Re: Transparent broadband network connectivity (IP PnP)
+Date: Thu, 13 Mar 2003 13:18:28 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0303161950120.17534-100000@peter.stamf.pr.at>
+Message-ID: <Pine.LNX.4.44.0303131312340.30700-100000@localhost.localdomain>
+References: <20030313090821.GA7053@naboo.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: dragon_nlt@yahoo.com,
+    Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030313090821.GA7053@naboo.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,67 +22,21 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hello netfilter/iptables hackers,
+On Thu, 13 Mar 2003, Harald Welte wrote:
 
-First: Great job!
+> A broken setup like you describe breaks about any of the fundamental
+> assumptions of a working IP network. (and of layering in a network)
 
-The project (Maybe this has been done before, if so: all the better,
-please tell me about it.): I am writing an SNMP module for net-snmp to
-access the counters of iptables rules. This is for monitoring and
-accounting with tools like mrtg and my upcoming tool I plan to release
-shortly.
+Not to start a flame war, but I think the only missing part in that
+"broken" network topology was the automatic addition/removal of host
+routes on the gateway pointing to eth0 for any packets destined to the
+clients' IP addresses.
 
-In order for this to work, I want to provide "meta" information about the
-rules along with the counters in order to be able to use SNMP lookups to
-find the correct counter SNMP variable (much like looking up the interface
-ID [=a potentially changing number] used to poll for interface statistics
-from the interface IP address [=a much more stable information for a given
-interface]). This already works quite well, I simply took the libiptc
-library out of the iptables distribution to use it to access the iptables
-information. (Is using libiptc a clever choice, or is there a better 
-interface somewhere else?)
+SNAT-ting would still be required, as it was shown in the original
+message.
 
+--
+Ilguiz Latypov
+Net Integration Technologies, Inc
 
-An example of what I want to access via SNMP:
-
-$ snmpwalk -v2c -m all -c $COMMUNITY localhost .1.3.6.1.4.1.12806.6.1.1
-
-IPTABLES-MIB::tableIndex.0 = INTEGER: 0
-IPTABLES-MIB::tableIndex.1 = INTEGER: 1
-IPTABLES-MIB::tableName.0 = STRING: "nat"
-IPTABLES-MIB::tableName.1 = STRING: "filter"
-
-[..snip..]
-
-IPTABLES-MIB::chainRule.0.2.0 = STRING: ";j=ACCEPT"
-IPTABLES-MIB::chainRule.1.0.0 = STRING: ";j=ACCEPT"
-IPTABLES-MIB::chainRule.1.0.1 = STRING: ";s=192.168.3.0/24;j=ACCEPT"
-IPTABLES-MIB::chainRule.1.0.2 = STRING: ";p=6;s=192.168.3.0/24;j=ACCEPT"
-
-
-Where the IPTABLES-MIB is an experimental private MIB. The chainRule 
-variables are thought to provide for a packed representation of the filter 
-rule. I plan to implement other variables to access specific information 
-later. The indices following the "chainRule" are: A table id (eg. 
-"filter"), a chain ID (eg. "OUTPUT") and a rule ID (eg. the second rule in 
-the chain).
-
-The problem now is quite obvious: How to access module specific 
-iptables extension information ("-m")? I stumbled across the "save" method 
-in the iptables modules, but this prints to stdout. Is there any similar 
-mechanism to get the same information in some other form? Even a "sprintf" 
-based solution would be OK in addition to the "printf" version to have the 
-info in a character buffer, ready to send via SNMP....
-
-If anything of this makes any sense to you: Is there any such interface 
-that I simply missed?
-
-And another question: When using the libiptc library, I need to call 
-iptc_init(tablename). How can I free the data structure I obtain through 
-this call when I no longer need it? I guess a simple "free" won't do the 
-trick? 
-
-
-thanks in advance
-
-peter
+tel. +1 (514) 281 9191 x 117
