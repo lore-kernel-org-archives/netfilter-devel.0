@@ -1,10 +1,14 @@
-From: avinash m <kukzme@yahoo.com>
-Subject: ipsec implementation using netfilter
-Date: Fri, 18 Mar 2005 22:56:21 -0800 (PST)
-Message-ID: <20050319065622.45027.qmail@web31402.mail.mud.yahoo.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: ipsec implementation using netfilter
+Date: Fri, 18 Mar 2005 23:10:05 -0800
+Message-ID: <20050318231005.29ed2120.davem@davemloft.net>
+References: <20050319065622.45027.qmail@web31402.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: avinash m <kukzme@yahoo.com>
+In-Reply-To: <20050319065622.45027.qmail@web31402.mail.mud.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -16,36 +20,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi 
+On Fri, 18 Mar 2005 22:56:21 -0800 (PST)
+avinash m <kukzme@yahoo.com> wrote:
 
-  I am a newbie trying to implement ipsec in transport
-mode. i am new to writing networking code too.
+> I have seen the openswan.org but that didnt get me
+> anywhere. I am also not clear hoe i could place this
+> customization into the existing ipsec stack(if i could
+> understand that)
 
-The crypto algorithms are actually implemented on a
-crypto accelerator card which can be programmed using
-some registers to setup an encryption/decryption
-sessions. The security associations are also stored in
-the crypto card.  
+People have written experimental patches that allow
+hw acceleration of IPSEC using the existing IPSEC stack.
+It's actually not very difficult.
 
-I have seen the openswan.org but that didnt get me
-anywhere. I am also not clear hoe i could place this
-customization into the existing ipsec stack(if i could
-understand that)
+See the netdev@oss.sgi.com archives for details.
 
- Now i am of the idea of implementing this using the
-netfilter module. I am planning to place hook on the
-loca input and local output hooks. The packets are
-then sent to the card for enc/dec.
-
-I this the right way to implement? if not could i get
-some pointers to do this the right way.
-
-Thanx in advance.
-shawn
-
-
-		
-__________________________________ 
-Do you Yahoo!? 
-Yahoo! Small Business - Try our new resources site!
-http://smallbusiness.yahoo.com/resources/ 
+Using netfilter is the last way you would go about doing
+this.
