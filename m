@@ -1,14 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: netfilter hook not working with fragments
-Date: Thu, 10 Feb 2005 23:06:00 +0100
-Message-ID: <420BDAC8.3080300@eurodev.net>
-References: <19c901c50f35$a4afb8b0$a610a8c0@niche>
+From: Jonas Berlin <jberlin@niksula.hut.fi>
+Subject: ULOG target for ipv6
+Date: Fri, 11 Feb 2005 01:15:07 +0200
+Message-ID: <420BEAFB.9070405@niksula.hut.fi>
+References: <42086F50.9090504@niksula.hut.fi>
+	<53965.213.236.112.75.1107867276.squirrel@213.236.112.75>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-To: Michael Varga <mike.varga@cavium.com>
-In-Reply-To: <19c901c50f35$a4afb8b0$a610a8c0@niche>
+Content-Type: multipart/mixed; boundary="------------010206040202010105020301"
+To: Martijn Lievaart <m@rtij.nl>,  netfilter-devel@lists.netfilter.org
+In-Reply-To: <53965.213.236.112.75.1107867276.squirrel@213.236.112.75>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,29 +19,152 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Michael Varga wrote:
+This is a multi-part message in MIME format.
+--------------010206040202010105020301
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
->Hi,
->
->I wrote a NF_IP_PRE_ROUTING hook to capture packets
->for an IPSec implimentation.
->
->Is there a way to make netfilter assemble fragments before=20
->recieving them in my netfilter hook?
+Martijn Lievaart wrote:
+
+>What I mostly miss in ipv6 support is conntrack and ULOG.
 >  
 >
+Here's my first attempt of ULOG for ipv6. It's _untested_, but it 
+compiles at least on 2.6 and it patches fine against 2.4.28 also.
 
-If you use a kernel 2.4, you won't see any fragments since netfilter 
-assembles them before hitting NF_IP_PRE_PREROUTING. On the other hand, 
-if your box runs a kernel 2.6,  assemble them by yourself. Have a look 
-at skb_linearize. Previously check that it's non linear with 
-skb_is_non_linear.
+As a side note - I have no idea how a (the) userspace daemon will react 
+to getting ipv6 packets. :)
 
-http://lxr.linux.no/source/include/linux/skbuff.h#L1041
-http://lxr.linux.no/source/include/linux/skbuff.h#L655
+Feel free to send me any problems you encounter with the kernel module 
+or iptables extension though.
 
-Since you get packets from interrupt context, make sure you pass the 
-GFP_ATOMIC flag to skb_linearize.
+Good luck :)
 
---
-Pablo
+--------
+
+Someone could also point me to the latest instructions on how to 
+contribute - the online docs I found here didn't work very well:
+
+  
+http://netfilter.org/documentation/HOWTO//netfilter-extensions-HOWTO-9.html
+
+-- 
+- xkr47
+
+
+--------------010206040202010105020301
+Content-Type: application/octet-stream;
+ name="ipv6-ULOG-1.tar.bz2"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="ipv6-ULOG-1.tar.bz2"
+
+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
+4k+yhtZCK0EKO12BRYOUVf/xdyRThQkDEXgdMA==
+--------------010206040202010105020301--
