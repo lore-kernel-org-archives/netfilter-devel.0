@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipq_get_msgerr: No such file or directory
-Date: Sun, 03 Apr 2005 19:12:02 +0200
-Message-ID: <425023E2.30703@trash.net>
-References: <bfbae0cc011856c1dbdca5bedf862015@axentra.net>
+Subject: Re: Cannot apply h323-conntrack-nat
+Date: Sun, 03 Apr 2005 19:32:15 +0200
+Message-ID: <4250289F.8000801@trash.net>
+References: <1111695753.32351.34.camel@localhost>
+	<20050325222027.GA12915@roonstrasse.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org,
+	Javier Kohen <jkohen@users.sourceforge.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robert Scott <rbscott@axentra.net>
-In-Reply-To: <bfbae0cc011856c1dbdca5bedf862015@axentra.net>
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <20050325222027.GA12915@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +23,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Robert Scott wrote:
-> I am receiving this error code from ipq_get_msgerr.  The read is 
-> successful, and returns a non-zero positive number, but when I call 
-> ipq_message_type on the buffer used to read the packet, I get 
-> NLMSG_ERROR, and then, when I call strerror( ipq_get_msgerr( buffer ))  
-> where "buffer" is the second argument to ipq_read, I receive the error 
-> message "No such file or directory".
+Max Kellermann wrote:
+> I have already posted patches to h323-conntrack-nat, unfortunately
+> they have not been applied to svn yet. You can find patches against
+> pom-ng trunk on my home page:
 > 
-> This has occurred on a Linux 2.6.8.1 kernel with version 1.2.9 of 
-> iptables.  The box where this occurred is acting as a bridge, and this 
-> started happening when the internet connection on one of its interfaces 
-> went down for a few hours.
-> 
-> Any ideas as to why this may be happening?
+>  http://max.kellermann.name/projects/netfilter/h323.html
 
-There is only a single place where ip_queue returns -ENOENT, which is
-when in ipq_set_verdict when the entry can't be found.
+I can see that Harald applied some of your patches 3 weeks ago. Are
+there still some missing?
 
 Regards
 Patrick
