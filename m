@@ -1,8 +1,7 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 6/8] netfilter: Add comment above remove_expectations in
-	destroy_conntrack()
-Date: Fri, 31 Dec 2004 22:41:35 +1100
-Message-ID: <1104493295.2791.18.camel@localhost.localdomain>
+Subject: [PATCH 8/8] netfilter: Remove copy_to_user Warnings in Netfilter
+Date: Fri, 31 Dec 2004 22:44:02 +1100
+Message-ID: <1104493442.2791.23.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -20,29 +19,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Add comment above remove_expectations in destroy_conntrack()
+Name: Remove copy_to_user Warnings in Netfilter
 Status: Trivial
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-I removed this code in a previous patch, and Patrick McHardy explained
-what was wrong.  Add a comment.
+After changing firewall rules, we try to return the counters to
+userspace.  We didn't fail at that point if the copy failed, but it
+doesn't really matter.  Someone added a warn_unused_result attribute
+to copy_to_user, so we get bogus warnings.
 
-Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c
+Index: linux-2.6.10-rc3-bk6-Netfilter/net/ipv4/netfilter/ip_tables.c
 ===================================================================
---- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_core.c	2004-12-28 12:41:40.731242496 +1100
-+++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c	2004-12-28 12:43:37.739454544 +1100
-@@ -299,7 +299,10 @@
- 		ip_conntrack_destroyed(ct);
+--- linux-2.6.10-rc3-bk6-Netfilter.orig/net/ipv4/netfilter/ip_tables.c	2004-12-13 12:02:08.342802968 +1100
++++ linux-2.6.10-rc3-bk6-Netfilter/net/ipv4/netfilter/ip_tables.c	2004-12-13 12:03:14.954676424 +1100
+@@ -1141,12 +1141,12 @@
+ 	/* Decrease module usage counts and free resource */
+ 	IPT_ENTRY_ITERATE(oldinfo->entries, oldinfo->size, cleanup_entry,NULL);
+ 	vfree(oldinfo);
+-	/* Silent error: too late now. */
+-	copy_to_user(tmp.counters, counters,
+-		     sizeof(struct ipt_counters) * tmp.num_counters);
++	if (copy_to_user(tmp.counters, counters,
++			 sizeof(struct ipt_counters) * tmp.num_counters) != 0)
++		ret = -EFAULT;
+ 	vfree(counters);
+ 	up(&ipt_mutex);
+-	return 0;
++	return ret;
  
- 	WRITE_LOCK(&ip_conntrack_lock);
--	/* Make sure don't leave any orphaned expectations lying around */
-+	/* Expectations will have been removed in clean_from_lists,
-+	 * except TFTP can create an expectation on the first packet,
-+	 * before connection is in the list, so we need to clean here,
-+	 * too. */
- 	if (ct->expecting)
- 		remove_expectations(ct, 1);
+  put_module:
+ 	module_put(t->me);
+Index: linux-2.6.10-rc3-bk6-Netfilter/net/ipv6/netfilter/ip6_tables.c
+===================================================================
+--- linux-2.6.10-rc3-bk6-Netfilter.orig/net/ipv6/netfilter/ip6_tables.c	2004-12-13 12:02:08.342802968 +1100
++++ linux-2.6.10-rc3-bk6-Netfilter/net/ipv6/netfilter/ip6_tables.c	2004-12-13 12:03:14.956676120 +1100
+@@ -1222,11 +1222,12 @@
+ 	IP6T_ENTRY_ITERATE(oldinfo->entries, oldinfo->size, cleanup_entry,NULL);
+ 	vfree(oldinfo);
+ 	/* Silent error: too late now. */
+-	copy_to_user(tmp.counters, counters,
+-		     sizeof(struct ip6t_counters) * tmp.num_counters);
++	if (copy_to_user(tmp.counters, counters,
++			 sizeof(struct ip6t_counters) * tmp.num_counters) != 0)
++		ret = -EFAULT;
+ 	vfree(counters);
+ 	up(&ip6t_mutex);
+-	return 0;
++	return ret;
  
+  put_module:
+ 	module_put(t->me);
+Index: linux-2.6.10-rc3-bk6-Netfilter/net/ipv4/netfilter/arp_tables.c
+===================================================================
+--- linux-2.6.10-rc3-bk6-Netfilter.orig/net/ipv4/netfilter/arp_tables.c	2004-12-13 12:02:08.342802968 +1100
++++ linux-2.6.10-rc3-bk6-Netfilter/net/ipv4/netfilter/arp_tables.c	2004-12-13 12:03:14.959675664 +1100
+@@ -948,12 +948,12 @@
+ 	/* Decrease module usage counts and free resource */
+ 	ARPT_ENTRY_ITERATE(oldinfo->entries, oldinfo->size, cleanup_entry,NULL);
+ 	vfree(oldinfo);
+-	/* Silent error: too late now. */
+-	copy_to_user(tmp.counters, counters,
+-		     sizeof(struct arpt_counters) * tmp.num_counters);
++	if (copy_to_user(tmp.counters, counters,
++			 sizeof(struct arpt_counters) * tmp.num_counters) != 0)
++		ret = -EFAULT;
+ 	vfree(counters);
+ 	up(&arpt_mutex);
+-	return 0;
++	return ret;
+ 
+  put_module:
+ 	module_put(t->me);
 
 -- 
 A bad analogy is like a leaky screwdriver -- Richard Braakman
