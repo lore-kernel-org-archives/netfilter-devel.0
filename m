@@ -1,16 +1,18 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Any known issues with iptables-1.3.0 from cvs/svn ?
-Date: Fri, 22 Oct 2004 10:28:13 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] PoM-NG Subversion compatibility fix
+Date: Fri, 22 Oct 2004 12:49:22 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0410221020590.17044@tux.rsn.bth.se>
-References: <20041022080913.GV3551@sunbeam.de.gnumonks.org>
+Message-ID: <20041022104921.GA3551@sunbeam.de.gnumonks.org>
+References: <1098259780.2477.3.camel@nienna.balabit>
+	<1098260496.2477.8.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Rusty Russell <rusty@rustcorp.com.au>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="stFzI3XAseUQ09UW"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20041022080913.GV3551@sunbeam.de.gnumonks.org>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Content-Disposition: inline
+In-Reply-To: <1098260496.2477.8.camel@nienna.balabit>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +23,42 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 22 Oct 2004, Harald Welte wrote:
 
-> Hi!
->
-> I want to release iptables-1.3.0 (including the libiptc speedup rewrite)
-> soon.
->
-> If anyone has any issues (bugs, changed functionality from 1.2.11, ...)
-> with the current svn code or a recent snapshot, this is the time to step
-> up :)
+--stFzI3XAseUQ09UW
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I've been running it for a while and havn't noticed any problems except
-this:
-delete-by-specifying-the-complete-rule doesn't work.
+On Wed, Oct 20, 2004 at 10:21:37AM +0200, KOVACS Krisztian wrote:
+> 2004-10-20, sze keltez=E9ssel 10:09-kor KOVACS Krisztian ezt =EDrta:
+> >   PoM-NG fails to apply any patches from a checked Subversion working
+>=20
+>   Oh, I meant 'checked out', of course... :(
 
-I think Rusty did some work on that in Erlangen (libiptc internals worked
-but the rule-management was a bit screwed up back then). Rusty, did you
-finish something or should I take a look at it?
+Thanks, Krisztian.  I independently discovered it yesterday (before
+reading your mail) and fixed it.
 
-/Martin
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--stFzI3XAseUQ09UW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBeOWxXaXGVTD0i/8RAoleAKCG7WuX9MA59ycH4M36WIxZnRVgFwCaA4CG
+Xdrf9TXVPLBtwqvSlT31Tyk=
+=zCuf
+-----END PGP SIGNATURE-----
+
+--stFzI3XAseUQ09UW--
