@@ -1,8 +1,8 @@
 From: "Bisawjit  Paul" <biswajit_paul@rediffmail.com>
 Subject: path of Netfilter source code ??????
-Date: 16 Sep 2002 09:21:15 -0000
+Date: 16 Sep 2002 09:21:55 -0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020916092115.27234.qmail@webmail14.rediffmail.com>
+Message-ID: <20020916092155.11363.qmail@webmail27.rediffmail.com>
 Reply-To: "Bisawjit  Paul" <biswajit_paul@rediffmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
