@@ -1,67 +1,35 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2.6] ip_nat_ftp - manip at the right place
-Date: Sat, 11 Sep 2004 23:57:46 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040911215746.GF19871@obroa-skai.de.gnumonks.org>
-References: <Pine.LNX.4.58.0409111042580.1315@u.domain.uli>
+From: "Gary Smith" <gary@primeexalia.com>
+Subject: netfilter and TARPIT
+Date: Tue, 12 Oct 2004 17:10:43 -0700
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <21245695958BF041875A6C39D08F9EBA1C3BD6@vjo-mails-03.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MZf7D3rAEoQgPanC"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-        netdev@oss.sgi.com, Rusty Russell <rusty@rustcorp.com.au>
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Julian Anastasov <ja@ssi.bg>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0409111042580.1315@u.domain.uli>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---MZf7D3rAEoQgPanC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Sep 11, 2004 at 10:53:53AM +0300, Julian Anastasov wrote:
-> 	Hello,
->=20
-> 	This is a resend/resync for v2.6.9-rc1-bk17: change the
-> way the ip_nat_ftp helper manipulates the packets:
->=20
-> - no manips =3D> no fixup
->=20
-> - check the direction, do manip once and at the same time when the
-> headers are changed
-
-I agree with this change, but shouldn't we make it consistently over all
-NAT helpers?  In case you didn't check yet, and assuming that this is
-applicable to other helpers as well:  Please include patches for other
-protocol helpers as well.
-
-Thanks!
-
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---MZf7D3rAEoQgPanC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBQ3TaXaXGVTD0i/8RAmTxAJ9ktGTt1eOru0wIrLid2gEjMRFJBwCgpNx0
-pnQyfK2GmkS3WA73Nvpu/SE=
-=CJnS
------END PGP SIGNATURE-----
-
---MZf7D3rAEoQgPanC--
+Hello,
+=20
+I've been playing around with some netfilter extra's and found that =
+tarpit doesn't compile and making the necessary tweaks to it casuses it =
+to compile but fails to run.
+=20
+Before spending much more time on tarpit I was wondering if tarpit is =
+still actively being developed?  If it is are there some additional =
+patches to make it run under rhel 3?
+=20
+Thanks,
+=20
+Gary Smith
