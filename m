@@ -1,15 +1,17 @@
-From: Emmanuel Fleury <fleury@cs.auc.dk>
+From: Guillaume Morin <guillaume@morinfr.org>
 Subject: Re: Security flaw in Stateful filtering ??????
-Date: Fri, 07 Jun 2002 11:31:31 +0200
+Date: Fri, 7 Jun 2002 11:43:19 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <3D007D73.9030609@cs.auc.dk>
-References: <E17G6im-0000FK-00@wagner.rustcorp.com.au> <3D006B9E.1040809@cs.auc.dk> <200206071105.42881.hno@marasystems.com>
-Reply-To: netfilter-devel@lists.samba.org
+Message-ID: <20020607094319.GA595@morinfr.org>
+References: <E17G6im-0000FK-00@wagner.rustcorp.com.au> <3D006B9E.1040809@cs.auc.dk> <200206071105.42881.hno@marasystems.com> <3D007D73.9030609@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: Emmanuel Fleury <fleury@cs.auc.dk>
+Content-Disposition: inline
+In-Reply-To: <3D007D73.9030609@cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,26 +22,21 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
+Dans un message du 07 jun à 11:31, Emmanuel Fleury écrivait :
+> >iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+> >iptables -A FORWARD -i eth0 -j ACCEPT
+> >iptables -A FORWARD -j DROP
 > 
-> This configuration can be done just fine with iptables as demonstrated in my 
-> earlier message, but here we go again (but slightly different):
-> 
-> # Allow existing connections
-> iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
-> # Allow hidden net to initiate new connections (including connection pickup)
-> iptables -A FORWARD -i eth0 -j ACCEPT
-> # Drop anything else
-> iptables -A FORWARD -j DROP
+> Does that mean that you DROP all the ACKs, even those which are valid
+> ?
 
-Sorry, I don't understand something ! :-/
+Of course not, the ACKs packets are matched by --state ESTABLISHED since
+they do correspond to an established connection. When ACK packets are
+matched as NEW, that means that they do NOT correpond to an established
+connection in the conntrack.
 
-Does that mean that you DROP all the ACKs, even those which are valid ?
-
-Regards
 -- 
-Emmanuel
+Guillaume Morin <guillaume@morinfr.org>
 
-I am not a vegetarian because I love animals;
-I am a vegetarian because I hate plants.
-   -- A. Whitney Brown
+                  Batailler corps et âmes pour un maudit refus
+                              (No one is innocent)
