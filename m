@@ -1,16 +1,18 @@
-From: Willy TARREAU <willy@w.ods.org>
+From: "David S. Miller" <davem@redhat.com>
 Subject: Re: [PATCH-2.4.26] ip6tables cleanup
-Date: Sun, 28 Mar 2004 22:09:32 +0200
+Date: Sun, 28 Mar 2004 12:16:01 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040328200932.GA19852@pcw.home.local>
-References: <20040328042608.GA17969@logos.cnet> <20040328115439.GA24421@pcw.home.local> <m2d66wsrg2.fsf@p4.localdomain>
+Message-ID: <20040328121601.21f98f0f.davem@redhat.com>
+References: <20040328042608.GA17969@logos.cnet>
+	<20040328115439.GA24421@pcw.home.local>
+	<m2d66wsrg2.fsf@p4.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Marcelo Tosatti <marcelo.tosatti@cyclades.com>,
-   linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: willy@w.ods.org, marcelo.tosatti@cyclades.com,
+        linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Peter Osterlund <petero2@telia.com>
-Content-Disposition: inline
 In-Reply-To: <m2d66wsrg2.fsf@p4.localdomain>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -22,7 +24,9 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Mar 28, 2004 at 09:27:09PM +0200, Peter Osterlund wrote:
+On 28 Mar 2004 21:27:09 +0200
+Peter Osterlund <petero2@telia.com> wrote:
+
 > Willy TARREAU <willy@w.ods.org> writes:
 > 
 > > 2.4.26-rc1 returned this warning compiling ip6_tables :
@@ -36,25 +40,5 @@ On Sun, Mar 28, 2004 at 09:27:09PM +0200, Peter Osterlund wrote:
 > I think it would be better to change the ipv6_skip_exthdr() function
 > to take a const struct sk_buff* instead. Unnecessary casts are evil.
 
-At first I didn't want to do this because it would have needed to recurse
-down to other users of skb. But I've just checked and noticed that indeed,
-only skb_copy_bits() uses the skb, and this one already expects a const. So
-you're right, and I should have checked further. My bad.
-
-Marcelo, could you please use this simpler patch instead ?
-
-Thanks,
-Willy
-
-diff -urN linux-2.4.26-rc1/net/ipv6/exthdrs.c linux-2.4.26-rc1-skb/net/ipv6/exthdrs.c
---- linux-2.4.26-rc1/net/ipv6/exthdrs.c	Sat Mar 20 10:08:21 2004
-+++ linux-2.4.26-rc1-skb/net/ipv6/exthdrs.c	Sun Mar 28 22:07:21 2004
-@@ -783,7 +783,7 @@
-  * --ANK (980726)
-  */
- 
--int ipv6_skip_exthdr(struct sk_buff *skb, int start, u8 *nexthdrp, int len)
-+int ipv6_skip_exthdr(const struct sk_buff *skb, int start, u8 *nexthdrp, int len)
- {
- 	u8 nexthdr = *nexthdrp;
- 
+Yes, and I believe this is how I fixed this warning in the 2.6.x
+tree.
