@@ -1,14 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] TCP window tracking over-window handling
-Date: Wed, 2 Feb 2005 10:46:01 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0502021017590.24272@blackhole.kfki.hu>
-References: <20050128234334.GA20713@linuxace.com>
+From: Peter Zion <pzion@nit.ca>
+Subject: Re: [PATCH] PPTP connection tracking: fixed oops during PPTP connect
+ when interface under heavy load
+Date: Tue, 01 Feb 2005 10:18:54 -0500
+Message-ID: <41FF9DDE.2050401@nit.ca>
+References: <41DD887D.6080007@nit.ca>
+	<20050201104002.GV6878@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Phil Oester <kernel@linuxace.com>,
-	Patrick McHardy <kaber@trash.net>
-In-Reply-To: <20050128234334.GA20713@linuxace.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050201104002.GV6878@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,59 +22,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Phil,
+Harald Welte wrote:
 
-On Fri, 28 Jan 2005, Phil Oester wrote:
-
-> This was a tough one to track down, and also tough to explain...
+>On Thu, Jan 06, 2005 at 01:50:37PM -0500, Peter Zion wrote:
+>  
 >
-> In cases of packet loss, some broken TCP stacks will send data over the
-> window of the receiver.  Then, on the next packet they will resend the
-> missing packet, then move on.
+>>Summary:
+>>
+>>If PPTP connection tracking is running on a machine and certain PPTP
+>>packets arrive out of order, or preceding packets never made
+>>it to the machine, the PPTP connection tracking code will
+>>dereference NULL pointers.  Reproduction steps are to attempt PPTP 
+>>connections to the machine on an interface under heavy load.
+>>    
+>>
 >
-> The current window tracking code 'ignores' this window overage by resetting
-> the end of the packet to the theoretical maximum (corrects the math of the
-> stupid sender).
+>That's really strange.  Can you please elaborate more?
+>  
 >
-> Unfortunately, the sender does receive this over-the-window packet, and does
-> increment its ack seq.  So on the next ack after receiving the missing
-> packet, the receiver acks with the ack seq it knows about, which is higher
-> than that which the window tracking code thinks it has seen.  Consequently,
-> it complains that the ACK is over the upper bound, and does not adjust
-> the window.
+I'm afraid I can't: I don't pretend to understand exactly what the 
+problem is.  In our case we were seeing random kernel oopses under heavy 
+load, and once we managed to create the series of reproduction steps 
+that I listed in the original email it was exactly the same NULL pointer 
+dereference every time.  Simply checking the pointer before 
+dereferencing it, as done in my patch, "fixed" the problem in the sense 
+that the kernel no longer locks up, and we have not seen any further 
+problems under heavy load since applying the patch.
 
-That implies then that the receiver is broken as well, by accepting and
-ack-ing out of window segments. But it is true, we anticipate the
-behaviour of the receiver here, which we shouldn't.
-
-> After this, communications cease, as each new packet from the sender is
-> dropped by the window tracking code -- it thinks it is over the window
-> of the sender.
->
-> So, we have seen situations where large ftp transfers stop midstream, but
-> smaller transfers complete fine (they got lucky).  I've attached a tcpdump
-> log at the bottom of this message with some annotation and conntrack
-> debugging inserted in appropriate locations for the interested.
-
-Interesting indeed!
-
-> The solution IMO is not to correct the math of the sender -- there is no
-> benefit to doing so.  The attached patch does this (and also clarifies
-> the language in some debugging code).
-
-The current code follows closely TCP/IP Illustrated vol 2, p. 954: Trim
-Segment so Data is Within Window.
-
-Do you know the OS of the communicating parties? Weren't window scaling or
-SACK negotiated?
-
-With your proposed patch, we'd actually drop the oow segment. Could you
-check that it won't cause problems (besides more logging generated :-)?
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+The best I can offer you is help in isolating the problem.  If, for 
+instance, you made a patch with debugging output that would help you 
+isolate the problem, I would be happy to run it against our reproduction 
+steps and tell you what happens.
