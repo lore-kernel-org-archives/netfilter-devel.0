@@ -1,21 +1,17 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: Mon, 27 Sep 2004 15:30:28 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] account match seq_file update [RESEND of RESEND]
+Date: Mon, 27 Sep 2004 15:38:23 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1096291827.2803.73.camel@nienna.balabit>
-References: <1092407190.2402.120.camel@nienna.balabit>
-	<1095993739.1044.9.camel@jzny.localdomain>
-	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
-	<1096290473.1075.64.camel@jzny.localdomain>
+Message-ID: <415817CF.3010007@trash.net>
+References: <20040926100202.GA8843@barbara.eu.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: hadi@cyberus.ca
-In-Reply-To: <1096290473.1075.64.camel@jzny.localdomain>
+To: =?ISO-8859-15?Q?Piotr_Gasid=B3o?=
+	<quaker@pandora.barbara.ds.polsl.gliwice.pl>
+In-Reply-To: <20040926100202.GA8843@barbara.eu.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,53 +22,30 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Piotr Gasid³o wrote:
 
-  Hi,
+>Hello,
+>
+>This is fourth try to send this patch. Last three mails were not
+>noticed on group :/
+>  
+>
 
-2004-09-27, h keltez=E9ssel 15:07-kor jamal ezt =EDrta:
-> > well it exactly does this, with an additional security:  A master wil=
-l
-> > be downgraded to slave as soon as another master announces itself.  T=
-his
-> > is a security guard against invalid mode of operation.
->=20
-> I think it would be better to separate the election process (who is
-> master) from the syncing code. For some reason i thought this separatio=
-n
-> was there (and that all you had to do was bag some /proc entry).=20
-> i.e if VRRP is the code that makes the decision that it wants you to be
-> the master, thats how you become master. If someothericandohabetter (eg
-> forCES) protocol wants you to be the master, thats how you become the
-> master. There is no point in inventing a new HA scheme.
-> And if you do it should probably be in user space (there is no
-> perfomance issues with it) i.e its such a protocol (in user space) that=
-=20
-> should tell your syncing code to send syncs or not.
-> Unless i missed something fundamental.
+Just CC me on patches.
 
-  The election process is completely independent, as Harald already
-mentioned. The procfs interface is provided so that ct_sync can be used
-with any other cluster manager/failover daemon.
+>Changes (0.1.16 to 0.1.17):
+>- use of seq_file API in /proc/net/ipt_account/*
+>- code cleanup
+>
+>Patch includes updates for both 2.4 and 2.6.
+>
+>Please apply.
+>  
+>
 
- However, ct_sync is not capable of load balancing at the moment, and
-not just because the protocol has some things which are single-master
-specific. The main problem is with NAT and preserving the uniqueness of
-tuples in the whole cluster, and unfortunately this would make a lot of
-things much more complicated. So, even if the protocol would be
-completely multi-master compatible ct_sync would be capable of
-single-master operation.
+Applied. iptables-based accounting is deprecated, so I expect
+we will remove the account/ACCOUNT match from pom-ng at some
+point.
 
-  You're right that the protocol itself was designed with failover in
-mind, and it won't support load balancing clusters without modification.
-This is mainly because of the sequence numbers, and could be easily
-corrected by maintaining a per-node seqno state on each node. The
-security guard against multiple masters was implemented just to make
-sure that we won't have multiple masters even if some administrator is
-experimenting with ct_sync and the proc interface.
-
-  I don't consider these issues as fundamental flaws, we tried to make
-the election process as independent from ct_sync as possible.
-
---=20
- Regards,
-   Krisztian KOVACS
+Regards
+Patrick
