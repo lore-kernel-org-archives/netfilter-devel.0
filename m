@@ -1,44 +1,44 @@
-From: Gordan Bobic <gordan@bobich.net>
-Subject: Userspace (QUEUE) Filter Verdict Targets, REJECT and TARPIT
-Date: Fri, 17 Dec 2004 10:17:21 +0000
-Message-ID: <200412171017.21908.gordan@bobich.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [Coverity] Untrusted user data in kernel
+Date: Fri, 17 Dec 2004 16:10:31 +0100
+Message-ID: <20041217151031.GA27170@atrey.karlin.mff.cuni.cz>
+References: <1103247211.3071.74.camel@localhost.localdomain> <Xine.LNX.4.44.0412170012040.12382-100000@thoron.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Bryan Fulton <bryan@coverity.com>, linux-kernel@vger.kernel.org,
+	netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261230AbULQPKh@vger.kernel.org>
+To: James Morris <jmorris@redhat.com>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+In-Reply-To: <Xine.LNX.4.44.0412170012040.12382-100000@thoron.boston.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi!
 
-I am trying to write a configurable userspace packet filter for handling huge 
-numbers of complex rules (I need it for hundreds of thousands of rules). The 
-problem that I am finding is that the libipq only seems to offer ACCEPT and 
-DROP verdict targets for userspace filters.
+> This at least needs CAP_NET_ADMIN.
 
-Is there a way to set REJECT or TARPIT as targets? I ask because it is nice to 
-respond with REJECT to non-hostile hosts so that they don't get tied with 
-connections when DROP is used. Similarly, it would be nice to be able to 
-TARPIT the hostile hosts to slow them down. At the moment, the only way I can 
-think of to handle this is to set a DROP verdict but then send out a custom 
-made raw packet using something like libnet, but this would rather complicate 
-the code I am developing (but if it's the only option, so be it, I guess).
+Hmm, but that means that CAP_NET_ADMIN implies all other capabilities,
+unless you fix this.
 
-Finally - is there a way to practically handle TARPIT in a resource-cheap way 
-when conntrack is used? My packet filter needs to operate in a NAT 
-enfironment, so conntrack is not something I can avoid using.
+								Pavel
 
-Best regards.
+> > TAINTED variable "((tmp).num_counters * 16)" was passed to a tainted
+> > sink.
+> > 
+> > 1161            counters = vmalloc(tmp.num_counters * sizeof(struct
+> > ip6t_counters));
+> > 1162            if (!counters) {
+> > 1163                    ret = -ENOMEM;
+> > 1164                    goto free_newinfo;
+> > 1165            }
+> > 
+> > TAINTED variable "((tmp).num_counters * 16)" was passed to a tainted
+> > sink.
+> > 
+> > 1166            memset(counters, 0, tmp.num_counters * sizeof(struct
+> > ip6t_counters));
 
-Gordan
+
+-- 
+Boycott Kodak -- for their patent abuse against Java.
