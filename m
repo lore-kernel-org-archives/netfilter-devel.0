@@ -1,13 +1,14 @@
-From: "PAUL FABRICIO VILLACRESES LEON" <paulvillacreses@hotmail.com>
-Subject: some question about libiptc
-Date: Fri, 17 Jan 2003 20:00:05 +0000
+From: =?iso-8859-2?q?Micha=B3=20Margula?= <alchemyx@uznam.net.pl>
+Subject: ip_conntrack performance issues
+Date: Sat, 18 Jan 2003 01:13:04 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F97GAGoMLk4vQd5GQrW00006ede@hotmail.com>
+Message-ID: <200301180113.04460.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: sumit@elitecore.com
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,145 +19,62 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello!
 
+First of all I would like to apologize if issue I am writing about, was=20
+discussed here before. I wasn't looking trough archive, because it is abo=
+ut=20
+63 MB of pure mbox, I was only googling.
 
-Hi
+The problem is that I have Linux box, that is making NAT for few hundreds=
+ of=20
+workstations. I am using 2.4.18 but it also happens on 2.4.19 or 2.4.20. =
+I=20
+need to run identd daemon for those workstations behind NAT. I am using=20
+oidentd for that purpose. Oidentd reads /proc/net/ip_conntrack to identif=
+y=20
+connections.
 
+My /proc/net/ip_conntrack has about 100 000 entries. Sometimes less, some=
+times=20
+more but near that value. Oidentd parsing that file "eats" almost whole C=
+PU=20
+time. Running more than one instance of oidentd is simply a suicide. But =
+that=20
+is not main problem - when parsing /proc/net/ip_conntrack my network goes=
+=20
+weird. Packet lossess on every interface increase, round trip time behave=
+s=20
+funny (jumping from 10 ms to 300). Network flow is also affected in a sam=
+e=20
+way (file transfers "hangs" for a while).
 
+I investigated deeper into the problem and it is for sure not caused by=20
+oidentd. The problem lies in /proc/net/ip_conntrack interface. I tried=20
+running few instances of cat  /proc/net/ip_conntrack > /dev/null and effe=
+ct=20
+was same as with ident daemon.
 
-I'm Paul Villacreses
-Student ESPOL ECUADOR
-TOPIC : Firewall content
+Friend of mine created "dirty hack" which consist of kernel module=20
+(ip_conntrack_identd) and patched version of oidentd, but he says that he=
+=20
+won't make it public, because that solution is very bad and shouldn't be =
+done=20
+this way.
 
-I had develop a program with libiptc.a and othes library libpcap, i had the 
-following
+Also it is not problem of performance of box making NAT because I am usin=
+g 2 x=20
+Xeon 2.0 GHz with HyperThreading (on 2.4.19 or 2.4.20) so it has power of=
+=20
+almost four CPUs and nothing has changed.
 
-|Internel |--------eth0 -------- Myfirewall ------ eth1 ------|LAN 
-protected|
+So question is - what now? Are there any ideas to improve performance of=20
+/proc/net/ip_conntrack or maybe replacing that with some calls to interna=
+ls=20
+of the kernel? It is quite important issue, because using ident daemon on=
+=20
+boxes with huge amounts of traffic is impossible.
 
-In Myfirewall program puts rules in the chain FORWARD with this function
-the following code work well .
-
-////////////////////////////IPTABLES////////////////////////////////////////////////////////
-int SetNuevaRegla(register const u_char *cp,char *stable,char *starget,char 
-*schain)
-{
-register const struct ip *ip;
-iptc_handle_t handle = NULL;
-struct ipt_entry *chain_entry;
-ipt_chainlabel labelit;
-long result = 0,size=0;
-
-
-ip = (const struct ip *)cp;
-//printf("Size of standard target: %d\n", sizeof(target));
-chain_entry = NULL;
-// the target of this rule is QUEUE
-strncpy(&target.target.u.user.name[0], starget, 30);  // other std rules 
-would include DROP etc
-// set the target size!!
-target.target.u.user.target_size=sizeof(target);
-chain_entry = malloc(sizeof(struct ipt_entry) + sizeof(target));
-memset(chain_entry, 0, sizeof(chain_entry));  // zero it out
-
-if(ip->ip_dst.s_addr && ip->ip_src.s_addr)
-{
-chain_entry->ip.src.s_addr=ip->ip_src.s_addr;   // src address
-chain_entry->ip.smsk.s_addr=-1;   // mask
-
-chain_entry->ip.dst.s_addr=ip->ip_dst.s_addr;   // dst address
-chain_entry->ip.dmsk.s_addr=-1;   // mask
-chain_entry->ip.proto=ip->ip_p; // any protocol ip
-// chain_entry->
-if(!GetExisteRegla(chain_entry,stable,starget,schain))
-{
-    // assuming matches do not need to be taken into account, as we are 
-matching everything!
-   size=sizeof(struct ipt_entry);
-//  printf("sizeof chain_target_offset: %d\n", size);
-   chain_entry->target_offset=size;
-   chain_entry->next_offset= size + sizeof(target);    // next target is the 
-next rule (offset is size of current entry)
-//  printf("value of chain entry next offset: %d\n", 
-chain_entry->next_offset);
-   memcpy(chain_entry->elems,&target, sizeof(target));
-   // standard is the name given to any of the system defined targets, like 
-DROP, ACCEPT, REJECT, QUEUE, RETURN
-   handle = iptc_init(stable);    // check if table is loaded
-   if (handle == NULL)
-   {
-   printf("Error en Crear Regla : Table not loaded!\n");
-   exit(0);
-   }
-   result = iptc_is_chain(schain, handle);
-   if(!result)
-     printf("Error en Crear Regla: Chain does not exist!\n");
-
-   // set the name of the chain we want to append to
-   strncpy(labelit,schain, 30);
-
-     result = iptc_append_entry(labelit,chain_entry, &handle);
-     if(result == 0)
-       printf("Append error en Crear Regla : %s\n", iptc_strerror(errno));
-     result=iptc_commit(&handle);//ejecuta la accion
-     if(result == 0)
-         printf("Commit error en Crear Regla: %s\n", iptc_strerror(errno));
-     else
-        printf("\nExito al crear un nueva Regla en filter\n");
-//      SetRedirect(cp,"nat","DNAT","PREROUTING","192.188.59.12");
-     free(chain_entry);
-     return result;
-
-}  //fin de GetExisteRegla
-
-} // Verifica que la ip distinto de cero
-else
-free(chain_entry);
-
-return 0;
-
-}
-
-i put the rules with the function and inside the packet have ipsrc, ipdst y 
-protocol .
-
-SetNuevaRegla(packet,"filter","FORWARD");
-
-the above rule is like in the following script
-iptables -s 1.2.3.4 -d 1.4.5.6 -p all|tcp|udp -j DROP or ACCEPT
-
-
-Ok all work very well i don't put script ,the program automatic put the rule 
-based in some data .
-
-BUT The PROBLEM IS :
-
-
-THE PROBLEM IS THAT libiptc.a DON'T  SUPPORT TABLES LIKE "nat" and of course
-I can't put rules with this library
-
-The main of this is I want to REDIRECT some packets ,put this rule
-itpables -t nat -A PREROUTING -s 1.2.3.4 -d 1.6.7.8 -p tcp --dport 80 -j 
-DNAT
-but with the program NOT with scripts .
-
-I read the iptables source code and this program load dinamic library for 
-example
-libipt_tcpmss.so libipt_SNAT.so etc...  in folter extensions
-and put the rule like the above i think
-
-Please can anybody help me!!!! a response HOW i can put rules in table nat , 
-and HOW TO put rules whith port TCP like 80(HTTP),53(DNS),23(TELNET) with 
-programming NOT with scripts.
-
-
-I will be grateful for you help
-
-Thank you Developers
-
-
-
-
-_________________________________________________________________
-The new MSN 8: smart spam protection and 2 months FREE*  
-http://join.msn.com/?page=features/junkmail
+--=20
+Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/ +)
+"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
