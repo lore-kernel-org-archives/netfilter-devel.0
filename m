@@ -1,49 +1,41 @@
-From: "Feldman, Scott" <scott.feldman@intel.com>
-Subject: RE: Extremely slow network with e1000 & ip_conntrack
-Date: Wed, 3 Dec 2003 23:24:24 -0800
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD20@orsmsx402.jf.intel.com>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: How do I use ip_conntrack_destroyed?
+Date: Thu, 04 Dec 2003 08:58:52 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3FCEE93C.5040104@balabit.hu>
+References: <Pine.LNX.4.44.0312032243000.11739-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: <netfilter-devel@lists.netfilter.org>,
-	<linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-content-class: urn:content-classes:message
-To: "Harald Welte" <laforge@netfilter.org>,
-	"Stephen Lee" <mukansai@emailplus.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Emmanuel Guiton <emmanuel@netlab.hut.fi>,
+	netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0312032243000.11739-100000@filer.marasystems.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > > > 2.4.22		82540EM		N
-> > > > 2.5.26		82540EM		N
-> > > > 2.5.46		82540EM		Y
-> > > > 2.6.0-test10		82540EM		Y
-> > > > 2.6.0-test11		82540EM		Y
-> > > > 2.6.0-test11		82547EI		N
-> > > > 2.4.22nptlsmp		82547EI		N
+
+   Hi,
+
+Henrik Nordstrom wrote:
+>>/* Call me when a conntrack is destroyed. */
+>>extern void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack);
 > 
-> In e1000, check this out:
-> 
->   #ifdef NETIF_F_TSO
->           if((adapter->hw.mac_type >= e1000_82544) &&
->              (adapter->hw.mac_type != e1000_82547))
->                   netdev->features |= NETIF_F_TSO;
->   #endif
+> If you want to do this I think you should first extend
+> ip_conntrack_destroyed into a list of handlers with a suitable
+> registration functions to allow more than one module to register a 
+> "ip_conntrack_destroyed" function.
 
-Oh, I forgot one thing: 82540 is actually greater than 82544.  The
-comparison is chronological order, not numerical.  This is the order the
-controllers where released:
+   As I've mentioned, this is already done in the nfnetlink-ctnetlink patch.
 
-82542
-82543
-82544
-82540
-82545
-82546
-82541
-82547
-
-Don't ask.
-
--scott
+-- 
+   Regards,
+     Krisztian KOVACS
