@@ -1,14 +1,12 @@
-From: "Dave Hawkes" <daveh@cadlink.com>
-Subject: ECN target in cvs broken?
-Date: Sun, 2 Jun 2002 22:38:07 -0400
+From: chen.kaiqu@zte.com.cn
+Subject: about REJECT target
+Date: Mon, 3 Jun 2002 10:50:03 +0800
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <000f01c20aa7$b1aee300$3e08a8c0@davehh>
+Message-ID: <OFCD37002C.61C262A9-ON48256BCD.000E5368@zte.com.cn>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -19,16 +17,11 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I think there may be a typo in the ECN code recently commited to CVS
+Hi, Jozsef,
 
-line 12 in ipt_ecn.h
+Now the IPv6 version of REJECT target doesn't support --reject-with
+tcp-reset, right?
+I have improved it to support tcp-reset.
+Are you interested in the improvement?
 
-is
-
-#include <linux/netfilter_ipv4/ipt_dcsp.h>
-
-should be(?)
-
-#include <linux/netfilter_ipv4/ipt_dscp.h>
-
-Dave Hawkes
+channel chen
