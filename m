@@ -1,14 +1,14 @@
-From: "Robert Iakobashvili" <roberti@GoNetworks.com>
-Subject: Re: Iptables 1.3.1 still not very fast
-Date: Sun, 3 Apr 2005 08:44:39 +0300
-Message-ID: <7DC268DDBA95E14D8572DF824F92789E08E4B0@gn-ex01.Go80211.com>
+From: Milos Wimmer <wimmer@zcu.cz>
+Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
+Date: Sun, 3 Apr 2005 14:26:07 +0200 (CEST)
+Message-ID: <Pine.LNX.4.62.0504031420030.11607@nike.zcu.cz>
+References: <20050402202438.GA2968@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1255"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20050402202438.GA2968@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,16 +20,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
- Gentlemen,
+On Sat, 2 Apr 2005, Phil Oester wrote:
 
-My suggestion for you is to look at the great ipset
-Facility developed by Jozsef Kadlecsik and based on ippool=20
-by Joakim Axelsson, Patrick Schaaf and Martin Josefsson=F5
+> As noted, without this patch an mget fails at (sizediff * strlen(PORT...).
+> With this patch, I have successfully transferred 500 files under both
+> scenarios: sizediff > 0 and < 0.
 
-http://people.netfilter.org/kadlec/ipset/
+  Yes, I tried it just now and I can confirm it works great.
 
-It works great.
+  Thank you for your work,
 
-Sincerely,
-Robert Iakobashvili
-roberti at gonetworks dot com
+     Milos Wimmer
