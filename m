@@ -1,15 +1,17 @@
-From: Phil Oester <kernel@linuxace.com>
+From: Matteo Croce <rootkit85@yahoo.it>
 Subject: Re: UNWANTED state
-Date: Wed, 29 Dec 2004 15:56:57 -0800
-Message-ID: <20041229235657.GA11573@linuxace.com>
+Date: Thu, 30 Dec 2004 01:39:48 +0100
+Message-ID: <200412300139.49266.rootkit85@yahoo.it>
 References: <200412300042.18561.rootkit85@yahoo.it>
+	<20041229235657.GA11573@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Matteo Croce <rootkit85@yahoo.it>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20041229235657.GA11573@linuxace.com>
 Content-Disposition: inline
-In-Reply-To: <200412300042.18561.rootkit85@yahoo.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,28 +23,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Dec 30, 2004 at 12:42:17AM +0100, Matteo Croce wrote:
-> Hi,
-> time ago i wanted to stealth may gateway, so i start dropping outgoing 
-> icmp-port-unreachable packets, to avoid UDP scans.
-> But i had also a '--dport 113 -j REJECT' target to allow faster irc logins,
-> that stopped working since those ICMP were rejected by the new rule.
-> So i hacked the kernel with a patch i also attach, to prevent those packets 
-> being generated.
+> On Thu, Dec 30, 2004 at 12:42:17AM +0100, Matteo Croce wrote:
+> Perhaps you should consider using:
+>
+> --dport 113 -j REJECT --reject-with tcp-reset
+> instead of hacking the kernel to disable icmp rejects?
+>
 
-Perhaps you should consider using:
+# iptables -I INPUT 1 -p tcp --dport 4567 -j REJECT --reject-with tcp-reset
+# hping3 127.0.0.1 -p 4567 -S
+HPING 127.0.0.1 (lo 127.0.0.1): S set, 40 headers + 0 data bytes
+len=40 ip=127.0.0.1 ttl=255 DF id=0 sport=4567 flags=RA seq=0 win=0 rtt=0
 
---dport 113 -j REJECT --reject-with tcp-reset
 
-instead of hacking the kernel to disable icmp rejects?
+--reject-with tcp-reset sends RST/ACK that are dropped by my firewall
 
-As far as the rest of your message goes, I suppose it is a matter of personal
-preference, but if you have a firewall open to the world for a particular
-service, people on the outside will be able to find it if that service is
-running.  Why do you care if people get an icmp unreachable when the service
-is down?  You aren't making the box more secure IMO by not allowing the
-icmp error outbound.
+> Why do you care if people get an icmp unreachable when
+> the service is down?  You aren't making the box more secure IMO by not
+> allowing the icmp error outbound.
 
-Anyhow...this discussion likely belongs over on the general netfilter list.
+Tryng to reduce at minimum unneeded traffic is a sort of protection against 
+DOS.
+Let's say i have a 4096/400 ADSL.
+Someone with a ~512kbit upload can send me an large amount of data on a closed 
+port with something like 'hping3 <IP> -S -p <PORT> --flood', and my 400kbit 
+upload
+will be unable to send 512Kbit of RST/ACKs.
+If i drop unwanted data, the attacker needs an upload of ~4200Kbit
+to dos my box, since he need to fill my download instead of my upload.
 
-Phil
+And having such a target will avoid open/close ports as needed, since only 
+used ports are available.
+
+-- 
+  .""`.     Matteo Croce <rootkit85@yahoo.it>
+ : :"  :    proud Debian admin and user
+ `. `"`
+   `-  Debian - when you have better things to do than fix a system
