@@ -1,16 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH][NET] update Kconfig files for bridging firewall
-Date: Sun, 24 Aug 2003 04:34:14 -0700
+Subject: Re: [PATCH 2.6] Fix ipt_REJECT if used on bridge
+Date: Sun, 24 Aug 2003 04:43:08 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030824043414.73729513.davem@redhat.com>
-References: <200308231032.55831.bdschuym@pandora.be>
+Message-ID: <20030824044308.3e43bf71.davem@redhat.com>
+References: <20030823204612.GB5107@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <200308231032.55831.bdschuym@pandora.be>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030823204612.GB5107@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,12 +21,9 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 23 Aug 2003 10:32:55 +0200
-Bart De Schuymer <bdschuym@pandora.be> wrote:
+On Sat, 23 Aug 2003 22:46:12 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
-> The patch below adds some comments about filtering bridged ARP traffic and
-> using netfilter for a bridging firewall. It also makes a menu for the
-> ebtables configuration, which makes it look like the IP, IPv6 and DECnet
-> filtering configuration.
+> Please apply, thanks!
 
-Applied, thanks Bart.
+I can't, it rejects against 2.6.0-test4 sources.
