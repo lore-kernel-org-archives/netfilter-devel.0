@@ -1,18 +1,15 @@
-From: "Daniel F. Chief Security Engineer -" <danielf@supportteam.net>
-Subject: Re: Fwd: Re: Interesting request. block x.x.0.0
-Date: Fri, 24 Jan 2003 08:53:13 -0600
+From: "Martin Bene" <martin.bene@icomedias.com>
+Subject: conntrack and netstat: diverging ideas of established connections
+Date: Fri, 24 Jan 2003 16:24:25 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200301240853.13635.danielf@supportteam.net>
-References: <20030123232639.14408.11687.Mailman@kashyyyk> <15920.37125.743591.125495@isis.cs3-inc.com>
+Message-ID: <4D618F6493CE064A844A5D496733D667031692@freedom.icomedias.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: don-netf@isis.cs3-inc.com (Don Cohen),
-        netfilter <netfilter@lists.netfilter.org>,
-        netfilter-devel@lists.netfilter.org
-In-Reply-To: <15920.37125.743591.125495@isis.cs3-inc.com>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick Schaaf kindly pointed out that I could do this. 
+On a server with no forwarding I'm seeing pronounced differences =
+regarding
+established connections:
 
-iptables -I INPUT -s 0.0.0.0/0.0.255.255 -j DROP
+cat /proc/net/ip_conntrack shows ~ 150 tcp connections in "ESTABLISHED"
+state;
 
-That will drop any IP that ends in 0.0
+netstat -an shows 20 established TCP connections.
 
-Thanks for every ones help. 
+especialy troubling: I find 10 concurrent connections =3D=3D> port 25 =
+for a host
+IP in ip_conntrack, while there actually is not a single sendmail =
+session
+active.
 
-I will also look into the u32 patch thanks again. 
+Any ideas why conntrack keeps these "ghost" connections around as avtive =
+even
+though they definitely don't exist?
+since I'm trying to limit max concurrent connections by host using =
+iplimit
+these bad entries in ip_conntrack are quite troublesome.
 
+Software: linux 2.4.19 w/ iptables-1.2.7a and pom 20020825
 
-
-On Thursday 23 January 2003 19:04, you wrote:
->  > I do not want to block every IP on say 45.208.0.0/16 just the ips ending
->  > in 0.0 as the last two octets.
->  >
->  > I can write a tcpdump filter to find the traffic Im just not sure if we
->  > have a way to craft a netfilter rule to do so. Or maybe the "recent"
->  > patch could be of use. Although the dDoS included 65000 source IP
->  > addresses. all ending in 0.0 for the ip address.
->  >
->  > the tcdump filter looks like this.
->  >
->  > tcpdump -nn -i eth0 'ip[18:2] == 00'
->
-> The u32 match I recently posted can do this.
-
--- 
-Daniel Fairchild - Chief Security Engineer | danielf@supportteam.net
-The distance between nothing and infinity is always the same no matter how 
-close you get to nothing.
+Thanks, Martin
+********************************************************
+Martin Bene,                 CTO
+icomedias GmbH,              A-8020 Graz, Entenplatz 1b
+t +43 (316) 721671-14,       f +43 (316) 721671-26
+e martin.bene@icomedias.com, i http://www.icomedias.com
+********************************************************
