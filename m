@@ -1,17 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: subject-prefixing of ml postings (was Re: A humble request)
-Date: Wed, 28 Jan 2004 09:31:15 +0100
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH]Re: NAT before IPsec with 2.6
+Date: Wed, 28 Jan 2004 09:49:56 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040128083115.GL11761@sunbeam.de.gnumonks.org>
-References: <20040128043326.45988.qmail@web14003.mail.yahoo.com> <20040128045409.9799.qmail@web14007.mail.yahoo.com>
+Message-ID: <401777B4.9020000@trash.net>
+References: <20040127103917.GC11761@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0401271207160.16067-100000@filer.marasystems.com> <20040127130739.GR11761@sunbeam.de.gnumonks.org> <20040128000938.GH11761@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dnd11iroZwpv/0M5"
-Cc: Zeeshan Ali <zeelists@yahoo.com>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+ Willy Tarreau <willy@w.ods.org>,
+ Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
+ netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kiran Kumar <immidi_kiran@yahoo.com>
-Content-Disposition: inline
-In-Reply-To: <20040128045409.9799.qmail@web14007.mail.yahoo.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040128000938.GH11761@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,57 +24,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
 
---dnd11iroZwpv/0M5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>Hi!
+>
+>[please ignore the last message, I mistakenly sent an outdated, incomplete 
+> patch]
+>
+>I've now hacked a preliminary patch.  Be warned, I didn't even test if
+>it compiles.  Maybe someone who actually has a running 2.6.x ipsec setup
+>can give it a try.
+>
+>What it should be doing
+>- traverse the additional chains as described in the last email
+>- have connection tracking recognize two seperate connections, one
+>  for the decapsulated traffic, one for the encapsulated
+>- thus, even SNAT/DNAT should be working.
+>- locally-encapsulated traffic shows up with input device "ah4" or
+>  "esp4" in POSTROUTING.
+>- locally-encapsulated traffic shows up with output device "ah4" or
+>  "esp4" in OUTPUT.
+>
+>What is missing (TODO):
+>- no dummy device names in INPUT/PREROUTING for locally-decapsulated
+>  packets.  This is somewhat harder
+>- no real output device shown in OUTPUT for locally-encapsulated
+>  packets.  I'm not sure if it is legal to typecast the just-popped
+>  dst_entry to 'struct rtable' and derive the output interface from
+>  there.
+>
+>Please give feedback.
+>  
+>
+I see two problems with this approach. The dummy devices don't have
+any ip config, so f.e. REDIRECT will fail. The bigger problem is
+hooking in output routines that return NET_XMIT_BYPASS. dst_output
+loops until the return code of skb->dst->output != NET_XMIT_BYPASS.
+These output routines replace skb->dst when finished by calling dst_pop.
+If we pass the packet through netfilter in between, the dst_entry
+might get replaced in ip_route_me_harder or elsewhere and not all
+transformations will be applied. If NAT is used,
+ip_route_{input,output} might even return a different policy bundle.
 
-On Tue, Jan 27, 2004 at 08:54:09PM -0800, Kiran Kumar wrote:
-> --- Kiran Kumar <immidi_kiran@yahoo.com> wrote:
->=20
-> >   I have built up some content based on the rules of
-> > another list that I am on (most of which are, I
-> > guess,
-> > relevant here as well). The patch for the homepage
-> > module of cvs is attached.
->=20
->   Sorry, seems the previous one had a problem..
-> resending it.
+Anyways, I'm testing it (slightly hacked) as soon as the compile finishes ;)
 
-thanks a  lot, I've committed your change to CVS and will update the
-homepage shortly.
-
-Have you been progressing with some of the other proposed work (either
-homepage-related, or netfilter-related), or are you waiting for me
-making a concrete assignment?
-
-I really don't want to lose your offer for help just because of some
-misunderstanding.
-
-> Kiran Kumar Immidi
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---dnd11iroZwpv/0M5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFAF3NTXaXGVTD0i/8RAmPrAJ9KkYTizLOs7cXApaQdbCeqfqa4bQCfYJAf
-Z3gW3R/2uQ3ZSynokZSXki8=
-=8bmW
------END PGP SIGNATURE-----
-
---dnd11iroZwpv/0M5--
+Regards,
+Patrick
