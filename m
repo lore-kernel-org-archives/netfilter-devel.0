@@ -1,13 +1,11 @@
-From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: [testsuite] ipt_length
-Date: Sun, 19 Dec 2004 21:32:26 -0500
-Message-ID: <41C639BA.4000708@cookinglinux.org>
+From: "Nicolas Bouliane" <nib@cookinglinux.org>
+Subject: [testsuite] ipt_tos
+Date: Sun, 19 Dec 2004 23:22:04 -0500 (EST)
+Message-ID: <32914.66.11.161.14.1103516524.squirrel@66.11.161.14>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060801070007080503080104"
-Cc: netfilter-devel@lists.netfilter.org,
-	Nicolas Bouliane <nib@cookinglinux.org>
+Content-Type: multipart/mixed;boundary="----=_20041219232204_40736"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,93 +17,126 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060801070007080503080104
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+------=_20041219232204_40736
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Hi rusty,
+Hi Rusty,
 
-I broke my head to do a complete test against TCP, UDP and ICMP.
-Once I finished, I looked at ipt_length.c to obviously open my eyes
-on the fact we test against the IP header.
+'cause I want to be a cool kid, I wrote the TOS sim. :-)
+Please tell me if you dislike the way I did. I hope that's orthogonal.
 
-Should be not so bad..
+- acidfu
 
-Damnit :)
+------=_20041219232204_40736
+Content-Type: application/octet-stream; name="23ipt_tos-bad-args.sim"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="23ipt_tos-bad-args.sim"
 
---peejix
+IyBJbnB1dCBzb21lIGp1bmsgVE9TLgpleHBlY3QgaXB0YWJsZXMgaXB0YWJsZXM6IGNvbW1hbmQg
+ZmFpbGVkCmlwdGFibGVzIC1BIElOUFVUIC1tIHRvcyAtLXRvcyAxCgojIENoZWNrIGlmIGlucHV0
+aW5nIHRoZSBzYW1lIG9wdGlvbiB0d2ljZSBvdmVyd3JpdGUgcHJldmlvdXMgb25lLgojIFRoaXMg
+c2hvdWxkIHJpbmcgdGhlIGJlbGwsIGJ1dCBkb2Vzbid0IG5vdy4KIyBJIHNlbnQgYSBwYXRjaCB0
+byBuZi1kZXZlbC4KIyBzb21lb25lIGNhbiBhcHBseSBpdCBwbGVhc2UgPy4gdGhhbmtzLgojIGh0
+dHBzOi8vbGlzdHMubmV0ZmlsdGVyLm9yZy9waXBlcm1haWwvbmV0ZmlsdGVyLWRldmVsLzIwMDQt
+RGVjZW1iZXIvMDE3ODI0Lmh0bWwKZXhwZWN0IGlwdGFibGVzIGlwdGFibGVzOiBjb21tYW5kIGZh
+aWxlZAppcHRhYmxlcyAtQSBJTlBVVCAtbSB0b3MgLS10b3MgMiAtLXRvcyA0CgojIEdpdmluZyB2
+YWxpZCBUT1Mgc2hvdWxkIHN1Y2NlZWQuCmlwdGFibGVzIC1BIElOUFVUIC1tIHRvcyAtLXRvcyAw
+CmlwdGFibGVzIC1EIElOUFVUIC1tIHRvcyAtLXRvcyAwCgppcHRhYmxlcyAtQSBJTlBVVCAtbSB0
+b3MgLS10b3MgMgppcHRhYmxlcyAtRCBJTlBVVCAtbSB0b3MgLS10b3MgMgoKaXB0YWJsZXMgLUEg
+SU5QVVQgLW0gdG9zIC0tdG9zIDQKaXB0YWJsZXMgLUQgSU5QVVQgLW0gdG9zIC0tdG9zIDQKCmlw
+dGFibGVzIC1BIElOUFVUIC1tIHRvcyAtLXRvcyA4CmlwdGFibGVzIC1EIElOUFVUIC1tIHRvcyAt
+LXRvcyA4CgppcHRhYmxlcyAtQSBJTlBVVCAtbSB0b3MgLS10b3MgMTYKaXB0YWJsZXMgLUQgSU5Q
+VVQgLW0gdG9zIC0tdG9zIDE2CgojIEludmVydCBydWxlcyB0b28uLi4KaXB0YWJsZXMgLUEgSU5Q
+VVQgLW0gdG9zICEgLS10b3MgMAppcHRhYmxlcyAtQSBJTlBVVCAtbSB0b3MgISAtLXRvcyAwCgpp
+cHRhYmxlcyAtQSBJTlBVVCAtbSB0b3MgISAtLXRvcyAyCmlwdGFibGVzIC1EIElOUFVUIC1tIHRv
+cyAhIC0tdG9zIDIKCmlwdGFibGVzIC1BIElOUFVUIC1tIHRvcyAhIC0tdG9zIDQKaXB0YWJsZXMg
+LUQgSU5QVVQgLW0gdG9zICEgLS10b3MgNAoKaXB0YWJsZXMgLUEgSU5QVVQgLW0gdG9zICEgLS10
+b3MgOAppcHRhYmxlcyAtRCBJTlBVVCAtbSB0b3MgISAtLXRvcyA4CgppcHRhYmxlcyAtQSBJTlBV
+VCAtbSB0b3MgISAtLXRvcyAxNgppcHRhYmxlcyAtRCBJTlBVVCAtbSB0b3MgISAtLXRvcyAxNgo=
+------=_20041219232204_40736
+Content-Type: application/octet-stream; name="24ipt_tos.sim"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="24ipt_tos.sim"
 
---------------060801070007080503080104
-Content-Type: text/plain;
- name="39ipt_length.sim"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="39ipt_length.sim"
+IyBKdXN0IGJsYW1lIGFjaWRmdSBmb3IgdGhpcyBzY3JpcHQuCiMgVGVzdCBmb3IgbWF0Y2ggZnVu
+Y3Rpb24uCgojIEFjY29yZGluZyB0byB0aGUgaXB0X3RvcyBzb3VyY2UgY29kZSwgSSB0aGluayBJ
+dCdzIGEgZ29vZCB3YXkKIyB0byB0cnkgZWFjaCAndmFsaWQnIHRvcyB2YWx1ZS4KCmlwdGFibGVz
+IC1BIElOUFVUIC1tIHRvcyAtLXRvcyAwIC1qIERST1AKaXB0YWJsZXMgLUEgSU5QVVQgLW0gdG9z
+IC0tdG9zIDIgLWogRFJPUAppcHRhYmxlcyAtQSBJTlBVVCAtbSB0b3MgLS10b3MgNCAtaiBEUk9Q
+CmlwdGFibGVzIC1BIElOUFVUIC1tIHRvcyAtLXRvcyA4IC1qIERST1AKaXB0YWJsZXMgLUEgSU5Q
+VVQgLW0gdG9zIC0tdG9zIDE2IC1qIERST1AKCmV4cGVjdCBnZW5faXAgaG9vazpORl9JUF9MT0NB
+TF9JTiBpcHRhYmxlX2ZpbHRlciBORl9EUk9QIHtJUHY0IFRPUz0wIDE5Mi4xNjguMC4yIDE5Mi4x
+NjguMC4xIDAgNiAxIDIgU1lOfQpnZW5faXAgSUY9ZXRoMCBUT1M9MCAxOTIuMTY4LjAuMiAxOTIu
+MTY4LjAuMSAwIFRDUCAxIDIgU1lOCgpleHBlY3QgZ2VuX2lwIGhvb2s6TkZfSVBfTE9DQUxfSU4g
+aXB0YWJsZV9maWx0ZXIgTkZfRFJPUCB7SVB2NCBUT1M9MiAxOTIuMTY4LjAuMiAxOTIuMTY4LjAu
+MSAwIDYgMSAyIFNZTn0KZ2VuX2lwIElGPWV0aDAgVE9TPTIgMTkyLjE2OC4wLjIgMTkyLjE2OC4w
+LjEgMCBUQ1AgMSAyIFNZTgoKZXhwZWN0IGdlbl9pcCBob29rOk5GX0lQX0xPQ0FMX0lOIGlwdGFi
+bGVfZmlsdGVyIE5GX0RST1Age0lQdjQgVE9TPTQgMTkyLjE2OC4wLjIgMTkyLjE2OC4wLjEgMCA2
+IDEgMiBTWU59Cmdlbl9pcCBJRj1ldGgwIFRPUz00IDE5Mi4xNjguMC4yIDE5Mi4xNjguMC4xIDAg
+VENQIDEgMiBTWU4KCmV4cGVjdCBnZW5faXAgaG9vazpORl9JUF9MT0NBTF9JTiBpcHRhYmxlX2Zp
+bHRlciBORl9EUk9QIHtJUHY0IFRPUz04IDE5Mi4xNjguMC4yIDE5Mi4xNjguMC4xIDAgNiAxIDIg
+U1lOfQpnZW5faXAgSUY9ZXRoMCBUT1M9OCAxOTIuMTY4LjAuMiAxOTIuMTY4LjAuMSAwIFRDUCAx
+IDIgU1lOCgpleHBlY3QgZ2VuX2lwIGhvb2s6TkZfSVBfTE9DQUxfSU4gaXB0YWJsZV9maWx0ZXIg
+TkZfRFJPUCB7SVB2NCBUT1M9MTYgMTkyLjE2OC4wLjIgMTkyLjE2OC4wLjEgMCA2IDEgMiBTWU59
+Cmdlbl9pcCBJRj1ldGgwIFRPUz0xNiAxOTIuMTY4LjAuMiAxOTIuMTY4LjAuMSAwIFRDUCAxIDIg
+U1lOCgojIEEgYnJhaW4tdHJ1ZS1yYW5kb20gVE9TCmV4cGVjdCBnZW5faXAgc2VuZDpMT0NBTCB7
+SVB2NCBUT1M9MSAxOTIuMTY4LjAuMiAxOTIuMTY4LjAuMSAwIDYgMSAyIFNZTn0KZ2VuX2lwIElG
+PWV0aDAgVE9TPTEgMTkyLjE2OC4wLjIgMTkyLjE2OC4wLjEgMCBUQ1AgMSAyIFNZTgoKaXB0YWJs
+ZXMgLUQgSU5QVVQgLW0gdG9zIC0tdG9zIDAgLWogRFJPUAppcHRhYmxlcyAtRCBJTlBVVCAtbSB0
+b3MgLS10b3MgMiAtaiBEUk9QCmlwdGFibGVzIC1EIElOUFVUIC1tIHRvcyAtLXRvcyA0IC1qIERS
+T1AKaXB0YWJsZXMgLUQgSU5QVVQgLW0gdG9zIC0tdG9zIDggLWogRFJPUAppcHRhYmxlcyAtRCBJ
+TlBVVCAtbSB0b3MgLS10b3MgMTYgLWogRFJPUAoKIyBNYXRjaCBpbnZlcnNlLgppcHRhYmxlcyAt
+QSBJTlBVVCAtbSB0b3MgISAtLXRvcyAwIC1qIERST1AKZXhwZWN0IGdlbl9pcCBob29rOk5GX0lQ
+X0xPQ0FMX0lOIGlwdGFibGVfZmlsdGVyIE5GX0FDQ0VQVCB7SVB2NCBUT1M9MCAxOTIuMTY4LjAu
+MiAxOTIuMTY4LjAuMSAwIDYgMSAyIFNZTn0KZ2VuX2lwIElGPWV0aDAgVE9TPTAgMTkyLjE2OC4w
+LjIgMTkyLjE2OC4wLjEgMCBUQ1AgMSAyIFNZTgppcHRhYmxlcyAtRCBJTlBVVCAtbSB0b3MgISAt
+LXRvcyAwIC1qIERST1AKCmlwdGFibGVzIC1BIElOUFVUIC1tIHRvcyAhIC0tdG9zIDIgLWogRFJP
+UApleHBlY3QgZ2VuX2lwIGhvb2s6TkZfSVBfTE9DQUxfSU4gaXB0YWJsZV9maWx0ZXIgTkZfQUND
+RVBUIHtJUHY0IFRPUz0yIDE5Mi4xNjguMC4yIDE5Mi4xNjguMC4xIDAgNiAxIDIgU1lOfQpnZW5f
+aXAgSUY9ZXRoMCBUT1M9MiAxOTIuMTY4LjAuMiAxOTIuMTY4LjAuMSAwIFRDUCAxIDIgU1lOCmlw
+dGFibGVzIC1EIElOUFVUIC1tIHRvcyAhIC0tdG9zIDIgLWogRFJPUAoKaXB0YWJsZXMgLUEgSU5Q
+VVQgLW0gdG9zICEgLS10b3MgNCAtaiBEUk9QCmV4cGVjdCBnZW5faXAgaG9vazpORl9JUF9MT0NB
+TF9JTiBpcHRhYmxlX2ZpbHRlciBORl9BQ0NFUFQge0lQdjQgVE9TPTQgMTkyLjE2OC4wLjIgMTky
+LjE2OC4wLjEgMCA2IDEgMiBTWU59Cmdlbl9pcCBJRj1ldGgwIFRPUz00IDE5Mi4xNjguMC4yIDE5
+Mi4xNjguMC4xIDAgVENQIDEgMiBTWU4KaXB0YWJsZXMgLUQgSU5QVVQgLW0gdG9zICEgLS10b3Mg
+NCAtaiBEUk9QCgppcHRhYmxlcyAtQSBJTlBVVCAtbSB0b3MgISAtLXRvcyA4IC1qIERST1AKZXhw
+ZWN0IGdlbl9pcCBob29rOk5GX0lQX0xPQ0FMX0lOIGlwdGFibGVfZmlsdGVyIE5GX0FDQ0VQVCB7
+SVB2NCBUT1M9OCAxOTIuMTY4LjAuMiAxOTIuMTY4LjAuMSAwIDYgMSAyIFNZTn0KZ2VuX2lwIElG
+PWV0aDAgVE9TPTggMTkyLjE2OC4wLjIgMTkyLjE2OC4wLjEgMCBUQ1AgMSAyIFNZTgppcHRhYmxl
+cyAtRCBJTlBVVCAtbSB0b3MgISAtLXRvcyA4IC1qIERST1AKCmlwdGFibGVzIC1BIElOUFVUIC1t
+IHRvcyAhIC0tdG9zIDE2IC1qIERST1AKZXhwZWN0IGdlbl9pcCBob29rOk5GX0lQX0xPQ0FMX0lO
+IGlwdGFibGVfZmlsdGVyIE5GX0FDQ0VQVCB7SVB2NCBUT1M9MTYgMTkyLjE2OC4wLjIgMTkyLjE2
+OC4wLjEgMCA2IDEgMiBTWU59Cmdlbl9pcCBJRj1ldGgwIFRPUz0xNiAxOTIuMTY4LjAuMiAxOTIu
+MTY4LjAuMSAwIFRDUCAxIDIgU1lOCgojIEEgYnJhaW4tdHJ1ZS1yYW5kb20gVE9TCmV4cGVjdCBn
+ZW5faXAgaG9vazpORl9JUF9MT0NBTF9JTiBpcHRhYmxlX2ZpbHRlciBORl9EUk9QIHtJUHY0IFRP
+Uz0xIDE5Mi4xNjguMC4yIDE5Mi4xNjguMC4xIDAgNiAxIDIgU1lOfQpnZW5faXAgSUY9ZXRoMCBU
+T1M9MSAxOTIuMTY4LjAuMiAxOTIuMTY4LjAuMSAwIFRDUCAxIDIgU1lOCmlwdGFibGVzIC1EIElO
+UFVUIC1tIHRvcyAhIC0tdG9zIDE2IC1qIERST1AK
+------=_20041219232204_40736
+Content-Type: application/octet-stream; name="expected-failures"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="expected-failures"
 
-# Send 5 packets with different length where datalen 0 & 4 are out of range.
-# As it tests against the ip header, whatever layer4 proto we use is OK.
-# TCP with no data ends up with a packet of 40 bytes.
-
-iptables -I INPUT -m length --length 41:43 -j DROP
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 6 1 2 SYN
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 1 6 1 2 SYN
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 2 6 1 2 SYN
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 3 6 1 2 SYN
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 4 6 1 2 SYN
-iptables -D INPUT -m length --length 41:43 -j DROP
-
-# Invert the whole thing
-iptables -I INPUT -m length ! --length 41:43 -j DROP
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 6 1 2 SYN
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 1 6 1 2 SYN
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 2 6 1 2 SYN
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 3 6 1 2 SYN
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP *
-gen_ip IF=eth0 192.168.0.2 192.168.0.1 4 6 1 2 SYN
-iptables -D INPUT -m length ! --length 41:43 -j DROP
-
---------------060801070007080503080104
-Content-Type: text/plain;
- name="38ipt_length-bad-args.sim"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="38ipt_length-bad-args.sim"
-
-# Test a normal straight rule (expecting: success)
-iptables -I INPUT -m length --length 100
-iptables -D INPUT -m length --length 100
-iptables -I INPUT -m length --length 100:200
-iptables -D INPUT -m length --length 100:200
-iptables -I INPUT -m length --length :100
-iptables -D INPUT -m length --length :100
-iptables -I INPUT -m length --length 100:
-iptables -D INPUT -m length --length 100:
-iptables -I INPUT -m length --length :
-iptables -D INPUT -m length --length :
-
-
-# Test both invert argument (expecting: success)
-iptables -I INPUT -m length ! --length 100
-iptables -I INPUT -m length --length ! 100
-
-# Twin options are not allowed (expecting: failure)
-expect iptables iptables: command failed
-iptables -I INPUT -m length --length 100 --length 50
-
-# Bad arguments (expecting: failure)
-expect iptables iptables: command failed
-iptables -I INPUT -m length --length -1
-expect iptables iptables: command failed
-iptables -I INPUT -m length --length 50:100:150
-
---------------060801070007080503080104--
+IyBGb3JtYXQ6IFRZUEU6VkVSU0lPTlBBVFRFUk46VEVTVE5BTUUKIyBUWVBFIGlzICJsaW51eCIg
+b3IgImlwdGFibGVzIiBjdXJyZW50bHkKIyBWRVJTSU9OUEFUVEVSTiBpcyBhIHdpbGRjYXJkLXN0
+eWxlIHBhdHRlcm4gdG8gbWF0Y2gKIyBURVNUTkFNRSBpcyB0aGUgdGVzdCB3aGljaCBpcyBleHBl
+Y3RlZCB0byBmYWlsIGlmIHRoaXMgbWF0Y2hlcwpsaW51eDoyLjYuWzAtOV0qOjAxaXB0YWJsZXMv
+MjBpcHRfTUFSSy5zaW0KbGludXg6Mi42LlswLTldKjowM05BVC8wM2lwX2RuYXQuc2ltCmxpbnV4
+OjIuNi5bMC05XSo6MDNOQVQvMDVkbmF0X3JlcGx5LnNpbQpsaW51eDoyLjYuWzAtOV0qOjAzTkFU
+LzEzaXBfbmF0X2ZpbGwuc2ltCmxpbnV4OjIuNi5bMC05XSo6MDNOQVQvMTdtYXNxLnNpbQpsaW51
+eDoyLjYuWzAtOV0qOjAzTkFULzIxbG9vcGJhY2suc2ltCmxpbnV4OjIuNi45OjAzTkFULzEwc291
+cmNlLW1hcC5zaW0KbGludXg6Mi40KjowMWlwdGFibGVzLzIwaXB0X01BUksuc2ltCmxpbnV4OjIu
+NCo6MDJjb25udHJhY2svMDVsb29wYmFjay5zaW0KbGludXg6Mi40KjowMmNvbm50cmFjay8xMGZ0
+cC1wYXN2LnNpbQpsaW51eDoyLjQqOjAyY29ubnRyYWNrLzEwZnRwLXBvcnQuc2ltCmxpbnV4OjIu
+NCo6MDNOQVQvMDNpcF9kbmF0LnNpbQpsaW51eDoyLjQqOjAzTkFULzA1ZG5hdF9yZXBseS5zaW0K
+bGludXg6Mi40KjowM05BVC8xM2lwX25hdF9maWxsLnNpbQpsaW51eDoyLjQqOjAzTkFULzE3bWFz
+cS5zaW0KbGludXg6Mi40KjowM05BVC8yMWxvb3BiYWNrLnNpbQpsaW51eDoyLjYuMTAqOjAxaXB0
+YWJsZXMvMjBpcHRfTUFSSy5zaW0KbGludXg6Mi42LjEwKjowM05BVC8wM2lwX2RuYXQuc2ltCmxp
+bnV4OjIuNi4xMCo6MDNOQVQvMDVkbmF0X3JlcGx5LnNpbQpsaW51eDoyLjYuMTAqOjAzTkFULzEz
+aXBfbmF0X2ZpbGwuc2ltCmxpbnV4OjIuNi4xMCo6MDNOQVQvMTdtYXNxLnNpbQpsaW51eDoyLjYu
+MTAqOjAzTkFULzIxbG9vcGJhY2suc2ltCmlwdGFibGVzOio6MDFpcHRhYmxlcy8yNmlwdF90dGwt
+b3V0LW9mLXJhbmdlLnNpbQppcHRhYmxlczoxLjIqOjAxaXB0YWJsZXMvMzZpcHRfbXVsdGlwb3J0
+LWJhZC1hcmdzLWNvbXBsYWluLnNpbQppcHRhYmxlczoqOjAxaXB0YWJsZXMvMjNpcHRfdG9zLWJh
+ZC1hcmdzLnNpbQo=
+------=_20041219232204_40736--
