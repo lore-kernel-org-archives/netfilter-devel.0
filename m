@@ -1,15 +1,23 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: [PATCH] Fix locking in ip_conntrack_change_expect()
-Date: Mon, 14 Oct 2002 13:40:47 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH 2] Re: what's the lockingrules for
+	ip_conntrack_expect_list?
+Date: 14 Oct 2002 15:26:55 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021014134047.R13233@sunbeam.de.gnumonks.org>
+Message-ID: <1034602015.16873.148.camel@tux>
+References: <1034286048.25146.40.camel@tux>
+	<Pine.LNX.4.33.0210111455100.29766-100000@blackhole.kfki.hu>
+	<20021012141737.X13233@sunbeam.de.gnumonks.org>
+	<1034428150.7595.36.camel@tux> <1034429352.7595.48.camel@tux>
+	<20021012163620.C13233@sunbeam.de.gnumonks.org>
+	<1034436775.7595.96.camel@tux>
+	<20021014133346.Q13233@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0RrwLCq8kVvUIgaI"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="=-YGwzQQp/PakUBqUr1uCG"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
-Content-Disposition: inline
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20021014133346.Q13233@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,24 +29,37 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---0RrwLCq8kVvUIgaI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-YGwzQQp/PakUBqUr1uCG
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+On Mon, 2002-10-14 at 13:33, Harald Welte wrote:
+
+> > Making find_proto() an inline adds two exported symbols, protocol_list
+> > and ip_conntrack_generic_protocol.
+> 
+> I didn't think about this, sorry.  So I think we now go for the previous
+> solution... export an __ function :(
+
+You can't think of everything :)
+
+I saw that you submitted the __ patch, I havn't had time to test the
+ip_conntrack_change_expect patch but it looks correct to me, and it
+compiles. If you feel dangerous you can submit it.
+
+I've attached it again. (it applies cleanly to 2.4.20-pre10)
+ 
+-- 
+/Martin
+
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
+
+--=-YGwzQQp/PakUBqUr1uCG
+Content-Disposition: attachment; filename=ip_conntrack_change_expect-lockfix.diff
 Content-Transfer-Encoding: quoted-printable
-
-Hi again, Dave!
-
-Below is an important bugfix for netfilter (by Martin Josefsson).
-
-In ip_conntrack_change_expect() we were at least need to grab a readlock
-before comparing the tuple/mask of an ip_conntrack_expect.
-
-Pleae note that the bug was introduced in early 2.4.20-pre time, as newnat
-was merged.  So there's no need to worry about old (stable) kernel releases.
-
-Please apply the following fix, Thanks.
-
-- Harald
+Content-Type: text/plain; name=ip_conntrack_change_expect-lockfix.diff;
+	charset=ISO-8859-15
 
 --- linux-2.4.20-pre10/net/ipv4/netfilter/ip_conntrack_core.c.mjufs	2002-10=
 -12 15:23:22.000000000 +0200
@@ -88,27 +109,5 @@ Please apply the following fix, Thanks.
  }
 =20
  /* Alter reply tuple (maybe alter helper).  If it's already taken,
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---0RrwLCq8kVvUIgaI
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9qq0+XaXGVTD0i/8RAg1cAJ9vkBDUlJCQyfopWHmmtA7ZuVrEJACbBOAw
-XUT6N3FyHghHTGB0aorg5Rk=
-=d6EW
------END PGP SIGNATURE-----
-
---0RrwLCq8kVvUIgaI--
+--=-YGwzQQp/PakUBqUr1uCG--
