@@ -1,181 +1,42 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] POM-NG OSF match - missing header
-Date: Fri, 20 Aug 2004 15:54:37 -0700
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040820225437.GA25659@linuxace.com>
+From: cranium2003 <cranium2003@yahoo.com>
+Subject: modifying tcp/ip stack
+Date: Fri, 20 Aug 2004 22:47:32 -0700 (PDT)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040821054732.28472.qmail@web41408.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: kernerl mail <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268851AbUHUFrf@vger.kernel.org>
+To: netfilter <netfilter-devel@lists.netfilter.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-The 2.6 directory is missing the osf.h header.  Copied the 2.4 version, and
-added a missing include while there.  Build tested on 2.6.8.1.
+Hello,
+        I want to modify existing protocol stack as
+given below.
+        What exactly i want to do is that i want to
+add a new protocol headerin between IP and ETHERNET
+header.
+        I want to implement packet structure as
+(Ethernet header +MY header + IP header +TCP header +
+PAYLOAD) that mean when packet comes from NIC it
+should first remove MY header in my routine then IP
+header in ip_input.c file.
+        Also at transmitting end packet at IP layer
+with (IP header + TCP header +PAYLOAD)structure passed
+to ip_output.c then given to my routine for adding a
+new protocol header on that packetand then to Ethernet
+layer.
+        I want your help to know what changes i
+require to do in kernel 2.4.24 to achieve this?
+         Please kindly reply me.
+Thaking you.
 
-This fixes bugzilla #234
+Regards,
+Parag.
 
-Phil
 
-
-diff -ruN pom-orig/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h pom-new/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h
---- pom-orig/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h       1969-12-31 19:00:00.000000000 -0500
-+++ pom-new/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h        2004-08-20 18:50:03.936711632 -0400
-@@ -0,0 +1,149 @@
-+/*
-+ * ipt_osf.h
-+ *
-+ * Copyright (c) 2003 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ *
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#ifndef _IPT_OSF_H
-+#define _IPT_OSF_H
-+
-+#define MAXGENRELEN            32
-+#define MAXDETLEN              64
-+
-+#define IPT_OSF_GENRE          1
-+#define        IPT_OSF_SMART           2
-+#define IPT_OSF_LOG            4
-+#define IPT_OSF_NETLINK                8
-+
-+#define IPT_OSF_LOGLEVEL_ALL   0
-+#define IPT_OSF_LOGLEVEL_FIRST 1
-+
-+#include <linux/list.h>
-+#include <net/tcp.h>
-+
-+#ifndef __KERNEL__
-+#include <netinet/ip.h>
-+#include <netinet/tcp.h>
-+
-+struct list_head
-+{
-+       struct list_head *prev, *next;
-+};
-+#endif
-+
-+struct ipt_osf_info
-+{
-+       char                    genre[MAXGENRELEN];
-+       int                     len;
-+       unsigned long           flags;
-+       int                     loglevel;
-+       int                     invert; /* UNSUPPORTED */
-+};
-+
-+struct osf_wc
-+{
-+       char                    wc;
-+       unsigned long           val;
-+};
-+
-+/* This struct represents IANA options
-+ * http://www.iana.org/assignments/tcp-parameters
-+ */
-+struct osf_opt
-+{
-+       unsigned char           kind;
-+       unsigned char           length;
-+       struct osf_wc           wc;
-+};
-+
-+struct osf_finger
-+{
-+       struct list_head        flist;
-+       struct osf_wc           wss;
-+       unsigned char           ttl;
-+       unsigned char           df;
-+       unsigned long           ss;
-+       unsigned char           genre[MAXGENRELEN];
-+       unsigned char           version[MAXGENRELEN], subtype[MAXGENRELEN];
-+
-+       /* Not needed, but for consistency with original table from Michal Zalewski */
-+       unsigned char           details[MAXDETLEN]; 
-+
-+       int                     opt_num;
-+       struct osf_opt          opt[MAX_IPOPTLEN]; /* In case it is all NOP or EOL */
-+
-+};
-+
-+struct ipt_osf_nlmsg
-+{
-+       struct osf_finger       f;
-+       struct iphdr            ip;
-+       struct tcphdr           tcp;
-+};
-+
-+#ifdef __KERNEL__
-+
-+/* Defines for IANA option kinds */
-+
-+#define OSFOPT_EOL             0       /* End of options */
-+#define OSFOPT_NOP             1       /* NOP */
-+#define OSFOPT_MSS             2       /* Maximum segment size */
-+#define OSFOPT_WSO             3       /* Window scale option */
-+#define OSFOPT_SACKP           4       /* SACK permitted */
-+#define OSFOPT_SACK            5       /* SACK */
-+#define OSFOPT_ECHO            6
-+#define OSFOPT_ECHOREPLY       7
-+#define OSFOPT_TS              8       /* Timestamp option */
-+#define OSFOPT_POCP            9       /* Partial Order Connection Permitted */
-+#define OSFOPT_POSP            10      /* Partial Order Service Profile */
-+/* Others are not used in current OSF */
-+
-+static struct osf_opt IANA_opts[] = 
-+{
-+       {0, 1,},
-+       {1, 1,},
-+       {2, 4,},
-+       {3, 3,},
-+       {4, 2,},
-+       {5, 1 ,}, /* SACK length is not defined */
-+       {6, 6,},
-+       {7, 6,},
-+       {8, 10,},
-+       {9, 2,},
-+       {10, 3,},
-+       {11, 1,}, /* CC: Suppose 1 */
-+       {12, 1,}, /* the same */
-+       {13, 1,}, /* and here too */
-+       {14, 3,},
-+       {15, 1,}, /* TCP Alternate Checksum Data. Length is not defined */
-+       {16, 1,},
-+       {17, 1,},
-+       {18, 3,},
-+       {19, 18,},
-+       {20, 1,},
-+       {21, 1,},
-+       {22, 1,},
-+       {23, 1,},
-+       {24, 1,},
-+       {25, 1,},
-+       {26, 1,},
-+};
-+
-+#endif /* __KERNEL__ */
-+
-+#endif /* _IPT_OSF_H */
+		
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail is new and improved - Check it out!
+http://promotions.yahoo.com/new_mail
