@@ -1,10 +1,12 @@
-From: Chandrakanth Chereddi <kanth@hserus.net>
-Subject: use of IPT_INV_TOS
-Date: Mon, 15 Mar 2004 15:29:21 +0530
+From: =?iso-8859-2?q?Micha=B3_Margula?= <alchemyx@uznam.net.pl>
+Subject: iptables bug
+Date: Mon, 15 Mar 2004 12:24:10 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040315095921.GA15870@hserus.net>
+Message-ID: <200403151224.10441.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -18,17 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hello!
 
-The IPT_INV_TOS flag which is defined in the ip_tables.h file does not
-seem to be used anywhere in the actual code. Can anyone please let me
-know why it's been defined there.
+	In snapshot of 1.2.9 from 20040314, in file extensions/libipt_dstlimit.c o=
+n=20
+line 298 there is a typo - should be=20
 
-I did a "grep -r IPT_INV_TOS *" in the top dir. of the kernel source and
-it returned only one match, apparently the header file. Am I missing
-something here?
+        if (r->cfg.gc_interval !=3D IPT_DSTLIMIT_GCINTERVAL)
 
-TIA.
--- 
-CCK./	kanth@hserus.net
-"Passion and gradualness"	-- Pavlov.
+and now is IPT_DSTLIMIT_GCINTEVAL ;].
+
+=2D-=20
+Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/
+"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
