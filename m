@@ -1,17 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: check timer active
-Date: Wed, 08 Dec 2004 01:46:59 +0100
-Message-ID: <41B64F03.1010206@trash.net>
-References: <EINSTEINObLLAeSQzWA000068c7@einstein.systemmetrics.com>	<41B376E9.10607@eurodev.net>
-	<41B37BE6.1090208@eurodev.net> <41B37E2F.4020007@trash.net>
-	<41B38BC2.1030506@eurodev.net>
+From: Simon Kirby <sim@netnation.com>
+Subject: Re: REJECT using invalid data
+Date: Tue, 7 Dec 2004 16:52:16 -0800
+Message-ID: <20041208005216.GA7958@netnation.com>
+References: <Pine.LNX.4.53.0412072347080.2736@bizon.gios.gov.pl>
+	<41B642A1.9030807@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <41B38BC2.1030506@eurodev.net>
+Content-Disposition: inline
+In-Reply-To: <41B642A1.9030807@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +23,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
+On Wed, Dec 08, 2004 at 12:54:09AM +0100, Pablo Neira wrote:
 
-> arg, stupid me, such problem doesn't exist, if skb is NULL we don't 
-> increase counters, that's what happens in amanda. Maybe the patch 
-> attached could clean up the current API, anyway that's not a bugfix 
-> anymore, so I'll hold it here.
+> >And what about other protocols (udp, etc) when REJECT
+> >generates ICMP port-unreachable?
+> 
+> you are right, udp stuff is missing, checkings here are trivial to add 
+> anyway. I'll think about this issue more carefully in next days.
 
-As I said I don't want to apply cleanups to ip_conntrack currently,
-at least until it's sorted out what happens to it. But I opened a
-nf_conntrack tree and will add your cleanup to it once amanda is ported.
+I don't think it's a good idea to try to filter all TCP flags in REJECT
+unless we're trying to avoid rejecting rejects and we don't already do
+that for some reason (eep), for the same reason that unclean was removed
+(ECN and other new functionality could break).  I would think that all
+that is needed is a check for the RST bit.
 
-Regards
-Patrick
+At the same time, it would be nice to have a match (or at least some
+functionality) resulting in the ability to drop corrupted packets
+("corrupted" as in with the checksum) that would otherwise be accepted. 
+
+Hmm.  Maybe this should be done at a different level?  It should
+basically not match "-p tcp" in the rule "iptables -p tcp -j REJECT". 
+Doing it at "-p tcp" time would also correct "iptables -p tcp --dport 80
+-j ACCEPT", which would otherwise also be affected by the same problem
+(the TCP port could be corrupted).
+
+Simon-
