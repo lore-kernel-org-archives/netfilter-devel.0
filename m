@@ -1,18 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: nopickup-patch
-Date: Tue, 15 Jul 2003 18:06:06 +0200
+From: "Yong" <sdssly@sina.com>
+Subject: ipq+AF8-set+AF8-verdict problem in bridge+-iptables
+Date: Wed, 16 Jul 2003 09:09:52 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030715160606.GN7198@naboo>
-References: <000001c34999$97f22a80$0200a8c0@basti79>
+Message-ID: <001e01c34b36$f8e94460$8101a8c0@dev>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2EnvhqpWJq810sZn"
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="utf-7"
+Content-Transfer-Encoding: base64
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sebastian <netfilter@basti79.de>
-Content-Disposition: inline
-In-Reply-To: <000001c34999$97f22a80$0200a8c0@basti79>
+To: "Harald Welte" <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,50 +20,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
---2EnvhqpWJq810sZn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jul 14, 2003 at 01:50:52AM +0200, Sebastian wrote:
-> Hi list...
->=20
-> I just wondered, when u r talking about this nopickup-patch, then u mean
-> that one located in directory oldnat of POM? Or is there any newer
-> version available?
-
-I did a quick 'port' of the patch.  You can now switch pickup off by
-using 'echo 0 > /proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_pickup'.
-
-The patch is untested, so it might not even compile (maybe a stupid
-typo somewhere). Please give it some testing...
-
-Find the patch in patch-o-matic/pending/57_*
-
-> Greets
-> Sebastian.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---2EnvhqpWJq810sZn
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE/FCZtXaXGVTD0i/8RAvqeAJ9+amfFBBYXjpxmRU2ikWYWls65TgCghkxL
-XHmt7tKumFaPZj7ySGM7kuQ=
-=1xBq
------END PGP SIGNATURE-----
-
---2EnvhqpWJq810sZn--
+IEhlbGxvIEhhcmFsZCwNCiANCiBUaGFuayB5b3UgZm9yIHlvdXIgZW1haWxzK0FDRS0NCiANCiBJ
+IHdhbnQgdG8gdXNlIHRoZSBpcHRhYmxlK0FGOC1xdWV1ZSBpbiBicmlkZ2UrLWlwdGFibGVzIGVu
+dmlyb25tZW50LiBJIGNhbiBnZXQgdGhlIHBhY2tldCBpbiB1c2Vyc3BhY2UgdXNpbmcgLWogUVVF
+VUUgY29tbWFuZC4gSG93ZXZlciwgSWYgSSBjaGFuZ2UgdGhlIHBhY2tldCBzaXplLiBmb3IgZXhh
+bXBsZSwgSSBjaGFuZ2UgdGhlIHBpbmcgaWNtcCBwYWNrZXQgc2l6ZSB0byA0MDAsIHRoZSBwYWNr
+ZXQgRXRoZXJuZXQgaGVhZGVyIGlzIGNoYW5nZWQuIEluIG15IHRlc3QsIHRoZSBNQUMgYWRkcmVz
+cyBpcyBjaGFuZ2VkIHRvIDB4ZmZmZmZmZmZmZi4gSSBjYW4gY2FwdHVyZSB0aGlzIHBhY2tldCB1
+c2luZyBzbmlmZmVyIHRvb2wuIFNpbmNlIHRoZSBNQUMgYWRkcmVzcyBpcyBjaGFuZ2VkLCB0aGUg
+b3RoZXIgY29tcHV0ZXIgY2Fubm90IHJlY2VpdmUgdGhlIElDTVAgcGFja2V0Lg0KIA0KIEl0IHNl
+ZW1zIHRoYXQgdGhlIGJyaWRnZSBpcHRhYmxlcyBwYXRjaCBjaGFuZ2VkIHNvbWV0aGluZyBpbiB0
+aGUgZnVuY3Rpb24gaXBxK0FGOC1zZXQrQUY4LXZlcmRpY3QoKS4gDQogDQogUmVnYXJkaW5nIHRo
+ZSBNVFUgaXNzdWUsIHlvdSBhcmUgcmlnaHQuIHRoZSBpcHErQUY4LXNldCtBRjgtdmVyZGljdCBm
+dW5jdGlvbiBkb2VzIG5vdCBwZXJmb3JtIHRoZSBJUCBmcmFnbWVudC4gSWYgSSBzZW5kIGEgcGFj
+a2V0IGxhcmdlciB0aGFuIE1UVSwgaXQgaXMgbWlzc2luZy4gSXMgaXQgYnkgZGVzaWduPw0KIA0K
+IENhbiBJIG1vZGlmeSB0aGUgaXBxK0FGOC1zZXQrQUY4LXZlcmRpY3QgZnVuY3Rpb24gdG8gcGVy
+Zm9ybSB0aGUgSVAgZnJhZ21lbnQ/ICBJcyB0aGVyZSBhbnkgcGF0Y2ggZm9yIHRoaXMgSVAgZnJh
+Z21lbnQgaXNzdWU/DQogDQogVGhhbmsgeW91IGFnYWluIGZvciB5b3VyIGhlbHArQUNFLQ0KIA0K
+IFlvbmcNCiANCitBRDQtIC0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQorQUQ0LSBGcm9t
+OiArQUNJLUhhcmFsZCBXZWx0ZStBQ0ktICtBRHctbGFmb3JnZStBRUEtbmV0ZmlsdGVyLm9yZytB
+RDQtDQorQUQ0LSBUbzogK0FDSS1Zb25nIExpK0FDSS0gK0FEdy1zZHNzbHkrQUVBLXNpbmEuY29t
+K0FENC0NCitBRDQtIENjOiArQUR3LW5ldGZpbHRlci1kZXZlbCtBRUEtbGlzdHMubmV0ZmlsdGVy
+Lm9yZytBRDQtDQorQUQ0LSBTZW50OiBNb25kYXksIEp1bHkgMTQsIDIwMDMgNDowNyBQTQ0KK0FE
+NC0gU3ViamVjdDogUmU6IGlwcStBRjgtc2V0K0FGOC12ZXJkaWN0IHByb2JsZW0gaW4gYnJpZGdl
+Ky1pcHRhYmxlcw0KK0FENC0gDQorQUQ0LSBPbiBTdW4sIEp1bCAxMywgMjAwMyBhdCAxMToxMTox
+NkFNICstMDgwMCwgWW9uZyBMaSB3cm90ZToNCitBRDQtICtBRDQtIEhlbGxvIEFsbCwNCitBRDQt
+ICtBRDQtIA0KK0FENC0gK0FENC0gSSBlbmNvdW50ZXJlZCBhIHByb2JsZW0gd2l0aCB0aGUgaXBx
+K0FGOC1zZXQrQUY4LXZlcmRpY3QgZnVuY3Rpb24uIEkgd2FudCB0byBtb2RpZnkNCitBRDQtICtB
+RDQtIHRoZSBwYWNrZXQgY29udGVudCBhbmQgc2l6ZSB1c2luZyB0aGUgaXBxK0FGOC1zZXQrQUY4
+LXZlcmRpY3QgZnVuY3Rpb24uIEhvd2V2ZXIsIEkNCitBRDQtICtBRDQtIGZvdW5kIEkgY2Fubm90
+IGNoYW5nZSB0aGUgSVAgcGFja2V0IHNpemUgbW9yZSB0aGFuIDQwMCstIGJ5dGVzLiBJcyBpdCBh
+IGtub3duDQorQUQ0LSArQUQ0LSBpc3N1ZT8NCitBRDQtIA0KK0FENC0gd2hhdCBkbyB5b3UgbWVh
+biBieSAnSSBjYW5ub3QnID8gV2hhdCBoYXBwZW5zPyAgSXMgYW4gZXJyb3IgcmV0dXJuZWQgdG8N
+CitBRDQtIHRoZSBpcHErQUY4LXNldCtBRjgtdmVyZGljdCgpIGNhbGw/ICBJcyB0aGUgcGFja2V0
+IHNpbGVudGx5IGRpc2NhcmRlZD8gIElzIHRoZQ0KK0FENC0gcGFja2V0IHRydW5jYXRlZD8NCitB
+RDQtIA0KK0FENC0gQW55d2F5LCBpdCBzaG91bGQgd29yay4gIEJ1dCBpZiB5b3UgZXhjZWVkIHRo
+ZSBvdXRnb2luZyBpbnRlcmZhY2UncyBNVFUsDQorQUQ0LSBJIGNvdWxkIGltYWdpbmUgdGhhdCBu
+byBmcmFnbWVudGF0aW9uIGhhcHBlbnMuLi4NCitBRDQtIA0KK0FENC0gK0FENC0gVGhhbmtzIGlu
+IGFkdmFuY2UrQUNFLQ0KK0FENC0gK0FENC0gWW9uZw==
