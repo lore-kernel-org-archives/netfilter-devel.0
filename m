@@ -1,76 +1,39 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Any planned work on supporting SIP?
-Date: Tue, 4 Mar 2003 20:31:52 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030304193152.GM4880@sunbeam.de.gnumonks.org>
-References: <69BCCDDC980B4641BFC908D7BF95F1840463075F@exchsrv-eng>
+From: Dominik Kubla <dominik@kubla.de>
+Subject: Re: A suggestion for the netfilter part of the sources
+Date: Tue, 4 Mar 2003 23:56:42 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200303042356.56722.dominik@kubla.de>
+References: <3E64E1C8.9040309@securinet.qc.ca> <20030304182006.GI4880@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qLni7iB6Dl8qUSwk"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: William Luk <William.Luk@cosinecom.com>
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: linux-kernel@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Harald Welte <laforge@netfilter.org>,
+	David =?iso-8859-1?q?Lagani=E8re?= <spanska@securinet.qc.ca>
+In-Reply-To: <20030304182006.GI4880@sunbeam.de.gnumonks.org>
+Content-Description: clearsigned data
 Content-Disposition: inline
-In-Reply-To: <69BCCDDC980B4641BFC908D7BF95F1840463075F@exchsrv-eng>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tuesday 04 March 2003 19:20, Harald Welte wrote:
 
---qLni7iB6Dl8qUSwk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>
+> The suggestion is neither 'good' nor 'bad'.  Nobody has (until now)
+> asked us to raise this value, eight seems to be enough for most people.
+>
+> As long as your proposal is not backed by more other users who think the
+> default should be raised, I'd rather leave it the way it currently is.
+>
 
-On Tue, Mar 04, 2003 at 10:55:49AM -0800, William Luk wrote:
-> Harald,
->=20
-> Is there any planned work on supporting SIP?  I am chatting with several
-> people off line and they seems pretty eager.
+Since this is meant to be tunable, how about turning it into a configuration 
+option (with 8 being the default)? I guess that would solve this problem 
+quite nicely.
 
-There have been plans, yes.  Unfortunately I cannot start a project of
-this size in my sparetime... maintainance of netfilter/iptables, fixing
-the bugs and doing the stuff pending for 2.5.x ready is already eating
-up more time than I can afford.
-
-SIP conntrack/nat is even more complex than H.323 and we will need
-several modifications to the conntrack/nat core in order to support it
-at least for the most common SIP scenarios...
-
-The company who wanted to sponsor SIP seems to have lost interest, and
-without any other [corporate] sponsorship, I myself will not be able to
-work on SIP conntrack/nat.
-
-> Thanks,
-> William
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---qLni7iB6Dl8qUSwk
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+ZP8oXaXGVTD0i/8RAqOHAJ4kDN8r9Tbk5+LaXZEwGWPMO3KImACfeF1x
-UJqZxPKbTmz8HHfdlSD5LC0=
-=emcQ
------END PGP SIGNATURE-----
-
---qLni7iB6Dl8qUSwk--
+Regards,
+  Dominik
+-- 
+Why should George W. Bush care what the American people think?
+After all they did not vote for him.
