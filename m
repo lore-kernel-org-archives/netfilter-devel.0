@@ -1,36 +1,37 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: Do you know about skb_header_pointer() ?
-Date: Thu, 19 Aug 2004 10:27:53 -0700
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040819102753.408858e0.davem@redhat.com>
-References: <200408190721.QAA02944@toshiba.co.jp>
-	<20040819094401.GY3921@sunbeam.de.gnumonks.org>
-	<20040819071750.67f0e924.davem@redhat.com>
-	<20040819170040.GW3921@sunbeam.de.gnumonks.org>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: Policy match with a bridge
+Date: Thu, 19 Aug 2004 20:10:28 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <200408192010.28417.bdschuym@pandora.be>
+References: <411EAF08.3000401@shorewall.net> <411F7B87.7060303@shorewall.net> <41200E80.2000005@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net, kadlec@blackhole.kfki.hu,
-        kisza@securityaudit.hu, netfilter-devel@lists.netfilter.org,
-        usagi-core@linux-ipv6.org, netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040819170040.GW3921@sunbeam.de.gnumonks.org>
-Errors-to: netdev-bounce@oss.sgi.com
+Cc: netfilter-devel@lists.netfilter.org, bridge@osdl.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>,
+	Tom Eastep <teastep@shorewall.net>
+In-Reply-To: <41200E80.2000005@trash.net>
+Content-Disposition: inline
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 19 Aug 2004 19:00:40 +0200
-Harald Welte <laforge@netfilter.org> wrote:
+On Monday 16 August 2004 03:31, Patrick McHardy wrote:
+> The problem is ipv4_sabotage_out in the briding code. It prevents the
+> packet from hitting the LOCAL_OUT hook while it is still unencrypted.
+> When it hits the bridging code and its LOCAL_OUT hook it's too late.
+> Not sure how to handle it yet.
 
-> can imagine a case where parts of the header up and including the tcp
-> options could be non-linear.
+I'll have a look at that after I'm finished with the IPv6 bridge firewalling 
+stuff.
 
-A driver could do this, by putting all receive SKB data into
-pages.
-
-I am not aware of any that currently do this.
-
-Such a driver would have to be very careful, as things like
-the ethernet header parsing code on receive is not ready
-for such things.  Things like pskb_may_pull() calls would
-need to be added to that code for this to work.
+cheers,
+Bart
