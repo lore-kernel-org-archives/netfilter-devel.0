@@ -1,11 +1,16 @@
-From: Michael Gale <michael.gale@utilitran.com>
-Subject: ULOG and bandwidth monitor
-Date: Mon, 14 Feb 2005 16:30:49 -0700
-Message-ID: <421134A9.8010204@utilitran.com>
+From: Jonas Berlin <jberlin@niksula.hut.fi>
+Subject: Re: ULOG target for ipv6
+Date: Tue, 15 Feb 2005 02:11:37 +0200
+Message-ID: <42113E39.1030000@niksula.hut.fi>
+References: <42086F50.9090504@niksula.hut.fi>
+	<53965.213.236.112.75.1107867276.squirrel@213.236.112.75>
+	<420BEAFB.9070405@niksula.hut.fi>
+	<20050214232510.GK3829@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <20050214232510.GK3829@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,28 +22,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Harald Welte wrote:
 
-	I have recently downloaded ulogd-1.02 and gone through the 
-documentation. With the mysql plugin, it would seem very easy to create 
-a web base front end to produce total stats.
+>;) I've merged it into pom-ng (Rev. 3694).  I'm not quite happy about
+>ulogd from userspace having no idea whether the packet came from the
+>ipv4 or ipv6 stack - but I think it's fine for now.
+>  
+>
+Nice :)
 
-Also ULOG seems to provide a great framework for many people to create a 
-highly detailed and robust bandwidth monitor.
+I actually meant that ulogd probably isn't expecting ipv6 packets (since 
+there was no ipv6 support before) and I thus don't know what ulogd will 
+do when it gets one.
 
-I am curious as to why no developers have done so ? I am trying to move 
-into development, as a hubbyist (for now) so I could be way off base.
+Ulogd can figure out which stack the packet came from simply by looking 
+at the it (check if it contains an ipv4 or ipv6 header). Or at least 
+that's how I think it should work :)
 
-Thanks.
+>Well, there are no instructions.  Patches to the HOWTO's or new
+>documentation is always welcome.
+>  
+>
+Sure.. I found README.newpatches in pom-ng which helped creating the 
+patch but did not mention how to submit.. Is the proper way to send a 
+message to netfilter-devel with a subject starting with [ANNOUNCE] or 
+[PATCH] or something like that? And any wishes/requirements regarding 
+the message content of the announcement?
 
 -- 
-Michael Gale
-Lan Administrator
-Utilitran Corp.
-
-Hey, let me file that under important .... > /dev/null
-...
-"Hey did you read my e-mail"
-"Let my check"
-^From:.* > /dev/null
-"Nope, I missed it, send it again"
+- xkr47
