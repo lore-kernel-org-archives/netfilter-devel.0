@@ -1,7 +1,7 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 4/5] Remove do_extra_mangle
-Date: Thu, 18 Nov 2004 16:45:21 +1100
-Message-ID: <1100756722.5865.55.camel@localhost.localdomain>
+Subject: [PATCH 5/5] Remove randomness from IP selection
+Date: Thu, 18 Nov 2004 16:46:35 +1100
+Message-ID: <1100756795.5865.57.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -18,183 +18,217 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Remove do_extra_mangle: double NAT on LOCAL_OUT
+Name: Remove Randomness in Selecting NAT IP Address
 Status: Untested
-Depends: Netfilter/remove-multiple-ranges.patch.gz
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-On NF_IP_LOCAL_OUT, when destination NAT changes the destination
-interface, we also change the source address, so the packet is the
-same as if it were generated to go that way in the first place.  This
-is not strictly necessary, I believe.
+We currently choose a "random" IP address to NAT to, where we have a
+range.  Martin Josefsson pointed out that he uses the SAME target in
+iptables because changing IP addresses breaks Internet banking sites
+(among others) which assume the customer will be coming from a
+consistent IP address.
 
-This patch rips that code out to see what breaks.
+In fact, we spend a fair bit of effort trying to balance the number of
+connections we NAT to each IP address.  We can come pretty damn close
+just hashing the source and destination IP addresses, and it has the
+consistency property which is so desirable, as well as being faster.
+
 
 Index: linux-2.6.10-rc2-bk1-Netfilter/net/ipv4/netfilter/ip_nat_core.c
 ===================================================================
---- linux-2.6.10-rc2-bk1-Netfilter.orig/net/ipv4/netfilter/ip_nat_core.c	2004-11-18 15:26:41.905792496 +1100
-+++ linux-2.6.10-rc2-bk1-Netfilter/net/ipv4/netfilter/ip_nat_core.c	2004-11-18 15:58:37.821529032 +1100
-@@ -179,27 +179,6 @@
+--- linux-2.6.10-rc2-bk1-Netfilter.orig/net/ipv4/netfilter/ip_nat_core.c	2004-11-18 16:06:33.375233880 +1100
++++ linux-2.6.10-rc2-bk1-Netfilter/net/ipv4/netfilter/ip_nat_core.c	2004-11-18 16:14:53.245242088 +1100
+@@ -20,6 +20,7 @@
+ #include <net/tcp.h>  /* For tcp_prot in getorigdst */
+ #include <linux/icmp.h>
+ #include <linux/udp.h>
++#include <linux/jhash.h>
+ 
+ #define ASSERT_READ_LOCK(x) MUST_BE_READ_LOCKED(&ip_nat_lock)
+ #define ASSERT_WRITE_LOCK(x) MUST_BE_WRITE_LOCKED(&ip_nat_lock)
+@@ -47,7 +48,6 @@
+ static unsigned int ip_nat_htable_size;
+ 
+ static struct list_head *bysource;
+-static struct list_head *byipsproto;
+ struct ip_nat_protocol *ip_nat_protos[MAX_IP_NAT_PROTO];
+ 
+ 
+@@ -87,7 +87,6 @@
+ 
+ 	WRITE_LOCK(&ip_nat_lock);
+ 	list_del(&info->bysource);
+-	list_del(&info->byipsproto);
+ 	WRITE_UNLOCK(&ip_nat_lock);
+ }
+ 
+@@ -179,38 +178,6 @@
  	return 0;
  }
  
--#ifdef CONFIG_IP_NF_NAT_LOCAL
--/* If it's really a local destination manip, it may need to do a
--   source manip too. */
--static void
--do_extra_mangle(u_int32_t var_ip, u_int32_t *other_ipp)
+-/* Simple way to iterate through all. */
+-static inline int fake_cmp(const struct ip_conntrack *ct,
+-			   u_int32_t src, u_int32_t dst, u_int16_t protonum,
+-			   unsigned int *score, const struct ip_conntrack *ct2)
 -{
--	struct flowi fl = { .nl_u = { .ip4_u = { .daddr = var_ip } } };
--	struct rtable *rt;
--
--	/* FIXME: IPTOS_TOS(iph->tos) --RR */
--	if (ip_route_output_key(&rt, &fl) != 0) {
--		DEBUGP("do_extra_mangle: Can't get route to %u.%u.%u.%u\n",
--		       NIPQUAD(var_ip));
--		return;
--	}
--
--	*other_ipp = rt->rt_src;
--	ip_rt_put(rt);
+-	/* Compare backwards: we're dealing with OUTGOING tuples, and
+-           inside the conntrack is the REPLY tuple.  Don't count this
+-           conntrack. */
+-	if (ct != ct2
+-	    && ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip == dst
+-	    && ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip == src
+-	    && (ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.protonum == protonum))
+-		(*score)++;
+-	return 0;
 -}
--#endif
 -
- /* Simple way to iterate through all. */
- static inline int fake_cmp(const struct ip_conntrack *ct,
- 			   u_int32_t src, u_int32_t dst, u_int16_t protonum,
-@@ -246,30 +225,32 @@
+-static inline unsigned int
+-count_maps(u_int32_t src, u_int32_t dst, u_int16_t protonum,
+-	   const struct ip_conntrack *conntrack)
+-{
+-	struct ip_conntrack *ct;
+-	unsigned int score = 0;
+-	unsigned int h;
+-
+-	MUST_BE_READ_LOCKED(&ip_nat_lock);
+-	h = hash_by_ipsproto(src, dst, protonum);
+-	list_for_each_entry(ct, &byipsproto[h], nat.info.byipsproto)
+-		fake_cmp(ct, src, dst, protonum, &score, conntrack);
+-
+-	return score;
+-}
+-
+ /* For [FUTURE] fragmentation handling, we want the least-used
+    src-ip/dst-ip/proto triple.  Fairness doesn't come into it.  Thus
+    if the range specifies 1.2.3.4 ports 10000-10005 and 1.2.3.5 ports
+@@ -223,10 +190,7 @@
+ 		    const struct ip_conntrack *conntrack,
+ 		    unsigned int hooknum)
  {
- 	unsigned int best_score = 0xFFFFFFFF;
- 	struct ip_conntrack_tuple best_tuple = *tuple;
--	u_int32_t *var_ipp, *other_ipp, saved_ip, orig_dstip;
-+	u_int32_t *var_ipp;
- 	static unsigned int randomness;
+-	unsigned int best_score = 0xFFFFFFFF;
+-	struct ip_conntrack_tuple best_tuple = *tuple;
+ 	u_int32_t *var_ipp;
+-	static unsigned int randomness;
  	/* Host order */
  	u_int32_t minip, maxip, j;
  
--	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC) {
-+	/* No IP mapping?  Do nothing. */
-+	if (!(range->flags & IP_NAT_RANGE_MAP_IPS))
-+		return;
-+
-+	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC)
- 		var_ipp = &tuple->src.ip;
--		saved_ip = tuple->dst.ip;
--		other_ipp = &tuple->dst.ip;
--	} else {
-+	else
- 		var_ipp = &tuple->dst.ip;
--		saved_ip = tuple->src.ip;
--		other_ipp = &tuple->src.ip;
-+
-+	/* Fast path: only one choice. */
-+	if (range->min_ip == range->max_ip) {
-+		*var_ipp = range->min_ip;
-+		return;
+@@ -245,33 +209,16 @@
+ 		return;
  	}
--	/* Don't do do_extra_mangle unless necessary (overrides
--           explicit socket bindings, for example) */
--	orig_dstip = tuple->dst.ip;
--
--	if (range->flags & IP_NAT_RANGE_MAP_IPS) {
--		minip = ntohl(range->min_ip);
--		maxip = ntohl(range->max_ip);
--	} else
--		minip = maxip = ntohl(*var_ipp);
  
-+	minip = ntohl(range->min_ip);
-+	maxip = ntohl(range->max_ip);
-+
-+	/* FIXME: use hash of ips like ipt_SAME, not randomness.
-+	   This way same pairs get same IP: think Internet Banking.
-+	 */
- 	randomness++;
- 	for (j = 0; j < maxip - minip + 1; j++) {
- 		unsigned int score;
-@@ -277,16 +258,6 @@
- 		*var_ipp = htonl(minip + (randomness + j) 
- 				 % (maxip - minip + 1));
- 
--		/* Reset the other ip in case it was mangled by
--		 * do_extra_mangle last time. */
--		*other_ipp = saved_ip;
++	/* Hashing source and destination IPs gives a fairly even
++	 * spread in practice (if there are a small number of IPs
++	 * involved, there usually aren't that many connections
++	 * anyway).  The consistency means that servers see the same
++	 * client coming from the same IP (some Internet Backing sites
++	 * like this), even across reboots. */
+ 	minip = ntohl(range->min_ip);
+ 	maxip = ntohl(range->max_ip);
 -
--#ifdef CONFIG_IP_NF_NAT_LOCAL
--		if (hooknum == NF_IP_LOCAL_OUT
--		    && *var_ipp != orig_dstip)
--			do_extra_mangle(*var_ipp, other_ipp);
--#endif
+-	/* FIXME: use hash of ips like ipt_SAME, not randomness.
+-	   This way same pairs get same IP: think Internet Banking.
+-	 */
+-	randomness++;
+-	for (j = 0; j < maxip - minip + 1; j++) {
+-		unsigned int score;
 -
- 		/* Count how many others map onto this. */
- 		score = count_maps(tuple->src.ip, tuple->dst.ip,
- 				   tuple->dst.protonum, conntrack);
-@@ -303,38 +274,6 @@
- 	*tuple = best_tuple;
+-		*var_ipp = htonl(minip + (randomness + j) 
+-				 % (maxip - minip + 1));
+-
+-		/* Count how many others map onto this. */
+-		score = count_maps(tuple->src.ip, tuple->dst.ip,
+-				   tuple->dst.protonum, conntrack);
+-		if (score < best_score) {
+-			/* Optimization: doesn't get any better than
+-			   this. */
+-			if (score == 0)
+-				return;
+-
+-			best_score = score;
+-			best_tuple = *tuple;
+-		}
+-	}
+-	*tuple = best_tuple;
++	j = jhash_2words(tuple->src.ip, tuple->dst.ip, 0);
++	*var_ipp = htonl(minip + j % (maxip - minip + 1));
  }
  
--/* Fast version doesn't iterate through hash chains, but only handles
--   common case of single IP address (null NAT, masquerade) */
--static void
--find_best_ips_proto_fast(struct ip_conntrack_tuple *tuple,
--			 const struct ip_nat_range *range,
--			 const struct ip_conntrack *conntrack,
--			 unsigned int hooknum)
--{
--	/* Leave IP address alone if we're not to map IP addresses. */
--	if (!(range->flags & IP_NAT_RANGE_MAP_IPS))
--		return;
--
--	if (range->min_ip != range->max_ip) {
--		find_best_ips_proto(tuple, range, conntrack, hooknum);
--		return;
--	}
--
--	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC)
--		tuple->src.ip = range->min_ip;
--	else {
--		/* Only do extra mangle when required (breaks socket
--		   binding) */
--#ifdef CONFIG_IP_NF_NAT_LOCAL
--		if (tuple->dst.ip != range->min_ip
--		    && hooknum == NF_IP_LOCAL_OUT)
--			do_extra_mangle(range->min_ip, &tuple->src.ip);
--		else
--#endif
--		tuple->dst.ip = range->min_ip;
--	}
--}
--
  /* Manipulate the tuple into the range given.  For NF_IP_POST_ROUTING,
-  * we change the source to map into the range.  For NF_IP_PRE_ROUTING
-  * and NF_IP_LOCAL_OUT, we change the destination to map into the
-@@ -369,7 +308,7 @@
- 	/* 2) Select the least-used IP/proto combination in the given
- 	   range. */
- 	*tuple = *orig_tuple;
--	find_best_ips_proto_fast(tuple, range, conntrack, hooknum);
-+	find_best_ips_proto(tuple, range, conntrack, hooknum);
+@@ -472,19 +419,8 @@
+ 			      .tuple.src,
+ 			      conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
+ 			      .tuple.dst.protonum);
+-	/* We place packet as seen OUTGOUNG in byips_proto hash
+-           (ie. reverse dst and src of reply packet. */
+-	unsigned int ipsprotohash
+-		= hash_by_ipsproto(conntrack->tuplehash[IP_CT_DIR_REPLY]
+-				   .tuple.dst.ip,
+-				   conntrack->tuplehash[IP_CT_DIR_REPLY]
+-				   .tuple.src.ip,
+-				   conntrack->tuplehash[IP_CT_DIR_REPLY]
+-				   .tuple.dst.protonum);
+-
+ 	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
+ 	list_move(&info->bysource, &bysource[srchash]);
+-	list_move(&info->byipsproto, &byipsproto[ipsprotohash]);
+ }
  
- 	/* 3) The per-protocol part of the manip is made to map into
- 	   the range to make a unique tuple. */
-@@ -470,6 +409,9 @@
+ void place_in_hashes(struct ip_conntrack *conntrack,
+@@ -495,19 +431,8 @@
+ 			      .tuple.src,
+ 			      conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
+ 			      .tuple.dst.protonum);
+-	/* We place packet as seen OUTGOUNG in byips_proto hash
+-           (ie. reverse dst and src of reply packet. */
+-	unsigned int ipsprotohash
+-		= hash_by_ipsproto(conntrack->tuplehash[IP_CT_DIR_REPLY]
+-				   .tuple.dst.ip,
+-				   conntrack->tuplehash[IP_CT_DIR_REPLY]
+-				   .tuple.src.ip,
+-				   conntrack->tuplehash[IP_CT_DIR_REPLY]
+-				   .tuple.dst.protonum);
+-
+ 	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
+ 	list_add(&info->bysource, &bysource[srchash]);
+-	list_add(&info->byipsproto, &byipsproto[ipsprotohash]);
+ }
  
- 	/* Has source changed?. */
- 	if (!ip_ct_tuple_src_equal(&new_tuple, &orig_tp)) {
-+		IP_NF_ASSERT(HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC);
-+		IP_NF_ASSERT(ip_ct_tuple_dst_equal(&new_tuple, &orig_tp));
-+
- 		/* In this direction, a source manip. */
- 		info->manips[info->num_manips++] =
- 			((struct ip_nat_info_manip)
-@@ -488,6 +430,8 @@
+ /* Returns true if succeeded. */
+@@ -785,11 +710,9 @@
+ 	ip_nat_htable_size = ip_conntrack_htable_size;
  
- 	/* Has destination changed? */
- 	if (!ip_ct_tuple_dst_equal(&new_tuple, &orig_tp)) {
-+		IP_NF_ASSERT(HOOK2MANIP(hooknum) == IP_NAT_MANIP_DST);
-+
- 		/* In this direction, a destination manip */
- 		info->manips[info->num_manips++] =
- 			((struct ip_nat_info_manip)
+ 	/* One vmalloc for both hash tables */
+-	bysource = vmalloc(sizeof(struct list_head) * ip_nat_htable_size*2);
+-	if (!bysource) {
++	bysource = vmalloc(sizeof(struct list_head) * ip_nat_htable_size);
++	if (!bysource)
+ 		return -ENOMEM;
+-	}
+-	byipsproto = bysource + ip_nat_htable_size;
+ 
+ 	/* Sew in builtin protocols. */
+ 	WRITE_LOCK(&ip_nat_lock);
+@@ -802,7 +725,6 @@
+ 
+ 	for (i = 0; i < ip_nat_htable_size; i++) {
+ 		INIT_LIST_HEAD(&bysource[i]);
+-		INIT_LIST_HEAD(&byipsproto[i]);
+ 	}
+ 
+ 	/* FIXME: Man, this is a hack.  <SIGH> */
+Index: linux-2.6.10-rc2-bk1-Netfilter/include/linux/netfilter_ipv4/ip_nat.h
+===================================================================
+--- linux-2.6.10-rc2-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ip_nat.h	2004-11-18 14:58:02.105241920 +1100
++++ linux-2.6.10-rc2-bk1-Netfilter/include/linux/netfilter_ipv4/ip_nat.h	2004-11-18 16:14:25.020532896 +1100
+@@ -91,7 +91,7 @@
+ 	/* Manipulations to be done on this conntrack. */
+ 	struct ip_nat_info_manip manips[IP_NAT_MAX_MANIPS];
+ 
+-	struct list_head bysource, byipsproto;
++	struct list_head bysource;
+ 
+ 	/* Helper (NULL if none). */
+ 	struct ip_nat_helper *helper;
 
 -- 
 A bad analogy is like a leaky screwdriver -- Richard Braakman
