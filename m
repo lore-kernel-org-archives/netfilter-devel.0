@@ -1,14 +1,15 @@
-From: "Darius Tribandis" <sirijus@kobra.ktu.lt>
-Subject: -m limit problem
-Date: Tue, 21 Sep 2004 00:12:12 +0300
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: -m limit problem
+Date: Mon, 20 Sep 2004 23:52:52 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1e0e01c49f56$7f61b490$523e000a@sirijus>
+Message-ID: <Pine.LNX.4.61.0409202329180.18874@filer.marasystems.com>
+References: <1e0e01c49f56$7f61b490$523e000a@sirijus>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1257"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Darius Tribandis <sirijus@kobra.ktu.lt>
+In-Reply-To: <1e0e01c49f56$7f61b490$523e000a@sirijus>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,30 +20,32 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-i try explain it with examples...
+On Tue, 21 Sep 2004, Darius Tribandis wrote:
 
-/usr/sbin/iptables -t nat -N httpinfo
-/usr/sbin/iptables -t nat -A PREROUTING -p tcp -s USERIP -m mac --mac-source
-AA:AA:BB:BB:CC:CC -m multiport --destination-port 80,8080,3128 -j httpinfo
-/usr/sbin/iptables -t nat -A httpinfo -p tcp -s 10.5.4.14 -m limit --limit
-1/day --limit-burst 1 -j DNAT --to LOCALIP:5454
+> /usr/sbin/iptables -t nat -N httpinfo
+> /usr/sbin/iptables -t nat -A PREROUTING -p tcp -s USERIP -m mac --mac-source
+> AA:AA:BB:BB:CC:CC -m multiport --destination-port 80,8080,3128 -j httpinfo
+> /usr/sbin/iptables -t nat -A httpinfo -p tcp -s 10.5.4.14 -m limit --limit
+> 1/day --limit-burst 1 -j DNAT --to LOCALIP:5454
+>
+> sometimes i nead some times per day do like this:
+>
+> /usr/sbin/iptables -t nat -F PREROUTING
+> /usr/sbin/iptables -t nat -A PREROUTING -p tcp -s USERIP -m mac --mac-source
+> AA:AA:BB:BB:CC:CC -m multiport --destination-port 80,8080,3128 -j httpinfo
+>
+> here problem begins.
+> i am not modifaing httpinfo table but i geting redirect after every reload
+> like this.
 
-after that it acts ok. 1 time per day i will get redirected.
+Due to the way limit stores it's counters the counters are reset each time 
+you modify the ruleset in the same table (nat in your case).
 
-sometimes i nead some times per day do like this:
+In theory it may be possible to modify the iptables kernel API to allow 
+limit to keep it's counters while modifying the iptable, but in reality 
+the best method is to modify limit to keep it's counters in a more sane 
+place than within the iptable matchdata.. (or more realistic, write an 
+alternative match implementation using separate counters).
 
-/usr/sbin/iptables -t nat -F PREROUTING
-/usr/sbin/iptables -t nat -A PREROUTING -p tcp -s USERIP -m mac --mac-source
-AA:AA:BB:BB:CC:CC -m multiport --destination-port 80,8080,3128 -j httpinfo
-
-here problem begins.
-i am not modifaing httpinfo table but i geting redirect after every reload
-like this.
-
-Can anyone help with this
-
-Thanks
----
-D. Tribandis
-Kaunas University of Technology
-Institute of Information Technology Development
+Regards
+Henrik
