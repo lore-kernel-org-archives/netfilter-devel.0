@@ -1,53 +1,37 @@
-From: "Jim Gifford" <maillist@jg555.com>
-Subject: Bug-Report 3-19-03 patch-o-matic-ng
-Date: Sat, 20 Mar 2004 17:07:03 -0800
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <029901c40ee1$3c847280$d100a8c0@W2RZ8L4S02>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [RFC, PATCH 4/5]: netfilter+ipsec - policy lookup
+Date: Sun, 21 Mar 2004 17:35:12 +1100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040321063512.GE19697@gondor.apana.org.au>
+References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CF17.8090907@trash.net> <20040319115130.GE29066@gondor.apana.org.au> <405B2132.6060403@trash.net> <20040319210525.GA479@gondor.apana.org.au> <405C4ED3.4030004@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Netfilter Developer" <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: "David S. Miller" <davem@redhat.com>, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <405C4ED3.4030004@trash.net>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Welcome to Patch-o-matic (1.15)!
+On Sat, Mar 20, 2004 at 03:01:55PM +0100, Patrick McHardy wrote:
+> Herbert Xu wrote:
+> >
+> >Actually it was me who was confused.  ip_route_me_harder can be called
+> >on both incoming/outgoing packets.  That's what the if clause is trying
+> >to determine.  You should only call xfrm_lookup on the outgoing path.
+> 
+> No, ip_route_me_harder is currently (without the patches) only called
+> for outgoing packets. The if-clause is there because ip_route_output
+> doesn't handle packets with non-local source, and we don't want to set
+> the source to 0 (as was done before) because it prevents policy routing
+> from working properly. That's why we need the xfrm_lookup for both
+> cases.
 
-Kernel:         /usr/src/linux
-Iptables:       /usr/src/iptables
-
-Each patch is a new feature: many have minimal impact, some do not.
-Almost every one has bugs, so don't apply what you don't need!
--------------------------------------------------------
-Already applied: init_conntrack-optimize ipt_helper-invert-fix nf-log NETMAP
-SAME TTL connlimit fuzzy iprange mport nth sctp CLASSIFY
-iptables-loopcheck-speedup netfilter-docbook
-
-Testing tcp-window-tracking... not applied
-The tcp-window-tracking patch:
-   Author: Jozsef Kadlecsik
-   Status: proven to be quite stable, but still experimental
-
-Now for the error message
------------------------------------------------------------------
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-present 'ctstat' conflicts with to-be-installed 'tcp-window-tracking'
------------------------------------------------------------------
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-apply_dependencies: unable to apply dependent nf-log: cannot apply (22
-rejects out of 24 hunks)
------------------------------------------------------------------
-
-As you notice ctstat is not installed and nf-log is installed.
-
-----
-Jim Gifford
-maillist@jg555.com
+You're right.  Sorry for the confusion.
+-- 
+Debian GNU/Linux 3.0 is out! ( http://www.debian.org/ )
+Email:  Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
