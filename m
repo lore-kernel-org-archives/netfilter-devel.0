@@ -1,15 +1,11 @@
-From: Michel Pereira <michel@michel.eti.br>
-Subject: Re: 2.6.11 corrupting FTP session
-Date: Sun, 20 Mar 2005 14:58:23 -0300
-Message-ID: <1111341503.423db9bfcffb7@webmail.conectcor.com.br>
-References: <1111176664.423b35d80b351@webmail.conectcor.com.br>
-	<423DA1FB.6030209@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <423DA1FB.6030209@trash.net>
+From: Robert Scott <rbscott@axentra.net>
+Subject: ipq_get_msgerr: No such file or directory
+Date: Mon, 21 Mar 2005 15:40:25 -0800
+Message-ID: <963d7646d4ad76f6f7603e16e1e760c9@axentra.net>
+Mime-Version: 1.0 (Apple Message framework v619.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +17,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Quoting Patrick McHardy <kaber@trash.net>:
-> What is your setup (NAT rules, network topology between client and
-> server)?
+I am receiving this error code from ipq_get_msgerr.  The read is 
+successful, and returns a non-zero positive number, but when I call 
+ipq_message_type on the buffer used to read the packet, I get 
+NLMSG_ERROR, and then, when I call strerror( ipq_get_msgerr( buffer ))  
+where "buffer" is the second argument to ipq_read, I receive the error 
+message "No such file or directory".
 
-   Firewall (a) -> Server on DMZ. (NAT of internal network connections)
-   Firewall (b) -> Internal Network (without NAT of connections)
+This has occurred on a Linux 2.6.8.1 kernel with version 1.2.9 of 
+iptables.  The box where this occurred is acting as a bridge, and this 
+started happening when the internet connection on one of its interfaces 
+went down for a few hours.
 
-   b - iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
-   b - iptables -A FORWARD -s myip -d 0/0 -m state --state NEW -j ACCEPT
+Any ideas as to why this may be happening?
 
-   a - iptables -t nat -A PREROUTING -p TCP -s 0/0 -d 200.162.38.71 --dpo=
-rt 21
--j DNAT --to IPonDMZ
-
-Thank you
---
-Michel Pereira
-michel.pereira@eurorscg.com
-+55 11 5105 0570
-+55 11 5105 0569
-www.eurorscg4d.com.br
-Euro RSCG 4D
-
-Unix Sex: unzip;strip;touch;finger;mount;fsck;more;yes;umount;sleep
-
-
-----------------------------------------------------------------
-Conectcor - velocidade com qualidade
-www.conectcor.com.br
+thanks,
+--robert
