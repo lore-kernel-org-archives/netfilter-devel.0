@@ -1,18 +1,18 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] return value of conntrack protocol helper functions
-	and a macro for stats
-Date: Sat, 21 Aug 2004 00:15:22 +0200
+From: Sven Schuster <schuster.sven@gmx.de>
+Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
+Date: Sun, 22 Aug 2004 22:42:27 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1093040122.20712.18.camel@localhost.localdomain>
-References: <4112377A.8050106@eurodev.net>
+Message-ID: <20040822204227.GA2853@zion.homelinux.com>
+References: <1092407190.2402.120.camel@nienna.balabit> <4127EB7C.60103@trash.net> <41285006.2070904@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-kfvibPwXI0Q2zLOHNfVf"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Harald Welte <laforge@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=iso-8859-1
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4112377A.8050106@eurodev.net>
+To: KOVACS Krisztian <hidden@sch.bme.hu>
+Content-Disposition: inline
+In-Reply-To: <41285006.2070904@sch.bme.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,100 +24,23 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-kfvibPwXI0Q2zLOHNfVf
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi Krisztian, hi Patrick,
 
-On Thu, 2004-08-05 at 15:34, Pablo Neira wrote:
-> Hi,
+On Sun, Aug 22, 2004 at 09:49:26AM +0200, KOVACS Krisztian told us:
+>   AFAIK the ctnetlink patch has already been ported to 2.6, and a patch 
+> was sent to the mailing list. Unfortunately I was unable to find that 
+> mail in the mailing list archives...
 
-Hi Pablo
+look at this one :)
 
-I've finally had the opportunity to go through my netfilter-devel
-backlog.
+http://marc.theaimsgroup.com/?l=netfilter-devel&m=109154590603639&w=2
 
-> This patch applies to last Harald's patch bombing. It's based on=20
-> Martin's idea of removing negative values in conntrack protocol helper=20
-> functions. Please see:
->=20
-> http://lists.netfilter.org/pipermail/netfilter-devel/2004-June/015769.htm=
-l
->=20
-> Now functions packet and error return CONNTRACK_CONT to let the packet=20
-> continue its travel through the conntrack system. It also add a macro to=20
-> increase vars used for stats.
+Still didn't find enough time to port it to a current 2.6 kernel. But
+HTH!
 
-I like this patch, just a few comments below.
 
-> @@ -303,12 +307,13 @@
->  	unsigned int insert_failed;
->  	unsigned int drop;
->  	unsigned int early_drop;
-> -	unsigned int icmp_error;
-> +	unsigned int error;
->  	unsigned int expect_new;
->  	unsigned int expect_create;
->  	unsigned int expect_delete;
->  };
+Sven
 
-First I wondered why you changed this.
-=20
-> +#define CONNTRACK_STAT_INC(count) (__get_cpu_var(ip_conntrack_stat).coun=
-t++)
-
-I like the macro, it's a lot cleaner.
-=20
-> @@ -786,41 +786,42 @@
->  	/* It may be an special packet, error, unclean...
->  	 * inverse of the return code tells to the netfilter
->  	 * core what to do with the packet. */
-
-Remove part of the comment above?
-
-> -	if (proto->error !=3D NULL=20
-> -	    && (ret =3D proto->error(*pskb, &ctinfo, hooknum)) <=3D 0) {
-> -		__get_cpu_var(ip_conntrack_stat).icmp_error++;
-> -		return -ret;
-> +	if (proto->error !=3D NULL) {
-> +		ret =3D proto->error(*pskb, &ctinfo, hooknum);
-> +		if (ret !=3D CONNTRACK_CONT) {
-> +			CONNTRACK_STAT_INC(error);
-> +			CONNTRACK_STAT_INC(invalid);
-> +			return ret;
-> +		}
->  	}
-
-Now I see why the name was changed in the struct, it's not correct
-anymore (was when I wrote it :)
-
-This patch should be submitted before 2.6.9 is out.
-
-I'll update the ctstat program to reflect this change. There's also some
-more interesting events in the now submitted tcp-windowtracking patch
-that we could use for statistics.
-
-I've modified the ctstat program to be able to handle additional fields
-in /proc/net/ip_conntrack_stat if it would be increased in the future in
-order to report more stats.
-
-I'll see if I can get ctstat distributed in the same channel as rtstat,
-I thought it was distributed with iproute2 but maybe that's added in the
-RH iproute2 package as I didn't see rtstat in the Debian iproute
-package.
-=20
---=20
-/Martin
-
---=-kfvibPwXI0Q2zLOHNfVf
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBBJnf5Wm2vlfa207ERAnazAKC1DN+l+TJQv/P5IVTCAo413RsRWQCcCrFR
-doc0D0mSDBPAuAP3UrAFF9o=
-=ULp6
------END PGP SIGNATURE-----
-
---=-kfvibPwXI0Q2zLOHNfVf--
+-- 
+Linux zion 2.6.8-rc2 #1 Sun Jul 18 15:00:48 CEST 2004 i686 athlon i386 GNU/Linux
+ 22:38:58  up 35 days, 7 min,  1 user,  load average: 0.00, 0.02, 0.00
