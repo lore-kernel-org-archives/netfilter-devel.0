@@ -1,14 +1,14 @@
-From: "luoqiang" <luoqiang@ict.ac.cn>
-Subject: conntrack/NAT module
-Date: Sat, 1 Jun 2002 19:05:37 +0800
+From: "A. van Schie" <a.van.schie@quicknet.nl>
+Subject: Stange ip_conntrack (newnat) behaviour.
+Date: Sun, 2 Jun 2002 10:45:10 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <LLEJLJOMFGPFJFEGAKBJIECFCBAA.luoqiang@ict.ac.cn>
+Message-ID: <200206020845.g528jCj06987@mint.home.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -19,38 +19,48 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGksYWxsDQoNCkkgYW0gd3JpdGluZyBhIEROQVQgbW9kdWxlIHRvIGFjaGlldmUgdGhlIHB1cnBv
-c2Ugd2hpY2ggaXMgIGlkZW50aWNhbCBvZg0KICJpcHRhYmxlcyAtQSBQUkVST1VUSU5HIC10IG5h
-dCAtcCB1ZHAgLWQgMTU5LjIyNi4xLjEgLS1kcG9ydCA1MDAwIC1qIEROQVQgLS10byAxOTIuMTY4
-LjEuMjo1MDAwIi4NCg0KaG9zdCBBLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+aG9z
-dCBCLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLT5ob3N0IEMNCjE1OS4yMjYu
-MS4yLS0tLS0tLS0tLS0tLS0tPjE1OS4yMjYuMS4xLzE5Mi4xNjguMS4xLS0tLS0tLS0tLS0tLS0t
-PjE5Mi4xNjguMS4yDQoNCkkgaGF2ZSByZWFkIHRoZSBoYWNraW5nIGhvd3RvIGFuZCBoYXZlIGZp
-bmlzaGVkIHRoZSBjb25udHJhY2sgbW9kdWxlLHdoaWNoIGNhbiBiZSBzZWVuIGluICJwcm9jL25l
-dC9pcF9jb25udHJhY2siIA0KZmlsZSBvZiBob3N0IEIgYXMiRVhQRUNUSU5HIDogcHJvdG89MTcg
-c3JjPTEyNS4yMjYuMS4yIGRzdD0xNTkuMjI2LjEuMSBzcG9ydD0wIGRwb3J0PTUwMDAiDQpCdXQg
-c29tZXRoaW5nIHdyb25nIGluIG15IG5hdCBtb2R1bGUuDQpBZnRlciBsb2FkZWQgdGhlIG1vZHVs
-ZSwgbm8gRE5BVCBoYXBwZW5lZC4gOi0oDQp0aGVyZSBhcmUgc29tZSBxdWVzdGlvbnMgSSBkb24n
-dCB1bmRlcnN0YW5kLg0KMS53aGF0J3MgdGhlIGZ1bmN0aW9uIG9mIGZvb19oZWxwIGluIHN0cnVj
-dCBpcF9uYXRfaGVscGVyP0kgZG8gbm90aGluZyBoZXJlLg0KMi4gd2hhdCdzIHRoZSBmdW5jdGlv
-biBvZiBzdHJ1Y3QgaXBfbmF0X211bHRpX3JhbmdlIGhlcmU/d2hhdCdzIHRoZSBmdW5jdGlvbiBv
-ZiBzdHJ1Y3QgaXBfbmF0X3JhbmdlIHJhbmdlWzBdIGFuZCANCiAgICBzdHJ1Y3QgaXBfbmF0X3Jh
-bmdlIHJhbmdlWzFdPyhJIGRvbid0IGtub3cgd2hhdCdzIHRoZSBtZWFuaW5nIG9mICIgaGFuZ3Mg
-b2ZmIGVuZC4gIikNCjMuaG93IHRvIGNvbmZpZ3VyZSB0aGUgc3RydWN0IGlwX25hdF9tdWx0aV9y
-YW5nZSB3aGVuIGRvIEROQVQ/DQoNCg0KbXkgY29kZSBpcyBoZXJlOg0KLi4uLi4uDQogIHN0YXRp
-YyBpbnQgZm9vX25hdF9leHBlY3RlZChzdHJ1Y3Qgc2tfYnVmZiAqKnBrc2IsDQogICAgICAgICAg
-ICAgICAgICAgICAgICAgIHVuc2lnbmVkIGludCBob29rbnVtLA0KICAgICAgICAgICAgICAgICAg
-ICAgICAgICBzdHJ1Y3QgaXBfY29ubnRyYWNrICpjdCwNCiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgc3RydWN0IGlwX25hdF9pbmZvICppbmZvLA0KICAgICAgICAgICAgICAgICAgICAgICAgICBz
-dHJ1Y3QgaXBfY29ubnRyYWNrICptYXN0ZXIsDQogICAgICAgICAgICAgICAgICAgICAgICAgIHN0
-cnVjdCBpcF9uYXRfaW5mbyAqbWFzdGVyaW5mbywNCiAgICAgICAgICAgICAgICAgICAgICAgICAg
-dW5zaWduZWQgaW50ICp2ZXJkaWN0KQ0KIA0KICB7DQogICAgIHN0cnVjdCBpcF9uYXRfbXVsdGlf
-cmFuZ2UgbXI7DQogICAgIHVfaW50MzJfdCBuZXdkc3RpcCA9IDB4MDIwMWE4YzA7DQogICAgIGlm
-IChIT09LMk1BTklQKGhvb2tudW0pPT1JUF9OQVRfTUFOSVBfRFNUKXsgICAgICAgIA0KICANCiAg
-ICAgbXIucmFuZ2VzaXplPTE7DQogICAgIG1yLnJhbmdlWzBdLmZsYWdzID0gSVBfTkFUX1JBTkdF
-X1BST1RPX1NQRUNJRklFRDsgICAvLyAgSSBkb24ndCBrbm93IHdoYXQncyB0aGUgbWVhbmluZyBo
-ZXJlDQogICAgIG1yLnJhbmdlWzBdLm1pbiA9IG1yLnJhbmdlWzBdLm1heCA9ICgodW5pb24gaXBf
-Y29ubnRyYWNrX21hbmlwX3Byb3RvKXtodG9ucyg1MDAwKX0pOw0KICAgICBtci5yYW5nZVswXS5t
-aW5faXA9bXIucmFuZ2VbMF0ubWF4X2lwPW5ld2RzdGlwOw0KDQogICAgICp2ZXJkaWN0ID0gaXBf
-bmF0X3NldHVwX2luZm8oY3QsJm1yLGhvb2tudW0pOw0KDQogICAgIHJldHVybiAxOw0KICAgICB9
-DQogIH0NCg0KVGhhbmtzIGluIGFkdmFuY2UsDQoNCmx1b3FpYW5nDQoNCiA=
+Hi,
+
+I have switched almost a month ago to kernel-2.4.18 (from 2.4.8) with netfilters (cvs update around 2002/04/31) 'newnat'.
+>From that moment on I got dropped packets on excisting tcp connectings.
+After I added logging of NEW tcp connections,
+I saw something strange that I think comes from ip_conntrack.
+
+I'm using conntrack-state to filter my packets. 
+A simple version of my rules look like this:
+  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+  iptables -A OUTPUT -m state --state NEW -p tcp --destination-port 110 -j log+accept
+  ...
+  iptables -A OUTPUT -j log+drop
+
+  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+  iptables -A INPUT -j log+drop
+
+What I see with ULOG is the following:
++------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
+| id   | prefix     | in   | out  | time            | saddr  | sport | daddr  | dport | ip_csum | ip_id | ip_fragoff | tcp_seq    | tcp_ackseq | tcp_ack | tcp_syn |
++------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
+| 8603 | ACCEPT-NEW |      | eth1 | 18:38:10.389606 | client | 38136 | server |   110 |       0 |     0 |          0 | 4080432246 |          0 |    NULL |       1 |
+| 8604 | ACCEPT-NEW |      | eth1 | 18:38:10.389606 | client | 38136 | server |   110 |   21509 | 13068 |          0 | 4080432246 |          0 |    NULL |       1 |
+| 8605 | DROPPED    | eth1 |      | 18:38:10.397096 | server |   110 | client | 38136 |   62367 | 56184 |      16384 | 3577899487 | 4080432247 |       1 |    NULL |
+| 8606 | ACCEPT-NEW |      | eth1 | 18:38:16.389606 | client | 38136 | server |   110 |   21508 | 13069 |          0 | 4080432246 |          0 |    NULL |       1 |
+| 8607 | DROPPED    | eth1 |      | 18:38:16.403816 | server |   110 | client | 38136 |   62365 | 56186 |      16384 | 3577899487 | 4080432247 |       1 |    NULL |
+| 8608 | ACCEPT-NEW |      | eth1 | 18:39:55.286423 | client | 38137 | server |   110 |    1024 |     0 |          0 | 4184019953 |          0 |    NULL |       1 |
++------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
+All other fields are equal.
+
+What I find strange is that it starts with 2 almost the same packets (except for ip_id), 
+and that they both get the conntrack state NEW!
+And that the first response (I think) does not get the conntrack state ESTABLISHED because it's dropped!
+And a few seconds later it happens again (normally it not happens agian on the same connecting).
+
+I see no syslog-messages at that time.
+
+I think there is a problem in conntrack, 
+maybe the newnat patch or the "double packet" is introduced in the kernel.
+
+Can someone tell me what is going wrong, and/or how to solve it.
+
+-- 
+Andries van Schie
+Let's make the linux-world a safer place to live in ;-)
