@@ -1,16 +1,16 @@
-From: Daniel 'NebuchadnezzaR' Dehennin <nebuchadnezzar@nerim.net>
-Subject: Re: IPROUTE compilation problem
-Date: Thu, 13 May 2004 23:33:27 +0200
+From: Cedric de Launois <delaunois@info.ucl.ac.be>
+Subject: [PATCH] ipt_ROUTE fix for 2.6 kernels [was: IPROUTE compilation
+	problem]
+Date: Fri, 14 May 2004 09:38:26 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <873c64j9lk.fsf@thorr.asgardr.info>
+Message-ID: <1084520305.1841.16.camel@descartes.info.ucl.ac.be>
 References: <87ad0cj9tq.fsf@thorr.asgardr.info>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: multipart/mixed; boundary="=-G69FDMYGQfsJU0k/AqIt"
+Cc: "Daniel 'NebuchadnezzaR' Dehennin" <nebuchadnezzar@nerim.net>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-TO: netfilter-devel@lists.netfilter.org
-In-Reply-To: <87ad0cj9tq.fsf@thorr.asgardr.info> (Daniel Dehennin's message
- of "Thu, 13 May 2004 23:28:33 +0200")
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <87ad0cj9tq.fsf@thorr.asgardr.info>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,37 +21,145 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---=-=-=
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
 
-On 3907 September 1993, Daniel Dehennin wrote:
-> Hello,
->
+--=-G69FDMYGQfsJU0k/AqIt
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by info.ucl.ac.be id i4E7bO1m020485
+
+Le jeu 13/05/2004 =E0 23:28, Daniel 'NebuchadnezzaR' Dehennin a =E9crit :
 > The IPROUTE patch failed to build (latest CVS + 2.6.6):
 
-I read the help of the ipv4 and ipv6 route extension, in v6 it says
-that it's not working as a module (so a bug in Kconfig entry cause I
-set it to a module ?)
+Yes, I know. The ROUTE target is not yet converted to kernel 2.6 series.
+Here is a patch that updates it.
+Changes include :
+ - conversion from struct rt_key to struct flowi
+ - checksum fix from Rickard Molin
 
-Noting particuliar in v4.
-=2D-=20
-Daniel 'NebuchadnezzaR' Dehennin
-R=E9cup=E9rer ma clef GPG:
-gpg --keyserver pgp.mit.edu --recv-keys 0x4CA73DC6
+Please apply ;)
 
---=-=-=
-Content-Type: application/pgp-signature
+Thanks,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+Cedric
 
-iQEVAwUAQKPpp9Wamn5Mpz3GAQLJkwf/alVgczT7qOuJM3+ZrulHlIDqaqf3Rg9z
-qn+0J9mSQef87NhLFpOD0VQlXq1tlkCH/y0kfb6DWRPMW+kVHMd57KOoPhnXYdix
-j2rYiLvDsgg9SHgomI2/qQ+tvyYUS4d7FCtN6E2rT3nkgpd+NkLGOOUwRH/OX5j4
-YAW5UjnTp5hntxFo+nbp9kYVbk2QkNp15LAUp0Nx0rgbGNBF1pR2YxZixXwj5N12
-eG6yv5e3tEh+P3+w4fi+Gbh1/YmBWBI46lgfQLExMXEnKpcPJQKzSiBs1lBHuhqA
-61uHCm84k92N8eSH1ey/ZPEbhiwDh7WsMS4FwcMCA/T3iewb8mXrSQ==
-=HCvi
------END PGP SIGNATURE-----
---=-=-=--
+
+
+--=-G69FDMYGQfsJU0k/AqIt
+Content-Disposition: attachment; filename=ipt_ROUTE-kernel2.6.patch
+Content-Type: text/x-patch; name=ipt_ROUTE-kernel2.6.patch; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+
+--- patch-o-matic-ng/ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c.orig	2004-05-05 18:57:43.000000000 +0200
++++ patch-o-matic-ng/ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	2004-05-14 09:22:45.000000000 +0200
+@@ -4,7 +4,7 @@
+  *
+  * Copyright (C) 2002 Cedric de Launois <delaunois@info.ucl.ac.be>
+  *
+- * v 1.8 2003/07/25
++ * v 1.9 2004/05/14
+  *
+  * This software is distributed under GNU GPL v2, 1991
+  */
+@@ -19,6 +19,7 @@
+ #include <net/ip.h>
+ #include <net/route.h>
+ #include <net/icmp.h>
++#include <net/checksum.h>
+ 
+ #if 0
+ #define DEBUGP printk
+@@ -28,6 +29,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Cedric de Launois <delaunois@info.ucl.ac.be>");
++MODULE_DESCRIPTION("iptables ROUTE target module");
+ 
+ /* Try to route the packet according to the routing keys specified in
+  * route_info. Keys are :
+@@ -53,19 +55,24 @@
+ 	int err;
+ 	struct rtable *rt;
+ 	struct iphdr *iph = skb->nh.iph;
+-	struct rt_key key = { 
+-		dst:iph->daddr,
+-		src:0,
+-		oif:ifindex, 
+-		tos:RT_TOS(iph->tos) 
++	struct flowi fl = {
++		.oif = ifindex,
++		.nl_u = {
++			.ip4_u = {
++				.daddr = iph->daddr,
++				.saddr = 0,
++				.tos = RT_TOS(iph->tos),
++				.scope = RT_SCOPE_UNIVERSE,
++			}
++		} 
+ 	};
+ 	
+ 	/* The destination address may be overloaded by the target */
+ 	if (route_info->gw)
+-		key.dst = route_info->gw;
++		fl.fld_dst = route_info->gw;
+ 	
+ 	/* Trying to route the packet using the standard routing table. */
+-	if ((err = ip_route_output_key(&rt, &key))) {
++	if ((err = ip_route_output_key(&rt, &fl))) {
+ 		if (net_ratelimit()) 
+ 			DEBUGP("ipt_ROUTE: couldn't route pkt (err: %i)",err);
+ 		return -1;
+@@ -217,7 +224,7 @@
+ 	skb->dev = dev_in;
+ 	dst_release(skb->dst);
+ 	skb->dst = NULL;
+-		
++
+ 	netif_rx(skb);
+ 	dev_put(dev_in);
+ 	return NF_STOLEN;
+@@ -258,10 +265,21 @@
+ 
+ 		if (iph->ttl <= 1) {
+ 			struct rtable *rt;
++			struct flowi fl = {
++				.oif = 0,
++				.nl_u = {
++					.ip4_u = {
++						.daddr = iph->daddr,
++						.saddr = iph->saddr,
++						.tos = RT_TOS(iph->tos),
++						.scope = ((iph->tos & RTO_ONLINK) ?
++							  RT_SCOPE_LINK :
++							  RT_SCOPE_UNIVERSE)
++					}
++				} 
++			};
+ 
+-			if (ip_route_output(&rt, iph->saddr, iph->daddr,
+-					    RT_TOS(iph->tos) | RTO_CONN,
+-					    0)) {
++			if (ip_route_output_key(&rt, &fl)) {
+ 				return NF_DROP;
+ 			}
+ 
+@@ -279,7 +297,17 @@
+ 			return NF_DROP;
+ 		}
+ 
+-		ip_decrease_ttl(iph);
++		/*
++		 * If we are at INPUT the checksum must be recalculated since
++		 * the length could change as the result of a defragmentation.
++		 */
++		if(hooknum == NF_IP_LOCAL_IN) {
++			iph->ttl = iph->ttl - 1;
++			iph->check = 0;
++			iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
++		} else {
++			ip_decrease_ttl(iph);
++		}
+ 	}
+ 
+ 	/* Tell conntrack to forget this packet since it may get confused 
+
+--=-G69FDMYGQfsJU0k/AqIt--
