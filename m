@@ -1,16 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] Re: missing space after --mss range
-Date: Thu, 5 Sep 2002 11:50:35 +0200
+Subject: Re: libipulog question (again)
+Date: Thu, 5 Sep 2002 11:56:26 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020905095035.GG1064@naboo.lincon.Uni-Koeln.DE>
-References: <20020903212258.37928.qmail@web14612.mail.yahoo.com> <20020904135047.17757.qmail@web14604.mail.yahoo.com>
+Message-ID: <20020905095626.GI1064@naboo.lincon.Uni-Koeln.DE>
+References: <Pine.LNX.4.44.0209041924230.2080-100000@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jCrbxBqMcLqd4mOl"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Michael Schwendt <mschwendt@yahoo.com>
+To: Rob McMillen <rvmcmil@cablespeed.com>
 Content-Disposition: inline
-In-Reply-To: <20020904135047.17757.qmail@web14604.mail.yahoo.com>
+In-Reply-To: <Pine.LNX.4.44.0209041924230.2080-100000@localhost.localdomain>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,15 +22,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 04, 2002 at 06:50:47AM -0700, Michael Schwendt wrote:
-> I forgot to flag the previous reply in this thread with [PATCH] and maybe
-> it will be missed then. Here's the flag, and the patch once more.
 
-Thanks, patch applied.
+--jCrbxBqMcLqd4mOl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
+On Wed, Sep 04, 2002 at 07:34:37PM -0400, Rob McMillen wrote:
+> Hope this is the right medium.  I am really having problems with ULOG.  I=
+=20
+> have a simple rule
+>=20
+> iptables -A OUTPUT -d 192.168.0.1 -j ULOG
+
+what is the version of ipt_ULOG.c? where did you get libipulog from
+(from which iptables package?)
+
+> Thanks in advance,
+> Rob
+
+--=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
+=20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+
+--jCrbxBqMcLqd4mOl
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9dypKXaXGVTD0i/8RAhYVAKCYaz4H9zJKEv8yG5nwulxtJwDT/wCdEcLA
+Cv1uCB11Z9mjrs+2acCeXx4=
+=x1VN
+-----END PGP SIGNATURE-----
+
+--jCrbxBqMcLqd4mOl--
