@@ -1,16 +1,14 @@
-From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-Subject: Re: problem when loading ip_tables
-Date: Wed, 24 Mar 2004 19:00:23 +0200
+From: "Eric Lauriault" <elauri@lacitec.on.ca>
+Subject: extra/string inital port to 2.6
+Date: Wed, 24 Mar 2004 13:49:34 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4061BEA7.80800@netlab.hut.fi>
-References: <Pine.LNX.4.44.0403241750440.31592-100000@filer.marasystems.com>
-Reply-To: emmanuel@netlab.hut.fi
+Message-ID: <s0619230.007@email.lacitec.on.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,37 +19,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-hi!
+Just did a quick and dirty port of ipt_string to 2.6 using rusty's
+comments from feb. Who should I submit it to?
 
-Thanks for your suggestion, but I guess it may not be the problem. When 
-I recompiled the kernel, I did it from scratch icluding make dep. So it 
-should be up to date. However how can I ensure it?
-However, looking at modules.dep i noticed that I have a module A that 
-depends on a module B that itself depend on A. Can this interdependance 
-be a problem?
-
-        Emmanuel
+Thanks,
 
 
 
-Henrik Nordstrom wrote:
-
->On Wed, 24 Mar 2004, Emmanuel Guiton wrote:
->
->  
->
->>insmod: ip_tables: no module by that name found
->>
->>while the module ip_tables.o exists. insmod finds without problem the 
->>other modules like for example ipt_REDIRECT, ip_conntrack, iptable_nat...
->>    
->>
->
->
->Probably your modules.dep is not up to date.
->
->Regards
->Henrik
->  
->
+Eric Lauriault, eric@lacitec.on.ca
+Analyste/Administrateur UNIX/telecom/reseau
+La Cite collegiale
