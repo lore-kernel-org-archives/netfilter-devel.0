@@ -1,36 +1,36 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: iptables+2.6-test8-bk4 : Still problems
-Date: Tue, 28 Oct 2003 22:48:03 -0800
-Sender: sparclinux-owner@vger.kernel.org
-Message-ID: <20031028224803.1d16aa9c.davem@redhat.com>
-References: <3F9B8A5D.9010803@triaton-webhosting.com>
-	<200310261052.25944.rezso@rdsor.ro>
-	<20031026223438.1cf757ce.davem@redhat.com>
-	<3F9ED206.4040806@triaton-webhosting.com>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH] Fix ip_queue for bridged packets
+Date: Wed, 29 Oct 2003 08:00:39 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <200310290800.39377.bdschuym@pandora.be>
+References: <200310251709.13913.bdschuym@pandora.be> <200310280002.12023.bdschuym@pandora.be> <20031028065610.499a5b01.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: rezso@rdsor.ro, sparclinux@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org
-Return-path: <sparclinux-owner@vger.kernel.org>
-To: Georg Chini <georg.chini@triaton-webhosting.com>
-In-Reply-To: <3F9ED206.4040806@triaton-webhosting.com>
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031028065610.499a5b01.davem@redhat.com>
+Content-Disposition: inline
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 28 Oct 2003 21:31:02 +0100
-Georg Chini <georg.chini@triaton-webhosting.com> wrote:
+On Tuesday 28 October 2003 15:56, David S. Miller wrote:
+> skb_copy_expand() is not exactly a fast path, so let's just make
+> it copy the header area too.
+>
+> Bart, does this fix your bug too?  Please test it, thanks.
 
-> David S. Miller wrote:
-> > It's some bug in the translation code in net/compat.c
-> 
-> Yes it is.
-> The problem is, that the ipt_entries are not all the same
-> size. So instead of copying them one by one you have
-> to copy the whole block. Here is a patch:
+I've actually never triggered the bug myself, it was just a fix for someone 
+else's bug report. I'll get back to you.
 
-Good spotting, I didn't know this.
-
-However, I was trying to avoid a kmalloc of anything in this code :(
-You're also not verifying the kmalloc() return value for errors.
-
-I think I'll use copy_in_user() to fix this bug, thanks.
+cheers,
+Bart
