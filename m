@@ -1,18 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
+From: hime@engineer.com
 Subject: Re: [PATCH] fuzzy.patch and fuzzy6.patch.ipv6
-Date: Sat, 3 May 2003 20:49:17 +0200
+Date: Fri, 02 May 2003 10:25:47 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030503184917.GJ29373@sunbeam.de.gnumonks.org>
-References: <20030430203937.18286.qmail@mail.com> <20030502231505.A30828@sith.mimuw.edu.pl>
+Message-ID: <20030502152548.99567.qmail@mail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZG5hGh9V5E9QzVHS"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: cieciwa@alpha.zarz.agh.edu.pl, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jan Rekorajski <baggins@sith.mimuw.edu.pl>,
-	Hime Junior <hime@engineer.com>, cieciwa@alpha.zarz.agh.edu.pl,
-	netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20030502231505.A30828@sith.mimuw.edu.pl>
+To: laforge@netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,60 +20,66 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+ Hi !
 
---ZG5hGh9V5E9QzVHS
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 02, 2003 at 11:15:05PM +0200, Jan Rekorajski wrote:
-> >     I=B4m curious about what "unresolved symbols" are those and why,=20
+> >     I´m curious about what "unresolved symbols" are those and why, 
 > >  by changing the VALUE of a symbolic constant,the problem vanishes...
->=20
-> They're because of the floating point usage, you won't see them on ix86
-> because gcc uses native FPU instructions there - silently building
-> incorrect code, but on other architectures gcc uses math emulation
-> library thus generating unresolved symbols.
+> 
+> Although I do all my development on PowerPC, I have to admit that I
+> never tested the fuzzy patch.
+> 
+> I suppose the unreslved symbols are with regard to floating point
+> functions that are not provided by the kernel.
+> 
 
-This is what I was assuming. I think I've seen this happen on PPC
-before.
+    That is a possibility .
 
-> The primary reason was to eliminate the usage of FPU from kernel,
-> unresolved symbols is just the effect of this on non-ix86 archs.
+> >  OK . The floating point instructions are eliminated by
+> >  applying this patch .
+> 
+> exactly.  I am not even sure that it was valid to use floating point
+> instructions at all.  IIRC, the kernel doesn't save the FPU registers,
+> so if we interrupt an userspace process that uses FPU, we will corrupt
+> it.  Not sure whether this is still true, and/or this is only valid
+> within syscall context.
+> 
 
-I'll apply the patch now.
-=20
-> I guess Wojciech Cieciwa won't harm me if I say to direct questions
-> to me as I'm the author of this patch ;)
+    OK . Integer arithmetic is better , anyway .
 
-;) So I'll put your name in the patch-o-matic Author field.
+> >  The only problem is relative to truncation errors...
+> > I don´t have a PPC to do exaustive tests , but in the simulations that
+> > I have made , no discrepancies were detected when computing the final
+> > acceptance rates .
+> 
+> well, the algorithm is going to produce the same results on any
+> architecture, independent of PPC or not.
 
-> Jan
-> --=20
-> Jan R?korajski            |  ALL SUSPECTS ARE GUILTY. PERIOD!
-=20
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+ Yes , but the levels of granularity (in Fuzzy Logic terms) 
+could change when doing the changes and the Fuzzy controller
+could behave inadequately . 
+ As I said before , the changes are (according to my tests) benign -
+the controller performed well and , in practice , is the same as the 
+original one .
 
---ZG5hGh9V5E9QzVHS
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+> >  My opinion is that the primary reason for the change is very weird -
+> >  "unresolved symbols" - and the solution is even more strange. 
+> >  Anyway , I suggest additional investigation about this issue .
+> 
+> I can easily run a test here on my development machine, it's just the
+> lack of time...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+ Please , do that if you can , because it´s important to make sure 
+that there will be no problems in the future - I would do if 
+I could . If your results are good , the patch can be applied .
 
-iD8DBQE+tA8tXaXGVTD0i/8RAnh6AJ9RWPjmAyXboD8doKVkLzkGK/kMyQCfe7my
-VI+7hH2fbgux5RoiPMlj1s4=
-=RESs
------END PGP SIGNATURE-----
 
---ZG5hGh9V5E9QzVHS--
+           Thank you very much .
+      
+                 Hime .
+
+-- 
+__________________________________________________________
+Sign-up for your own FREE Personalized E-mail at Mail.com
+http://www.mail.com/?sr=signup
