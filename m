@@ -1,17 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [Q] CVS snap 20030418 ...
-Date: Sun, 27 Apr 2003 15:10:43 +0200
+Subject: Re: ICMP DNAT bug fix no longer applies?
+Date: Sun, 27 Apr 2003 15:20:39 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427131043.GK990@sunbeam.de.gnumonks.org>
-References: <20030422065302.31170.13388.Mailman@kashyyyk> <Pine.LNX.4.44L.0304231409130.29708-100000@alpha.zarz.agh.edu.pl>
+Message-ID: <20030427132039.GN990@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0304241412470.24242-100000@localhost>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kJCZHFqBEEYq/eA6"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="rdbbj4JunmnVtKq/"
+Cc: netfilter-devel@lists.netfilter.org,
+	John McEleney <john@netservers.co.uk>,
+	Philippe Biondi <biondi@cartel-securite.fr>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Wojciech Sas Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
+To: Chris Wilson <chris@netservers.co.uk>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L.0304231409130.29708-100000@alpha.zarz.agh.edu.pl>
+In-Reply-To: <Pine.LNX.4.44.0304241412470.24242-100000@localhost>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +25,35 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---kJCZHFqBEEYq/eA6
+--rdbbj4JunmnVtKq/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 23, 2003 at 02:18:14PM +0200, Wojciech Sas Cieciwa wrote:
+On Thu, Apr 24, 2003 at 02:34:11PM +0100, Chris Wilson wrote:
+> Hi all,
 >=20
-> Hi,
->=20
-> My friend find strange situation.
-> He can't reload netfilter modules.
-> lsmod says that modules isn't loaded, but insmod says that module is load=
-ed.
-> And netfilter isn't usable.
+> Since the ICMP DNAT advisory came out last year
+> [http://www.iptables.org/security/2002-04-02-icmp-dnat.html], we have bee=
+n=20
+> applying this patch to all kernels we build. However, in between=20
+> patch-o-matic 20030107 and 20030422 this has been broken and no longer=20
+> applies.
 
-sounds like you've compiled something statically into your kernel and
-then try to load it as a module at a later point in time.
+This is becaue this bug should now finally have disappeared from all
+future kernels ;)
 
-> Is this bug in netfilter or in our kernel ?
+> Does anyone know why the DNAT bug fix hasn't been incorporated into=20
+> the main codebase yet?
 
-there is no such bug in netfilter/iptables.
+The reason was that the solution at that time was too intrusive into the
+core ipv4 stack to be applied by David Miller.
 
-> Thanx.
-> 					Sas.
+What we now have is a probably unclean solution, that mangles the same
+stuff in a packet twice :(  But this was necessarry for yet another
+number of ICMP NAT bugs (see bugzilla)
+
+> Cheers, Chris.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -58,7 +65,7 @@ there is no such bug in netfilter/iptables.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---kJCZHFqBEEYq/eA6
+--rdbbj4JunmnVtKq/
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -66,9 +73,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+q9bTXaXGVTD0i/8RAs1SAJ9yiE2fEFCMqpSpuDf9lfGdO5GB5ACfecp2
-jVu8WvqbYVsNx/80bGDiksk=
-=xd63
+iD8DBQE+q9knXaXGVTD0i/8RAsYZAJ49josNODeYRJdspoOitU+rXYYrogCglJXs
+CL5aQanJjonslknfCN2+2g8=
+=KJav
 -----END PGP SIGNATURE-----
 
---kJCZHFqBEEYq/eA6--
+--rdbbj4JunmnVtKq/--
