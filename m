@@ -1,17 +1,20 @@
-From: Simon Kirby <sim@netnation.com>
+From: Kiran Kumar Immidi <immidi@spymac.com>
 Subject: Re: REJECT using invalid data
-Date: Tue, 7 Dec 2004 16:52:16 -0800
-Message-ID: <20041208005216.GA7958@netnation.com>
-References: <Pine.LNX.4.53.0412072347080.2736@bizon.gios.gov.pl>
-	<41B642A1.9030807@eurodev.net>
+Date: Wed, 8 Dec 2004 08:17:35 +0530
+Message-ID: <200412080817.35575.immidi@spymac.com>
+References: <20041207010130.GC4757@netnation.com>
+	<20041207172823.GA31513@netnation.com>
+	<41B62B54.8060003@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Krzysztof Oledzki <ole@ans.pl>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: Pablo Neira <pablo@eurodev.net>,
+ Simon Kirby <sim@netnation.com>
+In-Reply-To: <41B62B54.8060003@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <41B642A1.9030807@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,28 +26,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Dec 08, 2004 at 12:54:09AM +0100, Pablo Neira wrote:
+On Wednesday 08 December 2004 03:44, Pablo Neira wrote:
 
-> >And what about other protocols (udp, etc) when REJECT
-> >generates ICMP port-unreachable?
-> 
-> you are right, udp stuff is missing, checkings here are trivial to add 
-> anyway. I'll think about this issue more carefully in next days.
+>Now I see, if state tracking is not enable there's no way to avoid this 
+>problem. But I guess that we should drop all malformed packets, not only 
+>those which have bad checksums. Would you like to give a try to the 
+>patch attached?
 
-I don't think it's a good idea to try to filter all TCP flags in REJECT
-unless we're trying to avoid rejecting rejects and we don't already do
-that for some reason (eep), for the same reason that unclean was removed
-(ECN and other new functionality could break).  I would think that all
-that is needed is a check for the RST bit.
+  Just a comment on this;
 
-At the same time, it would be nice to have a match (or at least some
-functionality) resulting in the ability to drop corrupted packets
-("corrupted" as in with the checksum) that would otherwise be accepted. 
++static u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
 
-Hmm.  Maybe this should be done at a different level?  It should
-basically not match "-p tcp" in the rule "iptables -p tcp -j REJECT". 
-Doing it at "-p tcp" time would also correct "iptables -p tcp --dport 80
--j ACCEPT", which would otherwise also be affected by the same problem
-(the TCP port could be corrupted).
+  This makes the array about 64 bytes long, would be better to store as an 
+array of valid flags rather than as a bit mask;
 
-Simon-
+-- 
+Regards,
+Kiran Kumar Immidi
