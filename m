@@ -1,14 +1,14 @@
-From: Peter Surda <shurdeek@panorama.sth.ac.at>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: "Proper" way to transparent proxy?
-Date: Wed, 9 Oct 2002 22:28:29 +0200
+Date: Wed, 9 Oct 2002 22:40:18 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021009202829.GF23068@noir.cb.ac.at>
+Message-ID: <20021009204018.GA15171@oknodo.bof.de>
 References: <3DA48D59.7060109@secureinteriors.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Zi0sgQQBxRFxMTsj"
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Kevin White <kwhite@secureinteriors.com>
 Content-Disposition: inline
 In-Reply-To: <3DA48D59.7060109@secureinteriors.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -21,48 +21,61 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> I need to find the address and port the outgoing connecion was 
+> originally heading to.
 
---Zi0sgQQBxRFxMTsj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use standard iptables, with a commandline like this:
 
-On Wed, Oct 09, 2002 at 04:11:05PM -0400, Kevin White wrote:
-> What we had on IPFilter was a "redirect" rule that redirected all=20
-> connections to external hosts on this specific port to a specific port=20
-> on the firewall machine, where a proxy program was waiting for it.  We=20
-> then used IPFilter system calls to retreive where the connection was=20
-> heading.
-This is exactly how it works on linux, you redirect (or reroute+redirect if=
- on
-different machines), accept the connection and call a sysctl to find out re=
-al
-destination. As for examples, there are several open source transparent
-proxies:
-- squid
-- tircproxy
-- jftpgw
+	iptables -t nat -p tcp --dport 80 -j REDIRECT --to-port 1234
 
-> Kevin
-Bye,
+> I expect that I'll be able to reuse most of my code: just the lookup 
+> part needs to change.
 
-Peter Surda (Shurdeek) <shurdeek@panorama.sth.ac.at>, ICQ 10236103, +436505=
-122023
+Once upon at time, in Linux 2.0.x, with libc5, you had getsockname()
+return TheRightThing - in this particular situation. This is no longer
+the case. Nowadays, with iptables and a rule like the one above, you
+call getsockopt(), querying for SO_ORIGINAL_DST.
 
---
-                    "Where do you want to go to die?"
+google tells me, giving it that hint, that no better documentation
+than some ooooold mail threads exists on SO_ORIGINAL_DST. My bad.
+I hate it when mailing list traffic by me is first hit :)
 
---Zi0sgQQBxRFxMTsj
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+For the benefit of the eternal (hope hope hope) google, I am using
+the exact code below, compiled like this:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+	gcc -c preload_getsockname.c
+	ld -o preload_getsockname.so -shared preload_getsockname.o -ldl
 
-iD8DBQE9pJFtzogxsPZwLzcRApmhAJ9yBAFco8tfBWa984smQ+40JVWcUgCfX7GV
-GblOWhPTJhDiDw90T2eLYrc=
-=yh5m
------END PGP SIGNATURE-----
+as an LD_PRELOAD file for a very ancient squid binary. In production
+on some handful on boxes. You probably only need the 'getsockopt' line.
 
---Zi0sgQQBxRFxMTsj--
+It works(tm).
+
+best regards
+  Patrick
+
+#include <sys/socket.h>
+#include <dlfcn.h>
+
+#ifndef SO_ORIGINAL_DST
+#include <linux/netfilter_ipv4.h>
+#ifndef SO_ORIGINAL_DST
+#error no SO_ORIGINAL_DST defined
+#endif
+#endif
+
+int getsockname(int fd, struct sockaddr *sa, int *salen)
+{
+        static int (*libc_getsockname)(int, struct sockaddr *, int *);
+        int ret;
+
+        if (!libc_getsockname) {
+                libc_getsockname = (int (*)(int, struct sockaddr *, int
+*))
+                        dlsym(RTLD_NEXT, "getsockname");
+        }
+        ret = getsockopt(fd, SOL_IP, SO_ORIGINAL_DST, sa, salen);
+        if (ret < 0 && libc_getsockname)
+                ret = libc_getsockname(fd, sa, salen);
+        return ret;
+}
