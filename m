@@ -1,15 +1,16 @@
-From: "turbobee" <turbobee@cox.net>
-Subject: Re: ip_nat_irc or ip_conntrack_irc
-Date: Fri, 14 Feb 2003 01:17:53 -0700
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: Preroute selection order
+Date: Mon, 17 Feb 2003 09:58:15 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <002201c2d401$92b7f3a0$0201a8c0@muska>
-References: <001601c2d3f4$931b0e20$0201a8c0@muska> <20030214072636.GH14794@sunbeam.de.gnumonks.org>
+Message-ID: <20030217085815.GG7631@oknodo.bof.de>
+References: <003901c2d0b3$f9fce8a0$2601010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+To: "Andrew.hall" <temp02@bluereef.com.au>
+Content-Disposition: inline
+In-Reply-To: <003901c2d0b3$f9fce8a0$2601010a@bluereef.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry about the construed e-mail address, I found it in the source code. I
-didn't think to look at netfilter.org for contacts.  Anyways I'm fairly new
-to linux, could you go in depth a little more about what you want me to do
-and send?  I have stopped using the module for now because I'm using port
-forwarding to work at the moment, but I would definatly like to see this
-issue fixed.  Thanks for your patience.
+Hi,
 
-From,
-Patrick Bostwick
+> When writing (for example) a new table, can someone please tell me how
+> netfilter orders the tables that register to listen on a particular hook
+> such as PREROUTE? I assume that there is a defined pecking order to which
+> tables get accessed first?
 
------ Original Message -----
-From: "Harald Welte" <laforge@gnumonks.org>
-To: "turbobee" <turbobee@cox.net>
-Cc: "Netfilter Development Mailinglist"
-<netfilter-devel@lists.netfilter.org>
-Sent: Friday, February 14, 2003 12:26 AM
-Subject: Re: ip_nat_irc or ip_conntrack_irc
+When writing a new table, you will eventually call nf_register_hook()
+with a 'struct nf_hook_ops' that you populate. One of the fields of
+that struct is called X, and if you grep for 'nf_hook_ops' in the
+existing table implementations, you will find that this field is
+usually initialized by a macro starting with NF_IP_PRI_*.
+Finally, grepping for those macros, you will find an include
+file with all the real values.
+
+The hook functions are called in priority order, from numerically
+lowest to numerically highest.
+
+best regards
+  Patrick
+
+bof@cdr:~/src/linux-2.5-current$ find . -name '*.c' | xargs grep -l NF_IP_PRI
+./net/bridge/br_netfilter.c
+./net/ipv4/netfilter/ip_conntrack_standalone.c
+./net/ipv4/netfilter/ip_fw_compat.c
+./net/ipv4/netfilter/ip_nat_standalone.c
+./net/ipv4/netfilter/iptable_filter.c
+./net/ipv4/netfilter/iptable_mangle.c
+./net/sched/sch_ingress.c
+bof@cdr:~/src/linux-2.5-current$ find . -name '*.h' | xargs grep -l NF_IP_PRI
+./include/linux/netfilter_ipv4.h
