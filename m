@@ -1,11 +1,10 @@
-From: Kristian =?ISO-8859-1?Q?Gr=F8nfeldt_S=F8rensen?= <kriller@vkr.dk>
-Subject: Bug in iptables-save
-Date: 25 Sep 2002 01:09:41 +0200
+From: "D.J. Barrow" <barrow_dj@yahoo.com>
+Subject: ipt_do_table infinite loop problem
+Date: Wed, 25 Sep 2002 10:25:00 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1032908982.4966.31.camel@Miraculinux>
+Message-ID: <20020925172500.42916.qmail@web10411.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,28 +17,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have a little firewall-script which uses the mac-module.
+Hi All,
+I am seeing a problem in mips32 little endian 
+with iptables-1.2.5 linux-2.4.17 in ipt_do_table
 
-I made this rule:
-
-iptables -A INPUT -m mac --mac ! my:mac:ad:dr:ess -p tcp --dport 3306 -j
-DROP
-
-(I have substituted my real mac-addres with "my:mac:ad:dr:ess")
-
-to block acces to my mysql-server from anywhere else than my machine.
-
-It works. But when I try to use the iptables-save function that line
-turns into=20
--A INPUT -m mac --mac !my:mac:ad:dr:ess -p -tcp --dport 3306 -j DROP
-
-Note that the <space> between "!" and the mac-address is gone. The
-result is that the reload of my iptables-ruleset stops with the error
-message: "Bad mac address "!my:mac:ad:dr:ess"
-
-I've experienced this with version 1.2.6a with a Mandrake 8.2 machine
-and version 1.2.6a + 1.2.7a with Debian sarge/testing. (Haven't tried
-version 1.2.7 with mandrake)
+the bug I am seeing is ipt_entry next offset is 0 & stays looping forever on
+the same ipt_entry, I am not certain if it is a compiler bug
+or a bug in ipt_do_table, if any of you have any opinions let me know.
+My gdb debugger takes about 2 minutes to single step so I can't get too
+familiar with the code.
 
 
-/Kristian Gr=F8nfeldt S=F8rensen
+I haven't seen the problem on mips big endian or intel linux.
+
+I don't know the code well & the linked list,inlined macro 
+hell that it is doesn't encourage me to get too familiar with it.
+
+Here are some prinks of the problem.
+table->name=mangle
+e=c0007220 next_offset=152
+e=c00072b8 next_offset=152
+e=c0007350 next_offset=176
+e=c0007400 next_offset=0
+
+Unfortunately the mailing list is not searchable so I don't
+know if I am reporting a duplicate bug either.
+
+Thanks in advance
+
+
+
+=====
+D.J. Barrow Linux kernel developer
+eMail: dj_barrow@ariasoft.ie 
+Home: +353-22-47196.
+Work: +353-91-758353
+
+__________________________________________________
+Do you Yahoo!?
+New DSL Internet Access from SBC & Yahoo!
+http://sbc.yahoo.com
