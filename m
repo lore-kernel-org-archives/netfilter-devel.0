@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: New logging module
-Date: Sat, 30 Aug 2003 21:04:53 +0200
+Subject: Re: can tcp stream reassembly be done in netfilter
+Date: Sat, 30 Aug 2003 21:06:14 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030830190453.GE17715@sunbeam.de.gnumonks.org>
-References: <200308251459.03014.mailinglists@futureware.at>
+Message-ID: <20030830190613.GF17715@sunbeam.de.gnumonks.org>
+References: <200308261011937.SM00856@zhengcb> <Pine.LNX.4.53.0308271030240.2748@oskar-lap.agatha>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HSVPcR81XVhxeM7P"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="MvEh5MSbieV/1Yst"
+Cc: zhengchuanbo <zhengcb@netpower.com.cn>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: pg@futureware.at
+To: Oskar Andreasson <blueflux@koffein.net>
 Content-Disposition: inline
-In-Reply-To: <200308251459.03014.mailinglists@futureware.at>
+In-Reply-To: <Pine.LNX.4.53.0308271030240.2748@oskar-lap.agatha>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,44 +24,30 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---HSVPcR81XVhxeM7P
-Content-Type: text/plain; charset=iso-8859-1
+--MvEh5MSbieV/1Yst
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 25, 2003 at 02:59:02PM +0200, Philipp G=FChring wrote:
-> Hi,
+On Wed, Aug 27, 2003 at 10:35:10AM +0200, Oskar Andreasson wrote:
+> On Tue, 26 Aug 2003, zhengchuanbo wrote:
 >=20
-> I developed a Netfilter module, that collects and logs the traffic of all=
- IP=20
-> addresses of several subnets, and dumps the traffic log regulary in a sim=
-ilar=20
-> format as ipt_LOG, so that it can transparently replace the normal loggin=
-g=20
-> module.
+> > 	Can netfilter do the tcp stream reassembly? I mean something like
+> > what snort do in the stream process. I wish this could be done in the
+> > kernel.
+>=20
+> No, netfilter is a packet filter. It works on a per packet basis, below
+> the transport layer. Actually it does do some work on the transport layer,
+> but not much, and definitely not a lot of work on the application layers.
+>=20
+> All of this comes down to one thing, netfilter simply doesnt care about
+> streams. That's when you should use snort or proxy solutions of one sort
+> or another.
 
-Why did you do that?  I think it's from an architectural point of view
-the wrong choice.  ipt_ULOG was invented for the sole reason that string
-processing and parsing/interpretation of logged packets should not be
-done inside a softirq inside the kernel.  All this should be offloaded
-to userspace.
+Thanks for this excellent reply. =20
 
-and: iptables rules are not an ideal infrastructure for accounting
-anyway.
-
-> It was developed to enhance the speed of our traffic analysis software, b=
-y=20
-> filtering and aggregating the packets directly in the kernel instead of t=
-he=20
-> userspace.
-
-So what you really want is a session log, similar to netflow?  This
-should be easy to implement with adding packet/byte counters to struct
-ip_conntrack.  Several people have been working on session-log systems
-based on netfilter/iptables.
-
-> Many greetings,
-> Philipp G=FChring
+I have to add that there is a project for linux kernel stream reassembly
+and pattern-matching:  libqsearch.  Try google :)
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -72,16 +59,16 @@ based on netfilter/iptables.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---HSVPcR81XVhxeM7P
+--MvEh5MSbieV/1Yst
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/UPVVXaXGVTD0i/8RAs6CAKCn3YFl78fDoITHFm16WLceFOZ+JwCeI8FC
-6TZt/Rcbr527WxW+aDHvc5g=
-=oH4d
+iD8DBQE/UPWlXaXGVTD0i/8RAvoPAKCNvzD4pLnyUcxL6y/08GU8cfvULQCfYPxF
+fhHZTP+r1gkBSaEv3iDodH8=
+=BQg0
 -----END PGP SIGNATURE-----
 
---HSVPcR81XVhxeM7P--
+--MvEh5MSbieV/1Yst--
