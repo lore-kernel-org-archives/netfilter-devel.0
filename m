@@ -1,16 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: netfilter performance question
-Date: Fri, 1 Apr 2005 08:18:42 +0200
-Message-ID: <20050401061842.GK19835@sunbeam.de.gnumonks.org>
-References: <20050322122438.C70026@imperator.sieradz.info>
+Subject: [PATCH] ipt_hashlimit.c: Remove custom msecs_to_jiffies() macro
+Date: Fri, 1 Apr 2005 08:28:44 +0200
+Message-ID: <20050401062844.GL19835@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yLaBmHMi4cq+C/u4"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="Kuk/n493crKO4rgR"
+Cc: tklauser@access.unizh.ch
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcin Szczepaniak <szczepan@sieradz.info>
+To: David Miller <davem@davemloft.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <20050322122438.C70026@imperator.sieradz.info>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,38 +22,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---yLaBmHMi4cq+C/u4
+--Kuk/n493crKO4rgR
+Content-Type: multipart/mixed; boundary="Mh8CTEa8Ax54aLHp"
+Content-Disposition: inline
+
+
+--Mh8CTEa8Ax54aLHp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 22, 2005 at 12:42:53PM +0000, Marcin Szczepaniak wrote:
-> I've tested two configurations of kernel (i am using 2.6 kernel tree):
-> first - no netfilter enabled - my device was able to bridge 70 Mbit of
-> traffic.  second - netfilter compiled in, but no rules applied -
-> traffic is only 20 Mbit :( Adding some test rules has minor affect to
-> traffic. Simply existence of netfiler makes maximal possible traffic
-> to be equal one third of that when only routing exists in kernel.
+Dave, please apply the following fix, courtesy of Thomas.
 
-what are you referring to as 'existance of netfilter'.   netfilter is
-something different than iptables.
+Thanks!
 
-If you want to nail this down, please check
-
-1) performance with CONFIG_NETFILER =3D=3D n
-2) performance with CONFIG_NETFILTER =3D=3D y but CONFIG_IP_NF_IPTABLES =3D=
-=3D n
-3) performance with an empty module attached to the netfilter hook, i.e.
-   something that registers to all five hooks and returns NF_ACCEPT
-4) performanec with CONFIG_NETFILTER =3D=3D y, CONFIG_IP_NF_IPTABLES =3D=3D=
- y
-   and CONFIG_IP_NF_FILTER =3D=3Dy, but no rules loaded.
-
-Please send the numbers to netfilter-devel and Cc me personally.
-
-> 2. Is it possible to use only ebtables, without netfilter ?
-
-ebtables is based on netfilter, but not on iptables.
+Signed-off-by: Harald Welte <laforge@netfilter.org>
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -66,16 +48,129 @@ ebtables is based on netfilter, but not on iptables.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---yLaBmHMi4cq+C/u4
+--Mh8CTEa8Ax54aLHp
+Content-Type: message/rfc822
+Content-Disposition: inline
+
+Return-Path: Received: from ganesha.gnumonks.org ([unix socket])
+	by ganesha (Cyrus v2.1.17-IPv6-Debian-2.1.17-0woody.3.1) with LMTP;
+	Thu, 24 Mar 2005 01:28:49 +0100
+X-Sieve: CMU Sieve 2.2
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Received: from vishnu.netfilter.org ([213.95.27.115])
+	by ganesha.gnumonks.org with esmtp
+	(TLS-1.0:DHE_RSA_3DES_EDE_CBC_SHA:24) (Exim 4.34) id 1DEGDR-0002RV-MM
+	for laforge@gnumonks.org; Thu, 24 Mar 2005 01:28:49 +0100
+Received: from localhost ([127.0.0.1] helo=vishnu.netfilter.org)
+	by vishnu.netfilter.org with esmtp (Exim 4.41 #1 (Debian))
+	id 1DEGG3-0006SR-D4; Thu, 24 Mar 2005 01:31:31 +0100
+Received: from idmailgate1.unizh.ch ([130.60.68.105])
+	by vishnu.netfilter.org with esmtp (Exim 4.41 #1 (Debian))
+	id 1DDmRT-00019w-LQ for <netfilter-devel@lists.netfilter.org>;
+	Tue, 22 Mar 2005 17:41:21 +0100
+Received: from localhost ([130.60.169.171])
+	by idmailgate1.unizh.ch (8.12.10/8.12.10/Debian-2) with ESMTP id
+	j2MGchxW019040; Tue, 22 Mar 2005 17:38:43 +0100
+Date: Tue, 22 Mar 2005 17:38:42 +0100
+From: Tobias Klauser <tklauser@access.unizh.ch>
+To: kernel-janitors@lists.osdl.org
+Message-ID: <20050322163842.GA7173@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-GPG-Key: 0x3A445520
+X-OS: GNU/Linux
+User-Agent: Mutt/1.5.6+20040907i
+X-Virus-Scanned: by amavisd-new
+X-Spam-Score: -2.6 (--)
+X-Mailman-Approved-At: Thu, 24 Mar 2005 01:30:43 +0100
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Subject: [PATCH] net/ipv4/iptables/ipt_hashlimit.c: Remove custom
+	msecs_to_jiffies() macro
+X-BeenThere: netfilter-devel@lists.netfilter.org
+X-Mailman-Version: 2.1.5
+Precedence: list
+List-Id: discussion about netfilter development
+	<netfilter-devel.lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
+X-Spam-Score: -1.9 (-)
+
+Replace the MS2JIFFIES() macro with the msecs_to_jiffies() function provided in
+jiffies.h.  The current macro is incorrect because HZ can have different values
+on different architectures.
+
+Signed-off-by: Tobias Klauser <tklauser@nuerscht.ch>
+
+diff -urpN linux-2.6.11.orig/net/ipv4/netfilter/ipt_hashlimit.c linux-2.6.11/net/ipv4/netfilter/ipt_hashlimit.c
+--- linux-2.6.11.orig/net/ipv4/netfilter/ipt_hashlimit.c	2005-03-02 12:50:59.000000000 +0100
++++ linux-2.6.11/net/ipv4/netfilter/ipt_hashlimit.c	2005-03-21 16:46:41.000000000 +0100
+@@ -45,8 +45,6 @@
+ /* FIXME: this is just for IP_NF_ASSERRT */
+ #include <linux/netfilter_ipv4/ip_conntrack.h>
+ 
+-#define MS2JIFFIES(x) ((x*HZ)/1000)
+-
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_DESCRIPTION("iptables match for limiting per hash-bucket");
+@@ -225,7 +223,7 @@ static int htable_create(struct ipt_hash
+ 	hinfo->pde->data = hinfo;
+ 
+ 	init_timer(&hinfo->timer);
+-	hinfo->timer.expires = jiffies + MS2JIFFIES(hinfo->cfg.gc_interval);
++	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
+ 	hinfo->timer.data = (unsigned long )hinfo;
+ 	hinfo->timer.function = htable_gc;
+ 	add_timer(&hinfo->timer);
+@@ -275,7 +273,7 @@ static void htable_gc(unsigned long htlo
+ 	htable_selective_cleanup(ht, select_gc);
+ 
+ 	/* re-add the timer accordingly */
+-	ht->timer.expires = jiffies + MS2JIFFIES(ht->cfg.gc_interval);
++	ht->timer.expires = jiffies + msecs_to_jiffies(ht->cfg.gc_interval);
+ 	add_timer(&ht->timer);
+ }
+ 
+@@ -468,7 +466,7 @@ hashlimit_match(const struct sk_buff *sk
+ 			return 0;
+ 		}
+ 
+-		dh->expires = jiffies + MS2JIFFIES(hinfo->cfg.expire);
++		dh->expires = jiffies + msecs_to_jiffies(hinfo->cfg.expire);
+ 
+ 		dh->rateinfo.prev = jiffies;
+ 		dh->rateinfo.credit = user2credits(hinfo->cfg.avg * 
+@@ -482,7 +480,7 @@ hashlimit_match(const struct sk_buff *sk
+ 	}
+ 
+ 	/* update expiration timeout */
+-	dh->expires = now + MS2JIFFIES(hinfo->cfg.expire);
++	dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
+ 
+ 	rateinfo_recalc(dh, now);
+ 	if (dh->rateinfo.credit >= dh->rateinfo.cost) {
+
+
+--Mh8CTEa8Ax54aLHp--
+
+--Kuk/n493crKO4rgR
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCTOfCXaXGVTD0i/8RAg3zAJ9hEShD6IRsjY7wI0vHy7oce1VoxACeK7fr
-RUnq4+visR5F23JW6A5vgfU=
-=Q36Q
+iD8DBQFCTOocXaXGVTD0i/8RAjZRAKCBsO0sLOOa+614vlWPBsVIyVs0JACgjIXI
+p/uuu02q6RB69kuZeG7wuo0=
+=7Ua6
 -----END PGP SIGNATURE-----
 
---yLaBmHMi4cq+C/u4--
+--Kuk/n493crKO4rgR--
