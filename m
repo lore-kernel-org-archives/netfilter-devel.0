@@ -1,18 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Bug with netfilter and NFS server on same machine (fwd)
-Date: Fri, 06 Dec 2002 01:56:18 +0100
+From: Markus Schaber <markus.schaber@student.uni-ulm.de>
+Subject: Re: Problem with IP-Pools
+Date: Thu, 5 Dec 2002 22:43:14 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DEFF5B2.1050106@trash.net>
-References: <Pine.LNX.4.44.0211231342530.3237-100000@sparrow> <20021205202119.GH11068@naboo.club.berlin.ccc.de>
+Message-ID: <20021205224314.3c38afec.markus.schaber@student.uni-ulm.de>
+References: <20021128162921.2b2a721d.markus.schaber@student.uni-ulm.de>
+	<20021205201113.GD11068@naboo.club.berlin.ccc.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: William Stearns <wstearns@pobox.com>,
-   ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
-   Lars Knudsen <gandalfit@virgilio.it>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="pgp-sha1"; boundary="=.lE8iGs8MNcKMC."
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20021205202119.GH11068@naboo.club.berlin.ccc.de>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20021205201113.GD11068@naboo.club.berlin.ccc.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,72 +21,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+--=.lE8iGs8MNcKMC.
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
 Hi,
 
 Harald Welte wrote:
 
->On Sat, Nov 23, 2002 at 01:44:45PM -0500, William Stearns wrote:
->  
->
->>Good day, Lars,
->>	Whether or not the netfilter list was able to find an answer, it 
->>might still make sense to CC that list.
->>    
->>
->
->yup, definitely.
->
->  
->
->>The problem is this: A machine running linux 2.4.18 or 2.4.19 works just 
->>fine when running just the kernel nfsd. A single client connected to the 
->>server with 100Mbit ethernet sees throughput of 5-10MByte/sec even after 
->>an hour or two of continous transfers. If the nfs server is also running 
->>iptables the throughput is initially the same (5-10MByte/sec) but after 
->>a while (200MByte-500MByte total transfer) the client starts reporting 
->>"nfs server not responding" followed after a while by "nfs server OK" 
->>and of course the transfer rate goes way down (< 1MByte/sec). Using 
->>tcpdump on the client seems to indicate that some packets have their 
->>headers garbled - wrong fragment ids being the typical error.
->>    
->>
->
->this sounds like a problem with nfs's exceptionally large packet size
->(up to 8k) and the resulting udp fragments, which need to get
->defragmented and refragmented while conntrack is done.
->
-I experienced the same problem since almost 6 months with nfs and netfilter,
-nfs was veery slow, it wasn't even possible to listen to mp3s over nfs.
-removing the conntrack module made it work normal again.
-the client ringbuffers fills with
-UDP: short packet: 192.168.0.1:55258 58191/236 to 192.168.0.23:55789
-UDP: short packet: 192.168.0.1:12966 57456/236 to 192.168.0.23:1590
-UDP: short packet: 192.168.0.1:41383 20796/236 to 192.168.0.23:32904
-while conntrack module is loaded.
-i placed a lot of printk's in conntrack and ip_fragment but couldn find 
-any pointers
-where the problem might be. interesting might be that changing the mtu 
-of the
-interface to 1486 works well, even with conntrack loaded .. while 
-without conntrack 1500 is ok.
+> > I'm using the IP Pools extension form Patch-O-matic, and now have
+> > the problem that it tends to kill the machine on SMP. (I just killed
+> > our backup firewall two times this day...)
+> 
+> I think the pool stuff is pretty much unmaintained as of now, sorry.
+> It was a contribution to the project, and the original author (Gerd
+> Knorr, IIRC) has abandoned it.
 
->
->Apart from that I don't have any idea.  I run lots of linux nfs servers
->on machines which have conntrack running, without ever encountering the
->problem you are describing.  There has to be something special about
->your setup(s) we are missing here.
->
->Any idea?
->
->Thanks.
->
->  
->
->>\Lars Knudsen
->>    
->>
->
->  
->
-bye,
-patrick
+Thanks for your information.
+
+That's rather sad, because we have several groups of hosts in our subnet
+that have different rules each, and pools are just the most efficient
+way to match those groups we found.
+
+You see, we're doing Gigabit ethernet here (about 600 MBit upstream
+bandwidth), and our largest host group currently has 9497 Entries.
+That's just too much for the usual O(n) method, one table containing one
+match rule per host, and building some tree-like tables to cut down the
+pass time to O(log(n)) is a maintenance nightmare.
+
+Not to mention the time to load an iptable with some tens of thousands
+of entries, we cannot wait half an hour for our firewall to boot up.
+
+Currently, my Boss does real-life testing using single processor
+kernels, and it seems that it works using current hardware (although I
+don't know yet how it performed during the peak times), and it seems to
+manage the traffic and to be rather stable.
+
+If you know another method of managing such high traffic and host number
+combinations, we'd love to hear about it, because we _really_ want to
+leave Checkpoint.
+
+Markus
+
+-- 
+Schabi's Flohmarkt: http://www.uni-ulm.de/~s_mschab/flohmarkt/
+
+Der Dienstweg ist die Verbindung der Sackgasse mit dem Holzweg!
+[DoLi in unibwm.studium]
+
+--=.lE8iGs8MNcKMC.
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (GNU/Linux)
+
+iD8DBQE978hy6IhVmcufrl4RAjU7AJ9mXBWjPHqmQqlFv9Xoa7Nhip2zlwCgi5sN
+5oLqQl4gSaq2A8nGlmiBEZQ=
+=UG1V
+-----END PGP SIGNATURE-----
+
+--=.lE8iGs8MNcKMC.--
