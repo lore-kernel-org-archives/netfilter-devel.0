@@ -1,16 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
 Subject: RE: information
-Date: Sat, 3 Jul 2004 14:16:48 +0200 (CEST)
+Date: Sat, 3 Jul 2004 17:33:25 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0407031415040.30357-100000@filer.marasystems.com>
-References: <200407030911.i639B1MX025399@madinah.ccse.kfupm.edu.sa>
+Message-ID: <200407031431.i63EVFMX001859@madinah.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "'Babar Qaisrani'" <baqb03@student.bth.se>,
-   "'Netfilter List'" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
-In-Reply-To: <200407030911.i639B1MX025399@madinah.ccse.kfupm.edu.sa>
+To: "Netfilter List" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,6 +18,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
+
+
+What do you exactly mean by "restarting". I just recompile my .c file that
+generates a .out file and that's it. Do I have to make an exe or binary from
+it or what?
+I invoke the QUEUE target from the iptables commands and it looks something
+like this
+
+iptables -A OUTPUT -p icmp -j QUEUE
+
+Muhammad R. Sami 
+Research Assistant, 
+Computer Engineering Department 
+P.O.Box 354 
+King Fahd University of Petroleum & Minerals 
+Dhahran 31261 
+Saudi Arabia. 
+Tel: +96638601423 
+Cell: +96657982951 
+www.ccse.kfupm.edu.sa/sami
+
+-----Original Message-----
+From: Henrik Nordstrom [mailto:hno@marasystems.com] 
+Sent: Saturday, July 03, 2004 3:17 PM
+To: Muhammad R. Sami
+Cc: 'Babar Qaisrani'; 'Netfilter List'
+Subject: RE: information
 
 On Sat, 3 Jul 2004, Muhammad R. Sami wrote:
 
