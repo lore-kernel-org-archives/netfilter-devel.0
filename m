@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: how to parse options?
-Date: Sat, 29 Nov 2003 19:35:44 +0100 (CET)
+Subject: Re: Iptables Suggestions
+Date: Sat, 29 Nov 2003 19:41:12 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311291928460.20615-100000@filer.marasystems.com>
-References: <3FBE2337.8090901@tom.com>
+Message-ID: <Pine.LNX.4.44.0311291936070.20615-100000@filer.marasystems.com>
+References: <9D4BE90F90812E40B90C52C44D5F330901D76C48@sede-mail-01.net.in.iantel.com.uy>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: nicho <fessboy@tom.com>
-In-Reply-To: <3FBE2337.8090901@tom.com>
+To: "Cremella, Gustavo" <gcremella@antel.com.uy>
+In-Reply-To: <9D4BE90F90812E40B90C52C44D5F330901D76C48@sede-mail-01.net.in.iantel.com.uy>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,30 +20,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 21 Nov 2003, nicho wrote:
+On Fri, 21 Nov 2003, Cremella, Gustavo wrote:
 
-> As we know, in kernel there is a structure called multi_range. When we
-> do nat, we choose a proper IP from the multi_range, and a proper port if
-> necessory. My question is, how multi_range is set into kernel, and how
-> option '--to-source' is parsed?
+> If you need to rerun a script, usually (as seen in lots of examples) you have to flush all rules and start again from scratch. 
 
-userspace/extensions/libipt_SNAT.c parses the option.
+I would strongly advice to use iptables-restore if you need to make more 
+than a single rule change. iptables-restore reads a complete ruleset and 
+then atomically installs it into the kernel.
 
-The multi_range is sent as part of the target data when the table ruleset
-is installed in the kernel.
+> You can remove a rule if you know exactly its order within a chain, but
+> this may be impossible in a firewall that loads and unload some
+> forwarding rules dinamically like those used on cybers when enabling o
+> disabling a machine from conecting to the internet.
 
->     By the way, I'm confused at getsockopt(... SO_GET_ENTRY...) . As the
-> name implies, we want to get entry info from kernel, but why it dose
-> copy data from user level to kernel level indeed. What does it do at all?
+I would recommend having a database of who is allowed to access the 
+internet and from this build the full ruleset to be installed with 
+iptables-restore each time there is a change.
 
-I don't have a SO_GET_ENTRY in the sources I have... what kernel are you 
-using?
+Alternatively, if it is simple "this IP address is now" allowed/not 
+allowed operations then you can use ippools whichc allows you to keep a 
+static ruleset and just modify which IP addresses are active in the 
+ruleset.
 
-Note: The iptables kernel interface are subject to change and should not
-be relied upon.  It is better if you call the iptables or
-iptables-save/restore commands which is a well defined interface and also 
-has the correct infrastructure for building iptables to be installed into 
-the kernel.
+> Syntax suggestion: iptables -AC FORWARD......., where AC is the command
+> for Append Conditional if no existing rule also match that kind of
+> packets in that chain and target.
+
+Would be nice indeed, but does only solve a small subset of the bigger 
+problem of how to adjust complex rulesets to changes in who should be 
+allowed/denied..
 
 Regards
 Henrik
