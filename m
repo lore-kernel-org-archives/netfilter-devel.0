@@ -1,13 +1,20 @@
-From: John <jfastabe@up.edu>
-Subject: Iptables extension loading error
-Date: Wed, 25 Aug 2004 13:12:06 +0000
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Linux 2.6.9-rc1
+Date: Wed, 25 Aug 2004 22:32:06 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <412C9026.6050703@up.edu>
+Message-ID: <20040825203206.GS5824@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.58.0408240031560.17766@ppc970.osdl.org>
+	<412CDFEE.1010505@triplehelix.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Fnm8lRGFTVS/3GuM"
+Cc: David Miller <davem@redhat.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Joshua Kwan <joshk@triplehelix.org>
+Content-Disposition: inline
+In-Reply-To: <412CDFEE.1010505@triplehelix.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,247 +25,103 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I am having trouble getting an iptables extension to work. I compile the 
-shared library with the commands,
 
-$ gcc -02 -Wall -Wunused -I /root/iptables/include/ -fPIC -o 
-libipt_CHANGEIP.o -c                   libipt_CHANGEIP.c
+--Fnm8lRGFTVS/3GuM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-$ ld -shared -o libipt_CHANGEIP.so libipt_CHANGEIP.o
+On Wed, Aug 25, 2004 at 11:52:30AM -0700, Joshua Kwan wrote:
+> Linus Torvalds wrote:
+> >Harald Welte:
+> ...
+> >  o [NETFILTER]: Make 'helper' list of ip_nat_core static
+> ...
+>=20
+> I suspect that this changeset[1] somehow caused this to happen (many=20
+> times) in dmesg:
+>=20
+> ASSERT net/ipv4/netfilter/ip_nat_helper.c:428 &ip_nat_lock writelocked
 
-The above commands give no errors, but when I try to run iptables with 
-my new target extension i get the following error.
+yes, indeed.
 
-$ iptables iptables -I INPUT -j CHANGEIP
-iptables v1.2.9: Couldn't load target `CHANGEIP'
+> It seems to be working properly (NATting two machines behind a local=20
+> network to the Internet.)
 
-I know the module is loaded correctly because when I remove the module I 
-get a different error and the shared library is also in the correct 
-directory because when i move it i get a different error then this.  I 
-am at a loss for what I should start to do to look for this error.  
-Below is the code to my shared library and module.  If anyone could give 
-me advice on where to start looking to fix this problem that would be 
-greatly appreciated.  The system I am using is,
+The 'problem' is that we try to get a readlock while we're already
+protected under a write lock.
 
-Linux nitbit 2.4.22-gentoo-r5 #4 SMP Tue Jan 20 01:33:31 UTC 2004 i686 
-Intel(R) Celeron(R) CPU 2.30GHz GenuineIntel GNU/Linux
+Please see the following [quite trivial, but yet untested] patch:
 
-If more information is needed to help please let me know thank you for 
-your time,
-john
-
-/* Shared library add-on to iptables to add CHANGEIP target support.
- */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <netinet/in.h>
-#include <iptables.h>
-#include <linux/netfilter_ipv4/ip_tables.h>
-#include "ipt_CHANGEIP.h"
-
-#define NOCLOBBER 0
-#define CLOBBER   1
-
-/* Function that prints out usage message */
-static void
-help(void)
-{
-    printf(
-     "ChangeIP target v \n"
-     "     --dip     \tip \t\t Change destination IP\n"
-     "     --sip     \tip \t\t Change source IP\n"
-     "     --continue\t   \t\t Let packet continue traversal\n"
-     "\n");
-}
-
-static struct option opts[] = {
-    {"dip", 1, 0, '1' },
-    {"sip", 1, 0, '2' },
-    {"clobber",0,0,'3'},
-    { 0 }
-};
-
-static void init
-(struct ipt_entry_target *t , unsigned int *nfcache ){
-    struct ipt_changeip_target_info *ipinfo =
-               (struct ipt_changeip_target_info*)t->data;
-    printf("hi\n");
-    ipinfo->clobber = NOCLOBBER;
-    ipinfo->dip = NULL;
-    ipinfo->sip = NULL;
-
+--- linux-2.6.9-rc1/net/ipv4/netfilter/ip_nat_core.c	2004-08-25 22:22:36.45=
+0340504 +0200
++++ linux-2.6.9-rc1-find_helper/net/ipv4/netfilter/ip_nat_core.c	2004-08-25=
+ 22:28:37.668273271 +0200
+@@ -635,7 +635,7 @@
+=20
+ 	/* If there's a helper, assign it; based on new tuple. */
+ 	if (!conntrack->master)
+-		info->helper =3D ip_nat_find_helper(&reply);
++		info->helper =3D __ip_nat_find_helper(&reply);
+=20
+ 	/* It's done. */
+ 	info->initialized |=3D (1 << HOOK2MANIP(hooknum));
+--- linux-2.6.9-rc1/net/ipv4/netfilter/ip_nat_helper.c	2004-08-25 22:22:36.=
+453340376 +0200
++++ linux-2.6.9-rc1-find_helper/net/ipv4/netfilter/ip_nat_helper.c	2004-08-=
+25 22:27:47.880335112 +0200
+@@ -421,12 +421,18 @@
  }
+=20
+ struct ip_nat_helper *
++__ip_nat_find_helper(const struct ip_conntrack_tuple *tuple)
++{
++	return LIST_FIND(&helpers, helper_cmp, struct ip_nat_helper *, tuple);
++}
++
++struct ip_nat_helper *
+ ip_nat_find_helper(const struct ip_conntrack_tuple *tuple)
+ {
+ 	struct ip_nat_helper *h;
+=20
+ 	READ_LOCK(&ip_nat_lock);
+-	h =3D LIST_FIND(&helpers, helper_cmp, struct ip_nat_helper *, tuple);
++	h =3D __ip_nat_find_helper(tuple);
+ 	READ_UNLOCK(&ip_nat_lock);
+=20
+ 	return h;
+--- linux-2.6.9-rc1/net/ipv4/netfilter/ip_nat_standalone.c	2004-08-25 22:22=
+:36.461340035 +0200
++++ linux-2.6.9-rc1-find_helper/net/ipv4/netfilter/ip_nat_standalone.c	2004=
+-08-25 22:29:30.047102589 +0200
+@@ -394,4 +394,5 @@
+ EXPORT_SYMBOL(ip_nat_mangle_tcp_packet);
+ EXPORT_SYMBOL(ip_nat_mangle_udp_packet);
+ EXPORT_SYMBOL(ip_nat_used_tuple);
++EXPORT_SYMBOL(ip_nat_find_helper);
+ MODULE_LICENSE("GPL");
 
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
+--Fnm8lRGFTVS/3GuM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-static int parse(int c, char **argv, int invert,
-         unsigned int *flags,
-         const struct ipt_entry *entry,
-         struct ipt_entry_target **target)
-{          printf("hello\n");
-    struct ipt_changeip_target_info *ipinfo =
-                     (struct ipt_changeip_target_info *)(*target)->data;
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-    //if(entry->ip.proto != IPT_IP)
-    //    exit_error(PARAMETER_PROBLEM, "Needs to be an ip packet");
-    switch (c){
-    case '1':
-        if(*flags) exit_error(PARAMETER_PROBLEM,
-            "Only one destination ip allowed");
-        ipinfo->dip = optarg;
-                //inet_aton(optarg, ipinfo->dip.s_addr );
-        *flags =1;
-            break;               
-    case '2':
-        if(*flags) exit_error(PARAMETER_PROBLEM,
-              "Only one src ip allowed");
-        ipinfo->sip = optarg;
-                //inet_aton(optarg, ipinfo->sip.s_addr);
-        *flags = 1;
-        break;
-    case '3':
-         if(*flags) exit_error(PARAMETER_PROBLEM,
-            "Syntax messed up");
-        ipinfo->clobber = 1;
-        break;
+iD8DBQFBLPdGXaXGVTD0i/8RAlWUAJ0UiBXNbG4Qu8yxyzFsz8IQgeq8WQCfcV0P
+9Eghv4PZhnYCZUfsYegyEZU=
+=CxAk
+-----END PGP SIGNATURE-----
 
-    default: return 0;
-    }
-
-    return 1;
-}
-
-static void final_check(unsigned int flags){
-    if(!flags)
-        exit_error(PARAMETER_PROBLEM,
-            "Must have either source or destination ip to change");
-   
-}
-
-
-static void print (const struct ipt_ip *ip,
-           const struct ipt_entry_target *target,
-           int numeric)
-{
-        printf("hello\n");
-    const struct ipt_changeip_target_info *ipinfo
-             = (const struct ipt_changeip_target_info *)target->data;
-    printf("Changing IP");          
-}
-
-static void save(const struct ipt_ip *ip, const struct ipt_entry_target 
-*target)
-{
-
-}
-
-static struct iptables_target changeip = { NULL,
-    "CHANGEIP",
-    "1.2.9",
-    IPT_ALIGN(sizeof(struct ipt_changeip_target_info) ),
-    IPT_ALIGN(sizeof(struct ipt_changeip_target_info) ),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
-};
-
-void _init(void)
-{
-        printf("hello\n");
-    register_target(&changeip);
-}
-
-
-
-
-
-//and finally the module code
-#include <linux/module.h>
-#include <linux/skbuff.h>
-#include "ipt_CHANGEIP.h"
-#include <linux/netfilter_ipv4/ip_tables.h>
-        
-          #include <linux/kernel.h>
-          #include <linux/ip.h>                  /* For IP header */
-          #include <linux/netfilter.h>
-          #include <linux/netfilter_ipv4.h>
-
-MODULE_AUTHOR("John Fastabend");
-MODULE_DESCRIPTION("Changes ip addresses");
-MODULE_LICENSE("GPL");
-
-
-static unsigned int
-ipt_changeip_target(struct sk_buff **pskb,
-            unsigned int hooknum,
-            const struct net_device *in,
-            const struct net_device *out,
-            const void *targinfo,
-            void *userinfo)
-{
-    const struct ipt_changeip_target_info *ipinfo = targinfo;
-        struct sk_buff *sb = *pskb;
-
-    if(skb_cloned(*pskb) && !(*pskb)->sk){
-        struct sk_buff *nskb 
-                            = skb_copy(*pskb, GFP_ATOMIC);
-        if(!pskb) return NF_DROP;
-        kfree_skb(*pskb);
-        *pskb = nskb;
-        sb->nh.iph = (*pskb)->nh.iph;
-    }
-   
-    if( ipinfo->clobber == 0 /*NOCLOBBER*/ ){
-            struct sk_buff *origskb
-                     = skb_copy(*pskb, GFP_ATOMIC);
-        skb_insert(origskb,*pskb);
-    }
-   
-
-        sb->nh.iph->daddr = ipinfo->dip;
-   
-       
-    sb->nh.iph->saddr = ipinfo->sip;
-
-
-    return IPT_CONTINUE;
-}
-
-static int ipt_changeip_checkentry( const char *tablename,
-                    const struct ipt_entry *e,
-                    void *targinfo,
-                    unsigned int targinfosize,
-                    unsigned int hook_mask)
-{
-return 1;
-}
-
-static struct ipt_target ipt_changeip_reg =  { {NULL, NULL},
-                        "CHANGEIP",
-                        ipt_changeip_target,
-                        ipt_changeip_checkentry,
-                        NULL,
-                        THIS_MODULE };
-
-static int  __init init(void){
-    return ipt_register_target(&ipt_changeip_reg);
-}
-
-static void __exit fini(void){
-    return ipt_unregister_target(&ipt_changeip_reg);
-}
-
-module_init(init);
-module_exit(fini);
-
-
-
-
-PS. sorry if this email is too long I didnt have anywhere to post the 
-code online.
+--Fnm8lRGFTVS/3GuM--
