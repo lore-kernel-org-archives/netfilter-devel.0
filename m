@@ -1,12 +1,17 @@
-From: Thomas Woerner <twoerner@redhat.com>
-Subject: [PATCH] cleanup
-Date: Thu, 09 Sep 2004 17:29:11 +0200
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
+	<yoshfuji@linux-ipv6.org>
+Subject: [PATCH] [NETFILTER] Fix "undefined reference" error if
+ CONFIG_SYSCTL=n
+Date: Fri, 10 Sep 2004 15:31:35 +0900 (JST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414076C7.7000009@redhat.com>
+Message-ID: <20040910.153135.121099678.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010509030403080305000909"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: yoshfuji@linux-ipv6.org, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: davem@davemloft.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,90 +22,44 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010509030403080305000909
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello.
 
+Fix the following error if CONFIG_SYSCTL=n.
 
-Hello,
+| net/built-in.o: In function `tcp_in_window':
+| net/built-in.o(.text+0x49571): undefined reference to `ip_ct_log_invalid'
+| net/built-in.o: In function `tcp_error':
+| net/built-in.o(.text+0x49715): undefined reference to `ip_ct_log_invalid'
+| net/built-in.o(.text+0x49756): undefined reference to `ip_ct_log_invalid'
+| net/built-in.o(.text+0x497f1): undefined reference to `ip_ct_log_invalid'
+| net/built-in.o(.text+0x49823): undefined reference to `ip_ct_log_invalid'
+| net/built-in.o(.text+0x49998): more undefined references to `ip_ct_log_invalid' follow
+| make: *** [.tmp_vmlinux1] Error 1
 
+Signed-off-by: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
 
-I got this patch for iptables in bugzilla #131848 from Steve Grubb. Are including it 
-in the next version?
-
-
-Thanks in advance,
-Thomas
+===== net/ipv4/netfilter/ip_conntrack_standalone.c 1.40 vs edited =====
+--- 1.40/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-01 00:27:37 +09:00
++++ edited/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-10 15:16:34 +09:00
+@@ -48,6 +48,8 @@
+ extern atomic_t ip_conntrack_count;
+ DECLARE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
+ 
++unsigned int ip_ct_log_invalid = 0;
++
+ static int kill_proto(const struct ip_conntrack *i, void *data)
+ {
+ 	return (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum == 
+@@ -522,7 +524,6 @@
+ extern unsigned long ip_ct_generic_timeout;
+ 
+ /* Log invalid packets of a given protocol */
+-unsigned int ip_ct_log_invalid = 0;
+ static int log_invalid_proto_min = 0;
+ static int log_invalid_proto_max = 255;
+ 
+ 
 
 -- 
-Thomas Woerner
-Software Engineer            Phone: +49-711-96437-310
-Red Hat GmbH                 Fax  : +49-711-96437-111
-Hauptstaetterstr. 58         Email: Thomas Woerner <twoerner@redhat.com>
-D-70178 Stuttgart            Web  : http://www.redhat.de/
-
---------------010509030403080305000909
-Content-Type: text/x-patch;
- name="iptables-1.2.11-cleanup.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="iptables-1.2.11-cleanup.patch"
-
-diff -ur iptables-1.2.11.orig/extensions/libipt_REJECT.c iptables-1.2.11/extensions/libipt_REJECT.c
---- iptables-1.2.11.orig/extensions/libipt_REJECT.c	2004-09-05 11:27:49.000000000 -0400
-+++ iptables-1.2.11/extensions/libipt_REJECT.c	2004-09-05 11:28:17.000000000 -0400
-@@ -147,13 +147,16 @@
- {
- 	const struct ipt_reject_info *reject
- 		= (const struct ipt_reject_info *)target->data;
--	unsigned int i;
-+	unsigned int i, limit=sizeof(reject_table)/sizeof(struct reject_names);
- 
--	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
-+	for (i = 0; i < limit; i++) {
- 		if (reject_table[i].with == reject->with)
- 			break;
- 	}
--	printf("reject-with %s ", reject_table[i].name);
-+	if (i < limit)
-+		printf("reject-with %s ", reject_table[i].name);
-+	else
-+		printf("reject-with: error reject->with not found ");
- }
- 
- /* Saves ipt_reject in parsable form to stdout. */
-@@ -161,13 +164,15 @@
- {
- 	const struct ipt_reject_info *reject
- 		= (const struct ipt_reject_info *)target->data;
--	unsigned int i;
-+	unsigned int i, limit=sizeof(reject_table)/sizeof(struct reject_names);
- 
--	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++)
-+	for (i = 0; i < limit; i++)
- 		if (reject_table[i].with == reject->with)
- 			break;
--
--	printf("--reject-with %s ", reject_table[i].name);
-+	if (i < limit)
-+		printf("--reject-with %s ", reject_table[i].name);
-+	else
-+		fprintf(stderr, "--reject-with error reject->with not found");
- }
- 
- static
-diff -ur iptables-1.2.11.orig/extensions/libipt_rpc.c iptables-1.2.11/extensions/libipt_rpc.c
---- iptables-1.2.11.orig/extensions/libipt_rpc.c	2004-09-05 11:27:50.000000000 -0400
-+++ iptables-1.2.11/extensions/libipt_rpc.c	2004-09-05 11:41:11.000000000 -0400
-@@ -252,7 +252,7 @@
- 
- 			idup = 0;
- 			memset(buf, 0, sizeof(buf));
--			dst = (char *)buf - 1;
-+			dst = (char *)buf;
- 		}
- 	}
- 
-
---------------010509030403080305000909--
+Hideaki YOSHIFUJI @ USAGI Project <yoshfuji@linux-ipv6.org>
+GPG FP: 9022 65EB 1ECF 3AD1 0BDF  80D8 4807 F894 E062 0EEA
