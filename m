@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH]  libip6t_MARK.c
-Date: Fri, 5 Sep 2003 14:55:39 +0200
+Subject: Re: [PATCH] ROUTE target for IPv6
+Date: Fri, 5 Sep 2003 14:21:11 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030905125539.GF1597@obroa-skai.de.gnumonks.org>
-References: <3F58303C.3030508@videotron.ca>
+Message-ID: <20030905122110.GI665@obroa-skai.de.gnumonks.org>
+References: <1062408326.520.18.camel@descartes>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IuhbYIxU28t+Kd57"
-Cc: Netfilter Mailing List <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="qVyHzDF4yf4A8jkR"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Stephane Ouellette <ouellettes@videotron.ca>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
 Content-Disposition: inline
-In-Reply-To: <3F58303C.3030508@videotron.ca>
+In-Reply-To: <1062408326.520.18.camel@descartes>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,18 +23,21 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---IuhbYIxU28t+Kd57
+--qVyHzDF4yf4A8jkR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 05, 2003 at 02:42:04AM -0400, Stephane Ouellette wrote:
-> Harald,
-> Please apply,
+On Mon, Sep 01, 2003 at 11:25:26AM +0200, Cedric de Launois wrote:
+> Hi all,
+>=20
+> Here is a port of the ROUTE target for IPv6. It is based on the
+> IPv4 version of the ROUTE target. It has the same behaviour although=20
+> not all options are currently implemented.
 
 thanks, applied.
 
-> Stephane
+> Cedric
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -45,16 +48,16 @@ thanks, applied.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---IuhbYIxU28t+Kd57
+--qVyHzDF4yf4A8jkR
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/WIfKXaXGVTD0i/8RAm8sAJ9C0HakHMNq12e3FUm1zQMxBFngiACfV7xY
-WSquGVaFGN0Y7GXpZ4GePy4=
-=V4S+
+iD4DBQE/WH+2XaXGVTD0i/8RAnO5AKCYGswjI3gmmmADHTyU6W1t0KdqJgCYpMWn
+cNN7oAoi8+I/JOl5resk2w==
+=qETT
 -----END PGP SIGNATURE-----
 
---IuhbYIxU28t+Kd57--
+--qVyHzDF4yf4A8jkR--
