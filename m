@@ -1,13 +1,15 @@
-From: "Dev" <devietf@hotmail.com>
-Subject: ip6_queue.o module missing in Red Hat linux 9 with 2.4.20-8 kernel
-Date: Thu, 15 Apr 2004 21:18:09 +0100
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: NF_QUEUE examples
+Date: Fri, 16 Apr 2004 01:55:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY14-DAV4QhExkiyPo00019965@hotmail.com>
+Message-ID: <407F20DA.2050704@eurodev.net>
+References: <20040415162220.GA5747@maluco.com.br>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_00B0_01C4232F.26C50E20"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040415162220.GA5747@maluco.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,54 +20,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi Ulysses,
 
-------=_NextPart_000_00B0_01C4232F.26C50E20
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Ulysses Almeida wrote:
 
-Dear netfilter developers
+> where can i find simple examples of using it? 
+>
 
-I am using redhat linux 9 with 2.4.20-8 kernel.  I need the modules =
-ip6_queue.o to run an aodv routing protocol. But i couldnt find the =
-ip6_queue.o modules is /lib/modules/2.4.20/kernel/net/ipv6/netfilter. In =
-that directory i have other netfilter modules like ip6_tables.o =
-ip6table_filter.o etc.... Can any one please let me how i should make =
-the modules ip6_queue.o
+http://cvs.netfilter.org/netfilter/testsuite/tools/intercept.c
 
-Many thanks
+it hasn't been modified for quite some time but it works.
 
-Dev
-------=_NextPart_000_00B0_01C4232F.26C50E20
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+>  What I understand, is: with NF_QUEUE, I can queue some packet to be
+>manipulated on userspace. After this, can this packet be dequeued back
+>to kernel space, and continue with it's journey?
+>
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>
-<DIV><FONT face=3DArial size=3D2>Dear netfilter developers</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I am using redhat linux 9 with 2.4.20-8 =
+exactly
 
-kernel.&nbsp; I need the modules ip6_queue.o to run an aodv routing =
-protocol.=20
-But i couldnt find the ip6_queue.o modules is=20
-/lib/modules/2.4.20/kernel/net/ipv6/netfilter. In that directory i have =
-other=20
-netfilter modules like ip6_tables.o ip6table_filter.o etc.... Can any =
-one please=20
-let me how i should make the modules ip6_queue.o</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Many thanks</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Dev</FONT></DIV></DIV></BODY></HTML>
+> How can I write a
+>userspace code, to handle with packetd queued bu NF_QUEUE? Or I didn't
+>understand nothing about it?
+>  
+>
 
-------=_NextPart_000_00B0_01C4232F.26C50E20--
+as Sven pointed out, if you are interested you could have a look at
+ip_queue.c in kernel side.
+
+regards,
+Pablo
