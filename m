@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Cannot apply h323-conntrack-nat
-Date: Sun, 03 Apr 2005 19:32:15 +0200
-Message-ID: <4250289F.8000801@trash.net>
-References: <1111695753.32351.34.camel@localhost>
-	<20050325222027.GA12915@roonstrasse.net>
+Subject: Re: [PATCH] ct-event API port to 2.6.11
+Date: Sun, 03 Apr 2005 19:42:51 +0200
+Message-ID: <42502B1B.7090309@trash.net>
+References: <424747D5.8060500@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org,
-	Javier Kohen <jkohen@users.sourceforge.net>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Max Kellermann <max@duempel.org>
-In-Reply-To: <20050325222027.GA12915@roonstrasse.net>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <424747D5.8060500@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Max Kellermann wrote:
-> I have already posted patches to h323-conntrack-nat, unfortunately
-> they have not been applied to svn yet. You can find patches against
-> pom-ng trunk on my home page:
+Pablo Neira wrote:
+> I sent this patch to Krisztian Kovacs some time ago in private but 
+> forgot to post it in mailing list. It is currently used by ct_sync.
 > 
->  http://max.kellermann.name/projects/netfilter/h323.html
+> BTW, I also ported this to nf_conntrack some time ago:
+> 
+> https://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018219.html 
+> 
+> 
+> I guess that such patch doesn't apply anymore since Rusty's changes. If 
+> I ported it again, could it be merge to the nf_conntrack tree or better 
+> wait until it's pushed forward?
 
-I can see that Harald applied some of your patches 3 weeks ago. Are
-there still some missing?
+I think it would be better to wait to avoid delaying both.
+Is there already a user of this API for nf_conntrack?
 
 Regards
 Patrick
