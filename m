@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: NAPT with several IP addresses?
-Date: Fri, 21 Nov 2003 11:44:04 +0100
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH] Per bucket conntrack hash locking patch in p-o-m
+Date: Fri, 21 Nov 2003 12:43:00 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031121104404.GI29432@sunbeam.de.gnumonks.org>
-References: <3FBDDCA2.5030307@netlab.hut.fi>
+Message-ID: <Pine.LNX.4.33.0311211226580.9127-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zOcTNEe3AzgCmdo9"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: jamal <hadi@cyberus.ca>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-Content-Disposition: inline
-In-Reply-To: <3FBDDCA2.5030307@netlab.hut.fi>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,58 +18,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---zOcTNEe3AzgCmdo9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have added three patches to patch-o-matic/extra:
 
-On Fri, Nov 21, 2003 at 11:36:34AM +0200, Emmanuel Guiton wrote:
-> Hei!
->=20
-> I was looking at the Linux Netfilter Hacking HOWTO and at the source=20
-> code in ip_nat_proto_tcp.c and I realized that doing NAPT with several=20
-> ports is not supported, am I right?
+conntrack_arefcount.patch:
+	The revision of the refcounting/locking in conntrack. First, the
+	original methods was not perfect at all (see Patrick's efforts in
+	cleaning it up...), secondly it did not make possible to
+	introduce per bucket lockings at all.
+	As an outcome of the revision, init_conntrack could be made a
+	little bit faster (read-lock against expectations instead of
+	write-locking).
 
-of course it is supported.
+conntrack_locking.patch:
+	The patch implements per bucket locking in the conntrack
+	hash. The only task remained for the ip_conntrack lock is
+	to protect the protocol/helper lists :-).
 
-> I mean, in the HOWTO it's written "If IP_NAT_RANGE_PROTO_SPECIFIED isn't=
-=20
-> set, it means that the user is doing NAT, not NAPT". Well, we could also=
-=20
-> use a range of IP addresses and still perform NAPT, couldn't we? Still=20
-> this possibility is not implemented, isn't it?
+conntrack_nonat.patch:
+	The patch implements an optimization in the per bucket
+	locking for the case when there is no NAT support compiled
+	into the code.
 
-I don't really understand what your point.  IP_NAT_RANGE_PROTO_SPECIFIED
-just tells us if the give nat range has only a layer 3 (ip) range, or
-also layer 4 (tcp/udp/...) range.  It doesn't tell you at all if you nat
-to a single address or to multiple addresses.
+Any comments are highly welcomed.
 
-A nat mapping is internally always represented as a nat range.  Even if
-the range has only the size of one (i.e. a single ip address or port).
-
->            Emmanuel
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---zOcTNEe3AzgCmdo9
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/vex0XaXGVTD0i/8RAiyPAJ4wWXPjIx9AdesrGk6P0xnNzCvXkQCgrgak
-Bk78B7FeVgznZLMCLzUhew4=
-=MqUY
------END PGP SIGNATURE-----
-
---zOcTNEe3AzgCmdo9--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
