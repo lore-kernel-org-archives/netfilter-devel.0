@@ -1,15 +1,13 @@
-From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: Re: Condition for 2.6?
-Date: Sat, 06 Nov 2004 12:15:10 -0500
-Message-ID: <418D069E.1060309@videotron.ca>
-References: <000101c4c3e7$53404880$450aa8c0@hierzo>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] MASQUERADE handling of device events
+Date: Sun, 7 Nov 2004 10:18:25 -0800
+Message-ID: <20041107181825.GA3522@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7BIT
-Cc: "mailto:netfilter-devel"@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="IJpNTDwzlM2Ie8A6"
+Cc: linux-net@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <000101c4c3e7$53404880$450aa8c0@hierzo>
-To: Udo van den Heuvel <udovdh@xs4all.nl>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,35 +19,106 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Udo van den Heuvel wrote:
-> Hello,
-> 
-> Will there be a netfilter/iptables 'condition' extension for kernel 2.6.x?
-> 
-> Kind regards,
-> Udo
-> 
-> 
-> 
 
-Udo,
+--IJpNTDwzlM2Ie8A6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-    I will port the condition module to 2.6 and send a notification to 
-the list when I'm done. Unfortunately, I will be very busy up to 
-december 14th as I'm working on my Master's degree.
+As discussed in recent days, MASQUERADE target handling of device events
+is broken in a couple of ways:
 
-    The issue with porting the code to 2.6 is known to me. I need to 
-adapt the module so that it uses seq files and something else has 
-changed in the proc interface from kernel 2.4 that crashes the kernel 
-when writing to the proc file.
+1) when ppp interfaces cycle, conntracks with old ip addresses are not
+   flushed
 
-    I would be very happy if someone can point me the solution. I'll be 
-able to release it much sooner.
+2) an 'ip addr add' on an interface used for masquerading flushes all
+   conntracks associated with that interface
 
-    Up to now, I have received a number of emails regarding the 
-condition module. I'm very happy to know that it has been, up to now, 
-used successfully in many places and that it is rock-solid.
+The below patch addresses these issues by changing from using ifindex
+comparisons to verifying that the masquerading ip still exists on the
+box.
 
-Regards,
+To achieve this, two changes were required to core networking code (thus
+the linux-net cc):
 
-Stephane Ouellette
+1) export inet_confirm_addr
+
+2) change inet_ifa_match to use ifa_local instead of ifa_address.
+   Since ifa_local != ifa_address on ppp interfaces, inet_ifa_match
+   could not be used to verify ppp interface addresses without
+   this change.
+
+Comments?
+
+Phil
+
+
+
+--IJpNTDwzlM2Ie8A6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-masq2
+
+diff -ru linux-orig/include/linux/inetdevice.h linux-diff/include/linux/inetdevice.h
+--- linux-orig/include/linux/inetdevice.h	2004-11-04 17:32:05.573870736 -0500
++++ linux-diff/include/linux/inetdevice.h	2004-11-07 12:57:50.674323160 -0500
+@@ -114,7 +114,7 @@
+ 
+ static __inline__ int inet_ifa_match(u32 addr, struct in_ifaddr *ifa)
+ {
+-	return !((addr^ifa->ifa_address)&ifa->ifa_mask);
++	return !((addr^ifa->ifa_local)&ifa->ifa_mask);
+ }
+ 
+ /*
+diff -ru linux-orig/net/ipv4/devinet.c linux-diff/net/ipv4/devinet.c
+--- linux-orig/net/ipv4/devinet.c	2004-11-04 17:32:05.000000000 -0500
++++ linux-diff/net/ipv4/devinet.c	2004-11-07 12:56:27.738931256 -0500
+@@ -1493,6 +1493,7 @@
+ 
+ EXPORT_SYMBOL(devinet_ioctl);
+ EXPORT_SYMBOL(in_dev_finish_destroy);
++EXPORT_SYMBOL(inet_confirm_addr);
+ EXPORT_SYMBOL(inet_select_addr);
+ EXPORT_SYMBOL(inetdev_by_index);
+ EXPORT_SYMBOL(register_inetaddr_notifier);
+diff -ru linux-orig/net/ipv4/netfilter/ipt_MASQUERADE.c linux-diff/net/ipv4/netfilter/ipt_MASQUERADE.c
+--- linux-orig/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-04 17:32:05.000000000 -0500
++++ linux-diff/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-07 12:55:56.501680040 -0500
+@@ -118,16 +118,15 @@
+ }
+ 
+ static inline int
+-device_cmp(const struct ip_conntrack *i, void *_ina)
++device_cmp(const struct ip_conntrack *i, void *junk)
+ {
+ 	int ret = 0;
+-	struct in_ifaddr *ina = _ina;
+ 
+ 	READ_LOCK(&masq_lock);
+-	/* If it's masquerading out this interface with a different address,
+-	   or we don't know the new address of this interface. */
+-	if (i->nat.masq_index == ina->ifa_dev->dev->ifindex
+-	    && i->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip != ina->ifa_address)
++	/* If masquerading this conntrack but the masquerading ip
++	   no longer exists locally, drop conntrack. */
++	if (i->nat.masq_index && !(inet_confirm_addr(NULL, 0,
++	    i->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip, RT_SCOPE_HOST)))
+ 		ret = 1;
+ 	READ_UNLOCK(&masq_lock);
+ 
+@@ -150,11 +149,10 @@
+ 			   unsigned long event,
+ 			   void *ptr)
+ {
+-	/* For some configurations, interfaces often come back with
+-	 * the same address.  If not, clean up old conntrack
+-	 * entries. */
++	/* In some configurations, interfaces come back with the
++	 * same address.  If not, clean up old conntrack entries. */
+ 	if (event == NETDEV_UP)
+-		ip_ct_selective_cleanup(device_cmp, ptr);
++		ip_ct_selective_cleanup(device_cmp, NULL);
+ 	else if (event == NETDEV_DOWN)
+ 		ip_ct_selective_cleanup(connect_unassure, ptr);
+ 
+
+--IJpNTDwzlM2Ie8A6--
