@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH]: Fix ip_conntrack_core arguments to macros
-Date: Mon, 14 Jul 2003 10:12:14 +0200
+Subject: Re: target MARK in filter table?
+Date: Mon, 14 Jul 2003 10:05:03 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030714081214.GH6538@naboo>
-References: <Pine.LNX.4.44.0307121230550.30873-200000@gw.localnet>
+Message-ID: <20030714080503.GE6538@naboo>
+References: <Pine.LNX.3.95.1030713150116.17878A-100000@cannabis.dataforce.net> <Pine.LNX.3.95.1030713163717.31849A-100000@cannabis.dataforce.net> <20030713141944.GB1284@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gKijDXBCEH69PxaN"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="brEuL7wsLY8+TuWz"
+Cc: Poltorak Serguei <poltorak@df.ru>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Patrick Schaaf <bof@bof.de>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0307121230550.30873-200000@gw.localnet>
+In-Reply-To: <20030713141944.GB1284@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +23,68 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gKijDXBCEH69PxaN
+--brEuL7wsLY8+TuWz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Jul 12, 2003 at 12:40:47PM +0200, Patrick McHardy wrote:
-> Hi Harald,
-> this patch fixes some places in ip_conntrack where LIST_FIND and
-> LIST_DELETE are passed functions with their arguments (like
-> LIST_FIND(ip_conntrack_hash[hash_conntrack(...)], ...). The argument is
-> expanded twice, this leads to two calls to hash_conntrack.
+On Sun, Jul 13, 2003 at 04:19:44PM +0200, Patrick Schaaf wrote:
+> > If you do know a reason why this must not be done, please tell me. MARK=
+ is
+> > usefull even without advanced routing.
+>=20
+> I do not disagree, the rerouting indecision was just the one possible rea=
+son
+> I could think of.
+>=20
+> What do other developers think? What other reasons were there to keep the=
+ MARK
+> target from working in the filter table?
 
-ouch, now this is interesting.  I need to look into that further.
+Because it violates our idea of the iptables framework.  It is a policy
+kind of decision, not a 'what is technically possible' decision.
 
-Thanks for the patch, give me another day to investigate (and apply)
-this and your other patches.
+The idea is to have targets for filtering in the filter table - and
+anything that modifies the packet [or potentially affect other kernel
+subsystems such as policy routing] in 'mangle'.
 
-> Best regards,
-> Patrick
+We could enable almost all mangle targets to be used in the filter
+table, there is no inherent technical limitation.
 
-> BTW: nice talk yesterday, i've seen the slides before but it still was
-> alot more interesting to here it directly from you. Sorry i didn't showed
-> up anymore, i had to get some sleep fast after getting up at 7 in the
-> morning (and drinking too much beer) ;) Are you still at linuxtag ?
+But it just feels wrong with regard to the policy we are trying to
+enforce.
 
-Yes, a real pity.  I was expecting to have some chat with you.
-Unfortunately I needed to cut down my linuxtag visit to a single day
-(just friday to give my presentation) due to a personal issue :(
+In that particular practical case, I think Poltorak Serguei is 'abusing'
+the mark mechanism for something that we didn't think it should be=20
+
+> While we are on the topic of seemingly arbitrary "sanity" checks, why is
+> it that using the TCPMSS option throws a vague "invalid argument" error
+> when one forgets to also specify --syn? Can't that target just check for
+> tcp/syn dynamically, i.e. become a NOOP for non-syn packets, instead of
+> forcing me to specify --syn at rule insertion time?
+
+Error reporting is a whole discussion that I've had at least once a
+couple of years ago.  There is no sane way to add verbose error
+reporting back to iptables userspace because of the set/getsockopt
+interface :(
+
+the best we can do is printk() the error and ask the user to check dmesg
+in case we receive -EINVAL.
+
+But returning an error in this case is IMHO the correct behaviour.  What
+is the idea behind blindly accepting rules that don't make sense for
+non-syn packets?
+
+And if there is one mechanism of checking for SYN, why should we
+implement this check in other places as well?
+
+Also, it gives the user/administrator a chance to see what is really
+happening.  The user will know that TCPMSS will only affect SYN packets,
+not any other (something he most likely doesn't know when it just
+magically works).
+
+> best regards
+>   Patrick
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,16 +96,16 @@ Unfortunately I needed to cut down my linuxtag visit to a single day
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---gKijDXBCEH69PxaN
+--brEuL7wsLY8+TuWz
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE/EmXdXaXGVTD0i/8RAikeAJ9Q5K2bNsZFzO8NEazaLVHh0PoMUQCgqIZO
-m9UcjOH/bQi1aJ10l8XPQJs=
-=Boao
+iD8DBQE/EmQuXaXGVTD0i/8RAjoqAJ41fd14sjGLAtEDSuo9PzDYKEL9ZQCgtTLn
+jW+rWcBEk95ZtPGOOftyq5g=
+=Zohp
 -----END PGP SIGNATURE-----
 
---gKijDXBCEH69PxaN--
+--brEuL7wsLY8+TuWz--
