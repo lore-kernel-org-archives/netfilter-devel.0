@@ -1,15 +1,15 @@
-From: P@draigBrady.com
-Subject: Re: performance
-Date: Tue, 10 Jun 2003 09:49:54 +0100
+From: Nils Radtke <Nils.Radtke@Think-Future.de>
+Subject: local NAT
+Date: Tue, 10 Jun 2003 00:33:56 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EE59BB2.1070009@draigBrady.com>
-References: <3EE4B1EB.9090305@draigBrady.com> <3EE4B2E3.2070700@draigBrady.com> <723210746.20030609212730@lf.lv>
+Message-ID: <20030610003356.A22098@marvin.informatik.uni-stuttgart.de>
+Reply-To: Nils Radtke <Nils.Radtke@Think-Future.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Peteris Krumins <newsgroups@lf.lv>, netfilter-devel@lists.netfilter.org
-In-Reply-To: <723210746.20030609212730@lf.lv>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,55 +20,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Peteris Krumins wrote:
-> Monday, June 9, 2003, 7:16:35 PM, you wrote:
->=20
-> Pdc> P@draigBrady.com wrote:
->=20
->>>Hi,
->>>
->>>I'm testing netfilter performance here on
->>>PIII 1.2GHz based systems. With default
->>>kernel configuration, netfilter is able
->>>to process 85,000 pps with 125 rules (all
->>>rules matching).
->>>
->>>Note the application is just counting.
->>>There is no transmitting/forwarding.
->>>
->>>Also note the nics are e100.
->>>
->>>So my simple question are there any
->>>tips in increasing the performance?
->>>Hmm actually the performance seems
->>>optimal? is it only taking 9 instructions
->>>per match? 1.2*10^9/(85000*1500) =3D 9
->=20
->=20
-> Pdc> I knew that couldn't be right.
-> Pdc> That was tested on a dual 1.2GHz,
-> Pdc> so that should be approx:
-> Pdc> 2*10^9/(85000*125) =3D 188 instructions per match.
->=20
-> I am afraid that is not instructions per match
-> but ticks per match? An instruction can take more than
-> one tick (clock cycle).
+  Hi all,
 
-yes true. I was making assumptions.
-The following suggests the average cycles:instruction
-ratio is 1.68 I think:
-http://www.cs.berkeley.edu/~pattrsn/252S01/Lec18-dynamic3.pdf
+  Fact:
+  inbound connection from net A on eth2 needs to be SNATted to net b
+  (connected to eth0) as some local (box with eth0-2) services accept
+  only net b.
 
-Looking again at the system it's actually 2 x 1.4GHz
-So the instructions per match are about:
-((2.8*10^9)/1.68)/(85000*125) =3D 156
+  Is this already implemented? The only evidence in this topic seems to
+  be an email dated 31 march 2002 stating that the implementor of local
+  DNAT also did SNAT which was (by a member of ct) not considered
+  worth getting into kernel.
 
-With the overhead associated with SMP/kernel/...
-this suggests a figure closer to 120?
-I'm very impressed.
+  As understood, the NAT in the mentionned email is not exactly the
+  required funtionality but close to it.
 
-So to scale I would have to organise the rules
-into chains that could be bypassed. I wonder is
-there any projects to do this automatically? hmm..
+  Question:
+  Is there code around implementing the feature of SNATting incoming
+  packets for local processes?
 
-P=E1draig.
+
+    Hints are welcome! Thanks in advance.
+
+
+      Nils Radtke
+
+
+--=20
+
+* N.Radtke@                 * University of Stuttgart *    icq / lc   *
+*      www.Think-Future.de  *    dep.comp.science     * 9336272/92045 *
+:x                                                                   :)
+
+   I don't believe in natural science.   -- G=F6del, Kurt
