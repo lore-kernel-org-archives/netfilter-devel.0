@@ -1,18 +1,18 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: Re: Future of CONNMARK (was Re: MASQUERADE: Route sent us somewhere
- else (was Re: Fw: Rusty's brain broke!)
-Date: Sat, 17 Jan 2004 16:20:08 -0800 (Pacific Standard Time)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Future of CONNMARK (was Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's brain broke!)
+Date: Sun, 18 Jan 2004 08:20:44 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.WNT.4.55.0401171603450.316@TIPPER.shorewall.net>
-References: <Pine.LNX.4.44.0401180032050.11958-100000@filer.marasystems.com>
+Message-ID: <20040118132044.GA14663@obroa-skai.de.gnumonks.org>
+References: <20040117110952.GI18505@obroa-skai.de.gnumonks.org> <Pine.LNX.4.44.0401171737300.10400-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	Julian Anastasov <ja@ssi.bg>, linux-net@vger.kernel.org,
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Cc: Julian Anastasov <ja@ssi.bg>, linux-net@vger.kernel.org,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0401180032050.11958-100000@filer.marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0401171737300.10400-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,54 +23,73 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 18 Jan 2004, Henrik Nordstrom wrote:
 
-> On Sat, 17 Jan 2004, Tom Eastep wrote:
->
-> > I am very much in favor of the change you propose. The ability to set
-> > individual bits would allow Netfilter configuration tools like Shorewall to
-> > make internal use of packet marking by reserving part of the mark field for
-> > use by the tool and the remainder of the field for use by the user.
-> >
-> > Given that the current MARK target lacks this capability, I am not able to
-> > make effective use of that target in Shorewall.
->
-> Please note that we are talkning about the CONNMARK target which is quite
-> different from MARK. The two operates on different values. The discussed
-> change will NOT add mask operations to the standard MARK target.
->
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I realize that. I was simply stating that any type of packet/connection
-marking facility that doesn't support the setting of individual bits
-is of limited use to higher-level tools.
+On Sat, Jan 17, 2004 at 06:50:21PM +0100, Henrik Nordstrom wrote:
+> It is fine by me. It is a trivial thing to add as the extension is not=20
+> yet frozen.
 
-> If you need mask operations in the standard MARK target then nothing stops
-> you from writing an extended MARK target having mask operations. It is
-> just that it can not be done easily in the standard kernel due to binary
-> compatibility issues.
->
-> Why there is not a extra class p-o-m patch to add mask capability to MARK
-> I do not know. I am pretty sure the netfilter team would not mind if such
-> patch is submitted, but as indicated above it can not progress beyond
-> "extra" due to the frozen nature of the existing MARK target, at least not
-> unless a different target name is used.
->
+yup. Please submit your changes against pom-ng (and patch-o-matic if you
+want, but as of now I don't think we'll see another pom-old release).
 
-I have strongly resisted making anything in Shorewall dependent on p-o-m
-features. Supporting Shorewall takes enough of my time without having to
-hand-hold newbies through kernel and iptables builds and installs.
+> > Last, but not least:  We'd need an etry for the iptables(8) manpage.
+>=20
+> Already there from the beginning, but lost in p-o-m due to the lack of a
+> clear structure on how manpage additions should be maintained for not yet=
+=20
+> official extensions. (the help is copy-paste from the manpage output)
+>=20
+> Should I also write a more module like help text for these modules?
 
-> It is a pity the iptables match/target interface does not have versioning
-> support of the target/match structures.
+the 'help' file in patch-o-matic-ng/CONNMARK/ is fine.
 
-All the more reason to avoid p-o-m dependencies.
+> Btw, any plans on how iptables manpage snippets for extra/not yet
+> submitted matches/targets should be maintained?
 
-> Maybe 2.7 will..
+well, we could do some semi-automated mechanism, like splitting it up in
+one file per extension, and then concatenate the whole manpage from
+those snippets depending on PF_EXT_LIBS / PF6_EXT_LIBS during the
+iptables userspace make process.
 
-We can hope...
+If somebody wants to take that job, I'd be more than happy.
 
--Tom
---
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
+As for pkttables, the design includes automatic manpage generation from the
+helptexts (included in libpktt_FOO.so).  But that's yet-to-do.
+
+> The requested changes has been done but is not yet tested. Testing should=
+=20
+> be finished tomorrow whenI will submit the changes.
+
+great.  I'm again on the road (LWE), so expect some delays.
+
+> Regards
+> Henrik
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQFACogrXaXGVTD0i/8RAnuRAJ4+tQBZVAaZZsr5/VGfHFQw8AUGWACdFrmO
+V52AeUnKihAUGGtx34lACG0=
+=K8cA
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
