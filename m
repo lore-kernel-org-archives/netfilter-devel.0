@@ -1,13 +1,16 @@
-From: Jens Hektor <hektor@rz.rwth-aachen.de>
-Subject: Re: --reject-with admin-prohib - Suggested Solution
-Date: Wed, 04 Dec 2002 06:43:29 +0100
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: --reject-with admin-prohib - Suggested Solution.
+Date: Wed, 4 Dec 2002 21:12:37 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DED9601.6070603@rz.rwth-aachen.de>
+Message-ID: <Pine.LNX.4.44.0212042040540.3788-100000@dns.toxicfilms.tv>
+References: <Pine.LNX.4.33.0212040052300.29619-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@gnumonks.org>, <g@naboo.gnumonks.org>,
+	<netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0212040052300.29619-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,115 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+> > No.  You will make the libipt_REJECT.so dependent on the particular
+> > source code installed on the machine where iptables was compiled.
+>
+> Why don't we simply add an INCOMPATIBILITIES file to the userspace source
+> tree, together with a similar section in the manpage?
+>
+Hmm, that could be a solution.
 
-working on the same problem as Maciej Soltysiak I personally
-derived the same changes for the kernel as Maciej. I think
-the kernel patches are safe (the new enum type field was
-appended and should not brake any compatibility issue in the
-kernel).
+Also, we could add an [*] to the libipt_REJECT.c help and say that [*]
+works only with kernels 2.x.y+
 
-For the iptables application I derived a patch a bit more
-voluminous taking care of backwards compatibility:
+> Backward compatibility is very important, but we shouldn't insist on it at
+> every cost.
+>
+What is more important here? Backward compatibility or RFC compliance.
 
------------------------------------------
+I see it has been hard to have both, and that is why Harald is fighting
+for both compatibility and compliance, but maybe here we can cut corners.
 
---- iptables-1.2.7a/extensions/libipt_REJECT.c.orig     2002-11-29 19:38:01.000000000 +0100
-+++ iptables-1.2.7a/extensions/libipt_REJECT.c  2002-12-02 06:51:31.000000000 +0100
-@@ -7,6 +7,8 @@
-  #include <stdlib.h>
-  #include <getopt.h>
-  #include <iptables.h>
-+#include <linux/version.h>
-+#include <sys/utsname.h>
-  #include <linux/netfilter_ipv4/ip_tables.h>
-  #include <linux/netfilter_ipv4/ipt_REJECT.h>
-
-@@ -35,9 +37,17 @@
-         {"icmp-host-prohibited", "host-prohib",
-          IPT_ICMP_HOST_PROHIBITED, "ICMP host prohibited"},
-         {"tcp-reset", "tcp-reset",
--        IPT_TCP_RESET, "TCP RST packet"}
-+        IPT_TCP_RESET, "TCP RST packet"},
-+/* #if to fix compiletime compatibility, adjust version to reflect the include of the kernel patch into the main tree */
-+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,20) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0))||LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,99))
-+       {"icmp-admin-prohibited", "admin-prohib",
-+        IPT_ICMP_ADMIN_PROHIBITED, "ICMP administratively prohibited"}
-+#endif
-  };
-
-+static
-+int icmp_admin_prohib_enabled = 0 ;
-+
-  static void
-  print_reject_types()
-  {
-@@ -46,8 +56,10 @@
-         printf("Valid reject types:\n");
-
-         for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
--               printf("    %-25s\t%s\n", reject_table[i].name, reject_table[i].desc);
--               printf("    %-25s\talias\n", reject_table[i].alias);
-+               if ((strcmp ( reject_table[i].name, "icmp-admin-prohibited" ) == 0) && icmp_admin_prohib_enabled) {
-+                       printf("    %-25s\t%s\n", reject_table[i].name, reject_table[i].desc);
-+                       printf("    %-25s\talias\n", reject_table[i].alias);
-+               }
-         }
-         printf("\n");
-  }
-@@ -103,8 +115,13 @@
-                 for (i = 0; i < limit; i++) {
-                         if ((strncasecmp(reject_table[i].name, optarg, strlen(optarg)) == 0)
-                             || (strncasecmp(reject_table[i].alias, optarg, strlen(optarg)) == 0)) {
--                               reject->with = reject_table[i].with;
--                               return 1;
-+                               if (reject_table[i].with==IPT_ICMP_ADMIN_PROHIBITED && !icmp_admin_prohib_enabled) {
-+                                       exit_error(PARAMETER_PROBLEM,
-+                                               "icmp-admin-prohibited not with this kernel version");
-+                               } else {
-+                                       reject->with = reject_table[i].with;
-+                                       return 1;
-+                               }
-                         }
-                 }
-                 /* This due to be dropped late in 2.4 pre-release cycle --RR */
-@@ -174,5 +191,15 @@
-
-  void _init(void)
-  {
-+       struct utsname buf ;
-+       int a, b, c ;
-+
-+       /* This is to fix run-time compatibility with kernels that
-+           are not compatible with this version of iptables */
-+       uname(&buf);
-+       sscanf (buf.release, "%d.%d.%d", &a, &b, &c);
-+       if ((a==2 && b==4 && c>=20) || (a==2 && b==5 && c>=99 ))
-+               icmp_admin_prohib_enabled = 1;
-+
-         register_target(&reject);
-  }
-
------------------------------------------
-
-This patch only adds the new reject type to the iptables code
-depending on the kernel compiled on, thereby introducing
-the same problematic compiletime dependancy as Maciej's patch,
-but avoiding the ugly #define IPT_ICMP_ADMIN_PROHIBITED
-
-Have compiled it on an admin-prohibited enabled kernel there
-could be someone having running it on an older kernel.
-
-So the rest of my patch tries to fix that but clearly this
-is more ugly code (runtime checking the kernel version, even
-a runtime error if someone tries to set admin-prohibited
-on an older kernel). My patch reflects 2.4.20 and 2.5.99 as
-admin-prohibited enabled kernel versions.
-
-Personally I would prefer a version without checks and a
-clear advice like "this version of iptables requires kernel
-2.4.X/2.5.Y or better", like Jozsef Kadlecsik suggested.
-
-Best regards,
-
-Jens Hektor
+Regards,
+Maciej Soltysiak
