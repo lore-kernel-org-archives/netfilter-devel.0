@@ -1,7 +1,7 @@
 From: Wojciech 'Sas' =?iso-8859-2?Q?Ci=EAciwa?= <cieciwa@dzp.ntt.com.pl>
-Subject: pptp-conntrack-nat - problem
-Date: Tue, 05 Apr 2005 11:03:32 +0200
-Message-ID: <1112691812.22295.4.camel@sas>
+Subject: [report] H323 failed.
+Date: Tue, 05 Apr 2005 13:26:13 +0200
+Message-ID: <1112700374.26189.1.camel@sas>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -18,28 +18,124 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, 
-I try apply pptp-conntrack downloaded directly from SVN
-and I got error:
-===============================
-Welcome to Patch-o-matic ($Revision: 3733 $)!
+  CC [M]  net/ipv4/netfilter/ip_conntrack_h323.o
+net/ipv4/netfilter/ip_conntrack_h323.c: In function `h245_help':
+net/ipv4/netfilter/ip_conntrack_h323.c:110: error: structure has no
+member named `help'
+net/ipv4/netfilter/ip_conntrack_h323.c:118: error: structure has no
+member named `seq'
+net/ipv4/netfilter/ip_conntrack_h323.c:128: warning: large integer
+implicitly truncated to unsigned type
+net/ipv4/netfilter/ip_conntrack_h323.c:133: error: too many arguments to
+function `ip_conntrack_expect_related'
+net/ipv4/netfilter/ip_conntrack_h323.c: At top level:
+net/ipv4/netfilter/ip_conntrack_h323.c:148: error: unknown field `flags'
+specified in initializer
+net/ipv4/netfilter/ip_conntrack_h323.c:148: error:
+`IP_CT_HELPER_F_REUSE_EXPECT' undeclared here (not in a
+function)net/ipv4/netfilter/ip_conntrack_h323.c:148: error: initializer
+element is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:148: error: (near initialization
+for `h245.me')
+net/ipv4/netfilter/ip_conntrack_h323.c:151: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:151: error: (near initialization
+for `h245.tuple.dst')
+net/ipv4/netfilter/ip_conntrack_h323.c:151: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:151: error: (near initialization
+for `h245.tuple')
+net/ipv4/netfilter/ip_conntrack_h323.c:152: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:152: error: (near initialization
+for `h245.mask.src.u')
+net/ipv4/netfilter/ip_conntrack_h323.c:152: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:152: error: (near initialization
+for `h245.mask.src')
+net/ipv4/netfilter/ip_conntrack_h323.c:153: warning: large integer
+implicitly truncated to unsigned type
+net/ipv4/netfilter/ip_conntrack_h323.c:153: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:153: error: (near initialization
+for `h245.mask.dst')
+net/ipv4/netfilter/ip_conntrack_h323.c:153: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:153: error: (near initialization
+for `h245.mask')
+net/ipv4/netfilter/ip_conntrack_h323.c:155: warning: initialization from
+incompatible pointer type
+net/ipv4/netfilter/ip_conntrack_h323.c: In function `h225_help':
+net/ipv4/netfilter/ip_conntrack_h323.c:243: error: structure has no
+member named `help'
+net/ipv4/netfilter/ip_conntrack_h323.c:251: error: structure has no
+member named `seq'
+net/ipv4/netfilter/ip_conntrack_h323.c:261: warning: large integer
+implicitly truncated to unsigned type
+net/ipv4/netfilter/ip_conntrack_h323.c:263: warning: assignment from
+incompatible pointer type
+net/ipv4/netfilter/ip_conntrack_h323.c:266: error: too many arguments to
+function `ip_conntrack_expect_related'
+net/ipv4/netfilter/ip_conntrack_h323.c: At top level:
+net/ipv4/netfilter/ip_conntrack_h323.c:301: error: unknown field `flags'
+specified in initializer
+net/ipv4/netfilter/ip_conntrack_h323.c:301: error:
+`IP_CT_HELPER_F_REUSE_EXPECT' undeclared here (not in a
+function)net/ipv4/netfilter/ip_conntrack_h323.c:301: error: initializer
+element is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:301: error: (near initialization
+for `h225.me')
+net/ipv4/netfilter/ip_conntrack_h323.c:305: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:305: error: (near initialization
+for `h225.tuple.src.u')
+net/ipv4/netfilter/ip_conntrack_h323.c:305: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:305: error: (near initialization
+for `h225.tuple.src')
+net/ipv4/netfilter/ip_conntrack_h323.c:306: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:306: error: (near initialization
+for `h225.tuple.dst')
+net/ipv4/netfilter/ip_conntrack_h323.c:306: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:306: error: (near initialization
+for `h225.tuple')
+net/ipv4/netfilter/ip_conntrack_h323.c:307: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:307: error: (near initialization
+for `h225.mask.src.u')
+net/ipv4/netfilter/ip_conntrack_h323.c:307: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:307: error: (near initialization
+for `h225.mask.src')
+net/ipv4/netfilter/ip_conntrack_h323.c:308: warning: large integer
+implicitly truncated to unsigned type
+net/ipv4/netfilter/ip_conntrack_h323.c:308: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:308: error: (near initialization
+for `h225.mask.dst')
+net/ipv4/netfilter/ip_conntrack_h323.c:308: error: initializer element
+is not constant
+net/ipv4/netfilter/ip_conntrack_h323.c:308: error: (near initialization
+for `h225.mask')
+net/ipv4/netfilter/ip_conntrack_h323.c:310: warning: initialization from
+incompatible pointer type
+net/ipv4/netfilter/ip_conntrack_h323.c:325: warning: type defaults to
+`int' in declaration of `PROVIDES_CONNTRACK'
+net/ipv4/netfilter/ip_conntrack_h323.c:325: warning: parameter names
+(without types) in function declaration
+net/ipv4/netfilter/ip_conntrack_h323.c:325: warning: data definition has
+no type or storage class
+net/ipv4/netfilter/ip_conntrack_h323.c:326: warning: type defaults to
+`int' in declaration of `PROVIDES_CONNTRACK'
+net/ipv4/netfilter/ip_conntrack_h323.c:326: warning: parameter names
+(without types) in function declaration
+net/ipv4/netfilter/ip_conntrack_h323.c:326: warning: data definition has
+no type or storage class
+make[1]: *** [net/ipv4/netfilter/ip_conntrack_h323.o] Error 1
+make: *** [_module_net/ipv4/netfilter] Error 2
 
-Kernel:   2.6.11, /home/users/cieciwa/rpm/BUILD/linux-2.6.11.6
-Iptables: 1.3.1, /home/users/cieciwa/rpm/BUILD/iptables
-Each patch is a new feature: many have minimal impact, some do not.
-Almost every one has bugs, so don't apply what you don't need!
--------------------------------------------------------
-Already applied:
-[...]
------------------------------------------------------------------
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] unable to find
-ladd slot in
-src /home/users/cieciwa/rpm/BUILD/linux-2.6.11.6/include/linux/netfilter_ipv4/ip_conntrack.h (./pptp-conntrack-nat/linux-2.6/./include/linux/netfilter_ipv4/ip_conntrack.h.ladd_6)
-
-Can anyone look at this?
-
-Thanx.
-				Sas.
 -- 
 {Wojciech 'Sas' Cieciwa - Member of PLD Team                     }
 {e-mail: cieciwa@dzp.ntt.com.pl, http://www.republika.pl/cieciwa }
