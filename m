@@ -1,13 +1,14 @@
-From: Christian Riechmann <riechmann@fgan.de>
-Subject: "No buffer space available" upon ipq_read
-Date: Thu, 29 Jul 2004 12:44:49 +0200
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: [ot] Standard patch exclude file?
+Date: Thu, 29 Jul 2004 05:14:25 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040729104449.GA2202@rie.rie.priv>
+Message-ID: <20040729121425.99422.qmail@web13907.mail.yahoo.com>
+References: <200407290729.QAA28185@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+In-Reply-To: <200407290729.QAA28185@toshiba.co.jp>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,29 +19,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Instead of making it from scratch, I was wondering if
+anyone had a diff exclude file for making diff -urN
+patches....
 
-I am sure some one can give me a short answer to the following problem:
+-Scott
 
-Sometimes - for the moment I would say "randomly" - during a relative
-long run upon an ipq_read request I get the error
-	"Failed to receive netlink message: No buffer space available"
 
-My questions are:
-	Which buffer is meant ? 
-and
-	Which are some reasons for this error situation ?
-
-I use iptables- 1.2.9 and I am pretty sure, that all packets read into
-user space are verdicted. The user space program does not expand its used
-memory the more it runs.
-
-Thanks in advance for some pointers.
-
-Christian
-
--- 
-Christian Riechmann    E-Mail: riechmann@fgan.de
-c/o FGAN/FKIE          Tel: (+49) 228/9435 345,378
-Neuenahrer Strasse 20  Fax: (+49) 228/9435 685
-D-53343 Wachtberg, Germany
+		
+__________________________________
+Do you Yahoo!?
+New and Improved Yahoo! Mail - Send 10MB messages!
+http://promotions.yahoo.com/new_mail 
