@@ -1,14 +1,12 @@
-From: Narendra Prabhu B <naren@deeproot.co.in>
-Subject: iptables counters and proc
-Date: Sat, 28 Sep 2002 03:03:10 +0000
+From: "Robert K. Johnson" <johnson60@llnl.gov>
+Subject: problems with MAC address matching
+Date: Fri, 27 Sep 2002 15:51:25 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E17v2m9-0004BC-00@kashyyyk.netfilter.org>
-Reply-To: naren@deeproot.co.in
+Message-ID: <5.1.0.14.2.20020927152856.056e1c10@poptop.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,21 +17,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hi
+Hello,
 
-pls excuse me know if this idea is silly ......
+I am currently using netfilter that comes with the Linux kernel 2.4.3.
+I am not able to update to a newer kernel version because the platform
+is an embedded device that has custom drivers specially created for
+use with the 2.4.3 kernel.  I have observed two problems with MAC
+address filtering:
 
-i am working on iptables library "libiptc" .. to count the number bytes crossing a chain ... i am targeting the program for ISPs .... could be used to draw customized graphs..... i am using libiptc for counting 
-but how do i write the data in the proc filesystem .. i thought it was more modular to write the data in the proc filesystem. But i have not done any kernel programming before .. can anyone tell me how to go about pls send the urls of the docs i am suppose to read to do the above ..
+(1) broadcast packets that go out from the device and then back in do
+not contain a MAC address (according to log) and so fail the MAC check
 
-bye
-narendra
+(2) large packets (1536 on the wire) do not contain a MAC address (according to
+log) and so fail the MAC check
 
-------
-In the middle of difficulty..... lies Opportunity. (Albert Einstein)
--------------------------------------------------------------------
-Narendra Prabhu. B	      Free Software at its product-ive best.
-DeepRoot Linux				  http://www.deeproot.co.in
-		---- Server Appliances ----
-	  ---- Linux Support and Services ----
--------------------------------------------------------------------
+I was wondering if there are known problems that I may be able to fix in my
+version of netfilter.  I came across the MAC match bug that was exhibited
+for really small packets, I am not sure if that could also apply to these 
+problem.
+I will give that a try next.  Please email your responses.  Thank you.
