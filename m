@@ -1,18 +1,12 @@
-From: "Moshe Ashkenazi" <moshea@checkpoint.com>
-Subject: RE: libipq packet id
-Date: Sun, 29 Sep 2002 12:19:11 +0200
+From: "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be>
+Subject: [TRIVIAL] DEBUGFTP() in ip_nat_ftp is unresolved symbol
+Date: 29 Sep 2002 12:15:30 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <005501c267a1$aeaeebd0$97025a3e@SHAGWELL>
-References: <Pine.LNX.4.44.0209261748150.7774-100000@fruit.eidetica.com>
+Message-ID: <1033294530.561.6.camel@exile>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Cc: "'James Morris'" <jmorris@intercode.com.au>,
-   <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="=-nOmPpEi32jVQvAKPpc2Z"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'Joost Remijn'" <remijnj@eidetica.com>
-In-Reply-To: <Pine.LNX.4.44.0209261748150.7774-100000@fruit.eidetica.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,83 +17,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-After adding new rule which mark the packet, I succeed to see the mark
-number on user space, so base on the mark value I can know on user space
-from which netfilter rule the packet came from.
 
-Thanks, for the help
+--=-nOmPpEi32jVQvAKPpc2Z
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Moshe Ashkenazi, 
+Hi,
 
------Original Message-----
-From: netfilter-devel-admin@lists.netfilter.org
-[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Joost
-Remijn
-Sent: Thursday, September 26, 2002 5:51 PM
-To: Moshe Ashkenazi
-Cc: 'James Morris'; netfilter-devel@lists.netfilter.org
-Subject: RE: libipq packet id
+ip_conntrack_ftp.c contains a macro DEBUGFTP that is not defined
+anywhere, it's a typo for DEBUGP.
 
-But did you actually mark the packet. Check the iptables manpage to see
-how to mark a packet.
+The reason nobody ever noticed is that it's wrapped inside an
+#if 0 
+...
+#endif
 
-Joost
+Patch attached.
 
-On Thu, 26 Sep 2002, Moshe Ashkenazi wrote:
+Regards,
+Filip
 
-> If have those two rules:
->
-> 1    QUEUE      icmp --  anywhere             anywhere
-> 2    QUEUE      tcp  --  anywhere             anywhere           tcp
-> dpt:ftp
->
-> mark return always zero and hook return 1 even the second rule queue
-the
-> packet (I did ftp)
->
->
-> Moshe Ashkenazi,
->
-> -----Original Message-----
-> From: Joost Remijn [mailto:remijnj@eidetica.com]
-> Sent: Thursday, September 26, 2002 5:04 PM
-> To: James Morris
-> Cc: Moshe Ashkenazi; netfilter-devel@lists.netfilter.org
-> Subject: Re: libipq packet id
->
->
->
-> On Fri, 27 Sep 2002, James Morris wrote:
->
-> > On Thu, 26 Sep 2002, Moshe Ashkenazi wrote:
-> >
-> > > Hi, All -
-> > >
-> > > I'm using libipq to retrieve packet from netfilter in userspace,
-and
-> its
-> > > work cool.
-> > >
-> > > My question is how can I know on userspace mode from which
-netfilter
-> > > rule the packet arrive?
-> > >
-> >
-> > This information is not passed to userspace.
->
-> What about the mark and hook values in the struct ipq_packet_msg_t.
-> That looks like a possibility to get some info from userspace about
-the
-> rule.
->
-> Joost
->
-> > --
-> > James Morris
-> > <jmorris@intercode.com.au>
-> >
-> >
-> >
->
->
->
+
+
+
+--=-nOmPpEi32jVQvAKPpc2Z
+Content-Disposition: attachment; filename=ip_conntrack_ftp.typofix.20020929-1
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/x-patch; name=ip_conntrack_ftp.typofix.20020929-1;
+	charset=ANSI_X3.4-1968
+
+diff -urN -X dontdiff linux-2.4.20-pre8/net/ipv4/netfilter/ip_conntrack_ftp=
+.c linux-2.4.20-pre8-ftpfix/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- linux-2.4.20-pre8/net/ipv4/netfilter/ip_conntrack_ftp.c	2002-09-29 11:5=
+4:49.000000000 +0200
++++ linux-2.4.20-pre8-ftpfix/net/ipv4/netfilter/ip_conntrack_ftp.c	2002-09-=
+29 11:59:13.000000000 +0200
+@@ -200,7 +200,7 @@
+=20
+ 		DEBUGP("ftp: string mismatch\n");
+ 		for (i =3D 0; i < plen; i++) {
+-			DEBUGFTP("ftp:char %u `%c'(%u) vs `%c'(%u)\n",
++			DEBUGP("ftp:char %u `%c'(%u) vs `%c'(%u)\n",
+ 				 i, data[i], data[i],
+ 				 pattern[i], pattern[i]);
+ 		}
+
+--=-nOmPpEi32jVQvAKPpc2Z--
