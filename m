@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: libiptc
-Date: Wed, 7 Jul 2004 10:54:48 +0200 (CEST)
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: iptables freeze
+Date: Wed, 07 Jul 2004 11:29:27 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0407071050550.10840-100000@filer.marasystems.com>
-References: <1123133956.20040706105856@rosbi.ru>
+Message-ID: <1089192566.2599.5.camel@nienna.balabit>
+References: <20040706224021.GU32707@sunbeam2>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: eremin <eremin@rosbi.ru>
-In-Reply-To: <1123133956.20040706105856@rosbi.ru>
+To: arny@arny.ro
+In-Reply-To: <20040706224021.GU32707@sunbeam2>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,17 +21,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 6 Jul 2004, eremin wrote:
 
-> How with the libiptc to work with ports? (i.e. source-port or
-> dest-port)? If it is impossible, what to use?
+  Hi,
 
-Use iptables / iptables-restore, not libiptc.
+2004-07-07, sze keltezéssel 00:40-kor Harald Welte ezt írta:
+> I have a p4 2,8 HT PC with slackware 9.1, kernel 2.6.7 SMP, runing
+> squid(transparent proxy)+ firewall+routing. The trafic is 1M for 300
+> clients.
+> Sometimes the box freez. When is restarted i got this messages and after 3
+> minutes it freez again. Maybe is a harware problem but i dont khow waht is
+> exactly. I fallow the logs and i got this.
+>
+> Jul  6 00:41:51 gw kernel: LIST_DELETE:
+> net/ipv4/netfilter/ip_conntrack_core.c:300
+> `&ct->tuplehash[IP_CT_DIR_REPLY]'(f63
+> 7a224) not in &ip_conntrack_hash[hr].
+> Jul  6 00:41:51 gw kernel: LIST_DELETE:
+> net/ipv4/netfilter/ip_conntrack_core.c:300
+> `&ct->tuplehash[IP_CT_DIR_REPLY]'(f64
+> f3824) not in &ip_conntrack_hash[hr].
 
-For details how libiptc works with ports see the source of the 
-tcp/udp modules or any other match module working with ports. ports is not 
-a primitive in iptables and is implemented via protocol dependent matches 
-(extensions directory).
+  This looks just like the symptoms of an old bug, however, which should
+not occur with 2.6.7... (It was caused by NAT changing the reply tuple
+of an already hashed connection.) Just to make sure, could you provide
+us your kernel config? Is 'NAT of local connections' enabled? It not,
+can you try with that?
 
-Regards
-Henrik
+-- 
+ Regards,
+   Krisztian KOVACS
