@@ -1,13 +1,15 @@
-From: Aaron Claessens <aaronc@eclipse-lighting.com>
-Subject: ASSERT in ip_conntrack_core.c with PPTP helper
-Date: Tue, 06 Apr 2004 17:26:22 -0500
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Connection tracking bug with DNAT?
+Date: Wed, 7 Apr 2004 00:57:04 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40732E8E.8050003@eclipse-lighting.com>
+Message-ID: <Pine.LNX.4.44.0404070041380.15387-100000@filer.marasystems.com>
+References: <20040406160739.33702.qmail@web21327.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Old Cowhand <oldcowhanddoug@yahoo.com>
+In-Reply-To: <20040406160739.33702.qmail@web21327.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,55 +20,83 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-I believe that I have stumbled across a bug ....
+On Tue, 6 Apr 2004, Old Cowhand wrote:
 
-I recieve when a PPTP session is started through the NAT interface:
+> Do you have a configuration that accomplishes these?
+> 
+> The destination address of the traffic MUST NOT be an
+> address configured on the NAT gateway.  The simplest
+> example is from my original post:
+> 
+>                                    |--Web server
+>        eth0                   eth1 |  192.168.64.15/24
+> PC---------------Linux 2.4.19-------
+> 172.16.1.2/30    172.16.1.1/30     |
+>                  192.168.64.1/24   |--Web server
+>                                       192.168.64.5/24
+> 
+> My DNAT rule:
+> 
+> iptables -t nat -A PREROUTING -s 172.16.1.2 -d 192.168.64.5 -p tcp --dport 80 -j DNAT --to 192.168.64.15
 
-Apr  6 16:44:48 NAT kernel: ASSERT ip_conntrack_core.c:93 
-&ip_conntrack_lock_Rsmp_4193d6ac readlocked
-Apr  6 16:44:48 NAT kernel: ASSERT ip_conntrack_core.c:1070 
-&ip_conntrack_lock not readlocked
-Apr  6 16:44:48 NAT kernel: ASSERT ip_nat_core.c:747 &ip_conntrack_lock 
-not readlocked
-Apr  6 16:44:48 NAT kernel: ASSERT ip_conntrack_core.c:80 
-&ip_conntrack_lock not readlocked
-Apr  6 16:44:48 NAT kernel: ASSERT ip_conntrack_core.c:82 
-&ip_conntrack_lock not readlocked
-Apr  6 16:44:48 NAT kernel: ASSERT ip_conntrack_core.c:1070 
-&ip_conntrack_lock not readlocked
-Apr  6 16:44:48 NAT kernel: ASSERT: ip_nat_core.c:850 &ip_conntrack_lock 
-not readlocked
+The exact same rule works fine here.. and is a type of rule I use quite 
+often.
 
-This was with:
-iptables-1.2.9
-linux-2.4.24 and 2.4.25
-
-The following modules were loaded:
-ipt_MASQUERADE
-ipt_REJECT
-ipt_LOG
-ipt_limit
-ipt_state
-iptable_filter
-ip_nat_pptp
-ip_conntrack_pptp
-ip_conntrack_proto_gre
-iptable_nat
-ip_tables
-ip_conntrack
-
-Let me know if I can provide more testing or information ....
-Aaron
+and no, I certainly do not have the server IPs configured on the gateway.
 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
- 
-iEYEARECAAYFAkBzLowACgkQiM4FRMeeny2hSACff4cjU0nnn/YW1PV4iBX1bYBN
-yCkAoN3HY8jtiSt5+UzUem9zlo8ugRL6
-=r3lP
------END PGP SIGNATURE-----
+
+client:
+
+# ip addr show
+2: eth0: <BROADCAST,MULTICAST,ALLMULTI,UP> mtu 1544 qdisc pfifo_fast qlen 1000
+    link/ether 00:00:ea:a5:b8:35 brd ff:ff:ff:ff:ff:ff
+    inet 172.16.1.2/30 scope global eth0
+
+# ip ro ls
+172.16.1.0/30 dev eth0  proto kernel  scope link  src 172.16.1.2 
+default via 172.16.1.1 dev eth0 
+
+gw:
+
+# ip addr show
+2: eth0: <BROADCAST,MULTICAST,ALLMULTI,UP> mtu 1544 qdisc pfifo_fast qlen 1000
+    link/ether 00:00:33:0b:c1:52 brd ff:ff:ff:ff:ff:ff
+    inet 172.16.1.1/30 scope global eth0
+3: eth1: <BROADCAST,MULTICAST,ALLMULTI,UP> mtu 1544 qdisc pfifo_fast qlen 1000
+    link/ether 00:00:1f:8a:6e:7c brd ff:ff:ff:ff:ff:ff
+    inet 192.168.64.1/24 scope global eth1
+
+# ip ro ls
+172.16.1.0/30 dev eth0  proto kernel  scope link  src 172.16.1.1 
+192.168.64.0/24 dev eth1  proto kernel  scope link  src 192.168.64.1 
+
+# iptables-save
+*nat
+:PREROUTING ACCEPT [4:240]
+:POSTROUTING ACCEPT [1:60]
+:OUTPUT ACCEPT [0:0]
+-A PREROUTING -s 172.16.1.2 -d 192.168.64.5 -p tcp -m tcp --dport 80 -j DNAT --to-destination 192.168.64.15 
+COMMIT
+
+server:
+
+# ip addr 
+2: eth0: <BROADCAST,MULTICAST,ALLMULTI,UP> mtu 1544 qdisc pfifo_fast qlen 1000
+    link/ether 00:00:0a:26:67:1b brd ff:ff:ff:ff:ff:ff
+    inet 192.168.64.15/24 scope global eth0
+# ip ro ls
+192.168.64.0/24 dev eth0  proto kernel  scope link  src 192.168.64.15 
+default via 192.168.64.1 dev eth0 
+
+server listening on port 80.
+
+
+Connection from 172.16.1.2 to 192.168.64.5 tcp port 80 gets properly sent
+to 192.168.64.15 port 80 instead of the requested address.
+
+192.168.64.5 not even up and running, but also works if there is a server 
+running with this IP.
+
+Regards
+Henrik
