@@ -1,13 +1,13 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: netfilter on solaris?
-Date: Fri, 14 Jun 2002 12:05:40 +0200
+From: FiL0 <fil@czn.vao.labor.ru>
+Subject: Any example ...
+Date: Fri, 14 Jun 2002 14:33:26 +0400
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020614100540.GA6399@balabit.hu>
+Message-ID: <3D09C676.1090500@czn.vao.labor.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,22 +18,24 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-It is a strange idea I know, but I'd be interested in what the opinion of
-the core netfilter developers is on porting the whole netfilter subsystem to
-Solaris?
 
-Apart from the technical issues, would there be any problems? Does the GPL
-allow this kind of usage? (it would be implemented as a module)
+                HI !
 
-Technically, the most difficult tasks are to remove the dependency on Linux
-like sk_buff (Solaris has a chain of mblk_t's), locking (it's more or less
-done using macros), routing differences and I suppose many things I don't
-see right now.
+    I gonna make some prog using libiptc wishing to interact with 
+netfilter thru dedicated API , but ... having no notion
+what specific flags to set with [ set | get ]sockopt () .Would you help 
+me with this kind of info - either as a small code example
+or as explanation (detailed doc, or link to) ?
+'cause for now the only thing I know is that all exhange between 
+userspace and kernelspace of netfilter provides with raw socket . I'm 
+familiar
+with 'Linux netfilter hacking howto', I've read 'Info for Programmers' - 
+part of this tutorial, but sure I still have no sence how to make proper 
+things
+because of lack of more detailed info .
 
-ps: don't tell me to use ipfilter (which works on Solaris), it's awful
+So, wishing your support and
 
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+Regards ,
+Kuznetsov FiL
