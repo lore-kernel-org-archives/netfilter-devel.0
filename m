@@ -1,18 +1,17 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Possible problem with tcp-window-tracking
-Date: Tue, 22 Jun 2004 07:30:54 +0200
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: [PATCH] combine iptables, iptables-save and iptables-restore
+ for	size reduction
+Date: Tue, 22 Jun 2004 07:39:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1087882253.10514.14.camel@tux.rsn.bth.se>
-References: <Pine.LNX.4.33.0406212105040.1107-100000@blackhole.kfki.hu>
-	 <1087848492.10514.10.camel@tux.rsn.bth.se>
-	 <20040622044606.GB21406@alpha.home.local>
+Message-ID: <40D7C624.80606@drugphish.ch>
+References: <1087852753.2962.27.camel@x1722074250.edup.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-xmWGq2t29OSJ9BT/JZoL"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Willy Tarreau <willy@w.ods.org>
-In-Reply-To: <20040622044606.GB21406@alpha.home.local>
+To: Bastiaan Bakker <bastiaan.bakker@lifeline.nl>
+In-Reply-To: <1087852753.2962.27.camel@x1722074250.edup.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,43 +22,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> The iptables, iptables-save and iptables-restore binaries contain a
+> relatively large amount of identical code. In most cases this doesn't
+> matter, but on embedded platforms 100KB can make a difference.
+> Attached is a small patch against iptables 1.2.10 which enables building
+> iptables, iptables-save and iptables-restore into 1 multi-purpose
+> binary. In BusyBoxy style it selects the correct command based on
+> argv[0].
 
---=-xmWGq2t29OSJ9BT/JZoL
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Wonderful, thanks for doing it. Hope it gets applied.
 
-On Tue, 2004-06-22 at 06:46, Willy Tarreau wrote:
-> Hi Martin,
-
-Hi Willy,
-
-> If disk space becomes a problem, you can compress on the fly (I always
-> do this now for long captures and it helps) :
->=20
-> # tcpdump -w - | gzip -c9 > capture.gz
->=20
-> and to stop it and flush the output buffer through gzip :
->=20
-> # killall -INT tcpdump
->=20
-> I've already done this to get several gigabytes of traffic.
-
-Thanks for the tip but I don't have that much irc traffic :)
-Only dumping that since it's the only traffic I've seen it happen to.
-
---=20
-/Martin
-
---=-xmWGq2t29OSJ9BT/JZoL
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBA18QNWm2vlfa207ERAs9TAJ4oIhLCOhsSyKoHqaH0do5tyNbsTQCgqBTs
-AvfN9ujEpXmhL+HvOXmAKfE=
-=oD+H
------END PGP SIGNATURE-----
-
---=-xmWGq2t29OSJ9BT/JZoL--
+Best regards,
+Roberto Nibali, ratz
+-- 
+echo 
+'[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
