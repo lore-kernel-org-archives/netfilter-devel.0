@@ -1,15 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] Cleanup returnvalues of protocolhandlers
-Date: Mon, 20 Sep 2004 10:11:41 +0200
+Subject: [PATCH]: Fix invalid return values from sctp_new
+Date: Mon, 20 Sep 2004 10:28:03 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414E90BD.6090005@trash.net>
-References: <1095597972.8380.16.camel@tux.rsn.bth.se>
+Message-ID: <414E9493.3020800@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010403010309070703050102"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------090800020606020804060209"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1095597972.8380.16.camel@tux.rsn.bth.se>
+To: Kiran Kumar <immidi_kiran@yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,79 +19,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010403010309070703050102
-Content-Type: text/plain; charset=us-ascii; format=flowed
+--------------090800020606020804060209
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Martin Josefsson wrote:
+Hi Kiran,
 
->Hi Patrick
->
->Here's the second of two patches based on Pablo Neiras patch.
->
->This adds new defines to be returned from conntrack protocol modules in
->order to make it clear what they want. Most importantly, they get rid of
->the confusing mixing of positive and negative returnvalues.
->
+there are multiple places in sctp_new where it returns -1, but
+it looks like it really wants to return "invalid". The call to
+protocol->new in init_conntrack looks like this:
 
-We also need this patch on top of the last one to avoid ip_conntrack_in
-from returning CONNTRACK_CONT (-1) to nf_hook_slow.
+        if (!protocol->new(conntrack, skb)) {
+                kmem_cache_free(ip_conntrack_cachep, conntrack);
+                return NULL;
+        }
+
+so it has to return 0 to say "invalid". Please check if the
+attached patch which fixes these places is correct.
 
 Regards
 Patrick
 
->diff -urNp -x '*.orig' linux-2.6.9-rc1-bk16.stats/net/ipv4/netfilter/ip_conntrack_core.c linux-2.6.9-rc1-bk16/net/ipv4/netfilter/ip_conntrack_core.c
->--- linux-2.6.9-rc1-bk16.stats/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-11 13:28:41.000000000 +0200
->+++ linux-2.6.9-rc1-bk16/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-11 13:43:12.000000000 +0200
->@@ -786,14 +786,14 @@ unsigned int ip_conntrack_in(unsigned in
-> 
-> 	proto = ip_ct_find_proto((*pskb)->nh.iph->protocol);
-> 
->-	/* It may be an special packet, error, unclean...
->-	 * inverse of the return code tells to the netfilter
->-	 * core what to do with the packet. */
->-	if (proto->error != NULL 
->-	    && (ret = proto->error(*pskb, &ctinfo, hooknum)) <= 0) {
->-		CONNTRACK_STAT_INC(error);
->-		CONNTRACK_STAT_INC(invalid);
->-		return -ret;
->+	/* It may be an special packet, error, unclean... */
->+	if (proto->error != NULL) {
->+		ret = proto->error(*pskb, &ctinfo, hooknum);
->+		if (ret != CONNTRACK_CONT) {
->+			CONNTRACK_STAT_INC(error);
->+			CONNTRACK_STAT_INC(invalid);
->+			return ret;
->+		}
-> 	}
-> 
-> 	if (!(ct = resolve_normal_ct(*pskb, proto,&set_reply,hooknum,&ctinfo))) {
->@@ -811,16 +811,14 @@ unsigned int ip_conntrack_in(unsigned in
-> 	IP_NF_ASSERT((*pskb)->nfct);
-> 
-> 	ret = proto->packet(ct, *pskb, ctinfo);
->-	if (ret < 0) {
->-		/* Invalid: inverse of the return code tells
->-		 * the netfilter core what to do*/
->+	if (ret != CONNTRACK_CONT) {
-> 		nf_conntrack_put((*pskb)->nfct);
-> 		(*pskb)->nfct = NULL;
-> 		CONNTRACK_STAT_INC(invalid);
->-		return -ret;
->+		return ret;
-> 	}
-> 
->-	if (ret != NF_DROP && ct->helper) {
->+	if (ct->helper != NULL) {
-> 		ret = ct->helper->help(*pskb, ct, ctinfo);
-> 		if (ret == -1) {
-> 			/* Invalid */
->
->  
->
 
-
---------------010403010309070703050102
+--------------090800020606020804060209
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: 7bit
@@ -103,28 +51,57 @@ Content-Disposition: inline;
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/09/20 10:05:19+02:00 kaber@coreworks.de 
-#   [NETFILTER]: Fix invalid return values from ip_conntrack_in
+#   2004/09/20 10:06:40+02:00 kaber@coreworks.de 
+#   [NETFILTER]: Fix invalid return values from sctp_new
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_conntrack_core.c
-#   2004/09/20 10:04:56+02:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix invalid return values from ip_conntrack_in
+# net/ipv4/netfilter/ip_conntrack_proto_sctp.c
+#   2004/09/20 10:06:16+02:00 kaber@coreworks.de +5 -5
+#   [NETFILTER]: Fix invalid return values from sctp_new
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 10:08:05 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 10:08:05 +02:00
-@@ -767,7 +767,7 @@
- 	if (set_reply)
- 		set_bit(IPS_SEEN_REPLY_BIT, &ct->status);
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_proto_sctp.c b/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
+--- a/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2004-09-20 10:26:10 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2004-09-20 10:26:10 +02:00
+@@ -430,16 +430,16 @@
+ 	DEBUGP("\n");
  
--	return ret;
-+	return NF_ACCEPT;
- }
+ 	if (skb_copy_bits(skb, skb->nh.iph->ihl * 4, &sctph, sizeof(sctph)) != 0)
+-		return -1;
++		return 0;
  
- int invert_tuplepr(struct ip_conntrack_tuple *inverse,
+ 	if (do_basic_checks(conntrack, skb, map) != 0)
+-		return -1;
++		return 0;
+ 
+ 	/* If an OOTB packet has any of these chunks discard (Sec 8.4) */
+ 	if ((test_bit (SCTP_CID_ABORT, (void *)map))
+ 		|| (test_bit (SCTP_CID_SHUTDOWN_COMPLETE, (void *)map))
+ 		|| (test_bit (SCTP_CID_COOKIE_ACK, (void *)map))) {
+-		return -1;
++		return 0;
+ 	}
+ 
+ 	newconntrack = SCTP_CONNTRACK_MAX;
+@@ -461,7 +461,7 @@
+ 
+ 				if (skb_copy_bits(skb, offset + sizeof (sctp_chunkhdr_t), 
+ 					&inithdr, sizeof(inithdr)) != 0) {
+-						return -1;
++						return 0;
+ 				}
+ 
+ 				DEBUGP("Setting vtag %x for new conn\n", 
+@@ -471,7 +471,7 @@
+ 								inithdr.init_tag;
+ 			} else {
+ 				/* Sec 8.5.1 (A) */
+-				return -1;
++				return 0;
+ 			}
+ 		}
+ 		/* If it is a shutdown ack OOTB packet, we expect a return
 
---------------010403010309070703050102--
+--------------090800020606020804060209--
