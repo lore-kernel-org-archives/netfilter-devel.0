@@ -1,72 +1,59 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ctnetlink questions
-Date: Tue, 21 Oct 2003 00:59:04 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031020225904.GH20288@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0310201133040.23768-100000@filer.marasystems.com> <3F942CB6.5060005@trash.net> <20031020183741.GB20288@sunbeam.de.gnumonks.org> <20031020194147.GA11786@balabit.hu> <3F944376.6040903@trash.net>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: 2.6.0-test6, connntrack/sis900/net (?)  Badness in
+ local_bh_enable at kernel/softirq.c:119
+Date: Mon, 20 Oct 2003 16:14:37 -0700
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20031020161437.6708e994.akpm@osdl.org>
+References: <20031020222306.GB32167@finwe.eu.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GBDnBH7+ZvLx8QD4"
-Cc: Balazs Scheidler <bazsi@balabit.hu>,
-	Henrik Nordstrom <hno@marasystems.com>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <3F944376.6040903@trash.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org, linux-net@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Jacek Kawa <jfk@zeus.polsl.gliwice.pl>
+In-Reply-To: <20031020222306.GB32167@finwe.eu.org>
 List-Id: netfilter-devel.vger.kernel.org
 
+Jacek Kawa <jfk@zeus.polsl.gliwice.pl> wrote:
+>
+> I found it in logs (2.6.0-test6). It happened little while after 
+> I had reloaded dhcpd configuration.
+> 
+> I'm not sure if it's related to NIC or ip-conntrack, but as both
+> are mentioned... 
+> 
+> System information below.
+> 
+> eth0: Media Link Off
+> NETDEV WATCHDOG: eth0: transmit timed out
+> eth0: Transmit timeout, status 00000004 00000000 
+> Badness in local_bh_enable at kernel/softirq.c:119
+> Call Trace:
+>  [local_bh_enable+137/144] local_bh_enable+0x89/0x90
+>  [_end+130859013/1069963240] ip_ct_find_proto+0x3d/0x60 [ip_conntrack]
+>  [_end+130860013/1069963240] destroy_conntrack+0x15/0x110 [ip_conntrack]
+>  [sock_wfree+73/80] sock_wfree+0x49/0x50
+>  [__kfree_skb+143/272] __kfree_skb+0x8f/0x110
+>  [_end+130608961/1069963240] sis900_tx_timeout+0x99/0x150 [sis900]
+>  [dev_watchdog+0/208] dev_watchdog+0x0/0xd0
+>  [dev_watchdog+191/208] dev_watchdog+0xbf/0xd0
 
---GBDnBH7+ZvLx8QD4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This should fix it up.
 
-On Mon, Oct 20, 2003 at 10:20:06PM +0200, Patrick McHardy wrote:
-> >This _might_ be of interest when complete tables are to be dumped, though
-> >the ctnetlink based interface is better when the userspace app provides=
-=20
-> >more
-> >specific queries.
-> >
->=20
-> I believe we should stick to a single consistent interface for user comfo=
-rt.
 
-also, if we stick with netlink, we can easily adapt to netlink2... that
-gives us the ability to even remotely dump/modify conntrack tables.
+diff -puN drivers/net/sis900.c~sis900-tx_timeout-fix drivers/net/sis900.c
+--- 25/drivers/net/sis900.c~sis900-tx_timeout-fix	Mon Oct 20 16:10:04 2003
++++ 25-akpm/drivers/net/sis900.c	Mon Oct 20 16:10:11 2003
+@@ -1438,7 +1438,7 @@ static void sis900_tx_timeout(struct net
+ 			pci_unmap_single(sis_priv->pci_dev, 
+ 				sis_priv->tx_ring[i].bufptr, skb->len,
+ 				PCI_DMA_TODEVICE);
+-			dev_kfree_skb(skb);
++			dev_kfree_skb_irq(skb);
+ 			sis_priv->tx_skbuff[i] = 0;
+ 			sis_priv->tx_ring[i].cmdsts = 0;
+ 			sis_priv->tx_ring[i].bufptr = 0;
 
-> Best regards,
-> Patrick
+_
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---GBDnBH7+ZvLx8QD4
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/lGi4XaXGVTD0i/8RAt5ZAKCXDg6i1DnJsZH+cjqvONi85qgW1QCgj3Yz
-tsX04IREplUPbr3YaSBO4SM=
-=9GFq
------END PGP SIGNATURE-----
-
---GBDnBH7+ZvLx8QD4--
