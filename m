@@ -1,15 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Bug#150467: user-defined chains vs. iptables module names
-Date: Fri, 21 Jun 2002 14:05:06 +0200 (CEST)
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] ROUTE target : bug fixes
+Date: Fri, 21 Jun 2002 19:15:26 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206211347370.30045-100000@blackhole.kfki.hu>
-References: <20020621110337.F5183@oknodo.bof.de>
+Message-ID: <20020621191526.G2543@sunbeam.de.gnumonks.org>
+References: <1024582362.2418.30.camel@descartes>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.samba.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JK9EAEGOExcK5IQt"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20020621110337.F5183@oknodo.bof.de>
+To: =?iso-8859-1?Q?C=E9dric_de_Launois_=3Cdelaunoi=40info=2Eucl=2Eac=2Ebe?=@samba.org,
+	=?iso-8859-1?Q?=3E?=@samba.org
+Content-Disposition: inline
+In-Reply-To: <1024582362.2418.30.camel@descartes>; from delaunoi@info.ucl.ac.be on Thu, Jun 20, 2002 at 04:12:41PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,77 +23,48 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 21 Jun 2002, Patrick Schaaf wrote:
 
-> > What about simply returning by an error code if there is an attempt to
-> > create a chain wich clashes with a target name?
->
-> Wasn't there recent discussion about "how do I find all available
-> target names"? But I agree in principle, that would be the least
-> intrusive shorttime "rationalization" of the now-very-order-dependant
-> behaviour.
+--JK9EAEGOExcK5IQt
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Here is the patch according to my proposal:
+On Thu, Jun 20, 2002 at 04:12:41PM +0200, C=E9dric de Launois wrote:
+> Hi,
+>=20
+> Here is a patch for 'ROUTE' target :
 
---- iptables.c.orig	Fri Jun 21 13:39:55 2002
-+++ iptables.c	Fri Jun 21 13:44:09 2002
-@@ -1159,9 +1159,6 @@
- 	u_int8_t flags;
- 	char buf[BUFSIZ];
+thanks.  I'd love to apply your patch, but since you have not attached
+but inlined it, your mail program has wrapped the lines and thus corrupted
+the patch.  Please resend it.
 
--	/* User creates a chain called "REJECT": this overrides the
--	   `REJECT' target module.  Keep feeding them rope until the
--	   revolution... Bwahahahahah */
- 	if (!iptc_is_chain(targname, handle))
- 		target = find_target(targname, TRY_LOAD);
- 	else
-@@ -1760,6 +1757,10 @@
- 				exit_error(PARAMETER_PROBLEM,
- 					   "chain name not allowed to start "
- 					   "with `-'\n");
-+			if (find_target(optarg, TRY_LOAD))
-+				exit_error(PARAMETER_PROBLEM,
-+					   "chain name may not clash "
-+					   "with target name\n");
- 			add_command(&command, CMD_NEW_CHAIN, CMD_NONE,
- 				    invert);
- 			chain = optarg;
---- ip6tables.c.orig	Fri Jun 21 13:44:22 2002
-+++ ip6tables.c	Fri Jun 21 13:45:51 2002
-@@ -1161,9 +1161,6 @@
- 	u_int8_t flags;
- 	char buf[BUFSIZ];
+Please try to send patches as mime attachment to ensure no corruption=20
+occurs.
 
--	/* User creates a chain called "REJECT": this overrides the
--	   `REJECT' target module.  Keep feeding them rope until the
--	   revolution... Bwahahahahah */
- 	if (!ip6tc_is_chain(targname, handle))
- 		target = find_target(targname, TRY_LOAD);
- 	else
-@@ -1797,6 +1794,14 @@
- 			break;
+> C=E9dric de Launois
 
- 		case 'N':
-+			if (optarg && *optarg == '-')
-+				exit_error(PARAMETER_PROBLEM,
-+					   "chain name not allowed to start "
-+					   "with `-'\n");
-+			if (find_target(optarg, TRY_LOAD))
-+				exit_error(PARAMETER_PROBLEM,
-+					   "chain name may not clash "
-+					   "with target name\n");
- 			add_command(&command, CMD_NEW_CHAIN, CMD_NONE,
- 				    invert);
- 			chain = optarg;
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
+=20
+V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
+--JK9EAEGOExcK5IQt
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-I believe this is the simplest approach - all other solutions require
-changes both in the user interface and the kernel structures.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-WWW-Home: http://www.kfki.hu/~kadlec
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+iD8DBQE9E18uXaXGVTD0i/8RAgVnAKCWw81NfTmJHXc2Hh3YWcpFXI/lZwCeJ6sl
+LzymCZewQiU771Ks966aVNU=
+=5V77
+-----END PGP SIGNATURE-----
+
+--JK9EAEGOExcK5IQt--
