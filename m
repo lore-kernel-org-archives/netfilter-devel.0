@@ -1,18 +1,16 @@
-From: "Richard" <richard@o-matrix.org>
-Subject: RE: check timer active
-Date: Sun, 5 Dec 2004 11:47:26 -1000
-Message-ID: <EINSTEIN4FR0rmTIVvL000068ca@einstein.systemmetrics.com>
-References: <41B37E2F.4020007@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] MASQUERADE device handling - revert optimization
+Date: Sun, 05 Dec 2004 22:48:12 +0100
+Message-ID: <41B3821C.4020703@trash.net>
+References: <20041112200126.GA30173@linuxace.com> <4199185A.7000404@trash.net>
+	<20041118001530.GA5670@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	'Henrik Nordstrom' <hno@marasystems.com>,
-	'Krisztian Kovacs' <hidden@sch.bme.hu>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "'Patrick McHardy'" <kaber@trash.net>, "'Pablo Neira'" <pablo@eurodev.net>
-In-Reply-To: <41B37E2F.4020007@trash.net>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20041118001530.GA5670@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> 
-> Pablo Neira wrote:
-> 
-> > still think that you should use that function.
-> >
-> > Hm, I just realized that the amanda helper is faking counters, I guess
-> > that we need a version of ip_ct_refresh_acct which doesn't the
-> > increase skb counters. I'll send a patch to fix this once I know what
-> > is scheduled with nf_conntrack.
+Phil Oester wrote:
 
-I only saw ip_ct_refresh. What's the difference between ip_ct_refresh_acct
-and it?
+>On Mon, Nov 15, 2004 at 09:58:02PM +0100, Patrick McHardy wrote:
+>  
+>
+>>Can you send a patch for 2.4 as well ?
+>>    
+>>
+>
+>Sure, attached.
+>  
+>
+Applied, thanks Phil.
 
-Richard
+Regards
+Patrick
