@@ -1,17 +1,18 @@
 From: William Stearns <wstearns@pobox.com>
-Subject: Re: Netfilter extensions howto
-Date: Sat, 22 Nov 2003 23:55:19 -0500 (EST)
+Subject: Re: Converting patch-o-matic over to 2.6 kernel format - should be
+ ready to go.
+Date: Sun, 23 Nov 2003 01:43:13 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311222351220.1846-100000@sparrow>
-References: <200311231236.43927.fabrice@netfilter.org>
+Message-ID: <Pine.LNX.4.44.0311230125100.21895-100000@sparrow>
+References: <20031117080641.GA22919@sunbeam.de.gnumonks.org>
 Reply-To: William Stearns <wstearns@pobox.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
    William Stearns <wstearns@pobox.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Fabrice MARIE <fabrice@netfilter.org>
-In-Reply-To: <200311231236.43927.fabrice@netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031117080641.GA22919@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,34 +23,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Good evening, Fabrice,
-[Harald snipped so he can focus on code.  :-)]
+Good morning, Harald, all,
 
-On Sun, 23 Nov 2003, Fabrice MARIE wrote:
+On Mon, 17 Nov 2003, Harald Welte wrote:
 
-> On Sunday 23 November 2003 03:00, William Stearns wrote:
-> > A few questions about the extensions howto, if I may.
-> > Fabrice, are you still the maintainer? 
+> On Sun, Nov 16, 2003 at 05:01:55PM -0500, William Stearns wrote:
+> > 	I've written a converter that pulls in the lines from pom's
+> > .config.in and .configure.help files and creates a something.patch.Kconfig
+> > file, ready to be used on a 2.6 kernel.  The converter tool is at
+> > http://www.stearns.org/pom26convert .  I've included a sample output; the
+> > HL.patch.ipv6.config.in and HL.patch.ipv6.configure.help files were 
+> > converted over to the HL.patch.ipv6.Kconfig .  The converter warned the 
+> > user at run-time that it wasn't able to handle the if/fi lines in 
+> > .config.in; the person running it will probably have to do some cleanup 
+> > work on perhaps 20% of the files.
 > 
-> Yes I am still the maintainer. I didn't find much time
-> to compile by myself the missing extensions though.
+> thanks a lot!
 
-	Completely understood.
+	I'm glad to.
 
-> Of course, if you send me a patch, I'll be happy to apply it
-> to enhance this HOWTO.
+> I am in the process of re-writing patch-o-matic in a more general way,
+[snip]
+> However, my idea was to have a higher level language where one could say
+> "add the following member to struct foobar", or "create a new config
+> option FOO dependent on BAR" - independent of the kernel version.
 
-	Perfect!
+	I think I won't take you up on the project; it sounds like a fun 
+one, but I, too, am jammed for time.
+	My short term project is to get a 2.6 kernel going on 
+patch-o-matic, so I took the easy way out and taught runme enough to work 
+with 2.6 trees.  It turns out the changes are not all that large; the 
+patch is only 4k.
+http://www.stearns.org/patches/patch-o-matic-20031122.runme-26-patch
+	For this runme to work, you need to create the Kconfig files with 
+http://www.stearns.org/pom26convert/pom26convert (simply run 
 
-> Thanks for your help,
+pom26convert *.patch *.patch.ipv6
 
-	Merci pour votre howto!  *smile*
+in each pom subdirectory (it'll tell you if any manual cleanups have to be
+made).  Now runme has the .Kconfig files it needs.
+	Harald, would you consider this patch as at least a temporary 
+solution?  Please don't tell me I'm the only person that wants to use 
+patch-o-matic on 2.6... :-)
 	Cheers,
 	- Bill
 
 ---------------------------------------------------------------------------
-	"Nynex.  Iroquois for Moron"
-	-- A well-known Linux kernel hacker.
+        "If you think technology can solve your security problems, then
+you don't understand the problems and you don't understand the
+technology."
+        -- Bruce Schneier, Secrets and Lies
 --------------------------------------------------------------------------
 William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
 rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
