@@ -1,15 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Bridging and IPT Queueing
-Date: Fri, 9 Jul 2004 18:48:13 +0200 (CEST)
+From: =?ISO-8859-1?Q?S=EDlvia?= Andreia Oliveira Rocha <srocha@ncc.up.pt>
+Subject: Netfilter Question - NF_QUEUE
+Date: Fri, 09 Jul 2004 18:44:40 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0407091846360.8729-100000@filer.marasystems.com>
-References: <40EE2793.7060205@metavize.com>
+Message-ID: <1089395079.2776.73.camel@khocegas>
+Reply-To: srocha@ncc.up.pt
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jim Mar <jmar@metavize.com>
-In-Reply-To: <40EE2793.7060205@metavize.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +19,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 8 Jul 2004, Jim Mar wrote:
+Hi,
 
-> I've been looking at IPT Queueing in a bridging environment on
-> a 2.6 kernel and noticed that the indev associated with the
-> queued packet is the bridge device, eg. br0, instead of the
-> physical interface. While this is true, it would be nice to know
-> the physical indev of the packet. Is there a way of finding it?
+My name is S=EDlvia and I'm beginning to study the NetFilter Architecture=
+.
 
-The physdev match?
+I've got a very simple question, I'd like to know more about the
+NF_QUEUE hook.
 
-> I tried looking at the HW address, but that seems broken.
+It is said that this hook is usually used to pass information to
+UserSpace, my question is, if somewhere a package is "popped" from the
+skb and a NF_QUEUE isn't invoked afterwords is the package lost? I guess
+it isn't, because a package is only drops on a NF_DROP verdict, but I'm
+getting rather confused studying an application that uses NetFilter.
 
-This should give you the destination HW address of the packet, not the 
-interface it was received on.
-
-Regards
-Henrik
+Thank U a lot for your attention,
+S=EDlvia
