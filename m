@@ -1,10 +1,12 @@
-From: Dan Hollis <goemon@anime.net>
-Subject: dscp mangle bug?
-Date: Mon, 17 Jun 2002 17:03:53 -0700 (PDT)
+From: "Amir Khandani" <amirk@broadcom.com>
+Subject: Quack ALG
+Date: Mon, 17 Jun 2002 18:06:11 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.44.0206171658080.9205-100000@sasami.anime.net>
+Message-ID: <NEBBLANGHHJHJJOGHIJGKEPACBAA.amirk@broadcom.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+ charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
@@ -17,13 +19,12 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-With iptables 1.2.6a I use -t mangle in a FORWARD rule to -j DSCP 
---set-dscp 0x01 (to set ip precedence %001 = priority)
+Hi,
 
-But packets sent out have TOS byte set to 0x04 according to tcpdump...
+I am trying to play Quack from a PC behind firewall running iptables. Doest
+anyone know if there is an ALG module for Quack? Something similar to
+ip_masq_quake for ipchains.
 
-I don't think this is correct...?
+thanks
 
--Dan
--- 
-[-] Omae no subete no kichi wa ore no mono da. [-]
+amir
