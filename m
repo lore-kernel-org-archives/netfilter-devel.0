@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 1/4] RFC: fast string matching infrastrure for netfilter
-Date: Sun, 09 Jan 2005 23:23:09 +0100
-Message-ID: <41E1AECD.6020209@eurodev.net>
+Subject: [PATCH 3/4] iptables part to match strings
+Date: Sun, 09 Jan 2005 23:23:32 +0100
+Message-ID: <41E1AEE4.2020106@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060300070005060001080801"
+Content-Type: multipart/mixed; boundary="------------060509060007080405090707"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,328 +19,142 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060300070005060001080801
+--------------060509060007080405090707
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi,
-
-I've finished a first usable version of a infrastructure to look for 
-matchings in a packet. Features:
-
-* A library consisting in three public functions: constructor, 
-destructor and searching.
-* Boyer-moore algorithm to perform fast matchings.
-* Brute force search on the edges of two fragments to look for 
-fragmented matches, that is O(m) searchs where m is the size of the 
-pattern, it's not that bad for small pattern I think. It's fragment 
-aware by means of rusty's skb_iter functions.
-
-Comments welcome.
+Attached the modification for iptables.
 
 --
 Pablo
 
---------------060300070005060001080801
+--------------060509060007080405090707
 Content-Type: text/x-patch;
- name="string-match.patch"
+ name="iptables-string.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="string-match.patch"
+ filename="iptables-string.patch"
 
---- /dev/null	2004-09-23 01:18:13.000000000 +0200
-+++ linux-2.5/net/ipv4/netfilter/nf_string_match.c	2005-01-09 21:54:04.000000000 +0100
-@@ -0,0 +1,264 @@
-+/* Efficient string matching fragment aware infrastrure for netfilter
-+ * Copyright (C) 2004 Pablo Neira Ayuso <pablo@eurodev.net>
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ *
-+ * Idea:
-+ * 	
-+ * 	This algorithm used Boyer-Moore fast matching algorithm to look
-+ * 	for a pattern in the payload of a packet. Since it is fragment
-+ * 	aware, it looks for partial matches on the edges of two fragments.
-+ *
-+ * Literature:
+Index: extensions/libipt_string.c
+===================================================================
+--- extensions/libipt_string.c	(revision 3514)
++++ extensions/libipt_string.c	(working copy)
+@@ -3,6 +3,9 @@
+  * Copyright (C) 2000 Emmanuel Roger  <winfield@freegates.be>
+  *
+  * ChangeLog
++ *     07.01.2005: Pablo Neira Ayuso <pablo@eurodev.net>
++ *     	       Adapated for the new match string.
 + * 
-+ *      A Fast String Searching Algorithm, R.S. Boyer and Moore.
-+ *      Communications of the Association for Computing Machinery, 
-+ *      20(10), 1977, pp. 762-772.
-+ *	http://www.cs.utexas.edu/users/moore/publications/fstrpos.pdf
-+ *
-+ * 	Handbook of Exact String Matching Algorithms, Thierry Lecroq, 2004
-+ * 	http://www-igm.univ-mlv.fr/~lecroq/string/string.pdf
-+ * 
-+ * Implementation:
-+ * 
-+ * 	Boyer Moore implementation heavily based on Gianni Tedesco's.
-+ */
-+
-+#include <linux/module.h>
+  *     29.12.2003: Michael Rash <mbr@cipherdyne.org>
+  *             Fixed iptables save/restore for ascii strings
+  *             that contain space chars, and hex strings that
+@@ -21,11 +24,12 @@
+ #include <stdlib.h>
+ #include <getopt.h>
+ #include <ctype.h>
++#include <stddef.h> /* for 'offsetof' */
+ 
+ #include <iptables.h>
+ #include <linux/netfilter_ipv4/ipt_string.h>
 +#include <linux/netfilter_ipv4/nf_string_match.h>
-+#include <linux/skbuff.h>
-+
-+#if 0
-+#define DEBUGP printk
-+#else
-+#define DEBUGP(format, args...)
-+#endif
-+
-+/* Compute constant structures needed by the boyer-moore algorithm,
-+ * this is done just ONCE. */
-+static void
-+sm_preprocess(struct nf_string_match *sm)
-+{
-+	int i, j, len[ASIZE], ended;
-+
-+	/* Compute the bad caracter shift array */
-+	for (i = 0; i < ASIZE; i++)
-+		sm->badshift[i] = sm->patlen;
-+	for (i = 0; i < sm->patlen - 1; i++)
-+		sm->badshift[(int) sm->pat[i]] = sm->patlen - 1 - i;
-+
-+	/* Compute the good shift array, used to match reocurrences 
-+	 * of a subpattern */
-+	for (i = 1; i < sm->patlen; i++) {
-+		for (j = 0; j < sm->patlen && sm->pat[sm->patlen -1 - j] 
-+				== sm->pat[sm->patlen - 1 - i - j]; j++);
-+		len[i] = j;
-+	}  
-+
-+	sm->goodshift[0] = 1;
-+	for (i = 1; i < sm->patlen; i++)
-+		sm->goodshift[i] = sm->patlen;
-+	for (i = sm->patlen - 1; i > 0; i--)
-+		sm->goodshift[len[i]] = i;
-+
-+	ended = 0;
-+	for (i = 0; i < sm->patlen; i++) {
-+		if (len[i] == sm->patlen - 1 - i)
-+			ended = i;
-+		if (ended)
-+			sm->goodshift[i] = ended;
-+	}
-+}
-+
-+struct nf_string_match *
-+nf_string_match_create(const char *pat, int patlen)
-+{
-+	struct nf_string_match *sm;
-+
-+	sm = kmalloc(sizeof(struct nf_string_match), GFP_KERNEL);
-+	if (!sm)
-+		return NULL;
-+	memset(sm, 0, sizeof(struct nf_string_match));
-+
-+	sm->goodshift = (int *) kmalloc(patlen * sizeof(int), GFP_KERNEL);
-+	if (!sm->goodshift)
-+		return NULL;
-+	memset(sm->goodshift, 0, sizeof(int) * patlen);
-+	
-+	sm->pat = (char *) kmalloc(patlen * sizeof(int), GFP_KERNEL);
-+	if (!sm->pat) {
-+		kfree(sm->goodshift);
-+		return NULL;
-+	}
-+	memset(sm->pat, patlen, sizeof(char) * patlen);
-+	
-+	strcpy(sm->pat, pat);
-+	sm->patlen = patlen;
-+
-+	/* Preprocess the pattern */
-+	sm_preprocess(sm);
-+
-+	return sm;
-+}
-+
-+/* release the structure */
-+void nf_string_match_destroy(struct nf_string_match *sm)
-+{
-+	kfree(sm->goodshift);
-+	kfree(sm->pat);
-+	kfree(sm);
-+}
-+
-+#define MAX(a,b) a>b?a:b
-+
-+/* this functions returns the offset where a matching was found */
-+static unsigned int
-+sm_search(struct nf_string_match *sm, unsigned char *data, int size, 
-+	  unsigned int *offset)
-+{
-+	int right_end = sm->patlen, sk, sh, i;
-+
-+	while (right_end < size) {
-+		DEBUGP("Searching in position %d (%c)\n", 
-+		       right_end, data[right_end]);
-+		for (i = 0; i < sm->patlen && data[right_end - i] 
-+				== sm->pat[sm->patlen - 1 - i]; i++);
-+		if (i == sm->patlen) {
-+			/* London calling... */
-+			DEBUGP("found!\n");
-+			*offset += (right_end - (sm->patlen - 1));
-+			return 1;
-+		}
-+		
-+		sk = sm->badshift[data[right_end - i]];  
-+		sh = sm->goodshift[i];
-+		DEBUGP("bad shift: %d good shift: %d\n", sk, sh);
-+
-+		/* Now jumping to... */
-+		right_end = MAX(right_end - i + sk, right_end + sh);
-+	}
-+	*offset += size;
-+	return 0;
-+}
-+
-+/* Brute force: look for a partial matching at the end of the packet.
-+ * A match never hits here, it's impossible. */
-+static void
-+sm_frag_search_end(struct nf_string_match *sm, void *ptr, int size, 
-+		   int *partial)
-+{
-+	int i;
-+	unsigned char *data = ptr + size - sm->patlen;
-+
-+	for (i=0; i < sm->patlen; i++) {
-+		DEBUGP("end: %c == %c (%d)\n", data[i], 
-+			sm->pat[*partial], *partial);
-+		
-+		if (data[i] == sm->pat[*partial])
-+			(*partial)++;
-+		else {
-+			if (data[i] == sm->pat[0])
-+				*partial = 1;
-+			else 
-+				*partial = 0;
-+		}
-+	}
-+	DEBUGP("sm->partial:%d\n", *partial);
-+}
-+
-+/* Brute force: Look for a matching at the beginning. Yes, here
-+ * we can hit a full match */
-+static int
-+sm_frag_search_begin(struct nf_string_match *sm, void *ptr, int size, 
-+		     unsigned int *offset, int *partial)
-+{
-+	int i, j = sm->patlen - *partial;
-+	unsigned char *data = (unsigned char *) ptr;
-+
-+	for (i=0; i<j; i++) {
-+		DEBUGP("begin: %c == %c (%d)\n", data[i],
-+			sm->pat[*partial], *partial);
-+
-+		if (data[i] == sm->pat[*partial])
-+			(*partial)++;
-+		else
-+			*partial = 0;
-+	}
-+
-+	if (*partial == sm->patlen) {
-+		DEBUGP("Fragmented match!\n");
-+		*offset += i;
-+		return 1;
-+	}
-+
-+	/* No matching founds, so reset counter */
-+	*partial = 0;
-+
-+	return 0;
-+}
-+
-+static inline int
-+frag_search(void *data, int size, struct nf_string_match *sm, 
-+	    unsigned int *offset, int *partial)
-+{
-+	/* There was a partial match before */
-+	if (sm_frag_search_begin(sm, data, size, offset, partial))
-+		return 1;
-+
-+	if (sm_search(sm, data, size, offset))
-+		return 1;
-+
-+	sm_frag_search_end(sm, data, size, partial);
-+
-+	return 0;
-+}
-+
-+int
-+nf_string_match_search(const struct sk_buff *skb, struct nf_string_match *sm,
-+		       unsigned int *offset)
-+{
-+	/* make sure offset is always set to zero */
-+	*offset = 0;
-+
-+	if (!skb_is_nonlinear(skb)) {
-+		DEBUGP("linear searching\n");
-+		/* General case: look for pattern in linear packet */
-+		if (sm_search(sm, skb->data, skb->len, offset))
-+			return 1;
-+	} else {
-+		/* The packet is fragmented */
-+		struct skb_iter i;
-+		int partial = 0;
-+
-+		DEBUGP("non linear searching\n");
-+
-+		/* Look for the pattern in first fragment */
-+		skb_iter_first(skb, &i);
-+		if (frag_search(i.data, i.len, sm, offset, &partial))
-+			return 1;
-+
-+		/* Now, the rest of fragments ... */
-+		while (skb_iter_next(skb, &i)) {
-+			DEBUGP("%p (size:%d)\n", i.data, i.len);
-+			if (frag_search(i.data, i.len, sm, offset, &partial))
-+				return 1;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init init(void) { return 1; }
-+static void __exit fini(void) {}
-+
-+module_init(init);
-+module_exit(fini);
-+
-+MODULE_LICENSE("GPL");
-+
-+EXPORT_SYMBOL_GPL(nf_string_match_create);
-+EXPORT_SYMBOL_GPL(nf_string_match_search);
-+EXPORT_SYMBOL_GPL(nf_string_match_destroy);
---- /dev/null	2004-09-23 01:18:13.000000000 +0200
-+++ linux-2.5/include/linux/netfilter_ipv4/nf_string_match.h	2005-01-09 19:28:25.000000000 +0100
-@@ -0,0 +1,24 @@
-+#ifndef _STRING_MATCHING_H
-+#define _STRING_MATCHING_H
-+
-+#include <linux/skbuff.h>
-+
-+/* Alphabet size */
-+#define ASIZE 256
-+
-+struct nf_string_match {
-+	char 		*pat;
-+	int 		patlen;
-+
-+	int 		badshift[ASIZE];
-+	int 		*goodshift;
-+};
-+
-+extern struct nf_string_match *
-+nf_string_match_create(const char *pat, int patlen);
-+extern int nf_string_match_search(const struct sk_buff *skb, 
-+				  struct nf_string_match *sm,
-+				  unsigned int *offset);
-+extern void nf_string_match_destroy(struct nf_string_match *sm);
-+
-+#endif
+ 
+-
+ /* Function which prints out usage message. */
+ static void
+ help(void)
+@@ -56,7 +60,7 @@
+ static void
+ parse_string(const unsigned char *s, struct ipt_string_info *info)
+ {	
+-	if (strlen(s) <= BM_MAX_NLEN) strcpy(info->string, s);
++	if (strlen(s) <= MAX_PATLEN) strcpy(info->pattern, s);
+ 	else exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
+ }
+ 
+@@ -101,7 +105,7 @@
+ 				exit_error(PARAMETER_PROBLEM,
+ 					"Bad literal placement at end of string");
+ 			}
+-			info->string[sindex] = s[i+1];
++			info->pattern[sindex] = s[i+1];
+ 			i += 2;  /* skip over literal char */
+ 			literal_f = 0;
+ 		} else if (hex_f) {
+@@ -123,20 +127,20 @@
+ 			if (! sscanf(hextmp, "%x", &schar))
+ 				exit_error(PARAMETER_PROBLEM,
+ 					"Invalid hex char `%c'", s[i]);
+-			info->string[sindex] = (char) schar;
++			info->pattern[sindex] = (char) schar;
+ 			if (s[i+2] == ' ')
+ 				i += 3;  /* spaces included in the hex block */
+ 			else
+ 				i += 2;
+ 		} else {  /* the char is not part of hex data, so just copy */
+-			info->string[sindex] = s[i];
++			info->pattern[sindex] = s[i];
+ 			i++;
+ 		}
+-		if (sindex > BM_MAX_NLEN)
++		if (sindex > MAX_PATLEN)
+ 			exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
+ 		sindex++;
+ 	}
+-	info->len = sindex;
++	info->patlen = sindex;
+ }
+ 
+ 
+@@ -160,7 +164,7 @@
+ 		parse_string(argv[optind-1], stringinfo);
+ 		if (invert)
+ 			stringinfo->invert = 1;
+-		stringinfo->len=strlen((char *)&stringinfo->string);
++		stringinfo->patlen = strlen(stringinfo->pattern);
+ 		*flags = 1;
+ 		break;
+ 
+@@ -246,12 +250,12 @@
+ 	const struct ipt_string_info *info =
+ 	    (const struct ipt_string_info*) match->data;
+ 
+-	if (is_hex_string(info->string, info->len)) {
++	if (is_hex_string(info->pattern, info->patlen)) {
+ 		printf("STRING match %s", (info->invert) ? "!" : "");
+-		print_hex_string(info->string, info->len);
++		print_hex_string(info->pattern, info->patlen);
+ 	} else {
+ 		printf("STRING match %s", (info->invert) ? "!" : "");
+-		print_string(info->string, info->len);
++		print_string(info->pattern, info->patlen);
+ 	}
+ }
+ 
+@@ -263,12 +267,12 @@
+ 	const struct ipt_string_info *info =
+ 	    (const struct ipt_string_info*) match->data;
+ 
+-	if (is_hex_string(info->string, info->len)) {
++	if (is_hex_string(info->pattern, info->patlen)) {
+ 		printf("--hex-string %s", (info->invert) ? "! ": "");
+-		print_hex_string(info->string, info->len);
++		print_hex_string(info->pattern, info->patlen);
+ 	} else {
+ 		printf("--string %s", (info->invert) ? "! ": "");
+-		print_string(info->string, info->len);
++		print_string(info->pattern, info->patlen);
+ 	}
+ }
+ 
+@@ -277,7 +281,7 @@
+     .name          = "string",
+     .version       = IPTABLES_VERSION,
+     .size          = IPT_ALIGN(sizeof(struct ipt_string_info)),
+-    .userspacesize = IPT_ALIGN(sizeof(struct ipt_string_info)),
++    .userspacesize = offsetof(struct ipt_string_info, invert),
+     .help          = &help,
+     .init          = &init,
+     .parse         = &parse,
 
---------------060300070005060001080801--
+--------------060509060007080405090707--
