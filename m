@@ -1,40 +1,58 @@
-From: linux lover <linux_lover2004@yahoo.com>
-Subject: how ip header added in ip_bulid_xmit function?
-Date: Mon, 17 May 2004 23:31:06 -0700 (PDT)
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <20040518063106.85290.qmail@web90102.mail.scd.yahoo.com>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] for some issues in tcp window tracking patch
+Date: Tue, 18 May 2004 11:57:06 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <40A9DDF2.3000107@eurodev.net>
+References: <Pine.LNX.4.33.0405171427460.29543-100000@blackhole.kfki.hu> <40A93199.3010007@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev <netdev@oss.sgi.com>,
-	netfilter <netfilter-devel@lists.netfilter.org>
-Return-path: <linux-net-owner@vger.kernel.org>
-To: linuxnet <linux-net@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+ Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <40A93199.3010007@trash.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hello ,
-   In ip_output.c file there is ip_build_xmit function
-call. when packet comes from tcp layer to IP layer
-this function is called. In that i found that 
-   skb = sock_alloc_send_skb(sk, length+hh_len+15
-,flags&MSG_DONTWAIT, &err);
-staement allocates skb for packet. after that i found
-that no iphdr adding statement in ip_build_xmit. i
-want to know where is iphdr push to skb? cause skb
-works using first alloc_skb to allocate memory then
-skb_reserve to reserve headroom then put data in skb
-by skb_put or skb_push for pushing headers in skb. so
-there i found       
-  skb->nh.iph = iph = (struct iphdr *)skb_put(skb,
-length); 
-statement is this does that iphdr adding?
+Hi Patrick,
+
+Patrick McHardy wrote:
+
+> Jozsef Kadlecsik wrote:
+>
+>> On Mon, 17 May 2004, Pablo Neira wrote:
+>>
+>>> a) Use flags defined in tcp.h instead of bsd flags: I found that these
+>>> flags are already defined in linux with different names in tcp.h, so we
+>>> could use linux flags instead.
+>>
+>>
+>>
+>> Fine, better to use the flags already defined in tcp.h.
+>>
+>
+> I don't think we should use those, they are for use in the tcp control
+> buffer, which is also expressed in their name (TCPCB_FLAG_*).
+
+
+I think that we should, we are "redefining" the size of a wheel :-), and 
+also this comment:
+
+------- snipped from tcp.h ------
+
+1130         /* NOTE: These must match up to the flags byte in a
+1131          *       real TCP header.
+1132          */
+
+--------- end --------
 
 regards,
-linuxlover
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-SBC Yahoo! - Internet access at a great low price.
-http://promo.yahoo.com/sbc/
+Pablo
