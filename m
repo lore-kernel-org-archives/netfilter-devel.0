@@ -1,16 +1,14 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: Fw: Re: 2.6.11-rc2 TCP ignores PMTU ICMP (Re: Linux 2.6.11-rc2)
-Date: Sun, 30 Jan 2005 22:49:55 -0800
-Message-ID: <20050130224955.6c6b545c.davem@davemloft.net>
-References: <20050127154118.45e59991.davem@davemloft.net>
-	<41F992E3.20005@trash.net> <41F99BB8.4070409@trash.net>
+From: "Aaron Stavens" <aaron.stavens@nmwco.com>
+Subject: Proxy ARP doesn't seem to be working. Please assist.
+Date: Mon, 31 Jan 2005 10:38:36 -0800
+Message-ID: <68B9548ED9F8A341B21CDB320655D613F54E4D@mercury.nmwco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41F99BB8.4070409@trash.net>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +20,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 28 Jan 2005 02:56:08 +0100
-Patrick McHardy <kaber@trash.net> wrote:
+Martijn Lievaart over on the netfilter list suggested I post my query
+here. I am trying to set up proxy ARP. As far as he can tell, I'm doing
+it right, but it is working for neither him nor me. Martijn claims this
+method used to work in the 2.2 kernel. Has something changed?
 
-> Patrick McHardy wrote:
-> 
-> > IP (tos 0xd0, ttl  64, id 40755, offset 0, flags [none], length: 88) 
-> > 172.16.1.123 > 172.16.1.123: icmp 68: type-#142 for IP (tos 0x10, ttl 
-> > 180, id 13605, offset 0, flags [DF], length: 60, bad cksum e8b3 
-> > (->73d8)!) 172.16.1.123 > 172.16.195.55:  ip-proto-225 40
-> >
-> > This patch fixes it.
-> 
-> This patch on top fixes corrupt checksums of ICMP errors. The
-> function returns before recalculating the checksum in some cases.
+On the proxy arp machine I issue:
 
-Both applied, thanks Patrick.
+    arp -i eth0 -s 10.128.240.1 00:c0:4f:68:ab:e6 pub
+
+and
+
+    arp -i eth0 -Ds 10.128.240.2 eth0 pub
+
+"arp -a" then reports:
+
+    ? (10.128.1.1) at 00:06:53:02:F8:51 [ether] on eth0
+    ? (10.128.240.1) at * PERM PUP on eth0
+    ? (10.128.240.2) at * PERM PUP on eth0
+
+The "*" instead of eth0's MAC address bothers me, but maybe that is
+normal. I don't know.
+
+On a separate machine I then
+
+    ping 10.128.240.1
+
+and
+
+    ping 10.128.240.2
+
+while sniffing the network. In the network trace I see the ARP requests
+go out for the two different IP addresses, but not ARP responses come
+back. I do not understand why there is no response. Does what I am doing
+appear reasonable? Is there some kernel configuration option I must,
+well, configure? Is there a /proc setting I need to tweak? What am I
+missing?
+
+Martijn also suggested that the proxy ARP server will only respond when
+it has a route to the associated IP address. However, he says he tried
+it and that didn't work either.
+
+I am using RedHat 9 with a 2.4.23 kernel. I do not know what Martijn is
+using.
+
+Thanks,
+Aaron Stavens
