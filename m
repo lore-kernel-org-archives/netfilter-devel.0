@@ -1,10 +1,11 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [PATCH] rename death_by_timeout to ip_ct_death_by_timeout (1/4)
-Date: 06 Jun 2002 14:24:03 +0200
+Subject: [PATCH] remove ip_ct_refresh() abuse from the pptp conntrack
+	helper (2/4)
+Date: 06 Jun 2002 14:24:04 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1023365301.734.15.camel@tux>
+Message-ID: <1023365493.845.19.camel@tux>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-jYGejhnAHQIUwlsavGtZ"
+Content-Type: multipart/mixed; boundary="=-CDvvVQzI5e1DnzGmO2AL"
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: Netfilter-devel <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
@@ -18,19 +19,17 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-jYGejhnAHQIUwlsavGtZ
+--=-CDvvVQzI5e1DnzGmO2AL
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Hi,
+Hi again,
 
-I changed the timer-update code in ip_ct_refresh() and then I found out
-that the pptp helper abuses it to kill a conntrack which won't work with
-my changes, the solution: change the pptp helper to do it correctly.
+Here's the pptp helper patch, it's against the 020602 CVS, should apply
+just fine as I havn't seen any updates to this module in the
+netfilter-cvs list.
 
-This first patch renames death_by_timeout to ip_ct_death_by_timeout and
-exports it in the core conntrack files. The pptp change will be included
-in the next patch.
+It replaces the ip_ct_refresh() abuse with the real deal.
 
 -- 
 /Martin
@@ -38,76 +37,44 @@ in the next patch.
 Never argue with an idiot. They drag you down to their level, then beat
 you with experience.
 
---=-jYGejhnAHQIUwlsavGtZ
-Content-Disposition: attachment; filename=ip_conntrack-death-diff
+--=-CDvvVQzI5e1DnzGmO2AL
+Content-Disposition: attachment; filename=pptp-conntrack-nat_death.diff
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; name=ip_conntrack-death-diff; charset=ISO-8859-15
+Content-Type: text/plain; name=pptp-conntrack-nat_death.diff; charset=ISO-8859-15
 
---- linux-2.4.19-pre9/include/linux/netfilter_ipv4/ip_conntrack.h.orig	Mon =
-Jun  3 21:46:59 2002
-+++ linux-2.4.19-pre9/include/linux/netfilter_ipv4/ip_conntrack.h	Mon Jun  =
-3 21:46:37 2002
-@@ -226,6 +226,9 @@
- extern void ip_ct_refresh(struct ip_conntrack *ct,
- 			  unsigned long extra_jiffies);
-=20
-+/* Kill conntrack */
-+extern void ip_ct_death_by_timeout(unsigned long ul_conntrack);
-+
- /* These are for NAT.  Icky. */
- /* Call me when a conntrack is destroyed. */
- extern void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack);
---- linux-2.4.19-pre9/net/ipv4/netfilter/ip_conntrack_core.c.orig	Mon Jun  =
-3 20:32:28 2002
-+++ linux-2.4.19-pre9/net/ipv4/netfilter/ip_conntrack_core.c	Tue Jun  4 20:=
-56:18 2002
-@@ -267,7 +267,7 @@
- 	atomic_dec(&ip_conntrack_count);
- }
-=20
--static void death_by_timeout(unsigned long ul_conntrack)
-+void ip_ct_death_by_timeout(unsigned long ul_conntrack)
- {
- 	struct ip_conntrack *ct =3D (void *)ul_conntrack;
-=20
-@@ -527,7 +527,7 @@
- 		return dropped;
-=20
- 	if (del_timer(&h->ctrack->timeout)) {
--		death_by_timeout((unsigned long)h->ctrack);
-+		ip_ct_death_by_timeout((unsigned long)h->ctrack);
- 		dropped =3D 1;
- 	}
- 	ip_conntrack_put(h->ctrack);
-@@ -617,7 +617,7 @@
- 	/* Don't set timer yet: wait for confirmation */
- 	init_timer(&conntrack->timeout);
- 	conntrack->timeout.data =3D (unsigned long)conntrack;
--	conntrack->timeout.function =3D death_by_timeout;
-+	conntrack->timeout.function =3D ip_ct_death_by_timeout;
-=20
- 	INIT_LIST_HEAD(&conntrack->sibling_list);
-=20
-@@ -1198,7 +1189,7 @@
- 	while ((h =3D get_next_corpse(kill, data)) !=3D NULL) {
- 		/* Time to push up daises... */
- 		if (del_timer(&h->ctrack->timeout))
--			death_by_timeout((unsigned long)h->ctrack);
-+			ip_ct_death_by_timeout((unsigned long)h->ctrack);
- 		/* ... else the timer will get him soon. */
-=20
- 		ip_conntrack_put(h->ctrack);
---- linux-2.4.19-pre9/net/ipv4/netfilter/ip_conntrack_standalone.c.orig	Mon=
- Jun  3 21:43:04 2002
-+++ linux-2.4.19-pre9/net/ipv4/netfilter/ip_conntrack_standalone.c	Mon Jun =
- 3 21:47:43 2002
-@@ -362,6 +362,7 @@
- EXPORT_SYMBOL(ip_conntrack_helper_unregister);
- EXPORT_SYMBOL(ip_ct_selective_cleanup);
- EXPORT_SYMBOL(ip_ct_refresh);
-+EXPORT_SYMBOL(ip_ct_death_by_timeout);
- EXPORT_SYMBOL(ip_ct_find_proto);
- EXPORT_SYMBOL(ip_ct_find_helper);
- EXPORT_SYMBOL(ip_conntrack_expect_related);
+--- netfilter/userspace/patch-o-matic/extra/pptp-conntrack-nat.patch.orig	T=
+hu Jun  6 14:03:35 2002
++++ netfilter/userspace/patch-o-matic/extra/pptp-conntrack-nat.patch	Thu Ju=
+n  6 14:05:17 2002
+@@ -572,7 +572,7 @@
+ diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.=
+*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.18-n=
+ewnat/net/ipv4/netfilter/ip_conntrack_pptp.c linux-2.4.18-pptp3.01//net/ipv=
+4/netfilter/ip_conntrack_pptp.c
+ --- linux-2.4.18-newnat/net/ipv4/netfilter/ip_conntrack_pptp.c	Thu Jan  1 =
+01:00:00 1970
+ +++ linux-2.4.18-pptp3.01//net/ipv4/netfilter/ip_conntrack_pptp.c	Mon Apr =
+ 8 16:40:37 2002
+-@@ -0,0 +1,540 @@
++@@ -0,0 +1,542 @@
+ +/*
+ + * ip_conntrack_pptp.c	- Version $Revision: 1.6 $
+ + *
+@@ -682,11 +682,13 @@
+ +		if (!exp->sibling)
+ +			continue;
+ +
+-+		DEBUGP("setting timeout of conntrack %p to 0\n",
+++		DEBUGP("killing conntrack %p\n",
+ +			exp->sibling);
+ +		exp->sibling->proto.gre.timeout =3D 0;
+ +		exp->sibling->proto.gre.stream_timeout =3D 0;
+-+		ip_ct_refresh(exp->sibling, 0);
+++
+++		if (del_timer(&exp->sibling->timeout))
+++			ip_ct_death_by_timeout((unsigned long)exp->sibling);
+ +	}
+ +
+ +	return 0;
 
---=-jYGejhnAHQIUwlsavGtZ--
+--=-CDvvVQzI5e1DnzGmO2AL--
