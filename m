@@ -1,13 +1,14 @@
-From: Frank 'xraz' Fricke <xraz@rwxr-xr-x.de>
-Subject: ip6t_ROUTE target
-Date: Fri, 16 May 2003 22:16:52 +0200
+From: "Dec0y" <anti_decoy@sina.com>
+Subject: Can it realize that redirect  on  Brige?!
+Date: Mon, 19 May 2003 12:09:10 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030516221652.3d86c00a.xraz@rwxr-xr-x.de>
+Message-ID: <000d01c31dbc$67773a70$5b01aa0a@Dec0y>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,36 +19,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Hi Folks!
-
-I've written a ip6tables target for mangle/POSTROUTING to force
-sending of packets with a specified interface. This makes
-source-routing and multihoming without provider-transits possible
-(at least at my site).
-
-This was my first netfilter/kernel-work an was all done from
-scratch - maybe it's alls wrong, but it really seem to do it's
-job.
-It's not working as a module because it uses rt6_lookup wich is not
-exported - but i found it suitable for this case.
-
-Could someone please review it?
-
-Patches against stock 2.4.20 and iptables-1.2.8 are at:
-http://duensch.org/xr/coding/linux-kernel/ip6t_ROUTE/
-
-    ...Frank
-
-- -- 
-http://www.gnupg.org         |         http://xraz.de/gpg.key
-Fingerpint: C1E1 0A5C 3733 F4F1 D59B 14F7 57C6 1784 8F78 8A2B
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE+xUc0V8YXhI94iisRAko+AKCRQJO1JR4r7+6j53rG/ty1UVx9/gCaA1vQ
-N/zfmjHst7H7+Zyglf/4JZI=
-=5/rD
------END PGP SIGNATURE-----
+Q2FuIGl0IHJlYWxpemUgdGhhdCByZWRpcmVjdCAgb24gIEJyaWdlPyENCg0KTXkgY29uZmlnIGFz
+IGZvbGxvdzoNCg0KaWZjb25maWcNCmJyMCAgICAgICBMaW5rIGVuY2FwOkV0aGVybmV0ICBIV2Fk
+ZHIgMDA6QUE6Q0Q6MDA6MDI6MzcgIA0KICAgICAgICAgIFVQIEJST0FEQ0FTVCBSVU5OSU5HIE1V
+TFRJQ0FTVCAgTVRVOjE1MDAgIE1ldHJpYzoxDQogICAgICAgICAgUlggcGFja2V0czoxNzE0NCBl
+cnJvcnM6MCBkcm9wcGVkOjAgb3ZlcnJ1bnM6MCBmcmFtZTowDQogICAgICAgICAgVFggcGFja2V0
+czozODAgZXJyb3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjAgY2FycmllcjowDQogICAgICAgICAg
+Y29sbGlzaW9uczowIHR4cXVldWVsZW46MCANCiAgICAgICAgICBSWCBieXRlczoyMDQwODQ4ICgx
+LjkgTWIpICBUWCBieXRlczoyMjIxNSAoMjEuNiBLYikNCg0KZXRoMCAgICAgIExpbmsgZW5jYXA6
+RXRoZXJuZXQgIEhXYWRkciAwMDpBQTpDRDowMDowMjozNyAgDQogICAgICAgICAgVVAgQlJPQURD
+QVNUIFJVTk5JTkcgTVVMVElDQVNUICBNVFU6MTUwMCAgTWV0cmljOjENCiAgICAgICAgICBSWCBw
+YWNrZXRzOjAgZXJyb3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjAgZnJhbWU6MA0KICAgICAgICAg
+IFRYIHBhY2tldHM6MTY1ODIgZXJyb3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjE2NTY2IGNhcnJp
+ZXI6MA0KICAgICAgICAgIGNvbGxpc2lvbnM6MCB0eHF1ZXVlbGVuOjEwMCANCiAgICAgICAgICBS
+WCBieXRlczowICgwLjAgYikgIFRYIGJ5dGVzOjIxOTAxMjUgKDIuMCBNYikNCiAgICAgICAgICBJ
+bnRlcnJ1cHQ6MTEgQmFzZSBhZGRyZXNzOjB4ZTAwMCANCg0KZXRoMSAgICAgIExpbmsgZW5jYXA6
+RXRoZXJuZXQgIEhXYWRkciAwMDpBQTpDRDowMDowMjozOCAgDQogICAgICAgICAgVVAgQlJPQURD
+QVNUIFJVTk5JTkcgTVVMVElDQVNUICBNVFU6MTUwMCAgTWV0cmljOjENCiAgICAgICAgICBSWCBw
+YWNrZXRzOjEyOTA5MiBlcnJvcnM6MCBkcm9wcGVkOjAgb3ZlcnJ1bnM6MCBmcmFtZToyDQogICAg
+ICAgICAgVFggcGFja2V0czozODAgZXJyb3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjAgY2Fycmll
+cjowDQogICAgICAgICAgY29sbGlzaW9uczoyNiB0eHF1ZXVlbGVuOjEwMCANCiAgICAgICAgICBS
+WCBieXRlczoxMDcwODE2NjUgKDEwMi4xIE1iKSAgVFggYnl0ZXM6MjIyMDkgKDIxLjYgS2IpDQog
+ICAgICAgICAgSW50ZXJydXB0OjEwIA0KDQpsbyAgICAgICAgTGluayBlbmNhcDpMb2NhbCBMb29w
+YmFjayAgDQogICAgICAgICAgaW5ldCBhZGRyOjEyNy4wLjAuMSAgTWFzazoyNTUuMC4wLjANCiAg
+ICAgICAgICBVUCBMT09QQkFDSyBSVU5OSU5HICBNVFU6MTY0MzYgIE1ldHJpYzoxDQogICAgICAg
+ICAgUlggcGFja2V0czowIGVycm9yczowIGRyb3BwZWQ6MCBvdmVycnVuczowIGZyYW1lOjANCiAg
+ICAgICAgICBUWCBwYWNrZXRzOjAgZXJyb3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjAgY2Fycmll
+cjowDQogICAgICAgICAgY29sbGlzaW9uczowIHR4cXVldWVsZW46MCANCiAgICAgICAgICBSWCBi
+eXRlczowICgwLjAgYikgIFRYIGJ5dGVzOjAgKDAuMCBiKQ0KDQphbmQgV2hlbiBJIGFkZCBhIHBv
+bGljeSBhcyBmb2xsb3c6DQoNCmlwdGFibGVzIC10IG5hdCAtQSBQUkVST1VUSU5HIC1qIFJFRElS
+RUNUIC0tdG8gIDEwODANCg0KDQpteSBrZXJuZWwgcGFuaWMhDQoNCiANCg==
