@@ -1,10 +1,8 @@
-From: Patrick McHardy <kaber@stinky.trash.net>
-Subject: [(last) RESEND]: two patches for ip6tables
-Date: Fri, 27 Dec 2002 17:38:54 +0100 (MET)
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: iptables u32 match code for review/testing/...
+Date: Fri, 27 Dec 2002 10:54:41 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.42.0212271730380.23041-300000@stinky.trash.net>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-851401618-1041007134=:23041"
+Message-ID: <200212271854.gBRIsf131987@isis.cs3-inc.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,279 +15,494 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
 
----559023410-851401618-1041007134=:23041
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Code below.  Doc is in the code for the kernel module.
+I've given up on the comment and multiple argument specs - 
+now all the tests are in the same argument.
+A few remaining questions are marked with "***" in the code.
+I look forward to suggestions/corrections etc.
 
-Hello list,
+==== <kernel>include/linux/netfilter_ipv4/ipt_u32.h
+#ifndef _IPT_U32_H
+#define _IPT_U32_H
+#include <linux/netfilter_ipv4/ip_tables.h>
 
-A couple of month ago I sent a couple of patches, namely two
-which added proc/net/ip_tables_matches and targets for ipv4 and ipv6
-respectively and a port of the "ownercmd" patch to ip6tables.
-The ipv4 proc patch was integrated into pom, the ipv6 one not. Since they
-are essentially the same i assume it got lost. I never received (as so
-often) any response for the ownercmd-v6 patch so here they are again.
-I would be happy if i would at least hear something like
-"rejected/crap/thanks" ..
+enum ipt_u32_ops
+{
+  IPT_U32_AND,
+  IPT_U32_LEFTSH,
+  IPT_U32_RIGHTSH,
+  IPT_U32_AT
+};
 
-Bye,
-Patrick
+/* *** What's this about?
+   Must fit inside union ipt_matchinfo: 16 bytes */
+struct ipt_u32_location_element
+{
+  u_int32_t number;
+  u_int8_t nextop;
+};
+struct ipt_u32_value_element
+{
+  u_int32_t min;
+  u_int32_t max;
+};
+/* *** any way to allow for an arbitrary number of elements?
+   for now I settle for a limit of 10 of each */
+#define U32MAXSIZE 10
+struct ipt_u32_test
+{
+  u_int8_t nnums;
+  struct ipt_u32_location_element location[U32MAXSIZE+1];
+  u_int8_t nvalues;
+  struct ipt_u32_value_element value[U32MAXSIZE+1];
+};
 
+struct ipt_u32
+{
+  u_int8_t ntests;
+  struct ipt_u32_test tests[U32MAXSIZE+1];
+};
 
----559023410-851401618-1041007134=:23041
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="ownercmd-v6-pom.diff"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.GSO.4.42.0212271738540.23041@stinky.trash.net>
-Content-Description: 
-Content-Disposition: attachment; filename="ownercmd-v6-pom.diff"
+#endif /*_IPT_U32_H*/
 
-ZGlmZiAtdXJOIHBhdGNoLW8tbWF0aWMtY2xlYW4vdXNlcnNwYWNlL293bmVy
-Y21kLnBhdGNoLmlwdjYgcGF0Y2gtby1tYXRpYy91c2Vyc3BhY2Uvb3duZXJj
-bWQucGF0Y2guaXB2Ng0KLS0tIHBhdGNoLW8tbWF0aWMtY2xlYW4vdXNlcnNw
-YWNlL293bmVyY21kLnBhdGNoLmlwdjYJMTk3MC0wMS0wMSAwMTowMDowMC4w
-MDAwMDAwMDAgKzAxMDANCisrKyBwYXRjaC1vLW1hdGljL3VzZXJzcGFjZS9v
-d25lcmNtZC5wYXRjaC5pcHY2CTIwMDItMDgtMzAgMDI6NDg6NTEuMDAwMDAw
-MDAwICswMjAwDQpAQCAtMCwwICsxLDczIEBADQorZGlmZiAtdXJOIC4uLy4u
-L2tlcm5lbC9saW51eC0yLjQuMjAtcHJlNC9pbmNsdWRlL2xpbnV4L25ldGZp
-bHRlcl9pcHY2L2lwNnRfb3duZXIuaCBsaW51eC0yLjQuMjAtcHJlNC9pbmNs
-dWRlL2xpbnV4L25ldGZpbHRlcl9pcHY2L2lwNnRfb3duZXIuaA0KKy0tLSAu
-Li8uLi9rZXJuZWwvbGludXgtMi40LjIwLXByZTQvaW5jbHVkZS9saW51eC9u
-ZXRmaWx0ZXJfaXB2Ni9pcDZ0X293bmVyLmgJMjAwMC0wNi0yMCAyMzozMjoy
-Ny4wMDAwMDAwMDAgKzAyMDANCisrKysgbGludXgtMi40LjIwLXByZTQvaW5j
-bHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2Ni9pcDZ0X293bmVyLmgJMjAwMi0w
-OC0zMCAwMjowNToxOS4wMDAwMDAwMDAgKzAyMDANCitAQCAtNiwxMiArNiwx
-NCBAQA0KKyAjZGVmaW5lIElQNlRfT1dORVJfR0lECTB4MDINCisgI2RlZmlu
-ZSBJUDZUX09XTkVSX1BJRAkweDA0DQorICNkZWZpbmUgSVA2VF9PV05FUl9T
-SUQJMHgwOA0KKysjZGVmaW5lIElQNlRfT1dORVJfQ09NTSAweDEwDQorIA0K
-KyBzdHJ1Y3QgaXA2dF9vd25lcl9pbmZvIHsNCisgICAgIHVpZF90IHVpZDsN
-CisgICAgIGdpZF90IGdpZDsNCisgICAgIHBpZF90IHBpZDsNCisgICAgIHBp
-ZF90IHNpZDsNCisrICAgIGNoYXIgY29tbVsxNl07DQorICAgICB1X2ludDhf
-dCBtYXRjaCwgaW52ZXJ0OwkvKiBmbGFncyAqLw0KKyB9Ow0KKyANCitkaWZm
-IC11ck4gLi4vLi4va2VybmVsL2xpbnV4LTIuNC4yMC1wcmU0L25ldC9pcHY2
-L25ldGZpbHRlci9pcDZ0X293bmVyLmMgbGludXgtMi40LjIwLXByZTQvbmV0
-L2lwdjYvbmV0ZmlsdGVyL2lwNnRfb3duZXIuYw0KKy0tLSAuLi8uLi9rZXJu
-ZWwvbGludXgtMi40LjIwLXByZTQvbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRf
-b3duZXIuYwkyMDAxLTEwLTMxIDAwOjA4OjEyLjAwMDAwMDAwMCArMDEwMA0K
-KysrKyBsaW51eC0yLjQuMjAtcHJlNC9uZXQvaXB2Ni9uZXRmaWx0ZXIvaXA2
-dF9vd25lci5jCTIwMDItMDgtMzAgMDI6MDQ6MDQuMDAwMDAwMDAwICswMjAw
-DQorQEAgLTE2LDYgKzE2LDM4IEBADQorIE1PRFVMRV9MSUNFTlNFKCJHUEwi
-KTsNCisgDQorIHN0YXRpYyBpbnQNCisrbWF0Y2hfY29tbShjb25zdCBzdHJ1
-Y3Qgc2tfYnVmZiAqc2tiLCBjb25zdCBjaGFyICpjb21tKQ0KKyt7DQorKwlz
-dHJ1Y3QgdGFza19zdHJ1Y3QgKnA7DQorKwlzdHJ1Y3QgZmlsZXNfc3RydWN0
-ICpmaWxlczsNCisrCWludCBpOw0KKysNCisrCXJlYWRfbG9jaygmdGFza2xp
-c3RfbG9jayk7DQorKwlmb3JfZWFjaF90YXNrKHApIHsNCisrCQlpZihzdHJu
-Y21wKHAtPmNvbW0sIGNvbW0sIHNpemVvZihwLT5jb21tKSkpDQorKwkJCWNv
-bnRpbnVlOw0KKysNCisrCQl0YXNrX2xvY2socCk7DQorKwkJZmlsZXMgPSBw
-LT5maWxlczsNCisrCQlpZihmaWxlcykgew0KKysJCQlyZWFkX2xvY2soJmZp
-bGVzLT5maWxlX2xvY2spOw0KKysJCQlmb3IgKGk9MDsgaSA8IGZpbGVzLT5t
-YXhfZmRzOyBpKyspIHsNCisrCQkJCWlmIChmY2hlY2tfZmlsZXMoZmlsZXMs
-IGkpID09IHNrYi0+c2stPnNvY2tldC0+ZmlsZSkgew0KKysJCQkJCXJlYWRf
-dW5sb2NrKCZmaWxlcy0+ZmlsZV9sb2NrKTsNCisrCQkJCQl0YXNrX3VubG9j
-ayhwKTsNCisrCQkJCQlyZWFkX3VubG9jaygmdGFza2xpc3RfbG9jayk7DQor
-KwkJCQkJcmV0dXJuIDE7DQorKwkJCQl9DQorKwkJCX0NCisrCQkJcmVhZF91
-bmxvY2soJmZpbGVzLT5maWxlX2xvY2spOw0KKysJCX0NCisrCQl0YXNrX3Vu
-bG9jayhwKTsNCisrCX0NCisrCXJlYWRfdW5sb2NrKCZ0YXNrbGlzdF9sb2Nr
-KTsNCisrCXJldHVybiAwOw0KKyt9DQorKw0KKytzdGF0aWMgaW50DQorIG1h
-dGNoX3BpZChjb25zdCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBwaWRfdCBwaWQp
-DQorIHsNCisgCXN0cnVjdCB0YXNrX3N0cnVjdCAqcDsNCitAQCAtMTE5LDYg
-KzE1MSwxMiBAQA0KKyAJCQlyZXR1cm4gMDsNCisgCX0NCisgDQorKwlpZihp
-bmZvLT5tYXRjaCAmIElQNlRfT1dORVJfQ09NTSkgew0KKysJCWlmICghbWF0
-Y2hfY29tbShza2IsIGluZm8tPmNvbW0pIF4NCisrCQkgICAgISEoaW5mby0+
-aW52ZXJ0ICYgSVA2VF9PV05FUl9DT01NKSkNCisrCQkJcmV0dXJuIDA7DQor
-Kwl9DQorKw0KKyAJcmV0dXJuIDE7DQorIH0NCisgDQpkaWZmIC11ck4gcGF0
-Y2gtby1tYXRpYy1jbGVhbi91c2Vyc3BhY2Uvb3duZXJjbWQucGF0Y2guaXB2
-Ni5oZWxwIHBhdGNoLW8tbWF0aWMvdXNlcnNwYWNlL293bmVyY21kLnBhdGNo
-LmlwdjYuaGVscA0KLS0tIHBhdGNoLW8tbWF0aWMtY2xlYW4vdXNlcnNwYWNl
-L293bmVyY21kLnBhdGNoLmlwdjYuaGVscAkxOTcwLTAxLTAxIDAxOjAwOjAw
-LjAwMDAwMDAwMCArMDEwMA0KKysrIHBhdGNoLW8tbWF0aWMvdXNlcnNwYWNl
-L293bmVyY21kLnBhdGNoLmlwdjYuaGVscAkyMDAyLTA4LTMwIDAyOjQ5OjEw
-LjAwMDAwMDAwMCArMDIwMA0KQEAgLTAsMCArMSwxOCBAQA0KK0F1dGhvcjog
-UGF0cmljaCBNY0hhcmR5IDxrYWJlckB0cmFzaC5uZXQ+DQorCVBvcnRlZCBm
-cm9tIE1hcmMgQm91Y2hlcidzIGlwdjQgdmVyc2lvbg0KK1N0YXR1czogVW50
-ZXN0ZWQNCisNCitUaGlzIHBhdGNoIGFkZHMgc3VwcG9ydCBmb3IgbG9jYWwg
-cHJvY2VzcyBuYW1lIG1hdGNoaW5nDQordG8gdGhlIG93bmVyIG1hdGNoICgt
-LWNtZC1vd25lciBvcHRpb24pLg0KKw0KK1lvdSBjYW4gdXNlIHRoaXMgZmVh
-dHVyZSB0byBmaWx0ZXIgY29ubmVjdGlvbnMgZm9yd2FyZGVkIGJ5DQoreW91
-ciBzc2ggZGFlbW9uIHdpdGggcnVsZXMgbGlrZToNCisNCitpcDZ0YWJsZXMg
-LU4gQ2hlY2tTU0hTeW5zDQorIyBhbGxvdyBmb3J3YXJkZWQgY29ubmVjdGlv
-bnMgdG8gcnN5bmMgcG9ydCBvbiAxOTIuMTY4LjEuMQ0KK2lwNnRhYmxlcyAt
-QSBDaGVja1NTSFN5bnMgLXAgdGNwIC1kIDE5Mi4xNjguMS4xIC0tZHBvcnQg
-ODczIC1qIFJFVFVSTg0KKyMgcmVmdXNlIGV2ZXJ5dGhpbmcgZWxzZQ0KK2lw
-NnRhYmxlcyAtQSBDaGVja1NTSFN5bnMgLWogUkVKRUNUIC0tcmVqZWN0LXdp
-dGggdGNwLXJlc2V0DQorDQoraXA2dGFibGVzIC1JIE9VVFBVVCAtcCB0Y3Ag
-LS1zeW4gLW0gb3duZXIgLS1jbWQtb3duZXIgc3NoZCAtaiBDaGVja1NTSFN5
-bnMNCisNCmRpZmYgLXVyTiBwYXRjaC1vLW1hdGljLWNsZWFuL3VzZXJzcGFj
-ZS9vd25lcmNtZC5wYXRjaC5pcHY2LnVzZXJzcGFjZSBwYXRjaC1vLW1hdGlj
-L3VzZXJzcGFjZS9vd25lcmNtZC5wYXRjaC5pcHY2LnVzZXJzcGFjZQ0KLS0t
-IHBhdGNoLW8tbWF0aWMtY2xlYW4vdXNlcnNwYWNlL293bmVyY21kLnBhdGNo
-LmlwdjYudXNlcnNwYWNlCTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAw
-ICswMTAwDQorKysgcGF0Y2gtby1tYXRpYy91c2Vyc3BhY2Uvb3duZXJjbWQu
-cGF0Y2guaXB2Ni51c2Vyc3BhY2UJMjAwMi0wOC0zMCAwMjo0ODo1MS4wMDAw
-MDAwMDAgKzAyMDANCkBAIC0wLDAgKzEsOTMgQEANCistLS0gdXNlcnNwYWNl
-L2V4dGVuc2lvbnMvbGliaXA2dF9vd25lci5jCTIwMDItMDUtMjkgMTU6MDg6
-MTYuMDAwMDAwMDAwICswMjAwDQorKysrIHVzZXJzcGFjZS9leHRlbnNpb25z
-L2xpYmlwNnRfb3duZXIuYwkyMDAyLTA4LTMwIDAyOjQzOjQzLjAwMDAwMDAw
-MCArMDIwMA0KK0BAIC0xNCwxNCArMTQsMjYgQEANCisgc3RhdGljIHZvaWQN
-CisgaGVscCh2b2lkKQ0KKyB7DQorKyNpZmRlZiBJUDZUX09XTkVSX0NPTU0N
-CisgCXByaW50ZigNCisgIk9XTkVSIG1hdGNoIHYlcyBvcHRpb25zOlxuIg0K
-KyAiWyFdIC0tdWlkLW93bmVyIHVzZXJpZCAgICAgTWF0Y2ggbG9jYWwgdWlk
-XG4iDQorICJbIV0gLS1naWQtb3duZXIgZ3JvdXBpZCAgICBNYXRjaCBsb2Nh
-bCBnaWRcbiINCisgIlshXSAtLXBpZC1vd25lciBwcm9jZXNzaWQgIE1hdGNo
-IGxvY2FsIHBpZFxuIg0KKyAiWyFdIC0tc2lkLW93bmVyIHNlc3Npb25pZCAg
-TWF0Y2ggbG9jYWwgc2lkXG4iDQorKyJbIV0gLS1jbWQtb3duZXIgbmFtZSAg
-ICAgICBNYXRjaCBsb2NhbCBjb21tYW5kIG5hbWVcbiINCisgIlxuIiwNCisg
-SVBUQUJMRVNfVkVSU0lPTik7DQorKyNlbHNlDQorKwlwcmludGYoDQorKyJP
-V05FUiBtYXRjaCB2JXMgb3B0aW9uczpcbiINCisrIlshXSAtLXVpZC1vd25l
-ciB1c2VyaWQgICAgIE1hdGNoIGxvY2FsIHVpZFxuIg0KKysiWyFdIC0tZ2lk
-LW93bmVyIGdyb3VwaWQgICAgTWF0Y2ggbG9jYWwgZ2lkXG4iDQorKyJbIV0g
-LS1waWQtb3duZXIgcHJvY2Vzc2lkICBNYXRjaCBsb2NhbCBwaWRcbiINCisr
-IlshXSAtLXNpZC1vd25lciBzZXNzaW9uaWQgIE1hdGNoIGxvY2FsIHNpZFxu
-Ig0KKysiXG4iLA0KKytJUFRBQkxFU19WRVJTSU9OKTsNCisrI2VuZGlmIC8q
-IElQNlRfT1dORVJfQ09NTSAqLw0KKyB9DQorIA0KKyBzdGF0aWMgc3RydWN0
-IG9wdGlvbiBvcHRzW10gPSB7DQorQEAgLTI5LDYgKzQxLDkgQEANCisgCXsg
-ImdpZC1vd25lciIsIDEsIDAsICcyJyB9LA0KKyAJeyAicGlkLW93bmVyIiwg
-MSwgMCwgJzMnIH0sDQorIAl7ICJzaWQtb3duZXIiLCAxLCAwLCAnNCcgfSwN
-CisrI2lmZGVmIElQNlRfT1dORVJfQ09NTQ0KKysJeyAiY21kLW93bmVyIiwg
-MSwgMCwgJzUnIH0sDQorKyNlbmRpZg0KKyAJezB9DQorIH07DQorIA0KK0BA
-IC0xMDcsNiArMTIyLDIxIEBADQorIAkJKmZsYWdzID0gMTsNCisgCQlicmVh
-azsNCisgDQorKyNpZmRlZiBJUDZUX09XTkVSX0NPTU0NCisrCWNhc2UgJzUn
-Og0KKysJCWNoZWNrX2ludmVyc2Uob3B0YXJnLCAmaW52ZXJ0LCAmb3B0aW5k
-LCAwKTsNCisrCQlpZihzdHJsZW4ob3B0YXJnKSA+IHNpemVvZihvd25lcmlu
-Zm8tPmNvbW0pKQ0KKysJCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVN
-LCAiT1dORVIgQ01EIGAlcycgdG9vIGxvbmcsIG1heCAlZCBjaGFyYWN0ZXJz
-Iiwgb3B0YXJnLCBzaXplb2Yob3duZXJpbmZvLT5jb21tKSk7DQorKwkJDQor
-KwkJc3RybmNweShvd25lcmluZm8tPmNvbW0sIG9wdGFyZywgc2l6ZW9mKG93
-bmVyaW5mby0+Y29tbSkpOw0KKysNCisrCQlpZiAoaW52ZXJ0KQ0KKysJCQlv
-d25lcmluZm8tPmludmVydCB8PSBJUDZUX09XTkVSX0NPTU07DQorKwkJb3du
-ZXJpbmZvLT5tYXRjaCB8PSBJUDZUX09XTkVSX0NPTU07DQorKwkJKmZsYWdz
-ID0gMTsNCisrCQlicmVhazsNCisrI2VuZGlmDQorKwkJDQorIAlkZWZhdWx0
-Og0KKyAJCXJldHVybiAwOw0KKyAJfQ0KK0BAIC0xNTQsNiArMTg0LDExIEBA
-DQorIAkJY2FzZSBJUDZUX09XTkVSX1NJRDoNCisgCQkJcHJpbnRmKCIldSAi
-LCBpbmZvLT5zaWQpOw0KKyAJCQlicmVhazsNCisrI2lmZGVmIElQNlRfT1dO
-RVJfQ09NTQ0KKysJCWNhc2UgSVA2VF9PV05FUl9DT01NOg0KKysJCQlwcmlu
-dGYoIiUuKnMgIiwgKGludClzaXplb2YoaW5mby0+Y29tbSksIGluZm8tPmNv
-bW0pOw0KKysJCQlicmVhazsNCisrI2VuZGlmDQorIAkJZGVmYXVsdDoNCisg
-CQkJYnJlYWs7DQorIAkJfQ0KK0BAIC0xODEsNiArMjE2LDkgQEANCisgCXBy
-aW50X2l0ZW0oaW5mbywgSVA2VF9PV05FUl9HSUQsIG51bWVyaWMsICJPV05F
-UiBHSUQgbWF0Y2ggIik7DQorIAlwcmludF9pdGVtKGluZm8sIElQNlRfT1dO
-RVJfUElELCBudW1lcmljLCAiT1dORVIgUElEIG1hdGNoICIpOw0KKyAJcHJp
-bnRfaXRlbShpbmZvLCBJUDZUX09XTkVSX1NJRCwgbnVtZXJpYywgIk9XTkVS
-IFNJRCBtYXRjaCAiKTsNCisrI2lmZGVmIElQNlRfT1dORVJfQ09NTQ0KKysJ
-cHJpbnRfaXRlbShpbmZvLCBJUDZUX09XTkVSX0NPTU0sIG51bWVyaWMsICJP
-V05FUiBDTUQgbWF0Y2ggIik7DQorKyNlbmRpZg0KKyB9DQorIA0KKyAvKiBT
-YXZlcyB0aGUgdW5pb24gaXA2dF9tYXRjaGluZm8gaW4gcGFyc2FibGUgZm9y
-bSB0byBzdGRvdXQuICovDQorQEAgLTE5Myw2ICsyMzEsOSBAQA0KKyAJcHJp
-bnRfaXRlbShpbmZvLCBJUDZUX09XTkVSX0dJRCwgMCwgIi0tZ2lkLW93bmVy
-ICIpOw0KKyAJcHJpbnRfaXRlbShpbmZvLCBJUDZUX09XTkVSX1BJRCwgMCwg
-Ii0tcGlkLW93bmVyICIpOw0KKyAJcHJpbnRfaXRlbShpbmZvLCBJUDZUX09X
-TkVSX1NJRCwgMCwgIi0tc2lkLW93bmVyICIpOw0KKysjaWZkZWYgSVA2VF9P
-V05FUl9DT01NDQorKwlwcmludF9pdGVtKGluZm8sIElQNlRfT1dORVJfQ09N
-TSwgMCwgIi0tY21kLW93bmVyICIpOw0KKysjZW5kaWYNCisgfQ0KKyANCisg
-c3RhdGljDQo=
----559023410-851401618-1041007134=:23041
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="proc-v6-pom.diff"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.GSO.4.42.0212271738541.23041@stinky.trash.net>
-Content-Description: 
-Content-Disposition: attachment; filename="proc-v6-pom.diff"
+==== <kernel>net/ipv4/netfilter/ipt_u32.c
+/* Kernel module to match u32 packet content. */
 
-ZGlmZiAtdXJOIHBhdGNoLW8tbWF0aWMtY2xlYW4vZXh0cmEvaXA2X3RhYmxl
-cy1wcm9jLnBhdGNoLmlwdjYuaGVscCBwYXRjaC1vLW1hdGljL2V4dHJhL2lw
-Nl90YWJsZXMtcHJvYy5wYXRjaC5pcHY2LmhlbHANCi0tLSBwYXRjaC1vLW1h
-dGljLWNsZWFuL2V4dHJhL2lwNl90YWJsZXMtcHJvYy5wYXRjaC5pcHY2Lmhl
-bHAJMTk3MC0wMS0wMSAwMTowMDowMC4wMDAwMDAwMDAgKzAxMDANCisrKyBw
-YXRjaC1vLW1hdGljL2V4dHJhL2lwNl90YWJsZXMtcHJvYy5wYXRjaC5pcHY2
-LmhlbHAJMjAwMi0wOC0zMCAwMTo0MjoyMS4wMDAwMDAwMDAgKzAyMDANCkBA
-IC0wLDAgKzEsNiBAQA0KK0F1dGhvcjogUGF0cmljayBNY0hhcmR5DQorU3Rh
-dHVzOiBXb3JraW5nDQorDQorVGhpcyBwYXRjaCBjcmVhdGVzIHR3byBuZXcg
-ZmlsZXMgaW4gL3Byb2MvbmV0LCAiaXA2X3RhYmxlc19tYXRjaGVzIiBhbmQg
-DQorImlwNnRhYmxlc190YXJnZXRzIiB3aGljaCBjb250YWluIHRoZSBuYW1l
-cyBvZiBhbGwgbG9hZGVkIG1hdGNoZXMvdGFyZ2V0cw0KK2xpa2UgdGhlIGZp
-bGUgaXA2X3RhYmxlc19uYW1lcyBhbHJlYWR5IGRvZXMgd2l0aCBsb2FkZWQg
-dGFibGVzLg0KZGlmZiAtdXJOIHBhdGNoLW8tbWF0aWMtY2xlYW4vZXh0cmEv
-aXA2X3RhYmxlcy1wcm9jLnBhdGNoLmlwdjYgcGF0Y2gtby1tYXRpYy9leHRy
-YS9pcDZfdGFibGVzLXByb2MucGF0Y2guaXB2Ng0KLS0tIHBhdGNoLW8tbWF0
-aWMtY2xlYW4vZXh0cmEvaXA2X3RhYmxlcy1wcm9jLnBhdGNoLmlwdjYJMTk3
-MC0wMS0wMSAwMTowMDowMC4wMDAwMDAwMDAgKzAxMDANCisrKyBwYXRjaC1v
-LW1hdGljL2V4dHJhL2lwNl90YWJsZXMtcHJvYy5wYXRjaC5pcHY2CTIwMDIt
-MDgtMzAgMDE6NDI6MzEuMDAwMDAwMDAwICswMjAwDQpAQCAtMCwwICsxLDEx
-NiBAQA0KK2RpZmYgLXVyTiAuLi9rZXJuZWwvbGludXgtMi40LjIwLXByZTQv
-bmV0L2lwdjYvbmV0ZmlsdGVyL2lwNl90YWJsZXMuYyBsaW51eC0yLjQuMjAt
-cHJlNC9uZXQvaXB2Ni9uZXRmaWx0ZXIvaXA2X3RhYmxlcy5jDQorLS0tIC4u
-L2tlcm5lbC9saW51eC0yLjQuMjAtcHJlNC9uZXQvaXB2Ni9uZXRmaWx0ZXIv
-aXA2X3RhYmxlcy5jCTIwMDItMDgtMjkgMDE6NTY6MTMuMDAwMDAwMDAwICsw
-MjAwDQorKysrIGxpbnV4LTIuNC4yMC1wcmU0L25ldC9pcHY2L25ldGZpbHRl
-ci9pcDZfdGFibGVzLmMJMjAwMi0wOC0zMCAwMDowOToyNy4wMDAwMDAwMDAg
-KzAyMDANCitAQCAtMTczOSwxNCArMTczOSwxNSBAQA0KKyA9IHsgeyBOVUxM
-LCBOVUxMIH0sICJpY21wNiIsICZpY21wNl9tYXRjaCwgJmljbXA2X2NoZWNr
-ZW50cnksIE5VTEwgfTsNCisgDQorICNpZmRlZiBDT05GSUdfUFJPQ19GUw0K
-Ky1zdGF0aWMgaW5saW5lIGludCBwcmludF9uYW1lKGNvbnN0IHN0cnVjdCBp
-cDZ0X3RhYmxlICp0LA0KKytzdGF0aWMgaW5saW5lIGludCBwcmludF9uYW1l
-KGNvbnN0IGNoYXIgKmksDQorIAkJCSAgICAgb2ZmX3Qgc3RhcnRfb2Zmc2V0
-LCBjaGFyICpidWZmZXIsIGludCBsZW5ndGgsDQorIAkJCSAgICAgb2ZmX3Qg
-KnBvcywgdW5zaWduZWQgaW50ICpjb3VudCkNCisgew0KKyAJaWYgKCgqY291
-bnQpKysgPj0gc3RhcnRfb2Zmc2V0KSB7DQorIAkJdW5zaWduZWQgaW50IG5h
-bWVsZW47DQorIA0KKy0JCW5hbWVsZW4gPSBzcHJpbnRmKGJ1ZmZlciArICpw
-b3MsICIlc1xuIiwgdC0+bmFtZSk7DQorKwkJbmFtZWxlbiA9IHNwcmludGYo
-YnVmZmVyICsgKnBvcywgIiVzXG4iLA0KKysJCQkJICBpICsgc2l6ZW9mKHN0
-cnVjdCBsaXN0X2hlYWQpKTsNCisgCQlpZiAoKnBvcyArIG5hbWVsZW4gPiBs
-ZW5ndGgpIHsNCisgCQkJLyogU3RvcCBpdGVyYXRpbmcgKi8NCisgCQkJcmV0
-dXJuIDE7DQorQEAgLTE3NjQsNyArMTc2NSw3IEBADQorIAlpZiAoZG93bl9p
-bnRlcnJ1cHRpYmxlKCZpcDZ0X211dGV4KSAhPSAwKQ0KKyAJCXJldHVybiAw
-Ow0KKyANCistCUxJU1RfRklORCgmaXA2dF90YWJsZXMsIHByaW50X25hbWUs
-IHN0cnVjdCBpcDZ0X3RhYmxlICosDQorKwlMSVNUX0ZJTkQoJmlwNnRfdGFi
-bGVzLCBwcmludF9uYW1lLCBjaGFyICosDQorIAkJICBvZmZzZXQsIGJ1ZmZl
-ciwgbGVuZ3RoLCAmcG9zLCAmY291bnQpOw0KKyANCisgCXVwKCZpcDZ0X211
-dGV4KTsNCitAQCAtMTc3Myw2ICsxNzc0LDQ2IEBADQorIAkqc3RhcnQ9KGNo
-YXIgKikoKHVuc2lnbmVkIGxvbmcpY291bnQtb2Zmc2V0KTsNCisgCXJldHVy
-biBwb3M7DQorIH0NCisrDQorK3N0YXRpYyBpbnQgaXA2dF9nZXRfdGFyZ2V0
-cyhjaGFyICpidWZmZXIsIGNoYXIgKipzdGFydCwgb2ZmX3Qgb2Zmc2V0LCBp
-bnQgbGVuZ3RoKQ0KKyt7DQorKwlvZmZfdCBwb3MgPSAwOw0KKysJdW5zaWdu
-ZWQgaW50IGNvdW50ID0gMDsNCisrDQorKwlpZiAoZG93bl9pbnRlcnJ1cHRp
-YmxlKCZpcDZ0X211dGV4KSAhPSAwKQ0KKysJCXJldHVybiAwOw0KKysNCisr
-CUxJU1RfRklORCgmaXA2dF90YXJnZXQsIHByaW50X25hbWUsIGNoYXIgKiwN
-CisrCQkgIG9mZnNldCwgYnVmZmVyLCBsZW5ndGgsICZwb3MsICZjb3VudCk7
-DQorKw0KKysJdXAoJmlwNnRfbXV0ZXgpOw0KKysNCisrCSpzdGFydCA9IChj
-aGFyICopKCh1bnNpZ25lZCBsb25nKWNvdW50IC0gb2Zmc2V0KTsNCisrCXJl
-dHVybiBwb3M7DQorK30NCisrDQorK3N0YXRpYyBpbnQgaXA2dF9nZXRfbWF0
-Y2hlcyhjaGFyICpidWZmZXIsIGNoYXIgKipzdGFydCwgb2ZmX3Qgb2Zmc2V0
-LCBpbnQgbGVuZ3RoKQ0KKyt7DQorKwlvZmZfdCBwb3MgPSAwOw0KKysJdW5z
-aWduZWQgaW50IGNvdW50ID0gMDsNCisrDQorKwlpZiAoZG93bl9pbnRlcnJ1
-cHRpYmxlKCZpcDZ0X211dGV4KSAhPSAwKQ0KKysJCXJldHVybiAwOw0KKysN
-CisrCUxJU1RfRklORCgmaXA2dF9tYXRjaCwgcHJpbnRfbmFtZSwgY2hhciAq
-LA0KKysJCSAgb2Zmc2V0LCBidWZmZXIsIGxlbmd0aCwgJnBvcywgJmNvdW50
-KTsNCisrDQorKwl1cCgmaXA2dF9tdXRleCk7DQorKw0KKysJKnN0YXJ0ID0g
-KGNoYXIgKikoKHVuc2lnbmVkIGxvbmcpY291bnQgLSBvZmZzZXQpOw0KKysJ
-cmV0dXJuIHBvczsNCisrfQ0KKysNCisrc3RhdGljIHN0cnVjdCB7IGNoYXIg
-Km5hbWU7IGdldF9pbmZvX3QgKmdldF9pbmZvOyB9IGlwNnRfcHJvY19lbnRy
-eVtdID0NCisreyB7ICJpcDZfdGFibGVzX25hbWVzIiwgaXA2dF9nZXRfdGFi
-bGVzIH0sDQorKyAgeyAiaXA2X3RhYmxlc190YXJnZXRzIiwgaXA2dF9nZXRf
-dGFyZ2V0cyB9LA0KKysgIHsgImlwNl90YWJsZXNfbWF0Y2hlcyIsIGlwNnRf
-Z2V0X21hdGNoZXMgfSwNCisrICB7IE5VTEwsIE5VTEx9IH07DQorICNlbmRp
-ZiAvKkNPTkZJR19QUk9DX0ZTKi8NCisgDQorIHN0YXRpYyBpbnQgX19pbml0
-IGluaXQodm9pZCkNCitAQCAtMTc5OCwxMyArMTgzOSwxOSBAQA0KKyAjaWZk
-ZWYgQ09ORklHX1BST0NfRlMNCisgCXsNCisgCQlzdHJ1Y3QgcHJvY19kaXJf
-ZW50cnkgKnByb2M7DQorLQkJcHJvYyA9IHByb2NfbmV0X2NyZWF0ZSgiaXA2
-X3RhYmxlc19uYW1lcyIsIDAsDQorLQkJCQkJaXA2dF9nZXRfdGFibGVzKTsN
-CistCQlpZiAoIXByb2MpIHsNCistCQkJbmZfdW5yZWdpc3Rlcl9zb2Nrb3B0
-KCZpcDZ0X3NvY2tvcHRzKTsNCistCQkJcmV0dXJuIC1FTk9NRU07DQorKwkJ
-aW50IGk7DQorKw0KKysJCWZvciAoaSA9IDA7IGlwNnRfcHJvY19lbnRyeVtp
-XS5uYW1lOyBpKyspIHsNCisrCQkJcHJvYyA9IHByb2NfbmV0X2NyZWF0ZShp
-cDZ0X3Byb2NfZW50cnlbaV0ubmFtZSwgMCwNCisrCQkJCQkgICAgICAgaXA2
-dF9wcm9jX2VudHJ5W2ldLmdldF9pbmZvKTsNCisrCQkJaWYgKCFwcm9jKSB7
-DQorKwkJCQl3aGlsZSAoLS1pID49IDApDQorKwkJCQkgICAgICAgcHJvY19u
-ZXRfcmVtb3ZlKGlwNnRfcHJvY19lbnRyeVtpXS5uYW1lKTsNCisrCQkJCW5m
-X3VucmVnaXN0ZXJfc29ja29wdCgmaXA2dF9zb2Nrb3B0cyk7DQorKwkJCQly
-ZXR1cm4gLUVOT01FTTsNCisrCQkJfQ0KKysJCQlwcm9jLT5vd25lciA9IFRI
-SVNfTU9EVUxFOw0KKyAJCX0NCistCQlwcm9jLT5vd25lciA9IFRISVNfTU9E
-VUxFOw0KKyAJfQ0KKyAjZW5kaWYNCisgDQorQEAgLTE4MTYsNyArMTg2Mywx
-MSBAQA0KKyB7DQorIAluZl91bnJlZ2lzdGVyX3NvY2tvcHQoJmlwNnRfc29j
-a29wdHMpOw0KKyAjaWZkZWYgQ09ORklHX1BST0NfRlMNCistCXByb2NfbmV0
-X3JlbW92ZSgiaXA2X3RhYmxlc19uYW1lcyIpOw0KKysJew0KKysJCWludCBp
-Ow0KKysJCWZvciAoaSA9IDA7IGlwNnRfcHJvY19lbnRyeVtpXS5uYW1lOyBp
-KyspDQorKwkJCXByb2NfbmV0X3JlbW92ZShpcDZ0X3Byb2NfZW50cnlbaV0u
-bmFtZSk7DQorKwl9DQorICNlbmRpZg0KKyB9DQorIA0K
----559023410-851401618-1041007134=:23041--
+/* 
+U32 tests whether quantities of up to 4 bytes extracted from a packet 
+have specified values.  The specification of what to extract is general 
+enough to find data at given offsets from tcp headers or payloads.
+
+ --u32 tests
+ The argument amounts to a program in a small language described below.
+ tests := location = value |  tests && location = value
+ value := range | value , range
+ range := number | number : number
+  a single number, n, is interpreted the same as n:n
+  n:m is interpreted as the range of numbers >=n and <=m
+ location := number | location operator number
+ operator := & | << | >> | @
+
+ The operators &, <<, >>, && mean the same as in c.  The = is really a set
+ membership operator and the value syntax describes a set.  The @ operator
+ is what allows moving to the next header and is described further below.
+
+ *** Until I can find out how to avoid it, there are some artificial limits
+ on the size of the tests:
+ - no more than 10 ='s (and 9 &&'s) in the u32 argument
+ - no more than 10 ranges (and 9 commas) per value
+ - no more than 10 numbers (and 9 operators) per location
+
+ To describe the meaning of location, imagine the following machine that
+ interprets it.  There are three registers:
+  A is of type char*, initially the address of the IP header
+  B and C are unsigned 32 bit integers, initially zero
+
+  The instructions are:
+   number	B = number;
+   		C = (*(A+B)<<24)+(*(A+B+1)<<16)+(*(A+B+2)<<8)+*(A+B+3)
+   &number	C = C&number
+   <<number	C = C<<number
+   >>number	C = C>>number
+   @number	A = A+C; then do the instruction number
+  Any access of memory outside [skb->head,skb->end] causes the match to fail.
+  Otherwise the result of the computation is the final value of C.
+
+ Whitespace is allowed but not required in the tests.
+ However the characters that do occur there are likely to require
+ shell quoting, so it's a good idea to enclose the arguments in quotes.
+
+Example:
+ match IP packets with total length >= 256
+ The IP header contains a total length field in bytes 2-3.
+ --u32 "0&0xFFFF=0x100:0xFFFF" 
+ read bytes 0-3
+ AND that with FFFF (giving bytes 2-3),
+ and test whether that's in the range [0x100:0xFFFF]
+
+Example: (more realistic, hence more complicated)
+ match icmp packets with icmp type 0
+ First test that it's an icmp packet, true iff byte 9 (protocol) = 1
+ --u32 "6&0xFF=1 && ...
+ read bytes 6-9, use & to throw away bytes 6-8 and compare the result to 1
+ Next test that it's not a fragment.
+  (If so it might be part of such a packet but we can't always tell.)
+  n.b. This test is generally needed if you want to match anything
+  beyond the IP header.
+ The last 6 bits of byte 6 and all of byte 7 are 0 iff this is a complete
+ packet (not a fragment).  Alternatively, you can allow first fragments
+ by only testing the last 5 bits of byte 6.
+ ... 4&0x3FFF=0 && ...
+ Last test: the first byte past the IP header (the type) is 0
+ This is where we have to use the @syntax.  The length of the IP header
+ (IHL) in 32 bit words is stored in the right half of byte 0 of the
+ IP header itself.
+ ... 0>>22&0x3C@0>>24=0"
+ The first 0 means read bytes 0-3,
+ >>22 means shift that 22 bits to the right.  Shifting 24 bits would give
+   the first byte, so only 22 bits is four times that plus a few more bits.
+ &3C then eliminates the two extra bits on the right and the first four 
+ bits of the first byte.
+ For instance, if IHL=5 then the IP header is 20 (4 x 5) bytes long.
+ In this case bytes 0-1 are (in binary) xxxx0101 yyzzzzzz, 
+ >>22 gives the 10 bit value xxxx0101yy and &3C gives 010100.
+ @ means to use this number as a new offset into the packet, and read
+ four bytes starting from there.  This is the first 4 bytes of the icmp
+ payload, of which byte 0 is the icmp type.  Therefore we simply shift
+ the value 24 to the right to throw out all but the first byte and compare
+ the result with 0.
+
+Example: 
+ tcp payload bytes 8-12 is any of 1, 2, 5 or 8
+ First we test that the packet is a tcp packet (similar to icmp).
+ --u32 "6&0xFF=6 && ...
+ Next, test that it's not a fragment (same as above).
+ ... 0>>22&0x3C@12>>26&0x3C@8=1,2,5,8"
+ 0>>22&3C as above computes the number of bytes in the IP header.
+ @ makes this the new offset into the packet, which is the start of the
+ tcp header.  The length of the tcp header (again in 32 bit words) is
+ the left half of byte 12 of the tcp header.  The 12>>26&3C
+ computes this length in bytes (similar to the IP header before).
+ @ makes this the new offset, which is the start of the tcp payload.
+ Finally 8 reads bytes 8-12 of the payload and = checks whether the
+ result is any of 1, 2, 5 or 8
+*/
+
+#include <linux/module.h>
+#include <linux/skbuff.h>
+
+#include <linux/netfilter_ipv4/ipt_u32.h>
+#include <linux/netfilter_ipv4/ip_tables.h>
+
+/* #include <asm-i386/timex.h> for timing */
+
+MODULE_AUTHOR("Don Cohen <don@isis.cs3-inc.com>");
+MODULE_DESCRIPTION("IP tables u32 matching module");
+MODULE_LICENSE("GPL");
+
+static int
+match(const struct sk_buff *skb,
+      const struct net_device *in,
+      const struct net_device *out,
+      const void *matchinfo,
+      int offset,
+      const void *hdr,
+      u_int16_t datalen,
+      int *hotdrop)
+{
+  const struct ipt_u32 *data = matchinfo;
+  int testind, i;
+  unsigned char* origbase = (char*)skb->nh.iph;
+  unsigned char* base = origbase;
+  unsigned char* head = skb->head;
+  unsigned char* end = skb->end;
+  int nnums, nvals;
+  u_int32_t pos, val;
+  /* unsigned long long cycles1, cycles2, cycles3, cycles4;
+     cycles1 = get_cycles(); */
+  for (testind=0; testind < data->ntests; testind++) {
+    base=origbase; /* reset for each test */
+    pos = data->tests[testind].location[0].number;
+    if (base+pos+3 > end || base+pos < head) return 0;
+    val = (base[pos]<<24) + (base[pos+1]<<16) +
+      (base[pos+2]<<8) + base[pos+3];
+    nnums = data->tests[testind].nnums;
+    for (i=1; i<nnums; i++) {
+      u_int32_t number = data->tests[testind].location[i].number;
+      switch (data->tests[testind].location[i].nextop) {
+      case IPT_U32_AND: val = val & number; break;
+      case IPT_U32_LEFTSH: val = val << number; break;
+      case IPT_U32_RIGHTSH: val = val >> number; break;
+      case IPT_U32_AT:
+	base = base + val;
+	pos = number;
+	if (base+pos+3 > end || base+pos < head) return 0;
+	val = (base[pos]<<24) + (base[pos+1]<<16) +
+	  (base[pos+2]<<8) + base[pos+3];
+	break;
+      }
+    }
+    nvals = data->tests[testind].nvalues;
+    for (i=0; i < nvals; i++) {
+      if ((data->tests[testind].value[i].min <= val) &&
+	  (val <= data->tests[testind].value[i].max))
+	{break;}}
+    if(i >= data->tests[testind].nvalues) {
+      /* cycles2 = get_cycles(); 
+	 printk("failed %d in %d cycles\n", testind, cycles2-cycles1); */
+      return 0;}
+  }
+  /* cycles2 = get_cycles();
+     printk("succeeded in %d cycles\n", cycles2-cycles1); */
+  return 1;
+}
+
+static int
+checkentry(const char *tablename,
+           const struct ipt_ip *ip,
+           void *matchinfo,
+           unsigned int matchsize,
+           unsigned int hook_mask)
+{
+  if (matchsize != IPT_ALIGN(sizeof(struct ipt_u32)))
+    return 0;
+  return 1;
+}
+
+static struct ipt_match u32_match
+  = { { NULL, NULL }, "u32", &match, &checkentry, NULL, THIS_MODULE };
+
+static int __init init(void)
+{
+  return ipt_register_match(&u32_match);
+}
+
+static void __exit fini(void)
+{
+  ipt_unregister_match(&u32_match);
+}
+
+module_init(init);
+module_exit(fini);
+
+==== <iptables-1.2.7a>/extensions/libipt_u32.c
+/* Shared library add-on to iptables to add u32 matching,
+   generalized matching on values found at packet offsets
+
+   Detailed doc is in the kernel module source
+   net/ipv4/netfilter/ipt_u32.c
+*/
+#include <stdio.h>
+#include <netdb.h>
+#include <string.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <iptables.h>
+#include <linux/netfilter_ipv4/ipt_u32.h>
+#include <errno.h>
+#include <ctype.h>
+
+/* Function which prints out usage message. */
+static void
+help(void)
+{
+  printf(
+	 "u32 v%s options:\n"
+	 " --u32 tests\n"
+	 " tests := location = value | tests && location = value\n"
+	 " value := range | value , range\n"
+	 " range := number | number : number\n"
+	 " location := number | location operator number\n"
+	 " operator := & | << | >> | @\n"
+	 ,IPTABLES_VERSION);
+}
+
+/* defined in /usr/include/getopt.h maybe in man getopt */
+static struct option opts[] = {
+  { "u32", 1, 0, '1' },
+  {0}
+};
+
+/* Initialize the match. */
+static void
+init(struct ipt_entry_match *m, unsigned int *nfcache)
+{
+  *nfcache |= NFC_UNKNOWN;
+}
+
+/* shared printing code */
+static void print_u32(struct ipt_u32 *data)
+{
+  unsigned int testind;
+  for (testind=0; testind < data->ntests; testind++) {
+    if (testind) printf("&&");
+    {
+      unsigned int i;
+      printf("0x%x", data->tests[testind].location[0].number);
+      for (i=1; i < data->tests[testind].nnums; i++) {
+	switch (data->tests[testind].location[i].nextop) {
+	case IPT_U32_AND: printf("&"); break;
+	case IPT_U32_LEFTSH: printf("<<"); break;
+	case IPT_U32_RIGHTSH: printf(">>"); break;
+	case IPT_U32_AT: printf("@"); break;
+	}
+	printf("0x%x", data->tests[testind].location[i].number);}
+      printf("=");
+      for (i=0; i < data->tests[testind].nvalues; i++) {
+	if (i) printf(",");
+	if (data->tests[testind].value[i].min
+	    == data->tests[testind].value[i].max)
+	  printf("0x%x", data->tests[testind].value[i].min);
+	else printf("0x%x:0x%x", data->tests[testind].value[i].min,
+		    data->tests[testind].value[i].max);}}}
+  printf(" ");
+}
+
+/* string_to_number is not quite what we need here ... */
+u_int32_t parse_number(char **s, int pos)
+{
+  u_int32_t number;
+  char *end;
+  errno = 0;
+  number = strtol(*s, &end, 0);
+  if (end == *s)
+    exit_error(PARAMETER_PROBLEM, "u32: at char %d expected number", pos);
+  if (errno)
+    exit_error(PARAMETER_PROBLEM, "u32: at char %d error reading number", pos);
+  *s=end;
+  return number;
+}
+
+/* Function which parses command options; returns true if it ate an option */
+static int
+parse(int c, char **argv, int invert, unsigned int *flags,
+      const struct ipt_entry *entry,
+      unsigned int *nfcache,
+      struct ipt_entry_match **match)
+{
+  struct ipt_u32 *data = (struct ipt_u32 *)(*match)->data;
+  char *arg = argv[optind-1]; /* the argument string */
+  char *start = arg;
+  int state=0, testind=0, locind=0, valind=0;
+  if (c != '1') return 0;
+  /* states: 0 = looking for numbers and operations, 1 = looking for ranges */
+  while (1) { /* read next operand/number or range */
+    while (isspace(*arg)) arg++;  /* skip white space */
+    if (! *arg) { /* end of argument found */
+      if (state == 0)
+	exit_error(PARAMETER_PROBLEM, "u32: input ended in location spec");
+      if (valind == 0)
+	exit_error(PARAMETER_PROBLEM, "u32: test ended with no value spec");
+      data->tests[testind].nnums = locind;
+      data->tests[testind].nvalues = valind;
+      testind++;
+      data->ntests=testind;
+      if (testind > U32MAXSIZE)
+	exit_error(PARAMETER_PROBLEM, "u32: at char %d too many &&'s",
+		   arg-start);
+      /* debugging 
+      print_u32(data);printf("\n");
+      exit_error(PARAMETER_PROBLEM, "debugging output done"); */
+      return 1;
+    }
+    if (state==0) {
+      /* reading location: read a number if nothing read yet,
+	 otherwise either op number or = to end location spec */	 
+      if (*arg == '=') {
+	if (locind == 0)
+	  exit_error(PARAMETER_PROBLEM,
+		     "u32: at char %d location spec missing", arg-start);
+	else {arg++; state=1;}}
+      else {
+	if (locind) { /* need op before number */
+	  if (*arg == '&') {
+	    data->tests[testind].location[locind].nextop = IPT_U32_AND;}
+	  else if (*arg == '<') {
+	    arg++;
+	    if (*arg != '<')
+	      exit_error(PARAMETER_PROBLEM,
+			 "u32: at char %d a second < expected", arg-start);
+	    data->tests[testind].location[locind].nextop = IPT_U32_LEFTSH;}
+	  else if (*arg == '>') {
+	    arg++;
+	    if (*arg != '>')
+	      exit_error(PARAMETER_PROBLEM,
+			 "u32: at char %d a second > expected", arg-start);
+	    data->tests[testind].location[locind].nextop = IPT_U32_RIGHTSH;}
+	  else if (*arg == '@') {
+	    data->tests[testind].location[locind].nextop = IPT_U32_AT;}
+	  else exit_error(PARAMETER_PROBLEM,
+			  "u32: at char %d operator expected", arg-start);
+	  arg++;}
+	/* now a number; string_to_number skips white space? */
+	data->tests[testind].location[locind].number =
+	  parse_number(&arg, arg-start);
+	locind++;
+	if (locind > U32MAXSIZE)
+	  exit_error(PARAMETER_PROBLEM,
+		     "u32: at char %d too many operators", arg-start);
+      }}
+    else {
+      /* state 1 - reading values: read a range if nothing read yet,
+	 otherwise either ,range or && to end test spec */
+      if (*arg == '&') {
+	arg++;
+	if (*arg != '&')
+	  exit_error(PARAMETER_PROBLEM,
+		     "u32: at char %d a second & expected", arg-start);
+	if (valind == 0)
+	  exit_error(PARAMETER_PROBLEM,
+		     "u32: at char %d value spec missing", arg-start);
+	else {
+	  data->tests[testind].nnums = locind;
+	  data->tests[testind].nvalues = valind;
+	  testind++;
+	  if (testind > U32MAXSIZE)
+	    exit_error(PARAMETER_PROBLEM,
+		       "u32: at char %d too many &&'s", arg-start);
+	  arg++; state=0; locind=0; valind=0;}}
+      else { /* read value range */
+	if (valind) { /* need , before number */
+	  if (*arg != ',')
+	    exit_error(PARAMETER_PROBLEM,
+		       "u32: at char %d expected , or &&", arg-start);
+	  arg++;}
+	data->tests[testind].value[valind].min = parse_number(&arg, arg-start);
+	while (isspace(*arg)) arg++;  /* another place white space could be */
+	if (*arg==':') {
+	  arg++;
+	  data->tests[testind].value[valind].max
+	    = parse_number(&arg, arg-start);}
+	else data->tests[testind].value[valind].max
+	       = data->tests[testind].value[valind].min;
+	valind++;
+	if (valind > U32MAXSIZE)
+	  exit_error(PARAMETER_PROBLEM,
+		     "u32: at char %d too many ,'s", arg-start);
+      }}}
+}
+
+/* Final check; must specify something. */
+static void
+final_check(unsigned int flags)
+{
+}
+
+/* Prints out the matchinfo. */
+static void
+print(const struct ipt_ip *ip,
+      const struct ipt_entry_match *match,
+      int numeric)
+{
+  printf("u32 ");
+  print_u32((struct ipt_u32 *)match->data);
+}
+
+/* Saves the union ipt_matchinfo in parsable form to stdout. */
+static void save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
+{
+  printf("--u32 ");
+  print_u32((struct ipt_u32 *)match->data);
+}
+
+struct iptables_match u32
+= { NULL,
+    "u32",
+    IPTABLES_VERSION,
+    IPT_ALIGN(sizeof(struct ipt_u32)),
+    IPT_ALIGN(sizeof(struct ipt_u32)),
+    &help,
+    &init,
+    &parse,
+    &final_check,
+    &print,
+    &save,
+    opts
+};
+
+void
+_init(void)
+{
+	register_match(&u32);
+}
