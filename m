@@ -1,15 +1,15 @@
 From: Emmanuel Fleury <fleury@cs.auc.dk>
 Subject: Re: Security flaw in Stateful filtering ??????
-Date: Sat, 08 Jun 2002 04:06:17 +0200
+Date: Sat, 08 Jun 2002 04:13:58 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <3D016699.9010301@cs.auc.dk>
-References: <3D006B9E.1040809@cs.auc.dk> <200206071105.42881.hno@marasystems.com> <3D007D73.9030609@cs.auc.dk> <20020607094319.GA595@morinfr.org> <3D00839F.6000103@cs.auc.dk> <20020607101713.GB595@morinfr.org> <3D009951.5090004@cs.auc.dk> <20020607133300.GD595@morinfr.org> <3D00CDB4.3060605@cs.auc.dk> <20020607183600.GD630@morinfr.org> <20020607210026.B23410@oknodo.bof.de>
+Message-ID: <3D016866.3090304@cs.auc.dk>
+References: <E17G6im-0000FK-00@wagner.rustcorp.com.au> <3D006B9E.1040809@cs.auc.dk> <20020607220256.GT28055@titanium.brain.org>
+Reply-To: netfilter-devel@lists.samba.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,41 +20,29 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick Schaaf wrote:
->>>The funny thing is that if you have a bad ruleset, you can easily be
->>>DOSed by some external people which are just sending random ACK packets.
->>>
->>>Those ACKs will create entries in your connection table as ESTABLISHED
->>>connections with a time-out of.... 5 days !!!!! 8-)
->>
->>Well no, since the concerned box will reply with a RST.
+Ben Reser wrote:
 > 
-> Alternatively, if no answer comes back at all, the conntrack is in the
-> (extra) state UNREPLIED. When the connection table becomes full, UNREPLIED
-> connections are recycled preferentially.
+> So submit a patch to the documentation.  One of the very first emails to
+> answer your original post said that a patch to the documentation would
+> be accepted and probably applied promptly.
+> 
+> The issue is understood.  No point in going on and on and on about how
+> the documentation is wrong in your opinion.  Spend your time fixing it
+> instead of bitching about it.
 
-Hey, this is not fair !!!!!
+If I have to fix the documentation, I would like to understand the
+exact behaviour of the connection tracking module.
 
-This behaviour is not described in ip_conntrack_proto_tcp.c.
+My point is not to go "on and on and on", but "deeper and deeper
+and deeper". Once I reach to right amount of knowledge about it,
+I will fix it (or I will make it so clear that anybody which
+has followed the thread will be abble to fix it).
 
-Where is it coded ????
+Is it ok ?
 
-
-
-
-
-Anyway, I would suggest that this 'ACK is NEW' thing is not really
-needed forever in your firewall. If this behaviour is active for a
-certain amount of time after every reboot, it would be probably enough
-to catch up all this pending connections and allow you to classify ACK
-as INVALID most of the time....
-
-This is just a suggestion...
-
-Regards
 -- 
 Emmanuel
 
-A dreamer is one who can only find his way by moonlight, and his
-punishment is that he sees the dawn before the rest of the world.
-   -- Oscar Wilde
+Help me out, and I won't ever call "netfilter" a heap of stinking dung
+again. Do we have a deal?
+   -- Linus Torvalds
