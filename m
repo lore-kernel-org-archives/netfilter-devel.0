@@ -1,16 +1,16 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Patches to the fuzzy match
-Date: 14 Jun 2003 16:13:21 +0200
+Subject: Re: PATCH: fix invert flag on match mac save
+Date: 14 Jun 2003 16:28:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1055600001.15681.75.camel@tux.rsn.bth.se>
-References: <20030613135751.51685.qmail@mail.com>
+Message-ID: <1055600939.15668.77.camel@tux.rsn.bth.se>
+References: <3EDA3916.3090604@alfar.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Hime Junior <hime@engineer.com>
-In-Reply-To: <20030613135751.51685.qmail@mail.com>
+To: Dave <dave@alfar.co.uk>
+In-Reply-To: <3EDA3916.3090604@alfar.co.uk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,14 +21,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2003-06-13 at 15:57, Hime Junior wrote:
->  Hi Harald :
->=20
->  Excuse me for the insistence , but I=B4d like to know
->=20
-> when the 2 submitted patches will be applied .
+On Sun, 2003-06-01 at 19:34, Dave wrote:
+> Hi there,
+> 	I've been having problems using iptables-restore with the match mac 
+> extension, which I narrowed down to the position of the invert flag on 
+> save. Looks like this one's been hanging around for a while now.
 
-A few minutes ago :)
+I applied a slightly modified version, thanks.
 
---=20
+-- 
 /Martin
