@@ -1,16 +1,15 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re: [PATCH] Make LOG targets log uid/gid
-Date: Thu, 8 May 2003 11:20:29 +0200 (CEST)
+From: Brad Fisher <brad@info-link.net>
+Subject: Re: rfc on new match type
+Date: Thu, 08 May 2003 12:05:59 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0305081103470.23082@dns.toxicfilms.tv>
-References: <Pine.LNX.4.51.0305072051330.18612@dns.toxicfilms.tv>
- <1052337904.23434.17.camel@tux.rsn.bth.se>
+Message-ID: <3EBA8E77.EF904A64@info-link.net>
+References: <3EB988B8.707B6111@info-link.net> <20030508054551.GA25328@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1052337904.23434.17.camel@tux.rsn.bth.se>
+To: Patrick Schaaf <bof@bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,30 +20,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > This patch makes both of the LOG targets log uid and gid of a process
-> > that owns the socket related to the sk_buff.
+Patrick Schaaf wrote:
+
+> With a string instead of an id, this is exactly the 'comment' match
+> that I proposed before, but with a less general application (pun
+> intended) in mind.
+
+A comment match would serve my purposes just as well.  I could always use a
+(hopefully) unique commenting style for a given app, and match on that style.
+
+> You can, somewhat, emulate it today, with a pattern like this:
 >
-> Why not do somethine along the lines of
-> http://www.netfilter.org/~gandalf/patches/ipt_LOG-uid.diff
-Well, i made it to be an option, exactly the same as this patch.
-But decided not to, because I thought I am approaching another
-userspace/kernelspace incompatibilites between userspace/kernelspace
-versions.
-Btw, it is freaky to see exact same code written by someone else :)
+>         iptables -A chain -s 0.0.0.0 -m string --string "start APP1"
+>         iptables -A chain ...
+>         iptables -A chain ...
+>         iptables -A chain -s 0.0.0.0 -m string --string "end APP1"
 
-> It doesn't really break compability, old userspace still works with the
-> kernelpart patch
-Yes, the masks will cover it smoothly.
+So as I understand the above example, all rules added by the application would
+need to be bracketed by the string match rules?  How would you handle the case
+where your application inserts rules into a chain at arbitrary spots (say
+before other possibly pre-existing rules which may match the same general
+criteria, but in a broader sense).  You could bracket each rule with the two
+string matches, but that seems undesirable.  And that all relies on all
+applications respecting such bracketing.
 
-> and new userspace still works without the kernelpart except that uid
-> logging won't work (and ipt_LOG won't complain and the
-> uid option is showed in print/save since ipt_LOG doesn't check
-> IPT_LOG_MASK)
-That would require including new ipt_LOG.h to
-userspace/include/linux/netfilter_ipv4 to make compilation possible
-with new IPT_LOG_UIDS option.
+Anyway, not complaining about the response.  Your suggestion is excellent, but
+doesn't quite meet my needs.  I do believe that if I end up implementing a
+match like this, I will use the above mentioned "comment" form, so it can have
+a more general application as suggested.
 
-I will include these changes then and propose a new patch.
+Thanks!
 
-> /Martin
-Maciej
+-Brad
