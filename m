@@ -1,17 +1,17 @@
-From: Michael Rash <mbr@cipherdyne.com>
-Subject: Re: string match -> new option
-Date: Sat, 1 Mar 2003 10:47:03 -0500
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: string match and hex strings
+Date: Sun, 2 Mar 2003 10:57:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030301104703.A479@orthanc.gambrl01.md.comcast.net>
-References: <15760529186.20030301025308@yahoo.es> <20030301063948.GF24025@oknodo.bof.de>
+Message-ID: <20030302095749.GB2296@naboo.clug.de>
+References: <20030228200534.B22879@orthanc.gambrl01.md.comcast.net> <20030301063029.GE24025@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: macadanet@yahoo.es,
-	netfilter devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DKU6Jbt7q3WqK7+M"
+Cc: Michael Rash <mbr@cipherdyne.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick Schaaf <bof@bof.de>
 Content-Disposition: inline
-In-Reply-To: <20030301063948.GF24025@oknodo.bof.de>; from bof@bof.de on Sat, Mar 01, 2003 at 07:39:48AM +0100
+In-Reply-To: <20030301063029.GE24025@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,32 +22,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mar 01, 2003, Patrick Schaaf wrote:
 
-> > If some package includes the string: GET ???????8????????? HTTP
-> > the system will write in log file.
-> 
-> > What do people think? Is a good idea?
-> 
-> 1) it is mostly a bad idea to use the string match at all, as it does
->    not reassemble a TCP stream, and thus strings that happen to be
->    broken up in two TCP segments, are not matchable. This is a
->    fundamental limitation, making any security you get out of
->    such a rule dubious, best-effort, only-in-good-weather pseudo
->    security.
+--DKU6Jbt7q3WqK7+M
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Agreed, if the expectation is that doing string matching is going to
-act as a full-blown NIDS (which, as you point out, it certainly
-can't).
+On Sat, Mar 01, 2003 at 07:30:29AM +0100, Patrick Schaaf wrote:
 
-Having string matching is nice though since allows me to detect
-_some_ signatures without having to run a full-blown NIDS, and I can
-do it directly within iptables itself.  Being able to reject (or at
-least log) the latest Code xxx packets traversing my iptables
-interfaces with a single rule is useful.
+> My thought, exactly. If you don't use a separate --hex-string
+> option specifier, existing uses may fail where they worked
+> before. That's a definite NONO, in my opinion, at least for
+> tools with security implications.
 
---Mike
+ACK.
 
-Michael Rash
-http://www.cipherdyne.com
-Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
+> best regards
+>   Patrick
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--DKU6Jbt7q3WqK7+M
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+YdWdXaXGVTD0i/8RAguRAJ9Cc4NA0gD2S7vT/MgCCvPpJfWFWACgiaVu
+BymutjycFcRPvskKd0N7u5o=
+=cBmV
+-----END PGP SIGNATURE-----
+
+--DKU6Jbt7q3WqK7+M--
