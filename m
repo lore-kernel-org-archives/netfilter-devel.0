@@ -1,16 +1,13 @@
-From: Peter Surda <shurdeek@panorama.sth.ac.at>
-Subject: Re: conntrack question
-Date: Thu, 9 Jan 2003 14:47:02 +0100
+From: "=?big5?B?vGXMyQ==?=" <kmlin@itri.org.tw>
+Subject: netfilter and ipsec
+Date: Thu, 9 Jan 2003 21:52:56 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030109134702.GM17367@noir.cb.ac.at>
-References: <3E1D7361.8030400@myland.org>
+Message-ID: <011101c2b7e6$69afb880$8365608c@kmlin>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8cpS+6Cx+xtICsjy"
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_010E_01C2B829.77B8B9C0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <3E1D7361.8030400@myland.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,48 +18,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---8cpS+6Cx+xtICsjy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------=_NextPart_000_010E_01C2B829.77B8B9C0
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="big5"
 
-On Thu, Jan 09, 2003 at 02:04:33PM +0100, Bart wrote:
-> Hi,
-hi
 
-> E.g. if I want to monitor connections to an FTP-server, I would register=
-=20
-> a helper
-> with destination-port set to 21, but this ain't the way it works,=20
-> because I saw that
-> the ftp/irc contrack helpers register a helper with a source port set,
-> why ?
-I assume because the conntrack works in both directions, you can run both a
-server and a client behind it.
+  Hi ,
+  I am a new entrant in linux network security, and have tried to =
+understand Netfilter and FreesWan.
+  There is a question now confusing me so long. Why not integrating =
+IPSec in the Netfilter architecture?
+  Is there any reason that IPSec must exist as an device driver or some =
+drawbacks to integrate??
 
-> Tnx,
-> greetz
-Bye,
 
-Peter Surda (Shurdeek) <shurdeek@panorama.sth.ac.at>, ICQ 10236103, +436505=
-122023
+  Regards
+  Kuan-Ming Lin
+    
+------=_NextPart_000_010E_01C2B829.77B8B9C0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html;
+	charset="big5"
 
---
-              The best things in life are free, but the
-                expensive ones are still worth a look.
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dbig5">
+<META content=3D"MSHTML 6.00.2800.1126" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D2>&nbsp; Hi ,</FONT></DIV>
+<DIV><FONT size=3D2>&nbsp; I am&nbsp;a new entrant in linux network =
+security, and=20
+have tried to understand Netfilter and FreesWan.</FONT></DIV>
+<DIV><FONT size=3D2>&nbsp; There is a question now confusing me so long. =
+Why not=20
+integrating IPSec in the Netfilter architecture?</FONT></DIV>
+<DIV><FONT size=3D2>&nbsp; Is there any reason that IPSec must exist as =
+an=20
+device&nbsp;driver or some drawbacks to integrate??</FONT></DIV>
+<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D2>&nbsp; <FONT size=3D3>Regards<BR>&nbsp; Kuan-Ming=20
+Lin</FONT></FONT></DIV>
+<DIV><FONT size=3D2>&nbsp;&nbsp;&nbsp; </FONT></DIV></BODY></HTML>
 
---8cpS+6Cx+xtICsjy
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+HX1WzogxsPZwLzcRAj7vAKCHrLDl7s7TBkcQ1SZ73hNOGIy69gCfRbVI
-pS2GmdDNRBBhN156sWypKMo=
-=fmFm
------END PGP SIGNATURE-----
-
---8cpS+6Cx+xtICsjy--
+------=_NextPart_000_010E_01C2B829.77B8B9C0--
