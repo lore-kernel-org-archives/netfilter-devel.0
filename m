@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: Pablo Neira <pablo@eurodev.net>
 Subject: Re: ip_ct_refresh lock issue
-Date: Sat, 28 Feb 2004 15:54:54 +0100 (CET)
+Date: Sat, 28 Feb 2004 16:04:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402281547520.9609-100000@filer.marasystems.com>
-References: <4040A334.3020808@eurodev.net>
+Message-ID: <4040ADFA.4030107@eurodev.net>
+References: <Pine.LNX.4.44.0402281547520.9609-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4040A334.3020808@eurodev.net>
+To: Henrik Nordstrom <hno@marasystems.com>,
+	netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0402281547520.9609-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +21,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 28 Feb 2004, Pablo Neira wrote:
+Hi henrik,
 
-> I can't see the reason why in ip_ct_refresh the conntrack is locked to 
-> modify an not confirmed conntrack timeout.
+Henrik Nordstrom wrote:
 
-Good question.
+>But maybe there is some complication from NAT or related connections
+>requiring this locking?
+>  
+>
+Actually a quick view at:
 
-But maybe there is some complication from NAT or related connections
-requiring this locking?
+http://lxr.linux.no/ident?v=2.6.1&i=ip_ct_refresh
 
-If not the lock should probably be moved down to the is_confirmed case. If
-the connections is not yet confirmed then the only reference should be
-from this packet (not yet in the hashes) and there should never be any
-concurrent accesses.
+show me that this function is only called from conntrack related stuff, 
+specifically from protocol and helpers, so i can't see that complication 
+from NAT nor with related connections. Anyway, I'm not sure at all... 
+that's why i need some feedback.
 
-Regards
-Henrik
+>If not the lock should probably be moved down to the is_confirmed case. If
+>the connections is not yet confirmed then the only reference should be
+>from this packet (not yet in the hashes) and there should never be any
+>concurrent accesses.
+>  
+>
+yes, this is exactly what i had in mind :-).
+
+thanks,
+Pablo
