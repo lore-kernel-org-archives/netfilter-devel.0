@@ -1,72 +1,36 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ANNOUNCE] netfilter.org looking for ftp and www mirror sites
-Date: Wed, 1 Oct 2003 10:28:32 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031001082832.GU5758@sunbeam.de.gnumonks.org>
-Reply-To: webmaster@netfilter.org
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: 2.6 IPSEC + SNAT
+Date: Wed, 1 Oct 2003 22:16:48 +1000
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20031001121648.GA8755@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qX4XtzAfKSOolMWY"
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-net-owner@vger.kernel.org>
+To: kuznet@ms2.inr.ac.ru, davem@redhat.com, jmorris@redhat.com,
+	linux-net@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi:
 
---qX4XtzAfKSOolMWY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have received bug reports saying that SNAT does not work when the
+packets have to be SNATed before they can enter an IPSEC tunnel
+under the 2.6 IPSEC stack.
 
-Hi!
+The problem is that SNAT can only be performed in POSTROUTING while
+IPSEC policy lookups are done at the same time as the route lookup.
 
-The netfilter project is calling for international mirrors of it's
-homepage and ftp server.
+Has anyone else thought about this problem?
 
-Ideally we would have one mirror for ftp and http per country,
-having ftp.<CCtld>.netfilter.org and www.<CCtld>.netfilter.org in
-operation.
+I have considered introducing a new NAT chain between filtering
+and routing where you can place SNAT rules into.  Of course, the
+same thing applies to reverse DNAT rules as well.
 
-We already have mirrors for: .de, .at, .it, .ar
+Any opinions on this would be appreciated.
 
-If you have sufficient bandwith and want to donate a mirror, please
-contact webmaster@netfilter.org (Reply-To is set in this message).
-
-The mirrors are pulling from the public rsync service
-(rsync.netfilter.org::ftp / rsync.netfilter.org::www).
-
-Thanks in advance!
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---qX4XtzAfKSOolMWY
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/epAwNfqJzMqajVsRAiPHAJ9r5x1MPxnA+aVAHRAmPOaMKxh+FQCffeZA
-1wnxtJOBwr0anLlWfwPdby8=
-=6mOG
------END PGP SIGNATURE-----
-
---qX4XtzAfKSOolMWY--
+Thanks,
+-- 
+Debian GNU/Linux 3.0 is out! ( http://www.debian.org/ )
+Email:  Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
