@@ -1,15 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: use of vmalloc within netfilter (was Re: [ANNOUNCE] IP sets)
-Date: Thu, 26 Feb 2004 11:43:41 +0100 (CET)
+Subject: Re: p-o-m-ng patch
+Date: Thu, 26 Feb 2004 12:30:55 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402261140590.25110-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.58.0402261131580.12937@tux.rsn.bth.se>
+Message-ID: <Pine.LNX.4.33.0402261140110.25110-100000@blackhole.kfki.hu>
+References: <20040220202359.GR4797@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: Eric Leblond <eric@regit.org>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <Pine.LNX.4.58.0402261131580.12937@tux.rsn.bth.se>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040220202359.GR4797@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,30 +21,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 26 Feb 2004, Martin Josefsson wrote:
+On Fri, 20 Feb 2004, Harald Welte wrote:
 
-> It's adding some extra overhead in some places.
-> The chunk below will call ip_conntrack_hash_elem() with the same argument
-> for each iteration of the linked list.
+> On Fri, Feb 20, 2004 at 07:27:34PM +0100, Eric Leblond wrote:
+> > Sorry for the disturbance, I do a test from a clean 2.6.3 kernel tree
+> > and there's compilation problem with CONNMARK.
+> >
+> > The best match now correctly found the best directory for each type
+> > (patch,file,ladd) but in the CONNMARK patch the files are split  between
+> > the 2 directories (linux  linux-2.6). So we miss a subset of the files.
+> > So my question :
+> > 	- Do we change p-o-m-ng or do we change CONNMARK patch ?
 >
-> @@ -1145,7 +1150,7 @@
+> we need to change p-o-m.    Actually this issue doesn't only effect
+> CONNMARK, but almost all patches by now.
 >
->         /* Get rid of expecteds, set helpers to NULL. */
->         for (i = 0; i < ip_conntrack_htable_size; i++)
-> -               LIST_FIND_W(&ip_conntrack_hash[i], unhelp,
-> +               LIST_FIND_W(ip_conntrack_hash_elem(i), unhelp,
->                             struct ip_conntrack_tuple_hash *, me);
->         WRITE_UNLOCK(&ip_conntrack_lock);
->
->
-> We've removed lots of these things earlier.
->
-> for (i = 0; i < ip_conntrack_htable_size; i++) {
-> 	struct list_head *bucket = ip_conntrack_hash_elem(i);
-> 	LIST_FIND_W(bucket, unhelp, struct ip_conntrack_tuple_hash *, me);
-> }
+> Most of them share a common Makefile.ladd, a common ipt_whatever.h and
+> maybe even a common linux.patch - but they have differetn ipt_whatever.c
+> files, since the syntax of struct ipt_{match,target} is slightly
+> different in both kernels [by intention].
 
-That's not in 2.6.3-bk5. Sigh.
+I believe we should change the CONNMARK and all other patches instead and
+both the linux (i.e linux-2.4) and linux-2.6 trees should contain all
+required files for the given versions. The structure were less
+error-prone, maintenance and Netfilter_POM.pm were simpler.
+
+The best match algorithm should not descend into subdirectories, otherwise
+Netfilter_POM.pm would catch whole files/ladds in an earlier release as
+best match when that file were intentionally missing in later releases.
+
+I think other modifications in pom-ng are required as well. The current
+best match algorithm is too strict. Presently
+
+linux-2.6	initial release, matches anyting above 2.6
+linux-2.6.5	currently matches only 2.6.5
+
+But linux-2.6.5 should match 2.6.5 and anything *above* 2.6.5 as well.
+
+I also suggest that let us tightly integrate netfilter and iptables
+into pom-ng. What I mean is that the feature patches have (always)
+got two parts: kernel module for netfilter and shared library for
+iptables. Let's start to store the shared libary part in pom-ng and not
+in the source of iptables:
+
+	CONNMARK/iptables/extensions/.connmark-test (just as example)
+	CONNMARK/iptables/extensions/libipt_connmark.c
+	CONNMARK/iptables/extensions/libipt_connmark.man.ladd
+	...
+
+As a result, pom-ng would truly hold every required bit for a patch and
+iptables releases could be independent from pom-ng additions.
 
 Best regards,
 Jozsef
