@@ -1,13 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH]: small optimization for ipt_unclean
-Date: Sat, 12 Jul 2003 12:47:43 +0200 (CEST)
+From: Andreas Haumer <andreas@xss.co.at>
+Subject: iptables compile problem with glibc-2.1.3 and kernel 2.4.21
+Date: Tue, 08 Jul 2003 12:07:56 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0307121244320.30873-200000@gw.localnet>
+Message-ID: <3F0A97FC.4030008@xss.co.at>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811840-965166625-1058006863=:30873"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: andreas@xss.co.at
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@gnumonks.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,75 +19,55 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
----1463811840-965166625-1058006863=:30873
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Hi!
 
-Hi Harald,
-this patch is a small optimization for ipt_unclean. Instead of comparing
-the flags over and over again we have a table with valid flag combinations
-and do a lookup. This patch is only compile-tested.
+I have a compile problem with iptables 1.2.8:
 
-Best regards,
-Patrick
+[...]
+make -j 1 BINDIR=/usr/bin LIBDIR=/usr/lib MANDIR=/usr/man KERNEL_DIR=/lib/modules/2.4.21-xss/build/
+Making dependencies: please wait...
+Extensions found: IPv6:ah IPv6:esp IPv6:frag IPv6:ipv6header IPv6:hbh IPv6:dst IPv6:rt
+cc -O2 -Wall -Wunused -I/lib/modules/2.4.21-xss/build//include -Iinclude/ -DIPTABLES_VERSION=\"1.2.8\"  -fPIC -o extensions/libipt_ah_sh.o -c extensions/libipt_ah.c
+ld -shared -o extensions/libipt_ah.so extensions/libipt_ah_sh.o
+cc -O2 -Wall -Wunused -I/lib/modules/2.4.21-xss/build//include -Iinclude/ -DIPTABLES_VERSION=\"1.2.8\"  -fPIC -o extensions/libipt_conntrack_sh.o -c extensions/libipt_conntrack.c
+In file included from /lib/modules/2.4.21-xss/build/include/linux/bitops.h:3,
+                 from /lib/modules/2.4.21-xss/build/include/linux/netfilter_ipv4/ip_conntrack.h:9,
+                 from extensions/libipt_conntrack.c:12:
+/lib/modules/2.4.21-xss/build/include/asm/bitops.h:410: conflicting types for `__ffs'
+/usr/include/string.h:247: previous declaration of `__ffs'
+make: *** [extensions/libipt_conntrack_sh.o] Error 1
+[...]
 
----1463811840-965166625-1058006863=:30873
-Content-Type: TEXT/plain; name="linux-2.4.21-ipt_unclean-tcp-flag-table.diff"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0307121247430.30873@gw.localnet>
-Content-Description: 
-Content-Disposition: attachment; filename="linux-2.4.21-ipt_unclean-tcp-flag-table.diff"
+Headers under "/usr/include/" come from glibc-2.1.3
+"/lib/modules/2.4.21-xss/build/" is a symlink pointing to
+linux-2.4.21 kernel sources (with ac4 patches)
 
-IyBUaGlzIGlzIGEgQml0S2VlcGVyIGdlbmVyYXRlZCBwYXRjaCBmb3IgdGhl
-IGZvbGxvd2luZyBwcm9qZWN0Og0KIyBQcm9qZWN0IE5hbWU6IExpbnV4IGtl
-cm5lbCB0cmVlDQojIFRoaXMgcGF0Y2ggZm9ybWF0IGlzIGludGVuZGVkIGZv
-ciBHTlUgcGF0Y2ggY29tbWFuZCB2ZXJzaW9uIDIuNSBvciBoaWdoZXIuDQoj
-IFRoaXMgcGF0Y2ggaW5jbHVkZXMgdGhlIGZvbGxvd2luZyBkZWx0YXM6DQoj
-CSAgICAgICAgICAgQ2hhbmdlU2V0CTEuMTIxNCAgLT4gMS4xMjE1IA0KIwlu
-ZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X3VuY2xlYW4uYwkxLjggICAgIC0+IDEu
-OSAgICANCiMNCiMgVGhlIGZvbGxvd2luZyBpcyB0aGUgQml0S2VlcGVyIENo
-YW5nZVNldCBMb2cNCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0NCiMgMDMvMDcvMTIJa2FiZXJAdHJhc2gubmV0CQkx
-LjEyMTUNCiMgW05FVEZJTFRFUl06IFVzZSBwcmUtYnVpbHQgdGFibGUgZm9y
-IFRDUCBmbGFnLWNoZWNrIGluIGlwdF91bmNsZWFuLg0KIyAtLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KIw0KZGlmZiAt
-TnJ1IGEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF91bmNsZWFuLmMgYi9uZXQv
-aXB2NC9uZXRmaWx0ZXIvaXB0X3VuY2xlYW4uYw0KLS0tIGEvbmV0L2lwdjQv
-bmV0ZmlsdGVyL2lwdF91bmNsZWFuLmMJU2F0IEp1bCAxMiAwNTo0MDoyNSAy
-MDAzDQorKysgYi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X3VuY2xlYW4uYwlT
-YXQgSnVsIDEyIDA1OjQwOjI1IDIwMDMNCkBAIC0yNTksNiArMjU5LDI0IEBA
-DQogI2RlZmluZQlUSF9FQ0UJMHg0MA0KICNkZWZpbmUJVEhfQ1dSCTB4ODAN
-CiANCisvKiB0YWJsZSBvZiB2YWxpZCBmbGFnIGNvbWJpbmF0aW9ucyAtIEVD
-RSBhbmQgQ1dSIGFyZSBhbHdheXMgdmFsaWQgKi8NCitzdGF0aWMgdTggdGNw
-X3ZhbGlkX2ZsYWdzWyhUSF9GSU58VEhfU1lOfFRIX1JTVHxUSF9QVVNIfFRI
-X0FDS3xUSF9VUkcpICsgMV0gPQ0KK3sNCisJW1RIX1NZTl0JCQk9IDEsDQor
-CVtUSF9TWU58VEhfQUNLXQkJCT0gMSwNCisJW1RIX1JTVF0JCQk9IDEsDQor
-CVtUSF9SU1R8VEhfQUNLXQkJCT0gMSwNCisJW1RIX1JTVHxUSF9BQ0t8VEhf
-UFVTSF0JCT0gMSwNCisJW1RIX0ZJTnxUSF9BQ0tdCQkJPSAxLA0KKwlbVEhf
-QUNLXQkJCT0gMSwNCisJW1RIX0FDS3xUSF9QVVNIXQkJPSAxLA0KKwlbVEhf
-QUNLfFRIX1VSR10JCQk9IDEsDQorCVtUSF9BQ0t8VEhfVVJHfFRIX1BVU0hd
-CQk9IDEsDQorCVtUSF9GSU58VEhfQUNLfFRIX1BVU0hdCQk9IDEsDQorCVtU
-SF9GSU58VEhfQUNLfFRIX1VSR10JCT0gMSwNCisJW1RIX0ZJTnxUSF9BQ0t8
-VEhfVVJHfFRIX1BVU0hdCT0gMQ0KK307DQorDQogLyogVENQLXNwZWNpZmlj
-IGNoZWNrcy4gKi8NCiBzdGF0aWMgaW50DQogY2hlY2tfdGNwKGNvbnN0IHN0
-cnVjdCBpcGhkciAqaXBoLA0KQEAgLTMzMCwxOSArMzQ4LDcgQEANCiANCiAJ
-LyogQ0hFQ0s6IFRDUCBmbGFncy4gKi8NCiAJdGNwZmxhZ3MgPSAoKCh1X2lu
-dDhfdCAqKXRjcGgpWzEzXSAmIH4oVEhfRUNFfFRIX0NXUikpOw0KLQlpZiAo
-dGNwZmxhZ3MgIT0gVEhfU1lODQotCSAgICAmJiB0Y3BmbGFncyAhPSAoVEhf
-U1lOfFRIX0FDSykNCi0JCSYmIHRjcGZsYWdzICE9IFRIX1JTVA0KLQkgICAg
-JiYgdGNwZmxhZ3MgIT0gKFRIX1JTVHxUSF9BQ0spDQotCSAgICAmJiB0Y3Bm
-bGFncyAhPSAoVEhfUlNUfFRIX0FDS3xUSF9QVVNIKQ0KLQkgICAgJiYgdGNw
-ZmxhZ3MgIT0gKFRIX0ZJTnxUSF9BQ0spDQotCSAgICAmJiB0Y3BmbGFncyAh
-PSBUSF9BQ0sNCi0JICAgICYmIHRjcGZsYWdzICE9IChUSF9BQ0t8VEhfUFVT
-SCkNCi0JICAgICYmIHRjcGZsYWdzICE9IChUSF9BQ0t8VEhfVVJHKQ0KLQkg
-ICAgJiYgdGNwZmxhZ3MgIT0gKFRIX0FDS3xUSF9VUkd8VEhfUFVTSCkNCi0J
-ICAgICYmIHRjcGZsYWdzICE9IChUSF9GSU58VEhfQUNLfFRIX1BVU0gpDQot
-CSAgICAmJiB0Y3BmbGFncyAhPSAoVEhfRklOfFRIX0FDS3xUSF9VUkcpDQot
-CSAgICAmJiB0Y3BmbGFncyAhPSAoVEhfRklOfFRIX0FDS3xUSF9VUkd8VEhf
-UFVTSCkpIHsNCisJaWYgKCF0Y3BfdmFsaWRfZmxhZ3NbdGNwZmxhZ3NdKSB7
-DQogCQlsaW1waygiVENQIGZsYWdzIGJhZDogJXVcbiIsIHRjcGZsYWdzKTsN
-CiAJCXJldHVybiAwOw0KIAl9DQo=
----1463811840-965166625-1058006863=:30873--
+Linux 2.4 and glibc-2.1.3 seem to have a different understanding
+about __ffs(). Both use their own one...
+
+Usually, this is not a problem, as userspace programs
+don't include kernel headers, but iptables does.
+
+I checked the mailing lists for glibc, linux-kernel and
+iptables for solutions, but couldn't find any.
+
+Any idea anyone?
+
+- - andreas
+
+- --
+Andreas Haumer                     | mailto:andreas@xss.co.at
+*x Software + Systeme              | http://www.xss.co.at/
+Karmarschgasse 51/2/20             | Tel: +43-1-6060114-0
+A-1100 Vienna, Austria             | Fax: +43-1-6060114-71
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQE/Cpf0xJmyeGcXPhERAgV4AJ41x3dVZP28Uqf8e0Z+mH6QXXfnvACguiNf
+7qNlvwr0SX/6F6kjjqga0JU=
+=g7zb
+-----END PGP SIGNATURE-----
