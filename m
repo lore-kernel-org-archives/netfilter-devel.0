@@ -1,11 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: ctnetlink & helper_locking_fix conflict
-Date: Tue, 9 Nov 2004 08:13:33 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0411090808200.30695@filer.marasystems.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: About connbytes
+Date: Tue, 9 Nov 2004 10:04:22 +0100
+Message-ID: <20041109090422.GQ22257@sunbeam.de.gnumonks.org>
+References: <419052E5.4080609@koba.com.ar>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wwtQuX191/I956S7"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+To: "koba@koba.com.ar" <koba@koba.com.ar>
+Content-Disposition: inline
+In-Reply-To: <419052E5.4080609@koba.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,39 +22,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-there is a conflict between the above two patches. The helper_locking_fix 
-removes the locks from the helpers, but ctnetlink adds code using these 
-locks.
+--wwtQuX191/I956S7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->From reading the code I think the helper side locking should be removed 
-from the ctnetlink additions as well, but just wanted to verify with you.
+On Tue, Nov 09, 2004 at 02:17:25AM -0300, koba@koba.com.ar wrote:
+> Hello,
+> 	I've been trying to get the connbytes module working but apparently=20
+> 	the CVS/SVN libipt_connbytes.c is outdated (for example it uses sinfo->f=
+rom=20
+> instead of sinfo->count.from). If you've been mantaining it, can you=20
+> send me your latest version?
 
-Example of the offending code (ip_conntrack_irc.c, and many more):
+Which particular version of ipt_connbytes are you talking about?
 
-+static void ctnl_change(struct ip_conntrack *ct, union ip_conntrack_help 
-*h)
-+{
-+	LOCK_BH(&ip_irc_lock);
-+	memcpy(&ct->help, h, sizeof(ct->help));
-+	UNLOCK_BH(&ip_irc_lock);
-+}
-+
-+static void ctnl_new_expect(struct ip_conntrack_expect *exp,
-+                            union ip_conntrack_expect_proto *p,
-+                            union ip_conntrack_expect_help *h)
-+{
-+	if (h == NULL)
-+		return;
-+	LOCK_BH(&ip_irc_lock);
-+	memcpy(&exp->help, h, sizeof(exp->help));
-+	UNLOCK_BH(&ip_irc_lock);
-+}
-+
+at least the 2.6.x version from subversion appears to use 'count.from'
+consistently.
 
-where ip_irc_lock was killed by helper_locking_fix.
+I don't have anything else than current subversion.
 
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Regards
-Henrik
+--wwtQuX191/I956S7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD4DBQFBkIgWXaXGVTD0i/8RAgJjAJjfC7gILN7jwTVNsfFP/hIUaKjDAJ9U5Fuf
+k8RiN2P4SpqJcbfwoibNLA==
+=IrfL
+-----END PGP SIGNATURE-----
+
+--wwtQuX191/I956S7--
