@@ -1,18 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Extremely slow network with e1000 & ip_conntrack
-Date: Thu, 11 Dec 2003 08:26:08 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: your mail
+Date: Wed, 3 Dec 2003 17:32:35 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031211072608.GF22826@sunbeam.de.gnumonks.org>
-References: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD1F@orsmsx402.jf.intel.com> <20031204213030.2B75.MUKANSAI@emailplus.org> <20031205122819.25ac14ab.davem@redhat.com>
+Message-ID: <20031203120235.GG15715@obroa-skai.de.gnumonks.org>
+References: <13724513568.20031119014829@internetplustravel.ru>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qp4W5+cUSnZs0RIF"
-Cc: Stephen Lee <mukansai@emailplus.org>, scott.feldman@intel.com,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="zhtSGe8h3+lMyY1M"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Martin Josefsson <gandalf@wlug.westbo.se>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: Oleg Savostyanov <savostyanov@internetplustravel.ru>
 Content-Disposition: inline
-In-Reply-To: <20031205122819.25ac14ab.davem@redhat.com>
+In-Reply-To: <13724513568.20031119014829@internetplustravel.ru>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,54 +24,46 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qp4W5+cUSnZs0RIF
+--zhtSGe8h3+lMyY1M
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Dec 05, 2003 at 12:28:19PM -0800, David S. Miller wrote:
+On Wed, Nov 19, 2003 at 01:48:07AM +0300, Oleg Savostyanov wrote:
+> Hello , Harald
+> I tryed to install extra package, written by you -
+> pptp-conntrack-nat
+> but failed to do this.
 
-> The culprit is net/ipv4/netfilter/ip_conntrack_standalone.c,
-> in ip_refrag(), it does this:
->=20
+please report such problems to netfilter@lists.gnumonks.org, or
+netfilter-devel@lists.gnumonks.org (like documented on
+http://www.netfilter.org/contact.html).
 
-Sorry for getting back to you so late, but as indicated before, I was
-offline while travelling during the last week.
+also, which version of patch-o-matic were you using?
 
-Thanks for spotting and fixing the bug.
+> Do you have any ideas what to do?
 
-> Some auditing is definitely necessary wrt. TSO and netfilter.  In particu=
-lar
-> I am incredibly confident that we have issues in cases like when the FTP
-> netfilter modules mangle the data.  Another area for inspection are the
-> cases where TCP header bits are changed and thus the checksum needs to
-> be adjusted.
-
-yes, this is certainly a problem - but not with conntrack, only with
-nat.  So maybe we should add a safeguard, preventing
-iptables_nat/ipchains/ipfwadm from being loaded when TSO on any
-interface is enabled?  Or at least print a warining in syslog?
+Martin Josefsson is the patch-o-matic maintainer, maybe he can help you.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
 
---qp4W5+cUSnZs0RIF
+--zhtSGe8h3+lMyY1M
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/2BwQXaXGVTD0i/8RAhTnAJ9qseTfbSGiGhmZG8xTAFImx9fBGQCgjq8V
-OB8LsLrfb4l0RUqNrNAiAfM=
-=2TJW
+iD8DBQE/zdDwXaXGVTD0i/8RAs9HAJ97Gjv/WIIXS5pfnxYk1GJmJmRmVwCdF2/7
+kgmKOTeZmyezUVkseGdQMA0=
+=yRQc
 -----END PGP SIGNATURE-----
 
---qp4W5+cUSnZs0RIF--
+--zhtSGe8h3+lMyY1M--
