@@ -1,108 +1,64 @@
-From: Gene Heskett <gene.heskett@verizon.net>
+From: Marc Ballarin <Ballarin.Marc@gmx.de>
 Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
-Date: Wed, 22 Sep 2004 08:41:34 -0400
+Date: Wed, 22 Sep 2004 15:37:07 +0200
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200409220841.34453.gene.heskett@verizon.net>
-References: <1095721742.5886.128.camel@bach> <Pine.LNX.4.58.0409221347010.23967@tux.rsn.bth.se> <Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
-Reply-To: gene.heskett@verizon.net
+Message-ID: <20040922153707.2cc1d886.Ballarin.Marc@gmx.de>
+References: <1095721742.5886.128.camel@bach>
+	<20040921143613.2dc78e2f.Ballarin.Marc@gmx.de>
+	<1095803902.1942.211.camel@bach>
+	<20040922003646.3a84f4c5.Ballarin.Marc@gmx.de>
+	<20040921153600.2e732ea6.davem@davemloft.net>
+	<20040922013516.753044db.Ballarin.Marc@gmx.de>
+	<4150C448.5040604@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	Marc Ballarin <Ballarin.Marc@gmx.de>,
-	Linus Torvalds <torvalds@osdl.org>,
-	netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265029AbUIVMmS@vger.kernel.org>
-To: linux-kernel@vger.kernel.org, root@chaos.analogic.com
-In-Reply-To: <Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
-Content-Disposition: inline
+Cc: davem@davemloft.net, rusty@rustcorp.com.au, torvalds@osdl.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265195AbUIVNcd@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4150C448.5040604@trash.net>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 22 September 2004 08:05, Richard B. Johnson wrote:
->On Wed, 22 Sep 2004, Martin Josefsson wrote:
->> On Wed, 22 Sep 2004, Richard B. Johnson wrote:
->> > > Sure, but you have to start somewhere.  Next step will be
->> > > #error.  Then finally remove the whole thing (I don't want to
->> > > remove the whole thing to start with, since that would create
->> > > a silent failure).
->> > >
->> > > Cheers,
->> > > Rusty.
->> > > --
->> >
->> > What replaces the firewall stuff? It can't just "go away"!
->>
->> Ever heard of iptables?
->>
->> /Martin
->
->I guess I'll have to convert 1340 lines of ipchains commands to
->iptables -yech!
+On Wed, 22 Sep 2004 02:16:08 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-Ouch!  If it takes 1340 lines of ipchains commands, a direct 
-translation to iptables syntax is both counter-productive and 
-extremely wastefull of system resources, cpu in particular.  I 
-admittedly have a dsl router in front of my machine, so it does 99% 
-of that job, but if I wanted to put up with the idiosyncracies of the 
-Roaring Penguin PPPoE, I could skip the router and be just as secure 
-with the less than 30 active lines of my present iptables script.  
-With the router, I'm invisible to the outside world.  Of course that 
-does restrict me some as I've not figured out how to drill a hole 
-thru all that to allow a torrent server to function.  The peace of 
-mind is worth that loss IMO.  Its been over a year now since 
-portsentry-1.1 saw a trigger and logged it.
+> Fixed by this patch.
 
-Humm, thats a lie, from the firewalls /var/log/messages.1 file:
+Yes, works fine. Does this mean that ipchains was broken for a while, but
+no one complained?
 
-[root@gene root]# grep attackalert /var/log/messages*
-/var/log/messages.1:Sep 16 18:09:16 gene portsentry[1159]: 
-attackalert: UDP scan from host: home1.bellatlantic.net/199.45.32.43 
-to UDP port: 32771
-/var/log/messages.1:Sep 16 18:09:16 gene portsentry[1159]: 
-attackalert: Host 199.45.32.43 has been blocked via wrappers with 
-string: "ALL: 199.45.32.43"
-/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
-attackalert: Host 199.45.32.43 has been blocked via dropped route 
-using command: "/sbin/iptables -I INPUT -s 199.45.32.43 -j DROP"
-/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
-attackalert: UDP scan from host: home1.bellatlantic.net/199.45.32.43 
-to UDP port: 32771
-/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
-attackalert: Host: home1.bellatlantic.net/199.45.32.43 is already 
-blocked Ignoring
+Anyway, here is another trivial patch against -bk7 that adds runtime
+warnings. IMO most users are going to miss compile time warnings, or
+won't even compile kernels themselves.
 
-Time to send another nastygram to verizon since thats one of their 
-nameservers, and clear out that address from the hosts.deny file.
+Regards
 
-FWIW, the last time that happened, in April 2003, the hack attempt  
-trashed a siemans router and I had to replace it with that linksys.  
-Must be time to change the user and password in it again too...
-
-FWIW, verizon has apparently a problem keeping their nameservers from 
-being hacked.
-
->I had convert something to ipchains a couple of years ago.
->That's when I only had to kill-off only about 100 spam-hosts.
->
->Now I gotta convert again. Soon they'll be replacing `ls`
->with `echo *` and nothing will work.
-
-Surely you jest?
-
->Cheers,
->Dick Johnson
->Penguin : Linux version 2.4.26 on an i686 machine (5570.56
-> BogoMips). Note 96.31% of all statistics are fiction.
-
--- 
-Cheers, Gene
-"There are four boxes to be used in defense of liberty:
- soap, ballot, jury, and ammo. Please use in that order."
--Ed Howdershelt (Author)
-99.26% setiathome rank, not too shabby for a WV hillbilly
-Yahoo.com attorneys please note, additions to this message
-by Gene Heskett are:
-Copyright 2004 by Maurice Eugene Heskett, all rights reserved.
+diff -Nurp tmp/linux-2.6.9/net/ipv4/netfilter/ipchains_core.c
+linux-2.6.9/net/ipv4/netfilter/ipchains_core.c
+--- tmp/linux-2.6.9/net/ipv4/netfilter/ipchains_core.c	2004-09-22 14:45:26.398827000 +0200
++++ linux-2.6.9/net/ipv4/netfilter/ipchains_core.c	2004-09-22 14:51:20.017069184 +0200
+@@ -1800,6 +1800,9 @@ int ipfw_init_or_cleanup(int init)
+ 
+ 	if (!init) goto cleanup;
+ 
++	printk(KERN_WARNING
++		"Warning: ipchains is obsolete, and will be removed soon!\n");
++			
+ #ifdef DEBUG_IP_FIREWALL_LOCKING
+ 	fwc_wlocks = fwc_rlocks = 0;
+ #endif
+diff -Nurp tmp/linux-2.6.9/net/ipv4/netfilter/ipfwadm_core.c
+linux-2.6.9/net/ipv4/netfilter/ipfwadm_core.c
+--- tmp/linux-2.6.9/net/ipv4/netfilter/ipfwadm_core.c	2004-09-22 14:45:53.545700000 +0200
++++ linux-2.6.9/net/ipv4/netfilter/ipfwadm_core.c	2004-09-22 14:51:37.780368752 +0200
+@@ -1420,6 +1420,9 @@ int ipfw_init_or_cleanup(int init)
+ 	if (!init)
+ 		goto cleanup;
+ 
++	printk(KERN_WARNING
++		"Warning: ipfwadm is obsolete, and will be removed soon!\n");
++			
+ 	ret = register_firewall(PF_INET, &ipfw_ops);
+ 	if (ret < 0)
+ 		goto cleanup_nothing;
