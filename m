@@ -1,16 +1,15 @@
-From: Ian Norton <bredroll@darkspace.org.uk>
-Subject: Re: To send a  skb  cloned in netfilter HOOK out
-Date: Wed, 9 Mar 2005 09:47:30 +0000
-Message-ID: <20050309094729.GA25404@earth.dsh.org.uk>
-References: <002a01c51ae2$de33b970$18a8a8c0@archills>
-	<20050225094855.GA8697@earth.dsh.org.uk>
-	<001d01c5246b$63b3b730$02010101@archills>
+From: Wang Jian <lark@linux.net.cn>
+Subject: Re[2]: bidirectional CONNMARK?
+Date: Wed, 09 Mar 2005 17:54:51 +0800
+Message-ID: <20050309174657.A56E.LARK@linux.net.cn>
+References: <20050309124806.A55C.LARK@linux.net.cn>
+	<Pine.LNX.4.61.0503091019020.6780@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Archills Zhao <archills_81@yahoo.com.cn>
-Content-Disposition: inline
-In-Reply-To: <001d01c5246b$63b3b730$02010101@archills>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0503091019020.6780@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,78 +21,94 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Henrik Nordstrom,
 
-You can't send a 'cloned' skb, you need to send a copy to each destination,
+Below is a test script, which uses mark/mask to do bi-directional
+control. I just craft it and haven't test it yet. (Need to compile a new
+iptables in the test bed, later)
 
-ie, 
+Jesse <jesse@deansoft.com.tw> tells me off-list that he has a CTDIRMARK
+target based on CONNMARK. Looking forward to his code for easier use.
 
-new_skb = skb_copy(old, GFP_ATOMIC);
 
-A clone will share the same data with the original but different values in
-head.
+--snip--
+#!/bin/sh
 
-A copy will have a copy of the data and relavant head pointers.
+CLEAR="iptables -F PREROUTING -t mangle"
+IPT="iptables -A PREROUTING -t mangle"
+IPTIN="iptables -A INBOUND -t mangle"
+IPTOUT="iptables -A OUTBOUND -t mangle"
 
-to send the copy out of another interface you need to also tell netfilter that
-it is not the same packet that went in.
+$CLEAR
 
-http://www.netfilter.org/documentation/HOWTO/netfilter-hacking-HOWTO-6.html
+iptables -N INBOUND -t mangle
+iptables -N OUTBOUND -t mangle
 
-Ian
+# Start
+$IPT -i eth1 -m connmark --mark 0x80000000/0x80000000 \
+        -j CONNMARK --restore-mark --mask 0x7FFF0000
+$IPT -i eth1 -m connmark --mark 0x80000000/0x80000000 -j RETURN
 
-On Wed, Mar 09, 2005 at 01:45:51PM +0800, Archills Zhao wrote:
-> Hi,
-> How are things going on with you?
-> If u copy the skb more than once and send to different destination, just as I am doing here,I guess u have some change to the netfilter itself!
-> I am supposing to do the same thing next stage.
+$IPT -i eth0 -m connmark --mark 0x00008000/0x00008000 \
+        -j CONNMARK --restore-mark --mark 0x00007FFF
+$IPT -i eth0 -m connmark --mark 0x00008000/0x00008000 -j RETURN
+
+# End with default to prevent rule traversal
+$IPT -i eth1 -j INBOUND
+$IPT -i eth1 -m connmark --mark ! 0x80000000/0x80000000 \
+        -j CONNMARK --set-mark  0x80000000/0x8FFF0000
+$IPT -i eth1 -j RETURN
+
+$IPT -i eth0 -j OUTBOUND
+$IPT -i eth0 -m connmark --mark ! 0x00008000/0x00008000 \
+        -j CONNMARK --set-mark  0x00008000/0x00008FFF
+$IPT -i eth0 -j RETURN
+
+# Classes
+$IPTOUT -p tcp --sport 80 -j CONNMARK --set-mark 0x80030000/0xFFFF0000
+$IPTOUT -p tcp --sport 80 -j RETURN
+
+
+
+On Wed, 9 Mar 2005 10:24:50 +0100 (CET), Henrik Nordstrom <hno@marasystems.com> wrote:
+
+> On Wed, 9 Mar 2005, Wang Jian wrote:
 > 
-> but now I have met a problem here ,and hope i can reach ur help.
+> > What is the CONNMARK's purpose?
 > 
-> Here I cloned the skb for more than once at POSTROUTING chain,chaged the destIP respectively,and then send them using dev_queue_xmit(skb). 
-> but it turns out to have the same destination MAC address, 
-> even if i called  ether.c:eth_rebuild_header();
-> the destMAC remains the same.
-> do u have any suggestion ,how can i change destMAC under my circumstance?
+> To act as a decision memory on the connection. What you use this memory 
+> for is up to you.
 > 
-> thanks in advance!
+> > I think it is to reduce rule traversal,
 > 
+> This is one of many applications.
 > 
-> Brgds,
-> Archills
+> The --save-mark/--restore-mark options to CONNMARK should be seen as a 
+> bonus. It is not the main purpose of CONNMARK. The main purpose of 
+> CONNMARK is to act as a connection oriented state memory, allowing you to 
+> remember an earlier decision about something on later packets in the same 
+> session.
 > 
+> > But an issue occurs, when we want to set 2 different marks for a single
+> > session in two directions.
 > 
+> Then you need to structure the use of CONNMARK differently, and depending 
+> on the direction set different marks.
 > 
->  
+> > When doing QoS control as an router between two or more interfaces,
+> > bi-directional control is neccessary. Since nfmark is the most
+> > convenient way to classify packet, should we extend CONNMARK to support
+> > two marks?
 > 
->   ----- Original Message ----- 
->   From: Ian Norton 
->   To: Archills Zhao 
->   Sent: Friday, February 25, 2005 5:48 PM
->   Subject: Re: To send a skb cloned in netfilter HOOK out
+> If it helps you in reducing your ruleset, why not? Adjusting the tools to 
+> your needs is one of the cornerstones of using Open Source software.
 > 
+> But I don't think it is generally suitable for CONNMARK.
 > 
->   On Fri, Feb 25, 2005 at 10:36:40AM +0800, Archills Zhao wrote:
->   > Hi,
->   > 
->   > for example, to register a module in NF_IP_POST_ROUTING, in which skb was cloned and stored in my_skb,
->   > If i want this cloned packet to follow the routine to finally be sent out,
->   > where should i inject this "myskb"?how to realise this in network satck?
->   > 
->   > i have run into netfilter for just one or two week and found it really nice!
->    
->   Hi there,
-> 
->   I've been looking to do almost exactly the same thing here, 
->   You can create a whole new packet (you need to add link layer headers) 
->   and send that using dev_queue_xmit(skb). 
-> 
->   At the moment I've not been able to send a _new_ skb back to the netfilter 
->   hook that called my module.
->   --
->   Ian
-> 
-> 
+> Regards
+> Henrik
+
+
 
 -- 
-Ian Norton-Badrul
+  lark
