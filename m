@@ -1,16 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [BK PATCH] Fix ip_conntrack_amanda data corruption bug that
  breaks amanda dumps
-Date: Fri, 05 Nov 2004 23:19:08 +0100
-Message-ID: <418BFC5C.20201@trash.net>
-References: <20041104121522.GA16547@merlin.emma.line.org>	<418A7B0B.7040803@trash.net>	<20041104231734.GA30029@merlin.emma.line.org>
+Date: Fri, 5 Nov 2004 23:24:05 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0411052320490.2017@filer.marasystems.com>
+References: <20041104121522.GA16547@merlin.emma.line.org>
+	<418A7B0B.7040803@trash.net>
+	<20041104231734.GA30029@merlin.emma.line.org>
 	<418AC0F2.7020508@trash.net> <418BE156.4020400@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: Herbert Xu <herbert@gondor.apana.org.au>,
 	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	"David S. Miller" <davem@redhat.com>, linux-net@vger.kernel.org
+	"David S. Miller" <davem@redhat.com>, linux-net@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
 In-Reply-To: <418BE156.4020400@eurodev.net>
@@ -25,42 +27,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
+On Fri, 5 Nov 2004, Pablo Neira wrote:
 
-> Patrick, what about this? this way we save a copy to a buffer for 
-> linear skbs.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
->
->@@ -74,12 +75,17 @@
-> 				 skb->len - dataoff, amanda_buffer);
-> 	BUG_ON(amp == NULL);
-> 	data = amp;
->-	data_limit = amp + skb->len - dataoff;
->-	*data_limit = '\0';
-> 
-> 	/* Search for the CONNECT string */
->-	data = strstr(data, "CONNECT ");
->-	if (!data)
->+	while((data = memchr(data, 'C', skb->len - dataoff)) != NULL) {
->+		if (strncmp(data, "CONNECT ", 8) == 0) {
->  
->
-What if the C is the last byte ? There are also more str* commands below
-that need a terminating 0-byte.
+> Patrick, what about this? this way we save a copy to a buffer for linear 
+> skbs.
+
+You need to make sure you or any of the later string match/extract 
+functions are not reading outside of the skb, after the current data 
+segment.
+
+>From what I could tell this was missing in your proposed change. If the 
+helper sees a packet with a C as last byte it would read past the end of 
+the skb, and without looking at the whole source I see it very likely 
+there is operations on the data further down assuming a null terminated 
+string..
 
 Regards
-Patrick
-
->+			found = 1;
->+			break;
->+		}
->+		data++;
->+	}
->+
->+	if (!found)
-> 		goto out;
-> 	data += strlen("CONNECT ");
-> 
->  
->
+Henrik
