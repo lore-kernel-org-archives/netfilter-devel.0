@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] MARK target doesn't allow to set highest bit
-Date: Sat, 2 Nov 2002 15:38:16 +0100
+From: netfilter@interlinx.bc.ca
+Subject: Re: [PATCH] Amanda conntrack/nat module update
+Date: Sat, 2 Nov 2002 09:35:20 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021102153816.O8635@sunbeam.de.gnumonks.org>
-References: <veu1j2de35.fsf@inigo.ingate.se>
+Message-ID: <20021102143520.GF16306@pc.ilinx>
+References: <20021101232337.GD16306@pc.ilinx> <1036244727.28830.66.camel@tux>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dcv4+U1QHVytmYUX"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="Bg2esWel0ueIH/G/"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Marcus Sundberg <marcus@ingate.com>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <veu1j2de35.fsf@inigo.ingate.se>; from marcus@ingate.com on Thu, Oct 31, 2002 at 12:47:58PM +0100
+In-Reply-To: <1036244727.28830.66.camel@tux>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,44 +22,43 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---dcv4+U1QHVytmYUX
+--Bg2esWel0ueIH/G/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 31, 2002 at 12:47:58PM +0100, Marcus Sundberg wrote:
-> Hi,
->=20
-> libipt_MARK.c has been broken since iptables 1.2.7.
-> This patch makes it work properly again:
+On Sat, Nov 02, 2002 at 02:45:27PM +0100, Martin Josefsson wrote:
+> On Sat, 2002-11-02 at 00:23, netfilter@interlinx.bc.ca wrote:
+> >=20
+> > Please find attached an update patch to patch-o-matic for my Amanda
+> > protocol conntrack/nat helper.  This patch corrects a minor error in
+> > the Config.in indentation as well as, and more importantly, lengthens
+> > the timeout for the master Amanda connection from the default UDP
+> > stream timeout (normally 180 seconds) to 300 seconds.
 
-Broken in which way?  Am I right you are talking about signed/unsigned numb=
-ers
-and not being able to specify the upper half of the mark range?
+So, I am assuming that the theory and my implementation of a
+conntracker extending the timeout for it's own master connection
+beyond the default is/was correct?
 
-> //Marcus
+> Applied,
+
+Thanx!!
+
+b.
 
 --=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
+Brian J. Murrell
 
---dcv4+U1QHVytmYUX
+--Bg2esWel0ueIH/G/
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Version: GnuPG v1.0.7 (GNU/Linux)
 
-iD8DBQE9w+NXXaXGVTD0i/8RApw0AJ9eZzZ+Hla76kq6ZDXJsHxOBks8WQCgoUh/
-HQAeaMtnC/wRp5xm0aY5xXI=
-=JMxt
+iD8DBQE9w+Kol3EQlGLyuXARAi+nAKDWCUUNq3LtOhHWsWL7nEkygHLdzQCcDVYd
+hzL59Ej9UDN9esJgvKZff1Q=
+=aZDZ
 -----END PGP SIGNATURE-----
 
---dcv4+U1QHVytmYUX--
+--Bg2esWel0ueIH/G/--
