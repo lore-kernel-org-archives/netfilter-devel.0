@@ -1,14 +1,12 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: cvs -> svn
-Date: Sat, 20 Nov 2004 10:06:53 +0100
-Message-ID: <20041120090653.GB15784@oknodo.bof.de>
-References: <20041120082344.GA15784@oknodo.bof.de>
+From: "Ury N. Stankevich" <urykhy@gmail.com>
+Subject: iplimit issues
+Date: Sat, 20 Nov 2004 16:28:13 +0300
+Message-ID: <20041120162813.322af73a@elf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20041120082344.GA15784@oknodo.bof.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,15 +18,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> BTW, cvs.netfilter.org gives me 'Connection Refused'.
+hi list
 
-I've now seen that this is planned, and I'm supposed to switch to SVN.
+i have question about iplimit module. as i understand it storing all sessions.. but conntrack also do that.
 
-<whine>
-However, maybe somebody should update the web pages to reflect this
-change? Right now the web pages clearly tell me to use certain
-cvs/pserver commands, which fail. Ugly.
-<whine/>
+i think we can use conntrack capabilities to store sessions and extent ipt_state.c to take in account number of sessions.
+but i see one problem:
+current hash_conntrack implementation use src.u.all field..
+so to count all connection from ip addressess range we need walk over all ip_conntrack_hash .. this can be quite long i think..
 
-best regards
-  Patrick
+have anyone experiments with this approach ?
+maybe we can simply change hash_conntrack to use only src_ip:dst_ip:protocol as hash key ?
+
+-- 
