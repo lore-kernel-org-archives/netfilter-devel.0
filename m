@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [netfilter-core] TimeBlock
-Date: Wed, 9 Oct 2002 17:07:55 +0200
+From: Peter Surda <shurdeek@panorama.sth.ac.at>
+Subject: Re: Problem in using iplimit
+Date: Wed, 9 Oct 2002 18:45:26 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021009170755.A13233@sunbeam.de.gnumonks.org>
-References: <000801c26e96$24999570$1400000a@sneak>
+Message-ID: <20021009164526.GF19999@noir.cb.ac.at>
+References: <20021009092515.23022.qmail@web13101.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BOY+hQj86lETlGFu"
-Cc: <coreteam@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="jHP/eq8oeUshSv2p"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Ilo Lorusso" <ilo@gmsg.co.za>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <000801c26e96$24999570$1400000a@sneak>; from ilo@gmsg.co.za on Tue, Oct 08, 2002 at 08:44:21AM +0200
+In-Reply-To: <20021009092515.23022.qmail@web13101.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,36 +22,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---BOY+hQj86lETlGFu
+--jHP/eq8oeUshSv2p
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 08, 2002 at 08:44:21AM +0200, Ilo Lorusso wrote:
-> How does the idea of having time feature included in the DENYoption, so a
-> person can DENY Access to curtain resources on based on time.
+On Wed, Oct 09, 2002 at 05:25:15PM +0800, tin man chan wrote:
+> Hi,
+hi
 
-1) read http://www.netfilter.org/contact.html [this suggestion should have
-   gone to netfilter-devel
+> iptables -p tcp --syn --dport 23 -m iplimit --iplimit-above 2 -j REJECT
+>=20
+> iptables v1.2.7a: no command specified
+> Try `iptables -h' or 'iptables --help' for more information.
+Of course, you are missing the command (I presume -I, -A or -R) and chain
+(probably INPUT or FORWARD).
 
-2) this has been discussed before
+> Steven Chan
+Bye,
 
-3) there are two possibilities of achieving your goal
-   a) use crontab to change your ruleset
-   b) use the 'time' match from patch-o-matic
+Peter Surda (Shurdeek) <shurdeek@panorama.sth.ac.at>, ICQ 10236103, +436505=
+122023
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long =
-as
- I'm the dictator."  --  George W. Bush Dec 18, 2000
+--
+           Intel: where Quality is job number 0.9998782345!
 
---BOY+hQj86lETlGFu
+--jHP/eq8oeUshSv2p
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -61,9 +55,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9pEZLXaXGVTD0i/8RApUcAJ9PpZJAqh6vOh6n5QdHIgEgEzaglwCfYVkp
-z+Xcg6VaXwp9HI5bmL+RW8U=
-=DRVh
+iD8DBQE9pF0lzogxsPZwLzcRAgtBAJ9hpJCl9zZCr5VebPeAVPsF4bYTjQCglGAJ
+t/rOyHg+yC/W1tlDEVfOygk=
+=zWvL
 -----END PGP SIGNATURE-----
 
---BOY+hQj86lETlGFu--
+--jHP/eq8oeUshSv2p--
