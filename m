@@ -1,14 +1,17 @@
-From: "Ye, Xiaolu" <xiaolu.ye@intel.com>
-Subject: cross compile netfilter to arm-linux
-Date: Fri, 27 Aug 2004 10:32:04 +0800
+From: "Robbert" <hanbo163com@163.com>
+Subject: Re: Some one knows how to implement policy routing with iptables?
+Date: Fri, 27 Aug 2004 11:30:06 +0800
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <01385A324262E54DA1F2087B0A87EDBFA369EF@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <000701c48be6$28141440$8e5f78ca@nic.ecnu.edu.cn>
+References: <002e01c48b0e$31b253f0$8e5f78ca@nic.ecnu.edu.cn>
+	<Pine.LNX.4.61.0408260917380.5483@filer.marasystems.com>
+	<002b01c48b6e$f86a3570$8e5f78ca@nic.ecnu.edu.cn>
+	<Pine.LNX.4.61.0408261636550.10523@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
 To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -20,135 +23,26 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi:
-
-    I want to cross compile netfilter(1.2.7a) to my arm-linux
-platform(Kernel 2.4.17-rmk3).
-
-    I add these lines to the Makefile:
-
-        CC :=3D /arm/bin/arm-linux-gcc #my arm gnu gcc
-
-LD :=3D /arm/bin/arm-linux-ld  #my arm gnu linker
-
-AR :=3D /arm/bin/arm-linux-ar
-
-    Then compile the netfilter, some errors occur:
-
-        include/linux/netfilter_ipv4/ipt_conntrack.h:28: `IP_CT_DIR_MAX'
-undeclared here (not in a function)
-
-include/linux/netfilter_ipv4/ipt_conntrack.h:29: `IP_CT_DIR_MAX'
-undeclared here (not in a function)
-
-include/linux/netfilter_ipv4/ipt_conntrack.h:29: `IP_CT_DIR_MAX'
-undeclared here (not in a function)
-
-extensions/libipt_conntrack.c: In function `parse_status':
-
-extensions/libipt_conntrack.c:103: `IPS_EXPECTED' undeclared (first use
-in this function)   =20
-
-extensions/libipt_conntrack.c:103: (Each undeclared identifier is
-reported only once
-
-extensions/libipt_conntrack.c:103: for each function it appears in.)
-
-extensions/libipt_conntrack.c:105: `IPS_SEEN_REPLY' undeclared (first
-use in this function)
-
-extensions/libipt_conntrack.c:107: `IPS_ASSURED' undeclared (first use
-in this function)
-
-extensions/libipt_conntrack.c: In function `parse':
-
-extensions/libipt_conntrack.c:202: `IP_CT_DIR_ORIGINAL' undeclared
-(first use in this function)
-
-extensions/libipt_conntrack.c:259: `IP_CT_DIR_REPLY' undeclared (first
-use in this function)
-
-extensions/libipt_conntrack.c: In function `print_status':
-
-extensions/libipt_conntrack.c:364: `IPS_EXPECTED' undeclared (first use
-in this function)
-
-extensions/libipt_conntrack.c:368: `IPS_SEEN_REPLY' undeclared (first
-use in this function)
-
-extensions/libipt_conntrack.c:372: `IPS_ASSURED' undeclared (first use
-in this function)
-
-extensions/libipt_conntrack.c: In function `matchinfo_print':
-
-extensions/libipt_conntrack.c:420: `IP_CT_DIR_ORIGINAL' undeclared
-(first use in this function)
-
-extensions/libipt_conntrack.c:440: `IP_CT_DIR_REPLY' undeclared (first
-use in this function)
-
-make: *** [extensions/libipt_conntrack.o] Error 1
-
-   For this error, I check the netfilter code, and add two enum to
-ipt_conntrack.h/libipt_conntrack.c, and then pass these errors.
-
-=20
-
-    But, in compile progress, still have some errors:
-
-        extensions/libipt_tos.c:58: warning: `struct ipt_tos_info'
-declared inside parameter list
-
-extensions/libipt_tos.c:58: warning: its scope is only this definition
-or declaration, which is probably not what you want.
-
-extensions/libipt_tos.c: In function `parse_tos':
-
-extensions/libipt_tos.c:69: dereferencing pointer to incomplete type
-
-extensions/libipt_tos.c:75: dereferencing pointer to incomplete type
-
-extensions/libipt_tos.c: In function `parse':
-
-extensions/libipt_tos.c:95: warning: passing arg 2 of `parse_tos' from
-incompatible pointer type
-
-extensions/libipt_tos.c:97: dereferencing pointer to incomplete type
-
-extensions/libipt_tos.c: In function `print':
-
-extensions/libipt_tos.c:141: dereferencing pointer to incomplete type
-
-extensions/libipt_tos.c:142: dereferencing pointer to incomplete type
-
-extensions/libipt_tos.c: In function `save':
-
-extensions/libipt_tos.c:150: dereferencing pointer to incomplete type
-
-extensions/libipt_tos.c:151: dereferencing pointer to incomplete type
-
-extensions/libipt_tos.c: At top level:
-
-extensions/libipt_tos.c:159: sizeof applied to an incomplete type
-
-extensions/libipt_tos.c:160: sizeof applied to an incomplete type
-
-make: *** [extensions/libipt_tos.o] Error 1
-
-=20
-
-How can I pass this error? Many Thanks!
-
-=20
-
-=20
-
-Best Regards!
-
-Ye.XiaoLu
-
-=20
-
-=20
-
-=20
+VGhhbmtzIGEgbG90IQ0KRG9lcyB0aGUgd2F5IHRvIGltcGxlbWVudCBwb2xpY3kgcm91dGluZyB3
+aXRoIFJPVVRFIHRhcmdldCBoYXZlIHNvbWUgTElNSVQ/IElzIGl0IG9ubHkgZml0IHRvIHNvbWUg
+Y2VydGFpbiBpc3N1ZXM/DQpBbmQsIHRoZSBub3JtYWwgd2F5ICxJIG1lYW4gdXNlIGlwdGFibGVz
+IG1hcmsgdGhlIHBhY2tldCAsdGhlbiBmaW5kIHRoZSBjb3JyZXNwb25kaW5nIGlwIHJ1bGUsIGFu
+ZCB1c2UgdGhlIGNvcnJlc3BvbmRpbmcgcm91dGUgdGFibGUsIGhhcyBzb21lIHNob3J0YWdlP0Fu
+eSB3YXkgdG8gbWFrZSBpdCBiZXR0ZXI/DQoNClJlZ2FyZHMNClJvYmVydA0KLS0tLS0gT3JpZ2lu
+YWwgTWVzc2FnZSAtLS0tLSANClN1YmplY3Q6IFJlOiBTb21lIG9uZSBrbm93cyBob3cgdG8gaW1w
+bGVtZW50IHBvbGljeSByb3V0aW5nIHdpdGggaXB0YWJsZXM/DQoNCg0KPiBPbiBUaHUsIDI2IEF1
+ZyAyMDA0LCBSb2JiZXJ0IHdyb3RlOg0KPiANCj4gPiBZZWFoLEkgaGF2ZSBzZWVuIHRoZSBST1VU
+RSB0YXJnZXQsd2hpY2ggaXMgdXNlZnVsIHRvIGZvcmNlIHRoZSB1c2Ugb2YgYW4gDQo+ID4gaW50
+ZXJmYWNlIG9yIGEgbmV4dCBob3AgYW5kIHRvIGNoYW5nZSB0aGUgaW5jb21pbmcgaW50ZXJmYWNl
+IG9mIGEgcGFja2V0IA0KPiA+IGJ5IG9wdGlvbnMgLS1vaWYsLS1paWYsLS1ndy5Ib3dldmVyLGFy
+ZSB0aGVzZSBlbm91Z2g/IEkgbWVhbixzb21ldGhpbmcgDQo+ID4gZGVwZW5kIG9uIFRPUyxvciBz
+b21ldGhpbmcgbGlrZSB0aGF0Pw0KPiANCj4gUk9VVEUganVzdCBzZXRzIHRoZSByb3V0ZSB0aGlz
+IHBhY2tldCBzaG91bGQgdGFrZSBvbmNlIHlvdSBoYXZlIGNsYXNzaWZpZWQgDQo+IHRoZSBwYWNr
+ZXQuIEhvdyB5b3UgY2xhc3NpZnkgcGFja2V0cyBpcyBvZiBubyBjb25jZXJuIHRvIHRoZSBST1VU
+RSB0YXJnZXQuDQo+IA0KPiA+IEFuZCxob3cgY2FuIEkgdXNlIFJPVVRFIHRhcmdldCB0byBpbXBs
+ZW1lbnRzIHBvbGljeSByb3V0aW5nPyBTb21lIG9uZSANCj4gPiBnaXZlIG1lIGEgc2FtcGxlPw0K
+PiANCj4gQnkgYnVpbGRpbmcgaXB0YWJsZXMgcnVsZXMgYXNzaWduaW5nIGRpZmZlcmVudCByb3V0
+ZXMgdG8gZGlmZmVyZW50IA0KPiBwYWNrZXRzLg0KPiANCj4gQnV0IG1vc3QgcGVvcGxlIGRvIHBv
+bGljeSByb3V0aW5nIHZpYSB0aGUgbWFyayBhbmQgbm9ybWFsIHJvdXRlIHJ1bGVzLiBTZWUgDQo+
+IExpbnV4IEFkdmFuY2VkIFJvdXRpbmcgZG9jdW1lbnRhdGlvbiByZWZlcmVuY2VzIGVhcmxpZXIg
+aW4gdGhpcyB0aHJlYWQuDQo+IA0KPiBSZWdhcmRzDQo+IEhlbnJpaw0KPiA=
