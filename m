@@ -1,15 +1,16 @@
-From: "Pascal C. Kocher" <pascal.kocher@netbeat.biz>
-Subject: Link load balancing and failover
-Date: Fri, 18 Oct 2002 14:17:22 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] ip_nat_mangle_udp_packet() updated
+Date: Fri, 18 Oct 2002 16:52:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <08690CFFD361A946AE65793A726D276902DEE3@smirnoff.netbeat-security.ch>
+Message-ID: <20021018145259.GK2408@naboo.club.berlin.ccc.de>
+References: <20021017163909.GO344@pc.ilinx>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jL2BoiuKMElzg3CS"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20021017163909.GO344@pc.ilinx>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,37 +21,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello list!
 
-I'm currently thinking about an easy way to enable failover internet
-link loadbalancing without having to use BGP4 for outgoing
-communication. For this the netfilter framework seems to be a good way
-to go.
+--jL2BoiuKMElzg3CS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This idea is not about state sync between to netfilter machines, but
-Internet link loadbalancing.
+On Thu, Oct 17, 2002 at 12:39:09PM -0400, netfilter@interlinx.bc.ca wrote:
+> Hello Harald and all.
+>=20
+> Find attached an updated patch for my ip_nat_mangle_udp_packet().
+> This function no longer gratuitously checkums the mangled UDP packet.
+> It only calculated a UDP checksum when the pre-mangling checksum is
+> non-zero.  It still pushes the packet up for IP checksum however.  I
+> believe this to be the correct way to do this.
 
-For this you would need 2 (or more) ISPs.
-The idea is the following:
-- A packet ist destined for a server on the Internet, and the rules let
-the packet pass.
-- The packet ist SNATted to the IP of ISP A and ISP B (packet
-duplication necessary). Note that we must have two expectations in the
-conntrack table. The packets are sent to the corresponding router.
-- The first packet which resolves an expectation will be used for this
-connection. The expectation for the later packet will be deleted.
+This patch looks fine to me. I will put it into the pending repository
+of patch-o-matic.
 
-This enables us to ensure that the connections always take the fastest
-path and if a link goes down, it would still work.
+> Thanx,
 
-Is there a way to do this in netfilter or am I way off? What would be
-the implication on any protocol helpers (ftp, irc, etc.)?
+Thank you!
 
-Things to think about also are how to handle incoming connections to a
-DMZ or similar. Currently I see only the way of multiple A-records in a
-DNS server.
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
+=20
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
-What do you guys think about this?
+--jL2BoiuKMElzg3CS
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Greetings,
-Pascal.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9sCBLXaXGVTD0i/8RAp79AKCKwfaEo8G0QDApiFFTqGX8ohnIaQCgskp5
+jMVRo+VOrUxsdpXDF6wWCvI=
+=RCAb
+-----END PGP SIGNATURE-----
+
+--jL2BoiuKMElzg3CS--
