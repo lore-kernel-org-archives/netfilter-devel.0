@@ -1,16 +1,15 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH]  dead code elimination in libipt_ecn.c
-Date: Fri, 11 Apr 2003 10:20:25 +0200 (CEST)
+Subject: Re: [PATCH] patch-o-matic/base/HL.patch.ipv6.makefile typo
+Date: Fri, 11 Apr 2003 10:23:38 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0304111020050.31394-100000@blackhole.kfki.hu>
-References: <3E8DB0F3.1070007@videotron.ca>
+Message-ID: <Pine.LNX.4.33.0304111023020.31394-100000@blackhole.kfki.hu>
+References: <Pine.LNX.4.51.0304051651410.2780@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>,
-	Harald Welte <laforge@gnumonks.org>
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Stephane Ouellette <ouellettes@videotron.ca>
-In-Reply-To: <3E8DB0F3.1070007@videotron.ca>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <Pine.LNX.4.51.0304051651410.2780@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,12 +20,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 4 Apr 2003, Stephane Ouellette wrote:
+Hi Maciej,
 
->     the following patch removes print_dscp() which is not used.  It also
-> converts all structures to C99.
+On Sat, 5 Apr 2003, Maciej Soltysiak wrote:
 
-Thank you, patch is applied.
+> there's a typo that prevents the module from actually being built after
+> we patch the kernel.
+
+The patch is already applied, thank you.
 
 Best regards,
 Jozsef
