@@ -1,13 +1,16 @@
-From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH]  libip6t_MARK.c
-Date: Fri, 05 Sep 2003 02:42:04 -0400
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Transparent web proxiing stops working in linux-2.4.22
+Date: Fri, 5 Sep 2003 09:08:19 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F58303C.3030508@videotron.ca>
+Message-ID: <Pine.LNX.4.44.0309050851560.6603-100000@filer.marasystems.com>
+References: <20030904215231.GD6909@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_YiZohTLBPa+yAtHODzrWMQ)"
-Cc: Netfilter Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Raivis Bucis <raivis@mt.lv>, <netfilter-devel@lists.netfilter.org>,
+   <cieciwa@alpha.zarz.agh.edu.pl>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030904215231.GD6909@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,111 +21,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Thu, 4 Sep 2003, Harald Welte wrote:
 
---Boundary_(ID_YiZohTLBPa+yAtHODzrWMQ)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+> +	struct ip_conntrack_tuple tuple;
+> +
+> +	memset(&tuple, 0, sizeof(tuple));
+> +	tuple = { { sk->rcv_saddr, { .tcp = { sk->sport } } },
+> +		  { sk->daddr, { .tcp = { sk->dport } }, IPPROTO_TCP } };
 
-Harald,
+This construct looks dangerous to me, relying on the compiler to optimize 
+the assignment in order to fix the bug..
 
-    here's another userspace patch:
+The above is in principle semantically equivalent to
 
-1- remove unused struct markinfo,
-2- print_mark() was only used once, so I removed it and changed print() 
-accordingly,
-3- C99 initializers.
+   struct ip_conntract_tuple tuple;
+   
+   memset(&tuple, 0, sizeof(tuple));
+   {
+      struct ip_conntrac_tuple newtuple = { { sk->rcv_saddr, {
+		  .tcp = { sk->sport } } },
+                  { sk->daddr, { .tcp = { sk->dport } }, IPPROTO_TCP } };
+      tuple = newtuple;
+   }
 
-Please apply,
-
-Stephane
+Which obviously still has the bug..
 
 
---Boundary_(ID_YiZohTLBPa+yAtHODzrWMQ)
-Content-type: text/plain; name=libip6t_MARK.c.patch; CHARSET=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=libip6t_MARK.c.patch
-
---- netfilter.orig/userspace/extensions/libip6t_MARK.c	Wed May 29 09:08:15 2002
-+++ netfilter/userspace/extensions/libip6t_MARK.c	Mon Aug 11 21:09:59 2003
-@@ -8,11 +8,6 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_MARK.h>
- 
--struct markinfo {
--	struct ip6t_entry_target t;
--	struct ip6t_mark_target_info mark;
--};
--
- /* Function which prints out usage message. */
- static void
- help(void)
-@@ -25,8 +20,8 @@
- }
- 
- static struct option opts[] = {
--	{ "set-mark", 1, 0, '1' },
--	{ 0 }
-+	{ .name = "set-mark", .has_arg = 1, .flag = 0, .val = '1' },
-+	{ .name = 0 }
- };
- 
- /* Initialize the target. */
-@@ -72,12 +67,6 @@
- 		           "MARK target: Parameter --set-mark is required");
- }
- 
--static void
--print_mark(unsigned long mark, int numeric)
--{
--	printf("0x%lx ", mark);
--}
--
- /* Prints out the targinfo. */
- static void
- print(const struct ip6t_ip6 *ip,
-@@ -86,8 +75,8 @@
- {
- 	const struct ip6t_mark_target_info *markinfo =
- 		(const struct ip6t_mark_target_info *)target->data;
--	printf("MARK set ");
--	print_mark(markinfo->mark, numeric);
-+
-+	printf("MARK set 0x%lx ", markinfo->mark);
- }
- 
- /* Saves the union ipt_targinfo in parsable form to stdout. */
-@@ -101,19 +90,18 @@
- }
- 
- static
--struct ip6tables_target mark
--= { NULL,
--    "MARK",
--    IPTABLES_VERSION,
--    IP6T_ALIGN(sizeof(struct ip6t_mark_target_info)),
--    IP6T_ALIGN(sizeof(struct ip6t_mark_target_info)),
--    &help,
--    &init,
--    &parse,
--    &final_check,
--    &print,
--    &save,
--    opts
-+struct ip6tables_target mark = {
-+	.name          = "MARK",
-+	.version       = IPTABLES_VERSION,
-+	.size          = IP6T_ALIGN(sizeof(struct ip6t_mark_target_info)),
-+	.userspacesize = IP6T_ALIGN(sizeof(struct ip6t_mark_target_info)),
-+	.help          = &help,
-+	.init          = &init,
-+	.parse         = &parse,
-+	.final_check   = &final_check,
-+	.print         = &print,
-+	.save          = &save,
-+	.extra_opts    = opts
- };
- 
- void _init(void)
-
---Boundary_(ID_YiZohTLBPa+yAtHODzrWMQ)--
+Regards
+Henrik
