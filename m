@@ -1,39 +1,50 @@
-From: Gianni Tedesco <gianni@scaramanga.co.uk>
+From: Luke Kenneth Casson Leighton <lkcl@lkcl.net>
 Subject: Re: [PATCH 2.6 NETFILTER] new netfilter module ipt_program.c
-Date: Sat, 11 Sep 2004 15:49:35 +0100
+Date: Sat, 11 Sep 2004 18:36:52 +0100
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1094914175.8495.66.camel@sherbert>
-References: <20040911124106.GD24787@lkcl.net>  <4142F4CC.7080708@trash.net>
+Message-ID: <20040911173651.GC12835@lkcl.net>
+References: <20040911124106.GD24787@lkcl.net> <4142F4CC.7080708@trash.net> <1094914175.8495.66.camel@sherbert>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Luke Kenneth Casson Leighton <lkcl@lkcl.net>,
-	linux-kernel@vger.kernel.org,
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, linux-kernel@vger.kernel.org,
 	Netfilter Development Mailinglist
 	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267976AbUIKOt4@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4142F4CC.7080708@trash.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268249AbUIKR06@vger.kernel.org>
+To: Gianni Tedesco <gianni@scaramanga.co.uk>
+Content-Disposition: inline
+In-Reply-To: <1094914175.8495.66.camel@sherbert>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2004-09-11 at 14:51 +0200, Patrick McHardy wrote:
-> Luke Kenneth Casson Leighton wrote:
-> > decided to put this into a separate module.  based on ipt_owner.c.
-> > does full program's pathname.  like ipt_owner, only suitable for
-> > outgoing connections.
+On Sat, Sep 11, 2004 at 03:49:35PM +0100, Gianni Tedesco wrote:
+> On Sat, 2004-09-11 at 14:51 +0200, Patrick McHardy wrote:
+> > Luke Kenneth Casson Leighton wrote:
+> > > decided to put this into a separate module.  based on ipt_owner.c.
+> > > does full program's pathname.  like ipt_owner, only suitable for
+> > > outgoing connections.
+> > 
+> > I agree that it would be useful to match the full path, but
+> > the patch is broken, as are the owner match's pid-, sid- and
+> > command-matching options. You can't grab files->file_lock
+> > outside of process context. Besides, we want to consolidate
+> > functionality, not add new matches that do basically the same
+> > as existing ones.
 > 
-> I agree that it would be useful to match the full path, but
-> the patch is broken, as are the owner match's pid-, sid- and
-> command-matching options. You can't grab files->file_lock
-> outside of process context. Besides, we want to consolidate
-> functionality, not add new matches that do basically the same
-> as existing ones.
+> This is a binary compatibility issue, I don't think it's possible to add
+> Lukes functionality to ipt_owner without breaking iptables
+> compatibility.
+ 
+ weeeelllll... there's nothing to stop you adding a header file
+ ipt_owner_program.h instead :)
 
-This is a binary compatibility issue, I don't think it's possible to add
-Lukes functionality to ipt_owner without breaking iptables
-compatibility.
+ i know it breaks the convention but hey.
+
+ l.
 
 -- 
-// Gianni Tedesco (gianni at scaramanga dot co dot uk)
-lynx --source www.scaramanga.co.uk/scaramanga.asc | gpg --import
-8646BE7D: 6D9F 2287 870E A2C9 8F60 3A3C 91B5 7669 8646 BE7D
+--
+Truth, honesty and respect are rare commodities that all spring from
+the same well: Love.  If you love yourself and everyone and everything
+around you, funnily and coincidentally enough, life gets a lot better.
+--
+<a href="http://lkcl.net">      lkcl.net      </a> <br />
+<a href="mailto:lkcl@lkcl.net"> lkcl@lkcl.net </a> <br />
