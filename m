@@ -1,14 +1,17 @@
-From: "zhaoyao" <zhaoyao@harbournetworks.com>
-Subject: list question
-Date: Tue, 17 Feb 2004 20:25:55 +0800
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [ANNOUNCE] IP sets
+Date: Tue, 17 Feb 2004 14:49:05 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E1At4FU-00050q-Kd@vishnu.netfilter.org>
+Message-ID: <Pine.LNX.4.58.0402171348210.1089@tux.rsn.bth.se>
+References: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-      charset="GB2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Harald Welte <laforge@netfilter.org>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,20 +22,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-netfilter-devel=A3=AC=C4=FA=BA=C3=A3=A1
+On Tue, 17 Feb 2004, Henrik Nordstrom wrote:
 
-=09do u meet this kind of problem?
-    cpu utility 100%, we can see it through sysRq, it is running=
- in 
-LIST_FIND, it seemed that it can't find head, or it will get=
- out.
+> What can be argued is that any design requiring allocation of a large
+> contigous memory areas in the kernel is broken by design and should be
+> redesigned rather than referring to vmalloc, and I think this is what
+> Linus tried to say. In my opinion a design which frequently calls vmalloc
+> is plain broken, but a design intentionally requiring a large allocation
+> should use vmalloc providing the design as such is valid.
 
+Maybe try __get_free_pages() and fall back to vmalloc() if it fails?
 
+The downside of __get_free_pages() is that you get 2^n pages of memory
+which might result in a quite large allocation sometimes.
 
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=D6=C2
-=C0=F1=A3=A1
- =09=09=09=09
+I've been using this in conntrack for some time and it works fine. I
+havn't tried to measure any benefits. One thing I don't do is to increase
+the hashsize if the wanted allocation would be for (2^n)+1 pages (then the
+actual allocation will be for 2^(n+1) pages). Now with the jenkins hash we
+don't have any problems with 2^n hashtable sizes so we could do that.
 
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1zhaoyao
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1zhaoyao@harbournetworks.com
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A12004-02-17
+/Martin
