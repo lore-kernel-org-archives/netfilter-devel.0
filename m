@@ -1,13 +1,13 @@
 From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Re: 2.4.20 and user space ICMP REDIRECT
-Date: Sun, 09 Mar 2003 10:01:57 +1100
+Subject: Re:help
+Date: Sun, 09 Mar 2003 09:59:28 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200303090001.h2901wq08424@singularity.tronunltd.com>
+Message-ID: <200303082359.h28NxVd08405@singularity.tronunltd.com>
 Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
 Content-Type: text/plain; charset="us-ascii"
-Cc: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Patrick Schaaf" <bof@bof.de>
+To: <kalpesh@kalupurbank.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,32 +18,66 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> >   Harald's name came up in the kernel code (of course ;-) some
-> > place like ip_nat_core (sample of the interesting bit below - but
-> > not incl Harald ref) ..  is there something like this in the kernel
-> > that is causing me problems?
+
+The other thing you may be missing is ident ....
+
+
+----- Original Message -----
+>From: <kalpesh@kalupurbank.com>
+>To: <netfilter-devel@lists.netfilter.org>
+>Subject:  help
+>Date: Sat, 08 Mar 2003 11:40:17 +0530
+>
+> help
 > 
-> You said you are doing this, and seeing the problem, without any
-> active iptables rules, right? And you see suitable counters go up?
-Yeah, no active rules, and I didn't check counters without the rules,
-but with a single permit rule, its counter didn't go up, so my gut
-feeling is that its either not iptables, or tables is doing something and
-not reporting it.
-
-
-> > Ie -  Is there some sort of safe guard or config option that I'm missing?
+> Slow respose after using IPTABLES
 > 
-> I would almost bet that this is a generic feature of the network stack.
-> The linux-net mailing list would probably be the more helpful place
-> to ask.  I strongly doubt that is has anything to do with netfilter
-> or iptables.  You could easily try to prove that, by recompiling the
-> kernel to not contain any iptables stuff.
-Thanks Patrick ... I'll go and find linux-net and ask them ...
-
-
- 
-> best regards
->   Patrick
+> Hi all,
+> My mail server is runnig on Redhat 7.2 with Sendmail.
+> Now I want to use IPTABLES for the Security Point of view. For this I made
+> test server and implemented IPTABLES on it. But after using IPTABLES
+> respose from the server is SLOW  when i use POP3 clients but it works.
+> 
+> I am using following script.
+> 
+> # Deny All
+> 
+> /sbin/iptables -P INPUT DROP
+> /sbin/iptables -P FORWARD DROP
+> /sbin/iptables -P OUTPUT DROP
+> 
+> # Local host
+> 
+> /sbin/iptables -A INPUT -s localhost -d localhost -j ACCEPT
+> /sbin/iptables -A OUTPUT -s localhost -d localhost -j ACCEPT
+> 
+> # ICMP
+> 
+> /sbin/iptables -A INPUT -s $INTRANET  -d $MYHOST -p icmp -j ACCEPT
+> /sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET  -p icmp -j ACCEPT
+> 
+> 
+> # SMTP
+> 
+> /sbin/iptables -A INPUT -s $INTRANET -d $MYHOST -p tcp --dport smtp    -j
+> ACCEPT
+> /sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET -p tcp --sport smtp   -j
+> ACCEPT
+> 
+> # POP3
+> 
+> /sbin/iptables -A INPUT -s $INTRANET -d $MYHOST -p tcp --dport pop3    -j
+> ACCEPT
+> /sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET -p tcp --sport  pop3   -j
+>   ACCEPT
+> 
+> Any suggestions ? help ? Please
+> 
+> with warm regards
+> 
+> kalpesh
+> 
+> 
 > 
 > 
 
