@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: libipulog comments
-Date: Sat, 11 Jan 2003 20:55:13 +0100
+From: Anders Fugmann <afu@fugmann.dhs.org>
+Subject: Re: Fixed proken MARK target in POM.
+Date: Sun, 12 Jan 2003 20:58:02 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030111195512.GG24488@naboo.de.gnumonks.org>
-References: <3E193700.5040003@fokus.gmd.de>
+Message-ID: <3E21C8CA.3070207@fugmann.dhs.org>
+References: <3E1D7419.1060502@fugmann.dhs.org> <20030110140024.GU1353@sunbeam.de.gnumonks.org> <3E1EE68C.7030004@fugmann.dhs.org> <3E1EF712.8000100@fugmann.dhs.org> <20030111191647.GD24488@naboo.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="48TaNjbzBVislYPb"
-Cc: ulogd@lists.gnumonks.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sebastian Zander <zander@fokus.gmd.de>
-Content-Disposition: inline
-In-Reply-To: <3E193700.5040003@fokus.gmd.de>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20030111191647.GD24488@naboo.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,78 +21,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+>>Are defines tolerated? Something like:
+>>#define MARK_BITOPS
+>>
+>>and then in the userspace do a:
+>>#ifdef MARK_BITOPS
+>>Whenever the new fileds in the structure is used.
+> 
+> 
+> I don't understand how this could solve the problem.  #defines are about
+> compile time.  We need one runtime iptables that copes with old and new
+> kernels (and vice-versa).
+I can see a way to make it somewhat compatible.
 
---48TaNjbzBVislYPb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Kernel:
+   Make a totally new structure (Keep the old one for compability)
+   When checkentry is called, examine the size of argument:
+	If it equals the old size, set a module-global variable
+	meaning that the module should run in compability mode.	
+   Othervice use the new structure.
 
-On Mon, Jan 06, 2003 at 08:57:52AM +0100, Sebastian Zander wrote:
-> Hi Harald,
->=20
-> I have a some suggestions and a possible bug for libipulog.
->=20
-> 1) Could you make ipulog_strerror() non-static so someone else
->    can use it? iptc_sterror is also non-static AFAIK.
+This should sort out kernel compability with whatever iptables version.
 
-Oh, it seems like you are using some very old version of libipulog.
-I'm sorry, I should never have put it into the 'iptables' package in the
-first place.
+Userspace:
+   This is a bit more tricky, as compability is defined by compile time. 
+That is, if iptables is compiled against 2.4.21 with the new MARK 
+target, it will not work with a kernel without the MARK target. If this 
+is acceptable, then a #define MARK_BITOPS can help solve the userspace 
+compability. Something like
 
-Please see the 'ulogd' package for the latest version of libipulog
-(http://www.gnumonks.org/projects/ulogd) and:
+#ifdef MARK_BITOPS
+   Accept --or-mark and --and-mark, and use the new structure.
+#else
+   Only accept --set-mark and usethe old structure.
+#endif
 
-cvs :pserver:cvs@cvs.gnumonks.org:/cvsroot ulogd
+Is this acceptable (no backward compability with iptables - it only 
+works with the kernel its compiled against and newer, but not older)?
+	
+> 
+> We have quite a couple of other cases where we have the same problem -
+> without any solution :((  But during a stable kernel series, we cannot
+> put compatibility aside.  People are not supposed to upgrade their
+> iptables after they upgraded their kernel...
+If the above procedure is acceptable, then it migh be a template for 
+such updates in the stable kernel series. It is important that the old 
+structures are removed for 2.6 though.
 
-> 2) It would be cool if there is the option of setting the socket
->    receive buffer to a higher value than default because for high
->    speeds the default value is too small. I have a patch for an old
->    libipulog and can send it to you if you think this could go in.
-
-yes, this is definitely a good idea. Please see if your patch applies to
-the later libipulog versions (see above).
-
-> 3) I think there is a bug in libipulog as in iptables 1.2.7a in the
->    ipulog_get_packet() function. The function seems to not always return
->    NULL when its supposed to do. I made a patch ages ago and thought
->    this was fixed but when I tried the new version it did not work.
->    I think the problem was when you have multi and non-multi messages.
->    But have a look at the patch.
-
-It was fixed, but as stated, unfortunately there was an old libipulog in
-the iptables package.
-
-I will remove it from the upcoming iptables-1.2.8 version.
-
-> Thanx for your time.
-
-Thanks for your contributions.
-
-> Cheers,
-> Sebastian
-
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
-=20
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
-
---48TaNjbzBVislYPb
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+IHagXaXGVTD0i/8RAv53AJ9jnKxStNxLBv2b5nkRBCp7+g3uLwCfdt5r
-AC3ssjSl+uxoltXpAune5Qg=
-=tjpF
------END PGP SIGNATURE-----
-
---48TaNjbzBVislYPb--
+Regards
+Anders Fugmann
