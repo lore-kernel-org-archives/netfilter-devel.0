@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: RE: Fw: [PATCH 2.4.22] looseUDP support
-Date: Wed, 14 Apr 2004 18:14:38 +0200 (CEST)
+From: "Grace Li" <zheyinli@hotmail.com>
+Subject: How to get original destination port after REDIRECT of iptables?
+Date: Wed, 14 Apr 2004 17:17:28 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404141808090.3773-100000@filer.marasystems.com>
-References: <7C9884991ADAE0479C14F10C858BCDF56792D4@alderaan.smgtec.com>
+Message-ID: <BAY7-F49ht3ZGAua7UV0004d0cb@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; format=flowed
+Cc: zheyinli@hotmail.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: John Ho <john_ho@sh.askey.com.tw>
-In-Reply-To: <7C9884991ADAE0479C14F10C858BCDF56792D4@alderaan.smgtec.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,21 +18,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 14 Apr 2004, Daniel Chemko wrote:
+Hi folks,
 
-> Loose UDP is a dynamicly sending UDP packets to machines behind the
-> firewall instead of openning ports accordingly.
+I have know that using REDIRECT option of iptables could redirect traffic to 
+a specified remote port to another local port, for example iptables -t nat 
+-A PREROUTING -i eth0 -p tcp --dport 1888 -j REDIRECT --to-port 2000 .  The 
+original destination IP address is not changed, and could be obtained from 
+getsockopt call with specifiying SO_ORIGINAL_DST ( e.g. getsockopt (client, 
+SOL_IP, SO_ORIGINAL_DST, (struct sockaddr*)&addr, &len_t );) .
 
-Sort of automatic "last resort" port forwarding based on who was using the
-nework last then?
+What I want to do is that for every incoming packets to ether net interface, 
+I want to direct to one spcific port, instead of dedirecting traffic from 
+one port to another port. In another words, I want to do multi-port match 
+one port instead of one to one port match.  Could anybody suggest if it is 
+doable? If yes, how could the application that listens to the re-directed 
+port knows the original destination port?
 
-Primary reason I see for such things is to support odd multichannel
-protocols for which there is no conntrack helper such as many online
-gaming protocols.
+Thanks a lot!
 
-If this is what is wanted I would recommend doing it via a custom DNAT 
-target implementing dynamic port forwarding rather than mucking around 
-with the NAT core expectaions of UDP sessions.
+Grace Li
 
-Regards
-Henrik
+_________________________________________________________________
+MSN Premium helps eliminate e-mail viruses. Get 2 months FREE*  
+http://join.msn.com/?pgmarket=en-ca&page=byoa/prem&xAPID=1994&DI=1034&SU=http://hotmail.com/enca&HL=Market_MSNIS_Taglines
