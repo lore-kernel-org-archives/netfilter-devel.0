@@ -1,14 +1,11 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: RE: target for modifying conntrack timeout value
-Date: Mon, 6 Dec 2004 16:55:13 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0412061653570.19471@filer.marasystems.com>
-References: <EINSTEINXKCnzNwRC6H000068e2@einstein.systemmetrics.com>
+From: Steven J Scott <sjscott@ra.rockwell.com>
+Subject: Re: sk_buff examples
+Date: Mon, 6 Dec 2004 10:41:59 -0600
+Message-ID: <OFF13352DE.0A7FFD69-ON86256F62.005B5298-86256F62.005BB504@ra.rockwell.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard <richard@o-matrix.org>
-In-Reply-To: <EINSTEINXKCnzNwRC6H000068e2@einstein.systemmetrics.com>
+To: Diego Woitasen <diegows@linux.org.ar>, netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,22 +17,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 5 Dec 2004, Richard wrote:
+Thank you very much.  That was exactly what I was looking for.  This 
+weekend I was also able to find a book titled, "The Linux TCP/IP Stack: 
+Networking for Embedded Systems" by Thomas F. Herbert.  It has a whole 
+chapter on sk_buff.  It's a great book for those looking to completely 
+understand the Linux TCP/IP stack.
 
-> I finished the code and testing. It is based on the stable versions of
-> iptables and pom. I'd like to have it included in cvs. Should I post the
-> patch based on stable or cvs?
->
-> Btw, the cvs server seems down now. I followed the instruction in
-> http://www.netfilter.org/downloads.html#cvs.
+Thanks again for your help!
 
-netfilter moved to subversion some time ago. See announce in the list 
-archives.
+Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
+Rockwell Automation / Advanced Technology
+sjscott@ra.rockwell.com
+<---------------------------------------------------->
+(This email was sent via Notes running on Linux)
 
-It appears the web pages have not been updated yet with the new 
-information on how to access the subversion repository.
 
-Who is responsible for maintaining the web?
 
-Regards
-Henrik
+
+Diego Woitasen <diegows@linux.org.ar>
+03/12/2004 05:14 PM
+
+ 
+        To:     Steven J Scott <sjscott@ra.rockwell.com>
+        cc: 
+        Subject:        Re: sk_buff examples
+
+
+See the ipt_string.c match module, it's a good example of string search
+in payload.
+
+
+
+On Fri, 2004-12-03 at 11:35 -0600, Steven J Scott wrote:
+> Hello,
+> 
+> I am trying to decode packets within the kernel using netfilter hooks, 
+and 
+> I have read through multiple examples of parsing the src and dst 
+address, 
+> ports, etc., but I am unable to find any information on parsing the 
+> payload of the packet.  What I am trying to do is examine payload to 
+find 
+> a string match. Could anyone point me in the right direction.
+> 
+> Thanks a lot.
+> 
+> Steve
+-- 
