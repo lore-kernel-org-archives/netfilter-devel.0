@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: iptables-save counters on builtin chains not restored?
-Date: Thu, 19 Aug 2004 12:13:14 +0200
+Subject: Re: iptables-save dump option
+Date: Thu, 19 Aug 2004 12:14:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040819101314.GD3921@sunbeam.de.gnumonks.org>
-References: <20040817211821.GE23109@eychenne.org>
+Message-ID: <20040819101422.GE3921@sunbeam.de.gnumonks.org>
+References: <20040817204256.GC23109@eychenne.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rG8Oha4Ryswg1dZ8"
+	protocol="application/pgp-signature"; boundary="3C3ZMpwu25Mtx3MN"
 Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Herve Eychenne <rv@wallfire.org>
 Content-Disposition: inline
-In-Reply-To: <20040817211821.GE23109@eychenne.org>
+In-Reply-To: <20040817204256.GC23109@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,27 +23,22 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---rG8Oha4Ryswg1dZ8
+--3C3ZMpwu25Mtx3MN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 17, 2004 at 11:18:21PM +0200, Herve Eychenne wrote:
-=20
-> When fed with the result of iptables-save -c, iptables-restore -c
-> does not seem to restore counters on chains (I'm not talking about
-> rules), as I simply cannot find any parsing code for that.
+On Tue, Aug 17, 2004 at 10:42:56PM +0200, Herve Eychenne wrote:
+>  Hi,
 >=20
-> Note that it would make sense only on builtin chains, but not
-> user-chains, because only builtin chains have a policy, and the
-> counters are about packets that hit the policy.
->=20
-> Anyway, it doesn't seem to be restored at all, and I suspect an
-> omission, so... a bug. Can someone confirm?
+> Can someone tell me (Harald ?) what is the interest of the -d (--dump)
+> option in iptables-save? I don't see it, as it does the same as
+> iptables-save without any arguments... (and it is undocumented in the
+> manpage)
 
-Yes, now that you say it, I don't remember having written that code ;)
-
-Please put it in bugzilla... and patches are obviously always welcome.
+The initial idea was to make a binary dump instead of the ASCII parsed
+save file format.  This was never implemented though (and I don't think
+it's worth adding it anymore).
 
 >  Herve
 
@@ -57,7 +52,7 @@ Please put it in bugzilla... and patches are obviously always welcome.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---rG8Oha4Ryswg1dZ8
+--3C3ZMpwu25Mtx3MN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -65,9 +60,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBJH06XaXGVTD0i/8RAmP0AJ4zFBuECaKkgmpceA4SmTAeA25xYQCeNKV8
-mIH8wVtjyRbRFzvzwrEKu+s=
-=OHJh
+iD8DBQFBJH1+XaXGVTD0i/8RAvjoAJ0dy/KNlOtHqJ//wlvfZ+cUSGAwjwCgrkbE
+1+efs5QXDMP/CZ28rw4Eo38=
+=mElu
 -----END PGP SIGNATURE-----
 
---rG8Oha4Ryswg1dZ8--
+--3C3ZMpwu25Mtx3MN--
