@@ -1,15 +1,18 @@
-From: Peter Grace <pgrace@rttx.com>
-Subject: Re: POSSIBLE BUG:  netfilter/ip_conntrack_core
-Date: Tue, 24 Feb 2004 14:49:30 -0500
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: nf_conntrack
+Date: Tue, 24 Feb 2004 10:21:37 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <403BAACA.9030009@rttx.com>
-References: <4030DADD.1040104@rttx.com> <20040217140440.GH981@sunbeam.de.gnumonks.org> <403226F8.4040109@rttx.com> <20040217145534.GN981@sunbeam.de.gnumonks.org> <40323238.9050801@rttx.com>
+Message-ID: <20040224092137.GU13386@sunbeam.de.gnumonks.org>
+References: <200312240144.KAA15346@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Wn0J+vu9+NMIXK57"
+Cc: netfilter-devel@lists.netfilter.org,
+	Rusty Russell <rusty@rustcorp.com.au>, jozef@sunbeam.gnumonks.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <40323238.9050801@rttx.com>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200312240144.KAA15346@toshiba.co.jp>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,98 +23,110 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-Hey guys,
-~    This problem happened again today, and this time I actually got a
-kernel panic screen.  Unfortunately, the stack trace was incomplete
-(scrolled off the screen) so I couldn't give you guys a complete trace.
-It definitely seemed to be the same problem (I was doing the same thing
-that I did before -- adding a new static nat entry)
 
-I'll find my original e-mail to linux-kernel and reforward it here --
-below was my last communication to this list that enumerated all of the
-stuff from REPORTING-BUGS.
+--Wn0J+vu9+NMIXK57
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks a bunch,
-Pete
+[explicitly Cc'ing rusty and jozsef since they did a lot of conntrack
+work]
 
-Peter Grace wrote:
+On Wed, Dec 24, 2003 at 10:43:20AM +0900, Yasuyuki Kozakai wrote:
+>=20
+> Hi, All,
+>=20
+> This is other version of L3 independent connection tracking.
 
-|
-|
-| Harald Welte wrote:
-|
-| | | You aren't running an SMP kernel (even if it's only a UP box),
-| are | you?
-|
-| Nope, it's a uniprocessor kernel.
-|
-| Here is miscellaneous data gathered via REPORTING-BUGS instructions:
-|
-| [1.] One line summary of the problem:      Kernel freezes with
-| netfilter tuplehash problem [2.] Full description of the
-| problem/report:    See previous e-mail [3.] Keywords (i.e., modules,
-| networking, kernel):  netfilter, NAT, conntrack [4.] Kernel version
-| (from /proc/version):  2.6.1 ... [7.] Environment:  Debian GNU/Linux
-| [7.1.] Software (add the output of the ver_linux script here)
-|
-| Linux brdgw1 2.6.1 #1 Fri Jan 23 17:26:33 EST 2004 i586 GNU/Linux
-|
-| Gnu C                  3.3.3 Gnu make               3.80 util-linux
-| 2.12 mount                  2.12 module-init-tools      3.0-pre5
-| e2fsprogs              1.35-WIP PPP                    2.4.2 Linux C
-| Library        2.3.2 Dynamic linker (ldd)   2.3.2 Procps
-| 3.1.15 Net-tools              1.60 Console-tools          0.2.3
-| Sh-utils               5.0.91 Modules Loaded         af_packet unix
-|
-|
-|
-| [7.2.] Processor information (from /proc/cpuinfo):
-|
-| processor       : 0 vendor_id       : GenuineIntel cpu family      :
-| 5 model           : 2 model name      : Pentium 75 - 200 stepping
-| : 12 cpu MHz         : 199.751 fdiv_bug        : no hlt_bug         :
-| no f00f_bug        : yes coma_bug        : no fpu             : yes
-| fpu_exception   : yes cpuid level     : 1 wp              : yes flags
-| : fpu vme de pse tsc msr mce cx8 bogomips        : 393.21
-|
-|
-| [7.3.] Module information (from /proc/modules):
-|
-| af_packet 21576 2 - Live 0xc4837000 unix 27632 14 - Live 0xc481e000
-|
-| ...
-|
-| I cut some of the options out that I thought were not pertinent
-| (i.e., IO ports and such -- if anyone wants this info, I'll be happy
-| to supply)
-|
-| Thanks, Pete
-|
-|
-| -- --- /------------------------------------------------\ |Peter
-| Grace                  Phone: 484-875-9462 |Technology Analyst
-| Fax: 484-875-9461 |RealTime Technologies, Inc.   Cell: 484-919-1400
-| |835 Springdale Drive, Suite 101 |Exton, PA  19341
-| \------------------------------------------------/
+Thank you very much.  Sorry for this extremely late reply, but I missed
+your email from december and just noted it after the current follow-up
+on this issue.
 
+> In previous version, the l3 part in tuple is represented by "union" of IP=
+v4
+> and IPv6 address.
+>=20
+> And in this version, size of the l3 part in tuple varies with layer 3
+> protocol.  Then it's more complex than the previous version, but can
+> save memory spaces where many IPv4 connections are created.
 
-- --
-- ---
-/------------------------------------------------\
-|Peter Grace                  Phone: 484-875-9462
-|Technology Analyst             Fax: 484-875-9461
-|RealTime Technologies, Inc.   Cell: 484-919-1400
-|835 Springdale Drive, Suite 101
-|Exton, PA  19341
-\------------------------------------------------/
+Yes, this is definitely something we need.  Although I still don't like
+the idea of having to explicitly allocate three pieces of memory
+(2*tuple, 1*nf_conntrack) per new connection.  This will hurt connection
+setup rate very badly, I expect :(
+
+What I initially had in mind (but don't know if it can be implemented in
+any reasonable way) was:
+
+- have a static part of struct np_conntrack without tuples
+- this static part contains a bitmask
+- this bitmask determines which 'extension structures' are present at
+  the end
+- possible 'extension structures' might be:
+	- ipv4 orig/reply tuple
+	- ipv6 orig/reply tuple
+	- ipv4 l3 protocol (and helper) data
+	- ipv6 l3 protocol (and helper) data
+
+I know it sounds very tricky.  We always guarantee the ordering of such
+extension structures.  The nf_conntrack core would maintain a list of
+slab caches for every reasonable combination of extensions structures. =20
+The extension structures are always allocated in one chunk gogether with
+the static nf_conntrack 'header'.
+
+Extension structures would always be accessed via pre-defined macros
+(which just add an offset depending on the bitmask)
+
+Even thinking further, this would enable us to put more parts than just
+the tuple into those extensions (let's say the nat or helper union).
+This in turn means that we can make conntrack structures for the normal
+case (ipv4 only, no helper, no nat) even smaller. =20
+
+I'm not sure if it's worth performance-wise.  The benefits of such a
+solution would be:
+
+1) still one chunk of memory for any conntrack
+	- one allocation at connection setup time
+	- conntrack+tuple still physically close in memory instead of
+	  having to dereference every tuple=20
+2) potentially smaller conntracks even in the current 'normal' case
+   (one of our long-term wishes)
+
+As disadvantage I can see
+1) difficult implementation with lots of macros/offset calculation
+2) we'd have to determine which slab we came from at destroy() time
+   [maybe save cachep in nf_contrack?]
+3) slightly higher computational cost when we want to access extension
+   structures (like tuples), since relative offset has to be calculated
+   at runtime.
+
+What do you think? =20
+
+Rusty, Jozsef: Do you think it's worth the effort?
+=20
+> Yasuyuki KOZAKAI
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--Wn0J+vu9+NMIXK57
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
- 
-iD8DBQFAO6rJ1bytwQSw7hoRAivdAKCTu/2D6MbcoVCsT4m0FwP7LzNXwACfWiqE
-zLUEU+vL6W/tnvp8PAkS11w=
-=M1g/
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAOxehXaXGVTD0i/8RAh/QAJ9GlFQ5ktYTPOO7nJFENcadbYdFdgCgiib8
+ahxu9MtEI4u/KO3stllgcGk=
+=iDGJ
 -----END PGP SIGNATURE-----
+
+--Wn0J+vu9+NMIXK57--
