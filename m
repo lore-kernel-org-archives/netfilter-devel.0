@@ -1,16 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: locking issue in ip_conntrack_alter_reply
-Date: Mon, 3 May 2004 11:05:42 +0200 (CEST)
+Date: Mon, 03 May 2004 14:15:23 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405031057120.24224-100000@blackhole.kfki.hu>
-References: <40928861.2010902@eurodev.net>
+Message-ID: <409637DB.6030600@trash.net>
+References: <Pine.LNX.4.33.0405031057120.24224-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira <pablo@eurodev.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40928861.2010902@eurodev.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0405031057120.24224-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,40 +22,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Jozsef Kadlecsik wrote:
 
-On Fri, 30 Apr 2004, Pablo Neira wrote:
-
-> Well, actually I found a contradiction here, we write-locked the
-> conntrack table but that assertion says that this conntrack is not
-> confirmed, this implies that the conntrack is not in the hash table yet.
-> If that assertion is right, we should replace that write_lock for a
-> read_lock while calling __ip_conntrack_find and remove that write_lock
-> at the end of the function.
+>On Fri, 30 Apr 2004, Pablo Neira wrote:
 >
-> int ip_conntrack_alter_reply(struct ip_conntrack *conntrack,
->                              const struct ip_conntrack_tuple *newreply)
-> {
->         WRITE_LOCK(&ip_conntrack_lock);
->         if (__ip_conntrack_find(newreply, conntrack)) {
->                 WRITE_UNLOCK(&ip_conntrack_lock);
->                 return 0;
->         }
->         /* Should be unconfirmed, so not in hash table yet */
->         IP_NF_ASSERT(!is_confirmed(conntrack)); <--------------------------
+>  
 >
+>>I'll study if that assertion is right before submitting a patch.
+>>    
+>>
 >
-> I'll study if that assertion is right before submitting a patch.
+>The assertion is right, because we alter unconfirmed packets when setting
+>up nat info. And you're also right, write-locking is unnecessary: the
+>entry is not in the hash table yet, so nobody else can grab and modify the
+>conntrack entry. [And it is overlooked in the per bucket locking patch too.]
+>  
+>
 
-The assertion is right, because we alter unconfirmed packets when setting
-up nat info. And you're also right, write-locking is unnecessary: the
-entry is not in the hash table yet, so nobody else can grab and modify the
-conntrack entry. [And it is overlooked in the per bucket locking patch too.]
+I've ported your conntrack patches to 2.6, I will include this change
+before adding them to CVS.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+Patrick
+
+>Best regards,
+>Jozsef
+>-
+>E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+>PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+>Address : KFKI Research Institute for Particle and Nuclear Physics
+>          H-1525 Budapest 114, POB. 49, Hungary
+>
+>  
+>
