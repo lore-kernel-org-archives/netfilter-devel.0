@@ -1,14 +1,18 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] clean up for ftp conntrack helper
-Date: Thu, 15 Apr 2004 00:08:43 +0200
+From: "John Ho" <john_ho@sh.askey.com.tw>
+Subject: Re: Fw: [PATCH 2.4.22] looseUDP support
+Date: Thu, 15 Apr 2004 08:49:57 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <407DB66B.9090300@eurodev.net>
+Message-ID: <004001c42283$950d8d50$2901080a@askeysh.com.cn>
+References: <7C9884991ADAE0479C14F10C858BCDF56792D4@alderaan.smgtec.com>
+Reply-To: "John Ho" <john_ho@sh.askey.com.tw>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090303000009020401050601"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
+Cc: <netfilter-devel@lists.netfilter.org>,
+   "Henrik Nordstrom" <hno@marasystems.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org,
- Harald Welte <laforge@netfilter.org>
+To: "Daniel Chemko" <dchemko@smgtec.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,152 +23,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090303000009020401050601
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi Harald,
-
-I split the the array of struct ftp_search in two, one for patterns to 
-match in IP_CT_DIR_ORIGINAL, and the other for IP_CT_DIR_REPLY. This way 
-we save four if's conditions and we only loop twice for every direction 
-(worst case).
-
-I also move up if (found==0)  which means that pattern was not found. I 
-consider that this is the general case. Am I missing anything?
-
-Some considerations, my patch of the new expectation API must be applied 
-before applying this patch. btw, this patch could have some problems with:
-
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014516.html
-
-that patch was already reviewed by Patrick and you. Anyway that one is 
-simple so I have no problem in merge them to this one.
-
-regards,
-Pablo
-
---------------090303000009020401050601
-Content-Type: text/plain;
- name="ftp_helper.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ftp_helper.patch"
-
---- linux-2.6.3-old/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-04-14 21:32:58.000000000 +0200
-+++ linux-2.6.3-patched/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-04-14 21:32:17.000000000 +0200
-@@ -51,38 +51,38 @@
- static int try_epsv_response(const char *, size_t, u_int32_t [], char);
- 
- static struct ftp_search {
--	enum ip_conntrack_dir dir;
- 	const char *pattern;
- 	size_t plen;
- 	char skip;
- 	char term;
- 	enum ip_ct_ftp_type ftptype;
- 	int (*getnum)(const char *, size_t, u_int32_t[], char);
--} search[] = {
--	{
--		IP_CT_DIR_ORIGINAL,
-+} search[IP_CT_DIR_MAX][2] = {
-+	{ 
-+		{
- 		"PORT",	sizeof("PORT") - 1, ' ', '\r',
- 		IP_CT_FTP_PORT,
- 		try_rfc959,
--	},
--	{
--		IP_CT_DIR_REPLY,
--		"227 ",	sizeof("227 ") - 1, '(', ')',
--		IP_CT_FTP_PASV,
--		try_rfc959,
--	},
--	{
--		IP_CT_DIR_ORIGINAL,
-+		},
-+		{
- 		"EPRT", sizeof("EPRT") - 1, ' ', '\r',
- 		IP_CT_FTP_EPRT,
- 		try_eprt,
--	},
--	{
--		IP_CT_DIR_REPLY,
-+		}
-+	}
-+	,
-+	{ 
-+		{
-+		"227 ", sizeof("227 ") - 1, '(', ')',
-+		IP_CT_FTP_PASV,
-+		try_rfc959,
-+		},
-+		{
- 		"229 ", sizeof("229 ") - 1, '(', ')',
- 		IP_CT_FTP_EPSV,
- 		try_epsv_response,
--	},
-+		}
-+	}
- };
- 
- static int try_number(const char *data, size_t dlen, u_int32_t array[],
-@@ -314,33 +314,34 @@
- 	array[2] = (ntohl(ct->tuplehash[dir].tuple.src.ip) >> 8) & 0xFF;
- 	array[3] = ntohl(ct->tuplehash[dir].tuple.src.ip) & 0xFF;
- 
--	for (i = 0; i < ARRAY_SIZE(search); i++) {
--		if (search[i].dir != dir) continue;
-+	for (i = 0; i < ARRAY_SIZE(search[dir]); i++) {
- 
- 		found = find_pattern(ftp_buffer, skb->len - dataoff,
--				     search[i].pattern,
--				     search[i].plen,
--				     search[i].skip,
--				     search[i].term,
-+				     search[dir][i].pattern,
-+				     search[dir][i].plen,
-+				     search[dir][i].skip,
-+				     search[dir][i].term,
- 				     &matchoff, &matchlen,
- 				     array,
--				     search[i].getnum);
-+				     search[dir][i].getnum);
- 		if (found) break;
- 	}
--	if (found == -1) {
-+
-+	if (found == 0) { /* General case: No match */
-+		ret = NF_ACCEPT;
-+		goto out;
-+		
-+	} else if (found == -1) {
- 		/* We don't usually drop packets.  After all, this is
- 		   connection tracking, not packet filtering.
- 		   However, it is necessary for accurate tracking in
- 		   this case. */
- 		if (net_ratelimit())
- 			printk("conntrack_ftp: partial %s %u+%u\n",
--			       search[i].pattern,
-+			       search[dir][i].pattern,
- 			       ntohl(tcph.seq), datalen);
- 		ret = NF_DROP;
- 		goto out;
--	} else if (found == 0) { /* No match */
--		ret = NF_ACCEPT;
--		goto out;
- 	}
- 
- 	DEBUGP("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
-@@ -361,7 +362,7 @@
- 	    == ct->tuplehash[dir].tuple.src.ip) {
- 		exp->seq = ntohl(tcph.seq) + matchoff;
- 		exp_ftp_info->len = matchlen;
--		exp_ftp_info->ftptype = search[i].ftptype;
-+		exp_ftp_info->ftptype = search[dir][i].ftptype;
- 		exp_ftp_info->port = array[4] << 8 | array[5];
- 	} else {
- 		/* Enrico Scholz's passive FTP to partially RNAT'd ftp
-
---------------090303000009020401050601--
+WWVzLCBJdCBtYXkgbm90IGJlIGFwcHJvcHJpYXRlIHRvIGFkZCB0aGUgc3VwcG9ydCBmb3IgbG9v
+c2VVRFAgaW4gdGhpcyB3YXkuIFNvIEknZCBsaWtlIHRvIGtub3cgaG93IHRvIHN1cHBvcnQgbG9v
+c2VVRFAgYnkgdXNpbmcgc2Vzc2lvbiB0cmFja2luZz8gDQpPciwgYXMgTXIuIEhlbnJpayBtZW50
+aW9uZWQsIGNyZWF0ZSBhIGN1c3RvbSBETkFUIHRhcmdldCBmb3IgZXZlcnkgb25saW5lIGdhbWUg
+cHJvdG9jb2wgb2YgdGhpcyB0eXBlPyBCZWNhdXNlIG91ciBkZXZpY2UgbmVlZCB0byBwYXNzIHRo
+ZSBNaWNyb3NvZnQgVVBuUCBJR0R0ZXN0IHN1aXRlIGFuZCB3aXRob3V0IHRoZSBsb29zZVVEUCBz
+dXBwb3J0IGl0IHdpbGwgYWx3YXlzIGZhaWwgYXQgTkFUIHRyYXZlcnNhbCB0ZXN0IGdyb3VwLiBU
+aGFua3MuDQoNCkJlc3QgUmVnYXJkcywNCkpvaG4NCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAt
+LS0tLSANCkZyb206ICJEYW5pZWwgQ2hlbWtvIiA8ZGNoZW1rb0BzbWd0ZWMuY29tPg0KVG86ICJI
+ZW5yaWsgTm9yZHN0cm9tIiA8aG5vQG1hcmFzeXN0ZW1zLmNvbT47ICJKb2huIEhvIiA8am9obl9o
+b0BzaC5hc2tleS5jb20udHc+DQpDYzogPG5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0ZXIu
+b3JnPg0KU2VudDogV2VkbmVzZGF5LCBBcHJpbCAxNCwgMjAwNCAxMTo0MiBQTQ0KU3ViamVjdDog
+UkU6IEZ3OiBbUEFUQ0ggMi40LjIyXSBsb29zZVVEUCBzdXBwb3J0DQoNCg0KPiBIZW5yaWsgTm9y
+ZHN0cm9tIHdyb3RlOg0KPiA+IE9uIFdlZCwgMTQgQXByIDIwMDQsIEpvaG4gSG8gd3JvdGU6DQo+
+ID4gDQo+ID4+ICBNYXkgYmUgaGVscGZ1bC4gSSd2ZSBtZXQgdGhpcyBwcm9ibGVtIGFuZCBjYW5u
+b3QgZmluZCBhIHNvbHV0aW9uIGZvcg0KPiA+PiBuZXRmaWx0ZXIgZnJhbWV3b3JrIHRvIHN1cHBv
+cnQgbG9vc2VVRFAgZmVhdHVyZS4NCj4gPiANCj4gPiBXaGF0IGlzIGxvb3NlVURQPw0KPiANCj4g
+TG9vc2UgVURQIGlzIGEgZHluYW1pY2x5IHNlbmRpbmcgVURQIHBhY2tldHMgdG8gbWFjaGluZXMg
+YmVoaW5kIHRoZQ0KPiBmaXJld2FsbCBpbnN0ZWFkIG9mIG9wZW5uaW5nIHBvcnRzIGFjY29yZGlu
+Z2x5LiBJdHMgcHJvYmFibHkgYSBiYWQgaWRlYQ0KPiB0byB1c2UgdGhlIDIuMiBrZXJuZWwgdGhl
+c2UgZGF5cyBub3cgdGhhdCB0aGVyZSBhcmUgYSBmZXcgbW9yZSBVRFAgYmFzZWQNCj4gd2luZG93
+cyBhdHRhY2tzLg0KPiANCj4gV2hhdCB3b3VsZCB5b3UgbGlrZSB0byBkbyB3aXRoIExvb3NlIFVE
+UCB0aGF0IHlvdSBjYW4ndCBkbyB3aXRoIHRoZQ0KPiBjdXJyZW50IGlwdGFibGVzL25ldGZpbHRl
+cj8gUmVtZW1iZXIsIG5ldGZpbHRlciBhY3R1YWxseSBoYXZlIHNlc3Npb24NCj4gdHJhY2tpbmcg
+bm93LCB3aGljaCBwcmV0dHkgbXVjaCBlbGltaW5hdGVkIHRoZSBuZWVkIGZvciB0aGF0IGNyZWF0
+aXZlDQo+IHNvbHV0aW9uIHRvIGFuIGF0LXRoZS10aW1lIG5ldHdvcmsgcHJvYmxlbS4NCj4gDQo+
+IA0K
