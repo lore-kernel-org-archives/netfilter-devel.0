@@ -1,142 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.4/2.6]: TTL target
-Date: Mon, 26 Jul 2004 02:09:16 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <41044BAC.7060705@trash.net>
-References: <1400.192.168.1.16.1090797821.squirrel@192.168.1.16>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: kernel 2.6.7 -> page allocation failure. order:1, mode:0x20
+ (netfilter?)
+Date: Sun, 25 Jul 2004 17:59:45 -0700
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040725175945.15999990.akpm@osdl.org>
+References: <40FB93FE.90308@ovibes.net>
+	<20040720024741.GF27487@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nicolas Bouliane <nib@cookinglinux.org>
-In-Reply-To: <1400.192.168.1.16.1090797821.squirrel@192.168.1.16>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: sebest@ovibes.net, linux-kernel@vger.kernel.org,
+        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040720024741.GF27487@obroa-skai.de.gnumonks.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Nicolas,
+Harald Welte <laforge@netfilter.org> wrote:
+>
+> what's worrying me is the part above... how would skb_checksum_help
+>  directly end up in copy_from_user()?
 
-Nicolas Bouliane wrote:
-> Hi guys,
-> 
-> We attached three patches that fixe some problems with the TTL target.
-> 
-> 1) When using a value > 255 or < 0, there's an overflow with
->    u_int8_t value;
-> 
->    This means that giving 256 as a value will create a rule with
->    a value of 0.
-> 
->    The first patch adds some error controls in TTL library avoiding this.
-> 
-> 2) There is a little, but significative, bug in the TTL target module.
->    Instead of decreasing the TTL, this is increasing it.
-> 
->    The second patch is for 2.4
-> 
-> 3) Same as second patch, but for 2.6
-> 
-> Let us know if there is some problems. Thanks you.
+That'll be leftover gunk on the stack.  Enabling frame pointers makes that
+go away.
 
-The kernel-part is fine, the userspace has some minor problems,
-see my comments below. Could you please send a new version ?
+>  > swapper: page allocation failure. order:1, mode:0x20
+>  > [<c013d770>] __alloc_pages+0x2da/0x34a
+>  > [<c013d805>] __get_free_pages+0x25/0x3f
+>  > [<c0140e28>] kmem_getpages+0x2b/0xdc
+>  > [<c0141bfc>] kfree_skbmem+0x24/0x2c
+>  > [<c0141c5d>] cache_grow+0xe5/0x2a4
+>  > [<c0141f8a>] cache_grow+0x146/0x2a4
+>  > [<c0295917>] cache_alloc_refill+0x1cf/0x29f
+>  > [<c014262a>] __kmalloc+0x85/0x8c
+>  > [<c02681f1>] tcp_transmit_skb+0x411/0x68a
+>  > [<c0296621>] alloc_skb+0x47/0xe0
+>  > [<c026875e>] tcp_write_xmit+0x16d/0x2d6
+>  > [<c01da1ac>] skb_copy+0x33/0xde
+>  > [<c026ca5b>] copy_from_user+0x42/0x6e
+> 
+>  Does anybody have a clue what's going on?
 
-Thanks,
-Patrick
+Networking tried to do an atomic 1-order allocation and there were no
+1-order pages available in the free page pools.  It's pretty much
+unavoidable, and the caller simply needs to handle it - presumably by
+dropping the packet.
 
-> 
-> Patches below.
-> 
-> Signed-off-by: Nicolas Bouliane <nib@cookinglinux.org>
-> 
-> 
-> diff -urpN extensions/libipt_TTL.c.orig extensions/libipt_TTL.c
-> --- extensions/libipt_TTL.c.orig	2004-07-24 21:17:24.000000000 -0400
-> +++ extensions/libipt_TTL.c	2004-07-25 18:00:39.000000000 -0400
-> @@ -24,9 +24,9 @@ static void help(void)
->  {
->  	printf(
->  "TTL target v%s options\n"
-> -"  --ttl-set value		Set TTL to <value>\n"
-> -"  --ttl-dec value		Decrement TTL by <value>\n"
-> -"  --ttl-inc value		Increment TTL by <value>\n"
-> +"  --ttl-set value		Set TTL to <value 0-255>\n"
-> +"  --ttl-dec value		Decrement TTL by <value 1-255>\n"
-> +"  --ttl-inc value		Increment TTL by <value 1-255>\n"
->  , IPTABLES_VERSION);
->  }
-> 
-> @@ -35,7 +35,8 @@ static int parse(int c, char **argv, int
->  		struct ipt_entry_target **target)
->  {
->  	struct ipt_TTL_info *info = (struct ipt_TTL_info *) (*target)->data;
-> -	u_int8_t value;
-> +   u_int16_t value;
-> +   u_int8_t alpha;
+Its frequency can be reduced by increasing /proc/sys/vm/min_free_kbytes.
 
-^^^ Indentation is broken, we use tabs not spaces
+It can be eliminated by using GFP_KERNEL.  It can be hugely reduced by
+sticking to 0-order allocations.
 
-> 
->  	if (*flags & IPT_TTL_USED) {
->  		exit_error(PARAMETER_PROBLEM,
-> @@ -49,28 +50,36 @@ static int parse(int c, char **argv, int
->  	if (check_inverse(optarg, &invert, NULL, 0))
->  		exit_error(PARAMETER_PROBLEM,
->  				"TTL: unexpected `!'");
-> -
-> -	value = atoi(optarg);
-> -
-> +
-> +   if ((strlen(optarg) > 3) ||
-> +      (sscanf(optarg, "%hd%c", &value, &alpha) != 1))
-
-^^^ Why scan for characters and check for exactly one parsed item ?
-     Use string_to_number with 0-255 as limit.
-
-> +      exit_error(PARAMETER_PROBLEM,
-> +            "TTL: Invalid value");
-> +
->  	switch (c) {
-> 
->  		case '1':
-> +         if (value > 255) {
-> +            exit_error(PARAMETER_PROBLEM,
-> +               "TTL: Invalid value");
-> +         }
-> +
->  			info->mode = IPT_TTL_SET;
->  			break;
-> 
->  		case '2':
-> -			if (value == 0) {
-> -				exit_error(PARAMETER_PROBLEM,
-> -					"TTL: decreasing by 0?");
-> +         if (value > 255 || value < 1) {
-> +   			exit_error(PARAMETER_PROBLEM,
-> +					"TTL: Invalid value");
-^^^ The old message contained more information
-
->  			}
-> 
->  			info->mode = IPT_TTL_DEC;
->  			break;
-> 
->  		case '3':
-> -			if (value == 0) {
-> +         if (value > 255 || value < 1) {
->  				exit_error(PARAMETER_PROBLEM,
-> -					"TTL: increasing by 0?");
-> +   				"TTL: Invalid value");
->  			}
-> 
->  			info->mode = IPT_TTL_INC;
-> 
-> 
-> 
+I wouldn't worry about this unless someone is seeing a lot of them (a
+significant number of packets are getting dropped)
