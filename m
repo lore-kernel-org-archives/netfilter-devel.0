@@ -1,155 +1,85 @@
-From: sandr8 <sandr8_NOSPAM_@crocetta.org>
-Subject: Re: [PATCH 2/4] deferred drop, __parent workaround, reshape_fail
-Date: Mon, 16 Aug 2004 17:19:04 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <4120D068.2040608@crocetta.org>
-References: <411C0FCE.9060906@crocetta.org>	 <1092401484.1043.30.camel@jzny.localdomain>	 <20040816072032.GH15418@sunbeam2> <1092661235.2874.71.camel@jzny.localdomain>
+From: =?ISO-8859-1?Q?Timo_Ter=E4s?= <ext-timo.teras@nokia.com>
+Subject: IDLEDETECT target
+Date: Mon, 16 Aug 2004 18:04:20 +0300
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <4120CCF4.60003@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, sandr8@crocetta.org, devik@cdi.cz,
-        netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: hadi@cyberus.ca
-In-Reply-To: <1092661235.2874.71.camel@jzny.localdomain>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigD893600B080009AA497E0E74"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-jamal wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigD893600B080009AA497E0E74
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
->On Mon, 2004-08-16 at 03:20, Harald Welte wrote:
->  
->
->>Let's discuss the individual patches seperately.
->>
->>1) Is certainly not a huge issue, no debate here
->>    
->>
->
->Although the patch does look innocent,
->actually it may break a lot of things since that code is particulary
->tricky and the patch changes the environmental rules. It needs study.
->since it doesnt add anything other than cosmetics, holding on it
->might be the wisest thing.
->  
->
-the danger should be where it is used incorrectly.
-you are right, but for the moment it is not used
-spreadly.
+Hi all,
 
-if instead you are talking about breaking some
-code that relied on the old numerical values
-themselves (but the trivial case of 0 that many times
-seems to be confused with the only success return
-value, which is not true) then i must have definitely
-missed that code.
+I'm currently planning to write a new target to detect when ever a 
+network interface has been idle for a configurable amount of time.
 
-btw, wouldn't it be nice to have something similar for
-the tc_calssify results (eg. setting a "terminal" bit in the
-defines and adding an inline terminal(result) function
-that does mask with that bit so that we avoid switching
-and hence some lines of code and branches)?
+First some background:
 
->>2)... 
->>
->>Having a single packet drop point makes such a change less intrusive.
->>    
->>
->
->Seems to me the interest is more having single point for stats
->collection.
->Let me think about it for a bit and get back to you guys.
->
->  
->
-well i didn't dare doing that too because
-all those * or & insertion themselves made
-up a 50k patch... but in fact that would be
-nice and would lighten the code inside the
-many enqueue()...
+Usually this sort of thing can be accomplished by ppp modules 
+PPPIOCGIDLE ioctl. However I need this sort of "IDLE detection" for 
+interfaces other than ppp too. And usage of PPIOCGIDLE needs polling 
+which I consider bad.
 
-needless to say, the more (common) code
-is pulled outside of the per-discipline
-code, the smallest the kernel is and the
-easiest is to mantain/debug/introduce
-further changes.
+I came up with a couple of choices:
+1. Use PF_PACKET and filter all packets that will be considered to reset 
+the IDLE timer
+2. Use iptables and QUEUE all packets as above
+3. Poll match count of some iptable rule
+4. Write a custom iptables target to send notification when interface 
+goes to idle
 
->>4) This is the part you are complaining about, right?  I agree, I don't
->>like conntrack specific stuff in dev.c and packet scheduler areas.
->>    
->>
->
->Let me think about it and get back to you. Solution to #2 should apply
->here.
->  
->
-as i said from the beginning, i don't like that too.
-yes, it is working fine for me, but that is not the
-logical place where to do that...
+Options 1 and 2 involve great amounts of kernel to userland traffic. And
+option 3 would require polling with relatively small interval to be 
+accurate enough.
 
-please correct me if i am wrong: the two big questions are:
+So looks like the option four is ideal for my situation. I'd propably 
+use netlink to send the events when interface seems to be idle. Other 
+possibility is to use d-bus if it gets included in vanilla kernel (see 
+http://vrfy.org/projects/kdbusd/).
 
-1) moving that code away from net/core/dev.c
+Basically when ever a packet matches the IDLEDETECT target it would 
+reset the interfaces idle timer. When the timer would expire a netlink 
+message would be sent.
 
-and
+Now I'm asking if this is a good idea? And has anyone tried to do such a 
+thing before?
 
-2) what to do in case of packets sent over multiple interfaces?
+If this approach seems to be okay I'd be willing to implement it 
+(assuming no one has done this yet). In this case would this be useful 
+enough to be included in the patch-o-matic (and possibly even mainstream 
+kernel)?
 
-for what concerns (1), i was wondering if it would be
-less nasty to have a device enqueue operation that will
-interact (wraps it and does something around that) with
-the outmost qdisc enqueue... this could give a good
-abstraction to answer to question 2 as well...
+Cheers,
+   Timo
 
-for what concerns (2), i see that jamal takes literally
-the meaning of 'billing' a connection... well i was
-thinking just at traffic policing and not at money
-accounting and billing servers...
+--------------enigD893600B080009AA497E0E74
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-in any case... regarding what to do if a packet sent over
-multiple interfaces is dropped only in some of them and
-not on all of them... this could also happen for a broadcast
-or multicast packet... and thinking about it, the most coerent
-thing to do from my viewpoint (traffic policing, not getting
-money for the service given) would be to have a separate view
-of the same packet flow at every different interface... this
-would get more complex, but the separate device-level enqueue
-could be the place to do that. there would also have place the
-single point for drops.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-in an other message, jamal wrote:
+iD8DBQFBIMz3FlRU9HaAsIcRAoXQAJ9gBm1gxi0opyoJF12bhUYd/39zSQCeJfAz
+a5pkaTRWGbcMVHjgZsh3qM0=
+=eJ1D
+-----END PGP SIGNATURE-----
 
->Let me think about it.
->Clearly the best place to account for things is on the wire once the
->packet has left the box ;-> So the closest you are to the wire, the
->better. How open are you to move accounting further down? My thoughts
->are along the lines of incrementing the contrack counters at the qdisc
->level. Since you transport after the structure has been deleted, it
->should work out fine and fair billing will be taken care of.
->  
->
-accounting when the packet goes to the wire would mean at the
-dequeue level?
-
-besides, as harald sais, grabbing a lock every time a packet is sent and
-not only when a packet is dropped... this would also imply from my
-particular viewpoint, that when enqueing a packet we will not yet know how
-much its flow/connection has been billed till know. we'll know that, only
-once the previous packet will have been dequeued. and for me it would
-be _much_ more cpu-intensive to behave consequently to that information if
-i get it that late :''''(
-
-this because it would force me to have more complexity in the enqueue
-operation, that in the scheduler i'm trying to write does need to have that
-information to put packets correctly into the queue.
-
-i think that in that case, i'd better duplicate the work and account that
-information on my own... the speedup i'd get would be definitely worth
-having twice the same info... even though that would not be elegant at
-all... :(
-
-i should stop, take an other long breath, and think a little bit about 
-this ;)
-
-cheers
-alessandro
+--------------enigD893600B080009AA497E0E74--
