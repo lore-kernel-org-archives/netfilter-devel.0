@@ -1,17 +1,12 @@
-From: mbellion@hipac.org
-Subject: Re: [NF-HIPAC] Performance test results available
-Date: Thu, 26 Sep 2002 21:17:20 +0200
+From: "andre achternaam" <andreiscmeel@hotmail.com>
+Subject: ip_conntrack_expect_related() cannot handle already established connections
+Date: Tue, 24 Sep 2002 15:14:21 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200209262117.20361.mbellion@hipac.org>
-References: <200209260003.10724.nf@hipac.org> <3D92BBBD.1050609@cs.auc.dk>
+Message-ID: <F75wF0SsAtYBM5OnEfT00004e2c@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: "Netfilter-devel" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Emmanuel Fleury <fleury@cs.auc.dk>
-In-Reply-To: <3D92BBBD.1050609@cs.auc.dk>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,47 +17,91 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-> 1) How does behave the CPU load during your test ?
-> As you are using very powerful machines (which is not often the case in
-> reality for firewalls and router), I was really wandering how the CPU
-> power can affect your method.
+Hi all,
 
-Sorry, we don't have information about that available. We will have to do=
-=20
-additional tests with less powerfull machines to examine that.
+I have some difficulties with my Nat/connection tracking module that is very 
+similar like the ftp one.
 
-> 2) How much space was used to store each of the rulessets ?
-> Your representation seems to be compact, but I was wandering how ?
-> Maybe a comparison with the size of the iptables rulessets could
-> be relevant.
+My setup up:
 
-The memory usage of our algorithm isn't that much dependent on the number=
- of=20
-rules. It's much more dependent on the structure of the ruleset and the t=
-ype=20
-of the used rules. It is e.g. possible that a ruleset with 100 rules uses=
-=20
-more memory than a ruleset with 10.000 rules. There are case where nf-hip=
-ac=20
-uses less memory than iptables and there are case where nf-hipac consumes=
-=20
-really a huge amount of memory.
-It's not possible to easily describe the memory usage of nf-hipac. It dep=
-ends=20
-on a lot of factors and interactions of different rule types.
-Our algorithm is designed to have an acceptable memory usage for realisti=
-c=20
-rulesets. In the tests we made we didn't use realistic rulesets, but=20
-completely synthetic ones in order to simultate theoretical worst case=20
-performance of the algorithm.
-We haven't wrote down memory usage during the tests, so we don't have the=
-=20
-numbers available. But as already said, the rulesets were completely=20
-syntetic, so the numbers probably don't say much about the algorithm anyw=
-ay.
-I only remember that memory usage was pretty huge with that synthetic=20
-rulesets.
+I have a server that sends streams (UDP packets) to clients. Between the 
+clients and the server a gateway is located. The gateway is configured with 
+all the masquerade stuff you would expect.
+>From the gateway point of view the server streams are coming form the 
+external site. The streams are a result from another (master/control) 
+connection. The same way it is for ftp. The only difference is the expected 
+connection is a UDP stream and not a TCP stream.
 
-Michael Bellion
+My conntrack/NAT module looks very similar like the ftp one and works file 
+for one client and even for multiple clients behind the gateway. But it 
+works only properly when the clients specify their "port command (where to 
+receive the UDP stream)" differently thus not the same. However I understand 
+that the ftp module can handle the same port numbers, by mangling the 
+outgoing "port command" (Doing NAPT). I also implemented this in my module.
+
+When I register an expected related connection it mostly uses the 
+"ctMyInfo->portOrg" port since it is free and sometimes another number when 
+in use.
+
+…
+memset(&tuple, 0, sizeof(tuple));
+tuple.dst.ip = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
+tuple.dst.protonum = IPPROTO_UDP;
+/* Try to get same port: if not, try to change it. */
+for (port = ctMyInfo->portOrg; port != 0; port++)
+{
+tuple.dst.u.udp.port = htons(port);
+	if (ip_conntrack_expect_related(ct, &tuple, &mask, NULL) == 0)
+break;
+}
+…
+
+When a packet of the expected_related connection comes in and the entry is 
+removed from the expect_list in the init_conntrack function.
+
+…. Init_conntrack(…)
+…
+if (expected && is_confirmed(expected->expectant)) {
+/* Welcome, Mr. Bond.  We've been expecting you... */
+	conntrack->status = IPS_EXPECTED;
+		conntrack->master.master = &expected->expectant->ct_general;
+	IP_NF_ASSERT(conntrack->master.master);
+		LIST_DELETE(&expect_list, expected);
+	MyDebugPrint(expected, "LIST_DELETED(init_conntrack)");
+		expected->expectant = NULL;
+	nf_conntrack_get(&conntrack->master);
+}
+….
+}
+
+Oke now it is removed from the expect_list but what if I register a new 
+expected connection with ip_conntrack_expect_related() function and with the 
+same port number as the previous one. The previous one is still in use by my 
+previously started UDP stream but it can be registered as well since the 
+init_conntrack() function removed this expected connection from the 
+expect_list and the ip_conntrack_expect_related() will only look in the 
+expected_list.
+
+Here is the question:
+
+Why is it also not checking the existing (established) connections to see if 
+this port number/ipaddress combination is in use? At the moment I'am able to 
+register expected related connections that are in use. This might be by 
+designs but than this is a bug in the ftp (and thus my modules as wel)?
+
+And how can I figure out if the expected connection is in use by something 
+else. It seems that checking the return value of 
+ip_conntrack_expect_related() is not enough because it only looks in the 
+expected_list of connections you expect….
+
+
+Thanx in advance for all the effort…
+Andre
+
+
+
+
+_________________________________________________________________
+MSN Photos is the easiest way to share and print your photos: 
+http://photos.msn.com/support/worldwide.aspx
