@@ -1,13 +1,17 @@
-From: John Williams Floroiu <floroiu@fokus.fraunhofer.de>
-Subject: segfault when linking with libiptables
-Date: Thu, 04 Mar 2004 11:09:22 +0100
+From: Matthew Strait <quadong@users.sourceforge.net>
+Subject: Re: childlevel's pom comment
+Date: Thu, 4 Mar 2004 15:10:37 -0600 (CST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40470052.8050004@fokus.fraunhofer.de>
+Message-ID: <Pine.LNX.4.60.0403041500280.10634@dsl093-017-216.msp1.dsl.speakeasy.net>
+References: <Pine.LNX.4.60.0403031947450.8957@dsl093-017-216.msp1.dsl.speakeasy.net>
+ <40469E10.7080100@trash.net> <Pine.LNX.4.60.0403032150000.8957@dsl093-017-216.msp1.dsl.speakeasy.net>
+ <4046BFB9.809@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4046BFB9.809@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,64 +22,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> I would prefer if "any" wouldn't need to be matched in the kernel,
+> something like:
+>
+> if (info->name[0] == '\0')
+>        ret = !info->invert;
+> else
+>        ...
+>
+> and have userspace do the "any" <=> "" translation.
 
-hi,
+That would be fine with me, but iptables seems to consider the empty
+string to be an error condition:
 
-I have the following problem when linking an user program with libiptables. the program may be as 
-simple as the following:
-
-#include <iptables.h>
-#include <iptables_common.h>
-#include <libiptc/libiptc.h>
-
-int main(void) {
-	find_match("dscp", LOAD_MUST_SUCCEED);
-	return 0;
-}
-
-I compiled it with:
-
-cc -c -O2 -ggdb -Wall -Wunused myprog.c
-cc -O2 -ggdb -Wall -Wunused -export-dynamic -o myprog myprog.o -liptables -liptc -ldl
-
-(Makefile attached)
-
-when trying to load the dscp match extension, dlopen (which is invoked by find_match) segfaults. 
-here is a transcript from gdb:
-
-[...]
-Reading symbols from /lib/tls/libdl.so.2...done.
-Loaded symbols for /lib/tls/libdl.so.2
-Reading symbols from /lib/tls/libc.so.6...done.
-Loaded symbols for /lib/tls/libc.so.6
-Reading symbols from /lib/ld-linux.so.2...done.
-Loaded symbols for /lib/ld-linux.so.2
-Reading symbols from /usr/local/lib/iptables/libipt_dscp.so...done.
-Loaded symbols for /usr/local/lib/iptables/libipt_dscp.so
-#0  0x400a0034 in strcmp () from /lib/tls/libc.so.6
-
-does anybody have an idea which the cause could be? I am using gcc version 3.3.3 (Debian) and 
-iptables-dev unstable. any help would be greatly appreciated.
-
-cheers,
-John.
+--- libipt_helper.c.old 2004-03-03 21:39:07.000000000 -0600
++++ libipt_helper.c     2004-03-04 14:50:13.408377032 -0600
+@@ -46,6 +47,12 @@
+        case '1':
+                check_inverse(optarg, &invert, &invert, 0);
+                strncpy(info->name, optarg, 29);
++
++               /* special case, translate "any" to "" so the kernel
++               doesn't have to run strcmp. */
++               if(!strcmp(info->name, "any"))
++                       info->name[0] = '\0';
++
+                if (invert)
+                        info->invert = 1;
+                *flags = 1;
 
 
-========== Makefile ==========
+root@quadong# iptables -A POSTROUTING -t mangle -m helper --helper any
+iptables: Invalid argument
 
-all: myprog
+It seems like I'd have to make significantly more invasive changes than
+are really called for to get it to accept an empty string.  What do you
+think?
 
-CFLAGS:=-O2 -ggdb -Wall -Wunused
-
-LDFLAGS      = -export-dynamic
-LDLIBS       = -liptc -ldl
-
-%.o : %.c
-	$(CC) -c $(CFLAGS) $<
-
-
-myprog: myprog.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-
-clean:
-	rm myprog.o myprog
+-matthew
