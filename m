@@ -1,17 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] for some issues in tcp window tracking patch
-Date: Mon, 17 May 2004 23:41:45 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Netfilter state table sync status?
+Date: Mon, 17 May 2004 15:45:45 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40A93199.3010007@trash.net>
-References: <Pine.LNX.4.33.0405171427460.29543-100000@blackhole.kfki.hu>
+Message-ID: <20040517134545.GE11060@obroa-skai.de.gnumonks.org>
+References: <20040513121639.GK1775@edu.joroinen.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira <pablo@eurodev.net>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HeFlAV5LIbMFYYuh"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0405171427460.29543-100000@blackhole.kfki.hu>
+To: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+Content-Disposition: inline
+In-Reply-To: <20040513121639.GK1775@edu.joroinen.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,20 +22,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
 
-> On Mon, 17 May 2004, Pablo Neira wrote:
-> 
->>a) Use flags defined in tcp.h instead of bsd flags: I found that these
->>flags are already defined in linux with different names in tcp.h, so we
->>could use linux flags instead.
-> 
-> 
-> Fine, better to use the flags already defined in tcp.h.
-> 
+--HeFlAV5LIbMFYYuh
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I don't think we should use those, they are for use in the tcp control
-buffer, which is also expressed in their name (TCPCB_FLAG_*).
+On Thu, May 13, 2004 at 03:16:39PM +0300, Pasi K=E4rkk=E4inen wrote:
+> Hi,
+>=20
+> What's the current state of the Netfilter state table sync code? Is it
+> already functional?=20
 
-Regards
-Patrick
+It's working, at least sort-of.  There are three currently known bugs
+that I'm hunting down.
+
+> I would like to synchronize the state tables of two different Netfilter
+> boxes.
+
+The current code is in CVS (netfilter-ha/ct_sync).  There are no
+'easy-to-apply' patches yet.
+
+the code has dependencies on nfnetlink-ctnetlink and l2netfilter from
+pom-ng.
+
+> I'm willing to test/debug it :)
+
+great!
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--HeFlAV5LIbMFYYuh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAqMIIXaXGVTD0i/8RAg6RAJ9Ccb5oDsZKL6xt2bdW/ztNAH42DQCgosDZ
+uAq2+wPd5vO6qldswQCXYNA=
+=kjw+
+-----END PGP SIGNATURE-----
+
+--HeFlAV5LIbMFYYuh--
