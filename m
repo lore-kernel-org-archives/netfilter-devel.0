@@ -1,16 +1,15 @@
-From: =?ISO-8859-1?Q?C=E9dric?= de Launois <delaunois@info.ucl.ac.be>
-Subject: Re: How to change a packet's arriving interface? -j ROUTE?
-Date: 06 Dec 2002 18:27:49 +0100
+From: Ryan Hagelstrom <rhagelstrom@atcorp.com>
+Subject: libIPQ Questions
+Date: Wed, 11 Dec 2002 14:16:21 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1039195669.3355.68.camel@descartes.info.ucl.ac.be>
-References: <3DF0D338.C2F4E50@Gallantry.com>
+Message-ID: <01C2A11F.E1F0ADA0.rhagelstrom@atcorp.com>
+Reply-To: "rhagelstrom@atcorp.com" <rhagelstrom@atcorp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jason Liao <maillist@gallantry.com>
-In-Reply-To: <3DF0D338.C2F4E50@Gallantry.com>
+To: "'netfilter-devel@lists.netfilter.org'"
+	 <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,51 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> I have a firewall running iptables with 3 interfaces: LAN, WAN and DMZ.=
-=20
-> The LAN IP address is 10.0.0.1/24, WAN 66.134.34.157/28, and DMZ
-> 66.134.34.249/28.  The WAN interface connects to the Internet and the
-> DMZ interface connects to a stub network.
->=20
-> When someone sends a packet to the IP address of the DMZ interface from
-> the Internet, the packet x.x.x.x->66.134.34.249 arrives at the WAN
-> interface.  I want to know if there is a way using iptables (maybe with
-> other tools such as iproute2) to make this packet to appear as if it
-> arrives at the DMZ interface.  The packet itself should not be
-> modified.  I need this to work because I am running an IPSec VPN with
-> FreeS/WAN on the DMZ interface.  When the ESP packets arrives on the WA=
-N
-> interface, they cannot be properly processed by IPSec because the ipsec=
-0
-> interface is tied to the DMZ interface directly. =20
->=20
-> I looked at the mangle table but could not figure out if it is the righ=
-t
-> direction.  I read about the ROUTE target but do not know if this targe=
-t
-> is for diverting packets to be sent OUT on another interface, or can it
-> be used to change a packet's arriving interface.
+Hi all,
 
-With the ROUTE target, if you send a received packet to another
-interface, it will go out through this interface and will not appear
-as an incoming packet.
+I'm in the works to write a module using netfilter. However I'm wondering 
+if I would be able to use libIPQ to simply some of the project.
+I need to write a module that is able to mangle and route packets between 
+two different network interfaces along with inject certain custom 
+management and configuration packets to the specific network interface. I'm 
+just curious if one is able to this using libIPQ or would the approach 
+involve just writing it all in a netfilter module. I'm guessing the answer 
+is the latter but I wanted to double check. If doing this in libIPQ is 
+possible if someone could provide an example it would be appreciated.
 
-And if you use a rule such as :
-iptables -A PREROUTING -t mangle -i eth0 -j ROUTE --to
-<OTHER_IF__IP_ADDRESS>
+Or if I'm missing something and there is an alternative approach I'm open 
+to suggestions.
 
-then the packet will be sent through the local interface (this rule
-tells the kernel to route the packet as if the destination IP address
-was the address of the other interface).
+Thanks
 
-Thus, at first look and as it is implemented now, the ROUTE target seems
-to be unable to help you.
-
->=20
-> Thanks in advance.
->=20
-> Jason Liao
->=20
->=20
-
-C=E9dric de Launois
+Ryan Hagelstrom
