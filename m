@@ -1,13 +1,16 @@
-From: "Grace Li" <zheyinli@hotmail.com>
-Subject: Does iptable save original destination address so that application could retrieve it?
-Date: Mon, 5 Apr 2004 16:02:25 -0700
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Does iptable save original destination address so that application
+ could retrieve it?
+Date: Tue, 6 Apr 2004 00:18:24 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY7-DAV39pFcgRqaxA00021e1b@hotmail.com>
+Message-ID: <Pine.LNX.4.44.0404060012470.30166-100000@filer.marasystems.com>
+References: <BAY7-DAV39pFcgRqaxA00021e1b@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_00B5_01C41B27.62EFE560"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Grace Li <zheyinli@hotmail.com>
+In-Reply-To: <BAY7-DAV39pFcgRqaxA00021e1b@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,65 +21,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Mon, 5 Apr 2004, Grace Li wrote:
 
-------=_NextPart_000_00B5_01C41B27.62EFE560
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+> Iptables could be instructed to intercept packets arrived on specified
+> network interface, change the destination port to a specified local port
+> so that the traffic is directed to appropriate application.
 
-Hi, folks,
+Yes.
 
-Iptables could be instructed to intercept packets arrived on specified =
-network interface, change the destination port to a specified local port =
-so that the traffic is directed to appropriate application. For example =
-Squid asks iptables to intercept traffic for port 80, frox asks iptable =
-to intercept traffic for port 21, ASSP asks iptable to intercept traffic =
-for port 80. My question is how could those application know the source =
-and destination IP address of the packet in order to forward them on? =
-Does iptable save original source/destination address somewhere so that =
-application could retrieve it?
+> For example Squid asks iptables to intercept traffic for port 80 frox
+> asks iptable to intercept traffic for port 21, ASSP asks iptable to
+> intercept traffic for port 80.
 
-The answer of this question is very important to me. Thanks in advance =
-for any tip!
+Not exacly.. but yes all these accept having iptables send them redirected 
+traffic. It is you who need to insert the iptables rule for doing so.
 
-Grace
-------=_NextPart_000_00B5_01C41B27.62EFE560
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+> My question is how could those application know the source and
+> destination IP address of the packet in order to forward them on? Does
+> iptable save original source/destination address somewhere so that
+> application could retrieve it?
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Hi, folks,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Iptables could be instructed to =
-intercept packets=20
-arrived on specified network interface, change the destination port to a =
+It does, and applications can ask for the original address details with a 
+getsockopt call. See the LINUX_NETFILTER version of the clientNatLookup 
+call in IPInterception.cc from the Squid-3 source tree for an example. 
+Probably documented somewhere also..  the squid clientNatLookup function 
+returns 0 if the connection was intercepted, -1 if not (normal 
+connection).
 
-specified local port so that the traffic is directed to appropriate =
-application.=20
-For example Squid asks iptables to intercept traffic for port 80, frox =
-asks=20
-iptable to intercept traffic for port 21, ASSP asks iptable to intercept =
-traffic=20
-for port 80. My question is how could those application know the source =
-and=20
-destination IP address of the packet in order to forward them on? <FONT=20
-size=3D2>Does iptable save original source/destination address somewhere =
-so that=20
-application could retrieve it?</FONT></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>The answer of this question is very =
-important to=20
-me. Thanks in advance for any tip!</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Grace</FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_00B5_01C41B27.62EFE560--
+Regards
+Henrik
