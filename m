@@ -1,44 +1,58 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Billing 1: WAS (Re: [PATCH 2/4] deferred drop, __parent workaround, reshape_fail , netdev@oss.sgi.com ,
-Date: Tue, 24 Aug 2004 20:38:42 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040824183842.GN26877@sunbeam.de.gnumonks.org>
-References: <411C0FCE.9060906@crocetta.org> <1092401484.1043.30.camel@jzny.localdomain> <20040816072032.GH15418@sunbeam2> <1092661235.2874.71.camel@jzny.localdomain> <4120D068.2040608@crocetta.org> <1092743526.1038.47.camel@jzny.localdomain> <41220AEA.20409@crocetta.org> <1093187835.1042.95.camel@jzny.localdomain>
+Subject: Re: [RFC] ct_sync 0.15 (corrected)
+Date: Tue, 24 Aug 2004 20:37:52 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040824183752.GM26877@sunbeam.de.gnumonks.org>
+References: <1092407190.2402.120.camel@nienna.balabit> <20040819110646.GJ3921@sunbeam.de.gnumonks.org> <20040822204326.GA25567@sch.bme.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fwVzdwcpG0LlK9IO"
-Cc: sandr8 <sandr8_NOSPAM_@crocetta.org>, devik@cdi.cz, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: jamal <hadi@cyberus.ca>
+	protocol="application/pgp-signature"; boundary="vYzPTKoKRdF40tnF"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: KOVACS Krisztian <hidden@balabit.hu>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	jamal <hadi@cyberus.ca>
 Content-Disposition: inline
-In-Reply-To: <1093187835.1042.95.camel@jzny.localdomain>
-Errors-to: netdev-bounce@oss.sgi.com
+In-Reply-To: <20040822204326.GA25567@sch.bme.hu>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---fwVzdwcpG0LlK9IO
+--vYzPTKoKRdF40tnF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Aug 22, 2004 at 11:17:15AM -0400, jamal wrote:
-> Apologies for latency - was busy at (my real) work.
+On Sun, Aug 22, 2004 at 10:43:26PM +0200, KOVACS Krisztian wrote:
+>=20
+>   Hi,
+>=20
+> On Thu, Aug 19, 2004 at 01:06:46PM +0200, Harald Welte wrote:
+> > >         So, do anyone know of anything which could be used by ct_sync?
+> > >         (It has to be a semi-reliable, connectionless multicast proto=
+col
+> > >         with a _very_ low overhead.)
+> >=20
+> > everything I've seen so far about reliable multicast is inherently
+> > complex.
+>=20
+>   Oops, I've just found TIPC. Does anyone know enough details of TIPC to
+> judge if its reliable multicast service would be useful for us? I've just
+> downloaded the IETF draft, and it seems to me that the reliable multicast
+> service provided by TIPC may be useful (section 2.9 of the draft). Any
+> ideas?
 
-Same for me, sorry.
-
-> Let me say this:
-> I am happy with Haralds billing patch which is already in as is.
-> In other words, although there is an accounting discrepancy it is not
-> that big.
-> What does that mean? unbilling is not something to rush in and patch in
-> if its going to have an impact on other pieces. It doesnt matter whether
-> it goes in in 2.6.20 or doesnt even go in as far as i am concerned.=20
-
-Same to me, although I wold have used a less explicit wording ;)
-
-> cheers,
-> jamal
+Unfortunately I did only learn about TIPC recently.  But looking at the
+IETF draft and the current implementation, I think it is probably too
+expensive.  Another argument is to not base ct_sync on something big
+outside of the official kernel tree that is not under our control..
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -50,7 +64,7 @@ Same to me, although I wold have used a less explicit wording ;)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---fwVzdwcpG0LlK9IO
+--vYzPTKoKRdF40tnF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -58,9 +72,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBK4syXaXGVTD0i/8RAoIjAJ9ejc6i+d+pNmmqvOc8/OmTYHrm9ACfX4EP
-OlSRvn9HS+uADLSNvSics34=
-=ibQN
+iD8DBQFBK4sAXaXGVTD0i/8RAt/zAKCp+PPSZPNC3J1Dqo9zhu3yMfhjxwCgrl/V
+0gRzPVmgQNAly+1TIQEBDEk=
+=2Fft
 -----END PGP SIGNATURE-----
 
---fwVzdwcpG0LlK9IO--
+--vYzPTKoKRdF40tnF--
