@@ -1,44 +1,65 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Some one knows how to implement policy routing with iptables?
-Date: Fri, 27 Aug 2004 09:22:57 +0200 (CEST)
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408270915470.22656@filer.marasystems.com>
-References: <002e01c48b0e$31b253f0$8e5f78ca@nic.ecnu.edu.cn>
-	<Pine.LNX.4.61.0408260917380.5483@filer.marasystems.com>
-	<002b01c48b6e$f86a3570$8e5f78ca@nic.ecnu.edu.cn>
-	<Pine.LNX.4.61.0408261636550.10523@filer.marasystems.com>
-	<001b01c48be7$3026ec60$8e5f78ca@nic.ecnu.edu.cn>
+From: Thomas Zehetbauer <thomasz@hostmaster.org>
+Subject: Re: netfilter IPv6 support
+Date: Fri, 27 Aug 2004 12:02:14 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <1093600934.3497.50.camel@hostmaster.org>
+References: <1093546367.3497.23.camel@hostmaster.org>
+	 <20040826130024.6ff83dff.davem@redhat.com>
+	 <1093555510.3497.33.camel@hostmaster.org>
+	 <20040826220501.GA564@alpha.home.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-5lkvGZmgxLaDLE3hprNM"
 Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robbert <hanbo163com@163.com>
-In-Reply-To: <001b01c48be7$3026ec60$8e5f78ca@nic.ecnu.edu.cn>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262279AbUH0KCT@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+In-Reply-To: <20040826220501.GA564@alpha.home.local>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 27 Aug 2004, Robbert wrote:
 
-> And I found the rules iptables added are linear,in fact is a link, and 
-> no priority at all.Iptables only match them once,if any.So, if I give 
-> these rules some priority, or I arrange them by their priority, do you 
-> think that means something?
+--=-5lkvGZmgxLaDLE3hprNM
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-iptables is a table of rules, searched top-down. when using iptables you 
-have to sort your rules according to your priority. There is no automatic 
-sorting of rules by priority and you must manually sort them correctly by 
-rule number.
+On Fre, 2004-08-27 at 00:05 +0200, Willy Tarreau wrote:
+> These features are available in patch-o-matic-ng. They're not in mainline
+> because the netfilter team only pushes well tested and non-intrusive chan=
+ges.
+> But there are lots of people using features from patch-o-matic in product=
+ion.
 
-the same thing applies when using mark based policy routing, where first 
-the iptables rules needs to be correctly sorted then also the routing 
-rules (ip rule ...) needs to be sorted.
+It seems that the netfilter developers are far to conservative in this
+case.
+- Linux 2.6 is itself is still not deemed completely stable.
+- IPv6 support is still marked experimental.
+So I doubt someone would blame them for pushing a not so well tested
+patch in this case but the current netfilter implementation for IPv6 is
+far from useful completeness.
 
-Regards
-Henrik
+Tom
+
+--=20
+  T h o m a s   Z e h e t b a u e r   ( TZ251 )
+  PGP encrypted mail preferred - KeyID 96FFCB89
+      finger thomasz@hostmaster.org for key
+
+History has shown that the people who make history do not learn from it.
+
+
+
+--=-5lkvGZmgxLaDLE3hprNM
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iQEVAwUAQS8GpmD1OYqW/8uJAQIdjQf+NIsXxVF0+qASDBeHAZ8FtY9YL3uqJ202
+CTM/4vl8oaSvYVEeaSu0j/jfoBhlqDxh6iHDh6kk3NIRzDo1NgZ/KLbcTttiKRiY
+l2hJ1Yq0OgQsw4Q1uaWBHqNKKmQ4Ga1VUKNICWCmk9KoeGouY73Q9NBpwLyxP3XT
+SSGT//mRaijSweyQ8jJdzj0LuN4HHO4w/cZTpye0cjkSs9pNmYoMq4nHBlrGtbz+
+qBi/8q9sI813YpYXYhMUUSY2pMlTeqWXZGFzddLZk9kO24xDam0bNK/ZHhbGNCZr
+lsnArwXUtpPOKxXDdNVefMa5PABdllCELYmz96Z03xjpYbvnYb7Kzw==
+=h8dI
+-----END PGP SIGNATURE-----
+
+--=-5lkvGZmgxLaDLE3hprNM--
