@@ -1,14 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] REJECT for 2.6.9+
-Date: Sun, 20 Mar 2005 17:15:16 +0100
-Message-ID: <423DA194.40100@trash.net>
+From: Just another UFO mechanic <oscar@ufomechanic.net>
+Subject: building libctnetlink
+Date: 20 Mar 2005 16:11:32 +0000
+Message-ID: <1111335091.2523.46.camel@lap-ufomechanic>
 References: <423BF227.8030502@outerspace.dyndns.org>
+	<423BF4DC.2070902@outerspace.dyndns.org>
+Reply-To: oscar@ufomechanic.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <423BF227.8030502@outerspace.dyndns.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <423BF4DC.2070902@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,18 +21,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jonas Berlin wrote:
-> Because include/linux/netfilter_ipv6/ip6t_REJECT.h was removed in 2.6.9, 
-> the
-> pom-ng module REJECT does not apply anymore. So this patch adds a 2.6.9
-> branch which is identical to 2.6 except the .h file is added.
-> 
-> The empty patch file is there so that the original patch won't be 
-> attempted.
+Hi
 
-Why add a new branch instead of simply restoring that file?
-Even better, I think I'm simply going to submit the IPv6
-REJECT target of nobody objects.
+    I have tried to build libctnetlink I have got the current version using svn
+as there is no README i do not know how to build it. I had a look around and
+thought by running ltmain compile should work. But I am just poking around in 
+the dark. I realize it is pre release but I would like to contribute where 
+possible. Can someone point me off in the right direction.
 
-Regards
-Patrick
+
+Thanks
+Danke
+TchuB
+
+
+
+Aside -------
+Also note svn from the website link does not work svn replies unknown URL 
+instead use http rather than https
+
+You can access the <a>Subversion</a> server in two ways. For casual
+browsing, you can use the ViewCVS web interface. To grab the latest
+sources, you can do the following: 
+
+      * Check out the iptables code using: 
+        svn co https://svn.netfilter.org/netfilter/trunk/iptables
