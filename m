@@ -1,18 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: Fw: [Bug 133788] New: ip_conntrack_in: Frag of proto 17
-Date: Tue, 28 Sep 2004 20:54:33 -0700
+From: Ben Efros <ben@xgendev.com>
+Subject: Re: RFC: Partial IP4 syntax
+Date: Tue, 28 Sep 2004 20:56:19 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040928205433.6c0ee6e6.davem@davemloft.net>
-References: <20040928130512.57479400.davem@davemloft.net>
-	<20040928220532.GN29961@sunbeam.de.gnumonks.org>
-	<4159F559.3040400@trash.net>
+Message-ID: <415A3263.7080708@xgendev.com>
+References: <415A12AE.1060901@parknet.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4159F559.3040400@trash.net>
+To: Simon Lodal <simonl@parknet.dk>
+In-Reply-To: <415A12AE.1060901@parknet.dk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,21 +21,31 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 29 Sep 2004 01:35:53 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+Simon Lodal wrote:
 
-> Harald Welte wrote:
-> 
-> >The conntrack message basically means that at NF_IP_PRE_ROUTING we
-> >suddenly see fragmented packets.  This "can never happen" since at the
-> >same PRE_ROUTING hook we defragment just before
-> >via ip_conntrack_defrag() -> ip_ct_gather_frags() -> ip_defrag()
-> >  
-> >
-> 
-> Here is the patch. Untracked and already tracked (loopback) packets
-> are not defragmented, but the check in ip_conntrack_in for
-> untracked/already tracked is after the check for fragments.
-> This patch moves it up.
+> Examples:
+> 10 = 10.0.0.0/8
 
-Applied, thanks a lot Patrick.
+<SNIP>
+
+> Iknow IP address syntax should not change every day. But this will not 
+> break or exclude old syntax. I do not see it clashing with 
+> other/future syntax.
+
+Wrong.  IP numbers can also be written in 32-bit unsigned notation.  In 
+your first example:
+10 being  10.0.0.0/8
+10 is actually treated as unsigned 32bit int, meaning you're address is 
+actually 0.0.0.10
+Try this command and see for yourself:
+"ping 5000"
+Notice how ping is actually sending to "0.0.19.136" ?
+
+This is done because 32-bit addresses should be representable as a 32bit 
+number and not just as a string representation of the address for a 
+variety of reasons.
+
+Unfortunately your idea would break a LOT of very useful tools and ways 
+of representing valid ip numbers.
+
+Ben
