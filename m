@@ -1,12 +1,17 @@
-From: "Colin Paton" <cozzarp@hotmail.com>
-Subject: PPTP connttrack problem - 'unexpecting' performed too early?
-Date: Thu, 08 Apr 2004 10:59:19 +0000
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: PoM-NG question
+Date: Thu, 08 Apr 2004 14:24:03 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY13-F92qgIjOiwsN300050707@hotmail.com>
+Message-ID: <1081427043.1201.22.camel@nienna.balabit>
+References: <1081343893.1191.58.camel@nienna.balabit>
+	 <4074146B.9080004@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: multipart/mixed; boundary="=-7FqtojpuBnCWV2hi5IUj"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <4074146B.9080004@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,154 +22,108 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I've been trying to get GRE/PPTP connection tracking working between a 
-Windows XP laptop and a Windows 2003 server machine. I've applied the PPTP 
-patches to kernel 2.4.25.
-
-The plan is to allow a PPTP VPN to work across a NAT Linux machine.
-
-The GRE packets did not appear to be correctly NATted. I've done some 
-debugging and think I know what is causing the problem, but am not quite 
-sure of the correct way to solve it!
-
-I think that the 'other expectation' is being deleted too early, as 
-ip_ct_gre_keymap_destroy is being called before it should be (I think).
-
-If I edit ip_conntrack_proto_gre.c to prevent the original key mapping from 
-being destroyed, by commenting out the 'list_del' as follows:
-
-void ip_ct_gre_keymap_destroy(struct ip_conntrack_expect *exp)
-{
-	DEBUGP("entering for exp %p\n", exp);
-	WRITE_LOCK(&ip_ct_gre_lock);
-	if (exp->proto.gre.keymap_orig) {
-		DEBUGP("removing %p from list\n", exp->proto.gre.keymap_orig);
-
-		/* COMMENT ADDED BY CPATON list_del(&exp->proto.gre.keymap_orig->list);
-		kfree(exp->proto.gre.keymap_orig);
-		exp->proto.gre.keymap_orig = NULL; */
-
-	}
-	if (exp->proto.gre.keymap_reply) {
-		DEBUGP("removing %p from list\n", exp->proto.gre.keymap_reply);
-		list_del(&exp->proto.gre.keymap_reply->list);
-		kfree(exp->proto.gre.keymap_reply);
-		exp->proto.gre.keymap_reply = NULL;
-	}
-	WRITE_UNLOCK(&ip_ct_gre_lock);
-}
-
-... then everything seems to work correctly.
-
-The connection should be NATted between the laptop, at 10.8.0.2 to one 
-interface on Linux at 10.8.0.1, to the other interface on Linux at 
-192.168.1.249, to the server at 192.168.1.104.
-
-Can anyone advise? I'm not 100% sure of the nature of the 'expect' stuff, 
-which is perhaps where my misunderstanding is coming from. I'm wondering if 
-the other end should be 'unexpected' only AFTER GRE reply has been seen, but 
-am not quite sure.
-
-I enclose a debug log.
-
-Thanks,
-
-Colin
+--=-7FqtojpuBnCWV2hi5IUj
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
 
-Apr  7 17:02:52 bigmachine kernel: ip_tables: (C) 2000-2002 Netfilter core 
-team
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-ctinfo = 2, skipping
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-no full PPTP header, can't track
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_outbound_pkt: 
-outbound control message START_SESSION_REQUEST
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-sstate: 0->3, cstate: 0->0
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_inbound_pkt: 
-inbound control message START_SESSION_REPLY
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-sstate: 3->4, cstate: 0->0
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_outbound_pkt: 
-outbound control message OUT_CALL_REQUEST
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_outbound_pkt: 
-OUT_CALL_REQUEST, CID=C000
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-sstate: 4->4, cstate: 0->2
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_inbound_pkt: 
-inbound control message OUT_CALL_REPLY
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_inbound_pkt: 
-OUT_CALL_REPLY, CID=2288, PCID=C000
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:exp_gre: calling 
-expect_related <7>ip_conntrack_pptp.c:exp_gre: tuple c02a9d98: 47 
-10.8.0.2:0x0000c000 -> 192.168.1.104:0x880b0100
-Apr  7 17:02:56 bigmachine kernel: 
-ip_conntrack_proto_gre.c:ip_ct_gre_keymap_add: adding new entry c5a1ce40: 
-10.8.0.2:0xc000 -> 192.168.1.104:0x2288:1:0x880b
-Apr  7 17:02:56 bigmachine kernel: 
-ip_conntrack_proto_gre.c:ip_ct_gre_keymap_add: adding new entry c5a1ce60: 
-192.168.1.104:0x2288 -> 10.8.0.2:0xc000:1:0x880b
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:exp_gre: calling 
-expect_related <7>ip_conntrack_pptp.c:exp_gre: tuple c02a9d98: 47 
-192.168.1.104:0x00002288 -> 192.168.1.249:0x880b0100
-Apr  7 17:02:56 bigmachine kernel: 
-ip_conntrack_proto_gre.c:ip_ct_gre_keymap_add: adding new entry c5a1cec0: 
-192.168.1.104:0x2288 -> 192.168.1.249:0xc000:1:0x880b
-Apr  7 17:02:56 bigmachine kernel: 
-ip_conntrack_proto_gre.c:ip_ct_gre_keymap_add: adding new entry c5a1cee0: 
-192.168.1.249:0xc000 -> 192.168.1.104:0x2288:1:0x880b
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-sstate: 4->4, cstate: 2->3
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_outbound_pkt: 
-outbound control message SET_LINK_INFO
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-sstate: 4->4, cstate: 3->3
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_proto_gre.c:gre_new: : 
-10.8.0.2:0xc000 -> 192.168.1.104:0x2288:1:0x880b
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_expectfn: 
-increasing timeouts
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_expectfn: 
-completing tuples with ct info
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_expectfn: 
-unexpecting other direction
-Apr  7 17:02:56 bigmachine kernel: 
-ip_conntrack_proto_gre.c:ip_ct_gre_keymap_destroy: entering for exp c617fbc0
-Apr  7 17:02:56 bigmachine kernel: 
-ip_conntrack_proto_gre.c:ip_ct_gre_keymap_destroy: removing c5a1cec0 from 
-list
-Apr  7 17:02:56 bigmachine kernel: 
-ip_conntrack_proto_gre.c:ip_ct_gre_keymap_destroy: removing c5a1cee0 from 
-list
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_proto_gre.c:gre_packet: 
-cpaton - gre_packet is called... status is: 1 (seen reply: 0)
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_proto_gre.c:gre_packet: 
-cpaton - gre_packet is called... status is: 9 (seen reply: 0)
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_proto_gre.c:gre_packet: 
-cpaton - gre_packet is called... status is: b (seen reply: 2)
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_proto_gre.c:gre_packet: 
-cpaton - gre_packet is called... status is: f (seen reply: 2)
-Apr  7 17:02:56 bigmachine last message repeated 4 times
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_inbound_pkt: 
-inbound control message SET_LINK_INFO
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_inbound_pkt: 
-invalid SET_LINK_INFO (TY=15)
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-sstate: 4->4, cstate: 3->3
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:pptp_outbound_pkt: 
-outbound control message SET_LINK_INFO
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-sstate: 4->4, cstate: 3->3
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_proto_gre.c:gre_packet: 
-cpaton - gre_packet is called... status is: f (seen reply: 2)
-Apr  7 17:02:56 bigmachine last message repeated 24 times
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_pptp.c:conntrack_pptp_help: 
-no full PPTP header, can't track
-Apr  7 17:02:56 bigmachine kernel: ip_conntrack_proto_gre.c:gre_packet: 
-cpaton - gre_packet is called... status is: f (seen reply: 2)
-Apr  7 17:03:09 bigmachine last message repeated 27 times
+  Hi,
 
-_________________________________________________________________
-Express yourself with cool new emoticons http://www.msn.co.uk/specials/myemo
+On Wed, 2004-04-07 at 16:47, Patrick McHardy wrote:
+> >   Is it possible to use more than one .patch file in a patchlet? I mean,
+> > I'd like to incorporate a complete, broken-out patchtree into a
+> > patchlet. Is this possible ATM?
+> > 
+> 
+> AFAIK it's not possible. Such a feature would be great, though.
+
+  I've created a patch which adds support for broken out patches in
+pom-ng. Please review, I'm not much of a Perl user... The patch supports
+broken-out patch names like 01-foo-linux-2.4.patch, however, retains
+compatibility with previous versions, so that names like linux-2.4.patch
+can be used as well.
+
+  Another fix is attached, this is for the runme script to do not omit
+warnings that OSPEED is not set.
+
+-- 
+ Regards,
+   Krisztian KOVACS
+
+--=-7FqtojpuBnCWV2hi5IUj
+Content-Disposition: attachment; filename=netfilter_patchsets.patch
+Content-Type: text/x-patch; name=netfilter_patchsets.patch; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
+
+Index: Netfilter_POM.pm
+===================================================================
+RCS file: /cvspublic/patch-o-matic-ng/Netfilter_POM.pm,v
+retrieving revision 1.19
+diff -u -r1.19 Netfilter_POM.pm
+--- Netfilter_POM.pm	3 Mar 2004 12:30:46 -0000	1.19
++++ Netfilter_POM.pm	8 Apr 2004 12:12:59 -0000
+@@ -407,8 +407,11 @@
+ 
+ 	# save the filename of the patch itself
+ 	foreach my $pf (@dents) {
+-		if ($pf =~ /(([^-]+)(-([\d\.]*))?\.patch)$/) {
+-			$patchlet{patch}{$2}{$4} = $1;
++		if ($pf =~ /(((\d+-[^-]+)-)?(([^-]+)(-([\d\.]*)))?\.patch)$/) {
++			if (!defined($patchlet{patch}{$5}{$7})) {
++				$patchlet{patch}{$5}{$7} = [];
++			}
++			push @{$patchlet{patch}{$5}{$7}}, $1;
+ 		}
+ 	}
+ 
+@@ -733,16 +736,19 @@
+ 			if ($test) {
+ 				$options .= "--dry-run ";
+ 			}
+-			my $patchfile = ($$patchlet{basedir}.'/'.$$patchlet{patch}{$proj}{best});
+-			my $cmd = sprintf("%s -f -p1 -d %s %s < %s", 
+-					  $BIN_PATCH, $projpath, 
+-					  $options,
+-					  $patchfile);
++
++			my @patchfiles = sort map { $$patchlet{basedir}.'/'.$_ } @{$$patchlet{patch}{$proj}{best}};
++			my $patchfiles = join ' ', @patchfiles;
++			my $cmd = sprintf("cat %s | %s -f -p1 -d %s %s",
++					  $patchfiles,
++					  $BIN_PATCH, $projpath,
++					  $options);
+ 
+ 			my $missing_files;
+ 			my $rejects;
+ 			my $notempty;
+-			my $hunks = count_hunks($patchfile);
++			my $hunks = 0;
++			map { $hunks += count_hunks($_) } @patchfiles;
+ 			open(PATCH, "$cmd|") || die("can't start patch '$cmd': $!\n");
+ 			while (my $line = <PATCH>) {
+ 				# FIXME: parse patch output
+
+--=-7FqtojpuBnCWV2hi5IUj
+Content-Disposition: attachment; filename=runme_fix_ospeed.patch
+Content-Type: text/x-patch; name=runme_fix_ospeed.patch; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
+
+Index: runme
+===================================================================
+RCS file: /cvspublic/patch-o-matic-ng/runme,v
+retrieving revision 1.15
+diff -u -r1.15 runme
+--- runme	4 Mar 2004 07:54:24 -0000	1.15
++++ runme	8 Apr 2004 12:10:22 -0000
+@@ -234,7 +234,7 @@
+ }
+ 
+ if (defined($ENV{TERM}) && !$opt_batch) {
+-	my $terminal = Tgetent Term::Cap {};
++	my $terminal = Tgetent Term::Cap { OSPEED => 9600 };
+ 	$clrscr = $terminal->Tputs('cl', 1);
+ }
+ 
+
+--=-7FqtojpuBnCWV2hi5IUj--
