@@ -1,18 +1,17 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: [PATCH}: Make MARK target terminate (resend)
-Date: Mon, 1 Jul 2002 09:50:18 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: conntrack performance/DoS formula
+Date: Mon, 1 Jul 2002 10:07:25 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020701075018.GA440@balabit.hu>
-References: <3D1D81F8.9080309@trash.net> <200206291236.36997@henrik.marasystems.com>
+Message-ID: <200207011007.25108.hno@marasystems.com>
+References: <20020628082339.I2890@oknodo.bof.de> <20020630103131.X4136@oknodo.bof.de> <15647.24217.324807.354846@isis.cs3-inc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Cc: Patrick McHardy <kaber@trash.net>,
-	netfilter-devel <netfilter-devel@lists.samba.org>,
-	Harald Welte <laforge@gnumonks.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <200206291236.36997@henrik.marasystems.com>
+To: don-nf@isis.cs3-inc.com (Don Cohen), Patrick Schaaf <bof@bof.de>
+In-Reply-To: <15647.24217.324807.354846@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,20 +22,21 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jun 29, 2002 at 12:36:36PM +0200, Henrik Nordstrom wrote:
-> On Saturday 29 June 2002 11.46, Patrick McHardy wrote:
-> So the question to the Netfilter core team is if it would be OK to add 
-> a new option and "module class" to the userspace tools, and have the 
-> existing IPT_CONTINUE targets dual-register as both a target and a 
-> match. I can try to whip something together if this is seen as 
-> something acceptable. Should be fully backwards/forward compatible 
-> with existing rulesets with only a minimal amount of code 
-> duplication. The only compability issue is that if you make use the 
-> new feature then you cannot go back to a older userspace or kernel..
+Don Cohen wrote:
 
-I for one would second a feature like this. I see a good number of places
-where it could be used (the long standing missing -l option is one example)
+> On a related subject, I'm worried that UNREPLIED might not mean
+> what I think it does.  Your data contains things like:
+>  tcp 6 387070 ESTABLISHED src=9.163.211.64 dst=165.130.71.38 sport=3228
+>  dport=1301 [UNREPLIED] src=165.130.71.38 dst=9.163.211.64 sport=1301
+>  dport=3228 use=1
+> How can one half of the connection be established while the other half
+> is unreplied?
 
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+The ESTABLISHED indicates the TCP state, UNREPLIED indicates the conntrack 
+state. This is a TCP session that has only seen ACK in one direction, no 
+packets in the other.
+
+Almost related note: The connection is not ASSURED.
+
+Regards
+Henrik
