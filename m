@@ -1,16 +1,17 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: cttest-0.5
-Date: Tue, 9 Jul 2002 00:05:55 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: cttest-0.3 (conntrack hashing)
+Date: Tue, 9 Jul 2002 00:01:30 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020709000555.X13116@oknodo.bof.de>
-References: <20020708232726.W13116@oknodo.bof.de>
+Message-ID: <200207090001.31159@henrik.marasystems.com>
+References: <20020708114504.CAF79473F@lists.samba.org> <20020708194044.U13116@oknodo.bof.de> <15658.1134.560895.290945@isis.cs3-inc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
-Content-Disposition: inline
-In-Reply-To: <20020708232726.W13116@oknodo.bof.de>; from bof@bof.de on Mon, Jul 08, 2002 at 11:27:26PM +0200
+To: don-nf@isis.cs3-inc.com (Don Cohen), Patrick Schaaf <bof@bof.de>
+In-Reply-To: <15658.1134.560895.290945@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,14 +22,22 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> Now there is http://bei.bof.de/cttest-0.5.tar.gz and an example
-> presentation at http://bei.bof.de/ex4/
+On Monday 08 July 2002 23.30, Don Cohen wrote:
 
-As nobody requested the tarball yet, I've remade it with the latest
-64 bit ABCDEF code from Don. I also remade the ex4/ pictures,
-in the abcd series, Don's new hash is named abcd_long. Looks good,
-takes about 2.2 times as long as abcd.
+> I figure it hardly matters whether I do the analogous thing for
+> proto, since it's so short.
 
-I call it a night now. Take care.
+Actually you could consider proto almost a constant.. I don't think 
+you really gain anything by obfuscating this.. just adding it to the 
+result to make sure different protocols hash into different buckets 
+should suffice just fine me thinks.. but sure, being paranoid does 
+not hurt other than CPU time.. but it should be allowed to influence 
+the hash value.
 
-Patrick
+Related note: You only have sport/dport for known protocols such as 
+TCP/UDP/ICMP. On unknown protocols (proto_generic tracking) 
+sport/dport will be all 0, meaning there is only one single conntrack 
+entry per sip/dip/proto tuple for such protocols..
+
+Regards
+Henrik
