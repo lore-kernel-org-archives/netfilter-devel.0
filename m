@@ -1,12 +1,17 @@
-From: Imre Gergely <gimre@nextra.ro>
-Subject: last rule/default policy
-Date: Thu, 11 Sep 2003 14:01:40 +0300 (EEST)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: [FUN] new netfilter matching module : passive OS fingerprint
+Date: Thu, 11 Sep 2003 13:12:39 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0309111356430.21741-100000@mx.nextra.ro>
+Message-ID: <Pine.LNX.4.51.0309111308560.17138@dns.toxicfilms.tv>
+References: <20030908161734.7c0f7420.johnpol@2ka.mipt.ru>
+ <Pine.LNX.4.51.0309101651030.9903@dns.toxicfilms.tv>
+ <20030910200113.3113dd1c.johnpol@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+In-Reply-To: <20030910200113.3113dd1c.johnpol@2ka.mipt.ru>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,21 +22,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> I have an idea to make fingerprint table dynamic and write a little
+> program to parse and load whole Michal's table through  ioctl or
+> /proc.
+That would be great, then fingerprints could be easily added without
+recompilating the modules.
 
-i'm using the following code to get the last rule of a user defined chain:
+osf could also be made a target, that would work like LOG, and would
+log basically things that are with OSF_DEBUG, but maybe showed the IP
+too.
+You could then do simple OS accounting and see if there's more linux or
+any other traffic.
 
-for(rule=iptc_first_rule(chain,&h);rule!=NULL;rule=iptc_next_rule(rule,&h)) 
-{
-  last_rule = rule;
-}
-
-if i define 6 rules for example in a user chain, the last should be the 
-default RETURN policy rule, is that correct? but there is no default rule. 
-how can i retrieve the default policy rule for the chains (not just the 
-for the user defined ones)? i need expecially the counters for the chain.
-
--- 
-Gergely Imre                       email: gimre@nextra.ro
-sysadmin   mobile: +40-745-105592, office: +40-266-317500
-Nextra Tele Com SRL   str. Florilor 28/1, 4100 M-Ciuc, RO
-http://www.nextra.ro/gimre                 ICQ# 101510959
+> 	Evgeniy Polyakov ( s0mbre )
+Maciej
