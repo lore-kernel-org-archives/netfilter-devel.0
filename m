@@ -1,18 +1,16 @@
-From: Matthew Strait <quadong@users.sourceforge.net>
-Subject: Re: [PATCH] l7-filter for pom (2)
-Date: Mon, 23 Aug 2004 20:16:40 -0500 (CDT)
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] ipt_dstlimit spinlock fixup
+Date: Mon, 23 Aug 2004 13:12:31 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.60.0408232015230.4521@localhost.localdomain>
-References: <Pine.LNX.4.60.0408151944550.15521@localhost.localdomain>
- <20040819104443.GG3921@sunbeam.de.gnumonks.org>
- <Pine.LNX.4.60.0408231825530.4521@localhost.localdomain>
+Message-ID: <20040823201231.GA2046@linuxace.com>
+References: <20040822153348.GA20301@linuxace.com> <412A3BAA.6000708@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org,
-    l7-filter-developers@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <Pine.LNX.4.60.0408231825530.4521@localhost.localdomain>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <412A3BAA.6000708@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,16 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
->> - Don't have printk() in per-packet codepath without net_ratelimit() or
->>  you will be DoS'ed
->
-> The code should not print anything unless debugging is enabled.  I'm assuming 
-> that no one will enable debugging unless they are in a controlled 
-> environment.  And when debugging, it would be bad to have most of the 
-> messages dropped.  Is this still not ok in your view?
+On Mon, Aug 23, 2004 at 08:47:06PM +0200, Patrick McHardy wrote:
+> Phil Oester wrote:
+> 
+> >Since ipt_dstlimit makes use of MUST_BE_LOCKED macro, compiling
+> >without CONFIG_NETFILTER_DEBUG causes errors.  Fix below.
+> >
+> Jozsefs conntrack_locking patch has the same problem, I wonder if we
+> should introduce a spinlock_debug_t (if that is not taken yet) or
+> better yet, kill lockhelp.h.
 
-(Replying to self.)  Sorry, I wasn't thinking hard enough.  Obviously, I 
-should have rate limits on the error messages, if not the debugging 
-messages.
+Or option 3: remove the MUST_BE_LOCKED users in both files.  lockhelp
+does seem to be, er, helpful in some cases.
 
--matthew
+Phil
