@@ -1,16 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: string patch for 2.6
-Date: Tue, 4 Jan 2005 11:59:30 +0100
-Message-ID: <20050104105930.GV11370@sunbeam.de.gnumonks.org>
-References: <41D3BB89.6040609@pwn.emphyrio.org>
+Subject: Re: NAT Server Performance, SMP box or Single CPU box?
+Date: Tue, 4 Jan 2005 12:05:31 +0100
+Message-ID: <20050104110531.GW11370@sunbeam.de.gnumonks.org>
+References: <41D00A42.5080305@itcsoluciones.com>
+	<41D2ADE9.4050104@itcsoluciones.com>
+Reply-To: netfilter@lists.netfilter.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eG64T7htjB593fMc"
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="OKFp/nMBquCu/qa9"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dimitris Kotsonis <jnk@pwn.emphyrio.org>
+To: Donato Diaz <donatodd@itcsoluciones.com>
 Content-Disposition: inline
-In-Reply-To: <41D3BB89.6040609@pwn.emphyrio.org>
+In-Reply-To: <41D2ADE9.4050104@itcsoluciones.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,21 +25,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---eG64T7htjB593fMc
+--OKFp/nMBquCu/qa9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 30, 2004 at 10:25:45AM +0200, Dimitris Kotsonis wrote:
-> This is a patch against pong-20041229 that will add string support for=20
-> kernel 2.6
+On Wed, Dec 29, 2004 at 10:15:21AM -0300, Donato Diaz wrote:
+> Hello,
+> I have read in different lists that some people are having problem doing=
+=20
+> NAT with SMP Servers, due to the way the kernel manage conntrack with=20
+> both CPUs.
 
-sorry if I'm sounding rude, but it has been discussed on this list _OVER
-AND OVER AGAIN_.  And patches like yours can be found alrady in the archive.
+this isn't a development question. Please follow-up to
+netfilter@lists.netfilter.org
 
-still it is broken.  think of non-linear skbs.
+> NAT runs slower on Server SMP with two CPUs?
 
-> Dimitris
+no, but the gain is not something like 'twice the performance'. =20
+
+with networking, your i/o subsystem (64bit, pci-x, fast RAM, ...) is way
+more important than cpu speed.
+
+> Thanks all,
+> Donato.
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -48,7 +60,7 @@ still it is broken.  think of non-linear skbs.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---eG64T7htjB593fMc
+--OKFp/nMBquCu/qa9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -56,9 +68,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFB2ncSXaXGVTD0i/8RAscyAKCMNJ1bmL0l9D+9UTZiBfD2J3gZlgCgr+qH
-hz661f0mBG/J8v9BZL/k1iI=
-=1hFe
+iD8DBQFB2nh7XaXGVTD0i/8RAg5uAKCJZA05nLiN89kI6uSyR6bnCzsX8gCgqf3k
+F9Y6Dhnl9Wx6xD0Slo7vHeM=
+=gn+2
 -----END PGP SIGNATURE-----
 
---eG64T7htjB593fMc--
+--OKFp/nMBquCu/qa9--
