@@ -1,13 +1,15 @@
-From: "guitar" <guitar@everup.com.cn>
-Subject: details in implement of transparent http redirection?
-Date: Thu, 14 Aug 2003 17:14:44 +0800
+From: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
+Subject: I see wrong ip on icmp_need_fragment. MASQUERADE+less_than_1500_MTU_link+nfs
+Date: Thu, 14 Aug 2003 16:17:35 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <002901c36244$81b61d80$3702a8c0@gutiarpc>
+Message-ID: <200308141317.h7EDHad01974@Port.imtp.ilyichevsk.odessa.ua>
+Reply-To: vda@port.imtp.ilyichevsk.odessa.ua
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0024_01C36287.8E11E3F0"
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,112 +20,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi folks,
 
-------=_NextPart_000_0024_01C36287.8E11E3F0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Please CC me, I'm not on the list.
 
-aGksIGFsbA0KDQpJIGltcGxlbWVudGVkIGEgdHJhbnNwYXJlbnQgaHR0cCByZWRpcmVjdGlvbihp
-bnN0YWxsZWQgaW4gR2F0ZVdheSkgYXMgZm9sbG93aW5nLA0KYnV0IGl0IGRvZXNuJ3Qgd29yayAg
-WyAgICBpbiBNJCB3aW5kb3dzICAgOiggICAgXQ0KDQoxLiAgR2V0IHRoZSBodHRwIHJlcXVlc3Qg
-ZnJvbSBsb2NhbCwgYW5kIHRoZW4gcmVnaXN0ZXIgdGhlIGNvbm5lY3Rpb24gaW5mbw0KKHRoZSB3
-ZWIgc2VydmVyIGlwIHJlcXVlc3RlZCBmb3IgYW5kIHRoZSBjb25uZWN0aW9uIHNlcXVlbmNlKSBp
-biBhIHN0cnVjdHVyZQ0KY2hhaW5lZCBpbiBtZW1vcnkgd2hpY2ggbmFtZWQgYXMgcXVlcnl0YWJs
-ZV9lbnRyeS4gU28sIGVhY2ggbG9jYWwgUEMgd2lsbA0KaGF2ZSBpdHMgdW5pcXVlIGVudHJ5IHN0
-cnVjdHVyZSBpbiB3aGljaCBjaGFpbnMgaXRzIGFsbCBodHRwIGNvbm5lY3Rpb25zDQppbmZvLg0K
-Mi4gIENoYW5nZSB0aGUgZGVzdGluYXRpb24gaXAgdG8gcHJveHkgYW5kIGRlc3RpbmF0aW9uIHBv
-cnQgdG8gODA4MCBhbmQgZml4IGlwDQphbmQgdGNwIGNoZWNrc3VtIHRoZW4gZm9yd2FyZCB0aGUg
-cGFja2V0IHRvIHRoZSBpbnRlcm5ldC4NCjMuICBHZXQgdGhlIHJlc3BvbnNlIGZyb20gdGhlIHBy
-b3h5OjgwODAuIFNlYXJjaCB0aGUgcXVlcnl0YWJsZSBmb3IgdGhlIHJpZ2h0DQplbnRyeSBhbmQg
-cmlnaHQgY29ubmVjdGlvbiByZWdpc3RyeSAgIFsgIGlmICgocmVzcG9uc2Uuc291cmNlX2lwID09
-DQpjb25uZWN0aW9uLndlYnNlcnZlcl9pcCkgJiYgKHJlc3BvbnNlLnNlcXVlbmNlID09IG5uZWN0
-aW9uLnNlcXVlbmNlKzEpKSAgIF0NCjQuICBXcml0ZSBiYWNrIG5lY2Vzc2FyeSBpbmZvICggcmVw
-bGFjZSByZXNwb25zZS5zb3VyY2VfaXAgYXMNCmNvbm5lY3Rpb24ud2Vic2VydmVyX2lwICAgYW5k
-IHJlcGxhY2UgODA4MCBhcyA4MCksIHRoZW4gZml4IHRoZSBjaGVja3N1bS4NCg0KVGhlIHJlc3Vs
-dCA6DQoxLkkgZm91bmQgdGhhdCB0aGUgdGNwIHRocmVlIHNoYWNraGFuZHMgaXMgY29ubmVjdGVk
-IGFuZCB0aGUgSUUgc3RhdHVzIGJhciANCnByaW50IiB3ZWIgc2l0ZSBmb3VuZCwgcGxlYXNlIHdh
-aXQuLi4iDQoyLlRoZW4gbG9jYWwgc2VuZCBhIEdFVCBSZXF1ZXN0IHBhY2tldChvZiBjb3Vyc2Ug
-cmVkaXJlY3RlZCB0byBwcm94eTo4MDgwKQ0KMy5UaGVuIGxvY2FsIHNlbmQgc29tZSBvdGhlciBw
-YWNrZXQgdG8gc29tZS5taWNyb3NvZnQuY29tIHNpdGUNCjQubWF5YmUgdGltZW91dCBhdCBwcm94
-eSwgcHJveHkgc2VuZCAuQS4uLkYuIGZsYWcgcGFja2V0IGJhY2ssIGFjY29yZGluZ2x5DQpsb2Nh
-bCBzZW5kIC4uLlIuLiBmbGFnIHBhY2tldCB0byBwcm94eS4gVGhlIHByb2Nlc3MNCltsb2NhbC5n
-ZXRfcmVxdWVzdC0tPnByb3h5OyBsb2NhbDwtLXByb3h5KC5BLi4uRi4pOyBsb2NhbC0tPnByb3h5
-KC4uLlIuLikgXQ0KYXBwZWFyIGF0IGxlYXN0IHRocmVlIHRpbWVzLg0KDQpGcm9tIHRoZSByZXN1
-bHQsIEkgZ3Vlc3M6DQoxLlRoZSBtYW5pcHVsYXRlZCByZXF1ZXN0IGlzIHNlbnQgdG8gcHJveHk6
-ODA4MCBiZWNvdXJzZSBvZiB0aGUgdGNwDQpjb25uZWN0aW9uIGJlZW4gYnVpbHQuDQoyLlRoZSBj
-b25uZWN0aW9uIHdvcmtzIG5vdCBwcm9wZXJseSBhZnRlciBsb2NhbCBzZW5kIHRoZSBHZXQgUmVx
-dWVzdCBwYWNrZXQuDQozLkkgZm91bmQgdGhlIHBhY2tldCBjb250ZW50KHByb3h5IGlzIHNldCBp
-biBJRSkgaGF2ZSBzb21lIGRpZmZlcmVuY2UgZnJvbQ0KdGhlIG5vcm1hbCBwYWNrZXQgY29udGVu
-dChwcm94eSBub3Qgc2V0KToNCiAgICBwcm94eSBzZXQ6ICAgICBHRVQgaHR0cDovL3d3dy5nb29n
-bGUuY29tIC9IVFRQIC8xLjANCiAgICBwcm94eSBub3Qgc2V0OiBHRVQgLyBIVFRQIC8gMS4xDQoN
-CiAgICBwcm94eSBzZXQ6ICAgICBwcm94eS1jb25uZWN0aW9uOktlZXAtQWxpdmUNCiAgICBwb3J4
-eSBub3Qgc2V0OiBDb25uZWN0aW9uOktlZXAtQWxpdmUNCg0KICAgIGFuZCBzbyBvbi4uLi4NCg0K
-ICAgIFRoZXkgYXJlIGltcG9ydGFudCBpbiBjb25uZWN0aW9uPyBNYXliZSB0aGVzZSBkaWZmZXJl
-bmNlIG1ha2UgbXkgR2V0DQpSZXF1ZXN0IHBhY2tldCBub3QgcmVjb2duaXplZCBieSBwcm94eSwg
-c28gSSBzaG91bGQgYWRkIG9yIGNoYW5nZSB0aG9lc2UNCm1lc3NhZ2UgbmV4dCBzdGVwLg0KV2hh
-dCBzaG91bGQgSSBkbz8NCg0KDQp0aGFueCENCg0K
+I think I see a bug.
+I have a network with one segment going through cipe
+tunnel which has MTU < 1500. There is a box at the end
+of a tunnel which MASQUERADE everything:
 
-------=_NextPart_000_0024_01C36287.8E11E3F0
-Content-Type: text/html;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+                                 |
+me===(1500)===router===(<1500)===|masq===(1500)===server
+                                 |
 
-PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
-L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PWdi
-MjMxMiIgaHR0cC1lcXVpdj1Db250ZW50LVR5cGU+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNS4w
-MC4yOTIwLjAiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8Qk9E
-WSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj5oaSwgYWxsPC9GT05UPjwvRElW
-Pg0KPERJVj48Rk9OVCBzaXplPTI+PEJSPkkgaW1wbGVtZW50ZWQgYSB0cmFuc3BhcmVudCBodHRw
-IHJlZGlyZWN0aW9uKGluc3RhbGxlZCBpbiANCkdhdGVXYXkpIGFzIGZvbGxvd2luZyw8L0ZPTlQ+
-PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj5idXQgaXQgZG9lc24ndCB3b3JrJm5ic3A7IFsgJm5i
-c3A7Jm5ic3A7IGluIE0kIA0Kd2luZG93cyZuYnNwOyZuYnNwOyZuYnNwOzooJm5ic3A7ICZuYnNw
-OyZuYnNwO108QlI+PEJSPjEuJm5ic3A7IEdldCB0aGUgaHR0cCANCnJlcXVlc3QgZnJvbSBsb2Nh
-bCwgYW5kIHRoZW4gcmVnaXN0ZXIgdGhlIGNvbm5lY3Rpb24gaW5mbzxCUj4odGhlIHdlYiBzZXJ2
-ZXIgaXAgDQpyZXF1ZXN0ZWQgZm9yIGFuZCB0aGUgY29ubmVjdGlvbiBzZXF1ZW5jZSkgaW4gYSBz
-dHJ1Y3R1cmU8QlI+Y2hhaW5lZCBpbiBtZW1vcnkgDQp3aGljaCBuYW1lZCBhcyBxdWVyeXRhYmxl
-X2VudHJ5LiBTbywgZWFjaCBsb2NhbCBQQyB3aWxsPEJSPmhhdmUgaXRzIHVuaXF1ZSBlbnRyeSAN
-CnN0cnVjdHVyZSBpbiB3aGljaCBjaGFpbnMgaXRzIGFsbCBodHRwIGNvbm5lY3Rpb25zPEJSPmlu
-Zm8uPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+Mi4mbmJzcDsgQ2hhbmdlIHRoZSBk
-ZXN0aW5hdGlvbiBpcCB0byBwcm94eSBhbmQgZGVzdGluYXRpb24gDQpwb3J0IHRvIDgwODAgYW5k
-IGZpeCBpcDxCUj5hbmQgdGNwIGNoZWNrc3VtIHRoZW4gZm9yd2FyZCB0aGUgcGFja2V0IHRvIHRo
-ZSANCmludGVybmV0LjwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQgc2l6ZT0yPjMuJm5ic3A7IEdl
-dCB0aGUgcmVzcG9uc2UgZnJvbSB0aGUgcHJveHk6ODA4MC4gU2VhcmNoIHRoZSANCnF1ZXJ5dGFi
-bGUgZm9yIHRoZSByaWdodDxCUj5lbnRyeSBhbmQgcmlnaHQgY29ubmVjdGlvbiByZWdpc3RyeSZu
-YnNwOyZuYnNwOyANClsmbmJzcDsgaWYgKChyZXNwb25zZS5zb3VyY2VfaXAgPT08QlI+Y29ubmVj
-dGlvbi53ZWJzZXJ2ZXJfaXApICZhbXA7JmFtcDsgDQoocmVzcG9uc2Uuc2VxdWVuY2UgPT0gbm5l
-Y3Rpb24uc2VxdWVuY2UrMSkpJm5ic3A7Jm5ic3A7IF08L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05U
-IHNpemU9Mj40LiZuYnNwOyBXcml0ZSBiYWNrIG5lY2Vzc2FyeSBpbmZvICggcmVwbGFjZSANCnJl
-c3BvbnNlLnNvdXJjZV9pcCBhczxCUj5jb25uZWN0aW9uLndlYnNlcnZlcl9pcCZuYnNwOyZuYnNw
-OyBhbmQgcmVwbGFjZSA4MDgwIGFzIA0KODApLCB0aGVuIGZpeCB0aGUgY2hlY2tzdW0uPEJSPjxC
-Uj5UaGUgcmVzdWx0IDo8QlI+MS5JIGZvdW5kIHRoYXQgdGhlIHRjcCB0aHJlZSANCnNoYWNraGFu
-ZHMgaXMgY29ubmVjdGVkIGFuZCB0aGUgSUUgc3RhdHVzIGJhciA8L0ZPTlQ+PC9ESVY+DQo8RElW
-PjxGT05UIHNpemU9Mj5wcmludCIgd2ViIHNpdGUgZm91bmQsIHBsZWFzZSB3YWl0Li4uIjxCUj4y
-LlRoZW4gbG9jYWwgc2VuZCBhIA0KR0VUIFJlcXVlc3QgcGFja2V0KG9mIGNvdXJzZSByZWRpcmVj
-dGVkIHRvIHByb3h5OjgwODApPEJSPjMuVGhlbiBsb2NhbCBzZW5kIHNvbWUgDQpvdGhlciBwYWNr
-ZXQgdG8gc29tZS5taWNyb3NvZnQuY29tIHNpdGU8QlI+NC5tYXliZSB0aW1lb3V0IGF0IHByb3h5
-LCBwcm94eSBzZW5kIA0KLkEuLi5GLiBmbGFnIHBhY2tldCBiYWNrLCBhY2NvcmRpbmdseTxCUj5s
-b2NhbCBzZW5kIC4uLlIuLiBmbGFnIHBhY2tldCB0byBwcm94eS4gDQpUaGUgcHJvY2VzczxCUj5b
-bG9jYWwuZ2V0X3JlcXVlc3QtLSZndDtwcm94eTsgbG9jYWwmbHQ7LS1wcm94eSguQS4uLkYuKTsg
-DQpsb2NhbC0tJmd0O3Byb3h5KC4uLlIuLikgXTxCUj5hcHBlYXIgYXQgbGVhc3QgdGhyZWUgdGlt
-ZXMuPEJSPjxCUj5Gcm9tIHRoZSANCnJlc3VsdCwgSSBndWVzczo8QlI+MS5UaGUgbWFuaXB1bGF0
-ZWQgcmVxdWVzdCBpcyBzZW50IHRvIHByb3h5OjgwODAgYmVjb3Vyc2Ugb2YgDQp0aGUgdGNwPEJS
-PmNvbm5lY3Rpb24gYmVlbiBidWlsdC48QlI+Mi5UaGUgY29ubmVjdGlvbiB3b3JrcyBub3QgcHJv
-cGVybHkgYWZ0ZXIgDQpsb2NhbCBzZW5kIHRoZSBHZXQgUmVxdWVzdCBwYWNrZXQuPEJSPjMuSSBm
-b3VuZCB0aGUgcGFja2V0IGNvbnRlbnQocHJveHkgaXMgc2V0IA0KaW4gSUUpIGhhdmUgc29tZSBk
-aWZmZXJlbmNlIGZyb208QlI+dGhlIG5vcm1hbCBwYWNrZXQgY29udGVudChwcm94eSBub3QgDQpz
-ZXQpOjxCUj4mbmJzcDsmbmJzcDsmbmJzcDsgcHJveHkgc2V0OiZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyBHRVQgPEEgDQpocmVmPSJodHRwOi8vd3d3Lmdvb2dsZS5jb20iPmh0dHA6Ly93d3cuZ29v
-Z2xlLmNvbTwvQT4gL0hUVFAgDQovMS4wPEJSPiZuYnNwOyZuYnNwOyZuYnNwOyBwcm94eSBub3Qg
-c2V0OiBHRVQgLyBIVFRQIC8gDQoxLjE8QlI+PEJSPiZuYnNwOyZuYnNwOyZuYnNwOyBwcm94eSBz
-ZXQ6Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IA0KcHJveHktY29ubmVjdGlvbjpLZWVwLUFsaXZl
-PEJSPiZuYnNwOyZuYnNwOyZuYnNwOyBwb3J4eSBub3Qgc2V0OiANCkNvbm5lY3Rpb246S2VlcC1B
-bGl2ZTxCUj48QlI+Jm5ic3A7Jm5ic3A7Jm5ic3A7IGFuZCBzbyANCm9uLi4uLjxCUj48QlI+Jm5i
-c3A7Jm5ic3A7Jm5ic3A7IFRoZXkgYXJlIGltcG9ydGFudCBpbiBjb25uZWN0aW9uPyBNYXliZSB0
-aGVzZSANCmRpZmZlcmVuY2UgbWFrZSBteSBHZXQ8QlI+UmVxdWVzdCBwYWNrZXQgbm90IHJlY29n
-bml6ZWQgYnkgcHJveHksIHNvIEkgc2hvdWxkIA0KYWRkIG9yIGNoYW5nZSB0aG9lc2U8QlI+bWVz
-c2FnZSBuZXh0IHN0ZXAuPEJSPldoYXQgc2hvdWxkIEkgDQpkbz88QlI+PEJSPjxCUj50aGFueCE8
-QlI+PC9ESVY+PC9GT05UPjwvQk9EWT48L0hUTUw+DQo=
+MTU is in (), vertical bar depicts firewall.
+Server does not see anything except masq box.
+At least in theory.
 
-------=_NextPart_000_0024_01C36287.8E11E3F0--
+When I try to mount NFS shares on server from my box,
+NFS traffic halts after some ~30 seconds.
+
+tcpdump revealed the problem. Unfortunately I didn't
+save that dump, I'll resort to describing it.
+
+This is a masq box. It has two ip addrs:
+tunnel ip and ethernet ip:
+
+             |
+..====== t_ip|MASQ e_ip ====..
+             |
+
+This is what I see on the wire:
+
+masq <--------- server sends almost 1500 byte NFS udp packet
+		to the masq ip addr. Packet has DF set
+
+masq sees that it won't fit into smaller MTU of a cipe tunnel.
+
+masg sends 'icmp fragmentation required' ---------> server
+but source ip is t_ip instead of e_ip!
+
+server naturally ignores this icmp packet
+
+Is this a known problem?
+--
+vda
