@@ -1,30 +1,40 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Announce: NetKeeper Firewall For Linux
-Date: Mon, 10 Nov 2003 16:12:04 +0100 (CET)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <Pine.LNX.4.44.0311101610270.3272-100000@filer.marasystems.com>
-References: <3FAE9B9B.60007@cs.auc.dk>
+Subject: Re: Suggestion: Marker option in iptable, netfilter chains
+Date: Mon, 10 Nov 2003 16:10:08 +0100 (CET)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.44.0311101607200.3272-100000@filer.marasystems.com>
+References: <200311090446.21825.kreuzritter2000@gmx.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: hadi@cyberus.ca, Emmanuel Fleury <fleury@cs.auc.dk>,
-        "David S. Miller" <davem@redhat.com>,
-        <netfilter-devel@lists.netfilter.org>, <netdev@oss.sgi.com>
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Mikkel Christiansen <mixxel@cs.auc.dk>
-In-Reply-To: <3FAE9B9B.60007@cs.auc.dk>
-Errors-to: netdev-bounce@oss.sgi.com
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: kreuzritter2000@gmx.de
+In-Reply-To: <200311090446.21825.kreuzritter2000@gmx.de>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 9 Nov 2003, Mikkel Christiansen wrote:
+On Sun, 9 Nov 2003 kreuzritter2000@gmx.de wrote:
 
-> uploading. We believe this is a good thing since it allows
-> admins to (syntax) check the filter before inserting it.
-> I believe the guys from shorewall sees this as a missing
-> feature of iptables.
+> It should be clear that such a feature would be realy helpfull for debugging 
+> the firewall script, especially when it is a very long firewall with a lot of 
+> ramifications.
+> 
+> Now my question is, would such a feature in iptables/netfilter be possible?
 
-See iptables-restore. It is exacly this (compile whole ruleset before
-insert) for iptables. The only thing missing is that it only compiles one
-table at a time.
+The easiest way I see for implementhing this is implementing it as a dummy 
+match always returning true, with the rule "mark" as parameter to the 
+match.
+
+See the netfilter hacking howto for instructions how to write a new match 
+module. It is not at all a difficult thing to do if you know a little (not 
+much) C programming.
 
 Regards
 Henrik
