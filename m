@@ -1,16 +1,12 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4] fix typo in ipv6 netfilter makefile
-Date: Wed, 16 Apr 2003 10:45:48 -0700 (PDT)
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: iptable userspace mangling
+Date: Wed, 16 Apr 2003 11:02:32 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030416.104548.45838779.davem@redhat.com>
-References: <1050422195.30795.26.camel@tux.rsn.bth.se>
+Message-ID: <20030416180232.15493.qmail@web13907.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: gandalf@wlug.westbo.se
-In-Reply-To: <1050422195.30795.26.camel@tux.rsn.bth.se>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,14 +17,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: Martin Josefsson <gandalf@wlug.westbo.se>
-   Date: 15 Apr 2003 17:56:35 +0200
+Hello!
+   A quick question, not immediatly seeing an answer
+on the website...if I mangle a packet in a userspace
+module, changing TCP payload and size, do I need to do
+anything other than recalc the tcp and ip checksum?
 
-   While syncing netfilter patch-o-matic with 2.4-bk I found that there's
-   still a typo in ipv6/netfilter/Makefile
-   
-   Next mail contains the same fix for 2.5
-   
-   Please apply.
+-Scott
 
-I've applied both patches, thanks Martin.
+__________________________________________________
+Do you Yahoo!?
+The New Yahoo! Search - Faster. Easier. Bingo
+http://search.yahoo.com
