@@ -1,16 +1,15 @@
-From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-Subject: Re: Counter problem in a new nat target.
-Date: Tue, 09 Dec 2003 15:48:04 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] tcp-window-tracking patch
+Date: Tue, 9 Dec 2003 17:15:15 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FD5D294.3010701@netlab.hut.fi>
-References: <Pine.LNX.4.44.0312091107570.24092-100000@filer.marasystems.com>
-Reply-To: emmanuel@netlab.hut.fi
+Message-ID: <Pine.LNX.4.44.0312091713500.26124-100000@filer.marasystems.com>
+References: <Pine.LNX.4.33.0312091410570.5228-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0312091410570.5228-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+On Tue, 9 Dec 2003, Jozsef Kadlecsik wrote:
 
->Do you really need to decrease the counters?
->
-Well yes. My goal is to have a precise count of the connections that are 
-not assured per destination host. I think I will try the helper option.
+> Yes, that's true. The original value was 60 secs. That was increased to 3
+> days in the window tracking code, which was surely excessive: there might
+> be no resent traffic to detect and thus long dead connections could stay
+> in the hash table. Hard to choose the proper value, which does not break
+> either way.
 
-One more question: is the target function called for each new packets or 
-only once per conntrack? I think I read somewhere that it was the first 
-option but I cannot remember exactly and I cannot retrieve it.
+Would it be possible to classify these as "junk" somehow with the
+intention to keep them around in the connection table longer when not
+under pressure?
 
-Thanks a lot for your help,
-
-         Emmanuel
+Regards
+Henrik
