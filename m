@@ -1,18 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Willy TARREAU <willy@w.ods.org>
 Subject: Re: [ANNOUNCE] call for testing of patch-o-matic-ng
-Date: Sun, 29 Feb 2004 15:29:39 +0100
+Date: Sun, 29 Feb 2004 15:59:45 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040229142939.GE15558@sunbeam.de.gnumonks.org>
-References: <20040229101116.GA10012@pcw.home.local> <Pine.LNX.4.44.0402291121270.25361-100000@filer.marasystems.com>
+Message-ID: <20040229145945.GA23662@pcw.home.local>
+References: <20040229101116.GA10012@pcw.home.local> <Pine.LNX.4.44.0402291121270.25361-100000@filer.marasystems.com> <20040229142939.GE15558@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l+goss899txtYvYf"
-Cc: Willy TARREAU <willy@w.ods.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: Harald Welte <laforge@netfilter.org>,
+   Henrik Nordstrom <hno@marasystems.com>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0402291121270.25361-100000@filer.marasystems.com>
+In-Reply-To: <20040229142939.GE15558@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,52 +22,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, Feb 29, 2004 at 03:29:39PM +0100, Harald Welte wrote:
+> On Sun, Feb 29, 2004 at 11:25:06AM +0100, Henrik Nordstrom wrote:
+> > On Sun, 29 Feb 2004, Willy TARREAU wrote:
+> > 
+> > >   - first, I didn't find how to specify where my iptables sources is
+> > >     installed, so I had to enter it by hand each time I restarted it.
+> > >     I did not find any env variable in the perl code, and I must say
+> > >     that my understanding of perl is, hmmm.. very limited.
+> > 
+> > There is a --path= option which can specify the path to both iptables and 
+> > the kernl.
+> 
+> JFYI: I just changed that option to have a more obvious name (and not encode
+> two path names within a single parameter), as well as documentign it via
+> './runme --help'
 
---l+goss899txtYvYf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is a good thing, because I only found with successive attempts that I needed
+to set exactly --path=<kernel_dir>:<iptables_dir>
 
-On Sun, Feb 29, 2004 at 11:25:06AM +0100, Henrik Nordstrom wrote:
-> On Sun, 29 Feb 2004, Willy TARREAU wrote:
->=20
-> >   - first, I didn't find how to specify where my iptables sources is
-> >     installed, so I had to enter it by hand each time I restarted it.
-> >     I did not find any env variable in the perl code, and I must say
-> >     that my understanding of perl is, hmmm.. very limited.
->=20
-> There is a --path=3D option which can specify the path to both iptables a=
-nd=20
-> the kernl.
+I've just checked out the CVS, but there's something new :
 
-JFYI: I just changed that option to have a more obvious name (and not encode
-two path names within a single parameter), as well as documentign it via
-'./runme --help'
+./runme --path=/usr/src/linux-2.4.25-pomng:/users/willy/download/iptables-1.2.9 conntrack_locking
+=> OK
 
-> Regards
-> Henrik
+./runme --path=/usr/src/linux-2.4.25-pomng:/users/willy/download/iptables-1.2.9 conntrack_nonat
+   The patch depends on the conntrack_locking.patch.
+-----------------------------------------------------------------
+Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
+conntrack_nonat has dependency on conntrack_locking.patch, but conntrack_locking.patch is not known
+-----------------------------------------------------------------
+Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?]
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---l+goss899txtYvYf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+==> This patches fixes it :
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+--- ./conntrack_nonat/info.orig	Sun Feb 29 15:47:49 2004
++++ ./conntrack_nonat/info	Sun Feb 29 15:47:19 2004
+@@ -1,4 +1,4 @@
+ Author: Jozsef Kadlecsik
+ Status: Testing
+ Repository: extra
+-Depends: conntrack_locking.patch
++Depends: conntrack_locking
 
-iD8DBQFAQfdTXaXGVTD0i/8RAk3QAJ44H1ahnEt9A4KINbfclwNcETrywgCfb5sC
-nC34krY4H5SnunF6oRjXuF8=
-=Ue3S
------END PGP SIGNATURE-----
 
---l+goss899txtYvYf--
+Regards,
+Willy
