@@ -1,13 +1,17 @@
-From: "Ricky Foo" <blue_pion@hotmail.com>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: ALGs
-Date: Wed, 04 Jun 2003 07:06:30 +0000
+Date: Wed, 4 Jun 2003 09:16:00 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Sea2-F11MieZutGvO8n00003af5@hotmail.com>
+Message-ID: <20030604071600.GA14268@sunbeam.de.gnumonks.org>
+References: <Sea2-F11MieZutGvO8n00003af5@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
+To: Ricky Foo <blue_pion@hotmail.com>
+Content-Disposition: inline
+In-Reply-To: <Sea2-F11MieZutGvO8n00003af5@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,69 +22,87 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Good day,
 
-Some doubts about the conntrack helper module.
+--HcAYCG3uE/tztfnV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-1. For the "help" callback, what exactly am I suppose to do with the packets 
-when this function is activated?
+On Wed, Jun 04, 2003 at 07:06:30AM +0000, Ricky Foo wrote:
+> Good day,
+>=20
+> Some doubts about the conntrack helper module.
 
-2. For the netbios protocol, there are a couple of ports to monitor, such as 
-137 for name-service, 138 for datagram service, 139 for session service. 
-Does that mean I have to write 3 different tracking modules or do I follow 
-what has been done in the ftp module...i.e register the 3 different ports to 
-track.
+There are quite a few examples, even for complex protocols like h323, so
+please try to find your answers=20
 
-3. In the corresponding header files, what do we normally have to define for 
-the various structure? I kinda got confused by what I have read from the 
-source code!
+> 1. For the "help" callback, what exactly am I suppose to do with the=20
+> packets when this function is activated?
 
-4. How do I get to the payload part where the netbios data-fields are?
+That totally depends on your protocol.  The most important thing is to
+find out which other (slave/sibling) connections are going to be
+established and call ip_conntrack_expect_related() accordingly.
 
-Please pardon me if my questions do seems silly to you guys.
+> 2. For the netbios protocol, there are a couple of ports to monitor, such=
+=20
+> as 137 for name-service, 138 for datagram service, 139 for session servic=
+e.=20
+> Does that mean I have to write 3 different tracking modules or do I follo=
+w=20
+> what has been done in the ftp module...i.e register the 3 different ports=
+=20
+> to track.
 
-    Ricky
+That again depends on your protocol.  I think the packet formats on all
+three ports are different, aren't they?  So you write one module that
+registers three helpers (with different help() functions).
 
+> 3. In the corresponding header files, what do we normally have to define=
+=20
+> for the various structure? I kinda got confused by what I have read from=
+=20
+> the source code!
 
-----Original Message Follows----
-From: Harald Welte <laforge@netfilter.org>
-To: Ricky Foo <blue_pion@hotmail.com>
-CC: netfilter-devel@lists.netfilter.org
-Subject: Re: ALGs
-Date: Tue, 3 Jun 2003 12:26:51 +0200
+Again, protocol dependant.
 
-On Mon, Jun 02, 2003 at 11:08:42AM +0000, Ricky Foo wrote:
- > Hi guys,
- >
- > I am new to this list. Currently, I need to develop a ALG for netbios but 
-i
- > can't seems to find the source-code anywhere in the kernel directory. Can
- > anybody lend a helping hand?
+> 4. How do I get to the payload part where the netbios data-fields are?
 
-for examples see:
-/usr/src/linux/net/ipv4/netfilter/ip_{conntrack,nat}_{ftp,irc}.c
-/usr/src/linux/include/linux/netfilter_ipv4/ip_{conntrack,nat}_{ftp,irc}.h
+just read the packet.  Again, there are quite a lot of examples.  Just
+look at ip_conntrack_amanda.c:help()
 
-please also note the newnat-summary.txt from CVS and the outdated
-netfilter hacking howto - as well as lots of other conntrack/NAT helper
-modules in patch-o-matic.
+       struct udphdr *udph =3D (void *)iph + iph->ihl * 4;
+       u_int32_t udplen =3D len - iph->ihl * 4;
+       u_int32_t datalen =3D udplen - sizeof(struct udphdr);
+       char *data =3D (char *)udph + sizeof(struct udphdr);
 
- > Hopefully I can contribute the code back when I am finished since
- > there aren't any ALG for netbios if I am not wrong.
+> Please pardon me if my questions do seems silly to you guys.
 
-No, there are none.  We're always happy about contributions.
+No, they are not.  But please try to find out as much as possible by
+reading the examples.=20
 
- > Thanks.
- >    Ricky
+Good luck!
 
---
+>    Ricky
+--=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-============================================================================
-   "Fragmentation is like classful addressing -- an interesting early
-    architectural error that shows how much experimentation was going
-    on while IP was being designed."                    -- Paul Vixie
-<< attach3 >>
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-_________________________________________________________________
-Send a fun phone greeting to your friend! 
-http://www.msn.com.sg/mobile/fungreetings/
+--HcAYCG3uE/tztfnV
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+3ZywXaXGVTD0i/8RAqGHAJ4xNmUFX7U/RcEMtGhAAfv0IanZswCgrmEv
+Fd3DZ56u2UgurM2b3RKMkCc=
+=TMMI
+-----END PGP SIGNATURE-----
+
+--HcAYCG3uE/tztfnV--
