@@ -1,14 +1,13 @@
-From: "zhengchuanbo" <zhengcb@netpower.com.cn>
-Subject: to solve the performance problem of netfilter
-Date: Wed, 17 Dec 2003 10:29:9 +0800
+From: tady@gmx.net
+Subject: Re: to solve the performance problem of netfilter
+Date: Wed, 17 Dec 2003 11:57:27 +0100 (MET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200312171018140.SM00864@zhengcb>
+Message-ID: <32301.1071658647@www15.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-      charset="GB2312"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,25 +18,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi there,
 
-I noticed that the netfilter module has a big influnce to the performance. 
-I tested the throughput of our linux firewall. the result is as follows,
-	linux(no netfilter)					580kpps
-	with netfilter(no ip_conntrack)	    450kpps
-	with ip_conntrack					295kpps
-So the throughput dropped about 40% when with ip_conntrack.
+zhengchuanbo wrote:
 
-I tried NOTRACK module, but the performance is not very good.
-	
-On our linux firewall, most of the traffic are from a trusted host on the 
-DMZ server, which need not to be filtered. So I wish there could be a solution
-to open a fast path to the certain server, with no conntrack nor filter.   	
-Somebody suggested to install a netfilter-module that gets the packets before 
-conntrack and steal the packets, and bypass the rest of iptables as well. Is there
-any ideas on that?
-	
-thanks.
-	
-regards,
-Jack Zheng
-zhengcb@netpower.com.cn
+
+> I noticed that the netfilter module has a big influnce to the performance.
+
+> I tested the throughput of our linux firewall. the result is as follows,
+> 	linux(no netfilter)					580kpps
+> 	with netfilter(no ip_conntrack)	    450kpps
+> 	with ip_conntrack					295kpps
+> So the throughput dropped about 40% when with ip_conntrack.
+
+
+I can _not_ approve your results. I'm currently running a firewall
+using conntrack with much more throughput than you mentioned above. I
+did an (udp only for the moment) investigation on the latency
+introduced by a netfilter firewall but could not find any significant
+throughput decrease.  If someone is interessted have a look at
+
+http://rnvs.informatik.uni-leipzig.de/ipp2p/
+
+at links and latency investigation. Currently I'm using my match at a
+campus link for shaping P2P traffic but could not find any drop in
+throughput of the not classified traffic.
+
+Kind regards,
+Eicke.
+
+
+-- 
++++ GMX - die erste Adresse für Mail, Message, More +++
+Neu: Preissenkung für MMS und FreeMMS! http://www.gmx.net
