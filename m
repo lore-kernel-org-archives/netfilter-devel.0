@@ -1,16 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: GPL violation by router manufacturer Conceptronic
-Date: Tue, 4 Jan 2005 11:30:05 +0100
-Message-ID: <20050104103004.GS11370@sunbeam.de.gnumonks.org>
-References: <200412162037.42367.maacruz@usuarios.retecal.es>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] ip_conntrack_ftp segfault
+Date: Tue, 04 Jan 2005 11:35:09 +0100
+Message-ID: <41DA715D.2080704@eurodev.net>
+References: <41D99B6B.6050601@cookinglinux.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7AiA7iNe0XOV/YvQ"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Miguel Angel Alvarez <maacruz@usuarios.retecal.es>
-Content-Disposition: inline
-In-Reply-To: <200412162037.42367.maacruz@usuarios.retecal.es>
+To: Nicolas Bouliane <nib@cookinglinux.org>
+In-Reply-To: <41D99B6B.6050601@cookinglinux.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,50 +21,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+nice catch, but read the comments below.
 
---7AiA7iNe0XOV/YvQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Nicolas Bouliane wrote:
 
-On Thu, Dec 16, 2004 at 08:37:42PM +0100, Miguel Angel Alvarez wrote:
-> Hi all!=20
->=20
->  I have found what may be (it surely seems to be) a GPL violation by=20
-> Conceptronic (it was Tulip computers some years ago).
->  They sell a router, actual model is C100BRS4H. Their web page is=20
-> http://www.conceptronic.net, go to products->networking and you'll find i=
-t=20
-> here.=20
+> This patch fix two bugs (when DEBUGP is defined):
+> o The var `data` doesn't exist, hence gcc complains.
+> o It segfault because we print an integer with `%s`.
+>
+>------------------------------------------------------------------------
+>
+>--- /usr/src/old/linux-2.6.10/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-12-24 16:35:59.000000000 -0500
+>+++ ip_conntrack_ftp.c	2005-01-03 14:09:06.000000000 -0500
+>  
+>
 
-sorry for my late reply, netfilter-devel is not the right place for this
-kind of mail, since it is about development.
+this header must always look like, for example:
 
-Please direct gpl violations of netfilter/iptables to
-laforge@gpl-violations.org, which I read more frequently.
+--- linux-2.6.10/net/ipv4/netfilter/ip_conntrack_ftp.c  2004-10-20 
+10:12:06 +02:00
++++ linux-2.6.10-nicolas/net/ipv4/netfilter/ip_conntrack_ftp.c        
+2005-01-02 16:09:01 +01:00
 
-Anyway, I'm going to reply to you privately with more informtaion.
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+>@@ -347,9 +347,8 @@
+> 		goto out;
+> 	}
+> 
+>-	DEBUGP("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
+>-	       (int)matchlen, data + matchoff,
+>-	       matchlen, ntohl(th->seq) + matchoff);
+>+	DEBUGP("conntrack_ftp: match `%s' (%u bytes at %u)\n",
+>+			search[i].pattern, matchlen, ntohl(th->seq) + matchoff);
+>  
+>
 
---7AiA7iNe0XOV/YvQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Since this is a minor fix, try to modify as less things as you can. data 
+doesn't exist but look for its natural replacement which is fb_ptr.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Rusty punish me yesterday to read part (11) of 
+Documentation/SubmittingPatches in the kernel source tree :). So do it 
+you as well and add your sign-off.
 
-iD8DBQFB2nAsXaXGVTD0i/8RArqpAJ9LclGN1tLkG3Jg8vXUL1esMVJbswCgq1G3
-7vEXsR1/s3oLMAlcXQ+5+jM=
-=wvza
------END PGP SIGNATURE-----
+Resend a patch which fixes the things above. After that, let wait to see 
+if Patrick wants to add this to his changeset 8).
 
---7AiA7iNe0XOV/YvQ--
+--
+Pablo
