@@ -1,15 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: ESP spi/sequence tracking and nat
-Date: Tue, 10 Aug 2004 13:01:45 +0200 (CEST)
+From: Nikola Ciprich <extmaillist@linuxbox.cz>
+Subject: p-o-m: nf-log fix
+Date: Tue, 10 Aug 2004 13:13:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408101252340.8015@filer.marasystems.com>
-References: <8FC831532CEE564AB88AC1D999C29DEBD9F148@prinsmail01.am.thmulti.com>
+Message-ID: <1092136409.2905.357.camel@develbox.linuxbox.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kashyap Ashwin <Ashwin.Kashyap@thomson.net>
-In-Reply-To: <8FC831532CEE564AB88AC1D999C29DEBD9F148@prinsmail01.am.thmulti.com>
+To: kadlec@blackhole.kfki.hu
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,27 +19,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 9 Aug 2004, Kashyap Ashwin wrote:
+Hi, I think there is small bug in nf-log p'o'm patchset,
+can You please apply following patch: (in case it is correct)
 
-> I want to implement a connection tracking / nat module that will track
-> the SPI and SEQ parts in the ESP header. I need this functionality
-> because, nat will fail for ESP if the destination IP address (the VPN
-> server address) is the same for two clients. I did a packet dump for a
-> popular VPN client and also noticed that the SPI can be same for two
-> clients (say client -> server direction). The idea is to remember the
-> last SEQ the server responded for a particular tuple and when we get the
-> next tuple, we try to do a closest match, as opposed to doing an exact
-> match:
+diff -Naur patch-o-matic-ng-20040809/nf-log/linux-2.4.patch
+patch-o-matic-ng-20040809-nf-log_fix/nf-log/linux-2.4.patch
+--- patch-o-matic-ng-20040809/nf-log/linux-2.4.patch    2004-02-19
+12:36:55.000000000 +0100
++++ patch-o-matic-ng-20040809-nf-log_fix/nf-log/linux-2.4.patch
+2004-08-10 12:07:10.644846287 +0200
+@@ -402,7 +402,7 @@
+ +      }
+ +
+ +      /* if threshold is reached, send message to userspace */
+-+      if (qlen >= loginfo.qthreshold) {
+++      if (ub->qlen >= loginfo.qthreshold) {
+ +              if (loginfo.qthreshold > 1)
+ +                      nlh->nlmsg_type = NLMSG_DONE;
+ +      }
 
-To fit the Netfilter Conntrack scheme of things you then need to implement 
-and ESP protocol helper which tracks the ESP connections as individual 
-connections. Once this is done NAT should work at least to a limited 
-degree.
-
-To really work with NAT you should use a IPSEC implementation with NAT-T 
-support. This makes IKE detect the NAT and then switch to UDP 
-encapsulation which works very well with all forms of NAT, and also makes 
-IKE fully aware of the NAT ip address changes.
-
-Regards
-Henrik
+thanks,
+n.
