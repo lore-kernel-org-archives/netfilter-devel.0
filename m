@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: some primitive header questions
-Date: Tue, 20 Apr 2004 10:53:06 +0200 (CEST)
+Subject: Re: Can iptables REDIRECT traffic to a range of ports in one command?
+Date: Tue, 20 Apr 2004 10:53:57 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404200615070.29251-100000@filer.marasystems.com>
-References: <4083E22B.7010905@aiqa.com>
+Message-ID: <Pine.LNX.4.44.0404200640380.29251-100000@filer.marasystems.com>
+References: <BAY7-F619fiD0yzNrUD0005c8b5@hotmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ozgur AKAN <akan@aiqa.com>
-In-Reply-To: <4083E22B.7010905@aiqa.com>
+To: Grace Li <zheyinli@hotmail.com>
+In-Reply-To: <BAY7-F619fiD0yzNrUD0005c8b5@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,16 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 19 Apr 2004, Ozgur AKAN wrote:
+On Mon, 19 Apr 2004, Grace Li wrote:
 
-> When I look into "libiptc.c" I see no include commands. In "libip4tc.c" 
-> there are 6 includes but nothing releated with libiptc.c. How do 
-> libiptc.h, libiptc.c and libip4tc.h interact?
+> I would like to intercept traffic to a range of ports, say port 2000-3000 to 
+> one port locally, say port 3333. I am wondering if there is a simple way to 
+> do it, like specify a range in iptables instead of writing a script to 
+> speficy for each port?
 
-libip4tc.c includes libiptc.c. You need to look a bit further down to find 
-this.
 
-libiptc.c contains the functions common to both IPv4 and IPv6.
+>From the manual:
+
+  --destination-port [!] port[:port]
+        Destination port or port range specification.  The flag 
+        --dport is a convenient alias for this option.
+
 
 Regards
 Henrik
