@@ -1,14 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
 Subject: Re: [PATCH] Fix RST handling in ip_conntrack_proto_tcp.c
-Date: Sat, 1 Jan 2005 15:59:20 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0501011551420.15783@blackhole.kfki.hu>
+Date: Sat, 01 Jan 2005 16:23:52 +0100
+Message-ID: <1104593032.3821.25.camel@tux.rsn.bth.se>
 References: <1104511137.3821.20.camel@tux.rsn.bth.se>
+	<Pine.LNX.4.58.0501011551420.15783@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-IXMEmW93gN3aEd9GsWMK"
 Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1104511137.3821.20.camel@tux.rsn.bth.se>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0501011551420.15783@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,58 +23,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Martin,
 
-On Fri, 31 Dec 2004, Martin Josefsson wrote:
+--=-IXMEmW93gN3aEd9GsWMK
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-> Your latest patch contained a change to the RST handling.
-> The change was that an RST is ignored if the previous packet was an ACK.
-> This is happens all the time. I know it was intended as a fix for the
-> SYN - ACK probe - RST sequence but it breaks normal usage. The problem
-> is that connections that end with RST never get their state changed and
-> are left in ESTABLISHED state with a large timeout.
+On Sat, 2005-01-01 at 15:59 +0100, Jozsef Kadlecsik wrote:
+> Hi Martin,
 
-Ouch!
+Hi Jozsef
 
-> The patch below adds a check for
-> !test_bit(IPS_ASSURED_BIT, &conntrack->status) so your change will only
-> be active for unassured connections. Maybe you have a better idea for
-> how to fix both cases.
->
-> This patch has been tested by a user that reported the problem on irc
-> and it fixes the problem for him. I'm also running it on a machine with
-> lots of traffic and it fixes the problem for me as well.
->
-> Please make sure something that fixes the problem is submitted fairly
-> quickly.
+> Ouch!
 
-I think your patch should  be submitted immediately. The introduced bug is
-too bad to leave it linger on.
+I agree :)
 
-> <hint> A tcp-state/windowtracking testcase for nfsim would be great
-> </hint> :)
+> > Please make sure something that fixes the problem is submitted fairly
+> > quickly.
+>=20
+> I think your patch should  be submitted immediately. The introduced bug i=
+s
+> too bad to leave it linger on.
 
-Yep, I got Rusty's message as well :-) Time to dig out the initial tests
-from the old cvs and convert them to nfsim with new cases added.
+I'll submit it to Andrew since Davem is on vacation.
 
-> --- linux-2.6.10-rc3-bk14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c.orig	2004-12-30 19:48:33.000000000 +0100
-> +++ linux-2.6.10-rc3-bk14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-12-30 19:49:46.000000000 +0100
-> @@ -906,7 +906,8 @@ static int tcp_packet(struct ip_conntrac
->  		if (index == TCP_RST_SET
->  		    && ((test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
->  		         && conntrack->proto.tcp.last_index <= TCP_SYNACK_SET)
-> -		        || conntrack->proto.tcp.last_index == TCP_ACK_SET)
-> +		        || (!test_bit(IPS_ASSURED_BIT, &conntrack->status)
-> +			 && conntrack->proto.tcp.last_index == TCP_ACK_SET))
->  		    && after(ntohl(th->ack_seq),
->  		    	     conntrack->proto.tcp.last_seq)) {
->  			/* Ignore RST closing down invalid SYN or ACK
->
+> > <hint> A tcp-state/windowtracking testcase for nfsim would be great
+> > </hint> :)
+>=20
+> Yep, I got Rusty's message as well :-) Time to dig out the initial tests
+> from the old cvs and convert them to nfsim with new cases added.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+:) We need more testcases badly, for all sorts of things.
+
+--=20
+/Martin
+
+--=-IXMEmW93gN3aEd9GsWMK
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBB1sCIWm2vlfa207ERAo+iAJ4/jUxYozfi73Y97E91c/v6xbPWGACfWrmk
+zXCkldDVcvuPlvC4sgJt2Ho=
+=hMo4
+-----END PGP SIGNATURE-----
+
+--=-IXMEmW93gN3aEd9GsWMK--
