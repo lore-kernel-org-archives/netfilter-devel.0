@@ -1,13 +1,17 @@
-From: Daniel <daniel@dev-zone.org>
-Subject: MAC address matching. Or other ideas.
-Date: Mon, 05 May 2003 11:34:36 +1200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [RFC] Additional TCP Flags in the tcp module.
+Date: Wed, 7 May 2003 16:58:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EB5A38C.4090606@dev-zone.org>
+Message-ID: <20030507145852.GM6702@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.51.0305071216370.14343@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aznLbwQ42o7LEaqN"
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.51.0305071216370.14343@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,25 +22,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Quick version:
 
-Is it possible to get the MAC match module to match on dst MAC address 
-rather than just src MAC?
+--aznLbwQ42o7LEaqN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Longer Version:
+On Wed, May 07, 2003 at 12:27:55PM +0200, Maciej Soltysiak wrote:
+> Hi,
+>=20
+> I was wondering if it would be of any use to add ECE and CWR flags
+> to libipt_tcp.c for matching.
+>=20
+> It would be a trivial patch and extension, but would it be useful, could
+> it be harmful?
 
-My network is peered to an internet exchange. I am running Debian stable 
-with Zebra to handle all of the routing. I only want to measure traffic 
-that is going through our ISP. So I want to be able to say only gimme 
-traffic that is coming in and out via gateway X, the only way I can 
-figure to do that is by matching the MAC address of the gateway, but the 
-match only works on incoming traffic. Is it even technically possible to 
-match on out going? Or if someone has a better way of doing it I would 
-be happy to hear that as well.
+Not sure whether it would be useful. But I don't think that there is any
+danger associated with it (other than people use it in a wrong way, but
+then that's their problem).
 
-I am not subscribed to the list so if it is possible to reply to me and 
-the list that would be great, but I will read the list archive for the 
-next couple of days anyway.
+However, we already have an ecn match, that matches IP and TCP flags...
 
-Thanks
-Daniel Griggs
+"ECN match v%s options\n"
+"[!] --ecn-tcp-cwr              Match CWR bit of TCP header\n"
+"[!] --ecn-tcp-ece              Match ECE bit of TCP header\n"
+"[!] --ecn-ip-ect [0..3]        Match ECN codepoint in IPv4 header\n",
+
+> Regards,
+> Maciej
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
+
+--aznLbwQ42o7LEaqN
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+uR8sXaXGVTD0i/8RAsw9AJ9rJXPp9rZcyx7sT7LsUq4dVbkt9wCaA+Yx
+BZHHjuUanWYUB84E5AYr6U0=
+=W9Ew
+-----END PGP SIGNATURE-----
+
+--aznLbwQ42o7LEaqN--
