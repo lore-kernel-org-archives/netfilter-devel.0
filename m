@@ -1,18 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] User defined udp and tcp conntrack state timeouts
-Date: Thu, 19 Sep 2002 08:46:58 +0200
+Subject: Re: [PATCH] multiple devices with ranges match support
+Date: Thu, 19 Sep 2002 08:47:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020919084658.J3810@sunbeam.de.gnumonks.org>
-References: <20020918214534.GC10465@oknodo.bof.de> <Pine.LNX.4.33.0209181518150.5702-100000@beavis.networkrobots.com>
+Message-ID: <20020919084757.K3810@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44L.0209172347190.10390-102000@hunger.screamingdaemon.com> <20020918220257.GF10465@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gj0lynkWKwPe+BJK"
-Cc: Patrick Schaaf <bof@bof.de>, Jay Schulist <jschlst@linux-sna.org>,
-	<netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="2KJW3tE6NdndVjxo"
+Cc: Jay Schulist <jschlst@linux-sna.org>,
+	netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jay Schulist <jschulist@bivio.net>
+To: Patrick Schaaf <bof@bof.de>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0209181518150.5702-100000@beavis.networkrobots.com>; from jschulist@bivio.net on Wed, Sep 18, 2002 at 03:19:03PM -0700
+In-Reply-To: <20020918220257.GF10465@oknodo.bof.de>; from bof@bof.de on Thu, Sep 19, 2002 at 12:02:57AM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,33 +24,35 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gj0lynkWKwPe+BJK
+--2KJW3tE6NdndVjxo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 18, 2002 at 03:19:03PM -0700, Jay Schulist wrote:
-> On Wed, 18 Sep 2002, Patrick Schaaf wrote:
->=20
-> > Better avoid it in the first place, and convert internally, if it's
-> > not too much hassle. Isn't there a suitable sysctl helper for this
-> > situation? I vaguely remember something like that. Show seconds to
-> > the user, convert to internal format (eg. HZ) upon modification.
+On Thu, Sep 19, 2002 at 12:02:57AM +0200, Patrick Schaaf wrote:
+> On Tue, Sep 17, 2002 at 11:47:42PM -0700, Jay Schulist wrote:
+> > Hello Harald,
+> > Here is a new match which allows the user to match by using multiple co=
+mma
+> > seperated devices each with range support.
 > >=20
+> > Iptables userspace patch is against a clean iptables-1.2.7a
+> > Kernel patch is against a clean linux-2.4.19
+> >=20
+> > mdev v1.2.7a options:
+> >  --i dev[,dev:dev,dev...]       match inbound device(s)
+> >  --o dev[,dev:dev,dev...]       match outbound device(s)
 >=20
-> good idea, there is a sysctl function to handle the jiffies conversion so=
-=20
-> it is quite easy to change.
+> Wishlist item:
+>=20
+> In the future, I wish the indev/outdev were gone from the generic
+> iptables rule, replaced with exactly such a match as Jay is presenting.
 
-This sounds excellent.  I once had problems with a different interface expo=
-sing
-HZ-derived values to userspace... the old icmp rate limiting.  This way it
-was impossible to have an architecture-independent /etc/sysctl.conf for icmp
-rate limiting - even user mode linux has a differrent HZ...
+yes. This is what I have in mind with pkt_tables.  I am going to post a
+first, preliminary patch today.
 
-I'm postponing this patch until the change was made.
-
-> jay-s.
+> best regards
+>   Patrick
 
 --=20
 Live long and prosper
@@ -63,7 +65,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---gj0lynkWKwPe+BJK
+--2KJW3tE6NdndVjxo
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -71,9 +73,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9iXLiXaXGVTD0i/8RAvtbAKCn9ch/RPglLiXvP/Xd7Ajni64TVQCfWuWd
-XSCwo/sKNy0sS6yn+Vihu7w=
-=dRkl
+iD8DBQE9iXMdXaXGVTD0i/8RAmRJAJ4octO0ZuolvYv/yCW2L2G1Rqka5QCeLN7Z
+cGf25yUp1dNu5kPcRgsLfuc=
+=8G0+
 -----END PGP SIGNATURE-----
 
---gj0lynkWKwPe+BJK--
+--2KJW3tE6NdndVjxo--
