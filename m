@@ -1,13 +1,14 @@
 From: "Vishwas Manral" <Vishwas@sinett.com>
-Subject: Help: Netfilter Rule database
-Date: Mon, 14 Mar 2005 20:17:04 -0800
-Message-ID: <BB6D74C75CC76A419B6D6FA7C38317B26A263B@sinett-sbs.SiNett.LAN>
+Subject: RE: LAND check: 2.4.20
+Date: Mon, 14 Mar 2005 20:22:58 -0800
+Message-ID: <BB6D74C75CC76A419B6D6FA7C38317B26A263D@sinett-sbs.SiNett.LAN>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: "Martijn Lievaart" <m@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,36 +20,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Martin/ folks,
 
-Could someone tell me how rules get stored in the various chains in the
-ipTables module in the kernel? Any pointer to the code or documentation
-would help.
+Thanks. That was a lot of help. Can you point me to the code where the
+checks have been made?
 
-I know NETLINK_FIREWALL sockets are used for transferring packets to
-user space. What do we use for transferring iptables rules to the kernel
-from the user space?
+There is another issue I found. There are checks in the TCP code to see
+if any of the reserved flags are set. However reserved flags do not seem
+to take care of the NS flag (similar to ECE and CWR) which was
+introduced some time back.
+
+Would we want changes for the same in the kernel?
 
 Thanks,
 Vishwas
-
 -----Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of
-Vishwas Manral
-Sent: Monday, March 14, 2005 4:44 PM
-To: netfilter-devel@lists.netfilter.org
-Subject: Netfilter Rule database
+From: Martijn Lievaart [mailto:m@rtij.nl]=20
+Sent: Monday, March 14, 2005 8:21 PM
+To: Vishwas Manral
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: LAND check: 2.4.20
 
-Hi,
+Vishwas Manral said:
+> Hi folks,
+>
+> I found no check in the iptables module for LAND attack source
+> port/ipAddr =3D=3D destination port/ipAddr.
+> http://www.cert.org/advisories/CA-1997-28.html
+>
+> Would we want to add that in ipt_unclean.c in the functions check_tcp
+> and check_udp?
 
-I have been trying to understand the iptables code.=20
+IMO, your anti spoofing rules should catch this.
 
-I was able to understand to some extent the code in the netfilter
-directory, but have been unable to understand how the user and the
-kernel space interaction happen for the rules (not for the packets).
-Also where and how the rules are stored in the kernel? Any pointer to
-the file I need to look at would be helpful.
-
-Thanks,
-Vishwas
+M4
