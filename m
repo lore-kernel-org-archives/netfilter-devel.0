@@ -1,18 +1,15 @@
-From: "John Ho" <john_ho@sh.askey.com.tw>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: Fw: [PATCH 2.4.22] looseUDP support
-Date: Thu, 15 Apr 2004 08:49:57 +0800
+Date: Thu, 15 Apr 2004 02:58:21 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <004001c42283$950d8d50$2901080a@askeysh.com.cn>
-References: <7C9884991ADAE0479C14F10C858BCDF56792D4@alderaan.smgtec.com>
-Reply-To: "John Ho" <john_ho@sh.askey.com.tw>
+Message-ID: <Pine.LNX.4.44.0404150253450.31850-100000@filer.marasystems.com>
+References: <004001c42283$950d8d50$2901080a@askeysh.com.cn>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
-Cc: <netfilter-devel@lists.netfilter.org>,
-   "Henrik Nordstrom" <hno@marasystems.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Daniel Chemko <dchemko@smgtec.com>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Daniel Chemko" <dchemko@smgtec.com>
+To: John Ho <john_ho@sh.askey.com.tw>
+In-Reply-To: <004001c42283$950d8d50$2901080a@askeysh.com.cn>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +20,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-WWVzLCBJdCBtYXkgbm90IGJlIGFwcHJvcHJpYXRlIHRvIGFkZCB0aGUgc3VwcG9ydCBmb3IgbG9v
-c2VVRFAgaW4gdGhpcyB3YXkuIFNvIEknZCBsaWtlIHRvIGtub3cgaG93IHRvIHN1cHBvcnQgbG9v
-c2VVRFAgYnkgdXNpbmcgc2Vzc2lvbiB0cmFja2luZz8gDQpPciwgYXMgTXIuIEhlbnJpayBtZW50
-aW9uZWQsIGNyZWF0ZSBhIGN1c3RvbSBETkFUIHRhcmdldCBmb3IgZXZlcnkgb25saW5lIGdhbWUg
-cHJvdG9jb2wgb2YgdGhpcyB0eXBlPyBCZWNhdXNlIG91ciBkZXZpY2UgbmVlZCB0byBwYXNzIHRo
-ZSBNaWNyb3NvZnQgVVBuUCBJR0R0ZXN0IHN1aXRlIGFuZCB3aXRob3V0IHRoZSBsb29zZVVEUCBz
-dXBwb3J0IGl0IHdpbGwgYWx3YXlzIGZhaWwgYXQgTkFUIHRyYXZlcnNhbCB0ZXN0IGdyb3VwLiBU
-aGFua3MuDQoNCkJlc3QgUmVnYXJkcywNCkpvaG4NCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAt
-LS0tLSANCkZyb206ICJEYW5pZWwgQ2hlbWtvIiA8ZGNoZW1rb0BzbWd0ZWMuY29tPg0KVG86ICJI
-ZW5yaWsgTm9yZHN0cm9tIiA8aG5vQG1hcmFzeXN0ZW1zLmNvbT47ICJKb2huIEhvIiA8am9obl9o
-b0BzaC5hc2tleS5jb20udHc+DQpDYzogPG5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0ZXIu
-b3JnPg0KU2VudDogV2VkbmVzZGF5LCBBcHJpbCAxNCwgMjAwNCAxMTo0MiBQTQ0KU3ViamVjdDog
-UkU6IEZ3OiBbUEFUQ0ggMi40LjIyXSBsb29zZVVEUCBzdXBwb3J0DQoNCg0KPiBIZW5yaWsgTm9y
-ZHN0cm9tIHdyb3RlOg0KPiA+IE9uIFdlZCwgMTQgQXByIDIwMDQsIEpvaG4gSG8gd3JvdGU6DQo+
-ID4gDQo+ID4+ICBNYXkgYmUgaGVscGZ1bC4gSSd2ZSBtZXQgdGhpcyBwcm9ibGVtIGFuZCBjYW5u
-b3QgZmluZCBhIHNvbHV0aW9uIGZvcg0KPiA+PiBuZXRmaWx0ZXIgZnJhbWV3b3JrIHRvIHN1cHBv
-cnQgbG9vc2VVRFAgZmVhdHVyZS4NCj4gPiANCj4gPiBXaGF0IGlzIGxvb3NlVURQPw0KPiANCj4g
-TG9vc2UgVURQIGlzIGEgZHluYW1pY2x5IHNlbmRpbmcgVURQIHBhY2tldHMgdG8gbWFjaGluZXMg
-YmVoaW5kIHRoZQ0KPiBmaXJld2FsbCBpbnN0ZWFkIG9mIG9wZW5uaW5nIHBvcnRzIGFjY29yZGlu
-Z2x5LiBJdHMgcHJvYmFibHkgYSBiYWQgaWRlYQ0KPiB0byB1c2UgdGhlIDIuMiBrZXJuZWwgdGhl
-c2UgZGF5cyBub3cgdGhhdCB0aGVyZSBhcmUgYSBmZXcgbW9yZSBVRFAgYmFzZWQNCj4gd2luZG93
-cyBhdHRhY2tzLg0KPiANCj4gV2hhdCB3b3VsZCB5b3UgbGlrZSB0byBkbyB3aXRoIExvb3NlIFVE
-UCB0aGF0IHlvdSBjYW4ndCBkbyB3aXRoIHRoZQ0KPiBjdXJyZW50IGlwdGFibGVzL25ldGZpbHRl
-cj8gUmVtZW1iZXIsIG5ldGZpbHRlciBhY3R1YWxseSBoYXZlIHNlc3Npb24NCj4gdHJhY2tpbmcg
-bm93LCB3aGljaCBwcmV0dHkgbXVjaCBlbGltaW5hdGVkIHRoZSBuZWVkIGZvciB0aGF0IGNyZWF0
-aXZlDQo+IHNvbHV0aW9uIHRvIGFuIGF0LXRoZS10aW1lIG5ldHdvcmsgcHJvYmxlbS4NCj4gDQo+
-IA0K
+On Thu, 15 Apr 2004, John Ho wrote:
+
+> Or, as Mr. Henrik mentioned, create a custom DNAT target for every
+> online game protocol of this type? Because our device need to pass the
+> Microsoft UPnP IGDtest suite and without the looseUDP support it will
+> always fail at NAT traversal test group. Thanks.
+
+You don't need one per protocol, just a simple one which consists of two 
+targets
+
+a) A "remember me" target which tells that traffic should now be NAT:ed 
+into this station, used on outgoing sessions.
+
+b) A DNAT type target using the information recorded by the "remember me" 
+target to have incoming sesions forwarded to the selected "loose" 
+forwarding station..
+
+You only need full blown helpers if you want to support multiple clients 
+on the inside of your gateway at the same time.
+
+Regards
+Henrik
