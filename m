@@ -1,9 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 1/6]: Fix stack leakage in ip6tables
-Date: Tue, 11 Jan 2005 13:49:49 +0100
-Message-ID: <41E3CB6D.3000701@trash.net>
+Subject: [PATCH 2.6 0/6]: misc netfilter patches
+Date: Tue, 11 Jan 2005 13:49:46 +0100
+Message-ID: <41E3CB6A.4030200@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060505070205080809060206"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -18,49 +19,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060505070205080809060206
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Dave,
+
+I have a couple of assorted netfilter patches I would like to unload,
+most noteworthy is the removal of skb_linearize in ip6tables.
+
+You can pull all changes from bk://212.42.230.204/nf-2.6
+
+Regards
+Patrick
 
 
+Harald Welte:
+  o [NETFILTER] re-introduce __initdata to {arp,ip,ip6}_tables
 
---------------060505070205080809060206
-Content-Type: text/x-patch;
- name="01.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01.diff"
+Pablo Neira:
+  o [NETFILTER]: move ipt_error and ipt_standard to iptables.h
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2005/01/11 03:41:31+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Fix stack leakage in ip6tables
-#   
-#   ip6tables version of Rusty's iptables fix.
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv6/netfilter/ip6_tables.c
-#   2005/01/11 03:41:24+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix stack leakage in ip6tables
-#   
-#   ip6tables version of Rusty's iptables fix.
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
---- a/net/ipv6/netfilter/ip6_tables.c	2005-01-11 13:39:37 +01:00
-+++ b/net/ipv6/netfilter/ip6_tables.c	2005-01-11 13:39:37 +01:00
-@@ -1373,7 +1373,7 @@
- 			       sizeof(info.underflow));
- 			info.num_entries = t->private->number;
- 			info.size = t->private->size;
--			strcpy(info.name, name);
-+			memcpy(info.name, name, sizeof(info.name));
- 
- 			if (copy_to_user(user, &info, *len) != 0)
- 				ret = -EFAULT;
-
---------------060505070205080809060206--
+Patrick McHardy:
+  o [NETFILTER]: Fix ip6tables ESP matching with "-p all"
+  o [NETFILTER]: Add --log-uid option to ipt_LOG/ip6t_LOG
+  o [NETFILTER]: Remove skb_linearize in ip6tables
+  o [NETFILTER]: Fix stack leakage in ip6tables
