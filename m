@@ -1,11 +1,15 @@
-From: Steven J Scott <sjscott@ra.rockwell.com>
-Subject: libipq and ipq_packet_msg_t
-Date: Mon, 13 Dec 2004 12:27:22 -0600
-Message-ID: <OF1F21349A.31FAB9C9-ON86256F69.0064C45B-86256F69.00655B02@ra.rockwell.com>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [NEW TARGET] target for modifying conntrack timeout value
+Date: Mon, 13 Dec 2004 22:14:45 +0100
+Message-ID: <41BE0645.1000308@eurodev.net>
+References: <EINSTEINyo3DjFbUcOV00000275@einstein.systemmetrics.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Richard <richard@o-matrix.org>
+In-Reply-To: <EINSTEINyo3DjFbUcOV00000275@einstein.systemmetrics.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,41 +21,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Richard wrote:
 
-I am trying to parse the first two bytes of the payload of a TCP packet. 
-Am I casting the payload part of the TCP packet right?  Below is the code 
-in question.
+>  
+>
+>>-----Original Message-----
+>>From: Richard [mailto:richard@o-matrix.org]
+>>Sent: Wednesday, December 08, 2004 3:48 PM
+>>To: 'Pablo Neira'
+>>Cc: 'netfilter-devel@lists.netfilter.org'
+>>Subject: RE: [NEW TARGET] target for modifying conntrack timeout value
+>>
+>>    
+>>
+>>>+                ct->timeout.expires = new_expires;
+>>>                  ^^^
+>>>
+>>>Hm I thought that I told you to use ip_ct_refresh... you should. Your
+>>>target will look smarter and you can forget about proper locking...
+>>>which is now completely broken...
+>>>      
+>>>
+>>Hi Pablo,
+>>
+>>Thanks for the comments. I made the modification and attached the latest
+>>copy. Now it uses ip_ct_refresh. The target first reads the existing
+>>expire value, then modify it. If there is something in between, the expire
+>>value might get changed. Even worse, the conntrack state might change.
+>>That's why I locked it first, then read and write, finally unlock. If it
+>>is broken, there is no difference anyway...
+>>
+>>    
+>>
+>
+>Just wonder if there is any update on this please...
+>  
+>
 
+sorry, I'm busy as hell right now. But I'll go through it as soon as I
+find some spare time. Reviewing your target is still in my todo list.
+Please, be patient.
 
-case IPQM_PACKET: {
-                     ipq_packet_msg_t *m = ipq_get_packet(buf);
-
-                     struct iphdr *ip = (struct iphdr*) m->payload;
-
-                     struct tcphdr *tcp = (struct tcphdr*) (m->payload + 
-(4 * ip->ihl));
- 
-                     char *data = (char *)((int32_t *)tcp + tcp->doff);
- 
- 
-                     __u16 command = *(__u16 *) data;
- 
- 
-                         printf("COMMAND: %d\n",ntohs(command) );
-  
-                     printf("Len data : %d\n", ntohs(m->data_len));
- 
-                     status = ipq_set_verdict(h, m->packet_id, NF_ACCEPT, 
-0, NULL); 
-  
-                     }
- 
-
-Thanks,
-
-Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
-Rockwell Automation / Advanced Technology
-sjscott@ra.rockwell.com
-<---------------------------------------------------->
-(This email was sent via Notes running on Linux)
+--
+Pablo
