@@ -1,16 +1,16 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Re: libipq/payload doubt
-Date: Thu, 20 May 2004 09:24:58 -0700 (PDT)
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] for some issues in tcp window tracking patch
+Date: Fri, 21 May 2004 01:18:15 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040520162458.75930.qmail@web13906.mail.yahoo.com>
-References: <Pine.LNX.4.44.0405201659590.7143-100000@filer.marasystems.com>
+Message-ID: <40AD3CB7.1070107@eurodev.net>
+References: <Pine.LNX.4.33.0405201307440.5246-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Ulysses Almeida <munky@maluco.com.br>,
-  Netfilter Devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0405201659590.7143-100000@filer.marasystems.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.33.0405201307440.5246-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,59 +21,55 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-AH yes, mentioned in my sentences, not in code :P
-instead of sizeof(ip) you will want the offset...
-Note that the ip protocol does not need htons()
-Also, since ipHeader->tot_len represents the entire ip
-datagram in case you want to do any validation on the
-settings for the header size indicators.
+Hi Jozsef,
 
-int utilities::ip_payload_offset(unsigned char
-*ip_packet)
-{
-unsigned int offset=0;
-struct tcphdr *tcpHeader;
-struct iphdr *ipHeader;
+Jozsef Kadlecsik wrote:
 
-   ipHeader=(struct iphdr *)ip_packet;
-  // Determine offset into packet contents.
-  if (ipHeader.protocol==IPPROTO_TCP) {
-      tcpHeader=(tcphdr *)(ip_packet+ipHeader->ihl*4);
-      offset=ipHeader->ihl*4 + tcpHeader->doff*4;
-  if (ipHeader.protocol==IPPROTO_UDP) {
-      offset=ipHeader->ihl*4+8;
-  } else {
-      return -1;
-  }
-  return offset;
-}
+>It's funny: (practically) connection tracking itself does not drop
+>packets, it leaves the administrator to do the dirty job by setting up
+>explicit rules to drop INVALID packets (or implicitly, by letting trough
+>only valid packets) :-)
+>  
+>
 
+sorry! I missed that... I should know better iptables !:-)
 
+>
+>Some tests are done before checking the window boundaries from good
+>reasons: checking special cases when packets are possibly (mostly!) out of
+>window. You cannot move them behind the boundary checkings.
+>  
+>
 
---- Henrik Nordstrom <hno@marasystems.com> wrote:
-> On Thu, 20 May 2004, Scott MacKay wrote:
-> 
-> >   // Determine offset into packet contents.
-> >   if (ip_packet[9]==6) {
-> >       tcpHeader=(tcphdr *)(ip_packet+sizeof(ip));
-> 
-> Don't do this. There may be IP options extending the
-> size of the IP
-> header. Use iphdr->ihl to find the IP header size in
-> the same manner as
-> tcphdr->doff is used to find the size of the TCP
-> header..
-> 
-> Regards
-> Henrik
-> 
-> 
+ok, I also missed that... more issues:
 
+a) Sometimes we destroy the conntrack calling 
+conntrack->timeout.function((unsigned long)conntrack) but we are 
+returning -NF_ACCEPT, so we are calling implicitely nf_conntrack_put 
+from conntrack core, could we have any unexpected problem?
 
+b) We don't need to set assured bit all the time, I think that I told 
+you, well if so, sorry for repeating me.
 
-	
-		
-__________________________________
-Do you Yahoo!?
-Yahoo! Domains – Claim yours for only $14.70/year
-http://smallbusiness.promotions.yahoo.com/offer 
+         } else if ((old_state == TCP_CONNTRACK_SYN_RECV
+                    || old_state == TCP_CONNTRACK_ESTABLISHED)
+-                   && new_state == TCP_CONNTRACK_ESTABLISHED)
++                 && new_state == TCP_CONNTRACK_ESTABLISHED
++                 && !test_bit(IPS_ASSURED_BIT, &conntrack->status)) {
+
+c) In the TCP_CONNTRACK_SYN_SENT case, we saw a SYN packet while staying 
+in state TIME_WAIT, so there's a reopened connection. Why do we destroy 
+the conntrack and don't recycle /reuse this conntrack? I mean, 
+reinitilize all the fields and let it continue its travel through the 
+tcp tracking of instead of returning NF_REPEAT.
+
+d) We could move up WRITE_UNLOCK(&tcp_lock) just before timeout is updated.
+
+e) I'm not sure if it's worthy optimizing this case. In tcp_new, we are 
+checking if a packet is clean as well as size of tcp header, then in 
+tcp_packet we will do the same, so we are doing twice the same checking. 
+If we consider that general case is that packets are clean, will be this 
+double check worthy?
+
+thanks Jozsef!,
+insidious Pablo
