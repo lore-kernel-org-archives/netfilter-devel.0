@@ -1,50 +1,34 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [Patch]: IPv6 Connection Tracking
-Date: Thu, 25 Sep 2003 22:10:04 +0900 (JST)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <200309251310.WAA20555@toshiba.co.jp>
-References: <200309250521.OAA29293@toshiba.co.jp>
-	<20030925092806.GC5758@sunbeam.de.gnumonks.org>
+From: =?ISO-8859-1?Q?C=E9dric_Tissi=E8res?= <cedric.tissieres@epfl.ch>
+Subject: ip_route_input problem
+Date: Thu, 25 Sep 2003 15:47:25 +0200 (MEST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1064497645.3f72f1ed9b44b@imapwww.epfl.ch>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, coreteam@netfilter.org,
-        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com,
-        usagi-core@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: laforge@netfilter.org
-In-Reply-To: <20030925092806.GC5758@sunbeam.de.gnumonks.org>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+hello,
 
-Hi, Harald.
+i want to route a packet before the os. i tried to do that using
+ip_route_input() function like this:
 
-Thank you for your concern, and I understand what you say.
+ip_route_input(skb, fwdaddr, iph->saddr, iph->tos, skb->dev)
 
-> To summarize, I see the following options:
-> 
-> 1) submit ip6_conntrack to the 2.6.x kernel
->    We would then need somebody committe to maintaining it, assuring
->    it keeps in sync with the work done on ip_conntrack.  I do not want
->    to put the burden of ip_conntrack / ip6_conntrack synchronization on
->    everybody who submits patches/bugfixes/...
-> 
-> 2) keep ip6_conntrack in patch-o-matic and start work on a l3
->    independent conntrack system.
->    This would give more users to the code, since most advanced 
->    netfilter users are using patch-o-matic anyway.
-> 
+it returns -EINVAL, invalid argument. i've checked all the arguments and they
+are ok.
+moreover, what is the difference between ip_route_input, ip_route_input_slow and
+ip_route_me_harder functions?
 
-I interested on a L3 independent connection tracking.
-Could you show me about concrete loadmap and the scheme of nf_conntrack ?
-
-----------------------------------------
-Yasuyuki KOZAKAI
-
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
-
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+thanks a lot. sorry, i'm a newbie...
+cedric
