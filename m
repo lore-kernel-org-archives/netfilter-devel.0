@@ -1,15 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Missing ipt_osf.h in p-o-m (kernel 2.6)
-Date: Tue, 24 Aug 2004 10:07:57 +0200 (CEST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Clearcase conntrack module
+Date: Tue, 24 Aug 2004 10:22:48 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0408241007260.13070@blackhole.kfki.hu>
-References: <20040818223233.GA317@cerbere.dyndns.info>
+Message-ID: <Pine.LNX.4.61.0408241019060.4945@filer.marasystems.com>
+References: <1430199393@web.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Samir Bellabes <sam@cerbere.dyndns.info>
-In-Reply-To: <20040818223233.GA317@cerbere.dyndns.info>
+To: Lars Lockenvitz <L.Locke@web.de>
+In-Reply-To: <1430199393@web.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 19 Aug 2004, Samir Bellabes wrote:
+On Tue, 24 Aug 2004, Lars Lockenvitz wrote:
 
-> Hi Harald,
->
->    It's seems that the file
->    p-o-m/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h
->    is missing.
->    Without it, ipt_osf can't be compile.
->    thanks.
+> I=B4ve written an extension for the clearcase protocol. It based on the=
+ ip_conntrack_rpc modules.
+> Now I will contribute it, but I don=B4t know how I make this as a patch.
 
-Thank you, the file is added to cvs.
+See patch-o-matic-ng/README.newpatches
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Then make a diff -ruN compared to patch-o-matic-ng without your additions=
+=20
+and send the diff here to the mailinglist.
+
+Regards
+Henrik
