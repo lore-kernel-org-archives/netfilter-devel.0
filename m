@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: IP Tables.
-Date: Wed, 26 May 2004 09:52:08 +0200
+From: "Davide Guerri" <tato.net@tin.it>
+Subject: Re: NAT for IPv6 FINISHED!!!!!
+Date: Wed, 26 May 2004 18:25:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040526075207.GY1128@sunbeam.de.gnumonks.org>
-References: <5F2ACC96AE8D6E459758C549A8DEF22018D99F@svr-mail02.corp.telesym.com>
+Message-ID: <006c01c4433e$00fb2970$0400000a@majinbu>
+References: <20040524211902.69395.qmail@web90004.mail.scd.yahoo.com> <200405261401.XAA16017@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PdAWLd+WEPmMbsbx"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kishore Prakash <KishoreP@telesym.com>
-Content-Disposition: inline
-In-Reply-To: <5F2ACC96AE8D6E459758C549A8DEF22018D99F@svr-mail02.corp.telesym.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,46 +20,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Yasuyuki,
+how do you handle ipv6 fragment? It is possible to know original fragments
+size?
 
---PdAWLd+WEPmMbsbx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+BTW, some time ago I have finished my first version of NA(P)T-PT but I wrote
+my own connection tracking code (I had expires and I could not wait for an
+IPv6 conntrack that could handle fragmentation).
 
-On Tue, May 25, 2004 at 01:41:17PM -0700, Kishore Prakash wrote:
-> Can I configure Iptables to have other kind of NAT behavior ?
->=20
-> Like Port Restricted, IP Restricted, Full Cone NAT..
+However my connection tracking code isn't that different from yours so, with
+minimal effort, I can remove it and use your code when (and if) it will meet
+my requirements.
 
-no way.  We are very proud to implement the most sophisticated / most
-perfect version of nat - only to be found in advanced high-end solutions.
+My NA(P)T-PT supports fragmentation (on IPv4 and IPv6 side), preserves the
+DF(IPv4) and Fragment Header(IPv6) semantics (it is possible to do path MTU
+discovery throught it and it can handle correctly fragments with DF flag
+set) and, for now, it works like the masquerade: it's unidiretional, in the
+sense that connections may start only from IPv6 side, and IPv4 source
+address (for IPv6 to IPv4 translations) is calculated dinamically.
+Unfortunately to handle correctly fragments I have had to re-write parts of
+kernel fragmentation/defragmentation code, so I'm not that proud of my code
+;)
 
-With regard to STUN: I think it's broken by design.  Especially since
-most of the home user / end user WLAN and DSL routers are based on linux
-and iptables - and thus don't work with this strange protocol.
+Best regards,
+Davide Guerri.
 
-> Regards,
-> Kishore Prakash.
---=20
-- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-Programming is like sex: One mistake and you have to support it your lifeti=
-me
+----- Original Message ----- 
+From: "Yasuyuki Kozakai" <yasuyuki.kozakai@toshiba.co.jp>
+To: <ipv6natlover@yahoo.com>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Wednesday, May 26, 2004 4:01 PM
+Subject: Re: NAT for IPv6 FINISHED!!!!!
 
---PdAWLd+WEPmMbsbx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAtEynXaXGVTD0i/8RAoHLAKCmWiwLnSzWK7GC1GXyJE1lk0f1SQCgmX7q
-FV2rjH2XPmOxdZ8A6oKHhsg=
-=bhWf
------END PGP SIGNATURE-----
-
---PdAWLd+WEPmMbsbx--
+> [...]
+> I think your work is useful when someone writes NAT-PT with conntrack
+> because we can see how generalization is needed.
+> [...]
+> I revised nf_conntrack to able to handle fragmented IPv6 packets and
+> I'm debugging now. After committing and more testing it, I'll delete
+> ip6_conntrack from USAGI tree.
+> [...]
+> P.S. By the way, what situation do you want to use NAT with IPv6 ?
