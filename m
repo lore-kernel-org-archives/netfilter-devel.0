@@ -1,11 +1,13 @@
-From: Robert Borger <bborger@navcorp.com>
-Subject: NAT behind IPSEC GW working OK - please review patch
-Date: Fri, 11 Mar 2005 11:38:14 -0600
-Message-ID: <DB15CAD558452949A35006D66C5C5A99010F8B@nav-post.navcorp.com>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: [PATCH 2.6] ipt_hashlimit: use | instead of & for correct hash key
+Date: Sun, 13 Mar 2005 17:38:10 +0100
+Message-ID: <20050313163810.GJ28014@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Bg2esWel0ueIH/G/"
+Cc: netfilter-devel@lists.netfilter.org
+To: David Miller <davem@davemloft.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,61 +19,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-I have a subnet behind an IPSEC GW which is
-NATed to the IPSEC GW address.  The IPSEC tunnel
-is between the GW host address and the subnet
-behind the remote IPSEC GW. It is required that
-the NATed packets from the local subnet and the
-packets originating on the GW must both pass
-through the tunnel to the remote subnet.
+--Bg2esWel0ueIH/G/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Before applying the Patrick McHardy ipsec0x
-and policy patches, there where problems
-getting the NATed packets out over the tunnel.
+Hi Dave!
 
-After the patches where applied, the packets
-got out the tunnel and returned via the tunnel
-as expected, but were dropped during forwarding.
+Please apply the followign trivial fix, Thanks
 
-It appeared that the packet was still considered
-to be an part of the encrypted stream and there
-was no policy to forward it to the local subnet.
+Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-I changed the "xfrm_policy_check" function in
-"./include/net/xfrm.h" to allow forwarding if
-the "decap_done" flag is set.
+--- linux-2.6-old/net/ipv4/netfilter/ipt_hashlimit.c	(revision 3678)
++++ linux-2.6/net/ipv4/netfilter/ipt_hashlimit.c	(working copy)
+@@ -112,7 +112,7 @@
+ static inline u_int32_t
+ hash_dst(const struct ipt_hashlimit_htable *ht, const struct dsthash_dst *=
+dst)
+ {
+-	return (jhash_3words(dst->dst_ip, (dst->dst_port<<16 & dst->src_port),=20
++	return (jhash_3words(dst->dst_ip, (dst->dst_port<<16 | dst->src_port),=20
+ 			     dst->src_ip, ht->rnd) % ht->cfg.size);
+ }
+=20
+--=20
+- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
 
-Does anyone see any detrimental effects for this change?
+--Bg2esWel0ueIH/G/
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Could I have achieved the same result with a
-configuration change?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-I started with a virgin 2.6.10 kernel then applied the
-Patrick McHardy patches ported for the 2.6.10 kernel from:
-http://www.zcu.cz/ftp/pub/network/shorewall/contrib/IPSEC
+iD8DBQFCNGxyXaXGVTD0i/8RAmxBAJ49ZxfziCS5n6nARp2QGRjWl9JeVACfetGZ
+6M0e1PIcgM6DB4E4M7EtyGw=
+=SRJh
+-----END PGP SIGNATURE-----
 
-Then I made this change to "xfrm.h":
-
-static inline int xfrm_policy_check(struct sock *sk, int dir, struct sk_buff
-*skb, unsigned short family)
-{
-  if (sk && sk->sk_policy[XFRM_POLICY_IN])
-    return __xfrm_policy_check(sk, dir, skb, family);
-		
-  return(!xfrm_policy_list[dir] && !skb->sp) ||
-    (skb->sp && skb->sp->decap_done) || /* Added this line */
-    (skb->dst->flags & DST_NOPOLICY) ||
-    __xfrm_policy_check(sk, dir, skb, family);
-}
-
-
-Thank You,
-Bob Borger
-
--- 
-No virus found in this outgoing message.
-Checked by AVG Anti-Virus.
-Version: 7.0.308 / Virus Database: 266.7.1 - Release Date: 3/9/05
- 
+--Bg2esWel0ueIH/G/--
