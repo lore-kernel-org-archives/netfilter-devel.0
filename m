@@ -1,16 +1,17 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: string match and hex strings
-Date: Sat, 1 Mar 2003 07:30:29 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: access skb from conntrack helper?
+Date: Fri, 28 Feb 2003 16:58:44 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030301063029.GE24025@oknodo.bof.de>
-References: <20030228200534.B22879@orthanc.gambrl01.md.comcast.net>
+Message-ID: <20030228155844.GA1976@naboo.de.gnumonks.org>
+References: <200302272358.h1RNwlq23691@lightforge.cs.columbia.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Michael Rash <mbr@cipherdyne.com>
+To: Gong Su <gongsu@cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <20030228200534.B22879@orthanc.gambrl01.md.comcast.net>
+In-Reply-To: <200302272358.h1RNwlq23691@lightforge.cs.columbia.edu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +22,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Michael,
 
-> iptables -A INPUT -m string --string "|45 45|blah" -j LOG
-> 
-> The problem is that all old versions of iptables will also accept
-> the same "|45 45|blah" string, but the hex chars won't mean
-> anything; it will just be treated as ascii data.  So we descend
-> into version problems...
-> 
-> My thought is that perhaps it would be better to reinstate my
-> original "--hex-string" option and leave the "--string" option to
-> just take input as-is.
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-My thought, exactly. If you don't use a separate --hex-string
-option specifier, existing uses may fail where they worked
-before. That's a definite NONO, in my opinion, at least for
-tools with security implications.
+On Thu, Feb 27, 2003 at 06:58:46PM -0500, Gong Su wrote:
+> I'd like to be able to track, for each conntrack record satisfying certain
+> condition, some higher layer info such as the socket from which the packe=
+ts
+> are being sent, etc. Unfortunately, only the packet header, not the skb, =
+is
+> passed to conntrack helpers. Is there any way for a conntrack helper to
+> get access to the skb when it's called? Thank you.
 
-best regards
-  Patrick
+I don't really see a reason why this couldn't be changed.  I have no
+problem with changing the first argument of struct
+ip_conntrack_helper.help from 'struct iphdr *' to 'struct sk_buff *'.
+
+If you provide me with a patch for 2.4.21-pre4 (and maybe even for all
+helpers in patch-o-matic), I'm happy to merge it into the kernel.
+
+> --=20
+> /Gong
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+X4c0XaXGVTD0i/8RAtyKAJ435C5V/RGB9Ex1NUUlQJ4j4AM6YgCbB04l
+VhqHda/yZ7d7mI9K+a0j3Mk=
+=pZ99
+-----END PGP SIGNATURE-----
+
+--C7zPtVaVf+AK4Oqc--
