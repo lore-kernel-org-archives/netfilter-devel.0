@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH]: logging of reused expectations
-Date: Mon, 6 Jan 2003 14:27:59 +0100
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH]: fix all iptables problems with '!' (hopefully)
+Date: Mon, 06 Jan 2003 16:33:44 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030106132759.GK9467@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.33.0212101151140.9625-100000@blackhole.kfki.hu>
+Message-ID: <3E19A1D8.7080605@trash.net>
+References: <35565.195.97.5.193.1041816667.squirrel@fs.tsaousis.gr>        <20030106020219.GC423@comet.rv-int>        <3E193B0E.9030602@trash.net> <36373.195.97.5.193.1041856153.squirrel@fs.tsaousis.gr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2F7AbV2suvT8PGoH"
-Cc: netfilter-devel@lists.netfilter.org, jpiszcz <jpiszcz@lucidpixels.com>,
-	Othmar Pasteka <pasteka@kabsi.at>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0212101151140.9625-100000@blackhole.kfki.hu>
+To: Costa Tsaousis <costa@tsaousis.gr>
+In-Reply-To: <36373.195.97.5.193.1041856153.squirrel@fs.tsaousis.gr>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,44 +21,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Costa Tsaousis wrote:
 
---2F7AbV2suvT8PGoH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>Patrick McHardy said:
+>  
+>
+>>I did, here is the (untested) patch, hopefully i didn't miss any.
+>>I didn't change any of the "save"-functions, this patch just replaces
+>>all uses
+>>of optarg after check_inverse by argv[optind-1].
+>>    
+>>
+>
+>I didn't test it, but keep in mind that the ! in certain cases has to be
+>placed *before* the argument and its value.
+>
+>For example:
+>
+>--uid-owner ! squid
+>
+>is not accepted either ("user '!' not found"). The correct is:
+>
+>! --uid-owner squid
+>  
+>
+In fact ! is used in many matches in a non-boolean context.
+After the patch is applied, both it always possible
+(! --uid-owner xxx / --uid-owner ! xxx).
+It would still be nice to have the helptexts unified concerning
+the use of '!', i think.
 
-On Tue, Dec 10, 2002 at 12:14:56PM +0100, Jozsef Kadlecsik wrote:
-> Hi,
->=20
-> As 2.4.20 came out with newnat included, there were several reports on
-> excessive logging of reused FTP expectations.
->=20
-> Harald, if you agree with the patch please submit it.
-
-I'll submit it later today.
-
-> Regards,
-> Jozsef
---=20
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---2F7AbV2suvT8PGoH
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+GYRfXaXGVTD0i/8RAgY7AJ4rNUPkYt3+WTdoQtLLhWBtu2HAWwCeJOme
-PMlC30QgoM73BEOUoS96buA=
-=JxYG
------END PGP SIGNATURE-----
-
---2F7AbV2suvT8PGoH--
+Regards,
+Patrick
