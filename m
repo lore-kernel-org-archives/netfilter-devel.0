@@ -1,9 +1,9 @@
 From: Unknown <unknown@unknown.invalid>
 Subject: Re: Call for testing: patch-o-matic-ng
-Date: Tue, 23 Dec 2003 13:56:17 -0500
+Date: Tue, 23 Dec 2003 20:03:15 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <938.639490823512$1073046243@news.gmane.org>
-References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <plopm3zndjoexg.fsf@drizzt.kilobug.org> <20031223173022.GA3879@obroa-skai.de.gnumonks.org>
+Message-ID: <32987.3063405559$1073046300@news.gmane.org>
+References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <20031223173022.GA3879@obroa-skai.de.gnumonks.org> <plopm3u13rysa7.fsf@drizzt.kilobug.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
@@ -12,9 +12,9 @@ Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
   Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 From: Alistair Tonner <>
-To: Harald Welte <laforge@netfilter.org>,
-  =?iso-8859-1?q?Ga=EBl=20Le=20Mignot?= <kilobug@freesurf.fr>
-In-Reply-To: <20031223173022.GA3879@obroa-skai.de.gnumonks.org>
+To: kilobug@freesurf.fr (=?iso-8859-1?q?Ga=EBl=20Le?= Mignot),
+  Harald Welte <laforge@netfilter.org>
+In-Reply-To: <plopm3u13rysa7.fsf@drizzt.kilobug.org>
 Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -26,24 +26,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On December 23, 2003 12:30 pm, Harald Welte wrote:
-> On Tue, Dec 23, 2003 at 02:13:15PM +0100, Ga=EBl Le Mignot wrote:
-
-<< much snippage >>
-=09
-> yes, indeed.  There are numerous patches that would not work in the
-> 2.6.x kernels.  They have yet to be identified.  Once they are
-> identified, we can put a special "requires" tag into the 'info' file of
-> those patches.
+On December 23, 2003 07:26 pm, Ga=EBl Le Mignot wrote:
+> Hello Harald, hello netfiler list ;)
 >
-> This way the 2.4 only patches would only be offered if you have a 2.4.x
-> kernel source (and vice-versa).
+> I did  some tests on which  patch from the patch-o-matic  works on 2.6
+> and which ones don't compile. Here is the complete result of my tests.
 >
-> You could help us in finding out which patches compile and which ones
-> don't.
-	Oh my ... more work for the weekend ... I'll go grab POM-ng shortly ...=20
-	(I'm building 2.6.0 kernel on a test basis at the moment)
+> I just try compiling them (after applying patches on a vanilla 2.6.0),
+> I didn't try to load or use them.
+>
+> I've noticed too that when  a patch doesn't apply, pom-ng doesn't seem
+> to display it - or do it so fast that I don't notice it.
+>
+>
+	Agreed -- same here -- offlist to Harald as well since I think my perl is =
+weirding out on us.
 
-
-> > --
-> > Gael Le Mignot "Kilobug" - kilobug@nerim.net - http://kilobug.free.fr
+	Alistair
