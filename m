@@ -1,15 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] comment match port to pom-ng
-Date: Tue, 18 May 2004 01:12:14 +0200 (CEST)
+From: Richard Scobie <richard@sauce.co.nz>
+Subject: H.323 progress.
+Date: Tue, 18 May 2004 10:56:29 +1200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405180110430.31252-100000@blackhole.kfki.hu>
-References: <40A29A7D.A1111933@info-link.net>
+Message-ID: <40A9431D.8020404@sauce.co.nz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Brad Fisher <brad@info-link.net>
-In-Reply-To: <40A29A7D.A1111933@info-link.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +18,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 12 May 2004, Brad Fisher wrote:
+I have a FreeSwan IPsec VPN between 2 iptables NAT boxes.
 
-> Attached is a tar file containing the comment match I wrote a while back
-> (Also posted before for old POM with no response:
-> http://marc.theaimsgroup.com/?l=netfilter-devel&m=107056927528485&w=2).
-> I've ported it to pom-ng, and it should work for 2.4 kernels fine.
-> Haven't tested 2.6 kernels, but will hopefully get a chance soon.
+With H.323 videoconferencing equipment from both Via Video and Tandberg, 
+I have been unable to get complete connection between both ends through 
+the VPN - 90+ % of the time, video connects both ways and audio only one.
 
-Patch is added to pom-ng. :-)
-It is marked as for 2.4 only in the info file, because it won't work with
-2.6 (API changed).
+The same setup using 2.2 kernels and ipchains works fine every time.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+After finding some information in the list archives, I was just wanting 
+to confirm that the problem I am seeing is due to the current H.323 
+helper modules and also whether these modules are currently being 
+actively developed?
+
+Regards,
+
+Richard
