@@ -1,11 +1,12 @@
-From: =?ISO-8859-2?Q?Tom=E1=B9_Macek?= <maca02@atlas.cz>
-Subject: cannot kmalloc nor vmalloc
-Date: Mon, 17 Jan 2005 16:03:01 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0501171548280.6167@maca.fortech.cz>
+From: Max Kellermann <max@duempel.org>
+Subject: nfsim problem with NAT
+Date: Wed, 19 Jan 2005 00:17:29 +0100
+Message-ID: <20050118231729.GA11445@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,15 +18,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, I'm just developing a new "match" (like ipt_limit for example) iptables module under RH FC 2, kernel 2.6.5-1.328.
-If I make a request for about 100 kB of memory in the registered match function in my module by means of kmalloc(size, GPF_ATOMIC) and set it via memset() to zero, the computer freezes with kernel panic and debugging output. Maybe it has not enaugh memory. I tried something more and never got more than about 40 kB.
+Hi,
 
-Then I tried to get more memory with the vmalloc() function. But vmalloc() is called with the GPF_KERNEL flag, so I cannot use it in the interrupt = I cannot use it in the match function. The vmalloc gives also the debugging output to the log, but it does not freezes the computer.
+I'm trying to write a nfsim test for the H.323 conntrack module. The
+NAT part fails, because I cannot set up the NAT rule:
 
-I also tried to get large amount of memory outside the match function - in the __init() of my module, and I was able to get more than 100 MB via vmalloc().
+ > 14:iptables -t nat -A POSTROUTING -o eth1 -p tcp --dport 1720 -j SNAT --to-source 192.168.0.100
+ iptables: Invalid argument
+ iptables: command failed
+ Script failed at line 14: 
+ iptables failed
 
-How can I get bigger chunk of memory in the interrupt? I will need more (about 5-10) chunks of 100 kB memory.
+I get the same message with the NAT tests from nfsim-testsuite
+(e.g. 03NAT/62ftpdata-port.sim). My iptables version is v1.2.11, Linux
+kernel 2.6.11-rc1 (nfsim fails to compile 2.6.11-rc1-mm1, anyone
+interested in a detailed report or patch?).
 
-Any help will be very appreciated!
-
-Tomas
+Max
