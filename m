@@ -1,20 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] netbios broadcast connection tracking module
-Date: Fri, 22 Oct 2004 12:55:04 +0200
+Subject: Re: MARK target extension (fwd)
+Date: Fri, 22 Oct 2004 13:51:48 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041022105504.GC3551@sunbeam.de.gnumonks.org>
-References: <1098175785.6562.60.camel@greebo.homeip.net>
-	<1098206621.1108.105.camel@tux.rsn.bth.se>
-	<1098214482.6562.125.camel@greebo.homeip.net>
+Message-ID: <20041022115148.GD3551@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.61.0410211516120.21167@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7cXxibKNEnJOqEg4"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Martin Josefsson <gandalf@wlug.westbo.se>
+	protocol="application/pgp-signature"; boundary="XrjDSOQsS4AlGTKt"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Alexander Larsson <alexl@redhat.com>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <1098214482.6562.125.camel@greebo.homeip.net>
+In-Reply-To: <Pine.LNX.4.61.0410211516120.21167@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,27 +23,26 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---7cXxibKNEnJOqEg4
+--XrjDSOQsS4AlGTKt
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Thu, Oct 21, 2004 at 03:18:34PM +0200, Henrik Nordstrom wrote:
+> Found the CONNMARK mark operations patch by Grzegorz Nosek. It=20
+> appears Grzegorz never sent this to the mailinglist and I assumed he did..
 
-First of all, let me say that I am much in favour of a conntrack helper
-than an ipt_recent-based solution.
+Ok, that explains the mystery :)
 
-> Hmm. I though by setting max_expected to 0 would allow me to get
-> multiple expected replies, but i could easily have misread the code. Is
-> there no way to expect multiple packets in reply to a single udp
-> package?
+> I have not verified the patch in detail, but like the idea.
 
-you just need to re-issue the expectation as soon as it is confirmed by
-the first packet (from the expectfn).  If I'm not mistaken, there are
-already helpers doing that, although I forgot which ones.
+Ok, so let's leave CONNMARK without mark-operations for now, just like
+it went into the kernel.  We know it works, and I rather not push a
+almost unknown and untested patch directly to the kernel.
 
->  Alexander Larsson                                            Red Hat, In=
-c=20
+If you [or maybe somebody else] ever get a chance to verify, review and
+test the patch, maybe at that point we will be able to deal with the
+compatibility issues.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -58,7 +54,7 @@ c=20
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---7cXxibKNEnJOqEg4
+--XrjDSOQsS4AlGTKt
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -66,9 +62,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBeOcIXaXGVTD0i/8RAnKyAJ9G5+00bGaNNL6zKG4FnakSSSi/LACfeUH8
-s5L4ddMikFh/0tfuWqqg49g=
-=FP1V
+iD8DBQFBePRUXaXGVTD0i/8RAidFAJ0Vy+rjoD3+UrIS33E4Y9uAA3dsjwCePx+l
+9EE/jtaCzBfLs5wvWzqkLoM=
+=bCLL
 -----END PGP SIGNATURE-----
 
---7cXxibKNEnJOqEg4--
+--XrjDSOQsS4AlGTKt--
