@@ -1,15 +1,16 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH 2.6] trivial: fix email address in MODULE_AUTHOR
-Date: Tue, 02 Sep 2003 15:16:57 +1000
+From: "zhengchuanbo" <zhengcb@netpower.com.cn>
+Subject: Re: Re: can tcp stream reassembly be done in netfilter
+Date: Mon, 1 Sep 2003 11:39:25 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030902064215.B286E2C0C9@lists.samba.org>
-References: <20030830200504.GP17715@sunbeam.de.gnumonks.org>
-Cc: David Miller <davem@redhat.com>
+Message-ID: <20030901112993.SM00856@zhengcb>
+Mime-Version: 1.0
+Content-Type: text/plain;
+      charset="GB2312"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-reply-to: Your message of "Sat, 30 Aug 2003 22:05:04 +0200."
-             <20030830200504.GP17715@sunbeam.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>,
+ Oskar Andreasson <blueflux@koffein.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,13 +21,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <20030830200504.GP17715@sunbeam.de.gnumonks.org> you write:
-> -MODULE_AUTHOR("Bart De Schuymer <bdschuy@pandora.be>");
-> +MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
->  MODULE_DESCRIPTION("iptables bridge physical device match module");
 
-There's no MODULE_AUTHOR at all in my tree..
+	I just downloaded the libqsearch. It's great that it can do the stream reassembly.
+	Is there any examples on its application in linux kernel? or do you think it can
+do filter the tcp stream in netfilter?
+	thanks.
 
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+Jack zheng
+zhengcb@netpower.com.cn
+	
+>On Wed, Aug 27, 2003 at 10:35:10AM +0200, Oskar Andreasson wrote:
+>> On Tue, 26 Aug 2003, zhengchuanbo wrote:
+>> 
+>> > 	Can netfilter do the tcp stream reassembly? I mean something like
+>> > what snort do in the stream process. I wish this could be done in the
+>> > kernel.
+>> 
+>> No, netfilter is a packet filter. It works on a per packet basis, below
+>> the transport layer. Actually it does do some work on the transport layer,
+>> but not much, and definitely not a lot of work on the application layers.
+>> 
+>> All of this comes down to one thing, netfilter simply doesnt care about
+>> streams. That's when you should use snort or proxy solutions of one sort
+>> or another.
+>
+>Thanks for this excellent reply.  
+>
+>I have to add that there is a project for linux kernel stream reassembly
+>and pattern-matching:  libqsearch.  Try google :)
+>
+>-- 
+>- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+>============================================================================
+>  "Fragmentation is like classful addressing -- an interesting early
+>   architectural error that shows how much experimentation was going
+>   on while IP was being designed."                    -- Paul Vixie
+>-----BEGIN PGP SIGNATURE-----
+>Version: GnuPG v1.2.2 (GNU/Linux)
+>
+>iD8DBQE/UPWlXaXGVTD0i/8RAvoPAKCNvzD4pLnyUcxL6y/08GU8cfvULQCfYPxF
+>fhHZTP+r1gkBSaEv3iDodH8=
+>=BQg0
+>-----END PGP SIGNATURE-----
+
+= = = = = = = = = = = = = = = = = = = =
+			
