@@ -1,15 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] problem with 'raw' patch and REJECT target
-Date: Fri, 9 Jan 2004 10:40:52 +0100 (CET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: pserver.netfilter.org CVS tree reorganization
+Date: Fri, 9 Jan 2004 14:29:06 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0401091015240.21171-100000@blackhole.kfki.hu>
-References: <000d01c3d60c$596b1f10$3200000a@gatis>
+Message-ID: <20040109132906.GK31820@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+9faIjRurCDpBc7U"
+Cc: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	coreteam@netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Gatis Peisenieks <gatis@mt.lv>
-In-Reply-To: <000d01c3d60c$596b1f10$3200000a@gatis>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,23 +22,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Gatis,
 
-On Thu, 8 Jan 2004, Gatis Peisenieks wrote:
+--+9faIjRurCDpBc7U
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> here is a patch that fixes (?) a bug in 'raw' table. The bug can be
-> replicated by using raw table with one NOTRACK rule that matches everything
-> and a filter rule (in my case in INPUT chain) that has  REJECT target. First
-> ICMP/TCP packet that matches the REJECT rule make the kernel crash with NULL
-> pointer dereference.
+Hi!
 
-Your analysis and patch is correct. Thank you very much, I'll add the
-fixed raw patch to cvs.
+As many of you will have noticed already, I took the liberty to reorganize
+the CVS tree structure.  This was needed to get a better seperation
+between independent parts of the project. =20
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+pserver.netfilter.org:/cvspublic now has the following modules:
+
+iptables
+	this is what netfilter/userspace used to be
+
+pkttables
+	this is what netfilter/iptables2 used to be.
+
+patch-o-matic-ng
+	this is the new patch-o-matic, used to live below=20
+	/netfilter, too.
+
+documentation
+	this is the FAQ's and HOWTO's, used to be
+	/netfilter/documentation
+
+homepage
+	this is the new docbook-website homepage, used to be
+	/netfilter/homepage-xml
+
+security-advisories
+	a seperate, new module containing text files of the security
+	advisories.  http://www.netfilter.org/security/* is built=20
+	from those text files.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--+9faIjRurCDpBc7U
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE//qyiXaXGVTD0i/8RAljAAJwPPyIgJxecYNO2byb/FsqkM9qxAgCfZNsa
+3byyZPnsqUqTrMifXBajs2s=
+=EkZm
+-----END PGP SIGNATURE-----
+
+--+9faIjRurCDpBc7U--
