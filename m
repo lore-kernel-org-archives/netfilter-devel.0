@@ -1,19 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: "ip_conntrack_core: Frag of proto 17." error
-Date: Mon, 22 Sep 2003 12:03:03 +0200
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: ip6tables-save and udp port range
+Date: Mon, 22 Sep 2003 12:25:07 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030922100302.GH31401@sunbeam.de.gnumonks.org>
-References: <3F69CFF6.1060505@wp.pl> <20030921144557.GB22223@sunbeam.de.gnumonks.org> <3F6EC037.2040702@wp.pl>
+Message-ID: <3F6ECE03.5020608@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Li7ckgedzMh1NgdW"
-Cc: netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Martin Josefsson <gandalf@wlug.westbo.se>
+Content-Type: multipart/mixed;
+ boundary="------------020607010802060108060707"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: c0g <c0g@wp.pl>
-Content-Disposition: inline
-In-Reply-To: <3F6EC037.2040702@wp.pl>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,82 +18,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
---Li7ckgedzMh1NgdW
-Content-Type: multipart/mixed; boundary="gKijDXBCEH69PxaN"
-Content-Disposition: inline
-
-
---gKijDXBCEH69PxaN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Sep 22, 2003 at 11:26:15AM +0200, c0g wrote:
-=20
-> Hi. My setup is simple. This is box with 5 nics, which is primary a PPTP
-> server for authorizing LAN users:
-
-thanks.  As already discovered by Martin Josefsson, the problem is the
-NOTRACK target.  We have to fix NOTRACK in order to get rid of this bug.
-
-We are waiting for Jozsef (the author of NOTRACK) to comment on this.
-
-Meanwhile, try using the attached (experimental, untested) patch on top
-of your (already patched) kernel. Please report back to us if it works.
-
-thanks.
+This is a multi-part message in MIME format.
+--------------020607010802060108060707
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Hello,
 
---gKijDXBCEH69PxaN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="notrack-nodefrag-fix.patch"
-Content-Transfer-Encoding: quoted-printable
 
---- linux-notrack/net/ipv4/netfilter/ipt_NOTRACK.c	2003-09-22 12:09:59.0000=
-00000 +0200
-+++ linux-notrack-nodefrag/net/ipv4/netfilter/ipt_NOTRACK.c	2003-09-22 12:1=
-0:44.000000000 +0200
-@@ -23,14 +23,8 @@
- 	if ((*pskb)->nfct !=3D NULL)
- 		return IPT_CONTINUE;
-=20
--	proto =3D ip_ct_find_proto((*pskb)->nh.iph->protocol);
--
--	if (ip_conntrack_get_tuple((*pskb)->nh.iph, (*pskb)->len,=20
--		      &tuple, proto)
--	    && !ip_conntrack_tuple_taken(&tuple, NULL)) {
--		(*pskb)->nfct =3D &ip_conntrack_untracked.infos[IP_CT_NEW];
--		nf_conntrack_get((*pskb)->nfct);
--	}
-+	(*pskb)->nfct =3D &ip_conntrack_untracked.infos[IP_CT_NEW];
-+	nf_conntrack_get((*pskb)->nfct);
-=20
- 	return IPT_CONTINUE;
- }
+ip6tables-save is not saving an udp port range if one of the ports is 
+0x0 or 0xFFFF. This is aleady fixed in the ipv4 version.
 
---gKijDXBCEH69PxaN--
+I have attached the patch.
 
---Li7ckgedzMh1NgdW
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Thanks in advance
+Thomas Woerner
 
-iD8DBQE/bsjWXaXGVTD0i/8RAqepAKCuqmd8qPKnJihaXjTCFHt/1Zc3AwCdFb7O
-w2ISOj3knqzR4bFYBw/CCKY=
-=SrAd
------END PGP SIGNATURE-----
+-- 
+Thomas Woerner, Software Engineer      Phone: +49-711-96437-0
+Red Hat GmbH                           Fax  : +49-711-96437-111
+Hauptstaetterstr. 58                   Email: twoerner@redhat.com
+D-70178 Stuttgart                      Web  : http://www.redhat.de/
 
---Li7ckgedzMh1NgdW--
+--------------020607010802060108060707
+Content-Type: text/plain;
+ name="iptables-1.2.8-save_ports.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="iptables-1.2.8-save_ports.patch"
+
+--- iptables-1.2.8/extensions/libip6t_udp.c.save_ports	2003-09-17 16:11:40.000000000 +0200
++++ iptables-1.2.8/extensions/libip6t_udp.c	2003-09-17 16:27:17.000000000 +0200
+@@ -205,7 +205,7 @@
+ 	const struct ip6t_udp *udpinfo = (struct ip6t_udp *)match->data;
+ 
+ 	if (udpinfo->spts[0] != 0
+-	    && udpinfo->spts[1] != 0xFFFF) {
++	    || udpinfo->spts[1] != 0xFFFF) {
+ 		if (udpinfo->invflags & IP6T_UDP_INV_SRCPT)
+ 			printf("! ");
+ 		if (udpinfo->spts[0]
+@@ -219,7 +219,7 @@
+ 	}
+ 
+ 	if (udpinfo->dpts[0] != 0
+-	    && udpinfo->dpts[1] != 0xFFFF) {
++	    || udpinfo->dpts[1] != 0xFFFF) {
+ 		if (udpinfo->invflags & IP6T_UDP_INV_DSTPT)
+ 			printf("! ");
+ 		if (udpinfo->dpts[0]
+
+--------------020607010802060108060707--
