@@ -1,16 +1,15 @@
-From: Philipp =?iso-8859-1?q?G=FChring?= <mailinglists@futureware.at>
-Subject: iptRegionet Update
-Date: Sat, 13 Mar 2004 19:57:06 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: String match then SNAT from find
+Date: Sun, 14 Mar 2004 01:08:51 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200403131957.06823.mailinglists@futureware.at>
-Reply-To: pg@futureware.at
+Message-ID: <Pine.LNX.4.44.0403140106450.17900-100000@filer.marasystems.com>
+References: <Pine.LNX.4.44.0403122223210.16818-100000@Trademart-1.ednet.ns.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: James MacLean <macleajb@ednet.ns.ca>
+In-Reply-To: <Pine.LNX.4.44.0403122223210.16818-100000@Trademart-1.ednet.ns.ca>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,12 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Fri, 12 Mar 2004, James MacLean wrote:
 
-I finally found the bug in ipt_REGIONET, that was crashing the module.
-Update is recommended!
+> Method was to use Squid to add the X-Forwarded-For: <ip> header, then in 
+> POSTROUTING, use it to set the SNAT address. Would this even work?
 
-http://195.110.214.60/ipt_REGIONET.c
+Won't work. You need to apply NAT on the initial SYN packet of the 
+session, and this is before the X-Forwarded-For header is seen...
 
-Many greetings,
-Philipp G=FChring
+As for the rest of your questions.. a target can act as a match. If you in 
+a target finds that you do not really want to act on this packet then 
+return IPT_CONTINUE and iptables continues with the next rule.
+
+Regards
+Henrik
