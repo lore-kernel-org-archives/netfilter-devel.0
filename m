@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Bug/Problem with DNAT on OUTPUT chain (-t nat -A OUTPUT) that
- breaks routing? (fwd)
-Date: Thu, 23 Oct 2003 04:37:56 +0200
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [netfilter-core] ipt_MASQUERADE.c
+Date: Thu, 23 Oct 2003 13:54:48 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F973F04.8090703@trash.net>
-References: <Pine.LNX.4.44.0310221957110.29188-100000@kinison.puremagic.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org
+Message-ID: <20031023044241.0B7572C090@lists.samba.org>
+References: <Law12-F115umXCr68LT0001608b@hotmail.com>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Evan Harris <eharris@puremagic.com>
-In-Reply-To: <Pine.LNX.4.44.0310221957110.29188-100000@kinison.puremagic.com>
+To: =?iso-8859-1?B?UGFibG8gQW5kculzIE1hcnRpa2lhbg==?= <pablomartikian@hotmail.com>
+In-reply-to: Your message of "Mon, 20 Oct 2003 21:44:50 +0200."
+             <Law12-F115umXCr68LT0001608b@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,14 +19,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Evan Harris wrote:
+In message <Law12-F115umXCr68LT0001608b@hotmail.com> you write:
+> Hi all,
+> 
+> Sorry if this subject does not concern you. Unfortunately in the 
+> ipt_MASQUERADE.c file I couldn't find any email address.
+> 
+> The MASQUERADE feature is not working since several kernel versions. I gues 
+> for over 4 months or something.
+> 
+> In the file ipt_MASQUERADE.c, in the function masquerade_check(...), the 
+> second check (size) always fails, making it impossible to use masquerade, 
+> making it impossible to share internet connection.
+> 
+> When I used the DEBUGP, the print says "24 != 20".
 
->I am using a stock linux kernel 2.4.20, with iptables 1.2.8.
->
->  
->
-Try 2.4.22 first, there were countless changes, some related to
-routing.
+What version of the kernel are you running?  (uname -r)
 
-Best regards,
-Patrick
+What version of iptables are you running?
+
+What patch-o-matic patches (if any) have you applied?
+
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
