@@ -1,16 +1,18 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: ipt_string / 2.6.x (smp_num_cpus)
-Date: Sun, 15 Feb 2004 13:56:46 +1100
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ctnetlink questions
+Date: Sun, 15 Feb 2004 11:01:10 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040215070352.3019D2C3A4@lists.samba.org>
-References: <20040214213849.GD7756@sunbeam.de.gnumonks.org>
-Cc: William Stearns <wstearns@pobox.com>
+Message-ID: <402F4366.7020302@trash.net>
+References: <Pine.LNX.4.33.0310200909590.12485-100000@blackhole.kfki.hu> <Pine.LNX.4.44.0310201107510.23768-100000@filer.marasystems.com> <20040206185242.GM2312@obroa-skai.de.gnumonks.org> <4028D0E5.8000003@trash.net> <20040214200326.GQ7756@sunbeam.de.gnumonks.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+ Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-Cc: Gianni Tedesco <gianni@ecsc.co.uk>,
-	ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
-In-reply-to: Your message of "Sat, 14 Feb 2004 22:38:49 BST."
-             <20040214213849.GD7756@sunbeam.de.gnumonks.org>
+In-Reply-To: <20040214200326.GQ7756@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,46 +23,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <20040214213849.GD7756@sunbeam.de.gnumonks.org> you write:
-> > int smp_num_cpus =3D 1;
+Harald Welte wrote:
+> On Tue, Feb 10, 2004 at 01:39:01PM +0100, Patrick McHardy wrote:
+>
+>>but the other use for IDs was to continue an interrupted
+>>dump at the right place, how can we solve this ? The problematic case
+>>is when a single hash-chain doesn't fit into an skb. We need to remember
+>>the last one dumped somehow, and be able to continue at the next one
+>>not dumped even when the last one dumped is gone when the dump
+>>continues.
 > 
-> NR_CPUS is set to the maximum number of cpu's that particular kernel
-> image can support.  on x86, that's usually 32.
+> 
+> We'd have to ensure that a single hash chain is not longer than what we
+> could put into one skb.  This can be done by limiting the maximum number
+> of entries in a bucket (and then rehash).  Also, we should increase the
+> default number of hash buckets to reduce the probability that this might
+> happen.
 
-num_possible_cpus() (which I have a patch for; great minds think
-alike) isn't needed here.
+I like the idea. So assuming that long hash chains are a result of "bad
+luck" with the jenkins hash, we would just change the secret, rehash,
+and repeat if some chains are still too long ? At what point do you
+propose rehashing, at the moment the chain length exceeds some threshold
+(or thereafter, defered to occur out of packet processing context), or
+when dumping over netlink ?
 
-In practice, all this allocation and freeing looks bogus anyway: it's
-only done at init and cleanup.
+> 
+> Also, Jozsef proposed a flip/flop bit mechanism that would solve that
+> problem.  What do you say to his proposal?
+> 
 
-How about changing:
+Can I find his proposal somewhere ?
 
-	struct string_per_cpu {
-		int *skip;
-		int *shift;
-		int *len;
-	};
-	
-	struct string_per_cpu *bm_string_data=NULL;
-
-to:
-	#include <linux/percpu.h>
-
-	struct string_per_cpu {
-		int skip[BM_MAX_HLEN];
-		int shift[BM_MAX_HLEN];
-		int len[BM_MAX_HLEN];
-	};
-
-	static DEFINE_PER_CPU(struct string_per_cpu, bm_string_data);
-
-Then you have to use __get_cpu_var(bm_string_data) to access it, but
-all the allocation and freeing code vanishes, *AND* each per-cpu
-variable is now nicely aligned to cachelines.  The only downside is
-that this structure is BIG: it could be halved using "short" instead
-of "int", but even so it's 2 * 1024 * 3 == 6k.
-
-Cheers,
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+> 
+>>Patrick
+> 
+> 
