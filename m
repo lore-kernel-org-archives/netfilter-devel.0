@@ -1,18 +1,18 @@
-From: Filip Sneppe <filip.sneppe@cronos.be>
-Subject: Re: trouble with expect_related
-Date: 07 Jan 2003 18:07:43 +0100
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH]: fix all iptables problems with '!' (hopefully)
+Date: Tue, 7 Jan 2003 18:15:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1041959263.502.248.camel@xbox>
-References: <t2mk7hlwz5c.fsf@rw2-laptop.wellner.org>
-	<1041651291.1637.41.camel@exile> <t2mwulie0cu.fsf@rw2-laptop.wellner.org>
-	<1041933003.502.23.camel@xbox>  <t2mk7hhx86x.fsf@rw2-laptop.wellner.org>
+Message-ID: <20030107171526.GL1353@sunbeam.de.gnumonks.org>
+References: <35565.195.97.5.193.1041816667.squirrel@fs.tsaousis.gr> <20030106020219.GC423@comet.rv-int> <3E193B0E.9030602@trash.net> <36373.195.97.5.193.1041856153.squirrel@fs.tsaousis.gr> <3E19A1D8.7080605@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8cpS+6Cx+xtICsjy"
+Cc: Costa Tsaousis <costa@tsaousis.gr>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rich Wellner <rkw@objenv.com>
-In-Reply-To: <t2mk7hhx86x.fsf@rw2-laptop.wellner.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3E19A1D8.7080605@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,51 +23,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2003-01-07 at 16:59, Rich Wellner wrote:
-> Filip Sneppe <filip.sneppe@cronos.be> writes:
-> > Do you see the expected connection in /proc/net/ip_conntrack? It should
-> > be preceded by "EXPECTING:" if it hasn't seen any traffic yet.
-> 
-> Ok, this is very helpful.  I didn't know about that vfile.  There is the line
-> I expect there.
-> 
-> EXPECTING: proto=6 src=131.225.80.34 dst=207.252.250.2 sport=0 dport=41209
-> 
-> I don't know where to look to find out what proto 6 is, but the rest *seems*
-> ok. 
 
-proto=6 means it's a tcp packet. /etc/protocols has all the
-protocol numbers.
+--8cpS+6Cx+xtICsjy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> The src, 131.225.80.34 is the machine I expect to be calling me back.  The
-> sport of 0 should be ok because I don't have that byte masked in my call to
-> expect_related the dport is correct.
-> 
-> I wasn't sure if the dst should be the NAT node or the private net node, so
-> I've tried it both ways:
-> 
-> EXPECTING: proto=6 src=131.225.80.34 dst=192.168.1.2 sport=0 dport=41330
-> 
-> And neither forwarded the connection.  Judging by the FTP example the dst
-> should be the private node, right?
+On Mon, Jan 06, 2003 at 04:33:44PM +0100, Patrick McHardy wrote:
+> In fact ! is used in many matches in a non-boolean context.
+> After the patch is applied, both it always possible
+> (! --uid-owner xxx / --uid-owner ! xxx).
+> It would still be nice to have the helptexts unified concerning
+> the use of '!', i think.
 
-I *think* that EXPECTING should show the packet as it appears on the
-wire, since you should call ip_conntrack_change_expect in the nat helper
-code to change the expectation. Not 100% sure though. You could try 
-without NAT.
+This is why I'm still unsure whether to apply your patch or not.
 
-> And I reconfirmed using tcpdump that the incoming connection is still being
-> attempted and is on the correct port.
->
-As I pointed this out in my very first reply, and I suspect that this
-may be the cause of the problem:
+I'd rather like to enforce one unique syntax than offering two different
+options giving the same result (and possibly causing confusion with the
+user).
 
-Are you letting the RELATED traffic in with the appropriate iptables
-rules ? Can you post your firewall script, chain policies etc ?
+> Regards,
+> Patrick
 
-I have never seen any reports of the connection tracking code not
-picking up related TCP packets unless they were being blocked by
-policy.
+--=20
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
-Regards,
-Filip
+--8cpS+6Cx+xtICsjy
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+GwsuXaXGVTD0i/8RAu85AKChBdkNICGK8Fog1S70zeVTxw2bFQCgkEVL
+YvvCQ6x+kouvqX/6pBZ+Yb4=
+=pLOA
+-----END PGP SIGNATURE-----
+
+--8cpS+6Cx+xtICsjy--
