@@ -1,15 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Merge of iptables 'fuzzy', 'random' and 'nth' match
-Date: Sun, 24 Aug 2003 09:21:58 +0200
+From: insecure <insecure@mail.od.ua>
+Subject: Re: I see wrong ip on icmp_need_fragment. MASQUERADE+less_than_1500_MTU_link+nfs
+Date: Sun, 24 Aug 2003 03:42:28 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030824072158.GL6750@sunbeam.de.gnumonks.org>
+Message-ID: <200308240342.28529.insecure@mail.od.ua>
+References: <200308141317.h7EDHad01974@Port.imtp.ilyichevsk.odessa.ua> <20030823210759.GD6750@sunbeam.de.gnumonks.org>
+Reply-To: insecure@mail.od.ua
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yK/6QRnH3Zanb0EF"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: hime@engineer.com, fabrice@netfilter.org, rwagner@cloudnet.com
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>,
+ Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
+In-Reply-To: <20030823210759.GD6750@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,52 +24,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> > Hi folks,
+> >
+> > Please CC me, I'm not on the list.
+> >
+> > I think I see a bug.
+>
+> Unfortunately you didn't tell us which exact kernel version you were
+> using while experiencing the described behaviour.
+>
+> Could you please file a bug about this to bugzilla.netfilter.org with
+> the kernel version and all details?  thanks.
+>
+> > Is this a known problem?
+>
+> we've had this bug in the past - but it's assumed to be fixed since
+> quite some time (2.4.19 or 2.4.20, I think).
 
---yK/6QRnH3Zanb0EF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I am sorry. Seems like I indeed tripped over an old bug.
+It is fixed in 2.4.21
 
-At the netfilter developer workshop, it was decided that we would like
-to include the functionality of the fuzzy, random and nth match into the
-upcoming 2.6 mainstream kernel.
-
-However, it is doubtful that each of those three features really need=20
-their own module.
-
-We'd like to ask you to merge the three modules into one
-ipt_statistical.c module, that can be used in 'nth', 'random' or 'fuzzy'
-mode.
-
-If you would work together on this issue (or one of you wants to take up
-this job), I would be very happy to submit the result for kernel
-inclusion.
-
-[btw: the same goes for the IPv6 counterpart - but that 'port' can
-follow later on]
-
-Thanks.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---yK/6QRnH3Zanb0EF
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/SGeWXaXGVTD0i/8RAgu8AJ9hb81h1rVUK+D7cAAlkNjzHioRfgCfQADI
-aM1KL3LLGeqYBGCXOPZQCSo=
-=aaRR
------END PGP SIGNATURE-----
-
---yK/6QRnH3Zanb0EF--
+Thanks folks for your incredible work!
+-- 
+vda
