@@ -1,10 +1,10 @@
-From: "Avi Lipa" <alipa_54@msn.com>
-Subject: Per session rule matching (TC)
-Date: Sun, 14 Sep 2003 14:33:38 +0000
+From: Vasile Gaburici <gaburici@wam.umd.edu>
+Subject: MARK_operations resurected
+Date: Sun, 14 Sep 2003 20:29:54 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY3-F37iY6QYb6cnzu00038ebc@hotmail.com>
+Message-ID: <Pine.SOL.4.44.0309142023160.5369-200000@rac1.wam.umd.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-851401618-1063585794=:5369"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,37 +17,105 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear Mr. Mrs.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-As a Linux user and (from time to time ... developer) I spent some time 
-studying the connection
-tracking module with in the netfilter and found it interesting and valuable.
+---559023410-851401618-1063585794=:5369
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-I have a question regarding a possible missing feature which might help 
-improving the
-performance of rule matching in the queuing discipline processing.
 
-Today the rule/filter matching in the queuing discipline of each device is 
-done
-per packet (which is expensive once many rules are configured) with out any 
-assumption on the session / connection which
-this packet belongs to (although hashing is allowed in the u32 classifier a 
-standard
-user might find it hard to configure).
+	By this small patch against cvs. I didn't move it out of broken, so
+the patch can be easily inspected. I've been using MARK_operations for
+about 6 months, and it works just fine...
 
-I saw that for the NAT module in the Netfilter if a rule was found it is 
-stored in a dedicated structure on the ip_conntrack,
-thus rule matching is done per session and not per packet
+	Thanks,
+	Vasile
 
-I think that supporting a dedicated entry in ip_conntrack for cached queuing 
-discipline rule matching
-is a capability that would improve performance for system where numerous of 
-classifiers are configured and
-deals with multiple sessions.
+---559023410-851401618-1063585794=:5369
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="MO.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.SOL.4.44.0309142029540.5369@rac1.wam.umd.edu>
+Content-Description: 
+Content-Disposition: attachment; filename="MO.patch"
 
-Regards,
-Neo  .M.
-
-_________________________________________________________________
-STOP MORE SPAM with the new MSN 8 and get 2 months FREE* 
-http://join.msn.com/?page=features/junkmail
+ZGlmZiAtdXJOIG5ldGZpbHRlci9wYXRjaC1vLW1hdGljL2Jyb2tlbi9NQVJL
+X29wZXJhdGlvbnMucGF0Y2gudXNlcnNwYWNlIG5ldGZpbHRlcitvcHMvcGF0
+Y2gtby1tYXRpYy9icm9rZW4vTUFSS19vcGVyYXRpb25zLnBhdGNoLnVzZXJz
+cGFjZQ0KLS0tIG5ldGZpbHRlci9wYXRjaC1vLW1hdGljL2Jyb2tlbi9NQVJL
+X29wZXJhdGlvbnMucGF0Y2gudXNlcnNwYWNlCTIwMDItMDctMjQgMDM6Mjg6
+MDYuMDAwMDAwMDAwIC0wNDAwDQorKysgbmV0ZmlsdGVyK29wcy9wYXRjaC1v
+LW1hdGljL2Jyb2tlbi9NQVJLX29wZXJhdGlvbnMucGF0Y2gudXNlcnNwYWNl
+CTIwMDMtMDktMTQgMTk6NTA6MjkuMDAwMDAwMDAwIC0wNDAwDQpAQCAtMSw1
+ICsxLDYgQEANCi0tLS0gdXNlcnNwYWNlL2V4dGVuc2lvbnMvbGliaXB0X01B
+UksuYwlUdWUgQXVnICA3IDAyOjUwOjIyIDIwMDENCi0rKysgdXNlcnNwYWNl
+L2V4dGVuc2lvbnMvbGliaXB0X01BUksuYwlUaHUgRmViIDIxIDAwOjI3OjA1
+IDIwMDINCitkaWZmIC11ck4gaXB0YWJsZXMtMS4yLjdhLW9yaWcvZXh0ZW5z
+aW9ucy9saWJpcHRfTUFSSy5jIGlwdGFibGVzLTEuMi43YStpbXErb3BzL2V4
+dGVuc2lvbnMvbGliaXB0X01BUksuYw0KKy0tLSBpcHRhYmxlcy0xLjIuN2Et
+b3JpZy9leHRlbnNpb25zL2xpYmlwdF9NQVJLLmMJTW9uIEF1ZyAgNSAxMDoy
+Njo0NyAyMDAyDQorKysrIGlwdGFibGVzLTEuMi43YStpbXErb3BzL2V4dGVu
+c2lvbnMvbGliaXB0X01BUksuYwlTdW4gT2N0IDI3IDIyOjI1OjUwIDIwMDIN
+CiBAQCAtMjAsMTIgKzIwLDE2IEBADQogIAlwcmludGYoDQogICJNQVJLIHRh
+cmdldCB2JXMgb3B0aW9uczpcbiINCkBAIC0xNyw1MSArMTgsNDYgQEANCiAg
+CXsgMCB9DQogIH07DQogIA0KLUBAIC00NSwxNiArNDksMzggQEANCitAQCAt
+NDUsMjEgKzQ5LDMwIEBADQogIAlzdHJ1Y3QgaXB0X21hcmtfdGFyZ2V0X2lu
+Zm8gKm1hcmtpbmZvDQogIAkJPSAoc3RydWN0IGlwdF9tYXJrX3RhcmdldF9p
+bmZvICopKCp0YXJnZXQpLT5kYXRhOw0KICANCi0tCXN3aXRjaCAoYykgew0K
+LSsJaWYgKChjPT0nMScpIHx8IChjPT0nMicpIHx8IChjPT0nMycpKQ0KLSsJ
+ew0KLSAJCWNoYXIgKmVuZDsNCi0tCWNhc2UgJzEnOg0KLSsJCQ0KLSsJCWlm
+ICgqZmxhZ3MpDQotKwkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0s
+ICJNQVJLIHRhcmdldDogY2FuIHNwZWNpZnkgb25seSBvbmUgYWN0aW9uIik7
+DQotIAkJbWFya2luZm8tPm1hcmsgPSBzdHJ0b3VsKG9wdGFyZywgJmVuZCwg
+MCk7DQotIAkJaWYgKCplbmQgIT0gJ1wwJyB8fCBlbmQgPT0gb3B0YXJnKQ0K
+LSAJCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLCAiQmFkIE1BUksg
+dmFsdWUgYCVzJyIsIG9wdGFyZyk7DQorKwlpZiAoaW52ZXJ0KQ0KKysJCWV4
+aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sICJNQVJLIHRhcmdldDogdW5l
+eHBlY3RlZCAnISciKTsNCisrCWlmICgqZmxhZ3MpDQorKwkJZXhpdF9lcnJv
+cihQQVJBTUVURVJfUFJPQkxFTSwgIk1BUksgdGFyZ2V0OiBjYW4gc3BlY2lm
+eSBvbmx5IG9uZSBhY3Rpb24iKTsNCisrDQorIAlzd2l0Y2ggKGMpIHsNCisg
+CWNhc2UgJzEnOg0KKy0JCWlmIChzdHJpbmdfdG9fbnVtYmVyKG9wdGFyZywg
+MCwgMHhmZmZmZmZmZiwgDQorLQkJCQkgICAgICh1bnNpZ25lZCBpbnQgKikm
+bWFya2luZm8tPm1hcmspKQ0KKy0JCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9Q
+Uk9CTEVNLCAiQmFkIE1BUksgdmFsdWUgYCVzJyIsIG9wdGFyZyk7DQogLQkJ
+aWYgKCpmbGFncykNCiAtCQkJZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxF
+TSwNCiAtCQkJICAgICAgICAgICAiTUFSSyB0YXJnZXQ6IENhbid0IHNwZWNp
+ZnkgLS1zZXQtbWFyayB0d2ljZSIpOw0KLSAJCSpmbGFncyA9IDE7DQotKwl9
+DQotKw0KLSsJc3dpdGNoIChjKSB7DQotKwljYXNlICcxJzoNCi0rCQlpZiAo
+aW52ZXJ0KQ0KLSsJCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLCAi
+dW5leHBlY3RlZCAnIScgd2l0aCAtLXNldC1tYXJrIik7DQotKw0KKy0JCSpm
+bGFncyA9IDE7DQogKwkJbWFya2luZm8tPm1vZGUgPSBJUFRfTUFSS19TRVQ7
+DQotKwkJYnJlYWs7DQotKw0KKyAJCWJyZWFrOw0KKy0NCiArCWNhc2UgJzIn
+Og0KLSsJCWlmIChpbnZlcnQpDQotKwkJCWV4aXRfZXJyb3IoUEFSQU1FVEVS
+X1BST0JMRU0sICJ1bmV4cGVjdGVkICchJyB3aXRoIC0tYW5kLW1hcmsiKTsN
+Ci0rDQogKwkJbWFya2luZm8tPm1vZGUgPSBJUFRfTUFSS19BTkQ7DQogKwkJ
+YnJlYWs7DQotKw0KICsJY2FzZSAnMyc6DQotKwkJaWYgKGludmVydCkNCi0r
+CQkJZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwgInVuZXhwZWN0ZWQg
+JyEnIHdpdGggLS1vci1tYXJrIik7DQotKw0KICsJCW1hcmtpbmZvLT5tb2Rl
+ID0gSVBUX01BUktfT1I7DQotIAkJYnJlYWs7DQotIA0KKysgCQlicmVhazsN
+CiAgCWRlZmF1bHQ6DQotQEAgLTcyLDEyICs5OCw2IEBADQorIAkJcmV0dXJu
+IDA7DQorIAl9DQorIA0KKysJaWYgKHN0cmluZ190b19udW1iZXIob3B0YXJn
+LCAwLCAweGZmZmZmZmZmLCANCisrCQkJICAgICAodW5zaWduZWQgaW50ICop
+Jm1hcmtpbmZvLT5tYXJrKSkNCisrCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9Q
+Uk9CTEVNLCAiTUFSSyB0YXJnZXQ6IGJhZCBNQVJLIHZhbHVlIGAlcyciLCBv
+cHRhcmcpOw0KKysNCisrCSpmbGFncyA9IDE7DQorIAlyZXR1cm4gMTsNCisg
+fQ0KKyANCitAQCAtNzEsMTIgKzg0LDYgQEANCiAgCQkgICAgICAgICAgICJN
+QVJLIHRhcmdldDogUGFyYW1ldGVyIC0tc2V0LW1hcmsgaXMgcmVxdWlyZWQi
+KTsNCiAgfQ0KICANCkBAIC03NCw3ICs3MCw3IEBADQogIC8qIFByaW50cyBv
+dXQgdGhlIHRhcmdpbmZvLiAqLw0KICBzdGF0aWMgdm9pZA0KICBwcmludChj
+b25zdCBzdHJ1Y3QgaXB0X2lwICppcCwNCi1AQCAtODYsOCArMTA2LDIwIEBA
+DQorQEAgLTg1LDggKzkyLDIwIEBADQogIHsNCiAgCWNvbnN0IHN0cnVjdCBp
+cHRfbWFya190YXJnZXRfaW5mbyAqbWFya2luZm8gPQ0KICAJCShjb25zdCBz
+dHJ1Y3QgaXB0X21hcmtfdGFyZ2V0X2luZm8gKil0YXJnZXQtPmRhdGE7DQpA
+QCAtOTEsMTMgKzg3LDEzIEBADQogKwkJCXByaW50ZigiTUFSSyBvciAiKTsN
+CiArCQkJYnJlYWs7DQogKwkJZGVmYXVsdDoNCi0rCQkJcHJpbnRmKCJNQVJL
+IHNldCAiKTsgLyogVGhpcyBzaG91bGRuJ3QgaGFwcGVuLi4gKi8NCisrCQkJ
+cHJpbnRmKCJNQVJLIHNldD8gIik7IC8qIFRoaXMgc2hvdWxkbid0IGhhcHBl
+bi4uICovDQogKwl9DQogKwlwcmludGYoIjB4JWx4ICIsIG1hcmtpbmZvLT5t
+YXJrKTsNCiAgfQ0KICANCiAgLyogU2F2ZXMgdGhlIHVuaW9uIGlwdF90YXJn
+aW5mbyBpbiBwYXJzYWJsZSBmb3JtIHRvIHN0ZG91dC4gKi8NCi1AQCAtOTcs
+NyArMTI5LDIwIEBADQorQEAgLTk2LDcgKzExNSwyMCBAQA0KICAJY29uc3Qg
+c3RydWN0IGlwdF9tYXJrX3RhcmdldF9pbmZvICptYXJraW5mbyA9DQogIAkJ
+KGNvbnN0IHN0cnVjdCBpcHRfbWFya190YXJnZXRfaW5mbyAqKXRhcmdldC0+
+ZGF0YTsNCiAgDQo=
+---559023410-851401618-1063585794=:5369--
