@@ -1,12 +1,16 @@
-From: James MacLean <macleajb@ednet.ns.ca>
-Subject: String match then SNAT from find
-Date: Fri, 12 Mar 2004 22:43:08 -0400 (AST)
+From: Philipp =?iso-8859-1?q?G=FChring?= <mailinglists@futureware.at>
+Subject: iptRegionet Update
+Date: Sat, 13 Mar 2004 19:57:06 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403122223210.16818-100000@Trademart-1.ednet.ns.ca>
+Message-ID: <200403131957.06823.mailinglists@futureware.at>
+Reply-To: pg@futureware.at
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,40 +21,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Folks,
+Hi,
 
-Have not done any _real_ programming for some time, but thought this might
-be dooable...
+I finally found the bug in ipt_REGIONET, that was crashing the module.
+Update is recommended!
 
-Goal is to have Squid send out requests with a source of the originating 
-client address (SNAT) and then DNAT them as they return through this PC 
-acting as a router. I realize there are some other options like tproxy, 
-but I saw nothing available for the 2.6 kernel that is current.
+http://195.110.214.60/ipt_REGIONET.c
 
-Method was to use Squid to add the X-Forwarded-For: <ip> header, then in 
-POSTROUTING, use it to set the SNAT address. Would this even work?
-
-Sounded almost easy enough for even me to try and implement :). Went
-looking for an overview of how to make a new filter from a programmers
-point of view, but have not found it.
-
-So I started to take ipt_NETMAP.c and string.c to see if I could blend the 
-two. Now I can not figure out how to take a match() function and return a 
-target() result, or if that's even the way I should be thinking.
-
-Is there a sample filter that changes the destination IP like SNAT, but 
-does it because of a match it made?
-
-Or maybe there is already a filter that does this that I passed over in 
-POM, or somewhere I missed looking?
-
-Sorry if this appears too simple a query, but I would appreciate any 
-pointers to help prod me along ;).
-
-thanks,
-JES
--- 
-James B. MacLean        macleajb@ednet.ns.ca
-Department of Education 
-Nova Scotia, Canada
-     
+Many greetings,
+Philipp G=FChring
