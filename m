@@ -1,13 +1,13 @@
-From: "doxboy" <doxboy@163.com>
-Subject: =?gb2312?B?SSB3YW5uYSBzaW11bGF0ZSB0aGUgYWN0aW9uIG9mIGlwdGFibGVzIC10IG5hdCAtQSBQUkVS
-	T1VUSU5HIC1pIGV0aDEgLXAgdGNwIC1zIDE5Mi4xNjguMS4xIC0tZHBvcnQgODAgLWogUkVE
-	SVJFQ1QgLS10by1wb3J0IDgwODA=?=
-Date: Fri, 16 May 2003 12:59:07 +0800 (CST)
+From: "Calvin" <calvinproject@ihug.com.au>
+Subject: add/remove rules using libiptc
+Date: Fri, 16 May 2003 21:32:38 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EC4701B.000019.23264@bj245.163.com>
+Message-ID: <002e01c31b9e$db21bd30$d211fea9@toowoomba>
 Mime-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_002B_01C31BF2.ACAC8990"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,24 +18,74 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hi all
-I am just a green hand of iptables.
-My work needs a function similar with  what the command
-"iptables -t nat -A PREROUTING -i eth1 -p tcp -s 192.168.1.1 --dport 80 -j REDIRECT --to-port 8080" does.
-In fact,that is one auth windows pops up when the interior user visits 
-the internet via IE or othere web browsers.
+This is a multi-part message in MIME format.
 
-but now we can't use iptables in our OS(vxworks).
+------=_NextPart_000_002B_01C31BF2.ACAC8990
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-I wanna know how the REDIRECT command(as above)  does work in details
-so I can futher my work.
+Hi all,
 
-so anyone could help me?thx in advance.
+I am looking for a way to adding and deleting rules from iptables using =
+module. I reaad the Rusty Hacking netfilter HOWTO and got a little bit =
+idea.
+
+However there are something i can't understand. I the guide, it mentions =
+about the libiptc. Is it I can use the lib in the netfilter module for =
+adding and deleting rules from the iptables at any time using the =
+iptc_insert_entry(), iptc_append_entry(), iptc_delete_entry(), etc? =
+However I can't find an example of  using these, i get really confused =
+about the struct using in there. Could anyone pls give me a guide to =
+start?
+
+I can't find the libiptc.h in my linux Redhat 8, why? I have iptables =
+complied as a module when I complie my kernel before.
 
 
 
 
+------=_NextPart_000_002B_01C31BF2.ACAC8990
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-=============================================================
-年度十佳女性站点评选开赛了！               http://www.nease.net
-百分百女友 - 春季选美活动!                 http://love.163.com
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1170" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#c0c0c0>
+<DIV><FONT face=3DArial size=3D2>Hi all,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I am looking for a way to adding and =
+deleting rules=20
+from iptables using module. I reaad the Rusty Hacking netfilter HOWTO =
+and got a=20
+little bit idea.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>However there are something i can't =
+understand. I=20
+the guide, it mentions about the libiptc. Is it I can use the lib in the =
+
+netfilter module for adding and deleting rules from the iptables at any =
+time=20
+using the iptc_insert_entry(), iptc_append_entry(), iptc_delete_entry(), =
+etc?=20
+However I can't find an example of&nbsp; using these, i get really =
+confused=20
+about the struct using in there. Could anyone pls give me a guide to=20
+start?</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I can't&nbsp;find the libiptc.h in my =
+linux Redhat=20
+8, why? I have iptables complied as a module when I complie my kernel=20
+before.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
+
+------=_NextPart_000_002B_01C31BF2.ACAC8990--
