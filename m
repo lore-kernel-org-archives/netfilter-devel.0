@@ -1,14 +1,16 @@
-From: Jimmy Hedman <jimmy.hedman@southpole.se>
-Subject: Differences between MASQ and SNAT
-Date: Mon, 09 Feb 2004 13:42:50 +0100
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH 2.4] ipt_limit sync with 2.6.x
+Date: Wed, 4 Feb 2004 23:27:27 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1076330570.8454.13.camel@localhost>
+Message-ID: <20040204232727.52e46634.davem@redhat.com>
+References: <20040204090652.GV25175@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Mailing List <netfilter@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040204090652.GV25175@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,28 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-What's the REAL differences between MASQ and SNAT? I've had a problem
-where it didn't work with SNAT but it did work with MASQ...
-The setup was two firewalls (A and B) with a Ipsec tunnel between them
-and and another VPN onward from B. The old setup was to masquerade all
-the traffic from site A, even the traffic out on the VPN between FW A
-and FW B. Due to some other changes i had to remove the masquerade for
-traffic the over the VPN and do SNAT on FW B instead. This worked for
-everything but one machine. If i turned on MASQ for that machine on FW A
-everything worked again which made me puzzled what MASQ is doing that
-SNAT isn't.
+On Wed, 4 Feb 2004 10:06:52 +0100
+Harald Welte <laforge@netfilter.org> wrote:
 
-So, does MASQ do anything that SNAT doesn't in form of changing the
-header or such? Or should i find the answer in the Windows machine that
-was putting up the fight?
+> could you please apply the patch from rusty's mail in the attachment?
+> 
+> It went in 2.6.x, but not 2.4.x.
+> 
+> It is not strictly needed on 2.4.x (at least not x86), but it's always
+> better to keep the code in sync.
+> 
+> The patch applies cleanly to 2.4.24 ipt_limit.c, I tested it a couple of
+> minutes ago.
 
-// Jimmy
-
-
-
---=20
-Jimmy Hedman                       South Pole AB
-Phone:  +46 8 51420420             Gelbjutarv=E4gen 5
-Fax:    +46 8 51420429             SE - 17148 Solna=20
-e-mail: jimmy.hedman@southpole.se  www.southpole.se
+Applied, thanks Harald.
