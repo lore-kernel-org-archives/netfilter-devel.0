@@ -1,14 +1,17 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: 12_contrack_nat_dependency.patch
-Date: Thu, 27 Mar 2003 13:24:39 +1100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: PPTP connection tracking and NAT patches
+Date: Thu, 27 Mar 2003 10:22:43 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030327041148.0DA5E2C056@lists.samba.org>
-References: <1048630711.14738.71.camel@tux.rsn.bth.se>
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Message-ID: <20030327092243.GM21953@sunbeam.de.gnumonks.org>
+References: <Pine.GSO.4.03.10303190516050.23211-100000@shemp.vdata.com> <20030326152047.GY21953@sunbeam.de.gnumonks.org> <3E8242E8.3050609@snapgear.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gz4FNQG/2iJjJcgR"
+Cc: Jeff Hall <hall@vdata.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-reply-to: Your message of "25 Mar 2003 23:18:32 BST."
-             <1048630711.14738.71.camel@tux.rsn.bth.se>
+To: Philip Craig <philipc@snapgear.com>
+Content-Disposition: inline
+In-Reply-To: <3E8242E8.3050609@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,21 +22,68 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <1048630711.14738.71.camel@tux.rsn.bth.se> you write:
-> Hi Rusty,
-> 
-> I have a question about the 12_contrack_nat_dependency.patch in
-> p-o-m/pending...
-> 
-> The patch you sent Harald was for 2.5, will a similar patch work for
-> 2.4? I've backported it and it compiles but I can't really test it.
 
-Yep, should be fine.  It has a flaw though for UP, in that relying on
-the lock is not sufficient.
+--gz4FNQG/2iJjJcgR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Harald and I are arguing it now; I'll tell you the answer when we
-have it.
+On Thu, Mar 27, 2003 at 10:16:40AM +1000, Philip Craig wrote:
+> >Mh.  If we don't have any nat mappings, we shouldn't call the helper.
+>=20
+> We use the TCP source port of the control channel for the call ID when
+> NATting.  For this to work, we have to NAT both forwarded and local
+> connections, otherwise there is a possibility of a call ID clash.
 
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+This is true.  But I don't think we should make this automatic.  The
+only case where this clash actually could happen is when both NAT'ed and
+local connections use the same source IP. =20
+
+We already have other difficulties in this case, see the 'locally bound
+UDP port can still be used for NAT mappings' discussion.
+
+If somebody wants to NAT PPTP sessions (local and remote), he should
+insert a SNAT rule in POSTROUTING which then matches local and remote
+connections.
+
+> Since the original call ID is usually different from the TCP source
+> port, there will be a nat mapping for local connections, and the
+> helper needs to be called.  If we get reservation of call IDs, then
+> this behaviour can be changed.
+
+yes, in the end we whould have some mechanism for callID reservation,
+even if it is just a simple 16bit counter that is incremented every time
+we need to use a CallID and wraps around after 16bit are expired.
+
+I don't think it's worth the effort doing a 'real' allocation (including
+a 'free') which would be per-IP.  Nobody will want to do 2^16 PPTP
+sessions from a single IP... and even if he would, there are other
+problems ;)
+
+> Philip Craig - philipc@snapgear.com - http://www.SnapGear.com
+> SnapGear - Custom Embedded Solutions and Security Appliances
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--gz4FNQG/2iJjJcgR
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+gsLjXaXGVTD0i/8RAhovAJsHnH5zR7Z6YW4CMq+MeTF1aEGTrQCeJNE8
+ozC9FOk6qCPM46dMICgD1Cw=
+=KfK/
+-----END PGP SIGNATURE-----
+
+--gz4FNQG/2iJjJcgR--
