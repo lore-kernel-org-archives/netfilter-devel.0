@@ -1,12 +1,11 @@
-From: =?ISO-8859-15?Q?Fr=E9d=E9ric_Massot?=
- <frederic@juliana-multimedia.com>
-Subject: Pb for get target info
-Date: Sat, 28 Feb 2004 13:36:18 +0100
+From: =?iso-8859-1?q?shailendra=20sharma?= <shails_1983@yahoo.co.in>
+Subject: enquiry
+Date: Sat, 28 Feb 2004 14:00:36 +0000 (GMT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <c1q202$khp$1@sea.gmane.org>
+Message-ID: <20040228140036.84186.qmail@web8007.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="0-1324379913-1077976836=:83252"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,92 +18,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+--0-1324379913-1077976836=:83252
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
-I write a C program (libiptc 1.2.9) which lists the rules using the MARK
-target.
+Dear Sir,
+                 I like to know that how can i filter and block packets usings
+                 iptables.
+                 I m making a interface for my own application .plz send the 
+                 -m filter module so that i can make a module of my own.
+        
+thank u
+netfilter friend
+ 
+ 
 
-The list returned by the program must contain the value of the mark
-(setting with --set-mark) and the values of the counters.
+Yahoo! India Insurance Special: Be informed on the best policies, services, tools and more.
+--0-1324379913-1077976836=:83252
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
-For the moment, I list the values of the counters for the rules which 
-use the MARK target, but I block to read the value of the MARK.
-
-I took as a starting point the sources of the programs iptables and
-iptables-save, and I block on the strange function "find_target".
-
-Can you help me, please ?
-Best regards.
-
-Below the source code of the program.
-
-PS: If the developers of the libiptc read me, would be a good idea to 
-have a function "iptc_get_target_info" which returned the target 
-information.
-
-
-<---------SOURCE CODE--------------->
-
-#include <stdio.h>
-#include <libiptc.h>
-#include <iptables.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-
-int
-main(void)
-{
-   iptc_handle_t h;
-   const char *chain = NULL;
-   const struct ipt_entry *e;
-   const char *target_name;
-   struct iptables_target *target = NULL;
-   const struct ipt_entry_target *t;
-
-   h = iptc_init("mangle");
-   if(!h)
-   {
-     fprintf(stderr, "Can't initialize: %s\n", iptc_strerror(errno));
-     return EXIT_FAILURE;
-   }
-
-   for (chain = iptc_first_chain(&h);
-        chain; chain = iptc_next_chain(&h))
-   {
-     e = iptc_first_rule(chain, &h);
-
-     while(e)
-     {
-       t = ipt_get_target((struct ipt_entry *)e);
-
-       if (!iptc_is_chain(chain, h))
-       	target = find_target(chain, TRY_LOAD);
-       else
-	target = find_target(IPT_STANDARD_TARGET,
-                      LOAD_MUST_SUCCEED);
-
-       target_name = iptc_get_target(e, &h);
-       if (target_name &&
-           (strncmp(target_name, "MARK", strlen("MARK")) == 0))		      {
-         printf("%s - ", target_name);
-         printf("[%llu:%llu]\n", e->counters.pcnt,
-  			        e->counters.bcnt);
-         if(target->print) target->print(&e->ip, t, 0x0041);
-       }
-       e = iptc_next_rule(e, &h);
-     }
-   }
-
-   iptc_free(&h);
-   return EXIT_SUCCESS;
-}
-
-
-
--- 
-==============================================
-|              FREDERIC MASSOT               |
-|     http://www.juliana-multimedia.com      |
-|   mailto:frederic@juliana-multimedia.com   |
-===========================Debian=GNU/Linux===
+<DIV>Dear Sir,</DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; I like to know that how can i filter and block packets usings</DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iptables.</DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; I m making a interface for my own application .plz send the </DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -m filter module so that i can make a module of my own.</DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </DIV>
+<DIV>thank u</DIV>
+<DIV>netfilter friend</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV><p><font face=arial size=-1>
+<a href="http://in.rd.yahoo.com/specials/mailtag/*http://in.insurance.yahoo.com/licspecial/index.html" target="_blank"><b>Yahoo! India Insurance Special</a>:</b> Be informed on the best policies, services, tools and more.</font>
+--0-1324379913-1077976836=:83252--
