@@ -1,19 +1,14 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [PATCH] info file for ROUTE target
-Date: Fri, 10 Dec 2004 10:14:45 +0100
-Message-ID: <20041210091445.GC4121@oknodo.bof.de>
-References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
-	<20041209195706.GA4121@oknodo.bof.de> <41B8EB72.50502@trash.net>
-	<1102669404.11255.29.camel@descartes.info.ucl.ac.be>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset 2.0 - Minor fix
+Date: Fri, 10 Dec 2004 11:20:13 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0412101117280.14449@blackhole.kfki.hu>
+References: <699F7BBB368A10479166148511F5241710DA52@gn-ex01.Go80211.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "netfilter-devel@lists.netfilter.org"
-	<netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, Patrick Schaaf <bof@bof.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Cedric de Launois <delaunois@info.ucl.ac.be>
-Content-Disposition: inline
-In-Reply-To: <1102669404.11255.29.camel@descartes.info.ucl.ac.be>
+To: Robert Iakobashvili <roberti@Go-WLAN.com>
+In-Reply-To: <699F7BBB368A10479166148511F5241710DA52@gn-ex01.Go80211.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,51 +20,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Thanks to conntrack, we can avoid flooding ourself with duplicated
-> packets.
+Hi,
 
-NOTE: due to no IPv6 conntrack, the (completely untested :) IPv6 --tee
-patch does _not_ contain the recursion detection I made for v4.
+On Thu, 9 Dec 2004, Robert Iakobashvili wrote:
 
-I'd love to do this in a different way, but don't know how.
-What is needed, is simply an efficient function that, given
-a (gateway) IP address, or even the already resolved route,
-tells us whether it will reenter the local IP stack.
+> IPset 2.0 works great with the recommended patch-o-patic and iptables version
+> on linux vanilla kernel 2.6.9.
+>
+> The minor issue on a Debian 64-bit destribution for AMD:
+> ipset compilation fails with :
+[..]
+>
+> fixed by adding to CFLAGS -fPIC.
 
-> My fear is that you could still have something like this :
-> 
->           PC1                                    PC2
-> 
->       orig packet     
->            |
->            v                  dup pkt 1
->    [ROUTE --tee --gw PC2] -------------------------.
->          | |   ^                                   |
->          | |   |                                   v
->          | |   '-----dup pkt 2 ---------- [ROUTE --tee --gw PC1]
->          | |                                      | |
->          v v                                      v v
->  Flood of duplicated packets            Flood of duplicated packets
+You are right, the flag was missing from Makefile.
+It has been corrected in svn and the new snapshot is uploaded to
+http://people.netfilter.org/kadlec/ipset.
 
-This is easily possible. There are lots of other failure scenarios.
+Thank you for reporting and fixing the problem.
 
-For example, when the chosen --gw resolves through our defaul route,
-chances are good all duplicate packets will come back to us almost
-immediately. We saw this in our testing, already. TTL should always
-be properly decremented, so this is a bit self-limiting, but
-nevertheless it's certainly a dangerous thing.
-
-> So we cannot make sure that people don't shoot themself. But anyway,
-> people using the ROUTE target are warned enough by pom...
-> Maybe I'm too paranoid ?
-
-If ROUTE were in the base kernel (which it isn't going to be, according
-to the last workshop results I've seen), I would be against including
-the --tee functionality, and would have made a separate target TEE for
-our needs.
-
-I'm certainly open to doing that, anyway, if this helps alleviate
-some paranoia.
-
-all the best
-  Patrick
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
