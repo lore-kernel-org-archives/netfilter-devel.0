@@ -1,13 +1,16 @@
-From: Michael Gundlach <gundlach@cs.uga.edu>
-Subject: PREROUTING doesn't catch all packets?
-Date: Wed, 19 Feb 2003 14:18:30 -0500
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: PREROUTING doesn't catch all packets?
+Date: Wed, 19 Feb 2003 21:19:31 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030219141830.A8641@cs.uga.edu>
+Message-ID: <20030219201931.GA16304@oknodo.bof.de>
+References: <20030219141830.A8641@cs.uga.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Michael Gundlach <gundlach@cs.uga.edu>
 Content-Disposition: inline
+In-Reply-To: <20030219141830.A8641@cs.uga.edu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,33 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi again everyone,
+> iptables -t nat
 
-I have the following iptables rules on my bridging Linux box:
+The NAT table NEVER sees any packet belonging to already existing
+conntrack entries. The sole purpose of the NAT table is to select
+NAT actions for NEW conntrack entries.
 
-iptables -t nat -F
-iptables -t nat -A PREROUTING -j QUEUE
-iptables -t nat -A OUTPUT -j QUEUE
+Thus, the behaviour you see, is the desired mode of operation,
+regardless of bridging. It is the way the NAT table is intended
+to operate.
 
-I then have a box connected to one NIC of the bridge telnet to a box
-connected to the other NIC of the bridge.  I use libipq to catch all
-packets, print them out, and reinject them.
-
-If I understand things correctly, all packets coming in on either bridge
-interface pass through the PREROUTING hook, so I should see every single
-one.  However, all I see (aka, all that ipq_read catches) is the SYN packet
-from the client to the server.
-
-Worse yet, when I add
-  iptables -A FORWARD -j QUEUE
-to the list, I see every packet - and the SYN packet twice.  So all packets
-hit the FORWARD chain, but only the SYN packet hits the PREROUTING chain!
-
-Am I misusing the nat table or something?  Shouldn't I be able to see all
-packets?  (I need to use PREROUTING for an application that is modifying
+> I need to use PREROUTING for an application that is modifying
 the destination IP of incoming packets, so "use the FORWARDING chain
-instead" isn't a sufficient answer.)
+instead" isn't a sufficient answer.
 
-Thanks for your help, everybody.
+The answer may be "use the PREROUTING chain of the '-t mangle' table".
 
-Michael
+best regards
+  Patrick
