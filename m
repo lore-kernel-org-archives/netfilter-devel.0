@@ -1,10 +1,9 @@
 From: Cedric de Launois <delaunois@info.ucl.ac.be>
-Subject: [PATCH] ROUTE target : kernel 2.6 fix for --gw option
-Date: Wed, 10 Nov 2004 17:33:10 +0100
-Message-ID: <1100104390.1748.95.camel@descartes.info.ucl.ac.be>
+Subject: [PATCH] ROUTE patch, oops forgot it ;)
+Date: Wed, 10 Nov 2004 17:36:44 +0100
+Message-ID: <1100104604.1748.98.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-4gY1Gu3wJE8hP8jhS9lN"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,31 +17,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
 
-Here a small patch to fix a bug in the kernel 2.6 version of the ROUTE
-target.
+--=-4gY1Gu3wJE8hP8jhS9lN
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-SYMPTOM : when a packet is rerouted towards a gateway, the destination
-          MAC address of the packet is not change appropriately.
+Sorry, I forgot to attach it...
 
-CAUSE : in the route() function of the ROUTE target, a wrong field
-        (fl.fld_dst) is used to alter the IP address of the next hop.
-        The right field is fl.fl4_dst for IPv4 packets.
-        This field only appears for kernels 2.6.x.
+--=-4gY1Gu3wJE8hP8jhS9lN
+Content-Disposition: attachment; filename=ipt_ROUTE-fl4_dst-fix.patch
+Content-Type: text/x-patch; name=ipt_ROUTE-fl4_dst-fix.patch;
+	charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-SOLUTION :
+--- patch-o-matic-ng.orig/ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	2004-11-10 17:12:35.000000000 +0100
++++ patch-o-matic-ng/ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	2004-11-10 17:14:50.000000000 +0100
+@@ -4,7 +4,7 @@
+  *
+  * Copyright (C) 2002 Cedric de Launois <delaunois@info.ucl.ac.be>
+  *
+- * v 1.9 2004/05/14
++ * v 1.10 2004/11/10
+  *
+  * This software is distributed under GNU GPL v2, 1991
+  */
+@@ -69,7 +69,7 @@
+ 	
+ 	/* The destination address may be overloaded by the target */
+ 	if (route_info->gw)
+-		fl.fld_dst = route_info->gw;
++		fl.fl4_dst = route_info->gw;
+ 	
+ 	/* Trying to route the packet using the standard routing table. */
+ 	if ((err = ip_route_output_key(&rt, &fl))) {
 
-    modify
-       /* The destination address may be overloaded by the target */
-       if (route_info->gw)
-               fl.fld_dst = route_info->gw;
-
-    by
-       /* The destination address may be overloaded by the target */
-       if (route_info->gw)
-               fl.fl4_dst = route_info->gw;
-
-The patch is attached.
-
-Cedric
+--=-4gY1Gu3wJE8hP8jhS9lN--
