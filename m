@@ -1,17 +1,18 @@
-From: =?iso-8859-2?q?Micha=B3=20Margula?= <alchemyx@uznam.net.pl>
-Subject: Re: ip_conntrack
-Date: Tue, 4 Mar 2003 09:27:33 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: A suggestion for the netfilter part of the sources
+Date: Tue, 4 Mar 2003 19:20:06 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200303040927.33460.alchemyx@uznam.net.pl>
-References: <200303040107.28400.alchemyx@uznam.net.pl> <20030304073324.GI25876@oknodo.bof.de>
+Message-ID: <20030304182006.GI4880@sunbeam.de.gnumonks.org>
+References: <3E64E1C8.9040309@securinet.qc.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+1TulI7fc0PCHNy3"
+Cc: linux-kernel@vger.kernel.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20030304073324.GI25876@oknodo.bof.de>
+To: David =?iso-8859-1?Q?Lagani=E8re?= <spanska@securinet.qc.ca>
+Content-Disposition: inline
+In-Reply-To: <3E64E1C8.9040309@securinet.qc.ca>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,17 +23,71 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dnia wto 4. marzec 2003 08:33, Patrick Schaaf napisa=B3:
->
-> Sigh.  Your command is not supposed to work.  Use:
->
-> echo 256000 > /proc/sys/net/ipv4/ip_conntrack_max
->
-> regards
->   Patrick
 
-Works. So my solution was bad :). Thank you!
+--+1TulI7fc0PCHNy3
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Mar 04, 2003 at 12:26:32PM -0500, David Lagani=E8re wrote:
+=20
+> Since a couple of new kernel versions already, I use to modify two files=
+=20
+> related to the netfilter part to be able to add more
+> ports for the IRC NAT module. I was wondering if you could definitively=
+=20
+> apply those modifications to the kernel sources.
+
+We (the netfilter developers) thought that for the usual case, 8 ports
+should be a reasonable compiletime-limit.  I know, especially for IRC,
+this largely depends on the number of IRC networks and servers you want
+to support...
+
+> Here are my two modifications:
+>=20
+> In /usr/src/linux-2.4.20/net/ipv4/netfilter:
+> I change "#define MAX_PORTS 8" to "#define MAX_PORTS 15" in both=20
+> "ip_conntrack_irc.c" and "ip_nat_irc.c".
+
+yes, this is the (documented) way to compile with support for more ports
+
+> I'd greatly appreciate a reply even though my suggestion is not a good on=
+e.
+
+The suggestion is neither 'good' nor 'bad'.  Nobody has (until now)
+asked us to raise this value, eight seems to be enough for most people.
+
+As long as your proposal is not backed by more other users who think the
+default should be raised, I'd rather leave it the way it currently is.
+
+btw: further discussion should happen at
+netfilter-devel@lists.netfilter.org
+
+> David Lagani=E8re
+> Network/System Administrator
+> Securinet Systems
 
 --=20
-Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/ +)
-"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--+1TulI7fc0PCHNy3
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+ZO5WXaXGVTD0i/8RAsBvAJ9xdiJ24q+V6t3XUquh5kFYch6emwCfaJIM
+DU7Ib83fpJ8cY+QLLYnZTBQ=
+=HKvP
+-----END PGP SIGNATURE-----
+
+--+1TulI7fc0PCHNy3--
