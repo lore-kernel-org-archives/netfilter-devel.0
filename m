@@ -1,74 +1,75 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH]: style/MODULE_AUTHOR fix for ipt_realm and ipt_CLASSIFY
-Date: Sat, 23 Aug 2003 14:55:53 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030823124622.GA2669@obroa-skai.de.gnumonks.org>
-References: <3F460E50.6060701@trash.net>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: ulogd-1.01 released
+Date: Sat, 23 Aug 2003 20:14:26 +0200
+Sender: netfilter-announce-admin@lists.netfilter.org
+Message-ID: <20030823181426.GA5107@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eJnRUKwClWJh1Khz"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+	protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
+Cc: netfilter-announce@lists.netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-announce-admin@lists.netfilter.org>
+To: ulogd@lists.gnumonks.org
 Content-Disposition: inline
-In-Reply-To: <3F460E50.6060701@trash.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Errors-To: netfilter-announce-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-announce@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-announce/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---eJnRUKwClWJh1Khz
+--mYCpIKhGyMATD0i+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 22, 2003 at 02:36:32PM +0200, Patrick McHardy wrote:
-> Hi Harald,
->=20
-> these two patches fix style / MODULE_AUTHOR in ipt_realm
-> and ipt_CLASSIFY. Also some incorrect includes in ipt_realm
-> are fixed. A similar patch for the addrtype match is going to
-> follow.
+Hi!
 
-thanks, patches applied.
+I have released Version 1.01 of the iptables userspace logging
+daemon (ulogd).=20
 
-> Best regards,
-> Patrick
->=20
-> PS: i had to take netfilter-devel off the CC list, lists.netfilter.org=20
-> is unknown.
+The new Version is available as tar.bz2 only and can be retrieved from:
+ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.01.tar.bz2
 
-unknown? that is strange.  I did _change_ the MX to point to a different
-machine (netfilter.franken.de), but I never removed it from the zone.
+There is a GPG signature for verification of the authenticity of the=20
+archive: ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.01.tar.bz2.sig
 
-Anyway, it should be working again now.
+Changes (since Version 1.00)
+- use $(LD) macro in order to provide cross-compiling/linking support
+- add 'rmem' configuration key to set the netlink socket rmem buffsize
+- don't use kernel header files for IP/TCP header definitions
+- various cosmetic cleanup to compile with -Wall
+- fix usage of libmysqlclient: call mysql_init() before mysql_real_connect()
+- don't have LOGEMU read the system time, ulogd_LOCAL.so does this already
+
+Please direct any questions / bug reports to the
+ulogd@lists.gnumonks.org mailinglist.
+
+Thanks for all your patience with my not-so-frequend release cycle.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
 
---eJnRUKwClWJh1Khz
+--mYCpIKhGyMATD0i+
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/R2RYXaXGVTD0i/8RAmWxAJ9Fr8+zAZu1cv/0PYRLdRzvjEvkIgCgtUoI
-AAnmtyZLm3GEt82doGXF6A4=
-=KF0Z
+iD8DBQE/R68CXaXGVTD0i/8RApU4AJ9CIkAy0+XJJl5yj0W7aw6mByPwcACeP/sn
+wstqwSaDeTB/rNZPgt671G4=
+=PPdN
 -----END PGP SIGNATURE-----
 
---eJnRUKwClWJh1Khz--
+--mYCpIKhGyMATD0i+--
