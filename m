@@ -1,16 +1,17 @@
-From: levsky@rave.iinet.net.au
-Subject: Re: [PATCH] Add C99 initializers to a few ipv6/netfilter files
-Date: Sat, 8 Mar 2003 19:12:56 +0800
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: can netfilter support sql*net?
+Date: Mon, 10 Mar 2003 00:21:47 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030308111256.GA13132@rave.iinet.net.au>
-References: <20030307164305.GE2247@debian>
+Message-ID: <20030309232147.GP324@sunbeam.de.gnumonks.org>
+References: <200303071025328.SM01032@zhengcb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, linux-net@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2vfFyZRy2guiefOI"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Art Haas <ahaas@airmail.net>
+To: zhengchuanbo <zhengcb@netpower.com.cn>
 Content-Disposition: inline
-In-Reply-To: <20030307164305.GE2247@debian>
+In-Reply-To: <200303071025328.SM01032@zhengcb>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,27 +22,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 07, 2003 at 10:43:05AM -0600, Art Haas wrote:
-> Hi.
-> 
-> Here is a set of two patches that add C99 initializers to files in the
-> subject directory. A similar patch for ipv4 files will follow.
-> 
-> There are some giant structures in the netfilter code that would benefit
-> from named initializers. I'll try to tackle them later.
-> 
 
-Hi Art,
+--2vfFyZRy2guiefOI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I've actually converted the ipv4/netfilter and ipv6/netfilter directories
-over to c99 style initialisers, including the giant structs that you
-were talking about.  I've sent the patches off to Harald a week or so
-ago, so he should be able to roll them in at some point when his
-workload gets a little lower.  
+On Fri, Mar 07, 2003 at 10:29:22AM +0800, zhengchuanbo wrote:
+>=20
+> we use oracle server, with sql*net dynamic port(not MTS). i tried to
+> find a patch for sql*net,but failed. is there any solution for
+> netfilter to support sql*net?
 
-The patches are pretty large, but if you want a copy, drop me a line.
+I am not very familiar with the technical details on protocol level of
+oracle sql*net.  But if it uses a dynamic port, you would need a
+conntrack/nat helper.
 
-Cheers
+We are not aware of any development of such a helper for netfilter.
 
-Mark
-> 
+btw: the list address is no longer @lists.samba.org, but
+     @lists.netfilter.org
+
+> chuanbo zheng
+
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
+
+--2vfFyZRy2guiefOI
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+a8yLXaXGVTD0i/8RAkHFAJ4uJi46qiC5peI4k7gtQPz5yLPhIQCffcUE
+QPx+osDjieq4ctobhCAE7z8=
+=SYCl
+-----END PGP SIGNATURE-----
+
+--2vfFyZRy2guiefOI--
