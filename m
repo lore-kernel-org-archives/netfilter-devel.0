@@ -1,8 +1,11 @@
-From: "Stephan Jager" <Stephan@medz.org>
-Subject: H.323 conntrack patch
-Date: Sun, 13 Jul 2003 20:44:38 +0200
+From: yh <walteyh@sohu.com>
+Subject: [bug-reaport] netfilter extentions iplimit mod bugs.
+Date: Mon, 14 Jul 2003 11:27:28 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200307131844.h6DIicwT000629@alpha.medz.org>
+Message-ID: <20030714112728.24bdb6aa.walteyh@sohu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -15,38 +18,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+HI guys,
 
-(I'm new here, so if I  post too much/too little information, please tell 
-me so)
+I download netfilter extentions via cvs yestoday, the iplimit code has some bug, in 214 lin in linux/net/ipv4/netfilter/ipt_connlimit.c
 
-I'm trying to use the H.323 conntrack module for my AddPac Voicefinder 
-device. It seems that it works only "half" in my situation.
-I've turned on debugging for the h323 modules, but I could not see 
-anything suspicous in the first place.
+static struct ipt_match connlimit_match
+= { { NULL, NULL }, "connlimit", &match, &check, &destroy, THIS_MODULE };
 
-The function: "static int h225_help" contains a 
-ip_conntrack_expect_related call, which seems to work. (it registers a 
-incoming call derived from the h.225 package). This one is called first in 
-sequence. Those packages are going to my Voicefinder device 
-(private network)without problems.
+notic the "connlimit", it's must should be "iplimit", I don't know when it was changed, but the userspace tool iptable haven't changed yet.  so when you type "iptables -A INPUT -p tcp --syn --dport http -m iplimit --iplimit-above 4 -j REJECT" , the result is "Invailid command."..:)
 
-Furthermore, in the "static int h245_help" function, there is also a 
-ip_conntrack_expect_related call. This one is also registered (twice), but 
-connections for this conntrack are not going to my private network. (this 
-is registered 2nd and 3th) It seems that netfilter does not match those 
-packages, altough the logging says so.
+change the "connlimit" into "iplimit", recompiled kernel, it's OK now.;)
 
-Perhaps anybody can see at the code if there's anything obvious wrong? I 
-can give you a full package-state + debug logging, but I guess thats too 
-much for now.
+by the way, I wan to know when the netfilter will wok will in kernel 2.5.* ? until 2.6 release? ( yestoday, I compiled kernel 2.5.74, build netfilter with in, but iptables reaport that "no 'filter' table in kernel".)
 
-Is there a good way to see the way a package flows? I've trying to turn on 
-logging in the ip_conntrack_core, but thats way too much :)
-
-If I've got this running, I'm going to write a H.245 RAS (gatekeeper) 
-module, but I need to get this protocol running first fine.
-
-With regards,
-
-Stephan
+-------------
+thx all guy work for netfilter project..
