@@ -1,17 +1,13 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH, RFC] Add bridged IPv6 packet filtering
-Date: Tue, 31 Aug 2004 13:28:22 -0700
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: ct_sync 0.16 released
+Date: Tue, 31 Aug 2004 23:23:18 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040831132822.3c487f75.davem@redhat.com>
-References: <200408281713.29192.bdschuym@pandora.be>
-	<200408312028.42742.bdschuym@pandora.be>
+Message-ID: <20040831212317.GA12913@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <200408312028.42742.bdschuym@pandora.be>
+To: netfilter-failover@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,10 +18,35 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 31 Aug 2004 20:28:42 +0200
-Bart De Schuymer <bdschuym@pandora.be> wrote:
 
-> How should I proceed to get any response in this matter? Should I be 
-> contacting someone else?
+  Hi,
 
-Try pinging yoshfuji@linux-ipv6.org and usagi-core@linux-ipv6.org
+  I've finally completed the recovery code in ct_sync, in theory the code
+in CVS should be able to:
+
+  - re-send missing packets to the slaves if the missing packets are
+    available in the backlog of the master
+  - initiate a complete re-sync if recovery by re-sending packets is
+    impossible
+
+  Unfortunately I was able to give it only the most basic testing, so
+probably there are a lot of problems with the code. Testers are welcome,
+as always. I've created a tarball version of ct_sync as well, so that
+checking out the CVS is not the only possible way to get the code. ct_sync
+0.16 is available from
+
+  http://people.netfilter.org/hidden/ct_sync/ct_sync-0.16.tar.bz2
+
+or you can check out the ctsync_0_16 revision from the CVS.
+
+  The 0.16 release includes the new connection mark integration code, so
+please take the time and read the section of the README file describing
+the use of the connmark features. Beginning with 0.16, you have to
+explicitly mark conntrack entries to be replicated; the default behaviour
+has changed since 0.15.
+
+  Some feedback would be appreciated, especially with respect to the new
+recovery features.
+
+-- 
+ KOVACS Krisztian
