@@ -1,20 +1,19 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] Prevent crash on ip_conntrack removal
-Date: Thu, 19 Aug 2004 08:14:28 -0700
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [RFC] ct_sync 0.15 (corrected)
+Date: Thu, 19 Aug 2004 18:13:01 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040819081428.5243e314.davem@redhat.com>
-References: <20040818091352.GB6507@suse.de>
-	<20040819101159.GC3921@sunbeam.de.gnumonks.org>
-	<20040819071846.2d0d6120.davem@redhat.com>
-	<4124BF7E.7090304@trash.net>
+Message-ID: <Pine.LNX.4.61.0408191811410.5913@filer.marasystems.com>
+References: <1092407190.2402.120.camel@nienna.balabit>
+ <20040819110646.GJ3921@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, okir@suse.de, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: KOVACS Krisztian <hidden@balabit.hu>,
+   Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+   netfilter-devel <netfilter-devel@lists.netfilter.org>,
+   jamal <hadi@cyberus.ca>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4124BF7E.7090304@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040819110646.GJ3921@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,16 +24,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 19 Aug 2004 16:55:58 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+On Thu, 19 Aug 2004, Harald Welte wrote:
 
-> These are Olaf's patches. I agree with Harald that the second
-> patch is better. I've fixed it up so it applies with the recent
-> ip_fragment.c changes.
+> I would just use connmark for now.  Let's make it a CONFIG option
+> though, so people can just use connmark without any interference and
+> replicate all connections.
 
-I have a better idea.
+With the (conn)mark operations patch discussed recently on netfilter-devel 
+it makes sense to use a bitmask for this, masking which bit(s) indicate a 
+session should be replicated.
 
-Instead of setting skb->dst to NULL, it should set it to some
-NULL destination entry which just frees up the packets.  Then
-no special case handling.  skb->dst==NULL packets should never
-get into the fragment queue to begin with.
+Regards
+Henrik
