@@ -1,18 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: TSO and netfilter (Re: Extremely slow network with e1000 & ip_conntrack)
-Date: Fri, 12 Dec 2003 08:01:31 +0100
+Subject: Re: iptable_nat module slows/hoses my Redhat 9.0 box
+Date: Fri, 12 Dec 2003 08:13:01 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031212070131.GN15606@sunbeam.de.gnumonks.org>
-References: <20031204213030.2B75.MUKANSAI@emailplus.org> <20031205122819.25ac14ab.davem@redhat.com> <20031211110315.GJ22826@sunbeam.de.gnumonks.org> <20031211174136.1ed23e2e.davem@redhat.com>
+Message-ID: <20031212071301.GP15606@sunbeam.de.gnumonks.org>
+References: <EFBADA8C200C2B418DA39734FD15475B0B20EF@skat.sky.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lR6P3/j+HGelbRkf"
-Cc: mukansai@emailplus.org, scott.feldman@intel.com,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="UeXZ3FjlYZvuln/G"
+Cc: "'netfilter@lists.netfilter.org'" <netfilter@lists.netfilter.org>,
+	"'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: Kishore Dharmavaram <kishored@servgate.com>
 Content-Disposition: inline
-In-Reply-To: <20031211174136.1ed23e2e.davem@redhat.com>
+In-Reply-To: <EFBADA8C200C2B418DA39734FD15475B0B20EF@skat.sky.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,69 +24,35 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---lR6P3/j+HGelbRkf
+--UeXZ3FjlYZvuln/G
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 11, 2003 at 05:41:36PM -0800, David S. Miller wrote:
-> On Thu, 11 Dec 2003 12:03:15 +0100
-> Harald Welte <laforge@netfilter.org> wrote:
+On Thu, Dec 11, 2003 at 09:47:25PM -0800, Kishore Dharmavaram wrote:
+> Hi All,
 >=20
-> > The only interesting case is in ip_output.c:ip_queue_xmit(), where
-> > tso_size and tso_segs are calculated, before NF_IP_LOCAL_OUT is run.
-> >=20
-> > But changing the content or the size of the tcp payload should not
-> > affect those calculations.=20
->=20
-> It changes at least tso_segs, since if you decrease of increase the
-> size of the payload the number of real TCP/IP packets the TSO engine
-> will end up spitting out could be different.
+> I find that after inserting "iptable_nat" module on my RH9.0(2.4.20-19.9)
+> box, session-setup(ip_conntrack)  performance gets very bad.=20
 
-I see.  So what about the networking core exporting an [inline] function
-that recalculates tso_segs and tso_size (like the 'Hack zone' code
-fragment in ip_queue_xmit() right now), called skb_tso_recalc() or
-whatever name you prefer.
+yes, that's true.  I think we cannot state often enogh: DO NOT load
+iptable_nat if you don't need nat. =20
 
-Or even better (since I assume TSO can only happen with
-locally-originated datagrams), why don't we move the tso_size/tso_segs
-calculation to happen after the LOCAL_OUT netfilter hook?  This way we
-also get the ip_select_ident_more() right, which we couldn't easily
-update from the proposed skb_tso_recalc() function.
+> I am wondering why "iptable_nat" is slowing doing the box so much when I
+> don't have any NAT rules defined.
 
-yes, in that case we would need to have some fake code like
-	if (skb->len > mtu && (sk->sk_route_caps&NETIF_F_TSO))
-		skb_shinfo(skb)->tso_segs =3D 1;
-in order to make the newly-created check for refragmentation in
-conntrack still work.  Alternatively, create some inline function that=20
-gives a yes/no return if the skb would later become TSO or not.
+NAT is inherently complex.  and in order to support any kind of nat,
+every connection (even the non-nat'ed ones) need to be placed in two
+additional hash tables. =20
 
-> The one netfilter module I'm most concerned about is the one that
-> handles non-passive FTP, I remember that one did strange things with
-> the data stream, removed TCP options, and stuff like that.
+If you just use conntrack, a single hash table is sufficient..=20
 
-There are no NAT helper modules as of now that touch the size of the TCP
-header.  We have some experimental stuff in patch-o-matic (like
-IPV3OPTSSTRIP target), but nothing in the stock kernel.  I will put a
-review of those on our TODO list - but for the vanilla kernel there
-shouldn't be a problem.
+> Do you guys know of any netfilter patches made to address/fix this issue?.
 
-> > Even in the past, when we used to remove SACKPERM from the tcp
-> > header, we just NOP'ed it out instead of resizing the header.
->=20
-> This may be what I was thinking about.
+There is no way to 'address' this issue other than not using NAT.
 
-We now don't do that anymore and mangle the SACK options accordingly.
-In any way, there is nothing that changes the size of the tcp or udp
-header. =20
-
-> Currently all the TSO supporting drivers set the ip and tcp header
-> checksum values themselves as appropriate, so there are no worries in
-> this area.
-
-good news.
-
-Please get back to me with any comments you might have, thanks.
+> Thanks,
+> Kishore
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -98,16 +64,16 @@ Please get back to me with any comments you might have, thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---lR6P3/j+HGelbRkf
+--UeXZ3FjlYZvuln/G
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/2WfLXaXGVTD0i/8RAmWOAJ9Er60Kd/D3SvjMTWB2H6f0Q1JZEwCfUTGz
-FPnm0qaY4QGR5xN8TDHwAtY=
-=JwZG
+iD8DBQE/2Wp9XaXGVTD0i/8RAiHDAJwNEXdKKKh1I32f/lhB+yyloYzg4QCeJTBW
+RrxugLK0LDm8InSC15ZKsKY=
+=aZRa
 -----END PGP SIGNATURE-----
 
---lR6P3/j+HGelbRkf--
+--UeXZ3FjlYZvuln/G--
