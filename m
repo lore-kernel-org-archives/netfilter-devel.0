@@ -1,8 +1,8 @@
-From: Barry Rooney  <brooney@xcommunications.co.uk>
+From: Barry Rooney  <netfilter@xcommunications.co.uk>
 Subject: COPS-PR backend
-Date: Tue, 16 Dec 2003 1:13:02 -0100
+Date: Tue, 16 Dec 2003 1:17:46 -0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E1AW3lm-00072e-00@yankee.rb.xcalibre.co.uk>
+Message-ID: <E1AW3qM-0003D7-00@yankee.rb.xcalibre.co.uk>
 Reply-To: Barry Rooney  <brooney@xcommunications.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1";
