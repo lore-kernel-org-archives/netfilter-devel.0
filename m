@@ -1,11 +1,11 @@
 From: "Calvin" <calvinproject@ihug.com.au>
-Subject: add/remove rules using libiptc
-Date: Fri, 16 May 2003 21:32:38 +1000
+Subject: Rusty Guide, "Receiving command from userspace" "Packet handling in Userspace"
+Date: Fri, 16 May 2003 21:58:05 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <002e01c31b9e$db21bd30$d211fea9@toowoomba>
+Message-ID: <003c01c31ba2$6b95fef0$d211fea9@toowoomba>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_002B_01C31BF2.ACAC8990"
+	boundary="----=_NextPart_000_0039_01C31BF6.3AAB3770"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -20,32 +20,31 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_002B_01C31BF2.ACAC8990
+------=_NextPart_000_0039_01C31BF6.3AAB3770
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
 Hi all,
 
-I am looking for a way to adding and deleting rules from iptables using =
-module. I reaad the Rusty Hacking netfilter HOWTO and got a little bit =
-idea.
+Sorry about my questions again, I am really new to netfilter programming =
+and after reading materials of different palces, I got a fair bit ideas, =
+I started my module complie and running and testing but still along way =
+to go.
 
-However there are something i can't understand. I the guide, it mentions =
-about the libiptc. Is it I can use the lib in the netfilter module for =
-adding and deleting rules from the iptables at any time using the =
-iptc_insert_entry(), iptc_append_entry(), iptc_delete_entry(), etc? =
-However I can't find an example of  using these, i get really confused =
-about the struct using in there. Could anyone pls give me a guide to =
-start?
+I was reading the section "Receiving command from userspace" "Packet =
+handling in Userspace", I am quite sure the meaning of these two. Does =
+it means I can write a C program run in shell can communicate with =
+netfilter which is running in kernel space? I am particularly interested =
+in Packet Handling in userspace. Is this funactionality useful? what is =
+the purpose of doing this since we can write a module doing doign =
+simliar things and load it into kernel.
 
-I can't find the libiptc.h in my linux Redhat 8, why? I have iptables =
-complied as a module when I complie my kernel before.
+Thanks for everything
 
+Calvin
 
-
-
-------=_NextPart_000_002B_01C31BF2.ACAC8990
+------=_NextPart_000_0039_01C31BF6.3AAB3770
 Content-Type: text/html;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -60,32 +59,31 @@ charset=3Diso-8859-1">
 <BODY bgColor=3D#c0c0c0>
 <DIV><FONT face=3DArial size=3D2>Hi all,</FONT></DIV>
 <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I am looking for a way to adding and =
-deleting rules=20
-from iptables using module. I reaad the Rusty Hacking netfilter HOWTO =
-and got a=20
-little bit idea.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>Sorry about my questions again, I am =
+really new to=20
+netfilter programming and after reading materials of different palces, I =
+got a=20
+fair bit ideas, I started my module complie and running and testing but =
+still=20
+along way to go.</FONT></DIV>
 <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>However there are something i can't =
-understand. I=20
-the guide, it mentions about the libiptc. Is it I can use the lib in the =
-
-netfilter module for adding and deleting rules from the iptables at any =
-time=20
-using the iptc_insert_entry(), iptc_append_entry(), iptc_delete_entry(), =
-etc?=20
-However I can't find an example of&nbsp; using these, i get really =
-confused=20
-about the struct using in there. Could anyone pls give me a guide to=20
-start?</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>I was reading the section "Receiving =
+command from=20
+userspace" "Packet handling in Userspace", I am quite sure the meaning =
+of these=20
+two. Does it means I can write a C program run in shell can communicate =
+with=20
+netfilter which is running in kernel space? I am particularly interested =
+in=20
+Packet Handling in userspace. Is&nbsp;this funactionality useful? what =
+is the=20
+purpose of doing this since we can write a module doing doign simliar =
+things and=20
+load it into kernel.</FONT></DIV>
 <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I can't&nbsp;find the libiptc.h in my =
-linux Redhat=20
-8, why? I have iptables complied as a module when I complie my kernel=20
-before.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>Thanks for everything</FONT></DIV>
 <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Calvin</FONT></DIV>
 <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
 
-------=_NextPart_000_002B_01C31BF2.ACAC8990--
+------=_NextPart_000_0039_01C31BF6.3AAB3770--
