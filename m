@@ -1,15 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Resend: TCP window tracking fixes
-Date: Wed, 02 Feb 2005 00:45:19 +0100
-Message-ID: <4200148F.70004@trash.net>
-References: <20050201232504.GA27476@linuxace.com>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH] Netfilter: Don't cachline align slab allocs
+Date: Wed, 02 Feb 2005 11:55:19 +1100
+Message-ID: <1107305721.10400.16.camel@localhost.localdomain>
+References: <1105947649.3954.39.camel@localhost.localdomain>
+	<20050201125731.GD6878@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050201232504.GA27476@linuxace.com>
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
+	Anton Blanchard <anton@samba.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050201125731.GD6878@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,64 +22,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
+On Tue, 2005-02-01 at 13:57 +0100, Harald Welte wrote:
+> On Mon, Jan 17, 2005 at 06:40:49PM +1100, Rusty Russell wrote:
+> > Anton points out that cacheline aligning conntrack entries is a wank.
+> > He's right: there's lots of them, and they're currently ~200 bytes.
+>=20
+> I'm totally fine believing both of you... but ... So why is/was it a ba=
+d
+> idea? =20
 
->Resending two patches which have not yet made it to mainline, and
->which (IMO) are fairly important and should go in before 2.6.11.
->
->1) retransmission handling -- window tracking needs to look at both
->   seq numbers in determining whether a retransmission has occurred
->
->   http://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018241.html
->
->2) over-window handling -- window tracking should not adjust down
->   the maximum seq number which it thinks a client has received --
->   the client may disagree with this number
->
->   http://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018278.html
->
->Patches attached below, comments welcomed.
->
-I already have the retransmission handling patch queued, I'm just
-a little behind with pushing it to Dave. I would like to hear
-Jozsef's opinion before applying your second patch, he knows the
-code much better than me. Jozsef, does the second patch look ok
-to you ?
+It has the effect of enlarging the structure to a cacheline boundary,
+hence reducing density and worsening cache behaviour (as well as wasting
+memory).  The only gain would be if there were a significant probability
+of "false sharing" where two connection tracking entries accessed by
+different CPUs were in the same cacheline.  This is unlikely because of
+the number of conntrack entries, and the fact that they are bigger than
+a cacheline already (ie. at worst, only two could share a cacheline, and
+then not completely).
 
-Regards
-Patrick
+In general, cacheline aligned is hard to justify for any slab allocation
+for performance reasons, as slab indicates that many are being
+allocated.
 
+> > Same with the cargo-cult programming in ipt_hashlimit.
+>=20
+> Mh, please elaborate about that 'cargo-cult programming' phrase - seems
+> to be an expression I'm not familiar with, as non-native english
+> speaker.
 
->Phil
->
->
->  
->
->------------------------------------------------------------------------
->
->diff -ru linux-orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c linux-testdellfw/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
->--- linux-orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-01-28 17:48:10.620973992 -0500
->+++ linux-testdellfw/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-01-28 17:54:02.799434728 -0500
->@@ -622,7 +622,6 @@
-> 	/* Ignore data over the right edge of the receiver's window. */
-> 	if (after(end, sender->td_maxend) &&
-> 	    before(seq, sender->td_maxend)) {
->-		end = sender->td_maxend;
-> 		if (*index == TCP_FIN_SET)
-> 			*index = TCP_ACK_SET;
-> 	}
->@@ -691,9 +690,9 @@
-> 			after(seq, sender->td_end - receiver->td_maxwin - 1) ?
-> 			before(sack, receiver->td_end + 1) ?
-> 			after(ack, receiver->td_end - MAXACKWINDOW(sender)) ? "BUG"
->-			: "ACK is under the lower bound (possibly overly delayed ACK)"
->-			: "ACK is over the upper bound (ACKed data has never seen yet)"
->-			: "SEQ is under the lower bound (retransmitted already ACKed data)"
->+			: "ACK is under the lower bound (possible overly delayed ACK)"
->+			: "ACK is over the upper bound (ACKed data not seen yet)"
->+			: "SEQ is under the lower bound (already ACKed data retransmitted)"
-> 			: "SEQ is over the upper bound (over the window of the receiver)");
-> 
-> 		res = ip_ct_tcp_be_liberal && !tcph->rst;
->  
->
+That's disingenuous: don't blame your language skills for my lack of
+clarity.  From the jargon file:
+
+http://www.catb.org/~esr/jargon/html/C/cargo-cult-programming.html
+
+cargo cult programming: n.
+       =20
+        A style of (incompetent) programming dominated by ritual
+        inclusion of code or program structures that serve no real
+        purpose. A cargo cult programmer will usually explain the extra
+        code as a way of working around some bug encountered in the
+        past, but usually neither the bug nor the reason the code
+        apparently avoided the bug was ever fully understood (compare
+        shotgun debugging, voodoo programming).
+       =20
+        The term =91cargo cult=92 is a reference to aboriginal religions
+        that grew up in the South Pacific after World War II. The
+        practices of these cults center on building elaborate mockups of
+        airplanes and military style landing strips in the hope of
+        bringing the return of the god-like airplanes that brought such
+        marvelous cargo during the war. Hackish usage probably derives
+        from Richard Feynman's characterization of certain practices as
+        =93cargo cult science=94 in his book Surely You're Joking, Mr.
+        Feynman! (W. W. Norton & Co, New York 1985, ISBN 0-393-01921-7).
+       =20
+My only difference here is that I place 50% of the blame on the
+interface, not the poor programmer who copied the code.
+
+Rusty.
+--=20
+A bad analogy is like a leaky screwdriver -- Richard Braakman
