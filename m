@@ -1,15 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset breaks iptables compilation
-Date: Tue, 17 Feb 2004 11:12:38 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: RE : RE : RE : RE : RE : Apply rules to 1 UDP port but port used
+ as a socket: possible?
+Date: Tue, 17 Feb 2004 11:41:08 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402171111260.10727-100000@blackhole.kfki.hu>
-References: <20040215182224.GB15567@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0402171136510.29541-100000@filer.marasystems.com>
+References: <D4EF10CCEB2CE742BEEA9838C590B0E8011CC286@ftrdmel2.rd.francetelecom.fr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20040215182224.GB15567@sunbeam.de.gnumonks.org>
+To: zze-Proxy GRALL O ext FTRD/SVA/LAN <ograll.ext@rd.francetelecom.com>
+In-Reply-To: <D4EF10CCEB2CE742BEEA9838C590B0E8011CC286@ftrdmel2.rd.francetelecom.fr>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,24 +21,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 15 Feb 2004, Harald Welte wrote:
+On Tue, 17 Feb 2004, zze-Proxy GRALL O ext FTRD/SVA/LAN wrote:
 
-> It seems like your inclusion of ipset broke iptables userspace compiles
-> :(
+> I still need 2 informations:
+> -Can I stop the stream ? When I remove the rule (and even Flush) the UDP packets can continue to pass ...
 
-The Makefile I put together? Ugghhh...
+See ctnetlink.
 
-> The reason are the missing include files.   I suggest to either put them
-> into iptables/include/linux/, or (as indicated in my other mail) to put
-> iptset into a seperate cvs module (which seems to make a lot of sense to
-> me).
+> -Another thing strange is that during my tests I used 2 client programs
+> on 2 different machines. They tried to connect to the same server.
+> First, for the NAT I apply a rule:
+>
+>       iptables -t nat -A POSROUTING -p udp -d SERVER_ADDR --dport SERVER_PORT -s CLIENT1_ADDR --sport CLIENT1_PORT -j SNAT --to-source PUBLIC_ADDR:PUBLIC_PORT
+>       iptables -t nat -A POSROUTING -p udp -d SERVER_ADDR --dport SERVER_PORT -s CLIENT2_ADDR --sport CLIENT2_PORT -j SNAT --to-source PUBLIC_ADDR:PUBLIC_PORT
+>
+> So when clients sended UDP packets, only the client who sended the first
+> packets was NATed and not the other. I changed the new IP source of the
+> 2nd client to "--to-source PUBLIC_ADDR:PUBLIC_PORT2" and then it was OK.
 
-Yes, let's separate it from iptables.
+Yes. This is because NAT needs to be able to differentiate the two 
+sessions if there is return traffic. The above rules makes the sessions 
+after NAT use the exact same addressing information making it impossible 
+to determine which session return traffic belongs to. Because of this the 
+second NAT session is rejected by netfilter.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+Henrik
