@@ -1,18 +1,15 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: Re: [PTCH 2.5.68] netfilter using Read Copy Update
-Date: Mon, 28 Apr 2003 12:30:09 -0700
+From: Brad Fisher <brad@info-link.net>
+Subject: Re: Patch with additional options for quota match
+Date: Mon, 28 Apr 2003 16:49:00 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030428123009.4cde1e57.shemminger@osdl.org>
-References: <20030427132413.GP990@sunbeam.de.gnumonks.org>
-	<20030428062622.5F0FE2C4D3@lists.samba.org>
+Message-ID: <3EADA1CC.32177E6F@info-link.net>
+References: <3E9DCA15.40C99A6C@info-link.net> <20030427124055.GX990@sunbeam.de.gnumonks.org> <3EAD9895.6020408@aos.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-   davem@redhat.com
+Content-Type: multipart/mixed;
+ boundary="------------F5DCBF51296841475876C39C"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <20030428062622.5F0FE2C4D3@lists.samba.org>
+To: Sam Johnston <samj@aos.net.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,262 +20,446 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 28 Apr 2003 14:24:30 +1000
-Rusty Russell <rusty@rustcorp.com.au> wrote:
-
-> In message <20030427132413.GP990@sunbeam.de.gnumonks.org> you write:
-> > 
-> > --K0mDTbuGRobClnW5
-> > Content-Type: text/plain; charset=us-ascii
-> > Content-Disposition: inline
-> > Content-Transfer-Encoding: quoted-printable
-> > 
-> > On Thu, Apr 24, 2003 at 09:04:06AM -0700, Stephen Hemminger wrote:
-> > > This is an update to netfilter core that uses the read-copy-update
-> > > instead of brlock.  The code is similar to my earlier patch but less
-> > > invasive.
-> > 
-> > I will try to review this patch and eventually push it to David Miller.
-> 
-> There is a fundamental flaw in the nf_reinject code: when a packet is
-> reinjected, it makes an attempt to figure out if the hook which sent
-> it to queue in the first place has vanished, and if so it drops the
-> packet.
-> 
-> Of course, this is racy (it compares nf_hook_ops addresses) but
-> "mostly works".  The best solution is to hold a reference to the hook
-> so it can't vanish.
-> 
-> Stephen, it should be simple for you to rework your patch on top of
-> this one.
-> 
-
-Revised RCU patch.  Rusty, you forgot to kfree() the info structure
-if the try_module_get failed.
+This is a multi-part message in MIME format.
+--------------F5DCBF51296841475876C39C
+Content-Type: multipart/alternative;
+ boundary="------------F8A2F74CCB61BC696B7F6F20"
 
 
-diff -Nru a/include/linux/list.h b/include/linux/list.h
---- a/include/linux/list.h	Mon Apr 28 10:07:35 2003
-+++ b/include/linux/list.h	Mon Apr 28 10:07:35 2003
-@@ -335,6 +335,16 @@
- 		     prefetch(pos->member.next))
+--------------F8A2F74CCB61BC696B7F6F20
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+Sam, I sent you an email earlier following Harald's request.  I did neglect
+to attach the patches to that email, sorry.  The patches should be attached
+to this email.  Let me know if you need anything else.
+
+The negated match has been very useful for my purposes.  I have been using it
+to track quotas for individual hosts by ip as follows:
+
+INPUT:
+     target     prot opt in     out     source               destination
+     i_1.0.0.1  all  --  *      eth1    1.0.0.1              0.0.0.0/0
+
+FORWARD:
+     target     prot opt in     out     source               destination
+     i_1.0.0.1  all  --  *      eth1    1.0.0.1              0.0.0.0/0
+     o_1.0.0.1  all  --  *      eth1    0.0.0.0/0            1.0.0.1
+
+OUTUT:
+    target     prot opt in     out     source               destination
+    o_1.0.0.1  all  --  *      eth1    0.0.0.0/0            1.0.0.1
+
+i_1.0.0.1:
+    target     prot opt in     out     source               destination
+    q_1.0.0.1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+    ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0
+
+o_1.0.0.1:
+    target     prot opt in     out     source               destination
+    q_1.0.0.1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+    ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0
+
+q_1.0.0.1:
+    target     prot opt in     out     source               destination
+    DROP       all  --  *      *       0.0.0.0/0
+0.0.0.0/0          quota: !8000000 bytes (incl. headers)
+
+If the quota rule in the q_1.0.0.1 chain matches (ie. the quota is
+exhausted), the packet is dropped.  By using the three chains (i_*, o_*,
+q_*),  all traffic to/from the ip is accounted for and the quotas are
+enforced for all incoming and outgoing traffic with the same rule.
+
+Brad Fisher
+Info Link Inc.
+
+
+Sam Johnston wrote:
+
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> Harald Welte wrote:
+>
+> | On Wed, Apr 16, 2003 at 04:24:37PM -0500, Brad Fisher wrote:
+> |
+> |>I have made up a small patch for the quota match by Sam Johnston to add
+> |>a couple of options I find useful - negated matching and the option to
+> |>count total packet size (data + headers) instead of just data size.
+> |
+> |
+> | I don't want to include this without the orignal author's permission.
+> | Please contact Sam Johnston about your changes and ask him if he agrees
+> | with those changes.
+>
+> Harald,
+>
+> Thankyou for confirming changes with me. I haven't seen this patch, so
+> can someone please forward it on. The changes requested sound reasonable
+> in principal - for most applications counting the headers is probably
+> what is intended although this is a change in functionality. I'm not
+> sure about the applications for negated matching but no doubt someone
+> somewhere will find it useful.
+>
+> Sam
+>
+> - --
+> Sam Johnston, Director
+> Australian Online Solutions
+> 1300 132 809
+>
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.2.1 (MingW32)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+>
+> iD8DBQE+rZiVj4XJViLpTR0RAmW3AJ48YYYbgoNHI0bc18nRd4rszsmtTQCfcoeN
+> 4mg8d/NVh50OSF9A2fMPTHY=
+> =obWm
+> -----END PGP SIGNATURE-----
+
+--------------F8A2F74CCB61BC696B7F6F20
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<tt>Sam, I sent you an email earlier following Harald's request.&nbsp;
+I did neglect to attach the patches to that email, sorry.&nbsp; The patches
+should be attached to this email.&nbsp; Let me know if you need anything
+else.</tt><tt></tt>
+<p><tt>The negated match has been very useful for my purposes.&nbsp; I
+have been using it to track quotas for individual hosts by ip as follows:</tt><tt></tt>
+<p><tt>INPUT:</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; target&nbsp;&nbsp;&nbsp;&nbsp; prot opt
+in&nbsp;&nbsp;&nbsp;&nbsp; out&nbsp;&nbsp;&nbsp;&nbsp; source&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+destination</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; i_1.0.0.1&nbsp; all&nbsp; --&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+eth1&nbsp;&nbsp;&nbsp; 1.0.0.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0.0.0.0/0</tt><tt></tt>
+<p><tt>FORWARD:</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; target&nbsp;&nbsp;&nbsp;&nbsp; prot opt
+in&nbsp;&nbsp;&nbsp;&nbsp; out&nbsp;&nbsp;&nbsp;&nbsp; source&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+destination</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; i_1.0.0.1&nbsp; all&nbsp; --&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+eth1&nbsp;&nbsp;&nbsp; 1.0.0.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0.0.0.0/0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; o_1.0.0.1&nbsp; all&nbsp; --&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+eth1&nbsp;&nbsp;&nbsp; 0.0.0.0/0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+1.0.0.1</tt><tt></tt>
+<p><tt>OUTUT:</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; target&nbsp;&nbsp;&nbsp;&nbsp; prot opt in&nbsp;&nbsp;&nbsp;&nbsp;
+out&nbsp;&nbsp;&nbsp;&nbsp; source&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+destination</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; o_1.0.0.1&nbsp; all&nbsp; --&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+eth1&nbsp;&nbsp;&nbsp; 0.0.0.0/0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+1.0.0.1</tt><tt></tt>
+<p><tt>i_1.0.0.1:</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; target&nbsp;&nbsp;&nbsp;&nbsp; prot opt in&nbsp;&nbsp;&nbsp;&nbsp;
+out&nbsp;&nbsp;&nbsp;&nbsp; source&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+destination</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; q_1.0.0.1&nbsp; all&nbsp; --&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0.0.0.0/0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; ACCEPT&nbsp;&nbsp;&nbsp;&nbsp; all&nbsp; --&nbsp;
+*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0.0.0.0/0</tt><tt></tt>
+<p><tt>o_1.0.0.1:</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; target&nbsp;&nbsp;&nbsp;&nbsp; prot opt in&nbsp;&nbsp;&nbsp;&nbsp;
+out&nbsp;&nbsp;&nbsp;&nbsp; source&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+destination</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; q_1.0.0.1&nbsp; all&nbsp; --&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0.0.0.0/0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; ACCEPT&nbsp;&nbsp;&nbsp;&nbsp; all&nbsp; --&nbsp;
+*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0.0.0.0/0</tt><tt></tt>
+<p><tt>q_1.0.0.1:</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; target&nbsp;&nbsp;&nbsp;&nbsp; prot opt in&nbsp;&nbsp;&nbsp;&nbsp;
+out&nbsp;&nbsp;&nbsp;&nbsp; source&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+destination</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; DROP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; all&nbsp;
+--&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0.0.0.0/0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0.0.0.0/0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; quota:
+!8000000 bytes (incl. headers)</tt><tt></tt>
+<p><tt>If the quota rule in the q_1.0.0.1 chain matches (ie. the quota
+is exhausted), the packet is dropped.&nbsp; By using the three chains (i_*,
+o_*, q_*),&nbsp; all traffic to/from the ip is accounted for and the quotas
+are enforced for all incoming and outgoing traffic with the same rule.</tt><tt></tt>
+<p><tt>Brad Fisher</tt>
+<br><tt>Info Link Inc.</tt>
+<br><tt></tt>&nbsp;<tt></tt>
+<p><tt>Sam Johnston wrote:</tt>
+<blockquote TYPE=CITE>-----BEGIN PGP SIGNED MESSAGE-----
+<br>Hash: SHA1
+<p>Harald Welte wrote:
+<p>| On Wed, Apr 16, 2003 at 04:24:37PM -0500, Brad Fisher wrote:
+<br>|
+<br>|>I have made up a small patch for the quota match by Sam Johnston
+to add
+<br>|>a couple of options I find useful - negated matching and the option
+to
+<br>|>count total packet size (data + headers) instead of just data size.
+<br>|
+<br>|
+<br>| I don't want to include this without the orignal author's permission.
+<br>| Please contact Sam Johnston about your changes and ask him if he
+agrees
+<br>| with those changes.
+<p>Harald,
+<p>Thankyou for confirming changes with me. I haven't seen this patch,
+so
+<br>can someone please forward it on. The changes requested sound reasonable
+<br>in principal - for most applications counting the headers is probably
+<br>what is intended although this is a change in functionality. I'm not
+<br>sure about the applications for negated matching but no doubt someone
+<br>somewhere will find it useful.
+<p>Sam
+<p>- --
+<br>Sam Johnston, Director
+<br>Australian Online Solutions
+<br>1300 132 809
+<p>-----BEGIN PGP SIGNATURE-----
+<br>Version: GnuPG v1.2.1 (MingW32)
+<br>Comment: Using GnuPG with Mozilla - <a href="http://enigmail.mozdev.org">http://enigmail.mozdev.org</a>
+<p>iD8DBQE+rZiVj4XJViLpTR0RAmW3AJ48YYYbgoNHI0bc18nRd4rszsmtTQCfcoeN
+<br>4mg8d/NVh50OSF9A2fMPTHY=
+<br>=obWm
+<br>-----END PGP SIGNATURE-----</blockquote>
+</html>
+
+--------------F8A2F74CCB61BC696B7F6F20--
+
+--------------F5DCBF51296841475876C39C
+Content-Type: text/plain; charset=us-ascii;
+ name="iptables-libipt_quota.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="iptables-libipt_quota.diff"
+
+--- iptables-1.2.7a/extensions/libipt_quota.c	Wed May 29 08:08:16 2002
++++ iptables-1.2.7a-imq/extensions/libipt_quota.c	Wed Apr 16 15:11:05 2003
+@@ -2,6 +2,7 @@
+  * Shared library add-on to iptables to add quota support
+  *
+  * Sam Johnston <samj@samj.net>
++ * (Modified to support negated matches and add option to count headers by Brad Fisher (brad@info-link.net))
+  */
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -13,6 +14,7 @@
  
+ static struct option opts[] = {
+         {"quota", 1, 0, '1'},
++        {"count-headers", 0, 0, '2'},
+         {0}
+ };
  
-+/**
-+ * list_for_each_continue_rcu	-	iterate over an rcu-protected list 
-+ *			continuing from existing point.
-+ * @pos:	the &struct list_head to use as a loop counter.
-+ * @head:	the head for your list.
-+ */
-+#define list_for_each_continue_rcu(pos, head) \
-+	for ((pos) = (pos)->next, prefetch((pos)->next); (pos) != (head); \
-+        	(pos) = (pos)->next, ({ smp_read_barrier_depends(); 0;}), prefetch((pos)->next))
-+
- /* 
-  * Double linked lists with a single pointer list head. 
-  * Mostly useful for hash tables where the two pointer list head is 
-diff -Nru a/net/core/netfilter.c b/net/core/netfilter.c
---- a/net/core/netfilter.c	Mon Apr 28 10:07:35 2003
-+++ b/net/core/netfilter.c	Mon Apr 28 10:07:35 2003
-@@ -19,7 +19,6 @@
- #include <linux/interrupt.h>
- #include <linux/if.h>
- #include <linux/netdevice.h>
--#include <linux/brlock.h>
- #include <linux/inetdevice.h>
- #include <net/sock.h>
- #include <net/route.h>
-@@ -40,12 +39,13 @@
- #endif
- 
- /* Sockopts only registered and called from user context, so
--   BR_NETPROTO_LOCK would be overkill.  Also, [gs]etsockopt calls may
-+   net locking would be overkill.  Also, [gs]etsockopt calls may
-    sleep. */
- static DECLARE_MUTEX(nf_sockopt_mutex);
- 
- struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
- static LIST_HEAD(nf_sockopts);
-+static spinlock_t nf_hook_lock = SPIN_LOCK_UNLOCKED;
- 
- /* 
-  * A queue handler may be registered for each protocol.  Each is protected by
-@@ -56,28 +56,31 @@
- 	nf_queue_outfn_t outfn;
- 	void *data;
- } queue_handler[NPROTO];
-+static rwlock_t queue_handler_lock = RW_LOCK_UNLOCKED;
- 
- int nf_register_hook(struct nf_hook_ops *reg)
+@@ -21,7 +23,8 @@
+ help(void)
  {
- 	struct list_head *i;
- 
--	br_write_lock_bh(BR_NETPROTO_LOCK);
--	for (i = nf_hooks[reg->pf][reg->hooknum].next; 
--	     i != &nf_hooks[reg->pf][reg->hooknum]; 
--	     i = i->next) {
-+	spin_lock_bh(&nf_hook_lock);
-+	list_for_each(i, &nf_hooks[reg->pf][reg->hooknum]) {
- 		if (reg->priority < ((struct nf_hook_ops *)i)->priority)
- 			break;
- 	}
--	list_add(&reg->list, i->prev);
--	br_write_unlock_bh(BR_NETPROTO_LOCK);
-+	list_add_rcu(&reg->list, i->prev);
-+	spin_unlock_bh(&nf_hook_lock);
-+
-+	synchronize_net();
- 	return 0;
+         printf("quota options:\n"
+-               " --quota quota                  quota (bytes)\n" "\n");
++               " --quota [!] quota              quota (bytes)\n"
++               " --count-headers                count headers as well as data\n" "\n");
  }
  
- void nf_unregister_hook(struct nf_hook_ops *reg)
+ /* initialise match */
+@@ -37,7 +40,18 @@
+ print(const struct ipt_ip *ip, const struct ipt_entry_match *match, int numeric)
  {
--	br_write_lock_bh(BR_NETPROTO_LOCK);
--	list_del(&reg->list);
--	br_write_unlock_bh(BR_NETPROTO_LOCK);
-+	spin_lock_bh(&nf_hook_lock);
-+	list_del_rcu(&reg->list);
-+	spin_unlock_bh(&nf_hook_lock);
+         struct ipt_quota_info *q = (struct ipt_quota_info *) match->data;
+-        printf("quota: %llu bytes", (unsigned long long) q->quota);
++        char *negate = "";
++        char *headers = "";
 +
-+	synchronize_net();
++        if (q->flags & IPT_QUOTA_FLAG_NEGATE) {
++          negate = "!";
++        }
++
++        if (q->flags & IPT_QUOTA_FLAG_COUNT_FULL) {
++          headers = " (incl. headers)";
++        }
++
++        printf("quota: %s%llu bytes%s", negate, (unsigned long long) q->quota, headers);
  }
  
- /* Do exclusive ranges overlap? */
-@@ -344,7 +347,11 @@
- 			       int (*okfn)(struct sk_buff *),
- 			       int hook_thresh)
+ /* save matchinfo */
+@@ -45,14 +59,28 @@
+ save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
  {
--	for (*i = (*i)->next; *i != head; *i = (*i)->next) {
-+	/*
-+	 * The caller must not block between calls to this
-+	 * function because of risk of continuing from deleted element.
-+	 */
-+	list_for_each_continue_rcu(*i, head) {
- 		struct nf_hook_ops *elem = (struct nf_hook_ops *)*i;
- 
- 		if (hook_thresh > elem->priority)
-@@ -383,7 +390,7 @@
- {      
- 	int ret;
- 
--	br_write_lock_bh(BR_NETPROTO_LOCK);
-+	write_lock_bh(&queue_handler_lock);
- 	if (queue_handler[pf].outfn)
- 		ret = -EBUSY;
- 	else {
-@@ -391,7 +398,7 @@
- 		queue_handler[pf].data = data;
- 		ret = 0;
- 	}
--	br_write_unlock_bh(BR_NETPROTO_LOCK);
-+	write_unlock_bh(&queue_handler_lock);
- 
- 	return ret;
+         struct ipt_quota_info *q = (struct ipt_quota_info *) match->data;
+-        printf("--quota %llu ", (unsigned long long) q->quota);
++
++        printf("--quota ");
++        if (q->flags & IPT_QUOTA_FLAG_NEGATE) {
++                printf("! ");
++        }
++        printf("%llu ", (unsigned long long) q->quota);
++
++        if (q->flags & IPT_QUOTA_FLAG_COUNT_FULL) {
++                printf("--count-headers ");
++        }
  }
-@@ -399,10 +406,11 @@
- /* The caller must flush their queue before this */
- int nf_unregister_queue_handler(int pf)
+ 
+ /* parse quota option */
+ static int
+ parse_quota(const char *s, u_int64_t * quota)
  {
--	br_write_lock_bh(BR_NETPROTO_LOCK);
-+	write_lock_bh(&queue_handler_lock);
- 	queue_handler[pf].outfn = NULL;
- 	queue_handler[pf].data = NULL;
--	br_write_unlock_bh(BR_NETPROTO_LOCK);
-+	write_unlock_bh(&queue_handler_lock);
-+	
- 	return 0;
- }
+-        *quota = strtoull(s, (char **) NULL, 10);
++        /* Don't allow negative quotas... Not perfect since it doesn't skip whitespace */
++        if (s && (*s == '-')) {
++                *quota = -1;
++        } else {
++                *quota = strtoull(s, (char **) NULL, 10);
++        }
  
-@@ -425,7 +433,9 @@
- #endif
+ #ifdef DEBUG_IPT_QUOTA
+         printf("Quota: %llu\n", *quota);
+@@ -74,12 +102,20 @@
  
- 	/* QUEUE == DROP if noone is waiting, to be safe. */
-+	read_lock(&queue_handler_lock);
- 	if (!queue_handler[pf].outfn) {
-+		read_unlock(&queue_handler_lock);
- 		kfree_skb(skb);
- 		return 1;
- 	}
-@@ -435,6 +445,7 @@
- 		if (net_ratelimit())
- 			printk(KERN_ERR "OOM queueing packet %p\n",
- 			       skb);
-+		read_unlock(&queue_handler_lock);
- 		kfree_skb(skb);
- 		return 1;
- 	}
-@@ -443,8 +454,11 @@
- 		(struct nf_hook_ops *)elem, pf, hook, indev, outdev, okfn };
- 
- 	/* If it's going away, ignore hook. */
--	if (!try_module_get(info->elem->owner))
-+	if (!try_module_get(info->elem->owner)) {
-+		read_unlock(&queue_handler_lock);
-+		kfree(info);
- 		return 0;
-+	}
- 
- 	/* Bump dev refs so they don't vanish while packet is out */
- 	if (indev) dev_hold(indev);
-@@ -460,6 +474,8 @@
- #endif
- 
- 	status = queue_handler[pf].outfn(skb, info, queue_handler[pf].data);
-+	read_unlock(&queue_handler_lock);
+         switch (c) {
+         case '1':
+-                if (check_inverse(optarg, &invert, NULL, 0))
+-                        exit_error(PARAMETER_PROBLEM, "quota: unexpected '!'");
+-                if (!parse_quota(optarg, &info->quota))
++                check_inverse(optarg, &invert, &optind, 0);
++                if (invert) {
++                        info->flags |= IPT_QUOTA_FLAG_NEGATE;
++                }
++                if (!parse_quota(argv[optind-1], &info->quota))
+                         exit_error(PARAMETER_PROBLEM,
+                                    "bad quota: '%s'", optarg);
+                 break;
 +
- 	if (status < 0) {
- 		/* James M doesn't say fuck enough. */
- 		if (indev) dev_put(indev);
-@@ -495,7 +511,7 @@
- 	}
++        case '2':
++                if (check_inverse(optarg, &invert, NULL, 0))
++                        exit_error(PARAMETER_PROBLEM, "count-headers: unexpected '!'");
++                info->flags |= IPT_QUOTA_FLAG_COUNT_FULL;
++                break;
  
- 	/* We may already have this, but read-locks nest anyway */
--	br_read_lock_bh(BR_NETPROTO_LOCK);
-+	rcu_read_lock();
+         default:
+                 return 0;
+
+--------------F5DCBF51296841475876C39C
+Content-Type: text/plain; charset=us-ascii;
+ name="patch-o-matic-20030107-quota.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="patch-o-matic-20030107-quota.diff"
+
+diff -urN patch-o-matic-20030107/base/quota.patch patch-o-matic-20030107-imq/base/quota.patch
+--- patch-o-matic-20030107/base/quota.patch	Mon Dec  3 16:22:56 2001
++++ patch-o-matic-20030107-imq/base/quota.patch	Wed Apr 16 15:46:43 2003
+@@ -1,26 +1,35 @@
+-diff -urN kernel-source-2.4.16/include/linux/netfilter_ipv4/ipt_quota.h kernel-source-2.4.16-samj/include/linux/netfilter_ipv4/ipt_quota.h
+---- kernel-source-2.4.16/include/linux/netfilter_ipv4/ipt_quota.h	Thu Jan  1 10:00:00 1970
+-+++ kernel-source-2.4.16-samj/include/linux/netfilter_ipv4/ipt_quota.h	Mon Dec  3 21:43:07 2001
+-@@ -0,0 +1,11 @@
++diff -urN linux-2.4.20-clean/include/linux/netfilter_ipv4/ipt_quota.h linux-2.4.20/include/linux/netfilter_ipv4/ipt_quota.h
++--- linux-2.4.20-clean/include/linux/netfilter_ipv4/ipt_quota.h	Wed Dec 31 18:00:00 1969
+++++ linux-2.4.20/include/linux/netfilter_ipv4/ipt_quota.h	Wed Apr 16 13:35:52 2003
++@@ -0,0 +1,19 @@
+ +#ifndef _IPT_QUOTA_H
+ +#define _IPT_QUOTA_H
+ +
+ +/* print debug info in both kernel/netfilter module & iptable library */
+ +//#define DEBUG_IPT_QUOTA
+ +
+++#define IPT_QUOTA_FLAG_NEGATE 1
+++#define IPT_QUOTA_FLAG_COUNT_FULL 2
+++
+ +struct ipt_quota_info {
+-+        u_int64_t quota;
+++        u_int64_t quota;	/* Remaining bytes to allow */
+++	u_int16_t flags;	/* Bitmask: */
+++				/*   Bit 0 - negate match if set (matches if quota == 0) */
+++				/*           normal match if not set (matches if quota > 0) */
+++				/*   Bit 1 - include entire packet (headers + data) in count if set */
+++				/*           only count data size if not set */
+ +};
+ +
+ +#endif /*_IPT_QUOTA_H*/
+-diff -urN kernel-source-2.4.16/net/ipv4/netfilter/ipt_quota.c kernel-source-2.4.16-samj/net/ipv4/netfilter/ipt_quota.c
+---- kernel-source-2.4.16/net/ipv4/netfilter/ipt_quota.c	Thu Jan  1 10:00:00 1970
+-+++ kernel-source-2.4.16-samj/net/ipv4/netfilter/ipt_quota.c	Mon Dec  3 21:42:08 2001
+-@@ -0,0 +1,81 @@
++diff -urN linux-2.4.20-clean/net/ipv4/netfilter/ipt_quota.c linux-2.4.20/net/ipv4/netfilter/ipt_quota.c
++--- linux-2.4.20-clean/net/ipv4/netfilter/ipt_quota.c	Wed Dec 31 18:00:00 1969
+++++ linux-2.4.20/net/ipv4/netfilter/ipt_quota.c	Wed Apr 16 14:07:56 2003
++@@ -0,0 +1,99 @@
+ +/* 
+ + * netfilter module to enforce network quotas
+ + *
+ + * Sam Johnston <samj@samj.net>
+++ * (Modified to support negation by Brad Fisher <brad@info-link.net>)
+ + */
+ +#include <linux/module.h>
+ +#include <linux/skbuff.h>
+@@ -44,6 +53,10 @@
+ +
+ +        struct ipt_quota_info *q = (struct ipt_quota_info *) matchinfo;
+ +
+++	if (q->flags & IPT_QUOTA_FLAG_COUNT_FULL) {
+++		datalen = skb->len;
+++	}
+++
+ +        spin_lock_bh(&quota_lock);
+ +
+ +        if (q->quota >= datalen) {
+@@ -51,20 +64,33 @@
+ +                q->quota -= datalen;
+ +                spin_unlock_bh(&quota_lock);
+ +
+++		if ((q->flags & IPT_QUOTA_FLAG_NEGATE) == 0) {
+ +#ifdef DEBUG_IPT_QUOTA
+-+                printk("IPT Quota OK: %llu datlen %d \n", q->quota, datalen);
+++	                printk("IPT Quota OK: %llu datlen %d \n", q->quota, datalen);
+ +#endif
+-+                return 1;
+++        	        return 1;
+++		} else {
+++#ifdef DEBUG_IPT_QUOTA
+++		        printk("IPT Quota Failed: !%llu datlen %d \n", q->quota, datalen);
+++#endif
+++			return 0;
+++		}
+ +        }
+ +
+ +        /* so we do not allow even small packets from now on */
+ +        q->quota = 0;
+ +
+++        spin_unlock_bh(&quota_lock);
+++	if ((q->flags & IPT_QUOTA_FLAG_NEGATE)) {
+++#ifdef DEBUG_IPT_QUOTA
+++                printk("IPT Quota OK: %llu datlen !%d \n", q->quota, datalen);
+++#endif
+++		return 1;
+++	}
+++
+ +#ifdef DEBUG_IPT_QUOTA
+ +        printk("IPT Quota Failed: %llu datlen %d \n", q->quota, datalen);
+ +#endif
+-+
+-+        spin_unlock_bh(&quota_lock);
+ +        return 0;
+ +}
+ +
+diff -urN patch-o-matic-20030107/base/quota.patch.help patch-o-matic-20030107-imq/base/quota.patch.help
+--- patch-o-matic-20030107/base/quota.patch.help	Mon Dec  3 16:22:56 2001
++++ patch-o-matic-20030107-imq/base/quota.patch.help	Wed Apr 16 15:49:37 2003
+@@ -5,6 +5,9 @@
+ quotas by decrementing a byte counter with each packet.
  
- #ifdef CONFIG_NETFILTER_DEBUG
- 	if (skb->nf_debug & (1 << hook)) {
-@@ -526,7 +542,7 @@
- 		break;
- 	}
- 
--	br_read_unlock_bh(BR_NETPROTO_LOCK);
-+	rcu_read_unlock();
- 	return ret;
- }
- 
-@@ -536,12 +552,23 @@
- 	struct list_head *elem = &info->elem->list;
- 	struct list_head *i;
- 
--	/* We don't have BR_NETPROTO_LOCK here */
--	br_read_lock_bh(BR_NETPROTO_LOCK);
-+	rcu_read_lock();
- 
- 	/* Drop reference to owner of hook which queued us. */
- 	module_put(info->elem->owner);
- 
-+	list_for_each_rcu(i, &nf_hooks[info->pf][info->hook]) {
-+		if (i == elem) 
-+  			break;
-+  	}
-+  
-+	if (elem == &nf_hooks[info->pf][info->hook]) {
-+		/* The module which sent it to userspace is gone. */
-+		NFDEBUG("%s: module disappeared, dropping packet.\n",
-+			__FUNCTION__);
-+		verdict = NF_DROP;
-+	}
-+
- 	/* Continue traversal iff userspace said ok... */
- 	if (verdict == NF_REPEAT) {
- 		elem = elem->prev;
-@@ -571,7 +598,7 @@
- 		kfree_skb(skb);
- 		break;
- 	}
--	br_read_unlock_bh(BR_NETPROTO_LOCK);
-+	rcu_read_unlock();
- 
- 	/* Release those devices we held, or Alexey will kill me. */
- 	if (info->indev) dev_put(info->indev);
+ Supported options are:
+---quota <bytes>
+-  The quota in bytes.
+-
++--quota [!] <bytes>
++  The quota in bytes.  The normal form matches all packets up to the
++    quota, while the negated form only matches after quota bytes have
++    been examined by the rule.
++--count-headers
++  Counts headers as well as data (default only counts data)
+
+--------------F5DCBF51296841475876C39C--
