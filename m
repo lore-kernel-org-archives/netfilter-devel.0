@@ -1,19 +1,14 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
-Date: Tue, 5 Apr 2005 21:48:06 -0700
-Message-ID: <20050406044806.GA9711@linuxace.com>
-References: <20050402202438.GA2968@linuxace.com> <4250435E.1090309@trash.net>
-	<20050403235320.GB28850@linuxace.com>
-	<20050404044033.GA1847@linuxace.com> <4250FA72.3020502@trash.net>
-	<20050404204716.GA4067@linuxace.com>
+From: "Martin Koniczek" <martin@koniczek.de>
+Subject: Re: pptp-conntrack-nat - problem
+Date: Wed, 6 Apr 2005 10:52:39 +0200
+Message-ID: <04d701c53a86$012a1150$9c01a8c0@vaion>
+References: <1112691812.22295.4.camel@sas> <20050405152410.GA7423@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="qDbXVdCdHGoSgWSk"
-Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <20050404204716.GA4067@linuxace.com>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,65 +20,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+>> I try apply pptp-conntrack downloaded directly from SVN
+>> and I got error:
+>> Kernel:   2.6.11, /home/users/cieciwa/rpm/BUILD/linux-2.6.11.6
+> 
+> It doesn't work with kernels > 2.6.10 at the moment.
 
---qDbXVdCdHGoSgWSk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+is it much work to make it work with current kernels?
+or is there some inofficial "roadmap"/estimates?
+or can one outline the steps needed, so i could try my own luck?
 
-On Mon, Apr 04, 2005 at 01:47:16PM -0700, Phil Oester wrote:
-> So as it stands, only retransmits on positive sizediff are handled
-> properly.  But my original check to compensate for this was flawed,
-> since seq != correction_pos when entering adjust_tcp_sequence - but
-> it does seem clear we cannot blindly -= offset_after.
+i have great interest for this module to work with kernels >2.6.10
+(also needing h323-conntrack-nat, connbytes, connrate)
+(nice2have owner-socketlookup, owner-supgids, TRACE,
+dropped-table, unclean which all seem not to work with 2.6.11.6)
+at least, the patches cannot be apllied - perhaps because of changes
+which are already in the kernel? mostly ladd troubles...
 
-I've become more convinced that this is the correct approach.  Anticipating
-that you will too, below is an updated patch with comments added.
-
-Phil
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
-
-
---qDbXVdCdHGoSgWSk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ftpstable
-
-diff -ru linux-orig/net/ipv4/netfilter/ip_nat_helper.c linux-stable/net/ipv4/netfilter/ip_nat_helper.c
---- linux-orig/net/ipv4/netfilter/ip_nat_helper.c	2005-03-02 02:37:49.000000000 -0500
-+++ linux-stable/net/ipv4/netfilter/ip_nat_helper.c	2005-04-06 00:42:48.736295496 -0400
-@@ -72,15 +72,23 @@
- 
- 	LOCK_BH(&ip_nat_seqofs_lock);
- 
--	/* SYN adjust. If it's uninitialized, or this is after last
--	 * correction, record it: we don't handle more than one
--	 * adjustment in the window, but do deal with common case of a
--	 * retransmit */
--	if (this_way->offset_before == this_way->offset_after
--	    || before(this_way->correction_pos, seq)) {
--		    this_way->correction_pos = seq;
--		    this_way->offset_before = this_way->offset_after;
--		    this_way->offset_after += sizediff;
-+	/* SYN adjust. In the case of a retransmit, ip_nat_seq_adjust has
-+	 * added offset_before to client's seq, so subtract it to test
-+	 * for retransmit here */
-+	if (seq - this_way->offset_before != this_way->correction_pos) {
-+		/* If it's uninitialized, or this is after last correction,
-+		 * record it. We don't handle more than one adjustment in
-+		 * the window */
-+		seq -= this_way->offset_after;
-+		if (this_way->offset_before == this_way->offset_after
-+		    || before(this_way->correction_pos, seq)) {
-+			/* Since ip_nat_seq_adjust has added
-+			 * offset_after, subtract it to store
-+			 * the client's seq in correction_pos */
-+			this_way->correction_pos = seq;
-+			this_way->offset_before = this_way->offset_after;
-+			this_way->offset_after += sizediff;
-+		}
- 	}
- 	UNLOCK_BH(&ip_nat_seqofs_lock);
- 
-
---qDbXVdCdHGoSgWSk--
+sincerly,
+    martin koniczek
