@@ -1,18 +1,21 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: PATCH: extra conntrack stats
-Date: Fri, 02 May 2003 15:31:50 +1000
+Date: Fri, 2 May 2003 09:06:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030502065752.5AB7D2C056@lists.samba.org>
-References: <1051780007.8215.200.camel@tux.rsn.bth.se>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
-	Harald Welte <laforge@netfilter.org>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>
+Message-ID: <20030502070651.GG15143@oknodo.bof.de>
+References: <1051780007.8215.200.camel@tux.rsn.bth.se> <20030502065752.5AB7D2C056@lists.samba.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
+  Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+  Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
+  Harald Welte <laforge@netfilter.org>,
+  Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+  Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-reply-to: Your message of "01 May 2003 11:06:48 +0200."
-             <1051780007.8215.200.camel@tux.rsn.bth.se>
+To: Rusty Russell <rusty@rustcorp.com.au>
+Content-Disposition: inline
+In-Reply-To: <20030502065752.5AB7D2C056@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,39 +26,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <1051780007.8215.200.camel@tux.rsn.bth.se> you write:
-> On Thu, 2003-05-01 at 02:06, Rusty Russell wrote:
-> > If we can do this without making our hash really suck, we only need one
-> > entry per conntrack (and we then compare both ways).  This means a
-> > smaller table, and hence better cache utilization, as well as simpler
-> > locking.
+On Fri, May 02, 2003 at 03:31:50PM +1000, Rusty Russell wrote:
+> In message <1051780007.8215.200.camel@tux.rsn.bth.se> you write:
+> > On Thu, 2003-05-01 at 02:06, Rusty Russell wrote:
+> > > If we can do this without making our hash really suck, we only need one
+> > > entry per conntrack (and we then compare both ways).  This means a
+> > > smaller table, and hence better cache utilization, as well as simpler
+> > > locking.
+> > > 
+> > > Thoughts?
 > > 
-> > Thoughts?
+> > As Patrick already pointed out, it gets ugly wrt. NAT, the reply tuple
+> > can be quite diffrent.
 > 
-> As Patrick already pointed out, it gets ugly wrt. NAT, the reply tuple
-> can be quite diffrent.
+> Yes, you're both right, I'm stupid.  Scratch this "great idea".
 
-Yes, you're both right, I'm stupid.  Scratch this "great idea".
+Sorry, but you are not stupid. I do care for non-NAT workloads, and the
+approach would help greatly, there.
 
-> > Yeah, per-entry locks make sense I think.  I can change the helpers to
-> > do an skb_copy (suggested by Alexey) which will be lockless, or just
-> > implement the damn non-linear search.
-> 
-> The question is... how do you free such an entry with the guarantee that
-> there are no waiters? It's probably possible but I can't see a clean
-> nice way to do it.
+In the normal ip_conntrack, one tuple is left, which is normally used
+for both directions of a non-NAT connection. In addition, there's a
+pointer, ordinarily 0, which can point to a NAT-reverse-tuple.
 
-Reference counts.  Currently, you delete from the hash, then dec
-reference count (hash reference holds one reference count).  With RCU,
-you'd do delete from hash, and call_rcu(drop_refcount) to do the
-atomic_dec_and_test after you *know* noone else can reach it.
+When NAT starts to manipulate headers, it modifies ip_conntrack anyway;
+in that place, it can also allocate a suitable NAT-reverse-tuple, attach
+that to the conntrack, and put it into the hashes.
 
-It's easy to confuse infrastructure protection (ie. protecting the
-hash table chains and existence of the elements), with structure
-protection (protecting the contents of each structure).  Currently we
-use one big lock for both of them, but they're different.
+Hmm, we could have a list of such reverse-tuples per conntrack,
+and call them expectations...
 
-Thanks,
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+In fact, this setup gives a nice extra feature: for NATted connections,
+we now logically have four flows in our hashes (physically two, due
+to the key mirror property). Two of those four flows are INVALID, and
+this can easily be determined when initially looking for the conntrack
+of an incoming skb. Not that I know the area well, but I feel that this
+could make some NAT setup decisions a lot simpler.
+
+best regards
+  Patrick
