@@ -1,15 +1,15 @@
-From: Ilguiz Latypov <ilguiz@nit.ca>
-Subject: Re: How to Send Raw IP datagrams?
-Date: Sat, 29 Mar 2003 21:54:21 -0500 (EST)
+From: "jblicn" <jblicn@yahoo.com.cn>
+Subject: How to reflect received packet in PreRouting hook
+Date: Sun, 30 Mar 2003 02:12:51 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0303292111080.23834-100000@localhost.localdomain>
-References: <Pine.GSO.4.53.0303291701390.9064@teer20.acpub.duke.edu>
+Message-ID: <000401c2f68b$c7b54d30$fe9d10ac@ljb>
+Reply-To: <jblicn@yahoo.com.cn>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: efd@duke.edu
-In-Reply-To: <Pine.GSO.4.53.0303291701390.9064@teer20.acpub.duke.edu>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,31 +20,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Dear all,
 
-On Sat, 29 Mar 2003 efd@duke.edu wrote:
+I am developing a kernel module to handle IP packet. My problem is 
+how to reflect received packet to the sender.
 
-> Here is what I'm doing, but send() keeps returning -1 as an error occurs
-> somewhere.
+I got the packet by a NF_PRE_ROUTING hook. I switched the source 
+and destination address( which is local address ) of the IP header, and 
+then return NF_ACCEPT.But after doing this, the packet will be dropped.
 
-What do errno and/or strerror() say?
+If I switch the src and dst address, and modify the src(local) address
+to  be a non local address. The packet will traverse the FORWARD and 
+POST_ROUTING hooks, and will be send back to the sender.
 
-Isn't it necessary to bind() the socket to a network interface by
-specifying the IP address of the interface?
+But change the src address to be a non-local address is not allowed in
+my project. 
 
-It seems reasonable if the INADDR_ANY value in the bind() call would not
-help to send raw IP packets.  I would assume that the kernel might not
-want to look for the right network interface from which to send the raw IP
-packet.
+How to solve this problem.
 
-Many open source programs such as tcpdump, DHCP family etc. can serve as
-an example of binding to a particular network interface.  I wrote some C
-code to walk through network interfaces in the multicast BOOTP
-server/client at
+Thank you very much
 
-   http://mbootp.sf.net/
-
---
-Ilguiz Latypov
-Net Integration Technologies, Inc
-
-tel. +1 (514) 281 9191 x 117
+Jiangbo Li
