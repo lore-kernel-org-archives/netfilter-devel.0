@@ -1,18 +1,17 @@
-From: Fabrice MARIE <fabrice@celestix.com>
-Subject: Re: Today CVS and 2.4.19-pre10 issue
-Date: Wed, 5 Jun 2002 14:54:56 +0800
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] NAT for unreplied connections
+Date: Wed, 5 Jun 2002 08:26:31 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206051454.56520.fabrice@celestix.com>
-References: <1023251260.7219.11.camel@dentro>
-Reply-To: fabrice@celestix.com
+Message-ID: <200206050826.31479@henrik.marasystems.com>
+References: <3CFC7DCA.9030801@snapgear.com> <200206041501.06434.hno@marasystems.com> <3CFD67F7.5000801@snapgear.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "Thomas T. Soares" <ttsoares@brturbo.com>,
+To: Philip Craig <philipc@snapgear.com>,
 	netfilter-devel@lists.samba.org
-In-Reply-To: <1023251260.7219.11.camel@dentro>
+In-Reply-To: <3CFD67F7.5000801@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,49 +22,50 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wednesday 05 June 2002 03:23, Philip Craig wrote:
 
-Hello,
+> A solution might be to add a MASQUERADE rule for the slip
+> interface, and bring the slip down once I know the ppp is up.  So
+> in general I need to ensure that there is always MASQUERADE rule
+> for the current route that an outgoing packet will take, and to
+> bring the old interface down if there is a route change. This is
+> still kind of a workaround for the problem, but if it works then I
+> think that's good enough.
 
-On Wednesday 05 June 2002 12:27, Thomas T. Soares wrote:
-> Hi all... me again  :-(
-> I am trying to make work H.323...
-> 4- ./runme --batch base extra
-> cc -O2 -Wall -Wunused -I/coisas/linux/include -Iinclude/
-> -DIPTABLES_VERSION=\"1.2.7\"  -fPIC -o extensions/libipt_mark_sh.o -c
-> extensions/libipt_mark.c
-> extensions/libipt_mark.c: In function `parse':
-> extensions/libipt_mark.c:67: structure has no member named `bit_op'
-> extensions/libipt_mark.c:67: `IPT_MARK_BIT_OP_NONE' undeclared (first
-> use in this function)
-> extensions/libipt_mark.c:67: (Each undeclared identifier is reported
-> only once
-> [etc...]
-> What I am doing wrong here...?  :-(
+It should be sufficient to just have some MASQUERADE rule anywhere I 
+think. MASQUERADE does not seem to care what rules you have installed 
+when reacting on interface changes.. It will simply react on any 
+interface being brought down or ip address deleteions.
 
-Seems like the patch extra/mark-bitwise-ops got applied only half way: the userspace part only
-and not the kernel header part (which would be quite unlikely).
-Can you check that the file /usr/include/linux points to /usr/src/linux/include/linux ? :
-# ls -dl /usr/include/linux
-lrwxrwxrwx    1 root     root           28 May 16 16:27 /usr/include/linux -> /usr/src/linux/include/linux/
-If it doesn't, then make it point to it.
-That's all I can think of. I've just tried, to apply the patches like you did,
-with pre10 and the latest netfilter cvs snapshot and libipt_mark compiles fine :
+What you need to make sure to make it work is that the SLIP interface 
+is brought down or at least that there is an ip address deleted from 
+the interface SLIP interface... i.e. the following should do in the 
+ppp-up script even if you like to keep the slip interface around:
 
-...
-cc -O2 -Wall -Wunused -I/usr/src/linux//include -Iinclude/
-  -DIPTABLES_VERSION=\"1.2.7\"  -fPIC -o extensions/libipt_mark_sh.o
-  -c extensions/libipt_mark.c
-ld -shared -o extensions/libipt_mark.so extensions/libipt_mark_sh.o
-...
+  ip addr add 1.1.1.1/32 dev slip0
+  ip addr del 1.1.1.1/32 dev slip0
 
-Have a nice day,
+> I'd thought at first that this wouldn't be too much of a problem
+> for TCP... it would just look to the server like two separate
+> connections were being initiated, and the first one would never be
+> established.  I agree that it's not very good behavior though.
 
-Fabrice.
---
-Fabrice MARIE
-Senior R&D Engineer
-Celestix Networks
-http://www.celestix.com/
+The problem is that your approach may cause this kind of problem at 
+any time if there is more than one computer involved (including the 
+NAT gateway itself), not only when there is interface changes.
 
-"Silly hacker, root is for administrators" 
-       -Unknown
+  Computer A is in contact server X on port 80, using port 1234 as 
+source port.
+  Computer B tries to contact server X on port 80, also using port 
+1234 as source port.
+  Server X is slow in responding, causing retransmissions
+
+  B sends SYN, NAT assigns it port 5678 as 1234 is occupied.
+  B retransmits, NAT reassigns B to port 4325 as 1234 is still 
+occupied and there has been other changes in current port usage 
+between the two SYN packets from B..
+
+And this is only one case. There is more.
+
+Regards
+Henrik
