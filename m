@@ -1,13 +1,13 @@
-From: "Eric Leblond" <eric@inl.fr>
-Subject: ct_link and conntrack evolution ?
-Date: Thu, 15 Jul 2004 12:12:23 +0200 (CEST)
+From: Alan Hourihane <alanh@fairlite.demon.co.uk>
+Subject: iptables & libipt_set/SET.c problem
+Date: Thu, 15 Jul 2004 12:53:48 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <58305.193.164.229.102.1089886343.squirrel@193.164.229.102>
+Message-ID: <20040715115348.GG2585@fairlite.demon.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,20 +18,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+In iptables 1.2.11 there are two extensions...
 
-The NuFW project (see http://www.nufw.org for details) has recently
-evolved by building a "real-time" authenticated connection tracking table
-stored in a SQL database. This brings some great features especially in
-the Single Sign On domain (application can ask the SQL database about
-users as they know about the connection).
+extensions/libipt_set.c
+extensions/libipt_SET.c
 
-As it can for sure not be compared with ct_link implementation, it points
-out that it may be useful to be able to add some informations to
-conntrack. I think about mark (like connmark does) or other fields as the
-userid (although it's really NuFW oriented).
+which appear to be doing the same thing, but the SET version appears to
+have a few more features.
 
-BR,
--- 
-Eric Leblond : eric@inl.fr
-INL : http://www.inl.fr/
+There's also the problem that both of these extensions are looking for
+the file ../ipset/libipt_set.h which doesn't exist and so the build fails
+at the dependencies stage.
+
+Is there a problem with the 1.2.11 package ??
+
+Alan.
