@@ -1,19 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: IP6TABLES and Muulticast Listener ICMPV6 PDUs
-Date: Mon, 10 Nov 2003 19:05:54 +0100
+From: William Stearns <wstearns@pobox.com>
+Subject: Re: Suggestion: Marker option in iptable, netfilter chains
+Date: Mon, 10 Nov 2003 13:54:53 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031110180554.GT8206@sunbeam.de.gnumonks.org>
-References: <20031110115012.GB2850@ruf098.fkie.fgan.de>
-Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <Pine.LNX.4.44.0311101350530.32650-100000@sparrow>
+References: <200311090446.21825.kreuzritter2000@gmx.de>
+Reply-To: William Stearns <wstearns@pobox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="y/XsGip80ttrIE8G"
-Cc: netfilter-devel@lists.netfilter.org,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
+   William Stearns <wstearns@pobox.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Christian Riechmann <riechmann@fgan.de>
-Content-Disposition: inline
-In-Reply-To: <20031110115012.GB2850@ruf098.fkie.fgan.de>
+To: kreuzritter2000@gmx.de
+In-Reply-To: <200311090446.21825.kreuzritter2000@gmx.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,75 +22,81 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Good day, Oliver,
 
---y/XsGip80ttrIE8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sun, 9 Nov 2003 kreuzritter2000@gmx.de wrote:
 
-[Please follow-up-to netfilter-devel]
+> Hello,
+> 
+> I have a suggestion about a new feature.
+>  ( i don't know if such thing allready exists so i assume it does not exist)
+[snip]
+> This firewall example is very easy to understand, but
+> sometimes your firewall is very complex and the rules chain is very long with 
+> branches to other chains etc..
+> In such a situtaion it would be great to have a thing like a "marker"
+> in the rule chain when using "iptables -L".
+> This marker would help you to find the exact position in your firewall script,
+> in other words the place where the marker was set.
+> Such a feature would be very handy for debugging the firewall.
+> 
+> To show what i meant we assume we have a marker option
+> in iptables which could be used in our firewall script.
+> Let's say this option can be used with a -S option:
+> -S = Set Marker
+> 
+> Now let's take a look at the same script but with a marker option:
+> ------------------
+> #!/bin/sh
+> iptables -P INPUT DROP
+> iptables -A INPUT -i eth0 -p tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -i eth0 -p tcp --dport 21 -j ACCEPT
+> iptables -A INPUT -i eth0 -p tcp --dport 29 -j REJECT
+> iptables -S Marker-1
+> iptables -A INPUT -i eth0 -p tcp --dport 50 -j ACCEPT
+> iptables -A INPUT -i eth0 -p tcp --dport 130 -j ACCEPT
+> iptables -S Marker-2
+> iptables -A INPUT -i eth0 -p tcp --dport 804 -j ACCEPT
+> iptables -A INPUT -i eth0 -p tcp --dport 21456 -j DROP
+> iptables -S Marker-3
+> iptables -A INPUT -i eth0 -p tcp --dport 2955 -j ACCEPT
+> -----------------
 
-On Mon, Nov 10, 2003 at 12:50:12PM +0100, Christian Riechmann wrote:
+	How about:
 
-> I am working on a project dealing with IPv6 and Multicast.=20
-> I am trying to filter those IPv6 PDUs being sent by my host and
-> containing ICMPv6 Multicast Listener Discovery Protocol (MLDP) PDUs.
-> (In other words I want to see those Multicast Reports which
-> inform a router that my host wants to see those PDUs which are
-> sent to a specific multicast address.)These PDUs shall be queued
-> for some processing within a user space program.=20
->=20
-> I tried a lot of IP6TABLES rules, but just these types of=20
-> ICMPV6 PDUs are not queued.=20
->=20
-> I tried different rules, but none worked:
-> 	ip6tables -A OUTPUT -p icmp6 -j QUEUE
-> 	ip6tables -A OUTPUT -p icmpv6 -j QUEUE
-> 	ip6tables -A OUTPUT -p ipv6-icmp -j QUEUE
+iptables -i eth99 -s 127.99.99.99 -d 127.200.200.200 -j LOG --log-prefix "Marker-1 "
 
-they are all the same, just synonyms.
+	You can reuse that rule as many time as you'd like, verbatim, just 
+change the log string each time.
 
-> I should mention that ICMPv6 HELLO PDUs are well queued.
-> And:
-> 	ip6tables -A OUTPUT -p ipv6 -j QUEUE
->=20
-> The last rule queues all IPv6 PDUs except those I really
-> want to see: MLDP-PDUs.
->=20
-> All tests running on Kernels 2.4.18, 2.4.22 and 2.6.0test8
-> show the same results.
+[snip]
+> It should be clear that such a feature would be realy helpfull for debugging 
+> the firewall script, especially when it is a very long firewall with a lot of 
+> ramifications.
+> 
+> Now my question is, would such a feature in iptables/netfilter be possible?
 
-yes, indeed.  After reading the ipv6 multicast code, I can confirm that
-incoming MLD packets (e.g. queries from the network) are traversing
-netfilter, but outgoing ones seem to be sent directly by net/ipv6/mcast.c
+	It already is.
 
-I really don't have the time to write a patch for this right now.  Could
-you please enter it into our bugzilla.netfilter.org bugtracking system?
-This way it [at least] cannot get lost.
+> Please send me a copy of your answers to me because i am not on the 
+> mailinglist.
 
-> Christian Riechmann
-> (riechmann@fgan.de)
+	Please sign up for the mailing list.  ;-)
+	Cheers,
+	- Bill
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---y/XsGip80ttrIE8G
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/r9OCXaXGVTD0i/8RAkXcAKCoz/+IxRqit23hP/CN6kSTeduxdACgg9BY
-/xj1xAN3udDUb66yHv7MjjI=
-=9HnK
------END PGP SIGNATURE-----
-
---y/XsGip80ttrIE8G--
+---------------------------------------------------------------------------
+	"Hackers do not feel that leisure time is automatically any more
+meaningful than work time. The desirability of both depends on how they
+are realized.  From the point of a view of a meaningful life, the entire
+work/leisure duality must be abandoned.  As long as we are living our
+work or our leisure, we are not even truly living.  Meaning cannot be
+found in work or leisure but has to arise out of the nature of the
+activity itself.  Out of passion.  Social value.  Creativity."
+        -- Andrew Leonard <aleonard@salon.com>
+        http://salon.com/tech/col/leon/2001/02/05/hacker_ethic/index2.html
+--------------------------------------------------------------------------
+William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
+rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
+Linux articles at:                         http://www.opensourcedigest.com
+--------------------------------------------------------------------------
