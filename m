@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] conntrack match typo
-Date: Mon, 23 Aug 2004 20:42:21 +0200
+Subject: Re: [PATCH] ipt_dstlimit spinlock fixup
+Date: Mon, 23 Aug 2004 20:47:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <412A3A8D.8010800@trash.net>
-References: <20040821215419.GA29488@linuxace.com>
+Message-ID: <412A3BAA.6000708@trash.net>
+References: <20040822153348.GA20301@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Phil Oester <phil@linuxace.com>
-In-Reply-To: <20040821215419.GA29488@linuxace.com>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20040822153348.GA20301@linuxace.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,32 +23,53 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Phil Oester wrote:
 
->Status option should use IPT_CONNTRACK_STATUS, not IPT_CONNTRACK_STATE.
->Originally noticed by M. J. Pomraning. 
+>Since ipt_dstlimit makes use of MUST_BE_LOCKED macro, compiling
+>without CONFIG_NETFILTER_DEBUG causes errors.  Fix below.
 >
->This fixes bug #194
+>Similar patch posted by Samir Bellabes a few days ago, but this one
+>removes an unneeded #ifdef pair
+>
+>This fixes bugzilla #225
 >  
 >
-Applied, thanks.
+
+Jozsefs conntrack_locking patch has the same problem, I wonder if we
+should introduce a spinlock_debug_t (if that is not taken yet) or
+better yet, kill lockhelp.h.
 
 Regards
 Patrick
 
 >Phil
-> 
 >
->diff -ru ipt-orig/extensions/libipt_conntrack.c ipt-new/extensions/libipt_conntrack.c
->--- ipt-orig/extensions/libipt_conntrack.c      2004-06-14 18:02:17.000000000 -0400
->+++ ipt-new/extensions/libipt_conntrack.c       2004-08-21 17:51:05.507406408 -0400
->@@ -492,7 +492,7 @@
+>
+>diff -ru pom-orig/dstlimit/linux-2.6/net/ipv4/netfilter/ipt_dstlimit.c pom-new/dstlimit/linux-2.6/net/ipv4/netfilter/ipt_dstlimit.c
+>--- pom-orig/dstlimit/linux-2.6/net/ipv4/netfilter/ipt_dstlimit.c       2004-02-22 19:15:45.000000000 -0500
+>+++ pom-new/dstlimit/linux-2.6/net/ipv4/netfilter/ipt_dstlimit.c        2004-08-22 11:30:10.156485400 -0400
+>@@ -83,7 +83,11 @@
+>        struct dstlimit_cfg cfg;        /* config */
 > 
->        if(sinfo->flags & IPT_CONNTRACK_STATUS) {
->                printf("%sctstatus ", optpfx);
->-               if (sinfo->invflags & IPT_CONNTRACK_STATE)
->+               if (sinfo->invflags & IPT_CONNTRACK_STATUS)
->                        printf("! ");
->                print_status(sinfo->statusmask);
->        }
+>        /* used internally */
+>+#ifdef CONFIG_NETFILTER_DEBUG
+>+       struct spinlock_debug lock;     /* lock for list_head */
+>+#else
+>        spinlock_t lock;                /* lock for list_head */
+>+#endif
+>        u_int32_t rnd;                  /* random seed for hash */
+>        struct timer_list timer;        /* timer for gc */
+>        atomic_t count;                 /* number entries in table */
+>@@ -212,7 +216,11 @@
+>        atomic_set(&hinfo->count, 0);
+>        atomic_set(&hinfo->use, 1);
+>        hinfo->rnd = 0;
+>+#ifdef CONFIG_NETFILTER_DEBUG
+>+       hinfo->lock.l = SPIN_LOCK_UNLOCKED;
+>+#else
+>        hinfo->lock = SPIN_LOCK_UNLOCKED;
+>+#endif
+>        hinfo->pde = create_proc_entry(minfo->name, 0, dstlimit_procdir);
+>        if (!hinfo->pde) {
+>                vfree(hinfo);
 >
 >  
 >
