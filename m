@@ -1,45 +1,66 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's
- brain broke!)
-Date: Mon, 12 Jan 2004 13:08:43 +0200 (EET)
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.44.0401121259260.3121-100000@l>
-References: <4001F33A.9000802@trash.net>
+From: Andy Loukes <andy@navaho.co.uk>
+Subject: connection leak in 2.6.1rc2 with fragmented packets
+Date: Mon, 12 Jan 2004 16:34:05 +0000 (GMT)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.58.0401091600090.16623@picea.navaho>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>, <kuznet@ms2.inr.ac.ru>,
-	Rusty Russell <rusty@rustcorp.com.au>, <fenio@o2.pl>,
-	<davem@redhat.com>, <linux-net@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>, <boris@boris.ca>,
-	<email@cs-ware.de>, <Jan.Schubert@GMX.li>
-Return-path: <linux-net-owner@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4001F33A.9000802@trash.net>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+We've found another, this time more subtle, memory leak
 
-	Hello,
+if (just for testing) I set ip_conntrack_max to 100
 
-On Mon, 12 Jan 2004, Patrick McHardy wrote:
+I have the following config on the router:
+3: eth1: <BROADCAST,MULTICAST,UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    inet 172.16.0.254/24 brd 172.16.0.255 scope global eth1
+5: eth3: <BROADCAST,MULTICAST,UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    inet 172.17.0.254/24 brd 172.17.0.255 scope global eth3
 
-> Why should we do a route lookup at all ? MASQUERADE doesn't need the
-> dst_entry but only the interface address. Using ifa_list->ifa_local
-> of the outgoing in_device seems like the simplest solution to me.
+I then have one machine plugged in on each subnet
 
-	Because it is possible the output interface to be used for
-many logical subnets. In such cases it is desired maddr to be
-the preferred source address for the target. If the users do not
-want to fill the routing cache with such entries they can add
-SNAT rule for each path. The drawback is that SNAT has only -o
-match, there is no GW match. As result, we can not properly assign
-maddr in setups that have two GWs on same output interface.
+from a machine inet 172.16.0.12/24
+if I do a normal ping  I see the number of active ip-conntrack objects 
+shoot up and then drop back down to the original number.
 
-> Regards,
-> Patrick
+if I ping with a 2500 byte packet it goes up but drops to a number 1 more 
+than previously.
 
-Regards
+If I do a flood ping it goes up to over 100 and drops to 100 and then 
+stays there. Meanwhile /proc/net/ip_conntrack has just one entry.
 
---
-Julian Anastasov <ja@ssi.bg>
+I'm looking at this line:
+# name            <active_objs> <num_objs> <objsize> <objperslab> 
+<pagesperslab> : tunables <batchcount> <limit> <sharedfactor> : slabdata 
+<active_slabs> <num_slabs> <sharedavail>
+ip_conntrack         100    108    320   12    1 : tunables   54   27    0 
+: slabdata      9      9      0
 
+On our main firewall this means that after a few days it looks like this:
+
+# awk '/#|connt/' /proc/slabinfo 
+# name            <active_objs> <num_objs> <objsize> <objperslab> 
+<pagesperslab> : tunables <batchcount> <limit> <sharedfactor> : slabdata 
+<active_slabs> <num_slabs> <sharedavail>
+ip_conntrack       24823  25428    320   12    1 : tunables   54   27    0 
+: slabdata   2119   2119      0
+
+# wc -l /proc/net/ip_conntrack
+    492 /proc/net/ip_conntrack
+
+Anyone have any ideas about this?
+
+
+-- 
+Andy Loukes
+http://www.navaho.co.uk				Complete Appliance Technology
