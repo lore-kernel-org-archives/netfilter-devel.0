@@ -1,17 +1,16 @@
-From: Mike-Ro-Chanel <mikerochanel@yahoo.it>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: Adding packet metadata
-Date: Wed, 24 Mar 2004 08:38:09 +0100
+Date: Wed, 24 Mar 2004 09:01:38 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40613AE1.4060800@yahoo.it>
-References: <Pine.LNX.4.44.0403240105250.15222-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0403240852150.22258-100000@filer.marasystems.com>
+References: <40613AE1.4060800@yahoo.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Scott MacKay <scottmackay@yahoo.com>,
    Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0403240105250.15222-100000@filer.marasystems.com>
+To: Mike-Ro-Chanel <mikerochanel@yahoo.it>
+In-Reply-To: <40613AE1.4060800@yahoo.it>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,19 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 24 Mar 2004, Mike-Ro-Chanel wrote:
 
->>I wanted to mark up packets with information as they pass thru the
->>system. Basically, I want to associate some data with a packet during
->>PREROUTING/raw (to read info prior to conntrack) and then get that
->>information back during PREROUTING/mangle.  Is there a module already
->>written which could perform this?
-> 
-> 
-> MARK should be able to do this.
-> 
+> An interesting question about MARK field in SKB structure is: Can I use 
+> all 32-bit of "nfmark" for adding metadata?
 
-An interesting question about MARK field in SKB structure is: Can I use 
-all 32-bit of "nfmark" for adding metadata? Iptables front-end (from 
-command line) seems to take mark value as a 8-bit number.
+Yes.
 
-		Mike-Ro-Chanel
+> Iptables front-end (from command line) seems to take mark value as a
+> 8-bit number.
+
+What makes you think so?
+
+There is a slight signed bug in the string_to_number function which 
+prevents the use of the 2^31 bit, easily fixed by changing it to use 
+unsigned.
+
+Regards
+Henrik
