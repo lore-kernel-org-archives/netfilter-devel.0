@@ -1,25 +1,27 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.6] 'raw' table
-Date: Mon, 29 Mar 2004 20:26:22 -0800
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040329202622.4b256a25.davem@redhat.com>
-References: <20040329110515.GH1528@sunbeam.de.gnumonks.org>
+Subject: Re: [PATCH] don't require ip_forwarding for reset on a bridge
+Date: Mon, 29 Mar 2004 20:30:25 -0800
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040329203025.4d272b55.davem@redhat.com>
+References: <200403292314.12855.bdschuym@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040329110515.GH1528@sunbeam.de.gnumonks.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Bart De Schuymer <bdschuym@pandora.be>
+In-Reply-To: <200403292314.12855.bdschuym@pandora.be>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 29 Mar 2004 23:14:12 +0200
+Bart De Schuymer <bdschuym@pandora.be> wrote:
 
-Applied to 2.6.6, thanks.
+> Currently, to be able to send a reset in the FORWARD chain of iptables
+> for bridged traffic, ip forwarding must be enabled. This causes confusion
+> and in some situations people really don't want to enable ip forwarding.
+> The patch below lets the user send reset packets for bridged frames in
+> the FORWARD chain, with ip forwarding disabled (as long as there is a
+> route).
+
+I want an ACK from the netfilter folks before applying this one.
