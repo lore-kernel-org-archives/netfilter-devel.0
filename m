@@ -1,15 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4+2.6] fix DELETE_LIST netfilter oopses
-Date: Mon, 29 Mar 2004 13:32:39 +0200
+From: "Jorge Garcia" <anarkophobia@latinmail.com>
+Subject: RE:Re: netfilter programming
+Date: Mon, 29 Mar 2004 08:08:56 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040329113239.GC7039@sunbeam.de.gnumonks.org>
+Message-ID: <20040329130856.ED26B3BA3E9@smtp.latinmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dKeYJkA19bNVVKdr"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="latinmail.com_linux02100.dn.net_72c97bf9697fe300548dc0d656e0a117"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,83 +18,152 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---dKeYJkA19bNVVKdr
-Content-Type: multipart/mixed; boundary="8Bkcj4NmnZ79d4W7"
-Content-Disposition: inline
-
-
---8Bkcj4NmnZ79d4W7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--latinmail.com_linux02100.dn.net_72c97bf9697fe300548dc0d656e0a117
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+hi, and thanx for answer me, im sorry if i didnt explain well on my las=
+t post.
+for educational and intelectual satisfaction i want to make a module th=
+at do this:
+iptables -A INPUT -i eth0 -s 192.168.100.7 -p tcp --dport 23 -j DROP
+So i search the internet and i find very little stuff about this but i =
+make the following code :
 
-We've now narrowed down the issue of kernel oopses in combination with
-'LIST_DELETE' syslog messages happening in certain setups.
+#define __KERNEL__
 
-Apparently people who do not enable CONFIG_IP_NF_NAT_LOCAL and do
-DNAT/REDIRECT and want to connect locally from the gateway via DNAT to
-the DNAT'ed address experience the bug ;)
+#define MODULE
 
-Please push the attached patch [courtesy of KOVACS Krisztian and Henrik
-Nordstrom] to 2.4.x and 2.6.x ASAP, thanks. =20
 
-I know that patch looks ugly, but considering the verbose comment I
-think it's ok.
 
-Thanks,
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+#include <linux/ip.h>=09=09=09
 
---8Bkcj4NmnZ79d4W7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="renat_confirmed.patch"
-Content-Transfer-Encoding: quoted-printable
+#include <linux/kernel.h>=09=09
 
---- linux-2.4.25/net/ipv4/netfilter/ip_nat_standalone.c	Fri Nov 28 19:26:21=
- 2003
-+++ linux-2.4.25a/net/ipv4/netfilter/ip_nat_standalone.c	Thu Mar 25 16:43:2=
-9 2004
-@@ -114,7 +114,16 @@
- 		WRITE_LOCK(&ip_nat_lock);
- 		/* Seen it before?  This can happen for loopback, retrans,
- 		   or local packets.. */
--		if (!(info->initialized & (1 << maniptype))) {
-+		if (!(info->initialized & (1 << maniptype))
-+#ifndef CONFIG_IP_NF_NAT_LOCAL
-+		    /* If this session has already been confirmed we must not
-+		     * touch it again even if there is no mapping set up.
-+		     * Can only happen on local->local traffic with
-+		     * CONFIG_IP_NF_NAT_LOCAL disabled.
-+		     */
-+		    && !(ct->status & IPS_CONFIRMED)
-+#endif
-+		    ) {
- 			unsigned int ret;
-=20
- 			if (ct->master
+#include <linux/module.h>=09=09
 
---8Bkcj4NmnZ79d4W7--
+#include <linux/netdevice.h>=09=09
 
---dKeYJkA19bNVVKdr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+#include <linux/netfilter.h>=09=09
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+#include <linux/netfilter_ipv4.h>=09
 
-iD8DBQFAaAlXXaXGVTD0i/8RAl3eAJ0TeVNErY0pvczZXM54J1aah/eF9wCfYZQ9
-rw50NNo43osEQjcjPhjp7RY=
-=YnL2
------END PGP SIGNATURE-----
+#include <linux/skbuff.h>=09=09
 
---dKeYJkA19bNVVKdr--
+#include <linux/tcp.h>=09=09=09/* Para la cabecera TCP */
+
+static struct nf_hook_ops nfho;=09=09/* Registramos la funcion */
+
+static unsigned char *direccion_ip =3D "xC0xA8x64x07";  =09/* 192.168.1=
+00.7en Network Byte Order */
+
+static char *interface =3D "eth0"; =09=09=09=09=09=09=09/* Interface et=
+h0 */
+
+unsigned char *puerto =3D "x00x17";=09=09=09=09                /* Puert=
+o 23 (Telnet) */
+
+struct sk_buff *sock_buff;=09=09=09=09=09=09=09=09/* Socket Kernel Buff=
+er */
+
+struct tcphdr *cabecera_tcp;=09                                        =
+        /* Cabecera TCP */
+
+/* La funcion */
+
+unsigned int hook_func(unsigned int hooknum,
+                        struct sk_buff **skb,
+                        const struct net_device *in,
+                        const struct net_device *out,
+                        int (*okfn)(struct sk_buff *))
+{
+
+=09if(strcmp(in->name,interface) =3D=3D 0){          /*  Filtrado por i=
+nterface */
+            return NF_DROP;=20
+        }                                                              =
+    =20
+
+=09sock_buff =3D *skb;
+
+=09
+
+=09if(!sock_buff){
+           return NF_ACCEPT;=09=09=09/* Chequea un paquete IP valido */=
+
+        }
+
+=09if(!(sock_buff->nh.iph)){=20
+            return NF_ACCEPT;=20
+        }=09=09=09
+
+
+
+=09/* Descarta paquetes si vienen de la direccion 192.168.100.7 */ =09
+
+=09if(sock_buff->nh.iph->saddr =3D=3D *(unsigned int*)direccion_ip){
+            return NF_DROP;=20
+        }
+
+=09=09
+
+=09if(sock_buff->nh.iph->protocol !=3D 17){=09/* Nos aseguramos de que =
+el paquete sea tcp */
+           return NF_ACCEPT;=20
+        }  =09
+
+=09cabecera_tcp =3D (struct tcphdr *)(sock_buff->data   (sock_buff->nh.=
+iph->ihl *4));=09/* Descartamos por puerto */
+
+=09if((cabecera_tcp->dest) =3D=3D *(unsigned short*)puerto){
+            return NF_DROP;=20
+        } =20
+
+return NF_ACCEPT;=09=09=09/* Si todo lo anterior falla, se acepta el pa=
+quete */
+
+} =20
+
+/* Rutina de inicializacion */
+int init_module()
+{
+    /* LLenamos la estructura de la funcion  gancho */
+    nfho.hook     =3D hook_func;         /* Manejador de funcion*/
+    nfho.hooknum  =3D NF_IP_PRE_ROUTING; /* Primer gancho para  IPv4 */=
+
+    nfho.pf       =3D PF_INET; /* famila */
+    nfho.priority =3D NF_IP_PRI_FIRST;   /* Hacer nuestra funcion prime=
+ra */
+ =20
+    nf_register_hook(&nfho);
+   =20
+    return 0;
+}
+=09
+/* Rutina de limpieza */
+void cleanup_module()
+{
+    nf_unregister_hook(&nfho);
+}
+
+Comments are in spanish becouse i speak that lenguaje :)
+The problemas are the followings:
+I dont understand how it drops from source port, i only copy and paste =
+from a code i found in the net, please explain me something about how t=
+o programming that part.
+The other problem is that this module is this:
+This code showld drop incomming connections to port 23 from 192.168.100=
+7, but its drop connections to port 23 from all the addresses in the l=
+ocal network, like 192.168.100.12
+The code must have an error and please if anyone can find me please tel=
+l me as soon as u can.
+I hope this clar the situation of what i want and if anyone have a ques=
+tion please ask me .
+Excuse my english and please understand me :)
+FrediX
+
+
+
+http://www.latinmail.com - La forma m=E1s c=F3moda de enviar y recibir =
+tus e-mails
+--latinmail.com_linux02100.dn.net_72c97bf9697fe300548dc0d656e0a117--
