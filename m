@@ -1,28 +1,30 @@
-From: quadong@users.sourceforge.net
-Subject: [PATCH] ipt_helper.c
-Date: Thu, 4 Mar 2004 14:42:16 -0600 (CST)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.60.0403041439110.10634@dsl093-017-216.msp1.dsl.speakeasy.net>
+From: "John P. Looney" <valen@tuatha.org>
+Subject: taking related connections to the limit
+Date: Thu, 4 Mar 2004 12:04:02 +0000
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040304120402.GH14383@magicbluesmoke.net>
+Reply-To: valen@tuatha.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Currently, if you tell iptables to match "-m helper ! --helper ftp" it
-will match any packet from any helper other than FTP.  What it should do
-is match any packet that is not from an FTP helper, included packets that
-are not from any helper (packets from master connections).  Here's the
-fix:
+ Hi, I was wondering if netfilter can do the following:
 
---- ipt_helper.c.old    2004-03-03 21:34:05.000000000 -0600
-+++ ipt_helper.c        2004-03-04 14:34:17.709903456 -0600
-@@ -48,7 +48,7 @@
+ If a packet has dest ip X, dport 110, do a DNAT --to IP Y, record the SRC IP
+ If a subsequent packet comes into dest IP X, from that SRC IP, --dport 25 from the same IP, DNAT --to IP Y also.
 
-        if (!ct->master) {
-                DEBUGP("ipt_helper: conntrack %p has no master\n", ct);
--               return 0;
-+               return info->invert;
-        }
+ This is to do some work with POP-before-smtp, if you wondered why such a
+demented thing would be needed. 
 
-        exp = ct->master;
+John
