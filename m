@@ -1,12 +1,11 @@
-From: Eric Leblond <eric@regit.org>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: CONNMARK and state RELATED
-Date: Wed, 03 Mar 2004 08:04:43 +0100
+Date: Wed, 3 Mar 2004 08:39:01 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1078297483.1447.3.camel@localhost>
+Message-ID: <Pine.LNX.4.44.0403030836030.3365-100000@filer.marasystems.com>
 References: <7C9884991ADAE0479C14F10C858BCDF56791B5@alderaan.smgtec.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter developmnet mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Daniel Chemko <dchemko@smgtec.com>
@@ -21,21 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Le mer 03/03/2004 =C3=A0 01:53, Daniel Chemko a =C3=A9crit :
-> Does anyone know if these two technologies are compatible?
+On Tue, 2 Mar 2004, Daniel Chemko wrote:
 
-I think so, I've deployed this to do the same as you and it works fine
-(even with FTP)
+> I am using CONNMARK to do policy routing. I use it to select which WAN
+> interface the packet will leave the system. It seems that CONNMARK
+> doesn't mark related traffic. This makes it very hard to implement what
+> I am trying to do.
 
-> My rules are as follows:
+It does, but you must remember to have the connmark restored into the 
+packet if you want to use it for routing, this is not automatic. Applies 
+to both normal and related traffic.
+
 > ${IPTABLES} -t mangle -A PREROUTING --source ${_fip} --destination
 > ${_sip} -p ${_proto} -j CONNMARK --set-mark ${_fwmark} -m mark --mark 0
->=20
 
-Have you try as show at :
-	http://hom.regit.org/connmark.html
-(You need to restore the mark.)
+This rule only sets the connmark value, not the per-packet packet mark.
 
-BR,
---
-Eric Leblond
+Regards
+Henrik
