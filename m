@@ -1,59 +1,35 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [Patch]: IPv6 Connection Tracking
-Date: Tue, 7 Oct 2003 14:30:21 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20031007123021.GX18246@sunbeam.de.gnumonks.org>
-References: <20030925092806.GC5758@sunbeam.de.gnumonks.org> <200310031119.UAA11088@toshiba.co.jp>
+From: kuznet@ms2.inr.ac.ru
+Subject: Re: 2.6 IPSEC + SNAT
+Date: Tue, 7 Oct 2003 16:51:22 +0400 (MSD)
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <200310071251.QAA32679@yakov.inr.ac.ru>
+References: <20031001121648.GA8755@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aEcIyhw0mmnxygNd"
-Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org,
-        netdev@oss.sgi.com, usagi-core@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200310031119.UAA11088@toshiba.co.jp>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: davem@redhat.com, jmorris@redhat.com, linux-net@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org
+Return-path: <linux-net-owner@vger.kernel.org>
+To: herbert@gondor.apana.org.au (Herbert Xu)
+In-Reply-To: <20031001121648.GA8755@gondor.apana.org.au> from "Herbert Xu" at  =?ISO-8859-1?Q?=20=EF?=
+	=?ISO-8859-1?Q?=CB=D4?= 01, 2003 10:16:48
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello!
 
---aEcIyhw0mmnxygNd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Has anyone else thought about this problem?
 
-On Fri, Oct 03, 2003 at 08:19:07PM +0900, Yasuyuki Kozakai wrote:
-> I select 2), too.
+I thought about this (ages ago, so this can be stale)
+The verdict was that self-consistent picture is possible only
+when NAT rules are integral part of SPD. It does not look like
+a stimulating idea. :-)
 
-Ok, thanks for your patience and understanding.
 
-> Harald, Could you add my patch to patch-o-matic ?
+> I have considered introducing a new NAT chain between filtering
+> and routing where you can place SNAT rules into.
 
-Ok, I'll put it into patch-o-matic asap.
+I do not understand this. In this case IPsec is to be applied to _translated_
+packet, is not it? Am I wrong? If I am not wrong, there is no place to add
+an additional hook.
 
-> Regards,
-> Yasuyuki KOZAKAI
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---aEcIyhw0mmnxygNd
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/grHdXaXGVTD0i/8RAgpNAJ45UTeBOXL3dqPY74rWZjQqntjQiACgipl8
-M9YLjRtvXOs9Qs9ISzIQjtU=
-=IaCj
------END PGP SIGNATURE-----
-
---aEcIyhw0mmnxygNd--
+Alexey
