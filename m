@@ -1,11 +1,10 @@
-From: Swapnil Nagle <swapsn@rediffmail.com>
-Subject: positive target->verdict
-Date: Tue, 10 Aug 2004 21:26:59 +0530
+From: Eric Leblond <eric@inl.fr>
+Subject: match target project
+Date: Tue, 10 Aug 2004 18:21:30 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4118F04B.5090505@rediffmail.com>
+Message-ID: <1092154889.4261.436.camel@porky>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-ZtnNPaHGExcVZCsjYg0a"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,28 +18,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi all,
+--=-ZtnNPaHGExcVZCsjYg0a
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Short query :
+Hi,
 
-What is the significance of a positive verdict in ipt_standard_target ?
- Its supposed to be a jump offset, but is it from :
- - beginning of current chain
- - relative to a current ipt_entry
+I was looking for a match that could be able to match one packet per
+connection each N min interval.
 
-The netfilter-hacking howto only mentions that its an offset.
+It seems, it does not exist, so the next question is :
+	Is it possible to develop such a match ?
+	If yes, is it a huge work ?
 
-Long version :
+BR,
+--=20
+Eric Leblond
+Nufw, Now User Filtering Works (http://www.nufw.org)
 
-I was looking at the struct ipt_replace generated for this rule :
+--=-ZtnNPaHGExcVZCsjYg0a
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-iptables -A INPUT -d 192.168.1.1 -j REJECT
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-The first ipt_entry for INPUT chain (i.e repl->hook_entry[1]) has a 
-verdict 3.
+iD8DBQBBGPYJnxA7CdMWjzIRAnhfAJ9NBMsrT3VQMZ6uKYP3o3VlCNkP8QCggj45
+IKxE2vXL+vjrW+4wMfg/4Bo=
+=87oS
+-----END PGP SIGNATURE-----
 
-Does that mean that its a jump and the next ipt_entry is the 3rd one 
-from the beginning of this chain ?
-
-Regards,
-Swapnil.
+--=-ZtnNPaHGExcVZCsjYg0a--
