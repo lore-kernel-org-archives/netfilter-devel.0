@@ -1,15 +1,16 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH] use correct ipt_physdev.h header in iptables userspace tool
-Date: Sat, 25 Oct 2003 08:48:37 +0200
+From: Willy Tarreau <willy@w.ods.org>
+Subject: Re: -m physdev iptables: Invalid Argument
+Date: Sat, 25 Oct 2003 11:21:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200310250848.37967.bdschuym@pandora.be>
+Message-ID: <20031025092117.GA17255@alpha.home.local>
+References: <3F996BBA.5070106@metavize.com> <3F99B88D.1060000@trash.net> <3F99BD97.2080409@metavize.com> <3F99BFDA.6030506@trash.net> <3F99C340.2070202@metavize.com> <3F99C692.90703@trash.net> <3F99CB83.1020405@metavize.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_Fzhm/bAi0jHLB3p"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Dirk Morris <dmorris@metavize.com>, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Dirk Morris <dmorris@metavize.com>
+Content-Disposition: inline
+In-Reply-To: <3F99CB83.1020405@metavize.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,61 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, Oct 24, 2003 at 06:01:55PM -0700, Dirk Morris wrote:
+> ~/iptables-1.2.9rc1 # ./iptables 
+> --version                                                         
+> iptables v1.2.9rc1
+> ~/iptables-1.2.9rc1 # uname 
+> -a                                                                     
+> Linux timmy 2.6.0-test8 #2 Wed Oct 22 15:14:09 PDT 2003 i686 GNU/Linux
+> 
+> I don't know what else to try at this point.
+> 
+> ~/iptables-1.2.9rc1 # sudo ./iptables -t nat -A PREROUTING -m physdev 
+> --physdev-in eth0 -j REJECT
+> iptables: Invalid argument
+> ~/iptables-1.2.9rc1 # sudo ./iptables -t nat -A PREROUTING -j REJECT -m 
+> physdev --physdev-in eth0
+> iptables: Invalid argument
 
---Boundary-00=_Fzhm/bAi0jHLB3p
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Just out of curiosity, are you sure it's not the REJECT which causes the
+invalid argument ?
 
-Hi Harald, this just makes the userspace tool use the right 2.6.0-test8
-header file. Remember we broke compatibility to get things working
-on the parisc?
+could you try :
+ - iptables -t nat -A PREROUTING -m physdev --physdev-in eth0 -j DROP
+ - iptables -t nat -A PREROUTING -j REJECT
 
-cheers,
-Bart
+and check which one returns an error ?
 
---- iptables-1.2.9rc1/include/linux/netfilter_ipv4/ipt_physdev.h.old	2003-10-25 08:41:48.000000000 +0200
-+++ iptables-1.2.9rc1/include/linux/netfilter_ipv4/ipt_physdev.h	2003-10-25 08:43:31.000000000 +0200
-@@ -13,12 +13,12 @@
- #define IPT_PHYSDEV_OP_MASK		(0x20 - 1)
- 
- struct ipt_physdev_info {
--	u_int8_t invert;
--	u_int8_t bitmask;
- 	char physindev[IFNAMSIZ];
- 	char in_mask[IFNAMSIZ];
- 	char physoutdev[IFNAMSIZ];
- 	char out_mask[IFNAMSIZ];
-+	u_int8_t invert;
-+	u_int8_t bitmask;
- };
- 
- #endif /*_IPT_PHYSDEV_H*/
+Was your iptables-1.2.9rc1 compiled with 2.6.0test8 headers or with 2.4
+headers ? it might make a difference.
 
---Boundary-00=_Fzhm/bAi0jHLB3p
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="ipt_userspace_physdev_h.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="ipt_userspace_physdev_h.diff"
-
---- iptables-1.2.9rc1/include/linux/netfilter_ipv4/ipt_physdev.h.old	2003-10-25 08:41:48.000000000 +0200
-+++ iptables-1.2.9rc1/include/linux/netfilter_ipv4/ipt_physdev.h	2003-10-25 08:43:31.000000000 +0200
-@@ -13,12 +13,12 @@
- #define IPT_PHYSDEV_OP_MASK		(0x20 - 1)
- 
- struct ipt_physdev_info {
--	u_int8_t invert;
--	u_int8_t bitmask;
- 	char physindev[IFNAMSIZ];
- 	char in_mask[IFNAMSIZ];
- 	char physoutdev[IFNAMSIZ];
- 	char out_mask[IFNAMSIZ];
-+	u_int8_t invert;
-+	u_int8_t bitmask;
- };
- 
- #endif /*_IPT_PHYSDEV_H*/
-
---Boundary-00=_Fzhm/bAi0jHLB3p--
+Regards,
+Willy
