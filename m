@@ -1,12 +1,16 @@
-From: Andrei Ivanov <andrei.ivanov@ines.ro>
-Subject: tos 0x62
-Date: Tue, 17 Sep 2002 19:50:44 +0300 (EEST)
+From: "Kim Thye Chua" <kim.thye.chua@aptilo.com>
+Subject: netlink_unicast question
+Date: Wed, 18 Sep 2002 02:03:41 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0209171950310.6328-100000@webdev.ines.ro>
+Message-ID: <OHEAKJJCKHIPCLKINACKCEEHCAAA.kim.thye.chua@aptilo.com>
+References: <Pine.LNX.4.44.0209171556190.23114-100000@the.brain.uni-freiburg.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.44.0209171556190.23114-100000@the.brain.uni-freiburg.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,20 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-Hello,
-I'm trying to filter packets which have a TOS value of 0x62, and it seems
-I cannot.
-I tried the tos module, but it only knows valid tos values.
-I looked for the ftos module from patch-o-matic, but it seems it has been
-obsoleted by DSCP and ECN module.
+I have a problem when using netlink_unicast(...) in
+net/netlink/af_netlink.c. When calling netlink_unicast(...) multiple times,
+e.g. in a loop, the internal buffer in the socket will get filled up, then
+it will refuse to send any more netlink msg and return -EAGAIN.
 
-If I try iptables -I acc_IN -i eth1 -m dscp --dscp 0x62 it spits out:
+Is there anyway to force netlink socket to send/flush whatever in the buffer
+thus leave more room for the next netlink_unicast call?
 
-iptables v1.2.7a: DSCP `98` out of range
+Any advice is appreciated. thank you very much.
 
-Should I use ftos or is there another way to do this ?
 
-(I coudln't search the mail archives for this problem because this
-mailing list manager doesn't offer such a facility)
-(I tried this on netfilter-users, but nobody answered)
+/kim
