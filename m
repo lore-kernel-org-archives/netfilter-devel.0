@@ -1,16 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: netfilter time patch (feature request)/ optimization against
- big rulesets.
-Date: Wed, 10 Mar 2004 15:42:56 +0100 (CET)
+From: Kiran Kumar <immidi_kiran@yahoo.com>
+Subject: Conntrack TCP query
+Date: Wed, 10 Mar 2004 07:29:08 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403101540160.3805-100000@filer.marasystems.com>
-References: <200403101241.48559.kaups@linux.ee>
+Message-ID: <20040310152908.55446.qmail@web14010.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: kaups <kaups@linux.ee>
-In-Reply-To: <200403101241.48559.kaups@linux.ee>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,19 +17,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 10 Mar 2004, kaups wrote:
+Hi,
+  In the TCP conntrack code ip_conntrack_proto_tcp.c,
+I find that state of the conntrack is updated based on
+a table of direction vs cur state vs packet type. This
+is ostensibly before verifying the TCP checksum and
+other checks. It is then possible that such a packet
+is actually dropped. But the conntrack has already
+updated the state based on this packet.
 
-> For example if the connection arrives/begins at Mon 17:59, that means the 
-> entry in ip_conntrack will expire automatically at 18:00.
+  Where am I going wrong?
 
-This would not be possible as the ip_conntrack has a lot of information 
-about the session you want to keep. You would need a more fine granual 
-optimization match than "-m state --state ESTABLISHED" for skipping the 
-ruleset.
+=====
+Regards,
+Kiran Kumar Immidi
 
-As you indicated using CONNMARK is one alternative, by encoding the 
-different condition boundaries (or an approximation thereof) into the 
-connection. Other similar approaches would also work fine.
-
-Regards
-Henrik
+__________________________________
+Do you Yahoo!?
+Yahoo! Search - Find what you’re looking for faster
+http://search.yahoo.com
