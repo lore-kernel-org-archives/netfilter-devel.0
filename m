@@ -1,18 +1,19 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: Multiple Targets
-Date: Sat, 19 Feb 2005 18:41:59 +0100
-Message-ID: <20050219174159.GB18228@oknodo.bof.de>
-References: <7174b1e405021900052b4545c4@mail.gmail.com>
-	<20050219082851.GA18228@oknodo.bof.de>
-	<1589344960.20050219102331@dns.toxicfilms.tv>
-	<421775A0.3040902@niksula.hut.fi>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: helper and handling IPv6 fragments [was Re: nf_conntrack resync
+	with 2.6.11-rc4]
+Date: Sat, 19 Feb 2005 19:50:28 +0100
+Message-ID: <20050219185028.GN29256@sunbeam.de.gnumonks.org>
+References: <200502151615.23463.michal@rokos.info>
+	<200502151654.57371.michal@rokos.info>
+	<200502161132.19312.michal@rokos.info>
+	<200502171520.j1HFKH6U029405@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Maciej Soltysiak <solt@dns.toxicfilms.tv>,
-	netfilter-devel@lists.netfilter.org
-To: Jonas Berlin <jberlin@niksula.hut.fi>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LSp5EJdfMPwZcMS1"
+Cc: netfilter-devel@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <421775A0.3040902@niksula.hut.fi>
+In-Reply-To: <200502171520.j1HFKH6U029405@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,37 +25,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> >>Problem: target options. How would the commandline parser see that
-> >>--set-mark belongs to MARK, and --log-prefix belongs to LOG? What
-> >>about the hypothetical case of several targets having target options
-> >>with identical names?
-> >>   
-> >>
-> Isn't it possible to have multiple matchers also? How are the arguments 
-> to them separated?
 
-Very strangely, or so they said. As far as I remember, doing things
-cleanly in this regard, was one of the main motivations for pkttables.
-(Sorry, I never tried to understand this in more detail)
+--LSp5EJdfMPwZcMS1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> If the latter, how about having a match target instead that matches if 
-> the previous one matched?
-> 
-> This would be quite easy to implement, not break any binary interface 
-> and my guess is it wouldn't be too slow either.
+On Fri, Feb 18, 2005 at 12:20:16AM +0900, Yasuyuki KOZAKAI wrote:
+> Well, There seems to be some issues in IPv6 module by resent changes.
 
-Heh. I've got the same idea, but you beat me. However, I'd simply name this
-'and', instead of 'previous':
+ACK.
 
-iptables -A INPUT -p tcp --dport 53 -j LOG --log-prefix "foo: "
-iptables -A INPUT -m and -j MARK --set-mark 1
-iptables -A INPUT -m and -j ACCEPT
+> In the result, all fragments reach ipv6_confirm(). helper should not
+> track all of them, and track reassembled skb JUST ONCE.
 
-I agree that implementing this would be rather easy: the main table
-scanning can certainly know the result of the last match it did,
-and it could specialcase recognition of 'and' (i.e. NOT call the
-match function, which would then wonder how to get at its caller's
-knowledge of the previous match result...)
+Agreed.
 
-best regards
-  Patrick
+> But how ipv6_confirm() can figure out whether helper has already tracked
+> the reassembled skb or not ?
+>=20
+> I think nfcache flag may help. If helper return NF_ACCEPT, ipv6_confirm()
+> set NFC_ALTERD to nfcache of it. And when other fragments reach ipv6_conf=
+irm(),
+> it can return without call helper. Of cause, we need to define the other =
+flags
+> for STOLEN/REPEAT...
+
+I'm not sure if I understand this proposal correctly. Do you suggest to
+set the nfcache bit of the reassembled clone as soon as the first
+fragment has passed the helper (and returned NF_ACCEPT) ?
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--LSp5EJdfMPwZcMS1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCF4p0XaXGVTD0i/8RApldAJ97zpEWcffBikP9ubUfAf7WQpPOYgCgooTH
+FYp/brfQX+ChcmJETXE+4mE=
+=/ggS
+-----END PGP SIGNATURE-----
+
+--LSp5EJdfMPwZcMS1--
