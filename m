@@ -1,15 +1,17 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: difference of behavior between ip_tables.c and ip6_tables.c in
- kernel
-Date: Mon, 14 Jun 2004 21:38:02 +0900 (JST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] modification in current protocol helper API to handle
+ error/unclean packets
+Date: Mon, 14 Jun 2004 16:03:40 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200406141238.VAA11627@toshiba.co.jp>
+Message-ID: <Pine.LNX.4.33.0406141551410.12847-100000@blackhole.kfki.hu>
+References: <40CD8E0A.6050900@eurodev.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: usagi-core@linux-ipv6.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <40CD8E0A.6050900@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,28 +22,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 14 Jun 2004, Pablo Neira wrote:
 
-Hi,
+> >+       /* It may be an special packet, error, unclean... */
+> >+       if ((ret = proto->error(*pskb, &ctinfo, hooknum)) != NF_ACCEPT)
+> >+               return ret;
+>
+> I'm still in doubt, if we found an unclean packet, we should return
+> NF_ACCEPT, so we let the packet continues its travel. In that case, the
+> skbuff  won't have a conntrack associated and the sysadmin could
+> explicitely drop invalid packets with an iptables rule, am I right?
 
-I found that ip6_packet_match() skips AH(Authentication Header) but
-ip_packet_match() doesn't skip AH. Then "ip6tables -A INPUT -p tcp -j DROP"
-matches AHed IPv6 packets but "iptables -A INPUT -p tcp -j DROP" doesn't match
-AHed IPv4 packets.
+As I sent my mail I noticed that I'm mistaken: following what I suggested
+the goal to encapsulate the ICMP error message handling could not be done.
 
-I think these commands should be behave in the same way. But do you think
-which behavior is better ?
+So the semantics could follow the one applied in the tcp-window-tracking
+patch: stop the processing of the packet by returning negated error code;
+otherwise continue:
 
-If skipping AH, we can specify the inner protocol of AH/IPv4. But it is needed
-to change more codes because tcp_match(), udp_match(), etc. assume that
-protocol header is next of IPv4 header.
++       /* It may be an special packet, error, unclean...
++        * inverse of the return code tells to the netfilter
++	 * core what to do with the packet. */
++       if ((ret = proto->error(*pskb, &ctinfo, hooknum)) <= 0)
++               return -ret;
 
-Otherwise, we'll just delete a few code from ip6_packet_match(). But we can't
-specify inner protocol.
+That way we can draw any shortcut decision in the error function and
+NF_ACCEPT means just to traverse further in conntrack.
 
-My ideal solution is the former. I think it is better that match() in matching
-module has "int protoff" argument which points to transport protocol header. 
-
-Regards,
-
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
