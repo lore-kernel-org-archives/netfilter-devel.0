@@ -1,15 +1,11 @@
-From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: Re: Cannot delete hashlimit match entries
-Date: Fri, 04 Feb 2005 19:33:04 -0500
-Message-ID: <42041440.1050405@cookinglinux.org>
-References: <20050204232444.GB30789@linuxace.com>
-Reply-To: sjean@cookinglinux.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 2.6.11]: Clear NAT status bits on module unload
+Date: Sat, 05 Feb 2005 03:53:16 +0100
+Message-ID: <4204351C.8010701@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050204232444.GB30789@linuxace.com>
+Content-Type: multipart/mixed; boundary="------------030607070806010007070608"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,44 +17,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> As noted by a bugzilla reporter, 
-> 
-> iptables -A foo -m hashlimit --hashlimit 5/s --hashlimit-mode srcip --hashlimit-name foo
-> iptables -D foo -m hashlimit --hashlimit 5/s --hashlimit-mode srcip --hashlimit-name foo
-> iptables: Bad rule (does a matching rule exist in that chain?)
-> 
-> In reviewing this, I think the fact that *hinfo is initialized by the kernel
-> will make this a tough problem to fix.  The unitialized match is:
-> 
+This is a multi-part message in MIME format.
+--------------030607070806010007070608
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yes. The only way am aware of to fix it is sizing the matching part with offsetof().
-Fortunately, in this case, all modified member are at end so we can use this hack without
-breaking any compatibility.
+Hi Dave,
 
-> Ideas?
+another patch which I think should go in 2.6.11, it fixes a crash
+when unloading, then reloading iptable_nat.
 
-Index: extensions/libipt_hashlimit.c
-===================================================================
---- extensions/libipt_hashlimit.c       (revision 3525)
-+++ extensions/libipt_hashlimit.c       (working copy)
-@@ -351,8 +351,7 @@
-         .name           = "hashlimit",
-         .version        = IPTABLES_VERSION,
-         .size           = IPT_ALIGN(sizeof(struct ipt_hashlimit_info)),
--       .userspacesize  = IPT_ALIGN(sizeof(struct ipt_hashlimit_info)),
--       //offsetof(struct ipt_hashlimit_info, prev),
-+       .userspacesize  = offsetof(struct ipt_hashlimit_info, hinfo),
-         .help           = &help,
-         .init           = &init,
-         .parse          = &parse,
-
-By now, SVN is crush. 8( I can't tell wheter this patch applies or not. but at least, you got the idea.
+Regards
+Patrick
 
 
-> 
-> Phil
-> 
 
-Cheers,
-Samuel
+--------------030607070806010007070608
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2005/02/05 03:49:38+01:00 kaber@coreworks.de 
+#   [NETFILTER]: Clear NAT status bits on module unload
+#   
+#   ip_nat_core doesn't clear the status bits in struct ip_conntrack on
+#   module unload, but zeroes out the nat area. When the module is loaded
+#   again and a connection times out ip_nat_cleanup_conntrack tries to
+#   list_del the zeroed list-head and crashes. There are probably more
+#   conditions under which it can crash or cause other misbehaviour.
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# net/ipv4/netfilter/ip_nat_core.c
+#   2005/02/05 03:49:28+01:00 kaber@coreworks.de +1 -0
+#   [NETFILTER]: Clear NAT status bits on module unload
+#   
+#   ip_nat_core doesn't clear the status bits in struct ip_conntrack on
+#   module unload, but zeroes out the nat area. When the module is loaded
+#   again and a connection times out ip_nat_cleanup_conntrack tries to
+#   list_del the zeroed list-head and crashes. There are probably more
+#   conditions under which it can crash or cause other misbehaviour.
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
+--- a/net/ipv4/netfilter/ip_nat_core.c	2005-02-05 03:50:14 +01:00
++++ b/net/ipv4/netfilter/ip_nat_core.c	2005-02-05 03:50:14 +01:00
+@@ -543,6 +543,7 @@
+ static int clean_nat(struct ip_conntrack *i, void *data)
+ {
+ 	memset(&i->nat, 0, sizeof(i->nat));
++	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
+ 	return 0;
+ }
+ 
+
+--------------030607070806010007070608--
