@@ -1,16 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Reset conntrack...
-Date: Wed, 8 Dec 2004 16:32:12 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0412081627080.19244@filer.marasystems.com>
-References: <41AF92B1.30802@anduras.de> <20041203060819.GG4605@oknodo.bof.de>
-	<41B049C5.403@anduras.de> <41B0D5AB.6050403@gmx.net>
-	<41B6E379.5070909@anduras.de>
+Subject: Re: How can I get these packets in the user space application?
+Date: Wed, 8 Dec 2004 16:34:55 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0412081632530.19244@filer.marasystems.com>
+References: <4EE0CBA31942E547B99B3D4BFAB348112588BA@mail.esn.co.in>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org,
+	"Mukund JB." <mukundjb@esntechnologies.co.in>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Anders <anders@anduras.de>
-In-Reply-To: <41B6E379.5070909@anduras.de>
+To: "Srinivas G." <srinivasg@esntechnologies.co.in>
+In-Reply-To: <4EE0CBA31942E547B99B3D4BFAB348112588BA@mail.esn.co.in>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +21,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 8 Dec 2004, Sven Anders wrote:
+yOn Wed, 8 Dec 2004, Srinivas G. wrote:
 
-> |>Possible solutions:
-> |>
-> |>~ 1) Recheck all CONNTRACK entries against the new firewall rules.
-> |>
-> |>~ 2) Set all CONNTRACK entries with states RELATED or ESTABLISHED to
-> |>~     NEW, to force the recheck.
+> My question is: How can I get these packets in the user space
+> application?
 
+Depends on what you want to do with the packet. If you intend to have them 
+returned back to the kernel then QUEUE is the best action.
 
-Implemented years ago by a collegue of mine:
-
-https://lists.netfilter.org/pipermail/netfilter-devel/2003-August/012109.html
-[or alternate archive location where MIME processing actually works...]
-http://marc.theaimsgroup.com/?l=netfilter-devel&m=105975103717126&w=2
-
-Needs some trivial adjustments for current ip_conntrack versions..
+If you only want to have them sent to userspace then a more lean design 
+may be desireable.
 
 Regards
-Herik
+Henrik
