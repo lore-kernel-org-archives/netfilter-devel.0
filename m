@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: [PATCH] ipt_REJECT shouldn't send replies for wrong udp csum
-Date: Thu, 9 Jan 2003 15:46:41 +0100
+Subject: [PATCH] locking fix for TCP conntrack
+Date: Thu, 9 Jan 2003 15:42:06 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030109144641.GI9467@sunbeam.de.gnumonks.org>
+Message-ID: <20030109144206.GF9467@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dRZtNaFcRiL7vj6v"
+	protocol="application/pgp-signature"; boundary="m699nQIRt8EJjqXo"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,7 +21,7 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---dRZtNaFcRiL7vj6v
+--m699nQIRt8EJjqXo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -33,58 +33,37 @@ ay.
 
 Please apply to 2.4.x and 2.5.x, thanks.
 
-Author: Patrick McHardy <kaber@trash.net>
-ipt_REJECT sends unreachables in response to UDP packets with invalid
-checksums, thereby exposing the existance of a firewall  (as described
-in phrack #60, "broken crc firewall spotting" (or something like this),
-www.phrack.com).  The patch makes ipt_REJECT verify UDP checksums if
-set.                        =20
+Author: Martin Josefsson <gandalf@wlug.westbo.se>
+Fix a locking bug in ip_conntrack_proto_tcp.
 
 
-diff -urN linux-2.4.21-pre2-clean/net/ipv4/netfilter/ipt_REJECT.c linux-2.4=
-.21-pre2/net/ipv4/netfilter/ipt_REJECT.c
---- linux-2.4.21-pre2-clean/net/ipv4/netfilter/ipt_REJECT.c	2002-11-29 00:5=
-3:15.000000000 +0100
-+++ linux-2.4.21-pre2/net/ipv4/netfilter/ipt_REJECT.c	2003-01-05 19:59:27.0=
-00000000 +0100
-@@ -6,6 +6,8 @@
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ip.h>
-+#include <linux/udp.h>
-+#include <linux/icmp.h>
- #include <net/icmp.h>
- #include <net/ip.h>
- #include <net/tcp.h>
-@@ -157,6 +159,7 @@
- static void send_unreach(struct sk_buff *skb_in, int code)
- {
- 	struct iphdr *iph;
-+	struct udphdr *udph;
- 	struct icmphdr *icmph;
- 	struct sk_buff *nskb;
- 	u32 saddr;
-@@ -186,6 +189,19 @@
- 	if (iph->frag_off&htons(IP_OFFSET))
- 		return;
+--- linux-2.4.20-pre10/net/ipv4/netfilter/ip_conntrack_proto_tcp.c.meep	200=
+2-10-24 17:05:49.000000000 +0200
++++ linux-2.4.20-pre10/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2002-10-=
+24 17:11:19.000000000 +0200
+@@ -186,13 +186,13 @@
+ 	    && tcph->syn && tcph->ack)
+ 		conntrack->proto.tcp.handshake_ack
+ 			=3D htonl(ntohl(tcph->seq) + 1);
+-	WRITE_UNLOCK(&tcp_lock);
 =20
-+	/* if UDP checksum is set, verify it's correct */
-+	if (iph->protocol =3D=3D IPPROTO_UDP
-+	    && skb_in->tail-(u8*)iph >=3D sizeof(struct udphdr)) {
-+		int datalen =3D skb_in->len - (iph->ihl<<2);
-+		udph =3D (struct udphdr *)((char *)iph + (iph->ihl<<2));
-+		if (udph->check
-+		    && csum_tcpudp_magic(iph->saddr, iph->daddr,
-+		                         datalen, IPPROTO_UDP,
-+		                         csum_partial((char *)udph, datalen,
-+		                                      0)) !=3D 0)
-+			return;
-+	}
-+		   =20
- 	/* If we send an ICMP error to an ICMP error a mess would result.. */
- 	if (iph->protocol =3D=3D IPPROTO_ICMP
- 	    && skb_in->tail-(u8*)iph >=3D sizeof(struct icmphdr)) {
-
+ 	/* If only reply is a RST, we can consider ourselves not to
+ 	   have an established connection: this is a fairly common
+ 	   problem case, so we can delete the conntrack
+ 	   immediately.  --RR */
+ 	if (!(conntrack->status & IPS_SEEN_REPLY) && tcph->rst) {
++		WRITE_UNLOCK(&tcp_lock);
+ 		if (del_timer(&conntrack->timeout))
+ 			conntrack->timeout.function((unsigned long)conntrack);
+ 	} else {
+@@ -203,6 +203,7 @@
+ 		    && tcph->ack_seq =3D=3D conntrack->proto.tcp.handshake_ack)
+ 			set_bit(IPS_ASSURED_BIT, &conntrack->status);
+=20
++		WRITE_UNLOCK(&tcp_lock);
+ 		ip_ct_refresh(conntrack, tcp_timeouts[newconntrack]);
+ 	}
+=20
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -94,7 +73,7 @@ diff -urN linux-2.4.21-pre2-clean/net/ipv4/netfilter/ipt_REJECT.c linux-2.4=
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---dRZtNaFcRiL7vj6v
+--m699nQIRt8EJjqXo
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -102,9 +81,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+HYtRXaXGVTD0i/8RAgsbAKCJ1ihGrePE8WU3AVChiUqbOMihJwCfdxJo
-MKOJr+tHBXLcF8QQ9PCoVtI=
-=JzbA
+iD8DBQE+HYo+XaXGVTD0i/8RAltGAKC0lg4Jo3eTHWxNcB8WSwaqEZgNwQCfeSxs
+fYMF1mIizTUDGJ8iWnMC7ww=
+=QR6o
 -----END PGP SIGNATURE-----
 
---dRZtNaFcRiL7vj6v--
+--m699nQIRt8EJjqXo--
