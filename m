@@ -1,13 +1,14 @@
 From: "Martijn Lievaart" <m@rtij.nl>
-Subject: Re: REJECT target / need-fragment ?
-Date: Mon, 14 Mar 2005 15:49:43 +0100 (CET)
-Message-ID: <48320.213.236.112.75.1110811783.squirrel@213.236.112.75>
-References: <20050314125747.GA18233@paradigm.rfc822.org>
+Subject: Re: LAND check: 2.4.20
+Date: Mon, 14 Mar 2005 15:51:16 +0100 (CET)
+Message-ID: <50015.213.236.112.75.1110811876.squirrel@213.236.112.75>
+References: <BB6D74C75CC76A419B6D6FA7C38317B26A25DC@sinett-sbs.SiNett.LAN>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050314125747.GA18233@paradigm.rfc822.org>
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+In-Reply-To: <BB6D74C75CC76A419B6D6FA7C38317B26A25DC@sinett-sbs.SiNett.LAN>
+To: "Vishwas Manral" <Vishwas@sinett.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,24 +20,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Florian Lohoff said:
+Vishwas Manral said:
+> Hi folks,
 >
-> Hi,
-> i'd like to reject packets based on their size and send back and
-> icmp-must-fragment with a configurable size. As i can see no such
-> possibility is there currently. The REJECT target itself does not
-> offer this.
+> I found no check in the iptables module for LAND attack source
+> port/ipAddr == destination port/ipAddr.
+> http://www.cert.org/advisories/CA-1997-28.html
 >
-> Should i add this functionality to REJECT or rather write another
-> module.
->
-> BTW: The ip stack has function like this:
->
-> 	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
-> 				  htonl(dst_pmtu(&rt->u.dst)));
->
+> Would we want to add that in ipt_unclean.c in the functions check_tcp
+> and check_udp?
 
-Search this list, or the netfilter-users list. I once posted a module that
-does just that.
+IMO, your anti spoofing rules should catch this.
 
 M4
