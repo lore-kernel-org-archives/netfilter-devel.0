@@ -1,17 +1,11 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] MASQUERADE handling of device events
-Date: Mon, 8 Nov 2004 13:55:25 -0800
-Message-ID: <20041108215525.GA8766@linuxace.com>
-References: <20041107181825.GA3522@linuxace.com> <418F9952.5030004@trash.net>
-	<20041108161511.GA6754@linuxace.com> <418F9DD4.20202@trash.net>
-	<20041108163457.GB6754@linuxace.com>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: ctnetlink & helper_locking_fix conflict
+Date: Tue, 9 Nov 2004 08:13:33 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0411090808200.30695@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <20041108163457.GB6754@linuxace.com>
+To: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,14 +17,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Nov 08, 2004 at 08:34:57AM -0800, Phil Oester wrote:
-> It's a great idea, and will reduce the size of struct ip_conntrack.
-> But I think it should be done in a separate cleanup patch - really would
-> like to get this one merged up to fix the masq issues.
+Hi,
 
-Actually masq_index is still used in connect_unassure, and thus can't
-be removed completely.  In cases where the interface goes down permanently,
-clearing the assured bit makes sense, so guess this behaviour should be
-maintained.
+there is a conflict between the above two patches. The helper_locking_fix 
+removes the locks from the helpers, but ctnetlink adds code using these 
+locks.
 
-Phil
+>From reading the code I think the helper side locking should be removed 
+from the ctnetlink additions as well, but just wanted to verify with you.
+
+Example of the offending code (ip_conntrack_irc.c, and many more):
+
++static void ctnl_change(struct ip_conntrack *ct, union ip_conntrack_help 
+*h)
++{
++	LOCK_BH(&ip_irc_lock);
++	memcpy(&ct->help, h, sizeof(ct->help));
++	UNLOCK_BH(&ip_irc_lock);
++}
++
++static void ctnl_new_expect(struct ip_conntrack_expect *exp,
++                            union ip_conntrack_expect_proto *p,
++                            union ip_conntrack_expect_help *h)
++{
++	if (h == NULL)
++		return;
++	LOCK_BH(&ip_irc_lock);
++	memcpy(&exp->help, h, sizeof(exp->help));
++	UNLOCK_BH(&ip_irc_lock);
++}
++
+
+where ip_irc_lock was killed by helper_locking_fix.
+
+
+Regards
+Henrik
