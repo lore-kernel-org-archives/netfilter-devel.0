@@ -1,19 +1,14 @@
 From: "Samuel Jean" <sj-netfilter@cookinglinux.org>
-Subject: Re: [PATCH] ipt_hashlimit.c: expire's type overflow when showing
- tuples at bad moment.
-Date: Tue, 1 Feb 2005 09:53:49 -0500 (EST)
-Message-ID: <6732.142.169.215.10.1107269629.squirrel@142.169.215.10>
-References: <41F2FE92.6020603@cookinglinux.org>
-	<20050201132915.GJ6878@sunbeam.de.gnumonks.org>
-	<41FF877D.4080309@trash.net>
-	<20050201135423.GS6878@sunbeam.de.gnumonks.org>
-	<41FF9024.3070101@trash.net>
+Subject: Re: [PATCH 2/2] ipt_hashlimit.c: sleeping function called from
+ invalid context
+Date: Tue, 1 Feb 2005 10:07:46 -0500 (EST)
+Message-ID: <8329.142.169.215.10.1107270466.squirrel@142.169.215.10>
+References: <41F86557.2000208@cookinglinux.org>
 Mime-Version: 1.0
 Content-Type: text/plain;charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-In-Reply-To: <41FF9024.3070101@trash.net>
-To: "Patrick McHardy" <kaber@trash.net>
+In-Reply-To: <41F86557.2000208@cookinglinux.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,28 +20,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, February 1, 2005 9:20 am, Patrick McHardy said:
-> ipt_hashlimit already uses %ld. Samuel, what problem are you seeing
-> exactly ?
-> Is it negative times or wrapped times ?
-
-I see wrapped time.
-
-I've tried making it print negative values, but seems I can't get
-unsigned operations to result in a signed value. Is that right ?
-
-However,
-
-int r =3D (unsigned - unsigned) gave me negative value.
-
+On Wed, January 26, 2005 10:51 pm, Samuel Jean said:
+> --- net/ipv4/netfilter/ipt_hashlimit.c.orig  2005-01-26 22:35:43.000000=
+000
+> -0500
+> +++ net/ipv4/netfilter/ipt_hashlimit.c 2005-01-26 22:36:14.000000000 -0=
+500
+> @@ -570,7 +570,7 @@ static void *dl_seq_start(struct seq_fil
+>     if (*pos >=3D htable->cfg.size)
+>        return NULL;
 >
-> Regards
-> Patrick
+> -  bucket =3D kmalloc(sizeof(unsigned int), GFP_KERNEL);
+> +  bucket =3D kmalloc(sizeof(unsigned int), GFP_ATOMIC);
+>     if (!bucket)
+>        return ERR_PTR(-ENOMEM);
 
-Have a nice day,
-
-Samuel
-
-P.S.: Please disregard that patch, I`ve send another one [PATCH 1/2] whic=
-h
-doesn't use unecessary variable, I think. Thank you.
+I've also wondered about it this morning.. Couldn't we just let kmalloc
+sleeps, and once we got the memory, we lock ?
