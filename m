@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ctnetlink questions
-Date: Tue, 21 Oct 2003 22:00:32 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: tools to modifiy the conntrack?
+Date: Tue, 21 Oct 2003 21:56:08 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F959060.3000807@trash.net>
-References: <Pine.LNX.4.44.0310212149340.7523-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0310212155000.7523-100000@filer.marasystems.com>
+References: <006001c39733$32949370$6500a8c0@SYFLO>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0310212149340.7523-100000@filer.marasystems.com>
+To: Sylvain BERTRAND <jowy@2001-space-odyssey.net>
+In-Reply-To: <006001c39733$32949370$6500a8c0@SYFLO>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,28 +20,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
+On Mon, 20 Oct 2003, Sylvain BERTRAND wrote:
 
->On Tue, 21 Oct 2003, Patrick McHardy wrote:
->
->  
->
->>Ok there's another problem, for fast lookups by id (we don't want to
->>search the entire hash) we need to encode the hash chain of a tuple 
->>in the id. We basically have two choices now for the remaining bits:
->>    
->>
->
->You can always make the userspace ID larger by including the bucket
->number. There is no need to extend the ID stored in the conntrack for
->this as it is already known.
->
->Regards
->Henrik
->  
->
+> I've got conntrack support in my 2.4.21 kernel. I'd like to flush it
+> sometime, or at least delete a few lines.
 
-Ok I have to admit I didn't think of this obvious solution.
+This is a area somewhat lacking at this time.
 
-Thanks again,
-Patrick
+There is ongoing development adding support for this, available both in 
+p-o-m and separately. Look for ctnetlink.
+
+> I'm not very excited about editing /proc/net/ip_conntrack by hand...
+
+You can't. It is read-only.
+
+Regards
+Henrik
