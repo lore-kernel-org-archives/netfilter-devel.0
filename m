@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] newnat conntrack/nat core support for UDP protocols
-Date: Fri, 20 Sep 2002 17:13:08 +0200
+Subject: Re: [PATCH] multiple devices with ranges match support
+Date: Fri, 20 Sep 2002 17:07:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020920171308.N3810@sunbeam.de.gnumonks.org>
-References: <20020816080649.GD2264@pc.ilinx>
+Message-ID: <20020920170741.M3810@sunbeam.de.gnumonks.org>
+References: <638AA0336D7ED411928700D0B7B0D75B03053C9C@aimail.aiinet.com> <20020918221212.GG10465@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: application/pgp; x-action=sign; format=text
-Cc: netfilter@interlinx.bc.ca
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick Schaaf <bof@bof.de>
 Content-Disposition: inline; filename="msg.pgp"
-In-Reply-To: <20020816080649.GD2264@pc.ilinx>; from netfilter@interlinx.bc.ca on Fri, Aug 16, 2002 at 04:07:17AM -0400
+In-Reply-To: <20020918221212.GG10465@oknodo.bof.de>; from bof@bof.de on Thu, Sep 19, 2002 at 12:12:12AM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,30 +24,36 @@ List-Id: netfilter-devel.vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-On Fri, Aug 16, 2002 at 04:07:17AM -0400, netfilter@interlinx.bc.ca wrote:
-> Please find below a patch to modify some existing and add some new
-> convenience functions to the newnat core conntrack and nat functions.
+On Thu, Sep 19, 2002 at 12:12:12AM +0200, Patrick Schaaf wrote:
+> > Would you ever want to use this on interfaces with secondary addresses, like
+> > eth0:4?  (Does that even matter?  I'm not too familiar with them; I just
+> > remember seeing that syntax.)
 > 
-> In summary:
+> Their use is deprecated (use "ip addr add ..." instead), but it's
+> nevertheless a good idea to avoid actively breaking them. However,
+> if I remember correctly, they don't really appear as input or
+> output device of real packets in the kernel, so in this place,
+> it's probably OK to reuse ':'.
+
+true.
+
+> However, in general, I'm not so sure that it makes sense to expand
+> all kinds of match options into multidimensional specification
+> languages for arbitrary subsets of their keyspaces, with all kinds
+> of option specific shortcut forms for how ranges and patterns are
+> written. Each option becomes its own mini-language. I don't like.
+
+You seem to be reading my mind.  I already had this issue with the
+multiport match (I never liked it, in fact) - and I have the same 
+trouble with this kind of patches.  Somebody seems to be solving a 
+particular problem (efficiency?) the wrong way.
+
+>   Patrick
 > 
->  - make ip_nat_resize_packet more generic (TCP and UDP)
->  - optimize away the memmove in ip_nat_mangle_tcp_packet when the
->    replacement string is the same size as the match string
->  - add ip_nat_mangle_udp_packet
+> P.S.: My deepest apologies, Jay, for you receiving so many rants from
+> me this evening. Please, don't take them personally. I hope to help.
 
-aren't you missing that UDP packets can have no checksums, and we thus should
-not calculate one?
-
-If this is true, please fix this problem and resubmit.
-
->  - add ip_nat_mangle_multi_udp_packet
-
-As stated in my other mail, I don't really see the need for this function.
-We shouldn't bloat the code and add more API functions for a little gain
-in efficiency in some rare cases.
-
-> Thanx,
-> b.
+I would consider this a philosophic discussion, it's not about people.
 
 - -- 
 Live long and prosper
@@ -59,7 +65,7 @@ V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9izsEXaXGVTD0i/8RAuHEAKCURi8S57EpMJ+za2/MFZHSy0SvpgCfevFD
-ve0TRRMGU/ua/a9MdnfPP7U=
-=Kv41
+iD8DBQE9izm9XaXGVTD0i/8RAvtNAJ4wpuj5cx8VMtSqhguFri9fbd1IfQCcDiPg
+NxAQ1o9h7qZHDsFZqSQyrkE=
+=oeeR
 -----END PGP SIGNATURE-----
