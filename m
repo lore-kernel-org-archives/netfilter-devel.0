@@ -1,15 +1,13 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Fw: PROBLEM: Conntrack/NAT bug
-Date: 10 Oct 2002 16:18:51 +0200
+Subject: [PATCH] runme patch for 2.5
+Date: 10 Oct 2002 16:33:15 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1034259531.25142.6.camel@tux>
-References: <20021010.062046.47003148.davem@redhat.com>
+Message-ID: <1034260395.25142.13.camel@tux>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-t+g5lCR23ea4C6M1daJu"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="=-ZpVIJEVLEQBtBOE0dbMG"
+Cc: Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tom Lanyon <toml@internode.on.net>
-In-Reply-To: <20021010.062046.47003148.davem@redhat.com>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +19,18 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-t+g5lCR23ea4C6M1daJu
+--=-ZpVIJEVLEQBtBOE0dbMG
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
- 
-> [1.] One line summary of the problem:   Some sort of coding problem in
-> conntrack.
-> [2.] Full description of the problem/report:
-> The following error pops up quite often in my console:
-> ASSERT ip_conntrack_core.c:94 &ip_conntrack_lock readlocked
-> ASSERT: ip_nat_core.c:841 &ip_conntrack_lock not readlocked
+Hi there,
 
-This is not a real bug, it's harmless. The ASSERT's are because the
-lock-debugging in netfilter can't handle "recursive" read-locks on the
-same lock and cpu.
+Here's a small patch that will make patch-o-matic work with kernel 2.5
+There's been some configurationchanges (Documentation/Configure.help
+doesn't exist anymore)
 
-Attached is a patch that will eliminate these printouts, it's a bit
-unclean and was rejected by Harald (it's perfectly safe) but it will
-shut them up (at least the ASSERT's you reported in your mail).
+This patch will make 'runme' incompatible with kernel 2.4 so use it only
+with 2.5 kernels.
 
 -- 
 /Martin
@@ -47,99 +38,151 @@ shut them up (at least the ASSERT's you reported in your mail).
 Never argue with an idiot. They drag you down to their level, then beat
 you with experience.
 
---=-t+g5lCR23ea4C6M1daJu
-Content-Disposition: attachment; filename=exp_for_packet-lockpatch2
+--=-ZpVIJEVLEQBtBOE0dbMG
+Content-Disposition: attachment; filename=runme-2.5-patch
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/x-patch; name=exp_for_packet-lockpatch2; charset=ISO-8859-15
+Content-Type: text/plain; name=runme-2.5-patch; charset=ISO-8859-15
 
-diff -x '*.orig' -urN linux-2.4.20-pre8-ac3.orig/include/linux/netfilter_ip=
-v4/ip_conntrack_core.h linux-2.4.20-pre8-ac3/include/linux/netfilter_ipv4/i=
-p_conntrack_core.h
---- linux-2.4.20-pre8-ac3.orig/include/linux/netfilter_ipv4/ip_conntrack_co=
-re.h	2002-10-10 15:41:55.000000000 +0200
-+++ linux-2.4.20-pre8-ac3/include/linux/netfilter_ipv4/ip_conntrack_core.h	=
-2002-10-10 16:07:16.000000000 +0200
-@@ -17,7 +17,7 @@
- struct ip_conntrack_protocol;
- extern struct ip_conntrack_protocol *ip_ct_find_proto(u_int8_t protocol);
- /* Like above, but you already have conntrack read lock. */
--extern struct ip_conntrack_protocol *__find_proto(u_int8_t protocol);
-+extern struct ip_conntrack_protocol *__ip_ct_find_proto(u_int8_t protocol)=
-;
- extern struct list_head protocol_list;
-=20
- /* Returns conntrack if it dealt with ICMP, and filled in skb->nfct */
-diff -x '*.orig' -urN linux-2.4.20-pre8-ac3.orig/net/ipv4/netfilter/ip_conn=
-track_core.c linux-2.4.20-pre8-ac3/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-2.4.20-pre8-ac3.orig/net/ipv4/netfilter/ip_conntrack_core.c	2002-=
-10-10 15:41:57.000000000 +0200
-+++ linux-2.4.20-pre8-ac3/net/ipv4/netfilter/ip_conntrack_core.c	2002-10-10=
- 16:07:16.000000000 +0200
-@@ -74,7 +74,7 @@
- 	return protocol =3D=3D curr->proto;
+--- patch-o-matic/runme-2.4	2002-10-05 03:14:47.000000000 +0200
++++ patch-o-matic/runme	2002-10-05 02:22:38.000000000 +0200
+@@ -52,7 +52,7 @@
+ 	dd if=3D/dev/urandom bs=3D32 count=3D1 2>/dev/null | od -x -w32 -A n | tr=
+ -d ' '
  }
 =20
--struct ip_conntrack_protocol *__find_proto(u_int8_t protocol)
-+struct ip_conntrack_protocol *__ip_ct_find_proto(u_int8_t protocol)
+-# Too many rejects from trying to patch Configure.help and Config.in.
++# Too many rejects from trying to patch Config.help and Config.in.
+ # So we use special format: First line specifies entry we want to
+ # follow, and rest of file is pasted in under that.
+=20
+@@ -123,10 +123,10 @@
+ apply_config_help_change()
  {
- 	struct ip_conntrack_protocol *p;
+     PRIOR=3D"`head -1 $1`"
+-    LINE=3D`fgrep -x -n "$PRIOR" $2/Configure.help | cut -d: -f1 | head -1=
+`
++    LINE=3D`fgrep -x -n "$PRIOR" $2/Config.help | cut -d: -f1 | head -1`
+     if [ -z "$LINE" ] || [ "$LINE" -eq 0 ]
+     then
+-	echo Could not find place to slot in Configure.help entry >&2
++	echo Could not find place to slot in Config.help entry >&2
+ 	return 1
+     fi
 =20
-@@ -92,7 +92,7 @@
- 	struct ip_conntrack_protocol *p;
+@@ -135,13 +135,13 @@
+         # Reverse "patch"
 =20
- 	READ_LOCK(&ip_conntrack_lock);
--	p =3D __find_proto(protocol);
-+	p =3D __ip_ct_find_proto(protocol);
- 	READ_UNLOCK(&ip_conntrack_lock);
- 	return p;
+         NUMLINES1=3D`sed -n \$=3D $1`
+-        NUMLINES2=3D`sed -n \$=3D $2/Configure.help`
++        NUMLINES2=3D`sed -n \$=3D $2/Config.help`
+         BEGIN=3D2
+=20
+-        LINES=3D`fgrep -nx "\`sed -n 2p $1\`" $2/Configure.help | cut -d: =
+-f1`
++        LINES=3D`fgrep -nx "\`sed -n 2p $1\`" $2/Config.help | cut -d: -f1=
+`
+         if [ -z "$LINES" ]
+         then
+-	    echo Configure.help text not found >&2
++	    echo Config.help text not found >&2
+             return 1
+         fi
+=20
+@@ -152,7 +152,7 @@
+             TESTLINE=3D$BEGIN
+             # Be paranoid and check for match on all lines
+             while `let "$TESTLINE <=3D $NUMLINES1"`; do
+-                NOMATCH=3D`awk "NR=3D=3D$x + $TESTLINE - $BEGIN" $2/Config=
+ure.help|\
++                NOMATCH=3D`awk "NR=3D=3D$x + $TESTLINE - $BEGIN" $2/Config=
+.help|\
+                         fgrep -xcv "\`sed -n -e ${TESTLINE}p $1\`"`;
+=20
+                 if [ $NOMATCH -ne 0 ]; then continue 2; fi
+@@ -165,42 +165,42 @@
+         done; # for
+=20
+         if [ ! "$MATCHES" ]; then
+-            echo Configure.help text not found >&2
++            echo Config.help text not found >&2
+             return 1
+         fi;
+=20
+         for x in $MATCHES; do
+-#            if (head -`expr $x - 1` $2/Configure.help && \
+-#                tail -n +`expr $x + $NUMLINES1` $2/Configure.help) > $2/C=
+onfigure.help.tmp
+-	    if (awk "NR=3D=3D1,NR=3D=3D$x - 1" $2/Configure.help && \
+-                awk "NR=3D=3D$x + $NUMLINES1,NR=3D0" $2/Configure.help) > =
+$2/Configure.help.tmp
++#            if (head -`expr $x - 1` $2/Config.help && \
++#                tail -n +`expr $x + $NUMLINES1` $2/Config.help) > $2/Conf=
+ig.help.tmp
++	    if (awk "NR=3D=3D1,NR=3D=3D$x - 1" $2/Config.help && \
++                awk "NR=3D=3D$x + $NUMLINES1,NR=3D0" $2/Config.help) > $2/=
+Config.help.tmp
+             then
+-                mv $2/Configure.help.tmp $2/Configure.help
++                mv $2/Config.help.tmp $2/Config.help
+             else
+-                echo Could not update Configure.help >&2
+-                rm -f $2/Configure.help.tmp
++                echo Could not update Config.help >&2
++                rm -f $2/Config.help.tmp
+                 return 1
+             fi
+         done
+-        echo "   Configure.help updated"
++        echo "   Config.help updated"
+         return 0
+     fi
+=20
+     #Apply "Patch"
+=20
+-    rm -f $2/Configure.help.tmp
++    rm -f $2/Config.help.tmp
+     # Use awk to force newline if last line of $1 has only spaces
+     # Necessary to properly remove inserted text if patch is reversed
+-    if (awk "NR=3D=3D1,NR=3D=3D$LINE-2" $2/Configure.help && awk "NR=3D=3D=
+2,NR=3D=3D0" $1 && echo && \
+-        awk "NR=3D=3D$LINE-1,NR=3D=3D0" $2/Configure.help) > $2/Configure.=
+help.tmp
++    if (awk "NR=3D=3D1,NR=3D=3D$LINE-2" $2/Config.help && awk "NR=3D=3D2,N=
+R=3D=3D0" $1 && echo && \
++        awk "NR=3D=3D$LINE-1,NR=3D=3D0" $2/Config.help) > $2/Config.help.t=
+mp
+     then
+-	mv $2/Configure.help.tmp $2/Configure.help
++	mv $2/Config.help.tmp $2/Config.help
+     else
+-	echo Could not slot in Configure.help entry >&2
+-	rm -f $2/Configure.help.tmp
++	echo Could not slot in Config.help entry >&2
++	rm -f $2/Config.help.tmp
+ 	return 1
+     fi
+-    echo "   Placed new Configure.help entry"
++    echo "   Placed new Config.help entry"
+     return 0
  }
-diff -x '*.orig' -urN linux-2.4.20-pre8-ac3.orig/net/ipv4/netfilter/ip_conn=
-track_standalone.c linux-2.4.20-pre8-ac3/net/ipv4/netfilter/ip_conntrack_st=
-andalone.c
---- linux-2.4.20-pre8-ac3.orig/net/ipv4/netfilter/ip_conntrack_standalone.c=
-	2002-10-10 15:41:57.000000000 +0200
-+++ linux-2.4.20-pre8-ac3/net/ipv4/netfilter/ip_conntrack_standalone.c	2002=
--10-10 16:07:16.000000000 +0200
-@@ -71,7 +71,7 @@
- 	len +=3D sprintf(buffer + len, "use=3D%u proto=3D%u ",
- 		      atomic_read(&expect->use), expect->tuple.dst.protonum);
- 	len +=3D print_tuple(buffer + len, &expect->tuple,
--			   __find_proto(expect->tuple.dst.protonum));
-+			   __ip_ct_find_proto(expect->tuple.dst.protonum));
- 	len +=3D sprintf(buffer + len, "\n");
- 	return len;
+=20
+@@ -336,7 +336,7 @@
+     echo Testing patch $1...
+=20
+     if apply_config_in_changes $1 $KTMPDIR/net/$2/netfilter &&
+-	apply_config_help_changes $1 $KTMPDIR/Documentation &&
++	apply_config_help_changes $1 $KTMPDIR/net/$2/netfilter &&
+ 	apply_makefile_changes $1 $KTMPDIR/net/$2/netfilter &&
+ 	apply_conntrack_h_changes $1 $KTMPDIR/include/linux/netfilter_$2
+     then :
+@@ -461,7 +461,7 @@
+         fi
+     fi
+     apply_config_in_changes $1 $KERNEL_DIR/net/$2/netfilter/
+-    apply_config_help_changes $1 $KERNEL_DIR/Documentation/
++    apply_config_help_changes $1 $KERNEL_DIR/net/$2/netfilter/
+     apply_makefile_changes $1 $KERNEL_DIR/net/$2/netfilter/
+     apply_conntrack_h_changes $1 $KERNEL_DIR/include/linux/netfilter_$2
  }
-@@ -81,7 +81,7 @@
- {
- 	unsigned int len;
- 	struct ip_conntrack_protocol *proto
--		=3D __find_proto(conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
-+		=3D __ip_ct_find_proto(conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
- 			       .tuple.dst.protonum);
-=20
- 	len =3D sprintf(buffer, "%-8s %u %lu ",
-@@ -361,6 +361,7 @@
- EXPORT_SYMBOL(ip_ct_selective_cleanup);
- EXPORT_SYMBOL(ip_ct_refresh);
- EXPORT_SYMBOL(ip_ct_find_proto);
-+EXPORT_SYMBOL(__ip_ct_find_proto);
- EXPORT_SYMBOL(ip_ct_find_helper);
- EXPORT_SYMBOL(ip_conntrack_expect_related);
- EXPORT_SYMBOL(ip_conntrack_change_expect);
-diff -x '*.orig' -urN linux-2.4.20-pre8-ac3.orig/net/ipv4/netfilter/ip_nat_=
-core.c linux-2.4.20-pre8-ac3/net/ipv4/netfilter/ip_nat_core.c
---- linux-2.4.20-pre8-ac3.orig/net/ipv4/netfilter/ip_nat_core.c	2002-10-10 =
-16:10:49.000000000 +0200
-+++ linux-2.4.20-pre8-ac3/net/ipv4/netfilter/ip_nat_core.c	2002-10-10 16:10=
-:36.000000000 +0200
-@@ -739,7 +739,7 @@
- 	int ret =3D 1;
-=20
- 	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
--	proto =3D ip_ct_find_proto((*pskb)->nh.iph->protocol);
-+	proto =3D __ip_ct_find_proto((*pskb)->nh.iph->protocol);
- 	if (proto->exp_matches_pkt)
- 		ret =3D proto->exp_matches_pkt(exp, pskb);
-=20
 
---=-t+g5lCR23ea4C6M1daJu--
+--=-ZpVIJEVLEQBtBOE0dbMG--
