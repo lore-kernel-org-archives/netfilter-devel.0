@@ -1,16 +1,13 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: dest addr using transparent proxy...
-Date: Fri, 22 Nov 2002 19:03:21 +0100
+From: gonf <gonf@ucglink.net>
+Subject: output of dansguardian to OUTPUT or POSTROUTING table
+Date: 22 Nov 2002 11:32:53 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021122180321.GA25615@balabit.hu>
-References: <20021114092244.92383.qmail@web40908.mail.yahoo.com>
+Message-ID: <1037989973.26318.25.camel@beta>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rajesh Mishra <rajesh_mish@yahoo.com>
-Content-Disposition: inline
-In-Reply-To: <20021114092244.92383.qmail@web40908.mail.yahoo.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,13 +18,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 14, 2002 at 01:22:44AM -0800, Rajesh Mishra wrote:
-> I just started using the transparent proxy
-> functionality and wanted to know how to get the
-> destination IP address in my proxy server.
 
-search google for SO_ORIGINAL_DST (hint it is a getsockopt)
+Greetings All,
+      This is my first post to this list, so if I bolish it up royally
+please tread gently on the erring one.
 
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+     I am researching the use of kernel hooks and libipq to take the
+output of dansguardian, that by default is directed to squid, and send
+it out "un-masqueraded".  The current code uses standard sockets. My
+research will be forwarded to Daniel Barron for actual coding.
+
+1)  Is this a simple task?
+2)  Are code examples of user space output available? Where?
+3)  Please make suggestions.
+                         (0    \
+Many Thanks in Advance.     -<  |
+                         (0    /
+Charles Olds
+-------------------------------------------------------------
