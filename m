@@ -1,15 +1,15 @@
-From: Michael Schwendt <rh0209ms@arcor.de>
-Subject: Re: rules inserted with bad interface name
-Date: Sat, 23 Nov 2002 15:49:40 +0100
+From: Jerome de Vivie <jerome.de-vivie@wanadoo.fr>
+Subject: Re: match limit with inverse [!]
+Date: Sat, 23 Nov 2002 19:24:44 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021123154940.47cce4fb.rh0209ms@arcor.de>
-References: <20021123001230.GA23841@ns>
+Message-ID: <3DDFC7EC.9A16EB22@wanadoo.fr>
+References: <00ae01c292ed$2c125aa0$2a00a8c0@zorro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20021123001230.GA23841@ns>
+To: "Graham- Reg.CA" <graham@reg.ca>,
+ 	netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,74 +20,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-On Fri, 22 Nov 2002 19:12:30 -0500, Laurence J. Lane wrote:
+Your out of luck. The patch hasn't been applied because it a kernel
+header and could disturb older versions of netfilter. The patch is under
+http://perso.wanadoo.fr/jerome.de-vivie/ipt/
 
-> http://bugs.debian.org/170040
-> 
-> There appears to be an argument parsing bug in iptables, tested with
-> version 1.2.7a. If -i or -o is used without a space between the
-> interface and the option, iptables use the option as part of the
-> interface name. For example:
-> 
->   iptables -A INPUT -ifoo
-> 
-> That actually appends the rule with the inbound interface 
-> literally named "-ifoo".
+I hope that core maintainer could applied it now.
 
-Well, first of all, it gives a warning:
+Regards,
 
-  Warning: wierd character in interface -ifoo' (No aliases, :, ! or *).
+j.
 
-I wouldn't say it is a parsing bug. According to the manual, it is a
-syntax error and hence the user's mistake. The manual does not state
-that you can omit the space(s) between option and argument.
+"Graham- Reg.CA" wrote:
+>=20
+> Hello,
+>=20
+> Has the match limit with inverse [!] patch ever been applied to any of =
+the
+> newer versions of iptables/netfilter?
+>=20
+> I have a number of DoS attack-type situations and a few special situati=
+ons
+> (such as limiting outgoing user traffic) that would really benefit from
+> this.
+>=20
+> Putting the exclamation mark in on the command line (as the man pages
+> suggest) just seems to be ignored - so we end up dropping all packets b=
+elow
+> that threshold, not above it.
+>=20
+> Just wondering if limit ever had the inverse patch (or similar) added t=
+o it,
+> or if I'm out of luck :(
+>=20
+> Running Kernel 2.4.18 and a pretty recent version of iptables.
+>=20
+> Thanks!
+>  - Graham.
 
-If you were allowed to enter -ifoo, you would also want to enter
-- -i!foo. But that would be an "event"
-
-  # iptables -A test -i!foo
-  bash: !foo: event not found
-
-and therefore would need proper quotes
-
-  # iptables -A test -i'!foo'    
-  Warning: wierd character in interface -i!foo' (No aliases, :, ! or *).
-
-and extra fixes in other parts of the iptables tools:
-
-  # iptables-save | grep ^-
-  -A test -i -i!foo 
-
-Ooops! ;) Supporting both -i!foo and -i ! foo would make the parsing
-unnecessarily complex and the syntax error-prone.
-
-As I see it, iptables uses getopt to parse the command-line options.
-When -i is found, getopt determines the next argument that is not an
-option and makes it available as a string called "optarg". Getopt
-recognizes the argument in both -i foo and -ifoo correctly as "foo".
-The parser *could* work with that argument. However, in order to
-support an optional '!' prefix argument, the current code accesses
-the array of arguments using the option index called "optind". When
-the '!' is found, the code simply assumes the next argument, which
-is not an option, is the interface argument. It could not do that if
-it were possible to merge option, '!' prefix and required argument.
-That would require different parsing in some places in addition to
-the current implementation. I don't think changing this would be
-worth the effort. Stick to the syntax from the manual, and you don't
-run into errors.
-
-Of course, this is just my point of view.
-
-Michael
-
-- -- 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-
-iD8DBQE935WE0iMVcrivHFQRAnRvAJ0YtJDboAjs1tqvwy9cijDBDSuXmACfajie
-/YYldYS9TMj2D+KSIZWKL+Y=
-=yhlm
------END PGP SIGNATURE-----
+--=20
+J=E9r=F4me de Vivie
