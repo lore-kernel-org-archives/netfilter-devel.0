@@ -1,8 +1,8 @@
 From: "David S. Miller" <davem@redhat.com>
 Subject: Re: [PATCH 2.6] 'raw' table
-Date: Mon, 29 Mar 2004 20:26:13 -0800
+Date: Mon, 29 Mar 2004 20:26:22 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040329202613.6c0f1a74.davem@redhat.com>
+Message-ID: <20040329202622.4b256a25.davem@redhat.com>
 References: <20040329110515.GH1528@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -21,3 +21,5 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+
+Applied to 2.6.6, thanks.
