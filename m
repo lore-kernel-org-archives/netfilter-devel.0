@@ -1,10 +1,15 @@
-From: "Chad Goss" <chgoss@nortel.com>
-Subject: Having trouble building a new connection tracker helper module
-Date: Tue, 8 Mar 2005 17:38:39 -0500
-Message-ID: <8B888AAAAB0FD31189590008C79184432644807B@zbl6c002.corpeast.baynetworks.com>
+From: Jim Gifford <maillist@jg555.com>
+Subject: Re: IPTables 1.3.0 on RaQ2
+Date: Tue, 08 Mar 2005 14:59:15 -0800
+Message-ID: <422E2E43.1070709@jg555.com>
+References: <42292642.6030504@jg555.com>
+	<20050305125710.GP30487@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050305125710.GP30487@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -16,34 +21,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi folks,
+I solved the issue, it does happen with 1.3.1 also, the problem is the 
+headers, even after fixed the headers it still bombed. Here is the 
+message I posted on linux-mips list.
 
-I am trying to compile a new connection tracker helper module, I have
-1) downloaded 2.6.10 kernel source 
+I found the culprit, but don't know what the proper fix is.
 
-2) built a fresh kernel from that source
+File - What to remove or comment out
+/usr/src/linux/include/asm/cpu-features.h - #include 
+<cpu-feature-overrides.h>
+/usr/src/linux/include/asm/addrspace.h -  #include <spaces.h>
 
-3) created a new file "ip_conntrack_cftp.c" in
-$KERNEL_DIR/net/ipv4/netfilter/
-  (basically just copied the file ip_conntrack_tftp.c and changed all of
-"tftp" text to "cftp", "TFTP" to "CFTP"
+But it still fails, because it looks at the headers in /usr/include and 
+the ones is /usr/src/linux/include, which is what the problem is. Namely 
+socket.h, it tries to include both versions.
 
-4) created a new file "ip_conntrack_cftp.h" in
-$KERNEL_DIR/include/linux/netfilter_ipv4, 
-  (copied ip_conntrack_tftp.h to ip_conntrack_cftp.h and made the
-adjustments to the text strings)
+What I noticed is some of the mips architectures includes have these 
+files and some do not.
 
-5) updated the $KERNEL_DIR/net/ipv4/netfilter/Makefile adding a line
-	# connection tracking helpers
-	obj-$(CONFIG_IP_NF_CFTP) += ip_conntrack_cftp.o
-	
+A workaround for those who use the linux-libc-headers to build iptables 
+with the following commands, but I would still comment out those files 
+to prevent other build issues later
 
-6) attempted to make that directory "make -C $KERNEL_DIR  M=`pwd`
-	(executed from $KERNEL_DIR/net/ipv4/netfilter/ )
+make KERNEL_DIR=/usr
 
+But I'm not sure of the stability and the functionality.
 
-But, I don't see any .ko, or .o or .mod.c files getting created... What step
-am I missing?
-
-Thanks in advance
--chad
+-- 
+----
+Jim Gifford
+maillist@jg555.com
