@@ -1,15 +1,14 @@
-From: "zze-Proxy GRALL O ext FTRD/SVA/LAN" <ograll.ext@rd.francetelecom.com>
-Subject: Apply rules to 1 UDP port but port used as a socket: possible?
-Date: Tue, 10 Feb 2004 14:18:03 +0100
+From: "zhengchuanbo" <zhengcb@netpower.com.cn>
+Subject: about ip_conntrack code
+Date: Wed, 11 Feb 2004 9:48:20 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <D4EF10CCEB2CE742BEEA9838C590B0E80113FA46@ftrdmel2.rd.francetelecom.fr>
+Message-ID: <200402110935640.SM00868@zhengcb>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+      charset="GB2312"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Content-Class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +19,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello to IPTables developpers,
 
-I'm trying to use a socket (on port 1727) to decode some proprietary UDP
-packets. When I've decoded them I want to apply a DNAT rule (and then a
-SNAT  too) to this port using a filter on @IP:port source for all
-following packets...
+I'm trying to read the ip_conntrack code. But it is not easy for me to 
+understand the code. So I wish someone could help. Thanks in advance.
+	
+When an skb is received, we could call the ip_conntrack_get as following 
+to get the connection info,
+	 ct = ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
+and it calls,
+	__ip_conntrack_get(skb->nfct, ctinfo);
 
-I use libiptc to manage iptables from my application.
+What I want to ask is in the __ip_conntrack_get, how is the ip_conntrack
+transformed from nfct? I can see that the code just makes a transform in
+the structure as follows,
+		struct ip_conntrack *ct
+		= (struct ip_conntrack *)nfct->master;
 
-My problem is that I can't apply rule to the packets. They all arrive on
-the socket. I think it may be due to connection tracking but I would
-like your points of view to be sure.
+I can't understand how the connection info is got by the transform. Wish I
+could get some help. 
 
-Is there any solution to do it ? For the moment I use v1.2.5a but I'm
-installing v1.2.9.
+BTW, is there some more detailed documnets on netfilter code?
 
-Thanx in advance,
-
-Olivier GRALL.
+Thanks again.
+	
+regards,
+	
+Jack
+ 	
+	
