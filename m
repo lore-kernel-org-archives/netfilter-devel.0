@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] pom-ng patchlet to add 'goto' type jumps
-Date: Thu, 13 May 2004 01:04:47 +0200 (CEST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] pom-ng version of IMQ target (file is attached this time)
+Date: Thu, 13 May 2004 04:13:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405130102100.7624-100000@filer.marasystems.com>
-References: <40A29BE0.2DF2A0D6@info-link.net>
+Message-ID: <40A2D9D8.2050201@trash.net>
+References: <40A29E4A.94165870@info-link.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: linuximq@yahoogroups.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Brad Fisher <brad@info-link.net>
-In-Reply-To: <40A29BE0.2DF2A0D6@info-link.net>
+In-Reply-To: <40A29E4A.94165870@info-link.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,20 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 12 May 2004, Brad Fisher wrote:
+Hi Brad,
 
-> Attached is a tar file containing a pom-ng version of a patch written by
-> Henrik Nordstrom to add a 'goto' style jump.  It should work for 2.4
-> kernels fine.
-> Haven't tested/ported to 2.6, but will hopefully get a chance soon.
+Brad Fisher wrote:
 
-Thanks for keeping track of and maitaining this patch. I had forgot about
-it.
+>(Sorry for the duplicate post, forgot to attach the file... doh)
+>
+>Attached is a pom-ng version of the IMQ target available from
+>linuximq.org.  It's based off the 2.4.26 patch, and includes all of the
+>kernel (linux-2.4.26-imq.diff) and userspace patches (IMQ.pom-ng.patch).
+>  
+>
 
-> Please let me know if it is/is'nt acceptable for pom inclusion.  I'd
-> like to see it included someday...
+Andre Correa already asked me about inclusion of the IMQ target. I would
+rather not include at this time it for two reasons:
 
-I support this even if I am not using the patch and probably never will..
+- IMQ still has stability problems
+- Jamal is working on a netfilter-independant replacement, I would like to
+see how it works out first. See 
+http://marc.theaimsgroup.com/?t=108202471500003&r=1&w=2
 
 Regards
-Henrik
+Patrick
