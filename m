@@ -1,15 +1,18 @@
-From: Kiran Kumar <immidi_kiran@yahoo.com>
-Subject: Re: subject-prefixing of ml postings (was Re: A humble request)
-Date: Tue, 27 Jan 2004 20:54:09 -0800 (PST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Patchomatic Snapshot Packages
+Date: Wed, 28 Jan 2004 09:20:33 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040128045409.9799.qmail@web14007.mail.yahoo.com>
-References: <20040128043326.45988.qmail@web14003.mail.yahoo.com>
+Message-ID: <20040128082033.GK11761@sunbeam.de.gnumonks.org>
+References: <004c01c3e56b$58dc7490$db00a8c0@W2RZ8L4S02>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-173423258-1075265649=:8716"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cW0eHRJ76X8TDo3d"
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>, Zeeshan Ali <zeelists@yahoo.com>
-In-Reply-To: <20040128043326.45988.qmail@web14003.mail.yahoo.com>
+To: Jim Gifford <jim@jg555.com>
+Content-Disposition: inline
+In-Reply-To: <004c01c3e56b$58dc7490$db00a8c0@W2RZ8L4S02>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,134 +23,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-173423258-1075265649=:8716
+
+--cW0eHRJ76X8TDo3d
 Content-Type: text/plain; charset=us-ascii
-Content-Id: 
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Jan 27, 2004 at 10:52:50PM -0800, Jim Gifford wrote:
+> I just noticed since Jan 11th, there have not been any snapshots of
+> patch-o-matic. Is this being discontinued??
+
+no, there seems to be a problem with the script generating them.  I
+definitely updated that script when I reorganized the layout of the CVS
+tree, but there still seems to be a problem with it.
+
+thank you for letting us know.
+
+I'll investigate.
+
+> Jim Gifford
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--cW0eHRJ76X8TDo3d
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 Content-Disposition: inline
 
---- Kiran Kumar <immidi_kiran@yahoo.com> wrote:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
->   I have built up some content based on the rules of
-> another list that I am on (most of which are, I
-> guess,
-> relevant here as well). The patch for the homepage
-> module of cvs is attached.
+iD8DBQFAF3DRXaXGVTD0i/8RAkBlAJ9/3F54JA4HNEogZc8bzpojIM3ubgCfXx70
+sjweTcA+zLiXtkDBGmiLtYc=
+=wNKU
+-----END PGP SIGNATURE-----
 
-  Sorry, seems the previous one had a problem..
-resending it.
-
-
-=====
-Regards,
-Kiran Kumar Immidi
-
-__________________________________
-Do you Yahoo!?
-Yahoo! SiteBuilder - Free web site building tool. Try it!
-http://webhosting.yahoo.com/ps/sb/
---0-173423258-1075265649=:8716
-Content-Type: application/octet-stream; name="contact.patch"
-Content-Transfer-Encoding: base64
-Content-Description: contact.patch
-Content-Disposition: attachment; filename="contact.patch"
-
-ZGlmZiAtdXJOIGhvbWVwYWdlL3htbC9jb250YWN0LnhtbCBob21lcGFnZS5u
-ZXcveG1sL2NvbnRhY3QueG1sCi0tLSBob21lcGFnZS94bWwvY29udGFjdC54
-bWwJMjAwNC0wMS0xNyAxODo1OTowNy4wMDAwMDAwMDAgKzA1MzAKKysrIGhv
-bWVwYWdlLm5ldy94bWwvY29udGFjdC54bWwJMjAwNC0wMS0yOCAxMDoxODoz
-Mi41MjY4MTA0NDAgKzA1MzAKQEAgLTI1LDYgKzI1LDU0IEBACiB5b3Ugd2ls
-bCBtaW5pbWl6ZSB0aGUgYnVyZGVuIG9uIHRoZSBwcm9qZWN0IG1lbWJlcnMs
-IGFuZCB0aHVzIG1pbmltaXplIHRoZSBwb3RlbnRpYWwgZGVsYXkgdW50aWwg
-eW91IHdpbGwgcmVjZWl2ZSBhIHJlcGx5IHRvIHlvdXIgaW5xdWlyeS4KIDwv
-cGFyYT4KIAorPHNlY3Rpb24gaWQ9Imxpc3QtcnVsZXMiPgorPHRpdGxlPk5l
-dGZpbHRlciBsaXN0IHJ1bGVzPC90aXRsZT4KKzxwYXJhPgorWW91IGFyZSBz
-dHJvbmdseSBhZHZpc2VkIHRvIGdvIHRocm91Z2ggdGhlc2Ugc2V0IG9mIHJ1
-bGVzIGJlZm9yZSBwb3N0aW5nIHRvIGFueQorb2YgdGhlIG5ldGZpbHRlciBs
-aXN0cy4KKzwvcGFyYT4KKzxpdGVtaXplZGxpc3QgbWFyaz0iYnVsbGV0Ij4K
-KworPHRpdGxlPkxpc3QgUnVsZXM8L3RpdGxlPgorCis8bGlzdGl0ZW0+CitT
-dWJqZWN0IExpbmUgPHBhcmE+TWFrZSBzdXJlIHRoYXQgeW91ciBwb3N0IGNv
-bnRhaW5zIGEgdmFsaWQgc3ViamVjdCBsaW5lIGNvbnRhaW5pbmcgYSBnaXN0
-IG9mIHlvdXIgcG9zdCByYXRoZXIgdGhhbiB0aGluZ3MgbGlrZSAnSGVscCEh
-IScgb3IgZXZlbiBiYWQgJ0hFTFAgTUUgUExFRUVFRUFTRScgPC9wYXJhPgor
-PC9saXN0aXRlbT4KKworPGxpc3RpdGVtPgorVG9wLXBvc3RzIDxwYXJhPkRv
-IG5vdCAidG9wLXBvc3QiIChyZXBseSB0byBhIG1lc3NhZ2UgYnkgYWRkaW5n
-IHRleHQgdG8gdGhlIHRvcCBvZiB0aGUgbWVzc2FnZSBpbnN0ZWFkIG9mIGJl
-bG93KSwgYXMgaXQgbG9zZXMgdGhlIHJlYWRlciBhbmQgdGhlIGZsb3cgb2Yg
-dGhlIG1lc3NhZ2UgYW5kIGNhbiBhbm5veSBvdGhlciByZWFkZXJzLiA8L3Bh
-cmE+IAorPC9saXN0aXRlbT4KKworPGxpc3RpdGVtPgorT3ZlcnF1b3Rpbmcg
-PHBhcmE+SWYgeW91IGFyZSByZXBseWluZyB0byBhbm90aGVyIG1lc3NhZ2Us
-IHF1b3RlIG9ubHkgdGhlIHBvcnRpb25zIG9mIHRoYXQgbWVzc2FnZSB0aGF0
-IHlvdSBhcmUgc3BlY2lmaWNhbGx5IHJlc3BvbmRpbmcgdG8sIGFuZCBpbnNl
-cnQgeW91ciBjb21tZW50cyBhZnRlciB0aG9zZSBxdW90ZXMuIERvIG5vdCBz
-aW1wbHkgcXVvdGUgYmFjayB0aGUgZW50aXJlIG1lc3NhZ2UhIFRyaW0gb2Zm
-IGV2ZXJ5dGhpbmcgYXBhcnQgZnJvbSB0aGUgMi0zIG1vc3QgcmVsZXZhbnQg
-bGluZXMgb2YgdGhlIG9yaWdpbmFsIG1lc3NhZ2UuPC9wYXJhPgorCis8cGFy
-YT5JbiBnZW5lcmFsLCB5b3VyIHJlcGx5IHNob3VsZCBjb250YWluIGF0IGxl
-YXN0IGFzIG11Y2ggdGV4dCBhcyB0aGUgYW1vdW50IG9mIHRleHQgeW91IGFy
-ZSBxdW90aW5nLCBpZiBub3QgbW9yZS4gTmV2ZXIgcXVvdGUgYmFjayBkb3pl
-bnMgb2YgbGluZXMgb2YgdGV4dCBhbmQgc2ltcGx5IGFkZCBhIHNpbmdsZSBs
-aW5lIG9mIHRleHQgdG8gdGhlIGJvdHRvbSAtIHBlb3BsZSB3aWxsICpoYXRl
-KiB5b3UgZm9yIHRoYXQhPC9wYXJhPgorPC9saXN0aXRlbT4KKworPGxpc3Rp
-dGVtPgorSFRNTCBNZXNzYWdlcyA8cGFyYT5IVE1MIGlzIG5vdCBlbWFpbCwg
-YW5kIGVtYWlsIGRvZXNuJ3QgY29udGFpbiBIVE1MLCBzbyBwbGVhc2UgdHVy
-biBIVE1MIGZvcm1hdHRpbmcgT0ZGIGluIHlvdXIgZW1haWwgY2xpZW50LiBE
-byBub3QgdXNlIGl0YWxpY3MsIGNvbG9ycywgYm9sZCwgZm9udHMsIHBpY3R1
-cmVzLCBzb3VuZHMsIG9yIG90aGVyIEhUTUwgZWxlbWVudHMuIFByb3ZpZGlu
-ZyBIUkVGIChsaW5rKSBlbGVtZW50cyBpcyBhbGxvd2VkLiBQbGVhc2UgdXNl
-IG9ubHkgNy1iaXQgdGV4dCB3aGVuIHNlbmRpbmcgZW1haWwgdG8gdGhlIGxp
-c3RzLjwvcGFyYT4KKzwvbGlzdGl0ZW0+CisKKzxsaXN0aXRlbT4KK01lc3Nh
-Z2UgcmVjeWNsaW5nIDxwYXJhPkRvIG5vdCBzdGFydCBhIE5ldyBtZXNzYWdl
-IG9yIHRocmVhZCBieSBoaXR0aW5nICJSZXBseSIgaW4geW91ciBtYWlsIGNs
-aWVudCBhbmQgY2hhbmdpbmcgdGhlIHN1YmplY3QuIFdoZW4geW91IGRvIHRo
-aXMsIHlvdSBtZXNzIHVwIG90aGVyIHBhcnRpY2lwYW50J3MgYWJpbGl0eSB0
-byByZWFkIG1haWwgaW4gYSB0aHJlYWRlZCBmYXNoaW9uLiBXaGVuIHlvdSBt
-ZWFuIHRvIHBvc3QgYSBuZXcgbWVzc2FnZSwgdXNlIE5ldywgYW5kIHdoZW4g
-eW91IHdhbnQgdG8gcmVwbHkgdG8gYW4gZXhpc3RpbmcgbWVzc2FnZSwgaGl0
-IFJlcGx5LiA8L3BhcmE+Cis8L2xpc3RpdGVtPgorCis8bGlzdGl0ZW0+CitQ
-c2V1ZG8tbGVnYWwgZGlzY2xhaW1lcnMgPHBhcmE+RG8gbm90IGF0dGFjaCBv
-Ym5veGlvdXMgcHNldWRvLWxlZ2FsLCBub25zZW5zaWNhbCBkaXNjbGFpbWVy
-cyB0byB5b3VyIG1lc3NhZ2VzLiBQZW9wbGUgb24gb3BlbiBzb3VyY2UgbGlz
-dHMgZG8gbm90IGxpa2UgdG8gYmUgdGhyZWF0ZW5lZCB3aXRoIHRoZXNlLiBJ
-ZiB5b3VyIGNvbXBhbnkgaW5zaXN0cyBvbiBhdHRhY2hpbmcgc3VjaCBkaXNj
-bGFpbWVycyB0byBtZXNzYWdlcyBnb2luZyBvdXQgdG8gbWFpbGluZyBsaXN0
-cyAod2hlcmUsIGJ5IGRlZmluaXRpb24sIHRoZSBzZW5kZXIgaGFzICpOTyog
-Y29udHJvbCBvdmVyIHdobyBnZXRzIHRvIHNlZSB0aGUgbWVzc2FnZSksIHRo
-ZW4gZWl0aGVyIHVzZSBhIHdlYm1haWwgc3lzdGVtLCBvciBqdXN0IGRvbid0
-IHBvc3QuPC9wYXJhPgorPC9saXN0aXRlbT4KKworPGxpc3RpdGVtPgorT2Zm
-LXRvcGljIDxwYXJhPlN0YXkgb24tdG9waWMgZm9yIHRoZSBsaXN0LiBUaGlz
-IGlzbid0IGEgZ29vZCBwbGFjZSB0byBkaXNjdXNzIGF1dG9tb2JpbGVzLCBw
-b2xpdGljcywgbXVzaWMsIG9yIGFueXRoaW5nIHRoYXQgaXMgbm90IHJlbGF0
-ZWQgdG8gTmV0ZmlsdGVyLiBTb21ldGltZXMgdG9waWNzIHdpbGwgZGl2ZXJn
-ZSBmcm9tIHRoZSBnZW5lcmFsIGRpc2N1c3Npb24sIGJ1dCBwbGVhc2UgdHJ5
-IHRvIGtlZXAgaXQgcmVsZXZhbnQgdG8gdGhlIGxpc3QgdG9waWMuIERvIG5v
-dCBhc2sgdXNhZ2UgcXVlc3Rpb25zIGluIHRoZSBkZXZlbCBsaXN0LCBvciB2
-aWNlIHZlcnNhPC9wYXJhPgorPC9saXN0aXRlbT4KKworPGxpc3RpdGVtPgor
-TWVzc2FnZSB0aW1lIGFuZCBkYXRlIDxwYXJhPlBsZWFzZSBtYWtlIHN1cmUg
-dGhlIGRhdGUgYW5kIHRpbWUgb24geW91ciBjb21wdXRlciBpcyBhbHdheXMg
-Y3VycmVudC4gV2hlbiB5b3VyIGRhdGUgaXMgc2V0IHRvIHNvbWV0aGluZyBz
-dWNoIGFzIHRoZSB5ZWFyIDIwMDYsIG1lc3NhZ2VzIHBvc3RlZCBieSB5b3Ug
-d2lsbCBnZXQgc29ydGVkIGJhc2VkIG9uIHRoYXQgZGF0ZSwgd2hpY2ggbWF5
-IHB1dCB0aGVtIG91dHNpZGUgb2YgdGhlIHJlbGF0ZWQgbW9udGggb3IgeWVh
-ciB0aGV5IGJlbG9uZyBpbi48L3BhcmE+Cis8L2xpc3RpdGVtPgorCis8L2l0
-ZW1pemVkbGlzdD4KKworPC9zZWN0aW9uPgorCiA8c2VjdGlvbiBpZD0ibWwt
-YW5ub3VuY2UiPgogPHRpdGxlPlRoZSBuZXRmaWx0ZXItYW5ub3VuY2UgbWFp
-bGluZ2xpc3Q8L3RpdGxlPgogPHBhcmE+CmRpZmYgLXVyTiBob21lcGFnZS94
-bWwvbGF5b3V0LnhtbCBob21lcGFnZS5uZXcveG1sL2xheW91dC54bWwKLS0t
-IGhvbWVwYWdlL3htbC9sYXlvdXQueG1sCTIwMDQtMDEtMTAgMDM6NDE6NTIu
-MDAwMDAwMDAwICswNTMwCisrKyBob21lcGFnZS5uZXcveG1sL2xheW91dC54
-bWwJMjAwNC0wMS0yOCAxMDoxODozMi41Mjc4MTAyODggKzA1MzAKQEAgLTEx
-MSw2ICsxMTEsMTAgQEAKIAkJCTx0b2NlbnRyeSBwYWdlPSJzZWN1cml0eS8y
-MDAzLTA4LTAxLW5hdC1zYWNrLnhtbCIgZmlsZW5hbWU9IjIwMDMtMDgtMDEt
-bmF0LXNhY2suaHRtbCIvPgogCQk8L3RvY2VudHJ5PgogCQk8dG9jZW50cnkg
-cGFnZT0iY29udGFjdC54bWwiIGZpbGVuYW1lPSJjb250YWN0Lmh0bWwiPgor
-CQkJPHRvY2VudHJ5IGlkPSJsaXN0LXJ1bGVzIiBocmVmPSIvY29udGFjdC5o
-dG1sI2xpc3QtcnVsZXMiPgorCQkJCTx0aXRsZT5UaGUgbmV0ZmlsdGVyIG1h
-aWxpbmdsaXN0IHJ1bGVzPC90aXRsZT4KKwkJCQk8dGl0bGVhYmJyZXY+TGlz
-dCBSdWxlczwvdGl0bGVhYmJyZXY+CisJCQk8L3RvY2VudHJ5PgogCQkJPHRv
-Y2VudHJ5IGlkPSJ0b2MtY29udGFjdC1tbC1hbm5vdW5jZSIgaHJlZj0iL2Nv
-bnRhY3QuaHRtbCNtbC1hbm5vdW5jZSI+CiAJCQkJPHRpdGxlPlRoZSBuZXRm
-aWx0ZXIgYW5ub3VuY2UgbWFpbGluZ2xpc3Q8L3RpdGxlPgogCQkJCTx0aXRs
-ZWFiYnJldj5uZXRmaWx0ZXItYW5ub3VuY2UgbGlzdDwvdGl0bGVhYmJyZXY+
-Cg==
-
---0-173423258-1075265649=:8716--
+--cW0eHRJ76X8TDo3d--
