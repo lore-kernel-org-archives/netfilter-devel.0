@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: '-m owner' problem (bug?)
-Date: Fri, 20 Sep 2002 17:05:13 +0200
+Subject: Re: tos 0x62
+Date: Fri, 20 Sep 2002 17:01:00 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020920170513.L3810@sunbeam.de.gnumonks.org>
-References: <20020918170408.GA12455@callisto.yi.org>
+Message-ID: <20020920170100.H3810@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0209171317130.6328-100000@webdev.ines.ro>
 Mime-Version: 1.0
 Content-Type: application/pgp; x-action=sign; format=text
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Dan Aloni <da-x@gmx.net>
+To: Andrei Ivanov <andrei.ivanov@ines.ro>
 Content-Disposition: inline; filename="msg.pgp"
-In-Reply-To: <20020918170408.GA12455@callisto.yi.org>; from da-x@gmx.net on Wed, Sep 18, 2002 at 08:04:08PM +0300
+In-Reply-To: <Pine.LNX.4.44.0209171317130.6328-100000@webdev.ines.ro>; from andrei.ivanov@ines.ro on Tue, Sep 17, 2002 at 01:22:48PM +0300
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,21 +24,22 @@ List-Id: netfilter-devel.vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-On Wed, Sep 18, 2002 at 08:04:08PM +0300, Dan Aloni wrote:
-> (not subscribed to the list, please CC)
+On Tue, Sep 17, 2002 at 01:22:48PM +0300, Andrei Ivanov wrote:
 > 
-> This command used to work in the past:
-> 
->    iptables -A OUTPUT -o eth1 -m owner --uid-owner 0 -d 192.168.1.6/32 -j
->    ACCEPT
+> Hello,
+> I'm trying to filter packets which have a TOS value of 0x62, and it seems
+> I cannot.
 
-can you try to recompile the latest iptables package (1.2.7a) and see if
-the problem persists?
+because it's an invalid TOS value.
 
-This is not supposed to be the solution, I just want to know where the 
-problem comes from...
+> I tried the tos module, but it only knows valid tos values.
 
-> Dan Aloni
+right.
+
+> I looked for the ftos module from patch-o-matic, but it seems it has been
+> obsoleted by DSCP and ECN module.
+
+yes. they also only accept allowed combinations of the bit.
 
 - -- 
 Live long and prosper
@@ -50,7 +51,7 @@ V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9izkoXaXGVTD0i/8RAhBoAKCpLlejJbeBKGqogK5fnW2TRSRzagCdE7QN
-aAm61D0AfshHaM+I1WLAlmQ=
-=p35l
+iD8DBQE9izgsXaXGVTD0i/8RAiPqAJ4oml9PvP1LNV/nnu9+Xhg8OJhSqQCfdG24
+ceKiBU0A7cqmceCAqmcrGLk=
+=XY5H
 -----END PGP SIGNATURE-----
