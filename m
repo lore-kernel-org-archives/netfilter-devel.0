@@ -1,14 +1,14 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] locking issue in alter_reply
-Date: Thu, 05 Aug 2004 15:32:42 +0200
+Subject: [PATCH] ip_queue and fragments
+Date: Thu, 05 Aug 2004 15:32:47 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <411236FA.5080909@eurodev.net>
+Message-ID: <411236FF.4080405@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------020908080906070302020503"
+ boundary="------------040800030903010706090905"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
- Patrick McHardy <kaber@trash.net>, Harald Welte <laforge@netfilter.org>
+ Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,50 +20,41 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020908080906070302020503
+--------------040800030903010706090905
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
 Hi,
 
-This the first of a set of patches. Actually this patch is a resend, I 
-think that it got lost. Actually, we don't need to write lock the 
-conntrack table because we always call alter_reply with a non-confirmed 
-conntrack.
+I've tracing ip_queue source code and I think that it's not fragment 
+aware. Am I missing anything?
 
 regards,
 Pablo
 
---------------020908080906070302020503
+--------------040800030903010706090905
 Content-Type: text/x-patch;
- name="lock-alter-reply.patch"
+ name="ip_queue_frags.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="lock-alter-reply.patch"
+ filename="ip_queue_frags.patch"
 
-diff -u -r1.2 ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	4 Aug 2004 15:26:55 -0000	1.2
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	4 Aug 2004 16:46:10 -0000
-@@ -1075,9 +1075,9 @@
- int ip_conntrack_alter_reply(struct ip_conntrack *conntrack,
- 			     const struct ip_conntrack_tuple *newreply)
- {
--	WRITE_LOCK(&ip_conntrack_lock);
-+	READ_LOCK(&ip_conntrack_lock);
- 	if (__ip_conntrack_find(newreply, conntrack)) {
--		WRITE_UNLOCK(&ip_conntrack_lock);
-+		READ_UNLOCK(&ip_conntrack_lock);
- 		return 0;
+diff -u -r1.1.1.1 ip_queue.c
+--- a/net/ipv4/netfilter/ip_queue.c	11 May 2004 13:07:08 -0000	1.1.1.1
++++ b/net/ipv4/netfilter/ip_queue.c	4 Aug 2004 14:37:25 -0000
+@@ -255,9 +255,10 @@
+ 				entry->skb->dev->hard_header_parse(entry->skb,
+ 				                                   pmsg->hw_addr);
  	}
- 	/* Should be unconfirmed, so not in hash table yet */
-@@ -1089,7 +1089,7 @@
- 	conntrack->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
- 	if (!conntrack->master && list_empty(&conntrack->sibling_list))
- 		conntrack->helper = ip_ct_find_helper(newreply);
--	WRITE_UNLOCK(&ip_conntrack_lock);
-+	READ_UNLOCK(&ip_conntrack_lock);
- 
- 	return 1;
- }
+-	
+-	if (data_len)
+-		memcpy(pmsg->payload, entry->skb->data, data_len);
++
++	if (data_len) 
++		if (skb_copy_bits(entry->skb, 0, pmsg->payload, data_len) != 0)
++			goto nlmsg_failure;
+ 		
+ 	nlh->nlmsg_len = skb->tail - old_tail;
+ 	return skb;
 
---------------020908080906070302020503--
+--------------040800030903010706090905--
