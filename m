@@ -1,17 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] clean up for ftp conntrack helper
-Date: Thu, 15 Apr 2004 16:23:11 +0200
+From: Ulysses Almeida <munky@maluco.com.br>
+Subject: NF_QUEUE examples
+Date: Thu, 15 Apr 2004 12:22:20 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <407E9ACF.3020207@trash.net>
-References: <407DB66B.9090300@eurodev.net>
+Message-ID: <20040415162220.GA5747@maluco.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
- Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <407DB66B.9090300@eurodev.net>
+To: Netfilter Devel <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,14 +18,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Some considerations, my patch of the new expectation API must be applied 
-> before applying this patch. btw, this patch could have some problems with:
-> 
+  I alredy googled for this topic, but couldn't find any nice text
+about.
 
-I've added your patch to pom-ng, with another minor change (C99
-initializers for ftp_search array). BTW, it also applies/works well
-without the expect API patch. Thanks Pablo.
+  I want to understand more about NF_QUEUE return, and possibly use
+it. So, where can i find simple examples of using it? Or a text
+explaining about it.
 
-Regards,
-Patrick
+  What I understand, is: with NF_QUEUE, I can queue some packet to be
+manipulated on userspace. After this, can this packet be dequeued back
+to kernel space, and continue with it's journey? How can I write a
+userspace code, to handle with packetd queued bu NF_QUEUE? Or I didn't
+understand nothing about it?
+
+  Thanks for any help in advance!
+
+-- 
+    .~.  Ulysses Almeida
+   / V \  munky@maluco.com.br
+ / (   ) \  Seja livre, use GNU/Linux! 
+   ^^-^^
