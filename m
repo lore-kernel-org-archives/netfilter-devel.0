@@ -1,51 +1,40 @@
-From: Christian Hesse <mail@earthworm.de>
-Subject: Re: v2.6.8.1 breaks tspc
-Date: Sun, 22 Aug 2004 18:26:35 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200408221826.41842.mail@earthworm.de>
-References: <200408212303.05143.mail@earthworm.de> <200408221506.07883.mail@earthworm.de> <200408221743.22561.vda@port.imtp.ilyichevsk.odessa.ua>
+From: Phil Oester <phil@linuxace.com>
+Subject: [PATCH] conntrack match typo
+Date: Sat, 21 Aug 2004 14:54:19 -0700
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040821215419.GA29488@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1111785.RsWhZC3J7t";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267701AbUHVQ05@vger.kernel.org>
-To: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
-In-Reply-To: <200408221743.22561.vda@port.imtp.ilyichevsk.odessa.ua>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---nextPart1111785.RsWhZC3J7t
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Status option should use IPT_CONNTRACK_STATUS, not IPT_CONNTRACK_STATE.
+Originally noticed by M. J. Pomraning. 
 
-On Sunday 22 August 2004 16:43, Denis Vlasenko wrote:
-> [...]
-> Looks like window scaling is not understood or incorrectly
-> handled by Linux or by remote box. I am no expert on this,
-> thus CCing LKML and netfilter list.
->
-> Please try whether it works whan you do
-> "echo 0 > /proc/sys/net/ipv4/tcp_window_scaling"
+This fixes bug #194
 
-That helps. Thanks so far.
+Phil
+ 
 
-> [...]
-=2D-=20
-Christian
-
---nextPart1111785.RsWhZC3J7t
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBBKMlBlZfG2c8gdSURAplNAJ0Uet0q3sIPv29ghpDRtqCBHSvhBgCg44s9
-tgYgiXDFCgnE86IWddPVuHA=
-=KJLl
------END PGP SIGNATURE-----
-
---nextPart1111785.RsWhZC3J7t--
+diff -ru ipt-orig/extensions/libipt_conntrack.c ipt-new/extensions/libipt_conntrack.c
+--- ipt-orig/extensions/libipt_conntrack.c      2004-06-14 18:02:17.000000000 -0400
++++ ipt-new/extensions/libipt_conntrack.c       2004-08-21 17:51:05.507406408 -0400
+@@ -492,7 +492,7 @@
+ 
+        if(sinfo->flags & IPT_CONNTRACK_STATUS) {
+                printf("%sctstatus ", optpfx);
+-               if (sinfo->invflags & IPT_CONNTRACK_STATE)
++               if (sinfo->invflags & IPT_CONNTRACK_STATUS)
+                        printf("! ");
+                print_status(sinfo->statusmask);
+        }
