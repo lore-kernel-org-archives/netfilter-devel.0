@@ -1,15 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Alexander Nasonov <alnsn-mycop@yandex.ru>
 Subject: Re: ASN.1 decoder for h323-conntrack-nat
-Date: Thu, 16 Oct 2003 15:42:43 +0200 (CEST)
+Date: Thu, 16 Oct 2003 16:11:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0310161528160.4832-100000@blackhole.kfki.hu>
-References: <3F8E9C32.1050609@yandex.ru>
+Message-ID: <3F8EA725.9090000@yandex.ru>
+References: <Pine.LNX.4.33.0310161528160.4832-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Alexander Nasonov <alnsn-mycop@yandex.ru>
-In-Reply-To: <3F8E9C32.1050609@yandex.ru>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0310161528160.4832-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,37 +21,64 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 16 Oct 2003, Alexander Nasonov wrote:
+Jozsef Kadlecsik wrote:
 
-> Sorry, I don't have enough time right now to understand how current
-> version of h323-conntrack-nat works. Probably, what I'm going to
-> announce here is already implemented.
+> That would be great! We cannot use code written in C++.
 
-No, not at all. The current code simply assumes that if we find the IP
-address of the sender in the payload, then the next bytes give the port
-we are looking for. :-| Naturally this brute force method can fail very
-easily and does not support a few features of H.323.
+I'm using C++ simply because C++ has inline functions and if you put all 
+these functions (with bodies) into the class scopr you don't need to 
+worry about the order in which they should be placed. I can rewrite the 
+generator to generate C code (the generator itself will be written in 
+C++ anyway).
 
-> Anyway, here is what I have. I've implemented callback-based decoder of
-> ASN.1 PER rules. With a help of this decoder it's possible to analyze
-> H323 packet and to call user-defined function when the code came across
-> an interesting type. For example, it's easy to jump from fastStart
-> element to OpenLogicalChannel or to detect OpenLogicalChannel ->
-> reverseLogicalChannelParameters -> mediaChannel -> ipAddress sequence.
-> Generated code doesn't have dynamic memory allocations and other
-> undeterministic stuff. It just easts bits :))) In it's current state the
-> code is ugly (due to deadline) and it is C++. If there is an interest, I
-> can rewrite it later.
+>[Actually, I have just discovered that the source code of the most recent
+>ethereal contains ASN.1 PER/H225/H245 decoders written in C.]
+>
+This tool helped me a lot to understand what PER is. Hmm, I thought that 
+ethereal is based on openh323 ASN.1 generator which is C++-based. I'll 
+take a look at the code later. Is there any free ASN.1 decoder?
+I wish I had a better code. I could implement more optimization then. 
+For example, if a type after extention mark (...) doesn't have callbacks 
+it could be just skiped as open type. I could also try to simplify  
+parsing of fixed-length types. May be later I'll find more time to 
+rewrite the code.
+I forgot to mention that my code is based on 
+http://iiiasn1.sourceforge.net (this project AFAIK is derived from 
+openh323 decoder/encoder).
 
-That would be great! We cannot use code written in C++.
+--
+Alexander Nasonov
 
-[Actually, I have just discovered that the source code of the most recent
-ethereal contains ASN.1 PER/H225/H245 decoders written in C.]
+PS. Example of generated code:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+  void f_MSC__MultimediaSystemControlMessage()
+  {
+      // CHOICE { < 4 field(s) > ,... }
+      size_t len;
+      unsigned char* saved_byte;
+      unsigned int choice = GetBits3();
+      switch(choice)
+      {
+        case 0:
+          f_MSC__MultimediaSystemControlMessage__request();
+          break;
+        case 1:
+          f_MSC__MultimediaSystemControlMessage__response();
+          break;
+        case 2:
+          f_MSC__MultimediaSystemControlMessage__command();
+          break;
+        case 3:
+          f_MSC__MultimediaSystemControlMessage__indication();
+          break;
+        case 4: case 5: // small number bit is 0
+          choice = GetBits5() + ((choice - 4) << 5);
+          SkipDataWithSemiConstrainedLength();
+          break;
+        default: // small number bit is 1
+          UngetBits(1);
+          SkipDataWithSemiConstrainedLength();
+          SkipDataWithSemiConstrainedLength();
+          break;
+      }
+  }
