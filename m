@@ -1,31 +1,48 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: ipt_physdev.c alignment problems on parisc64
-Date: Mon, 15 Sep 2003 15:59:03 -0700
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20030915155903.12a3f95d.davem@redhat.com>
-References: <200309022116.41697.bdschuym@pandora.be>
-	<20030905153152.GA3623@obroa-skai.de.gnumonks.org>
-	<20030908191400.5ef59ab6.davem@redhat.com>
-	<200309132159.37834.bdschuym@pandora.be>
+From: Peteris Krumins <newsgroups@lf.lv>
+Subject: fork()-ing & exec()-ing iptables
+Date: Tue, 16 Sep 2003 02:59:57 +0300
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <15896902228.20030916025957@lf.lv>
+Reply-To: Peteris Krumins <newsgroups@lf.lv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, acme@conectiva.com.br,
-   netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <200309132159.37834.bdschuym@pandora.be>
-Errors-to: netdev-bounce@oss.sgi.com
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 13 Sep 2003 21:59:37 +0200
-Bart De Schuymer <bdschuym@pandora.be> wrote:
 
-> -	char physindev[IFNAMSIZ];
-> +	char physindev[IFNAMSIZ] __attribute__ ((aligned (__alignof__(unsigned int))));
+ Hello,
 
-I have to reject the fix for this problem again.
+  I have a threaded application which would lock a mutex,
+  fork, then exec iptables then unlock a mutex, so no two
+  iptable programs ran at the same time.
+  
+  After a period of time the same process would happen again
+  but w/ the rule reversed (if it was -D then now it's -A and vice
+  versa).
 
-You can't change the struct exported to userspace in any way
-without breaking the tools.  I tried to explain this in the
-first revision of your change.
+  I have noticed a problem while deleting the rules - the rule
+  is added but if there are loads of work (adding rules and removing
+  rules), then iptables program would fail to remove the rule with
+  misleading error:
+   iptables: Bad rule (does a matching rule exist in that chain?)
+
+  I verified twice - the rule is there and the command line
+  which should remove the rule is correct.
+
+  What could cause such behaviour?
+
+  And it's iptables 1.2.8 & same happens w/ 1.2.7a, linux 2.4.20
+  and 2.4.21-pre6
+
+
+P.Krumins
