@@ -1,18 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2.6] trivial: fix email address in MODULE_AUTHOR
-Date: Tue, 2 Sep 2003 21:43:30 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH][RESEND]: clear nf_debug in for ipsec-tunneled packets
+Date: Wed, 03 Sep 2003 13:07:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030902194330.GI1055@obroa-skai.de.gnumonks.org>
-References: <20030830200504.GP17715@sunbeam.de.gnumonks.org> <20030902064215.B286E2C0C9@lists.samba.org>
+Message-ID: <3F55CB79.5050704@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QDd5rp1wjxlDmy9q"
-Cc: David Miller <davem@redhat.com>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------020603020807030008050609"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-Content-Disposition: inline
-In-Reply-To: <20030902064215.B286E2C0C9@lists.samba.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,45 +18,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------020603020807030008050609
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---QDd5rp1wjxlDmy9q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch for 2.6 clears nf_debug in ip_local_deliver_finish so
+the "hook ... already set" messages in nf_hook_slow won't get
+triggered for ipsec-tunneled packets.
 
-On Tue, Sep 02, 2003 at 03:16:57PM +1000, Rusty Russell wrote:
-> In message <20030830200504.GP17715@sunbeam.de.gnumonks.org> you write:
-> > -MODULE_AUTHOR("Bart De Schuymer <bdschuy@pandora.be>");
-> > +MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
-> >  MODULE_DESCRIPTION("iptables bridge physical device match module");
->=20
-> There's no MODULE_AUTHOR at all in my tree..
+Regards,
+Patrick
 
-Then davem hasn't pushed that change to linus yet. (or your tree is not
-based on linus' bk)
+--------------020603020807030008050609
+Content-Type: text/plain;
+ name="pom-2.6-tunnel-debug.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="pom-2.6-tunnel-debug.diff"
 
-> Rusty.
+diff -urN a/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff b/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff
+--- a/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff	1970-01-01 01:00:00.000000000 +0100
++++ b/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff	2003-08-24 23:17:43.000000000 +0200
+@@ -0,0 +1,11 @@
++===== net/ipv4/ip_input.c 1.17 vs edited =====
++--- 1.17/net/ipv4/ip_input.c	Mon Jun 16 17:11:36 2003
+++++ edited/net/ipv4/ip_input.c	Sun Aug 24 23:11:36 2003
++@@ -201,6 +201,7 @@
++ 
++ #ifdef CONFIG_NETFILTER_DEBUG
++ 	nf_debug_ip_local_deliver(skb);
+++	skb->nf_debug = 0;
++ #endif /*CONFIG_NETFILTER_DEBUG*/
++ 
++ 	__skb_pull(skb, ihl);
+diff -urN a/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff.help b/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff.help
+--- a/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff.help	1970-01-01 01:00:00.000000000 +0100
++++ b/patch-o-matic_2.5/pending/27-ipsec_tunnel-nf_debug.diff.help	2003-08-24 23:34:23.000000000 +0200
+@@ -0,0 +1,7 @@
++Author: Patrick McHardy <kaber@trash.net>
++Status: Working
++
++This patch clears nf_debug in ip_local_deliver_finish so the
++"hook ... already set" message in nf_hook_slow won't get triggered for
++decapsulated ipsec-tunnel packets when passing them through the network
++stack again.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---QDd5rp1wjxlDmy9q
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/VPLhXaXGVTD0i/8RAn6DAJ0cOBE6aayefth6lFStRnulQ6N3TACfY/Dk
-vj6XpdDie2H38CHoZ1jwtqk=
-=ZmCT
------END PGP SIGNATURE-----
-
---QDd5rp1wjxlDmy9q--
+--------------020603020807030008050609--
