@@ -1,15 +1,13 @@
-From: Ranjeet Shetye <ranjeet.shetye2@zultys.com>
-Subject: Re: examples on flow rate monitoring and token bucket filter
-Date: 30 Jan 2003 13:16:24 +0100
+From: Craig Davison <cd@securityfocus.com>
+Subject: iptc_delete_entry or iptc_delete_num_entry?
+Date: Thu, 30 Jan 2003 19:30:09 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1043928984.567.11.camel@ranjeet-linux-1>
-References: <Pine.LNX.4.44.0301301018140.6884-100000@yen.isi.edu>
+Message-ID: <20030131023009.GB15989@securityfocus.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.44.0301301018140.6884-100000@yen.isi.edu>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,44 +18,62 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2003-01-30 at 19:20, Xuan Chen wrote:
-> Hi,
-> 
-> Could somebody give me some reference on how to extend netfilter/iptables 
-> to monitor incoming flow rate? Also, how to implement a token bucket 
-> filters with netfilter/iptables? Thaks.
-> 
-> Cheers,
-> -chen
-> 
-> -- 
-> Xuan Chen
-> USC/ISI
-> 
-> 
+Hi,
 
-Hi Chen,
+Should I be using iptc_delete_num_entry or iptc_delete_entry to delete 
+rules from a chain? I can't seem to find documentation for the 
+parameters of iptc_delete_entry (please point me in the right direction if 
+it exists!), and I'm not 100% sure what to pass for the rulenum parameter 
+to iptc_delete_num_entry.
 
-Nice to see someone from USC/ISI.
+The only documentation I have for iptc_delete_num_entry is the 
+Querying-libiptc-HOWTO from the LDP, and it says that rulenum is a rule 
+number starting at 1 for the first rule.
 
-Are you by any chance looking to do something similar to
-"extensions/libipt_limit.c" in "iptables-1.2.7a" ? It contains
-flow-tracking by packet count and it also contains a limit-burst which
-should solve your token bucket requirement.
+So let's say I want to delete every rule one at a time from a chain. Do I 
+have to manually increase my own rulenum counter for every rule, or is 
+there some way to get rulenum from an ipt_entry?
 
-There's also an "extensions/libipt_iplimit.c" which I believe tracks
-packets by IP addresses and enforces limits.
+Example:
 
-HTH
+iptc_handle_t htable;
+const char *chain = "INPUT";
+struct ipt_entry *entry;
+int rulenum = 0, is_chain_changed = 0;
+
+if (!(htable = iptc_init ("filter")))
+{
+  printf ("iptc_init: %s\n", iptc_strerror (errno));
+  exit(0);
+}
+
+entry = (struct ipt_entry *)iptc_first_rule (chain, &htable);
+while (entry)
+{
+  rulenum++;
+  if (!(iptc_delete_num_entry (chain, rulenum, &htable)))
+  {
+    printf ("iptc_delete_num_entry: %s\n", iptc_strerror (errno));
+    break;
+  }
+
+  is_chain_changed = 1;
+  entry = (struct ipt_entry *)iptc_next_rule (entry, &htable);
+}
+
+if (is_chain_changed)
+{
+  if (!(iptc_commit (&htable)))
+    fprintf (stderr, "iptc_commit: %s\n", iptc_strerror (errno));
+}
+
+
+Plus, is the rulenum going to change for the rest of the rules in a chain 
+if I delete a rule? If not immediately, how about after I commit?
+
+TIA for any help.
 
 -- 
-Ranjeet Shetye
-Senior Software Engineer
-Zultys Technologies
-Ranjeet dot Shetye2 at Zultys dot com
-http://www.zultys.com/
-
-The views, opinions, and judgements expressed in this message are solely
-those of
-the author. The message contents have not been reviewed or approved by
-Zultys.
+Craig Davison
+Symantec Corporation
++1 (403) 213-3939 ext. 228
