@@ -1,15 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: Bug#150467: user-defined chains vs. iptables module names
-Date: Fri, 21 Jun 2002 09:47:44 +0200 (CEST)
+Date: Fri, 21 Jun 2002 10:26:52 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206210940180.30045-100000@blackhole.kfki.hu>
-References: <20020620145619.GA1404@mail.nontoxic.org>
+Message-ID: <Pine.LNX.4.33.0206211022360.30045-100000@blackhole.kfki.hu>
+References: <20020621101055.E5183@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.samba.org>
+Cc: "Laurence J. Lane" <ljlane@nontoxic.org>,
+	<netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "Laurence J. Lane" <ljlane@nontoxic.org>
-In-Reply-To: <20020620145619.GA1404@mail.nontoxic.org>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20020621101055.E5183@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,20 +21,24 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 20 Jun 2002, Laurence J. Lane wrote:
+On Fri, 21 Jun 2002, Patrick Schaaf wrote:
 
-> The problem deals with user-defined chain names clashing with iptables
-> module names. Basically, it's entirely possible to create a user-defined
-> chain with the same name (case sensitive)  as a target module, but the
-> new chain cannot be used as a jump target.
+> > The built-in chain and target names are all fully capitalized.
+> > What about the simple restriction that user-defined chain name cannot be a
+> > string consisting of capitalized letters only.
+>
+> This is again breaking backwards compatibility. For example, most of my
+> rulesets contain two chains, named "RD" and "LRD". The first does the
+> "REJECT with limit, then DROP" stance, and the second puts a "LOG with
+> limit" in front of that. As both chains are "designed" to be used with
+> the same ease as REJECT or DROP, the "ALL CAPS" naming makes eminent
+> sense to me.
 
-We've already seen proposals to solve the problem, but please, we must
-maintain as much backward compatibility as possible. Every syntactical
-(and semantical) change results only confusion.
+Yes, it'd break backward compatibility as well. I see the reasoning for
+all capitals in user defined chains as well.
 
-The built-in chain and target names are all fully capitalized.
-What about the simple restriction that user-defined chain name cannot be a
-string consisting of capitalized letters only.
+What about simply returning by an error code if there is an attempt to
+create a chain wich clashes with a target name?
 
 Regards,
 Jozsef
