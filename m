@@ -1,170 +1,62 @@
-From: Tomas Szepe <szepe@pinerecords.com>
-Subject: [TRIVIAL] place IPv4 netfilter submenu where it belongs
-Date: Sat, 26 Jul 2003 22:06:46 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20030726200646.GF16160@louise.pinerecords.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: timeout storms make the box unresponsive
+Date: Sun, 27 Jul 2003 00:39:22 +0200 (CEST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.33.0307270027460.7327-100000@blackhole.kfki.hu>
+References: <20030725202113.GK10897@naboo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lkml <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: davem@redhat.com, netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Balazs Scheidler <bazsi@balabit.hu>,
+	<netfilter-devel@lists.netfilter.org>,
+	Rusty Russell <rusty@rustcorp.com.au>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030725202113.GK10897@naboo>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-$subj
+On Fri, 25 Jul 2003, Harald Welte wrote:
 
-Patch against -bk3.
+> On Fri, Jul 25, 2003 at 08:56:44PM +0200, Balazs Scheidler wrote:
+>
+> > Maybe we should consider removing expired entries from the NAT hash at a
+> > single go, instead of the current lock-remove-unlock for each entry. Or
+> > create a cleanup thread which cleans up conntrack entries regularly, but not
+> > in the timer interrupt context.
+>
+> Rusty, Jamal and I were talking about this conntrack cleanup yesterday
+> (we're currently all at OLS).  The conclusion was that a cleanup kernel thread
+> is what we want to have.
+[...]
+> If I understood correctly, Rusty already has some old patches in this
+> area, and he is most likely to put an update of these patches out in the
+> next weeks before the netfilter developer workshop.
 
--- 
-Tomas Szepe <szepe@pinerecords.com>
+Maybe the reworked per bucket locking patch is a good start for a
+cleanup kernel thread. I have uploaded all my pending patches to
+http://www.kfki.hu/~kadlec/sw/netfilter/2.5/:
 
+01_logging.patch	2.4 logging patch ported to 2.5
+02_proc.patch		ditto
+03_locking.patch	per bucket locking patch with a couple of
+			optimizations
+04_tcp_window.patch	TCP window tracking patch port
+05_dos.patch		protection against a conntrack attack
+			by an advisory hotlist
 
-diff -urN a/net/Kconfig b/net/Kconfig
---- a/net/Kconfig	2003-05-27 08:06:58.000000000 +0200
-+++ b/net/Kconfig	2003-07-26 21:45:02.000000000 +0200
-@@ -58,66 +58,6 @@
- 	  the real netlink socket.
- 	  This is a backward compatibility option, choose Y for now.
- 
--config NETFILTER
--	bool "Network packet filtering (replaces ipchains)"
--	---help---
--	  Netfilter is a framework for filtering and mangling network packets
--	  that pass through your Linux box.
+[Harald, the user home pages on kashyyyk are unavailable from outside.]
+
+Best regards,
+Jozsef
 -
--	  The most common use of packet filtering is to run your Linux box as
--	  a firewall protecting a local network from the Internet. The type of
--	  firewall provided by this kernel support is called a "packet
--	  filter", which means that it can reject individual network packets
--	  based on type, source, destination etc. The other kind of firewall,
--	  a "proxy-based" one, is more secure but more intrusive and more
--	  bothersome to set up; it inspects the network traffic much more
--	  closely, modifies it and has knowledge about the higher level
--	  protocols, which a packet filter lacks. Moreover, proxy-based
--	  firewalls often require changes to the programs running on the local
--	  clients. Proxy-based firewalls don't need support by the kernel, but
--	  they are often combined with a packet filter, which only works if
--	  you say Y here.
--
--	  You should also say Y here if you intend to use your Linux box as
--	  the gateway to the Internet for a local network of machines without
--	  globally valid IP addresses. This is called "masquerading": if one
--	  of the computers on your local network wants to send something to
--	  the outside, your box can "masquerade" as that computer, i.e. it
--	  forwards the traffic to the intended outside destination, but
--	  modifies the packets to make it look like they came from the
--	  firewall box itself. It works both ways: if the outside host
--	  replies, the Linux box will silently forward the traffic to the
--	  correct local computer. This way, the computers on your local net
--	  are completely invisible to the outside world, even though they can
--	  reach the outside and can receive replies. It is even possible to
--	  run globally visible servers from within a masqueraded local network
--	  using a mechanism called portforwarding. Masquerading is also often
--	  called NAT (Network Address Translation).
--
--	  Another use of Netfilter is in transparent proxying: if a machine on
--	  the local network tries to connect to an outside host, your Linux
--	  box can transparently forward the traffic to a local server,
--	  typically a caching proxy server.
--
--	  Various modules exist for netfilter which replace the previous
--	  masquerading (ipmasqadm), packet filtering (ipchains), transparent
--	  proxying, and portforwarding mechanisms. Please see
--	  <file:Documentation/Changes> under "iptables" for the location of
--	  these packages.
--
--	  Make sure to say N to "Fast switching" below if you intend to say Y
--	  here, as Fast switching currently bypasses netfilter.
--
--	  Chances are that you should say Y here if you compile a kernel which
--	  will run as a router and N for regular hosts. If unsure, say N.
--
--config NETFILTER_DEBUG
--	bool "Network packet filtering debugging"
--	depends on NETFILTER
--	help
--	  You can say Y here if you want to get additional messages useful in
--	  debugging the netfilter code.
--
- config UNIX
- 	tristate "Unix domain sockets"
- 	---help---
-diff -urN a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
---- a/net/ipv4/netfilter/Kconfig	2003-07-10 23:30:37.000000000 +0200
-+++ b/net/ipv4/netfilter/Kconfig	2003-07-26 21:48:25.000000000 +0200
-@@ -2,8 +2,69 @@
- # IP netfilter configuration
- #
- 
-+config NETFILTER
-+	bool "Network packet filtering (replaces ipchains)"
-+	depends on INET
-+	---help---
-+	  Netfilter is a framework for filtering and mangling network packets
-+	  that pass through your Linux box.
-+
-+	  The most common use of packet filtering is to run your Linux box as
-+	  a firewall protecting a local network from the Internet. The type of
-+	  firewall provided by this kernel support is called a "packet
-+	  filter", which means that it can reject individual network packets
-+	  based on type, source, destination etc. The other kind of firewall,
-+	  a "proxy-based" one, is more secure but more intrusive and more
-+	  bothersome to set up; it inspects the network traffic much more
-+	  closely, modifies it and has knowledge about the higher level
-+	  protocols, which a packet filter lacks. Moreover, proxy-based
-+	  firewalls often require changes to the programs running on the local
-+	  clients. Proxy-based firewalls don't need support by the kernel, but
-+	  they are often combined with a packet filter, which only works if
-+	  you say Y here.
-+
-+	  You should also say Y here if you intend to use your Linux box as
-+	  the gateway to the Internet for a local network of machines without
-+	  globally valid IP addresses. This is called "masquerading": if one
-+	  of the computers on your local network wants to send something to
-+	  the outside, your box can "masquerade" as that computer, i.e. it
-+	  forwards the traffic to the intended outside destination, but
-+	  modifies the packets to make it look like they came from the
-+	  firewall box itself. It works both ways: if the outside host
-+	  replies, the Linux box will silently forward the traffic to the
-+	  correct local computer. This way, the computers on your local net
-+	  are completely invisible to the outside world, even though they can
-+	  reach the outside and can receive replies. It is even possible to
-+	  run globally visible servers from within a masqueraded local network
-+	  using a mechanism called portforwarding. Masquerading is also often
-+	  called NAT (Network Address Translation).
-+
-+	  Another use of Netfilter is in transparent proxying: if a machine on
-+	  the local network tries to connect to an outside host, your Linux
-+	  box can transparently forward the traffic to a local server,
-+	  typically a caching proxy server.
-+
-+	  Various modules exist for netfilter which replace the previous
-+	  masquerading (ipmasqadm), packet filtering (ipchains), transparent
-+	  proxying, and portforwarding mechanisms. Please see
-+	  <file:Documentation/Changes> under "iptables" for the location of
-+	  these packages.
-+
-+	  Make sure to say N to "Fast switching" below if you intend to say Y
-+	  here, as Fast switching currently bypasses netfilter.
-+
-+	  Chances are that you should say Y here if you compile a kernel which
-+	  will run as a router and N for regular hosts. If unsure, say N.
-+
- menu "IP: Netfilter Configuration"
--	depends on INET && NETFILTER
-+	depends on NETFILTER
-+
-+config NETFILTER_DEBUG
-+	bool "Network packet filtering debugging"
-+	help
-+	  You can say Y here if you want to get additional messages useful in
-+	  debugging the netfilter code.
-+
- 
- config IP_NF_CONNTRACK
- 	tristate "Connection tracking (required for masq/NAT)"
-@@ -588,4 +649,3 @@
- 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
- 
- endmenu
--
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
