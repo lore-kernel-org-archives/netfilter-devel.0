@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [netfilter-core] Need your help
-Date: Thu, 11 Dec 2003 17:09:19 +0100
+From: Piotr =?iso-8859-2?Q?Gasid=B3o?= <quaker@ondraszek.eu.org>
+Subject: Problems with iptables 1.2.9 - iptables: Loop found in table
+Date: Thu, 11 Dec 2003 17:47:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031211160919.GI15606@sunbeam.de.gnumonks.org>
-References: <38751.212.39.69.1.1071154312.squirrel@mail.bnt.bg>
+Message-ID: <20031211164749.GA11985@moon.ondraszek.ds.polsl.gliwice.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u/L2/WlOHZg+YGU4"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Stefan Stoyanov <stef@bnt.bg>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <38751.212.39.69.1.1071154312.squirrel@mail.bnt.bg>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,68 +19,106 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---u/L2/WlOHZg+YGU4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I downloaded CVS version of patch-o-matic and iptables (20031209). I noti=
+ced
+strange error while trying to enter rule without target (for counting
+reasons):
 
-On Thu, Dec 11, 2003 at 04:51:52PM +0200, Stefan Stoyanov wrote:
-> Hi Coreteam!!!!
->=20
-> Before a week I precompile my kernel with iptables-1.2.9.Today on my
-> /var/log/syslog and on my console i see the following message:
+# iptables -I INPUT -s 1.1.1.1
+iptables: Loop found in table
 
-Please contact netfilter-devel, in accordance with http://netfilter.org/con=
-tact.html
+# iptables -N test
+# iptables -I test -s 1.1.1.1
+# iptables -I INPUT -j test
+iptables: Loop found in table
 
-> Dec 11 16:47:25 mail kernel: LIST_DELETE: ip_nat_core.c:90
-> `&info->bysource'(c3dc5484) not in &bysource[hs].
-> Dec 11 16:47:25 mail kernel: LIST_DELETE: ip_nat_core.c:91
-> `&info->byipsproto'(c3dc5490) not in &byipsproto[hp].
-> Dec 11 16:47:26 mail kernel: LIST_DELETE: ip_nat_core.c:90
-> `&info->bysource'(dc56aa84) not in &bysource[hs].
-> Dec 11 16:47:26 mail kernel: LIST_DELETE: ip_nat_core.c:91
-> `&info->byipsproto'(dc56aa90) not in &byipsproto[hp].
-> Dec 11 16:47:27 mail kernel: LIST_DELETE: ip_nat_core.c:90
-> `&info->bysource'(dc56aa84) not in &bysource[hs].
-> Dec 11 16:47:27 mail kernel: LIST_DELETE: ip_nat_core.c:91
-> `&info->byipsproto'(dc56aa90) not in &byipsproto[hp].
-> Dec 11 16:47:28 mail kernel: LIST_DELETE: ip_nat_core.c:90
-> `&info->bysource'(c3dc5304) not in &bysource[hs].
-> Dec 11 16:47:28 mail kernel: LIST_DELETE: ip_nat_core.c:91
-> `&info->byipsproto'(c3dc5310) not in &byipsproto[hp].
->=20
->=20
->=20
-> One of the modules where loaded in my linux is iptable_nat and ip_conntra=
-ck.
-> When I remove iptable_nat the message stoped, can you help me about that?
-> My kernel is 2.4.23.
+In both examples rule is not inserted.
 
-plain 2.4.23 source?  In my case, the line numbers of ip_nat_core.c
-don't seem to match what you are describing above.
+A applied nearly every patch from patch-o-matic, kernel 2.4.23 with
+grsecurity, IMQ patch:
 
+Already applied: submitted/01_2.4.19
+                 submitted/02_2.4.20
+                 submitted/03_2.4.21
+                 submitted/04_2.4.22
+                 submitted/05_2.4.23
+                 submitted/61-remove-memsets
+                 submitted/64_masquerade-sameip-noflush
+                 submitted/69_amanda-helpers
+                 submitted/70_expect-evict-order
+                 submitted/72_recent_procfs_fix
+                 submitted/74_listhelp
+                 submitted/75_selective_cleanup
+                 submitted/76_conntrack_bucket_sysctl
+                 submitted/88_ip_queue-maxlen
+                 submitted/89_ipv6_mld_netfilter
+                 pending/40_nf-log
+                 pending/40_nf-log-ipv6
+                 pending/59_ip_nat_h-unused-var
+                 base/HL-ipv6
+                 base/IPV4OPTSSTRIP
+                 base/NETLINK
+                 base/NETMAP
+                 base/REJECT-ipv6
+                 base/SAME
+                 base/TTL
+                 base/connlimit
+                 base/dstlimit
+                 base/fuzzy
+                 base/fuzzy6-ipv6
+                 base/iprange
+                 base/ipv4options
+                 base/mport
+                 base/nth
+                 base/nth6-ipv6
+                 base/osf
+                 base/pool
+                 base/psd
+                 base/quota
+                 base/random
+                 base/random6-ipv6
+                 base/raw
+                 base/realm
+                 base/time
+                 base/u32
+                 extra/CLASSIFY
+                 extra/CONNMARK
+                 extra/IPMARK
+                 extra/ROUTE
+                 extra/ROUTE-ipv6
+                 extra/TCPLAG
+                 extra/TRACE
+                 extra/XOR
+                 extra/addrtype
+                 extra/condition
+                 extra/condition6-ipv6
+                 extra/connbytes
+                 extra/conntrack-seqfile
+                 extra/cuseeme-nat
+                 extra/eggdrop-conntrack
+                 extra/h323-conntrack-nat
+                 extra/ipt_TARPIT
+                 extra/iptables-loopcheck-speedup
+                 extra/mms-conntrack-nat
+                 extra/netfilter-docbook
+                 extra/owner-socketlookup
+                 extra/ownercmd-ipv6
+                 extra/pptp-conntrack-nat
+                 extra/quake3-conntrack
+                 extra/rpc
+                 extra/rsh
+                 extra/rtsp-conntrack
+                 extra/string
+                 extra/talk-conntrack-nat
+
+I didn't applied extra/iptables-loopcheck-speedup patch.
+
+What is wrong?
+=20
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---u/L2/WlOHZg+YGU4
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/2JavXaXGVTD0i/8RAoLuAKCklqNMs3efl/u+l5nOGjsEZr3mhgCffRog
-xzBuZD4ri554s2sZjt5I5Fs=
-=uG1j
------END PGP SIGNATURE-----
-
---u/L2/WlOHZg+YGU4--
+Piotr 'QuakeR' Gasid=B3o, just another user @ ondraszek.eu.org
+##################### sending lusers to /dev/null since 1998
+############ Waiting for tomorrow, for a little ray of light
+########## Waiting for tomorrow just to see your smile again
