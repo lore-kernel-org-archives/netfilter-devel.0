@@ -1,20 +1,17 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c
- and optimization
-Date: Sat, 26 Jun 2004 16:25:13 +0900 (JST)
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Subject: RE: Userspace queuing
+Date: Sat, 26 Jun 2004 11:17:40 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200406260725.QAA11173@toshiba.co.jp>
-References: <200406250457.NAA07080@toshiba.co.jp>
-	<Pine.LNX.4.33.0406251133230.11001-100000@blackhole.kfki.hu>
+Message-ID: <200406260818.i5Q8ILMX023595@madinah.ccse.kfupm.edu.sa>
+References: <Pine.LNX.4.44.0406260128520.8200-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net,
-        netfilter-devel@lists.netfilter.org, laforge@netfilter.org,
-        kisza@securityaudit.hu, usagi-core@linux-ipv6.org
+Cc: "'Netfilter List'" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: kadlec@blackhole.kfki.hu
-In-Reply-To: <Pine.LNX.4.33.0406251133230.11001-100000@blackhole.kfki.hu>
+To: "'Henrik Nordstrom'" <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0406260128520.8200-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,69 +22,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+But as far as I have worked on it, I an only accept or drop packets using
+libipq and Queue. What if I want to set priority to accepted packets, like
+high priority and low priority, can this be also done using the same or
+there is some other mechanism in iptables. 
+Regards,
 
-Hi,
+Muhammad R. Sami 
+Research Assistant, 
+Computer Engineering Department 
+P.O.Box 354 
+King Fahd University of Petroleum & Minerals 
+Dhahran 31261 
+Saudi Arabia. 
+Tel: +96638601423 
+Cell: +96657982951 
+www.ccse.kfupm.edu.sa/sami
+-----Original Message-----
+From: netfilter-devel-admin@lists.netfilter.org
+[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Henrik
+Nordstrom
+Sent: Saturday, June 26, 2004 2:30 AM
+To: Muhammad R. Sami
+Cc: Netfilter List
+Subject: Re: Userspace queuing 
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date: Fri, 25 Jun 2004 12:01:37 +0200 (CEST)
+On Fri, 25 Jun 2004, Muhammad R. Sami wrote:
 
-> > > >Sorry, I misstook. But why nf_hook_slow() ? I think users expect that
-> > > >skb is not linearized if ip_tables.ko is not loaded.
-> > > >Then how about ipt_do_table() or hooks in iptable_filter.c ?
-> > > >
-> > > It would be nice if the skb_copy_bits calls in conntrack and nat copying
-> > > only the transport protocol headers could be removed as well. We could
-> > > register for the PREROUTING hook with highest priority and linearize the
-> > > headers when a global flag is set. ip_conntrack and ip_tables would both
-> > > set this flag.
-> >
-> > flag is good idea. But in the case of IPv6, the fact remains that
-> > skipping IPv6 ext headers are needed to find transport protocol.
-> 
-> - conntrack requires linearized protocol headers
-> 	- with the TCP window tracking code it means the complete
-> 	  TCP header, including the options due to the SACK support
-> - nat requires writable protocol headers, including the TCP options
->   due to the SACK support
-> - raw/filter tables require linearized protocol headers in general (we can
->   safely assume port matching rules :-)
-> - mark table requires writable protocol headers if we mangle the packet
->   headers
+> Is there a way to perform userspace queuing in iptables? If yes can I have
+> some example codes.
 
-That's right at this point.
+Yes, via QUEUE and libipq.
 
-> So I think when any component of netfilter is enabled, we can assume that
-> at least linearized protocol headers are required. Therefore I suggested
-> to add such a function to nf_hook_slow.
+examples on how to use libipq is included in the libipq documentation.
 
-As you said, I think nf_hook_slow is best point for IPv4 modules.
-And I found that the issue of IPv6 can be solved by adding flag to the
-argument nf_hook_register(). This flag tell whether request to linearize
-or not.
+libipq is shipped together with iptables.
 
-And I have a (maybe) last issue. Are we allowed to add protocol dependent
-codes to nf_hook_slow() ?
-
-> We cannot add (back) a general skb_linearize: that was a constant complain
-> against netfilter from performance reason and was therefore removed.
-
-I think so, too.
-
-> In order to spare skipping again and again the extension headers in IPv6,
-> wouldn't it make sense to add a new argument to the hook functions which
-> argument would point then to the protocol header?
-
-If so, the transport protocol number is needed, too. You can find the
-transport protocol number at Next Header field in previous header.
-
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : KFKI Research Institute for Particle and Nuclear Physics
->           H-1525 Budapest 114, POB. 49, Hungary
-
-Best regards,
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+Regards
+Henrik
