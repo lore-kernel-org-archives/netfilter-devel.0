@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Matt Walters <mattw@parasun.com>
 Subject: Re: libipq, kernel panics/oopses, and other undesirable traits
-Date: Tue, 17 Aug 2004 02:53:21 +0200
+Date: Mon, 16 Aug 2004 18:34:22 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <41215701.6030501@trash.net>
-References: <E1BwO5M-000718-NF@giant.mindlink.net> <1092692707.22731.1687.camel@marx.mindlink.net>
+Message-ID: <1092706462.22731.1812.camel@marx.mindlink.net>
+References: <E1BwO5M-000718-NF@giant.mindlink.net>
+	 <1092692707.22731.1687.camel@marx.mindlink.net>
+	 <41215701.6030501@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Matt Walters <mattw@parasun.com>
-In-Reply-To: <1092692707.22731.1687.camel@marx.mindlink.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <41215701.6030501@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +22,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Matt Walters wrote:
+On Mon, 2004-08-16 at 17:53, Patrick McHardy wrote:
+> Matt Walters wrote:
+> 
+> >	I'm interested in doing further development for netfilter.  Please feel
+> >free to add my name to a list somewhere or something.
+> >
+> I missed this before. You are already on the only list, the development 
+> list ;)
+> There is no official contributor-list, but we always welcome help. If you're
+> looking for things to do, we have multiple todo-lists in CVS. I can also 
+> give
+> you some additional pointers if you want.
 
->	I'm interested in doing further development for netfilter.  Please feel
->free to add my name to a list somewhere or something.
->
-I missed this before. You are already on the only list, the development 
-list ;)
-There is no official contributor-list, but we always welcome help. If you're
-looking for things to do, we have multiple todo-lists in CVS. I can also 
-give
-you some additional pointers if you want.
+	That would be luverly.  Maybe the next patch I submit will do something
+other than short-circuit the path it was intending to mend!  ;)
 
-Regards
-Patrick
+-Matt
