@@ -1,15 +1,16 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re: HL target in the kernel
-Date: Fri, 11 Apr 2003 16:45:24 +0200 (CEST)
+From: Friedrich Lobenstock <fl@fl.priv.at>
+Subject: Re: extra/pptp-conntrack-nat.patch
+Date: Fri, 11 Apr 2003 18:40:34 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0304111641310.17096@dns.toxicfilms.tv>
-References: <Pine.LNX.4.33.0304111030280.31394-100000@blackhole.kfki.hu>
+Message-ID: <3E96F002.5000700@fl.priv.at>
+References: <Pine.LNX.4.44.0304110659110.12367-100000@localhost.localdomain>
+Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0304111030280.31394-100000@blackhole.kfki.hu>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.44.0304110659110.12367-100000@localhost.localdomain>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,41 +21,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> It seems to me there is dead code in the HL target. Could you fix it and
-> resubmit the corrected patch?
-Of course, here is a patch to the netfilter tree.
+Ilguiz Latypov wrote:
+> 
+> Are you connecting to the Windows server from the Linux machine where PPTP
+> connection tracking modules are loaded?
 
-Regards,
-Maciej Soltysiak
+No. It looks like this:
 
+Windows-PC ---------> Linux Firewall --------------> Windows Server
+  PPTP-Client           connection tracking             PPTP-Server
+  private IP        private          official
+                      IP                IP
 
-diff -Nru netfilter.orig/patch-o-matic/base/HL.patch.ipv6 netfilter/patch-o-matic/base/HL.patch.ipv6
---- netfilter.orig/patch-o-matic/base/HL.patch.ipv6	2003-04-08 21:49:14.000000000 +0200
-+++ netfilter/patch-o-matic/base/HL.patch.ipv6	2003-04-11 16:34:44.000000000 +0200
-@@ -27,7 +27,7 @@
- diff -Nru linux-2.4.20/net/ipv6/netfilter/ip6t_HL.c linux.new/net/ipv6/netfilter/ip6t_HL.c
- --- linux-2.4.20/net/ipv6/netfilter/ip6t_HL.c	1970-01-01 01:00:00.000000000 +0100
- +++ linux.new/net/ipv6/netfilter/ip6t_HL.c	2002-12-16 17:08:23.000000000 +0100
--@@ -0,0 +1,105 @@
-+@@ -0,0 +1,102 @@
- +/*
- + * Hop Limit modification target for ip6tables
- + * Maciej Soltysiak <solt@dns.toxicfilms.tv>
-@@ -53,7 +53,6 @@
- +{
- +	struct ipv6hdr *ip6h = (*pskb)->nh.ipv6h;
- +	const struct ip6t_HL_info *info = targinfo;
--+	u_int16_t diffs[2];
- +	int new_hl;
- +
- +	switch (info->mode) {
-@@ -76,9 +75,7 @@
- +	}
- +
- +	if (new_hl != ip6h->hop_limit) {
--+		diffs[0] = htons(((unsigned)ip6h->hop_limit) << 8) ^ 0xFFFF;
- +		ip6h->hop_limit = new_hl;
--+		diffs[1] = htons(((unsigned)ip6h->hop_limit) << 8);
- +	}
- +
- +	return IP6T_CONTINUE;
+> If this is true, you would be affected by the modules' rewriting of call
+> IDs in one direction only when you were running the unmodified version.
+
+I don't see a connection to a bad checksum here?
+
+> 
+> To be able to connect from such Linux machine to another PPTP server, you
+> need to apply the pending local NAT patch from the netfilter patch-o-matic
+> and enable the CONFIG_NF_NAT_LOCAL option in the kernel.
+> 
+> There would be nothing Windows specific in this case.
+
+I don't think that I need the local nat stuff, do I?
+
+PS: Can I tell the runme script of patch-o-matic to list all applied
+patches? As far as I know it only shows the applied patches when you
+tell it to apply some patches, but I can not export this list to a file.
+
+-- 
+MfG / Regards
+Friedrich Lobenstock
+____________________________________________________________________
+Friedrich Lobenstock                       Linux Services Lobenstock
+URL: http://www.lsl.at/                         Email: fl@fl.priv.at
+____________________________________________________________________
