@@ -1,20 +1,18 @@
-From: tuXit <tuxit@netcourrier.com>
-Subject: Re: New standalone nat helper module which help function is never
- called
-Date: Tue, 18 Nov 2003 10:04:49 +0100
+From: Tim Gardner <timg@tpi.com>
+Subject: Re: 2.4 SNAT fails randomly
+Date: Tue, 18 Nov 2003 08:35:09 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031118100449.4815515b.tuxit@netcourrier.com>
-References: <20031117174829.711e2e82.tuxit@netcourrier.com>
-	<20031117223129.GF5075@sunbeam.de.gnumonks.org>
-	<20031118005846.06befa0d.tuxit@netcourrier.com>
-	<20031118004931.GH5075@sunbeam.de.gnumonks.org>
+Message-ID: <200311180835.09794.timg@tpi.com>
+References: <200311151103.47454.timg@tpi.com> <20031116095206.GA32471@balabit.hu> <200311160953.51722.timg@tpi.com>
+Reply-To: timg@tpi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031118004931.GH5075@sunbeam.de.gnumonks.org>
+To: Balazs Scheidler <bazsi@balabit.hu>
+In-Reply-To: <200311160953.51722.timg@tpi.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,37 +23,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 18 Nov 2003 01:49:31 +0100
-Harald Welte <laforge@netfilter.org> wrote:
+I've been thinking more about this scenario. When a standard distribution=
+ like=20
+SuSE-9.0 boots, the interfaces are  IFF_UP sometime before firewall rules=
+ are=20
+installed. This is particularly a problem in the case of a NAT router. Is=
+=20
+there any way to flush /proc/net/ip_conntrack to make sure that you get r=
+id=20
+of entries that were established between the time the interfaces were bro=
+ught=20
+up and the time the rules were installed? Removing the ip_conntrack modul=
+es=20
+seems kind of brute force, and does not work on kernels where ip_conntrac=
+k is=20
+not a module.
 
-> On Tue, Nov 18, 2003 at 12:58:46AM +0100, tuXit wrote:
-> > 	ascii.flags = IP_NAT_HELPER_F_STANDALONE;
-> 
-> you are missing IP_NAT_HELPER_F_ALWAYS here.  otherwise a nat helper
-> will only be called if a connection tracking helper has issued an
-> expectation within that packet.
+rtg
 
-That's true; I added this flag so now, I have :
-ascii.flags = IP_NAT_HELPER_F_STANDALONE + IP_NAT_HELPER_F_ALWAYS;
-I also changed 
-char ascii_names[10];
-that was in my previous post from the function 
-__init 
-outside of it (because it is in the stack, so deleted whenever this function
-is finished).
+On Sunday 16 November 2003 09:53, Tim Gardner wrote:
+> Balazs,
+>
+> You are exactly correct. I swapped the interface creation statements wi=
+th
+> the iptables rules so that the rules were in place before any packets c=
+ould
+> be received from the interior net. In fact, I had to make sure that the
+> interior net interface was down. Otherwise it would make an entry in
+> ip_conntrack, regardless of the IP address of the interior interface.
+>
+> Thanks for your help.
+>
+> rtg
+>
+> On Sunday 16 November 2003 02:52, Balazs Scheidler wrote:
+> > NAT mappings are established for NEW connections only, isn't it possi=
+ble
+> > that your client sent an NTP request while your rule was not yet
+> > established? This means that it is entered the CONNTRACK table withou=
+t
+> > the NAT manip and anything that comes later is not NATed as it is not=
+ a
+> > fresh CONNTRACK.
+> >
+> > Try filtering this traffic for 180secs and see it disappear from
+> > /proc/net/ip_conntrack, then remove the filtering and check whether i=
+t
+> > traversed the  nat/POSTROUTING chain.
 
-But it still doesn't help. The function do_bindings from the file ip_nat.core
-is called for each natted packet that is going toward port 119, but while
-trying to detect the helper, it value is NULL. I tried to try to debug,
-modifying the snmp nat helper module. I modified the udp fields into tcp
-fields, and the udp protocol into tcp protocol, and exchange source and
-destination. After these modifications in the 
-struct ip_nat_helper
-the helper function is not called anymore whenever a natted packet arrives. So
-I don't understand what happens...
-
--- 
-Florian Pouradier
-echo '|^H_!Xn|^H_' | less 
-EpX Member - Debian GNU/Linux user
-GPG FP: B0D7 1F53 94DA 0BCA C11E  F417 094B 49F3 D5DD F5EC 
+--=20
+Tim Gardner - timg@tpi.com
+www.tpi.com 406-443-5357
