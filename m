@@ -1,15 +1,12 @@
-From: Roberto Nibali <ratz@drugphish.ch>
-Subject: Re: when IPVS into netfilter?
-Date: Sat, 10 May 2003 13:29:12 +0200
+From: Thomas Karlsson <netfilter@planet.eu.org>
+Subject: bugfix for ip_conntrack_irc
+Date: Sat, 10 May 2003 14:00:27 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EBCE288.5020801@drugphish.ch>
-References: <3EB44BE7.3070602@wanadoo.es>
+Message-ID: <Pine.LNX.4.55.0305101334520.463@thorix.in.space.eu.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Xose Vazquez Perez <xose@wanadoo.es>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,56 +17,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hi
 
-I hope the netfilter people do not mind if I answer this on behalf of 
-the LVS project.
+Here comes a bugfix for the ip_conntrack_irc module. The fix makes it
+possible to send files to other irc users With the character "space" in
+the filename.
+A DCC SEND packet looks like this:
+0x0030   2f2d 3bb3 5052 4956 4d53 4720 7473 7420        ..;.PRIVMSG.tst.
+0x0040   3a01 4443 4320 5345 4e44 2070 6c75 6769        :.DCC.SEND.plugi
+0x0050   6e31 3331 5f30 322e 7472 6163 6520 3130        n131_02.trace.10
+0x0060   3438 3437 3932 3920 3332 3839 3420 3130        4847929.32894.10
+0x0070   3931 010d 0a                                   91...
 
-> Are there some possibility to IPVS Netfilter
-> ( http://www.linuxvirtualserver.org )
-> module for it can go into iptable 2.4.xx code?
+When the ip_conntrack_irc module parses DCC SEND packets it looks for the
+space-character as the delimiter between the filename,ipaddress, port and
+filesize. Now IF the filename contains a space then the parse will stop
+and remaining filename will be used as the ipaddress and port.
 
-I think not for 2.4.x because we're changing too much of the 
-netfilter/routing code to make it a smooth and acceptable merge. There 
-is also some code most people use which is completely not acceptable 
-within the scope of routing extensions (like the hidden patch or some 
-DGD code).
+What I have done in the patch is to parse the packet backwards to get the
+real position of the ipaddress and port.
 
-For 2.5 it is already too late, feature freeze was already called in and 
-we haven't talked to the netfilter people anyways ;).
+--- org.ip_conntrack_irc.c      Mon Apr 21 22:25:51 2003
++++ ip_conntrack_irc.c  Mon Apr 21 22:28:21 2003
+@@ -82,11 +82,22 @@
+        ad_beg_p        returns pointer to first byte of addr data
+        ad_end_p        returns pointer to last byte of addr data */
+ {
++       int space=0;                    /* Set spaces found to zero */
 
-I'm going to talk to Harald about it this coming OLS (once again), 
-provided he's got enough time. It's on my BoF list actually; for more 
-information please check out the .plan:
+        /* at least 12: "AAAAAAAA P\1\n" */
+        while (*data++ != ' ')
+                if (data > data_end - 12)
+                        return -1;
++
++        data = data_end;               /* we want to go to the end of
+data */
++
++        while ( space < 3 ) {
++                data--;                 /* Go back one step */
++                if ( *data == ' ')      /* if space is found, the last
+number also */
++                        space++;        /* Add a space found */
++        }
++       while (*data++ != ' ');
++       DEBUGP("This should be the correct data !%s!",data);
 
-http://marc.theaimsgroup.com/?l=linux-virtual-server&m=104756133813089&w=2
+        *ad_beg_p = data;
+        *ip = simple_strtoul(data, &data, 10);
 
-Another point is that we (Wensong the most) never felt the urge to 
-submit the code to the networking maintainers for approval and 
-inclusion. At OLS 2000, Wensong, Horms, Rusty, me and some others talked 
-about a possible inclusion of LVS into netfilter. It simply never 
-happened because noone felt about doing more than talking of it.
-
-Yet another point is that we never really agreed on having someone being 
-the lead developer and responsible for a possible kernel inclusion and 
-most of us simply do not have the time to be a maintainer. It's a tough 
-and time consuming job even if the code works for 99.999% of the people.
-
-You have to talk to other involved parties, you have to monitor API 
-changes and you will need to be responsive to an increasing amount of 
-emails addressed directly to you (for example package responsibles for a 
-distribution), because you're in the MAINTAINERS list.
-
-Last but not least it is pretty easy to patch your kernel with LVS, 
-There are as few as possible changes to the existing code, most of the 
-patch is in form of additional code.
-
- > --
- > Galiza nin perdoa nin esquence. Governo demision!
-
-:) Fair enough.
-
-Best regards,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
+//Thomas Karlsson
