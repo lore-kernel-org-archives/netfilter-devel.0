@@ -1,13 +1,16 @@
-From: Evan Harris <eharris@puremagic.com>
-Subject: Bug/Problem with DNAT on OUTPUT chain (-t nat -A OUTPUT) that breaks
- routing?
-Date: Wed, 22 Oct 2003 19:46:40 -0500 (CDT)
+From: Andy Polyakov <appro@fy.chalmers.se>
+Subject: Re: [netfilter-core] linux-2.6.0-testX ipchains oops in NAT
+Date: Thu, 23 Oct 2003 11:52:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0310221946250.29188-100000@kinison.puremagic.com>
+Message-ID: <3F97A4C5.982725B0@fy.chalmers.se>
+References: <3F964F9D.D5C69498@fy.chalmers.se> <20031023090238.GE1418@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: coreteam@netfilter.org,
+        Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,32 +21,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> Just a quick unrelated question: Why would somebody be using ipchains on
+> a 2.6 kernel?
 
-(Originally posted to users list, but since it is a possible bug or doc fix,
-maybe the developers list is a better place).
+Well, I use it, because it was on my computer since eternity and I used
+to it. It's hardly a "crime":-):-):-)
 
-I'm trying to setup a linux kernel box that is on an ip-ip vpn tunnel, and
-want to DNAT all traffic (except the tunnel payload packets) for the "real"
-ip of the other tunnel endpoint to go to its in-tunnel endpoint (so they are
-properly encrypted).
+> > What the heck with rebooting guest and connecting to same URL? Guest OS
+> > will use very same port numbers at second boot and NAT layer will use
+> > same port translations, which appears as the triggering factor itself.
+> >
+> > Reloading ipchains module in between guest OS boots makes it possible to
+> > avoid lock-ups/oopses.
+> 
+> As I have no idea about vmware: does it destroy the virtual interface on
+> the host at time of the reboot in your guest os?
 
-The machine in question has a default route going to the tunnel device
-(tun0), and a host specific route going out a different device (wlan0) so
-the tunnel datagrams can get to the tunnel server.
+No, vmnetN interfaces are persistent and are taken up/down upon system
+boot/shutdown. They are pretty much independent from the VMware
+application, the one which arranges for communication between guest OS
+and the vmnetN interface.
 
-After setting up the output DNAT, it is correctly rewriting the packets to
-go to the in tunnel address.  However, after the rewrite, the kernel is
-disregarding the routing that says that packets to the in-tunnel address
-should go to the tun0 device, and instead is trying to send them out the
-original device the packets would have gone out if they had not been
-dnat'ed (wlan0).
+> What about using iptables?  Does it produce a similar behaviour?
 
-According to the documentation for iptables, it appears that the OUTPUT
-chain on the nat table should happen before the routing decision is made,
-but that appears to not be the case.  Is this a bug, or are the docs wrong?
-And if the docs are wrong, what is the correct way to accomplish this?
+I don't know. I'll check at some point, but not right away...
 
-I am using a stock linux kernel 2.4.20, with iptables 1.2.8.  Please CC me,
-as I am not on the mailing list.
+> I
+> think this is the first time within at least a year that we've had any
+> report of somebody using (or finding bugs) in the ipfwadm/ipchains
+> compat layer... it wasn't even frequently used with 2.4.x
 
-Evan
+Well, then it probably should have disappeared from 2.6. I mean if the
+code is there, then it should work and is actually expected to work.
+
+> > Question. Should I pursue the issue further?
+> 
+> yes, please.  Especially a means of reproduction without running
+> proprietary software (and thus being repruducable for me) would be very
+> helpful.
+
+Would eth0:1 be sufficient? A.
