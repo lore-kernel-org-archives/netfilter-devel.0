@@ -1,19 +1,34 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Fw: [Bug 133788] New: ip_conntrack_in: Frag of proto 17
-Date: Wed, 29 Sep 2004 09:43:29 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
+Date: Wed, 29 Sep 2004 10:12:04 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040929074328.GB31674@sunbeam.de.gnumonks.org>
-References: <20040928130512.57479400.davem@davemloft.net>
-	<20040928220532.GN29961@sunbeam.de.gnumonks.org>
-	<4159F559.3040400@trash.net>
+Message-ID: <Pine.LNX.4.61.0409291000490.11661@filer.marasystems.com>
+References: <1092407190.2402.120.camel@nienna.balabit>
+	<1095993739.1044.9.camel@jzny.localdomain>
+	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
+	<1096290473.1075.64.camel@jzny.localdomain>
+	<20040927133904.GP3236@sunbeam.de.gnumonks.org>
+	<1096339276.8660.30.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409280834520.29563@filer.marasystems.com>
+	<1096369001.8661.165.camel@jzny.localdomain>
+	<1096374273.7192.27.camel@nienna.balabit>
+	<Pine.LNX.4.61.0409281432550.31930@filer.marasystems.com>
+	<1096376252.7192.47.camel@nienna.balabit>
+	<1096377276.8661.252.camel@jzny.localdomain>
+	<1096379957.1026.5.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
+	<1096383406.7192.165.camel@nienna.balabit>
+	<Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
+	<1096424069.1046.84.camel@jzny.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oJ71EGRlYNjSvfq7"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <4159F559.3040400@trash.net>
+To: Jamal Hadi Salim <hadi@znyx.com>
+In-Reply-To: <1096424069.1046.84.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,50 +39,61 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 28 Sep 2004, Jamal Hadi Salim wrote:
 
---oJ71EGRlYNjSvfq7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Like you said earlier, the allocation is IPaddress:portrange. I do think
+> this will require some extra hack for the mapping. Am i mistaken?
+> So instead if you just zeroed out the IPaddres piece, then the only
+> change left is por range.
+> I believe this is already supported in the form of
+> /proc/sys/net/ipv4/ip_local_port_range
 
-On Wed, Sep 29, 2004 at 01:35:53AM +0200, Patrick McHardy wrote:
-> Harald Welte wrote:
->=20
-> >The conntrack message basically means that at NF_IP_PRE_ROUTING we
-> >suddenly see fragmented packets.  This "can never happen" since at the
-> >same PRE_ROUTING hook we defragment just before
-> >via ip_conntrack_defrag() -> ip_ct_gather_frags() -> ip_defrag()
-> >=20
-> >
->=20
-> Here is the patch. Untracked and already tracked (loopback) packets
-> are not defragmented, but the check in ip_conntrack_in for
-> untracked/already tracked is after the check for fragments.
-> This patch moves it up.
+This is for local connections, not related to NAT.
 
-Sometimes I feel like I'm blind.  Thanks, Patrick.
+> Unfortunately i am not sure if you can force current to always get
+> its port allocation from the allocated range _only_. Is this doable?
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+iptables NAT allows you to specify the IP and port range acceptable.
 
---oJ71EGRlYNjSvfq7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+> Caveat: You just limited your active connections for your cluster to 64K
+> flows.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Not really. But if you only have a single IP address then the port 
+allocation limits you to 64K flows per "other" IP. As already discussed 
+the tuple needs to be unique between different flows, not neccesarily the 
+port.
 
-iD8DBQFBWmegXaXGVTD0i/8RAn6LAJ4gQ/fwYgvRXNrNSSq8lkDdyN0ccgCgp8fn
-Gqv7mK2hz45gXSg7V7QH+fI=
-=F0eW
------END PGP SIGNATURE-----
+> I think we should make the issue of balancing a separate item.
 
---oJ71EGRlYNjSvfq7--
+It is separate from the matter of syncronization. But the reason why the 
+syncronization protocol has not yet been designed for active-active is 
+because no load balancing scheme has been designed which would work. The 
+two goes hand in hand and both needs to be solved.
+
+Most likely the first load balancing method which will get implemented 
+(and forcing ct_sync to add the two minor pieces missing for active-active 
+syncronization) is the multicast balancing method in a no-NAT clused where 
+each firewall sees all traffic and selects what it looks closer at. This 
+is by far the easiest to implement. But even this is not entirely trivial 
+as there may be conflicts in flow key balance IDs depending on the 
+direction of the flow, but most likely this problem is more theoretical 
+than practical.
+
+> It shouldnt matter how the packet gets delivered to an active node
+> (pigeons, expensive loadbalancers, LVS, some routing tricks,
+> etc all is fine by me).
+> Assuming:
+>
+> - The state is already synced across all the nodes;
+>
+> - assuming theres no conflict and
+>
+> - assuming asymetry (ok, maybe thats too restrictive) but a good start.
+
+Allowing for assymetric flows is not something which is realistic to aim 
+for unless you also aim for absolute syncronization by delaying packets 
+until the firewalls have been syncronized. Such design will scale very 
+badly.
+
+Regards
+Henrik
