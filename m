@@ -1,16 +1,16 @@
-From: Jim Gifford <maillist@jg555.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: Use of Kernel Headers
-Date: Wed, 18 Aug 2004 14:01:09 -0700
+Date: Thu, 19 Aug 2004 00:30:12 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4123C395.8080402@jg555.com>
-References: <4122743A.7020309@jg555.com> <Pine.LNX.4.61.0408180123380.7879@filer.marasystems.com> <4122EADA.7030501@jg555.com> <Pine.LNX.4.61.0408182057060.23105@filer.marasystems.com> <4123AD42.8050803@jg555.com> <Pine.LNX.4.61.0408182200120.23460@filer.marasystems.com> <4123C0AA.7080708@jg555.com> <Pine.LNX.4.61.0408182250390.23616@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.58.0408182356030.5432@blackhole.kfki.hu>
+References: <4122743A.7020309@jg555.com> <Pine.LNX.4.61.0408180123380.7879@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jim Gifford <maillist@jg555.com>,
+	Netfilter Developer <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0408182250390.23616@filer.marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0408180123380.7879@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,36 +21,58 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
+On Wed, 18 Aug 2004, Henrik Nordstrom wrote:
 
-> On Wed, 18 Aug 2004, Jim Gifford wrote:
+> On Tue, 17 Aug 2004, Jim Gifford wrote:
 >
->> Doesn't patch-o-matic update the ones in iptables-version/include/linux?
+> > It has been stated numerous times that userspace programs should not be
+> > compiled against raw kernel headers, but iptables does compile against
+> > userspace headers and breaks this rule. With the advent of the
+> > linux-libc-headers package, should iptables be compiled against the
+> > linux-libc-headers or the raw kernel headers since iptables is a user space
+> > program?
 >
+> This depends on if you build iptables for your custom patched kernel or a
+> standard kernel.
 >
-> Nope.
->
->> So the the kernel and the iptables are built from the same headers? 
->> (Is this desired)
->
->
-> Today yes, and probably desired while building with patch-o-matic 
-> patches applied.
->
->> Or would it benefit iptables to include all the updated headers in 
->> iptables-version/include/linux?
->
->
-> This would make things more clean cut separation between kernel and 
-> userspace.
->
-> Regards
-> Henrik
->
-So now what do we do to get these changes made, or is it going to be a 
-distro specific thing?
+> For a standard kernel it should be sufficient with linux-libc-headers I
+> think, but it is possible some required linux iptables headers is missing
+> from the iptables package (include/linux/netfilter_ipv[46]/). If
+> you find some missing please report here which files needs to be added
+> from the kernel tree and maybe it can be cleaned up.
 
--- 
-----
-Jim Gifford
-maillist@jg555.com
+The include/linux tree in the iptables source exists for
+forward-compatibility reasons only. The to-be-submitted new extensions are
+added to the iptables tree, together with their header files and enabled
+for default compilation in the Makefile. Thus when one donwloads/installs
+the next kernel release, there is no need to touch the iptables binary
+because it knows about the new extensions. The definite source of the
+include files is the kernel tree for iptables, which overrides the
+include directory in the userspace source.
+
+> > Should patch-o-matic update the headers in the proper location,
+> > /usr/include/linux/netfilter_ipv4 etc?
+>
+> patch-o-matic should always update the kernel source tree and your
+> iptables should then be built to this source tree. This to make sure
+> the view of iptables and your kernel matches. But to be honest it should
+> only be the include/linux/netfilter_ipv[46]/ directories which is required
+> by iptables.
+
+pom should definitely not update /usr/include/linux because the kernel
+version there can be (usually are) different than in the patched kernel
+source. Also, /usr/include/linux is maintained by the given distribution.
+Next update could simply overwrite patched files, checksumming would fail
+in built-in IDS, etc.
+
+My impression is that netfilter/iptables/pom does not really fit into
+the linux-libc-headers schema. And iptables should compile cleanly on any
+distro, including the ones which do not contain linux-libc-headers.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
