@@ -1,63 +1,43 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Any known issues with iptables-1.3.0 from cvs/svn ?
-Date: Fri, 22 Oct 2004 10:09:13 +0200
-Sender: netfilter-bounces@lists.netfilter.org
-Message-ID: <20041022080913.GV3551@sunbeam.de.gnumonks.org>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: Any known issues with iptables-1.3.0 from cvs/svn ?
+Date: Fri, 22 Oct 2004 10:28:13 +0200 (CEST)
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <Pine.LNX.4.58.0410221020590.17044@tux.rsn.bth.se>
+References: <20041022080913.GV3551@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Tln/wzp9jsNjmSUr"
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-bounces@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041022080913.GV3551@sunbeam.de.gnumonks.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 22 Oct 2004, Harald Welte wrote:
 
---Tln/wzp9jsNjmSUr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Hi!
+>
+> I want to release iptables-1.3.0 (including the libiptc speedup rewrite)
+> soon.
+>
+> If anyone has any issues (bugs, changed functionality from 1.2.11, ...)
+> with the current svn code or a recent snapshot, this is the time to step
+> up :)
 
-Hi!
+I've been running it for a while and havn't noticed any problems except
+this:
+delete-by-specifying-the-complete-rule doesn't work.
 
-I want to release iptables-1.3.0 (including the libiptc speedup rewrite)
-soon.
+I think Rusty did some work on that in Erlangen (libiptc internals worked
+but the rule-management was a bit screwed up back then). Rusty, did you
+finish something or should I take a look at it?
 
-If anyone has any issues (bugs, changed functionality from 1.2.11, ...)
-with the current svn code or a recent snapshot, this is the time to step
-up :)
-
-Please send mail to netfilter-devel and Cc me personally.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---Tln/wzp9jsNjmSUr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBeMApXaXGVTD0i/8RAoQBAJ9d1ZbJPAzAT+663+zDSXz6+t4rQwCfSFVE
-ZQeCAzPzEkgcefHnRI0DiH8=
-=4ClE
------END PGP SIGNATURE-----
-
---Tln/wzp9jsNjmSUr--
+/Martin
