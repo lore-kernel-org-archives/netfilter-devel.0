@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: sploit for skipping netfilter
-Date: Wed, 2 Apr 2003 17:25:51 +0200
+From: =?gb2312?q?Dig=20Harry?= <digharry@yahoo.com.cn>
+Subject: NAT(SNAT and DNAT) and Filter module that I developed can hook at PRE_ROUTING ?
+Date: Thu, 3 Apr 2003 09:49:40 +0800 (CST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030402152551.GF27344@sunbeam.de.gnumonks.org>
-References: <200304020709.h3279Rv14203@singularity.tronunltd.com>
+Message-ID: <20030403014940.74367.qmail@web15309.mail.bjs.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: 8bit
+Cc: netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ian Latter <Ian.Latter@mq.edu.au>
-Content-Disposition: inline
-In-Reply-To: <200304020709.h3279Rv14203@singularity.tronunltd.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,51 +19,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I want to develop a firewall at other platform, and do
+NAT(SNAT and DNAT) and Filter at PRE_ROUTING(for
+example: ip_rcv()).
+Is it OK?
+If yes, I need note which problems?
 
---ZInfyf7laFu/Kiw7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Apr 02, 2003 at 05:09:24PM +1100, Ian Latter wrote:
-> Howdy,
->=20
-
-Don't consider this an 'exploit'.  It's a perfectly legal netfilter
-module.
-
->   Thought this was an interesting spin ... maybe it should be
-> added to POM (5th March);
->=20
->   http://projet7.tuxfamily.org/factory/releases/nfbypass.c
-
-I will ask the author if his code is GPL'd.  If so, I'll include it.
-
-
-> Regards,
-> Ian Latter
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---ZInfyf7laFu/Kiw7
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+iwD/XaXGVTD0i/8RAph4AKCSuf4TgxNN2QsSXL2JrZdQtNHtEgCgpxcO
-bnRDuOpHm0hI0ObW8kEQUPQ=
-=xpNr
------END PGP SIGNATURE-----
-
---ZInfyf7laFu/Kiw7--
+_________________________________________________________
+Do You Yahoo!? 
+雅虎通网络KTV, 随时随地免费卡拉OK~~
+http://rd.yahoo.com/mail_cn/tag/?http://cn.messenger.yahoo.com//chat/index.html
