@@ -1,19 +1,13 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.6 0/12]: netfilter update
-Date: Fri, 24 Sep 2004 15:40:32 -0700
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] time match does not track DST changes
+Date: Fri, 24 Sep 2004 16:11:26 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040924154032.5a0c32e1.davem@redhat.com>
-References: <414F9DFC.701@trash.net> <20040921143611.6a6e2f60.davem@redhat.com>
-	<4150BB62.2060904@trash.net>
-	<20040921171857.2c720c8e.davem@redhat.com>
-	<4150D880.70108@trash.net>
+Message-ID: <20040924231126.GA9030@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="CE+1k2dSO48ffgeK"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4150D880.70108@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,41 +18,52 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 22 Sep 2004 03:42:24 +0200
-Patrick McHardy <kaber@trash.net> wrote:
 
-> The existing scheme has one problem, it takes files->file_lock
-> in a BH, but the patch doesn't mean to fix this. Besides
-> this, it works fine. The patch extends the owner match so it
-> can also be used in the input path, where skb->sk isn't set.
-> This is quite useful for filtering input traffic based on user
-> etc., unfortunately it can't be done without exporting
-> {tcp,udp}_v4_lookup. Do you see an alternative to dropping the
-> patch ?
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I think the scheme is a bit illogical.
+The time match does not follow daylight savings time changes.
+Without adding timezone information to the kernel, fixing the
+module doesn't seem possible.  
 
-Until the actual TCP socket lookup call, you cannot say for sure
-what that lookup would result in.
+I considered adding a /proc entry to configure whether to add
+an hour or not, but doing so would still require user intervention,
+and the user can just as easily fix things up with this:
 
-For example, let's say that between where the ipt_owner match
-is invoked on input, and the actual call to tcp_v4_rcv(), some
-filtering or other packet mangling scheme changes the IP address
-or ports.  You're going to get different results in ipt_owner()
-than TCP was going to achieve.
+   hwclock --systohc ; hwclock --hctosys
 
-It sounds like we want some kind of socket resolution policy check.
-It's starting to get rediculious, as we have two filters _already_
-in that code path, one for the per-socket BPF style filtering, and
-the other for IPSEC.
+So, the below just adds a couple notes so users are aware of 
+this limitation.
 
-The IPSEC check is available on output too.
+Unless someone thinks of a better idea, this closes bugzilla #75.
 
-I don't see how it's avoidable to add another condition there.
-So what if we had something like:
 
-	NF_SK_HOOK(PF_INET, NF_TCP_IN, sk, skb, skb->dev, NULL,
-		   tcp_v4_rcv_finish)
+Phil
 
-or something along those lines?  Perhaps you can simplify the
-argument set even further.
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-time
+
+diff -ru ipt-orig/extensions/libipt_time.c ipt-new/extensions/libipt_time.c
+--- ipt-orig/extensions/libipt_time.c	2004-05-16 01:48:04.000000000 -0700
++++ ipt-new/extensions/libipt_time.c	2004-09-24 16:03:30.289605227 -0700
+@@ -21,6 +21,7 @@
+ " [ --timestart value ] [ --timestop value] [ --days listofdays ] [ --datestart value ] [ --datestop value ]\n"
+ "          timestart value : HH:MM (default 00:00)\n"
+ "          timestop  value : HH:MM (default 23:59)\n"
++"                            Note: daylight savings time changes are not tracked\n"
+ "          listofdays value: a list of days to apply\n"
+ "                            from Mon,Tue,Wed,Thu,Fri,Sat,Sun\n"
+ "                            Coma speparated, no space, case sensitive.\n"
+diff -ru pom-orig/time/help pom-new/time/help
+--- pom-orig/time/help	2004-05-05 03:11:24.000000000 -0700
++++ pom-new/time/help	2004-09-24 16:01:05.830178992 -0700
+@@ -30,3 +30,5 @@
+   -A OUTPUT -m time --timestart 8:00 --timestop 18:00 --Days Mon --date-stop 2010
+   will match the packets (locally generated) that have a departure timestamp
+   in the range 8:00->18:00 on Monday only, until 2010
++
++NOTE: the time match does not track changes in daylight savings time
+
+--CE+1k2dSO48ffgeK--
