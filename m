@@ -1,19 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: PATCH: extra conntrack stats
-Date: Mon, 5 May 2003 10:43:26 +0200 (CEST)
+Subject: Re: suggestion, p-o-m, iplimit for ipv6 protocol
+Date: Mon, 5 May 2003 10:38:57 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0305051040300.607-100000@blackhole.kfki.hu>
-References: <20030501015802.2CB152C2D9@lists.samba.org>
+Message-ID: <Pine.LNX.4.33.0305051036150.607-100000@blackhole.kfki.hu>
+References: <3EB0328C.4030305@rtij.nl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
-	Harald Welte <laforge@netfilter.org>,
-	Martin Josefsson <gandalf@wlug.westbo.se>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>
+Cc: Tom Marshall <tommy@home.tig-grr.com>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <20030501015802.2CB152C2D9@lists.samba.org>
+To: Martijn Lievaart <netfilter-devel@rtij.nl>
+In-Reply-To: <3EB0328C.4030305@rtij.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,20 +21,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 1 May 2003, Rusty Russell wrote:
+On Wed, 30 Apr 2003, Martijn Lievaart wrote:
 
-> > By adding a data lock to the conntrack entries can solve that
-> > (potential) problem. The data lock would make unnecessary the per
-> > conntrack helper locks too (unfortunately the buffers introduced in the
-> > zerocopy patch undo that).
->
-> Yeah, per-entry locks make sense I think.  I can change the helpers to
-> do an skb_copy (suggested by Alexey) which will be lockless, or just
-> implement the damn non-linear search.
+> >A blind porting of the IPv4 conntrack is unacceptable due to the code
+> >duplication.
+> >
+> I understand, but for myself am willing to pay the price of a blind
+> port. Has anyone done work in that direction?
 
-I afraid the non-linear search is not general enough. We have to support
-protocols which carry structures in the payload and in that case the
-non-linear search would be a nightmare.
+Brad Chapman made such a port quite some time ago. MARC can help you to
+find it.
 
 Best regards,
 Jozsef
