@@ -1,13 +1,17 @@
-From: Mike-Ro-Chanel <mikerochanel@yahoo.it>
-Subject: Jitter phenomenon in the netfilter infrastructure
-Date: Thu, 16 Oct 2003 09:42:53 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] Trivial typo in english FAQ
+Date: Thu, 16 Oct 2003 09:37:46 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F8E4BFD.1050103@yahoo.it>
+Message-ID: <20031016073746.GD14807@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.51.0310151729160.27291@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.51.0310151729160.27291@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,25 +22,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
-Inspired by ipt_limit module I've written a token bucket module as a 
-iptables module extension.
 
-I've observed a strange behaviour:
-In the linux kernel 2.4.21 input ethernet frames are sent to the IPv4 
-layer by "process_backlog()" function, this one pass to ip_rcv() 
-hundreds of SKB elements in a single burst, its execution is limited (in 
-time) by 1 jiffy.
-As result a regular IPv4 input traffic is looked by PREROUTING hook as 
-an irregular flow of packets.
+--ZInfyf7laFu/Kiw7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Looking this phenomenon I think: an ingress bandwidth filter as 
-netfilter module is unfeasible.
+On Wed, Oct 15, 2003 at 05:30:25PM +0200, Maciej Soltysiak wrote:
+> Hi,
+>=20
+> simple s/ressources/resources patch.
 
-Is my opinion wrong?
+thanks, I've applied both of your patches to CVS
 
-Any suggestions?
+> Regards,
+> Maciej
 
-Thanks
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-	Mike-Ro-Chanel
+--ZInfyf7laFu/Kiw7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/jkrKXaXGVTD0i/8RAkJ2AJ481nSFZHuMR7FtjT0dxBkrf4wWywCfR0yw
+6r/RX38rV705X6ycvhR/WFk=
+=OVuH
+-----END PGP SIGNATURE-----
+
+--ZInfyf7laFu/Kiw7--
