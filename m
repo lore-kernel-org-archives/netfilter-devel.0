@@ -1,13 +1,15 @@
-From: "Mordechai T. Abzug" <morty@frakir.org>
-Subject: netfilter as ACL for SOCK_RAW, binding, netadmin
-Date: Wed, 17 Dec 2003 22:00:59 -0500
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Quota / SMP / IRQBalance
+Date: Thu, 18 Dec 2003 08:04:28 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031218030059.GA15627@red-sonja.frakir.org>
+Message-ID: <Pine.LNX.4.44.0312180745070.26987-100000@filer.marasystems.com>
+References: <0E051BDF2E73C847B9220964CBD1B8F32BC3@EXCHANGE.SHSU.EDU>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "McGuffin, Tim" <UCS_TIM@exchange.shsu.edu>
+In-Reply-To: <0E051BDF2E73C847B9220964CBD1B8F32BC3@EXCHANGE.SHSU.EDU>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,37 +20,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 17 Dec 2003, McGuffin, Tim wrote:
 
-I am aware of at least one kernel patch to introduce some type of ACLs
-into port binding, making raw sockets, and doing assorted
-administrative work.  Ie:
+> On the Dual 800 running Redhat 9 or Fedora Core 1, the quota match is
+> completely broken by enabling the irqbalance service.  With irqbalance
+> enabled, the box is able to transfer roughly twice the amount of data
+> before the quota is exhausted (11437662 bytes out of a 5000000 byte
+> quota).
 
-http://killa.net/infosec/acls/
-http://folk.sourceforge.net/
+Odd.. from what I can se it should be broken on SMP even without
+irqbalance, but maybe irqbalance causes both processors to be used in a
+more even fashion making the problem more visible.
 
-However, this mechanism is clunky and inflexible.
+The problem is due to the quota match saving the quota counter within the
+iptables matchinfo. As this is duplicated per CPU a SMP system gives a
+quota up to the number of CPUs times the specified quota and may cause
+unwanted packet reordering when the quota is reached on one CPU (packets 
+hitting other CPUs may still get accepted).
 
-Linux capabilities theoretically allow administrators to do similar
-things.  But this approach requires FS support and login hooks that
-either don't exist or are not in mainstream kernels.
+Btw, iptables -L (and iptables-save) just prints the quota counter from 
+CPU #0.
 
-Suggestion: it would make a lot of sense if there were a netfilter
-hook that allowed the existing flexible netfilter/iptables policy
-mechanisms to make these decisions.  
-
-For example, the following sort of command might allow httpd to be run
-without root:
-
-iptables -t ACL -A BIND -m owner --uid-owner www -p tcp --sport 80 -j ACCEPT
-
-And something like this might give all users the ability to run ping
-without SUID:
-
-iptable -t ACL -A SOCK_RAW -m owner --exec-owner /bin/ping -j ACCEPT
-
-It would be great for Linux security to be able to remove SUID and
-SGID from a bunch (or all!) of the networking commands, and it would
-be great to be able to use tcpdump and ethereal under Linux without
-root.  Performance for such calls is rarely critical.
-
-- Morty
+Regards
+Henrik
