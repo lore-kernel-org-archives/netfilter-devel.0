@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Rule optimization scheme openbsd-like
-Date: Tue, 14 Oct 2003 13:23:05 +0200
+Subject: Re: [PATCH] Fix ip_queue for bridged packets
+Date: Tue, 14 Oct 2003 12:58:25 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031014112305.GD3752@obroa-skai.de.gnumonks.org>
-References: <Pine.LNX.4.51.0310131004000.17633@dns.toxicfilms.tv>
+Message-ID: <20031014105825.GA3752@obroa-skai.de.gnumonks.org>
+References: <200310122243.38551.bdschuym@pandora.be>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0/kgSOzhNoDC5T3a"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="n8g4imXOkfNTN/H1"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Stephen Hemminger <shemminger@osdl.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+To: Bart De Schuymer <bdschuym@pandora.be>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.51.0310131004000.17633@dns.toxicfilms.tv>
+In-Reply-To: <200310122243.38551.bdschuym@pandora.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,49 +24,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---0/kgSOzhNoDC5T3a
+--n8g4imXOkfNTN/H1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 13, 2003 at 10:25:00AM +0200, Maciej Soltysiak wrote:
-> Hi,
+On Sun, Oct 12, 2003 at 10:43:38PM +0200, Bart De Schuymer wrote:
+> Hi Harald,
 >=20
-> someone on LKML writing in 'thoughts for 2.7' about netfilter development,
-> handed me a fistful of links related to openbsd's pf.
->=20
-> Out of them I only read one document so far:
-> http://www.benzedrine.cx/pf-paper.html
->=20
-> This document explains some pf's features, one of them is:
+> When ip_queue copies an old skbuff to a new one (because the tailroom is
+> too small), it uses skb_copy_expand(). This function doesn't copy the
+> Ethernet header, which is not needed for normal IP traffic. Normally, the
+> Ethernet header is filled in later before doing dev_queue_xmit.
+> When ip_queue does this to a bridged IP packet, it has to copy the Ethern=
+et
+> header, because the Ethernet header was already filled in earlier and won=
+'t
+> be filled in again.
 
-Please read the proceedings of the netfilter workshop (can be found in
-the documentation directory of the CVS tree).
+what about ip6_queue.c ?  Would you need a similar fix for ipv6
+bridging  If yes, could you please merge your changes with ip6_queue.c
+and send me a cumulative patch?
 
-> 2.8. Transparent rule set evaluation optimization
+Thanks.
 
-Iptables (or pkttables as its successor) will stay a linked list with no
-optimizations.  If you need an optimized ruleset, you will use nf-hipac
-- which will be most likely using the same userspace configuration tool.
-
-> What do you think? Is anyone working on this
-
-no, I think it is just a waste of time.  If you are interested in high
-performance, especially with medium to large sized rulesets, nf-hipac is
-the way to go.
-
-> It might be a good rule writing technique to add to the HOWTO or to write
-> a HOWTO on rule writing technique.
-
-yes, that was something I always wanted to do but never got around
-doing.  Actually I started it once, but didn't get very far.
-
-When I'm back home next weekend, I'll see if I can find that old piece
-of document and send it to you.
-
-> Regards,
-> Maciej
-
+> cheers,
+> Bart
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -76,16 +60,16 @@ of document and send it to you.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---0/kgSOzhNoDC5T3a
+--n8g4imXOkfNTN/H1
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/i9yZXaXGVTD0i/8RAoXYAJwNmmpibyMHUdKFeyeavfr81MyHCQCgk68j
-wJJDTwkhFlowi7V0ttOda74=
-=I22C
+iD8DBQE/i9bQXaXGVTD0i/8RAoOxAJwLFrPDth4OTtppu0SY7nWWiVm6OQCggZjC
+czCJQqNQTjqwEg+vjztpAcY=
+=K17h
 -----END PGP SIGNATURE-----
 
---0/kgSOzhNoDC5T3a--
+--n8g4imXOkfNTN/H1--
