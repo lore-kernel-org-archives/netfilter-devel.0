@@ -1,18 +1,14 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: new chain after egress for statistical purpose
-Date: Thu, 3 Mar 2005 13:28:33 +0100
-Message-ID: <20050303122833.GI31334@oknodo.bof.de>
-References: <200503022335.09403.pawlakus@oswiecim.eu.org>
-	<20050303061402.GG31334@oknodo.bof.de>
-	<57712.62.87.185.5.1109845255.squirrel@oswiecim.eu.org>
-	<20050303105430.GH31334@oknodo.bof.de>
-	<57895.62.87.185.5.1109852259.squirrel@oswiecim.eu.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] TCP window tracking patch with nfsim testsuite
+Date: Thu, 03 Mar 2005 13:50:34 +0100
+Message-ID: <4227081A.40509@trash.net>
+References: <Pine.LNX.4.58.0502212344350.1749@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Patrick Schaaf <bof@bof.de>
-To: pawlakus@oswiecim.eu.org
-Content-Disposition: inline
-In-Reply-To: <57895.62.87.185.5.1109852259.squirrel@oswiecim.eu.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0502212344350.1749@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,33 +20,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Mar 03, 2005 at 01:17:39PM +0100, pawlakus@oswiecim.eu.org wrote:
-> > Hmmmmm. Couldn't you use a setup as described in
-> > 	http://ebtables.sourceforge.net/examples.html
-> > under "Filtering with ebtables on interfaces not enslaved to a bridge".
-> > And use ebtables POSTROUTING. Do any shaping on br0, and that should
-> > only see the remaining traffic.
+Jozsef Kadlecsik wrote:
+> Hi,
 > 
-> According to ebtables documentation (to be specific:
-> http://ebtables.sourceforge.net/br_fw_ia/PacketFlow.png
-> ) it is still before egress. Besides that, i have bad
-> experience with "Do any shaping on br0" because in my
-> configuration it just don't work, but this is a topic for some
-> other thread. (look's like in vanillia kernel there is no way
-> to shape traffic on br0 because egress are on each ethernet
-> card, so we should shape on ethX - but that statement is based
-> only on my 1 hour observation on my box acting as a router and
-> a bridge on 2.6.x - htb classes on br0 was not working. there
-> is possibility that i was doing something wrong, and that
-> PacketFlow.png is false)
+> The first attached patch addresses several problems in the current TCP
+> connection tracking in the 2.6 tree. Some of the problems was reported,
+> others was discovered by nfsim tests:
+> 
+> - tcp_sack function was not safe against nonlinear skbs
+> - practically arbitrary RST segments (addresses, ports assumed to be
+>   known) could cause connection teardown in conntrack (thanks to Tim
+>   Burress for the bugreport and patch)
+> - article on which the code was based falsely assumed that packets
+>   must fit completely into the window: packets must at least overlap
+>   (thanks to Phil Oester for the bugreport and patch)
+> - state table slightly changed to handle ACK packets sent by server to
+>   late resent SYNs
+> - tracking reopening connections reworked
+> - cosmetic change: when window tracking is ignored by setting
+>   ip_conntrack_tcp_be_liberal to nonzero, it's ignored completely from
+>   now on
+> 
+> I think, after review, the patch should be sent for kernel inclusion.
 
-Um, sorry, then. I thought it might just work. Sigh...
+Unfortunately there are too many changes for me to give it some
+good review, but I've been running it for some time now without
+problems. I'm going to push it to Dave with my next batch of
+patches.
 
-Regarding your request for another iptables chain, you have to
-investigate where exactly in the kernel you would place the
-additional netfilter hook. If you are lucky, you can then
-clone the iptables mangle, nat, filter, or raw table,
-or fit the new hook somewhere in the existing tables.
-
-best regards
-  Patrick
+Regards
+Patrick
