@@ -1,15 +1,17 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: [PATCH] ip_conntrack_irc, allowance for quoted filenames
-Date: Mon, 12 May 2003 03:38:16 +0200
+From: Andras Kis-Szabo <kisza@securityaudit.hu>
+Subject: Re: ip6t_ROUTE target
+Date: Mon, 19 May 2003 14:46:03 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EBEFB08.4070903@keyaccess.nl>
+Message-ID: <20030519124603.GA27460@sch.bme.hu>
+References: <20030516221652.3d86c00a.xraz@rwxr-xr-x.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090708070001000807070502"
-Cc: Rene Herman <rene.herman@keyaccess.nl>,
- Harald Welte <laforge@gnumonks.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Frank 'xraz' Fricke" <xraz@rwxr-xr-x.de>
+Content-Disposition: inline
+In-Reply-To: <20030516221652.3d86c00a.xraz@rwxr-xr-x.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,48 +22,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090708070001000807070502
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Frank 'xraz' Fricke ............................ (2003. m=E1jus 16.)
 
-Resend, this time _with_ patch ...
+Hi Frank,
 
-[ please keep me in CC, not subscribed ]
+> This was my first netfilter/kernel-work an was all done from
+> scratch - maybe it's alls wrong, but it really seem to do it's
+> job.
+But the id of the file says libip6t_REJECT ;)
+> It's not working as a module because it uses rt6_lookup wich is not
+> exported - but i found it suitable for this case.
+Probably it could be exported ... (in the future).
+Until that we should set the mod.count to -1. ;)
 
-When the irssi (www.irssi.org) IRC client is asked to DCC SEND a file
-with a filename containing spaces, it does so by leaving the spaces
-intact and quoting the filename (""). ip_conntrack_irc.c:parse_dcc()
-however can't handle the embedded spaces.
+As I know - the new modules should be added to 2.5.x. You have the old
+Configure.help format instead of Kconfig.
+You do not use the C99 initializers in the structures.
 
-I haven't checked other clients but I assume they might do the same. Is
-the attached hack (against 2.4.20) acceptable? Should this be solved
-differently and/or elsewhere?
+Could you update your patches?
 
-Rene.
+Thank you in advance,
 
+	kisza
 
---------------090708070001000807070502
-Content-Type: text/plain;
- name="linux-2.4.20-ip_conntrack_irc.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="linux-2.4.20-ip_conntrack_irc.diff"
-
---- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_irc.c.orig	2002-12-01 02:32:52.000000000 +0100
-+++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_irc.c	2003-05-12 02:10:01.000000000 +0200
-@@ -82,6 +82,12 @@
- 	ad_beg_p	returns pointer to first byte of addr data
- 	ad_end_p	returns pointer to last byte of addr data */
- {
-+	/* handle quoted arguments containing spaces */
-+	if (*data == '"')
-+		/* at least 14: "\" AAAAAAAA P\1\n" */
-+		while (*++data != '"')
-+			if (data > data_end - 14)
-+				return -1;
- 
- 	/* at least 12: "AAAAAAAA P\1\n" */
- 	while (*data++ != ' ')
-
---------------090708070001000807070502--
+--=20
+    Andras Kis-Szabo       Security Development, Design and Audit
+-------------------------/        Zorp, NetFilter and IPv6
+ kisza@SecurityAudit.hu /----------------------------------------------->
