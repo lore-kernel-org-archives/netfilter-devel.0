@@ -1,14 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] Move tcp_adjust to generic layer
-Date: Mon, 07 Mar 2005 00:09:12 +0100
-Message-ID: <422B8D98.3000501@trash.net>
-References: <422B86D6.8040905@eurodev.net>
+Subject: Re: [PATCH 2/2] use C99 structure initialization in nat helpers
+Date: Mon, 07 Mar 2005 00:12:06 +0100
+Message-ID: <422B8E46.30908@trash.net>
+References: <422B8716.9010804@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <422B86D6.8040905@eurodev.net>
+In-Reply-To: <422B8716.9010804@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +21,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Pablo Neira wrote:
-> Hi Patrick,
-> 
-> This patch moves tcp_adjust to a generic layer. I sent something similar 
-> some time ago but it seems that it got lost.
+> This patch makes nat helpers use c99 structure initialization. It 
+> applies on top of the previous patch.
 
-IIRC the argument against this patch was that it is entirely specific
-to TCP. Can't we simply move it all to TCP's manip_pkt() function ?
+Thanks, but it doesn't apply without the previous patch. Hint: Send
+cleanups first in a series of patches :)
 
 Regards
 Patrick
