@@ -1,19 +1,12 @@
-From: Fabrice MARIE <fabrice@netfilter.org>
-Subject: Re: patch-o-matic , how to use it,
-Date: Thu, 29 Jan 2004 17:58:38 +0800
+From: Wojciech 'Sas' Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
+Subject: Which netfilter modues are ready for 2.6 ?
+Date: Thu, 29 Jan 2004 12:02:23 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401291758.38826.fabrice@netfilter.org>
-References: <20040129060024.76651.qmail@web25204.mail.ukl.yahoo.com>
-Reply-To: fabrice@netfilter.org
+Message-ID: <Pine.LNX.4.58L.0401291151110.8878@alpha.zarz.agh.edu.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: rohit persaie <persaie@yahoo.co.in>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040129060024.76651.qmail@web25204.mail.ukl.yahoo.com>
-Content-Disposition: inline
+To: Netfilter developmnet mailing list <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,25 +18,22 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hello,
+Hi,
 
-On Thursday 29 January 2004 14:00, rohit persaie wrote:
-> Hello, to all
-> i want to use patch-o-matic , and also want to create 
-> a patch of my own .
-> please tell me how to do it.
+I try to build modules from patch-o-matic-ng on kernel 2.6.2-rc2.
+But as I see many of modules aren't prepared for kernel 2.6.*
+For example: 
+nf-log - missing BT_NETPROTO_LOCK declaration
+rtsp-conntrack - missing ct_rtsp_info
+talk-conntrack-nat - missing ct_talk_info
+mms-conntrack-nat - missing ct_mms_info
+ctstat and raw - missing ip_conntrack_defrag_ops and 
+ip_conntrack_defrag_local_out_ops
 
-Have a look at the netfilter-extensions-HOWTO:
-http://www.netfilter.org/documentation/HOWTO/netfilter-extensions-HOWTO.html
-However, I just updated it in the CVS but the html document wasn't rebuilt
-yes, so you should visit this HOWTO only in a few days to get it to
-work.
+Can anyone tell mw which modules are tested [and working] on 2.6.* ?
 
-Have a nice day,
-
-Fabrice.
+Thanx.
+					Sas.
 -- 
-Fabrice MARIE
-
-"Silly hacker, root is for administrators"
-       -Unknown
+{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
+{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
