@@ -1,14 +1,20 @@
-From: "HouCheng Lee" <thisrobert@mail2000.com.tw>
-Subject: ICMP packets lost with an interval of 30 packets
-Date: Sun, 14 Sep 2003 00:00:36 +0800 (CST)
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: ipt_physdev.c alignment problems on parisc64
+Date: Sat, 13 Sep 2003 21:59:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1063468836.67875.thisrobert@mail2000.com.tw>
-Reply-To: thisrobert@mail2000.com.tw
+Message-ID: <200309132159.37834.bdschuym@pandora.be>
+References: <200309022116.41697.bdschuym@pandora.be> <20030905153152.GA3623@obroa-skai.de.gnumonks.org> <20030908191400.5ef59ab6.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=big5
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: acme@conectiva.com.br, netfilter-devel@lists.netfilter.org,
+	netdev@oss.sgi.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David S. Miller" <davem@redhat.com>,
+	Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030908191400.5ef59ab6.davem@redhat.com>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,49 +25,79 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,everyone:
+On Tuesday 09 September 2003 04:14, David S. Miller wrote:
+> On Fri, 5 Sep 2003 17:31:52 +0200
+>
+> Harald Welte <laforge@netfilter.org> wrote:
+> > The problem is that it is _not_ a simple reimplementation of memcmp(),
+> > but a mask-compare.
+>
+> Ok.  It still should be fixed by not using the "unsigned long *"
+> cast-and-op tricks...
 
-I=20have=20ported=20the=202.4.18=20kernel=20to=20a=20board=20of=20MIPS=20arc=
-h.
-When=20I=20"make=20menuconfig",=20just=20turn=20on=20connection=20tracking
-option,
-and=20let=20the=20MIPS=20board=20run,=20
-I=20got=20a=20strange=20icmp=20echo=20and=20reply=20pattern.
+The patch below should fix things. It just uses unsigned int instead
+of unsigned long, so there should be no problem with the evil Sparc64.
+Perhaps the ip_tables.c code from which I copied the original code should
+be altered too.
+It's a real optimization btw, the .o file is 32 bytes
+larger when doing the bit operations on a char with i<IFNAMSIZ.
+All hail Rusty :)
+The patch doesn't change the .o file on my i386 system. It will probably
+be slower for systems where sizeof(unsigned long)>sizeof(unsigned int),
+but this is the easiest solution for me.
 
-I=20config=20my=20eth0=20of=20MIPS=20board=20"192.168.1.254",
-and=20ping=20it=20from=20my=20computer=20with=20IP,"192.168.1.100".
-I=20got=20the=20following=20messages:
-------------------------------------------------------------
-PING=20192.168.1.254=20(192.168.1.254)=2056(84)=20bytes=20of=20data.
-64=20bytes=20from=20192.168.1.254:=20icmp_seq=3D1=20ttl=3D255=20time=3D4.80=20=
-ms
-64=20bytes=20from=20192.168.1.254:=20icmp_seq=3D31=20ttl=3D255=20time=3D1.62=
-=20ms
-64=20bytes=20from=20192.168.1.254:=20icmp_seq=3D61=20ttl=3D255=20time=3D1.94=
-=20ms
-............................................
--------------------------------------------------------------
-And=20when=20I=20change=20the=20"ICMP_TIMEOUT"=20variable=20in
-"ip_conntrack_proto_icmp.c"=20from=20(30*Hz)=20to=20(20*Hz),
-the=20echo=20and=20reply=20looks=20like=20following:
-------------------------------------------------------------
-PING=20192.168.1.254=20(192.168.1.254)=2056(84)=20bytes=20of=20data.
-64=20bytes=20from=20192.168.1.254:=20icmp_seq=3D1=20ttl=3D255=20time=3D4.80=20=
-ms
-64=20bytes=20from=20192.168.1.254:=20icmp_seq=3D21=20ttl=3D255=20time=3D1.62=
-=20ms
-64=20bytes=20from=20192.168.1.254:=20icmp_seq=3D41=20ttl=3D255=20time=3D1.94=
-=20ms
-............................................
--------------------------------------------------------------=20
+cheers,
+Bart
 
-I=20had=20done=20the=20same=20thing=20on=20x86=20arch=20and=20everything=20w=
-as=20ok.
-I=20do=20not=20know=20if=20there=20are=20some=20arch=20dependent=20code=20in=
-
-netfilter,
-or=20I=20have=20missed=20some=20relevant=20modules=20or=20there=20are=20bugs=
-=20in
-the=20hardware.
-Please=20give=20me=20some=20suggestion.=20
-Thanks.
+--- linux-2.6.0-test5/net/ipv4/netfilter/ipt_physdev.c.old	2003-09-11 21:04:12.000000000 +0200
++++ linux-2.6.0-test5/net/ipv4/netfilter/ipt_physdev.c	2003-09-13 21:42:23.000000000 +0200
+@@ -23,7 +23,7 @@ match(const struct sk_buff *skb,
+ 	int i;
+ 	static const char nulldevname[IFNAMSIZ];
+ 	const struct ipt_physdev_info *info = matchinfo;
+-	unsigned long ret;
++	unsigned int ret;
+ 	const char *indev, *outdev;
+ 	struct nf_bridge_info *nf_bridge;
+ 
+@@ -65,10 +65,10 @@ match(const struct sk_buff *skb,
+ 	if (!(info->bitmask & IPT_PHYSDEV_OP_IN))
+ 		goto match_outdev;
+ 	indev = nf_bridge->physindev ? nf_bridge->physindev->name : nulldevname;
+-	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
+-		ret |= (((const unsigned long *)indev)[i]
+-			^ ((const unsigned long *)info->physindev)[i])
+-			& ((const unsigned long *)info->in_mask)[i];
++	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned int); i++) {
++		ret |= (((const unsigned int *)indev)[i]
++			^ ((const unsigned int *)info->physindev)[i])
++			& ((const unsigned int *)info->in_mask)[i];
+ 	}
+ 
+ 	if ((ret == 0) ^ !(info->invert & IPT_PHYSDEV_OP_IN))
+@@ -79,10 +79,10 @@ match_outdev:
+ 		return MATCH;
+ 	outdev = nf_bridge->physoutdev ?
+ 		 nf_bridge->physoutdev->name : nulldevname;
+-	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
+-		ret |= (((const unsigned long *)outdev)[i]
+-			^ ((const unsigned long *)info->physoutdev)[i])
+-			& ((const unsigned long *)info->out_mask)[i];
++	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned int); i++) {
++		ret |= (((const unsigned int *)outdev)[i]
++			^ ((const unsigned int *)info->physoutdev)[i])
++			& ((const unsigned int *)info->out_mask)[i];
+ 	}
+ 
+ 	return (ret != 0) ^ !(info->invert & IPT_PHYSDEV_OP_OUT);
+--- linux-2.6.0-test5/include/linux/netfilter_ipv4/ipt_physdev.h.old	2003-09-13 21:32:23.000000000 +0200
++++ linux-2.6.0-test5/include/linux/netfilter_ipv4/ipt_physdev.h	2003-09-13 21:33:04.000000000 +0200
+@@ -15,7 +15,7 @@
+ struct ipt_physdev_info {
+ 	u_int8_t invert;
+ 	u_int8_t bitmask;
+-	char physindev[IFNAMSIZ];
++	char physindev[IFNAMSIZ] __attribute__ ((aligned (__alignof__(unsigned int))));
+ 	char in_mask[IFNAMSIZ];
+ 	char physoutdev[IFNAMSIZ];
+ 	char out_mask[IFNAMSIZ];
