@@ -1,16 +1,16 @@
-From: Piotr Chytla <pch@fouk.org>
-Subject: Re: Backported conntrack-acct/connbytes to 2.4 tree
-Date: Mon, 4 Apr 2005 00:47:03 +0200
-Message-ID: <20050403224703.GA15036@fouk.org>
-References: <20041116220502.GA2677@fouk.org> <20041121163442.GA99261@fouk.org>
-	<1112349726.20323.23.camel@develbox.linuxbox.cz>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: [PATCH] new 'tcpack' match
+Date: Mon, 04 Apr 2005 02:36:24 +0300
+Message-ID: <42507DF8.9030102@outerspace.dyndns.org>
+References: <42464598.9040707@outerspace.dyndns.org>
+	<425032D5.2010302@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nikola Ciprich <extmaillist@linuxbox.cz>
-Content-Disposition: inline
-In-Reply-To: <1112349726.20323.23.camel@develbox.linuxbox.cz>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <425032D5.2010302@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +22,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Apr 01, 2005 at 12:02:06PM +0200, Nikola Ciprich wrote:
-> Hi all, I'd like to ask, what is state of this patch? Is it going to
-> main tree? 
-conntrack-acct is in 2.6 main tree but Herald wrote this patch not me , my patch is 
-only dirty backport :>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
->I'm not able to build iptables-1.3.1 without it, but it
-> breaks (at least) conntrack_{gre,mppe}
-What kernel version? maybe you have old kernel headers.
+Patrick McHardy wrote:
 
-/pch
+|> Matches TCP packets that has no payload, i.e. contains only ACKs.
+|
+| I can see that it would be useful, given all the half-working ACK
+| matching rules for shaping floating around, but we already a tcp
+| match, so it should be done in there, and, if possible, kept a little
+
+I was thinking of this, but my mind tricked me into believing that it was a
+too bold thing to do..
+
+Speaking of tcp match.. would you happen to know when the "h" union of
+sk_buff is instantiated?
+~   a) first time someone does -p something
+~   b) somewhere before the filter table
+~   c) in a seemingly unpredictable fashion
+~   d) ?
+
+I kindof recall sometimes using it and oopsing the kernel because it was not
+yet initialized.. The patch I posted currently starts from nh and calculates
+the tcp header start itself.. :)
+
+| bit more generic. Perhaps a data-len match option.
+
+I was thinking of this too but couldn't think of much use for more specific
+length-matching, so I thought I'd save a few cycles.. but ok if you think
+it's the way to go, I go. :)
+
+Any parameter name suggestions? "[!] --has-payload" ?
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCUH32xyF48ZTvn+4RAk4DAJ9cnX1IXU6Qn0HuWoBoZvZPakpBAACeK/lY
+PsmEkZ6Bk0G9cpixt0FaJic=
+=j2oo
+-----END PGP SIGNATURE-----
