@@ -1,10 +1,11 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 10/19]: Select source address for gateway in MASQUERADE
-Date: Mon, 25 Oct 2004 02:49:35 +0200
+Subject: [PATCH 2.6 13/19]: Enable ip6t_frag.c to work without
+	skb_linearize()
+Date: Mon, 25 Oct 2004 02:49:48 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C4D9F.50401@trash.net>
+Message-ID: <417C4DAC.3070301@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000506070602050305050502"
+Content-Type: multipart/mixed; boundary="------------090600050304040203070106"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,60 +20,168 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000506070602050305050502
+--------------090600050304040203070106
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Select source address for gateway in MASQUERADE, based
-on Herbert's suggestion.
+Convert ip6t_frag to skb_header_pointer.
 
 
 
---------------000506070602050305050502
+--------------090600050304040203070106
 Content-Type: text/x-patch;
- name="10.diff"
+ name="13.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="10.diff"
+ filename="13.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/10/20 20:27:59+02:00 kaber@coreworks.de 
-#   [NETFILTER]: Select source address for gateway in MASQUERADE
+#   2004/10/20 21:36:17+02:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: Enable ip6t_frag.c to work without skb_linearize()
 #   
-#   Suggested by Herbert Xu <herbert@gondor.apana.org.au>
-#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ipt_MASQUERADE.c
-#   2004/10/20 20:26:59+02:00 kaber@coreworks.de +3 -1
-#   [NETFILTER]: Select source address for gateway in MASQUERADE
+# net/ipv6/netfilter/ip6t_frag.c
+#   2004/10/20 21:35:34+02:00 yasuyuki.kozakai@toshiba.co.jp +31 -29
+#   [NETFILTER]: Enable ip6t_frag.c to work without skb_linearize()
 #   
-#   Suggested by Herbert Xu <herbert@gondor.apana.org.au>
-#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-10-22 03:39:37 +02:00
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-10-22 03:39:37 +02:00
-@@ -81,6 +81,7 @@
- 	enum ip_conntrack_info ctinfo;
- 	const struct ip_nat_multi_range *mr;
- 	struct ip_nat_multi_range newrange;
-+	struct rtable *rt;
- 	u_int32_t newsrc;
+diff -Nru a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
+--- a/net/ipv6/netfilter/ip6t_frag.c	2004-10-22 03:41:55 +02:00
++++ b/net/ipv6/netfilter/ip6t_frag.c	2004-10-22 03:41:55 +02:00
+@@ -48,7 +48,7 @@
+       unsigned int protoff,
+       int *hotdrop)
+ {
+-       struct frag_hdr *frag = NULL;
++       struct frag_hdr _frag, *fh = NULL;
+        const struct ip6t_frag *fraginfo = matchinfo;
+        unsigned int temp;
+        int len;
+@@ -65,7 +65,7 @@
+        temp = 0;
  
- 	IP_NF_ASSERT(hooknum == NF_IP_POST_ROUTING);
-@@ -95,7 +96,8 @@
- 	                    || ctinfo == IP_CT_RELATED + IP_CT_IS_REPLY));
+         while (ip6t_ext_hdr(nexthdr)) {
+-               struct ipv6_opt_hdr *hdr;
++               struct ipv6_opt_hdr _hdr, *hp;
  
- 	mr = targinfo;
--	newsrc = inet_select_addr(out, 0, RT_SCOPE_UNIVERSE);
-+	rt = (struct rtable *)(*pskb)->dst;
-+	newsrc = inet_select_addr(out, rt->rt_gateway, RT_SCOPE_UNIVERSE);
- 	if (!newsrc) {
- 		printk("MASQUERADE: %s ate my IP address\n", out->name);
- 		return NF_DROP;
+               DEBUGP("ipv6_frag header iteration \n");
+ 
+@@ -81,15 +81,16 @@
+                      break;
+               }
+ 
+-              hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
++	      hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
++	      BUG_ON(hp == NULL);
+ 
+               /* Calculate the header length */
+                 if (nexthdr == NEXTHDR_FRAGMENT) {
+                         hdrlen = 8;
+                 } else if (nexthdr == NEXTHDR_AUTH)
+-                        hdrlen = (hdr->hdrlen+2)<<2;
++                        hdrlen = (hp->hdrlen+2)<<2;
+                 else
+-                        hdrlen = ipv6_optlen(hdr);
++                        hdrlen = ipv6_optlen(hp);
+ 
+               /* FRAG -> evaluate */
+                 if (nexthdr == NEXTHDR_FRAGMENT) {
+@@ -112,7 +113,7 @@
+                             break;
+               }
+ 
+-                nexthdr = hdr->nexthdr;
++                nexthdr = hp->nexthdr;
+                 len -= hdrlen;
+                 ptr += hdrlen;
+ 		if ( ptr > skb->len ) {
+@@ -129,57 +130,58 @@
+        		return 0;
+        }
+ 
+-       frag = (struct frag_hdr *) (skb->data + ptr);
++       fh = skb_header_pointer(skb, ptr, sizeof(_frag), &_frag);
++       BUG_ON(fh == NULL);
+ 
+-       DEBUGP("INFO %04X ", frag->frag_off);
+-       DEBUGP("OFFSET %04X ", ntohs(frag->frag_off) & ~0x7);
+-       DEBUGP("RES %02X %04X", frag->reserved, ntohs(frag->frag_off) & 0x6);
+-       DEBUGP("MF %04X ", frag->frag_off & htons(IP6_MF));
+-       DEBUGP("ID %u %08X\n", ntohl(frag->identification),
+-	      ntohl(frag->identification));
++       DEBUGP("INFO %04X ", fh->frag_off);
++       DEBUGP("OFFSET %04X ", ntohs(fh->frag_off) & ~0x7);
++       DEBUGP("RES %02X %04X", fh->reserved, ntohs(fh->frag_off) & 0x6);
++       DEBUGP("MF %04X ", fh->frag_off & htons(IP6_MF));
++       DEBUGP("ID %u %08X\n", ntohl(fh->identification),
++	      ntohl(fh->identification));
+ 
+        DEBUGP("IPv6 FRAG id %02X ",
+        		(id_match(fraginfo->ids[0], fraginfo->ids[1],
+-                           ntohl(frag->identification),
++                           ntohl(fh->identification),
+                            !!(fraginfo->invflags & IP6T_FRAG_INV_IDS))));
+        DEBUGP("res %02X %02X%04X %02X ", 
+-       		(fraginfo->flags & IP6T_FRAG_RES), frag->reserved,
+-		ntohs(frag->frag_off) & 0x6,
++       		(fraginfo->flags & IP6T_FRAG_RES), fh->reserved,
++		ntohs(fh->frag_off) & 0x6,
+        		!((fraginfo->flags & IP6T_FRAG_RES)
+-			&& (frag->reserved || (ntohs(frag->frag_off) & 0x6))));
++			&& (fh->reserved || (ntohs(fh->frag_off) & 0x06))));
+        DEBUGP("first %02X %02X %02X ", 
+        		(fraginfo->flags & IP6T_FRAG_FST),
+-		ntohs(frag->frag_off) & ~0x7,
++		ntohs(fh->frag_off) & ~0x7,
+        		!((fraginfo->flags & IP6T_FRAG_FST)
+-			&& (ntohs(frag->frag_off) & ~0x7)));
++			&& (ntohs(fh->frag_off) & ~0x7)));
+        DEBUGP("mf %02X %02X %02X ", 
+        		(fraginfo->flags & IP6T_FRAG_MF),
+-		ntohs(frag->frag_off) & IP6_MF,
++		ntohs(fh->frag_off) & IP6_MF,
+        		!((fraginfo->flags & IP6T_FRAG_MF)
+-			&& !((ntohs(frag->frag_off) & IP6_MF))));
++			&& !((ntohs(fh->frag_off) & IP6_MF))));
+        DEBUGP("last %02X %02X %02X\n", 
+        		(fraginfo->flags & IP6T_FRAG_NMF),
+-		ntohs(frag->frag_off) & IP6_MF,
++		ntohs(fh->frag_off) & IP6_MF,
+        		!((fraginfo->flags & IP6T_FRAG_NMF)
+-			&& (ntohs(frag->frag_off) & IP6_MF)));
++			&& (ntohs(fh->frag_off) & IP6_MF)));
+ 
+-       return (frag != NULL)
++       return (fh != NULL)
+        		&&
+        		(id_match(fraginfo->ids[0], fraginfo->ids[1],
+-			  ntohl(frag->identification),
++			  ntohl(fh->identification),
+                            !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)))
+ 		&&
+ 		!((fraginfo->flags & IP6T_FRAG_RES)
+-			&& (frag->reserved || (ntohs(frag->frag_off) & 0x6)))
++			&& (fh->reserved || (ntohs(fh->frag_off) & 0x6)))
+ 		&&
+ 		!((fraginfo->flags & IP6T_FRAG_FST)
+-			&& (ntohs(frag->frag_off) & ~0x7))
++			&& (ntohs(fh->frag_off) & ~0x7))
+ 		&&
+ 		!((fraginfo->flags & IP6T_FRAG_MF)
+-			&& !(ntohs(frag->frag_off) & IP6_MF))
++			&& !(ntohs(fh->frag_off) & IP6_MF))
+ 		&&
+ 		!((fraginfo->flags & IP6T_FRAG_NMF)
+-			&& (ntohs(frag->frag_off) & IP6_MF));
++			&& (ntohs(fh->frag_off) & IP6_MF));
+ }
+ 
+ /* Called when user tries to insert an entry of this type. */
 
---------------000506070602050305050502--
+--------------090600050304040203070106--
