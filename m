@@ -1,15 +1,11 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: What's wrong with the netfilter cvs?
-Date: Tue, 16 Nov 2004 16:37:08 -0800
-Message-ID: <20041116163708.3877f97d.davem@davemloft.net>
-References: <200411170847164.SM02460@zhengcb>
+From: Chris Lowth <chris@lowth.com>
+Subject: Pre-Alpha-test version of "ROPE" match module is now available
+Date: Wed, 17 Nov 2004 01:18:15 +0000 (GMT)
+Message-ID: <Pine.LNX.4.44.0411170106270.29713-100000@stirling.lowth.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Zheng Chuanbo" <zhengcb@netpower.com.cn>
-In-Reply-To: <200411170847164.SM02460@zhengcb>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,12 +17,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 17 Nov 2004 08:51:21 +0800
-"Zheng Chuanbo" <zhengcb@netpower.com.cn> wrote:
+I mentioned this a little while back, and have finally got round to 
+putting the first cut of the code up for download and review.
 
-> I tried to checkout the current netfilter code from netfilter cvs server.
+ROPE is a scripting language that is "compiled" in user-land and executed 
+in kernel-land for use as an Iptables match rule. It allows very quick 
+development of Iptables match rules for complex criteria, and could even 
+be used to "prototype" modules that would later be re-written in C once 
+the logic has been proved.
 
-It has been converted from CVS to Subversion, see this
-list posting:
+It's brand spanking new, so it's probably full of bugs at the moment, but 
+I'd welcome any feedback anyone can give (thanks to those who responded to 
+my earlier mail with comments).
 
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-October/017078.html
+Scripts can also be run using a user-land tool to allow development and 
+testing outside the kernel.
+
+Documentation is about 90% complete and is growing daily.
+
+Download, build instructions, full reference and tutorial are all 
+available at the project's home page:
+
+	http://www.lowth.com/rope
+
+Here's a simple example script that matches an HTTP download with a 
+content-length greater than 1000000 bytes...
+
+	$tcp_source 80 eq assert             # from port 80?
+	expecti_to( "Content-Length: " )     # find the header
+	expect_while({isdigit}) put($n)      # get the value
+	if( gt( atoi($n) 1000000 ) { yes } ) # match if too big
+	no                                   # otherwise - no match
+
+There is an explanation of this logic in the "Basics" page on the web 
+site, along with a more complete version of the same script that also 
+handles partial HTTP transfers (etc).
+
+Currently, this is for linux kernel 2.4.x only. I will start work on a 
+2.6.x port soon.
+
+Chris
