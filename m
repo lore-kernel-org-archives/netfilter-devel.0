@@ -1,19 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: nf_conntrack thoughts [was Re: [PATCH] Conntrack targets/matches
- work with nfconntrack]
-Date: Wed, 06 Apr 2005 20:30:21 +0200
-Message-ID: <42542ABD.909@eurodev.net>
-References: <424F0DD6.9070002@eurodev.net>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: About matching
+Date: Wed, 06 Apr 2005 21:47:22 +0300
+Message-ID: <42542EBA.9050606@outerspace.dyndns.org>
+References: <20050407000158.02AA.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <424F0DD6.9070002@eurodev.net>
+To: Wang Jian <lark@linux.net.cn>
+In-Reply-To: <20050407000158.02AA.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,36 +21,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> This patch makes work conntrack related matches and targets with both 
-> ip_conntrack and nf_conntrack (ipt_state, ipt_CONNMARK, ipt_connmark, 
-> ipt_NOTRACK, ipt_conntrack).
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I've been having a look at the NAT code and try to figure out how I 
-could make it work for both ip_conntrack and nf_conntrack, I don't see 
-any obvious yet, I've re-read some mail threads a couple of times. Then 
-I happened to think that the key is trying to unify the layout of 
-ip_conntrack and nf_conn.
+Wang Jian wrote:
 
-Just a thought, nf_conntrack is meant to replace ip_conntrack. So once 
-nf_conntrack gets stable ip_conntrack will disappear. In theory life in 
-couple of nf_conntrack and ip_conntrack should be short, right?
+| iptables <match rule 1> -j CONNMARK --set-mark value/mask
+| iptables <match rule 1> -j RETURN
+|
+| How many times the match rule 1 is evaluated when matched? If two, then
+| the second time is waste of CPU cycle.
 
-Here comes my proposition, why don't we just maintain a nf_conntrack 
-tree (without ip_conntrack) and make work matches/targets and ipv4 NAT 
-code with it? We can keep both trees in sync (currently we have to do 
-such thing anyway) and release a patch that applies to current kernel 
-periodically. So brave users could test it and give us feedback.
+It evaluates twice. I have made a "previous" match which I haven't finished
+into a patch yet (some cleanup, documentation and iptables-save & -restore
+support). It lets you do the above like this:
 
-Once the -nfconntrack tree gets stable enough, push it forward into 
-kernel mainline. That way we can spend our time improving nf_conntrack 
-and not trying make both share code. This could speed up things.
+iptables <match rule 1> -j CONNMARK --set-mark value/mask
+iptables --previous -j RETURN
 
-I think that [ip|nf]_conntrack is not the same problem than ipv4/ipv6 
-copy&paste of code.
+| Then think these three
+|
+| iptables <match rule 1> -j CONNMARK --set-mark value/mask
+| iptables <match rule 1> -j CONNMARK --restore --mask mask
+| iptables <match rule 1> -j RETURN
+|
+| Are there any optimization for such case?
 
-BTW, I still like Yasuyuki Kozakai's unification patches, since I feel a 
-bit unconfortable with all that renamed stuff :)
+I would guess mask restoring is usually done globally without matching some
+specific criteria.. but nevertheless, the --previous could be used here if
+wanted, it can be used many times in a row.
 
---
-Pablo
+I'll try to finish off the patch tomorrow.
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCVC64xyF48ZTvn+4RAi8pAJ4sjXT1KZf5Ora6S0Rr5dCXmcGj9gCgzKQi
+OUx6jdlw3FvPEtVuWgZ2/j8=
+=bp5F
+-----END PGP SIGNATURE-----
