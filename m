@@ -1,31 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC, PATCH 4/5]: netfilter+ipsec - policy lookup
-Date: Mon, 22 Mar 2004 03:29:45 +0100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <405E4F99.7060605@trash.net>
-References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CF17.8090907@trash.net> <20040321221604.GA32277@gondor.apana.org.au> <405E2673.4090808@trash.net> <20040322020322.GA1187@gondor.apana.org.au>
+From: Kiran Kumar <immidi_kiran@yahoo.com>
+Subject: TCP conntrack queries
+Date: Sun, 21 Mar 2004 21:04:38 -0800 (PST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040322050438.56577.qmail@web14009.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@redhat.com>, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <20040322020322.GA1187@gondor.apana.org.au>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Herbert Xu wrote:
-> On Mon, Mar 22, 2004 at 12:34:11AM +0100, Patrick McHardy wrote:
->
->>Is it correct that __xfrm_route_forward will use NULL for the sock
->>parameter to xfrm_lookup even if the packet is from a local socket ?
-> 
-> No that would be wrong as socket policies won't be applied correctly.
-> Forget about that idea :)
+Hi,
+  As I went through ip_conntrack_proto_tcp.c, I had
+these couple of queries.
 
-Thanks anyway, it reminded me to check for !(dst->flags & DST_NOXFRM)
-before xfrm_lookup, I'm going to change this now.
+- Why is there a distinction b/w states NONE and
+CLOSED?
 
-Regards
-Patrick
+- The array of timeouts has been replaced (as I get
+from the diff b/w my RH9 kernel sources and 2.6
+sources) by an array of pointers to variables. Why was
+this done?
+
+=====
+Regards,
+Kiran Kumar Immidi
+
+__________________________________
+Do you Yahoo!?
+Yahoo! Finance Tax Center - File online. File on time.
+http://taxes.yahoo.com/filing.html
