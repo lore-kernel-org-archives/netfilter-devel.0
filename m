@@ -1,12 +1,15 @@
-From: Scott Andrew Baillie <sbaillie@bigpond.net.au>
-Subject: ip_tables.h does not compile when using g++
-Date: 14 Sep 2002 12:07:22 +0000
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: Re: [PATCH] ip_ct_refresh_optimization.patch
+Date: 14 Sep 2002 14:52:50 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1032005243.9337.19.camel@localhost.localdomain>
+Message-ID: <velm64u40t.fsf@inigo.ingate.se>
+References: <vebs73bnx1.fsf@inigo.ingate.se> <1031835954.28101.82.camel@tux>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-biCbV2v9vfS+XtwrCIyN"
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter List <netfilter-devel@lists.netfilter.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1031835954.28101.82.camel@tux>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,65 +20,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Martin Josefsson <gandalf@wlug.westbo.se> writes:
 
---=-biCbV2v9vfS+XtwrCIyN
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> Yes I know it's broken, I do have a newer version but I havn't committed
+> it to cvs. I think Patrick Shaaf's solution is a better one and we
+> should probably go with something like that.
 
+Probably yes, but that's no reason to have a completely broken patch
+which can be fixed by a one-liner in CVS. It should IMHO either be
+fixed or removed asap.
 
-Hi,
+> you can find a few optimisation and other patches over at
+> http://www.netfilter.org/~gandalf/
+> 
+> timer-update2-inc.diff is almost like your patch. I'm using it right now
+> and it seems to be working fine.
 
-I noticed a discussion on this list in May regarding this problem
-but nobody seemed to care.
+That patch is also incorrect, but it works because it updates to
+often, not to seldom. If the new timeout is one jiffie earlier than
+the previous timeout your expression will evaluate to 0xffffffff
+and thus update the timer even though there's no need. The cast
+is useless btw, because all operands, and thus the result also, are
+already unsigned long.
 
-The file linux-2.4.19/include/linux/netfilter_ipv4/ip_tables.h is
-included by user space programs as well as the kernel, hence I think
-that it should compile using g++.
-
-This patch makes it compile. Patch is also attached.
-
-
-diff -ur linux-2.4.19/include/linux/netfilter_ipv4/ip_tables.h
-linux-2.4.19-new/include/linux/netfilter_ipv4/ip_tables.h
---- linux-2.4.19/include/linux/netfilter_ipv4/ip_tables.h	Mon Feb 25
-19:38:13 2002
-+++ linux-2.4.19-new/include/linux/netfilter_ipv4/ip_tables.h	Sat Sep 14
-11:11:01 2002
-@@ -292,7 +292,7 @@
- static __inline__ struct ipt_entry_target *
- ipt_get_target(struct ipt_entry *e)
- {
--	return (void *)e + e->target_offset;
-+	return ((struct ipt_entry_target *)((char *)e + e->target_offset));
- }
- 
- /* fn returns 0 to continue iteration */
-
-Regards,
-
-Scott.
-
-
-
---=-biCbV2v9vfS+XtwrCIyN
-Content-Disposition: attachment; filename=linux-2.4.19-new.patch
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/x-patch; name=linux-2.4.19-new.patch; charset=ISO-8859-1
-
-diff -ur linux-2.4.19/include/linux/netfilter_ipv4/ip_tables.h linux-2.4.19=
--new/include/linux/netfilter_ipv4/ip_tables.h
---- linux-2.4.19/include/linux/netfilter_ipv4/ip_tables.h	Mon Feb 25 19:38:=
-13 2002
-+++ linux-2.4.19-new/include/linux/netfilter_ipv4/ip_tables.h	Sat Sep 14 11=
-:11:01 2002
-@@ -292,7 +292,7 @@
- static __inline__ struct ipt_entry_target *
- ipt_get_target(struct ipt_entry *e)
- {
--	return (void *)e + e->target_offset;
-+	return ((struct ipt_entry_target *)((char *)e + e->target_offset));
- }
-=20
- /* fn returns 0 to continue iteration */
-
---=-biCbV2v9vfS+XtwrCIyN--
+//Marcus
+-- 
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Firewall Developer, Ingate Systems AB |  http://www.ingate.com/
