@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: bug in iptables-save/iptables-restore
-Date: Mon, 9 Dec 2002 17:28:58 +0100
+Subject: Re: Concerning ULOG and the MAC logging bug
+Date: Mon, 9 Dec 2002 19:39:30 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021209162858.GL2223@sunbeam.de.gnumonks.org>
-References: <3DD7B46F.3050006@attbi.com>
+Message-ID: <20021209183930.GN2223@sunbeam.de.gnumonks.org>
+References: <003101c29ca5$289c8b40$0200a8c0@KevlarPC>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J2pR2RtFp0tAjF3C"
+	protocol="application/pgp-signature"; boundary="kkcDP0v44wDpNmbp"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Gerry Skerbitz <gsker@attbi.com>
+To: Gael Mauleon <gmauleon@free.fr>
 Content-Disposition: inline
-In-Reply-To: <3DD7B46F.3050006@attbi.com>
+In-Reply-To: <003101c29ca5$289c8b40$0200a8c0@KevlarPC>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,32 +23,45 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---J2pR2RtFp0tAjF3C
+--kkcDP0v44wDpNmbp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 17, 2002 at 09:23:27AM -0600, Gerry Skerbitz wrote:
-> here are the offending lines created by iptables-save:
-> #~>iptables-save | grep length
-> -A CUST_LOG -p tcp -m length --length !40:68 -j LOG --log-prefix=20
-> "PACKET_LENGTH_BAD: " --log-level 7 --log-tcp-options --log-ip-options
-> -A CUST_LOG -p tcp -m length --length !40:68 -j DROP
-> #~>
->=20
-> I just did some digging and figured out that the exclamation point=20
-> should go before the --length 40:68.  I guess that's
-> what iptables-save should really do and clearly it's what narc does when=
-=20
-> it sets up the rule.
+On Thu, Dec 05, 2002 at 10:27:48PM +0100, Gael Mauleon wrote:
+> Hi, I am new here so excuse me first for my bad english and then for all
+> mistake i can make :))
 
-there was a bugfix for libipt_length.c, which is in latest CVS.  Could
-you try using the latest CVS version (or the latest iptables-snapshot
-from ftp.netfilter.org) and see if the bug is gone?
+Don't mention it.  Most people on this world (including me) are not
+native english speakers.
 
-Thanks.
+> So I found a bug in ULOG concerning the logging of MAC Address,
+> searching the list archive i  found a patch from Harald  Welte but I
+> think a better one can be written in this, but since i am new to
+> kernel/netfilter coding perhaps that's not the way to
+> do it [...]
 
-> Gerry
+
+> Since the payload can also be exploited with wrong data , i would
+> prefer a memset solution like this to the else solution proposed. And
+> we can then erase all the else.
+
+Indeed this is an alternative solution. The question is: What is more
+efficient: Memsetting the whole structure or a potential branch
+introduced by the 'else' clause. =20
+
+And: What do you mean by 'payload can be exploited with wrong data'. Are
+you talking about the to-be-logged packet which will become the payload
+of the netlink message?  How could this contain wrong data?
+
+> And let me know if there is a better way to tell about bugs and put
+> some code changes.
+
+for code changes we usually use unified diff (diff -u) between original
+and changed code.  It can easily be read by a human being and also
+automatically applied in case we really want to accept this change.
+
+> Thx.
 
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -59,7 +72,7 @@ Thanks.
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---J2pR2RtFp0tAjF3C
+--kkcDP0v44wDpNmbp
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -67,9 +80,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE99MTKXaXGVTD0i/8RAiLIAJ4oXfuY2Hfu5jD+MovNBggNfgfc0gCdHZRy
-y7K8BGPanBGkzXDodkBdO7A=
-=Y/cc
+iD8DBQE99ONiXaXGVTD0i/8RAsVFAKCZf2YjlfDWcaAMO90AMvv2GUs/lACfT7z0
+uNJfG/ybaQ2D2wqnUajiZoI=
+=gkog
 -----END PGP SIGNATURE-----
 
---J2pR2RtFp0tAjF3C--
+--kkcDP0v44wDpNmbp--
