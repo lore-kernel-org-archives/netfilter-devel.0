@@ -1,16 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: pptp-conntrack-nat + kernel 2.4.29
-Date: Sun, 30 Jan 2005 17:06:35 -0800
-Message-ID: <20050131010635.GA17720@linuxace.com>
-References: <41FCF852.9000203@sch.bme.hu>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: Fw: Re: 2.6.11-rc2 TCP ignores PMTU ICMP (Re: Linux 2.6.11-rc2)
+Date: Sun, 30 Jan 2005 22:49:55 -0800
+Message-ID: <20050130224955.6c6b545c.davem@davemloft.net>
+References: <20050127154118.45e59991.davem@davemloft.net>
+	<41F992E3.20005@trash.net> <41F99BB8.4070409@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?iso-8859-1?Q?T=F3th_N=E1ndor?= <nug@sch.bme.hu>
-Content-Disposition: inline
-In-Reply-To: <41FCF852.9000203@sch.bme.hu>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41F99BB8.4070409@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Jan 30, 2005 at 04:08:02PM +0100, Tóth Nándor wrote:
-> Hi!
+On Fri, 28 Jan 2005 02:56:08 +0100
+Patrick McHardy <kaber@trash.net> wrote:
+
+> Patrick McHardy wrote:
 > 
-> Pptp-conntrack-nat from pomng/extra can not be applied to the newest 
-> kernel (2.4.29). It is ok with 2.4.28.
+> > IP (tos 0xd0, ttl  64, id 40755, offset 0, flags [none], length: 88) 
+> > 172.16.1.123 > 172.16.1.123: icmp 68: type-#142 for IP (tos 0x10, ttl 
+> > 180, id 13605, offset 0, flags [DF], length: 60, bad cksum e8b3 
+> > (->73d8)!) 172.16.1.123 > 172.16.195.55:  ip-proto-225 40
+> >
+> > This patch fixes it.
+> 
+> This patch on top fixes corrupt checksums of ICMP errors. The
+> function returns before recalculating the checksum in some cases.
 
-See:
-
-http://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018280.html
-
-Phil
+Both applied, thanks Patrick.
