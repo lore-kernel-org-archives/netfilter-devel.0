@@ -1,12 +1,19 @@
-From: Jan Srzednicki <winfried@expro.pl>
-Subject: ip_nat_amanda unresolved symbol
-Date: Wed, 16 Oct 2002 22:18:23 +0200 (CEST)
+From: marian stagarescu <marian@ti.com>
+Subject: Re: how to flush ip conntrack entries ?
+Date: 14 Oct 2002 15:20:47 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.21.0210162202060.26098-100000@saturn.expro.pl>
+Message-ID: <1034623247.9526.41.camel@gt4rvnd11.telogy.design.ti.com>
+References: <3DA48D59.7060109@secureinteriors.com>
+	<20021009204018.GA15171@oknodo.bof.de>
+	<1034200544.30113.140.camel@gt4rvnd11.telogy.design.ti.com>
+	<3DAA16D8.8070201@snapgear.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Philip Craig <philipc@snapgear.com>
+In-Reply-To: <3DAA16D8.8070201@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,83 +24,71 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+hi philip,
+thanks for you answer.
 
-Hello there,
+yes ifconfig up/down works but i wanted to make it work without doing
+this.
 
-I've just cvsupped new version of netfilter stuff (16/10/2002). I wanted
-to try some of the new modules in patch-o-matic, one of which is the
-Amanda connection tracking helper. However, this module contains an
-unresolved symbol:
+i noticed that the ipsysctl tutorial 1.0.0 (posted to the list by askar)
+documentation points to a /proc/sys/net/ipv4/netfilter entry with an 
+ip_ct_generic_timeout 
+and ip_ct_icmp_timeout
+i don't have those into my kernel (2.4.17 patched with newnat13 and
+userland iptables 1.2.6a), maybe someone on the list can tell me which
+patch installs these entries.
+having those i can try to set to zero the above
+ip_ct_icmp_timeout
 
-find kernel -path '*/pcmcia/*' -name '*.o' | xargs -i -r ln -sf ../{} pcmcia
-if [ -r System.map ]; then /sbin/depmod -ae -F System.map 2.4.19; fi
-depmod: *** Unresolved symbols in
-/lib/modules/2.4.19/kernel/net/ipv4/netfilter/ip_nat_amanda.o
-depmod:         ip_nat_mangle_udp_packet
-
-I grepped all kernel sources and netfilter patches -
-ip_nat_mangle_udp_packet is not defined anywhere! I looked on the code of
-similar function - ip_nat_mangle_tcp_packet(); it is defined and exported
-correctly. Yet, ip_nat_mangle_udp_packet() clearly is missing. I use the
-"new" nat headers and schemes, if that matters in any way.
-
-Here's the list of patches I have installed:
-
-Already applied: submitted/2.4.18
-                 submitted/DSCP
-                 submitted/ECN
-                 submitted/REJECT-dont_fragment
-                 submitted/REJECT_mark
-                 submitted/TOS-oops-fix
-                 submitted/ahesp-static
-                 submitted/arptables
-                 submitted/conntrack+nat-helper-unregister
-                 submitted/conntrack
-                 submitted/dscp
-                 submitted/ecn
-                 submitted/helper
-                 submitted/ip6tables-export-symbols
-                 submitted/ip_nat_irc-srcaddr-fix
-                 submitted/ipt_MIRROR-ttl
-                 submitted/ipt_REJECT-checkentry
-                 submitted/ipt_unclean-ecn
-                 submitted/irc-dcc-mask
-                 submitted/length-ipv6
-                 submitted/local-nat
-                 submitted/macro-trailing-semicolon-fix
-                 submitted/mangle5hooks
-                 submitted/nat-export_symbols
-                 submitted/nat-memoryleak-fix
-                 submitted/netfilter-arp
-                 submitted/skb_clone_copy
-                 submitted/ulog-module-unload
-                 submitted/ulog-nlgroup-shift-fix
-                 submitted/unclean-udpchecksum
-                 submitted/z-newnat16
-                 base/IPV4OPTSSTRIP
-                 base/NETMAP
-                 base/TTL
-                 base/fuzzy
-                 base/iplimit
-                 base/ipt_unclean-ubit
-                 base/ipv4options
-                 base/mport
-                 base/nth
-                 base/quota
-                 base/random
-                 base/time
-                 extra/CONNMARK
-                 extra/amanda-conntrack-nat
-                 extra/h323-conntrack-nat
-                 extra/ip_tables-proc
-                 extra/pptp-conntrack-nat
-                 extra/recent
-                 extra/string
-                 extra/tcp-window-tracking
-                 userspace/ipt_REJECT-fake-source
+marian
 
 
-greetz,
--- 
-Jan 'Winfried' Srzednicki
-w@expro.pl
+
+On Sun, 2002-10-13 at 20:59, Philip Craig wrote:
+> marian stagarescu wrote:
+> > looking at the ip_conntrack proc entry it was noticed that:
+> > 
+> > after flushing (step 2) an UNREPLIED entry for icmp is there
+> > (no reply hence unreplied) but its ttl does not decrement.
+> > (ping echos are still hitting the nat box from private side)
+> 
+> Normally icmp conntrack entries are deleted as soon as there
+> is a reply.  Once you remove the MASQ rule though, there is no
+> reply, so the conntrack stays around.  Any subsequent packets
+> from the same ping process will match this conntrack, and thus
+> be NATed exactly the same way.  Adding the MASQ rule back in
+> does not affect the existing conntrack.
+> 
+> > stoping the ping (step 4) allows the ttl timer of the conntrack entry 
+> > to start decrementing (30 sec)
+> 
+> The timer doesn't seem to decrement while the ping is still
+> going because the ping packets are matching the conntrack and
+> refreshing the timer back to 30 seconds.  Stop the ping and the
+> timer is no longer refreshed.
+> 
+> > restaring the pings (i don't have to wait till ttl goes to zero ?!?)
+> > (step 5) but now with nat back on (step 3) I don;t get the icmp entry on
+> > conntrack but all is ok (pings goes thru).
+> 
+> When you start a new ping process, the ping packets have a new
+> id, and so they don't match the old conntrack.  A new conntrack
+> is created, and the new MASQ rule is used to masquerade them
+> correctly.  You get a ping reply now, and so the conntrack is
+> immediately deleted, which is why you don't see it.
+> 
+> > question is: is there a way to achieve this (looks like start
+> > decrementing that ttl or reseting it to zero in conntrack) in the nat
+> > box without having to stop the pings on the host side ?
+> 
+> You can flush conntrack entries for masqueraded connections
+> by doing either a down/up or ip addr add/del on the associated
+> interface.  This probably won't help you in this case though
+> because the problem conntrack is not masqueraded.  I don't
+> know of any other ways of flushing conntracks.
+> 
+> Regards
+> -- 
+> Philip Craig     Software Engineer     http://www.SnapGear.com
+> philipc@snapgear.com  Ph: +61 7 3435 2821  Fx: +61 7 3891 3630
+> SnapGear  -  Custom Embedded Solutions and Security Appliances
