@@ -1,16 +1,16 @@
-From: Anders Fugmann <afu@fugmann.dhs.org>
-Subject: Re: Fixed proken MARK target in POM.
-Date: Fri, 10 Jan 2003 17:38:42 +0100
+From: "Miguel Angel Amador Lorca" <amador@puc.cl>
+Subject: NAT on the same ethernet card ?
+Date: Fri, 10 Jan 2003 14:30:32 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E1EF712.8000100@fugmann.dhs.org>
-References: <3E1D7419.1060502@fugmann.dhs.org> <20030110140024.GU1353@sunbeam.de.gnumonks.org> <3E1EE68C.7030004@fugmann.dhs.org>
+Message-ID: <001801c2b8cd$fa819d00$7901000a@nivel5.cl>
+References: <3DEBA04C.7080606@myrealbox.com> <20030110140544.GV1353@sunbeam.de.gnumonks.org>
+Reply-To: "Miguel Angel Amador Lorca" <amador@puc.cl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <3E1EE68C.7030004@fugmann.dhs.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,37 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Anders Fugmann wrote:
-> Harald Welte wrote:
-> 
->> On Thu, Jan 09, 2003 at 02:07:37PM +0100, Anders Fugmann wrote:
->>
->>
->>> The patch maintains backward compability, and I request that this 
->>> patch is applied to mainstream (and pushed to the Andrea for kernel 
->>> inclusion), 
->>
->>
->>
->> 1) Where is the compatibility?  I cannot see how this code change would
->>    ensure that
->>     a) old, unpatched kernel works with new, patched userspace
->>     b) new, patched kernel works with old, unpatched userspace
->>    Those two conditions need to be fulfilled, otherwise we cannot make a
->>    change during the stable kernel series.
-Looking at bit further, this seems non-trivial as I guess that the 
-userspace should compile no matter kernel-headers version - no?
+it' is possible that netfilter make NAT or MASQ over  a tcp-packet from the
+one net (10.0.1.0) , and back to the same net (back to the 10.0.1.0 again )
+?
+                                                              ____________
+My PC---->tcp request --->   eth0 -->  |                       |
+(10.0.1.105)                                          |       FW          |-
+eth1 -----------> - internet
+                   MyWWW  <--eth0------   |___________
+  -mydns
+                    (10.0.1.100)
 
-Are defines tolerated? Something like:
-#define MARK_BITOPS
 
-and then in the userspace do a:
-#ifdef MARK_BITOPS
-Whenever the new fileds in the structure is used.
 
-But IMHO this clutters the code up and I would rather avoid that.
-Do you know of modules that had the same problem, or do you regard it as 
-unresolvable to add an extra field to a structure in the stable series?
 
-Regards
-Anders Fugmann
+Miguel Angel Amador Lorca    |    mailto:amador@puc.cl
+-----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GCM d- s:+ a- C++++ UL+++ P- L+++ E--- W+++ N++ o K- w++
+O- M- V- PS+ PE++ Y PGP- t 5 X+++ R !tv b+ DI- D
+G++ e- h* r- y*
+------END GEEK CODE BLOCK------
