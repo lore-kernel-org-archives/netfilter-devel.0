@@ -1,15 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH] fine grain locking for tcp helper
-Date: Sun, 02 May 2004 05:51:58 +0200
+Date: Mon, 3 May 2004 10:55:28 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4094705E.6010007@eurodev.net>
+Message-ID: <Pine.LNX.4.33.0405031034400.24224-100000@blackhole.kfki.hu>
 References: <40946DB9.6050705@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070103050706060901050207"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
- Patrick McHardy <kaber@trash.net>
+To: Pablo Neira <pablo@eurodev.net>
 In-Reply-To: <40946DB9.6050705@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -21,104 +21,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070103050706060901050207
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Pablo,
 
-Pablo Neira wrote:
+On Sun, 2 May 2004, Pablo Neira wrote:
 
-> This patch provides a fine-grain locking for the tcp helper in 
-> conntrack. A per-conntrack lock is used, instead of having a global 
-> lock to protect tcp specific data. If I'm missing something, please 
-> let me know.
+> This patch provides a fine-grain locking for the tcp helper in
+> conntrack. A per-conntrack lock is used, instead of having a global lock
+> to protect tcp specific data. If I'm missing something, please let me know.
 
+I'm not conviced that much could be gained with per TCP locking assuming
+normal traffic, predominated by TCP. I'm fairly sure that per bucket
+locking is the way we should go.
 
-oops, sorry, wrong patch, it doesn't compile, I made a mistake in the .h 
-file, please review this patch instead.
+Could you check and revive the patches
 
-regards,
-Pablo
+conntrack_arefcount	- revised reference counting
+conntrack_locking	- per bucket locking
+[conntrack_nonat	- optimization for the conntrack-only case]
 
---------------070103050706060901050207
-Content-Type: text/plain;
- name="locking_tcp_proto_helper.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="locking_tcp_proto_helper.patch"
+The patches could be pushed forward if there were independent
+success reports for general cases, not just performance test reports.
 
---- linux-2.6.3-old/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-05-02 04:19:30.000000000 +0200
-+++ linux-2.6.3/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-05-02 04:18:18.000000000 +0200
-@@ -28,9 +28,6 @@
- #define DEBUGP(format, args...)
- #endif
- 
--/* Protects conntrack->proto.tcp */
--static DECLARE_RWLOCK(tcp_lock);
+Thank you your work indeed!
+
+Best regards,
+Jozsef
 -
- /* FIXME: Examine ipfilter's timeouts and conntrack transitions more
-    closely.  They're more complex. --RR */
- 
-@@ -151,9 +148,9 @@
- {
- 	enum tcp_conntrack state;
- 
--	READ_LOCK(&tcp_lock);
-+	READ_LOCK(&conntrack->proto.tcp.lock);
- 	state = conntrack->proto.tcp.state;
--	READ_UNLOCK(&tcp_lock);
-+	READ_UNLOCK(&conntrack->proto.tcp.lock);
- 
- 	return sprintf(buffer, "%s ", tcp_conntrack_names[state]);
- }
-@@ -188,7 +185,7 @@
- 		return NF_ACCEPT;
- 	}
- 
--	WRITE_LOCK(&tcp_lock);
-+	WRITE_LOCK(&conntrack->proto.tcp.lock);
- 	oldtcpstate = conntrack->proto.tcp.state;
- 	newconntrack
- 		= tcp_conntracks
-@@ -200,7 +197,7 @@
- 		DEBUGP("ip_conntrack_tcp: Invalid dir=%i index=%u conntrack=%u\n",
- 		       CTINFO2DIR(ctinfo), get_conntrack_index(&tcph),
- 		       conntrack->proto.tcp.state);
--		WRITE_UNLOCK(&tcp_lock);
-+		WRITE_UNLOCK(&conntrack->proto.tcp.lock);
- 		return -1;
- 	}
- 
-@@ -222,7 +219,7 @@
- 	    && tcph.ack_seq == conntrack->proto.tcp.handshake_ack)
- 		set_bit(IPS_ASSURED_BIT, &conntrack->status);
- 
--out:	WRITE_UNLOCK(&tcp_lock);
-+out:	WRITE_UNLOCK(&conntrack->proto.tcp.lock);
- 	ip_ct_refresh(conntrack, *tcp_timeouts[newconntrack]);
- 
- 	return NF_ACCEPT;
-@@ -249,6 +246,9 @@
- 	}
- 
- 	conntrack->proto.tcp.state = newconntrack;
-+	/* make sure that lock is correctly initialized */
-+	conntrack->proto.tcp.lock = RW_LOCK_UNLOCKED;
-+
- 	return 1;
- }
- 
---- linux-2.6.3-old/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2004-02-18 04:57:29.000000000 +0100
-+++ linux-2.6.3/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2004-05-02 05:48:49.000000000 +0200
-@@ -18,6 +18,9 @@
- 
- struct ip_ct_tcp
- {
-+	/* Protects conntrack tcp protocol specific information */
-+	rwlock_t lock;
-+
- 	enum tcp_conntrack state;
- 
- 	/* Poor man's window tracking: sequence number of valid ACK
-
---------------070103050706060901050207--
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
