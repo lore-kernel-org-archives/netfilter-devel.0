@@ -1,13 +1,12 @@
-From: yangtao <yangtao_mike@huawei.com>
-Subject: How I get the origin IP and port, when I use the NAT function?
-Date: Tue, 30 Nov 2004 16:07:01 +0800
-Message-ID: <000501c4d6b3$9263a370$626d460a@china.huawei.com>
-Reply-To: yangtao <yangtao_mike@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: 7BIT
+From: Roberto Jung Drebes <drebes@inf.ufrgs.br>
+Subject: Using nfmark
+Date: Tue, 30 Nov 2004 18:47:50 -0200
+Message-ID: <1992A582-4311-11D9-9302-000A957B2B6C@inf.ufrgs.br>
+Mime-Version: 1.0 (Apple Message framework v619)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
 	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter>
@@ -19,25 +18,22 @@ Sender: netfilter-bounces@lists.netfilter.org
 Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I use the DNAT function to redirect all the traffic to loacl host.
-Then my application can process the traffic.
-But I want get the real destination IP before NAT transfer.
+Hello again,
 
-Is there any function or API, my application can get the 
-relationship between the original IP and the IP after NAT.
+Can someone point me to documentation about the nfmark field of the 
+sk_buff structure?
 
+My netfilter module creates some traffic using ip_rcv and 
+ip_finish_output, and this traffic is also subject to my module, since 
+it is registered in the NF_IP_PRE_ROUTING and NF_IP_POST_ROUTING hooks. 
+I would like to test in my module if this traffic was created by itself 
+(in which case it should be ignored) or not (should be processed), and 
+so I am thinking of marking created packets with a magic number. Can I 
+use nfmark for that? Are there any other netfilter modules that use it?
 
+Thanks in advance,
 
-Best Regards
-Mike  YangTao
-
-****************************************************************************
-This e-mail and its attachments contain confidential information 
-from HUAWEI, which is intended only for the person or entity 
-whose address is listed above. Any use of the information 
-contained herein in any way (including, but not limited to, 
-total or partial disclosure, reproduction, or dissemination) 
-by persons other than the intended recipient(s) is prohibited. 
-If you receive this e-mail in error, please notify the sender 
-by phone or email immediately and delete it!
-*******************************************************************************
+-- 
+Roberto Jung Drebes <drebes@inf.ufrgs.br>
+Porto Alegre, RS - Brasil
+http://www.inf.ufrgs.br/~drebes/
