@@ -1,15 +1,14 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
-Subject: Re: Possible 'destroy' paths for conntracks?
-Date: Mon, 7 Mar 2005 08:18:03 -0500
-Message-ID: <876ef97a0503070518172b7387@mail.gmail.com>
-References: <422C1FA6.5030701@expertron.co.za>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [ulogd] [ANNOUNCE] ulogd-1.22 released
+Date: Mon, 7 Mar 2005 14:42:11 +0100
+Message-ID: <20050307134210.GG30487@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Justin Schoeman <justin@expertron.co.za>
-In-Reply-To: <422C1FA6.5030701@expertron.co.za>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BrzieSmlpF6NDzIw"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter-announce@lists.netfilter.org
+To: ulogd@lists.gnumonks.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,35 +20,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 07 Mar 2005 11:32:22 +0200, Justin Schoeman
-<justin@expertron.co.za> wrote:
-> I am trying to locate a memory leak, either induced by, or agravated by
-> the l7-filter.
-> 
-> Using the slab debugger, I see that the memory that is leaking are the
-> app_data and/or app_proto fields that are kmalloc'ed in the 'match' method.
-> 
-> These are then (supposed to be) kfree'ed in the destroy_conntrack
-> function, but they are apparently not destroyed, as even after most
-> active connections have closed/timed out (/proc/net/ip_conntrack is
-> practically empty), there are still thousands of these kmalloced memory
-> regions left.
-> 
-> At the moment, I am assuming that there are multiple possible paths for
-> a conntrack to be destroyed, and l7-filter is just missing some.  Is
-> this true?  If so, what are all the possible destructors, or is there
-> one single (better) place to clean up per-conntrack specific memory?
 
-No, destroy_conntrack() is the sole location of conntrack record
-destruction. If you follow any conntrack record deletion routine, it
-will hit destroy_conntrack() at some point. What kernel version are
-you using and what patches have you applied? What version of l7-filter
-are you using? The destroy_conntrack() function doesn't know anything
-about filter-specific allocations, so if the allocations are not
-destroyed in the protocol-specific deletion handler, they will not be
-destroyed. How is l7-filter registering its delete functionality for
-these memories? Is it doing so at all?
+--BrzieSmlpF6NDzIw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+Hi!
+
+I have released version 1.22 of the iptables userspace logging
+daemon (ulogd).  This release is a bugfix to the recently-announced 1.21
+release (which had broken posgresql support).
+
+The new Version is available as tar.bz2 only and can be retrieved from:
+ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.22.tar.bz2
+
+There is a GPG signature for verification of the authenticity of the=20
+archive: ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.22.tar.bz2.sig
+
+Version 1.22 (2005-03-07)
+- Fix postgresql endless loop (Jani Averbach)
+- Add postgrsql schema support (Bob Hockney)
+
+Please direct any questions / bug reports to the
+ulogd@lists.gnumonks.org mailinglist.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--BrzieSmlpF6NDzIw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCLFoyXaXGVTD0i/8RAnEEAKCO4Sa1wRIGvVBPPAVOPGZ9Wfl5bgCeJx7K
++JDqdIRjzRlIIQ4TDZrY7C8=
+=NfGZ
+-----END PGP SIGNATURE-----
+
+--BrzieSmlpF6NDzIw--
