@@ -1,13 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: only first TCP SYN packet consulted in nat table chains - bug
  or feature?
-Date: Tue, 22 Jun 2004 15:43:53 +0200 (CEST)
+Date: Tue, 22 Jun 2004 17:26:42 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406221543000.2546-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.44.0406221724120.23944-100000@filer.marasystems.com>
 References: <1087911233.7536.2.camel@coati>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Eric Leblond <eric@inl.fr>
 In-Reply-To: <1087911233.7536.2.camel@coati>
@@ -23,21 +23,15 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Tue, 22 Jun 2004, Eric Leblond wrote:
 
-> On Tue, 2004-06-22 at 15:19, Henrik Nordstrom wrote:
-> > On Mon, 21 Jun 2004, Krzysztof Rusocki wrote:
-> >
-> > If you need to remember something related to a specific session between
-> > packets then see the CONNMARK patch in pom-ng.
->
 > This extension is one more time useful to someone. Does somebody know
 > why it has not been included into the standard kernel ?
 
-It was submitted into the 2.6 series long time ago.
+It has been proposed a number of times, but never seems to get the final 
+goahead. And right now is not a good time as changes is again discussed.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Hopefully the third revision discussed a few days ago will finally make
+it.. (changes in mark mask logics to express a much richer set of
+operations).
+
+Regards
+Henrik
