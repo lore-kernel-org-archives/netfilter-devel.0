@@ -1,16 +1,18 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re: fuzzy.patch and fuzzy.patch.ipv6 - again.
-Date: Fri, 6 Jun 2003 21:04:06 +0200 (CEST)
+From: Peteris Krumins <newsgroups@lf.lv>
+Subject: Re: How to use the libipq to process TCP data?
+Date: Sat, 7 Jun 2003 00:00:32 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0306062102150.16848@dns.toxicfilms.tv>
-References: <20030606175454.28291.qmail@mail.com>
+Message-ID: <145609491382.20030607000032@lf.lv>
+References: <20030605222647.5193.20098.Mailman@kashyyyk>
+ <000901c32bda$69537d50$6f01a8c0@li>
+Reply-To: Peteris Krumins <newsgroups@lf.lv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Hime Junior <hime@engineer.com>
-In-Reply-To: <20030606175454.28291.qmail@mail.com>
+To: "yong" <sdssly@sina.com>
+In-Reply-To: <000901c32bda$69537d50$6f01a8c0@li>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,15 +23,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hello yong,
 
->  Hi Harald !
->
->  Have you applied that patch ?
-The patch has not been applied yet.
+Friday, June 6, 2003, 6:19:15 AM, you wrote:
 
-You can subscribe to netfilet-cvslog to follow the changes to CVS
-https://lists.netfilter.org/mailman/listinfo/netfilter-cvslog
+y> Hell All,
 
-Regards,
-Maciej
+y> I want to use libipq to process TCP data in userspace. However, I did not find
+y> any documeents about the libipq, is there any examples or function
+y> documents about this lib?
+
+i dont think you even tried searching.
+
+try libipq + HOWTO 'i\'m feeling lucky' in google..
+
+
+P.Krumins
