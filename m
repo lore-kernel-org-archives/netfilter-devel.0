@@ -1,15 +1,15 @@
-From: Jonas Berlin <jberlin@niksula.hut.fi>
-Subject: Re: netfilter & ipv6
-Date: Tue, 15 Feb 2005 03:29:15 +0200
-Message-ID: <4211506B.8050600@niksula.hut.fi>
-References: <42086F50.9090504@niksula.hut.fi> <420B6A93.3080005@niksula.hut.fi>
-	<Pine.LNX.4.62.0502102231060.6223@mercury.sdinet.de>
+From: Samuel Jean <sj-netfilter@cookinglinux.org>
+Subject: Re: [PATCH] ipt_hashlimit.c: avoid data corruption on checkentry
+Date: Mon, 14 Feb 2005 23:04:19 -0500
+Message-ID: <421174C3.8030705@cookinglinux.org>
+References: <42005218.5000401@cookinglinux.org>
+	<20050215005255.GS3829@sunbeam.de.gnumonks.org>
+Reply-To: sjean@cookinglinux.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------090608010506080600050002"
 Cc: netfilter-devel@lists.netfilter.org
-To: Sven-Haegar Koch <haegar@sdinet.de>
-In-Reply-To: <Pine.LNX.4.62.0502102231060.6223@mercury.sdinet.de>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050215005255.GS3829@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +21,97 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sven-Haegar Koch wrote:
+This is a multi-part message in MIME format.
+--------------090608010506080600050002
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
->> since the name of the name of the module essentially determines the 
->> name of the target, the module etc.
->
-> why?
-> the module in patch-o-matic-ng (the top directory name) could be named 
-> CLASSIFY_v6, containing the target CLASSIFY for ipv6, with the kernel 
-> module named ip6t_CLASSIFY.
-> I see nothing which prevents this.
+*Sorry if you get it twice. Looks like I sent from wrong email.*
 
-Oh! You're right, it worked. I must have had something wrong somewhere 
-before when it complained. Excellent! :)
+Harald Welte wrote:
 
-> c'ya
-> sven
+> Please consider / comment the following (untested) patch.
 
-Thanks,
+Yes. That's much less complicated than the other proposed patch.
 
--- 
-- xkr47
+> 
+> Not really sure whether nesting the rwlock inside the mutex is that much
+> of a good idea... but as the comment indicates, I think it's the best we
+> can get.
+
+I think the best we actually can get, is also replacing those rwlock's with
+simple lock's. As you said on IRC, that's a bit overkill.
+
+Incremental (also untested, but compiles) patch to your is attached.
+
+
+
+
+--------------090608010506080600050002
+Content-Type: text/x-patch;
+	name="linux-2.6.11-rc4-bk2-incremental_get_rid_rwlock.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="linux-2.6.11-rc4-bk2-incremental_get_rid_rwlock.patch"
+
+#
+#Signed-off-by: Samuel Jean <sjean@cookinglinux.org>
+#
+--- d/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-14 20:48:33.000000000 -0500
++++ e/net/ipv4/netfilter/ipt_hashlimit.c	2005-02-14 21:00:07.000000000 -0500
+@@ -97,7 +97,7 @@ struct ipt_hashlimit_htable {
+ 	struct list_head hash[0];	/* hashtable itself */
+ };
+ 
+-static DECLARE_RWLOCK(hashlimit_lock);	/* protects htables list */
++static DECLARE_LOCK(hashlimit_lock);	/* protects htables list */
+ static DECLARE_MUTEX(hlimit_mutex);	/* additional checkentry protection */
+ static LIST_HEAD(hashlimit_htables);
+ static kmem_cache_t *hashlimit_cachep;
+@@ -230,9 +230,9 @@ static int htable_create(struct ipt_hash
+ 	hinfo->timer.function = htable_gc;
+ 	add_timer(&hinfo->timer);
+ 
+-	WRITE_LOCK(&hashlimit_lock);
++	LOCK_BH(&hashlimit_lock);
+ 	list_add(&hinfo->list, &hashlimit_htables);
+-	WRITE_UNLOCK(&hashlimit_lock);
++	UNLOCK_BH(&hashlimit_lock);
+ 
+ 	return 0;
+ }
+@@ -296,15 +296,15 @@ static struct ipt_hashlimit_htable *htab
+ {
+ 	struct ipt_hashlimit_htable *hinfo;
+ 
+-	READ_LOCK(&hashlimit_lock);
++	LOCK_BH(&hashlimit_lock);
+ 	list_for_each_entry(hinfo, &hashlimit_htables, list) {
+ 		if (!strcmp(name, hinfo->pde->name)) {
+ 			atomic_inc(&hinfo->use);
+-			READ_UNLOCK(&hashlimit_lock);
++			UNLOCK_BH(&hashlimit_lock);
+ 			return hinfo;
+ 		}
+ 	}
+-	READ_UNLOCK(&hashlimit_lock);
++	UNLOCK_BH(&hashlimit_lock);
+ 
+ 	return NULL;
+ }
+@@ -312,9 +312,9 @@ static struct ipt_hashlimit_htable *htab
+ static void htable_put(struct ipt_hashlimit_htable *hinfo)
+ {
+ 	if (atomic_dec_and_test(&hinfo->use)) {
+-		WRITE_LOCK(&hashlimit_lock);
++		LOCK_BH(&hashlimit_lock);
+ 		list_del(&hinfo->list);
+-		WRITE_UNLOCK(&hashlimit_lock);
++		UNLOCK_BH(&hashlimit_lock);
+ 		htable_destroy(hinfo);
+ 	}
+ }
+
+
+
+--------------090608010506080600050002--
