@@ -1,12 +1,13 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Re: skbuff replication [long]
-Date: Fri, 18 Feb 2005 09:12:13 -0800 (PST)
-Message-ID: <20050218171213.2914.qmail@web30202.mail.mud.yahoo.com>
-References: <20050218145921.61380.qmail@web30206.mail.mud.yahoo.com>
+From: don-nfil1@isis.cs3-inc.com (Don Cohen)
+Subject: NAT and ICMP
+Date: Fri, 18 Feb 2005 11:43:34 -0800
+Message-ID: <16918.17766.816573.731012@isis.cs3-inc.com>
+References: <200502171912.j1HJCFV06530@isis.cs3-inc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20050218145921.61380.qmail@web30206.mail.mud.yahoo.com>
+In-Reply-To: <200502171912.j1HJCFV06530@isis.cs3-inc.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,22 +19,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Nevermind, ignore my huge ramblings.
 
-I do indeed need to keep a copy of the unaltered
-buffer, but all I need is a skb_copy() in the ipv4
-mangling function to do this.  If I realize the
-contents change, I skb_copy it, toss out the old
-reference, update the new copy and the retransmit is
-happy.  The original ip_queue probably should have
-done this in addition to the skb_trim, but oh well.
+Here's some behavior that seems clearly wrong, though I'm not
+sure what is right.  This is from a redhat 8 box, 2.4.18-14,
+so it's possible that this could be either specific to redhat
+or fixed (or at least altered) in later kernels.
 
--Scott
+This box is connected to a LAN, and doing NAT for that LAN:
 
+inside 10.0.0.2 --- 10.0.0.1 redhat8 24... --- internet --- server
 
-	
-		
-__________________________________ 
-Do you Yahoo!? 
-Yahoo! Mail - You care about security. So do we. 
-http://promotions.yahoo.com/new_mail
+The inside machine connects to the server in the internet.
+In my test case it's doing ssh, running a program that prints
+the time every minute.
+I now disconnect the inside machine.
+The server sends the next time update (to 24..., the address of
+the redhat NAT machine, to be forwarded to the inside machine).
+The redhat machine can no longer reach the inside machine and
+replies with ICMP host unreachable - returning the packet that
+it could not deliver, which is addressed to 10.0.0.2 !
+This is clearly wrong, since the server has no idea who 10.0.0.2
+is.  On the other hand, it also makes no sense to claim that
+24... is an unreachable host - that's the one that is actually
+answering.  The best I can think of is that it ought to say that
+the port is unreachable for the packet it received (pre-NAT, so
+its own address and the port as seen at the server).
