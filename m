@@ -1,86 +1,111 @@
-From: Phil Dibowitz <phil@ipom.com>
-Subject: nfnetlink / ctnetlink / iptables2 questions
-Date: Mon, 22 Nov 2004 21:31:46 -0800
-Message-ID: <41A2CB42.4000009@ipom.com>
+From: cranium2003 <cranium2003@yahoo.com>
+Subject: RE: netfilter query
+Date: Mon, 22 Nov 2004 22:00:17 -0800 (PST)
+Message-ID: <20041123060017.44262.qmail@web41404.mail.yahoo.com>
+References: <DHEOJAHAGKDLCDOHPMIECEFNCCAA.stuart@ken-caryl.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary=------------enig377E007635BE12B895EA9044
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Henrik Nordstrom <hno@marasystems.com>, kernelnewbies@nl.linux.org,
+        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com,
+        linux-kernel@vger.kernel.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: stuart@ken-caryl.net
+In-Reply-To: <DHEOJAHAGKDLCDOHPMIECEFNCCAA.stuart@ken-caryl.net>
+Sender: netdev-bounce@oss.sgi.com
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig377E007635BE12B895EA9044
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+hello Stuart,
+           Thanks for the reply. Which kernel
+parameter
+for Bridge to be enabled. I have RH9 with 2.4.20-8
+kernel installed and i found nearly all kernel
+parameters with word bridging enabled. Also i try
+brctl command at console prompt but no utility is
+present in my linux.
+          one more thing how can i see packets to
+parse them?
 
-Hey folks,
+regards,
+cranium.
+--- Stuart Macdonald <stuart@ken-caryl.net> wrote:
 
-A while back Herald Welte emailed me (and CC'd the list) and suggested I 
-port my application (iptstate) to use the new ctnetlink/nfnetlink 
-framework (as opposed to reading data out of /proc).
+> Just a parallel thought here,
+> 
+> A different approach is to implement the Netfilter
+> Bridge hooks and run a
+> box as a bridge. This requires a kernel parameter
+> for Bridge to be enabled
+> when the kernel is built and then the brctl utility
+> to setup the bridge. In
+> this manner, your bridge netfilter hooks always
+> receive packets starting at
+> the MAC headers. You can parse from there to derive
+> subsequent protocols:
+> IP, IPX, LLC, SNAP, NETBEUI...
+> 
+> Stuart
+> 
+> 
+> 
+> -----Original Message-----
+> From: kernelnewbies-bounce@nl.linux.org
+> [mailto:kernelnewbies-bounce@nl.linux.org]On Behalf
+> Of Henrik Nordstrom
+> Sent: Monday, November 22, 2004 5:03 AM
+> To: cranium2003
+> Cc: kernelnewbies@nl.linux.org; netdev@oss.sgi.com;
+> netfilter-devel@lists.netfilter.org;
+> linux-kernel@vger.kernel.org
+> Subject: Re: netfilter query
+> 
+> 
+> On Sun, 21 Nov 2004, cranium2003 wrote:
+> 
+> > Also,which headers are added when packet
+> > reaches to netfilter hook NF_IP_LOCAL_OUT? I found
+> > TCP/UDP/ICMP ,IP. Is that correct?
+> 
+> Yes.
+> 
+> netfilter is running at the IP layer and only
+> reliably have access to IP
+> headers and up. Lower level headers such as Ethernet
+> MAC header is
+> transport dependent and not always available, and
+> certainly not available
+> in NF_IP_LOCAL_OUT as it is not yet known the packet
+> will be sent to an
+> Ethernet.
+> 
+> In some netfilter hooks it is possible to rewind
+> back to the Ethernet MAC
+> header but one must be careful to verify that it
+> really is an Ethernet
+> packet one is looking at when doing this.
+> Unfortunately there is no
+> perfect solution how to detect this.. For an example
+> of how one may try to
+> look at the Ethernet MAC header see ipt_mac.c. But
+> be warned that it is
+> possible for non-Ethernet frames to pass the simple
+> checks done there..
+> 
+> Regards
+> Henrik
+> 
+> --
+> Kernelnewbies: Help each other learn about the Linux
+> kernel.
+> Archive:      
+> http://mail.nl.linux.org/kernelnewbies/
+> FAQ:           http://kernelnewbies.org/faq/
+> 
+> 
+> 
 
-I haven't had much time since then, but I decided to sit down and look 
-at this, and I'm a bit confused by what I found. I found libnfnetlink here:
-http://ftp.iasi.roedu.net/netfilter/libnfnetlink/snapshot/
-and libctnetlink here:
-http://ftp.iasi.roedu.net/netfilter/libctnetlink/snapshot/
 
-And since cfnetlink requires nfnetlink, I went to compile that first. 
-And ran into some problems. So I started browsing the archives, and it 
-seems people refer to an old "ctnetlink/nfnetlink" and a new one... and 
-the new one is part of "iptables2" ? I haven't followed 
-netfilter/iptables developement very carefully, so I don't know what 
-iptables2 is.
-
-At the very least, libnfnetlink requires nfnetlink.h, which I would have 
-thought was part of libnfnetlink, but it appears it's not. I found a 
-"release" of iptables2 here:
-
-http://lists.netfilter.org/pipermail/netfilter/2001-November/016646.html
-
-which talkes about a whole lot of kernel incompatibilities between old 
-versions and new versions and it doesn't appear the latest versions have 
-made it into the kernel.org kernel tree yet. Is this correct? If so, 
-this doesn't actually sound like something ready for primetime yet...
-
-Perhaps someone can relate ctnetlink/nfnetlink (old and new) to 
-libcfnetlink/libnfnetlink and iptables2, and the current kernels for me?
-
-Thanks...
-
--- 
-Phil Dibowitz                             phil@ipom.com
-Freeware and Technical Pages              Insanity Palace of Metallica
-http://www.phildev.net/                   http://www.ipom.com/
-
-"They that can give up essential liberty to obtain a little temporary
-safety deserve neither liberty nor safety."
-  - Benjamin Franklin, 1759
-
-
---------------enig377E007635BE12B895EA9044
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFBostCN5XoxaHnMrsRArUfAJ9H+rExWzM8nrNzzQCmWEd/0v2A+ACglsOa
-ca/OqnrZ7qImvtyi6MR5ixA=
-=n7ah
------END PGP SIGNATURE-----
-
---------------enig377E007635BE12B895EA9044--
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
