@@ -1,12 +1,16 @@
-From: Roberto Nibali <ratz@tac.ch>
-Subject: [PATCH 2.4.x][RFC] enlarge struct ipt_log_info prefix to 62 bytes
-Date: Mon, 20 Dec 2004 12:55:51 +0100
-Message-ID: <41C6BDC7.8060507@tac.ch>
+From: "Srinivas G." <srinivasg@esntechnologies.co.in>
+Subject: unable to reinject the IP packets using ipq_set_verdict (libipq API)
+Date: Mon, 20 Dec 2004 17:33:03 +0530
+Message-ID: <4EE0CBA31942E547B99B3D4BFAB34811258EA4@mail.esn.co.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: rsamprat@cisco.com, munky@maluco.com.br, greearb@candelatech.com,
+	schuster.sven@gmx.de, jz105@york.ac.uk
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,53 +22,181 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Dear All,
 
-I'm in progress of my annual christmas code cleaning round and during this time 
-I always send back all the patches that could be useful to others or might be 
-included without major impact to the respective OSS projects and maintainers.
+=20
 
-Concerning netfilter there is one I think others might "benefit" from as well. 
-Here's the patch we're using to enlarge the prefix member of the struct 
-ipt_log_info structure in ipt_LOG.h:
+I developed a small application which uses the libipq APIs to capture
+the IP packets using netfilter hook. (Here I am not using the iptables.
+I used the netfilter hook module to queue the packets in the kernel
+space using NF_QUEUE verdict. At the user side I am using the ip_queue
+module and then libipq APIs to read the queued packets from the kernel
+space)
 
-  struct ipt_log_info {
-         unsigned char level;
-         unsigned char logflags;
--       char prefix[30];
-+       char prefix[62];
-  };
+=20
 
-We need those additional 32 bytes to represent the prepended text of our meta 
-firewall rule composition engine. As an more or less illustrative example, we 
-use something as follows:
+When I try to print the packet's data in the libipq application it was
+printed perfectly. But when I try to reinject the modified packet back
+to kernel space using the ipq_set _verdict, it was not working. See the
+attached code below.
 
-META_LOG_MSG="foobar: ${META_NAME} [${META_RULE_NUMBER}] a:${ACTION} \
-          s:${STATE} f:${META_ICHAIN} "
+=20
 
-${IPTABLES} -t filter -A ${META_ICHAIN} -j ${IPT_LOG} \
-             [...] \
-             ${IPT_LOG_LEVEL} ${IPT_LOG_PREFIX} "${META_LOG_MSG}" \
-             [...]
+=20
 
-This is in order to do proper and fast log correlation and apply general data 
-mining algorithms for classification. Anyway, more information is available on 
-request.
+  case IPQM_PACKET:=20
 
-I simply wanted to ask if this patch is acceptable both for 2.4.x and 2.6.x 
-mainline inclusion or if I'm really off limits. At least it's cache line aligned 
-:). We maintain a couple of other ipt_LOG.c patches which help log correlation, 
-which however are rather not suitable for submission.
+{
 
-Getting as many patches as possible back to the community reduces my patch 
-maintainance and forward patching time.
+                        ipq_packet_msg_t *m =3D ipq_get_packet(buf);
 
-Best regards,
-Roberto Nibali, ratz
--- 
--------------------------------------------------------------
-addr://Rathausgasse 31, CH-5001 Aarau  tel://++41 62 823 9355
-http://www.terreactive.com             fax://++41 62 823 9356
--------------------------------------------------------------
-terreActive AG                       Wir sichern Ihren Erfolg
--------------------------------------------------------------
+                        unsigned char *packet =3D (unsigned char *)m +
+sizeof(*m);
+
+                        unsigned int header_length =3D 0;
+
+                        struct iphdr *iph;
+
+                        struct tcphdr *tcph;
+
+                        unsigned char *payload;
+
+=20
+
+                        /* calculate the IP header length */
+
+                        iph =3D (struct iphdr *)packet;
+
+                        header_length +=3D iph->ihl * 4;
+
+=20
+
+                        /* calculate the TCP header */
+
+                        tcph =3D (struct tcphdr *)(packet +
+header_length);
+
+                        header_length +=3D tcph->doff * 4;
+
+                                   =20
+
+                        /* compute the payload */
+
+                        payload =3D packet + header_length;
+
+                                   =20
+
+                        printf("Packet receivd!\n");          =20
+
+=20
+
+                        /* length of the packet data is */
+
+                        printf("Packet length =3D %d!\n",m->data_len);
+
+                                    =20
+
+                        /* address of the packet in the memory */
+
+                        printf("Packet address in the memory :
+%X!\n",packet);
+
+                                    =20
+
+                        /* address of the payload in the memory */
+
+                        printf("payload address in the memory :
+%X!\n",payload);
+
+=20
+
+                        for(i=3D0;i<20;i++)
+
+                        {
+
+                            printf("%c",*(payload + i));
+
+                            *(payload + i) =3D 'a';
+
+                        }
+
+=20
+
+                        printf("\n");
+
+=20
+
+                        /* after modification re-inject the packet into
+
+                         * the kernel space i.e. issue the verdict */
+
+                        status =3D ipq_set_verdict(pHandle, =
+m->packet_id,
+NF_ACCEPT, 0, NULL);
+
+=20
+
+                        if (status < 0)
+
+                             die(pHandle);
+
+                                     =20
+
+                        break;
+
+            }
+
+=20
+
+=20
+
+I modified the following line in different ways with different arguments
+for the 4th and 5th parameters. I read the man page of ipq_set_verdict
+and modified those variables.=20
+
+=20
+
+status =3D ipq_set_verdict(pHandle, m->packet_id, NF_ACCEPT, 0, NULL);
+
+=20
+
+Instead of sending the 0 and NULL, I send
+
+1.                  Application defined buffer length and application
+defined buffer pointer.
+
+2.                  m->data_len and packet pointer=20
+
+3.                  20 (number of character I modified in the
+application) and payload pointer
+
+4.                  m->data_len and m
+
+=20
+
+I tried with other combinations, not only above mentioned combinations.=20
+
+=20
+
+Even though, I was unable to retransmit the modified packet.=20
+
+=20
+
+How am I testing it? I connected two individual systems using CROSS
+CABLE. On one system I am running the client program and another system
+I am running the server program and libipq application. On server
+machine I am receiving the original data instead of modified one.
+
+=20
+
+Any help greatly appreciated.
+
+=20
+
+Thanks and regards,
+
+Srinivas G
+
+=20
+
+=20
