@@ -1,117 +1,140 @@
-From: Old Cowhand <oldcowhanddoug@yahoo.com>
-Subject: Re: Connection tracking bug with DNAT?
-Date: Tue, 6 Apr 2004 09:07:39 -0700 (PDT)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040406160739.33702.qmail@web21327.mail.yahoo.com>
-References: <Pine.LNX.4.44.0404030028560.23219-100000@filer.marasystems.com>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: libipq bug on 2.6.4 ?
+Date: Tue, 06 Apr 2004 20:51:19 +0200
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <4072FC27.8060309@eurodev.net>
+References: <58842.192.197.51.41.1081275810.squirrel@www.gromalin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0404030028560.23219-100000@filer.marasystems.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-net-owner@vger.kernel.org>
+To: DAVID Thomas <lists@gromalin.com>,
+	netfilter-devel@lits.netfilter.org, linux-net@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> What I can tell is that I frequently do
-> 
-> a) DNAT of traffic destined to a local address on
-> the NAT gateway to 
-> redirect the traffic to another destination on the
-> other side of the NAT 
-> gateway.
+Hi David,
 
-This works, but it is NOT what we're doing.
+AFAIK, this is not a bug, actually if a packet passes by OUTPUT, it 
+means that this is locally generated traffic:
 
-> b) DNAT of traffic destined to a forwarded address
-> on the other side of 
-> the NAT gateway, to have the traffic redirected to a
-> proxy running on the 
-> NAT gateway.
+Local machine ---> OUTPUT ----> POSTROUTING
+
+to be exact, this packet is still in level 3 (network), so it doesn't 
+know anything about layer 2 (link, it implies MAC address), that 
+information would be added later when passed to layer 2.
+
+On the other hand, if you add that rule in INPUT, it has the information 
+about MAC and stuff because it is traversing the stack in the opposite 
+sense as described above.
+
+regards,
+Pablo
+
+DAVID Thomas wrote:
+
+>hi all,
+>i'm a computer student, and I've found a strange behaviour when using
+>ip_queue with iptables v1.2.9 on a 2.6.4 kernel.I've written s very simple code, which only displays a ipq_packet_msg_t
+>structure. The code is at the end of this mail.
+>When i use this rule : iptables -A INPUT -j QUEUE and i've got no problem
+>do display the structure.But when i use this rule : iptables -A OUTPUT -j QUEUE, the strucuture is
+>not complete. For example :
+>Id Packet : 204
+>Ip_filter Mark: 0
+>Hook : 3
+>Indev :
+>Outdev : eth0
+>HW Protocol : 0000
+>HW Type : 0
+>HW Addr Len : 0
+>HW Address : 00:00:00:00:00:00
+>Len data : 1331
 >
-> c) DNAT of traffic destined to a forwarded address
-> on the other side of 
-> the NAT gateway to have the traffic redirected to
-> another destination, 
-> often even via another network interface than the
-> original destination.
+>I hope I didn't forget something, but I think there is a problem here
+>
+>DAVID Thomas
+>
+>Here is the code :
+>
+>#include <linux/netfilter.h>
+>#include <libipq/libipq.h>
+>#include <stdio.h>
+>
+>#define BUFSIZE 2048
+>
+>static void die(struct ipq_handle *h)
+>{
+>  ipq_perror("passer");
+>  ipq_destroy_handle(h);
+>  exit(1);
+>}
+>
+>int main(int argc, char **argv)
+>{
+>  int status;
+>  unsigned char buf[BUFSIZE];
+>  struct ipq_handle *h;
+>
+>  h = ipq_create_handle(0, PF_INET);
+>  if (!h)
+>    die(h);
+>
+>  status = ipq_set_mode(h, IPQ_COPY_PACKET, BUFSIZE);
+>  if (status < 0)
+>    die(h);
+>
+>  do{
+>    status = ipq_read(h, buf, BUFSIZE, 0);
+>    if (status < 0)
+>      die(h);
+>
+>    switch (ipq_message_type(buf)) {
+>    case NLMSG_ERROR:
+>      fprintf(stderr, "Received error message %d\n",
+>	      ipq_get_msgerr(buf));
+>      break;
+>
+>    case IPQM_PACKET: {
+>      ipq_packet_msg_t *m = ipq_get_packet(buf);
+>
+>      status = ipq_set_verdict(h, m->packet_id,
+>			       NF_ACCEPT, 0, NULL);
+>      printf("Id Packet : %d\n", ntohs(m->packet_id));
+>      printf("Ip_filter Mark: %x\n", m->mark);
+>      printf("Hook : %d\n", m->hook);
+>      printf("Indev : %s\n", m->indev_name);
+>      printf("Outdev : %s\n", m->outdev_name);
+>      printf("HW Protocol : %.4x\n", ntohs(m->hw_protocol));
+>      printf("HW Type : %x\n", m->hw_protocol);
+>      printf("HW Addr Len : %d\n",ntohs(m->hw_addrlen));
+>      printf("HW Address : %02X:%02X:%02X:%02X:%02X:%02X\n",
+>      m->hw_addr[0], m->hw_addr[1],	     m->hw_addr[2], m->hw_addr[3], m->hw_addr[4], m->hw_addr[5]);
+>      printf("Len data : %d\n", ntohs(m->data_len));
+>      printf("\n");
+>      if (status < 0)
+>	die(h);
+>      break;
+>    }
+>
+>    default:
+>      fprintf(stderr, "Unknown message type!\n");
+>      break;
+>    }
+>  } while (1);
+>
+>  ipq_destroy_handle(h);
+>  return 0;
+>}
+>
+>
+>
+>-
+>To unsubscribe from this list: send the line "unsubscribe linux-net" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>  
+>
 
-I cannot get either b) or c) above to work.  These
-only seem to work if the destination address is an
-address configured on the NAT gateway itself.
 
-Do you have a configuration that accomplishes these?
 
-The destination address of the traffic MUST NOT be an
-address configured on the NAT gateway.  The simplest
-example is from my original post:
-
-                                   |--Web server
-       eth0                   eth1 |  192.168.64.15/24
-PC---------------Linux 2.4.19-------
-172.16.1.2/30    172.16.1.1/30     |
-                 192.168.64.1/24   |--Web server
-                                      192.168.64.5/24
-
-My DNAT rule:
-
-iptables -t nat -A PREROUTING -s 172.16.1.2 -d
-192.168.64.5 -p tcp --dport 80 -j DNAT --to
-192.168.64.15
-
->From my original post:
-
-In tcpdump, I see the HTTP request come from the PC
-with a destination of .5 on eth0.  I see the DNAT rule
-match in iptables -L -n -v -t nat.  I see the HTTP
-request go on eth1 to .15 (DNAT rule works).  I see
-the HTTP server at .15 reply to 172.16.1.2 on eth1. 
-The data is dropped and never returned after that. 
-The reply never appears on eth0.
-
-ip_conntrack shows SYN_SENT [UNREPLIED] on that
-connection.
-
-A few notes:
-
-1) The PC can talk directly to .15's Web server with
-no problems.  Routing is just fine.
-
-2) If I configure .5 on the Linux box and ditch the
-second Web server, everything works normally.
-
-3) The DNAT rule is the ONLY iptables rule in place.
-
-4) I have no dynamic routing, proxy arp, route filters
-or other configurations in place.  It's simple static
-routing.
-
-I'm stumped.  Ultimately, I want to be able to take IP
-addresses for my customers and point any Web requests
-to a server that returns a page saying "Sorry, you
-didn't pay your bill."  That's why #2 above won't work
-for me in the long run.
-
-> 
-> d) Even DNAT back to a destination in the same
-> network as the client, but 
-> then SNAT must also be used to make sure return
-> traffic is sent via the 
-> NAT gateway and not directly to the original client.
-
-This only works if the destination address is an
-address configured on the NAT gateway.
-
-Doug
-
-__________________________________
-Do you Yahoo!?
-Yahoo! Small Business $15K Web Design Giveaway 
-http://promotions.yahoo.com/design_giveaway/
