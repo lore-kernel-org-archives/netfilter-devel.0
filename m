@@ -1,10 +1,11 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: ip_conntrack_lock usage?
-Date: Sun, 08 Jun 2003 12:21:07 +1000
+From: P@draigBrady.com
+Subject: performance
+Date: Mon, 09 Jun 2003 17:12:27 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200306080221.h582L8f07562@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
+Message-ID: <3EE4B1EB.9090305@draigBrady.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,34 +18,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey dudes,
+Hi,
 
-  I finally have my dev machine back online, and a long weekend to look at
-the RSH and RPC bugs, and the RPC enhancements.  However, I've gotten
-myself bogged down in trying to understand usage of "ip_conntrack_lock"
-READ/WRITE LOCKs.
+I'm testing netfilter performance here on
+PIII 1.2GHz based systems. With default
+kernel configuration, netfilter is able
+to process 85,000 pps with 125 rules (all
+rules matching).
 
-  The old rpc-recent module(s) had a comment at the top that said;
-    +/* For future conections RPC, using client's cache bindings
-    + * I'll use ip_conntrack_lock to lock these lists         */
+Note the application is just counting.
+There is no transmitting/forwarding.
 
-.. why would you use a global locking mechanism for lists that only have
-local implications?
+Also note the nics are e100.
 
-  The added confusion is that I can see no documentation on it in the HowTo's
-or FAQ's .. and the only mentions in the Netfilter mailling archives are either
-code references from the conntrack root code, or discussions on potential
-performance bottlenecks.
+So my simple question are there any
+tips in increasing the performance?
+Hmm actually the performance seems
+optimal? is it only taking 9 instructions
+per match? 1.2*10^9/(85000*1500) =3D 9
 
-  Should I be trying to implement a global locking structure in the RPC code,
-or should I stick with what I've got?
-
-
-Thanks,
- 
-
-
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
+thanks,
+P=E1draig.
