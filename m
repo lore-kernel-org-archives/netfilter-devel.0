@@ -1,15 +1,13 @@
-From: Menno Smits <menno@netbox.biz>
-Subject: Re: PPTP connection tracking and Poptop on same box
-Date: Fri, 05 Sep 2003 10:21:31 +1000
+From: Stephane Ouellette <ouellettes@videotron.ca>
+Subject: [PATCH]  libip6t_MARK.c
+Date: Fri, 05 Sep 2003 02:42:04 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F57D70B.3040307@netbox.biz>
-References: <3F542C4E.1000307@netbox.biz> <Pine.GSO.4.56.0309031853090.10914@shemp.vdata.com> <3F56E2E2.5040007@netbox.biz> <Pine.GSO.4.56.0309040327250.10914@shemp.vdata.com>
+Message-ID: <3F58303C.3030508@videotron.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="Boundary_(ID_YiZohTLBPa+yAtHODzrWMQ)"
+Cc: Netfilter Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.GSO.4.56.0309040327250.10914@shemp.vdata.com>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,57 +18,111 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jeff Hall wrote:
+This is a multi-part message in MIME format.
 
->   > I checked the patches in your posts against a POM patched 2.4.20 kernel
->   > I used to use here which exhibits the same problems as my 2.4.21 kernel.
->   > I can't even find where your patches to ip_conntrack_pptp.c could be
->   > applied! (even when trying to apply the patch manually). Key lines which
->   > surround your changes simply don't exist in my tree. I was using POM out
->   > of CVS from a few months ago in that kernel. What POM version are you
->   > using? Which POM patches are you using?
->   >
-> I started with the 20030107 POM but then added individual patches I
-> needed from the CVS archives. I tried to detail them as clearly as possible
-> in the March 2nd and 3rd memos. I'm afraid that is the best I can do now
-> after 6 months.  I'll send you the fully patched sources I'm using in a
-> personal message. I hope you find them useful. I'll send you anything
-> dated newer than when I ran the 20030107 POM against the 2.4.20 base.
+--Boundary_(ID_YiZohTLBPa+yAtHODzrWMQ)
+Content-type: text/plain; charset=us-ascii; format=flowed
+Content-transfer-encoding: 7BIT
 
-Thanks for trying to remember. I appreciate that asking you to remember
-what obscure patches you used 6 months ago is a bit of an ask :)
+Harald,
 
-I've received the sources and will give them a go.
+    here's another userspace patch:
 
-Some other interesting findings:
-I tested connections to Poptop further yesterday. This time I connected
-via a 1.5Mbps Internet link rather than the 100Mbps LAN that I've been
-using for previous testing. Connections via this link were much more
-likely to work! I think the higher latency of the link may have
-something to do with it. This re-enforces my statement in the first
-message of this thread that the problem might be timing related.
+1- remove unused struct markinfo,
+2- print_mark() was only used once, so I removed it and changed print() 
+accordingly,
+3- C99 initializers.
 
->   > Actually the MTU/MRU/TCPMSS stuff was to deal with "GRE: Discarding
->   > duplicate packet" problems not 'out of order packet" problems like I
->   > originally stated (it was a while ago). I removed these workarounds
->   > today just to make sure that these had nothing to do with the problems
->   > I'm having. Connection attempts seemed to behave in just the same way
->   > (unreliably), and I started getting lots of "GRE: Discarding duplicate
->   > packet" messages when a connection did establish and data was transferred.
->   >
-> I consistently receive one "GRE: Discarding duplicate packet" message per
-> connection. But it never causes any problem so I've never pursued the cause.
-> I see on Sourceforge that the single message problem is due to an initial-
-> zation error in pptpgre.c (see the diff 1.4 vs 1.3). I've never had a problem
-> with multiple "duplicate..." errors. Possibly they are due to the kernel
-> delivering GRE packets to the wrong pptpd process.
+Please apply,
 
-I'm not sure what exactly is behind the duplicate packet messages but
-lowering the MTU, MRU and TCPMSS definitely makes them go away. It also
-seems to improve performance somewhat. At some sites I found that file
-transfers would grind to a halt with huge numbers of duplicate packet
-messages being logged unless the MTU etc was lowered.
+Stephane
 
-Thanks again.
 
-Menno
+--Boundary_(ID_YiZohTLBPa+yAtHODzrWMQ)
+Content-type: text/plain; name=libip6t_MARK.c.patch; CHARSET=US-ASCII
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=libip6t_MARK.c.patch
+
+--- netfilter.orig/userspace/extensions/libip6t_MARK.c	Wed May 29 09:08:15 2002
++++ netfilter/userspace/extensions/libip6t_MARK.c	Mon Aug 11 21:09:59 2003
+@@ -8,11 +8,6 @@
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter_ipv6/ip6t_MARK.h>
+ 
+-struct markinfo {
+-	struct ip6t_entry_target t;
+-	struct ip6t_mark_target_info mark;
+-};
+-
+ /* Function which prints out usage message. */
+ static void
+ help(void)
+@@ -25,8 +20,8 @@
+ }
+ 
+ static struct option opts[] = {
+-	{ "set-mark", 1, 0, '1' },
+-	{ 0 }
++	{ .name = "set-mark", .has_arg = 1, .flag = 0, .val = '1' },
++	{ .name = 0 }
+ };
+ 
+ /* Initialize the target. */
+@@ -72,12 +67,6 @@
+ 		           "MARK target: Parameter --set-mark is required");
+ }
+ 
+-static void
+-print_mark(unsigned long mark, int numeric)
+-{
+-	printf("0x%lx ", mark);
+-}
+-
+ /* Prints out the targinfo. */
+ static void
+ print(const struct ip6t_ip6 *ip,
+@@ -86,8 +75,8 @@
+ {
+ 	const struct ip6t_mark_target_info *markinfo =
+ 		(const struct ip6t_mark_target_info *)target->data;
+-	printf("MARK set ");
+-	print_mark(markinfo->mark, numeric);
++
++	printf("MARK set 0x%lx ", markinfo->mark);
+ }
+ 
+ /* Saves the union ipt_targinfo in parsable form to stdout. */
+@@ -101,19 +90,18 @@
+ }
+ 
+ static
+-struct ip6tables_target mark
+-= { NULL,
+-    "MARK",
+-    IPTABLES_VERSION,
+-    IP6T_ALIGN(sizeof(struct ip6t_mark_target_info)),
+-    IP6T_ALIGN(sizeof(struct ip6t_mark_target_info)),
+-    &help,
+-    &init,
+-    &parse,
+-    &final_check,
+-    &print,
+-    &save,
+-    opts
++struct ip6tables_target mark = {
++	.name          = "MARK",
++	.version       = IPTABLES_VERSION,
++	.size          = IP6T_ALIGN(sizeof(struct ip6t_mark_target_info)),
++	.userspacesize = IP6T_ALIGN(sizeof(struct ip6t_mark_target_info)),
++	.help          = &help,
++	.init          = &init,
++	.parse         = &parse,
++	.final_check   = &final_check,
++	.print         = &print,
++	.save          = &save,
++	.extra_opts    = opts
+ };
+ 
+ void _init(void)
+
+--Boundary_(ID_YiZohTLBPa+yAtHODzrWMQ)--
