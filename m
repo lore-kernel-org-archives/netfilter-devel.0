@@ -1,24 +1,15 @@
-From: "Harald Welte" <laforge@netfilter.org>
-Subject: Re: [Bug 1764] New: conntrack oops while reading /proc/net/ip_conntrack
-Date: Mon, 29 Mar 2004 16:42:37 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: RE:Re: netfilter programming
+Date: Mon, 29 Mar 2004 18:08:21 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <01db01c415a4$7620d6e0$d100000a@sbs2003.local>
-References: <11020000.1072813876@[10.10.2.4]> <20040103152921.76d4362e.rusty@rustcorp.com.au>
+Message-ID: <Pine.LNX.4.44.0403291757510.28533-100000@filer.marasystems.com>
+References: <20040329130856.ED26B3BA3E9@smtp.latinmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-	micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="GLp9dJVi+aaipsRk"
-Content-Transfer-Encoding: 7bit
-Cc: "Martin J. Bligh" <mbligh@aracnet.com>,
-	<linux-kernel@vger.kernel.org>,
-	<christophe@saout.de>,
-	<netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <Administrator>
-Content-Class: urn:content-classes:message
-Content-Disposition: inline
-In-Reply-To: <20040103152921.76d4362e.rusty@rustcorp.com.au>
+To: Jorge Garcia <anarkophobia@latinmail.com>
+In-Reply-To: <20040329130856.ED26B3BA3E9@smtp.latinmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -29,51 +20,84 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Mon, 29 Mar 2004, Jorge Garcia wrote:
 
---GLp9dJVi+aaipsRk
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> hi, and thanx for answer me, im sorry if i didnt explain well on my last post.
+> for educational and intelectual satisfaction i want to make a module that do this:
+> iptables -A INPUT -i eth0 -s 192.168.100.7 -p tcp --dport 23 -j DROP
+> So i search the internet and i find very little stuff about this but i make the following code :
+> 
+> 	/* Descarta paquetes si vienen de la direccion 192.168.100.7 */ 	
+> 
+> 	if(sock_buff->nh.iph->saddr == *(unsigned int*)direccion_ip){
+>             return NF_DROP; 
+>         }
+> 
+> 	if(sock_buff->nh.iph->protocol != 17){	/* Nos aseguramos de que el paquete sea tcp */
+>            return NF_ACCEPT; 
+>         }  	
+> 
+> 	cabecera_tcp = (struct tcphdr *)(sock_buff->data   (sock_buff->nh.iph->ihl *4));	/* Descartamos por puerto */
+> 
+> 	if((cabecera_tcp->dest) == *(unsigned short*)puerto){
+>             return NF_DROP; 
+>         }  
+>
+>       return NF_ACCEPT;
 
-On Sat, Jan 03, 2004 at 03:29:21PM +1100, Rusty Russell wrote:
-> Um, Harald, other developers,
->=20
-> 	Shouldn't list_conntracks do
-> READ_LOCK(&ip_conntrack_expect_tuple_lock) before walking the
-> expect list?
+>From what I can tell the above logics is qeuovalent to
 
-Thanks Rusty, indeed it should.
+iptables -A INPUT -s 192.168.100.7 -j DROP
+iptables -A INPUT ! -p tcp -j ACCEPT
+iptables -A INPUT -p tcp --port 23 -j DROP
+iptables -A INPUT -j ACCEPT
 
-> Here's a patch.  Does it do anything?
+> I dont understand how it drops from source port, i only copy and paste from a code i found in the net, please explain me something about how to programming that part.
 
-To the bug reporter(s): Please give feedback on that patch.
+cabecera_tcp = (struct tcphdr *)(sock_buff->data   (sock_buff->nh.iph->ihl 
+*4));        /* Descartamos por puerto */
 
-> Rusty.
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+references the TCP header, where the source/destination port etc can be 
+found within the packet payload.
 
---GLp9dJVi+aaipsRk
-Content-Transfer-Encoding: 7bit
-Content-Type: application/pgp-signature;
-	name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+> The other problem is that this module is this:
+> This code showld drop incomming connections to port 23 from 192.168.1007, but its drop connections to port 23 from all the addresses in the local network, like 192.168.100.12
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+Yes, and a generic C programming question, nothing special to netfilter.  
+If you want a aggregate condition then you need to and the parts together,
+or narrowing it down by eleminating the opposites..
 
-iD8DBQE/+AYIXaXGVTD0i/8RAnY0AJ0SCJ1aoZmzACMgRKkvheAaziMFIQCbBu/P
-q1syJbvMF8fC9yX+/tUjax8=
-=8qri
------END PGP SIGNATURE-----
 
---GLp9dJVi+aaipsRk--
+  if (A && B && C)
+     return X;
+  return Y;
+
+and
+
+  if (!A)
+    return Y;
+  if (!B)
+    return Y;
+  if (!C)
+    return Y;
+  return X;
+
+is logically equivalent..
+
+   if (A)
+     return X;
+   if (!B)
+     return Y;
+   if (C);
+     return X;
+   return Y;
+
+is not..
+
+
+
+Another hint: There is htonX/ntohX macros for converting network/host byte 
+order..
+
+Regards
+Henrik
