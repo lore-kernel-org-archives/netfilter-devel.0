@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [netfilter-core] [PATCH 2.6.10 1/1] netfilter: fix crash
- on	nat+icmp packets
-Date: Wed, 02 Mar 2005 10:26:41 +0100
-Message-ID: <422586D1.5000609@trash.net>
-References: <Pine.LNX.4.61.0503011830590.31296@slash.mukesh.agrawals.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org,
-	trivial@rustcorp.com.au, linux-kernel@vger.kernel.org
-To: mukesh agrawal <mukesh@cs.cmu.edu>
-In-Reply-To: <Pine.LNX.4.61.0503011830590.31296@slash.mukesh.agrawals.org>
+From: Michael Richardson <mcr@sandelman.ottawa.on.ca>
+Subject: Re: Multiple Targets
+Date: Wed, 02 Mar 2005 17:26:09 -0500
+Message-ID: <5046.1109802369@marajade.sandelman.ottawa.on.ca>
+References: <7174b1e405021900052b4545c4@mail.gmail.com>
+Cc: Ben La Monica <ben.lamonica@gmail.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: Message from Ben La Monica <ben.lamonica@gmail.com> of "Sat,
+	19 Feb 2005 01:05:07 MST." <7174b1e405021900052b4545c4@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +18,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-mukesh agrawal wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
 
-> The cause of the crash is that udp_manip_pkt reads *pskb into iph before 
-> calling skb_ip_make_writable, and fails to update iph after the call. 
-> Since skb_ip_make_writable may delete the original skb when it makes a 
-> copy, a page fault may occur when udp_manip_pkt later dereferences iph.
 
-This bug has already been fixed in 2.6.11-rc.
+It seems to me that having a "RETURN" option for all targets might be
+one way. (IPFilter has "quick", which can be overused...)
 
-Regards
-Patrick
+Or write a module called "MARKRETURN".
 
-> 
-> diff -uprN linux-2.6.10.orig/net/ipv4/netfilter/ip_nat_proto_udp.c 
-> linux-2.6.10.fixed/net/ipv4/netfilter/ip_nat_proto_udp.c
-> --- linux-2.6.10.orig/net/ipv4/netfilter/ip_nat_proto_udp.c    
-> 2004-12-24 16:34:01.000000000 -0500
-> +++ linux-2.6.10.fixed/net/ipv4/netfilter/ip_nat_proto_udp.c    
-> 2005-03-01 19:32:21.000000000 -0500
-> @@ -95,6 +95,9 @@ udp_manip_pkt(struct sk_buff **pskb,
-> 
->      if (!skb_ip_make_writable(pskb, hdroff + sizeof(hdr)))
->          return 0;
-> +    /* skb_ip_make_writable may have copied the skb, and deleted
-> +       the original */
-> +    iph = (struct iphdr *)((*pskb)->data + iphdroff);
-> 
->      hdr = (void *)(*pskb)->data + hdroff;
->      if (maniptype == IP_NAT_MANIP_SRC) {
-> 
+In general, I would, however, like to have a way to load tables of
+various kinds and lookup things in them.  That would, for me, include
+"the default routing table".
+
+Actually, I'd like to replace all of the IP forwarding logic with
+iptables :-)
+
+- -- 
+] Michael Richardson          Xelerance Corporation, Ottawa, ON |  firewalls  [
+] mcr @ xelerance.com           Now doing IPsec training, see   |net architect[
+] http://www.sandelman.ca/mcr/    www.xelerance.com/training/   |device driver[
+] panic("Just another Debian GNU/Linux using, kernel hacking, security guy"); [
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+Comment: Finger me for keys
+
+iQCVAwUBQiY9gIqHRg3pndX9AQFLjAP/f1dHEUeGO/H15Ipwpy8uHqgl5uLqs5zd
+UrCrA+yJY4+5GzeUtpg7dumFw22TEX721r7CbNJF32ozopLsoJvpCXI39MJkLFbT
+AOwjGk7/cnlyAraQHLXNuHbbd24YsVNOdGu5ceRJMPKT3winZ6ShfQxyHGV5fkdD
+P+i2rMrWUGw=
+=gSJl
+-----END PGP SIGNATURE-----
