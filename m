@@ -1,14 +1,16 @@
-From: "Robert" <hanbo163com@163.com>
-Subject: iptc_insert_entry(),standard target missing,help me!
-Date: Mon, 13 Sep 2004 23:17:41 +0800
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] port physdev to ip6tables
+Date: Mon, 13 Sep 2004 01:17:14 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <002901c499a4$d1ead190$8e5f78ca@nic.ecnu.edu.cn>
+Message-ID: <4144D8FA.2040903@trash.net>
+References: <200409111259.28468.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Bart De Schuymer <bdschuym@pandora.be>
+In-Reply-To: <200409111259.28468.bdschuym@pandora.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,8 +21,22 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rm9yIHNvbWUgcmVhc29uLCBJIG1ha2UgYSBjb3B5IG9mIGhhbmRsZShUQ19IQU5ETEVfVCksYW5k
-IGluc2VydCBzb21lIHJ1bGVzIGludG8gaXQuSG93ZXZlciBJIGZvdW5kIHRoZSBzdGFuZGFyZCB0
-YXJnZXIgc3VjaCBhcyBBQ0NFUFQsRFJPUCxRVUVVRSBhcmUgbWlzc2luZyxidXQgdGhlIFJFSkVD
-VCB0YXJnZXQgaXMgc3RpbGwgdGhlcmUuSSB1c2UgaXB0Y19pbnNlcnRfZW50cnkoKSB0byBmaW5p
-c2ggdGhpcy5BbnlvbmUgZ2l2ZSBtZSBzb21lIGhlbHA/IA==
+Bart De Schuymer wrote:
+
+>Hi,
+>
+>Attached are 2 patches, one against kernel 2.6.8.1 and the other against the 
+>iptables userspace CVS. They add the physdev module to ip6tables. The physdev 
+>module is quite essential for people wanting to filter bridged IPv6 frames.
+>
+Thanks, I've applied the userspace patch and will send the kernel patch
+to Dave soon.
+
+Regards
+Patrick
+
+>
+>cheers,
+>Bart
+>  
+>
