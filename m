@@ -1,21 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: PATCH: extra conntrack stats
-Date: Thu, 1 May 2003 13:32:48 +0200
+From: Oscar Fudd <ofudd@speed-test.net>
+Subject: Re: [TYPO] patch to cvs libipt_string.c
+Date: 30 Apr 2003 19:53:59 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030501113248.GE26924@sunbeam.de.gnumonks.org>
-References: <1051743903.8213.188.camel@tux.rsn.bth.se> <20030501050235.F0DCE2C04F@lists.samba.org>
+Message-ID: <1051757639.4728.172.camel@scotty.cafe.5gnetworks.com>
+References: <Pine.LNX.4.44.0304281524370.22672-100000@blimp.psdhost.net>
+	 <20030430160134.GF685@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xJK8B5Wah2CMJs8h"
-Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-Content-Disposition: inline
-In-Reply-To: <20030501050235.F0DCE2C04F@lists.samba.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030430160134.GF685@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -26,44 +22,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Also, patch-o-matic says to not use this module with linux kernel 2.4.9.
+Does it work with kernels after 2.4.9?  It looks like it does; could the
+patch-o-matic help message be changed to say so?  I've been avoiding
+this module because of that message...  :-)
+  
+http://cvs.netfilter.org/netfilter/patch-o-matic/extra/string.patch.help?rev=1.3&content-type=text/x-cvsweb-markup
 
---xJK8B5Wah2CMJs8h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+-THIS PATCH DOES NOT WORK WITH KERNEL 2.4.9 !!!
++THIS PATCH DOES NOT WORK WITH KERNEL 2.4.9 OR OLDER !!!
 
-On Thu, May 01, 2003 at 02:05:52PM +1000, Rusty Russell wrote:
-
-> Ignoring NAT for the moment, and using a 32-bit arch:
-> So, we're about 192 bytes.  We could get to 80 bytes.
-
-JFYI: including PPTP nat (which expands struct ip_conntrack_tuple),
-sizeof(struct ip_conntrack) is about 340 bytes on a 32bit arch.
-
-> Cheers,
-> Rusty.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---xJK8B5Wah2CMJs8h
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+sQXgXaXGVTD0i/8RAoKDAJ0Q0Ym4Oxg1n1lNr+UWTEihj9FHmACghiZj
-A4o0IWCTK5MuM++LnCZ4OOA=
-=2whC
------END PGP SIGNATURE-----
-
---xJK8B5Wah2CMJs8h--
+On Wed, 2003-04-30 at 09:01, Harald Welte wrote:
+> On Mon, Apr 28, 2003 at 03:29:31PM -0700, ofudd@psdhost.net wrote:
+> > Hi!
+> > 
+> > I downloaded iptables from CVS today, enabled the string matching
+> > feature, and tried to compile the userspace tools.  Compilation failed
+> > due to a typo.
+> > 
+> > In ./netfilter/userspace/extensions/libipt_string.c:
+> 
+> This is bugzilla bug 89, which has been fixed now.
+> 
+> > ofudd@psdhost.net
+-- 
+Oscar Fudd <ofudd@speed-test.net>
