@@ -1,18 +1,13 @@
-From: Peteris Krumins <newsgroups@lf.lv>
-Subject: Re: How to use the libipq to process TCP data?
-Date: Sat, 7 Jun 2003 00:00:32 +0300
+From: Jon Webb <jon_webb@binary-one.com>
+Subject: ARP filtering
+Date: Fri, 06 Jun 2003 17:06:43 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <145609491382.20030607000032@lf.lv>
-References: <20030605222647.5193.20098.Mailman@kashyyyk>
- <000901c32bda$69537d50$6f01a8c0@li>
-Reply-To: Peteris Krumins <newsgroups@lf.lv>
+Message-ID: <3EE12C93.6090503@binary-one.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "yong" <sdssly@sina.com>
-In-Reply-To: <000901c32bda$69537d50$6f01a8c0@li>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,19 +18,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello yong,
+Hi guys. I feel like this is a silly question. I can't find 
+documentation on how to use the arp_tables and arp_filter netfilter 
+modules. I have setup a fake multi-hop wireless network by filtering mac 
+addresses at each host, but after a while ARP breaks the network by 
+getting through the mac filters. Any help is appreciated.
 
-Friday, June 6, 2003, 6:19:15 AM, you wrote:
+Thanks,
+Jon
 
-y> Hell All,
-
-y> I want to use libipq to process TCP data in userspace. However, I did not find
-y> any documeents about the libipq, is there any examples or function
-y> documents about this lib?
-
-i dont think you even tried searching.
-
-try libipq + HOWTO 'i\'m feeling lucky' in google..
-
-
-P.Krumins
+------------
+Jon Webb <jonwebb@cse.ucsc.edu>
+Computer Communications Research Group
+University of California at Santa Cruz
