@@ -1,75 +1,171 @@
-From: Jim Gifford <maillist@jg555.com>
-Subject: Re: Use of Kernel Headers
-Date: Tue, 17 Aug 2004 22:36:26 -0700
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4122EADA.7030501@jg555.com>
-References: <4122743A.7020309@jg555.com> <Pine.LNX.4.61.0408180123380.7879@filer.marasystems.com>
+From: Olaf Kirch <okir@suse.de>
+Subject: [PATCH] Prevent crash on ip_conntrack removal
+Date: Wed, 18 Aug 2004 11:13:52 +0200
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040818091352.GB6507@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0408180123380.7879@filer.marasystems.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/mixed; boundary="3V7upXqbjpZ4EhLz"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: netdev@oss.sgi.com
+Content-Disposition: inline
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
 
-> On Tue, 17 Aug 2004, Jim Gifford wrote:
->
->> It has been stated numerous times that userspace programs should not 
->> be compiled against raw kernel headers, but iptables does compile 
->> against userspace headers and breaks this rule. With the advent of 
->> the linux-libc-headers package, should iptables be compiled against 
->> the linux-libc-headers or the raw kernel headers since iptables is a 
->> user space program?
->
->
-> This depends on if you build iptables for your custom patched kernel 
-> or a standard kernel.
->
-> For a standard kernel it should be sufficient with linux-libc-headers 
-> I think, but it is possible some required linux iptables headers is 
-> missing from the iptables package (include/linux/netfilter_ipv[46]/). 
-> If you find some missing please report here which files needs to be 
-> added from the kernel tree and maybe it can be cleaned up.
->
->> Should patch-o-matic update the headers in the proper location, 
->> /usr/include/linux/netfilter_ipv4 etc?
->
->
-> patch-o-matic should always update the kernel source tree and your 
-> iptables should then be built to this source tree. This to make sure 
-> the view of iptables and your kernel matches. But to be honest it 
-> should only be the include/linux/netfilter_ipv[46]/ directories which 
-> is required by iptables.
->
-> Regards
-> Henrik
->
-Ok so we build iptables against the linux-libc-headers, then we then use 
-patch-o-matic-ng to add new support for psd(insert you own example). But 
-iptables is set to compile using the linux-libc-headers, won't the 
-compile fail since it can't find ipt_psd.h in the linux-libc-headers.
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-If patch-o-matic changes a header, it should also check 
-/usr/include/linux/netfilter{whatever} and patch that file also so they 
-are insync with each other. Which presents a headache since the 
-linux-libc-headers are only released when a new release is out. Unless 
-you check the version.h file that comes with linux-libc-headers and 
-verfiy the value of  LIBC_HEADERS_VERSION.
+Hi,
 
-So it's a double edge sword the way I see it.
+here's a patch that keeps us from crashing on removal of ip_conntrack.
+This problem came up during IBM's testing of SLES.
+I'm not sure if this issue has been submitted already.
 
+Problem description courtesy of David Stevens:
+
+	It appears that conntrack, when loaded, is queueing the fragments
+	for reassembly pre-routing (ie, when skb->dst is 0) and giving
+	the fully reassembled packet to the pre-routing code which will
+	set skb->dst before using it.
+
+	IP without conntrack does the queueing of fragments and reassembly
+	post-routing, so skb->dst in that case is set for all fragments
+	and the reassembled packet.
+
+	In the failure scenario, it appears that conntrack has queued
+	some of the fragments (w/ skb->dst=0, esp. in the offset=0 first
+	fragment) and then the conntrack module is removed. Arrival
+	of a fragment afterward will queue and reassemble the entire
+	packet post-routing, but the first frag still has skb->dst 0,
+	so it'll blow up
+
+To fix this, the patch below simply drops such skbs. A different fix
+could be to change the conntrack module to flush out all unassembled
+fragments when unloaded; an alternative patch for this is attached as
+well (this one is completely untested).
+
+Cheers
+Olaf
 -- 
-----
-Jim Gifford
-maillist@jg555.com
+Olaf Kirch     |  The Hardware Gods hate me.
+okir@suse.de   |
+---------------+ 
+
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=netfilter-unload-crash
+
+Index: v2.6.8/net/ipv4/ip_input.c
+===================================================================
+--- v2.6.8.orig/net/ipv4/ip_input.c
++++ v2.6.8/net/ipv4/ip_input.c
+@@ -177,6 +177,13 @@ int ip_call_ra_chain(struct sk_buff *skb
+ 					read_unlock(&ip_ra_lock);
+ 					return 1;
+ 				}
++				/* When ip_conntrack gets unloaded, we may be
++				 * left with fragment chains where the first
++				 * fragment has skb->dst = NULL. */
++				if (skb->dst == NULL) {
++					 kfree_skb(skb);
++					 return 1;
++				 }
+ 			}
+ 			if (last) {
+ 				struct sk_buff *skb2 = skb_clone(skb, GFP_ATOMIC);
+@@ -277,6 +284,13 @@ int ip_local_deliver(struct sk_buff *skb
+ 		skb = ip_defrag(skb);
+ 		if (!skb)
+ 			return 0;
++		/* When ip_conntrack gets unloaded, we may be
++		 * left with fragment chains where the first
++		 * fragment has skb->dst = NULL. */
++		if (skb->dst == NULL) {
++			 kfree_skb(skb);
++			 return 0;
++		 }
+ 	}
+ 
+ 	return NF_HOOK(PF_INET, NF_IP_LOCAL_IN, skb, skb->dev, NULL,
+
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=conntrack-flush-fragments
+
+
+Alternative fix for the crash on conntrack unload. Simply flush all
+fragment queues when unloading conntrack_standalone so that there are
+no partially assembled fragments left with skb->dst == NULL.
+
+Index: v2.6.8/include/net/ip.h
+===================================================================
+--- v2.6.8.orig/include/net/ip.h
++++ v2.6.8/include/net/ip.h
+@@ -255,6 +255,7 @@ extern int	ip_call_ra_chain(struct sk_bu
+  */
+  
+ struct sk_buff *ip_defrag(struct sk_buff *skb);
++extern void ipfrag_flush(void);
+ extern int ip_frag_nqueues;
+ extern atomic_t ip_frag_mem;
+ 
+Index: v2.6.8/net/ipv4/ip_fragment.c
+===================================================================
+--- v2.6.8.orig/net/ipv4/ip_fragment.c
++++ v2.6.8/net/ipv4/ip_fragment.c
+@@ -239,13 +239,13 @@ static void ipq_kill(struct ipq *ipq)
+ /* Memory limiting on fragments.  Evictor trashes the oldest 
+  * fragment queue until we are back under the low threshold.
+  */
+-static void ip_evictor(void)
++static void __ip_evictor(int threshold)
+ {
+ 	struct ipq *qp;
+ 	struct list_head *tmp;
+ 
+ 	for(;;) {
+-		if (atomic_read(&ip_frag_mem) <= sysctl_ipfrag_low_thresh)
++		if (atomic_read(&ip_frag_mem) <= threshold)
+ 			return;
+ 		read_lock(&ipfrag_lock);
+ 		if (list_empty(&ipq_lru_list)) {
+@@ -267,6 +267,11 @@ static void ip_evictor(void)
+ 	}
+ }
+ 
++static inline void ip_evictor(void)
++{
++	__ip_evictor(sysctl_ipfrag_low_thresh);
++}
++
+ /*
+  * Oops, a fragment queue timed out.  Kill it and send an ICMP reply.
+  */
+@@ -677,4 +682,10 @@ void ipfrag_init(void)
+ 	add_timer(&ipfrag_secret_timer);
+ }
+ 
++void ipfrag_flush(void)
++{
++	__ip_evictor(0);
++}
++
+ EXPORT_SYMBOL(ip_defrag);
++EXPORT_SYMBOL(ipfrag_flush);
+Index: v2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c
+===================================================================
+--- v2.6.8.orig/net/ipv4/netfilter/ip_conntrack_standalone.c
++++ v2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c
+@@ -562,6 +562,8 @@ static int init_or_cleanup(int init)
+ 	nf_unregister_hook(&ip_conntrack_defrag_local_out_ops);
+  cleanup_defragops:
+ 	nf_unregister_hook(&ip_conntrack_defrag_ops);
++	/* Frag queues may hold fragments with skb->dst == NULL */
++	ipfrag_flush();
+  cleanup_proc:
+ 	proc_net_remove("ip_conntrack");
+  cleanup_init:
+
+--3V7upXqbjpZ4EhLz--
