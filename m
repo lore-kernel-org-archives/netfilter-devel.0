@@ -1,15 +1,15 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: raw patch saga continues.... kernel still panics!
-Date: Tue, 14 Oct 2003 09:58:20 +0200 (CEST)
+Subject: Re: Rule optimization scheme openbsd-like
+Date: Tue, 14 Oct 2003 12:23:16 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0310140943400.536-100000@blackhole.kfki.hu>
-References: <3F88475F.4070907@wp.pl>
+Message-ID: <Pine.LNX.4.33.0310141221070.656-100000@blackhole.kfki.hu>
+References: <Pine.LNX.4.51.0310131004000.17633@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: c0g <c0g@wp.pl>
-In-Reply-To: <3F88475F.4070907@wp.pl>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <Pine.LNX.4.51.0310131004000.17633@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,23 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 11 Oct 2003, c0g wrote:
+Hi,
 
-> I can force kernel to panic by using ntpdate program to synchronize
-> clock or by starting ntpd server on firewall box. Of course it happens
-> only when there are rules in raw table, PREROUTING chain which catch
-> packets generated/received by these program and jump to NOTRACK.
-> Inserting rule:
-> iptables -t raw -I PREROUTING -j ACCEPT
-> before NOTRACK rules makes kernel stable.
+On Mon, 13 Oct 2003, Maciej Soltysiak wrote:
 
-I could not reproduce the kernel panic. The raw patch/table and NOTRACK
-target work fine.
+> 2.8. Transparent rule set evaluation optimization
+>
+> pf automatically optimizes the evaluation of the rule set. If a group of
+> consecutive rules all contain the same parameter, e.g., ``source address
+> equals 10.1.2.3,'' and a packet does not match this parameter when the
+> first rule of the group is evaluated, the whole group of rules is skipped,
+> as the packet can not possibly match any of the rules in the group.
+[...]
+> What do you think? Is anyone working on this
 
-> There is also one problem, don't know if correlated with raw patch,
-> because unloading netfilter modules and trying to connect to my firewall
-> thru PPTP causes kernel panic too. But on kernel patched with older POM
-> everything works fine.
+nf-hipac is already available and it's more superior than the pf approach.
 
 Best regards,
 Jozsef
