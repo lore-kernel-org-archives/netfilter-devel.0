@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] trivial CONNMARK typo
-Date: Wed, 04 Aug 2004 23:38:27 +0200
+From: Matt Walters <mattw@parasun.com>
+Subject: libipq scaling
+Date: Wed, 04 Aug 2004 15:30:43 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <41115753.4030002@trash.net>
-References: <Pine.LNX.4.44.0408041504410.14280-100000@filer.marasystems.com>
+Message-ID: <1091658643.32021.91.camel@marx.mindlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kernel@linuxace.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0408041504410.14280-100000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,11 +18,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
+Hey all-
 
->Please apply
->
-Applied, thanks.
+	We're considering using netfilter to do some packet filtering/tagging
+based on external information, and it seems like libipq is the best way
+to do it.  I'm wondering if there are any issues with using this tool in
+an environment where sustained 30Mbit/s throughput is to be expected. 
+The target platform is a dual Xeon 2.8 with gobs of memory, 2.6.7
+kernel.
 
-Regards
-Patrick
+	Has anyone experimented with it?  If not, when we do some performance
+testing, is anyone interested in the results?
+
+	Thanks,
+
+-Matt
