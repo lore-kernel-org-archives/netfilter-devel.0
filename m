@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: new ipt_ACCOUNT version
-Date: Mon, 07 Jun 2004 00:40:13 +0200
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Transparent proxying patch update in POM-NG
+Date: Mon, 07 Jun 2004 15:23:36 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40C39D4D.7060309@trash.net>
-References: <200405291527.43712.thomas.jarosch@intra2net.com>
+Message-ID: <1086614615.1863.17.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-In-Reply-To: <200405291527.43712.thomas.jarosch@intra2net.com>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +18,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Thomas,
 
-sorry for the late reply, I missed your email. Please also put
-me in the receipients when writing to me, I don't always read
-all mails on the list.
+  Hi,
 
-Thomas Jarosch wrote:
-> Hi Patrick,
-> 
-> I now fixed the too long lines issue. Attached is the new version.
-> Is it CVS ready?
+  Thanks to Jozsef Kadlecsik, the tproxy patch has been updated to 1.9.6
+in pom-ng. Now pom-ng is in sync with the latest tproxy version.
 
-It looks a lot better, thanks. I'm going to look at it more deeply
-tomorrow and let you know.
+  There were some important fixes:
 
-Regards
-Patrick
+- related conntracks are registered only when they're confirmed
+- it is possible to share mark-only sockrefs: more than one socket bound
+to the same local address can be assigned as mark-only
+- dereferencing of related connections is fixed
 
-> 
-> The website (http://www.intra2net.com/opensource/ipt_ACCOUNT/) contains
-> the updated userspace counterparts (with short line lenghts, too ;-))
-> 
-> Thomas
-> 
-> 
+  Warning: The 1.9.x branch is a development version of tproxy, and is
+not binary compatible with 1.2.x.
+
+  As always, any feedback would be highly appreciated.
+
+-- 
+ Regards,
+   Krisztian KOVACS
