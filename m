@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] 0/3 Various pom-ng requirements
-Date: Wed, 03 Nov 2004 15:43:36 +0100
-Message-ID: <4188EE98.20400@trash.net>
-References: <20041026211909.GA2598@linuxace.com>
+Subject: Re: icmp packets going over wrong link for Local traffic!!!
+Date: Thu, 04 Nov 2004 03:02:13 +0100
+Message-ID: <41898DA5.4000700@trash.net>
+References: <200410272051.i9RKpPoW018624@webmail2.magma.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org,
+	Netfilter mailing list <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20041026211909.GA2598@linuxace.com>
+To: dravya <dravya@magma.ca>
+In-Reply-To: <200410272051.i9RKpPoW018624@webmail2.magma.ca>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
+dravya wrote:
 
->This is a resend of patches which adjust kernel requirements for
->3 pom-ng patches.  These were specifically noticed because as is,
->they break 'runme --batch' on 2.4.27.  
->  
+>Hi all,
 >
-Thanks Phil, but we are currently reorganizing patch-o-matic and
-all these patches will be removed. Check out
-http://www.netfilter.org/documentation/conferences/nf-workshop-2004-summary.html#AEN149
-for more info.
+>I have applied the Masquerade patch suggested by Rusty (and now Herbert) and everything
+>works just fine. All packets are masqueraded correctly even when there are multiple
+>interfaces.
+>
+>However, there are icmp dest unreachable messages that still go over the wrong link. i.e.
+>source addr of the wrong link. Since it is local traffic, it will not go through the
+>masquerading code as the socket would exist ( (*pskb)->sk ) will exist, thereby returning
+>with NF_ACCEPT and bypassing the masquerade code. 
+>
+
+Please describe your setup in more detail and show some examples
+of the packets with wrong address.
 
 Regards
 Patrick
