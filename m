@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC, PATCH 5/5]: netfilter+ipsec - policy checks
-Date: Sat, 20 Mar 2004 16:58:39 +0100
+From: Alexander Samad <alex@samad.com.au>
+Subject: Re: [RFC, PATCH 2/5]: netfilter+ipsec - output hooks
+Date: Sun, 21 Mar 2004 08:45:56 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <405C6A2F.80206@trash.net>
-References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CF27.4030803@trash.net> <20040318221904.45011167.davem@redhat.com> <20040319063143.GC29442@samad.com.au> <20040320055811.GG29442@samad.com.au>
+Message-ID: <20040320214556.GJ29442@samad.com.au>
+References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CEEC.7070009@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030104050609060706060509"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9uDGw67+9J53IzxX"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Alexander Samad <alex@samad.com.au>
-In-Reply-To: <20040320055811.GG29442@samad.com.au>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <4059CEEC.7070009@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,52 +21,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030104050609060706060509
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Alexander Samad wrote:
-> Done some more testing and there seems to be a problem with the NAT
-> table 
-> 
+--9uDGw67+9J53IzxX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for the report, does this patch fix it ?
+Hi
 
-Regards
-Patrick
+I don't have a full understanding of the code area we are talking about,
+having only had a peruse of it a while back.
 
---------------030104050609060706060509
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+But from my reading of this do I understand that packets that enter a
+box to be routed (forwarded on) that match a IPSEC transform policy
 
-===== net/ipv4/raw.c 1.44 vs edited =====
---- 1.44/net/ipv4/raw.c	Thu Mar 18 16:44:12 2004
-+++ edited/net/ipv4/raw.c	Sat Mar 20 16:57:24 2004
-@@ -257,6 +257,12 @@
- 	return 0;
- }
- 
-+static inline int ip_dst_output(struct sk_buff *skb)
-+{
-+	return NF_HOOK_COND(PF_INET, NF_IP_POST_ROUTING, skb, NULL,
-+	                    skb->dst->dev, dst_output, skb->dst->xfrm != NULL);
-+}
-+
- static int raw_send_hdrinc(struct sock *sk, void *from, int length,
- 			struct rtable *rt, 
- 			unsigned int flags)
-@@ -308,7 +314,7 @@
- 	}
- 
- 	err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
--		      dst_output);
-+		      ip_dst_output);
- 	if (err > 0)
- 		err = inet->recverr ? net_xmit_errno(err) : 0;
- 	if (err)
+1) Are seen in  mangle prerouting
+2) nat prerouting=20
+2) Encrypted
+3) mangle Output
+4) nat Output
 
---------------030104050609060706060509--
+Does this mean they also hit the filter input & output tables aswell or
+ just the filter forward table.
+
+I would have thought for the whole process the packet (routed/forward
+packet) would only be seen in the prerouting/forward/postrouting flow.
+Weather or not it is going to be encrypted shouldn't make a difference I
+would have thought
+
+On Thu, Mar 18, 2004 at 05:31:40PM +0100, Patrick McHardy wrote:
+> This patch adds new output-hooks. Packets with dst->xfrm !=3D NULL
+> traverse the POST_ROUTING hook before dst_output is called. The
+> transformers mark the packets in the control buffer with a new flag
+> IPSKB_XFRM_TRANSFORMED, these packets then traverse the LOCAL_OUT
+> hook when they hit ip_output.
+>=20
+>=20
+
+
+
+--9uDGw67+9J53IzxX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAXLuUkZz88chpJ2MRApyfAKCPLCUwAnpI/rrtjGNkLdiLb1Y8ygCgkJ8R
+axav0TDCIgK/RlL1LYEQ9iQ=
+=3YqR
+-----END PGP SIGNATURE-----
+
+--9uDGw67+9J53IzxX--
