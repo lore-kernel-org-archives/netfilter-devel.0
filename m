@@ -1,14 +1,16 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Subject: Re: [netfilter-core] bad performance: bug or missing optimisation?
-Date: Wed, 27 Aug 2003 15:49:01 +1000
+Date: Wed, 27 Aug 2003 12:20:21 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030827074745.A9C242C15B@lists.samba.org>
-References: <20030826113317.GA2163@mt.lv>
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <Pine.LNX.4.51.0308271216130.27606@dns.toxicfilms.tv>
+References: <20030827074745.A9C242C15B@lists.samba.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Karlis Peisenieks <karlis@mt.lv>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Karlis Peisenieks <karlis@mt.lv>
-In-reply-to: Your message of "Tue, 26 Aug 2003 14:33:17 +0300."
-             <20030826113317.GA2163@mt.lv>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <20030827074745.A9C242C15B@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,48 +21,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <20030826113317.GA2163@mt.lv> you write:
-> Hello!
-> 
-> While fighting with ICMP flood we came across strange NAT problem.
-> 
-> When box is forwarding ICMP flood from one source address to random 
-> destination addresses, it becomes unresponsive and CPU usage goes up.
-> 
-> No NAT was taking place, just conntrack and nat modules loaded.
-> 
-> Some debugging and profiling showed problem is that entry in
-> ip_nat_core.c:bysource for flooding source address hash is growing very
-> large and find_appropriate_src is walking all this list and always 
-> failing.
+Hello,
 
-Ah, there are a couple of problems here.
+> > While fighting with ICMP flood we came across strange NAT problem.
+<snip>
 
-The code is trying to ensure that we are compliant with Dan Kegel's
-proposed NAT RFC changes:
+> > No NAT was taking place, just conntrack and nat modules loaded.
+<snip>
 
-	http://www.alumni.caltech.edu/~dank/peer-nat.html
+> Ah, there are a couple of problems here.
+Do you remeber what I reported some time ago about a problem with ICMP
+redirects. When the NAT module was loaded, after some time, the kernel
+stopped reacting to ICMP redirects sent by one of my routers. When i
+unloaded the NAT module, everything came back to normal, and the kernel
+reacted to redirects and used to send the packets to the proper IPs.
 
-But there are several problems.  The first is that your application is
-probably not varying the ICMP echo ID, so it's hitting a single hash
-bucket for everything.  The second is that the in_range code seems to
-have a logic bug:
+Has that been investigated?
 
-	if ((mr->range[i].flags & IP_NAT_RANGE_PROTO_SPECIFIED)
-	    && proto->in_range(&newtuple, IP_NAT_MANIP_SRC,
-			       &mr->range[i].min, &mr->range[i].max))
-		return 1;
-
-This should be:
-
-	if (!(mr->range[i].flags & IP_NAT_RANGE_PROTO_SPECIFIED)
-	    || proto->in_range(&newtuple, IP_NAT_MANIP_SRC,
-			       &mr->range[i].min, &mr->range[i].max))
-		return 1;
-
-Which means it will match the first entry...
-
-Does that help?
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+Regards,
+Maciej
