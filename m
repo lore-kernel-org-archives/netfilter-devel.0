@@ -1,26 +1,44 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
-Subject: Re: [PATCH|RFC] IPv6 netfilter: a module for complete proxy ND
- support
-Date: Wed, 14 Jan 2004 21:04:27 +0900 (JST)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040114.210427.104284595.yoshfuji@linux-ipv6.org>
-References: <Pine.LNX.4.58.0401141250470.24125@rhea.tcs.hut.fi>
+From: John Williams Floroiu <floroiu@fokus.fraunhofer.de>
+Subject: Re: problems with netlink_broadcast
+Date: Wed, 14 Jan 2004 13:34:50 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <4005376A.9070209@fokus.fraunhofer.de>
+References: <4003DCD7.6040602@fokus.fraunhofer.de> <400424F7.9040508@trash.net> <400435F7.7070309@fokus.fraunhofer.de> <40052746.80400@eurodev.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, davem@redhat.com, netdev@oss.sgi.com,
-        yoshfuji@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: vnuorval@tcs.hut.fi
-In-Reply-To: <Pine.LNX.4.58.0401141250470.24125@rhea.tcs.hut.fi>
-Errors-to: netdev-bounce@oss.sgi.com
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: pablo neira <pablo@eurodev.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <Pine.LNX.4.58.0401141250470.24125@rhea.tcs.hut.fi> (at Wed, 14 Jan 2004 13:25:42 +0200 (EET)), Ville Nuorvala <vnuorval@tcs.hut.fi> says:
 
-> the packets for local processing. I think the cleanest solution for this
-> is a netfilter module (which I have incidentally written already :)
+Hi Pablo,
 
-I don't think so. Proxy should not depend on netfilter.
+> I think that you are trying to create a skbuff with no netlink header 
+> because you set last parameter of NLMSG_PUT to 0.
 
---yoshfuji
+NLMSG_PUT allocates a buffer of NLMSG_LENGTH(len), which according to its definition:
+
+     #define NLMSG_LENGTH(len) ((len)+NLMSG_ALIGN(sizeof(struct nlmsghdr)))
+
+should create room for exactly one nlmsghdr in my case.
+
+anyway, in one of the cases when I managed to make it work (as mentioned in my first email) the data could be received 
+in user space.
+
+> Anyway, if it doesn't work have a look at ip_queue.c and ipt_ULOG.c. It 
+> could help you out.
+
+I will check them in more detail.
+
+cheers,
+John.
