@@ -1,12 +1,15 @@
-From: Doug SC <dougsc@yahoo.com>
-Subject: Inbound packet buffering
-Date: Mon, 19 Jan 2004 06:34:54 -0800 (PST)
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: Inbound packet buffering
+Date: Mon, 19 Jan 2004 15:39:12 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040119143454.34247.qmail@web11610.mail.yahoo.com>
+Message-ID: <400BEC10.8030503@eurodev.net>
+References: <20040119143454.34247.qmail@web11610.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Doug SC <dougsc@yahoo.com>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040119143454.34247.qmail@web11610.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,34 +20,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Good Morning.
+Hi doug!
 
-I have a kernel driver which has registered for
-inbound packets.
+Doug SC wrote:
 
-nf_register_hook(...NF_IP_PRE_ROUTING...)
+>Good Morning.
+>
+>I have a kernel driver which has registered for
+>inbound packets.
+>
+>nf_register_hook(...NF_IP_PRE_ROUTING...)
+>
+>I am looking to take action on certain UDP ports on
+>packets which may exceed MTU.  I see the fragmented
+>packets at this hook and since I can't be certain of
+>the order of receipt I need to buffer packets until I
+>receive the fragment which contains the ports.
+>  
+>
+If you understood well, you don't want to work with fragmented packets 
+anymore or you look for an easy way to handle them, do you?
 
-I am looking to take action on certain UDP ports on
-packets which may exceed MTU.  I see the fragmented
-packets at this hook and since I can't be certain of
-the order of receipt I need to buffer packets until I
-receive the fragment which contains the ports.
+I have two ideas:
 
-Once I can see the port I may want to send all the
-packets I have buffered plus the one that allowed me
-to make the decision.
+a) load the ip_conntrack module for connection tracking, it gathers all 
+the fragments in the NF_IP_PRE_ROUTING hook and fragment them again in 
+the NF_IP_POST_ROUTING. So you could register your hook in the 
+NF_IP_FORWARD hook instead of  the NF_IP_PRE_ROUTING hook and you won't 
+be working with fragmented packets anymore, the conntrack will do that 
+work for you.
 
-I have looked around and thought that the
-ip_local_deliver function in ip_input.c looked
-promissing but it does not appear to be an exported
-symbol.
+b) use the same code as ip_conntrack does:
 
-Any info or pointers to existing code would be
-appreciated.
+http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L826
+http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_standalone.c#L201
 
-Thanks
-
-__________________________________
-Do you Yahoo!?
-Yahoo! Hotjobs: Enter the "Signing Bonus" Sweepstakes
-http://hotjobs.sweepstakes.yahoo.com/signingbonus
+cheers,
+Pablo
