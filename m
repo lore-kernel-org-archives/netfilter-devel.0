@@ -1,11 +1,11 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.5]: Fix wrong AH-header in ipt_ah.c
-Date: Mon, 21 Jul 2003 03:33:59 +0200
+Subject: [PATCH 2.5]: Use struct ip_esp_hdr from ip.h for ipt_esp.c
+Date: Mon, 21 Jul 2003 03:39:47 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F1B4307.8070108@trash.net>
+Message-ID: <3F1B4463.6050004@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------090007030905070009060105"
+ boundary="------------090808040800030603090306"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@gnumonks.org>
@@ -20,53 +20,54 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090007030905070009060105
+--------------090808040800030603090306
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch uses the common struct ip_auth_hdr declaration from ip.h.
-The header declared in ipt_ah.c was wrong, so this makes matching actually
-work.
+This patch makes ipt_esp.c use struct ip_esp_hdr from ip.h instead of
+declaring its own. Since struct esphdr contained only the spi this patch
+changes the logging behaviour slightly, packets with incomplete esp
+headers will be logged as incomplete instead of having their spi logged
+as long as they are > 4b.
 
 Best regards,
 Patrick
 
---------------090007030905070009060105
+--------------090808040800030603090306
 Content-Type: text/plain;
- name="25-ipt_ah-wrong-ahhdr.diff"
+ name="25-ipt_esp-esphdr.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="25-ipt_ah-wrong-ahhdr.diff"
+ filename="25-ipt_esp-esphdr.diff"
 
 # This is a BitKeeper generated patch for the following project:
 # Project Name: Linux kernel tree
 # This patch format is intended for GNU patch command version 2.5 or higher.
 # This patch includes the following deltas:
-#	           ChangeSet	1.1536  -> 1.1537 
+#	           ChangeSet	1.1537  -> 1.1538 
 #	net/ipv4/netfilter/ipt_esp.c	1.6     -> 1.7    
 #
 # The following is the BitKeeper ChangeSet Log
 # --------------------------------------------
-# 03/07/21	kaber@trash.net	1.1537
-# [NETFILTER]: Fix wrong AH-header
+# 03/07/21	kaber@trash.net	1.1538
+# [NETFILTER]: Use common struct ip_esp_hdr declaration
 # --------------------------------------------
 #
-diff -Nru a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
---- a/net/ipv4/netfilter/ipt_ah.c	Thu May 22 01:35:36 2003
-+++ b/net/ipv4/netfilter/ipt_ah.c	Mon Jul 21 02:48:59 2003
+--- a/net/ipv4/netfilter/ipt_esp.c	Thu May 22 01:35:36 2003
++++ b/net/ipv4/netfilter/ipt_esp.c	Mon Jul 21 02:46:04 2003
 @@ -1,6 +1,7 @@
- /* Kernel module to match AH parameters. */
+ /* Kernel module to match ESP parameters. */
  #include <linux/module.h>
  #include <linux/skbuff.h>
 +#include <linux/ip.h>
  
- #include <linux/netfilter_ipv4/ipt_ah.h>
+ #include <linux/netfilter_ipv4/ipt_esp.h>
  #include <linux/netfilter_ipv4/ip_tables.h>
 @@ -13,10 +14,6 @@
  #define duprintf(format, args...)
  #endif
  
--struct ahhdr {
+-struct esphdr {
 -	__u32   spi;
 -};
 -
@@ -77,10 +78,10 @@ diff -Nru a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
        int offset,
        int *hotdrop)
  {
--	struct ahhdr ah;
-+	struct ip_auth_hdr ah;
- 	const struct ipt_ah *ahinfo = matchinfo;
+-	struct esphdr esp;
++	struct ip_esp_hdr esp;
+ 	const struct ipt_esp *espinfo = matchinfo;
  
  	/* Must not be a fragment. */
 
---------------090007030905070009060105--
+--------------090808040800030603090306--
