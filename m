@@ -1,14 +1,14 @@
 From: Felipe W Damasio <felipewd@terra.com.br>
-Subject: [PATCH 1/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_conntrack_core.c
-Date: Fri, 29 Aug 2003 17:08:51 -0300
+Subject: [PATCH 2/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_conntrack_standalone
+Date: Fri, 29 Aug 2003 17:09:00 -0300
 Sender: kernel-janitor-discuss-admin@lists.sourceforge.net
-Message-ID: <3F4FB2D3.1040709@terra.com.br>
+Message-ID: <3F4FB2DC.50006@terra.com.br>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------000806080403040002080607"
-Cc: netfilter-devel@lists.netfilter.org
+ boundary="------------030207070504020807030206"
 Return-path: <kernel-janitor-discuss-admin@lists.sourceforge.net>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+To: netfilter-devel@lists.netfilter.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	kernel-janitor-discuss@lists.sourceforge.net
 Errors-To: kernel-janitor-discuss-admin@lists.sourceforge.net
 List-Help: <mailto:kernel-janitor-discuss-request@lists.sourceforge.net?subject=help>
@@ -21,7 +21,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=kernel-janitor
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000806080403040002080607
+--------------030207070504020807030206
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -35,25 +35,25 @@ Content-Transfer-Encoding: 7bit
 
 Felipe
 
---------------000806080403040002080607
+--------------030207070504020807030206
 Content-Type: text/plain;
- name="ip_conntrack_core.patch"
+ name="ip_conntrack_standalone.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="ip_conntrack_core.patch"
+ filename="ip_conntrack_standalone.patch"
 
---- linux-2.6.0-test4/net/ipv4/netfilter/ip_conntrack_core.c.orig	Fri Aug 29 16:42:56 2003
-+++ linux-2.6.0-test4/net/ipv4/netfilter/ip_conntrack_core.c	Fri Aug 29 16:43:04 2003
-@@ -13,7 +13,6 @@
-  *	- export ip_conntrack[_expect]_{find_get,put} functions
-  * */
- 
+--- linux-2.6.0-test4/net/ipv4/netfilter/ip_conntrack_standalone.c.orig	Fri Aug 29 16:44:23 2003
++++ linux-2.6.0-test4/net/ipv4/netfilter/ip_conntrack_standalone.c	Fri Aug 29 16:44:28 2003
+@@ -14,7 +14,6 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/proc_fs.h>
 -#include <linux/version.h>
- #include <linux/config.h>
- #include <linux/types.h>
- #include <linux/icmp.h>
+ #include <net/checksum.h>
+ 
+ #define ASSERT_READ_LOCK(x) MUST_BE_READ_LOCKED(&ip_conntrack_lock)
 
---------------000806080403040002080607--
+--------------030207070504020807030206--
 
 
 
