@@ -1,14 +1,12 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Re: Augmenting conntrack
-Date: Wed, 15 Oct 2003 05:27:33 -0700 (PDT)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [PATCH] Update Polish FAQ
+Date: Wed, 15 Oct 2003 17:26:26 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031015122733.52468.qmail@web13902.mail.yahoo.com>
-References: <20031015100925.GA14198@obroa-skai.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.51.0310151725150.27249@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="-23717851-165982025-1066231586=:27249"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20031015100925.GA14198@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,36 +17,101 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-aaah, I forgot about the raw table.  I think I tried
-using that a bit back but had performance issues.  The
-issues probably were unrelated to the raw table, I
-would guess.  I will go and try that again first. 
-Thanks!
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
---- Harald Welte <laforge@netfilter.org> wrote:
-> On Tue, Oct 14, 2003 at 04:50:26AM -0700, Scott
-> MacKay wrote:
-> > The only things I can think of which might work
-> would
-> > be to change the NF_IP_PRI_CONNTRACK value to be
-> > higher than MANGLE (ugly, doubt it would work),
-> alter
-> > the conntrack module to de-mangle what it sees so
-> it
-> > can establish connection tracking OK (also ugly
-> and
-> > not sure where I would start), or maybe a
-> conntrack
-> > helper module (saw amanda did this, was not sure
-> if I
-> > could specify a fairly wide criterea).  
-> 
-> or put your queue rule into PREROUTING of the 'raw'
-> table (see
-> patch-o-matic).
+---23717851-165982025-1066231586=:27249
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
+Hi,
 
-__________________________________
-Do you Yahoo!?
-The New Yahoo! Shopping - with improved product search
-http://shopping.yahoo.com
+this patch updates the polish FAQ to the current FAQ in CVS.
+
+Regards,
+Maciej
+---23717851-165982025-1066231586=:27249
+Content-Type: APPLICATION/octet-stream; name="FAQ_PL.diff.gz"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.51.0310151726260.27249@dns.toxicfilms.tv>
+Content-Description: FAQ_PL.diff.gz
+Content-Disposition: attachment; filename="FAQ_PL.diff.gz"
+
+H4sICPBkjT8AA0ZBUV9QTC5kaWZmAL1YXU/cSBZ9Hv+KO2w0gPqLbr6SHtIJ
+E8gO2YEwQDZSVquo2i6a6rZdHruMY/+dleYdtcTTSPk3PPAW8Qf23LLd3RAy
+u9JKm5kEul2uuh/nnntuHYSe/NSnUJpz5RsZt87Fb+1kFPjO8//9j3Py6pSw
+r+xTx71MonToK7czO6vjaTcNZGiEUTrsvN79tRP5na9NaV46sTSxkpcqHFGM
+HwnWU7e97Xjq/JxaKbVifHrMi1ar9cjX3/W26U0aUm9tbZ26m/31p/3eOrXW
+8Oc73rbRaDz2VneT3rpm9lZ3q7+xWb7lvHxJrY3mM2psNLtr9PKlQw7tGGV8
+OZj7qyIjhr5MCK7udMqnWCZSc6Hjwc8iFr5H7yXW0g+++dEX5zoeyZejMA10
+OEna+PTDyPz4Q+j/6DR2PGHk4O8ytsF4clKFpY+4bPToSZOe7GFB31rb6a7h
+f+qu9Xvb/e4zerLTsW87dDZNA+EWMlRYeihcJcd0qqcmT5SY7Bgz2LkwgZ/G
+PoUikM+XEu2bl16YtI3+pFz4FeDXyyXCiudLgYCfuv+NNQO4jP06lbtO6088
+2H7owNpWBzmbpWrmQOueA6+KTMRGTqi3hd9lnLmizNZs/Z+F7eljUduk7nZ/
+7Vl/bXNhk3uH/h5rT8A0OhZ/eIWScagmD49lNIhhYmLhGo66DMnTEwt+KkSG
+lwQCPHaL22ubgkJ4IhOhpCg3IlSCVl7H8rcUy/2cdpOJ9OjXVCZcN8kqZXli
+bqN0fOVK7EK+4k0sJLu9jeYWNbq9zebGeg3LTiKtFQgG/9YdvCpyqrEJkG5V
+KB3jAMooYQskFbEeqhs6OL7coqPdsxd4O0IojpRsUuwV8gt/S7xSD5NpOkrH
+kuBvmIyFO1ble346tL908M8GjcVEyZGeaB8BmDgNxLEQ47SNnTulYU7jno3J
+FUW+CPPqBEWnB8e1HfiVVk5lYtN6ECqjLKvQcayNdrW/Wrrj6esbKqb6sw7z
+JiUFkji689nqzGlYcwOVwNxIR3EhC7BXLDPh+5IUMF5ceZx0wa62id5z2EMY
+FetIF7k7vqJhPhVOY6KDlFHgjgV2uo6lZzGxgoWf8tXZ5q9fwebX1Qn0Socm
+1v6CxViVO430c+6qlHkU9lHEQTN3GY7/oJGaqQBYrD+CRnEaCUKetFsIOtg/
+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
+
+---23717851-165982025-1066231586=:27249--
