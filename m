@@ -1,17 +1,17 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: [PATCH] patch-o-matic fixes
-Date: Wed, 30 Apr 2003 23:49:57 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] fuzzy.patch and fuzzy6.patch.ipv6
+Date: Thu, 1 May 2003 13:18:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030430214957.GA8011@alpha.home.local>
-References: <20030430085332.GA32392@alpha.home.local> <20030430153222.GC685@sunbeam.de.gnumonks.org> <1051717921.8200.151.camel@tux.rsn.bth.se> <20030430162835.GA4546@alpha.home.local> <1051721066.8214.158.camel@tux.rsn.bth.se>
+Message-ID: <20030501111817.GA26924@sunbeam.de.gnumonks.org>
+References: <20030430203937.18286.qmail@mail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Willy Tarreau <willy@w.ods.org>, Harald Welte <laforge@netfilter.org>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+Cc: cieciwa@alpha.zarz.agh.edu.pl, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+To: Hime Junior <hime@engineer.com>
 Content-Disposition: inline
-In-Reply-To: <1051721066.8214.158.camel@tux.rsn.bth.se>
+In-Reply-To: <20030430203937.18286.qmail@mail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,39 +22,68 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Apr 30, 2003 at 06:44:26PM +0200, Martin Josefsson wrote:
-> Please get a current patch-o-matic from cvs and try again.
 
-I've just rechecked with a fresh 2.4.20 + patch-2.4.21-rc1 + cset-1.1141
-from kernel.org, and a fresh p-o-m-20030429 from netfilter.org, and I can
-only reproduce the problem if I don't enable 24_conntrack-nosysctl (as you
-said). Once it's applied, tcp-window-tracking applies correctly. I don't
-really know why I wasn't including it, because I had marked it as one to
-avoid because of a conflict it would have caused in an earlier version, or
-against a broken kernel... Strange...
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > 		pending/12_conntrack_nat_dependancy
-> 
-> This patch doesn't even exist in p-o-m anymore.
+On Wed, Apr 30, 2003 at 03:39:37PM -0500, Hime Junior wrote:
+>     I=B4m curious about what "unresolved symbols" are those and why,=20
+>  by changing the VALUE of a symbolic constant,the problem vanishes...
 
-Yes, I know that but it's still listed here because I maintain a list of
-patches to avoid, which makes frequent rebuilds far easier.
+Although I do all my development on PowerPC, I have to admit that I
+never tested the fuzzy patch.
 
-> > 		extra/ip_conntrack-timeouts
-> 
-> This one is incompatible with extra/tcp-window-tracking.patch
-> 
-> The dependencies in p-o-m won't allow you to try applying both these
-> patches at the same time (unless you use force)
+I suppose the unreslved symbols are with regard to floating point
+functions that are not provided by the kernel.
 
-I know, but it's on my avoid-list too, because if I apply it by mistake,
-I only see the conflict on the last one... tcp-window-tracking, so I
-prefer drop it from the start.
+>  OK . The floating point instructions are eliminated by
+>  applying this patch .
 
-Well, it seems that my list initiated to make my life easier fooled me
-instead, this time !
+exactly.  I am not even sure that it was valid to use floating point
+instructions at all.  IIRC, the kernel doesn't save the FPU registers,
+so if we interrupt an userspace process that uses FPU, we will corrupt
+it.  Not sure whether this is still true, and/or this is only valid
+within syscall context.
 
-Thanks for your help, Harald and Martin, and sorry for the noise.
+>  The only problem is relative to truncation errors...
+> I don=B4t have a PPC to do exaustive tests , but in the simulations that
+> I have made , no discrepancies were detected when computing the final
+> acceptance rates .
 
-Regards,
-Willy
+well, the algorithm is going to produce the same results on any
+architecture, independent of PPC or not.
+>  My opinion is that the primary reason for the change is very weird -
+>  "unresolved symbols" - and the solution is even more strange.=20
+>  Anyway , I suggest additional investigation about this issue .
+
+I can easily run a test here on my development machine, it's just the
+lack of time...
+
+>   Thank you very much .
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--VbJkn9YxBvnuCH5J
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+sQJ5XaXGVTD0i/8RArsPAKCCDbLGHrUTck31a+/pVuw8ial2YACfR9tB
+U2679pmaJ2aesbHPrKLUEts=
+=4Zq1
+-----END PGP SIGNATURE-----
+
+--VbJkn9YxBvnuCH5J--
