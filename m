@@ -1,13 +1,18 @@
-From: Pablo Cingolani <pcingola@uolsinectis.com>
-Subject: ip_route_me_harder question...
-Date: Wed, 26 Nov 2003 12:10:31 -0300
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: RAM and conntrack performance: first draft of the document is
+ online
+Date: Wed, 26 Nov 2003 17:26:17 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031126121031.67a8265e.pcingola@uolsinectis.com>
+Message-ID: <3FC4D429.3050401@trash.net>
+References: <20031028151032.GD726@eychenne.org> <20031103081240.GQ1536@sunbeam.de.gnumonks.org> <20031125153543.GD1082@eychenne.org> <20031125205723.GE2971@obroa-skai.de.gnumonks.org> <20031126034231.GA1044@eychenne.org> <20031126113645.GF3121@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Herve Eychenne <rv@wallfire.org>,
+ Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031126113645.GF3121@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,15 +23,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
 
-Refered to a question posted by "Zeeshan Ali <zeelists@yahoo.com>" a couple of days ago, I've suggested him to
-use ip_route_me_harder after changing a packet's saddr/daddr (at NF_IP_PRE_ROUTING).
-I've noticed that it doesn't work because after the hook changes the packet, ip_rcv_finish() calls
- skb->dst->input(skb) which seems to setted to something like 'dst_discard' (instead of 'ip_forward()' which is
-what I was expecting).
-Can someone give me a hint on what is wrong / what should be done to (correctly) change the routes 
-so that the packet is forwarded? 
-Thank you
-   Pablo
+>>Don't you think it would be good to shrink the lists immediately?
+>>Waiting til the number has dropped below the limit can take days...
+>>    
+>>
+>
+>well, it might be a good idea.  but I somehow doubt this is a valid
+>scenario.  And if we would shrink the list:  how do we select which
+>entries to evict?  I'd rather wait for ctnetlink to appear in mainstream
+>kernels and then leave that to a userspace process.
+>  
+>
 
-P.S.: Packet's saddr is changed to a local one.
+PF uses "adaptive timeouts" to scale down timeouts if the table gets full.
+IIRC until some threshold is reached, all entries have 100% of their normal
+timeouts, from then on its scaled down until 0% for a completly full table.
+I've been thinking about adding this to ip_conntrack for some time because
+I often have problems with my roommates edonkey and overflowing conntrack
+table. I decided to experiment with it when the timeout handling of conntrack
+is changed from beeing handled by a per-conntrack timer to a global cleanup
+timer. I recall someone wanted to make a patch for this some time ago to
+prevent timer storms, do you have any information if anyone is currently
+working on this ? Otherwise I might just do both ..
+
+Best regards,
+Patrick
