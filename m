@@ -1,13 +1,17 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Re: RPC conntrack code status
-Date: Mon, 29 Mar 2004 09:29:26 +1000
+From: Willy TARREAU <willy@w.ods.org>
+Subject: Re: [PATCH-2.4.26] ip6tables cleanup
+Date: Mon, 29 Mar 2004 00:38:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200403282329.i2SNTQe23767@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
-Cc: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+Message-ID: <20040328223805.GA27147@pcw.home.local>
+References: <20040328042608.GA17969@logos.cnet> <20040328115439.GA24421@pcw.home.local> <m2d66wsrg2.fsf@p4.localdomain> <20040328200932.GA19852@pcw.home.local> <20040328123318.63c54ee8.davem@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: petero2@telia.com, marcelo.tosatti@cyclades.com,
+   linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Harald Welte" <laforge@netfilter.org>
+To: "David S. Miller" <davem@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20040328123318.63c54ee8.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,50 +22,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+David,
 
-Hello Harald,
+I sent last one too quickly, it needs this one to compile :
 
+diff -urN linux-2.4.26-rc1/include/net/ipv6.h linux-2.4.26-rc1-ipv6/include/net/ipv6.h
+--- linux-2.4.26-rc1/include/net/ipv6.h	Mon Mar 29 00:18:38 2004
++++ linux-2.4.26-rc1-ipv6/include/net/ipv6.h	Mon Mar 29 00:36:39 2004
+@@ -321,8 +321,8 @@
+ 						    struct ipv6_txoptions *opt,
+ 						    u8 *proto);
+ 
+-extern int			ipv6_skip_exthdr(struct sk_buff *, int start,
+-					         u8 *nexthdrp, int len);
++extern int			ipv6_skip_exthdr(const struct sk_buff *,
++					int start, u8 *nexthdrp, int len);
+ 
+ extern int 			ipv6_ext_hdr(u8 nexthdr);
+ 
 
-  Do you have any details on its instability (or someone who has reported such,
-who may also be prepared to do some testing) ?
-
-
-Thanks,
-
-
-
------ Original Message -----
->From: "Harald Welte" <laforge@netfilter.org>
->To: "Eduardo Pereira Habkost" <ehabkost@conectiva.com.br>
->Subject:  Re: RPC conntrack code status
->Date: Sun, 28 Mar 2004 20:32:48 +0200
->
-> On Fri, Mar 26, 2004 at 11:55:54AM -0300, Eduardo Pereira Habkost wrote:
-> > Hi, All,
-> > 
-> > I've been looking at the Netfilter RPC conntrack module, and I would
-> > like to know the status of the permanent inclusion of this module. Is
-> > this module considered stable and there are plans to include it, soon?
-> 
-> It is by no means stable, and there are no plans to include it.
-> 
-> I would consider it abandoned by the original author / unmaintained.
-> 
-> > Regards,
-> 
-> []'s ;)
-> 
-> -- 
-> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-> 
-==========================================================================
-==
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
-> 
-
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
+Sorry for the noise,
+Willy
