@@ -1,16 +1,13 @@
-From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: Re: extra/pptp-conntrack-nat.patch
-Date: Fri, 11 Apr 2003 23:26:21 +0200
+From: Padraig@Linux.ie
+Subject: maintaining per rule counters
+Date: Thu, 10 Apr 2003 16:02:42 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E9732FD.1010804@fl.priv.at>
-References: <Pine.LNX.4.44.0304111409550.15504-100000@localhost.localdomain>
-Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <3E958792.8040501@Linux.ie>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0304111409550.15504-100000@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,55 +18,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello!
+Hi I'm afraid I can't subscribe to the mailing list at present?
 
-Ilguiz Latypov wrote:
-> 
-> The following chart represents my understanding of the PPTP tracking
-> modules capabilities in their current state.  I assumed that uncommenting
-> the "return NF_ACCEPT" statement in question is equivalent to not tracking
-> a connection with bad TCP checksum. [....]
-> 
->                                  connection from       connection from
->                                behind the NAT box    the NAT box itself
-> 
->                                good TCP   bad TCP     good TCP   bad TCP
->                                checksum   checksum    checksum   checksum
-> 
-> 
->       no PPTP modules             1          1           +          +
+Anyway I have a fairly simple requirement to maintain per
+rule packet & byte counts that are timestamped and sent
+to userspace every 1ms (packet clocked).
 
-For connections from behind the NAT box I can not confirm this.
+My question is where is the best place to store the 1ms of counters.
+Can I create a target module and put the data in the *targinfo
+I.E. is targinfo global to the target module or per rule.
+The ideal would be if it was dynamically allocated per rule and
+was just big enough for my counters+timestamp. What determines
+the size?
 
-> 
-> 
->    unmodified PPTP modules        +          +           -          -
->  without the local NAT option
-> 
->    unmodified PPTP modules        +          +           +          +
->   with the local NAT option
-> 
->  uncommented "return NF_ACCEPT"
->     for bad TCP checksums         +          1           -          +
->  without the local NAT option
-> 
->  uncommented "return NF_ACCEPT"
->     for bad TCP checksums         +          1           +          +
->   with the local NAT option
-> 
-> 
-> ------------------
-> +: Any number of connections of given class is treated correctly.
-> -: No connection possible.
-> 1: Only one connection at a time will work in these cases.  If this refers
->    to the "behind the NAT box" connections, no connections from the NAT
->    box itself should be allowed for this to work.
-> 
-
-As the local nat patch is not in patch-o-matic-20030107 did not
-get applied to my kernel, but for me that's irrelevant, as I don't
-currently use pptp from the linux maschine itself.
-
--- 
-MfG / Regards
-Friedrich Lobenstock
+cheers,
+P=E1draig.
