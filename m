@@ -1,16 +1,12 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: patch-o-matic problem
-Date: Tue, 17 Feb 2004 00:16:55 +0100
+From: Kiran Kumar <immidi_kiran@yahoo.com>
+Subject: TCP match and IP fragmentation
+Date: Mon, 16 Feb 2004 21:22:56 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40314F67.4080104@eurodev.net>
-References: <000801c3f4b9$8eb883d0$4900a8c0@racoon>
+Message-ID: <20040217052256.36333.qmail@web14008.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sandeep Singh Kohli <sskohli@vsnl.com>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <000801c3f4b9$8eb883d0$4900a8c0@racoon>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,27 +17,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hi!
+Hi,
+  I need some clarification on how ip fragmentation
+and tcp match interact. The tcp match seems to not
+match any non-first fragments (return 0 if offset is
+non-zero). So, if I have a rule to accept tcp packets
+to a certain port in a chain, and no other rules, does
+that mean that the first fragment is accepted and the
+later ones not accepted? Do correct me if I have got
+anything wrong.
 
-Sandeep Singh Kohli wrote:
 
-> hi
-> i dunno whether i have to mail here
-> i downloaded the latest path-o-matic version from the CVS
-> I dunno whether there should be a sequence in which one midule 
-> compiles over other..cos there were MANY problems while compiling the 
-> kernel
+=====
+Regards,
+Kiran Kumar Immidi
 
-you should pay attention because some patches could break others, so 
-appliying all the patches is not a good idea.
-
-> i mean whas the point in building a firewall when u had to comment out 
-> majority of the code
-
-patch-matic is a set of patches that are not included in the standalone 
-version of netfilter/iptables because they are not considerated stable 
-yet. So it's your responsability using them. In fact patch-o-matic-ng is 
-still a work in progress.
-
-best regards,
-Pablo
+__________________________________
+Do you Yahoo!?
+Yahoo! Finance: Get your refund fast by filing online.
+http://taxes.yahoo.com/filing.html
