@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: pkttables compilation problem
-Date: Wed, 21 Jan 2004 09:04:47 -0500
+Subject: Re: [patch-o-matic-ng] raw
+Date: Wed, 21 Jan 2004 09:15:38 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040121140447.GS8642@obroa-skai.de.gnumonks.org>
-References: <1074256826.6677.9.camel@oc-cinf-lin>
+Message-ID: <20040121141538.GU8642@obroa-skai.de.gnumonks.org>
+References: <200401161520.27405.timg@tpi.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mXDO3udm/xYWQeMQ"
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="wIc/V6YLA2QdyfT4"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Glauber Reis <greis_one@yahoo.com.br>
+To: Tim Gardner <timg@tpi.com>
 Content-Disposition: inline
-In-Reply-To: <1074256826.6677.9.camel@oc-cinf-lin>
+In-Reply-To: <200401161520.27405.timg@tpi.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,31 +23,25 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---mXDO3udm/xYWQeMQ
+--wIc/V6YLA2QdyfT4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 16, 2004 at 09:40:26AM -0300, Glauber Reis wrote:
-> Is pkttables from CVS broken? Is there any requisites?
+On Fri, Jan 16, 2004 at 03:20:27PM -0700, Tim Gardner wrote:
+> Harald,
+>=20
+> Please add to raw/linux/net/ipv4/netfilter/Makefile.ladd:
+>=20
+> obj-$(CONFIG_IP_NF_RAW) +=3D iptable_raw.o
 
-pkttables is an ongoing development effort, don't expect it to do
-anything.
+I'll add a Makefile.ladd_2 for that.
 
-> I got only NETLINK and nfnetlink-ctnetlink-0.13 into a 2.4.22 kernel
-> (from kernel.org).
-> I'd really want to try a netfilter userspace library, but got no success
-> with libiptc...
+> Tim Gardner - timg@tpi.com
 
-you seem to be confused.
+P.S.: It would really help if you'd start to use unified diffs :)
 
-a) pkttables is not needed for nfnetlink-ctnetlink
-b) libiptc is not related to nfnetlink-ctnetlink.
-
-all you want to compile is libnfnetlinks and libctnetlink.
-
-=20
-
+Thanks again.
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -58,7 +52,7 @@ all you want to compile is libnfnetlinks and libctnetlink.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---mXDO3udm/xYWQeMQ
+--wIc/V6YLA2QdyfT4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -66,9 +60,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFADob/XaXGVTD0i/8RAi4BAKCxxJ9g6Yu1bZN2a5KIgph8CqZZjgCfbO2z
-dLq3n6R7tMVzUaDJN9derJs=
-=ajMx
+iD8DBQFADomJXaXGVTD0i/8RAnZ1AKCcgYum5nMvLz6R+Vh9uWhITO2WEwCgoEiV
+Ft7TiH4RwhDl/lgYiu13XSY=
+=U2MQ
 -----END PGP SIGNATURE-----
 
---mXDO3udm/xYWQeMQ--
+--wIc/V6YLA2QdyfT4--
