@@ -1,24 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6 0/12]: netfilter update
-Date: Mon, 27 Sep 2004 01:19:13 +0200
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] convert mport to multiport
+Date: Mon, 27 Sep 2004 01:23:10 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41574E71.4060601@trash.net>
-References: <414F9DFC.701@trash.net> <20040921143611.6a6e2f60.davem@redhat.com>
-	<4150BB62.2060904@trash.net>
-	<20040921171857.2c720c8e.davem@redhat.com>
-	<4150D880.70108@trash.net>
-	<20040924154032.5a0c32e1.davem@redhat.com>
-	<41571BCC.2050909@trash.net>
-	<Pine.LNX.4.61.0409262344030.7439@filer.marasystems.com>
-	<41573B05.1000308@trash.net>
-	<Pine.LNX.4.61.0409262359430.7707@filer.marasystems.com>
+Message-ID: <41574F5E.1020409@eurodev.net>
+References: <415748E8.60000@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0409262359430.7707@filer.marasystems.com>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+In-Reply-To: <415748E8.60000@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,58 +21,168 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
+Hi again Patrick,
 
-> On Sun, 26 Sep 2004, Patrick McHardy wrote:
+I think that some comments about the patch could help you to review it, 
+so here we go :-)
+
+Pablo Neira wrote:
+
+>===== net/ipv4/netfilter/ipt_multiport.c 1.8 vs edited =====
+>--- 1.8/net/ipv4/netfilter/ipt_multiport.c	Thu Aug 19 02:14:53 2004
+>+++ edited/net/ipv4/netfilter/ipt_multiport.c	Sun Sep 26 00:22:25 2004
+>@@ -29,18 +29,38 @@
+> 
+> /* Returns 1 if the port is matched by the test, 0 otherwise. */
+> static inline int
+>-ports_match(const u_int16_t *portlist, enum ipt_multiport_flags flags,
+>-	    u_int8_t count, u_int16_t src, u_int16_t dst)
+>+ports_match(const struct ipt_multiport *minfo, u_int16_t src, u_int16_t dst)
+> {
+>-	unsigned int i;
+>-	for (i=0; i<count; i++) {
+>-		if (flags != IPT_MULTIPORT_DESTINATION
+>-		    && portlist[i] == src)
+>-			return 1;
+>-
+>-		if (flags != IPT_MULTIPORT_SOURCE
+>-		    && portlist[i] == dst)
+>-			return 1;
+>+	unsigned int i, m;
+>+	u_int16_t pflags = minfo->pflags;
+>+	u_int8_t count = minfo->count;
+>+	u_int16_t s, e;
+>+
+>+	for (i=0, m=1; i < count; i++, m<<=1) {
+>+		s = minfo->ports[i];
+>+
+>+		if (pflags & m) {
+>+			/* range port matching */
+>+			e = minfo->ports[++i];
+>+			m <<= 1;
+>+			duprintf("src or dst matches with %d-%d?\n", s, e);
+>+
+>+			if (minfo->flags & IPT_MULTIPORT_SOURCE
+>+			    && src >= s && src <= e)
+>+				return 1;
+>+			if (minfo->flags & IPT_MULTIPORT_DESTINATION
+>+			    && dst >= s && dst <= e)
+>+				return 1;
+>+		} else {
+>+			/* exact port matching */
+>+			duprintf("src or dst matches with %d?\n", s);
+>+			if (minfo->flags & IPT_MULTIPORT_SOURCE
+>+			    && src == s)
+>+				return 1;
+>+			if (minfo->flags & IPT_MULTIPORT_DESTINATION
+>+			    && dst == s)
+>+				return 1;
+>+		}
+>  
 >
->> We confirm conntrack entries in LOCAL_IN after they passed all hooks,
->> but this new set of hooks would be after LOCAL_IN, so conntrack entries
->> should be confirmed there.
+           ^^^
+This is the part that I've cleaned up. mport way of doing this is also ok.
+
+> 	}
+> 
+> 	return 0;
+>@@ -69,15 +89,11 @@
+> 		/* We've been asked to examine this packet, and we
+> 		 * can't.  Hence, no choice but to drop.
+> 		 */
+>-		duprintf("ipt_multiport:"
+>-			 " Dropping evil offset=0 tinygram.\n");
+>+		duprintf("ipt_multiport: Dropping evil offset=0 tinygram.\n");
+> 		*hotdrop = 1;
+> 		return 0;
+> 	}
+>-
+>-	return ports_match(multiinfo->ports,
+>-			   multiinfo->flags, multiinfo->count,
+>-			   ntohs(pptr[0]), ntohs(pptr[1]));
+>+	return ports_match(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
+> }
+> 
+> /* Called when user tries to insert an entry of this type. */
+>@@ -89,9 +105,6 @@
+> 	   unsigned int hook_mask)
+> {
+> 	const struct ipt_multiport *multiinfo = matchinfo;
+>-
+>-	if (matchsize != IPT_ALIGN(sizeof(struct ipt_multiport)))
+>-		return 0;
+>  
 >
+                  ^^^
+Hm this check is done in the return, it's duplicated.
+
+> 
+> 	/* Must specify proto == TCP/UDP, no unknown flags or bad count */
+> 	return (ip->proto == IPPROTO_TCP || ip->proto == IPPROTO_UDP)
+>===== include/linux/netfilter_ipv4/ipt_multiport.h 1.1 vs edited =====
+>--- 1.1/include/linux/netfilter_ipv4/ipt_multiport.h	Tue Feb  5 18:39:43 2002
+>+++ edited/include/linux/netfilter_ipv4/ipt_multiport.h	Sun Sep 26 00:23:48 2004
+>@@ -2,20 +2,30 @@
+> #define _IPT_MULTIPORT_H
+> #include <linux/netfilter_ipv4/ip_tables.h>
+> 
+>-enum ipt_multiport_flags
+>-{
+>-	IPT_MULTIPORT_SOURCE,
+>-	IPT_MULTIPORT_DESTINATION,
+>-	IPT_MULTIPORT_EITHER
+>+enum ipt_multiport_flags {
+>+	IPT_MULTIPORT_SOURCE_BIT = 0,
+>+	IPT_MULTIPORT_SOURCE = (1 << IPT_MULTIPORT_SOURCE_BIT),
+>+	
+>+	IPT_MULTIPORT_DESTINATION_BIT = 1,
+>+	IPT_MULTIPORT_DESTINATION = (1 << IPT_MULTIPORT_DESTINATION_BIT),
+>+
+>+	IPT_MULTIPORT_EITHER = IPT_MULTIPORT_SOURCE|IPT_MULTIPORT_DESTINATION,
+>  
 >
-> Right. THis would also ensure that connections not picked up by the 
-> host does not get confirmed, but there is many complications if 
-> attempting this path.
+                 ^^^
+flags like in ip_conntrack.h.
+
+
+> };
+> 
+> #define IPT_MULTI_PORTS	15
+> 
+>-/* Must fit inside union ipt_matchinfo: 16 bytes */
+>+/* Must fit inside union ipt_matchinfo: 32 bytes */
+>  
 >
-> - It must be fully assured no packets is silently accepted by the host 
-> without entering this new hook.
+     ^^^
+Actually I just took this from mport, I found this Harald's email 
+explaining this issue (actually I got stuck there some time because i 
+didn't understand that comment :-))
 
+http://lists.netfilter.org/pipermail/netfilter-devel/2003-January/010187.html
 
-ipip and gre don't have sockets, they could call the hook with
-sk = NULL. Some icmp types are processed without a socket, same
-here. Packets without a protocol or raw-socket for that protocol
-are dropped in ip_local_deliver_finish, another hook would be
-required there. With all this, the existing LOCAL_IN hook becomes
-pratically useless. So we could just extend the existing NF_HOOK
-macro by an "sk" argument. In LOCAL_OUT, it would be set to skb->sk
-and, for symetry, to NULL in POST_ROUTING. One big advantage of
-this is that it would allow filtering packets from a transport
-mode SA without reinjecting them into the stack. I think I have
-to try it to see how ugly it gets :)
-
+>+/* every entry in ports[] except for the last one has one bit in pflags
+>+ * associated with it. If this bit is set, the port is the first port of
+>+ * a portrange, with the next entry being the last.
+>+ * End of list is marked with pflags bit set and port=65535.
+>+ * If 14 ports are used (last one does not have a pflag), the last port
+>+ * is repeated to fill the last entry in ports[] */
+> struct ipt_multiport
+> {
+>-	u_int8_t flags;				/* Type of comparison */
+>-	u_int8_t count;				/* Number of ports */
+>+	u_int8_t flags:2;			/* Type of comparison */
+>+	u_int16_t pflags:14;			/* Port flags */
+> 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
+>+	u_int8_t count;                         /* Number of ports */
+>  
 >
-> - Fragmented packets is again an issue.
+                  ^^^
+use count instead of 65535+flag as ending
 
-
-Fragmentation is not a problem, packets are already defragmented
-when received on a socket.
-
-
->> I agree. But I wonder if its worth it just for having the owner match
->> work in the input path, or if there are other uses for these hooks.
+> };
+> #endif /*_IPT_MULTIPORT_H*/
+>  
 >
->
-> Not sure either. But then it is also the case I have never really been 
-> sure about the current independent relation of conntrack and the local 
-> host sockets..
 
-
-The socket could cache the conntrack entry, but then you
-run into problems with icmp and tcp, who uses the same socket
-(per-CPU in case of icmp) for replies generated by the kernel
-(RST, icmp reply, ...). Other than that, I don't see any
-advantage, we would still need the socket independent code for
-forwarded packets.
-
-Regards
-Patrick
+regards,
+Pablo
