@@ -1,13 +1,20 @@
-From: Joubert Berger <jberger@trustednetworktech.com>
-Subject: understanding how nf_bridge_maybe_copy_header works
-Date: Fri, 25 Jun 2004 14:28:41 -0400
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
+Subject: Re: (usagi-core 18584) Re: [PATCH]: 1st step to remove
+ skb_linearize() in ip6_tables.c and optimization
+Date: Thu, 24 Jun 2004 22:48:29 +0900 (JST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1088188121.3628.20.camel@localhost.localdomain>
+Message-ID: <20040624.224829.125081590.yoshfuji@linux-ipv6.org>
+References: <200406241304.WAA12656@toshiba.co.jp>
+	<Pine.LNX.4.33.0406241510140.8190-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net,
+	netfilter-devel@lists.netfilter.org, laforge@netfilter.org,
+	kisza@securityaudit.hu
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Developers <netfilter-devel@lists.netfilter.org>, Ebtables Developers <ebtables-devel@lists.sourceforge.net>
+To: usagi-core@linux-ipv6.org, kadlec@blackhole.kfki.hu
+In-Reply-To: <Pine.LNX.4.33.0406241510140.8190-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,20 +25,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry for the crosspost, but I was not sure which list this question
-would apply to.
+In article <Pine.LNX.4.33.0406241510140.8190-100000@blackhole.kfki.hu> (at Thu, 24 Jun 2004 15:25:54 +0200 (CEST)), Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> says:
 
-I am having some difficulty understanding something and I was hoping
-that someone can shed some light on the subject for me.
+> I'm unfamiliar with the deep magic behind IPv6: I simply assumed that
+> linear headers up to the transport protocol headers in IPv6 would just be
+> fine and enough for the matches. That'd require an ugly processing header
+> by header in skb_ip6_make_headers_linear ;-), I think.
 
-In the br_dev_queue_push_xmit() routine a call is made to
-nf_bridge_maybe_copy_header(), which seems to copy information from
-skb->nf_bridge->data to the skb->data.  This will happen when in being
-used by the bridge.  But, I can't seem to figure out how this data is
-copied into the skb->nf_bridge->data in the first place.  If you follow
-the code in the br_netfilter.c file for VLAN frames, I never see how
-skb->nf_bridge->data is set, yet it seems to copy the data from there. 
-So, I am missing something.  But, I can't seem to figure out what it
-is?  Can anyone help me?  Thanks in advance.
+It is full of beauty to process header by header.
+Skip processing extension header is BAD idea.
+You cannot (and shouldn't) see next header (or payload)
+until you really process the current header.
 
---joubert   
+--yoshfuji
