@@ -1,18 +1,12 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: /etc/sysconfig/iptables format
-Date: Sun, 24 Nov 2002 13:28:57 +0100
+From: "andre achternaam" <andreiscmeel@hotmail.com>
+Subject: Why UDP packet loss in the stack
+Date: Wed, 27 Nov 2002 12:38:04 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200211241328.57401.bdschuym@pandora.be>
-References: <Pine.LNX.4.44.0211200005530.5235-100000@azalea.cs.jmu.edu> <20021124104018.GC14672@oknodo.bof.de>
+Message-ID: <F127ZiTETFTzfHD0lYt0000a246@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>,
-	Arch Harris <netfilter02@jah.cs.jmu.edu>
-In-Reply-To: <20021124104018.GC14672@oknodo.bof.de>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,49 +17,67 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 24 November 2002 11:40, Patrick Schaaf wrote:
-Hello,
 
-I'd like your opinion about the way ebtables makes atomically writing a=20
-complete table to the kernel, possible.
+We encounter UDP packet loss. We are aware of the unreliable nature of UDP 
+but the way we loss packets is rather strange.  Assume 2 PCs linked with a 
+cross Ethernet cable. One PC having an UDP testserver and the other an UDP 
+client.
 
-ebtables uses another approach for getting table data into the kernel=20
-atomically.
-If you add the parameter --atomic <<FILE>> for each rule added on the com=
-mand=20
-line, ebtables will use the FILE instead of the kernel data to operate on=
-=2E=20
-The data in the FILE is a binary format, which can be read with this comm=
-and:
-ebtables --atomic <<FILE>> -L. The binary format is the exact binary data=
- that=20
-have to be given to the kernel to put the table data in the kernel.
-Once the rules are set up in FILE, ebtables --atomic-commit <<FILE>> will=
- give=20
-the table inside FILE to the kernel. So, only the last command actually=20
-changes the kernel data.
-Example:
-# inits the file filter_table with the default filter table
-# (no rules, policies on ACCEPT)
-ebtables -t filter --atomic-init  filter_table
-# adds a silly rule to the forward chain in filter_table
-# this command doesn't talk to the kernel
-ebtables -t filter --atomic filter_table -A FORWARD
-# overwrites the current kernel filter table data with the filter table d=
-ata
-# inside the file filter_table
-ebtables --atomic-commit filter_table
+Besides the UDP client we have also a tcpdump -nn -x -i eth0 > dumpfile 
+running.
+Looking at the packets (every packet has a increasing number) in the UDP 
+client we encounter sometimes (appears to be random…) packet loss. Sometimes 
++/-50 successive packets. Even seen losses of more than 150 packets in a 
+row. Actually we never found a loss of one packet in a row, up till now.
 
-I was wondering if this is a good scheme, from a user's point of view...
-One could say the file being binary is a problem. But the init script for=
- the=20
-ebtables tables can be written using the --atomic parameters, and that fo=
-rmat=20
-is well-defined (just the command line format)... Directly using the bina=
-ry=20
-file (without constructing it in the scripts) is just an option, it's not=
-=20
-necessary.
+When searching the dumpfile will learn that the packets do arrive at the pc! 
+Oke so they are lost somewhere in the stack. Why?
 
-cheers,
-Bart
+Some context of our UDP testserver:
+The UDP server streams as fast as possible (although send socket call is 
+synchronize) e.g. 50 Mega bit of data and will sleep the rest of the second 
+before it send the next chunk of packets (50 Mbit in total). The packet size 
+is 1500 minus UDP /IP header lengths. Both PCs have a NIC that is 100 Mbit. 
+Every packet has a tracking number in the payload that is increased for 
+every packet.
+
+Does anybody know where/why they are lost? Is there a max of the outstanding 
+packets in the kernel? If yes how do I tweak this max. How do I detect if 
+the stack desides to throw away some of the UDP packets (statistics).
+
+At the moment the server side is not the problem but this is not proven yet.
+
+Examining the dumpfile we found the also packet loss but not the 
+packetnumbers we found in the UDP client. So this implies that the udpdump 
+is not recording every packet. Is this right?
+
+Current settings in proc/sys/net/core
+
+hot_list_length = 128
+Lo_cong = 100
+Message_burst = 50
+Message_cost  =  5
+Mod_cong  = 290
+Netdev_max_backlog = 300
+No_cong = 20
+No_cong_tresh  = 20
+Opt_memmax = 10240
+[r/w]mem_[default/max] = 65535
+
+Grep from the web
+hot_list_length, maximum number of skb-heads to be cached, default 128 What 
+does this mean?
+optmem_max, maximum amount of option memory buffers.  What does this mean?
+net.core.rmem_max, maximum receive socket buffer size, default 65535  What 
+does this mean? Do I suffer from it while sending /receiving packets with 
+the size of 1500bytes
+
+
+
+All related information is appreciated
+
+Thanx in advance Andre
+
+_________________________________________________________________
+MSN 8 with e-mail virus protection service: 2 months FREE* 
+http://join.msn.com/?page=features/virus
