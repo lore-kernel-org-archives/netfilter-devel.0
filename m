@@ -1,15 +1,13 @@
-From: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson)
-Subject: Re: hi,anyone know where ippool v2.0 goes.
-Date: Thu, 3 Oct 2002 09:46:43 +0200
+From: "Eble, Dan" <DanE@aiinet.com>
+Subject: RE: problems with MAC filtering of fragmented packets
+Date: Thu, 3 Oct 2002 08:06:51 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021003074643.GD9998@aaricia.hemmet.chalmers.se>
-References: <000001c26aa1$bdb7e660$0f966fa6@dais> <20021003065326.GC9998@aaricia.hemmet.chalmers.se>
+Message-ID: <638AA0336D7ED411928700D0B7B0D75B03053CB1@aimail.aiinet.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: dais <dais@ccert.edu.cn>, netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20021003065326.GC9998@aaricia.hemmet.chalmers.se>
+To: "'Robert K. Johnson'" <johnson60@llnl.gov>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,48 +18,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-2002-10-03 08:53:26+0200, Joakim Axelsson <gozem@aaricia.hemmet.chalmers.se> ->
-> 2002-10-03 13:57:22+0800, dais <dais@ccert.edu.cn> ->
-> > hi,
-> > 
-> >     i searched the list and find somebody rewrite ippool 
-> > and aimed to add hash mode that is very useful in my opinion.
-> > but i can't find anything more.If nobody continues,i'll consider 
-> > to do that.any advices?
-> >     thx
-> >     Pluto.Dai
-> > 
-> 
-> Code is almost finished. Havn't had time to put the last things togther
-> though.
-> 
+Robert K Johnson wrote,
 
-You can find the code so far at:
-http://aaricia.hemmet.chalmers.se/~gozem/ippool/
+> I created a user chain that I jump to immediately from both the
+> INPUT and FORWARD chains.  This user chain performs a RETURN jump
+> for matches with known MAC's and DROPs all others.  I created
 
-Please understand that this code is HIGHLY under development. However this
-code seams stable, but not finished on all parts. Its NOT a patch so you
-have to have good knowlage about how to install additional files and get
-them to work with Makefiles etc. in kernel. Please do not ask me how to
-install it. If you don't know you shouldn't be using this code (yet).
+I am doing the same thing, except using only PREROUTING, i.e.
 
-Also, the API between ippool mainframe and the ippool pool-types are subject
-to change. So don't put in too much work into writing your own pool-types
-unless preperad to convert them fiting a new API.
+    iptables -t mangle -A PREROUTING -i eth0 -j acl-mac-eth0
 
-Unfinished parts:
-* ippool -R and -S (restore and save) is not yet implemented.
-* Will move the looks from mainfram to each pooltype to handle instead.
-* Add a few more pooltype: hash, timehash, nettree, portbitmap, accounting,
-  limitbitmaps.
-* Also convert it more to not only handle IP, but handle skbs instead,
-  meaning a pool can contain anything matching a skb. eg. ipv4, ipv6,
-  tcp-ports. This is almost finished.
+> I can see that fragmented packets are not passing the MAC check
+> when they should.
 
-A side note. This is ippool 0.3, the ippool in netfilter cvs is 0.1. When
-stable it will go 1.0
-
-Have fun! :-)
+I have not tested fragmented packets in my system since reading the recent
+reports.  If you have time to test using PREROUTING, would you mind letting
+me know how it turns out?  Thanks.
 
 -- 
-/Joakim Axelsson A.K.A Gozem@EFnet
+Dan Eble <dane@aiinet.com>           _____  .
+Applied Innovation Inc.             |  _  |/|
+Dublin, OH  43017-3271              | |_| | |
+614-923-1185 or 800-247-9482 x2051  |__/|_|_|
