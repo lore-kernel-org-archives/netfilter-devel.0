@@ -1,18 +1,17 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
 Subject: Re: NAT for IPv6
-Date: Thu, 20 Nov 2003 18:48:47 +0100
+Date: Thu, 20 Nov 2003 19:01:48 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031120174847.GA2254@balabit.hu>
-References: <20031120150641.GB1330@balabit.hu> <Pine.LNX.4.44.0311201643140.12803-100000@filer.marasystems.com>
+Message-ID: <20031120180148.GB2254@balabit.hu>
+References: <3FBCCBA0.7020309@netlab.hut.fi> <Pine.LNX.4.44.0311201626560.12803-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
-Cc: Harald Welte <laforge@netfilter.org>,
-	Maciej Soltysiak <solt@dns.toxicfilms.tv>,
+Cc: Emmanuel Guiton <emmanuel@netlab.hut.fi>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0311201643140.12803-100000@filer.marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0311201626560.12803-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,47 +22,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 20, 2003 at 04:48:37PM +0100, Henrik Nordstrom wrote:
-> On Thu, 20 Nov 2003, Balazs Scheidler wrote:
+On Thu, Nov 20, 2003 at 04:43:05PM +0100, Henrik Nordstrom wrote:
+> On Thu, 20 Nov 2003, Emmanuel Guiton wrote:
+> Undoubtly similar abuses of the IPv6 protocol to do "amasing" things is
+> likely to appear over time just as has had happened with IPv4 in the last
+> decade, but it is pointless to start discussing breaking the protocol
+> before investigating what solutions exists for solving the problem within
+> the protocol. A lot of thought has been put into the IPv6 protocol to
+> solve many of the problems experienced over the years with IPv4, and at
+> the same time the transition from IPv4 to IPv6 also allows for a nice
+> transition from old braindead applications to more capable applications.
 > 
-> > s/transition-nat\./transition-nat, and local NAT necessary for TPROXY to work./
-> 
-> TPROXY is a prime example of breaking the end-to-end MUST requirement of
-> IPv4 networking. Such abuses of the IPv4 protocol is actually among the 
-> worst.
-> 
-> TPROXY like designs should at best be seen as a temporary solution to a
-> problem, not a permanent solution.
+> So instead of focusing on IPv4 problems in a IPv6 packet level, take a
+> step back and look at the problem as such and how it is best solved in
+> IPv6. If this involves slight changes to applications to add behaviour not
+> yet existing, no big deal as the applications need to be changed anyway.
 
-And what do you think of the problem is? We are using TPROXY to create proxy
-based firewalls, analyzing the network flows at the application level.
-Proxies run in userspace moving a complex function out of the kernel (NAT
-helpers)
+You might be right in some circumstances, the problem is _existing_
+applications are being ported to IPv6 which carry on their legacy problems.
 
-TPROXY is not only meant to transparently proxy HTTP. Performing virus
-checking in a POP3 flow encrypted using SSL is not possible using packet
-filtering. (but it is using proxies)
+I can't see the trend that introducing IPv6 would replace all protocols in
+use today (POP3, IMAP, SMTP, etc.)
 
-> Lets at least try to solve the kinds of problems TPROXY and similar tools 
-> tries to solve in the IPv4 protocol by using the capabilities and 
-> opportunities provided by the IPv6 transition before starting to break the 
-> design of the IP protocol again.
+They will have their security implications just like in their IPv4
+equivalent. 
 
-I still can't see what you think the "kinds of problems TPROXY and silimar
-tools try to solve" is.
-
-We (and our customers) have the following requirements:
-
-- application layer verification (URL filtering, virus checking, tasks that
-  are difficult/impossible to solve from kernel space)
-- transparency
-  - because there are protocols which do not have a proxy mode 
-  - because they do not want to reconfigure their clients when a firewall
-    is installed.
-
-I can see cases when end-to-end IP connections are a must, but there are
-other cases when proxying is the only viable solution, and I can't see why
-we can't have a solution for both worlds.
+And adding explicit proxying to the protocol will not give you end-to-end IP
+either.
 
 -- 
 Bazsi
