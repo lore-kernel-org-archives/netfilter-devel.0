@@ -1,15 +1,16 @@
-From: "Andrew Smith" <nfml@k1k2.com>
-Subject: Re: performance issues (nat / conntrack)
-Date: Sat, 29 Jun 2002 15:25:50 +1000 (EST)
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: conntrack performance/DoS formula
+Date: Sat, 29 Jun 2002 11:03:32 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <40827.203.134.158.15.1025328350.squirrel@iw.k1k2.com>
-References: <20020627112448.GC9003@naboo.rchrd.phub.net.cable.rogers.com>
+Message-ID: <20020629110332.I4136@oknodo.bof.de>
+References: <15643.31140.525551.843205@isis.cs3-inc.com> <20020628082339.I2890@oknodo.bof.de> <15644.41633.528107.723418@isis.cs3-inc.com> <20020628203624.A4136@oknodo.bof.de> <15644.45834.373409.220647@isis.cs3-inc.com> <20020628213520.C4136@oknodo.bof.de> <15644.53466.193145.914415@isis.cs3-inc.com> <20020628232819.H4136@oknodo.bof.de> <15644.58258.483223.56527@isis.cs3-inc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
-In-Reply-To: <20020627112448.GC9003@naboo.rchrd.phub.net.cable.rogers.com>
+To: Don Cohen <don-nf@isis.cs3-inc.com>
+Content-Disposition: inline
+In-Reply-To: <15644.58258.483223.56527@isis.cs3-inc.com>; from don-nf@isis.cs3-inc.com on Fri, Jun 28, 2002 at 03:30:42PM -0700
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,52 +21,19 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> On Thu, Jun 27, 2002 at 12:21:45PM +1000, Andrew Smith wrote:
->> This gives a good example when being able to set the timeout dependant
->> upon specific factors (e.g. port/protocol) would be good rather than a
->> global timeout that suits specific cases and does not match many cases
->> - and causes a severe problem for a limited set of cases
-> 
-> Sorry, but we've had this discussion over and over again. Go to the
-> list archives and look for tuneable timeouts.
-> 
-> The conclusion of this discussion was, that we need to cope with all
-> cases without any tuning being necessarry. 
+> Is this "normal" ?  Do you have some idea about all these
+> ports 3128 and 3228 ?  
 
-Well either there is a language mistake or that statement is rubbish.
-It does NOT cope with all cases.
-If fails dismally with the case I've given.
-It is not POSSIBLE to cope with all cases without any tuning being
-necessary unless the code tuned itself.
+The machine where that ip_conntrack came from, is running two squid
+processes, one on each processor, and clients are distributed evenly
+over the two processes. 3128 and 3228 are the two listening ports
+of those squid processes.
 
-Pity that the conclusion is flawed.
+Such a conntrack shape will be the normal case for iptables running
+on a server, more extreme than when it's running on a routing firewall.
 
-> btw: For the 'ping' case, the icmp echo reply is closing the connection
-> anyway.
+As you asked for ideas about "better" hashes, could you possibly try
+using CRC32 over the concatenation of the key values?
 
-So I guess I need to look in detail what is happening in my case
-- but at a guess the problem might be that a large number of the
-connections fail to get a fast enough response and thus do not get
-closed for a 'long' time.
-
-> conntrack is mostly about tracking layer 3+4 protocol state.  And this
-> should happen as transparent as possible, so assumptions about the
-> application are made.  [conntrack helpers are an exemption, and be sure
-> I would be much happier if we didn't need to have them].
-> - Harald Welte / laforge@gnumonks.org              
-
-Yes but the problem is that it causes problems at a higher protocol
-level and though it works for most cases - it fails on at least a
-few specific cases.
-
-Anyway - this argument will not get anywhere.
-I guess some time (in the far distant future :-) when I have the
-time and inclination I'll fix it myself and then just have to keep
-patching it every time it's updated - coz the comments certainly
-suggest that a patch would not be accepted here.
-
--- 
--Cheers
--Andrew
-
-MS ... if only he hadn't been hang gliding!
+best regards
+  Patrick
