@@ -1,15 +1,14 @@
-From: Brad Chapman <kakadu_croc@yahoo.com>
+From: Robin Johnson <robbat2@orbis-terrarum.net>
 Subject: Re: [NEW EXTENSION] Condition Match
-Date: Tue, 29 Oct 2002 15:00:57 -0800 (PST)
+Date: Tue, 29 Oct 2002 18:52:34 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021029230057.20079.qmail@web40906.mail.yahoo.com>
+Message-ID: <3DBF4972.2020305@orbis-terrarum.net>
 References: <3DBED94E.1030107@videotron.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Stephane Ouellette <ouellettes@videotron.ca>
-In-Reply-To: <3DBED94E.1030107@videotron.ca>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,70 +19,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Mr. Oullette,
-
---- Stephane Ouellette <ouellettes@videotron.ca> wrote:
-> Folks,
-> 
->    I developped last week a new extension to Netfilter in order to 
-> enable or disable a set of rules using /proc files.
-> 
->    As an example, I like to play Quake III Aerna with a few friends of 
-> mine but I don't want to keep the firewall rules that make them able to 
-> connect to my computer active at all times.  Adding and removing these 
-> specific rules is annoying...
-> 
->     So my solution is illustrated by the following rules:
-> 
-> iptables -t nat -A PREROUTING -p udp -m condition -i $INTERNET --dport 
-> 27960 --condition quake -j DNAT --to-destination $MYCOMPUTER
-> iptables -t filter -A FORWARD -p udp -m condition -i $INTERNET -o $LAN 
-> --dport 27960 --condition quake -j ACCEPT
-> iptables -t filter -A FORWARD -p udp -m condition -i $LAN -o $INTERNET 
-> --dport 27960 --condition quake -j ACCEPT
-> 
-> 
+Stephane Ouellette wrote:
 > To enable the rules, issue:        echo 1 > /proc/net/ipt_condition/quake
 > To disable the rules, issue:       echo 0> /proc/net/ipt_condition/quake
+Just one suggestion with this, is /proc/net the right part of /proc for this?
+/proc/net seems to be statistics reporting only, with /proc/net/sys/ipv{4,6} 
+being where options are controlled.
 
-Useful. I can think of dozens of different uses for soemthing like this.
-
-> 
-> 
-> The /proc files are created automagically when a new condition is 
-> defined and destroyed when no rule points to them anymore.
-> 
 > As of this writing, the condition match module supports only one 
 > condition per rule.  I think I will add in a near future the possibility 
 > to match on many conditions at the same time, using the syntax:     
 > --condition file1,file2,file3. . .
+This may be getting somewhat complex, but would it be possible to have binary 
+ops on the conditions?
+eg: --condition file1 --conditionand file2 etc. But this MIGHT be getting a 
+little complex IMHO ;-).
 
-IMO you should be careful here. Adding too many of these just clutters things up
-and makes it hard to understand.
-
-> 
-> - It was tested under kernel 2.4.20-pre10-ac2
-> - So far so good, the condition match module seems stable !
-> 
-> Any comments, bug reports or suggestions would be greatly appreciated.
-
-One suggestion: take a look at iptables2 and code up a patch for this which uses
-netlink to check&control the conditions. Also, try a patch for IPv6, IMHO.
-
-> 
-> Enjoy !
-> 
-> Stephane.
-> 
-
-Brad
-
-=====
-Brad Chapman
-
-Permanent e-mail: kakadu_croc@yahoo.com
-
-__________________________________________________
-Do you Yahoo!?
-HotJobs - Search new jobs daily now
-http://hotjobs.yahoo.com/
+Other than that, it looks like a wonderful idea to be able to turn off/on rules 
+as needed.
