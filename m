@@ -1,15 +1,12 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [NEW TARGET] target for modifying conntrack timeout value
-Date: Wed, 08 Dec 2004 21:09:56 +0100
-Message-ID: <41B75F94.9020906@eurodev.net>
-References: <EINSTEINUmE8mGbGxMY00006d26@einstein.systemmetrics.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 2.6.10]: Fix memory leak in ip_conntrack_ftp
+Date: Wed, 08 Dec 2004 22:40:58 +0100
+Message-ID: <41B774EA.9030002@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------040400070107030803080009"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard <richard@o-matrix.org>
-In-Reply-To: <EINSTEINUmE8mGbGxMY00006d26@einstein.systemmetrics.com>
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,121 +18,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Richard wrote:
+This is a multi-part message in MIME format.
+--------------040400070107030803080009
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
->I sent this out a few days ago and got no reply. Thought that I should put a
->more obvious subject.
->
+Hi Dave,
 
-yes, now it's that obvious :)
+this patch fixes a remotely triggerable memory leak in ip_conntrack_ftp.
+exp leaks when a FTP date connection to a host different from the client
+(FXP) is attempted and the loose option is not set. It should go in
+2.6.10 in my opinion.
 
-> I wonder if someone can include this into svn.
->  
->
-
-OK, please next time post the patch clear text instead of a gzip, it's 
-easier to review.
-
-In the meantime this is pushed to the SVN, we have to fix some problems. 
-I just had a look at ipt_CTEXPIRE.c. Some comments:
+Regards
+Patrick
 
 
-Index: CTEXPIRE/linux/net/ipv4/netfilter/ipt_CTEXPIRE.c
-===================================================================
---- CTEXPIRE/linux/net/ipv4/netfilter/ipt_CTEXPIRE.c    (revision 0)
-+++ CTEXPIRE/linux/net/ipv4/netfilter/ipt_CTEXPIRE.c    (revision 0)
-@@ -0,0 +1,176 @@
-+/* CTEXPIRE modification target for IP tables
-+ * (C) 2004 by Richard Zheng <richard@o-matrix.org>
-+ *
-+ * Version: 1.0
-+ *
-+ * This software is distributed under the terms of GNU GPL
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/ip.h>
-+#include <net/checksum.h>
-+
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_CTEXPIRE.h>
-+#include <linux/netfilter_ipv4/ip_conntrack.h>
-+
-+MODULE_AUTHOR("Richard Zheng <richard@o-matrix.org>");
-+MODULE_DESCRIPTION("IP tables CTEXPIRE modification module");
-+MODULE_LICENSE("GPL");
-+
-+#undef DEBUG
-+
-+DECLARE_RWLOCK(ip_conntrack_lock);
+--------------040400070107030803080009
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-^^^
-ouch, you can't do that.
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/12/08 02:00:45+01:00 kaber@coreworks.de 
+#   [NETFILTER]: Fix memory leak in ip_conntrack_ftp
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# net/ipv4/netfilter/ip_conntrack_ftp.c
+#   2004/12/08 02:00:39+01:00 kaber@coreworks.de +1 -0
+#   [NETFILTER]: Fix memory leak in ip_conntrack_ftp
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- a/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-12-08 22:22:37 +01:00
++++ b/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-12-08 22:22:37 +01:00
+@@ -381,6 +381,7 @@
+ 		   problem (DMZ machines opening holes to internal
+ 		   networks, or the packet filter itself). */
+ 		if (!loose) {
++			ip_conntrack_expect_put(exp);
+ 			ret = NF_ACCEPT;
+ 			goto out;
+ 		}
 
-+static unsigned int
-+ipt_ctexpire_target(struct sk_buff **pskb,
-+    unsigned int hooknum,
-+    const struct net_device *in,
-+    const struct net_device *out,
-+    const void *targinfo,
-+    void *userinfo)
-+
-+{
-+    const struct ipt_CTEXPIRE_info *info = targinfo;
-+#ifdef KERNEL_64_USERSPACE_32
-+    unsigned long long new_expires;
-+#else
-+    unsigned long new_expires;
-+#endif
-
-   ^^^^^
-that ifdef just makes sense in user space, remove it and leave it as "long".
-
-
-+    enum ip_conntrack_info ctinfo;
-+    struct ip_conntrack *ct = ip_conntrack_get((*pskb), &ctinfo);
-+
-+
-+    IP_NF_ASSERT(ct->timeout.data == (unsigned long)ct);
-
-check if ct == NULL. In that case return 0.
-
-Invalid packets don't have a conntrack associated.
-
-+    new_expires = info->expires*HZ;
-+
-+    if (new_expires < info->expires) {
-+        /* if user specified value is too big, *HZ can overflow the counter
-+         * since it is big enough, just use the new value without *HZ
-+         */
-+        new_expires = info->expires;
-
-          ^^^
-       check this in user space
-
-+    }
-+
-+    WRITE_LOCK(&ip_conntrack_lock);
-+
-+#ifdef DEBUG
-+    printk(KERN_WARNING "CTEXPIRE: fired = %s, mode %d, value %ld\n",
-+           !is_confirmed(ct) ? "no" : "yes", info->mode, info->expires);
-+    unsigned long enter = ct->timeout.expires;
-+#endif
-+
-+    /* If not in hash table, timer will not be active yet */
-+    if (!is_confirmed(ct)) {
-+        switch (info->mode) {
-+            case IPT_CTEXPIRE_SET:
-+                ct->timeout.expires = new_expires;
-                  ^^^
-
-Hm I thought that I told you to use ip_ct_refresh... you should. Your 
-target will look smarter and you can forget about proper locking... 
-which is now completely broken...
-
-See your next email.
-
---
-Pablo
+--------------040400070107030803080009--
