@@ -1,16 +1,16 @@
-From: "Miguel Angel Amador Lorca" <amador@puc.cl>
-Subject: NAT on the same ethernet card ?
-Date: Fri, 10 Jan 2003 14:30:32 -0300
+From: Peter Surda <shurdeek@panorama.sth.ac.at>
+Subject: Re: NAT on the same ethernet card ?
+Date: Fri, 10 Jan 2003 18:55:37 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001801c2b8cd$fa819d00$7901000a@nivel5.cl>
-References: <3DEBA04C.7080606@myrealbox.com> <20030110140544.GV1353@sunbeam.de.gnumonks.org>
-Reply-To: "Miguel Angel Amador Lorca" <amador@puc.cl>
+Message-ID: <20030110175537.GG17367@noir.cb.ac.at>
+References: <3DEBA04C.7080606@myrealbox.com> <20030110140544.GV1353@sunbeam.de.gnumonks.org> <001801c2b8cd$fa819d00$7901000a@nivel5.cl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nlttjmhgc7EeTk3T"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <001801c2b8cd$fa819d00$7901000a@nivel5.cl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,24 +21,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-it' is possible that netfilter make NAT or MASQ over  a tcp-packet from the
-one net (10.0.1.0) , and back to the same net (back to the 10.0.1.0 again )
-?
-                                                              ____________
-My PC---->tcp request --->   eth0 -->  |                       |
-(10.0.1.105)                                          |       FW          |-
-eth1 -----------> - internet
-                   MyWWW  <--eth0------   |___________
-  -mydns
-                    (10.0.1.100)
 
+--nlttjmhgc7EeTk3T
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Fri, Jan 10, 2003 at 02:30:32PM -0300, Miguel Angel Amador Lorca wrote:
+> it' is possible that netfilter make NAT or MASQ over  a tcp-packet from the
+> one net (10.0.1.0) , and back to the same net (back to the 10.0.1.0 again )
+> ?
+Yes, by combining DNAT and SNAT. Next time post into -user mailing list, this
+one is for development.
 
+> Miguel Angel Amador Lorca    |    mailto:amador@puc.cl
+Bye,
 
-Miguel Angel Amador Lorca    |    mailto:amador@puc.cl
------BEGIN GEEK CODE BLOCK-----
-Version: 3.12
-GCM d- s:+ a- C++++ UL+++ P- L+++ E--- W+++ N++ o K- w++
-O- M- V- PS+ PE++ Y PGP- t 5 X+++ R !tv b+ DI- D
-G++ e- h* r- y*
-------END GEEK CODE BLOCK------
+Peter Surda (Shurdeek) <shurdeek@panorama.sth.ac.at>, ICQ 10236103, +436505122023
+
+--
+   If Bill Gates had a dime for every time a Windows box crashed...
+                ...Oh, wait a minute, he already does.
+
+--nlttjmhgc7EeTk3T
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+HwkZzogxsPZwLzcRAtECAJ9iSl0KLhwKM3+HXkSDH30xLNxyqQCgmIsO
+NtHl8N1bqdq1FtubyV1cGps=
+=m8Ys
+-----END PGP SIGNATURE-----
+
+--nlttjmhgc7EeTk3T--
