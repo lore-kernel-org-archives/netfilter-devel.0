@@ -1,15 +1,15 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [netfilter-core] Re: [ANNOUNCE] netfilter.org systems downtime
-Date: Sat, 23 Aug 2003 02:32:42 +1000
+From: larsbj@birdstep.com (=?iso-8859-1?q?Lars_Gullik_Bj=F8nnes?=)
+Subject: Re: Support for ip-ranges.
+Date: Tue, 19 Aug 2003 13:43:34 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030822163353.E468E2C0A8@lists.samba.org>
-References: <3F4633AE.8010801@trama.com>
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <m34r0dub2x.fsf@trylle.birdstep.com>
+References: <m3n0ekpevv.fsf@tyfon.gullik.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Herbert G. Fischer" <herbert@trama.com>
-In-reply-to: Your message of "Fri, 22 Aug 2003 12:15:58 -0300."
-             <3F4633AE.8010801@trama.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <m3n0ekpevv.fsf@tyfon.gullik.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,17 +20,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <3F4633AE.8010801@trama.com> you write:
-> I also never heard of a workshop that worked 24 hours during some 
-> days... Maybe some SMS cellphone warnings could monitor some systems...
+larsbj@birdstep.com (Lars Gullik Bj=F8nnes) writes:
 
-Well, Harald wanted to stay back at the hotel on the last day of the
-workshop while the rest of us went sightseeing, and we dragged him
-away.  There are plenty of other sources for the software, and he
-deserved the break.  If he hadn't we would have all had to stay
-behind, and I wanted to sightsee 8)
+| Are there support for matching on ip ranges in iptables now?
+>
+| I am thinking of something like:
+>
+|   --match iprange --iprange-begin 192.168.10.23 --iprange-end 192.168.1=
+1.15
+>
+| Have this been thought of or is it something that would
+| be interesting?
 
-Hope that clarifies,
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+[posted several days ago what happened to it?]
+
+Anyway I found the iprange patch on the web page, what are the
+prospects on getting this patch into ipfilter/iptables proper?
+
+--=20
+	Lgb
