@@ -1,19 +1,13 @@
-From: Valentijn Sessink <valentyn+netfilter-users@nospam.openoffice.nl>
-Subject: Re: NAT before IPsec with 2.6
-Date: Tue, 27 Jan 2004 14:27:25 +0100
+From: Dirk Morris <dmorris@metavize.com>
+Subject: ip_conntrack CLOSE_WAIT issue.
+Date: Tue, 27 Jan 2004 13:23:42 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127132725.GA14685@openoffice.nl>
-References: <20040124082252.GA19035@alpha.home.local> <Pine.LNX.4.44.0401241015470.32723-100000@filer.marasystems.com> <20040124092721.GA19140@alpha.home.local> <20040127103917.GC11761@sunbeam.de.gnumonks.org>
+Message-ID: <4016D6DE.4040801@metavize.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	Willy Tarreau <willy@w.ods.org>,
-	Henrik Nordstrom <hno@marasystems.com>,
-	Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
-	netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20040127103917.GC11761@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,44 +18,100 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+my conntrack table on machines are building up with tons of connections 
+in the CLOSE_WAIT state.
+Because the timeout is so long, they stick around until the table fills up.
 
-At Tue, Jan 27, 2004 at 11:39:18AM +0100, Harald Welte wrote:
-> I also disagree that an ESP packet should be trated as locally
-> generated (and thus iterate over OUTPUT).
+Why are these connections not transitioning to the full closed state?
+tcpdump shows that the full Fin/Fin-Ack/Ack takes place at the end of 
+these connections, but they still stick around.
 
-This is what happens with incoming packets: they hit INPUT twice.
 
->   From my perspective, locally
-> generated means more something like: sent via a local userspace process
-> using PF_INET sockets.  If we consider a packet after any kind of change 
-> as locally-generated, we could argue doing this with NAT'ed packets,
-> too.  Please try to convince me, if I'm missing some point.
+In the following example, timmy is running an echo server on port 7000.
 
-You are missing the point that the netfilter code changes the packets here,
-thus if you would want netfilter to do something else, you could code that
-in netfilter rules.
 
-Now let's review an IPsec tunnel. On the input side, everything works as
-expected: an ESP packet hits PREROUTING, then INPUT, gets unencrypted, then
-the new packet (that has different from and to, and may be a different
-protocol altogether) hits PREROUTING again, then INPUT (or FORWARD).
+~ # cat /proc/net/ip_conntrack| grep 7000                     [dmorris @ 
+timmy]
+<nothing>
 
-On output, however, things are not so transparant. A packet hits OUTPUT,
-then gets encrypted. A totally different packet hits POSTROUTING. This makes
-no sense.
+~ # s tcpdump "host bebe"                                  [dmorris @ timmy]
+...
+13:10:15.436354 bebe.43035 > timmy.7000: . ack 10 win 5840 
+<nop,nop,timestamp 164347449 1498713> (DF)
+13:10:17.702593 bebe.43035 > timmy.7000: F 10:10(0) ack 10 win 5840 
+<nop,nop,timestamp 164347675 1498713> (DF)
+13:10:17.702841 timmy.7000 > bebe.43035: F 10:10(0) ack 11 win 5792 
+<nop,nop,timestamp 1500980 164347675> (DF)
+13:10:17.703086 bebe.43035 > timmy.7000: . ack 11 win 5840 
+<nop,nop,timestamp 164347675 1500980> (DF)
 
-> One of the fundamental principles behind netfilter/iptables, especially
-> NAT, is it's symmetric behaviour (between incoming and outgoing packets,
-> between the hooks, ...).   So with any possible solution, this should be
-> kept in mind.
+now on bebe I did:
 
-There's no symmetric behaviour now. And from an "input" perspective, I think
-a decapsulated packet that has a locally ending payload should hit INPUT
-again. Same with output: a locally generated packet hits output, then should
-hit OUTPUT again if it was really destined for the outside world.
+~ # netcat timmy 7000                                          [dmorris 
+@ bebe]
+aoesutnh
+aoesutnh
 
-V.
--- 
-http://www.openoffice.nl/   Open Office - Linux Office Solutions
-Valentijn Sessink  valentyn+sessink@nospam.openoffice.nl
+Ctrl-C
+~#
+
+This causes the connection opening (not shown) and closing you see in 
+the tcpdump above.
+
+But the connection never leaves the conntrack table.
+
+~ # cat /proc/net/ip_conntrack| grep 7000                     [dmorris @ 
+timmy]
+tcp      6 257147 CLOSE_WAIT src=10.0.0.44 dst=10.0.0.187 sport=43035 
+dport=7000 src=10.0.0.187 dst=10.0.0.44 sport=7000 dport=43035 [ASSURED] 
+use=1
+
+
+I realize I could just turn 
+/proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_timeout_close_wait, is 
+that the fix or is this not supposed to happen?
+This happens on two similar machines, in both 2.4.18 and 2.6.0-test8
+
+
+
+info on timmy:
+
+~ 
+#                                                                                         
+[dmorris @ timmy]
+~ # uname 
+-a                                                                                
+[dmorris @ timmy]
+Linux timmy 2.6.0-test8 #4 SMP Tue Dec 16 15:55:23 PST 2003 i686 unknown
+~ # ifconfig 
+eth0                                                                           
+[dmorris @ timmy]
+eth0      Link encap:Ethernet  HWaddr 00:40:05:A0:20:07 
+          inet addr:10.0.0.187  Bcast:10.0.0.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:6487 errors:1 dropped:0 overruns:0 frame:0
+          TX packets:5717 errors:24 dropped:0 overruns:0 carrier:24
+          collisions:0 txqueuelen:1000
+          RX bytes:793932 (775.3 KiB)  TX bytes:1599858 (1.5 MiB)
+          Interrupt:11 Base address:0xac00
+
+~ # netstat 
+-rn                                                                             
+[dmorris @ timmy]
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt 
+Iface
+10.0.0.0        0.0.0.0         255.255.255.0   U         0 0          0 
+eth0
+0.0.0.0         10.0.0.1        0.0.0.0         UG        0 0          0 
+eth0
+~ # netstat | grep CLOSE_WAIT | wc 
+-l                                                       [dmorris @ timmy]
+      0
+~ # cat /proc/net/ip_conntrack| grep CLOSE_WAIT | wc 
+-l                                     [dmorris @ timmy]
+     10
+
+
+Thanks,
+-Dirk
