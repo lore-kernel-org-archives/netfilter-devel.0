@@ -1,16 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: New netfilter/iptables homepage
-Date: Tue, 13 Jan 2004 15:28:56 +0100
+From: =?iso-8859-1?q?vamsi=20krishna?= <b_vamsi2002@yahoo.co.in>
+Subject: problem in compiling the hooks
+Date: Mon, 12 Jan 2004 08:19:40 +0000 (GMT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040113142856.GR20206@sunbeam.de.gnumonks.org>
+Message-ID: <20040112081940.86820.qmail@web8207.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="h1wVxq8aeHrvhZJz"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,57 +18,86 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+hai,
+  
+I am a new bie. when i am trying to compile the
+following netfilter hook program i am getting errors .
 
---h1wVxq8aeHrvhZJz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+#define __KERNEL__
+#define MODULE
 
-Hi!
+#include<linux/module.h>
+#include<linux/kernel.h>
+#include<linux/netfilter.h>
+#include<linux/netfilter_ipv4.h>
+static struct nf_hook_ops nfho;
+ 
+int hook_func(unsigned int hooknum,
+                      struct sk_buff **skb,
+                      const struct net_device *in,
+                      const struct net_device *out,
+                      int (*okfn)(struct sk_buff *))
+{
+return NF_DROP;
+}
 
-I've just put the new (3rd incarnation) of the netfilter/iptables
-homepage online.=20
+int init_module()
+{
+nfho.hook=hook_func;
+nfho.hooknum=NF_IP_PRI_ROUTING;
+nfho.pf=PF_INET;
+nfho.priority=NF_IP_PRI_FIRST;
 
-The changes shouldn't be too visible to the user, as everything is
-hidden behind the same layout as the old homepage. =20
+nf_register_hook(&nfho);
 
-However, the whole page is now built from docbook-website XML, which
-should produce way cleaner results than our own cut+paste perlscript
-template system.
+return 0;
+}
+void cleanup_module()
+{
+nf_unregister_hook(&nfho);
+}
 
-The new homepage also features patch-o-matic-ng HTMLization.  pomlist
-has disappeared in favour of pom-ng.
+i got the following errors
 
-If you find any broken links, please report them to
-webmaster@netfilter.org, where I will take care of them.
+[root@localhost vamsi]# gcc -c p1.c
+In file included from p1.c:7:
+/usr/include/linux/netfilter_ipv4.h:53: `INT_MIN'
+undeclared here (not in a function)
+/usr/include/linux/netfilter_ipv4.h:53: enumerator
+value for `NF_IP_PRI_FIRST' not integer constant
+/usr/include/linux/netfilter_ipv4.h:59: `INT_MAX'
+undeclared here (not in a function)
+/usr/include/linux/netfilter_ipv4.h:59: enumerator
+value for `NF_IP_PRI_LAST' not integer constant
+p1.c:15: warning: `struct net_device' declared inside
+parameter list
+p1.c:15: warning: its scope is only this definition or
+declaration, which is probably not what you want
+p1.c:15: warning: `struct sk_buff' declared inside
+parameter list
+p1.c: In function `init_module':
+p1.c:22: invalid use of undefined type `struct
+nf_hook_ops'
+p1.c:23: invalid use of undefined type `struct
+nf_hook_ops'
+p1.c:24: invalid use of undefined type `struct
+nf_hook_ops'
+p1.c:24: `PF_INET' undeclared (first use in this
+function)
+p1.c:24: (Each undeclared identifier is reported only
+once
+p1.c:24: for each function it appears in.)
+p1.c:25: invalid use of undefined type `struct
+nf_hook_ops'
+p1.c: At top level:
+p1.c:9: storage size of `nfho' isn't known
 
-	- Harald Welte (netfilter core team)
+please help me,
 
-P.S.: Yes, I know... our XSLT's don't yet produce fully-compliant XHTML
-1.0.  If anybody is more keen with all this buzzword-compatible 'web
-technology' than I am - feel free to volunteer.
+vamsi
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---h1wVxq8aeHrvhZJz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFABACoXaXGVTD0i/8RAoV9AJ0WseP5AjP0SS3cOawBLlLVAVBX7gCeJH4O
-D2/0klJS52wv7kioTWY+/+U=
-=3Dh4
------END PGP SIGNATURE-----
-
---h1wVxq8aeHrvhZJz--
+________________________________________________________________________
+Yahoo! India Mobile: Download the latest polyphonic ringtones.
+Go to http://in.mobile.yahoo.com
