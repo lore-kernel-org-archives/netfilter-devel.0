@@ -1,15 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: pom-ng include question
-Date: Fri, 25 Jun 2004 13:07:49 +0200 (CEST)
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: Kernel 2.6 conntrack defragment of IP packets
+Date: Fri, 25 Jun 2004 04:16:41 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0406251305390.11001-100000@blackhole.kfki.hu>
-References: <40DBFE13.6080700@gmx.net>
+Message-ID: <20040625111641.42357.qmail@web13908.mail.yahoo.com>
+References: <Pine.LNX.4.33.0406251305390.11001-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eicke Friedrich <tady@gmx.net>
-In-Reply-To: <40DBFE13.6080700@gmx.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.33.0406251305390.11001-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +19,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 25 Jun 2004, Eicke Friedrich wrote:
+Hiyas,
+   I was wondering, for the 2.6 kernel is there any
+different in how conntrack defragments non TCP/non UDP
+IP packets?
+    I have a userspace QUEUE app which works fine
+using 2.4.18 but has some issues with the 2.6.5 and
+2.6.7 kernels.  When the packet goes above ~2360
+bytes, the end of the packet is bad.  It is weird
+because the data (as seen from a hexdump in the
+userspace app) is fine, right up to that mark and
+works ok under 2.4.x.  The only other change I made
+was capturing the packet in PREROUTING mangle instead
+of INPUT, but that looks to be after conntrack is done
+with the data.  If the traffic is UDP, it seems to
+work fine...
 
-> I've developed an iptables/netfilter extension to detect P2P traffic
-> called IPP2P.  It can be used to prohibit P2P traffic (by dropping
-> matches) or combined with connection tracking, CONNMARK and a packet
-> scheduler for traffic shaping of P2P traffic. I did a lot of testing
-> and also got much positive feedback of users. So it can be considered
-> as stable. The official homepage is located at:
-> http://rnvs.informatik.uni-leipzig.de/ipp2p/index_en.html
->
-> So if you believe there could be a benefit of such an extension I'll
-> create a patch for pom-ng.
+-Scott
 
-Yes, do it and we'll add the extension to pom-ng.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+		
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail Address AutoComplete - You start. We finish.
+http://promotions.yahoo.com/new_mail 
