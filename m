@@ -1,18 +1,18 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: Re: Syncookie firewall
-Date: Thu, 6 Jun 2002 15:36:55 -0700
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Fri, 07 Jun 2002 09:31:12 +1000
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15615.58375.448754.673206@isis.cs3-inc.com>
-References: <20020606192927.6B7684DCE@lists.samba.org>
-	<15615.53673.287531.24270@isis.cs3-inc.com>
-	<200206062334.17294.hno@marasystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.samba.org
+Message-ID: <E17G6im-0000FK-00@wagner.rustcorp.com.au>
+References: <20020606220914.A14542@groar.org>
+Cc: Mikkel Christiansen <mixxel@cs.auc.dk>,
+	Mikkel Refsgaard Bech <mrb@cs.auc.dk>,
+	Torben Vinther Schmidt <mariachi@cs.auc.dk>,
+	Carsten Stiborg <stiborg@cs.auc.dk>,
+	Emmanuel Fleury <fleury@cs.auc.dk>, netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <200206062334.17294.hno@marasystems.com>
+To: Denis Ducamp <Denis.Ducamp@groar.org>
+In-Reply-To: Your message of "Thu, 06 Jun 2002 22:09:14 +0200."
+             <20020606220914.A14542@groar.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,35 +23,29 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom writes:
+In message <20020606220914.A14542@groar.org> you write:
+> > iptables -A FORWARD -p tcp -m state --state ESTABLISHED -j ACCEPT
+> > iptables -A FORWARD -p tcp -m state --state NEW -j ACCEPT
+> > iptables -A FORWARD -p tcp -j DROP
+> 
+> The meaning of --state NEW is the number one misunderstanding of netfilter's
+> dynamic filtering (*).
 
- > > Fortunately, all of these options are ... optional, so the firewall
- > > can, if it doesn't know better, simply not use them.
- > 
- > To ensure interoperability you must also filter out any options on future 
- > packets of that TCP not known to be 100% compatible with your SYN+ACK.
+Hi all,
 
-There is no need to do anything but send syn and syn/ack without any
-options that might be incorrect for the other participant.
-Then it's incorrect for the other side to send them in later packets
-so there's nothing for you to filter.  If the participants want to
-violate the spec it's not the responsibility of the firewall to
-prevent them.
+	I disagree.  Consider the original complaint: that --state NEW
+allowed TCP ACK packets through, which allowed an ack scan.  This
+surprised the observers, who then blocked acks.
 
- > > The timestamp option is not a problem in this case.  The firewall only
- > > responds to a few packets and for those it can supply its own
- > > timestamp (or not).  After it establishes both halves of the
- > > connection it just forwards the packets and the timestamps (seems to
- > > me) should work out fine.
- > 
- > The timestamp option must be real all the time, or never. You
- > cannot suddently switch TCP timestamp source in the middle of a TCP
- > connection. Doing so will serverely break PAWS.
+	Of course, you can still use SYNs to scan the network, so they
+haven't actually won anything here, except that if their firewall
+reboots, established connections will die.
 
-Now that I reread rfw1323 I see that timestamps also are not allowed
-unless they appear in the first segment.  So again the general
-solution is not to send it.
-(Once again I think the "solution" is to change the spec.)
+	The confusion here comes from the "TCP connection" vs
+"connection tracking connection" distinction, which is subtle and
+usually harmless.
 
-In any case it's sufficient for the firewall to simply not send any 
-timestamp options at all.
+Hope that helps,
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
