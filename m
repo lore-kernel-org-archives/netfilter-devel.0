@@ -1,19 +1,17 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack (l3 independent conntrack)
-Date: Wed, 26 Nov 2003 20:25:18 +0900 (JST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: RAM and conntrack performance: first draft of the document is online
+Date: Wed, 26 Nov 2003 12:36:45 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200311261126.UAA26305@toshiba.co.jp>
-References: <20031118165138.GO5075@sunbeam.de.gnumonks.org>
-	<200311190246.LAA10515@toshiba.co.jp>
-	<20031119132444.GW5075@sunbeam.de.gnumonks.org>
+Message-ID: <20031126113645.GF3121@obroa-skai.de.gnumonks.org>
+References: <20031028151032.GD726@eychenne.org> <20031103081240.GQ1536@sunbeam.de.gnumonks.org> <20031125153543.GD1082@eychenne.org> <20031125205723.GE2971@obroa-skai.de.gnumonks.org> <20031126034231.GA1044@eychenne.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bajzpZikUji1w+G9"
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20031119132444.GW5075@sunbeam.de.gnumonks.org>
-	<20031115105020.GI656@obroa-skai.de.gnumonks.org>
+To: Herve Eychenne <rv@wallfire.org>
+Content-Disposition: inline
+In-Reply-To: <20031126034231.GA1044@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,77 +23,86 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, Harald and all,
+--bajzpZikUji1w+G9
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm seeking the best structure of nf_conntrack and tuple in L3 independent
-conntrack, and I have some issues.
+On Wed, Nov 26, 2003 at 04:42:32AM +0100, Herve Eychenne wrote:
 
------------------------------------------------------------------------------
-1. I think one of benefits of L3 indepedent conntrack is that the various
-L3 connection can be represented with only one structure -- tuple.
+> Yes, but that is really negligible (2 * size_of_pointer * HASHSIZE).
 
-For example, we can represent IPv4-IPv6 translated packet with
+well, sizof(void *) is 4 bytes on most archs... two times is 8.  so if
+you have let's say 100k buckets, that's 800k non-swappable kernel
+memory...
 
-    Original: ipv4_addr1, port1 -> ipv4_addr2, port2
-    Reply   : ipv6_addr2, port2 -> ipv6_addr1, port1
+> > > So, it cannot be read at runtime, I suppose... It would be really nic=
+e,
+> > > though... would /proc be ok?
+>=20
+> > yes. It is printed at startup via syslog, however.
+>=20
+> Syslog can be enough for humans, but not for scripts...
+> I think you can add "make hashsize value available through /proc" to
+> the TODO list (whose size is unfortunately ever growing ;-)).
 
-Probably, we need to reallocate tuple somewhere to create this tuple.
-Because when received initial packet in this connection, the core module
-create:
+i'd rather write a patch than add it to the todo list.  adding and
+removing that item from the list would be about the same amount of work,
+i guess.
 
-    Original: ipv4_addr1, port1 -> ipv4_addr2, port2
-    Reply   : ipv4_addr2, port2 -> ipv4_addr1, port1
+> > maybe you're running a different kernel?
+>=20
+> Debian standard kernel.  Maybe they are patching netfilter?  These are sm=
+art
+> guys! ;-)
 
-so the size of tuple "Reply" need to be changes. But if we adopt the way in
-white paper, this mean that we have to reallocate nf_conntrack.
-Moreover, the size of nf_conntrack is different from ip_conntracck and
-ip6_conntrack. So slab caches for all case of Original-Reply are needed.
+IIRC debian has still 2.4.18 which had a different hashing algorithm
 
-Then I suggest that
-	- nf_conntrack has only static part and tuple_hash, and
-	  tuple_hash include the pointer to tuple
-	- tuple is allocated from different slab caches.
+> > no, there are none deleted.  we just skip creating new ones until the
+> > number has dropped below the limit.  There is no special case for that,
+> > we just chek >=3D conntrack_max at conntrack allocation time.
+>=20
+> Don't you think it would be good to shrink the lists immediately?
+> Waiting til the number has dropped below the limit can take days...
 
-We can save memory spaces and utilize slab cache in this way. The disadvantages
-are that
-	- The management of nf_coonntrack become more complex.
-	- If L4 part in tuple should be handled as dynamic part, we can't
-	  adopt this approach.
+well, it might be a good idea.  but I somehow doubt this is a valid
+scenario.  And if we would shrink the list:  how do we select which
+entries to evict?  I'd rather wait for ctnetlink to appear in mainstream
+kernels and then leave that to a userspace process.
 
-... or, shouldn't we assume such a above connection ?
+> > yes.  but just because your suse or redhat default packetfilter script
+> > modprobes ip_conntrack, there is no way we can assume that this is a
+> > firewall-only machine.
+>=20
+> Of course.  Once more, I didn't propose that this should be done
+> automatically, I just wanted to know if someone had any objection to
+> that statement.
 
------------------------------------------------------------------------------
-2. Do you think which is better ? Or do you have other idea ?
+ah, ok.
 
-	a. define ip_conntrack_tuple and ip6_conntrack_tuple.
-	b. define only nf_conntrack which has "size" and "data[0]" in L3 part.
+>  Herve
+> (=B0=3D  Herv=E9 Eychenne
 
-If we choose a., we have to make L3 module operate tuple, so have to search L3
-module every operations. 
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-And if we select b., we need to calculate to get the pointer to L3/L4 part
-in tuple. Please remember that the offset of members in "dst" aren't static
-because of "src" above "dst".
+--bajzpZikUji1w+G9
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-I like b. than a. . Because we can define L4 part in the header files for each
-protocol.
------------------------------------------------------------------------------
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-These issue affect basic structure and codes in L3 independent conntrack.
-I want to carefully choose because I don't want to rewrite many time.
+iD8DBQE/xJBNXaXGVTD0i/8RAh2YAKChzJHlHhEA8GgilIo1K0L2N7r2WwCfZ4pW
+kSgDCN377b1DXiojVKL9YiY=
+=OSkk
+-----END PGP SIGNATURE-----
 
-BTW, "flowi" in include/net/flow.h have union... I think this is one choise.
-
-And BTW, the name "nf_conntrack" is already used in sk_buff.h . I use "nf_conn"
-in my code for now...
-
-
-----------------------------------------
-Yasuyuki KOZAKAI
-
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
-
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+--bajzpZikUji1w+G9--
