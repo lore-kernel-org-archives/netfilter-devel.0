@@ -1,14 +1,19 @@
-From: Christian Riechmann <riechmann@fgan.de>
-Subject: Need some clarification or help
-Date: Tue, 20 Apr 2004 20:22:05 +0200
+From: Alexander Samad <alex@samad.com.au>
+Subject: Re: Netfilter+IPsec patches in pom-ng now
+Date: Wed, 21 Apr 2004 07:34:05 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040420182205.GA2948@rie.rie.priv>
+Message-ID: <20040420213405.GF19221@samad.com.au>
+References: <407CA248.3000302@trash.net> <20040420104853.GB19221@samad.com.au> <20040420132046.GC1357@obs.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: mail@criechmann.de
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4D0iojmU0rbTyz/6"
+Cc: Patrick McHardy <kaber@trash.net>, mludvig@suse.cz,
+	guillaume@morinfr.org, herbert@gondor.apana.org.au,
+	JMChandonia@lbl.gov
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
+In-Reply-To: <20040420132046.GC1357@obs.bg>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,75 +24,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-is it possible to read - via ipq_read/ipq_get_packet - a UDP packetr
-and after some changes to accept - via ipq_set_verdict with NF_ACCEPT and
-shorter length - it as a TCP packet?
+--4D0iojmU0rbTyz/6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Here is what I wish to do:
-For the transmission of IP packets (UDP, ICMP, TCP) between two hosts
-I want to send these packets through a UDP tunnel.
-On the sender I am using iptables to get all the original packets into user
-space for their encapsulation and UDP sending.
-In the same way on the receiver I use iptables to get those UDP packets
-from the sender enclosing the original packets into user space, where
-I decapsulate the original packets and wish to inject these by using
-ipq_set_verdict with action set to NF_ACCEPT.
-This method works for original packets of type ICMP and UDP, but NOT
-for TCP packets.
-What I can see from my tcpdump logging on the receiver is:
-1.That all three types of original packets are ACCEPTED, but tcpdump
-  shows some additional bytes (packet length is still the same as given by
-  m->data_len upon the ipq_get_packet call, although the ipq_set_verdict
-  call get an updated length).
-2.Those original packets of type UDP and ICMP can be read by the intended
-  receiver programs but those of type TCP are not presented to the
-  intended receiver application.
+On Tue, Apr 20, 2004 at 04:20:47PM +0300, Ivan Mitev wrote:
+> > Patrick I have noted that 04 doesn't apply cleanly to 2.6.5
+Have to admit I used a debian 2.6.5, will check it out
 
-Below I attach those iptables rules I am using.
+>=20
+> the only problem i noticed when patching kernel 2.6.5 was with patch 02 (=
+i use
+> the cvs versions of pom-ng and iptables of april 14). i'll try to check a=
+gain.
+>=20
+> btw i'm experimenting with them for a few days now, and i didn't encounte=
+r any=20
+> problem. everything's fine!
+>=20
+> ivan
+>=20
+>=20
 
-# Parameter setting:
-#  $1:	Iptable operation "A"
-#  $2:  Interface name
-#  $3:  IP address of this host
-#
-# Next rule:
-#    Send out all BROADCAST packets
-#
-#iptables -$1 OUTPUT -o $2 -d 128.7.27.255 --destination-port 140 -j ACCEPT
-iptables -$1 OUTPUT -o $2 -d 128.7.27.255 -j ACCEPT
+--4D0iojmU0rbTyz/6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-#
-# Next rule:
-#    Show me all locally generated multicast packets before routing
-#
-iptables -$1 OUTPUT -o $2 -d 224.0.0.0/4 -j QUEUE
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-#
-# Next rule:
-#    Show me all locally generated packets before routing
-#
-iptables -$1 OUTPUT -o $2 -j QUEUE
+iD8DBQFAhZdMkZz88chpJ2MRAmEPAJ9HBH4y7lZlrwL+BFxEtEvO0FwZwwCgl3GA
+OdIByRjQs94YgFPMXLlh/Po=
+=WwnV
+-----END PGP SIGNATURE-----
 
-#
-# Next rule:
-#    Show me all UDP packets for port 140 arriving from foreign hosts
-#
-iptables -$1 INPUT -i $2 -p udp --destination-port 140 -j QUEUE
-
-#
-# Next rule:
-#    DROP all multicast packet sent by any host except the local one
-#
-iptables -$1 INPUT -i $2 -s ! $3 -d 224.0.0.0/4 -j DROP
-
-
-Thanks for any help or clarification.
-
-Christian
--- 
-Christian Riechmann    E-Mail: riechmann@fgan.de
-c/o FGAN/FKIE          Tel: (+49) 228/9435 345,378
-Neuenahrer Strasse 20  Fax: (+49) 228/9435 685
-D-53343 Wachtberg, Germany
+--4D0iojmU0rbTyz/6--
