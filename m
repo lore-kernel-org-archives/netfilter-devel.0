@@ -1,17 +1,15 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH][RFC] Race in ip_conntrack_alter_reply
-Date: Tue, 18 May 2004 07:48:36 -0700
+From: Richard Scobie <richard@sauce.co.nz>
+Subject: Re: H.323 progress.
+Date: Wed, 19 May 2004 08:03:41 +1200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040518144836.GA25729@linuxace.com>
-References: <20040516210616.GA20291@linuxace.com> <1084784652.1909.43.camel@nienna.balabit>
+Message-ID: <40AA6C1D.2000105@sauce.co.nz>
+References: <Pine.LNX.4.33.0405181044330.32272-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <1084784652.1909.43.camel@nienna.balabit>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.33.0405181044330.32272-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,42 +20,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have not tried the patch yet -- I wanted to see if anyone else thought it
-looked sane.  
+Jozsef Kadlecsik wrote:
 
-Not much unique about my situation -- box with 6 interfaces, one of which is
-internet link.  Pushing about 50mb peak per day...though the box dies at 2 - 6am
-when traffic is light.  Doing nat for a handful of subnets, but most of the
-/16 is not natted.  The box does run OSPF and has ~800 routes in the routing
-table.  What specific info were you looking for?
+> 
+> I abandoned the H.323 helper modules because in the present form they work
+> only in the most simple cases and the modules cannot be improved without
+> really implementing a H.323 parser. That, however, would require too much
+> time from me, dedicated to this single task.
+> 
+> If you have got such equipments as Via Video and Tandberg, better set up a
+> H.323 gatekeeper in proxy mode and configure the firewall to allow the
+> traffic to/from the gatekeeper in the port range you specified. Such
+> setups work fine and reliably. (However, it seems some Microsoft
+> netmeeting versions don't obey to communicate fully trough the proxy.)
+> 
 
-Phil
+Hi Jozsef,
 
-On Mon, May 17, 2004 at 11:04:12AM +0200, KOVACS Krisztian wrote:
-> 
->   Hi,
-> 
-> 2004-05-16, v keltezéssel 23:06-kor Phil Oester ezt írta:
-> > I am still experiencing near daily deadlocks on a few heavily used
-> > firewalls here (on all kernels from ~2.4.2x - 2.6.6).
-> > 
-> > In searching for a solution, I noticed that back in September 2003,
-> > Rusty Russell pointed out the possibility of a race in ip_conntrack_alter_reply
-> > and offered the below patch.
-> > 
-> > The relevant threads are:
-> > 
-> > http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/012368.html
-> > http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/012388.html
-> > 
-> > And the patch is included below.
-> 
->   Does it fix your problems? There were conversations on problems with
-> ip_nat_setup_info() stuck in endless loop, but I did not experience any
-> problems up to now. Could you provide some more info about your setup?
-> 
-> -- 
->  Regards,
->    Krisztian KOVACS
-> 
-> 
+Thank you very much for your reply. I have spent some time experimenting 
+with gnuGK as a proxy in the following test setup:
+
+Tandberg(192.168.3.0/24)->IptablesNAT-VPN(10.0.0.0/24)->IptablesNAT-VPN->
+
+----->Tandberg(192.168.4.0/24)
+|---->gnuGK in H.323 proxy mode (192.168.4.0/24)
+
+Again, this does not complete all connections.
+
+Your suggestion seems to be to configure the Tandbergs to use the 
+10.0.0.0/24 addresses, port forwarded through to gnuGK. Is this 
+functionally different to what I have? If so, perhaps I am having 
+compatibilty problems with gnuGK and Tandberg.
+
+Kind regards,
+
+Richard
