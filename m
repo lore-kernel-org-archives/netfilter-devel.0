@@ -1,14 +1,13 @@
-From: "Emiel Mols" <emiel@fulgor-hosting.nl>
-Subject: IPSEC and NAT
-Date: Fri, 15 Oct 2004 20:00:07 +0200
+From: Jvalencia <tigrezno@log01.org>
+Subject: libipq: man page != online doc and a question
+Date: Fri, 15 Oct 2004 19:21:45 +0100
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <E1CIWN8-0005Vo-00@deer.gmane.org>
+Message-ID: <20041015192145.383e8bd9.tigrezno@log01.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,28 +18,11 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+I've been looking at ipq_set_verdict man page, finding two verdicts: NF_ACCEPT and NF_DROP.
+This man page dates from 2001 :S
 
- 
+Online netfilter hacking guide tells about NF_ACCEPT, NF_DROP, NF_QUEUE and NF_REPEAT.
 
-I've managed to setup a host-to-net ipsec connection with a remote network
-on a linux router using (ported) isakmpd and kernel 2.6.8.1. However, I want
-to be able to 'share' this ipsec connection with the rest of the network,
-but since no ipsecn virtual interface is created in the 2.6 kernels I can't
-use ordinary SNAT/MASQUERADE targets in iptables: ipsec packets get
-encrypted before entering the POSTROUTING table :(, so the source address of
-the encapsulated packet can't be changed anymore. I've read
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-January/thread.htm
-l#13879, but the supplied patch doesn't work very well.
+Can I send the packet to another chain with verdicts?
 
- 
-
-Does anyone have any suggestions on how to get this working?
-
- 
-
-Thanks in advance,
-
- 
-
-Emiel
+Thanks.
