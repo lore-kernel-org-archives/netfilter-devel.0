@@ -1,13 +1,14 @@
-From: Sven-Haegar Koch <haegar@sdinet.de>
-Subject: Re: netfilter & ipv6
-Date: Thu, 10 Feb 2005 22:36:21 +0100 (CET)
-Message-ID: <Pine.LNX.4.62.0502102231060.6223@mercury.sdinet.de>
-References: <42086F50.9090504@niksula.hut.fi> <420B6A93.3080005@niksula.hut.fi>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: netfilter hook not working with fragments
+Date: Thu, 10 Feb 2005 23:06:00 +0100
+Message-ID: <420BDAC8.3080300@eurodev.net>
+References: <19c901c50f35$a4afb8b0$a610a8c0@niche>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
-To: Jonas Berlin <jberlin@niksula.hut.fi>
-In-Reply-To: <420B6A93.3080005@niksula.hut.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+To: Michael Varga <mike.varga@cavium.com>
+In-Reply-To: <19c901c50f35$a4afb8b0$a610a8c0@niche>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,30 +20,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 10 Feb 2005, Jonas Berlin wrote:
+Michael Varga wrote:
 
-> Jonas Berlin wrote:
+>Hi,
 >
->> 3. If I succeed porting something, what should I name the patch to be sent 
->> to patch-o-matic-ng? I don't think I could just extend the existing ones as 
->> that would suggest the original authors have something to do with it and 
->> also some of them also are pending or already included in the ekernel. So, 
->> would CLASSIFY_v6 be an acceptable name for the ipv6 version of CLASSIFY?
+>I wrote a NF_IP_PRE_ROUTING hook to capture packets
+>for an IPSec implimentation.
+>
+>Is there a way to make netfilter assemble fragments before=20
+>recieving them in my netfilter hook?
+>  
+>
 
-[...]
-> since the name of the name of the module 
-> essentially determines the name of the target, the module etc.
+If you use a kernel 2.4, you won't see any fragments since netfilter 
+assembles them before hitting NF_IP_PRE_PREROUTING. On the other hand, 
+if your box runs a kernel 2.6,  assemble them by yourself. Have a look 
+at skb_linearize. Previously check that it's non linear with 
+skb_is_non_linear.
 
-why?
-the module in patch-o-matic-ng (the top directory name) could be named 
-CLASSIFY_v6, containing the target CLASSIFY for ipv6, with the kernel 
-module named ip6t_CLASSIFY.
-I see nothing which prevents this.
+http://lxr.linux.no/source/include/linux/skbuff.h#L1041
+http://lxr.linux.no/source/include/linux/skbuff.h#L655
 
-c'ya
-sven
+Since you get packets from interrupt context, make sure you pass the 
+GFP_ATOMIC flag to skb_linearize.
 
--- 
-
-The Internet treats censorship as a routing problem, and routes around it.
-(John Gilmore on http://www.cygnus.com/~gnu/)
+--
+Pablo
