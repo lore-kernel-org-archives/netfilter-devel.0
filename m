@@ -1,14 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: policy routing on locally generated packets [summary]
-Date: Wed, 27 Aug 2003 16:57:03 +0200
+Date: 27 Aug 2003 16:58:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F4CC6BF.2030604@trash.net>
-References: <Pine.LNX.4.44.0308262141080.16076-100000@filer.marasystems.com> <1061995596.1247.28.camel@drs0.manchotnetworks.net>
+Message-ID: <1061996331.3360.51.camel@henrik.marasystems.com>
+References: <Pine.LNX.4.44.0308262141080.16076-100000@filer.marasystems.com>
+	 <1061995596.1247.28.camel@drs0.manchotnetworks.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Henrik Nordstrom <hno@marasystems.com>, Patrick Schaaf <bof@bof.de>,
- netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>, Patrick Schaaf <bof@bof.de>,
+   netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>
 In-Reply-To: <1061995596.1247.28.camel@drs0.manchotnetworks.net>
@@ -22,30 +23,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-lartc@manchotnetworks.net wrote:
+ons 2003-08-27 klockan 16.46 skrev lartc@manchotnetworks.net:
 
->final conclusion:
->to effectively obtain policy routing on locally generated packets, the
->OUTPUT ROUTING process would need to be hooked into netfilter thereby
->letting packets be marked. OUTPUT ROUTING would then use the mark to
->find a routing table via a routing rule. OUTPUT ROUTING would get the
->route key fields using the "best" destination route within the routing
->table, or use the default routing table if no suitable route was found.
->(Cedric -- this would include the iif key therefore obviating/including
->your patch through ip route commands)
->
->
->iptables --append OUTROUTE --table mangle (expressions) \
->         --jump MARK --set-mark 0x2
->
+> final conclusion:
+> to effectively obtain policy routing on locally generated packets, the
+> OUTPUT ROUTING process would need to be hooked into netfilter thereby
+> letting packets be marked. OUTPUT ROUTING would then use the mark to
+> find a routing table via a routing rule.
 
-It is not possible for two reasons:
-- before output routing the packet doesn't have a source ip so it
-would be weird to pass it through iptables tables.
-- the source is chosen before the ip header is prepended, this
-makes it impossible to pass it to iptables first.
+But it is... The OUTPUT mangle chain is before routing. The exception is
+source address assignment on unbound sockets which is part of building
+the packet to send. The source IP address assignment is not really a
+routing decision but uses the same engine in the kernel.
 
-Why can't you use NAT ?
+If you mangle OUTPUT packets in iptables then the packet will be
+rerouted if already routed. But the source IP address is already
+assigned and will not be automatically changed unless you instruct
+iptables to do so via NAT.
 
-Best regards,
-Patrick
+Regards
+Henrik
+
+-- 
+Henrik Nordstrom <hno@marasystems.com>
+MARA Systems AB
