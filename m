@@ -1,16 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: conntrack and ICMP errors
-Date: Fri, 11 Apr 2003 11:49:56 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] list register ip6tables targets/matches in /proc/net
+Date: Fri, 11 Apr 2003 11:48:29 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030411094956.GC18520@oknodo.bof.de>
-References: <20030410182056.GA17723@bzorp.balabit.hu> <20030410200816.GA18520@oknodo.bof.de> <20030411094340.GA32552@balabit.hu>
+Message-ID: <Pine.LNX.4.33.0304111147480.31394-100000@blackhole.kfki.hu>
+References: <3E92F1D2.4070902@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick Schaaf <bof@bof.de>, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Balazs Scheidler <bazsi@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <20030411094340.GA32552@balabit.hu>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <3E92F1D2.4070902@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,47 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > To summarize:
-> > 
-> > 	ICMP messages DO NOT TERMINATE TCP CONNECTIONS.
-> > 
-> > Please print that out, and eat the printout. You may add salt and pepper.
-> 
-> I thought the TCP example would not be very good, but I would rather not eat
-> printouts (not even salted ones ;).
-> 
-> Here's an example when an ICMP packet DOES terminate a TCP connection:
-> 
-> When a SYN is received on a port which is not listening the stack is free to
-> return either a TCP RST packet or an ICMP port unreachable packet: Windows
-> stacks return ICMP port unreachable, Linux returns TCP RST and our
-> REJECT target sends an ICMP port unreachable (by default).
+Hi Patrick,
 
-Sorry, but that's not a valid argument against my point. When a SYN is
-received, there IS no TCP connection to terminate, yet. Do you see
-conntracking keeping an ESTABLISHED connection, in this case? I don't
-think so.
+On Tue, 8 Apr 2003, Patrick McHardy wrote:
 
-Does Windows return ICMP port unreachable for non-SYN frames, too?
-And, does it accept port unreachable messages and terminates local
-sockets? Same questions regarding Linux and non-SYN frames?
+> This patch lists registered ip6tables matches/targets in /proc/net,
+> the equivalent patch to iptables is already included in pom. I sent
+> this patch multiple times before, hopefully this time it won't be
+> overseen.
 
-> While TCP RST terminates the conntrack session ICMP port unreachable does
-> not. I would not call this consistent.
+Sorry for the wasted efforts: patch is applied in cvs.
 
-Depends on your answers to my previous paragraph. If normal behaviour
-for non-SYN packet is receiving back port unreachables, AND this makes
-an endpoint terminate an already established TCP connection, then you
-have a point, and I have learned something new. In that case, I could
-agree that conntracking may also need to learn something new.
-
-> On the other hand connection tracking an UDP session is less robust than
-> TCP, simply because UDP has no state. Therefore we are using time based
-> session tracking which is blind at least compared to TCP conntrack.
-> Therefore it might make use of additional hints like ICMP port unreachables.
-
-That may make sense. I'm not very familiar with the requirements of UDP
-based protocols.
-
-best regards
-  Patrick
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
