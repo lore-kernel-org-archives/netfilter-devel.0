@@ -1,15 +1,14 @@
-From: Peter Lee <mclee@sfu.ca>
-Subject: Re: netfilter for IPv6
-Date: Mon, 04 Nov 2002 16:27:32 PST
+From: Min Li <li9@expert.ics.purdue.edu>
+Subject: xdmcp
+Date: Mon, 4 Nov 2002 05:39:22 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200211050027.gA50RW6K007249@rm-rstar.sfu.ca>
-Reply-To: Peter Lee <mclee@sfu.ca>
+Message-ID: <Pine.GSO.4.44.0211040539070.4935-100000@expert.ics.purdue.edu>
+References: <20021104101704.GF3894@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: binary
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@lists.netfilter.org, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Content-Disposition: inline
-To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20021104101704.GF3894@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,51 +19,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Does ip_queue support IPv6?
+Dear all,
+I am trying to make xdmcp work on red-hat 7.3. What I did was turn on the
+flag in /etc/kde/kdm/kdmrc, make "enable = true", since I'm using kde.
+However, my exceed on the windows still cannot see the broadcast from the
+linux machine. Please advise. Thanks a lot. I also checked the firewall
+rules in /etc/sysconfig/iptables, and make sure port 177 is not blocked.
 
-Thanks.
-Peter
-
-On Tue, 5 Nov 2002 00:13:00 +0100 netfilter-devel@lists.netfilter.org wrote:
-
-> On Mon, Nov 04, 2002 at 03:09:10PM -0800, Peter Lee wrote:
-> > Hi,
-> >=20
-> 
-> hi. please direct netfilter-related questions to
-> netfilter-devel@lists.netfilter.org
-> 
-> > Is there any good tutorial on how to use netfilter hooks for IPv6? I'm
-> st= uck
-> > in the middle of porting an IPv4 protocol to IPv6. Please help.
-> 
-> There is no difference between netfilter hooks for ipv4 and ipv6. You=20
-> use them exactly the same way.
-> 
-> However, if you are porting a protocol, netfilter shouldn't be involved at
-
-> all.	Transport Protocols (layer 4) are dealt with in the standard network
-
-> stack
-> 
-> > Peter Lee
-> > M.Eng. Student
-> > Simon Fraser University
-> 
-> --=20
-> Live long and prosper
-> - Harald Welte / laforge@gnumonks.org 	    http://www.gnumonks.org/
-
->
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-
->
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-
->
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-
-> =3D
-> "If this were a dictatorship, it'd be a heck of a lot easier, just so long
-
->  as I'm the dictator."	--  George W. Bush Dec 18, 2000
+Min
