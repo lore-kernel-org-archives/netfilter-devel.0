@@ -1,11 +1,10 @@
-From: Jon Webb <jon_webb@binary-one.com>
-Subject: ARP filtering
-Date: Fri, 06 Jun 2003 17:06:43 -0700
+From: "Ricky Foo" <blue_pion@hotmail.com>
+Subject: Protocol Internal State
+Date: Sat, 07 Jun 2003 02:23:36 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EE12C93.6090503@binary-one.com>
+Message-ID: <SEA2-F33vaKHY5UNLWh00006b16@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,16 +17,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi guys. I feel like this is a silly question. I can't find 
-documentation on how to use the arp_tables and arp_filter netfilter 
-modules. I have setup a fake multi-hop wireless network by filtering mac 
-addresses at each host, but after a while ARP breaks the network by 
-getting through the mac filters. Any help is appreciated.
+Hi all,
 
-Thanks,
-Jon
+In the ftp helper module, why is it that we need to keep the internal state 
+of the ftp protocol by defining the structures in the header? Since we 
+already have the ct and expect structure, would it already be sufficient to 
+identify future incoming related streams? Fill me with the details.
 
-------------
-Jon Webb <jonwebb@cse.ucsc.edu>
-Computer Communications Research Group
-University of California at Santa Cruz
+    Ricky
+
+_________________________________________________________________
+Send a fun phone greeting to your friend! 
+http://www.msn.com.sg/mobile/fungreetings/
