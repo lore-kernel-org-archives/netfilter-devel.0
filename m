@@ -1,16 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: NetFilter unclean modue in 2.6.x kernels
-Date: Sat, 22 Jan 2005 00:33:28 +0100
-Message-ID: <20050121233328.GU14460@sunbeam.de.gnumonks.org>
-References: <200501220013.56429.sov.rbsec@gmail.com>
+From: Stephen Jones <hivemynd@hivemynd.net>
+Subject: pptp-conntrack-nat will not apply to 2.4.29 - Workaround
+Date: Sat, 22 Jan 2005 01:45:06 -0600
+Message-ID: <41F20482.4090300@hivemynd.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KS5V1uDxmEcBh2BA"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Oleg V. Sapon" <sov.rbsec@gmail.com>
-Content-Disposition: inline
-In-Reply-To: <200501220013.56429.sov.rbsec@gmail.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,50 +18,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello devel-list!
 
---KS5V1uDxmEcBh2BA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I was attempting to bake a 2.4.29 kernel this weekend and ran into a 
+problem with applying the pptp-conntrack-nat patch from 
+patch-o-matic-ng-20040621 and as well from the svn version 3605.
 
-On Sat, Jan 22, 2005 at 12:13:56AM +0300, Oleg V. Sapon wrote:
->  Can you help locate unclean module for 2.6.x kernel or we must use
->  source files from 2.6.0-test4?
+The iptables source is for 1.2.11
 
-I fear nobody did that port to recent 2.6.x and put it into
-patch-o-matic :(
+The error from patch-o-matic ./runme is:
 
-I just did that with the old code from 2.6.0-testX.  I didn't have the
-time to give it any runtime testing, but at least it compiled (after
-fixing up some includes).
+"unable to find ladd slot in src 
+/usr/src/linux-2.4.29/net/ipv4/netfilter/Config.in"
 
-> 	Our company can test patches and even (if I can) sponsor this work.
+I compared the Config.in files from a clean 2.4.28 to the one from 
+2.4.29, and the only difference:
 
-Please test the code that is now (Version 3605) in patch-o-matic-ng.
+# Output of:
+diff --normal /linux-2.4.28-clean/net/ipv4/netfilter/Config.in 
+/linux-2.4.29-clean/net/ipv4/netfilter/Config.in
+69d68
+<       bool '    NAT of local connections (READ HELP)' 
+CONFIG_IP_NF_NAT_LOCAL
 
-> Oleg V. Sapon.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+I got the pptp-conntrack-nat patch to apply by simply adding that line 
+back to the /net/ipv4/netfilter/Config.in that is included with the 
+2.4.29 sources.  The problem is the match line in the:
 
---KS5V1uDxmEcBh2BA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+/patch-o-matic-ng-XXXX/pptp-conntrack-nat/linux/net/ipv4/netfilter/Config.in.ladd_2
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+file is looking for:
 
-iD8DBQFB8ZFIXaXGVTD0i/8RAvT2AKCrIT/yBDuhe93BQiIlJRZarpY7cQCgsXBs
-N7KC6tf7NqglWt72r9vn/GU=
-=fFQk
------END PGP SIGNATURE-----
+       bool '    NAT of local connections (READ HELP)' 
+CONFIG_IP_NF_NAT_LOCAL
 
---KS5V1uDxmEcBh2BA--
+
+in the /net/ipv4/netfilter/Config.in file, and it is no longer there.
+
+I don't know enough about the structure of the Config.in files to 
+suggest an appropriate, permanent solution :(
+
+I then remove the unneeded line before compiling the kernel sources.
+
+PS: The nat-reservations patch is incompatible with the 
+pptp-conntrack-nat patch, perhaps a check in the pom-ng could prevent 
+people from accidentally "shooting themselves in the foot" with these 
+two? :)
