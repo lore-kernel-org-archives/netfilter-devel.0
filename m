@@ -1,11 +1,15 @@
-From: Wim Van de Meerssche <wim.vandemeerssche@gmail.com>
-Subject: Problems writing a costum target
-Date: Wed, 2 Feb 2005 10:03:59 +0100
-Message-ID: <6cc08a9b0502020103487e0681@mail.gmail.com>
-Reply-To: Wim Van de Meerssche <wim.vandemeerssche@gmail.com>
+From: serjio <serjio@tajik.net>
+Subject: Re: Is this an ULOG error?
+Date: Wed, 02 Feb 2005 14:30:02 +0500
+Message-ID: <42009D9A.9080309@tajik.net>
+References: <41FF2188.3040300@tajik.net>
+	<20050201134607.GN6878@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----=_Part_32_7846491.1107335039582"
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050201134607.GN6878@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,53 +21,87 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_Part_32_7846491.1107335039582
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hello Harald,
 
-Hi,
 
-I'm having some trouble writing a new Netfilter target.
-It's meant to make some changes to IPv6 packets (add a routing header).
-However, I can't even get a simple change of IPv6 destination address to work.
-Either the changes to the packet are ignored (if I use
-skb_ip_make_writable), or the packet gets dropped somewhere (if I
-don't use skb_ip_make_writable).
+>>I would like to use ULOG and ULOGD for traffic accounting. 
+>>    
+>>
+>
+>This is not what ULOG is meant for.But after I have installed these tools on my router I was surprised
+>that I cannot check my traffic with 100% accuracy.
+>  
+>
+>
+>Please give more information, such as exact kernel version, exact ulogd
+>version, any patches you might be using, ...
+>  
+>
+Please look at the below description of what I am using:
+kernel 2.6.2-rc3
+ulogd ver 1.02
+CPU: Intel(R) Pentium(R) 4 CPU 2.40GHz
+RAM: 256M
+Network loading is about 500K per sec.
+We are ISP and using this server as our primary shaper.
 
-I've been testing with:
-ip6tables -t mangle -A POSTROUTING -s somehost -j LOG
-ip6tables -t mangle -A POSTROUTING -s somehost -j ADDRH  (see attached code)
-ip6tables -t mangle -A POSTROUTING -s somehost -j LOG  (the dropped
-packets mentioned above don't show up here)
+I found this problem when I used a fresh 2.6.10 kernel without any 
+patches as well.
 
-I've also tried the PREROUTING hook.
-The code I'm using is attached.
-What am I doing wrong? (Is my poor experience with kernel programming to blame?)
 
-Any help would be greatly appreciated.
+>>I think that there are some problems in transmit data via kernel socket 
+>>to userspace.
+>>    
+>>
+>
+>probably.  even if your buffers are large enough - if the system
+>forwards more packets than it is able to ULOG, then you will have holes
+>in your logs.  ULOG is best-effort.
+>
+>  
+>
+I added to the ipt_ULOG.c file some debug information just after 
+netlink_broadcast function.
 
-Wim Van de Meerssche
+ret = netlink_broadcast(nflognl, ub->skb, 0, (1 << nlgroupnum), GFP_ATOMIC);
+if(ret!=0){
+     PRINTR("%s\n  throwing %d packets","ipt_ULOG:netlink_broadcast 
+error",ub->qlen);
+};
 
-------=_Part_32_7846491.1107335039582
-Content-Type: application/octet-stream; name="ADDRHCode.c"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="ADDRHCode.c"
 
-LyogVGhpcyBpcyB0aGUgaW50ZXJlc3RpbmcgcGFydCBvZiB0aGUgY29kZS4gKi8Kc3RhdGljIHVu
-c2lnbmVkIGludAppcDZ0X2FkZHJoX3RhcmdldChzdHJ1Y3Qgc2tfYnVmZiAqKnBza2IsIGNvbnN0
-IHN0cnVjdCBuZXRfZGV2aWNlICppbiwKICAgICAgICAgICAgICAgIGNvbnN0IHN0cnVjdCBuZXRf
-ZGV2aWNlICpvdXQsIHVuc2lnbmVkIGludCBob29rbnVtLAogICAgICAgICAgICAgICAgY29uc3Qg
-dm9pZCAqdGFyZ2luZm8sIHZvaWQgKnVzZXJpbmZvKQp7CiAgc3RydWN0IGlwdjZoZHIgKmlwaDsK
-ICBjb25zdCBzdHJ1Y3QgaXA2dF9BRERSSF9pbmZvICppbmZvID0gdGFyZ2luZm87CiAgLyogaW5m
-bzogICAgIHN0cnVjdCBpcDZ0X0FERFJIX2luZm8geyBzdHJ1Y3QgaW42X2FkZHIgdGFyZ2V0OyB9
-OyAqLwoKICBpcGggPSAoKnBza2IpLT5uaC5pcHY2aDsKCiAgcHJpbnRrKC4uLmlwaC0+ZGFkZHIu
-Li4pOyAvL3ByaW50cyBwYWNrZXQgaW5mbyBmb3IgZGVidWdnaW5nCgogIC8qIHdpdGggdGhlIGxp
-bmUgYmVsb3csIHRoZSBwYWNrZXQgZG9lc24ndCBjaGFuZ2UuIFdpdGhvdXQgdGhlIGxpbmUsIGl0
-IGdldHMgZHJvcHBlZC4gKi8KICAvL2lmICghc2tiX2lwX21ha2Vfd3JpdGFibGUocHNrYiwgc2l6
-ZW9mKHN0cnVjdCBpcHY2aGRyKSkpIHJldHVybiBORl9EUk9QOwoKICBpcGgtPmRhZGRyID0gaW5m
-by0+dGFyZ2V0OwoKICAoKnBza2IpLT5uZmNhY2hlIHw9IE5GQ19BTFRFUkVEOyAKCiAgcHJpbnRr
-KC4uLmlwaC0+ZGFkZHIuLi4pOyAvL3ByaW50cyBwYWNrZXQgaW5mbyBmb3IgZGVidWdnaW5nICh0
-aGUgY2hhbmdlIGNhbiBhbHdheXMgYmUgc2VlbiBoZXJlKQoKICByZXR1cm4gSVA2VF9DT05USU5V
-RTsKfQo=
-------=_Part_32_7846491.1107335039582--
+And I didn't get any errors from this function.
+So for my mind information is lost somewhere in the way between ulog 
+kernel module
+and  ulogd daemon.
+What do you think if I will change ULOG module so it will send data via 
+proc fs?
+Can it solve a problem with lost data?
+
+>>Changing a socket network buffer size up to 4M didn't help me.
+>>
+>>sysctl -w net.core.rmem_max=8388608
+>>    
+>>
+>>sysctl -w net.core.rmem_default=4194304
+>>sysctl -w net.core.wmem_max=8388608
+>>sysctl -w net.core.wmem_default=4194304
+>>    
+>>
+>
+>there are multiple buffers involved, please see the ulogd documentation.
+>  
+>
+Unfortunatelly I didn't find any related. There is only one place in the 
+ulogd daemon
+when ulogd is receiving a data from ulog.
+Look at the below code:
+libipulog.c:81      status = recvfrom(h->fd, buf, len, 0, (struct 
+sockaddr *)&h->peer,&addrlen);
+
+How I can trace this way between call netlink_broadcast function and 
+recvfrom in the ulogd daemon?
+I would be grateful for any suggestions, information links or hints etc.
+
+Thanks,
+Sergei Filippov
