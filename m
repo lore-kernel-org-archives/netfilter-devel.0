@@ -1,13 +1,13 @@
-From: Ivan Kostov <ivan_kostov@abv.bg>
-Subject: Bridge+iptables problem
-Date: Sat, 12 Oct 2002 02:39:05 +0300 (EEST)
+From: Telford Tendys <telford@triode.net.au>
+Subject: TCPLAG new target for netfilter
+Date: Mon, 14 Oct 2002 13:39:14 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <250090190.1034379545847.JavaMail.nobody@storage.ni.bg>
+Message-ID: <20021014133914.A8251@ikkyu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1251"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,11 +18,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I'm using Red Hat 7.2 as transperant firewall ( bridge+iptables )
-( bridge.sourceforge.net) Everything is ok, but i can't still forward my port's ( to SQUID proxy for example ). If you have any sugestions please send me mail at ivan_kostov@abv.bg 
+New target for iptables/netfilter to track how much lag
+is on an TCP/IPv4 link and output to syslog. It's far from
+perfect but I've had it running on my firewall for a week
+and a bit without any drama. It is available in both stand
+alone format and my attempt at a patch-o-matic format.
+It is a passive target (like LOG) so it doesn't do any
+actual filtering, merely logging.
 
-Thanks 
+   http://www.triode.net.au/~telford/TCPLAG
 
------------------------------------------------------------------
-http://mobile.GBG.bg/ - On-line обяви за автомобили
+
+Hope its useful for someone...
+
+	- Tel
