@@ -1,16 +1,17 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] __FUNCTION__ pasting fix for ip_nat_helper.c, 2.5.33
-Date: Sat, 07 Sep 2002 17:11:07 -0700 (PDT)
+From: "luoqiang" <luoqiang@ict.ac.cn>
+Subject: another libiptc question
+Date: Mon, 9 Sep 2002 11:48:17 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020907.171107.16309896.davem@redhat.com>
-References: <Mutt.LNX.4.44.0209011240540.14016-100000@blackbird.intercode.com.au>
+Message-ID: <LLEJLJOMFGPFJFEGAKBJAEIBCCAA.luoqiang@ict.ac.cn>
+References: <20020827090912.GB2258@sothis.glaume.mds>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@gnumonks.org, netfilter-devel@lists.samba.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: base64
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: jmorris@intercode.com.au
-In-Reply-To: <Mutt.LNX.4.44.0209011240540.14016-100000@blackbird.intercode.com.au>
+To: "Vincent" <vincent.glaume@wanadoo.fr>
+In-Reply-To: <20020827090912.GB2258@sothis.glaume.mds>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,7 +22,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
-Already in my tree, just haven't been able to push to Linus because
-master.kernel.org ate it's disks the other day, should be pushed
-by Monday or so.
+SGksIFZpbmNlbnQNCg0KSSByZWNlaXZlZCB5b3VyIGxpYmlwdGMgY29kZSB0d28gd2Vla3MgYWdv
+LiBUaGFua3MgeW91IHZlcnkgbXVjaCENCkJ1dCBJIGhhZCBzb21ldGhpbmcgZWxzZSB0byBkbyBz
+byBJIHRlc3RlZCBpdCB5ZXN0ZXJkYXkuOi0pDQpOb3cgSSBoYWQgYW5vdGhlciBxdWVzdGlvbiBh
+Ym91dCBzdHJ1Y3QgaXB0X2VudHJ5X21hdGNoLg0KWW91IGRlZmluZWQgdHdvIGZ1bmN0aW9ucyAo
+YnVpbGRfbWF0Y2hfdWRwIGFuZCBidWlsZF9tYXRjaF90Y3ApIGluIHlvdXIgY29kZS4NCkkgdGhp
+bmsgaXQncyB1c2VmdWwgZm9yIHNvbWUgbWF0Y2hzIHN1Y2ggYXMgIi1wLCAtLXNwb3J0ICIuDQpC
+dXQgSSBkb24ndCBrbm93IGhvdyBpcHRhYmxlcyBoYW5kbGUgdGhlIG90aGVyIG1hY3RocywgIGZv
+ciBleGFtcGxlIGxpbWl0Lg0KSSB0aGluayBmb3IgZWFjaCBtYXRjaCwgaXQgb25seSBrbm93cyBp
+dCdzIG5hbWUgYW5kIHNpemUgd2hpY2ggaXMgcG9pbnRlZCB0byBieSBkYXRhLCBzbyBpcHRhYmxl
+IHNob3VsZCBoYW5kbGUgdGhlIHBhcnRpY3VsYXIgbWFjdGggYnkgaXQncyBuYW1lLg0KRm9yIGV4
+YW1wbGUsIGlmIGl0IGdldCAibGltaXQiIGluIG5hbWUgaW4gc3RydWN0IGlwdF9lbnRyeV9tYXRj
+aCwgaXQgc2hvdWQgdXNlIGNvcnJlbGF0aXZlIGZ1bmN0aW9uIHRvIGludGVycHJldCB0aGUgbWVh
+bnMgb2YgdGhlIG1hdGNoLg0KU3VjaCBtYXRjaHMgc3RydWN0IGFuZCBmdW5jdGlvbnMgY2FuIGJl
+IGFkZGVkIGJ5IG15c2VsZiBpbiBrZXJuZWwuDQpJIGRvbid0IGtub3cgaWYgbXkgdGhvdWdodHMg
+aXMgY29ycmVjdC4NCmJ0dzogSSBkb3dubG9hZGVkIGFuZCBpbnN0YWxsZWQgaXB0YWJsZXMtMS4y
+LjYsIGJ1dCBJIGZvdW5kIEkgc3RpbGwgaGF2ZSBubyBmdWxsIGlwdGFibGVzIHNvdXJjZSBjb2Rl
+LCBidWNhdXNlIEkgY2FuJ3QgdXNlIGdkYiB0byB0cmFjZSBsaWJpcHRjIHByb2dyYW0uIHdoeT8g
+DQoNCg0KbHVvcWlhbmcNCg==
