@@ -1,15 +1,17 @@
 From: Roberto Nibali <ratz@tac.ch>
-Subject: Re: [PATCH] multiple devices with ranges match support
-Date: Tue, 01 Oct 2002 10:57:48 +0200
+Subject: Re: [PATCH] flow statistic match
+Date: Tue, 01 Oct 2002 10:53:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3D99638C.204@tac.ch>
-References: <638AA0336D7ED411928700D0B7B0D75B03053C9C@aimail.aiinet.com>
+Message-ID: <3D99629F.1020204@tac.ch>
+References: <Pine.LNX.4.44L.0209172337160.10390-102000@hunger.screamingdaemon.com> <20020918215958.GE10465@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Jay Schulist <jschlst@linux-sna.org>, Harald Welte
+ <laforge@gnumonks.org>,
+   netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Eble, Dan" <DanE@aiinet.com>
+To: Patrick Schaaf <bof@bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,16 +22,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi.
 
-> Would you ever want to use this on interfaces with secondary addresses, like
-> eth0:4?  (Does that even matter?  I'm not too familiar with them; I just
-> remember seeing that syntax.)
+> As a proposal out of the blue, what about calling it "ctvolume", instead?
 
-eth0:4 is _not_ an interface, but a label. The underlying physical interface is 
-eth0. Filtering should be per src addr selector and not by names.
+Why :)
 
-Regards,
+> Would it be possible, in the near future, to use a "ctnetlink" interface
+> to get at the final counters when a conntrack is destroyed? :-)
+
+Roman has done something like that already for our company, the patch (not the 
+final version, but enough to have a glance at it) can be fetched at:
+
+http://www.drugphish.ch/patches/roman/slog-kernel-2.4.18.diff
+
+Cheers,
 Roberto Nibali, ratz
+
 -- 
 echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
