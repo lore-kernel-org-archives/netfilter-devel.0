@@ -1,18 +1,14 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: PATCH: extra conntrack stats
-Date: Thu, 01 May 2003 16:46:44 +1000
+From: Shobhan Ayyadevara <shobhankumar-rc@naturesoft.net>
+Subject: Problem with newnat & H323 patches
+Date: Thu, 01 May 2003 12:32:22 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030501064732.ADD9C2C003@lists.samba.org>
-References: <20030501060522.GB15143@oknodo.bof.de>
-Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
-	Harald Welte <laforge@netfilter.org>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Message-ID: <3EB0C67E.5010805@naturesoft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-reply-to: Your message of "Thu, 01 May 2003 08:05:22 +0200."
-             <20030501060522.GB15143@oknodo.bof.de>
+To: Netfilter Development Mailinglist
+ <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,26 +19,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <20030501060522.GB15143@oknodo.bof.de> you write:
-> > 	struct nf_ct_info infos[IP_CT_NUMBER];
-> > 7 * 4 bytes.  We could eliminate this by adding an skb field to hold
-> > the state.
-> 
-> Given a guaranteed cacheline alignment of our 'struct ip_conntrack',
-> we could make the current pointer on the skbuffs a tagged pointer,
-> i.e. stuff our 3 info bits into the low 3 bits, without consuming
-> more room in the skbuffs.
+Hi,
 
-That was my original implementation.  It was fairly ugly, but worse, I
-can imagine an arch where it would break.  None would at the moment,
-though, since kmalloc cacheline aligns (although we'd have to be a
-little careful to explicitly align a conntrack if we were to use a
-dummy one for a "notrack" target.
+I am trying to apply h323 patch in 2.4.18 kernel. Some where i read 
+that, before applying h323 patch, newnat patch need to applied.
 
-> See http://lists.netfilter.org/pipermail/netfilter-devel/2002-July/008703.html
+When i try to apply newnat patch.. i am getting rejections.  Could any 
+one please tell me where can i get the working newnat
+patch.
 
-That looks like a good patch anyway...
+Any idea on applying h323 patch..
 
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+Please enlighten me
+
+Thanks
+Shobhan
