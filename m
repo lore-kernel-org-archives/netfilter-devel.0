@@ -1,13 +1,14 @@
 From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: a small bug in iptables.c and ip6tables.c get_modprobe()
-Date: Thu, 14 Oct 2004 02:53:42 +0300
+Subject: Fw: a small bug in iptables.c and ip6tables.c get_modprobe()
+Date: Thu, 14 Oct 2004 08:46:20 +0300
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041013235342.GD4827@nalle>
+Message-ID: <20041014054620.GG4827@nalle>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_DzwR/p5e7iHuZaSo/7nRvA)"
-Cc: netfilter-devel@lists.netfilter.org, debian-firewall@lists.debian.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: 219686@bugs.debian.org
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,11 +19,16 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Didn't see this message in the archive, so perhaps cc'ing the list
+doesn't work. Sorry if this is a double post.
 
---Boundary_(ID_DzwR/p5e7iHuZaSo/7nRvA)
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7BIT
-Content-disposition: inline
+-Mikko
+
+----- Forwarded message -----
+
+To: 219686@bugs.debian.org
+Cc: debian-firewall@lists.debian.org, netfilter-devel@lists.netfilter.org
+Subject: a small bug in iptables.c and ip6tables.c get_modprobe()
 
 Hello,
 
@@ -41,11 +47,6 @@ thanks.
 
 -Mikko
 
---Boundary_(ID_DzwR/p5e7iHuZaSo/7nRvA)
-Content-type: text/plain; charset=us-ascii; NAME=iptables_modprobe_fix.patch
-Content-transfer-encoding: 7BIT
-Content-disposition: attachment; filename=iptables_modprobe_fix.patch
-
 --- iptables.c-original	2004-10-13 20:22:34.000000000 +0300
 +++ iptables.c	2004-10-14 02:23:21.000000000 +0300
 @@ -1565,8 +1565,9 @@
@@ -59,11 +60,6 @@ Content-disposition: attachment; filename=iptables_modprobe_fix.patch
  		switch (read(procfile, ret, 1024)) {
  		case -1: goto fail;
  		case 1024: goto fail; /* Partial read.  Wierd */
-
---Boundary_(ID_DzwR/p5e7iHuZaSo/7nRvA)
-Content-type: text/plain; charset=us-ascii; NAME=ip6tables_modprobe_fix.patch
-Content-transfer-encoding: 7BIT
-Content-disposition: attachment; filename=ip6tables_modprobe_fix.patch
 
 --- ip6tables.c-original	2004-10-14 02:22:06.000000000 +0300
 +++ ip6tables.c	2004-10-14 02:25:11.000000000 +0300
@@ -79,4 +75,5 @@ Content-disposition: attachment; filename=ip6tables_modprobe_fix.patch
  		case -1: goto fail;
  		case 1024: goto fail; /* Partial read.  Wierd */
 
---Boundary_(ID_DzwR/p5e7iHuZaSo/7nRvA)--
+
+----- End forwarded message -----
