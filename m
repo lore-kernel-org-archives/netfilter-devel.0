@@ -1,14 +1,15 @@
-From: "Andrew.hall" <temp02@bluereef.com.au>
-Subject: Preroute selection order
-Date: Mon, 10 Feb 2003 14:24:53 +1100
+From: "turbobee" <turbobee@cox.net>
+Subject: Re: ip_nat_irc or ip_conntrack_irc
+Date: Fri, 14 Feb 2003 01:17:53 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <003901c2d0b3$f9fce8a0$2601010a@bluereef.local>
+Message-ID: <002201c2d401$92b7f3a0$0201a8c0@muska>
+References: <001601c2d3f4$931b0e20$0201a8c0@muska> <20030214072636.GH14794@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,13 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Sorry about the construed e-mail address, I found it in the source code. I
+didn't think to look at netfilter.org for contacts.  Anyways I'm fairly new
+to linux, could you go in depth a little more about what you want me to do
+and send?  I have stopped using the module for now because I'm using port
+forwarding to work at the moment, but I would definatly like to see this
+issue fixed.  Thanks for your patience.
 
-When writing (for example) a new table, can someone please tell me how
-netfilter orders the tables that register to listen on a particular hook
-such as PREROUTE? I assume that there is a defined pecking order to which
-tables get accessed first?
+From,
+Patrick Bostwick
 
-Thanks,
-
-Andrew.
+----- Original Message -----
+From: "Harald Welte" <laforge@gnumonks.org>
+To: "turbobee" <turbobee@cox.net>
+Cc: "Netfilter Development Mailinglist"
+<netfilter-devel@lists.netfilter.org>
+Sent: Friday, February 14, 2003 12:26 AM
+Subject: Re: ip_nat_irc or ip_conntrack_irc
