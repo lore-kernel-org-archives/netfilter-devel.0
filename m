@@ -1,23 +1,52 @@
-From: "Laurence J. Lane" <ljlane@nontoxic.org>
-Subject: ip6tables.8.in, no LOG, MARK or REJECT
-Date: Sat, 17 Jul 2004 10:33:45 -0400
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040717143345.GA20408@ljlane.net>
+From: Adrian Bunk <bunk@fs.tum.de>
+Subject: [2.6 patch] ipv4/netfilter/Kconfig: simplify dependencies
+Date: Sat, 17 Jul 2004 18:53:04 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040717165303.GE4759@fs.tum.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S266182AbUGQQxN@vger.kernel.org>
+To: coreteam@netfilter.org
 Content-Disposition: inline
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-ip6tables.8.in appears to be missing the LOG, MARK, and
-REJECT targets -- which are all in a contiguos chunk in
-the old ip6tables.8.
+It seems that originating from the automatic Kconfig transition, some 
+dependencies in ipv4/netfilter/Kconfig are correct, but too complicated.
+
+The patch below makes them a bit more simple.
+
+--- linux-2.6.8-rc1-mm1-full/net/ipv4/netfilter/Kconfig.old	2004-07-17 17:43:55.000000000 +0200
++++ linux-2.6.8-rc1-mm1-full/net/ipv4/netfilter/Kconfig	2004-07-17 18:12:43.000000000 +0200
+@@ -307,7 +307,7 @@
+ 
+ config IP_NF_NAT_NEEDED
+ 	bool
+-	depends on IP_NF_CONNTRACK!=y && IP_NF_IPTABLES!=y && (IP_NF_COMPAT_IPCHAINS!=y && IP_NF_COMPAT_IPFWADM || IP_NF_COMPAT_IPCHAINS) || IP_NF_IPTABLES && IP_NF_CONNTRACK && IP_NF_NAT
++	depends on IP_NF_COMPAT_IPFWADM || IP_NF_COMPAT_IPCHAINS || IP_NF_NAT
+ 	default y
+ 
+ config IP_NF_TARGET_MASQUERADE
+@@ -392,19 +392,19 @@
+ # or $CONFIG_IP_NF_FTP (m or y), whichever is weaker.  Argh.
+ config IP_NF_NAT_FTP
+ 	tristate
+-	depends on IP_NF_IPTABLES!=n && IP_NF_CONNTRACK!=n && IP_NF_NAT!=n
++	depends on IP_NF_NAT!=n
+ 	default IP_NF_NAT if IP_NF_FTP=y
+ 	default m if IP_NF_FTP=m
+ 
+ config IP_NF_NAT_TFTP
+ 	tristate
+-	depends on IP_NF_IPTABLES!=n && IP_NF_CONNTRACK!=n && IP_NF_NAT!=n
++	depends on IP_NF_NAT!=n
+ 	default IP_NF_NAT if IP_NF_TFTP=y
+ 	default m if IP_NF_TFTP=m
+ 
+ config IP_NF_NAT_AMANDA
+ 	tristate
+-	depends on IP_NF_IPTABLES!=n && IP_NF_CONNTRACK!=n && IP_NF_NAT!=n
++	depends on IP_NF_NAT!=n
+ 	default IP_NF_NAT if IP_NF_AMANDA=y
+ 	default m if IP_NF_AMANDA=m
+ 
