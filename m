@@ -1,40 +1,56 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] fix ipt_REJECT when used in OUTPUT
-Date: Sun, 21 Sep 2003 16:40:13 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20030921144013.GA22223@sunbeam.de.gnumonks.org>
+Subject: Re: Netfilter problem with new 2.4.22
+Date: Sun, 21 Sep 2003 16:34:23 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030921143423.GE20986@sunbeam.de.gnumonks.org>
+References: <3F697788.8080103@isfera.ru> <3F6A2632.6030005@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GRPZ8SYKNexpdSJ7"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: David Miller <davem@redhat.com>
+	protocol="application/pgp-signature"; boundary="IMjqdzrDRly81ofr"
+Cc: Diadon <diadon@isfera.ru>, netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
+In-Reply-To: <3F6A2632.6030005@trash.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---GRPZ8SYKNexpdSJ7
-Content-Type: multipart/mixed; boundary="Qxx1br4bt0+wmkIi"
-Content-Disposition: inline
-
-
---Qxx1br4bt0+wmkIi
+--IMjqdzrDRly81ofr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave!
+On Thu, Sep 18, 2003 at 11:40:02PM +0200, Patrick McHardy wrote:
+> Hi Diadon,
+> the problem seems to be that a dst for local input doesn't carry pmtu=20
+> information, the pmtu is set by rt_set_nexthop which is skipped for
+> local input.=20
 
-Some people use REJECT in the OUTPUT chain (rejecting locally generated
-packets).  This didn't work anymore starting with some fixes we did in 2.4.=
-22.=20
-A dst_entry for a local source doesn't contain pmtu information - and
-thus the newly-created packet would instantly be dropped again.
+Thanks for debugging the problem, Patrick.
+=20
+> I've attached two possible fixes for this. The first one restores
+> behaviour from before the routing changes for LOCAL_OUT, the other one
+> removes the check since obviously "Never happens" is not true anymore
+> (and it is not an error). Another possibility would be something like
+> "if (nskb->dst->pmtu && nskb->len > nskb->dst->pmtu)  ..."
+> Someone from the coreteam should comment which solution is prefered.
 
-I'll send you a 2.6.x merge for this later.
+I'd actually prefer the last solution (together with a comment why
+nskb->dst-pmtu can be zero).=20
 
-Please apply the following fix, thanks
+I've included the patch into 'submitted' (will send it to davem later)
+
+> Regards,
+> Patrick
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -46,43 +62,16 @@ Please apply the following fix, thanks
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="75_REJECT_localpmtu-fix.patch"
-Content-Transfer-Encoding: quoted-printable
-
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.4.22/net/ipv4/netfilter/ipt=
-_REJECT.c linux-2.4.22-rejectfix/net/ipv4/netfilter/ipt_REJECT.c
---- linux-2.4.22/net/ipv4/netfilter/ipt_REJECT.c	2003-08-25 13:44:44.000000=
-000 +0200
-+++ linux-2.4.22-rejectfix/net/ipv4/netfilter/ipt_REJECT.c	2003-09-21 16:39=
-:25.000000000 +0200
-@@ -186,8 +186,8 @@
- 	nskb->nh.iph->check =3D ip_fast_csum((unsigned char *)nskb->nh.iph,=20
- 					   nskb->nh.iph->ihl);
-=20
--	/* "Never happens" */
--	if (nskb->len > nskb->dst->pmtu)
-+	/* dst->pmtu can be zero because it is not set for local dst's */
-+	if (nskb->dst->pmtu && nskb->len > nskb->dst->pmtu)
- 		goto free_nskb;
-=20
- 	connection_attach(nskb, oldskb->nfct);
-
---Qxx1br4bt0+wmkIi--
-
---GRPZ8SYKNexpdSJ7
+--IMjqdzrDRly81ofr
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/bbhNXaXGVTD0i/8RAuPuAJsGfP+lOdTF+9ICL/PwrcmDrigkOgCfZ29b
-WfgGMCdz+seLGbiCJngkcfY=
-=pHjS
+iD8DBQE/bbbvXaXGVTD0i/8RAtznAKCvy2RlBQ4y86iWkWe3G37q5RQjmgCeI6lT
+lZOtnNKD22rDNhDO5nhBUfA=
+=qDBP
 -----END PGP SIGNATURE-----
 
---GRPZ8SYKNexpdSJ7--
+--IMjqdzrDRly81ofr--
