@@ -1,14 +1,11 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] nfsim TCP related fixes
-Date: Tue, 22 Feb 2005 02:24:41 +1100
-Message-ID: <1108999481.16083.1.camel@localhost.localdomain>
-References: <Pine.LNX.4.58.0502210859300.834@blackhole.kfki.hu>
+From: Max Kellermann <max@duempel.org>
+Subject: [PATCH nfsim 0/4] binary protocol support + backticks for nfsim
+Date: Mon, 21 Feb 2005 18:17:19 +0100
+Message-ID: <20050221171719.GA32254@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0502210859300.834@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,18 +17,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2005-02-21 at 09:07 +0100, Jozsef Kadlecsik wrote:
-> Hi,
-> 
-> I discovered two TCP related bugs in gen_ip: TCP SEQ and ACK numbers were
-> converted from string to u_int16_t instead of u_int32_t and full length
-> TCP options could not be specified.
+Hi,
 
-Don't think so: string_to_number uses int.  You couldn't specify >
-2billion though.  We should just make string_to_number() use unsigned
-since noone wants -ve numbers anyway.  Other fix looks fine: feel free
-to simply commit.
+this set of 4 patches adds support for binary protocols by escaping
+all non-printable and 8 bit characters and by adding the "backtick"
+feature known from the shell and perl. This enables you to write a
+small program which generates packets for nfsim.
 
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Without these patches, it is a major pain to write nfsim tests for
+binary protocols like H.323.
+
+Consider the following snippet (NAT helper test):
+
+ expect gen_ip send:eth1 {*DATA `./generate-h225-connect 192.168.0.2`}
+ tcpsession DATA original `./generate-h225-connect 192.168.0.1`
+
+Now imagine the same expressed in inlined hex notation.
+
+Max
