@@ -1,15 +1,15 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: Introduce user space conntrack tool
-Date: Mon, 28 Mar 2005 22:43:28 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0503282236380.18115@bizon.gios.gov.pl>
-References: <42474838.1080805@eurodev.net>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: issue with the quota match
+Date: Tue, 29 Mar 2005 10:51:28 +0200
+Message-ID: <42491710.4090400@eurodev.net>
+References: <1112030055.6205.23.camel@localhost>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1469114671-1112042608=:18115"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42474838.1080805@eurodev.net>
+To: Borja Pacheco <bpacheco@acisa.es>
+In-Reply-To: <1112030055.6205.23.camel@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,26 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Borja Pacheco wrote:
+> In a first moment I insert a rule with an initial quota of 1000 bytes...
+>     0     0 ACCEPT     all  --  *      *       0.0.0.0/0
+> 0.0.0.0/0           quota: 1000 bytes
+> 
+> Next, I generate packets and here it's the amazing result....
+>     8   448 ACCEPT     all  --  *      *       0.0.0.0/0
+> 0.0.0.0/0           quota: 712 bytes
+> 
+> Theoretically, 1000 assigned bytes minus total traffic generated (448
+> bytes), must originate the remaining quota the rule has: 552. 
+> BUT IT SAYS 712 BYTES!!!!!
 
----187430788-1469114671-1112042608=:18115
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+quota doesn't count the ip headers (20 bytes). Some maths:
 
+8 packets x 20 bytes = 160 bytes
+552 + 160 = 712 bytes
 
-
-On Mon, 28 Mar 2005, Pablo Neira wrote:
-
-> I've started a tool to do common manipulation conntrack. Please, it is *v=
-ery*=20
-> raw yet, it still need work but I think that it could be interesting. Of=
-=20
-> course, it requires libctnetlink and libnfnetlink.
-
-Great job! Any plans for integrate libctnetlink into mainline?
-
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-1469114671-1112042608=:18115--
+--
+Pablo
