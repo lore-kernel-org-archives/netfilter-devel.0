@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6] Use C99 initializers for conntrack sysctl tables
-Date: Fri, 20 Feb 2004 23:28:07 +0100
+From: Ahmad Almulhem <feltah@yahoo.com>
+Subject: ip_queue question
+Date: Fri, 20 Feb 2004 14:51:56 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <403689F7.5060404@trash.net>
-References: <20040220210758.GV4797@sunbeam.de.gnumonks.org>
+Message-ID: <20040220225156.40182.qmail@web13422.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040220210758.GV4797@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +17,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> Hi again, Dave!
-> 
-> I guess this needs no further comment.  Oh yes, it depends on the
-> previous 2.6 resync patch I sent you.
-> 
-> Please apply, thanks
->
+Hi all,
 
-Hi Harald,
+I am trying to run 2 program to
+use ip_queue module at the same time. 
 
-not sure if you're done yet, I just wanted to remind you of
-the expect-evict-order fix in 2.6 pom, the 2.4 fix already got
-submitted some time ago. Also I wanted to ask about your plans
-to submit the 2.6 version of the owner-socketlookup patch. It
-has had enough testing in 2.4 that I feel confident it won't
-cause any problems.
+I basically start the first program 
+and it runs fine receiving packets 
+correctly. I then run the second 
+program, which prints the following 
+error:
 
-Best regards,
-Patrick
+"Received error message 16"
+
+and keeps running without receiving
+any packets!
+
+The two programs that I am running are
+snort inline and my code based on the
+sample which comes with libipq(3).
+Both programs runs fine when run alone.
+I only get this problem when I try to run
+them together.
+
+My question: does libipq module support
+more than one program at one time? is
+there any options I should set when
+modprobe ip_queue?
+
+thank u for ur help,
+
+ahamd
+
+
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail SpamGuard - Read only the mail you want.
+http://antispam.yahoo.com/tools
