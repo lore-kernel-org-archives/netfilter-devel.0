@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] netfilter: export conntrack bucket count via sysctl
-Date: Sun, 30 Nov 2003 21:10:06 +0530
+Subject: [PATCH 2.4] netfilter: get rid of warnings if no PROC_FS
+Date: Sun, 30 Nov 2003 21:05:12 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031130154006.GI26749@obroa-skai.de.gnumonks.org>
+Message-ID: <20031130153512.GF26749@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OX2aLCKeO1apYW07"
+	protocol="application/pgp-signature"; boundary="ZPDwMsyfds7q4mrK"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,59 +21,47 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---OX2aLCKeO1apYW07
+--ZPDwMsyfds7q4mrK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-This mail contains the seventh (and last) netfilter patch, please apply.
+This mail contains the fifth netfilter patch, please apply.
 
+Author: Stephen Hemminger
 
-Author: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.=
-net>
+Trivial -- Get rid of warnings in netfilter if /proc is not configured on.
+Patch against 2.6.0-test1
 
-This creates a new (read-only) sysctl to read out the number of hash bucket=
-s.
-
-
-=3D=3D=3D=3D=3D net/ipv4/netfilter/ip_conntrack_standalone.c 1.22 vs edited=
- =3D=3D=3D=3D=3D
---- 1.22/net/ipv4/netfilter/ip_conntrack_standalone.c	Fri Oct  3 08:21:19 2=
-003
-+++ edited/net/ipv4/netfilter/ip_conntrack_standalone.c	Thu Nov 27 06:28:59=
- 2003
-@@ -266,6 +266,7 @@
+diff -Nru a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent=
+=2Ec
+--- a/net/ipv4/netfilter/ipt_recent.c	Fri Jul 25 12:30:29 2003
++++ b/net/ipv4/netfilter/ipt_recent.c	Fri Jul 25 12:30:29 2003
+@@ -91,8 +91,10 @@
+  */
+ static spinlock_t recent_lock =3D SPIN_LOCK_UNLOCKED;
 =20
- /* From ip_conntrack_core.c */
- extern int ip_conntrack_max;
-+extern unsigned int ip_conntrack_htable_size;
++#ifdef CONFIG_PROC_FS
+ /* Our /proc/net/ipt_recent entry */
+ static struct proc_dir_entry *proc_net_ipt_recent =3D NULL;
++#endif
 =20
- /* From ip_conntrack_proto_tcp.c */
- extern unsigned long ip_ct_tcp_timeout_syn_sent;
-@@ -292,6 +293,9 @@
- static ctl_table ip_ct_sysctl_table[] =3D {
- 	{NET_IPV4_NF_CONNTRACK_MAX, "ip_conntrack_max",
- 	 &ip_conntrack_max, sizeof(int), 0644, NULL,
-+	 &proc_dointvec},
-+	{NET_IPV4_NF_CONNTRACK_BUCKETS, "ip_conntrack_buckets",
-+	 &ip_conntrack_htable_size, sizeof(unsigned int), 0444, NULL,
- 	 &proc_dointvec},
- 	{NET_IPV4_NF_CONNTRACK_TCP_TIMEOUT_SYN_SENT, "ip_conntrack_tcp_timeout_sy=
-n_sent",
- 	 &ip_ct_tcp_timeout_syn_sent, sizeof(unsigned int), 0644, NULL,
-=3D=3D=3D=3D=3D include/linux/sysctl.h 1.53 vs edited =3D=3D=3D=3D=3D
---- 1.53/include/linux/sysctl.h	Wed Oct 29 21:19:30 2003
-+++ edited/include/linux/sysctl.h	Thu Nov 27 06:08:04 2003
-@@ -376,6 +376,7 @@
- 	NET_IPV4_NF_CONNTRACK_UDP_TIMEOUT_STREAM=3D11,
- 	NET_IPV4_NF_CONNTRACK_ICMP_TIMEOUT=3D12,
- 	NET_IPV4_NF_CONNTRACK_GENERIC_TIMEOUT=3D13,
-+	NET_IPV4_NF_CONNTRACK_BUCKETS=3D14,
- };
- =20
- /* /proc/sys/net/ipv6 */
+ /* Function declaration for later. */
+ static int
+@@ -959,8 +961,10 @@
+ 	int count;
+=20
+ 	printk(version);
++#ifdef CONFIG_PROC_FS
+ 	proc_net_ipt_recent =3D proc_mkdir("ipt_recent",proc_net);
+ 	if(!proc_net_ipt_recent) return -ENOMEM;
++#endif
+=20
+ 	if(ip_list_hash_size && ip_list_hash_size <=3D ip_list_tot) {
+ 	  printk(KERN_WARNING RECENT_NAME ": ip_list_hash_size too small, resetti=
+ng to default.\n");
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -85,16 +73,16 @@ n_sent",
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---OX2aLCKeO1apYW07
+--ZPDwMsyfds7q4mrK
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/yg9rXaXGVTD0i/8RApZkAJwMD5ju6tKsOyls6b6xZbzmvGuFUwCeNopn
-wNYVQNP0xB/ASzJt9orgAy0=
-=TpXP
+iD8DBQE/yg5FXaXGVTD0i/8RAhvyAKCKUNV45f8slQD0Z1HoRCX37CnA5QCgjdEW
+lQOot6yISiKjAkNVLdReReU=
+=DoD7
 -----END PGP SIGNATURE-----
 
---OX2aLCKeO1apYW07--
+--ZPDwMsyfds7q4mrK--
