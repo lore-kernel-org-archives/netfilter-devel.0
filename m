@@ -1,13 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: IP SET target iptables fix
-Date: Fri, 18 Mar 2005 09:14:43 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0503180907470.14190@blackhole.kfki.hu>
-References: <200503171840.01301.mpokrywka@hoga.pl>
+From: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
+Subject: Re: reverse NATing
+Date: Fri, 18 Mar 2005 13:35:57 -0500
+Message-ID: <debc30fc05031810356f0fc1ee@mail.gmail.com>
+References: <537f59d10503172337941a6a4@mail.gmail.com>
+Reply-To: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Michal Pokrywka <mpokrywka@hoga.pl>
-In-Reply-To: <200503171840.01301.mpokrywka@hoga.pl>
+To: Vinay Reddy <vinayvinay@gmail.com>
+In-Reply-To: <537f59d10503172337941a6a4@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,23 +21,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+I think you are talking about what seems to be the connection
+tracking, once a packet match a rule in the nat table it will use that
+rule until the connection is closed and in both sides.
 
-On Thu, 17 Mar 2005, Michal Pokrywka wrote:
 
-> Current iptables target needs to test for IP_SET_INVALID_ID when
-> printing or saving rules from kernel, currently it errors "iptables v1.3.1:
-> Set id 65535 in kernel doesn't exist."
+On Fri, 18 Mar 2005 13:07:33 +0530, Vinay Reddy <vinayvinay@gmail.com> wrote:
+> Hi,
+> I would like to know where exactly reverse mapping(packets coming from
+> outside to the internal network) is done in the case of SNAT? From the
+> netfilter documentation, it seems to be done in the POST_ROUTING hook.
+> Is it true?
+> Logically I would expect the packet to be reverse mapped in the
+> pre-routing state itself. Why would one want to reverse map it in post
+> routing? I am sure I am missing something. Could anyone please
+> enlighten me?
+> 
+> Any help would be appreciated.
+> 
+> Regards,
+> Vinay
+> 
 >
-> Patch below fixes this problem:
-
-Yes, good catch: patch is applied in svn, iptables shapshot updated on
-webpage.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
