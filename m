@@ -1,17 +1,19 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] iptables-proc and admin-prohib patches
-Date: Mon, 5 May 2003 10:32:19 +0200 (CEST)
+Subject: Re: PATCH: extra conntrack stats
+Date: Mon, 5 May 2003 10:43:26 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0305051018360.607-100000@blackhole.kfki.hu>
-References: <20030430163304.GI685@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0305051040300.607-100000@blackhole.kfki.hu>
+References: <20030501015802.2CB152C2D9@lists.samba.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Cc: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
+	Harald Welte <laforge@netfilter.org>,
+	Martin Josefsson <gandalf@wlug.westbo.se>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030430163304.GI685@sunbeam.de.gnumonks.org>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <20030501015802.2CB152C2D9@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,40 +24,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+On Thu, 1 May 2003, Rusty Russell wrote:
 
-On Wed, 30 Apr 2003, Harald Welte wrote:
-
-> > while the major modification is that I added versioning support to
-> > tables/matches/targets.
+> > By adding a data lock to the conntrack entries can solve that
+> > (potential) problem. The data lock would make unnecessary the per
+> > conntrack helper locks too (unfortunately the buffers introduced in the
+> > zerocopy patch undo that).
 >
-> To be honest, I wouldn't call this 'versioning support'.  It just adds a
-> version number field to the structures that is printed in '/proc/'.
->
-> The kind of versioning support we could really need (but which cannot be
-> added to the 2.4.x architecture without being totally incompatible) is
-> to have version information in every rule that is loaded from userspace.
-> The kernel would then reject rules for target versions > than the loaded
-> target module. Userspace would then need to read the version number and
-> prepare a structure for an older version.
+> Yeah, per-entry locks make sense I think.  I can change the helpers to
+> do an skb_copy (suggested by Alexey) which will be lockless, or just
+> implement the damn non-linear search.
 
-Yes, you are correct. That'd mean real versioning.
-
-> So without any further convincing arguments, I would rather not want to
-> include your patch.  It would require patching all existing
-> targets/matches (to include the version number), and that's a too high
-> price for the little/limited use.
-
-There is no need to patch all existing extensions. I admit it's not
-elegant, but because the version parameter is the last in the module
-structures, all unpatched module gets automatically the zero version
-number. (And in order to introduce C99 initialization, we have to patch
-all extensions anyway and then the version numbers can explicitly be
-added.)
-
-What disturbs me is that the users cannot check (at least in such a
-primitive way) what is actually supported by the running kernel in the
-case of such incompatibilities.
+I afraid the non-linear search is not general enough. We have to support
+protocols which carry structures in the payload and in that case the
+non-linear search would be a nightmare.
 
 Best regards,
 Jozsef
