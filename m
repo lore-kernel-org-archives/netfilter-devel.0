@@ -1,15 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Bridging and IPT Queueing
-Date: Tue, 13 Jul 2004 09:07:53 +0200 (CEST)
+From: "Patrick" <patrick_@freenet.de>
+Subject: Re: string match patch
+Date: Tue, 13 Jul 2004 11:18:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0407130903480.32118-100000@filer.marasystems.com>
-References: <40F36523.6020302@metavize.com>
+Message-ID: <005201c468ba$61eaf390$0200a8c0@milchreis>
+References: <Pine.LNX.4.44.0407130227100.23959-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jim Mar <jmar@metavize.com>
-In-Reply-To: <40F36523.6020302@metavize.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,15 +20,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 12 Jul 2004, Jim Mar wrote:
+Hello,
 
-> >>Yes, physdev match will work. Thanks. Using physdev match, can I get
-> >>the physical indev for a redirected packet?
+I tried this, but everytime I run a 'make oldconfig' or a make menuconfig
+the entry gets erased for some reason ..
+
+regards
+Patrick
+
+----- Original Message -----
+From: "Henrik Nordstrom" <hno@marasystems.com>
+To: "Patrick" <patrick_@freenet.de>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Tuesday, July 13, 2004 2:33 AM
+Subject: Re: string match patch
+
+
+> On Tue, 13 Jul 2004, Patrick wrote:
 >
-> Sorry, I meant from user space, and if so, how?
-
-You can Use MARK to set a unique nfmark depending on the physdev and then
-make decisions in userspace depending on this.
-
-Regards
-Henrik
+> > yes I know that I am supposed to have new menu entries .. but as I said
+the
+> > patch pretends to be applied correctly and also the header files are
+copied
+> > .. I am using most recent version of pom-ng, thus
+> > "patch-o-matic-ng-20040621"
+> > I also tried the old stable version of patch-o-matic-20031219 .. which
+did
+> > not work either :|
+>
+>
+> Seems to be some bug in the pom-ng runme script..
+>
+> There is a .ladd file for adding the menu entry, but for some reason it
+> does not get added and the runme does not complain either..
+>
+> For now manually add the missing menu entry.
+>
+> Regards
+> Henrik
+>
+>
