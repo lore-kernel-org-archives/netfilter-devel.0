@@ -1,11 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 7/12]: Keep conntrack/nat protocols in array instead of
- linked list
-Date: Tue, 21 Sep 2004 05:22:51 +0200
+Subject: [PATCH 2.6 8/12]: lookup sockets for incoming packets in ipt_owner
+Date: Tue, 21 Sep 2004 05:23:05 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414F9E8B.1030003@trash.net>
+Message-ID: <414F9E99.8080507@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010106070603050309020308"
+Content-Type: multipart/mixed; boundary="------------030607070608030704070409"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -20,538 +19,310 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010106070603050309020308
+--------------030607070608030704070409
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-ChangeSet@1.1935.1.7, 2004-09-19 16:28:21+02:00, kaber@coreworks.de
-  [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
+This patch exports __tcp_v4_lookup and udp_v4_lookup and changes the
+owner match to look up the receiving socket for incoming packets.
+
+
+ChangeSet@1.1935.1.8, 2004-09-19 18:08:05+02:00, kaber@coreworks.de
+  [NETFILTER]: lookup sockets for incoming packets in ipt_owner
  
   Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 
 
---------------010106070603050309020308
+--------------030607070608030704070409
 Content-Type: text/x-patch;
- name="07.diff"
+ name="08.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="07.diff"
+ filename="08.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/09/19 16:28:21+02:00 kaber@coreworks.de 
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
+#   2004/09/19 18:08:05+02:00 kaber@coreworks.de 
+#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_standalone.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +5 -10
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
+# net/ipv4/udp.c
+#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +1 -0
+#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_proto_unknown.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +2 -2
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
+# net/ipv4/tcp_ipv4.c
+#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +3 -2
+#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_proto_udp.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
+# net/ipv4/netfilter/ipt_owner.c
+#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +76 -24
+#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_proto_tcp.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
+# include/net/udp.h
+#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +2 -0
+#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_proto_icmp.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
+# include/net/tcp.h
+#   2004/09/19 18:07:39+02:00 kaber@coreworks.de +1 -0
+#   [NETFILTER]: lookup sockets for incoming packets in ipt_owner
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_core.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +11 -28
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_conntrack_standalone.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +8 -17
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_conntrack_proto_sctp.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +0 -1
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_conntrack_core.c
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +6 -35
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv4/ip_nat_protocol.h
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +14 -2
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv4/ip_nat_core.h
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +0 -6
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv4/ip_conntrack_protocol.h
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +9 -3
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv4/ip_conntrack_core.h
-#   2004/09/19 16:27:55+02:00 kaber@coreworks.de +0 -4
-#   [NETFILTER]: Keep conntrack/nat protocols in array instead of linked list
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/include/linux/netfilter_ipv4/ip_conntrack_core.h b/include/linux/netfilter_ipv4/ip_conntrack_core.h
---- a/include/linux/netfilter_ipv4/ip_conntrack_core.h	2004-09-20 11:58:29 +02:00
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_core.h	2004-09-20 11:58:29 +02:00
-@@ -16,10 +16,6 @@
- extern void ip_conntrack_cleanup(void);
+diff -Nru a/include/net/tcp.h b/include/net/tcp.h
+--- a/include/net/tcp.h	2004-09-20 11:58:45 +02:00
++++ b/include/net/tcp.h	2004-09-20 11:58:45 +02:00
+@@ -160,6 +160,7 @@
+ extern void tcp_bucket_unlock(struct sock *sk);
+ extern int tcp_port_rover;
+ extern struct sock *tcp_v4_lookup_listener(u32 addr, unsigned short hnum, int dif);
++extern struct sock *__tcp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 hnum, int dif);
  
- struct ip_conntrack_protocol;
--extern struct ip_conntrack_protocol *ip_ct_find_proto(u_int8_t protocol);
--/* Like above, but you already have conntrack read lock. */
--extern struct ip_conntrack_protocol *__ip_ct_find_proto(u_int8_t protocol);
--extern struct list_head protocol_list;
+ /* These are AF independent. */
+ static __inline__ int tcp_bhashfn(__u16 lport)
+diff -Nru a/include/net/udp.h b/include/net/udp.h
+--- a/include/net/udp.h	2004-09-20 11:58:45 +02:00
++++ b/include/net/udp.h	2004-09-20 11:58:45 +02:00
+@@ -72,6 +72,8 @@
+ extern int	udp_ioctl(struct sock *sk, int cmd, unsigned long arg);
+ extern int	udp_disconnect(struct sock *sk, int flags);
  
- extern int
- ip_ct_get_tuple(const struct iphdr *iph,
-diff -Nru a/include/linux/netfilter_ipv4/ip_conntrack_protocol.h b/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
---- a/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2004-09-20 11:58:29 +02:00
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2004-09-20 11:58:29 +02:00
-@@ -7,9 +7,6 @@
++extern struct sock *udp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 dport, int dif);
++
+ DECLARE_SNMP_STAT(struct udp_mib, udp_statistics);
+ #define UDP_INC_STATS(field)		SNMP_INC_STATS(udp_statistics, field)
+ #define UDP_INC_STATS_BH(field)		SNMP_INC_STATS_BH(udp_statistics, field)
+diff -Nru a/net/ipv4/netfilter/ipt_owner.c b/net/ipv4/netfilter/ipt_owner.c
+--- a/net/ipv4/netfilter/ipt_owner.c	2004-09-20 11:58:45 +02:00
++++ b/net/ipv4/netfilter/ipt_owner.c	2004-09-20 11:58:45 +02:00
+@@ -6,12 +6,19 @@
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
++ *
++ * 03/26/2003 Patrick McHardy <kaber@trash.net>	: LOCAL_IN support
+  */
  
- struct ip_conntrack_protocol
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/file.h>
++#include <linux/ip.h>
++#include <linux/tcp.h>
++#include <linux/udp.h>
+ #include <net/sock.h>
++#include <net/tcp.h>
++#include <net/udp.h>
+ 
+ #include <linux/netfilter_ipv4/ipt_owner.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+@@ -21,7 +28,7 @@
+ MODULE_DESCRIPTION("iptables owner match");
+ 
+ static int
+-match_comm(const struct sk_buff *skb, const char *comm)
++match_comm(const struct sock *sk, const char *comm)
  {
--	/* Next pointer. */
--	struct list_head list;
--
- 	/* Protocol number. */
- 	u_int8_t proto;
- 
-@@ -58,14 +55,23 @@
- 	struct module *me;
- };
- 
-+#define MAX_IP_CT_PROTO 256
-+extern struct ip_conntrack_protocol *ip_ct_protos[MAX_IP_CT_PROTO];
-+
- /* Protocol registration. */
- extern int ip_conntrack_protocol_register(struct ip_conntrack_protocol *proto);
- extern void ip_conntrack_protocol_unregister(struct ip_conntrack_protocol *proto);
- 
-+static inline struct ip_conntrack_protocol *ip_ct_find_proto(u_int8_t protocol)
-+{
-+	return ip_ct_protos[protocol];
-+}
-+
- /* Existing built-in protocols */
- extern struct ip_conntrack_protocol ip_conntrack_protocol_tcp;
- extern struct ip_conntrack_protocol ip_conntrack_protocol_udp;
- extern struct ip_conntrack_protocol ip_conntrack_protocol_icmp;
-+extern struct ip_conntrack_protocol ip_conntrack_generic_protocol;
- extern int ip_conntrack_protocol_tcp_init(void);
- 
- /* Log invalid packets */
-diff -Nru a/include/linux/netfilter_ipv4/ip_nat_core.h b/include/linux/netfilter_ipv4/ip_nat_core.h
---- a/include/linux/netfilter_ipv4/ip_nat_core.h	2004-09-20 11:58:29 +02:00
-+++ b/include/linux/netfilter_ipv4/ip_nat_core.h	2004-09-20 11:58:29 +02:00
-@@ -14,8 +14,6 @@
- 				unsigned int hooknum,
- 				struct sk_buff **pskb);
- 
--extern struct list_head protos;
--
- extern int icmp_reply_translation(struct sk_buff **pskb,
- 				  struct ip_conntrack *conntrack,
- 				  unsigned int hooknum,
-@@ -26,8 +24,4 @@
- extern void place_in_hashes(struct ip_conntrack *conntrack,
- 			    struct ip_nat_info *info);
- 
--/* Built-in protocols. */
--extern struct ip_nat_protocol ip_nat_protocol_tcp;
--extern struct ip_nat_protocol ip_nat_protocol_udp;
--extern struct ip_nat_protocol ip_nat_protocol_icmp;
- #endif /* _IP_NAT_CORE_H */
-diff -Nru a/include/linux/netfilter_ipv4/ip_nat_protocol.h b/include/linux/netfilter_ipv4/ip_nat_protocol.h
---- a/include/linux/netfilter_ipv4/ip_nat_protocol.h	2004-09-20 11:58:29 +02:00
-+++ b/include/linux/netfilter_ipv4/ip_nat_protocol.h	2004-09-20 11:58:29 +02:00
-@@ -9,8 +9,6 @@
- 
- struct ip_nat_protocol
- {
--	struct list_head list;
--
- 	/* Protocol name */
- 	const char *name;
- 
-@@ -47,9 +45,23 @@
- 				    const struct ip_nat_range *range);
- };
- 
-+#define MAX_IP_NAT_PROTO 256
-+extern struct ip_nat_protocol *ip_nat_protos[MAX_IP_NAT_PROTO];
-+
- /* Protocol registration. */
- extern int ip_nat_protocol_register(struct ip_nat_protocol *proto);
- extern void ip_nat_protocol_unregister(struct ip_nat_protocol *proto);
-+
-+static inline struct ip_nat_protocol *ip_nat_find_proto(u_int8_t protocol)
-+{
-+	return ip_nat_protos[protocol];
-+}
-+
-+/* Built-in protocols. */
-+extern struct ip_nat_protocol ip_nat_protocol_tcp;
-+extern struct ip_nat_protocol ip_nat_protocol_udp;
-+extern struct ip_nat_protocol ip_nat_protocol_icmp;
-+extern struct ip_nat_protocol ip_nat_unknown_protocol;
- 
- extern int init_protocols(void) __init;
- extern void cleanup_protocols(void);
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 11:58:29 +02:00
-@@ -66,7 +66,7 @@
- 
- void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack) = NULL;
- LIST_HEAD(ip_conntrack_expect_list);
--LIST_HEAD(protocol_list);
-+struct ip_conntrack_protocol *ip_ct_protos[MAX_IP_CT_PROTO];
- static LIST_HEAD(helpers);
- unsigned int ip_conntrack_htable_size = 0;
- int ip_conntrack_max;
-@@ -77,37 +77,6 @@
- 
- DEFINE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
- 
--extern struct ip_conntrack_protocol ip_conntrack_generic_protocol;
--
--static inline int proto_cmpfn(const struct ip_conntrack_protocol *curr,
--			      u_int8_t protocol)
--{
--	return protocol == curr->proto;
--}
--
--struct ip_conntrack_protocol *__ip_ct_find_proto(u_int8_t protocol)
--{
--	struct ip_conntrack_protocol *p;
--
--	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
--	p = LIST_FIND(&protocol_list, proto_cmpfn,
--		      struct ip_conntrack_protocol *, protocol);
--	if (!p)
--		p = &ip_conntrack_generic_protocol;
--
--	return p;
--}
--
--struct ip_conntrack_protocol *ip_ct_find_proto(u_int8_t protocol)
--{
--	struct ip_conntrack_protocol *p;
--
--	READ_LOCK(&ip_conntrack_lock);
--	p = __ip_ct_find_proto(protocol);
--	READ_UNLOCK(&ip_conntrack_lock);
--	return p;
--}
--
- inline void 
- ip_conntrack_put(struct ip_conntrack *ct)
- {
-@@ -1397,10 +1366,12 @@
- 
- 	/* Don't NEED lock here, but good form anyway. */
- 	WRITE_LOCK(&ip_conntrack_lock);
-+	for (i = 0; i < MAX_IP_CT_PROTO; i++)
-+		ip_ct_protos[i] = &ip_conntrack_generic_protocol;
- 	/* Sew in builtin protocols. */
--	list_append(&protocol_list, &ip_conntrack_protocol_tcp);
--	list_append(&protocol_list, &ip_conntrack_protocol_udp);
--	list_append(&protocol_list, &ip_conntrack_protocol_icmp);
-+	ip_ct_protos[IPPROTO_TCP] = &ip_conntrack_protocol_tcp;
-+	ip_ct_protos[IPPROTO_UDP] = &ip_conntrack_protocol_udp;
-+	ip_ct_protos[IPPROTO_ICMP] = &ip_conntrack_protocol_icmp;
- 	WRITE_UNLOCK(&ip_conntrack_lock);
- 
- 	for (i = 0; i < ip_conntrack_htable_size; i++)
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_proto_sctp.c b/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
---- a/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2004-09-20 11:58:29 +02:00
-@@ -496,7 +496,6 @@
+ 	struct task_struct *g, *p;
+ 	struct files_struct *files;
+@@ -38,7 +45,7 @@
+ 			spin_lock(&files->file_lock);
+ 			for (i=0; i < files->max_fds; i++) {
+ 				if (fcheck_files(files, i) ==
+-				    skb->sk->sk_socket->file) {
++				    sk->sk_socket->file) {
+ 					spin_unlock(&files->file_lock);
+ 					task_unlock(p);
+ 					read_unlock(&tasklist_lock);
+@@ -54,7 +61,7 @@
  }
  
- struct ip_conntrack_protocol ip_conntrack_protocol_sctp = { 
--	.list 		 = { NULL, NULL }, 
- 	.proto 		 = IPPROTO_SCTP, 
- 	.name 		 = "sctp",
- 	.pkt_to_tuple 	 = sctp_pkt_to_tuple, 
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-20 11:58:29 +02:00
-@@ -112,7 +112,7 @@
- 	if (DIRECTION(hash))
- 		return 0;
- 
--	proto = __ip_ct_find_proto(conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
-+	proto = ip_ct_find_proto(conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
- 			       .tuple.dst.protonum);
- 	IP_NF_ASSERT(proto);
- 
-@@ -242,7 +242,7 @@
- 		   expect->tuple.dst.protonum);
- 
- 	return print_tuple(s, &expect->tuple,
--			   __ip_ct_find_proto(expect->tuple.dst.protonum));
-+			   ip_ct_find_proto(expect->tuple.dst.protonum));
+ static int
+-match_pid(const struct sk_buff *skb, pid_t pid)
++match_pid(const struct sock *sk, pid_t pid)
+ {
+ 	struct task_struct *p;
+ 	struct files_struct *files;
+@@ -70,7 +77,7 @@
+ 		spin_lock(&files->file_lock);
+ 		for (i=0; i < files->max_fds; i++) {
+ 			if (fcheck_files(files, i) ==
+-			    skb->sk->sk_socket->file) {
++			    sk->sk_socket->file) {
+ 				spin_unlock(&files->file_lock);
+ 				task_unlock(p);
+ 				read_unlock(&tasklist_lock);
+@@ -86,10 +93,10 @@
  }
  
- static struct seq_operations exp_seq_ops = {
-@@ -823,19 +823,13 @@
- int ip_conntrack_protocol_register(struct ip_conntrack_protocol *proto)
+ static int
+-match_sid(const struct sk_buff *skb, pid_t sid)
++match_sid(const struct sock *sk, pid_t sid)
  {
- 	int ret = 0;
--	struct list_head *i;
+ 	struct task_struct *g, *p;
+-	struct file *file = skb->sk->sk_socket->file;
++	struct file *file = sk->sk_socket->file;
+ 	int i, found=0;
  
- 	WRITE_LOCK(&ip_conntrack_lock);
--	list_for_each(i, &protocol_list) {
--		if (((struct ip_conntrack_protocol *)i)->proto
--		    == proto->proto) {
--			ret = -EBUSY;
--			goto out;
--		}
-+	if (ip_ct_protos[proto->proto] != &ip_conntrack_generic_protocol) {
-+		ret = -EBUSY;
+ 	read_lock(&tasklist_lock);
+@@ -129,41 +136,77 @@
+       int *hotdrop)
+ {
+ 	const struct ipt_owner_info *info = matchinfo;
++	struct iphdr *iph = skb->nh.iph;
++	struct sock *sk = NULL;
++	int ret = 0;
++
++	if (out) {
++		sk = skb->sk;
++	} else {
++		if (iph->protocol == IPPROTO_TCP) {
++			struct tcphdr _tcph, *th =
++				skb_header_pointer(skb, skb->nh.iph->ihl * 4,
++				                   sizeof(_tcph), &_tcph);
++			if (th == NULL)
++				return ret;
++			sk = __tcp_v4_lookup(iph->saddr, th->source,
++			                     iph->daddr, ntohs(th->dest),
++			                     in->ifindex);
++			if (sk && sk->sk_state == TCP_TIME_WAIT) {
++				tcp_tw_put((struct tcp_tw_bucket *)sk);
++				return ret;
++			}
++		} else if (iph->protocol == IPPROTO_UDP) {
++			struct udphdr _udph, *uh =
++				skb_header_pointer(skb, skb->nh.iph->ihl * 4,
++				                   sizeof(_udph), &_udph);
++			if (uh == NULL)
++				return ret;
++			sk = udp_v4_lookup(iph->saddr, uh->source, iph->daddr,
++			                   uh->dest, in->ifindex);
++		}
++	}
+ 
+-	if (!skb->sk || !skb->sk->sk_socket || !skb->sk->sk_socket->file)
+-		return 0;
++	if (!sk || !sk->sk_socket || !sk->sk_socket->file)
 +		goto out;
+ 
+ 	if(info->match & IPT_OWNER_UID) {
+-		if ((skb->sk->sk_socket->file->f_uid != info->uid) ^
++		if ((sk->sk_socket->file->f_uid != info->uid) ^
+ 		    !!(info->invert & IPT_OWNER_UID))
+-			return 0;
++			goto out;
  	}
--
--	list_prepend(&protocol_list, proto);
--
-+	ip_ct_protos[proto->proto] = proto;
-  out:
- 	WRITE_UNLOCK(&ip_conntrack_lock);
- 	return ret;
-@@ -844,10 +838,7 @@
- void ip_conntrack_protocol_unregister(struct ip_conntrack_protocol *proto)
- {
- 	WRITE_LOCK(&ip_conntrack_lock);
--
--	/* ip_ct_find_proto() returns proto_generic in case there is no protocol 
--	 * helper. So this should be enough - HW */
--	LIST_DELETE(&protocol_list, proto);
-+	ip_ct_protos[proto->proto] = &ip_conntrack_generic_protocol;
- 	WRITE_UNLOCK(&ip_conntrack_lock);
- 	
- 	/* Somebody could be still looking at the proto in bh. */
-@@ -887,8 +878,8 @@
- EXPORT_SYMBOL(ip_conntrack_helper_unregister);
- EXPORT_SYMBOL(ip_ct_selective_cleanup);
- EXPORT_SYMBOL(ip_ct_refresh_acct);
-+EXPORT_SYMBOL(ip_ct_protos);
- EXPORT_SYMBOL(ip_ct_find_proto);
--EXPORT_SYMBOL(__ip_ct_find_proto);
- EXPORT_SYMBOL(ip_ct_find_helper);
- EXPORT_SYMBOL(ip_conntrack_expect_alloc);
- EXPORT_SYMBOL(ip_conntrack_expect_related);
-diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
---- a/net/ipv4/netfilter/ip_nat_core.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_nat_core.c	2004-09-20 11:58:29 +02:00
-@@ -48,9 +48,8 @@
  
- static struct list_head *bysource;
- static struct list_head *byipsproto;
--LIST_HEAD(protos);
-+struct ip_nat_protocol *ip_nat_protos[MAX_IP_NAT_PROTO];
- 
--extern struct ip_nat_protocol unknown_nat_protocol;
- 
- /* We keep extra hashes for each conntrack, for fast searching. */
- static inline size_t
-@@ -103,23 +102,6 @@
- 				      oldcheck^0xFFFF));
- }
- 
--static inline int cmp_proto(const struct ip_nat_protocol *i, int proto)
--{
--	return i->protonum == proto;
--}
--
--struct ip_nat_protocol *
--find_nat_proto(u_int16_t protonum)
--{
--	struct ip_nat_protocol *i;
--
--	MUST_BE_READ_LOCKED(&ip_nat_lock);
--	i = LIST_FIND(&protos, cmp_proto, struct ip_nat_protocol *, protonum);
--	if (!i)
--		i = &unknown_nat_protocol;
--	return i;
--}
--
- /* Is this tuple already taken? (not by us) */
- int
- ip_nat_used_tuple(const struct ip_conntrack_tuple *tuple,
-@@ -142,7 +124,7 @@
- 	 const struct ip_conntrack_manip *manip,
- 	 const struct ip_nat_multi_range *mr)
- {
--	struct ip_nat_protocol *proto = find_nat_proto(tuple->dst.protonum);
-+	struct ip_nat_protocol *proto = ip_nat_find_proto(tuple->dst.protonum);
- 	unsigned int i;
- 	struct ip_conntrack_tuple newtuple = { *manip, tuple->dst };
- 
-@@ -394,7 +376,7 @@
- 		 unsigned int hooknum)
- {
- 	struct ip_nat_protocol *proto
--		= find_nat_proto(orig_tuple->dst.protonum);
-+		= ip_nat_find_proto(orig_tuple->dst.protonum);
- 	struct ip_nat_range *rptr;
- 	unsigned int i;
- 	int ret;
-@@ -705,9 +687,8 @@
- 	iph = (void *)(*pskb)->data + iphdroff;
- 
- 	/* Manipulate protcol part. */
--	if (!find_nat_proto(proto)->manip_pkt(pskb,
--					      iphdroff + iph->ihl*4,
--					      manip, maniptype))
-+	if (!ip_nat_find_proto(proto)->manip_pkt(pskb, iphdroff + iph->ihl*4,
-+	                                         manip, maniptype))
- 		return 0;
- 
- 	iph = (void *)(*pskb)->data + iphdroff;
-@@ -731,7 +712,7 @@
- 	int ret = 1;
- 
- 	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
--	proto = __ip_ct_find_proto(skb->nh.iph->protocol);
-+	proto = ip_ct_find_proto(skb->nh.iph->protocol);
- 	if (proto->exp_matches_pkt)
- 		ret = proto->exp_matches_pkt(exp, skb);
- 
-@@ -976,9 +957,11 @@
- 
- 	/* Sew in builtin protocols. */
- 	WRITE_LOCK(&ip_nat_lock);
--	list_append(&protos, &ip_nat_protocol_tcp);
--	list_append(&protos, &ip_nat_protocol_udp);
--	list_append(&protos, &ip_nat_protocol_icmp);
-+	for (i = 0; i < MAX_IP_NAT_PROTO; i++)
-+		ip_nat_protos[i] = &ip_nat_unknown_protocol;
-+	ip_nat_protos[IPPROTO_TCP] = &ip_nat_protocol_tcp;
-+	ip_nat_protos[IPPROTO_UDP] = &ip_nat_protocol_udp;
-+	ip_nat_protos[IPPROTO_ICMP] = &ip_nat_protocol_icmp;
- 	WRITE_UNLOCK(&ip_nat_lock);
- 
- 	for (i = 0; i < ip_nat_htable_size; i++) {
-diff -Nru a/net/ipv4/netfilter/ip_nat_proto_icmp.c b/net/ipv4/netfilter/ip_nat_proto_icmp.c
---- a/net/ipv4/netfilter/ip_nat_proto_icmp.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_nat_proto_icmp.c	2004-09-20 11:58:29 +02:00
-@@ -104,7 +104,7 @@
- }
- 
- struct ip_nat_protocol ip_nat_protocol_icmp
--= { { NULL, NULL }, "ICMP", IPPROTO_ICMP,
-+= { "ICMP", IPPROTO_ICMP,
-     icmp_manip_pkt,
-     icmp_in_range,
-     icmp_unique_tuple,
-diff -Nru a/net/ipv4/netfilter/ip_nat_proto_tcp.c b/net/ipv4/netfilter/ip_nat_proto_tcp.c
---- a/net/ipv4/netfilter/ip_nat_proto_tcp.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_nat_proto_tcp.c	2004-09-20 11:58:29 +02:00
-@@ -162,7 +162,7 @@
- }
- 
- struct ip_nat_protocol ip_nat_protocol_tcp
--= { { NULL, NULL }, "TCP", IPPROTO_TCP,
-+= { "TCP", IPPROTO_TCP,
-     tcp_manip_pkt,
-     tcp_in_range,
-     tcp_unique_tuple,
-diff -Nru a/net/ipv4/netfilter/ip_nat_proto_udp.c b/net/ipv4/netfilter/ip_nat_proto_udp.c
---- a/net/ipv4/netfilter/ip_nat_proto_udp.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_nat_proto_udp.c	2004-09-20 11:58:29 +02:00
-@@ -148,7 +148,7 @@
- }
- 
- struct ip_nat_protocol ip_nat_protocol_udp
--= { { NULL, NULL }, "UDP", IPPROTO_UDP,
-+= { "UDP", IPPROTO_UDP,
-     udp_manip_pkt,
-     udp_in_range,
-     udp_unique_tuple,
-diff -Nru a/net/ipv4/netfilter/ip_nat_proto_unknown.c b/net/ipv4/netfilter/ip_nat_proto_unknown.c
---- a/net/ipv4/netfilter/ip_nat_proto_unknown.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_nat_proto_unknown.c	2004-09-20 11:58:29 +02:00
-@@ -60,8 +60,8 @@
- 	return 0;
- }
- 
--struct ip_nat_protocol unknown_nat_protocol = {
--	{ NULL, NULL }, "unknown", 0,
-+struct ip_nat_protocol ip_nat_unknown_protocol = {
-+	"unknown", 0,
- 	unknown_manip_pkt,
- 	unknown_in_range,
- 	unknown_unique_tuple,
-diff -Nru a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
---- a/net/ipv4/netfilter/ip_nat_standalone.c	2004-09-20 11:58:29 +02:00
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c	2004-09-20 11:58:29 +02:00
-@@ -283,18 +283,13 @@
- int ip_nat_protocol_register(struct ip_nat_protocol *proto)
- {
- 	int ret = 0;
--	struct list_head *i;
- 
- 	WRITE_LOCK(&ip_nat_lock);
--	list_for_each(i, &protos) {
--		if (((struct ip_nat_protocol *)i)->protonum
--		    == proto->protonum) {
--			ret = -EBUSY;
--			goto out;
--		}
-+	if (ip_nat_protos[proto->protonum] != &ip_nat_unknown_protocol) {
-+		ret = -EBUSY;
-+		goto out;
+ 	if(info->match & IPT_OWNER_GID) {
+-		if ((skb->sk->sk_socket->file->f_gid != info->gid) ^
++		if ((sk->sk_socket->file->f_gid != info->gid) ^
+ 		    !!(info->invert & IPT_OWNER_GID))
+-			return 0;
++			goto out;
  	}
--
--	list_prepend(&protos, proto);
-+	ip_nat_protos[proto->protonum] = proto;
-  out:
- 	WRITE_UNLOCK(&ip_nat_lock);
- 	return ret;
-@@ -304,7 +299,7 @@
- void ip_nat_protocol_unregister(struct ip_nat_protocol *proto)
- {
- 	WRITE_LOCK(&ip_nat_lock);
--	LIST_DELETE(&protos, proto);
-+	ip_nat_protos[proto->protonum] = &ip_nat_unknown_protocol;
- 	WRITE_UNLOCK(&ip_nat_lock);
  
- 	/* Someone could be still looking at the proto in a bh. */
+ 	if(info->match & IPT_OWNER_PID) {
+-		if (!match_pid(skb, info->pid) ^
++		if (!match_pid(sk, info->pid) ^
+ 		    !!(info->invert & IPT_OWNER_PID))
+-			return 0;
++			goto out;
+ 	}
+ 
+ 	if(info->match & IPT_OWNER_SID) {
+-		if (!match_sid(skb, info->sid) ^
++		if (!match_sid(sk, info->sid) ^
+ 		    !!(info->invert & IPT_OWNER_SID))
+-			return 0;
++			goto out;
+ 	}
+ 
+ 	if(info->match & IPT_OWNER_COMM) {
+-		if (!match_comm(skb, info->comm) ^
++		if (!match_comm(sk, info->comm) ^
+ 		    !!(info->invert & IPT_OWNER_COMM))
+-			return 0;
++			goto out;
+ 	}
+ 
+-	return 1;
++	ret = 1;
++
++out:
++	if (in && sk)
++		sock_put(sk);
++
++	return ret;
+ }
+ 
+ static int
+@@ -173,11 +216,20 @@
+            unsigned int matchsize,
+            unsigned int hook_mask)
+ {
+-        if (hook_mask
+-            & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING))) {
+-                printk("ipt_owner: only valid for LOCAL_OUT or POST_ROUTING.\n");
+-                return 0;
+-        }
++	if (hook_mask
++	    & ~((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_POST_ROUTING) |
++	    (1 << NF_IP_LOCAL_IN) | (1 << NF_IP_PRE_ROUTING))) {
++		printk("ipt_owner: only valid for PRE_ROUTING, LOCAL_IN, "
++		       "LOCAL_OUT or POST_ROUTING.\n");
++		return 0;
++	}
++
++	if ((hook_mask & ((1 << NF_IP_LOCAL_IN) | (1 << NF_IP_PRE_ROUTING)))
++	    && ip->proto != IPPROTO_TCP && ip->proto != IPPROTO_UDP) {
++		printk("ipt_owner: only TCP or UDP can be used in "
++		       "PRE_ROUTING/LOCAL_IN\n");
++		return 0;
++	}
+ 
+ 	if (matchsize != IPT_ALIGN(sizeof(struct ipt_owner_info))) {
+ 		printk("Matchsize %u != %Zu\n", matchsize,
+diff -Nru a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c	2004-09-20 11:58:45 +02:00
++++ b/net/ipv4/tcp_ipv4.c	2004-09-20 11:58:45 +02:00
+@@ -514,8 +514,8 @@
+ 	goto out;
+ }
+ 
+-static inline struct sock *__tcp_v4_lookup(u32 saddr, u16 sport,
+-					   u32 daddr, u16 hnum, int dif)
++inline struct sock *__tcp_v4_lookup(u32 saddr, u16 sport,
++				    u32 daddr, u16 hnum, int dif)
+ {
+ 	struct sock *sk = __tcp_v4_lookup_established(saddr, sport,
+ 						      daddr, hnum, dif);
+@@ -2647,6 +2647,7 @@
+ EXPORT_SYMBOL(tcp_v4_connect);
+ EXPORT_SYMBOL(tcp_v4_do_rcv);
+ EXPORT_SYMBOL(tcp_v4_lookup_listener);
++EXPORT_SYMBOL(__tcp_v4_lookup);
+ EXPORT_SYMBOL(tcp_v4_rebuild_header);
+ EXPORT_SYMBOL(tcp_v4_remember_stamp);
+ EXPORT_SYMBOL(tcp_v4_send_check);
+diff -Nru a/net/ipv4/udp.c b/net/ipv4/udp.c
+--- a/net/ipv4/udp.c	2004-09-20 11:58:45 +02:00
++++ b/net/ipv4/udp.c	2004-09-20 11:58:45 +02:00
+@@ -1516,6 +1516,7 @@
+ EXPORT_SYMBOL(udp_port_rover);
+ EXPORT_SYMBOL(udp_prot);
+ EXPORT_SYMBOL(udp_sendmsg);
++EXPORT_SYMBOL(udp_v4_lookup);
+ 
+ #ifdef CONFIG_PROC_FS
+ EXPORT_SYMBOL(udp_proc_register);
 
---------------010106070603050309020308--
+--------------030607070608030704070409--
