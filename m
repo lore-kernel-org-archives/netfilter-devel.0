@@ -1,16 +1,17 @@
-From: Krzysztof Oledzki <ole+n@ans.pl>
-Subject: Re: REJECT using invalid data
-Date: Wed, 8 Dec 2004 01:33:27 +0100 (CET)
-Message-ID: <Pine.LNX.4.53.0412080130560.3300@bizon.gios.gov.pl>
-References: <Pine.LNX.4.53.0412072347080.2736@bizon.gios.gov.pl>
-	<41B642A1.9030807@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: check timer active
+Date: Wed, 08 Dec 2004 01:46:59 +0100
+Message-ID: <41B64F03.1010206@trash.net>
+References: <EINSTEINObLLAeSQzWA000068c7@einstein.systemmetrics.com>	<41B376E9.10607@eurodev.net>
+	<41B37BE6.1090208@eurodev.net> <41B37E2F.4020007@trash.net>
+	<41B38BC2.1030506@eurodev.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <41B642A1.9030807@eurodev.net>
+In-Reply-To: <41B38BC2.1030506@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +23,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Pablo Neira wrote:
 
+> arg, stupid me, such problem doesn't exist, if skb is NULL we don't 
+> increase counters, that's what happens in amanda. Maybe the patch 
+> attached could clean up the current API, anyway that's not a bugfix 
+> anymore, so I'll hold it here.
 
-On Wed, 8 Dec 2004, Pablo Neira wrote:
+As I said I don't want to apply cleanups to ip_conntrack currently,
+at least until it's sorted out what happens to it. But I opened a
+nf_conntrack tree and will add your cleanup to it once amanda is ported.
 
-> Krzysztof Oledzki wrote:
->
-> >I'm not sure if changing "-j REJECT" to drop invalid tcp packets is good
-> >idea since we have -m unclean and we can drop such packets explicitly
-> >with this match.
-> >
->
-> unclean was removed from 2.6 series
-
-Oh? I did not know about that... After some googling I have just found
-http://lists.netfilter.org/pipermail/netfilter-devel/2003-August/012199.htm=
-l
-So, how it is now possible to DROP invalid packets? I think that it should
-be at least a match which can be used to drop broken or malformed packets
-such as ones used to expoloit buggy IP stack on old win95 hosts.
-
-> > And what about other protocols (udp, etc) when REJECT
-> >generates ICMP port-unreachable?
-> >
-> you are right, udp stuff is missing, checkings here are trivial to add
-> anyway. I'll think about this issue more carefully in next days.
-OK.
-
-Best regards,
-
-=09=09=09=09Krzysztof Ol=EAdzki
+Regards
+Patrick
