@@ -1,18 +1,15 @@
-From: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
-Subject: Re[2]: pptp-conntrack-nat: ip_nat_proto_gre.c:gre_manip_pkt: can't
-	nat GRE w/o key
-Date: Mon, 4 Apr 2005 13:09:34 +0200
-Message-ID: <354301401.20050404130934@stud.tue.nl>
-References: <222203005.20050403135647@stud.tue.nl>
-	<20050404090850.GP9155@sunbeam.de.gnumonks.org>
-Reply-To: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
+From: "Vishwas Manral" <Vishwas@sinett.com>
+Subject: RE: Iptables help
+Date: Mon, 4 Apr 2005 05:08:40 -0700
+Message-ID: <BB6D74C75CC76A419B6D6FA7C38317B2729D01@sinett-sbs.SiNett.LAN>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050404090850.GP9155@sunbeam.de.gnumonks.org>
+Content-class: urn:content-classes:message
+To: "dpadalkar2001" <dpadalkar2001@indiatimes.com>,
+	<netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,18 +21,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-It works for me :-)
-(doing this by VPN on linux 2.6.10 now :-) )
+Hi,
 
-If i'm correct there are still issues with applying it to 2.6.11 ?
+I had worked on something similar and could not find any document on
+this.
+
+However the rules are stored as "struct ipt_entry" in the kernel. Check
+the file ip_tables.c for function do_replace. It should be clearer to
+you.=20
+
+If it is not let me know.
+
+Thanks,
+Vishwas
+-----Original Message-----
+From: netfilter-devel-bounces@lists.netfilter.org
+[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of
+dpadalkar2001
+Sent: Monday, April 04, 2005 10:42 AM
+To: netfilter-devel@lists.netfilter.org
+Subject: Iptables help
 
 
-
-HW> On Sun, Apr 03, 2005 at 01:56:47PM +0200, Sander Eikelenboom wrote:
->> It seems pptp code is working now with 2.6.10, now the gre code needs some
->> tweaks. 
-
-HW> please see my reply in bugzilla at
-HW> https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=319
-
-HW> Can you please test and report back? Thanks.
+hello.
+    Currently i'm developing something similar to iptables.I wud like to
+know
+where does the iptables store the rules and the format in which it
+sotres the=20
+rules. If i can know this , my task to store it in good format becomes a
+bit=20
+easier and more standardised . I shall be very grateful and am very very
+helpful
+   thanx
+Indiatimes Email now powered by APIC Advantage. Help!=20
+Help
