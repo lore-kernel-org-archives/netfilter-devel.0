@@ -1,52 +1,51 @@
-From: Brian Gunlogson <bmg300@yahoo.com>
-Subject: Re: Matching 10000's of IP ranges (solution)
-Date: Wed, 5 Jan 2005 13:01:22 -0800 (PST)
-Message-ID: <20050105210122.49276.qmail@web41511.mail.yahoo.com>
-References: <1104776274.3277.22.camel@jasiiitosh.opensourcedevel.com>
+From: Peter Surda <shurdeek@routehat.org>
+Subject: Re: mac dest match
+Date: Wed, 5 Jan 2005 22:18:30 +0100
+Message-ID: <20050105211829.GA6225@soldats.localdomain>
+References: <645d37c505010511185e63eb1b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter developers list <netfilter-devel@lists.netfilter.org>,
-	Netfilter users list <netfilter@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: "John A. Sullivan III" <jsullivan@opensourcedevelopmentcorp.com>
-In-Reply-To: <1104776274.3277.22.camel@jasiiitosh.opensourcedevel.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <645d37c505010511185e63eb1b@mail.gmail.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Your solutions were way too slow. So I wrote a module that does a binary search to find ip ranges
-in a sorted list. Would netfilter be interested in the source code? I don't have the desire to put
-it into patch-o-matic format, but that shouldn't be hard to do. Also, It was built to read the
-ranges from a file, but I don't know how to pass a dynamic ammount of memory from iptables to the
-kernel module so they must be hardcoded into the module.
+On Wed, Jan 05, 2005 at 01:18:43PM -0600, Vivek raghunathan wrote:
+> Hi all.
+Hi,
 
-Brian G.
-
---- "John A. Sullivan III" <jsullivan@opensourcedevelopmentcorp.com> wrote:
-
-> > What is a reasonable way to match around 80000 IP ranges with iptables?
-> The iprange patch will enable you to define ranges in iptables.  If you
-> do not want to patch, you can use SubnetCreator
-> (http://subnetcreator.sourceforge.net).
+> I have 3 nodes A, B, C on the same subnet and I would like to create a
+> line topology:
 > 
-> You will also want to ensure that you load the rules with iptables-
-> restore or iptables-restore -n rather than using a script with lots of
-> iptables commands.  At your size, individual iptables commands would
-> take forever to load.
-> -- 
-> John A. Sullivan III
+> A -> B -> C
+> 
+> To do this, I need to prevent any MAC packet from A to C from getting
+> across and vice versa.
+I think it would be easier to use separate subnets and deactivate sending icmp
+source redirects on "B". No need to play with iptables.
+Assuming the network device is always eth0, you'd do something like:
 
+A: ip addr add 192.168.0.1/30 dev eth0
+B: ip addr add 192.168.0.2/30 dev eth0;ip addr add 192.268.0.6/30 dev eth0
+C: ip addr add 192.168.0.5/30 dev eth0
 
+(on B)
+echo 0 > /proc/sys/net/ipv4/conf/eth0/send_redirects
 
-		
-__________________________________ 
-Do you Yahoo!? 
-Read only the mail you want - Yahoo! Mail SpamGuard. 
-http://promotions.yahoo.com/new_mail 
+> -Vivek
+Bye,
+
+Peter Surda (Shurdeek) <shurdeek@routehat.org>, ICQ 10236103, +436505122023
+
+-- 
+  Hello, this is Bill Gates and I pronounce Monopoly, er, Windows as Windows.
