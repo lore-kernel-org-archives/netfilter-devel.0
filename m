@@ -1,15 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: conntrack help
-Date: Tue, 17 Feb 2004 11:51:42 +0100 (CET)
+Subject: Re: [ANNOUNCE] IP sets
+Date: Tue, 17 Feb 2004 12:03:08 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402171149210.29541-100000@filer.marasystems.com>
-References: <E1AsuVh-0007mH-MI@vishnu.netfilter.org>
+Message-ID: <Pine.LNX.4.44.0402171156460.29541-100000@filer.marasystems.com>
+References: <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>,
+   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: zhaoyao <zhaoyao@harbournetworks.com>
-In-Reply-To: <E1AsuVh-0007mH-MI@vishnu.netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,18 +21,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Feb 2004, zhaoyao wrote:
+On Tue, 17 Feb 2004, Jozsef Kadlecsik wrote:
 
-> conntrack IP_CT_DIR_ORIGINAL and IP_CT_DIR_REPLY
-> is the same conntrack?
+> Thank you pointing out the article! Let's consider the current version of
+> ipset as the first, beta release (as it is :-). Actually, Linus'
+> description when vmalloc is valid fits to the vmalloc usage in ipset
+> (large arrays allocated), but I'll work on to eliminate it.
 
-Yes, but different address details.
+To make you more comfortable it may be worth noticing that iptables too 
+uses vmalloc for allocating the iptables.
 
-> If it is same conntrack, why clean_from_lists LIST_DELETE twice, orignal and reply?
-
-It is one conntrack that is being deleted, but there is two references in
-the lookup hash to the same conntrack, one per direction. This as the 
-address details of the packet differs depending on the direction.
+What can be argued is that any design requiring allocation of a large
+contigous memory areas in the kernel is broken by design and should be
+redesigned rather than referring to vmalloc, and I think this is what
+Linus tried to say. In my opinion a design which frequently calls vmalloc 
+is plain broken, but a design intentionally requiring a large allocation 
+should use vmalloc providing the design as such is valid.
 
 Regards
 Henrik
