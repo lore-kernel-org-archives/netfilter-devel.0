@@ -1,14 +1,15 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: BUG somewhere in NAT mechanism [was: my linux box does not learn
- from redirects]
-Date: Sat, 12 Apr 2003 15:40:30 +0200 (CEST)
+From: Kevin Buhr <buhr@telus.net>
+Subject: Re: BUG somewhere in NAT mechanism [was: my linux box does not learn from redirects]
+Date: 12 Apr 2003 22:00:22 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0304121406180.24111@dns.toxicfilms.tv>
+Message-ID: <8765pj6lg9.fsf@saurus.asaurus.invalid>
+References: <Pine.LNX.4.51.0304121406180.24111@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.samba.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <Pine.LNX.4.51.0304121406180.24111@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,90 +20,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Maciej Soltysiak <solt@dns.toxicfilms.tv> writes:
+> 
+> In a nutshell:
+> - iptable_nat, _may_ cause the box to ignore icmp redirects (maybe other
+>   things too)
 
-I was posting linux-kernel about my linux box not learning from icmp
-redirects and i was advised to see into my configuration, but today
-i found that the problem is within netfilter code.
-Here is the scoop:
+It looks like the relevant bit of code is:
 
-In a nutshell:
-- iptable_nat, _may_ cause the box to ignore icmp redirects (maybe other
-  things too)
+ip_nat_core.c:881 (in 2.4.20)
+        /* Redirects on non-null nats must be dropped, else they'll
+           start talking to each other without our translation, and be
+           confused... --RR */
+        if (hdr->type == ICMP_REDIRECT) {
+                /* Don't care about races here. */
+                if (info->initialized
+                    != ((1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST))
+                    || info->num_manips != 0)
+                        return NF_DROP;
+        }
 
-Host A is in a network where there is router B and router C.
-Router B routes to other networks.
-Router C routes to the Internet.
+This looks wrong.  It's true that you don't want to translate the
+redirect and pass it on after NATting, the way you would with a "host
+unreachable" packet.  But if it was originally directed at you, you
+don't just want to drop it, you want to act on it yourself.
 
-Host A's routing entries:
-- to its network
-- default via router B
+In particular, an ICMP redirect originally directed to one of your own
+interfaces whose internal packet belongs to a source NATted connection
+should have the inner packet (which looks like it came from you)
+reverse source NATted (so it looks like it came from the machine you
+NATted it for) but the outer packet left untouched so it can be
+delivered locally to the kernel.
 
-When host A with this module loaded communicates with the world,
-after some time the rate of icmp redirects from router A for packets to
-the Internet rises enormously. Normally the host should react to the first
-packet and then send all the packet through the advised router, ie. B.
+Any thoughts?
 
-The way i reproduce this bug:
-# insmod ip_tables
-# insmod ip_conntrack
-# insmod iptable_nat
-
-Now wait some time. After a few minutes i see in iptraf
-that ICMP rate is rising, the icmp i get is about 30% of all the TCP
-packets sent.
-
-Now i remove the iptable_nat
-# rmmod iptable_nat
-
-The rate of icmp suddenly drops, as seen on iptraf stats. The rate is
-less than 0.1% of all tcp traffic.
-
-This is a 2.4.20-xfs kernel with the following patch-o-matic patches:
-Already applied: submitted/01_2.4.19
-                 submitted/02_2.4.20
-                 submitted/04_newnat-udp-helper
-                 submitted/05_REJECT-fwspotting-phrack60-fix
-                 submitted/06_ftp-conntrack-msg-fix
-                 submitted/07_ECN-tcpchecksum-littleendian-fix
-                 submitted/08_ftp-conntrack-debugftp
-                 submitted/08_mangle_input_noroutemeharder
-                 submitted/09_icmp-match-all
-                 submitted/10_confirm_fix
-                 submitted/10_local-nat-expectfn
-                 submitted/11_inner-icmp-translation-fix
-                 submitted/13_ftp-conntrack-epsv-typo
-                 submitted/14_hl-ipv6
-                 submitted/15_ahesp6-ipv6
-                 submitted/16_frag6-ipv6
-                 submitted/17_ipv6header-ipv6
-                 submitted/18_opts6-ipv6
-                 submitted/19_route6-ipv6
-                 submitted/23_REJECT-headroom-tcprst
-                 submitted/ipt_ULOG-mac_len-fix
-                 submitted/ipt_multiport-invfix
-                 pending/06_early_drop-backwards
-                 pending/24_conntrack-nosysctl
-                 pending/25_natcore-nohelper
-                 pending/unused_var
-                 base/IPV4OPTSSTRIP
-                 base/REJECT-ipv6
-                 base/TTL
-                 base/fuzzy
-                 base/fuzzy6-ipv6
-                 base/iplimit
-                 base/ipt_unclean-ubit
-                 base/ipv4options
-                 base/mport
-                 base/psd
-                 base/quota
-                 extra/admin-prohib
-                 extra/cuseeme-nat
-                 extra/ip_conntrack-timeouts
-                 extra/netfilter-docbook
-                 extra/string
-
-I can supply any information required to pursue this problem.
-
-Regards,
-Maciej Soltysiak
+-- 
+Kevin <buhr@telus.net>
