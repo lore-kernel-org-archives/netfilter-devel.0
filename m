@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: ip_queue question
-Date: Sun, 22 Feb 2004 16:55:11 +0100 (CET)
+Subject: Re: Query abt updation of byte/pkt counters with multiple processors
+Date: Sun, 22 Feb 2004 17:02:52 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402221652280.17860-100000@filer.marasystems.com>
-References: <20040220225156.40182.qmail@web13422.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0402221656300.17860-100000@filer.marasystems.com>
+References: <1077368009.20114.11.camel@vijay>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ahmad Almulhem <feltah@yahoo.com>
-In-Reply-To: <20040220225156.40182.qmail@web13422.mail.yahoo.com>
+To: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
+In-Reply-To: <1077368009.20114.11.camel@vijay>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,25 +20,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 20 Feb 2004, Ahmad Almulhem wrote:
+On Sat, 21 Feb 2004, Vijaya Chandra Vupputuri wrote:
 
-> I am trying to run 2 program to
-> use ip_queue module at the same time. 
+> A cursory glance at the ip_tables source shows that a separate copy of
+> the set of rules is made for every cpu.
+> Does this include the byte and packet counters as well?
 
-There can only be one program accepting ip_queue packets at a time. This 
-since there is no way for the kernel to indicate which of the two should 
-get the packet or be allowed to set the verdict so it is limited to one 
-program.
+Yes.
 
-> "Received error message 16"
+The reason to this is to avoid CPU cache ping-pong effect due to both CPUs 
+writing in the same memory area.
 
-EBUSY           16      /* Device or resource busy */
+> If yes, how is the updation of the counters done upon receival of pkts,
+> so that we have the same value in all the sets?
 
+It doesn't.
 
+At best it sums the counters of the CPUs when you read them with 
+iptables, but I am not entirely sure this is done.
 
-If you have a different opinion on how ip_queue should operate to support
-more than one queue handler then please elaborate on how you think this 
-should work.
+What I do remember and related to this is that the limit match is
+defenitely running per CPU, and when you read the status using iptables 
+only the limit couters of the dirst CPU is reported.
 
 Regards
 Henrik
