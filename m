@@ -1,14 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2/3] fix various things in ipt_MIRROR
-Date: Tue, 22 Apr 2003 12:54:42 +0200
+Subject: [PATCH 3/3] policy routing fixes
+Date: Tue, 22 Apr 2003 13:01:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EA51F72.7030402@trash.net>
+Message-ID: <3EA520F1.5080302@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------030904090209060908080908"
+ boundary="------------000905060705060305010809"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,162 +20,284 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030904090209060908080908
+--------------000905060705060305010809
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch fixes a couple of things in the MIRROR target:
-
-- check ttl before rewriting so icmp_send gets clean packet
-- skb_copy_expand skb, for tcpdump and asym. routing
-- inline some functions
-- remove unecessary "struct in_device" declaration/RTO_CONN
+This patch corrects routing in REJECT, MIRROR and ip_route_me_harder.
+Currently netfilter does not obey rules like "from x.x.x.x/x lookup x" 
+because
+it src=0 when doing routing lookups for non-local addresses. With this 
+patch,
+netfilter uses ip_route_input if source if non-local. Also 
+route_me_harder doesn't
+return the exact error anymore, noone seemed to care about it. i also 
+removed
+the printks, i think a missing route is nothing so abnormal it justifies 
+confusing
+the user, and almost everyone i know has asked me at least once "what 
+the hell
+is ip_route_me_harder" ;). This patch is incremental to the two i sent 
+before.
 
 Best regards,
 Patrick
 
 
---------------030904090209060908080908
+--------------000905060705060305010809
 Content-Type: text/plain;
- name="02-mirror-fixes.diff"
+ name="03-netfilter-policy-routing.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02-mirror-fixes.diff"
+ filename="03-netfilter-policy-routing.diff"
 
 # This is a BitKeeper generated patch for the following project:
 # Project Name: Linux kernel tree
 # This patch format is intended for GNU patch command version 2.5 or higher.
 # This patch includes the following deltas:
-#	           ChangeSet	1.1102  -> 1.1103 
-#	net/ipv4/netfilter/ipt_MIRROR.c	1.3     -> 1.4    
+#	           ChangeSet	1.1103  -> 1.1104 
+#	net/ipv4/netfilter/ipt_REJECT.c	1.11    -> 1.12   
+#	net/core/netfilter.c	1.7     -> 1.8    
+#	net/ipv4/netfilter/ipt_MIRROR.c	1.4     -> 1.5    
 #
 # The following is the BitKeeper ChangeSet Log
 # --------------------------------------------
-# 03/04/21	kaber@trash.net	1.1103
-# - check ttl before rewriting so icmp_send gets clean packet
-# - skb_copy_expand skb, for tcpdump and asym. routing
-# - inline some functions
-# - remove unecessary "struct in_device" declaration
-# - remove RTO_CONN
+# 03/04/22	kaber@trash.net	1.1104
+# [NETFILTER] make netfilter policy-routing aware
 # --------------------------------------------
 #
-diff -Nru a/net/ipv4/netfilter/ipt_MIRROR.c b/net/ipv4/netfilter/ipt_MIRROR.c
---- a/net/ipv4/netfilter/ipt_MIRROR.c	Mon Apr 21 21:26:42 2003
-+++ b/net/ipv4/netfilter/ipt_MIRROR.c	Mon Apr 21 21:26:42 2003
-@@ -32,7 +32,6 @@
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netdevice.h>
- #include <linux/route.h>
--struct in_device;
- #include <net/route.h>
+diff -Nru a/net/core/netfilter.c b/net/core/netfilter.c
+--- a/net/core/netfilter.c	Tue Apr 22 01:07:31 2003
++++ b/net/core/netfilter.c	Tue Apr 22 01:07:31 2003
+@@ -563,64 +563,62 @@
+ {
+ 	struct iphdr *iph = (*pskb)->nh.iph;
+ 	struct rtable *rt;
+-	struct rt_key key = { dst:iph->daddr,
+-			      src:iph->saddr,
+-			      oif:(*pskb)->sk ? (*pskb)->sk->bound_dev_if : 0,
+-			      tos:RT_TOS(iph->tos)|RTO_CONN,
++	struct rt_key key = {};
++	struct dst_entry *odst;
++	unsigned int hh_len;
++
++	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
++	 * packets with foreign saddr to be appear on the NF_IP_LOCAL_OUT hook.
++	 */
++	if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
++		key.dst = iph->daddr;
++		key.src = iph->saddr;
++		key.oif = (*pskb)->sk ? (*pskb)->sk->bound_dev_if : 0;
++		key.tos = RT_TOS(iph->tos);
+ #ifdef CONFIG_IP_ROUTE_FWMARK
+-			      fwmark:(*pskb)->nfmark
++		key.fwmark = (*pskb)->nfmark;
+ #endif
+-			    };
+-	struct net_device *dev_src = NULL;
+-	int err;
+-
+-	/* accomodate ip_route_output_slow(), which expects the key src to be
+-	   0 or a local address; however some non-standard hacks like
+-	   ipt_REJECT.c:send_reset() can cause packets with foreign
+-           saddr to be appear on the NF_IP_LOCAL_OUT hook -MB */
+-	if(key.src && !(dev_src = ip_dev_find(key.src)))
+-		key.src = 0;
+-
+-	if ((err=ip_route_output_key(&rt, &key)) != 0) {
+-		printk("route_me_harder: ip_route_output_key(dst=%u.%u.%u.%u, src=%u.%u.%u.%u, oif=%d, tos=0x%x, fwmark=0x%lx) error %d\n",
+-			NIPQUAD(iph->daddr), NIPQUAD(iph->saddr),
+-			(*pskb)->sk ? (*pskb)->sk->bound_dev_if : 0,
+-			RT_TOS(iph->tos)|RTO_CONN,
+-#ifdef CONFIG_IP_ROUTE_FWMARK
+-			(*pskb)->nfmark,
+-#else
+-			0UL,
+-#endif
+-			err);
+-		goto out;
+-	}
+-
+-	/* Drop old route. */
+-	dst_release((*pskb)->dst);
++		if (ip_route_output_key(&rt, &key) != 0)
++			return -1;
  
- #if 0
-@@ -41,31 +40,20 @@
+-	(*pskb)->dst = &rt->u.dst;
++		/* Drop old route. */
++		dst_release((*pskb)->dst);
++		(*pskb)->dst = &rt->u.dst;
++	} else {
++		/* non-local src, find valid iif to satisfy
++		 * rp-filter when calling ip_route_input. */
++		key.dst = iph->saddr;
++		if (ip_route_output_key(&rt, &key) != 0)
++			return -1;
++
++		odst = (*pskb)->dst;
++		if (ip_route_input(*pskb, iph->daddr, iph->saddr,
++		                   RT_TOS(iph->tos), rt->u.dst.dev) != 0) {
++			dst_release(&rt->u.dst);
++			return -1;
++		}
++		dst_release(&rt->u.dst);
++		dst_release(odst);
++	}
++	
++	if ((*pskb)->dst->error)
++		return -1;
+ 
+ 	/* Change in oif may mean change in hh_len. */
+-	if (skb_headroom(*pskb) < (*pskb)->dst->dev->hard_header_len) {
++	hh_len = (*pskb)->dst->dev->hard_header_len;
++	if (skb_headroom(*pskb) < hh_len) {
+ 		struct sk_buff *nskb;
+ 
+-		nskb = skb_realloc_headroom(*pskb,
+-					    (*pskb)->dst->dev->hard_header_len);
+-		if (!nskb) {
+-			err = -ENOMEM;
+-			goto out;
+-		}
++		nskb = skb_realloc_headroom(*pskb, hh_len);
++		if (!nskb)
++			return -1;
+ 		if ((*pskb)->sk)
+ 			skb_set_owner_w(nskb, (*pskb)->sk);
+ 		kfree_skb(*pskb);
+ 		*pskb = nskb;
+ 	}
+ 
+-out:
+-	if (dev_src)
+-		dev_put(dev_src);
+-
+-	return err;
++	return 0;
+ }
+ #endif /*CONFIG_INET*/
+ 
+diff -Nru a/net/ipv4/netfilter/ipt_MIRROR.c b/net/ipv4/netfilter/ipt_MIRROR.c
+--- a/net/ipv4/netfilter/ipt_MIRROR.c	Tue Apr 22 01:07:31 2003
++++ b/net/ipv4/netfilter/ipt_MIRROR.c	Tue Apr 22 01:07:31 2003
+@@ -40,15 +40,42 @@
  #define DEBUGP(format, args...)
  #endif
  
--static int route_mirror(struct sk_buff *skb)
-+static inline struct rtable *route_mirror(struct sk_buff *skb)
+-static inline struct rtable *route_mirror(struct sk_buff *skb)
++static inline struct rtable *route_mirror(struct sk_buff *skb, int local)
  {
          struct iphdr *iph = skb->nh.iph;
++	struct dst_entry *odst;
++	struct rt_key key = {};
  	struct rtable *rt;
  
- 	/* Backwards */
- 	if (ip_route_output(&rt, iph->saddr, iph->daddr,
--			    RT_TOS(iph->tos) | RTO_CONN,
--			    0)) {
--		return 0;
--	}
-+			    RT_TOS(iph->tos), 0))
-+		return NULL;
- 
--	/* check if the interface we are leaving by is the same as the
--           one we arrived on */
--	if (skb->dev == rt->u.dst.dev) {
--		/* Drop old route. */
--		dst_release(skb->dst);
--		skb->dst = &rt->u.dst;
--		return 1;
--	}
--	return 0;
-+	return rt;
- }
- 
--static void
--ip_rewrite(struct sk_buff *skb)
-+static inline void ip_rewrite(struct sk_buff *skb)
- {
- 	struct iphdr *iph = skb->nh.iph;
- 	u32 odaddr = iph->saddr;
-@@ -105,32 +93,48 @@
- 				      const void *targinfo,
- 				      void *userinfo)
- {
--	if (((*pskb)->dst != NULL) &&
--	    route_mirror(*pskb)) {
--
--		ip_rewrite(*pskb);
-+	struct rtable *rt;
-+	struct sk_buff *nskb;
-+	unsigned int hh_len;
- 
--		/* If we are not at FORWARD hook (INPUT/PREROUTING),
--		 * the TTL isn't decreased by the IP stack */
--		if (hooknum != NF_IP_FORWARD) {
--			struct iphdr *iph = (*pskb)->nh.iph;
--			if (iph->ttl <= 1) {
--				/* this will traverse normal stack, and 
--				 * thus call conntrack on the icmp packet */
--				icmp_send(*pskb, ICMP_TIME_EXCEEDED, 
--					  ICMP_EXC_TTL, 0);
--				return NF_DROP;
--			}
--			ip_decrease_ttl(iph);
-+	/* If we are not at FORWARD hook (INPUT/PREROUTING),
-+	 * the TTL isn't decreased by the IP stack */
-+	if (hooknum != NF_IP_FORWARD) {
-+		struct iphdr *iph = (*pskb)->nh.iph;
-+		if (iph->ttl <= 1) {
-+			/* this will traverse normal stack, and 
-+			 * thus call conntrack on the icmp packet */
-+			icmp_send(*pskb, ICMP_TIME_EXCEEDED, 
-+				  ICMP_EXC_TTL, 0);
-+			return NF_DROP;
- 		}
-+		ip_decrease_ttl(iph);
+-	/* Backwards */
+-	if (ip_route_output(&rt, iph->saddr, iph->daddr,
+-			    RT_TOS(iph->tos), 0))
+-		return NULL;
++	if (local) {
++		key.dst = iph->saddr;
++		key.src = iph->daddr;
++		key.tos = RT_TOS(iph->tos);
++
++		if (ip_route_output_key(&rt, &key) != 0)
++			return NULL;
++	} else {
++		/* non-local src, find valid iif to satisfy
++		 * rp-filter when calling ip_route_input. */
++		key.dst = iph->daddr;
++		if (ip_route_output_key(&rt, &key) != 0)
++			return NULL;
++
++		odst = skb->dst;
++		if (ip_route_input(skb, iph->saddr, iph->daddr,
++		                   RT_TOS(iph->tos), rt->u.dst.dev) != 0) {
++			dst_release(&rt->u.dst);
++			return NULL;
++		}
++		dst_release(&rt->u.dst);
++		rt = (struct rtable *)skb->dst;
++		skb->dst = odst;
++	}
++
++	if (rt->u.dst.error) {
++		dst_release(&rt->u.dst);
++		rt = NULL;
 +	}
  
--		/* Don't let conntrack code see this packet:
--                   it will think we are starting a new
--                   connection! --RR */
--		ip_direct_send(*pskb);
-+	if ((rt = route_mirror(*pskb)) == NULL)
-+		return NF_DROP;
- 
--		return NF_STOLEN;
-+	hh_len = (rt->u.dst.dev->hard_header_len + 15) & ~15;
-+
-+	/* Copy skb (even if skb is about to be dropped, we can't just
-+	 * clone it because there may be other things, such as tcpdump,
-+	 * interested in it). We also need to expand headroom in case
-+	 * hh_len of incoming interface < hh_len of outgoing interface */
-+	nskb = skb_copy_expand(*pskb, hh_len, skb_tailroom(*pskb), GFP_ATOMIC);
-+	if (nskb == NULL) {
-+		dst_release(&rt->u.dst);
-+		return NF_DROP;
+ 	return rt;
+ }
+@@ -111,7 +138,7 @@
+ 		ip_decrease_ttl(iph);
  	}
-+
-+	dst_release(nskb->dst);
-+	nskb->dst = &rt->u.dst;
-+
-+	ip_rewrite(nskb);
-+	/* Don't let conntrack code see this packet:
-+           it will think we are starting a new
-+           connection! --RR */
-+	ip_direct_send(nskb);
-+
- 	return NF_DROP;
+ 
+-	if ((rt = route_mirror(*pskb)) == NULL)
++	if ((rt = route_mirror(*pskb, hooknum == NF_IP_LOCAL_IN)) == NULL)
+ 		return NF_DROP;
+ 
+ 	hh_len = (rt->u.dst.dev->hard_header_len + 15) & ~15;
+diff -Nru a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+--- a/net/ipv4/netfilter/ipt_REJECT.c	Tue Apr 22 01:07:31 2003
++++ b/net/ipv4/netfilter/ipt_REJECT.c	Tue Apr 22 01:07:31 2003
+@@ -33,6 +33,46 @@
+ 		attach(new_skb, nfct);
  }
  
++static inline struct rtable *route_reverse(struct sk_buff *skb, int local)
++{
++	struct iphdr *iph = skb->nh.iph;
++	struct dst_entry *odst;
++	struct rt_key key = {};
++	struct rtable *rt;
++
++	if (local) {
++		key.dst = iph->saddr;
++		key.src = iph->daddr;
++		key.tos = RT_TOS(iph->tos);
++
++		if (ip_route_output_key(&rt, &key) != 0)
++			return NULL;
++	} else {
++		/* non-local src, find valid iif to satisfy
++		 * rp-filter when calling ip_route_input. */
++		key.dst = iph->daddr;
++		if (ip_route_output_key(&rt, &key) != 0)
++			return NULL;
++
++		odst = skb->dst;
++		if (ip_route_input(skb, iph->saddr, iph->daddr,
++		                   RT_TOS(iph->tos), rt->u.dst.dev) != 0) {
++			dst_release(&rt->u.dst);
++			return NULL;
++		}
++		dst_release(&rt->u.dst);
++		rt = (struct rtable *)skb->dst;
++		skb->dst = odst;
++	}
++
++	if (rt->u.dst.error) {
++		dst_release(&rt->u.dst);
++		rt = NULL;
++	}
++
++	return rt;
++}
++
+ /* Send RST reply */
+ static void send_reset(struct sk_buff *oldskb, int local)
+ {
+@@ -63,10 +103,7 @@
+ 			 csum_partial((char *)otcph, otcplen, 0)) != 0)
+ 		return;
+ 
+-	/* Routing: if not headed for us, route won't like source */
+-	if (ip_route_output(&rt, oldskb->nh.iph->saddr,
+-			    local ? oldskb->nh.iph->daddr : 0,
+-			    RT_TOS(oldskb->nh.iph->tos), 0) != 0)
++	if ((rt = route_reverse(oldskb, local)) == NULL)
+ 		return;
+ 
+ 	hh_len = (rt->u.dst.dev->hard_header_len + 15)&~15;
 
---------------030904090209060908080908--
+--------------000905060705060305010809--
