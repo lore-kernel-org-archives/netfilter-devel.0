@@ -1,17 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [2/2] osf: fixed /proc reading bug
-Date: Sun, 22 Aug 2004 02:15:02 +0200
+Subject: Re: Missing ipt_osf.h in p-o-m (kernel 2.6)
+Date: Sun, 22 Aug 2004 02:30:24 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4127E586.5000707@trash.net>
-References: <20040822010358.79048eda@zanzibar.2ka.mipt.ru> <4127CCF9.2030505@trash.net> <Pine.LNX.4.61.0408220142220.21373@filer.marasystems.com>
+Message-ID: <4127E920.2080100@trash.net>
+References: <20040818223233.GA317@cerbere.dyndns.info> <20040819094720.GZ3921@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: johnpol@2ka.mipt.ru, Harald Welte <laforge@netfilter.org>,
+Cc: Samir Bellabes <sam@cerbere.dyndns.info>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0408220142220.21373@filer.marasystems.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040819094720.GZ3921@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,57 +22,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
+Harald Welte wrote:
 
-> On Sun, 22 Aug 2004, Patrick McHardy wrote:
+>On Thu, Aug 19, 2004 at 12:32:33AM +0200, Samir Bellabes wrote:
+>  
 >
->>               log("%s [%s]", f->genre, f->details);
+>>Hi Harald,
 >>
->> -               count += sprintf(buf+count, "%s - %s[%s] : %s",
->> +               err = snprintf(buf+count, __count-count, "%s - %s[%s] 
->> : %s",
->>                                       f->genre, f->version,
->>                                       f->subtype, f->details);
->> -
->> +               if (err < 0)
->
->
-> This should read something like follows I think:
->
->           if (err < 0 || err > __count-count)
->
->> +                       break;
->> +               else
->> +                       count += err;
->>               if (f->opt_num)
->>               {
->>                       loga(" OPT: ");
->
-
-Yes, but the check for < 0 is not needed and it should read >= __count - 
-count
-to avoid useless zero-byte snprintfs. Evgeniy, can you please send a new 
-patch ?
-
+>>   It's seems that the file
+>>   p-o-m/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h
+>>   is missing.
+>>    
 >>
->> snprintf returns the number of characters written if n <= limit, 
->> otherwise
->> the number of characters that would have been generated for the given 
->> input,
->> but never < 0. You can also use vscnprintf to get the real number of 
->> bytes
->> written.
 >
+>Erm, it's not missing.  It is in the linux-2.4 and linux-2.6 shared 
 >
-> There may still be systems around with old snprintf implementations 
-> returning -1 on overflow unless this is kernel code.
+>	pom/osf/linux/include/linux/netfilter_ipv4/
+>
+>directory in order to avoid duplication of the same file at two
+>locations within cvs.
+>  
+>
 
-It is. The *nprintf behaviour really is surprising (and annoying for 
-chaining
-multiple snprintfs), given the behaviour of the *printf functions. OTOH, 
-there
-is no other way to distinguish "n bytes written" with "truncated to n bytes"
-and returning -1 is even worse.
+Oops. I just commited the file to 2.6, I didn't knew this works.
+How come it didn't compile ?
 
 Regards
 Patrick
