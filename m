@@ -1,18 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] Amanda conntrack/nat module update
-Date: Sat, 2 Nov 2002 19:04:48 +0100
+From: Bart De Schuymer <bart.de.schuymer@pandora.be>
+Subject: [PATCH][RFC] ipt_REJECT.c - nf_bridge source and
+Date: Sat, 2 Nov 2002 20:32:45 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021102190448.T8635@sunbeam.de.gnumonks.org>
-References: <20021101232337.GD16306@pc.ilinx> <1036244727.28830.66.camel@tux>
+Message-ID: <200211022032.46007.bart.de.schuymer@pandora.be>
+References: <20021102153451.N8635@sunbeam.de.gnumonks.org> <200211021530.EREjZ0McAA@gate.tbc.sub.de> <20021102185730.S8635@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wFODXFufd9YTJ4hK"
-Cc: netfilter@interlinx.bc.ca,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-Content-Disposition: inline
-In-Reply-To: <1036244727.28830.66.camel@tux>; from gandalf@wlug.westbo.se on Sat, Nov 02, 2002 at 02:45:27PM +0100
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20021102185730.S8635@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,56 +22,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---wFODXFufd9YTJ4hK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+A discussion on the Linux bridge mailing list showed the following proble=
+ms:
+1. send_reset() does a skb_copy() and doesn't yet initialize the nf_bridg=
+e
+skbuff field.
+2. send_unreach() seems to copy the wrong source IP address in the ICMP
+message. Namely, it seems to always use an IP address of the router as
+source IP address. Is that a bug?
 
-On Sat, Nov 02, 2002 at 02:45:27PM +0100, Martin Josefsson wrote:
-> On Sat, 2002-11-02 at 00:23, netfilter@interlinx.bc.ca wrote:
-> > Hello Harald and friends,
-> >=20
-> > Please find attached an update patch to patch-o-matic for my Amanda
-> > protocol conntrack/nat helper.  This patch corrects a minor error in
-> > the Config.in indentation as well as, and more importantly, lengthens
-> > the timeout for the master Amanda connection from the default UDP
-> > stream timeout (normally 180 seconds) to 300 seconds.
-> =20
-> > I would be most appreciative if you could apply this patch to
-> > patch-o-matic at your earliest convenience.
->=20
-> Applied,
+The following patch solves both problems.
+If the second issue is a bug then the 2.4 kernel needs a fix too.
 
-thanks, I tried to apply it 30mins later and had to discover that
-my CVS was not up-to-date ;)  Sometimes I seem to forget that there is some=
-body
-else taking care of patch-o-matic now.  Thanks again.
+cheers,
+Bart
 
-> /Martin
+--- linux-2.5.45/net/ipv4/netfilter/ipt_REJECT.c=09Thu Oct 31 01:43:38 20=
+02
++++ linux-2.5.45-new/net/ipv4/netfilter/ipt_REJECT.c=09Sat Nov  2 18:58:4=
+4 2002
+@@ -76,6 +76,10 @@
+ =09nskb->nf_debug =3D 0;
+ #endif
+ =09nskb->nfmark =3D 0;
++#if defined(CONFIG_BRIDGE) || defined(CONFIG_BRIDGE_MODULE)
++=09nf_bridge_put(nskb->nf_bridge);
++=09nskb->nf_bridge =3D NULL;
++#endif
 =20
-
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---wFODXFufd9YTJ4hK
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9xBPAXaXGVTD0i/8RAh+EAKCsBhCQNqjtZvwj1BplQukoJQTo6gCfeQUR
-fSVBjrPW7xDr5wU+oqR1Ybo=
-=dyd3
------END PGP SIGNATURE-----
-
---wFODXFufd9YTJ4hK--
+ =09tcph =3D (struct tcphdr *)((u_int32_t*)nskb->nh.iph + nskb->nh.iph->i=
+hl);
+=20
+@@ -222,6 +226,9 @@
+ =09=09if (ip_route_output_key(&rt, &fl))
+ =09=09=09return;
+ =09}
++
++=09saddr =3D iph->daddr;
++
+ =09/* RFC says return as much as we can without exceeding 576 bytes. */
+ =09length =3D skb_in->len + sizeof(struct iphdr) + sizeof(struct icmphdr=
+);
+=20
+@@ -256,7 +263,7 @@
+ =09iph->ttl =3D MAXTTL;
+ =09ip_select_ident(iph, &rt->u.dst, NULL);
+ =09iph->protocol=3DIPPROTO_ICMP;
+-=09iph->saddr=3Drt->rt_src;
++=09iph->saddr=3Dsaddr;
+ =09iph->daddr=3Drt->rt_dst;
+ =09iph->check=3D0;
+ =09iph->check =3D ip_fast_csum((unsigned char *)iph, iph->ihl);
