@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: MARK bit operations patch #2
-Date: Wed, 15 Jan 2003 00:53:11 +0100
+From: "Eric E. Bowles" <bowles@ambisys.com>
+Subject: Linux kernel crashes when incoming/outgoing interfaces differ
+Date: Wed, 15 Jan 2003 22:04:19 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030114235311.GO18686@sunbeam.de.gnumonks.org>
-References: <3E240801.8080801@fugmann.dhs.org> <20030114211436.GL18686@sunbeam.de.gnumonks.org> <3E24811C.7000604@fugmann.dhs.org>
+Message-ID: <20030115130419.GX7242%bowles@ambisys.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sMkrXc3gAYLRVOjR"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Anders Fugmann <afu@fugmann.dhs.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <3E24811C.7000604@fugmann.dhs.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,87 +18,162 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+[I originally sent this to the OpenVPN devel mailing list, and it
+ was suggested that I forward it to other lists since it might be a
+ problem involving netfilter and/or the kernel, so here goes....]
 
---sMkrXc3gAYLRVOjR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi there,
 
-On Tue, Jan 14, 2003 at 10:29:00PM +0100, Anders Fugmann wrote:
-> My bad, should have said:
-> new kernel - new userspace: OK
-> old kernel - new userspace: OK
+I've been experiencing kernel crashes with OpenVPN (http://openvpn.sf.net) 
+on Linux under a certain set of conditions, and wondered if anybody else can 
+reproduce this.
 
-> new kernel - old userspace: OK(*)
-> * - Only if the new userspace is compiled against the old kernel.
+Here are the steps needed to cause the crash:
 
-sorry if I am a PITA, but where does the (*) case have new userspace and
-old kernel?  Either the first or the second line are wrong.
+  1. Create an OpenVPN TUN link between two hosts, Host-A and Host-B.
 
-> >You are assuming that=20
-> >
-> >IPT_ALIGN(sizeof(struct ipt_mark_target_info))=20
-> >	!=3D IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info))
-> >
-> >while this may be true on x86, I assume it is different on 64bit
-> >plaforms. Do you have access to any ia64/sparc64/ppc64/mips64 machine
-> >with linux?
+  2. Add an iptables rule to Host-A to REJECT connections from unauthorized 
+     networks, generating an ICMP port unreachable.  Typically, this would
+     be the "default deny" rule in a firewall, for example:
 
-> Unfortunatly not. But why could this introduce an problem on a non x86
-> platform? Also do you know where to look for more information on this?
+       iptables -A reject -j REJECT --reject-with icmp-port-unreachable
 
-let's assume IPT_ALIGN aligns to 32bit boundaries on a 32bit platform,
-and 64bit on 64bit platforms.
+  3. Make a TCP connection (e.g., ssh) from Host-B to Host-A's tunnel
+     interface, using a source address for which Host-A:
+       (a) doesn't have a route directed across the tunnel, and
+       (b) doesn't explicitly permit (so that the iptables rule above will 
+           apply)
 
-now we have an old structure containing a 32bit integer IPT_ALIGN()ed to
-32bit.  Then there is a new structure, aligned to 2*32bit =3D=3D 64bit.
+     [The connection doesn't have to be made to Host-A's tunnel interface; it 
+      could be to any interface on Host-A that causes the connection to 
+      traverse the tunnel from Host-B to Host-A.]
 
-on the 64bit platform, the old 32bit structure is already aligned to
-64bit.  And the new structure is aligned to 64bit as well.
+What I think is happening is this: when an incoming connection arrives
+on Host-A's TUN interface, the REJECT rule is triggered, causing an 
+"ICMP unreachable" to be sent back.  However, since there is no return 
+route back across the tunnel, the default route is selected, which causes 
+the ICMP packet to be <<returned on an interface that is different from the
+incoming interface>> (i.e., the tunnel).  Since the incoming (tun) and 
+outgoing (eth) interfaces have different link layer header sizes, the 
+kernel is crashing in skb_push().
 
-Resulting in IPT_ALIGN(sizeof(struct ipt_mark_target_info)) bein exactly
-the same as IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info)).
+Software:
+  openvpn 1.3.1.7, 1.3.2, 1.3.2.5
+  linux kernel 2.4.19, 2.4.20
+  iptables 1.2.7a
+  iptables patch-o-matic 20020930, 20021127
 
-I'm not saying that it really happens right now (I would need to test
-it) - but theoretically it is possible.
+I've attached the kernel oops output below.
 
-I'd say you make your final patch and I test it on my sparc64 box.=20
+I hope I've provided sufficient information to reproduce the crash.
+Please let me know if you need more information, since I'm interested
+in helping solve this problem.
 
-If there are any problems, we have two options
+Thanks,
 
-1) assure that IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info)) is
-   way larger than the older structure (resulting in 128bit)
+--eric
 
-2) find some other way not depending on the size of the structure (which
-   would be preferred - but how?)
+===========================================================================
+% kernel BUG at skbuff.c:109!
+invalid operand: 0000
+CPU:    0
+EIP:    0010:[<c01c5627>]    Not tainted
+Using defaults from ksymoops -t elf32-i386 -a i386
+EFLAGS: 00010282
+eax: 00000028   ebx: 00000000   ecx: cf7d8000   edx: cc52f11c
+esi: cc463f00   edi: 00000800   ebp: cf77f000   esp: ce531c68
+ds: 0018   es: 0018   ss: 0018
+Process openvpn (pid: 3954, stackpage=ce531000)
+Stack: c02374a0 c01d0215 00000036 0000000e cf77f000 c01d021e cc463f00
+0000000e
+       c01d0215 ce927d80 cc463f00 cb58c0c0 cf77f000 c01cca1a cc463f00
+cf77f000
+       00000800 cb58c0e4 00000000 00000028 cc463f00 00000000 cf77f000
+00000000
+Call Trace:    [<c01d0215>] [<c01d021e>] [<c01d0215>] [<c01cca1a>]
+[<c01ddb05>]
+  [<c01cf12e>] [<c01dd975>] [<c01dda78>] [<c01cf12e>] [<d00e3384>]
+[<c01dd936>]
+  [<d00e7906>] [<d00e3835>] [<d00402e2>] [<d0042660>] [<d0042660>]
+[<d0042660>]
+  [<c01da0c6>] [<d0044080>] [<d00445c0>] [<c01cee0d>] [<c01da0c6>]
+[<c01cf0ee>]
+  [<c01da0c6>] [<d0044600>] [<c01d9eb5>] [<c01da0c6>] [<c01da3a9>]
+[<c01cf12e>]
+  [<c01da03d>] [<c01da1fa>] [<c01c9780>] [<c01c9889>] [<c01c9983>]
+[<c011b6ad>]
+  [<d00e1b4c>] [<d00e12d6>] [<c0132c2f>] [<c0108933>]
+Code: 0f 0b 6d 00 8b 64 23 c0 83 c4 14 c3 90 a1 28 2c 2a c0 56 03
 
-> I also forgot the manpage update. It will come in the next batch.
-> Thanks for the positive feedback.
 
-Thanks for working on this issue.
+>>EIP; c01c5627 <skb_under_panic+29/36>   <=====
 
-> Anders Fugmann
+>>ecx; cf7d8000 <_end+f513308/fd48368>
+>>edx; cc52f11c <_end+c26a424/fd48368>
+>>esi; cc463f00 <_end+c19f208/fd48368>
+>>ebp; cf77f000 <_end+f4ba308/fd48368>
+>>esp; ce531c68 <_end+e26cf70/fd48368>
 
---=20
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
+Trace; c01d0215 <eth_header+15d/16e>
+Trace; c01d021e <eth_header+166/16e>
+Trace; c01d0215 <eth_header+15d/16e>
+Trace; c01cca1a <neigh_resolve_output+a6/198>
+Trace; c01ddb05 <ip_finish_output2+8d/c4>
+Trace; c01cf12e <nf_hook_slow+a0/144>
+Trace; c01dd975 <ip_finish_output+3f/44>
+Trace; c01dda78 <ip_finish_output2+0/c4>
+Trace; c01cf12e <nf_hook_slow+a0/144>
+Trace; d00e3384 <[ipt_REJECT]send_reset+308/37e>
+Trace; c01dd936 <ip_finish_output+0/44>
+Trace; d00e7906 <[ipt_LOG].text.end+ad/1ff>
+Trace; d00e3835 <[ipt_REJECT]reject+5f/62>
+Trace; d00402e2 <[ip_tables]ipt_do_table+262/2e4>
+Trace; d0042660 <[ip_tables]__kstrtab_ipt_register_table+0/0>
+Trace; d0042660 <[ip_tables]__kstrtab_ipt_register_table+0/0>
+Trace; d0042660 <[ip_tables]__kstrtab_ipt_register_table+0/0>
+Trace; c01da0c6 <ip_local_deliver_finish+0/134>
+Trace; d0044080 <[iptable_filter]ipt_hook+20/24>
+Trace; d00445c0 <[iptable_filter]packet_filter+0/40>
+Trace; c01cee0d <nf_iterate+51/86>
+Trace; c01da0c6 <ip_local_deliver_finish+0/134>
+Trace; c01cf0ee <nf_hook_slow+60/144>
+Trace; c01da0c6 <ip_local_deliver_finish+0/134>
+Trace; d0044600 <[iptable_filter]ipt_ops+0/48>
+Trace; c01d9eb5 <ip_local_deliver+35/54>
+Trace; c01da0c6 <ip_local_deliver_finish+0/134>
+Trace; c01da3a9 <ip_rcv_finish+1af/1fa>
+Trace; c01cf12e <nf_hook_slow+a0/144>
+Trace; c01da03d <ip_rcv+169/1f2>
+Trace; c01da1fa <ip_rcv_finish+0/1fa>
+Trace; c01c9780 <netif_receive_skb+100/1a0>
+Trace; c01c9889 <process_backlog+69/104>
+Trace; c01c9983 <net_rx_action+5f/ea>
+Trace; c011b6ad <do_softirq+89/8c>
+Trace; d00e1b4c <[tun]tun_get_user+d0/13f>
+Trace; d00e12d6 <[tun]tun_chr_write+28/2c>
+Trace; c0132c2f <sys_write+85/ea>
+Trace; c0108933 <system_call+33/40>
 
---sMkrXc3gAYLRVOjR
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Code;  c01c5627 <skb_under_panic+29/36>
+00000000 <_EIP>:
+Code;  c01c5627 <skb_under_panic+29/36>   <=====
+   0:   0f 0b                     ud2a      <=====
+Code;  c01c5629 <skb_under_panic+2b/36>
+   2:   6d                        insl   (%dx),%es:(%edi)
+Code;  c01c562a <skb_under_panic+2c/36>
+   3:   00 8b 64 23 c0 83         add    %cl,0x83c02364(%ebx)
+Code;  c01c5630 <skb_under_panic+32/36>
+   9:   c4 14 c3                  les    (%ebx,%eax,8),%edx
+Code;  c01c5633 <skb_under_panic+35/36>
+   c:   90                        nop    
+Code;  c01c5634 <alloc_skb+0/1a6>
+   d:   a1 28 2c 2a c0            mov    0xc02a2c28,%eax
+Code;  c01c5639 <alloc_skb+5/1a6>
+  12:   56                        push   %esi
+Code;  c01c563a <alloc_skb+6/1a6>
+  13:   03 00                     add    (%eax),%eax
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+ <0>Kernel panic: Aiee, killing interrupt handler!
 
-iD8DBQE+JKLnXaXGVTD0i/8RAtBpAJ9VyInlmMC1uvIvWv2vOHfXH5qCZgCggdp/
-29xciNSB93XZ7MiP53zXMcs=
-=UjWR
------END PGP SIGNATURE-----
-
---sMkrXc3gAYLRVOjR--
+2 errors issued.  Results may not be reliable.
+===========================================================================
