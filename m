@@ -1,18 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: Fix warning in CONNMARK
-Date: Sun, 24 Oct 2004 16:17:34 +0200
+Subject: Re: [PATCH 4/4] introducing skb_header_pointer() to hbh match
+Date: Mon, 25 Oct 2004 00:47:42 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417BB97E.2000706@trash.net>
-References: <20041024135721.GO21977@postel.suug.ch>
+Message-ID: <417C310E.7000402@trash.net>
+References: <200410220259.i9M2xqR5010725@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netdev@oss.sgi.com,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	hno@marasystems.com
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Graf <tgraf@suug.ch>
-In-Reply-To: <20041024135721.GO21977@postel.suug.ch>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200410220259.i9M2xqR5010725@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +21,11 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Applied, thanks.
+Yasuyuki Kozakai wrote:
 
-Thomas Graf wrote:
+>This patch introduces skb_header_pointer() to ip6t_hbh.c
+>
+Thanks Yasuyuki, all four patches applied.
 
->Signed-off-by: Thomas Graf <tgraf@suug.ch>
->
->--- linux-2.6.10-rc1-bk1.orig/net/ipv4/netfilter/ipt_CONNMARK.c	2004-10-24 10:58:49.000000000 +0200
->+++ linux-2.6.10-rc1-bk1/net/ipv4/netfilter/ipt_CONNMARK.c	2004-10-24 15:35:18.000000000 +0200
->@@ -60,7 +60,7 @@
-> 		break;
-> 	    case IPT_CONNMARK_RESTORE:
-> 		nfmark = (*pskb)->nfmark;
->-		diff = (ct->mark ^ nfmark & markinfo->mask);
->+		diff = ((ct->mark ^ nfmark) & markinfo->mask);
-> 		if (diff != 0) {
-> 		    (*pskb)->nfmark = nfmark ^ diff;
-> 		    (*pskb)->nfcache |= NFC_ALTERED;
->
->  
->
+Regards
+Patrick
