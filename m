@@ -1,17 +1,13 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: Re: review requested - spec for proposed match module
-Date: Wed, 25 Dec 2002 09:55:07 -0800
+From: "Juan Torres" <islero77@telefonica.net>
+Subject: Ideas about extensions or tools to develop
+Date: Fri, 27 Dec 2002 14:32:45 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <15881.61691.835131.3554@isis.cs3-inc.com>
-References: <200212250823.gBP8NYp05377@isis.cs3-inc.com>
-	<20021225162018.GA440@oknodo.bof.de>
+Message-ID: <000101c2adac$71e68c70$0300000a@juan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0002_01C2ADB4.D3AAF470"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20021225162018.GA440@oknodo.bof.de>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,59 +18,134 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick Schaaf writes:
+This is a multi-part message in MIME format.
 
- > >  --comment string
- > >    This is ignored, used for commenting commands
+------=_NextPart_000_0002_01C2ADB4.D3AAF470
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-The first issue, of course, is less important than the second.
 
- > This has no place in a single, new, specialized match. It is a GENERAL
- > concept to comment stuff in-line. If considered important, I would
- > propose an extra match '-m comment' for the purpose.
 
-I should have asked explicitly how iptables arguments are parsed.
-I was imagining that after -m foo you expect a set of --x y to be
-understood by foo until the next non --x.
-This would make it ok to repeat an option, e.g., several --comment's.
-It also means that when you move to a second module you can no longer 
-supply more arguments to the first module. 
+	Hello,
 
-Is this correct?  (If not, what IS?)
+	To finish my University studies, I have to make a project, and I
+have thought that it would be very interesting to develop an extension
+or something for netfilter. But I don't want to lose the time working in
+something that maybe it's done or it's nearly to be finished.
 
-The fact that my match arguments can get somewhat complicated
-motivated the --comment as a way to describe a single --match.
-I wouldn't mind also having a -m comment, but it wouldn't serve
-the purpose as well.
+	So please, if anybody has an idea about what can I do, reply me.
+First to start to develop anything, I have to ask my teacher if he
+considers that it is a good project, so, if I have many ideas it's more
+possible that one of them be considered ok. from my teacher.
 
-====
 
- > Apart from that, as there is already an 'u32' classifier in tc,
- > it would be nice if syntax and semantics of this new iptables
- > match, would be as close as possible to the tc classifier.
- > I don't know it too well, so I'll refrain from judging your
- > proposal on this.
+	Thank you very much.
 
-The name u32 does indeed derive from that one.  I only wished that
-it had been available in iptables.  You are also correct that this
-differs from that one in some ways.  One is syntax.  If the rules
-that I induced above for match module arguments are correct then
-it's not possible to imitate tc u32 syntax.
 
-Tc u32 contains some of what I propose, not all.  It does support 
-a mask and offset.  It also has a nexthdr syntax but I never got
-that to work.  It does not contain ranges (or even one range) or
-shifts.  And it does not support anything as complicated (or capable) 
-as my little programming language.  The shifts were needed in order
-to make the @ work but they're also handy for comparisons.  The @ is
-meant to allow us to write a program to do what nexthdr is supposed
-to do.  As far as I can tell, right now iptables and tc u32 (if it
-works) give you access to the ip header and the next header, but 
-that's it, i.e., no pointer to the tcp payload.  In iptables this
-is even supported as a special extra argument (if I understand
-correctly) which is not needed with my proposal.
+	Juan Torres.
 
-I don't claim to understand tc u32 very well and I'll be happy to hear
-from those who understand it better what more it has to offer.
+------=_NextPart_000_0002_01C2ADB4.D3AAF470
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
- > Don't get me wrong: I do like the idea of an 'u32' match.
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.0.4630.0">
+<TITLE>Ideas about extensions or tools to develop</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/rtf format -->
+<BR>
+<BR>
+
+<P ALIGN=3DJUSTIFY><SPAN =
+LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
+FACE=3D"Arial">Hello</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"><FONT SIZE=3D2 =
+FACE=3D"Arial">,</FONT></SPAN></P>
+
+<P ALIGN=3DJUSTIFY><SPAN =
+LANG=3D"es">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
+SIZE=3D2 FACE=3D"Arial">To finish my University studies, I =
+have</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
+FACE=3D"Arial">to make a project, and I have thought that it would be =
+very interesting to</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
+FACE=3D"Arial">develop</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
+FACE=3D"Arial"></FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
+FACE=3D"Arial">an extension or something</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
+SIZE=3D2 FACE=3D"Arial">for netfilter. But I</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
+SIZE=3D2 FACE=3D"Arial">don&#8217;t</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
+SIZE=3D2 FACE=3D"Arial"> want to</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
+SIZE=3D2 FACE=3D"Arial">lose</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial"> =
+the time working in something that maybe</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
+SIZE=3D2 FACE=3D"Arial">it</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
+FACE=3D"Arial">&#8217;</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial">s =
+done or it</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
+FACE=3D"Arial">&#8217;</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial">s =
+nearly to be finished.</FONT></SPAN></P>
+
+<P ALIGN=3DJUSTIFY><SPAN =
+LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
+FACE=3D"Arial">So please, if anybody has an idea</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
+SIZE=3D2 FACE=3D"Arial"> about what can I do, reply =
+me.</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"en-gb"> <FONT SIZE=3D2 FACE=3D"Arial">First to start to develop =
+anything, I have to ask my teacher</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
+SIZE=3D2 FACE=3D"Arial">if</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial"> =
+he</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"en-gb"> <FONT SIZE=3D2 =
+FACE=3D"Arial">considers</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
+FACE=3D"Arial">that</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
+FACE=3D"Arial">it is a good project, so, if</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
+SIZE=3D2 FACE=3D"Arial">I</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
+FACE=3D"Arial">have many ideas it</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
+SIZE=3D2 FACE=3D"Arial">&#8217;</FONT></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
+SIZE=3D2 FACE=3D"Arial">s more possible that one of them be considered =
+ok.</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"en-gb"> <FONT SIZE=3D2 FACE=3D"Arial">from my =
+teacher.</FONT></SPAN></P>
+<BR>
+
+<P ALIGN=3DJUSTIFY><SPAN =
+LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
+FACE=3D"Arial">Thank you very much.</FONT></SPAN></P>
+<BR>
+
+<P ALIGN=3DJUSTIFY><SPAN =
+LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
+FACE=3D"Arial">Juan Torres.</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
+LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"></SPAN></P>
+
+</BODY>
+</HTML>
+------=_NextPart_000_0002_01C2ADB4.D3AAF470--
