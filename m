@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nfnetlink-ctnetlink with 2.4.27
-Date: Wed, 20 Oct 2004 21:54:34 +0200
+From: "Emiel Mols" <emiel@fulgor-hosting.nl>
+Subject: RE: nfnetlink-ctnetlink with 2.4.27
+Date: Wed, 20 Oct 2004 22:50:58 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <4176C27A.1030205@trash.net>
-References: <20041020191958.3BBD7948B8@stinky.trash.net>
+Message-ID: <E1CKNQX-000696-00@deer.gmane.org>
+References: <4176C27A.1030205@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Emiel Mols <emiel@fulgor-hosting.nl>
-In-Reply-To: <20041020191958.3BBD7948B8@stinky.trash.net>
+To: "'Patrick McHardy'" <kaber@trash.net>
+In-Reply-To: <4176C27A.1030205@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,6 +22,17 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I did it by hand:
+
+patch -p1 < linux.patch
+
+-----Original Message-----
+From: Patrick McHardy [mailto:kaber@trash.net] 
+Sent: woensdag 20 oktober 2004 21:55
+To: Emiel Mols
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: nfnetlink-ctnetlink with 2.4.27
+
 Emiel Mols wrote:
 
 >Hi,
@@ -28,7 +40,8 @@ Emiel Mols wrote:
 > 
 >
 >During compilation of a 2.4.27 stock kernel (from kernel.org) patched with
->the nfnetlink-ctnetlink patch from the last pom-ng (patching goes well), the
+>the nfnetlink-ctnetlink patch from the last pom-ng (patching goes well),
+the
 >following error occurs:
 >  
 >
