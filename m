@@ -1,12 +1,18 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [TRIVIAL][PATCH] 25_natcore-nohelper.patch compile problem
-Date: Wed, 4 Jun 2003 11:19:22 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [netfilter-core] Questions
+Date: Wed, 4 Jun 2003 12:25:31 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0306041111160.31270@dns.toxicfilms.tv>
+Message-ID: <20030604102531.GE14268@sunbeam.de.gnumonks.org>
+References: <20030604084744.8B1F02FEAC@mta5.x263.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HCdXmnRlPgeNBad2"
+Cc: "coreteam@netfilter.org" <coreteam@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: ???? <lambert@263.net>
+Content-Disposition: inline
+In-Reply-To: <20030604084744.8B1F02FEAC@mta5.x263.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,46 +23,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-25_natcore-nohelper.patch applied to the kernel will not compile with
-gcc3.3 (i think 3.2 too)
+--HCdXmnRlPgeNBad2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It is because gcc3.3 will complain about an unterminated string here:
+On Wed, Jun 04, 2003 at 04:43:26PM +0800, ???? wrote:
+> My friends,
+>   I have seen your document that packet filtering how-to, but I want to k=
+now how to make my own filter and build it in the kernel. I know manage rul=
+es using iptables tools. But how to achieve it in the kernel?=20
+>   How to setup my own ipt_entry, ipt_match and ipt_target in the kernel?
 
-                              DEBUGP("calling nat helper (exp=%p) for
-                                      packet\n", exp);
+Please read the list archive, this question has been asked a number of
+times before.  iptables has no support for in-kernel ruleset changes. =20
 
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Here is patch to patch-o-matic to fix the patch so it compiles with
-gcc-3.3.
+--HCdXmnRlPgeNBad2
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Regards,
-Maciej
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-Index: 25_natcore-nohelper.patch
-===================================================================
-RCS file: /cvspublic/netfilter/patch-o-matic/pending/25_natcore-nohelper.patch,v
-retrieving revision 1.1
-diff -u -r1.1 25_natcore-nohelper.patch
---- 25_natcore-nohelper.patch	26 Mar 2003 15:31:08 -0000	1.1
-+++ 25_natcore-nohelper.patch	4 Jun 2003 09:11:15 -0000
-@@ -21,7 +21,7 @@
+iD8DBQE+3ckbXaXGVTD0i/8RAkpGAKCLS1+pM+RBGszrFTAn+GmyfaffrgCfZEMb
+zuESG5JtysxTV5EsWePY4FA=
+=68sJ
+-----END PGP SIGNATURE-----
 
-  		DEBUGP("do_bindings: helper existing for (%p)\n", ct);
-
--@@ -817,19 +823,22 @@
-+@@ -817,19 +823,21 @@
-  				continue;
-
-  			if (exp_for_packet(exp, pskb)) {
-@@ -30,8 +30,7 @@
- -					exp);
- +				/* FIXME: May be true multiple times in the
- +				 * case of UDP!! */
--+				DEBUGP("calling nat helper (exp=%p) for
--+					packet\n", exp);
-++				DEBUGP("calling nat helper (exp=%p) for	packet\n", exp);
-  				ret = helper->help(ct, exp, info, ctinfo,
-  						   hooknum, pskb);
-  				if (ret != NF_ACCEPT) {
+--HCdXmnRlPgeNBad2--
