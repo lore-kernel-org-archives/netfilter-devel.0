@@ -1,15 +1,15 @@
-From: Galy  Lee <galylee@gdnt.com.cn>
-Subject: RE: how ip header added in ip_bulid_xmit function?
-Date: Wed, 19 May 2004 14:27:26 +0800
+From: "Piotr =?iso-8859-2?Q?Gasid=B3o?=" <quaker@pandora.barbara.eu.org>
+Subject: Re: ipt_account match, 0.2.x tree - english documentation
+Date: Wed, 19 May 2004 12:11:25 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E7AB5FC4F5C0D711B41900065BF019FB0342F9F0@rndntserver.gdnt.com.cn>
+Message-ID: <20040519101125.GA6476@pandora.barbara.eu.org>
+References: <20040512205950.GB21447@pandora.barbara.eu.org>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C43D6A.5A652FA8"
-Cc: linuxnet <linux-net@vger.kernel.org>, netdev <netdev@oss.sgi.com>,
-	netfilter <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=_pandora.barbara.ds.polsl.gliwice.pl-9827-1084961486-0001-2"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: linux lover <linux_lover2004@yahoo.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20040512205950.GB21447@pandora.barbara.eu.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,125 +20,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-------_=_NextPart_001_01C43D6A.5A652FA8
-Content-Type: text/plain;
-	charset="gb2312"
-
-
-It seems that ip_build_xmit_slow is  used to send to bulk data, but the
-ip_build_xmit is used to send single data packet.
-
------Original Message-----
-From: netdev-bounce@oss.sgi.com [mailto:netdev-bounce@oss.sgi.com]On
-Behalf Of linux lover
-Sent: Wednesday, May 19, 2004 2:21 PM
-To: Manu Garg
-Cc: linuxnet; netdev; netfilter
-Subject: Re: how ip header added in ip_bulid_xmit function?
-
-
-
-
-hello,
-
-> A packet comes from TCP layer to IP layer through
-> function call 
-> tp->af_specific->queue_xmit() (in
-> tcp_output.c:tcp_transmit_skb() ). For 
-> IP this function is nothing but ip_queue_xmit()
-> defined in ip_output.c.
-> 
-   then why ip_build_xmit and ip_build_xmit_slow used?
-i think in case of ICMP packet control in icmp.c
-alwayes goes to ip_build_xmit?
-
-
-regards,
-linux_lover
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-SBC Yahoo! - Internet access at a great low price.
-http://promo.yahoo.com/sbc/
-
-------_=_NextPart_001_01C43D6A.5A652FA8
-Content-Type: text/html;
-	charset="gb2312"
+--=_pandora.barbara.ds.polsl.gliwice.pl-9827-1084961486-0001-2
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dgb2312">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
-5.5.2657.73">
-<TITLE>RE: how ip header added in ip_bulid_xmit function?</TITLE>
-</HEAD>
-<BODY>
-<BR>
+On Wed, 12/05, 10:59:50PM, Piotr Gasid=B3o wrote:
 
-<P><FONT SIZE=3D2>It seems that ip_build_xmit_slow is&nbsp; used to =
-send to bulk data, but the&nbsp; ip_build_xmit is used to send single =
-data packet.</FONT></P>
+Hello again,
 
-<P><FONT SIZE=3D2>-----Original Message-----</FONT>
-<BR><FONT SIZE=3D2>From: netdev-bounce@oss.sgi.com [<A =
-HREF=3D"mailto:netdev-bounce@oss.sgi.com">mailto:netdev-bounce@oss.sgi.c=
-om</A>]On</FONT>
-<BR><FONT SIZE=3D2>Behalf Of linux lover</FONT>
-<BR><FONT SIZE=3D2>Sent: Wednesday, May 19, 2004 2:21 PM</FONT>
-<BR><FONT SIZE=3D2>To: Manu Garg</FONT>
-<BR><FONT SIZE=3D2>Cc: linuxnet; netdev; netfilter</FONT>
-<BR><FONT SIZE=3D2>Subject: Re: how ip header added in ip_bulid_xmit =
-function?</FONT>
-</P>
-<BR>
-<BR>
-<BR>
+> (...)
+> Homesite: http://www.barbara.eu.org/~quaker/ipt_account2/
+> (sorry, it's in polish only, I'm looking for someone who may translate
+> it, even partialy, into english).
 
-<P><FONT SIZE=3D2>hello,</FONT>
-</P>
+I wrote simple english HOWTO for ipt_account (version 0.2.x) module.=20
+It covers most of essencial information from polish documentation.
+It can be found:
 
-<P><FONT SIZE=3D2>&gt; A packet comes from TCP layer to IP layer =
-through</FONT>
-<BR><FONT SIZE=3D2>&gt; function call </FONT>
-<BR><FONT SIZE=3D2>&gt; tp-&gt;af_specific-&gt;queue_xmit() (in</FONT>
-<BR><FONT SIZE=3D2>&gt; tcp_output.c:tcp_transmit_skb() ). For </FONT>
-<BR><FONT SIZE=3D2>&gt; IP this function is nothing but =
-ip_queue_xmit()</FONT>
-<BR><FONT SIZE=3D2>&gt; defined in ip_output.c.</FONT>
-<BR><FONT SIZE=3D2>&gt; </FONT>
-<BR><FONT SIZE=3D2>&nbsp;&nbsp; then why ip_build_xmit and =
-ip_build_xmit_slow used?</FONT>
-<BR><FONT SIZE=3D2>i think in case of ICMP packet control in =
-icmp.c</FONT>
-<BR><FONT SIZE=3D2>alwayes goes to ip_build_xmit?</FONT>
-</P>
-<BR>
+http://www.barbara.eu.org/~quaker/ipt_account2/english/mini-howto.txt
 
-<P><FONT SIZE=3D2>regards,</FONT>
-<BR><FONT SIZE=3D2>linux_lover</FONT>
-</P>
-<BR>
+Comments welcome.
 
-<P>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
-<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
-<BR><FONT SIZE=3D2>__________________________________</FONT>
-<BR><FONT SIZE=3D2>Do you Yahoo!?</FONT>
-<BR><FONT SIZE=3D2>SBC Yahoo! - Internet access at a great low =
-price.</FONT>
-<BR><FONT SIZE=3D2><A HREF=3D"http://promo.yahoo.com/sbc/" =
-TARGET=3D"_blank">http://promo.yahoo.com/sbc/</A></FONT>
-</P>
+--=20
+Piotr 'QuakeR' Gasid=B3o, BOFH @ pandora.barbara.eu.org
+############## sending lusers to /dev/null since 1998
+##### Waiting for tomorrow, for a little ray of light
+### Waiting for tomorrow just to see your smile again
 
-</BODY>
-</HTML>
-------_=_NextPart_001_01C43D6A.5A652FA8--
+--=_pandora.barbara.ds.polsl.gliwice.pl-9827-1084961486-0001-2
+Content-Type: application/pgp-signature
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQFAqzLNgEmu6PNADqoRAgG7AJ4kDIIatGYH2gHIwBC7KVIqtoJ53ACfct9k
+r0GvlaHxUyGx51oUhOP2xP4=
+=1g2+
+-----END PGP SIGNATURE-----
+
+--=_pandora.barbara.ds.polsl.gliwice.pl-9827-1084961486-0001-2--
