@@ -1,15 +1,12 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH pom-ng] prepare a 2.6 tree in h323-conntrack-nat
-Date: Wed, 19 Jan 2005 15:45:06 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0501191544010.10783@blackhole.kfki.hu>
-References: <20050119113504.GA17232@roonstrasse.net>
-	<Pine.LNX.4.58.0501191241320.10783@blackhole.kfki.hu>
+Subject: [ANNOUNCEMENT] ipset 2.1.0 released
+Date: Wed, 19 Jan 2005 16:08:15 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0501191545160.10783@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Max Kellermann <max@duempel.org>
-In-Reply-To: <Pine.LNX.4.58.0501191241320.10783@blackhole.kfki.hu>
+To: netfilter@lists.netfilter.org,
+	netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +18,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 19 Jan 2005, Jozsef Kadlecsik wrote:
+Hi,
 
-[...]
-> > This allows me to publish patches for the existing codebase for my
-> > Linux 2.6 port of the module, and preserves the svn log once my
-> > patches are accepted.
->
-> I'll do it afternoon. You don't need to send new patches, I'll use what
-> you posted earlier.
+I'm happy to announce ipset 2.1.0. Besides a couple of bugfixes, it
+includes a new maptype called nethash by which one can store/match
+different size of CIDR netblocks in a set.
 
-Done. Please give a try to the pom-ng from svn.
+Please read the webpage on ipset: http://people.netfilter.org/kadlec/ipset
+
+You can download the snapshots from there or directly from the netfilter
+svn:
+
+svn co https://svn.netfilter.org/netfilter/trunk/ipset
+svn co https://svn.netfilter.org/netfilter/trunk/patch-o-matic-ng
+svn co https://svn.netfilter.org/netfilter/trunk/iptables
 
 Best regards,
 Jozsef
