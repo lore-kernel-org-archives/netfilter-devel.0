@@ -1,13 +1,15 @@
-From: =?iso-8859-1?q?rohit=20persaie?= <persaie@yahoo.co.in>
-Subject: i wanna know exact difference between NETFILTER and IPTABLES
-Date: Wed, 4 Feb 2004 17:25:29 +0000 (GMT)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: i wanna know exact difference between NETFILTER and IPTABLES
+Date: Wed, 4 Feb 2004 23:21:32 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040204172529.45427.qmail@web25209.mail.ukl.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0402042317330.19469-100000@filer.marasystems.com>
+References: <20040204172529.45427.qmail@web25209.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: =?iso-8859-1?q?rohit=20persaie?= <persaie@yahoo.co.in>
+In-Reply-To: <20040204172529.45427.qmail@web25209.mail.ukl.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,26 +20,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 4 Feb 2004, rohit persaie wrote:
 
+> netfilter(acts at kernel level )
+> 
+> and iptables ( works at user level)
 
-i wanna know what are the responsibilities of 
+Netfilter provides the hooks required for the iptables firewall to access
+the packets within the Linux kernel. Both run within the kernel. See the
+netfilter hacking guide for details.
 
-netfilter(acts at  kernel level )
+To control the ruleset of the iptables firewall kernel the userspace
+program iptables is used. This program is responsible for compiling your
+firewall ruleset into binary form used by the iptables kernel. The
+communication is using getsockopt calls, but this is not really of
+interest to anyone except for the iptables core as it is all wrapped up
+nicely. The exact deatils of the communication between the iptables
+userspace and kernel is not specified in detail other than the source. The
+official interface for talking to the iptables kernel is the iptables
+command.
 
-and iptables ( works at user level)
-
-i wanna know full information at kernel level
-as well as userlevel, it will be great if i can 
-get a diagram ...
-
-functional diagram .... + descriptions of files...
-which are used...
-
-
-thanks in advance
-
-cheers
-
-________________________________________________________________________
-Yahoo! India Mobile: Download the latest polyphonic ringtones.
-Go to http://in.mobile.yahoo.com
+Regards
+Henrik
