@@ -1,18 +1,15 @@
-From: Michael Shuey <shuey@fmepnet.org>
-Subject: Re: NAT and locally bound sockets
-Date: Mon, 1 Jul 2002 13:46:15 -0500
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: conntrack performance/DoS formula
+Date: Mon, 1 Jul 2002 14:30:39 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020701184615.GA13296@lucky>
-References: <20020529164926.GA9003@gort.ecn.purdue.edu> <20020530153247.I7658@sunbeam.de.gnumonks.org> <20020701163232.GB7090@lucky> <200207011859.39589.hno@marasystems.com>
-Reply-To: shuey@purdue.edu
+Message-ID: <15648.51711.918456.294773@isis.cs3-inc.com>
+References: <20020701121404.B78724512@lists.samba.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@gnumonks.org>,
-	netfilter-devel@lists.samba.org
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <200207011859.39589.hno@marasystems.com>
+To: netfilter-devel@lists.samba.org, bof@bof.de
+In-Reply-To: <20020701121404.B78724512@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,34 +20,47 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 01, 2002 at 06:59:39PM +0200, Henrik Nordstrom wrote:
-> > would be just fine; however, with a high level of traffic the NAT system
-> > would occaisionally select a srcport that was already in use by the NFS
-> > client local to natbox.  That's not fine - it causes quite a few NFS
-> 
-> This is handled fine in all tests I have done provided your SNAT rule applies 
-> to both forwarded and locally originating packets.
 
-First, why would I want to SNAT locally originating packets?  Second, are
-you telling me that netfilter _does_ check to see if a port is locally bound
-before using it for a translation?
+Patrick Schaaf writes:
+ >  > You can now use '-c NUMBER' to set a seed for the CRC32 hash. You can now
+ >  > use '-C' (without parameter) to set a random seed for the CRC32 hash.
+ >  > These options are for testing the idea of "attack compensation by
+ >  > inserting local variance". I'd like to hear opinions on this.
 
-> If however your UDP nat entries times out from conntrack, which they can 
-> easily do for a idle NFS mount, then all bets is off.. The default udp 
-> timeout is only 180 seconds which is not by far sufficient for multi-client 
-> NAT of NFS. A typical case where conntrack by default cannot easily know a 
-> suitable timeout without additional information.
+ > At a higher level, though, I don't see much value in preventing an
+ > attacker from filling a single bucket when he can almost as easily do
+ > much more harm by filling the entire conntrack database!
 
-The problem is not that UDP NAT entries are timing out from conntrack.  The
-problem is that SNAT'd NFS connections are stealing packets bound for the
-nat host.  As near as I can tell the NAT code will occaisionally select a
-srcport that's already in use by a client local to the natbox.  For more
-information, check the posting at the URL I mailed to the list earlier.
+On the other hand, if we do have a way to prevent an attacker from
+filling the conntrack database, this does become interesting again.
+Assuming, of course, the attacker can't skew the crc hash results by
+feeding you particular data without knowing your seed.  I still hope
+to hear from some experts out there on this subject.
 
-If my problems were caused by UDP nat entried timing out from conntrack, why
-did all my problems disappear when I SNAT'd the connections through an IP
-alias?  I didn't change the timeout, so if your assumption were correct I
-would still have NFS issues.
+And now, since I think this is a useful approach it's worth while to
+mention the following:
 
--- 
-Mike Shuey
+  static u32 hash_crc32(struct ct_key *key)
+  {
+	  u32 crc = crc32_seed;
+	  u32 v32;
+	  u16 v16;
+	  crc = crc32(crc, (const char *) &key->proto, sizeof(key->proto));
+	  v32 = ntohl(key->sip);
+	  crc = crc32(crc, (const char *) &v32, sizeof(v32));
+	  v32 = ntohl(key->dip);
+	  crc = crc32(crc, (const char *) &v32, sizeof(v32));
+	  v16 = ntohs(key->sport);
+	  crc = crc32(crc, (const char *) &v16, sizeof(v16));
+	  v16 = ntohs(key->dport);
+	  crc = crc32(crc, (const char *) &v16, sizeof(v16));
+	  return crc;
+  }
+
+Isn't that the same (modulo order of data) as this?
+     return crc32(crc, (const char *) key, sizeof(struct ct_key)); 
+
+On my 200MHz machine
+ your crc    my change	hash_conntrack
+ 1.5usec     1.1usec    .2usec		   gcc -o cttest cttest.c
+ 1.1usec     .53usec    .14usec		   gcc -O9 -o cttest cttest.c
