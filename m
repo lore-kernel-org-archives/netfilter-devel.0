@@ -1,8 +1,8 @@
 From: Henrik Nordstrom <henrik@marasystems.com>
-Subject: Re: extensions manpage, howto etc
-Date: Wed, 21 Jan 2004 01:17:42 +0100 (CET)
+Subject: Re: iptables error reporting
+Date: Wed, 21 Jan 2004 01:44:43 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401210105020.29594-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0401210121260.29823-100000@filer.marasystems.com>
 References: <20040120130122.GC8642@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
@@ -22,33 +22,46 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Tue, 20 Jan 2004, Harald Welte wrote:
 
-> However, if somebody wants to take the full job of 
-> - adding the respective information to the sourcecode
-> - generating the respective manpage snippets
+> we have no more verbose error reporting due to the getsockopt/setsockopt
+> interface.  I don't see a way how this could change :(
 
-These two can relatively easily be done as the man page should essentially
-be a superset of the terse extension help and requires very little markup,
-and having them unified would help greatly in ensuring the reference
-documentation is kept up to date with the extension it documents.
+There is ways to noticably improve the error reporting in the userspace
+part of things on the type of errors discussed.
 
-> - generating netfilter-extension-HOWTO snippets in docbook XML
+Today there is a single error message covering all three cases (No
+chain/target/match by that name), but since the userspace knows in detail
+what chains exists it should be easy to make the userspace use another
+error for invalid chain chain names allowing the error repoting to be
+improved into
 
-This I do not think is wise to have derived from the extension source for
-the reasons outlined before. The person writing the HOWTO class material
-is most likely not the same as the extension maintainer as it requires
-somewhat different skills in writing the extension and a howto on how it
-is used (not only syntax), and there is also the question about
-translation.
+  No chain by that name
+  No match/target by that name
 
-The HOWTO class material is in my opinion better maintained as a separate
-document preferably maintained by a non-programmer with close user
-contact, and should stay on the HOWTO level of things not dive into all
-details about exact syntax etc like the reference man page.
+In addition the chain error could easily include the chain name in
+question. it is after all the userspace which decides the chain does not
+exists by reading the old table from the kernel so it should be trivial to 
+report which chain we did not find in the table making this error read like
 
-The reference documentation (i.e. man page) should be maintained by
-whomever maintains the extension implementations, and the framework should
-encourage this as a natural part of the process of implementing and
-maintaining extensions.
+  No chain named '%s'
+
+And with the addition of the /proc/net/ip_XX_names the second error could
+be extended to include which match/target is not existing by looking for
+the first unknown match/target in the new table, allowing both 
+separation of target or match and which target/match is missing, making 
+this error read like
+
+  No match named '%s'
+  No target named '%s'
+
+Anyone wanting to take a shot at this?
+
+
+What can not currently be solved in iptables is the case where a kernel
+extension rejects the information given by userspace, or where there is
+structural mismatches between user/kernel such as seen by the TRACE patch
+if user/kernel binaries is not in sync. These have no choice but to give a
+"operation failed" type error message with at best a more verbose error
+message in the kernel log explaining who rejected the table and why.
 
 Regards
 Henrik
