@@ -1,11 +1,10 @@
-From: =?iso-8859-1?q?rohit=20persaie?= <persaie@yahoo.co.in>
-Subject: patch-o-matic , how to use it,
-Date: Thu, 29 Jan 2004 06:00:24 +0000 (GMT)
+From: "Wu Nick" <chundawu@hotmail.com>
+Subject: (no subject)
+Date: Thu, 29 Jan 2004 06:01:42 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040129060024.76651.qmail@web25204.mail.ukl.yahoo.com>
+Message-ID: <BAY13-F10TbCsu0OKeR00091e25@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=big5; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,16 +17,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello, to all
+Dear all,
 
-i want to use patch-o-matic , and also want to create 
-a patch of my own .
+I want my linux box to support G3 facsimile transmission, and there is one way to transmit G3 facsimile messages 
+over IP which is specified in H.323 Annex D. So I took a look at the H.323 patch, but it seems not support T.38 pass through. Does the H.323 patch support T.38( fax over IP ) or any special helper to do so?
 
-please tell me how to do it.
+Thanks for your comments.
+Nick Wu.
 
-thank you.
-
-
-________________________________________________________________________
-Yahoo! India Mobile: Download the latest polyphonic ringtones.
-Go to http://in.mobile.yahoo.com
+_________________________________________________________________
+Hotmail Extra Storage讓你獲得10MB 額外儲存空間，請即申請！ http://join.msn.com/?pgmarket=zh-hk 
