@@ -1,17 +1,17 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Security flaw in Stateful filtering ??????
-Date: Thu, 6 Jun 2002 23:26:49 +0200
+Subject: Re: Syncookie firewall
+Date: Thu, 6 Jun 2002 23:34:17 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206062326.49227.hno@marasystems.com>
-References: <3CFF9A00.2070805@cs.auc.dk> <200206062127.01661.hno@marasystems.com> <3CFFCB15.1050708@cs.auc.dk>
+Message-ID: <200206062334.17294.hno@marasystems.com>
+References: <20020606192927.6B7684DCE@lists.samba.org> <15615.53673.287531.24270@isis.cs3-inc.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org,
-	Emmanuel Fleury <fleury@cs.auc.dk>
-In-Reply-To: <3CFFCB15.1050708@cs.auc.dk>
+To: don-nf@isis.cs3-inc.com (Don Cohen),
+	netfilter-devel@lists.samba.org
+In-Reply-To: <15615.53673.287531.24270@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,74 +22,32 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Emmanuel Fleury wrote:
+Don Cohen wrote:
 
-> The core of the problem seems to be a conflict between two features:
+>  > Because there is no good way to know the servers TCP options before
+>  > you have opened the TCP connection to the server, and you do not
+>  > want to open the TCP connection to the server before the client has
+>  > acknowledged the connection...
 >
-> 1) The existing connections shouldn't be stopped when you change the
->     rules of your firewall at run time (something which occur much more
->     often than the reboot of one firewall).
->
-> 2) The connection tracking / Stateful inspection
+> Fortunately, all of these options are ... optional, so the firewall
+> can, if it doesn't know better, simply not use them.
 
-Nope. The connection pickup feature is purely about reboots and failover. 
-Change of rules do not affect connection tracking in any manner. Only packets 
-and actions taken by your ruleset does (DROP/REJECT kills the conntrack 
-entry)
+To ensure interoperability you must also filter out any options on future 
+packets of that TCP not known to be 100% compatible with your SYN+ACK.
 
-> But, I still don't understand how the data packets can go through your
-> firewall if they are not matching NEW (except if you have an assymetric
-> configuration as NAT)...
+> The timestamp option is not a problem in this case.  The firewall only
+> responds to a few packets and for those it can supply its own
+> timestamp (or not).  After it establishes both halves of the
+> connection it just forwards the packets and the timestamps (seems to
+> me) should work out fine.
 
-???
+The timestamp option must be real all the time, or never. You cannot suddently 
+switch TCP timestamp source in the middle of a TCP connection. Doing so will 
+serverely break PAWS.
 
-> Moreover, the fact that you match ACK packets with NEW, break part of
-> the stateful inspection and force the user to make some additional rules
-> in order to avoid ACK scanning of your network.
-
-Not really, it only makes state NEW not very useful as a match as it is 
-extremely broad.
-
-A somewhat sane typical iptables rulesets looks like
-
--A FORWARD -m state --state INVALID -j DROP
--A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
--A FORWARD [definition of allowed connection] -j ACCEPT
--A FORWARD [definition of allowed connection] -j ACCEPT
--A FORWARD [definition of allowed connection] -j ACCEPT
-...
--A FORWARD -j DROP
-
-If we take the quoted example of a SMTP server, and adds a HTTP server in the 
-mix this becomes
-
--A FORWARD -m state --state INVALID -j DROP
--A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
--A FORWARD -d ip.of.smtp.server -p tcp --syn --dport 25 -j ACCEPT
--A FORWARD -d ip.of.smtp.server -p tcp --syn --dport 80 -j ACCEPT
--A FORWARD -j DROP
-
-And will properly block all those scans you are so worried about.
-
-Another exampe config, where connection pickup is wanted..
-
-eth0: connected to internal trusted network
-eth1: connected to external untrusted network
-
--A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
-# Allow for outgoing SSH sessions with connection pickup after reboot
--A FORWARD -i eth0 -p tcp --dport 22 -j ACCEPT
-[more rules allowing what should be allowed...]
--A FORWARD -i eth0 -j REJECT
--A FORWARD -j DROP
-
-which also blocks such scans if received from the outside (eth1), but allows 
-some of them if received from the inside (eth0) and targeting allowed 
-services.
-
-
-I do have a few real life cases where -m state --state NEW is a valuable 
-match, but these are too obscure for this thread.
+Note: The TCP timestamp option is not the same as the IP timestamp option. TCP 
+timestamps has nothing to do with time, only the progress of relative time 
+within a TCP.
 
 Regards
 Henrik
