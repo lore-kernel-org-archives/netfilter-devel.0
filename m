@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] NETFILTER (7/x): move /proc/net/ip_conntrack to seq_file
-Date: Sat, 24 Jul 2004 10:41:59 -0400
+Subject: [PATCH 2.6] NETFILTER (8/x): new ipt_sctp match
+Date: Sat, 24 Jul 2004 10:52:39 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040724144159.GP2848@obroa-skai.de.gnumonks.org>
+Message-ID: <20040724145239.GQ2848@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qXPE+6hUsFlDAc0e"
+	protocol="application/pgp-signature"; boundary="Sr/1Pkwuhjf1+ztR"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,422 +21,392 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qXPE+6hUsFlDAc0e
+--Sr/1Pkwuhjf1+ztR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-This patch makes ip_conntrack use the seq_file API
+This patch adds ipt_sctp, enabling iptables to match on sctp ports and
+chunktypes.
 
+Signed-off-by: Kiran Kumar Immidi <immidi_kiran@yahoo.com>
 Signed-off-by: Harald Welte <laforge@netfilter.org>
 
 diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
 pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
 ' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
-' --exclude '*~' linux-2.6.8-rc2-nfpending/include/linux/netfilter_ipv4/ip_=
-conntrack_protocol.h linux-2.6.8-rc2-nfpending-seqfile/include/linux/netfil=
-ter_ipv4/ip_conntrack_protocol.h
---- linux-2.6.8-rc2-nfpending/include/linux/netfilter_ipv4/ip_conntrack_pro=
-tocol.h	2004-07-22 14:05:49.732256392 -0400
-+++ linux-2.6.8-rc2-nfpending-seqfile/include/linux/netfilter_ipv4/ip_connt=
-rack_protocol.h	2004-07-22 14:08:47.483234136 -0400
-@@ -3,6 +3,11 @@
- #define _IP_CONNTRACK_PROTOCOL_H
- #include <linux/netfilter_ipv4/ip_conntrack.h>
-=20
-+/* length of buffer to which print_tuple/print_conntrack members are
-+ * writing */
+' --exclude '*~' linux-2.6.8-rc2-updates-modparm-expslab-ctacct-ctseq//incl=
+ude/linux/netfilter_ipv4/ipt_sctp.h linux-2.6.8-rc2-updates-modparm-expslab=
+-ctacct-sctp//include/linux/netfilter_ipv4/ipt_sctp.h
+--- linux-2.6.8-rc2-updates-modparm-expslab-ctacct-ctseq//include/linux/net=
+filter_ipv4/ipt_sctp.h	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.8-rc2-updates-modparm-expslab-ctacct-sctp//include/linux/netf=
+ilter_ipv4/ipt_sctp.h	2004-07-24 10:49:54.048505968 -0400
+@@ -0,0 +1,107 @@
++#ifndef _IPT_SCTP_H_
++#define _IPT_SCTP_H_
 +
-+#define IP_CT_PRINT_BUFLEN 100
++#define IPT_SCTP_SRC_PORTS	        0x01
++#define IPT_SCTP_DEST_PORTS	        0x02
++#define IPT_SCTP_CHUNK_TYPES		0x04
 +
- struct ip_conntrack_protocol
- {
- 	/* Next pointer. */
++#define IPT_SCTP_VALID_FLAGS		0x07
++
++#define ELEMCOUNT(x) (sizeof(x)/sizeof(x[0]))
++
++
++struct ipt_sctp_flag_info {
++	u_int8_t chunktype;
++	u_int8_t flag;
++	u_int8_t flag_mask;
++};
++
++#define IPT_NUM_SCTP_FLAGS	4
++
++struct ipt_sctp_info {
++	u_int16_t dpts[2];  /* Min, Max */
++	u_int16_t spts[2];  /* Min, Max */
++
++	u_int32_t chunkmap[256 / sizeof (u_int32_t)];  /* Bit mask of chunks to b=
+e matched according to RFC 2960 */
++
++#define SCTP_CHUNK_MATCH_ANY   0x01  /* Match if any of the chunk types ar=
+e present */
++#define SCTP_CHUNK_MATCH_ALL   0x02  /* Match if all of the chunk types ar=
+e present */
++#define SCTP_CHUNK_MATCH_ONLY  0x04  /* Match if these are the only chunk =
+types present */
++
++	u_int32_t chunk_match_type;
++	struct ipt_sctp_flag_info flag_info[IPT_NUM_SCTP_FLAGS];
++	int flag_count;
++
++	u_int32_t flags;
++	u_int32_t invflags;
++};
++
++#define bytes(type) (sizeof(type) * 8)
++
++#define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
++	do { 						\
++		chunkmap[type / bytes(u_int32_t)] |=3D 	\
++			1 << (type % bytes(u_int32_t));	\
++	} while (0)
++
++#define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
++	do {							\
++		chunkmap[type / bytes(u_int32_t)] &=3D 		\
++			~(1 << (type % bytes(u_int32_t)));	\
++	} while (0)
++
++#define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
++({								\
++	(chunkmap[type / bytes (u_int32_t)] & 			\
++		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
++})
++
++#define SCTP_CHUNKMAP_RESET(chunkmap) 				\
++	do {							\
++		int i; 						\
++		for (i =3D 0; i < ELEMCOUNT(chunkmap); i++)	\
++			chunkmap[i] =3D 0;			\
++	} while (0)
++
++#define SCTP_CHUNKMAP_SET_ALL(chunkmap) 			\
++	do {							\
++		int i; 						\
++		for (i =3D 0; i < ELEMCOUNT(chunkmap); i++) 	\
++			chunkmap[i] =3D ~0;			\
++	} while (0)
++
++#define SCTP_CHUNKMAP_COPY(destmap, srcmap) 			\
++	do {							\
++		int i; 						\
++		for (i =3D 0; i < ELEMCOUNT(chunkmap); i++) 	\
++			destmap[i] =3D srcmap[i];			\
++	} while (0)
++
++#define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) 		\
++({							\
++	int i; 						\
++	int flag =3D 1;					\
++	for (i =3D 0; i < ELEMCOUNT(chunkmap); i++) {	\
++		if (chunkmap[i]) {			\
++			flag =3D 0;			\
++			break;				\
++		}					\
++	}						\
++        flag;						\
++})
++
++#define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) 		\
++({							\
++	int i; 						\
++	int flag =3D 1;					\
++	for (i =3D 0; i < ELEMCOUNT(chunkmap); i++) {	\
++		if (chunkmap[i] !=3D ~0) {		\
++			flag =3D 0;			\
++				break;			\
++		}					\
++	}						\
++        flag;						\
++})
++
++#endif /* _IPT_SCTP_H_ */
++
 diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
 pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
 ' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
-' --exclude '*~' linux-2.6.8-rc2-nfpending/net/ipv4/netfilter/ip_conntrack_=
-standalone.c linux-2.6.8-rc2-nfpending-seqfile/net/ipv4/netfilter/ip_conntr=
-ack_standalone.c
---- linux-2.6.8-rc2-nfpending/net/ipv4/netfilter/ip_conntrack_standalone.c	=
-2004-07-22 14:06:34.138505616 -0400
-+++ linux-2.6.8-rc2-nfpending-seqfile/net/ipv4/netfilter/ip_conntrack_stand=
-alone.c	2004-07-22 14:30:44.548009856 -0400
-@@ -20,6 +20,7 @@
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #ifdef CONFIG_SYSCTL
- #include <linux/sysctl.h>
- #endif
-@@ -63,142 +64,224 @@
- 	return len;
- }
+' --exclude '*~' linux-2.6.8-rc2-updates-modparm-expslab-ctacct-ctseq//net/=
+ipv4/netfilter/Kconfig linux-2.6.8-rc2-updates-modparm-expslab-ctacct-sctp/=
+/net/ipv4/netfilter/Kconfig
+--- linux-2.6.8-rc2-updates-modparm-expslab-ctacct-ctseq//net/ipv4/netfilte=
+r/Kconfig	2004-07-24 10:36:35.244942000 -0400
++++ linux-2.6.8-rc2-updates-modparm-expslab-ctacct-sctp//net/ipv4/netfilter=
+/Kconfig	2004-07-24 10:49:54.054505056 -0400
+@@ -632,5 +632,9 @@
+ 	bool "Connection tracking flow accounting"
+ 	depends on IP_NF_CONNTRACK
 =20
--/* FIXME: Don't print source proto part. --RR */
--static unsigned int
--print_expect(char *buffer, const struct ip_conntrack_expect *expect)
--{
--	unsigned int len;
--
--	if (expect->expectant->helper->timeout)
--		len =3D sprintf(buffer, "EXPECTING: %lu ",
--			      timer_pending(&expect->timeout)
--			      ? (expect->timeout.expires - jiffies)/HZ : 0);
--	else
--		len =3D sprintf(buffer, "EXPECTING: - ");
--	len +=3D sprintf(buffer + len, "use=3D%u proto=3D%u ",
--		      atomic_read(&expect->use), expect->tuple.dst.protonum);
--	len +=3D print_tuple(buffer + len, &expect->tuple,
--			   __ip_ct_find_proto(expect->tuple.dst.protonum));
--	len +=3D sprintf(buffer + len, "\n");
--	return len;
--}
--
- #ifdef CONFIG_IP_NF_CT_ACCT
- static unsigned int
--print_counters(char *buffer, struct ip_conntrack_counter *counter)
-+seq_print_counters(struct seq_file *s, struct ip_conntrack_counter *counte=
-r)
- {
--	return sprintf(buffer, "packets=3D%llu bytes=3D%llu ",=20
--			counter->packets, counter->bytes);
-+	return seq_printf(s, "packets=3D%llu bytes=3D%llu ",
-+			  counter->packets, counter->bytes);
- }
- #else
- #define seq_print_counters(x, y)	0
- #endif
++config IP_NF_MATCH_SCTP
++	tristate  'SCTP protocol match support'
++	depends on IP_NF_IPTABLES
++
+ endmenu
 =20
--static unsigned int
--print_conntrack(char *buffer, struct ip_conntrack *conntrack)
-+static void *ct_seq_start(struct seq_file *s, loff_t *pos)
- {
--	unsigned int len;
--	struct ip_conntrack_protocol *proto
--		=3D __ip_ct_find_proto(conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
--			       .tuple.dst.protonum);
-+	unsigned int *bucket;
-=20
--	len =3D sprintf(buffer, "%-8s %u %lu ",
--		      proto->name,
--		      conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
--		      .tuple.dst.protonum,
--		      timer_pending(&conntrack->timeout)
--		      ? (conntrack->timeout.expires - jiffies)/HZ : 0);
--
--	len +=3D proto->print_conntrack(buffer + len, conntrack);
--	len +=3D print_tuple(buffer + len,
--			   &conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
--			   proto);
--	len +=3D print_counters(buffer + len,=20
--			      &conntrack->counters[IP_CT_DIR_ORIGINAL]);
--	if (!(test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)))
--		len +=3D sprintf(buffer + len, "[UNREPLIED] ");
--	len +=3D print_tuple(buffer + len,
--			   &conntrack->tuplehash[IP_CT_DIR_REPLY].tuple,
--			   proto);
--	len +=3D print_counters(buffer + len,=20
--			      &conntrack->counters[IP_CT_DIR_REPLY]);
--	if (test_bit(IPS_ASSURED_BIT, &conntrack->status))
--		len +=3D sprintf(buffer + len, "[ASSURED] ");
--	len +=3D sprintf(buffer + len, "use=3D%u ",
--		       atomic_read(&conntrack->ct_general.use));
--	len +=3D sprintf(buffer + len, "\n");
-+	/* strange seq_file api calls stop even if we fail,
-+	 * thus we need to grab lock since stop unlocks */
-+	READ_LOCK(&ip_conntrack_lock);
-+ =20
-+	if (*pos >=3D ip_conntrack_htable_size)
-+		return NULL;
-=20
--	return len;
-+	bucket =3D kmalloc(sizeof(unsigned int), GFP_KERNEL);
-+	if (!bucket) {
-+		return ERR_PTR(-ENOMEM);
-+	}
-+ =20
-+	*bucket =3D *pos;
-+	return bucket;
- }
-+ =20
-+static void *ct_seq_next(struct seq_file *s, void *v, loff_t *pos)
+diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
+pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
+' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
+' --exclude '*~' linux-2.6.8-rc2-updates-modparm-expslab-ctacct-ctseq//net/=
+ipv4/netfilter/Makefile linux-2.6.8-rc2-updates-modparm-expslab-ctacct-sctp=
+//net/ipv4/netfilter/Makefile
+--- linux-2.6.8-rc2-updates-modparm-expslab-ctacct-ctseq//net/ipv4/netfilte=
+r/Makefile	2004-07-22 11:49:13.000000000 -0400
++++ linux-2.6.8-rc2-updates-modparm-expslab-ctacct-sctp//net/ipv4/netfilter=
+/Makefile	2004-07-24 10:49:54.057504600 -0400
+@@ -43,6 +43,7 @@
+ # matches
+ obj-$(CONFIG_IP_NF_MATCH_HELPER) +=3D ipt_helper.o
+ obj-$(CONFIG_IP_NF_MATCH_LIMIT) +=3D ipt_limit.o
++obj-$(CONFIG_IP_NF_MATCH_SCTP) +=3D ipt_sctp.o
+ obj-$(CONFIG_IP_NF_MATCH_MARK) +=3D ipt_mark.o
+ obj-$(CONFIG_IP_NF_MATCH_MAC) +=3D ipt_mac.o
+ obj-$(CONFIG_IP_NF_MATCH_IPRANGE) +=3D ipt_iprange.o
+diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
+pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
+' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
+' --exclude '*~' linux-2.6.8-rc2-updates-modparm-expslab-ctacct-ctseq//net/=
+ipv4/netfilter/ipt_sctp.c linux-2.6.8-rc2-updates-modparm-expslab-ctacct-sc=
+tp//net/ipv4/netfilter/ipt_sctp.c
+--- linux-2.6.8-rc2-updates-modparm-expslab-ctacct-ctseq//net/ipv4/netfilte=
+r/ipt_sctp.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.8-rc2-updates-modparm-expslab-ctacct-sctp//net/ipv4/netfilter=
+/ipt_sctp.c	2004-07-24 10:49:54.049505816 -0400
+@@ -0,0 +1,201 @@
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <net/ip.h>
++#include <linux/sctp.h>
++
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv4/ipt_sctp.h>
++
++#ifdef DEBUG_SCTP
++#define duprintf(format, args...) printk(format , ## args)
++#else
++#define duprintf(format, args...)
++#endif
++
++#define SCCHECK(cond, option, flag, invflag) (!((flag) & (option)) \
++					      || (!!((invflag) & (option)) ^ (cond)))
++
++static int
++match_flags(const struct ipt_sctp_flag_info *flag_info,
++	    const int flag_count,
++	    u_int8_t chunktype,
++	    u_int8_t chunkflags)
 +{
-+	unsigned int *bucket =3D (unsigned int *) v;
-=20
--/* Returns true when finished. */
--static inline int
--conntrack_iterate(const struct ip_conntrack_tuple_hash *hash,
--		  char *buffer, off_t offset, off_t *upto,
--		  unsigned int *len, unsigned int maxlen)
-+	*pos =3D ++(*bucket);
-+	if (*pos >=3D ip_conntrack_htable_size) {
-+		kfree(v);
-+		return NULL;
++	int i;
++
++	for (i =3D 0; i < flag_count; i++) {
++		if (flag_info[i].chunktype =3D=3D chunktype) {
++			return (chunkflags & flag_info[i].flag_mask) =3D=3D flag_info[i].flag;
++		}
 +	}
-+	return bucket;
-+}
-+ =20
-+static void ct_seq_stop(struct seq_file *s, void *v)
- {
--	unsigned int newlen;
--	IP_NF_ASSERT(hash->ctrack);
-+	READ_UNLOCK(&ip_conntrack_lock);
++
++	return 1;
 +}
 +
-+/* return 0 on success, 1 in case of error */
-+static int ct_seq_real_show(const struct ip_conntrack_tuple_hash *hash,
-+			    struct seq_file *s)
++static int
++match_packet(const struct sk_buff *skb,
++	     const u_int32_t *chunkmap,
++	     int chunk_match_type,
++	     const struct ipt_sctp_flag_info *flag_info,
++	     const int flag_count,
++	     int *hotdrop)
 +{
-+	struct ip_conntrack *conntrack =3D hash->ctrack;
-+	struct ip_conntrack_protocol *proto;
-+	char buffer[IP_CT_PRINT_BUFLEN];
-=20
- 	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
-=20
--	/* Only count originals */
-+	IP_NF_ASSERT(conntrack);
++	int offset;
++	u_int32_t chunkmapcopy[256 / sizeof (u_int32_t)];
++	sctp_chunkhdr_t sch;
 +
-+	/* we only want to print DIR_ORIGINAL */
- 	if (DIRECTION(hash))
- 		return 0;
-=20
--	if ((*upto)++ < offset)
--		return 0;
-+	proto =3D __ip_ct_find_proto(conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
-+			       .tuple.dst.protonum);
-+	IP_NF_ASSERT(proto);
++#ifdef DEBUG_SCTP
++	int i =3D 0;
++#endif
 +
-+	if (seq_printf(s, "%-8s %u %lu ",
-+		      proto->name,
-+		      conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum,
-+		      timer_pending(&conntrack->timeout)
-+		      ? (conntrack->timeout.expires - jiffies)/HZ : 0) !=3D 0)
++	if (chunk_match_type =3D=3D SCTP_CHUNK_MATCH_ALL) {
++		SCTP_CHUNKMAP_COPY(chunkmapcopy, chunkmap);
++	}
++
++	offset =3D skb->nh.iph->ihl * 4 + sizeof (sctp_sctphdr_t);
++	do {
++		if (skb_copy_bits(skb, offset, &sch, sizeof(sch)) < 0) {
++			duprintf("Dropping invalid SCTP packet.\n");
++			*hotdrop =3D 1;
++			return 0;
++        	}
++
++		duprintf("Chunk num: %d\toffset: %d\ttype: %d\tlength: %d\tflags: %x\n",=
+=20
++				++i, offset, sch.type, htons(sch.length), sch.flags);
++
++		offset +=3D (htons(sch.length) + 3) & ~3;
++
++		duprintf("skb->len: %d\toffset: %d\n", skb->len, offset);
++
++		if (SCTP_CHUNKMAP_IS_SET(chunkmap, sch.type)) {
++			switch (chunk_match_type) {
++			case SCTP_CHUNK_MATCH_ANY:
++				if (match_flags(flag_info, flag_count,=20
++					sch.type, sch.flags)) {
++					return 1;
++				}
++				break;
++
++			case SCTP_CHUNK_MATCH_ALL:
++				if (match_flags(flag_info, flag_count,=20
++					sch.type, sch.flags)) {
++					SCTP_CHUNKMAP_CLEAR(chunkmapcopy, sch.type);
++				}
++				break;
++
++			case SCTP_CHUNK_MATCH_ONLY:
++				if (!match_flags(flag_info, flag_count,=20
++					sch.type, sch.flags)) {
++					return 0;
++				}
++				break;
++			}
++		} else {
++			switch (chunk_match_type) {
++			case SCTP_CHUNK_MATCH_ONLY:
++				return 0;
++			}
++		}
++	} while (offset < skb->len);
++
++	switch (chunk_match_type) {
++	case SCTP_CHUNK_MATCH_ALL:
++		return SCTP_CHUNKMAP_IS_CLEAR(chunkmap);
++	case SCTP_CHUNK_MATCH_ANY:
++		return 0;
++	case SCTP_CHUNK_MATCH_ONLY:
 +		return 1;
++	}
 +
-+	proto->print_conntrack(buffer, conntrack);
-+	if (seq_puts(s, buffer))
-+		return 1;
-+ =20
-+	print_tuple(buffer, &conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-+		    proto);
-+
-+ 	if (seq_print_counters(s, &conntrack->counters[IP_CT_DIR_ORIGINAL]))
-+		return 1;
-+
-+	if (!(test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)))
-+		if (seq_printf(s, "[UNREPLIED] "))
-+			return 1;
-+
-+	print_tuple(buffer, &conntrack->tuplehash[IP_CT_DIR_REPLY].tuple,
-+		    proto);
-+	if (seq_puts(s, buffer))
-+		return 1;
-+
-+ 	if (seq_print_counters(s, &conntrack->counters[IP_CT_DIR_REPLY]))
-+		return 1;
-=20
--	newlen =3D print_conntrack(buffer + *len, hash->ctrack);
--	if (*len + newlen > maxlen)
-+	if (test_bit(IPS_ASSURED_BIT, &conntrack->status))
-+		if (seq_printf(s, "[ASSURED] "))
-+			return 1;
-+
-+	if (seq_printf(s, "use=3D%u\n", atomic_read(&conntrack->ct_general.use)))
- 		return 1;
--	else *len +=3D newlen;
-=20
- 	return 0;
- }
-=20
--static int
--list_conntracks(char *buffer, char **start, off_t offset, int length)
-+
-+static int ct_seq_show(struct seq_file *s, void *v)
- {
--	unsigned int i;
--	unsigned int len =3D 0;
--	off_t upto =3D 0;
--	struct list_head *e;
-+	unsigned int *bucket =3D (unsigned int *) v;
-=20
--	READ_LOCK(&ip_conntrack_lock);
--	/* Traverse hash; print originals then reply. */
--	for (i =3D 0; i < ip_conntrack_htable_size; i++) {
--		if (LIST_FIND(&ip_conntrack_hash[i], conntrack_iterate,
--			      struct ip_conntrack_tuple_hash *,
--			      buffer, offset, &upto, &len, length))
--			goto finished;
-+	if (LIST_FIND(&ip_conntrack_hash[*bucket], ct_seq_real_show,
-+		      struct ip_conntrack_tuple_hash *, s)) {
-+		/* buffer was filled and unable to print that tuple */
-+		return 1;
- 	}
++	/* This will never be reached, but required to stop compiler whine */
 +	return 0;
 +}
++
++static int
++match(const struct sk_buff *skb,
++      const struct net_device *in,
++      const struct net_device *out,
++      const void *matchinfo,
++      int offset,
++      int *hotdrop)
++{
++	const struct ipt_sctp_info *info;
++	sctp_sctphdr_t sh;
++
++	info =3D (const struct ipt_sctp_info *)matchinfo;
++
++	if (offset) {
++		duprintf("Dropping non-first fragment.. FIXME\n");
++		return 0;
++	}
 +=09
-+static struct seq_operations ct_seq_ops =3D {
-+	.start =3D ct_seq_start,
-+	.next  =3D ct_seq_next,
-+	.stop  =3D ct_seq_stop,
-+	.show  =3D ct_seq_show
-+};
-+ =20
-+static int ct_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &ct_seq_ops);
-+}
-=20
--	/* Now iterate through expecteds. */
-+static struct file_operations ct_file_ops =3D {
-+	.owner   =3D THIS_MODULE,
-+	.open    =3D ct_open,
-+	.read    =3D seq_read,
-+	.llseek  =3D seq_lseek,
-+	.release =3D seq_release
-+};
-+ =20
-+/* expects */
-+static void *exp_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	struct list_head *e =3D &ip_conntrack_expect_list;
-+	loff_t i;
++	if (skb_copy_bits(skb, skb->nh.iph->ihl*4, &sh, sizeof(sh)) < 0) {
++		duprintf("Dropping evil TCP offset=3D0 tinygram.\n");
++		*hotdrop =3D 1;
++		return 0;
++       	}
++	duprintf("spt: %d\tdpt: %d\n", ntohs(sh.source), ntohs(sh.dest));
 +
-+	/* strange seq_file api calls stop even if we fail,
-+	 * thus we need to grab lock since stop unlocks */
-+	READ_LOCK(&ip_conntrack_lock);
- 	READ_LOCK(&ip_conntrack_expect_tuple_lock);
--	list_for_each(e, &ip_conntrack_expect_list) {
--		unsigned int last_len;
--		struct ip_conntrack_expect *expect
--			=3D (struct ip_conntrack_expect *)e;
--		if (upto++ < offset) continue;
--
--		last_len =3D len;
--		len +=3D print_expect(buffer + len, expect);
--		if (len > length) {
--			len =3D last_len;
--			goto finished_expects;
--		}
-+
-+	if (list_empty(e))
-+		return NULL;
-+
-+	for (i =3D 0; i <=3D *pos; i++) {
-+		e =3D e->next;
-+		if (e =3D=3D &ip_conntrack_expect_list)
-+			return NULL;
- 	}
-+	return e;
++	return  SCCHECK(((ntohs(sh.source) >=3D info->spts[0])=20
++			&& (ntohs(sh.source) <=3D info->spts[1])),=20
++		   	IPT_SCTP_SRC_PORTS, info->flags, info->invflags)
++		&& SCCHECK(((ntohs(sh.dest) >=3D info->dpts[0])=20
++			&& (ntohs(sh.dest) <=3D info->dpts[1])),=20
++			IPT_SCTP_DEST_PORTS, info->flags, info->invflags)
++		&& SCCHECK(match_packet(skb, info->chunkmap, info->chunk_match_type,
++ 					info->flag_info, info->flag_count,=20
++					hotdrop),
++			   IPT_SCTP_CHUNK_TYPES, info->flags, info->invflags);
 +}
 +
-+static void *exp_seq_next(struct seq_file *s, void *v, loff_t *pos)
++static int
++checkentry(const char *tablename,
++	   const struct ipt_ip *ip,
++	   void *matchinfo,
++	   unsigned int matchsize,
++	   unsigned int hook_mask)
 +{
-+ 	struct list_head *e =3D v;
-=20
-- finished_expects:
-+	e =3D e->next;
++	const struct ipt_sctp_info *info;
 +
-+	if (e =3D=3D &ip_conntrack_expect_list)
-+		return NULL;
++	info =3D (const struct ipt_sctp_info *)matchinfo;
 +
-+	return e;
++	return ip->proto =3D=3D IPPROTO_SCTP
++		&& !(ip->invflags & IPT_INV_PROTO)
++		&& matchsize =3D=3D IPT_ALIGN(sizeof(struct ipt_sctp_info))
++		&& !(info->flags & ~IPT_SCTP_VALID_FLAGS)
++		&& !(info->invflags & ~IPT_SCTP_VALID_FLAGS)
++		&& !(info->invflags & ~info->flags)
++		&& ((!(info->flags & IPT_SCTP_CHUNK_TYPES)) ||=20
++			(info->chunk_match_type &
++				(SCTP_CHUNK_MATCH_ALL=20
++				| SCTP_CHUNK_MATCH_ANY
++				| SCTP_CHUNK_MATCH_ONLY)));
 +}
 +
-+static void exp_seq_stop(struct seq_file *s, void *v)
-+{
- 	READ_UNLOCK(&ip_conntrack_expect_tuple_lock);
-- finished:
- 	READ_UNLOCK(&ip_conntrack_lock);
-+}
-=20
--	/* `start' hack - see fs/proc/generic.c line ~165 */
--	*start =3D (char *)((unsigned int)upto - offset);
--	return len;
-+static int exp_seq_show(struct seq_file *s, void *v)
-+{
-+	struct ip_conntrack_expect *expect =3D v;
-+	char buffer[IP_CT_PRINT_BUFLEN];
-+
-+	if (expect->expectant->helper->timeout)
-+		seq_printf(s, "%lu ", timer_pending(&expect->timeout)
-+			   ? (expect->timeout.expires - jiffies)/HZ : 0);
-+	else
-+		seq_printf(s, "- ");
-+
-+	seq_printf(s, "use=3D%u proto=3D%u ", atomic_read(&expect->use),
-+		   expect->tuple.dst.protonum);
-+
-+	print_tuple(buffer, &expect->tuple,
-+		    __ip_ct_find_proto(expect->tuple.dst.protonum));
-+	return seq_printf(s, "%s\n", buffer);
-+}
-+
-+static struct seq_operations exp_seq_ops =3D {
-+	.start =3D exp_seq_start,
-+	.next =3D exp_seq_next,
-+	.stop =3D exp_seq_stop,
-+	.show =3D exp_seq_show
++static struct ipt_match sctp_match =3D=20
++{=20
++	.list =3D { NULL, NULL},
++	.name =3D "sctp",
++	.match =3D &match,
++	.checkentry =3D &checkentry,
++	.destroy =3D NULL,
++	.me =3D THIS_MODULE
 +};
 +
-+static int exp_open(struct inode *inode, struct file *file)
++static int __init init(void)
 +{
-+	return seq_open(file, &exp_seq_ops);
- }
-+ =20
-+static struct file_operations exp_file_ops =3D {
-+	.owner   =3D THIS_MODULE,
-+	.open    =3D exp_open,
-+	.read    =3D seq_read,
-+	.llseek  =3D seq_lseek,
-+	.release =3D seq_release
-+};
-=20
- static unsigned int ip_confirm(unsigned int hooknum,
- 			       struct sk_buff **pskb,
-@@ -525,7 +608,7 @@
- #endif
- static int init_or_cleanup(int init)
- {
--	struct proc_dir_entry *proc;
-+	struct proc_dir_entry *proc, *proc_exp;
- 	int ret =3D 0;
-=20
- 	if (!init) goto cleanup;
-@@ -534,14 +617,18 @@
- 	if (ret < 0)
- 		goto cleanup_nothing;
-=20
--	proc =3D proc_net_create("ip_conntrack", 0440, list_conntracks);
-+	proc =3D proc_net_create("ip_conntrack", 0440, NULL);
- 	if (!proc) goto cleanup_init;
--	proc->owner =3D THIS_MODULE;
-+	proc->proc_fops =3D &ct_file_ops;
++	return ipt_register_match(&sctp_match);
++}
 +
-+	proc_exp =3D proc_net_create("ip_conntrack_expect", 0440, NULL);
-+	if (!proc_exp) goto cleanup_proc;
-+	proc_exp->proc_fops =3D &exp_file_ops;
-=20
- 	ret =3D nf_register_hook(&ip_conntrack_defrag_ops);
- 	if (ret < 0) {
- 		printk("ip_conntrack: can't register pre-routing defrag hook.\n");
--		goto cleanup_proc;
-+		goto cleanup_proc_exp;
- 	}
- 	ret =3D nf_register_hook(&ip_conntrack_defrag_local_out_ops);
- 	if (ret < 0) {
-@@ -593,6 +680,8 @@
- 	nf_unregister_hook(&ip_conntrack_defrag_local_out_ops);
-  cleanup_defragops:
- 	nf_unregister_hook(&ip_conntrack_defrag_ops);
-+cleanup_proc_exp:
-+	proc_net_remove("ip_conntrack_exp");
-  cleanup_proc:
- 	proc_net_remove("ip_conntrack");
-  cleanup_init:
++static void __exit fini(void)
++{
++	ipt_unregister_match(&sctp_match);
++}
++
++module_init(init);
++module_exit(fini);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Kiran Kumar Immidi");
++MODULE_DESCRIPTION("Match for SCTP protocol packets");
++
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -447,7 +417,7 @@ r)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---qXPE+6hUsFlDAc0e
+--Sr/1Pkwuhjf1+ztR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -455,9 +425,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBAnU3XaXGVTD0i/8RAtQKAKCwe4rf0s6eHkYEZ72C31C/qtPGJwCdEMiz
-4GDeGlP/SY37TXVKI2I/eHE=
-=9wNR
+iD8DBQFBAne3XaXGVTD0i/8RAiF/AJ9sZgRNehflw+TfphvZBSiw33rNRwCdHYzB
+AIf+ooFpUt3lCvw0XiTk7yE=
+=IDmf
 -----END PGP SIGNATURE-----
 
---qXPE+6hUsFlDAc0e--
+--Sr/1Pkwuhjf1+ztR--
