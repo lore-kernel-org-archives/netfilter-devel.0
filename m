@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: Fixed proken MARK target in POM.
-Date: Sat, 11 Jan 2003 20:23:16 +0100
+Subject: Re: libipulog comments
+Date: Sat, 11 Jan 2003 20:55:13 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030111192315.GE24488@naboo.de.gnumonks.org>
-References: <3E1D7419.1060502@fugmann.dhs.org> <20030110140024.GU1353@sunbeam.de.gnumonks.org> <3E1EE68C.7030004@fugmann.dhs.org>
+Message-ID: <20030111195512.GG24488@naboo.de.gnumonks.org>
+References: <3E193700.5040003@fokus.gmd.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="48TaNjbzBVislYPb"
+Cc: ulogd@lists.gnumonks.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Anders Fugmann <afu@fugmann.dhs.org>
+To: Sebastian Zander <zander@fokus.gmd.de>
 Content-Disposition: inline
-In-Reply-To: <3E1EE68C.7030004@fugmann.dhs.org>
+In-Reply-To: <3E193700.5040003@fokus.gmd.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,47 +24,54 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gatW/ieO32f1wygP
+--48TaNjbzBVislYPb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 10, 2003 at 04:28:12PM +0100, Anders Fugmann wrote:
+On Mon, Jan 06, 2003 at 08:57:52AM +0100, Sebastian Zander wrote:
+> Hi Harald,
+>=20
+> I have a some suggestions and a possible bug for libipulog.
+>=20
+> 1) Could you make ipulog_strerror() non-static so someone else
+>    can use it? iptc_sterror is also non-static AFAIK.
 
-> >Apart from that, everything in patch-o-matic are new features or
-> >extensions, which are either not fully stable or we strongly doubt that
-> >they are useful for the big public.  And if somebody wants to test one
-> >of those non-standard extensions, we can ask people to use patch-o-matic.
->
-> Yes. I'm aware of that. My question is "How can a patch be proven stable=
-=20
-> enough to be included, and is the functionality provided 'importent'=20
-> enough for the general public?
+Oh, it seems like you are using some very old version of libipulog.
+I'm sorry, I should never have put it into the 'iptables' package in the
+first place.
 
-Well, It's hard to give a set of rules for this.  Mainly it reduces to
-the case that I (or somebody else of the coreteam) has the personal
-feeling that the code is OK and the functionality is important enough.
+Please see the 'ulogd' package for the latest version of libipulog
+(http://www.gnumonks.org/projects/ulogd) and:
 
-This sounds a bit like dictatorship, but our impression of what is
-'important' is not a fixed one.  We judge by the practical cases we know
-of, and by what users tell us.  So if there is a discussion about a
-particular patch [or feature] on the list, and we see there is a big
-demand by the users, we are likely to be inclined that this feature is
-'needed'.  This has just happeed with the 'string' match, which I
-personally dislike, but I am now convinced that there is a reasonable
-demand for that particular function [and which will now be submitted to
-the kernel anytime soon].
+cvs :pserver:cvs@cvs.gnumonks.org:/cvsroot ulogd
 
-It's not different than in other subsystems of the kernel.  If you want
-a feature to get into the core network stack, you need to write good
-code and convince Alexey, DaveM and/or Andi Kleen that it is needed ;)
+> 2) It would be cool if there is the option of setting the socket
+>    receive buffer to a higher value than default because for high
+>    speeds the default value is too small. I have a patch for an old
+>    libipulog and can send it to you if you think this could go in.
 
-btw: having a bit-wise mark match and MARK target has always been one of
-my favourites.  So if we can solve the compatibility issue, the patch
-will certainly make it ;)
+yes, this is definitely a good idea. Please see if your patch applies to
+the later libipulog versions (see above).
 
-> Regards
-> Anders Fugmann
+> 3) I think there is a bug in libipulog as in iptables 1.2.7a in the
+>    ipulog_get_packet() function. The function seems to not always return
+>    NULL when its supposed to do. I made a patch ages ago and thought
+>    this was fixed but when I tried the new version it did not work.
+>    I think the problem was when you have multi and non-multi messages.
+>    But have a look at the patch.
+
+It was fixed, but as stated, unfortunately there was an old libipulog in
+the iptables package.
+
+I will remove it from the upcoming iptables-1.2.8 version.
+
+> Thanx for your time.
+
+Thanks for your contributions.
+
+> Cheers,
+> Sebastian
 
 --=20
 Live long and prosper
@@ -76,7 +84,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---gatW/ieO32f1wygP
+--48TaNjbzBVislYPb
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -84,9 +92,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+IG8jXaXGVTD0i/8RArBLAJ4j7SlWmbSaURYKCoL2GVApQv7k6QCdHzxa
-8T1U5UtRf3yaI/WNV2FfBdI=
-=rGeC
+iD8DBQE+IHagXaXGVTD0i/8RAv53AJ9jnKxStNxLBv2b5nkRBCp7+g3uLwCfdt5r
+AC3ssjSl+uxoltXpAune5Qg=
+=tjpF
 -----END PGP SIGNATURE-----
 
---gatW/ieO32f1wygP--
+--48TaNjbzBVislYPb--
