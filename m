@@ -1,8 +1,8 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 8/18] Netfilter:  Remove Randomness in Selecting NAT IP
-	Address
-Date: Wed, 05 Jan 2005 14:33:22 +1100
-Message-ID: <1104896002.20582.70.camel@localhost.localdomain>
+Subject: [PATCH 9/18] Netfilter:  Clean up the kmod handling code in
+	iptables.c
+Date: Wed, 05 Jan 2005 14:33:49 +1100
+Message-ID: <1104896029.20582.72.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -21,214 +21,344 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Remove Randomness in Selecting NAT IP Address
+Name: Clean up the kmod handling code in iptables.c
 Status: Tested under nfsim
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-We currently choose a "random" IP address to NAT to, where we have a
-range.  Martin Josefsson pointed out that he uses the SAME target in
-iptables because changing IP addresses breaks Internet banking sites
-(among others) which assume the customer will be coming from a
-consistent IP address.
+We now have a convenient kmod macro try_then_request_module(). 
 
-In fact, we spend a fair bit of effort trying to balance the number of
-connections we NAT to each IP address.  We can come pretty damn close
-just hashing the source and destination IP addresses, and it has the
-consistency property which is so desirable, as well as being faster.
+1) Split our current "generic" function into separate
+   find_target_lock(), find_table_lock() and find_match_lock()
+   functions explicitly.
 
+2) Have those functions do try_module_get() for us, and fix up the one
+   caller who didn't do that anyway.
 
-Index: linux-2.6.10-rc3-bk6-Netfilter/net/ipv4/netfilter/ip_nat_core.c
+3) Have the caller use try_then_request_module().
+
+4) Remove __ipt_mutex_up() and __ipt_find_target_lock() which weren't
+   used (even in patch-o-matic AFAICT).
+
+This cleanup takes us closer to using standard list macros everywhere,
+and makes the version patch simpler.
+
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_tables.c
 ===================================================================
---- linux-2.6.10-rc3-bk6-Netfilter.orig/net/ipv4/netfilter/ip_nat_core.c	2004-12-13 12:03:19.125042432 +1100
-+++ linux-2.6.10-rc3-bk6-Netfilter/net/ipv4/netfilter/ip_nat_core.c	2004-12-13 12:03:19.628965824 +1100
-@@ -20,6 +20,7 @@
- #include <net/tcp.h>  /* For tcp_prot in getorigdst */
- #include <linux/icmp.h>
- #include <linux/udp.h>
-+#include <linux/jhash.h>
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_tables.c	2005-01-01 12:26:20.508126400 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_tables.c	2005-01-01 12:27:36.343597656 +1100
+@@ -26,6 +26,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/semaphore.h>
+ #include <linux/proc_fs.h>
++#include <linux/err.h>
  
- #define ASSERT_READ_LOCK(x) MUST_BE_READ_LOCKED(&ip_nat_lock)
- #define ASSERT_WRITE_LOCK(x) MUST_BE_WRITE_LOCKED(&ip_nat_lock)
-@@ -47,7 +48,6 @@
- static unsigned int ip_nat_htable_size;
+ #include <linux/netfilter_ipv4/ip_tables.h>
  
- static struct list_head *bysource;
--static struct list_head *byipsproto;
- struct ip_nat_protocol *ip_nat_protos[MAX_IP_NAT_PROTO];
- 
-
-@@ -87,7 +87,6 @@
- 
- 	WRITE_LOCK(&ip_nat_lock);
- 	list_del(&info->bysource);
--	list_del(&info->byipsproto);
- 	WRITE_UNLOCK(&ip_nat_lock);
+@@ -408,85 +409,55 @@
+ #endif
  }
  
-@@ -198,38 +197,6 @@
- 	return 0;
- }
+-/* If it succeeds, returns element and locks mutex */
+-static inline void *
+-find_inlist_lock_noload(struct list_head *head,
+-			const char *name,
+-			int *error,
+-			struct semaphore *mutex)
+-{
+-	void *ret;
+-
+-#if 0 
+-	duprintf("find_inlist: searching for `%s' in %s.\n",
+-		 name, head == &ipt_target ? "ipt_target"
+-		 : head == &ipt_match ? "ipt_match"
+-		 : head == &ipt_tables ? "ipt_tables" : "UNKNOWN");
+-#endif
+-
+-	*error = down_interruptible(mutex);
+-	if (*error != 0)
+-		return NULL;
++/*
++ * These are weird, but module loading must not be done with mutex
++ * held (since they will register), and we have to have a single
++ * function to use try_then_request_module().
++ */
  
--/* Simple way to iterate through all. */
--static inline int fake_cmp(const struct ip_conntrack *ct,
--			   u_int32_t src, u_int32_t dst, u_int16_t protonum,
--			   unsigned int *score, const struct ip_conntrack *ct2)
--{
--	/* Compare backwards: we're dealing with OUTGOING tuples, and
--           inside the conntrack is the REPLY tuple.  Don't count this
--           conntrack. */
--	if (ct != ct2
--	    && ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip == dst
--	    && ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip == src
--	    && (ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.protonum == protonum))
--		(*score)++;
--	return 0;
+-	ret = list_named_find(head, name);
+-	if (!ret) {
+-		*error = -ENOENT;
+-		up(mutex);
+-	}
+-	return ret;
 -}
--
--static inline unsigned int
--count_maps(u_int32_t src, u_int32_t dst, u_int16_t protonum,
--	   const struct ip_conntrack *conntrack)
++/* Find table by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
++static inline struct ipt_table *find_table_lock(const char *name)
++{
++	struct ipt_table *t;
+ 
+-#ifndef CONFIG_KMOD
+-#define find_inlist_lock(h,n,p,e,m) find_inlist_lock_noload((h),(n),(e),(m))
+-#else
+-static void *
+-find_inlist_lock(struct list_head *head,
+-		 const char *name,
+-		 const char *prefix,
+-		 int *error,
+-		 struct semaphore *mutex)
 -{
--	struct ip_conntrack *ct;
--	unsigned int score = 0;
--	unsigned int h;
+-	void *ret;
 -
--	MUST_BE_READ_LOCKED(&ip_nat_lock);
--	h = hash_by_ipsproto(src, dst, protonum);
--	list_for_each_entry(ct, &byipsproto[h], nat.info.byipsproto)
--		fake_cmp(ct, src, dst, protonum, &score, conntrack);
--
--	return score;
--}
--
- /* For [FUTURE] fragmentation handling, we want the least-used
-    src-ip/dst-ip/proto triple.  Fairness doesn't come into it.  Thus
-    if the range specifies 1.2.3.4 ports 10000-10005 and 1.2.3.5 ports
-@@ -242,10 +209,7 @@
- 		    const struct ip_conntrack *conntrack,
- 		    unsigned int hooknum)
+-	ret = find_inlist_lock_noload(head, name, error, mutex);
+-	if (!ret) {
+-		duprintf("find_inlist: loading `%s%s'.\n", prefix, name);
+-		request_module("%s%s", prefix, name);
+-		ret = find_inlist_lock_noload(head, name, error, mutex);
+-	}
++	if (down_interruptible(&ipt_mutex) != 0)
++		return ERR_PTR(-EINTR);
+ 
+-	return ret;
++	list_for_each_entry(t, &ipt_tables, list)
++		if (strcmp(t->name, name) == 0 && try_module_get(t->me))
++			return t;
++	up(&ipt_mutex);
++	return NULL;
+ }
+-#endif
+ 
+-static inline struct ipt_table *
+-ipt_find_table_lock(const char *name, int *error, struct semaphore *mutex)
++/* Find match by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
++static inline struct ipt_match *find_match_lock(const char *name)
  {
--	unsigned int best_score = 0xFFFFFFFF;
--	struct ip_conntrack_tuple best_tuple = *tuple;
- 	u_int32_t *var_ipp;
--	static unsigned int randomness;
- 	/* Host order */
- 	u_int32_t minip, maxip, j;
+-	return find_inlist_lock(&ipt_tables, name, "iptable_", error, mutex);
+-}
++	struct ipt_match *m;
  
-@@ -264,33 +228,16 @@
- 		return;
+-static inline struct ipt_match *
+-find_match_lock(const char *name, int *error, struct semaphore *mutex)
+-{
+-	return find_inlist_lock(&ipt_match, name, "ipt_", error, mutex);
+-}
++	if (down_interruptible(&ipt_mutex) != 0)
++		return ERR_PTR(-EINTR);
+ 
+-static struct ipt_target *
+-ipt_find_target_lock(const char *name, int *error, struct semaphore *mutex)
+-{
+-	return find_inlist_lock(&ipt_target, name, "ipt_", error, mutex);
++	list_for_each_entry(m, &ipt_match, list)
++		if (strcmp(m->name, name) == 0 && try_module_get(m->me))
++			return m;
++	up(&ipt_mutex);
++	return NULL;
+ }
+ 
+-struct ipt_target *
+-__ipt_find_target_lock(const char *name, int *error)
++/* Find target by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
++static inline struct ipt_target *find_target_lock(const char *name)
+ {
+-	return ipt_find_target_lock(name,error,&ipt_mutex);
+-}
++	struct ipt_target *t;
+ 
+-void
+-__ipt_mutex_up(void)
+-{
++	if (down_interruptible(&ipt_mutex) != 0)
++		return ERR_PTR(-EINTR);
++
++	list_for_each_entry(t, &ipt_target, list)
++		if (strcmp(t->name, name) == 0 && try_module_get(t->me))
++			return t;
+ 	up(&ipt_mutex);
++	return NULL;
+ }
+ 
+ /* All zeroes == unconditional rule. */
+@@ -648,17 +619,13 @@
+ 	    unsigned int hookmask,
+ 	    unsigned int *i)
+ {
+-	int ret;
+ 	struct ipt_match *match;
+ 
+-	match = find_match_lock(m->u.user.name, &ret, &ipt_mutex);
+-	if (!match) {
++	match = try_then_request_module(find_match_lock(m->u.user.name),
++					"ipt_%s", m->u.user.name);
++	if (IS_ERR(match) || !match) {
+ 		duprintf("check_match: `%s' not found\n", m->u.user.name);
+-		return ret;
+-	}
+-	if (!try_module_get(match->me)) {
+-		up(&ipt_mutex);
+-		return -ENOENT;
++		return match ? PTR_ERR(match) : -ENOENT;
+ 	}
+ 	m->u.kernel.match = match;
+ 	up(&ipt_mutex);
+@@ -699,14 +666,11 @@
+ 		goto cleanup_matches;
+ 
+ 	t = ipt_get_target(e);
+-	target = ipt_find_target_lock(t->u.user.name, &ret, &ipt_mutex);
+-	if (!target) {
++	target = try_then_request_module(find_target_lock(t->u.user.name),
++					 "ipt_%s", t->u.user.name);
++	if (IS_ERR(target) || !target) {
+ 		duprintf("check_entry: `%s' not found\n", t->u.user.name);
+-		goto cleanup_matches;
+-	}
+-	if (!try_module_get(target->me)) {
+-		up(&ipt_mutex);
+-		ret = -ENOENT;
++		ret = target ? PTR_ERR(target) : -ENOENT;
+ 		goto cleanup_matches;
+ 	}
+ 	t->u.kernel.target = target;
+@@ -1036,8 +1000,8 @@
+ 	int ret;
+ 	struct ipt_table *t;
+ 
+-	t = ipt_find_table_lock(entries->name, &ret, &ipt_mutex);
+-	if (t) {
++	t = find_table_lock(entries->name);
++	if (t && !IS_ERR(t)) {
+ 		duprintf("t->private->number = %u\n",
+ 			 t->private->number);
+ 		if (entries->size == t->private->size)
+@@ -1049,10 +1013,10 @@
+ 				 entries->size);
+ 			ret = -EINVAL;
+ 		}
++		module_put(t->me);
+ 		up(&ipt_mutex);
+ 	} else
+-		duprintf("get_entries: Can't find %s!\n",
+-			 entries->name);
++		ret = t ? PTR_ERR(t) : -ENOENT;
+ 
+ 	return ret;
+ }
+@@ -1103,25 +1067,21 @@
+ 
+ 	duprintf("ip_tables: Translated table\n");
+ 
+-	t = ipt_find_table_lock(tmp.name, &ret, &ipt_mutex);
+-	if (!t)
++	t = try_then_request_module(find_table_lock(tmp.name),
++				    "iptable_%s", tmp.name);
++	if (!t || IS_ERR(t)) {
++		ret = t ? PTR_ERR(t) : -ENOENT;
+ 		goto free_newinfo_counters_untrans;
++	}
+ 
+ 	/* You lied! */
+ 	if (tmp.valid_hooks != t->valid_hooks) {
+ 		duprintf("Valid hook crap: %08X vs %08X\n",
+ 			 tmp.valid_hooks, t->valid_hooks);
+ 		ret = -EINVAL;
+-		goto free_newinfo_counters_untrans_unlock;
+-	}
+-
+-	/* Get a reference in advance, we're not allowed fail later */
+-	if (!try_module_get(t->me)) {
+-		ret = -EBUSY;
+-		goto free_newinfo_counters_untrans_unlock;
++		goto put_module;
  	}
  
-+	/* Hashing source and destination IPs gives a fairly even
-+	 * spread in practice (if there are a small number of IPs
-+	 * involved, there usually aren't that many connections
-+	 * anyway).  The consistency means that servers see the same
-+	 * client coming from the same IP (some Internet Backing sites
-+	 * like this), even across reboots. */
- 	minip = ntohl(range->min_ip);
- 	maxip = ntohl(range->max_ip);
 -
--	/* FIXME: use hash of ips like ipt_SAME, not randomness.
--	   This way same pairs get same IP: think Internet Banking.
--	 */
--	randomness++;
--	for (j = 0; j < maxip - minip + 1; j++) {
--		unsigned int score;
+ 	oldinfo = replace_table(t, tmp.num_counters, newinfo, &ret);
+ 	if (!oldinfo)
+ 		goto put_module;
+@@ -1150,7 +1110,6 @@
+ 
+  put_module:
+ 	module_put(t->me);
+- free_newinfo_counters_untrans_unlock:
+ 	up(&ipt_mutex);
+  free_newinfo_counters_untrans:
+ 	IPT_ENTRY_ITERATE(newinfo->entries, newinfo->size, cleanup_entry,NULL);
+@@ -1189,7 +1148,7 @@
+ 	unsigned int i;
+ 	struct ipt_counters_info tmp, *paddc;
+ 	struct ipt_table *t;
+-	int ret;
++	int ret = 0;
+ 
+ 	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
+ 		return -EFAULT;
+@@ -1206,9 +1165,11 @@
+ 		goto free;
+ 	}
+ 
+-	t = ipt_find_table_lock(tmp.name, &ret, &ipt_mutex);
+-	if (!t)
++	t = find_table_lock(tmp.name);
++	if (!t || IS_ERR(t)) {
++		ret = t ? PTR_ERR(t) : -ENOENT;
+ 		goto free;
++	}
+ 
+ 	write_lock_bh(&t->lock);
+ 	if (t->private->number != paddc->num_counters) {
+@@ -1225,6 +1186,7 @@
+  unlock_up_free:
+ 	write_unlock_bh(&t->lock);
+ 	up(&ipt_mutex);
++	module_put(t->me);
+  free:
+ 	vfree(paddc);
+ 
+@@ -1281,8 +1243,10 @@
+ 			break;
+ 		}
+ 		name[IPT_TABLE_MAXNAMELEN-1] = '\0';
+-		t = ipt_find_table_lock(name, &ret, &ipt_mutex);
+-		if (t) {
++
++		t = try_then_request_module(find_table_lock(name),
++					    "iptable_%s", name);
++		if (t && !IS_ERR(t)) {
+ 			struct ipt_getinfo info;
+ 
+ 			info.valid_hooks = t->valid_hooks;
+@@ -1298,9 +1262,10 @@
+ 				ret = -EFAULT;
+ 			else
+ 				ret = 0;
 -
--		*var_ipp = htonl(minip + (randomness + j) 
--				 % (maxip - minip + 1));
--
--		/* Count how many others map onto this. */
--		score = count_maps(tuple->src.ip, tuple->dst.ip,
--				   tuple->dst.protonum, conntrack);
--		if (score < best_score) {
--			/* Optimization: doesn't get any better than
--			   this. */
--			if (score == 0)
--				return;
--
--			best_score = score;
--			best_tuple = *tuple;
+ 			up(&ipt_mutex);
 -		}
--	}
--	*tuple = best_tuple;
-+	j = jhash_2words(tuple->src.ip, tuple->dst.ip, 0);
-+	*var_ipp = htonl(minip + j % (maxip - minip + 1));
- }
- 
- /* Manipulate the tuple into the range given.  For NF_IP_POST_ROUTING,
-@@ -492,19 +439,8 @@
- 			      .tuple.src,
- 			      conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
- 			      .tuple.dst.protonum);
--	/* We place packet as seen OUTGOUNG in byips_proto hash
--           (ie. reverse dst and src of reply packet. */
--	unsigned int ipsprotohash
--		= hash_by_ipsproto(conntrack->tuplehash[IP_CT_DIR_REPLY]
--				   .tuple.dst.ip,
--				   conntrack->tuplehash[IP_CT_DIR_REPLY]
--				   .tuple.src.ip,
--				   conntrack->tuplehash[IP_CT_DIR_REPLY]
--				   .tuple.dst.protonum);
--
- 	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
- 	list_move(&info->bysource, &bysource[srchash]);
--	list_move(&info->byipsproto, &byipsproto[ipsprotohash]);
- }
- 
- void place_in_hashes(struct ip_conntrack *conntrack,
-@@ -515,19 +451,8 @@
- 			      .tuple.src,
- 			      conntrack->tuplehash[IP_CT_DIR_ORIGINAL]
- 			      .tuple.dst.protonum);
--	/* We place packet as seen OUTGOUNG in byips_proto hash
--           (ie. reverse dst and src of reply packet. */
--	unsigned int ipsprotohash
--		= hash_by_ipsproto(conntrack->tuplehash[IP_CT_DIR_REPLY]
--				   .tuple.dst.ip,
--				   conntrack->tuplehash[IP_CT_DIR_REPLY]
--				   .tuple.src.ip,
--				   conntrack->tuplehash[IP_CT_DIR_REPLY]
--				   .tuple.dst.protonum);
--
- 	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
- 	list_add(&info->bysource, &bysource[srchash]);
--	list_add(&info->byipsproto, &byipsproto[ipsprotohash]);
- }
- 
- /* Returns true if succeeded. */
-@@ -845,11 +770,9 @@
- 	ip_nat_htable_size = ip_conntrack_htable_size;
- 
- 	/* One vmalloc for both hash tables */
--	bysource = vmalloc(sizeof(struct list_head) * ip_nat_htable_size*2);
--	if (!bysource) {
-+	bysource = vmalloc(sizeof(struct list_head) * ip_nat_htable_size);
-+	if (!bysource)
- 		return -ENOMEM;
--	}
--	byipsproto = bysource + ip_nat_htable_size;
- 
- 	/* Sew in builtin protocols. */
- 	WRITE_LOCK(&ip_nat_lock);
-@@ -862,7 +785,6 @@
- 
- 	for (i = 0; i < ip_nat_htable_size; i++) {
- 		INIT_LIST_HEAD(&bysource[i]);
--		INIT_LIST_HEAD(&byipsproto[i]);
++			module_put(t->me);
++		} else
++			ret = t ? PTR_ERR(t) : -ENOENT;
  	}
+ 	break;
  
- 	/* FIXME: Man, this is a hack.  <SIGH> */
-Index: linux-2.6.10-rc3-bk6-Netfilter/include/linux/netfilter_ipv4/ip_nat.h
+@@ -1889,8 +1854,6 @@
+ EXPORT_SYMBOL(ipt_do_table);
+ EXPORT_SYMBOL(ipt_register_target);
+ EXPORT_SYMBOL(ipt_unregister_target);
+-EXPORT_SYMBOL_GPL(__ipt_find_target_lock);
+-EXPORT_SYMBOL_GPL(__ipt_mutex_up);
+ 
+ module_init(init);
+ module_exit(fini);
+Index: linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_tables.h
 ===================================================================
---- linux-2.6.10-rc3-bk6-Netfilter.orig/include/linux/netfilter_ipv4/ip_nat.h	2004-12-13 12:03:16.258478216 +1100
-+++ linux-2.6.10-rc3-bk6-Netfilter/include/linux/netfilter_ipv4/ip_nat.h	2004-12-13 12:03:19.629965672 +1100
-@@ -86,7 +86,7 @@
- 	/* Manipulations to be done on this conntrack. */
- 	struct ip_nat_info_manip manips[IP_NAT_MAX_MANIPS];
+--- linux-2.6.10-bk1-Netfilter.orig/include/linux/netfilter_ipv4/ip_tables.h	2005-01-01 12:25:41.721022936 +1100
++++ linux-2.6.10-bk1-Netfilter/include/linux/netfilter_ipv4/ip_tables.h	2005-01-01 12:26:36.671669168 +1100
+@@ -413,10 +413,6 @@
+ extern int ipt_register_match(struct ipt_match *match);
+ extern void ipt_unregister_match(struct ipt_match *match);
  
--	struct list_head bysource, byipsproto;
-+	struct list_head bysource;
- 
- 	/* Helper (NULL if none). */
- 	struct ip_nat_helper *helper;
+-extern struct ipt_target *
+-__ipt_find_target_lock(const char *name, int *error);
+-extern void __ipt_mutex_up(void);
+-
+ /* Furniture shopping... */
+ struct ipt_table
+ {
