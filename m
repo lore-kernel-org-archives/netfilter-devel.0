@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 8/9]: Fix invalid tcp/udp checksums within NATed icmp
- errors
-Date: Mon, 15 Nov 2004 22:45:29 +0100
-Message-ID: <41992379.2070904@trash.net>
+Subject: [PATCH 2.6 9/9]: revert MASQUERADE optimization for mostly static
+ IPs
+Date: Mon, 15 Nov 2004 22:45:43 +0100
+Message-ID: <41992387.60101@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020605040209030209090007"
+Content-Type: multipart/mixed; boundary="------------060103080206050808010602"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -20,184 +20,146 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020605040209030209090007
+--------------060103080206050808010602
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Fix invalid tcp/udp checksums within NATed icmp errors.
-The IP used for checksum adjustment is always the address
-of the outer IP header.
+The MASQUERADE optimization for mostly static IPs is broken
+and can't be fixed in a reasonable way, also makeing sure
+conntracks aren't deleted when the address stays the same
+can be done entirely in userspace with the old behaviour.
+This patch reverts to the old behaviour.
 
 
 
---------------020605040209030209090007
+--------------060103080206050808010602
 Content-Type: text/x-patch;
- name="08.diff"
+ name="09.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="08.diff"
+ filename="09.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/11/13 17:01:15+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Fix invalid tcp/udp checksums within NATed icmp errors
+#   2004/11/15 22:03:23+01:00 kernel@linuxace.com 
+#   [NETFILTER]: revert MASQUERADE optimization for mostly static IPs
 #   
+#   Signed-off-by: Phil Oester <kernel@linuxace.com>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_proto_unknown.c
-#   2004/11/13 17:01:07+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix invalid tcp/udp checksums within NATed icmp errors
+# net/ipv4/netfilter/ipt_MASQUERADE.c
+#   2004/11/15 22:03:17+01:00 kernel@linuxace.com +36 -24
+#   [NETFILTER]: revert MASQUERADE optimization for mostly static IPs
 #   
+#   Signed-off-by: Phil Oester <kernel@linuxace.com>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_proto_udp.c
-#   2004/11/13 17:01:07+01:00 kaber@coreworks.de +5 -3
-#   [NETFILTER]: Fix invalid tcp/udp checksums within NATed icmp errors
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_nat_proto_tcp.c
-#   2004/11/13 17:01:07+01:00 kaber@coreworks.de +5 -3
-#   [NETFILTER]: Fix invalid tcp/udp checksums within NATed icmp errors
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_nat_proto_icmp.c
-#   2004/11/13 17:01:07+01:00 kaber@coreworks.de +3 -1
-#   [NETFILTER]: Fix invalid tcp/udp checksums within NATed icmp errors
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_nat_core.c
-#   2004/11/13 17:01:07+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix invalid tcp/udp checksums within NATed icmp errors
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv4/ip_nat_protocol.h
-#   2004/11/13 17:01:07+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix invalid tcp/udp checksums within NATed icmp errors
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/include/linux/netfilter_ipv4/ip_nat_protocol.h b/include/linux/netfilter_ipv4/ip_nat_protocol.h
---- a/include/linux/netfilter_ipv4/ip_nat_protocol.h	2004-11-15 22:07:44 +01:00
-+++ b/include/linux/netfilter_ipv4/ip_nat_protocol.h	2004-11-15 22:07:44 +01:00
-@@ -18,7 +18,7 @@
- 	/* Do a packet translation according to the ip_nat_proto_manip
- 	 * and manip type.  Return true if succeeded. */
- 	int (*manip_pkt)(struct sk_buff **pskb,
--			 unsigned int hdroff,
-+			 unsigned int iphdroff,
- 			 const struct ip_conntrack_manip *manip,
- 			 enum ip_nat_manip_type maniptype);
+diff -Nru a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
+--- a/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-15 22:09:16 +01:00
++++ b/net/ipv4/netfilter/ipt_MASQUERADE.c	2004-11-15 22:09:16 +01:00
+@@ -118,49 +118,57 @@
+ }
  
-diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
---- a/net/ipv4/netfilter/ip_nat_core.c	2004-11-15 22:07:44 +01:00
-+++ b/net/ipv4/netfilter/ip_nat_core.c	2004-11-15 22:07:44 +01:00
-@@ -687,7 +687,7 @@
- 	iph = (void *)(*pskb)->data + iphdroff;
- 
- 	/* Manipulate protcol part. */
--	if (!ip_nat_find_proto(proto)->manip_pkt(pskb, iphdroff + iph->ihl*4,
-+	if (!ip_nat_find_proto(proto)->manip_pkt(pskb, iphdroff,
- 	                                         manip, maniptype))
- 		return 0;
- 
-diff -Nru a/net/ipv4/netfilter/ip_nat_proto_icmp.c b/net/ipv4/netfilter/ip_nat_proto_icmp.c
---- a/net/ipv4/netfilter/ip_nat_proto_icmp.c	2004-11-15 22:07:44 +01:00
-+++ b/net/ipv4/netfilter/ip_nat_proto_icmp.c	2004-11-15 22:07:44 +01:00
-@@ -53,11 +53,13 @@
- 
- static int
- icmp_manip_pkt(struct sk_buff **pskb,
--	       unsigned int hdroff,
-+	       unsigned int iphdroff,
- 	       const struct ip_conntrack_manip *manip,
- 	       enum ip_nat_manip_type maniptype)
+ static inline int
+-device_cmp(const struct ip_conntrack *i, void *_ina)
++device_cmp(const struct ip_conntrack *i, void *ifindex)
  {
-+	struct iphdr *iph = (struct iphdr *)((*pskb)->data + iphdroff);
- 	struct icmphdr *hdr;
-+	unsigned int hdroff = iphdroff + iph->ihl*4;
+-	int ret = 0;
+-	struct in_ifaddr *ina = _ina;
++	int ret;
  
- 	if (!skb_ip_make_writable(pskb, hdroff + sizeof(*hdr)))
- 		return 0;
-diff -Nru a/net/ipv4/netfilter/ip_nat_proto_tcp.c b/net/ipv4/netfilter/ip_nat_proto_tcp.c
---- a/net/ipv4/netfilter/ip_nat_proto_tcp.c	2004-11-15 22:07:44 +01:00
-+++ b/net/ipv4/netfilter/ip_nat_proto_tcp.c	2004-11-15 22:07:44 +01:00
-@@ -84,11 +84,13 @@
+ 	READ_LOCK(&masq_lock);
+-	/* If it's masquerading out this interface with a different address,
+-	   or we don't know the new address of this interface. */
+-	if (i->nat.masq_index == ina->ifa_dev->dev->ifindex
+-	    && i->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip != ina->ifa_address)
+-		ret = 1;
++	ret = (i->nat.masq_index == (int)(long)ifindex);
+ 	READ_UNLOCK(&masq_lock);
  
- static int
- tcp_manip_pkt(struct sk_buff **pskb,
--	      unsigned int hdroff,
-+	      unsigned int iphdroff,
- 	      const struct ip_conntrack_manip *manip,
- 	      enum ip_nat_manip_type maniptype)
+ 	return ret;
+ }
+ 
+-static inline int
+-connect_unassure(const struct ip_conntrack *i, void *_ina)
++static int masq_device_event(struct notifier_block *this,
++			     unsigned long event,
++			     void *ptr)
  {
-+	struct iphdr *iph = (struct iphdr *)((*pskb)->data + iphdroff);
- 	struct tcphdr *hdr;
-+	unsigned int hdroff = iphdroff + iph->ihl*4;
- 	u_int32_t oldip;
- 	u_int16_t *portptr, oldport;
- 	int hdrsize = 8; /* TCP connection tracking guarantees this much */
-@@ -106,11 +108,11 @@
+-	struct in_ifaddr *ina = _ina;
++	struct net_device *dev = ptr;
++
++	if (event == NETDEV_DOWN) {
++		/* Device was downed.  Search entire table for
++		   conntracks which were associated with that device,
++		   and forget them. */
++		IP_NF_ASSERT(dev->ifindex != 0);
  
- 	if (maniptype == IP_NAT_MANIP_SRC) {
- 		/* Get rid of src ip and src pt */
--		oldip = (*pskb)->nh.iph->saddr;
-+		oldip = iph->saddr;
- 		portptr = &hdr->source;
- 	} else {
- 		/* Get rid of dst ip and dst pt */
--		oldip = (*pskb)->nh.iph->daddr;
-+		oldip = iph->daddr;
- 		portptr = &hdr->dest;
- 	}
+-	/* We reset the ASSURED bit on all connections, so they will
+-	 * get reaped under memory pressure. */
+-	if (i->nat.masq_index == ina->ifa_dev->dev->ifindex)
+-		clear_bit(IPS_ASSURED_BIT, (unsigned long *)&i->status);
+-	return 0;
++		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
++	}
++
++	return NOTIFY_DONE;
+ }
  
-diff -Nru a/net/ipv4/netfilter/ip_nat_proto_udp.c b/net/ipv4/netfilter/ip_nat_proto_udp.c
---- a/net/ipv4/netfilter/ip_nat_proto_udp.c	2004-11-15 22:07:44 +01:00
-+++ b/net/ipv4/netfilter/ip_nat_proto_udp.c	2004-11-15 22:07:44 +01:00
-@@ -83,11 +83,13 @@
- 
- static int
- udp_manip_pkt(struct sk_buff **pskb,
--	      unsigned int hdroff,
-+	      unsigned int iphdroff,
- 	      const struct ip_conntrack_manip *manip,
- 	      enum ip_nat_manip_type maniptype)
+ static int masq_inet_event(struct notifier_block *this,
+ 			   unsigned long event,
+ 			   void *ptr)
  {
-+	struct iphdr *iph = (struct iphdr *)((*pskb)->data + iphdroff);
- 	struct udphdr *hdr;
-+	unsigned int hdroff = iphdroff + iph->ihl*4;
- 	u_int32_t oldip;
- 	u_int16_t *portptr;
+-	/* For some configurations, interfaces often come back with
+-	 * the same address.  If not, clean up old conntrack
+-	 * entries. */
+-	if (event == NETDEV_UP)
+-		ip_ct_selective_cleanup(device_cmp, ptr);
+-	else if (event == NETDEV_DOWN)
+-		ip_ct_selective_cleanup(connect_unassure, ptr);
++	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
++
++	if (event == NETDEV_DOWN) {
++		/* IP address was deleted.  Search entire table for
++		   conntracks which were associated with that device,
++		   and forget them. */
++		IP_NF_ASSERT(dev->ifindex != 0);
++
++		ip_ct_selective_cleanup(device_cmp, (void *)(long)dev->ifindex);
++	}
  
-@@ -97,11 +99,11 @@
- 	hdr = (void *)(*pskb)->data + hdroff;
- 	if (maniptype == IP_NAT_MANIP_SRC) {
- 		/* Get rid of src ip and src pt */
--		oldip = (*pskb)->nh.iph->saddr;
-+		oldip = iph->saddr;
- 		portptr = &hdr->source;
- 	} else {
- 		/* Get rid of dst ip and dst pt */
--		oldip = (*pskb)->nh.iph->daddr;
-+		oldip = iph->daddr;
- 		portptr = &hdr->dest;
- 	}
- 	if (hdr->check) /* 0 is a special case meaning no checksum */
-diff -Nru a/net/ipv4/netfilter/ip_nat_proto_unknown.c b/net/ipv4/netfilter/ip_nat_proto_unknown.c
---- a/net/ipv4/netfilter/ip_nat_proto_unknown.c	2004-11-15 22:07:44 +01:00
-+++ b/net/ipv4/netfilter/ip_nat_proto_unknown.c	2004-11-15 22:07:44 +01:00
-@@ -39,7 +39,7 @@
+ 	return NOTIFY_DONE;
+ }
  
- static int
- unknown_manip_pkt(struct sk_buff **pskb,
--		  unsigned int hdroff,
-+		  unsigned int iphdroff,
- 		  const struct ip_conntrack_manip *manip,
- 		  enum ip_nat_manip_type maniptype)
++static struct notifier_block masq_dev_notifier = {
++	.notifier_call	= masq_device_event,
++};
++
+ static struct notifier_block masq_inet_notifier = {
+ 	.notifier_call	= masq_inet_event,
+ };
+@@ -178,9 +186,12 @@
+ 
+ 	ret = ipt_register_target(&masquerade);
+ 
+-	if (ret == 0)
++	if (ret == 0) {
++		/* Register for device down reports */
++		register_netdevice_notifier(&masq_dev_notifier);
+ 		/* Register IP address change reports */
+ 		register_inetaddr_notifier(&masq_inet_notifier);
++	}
+ 
+ 	return ret;
+ }
+@@ -188,6 +199,7 @@
+ static void __exit fini(void)
  {
+ 	ipt_unregister_target(&masquerade);
++	unregister_netdevice_notifier(&masq_dev_notifier);
+ 	unregister_inetaddr_notifier(&masq_inet_notifier);	
+ }
+ 
 
---------------020605040209030209090007--
+--------------060103080206050808010602--
