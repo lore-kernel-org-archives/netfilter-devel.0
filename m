@@ -1,12 +1,14 @@
-From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH]  dead code elimination in ip6_queue.c
-Date: Sat, 15 Mar 2003 13:01:05 -0500
+From: "Silvester Verdonskchot" <sverdons@xs4all.nl>
+Subject: microsoft messenger protocol helper
+Date: Sat, 15 Mar 2003 22:01:22 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E736A61.6020907@videotron.ca>
+Message-ID: <000001c2eb36$0c2aad40$0301a8c0@viper>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_7bQoxFBy/2LxElLQe4vU/A)"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,42 +19,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi All,
 
---Boundary_(ID_7bQoxFBy/2LxElLQe4vU/A)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+I want to make a connection tracking helper / nat helper for the
+Microsoft messenger protocol. I read the netfilter hacking guide.
+There's one thing that's not clear to me.
+How do I get my new module compiled with the rest of netfilter? I tried
+compiling it separately and I get warnings about not using certain
+include files outside the kernel.
 
-Folks,
+Can anybody help me with this?
 
-   the following patch removes dead code in ip6_queue.c
+Thanks
 
-Stephane Ouellette.
-
-
---Boundary_(ID_7bQoxFBy/2LxElLQe4vU/A)
-Content-type: text/plain; name=ip6_queue.c.patch; CHARSET=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=ip6_queue.c.patch
-
---- linux-2.4.21-pre5-ac3/net/ipv6/netfilter/ip6_queue.c	Fri Mar 14 15:16:44 2003
-+++ linux-2.4.21-pre5-ac3-fixed/net/ipv6/netfilter/ip6_queue.c	Sat Mar 15 12:58:50 2003
-@@ -265,8 +265,6 @@
- 	return skb;
- 
- nlmsg_failure:
--	if (skb)
--		kfree_skb(skb);
- 	*errp = -EINVAL;
- 	printk(KERN_ERR "ip6_queue: error creating packet message\n");
- 	return NULL;
-@@ -730,7 +728,6 @@
- 
- static int __init init(void)
- {
--	
- 	return init_or_cleanup(1);
- }
- 
-
---Boundary_(ID_7bQoxFBy/2LxElLQe4vU/A)--
+Silvester
