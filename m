@@ -1,19 +1,15 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [RFC] string matching based packet classification/filtering
-Date: Thu, 17 Feb 2005 14:31:14 +0100
-Message-ID: <20050217133114.GU31837@postel.suug.ch>
-References: <20050215203211.GL31837@postel.suug.ch>
-	<42126C9B.5060406@eurodev.net>
-	<20050216223038.GQ31837@postel.suug.ch>
-	<4213ECC9.30502@eurodev.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: nf_conntrack resync with 2.6.11-rc4
+Date: Thu, 17 Feb 2005 22:56:42 +0900 (JST)
+Message-ID: <200502171356.j1HDuhRH026138@toshiba.co.jp>
+References: <20050215124751.GZ3829@sunbeam.de.gnumonks.org>
+	<200502151615.23463.michal@rokos.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@oss.sgi.com,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Harald Welte <laforge@gnumonks.org>
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <4213ECC9.30502@eurodev.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+To: michal@rokos.info
+In-Reply-To: <200502151615.23463.michal@rokos.info>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,18 +21,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> >The matching algorithm would parse the array as a finite automation
-> >eating up byte by byte in the text.
-> >
-> 
-> Looks good but Boyer-Moore algorithm doesn't need this at all. BM 
-> doesn't support wildcards like '*' because of the shiftings that it uses 
-> to look for matches. This issue together with memory consumption are two 
-> limitations that we have to live with if we want to use BM. Anyway I 
-> think it's worth it because we can perform search in O(n/m).
 
-This would be _additional_ to BM/KMP/naive/finite automata/you name it.
-The benefit of libqsearch is hide various algorithms behind a single
-interface, isn't it? It's argueable whether it would make sense to try
-and rule out bad shifts while parsing a chain of non-wildcard regular
-expression tokens but I guess that would be over the top.
+Hi, Michal,
+
+I applied your patch. Thanks a lot.
+
+And I found other missing changes by using sed & diff technology ;)
+I'll commit them latter.
+
+Regards,
+
+From: Michal Rokos <michal@rokos.info>
+Date: Tue, 15 Feb 2005 16:15:23 +0100
+
+> Hello Harald,
+> 
+> On Tuesday 15 February 2005 13:47, Harald Welte wrote:
+> > Since lots of changes went into ip_conntrack over the last months, I
+> > went through the pain of re-synchronizing nf_conntrack with
+> > ip_conntrack, hopefully this was the last time.
+> 
+> isn't this one missing?
+> 
+>  Michal
+> 
+> -- 
+>         Michal Rokos
+> 
+>  email: <michal AT rokos DOT info>    
+> jabber: <majkl AT jabber DOT cz>
+>    icq: 36118339 
