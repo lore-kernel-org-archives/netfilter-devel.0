@@ -1,17 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: a question on marking packets
-Date: Wed, 10 Jul 2002 00:42:15 +0200
+From: alex <alex@bennee.com>
+Subject: More on ip_conntrack problems
+Date: 10 Jul 2002 08:10:20 +0100
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200207100042.15339.hno@marasystems.com>
-References: <03781128C7B74B4DBC27C55859C9D73809840654@es06snlnt>
+Message-ID: <1026285021.14566.80.camel@trent.nin>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "Shipman, Jeffrey E" <jeshipm@sandia.gov>,
-	"'netfilter-devel@lists.samba.org'" <netfilter-devel@lists.samba.org>
-In-Reply-To: <03781128C7B74B4DBC27C55859C9D73809840654@es06snlnt>
+To: Netfilter Development Mailing List <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,55 +18,51 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I assume you by incoming/outgoing packets refer to incoming and response 
-packets.. not single packets coming in to a router on one interface and going 
-out on another after possibly having some kind of transformation applied to 
-them..
+I've seen numerous references to percieved problems with default
+timeouts and potential DoS attacks on ip_conntrack but I'm starting to
+think is possible to ip_conntrack just to miss connection closures.
 
-Will be damn hard...
+I'm running on a memory constrained machine (28Mb Physical RAM) which
+shouldn't prove too problamatic as I'm only on a DSL connection. I've
+been running a Freenet node on my internal machine with the appropraite
+port forwarding magic with iptables. The problem I'm seeing is a slow
+climb in the number of connections until it reaches saturation and
+connectivity becomes very dicey (so I now open a ssh shell to my gateway
+box before I do anything, just to ensure I can still talk to it).
 
-a) As you seem to be messing around with the packets outside of the netfilter 
-NAT framework you cannot use conntrack.. (I assume these modifications may 
-include addressing/port modifications).
+The one piece of evidence that makes me suspicious of ip_conntracks
+ability to detect connection tear down is the disparity between the
+numbers I get from the gateway box to what I get on my internal box
 
-b) As incoming packets has not yet been processed by the TCP/IP stack you 
-don't know which socket these will get accepted by, so your cannot base any 
-desisions on the local socket..
+gateway:
+cat /proc/net/ip_conntrack | wc -l
 
-c) You cannot use nfmark, as nfmark is per-packet, not at all connection 
-related.. A response pakcket is a new packet, and will have a new nfmark 
-value, not related to the incoming packet..
+give 1688 connections
 
-d) You cannot use ToS, as this is not reflected by the TCP/IP kernel.. and is 
-generally to small for this kind of things anyway, indended for other uses.
+internal box:
 
-Basically you would need to implement your own connection tracking based on 
-the packets you have sent to the TCP/IP kernel, and invert the tuple to match 
-possible response packets.
+netstat -t | wc -l
 
+gives 41 connections
 
-It is a little bit hard to theorise on this on a packet level without knowing 
-what kind of packets we are talking about here or the application/purpose on 
-why you are modifying the packets. Does this involve TCP/UDP/whatever? Do you 
-have control of the application that generates the response packets? And many 
-other similar questions..
+I eyeballed the ip_conntrack output and all the connections tracked are
+Freenet connections so I'm discounting other server connections like web
+etc as in the minority. Once I stop freenet the count stays quite
+static, I hope it will of cleared down once I get back to my box this
+afternoon but I assume this is due to the long timeouts on closing TCP
+connections.
 
-Regards
-Henrik Nordström
-MARA Systems AB, Sweden
+A few questions:
 
+a) Am I measuring things correctly?
+b) Should the number of connections on ip_conntrack be broadly the same
+as the internal machines understanding of connections (netstat output)?
+c) Has this come up before? 
+d) Are there any patches I could try that alter ipconntracks end of
+connection heuristics?
 
-Shipman, Jeffrey E wrote:
-> The incoming packets will fit a particular criteria
-> as in what port it is connecting to, what options
-> and flags are set, etc. The outgoing packet really
-> depends on what was incoming. We see what pattern
-> we matched as, and then we have a hash table of modifications
-> for the packet (just about anything can be modified)
-> that we'll need to perform. The trouble is making sure
-> we're modifying the correct outgoing packet which
-> is in response to the packet that came in.
->
-> Jeff Shipman - CCD
-> Sandia National Laboratories
-> (505) 844-1158 / MS-1372
+Cheers,
+
+-- 
+Alex@Bennee.com
+http://www.bennee.com/~alex/
