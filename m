@@ -1,16 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ADMIN] netfilter.org was down due to hardware problem
-Date: Mon, 12 May 2003 12:09:38 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: conntrack manipulation
+Date: Mon, 12 May 2003 09:35:47 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030512100938.GI3344@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0305120933420.2472-100000@blackhole.kfki.hu>
+References: <200305100021.24860.lists@ohlmeier.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2E/hm+v6kSLEYT3h"
-Cc: Florian Sippel <fun@noris.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Nils Ohlmeier <lists@ohlmeier.de>
+In-Reply-To: <200305100021.24860.lists@ohlmeier.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,50 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 10 May 2003, Nils Ohlmeier wrote:
 
---2E/hm+v6kSLEYT3h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Friday 09 May 2003 14:36, Jozsef Kadlecsik wrote:
+> > On Thu, 8 May 2003, Nils Ohlmeier wrote:
+> > > phone1 ------ NAT ------- Internet ----- phone2
+> > >
+> > > Phone1 starts a call to phone2 (INVITE message). Phone2 confirms the call
+> > > (200 OK message) after the user picked up and starts to send RTP packets
+> > > to the public NAT address immediately. Now the comfirmation message hits
+> > > the SIP
+> >
+> > How can the user (phone1) send RTP packets before receiving the 200 OK
+> > message from phone2?
+>
+> Not phone1 sends but phone2 sends RTP packets immediately after it send the
+> '200 OK' to confirm that the user at phone2 picked up the hearer.
+> So the problem is basicly that the callee phone starts to send packets to fast
+> (at least to fast for our solution).
 
-Hi!
+Then enter the required rules when phone1 sends the command, without
+waiting for a confirmation from phone2. If phone2 would refuse the
+request, then delete the unnecessarily added rules.
 
-As many of you may have noticed, our main server
-(kashyyyk.netfilter.org) was down from yesterday (May 11), 6pm GMT+1 to
-today, 11:50am GMT+1.
-
-This was due to a hardware problem of the machine (power supply died
-after about one year of operation).
-
-The power supply has been replaced with a new one (400W, dual-fan) -
-let's hope this time the machine will exceed its 325 days of uptime :)
-
-Sorry for any inconvenience,
-
-	Harald.
-
-P.S.: Thanks to Florian Sippel of noris.net, who did the repairs.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---2E/hm+v6kSLEYT3h
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+v3LiXaXGVTD0i/8RAvoXAJ4t2/GF2ej+3Jzwn5bZfXgJvtJZvACghzHA
-5xXhELkPimxcAboJdqG7SXQ=
-=lmRt
------END PGP SIGNATURE-----
-
---2E/hm+v6kSLEYT3h--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
