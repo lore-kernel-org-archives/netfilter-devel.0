@@ -1,14 +1,14 @@
-From: netfilter@interlinx.bc.ca
-Subject: separation of sysctl and tcp-window-tracking patch?
-Date: Thu, 31 Oct 2002 21:12:36 -0500
+From: Jon Byrne <jon.byrne@athenet.net>
+Subject: A Neato feature to have.
+Date: Wed, 30 Oct 2002 00:33:33 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021101021236.GA16306@pc.ilinx>
+Message-ID: <F4967D8438B17E41B0FE2C37B3D508139BF826@newexchange.athenet.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C27FDE.44F465D0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "'netfilter-devel@lists.netfilter.org'"
+	 <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,50 +19,118 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
---/04w6evG8XlLl3ft
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+------_=_NextPart_001_01C27FDE.44F465D0
+Content-Type: text/plain
 
-There seems to be varied needs for netfilter specific /proc entries.
-The tcp-window-tracking patch seems to me to have placed a /proc entry
-point for netfilter most sanely at /proc/sys/net/ipv4/netfilter/.  I
-would also like to have a sysctl/proc node to diddle with tunables in
-my Amanda conntracking module.
+Dear netfilter team,
 
-Specifically the default of 180 seconds for a UDP stream is not long
-enough on the control (master in netfilter parlance) connection of an
-Amanda session, so I would like to override the master's timeout value
-in my conntrack helper.  I have tested my theory with a hard coded
-value and it work.  Now I would like to make it tunable by the
-user/administrator.
+ 
 
-I suppose I could pass an argument while loading the module, but using
-sysctl (and/or /proc) just seems so much more sane.  But I digress,
-greatly.
+I'd just like to start with the generic praise stuff:  iptables is great; I
+use it every day, etc.  I've been throwing around some load balancing ideas,
+and one idea was some NAT'ing with iptables.  Right now, iptables, using the
+-to-destination option, only allows one to send to a single IP or a range of
+IP's.  I'd really like to see support for a comma-delimited list of IP's in
+addition to those other options.  I know I should write it myself, but I
+only do Perl and dabble in C++, and, having taken some time to look at the
+iptables code, feel its really out of my league.  If you guys think it's
+important enough to dedicate resources to, please do so.  This would make
+iptables a very viable possibility for situations where a commercial load
+balancer is out of budget and unnecessary but where a single, very high end
+server cannot handle the load alone.  Thanks for your time, I understand if
+its not a high priority.  Thanks again.
 
-I am wondering if Jozsef and/or Harald would like to separate out the
-creation of the /proc/sys/net/ipv4/netfilter/ node into a separate
-patch for the rest of us to use, rather than having to make
-tcp-window-tracking a prerequisite just to get a proc entry to use.
+ 
 
-Thots?
-b.
+John Byrne
 
---=20
-Brian J. Murrell
+jonb@athenet.net <mailto:jonb@athenet.net> 
 
---/04w6evG8XlLl3ft
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+ 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
 
-iD8DBQE9weMUl3EQlGLyuXARAo7EAJ9zcQn7p3684pdJlsyZa5OUsVMXrwCeNtgW
-zVrMEcCoqQzksf+1tv3C5Bc=
-=kiTF
------END PGP SIGNATURE-----
+------_=_NextPart_001_01C27FDE.44F465D0
+Content-Type: text/html
 
---/04w6evG8XlLl3ft--
+<html>
+
+<head>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=US-ASCII">
+
+
+<meta name=Generator content="Microsoft Word 10 (filtered)">
+
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink=purple>
+
+<div class=Section1>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>Dear netfilter team,</span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>I'd just like to start with the generic praise stuff:&nbsp;
+iptables is great; I use it every day, etc.&nbsp; I've been throwing around
+some load balancing ideas, and one idea was some NAT'ing with iptables.&nbsp;
+Right now, iptables, using the -to-destination option, only allows one to
+send to a single IP or a range of IP's.&nbsp; I'd really like to see support for
+a comma-delimited list of IP's in addition to those other options.&nbsp; I know
+I should write it myself, but I only do Perl and dabble in C++, and, having
+taken some time to look at the iptables code, feel its really out of my
+league.&nbsp; If you guys think it's important enough to dedicate resources to,
+please do so.&nbsp; This would make iptables a very viable possibility for
+situations where a commercial load balancer is out of budget and unnecessary
+but where a single, very high end server cannot handle the load alone.&nbsp; Thanks
+for your time, I understand if its not a high priority.&nbsp; Thanks again.</span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>John Byrne</span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'><a href="mailto:jonb@athenet.net">jonb@athenet.net</a></span></font></p>
+
+<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------_=_NextPart_001_01C27FDE.44F465D0--
