@@ -1,13 +1,12 @@
-From: Barry Rooney  <netfilter@xcommunications.co.uk>
-Subject: COPS-PR backend
-Date: Tue, 16 Dec 2003 1:17:46 -0100
+From: "prasanna" <prasanna@bharatplanet.com>
+Subject: How to share intrenet connection through NAT
+Date: Wed, 17 Dec 2003 18:08:38 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E1AW3qM-0003D7-00@yankee.rb.xcalibre.co.uk>
-Reply-To: Barry Rooney  <brooney@xcommunications.co.uk>
+Message-ID: <000301c3c49a$b25ad210$05000a0a@bharatplanet.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1";
-Content-Transfer-Encoding: 8bit
-Cc: <larforge@netfilter.org>,  <grinna369@yahoo.com.au>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -20,11 +19,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-I have previously read on this mailing-list about suggestions and plans to
-build COPS/COPS-PR in Java to link into netfilter. Does such a project
-currently exist?
+Hi,
+      I am using redhat 9. I connected internet to this machine. I like
+to share my internet to local machines through NAT. How to configurethe
+NAT?
 
-Many thanks,
+I tried this 
 
-Barry.
+modprobe iptable_nat
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+
+And put gateway as linux machine in local machine
+But unsucessfull 
+
+Please help with script
+
+
+Thanks & Regards,
+Sureshprasanna M.K
+BharatPlanet Consulting Ltd.
+http://www.bharatplanet.co.in 
+
+An SEI-CMM Level 2 Company
+ 
