@@ -1,15 +1,15 @@
-From: Ozgur Akan <akan@aiqa.com>
-Subject: Re: chain_cache
-Date: Fri, 14 May 2004 14:12:59 +0300
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: pom-ng and kernel 2.6.6
+Date: Fri, 14 May 2004 15:38:54 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40A4A9BB.4050706@aiqa.com>
-References: <40A3785F.8070803@aiqa.com>
+Message-ID: <Pine.LNX.4.33.0405141529060.21804-100000@blackhole.kfki.hu>
+References: <87oeosjd5w.fsf@thorr.asgardr.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-9; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-Reply-To: <40A3785F.8070803@aiqa.com>
+To: Daniel 'NebuchadnezzaR' Dehennin <nebuchadnezzar@nerim.net>
+In-Reply-To: <87oeosjd5w.fsf@thorr.asgardr.info>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,26 +20,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-no one knows?
+On Thu, 13 May 2004, Daniel 'NebuchadnezzaR' Dehennin wrote:
 
-Ozgur Akan wrote:
-
-> is "chain_cache->end_off" the adress of last rule of the chain or end 
-> of the last rule(the place where a new rule will appended (like 
-> ipt_entry->next_offset))?
+> I'm trying the latest CVS pom-ng with the 2.6.6 kernel and pom-ng
+> wants to apply the 01_linux-2.6.3.patch
 >
-> struct chain_cache
-> {
->        char name[TABLE_MAXNAMELEN];
->        /* This is the first rule in chain. */
->        unsigned int start_off;
->        /* Last rule in chain */
->        unsigned int end_off;
-> };
+> Testing 01_linux-2.6.3.patch... not applied
 >
-> thanks,
->
+> I say no and try to continue.
 
+Yep, updates part did not support 2.6.6. Required patch has been added
+to cvs.
 
--- 
-Ozgur Akan
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
