@@ -1,18 +1,17 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: locking issue in ip_conntrack_alter_reply
-Date: Mon, 03 May 2004 15:26:00 +0200
+Subject: Re: [PATCH] fine grain locking for tcp helper
+Date: Mon, 03 May 2004 15:55:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40964868.4040904@eurodev.net>
-References: <Pine.LNX.4.44.0405031523560.15193-100000@filer.marasystems.com>
+Message-ID: <40964F69.1040508@eurodev.net>
+References: <Pine.LNX.4.33.0405031034400.24224-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060804040407070608050603"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>,
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
  Patrick McHardy <kaber@trash.net>,
- Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
  Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0405031523560.15193-100000@filer.marasystems.com>
+In-Reply-To: <Pine.LNX.4.33.0405031034400.24224-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,63 +22,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060804040407070608050603
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Jozsef,
 
-Hi,
+Jozsef Kadlecsik wrote:
 
-Henrik Nordstrom wrote:
-
->>Attached the patch to fix this.
->>    
->>
->
->Isn't there a LOCK/UNLOCK imbalance in your patch?
+>I'm not conviced that much could be gained with per TCP locking assuming
+>normal traffic, predominated by TCP. I'm fairly sure that per bucket
+>locking is the way we should go.
 >  
 >
 
-you are right, I should rush... :-( Sorry!
+Actually I was having a look at conntrack_locking for per bucket locking 
+some days ago, I find it interesting. I had in mind to port them to 2.6 
+but Patrick was faster :-).
+
+BTW, is there any problem in using both patches at the same time? If we 
+have a machine with mostly tcp traffic, when we take a conntrack, two 
+buckets will be locked (for original and reply tuples), but when calling 
+tcp specific functions, it will spin until tcp_lock is released possibly 
+by other conntrack.
+
+mmm could this reduce the time both buckets are locked?
+
+>Could you check and revive the patches
+>
+>conntrack_arefcount	- revised reference counting
+>  
+>
+     ^^^
+Is conntrack_locking dependent of this patch? in pom-ng is marked as 
+dependent, but I don't understand why.
+
+If there's no real dependency I think that I could only test 
+conntrack_locking which is more simple (well, I think), this way we 
+could push for kernel inclusion, and after that, go test the revised 
+reference counting. Am I missing anything?
+
+>conntrack_locking	- per bucket locking
+>[conntrack_nonat	- optimization for the conntrack-only case]
+>
+>The patches could be pushed forward if there were independent
+>success reports for general cases, not just performance test reports.
+>  
+>
+sure, I'll have a look at them :-).
 
 regards,
 Pablo
-
-
---------------060804040407070608050603
-Content-Type: text/plain;
- name="alter_reply_locking.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="alter_reply_locking.patch"
-
-Index: net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
-RCS file: /home/cvs/linux-2.6/net/ipv4/netfilter/ip_conntrack_core.c,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	2 May 2004 13:26:10 -0000	1.1.1.1
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	3 May 2004 13:23:43 -0000
-@@ -1093,9 +1093,9 @@
- int ip_conntrack_alter_reply(struct ip_conntrack *conntrack,
- 			     const struct ip_conntrack_tuple *newreply)
- {
--	WRITE_LOCK(&ip_conntrack_lock);
-+	READ_LOCK(&ip_conntrack_lock);
- 	if (__ip_conntrack_find(newreply, conntrack)) {
--		WRITE_UNLOCK(&ip_conntrack_lock);
-+		READ_UNLOCK(&ip_conntrack_lock);
- 		return 0;
- 	}
- 	/* Should be unconfirmed, so not in hash table yet */
-@@ -1109,7 +1109,7 @@
- 		conntrack->helper = LIST_FIND(&helpers, helper_cmp,
- 					      struct ip_conntrack_helper *,
- 					      newreply);
--	WRITE_UNLOCK(&ip_conntrack_lock);
-+	READ_UNLOCK(&ip_conntrack_lock);
- 
- 	return 1;
- }
-
---------------060804040407070608050603--
