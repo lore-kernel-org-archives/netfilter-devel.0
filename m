@@ -1,17 +1,19 @@
-From: Alexandre Becoulet <alexandre.becoulet@epita.fr>
-Subject: Re: [new filter] simple packet authentication
-Date: Fri, 23 Jan 2004 02:16:08 +0100
+From: Unknown <unknown@unknown.invalid>
+Subject: Re: ip_conntrack_pptp
+Date: Thu, 22 Jan 2004 13:09:04 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401230216.08607.alexandre.becoulet@epita.fr>
-References: <200401222204.04861.alexandre.becoulet@epita.fr> <0de101c3e147$648fa910$2601010a@bluereef.local>
-Reply-To: alexandre.becoulet@epita.fr
+Message-ID: <6777.09855740449$1074901755@news.gmane.org>
+References: <20031221122445.GC5058@obroa-skai.de.gnumonks.org> <003601c3e100$6e8a68c0$2d64a8c0@pcjka> <20040122175345.GN1810@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Cc: 'Netfilter Development Mailinglist' <netfilter-devel@lists.netfilter.org>,
+  'Netfilter Mailinglist' <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <0de101c3e147$648fa910$2601010a@bluereef.local>
+From: Alistair Tonner <>
+To: Harald Welte <laforge@netfilter.org>, Jan Kaastrup <jka@protego.dk>
+In-Reply-To: <20040122175345.GN1810@obroa-skai.de.gnumonks.org>
 Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -23,40 +25,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 23 January 2004 01:25, Andrew Hall wrote:
+On January 22, 2004 12:53 pm, Harald Welte wrote:
+> On Thu, Jan 22, 2004 at 04:57:26PM +0100, Jan Kaastrup wrote:
+> > Hi Harald and all on this list.
+> >
+> > I have problems with ip_conntrack_pptp patch from POM-20031219
+> > Does anyone know of this, or is it just me being stupid ?
+>
+> *sigh* *sigh* *sigh*.
+>
+> Does anybody actually ponder reading the 'README' file included in the
+> patch-o-matic package?
 
-> This is a neat idea although I'd probably be a bit wary to use the IP ID
-> field when considering it's use with fragments.
 
-Sure, using the IP ID field could be an issue. The module will not mangle 
-fragmented packets (offset > 0 or MF flag set). That's why packets have to be 
-mangled before being routed. At least, it should work for locally-generated 
-packets, and for packets reaching the first gateway. It should not be usefull 
-to mangle the packet later.
+	I thought that was for padding to make the MD5 sums work??? 
+	*grin*
 
-There is no more problem once the packet has already been mangled because 
-fragmentation will duplicate the new IP ID value.
-
-I don't know if a Linux box can locally generate already fragmented IP packets 
-when used with a TCP payload and a short MTU.
-
-> Perhaps a better solution
-> would be to use part of the options field which apparently DoD originally
-> planned to use for this type of IP partitioning.
-
-It could be solution to use the options field but the packet will not appear 
-as being a common packet on the wire anymore. I find it nice to have a 
-"normal" packet with an hidden authentication information inside ;).
-
-> Also it would be good if
-> it was payload agnostic (could be used for UDP as well as TCP).
-
-Yes, it would be great to had support for UDP packets as well. UDP header 
-doesn't contain enough varying fields to compute a good hash value for each 
-sent packets. I may consider using a part of UDP data to compute the hash 
-value...
-
-Regards,
-
--- 
-Alexandre Becoulet
+	Alistair
+>
+> > Jan
