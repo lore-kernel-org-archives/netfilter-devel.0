@@ -1,16 +1,14 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] Make LOG targets log uid/gid
-Date: 07 May 2003 22:05:05 +0200
+From: Peteris Krumins <newsgroups@lf.lv>
+Subject: iptc_zerro_entries segfaults, why?
+Date: Thu, 8 May 2003 01:26:48 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1052337904.23434.17.camel@tux.rsn.bth.se>
-References: <Pine.LNX.4.51.0305072051330.18612@dns.toxicfilms.tv>
+Message-ID: <136554192396.20030508012648@lf.lv>
+Reply-To: Peteris Krumins <newsgroups@lf.lv>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <Pine.LNX.4.51.0305072051330.18612@dns.toxicfilms.tv>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +19,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2003-05-07 at 20:55, Maciej Soltysiak wrote:
-> Hi,
-> 
-> This patch makes both of the LOG targets log uid and gid of a process
-> that owns the socket related to the sk_buff.
+Hi,
 
-Why not do somethine along the lines of
-http://www.netfilter.org/~gandalf/patches/ipt_LOG-uid.diff
+ i am developing some tool for me which uses libtc to manage rules
+ etc.
+ unfortunately iptc_zerro_entries does not want to work: as soon as
+ called - segfaults.
 
-It adds an option for the uid logging (it doesn't log gid)
-everything else are options so I think this should be too.
+ code (simpified, might have a typo) is like this:
 
-It doesn't really break compability, old userspace still works with the
-kernelpart patch and new userspace still works without the kernelpart
-except that uid logging won't work (and ipt_LOG won't complain and the
-uid option is showed in print/save since ipt_LOG doesn't check
-IPT_LOG_MASK)
+--/
+ char *table = "filter";
+ ...
+ iptc_handle_t h;
+ int ret=0;
+ const char *c = NULL;
+ h = iptc_init(table);
 
--- 
-/Martin
+ if (!h){
+    .. err handler
+ }
+ for (c=iptc_first_chain(&h);
+      c;
+      c=iptc_next_chain(&h)) {
+
+      printf("in filter found: '%s'\n",c);
+      printf("zeroing..\n");
+      ret = iptc_zerro_entries(c,&h);
+      /* segfaults right here [1] */
+      ...
+ }
+--/
+
+[1] i see the prototype of iptc_zerro_entries:
+    TC_ZERO_ENTRIES(const IPT_CHAINLABEL chain, TC_HANDLE_T *handle);
+    IPT_CHAINLABEL is 'typedef char ipt_chainlabel[32]'
+
+    exactly the same thing is done in iptables, only iptables have
+    zero_entries function.
+
+ so what could be wrong?
+
+ compile w/:
+gcc -W -Wall -I<ipt include dir> -rdynamic \
+-o <executable> <src> \
+<path to>/iptables.o <path to/libiptc>/libiptc.a \
+-ldl -lnsl
+
+
+P.Krumins
