@@ -1,12 +1,13 @@
-From: "junk" <junk@toutatis.be>
-Subject: can't unregister_netdevice
-Date: Thu, 24 Feb 2005 11:03:59 +0100
-Message-ID: <20050224100359.M40666@toutatis.be>
-Reply-To: junk <junk@toutatis.be>
+From: "Alan Stead" <alan@stead.com>
+Subject: getting PID and task name from sk_buff
+Date: Wed, 23 Feb 2005 22:17:01 -0800
+Message-ID: <DEEDILHNOLKHPLJKLINBOEFHJMAC.alan@stead.com>
+Reply-To: alan@stead.com
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset=iso-8859-1
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,14 +19,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm coding a module which sends packets to eth0, it actually sends packets but
-when i halt/reboot my linux, it hang over saying it can't unregister_netdevice
-eth0 because usage count is = X
+Hello,
+I am trying to get the PID and Task Name from the sk_buff and am having a
+hard time doing this.
 
-What did I forget in my code?
+I have tried the following:
+sk_buff->sk->sk_socket->file->fowner.pid
+but that always seems to return 0.
 
-I use dev_queue_xmit to transmit my packet to eth0
-I finally kfree_skb my skb
-I did unregister my netfilter hooks
+I was then planning on using the pid to get the specific task and get the
+task->comm to get the name...but I am only getting PID(0): swapper.
 
-Any ideas?
+Any suggestions on a better way to do this?
+I am trying to track network traffic based on the process name and the
+process ID.
+Thanks!
+Alan Stead
