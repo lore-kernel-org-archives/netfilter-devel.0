@@ -1,14 +1,10 @@
-From: Steve D <stevedy2003@yahoo.com>
-Subject: multiport extension --ports parameter problem
-Date: Thu, 14 Aug 2003 04:23:29 -0700 (PDT)
+From: Brad Parker <brad@parker.boston.ma.us>
+Subject: default behavior & skb_linearize
+Date: Fri, 15 Aug 2003 13:56:54 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030814112329.63994.qmail@web80710.mail.yahoo.com>
-References: <20030813234901.19712.96716.Mailman@kashyyyk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <200308151756.h7FHus514738@p2.parker.boston.ma.us>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030813234901.19712.96716.Mailman@kashyyyk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,47 +15,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi:
 
-I'm doing a test on the multiport extension of
-iptables and it seemed the --ports parameter did not
-funtion the same as described in the man page.My test
-procedure is as follows:
+Part of this may be better for the users list, but part of it is internals
+so bear with me... (or is that "bare" with me? :-)
 
-1. set iptables rules:
-  iptables -F
-  iptables --policy FORWARD DROP
-  iptables -A FORWARD -p udp --ports 5 -j ACCEPT
+I want to so some work with iptables in a 2.4.20 kernel.  I'm booting
+with a NFS root.  The stock kernel works fine and the nfs client works
+fine.
 
-2. send a udp packet with source port=5, destination
-port=5, and the packet was accepted. (This test case
-functioned the same as in the man page.)
+But, when I turn on netfilter, the nfs client stops workings - sort of.
 
-3. send a udp packet with source port=5, destination
-port=10, and the packet was accepted. (This test case
-did not function the same as in the man page.)
+aside: I am assuming that if I turn on netfilter and connection tracking
+the "default" (i.e. no external rules loaded via iptables) should pass
+everything and the kernel nfs client should continue to work.  This is
+true, yes?
 
-4. send a udp packet with source port=10, destination
-port=5, and the packet was accepted. (This test case
-did not function the same as in the man page.)
+I can send the interesting parts of my .config if needed.
 
-5. send a udp packet with source port=10, destination
-port=10, and the packet was dropped. (This test case
-functioned the same as in the man page.)
+It looks to me like nfs continues to work but the nfs read response
+udp fragements cause some sort of problem...
 
+I attempt to short circuit nf_hook_slow and this works, but only if I
+comment out the call to "skb_linearize".  Any idea why that is?
 
-As a conclusion, a packet is accepted if either the
-source port or the destination port is one of the
-given ports. In the man page, it says a packet is
-accepted if the source port and the destination port
-are the same and equal to one of the given ports.
+(it's obvious, but I'll point out that if I short circuit nf_hook_slow -
+by calling okfn and returning - the nfs client works fine)
 
-Could anybody tell me if this is a reported bug, or
-there is something wrong with my test plan? Thanks!
+I'll keep digging but I thought there might be something obvious I'm
+missing...
 
-Steve
-
-__________________________________
-Do you Yahoo!?
-Yahoo! SiteBuilder - Free, easy-to-use web site design software
-http://sitebuilder.yahoo.com
+-brad
