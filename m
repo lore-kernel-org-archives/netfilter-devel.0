@@ -1,19 +1,17 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: [1/1] OSF: pom-ng - linux-2.6.
-Date: Wed, 08 Dec 2004 16:43:49 +0300
-Message-ID: <1102513429.3363.71.camel@uganda>
-References: <1102503533.3363.48.camel@uganda>
-	<fa78a99804120805326fed423b@mail.gmail.com>
-Reply-To: johnpol@2ka.mipt.ru
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: PATCH: new match: userindex
+Date: Wed, 8 Dec 2004 15:12:30 +0100
+Message-ID: <20041208141230.GB20371@oknodo.bof.de>
+References: <3801.217.169.232.210.1102511374.squirrel@hupie.xs4all.nl>
+	<20041208131834.GA20371@oknodo.bof.de>
+	<12701.217.169.232.210.1102514649.squirrel@hupie.xs4all.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-1cxbnjfc7C3bU5mj4R2J"
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Pavel A. Nekrasov" <pnekrasov@gmail.com>
-In-Reply-To: <fa78a99804120805326fed423b@mail.gmail.com>
+To: Ferry Huberts <ferry@Hupie.com>
+Content-Disposition: inline
+In-Reply-To: <12701.217.169.232.210.1102514649.squirrel@hupie.xs4all.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,52 +23,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, Dec 08, 2004 at 03:04:09PM +0100, Ferry Huberts wrote:
+> >> Kernel module for attaching a user specified index to a rule.
+> >> It matches every packet in order to have no influence on packet
+> >> matching,
+> >> the only effect is to add a user index to a rule
+> >
+> > I think this is already covered - in extended form, i.e. arbitrary string
+> > instead of an integer - by the comment match, found in patch-o-matic.
+> 
+> I know, but I needed a leaner module
 
---=-1cxbnjfc7C3bU5mj4R2J
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Did you have performance / memory consumption issues with comment,
+that you won't have with your new module?
 
-On Wed, 2004-12-08 at 14:32 +0100, Pavel A. Nekrasov wrote:
-> i got you doing the same.
->=20
-> Evgeniy Polyakov wrote:
->=20
-> >+      nts =3D netlink_kernel_create(NETLINK_NFLOG, NULL);
->=20
-> drivers/w1/w1_int.c:    dev->nls =3D netlink_kernel_create(NETLINK_NFLOG,=
- NULL);
->=20
-> NETLINK_NFLOG is used by ipt_ULOG, you can't use that socket because
-> you are breaking compatibility. You have to use different sockets,
-> call davem and request new ones.
+> Also, using a number is much simpler, at least for me :-)
 
-No, ipt_osf used this number forever.
-And it was discussed with Harald some time ago.
+There's nothing stopping you from putting a number (ASCII formatted)
+into the comment string. Per match, this will waste roughly NR_CPU*252 byte.
 
-Allocating new socket number for any new driver that want to communicate
-over netlink is badly broken idea.
-I've created so called "kernel connector" aka ioctl-ng to solve this
-problem,  and this patch is flying around for some time, but until it
-is=20
-committed we should not break old compatibility issues.
+How many annotations do you need? Is your main memory really that constrained?
 
-> kind regards,
-> Pavel
---=20
-        Evgeniy Polyakov
-
-Crash is better than data corruption -- Arthur Grabowski
-
---=-1cxbnjfc7C3bU5mj4R2J
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQBBtwUVIKTPhE+8wY0RAk31AKCTc3TYK6/zpXtrGinVGFiS5SaPgQCeM0+N
-tRtEB9Xd7EEaD1vh91kfuhw=
-=oOun
------END PGP SIGNATURE-----
-
---=-1cxbnjfc7C3bU5mj4R2J--
+best regards
+  Patrick
