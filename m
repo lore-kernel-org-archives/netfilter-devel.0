@@ -1,13 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Question: Variable sized matchinfo
-Date: Mon, 20 Jan 2003 13:14:30 +0100
+From: Kovacs Krisztian <piglet@sch.bme.hu>
+Subject: nf/ctnetlink and notify
+Date: Mon, 20 Jan 2003 18:11:29 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E2BE826.7020502@trash.net>
+Message-ID: <20030120171129.GB27847@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,16 +19,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
 
-I want to write a match where it would be nice to pass a variable sized 
-matchinfo to kernelspace.
-Is this possible ? I want to avoid always using the largest possible 
-values (2^16 + a few bytes).
-The data in question is a bpf program compiled with pcap_compile ..
-This is probably not the most useful match but i think it beats u32 
-because bpf syntax is already well-known
-and very pleasant to use.
+  Hi,
 
-Regards,
-Patrick
+  I'd have a question regarding the nfnetlink/ctnetlink patch in the
+'extra' suite of POM. In this version of nfnetlink, the notify callback
+API is missing (ip_conntrack_notify_register() and friends), while in the
+old version in the oldnat directory it is part of the ctnetlink patch. Wh=
+y
+was this left out of the patch? What are the main concerns with the
+_notify() code in the old patch?
+  As I can see some kind of such notification service will be required to
+complete the nfnetlink patch, because in its current state it's totally
+uncapable of sending messages on conntrack state changes. (And one
+possible typo in the patch: in nfnetlink_conntrack.c ctnetlink_create is
+not commented out, but there is no use of this function.)
+
+--=20
+ Kov=E1cs Kriszti=E1n
