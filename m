@@ -1,18 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: [PATCH] info file for ROUTE target
-Date: Fri, 10 Dec 2004 01:18:58 +0100
-Message-ID: <41B8EB72.50502@trash.net>
+Date: Fri, 10 Dec 2004 10:14:45 +0100
+Message-ID: <20041210091445.GC4121@oknodo.bof.de>
 References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
-	<20041209195706.GA4121@oknodo.bof.de>
+	<20041209195706.GA4121@oknodo.bof.de> <41B8EB72.50502@trash.net>
+	<1102669404.11255.29.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: "netfilter-devel@lists.netfilter.org"
 	<netfilter-devel@lists.netfilter.org>,
-	Cedric de Launois <delaunois@info.ucl.ac.be>
+	Patrick McHardy <kaber@trash.net>, Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20041209195706.GA4121@oknodo.bof.de>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+Content-Disposition: inline
+In-Reply-To: <1102669404.11255.29.camel@descartes.info.ucl.ac.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,34 +25,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick Schaaf wrote:
+> Thanks to conntrack, we can avoid flooding ourself with duplicated
+> packets.
 
->A propos overlooked (hi list at large :) - I made two postings on
->netfilter-devel recently, which were pure bugfixes for ROUTE,
->and nobody seemed to care. Any idea why that was so?
->
->https://lists.netfilter.org/pipermail/netfilter-devel/2004-November/017485.html
->https://lists.netfilter.org/pipermail/netfilter-devel/2004-November/017514.html
->
-Both applied, thanks.
+NOTE: due to no IPv6 conntrack, the (completely untested :) IPv6 --tee
+patch does _not_ contain the recursion detection I made for v4.
 
->I also made a new contribution, my --tee extension to ROUTE, which also
->went completely uncommented.
->
->https://lists.netfilter.org/pipermail/netfilter-devel/2004-November/017515.html
->
-I'll apply this if Cedric is fine with it.
+I'd love to do this in a different way, but don't know how.
+What is needed, is simply an efficient function that, given
+a (gateway) IP address, or even the already resolved route,
+tells us whether it will reenter the local IP stack.
 
->and finally, unrelated to ROUTE, but equally ignored:
->
->https://lists.netfilter.org/pipermail/netfilter-devel/2004-November/017540.html
->
-I didn't have time to look at this yet.
+> My fear is that you could still have something like this :
+> 
+>           PC1                                    PC2
+> 
+>       orig packet     
+>            |
+>            v                  dup pkt 1
+>    [ROUTE --tee --gw PC2] -------------------------.
+>          | |   ^                                   |
+>          | |   |                                   v
+>          | |   '-----dup pkt 2 ---------- [ROUTE --tee --gw PC1]
+>          | |                                      | |
+>          v v                                      v v
+>  Flood of duplicated packets            Flood of duplicated packets
 
->
->I DEMAND IMMEDIATE ATTENTION TO THESE IMPORTANT MATTERS!!!111111111111!!!!!
->
-:)
+This is easily possible. There are lots of other failure scenarios.
 
-Regards
-Patrick
+For example, when the chosen --gw resolves through our defaul route,
+chances are good all duplicate packets will come back to us almost
+immediately. We saw this in our testing, already. TTL should always
+be properly decremented, so this is a bit self-limiting, but
+nevertheless it's certainly a dangerous thing.
+
+> So we cannot make sure that people don't shoot themself. But anyway,
+> people using the ROUTE target are warned enough by pom...
+> Maybe I'm too paranoid ?
+
+If ROUTE were in the base kernel (which it isn't going to be, according
+to the last workshop results I've seen), I would be against including
+the --tee functionality, and would have made a separate target TEE for
+our needs.
+
+I'm certainly open to doing that, anyway, if this helps alleviate
+some paranoia.
+
+all the best
+  Patrick
