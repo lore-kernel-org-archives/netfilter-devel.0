@@ -1,18 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: NAT Server Performance, SMP box or Single CPU box?
-Date: Tue, 4 Jan 2005 12:05:31 +0100
-Message-ID: <20050104110531.GW11370@sunbeam.de.gnumonks.org>
-References: <41D00A42.5080305@itcsoluciones.com>
-	<41D2ADE9.4050104@itcsoluciones.com>
-Reply-To: netfilter@lists.netfilter.org
+From: Max Kellermann <max@duempel.org>
+Subject: linux 2.6.10: ip_conntrack table overflowing
+Date: Tue, 4 Jan 2005 13:40:34 +0100
+Message-ID: <20050104124034.GA28010@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OKFp/nMBquCu/qa9"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Donato Diaz <donatodd@itcsoluciones.com>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <41D2ADE9.4050104@itcsoluciones.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,53 +18,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---OKFp/nMBquCu/qa9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+yesterday, we upgraded four servers from 2.6.9 to 2.6.10. 12 hours
+later (last night), all of them stopped responding; the conntrack
+tables were full:
 
-On Wed, Dec 29, 2004 at 10:15:21AM -0300, Donato Diaz wrote:
-> Hello,
-> I have read in different lists that some people are having problem doing=
-=20
-> NAT with SMP Servers, due to the way the kernel manage conntrack with=20
-> both CPUs.
+Jan  3 21:03:31 cfapro01 kernel: ip_conntrack: table full, dropping
+packet.
 
-this isn't a development question. Please follow-up to
-netfilter@lists.netfilter.org
+We rebooted, and now there are more than 30000 connections in
+/proc/net/ip_conntrack, but netstat only shows 400; example:
 
-> NAT runs slower on Server SMP with two CPUs?
+tcp      6 421183 ESTABLISHED src=XXremoteXX dst=YYlocalYY
+sport=29800 dport=80 src=YYlocalYY dst=XXremoteXX sport=80
+dport=29800 [ASSURED] mark=0 use=1
 
-no, but the gain is not something like 'twice the performance'. =20
+Seems like conntrack hasn't notice the connection has gone away
+already, and will keep these for 5 days (default timeout). We have now
+worked around this bug by reducing the timeout to 1 hour, I hope this
+keeps the table from filling up until the "real" bug is found and
+fixed.
 
-with networking, your i/o subsystem (64bit, pci-x, fast RAM, ...) is way
-more important than cpu speed.
+Some information about the hardware:
+- compaq, dual xeon p4, serverworks mainboard, 4 GB RAM
+- cciss controller
+- bcm57xx, intel e100 network adapters
 
-> Thanks all,
-> Donato.
+We have KDB enabled on the four machines; they are still up and
+running, with these stale connections. If someone needs more
+information, let me know.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---OKFp/nMBquCu/qa9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFB2nh7XaXGVTD0i/8RAg5uAKCJZA05nLiN89kI6uSyR6bnCzsX8gCgqf3k
-F9Y6Dhnl9Wx6xD0Slo7vHeM=
-=gn+2
------END PGP SIGNATURE-----
-
---OKFp/nMBquCu/qa9--
+Regards,
+Max Kellermann
