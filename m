@@ -1,16 +1,15 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: Re: udp portforward on same interface
-Date: Tue, 15 Jul 2003 15:38:20 +0200
+From: MYRIAM15 <MYRIAM15@terra.es>
+Subject: the state match
+Date: Tue, 15 Jul 2003 19:05:21 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F1403CC.4060208@gmx.de>
-References: <060e01c34a32$ad0df860$15d2f181@TheTraveller>
+Message-ID: <12086108c0.108c012086@teleline.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Amir Zangeneh <amir@noytrino.com>
-In-Reply-To: <060e01c34a32$ad0df860$15d2f181@TheTraveller>
+To: netfilter-devel@lists.netfilter.org
+Content-Language: es
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello!
+I new with iptables, but readinf documents about it, the possibility 
+of keeping the state even with udp sounds fantastic. What I'm trying  
+to configure is a rules/rules to accept packets coming from the two 
+first hosts connected, and after that, deny packets coming from a new 
+third host whatever it was ( all of them connected by UDP). What I 
+mean in few words is to limit the number of hosts connected to 2. As 
+I've said I'm new with this, so I don't know how to handle it. Could 
+someone help me? What rules would I need? Or even if it's not possible 
+to do it with iptables?
 
-Uhhh, and don't forget to ACCEPT traffic for UDP port 98
-in filter table INPUT
-
-Sven
-
-
-
-Amir Zangeneh wrote:
-
-> Hi
->  
-> I'm using iptables as a firewall system and I'm very pleased. But I'm 
-> trying to make a rule which forwards a udp port to another on the same 
-> interface.. I want users who connect to port 78 be redirected to port 
-> 98.. Is it possible to do this with iptables? If yes.. Could someone 
-> give me an example.. thank you..
->  
->  
-> Amir
+Thanks in advance
+Miriam
