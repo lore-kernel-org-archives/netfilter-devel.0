@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libnfnetlink/libctnetlink  ctrace
-Date: Fri, 06 Jun 2003 15:44:14 +0200
+From: "Wojciech \"Sas\" Cieciwa" <cieciwa@alpha.zarz.agh.edu.pl>
+Subject: fuzzy.patch and fuzzy.patch.ipv6 - again.
+Date: Fri, 6 Jun 2003 15:31:42 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EE09AAE.8040902@trash.net>
-References: <20030602222644.6397.85967.Mailman@kashyyyk> <019201c32c2c$b66b89f0$010f430a@elitecore7>
+Message-ID: <Pine.LNX.4.44L.0306061526500.353-100000@alpha.zarz.agh.edu.pl>
+References: <20030605103456.GG18183@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sumit Pandya <sumit@elitecore.com>
-In-Reply-To: <019201c32c2c$b66b89f0$010f430a@elitecore7>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030605103456.GG18183@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,31 +20,75 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-If you like danger you could try my enhanced ctnetlink patch,
-an slightly outdated version (1 1/2 weeks) is available at
-trash.net/~kaber/ctnetlink. It adds notifications for all conntrack
-events. This is work in progress and is not ready for serious use, but i
-would of course be glad if someone else would try it. I'm syncing my
-workstation and my gateway for about a week now, so it probably won't
-crash your machine. If you would like to try it, i'm going to update the
-patch and the userspace tool this weekend. i don't know ctrace but the
-updated tool can display all events in userspace.
+Hi,
 
-Bye,
-Patrick
+I try to build p-o-m [2003 06 05] on PPC and I take some unresolved symbols.
+I don't know, that I send patch which resole this problem.
 
-Sumit Pandya wrote:
+If yes, please appaly this.
+If not here is the patch.
 
->Hi All,
->    Refrencing from below mentioned link I try to search
->libnfnetlink/libctnetlink ctrace but couldnot locate source/binary of these
->2 packages.
->http://lists.netfilter.org/pipermail/netfilter-devel/2002-April/007515.html
->    It seems that www.linux-sna.org is closed. Do I've pointer to access
->source for those libraries and program? I think from
->http://cvs.netfilter.org/netfilter/iptables2/ libraries can be downloaded
->but what about ctrace?
->
->-- Sumit
->  
->
+diff -Nur netfilter.org/patch-o-matic/base/fuzzy.patch netfilter/patch-o-matic/base/fuzzy.patch
+--- netfilter.org/patch-o-matic/base/fuzzy.patch	Wed Sep  4 16:11:30 2002
++++ netfilter/patch-o-matic/base/fuzzy.patch	Fri Jun  6 15:19:57 2003
+@@ -59,7 +59,7 @@
+ + Expressed in percentage
+ +*/
+ +
+-+#define PAR_LOW		0.01
+++#define PAR_LOW		1/100
+ +#define PAR_HIGH	1
+ +
+ +static spinlock_t fuzzy_lock = SPIN_LOCK_UNLOCKED ;
+@@ -138,7 +138,7 @@
+ +       howlow  = mf_low(info->mean_rate,info->minimum_rate,info->maximum_rate);
+ +
+ +    info->acceptance_rate = (u_int8_t) \
+-+		           ( PAR_LOW*howhigh + PAR_HIGH*howlow ) ;
+++		           ( howhigh*PAR_LOW + PAR_HIGH*howlow ) ;
+ +
+ +    /* In fact , the above defuzzification would require a denominator
+ +       proportional to (howhigh+howlow) but , in this particular case ,
+@@ -158,7 +158,7 @@
+ +		get_random_bytes((void *)(&random_number), 1);
+ +
+ +		/*  If within the acceptance , it can pass => don't match */
+-+		if ( random_number <= 2.55 * info->acceptance_rate )
+++		if ( random_number <= (255 * info->acceptance_rate) / 100 )
+ +			return 0 ;
+ +		else
+ +			return 1; /* It can't pass ( It matches ) */
+diff -Nur netfilter.org/patch-o-matic/base/fuzzy6.patch.ipv6 netfilter/patch-o-matic/base/fuzzy6.patch.ipv6
+--- netfilter.org/patch-o-matic/base/fuzzy6.patch.ipv6	Fri Apr 11 12:27:54 2003
++++ netfilter/patch-o-matic/base/fuzzy6.patch.ipv6	Fri Jun  6 15:20:49 2003
+@@ -60,7 +60,7 @@
+ + Expressed in percentage
+ +*/
+ +
+-+#define PAR_LOW		0.01
+++#define PAR_LOW		1/100
+ +#define PAR_HIGH	1
+ +
+ +static spinlock_t fuzzy_lock = SPIN_LOCK_UNLOCKED;
+@@ -138,7 +138,7 @@
+ +		howlow  = mf_low(info->mean_rate,info->minimum_rate,info->maximum_rate);
+ +
+ +		info->acceptance_rate = (u_int8_t) \
+-+				(PAR_LOW * howhigh + PAR_HIGH * howlow);
+++				(howhigh * PAR_LOW + PAR_HIGH * howlow);
+ +
+ +	/* In fact, the above defuzzification would require a denominator
+ +	 * proportional to (howhigh+howlow) but, in this particular case,
+@@ -158,7 +158,7 @@
+ +		get_random_bytes((void *)(&random_number), 1);
+ +
+ +		/*  If within the acceptance , it can pass => don't match */
+-+		if (random_number <= 2.55 * info->acceptance_rate)
+++		if (random_number <= (255 * info->acceptance_rate) / 100)
+ +			return 0;
+ +		else
+ +			return 1; /* It can't pass (It matches) */
+
+-- 
+{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
+{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
