@@ -1,17 +1,16 @@
-From: DarKRaveR <DarKRaveR@habitat-b.de>
-Subject: Re[2]: urgent help on libiptc
-Date: Mon, 10 Mar 2003 18:21:44 +0100
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: urgent help on libiptc
+Date: Mon, 10 Mar 2003 18:42:17 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1436569576.20030310182144@habitat-b.de>
-References: <20030309190618.11970.qmail@web41007.mail.yahoo.com>
- <20030309192348.GA7177@oknodo.bof.de>
-Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
+Message-ID: <20030310174217.GA8066@oknodo.bof.de>
+References: <20030309190618.11970.qmail@web41007.mail.yahoo.com> <20030309192348.GA7177@oknodo.bof.de> <1436569576.20030310182144@habitat-b.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030309192348.GA7177@oknodo.bof.de>
+To: DarKRaveR <DarKRaveR@habitat-b.de>
+Content-Disposition: inline
+In-Reply-To: <1436569576.20030310182144@habitat-b.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,48 +21,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Patrick,
+> Humm, that doesn't sound too good.
 
-Humm, that doesn't sound too good.
-libiptc would be a great thing for directly manipulating rules. if one
-has to use the command line tool, there's an annoying problem: you
-would have to parse the output, which is not really a way I would love
-to go (I am facing the same problem here). On the other hand, since
-the commandline tool always transfers all rules between kernel and
-userspace, it's awfully slow, if you have to update/modify approx 3000
-rules.
-The other question which remains then: Will the iptables commandline
-tool be stable in the sense of: will the output be the same and will
-the commandline switches stay ther same.
-If any developer of iptables reads this, I'd appreciate any thoughts
-on that.
+Too bad.
 
-Thnx
+> libiptc would be a great thing for directly manipulating rules. if one
+> has to use the command line tool, there's an annoying problem: you
+> would have to parse the output, which is not really a way I would love
+> to go (I am facing the same problem here).
 
--Sven
+This is true. Note that iptables-save format is designed to be a bit more
+sane to parse than 'iptables -L' output. Especially, there is already a
+working parser, called iptables-restore. Hope this helps some.
 
-Sunday, March 9, 2003, 8:23:48 PM, you wrote:
+> On the other hand, since
+> the commandline tool always transfers all rules between kernel and
+> userspace, it's awfully slow, if you have to update/modify approx 3000
+> rules.
 
->> There is no tutorial connecting those two topics.
+This will be exactly the same when you use libiptc - it is the
+(admittedly broken) way the kernel/user interface works, now.
+This is the main driver which pushes the rewrite that is currently
+happening.
 
-PS> This is because libiptc is not really thought of as a useful library
-PS> to develop other applications; it's an internal detail of the current
-PS> iptables implementation.
+> The other question which remains then: Will the iptables commandline
+> tool be stable in the sense of: will the output be the same and will
+> the commandline switches stay ther same.
+> If any developer of iptables reads this, I'd appreciate any thoughts
+> on that.
 
-PS> If you need to integrate other applications with iptables, you are
-PS> supposed to call the iptables, iptables-save, and iptables-restore
-PS> programs, and let them worry about the details.
+The 'iptables -L' output, and the 'iptables' commandline interface,
+will change, or so I've been told. Especially the commandline interface:
+it is too flexible (permits you lots of variants in the order of options).
 
-PS> Any program you write now to work with libiptc, is bound to fail
-PS> some time in the not so far future, when the next rewrite of firewalling
-PS> happens. This is already in the works, and as far as I know, there will
-PS> be no attempt at library backwards compatibility.
+Things may be better with the iptables-save / iptables-restore file format,
+or so I hope.
 
-PS> best regards
-PS>   Patrick
+Note that I'm not involved in those rewrite activities, so all this
+is second hand information. And I do think that the questions deserve
+a reliable answer, regarding IF, WHEN, and HOW such a committment CAN
+be made.
 
-
-
--- 
-Best regards,
- DarKRaveR                            mailto:DarKRaveR@habitat-b.de
+best regards
+  Patrick
