@@ -1,14 +1,15 @@
-From: Mircea Ciocan <mirceac@interplus.ro>
-Subject: HELP: Conntrack table filling up !!!
-Date: Mon, 23 Dec 2002 21:00:24 +0200
+From: "pevee" <clkuan@greenpacket.com>
+Subject: merry christmas
+Date: Tue, 24 Dec 2002 09:19:23 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E075D48.70801@interplus.ro>
+Message-ID: <003301c2aaea$7f591950$0ffaa8c0@gpcalvin>
+References: <F15osGkwtjBq27SJ0hD00006d35@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,26 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-	Hi everybody,
+**merry christmas** to all
+may all your wishes come true :*
 
-	I have this problem with connexion tracking table filling to the max 
-and then it remains in a state "near the edge" that will allow only a 
-small number of new conexions and will cause a large packet loss, even 
-"sendto: operation not permited" sometimes when I ping the neighboor 
-routers and so on.
-	Everything got cleared up if I delete the ip tables rules that deal 
-with contrack and remove and reinsert ip_conntrack module.
-	Now if there is some method of avoiding this ( I only see a discution 
-from 2001 that was not conclusive) or if there is is an method to 
-time-out faster those conexions in conntrack table or even a method of 
-globaly quick-flush that table ( could be a even an experimental patch, 
-I'm willing to try it and report) I'd very muck like to hear about it.
-	Anyhow, thank you for your good work and have a happy new year.
-		
-		Regards,
+----- Original Message ----- 
+From: "Hans Jorgensen" <jorgensenhans@hotmail.com>
+To: <netfilter-devel@lists.netfilter.org>
+Sent: Friday, December 20, 2002 12:32 AM
+Subject: (no subject)
 
-		Mircea Ciocan
 
-P.S. kernel is 2.4.18 and machine have enough ram ( 512 MB) and 
-processing power ( P-III 800MHZ), traffic is something like 50 Mb/s top 
-ans 25-30 medium.
+> Dear list
+> 
+> Can anyone tell me how to add a new connection tracking entry? I am 
+> developing my own netfilter kernel module.
+> 
+> A code example would be nice.
+> 
+> Thanks in advance.
+> 
+> /Hans
+> 
+> 
+> 
+> 
+> 
+> _________________________________________________________________
+> The new MSN 8: advanced junk mail protection and 2 months FREE* 
+> http://join.msn.com/?page=features/junkmail
+> 
+> 
