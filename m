@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: fisrt post on the list whit a few questions
-Date: Fri, 12 Mar 2004 19:31:02 +0100 (CET)
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: Fw: Re: network/performance problem
+Date: Fri, 12 Mar 2004 08:09:00 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403121924420.3948-100000@filer.marasystems.com>
-References: <20040312172242.24681180EE@smtp.latinmail.com>
+Message-ID: <20040312160900.GA7504@linuxace.com>
+References: <20040311155036.7da85ab4.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, Ron Peterson <rpeterso@mtholyoke.edu>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jorge Garcia <anarkophobia@latinmail.com>
-In-Reply-To: <20040312172242.24681180EE@smtp.latinmail.com>
+To: Andrew Morton <akpm@osdl.org>
+Content-Disposition: inline
+In-Reply-To: <20040311155036.7da85ab4.akpm@osdl.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,35 +21,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 12 Mar 2004, Jorge Garcia wrote:
+On 2/23 I moved a couple of heavily used firewalls from 2.4.19 -> 2.4.25
+and they suddenly started dying with no indication at all why in the logs.
 
-> Im using netfilter iptables for about 4 months and i really like the
-> product, now im reading about the netfilter programming modules that i
-> find in a phrack article. The modules dont do ehat is expected to do,
-> like in list2.c the program filter input and output interfaces. If i
-> want to filter only incoming packets, how do i do that??
+Then I moved them to 2.6.3+, and they continued to die.  Yesterday I got
+this in the logs on one:
 
-I am not familiar with the example source mentioned, but to filter input 
-packets you hook into the NF_IP_LOCAL_IN hook (packets accepted locally) 
-or NF_IP_PRE_ROUTING hook (packets entering the system from network).
+Mar 11 16:22:17 fw01 kernel: ip_conntrack: table full, dropping packet.
 
-Most people doing filtering uses iptables, where you already have a very 
-rich set of filtering capabilities.
+which is difficult to fathom given I've got max at 65K.  Also, the day prior:
 
-> My second question its about security, the security advisories on the
-> page are old ones and doesnt work for new kernels.
+Mar 10 02:10:32 fw01 kernel: dst cache overflow
 
-This is because there has not been a need for any newer advisories, and 
-the old ones are already corrected in new kernels..
+which doesn't necessarily indicate netfilter per se, but does point to
+networking.
 
-> I want to know if is there any vulneability more new for testing becouse
-> im writing a paper about netfilter security in spanish.
+Just adding my 2 cents for now.  I enabled profiling on a box yesterday,
+so hopefully it will come up with something useful.
 
-I guess that is a paper about iptables security?
+Phil
 
-Netfilter is just the framework in the kernel allowing firewalling etc to
-access the packets.  iptables is the standard firewall implementation
-using the hooks provided by netfilter.
 
-Regards
-Henrik
+On Thu, Mar 11, 2004 at 03:50:36PM -0800, Andrew Morton wrote:
+> 
+> Guys, we do seem to have a netfilter problem.  Could someone please help
+> out with this thread on linux-kernel?
