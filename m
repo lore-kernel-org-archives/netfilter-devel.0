@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: nf_conntrack_core: port to module_param
-Date: Mon, 18 Oct 2004 15:45:50 +0200
+From: Jvalencia <tigrezno@log01.org>
+Subject: Re: bugzilla down?
+Date: Mon, 18 Oct 2004 15:04:33 +0100
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041018134550.GH21927@sunbeam.de.gnumonks.org>
-References: <200410160010.40500.michal@rokos.info>
-	<200410172131.i9HLVrVF010252@toshiba.co.jp>
+Message-ID: <20041018150433.475d20a2.tigrezno@log01.org>
+References: <20041017153501.GA7566@linuxace.com>
+	<20041018133402.GF21927@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TdkiTnkLhLQllcMS"
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200410172131.i9HLVrVF010252@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20041018133402.GF21927@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,48 +21,15 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> 
+> yes, I am sorry.  
+> 
+> Just to warn everybody: never ever try gentoo on a production system.
+> *sigh*.  Any volunteers for starting debian/ppc64 ?
+> 
+> Please give me some time to make bugzilla work again...
+> 
+> > Phil
 
---TdkiTnkLhLQllcMS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 18, 2004 at 06:31:52AM +0900, Yasuyuki Kozakai wrote:
-> And, I'm changing many parts and afraid of double work. After more some
-> changes and tests, I'll send the latest nf_conntrack (or commit it to tree
-> in netfilter site). I use the branch for nf_conntrack in USAGI tree as
-> snapshot only. Moreover, I think that almost people check nf_conntrack
-> in only netfilter site.
-
-Plese note that we have migrated from CVS to subversion meanwhile.  I
-will give you a subversion key and instructions in seperate private
-email laater today.
-
-I'm looking forward to see your synchronized nf_conntrack version, let's
-hope we can include it soon.
-
-> Regards,
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---TdkiTnkLhLQllcMS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBc8kOXaXGVTD0i/8RAv4hAKCPVUGZgT/lOF59G7hEEjmqEJnIcQCeNHtB
-/rFDnmjZ+9TJyAImiyIZceU=
-=ULSy
------END PGP SIGNATURE-----
-
---TdkiTnkLhLQllcMS--
+Please, don't blame Gentoo, blame your skills.
