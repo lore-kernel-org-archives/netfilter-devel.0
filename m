@@ -1,15 +1,17 @@
-From: Javier Valencia <jvalencia@log01.org>
-Subject: Re: unable to reinject the IP packets using ipq_set_verdict (libipq
- API)
-Date: Mon, 20 Dec 2004 12:35:31 +0000
-Message-ID: <41C6C713.8090703@log01.org>
-References: <4EE0CBA31942E547B99B3D4BFAB34811258EA4@mail.esn.co.in>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [testsuite] ipt_tos
+Date: Mon, 20 Dec 2004 17:12:14 +1100
+Message-ID: <1103523134.15405.2.camel@localhost.localdomain>
+References: <32914.66.11.161.14.1103516524.squirrel@66.11.161.14>
+	<33003.66.11.161.14.1103523626.squirrel@66.11.161.14>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
+	sjean@cookinglinux.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4EE0CBA31942E547B99B3D4BFAB34811258EA4@mail.esn.co.in>
+To: Nicolas Bouliane <nib@cookinglinux.org>
+In-Reply-To: <33003.66.11.161.14.1103523626.squirrel@66.11.161.14>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,5 +23,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Are calculating checksums? If a checksum is invalid, no packet will be 
-accepted.
+On Mon, 2004-12-20 at 01:20 -0500, Nicolas Bouliane wrote:
+> Hi Rusty,
+> 
+> Since libipt_tos works well, I kick the sim out from 'expected-failure'
+> and did some clean-up. Its life was kinda short, eh! :-)
+
+expected failure should still apply for 1.2*, so I just changed that.
+
+Cheers,
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
