@@ -1,14 +1,13 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 11/11] Netfilter: Get rid of initialized in nat structure:
-	use conntrack status bits
-Date: Mon, 17 Jan 2005 16:46:29 +1100
-Message-ID: <1105940789.3954.34.camel@localhost.localdomain>
+Subject: [PATCH] Netfilter: Don't cachline align slab allocs
+Date: Mon, 17 Jan 2005 18:40:49 +1100
+Message-ID: <1105947649.3954.39.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Cc: Anton Blanchard <anton@samba.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,178 +19,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Get rid of initialized in nat structure: use conntrack status bits
-Status: Tested under nfsim
+Name: Don't cachline align slab allocs
+Status: Trivial
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-Fairly simple patch to move the "initialized" NAT bitfield to bits in
-the 'status' word.  This saves the size of a pointer from the
-connection tracking structure.
+Anton points out that cacheline aligning conntrack entries is a wank.
+He's right: there's lots of them, and they're currently ~200 bytes.
+Same with the cargo-cult programming in ipt_hashlimit.
 
-Index: linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_nat_core.c
+Index: linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ipt_hashlimit.c
 ===================================================================
---- linux-2.6.11-rc1-bk4-Netfilter.orig/net/ipv4/netfilter/ip_nat_core.c	2005-01-17 16:14:14.209886600 +1100
-+++ linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_nat_core.c	2005-01-17 16:14:19.347105624 +1100
-@@ -88,13 +88,11 @@
- /* Noone using conntrack by the time this called. */
- static void ip_nat_cleanup_conntrack(struct ip_conntrack *conn)
- {
--	struct ip_nat_info *info = &conn->nat.info;
--
--	if (!info->initialized)
-+	if (!(conn->status & IPS_NAT_DONE_MASK))
- 		return;
- 
- 	WRITE_LOCK(&ip_nat_lock);
--	list_del(&info->bysource);
-+	list_del(&conn->nat.info.bysource);
- 	WRITE_UNLOCK(&ip_nat_lock);
- }
- 
-@@ -287,14 +285,14 @@
- {
- 	struct ip_conntrack_tuple curr_tuple, new_tuple;
- 	struct ip_nat_info *info = &conntrack->nat.info;
--	int have_to_hash = !info->initialized;
-+	int have_to_hash = !(conntrack->status & IPS_NAT_DONE_MASK);
- 	enum ip_nat_manip_type maniptype = HOOK2MANIP(hooknum);
- 
- 	IP_NF_ASSERT(hooknum == NF_IP_PRE_ROUTING
- 		     || hooknum == NF_IP_POST_ROUTING
- 		     || hooknum == NF_IP_LOCAL_IN
- 		     || hooknum == NF_IP_LOCAL_OUT);
--	IP_NF_ASSERT(!(info->initialized & (1 << maniptype)));
-+	BUG_ON(ip_nat_initialized(conntrack, maniptype));
- 
- 	/* What we've got will look like inverse of reply. Normally
- 	   this is what is in the conntrack, except for prior
-@@ -331,7 +329,11 @@
+--- linux-2.6.11-rc1-bk4-Netfilter.orig/net/ipv4/netfilter/ipt_hashlimit.c	2005-01-17 15:37:53.000000000 +1100
++++ linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ipt_hashlimit.c	2005-01-17 18:37:58.294915536 +1100
+@@ -668,11 +668,9 @@
+ 		goto cleanup_nothing;
  	}
  
- 	/* It's done. */
--	info->initialized |= (1 << maniptype);
-+	if (maniptype == IP_NAT_MANIP_DST)
-+		set_bit(IPS_DST_NAT_DONE_BIT, &conntrack->status);
-+	else
-+		set_bit(IPS_SRC_NAT_DONE_BIT, &conntrack->status);
-+
- 	return NF_ACCEPT;
- }
- 
-@@ -446,10 +448,11 @@
-            start talking to each other without our translation, and be
-            confused... --RR */
- 	if (inside->icmp.type == ICMP_REDIRECT) {
--		/* Don't care about races here. */
--		if (ct->nat.info.initialized
--		    != ((1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST))
--		    || (ct->status & IPS_NAT_MASK))
-+		/* If NAT isn't finished, assume it and drop. */
-+		if ((ct->status & IPS_NAT_DONE_MASK) != IPS_NAT_DONE_MASK)
-+			return 0;
-+
-+		if (ct->status & IPS_NAT_MASK)
- 			return 0;
- 	}
- 
-@@ -529,11 +532,9 @@
- 	/* FIXME: Man, this is a hack.  <SIGH> */
- 	IP_NF_ASSERT(ip_conntrack_destroyed == NULL);
- 	ip_conntrack_destroyed = &ip_nat_cleanup_conntrack;
--	
--	/* Initialize fake conntrack so that NAT will skip it */
--	ip_conntrack_untracked.nat.info.initialized |= 
--		(1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST);
- 
-+	/* Initialize fake conntrack so that NAT will skip it */
-+	ip_conntrack_untracked.status |= IPS_NAT_DONE_MASK;
- 	return 0;
- }
- 
-Index: linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_nat_helper.c
+-	/* FIXME: do we really want HWCACHE_ALIGN since our objects are
+-	 * quite small ? */
+ 	hashlimit_cachep = kmem_cache_create("ipt_hashlimit",
+ 					    sizeof(struct dsthash_ent), 0,
+-					    SLAB_HWCACHE_ALIGN, NULL, NULL);
++					    0, NULL, NULL);
+ 	if (!hashlimit_cachep) {
+ 		printk(KERN_ERR "Unable to create ipt_hashlimit slab cache\n");
+ 		ret = -ENOMEM;
+Index: linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c
 ===================================================================
---- linux-2.6.11-rc1-bk4-Netfilter.orig/net/ipv4/netfilter/ip_nat_helper.c	2005-01-17 16:14:14.209886600 +1100
-+++ linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_nat_helper.c	2005-01-17 16:14:19.347105624 +1100
-@@ -411,7 +411,7 @@
- 	struct ip_nat_range range;
+--- linux-2.6.11-rc1-bk4-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-17 16:14:12.000000000 +1100
++++ linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-17 18:37:42.738280504 +1100
+@@ -1205,7 +1205,7 @@
  
- 	/* This must be a fresh one. */
--	BUG_ON(ct->nat.info.initialized);
-+	BUG_ON(ct->status & IPS_NAT_DONE_MASK);
+ 	ip_conntrack_cachep = kmem_cache_create("ip_conntrack",
+ 	                                        sizeof(struct ip_conntrack), 0,
+-	                                        SLAB_HWCACHE_ALIGN, NULL,NULL);
++	                                        0, NULL, NULL);
+ 	if (!ip_conntrack_cachep) {
+ 		printk(KERN_ERR "Unable to create ip_conntrack slab cache\n");
+ 		goto err_free_hash;
+@@ -1213,7 +1213,7 @@
  
- 	/* Change src to where master sends to */
- 	range.flags = IP_NAT_RANGE_MAP_IPS;
-Index: linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_nat_rule.c
-===================================================================
---- linux-2.6.11-rc1-bk4-Netfilter.orig/net/ipv4/netfilter/ip_nat_rule.c	2005-01-17 15:57:58.000000000 +1100
-+++ linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_nat_rule.c	2005-01-17 16:14:19.361103496 +1100
-@@ -267,7 +267,7 @@
- 	ret = ipt_do_table(pskb, hooknum, in, out, &nat_table, NULL);
- 
- 	if (ret == NF_ACCEPT) {
--		if (!(info->initialized & (1 << HOOK2MANIP(hooknum))))
-+		if (!ip_nat_initialized(ct, HOOK2MANIP(hooknum)))
- 			/* NUL mapping */
- 			ret = alloc_null_binding(ct, info, hooknum);
- 	}
-Index: linux-2.6.11-rc1-bk4-Netfilter/include/linux/netfilter_ipv4/ip_nat.h
-===================================================================
---- linux-2.6.11-rc1-bk4-Netfilter.orig/include/linux/netfilter_ipv4/ip_nat.h	2005-01-17 16:14:12.357168256 +1100
-+++ linux-2.6.11-rc1-bk4-Netfilter/include/linux/netfilter_ipv4/ip_nat.h	2005-01-17 16:14:19.361103496 +1100
-@@ -55,9 +55,6 @@
- /* The structure embedded in the conntrack structure. */
- struct ip_nat_info
- {
--	/* Set to zero when conntrack created: bitmask of maniptypes */
--	u_int16_t initialized;
--
- 	struct list_head bysource;
- 
- 	/* Helper (NULL if none). */
-Index: linux-2.6.11-rc1-bk4-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h
-===================================================================
---- linux-2.6.11-rc1-bk4-Netfilter.orig/include/linux/netfilter_ipv4/ip_conntrack.h	2005-01-17 16:14:14.210886448 +1100
-+++ linux-2.6.11-rc1-bk4-Netfilter/include/linux/netfilter_ipv4/ip_conntrack.h	2005-01-17 16:14:19.361103496 +1100
-@@ -55,6 +55,16 @@
- 	/* Connection needs TCP sequence adjusted. */
- 	IPS_SEQ_ADJUST_BIT = 6,
- 	IPS_SEQ_ADJUST = (1 << IPS_SEQ_ADJUST_BIT),
-+
-+	/* NAT initialization bits. */
-+	IPS_SRC_NAT_DONE_BIT = 7,
-+	IPS_SRC_NAT_DONE = (1 << IPS_SRC_NAT_DONE_BIT),
-+
-+	IPS_DST_NAT_DONE_BIT = 8,
-+	IPS_DST_NAT_DONE = (1 << IPS_DST_NAT_DONE_BIT),
-+
-+	/* Both together */
-+	IPS_NAT_DONE_MASK = (IPS_DST_NAT_DONE | IPS_SRC_NAT_DONE),
- };
- 
- #ifdef __KERNEL__
-@@ -291,5 +301,12 @@
- 
- #define CONNTRACK_STAT_INC(count) (__get_cpu_var(ip_conntrack_stat).count++)
- 
-+static inline int ip_nat_initialized(struct ip_conntrack *conntrack,
-+				     enum ip_nat_manip_type manip)
-+{
-+	if (manip == IP_NAT_MANIP_SRC)
-+		return test_bit(IPS_SRC_NAT_DONE_BIT, &conntrack->status);
-+	return test_bit(IPS_DST_NAT_DONE_BIT, &conntrack->status);
-+}
- #endif /* __KERNEL__ */
- #endif /* _IP_CONNTRACK_H */
-Index: linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_nat_standalone.c
-===================================================================
---- linux-2.6.11-rc1-bk4-Netfilter.orig/net/ipv4/netfilter/ip_nat_standalone.c	2005-01-17 16:13:03.310664920 +1100
-+++ linux-2.6.11-rc1-bk4-Netfilter/net/ipv4/netfilter/ip_nat_standalone.c	2005-01-17 16:14:19.362103344 +1100
-@@ -118,7 +118,7 @@
- 
- 		/* Seen it before?  This can happen for loopback, retrans,
- 		   or local packets.. */
--		if (!(info->initialized & (1 << maniptype))) {
-+		if (!ip_nat_initialized(ct, maniptype)) {
- 			unsigned int ret;
- 
- 			/* LOCAL_IN hook doesn't have a chain!  */
+ 	ip_conntrack_expect_cachep = kmem_cache_create("ip_conntrack_expect",
+ 					sizeof(struct ip_conntrack_expect),
+-					0, SLAB_HWCACHE_ALIGN, NULL, NULL);
++					0, 0, NULL, NULL);
+ 	if (!ip_conntrack_expect_cachep) {
+ 		printk(KERN_ERR "Unable to create ip_expect slab cache\n");
+ 		goto err_free_conntrack_slab;
+
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
