@@ -1,13 +1,16 @@
-From: xiao shao <shao@tt.cs.titech.ac.jp>
-Subject: iptables extension help
-Date: Sun, 16 Nov 2003 13:35:05 +0900
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: 2.4 SNAT fails randomly
+Date: Sun, 16 Nov 2003 10:52:06 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031116043510.936426D9B5@barrel.tokuda.cs-private>
+Message-ID: <20031116095206.GA32471@balabit.hu>
+References: <200311151103.47454.timg@tpi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter_devel <netfilter-devel@lists.netfilter.org>
+To: Tim Gardner <timg@tpi.com>
+Content-Disposition: inline
+In-Reply-To: <200311151103.47454.timg@tpi.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,23 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I write a new iptables target for a test and compiled the
-kernel without error messages. But when I tried to use this
-target, I got the following error message.
+On Sat, Nov 15, 2003 at 11:03:47AM -0700, Tim Gardner wrote:
+> I think I have a case where SNAT is sometimes failing. I have a specific case 
+> where UDP SNAT fails repeatedly. However, I have SPOOF log entries on some of 
+> our servers that indicate TCP is also failing SNAT once in awhile.
+>[snip] 
+> This client has a NetGear router connected to our firewall. The NetGear router 
+> has a well known bug wherein it attempts to get time/date via UDP/NTP from a 
+> hardcoded destination (caesar.cs.wisc.edu). This is the UDP packet that is 
+> not being SNAT'd. The packet in question is thus:
+> 
 
-*********************************************
+NAT mappings are established for NEW connections only, isn't it possible that your 
+client sent an NTP request while your rule was not yet established? This means that it
+is entered the CONNTRACK table without the NAT manip and anything that comes later is
+not NATed as it is not a fresh CONNTRACK.
 
-ptables v1.2.6a: Couldn't load target `ORG':/lib/iptables/libipt_ORG.so: cannot open
-shared object file: No such file or directory
+Try filtering this traffic for 180secs and see it disappear from /proc/net/ip_conntrack, 
+then remove the filtering and check whether it traversed the  nat/POSTROUTING chain.
 
-Try `iptables -h' or 'iptables --help' for more information.
-
- *********************************************
-
-I searched the entire machine for this file and couldn't find it.  I 
- am currently using Redhat 8.0 with version 2.4.20 of the linux kernel 
- and iptables v.1.2.6a.
-
-
-
-Xiao Shao
+-- 
+Bazsi
