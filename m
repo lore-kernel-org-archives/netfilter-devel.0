@@ -1,13 +1,15 @@
-From: Daniel 'NebuchadnezzaR' Dehennin <nebuchadnezzar@nerim.net>
-Subject: ipt_sctp undeclared variable
-Date: Sun, 14 Mar 2004 14:17:17 +0100
+From: =?iso-8859-2?q?Micha=B3_Margula?= <alchemyx@uznam.net.pl>
+Subject: Floods
+Date: Sun, 14 Mar 2004 19:30:29 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <87znajva8y.fsf@thorr.asgardr.info>
+Message-ID: <200403141930.29602.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,41 +20,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---=-=-=
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hello!
 
-hello,
+	I have problem, quite big one. I don't know how to deal with it. Tried=20
+everything i know. I have a 2 x Xeon 2.66 server with 1 Gig ram. Everything=
+=20
+based on Intel e100 and e1000 NICs. That server is my firewall and gateway.
 
-I try the latest pom-ng (from cvs) and I have an error during
-the build:
+I have common problem - viruses, worms and so on. It degrades server=20
+performance quite much. I am using connlimit.
 
-net/ipv4/netfilter/ipt_sctp.c: In function =AB match_packet =BB:
-net/ipv4/netfilter/ipt_sctp.c:59: error: `i' undeclared (first use in this =
-function)
-net/ipv4/netfilter/ipt_sctp.c:59: error: (Each undeclared identifier is rep=
-orted only once
-net/ipv4/netfilter/ipt_sctp.c:59: error: for each function it appears in.)
-make[4]: *** [net/ipv4/netfilter/ipt_sctp.o] Erreur 1
+=2Dp tcp --syn -m connlimit --connlimit-above 100 -j DROP
 
-Thanks.
+It was working fine until today. I was hit by UDP flood coming from one of =
+our=20
+100mbit networks. I found that person and disconnected, but that is not=20
+solution. Event "-t raw" didnt' help.
+
+Altough after removing ip_conntrack from kernel everything goes fine. But i=
+=20
+can't stop using conntrack, because of SNAT, DNAT and REDIRECT targets.
+
+What do you recommend? Unfortunately connlimit does not work with UDP packe=
+ts=20
+(no wonder - UDP is conection less). What should I do? I even thought about=
+=20
+switch to FreeBSD (sic! :<).
+
+Help, please!
+
 =2D-=20
-Daniel 'NebuchadnezzaR' Dehennin
-R=E9cupp=E9rer ma clef GPG:
-gpg --keyserver pgp.mit.edu --recv-keys 0x4CA73DC6
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iQEVAwUAQFRbYdWamn5Mpz3GAQK5QQf8D+sDmcaA4a1+MbEoewhzRBgEIPKwnXqY
-37qi4ASqbu8Vbgm1W2WTqKc03SR+z/A9zJ5N0B30o4PgKxkqa7ZyKdl1davIKof0
-5mssS9g08IlN/i6eZdhPG7KSIyhrXQR3m5OVbaZ8MwgN9afW88K3PGlk/kl1vZlY
-h9Nh49WmvBsPW9aPDdCmc2ynkUJQdC0rDYlKybRBWqajUjjLoPLzKtrdK94PNeeN
-EfmGNJ0wp2eMiEvgwBD0tOs1yA0P0z4m8bZwAc0hHAI01cwtnQy/ZXdg4BftbQ2Y
-c9HYeU7qI7Zem8D/5bxn/4F2ym4CVLKj2cazyqodU6SjkWQGUEuiQQ==
-=YS3m
------END PGP SIGNATURE-----
---=-=-=--
+Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/
+"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
