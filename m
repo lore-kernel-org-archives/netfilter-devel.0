@@ -1,14 +1,12 @@
-From: "zhaoyao" <zhaoyao@harbournetworks.com>
-Subject: conntrack help
-Date: Tue, 17 Feb 2004 10:1:47 +0800
+From: Kiran Kumar <immidi_kiran@yahoo.com>
+Subject: TCP match and IP fragmentation
+Date: Mon, 16 Feb 2004 21:49:11 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E1AsuVh-0007mH-MI@vishnu.netfilter.org>
+Message-ID: <20040217054911.91929.qmail@web14007.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-      charset="GB2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,19 +17,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-netfilter-devel=A3=AC=C4=FA=BA=C3=A3=A1
+Hi,
+  I need some clarification on how ip fragmentation
+and tcp match interact. The tcp match seems to not
+match any non-first fragments (return 0 if offset is
+non-zero). So, if I have a rule to accept tcp packets
+to a certain port in a chain, and no other rules, does
+that mean that the first fragment is accepted and the
+later ones not accepted? Do correct me if I have got
+anything wrong.
 
-=09conntrack IP_CT_DIR_ORIGINAL and IP_CT_DIR_REPLY
-is the same conntrack?
-    I mean orignal and reply use same conntrack, and not two=
- conntrack?
-If it is same conntrack, why clean_from_lists LIST_DELETE twice,=
- orignal and reply?
 
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=D6=C2
-=C0=F1=A3=A1
- =09=09=09=09
+=====
+Regards,
+Kiran Kumar Immidi
 
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1zhaoyao
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1zhaoyao@harbournetworks.com
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A12004-02-17
+__________________________________
+Do you Yahoo!?
+Yahoo! Finance: Get your refund fast by filing online.
+http://taxes.yahoo.com/filing.html
