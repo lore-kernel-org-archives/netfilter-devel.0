@@ -1,44 +1,34 @@
-From: Peter Stamfest <peter@stamfest.at>
-Subject: Re: question for (existing?) feature
-Date: Sun, 23 Mar 2003 20:43:06 +0100 (CET)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0303232038100.2375-100000@peter.stamf.pr.at>
-References: <2405.1047904769@frodo.gams.co.at>
+From: J Sloan <joe@tmsusa.com>
+Subject: Re: An oops while running 2.5.65-mm2
+Date: Sun, 23 Mar 2003 20:43:03 -0800
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <3E7E8CD7.3060507@tmsusa.com>
+References: <3E7A1ABF.7050402@tmsusa.com>	 <20030320122931.0d2f208f.akpm@digeo.com> <1048209554.1103.21.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <2405.1047904769@frodo.gams.co.at>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 17 Mar 2003, Bernd Petrovitsch wrote:
+Martin Josefsson wrote:
 
-> "K. Posern" <k@posern.org> wrote:
-> >Is there a possibility to provice a description to rule - which will be printe
-> >d out with "iptables -L" or "iptables -L -v"???
-> 
-> Yes, just implement a comment field.
+>This might explain the crashes I've seen in my routers but been unable
+>to capture so far (and without the extra slab debugging I don't know if
+>I would have been able to find it or even get a decent capture...)
+>
+>Patch attached that should fix the problem, not tested or even compiled.
+>
+>Joe, can you please please test it and report back?
+>
 
-[snip]
+I've been running 2.5.65-kb2 + your patch
+for the past 2 days and everything is fully
+functional, with no repeat of the problems
+we saw before.
 
-> >    What are you thinking about it?
-> 
-> It is more than superflous (read: No, do not do it.). Reason: see 
-> above.
+Nice work.
 
-I disagree. Eg. if you do accounting using iptables it is vital to be able
-to identify the correct rule, regardless of possibly added or rearranged
-rules. A comment field can provide for this quite nicely. Then you might 
-implement accounting using bash + grep only.
-
-You can't do that with a script containing the comments.
-
-peter
+Joe
