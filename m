@@ -1,22 +1,16 @@
-From: Oskar Andreasson <blueflux@koffein.net>
-Subject: Re: ipt_physdev.c alignment problems on parisc64
-Date: Fri, 12 Sep 2003 15:55:25 +0200 (CEST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: connlimit patch
+Date: 12 Sep 2003 16:24:27 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.53.0309121552100.2544@oskar-lap.agatha>
-References: <200309022116.41697.bdschuym@pandora.be>  <20030903200426.59d0af4a.davem@redhat.com>
-  <20030905153152.GA3623@obroa-skai.de.gnumonks.org>
- <1063330846.1028.11.camel@jzny.localdomain>  <20030912085606.GC2350@obroa-skai.de.gnumonks.org>
-  <Pine.LNX.4.53.0309121244400.2544@oskar-lap.agatha>
- <1063371359.1027.99.camel@jzny.localdomain>
+Message-ID: <1063376667.14384.27.camel@henrik.marasystems.com>
+References: <20030912123433.97028.qmail@web21602.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	"David S. Miller" <davem@redhat.com>,
-	Bart De Schuymer <bdschuym@pandora.be>, acme@conectiva.com.br,
-	netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: jamal <hadi@cyberus.ca>
-In-Reply-To: <1063371359.1027.99.camel@jzny.localdomain>
+To: neo neo <neo_1979m@yahoo.com>
+In-Reply-To: <20030912123433.97028.qmail@web21602.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -27,27 +21,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 12 Sep 2003, jamal wrote:
+fre 2003-09-12 klockan 14.34 skrev neo neo:
+>        The connlimit patch by Gerd Knorr  uses the fuction
+> ip_conntrack_find_get() defined in ipt_conntrack_core.c. But it seems 
+> ip_conntrack_find_get is not getting exported - I get an 
+>    "unrsolved symbol - ip_conntrack_find_get" error when I try to
+> insmod the module ipt_connlimit ( I use redhat linux 8.0).
 
->
-> How it is presented to the user - and how it is actually implemented are
-> two different things.
-> you could still enter it as ppp+
->
+Hmm.. it is exported in my kernel.. what kernel are you using?
 
-Of course I am aware of that, I just wanted to push my view on it since I
-believe there must be many more than us doing the same thing (or more
-modems per machine for that matter). However, I was a little bit worried
-that someone might be pushing a solution that may be much slower in our
-way of looking at it ;).
+The export was added in 2.4.21 and is included in p-o-m as
+submitted/02_2.4.20.patch
 
-> cheers,
-> jamal
->
+> Is there any other way to get the  ipt_conntrack_tuple_hash from the
+> given tuple?
 
-----
-Oskar Andreasson
-http://www.frozentux.net
-http://iptables-tutorial.frozentux.net
-http://ipsysctl-tutorial.frozentux.net
-mailto:blueflux@koffein.net
+Probably not.
+
+Regards
+Henrik
+
+-- 
+Henrik Nordstrom <hno@marasystems.com>
+MARA Systems AB
