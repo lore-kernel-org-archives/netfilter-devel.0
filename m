@@ -1,14 +1,15 @@
-From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-Subject: Counter problem in a new nat target.
-Date: Mon, 08 Dec 2003 13:53:28 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: netfilter vs iptables naming confusion
+Date: Mon, 8 Dec 2003 13:09:47 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FD46638.5000300@netlab.hut.fi>
-Reply-To: emmanuel@netlab.hut.fi
+Message-ID: <Pine.LNX.4.44.0312081257120.10693-100000@filer.marasystems.com>
+References: <3FD45DDC.9030901@epmhs.gr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Haris Koutsouris <harisk@epmhs.gr>
+In-Reply-To: <3FD45DDC.9030901@epmhs.gr>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,16 +20,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+On Mon, 8 Dec 2003, Haris Koutsouris wrote:
 
-I need to include a counter in my new nat target function (basically to 
-know how many connections for a particular target are curently 
-registered in the nat table). I had first though about including a 
-simple integer in my targinfo, but I just noticed that it is passed to 
-the target function as a const. Thus it does not work.
-Does someone has a good advice on where I can store my variable? Can I 
-use the void *userdata ? (I do not really know to what it points).
+> <my understanding>
+> Netfilter is a set of hooks in the networking code of the linux kernel
+>   that allows another piece of code (kernel module) to register for 
+> access  to the packets that pass through these points.
 
-Thanks,
+Yes.
 
-          Emmanuel
+> Several iptables kernel modules (e.g ip_tables,
+> iptable_mangle,ipt_conntrack, ipt_LOG)  implement the firewalling
+> functionality and in addition the user space utility iptables is used as
+> a user interface to the iptables functionality.
+
+Many also consider the connection tracking as part of the netfilter
+framework, and maybe even the NAT core in some respect, but it is a thin
+boundary especially considering that it is mainly iptables which use 
+these.
+
+But it is certainly correct to say that netfilter is the hook
+infrastrucure allowing the firewall access to the packet flow, and
+iptables is the firewalling code of iptables.
+
+> A final question are the kernel modules named iptables modules or 
+> netfilter modules?????
+
+There are both. The design is layered with modules at both layers.
+
+modules which registers netfilter hooks are netfilter modules. This
+includes iptables itself and the connection tracking, but there is also
+several other netfilter modules such as Linux Virtual Server or the HiPac
+firewall.
+
+modules which registers iptables targets/matches for use in the iptables
+firewall are iptables modules.
+
+Regards
+Henrik
