@@ -1,13 +1,14 @@
-From: "lu.peng" <lu.peng.louis@163.com>
-Subject: How to limit the rate of the TCP connections from a subnet?
-Date: Mon, 8 Nov 2004 19:53:48 +0800
-Message-ID: <MHEFLEOMPIPCIFEKLNIPEEGGCAAA.lu.peng.louis@163.com>
+From: Jvalencia <tigrezno@log01.org>
+Subject: Re: How to limit the rate of the TCP connections from a subnet?
+Date: Mon, 8 Nov 2004 11:56:09 +0000
+Message-ID: <20041108115609.6c95213a.tigrezno@log01.org>
+References: <MHEFLEOMPIPCIFEKLNIPEEGGCAAA.lu.peng.louis@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <MHEFLEOMPIPCIFEKLNIPEEGGCAAA.lu.peng.louis@163.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,23 +20,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-DQoNCkhpLCBhbGwsDQoNCiAgICAgIEkgd2FudCB0byBsaW1pdCB0aGUgcmF0ZSBvZiB0aGUgVENQ
-IGNvbm5lY3Rpb25zIG9mIGV2ZXJ5IHNpbmdsZSBpcCBmcm9tIGEgc3BlY2lmaWMgc3VibmV0LCBi
-dXQgaSBjYW4ndCBmaW5kIGEgZ29vZCB3YXkgdG8gZG8gdGhhdC4NCg0KICAgICAgSSBoYXZlIHN0
-dWRpZWQgdHdvIG1hdGNoZXM6DQogICAgICAxLCAnY29ubmxpbWl0JyAgbWF0Y2gNCiAgICAgICAg
-ICBidXQgdW5mb3J0dW5hdGVseSwgICdjb25ubGltaXQnIG1hdGNoIHByb3ZpZGUgdHdvIHdheXMg
-dG8gbGltaXQgdGhlIHN1bSBvZiB0aGUgVENQIGNvbm5lY3Rpb25zOg0KICAgICAgICAgIDEpIHNp
-bmdsZSBJUA0KICAgICAgICAgIDIpIHdob2xlIHN1Ym5ldCBub3QgZXZlcnkgc2luZ2xlIGlwIG9m
-IHRoZSBzdWJuZXQNCiAgICAgICAgIGFuZCBtb3N0IGltcG9ydGFudGx5LCBpdCBjYW4gbm90IGxp
-bWl0IHRoZSByYXRlICwganVzdCBsaW1pdCB0aGUgc3VtIG9mIHRoZSBUQ1AgY29ubmVjdGlvbnMu
-DQoNCiAgICAgIDIsICdsaW1pdCcgIG1hdGNoZXM6DQogICAgICAgICAgIEkgY2FuIHVzZSAgJy1w
-IHRjcCAtLXN5biAtbSBsaW1pdCAtLWxpbWl0IDYvbSAuLi4uLi4nIHRvIGxpbWl0IHRoZSByYXRl
-IG9mIHRoZSBUQ1AgY29ubmVjdGlvbnMgb2YgdGhlIHdob2xlIHN1Ym5ldCBvciBzaW5nbGUgaXAu
-IGlmIGkgd2FudCB0byBsaW1pdCB0aGUgcmF0ZSBvZiBldmVyeSBzaW5nbGUgaXAgb2YgdGhlIHNw
-ZWNpZmljIHN1Ym5ldCwgSSBzaG91bGQgc2V0IGEgcnVsZSBmb3IgZXZlcnkgaXAuDQoNCiAgICAg
-IHdoYXQgaSB3YW50IGlzIDogIG9ubHkgb25lIHJ1bGUgY2FuIGFjaGlldmUgLS0tbGltaXQgdGhl
-IHJhdGUgb2YgdGhlIFRDUCBjb25uZWN0aW9ucyBvZiBldmVyeSBzaW5nbGUgaXAgZnJvbSBhIHNw
-ZWNpZmljIHN1Ym5ldC4NCg0KDQogICAgICBzb3JyeSBmb3IgbXkgcG9vciBlbmdsaXNoLCAgSSBo
-b3BlIHlvdSBjYW4ga25vdyB3aGF0IGkgbWVhbi4gUGxlYXNlIGhlbHAgbWUgaWYgeW91IGtub3cg
-aG93Lg0KDQogICAgICBUaGFua3MgaW4gYWR2YW5jZS4NCiAgICAgICAgIA0KICAgICANCiAgICAg
-ICAgDQogICAgICANCg0K
+
+> 
+> Hi, all,
+> 
+>       I want to limit the rate of the TCP connections of every single ip from a specific subnet, but i can't find a good way to do that.
+> 
+
+You can always use a simple script to generate a list of iptable rules for the specified subnet. A simple bash "for" can do it.
