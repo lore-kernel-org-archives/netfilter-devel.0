@@ -1,98 +1,101 @@
-From: "Daniel Chemko" <dchemko@smgtec.com>
-Subject: RE: A humble proposal
-Date: Thu, 25 Sep 2003 17:19:23 -0700
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <7C9884991ADAE0479C14F10C858BCDF5122E53@alderaan.smgtec.com>
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [Patch]: IPv6 Connection Tracking
+Date: Fri, 26 Sep 2003 12:54:21 +0900 (JST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <200309260354.MAA29078@toshiba.co.jp>
+References: <200309250521.OAA29293@toshiba.co.jp>
+	<1064515680.995.41.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: <netfilter@lists.netfilter.org>,
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: <firewalldude@newkirk.us>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: yasuyuki.kozakai@toshiba.co.jp, netfilter-devel@lists.netfilter.org,
+        netdev@oss.sgi.com, usagi-core@linux-ipv6.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: kisza@securityaudit.hu
+In-Reply-To: <1064515680.995.41.camel@localhost>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-I had a thought about this, and I see a lot of work taking this
-approach.
 
-How about this:
+Hi, Andras,
 
-Write a jump target that applies only inside the filter table, since the
-first revision would just implement filtering control.
+From: Andras Kis-Szabo <kisza@securityaudit.hu>
+Subject: Re: [Patch]: IPv6 Connection Tracking
+Date: 25 Sep 2003 20:48:01 +0200
 
-The module itself would be initialized by a userspace tool be adding
-rules. An example would be:
+kisza> I have used an own 'external header skipper' routine which was very
+kisza> close the the kernel's one. So I would like to update the netfilter code
+kisza> to use the kernel's function. For this, we have to export the
+kisza> ipv6_skip_exthdr() function from net/ipv6/exthdrs.c . I have checked
+kisza> your code, too. It looks very close to the kernel's code.
+kisza> As I have noticed, the differences:
+kisza> - handling of the fragments
 
-iptables -I INPUT -m expire --expire-condition timer=3D6000 --expire-id
-12123124325 --source 192.168.1.1/24 -j ACCEPT
-iptables -I OUTPUT -m expire --expire-condition timer=3D6000 --expire-id
-12123124326 --destination 192.168.1.1/24 -j ACCEPT
+No, ip6_ct_skip_exthdr() in my code may return NEXTHDR_NONE.
+I want to distinguish the packet with NEXTHDR_NONE and the packet with unknown
+extension header. I want to let "proto_generic" module to handle it.
 
-Since they are inserted in these tables, they should be called before
-ESTABLISHED,RELATED is even hit.
+BTW, handling of the fragments is bug fix.
+"fhdr->frag_off" in ipv6_skip_exthdr() is out of area of "hdr".
+I thought that it's already reported but look like still not fixed...
 
-The jump determines if the packets are valid any longer. The problems
-that I can see here are:
+kisza>   your code checks that the member of the extension are in the skb or
+kisza> not since the common part checks only the basic extension header size.
+kisza> After it your code linearizes the skb to cover the extension header.
+kisza> So, the kernel does not check the size and does not linearize. After
+kisza> these fixes the 2 codes will be similar.
 
-- The rule itself needs to be cleared out of the chain once it is
-expired. I could get the daemon to do some housekeeping, but it'd be
-better if the jump module could clean up its own reference. Can this be
-done?
+Excuse me, I don't understand which code you said about. find_prev_fhdr() ?
+This function finds previous header of fragment header. We can't use
+ipv6_skip_exthdr() to do this. Even though we can find offset of fragment
+header, we can't find offset of previous header because we can't parse
+extension header backwards.
 
-- The CONNTRACK entries for the allowed sessions are not dropped. Once
-again, it would be nice if the jump module could clean up the CONNTRACK
-entry.
+kisza> Would not be better to export the kernel's function and use the
+kisza> ipv6_skip_exthdr() in the netfilter codes?
 
+I think so about ip6_ct_skip_exthdr(). I'm going to delete this function
+from my patch if 
 
------Original Message-----
-From: Joel Newkirk [mailto:firewalldude@newkirk.us]=20
-Sent: Tuesday, September 23, 2003 2:10 PM
-To: Daniel Chemko
-Cc: netfilter@lists.netfilter.org; netfilter-devel@lists.netfilter.org
-Subject: Re: A humble proposal
+	we don't need to distinguish packets with NEXTHDR_NONE and the packet
+	with unknown extension header.
 
-On Tue, 2003-09-23 at 12:13, Daniel Chemko wrote:
-> I have been researching some possible extensions to the Netfilter
-> environment, and something has become very necessary for my current
-> environment. The following proposal outlines what I wish to implement.
-I
-> am wondering if anyone would find value in this. Plus, I look forward
-to
-> feedback so that I may improve my ideas.
+and when
 
+	the bug in ipv6_skip_exthdr() is fixed.
 
-> Suggestion:
->=20
-> I would like to take pam_iptables and expand it beyond its simple
-> structure. Features will include:
+kisza> My second commet is near this area. I have planned that an offset value
+kisza> which points after the last extension header and a variable which
+kisza> contain the last nexthdr value would be very helpful for the future -
+kisza> but I was too lazy to do this work. With the connection tracking this
+kisza> function (ipv6_skip_exthdr) will be called several time on the same
+kisza> packet (in the main kernel, at every LOG, at every match, at every ct,
+kisza> ...) With USAGI we could - probably - find the space for this 2
+kisza> variable. Do you have any recommendation?
 
-My humble suggestion would be that this should be handled in the
-stateful
-connection tracking - If a session is authenticated and certain
-connections
-are to be allowed, then the new allowed connections would be of state=20
-"related".  Really handy would be the ability to distinguish these
-particular
-'related' connections and feed them through specific chains.  I for one=20
-would NOT want to simply open the box (or network) wide for every
-authenticated=20
-connection, but would like to be able to specify a different set of
-(more=20
-permissive) rules for them once authenticated.  Perhaps patch an
-additional
-state - "PAM" or "AUTH".  Or the ability to specify a fwmark that is
-automatically implemented for RELATED traffic to the authenticated
-session,
-allowing different chains to be traversed based on the mark found.
+I think we'd be better that extension header is parsed in L3 specific code
+at once, and the offset and the nexthdr value is passed the functions
+which need one as argument. This eases writing l3 independent codes in future.
 
-j
+kisza> Your FTP code uses EPSV and EPRT from rfc2428. What's about the FOOBAR
+kisza> RFC (1639)? OK, it's a joke :)
+
+I want to think that's joke, too...
+
+kisza> Could we open an IPv4 data connection next to the IPv6 controll
+kisza> connection?
+
+You can't open even though you load ip_conntrack_ftp and ip6_conntrack_ftp.
+I don't want to allow that because I don't know what happens.
+
+Regards,
+
+----------------------------------------
+Yasuyuki KOZAKAI
+
+Communication Platform Laboratory,
+Corporate Research & Development Center,
+Toshiba Corporation
+
+yasuyuki.kozakai@toshiba.co.jp
+----------------------------------------
