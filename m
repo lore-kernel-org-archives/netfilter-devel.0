@@ -1,15 +1,12 @@
-From: "pevee" <clkuan@greenpacket.com>
-Subject: merry christmas
-Date: Tue, 24 Dec 2002 09:19:23 +0800
+From: "Ian Latter" <Ian.Latter@mq.edu.au>
+Subject: [PATCH] RSH Conntrack+NAT
+Date: Tue, 24 Dec 2002 13:04:26 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <003301c2aaea$7f591950$0ffaa8c0@gpcalvin>
-References: <F15osGkwtjBq27SJ0hD00006d35@hotmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Message-ID: <200212240304.gBO34RH11180@singularity.tronunltd.com>
+Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,33 +17,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-**merry christmas** to all
-may all your wishes come true :*
+Hi All,
 
------ Original Message ----- 
-From: "Hans Jorgensen" <jorgensenhans@hotmail.com>
-To: <netfilter-devel@lists.netfilter.org>
-Sent: Friday, December 20, 2002 12:32 AM
-Subject: (no subject)
+  After being chased down for a hand in setting up some dude's
+rsh conntracking in 2.4.19, I thought I'd revisit the old code, clean
+it up a bit, and write the NAT module that I should have done the
+first time.
+
+  For the 2.4.19 kernel, the following patches should be applied
+from the patch-o-matic before applying the RSH patch;
+  - conntrack+nat-helper-unregister.patch
+  - helper.patch
+  - nat-memoryleak-fix.patch
+  - z-newnat16.patch   (this is the only one *required*)
+
+I have ftp'd the patch-o-matic bundle to the ftp.netfilter.org site;
+  ftp.netfilter.org/incoming/pom-rsh-021224-02.tgz
+  Md5sum: 56b5ae9bdc842a856d6c6dc647c3fb62  pom-rsh-021224-02.tgz
+  Size: 7421 pom-rsh-021224-01.tgz
 
 
-> Dear list
-> 
-> Can anyone tell me how to add a new connection tracking entry? I am 
-> developing my own netfilter kernel module.
-> 
-> A code example would be nice.
-> 
-> Thanks in advance.
-> 
-> /Hans
-> 
-> 
-> 
-> 
-> 
-> _________________________________________________________________
-> The new MSN 8: advanced junk mail protection and 2 months FREE* 
-> http://join.msn.com/?page=features/junkmail
-> 
-> 
+  This patch-o-matic patch cleanly applies and provides rsh connection
+tracking and connection NATing.   If anyone else uses the modules, let
+me know how they go.  I've found them quite stable and reliable (the
+old ip_conntrack_rsh has been running in production here for 6months).
+
+Note that the incoming/rsh-pom.tgz and incoming/pom-rsh-021224-01.tgz
+files can be removed.
+
+Regards,
+
+
+
+--
+Ian Latter
+Internet and Networking Security Officer
+Macquarie University
