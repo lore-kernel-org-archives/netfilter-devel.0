@@ -1,75 +1,70 @@
-From: Martin Josefsson <gandalf@netfilter.org>
-Subject: [PATCH 2.6] Netfilter: Sane ip_ct_tcp_timeout_close_wait value
-Date: Fri, 28 Nov 2003 20:06:54 +0100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <1070046413.18456.23.camel@tux.rsn.bth.se>
+From: Stephen Lee <mukansai@emailplus.org>
+Subject: Re: Extremely slow network with e1000 & ip_conntrack
+Date: Sat, 29 Nov 2003 04:55:53 +0900
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20031129042551.A460.MUKANSAI@emailplus.org>
+References: <20031126174943.0AA5.MUKANSAI@emailplus.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Z8Pz66szwxPS3LCKFoY/"
-Cc: Harald Welte <laforge@netfilter.org>,
-        Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-        netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: "David S. Miller" <davem@redhat.com>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20031126174943.0AA5.MUKANSAI@emailplus.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Stephen Lee <mukansai@emailplus.org> wrote:
+> Harald Welte wrote:
+> > 
+> > unfortunately there is no fix yet.  I seem to be unable to reproduce
+> > that effect on my system :(
+> 
+> I'm having the same problem with 2.6.0-test10.  Just loading
+> ip_conntrack (no rule in table) slows outbound speed to a crawl.  I am
+> using e1000 as well (tried both with or without NAPI), on a 1000/MT
+> Desktop Adaptor.
+> 
+> This seems to only affect traffic out of the host itself, I do not
+> notice slow-down of traffic route through the box, but I didn't really
+> stress test that.
+> 
+> FWIW, I was on 2.5.72 and it had the same behaviour, but ip_conntrack
+> was not compiled as a module so I couldn't check if it is at fault.
 
---=-Z8Pz66szwxPS3LCKFoY/
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I compiled lots of kernels :-( and narrowed it down to between 2.5.26
+and 2.5.46.  2.5.26 oopses if I load certain progs like apache, but at
+least ftp does not slow down in either direction.  2.5.46 has the same
+problem as 2.6.0-test10 (and -test11, I tested that too).
 
-Hi Dave.
+Moreover, I borrowed an i865 chipset machine (which was running the
+Fedora kernel) with CSA LAN that uses a different Intel chip (82547EI),
+but the same e1000 driver, and it doesn't exhibit the problem with
+2.6.0-test11.  I plugged a Pro1000/MT Desktop Adapter (82540EM chip)
+into that i865 machine, and it DOES exhibit the problem.
 
-Harald submitted this to you for 2.4.23
-It's needed for 2.6 as well, couldn't find the original mail on any list
-so here's the bk-commits-24 mail (slightly edited)
+To put it more clearly,
 
-It applies fine to -test11.
-It's needed before 2.6.0 is out.
+Kernel version		Chip		Problem?
+2.4.22			82540EM		N
+2.5.26			82540EM		N
+2.5.46			82540EM		Y
+2.6.0-test10		82540EM		Y
+2.6.0-test11		82540EM		Y
+2.6.0-test11		82547EI		N
+2.4.22nptlsmp		82547EI		N
 
-ChangeSet 1.1211, 2003/11/17 15:26:43-02:00, laforge@netfilter.org
+I'll keep on trying to isolate the problem, but need to get some sleep
+first :-)  Please suggest which patch you think would have caused the
+problem.  I was going by the ChangeLogs but not every kernel version
+compiled cleanly. Your suggestions would cut down the number of kernels
+to compile.
 
-	[PATCH] Netfilter: Sane ip_ct_tcp_timeout_close_wait value
-=09
-	Hi Dave, hi Marcelo.
-=09
-	The following (trivial) patch _needs_ to go into 2.4.22-preX before
-	2.4.23 is released.
-=09
-	While doing the backport of the tune-conntrack-timeouts-via-procfs
-	patch, we have made the default for the CLOSE_WAIT state accidentially
-	to 3 days.  3 days are the timeout when using the tcp window tracking
-	patch, but not for the stock kernel.
-=09
-	Please apply, thanks.
-
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilte=
-r/ip_conntrack_proto_tcp.c
---- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	Mon Nov 17 10:02:36 2003
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	Mon Nov 17 10:02:36 2003
-@@ -53,7 +53,7 @@
- unsigned long ip_ct_tcp_timeout_syn_recv =3D     60 SECS;
- unsigned long ip_ct_tcp_timeout_established =3D   5 DAYS;
- unsigned long ip_ct_tcp_timeout_fin_wait =3D      2 MINS;
--unsigned long ip_ct_tcp_timeout_close_wait =3D    3 DAYS;
-+unsigned long ip_ct_tcp_timeout_close_wait =3D   60 SECS;
- unsigned long ip_ct_tcp_timeout_last_ack =3D     30 SECS;
- unsigned long ip_ct_tcp_timeout_time_wait =3D     2 MINS;
- unsigned long ip_ct_tcp_timeout_close =3D        10 SECS;
-
---=20
-/Martin
-
---=-Z8Pz66szwxPS3LCKFoY/
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQA/x5zNWm2vlfa207ERAowZAJ0RzFCCL/KVaLrTCukkkSWBkkWA6gCguYUN
-Qrv0yjWDTKlfxP+ErcQ75jc=
-=HKdP
------END PGP SIGNATURE-----
-
---=-Z8Pz66szwxPS3LCKFoY/--
+Regards,
+Stephen
