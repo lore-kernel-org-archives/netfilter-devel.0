@@ -1,23 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: TCP window tracking has bad side effects
-Date: Mon, 10 Jan 2005 09:16:41 -0800
-Message-ID: <20050110171641.GA11559@linuxace.com>
-References: <20041201110253.GA9536@suse.de>
-	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
-	<20041201153903.GA16807@suse.de>
-	<Pine.LNX.4.58.0412030942320.30157@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
-	<20041209162656.GA9569@suse.de>
-	<20041210172217.GA4323@ti64.telemetry-investments.com>
-	<20041210115149.68429d39.davem@davemloft.net>
-	<20050110171349.GA12797@kuleuven.net>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: Any known issues with iptables-1.3.0 from cvs/svn ?
+Date: Mon, 10 Jan 2005 19:04:14 +0100
+Message-ID: <1105380254.4514.38.camel@tux.rsn.bth.se>
+References: <699F7BBB368A10479166148511F524177A0598@gn-ex01.Go80211.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-4pt5hh9igMyb7iFPWNHH"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>, pablo@eurodev.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Du Caju <Jan.DuCaju@kuleuven.net>
-Content-Disposition: inline
-In-Reply-To: <20050110171349.GA12797@kuleuven.net>
+To: Robert Iakobashvili <roberti@GoNetworks.com>
+In-Reply-To: <699F7BBB368A10479166148511F524177A0598@gn-ex01.Go80211.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,10 +22,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 10, 2005 at 06:13:49PM +0100, Jan Du Caju wrote:
-> Is it possible to also consider a version for 2.4? Maybe to be included 
-> in 2.4.29 ;-)
 
-It doesn't affect 2.4.x
+--=-4pt5hh9igMyb7iFPWNHH
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Phil
+On Mon, 2005-01-10 at 18:23 +0200, Robert Iakobashvili wrote:
+> Dear Pablo , Russell,
+>=20
+> delete-by-specifying-the-complete-rule doesn't work
+
+This has been fixed in svn. Current svn should really work.
+A lot of the testcases in nfsim-testsuite uses this and it works fine,
+and I just tested it with a fresh compile:
+
+# iptables -A OUTPUT -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 111 --dport 222 -=
+j ACCEPT
+# iptables -D OUTPUT -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 111 --dport 222 -=
+j ACCEPT
+#
+
+Works just fine.
+
+--=20
+/Martin
+
+--=-4pt5hh9igMyb7iFPWNHH
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBB4sOeWm2vlfa207ERAlo5AJ9pq/1t4x70m2Hba81IRySh+yaPaQCggfz9
+QJcEcunRkmlTEMnmDL0hkkc=
+=Zi49
+-----END PGP SIGNATURE-----
+
+--=-4pt5hh9igMyb7iFPWNHH--
