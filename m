@@ -1,15 +1,16 @@
-From: John Leach <john@johnleach.co.uk>
+From: Cedric de Launois <delaunois@info.ucl.ac.be>
 Subject: Re: ipt_ROUTE bug
-Date: Wed, 09 Mar 2005 12:43:58 +0000
-Message-ID: <1110372238.7508.15.camel@lion>
+Date: Wed, 09 Mar 2005 14:00:30 +0100
+Message-ID: <1110373230.11906.84.camel@descartes.info.ucl.ac.be>
 References: <1110370278.7508.13.camel@lion>
 	<1110371260.11906.80.camel@descartes.info.ucl.ac.be>
+	<1110372238.7508.15.camel@lion>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-+a+QWNjV3rlh2viF785p"
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1110371260.11906.80.camel@descartes.info.ucl.ac.be>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: John Leach <john@johnleach.co.uk>
+In-Reply-To: <1110372238.7508.15.camel@lion>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,42 +22,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Le mercredi 09 mars 2005 =E0 12:43 +0000, John Leach a =E9crit :
+> *sigh*.  sorry about that.
 
---=-+a+QWNjV3rlh2viF785p
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Thanks, rather.
+I prefer being warned twice about the same bug than never ;)
 
-*sigh*.  sorry about that.
-Looks like I did good otherwise though :)
+> Looks like I did good otherwise though :)
 
-Thanks,
+Yup.
 
-John.
-
-On Wed, 2005-03-09 at 13:27 +0100, Cedric de Launois wrote:
-
-> This bug has already been fixed. See bugzilla #284.
-> The patch from Phil Oester has been committed to the
-> http://svn.netfilter.org/cgi-bin/viewcvs.cgi/branches/patch-o-matic-ng/li=
-nux-2.6.11 tree (Rev 3691)
->=20
-> Cedric
->=20
-
---=20
-GPG: B89C D450 5B2C 74D8 58FB A360 9B06 B5C2 26F0 3047
-WEB: http://johnleach.co.uk
-
---=-+a+QWNjV3rlh2viF785p
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQBCLu+Omwa1wibwMEcRAsEsAJ0bB1snYR4tOV0H82RuEm9b9graTACgtSn8
-nhiyitl+rD/eaQaJ6f/MYUM=
-=/6j9
------END PGP SIGNATURE-----
-
---=-+a+QWNjV3rlh2viF785p--
+Cedric
