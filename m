@@ -1,45 +1,45 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: iptables breakage WAS(Re: dummy as IMQ replacement
-Date: 22 Mar 2005 23:01:56 -0500
-Message-ID: <1111550516.1088.25.camel@jzny.localdomain>
-References: <1107123123.8021.80.camel@jzny.localdomain>
-	 <0fcf01c5077f$579e4b80$6e69690a@RIMAS>
-	 <1107174142.8021.121.camel@jzny.localdomain>
-	 <00c301c524b4$938cd240$6e69690a@RIMAS>
-	 <1110379135.1091.143.camel@jzny.localdomain>
-	 <1110416767.1111.76.camel@jzny.localdomain>
-	 <025501c52552$2dbf87c0$6e69690a@RIMAS>
-	 <1110453757.1108.87.camel@jzny.localdomain> <423B7BCB.10400@dsl.pipex.com>
-	 <1111410890.1092.195.camel@jzny.localdomain>  <4240C70E.8060503@trash.net>
-Reply-To: hadi@cyberus.ca
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: ip_conntrack table full problem
+Date: Wed, 23 Mar 2005 10:11:38 +0100
+Message-ID: <200503231011.38271.thomas.jarosch@intra2net.com>
+References: <200503141647.42299.thomas.jarosch@intra2net.com>
+	<200503211803.18918.thomas.jarosch@intra2net.com>
+	<4240D6BE.8080402@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Andy Furniss <andy.furniss@dsl.pipex.com>,
-        Harald Welte <laforge@gnumonks.org>, Remus <rmocius@auste.elnet.lt>,
-        netdev@oss.sgi.com, Nguyen Dinh Nam <nguyendinhnam@gmail.com>,
-        Andre Tomt <andre@tomt.net>, syrius.ml@no-log.org,
-        Damion de Soto <damion@snapgear.com>,
-        Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4240C70E.8060503@trash.net>
-Sender: netdev-bounce@oss.sgi.com
-Errors-to: netdev-bounce@oss.sgi.com
+To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <4240D6BE.8080402@trash.net>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2005-03-22 at 20:31, Patrick McHardy wrote:
+> >>>/proc/slabinfo:
+> >>>ip_conntrack       16263  16272    320 1356 1356    1
+> >>
+> >>Yes, you're leaking conntracks somewhere.  Any possibility of testing
+> >>a somewhat newer kernel than 2.4.21?  This may have already been
+> >>fixed.
+> >
+> > Thank you for your response.
+> > Unfortunately I cannot update to a newer kernel soon.
+>
+> I suggest trying this patch:
+>
+> http://linux.bkbits.net:8080/linux-2.4/cset@3f219dbcj1MnJqxiJa99m_AcShdk5A?
+>nav=index.html|src/net/|src/net|src/net/ipv4|src/net/ipv4/netfilter|related/
+>net/ipv4/netfilter/ip_conntrack_core.c
 
-> We'll try to keep this in mind in the future. We could move
-> the version field to the end, but I guess its already too
-> late. What do you think?
-> 
+Thanks! I'll install a patched kernel on the box today.
+Hopefully the problem will vanish...
 
-I think its ok for now - we'll say if you want to use ipt you have to
-use iptables 1.3.1 and above.
-Just keep me in mind in the future. Like i suggested a while back
-since i am ripping code off iptables anyways. if that code gets
-modularized and in a library then the maintainance of this should be
-easier.
-
-cheers,
-jamal
+Thomas
