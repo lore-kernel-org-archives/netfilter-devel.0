@@ -1,13 +1,13 @@
-From: Kovacs Krisztian <hidden@balabit.hu>
-Subject: NAT && TIME_WAIT TCP connections
-Date: Mon, 29 Sep 2003 14:20:43 +0200
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: oops in tftp helper
+Date: Mon, 29 Sep 2003 15:05:09 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F78239B.7000406@balabit.hu>
+Message-ID: <20030929130509.GA4010@balabit.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000604040908020702070908"
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Devel <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,159 +18,117 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000604040908020702070908
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
+We have encountered the following oops when trying to use the TFTP conntrack
+helper. We do not use NAT, only connection tracking. The culprit seems to be
+this code in init_conntrack():
 
-   Hi,
+        /* If the expectation is dying, then this is a looser. */
+        if (expected
+            && expected->expectant->helper->timeout
+            && ! del_timer(&expected->timeout))
+                expected = NULL;
 
-   I have a proposal regarding connection tracking and NAT. Imagine a 
-scenario, where you must SNAT TCP traffic not only to a specific IP range, 
-but also to a specific port range. The extreme case of the scenario is of 
-course one IP with only one port, for example:
+Which is translated to (checked using objdump --disassemble):
 
-iptables -t nat -A POSTROUTING -s 10.1.0.0/16 -p tcp -j SNAT \
-	--to-source 0.2.0.1:1234
+     fbb:       85 db                   test   %ebx,%ebx		; ebx == expected
+     fbd:       74 6f                   je     102e <init_conntrack+0x34e>
+     fbf:       8b 43 14                mov    0x14(%ebx),%eax		; eax := expected->expectant
+     fc2:       8b 40 6c                mov    0x6c(%eax),%eax		; eax := excepted->expectant->helper
+     fc5:       83 78 18 00             cmpl   $0x0,0x18(%eax)		; eax == NULL => BOOM
+     fc9:       74 15                   je     fe0 <init_conntrack+0x300>
+     fcb:       8d 43 2c                lea    0x2c(%ebx),%eax
+     fce:       50                      push   %eax
+     fcf:       e8 fc ff ff ff          call   fd0 <init_conntrack+0x2f0>
+     fd4:       89 c2                   mov    %eax,%edx
+     fd6:       83 c4 04                add    $0x4,%esp
+     fd9:       31 c0                   xor    %eax,%eax
+     fdb:       85 d2                   test   %edx,%edx
+     fdd:       0f 44 d8                cmove  %eax,%ebx
+     fe0:       85 db                   test   %ebx,%ebx
+     fe2:       74 4a                   je     102e <init_conntrack+0x34e>
+     fe4:       8b 75 e8                mov    0xffffffe8(%ebp),%esi
 
-   However, such a setup maximizes the number of connections to which NAT 
-can be applied, and you must wait for the existing connections to get 
-deleted (timeout, etc.) before another connection can be created. However, 
-in case of TCP, when the SNAT range is a scarce resource, IP:port pairs 
-could be reused for connections where the connection is already in a 
-'half-died' state (for example, TCP's TIME_WAIT). The theory of operation 
-is the following: a protocol helper marks the conntrack entry 
-MAY_BE_DELETED if it thinks that it's in a state where new packages cannot 
-be received. Then, if ip_nat_setup_info() finds that while trying to 
-allocate a new IP/port pair from the given range, a clashing conntrack 
-entry has this flag, it deletes the old one, so the allocation can succeed.
+The problem _might_ be caused by the fact that ip_conntrack_tftp has no lock
+on its own, while all other helpers (ftp, irc and amanda checked) have their
+own lock to serialize ip_conntrack_expect_related calls. I don't know the
+conntrack core enough to be sure.
 
-   While the upper example may look a bit extreme, such problems occur 
-much more often when using the TPROXY patch and a transparent SQUID proxy. 
-The attached patch helped a lot in these cases (and after modifying 
-ip_conntrack_proto_tcp.c accordingly, to mark TPROXY-ed TCP connections 
-'deletable' when they reach the TIME_WAIT state).
+The ksymoops-ed dump is:
 
-   Any comments? (I don't like the idea of deleting conntrack entries in 
-ip_nat_setup_info(), however, I don't have a better idea.)
+Oops: 0000
+CPU:    0
+EIP:    0010:[<f890b795>]       Not tainted
+Using defaults from ksymoops -t elf32-i386 -a i386
+EFLAGS: 00010286
+eax: 00000000   ebx: e76f9d00   ecx: c0375188   edx: 00000000
+esi: 00000003   edi: c030fe5c   ebp: c030fe28   esp: c030fe04
+ds: 0018        es: 0018        ss: 0018
+Process swapper (pid: 0, stackpage=c030f000)
+Stack: c030fe58 c030fe5c f0409a80 cd602500 cd602508 d1ed06c1 f890e2eb 4dee06c1
+       00110d80 c030fed8 f890b99d c030fe5c f890ea20 f0409a80 c030fec8 c03b16e0
+       c023e8d0 00000000 c030fe54 f890ea20 e6ead020 ed0ef880 4dee06c1 00000d80
+Call Trace: [<f890e2eb>] [<f890b99d>] [<f890ea20>] [<c023e8d0>] [<f890ea20>]
+  [<c0232d40>] [<c023e8d0>] [<c023e8d0>] [<c023308f>] [<c023e8d0>] [<f890e5a4>]
+  [<c023e756>] [<c023e8d0>] [<c022c8cb>] [<c022c979>] [<c022caaf>] [<c011ee3d>]
+  [<c010a2eb>] [<c0106d80>] [<c0105000>] [<c0106d80>] [<c0105000>] [<c0106da9>]
+  [<c0106dfb>] [<c0105048>]
+Code: 83 78 18 00 74 15 8d 43 2c 50 e8 ac 65 81 c7 89 c2 83 c4 04
+ 
+ 
+>>EIP; f890b795 <[ip_conntrack]init_conntrack+2e5/3b4>   <=====
+ 
+>>ebx; e76f9d00 <_end+2733358c/3853f88c>
+>>ecx; c0375188 <irq_stat+8/1000>
+>>edi; c030fe5c <init_task_union+1e5c/2000>
+>>ebp; c030fe28 <init_task_union+1e28/2000>
+>>esp; c030fe04 <init_task_union+1e04/2000>
+ 
+Trace; f890e2eb <[ip_conntrack].rodata.end+28c/541>
+Trace; f890b99d <[ip_conntrack]ip_conntrack_in+139/270>
+Trace; f890ea20 <[ip_conntrack]ip_conntrack_protocol_udp+0/40>
+Trace; c023e8d0 <ip_rcv_finish+0/219>
+Trace; f890ea20 <[ip_conntrack]ip_conntrack_protocol_udp+0/40>
+Trace; c0232d40 <nf_iterate+30/80>
+Trace; c023e8d0 <ip_rcv_finish+0/219>
+Trace; c023e8d0 <ip_rcv_finish+0/219>
+Trace; c023308f <nf_hook_slow+d7/194>
+Trace; c023e8d0 <ip_rcv_finish+0/219>
+Trace; f890e5a4 <[ip_conntrack]ip_conntrack_in_ops+0/18>
+Trace; c023e756 <ip_rcv+3b6/3fc>
+Trace; c023e8d0 <ip_rcv_finish+0/219>
+Trace; c022c8cb <netif_receive_skb+11b/148>
+Trace; c022c979 <process_backlog+81/124>
+Trace; c022caaf <net_rx_action+93/144>
+Trace; c011ee3d <do_softirq+7d/dc>
+Trace; c010a2eb <do_IRQ+db/ec>
+Trace; c0106d80 <default_idle+0/34>
+Trace; c0105000 <_stext+0/0>
+Trace; c0106d80 <default_idle+0/34>
+Trace; c0105000 <_stext+0/0>
+Trace; c0106da9 <default_idle+29/34>
+Trace; c0106dfb <cpu_idle+27/34>
+Trace; c0105048 <rest_init+48/4c>
+ 
+Code;  f890b795 <[ip_conntrack]init_conntrack+2e5/3b4>
+00000000 <_EIP>:
+Code;  f890b795 <[ip_conntrack]init_conntrack+2e5/3b4>   <=====
+   0:   83 78 18 00               cmpl   $0x0,0x18(%eax)   <=====
+Code;  f890b799 <[ip_conntrack]init_conntrack+2e9/3b4>
+   4:   74 15                     je     1b <_EIP+0x1b> f890b7b0 <[ip_conntrack]init_conntrack+300/3b4>
+Code;  f890b79b <[ip_conntrack]init_conntrack+2eb/3b4>
+   6:   8d 43 2c                  lea    0x2c(%ebx),%eax
+Code;  f890b79e <[ip_conntrack]init_conntrack+2ee/3b4>
+   9:   50                        push   %eax
+Code;  f890b79f <[ip_conntrack]init_conntrack+2ef/3b4>
+   a:   e8 ac 65 81 c7            call   c78165bb <_EIP+0xc78165bb> c0121d50 <del_timer+0/54>
+Code;  f890b7a4 <[ip_conntrack]init_conntrack+2f4/3b4>
+   f:   89 c2                     mov    %eax,%edx
+Code;  f890b7a6 <[ip_conntrack]init_conntrack+2f6/3b4>
+  11:   83 c4 04                  add    $0x4,%esp
+
 
 -- 
-   Regards,
-     Krisztian KOVACS
-
---------------000604040908020702070908
-Content-Type: text/plain;
- name="nat-delete-conntrack.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nat-delete-conntrack.diff"
-
-diff -urN linux-2.4.22-orig/include/linux/netfilter_ipv4/ip_conntrack.h linux-2.4.22/include/linux/netfilter_ipv4/ip_conntrack.h
---- linux-2.4.22-orig/include/linux/netfilter_ipv4/ip_conntrack.h	Fri Jun 13 16:51:38 2003
-+++ linux-2.4.22/include/linux/netfilter_ipv4/ip_conntrack.h	Mon Sep 29 11:43:55 2003
-@@ -46,6 +46,10 @@
- 	/* Connection is confirmed: originating packet has left box */
- 	IPS_CONFIRMED_BIT = 3,
- 	IPS_CONFIRMED = (1 << IPS_CONFIRMED_BIT),
-+
-+ 	/* May delete conntrack if its tuple is needed for NAT */
-+ 	IPS_MAY_DELETE_BIT = 5,
-+ 	IPS_MAY_DELETE = (1 << IPS_MAY_DELETE_BIT),
- };
- 
- #include <linux/netfilter_ipv4/ip_conntrack_tcp.h>
-@@ -219,7 +223,7 @@
- 
- /* Is this tuple taken? (ignoring any belonging to the given
-    conntrack). */
--extern int
-+extern struct ip_conntrack_tuple_hash *
- ip_conntrack_tuple_taken(const struct ip_conntrack_tuple *tuple,
- 			 const struct ip_conntrack *ignored_conntrack);
- 
-diff -urN linux-2.4.22-orig/net/ipv4/netfilter/ip_conntrack_core.c linux-2.4.22/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-2.4.22-orig/net/ipv4/netfilter/ip_conntrack_core.c	Mon Aug 25 13:44:44 2003
-+++ linux-2.4.22/net/ipv4/netfilter/ip_conntrack_core.c	Mon Sep 29 11:43:00 2003
-@@ -479,7 +479,7 @@
- 
- /* Returns true if a connection correspondings to the tuple (required
-    for NAT). */
--int
-+struct ip_conntrack_tuple_hash *
- ip_conntrack_tuple_taken(const struct ip_conntrack_tuple *tuple,
- 			 const struct ip_conntrack *ignored_conntrack)
- {
-@@ -489,7 +489,7 @@
- 	h = __ip_conntrack_find(tuple, ignored_conntrack);
- 	READ_UNLOCK(&ip_conntrack_lock);
- 
--	return h != NULL;
-+	return h;
- }
- 
- /* Returns conntrack if it dealt with ICMP, and filled in skb fields */
-diff -urN linux-2.4.22-orig/net/ipv4/netfilter/ip_nat_core.c linux-2.4.22/net/ipv4/netfilter/ip_nat_core.c
---- linux-2.4.22-orig/net/ipv4/netfilter/ip_nat_core.c	Mon Aug 25 13:44:44 2003
-+++ linux-2.4.22/net/ipv4/netfilter/ip_nat_core.c	Mon Sep 29 11:53:53 2003
-@@ -92,6 +92,35 @@
- 	WRITE_UNLOCK(&ip_nat_lock);
- }
- 
-+static void __ip_nat_cleanup_conntrack(struct ip_conntrack *conn)
-+{
-+	struct ip_nat_info *info = &conn->nat.info;
-+	
-+	if (!info->initialized)
-+		return;
-+
-+	IP_NF_ASSERT(info->bysource.conntrack);
-+	IP_NF_ASSERT(info->byipsproto.conntrack);
-+
-+	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
-+
-+	LIST_DELETE(&bysource[hash_by_src(&conn->tuplehash[IP_CT_DIR_ORIGINAL]
-+					  .tuple.src,
-+					  conn->tuplehash[IP_CT_DIR_ORIGINAL]
-+					  .tuple.dst.protonum)],
-+		    &info->bysource);
-+
-+	LIST_DELETE(&byipsproto
-+		    [hash_by_ipsproto(conn->tuplehash[IP_CT_DIR_REPLY]
-+				      .tuple.src.ip,
-+				      conn->tuplehash[IP_CT_DIR_REPLY]
-+				      .tuple.dst.ip,
-+				      conn->tuplehash[IP_CT_DIR_REPLY]
-+				      .tuple.dst.protonum)],
-+		    &info->byipsproto);
-+}
-+
-+
- /* We do checksum mangling, so if they were wrong before they're still
-  * wrong.  Also works for incomplete packets (eg. ICMP dest
-  * unreachables.) */
-@@ -131,9 +160,21 @@
- 
- 	   We could keep a separate hash if this proves too slow. */
- 	struct ip_conntrack_tuple reply;
-+	struct ip_conntrack_tuple_hash *h;
- 
- 	invert_tuplepr(&reply, tuple);
--	return ip_conntrack_tuple_taken(&reply, ignored_conntrack);
-+	h = ip_conntrack_tuple_taken(&reply, ignored_conntrack);
-+
-+	if ((h != NULL) && test_bit(IPS_MAY_DELETE_BIT, &h->ctrack->status)) {
-+		DEBUGP(KERN_DEBUG "Deleting old conntrack entry for NAT\n");
-+		__ip_nat_cleanup_conntrack(h->ctrack);
-+		h->ctrack->nat.info.initialized = 0;
-+		if (del_timer(&h->ctrack->timeout))
-+			h->ctrack->timeout.function((unsigned long)h->ctrack);
-+		h = NULL;
-+	}
-+	
-+	return h != NULL;
- }
- 
- /* Does tuple + the source manip come within the range mr */
-
---------------000604040908020702070908--
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
