@@ -1,15 +1,11 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: [iptables 1.3.0 / libiptc patch] sort chains by hooknum/names
-Date: Sat, 5 Mar 2005 03:07:25 +0100
-Message-ID: <20050305020725.GC30982@eychenne.org>
-References: <20050304212114.130e2a7c@coruscant>
+From: Jim Gifford <maillist@jg555.com>
+Subject: IPTables 1.3.0 on RaQ2
+Date: Fri, 04 Mar 2005 19:23:46 -0800
+Message-ID: <42292642.6030504@jg555.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-To: Olaf Rempel <razzor@kopf-tisch.de>
-Content-Disposition: inline
-In-Reply-To: <20050304212114.130e2a7c@coruscant>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +17,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 04, 2005 at 09:21:14PM +0100, Olaf Rempel wrote:
+When I tried to compile iptables 1.3.0 on a MIPS based machine (Cobalt 
+RaQ2), I get the following error.
 
-> hi list
+# make BINDIR="/usr/bin" LIBDIR="/usr/lib" MANDIR="/usr/man"
+Making dependencies: please wait...
+Something wrong... deleting dependencies.
+make: *** [cpu-feature-overrides.h] Error 1
 
-> >From 1.3.0 all chain names were alphabetically sorted when listing tab=
-les.
-> A user-defined chain 'AAA' is listed before the buildin chain "INPUT", =
-and=20
-> "FORWARD" is listed before "INPUT".
 
-> I've created two patches to revert it to the "old" behavior:
-> first buildin chains, sorted by hooknum, than userdefined chains, sorte=
-d by name.
-
-Appart from the fact that it restores the old behavior (and avoids
-breakage of some badly written scripts or apps), can you give a
-single reason why the listing should be sorted?
-
-Why not sort the output of a lot of commands (like lsof, netstat, ps,
-etc.) then?  Hint: probably because there is no interest in wasting CPU
-time for this.
-
- Herve
-
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+Any suggestions
