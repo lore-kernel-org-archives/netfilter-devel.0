@@ -1,13 +1,13 @@
-From: Michael Gundlach <gundlach@cs.uga.edu>
-Subject: Urgent question: changing src|dst IP w/ ipq fails
-Date: Tue, 18 Feb 2003 16:23:20 -0500
+From: "Ian Latter" <Ian.Latter@mq.edu.au>
+Subject: Re:[PATCH] snort hex strings and libipt_string.c
+Date: Wed, 19 Feb 2003 08:30:24 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030218162320.A25778@cs.uga.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <200302182230.h1IMUPh07379@singularity.tronunltd.com>
+Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
+Content-Type: text/plain; charset="us-ascii"
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "Michael Rash" <mbr@cipherdyne.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,40 +18,66 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Hi Michael,
 
-I had a neat idea a few days ago and am rushing under a deadline (tomorrow
-morning, Feb 19) to get it working.  Any help would be greatly appreciated.
+  This looks  pretty cool ... do you provide any scripts to load up the snort
+data into iptables automagically?
 
-I have a machine A sending packets to machine C, and machine B is a linux
-bridge running ipq between them on the network.  B is catching all packets
-between A and C, looking at them, and reinjecting them.  This works just
-fine, and A and C can talk happily together without knowing that the bridge
-B is between them.
 
-Now I wish to modify the source or destination addresses of these
-packets before reinjecting them.  Modifying the source or destination
-*port* and reinjecting the packet works fine - the destination computer
-(running tcpdump) sees a packet from the source, using the new source or
-destination port that ipq put in.
 
-However, modifying the source or destination *IP* does not work.  When IPQ
-changes a A->D packet to be A->C, C never gets the packet.  When IPQ changes
-a A->C packet to be D->C, C will *eventually* (after 20+ seconds) get a
-packet claiming to come from D.  Running tcpdump on the bridge B, I see a
-TCP SYN packet come in from A->C, and 20 seconds later or so a TCP SYN
-packet D->C (the reinjected packet); but only, say, 2 out of 3 of the A->C
-packets get successfully retransmitted as D->C.
-
-Any idea what I am doing wrong?  I am recalculating IP and TCP checksums OK,
-I know that.  A colleague thinks perhaps I have to set up a new route in
-the kernel-level code when I modify the destination IP, but I don't think
-so - since ipq is a user-level interface.  Also, that wouldn't solve the
-source-IP-modification problem.
-
-I am using a version of netfilter 1.6a that is patched to work with a
-bridging kernel.
-
-Thanks in advance - and *please* post back soon :)  Even if it's past the
-morning of Feb 19th, I still need to figure this out.
-Michael Gundlach
+----- Original Message -----
+>From: "Michael Rash" <mbr@cipherdyne.com>
+>To: <netfilter-devel@lists.netfilter.org>
+>Subject:  [PATCH] snort hex strings and libipt_string.c
+>Date: Tue, 18 Feb 2003 10:14:18 -0500
+>
+> (Reposting since I was not subscribed to the list at the time.)
+> 
+> The attached patch adds an option "--hex-string" to the string match
+> module to allow snort-style hex strings to be specified on the
+> command line.  This is useful because there are many signatures that
+> consist of non-printable characters and without this patch there is
+> no way to easily tell iptables to search for them.
+> 
+> E.x:
+> 
+> iptables -I INPUT 1 -p udp --dport 53 -m string --hex-string
+> "31 c0 b0 02 cd 80 85 c0 75 4c eb 4c 5e b0" -j LOG --log-prefix
+> "DNS EXPLOIT x86 linux overflow attempt "
+> 
+> (This is my first patch to iptables so let me know if I need to do
+> anything differently).
+> 
+> Thanks,
+> 
+> --Mike
+> 
+> Michael Rash
+> http://www.cipherdyne.com
+> Key fingerprint = 4EE3 816C 413A 41AA 72C8  4463 70C3 783C 1B91 F85E
+> --- iptables-1.2.7a/extensions/libipt_string.c.old	Wed May 29 09:08:16 2002
+> +++ iptables-1.2.7a/extensions/libipt_string.c		Sun Feb 16 22:52:16 2003
+> @@ -31,6 +31,7 @@
+>  
+>  static struct option opts[] = {
+>  	{ "string", 1, 0, '1' },
+> +	{ "hex-string", 1, 0, '2' },
+>  	{0}
+>  };
+>  
+> @@ -48,6 +49,31 @@
+>  	else exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
+>  }
+>  
+> +static void
+> +parse_hex_string(const unsigned char *s, struct ipt_string_info *info)
+> +{
+> +    int slen, schar, sindex=0, i;
+> +    char hextmp[3];
+> +    slen = strlen(s);
+> +    if(slen <= 3*(BM_MAX_NLEN)) { /* hex input like "71 61 7a" */
+> +        for (i=0; i<slen; i+=3) {
+> +            hextmp[0] = s[i];
+> +            hextmp[1] = s[i+1];
+> +            if (s[i+2] == ' ' || s[i+2] == '
+ 
