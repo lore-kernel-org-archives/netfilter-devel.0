@@ -1,16 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: TCP conntrack queries
-Date: Mon, 22 Mar 2004 11:21:13 +0100
+From: Abraham van der Merwe <abz@frogfoot.net>
+Subject: netflow/sflow & Linux
+Date: Mon, 22 Mar 2004 13:07:10 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <405EBE19.8050209@eurodev.net>
-References: <20040322050438.56577.qmail@web14009.mail.yahoo.com>
+Message-ID: <20040322110710.GC8314@oasis.frogfoot.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kiran Kumar <immidi_kiran@yahoo.com>,
- netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040322050438.56577.qmail@web14009.mail.yahoo.com>
+To: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +20,22 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi!
 
-Kiran Kumar wrote:
+Has anyone done any work to enable Linux to do netflow (capturing not
+processing)?
 
->Hi,
->  As I went through ip_conntrack_proto_tcp.c, I had
->these couple of queries.
->
->- Why is there a distinction b/w states NONE and
->CLOSED?
->  
->
-None is the initial state where every connection starts when a conntrack 
-is created and Close is when closed connection (I know, quite obvious!).
+If not, why not and what needs to be done?
 
-Anyway have a look at tcp-window-tracking patch because Jozsef spent its 
-time well-documenting all the possible transitions to let us understand :).
+-- 
 
->- The array of timeouts has been replaced (as I get
->from the diff b/w my RH9 kernel sources and 2.6
->sources) by an array of pointers to variables. Why was
->this done?
->  
->
-because now you can set your own timeouts via sysctl.
+Regards
+ Abraham
 
-regards,
-Pablo
+TODAY the Pond!
+TOMORROW the World!
+                -- Frogs (1972)
+
+___________________________________________________
+ Abraham vd Merwe - Frogfoot Networks CC
+ 1st Floor, Albion Springs, 183 Main Road, Newlands
+ Phone: +27 21 689 3873 Cell: +27 82 565 4451
+ Http: http://www.frogfoot.net/ Email: abz@frogfoot.net
