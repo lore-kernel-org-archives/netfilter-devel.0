@@ -1,12 +1,17 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: --reject-with admin-prohib - Suggested Solution.
-Date: Tue, 12 Nov 2002 10:00:01 +0100 (CET)
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: CONNMARK Patching Problem
+Date: 12 Nov 2002 11:11:34 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0211120952040.29168-100000@dns.toxicfilms.tv>
+Message-ID: <1037095894.4403.25.camel@tux>
+References: <005a01c287e5$2d0862a0$0200000a@parseerror.dk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Netfilter <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: Matias =?ISO-8859-1?Q?Bj=F8rling?= <mb@ncparty.dk>
+In-Reply-To: <005a01c287e5$2d0862a0$0200000a@parseerror.dk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,24 +22,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On Sat, 2002-11-09 at 12:43, Matias Bj=F8rling wrote:
+> Hey! :D
+>=20
+> I'm having a very anoying problem.
+>=20
+> I have patched 2.4.18-19 kernels where both have the same problem, when i
+> run patch-o-magic on a fresh kernel, then when i come to where i can patc=
+h
+> the CONNMARK module into the kernel, it always fail, even if it's the onl=
+y
+> thing i select, and with both kernels, even they both are fresh installed=
+.
 
-We all know we have been dealing with some compatibility issues
-concerning adding the admin-prohib icmp type to the REJECT target.
+> iptables 1.2.7a
+> patch-o-magic 20021008
+> have tried with newer cvs image patch-o-magic and did'nt even work
+> kernel 2.4.18-19 both have the same problem.
+>=20
+> Does anybody know if theres a workaround for this thingie?.. or am i just
+> lost in my dreams until a new release come? Is there a way i can check wh=
+at
+> the error is?
 
-Please look at the suggested solution.
+You've failed to read the docs :)
 
-1) Submit a patch that adds the admin-prohib to 2.5.x ipt_REJECT.c
-2) Make libipt_REJECT.c check if the kernel is 2.5 or higher, if so,
-   Print the option to pass the admin-prohib option, thus allowing
-   the use of admin-prohib option.
+you didn't run ./runme --batch pending
+after that CONNMARK works fine.
 
-This way, the userspace knows if the ipt_REJECT.c supports admin-prohib.
-This way, the patched kernel will have no effect on unpatched userspace.
+(two patches in pending won't apply correctly, they need to be applied
+after the newnat patch and not before (just run the same command one
+more time and they should apply), I've just fixed it in cvs)
 
-This would work with distro kernels, distro iptables, etc.
+--=20
+/Martin
 
-What do you think? I will gladly create patches for that.
-
-Regards,
-Maciej Soltysiak
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
