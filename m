@@ -1,12 +1,11 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: ALGs
-Date: Wed, 4 Jun 2003 09:16:00 +0200
+Date: Wed, 4 Jun 2003 09:25:35 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030604071600.GA14268@sunbeam.de.gnumonks.org>
+Message-ID: <20030604072535.GB10472@oknodo.bof.de>
 References: <Sea2-F11MieZutGvO8n00003af5@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Ricky Foo <blue_pion@hotmail.com>
@@ -22,87 +21,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Ricky,
 
---HcAYCG3uE/tztfnV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Jun 04, 2003 at 07:06:30AM +0000, Ricky Foo wrote:
-> Good day,
->=20
 > Some doubts about the conntrack helper module.
 
-There are quite a few examples, even for complex protocols like h323, so
-please try to find your answers=20
+A note: I have not written helper modules myself; the following answers
+are from what I learned passively.
 
-> 1. For the "help" callback, what exactly am I suppose to do with the=20
+> 1. For the "help" callback, what exactly am I suppose to do with the 
 > packets when this function is activated?
 
-That totally depends on your protocol.  The most important thing is to
-find out which other (slave/sibling) connections are going to be
-established and call ip_conntrack_expect_related() accordingly.
+Find and update state information according to the packet's content,
+make neccessary modifications to the packet, or the packet metadata.
+All according to what your special protocol needs.
 
-> 2. For the netbios protocol, there are a couple of ports to monitor, such=
-=20
-> as 137 for name-service, 138 for datagram service, 139 for session servic=
-e.=20
-> Does that mean I have to write 3 different tracking modules or do I follo=
-w=20
-> what has been done in the ftp module...i.e register the 3 different ports=
-=20
+> 2. For the netbios protocol, there are a couple of ports to monitor, such 
+> as 137 for name-service, 138 for datagram service, 139 for session service. 
+> Does that mean I have to write 3 different tracking modules or do I follow 
+> what has been done in the ftp module...i.e register the 3 different ports 
 > to track.
 
-That again depends on your protocol.  I think the packet formats on all
-three ports are different, aren't they?  So you write one module that
-registers three helpers (with different help() functions).
+Is it conceivable that people would like to use only a subset of the
+possible combinations of those three protocols? If the answer is "yes",
+then it may make good sense to implement three separate modules.
 
-> 3. In the corresponding header files, what do we normally have to define=
-=20
-> for the various structure? I kinda got confused by what I have read from=
-=20
+If the answer is "no, never", and you are a believer in such absolutes,
+then throw it all into one file.
+
+> 3. In the corresponding header files, what do we normally have to define 
+> for the various structure? I kinda got confused by what I have read from 
 > the source code!
 
-Again, protocol dependant.
+If you don't need to keep any state, you shouldn't need to define any
+structure in your header files.
+
+If you do need to keep per-connection structure, look into the header
+file include/linux/netfilter_ipv4/ip_conntrack.h. Search for the
+definition of 'struct ip_conntrack'. Look at the 'union {} help'
+inside that struct. You are supposed to add another struct,
+defined by yourself, into this union.
 
 > 4. How do I get to the payload part where the netbios data-fields are?
 
-just read the packet.  Again, there are quite a lot of examples.  Just
-look at ip_conntrack_amanda.c:help()
+Look at how other help() implementations do it. For example, in the
+ftp protocol helper, the first line of the help() function reads
 
-       struct udphdr *udph =3D (void *)iph + iph->ihl * 4;
-       u_int32_t udplen =3D len - iph->ihl * 4;
-       u_int32_t datalen =3D udplen - sizeof(struct udphdr);
-       char *data =3D (char *)udph + sizeof(struct udphdr);
+	struct tcphdr *tcph = (void *)iph + iph->ihl * 4;
+
+'iph' is the IP (layer 3) protocol header. This line uses the
+IP header length field to get a pointer to the first byte of
+layer 4 data. You need practically the same, but probably
+casting into a 'struct udphdr', instead of a 'struct tcphdr'.
 
 > Please pardon me if my questions do seems silly to you guys.
 
-No, they are not.  But please try to find out as much as possible by
-reading the examples.=20
+They do seem unoriented, but that's quite normal for people who
+meet a significant blob of software for the first time. I hope
+I could help you along a bit.
 
-Good luck!
-
->    Ricky
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---HcAYCG3uE/tztfnV
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+3ZywXaXGVTD0i/8RAqGHAJ4xNmUFX7U/RcEMtGhAAfv0IanZswCgrmEv
-Fd3DZ56u2UgurM2b3RKMkCc=
-=TMMI
------END PGP SIGNATURE-----
-
---HcAYCG3uE/tztfnV--
+best regards
+  Patrick
