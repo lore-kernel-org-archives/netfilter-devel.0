@@ -1,14 +1,18 @@
-From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: [PATCH] fix patch base/connlimit in pom-20040409
-Date: Sun, 11 Apr 2004 13:35:56 +0200
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: pom-20040409: patches that break iptables-1.2.9-20040409,
+ kernel 2.4.25 or pom's runme
+Date: Sun, 11 Apr 2004 15:55:23 +0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40792D9C.9030807@fl.priv.at>
-Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <20040411155523.1fd06a78.johnpol@2ka.mipt.ru>
+References: <407928B7.6040505@fl.priv.at>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040203070708070905020708"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Friedrich Lobenstock <fl@fl.priv.at>
+In-Reply-To: <407928B7.6040505@fl.priv.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,66 +23,64 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040203070708070905020708
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sun, 11 Apr 2004 13:15:03 +0200
+Friedrich Lobenstock <fl@fl.priv.at> wrote:
 
-Hi!
+> Hi netfilter team!
+> 
+> *persons responsible for each individual breaking patch CC'd*
 
-Attached you will find a patch to remove the usage of
-__MOD_INC_USE_COUNT from the base/connlimit patch which breaks
-a kernel compilation because of the undefined variable
-ip_conntrack_module.
+Hello, I am maintainer of the OSF extension.
 
-__MOD_INC_USE_COUNT is depreciated anyway, as I was told.
+> I want to inform you that the following patches in pom-20040409,
+> which btw apply cleanly to the kernel 2.4.25, do break the
+> compilation of iptables-1.2.9-20040409:
 
-PS: Apply with "-p1" in the pom directory.
+>    3) base/osf
+>         breaks the extension in iptables - see log below
 
--- 
-MfG / Regards
-Friedrich Lobenstock
+> Extensions found: IPv4:IPV4OPTSSTRIP IPv4:NETLINK IPv4:addrtype 
+> IPv4:condition IPv4:fuzzy IPv4:ipv4options IPv4:mport
+>   IPv4:nth IPv4:osf IPv4:pool IPv4:POOL IPv4:psd IPv4:quota
+>   IPv4:random 
+> IPv4:recent IPv4:time IPv4:u32 IPv6:REJECT IPv
+> 6:ah IPv6:esp IPv6:frag IPv6:fuzzy IPv6:ipv6header IPv6:nth IPv6:hbh 
+> IPv6:dst IPv6:random IPv6:rt
+> [...]
+> cc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ 
+> -DIPTABLES_VERSION=\"1.2.9-20040409\"  -fPIC -o extensions/
+> libipt_osf_sh.o -c extensions/libipt_osf.c
+> extensions/libipt_osf.c: In function `parse':
+> extensions/libipt_osf.c:106: error: `IPT_OSF_NETLINK' undeclared
+> (first use in this function)
+> extensions/libipt_osf.c:106: error: (Each undeclared identifier is
+> reported only once
+> extensions/libipt_osf.c:106: error: for each function it appears in.)
+> make: *** [extensions/libipt_osf_sh.o] Error 1
 
---------------040203070708070905020708
-Content-Type: text/plain;
- name="patch-base-connlimit-patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch-base-connlimit-patch"
+What sources do you use?
+You need CVS pom-ng + CVS iptables/extensions/libipt_osf.c for
+successfull compilation.
 
---- patch-o-matic-20040409/base/connlimit.patch.broken	2004-04-11 14:22:08.000000000 +0200
-+++ patch-o-matic-20040409/base/connlimit.patch	2004-04-11 14:28:31.000000000 +0200
-@@ -14,10 +14,9 @@
- +	struct ipt_connlimit_data *data;
- +};
- +#endif /* _IPT_CONNLIMIT_H */
--diff -urN -x *~ -x [Cc]onfig.* -x Makefile vanilla-2.4.0-test8/net/ipv4/netfilter/ipt_connlimit.c linux-2.4.0-test8/net/ipv4/netfilter/ipt_connlimit.c
----- vanilla-2.4.0-test8/net/ipv4/netfilter/ipt_connlimit.c	Thu Jan  1 01:00:00 1970
--+++ linux-2.4.0-test8/net/ipv4/netfilter/ipt_connlimit.c	Wed Nov 29 15:37:40 2000
--@@ -0,0 +1,232 @@
-+--- linux-2.4.25/net/ipv4/netfilter/ipt_connlimit.c	2003-03-14 14:07:09.000000000 +0100
-++++ linux-2.4.25/net/ipv4/netfilter/ipt_connlimit.c	2004-04-11 14:24:24.000000000 +0200
-+@@ -0,0 +1,227 @@
- +/*
- + * netfilter module to limit the number of parallel tcp
- + * connections per IP address.
-@@ -235,17 +234,12 @@
- +
- +static int __init init(void)
- +{
--+	/* NULL if ip_conntrack not a module */
--+	if (ip_conntrack_module)
--+		__MOD_INC_USE_COUNT(ip_conntrack_module);
- +	return ipt_register_match(&connlimit_match);
- +}
- +
- +static void __exit fini(void)
- +{
- +	ipt_unregister_match(&connlimit_match);
--+	if (ip_conntrack_module)
--+		__MOD_DEC_USE_COUNT(ip_conntrack_module);
- +}
- +
- +module_init(init);
+IPT_OSF_NETLINK is defined in
+patch-o-matic-ng/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h:
 
---------------040203070708070905020708--
+#define IPT_OSF_NETLINK		8
+
+
+With CVS pom-ng and CVS iptables/extensions/libipt_osf.c I can compile
+both libipt_osf.so and ipt_osf.o ( using my own scripts, but it doesn't
+matter).
+
+
+Thank you for review.
+
+> 
+> -- 
+> MfG / Regards
+> Friedrich Lobenstock
+
+
+	Evgeniy Polyakov ( s0mbre )
+
+Only failure makes us experts. -- Theo de Raadt
