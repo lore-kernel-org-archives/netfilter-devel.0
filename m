@@ -1,13 +1,13 @@
-From: "Eble, Dan" <DanE@aiinet.com>
+From: Dan Eble <dane@aiinet.com>
 Subject: [PATCH] Default policy for user-defined chains.
-Date: Thu, 12 Sep 2002 15:39:39 -0400
+Date: Thu, 12 Sep 2002 16:07:56 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <638AA0336D7ED411928700D0B7B0D75B03053C84@aimail.aiinet.com>
+Message-ID: <Pine.LNX.4.33.0209121600340.9308-100000@dane-linux.aiinet.com>
+Reply-To: <dane@aiinet.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,11 +18,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-/* Please accept my humblest apology for the awful patch I sent earlier
- * today.  Apparently, Outlook defaults to wrapping lines at 76 characters
- * when it transmits messages.  I've increased the line length to the max
- * (132 for some strange reason), so there should be no problems this time.
- * Keep your fingers peeled and your eyes crossed.
+/*
+ * Outlook sucks (but I'm sure you knew that).  Sending with Pine.
+ * Sorry again.  Flame dane@aiinet.com and I'll pass it on to the
+ * IS department. :-)
  */
 
 Well, not exactly--this is better!
@@ -31,7 +30,7 @@ SUMMARY
 =======
 This change allows one to address rules relative to the end of a chain
 instead of the beginning, by using a negative rule number.  I exchanged
-"unsigned int rulenum" for "int rulenum" everywhere it was found in  in
+"unsigned int rulenum" for "int rulenum" everywhere it was found in in
 libiptc.  Non-negative numbers do the same thing they always have.  The
 reduction in maximum value from UINT_MAX to INT_MAX is not a problem,
 because the CLI had restricted rulenum to [1,INT_MAX] anyway.
@@ -92,27 +91,25 @@ believe it should.
 I have not tested using `ip6tables', but a diff of the diffs (ipv4 against
 ipv6) shows nothing amiss, for what that's worth.
 
-I have not tested any of the counter functions, in part because I'm not sure
-what would be satisfactory.  Suggestions are welcome.
+I have not tested any of the counter functions, in part because I'm not
+sure what would be satisfactory.  Suggestions are welcome.
 
 QUESTIONS FOR PEOPLE WITH MORE THAN TWO DAYS' NETFILTER EXPERIENCE
 ==================================================================
 1. Have I missed anything important? (other than some testing...)
-2. The functions to read, zero, and set counters seemed to permit operating
-on an entry at c->end.  This looked bad to me so I changed it; was this
-appropriate?  Is there a way to use the CLI to confirm that it actually was
-a bug, and to confirm that I actually fixed it?
+2. The functions to read, zero, and set counters seemed to permit
+operating on an entry at c->end.  This looked bad to me so I changed it;
+was this appropriate?  Is there a way to use the CLI to confirm that it
+actually was a bug, and to confirm that I actually fixed it?
 3. I removed the "prepend" flag from insert_rules() for two reasons: (a)
 insert_rules did not use it, and (b) callers used the value inconsistently
 (at least it looked like they did).  Is that OK?
 
 PATCH
 =====
-diff -burN iptables-1.2.7a/include/libiptc/libip6tc.h
-iptables-1.2.7a-new/include/libiptc/libip6tc.h
+diff -burN iptables-1.2.7a/include/libiptc/libip6tc.h iptables-1.2.7a-new/include/libiptc/libip6tc.h
 --- iptables-1.2.7a/include/libiptc/libip6tc.h	Mon Feb 25 04:00:36 2002
-+++ iptables-1.2.7a-new/include/libiptc/libip6tc.h	Thu Sep 12 08:15:10
-2002
++++ iptables-1.2.7a-new/include/libiptc/libip6tc.h	Thu Sep 12 08:15:10 2002
 @@ -57,13 +57,13 @@
  /* Insert the entry `fw' in chain `chain' into position `rulenum'. */
  int ip6tc_insert_entry(const ip6t_chainlabel chain,
@@ -159,11 +156,9 @@ iptables-1.2.7a-new/include/libiptc/libip6tc.h
  		      struct ip6t_counters *counters,
  		      ip6tc_handle_t *handle);
  
-diff -burN iptables-1.2.7a/include/libiptc/libiptc.h
-iptables-1.2.7a-new/include/libiptc/libiptc.h
+diff -burN iptables-1.2.7a/include/libiptc/libiptc.h iptables-1.2.7a-new/include/libiptc/libiptc.h
 --- iptables-1.2.7a/include/libiptc/libiptc.h	Thu Apr 19 12:35:39 2001
-+++ iptables-1.2.7a-new/include/libiptc/libiptc.h	Thu Sep 12 08:08:18
-2002
++++ iptables-1.2.7a-new/include/libiptc/libiptc.h	Thu Sep 12 08:08:18 2002
 @@ -65,13 +65,13 @@
  /* Insert the entry `e' in chain `chain' into position `rulenum'. */
  int iptc_insert_entry(const ipt_chainlabel chain,
@@ -239,34 +234,24 @@ diff -burN iptables-1.2.7a/ip6tables.c iptables-1.2.7a-new/ip6tables.c
  "  --delete  -D chain		Delete matching rule from chain\n"
 -"  --delete  -D chain rulenum\n"
 +"  --delete  -D chain [-]rulenum\n"
- "				Delete rule rulenum (1 = first) from
-chain\n"
+ "				Delete rule rulenum (1 = first) from chain\n"
 -"  --insert  -I chain [rulenum]\n"
-+"				Negative rulenum counts backwards from
-end\n"
++"				Negative rulenum counts backwards from end\n"
 +"  --insert  -I chain [[-]rulenum]\n"
- "				Insert in chain as rulenum (default
-1=first)\n"
+ "				Insert in chain as rulenum (default 1=first)\n"
 -"  --replace -R chain rulenum\n"
-+"				Negative rulenum counts backwards from
-end\n"
++"				Negative rulenum counts backwards from end\n"
 +"  --replace -R chain [-]rulenum\n"
  "				Replace rule rulenum (1 = first) in chain\n"
-+"				Negative rulenum counts backwards from
-end\n"
- "  --list    -L [chain]		List the rules in a chain or all
-chains\n"
- "  --flush   -F [chain]		Delete all rules in  chain or all
-chains\n"
- "  --zero    -Z [chain]		Zero counters in chain or all
-chains\n"
++"				Negative rulenum counts backwards from end\n"
+ "  --list    -L [chain]		List the rules in a chain or all chains\n"
+ "  --flush   -F [chain]		Delete all rules in  chain or all chains\n"
+ "  --zero    -Z [chain]		Zero counters in chain or all chains\n"
 @@ -345,7 +349,7 @@
  "  --line-numbers		print line numbers when listing\n"
  "  --exact	-x		expand numbers (display exact values)\n"
- /*"[!] --fragment	-f		match second or further fragments
-only\n"*/
--"  --modprobe=<command>		try to insert modules using this
-command\n"
+ /*"[!] --fragment	-f		match second or further fragments only\n"*/
+-"  --modprobe=<command>		try to insert modules using this command\n"
 +"  --modprobe=command		try to insert modules using this command\n"
  "  --set-counters PKTS BYTES	set the counter during insert/append\n"
  "[!] --version	-V		print package version.\n");
@@ -347,11 +332,9 @@ command\n"
  			fw->ipv6.dst = daddrs[j];
  			if (verbose)
  				print_firewall_line(fw, *handle);
--			ret &= ip6tc_insert_entry(chain, fw, rulenum,
-handle);
+-			ret &= ip6tc_insert_entry(chain, fw, rulenum, handle);
 +			ret &= ip6tc_insert_entry(chain, fw,
-+
-cli_to_lib_rulenum(rulenum),
++						  cli_to_lib_rulenum(rulenum),
 +						  handle);
  		}
  	}
@@ -460,34 +443,24 @@ diff -burN iptables-1.2.7a/iptables.c iptables-1.2.7a-new/iptables.c
  "  --delete  -D chain		Delete matching rule from chain\n"
 -"  --delete  -D chain rulenum\n"
 +"  --delete  -D chain [-]rulenum\n"
- "				Delete rule rulenum (1 = first) from
-chain\n"
+ "				Delete rule rulenum (1 = first) from chain\n"
 -"  --insert  -I chain [rulenum]\n"
-+"				Negative rulenum counts backwards from
-end\n"
++"				Negative rulenum counts backwards from end\n"
 +"  --insert  -I chain [[-]rulenum]\n"
- "				Insert in chain as rulenum (default
-1=first)\n"
+ "				Insert in chain as rulenum (default 1=first)\n"
 -"  --replace -R chain rulenum\n"
-+"				Negative rulenum counts backwards from
-end\n"
++"				Negative rulenum counts backwards from end\n"
 +"  --replace -R chain [-]rulenum\n"
  "				Replace rule rulenum (1 = first) in chain\n"
-+"				Negative rulenum counts backwards from
-end\n"
- "  --list    -L [chain]		List the rules in a chain or all
-chains\n"
- "  --flush   -F [chain]		Delete all rules in  chain or all
-chains\n"
- "  --zero    -Z [chain]		Zero counters in chain or all
-chains\n"
++"				Negative rulenum counts backwards from end\n"
+ "  --list    -L [chain]		List the rules in a chain or all chains\n"
+ "  --flush   -F [chain]		Delete all rules in  chain or all chains\n"
+ "  --zero    -Z [chain]		Zero counters in chain or all chains\n"
 @@ -397,7 +401,7 @@
  "  --line-numbers		print line numbers when listing\n"
  "  --exact	-x		expand numbers (display exact values)\n"
- "[!] --fragment	-f		match second or further fragments
-only\n"
--"  --modprobe=<command>		try to insert modules using this
-command\n"
+ "[!] --fragment	-f		match second or further fragments only\n"
+-"  --modprobe=<command>		try to insert modules using this command\n"
 +"  --modprobe=command		try to insert modules using this command\n"
  "  --set-counters PKTS BYTES	set the counter during insert/append\n"
  "[!] --version	-V		print package version.\n");
@@ -569,11 +542,9 @@ command\n"
  			fw->ip.dst.s_addr = daddrs[j].s_addr;
  			if (verbose)
  				print_firewall_line(fw, *handle);
--			ret &= iptc_insert_entry(chain, fw, rulenum,
-handle);
+-			ret &= iptc_insert_entry(chain, fw, rulenum, handle);
 +			ret &= iptc_insert_entry(chain, fw,
-+
-cli_to_lib_rulenum(rulenum),
++						 cli_to_lib_rulenum(rulenum),
 +						 handle);
  		}
  	}
@@ -653,8 +624,7 @@ cli_to_lib_rulenum(rulenum),
  				   nsaddrs, saddrs, ndaddrs, daddrs,
  				   options&OPT_VERBOSE,
  				   handle);
-diff -burN iptables-1.2.7a/libiptc/libiptc.c
-iptables-1.2.7a-new/libiptc/libiptc.c
+diff -burN iptables-1.2.7a/libiptc/libiptc.c iptables-1.2.7a-new/libiptc/libiptc.c
 --- iptables-1.2.7a/libiptc/libiptc.c	Wed May 29 09:08:16 2002
 +++ iptables-1.2.7a-new/libiptc/libiptc.c	Thu Sep 12 10:20:56 2002
 @@ -180,6 +180,90 @@
@@ -731,8 +701,7 @@ iptables-1.2.7a-new/libiptc/libiptc.c
 +	return entry;
 +}
 +
-+/* General access of an entry from the beginning or end of a chain,
-depending
++/* General access of an entry from the beginning or end of a chain, depending
 + * on the sign of rulenum.  The ambiguous case of rulenum=0 is resolved in
 + * favor of the forward direction for backward compatibility.
 + */
@@ -743,8 +712,7 @@ depending
 +	if (rulenum >= 0)
 +		return rulenum2entry_forward(handle, c, rulenum, index_out);
 +	else
-+		return rulenum2entry_reverse(handle, c, -rulenum,
-index_out);
++		return rulenum2entry_reverse(handle, c, -rulenum, index_out);
 +}
 +
  static const char *
@@ -787,8 +755,7 @@ index_out);
 +		tmp = rulenum2entry_forward(*handle, c, rulenum, &index);
 +	else {
 +		/* Add -1 to insert *after* the requested entry. */
-+		tmp = rulenum2entry_reverse(*handle, c, -rulenum - 1,
-&index);
++		tmp = rulenum2entry_reverse(*handle, c, -rulenum - 1, &index);
 +	}
  
 -	tmp = index2entry(*handle, chainindex + rulenum);
