@@ -1,40 +1,66 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Missing ipt_osf.h in p-o-m (kernel 2.6)
-Date: Tue, 24 Aug 2004 16:49:33 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408241647300.9087@filer.marasystems.com>
-References: <20040818223233.GA317@cerbere.dyndns.info>
- <20040819094720.GZ3921@sunbeam.de.gnumonks.org> <4127E920.2080100@trash.net>
- <Pine.LNX.4.58.0408241134530.13212@blackhole.kfki.hu>
- <20040824104945.GR26877@sunbeam.de.gnumonks.org>
- <Pine.LNX.4.61.0408241435260.7021@filer.marasystems.com>
- <Pine.LNX.4.58.0408241447140.13212@blackhole.kfki.hu>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Billing 1: WAS (Re: [PATCH 2/4] deferred drop, __parent workaround, reshape_fail , netdev@oss.sgi.com ,
+Date: Tue, 24 Aug 2004 20:38:42 +0200
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040824183842.GN26877@sunbeam.de.gnumonks.org>
+References: <411C0FCE.9060906@crocetta.org> <1092401484.1043.30.camel@jzny.localdomain> <20040816072032.GH15418@sunbeam2> <1092661235.2874.71.camel@jzny.localdomain> <4120D068.2040608@crocetta.org> <1092743526.1038.47.camel@jzny.localdomain> <41220AEA.20409@crocetta.org> <1093187835.1042.95.camel@jzny.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0408241447140.13212@blackhole.kfki.hu>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="fwVzdwcpG0LlK9IO"
+Cc: sandr8 <sandr8_NOSPAM_@crocetta.org>, devik@cdi.cz, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: jamal <hadi@cyberus.ca>
+Content-Disposition: inline
+In-Reply-To: <1093187835.1042.95.camel@jzny.localdomain>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 24 Aug 2004, Jozsef Kadlecsik wrote:
 
-> Using the directory scheme and logic above, how you could express that
-> foo.c is required up to 2.6.8 but not above?
+--fwVzdwcpG0LlK9IO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Place it in linux-2.6.1 (or from whatever version is required), and create 
-a linux-2.6.9 directory not having this file.
+On Sun, Aug 22, 2004 at 11:17:15AM -0400, jamal wrote:
+> Apologies for latency - was busy at (my real) work.
 
-If there is other releases between 2.6.1 and 2.6.9 for the file into each 
-release.
+Same for me, sorry.
 
-Regards
-Henrik
+> Let me say this:
+> I am happy with Haralds billing patch which is already in as is.
+> In other words, although there is an accounting discrepancy it is not
+> that big.
+> What does that mean? unbilling is not something to rush in and patch in
+> if its going to have an impact on other pieces. It doesnt matter whether
+> it goes in in 2.6.20 or doesnt even go in as far as i am concerned.=20
+
+Same to me, although I wold have used a less explicit wording ;)
+
+> cheers,
+> jamal
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--fwVzdwcpG0LlK9IO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBK4syXaXGVTD0i/8RAoIjAJ9ejc6i+d+pNmmqvOc8/OmTYHrm9ACfX4EP
+OlSRvn9HS+uADLSNvSics34=
+=ibQN
+-----END PGP SIGNATURE-----
+
+--fwVzdwcpG0LlK9IO--
