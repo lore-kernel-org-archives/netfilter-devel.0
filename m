@@ -1,16 +1,16 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: TProxy w/2.6
-Date: Wed, 23 Jun 2004 00:08:49 +0200
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: Deadlocks
+Date: Mon, 21 Jun 2004 21:31:29 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40D8ADF1.8000400@balabit.hu>
-References: <54933.68.92.26.41.1087835494.squirrel@mercury.ddos.com>    <20040621170452.GA6797@sch.bme.hu> <56384.68.92.26.41.1087931518.squirrel@mercury.ddos.com>
+Message-ID: <20040622043129.GA15906@linuxace.com>
+References: <20040609180909.GA11445@linuxace.com> <1087156709.11287.8.camel@ws> <20040615044723.GA16891@linuxace.com> <40CE95DE.9090703@trash.net> <20040617155946.GA28564@linuxace.com> <40D1C4BF.8070605@trash.net> <20040618171214.GA750@linuxace.com> <40D62FDB.8090904@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: evan@ddos.com
-In-Reply-To: <56384.68.92.26.41.1087931518.squirrel@mercury.ddos.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <40D62FDB.8090904@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,96 +21,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, Jun 21, 2004 at 02:46:19AM +0200, Patrick McHardy wrote:
+> Not sure either, but it's a start. Have you tried running the box with
+> netfilter debugging enabled ? Please also apply the ip_nf_assert fix
+> from pom-ng, otherwise CONFIG_NETFILTER_DEBUG won't help much.
+> BTW: Is the box a router or is conntrack running on the FTP server
+> itself ?
 
-   Hi,
+The box is a router -- the ftp server is a separate box.
 
-Evan Langlois wrote:
-> tcp-window-tracking from pom applied to vanilla 2.6.6 - cttproxy patches
-> from web site fails.  cttproxy applied to vanilla 2.6.6 fails.  I tried
-> using other versions of the window tracking patch, they failed.
-> 
-> tcp-window-tracking applies fine.
+Thanks for the tip on the ip_nf_assert patch - I'd been running with debugging
+enabled but wondered why I never saw anything...
 
-   For me too, but I was unable to apply it onto 2.6.7.
+Now that I enabled debugging (for real), I hit this one a few hundred times
+per minute:
 
-> the tproxt in pom never works.  The cttproxy package does not apply to
-> 2.6.6 even with tcp-window-tracking applied to a vanilla 2.6.6 kernel. 
-> Are you using a vanilla kernel from kernel.org, or a kernel from some
-> distribution that may have modified the original sources?
+NF_IP_ASSERT: net/ipv4/netfilter/ip_conntrack_core.c:717(init_conntrack)
 
-   I'm using vanilla sources, but the patch files are _generated_ partly 
-using a simple shell script, partly using 'quilt'. The POM-ng port is 
-not yet optimal, since it does not use .ladd files, so it's a bit picky 
-regarding kernel versions.
+which is in this chunk of code:
 
-> Note the very large number of failures!  This is against a vanilla 2.6.6
-> kernel with the latest tcp-window-tracking patch from POMng applied (which
-> applied cleanly).
+        if (expected) {
+                DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
+                        conntrack, expected);
+                /* Welcome, Mr. Bond.  We've been expecting you... */
+                IP_NF_ASSERT(master_ct(conntrack));
+                __set_bit(IPS_EXPECTED_BIT, &conntrack->status);
+                conntrack->master = expected;
+                expected->sibling = conntrack;
+                LIST_DELETE(&ip_conntrack_expect_list, expected);
+                expected->expectant->expecting--;
+                nf_conntrack_get(&master_ct(conntrack)->infos[0]);
+        }
 
-$ wget http://www.balabit.com/downloads/tproxy/linux-2.4/devel/\
-cttproxy-2.6.6-1.9.6.tar.gz
-$ tar xzf cttproxy*.tar.gz
-$ tar xjf linux-2.6.6.tar.bz2
-$ cd linux-2.6.6
-$ cat ../cttproxy-2.6.6-1.9.6/patch_tree/0{1,2,3}*.diff | patch -p1
-patching file include/linux/netfilter_ipv4/ip_conntrack.h
-Hunk #2 succeeded at 256 with fuzz 1 (offset -5 lines).
-patching file include/linux/netfilter_ipv4/ip_nat.h
-patching file net/ipv4/netfilter/ip_conntrack_core.c
-Hunk #3 succeeded at 952 (offset -1 lines).
-patching file net/ipv4/netfilter/ip_conntrack_standalone.c
-Hunk #1 succeeded at 651 (offset -45 lines).
-patching file net/ipv4/netfilter/ip_nat_core.c
-patching file net/ipv4/netfilter/ip_nat_proto_icmp.c
-patching file net/ipv4/netfilter/ip_nat_proto_tcp.c
-patching file net/ipv4/netfilter/ip_nat_proto_udp.c
-patching file net/ipv4/netfilter/ip_nat_standalone.c
-patching file net/ipv4/netfilter/Kconfig
-patching file net/ipv4/netfilter/ip_nat_standalone.c
-patching file include/linux/in.h
-patching file include/linux/net.h
-patching file include/linux/netfilter_ipv4/ip_conntrack.h
-Hunk #3 succeeded at 268 with fuzz 1 (offset -5 lines).
-patching file include/linux/netfilter_ipv4/ip_nat.h
-patching file include/linux/netfilter_ipv4/ip_nat_core.h
-patching file include/linux/netfilter_ipv4/ip_tproxy.h
-patching file include/linux/netfilter_ipv4/ipt_TPROXY.h
-patching file include/net/ip.h
-patching file net/ipv4/ip_sockglue.c
-patching file net/ipv4/netfilter/Kconfig
-patching file net/ipv4/netfilter/Makefile
-patching file net/ipv4/netfilter/ip_conntrack_core.c
-patching file net/ipv4/netfilter/ip_conntrack_standalone.c
-Hunk #1 succeeded at 632 (offset -45 lines).
-patching file net/ipv4/netfilter/ip_fw_compat_masq.c
-patching file net/ipv4/netfilter/ip_nat_amanda.c
-patching file net/ipv4/netfilter/ip_nat_core.c
-patching file net/ipv4/netfilter/ip_nat_ftp.c
-patching file net/ipv4/netfilter/ip_nat_irc.c
-patching file net/ipv4/netfilter/ip_nat_rule.c
-patching file net/ipv4/netfilter/ip_nat_standalone.c
-patching file net/ipv4/netfilter/ip_nat_tftp.c
-patching file net/ipv4/netfilter/ipt_MASQUERADE.c
-patching file net/ipv4/netfilter/ipt_NETMAP.c
-patching file net/ipv4/netfilter/ipt_REDIRECT.c
-patching file net/ipv4/netfilter/ipt_SAME.c
-patching file net/ipv4/netfilter/ipt_TPROXY.c
-patching file net/ipv4/netfilter/ipt_tproxy.c
-patching file net/ipv4/netfilter/iptable_tproxy.c
-patching file net/ipv4/tcp_ipv4.c
-patching file net/ipv4/udp.c
-$
 
-   So, I don't see any problems at all. Note that since I did not apply 
-the window tracking patch, I skipped 04*.diff as well. Unfortunately I 
-was unable to test POM-ng, since the POM-ng from CVS I've just checked 
-out fails to apply tcp-window-tracking, because conntrack_error-api 
-fails to apply. The approach you've tried is not correct, because the 
-patches are dependant on each other, so applying 02-*.diff without 01... 
-is not possible. And unfortunately running a simple patch with the 
-'--dry-run' option does not know about this, and fails. POM-ng is wiser, 
-and should correctly test dependant patchsets as well.
+Other than being mildly annoying, this doesn't explain the deadlocks,
+so I'll let it run for a few more days...
 
--- 
-  Regards,
-   Krisztian KOVACS
+Phil
