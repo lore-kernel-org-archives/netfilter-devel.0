@@ -1,16 +1,13 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: scripts for adding rulesets for performance testing?
-Date: Fri, 10 Oct 2003 09:29:21 +0200
+From: Emmanuel Fleury <fleury@cs.auc.dk>
+Subject: Question about nf_hookfn
+Date: Fri, 10 Oct 2003 17:14:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031010072921.GA6712@alpha.home.local>
-References: <20031009211452.GA16165@sirius.cs.pdx.edu>
+Message-ID: <1065798842.17392.38.camel@rade7.s.cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kristen Carlson <kristenc@cs.pdx.edu>
-Content-Disposition: inline
-In-Reply-To: <20031009211452.GA16165@sirius.cs.pdx.edu>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +18,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Oct 09, 2003 at 02:14:52PM -0700, Kristen Carlson wrote:
-> Hi there.  I'm doing some performance testing of iptables with increasing
-> rulesets and am wondering if anybody already has some scripts for adding
-> rules (many many rules) that they would like to share?  I noticed in the
-> archives that the nf-hipac folks had posted a link to a script they had used
-> for their performance testing which seemed to do exactly what I wanted, 
-> but the link is busted. 
+Hi all,
 
-If your problem is "how to load a very high number of rules in a limited time",
-then I strongly suggest that you use iptables-restore, which will load them
-instantly at once. I have a ppro200 somewhere which takes less than a second
-to load 4000 nat rules with it, while loading iptables for each of them took
-ages (>15mn).
+I would like to know more about the last argument of the function
+nf_hookfn defined in /usr/src/linux/include/linux/netfilter.h.
 
-If your problem is "how to generate a lot of non-matching rules", then a simple
-for() loop in shell, possibly including randoms will do the trick.
+Basically, you have:
 
-Hoping this helps
-Willy
+typedef unsigned int nf_hookfn(unsigned int hooknum,
+                               struct sk_buff **skb,
+                               const struct net_device *in,
+                               const struct net_device *out,
+                               int (*okfn)(struct sk_buff *));
+
+I got all the other arguments but the last one...
+
+What is it for ???
+
+Regards
+-- 
+Emmanuel
+
+Modern technology just makes people try to do everything at once.
+  -- Calvin & Hobbes (Bill Waterson)
