@@ -1,13 +1,17 @@
-From: Jon Webb <jon_webb@binary-one.com>
-Subject: Routing Questions - Netfilter Hooks
-Date: Mon, 14 Apr 2003 18:18:02 -0700
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Bug (?) in ipt_reject doesn't follow policy routing (2.4.x)
+Date: Tue, 15 Apr 2003 09:40:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E9B5DCA.6010103@binary-one.com>
+Message-ID: <20030415074049.GX6866@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.21.0304141317090.763-100000@debian.besselink> <3E9B2398.8020109@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mln0rGgUGuXEqmuI"
+Cc: leen@wirehub.nl, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3E9B2398.8020109@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,39 +22,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello everyone... I am writing a new routing system. It uses a kernel 
-module and a userspace daemon. Essentially the kernel module intercepts 
-packets on NF_IP_PREROUTING and NF_IP_LOCAL_OUT and checks for existing 
-routes. If the routes do not exist, the packets are bumped up to 
-userspace so that routes can be established (by other means). I am 
-having a problem for which I hope someone has a solution.
 
-To start, the documentation is unclear about when packets go to the 
-kernel routing system on the outbound path. The docs indicate that 
-IP_LOCAL_OUT is called before the routing code, but then there is a 
-sentence that states the routing code is called "first" to determine 
-source IP, etc. This has grave implications for my code because I need 
-to capture all packets before they are rejected due to lack of routes! 
-Right now I have verified that if I do not have a route to a host, and I 
-try to ping that host, I get network unreachable messages without the 
-IP_LOCAL_OUT hook ever getting called. Is there a way around this? Or am 
-I just doing something wrong?
+--mln0rGgUGuXEqmuI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-My second question is more of a routing question in general, but perhaps 
-someone has a suggestion. On the IP_PRE_ROUTING side, my code to check 
-routes and bump them into userspace is working fine except that it would 
-be really useful to know what kind of routes they are (ie, what flags 
-they have). The problem with obtaining this information is that the 
-rtable structure returned by the route lookup operation is not 
-displaying any flags (the rt_flags field is always 0). This means I 
-can't decipher whether the route it returns is a host route or a gateway 
-route or whatever..
+On Mon, Apr 14, 2003 at 11:09:44PM +0200, Patrick McHardy wrote:
 
-Thanks,
-Jon Webb
-jon_webb@binary-one.com
+> @netfilter-people: would something like this be acceptable ? REJECT and=
+=20
+> MIRROR (which looks broken wrt ip_route_output and dst handling) need
+> something like this to work correctly with policy routing.
 
------------------
-Jon Webb
-Computer Communications Research Group
-University of California, Santa Cruz
+I don't see a problem with your patch.  Please note, however, that I am
+not very familiar with the linux routing code - so I feel a bit unable
+to make that decision.
+
+We should talk to David Miller about this issue.  Could you please write
+a short summary like 'old behaviour was X and we had Problem Y with it,
+now we try to fix it with this patch doing Z'?  I would then put the
+patch together with this summary (as .help file) in patch-o-matic
+pending and discuss it with davem.
+
+> Bye
+> Patrick
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--mln0rGgUGuXEqmuI
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+m7eBXaXGVTD0i/8RAmFqAJ9byVL2mCkrwt8ZEeIbMtVILi5EvgCfejlg
+xkkwpnqztUhlndUtiEtp27M=
+=Rov7
+-----END PGP SIGNATURE-----
+
+--mln0rGgUGuXEqmuI--
