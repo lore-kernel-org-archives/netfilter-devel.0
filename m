@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] Small SMP-race found in ip_conntrack_proto_tcp.c
-Date: Wed, 30 Oct 2002 09:48:37 +0100
+Subject: Re: How to add nat rules by another loadable kernel module
+Date: Wed, 30 Oct 2002 09:47:44 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021030094837.Q8635@sunbeam.de.gnumonks.org>
-References: <1035472754.722.129.camel@tux>
+Message-ID: <20021030094744.P8635@sunbeam.de.gnumonks.org>
+References: <F17677bieLYCT4aJ6pk00000164@hotmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eL7EO+gwLE2vJ/xx"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="9axOBMfiLLqytT81"
+Cc: netfilter-devel@lists.samba.org, andrekleibeuker@hotmail.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+To: "andre achternaam" <andreiscmeel@hotmail.com>
 Content-Disposition: inline
-In-Reply-To: <1035472754.722.129.camel@tux>; from gandalf@wlug.westbo.se on Thu, Oct 24, 2002 at 05:19:14PM +0200
+In-Reply-To: <F17677bieLYCT4aJ6pk00000164@hotmail.com>; from andreiscmeel@hotmail.com on Thu, Oct 24, 2002 at 09:26:49AM +0000
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,19 +23,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---eL7EO+gwLE2vJ/xx
+--9axOBMfiLLqytT81
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 24, 2002 at 05:19:14PM +0200, Martin Josefsson wrote:
-> Patch to move the unlock further down is attached, I unlock before
-> calling ip_ct_refresh as it is unfriendly to hold the lock longer than
-> neccessary.
+On Thu, Oct 24, 2002 at 09:26:49AM +0000, andre achternaam wrote:
+> I'm aware this is a userspace methode to do it, and i like to know how to=
+ do=20
+> this in kernel space. I have looked hours in all kind of netfilter files =
+but=20
+> i don't have any hint how to do it.
+>=20
+The answer will not satisfy you:
 
-I can't see a patch :)
+You don't do this in kernel space.   There is no API for doing this, and no
+code inside the kernel which can actually create ip_tables. Everything is
+in libiptc in userspace.
 
-> /Martin
+> Andre Kleibeuker
+=20
+
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -46,7 +54,7 @@ Live long and prosper
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---eL7EO+gwLE2vJ/xx
+--9axOBMfiLLqytT81
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -54,9 +62,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9v5zlXaXGVTD0i/8RAjn2AJwIbymCM9XfR7pwi8pGbORVRyv79wCfYaSf
-Ad4aJf75gft5Q2itIwG/r3U=
-=ibGB
+iD8DBQE9v5yvXaXGVTD0i/8RAks9AKCLslVQgT/LezTEAgzklFQJiSDyiACgqWzd
+OJ/2y8HdDwGKeWDnHkZ4zUQ=
+=ZEaj
 -----END PGP SIGNATURE-----
 
---eL7EO+gwLE2vJ/xx--
+--9axOBMfiLLqytT81--
