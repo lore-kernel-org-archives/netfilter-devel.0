@@ -1,18 +1,11 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [RFC] string matching based packet classification/filtering
-Date: Thu, 17 Feb 2005 02:00:57 +0100
-Message-ID: <4213ECC9.30502@eurodev.net>
-References: <20050215203211.GL31837@postel.suug.ch>
-	<42126C9B.5060406@eurodev.net>
-	<20050216223038.GQ31837@postel.suug.ch>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: [Fwd: ipt_connlimit.c from pom-ng contains error]
+Date: Wed, 16 Feb 2005 18:27:09 +1100
+Message-ID: <1108538829.13398.8.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Harald Welte <laforge@gnumonks.org>
-To: Thomas Graf <tgraf@suug.ch>
-In-Reply-To: <20050216223038.GQ31837@postel.suug.ch>
+Content-Type: text/plain; charset=iso-8859-5
+Content-Transfer-Encoding: quoted-printable
+To: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,53 +17,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Graf wrote:
+-------- Forwarded Message --------
+From: Zharovtsev, Anton <warm@stack.ru>
+To: rusty@rustcorp.com.au
+Subject: ipt_connlimit.c from pom-ng contains error
+Date: Wed, 16 Feb 2005 13:02:25 +0600
+Hello.
 
->>Actually I wanted to contact Harald after this friday, once I'm done 
->>with my exams. I'd like to merge my work with his libqsearch hackings 
->>that were about to be finished.
->>    
->>
->
->Thinking about it, we can use the architecture to implement a regular
->expression match. The pattern would consist of an array of tokens
->in the form of:
->
->struct regexp_token
->{
->	__u8 type;
->	__u8 recur;
->	__u8 value;
->	__u8 unused;
->};
->  
->
+I am sorry for writing this letter directly to You and not to the mail li=
+st.
+I have no time to subcribe and so on ...
 
-Yes, this is a good idea. This could be useful to match things like 
-interrogation marks or asterisks that are usually used as wildcard.
 
->where type would be
->  - specific character (must match `value')
->  - wildcard
->  - digit
->  - xdigit
->  - alpha ...
->
->and recur
-> - 1
-> - 0..1
-> - 0..n
-> - 1..0
->
->The matching algorithm would parse the array as a finite automation
->eating up byte by byte in the text.
->
+This is from 2.4 linux/netfilter_ipv4/ip_conntrack.h:
 
-Looks good but Boyer-Moore algorithm doesn't need this at all. BM 
-doesn't support wildcards like '*' because of the shiftings that it uses 
-to look for matches. This issue together with memory consumption are two 
-limitations that we have to live with if we want to use BM. Anyway I 
-think it's worth it because we can perform search in O(n/m).
+        /* Our various nf_ct_info structs specify *what* relation this
+           packet has to the conntrack */
+        struct nf_ct_info infos[IP_CT_NUMBER];
 
---
-Pablo
+There is no description of such member of struct ip_conntrack in the 2.6 =
+same file ( linux/netfilter_ipv4/ip_conntrack.h )
+
+I am not a programmer, I only applied pom-ng for 2005-02-14 date onto 2.6=
+.10 kernel and I got error:
+
+  CC [M]  net/ipv4/netfilter/ipt_connlimit.o
+net/ipv4/netfilter/ipt_connlimit.c: In function `count_them':
+net/ipv4/netfilter/ipt_connlimit.c:100: error: structure has no member na=
+med `infos'
+net/ipv4/netfilter/ipt_connlimit.c:107: error: structure has no member na=
+med `infos'
+make[3]: *** [net/ipv4/netfilter/ipt_connlimit.o] =BE=E8=D8=D1=DA=D0 1
+make[2]: *** [net/ipv4/netfilter] Error 2
+make[1]: *** [net/ipv4] Error 2
+make: *** [net] Error 2
+root@wasp:/usr/src/linux#
+
+I will turn off this module, but I think it is very usefull for many peop=
+les and.
+This letter is my small bug report :-).
+
+Sorry again.
+--=20
+A bad analogy is like a leaky screwdriver -- Richard Braakman
