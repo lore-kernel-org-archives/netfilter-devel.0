@@ -1,17 +1,18 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: NetFilter unclean modue in 2.6.x kernels
-Date: Mon, 24 Jan 2005 11:21:51 +0100
-Message-ID: <41F4CC3F.7070505@eurodev.net>
-References: <200501220013.56429.sov.rbsec@gmail.com>	<20050121233328.GU14460@sunbeam.de.gnumonks.org>
+Date: Mon, 24 Jan 2005 11:53:19 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0501241135100.6574@blackhole.kfki.hu>
+References: <200501220013.56429.sov.rbsec@gmail.com>
+	<20050121233328.GU14460@sunbeam.de.gnumonks.org>
 	<Pine.LNX.4.58.0501240922370.6574@blackhole.kfki.hu>
+	<41F4CC3F.7070505@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Harald Welte <laforge@netfilter.org>, "Oleg V. Sapon" <sov.rbsec@gmail.com>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0501240922370.6574@blackhole.kfki.hu>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <41F4CC3F.7070505@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,49 +24,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
+On Mon, 24 Jan 2005, Pablo Neira wrote:
 
->Hi Harald,
+> >The port I created verifies the checksums as well, relying on hardware
+> >checksums when possible.
 >
->On Sat, 22 Jan 2005, Harald Welte wrote:
+> Hm, the error API makes sure that we don't start a session in the
+> connection tracking with unclean packets (since kernel 2.6.6). So
+> something like:
 >
->  
+> iptables -m state INVALID -j ULOG
 >
->>On Sat, Jan 22, 2005 at 12:13:56AM +0300, Oleg V. Sapon wrote:
->>    
->>
->>> Can you help locate unclean module for 2.6.x kernel or we must use
->>> source files from 2.6.0-test4?
->>>      
->>>
->>I fear nobody did that port to recent 2.6.x and put it into
->>patch-o-matic :(
->>
->>I just did that with the old code from 2.6.0-testX.  I didn't have the
->>time to give it any runtime testing, but at least it compiled (after
->>fixing up some includes).
->>    
->>
+> should be enough to log evil packets.
 >
->I also ported the unclean patch to 2.6 some time ago. The main reason I
->did not post it was the slightly modified API.
->
->The port I created verifies the checksums as well, relying on hardware
->checksums when possible. 
->
+> The checkings aren't so strict as those that the unclean module used to
+> do but with a couple of patches I could tighten that. Actually I
+> remember a discussion with Jozsef about this. As far as I can remember
+> he didn't like so much the idea of putting half of the unclean module there.
 
-Hm, the error API makes sure that we don't start a session in the 
-connection tracking with unclean packets (since kernel 2.6.6). So 
-something like:
+The routines behind the error API perform just the very minimum checkings
+to make sure the packets can be processed by conntrack(/NAT) sanely. But
+that is all they are required to do, therefore I'd oppone to move other
+checkings from the unclean module to the error functions. The purpose of
+the conntrack subsytems is to keep track of the connections as perfectly
+as possible and nothing more. It must not implement filtering functions ,
+because it's the task delegated to the filter(/raw) table.
 
-iptables -m state INVALID -j ULOG
+Ideally, I'd like to see setups like:
 
-should be enough to log evil packets.
+- drop malformed (unclean) packets in the raw table, as early as
+  possible, so they don't hit conntrack at all
+- keep track of connections and doing so rely on the results of the
+  unclean macth (if exists) to avoid double checkings
+- mangle/nat/filter
 
-The checkings aren't so strict as those that the unclean module used to 
-do but with a couple of patches I could tighten that. Actually I 
-remember a discussion with Jozsef about this. As far as I can remember 
-he didn't like so much the idea of putting half of the unclean module there.
-
---
-Pablo
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
