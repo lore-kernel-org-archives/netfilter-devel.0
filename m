@@ -1,15 +1,12 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: iptables versioning feature causes ABI breakage
-Date: Thu, 24 Mar 2005 22:17:05 +0100
-Message-ID: <42432E51.1080309@eurodev.net>
-References: <1111666300.1037.40.camel@jzny.localdomain>
+From: "Julio Kriger" <jkriger@cwazy.co.uk>
+Subject: Can be done? reodering and delay SCTP packages?
+Date: Thu, 24 Mar 2005 19:00:29 -0300 (ART)
+Message-ID: <33837.200.127.126.201.1111701629.squirrel@200.127.126.201>
+Reply-To: jkriger@hotpop.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>, Harald Welte <laforge@gnumonks.org>
-To: hadi@znyx.com
-In-Reply-To: <1111666300.1037.40.camel@jzny.localdomain>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +18,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jamal,
+Hi!
+I've developed some modifications to SCTP protocol on Linux kernel. Now I
+want to test it. So here comes the problem.
+I need to simulate reordending and random delay of SCTP packages between =
+a
+server and client application.
+On the kernel there is implentation of sctp for iptables. Great! Also rea=
+d
+there is ip_queue or libipq which manage the package queue. Now, how can =
+I
+reorder the queue of packages? How can I do delay packages?
+Thanks in advance.
 
-Jamal Hadi Salim wrote:
-> Folks,
-> 
-> Could whoever that made the versioning changes in iptables please
-> contact me?
+Julio
 
-I was also involved in that change together with Rusty around january. 
-It's a new infrastructure to extend matches/targets without breaking 
-backward compatibility with previous releases of target/matches/iptables.
 
-I must confess that I didn't have a look at your ipt_action stuff before 
-, now I did. As Patrick pointed out, we'll keep in mind your ipt thing 
-in future.
+PS: Hope this is the right maillits, sorry the bother if it's not.
 
-Your patch for tc to fix the problem looks fine. BTW, you can now use 
-extended MARK features like --and-mark and --or-mark ;->
 
---
-Pablo
+
+--=20
+-------------------------------
+Julio Kriger
+jkriger AT hotpop DOT com
+jkriger AT cwazy DOT co DOT uk
