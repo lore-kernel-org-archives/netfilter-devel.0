@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: problem compiling using uclibc
-Date: Wed, 30 Oct 2002 09:36:37 +0100
+Subject: Re: Very strange problems with some websites (kernel 2.4.19 .. 2.4.20pre9)
+Date: Wed, 30 Oct 2002 09:38:54 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021030093637.J8635@sunbeam.de.gnumonks.org>
-References: <1035155254.3db33736a41e5@horde.survion.com>
+Message-ID: <20021030093854.K8635@sunbeam.de.gnumonks.org>
+References: <200210211917.g9LJHo323518@netics.fi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LsnByradU3Ze6UwI"
+	protocol="application/pgp-signature"; boundary="n7zTieg8iIQ1Wja9"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: g_braad@survion.com
+To: Junnu <puska@netics.fi>
 Content-Disposition: inline
-In-Reply-To: <1035155254.3db33736a41e5@horde.survion.com>; from g_braad@survion.com on Mon, Oct 21, 2002 at 01:07:34AM +0200
+In-Reply-To: <200210211917.g9LJHo323518@netics.fi>; from puska@netics.fi on Mon, Oct 21, 2002 at 10:17:49PM +0300
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,32 +23,24 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---LsnByradU3Ze6UwI
+--n7zTieg8iIQ1Wja9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 21, 2002 at 01:07:34AM +0200, g_braad@survion.com wrote:
-> Hello,
+On Mon, Oct 21, 2002 at 10:17:49PM +0300, Junnu wrote:
+> Hello developers!
 >=20
->=20
-> i'm trying to build iptables against uclibc for use on a very small syste=
-m.
-> I'm using the 2.4.7 kernel.
+> Have you been heard, that using kernel 2.4.19 - 2.4.20pre9 with all the
+> netfilter modules compiled (with several different hardware combination a=
+nd
+> ISP's) you cannot connect to these web sites:
 
-you are using the 2.4.7 kernel and some patches (like the ipt_conntrack stu=
-ff)
-which is not supported in those old kernels.
+Have you ever heared about ECN (http://gtf.org/garzik/ecn/)?
 
-I doubt that your problem is related to ulibc at all.
-
-Try
-
-a) building against glibc, just for testing
-b) using a plain 2.4.7 kernel and iptables-ulibc
-c) using a later kernel and iptables-ulibc
-
-> Gerard
+btw: your packet dumps don't really tell me anything.  At least I am not
+able to figure any information out of a hexdump.  Please include tcpdump
+(or ethereal) output in your reports.
 
 --=20
 Live long and prosper
@@ -60,7 +52,7 @@ Live long and prosper
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---LsnByradU3Ze6UwI
+--n7zTieg8iIQ1Wja9
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -68,9 +60,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9v5oUXaXGVTD0i/8RAq1sAJ9omA3eYcTznU54dfeYLWCwUJufdACfReor
-JYmtOLo1yb22h9hOSt2iwlE=
-=MWkT
+iD8DBQE9v5qdXaXGVTD0i/8RAqvYAJ43kIenW2Ro/VSb1zQNB/RoTxnpewCggFBJ
+koh0asUSge8GPZIxjJFNG18=
+=t5Nm
 -----END PGP SIGNATURE-----
 
---LsnByradU3Ze6UwI--
+--n7zTieg8iIQ1Wja9--
