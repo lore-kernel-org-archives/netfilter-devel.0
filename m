@@ -1,16 +1,15 @@
-From: "Martin Sperl" <martin.sperl@ucpag.com>
-Subject: RE: strange effects of DNAT in connection with policy routing
-Date: Tue, 25 Jun 2002 08:46:40 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: performance issues (nat / conntrack)
+Date: Tue, 25 Jun 2002 12:35:50 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <8FD16F6B8AC4B6499BE151D339AEEFD690EC9E@vie-dc1.vienna.ucpag.net>
+Message-ID: <Pine.LNX.4.33.0206251119260.4927-100000@blackhole.kfki.hu>
+References: <027b01c21893$72bbe1d0$0289cb8a@etbx180>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-content-class: urn:content-classes:message
-To: "Sneppe Filip" <Filip.Sneppe@cronos.be>,
-	<netfilter-devel@lists.samba.org>
+To: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
+In-Reply-To: <027b01c21893$72bbe1d0$0289cb8a@etbx180>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,108 +20,93 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear Filip!
-=20
-Of all the possibilities you have described using iptables non will not
-work with the policy routing code for a simple reason:
-=20
-If I would do it the way you have described with SNAT rules for the
-return path - there is still the same problem:
-SNAT is only allowed in POSTROUTING - so no way around the problem
-either...
-=20
-The only other possibility is fastnat - as you have described-, but this
-would not help when both IP's (A.A.A.2 and B.B.B.2)=20
-should be accessible with the mentioned setup... (which is just for a
-week of transision)
-=20
-So I maintain that iptable-NAT and policy routing (based on
-source-adress) with the current setup is not feasable as the automatic
-reverse rule
-for DNAT is applied after ROUTING (it seems to happen at the beginning
-of POSTROUTING). Simmilar SNAT can only be applied in POSTROUTING which
-makes policy routing (again based on source) for a SNAT-ed frame
-impossible...
-=20
-Is there a way to change this behaviour for DNAT? - I did have a brief
-look at the code and could not find where the automatic reverse rule
-takes effect!
-As for SNAT I think it should be also possible to apply SNAT in
-PREROUTING...
-=20
-Ideas?
-               Martin
+On Thu, 20 Jun 2002, Jean-Michel Hemstedt wrote:
 
------Original Message-----
-From: Sneppe Filip [mailto:Filip.Sneppe@cronos.be]
-Sent: Montag, 24. Juni 2002 17:55
-To: Martin Sperl; netfilter-devel@lists.samba.org
-Subject: RE: strange effects of DNAT in connection with policy routing
-
-
-
-Martin Sperl [ mailto:martin.sperl@ucpag.com
-<mailto:martin.sperl@ucpag.com> ] wrote:
+> I'm doing some tcp benches on a netfilter enabled box and noticed
+> huge and surprising perf decrease when loading iptable_nat module.
 >
->BUT the flow with NAT for a request to B.B.B.2 is like this:
+> - ip_conntrack is of course also loading the system, but with huge memory
+> and a large bucket size, the problem can be solved. The big issue with
+> ip_conntrack are the state timeouts: it simply kill the system and drops
+> all the traffic with the default ones, because the ip_conntrack table
+> becomes quickly full, and it seems that there is no way to recover from
+> that  situation... Keeping unused entries (time_close) even 1 minute in
+> the cache is really not suitable for configurations handling (relatively)
+> large number of connections/s.
+
+Please note: the role of the conntrack subsystem is to keep track of the
+connections. As good as possible. If the conntrack table becomes full,
+there are two possibilities:
+
+- conntrack table size is underestimated for the real traffic flowing
+  trough. Get more RAM and increase the table size.
+- conntrack is under a (DoS) attack. Then protect conntrack by appropriate
+  rules using the recent/limit/psd etc modules.
+
+I'm against in changing the *default* timeout values, except when it is
+based on real-life, well established cases.
+
+> o The cumulative effect should be reconsidered.
+> o Are there ways/plans to tune the timeouts dynamically? and what are
+>   the valid/invalid ranges of timeouts?
+
+There is already a patch in p-o-m which makes possible to *tune* the
+timeouts dynamically via /proc. Actually, the only reason why that part of
+the patch was written was to make possible to dynamically *increase* the
+timeout value of the close_wait state.
+
+> - The annoying point is iptable_nat: normally the number of entries in
+> the nat table is much lower than the number of entries in the conntrack
+> table. So even if the hash function itself could be less efficient than
+> the ip_conntrack one (because it takes less arguments: src+dst+proto),
+> the load of nat, should be much lower than the load of conntrack.
+
+If there is no explicit NAT rule for a connection, then automatic NULL
+mapping happens. (Also, because NAT keeps two additional hashes, the total
+amount of memory required for the data is 3*ip_conntrack_htable_size.)
+
+The book-keeping overhead is at least doubled compared to the
+conntrack-only case - this explains pretty well the results you got.
+
+> - Another (old) question: why are conntrack or nat active when there are
+> no rules configured (using them or not)? If not fixed it should be at
+> least documented... Somebody doing "iptables -t nat -L" takes the risk
+
+conntrack and nat are subsystems. If somebody loads them in, then they
+start to work.
+
+But why would anyone type in "iptables -t nat -L" when in reality he/she
+does not use nat and the nat table itself??
+
+> here is my test bed:
 >
->Machine        SRCIP      DESTIP      =20
->GW.B           a.b.c.d    B.B.B.2
->FW-eth1        a.b.c.d    B.B.B.2
->  DNAT occures here
->  routing occures here
->FW-eth2        a.b.c.d    A.A.A.2
->HOST           a.b.c.d    A.A.A.2
->and the reply packet:
->HOST           A.A.A.2    a.b.c.d
->FW-eth2        A.A.A.2    a.b.c.d
->  routing occures here
->  DNAT occures here (reverse)
->FW-eth0        B.B.B.2    a.b.c.d
->GW.A           B.B.B.2    a.b.c.d
->   AND THIS SHOULD NOT HAPPEN...
+> tested target:
+>  -kernel 2.4.18 + non_local_bind + small conntrack timeouts...
+>  -PIII~500MHz, RAM=256MB
+>  -2*100Mb/s NIC
 >
->So for incoming packets of a flow DNAT is first, but for return packets
->in the flow routing is first.
->This is where our problem lies...
+> The target acts as a forwarding gateway between a load generator client
+> running httperf, and an apache proxy serving cached pages. 100Mb/s NICs
+> and requests/response sizes insure that BW and packet collisions is not
+> an issue.
 >
->I hope you now understand our problem!
->
+> Since in my test, each connection is ephemeral (<10ms), i recompiled the
+> kernel with very short conntrack timeouts (i.e: 1 sec for close_wait,
+> and about 60 sec for established!) This was also the only way to restrict
+> the conntrack hash table size (given my RAM) and avoid exagerated hash
+> collisions. Another limitation comes from my load generator creating traffic
+> from one source to one destination ipa, with only source port variation
+> (but given my configured hash table size and the hash function itself
+> it shouldn't have been an issue).
 
-Oops, I forgot to talk about the NAT'ing of the reply packets
-in my previous mail, and that's exactly where your problem lies.
-
-What you've just explained is exactly how NAT in iptables/netfilter
-is supposed to work, i.e. by tracking the whole session, and doing
-the reverse process for reply packets. Again, it's a feature.
-
-One important consequence of this (there are more) is that the
-netfilter box has to see the traffic in both directions and NAT
-source/destination address accordingly.
-
-Well, that's just the way netfilter/iptables NAT works. If you look
-into all the problems you can run into when doing NAT, there are
-basically two approaches to implementing NAT:
- - either you do it by maintaining state, and try to take into
-   account all kinds of weird stuff like NAT protocol helpers for
-   IP addresses that are embedded in data payloads (eg. tcp).
-   Things like tcp/udp port number overlaps are also something
-   to take into account, etc.
-   This is how iptables does it.
-   Also, if you want to keep NAT separated from packet filtering/
-   firewalling, you will find that you need to do the reverse
-   operation for reply packets, otherwise your firewalling rules
-   can become horribly complex.
- - or you don't care about everything too much and implement a
-   quick and dirty static NAT that just NATs a source or
-   destination address.
-
-The good news is that this other type of NAT is also possible in
-Linux via fast-NAT (I think that's how Alexey called it) which is
-available in the routig code (check out "ip rule ... nat ..." etc).
-
-Sorry for the initial confusion, I didn't fully understand where
-it went wrong in your setup.
+I think because only the source port varies, this is an important issue in
+your setup. You actually tested the hash functions and could bomb some
+hash entries. The overall effect was a DoS against conntrack.
 
 Regards,
-Filip
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+WWW-Home: http://www.kfki.hu/~kadlec
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
