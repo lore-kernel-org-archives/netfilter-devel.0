@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] fix correct_cache() in libiptc.c
-Date: Sat, 5 Jul 2003 20:58:24 +0200
+From: Valentijn Sessink <valentyn+netfilter-dev@nospam.openoffice.nl>
+Subject: alien TCP RST packets
+Date: Mon, 7 Jul 2003 10:46:23 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030705185824.GI7073@sunbeam.de.gnumonks.org>
-References: <1057411145.12437.128.camel@tux.rsn.bth.se> <20030705171403.GG7073@sunbeam.de.gnumonks.org> <1057426720.12433.140.camel@tux.rsn.bth.se>
+Message-ID: <20030707084622.GA15410@openoffice.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aWh+LmBTmEUMKd3g"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <1057426720.12433.140.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,52 +18,74 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello netfilter developers,
 
---aWh+LmBTmEUMKd3g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have a server with a really simple setup, that once in a while sends out
+TCP resets from alien ports. The firewalling setup is really simple, it only
+does -P DROP for all, then accepts traffic on lo, accepts ICMP, accepts tcp
+--dport 80, 443 and --sport 80, 443. There's no statefull firewalling, no
+DNAT, no REJECT rules. It logs outgoing traffic from non-http[s] ports. The
+web server's IP address is 192.168.193.2, as it is behind a port forwarding
+Cisco PIX.
 
-On Sat, Jul 05, 2003 at 07:38:40PM +0200, Martin Josefsson wrote:
-> On Sat, 2003-07-05 at 19:14, Harald Welte wrote:
->=20
-> > Yes, as stated on the mailinglist, I even expect it to still be broken a
-> > bit.
-> >=20
-> > Expect it to break even more in the future, I'm currently working on an
-> > almost total reimplementation of the whole library.   The ruleset load
-> > time ist still unbearable.
->=20
-> I hope you are abandoning the "API" the current library has?
+Now this:
 
-no, not at all. It has to be 100% compatible.
+Jun 21 13:32:16 www kernel: IN= OUT=eth1 SRC=192.168.193.2 DST=142.123.43.59
+LEN=40 TOS=0x00 PREC=0x00 TTL=64 ID=5365 PROTO=TCP SPT=39821 DPT=1041
+WINDOW=7504 RES=0x00 ACK RST URGP=0 Jun 22 06:31:07 www kernel: IN= OUT=eth1
+SRC=192.168.193.2 DST=184.111.49.2 LEN=40 TOS=0x00 PREC=0x00 TTL=64 ID=22616
+PROTO=TCP SPT=40865 DPT=28013 WINDOW=6432 RES=0x00 ACK RST URGP=0
+... and does this a couple of times more (about ten times a week, sometimes
+a whole bunch of RST's from one IP address).
 
-> It will break a lot of "third-party" stuff but IMHO it's worth it.
+I can't think of a reason why the Linux kernel would try to output a packet
+with SPT=39821 and DPT=1041, as anything to this source port is DROPPED
+totally. As we grew suspicious, we started to log traffic to/from this web
+server and saw things like:
+[time] 142.123.43.59.1041 > 192.168.193.2.https: R
 
-No.  That's for pkttables.  It's not worth changing the old api.
+... showing the exact source port number that the RST packets were directed
+to. Note that this is regular https traffic where the client sends a RST.
+Pleas also note that the source port for this reset is the destination port
+for the spurious RST from the server. This reset from the client with the
+same source port seems always the case when this spurious RST occurs. This,
+unfortunately, still doesn't explain the high source port number the Linux
+kernel shows in the logs.
 
-> /Martin
+I'm starting to think I'm stupid or I oversee something really simple, as I
+can't think of a way a RST packet tries to find a way out of a port that has
+no way in.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+So, my questions: Is this sending of RST's a kernel thing? Is there a valid
+way Websphere could "send" such packets? Or am I just being stupid (in this
+case only, please ;-) ?
 
---aWh+LmBTmEUMKd3g
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Finally some info: Linux 2.4.18 with LIDS (www.lids.org) patch, compiled
+with GCC 2.95.4 20011002 (Debian Prerelease); HP 2000r SMP machine, Debian
+GNU/Linux distribution, IBM Websphere 3.5-something.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+(Oh, BTW, full disclosure: yes, there is a second network interface. This
+one is internal, and only connects to two very small subnets with private IP
+space. The first thing I suspected was spurious fake packets on the inside.
+We did analyse the traffic on this subnet, but could not find a single trace
+of any of the mentioned IP addresses, so I don't think this is alien source
+traffic from the inside).
 
-iD8DBQE/Bx/QXaXGVTD0i/8RAtcnAJ42fxf99aDODqVDxbHMBECYyj/piACfcdTN
-zjNrs+E4IWEXuoZILt4/pus=
-=Tvle
------END PGP SIGNATURE-----
+I sent this report to netfilter-users, to linux-net and to larc, but
+the only answer I got was a link to
+http://mailman.ds9a.nl/pipermail/lartc/2003q3/009189.html (which is a
+totally different setup - it only shares the alien RST's)
 
---aWh+LmBTmEUMKd3g--
+BTW: I'm still not confident that these RST's really are generated by the
+kernel, i.e. that an application cannot generate these RST's (except when
+using raw sockets, of course), so if someone could confirm this, that would
+really help as then it would be a kernel and/or netfilter issue, not some
+silly IMBHttp-fault. I hope I'm not bothering the dev-list too much, but I
+really don't know what's happening here and it doesn't seem normal.
+
+Best regards,
+
+Valentijn
+-- 
+http://www.openoffice.nl/   Open Office - Linux Office Solutions
+Valentijn Sessink  valentyn+sessink@nospam.openoffice.nl
