@@ -1,60 +1,222 @@
-From: Kiko Piris <kernel@pirispons.net>
-Subject: Re: ipsec and/or netfilter problem
-Date: Thu, 29 Jul 2004 21:04:01 +0200
+From: Adrian Bunk <bunk@fs.tum.de>
+Subject: [2.6 patch] netfilter/ip_nat_snmp_basic.c: fix inlines (fwd)
+Date: Thu, 29 Jul 2004 23:20:49 +0200
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040729190401.GA11195@mortadelo.pirispons.net>
-References: <20040728212823.GA19345@mortadelo.pirispons.net> <410844F2.3030503@trash.net>
+Message-ID: <20040729212048.GD23589@fs.tum.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel <linux-kernel@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S264251AbUG2TJn@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265102AbUG2VXC@vger.kernel.org>
+To: James Morris <jmorris@intercode.com.au>,
+	Andrew Morton <akpm@osdl.org>
 Content-Disposition: inline
-In-Reply-To: <410844F2.3030503@trash.net>
 List-Id: netfilter-devel.vger.kernel.org
 
-[ Please CC me on reply, I'm subscribed to linux-kernel
-but not to netfilter-devel ]
 
-On 29/07/2004 at 02:29 +0200, Patrick McHardy wrote:
+FYI:
+The patch forwarded below is still required in 2.6.8-rc2-mm1.
 
-> Kiko Piris wrote:
-> >The problem is that the server sends the data to Internet without doing
-> >SNAT (checked with tcpdump) (the packets do not traverse the POSTROUTING
-> >chain in nat table, checked watching the pkts counters).
-> >
-> >Anyone has any hint?
-> 
-> You could try the netfilter+ipsec patches in netfilter patch-o-matic-ng,
-> they should solve this problem,
 
-Hi Patrick
+----- Forwarded message from Adrian Bunk <bunk@fs.tum.de> -----
 
-I've tried those patches with 2.6.6 and I see the same behaviour,
-packets do not traverse POSTROUTING chain in nat table (and thus they
-are not s-natted).
+Date:	Wed, 14 Jul 2004 23:19:09 +0200
+From: Adrian Bunk <bunk@fs.tum.de>
+To: James Morris <jmorris@intercode.com.au>
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Subject: [2.6 patch] netfilter/ip_nat_snmp_basic.c: fix inlines
 
-What I did was to manually aply the following patches from
-patch-o-matic-ng-20040621 to a vanilla 2.6.6 tree:
+Trying to compile net/ipv4/netfilter/ip_nat_snmp_basic.c in 
+2.6.8-rc1-mm1 using gcc 3.4 results in the following compile error:
 
-nf_reset
-ipsec-01-output-hooks
-ipsec-02-input-hooks
-ipsec-03-policy-lookup
-ipsec-04-policy-checks
+<--  snip  -->
 
-did I miss something? (I understood from your email and from
-patch-o-matic-ng-20040621/ipsec-*/info files that this was enough, maybe
-it wasn't... O:-).
+...
+  CC      net/ipv4/netfilter/ip_nat_snmp_basic.o
+net/ipv4/netfilter/ip_nat_snmp_basic.c: In function `snmp_trap_decode':
+net/ipv4/netfilter/ip_nat_snmp_basic.c:612: sorry, unimplemented: 
+inlining failed in call to 'mangle_address': function body not available
+net/ipv4/netfilter/ip_nat_snmp_basic.c:896: sorry, unimplemented: called from here
+make[3]: *** [net/ipv4/netfilter/ip_nat_snmp_basic.o] Error 1
 
-> The current patches only apply to 2.6.6, but I will update them next
-> week
+<--  snip  -->
 
-I can wait until then, no problem...
+The patch below moves an inlined function above the place where it is 
+called the first time.
 
-Thanks a lot for responding.
+An alternative approach would be to remove the inline.
 
--- 
-Kiko
+
+diffstat output:
+ net/ipv4/netfilter/ip_nat_snmp_basic.c |  142 ++++++++++++-------------
+ 1 files changed, 71 insertions(+), 71 deletions(-)
+
+
+
+Signed-off-by: Adrian Bunk <bunk@fs.tum.de>
+
+--- linux-2.6.7-mm6-full-gcc3.4/net/ipv4/netfilter/ip_nat_snmp_basic.c.old	2004-07-09 02:18:23.000000000 +0200
++++ linux-2.6.7-mm6-full-gcc3.4/net/ipv4/netfilter/ip_nat_snmp_basic.c	2004-07-09 02:21:00.000000000 +0200
+@@ -862,6 +862,77 @@
+ 	return 1;
+ }
+ 
++/* 
++ * Fast checksum update for possibly oddly-aligned UDP byte, from the
++ * code example in the draft.
++ */
++static void fast_csum(unsigned char *csum,
++                      const unsigned char *optr,
++                      const unsigned char *nptr,
++                      int odd)
++{
++	long x, old, new;
++	
++	x = csum[0] * 256 + csum[1];
++	
++	x =~ x & 0xFFFF;
++	
++	if (odd) old = optr[0] * 256;
++	else old = optr[0];
++	
++	x -= old & 0xFFFF;
++	if (x <= 0) {
++		x--;
++		x &= 0xFFFF;
++	}
++	
++	if (odd) new = nptr[0] * 256;
++	else new = nptr[0];
++	
++	x += new & 0xFFFF;
++	if (x & 0x10000) {
++		x++;
++		x &= 0xFFFF;
++	}
++	
++	x =~ x & 0xFFFF;
++	csum[0] = x / 256;
++	csum[1] = x & 0xFF;
++}
++
++/* 
++ * Mangle IP address.
++ * 	- begin points to the start of the snmp messgae
++ *      - addr points to the start of the address
++ */
++static inline void mangle_address(unsigned char *begin,
++                                  unsigned char *addr,
++                                  const struct oct1_map *map,
++                                  u_int16_t *check)
++{
++	if (map->from == NOCT1(*addr)) {
++		u_int32_t old;
++		
++		if (debug)
++			memcpy(&old, (unsigned char *)addr, sizeof(old));
++			
++		*addr = map->to;
++		
++		/* Update UDP checksum if being used */
++		if (*check) {
++			unsigned char odd = !((addr - begin) % 2);
++			
++			fast_csum((unsigned char *)check,
++			          &map->from, &map->to, odd);
++			          
++		}
++		
++		if (debug)
++			printk(KERN_DEBUG "bsalg: mapped %u.%u.%u.%u to "
++			       "%u.%u.%u.%u\n", NIPQUAD(old), NIPQUAD(*addr));
++	}
++}
++
+ static unsigned char snmp_trap_decode(struct asn1_ctx *ctx,
+                                       struct snmp_v1_trap *trap,
+                                       const struct oct1_map *map,
+@@ -952,77 +1023,6 @@
+ 	printk("\n");
+ }
+ 
+-/* 
+- * Fast checksum update for possibly oddly-aligned UDP byte, from the
+- * code example in the draft.
+- */
+-static void fast_csum(unsigned char *csum,
+-                      const unsigned char *optr,
+-                      const unsigned char *nptr,
+-                      int odd)
+-{
+-	long x, old, new;
+-	
+-	x = csum[0] * 256 + csum[1];
+-	
+-	x =~ x & 0xFFFF;
+-	
+-	if (odd) old = optr[0] * 256;
+-	else old = optr[0];
+-	
+-	x -= old & 0xFFFF;
+-	if (x <= 0) {
+-		x--;
+-		x &= 0xFFFF;
+-	}
+-	
+-	if (odd) new = nptr[0] * 256;
+-	else new = nptr[0];
+-	
+-	x += new & 0xFFFF;
+-	if (x & 0x10000) {
+-		x++;
+-		x &= 0xFFFF;
+-	}
+-	
+-	x =~ x & 0xFFFF;
+-	csum[0] = x / 256;
+-	csum[1] = x & 0xFF;
+-}
+-
+-/* 
+- * Mangle IP address.
+- * 	- begin points to the start of the snmp messgae
+- *      - addr points to the start of the address
+- */
+-static inline void mangle_address(unsigned char *begin,
+-                                  unsigned char *addr,
+-                                  const struct oct1_map *map,
+-                                  u_int16_t *check)
+-{
+-	if (map->from == NOCT1(*addr)) {
+-		u_int32_t old;
+-		
+-		if (debug)
+-			memcpy(&old, (unsigned char *)addr, sizeof(old));
+-			
+-		*addr = map->to;
+-		
+-		/* Update UDP checksum if being used */
+-		if (*check) {
+-			unsigned char odd = !((addr - begin) % 2);
+-			
+-			fast_csum((unsigned char *)check,
+-			          &map->from, &map->to, odd);
+-			          
+-		}
+-		
+-		if (debug)
+-			printk(KERN_DEBUG "bsalg: mapped %u.%u.%u.%u to "
+-			       "%u.%u.%u.%u\n", NIPQUAD(old), NIPQUAD(*addr));
+-	}
+-}
+-
+ /*
+  * Parse and mangle SNMP message according to mapping.
+  * (And this is the fucking 'basic' method).
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+
+----- End forwarded message -----
