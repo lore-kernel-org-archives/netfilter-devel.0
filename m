@@ -1,10 +1,10 @@
 From: Max Kellermann <max@duempel.org>
-Subject: [PATCH nfsim 2/4] check current_command in expect_log_hook()
-Date: Mon, 21 Feb 2005 18:19:22 +0100
-Message-ID: <20050221171922.GA32389@roonstrasse.net>
+Subject: [PATCH nfsim 3/4] escape non-printables and 8bit characters
+Date: Mon, 21 Feb 2005 18:21:14 +0100
+Message-ID: <20050221172114.GA32447@roonstrasse.net>
 References: <20050221171719.GA32254@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ew6BAiZeqk4r7MaW"
+Content-Type: multipart/mixed; boundary="huq684BweRXVnRxX"
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
 In-Reply-To: <20050221171719.GA32254@roonstrasse.net>
@@ -20,34 +20,50 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ew6BAiZeqk4r7MaW
+--huq684BweRXVnRxX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Allow script_fail() calls even when there is no current_command parsed
-yet.
+escape all non-printable and 8 bit characters in print_data(). This is
+required to write nfsim scripts in 7bit US-ASCII.
+
+This patch is actually a repost from:
+ http://lists.netfilter.org/pipermail/netfilter-devel/2005-February/018451.html
 
 
---ew6BAiZeqk4r7MaW
+
+
+
+--huq684BweRXVnRxX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: attachment;
-	filename="02-nfsim-script_fail_check_current_command.patch"
+	filename="03-nfsim-escape_non_printable_and_8bit.patch"
 
-Mon Feb 21 16:49:24 CET 2005  max@duempel.org
-  * allow script_fail call even when there is no current_command parsed yet
-diff -rN -u nfsim-1-old/core/expect.c nfsim-1-new/core/expect.c
---- nfsim-1-old/core/expect.c	Mon Feb 21 18:04:52 2005
-+++ nfsim-1-new/core/expect.c	Mon Feb 21 16:49:17 2005
-@@ -130,6 +130,9 @@
- 	struct expect *e;
- 	bool ret = false;
+Mon Feb 21 16:51:04 CET 2005  max@duempel.org
+  * escape all non-printable characters, including 8bit
+diff -rN -u nfsim-1-old/core/ipv4/ipv4.c nfsim-1-new/core/ipv4/ipv4.c
+--- nfsim-1-old/core/ipv4/ipv4.c	Mon Feb 21 18:05:09 2005
++++ nfsim-1-new/core/ipv4/ipv4.c	Mon Feb 21 17:48:30 2005
+@@ -740,6 +740,7 @@
  
-+	if (current_command == NULL)
-+		return false;
-+
- 	/* Only allow each pattern to match once, so we can easily
- 	 * expect something to happen twice. */
- 	for (e = expect; e; e = e->next) {
+ static char *print_data(char *ptr, const char *data, int len)
+ {
++	static const char hexbuf[]= "0123456789abcdef";
+ 	int i;
+ 
+ 	ptr += sprintf(ptr, "DATA ");
+@@ -759,6 +760,11 @@
+ 		} else if (data[i] == '\\') {
+ 			*ptr++ = '\\';
+ 			*ptr++ = '\\';
++		} else if (data[i] & 0x80 || (data[i] & 0xe0) == 0) {
++			*ptr++ = '\\';
++			*ptr++ = 'x';
++			*ptr++ = hexbuf[(data[i] >> 4) & 0xf];
++			*ptr++ = hexbuf[data[i] & 0xf];
+ 		} else
+ 			*ptr++ = data[i];
+ 	}
 
 
---ew6BAiZeqk4r7MaW--
+--huq684BweRXVnRxX--
