@@ -1,17 +1,16 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] list_for_each net/
-Date: Wed, 3 Sep 2003 20:14:55 -0700
+From: Menno Smits <menno@netbox.biz>
+Subject: Re: PPTP connection tracking and Poptop on same box
+Date: Thu, 04 Sep 2003 16:59:46 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030903201455.44200973.davem@redhat.com>
-References: <20030903082202.GB13662@mail.sternwelten.at>
+Message-ID: <3F56E2E2.5040007@netbox.biz>
+References: <3F542C4E.1000307@netbox.biz> <Pine.GSO.4.56.0309031853090.10914@shemp.vdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kernel-janitors@osdl.org, netfilter-devel@lists.netfilter.org,
-        netdev@oss.sgi.com, marcel@holtmann.org
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: maximilian attems <janitor@sternwelten.at>
-In-Reply-To: <20030903082202.GB13662@mail.sternwelten.at>
+To: Jeff Hall <hall@vdata.com>
+In-Reply-To: <Pine.GSO.4.56.0309031853090.10914@shemp.vdata.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,12 +21,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 3 Sep 2003 10:22:02 +0200
-maximilian attems <janitor@sternwelten.at> wrote:
+Hi Jeff,
 
-> again pure cosmetical changes!!
+Thanks for your quick reply.
+
+Jeff Hall wrote:
+> I experienced some of these problems also trying to get 2.4.20 working
+> with PoPToP and making outgoing connections from PCs behind the PoPToP
+> server. Take a look at my messages dated March 2,3,20,21 and
+> April 8 of this year in the netfilter-devel archives. With the patches
+> in those messages I have multiple sessions connecting to a PoPToP server
+> running on my firewall server and can make at least one outgoing
+> connection from a PC behind that server (I didn't test making multiple
+> outgoing connections but I believe that will also worked based on some
+> tests I ran months ago). I also successfully tested running a PPTP client
+> on the PoPToP server.
+
+I've read those posts before but I went over them again just to make 
+sure I hadn't missed anything.
+
+I checked the patches in your posts against a POM patched 2.4.20 kernel 
+I used to use here which exhibits the same problems as my 2.4.21 kernel. 
+I can't even find where your patches to ip_conntrack_pptp.c could be 
+applied! (even when trying to apply the patch manually). Key lines which 
+surround your changes simply don't exist in my tree. I was using POM out 
+of CVS from a few months ago in that kernel. What POM version are you 
+using? Which POM patches are you using?
+
+I'm thinking I might try a vanilla kernel with the bare minimum of 
+patches to support PPTP conntrack. Knowing what POM version and patches 
+you're using would be useful for me so I can try and duplicate your setup.
+
+> I have not (at least knowingly) modified the connection MTU, MRU, or
+> TCPMSS and while I occassionally get the 'out of order' messages from
+> pptpd the connection seems to recover. I'm using PoPToP v 1.1.3-2 with a
+> patch to generate unique call ids.
+
+Actually the MTU/MRU/TCPMSS stuff was to deal with "GRE: Discarding 
+duplicate packet" problems not 'out of order packet" problems like I 
+originally stated (it was a while ago). I removed these workarounds 
+today just to make sure that these had nothing to do with the problems 
+I'm having. Connection attempts seemed to behave in just the same way 
+(unreliably), and I started getting lots of "GRE: Discarding duplicate 
+packet" messages when a connection did establish and data was transferred.
+
+Today I also made sure that the pptpd version I'm using (1.1.4) has the 
+callid patch and it definitely does. I modified it to log the callids 
+its using and it uses different ids for each connection, so no issue 
+there. Besides, that only becomes important once you have multiple 
+clients involved and so far in my testing there's only one.
 
 
-I applied everything except for the ip6_fib.c part, there is
-no way we should be using the list_head macros for objects
-which are not list_heads.
+
+Menno
