@@ -1,13 +1,16 @@
-From: Max Kellermann <max@duempel.org>
-Subject: [PATCH nfsim 4/4] implement backticks
-Date: Mon, 21 Feb 2005 18:22:01 +0100
-Message-ID: <20050221172201.GB32447@roonstrasse.net>
-References: <20050221171719.GA32254@roonstrasse.net>
+From: "Ariel Rosenblatt" <ariel@blueslice.com>
+Subject: RE: ip_conntrack_proto_sctp INIT_ACK messages dropped
+Date: Mon, 21 Feb 2005 13:33:09 -0500
+Message-ID: <000e01c51843$d0a2e8e0$320aa8c0@blueslicemtl>
+References: <42153BEE.7@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="XOIedfhf+7KOe/yw"
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20050221171719.GA32254@roonstrasse.net>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: 'Harald Welte' <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	'Kiran Kumar Immidi' <immidi@spymac.com>
+To: "'Patrick McHardy'" <kaber@trash.net>
+In-Reply-To: <42153BEE.7@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,191 +23,152 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---XOIedfhf+7KOe/yw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-expand backticks to the output of the specified command
+> -----Original Message-----
+> From: Patrick McHardy [mailto:kaber@trash.net]
+> Sent: Thursday, February 17, 2005 7:51 PM
+> To: Ariel Rosenblatt
+> Cc: 'Harald Welte'; netfilter-devel@lists.netfilter.org; Kiran Kumar
+> Immidi
+> Subject: Re: ip_conntrack_proto_sctp INIT_ACK messages dropped
+>=20
+> Ariel Rosenblatt wrote:
+>=20
+> >Hello Patrick,
+> >
+> >That is true, the conntrack must not change after the INIT_ACK is =
+sent,
+> and
+> >as matter of fact once the endpoint sent the INIT_ACK it should do
+> nothing
+> >else to avoid DOS attacks; this until the 4-way cookie based =
+handshake is
+> >done and the TCB created. The COOKIE ECHO for an existing TCB case is
+> >handled in 5.2.4, the special case I brought up is 5.2.4.A =
+(Association
+> >restart, 5.2.4.1).
+> >
+> >The endpoint receiving the INIT_ACK is the "other" endpoint. So if =
+the
+> tag
+> >was not properly saved when the INIT message left the originating
+> endpoint
+> >the INIT_ACK generated as a reply to the unexpected INIT will get =
+dropped
+> at
+> >the INIT originating endpoint.
+> >
+> >Note that the INIT_ACK is _NOT_ unexpected as the originating =
+endpoint
+> >previously sent an INIT (unexpected INIT_ACKs should always be =
+discarded,
+> >section 5.2.3), without the patch the INIT_ACK is being silently
+> discarded.
+> >The patch saves the initialization tag for the outgoing INIT, which =
+will
+> be
+> >needed later to verify the incoming INIT_ACK. Without this a lost
+> >association (e.g. power failure) can never be re-established before =
+the
+> >ESTABLISHED_TIMEOUT (currently set to 5 days) expires.
+> >
+> >It is the destination endpoint that receives an unexpected INIT and =
+it is
+> >therefore bound to reply with an INIT_ACK, to get the 4-way handshake
+> going
+> >(section 5.2.2). However, as I mentioned above, the destination =
+endpoint
+> >shouldn't modify the existing association TCB or create a new one,
+> otherwise
+> >the destination endpoint will be vulnerable to DOS attacks.
+> >
+> >
+> As is conntrack if it modifies the saved tag of an established =
+connection
+> without looking for a valid exchange of Tie-Tags and COOKIE-ECHO, if I
+> don't
+> completely misunderstand. Someone simply needs to send an INIT for an
+> existing
+> association and can prevent further packets from getting through. But =
+I
+> think
+> you're patch is what is intended by the code, so we probably should =
+put
+> it in
+> for now. Kiran, could you have a look at Ariel's patch please ?
+>=20
 
+You are right about the conntrack being susceptible to fraudulent INIT
+messages. This holds true for INIT-ACKs as well as the first INIT send.=20
 
---XOIedfhf+7KOe/yw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="04-nfsim-backticks.patch"
+Saving the verification tags harms more than it helps, because it makes =
+the
+connection tracking vulnerable to dos attacks. While the goal is dumping
+invalid traffic, it could instead wind up discarding valid traffic.=20
 
-Mon Feb 21 17:50:22 CET 2005  max@duempel.org
-  * implemented backticks
-diff -rN -u nfsim-1-old/core/tui.c nfsim-1-new/core/tui.c
---- nfsim-1-old/core/tui.c	Mon Feb 21 18:05:18 2005
-+++ nfsim-1-new/core/tui.c	Mon Feb 21 17:23:10 2005
-@@ -25,6 +25,7 @@
- #include "expect.h"
- #include "utils.h"
- 
-+#include <sys/wait.h>
- #include <stdio.h>
- #include <readline/readline.h>
- #include <readline/history.h>
-@@ -220,6 +221,67 @@
- 	return false;
- }
- 
-+/**
-+ * backslash-escape a binary data block into a newly allocated
-+ * string
-+ *
-+ * @param src a pointer to the data block
-+ * @param src_len the length of the data block
-+ * @return NULL if out of memory, or a pointer to the allocated escaped
-+ *    string, which is terminated with a '\0' character
-+ */
-+static char *escape(const char *src, size_t src_len) {
-+	static const char hexbuf[]= "0123456789abcdef";
-+	char *dest, *p;
-+	size_t i;
-+
-+	/* src_len * 4 is always safe, it's the longest escape
-+	   sequence for all characters */
-+	dest = malloc(src_len * 4 + 1);
-+	if (dest == NULL)
-+		return NULL;
-+
-+	p = dest;
-+
-+	for (i = 0; i < src_len; i++) {
-+		if (src[i] == '\n') {
-+			*p++ = '\\';
-+			*p++ = 'n';
-+		} else if (src[i] == '\r') {
-+			*p++ = '\\';
-+			*p++ = 'r';
-+		} else if (src[i] == '\0') {
-+			*p++ = '\\';
-+			*p++ = '0';
-+		} else if (src[i] == '\t') {
-+			*p++ = '\\';
-+			*p++ = 't';
-+		} else if (src[i] == '\\') {
-+			*p++ = '\\';
-+			*p++ = '\\';
-+		} else if (src[i] & 0x80 || (src[i] & 0xe0) == 0) {
-+			*p++ = '\\';
-+			*p++ = 'x';
-+			*p++ = hexbuf[(src[i] >> 4) & 0xf];
-+			*p++ = hexbuf[src[i] & 0xf];
-+		} else
-+			*p++ = src[i];
-+	}
-+
-+	*p++ = 0;
-+
-+	i = p - dest;
-+
-+	/* reallocate to save memory */
-+	p = realloc(dest, i);
-+	if (p == NULL) {
-+		free(dest);
-+		return NULL;
-+	}
-+
-+	return p;
-+}
-+
- static void process_line(char *line)
- {
- 	int argc, prevspace;
-@@ -237,6 +299,92 @@
- 		if (isspace(*line)) {
- 			*line = 0;
- 			prevspace = 1;
-+		} else if (prevspace && *line == '`') {
-+			char *end;
-+			pid_t pid, pid2;
-+			int ret, fds[2];
-+			char *buffer = NULL, *new_buffer;
-+			size_t buffer_size = 0, buffer_pos = 0;
-+			ssize_t nbytes;
-+
-+			/* find the end delimiter */
-+			end = strchr(++line, '`');
-+			if (end == NULL)
-+				script_fail("no matching \"`\" found");
-+
-+			/* fork and execute the specified program in a
-+			   shell */
-+			ret = pipe(fds);
-+			if (ret < 0)
-+				script_fail("pipe() failed: %s",
-+					    strerror(errno));
-+
-+			pid = fork();
-+			if (pid < 0) {
-+				script_fail("fork() failed: %s",
-+					    strerror(errno));
-+			} else if (pid == 0) {
-+				dup2(fds[1], 1);
-+				close(fds[0]);
-+				close(fds[1]);
-+
-+				*end = 0;
-+				execl("/bin/sh", "sh", "-c", line, NULL);
-+				fprintf(stderr, "failed to execute '%s': %s\n",
-+					line, strerror(errno));
-+				exit(1);
-+			}
-+
-+			close(fds[1]);
-+
-+			/* read output from the child process */
-+			while (1) {
-+				/* grow the buffer if required; limit
-+				   that to 1 MB for now */
-+				if (buffer_pos == buffer_size &&
-+				    buffer_size < 1024 * 1024) {
-+					buffer_size += 4096;
-+					new_buffer = realloc(buffer, buffer_size);
-+					if (new_buffer == NULL)
-+						script_fail("out of memory");
-+					buffer = new_buffer;
-+				}
-+
-+				/* read the next chunk */
-+				nbytes = read(fds[0], buffer + buffer_pos, buffer_size - buffer_pos);
-+				if (nbytes <= 0)
-+					break;
-+
-+				buffer_pos += (size_t)nbytes;
-+			}
-+
-+			close(fds[0]);
-+
-+			/* check child's exit status */
-+			pid2 = waitpid(pid, &ret, 0);
-+			if (pid2 != pid)
-+				script_fail("waitpid() failed");
-+
-+			if (WIFSIGNALED(ret) != 0)
-+				script_fail("child terminated by signal %d",
-+					    WIFSIGNALED(ret));
-+
-+			if (WEXITSTATUS(ret) != 0)
-+				script_fail("child exited with status %d",
-+					    WEXITSTATUS(ret));
-+
-+			/* escape the output */
-+			argv[argc] = escape(buffer, buffer_pos);
-+			if (argv[argc] == NULL)
-+				script_fail("out of memory");
-+
-+			/* XXX: the escaped buffer is never freed */
-+
-+			free(buffer);
-+
-+			argc++;
-+			prevspace = 0;
-+			line = end;
- 		} else if (prevspace) {
- 			argv[argc++] = line;
- 			prevspace = 0;
+I thought about these issues and I don't see a way of using verification
+tags without making the connection tracking susceptible to this =
+problems.
+Saving tie-tags for existing associations until the COOKIE-ECHO/ACK is
+processed could alleviate the problem. However, it will still take one
+fraudulent message to launch an attack and cause the module to discard =
+valid
+traffic or prevent the association from being established by overwriting =
+the
+valid tie-tag.=20
 
+And then again, SCTP is just a transport protocol and without =
+authentication
+(e.g. IPSEC AH), it will be vulnerable to masquerading attacks as well, =
+so
+maybe SCTP connection tracking doesn't really have to protect against =
+these,
+as IPSEC would provide the needed authentication and prevent malicious
+messages from overwriting the connection tracking saved verification =
+tags.
+This is good, because we can leave things as they are and just patch the
+code for the re-starting association case.
 
---XOIedfhf+7KOe/yw--
+In the mean time I patched the module with the code below (please see a =
+more
+robust patch at the end of the message) to solve the saved vtag problem =
+for
+both directions.
+
+Thanks,
+
+- Ariel
+
+> Thanks,
+> Patrick
+>=20
+
+--- /usr/src/linux-2.6.10/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
+2005-02-04 16:22:24.000000000 -0500
++++ ip_conntrack_proto_sctp.c   2005-02-21 13:06:58.373096368 -0500
+@@ -392,6 +392,7 @@
+                if (sch->type =3D=3D SCTP_CID_INIT=20
+                        || sch->type =3D=3D SCTP_CID_INIT_ACK) {
+                        sctp_inithdr_t _inithdr, *ih;
++                       u_int32_t dir;
+=20
+                        ih =3D skb_header_pointer(skb, offset +
+sizeof(sctp_chunkhdr_t),
+                                                sizeof(_inithdr),
+&_inithdr);
+@@ -401,7 +402,9 @@
+                        }
+                        DEBUGP("Setting vtag %x for dir %d\n",=20
+                                        ih->init_tag, =
+CTINFO2DIR(ctinfo));
+-                       conntrack->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] =
+=3D
+ih->init_tag;
++                       dir =3D (CTINFO2DIR(ctinfo) =3D=3D =
+IP_CT_DIR_ORIGINAL)?=20
++                           IP_CT_DIR_REPLY: IP_CT_DIR_ORIGINAL;
++                       conntrack->proto.sctp.vtag[dir] =3D =
+ih->init_tag;
+                }
+=20
+                conntrack->proto.sctp.state =3D newconntrack;
