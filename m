@@ -1,16 +1,12 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: Fw: Re: network/performance problem
-Date: Fri, 12 Mar 2004 08:09:00 -0800
+From: James MacLean <macleajb@ednet.ns.ca>
+Subject: String match then SNAT from find
+Date: Fri, 12 Mar 2004 22:43:08 -0400 (AST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040312160900.GA7504@linuxace.com>
-References: <20040311155036.7da85ab4.akpm@osdl.org>
+Message-ID: <Pine.LNX.4.44.0403122223210.16818-100000@Trademart-1.ednet.ns.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Ron Peterson <rpeterso@mtholyoke.edu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andrew Morton <akpm@osdl.org>
-Content-Disposition: inline
-In-Reply-To: <20040311155036.7da85ab4.akpm@osdl.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +17,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2/23 I moved a couple of heavily used firewalls from 2.4.19 -> 2.4.25
-and they suddenly started dying with no indication at all why in the logs.
+Hi Folks,
 
-Then I moved them to 2.6.3+, and they continued to die.  Yesterday I got
-this in the logs on one:
+Have not done any _real_ programming for some time, but thought this might
+be dooable...
 
-Mar 11 16:22:17 fw01 kernel: ip_conntrack: table full, dropping packet.
+Goal is to have Squid send out requests with a source of the originating 
+client address (SNAT) and then DNAT them as they return through this PC 
+acting as a router. I realize there are some other options like tproxy, 
+but I saw nothing available for the 2.6 kernel that is current.
 
-which is difficult to fathom given I've got max at 65K.  Also, the day prior:
+Method was to use Squid to add the X-Forwarded-For: <ip> header, then in 
+POSTROUTING, use it to set the SNAT address. Would this even work?
 
-Mar 10 02:10:32 fw01 kernel: dst cache overflow
+Sounded almost easy enough for even me to try and implement :). Went
+looking for an overview of how to make a new filter from a programmers
+point of view, but have not found it.
 
-which doesn't necessarily indicate netfilter per se, but does point to
-networking.
+So I started to take ipt_NETMAP.c and string.c to see if I could blend the 
+two. Now I can not figure out how to take a match() function and return a 
+target() result, or if that's even the way I should be thinking.
 
-Just adding my 2 cents for now.  I enabled profiling on a box yesterday,
-so hopefully it will come up with something useful.
+Is there a sample filter that changes the destination IP like SNAT, but 
+does it because of a match it made?
 
-Phil
+Or maybe there is already a filter that does this that I passed over in 
+POM, or somewhere I missed looking?
 
+Sorry if this appears too simple a query, but I would appreciate any 
+pointers to help prod me along ;).
 
-On Thu, Mar 11, 2004 at 03:50:36PM -0800, Andrew Morton wrote:
-> 
-> Guys, we do seem to have a netfilter problem.  Could someone please help
-> out with this thread on linux-kernel?
+thanks,
+JES
+-- 
+James B. MacLean        macleajb@ednet.ns.ca
+Department of Education 
+Nova Scotia, Canada
+     
