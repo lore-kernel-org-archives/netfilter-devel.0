@@ -1,16 +1,17 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4] netfilter listhelp.c: fix erroneous (const)
-Date: Fri, 20 Feb 2004 10:40:39 -0800
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: p-o-m-ng patch
+Date: Fri, 20 Feb 2004 21:23:59 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040220104039.0a370308.davem@redhat.com>
-References: <20040220182818.GL4797@sunbeam.de.gnumonks.org>
+Message-ID: <20040220202359.GR4797@sunbeam.de.gnumonks.org>
+References: <1077284489.27084.5.camel@tech004.alphalink.fr> <1077300913.5116.12.camel@porky> <1077301654.5116.18.camel@porky>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Zu4V1sHRt6IpqgDQ"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040220182818.GL4797@sunbeam.de.gnumonks.org>
+To: Eric Leblond <eric@regit.org>
+Content-Disposition: inline
+In-Reply-To: <1077301654.5116.18.camel@porky>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,15 +22,55 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 20 Feb 2004 19:28:18 +0100
-Harald Welte <laforge@netfilter.org> wrote:
 
-> Please apply the following fix to your 2.4.x tree, it fixes an erroneous
-> 'const' qualifier introduced by one of our last patches.
+--Zu4V1sHRt6IpqgDQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks.
+On Fri, Feb 20, 2004 at 07:27:34PM +0100, Eric Leblond wrote:
+> Sorry for the disturbance, I do a test from a clean 2.6.3 kernel tree
+> and there's compilation problem with CONNMARK.
+>=20
+> The best match now correctly found the best directory for each type
+> (patch,file,ladd) but in the CONNMARK patch the files are split  between
+> the 2 directories (linux  linux-2.6). So we miss a subset of the files.
+> So my question :
+> 	- Do we change p-o-m-ng or do we change CONNMARK patch ?
 
-> A 2.6.x re-sync (probably the last one that syncs from 2.4 to 2.6 and
-> not the other way around) will follow in a couple of minutes.
+we need to change p-o-m.    Actually this issue doesn't only effect
+CONNMARK, but almost all patches by now.
 
-Bring it on :-)
+Most of them share a common Makefile.ladd, a common ipt_whatever.h and
+maybe even a common linux.patch - but they have differetn ipt_whatever.c
+files, since the syntax of struct ipt_{match,target} is slightly
+different in both kernels [by intention].
+
+So we need to iterate over all files in all linux* subdirectories and
+build a list of 'best matches' for every single file.
+
+> BR,
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--Zu4V1sHRt6IpqgDQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFANmzfXaXGVTD0i/8RAspYAJ4zn7oVhveO2xUKLr6llXHbnYHkQQCfYkLQ
+4pEmDEDo88SwArXlJzF1dIA=
+=+Ko1
+-----END PGP SIGNATURE-----
+
+--Zu4V1sHRt6IpqgDQ--
