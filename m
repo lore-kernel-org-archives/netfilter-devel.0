@@ -1,14 +1,13 @@
-From: "Fabiano Reis" <silos.reis@ig.com.br>
-Subject: differences between win and unix tcp clients.
-Date: Tue, 16 Mar 2004 09:12:01 -0300
+From: Ozgur AKAN <akan@aiqa.com>
+Subject: inner structure of iptables
+Date: Tue, 16 Mar 2004 17:12:34 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <024b01c40b4f$e3341620$3f32a8c0@ds.ig.com.br>
+Message-ID: <40571962.5070701@aiqa.com>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0248_01C40B36.BDCE7420"
-Cc: <netfilter-devel@lists.netfilter.org>
+ boundary="------------040705000105070805070801"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,169 +19,87 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
+--------------040705000105070805070801
+Content-Type: text/plain; charset=ISO-8859-9; format=flowed
+Content-Transfer-Encoding: 7bit
 
-------=_NextPart_000_0248_01C40B36.BDCE7420
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+I included some simple code to express myself clearly.
 
-Hi list,
+I have a problem with the 4th line. When we execute the code for the 
+first time these happen (I wrote down)
 
-I was doing tests with iptables on redhat 7.3 , iptables version 1.2.5 =
-and I observed that windows tcp client (telnet) doesn=B4t answer in the =
-same time that unix tcp client (telnet) is doing.
+In the 1st line we create the pointer to the structure of the table
+In the 2nd and 3rd line we get the adress of first chain and print its 
+name to screen.
+In the 4th line "e = iptc_first_rule(chain, &h)" we get the adress of 
+the first  rule of the first chain and by the loop it goes to next rule 
+until there is no next rule. How does it know that it is the last rule 
+of this chain? Why doesn`t it continue to read the first rule of next 
+chain? (Because there is no chain information here -> e = 
+iptc_next_rule(e, &h))
 
-(This test is so simple to do)
+ 1    h = iptc_init(tablename);
+ 2    for ( chain = iptc_first_chain(&h); chain; chain = 
+iptc_next_chain(&h)) {
+ 3        printf("%s\n", chain);
+ 4        for ( e = iptc_first_rule(chain, &h); e; e = iptc_next_rule(e, 
+&h)) {
+ 5            printf("n. -%u- i. -%u-\n", e->ip.invflags, e->ip.invflags 
+& IPT_INV_SRCIP);
+ 6        }
+ 7    }
 
-For example: I have a telnet daemon listening on port 23 of a Redhat 7.3 =
-(192.168.0.1) and two more machines that will work as client of this =
-daemon on this example. One of them Windows 2000 (192.168.0.2) and the =
-another Solaris 2.6 (192.168.0.3). I have my lan connection OK, so the =
-clients can achieve the server using a telnet client normally.
+I hope my question is clear enough.
 
-To start the test I added a rule to block the connections that came from =
-the two clients I have.
+thanks,
+Ozgur AKAN
 
-iptables -A INPUT -p tcp --source 192.168.0.2 --dport 23 -j REJECT
-iptables -A INPUT -p tcp --source 192.168.0.3 --dport 23 -j REJECT
+--------------040705000105070805070801
+Content-Type: text/html; charset=ISO-8859-9
+Content-Transfer-Encoding: 8bit
 
-On the client side I do a "telnet 192.168.0.1" and what I got:
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-9">
+  <title></title>
+</head>
+<body text="#000000" bgcolor="#ffffff">
+<font face="microsoft-verdana-iso10646-1">I included some simple code
+to express myself clearly. <br>
+<br>
+I have a problem with the 4th line. When we execute the code for the
+first time these happen (I wrote down)<br>
+<br>
+In the 1st line we create the pointer to the structure of the table<br>
+In the 2nd and 3rd line we get the adress of first chain and print its
+name to screen.<br>
+In the 4th line "</font><font face="microsoft-verdana-iso10646-1">e =
+iptc_first_rule(chain, &amp;h)" we get the adress of the first  rule of
+the first chain and by the loop it goes to next rule until there is no
+next rule. How does it know that it is the last rule of this chain? Why
+doesn`t it continue to read the first rule of next chain? (Because </font><font
+ face="microsoft-verdana-iso10646-1">there is no chain information here
+-&gt; e = iptc_next_rule(e, &amp;h)</font><font
+ face="microsoft-verdana-iso10646-1">)<br>
+</font><font face="microsoft-verdana-iso10646-1"><br>
+ 1    h = iptc_init(tablename);<br>
+ 2    for ( chain = iptc_first_chain(&amp;h); chain; chain =
+iptc_next_chain(&amp;h)) {<br>
+ 3        printf("%s\n", chain);<br>
+ 4        for ( e = iptc_first_rule(chain, &amp;h); e; e =
+iptc_next_rule(e, &amp;h)) {<br>
+ 5            printf("n. -%u- i. -%u-\n", e-&gt;ip.invflags,
+e-&gt;ip.invflags &amp; IPT_INV_SRCIP);<br>
+ 6        }<br>
+ 7    }<br>
+<br>
+I hope my question is clear enough.<br>
+<br>
+thanks,<br>
+Ozgur AKAN<br>
+</font>
+</body>
+</html>
 
-On the Solaris machine: a very fast response that the connection was =
-refused.
-
-On the Windows 2000 machine: after for about 20 seconds I got the =
-message that the connect failed (I thing this is the same as connection =
-refused).
-
-Doing another test on the Windows2000 machine. That time I used telnet =
-to connect on a port that doesn=B4t exists on my RedHat server.=20
-
-c:> telnet 192.168.0.1 30
-Connecting To 192.168.0.1...Could not open a connection to host on port =
-30: Connect failed
-
-This is the same error I got when I use the port that is blocked with =
-"reject" by iptables on server side, BUT the difference is that I get =
-the error after 1 or 2 seconds after executing the command.
-
-Conclusion: I think this was because the Windows implementation of TCP =
-detects something different on this connection, maybe it detects in some =
-way that there is a filter on the server side and this is why the time =
-for the error message take so long to appear.
-
-Am I right? Is there a workaround for this problem? I need to make =
-windows think that the server is really "down" and that is why i=B4m =
-writting to you people.
-
-I will appreciate any help.
-
-Thanks in advance,
-
-Fabiano
-------=_NextPart_000_0248_01C40B36.BDCE7420
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1226" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Hi list,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I was doing tests with iptables on =
-redhat 7.3 ,=20
-iptables version 1.2.5 and I observed that windows tcp client (telnet) =
-doesn=B4t=20
-answer in the same time that unix tcp client (telnet) is =
-doing.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>(This test is so simple to =
-do)</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>For example: I have a telnet daemon =
-listening on=20
-port 23 of a Redhat 7.3 (192.168.0.1) and two more machines that will =
-work as=20
-client of this daemon on this example. One of them Windows 2000 =
-(192.168.0.2)=20
-and the another Solaris 2.6 (192.168.0.3). I have my lan connection OK, =
-so the=20
-clients can achieve the server using a telnet client =
-normally.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>To start the test I added a rule to =
-block the=20
-connections that came from the two clients I have.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>iptables -A INPUT -p tcp --source =
-192.168.0.2=20
---dport&nbsp;23 -j REJECT</FONT></DIV>
-<DIV>
-<DIV><FONT face=3DArial size=3D2>iptables -A INPUT -p tcp --source =
-192.168.0.3=20
---dport&nbsp;23 -j REJECT</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>On the client side I do a "telnet =
-192.168.0.1" and=20
-what I got:</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>On the Solaris machine: a very fast =
-response that=20
-the connection was refused.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>On the Windows 2000 machine: =
-after&nbsp;for=20
-about&nbsp;20 seconds I got the message that the connect failed (I thing =
-this is=20
-the same as connection refused).</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Doing another test on the Windows2000 =
-machine. That=20
-time I used telnet to connect on a port that doesn=B4t exists on my =
-RedHat server.=20
-</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>c:&gt; telnet 192.168.0.1 =
-30</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>Connecting To 192.168.0.1...Could not =
-open a=20
-connection to host on port 30: Connect failed</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>This is the same error I got when I use =
-the port=20
-that is blocked with "reject" by iptables on server side, BUT the =
-difference is=20
-that I get the error after 1 or 2 seconds after executing the=20
-command.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Conclusion: <FONT face=3DArial =
-size=3D2>I think this=20
-was because the Windows implementation of TCP detects something =
-different on=20
-this connection, maybe it detects in some way that there is a filter on =
-the=20
-server side and this is why&nbsp;the time for the error message take so =
-long to=20
-appear.</FONT></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Am I right? Is there a workaround for =
-this problem?=20
-I need to make windows think that the server is really "down" and that =
-is why=20
-i=B4m writting to you people.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I will appreciate any =
-help.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Thanks in advance,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial =
-size=3D2>Fabiano</FONT></DIV></DIV></BODY></HTML>
-
-------=_NextPart_000_0248_01C40B36.BDCE7420--
+--------------040705000105070805070801--
