@@ -1,16 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: netfilter IPv6 support
-Date: Thu, 26 Aug 2004 13:00:24 -0700
+Subject: Re: [PATCH] Kernel oops in ip6t_LOG.c:ip6_nexthdr
+Date: Thu, 26 Aug 2004 14:10:03 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040826130024.6ff83dff.davem@redhat.com>
-References: <1093546367.3497.23.camel@hostmaster.org>
+Message-ID: <20040826141003.40229433.davem@redhat.com>
+References: <20040826113538.GE15409@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Zehetbauer <thomasz@hostmaster.org>
-In-Reply-To: <1093546367.3497.23.camel@hostmaster.org>
+To: Olaf Kirch <okir@suse.de>
+In-Reply-To: <20040826113538.GE15409@suse.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +21,13 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 26 Aug 2004 20:52:47 +0200
-Thomas Zehetbauer <thomasz@hostmaster.org> wrote:
+On Thu, 26 Aug 2004 13:35:39 +0200
+Olaf Kirch <okir@suse.de> wrote:
 
-> Although linux was one of the first to support IPv6 it seems to me that
-> netfilter support has almost stuck. There is still not even a REJECT
-> target not to mention stateful filtering for IPv6.
+> hdrptr is a u_int8_t **. What you really want to do here is
+> look at (*hdrptr)[1], but what the expression does is look at
+> *(hdrptr[1]). Unfortunately, hdrptr[1] is usually random garbage.
 
-Why not ask the netfilter development lists such questions?
+Good catch, patch applied (to 2.4.x too).
 
-Stateful netfilter is not there because it's a total waste
-to completely duplicate all of the connection tracking et al.
-code into ipv6 counterparts when %80 of the code is roughly
-the same.  People are working on a consolidation of these
-things so that there is no code duplication but it is a lot
-of work and there are bigger fires to put out at the moment.
+Thanks Olaf.
