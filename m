@@ -1,13 +1,17 @@
-From: "Wei Koong CHAI" <eem1wc@eim.surrey.ac.uk>
-Subject: Re: [libipq] Shutdown problem
-Date: Thu, 4 Jul 2002 11:52:45 +0100 (BST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: conntrack performance/DoS formula
+Date: Thu, 4 Jul 2002 23:53:56 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1105.131.227.136.16.1025779965.squirrel@ike.ee.surrey.ac.uk>
+Message-ID: <200207042353.56244@henrik.marasystems.com>
+References: <20020628082339.I2890@oknodo.bof.de> <200207011007.25108.hno@marasystems.com> <15652.38084.704660.234319@isis.cs3-inc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <jmorris@intercode.com.au>, <netfilter-devel@lists.samba.org>
+To: don-nf@isis.cs3-inc.com (Don Cohen)
+In-Reply-To: <15652.38084.704660.234319@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,146 +22,97 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi again... 
+On Thursday 04 July 2002 20.32, Don Cohen wrote:
+> [off list, but feel free to put it there if you think appropriate]
 
-   Here's more information on my system. I'm really new to Linux 
-networking, so i'm not really sure what kind of information that is useful 
-or useless for you to solve this problem. Forgive me if information i give 
-here are useless...
+It has been discussed to death on the list. Try reading the archives 
+some weeks back (always a healthy exercise). You are welcome to 
+forward this response to the netfilter-users mailinglist where it 
+really belongs. But here we go again..
 
-Topology
---------
+> My current understanding is that there are two matching conntrack
+> records here.  The ESTABLISHED is the conntrack state of one, not
+> the tcp state.  If it were the tcp state then this would be assured
+> and the other conntrack state would not be unreplied but also
+> established, right?
+> What's use, btw?
 
-                             bridge (br01)
-+--------------+          +---------------+             +--------------+
-| 192.168.1.12 |----(eth1)| 192.168.1.100 |(eth0)-------| 192.168.1.30 |
-+--------------+          +---------------+             +--------------+
+ESTABLISHED is the TCP tracking state, not the conntrack state. The 
+TCP tracking state ESTABLISHED is derived from the last packet seen 
+on the connection (ACK). This is not to be confused with the 
+conntrack "state" ESTABLISHED as used in the state match which is a 
+actually packet state describing how THIS packet relates to the 
+connection, not a connection state as such.
 
-   I am only bridging 2 workstation as this is only an University student 
-experimental project. 
+What you have in conntrack for a TCP session is
 
-Bridge (br01) Info 
-------------------
-Kernel    : 2.4.18 (with netfilter (firewalling) support for bridge enabled)
-Patch     : bridge-nf-0.0.6-against-2.4.18.diff
-Netfilter : iptables-1.2.5.tar.bz2 
-            (Everything related to netfilter is compiled into the kernel)
-Bridge    : bridge-utils-0.9.5.tar 
+a) A set of conntrack state bits, describing the state of the 
+connection:
 
-Bridge Config
--------------
-% brctl addbr br01
-% brctl addif br01 eth0
-% brctl addif br01 eth1
-% ifconfig eth0 0.0.0.0
-% ifconfig eth1 0.0.0.0
-% ifconfig br01 192.168.1.100 netmask 255.255.255.0 up
+   - SEEN_REPLY
+   - ASSURED
+   - EXPECTED
 
-Iptables
---------
-% iptables -A FORWARD -s 192.168.1.12 -j QUEUE
-% iptables -A FORWARD -s 192.168.1.30 -j QUEUE
+b) A TCP tracking state, SYN_RECV, SYN_SENT, ESTABLISHED, TIME_WAIT 
+and many more. Also keeps track of TCP window information and other 
+crucial information for tracking a TCP session properly.
 
-Reboot Messages:
-----------------
+The TCP tracking state mainly controls the timeouts, but also has some 
+influence on what kind of packets conntrack expects to see on the 
+connection. The TCP tracking state is not visible in your rulesets.
 
-I straightaway get the error message when I try to reboot:
+The conntrack state bit SEEN_REPLY is pretty obvious what is 
+represents.
 
-Unregister-netdevice: waiting for eth1 to become free. Usage count = ????
+ASSURED is a little trickier. What it represents is that conntrack are 
+sure this connection is for real. For TCP this requires that 
+conntrack has seen the whole SYN->SYNACK->ACK handshake.
 
-Shutdown Messages:
-------------------
-
-Here’s what I think it’s related to my problem when I try to shutdown:
-
-br01: port 2(eth1) entering disabled state
-cardmgr[818]: shutting down socket 1
-br01: port 2(eth1) entering disabled state
-unregister-netdevice: waiting for eth1 to become free. Usage count = ????
-
-(sometimes, i also receive messages such as below)
-shutting down interface eth0: eth0: promiscuous mode enabled.
-shutting down interface eth1: br01: promiscuous mode enabled.
-br01: port 2(eth1) entering disabled state
-device eth1 left promiscuous mode
-unregister-netdevice: waiting for eth1 to become free. Usage count = ????
-
-(actually, i don't know where can i get the shutdown log... any pointer on 
-this?)
-
-Here's my boot.log
-------------------
-Jul  4 17:17:59 Home syslog: syslogd startup succeeded
-Jul  4 17:17:59 Home syslog: klogd startup succeeded
-Jul  4 17:18:00 Home portmap: portmap startup succeeded
-Jul  4 17:18:00 Home nfslock: rpc.statd startup succeeded
-Jul  4 17:18:00 Home keytable: Loading keymap:  succeeded
-Jul  4 17:18:00 Home keytable: Loading system font:  succeeded
-Jul  4 17:18:01 Home random: Initializing random number generator:  
-succeeded
-Jul  4 17:18:01 Home netfs: Mounting other filesystems:  succeeded
-Jul  4 17:18:02 Home autofs: automount startup succeeded
-Jul  4 17:17:42 Home rc.sysinit: Mounting proc filesystem:  succeeded 
-Jul  4 17:17:42 Home sysctl: net.ipv4.ip_forward = 0 
-Jul  4 17:17:42 Home sysctl: net.ipv4.conf.default.rp_filter = 1 
-Jul  4 17:17:42 Home rc.sysinit: Configuring kernel parameters:  succeeded 
-Jul  4 17:17:42 Home date: Thu Jul  4 17:15:33 BST 2002 
-Jul  4 17:17:42 Home rc.sysinit: Setting clock  (localtime): Thu Jul  4 
-17:15:33 BST 2002 succeeded 
-Jul  4 17:17:42 Home rc.sysinit: Loading default keymap succeeded 
-Jul  4 17:17:42 Home rc.sysinit: Setting default font (lat0-sun16):  
-succeeded 
-Jul  4 17:17:42 Home rc.sysinit: Activating swap partitions:  succeeded 
-Jul  4 17:17:42 Home rc.sysinit: Setting hostname Home:  succeeded 
-Jul  4 17:17:42 Home fsck: / was not cleanly unmounted, check forced. 
-Jul  4 17:17:42 Home fsck: Deleted inode 257168 has zero dtime.  FIXED. 
-Jul  4 17:17:42 Home fsck: /:  
-Jul  4 17:18:02 Home pcmcia: Starting PCMCIA services:
-Jul  4 17:17:42 Home fsck: Deleted inode 259968 has zero dtime.  FIXED. 
-Jul  4 17:17:42 Home fsck: /: 129316/448000 files (0.6% non-contiguous), 
-607658/895623 blocks 
-Jul  4 17:17:42 Home rc.sysinit: Checking root filesystem succeeded 
-Jul  4 17:17:42 Home rc.sysinit: Remounting root filesystem in read-write 
-mode:  succeeded 
-Jul  4 17:17:42 Home rc.sysinit: Finding module dependencies:  succeeded 
-Jul  4 17:17:43 Home rc.sysinit: Checking filesystems succeeded 
-Jul  4 17:17:43 Home rc.sysinit: Mounting local filesystems:  succeeded 
-Jul  4 17:17:43 Home rc.sysinit: Enabling local filesystem quotas:  
-succeeded 
-Jul  4 17:17:43 Home rc.sysinit: Enabling swap space:  succeeded 
-Jul  4 17:17:48 Home kudzu: Updating /etc/fstab succeeded 
-Jul  4 17:17:56 Home kudzu:  succeeded 
-Jul  4 17:17:56 Home sysctl: net.ipv4.ip_forward = 0 
-Jul  4 17:17:56 Home sysctl: net.ipv4.conf.default.rp_filter = 1 
-Jul  4 17:17:56 Home network: Setting network parameters:  succeeded 
-Jul  4 17:17:57 Home network: Bringing up interface lo:  succeeded 
-Jul  4 17:17:59 Home network: Bringing up interface eth0:  succeeded 
-Jul  4 17:18:02 Home pcmcia:  cardmgr.
-Jul  4 17:18:03 Home rc: Starting pcmcia:  succeeded
-Jul  4 17:18:06 Home xinetd: xinetd startup succeeded
-Jul  4 17:18:08 Home sendmail: sendmail startup succeeded
-Jul  4 17:18:08 Home gpm: gpm startup succeeded
-Jul  4 17:18:09 Home crond: crond startup succeeded
-Jul  4 17:18:10 Home xfs: xfs startup succeeded
-Jul  4 17:18:10 Home anacron: anacron startup succeeded
-Jul  4 17:18:10 Home atd: atd startup succeeded
-Jul  4 17:18:12 Home netconf:   Checking kernel configuration
-Jul  4 17:18:12 Home linuxconf: Running Linuxconf hooks:  succeeded
-Jul  4 17:18:12 Home 
-wine: /etc/rc5.d/S99wine: /proc/sys/fs/binfmt_misc/register: No such file 
-or directory
-Jul  4 17:18:12 Home 
-wine: /etc/rc5.d/S99wine: /proc/sys/fs/binfmt_misc/register: No such file 
-or directory
-Jul  4 17:18:12 Home rc: Starting wine:  failed
+EXPECTED is simply that this connection was expected by a conntrack 
+protocol helper, for example FTP data channels expected due to 
+commands on their FTP control channel.
 
 
-Note:
------
+Now, if we take a look at the "state" match, it indicates four 
+different packet states
 
-I need to state that, without using netfilter support i.e. only working 
-with the bridge (brctl), i didn't receive such message when i shutdown my 
-bridge. That is why i thought maybe my libipq program is leaking packets... 
-but i'm really no expert in these things.
+   - INVALID
+   - NEW
+   - ESTABLISHED
+   - RELATED
 
-Thank you.
+These states has nothing to do with TCP, only packet flows. If 
+conntrack cannot identify a session key for the packet or otherwise 
+fails to establish connection tracking (i.e. OOM) then the paket 
+state is INVALID.
+
+If the packet is the first packet conntrack has seen for a connection 
+then it is a NEW (or RELATED where applicable). Note that this may 
+well be an ACK or even a FIN, conntrack does not care, it only cares 
+that it did not know about the connection before seeing the packet.
+
+If there has been any reply packets (including the first reply packet) 
+then the packet state is ESTABLISHED.
+
+
+The ASSURED bit deserves a little more attention. As you may see from 
+the above description of the four "state" types this bit is not used 
+in any rulesets. The ASSURED bit is used by conntrack to defeat 
+almost all DoS attempts. When conntrack runs out of entries it will 
+throw away not ASSURED connections to make room for new connections. 
+This very effectively stops almost all DoS attempts in filling the 
+connection table.
+
+
+This is the last time I will answer this question. If anyone feels 
+like using any of this in a FAQ then you are welcome. If I see much 
+more chatter about these fundamental aspects of netfilter connection 
+tracking that really SHOULD be common knowledge to all users (note: I 
+am not talking about developers here.. developers looking at 
+conntrack MUST understand these aspects) then I don't know what I 
+will do, but I suspect I will stop following the netfilter-devel 
+traffic. I am damn tired that so few people seem to understand what 
+"iptables -m state --state NEW" or "--state ESTABLISED" means.
+
+Regards
+Henrik
