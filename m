@@ -1,21 +1,17 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: use of vmalloc within netfilter (was Re: [ANNOUNCE] IP sets)
-Date: Wed, 18 Feb 2004 08:12:50 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [ANNOUNCE] IP sets
+Date: Tue, 17 Feb 2004 16:00:45 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040218081250.20edb2b5.ak@suse.de>
-References: <20040214212340.GC7756@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
-	<20040217125710.GA981@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.58.0402171449240.1089@tux.rsn.bth.se>
-	<20040217141840.GJ981@sunbeam.de.gnumonks.org>
+Message-ID: <20040217150045.GO981@sunbeam.de.gnumonks.org>
+References: <20040214212340.GC7756@sunbeam.de.gnumonks.org> <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: gandalf@wlug.westbo.se, kadlec@blackhole.kfki.hu,
-	netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DFFMAMYvrfM3lt66"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040217141840.GJ981@sunbeam.de.gnumonks.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0402171052590.10727-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -26,39 +22,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Feb 2004 15:18:40 +0100
-Harald Welte <laforge@netfilter.org> wrote:
 
-> Cc'ing Andi, to give us some clue ;)
-> 
-> On Tue, Feb 17, 2004 at 02:51:52PM +0100, Martin Josefsson wrote:
-> > On Tue, 17 Feb 2004, Harald Welte wrote:
-> > 
-> > > I just added another use of vmalloc: dstlimit.  I have to fix that, too.
-> > >
-> > > It would be interesting though, to know how much of a performance
-> > > penalty it implies.
-> > 
-> > According to Andi Kleen, some machines suffer from excessive TLB thrashing
-> > if you use vmalloc to allocate for example large arrays like the conntrack
-> > hashtable. I remember he said that the performance-problem got solved by
-> > using __get_free_pages() instead, that will only create one TLB-mapping
-> > for the entire thing iirc.
-> 
-> The question is:  Is the penalty only for allocationg of the memory
-> (then it would be no problem, since it's a one-time allocation when we
-> load the module).  If there also is a penalty during runtime (i.e.
-> accessing/updating the vmalloc'ed memory), we really should change our
-> code.
+--DFFMAMYvrfM3lt66
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The penalty is at runtime. Excessive is a bit overstated though,
-it will be likely slower but not that much slower.
+Hi Jozsef!
 
-Best is if you measure yourself. Run a hash table intensive workload
-with oprofile and check if you're getting lots of TLB misses.
+On Tue, Feb 17, 2004 at 10:58:21AM +0100, Jozsef Kadlecsik wrote:
+> OK!
 
-However before attacking the vmalloc you could consider improving the hash
-function and making the hash table smaller too (most hash tables in Linux
-seem to be too big)
+It's now a seperate module called 'ipset' in CVS.
+http://cvs.netfilter.org/ipset/
 
--Andi
+However, you still have to fix the ipset Makefile to accomodate the
+missing 'Rules.make' (maybe do your own copy, ...)
+
+btw: best to move ippool out of the iptables tree, too.  Any volunteers?
+
+> Best regards,
+> Jozsef
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--DFFMAMYvrfM3lt66
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAMiydXaXGVTD0i/8RAiLHAJ4luzEkx6Z8EPEpBQ6E3cUfbcyjLACeKr9W
+xybHwKyH0jpQY9BC4nIg4Qo=
+=d9ki
+-----END PGP SIGNATURE-----
+
+--DFFMAMYvrfM3lt66--
