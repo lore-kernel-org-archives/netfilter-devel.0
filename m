@@ -1,11 +1,10 @@
-From: Grigory Bakunov <black@asplinux.ru>
-Subject: about ip_tables.h code correction
-Date: Wed, 16 Oct 2002 20:59:37 +0400
+From: Jan Srzednicki <winfried@expro.pl>
+Subject: ip_nat_amanda unresolved symbol
+Date: Wed, 16 Oct 2002 22:18:23 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200210161658.g9GGwWC21216@outpost.sw.ru>
+Message-ID: <Pine.LNX.4.21.0210162202060.26098-100000@saturn.expro.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="Multipart_Wed__16_Oct_2002_20:59:37_+0400_0816b890"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,64 +17,83 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
---Multipart_Wed__16_Oct_2002_20:59:37_+0400_0816b890
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Hello there,
 
-Hello.
+I've just cvsupped new version of netfilter stuff (16/10/2002). I wanted
+to try some of the new modules in patch-o-matic, one of which is the
+Amanda connection tracking helper. However, this module contains an
+unresolved symbol:
 
-I work on my little project and need to use C++ compiler for that code.
-But it's impossible now cause in ip_tables.h we can see
+find kernel -path '*/pcmcia/*' -name '*.o' | xargs -i -r ln -sf ../{} pcmcia
+if [ -r System.map ]; then /sbin/depmod -ae -F System.map 2.4.19; fi
+depmod: *** Unresolved symbols in
+/lib/modules/2.4.19/kernel/net/ipv4/netfilter/ip_nat_amanda.o
+depmod:         ip_nat_mangle_udp_packet
 
-/* Helper functions */
-static __inline__ struct ipt_entry_target *
-ipt_get_target(struct ipt_entry *e)
-{
-        return (void *)e + e->target_offset;
-}
+I grepped all kernel sources and netfilter patches -
+ip_nat_mangle_udp_packet is not defined anywhere! I looked on the code of
+similar function - ip_nat_mangle_tcp_packet(); it is defined and exported
+correctly. Yet, ip_nat_mangle_udp_packet() clearly is missing. I use the
+"new" nat headers and schemes, if that matters in any way.
 
-For any c++ compiler it's a wrong code.
-I know what all netfilter guru use plain C only but explict type correction it's
-a good style of programming in any case :)
+Here's the list of patches I have installed:
 
-I make a little patch (in attchment).
-It's correct this function to
-/* Helper functions */
-static __inline__ struct ipt_entry_target *
-ipt_get_target(struct ipt_entry *e)
-{
-        return (struct ipt_entry_target *)((u_int8_t*)e + e->target_offset);
-}
+Already applied: submitted/2.4.18
+                 submitted/DSCP
+                 submitted/ECN
+                 submitted/REJECT-dont_fragment
+                 submitted/REJECT_mark
+                 submitted/TOS-oops-fix
+                 submitted/ahesp-static
+                 submitted/arptables
+                 submitted/conntrack+nat-helper-unregister
+                 submitted/conntrack
+                 submitted/dscp
+                 submitted/ecn
+                 submitted/helper
+                 submitted/ip6tables-export-symbols
+                 submitted/ip_nat_irc-srcaddr-fix
+                 submitted/ipt_MIRROR-ttl
+                 submitted/ipt_REJECT-checkentry
+                 submitted/ipt_unclean-ecn
+                 submitted/irc-dcc-mask
+                 submitted/length-ipv6
+                 submitted/local-nat
+                 submitted/macro-trailing-semicolon-fix
+                 submitted/mangle5hooks
+                 submitted/nat-export_symbols
+                 submitted/nat-memoryleak-fix
+                 submitted/netfilter-arp
+                 submitted/skb_clone_copy
+                 submitted/ulog-module-unload
+                 submitted/ulog-nlgroup-shift-fix
+                 submitted/unclean-udpchecksum
+                 submitted/z-newnat16
+                 base/IPV4OPTSSTRIP
+                 base/NETMAP
+                 base/TTL
+                 base/fuzzy
+                 base/iplimit
+                 base/ipt_unclean-ubit
+                 base/ipv4options
+                 base/mport
+                 base/nth
+                 base/quota
+                 base/random
+                 base/time
+                 extra/CONNMARK
+                 extra/amanda-conntrack-nat
+                 extra/h323-conntrack-nat
+                 extra/ip_tables-proc
+                 extra/pptp-conntrack-nat
+                 extra/recent
+                 extra/string
+                 extra/tcp-window-tracking
+                 userspace/ipt_REJECT-fake-source
 
-In other words - it's patch only one line.
-Please tell me - i'm idiot or i'm right ? :)
 
-
-........................................................................
-IRC: irc.openprojects.net #asplinux                      Grigory Bakunov
-EMAIL: black@asplinux.ru                           ASPLinux Support Team
-ICQ: 51369901                                     http://www.asplinux.ru
------BEGIN GEEK CODE BLOCK-----
-GCS/MU d-(--) s:- a- C+++>++$ UBLAVSX+++$ P+ L++++$ E++$ W++ N+>- o? K?
-w-- O- M V-(--) PS+ PE+ !Y PGP+>++++ t+ 5++ X+++ R+++ tv+>-- b+++ ?DI D+
-G++ e>++$ h- r++ y+ z++(+++)
-------END GEEK CODE BLOCK------
-
---Multipart_Wed__16_Oct_2002_20:59:37_+0400_0816b890
-Content-Type: text/plain;
- name="ip_tables_h.syntax_correction.patch"
-Content-Disposition: attachment;
- filename="ip_tables_h.syntax_correction.patch"
-Content-Transfer-Encoding: base64
-
-LS0tIGlwX3RhYmxlcy5oLm9sZAlNb24gQXVnIDI2IDE3OjA2OjAyIDIwMDIKKysrIGlwX3RhYmxl
-cy5oCVdlZCBPY3QgMTYgMjA6NDc6MDcgMjAwMgpAQCAtMjkyLDcgKzI5Miw3IEBACiBzdGF0aWMg
-X19pbmxpbmVfXyBzdHJ1Y3QgaXB0X2VudHJ5X3RhcmdldCAqCiBpcHRfZ2V0X3RhcmdldChzdHJ1
-Y3QgaXB0X2VudHJ5ICplKQogewotCXJldHVybiAodm9pZCAqKWUgKyBlLT50YXJnZXRfb2Zmc2V0
-OworCXJldHVybiAoc3RydWN0IGlwdF9lbnRyeV90YXJnZXQgKikoKHVfaW50OF90KillICsgZS0+
-dGFyZ2V0X29mZnNldCk7CiB9CiAKIC8qIGZuIHJldHVybnMgMCB0byBjb250aW51ZSBpdGVyYXRp
-b24gKi8K
-
---Multipart_Wed__16_Oct_2002_20:59:37_+0400_0816b890--
+greetz,
+-- 
+Jan 'Winfried' Srzednicki
+w@expro.pl
