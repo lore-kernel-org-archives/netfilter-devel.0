@@ -1,74 +1,93 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH] more DECLARE_MUTEX() in headers crap
-Date: Sun, 20 Jun 2004 13:23:28 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040620112328.GB13691@lst.de>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] modification in current protocol helper API to handle
+	error/unclean packets
+Date: Sun, 20 Jun 2004 21:17:56 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1087759076.9146.32.camel@tux.rsn.bth.se>
+References: <Pine.LNX.4.33.0406141551410.12847-100000@blackhole.kfki.hu>
+	 <40D18A0B.2070101@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-bounce@oss.sgi.com>
-To: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-B7ZKKgPwM2xzZztGbBZs"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Patrick McHardy <kaber@trash.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <40D18A0B.2070101@eurodev.net>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-okay, the gunk we had in arp_tables is in ip6_tables and ip6_tables,
-too.  In fact those three files see to be 80% copy & paste of each
-other..
 
+--=-B7ZKKgPwM2xzZztGbBZs
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
---- 1.8/include/linux/netfilter_ipv4/ip_tables.h	2004-06-19 20:55:10 +02:00
-+++ edited/include/linux/netfilter_ipv4/ip_tables.h	2004-06-20 10:25:40 +02:00
-@@ -284,8 +284,6 @@
- 	struct ipt_entry entrytable[0];
- };
- 
--extern struct semaphore ipt_mutex;
--
- /* Standard return verdict, or do jump. */
- #define IPT_STANDARD_TARGET ""
- /* Error verdict. */
-@@ -338,7 +336,6 @@
-  *	Main firewall chains definitions and global var's definitions.
-  */
- #ifdef __KERNEL__
--static DECLARE_MUTEX(ipt_mutex);
- 
- #include <linux/init.h>
- extern void ipt_init(void) __init;
-===== include/linux/netfilter_ipv6/ip6_tables.h 1.7 vs edited =====
---- 1.7/include/linux/netfilter_ipv6/ip6_tables.h	2004-06-19 20:55:10 +02:00
-+++ edited/include/linux/netfilter_ipv6/ip6_tables.h	2004-06-20 10:26:32 +02:00
-@@ -107,10 +107,6 @@
- 	u_int64_t pcnt, bcnt;			/* Packet and byte counters */
- };
- 
--#ifdef __KERNEL__
--static DECLARE_MUTEX(ip6t_mutex);
--#endif
--
- /* Values for "flag" field in struct ip6t_ip6 (general ip6 structure). */
- #define IP6T_F_PROTO		0x01	/* Set if rule cares about upper 
- 					   protocols */
-===== net/ipv4/netfilter/ip_tables.c 1.24 vs edited =====
---- 1.24/net/ipv4/netfilter/ip_tables.c	2004-06-07 05:15:04 +02:00
-+++ edited/net/ipv4/netfilter/ip_tables.c	2004-06-20 12:29:17 +02:00
-@@ -61,6 +61,8 @@
- #endif
- #define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
- 
-+static DECLARE_MUTEX(ipt_mutex);
-+
- /* Must have mutex */
- #define ASSERT_READ_LOCK(x) IP_NF_ASSERT(down_trylock(&ipt_mutex) != 0)
- #define ASSERT_WRITE_LOCK(x) IP_NF_ASSERT(down_trylock(&ipt_mutex) != 0)
-===== net/ipv6/netfilter/ip6_tables.c 1.29 vs edited =====
---- 1.29/net/ipv6/netfilter/ip6_tables.c	2004-06-07 05:15:04 +02:00
-+++ edited/net/ipv6/netfilter/ip6_tables.c	2004-06-20 12:29:29 +02:00
-@@ -66,6 +66,7 @@
- #endif
- #define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
- 
-+static DECLARE_MUTEX(ip6t_mutex);
- 
- /* Must have mutex */
- #define ASSERT_READ_LOCK(x) IP_NF_ASSERT(down_trylock(&ip6t_mutex) != 0)
+On Thu, 2004-06-17 at 14:09, Pablo Neira wrote:
+
+[snip]
+
+> - Jozsef, I resolve to use your inverse return value but I must confess=20
+> that I'm still thinking about another way to do that with no sucess,=20
+
+What's the deal with these inverse return values in tcp-window-tracking
+and now conntrack_error-api?
+
+Sometimes we return NF_ACCEPT and sometimes we return -NF_ACCEPT which
+have two completely diffrent meanings. That's really really ugly.
+
+As I've understod it we have two cases:
+1. We want to return NF_* all the way back to the netfilter core.
+2. We want conntrack to continue processing the packet.
+
+And we need a way to distinguish these returnvalues.
+
+My suggestion is that when we want NF_* we return NF_* and if we want
+conntrack to continue we return CONNTRACK_CONT which is defined as -1
+All NF_* macros are >=3D 0
+
+Instead of checking for a negative returnvalue as we do today we check
+!=3D CONNTRACK_CONT and then return the value previously returned to us.
+
+In my oppinion that would greatly improve the readability of the code.
+The mixing of negative and positive values using the same macro=20
+confuses me sometimes to say the least. I bet I'm not the only one that
+sometimes has to look twice at the return value.
+
+Have I missed something?
+If not and noone objects I'll fix it up in cvs unless someone beats me
+to it.
+
+> well this issue is not important. BTW, you also modified conntrack core=20
+> in your tcp-window-tracking patch, do you think that I could add that=20
+> part to my patch since I think that it's more related stuff and your=20
+> patch will go on top of this?
+> - I'll work on that extra patch to check for malformed udp/icmp packets=20
+> these days.
+
+I fixed the length checking in the udp part of the second patch.
+It compared lengths in network byteorder, added two missing ntohs()
+Now udp works again :)
+
+--=20
+/Martin
+
+--=-B7ZKKgPwM2xzZztGbBZs
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBA1eLkWm2vlfa207ERApb/AJ9K++s3atYYUnsoZrXbUxAk3Q3niwCgm0NJ
+H53lb07fqSobOrqTX53jGyA=
+=JfN6
+-----END PGP SIGNATURE-----
+
+--=-B7ZKKgPwM2xzZztGbBZs--
