@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Patch] ipsec-nat patches for 2.6.9
-Date: Tue, 14 Dec 2004 22:31:37 +0100
-Message-ID: <41BF5BB9.5090901@trash.net>
-References: <C7150F785DD9414B9F5B74FEBD08A322155891@ma-sv-ex2003.bkvision.nl>
-	<1103050024.22667.34.camel@ursa.shorewall.net>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [NEW TARGET] target for modifying conntrack timeout value
+Date: Wed, 15 Dec 2004 01:25:05 +0100
+Message-ID: <41BF8461.3030405@eurodev.net>
+References: <EINSTEINyo3DjFbUcOV00000275@einstein.systemmetrics.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
-In-Reply-To: <1103050024.22667.34.camel@ursa.shorewall.net>
+To: Richard <richard@o-matrix.org>
+In-Reply-To: <EINSTEINyo3DjFbUcOV00000275@einstein.systemmetrics.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +21,81 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tom Eastep wrote:
+Richard wrote:
 
->What is the timeline for getting these patches (and policy match) into
->the kernel.org tree? The next major release of Shorewall relies on them
->for native 2.6 IPSEC support.  
 >  
 >
-I will submit them once 2.6.10 is out.
+>>-----Original Message-----
+>>From: Richard [mailto:richard@o-matrix.org]
+>>Sent: Wednesday, December 08, 2004 3:48 PM
+>>To: 'Pablo Neira'
+>>Cc: 'netfilter-devel@lists.netfilter.org'
+>>Subject: RE: [NEW TARGET] target for modifying conntrack timeout value
+>>
+>>    
+>>
+>>>+                ct->timeout.expires = new_expires;
+>>>                  ^^^
+>>>
+>>>Hm I thought that I told you to use ip_ct_refresh... you should. Your
+>>>target will look smarter and you can forget about proper locking...
+>>>which is now completely broken...
+>>>      
+>>>
+>>Hi Pablo,
+>>
+>>Thanks for the comments. I made the modification and attached the latest
+>>copy. Now it uses ip_ct_refresh. The target first reads the existing
+>>expire value, then modify it. If there is something in between, the expire
+>>value might get changed. Even worse, the conntrack state might change.
+>>That's why I locked it first, then read and write, finally unlock. If it
+>>is broken, there is no difference anyway...
+>>
+>>    
+>>
+>
+>Just wonder if there is any update on this please...
+>  
+>
 
-Regards
-Patrick
+Some comments:
+
+a) I think that you should implement this thing as a match instead of a 
+target. Have a look at ipt_limit. It isn't actually matching anything 
+but, for example, you could use it together with nat targets. A match 
+gives you more flexibility.
+
+b) About source code:
+
++       if (!is_confirmed(ct)) {
+           ^^^
+remove this `if' condition. ip_ct_refresh worries about about this for 
+you and makes the thing more simple.
+
+c) In checkentry:
+
++       if (info->mode > IPT_CTEXPIRE_MAXMODE) {
++               printk(KERN_WARNING "CTEXPIRE: invalid or unknown Mode 
+%u\n",
++                       info->mode);
++               return 0;
++       }
++ [...]
++
++       if (info->expires * HZ < info->expires) {
++               /* if user specified value is too big, *HZ can overflow 
+the counter
++               */
++               printk(KERN_WARNING "CTEXPIRE: expire value too big, 
+will overflow counter: %ld\n", info->expires);
++               return 0;
++       }
+
+You should do those checkings in user space. Those error must be handle 
+in iptables, not in kernel.
+
+A minor aesthetic comment, a line must fit 80 columns, split longer 
+lines in two.
+
+--
+Pablo
