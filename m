@@ -1,14 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: [ANNOUNCE] Feature Freeze for iptables-1.2.7
-Date: Sat, 15 Jun 2002 11:59:09 +0200
+Subject: Re: [PATCH] -M option unusable
+Date: Sat, 15 Jun 2002 14:23:08 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020615115909.M2543@sunbeam.de.gnumonks.org>
+Message-ID: <20020615142308.P2543@sunbeam.de.gnumonks.org>
+References: <20020613175053.J2543@sunbeam.de.gnumonks.org> <200206131931.23688.hno@marasystems.com> <200206150014.28710.bart.de.schuymer@pandora.be>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="h1Kgj0J7YauQlxie"
+	protocol="application/pgp-signature"; boundary="bgCgbCt+U3u1f4Pw"
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.samba.org>
+To: Bart De Schuymer <bart.de.schuymer@pandora.be>
 Content-Disposition: inline
+In-Reply-To: <200206150014.28710.bart.de.schuymer@pandora.be>; from bart.de.schuymer@pandora.be on Sat, Jun 15, 2002 at 12:14:28AM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,18 +23,23 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---h1Kgj0J7YauQlxie
+--bgCgbCt+U3u1f4Pw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Sat, Jun 15, 2002 at 12:14:28AM +0200, Bart De Schuymer wrote:
+> Hello,
+>=20
+> This is just a small patch, guess the --modprobe option is not very popul=
+ar :)
+> It's vs the CVS userspace iptables.c file.
 
-I'm announcing a feature freeze for the iptables-1.2.7 release starting
-at 24 Jun 2002. After this date, only bugfixes will be accepted.  The
-1.2.7 release will most likely be out by Jul 01.
+thanks, patch applied (although slightly differnet)
 
-Thanks.
+> cheers,
+> Bart
+
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -43,7 +51,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---h1Kgj0J7YauQlxie
+--bgCgbCt+U3u1f4Pw
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -51,9 +59,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9Cw/sXaXGVTD0i/8RAkVUAJ4uEnn/xPmxxngbXJ6tkCyieYWUKwCeKtLl
-t+aqBeWPwRXaXzxAxah4T2g=
-=XaVY
+iD8DBQE9CzGMXaXGVTD0i/8RApIzAKCA0coBeD/DSNhVBA41S4XZnJ6YLQCcDVfJ
+RY4qnMie8mUGnE4ByADZYJk=
+=JGId
 -----END PGP SIGNATURE-----
 
---h1Kgj0J7YauQlxie--
+--bgCgbCt+U3u1f4Pw--
