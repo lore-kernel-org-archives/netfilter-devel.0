@@ -1,20 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [Patch]: IPv6 Connection Tracking
-Date: Mon, 29 Sep 2003 10:42:46 +0200
+From: Kovacs Krisztian <hidden@balabit.hu>
+Subject: NAT && TIME_WAIT TCP connections
+Date: Mon, 29 Sep 2003 14:20:43 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030929084246.GE654@obroa-skai.de.gnumonks.org>
-References: <1064515680.995.41.camel@localhost> <Pine.LNX.4.44.0309252151180.11253-100000@netcore.fi>
+Message-ID: <3F78239B.7000406@balabit.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SFyWQ0h3ruR435lw"
-Cc: Andras Kis-Szabo <kisza@securityaudit.hu>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
-	Netfilter Devel <netfilter-devel@lists.netfilter.org>,
-	Netdev <netdev@oss.sgi.com>, usagi-core@linux-ipv6.org
+Content-Type: multipart/mixed;
+ boundary="------------000604040908020702070908"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pekka Savola <pekkas@netcore.fi>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0309252151180.11253-100000@netcore.fi>
+To: Netfilter Devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,74 +18,159 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------000604040908020702070908
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---SFyWQ0h3ruR435lw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 25, 2003 at 09:57:47PM +0300, Pekka Savola wrote:
-> First, a meta-comment:
->=20
-> What I fear is that in the end, nothing gets done because having the goal
-> set to perfection.  If there is no energy to drive through the
-> L3-independent connecting tracking, the end result is that the user
-> does not have this feature=20
+   Hi,
 
-well, that's the reason why I'd like to see it in=20
+   I have a proposal regarding connection tracking and NAT. Imagine a 
+scenario, where you must SNAT TCP traffic not only to a specific IP range, 
+but also to a specific port range. The extreme case of the scenario is of 
+course one IP with only one port, for example:
 
-> (remember ip6tables REJECT target?  That must have been sitting in
-> netfilter for some 2+ years, and not having been integrated in the
-> mainline kernel and the users still do not have the feature!).
+iptables -t nat -A POSTROUTING -s 10.1.0.0/16 -p tcp -j SNAT \
+	--to-source 0.2.0.1:1234
 
-Mh, nobody has bugged me about that in all those 2 years.  At least I
-don't remember somebody asking me for kernel inclusion...=20
+   However, such a setup maximizes the number of connections to which NAT 
+can be applied, and you must wait for the existing connections to get 
+deleted (timeout, etc.) before another connection can be created. However, 
+in case of TCP, when the SNAT range is a scarce resource, IP:port pairs 
+could be reused for connections where the connection is already in a 
+'half-died' state (for example, TCP's TIME_WAIT). The theory of operation 
+is the following: a protocol helper marks the conntrack entry 
+MAY_BE_DELETED if it thinks that it's in a state where new packages cannot 
+be received. Then, if ip_nat_setup_info() finds that while trying to 
+allocate a new IP/port pair from the given range, a clashing conntrack 
+entry has this flag, it deletes the old one, so the allocation can succeed.
 
-Since ipv4 REJECT has now changed
+   While the upper example may look a bit extreme, such problems occur 
+much more often when using the TPROXY patch and a transparent SQUID proxy. 
+The attached patch helped a lot in these cases (and after modifying 
+ip_conntrack_proto_tcp.c accordingly, to mark TPROXY-ed TCP connections 
+'deletable' when they reach the TIME_WAIT state).
 
-> So, my personal take is:
->  - if a L3-independent conn tracking can be done *quickly*, fine,
+   Any comments? (I don't like the idea of deleting conntrack entries in 
+ip_nat_setup_info(), however, I don't have a better idea.)
 
-I've started to write a small paper about the envisioned desgign.  It
-doesn't look all that complicated, if somebody can concentrate on this
-job.  I personally (as indicated before) do not have the time to work on
-that issue.  But I'm happy to give advise.
+-- 
+   Regards,
+     Krisztian KOVACS
 
->  - if not, just merge the current one, start working on L3 independent=20
-> conn tracking, and add it when available.
+--------------000604040908020702070908
+Content-Type: text/plain;
+ name="nat-delete-conntrack.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="nat-delete-conntrack.diff"
 
-I understand your point.  However, I fear to be the one responsible of
-keeping ip6_conntrack in sync with ip_conntrack.  If there is a
-volunteer (maybe Yasuyuki?) who would really commit himself to look at
-which changes go into ip_conntack, and sending me patches to sync
-ip6_conntrack, I'd be more inclined to submit ip6_conntrack to the
-mainline kernel. =20
+diff -urN linux-2.4.22-orig/include/linux/netfilter_ipv4/ip_conntrack.h linux-2.4.22/include/linux/netfilter_ipv4/ip_conntrack.h
+--- linux-2.4.22-orig/include/linux/netfilter_ipv4/ip_conntrack.h	Fri Jun 13 16:51:38 2003
++++ linux-2.4.22/include/linux/netfilter_ipv4/ip_conntrack.h	Mon Sep 29 11:43:55 2003
+@@ -46,6 +46,10 @@
+ 	/* Connection is confirmed: originating packet has left box */
+ 	IPS_CONFIRMED_BIT = 3,
+ 	IPS_CONFIRMED = (1 << IPS_CONFIRMED_BIT),
++
++ 	/* May delete conntrack if its tuple is needed for NAT */
++ 	IPS_MAY_DELETE_BIT = 5,
++ 	IPS_MAY_DELETE = (1 << IPS_MAY_DELETE_BIT),
+ };
+ 
+ #include <linux/netfilter_ipv4/ip_conntrack_tcp.h>
+@@ -219,7 +223,7 @@
+ 
+ /* Is this tuple taken? (ignoring any belonging to the given
+    conntrack). */
+-extern int
++extern struct ip_conntrack_tuple_hash *
+ ip_conntrack_tuple_taken(const struct ip_conntrack_tuple *tuple,
+ 			 const struct ip_conntrack *ignored_conntrack);
+ 
+diff -urN linux-2.4.22-orig/net/ipv4/netfilter/ip_conntrack_core.c linux-2.4.22/net/ipv4/netfilter/ip_conntrack_core.c
+--- linux-2.4.22-orig/net/ipv4/netfilter/ip_conntrack_core.c	Mon Aug 25 13:44:44 2003
++++ linux-2.4.22/net/ipv4/netfilter/ip_conntrack_core.c	Mon Sep 29 11:43:00 2003
+@@ -479,7 +479,7 @@
+ 
+ /* Returns true if a connection correspondings to the tuple (required
+    for NAT). */
+-int
++struct ip_conntrack_tuple_hash *
+ ip_conntrack_tuple_taken(const struct ip_conntrack_tuple *tuple,
+ 			 const struct ip_conntrack *ignored_conntrack)
+ {
+@@ -489,7 +489,7 @@
+ 	h = __ip_conntrack_find(tuple, ignored_conntrack);
+ 	READ_UNLOCK(&ip_conntrack_lock);
+ 
+-	return h != NULL;
++	return h;
+ }
+ 
+ /* Returns conntrack if it dealt with ICMP, and filled in skb fields */
+diff -urN linux-2.4.22-orig/net/ipv4/netfilter/ip_nat_core.c linux-2.4.22/net/ipv4/netfilter/ip_nat_core.c
+--- linux-2.4.22-orig/net/ipv4/netfilter/ip_nat_core.c	Mon Aug 25 13:44:44 2003
++++ linux-2.4.22/net/ipv4/netfilter/ip_nat_core.c	Mon Sep 29 11:53:53 2003
+@@ -92,6 +92,35 @@
+ 	WRITE_UNLOCK(&ip_nat_lock);
+ }
+ 
++static void __ip_nat_cleanup_conntrack(struct ip_conntrack *conn)
++{
++	struct ip_nat_info *info = &conn->nat.info;
++	
++	if (!info->initialized)
++		return;
++
++	IP_NF_ASSERT(info->bysource.conntrack);
++	IP_NF_ASSERT(info->byipsproto.conntrack);
++
++	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
++
++	LIST_DELETE(&bysource[hash_by_src(&conn->tuplehash[IP_CT_DIR_ORIGINAL]
++					  .tuple.src,
++					  conn->tuplehash[IP_CT_DIR_ORIGINAL]
++					  .tuple.dst.protonum)],
++		    &info->bysource);
++
++	LIST_DELETE(&byipsproto
++		    [hash_by_ipsproto(conn->tuplehash[IP_CT_DIR_REPLY]
++				      .tuple.src.ip,
++				      conn->tuplehash[IP_CT_DIR_REPLY]
++				      .tuple.dst.ip,
++				      conn->tuplehash[IP_CT_DIR_REPLY]
++				      .tuple.dst.protonum)],
++		    &info->byipsproto);
++}
++
++
+ /* We do checksum mangling, so if they were wrong before they're still
+  * wrong.  Also works for incomplete packets (eg. ICMP dest
+  * unreachables.) */
+@@ -131,9 +160,21 @@
+ 
+ 	   We could keep a separate hash if this proves too slow. */
+ 	struct ip_conntrack_tuple reply;
++	struct ip_conntrack_tuple_hash *h;
+ 
+ 	invert_tuplepr(&reply, tuple);
+-	return ip_conntrack_tuple_taken(&reply, ignored_conntrack);
++	h = ip_conntrack_tuple_taken(&reply, ignored_conntrack);
++
++	if ((h != NULL) && test_bit(IPS_MAY_DELETE_BIT, &h->ctrack->status)) {
++		DEBUGP(KERN_DEBUG "Deleting old conntrack entry for NAT\n");
++		__ip_nat_cleanup_conntrack(h->ctrack);
++		h->ctrack->nat.info.initialized = 0;
++		if (del_timer(&h->ctrack->timeout))
++			h->ctrack->timeout.function((unsigned long)h->ctrack);
++		h = NULL;
++	}
++	
++	return h != NULL;
+ }
+ 
+ /* Does tuple + the source manip come within the range mr */
 
-> .. but I'm not the one who's answering the support emails, so in all=20
-> fairness, I should be silent now..
-
-;)
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---SFyWQ0h3ruR435lw
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/d/CGXaXGVTD0i/8RAuZsAJ9+gG8tUawwy3u+4BTicBOkZdrZrgCfd7g2
-k4SWLLMxIJc463EcS4hSfBM=
-=SWcD
------END PGP SIGNATURE-----
-
---SFyWQ0h3ruR435lw--
+--------------000604040908020702070908--
