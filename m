@@ -1,13 +1,16 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: [RFC} handling closed sockets from netfilter
-Date: Thu, 6 Jun 2002 10:51:11 +0200
+Subject: Re: [RFC} handling closed sockets from netfilter
+Date: Thu, 6 Jun 2002 11:38:47 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020606085111.GA17615@balabit.hu>
+Message-ID: <20020606093847.GA18130@balabit.hu>
+References: <OFA3A99B81.D3E9DBC4-ON80256BD0.00343BDE@portsmouth.uk.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: Andy Whitcroft <APW@uk.ibm.com>
 Content-Disposition: inline
+In-Reply-To: <OFA3A99B81.D3E9DBC4-ON80256BD0.00343BDE@portsmouth.uk.ibm.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,23 +21,13 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Thu, Jun 06, 2002 at 10:31:21AM +0100, Andy Whitcroft wrote:
+> 
+> Somewhat arbritrary, but perhaps calling the callback release would match
+> its meaning and the calling graph better.
 
-Yet another request for comments. I promise I'll stop with these soon. :)
-
-So I've mentioned that I need a notification when a socket is closed. As
-there are other parts in netfilter which might assign state to sockets
-through setsockopt/getsockopt, I wanted to make the close callback as
-general as possible.
-
-I'm thinking about putting a close() function pointer into struct
-nf_sockopt_ops, and call it from nf_sock_release (new function), which is
-called from inet_release() when CONFIG_NETFILTER is defined.
-
-This way any parts of netfilter might register a close callback. (even
-conntrack might use it to deregister local sockets from the conntrack table)
-
-Opinions?
+ok, callback renamed to release. My implementation is now in place, and I'm
+compiling the kernel right now.
 
 -- 
 Bazsi
