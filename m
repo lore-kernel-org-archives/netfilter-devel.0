@@ -1,15 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Bridging and IPT Queueing
-Date: Mon, 12 Jul 2004 12:22:27 +0200 (CEST)
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: ct_sync documentation and complete patch set in CVS
+Date: Mon, 12 Jul 2004 17:20:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0407121221570.18020-100000@filer.marasystems.com>
-References: <40F20FFF.2030403@metavize.com>
+Message-ID: <1089645637.4088.105.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jim Mar <jmar@metavize.com>
-In-Reply-To: <40F20FFF.2030403@metavize.com>
+To: Netfilter-failover list <netfilter-failover@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,12 +19,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 11 Jul 2004, Jim Mar wrote:
 
-> Yes, physdev match will work. Thanks. Using physdev match, can I get
-> the physical indev for a redirected packet?
+  Hi,
 
-You should.
+  As of today, an (almost) complete distribution of ct_sync is available
+from the Netfilter CVS. With todays commits, I think everything needed
+for testing is available from the CVS module 'netfilter-ha'.
 
-Regards
-Henrik
+  A few smaller changes were done to the code itself, but the more
+important addons are my complete patch set needed by ct_sync, and the
+update of the README to include instructions on patching and setting up
+your kernel tree.
+
+  Unfortunately, there are still quite a few bugs in the code, but I
+think ct_sync is in a state in which more wide-scale testing and would
+do good for the project. So, everyone interested in the current stateful
+failover code for Netfilter should take a look at netfilter-ha module of
+the Netfilter CVS repository. (http://cvs.netfilter.org/netfilter-ha/)
+
+  WARNING: this code is still far from being complete, and contains
+known bugs and weaknesses. It is not ready for production use, and the
+code is under active development. However, to speed up the progress,
+some help would be needed. So, anyone feeling brave enough to try
+ct_sync and submit bug reports is welcome.
+
+-- 
+ Regards,
+   Krisztian KOVACS
