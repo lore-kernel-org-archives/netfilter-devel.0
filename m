@@ -1,16 +1,16 @@
-From: Serge Droz <serge.droz@psi.ch>
-Subject: Re: Feasability of Protocol Filtering
-Date: Fri, 25 Apr 2003 11:36:43 +0200
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: [PATCH, RFC] possible use of freed skbuff in netfilter.c
+Date: Fri, 25 Apr 2003 19:57:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EA901AB.2080301@psi.ch>
-References: <Pine.LNX.4.44+maildir.0304230816280.20974-100000@woozle.org> <3EA7026D.2010101@uni.de>
+Message-ID: <200304251957.18012.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: Rusty Russel <rusty@rustcorp.com.au>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eicke Friedrich <e.friedrich@uni.de>,
- netfilter-devel@lists.netfilter.org
-In-Reply-To: <3EA7026D.2010101@uni.de>
+To: David S.Miller <davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,33 +21,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Dave,
 
+When dev_put'ing bridge devices in netfilter.c::reinject the skb can alre=
+ady=20
+be freed. The patch below fixes this by delaying the freeing of the skb a=
+=20
+bit. AFAIK, calling kfree_skb outside the read_lock causes no problems.
+Could someone of the netfilter core team approve or disapprove this chang=
+e?
+This is bug 86 of the netfilter bugtracking system.
 
-Eicke Friedrich wrote:
-> 
-> i'm doing a quite similar thing at the moment: i'm developing a match 
-> that recognizes p2p traffic (kazaa, edonkey finished but more to come) 
-> by their protocol and mark them. After that i use a tc filter to read 
-> the marks and put the packets in QoS classes.
-> What you need is something characteristic for every protocol. For 
-> example: every kazaa-download starts with a packet containing the string 
-> "GET /.hash=" - i do a string-match on each packet and if i find a match 
-> i just mark the whole connection with CONNMARK.
-So, if by chance this message got split exactly at the right place so 
-you'd get a packet witch starts with "GET /.hash=" you couldn't post 
-this anymore. Your idea will work 99.9% (say), but you can't aford a 
-single missmatch or you kill a legitimate connection (which for sure 
-will have been initiated by your boss :-))
+cheers,
+Bart
 
-You can easily try this out: write a snort filter that captures this 
-traffic and see how many false positives you get.
-
-Cheers
-Serge
-
-
--- 
-Serge Droz
-Paul Scherrer Institut                mailto:serge.droz@psi.ch
-CH-5232 Villigen PSI                   Phone: ++41 56 310 3637
-                                          Fax: ++41 56 310 3649
+--- linux-2.5.68/net/core/netfilter.c.old=09Fri Apr 25 19:23:35 2003
++++ linux-2.5.68/net/core/netfilter.c=09Fri Apr 25 19:24:47 2003
+@@ -559,10 +559,6 @@
+ =09=09nf_queue(skb, elem, info->pf, info->hook,=20
+ =09=09=09 info->indev, info->outdev, info->okfn);
+ =09=09break;
+-
+-=09case NF_DROP:
+-=09=09kfree_skb(skb);
+-=09=09break;
+ =09}
+ =09br_read_unlock_bh(BR_NETPROTO_LOCK);
+=20
+@@ -578,6 +574,10 @@
+ =09}
+ #endif
+=20
++
++=09if (verdict =3D=3D NF_DROP)
++=09=09kfree_skb(skb);
++
+ =09kfree(info);
+ =09return;
+ }
