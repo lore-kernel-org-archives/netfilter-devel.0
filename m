@@ -1,9 +1,11 @@
-From: Jason Lunz <lunz@falooley.org>
-Subject: Re: [PATCH] admin-prohibited option. Let us look at it again.
-Date: Wed, 21 May 2003 16:02:05 +0000 (UTC)
+From: Oumer Teyeb <oumer@cpk.auc.dk>
+Subject: Pthreads and libipq , order of binding??
+Date: Fri, 23 May 2003 18:18:42 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <slrnbcn8rd.440.lunz@stoli.localnet>
-References: <Pine.LNX.4.51.0304091927060.13250@dns.toxicfilms.tv>
+Message-ID: <3ECE49E2.8070906@cpk.auc.dk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -16,58 +18,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-solt@dns.toxicfilms.tv said:
-> Harald wrote in:
-> http://lists.netfilter.org/pipermail/netfilter-devel/2002-December/009962.html
-> 
-> that we should add this option and make an INCOMPATIBILITIES file as Jozsef
-> suggested. Also as Jozsef suggested this patch does not have kernel version
-> checking, just a warning in the man page, the INCOMPATIBILITIES file and
-> the '-j REJECT --help' message.
-> 
-> Please recall our exchange of opinions back then and review the patch to
-> the netfilter tree:
+Hi,
+I have a libipq program that compiles perfectly with this
 
-I noticed that netfilter doesn't support rfc 1812 admin-prohibited
-messages, and so I tracked down this thread and others in the archives.
-I also found the patch to fix it in bugzilla bug #3 and the
-patch-o-matic.
+gcc -g -Wall -Wunused -DNETFILTER_VERSION=\"1.2.7\" -rdynamic -o test 
+test.c /usr/local/lib/iptables.o /usr/local/lib/libiptc.a -ldl -lipq
 
-So my question is, since this has been known about since January and
-netfilter 1.2.8 was released last month, what's holding up the inclusion
-of this feature? What needs to be done to get it included? Why didn't it
-go into 1.2.8? Not supporting RFC 1812 out of the box is a bug, IMO.
+and I wanted to put multithreading features on it and in my system I run 
+pthread programs as
 
-Also, I checked to see whether it was feasible to code it so that the
-userspace could attempt to add an admin-prohibited rule, then fall back
-to host- or -net-prohibited if that fails on the running kernel. The
-problem is that it doesn't fail. In linux 2.4.20, the check() function
-in ipt_REJECT.c doesn't care whether it recognizes the reject type or
-not, and happily adds a rule with a bogus type if one is passed. Should
-something like the patch below be applied?
+gcc  -D_POSIX_C_SOURCE=199056 -D_REENTRANT -ansi -lpthread -o 
+test_thread test_thread.c
 
-Jason
+so I put some pthread functionality in my original pthread program and 
+tried to compile with the following
 
+gcc -g -Wall -Wunused -DNETFILTER_VERSION=\"1.2.7\" 
+-D_POSIX_C_SOURCE=199056 -D_REENTRANT -ansi -rdynamic -o test test.c 
+/usr/local/lib/iptables.o /usr/local/lib/libiptc.a -ldl -lipq -lpthread
 
---- net/ipv4/netfilter/ipt_REJECT.c.orig	Wed May 21 11:56:11 2003
-+++ net/ipv4/netfilter/ipt_REJECT.c	Wed May 21 11:59:09 2003
-@@ -353,6 +353,19 @@
- 			DEBUGP("REJECT: TCP_RESET illegal for non-tcp\n");
- 			return 0;
- 		}
-+	} else {
-+		switch(rejinfo->with) {
-+			case IPT_ICMP_NET_UNREACHABLE:
-+			case IPT_ICMP_HOST_UNREACHABLE:
-+			case IPT_ICMP_PROT_UNREACHABLE:
-+			case IPT_ICMP_PORT_UNREACHABLE:
-+			case IPT_ICMP_NET_PROHIBITED:
-+			case IPT_ICMP_HOST_PROHIBITED:
-+				break;
-+			default:
-+				printk(KERN_ERR "REJECT: invalid reject type.\n");
-+				return 0;
-+		}
- 	}
- 
- 	return 1;
+but this time I get the error:
+
+ >In file included from /usr/local/include/libipq.h:37
+ >from test.c: 2:
+ >/usr/include/linux/netfilter_ipv4/ip_queue.h:27: 'IFNAMSIZ' undeclared 
+here (not a function)
+ >/usr/include/linux/netfilter_ipv4/ip_queue.h:28: 'IFNAMSIZ' undeclared 
+here (not a function)
+ >/usr/include/linux/netfilter_ipv4/ip_queue.h:35: confused by earlier 
+errors, bailing out
+
+I think the problem is with some order of library binding, but I 
+couldn't figure it (I tried to link one library before the other and the 
+like).
+What is wrong?
