@@ -1,59 +1,101 @@
-From: Rich Wellner <rkw@objenv.com>
-Subject: Re: trouble with expect_related
-Date: Tue, 07 Jan 2003 09:59:02 -0600
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <t2mk7hhx86x.fsf@rw2-laptop.wellner.org>
-References: <t2mk7hlwz5c.fsf@rw2-laptop.wellner.org>
-	<1041651291.1637.41.camel@exile> <t2mwulie0cu.fsf@rw2-laptop.wellner.org>
-	<1041933003.502.23.camel@xbox>
+From: Harald Welte <laforge@netfilter.org>
+Subject: New netfilter/iptables patch-o-matic release
+Date: Tue, 7 Jan 2003 21:13:34 +0100
+Sender: netfilter-announce-admin@lists.netfilter.org
+Message-ID: <20030107201334.GX9467@sunbeam.de.gnumonks.org>
+Reply-To: coreteam@netfilter.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Filip Sneppe <filip.sneppe@cronos.be>
-In-Reply-To: <1041933003.502.23.camel@xbox> (Filip Sneppe's message of "07
- Jan 2003 10:50:02 +0100")
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KMIs29sPfC/9Gbii"
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
+Return-path: <netfilter-announce-admin@lists.netfilter.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+Errors-To: netfilter-announce-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-announce@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-announce/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Filip Sneppe <filip.sneppe@cronos.be> writes:
 
-> On Mon, 2003-01-06 at 16:58, Rich Wellner wrote:
->> "Filip Sneppe (Cronos)" <filip.sneppe@cronos.be> writes:
->>
->> Can anyone else comment?
->> 
-> Do you see the expected connection in /proc/net/ip_conntrack? It should
-> be preceded by "EXPECTING:" if it hasn't seen any traffic yet.
+--KMIs29sPfC/9Gbii
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ok, this is very helpful.  I didn't know about that vfile.  There is the line
-I expect there.
+Good news, Everyone! (TM)
 
-EXPECTING: proto=6 src=131.225.80.34 dst=207.252.250.2 sport=0 dport=41209
+The netfilter core team announces a new release of the netfilter
+patch-o-matic suite:
 
-I don't know where to look to find out what proto 6 is, but the rest *seems*
-ok.
+	patch-o-matic-20030107
 
-The src, 131.225.80.34 is the machine I expect to be calling me back.  The
-sport of 0 should be ok because I don't have that byte masked in my call to
-expect_related the dport is correct.
+This release contains the most up-to-date bugfixes and new features for=20
+the netfilter/iptables subsystem of the 2.4.x Linux kernel.
 
-I wasn't sure if the dst should be the NAT node or the private net node, so
-I've tried it both ways:
+The patches are devided into several repositories.  Which ones are to be
+used, depends on how conservative or adventurous the user is ;)
 
-EXPECTING: proto=6 src=131.225.80.34 dst=192.168.1.2 sport=0 dport=41330
+'submitted':
+	Patches which have been submitted for kernel inclusion, most of
+	them have already appeared in 2.4.20.  It's really recommended
+	to always apply those
 
-And neither forwarded the connection.  Judging by the FTP example the dst
-should be the private node, right?
+'pending':
+	Patches currently pending for kernel inclusion.  They will
+	almost certainly appear in the next official kernel release.
 
-And I reconfirmed using tcpdump that the incoming connection is still being
-attempted and is on the correct port.
+'base':
+	New features which are self-contained enough so it's sure they
+	don't clash with each other.  Those are safe in the way that they
+	don't harm already existing functionality.  Playing with them
+	might discover one or the other remaining bug... you've been
+	warned.
 
-rw2
+'extra':
+	New features which might cause other patches from 'extra' to
+	clash with each other.  Most interestingly, you will find here
+	conntrack/nat helpers for H.323, PPTP, talk/ntalk, rsh, tftp,
+	mms and amanda.
+
+
+Read more about the individual patches of this new patch-o-matic release
+at: http://www.netfilter.org/documentation/pomlist/pom-summary.html
+
+The new patch-o-matic release including a cryptographic GPG signature
+is available for download at
+
+	http://www.netfilter.org/downloads.html#pom-20030107
+
+
+Enjoy,
+	Harald (for the netfilter core team)
+
+--=20
+- Harald Welte / laforge@netfilter.org             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--KMIs29sPfC/9Gbii
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+GzTuNfqJzMqajVsRAlEZAKCd5jUcymQKmbiy4yVqBGopkKJ/fwCfQkc9
+Frm8NfPGv4MyOM47cFJbJd0=
+=Kf6n
+-----END PGP SIGNATURE-----
+
+--KMIs29sPfC/9Gbii--
