@@ -1,16 +1,16 @@
 From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
 Subject: Re: problem when loading ip_tables
-Date: Wed, 24 Mar 2004 18:52:36 +0200
+Date: Wed, 24 Mar 2004 19:00:23 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4061BCD4.4090308@netlab.hut.fi>
-References: <4055C7C3.2030003@netlab.hut.fi> <20040317135934.GB21899@sunbeam.de.gnumonks.org> <40616A52.3080704@netlab.hut.fi>
+Message-ID: <4061BEA7.80800@netlab.hut.fi>
+References: <Pine.LNX.4.44.0403241750440.31592-100000@filer.marasystems.com>
 Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: emmanuel@netlab.hut.fi
+To: Henrik Nordstrom <hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,48 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
 
-I can refine my question.
-Of course I cannot insert the module ip_tables in the kernel since... it 
-already is. ip_tables is compiled directly as part of the kernel. That's 
-for the error about insmod, but that was not the core of the problem anyway.
+hi!
 
-After a check, I don't think the problem comes from the aditional code 
-I've written. So I may forget to do something silly but I can't find it.
+Thanks for your suggestion, but I guess it may not be the problem. When 
+I recompiled the kernel, I did it from scratch icluding make dep. So it 
+should be up to date. However how can I ensure it?
+However, looking at modules.dep i noticed that I have a module A that 
+depends on a module B that itself depend on A. Can this interdependance 
+be a problem?
 
-Any help is welcome.
-
-
-          Emmanuel
+        Emmanuel
 
 
 
-Emmanuel Guiton wrote:
+Henrik Nordstrom wrote:
 
-> Hi!
+>On Wed, 24 Mar 2004, Emmanuel Guiton wrote:
 >
-> After having modified a few things in the nat part of the iptables 
-> code, I was sent back to an old problem:
+>  
 >
-> modprobe: Can't locate module ip_tables
-> iptables v1.2.9: can't initialize iptables 'nat': Table does not exist 
-> (do you need to insmod?)
-> Perhaps iptables or your kernel need to be upgraded.
+>>insmod: ip_tables: no module by that name found
+>>
+>>while the module ip_tables.o exists. insmod finds without problem the 
+>>other modules like for example ipt_REDIRECT, ip_conntrack, iptable_nat...
+>>    
+>>
 >
-> I can't remember exactly when did the problem appear, but it may have 
-> been after I had added something in ip_conntrack_standalone.c
-> Anyway, I compiled again, again and again until now when I have a 
-> brand new kernel (2.4.23) and iptables library (1.2.9, patched) 
-> compiled. Still, I cannot get rid of that error. Moreover, if I try 
-> manually to load ip_tables I also get an error
 >
-> insmod: ip_tables: no module by that name found
+>Probably your modules.dep is not up to date.
 >
-> while the module ip_tables.o exists. insmod finds without problem the 
-> other modules like for example ipt_REDIRECT, ip_conntrack, iptable_nat...
->
-> Any advice about that?
->
->         Emmanuel
+>Regards
+>Henrik
+>  
 >
