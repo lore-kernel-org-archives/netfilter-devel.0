@@ -1,47 +1,74 @@
-From: neo neo <neo_1979m@yahoo.com>
-Subject: connlimit patch
-Date: Fri, 12 Sep 2003 05:34:33 -0700 (PDT)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030912123433.97028.qmail@web21602.mail.yahoo.com>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: ipt_physdev.c alignment problems on parisc64
+Date: 12 Sep 2003 08:54:29 -0400
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <1063371268.1031.96.camel@jzny.localdomain>
+References: <200309022116.41697.bdschuym@pandora.be>
+	 <20030903200426.59d0af4a.davem@redhat.com>
+	 <20030905153152.GA3623@obroa-skai.de.gnumonks.org>
+	 <1063330846.1028.11.camel@jzny.localdomain>
+	 <20030912085606.GC2350@obroa-skai.de.gnumonks.org>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-907459921-1063370073=:95574"
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: "David S. Miller" <davem@redhat.com>,
+   Bart De Schuymer <bdschuym@pandora.be>, acme@conectiva.com.br,
+   netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030912085606.GC2350@obroa-skai.de.gnumonks.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
---0-907459921-1063370073=:95574
-Content-Type: text/plain; charset=us-ascii
+On Fri, 2003-09-12 at 04:56, Harald Welte wrote:
+> On Thu, Sep 11, 2003 at 09:40:46PM -0400, jamal wrote:
+> > Harald,
+> > 
+> > Could you not resolve all the ifindices of the said ppp+ interfaces
+> > at rule installation time and do an integer compare instead?
+> 
+> No, this is a different semantic.  Ifindexes change when an interface
+> goes down and comes up again (let's say you have a PPTP tunnel server
+> which terminates a couple of ppp* interfaces).
+> 
 
-hi ,
-       The connlimit patch by Gerd Knorr  uses the fuction ip_conntrack_find_get() defined in ipt_conntrack_core.c. But it seems  ip_conntrack_find_get is not getting exported - I get an 
-   "unrsolved symbol - ip_conntrack_find_get" error when I try to insmod the module ipt_connlimit ( I use redhat linux 8.0).
-       Is there any other way to get the  ipt_conntrack_tuple_hash from the given tuple?
- 
-nneop
- 
+If ifindices change for the same device name then that would be a bug.
+The only time they should change is if a) you reboot or b) you unload a
+module after ifconfiged down the device(s) and then reload it later.
+In both cases if you have exactly the same setup, the chances of those
+ifindices changing are very slim.
 
+> What could be done, is register with the netdev notifiers and then at
+> every ifup/ifdown event change the ifindex[es] in all rules that use 
+> this style of match.
+> 
 
----------------------------------
-Do you Yahoo!?
-Yahoo! SiteBuilder - Free, easy-to-use web site design software
---0-907459921-1063370073=:95574
-Content-Type: text/html; charset=us-ascii
+You may wanna listen to new devices being created and add to the ifindex
+list. 
 
-<DIV>hi ,</DIV>
-<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The connlimit patch by Gerd Knorr&nbsp; uses the fuction ip_conntrack_find_get() defined in ipt_conntrack_core.c. But it seems&nbsp; ip_conntrack_find_get is not getting exported - I get an </DIV>
-<DIV>&nbsp;&nbsp; "unrsolved symbol - ip_conntrack_find_get" error when I try to insmod the module&nbsp;ipt_connlimit ( I use redhat linux 8.0).</DIV>
-<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Is there any other way to get the&nbsp; ipt_conntrack_tuple_hash from the given tuple?</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>nneop</DIV>
-<DIV>&nbsp;</DIV><p><hr SIZE=1>
-Do you Yahoo!?<br>
-<a href="http://us.rd.yahoo.com/evt=10469/*http://sitebuilder.yahoo.com">Yahoo! SiteBuilder</a> - Free, easy-to-use web site design software
---0-907459921-1063370073=:95574--
+> This is what was done in the 2.2 ipchains code, if I am not mistaken.
+> However, Rusty went for the string-compare solution while implementing
+> iptables.  
+> 
+> Imagine somebody with lots of ppp interfaces (let's say 40)... and we
+> would need to resolve all 40 into ifindexes, put them into an array...
+> how big would you like to make the array?  how many interfaces do people
+> have? how much space do you want to waste (dynamically reallocating this
+> space while the ruleset is already loaded is not possible).
+> 
+
+This is a valid reason for the string compare given the way iptables is
+architected.
+
+> And then you have 1000 rules, each of it using a ppp* style match. than
+> at every ifdown/ifup you iterate over 1000 rules, checking if you need
+> to update one of the 40 ifindexes?  quite slow...
+
+you could optimize. There can be only one ppp* list for all rules to
+share and you iterate not the rules rather the table which holds the
+ifindices. Could be 1-2 lookup to find the ifindex if proper hashing is
+used.
+
+cheers,
+jamal
