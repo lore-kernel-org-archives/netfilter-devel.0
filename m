@@ -1,16 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4] netfilter: fix UDP incremental checksumming
-Date: Thu, 2 Oct 2003 23:02:41 -0700
+Subject: Re: [PATCH 2.6] netfilter: fix UDP incremental checksumming
+Date: Thu, 2 Oct 2003 23:03:42 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031002230241.55129f50.davem@redhat.com>
-References: <20031002141509.GZ5758@sunbeam.de.gnumonks.org>
+Message-ID: <20031002230342.369b8fd9.davem@redhat.com>
+References: <20031002142402.GA5758@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031002141509.GZ5758@sunbeam.de.gnumonks.org>
+In-Reply-To: <20031002142402.GA5758@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,10 +21,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2 Oct 2003 16:15:09 +0200
+On Thu, 2 Oct 2003 16:24:02 +0200
 Harald Welte <laforge@netfilter.org> wrote:
 
-> Please apply the following patchto your 2.4 tree and push it to Marcelo.
-> Thanks.
+> Please apply the following patchto your 2.6 tree and push it to Marcelo.
 
-Applied, thanks.
+Applied, but I don't think Marcelo will be able to do much with
+any 2.6.x tree I push him :)
