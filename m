@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: 2 questions about skb->data
-Date: Wed, 2 Oct 2002 15:40:44 +0200
+From: Gonzalo Augusto Arana Tagle <garana@uolsinectis.com.ar>
+Subject: Re: [PATCH] New Target SWITCH
+Date: Wed, 2 Oct 2002 10:56:09 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021002154044.D13233@sunbeam.de.gnumonks.org>
-References: <F106uCumiiq6KcvflGx00006117@hotmail.com>
+Message-ID: <20021002105609.7cc8578c.garana@uolsinectis.com.ar>
+References: <200209241349.g8ODnQI01594@gonzalo.hq.sinectis.com.ar>
+	<20021002153736.B13233@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+KJYzRxRHjYqLGl5"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "hMax Roth" <mroth2002@hotmail.com>
-Content-Disposition: inline
-In-Reply-To: <F106uCumiiq6KcvflGx00006117@hotmail.com>; from mroth2002@hotmail.com on Wed, Sep 25, 2002 at 06:49:02PM +0000
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20021002153736.B13233@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,54 +23,25 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---+KJYzRxRHjYqLGl5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> >   I am developing a new target which should redirect
+> > packets to a given host, no matter what routing table
+> > says.
+> 
+> where is the difference between this and the ROUTE target?
 
-On Wed, Sep 25, 2002 at 06:49:02PM +0000, hMax Roth wrote:
->=20
->=20
-> Hello,
->    Two quick questions:
->       1) Judging by the code it looks like all the skb's are
->       linearized prior to entering the hooks. Is this right?
+As far as I know, the ROUTE target just let you choose an interface,
+not a next-hop.  SWITCH target (probably should be renamed) would let
+you choose a next-hop.
 
-yes, this is true as of now.  This will change in the future.
+> 
+> And even if there is a difference, the functionality seems to be quite
+> similar, doesn't it make sense to implement the two functions in a single
+> target?
 
->       2) Am I free to manipulate the data in the skb? Judging
->       from various web resources, it looks as if the data can
->       either be private or shared.  how do I tell if I can
->       overwrite data in the skb->data pointer safely? Do I need
->       to make my own copy of the skb first?
+mmm.... If I am right about ROUTE target capabilities, this target is
+quite more flexible, right?
 
-you can use constructs like if (skb_is_shared(skb))
+> 
 
-Don't remember if the name really was 'skb_is_shared' but there are
-macros/functions for this kind of stuff.
-
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long =
-as
- I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---+KJYzRxRHjYqLGl5
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9mvdbXaXGVTD0i/8RAoTeAJ9bNT4mLgv1CIwFeFTFYFuRQQudRQCfSkVC
-VK4NNtsNrBVc5fJjaNoZSEI=
-=88oW
------END PGP SIGNATURE-----
-
---+KJYzRxRHjYqLGl5--
+-- 
+Gonzalo A. Arana
