@@ -1,16 +1,16 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Re: [PATCH]: latest netfilter+ipsec patches
-Date: Wed, 10 Mar 2004 13:45:26 +1100
+From: kaups <kaups@linux.ee>
+Subject: netfilter time patch (feature request)/ optimization against big rulesets.
+Date: Wed, 10 Mar 2004 12:41:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040310024526.GF1072@samad.com.au>
-References: <20040128103000.GP11761@sunbeam.de.gnumonks.org> <401D12B6.5030707@trash.net> <40301AB2.2030103@trash.net> <40337D63.6080602@trash.net> <20040218220337.GA3193@alpha.home.local> <40356624.6050209@trash.net> <4047AE0E.1080003@trash.net> <20040304231141.GA1782@alpha.home.local> <20040304234236.GB4995@samad.com.au> <4047DF27.6090904@trash.net>
+Message-ID: <200403101241.48559.kaups@linux.ee>
+Reply-To: kaups@linux.ee
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y1L3PTX8QE8cb2T+"
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <4047DF27.6090904@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,101 +21,85 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi.
 
---Y1L3PTX8QE8cb2T+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+You have a cool netfilter patch in pom, which allows to match packets against 
+time based rules.
 
-Patrick=20
+Right now I'm having a problem with it in big iptables rulesets, for example:
 
-I seem to have found a bug in your patches, but only when used in
-conjuction with Herbert's mangle patch.
+---------------------
+iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-It seems like there is a loop caused when the packet traverses the
-tablesi, in particular ip_route_me_harder.
+[ ... about 10000 different rules ... ]
 
-I tested this on my laptop with debian 2.6.3-2 source with these patches
-that you provided on this thread, as well as the Herbert mangle patch.
+iptables -A INPUT -m time --timestart 8:00 --timestop 18:00 --days Mon -j 
+ACCEPT
+---------------------
 
-It seem like the packet on the way out gets encapsulated and then the
-encrypted packets try to get re encrypted.
+If i use this ruleset allready established connections will continue after 
+18:00. If i set the "iptables -A FORWARD -m state --state ESTABLISHED,RELATED 
+-j ACCEPT" rule after time conditional matches, then bigger traffic will kill 
+slow machines because of many unnecessary checks in a long linear chain.
 
-example ipsec.conf
+Right now I can either use recent lists, or CONNAMRK targets:
 
-conn wireless
-	left=3D10.0.4.129
-	leftsubnet=3D0/0
-	authby=3Dsecret
-	pfs=3Dno
-	auto=3Dadd
-	right=3D%defaultroute
+iptables with recent lists:
 
-By the dump it looks like a loop, I added a printk("%d\n", iph->protocol);=
-=20
-in ip_route_me_harder just before Herberts fix to test that.
+---------------------
+# packets accepted against time condition are also put into recent list
+# and i match only those which are not listed.
+iptables -A FORWARD -m recent \! --rcheck -j -m state --state 
+ESTABLISHED,RELATED -j ACCEPT
 
-When I changed the config to look like this
+[ ... about 10000 different rules ... ]
 
-
-conn wireless
-	left=3D10.0.4.129
-	leftsubnet=3D10.6.0/24
-	authby=3Dsecret
-	pfs=3Dno
-	auto=3Dadd
-	right=3D%defaultroute
-
-It worked fine
+iptables -A INPUT -m time --timestart 8:00 --timestop 18:00 --days Mon -m 
+recent --set -j ACCEPT
+---------------------
 
 
-Any other question ask, I have deb's of the image and headers too if you
-want.
+iptables with CONNMARK:
 
-Alex
+---------------------
+iptables -N TIMEACCEPT
+iptables -A TIMEACCEPT -j MARK --set-mark 5
+iptables -t mangle -A TIMEACCEPT -j CONNMARK --save-mark
+iptables -A TIMEACCEPT -j ACCEPT
+
+iptables -A PREROUTING -t mangle -j CONNMARK --restore-mark
 
 
-On Fri, Mar 05, 2004 at 03:00:07AM +0100, Patrick McHardy wrote:
-> Alexander Samad wrote:
-> >Q do I understand right that encrypted packets can or can't be acted
-> >upon by the hooks in LOCAL_IN.
-> >
-> >Or another way of putting it does a packet travel the tables twice once
-> >as an encrypted packet and once as a de crypted packet ?
->=20
-> Exactly, input looks like this:
->=20
-> (encrypted) PRE_ROUTING -> LOCAL_IN ->
-> (plain) PRE_ROUTING -> LOCAL_IN/FORWARD
->=20
-> output looks like this:
->=20
-> (plain) FORWARD/LOCAL_OUT -> POST_ROUTING ->
-> (encrypted) LOCAL_OUT -> POST_ROUTING
->=20
-> This is the same as with freeswan, only without the ipsec
-> devices, the policy match can be used as a easy replacement
-> for them (-m policy --pol ipsec).
->=20
-> Regards,
-> Patrick
->=20
-> >
-> >Alex
-> >
-> >
+iptables -A FORWARD -m mark \! --mark 5 -m state --state ESTABLISHED,RELATED 
+-j ACCEPT
 
---Y1L3PTX8QE8cb2T+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+[ ... about 10000 different rules ... ]
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+iptables -A INPUT -m time --timestart 8:00 --timestop 18:00 --days Mon -j 
+TIMEACCEPT
+---------------------
 
-iD8DBQFAToFGkZz88chpJ2MRAsRcAJ99GWUvd1Y2Gm10PFDuX3o+11Z8JwCeKtqJ
-A/oVSuOFvoSJJYquHDPUmqM=
-=WNk6
------END PGP SIGNATURE-----
+But both of them are rather hacks, than a correct solutions.
 
---Y1L3PTX8QE8cb2T+--
+Would it be possible to add extention that connections accepted in time 
+conditional rules are valid in ip_conntrack table only to the end of 
+condition? Hypothetical example:
+
+---------------------
+iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+[ ... about 10000 different rules ... ]
+
+iptables -A INPUT -m time --timestart 8:00 --timestop 18:00 --days Mon 
+--with-validlimit -j ACCEPT
+---------------------
+
+For example if the connection arrives/begins at Mon 17:59, that means the 
+entry in ip_conntrack will expire automatically at 18:00.
+
+
+PS Please excuse my bad English.
+
+-- 
+
+Kaupo Arulo
