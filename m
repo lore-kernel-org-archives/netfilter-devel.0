@@ -1,20 +1,13 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] netfilter6: Skip extension headers when matching
- icmp6-type
-Date: Fri, 01 Oct 2004 09:19:46 +0900 (JST)
+From: "David S. Miller" <davem@davemloft.net>
+Subject: iptables as a state machine
+Date: Thu, 30 Sep 2004 19:39:55 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410010019.i910JlZY002193@toshiba.co.jp>
-References: <200409301239.i8UCdACm005816@toshiba.co.jp>
-	<200409301244.i8UCid17009482@toshiba.co.jp>
-	<415C1CC9.2090604@trash.net>
+Message-ID: <20040930193955.6fa24afc.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: okir@suse.de, netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <415C1CC9.2090604@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,23 +19,36 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi,
+So while waiting for a kernel build to finish I was sniffing
+around the iptables code thinking about how one might optimize
+the lookups.
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 30 Sep 2004 16:48:41 +0200
+The ipt targets are simple enough already, and I think this
+shows the elegance of the core iptables design.
 
-> >Sorry, I sent it to only netfilter-devel ml because I wanted someone to test
-> >it more before sending it to netdev ml.
-> >  
-> >
-> 
-> I've reviewed the patch, I think we can push it soon.
-> Did you do any changes besides the u_int8_t fix since
-> the last patch you sent ?
+It's the main ip header + indev + outdev matching that is
+the real memory and cpu cycle killer in these paths.  Once
+we match the target, the verdict is determined quickly.
 
-No.
+This made me think about how in the old days gcc's instruction
+scheduler was computationally complex.  This was fixed by
+representing the processor as a state machine, and this is how
+the gcc insn scheduler works currently.  It's very fast and all
+of the complexity is in building the state machine which is done
+at gcc build time.
 
-Regards,
+I think iptables core IP header + indev + outdev match is a
+state machine problem as well.  Such a state machine can be
+made extremely small memory wise.  The lookup can be something
+like running a berkeley packet filter on the frame.  Except
+that instead of a "yes or no" answer we get a pointer to a
+target.
 
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+I think this would run as efficiently, if not more so, than the
+various B-tree based schemes and it certainly would consume much
+less memory.
+
+The only trick is making the state machine building fast, and
+where to put it (kernel or user space).
+
+Comments?
