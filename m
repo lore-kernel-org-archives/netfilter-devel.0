@@ -1,17 +1,14 @@
-From: Martijn Lievaart <netfilter-devel@rtij.nl>
-Subject: Re: 2.6.6-rc3 - "ip_conntrack_in: Frag of proto 17" (udp) with kNFS
- r/wsize > 8192
-Date: Fri, 07 May 2004 08:33:01 +0200
+From: Robbie Dinn <robbie@microbus.com>
+Subject: bug report/fix for 'proc-no-internal-targets' patch
+Date: Fri, 07 May 2004 10:50:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <409B2D9D.4000101@rtij.nl>
-References: <200405070411.48918.keaafloy@online.no>
+Message-ID: <409B5BF9.5040103@microbus.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "=?ISO-8859-15?Q?Kenneth_Aafl=F8y?=" <keaafloy@online.no>
-In-Reply-To: <200405070411.48918.keaafloy@online.no>
+To: Patrick McHardy <kaber@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,33 +19,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Kenneth Aafl=F8y wrote:
+Hello Patrick,
 
->Hi!
->
->I hope this problem has not been reported before or that I'm not just p=
-icking 
->up on some user-keyboard troubles, I've read over the archives, but cou=
-ld not 
->find anything relevat to this issue.
->
->I've come across some strange behavior with a nfs server running on 2.6=
-.6-rc3 
->today. My clients is also running this version. Basically when I set th=
-e NFS 
->client r/wsize =3D 8192, or remove the connection tracking netfilter mo=
-dules 
->the problem goes away. If I set the r/wsize to 16834 and the conntrack =
-module 
->is loaded I end up in the code segment below. When this happens the NFS=
- 
->client will almost lose connection with the server, and print a lot of;
->NFS server not responding, still trying. NFS server OK.
->  
->
+I would like to report a trivial bug in the proc-no-internal-targets
+patch in patch-o-matic-ng which I recently downloaded from CVS.
 
-I'm seeing this to on a 2.4.22 kernel. I didn't change anything on the 
-r/wsize, so I have the default of 4096, I think. Both have conntrack loa=
-ded.
+I was able to fix it myself.
 
-Martijn Lievaart
+I am working with kernel-2.6.6-rc3-mm2 + patch-o-matic from CVS.
+I believe the 2.4.XX kernel has the same problem.
+
+--- net/ipv4/netfilter/ip_tables.c	2004-05-07 10:40:28.230993459 +0100
++++ net/ipv4/netfilter/ip_tables.c.orig	2004-05-07 10:29:33.812943895 +0100
+@@ -1756,7 +1756,7 @@
+                                 off_t start_offset, char *buffer, int 
+length,
+                                 off_t *pos, unsigned int *count)
+  {
+-	if (t == &ipt_standard_target || t == &ipt_error_target)
++	if (t != &ipt_standard_target && t != &ipt_error_target)
+  		return 0;
+  	return print_name((char *)t, start_offset, buffer, length, pos, count);
+  }
+
+
+with proc-no-internal-targets applied, but without the above diff
+
+   robbie@rjd:~> cat /proc/net/ip_tables_targets
+
+   ERROR
+   robbie@rjd:~>
+
+with proc-no-internal-targets applied, plus the one line fix above
+
+   robbie@rjd:~> cat /proc/net/ip_tables_targets
+   TCPMSS
+   TOS
+   MARK
+   LOG
+   REJECT
+   DNAT
+   SNAT
+   robbie@rjd:~>
+
+Hope that helps.
