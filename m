@@ -1,13 +1,12 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
-Subject: how to create a TCP packet w/data in interrupt context?
-Date: Fri, 25 Mar 2005 09:30:06 -0500
-Message-ID: <876ef97a0503250630514919a8@mail.gmail.com>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+From: Javier Kohen <jkohen@users.sourceforge.net>
+Subject: Cannot apply h323-conntrack-nat
+Date: Thu, 24 Mar 2005 15:22:33 -0500
+Message-ID: <1111695753.32351.34.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: linux-net <linux-net@vger.kernel.org>,
-	nf-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-oMvVNtegn7CQl2av2eWS"
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,23 +18,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
 
-I want to be able to create a TCP packet in an iptables rules, similar
-to what REJECT --reject-with tcp-reset does, but this packet needs
-some data to go in the payload. Is there some iptables rule or kernel
-subsystem that already does this that I could look at for reference?
-Or, does anyone have an idea of how I would go about doing this? I
-already have a n RST that I am creating before this (a la REJECT), so
-I figured I would just skb_copy_expand() that packet and add the
-payload, but I'm not sure which fields in which structures need to be
-updated when I do that.
+--=-oMvVNtegn7CQl2av2eWS
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-I looked at pktgen, but that creates UDP packets. I also looked at the
-TCP stack, but that copies its data from userland and I wasn't sure if
-that series of operations would be the same from an iptables rule in
-interrupt context. Anybody have any ideas on how to do this? Thanks.
+I'm trying to apply the h323-conntrack-nat patch to kernel 2.6.11-ck2
+using pom-ng revision 3805, but it keeps saying: =C2=ABunable to find ladd
+slot in src /tmp/pom-29949/include/linux/netfilter_ipv4/ip_conntrack.h.=C2=
+=BB
+Note that the -ck2 patchset does not modify file ip_conntrack.h.
 
--- 
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+The patch is trivial, so I'll add it manually for now, but it would be
+nice to be able to apply/update it through this interface in the future.
+
+Please add me to the cc, as I'm not subscribed to the list. Sorry for
+the cross-post, but I wasn't sure about which list covers pom-ng/extra.
+
+Thanks,
+--=20
+Javier Kohen <jkohen@users.sourceforge.net>
+ICQ: blashyrkh #2361802
+Jabber: jkohen@jabber.org
+
+--=-oMvVNtegn7CQl2av2eWS
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Esta parte del mensaje =?ISO-8859-1?Q?est=E1?= firmada
+	digitalmente
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQBCQyGJ823633cP2P8RAg23AJ9Q/Be6Ypzlxg5DmdHizgDU1jHLmQCeKb9F
+FTrHaLXv0X7gh0iFH+YaoNE=
+=/abR
+-----END PGP SIGNATURE-----
+
+--=-oMvVNtegn7CQl2av2eWS--
