@@ -1,17 +1,14 @@
-From: Cedric Blancher <blancher@cartel-securite.fr>
-Subject: Re: match limit with inverse [!]
-Date: 23 Nov 2002 18:53:28 +0100
+From: William Stearns <wstearns@pobox.com>
+Subject: Bug with netfilter and NFS server on same machine (fwd)
+Date: Sat, 23 Nov 2002 13:44:45 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1038074008.8074.23.camel@elendil.intranet.cartel-securite.net>
-References: <00ae01c292ed$2c125aa0$2a00a8c0@zorro>
-	 <3DDFC7EC.9A16EB22@wanadoo.fr>
+Message-ID: <Pine.LNX.4.44.0211231342530.3237-100000@sparrow>
+Reply-To: William Stearns <wstearns@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: "Graham- Reg.CA" <graham@reg.ca>, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Lars Knudsen <gandalfit@virgilio.it>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jerome de Vivie <jerome.de-vivie@wanadoo.fr>
-In-Reply-To: <3DDFC7EC.9A16EB22@wanadoo.fr>
+To: ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,27 +19,57 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Le sam 23/11/2002 =E0 19:24, Jerome de Vivie a =E9crit :
-> Your out of luck. The patch hasn't been applied because it a kernel
-> header and could disturb older versions of netfilter. The patch is unde=
-r
-> http://perso.wanadoo.fr/jerome.de-vivie/ipt/
+Good day, Lars,
+	Whether or not the netfilter list was able to find an answer, it 
+might still make sense to CC that list.
+	Cheers,
+	- Bill
 
-However, we can emulate limit inverse with a user chain. Suppose you
-want to log and drop ICMPs that are over the 1/S limit :
+---------------------------------------------------------------------------
+        > It just DOES NOT BELONG in to the kernel-space.
+        "People who start using capital letters always seem to have
+emotional rather than logical reasons for their argument."
+        -- Alan Cox <alan@lxorguk.ukuu.org.uk>
+--------------------------------------------------------------------------
+William Stearns (wstearns@pobox.com).  Mason, Buildkernel, named2hosts, 
+and ipfwadm2ipchains are at:                        http://www.stearns.org
+--------------------------------------------------------------------------
 
-	iptables -N inv_limit
-	iptables -A FORWARD -p icmp -j inv_limit
-	iptables -A inv_limit -m limit --limit 1/s -j RETURN \
-		--log-prefix "Over limit ICMP "
-	iptables -A inv_limit -j LOG
-	iptables -A inv_limit -j DROP
-	[...]
 
-That's only a workaround...
+---------- Forwarded message ----------
+Date: Sat, 23 Nov 2002 19:37:34 +0100
+From: Lars Knudsen <gandalfit@virgilio.it>
+To: linux-kernel@vger.kernel.org
+Subject: Bug with netfilter and NFS server on same machine
 
---=20
-C=E9dric Blancher  <blancher@cartel-securite.fr>
-IT systems and networks security expert  - Cartel S=E9curit=E9
-Phone : +33 (0)1 44 06 97 87 - Fax: +33 (0)1 44 06 97 99
-PGP KeyID:157E98EE  FingerPrint:FA62226DA9E72FA8AECAA240008B480E157E98EE
+I have been experiencing problems running a nfs server and iptables on 
+the same machine.The problem was also reported almost a year ago by Paul 
+Raines on the netfilter mailing list 
+http://lists.netfilter.org/pipermail/netfilter/2002-January/030002.html 
+but it seems no solution has been found yet.
+
+The problem is this: A machine running linux 2.4.18 or 2.4.19 works just 
+fine when running just the kernel nfsd. A single client connected to the 
+server with 100Mbit ethernet sees throughput of 5-10MByte/sec even after 
+an hour or two of continous transfers. If the nfs server is also running 
+iptables the throughput is initially the same (5-10MByte/sec) but after 
+a while (200MByte-500MByte total transfer) the client starts reporting 
+"nfs server not responding" followed after a while by "nfs server OK" 
+and of course the transfer rate goes way down (< 1MByte/sec). Using 
+tcpdump on the client seems to indicate that some packets have their 
+headers garbled - wrong fragment ids being the typical error.
+
+Having iptables compiled as modules and simply loading or unloading the 
+ipt_conntrack module is
+sufficient for causing/removing the problem. Having iptables support 
+compiled into the kernel causes the problem allways.
+
+The problem has been verified on 4 different machines with a variety of 
+different ethernet cards. In
+all cases the network continues to work without problems for all other 
+types of traffic - i.e a telnet connection from client to server works 
+with no delay and a ftp transfer goes at >5MByte/sec even when nfs 
+throughput is suffering.
+
+\Lars Knudsen
+
