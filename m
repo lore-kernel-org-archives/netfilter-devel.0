@@ -1,36 +1,51 @@
-From: Anders Fugmann <afu@fugmann.net>
-Subject: Re: v2.6.8.1 breaks tspc
-Date: Mon, 23 Aug 2004 12:48:02 +0000
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <4129E782.3040409@fugmann.net>
-References: <200408212303.05143.mail@earthworm.de> <200408221506.07883.mail@earthworm.de> <200408221743.22561.vda@port.imtp.ilyichevsk.odessa.ua> <200408221826.41842.mail@earthworm.de>
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: Re: Any way of knowing a packet's been defragmented
+Date: Mon, 23 Aug 2004 10:11:46 -0700
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040823101146.4597eb53@dell_ss3.pdx.osdl.net>
+References: <W5101410375481091705422@asteria.telenet-ops.be>
+	<Pine.LNX.4.61.0408051507530.405@filer.marasystems.com>
+	<20040819114604.GQ3921@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>,
-	linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S263772AbUHWMsN@vger.kernel.org>
-To: Christian Hesse <mail@earthworm.de>
-In-Reply-To: <200408221826.41842.mail@earthworm.de>
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+   Bart De Schuymer
+ <bdschuym@pandora.be>,
+   netfilter-devel
+ <netfilter-devel@lists.netfilter.org>,
+   bridge <bridge@osdl.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040819114604.GQ3921@sunbeam.de.gnumonks.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Christian Hesse wrote:
-> On Sunday 22 August 2004 16:43, Denis Vlasenko wrote:
-> 
->>Please try whether it works whan you do
->>"echo 0 > /proc/sys/net/ipv4/tcp_window_scaling"
-> 
-> 
-> That helps. Thanks so far.
-Any explanation of why this solution works?
+On Thu, 19 Aug 2004 13:46:04 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
-I hate to blindly just disable window_scaling, just to make tspc work on 
-2.6.8.1.
+> On Thu, Aug 05, 2004 at 03:10:42PM +0200, Henrik Nordstrom wrote:
+> > On Thu, 5 Aug 2004 bdschuym@pandora.be wrote:
+> > 
+> > >As Stephen explained, bridge ports of the same bridge device no longer 
+> > >need to have the same mtu. So the bridge code needs to drop packets 
+> > >(ARP, IP, whatever) that will be too long for the output port.
+> > 
+> > Eh.. I do not claim to be a bridge guru, but won't such bridge cause 
+> > serious havoc on the network much like PMTU blackholes does?
+> 
+> Nobody ever replied to that question.
+> 
+> Bart, Stephen, what is your take on this?   How was this resolved?
 
-Is this a bug in the tscp program, netfilter or the tcp stack (or none 
-of the mentioned)? One easy conclution is that some change were made 
-between 2.6.7 and 2.6.8.1 which made tspc break - The question is which 
-change and what other effect this change has.
-
-Regards
-Anders Fugmann
+Yes, it would create PMTU black holes, so it shouldn't be recommended
+but it is allowed by the standard and might be useful in some specialized
+environments. In other words, I can't think why anyone would want to do
+it but maybe they will so why stop them?
