@@ -1,66 +1,37 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Problem using fwmarks as routing key: "MASQUERADE: Route sent us somewhere else."
-Date: Tue, 27 Jan 2004 02:51:52 +0100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040127015152.GP19250@sunbeam.de.gnumonks.org>
-References: <001c01c3e043$93583cd0$1684188d@Kiste>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: MAX_PORTS for ftp modules
+Date: Tue, 27 Jan 2004 10:40:31 +0100 (CET)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.44.0401271038080.15264-100000@filer.marasystems.com>
+References: <20040126211441.GA10833@66.27.62.2>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FcSpk3Icpd/Pbul4"
-Cc: netfilter@lists.netfilter.org, netdev@oss.sgi.com,
-        Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Thhoep <thhoep@gmx.de>
-Content-Disposition: inline
-In-Reply-To: <001c01c3e043$93583cd0$1684188d@Kiste>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Nick Pasich <newsletters@NickAndBarb.net>
+In-Reply-To: <20040126211441.GA10833@66.27.62.2>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 26 Jan 2004, Nick Pasich wrote:
 
---FcSpk3Icpd/Pbul4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> I've exhausted the MAX_PORTS limit of 8 for ftp using my own port id.
+> 
+> I'm wondering if there are any repercussions in upping the limit to say,
+> 16 in the following modules.
 
-On Wed, Jan 21, 2004 at 06:25:22PM +0100, Thhoep wrote:
-> hi,
->=20
-> my aim: to divide 100 hosts upon 6 masqueraded adsl connections to the
-> internet using a linux router runnig a debian woody.
->=20
-> the problem: really strange behaviour of the routing/masquerading combo,
-> that changes with every tried kernel version. (described below)
->=20
-> presumption: some version mismatch or a bug in the kernel routing code,
-> which needs a bugfix that till now is unknown to me
+None I know of. But you should be careful to not register any ports wich 
+is ever used for non-FTP traffic.
 
-Please read the recent archives of the netdev list with regard to
-"Rusty's brain broke".  Also see=20
-https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=3D144
+Note: TFTP is not the same as FTP, and ipfwadm is only relevant if your 
+are using ipfwadm and is not related to your question.
 
-Alexey heavily argued against us reverting that change, however :(
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---FcSpk3Icpd/Pbul4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFAFcQ4XaXGVTD0i/8RAsKqAJ0Q9QW37doao1sqR2PoEhUH+fVqyQCgp0vM
-jwRf5NBu0ZGXvns9H02A6f4=
-=/1Gy
------END PGP SIGNATURE-----
-
---FcSpk3Icpd/Pbul4--
+Regards
+Henrik
