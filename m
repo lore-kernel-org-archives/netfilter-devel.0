@@ -1,16 +1,12 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: target for modifying conntrack timeout value
-Date: Wed, 1 Dec 2004 09:54:48 +0100
-Message-ID: <20041201085448.GE4605@oknodo.bof.de>
-References: <20041201070025.GD4605@oknodo.bof.de>
-	<EINSTEINLR95CBUzN8I000063f8@einstein.systemmetrics.com>
+From: Ludwig Nussel <ludwig.nussel@suse.de>
+Subject: TCP window tracking has bad side effects
+Date: Wed, 1 Dec 2004 12:02:55 +0100
+Message-ID: <20041201110253.GA9536@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard <richard@o-matrix.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <EINSTEINLR95CBUzN8I000063f8@einstein.systemmetrics.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,34 +18,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Richard,
+Hi,
 
-> I am thinking to use "ip_ct_refresh" to change the current value of
-> conntrack. If it is feasible, the module shouldn't be too hard to write.
+Recent state matching code apparently added some kind of TCP window
+tracking which marks out of sequence packets as INVALID.
 
-conntrack timeouts are set anew for each packet of the connection,
-on input, as far as I can tell. Your calling ip_ct_refresh will at
-most apply until the next packet of the connection comes by.
+Previously one could use some minimal filter rules like this on a
+client machine:
 
-> My specific application is for SIP. SIP sends out REGISTER messages to the
-> outside server. The server would send any call to the inside client via its
-> NAT address. If the conntrack is no longer there, the inside client can't
-> receive any SIP message and won't get any call. It needs to keep the
-> conntrack active far larger than the 3 minutes default.
+iptables -F 
+iptables -X 
+iptables -P INPUT DROP 
+iptables -P FORWARD DROP 
+iptables -P OUTPUT ACCEPT 
+iptables -A INPUT -j ACCEPT -i lo 
+iptables -A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED 
 
-Ah. So you would want packet from client->server extend the timeout
-to say six hours, so that the eventual incoming call signalling
-server->client finds its way to the (hopefully not shut down or
-rebooted) SIP end device behind the NAT box.
 
-That should indeed work by calling ip_ct_refresh (ip_ct_refresh_acct
-in 2.6, it seems) in e.g. filter, matching --dport 5060. Just make
-sure you do it in front of any '-m state --state ESTABLISHED -j ACCEPT'
-rules.
+With TCP window tracking those rules no longer work for services
+that use fixed ports (e.g. NFS) and one side crashes or terminates
+the connection in other ways without notifying the peer (e.g. link
+down). When the crashed machine comes up again and tries to
+reestablish the connection it sends a SYN. The remote end finds that
+confusing and replies with an ACK as probe. Since that ACK does not
+fit any window it's discarded as INVALID. The remote side can now
+sit there forever sending ACKs and no new connection can be
+established. Previously, without window tracking, the ACK was
+accepted and answered with RST, the remote closed the connection and
+a new one could be established. 
 
-Go ahead, write such a target.
+Is there a way to disable the window tracking and revert to the old
+behavior?
 
-best regards
-  Patrick
+cu
+Ludwig
 
-(btw, could you please not top-post?)
+-- 
+ (o_   Ludwig Nussel
+ //\   SUSE LINUX AG, Development
+ V_/_  http://www.suse.de/
