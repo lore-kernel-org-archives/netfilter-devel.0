@@ -1,13 +1,15 @@
-From: Michael Rash <mbr@cipherdyne.com>
-Subject: [PATCH] snort hex strings and libipt_string.c
-Date: Mon, 17 Feb 2003 20:49:25 -0500
+From: "Andrew Hall" <andrew.hall@bluereef.com.au>
+Subject: Bug in patch-o-matic-20030107 with tcp-window-tracking patch?
+Date: Tue, 18 Feb 2003 16:20:01 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030217204925.A2911@orthanc.gambrl01.md.comcast.net>
+Message-ID: <004b01c2d70d$63000e90$2601010a@bluereef.local>
+References: <003901c2d0b3$f9fce8a0$2601010a@bluereef.local> <20030217085815.GG7631@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="r5Pyd7+fXNt84Ff3"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,95 +20,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I have been trying to apply the tcp-window-tracking patch to 2.2.20 from the
+20030107 POM. It fails with no error but only that it didn't successfully
+apply the patch.
 
---r5Pyd7+fXNt84Ff3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-The attached patch adds an option "--hex-string" to the string match
-module to allow snort-style hex strings to be specified on the
-command line.  This is useful because there are many signatures that
-consist of non-printable characters and without this patch there is
-no way to easily tell iptables to search for them.
-
-E.x:
-
-iptables -I INPUT 1 -p udp --dport 53 -m string --hex-string
-"31 c0 b0 02 cd 80 85 c0 75 4c eb 4c 5e b0" -j LOG --log-prefix
-"DNS EXPLOIT x86 linux overflow attempt "
-
-(This is my first patch to iptables so let me know if I need to do
-anything differently).
+When I manually apply the patch to the kernel including the makefile changes
+it fails to compile with the errors below. The objects should be defined as
+I placed the changes from tcp-window-tracking.makefile into
+linux/net/ipv4/netfilter/Makefile. This should be all that is required? The
+tcp-windows-tracking module isn't broken is it?
 
 Thanks,
 
---Mike
+Andrew.
 
-Michael Rash
-http://www.cipherdyne.com
-Key fingerprint = 4EE3 816C 413A 41AA 72C8  4463 70C3 783C 1B91 F85E
-
---r5Pyd7+fXNt84Ff3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="libipt_string.c.patch"
-
---- iptables-1.2.7a/extensions/libipt_string.c.old	Wed May 29 09:08:16 2002
-+++ iptables-1.2.7a/extensions/libipt_string.c		Sun Feb 16 22:52:16 2003
-@@ -31,6 +31,7 @@
- 
- static struct option opts[] = {
- 	{ "string", 1, 0, '1' },
-+	{ "hex-string", 1, 0, '2' },
- 	{0}
- };
- 
-@@ -48,6 +49,31 @@
- 	else exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
- }
- 
-+static void
-+parse_hex_string(const unsigned char *s, struct ipt_string_info *info)
-+{
-+    int slen, schar, sindex=0, i;
-+    char hextmp[3];
-+    slen = strlen(s);
-+    if(slen <= 3*(BM_MAX_NLEN)) { /* hex input like "71 61 7a" */
-+        for (i=0; i<slen; i+=3) {
-+            hextmp[0] = s[i];
-+            hextmp[1] = s[i+1];
-+            if (s[i+2] == ' ' || s[i+2] == '\0') {
-+                hextmp[2] = '\0';
-+                if (! sscanf(hextmp, "%x", &schar))
-+                    exit_error(PARAMETER_PROBLEM, "Invalid hex char `%c'", s[i]);
-+                info->string[sindex] = (char) schar;
-+                sindex++;
-+            } else {
-+                exit_error(PARAMETER_PROBLEM, "Enter hex chars separated by spaces");
-+            }
-+        }
-+    } else {
-+        exit_error(PARAMETER_PROBLEM, "HEX STRING too long `%s'", s);
-+    }
-+}
-+
- /* Function which parses command options; returns true if it
-    ate an option */
- static int
-@@ -67,7 +93,14 @@
-                 stringinfo->len=strlen((char *)&stringinfo->string);
- 		*flags = 1;
- 		break;
--
-+    case '2':
-+        check_inverse(optarg, &invert, &optind, 0);
-+        parse_hex_string(argv[optind-1], stringinfo);
-+        if (invert)
-+            stringinfo->invert = 1;
-+        stringinfo->len=strlen((char *)&stringinfo->string);
-+        *flags = 1;
-+        break;
- 	default:
- 		return 0;
- 	}
-
---r5Pyd7+fXNt84Ff3--
+gcc -D__KERNEL__ -I/iso/2.4.20/linux-2.4.20/include -Wall -Wstrict-prototype
+s -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -
+pipe -mpreferred-stack-boundary=2 -march=i686   -nostdinc -iwithprefix
+include -DKBUILD_BASENAME=ip_conntrack_proto_tcp  -c -o
+ip_conntrack_proto_tcp.o ip_conntrack_proto_tcp.c
+ip_conntrack_proto_tcp.c:715: parse error before
+"this_object_must_be_defined_as_export_objs_in_the_Makefile"
+ip_conntrack_proto_tcp.c:715: warning: type defaults to `int' in declaration
+of `this_object_must_be_defined_as_export_objs_in_the_Makefile'
+ip_conntrack_proto_tcp.c:715: warning: data definition has no type or
+storage class
+make[3]: *** [ip_conntrack_proto_tcp.o] Error 1
+make[3]: Leaving directory `/iso/2.4.20/linux-2.4.20/net/ipv4/netfilter'
+make[2]: *** [first_rule] Error 2
+make[2]: Leaving directory `/iso/2.4.20/linux-2.4.20/net/ipv4/netfilter'
+make[1]: *** [_subdir_ipv4/netfilter] Error 2
+make[1]: Leaving directory `/iso/2.4.20/linux-2.4.20/net'
+make: *** [_dir_net] Error 2
