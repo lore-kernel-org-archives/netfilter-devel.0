@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: How to debug netfilter loadded module?
-Date: Wed, 11 Jun 2003 14:00:06 +0200
+Subject: Re: local NAT
+Date: Wed, 11 Jun 2003 14:06:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030611120006.GH32593@sunbeam.de.gnumonks.org>
-References: <005801c32c01$6b7ba2c0$6f01a8c0@li>
+Message-ID: <20030611120649.GK32593@sunbeam.de.gnumonks.org>
+References: <20030607215013.4F9B8444E8@service.i-think-future.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FEz7ebHBGB6b2e8X"
+	protocol="application/pgp-signature"; boundary="rCwQ2Y43eQY6RBgR"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: yong <sdssly@sina.com>
+To: Nils Radtke <Nils.Radtke@Think-Future.de>
 Content-Disposition: inline
-In-Reply-To: <005801c32c01$6b7ba2c0$6f01a8c0@li>
+In-Reply-To: <20030607215013.4F9B8444E8@service.i-think-future.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,24 +23,20 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---FEz7ebHBGB6b2e8X
+--rCwQ2Y43eQY6RBgR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jun 06, 2003 at 03:58:29PM +0800, yong wrote:
-> Hello All,
->=20
-> Thank you for your help. I can insmod the netfilter module example and
-> get the printk message now. I want to debug the module example, can I
-> use dbg tool?
+On Sat, Jun 07, 2003 at 11:50:04PM +0200, Nils Radtke wrote:
+>   Question:
+>   Is there code around implementing the feature of SNATting incoming
+>   packets for local processes?
 
-please try to read some general information on linux kernel programming.
-There are some tutorials / HOWTOS and even a couple of books on that
-subject.
+not that I am aware of.  And I can still not imagine a setup where this
+would make any sense.  Please enlighten me.
 
-> Thanks again!
-> Yong
+>       Nils Radtke
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -52,16 +48,16 @@ subject.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---FEz7ebHBGB6b2e8X
+--rCwQ2Y43eQY6RBgR
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+5xnGXaXGVTD0i/8RAo/aAJ9Qw2nCyZiRmO4OIFvOPGPZd9FoPQCeI2GU
-d3iLLnStxkPYjqSkJ7L9WAY=
-=4HTK
+iD8DBQE+5xtZXaXGVTD0i/8RArosAJwJ++6OxgJ2GK+b+DFHb8LAqWFzCwCfdsjv
+TutJAEi7ULU7I3A5ANJQtyg=
+=P0QC
 -----END PGP SIGNATURE-----
 
---FEz7ebHBGB6b2e8X--
+--rCwQ2Y43eQY6RBgR--
