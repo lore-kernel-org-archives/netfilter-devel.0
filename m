@@ -1,55 +1,40 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: H.323 progress.
-Date: Tue, 18 May 2004 10:54:44 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405181044330.32272-100000@blackhole.kfki.hu>
-References: <40A9431D.8020404@sauce.co.nz>
+From: linux lover <linux_lover2004@yahoo.com>
+Subject: how ip header added in ip_bulid_xmit function?
+Date: Mon, 17 May 2004 23:31:06 -0700 (PDT)
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20040518063106.85290.qmail@web90102.mail.scd.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Richard Scobie <richard@sauce.co.nz>
-In-Reply-To: <40A9431D.8020404@sauce.co.nz>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev <netdev@oss.sgi.com>,
+	netfilter <netfilter-devel@lists.netfilter.org>
+Return-path: <linux-net-owner@vger.kernel.org>
+To: linuxnet <linux-net@vger.kernel.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 18 May 2004, Richard Scobie wrote:
+hello ,
+   In ip_output.c file there is ip_build_xmit function
+call. when packet comes from tcp layer to IP layer
+this function is called. In that i found that 
+   skb = sock_alloc_send_skb(sk, length+hh_len+15
+,flags&MSG_DONTWAIT, &err);
+staement allocates skb for packet. after that i found
+that no iphdr adding statement in ip_build_xmit. i
+want to know where is iphdr push to skb? cause skb
+works using first alloc_skb to allocate memory then
+skb_reserve to reserve headroom then put data in skb
+by skb_put or skb_push for pushing headers in skb. so
+there i found       
+  skb->nh.iph = iph = (struct iphdr *)skb_put(skb,
+length); 
+statement is this does that iphdr adding?
 
-> I have a FreeSwan IPsec VPN between 2 iptables NAT boxes.
->
-> With H.323 videoconferencing equipment from both Via Video and Tandberg,
-> I have been unable to get complete connection between both ends through
-> the VPN - 90+ % of the time, video connects both ways and audio only one.
->
-> The same setup using 2.2 kernels and ipchains works fine every time.
->
-> After finding some information in the list archives, I was just wanting
-> to confirm that the problem I am seeing is due to the current H.323
-> helper modules and also whether these modules are currently being
-> actively developed?
+regards,
+linuxlover
 
-I abandoned the H.323 helper modules because in the present form they work
-only in the most simple cases and the modules cannot be improved without
-really implementing a H.323 parser. That, however, would require too much
-time from me, dedicated to this single task.
 
-If you have got such equipments as Via Video and Tandberg, better set up a
-H.323 gatekeeper in proxy mode and configure the firewall to allow the
-traffic to/from the gatekeeper in the port range you specified. Such
-setups work fine and reliably. (However, it seems some Microsoft
-netmeeting versions don't obey to communicate fully trough the proxy.)
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+	
+		
+__________________________________
+Do you Yahoo!?
+SBC Yahoo! - Internet access at a great low price.
+http://promo.yahoo.com/sbc/
