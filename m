@@ -1,20 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] info file for ROUTE target
-Date: Tue, 14 Dec 2004 03:47:00 +0100
-Message-ID: <41BE5424.40001@trash.net>
-References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
-	<20041209195706.GA4121@oknodo.bof.de> <41B8EB72.50502@trash.net>
-	<1102669404.11255.29.camel@descartes.info.ucl.ac.be>
-	<20041210091445.GC4121@oknodo.bof.de>
+From: Kevin McConnell <kevymac@yahoo.com>
+Subject: Re: ip_nat|conntrack_h323.c on 2.6
+Date: Mon, 13 Dec 2004 20:48:23 -0800 (PST)
+Message-ID: <20041214044823.48201.qmail@web50502.mail.yahoo.com>
+References: <20041209193823.GA6216@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@lists.netfilter.org"
-	<netfilter-devel@lists.netfilter.org>,
-	Cedric de Launois <delaunois@info.ucl.ac.be>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20041210091445.GC4121@oknodo.bof.de>
+To: Max Kellermann <max@duempel.org>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <20041209193823.GA6216@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,35 +19,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick Schaaf wrote:
 
->>My fear is that you could still have something like this :
->>
->>          PC1                                    PC2
->>
->>      orig packet     
->>           |
->>           v                  dup pkt 1
->>   [ROUTE --tee --gw PC2] -------------------------.
->>         | |   ^                                   |
->>         | |   |                                   v
->>         | |   '-----dup pkt 2 ---------- [ROUTE --tee --gw PC1]
->>         | |                                      | |
->>         v v                                      v v
->> Flood of duplicated packets            Flood of duplicated packets
->>
->
->This is easily possible. There are lots of other failure scenarios.
->
->For example, when the chosen --gw resolves through our defaul route,
->chances are good all duplicate packets will come back to us almost
->immediately. We saw this in our testing, already. TTL should always
->be properly decremented, so this is a bit self-limiting, but
->nevertheless it's certainly a dangerous thing.
->
-Seems ok to me, you can also add a route via loopback, it will loop until
-the ttl expires. Fact is you can shoot yourself in the foot with some
-setups. I've added your patch except the file iptables/extensions/xxx :)
+--- Max Kellermann <max@duempel.org> wrote:
 
-Regards
-Patrick
+> Hi,
+> 
+> is there already a 2.6 port of the h323 conntrack
+> helper? pom-ng has
+> only an implementation for 2.4, and the info file
+> says it requires
+> linux < 2.6. If there is no port, I will do it.
+
+I believe there is not a 2.6 port of the h323
+conntrack helper at this time, as it's been asked on
+this list several dozen times at least. The general
+reply I've seen is that it was a pretty ugly hack to
+get it working and that it needed to be completely
+rewritten, and will ultimately be replaced by more up
+to date transports. I'd say, since nobody replied to
+it, that if you'd like to undertake porting it, that
+many people on this list (including myself) would be
+pretty greatful if you got working.
+
+> Max
+
+TIA ;)
+Kevin
+
+=====
+Kevin C. McConnell --RHCE # 805299480800193 since July 2, 1999-- <Red Hat Certified Engineer>
+Freedom in software, now freedom in life.
+http://www.freestateproject.org/
+
+
+		
+__________________________________ 
+Do you Yahoo!? 
+Jazz up your holiday email with celebrity designs. Learn more. 
+http://celebrity.mail.yahoo.com
