@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Steve Hill <steve@navaho.co.uk>
 Subject: Re: memory leak related to bridging, conntrack and frags in 2.6.0
-Date: Fri, 12 Dec 2003 16:55:43 +0100
+Date: Fri, 12 Dec 2003 16:11:38 +0000 (GMT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031212155543.GD14920@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.58.0312121001360.14007@picea.navaho>
+Message-ID: <Pine.LNX.4.44.0312121606000.8670-100000@sorbus2.navaho>
+References: <20031212155543.GD14920@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pAwQNkOnpTn9IO2O"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Andy Loukes <andy@navaho.co.uk>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andy Loukes <andy@navaho.co.uk>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0312121001360.14007@picea.navaho>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031212155543.GD14920@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,71 +20,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 12 Dec 2003, Harald Welte wrote:
 
---pAwQNkOnpTn9IO2O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> are you sure it's a memory leak?  Please explain why.  Which number in
+> /proc/slabinfo are you looking at?  And did you confirm that this is not
+> just some cache that expires after some time?
 
-On Fri, Dec 12, 2003 at 10:10:33AM +0000, Andy Loukes wrote:
-> 2.6.0-test11-bk8
-> eepro100 driver
->=20
-> I'm getting a major memory leak across a bridge. It goes away if I remove=
-=20
-> the conntrack module or I use packets < MTU.
+I am looking into this too - size-64 is increasing (and keeps increasing 
+until the box dies after it's filled all 128MB of RAM).
 
-are you sure it's a memory leak?  Please explain why.  Which number in
-/proc/slabinfo are you looking at?  And did you confirm that this is not
-just some cache that expires after some time?
+The memory that is leaking seems to be allocated on line 299 on 
+net/bridge/br_netfilter.c:
+  
+        if ((nf_bridge = nf_bridge_alloc(skb)) == NULL)
+                return NF_DROP;
+  
+Only the first fragment gets freed later on, all the other fragments seem 
+to get leaked during defragmentation.  (I'm not an expert on netfilter, 
+but I presume that the defrag routines defragment the packet and puts it 
+in the first skb, leaving the skbs for the other packets needing to be 
+freed?)
 
-> With this:
-> ttcp -tus 172.16.0.12 -n 25000 -b 5000
-> (25000 x 5000 byte udp packets)
->=20
-> I see size-64 in slabinfo go up by 8472kB
+-- 
 
-I don't see where connection tracking allocates size-64 items.
-Connection tracking creates it's own slab cache (called ip_conntrack).
-And that one will certainly grow.
+- Steve Hill
+Senior Software Developer                        Email: steve@navaho.co.uk
+Navaho Technologies Ltd.                           Tel: +44-870-7034015
 
-It also cannot be the fragment cache.  At least AFAIK it doesn't
-allocate any additional per-packet data structures apart from the skb...
-and that one is again not size-64.
-
-> Some colleagues and I are trying to figure out where the problem is but I=
-=20
-> thought I'd post to see if anyone has any debugging tips (we are just=20
-> starting to get our heads round NF!) or whether this is a known problem.
->=20
-> regds,
->=20
-> --=20
-> Andy Loukes
-> http://www.navaho.co.uk						Complete Appliance Technology
->=20
->=20
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---pAwQNkOnpTn9IO2O
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/2eT/XaXGVTD0i/8RAttaAJ90eARZ3p+nKcoAgwobYr6VJdnZmgCgju4Q
-DqmLyhcVlwJVkc3G+Ute8+A=
-=1jC/
------END PGP SIGNATURE-----
-
---pAwQNkOnpTn9IO2O--
+        ... Alcohol and calculus don't mix - Don't drink and derive! ...
