@@ -1,20 +1,18 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
+From: Rusty Russell <rusty@rustcorp.com.au>
 Subject: Re: PATCH: extra conntrack stats
-Date: 01 May 2003 01:05:03 +0200
+Date: Thu, 01 May 2003 10:06:05 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1051743903.8213.188.camel@tux.rsn.bth.se>
+Message-ID: <20030501015802.2CB152C2D9@lists.samba.org>
 References: <Pine.LNX.4.33.0304301227530.3328-100000@blackhole.kfki.hu>
-	 <1051701556.8213.125.camel@tux.rsn.bth.se>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 Cc: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
 	Harald Welte <laforge@netfilter.org>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+	Martin Josefsson <gandalf@wlug.westbo.se>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <1051701556.8213.125.camel@tux.rsn.bth.se>
+In-reply-to: Your message of "Wed, 30 Apr 2003 12:49:11 +0200."
+             <Pine.LNX.4.33.0304301227530.3328-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,43 +23,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2003-04-30 at 13:19, Martin Josefsson wrote:
+In message <Pine.LNX.4.33.0304301227530.3328-100000@blackhole.kfki.hu> you write:
+> As usual, it's Rusty's locking patch what triggered me to think over the
+> locking issues. In that patch Rusty actually eliminates ip_conntrack
+> lock:
 
-> > I think that eliminating ip_conntrack lock might uncover a (potential)
-> > bottleneck: the tcp_lock, the lock in conntrack for the predominant
-> > protocol of the Internet.
+Ah, but I think I might have a better trick.  Patrick cc'd since he's
+the hashing man.
+
+Can we compromise the hash so that every packet hashes to the same
+chain as its reply?
+
+If we can do this without making our hash really suck, we only need one
+entry per conntrack (and we then compare both ways).  This means a
+smaller table, and hence better cache utilization, as well as simpler
+locking.
+
+Thoughts?
+
+> I think that eliminating ip_conntrack lock might uncover a (potential)
+> bottleneck: the tcp_lock, the lock in conntrack for the predominant
+> protocol of the Internet.
 > 
-> Yes that will be a problem.
-> 
-> > By adding a data lock to the conntrack entries can solve that
-> > (potential) problem. The data lock would make unnecessary the per
-> > conntrack helper locks too (unfortunately the buffers introduced in the
-> > zerocopy patch undo that).
-> 
-> A per conntrack lock is probably the best for solving that bottleneck.
+> By adding a data lock to the conntrack entries can solve that
+> (potential) problem. The data lock would make unnecessary the per
+> conntrack helper locks too (unfortunately the buffers introduced in the
+> zerocopy patch undo that).
 
-If we have per bucket spinlocks we don't have to have a tcp_lock if I
-rememberthe code correctly.
-If we go RCU we might need the per conntrack lock.
+Yeah, per-entry locks make sense I think.  I can change the helpers to
+do an skb_copy (suggested by Alexey) which will be lockless, or just
+implement the damn non-linear search.
 
-> I'll write up a small list of things I think we should fix in conntrack.
-
-- Switch to using hlists for the hashtable
-- Rearrange struct ip_conntrack to be more cachefriendly if possible
-- Add prefetching in list-searching
-- Turn protocol_list into an array
-- Switch to a better hashfunction
-- Remove pointless timer-updating
-- Rework locking to be finer grained, start with per bucket spinlocks
-  (goal: RCU?)
-- Remove tcp_lock if using per bucket spinlocks, otherwise move it into
-  the entries
-- Remove pointless rehashing of tuples
-- Rework overload support (early_drop)
-- Avoid as many memory-writes as possible, no need to dirty cachelines if
-  we don't have to
-- Eliminate listhelp.h and lockhelp.h by request from hch
-- Try to shrink struct ip_conntrack
-
--- 
-/Martin
+Cheers,
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
