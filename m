@@ -1,13 +1,11 @@
-From: Raivis Bucis <raivis@mt.lv>
-Subject: Transparent web proxiing stops working in linux-2.4.22
-Date: Tue, 2 Sep 2003 09:38:56 +0000
+From: Kovacs Krisztian <piglet@sch.bme.hu>
+Subject: Function pointers in conntrack structures
+Date: Tue, 2 Sep 2003 15:16:16 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200309020938.56412.raivis@mt.lv>
+Message-ID: <20030902131616.GA3235@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, cieciwa@alpha.zarz.agh.edu.pl
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -21,28 +19,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Transparent web proxiing stops working in linux-2.4.22 because of the 
-following patch:
 
-@@ -1446,8 +1446,8 @@
- getorigdst(struct sock *sk, int optval, void *user, int *len)
- {
- 	struct ip_conntrack_tuple_hash *h;
--	struct ip_conntrack_tuple tuple = { { sk->rcv_saddr, { sk->sport } },
--					    { sk->daddr, { sk->dport },
-+	struct ip_conntrack_tuple tuple = { { sk->rcv_saddr, { .tcp = { sk->sport } 
-} },
-+					    { sk->daddr, { .tcp = { sk->dport } },
- 					      IPPROTO_TCP } };
- 
-It comes from 
-http://lists.netfilter.org/pipermail/netfilter-devel/2003-May/011460.html
+  Hi,
 
-It doesn't zero all of the tuple contents before assigning, and this way 3rd 
-and 4th bytes of tuple.src.all contain garbage, and ip_conntrack_find_get is 
-not able to find correct conntrack because of that.
+  I've found a weird looking function pointer in the connection tracking
+system: the expectfn member of struct ip_conntrack_expect. AFAIK, this
+function would be called by conntrack when a matching connection is found
+for the registered expectation. However, I was unable to find any
+conntrack helpers which use this functionality.
 
-So instead of fixing getorigdst for big endian architectures, it brakes even 
-the little endian ones.
+  My problem with this function pointer is that it cannot be replicated:
+you cannot just send the function pointer over the wire, because on the
+other nodes it may have completely different address. While there are
+other pointers in the conntrack structures as well, all of them have some
+kind of associated data which can be used as an ID. (For example: althoug=
+h
+helpers -- which are function pointers of some kind -- are associated wit=
+h
+conntrack entries, however, they have to be registered, and the conntrack
+entry is associated with the registered helper structure instead of just =
+the
+callback function. This is very important, because these structures all
+contain a "name" field, which can be used as an ID.
 
-Raivis Bucis
+  So, the only problem point I've found is the expectfn field of struct
+ip_conntrack_expect, for which I've no idea how that could be handled. Is
+the possibility of having more than one kind of callback function for
+expectation creation really so important? (If only one kind of function
+would be usable by conntrack helpers, its address could be stored in
+struct ip_conntrack_helper, and we didn't have the whole problem.)
+
+  Any ideas?
+
+--=20
+ Kov=E1cs Kriszti=E1n (Hidden)
