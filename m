@@ -1,16 +1,14 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] 2.5.x iptables enhancement: add new 'recent' match
-Date: Tue, 24 Jun 2003 15:36:43 -0700 (PDT)
+From: DarKRaveR <DarKRaveR@habitat-b.de>
+Subject: REJECT target
+Date: Wed, 25 Jun 2003 02:39:03 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030624.153643.102552694.davem@redhat.com>
-References: <20030624191059.GC2645@sunbeam.de.gnumonks.org>
+Message-ID: <19527171580.20030625023903@habitat-b.de>
+Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20030624191059.GC2645@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,10 +19,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: Harald Welte <laforge@netfilter.org>
-   Date: Tue, 24 Jun 2003 21:10:59 +0200
-   
-   Yes, this is the last patch I'm I'm going to send you today.
-   Thanks for your time.
+Hello netfilter-devel list,
 
-All applied, thanks Harald.
+  I know this is not really a developers question, but maybe the
+  developers are the right people at hand, to explain this.
+  From what I read, the REJECT target is only valid in
+  INPUT/OUPUT/FORWARD. Is there any particular reason why ? I read in
+  one of the tutorials, that you wouldn't need it at any other place,
+  but I think this is not perfectly true.
+
+-- 
+Best regards,
+ DarKRaveR                          mailto:DarKRaveR@habitat-b.de
