@@ -1,13 +1,15 @@
-From: "Laurens Blankers" <lblankers@xs4all.nl>
-Subject: pom for 2.6
-Date: Tue, 9 Dec 2003 13:25:55 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] tcp-window-tracking patch
+Date: Tue, 9 Dec 2003 14:08:59 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <2244.10.1.1.4.1070972755.squirrel@mail>
+Message-ID: <Pine.LNX.4.44.0312091404540.25001-100000@filer.marasystems.com>
+References: <Pine.LNX.4.33.0312091121400.5228-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0312091121400.5228-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,13 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Tue, 9 Dec 2003, Jozsef Kadlecsik wrote:
 
-This question has been asked several times on the netfilter-user
-mailinglist but I can find an answer to it, so therefor I'm asking it
-here: When can we expect a patch-o-matic for kernel 2.6?
+> - close_wait timeout value is lowered to the more proper 10 minutes
 
-The first final version of 2.6 is coming closer and it would be really
-nice to have a pom for it when it is released.
+Is this a "silence" timeout extended if there is traffic, or a session
+timeout after enterig close_wait no matter if there is traffic or not?
 
-Laurens
+If the first then 10 minutes should be sufficient for most uses, even if 
+there quite likely is some applications which will fail this..
+
+If the latter then 10 minutes is certainly not sufficient.
+
+Regards
+Henrik
