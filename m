@@ -1,7 +1,7 @@
 From: Wang Jian <lark@linux.net.cn>
 Subject: Re: bidirectional CONNMARK?
-Date: Wed, 09 Mar 2005 13:49:14 +0800
-Message-ID: <20050309134649.A565.LARK@linux.net.cn>
+Date: Wed, 09 Mar 2005 16:30:13 +0800
+Message-ID: <20050309161949.A568.LARK@linux.net.cn>
 References: <20050309124806.A55C.LARK@linux.net.cn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
@@ -19,10 +19,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Wang Jian,
+Hi,
 
-Oops, I forget to mention that I remove -j RETURN rules for better
-readability.
+I have figured out how to do it with CONNMARK. Using --mask, I can
+choose bits to use.
+
+My iptables 1.2.9 doesn't give hint on mask for --set-mark, --save-mark
+and --restore-mask. I just read the code from HEAD and realize.
+
+I am happy. Thanks.
 
 On Wed, 09 Mar 2005 13:26:19 +0800, Wang Jian <lark@linux.net.cn> wrote:
 
