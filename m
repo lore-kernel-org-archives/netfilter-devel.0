@@ -1,15 +1,15 @@
-From: "Saber zrelli" <saber_z@fastmail.fm>
-Subject: Netfilter based application : any advice ?
-Date: Mon, 15 Mar 2004 06:44:30 +0900
+From: Alexander Samad <alex@samad.com.au>
+Subject: Re: Floods
+Date: Mon, 15 Mar 2004 11:34:40 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1079300670.3068.182659007@webmail.messagingengine.com>
+Message-ID: <20040315003440.GO26800@samad.com.au>
 References: <200403141930.29602.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zxEKvxCKojqA/Afl"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Content-Disposition: inline
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 In-Reply-To: <200403141930.29602.alchemyx@uznam.net.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -21,38 +21,64 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi people ,
 
-i'm new in Netfilter community ,
-I'm planning to crate a network software robot acting like 'automata'
-based on scripts dicting its behaviour .
-i explain :
+--zxEKvxCKojqA/Afl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-the main program basically filter packets and executes actions like
-iptbles does ,  based on rules located in some file.
-the difference is that the actions can also be sending specific packet.
-the tool should allows for example simulation of tcp/ip connections , ftp
-connections and so on.
+On Sun, Mar 14, 2004 at 07:30:29PM +0100, Micha? Margula wrote:
+> Hello!
+>=20
+> 	I have problem, quite big one. I don't know how to deal with it. Tried=
+=20
+> everything i know. I have a 2 x Xeon 2.66 server with 1 Gig ram. Everythi=
+ng=20
+> based on Intel e100 and e1000 NICs. That server is my firewall and gatewa=
+y.
+>=20
+> I have common problem - viruses, worms and so on. It degrades server=20
+> performance quite much. I am using connlimit.
+>=20
+> -p tcp --syn -m connlimit --connlimit-above 100 -j DROP
+>=20
+> It was working fine until today. I was hit by UDP flood coming from one o=
+f our=20
+> 100mbit networks. I found that person and disconnected, but that is not=
+=20
+> solution. Event "-t raw" didnt' help.
+>=20
+> Altough after removing ip_conntrack from kernel everything goes fine. But=
+ i=20
+> can't stop using conntrack, because of SNAT, DNAT and REDIRECT targets.
+>=20
+> What do you recommend? Unfortunately connlimit does not work with UDP pac=
+kets=20
+> (no wonder - UDP is conection less). What should I do? I even thought abo=
+ut=20
+> switch to FreeBSD (sic! :<).
+What about using the rate-limit module ?
 
-the implentation will consist on a Netfilter module that will be added to
-hook on the network activities.
-now the point is :
+>=20
+> Help, please!
+>=20
+> --=20
+> Micha? Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/
+> "W ?yciu pi?kne s? tylko chwile" [Ryszard Riedel]
+>=20
+>=20
 
-- Is it possible to send packets with Netfilter or not? ( if not i guess
-using libnet will resolve the pb but better to have  
-  every thing based on the same infrastructure)
+--zxEKvxCKojqA/Afl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-- I would like to have the tool work with wireless protocol , does
-Netfilter support non Ethernet proto and 802.11 particulary?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
+iD8DBQFAVPogkZz88chpJ2MRArCsAKCIyzwCKOcqFmnZywLY5jNvYbZGtwCfXLkr
+dpT0yGMs95y2YxlB5/XQLFI=
+=hg41
+-----END PGP SIGNATURE-----
 
-any advices will be really appreciated.
-also , any partner for the project is welcome.
-
-Regards.
-
--- 
-  Saber Zrelli
-  kanazawa university international house 
-  kakuma-machi , kanazawa , Ishikawa 
-  920-1192 Japan. 
+--zxEKvxCKojqA/Afl--
