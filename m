@@ -1,14 +1,22 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 5/6]: Convert udp conntrack protocol to
-	skb_header_pointer
-Date: Sun, 26 Sep 2004 23:52:22 +0200
+Subject: Re: [PATCH 2.6 0/12]: netfilter update
+Date: Sun, 26 Sep 2004 23:56:21 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41573A16.1020101@trash.net>
+Message-ID: <41573B05.1000308@trash.net>
+References: <414F9DFC.701@trash.net> <20040921143611.6a6e2f60.davem@redhat.com>
+	<4150BB62.2060904@trash.net>
+	<20040921171857.2c720c8e.davem@redhat.com>
+	<4150D880.70108@trash.net>
+	<20040924154032.5a0c32e1.davem@redhat.com>
+	<41571BCC.2050909@trash.net>
+	<Pine.LNX.4.61.0409262344030.7439@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040201090103040002060602"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0409262344030.7439@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,73 +27,28 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040201090103040002060602
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Henrik Nordstrom wrote:
 
-This patch converts the remaining parts of the udp conntrack
-protocol to skb_header_pointer. Most was already done, but the
-conntrack error API patch added a couple of new skb_copy_bits
-calls.
+> On Sun, 26 Sep 2004, Patrick McHardy wrote:
+>
+>> Unfortunately I have to agree with you, another set of hooks looks
+>> like the only way to solve the race. Let me think some more about
+>> the implications for iptables and ip_conntrack.
+>
+>
+> conntrack should not see this new hook.
 
 
+We confirm conntrack entries in LOCAL_IN after they passed all hooks,
+but this new set of hooks would be after LOCAL_IN, so conntrack entries
+should be confirmed there.
 
---------------040201090103040002060602
-Content-Type: text/x-patch;
- name="05.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="05.diff"
+>
+> what do do in iptables is a question.. as it is yet another step in 
+> the packet processing it calls for a new builtin chain I think.
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/09/26 23:18:51+02:00 kaber@coreworks.de 
-#   [NETFILTER]: Convert udp conntrack protocol to skb_header_pointer
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_conntrack_proto_udp.c
-#   2004/09/26 23:18:26+02:00 kaber@coreworks.de +5 -4
-#   [NETFILTER]: Convert udp conntrack protocol to skb_header_pointer
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_proto_udp.c b/net/ipv4/netfilter/ip_conntrack_proto_udp.c
---- a/net/ipv4/netfilter/ip_conntrack_proto_udp.c	2004-09-26 23:23:20 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_udp.c	2004-09-26 23:23:20 +02:00
-@@ -91,10 +91,11 @@
- {
- 	struct iphdr *iph = skb->nh.iph;
- 	unsigned int udplen = skb->len - iph->ihl * 4;
--	struct udphdr hdr;
-+	struct udphdr _hdr, *hdr;
- 
- 	/* Header is too small? */
--	if (skb_copy_bits(skb, iph->ihl*4, &hdr, sizeof(hdr)) != 0) {
-+	hdr = skb_header_pointer(skb, iph->ihl*4, sizeof(_hdr), &_hdr);
-+	if (hdr == NULL) {
- 		if (LOG_INVALID(IPPROTO_UDP))
- 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, 
- 				  "ip_ct_udp: short packet ");
-@@ -102,7 +103,7 @@
- 	}
- 	
- 	/* Truncated/malformed packets */
--	if (ntohs(hdr.len) > udplen || ntohs(hdr.len) < sizeof(hdr)) {
-+	if (ntohs(hdr->len) > udplen || ntohs(hdr->len) < sizeof(*hdr)) {
- 		if (LOG_INVALID(IPPROTO_UDP))
- 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, 
- 				  "ip_ct_udp: truncated/malformed packet ");
-@@ -110,7 +111,7 @@
- 	}
- 	
- 	/* Packet with no checksum */
--	if (!hdr.check)
-+	if (!hdr->check)
- 		return NF_ACCEPT;
- 
- 	/* Checksum invalid? Ignore.
+I agree. But I wonder if its worth it just for having the owner match
+work in the input path, or if there are other uses for these hooks.
 
---------------040201090103040002060602--
+Regards
+Patrick
