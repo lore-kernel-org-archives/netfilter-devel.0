@@ -1,13 +1,15 @@
-From: Rob Radez <rob@osinvestor.com>
-Subject: [PATCH] Tiny ip_nat_snmp_basic fix
-Date: Sun, 23 Jun 2002 13:51:17 -0400
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: performance issues (nat / conntrack)
+Date: Sun, 23 Jun 2002 21:46:29 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020623135117.K9029@osinvestor.com>
+Message-ID: <15638.42021.31206.821255@isis.cs3-inc.com>
+References: <20020623132739.12D52455E@lists.samba.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
+In-Reply-To: <20020623132739.12D52455E@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,33 +20,37 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I looked at the pending patches page, tried to browse through the mailing
-archives, and checked google, but didn't see if anyone had already addressed
-this.  fini() in net/ipv4/netfilter/ip_nat_snmp_basic.c is marked __exit,
-but on Sparc32 will fail to link into the kernel because of some btfixup
-magic.  I saw two obvious ways to fix this, but only did one because I wasn't
-sure about what kind of netfilter magic is going on in fini().  The attached
-patch simply removes the __exit tag from fini() and lets the file link in ok.
+ > From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
+ > >  > Since in my test, each connection is ephemeral (<10ms) ...
 
-The other option is to remove the br_write_lock_bh/br_write_unlock_bh calls
-in fini() since they don't seem to be protecting anything.  I didn't do that
-because I'm not sure if there are any side effects that are being taken
-advantage of here.
+One question here is whether the traffic generator is acting like
+a real set of users or like an attacker.  A real user would not keep
+trying to make connections at the same rate if the previous attempts 
+were not being served.  I suspect you're acting more like an attacker.
 
-Patch is against 2.4.19-pre10.
+ > > So I'm guessing that large number of entries in conntrack table is
+ > > evidence that packets are being lost.  
+ > not only: a crashed endpoint breaking the tcp sequence causes also
+ > garbage entries in conntrack (known issue).
+Again, a crashed endpoint would likely not get as many hits.
+My guess is that the reason for all the conntrack entries is related
+to what I described in my earlier mail.  Creating conntrack entries is
+expensive.  My machine could only do it about 1000 time/sec.  Off hand
+I don't know which packets are dropped.  I'd guess that the ones that
+make it through the conntrack code do get forwarded, but I don't know.
+If, for example, the return packets are lost because we're too busy 
+adding new conntrack entries, then there's nothing to cause the
+entries to go away, other than those timeouts.
 
-Regards,
-Rob Radez
+ > > Just wondering, how did you measure cpu load?
+ > procinfo -n10 ; [d] for showing differences, which in fact, computes
+ >                    the differences of cumulated cpu time (got from 
+ >                    /proc/stat) on the given period: (tsys1-tsys0)/T
+I see /proc/stat - user, nice, system, idle.  Thank you.  Very useful.
 
---- stock-2.4.19pre10/net/ipv4//netfilter/ip_nat_snmp_basic.c	Fri Jun 14 18:46:54 2002
-+++ build/net/ipv4/netfilter/ip_nat_snmp_basic.c	Sun Jun 23 13:33:16 2002
-@@ -1338,7 +1338,7 @@
- 	return ret;
- }
- 
--static void __exit fini(void)
-+static void fini(void)
- {
- 	ip_nat_helper_unregister(&snmp);
- 	ip_nat_helper_unregister(&snmp_trap);
+================
+
+ > > Everybody agrees that NAT is evil and it should be avoided in all
+ > circumstances.
+This is news to me!  Is this just because the implementation is
+lacking or some more fundamental reason?
