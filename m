@@ -1,18 +1,19 @@
-From: "Robbert" <hanbo163com@163.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: Some one knows how to implement policy routing with iptables?
-Date: Fri, 27 Aug 2004 11:37:30 +0800
+Date: Fri, 27 Aug 2004 09:15:31 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <001b01c48be7$3026ec60$8e5f78ca@nic.ecnu.edu.cn>
+Message-ID: <Pine.LNX.4.61.0408270900160.22656@filer.marasystems.com>
 References: <002e01c48b0e$31b253f0$8e5f78ca@nic.ecnu.edu.cn>
 	<Pine.LNX.4.61.0408260917380.5483@filer.marasystems.com>
 	<002b01c48b6e$f86a3570$8e5f78ca@nic.ecnu.edu.cn>
 	<Pine.LNX.4.61.0408261636550.10523@filer.marasystems.com>
+	<000701c48be6$28141440$8e5f78ca@nic.ecnu.edu.cn>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Robbert <hanbo163com@163.com>
+In-Reply-To: <000701c48be6$28141440$8e5f78ca@nic.ecnu.edu.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +24,24 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-QW5kIEkgZm91bmQgdGhlIHJ1bGVzICBpcHRhYmxlcyBhZGRlZCBhcmUgbGluZWFyLGluIGZhY3Qg
-aXMgYSBsaW5rLCBhbmQgbm8gcHJpb3JpdHkgYXQgYWxsLklwdGFibGVzIG9ubHkgbWF0Y2ggdGhl
-bSBvbmNlLGlmIGFueS5TbywgaWYgSSBnaXZlIHRoZXNlIHJ1bGVzIHNvbWUgcHJpb3JpdHksIG9y
-IEkgYXJyYW5nZSB0aGVtIGJ5IHRoZWlyIHByaW9yaXR5LCBkbyB5b3UgdGhpbmsgdGhhdCBtZWFu
-cyBzb21ldGhpbmc/IA0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLSANClN1YmplY3Q6IFJl
-OiBTb21lIG9uZSBrbm93cyBob3cgdG8gaW1wbGVtZW50IHBvbGljeSByb3V0aW5nIHdpdGggaXB0
-YWJsZXM/DQoNCg0KPiBPbiBUaHUsIDI2IEF1ZyAyMDA0LCBSb2JiZXJ0IHdyb3RlOg0KPiANCj4g
-PiBZZWFoLEkgaGF2ZSBzZWVuIHRoZSBST1VURSB0YXJnZXQsd2hpY2ggaXMgdXNlZnVsIHRvIGZv
-cmNlIHRoZSB1c2Ugb2YgYW4gDQo+ID4gaW50ZXJmYWNlIG9yIGEgbmV4dCBob3AgYW5kIHRvIGNo
-YW5nZSB0aGUgaW5jb21pbmcgaW50ZXJmYWNlIG9mIGEgcGFja2V0IA0KPiA+IGJ5IG9wdGlvbnMg
-LS1vaWYsLS1paWYsLS1ndy5Ib3dldmVyLGFyZSB0aGVzZSBlbm91Z2g/IEkgbWVhbixzb21ldGhp
-bmcgDQo+ID4gZGVwZW5kIG9uIFRPUyxvciBzb21ldGhpbmcgbGlrZSB0aGF0Pw0KPiANCj4gUk9V
-VEUganVzdCBzZXRzIHRoZSByb3V0ZSB0aGlzIHBhY2tldCBzaG91bGQgdGFrZSBvbmNlIHlvdSBo
-YXZlIGNsYXNzaWZpZWQgDQo+IHRoZSBwYWNrZXQuIEhvdyB5b3UgY2xhc3NpZnkgcGFja2V0cyBp
-cyBvZiBubyBjb25jZXJuIHRvIHRoZSBST1VURSB0YXJnZXQuDQo+IA0KPiA+IEFuZCxob3cgY2Fu
-IEkgdXNlIFJPVVRFIHRhcmdldCB0byBpbXBsZW1lbnRzIHBvbGljeSByb3V0aW5nPyBTb21lIG9u
-ZSANCj4gPiBnaXZlIG1lIGEgc2FtcGxlPw0KPiANCj4gQnkgYnVpbGRpbmcgaXB0YWJsZXMgcnVs
-ZXMgYXNzaWduaW5nIGRpZmZlcmVudCByb3V0ZXMgdG8gZGlmZmVyZW50IA0KPiBwYWNrZXRzLg0K
-PiANCj4gQnV0IG1vc3QgcGVvcGxlIGRvIHBvbGljeSByb3V0aW5nIHZpYSB0aGUgbWFyayBhbmQg
-bm9ybWFsIHJvdXRlIHJ1bGVzLiBTZWUgDQo+IExpbnV4IEFkdmFuY2VkIFJvdXRpbmcgZG9jdW1l
-bnRhdGlvbiByZWZlcmVuY2VzIGVhcmxpZXIgaW4gdGhpcyB0aHJlYWQuDQo+IA0KPiBSZWdhcmRz
-DQo+IEhlbnJpaw0KPiA=
+On Fri, 27 Aug 2004, Robbert wrote:
+
+> Does the way to implement policy routing with ROUTE target have some LIMIT? Is it only fit to some certain issues?
+
+Not sure, I have never used it, only the mark based policy routing.
+
+> And, the normal way ,I mean use iptables mark the packet ,then find the 
+> corresponding ip rule, and use the corresponding route table, has some 
+> shortage?
+
+It gets rather complex if you need to have many different policies for 
+different cases.
+
+> Any way to make it better?
+
+The interactions between ROUTE and the rest of netfilter needs to be 
+investigated a little more to make it behave more normal when you play 
+with the routes.
+
+Regards
+Henrik
