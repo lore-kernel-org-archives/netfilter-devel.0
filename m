@@ -1,17 +1,16 @@
-From: Nigel Kukard <nkukard@lbsd.net>
-Subject: Re: ip_queue & QUEUE target
-Date: Sun, 15 Jun 2003 20:35:05 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: 2.4.20: MASQ firewall is losing TCP sessions [tcpdumped]
+Date: 15 Jun 2003 20:36:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030615183504.GG2103@lbsd.net>
-References: <20030615155352.GD2103@lbsd.net> <3EECA7B2.5090300@trash.net> <20030615180031.GE2103@lbsd.net> <3EECB5F4.7010004@trash.net>
+Message-ID: <1055702217.3214.10.camel@tux.rsn.bth.se>
+References: <200306152055.45490.insecure@mail.od.ua>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bO4vSxwwZtUjUWHo"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.samba.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <3EECB5F4.7010004@trash.net>
+To: insecure@mail.od.ua, vda@port.imtp.ilyichevsk.odessa.ua
+In-Reply-To: <200306152055.45490.insecure@mail.od.ua>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,35 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, 2003-06-15 at 19:55, insecure wrote:
 
---bO4vSxwwZtUjUWHo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Looks like firewall forgot about our connection. What's going on?
+> 
+> Kernel: 2.4.20, .config is at the end of this mail.
 
-> Probably not much, but did you make sure you also increased
-> /proc/sys/net/core/rmem_max ? If you don't mind your statistics
-> beeing wrong (better than high drop rates imho) you could
-> modify ip_queue so it nf_reinjects packets which could not
-> be sent instead of returning a error to nf_queue.
->=20
+Kernel 2.4.20 has a very serious problem with ip_conntrack.
+It has been corrected in 2.4.21 so please upgrade.
 
-What about DIVERT sockets, would these be reliable?
+> I'd be happy to provide more info on known connections and the like,
+> but I failed to find an iptables equivalent of ipchains -M. :(
 
+cat /proc/net/ip_conntrack
 
--Nigel
+Upgrade to 2.4.21, if that doesn't work you can provide more info.
 
-
---bO4vSxwwZtUjUWHo
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+7LxYKoUGSidwLE4RAlKCAKCgI+d/4nP66VOvbg22Ee8QHm7hTwCfcTUz
-6aXNOC0J98WBjS19OADnYbE=
-=jXrK
------END PGP SIGNATURE-----
-
---bO4vSxwwZtUjUWHo--
+-- 
+/Martin
