@@ -1,15 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Bug in rpc conntrack modules
-Date: 28 Apr 2003 00:51:00 +0200
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH] ipt_physdev extension
+Date: Sun, 27 Apr 2003 17:34:53 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1051483859.5940.225.camel@tux.rsn.bth.se>
-References: <1051483678.5944.223.camel@tux.rsn.bth.se>
+Message-ID: <20030427.173453.52172127.davem@redhat.com>
+References: <20030427082201.GE990@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, bdschuym@pandora.be
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1051483678.5944.223.camel@tux.rsn.bth.se>
+To: laforge@netfilter.org
+In-Reply-To: <20030427082201.GE990@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,13 +21,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2003-04-28 at 00:47, Martin Josefsson wrote:
-> Hi Marcelo.
+   From: Harald Welte <laforge@netfilter.org>
+   Date: Sun, 27 Apr 2003 10:22:01 +0200
 
-Ok that mail bounced,
-reason: 550 5.1.1 <marcelo.lima@mailhost.ic.unicamp.br>... User unknown
+   On behalf of Bart de Schuymer, I'm forwarding you this patch which adds
+   some additional functionality to the 2.5.x ipt_physdev match.
+   
+   Please apply, thanks.
 
-I guess I'll have to fix it myself then.
-
--- 
-/Martin
+Applied, thanks.
