@@ -1,17 +1,16 @@
-From: Eldad Zack <eldad@stoneshaft.ath.cx>
-Subject: Re: 2.4 SNAT fails randomly
-Date: Wed, 19 Nov 2003 09:46:00 +0200 (IST)
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [RFC] NAT tuple reservation
+Date: Wed, 19 Nov 2003 11:21:22 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0311190942290.31702@localhost>
-References: <200311151103.47454.timg@tpi.com> <20031116095206.GA32471@balabit.hu>
- <200311160953.51722.timg@tpi.com> <200311180835.09794.timg@tpi.com>
+Message-ID: <3FBB4422.6070102@balabit.hu>
+References: <3FB8DF90.5090505@balabit.hu> <20031117222933.GE5075@sunbeam.de.gnumonks.org> <3FB9CE8E.4000105@balabit.hu> <20031118165734.GP5075@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Balazs Scheidler <bazsi@balabit.hu>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Tim Gardner <timg@tpi.com>
-In-Reply-To: <200311180835.09794.timg@tpi.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031118165734.GP5075@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,23 +22,84 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Tue, 18 Nov 2003, Tim Gardner wrote:
+   Hi,
 
-> I've been thinking more about this scenario. When a standard distribution like 
-> SuSE-9.0 boots, the interfaces are  IFF_UP sometime before firewall rules are 
-> installed. This is particularly a problem in the case of a NAT router. Is 
-> there any way to flush /proc/net/ip_conntrack to make sure that you get rid 
-> of entries that were established between the time the interfaces were brought 
-> up and the time the rules were installed? Removing the ip_conntrack modules 
-> seems kind of brute force, and does not work on kernels where ip_conntrack is 
-> not a module.
+Harald Welte wrote:
+>>>>/* reference count */
+>>>>atomic_t use;
+>>>
+>>>do we really need to do sophisticated reference counting on those
+>>>objects?  I think it is enough to protect the whole hash table under the
+>>>already existing nat lock.  Entries are inserted/deleted under that lock, 
+>>>and
+>>>hash table lookups also only happen under that lock.   The only
+>>>reference would be a pointer from a single ip_conntrack_expect - thus
+>>>the refcount would always be one.
+> 
+> you didn't comment on that.  What do you think?
 
-There is a quick and dirty way to do it - forging a RST packet to the 
-tuple you want to flush. I've used hping to forge such packets and 
-iptstate to look at the conntrack table.
+   I think we should try it this way. Currently I don't see anything which 
+would require reference counting. However, we have to be sure that 
+referenced reservations do not get deleted without setting the pointer to 
+NULL. As the proposed interface allocates reservations only for 
+expectations, the pointer can be easily handled there. So, the only 
+remaining issue is that proper locking and checking should be implemented 
+in the register/unregister functions. I don't know if we would need an 
+additional lock for that, I suspect that ip_nat_lock will be enough.
 
-There really should be another way, though.
+> I don't care about allocation speed, as it is a rare thing to happen
+> (compared to the total number of packets we see).  However, checking
+> should be fast.
 
+   The proposed implementation would require a hash table lookup only if 
+there is at least one reservation. For the hash function, hash_by_src() 
+could be used, which is rather simple:
 
+   return (manip->ip + manip->u.all + proto) % ip_nat_htable_size;
 
-Eldad
+>>If you could register ranges, for example, how do you define 
+>>the hash function? Or, for example, you should be able to delete parts of 
+>>that range from the reserved list, so that splitting the original range 
+>>could be necessary... 
+> 
+> I know, it's not a trivial issue.  It's ugly.  And I don't think that
+> you could ever put ranges in the hashtable.  However, you could provide
+> a high-layer function that 
+> 
+> - locks the htable
+> - tries to allocate as many reservations as there are in the range,
+>   contiguously
+> - unlocks the htable
+> 
+> In normal cases, we would only have 2 or 4 (maybe 8) consecutive port
+> numbers to allocate.  So it is feasible to put each of them into the
+> hash.  This would not give a slowdown at checking / lookup time.
+ >
+>>Cannot problems like these solved by allowing more 
+>>than one reservation per expectation to be registered?
+> 
+> The problem is, that then there is no atomicity.  They really need to be
+> consecutive.  
+> 
+> So from the implementation point of view: yes, they are multiple
+> seperate reservations.  But from an API point of view, it should be a
+> single call.
+
+   So, you propose something like this:
+
+   ip_nat_reserved_register_range(struct ip_conntrack_expect *expect,
+				 struct ip_nat_range *range);
+
+   ip_nat_reserved_unregister_range(struct ip_conntrack_expect *expect,
+				   struct ip_nat_range *range);
+
+   It should grab the lock protecting the reserved hash, check if anything 
+in that range is already reserved, and register the manips one-by-one.
+
+   Oh, and one possible problem: although NAT won't allocate a reserved 
+tuple as unique, a connection which is not NAT-ted can still clash with 
+the reservation... How the heck could this be checked?
+
+-- 
+   Regards,
+     Krisztian KOVACS
