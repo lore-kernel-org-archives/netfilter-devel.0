@@ -1,14 +1,15 @@
-From: richard hauswald <staenker@rhcs.de>
-Subject: Re: Basic linux firewall
-Date: Thu, 10 Mar 2005 09:39:10 +0100
-Message-ID: <423007AE.8030402@rhcs.de>
-References: <200503081526.32310.scarab@echostar.pl>
+From: dukelion@mtv.kg
+Subject: Some protection from DDOS with iptables.
+Date: Thu, 10 Mar 2005 14:12:58 +0500
+Message-ID: <200503101412.58339.dukelion@mtv.kg>
+References: <200503081526.32310.scarab@echostar.pl> <423007AE.8030402@rhcs.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: scarab@echostar.pl
-In-Reply-To: <200503081526.32310.scarab@echostar.pl>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <423007AE.8030402@rhcs.de>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,36 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-scarab@echostar.pl wrote:
+I need to block a kind of http requests, containing filenames zoo.jpg and 
+zo2.jpg. These requests go from virus Bagle and hardly load our web server.
 
->Hi,
->I don't know if I'm writing to right mailing list but I have problem and i 
->hope you could help me solve it. I must write simple linux firewall. I tried 
->find any information about how to start but most of them was useless. It is 
->very important for me because in this year I'm finishing university and 
->trying get engineering degree. It mustn't be advanced linux firewall, it can 
->filter only TCP packets (although  I'd like to do it as advanced as it 
->possible). Could anybody give me some information where can i find some 
->documents, books or something like that about how to start etc? I knew that 
->propably somebody asked for that here before and I tried to find something in 
->netfilter-devel archive but i didn't success.
->Thank you
->
->PS. Sorry for my poor English 
->
->
->  
->
-ok, understand what you want. in generell man iptables give you all 
-information for using the programm iptables. but you will also need a 
-bit network brain...:-)
-To solve this known problem, Robert R. Ziegler wrote a book:
-http:// 
-www.amazon.de/exec/obidos/ASIN/3827262577/qid=1110443595/sr=8-9/ref=sr_8_xs_ap_i9_xgl/302-8865415-2152020
-ok, its the german part of amazon, but I'm shure you will also find it 
-at amazon for poland...
-Regards
-Richard Hauswald
+Rejecting or dropping these requests with string match isn't a solution, since 
+it leaves unfinished connection with apache and it spawns hige number of 
+threads in just a second.
 
-PS: I'm excusing your poor english, mine is not better. But i thought 
-posting with real names is a question of cheerfulness ;-)
+Another try was to limit incoming connections. But it denies legal users from 
+accessing our websites, and allowing virii to do it.
+
+I'd like to have a rule closing connection on receiving certain string or met 
+another condition. Is it possible with iptables?
