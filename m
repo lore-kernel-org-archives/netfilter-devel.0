@@ -1,16 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH]: several small patches
-Date: Fri, 20 Jun 2003 14:22:20 +0200 (CEST)
+From: "Sumit Pandya" <sumit@elitecore.com>
+Subject: Difference between match and target
+Date: Fri, 20 Jun 2003 18:33:58 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0306201421000.30719-100000@blackhole.kfki.hu>
-References: <20030617160438.GE936@naboo>
+Message-ID: <009301c3372c$69cc47f0$010f430a@elitecore7>
+References: <20030618222710.9325.98884.Mailman@kashyyyk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030617160438.GE936@naboo>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +20,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Jun 2003, Harald Welte wrote:
+Hi All,
 
-> > 5. ip-conntrack-expect-drop-refcnt.diff:
-> > drop master conntrack refcnt before setting expectant = NULL in
-> > remove_expectations. untested but seems to make sense.
->
-> There have been recent changes in this part of code...
->
-> Jozsef: Any objections?
+    What is difference between writing match and target extension for
+netfilter? Is there something in match which I cannot achieve in target and
+vice-versa?
+    So far I's under impression that I cannot alter skb in match because of
+prototype for "match_entry()". Today I did following test with ipt_tos.c
 
-It looks OK, I'll add to pom on the weekend.
+static int
+-- match(const struct sk_buff *skb,
+      const struct net_device *in,
+static int
+++ match( struct sk_buff *skb,
+      const struct net_device *in,
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+       const struct ipt_tos_info *info = matchinfo;
+--    const struct iphdr *iph = skb->nh.iph;
+--
+--     return (iph->tos == info->tos) ^ info->invert;
+++    struct iphdr *iph = skb->nh.iph;
+++    u_int16_t diffs[2];
+++
+++        diffs[0] = htons(iph->tos) ^ 0xFFFF;
+++        iph->tos = (iph->tos & IPTOS_PREC_MASK) | 0xFF;
+++        diffs[1] = htons(iph->tos);
+++        iph->check = csum_fold(csum_partial((char *)diffs,
+++                                            sizeof(diffs),
+++                                             iph->check^0xFFFF));
+++        skb->nfcache |= NFC_ALTERED;
+++        return IPT_CONTINUE;
+
+then appended a rule for tos match with this changed match module inserted
+into kernel.
+[root@manage netfilter]# iptables -I OUTPUT -p tcp --dport 25  -m tos \
+--tos 0x04 -j RETURN
+
+ And surprisingly(for me), On the other machine when I observed traffic for
+port 25, I get packet with TOS set to 0xFF.
+
+ Someone to throw some light on this design? Mr. Rusty, Mr. Harald?
+
+-- Sumit
