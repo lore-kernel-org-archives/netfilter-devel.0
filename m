@@ -1,11 +1,12 @@
-From: "pevee" <clkuan@greenpacket.com>
-Subject: Enable pinging of public IP without doing NAT
-Date: Tue, 12 Nov 2002 11:29:30 +0800
+From: =?iso-8859-1?Q?Matias_Bj=F8rling?= <mb@ncparty.dk>
+Subject: CONNMARK Patching Problem
+Date: Sat, 9 Nov 2002 12:43:08 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <039e01c289fb$b7c2d1b0$60faa8c0@gpcalvin>
+Message-ID: <005a01c287e5$2d0862a0$0200000a@parseerror.dk>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_039B_01C28A3E.C427E6F0"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,74 +19,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hey! :D
 
-------=_NextPart_000_039B_01C28A3E.C427E6F0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+I'm having a very anoying problem.
 
-Hi,
+I have patched 2.4.18-19 kernels where both have the same problem, when i
+run patch-o-magic on a fresh kernel, then when i come to where i can patch
+the CONNMARK module into the kernel, it always fail, even if it's the only
+thing i select, and with both kernels, even they both are fresh installed.
 
-I think I do not understand your implementation quite well, mayb I amm =
-still
-new in networking. Do you mind to
-explain it with more details?
+Testing... CONNMARK.patch NOT APPLIED ( 4 missing files)
+The extra/CONNMARK patch:
+   Author: Henrik Nordstrom <hno@marasystems.com>
+   Status: working
 
-Let me restate my situation (network diagram) again :)
+<-Nice information about the module...-->
 
-(1) 192.168.250.96  --------------  192.168.18.18 (2) 92.168.250.199  =
-------   192.168.250.254  (3)
+-----------------------------------------------------------------
+Do you want to apply this patch [N/y/t/f/a/r/b/w/v/q/?] y
+Testing patch extra/CONNMARK.patch...
+   Placed new Config.in line
+   Placed new Config.in line
+   Placed new Config.in line
+   Placed new Configure.help entry
+   Placed new Makefile line
+   Placed new Makefile line
+Failed to patch copy of /usr/src/linux
+TEST FAILED: patch NOT applied.
 
-How can I configure my network so that 192.168.250.96 can ping to
-192.168.250.199?
-(1) is a Windows XP machine
-(2) and (3) is a Linux box
-(2) is more like a router
-(3) is our gateway to Internet
-
-I merely know what you are advising me, I am not sure on which maching
-should I do the configuration you mentioned :)
-
-Please advise. hope to hear from you soon :)
-
-Warm regards,
-Calvin Kaiwen
+[Press enter to continue]
 
 
+Im using from source
 
-------=_NextPart_000_039B_01C28A3E.C427E6F0
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+iptables 1.2.7a
+patch-o-magic 20021008
+have tried with newer cvs image patch-o-magic and did'nt even work
+kernel 2.4.18-19 both have the same problem.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2719.2200" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>Hi,<BR><BR>I think I do not understand your =
-implementation=20
-quite well, mayb I amm still<BR>new in networking. Do you mind =
-to<BR>explain it=20
-with more details?<BR><BR>Let me restate my situation (network diagram) =
-again=20
-:)<BR><BR>(1) 192.168.250.96&nbsp; --------------&nbsp; 192.168.18.18 =
-(2)=20
-92.168.250.199&nbsp; ------&nbsp;&nbsp; 192.168.250.254&nbsp; =
-(3)<BR><BR>How can=20
-I configure my network so that 192.168.250.96 can ping=20
-to<BR>192.168.250.199?<BR>(1) is a Windows XP machine<BR>(2) and (3) is =
-a Linux=20
-box<BR>(2) is more like a router<BR>(3) is our gateway to =
-Internet<BR><BR>I=20
-merely know what you are advising me, I am not sure on which =
-maching<BR>should I=20
-do the configuration you mentioned :)<BR><BR>Please advise. hope to hear =
-from=20
-you soon :)<BR><BR>Warm regards,<BR>Calvin Kaiwen<BR>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
+Does anybody know if theres a workaround for this thingie?.. or am i just
+lost in my dreams until a new release come? Is there a way i can check what
+the error is?
 
-------=_NextPart_000_039B_01C28A3E.C427E6F0--
+- SilverWolf
