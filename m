@@ -1,13 +1,12 @@
-From: Sven Schuster <schuster.sven@gmx.de>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH 1/4] RFC: fast string matching infrastrure for netfilter
-Date: Mon, 10 Jan 2005 09:49:39 +0100
-Message-ID: <20050110084939.GA11194@zion.homelinux.com>
+Date: Mon, 10 Jan 2005 11:06:24 +0100
+Message-ID: <20050110100624.GQ18568@sunbeam.de.gnumonks.org>
 References: <41E1AECD.6020209@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="zBPbvmIlJjvpbu6L"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
@@ -24,73 +23,57 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---h31gzZEtNLTqOjlF
-Content-Type: text/plain; charset=iso-8859-1
+--zBPbvmIlJjvpbu6L
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
+On Sun, Jan 09, 2005 at 11:23:09PM +0100, Pablo Neira wrote:
+> Hi,
+>=20
+> I've finished a first usable version of a infrastructure to look for=20
+> matchings in a packet. Features:
+>=20
+> * A library consisting in three public functions: constructor,=20
+> destructor and searching.
 
-Hi Pablo,
+you are aware that I was working on exactly the same thing, based on
+in-kernel libqsearch by Phillipe Biondi? ;)
 
-On Sun, Jan 09, 2005 at 11:23:09PM +0100, Pablo Neira told us:
-> --- /dev/null	2004-09-23 01:18:13.000000000 +0200
-> +++ linux-2.5/net/ipv4/netfilter/nf_string_match.c	2005-01-09 21:54:04.00=
-0000000 +0100
-=2E...
-> +struct nf_string_match *
-> +nf_string_match_create(const char *pat, int patlen)
-> +{
-> +	struct nf_string_match *sm;
-> +
-> +	sm =3D kmalloc(sizeof(struct nf_string_match), GFP_KERNEL);
-> +	if (!sm)
-> +		return NULL;
-> +	memset(sm, 0, sizeof(struct nf_string_match));
-> +
-> +	sm->goodshift =3D (int *) kmalloc(patlen * sizeof(int), GFP_KERNEL);
-> +	if (!sm->goodshift)
-> +		return NULL;
-> +	memset(sm->goodshift, 0, sizeof(int) * patlen);
-> +=09
-> +	sm->pat =3D (char *) kmalloc(patlen * sizeof(int), GFP_KERNEL);
-> +	if (!sm->pat) {
-> +		kfree(sm->goodshift);
-> +		return NULL;
-> +	}
-> +	memset(sm->pat, patlen, sizeof(char) * patlen);
+One of my major changes to the original libqsearch was to move
+allocation from callee-based allocation to caller-based allocation.
 
-is there any intention behind kmalloc()ing the pattern using sizeof(int)
-and then memset()ting it using sizeof(char)?
+This way we avoid too many dynamically kmalloc-allocated structures, and
+a caller (for example a conntrack helper) can allocate the search
+context as part of a different structure.
 
+I haven't finished those patches, but I'll try to clean them up until
+tomorrow, so we can have a discussion and maybe merge the good ideas of
+both.
 
-Sven
-
-> +=09
-> +	strcpy(sm->pat, pat);
-> +	sm->patlen =3D patlen;
-> +
-> +	/* Preprocess the pattern */
-> +	sm_preprocess(sm);
-> +
-> +	return sm;
-> +}
-> +
+> Pablo
 
 --=20
-Linux zion 2.6.10-bk7 #0 Fri Jan 7 19:08:39 CET 2005 i686 athlon i386 GNU/L=
-inux
- 09:42:02 up 2 days, 14:19,  1 user,  load average: 0.09, 0.08, 0.03
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---h31gzZEtNLTqOjlF
-Content-Type: application/pgp-signature
+--zBPbvmIlJjvpbu6L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFB4kGjo4FAdB2PneQRAg4mAJ0Un3xI4njBAXhZYsynF/J8K04uoACcDNLg
-N9R6chPLyUJuErjH5GfBDoI=
-=t5Mc
+iD8DBQFB4lOgXaXGVTD0i/8RAjIFAJ9+A411M2n+eVF/ALTJi8bxxuZ6cQCfWJeJ
+ZQT7Lu16MK1kQEeVDXQNaNY=
+=PDbo
 -----END PGP SIGNATURE-----
 
---h31gzZEtNLTqOjlF--
+--zBPbvmIlJjvpbu6L--
