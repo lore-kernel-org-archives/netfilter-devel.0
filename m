@@ -1,18 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: TTL patch buggy?
-Date: Wed, 7 Jan 2004 20:35:47 +0100
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [ANNOUNCE] nfsim - netfilter simulation environment
+Date: Wed, 07 Jan 2004 20:54:05 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040107193547.GF6629@obroa-skai.de.gnumonks.org>
-References: <Pine.LNX.4.44.0401071709030.4717-100000@filer.marasystems.com> <1073502275.16972.10.camel@jasiiitosh.nexusmgmt.com>
+Message-ID: <1073505244.31821.101.camel@tux.rsn.bth.se>
+References: <200401071044.18059.jeremy@redfishsoftware.com.au>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qftxBdZWiueWNAVY"
-Cc: Henrik Nordstrom <hno@marasystems.com>, netfilter@lists.netfilter.org,
-	netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-NBjWZMzIBDioe31StYJM"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Content-Disposition: inline
-In-Reply-To: <1073502275.16972.10.camel@jasiiitosh.nexusmgmt.com>
+To: Jeremy Kerr <jeremy@redfishsoftware.com.au>
+In-Reply-To: <200401071044.18059.jeremy@redfishsoftware.com.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,67 +21,49 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qftxBdZWiueWNAVY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-NBjWZMzIBDioe31StYJM
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 07, 2004 at 02:04:36PM -0500, John A. Sullivan III wrote:
-> Thank you very much but could you please explain this a bit more.  Oskar
-> Andreasson's tutorial explicitly mentions doing this, i.e., incrementing
-> TTL and we thought it was a good idea.  We certainly want to change our
-> ways if this is dangerous.  Here is the excerpt from the tutorial:
+On Wed, 2004-01-07 at 03:44, Jeremy Kerr wrote:
+> Hi all,
+>=20
+> Rusty and I have been working on a simulation enviroment ("nfsim") to=20
+> facilitate netfilter testing. It provides a simulated kernel enviroment t=
+o=20
+> build and run netfilter code in userspace, and a command-line interface t=
+o=20
+> conduct tests.
 
-Well, as indicated in my last emai:
+Wee, this is cool. I've been thinking about building something to run
+tests in userspace, now I don't have to :)
+And this is way more elegant than I would ever have made it.
 
-1) it is dangerous to increment the TTL
-2) still, there are vallid uses.
+> nfsim is available from:
+>=20
+>  http://ozlabs.org/~jk/projects/nfsim/
+>=20
+> Have a look through the testsuite directory file for an example of a test=
+ing=20
+> script. Also, inline help is available from the CLI.
+>=20
+> Contributions & comments are most welcome.
 
-In gerneral, incrementing packets heading towards your internal network
-shouldn't be a problem.  If people want to hide their internal network
-structure from traceroute, they have two options:
-
-a) drop all packets that have a ttl < number_of_hops_in_internal_net
-b) increment the TTL by number_of_hops_in_internal_net
-
-Both ways make sure that the TTL never expires on a router in the
-internal network.
-
-Where 'a' would interrupt traffic, and 'b' would make sure traffic
-passes.
-
-Also, sometimes ISP's try to detect if you are running a router/gateway
-behind your DSL line by checking for well-known TTL values.  In this
-case, setting the TTL=20
-
-The most dangerous cases of incrementing the TTL are:
-
-a) incrementing the TTL of transit traffic (not close to sender or
-receiver)
-b) incrementing the TTL of multicast traffic
-> John A. Sullivan III
+Will give it a testspin.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+/Martin
 
---qftxBdZWiueWNAVY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+--=-NBjWZMzIBDioe31StYJM
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQE//F+SXaXGVTD0i/8RAoUOAJ0Qo84JquplWo5CxYj+Ti+0bWPbswCfdj4o
-GDBaBUaG21QND4eI28axJPQ=
-=c1gr
+iD8DBQA//GPcWm2vlfa207ERAnUJAJ9vjv5pnqDg9i2AFAR14QpjtdpU0gCgouJ+
+ckljDDCjZXh72QKAowFOWfE=
+=YnRu
 -----END PGP SIGNATURE-----
 
---qftxBdZWiueWNAVY--
+--=-NBjWZMzIBDioe31StYJM--
