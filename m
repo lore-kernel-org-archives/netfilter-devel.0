@@ -1,13 +1,16 @@
-From: Massimiliano Cuzzoli <mcuzzoli@mbigroup.it>
-Subject: Problem with extended-match deletion
-Date: Mon, 18 Aug 2003 17:34:40 +0200
+From: jones.ian@comcast.net ("Ian Jones")
+Subject: Re: libipq and timestamp
+Date: Mon, 18 Aug 2003 19:37:47 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F40F210.3050704@mbigroup.it>
+Message-ID: <r83i4h44.fsf@comcast.net>
+References: <1061213776.21582.9.camel@tech004.alphalink.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Eric Leblond <eric@regit.org>
+In-Reply-To: <1061213776.21582.9.camel@tech004.alphalink.fr> (Eric Leblond's
+ message of "18 Aug 2003 15:36:17 +0200")
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,29 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
-I've wrote a new match for iptables 1.2.7a.
-All features, that I've implemented in it, run very well but
-there is a problem when I try to remove the rule with my match.
-I execute iptables command with "-D" option and the same parameters of 
-rule insertion.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-EXAMPLE:
 
-Insert:
-$> iptables -I PREROUTING -t mangle -m my_match --my_option -j DROP
+Eric Leblond <eric@regit.org> writes:
 
-Delete:
-$> iptables -D PREROUTING -t mangle -m my_match --my_option -j DROP
+> I did not manage to get the timestamp of a packet in the message given
+> by libipq. It is just 0.
+> Is there something to do to have it fill in ?
 
-Then I've received the following message:
+If the packet is locally generated then the timestamp is not filled
+in for you. Here is a snippet that may help:
 
-"iptables: Bad rule (does a matching rule exist in that chain?)"
+ /* locally generated?, no timestamp */
+  if (!m->timestamp_sec)
+    {
+      memset (&tz, 0, sizeof (tz));
+      gettimeofday (&tv, &tz);
+      ph.ts.tv_sec = tv.tv_sec;
+      ph.ts.tv_usec = tv.tv_usec;
+    }
+  else
+    {
+      ph.ts.tv_sec = m->timestamp_sec;
+      ph.ts.tv_usec = m->timestamp_usec;
+    }
 
-There isn't any problem if I remove the rule with a FLUSH operation "-F".
+-----BEGIN PGP SIGNATURE-----
+Comment: Keeping the world safe for geeks.
 
-Can Anybody help me???
-
-Regards,
-
-	Mike-Ro-Chanel
+iD8DBQE/QXFbwBVKl/Nci0oRAt91AJwMLTu43iFjrtAyAj4fGG2nvYK2pwCg7RgH
+ym7QrHv/NkFEa3Q/semyoS4=
+=fwjd
+-----END PGP SIGNATURE-----
