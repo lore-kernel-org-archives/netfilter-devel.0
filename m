@@ -1,16 +1,17 @@
-From: "Craig Box" <craig@itpartners.co.nz>
-Subject: RE: PPTP conntracking saga continued
-Date: Thu, 18 Sep 2003 09:58:05 +1200
+From: Menno Smits <menno@netbox.biz>
+Subject: Re: PPTP connection tracking and Poptop on same box
+Date: Fri, 19 Sep 2003 09:57:47 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <44AD3126A8CE26439BBD21AB2F9CC1D81286E4@commsserver.itpartners.co.nz>
+Message-ID: <3F6A467B.6050507@netbox.biz>
+References: <3F542C4E.1000307@netbox.biz> <Pine.GSO.4.56.0309031853090.10914@shemp.vdata.com> <3F56E2E2.5040007@netbox.biz> <Pine.GSO.4.56.0309040327250.10914@shemp.vdata.com> <3F57D70B.3040307@netbox.biz> <20030905115534.GD665@obroa-skai.de.gnumonks.org> <3F5BD422.8090205@netbox.biz> <3F695EB1.3030806@able.be>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+   netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: "Philip Craig" <philipc@snapgear.com>
+To: Wim Ceulemans <wim.ceulemans@able.be>
+In-Reply-To: <3F695EB1.3030806@able.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,35 +22,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> I have had success with the following:
->=20
-> 1. Start with Linux 2.4.22
-> 2. Apply patch-o-matic/pending/63_getorigdst-tuple-zero.patch
-> 3. Apply patch-o-matic/extra/pptp-conntrack-nat.patch
-> 4. Copy in the files from netfilter-extensions/helpers/pptp
-> 5. Apply the patches from:
->
-http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/0123
-62.html
+I haven't seen anything turn up in CVS yet. I imagine Harald hasn't had 
+time to do it yet.
 
-Well, the kernel compiled cleanly (which is a first!), even with IPSEC
-and MPPE patches.
+You may want to check out Phillip Craig's post on the 17th of Sept to 
+netfilter-devel. It lists a set of steps that worked for him with 
+currently released code and patches. I've been meaning to try these 
+exact steps myself but haven't had time to do it yet.
 
-However, something about NAT and forwarding doesn't go.  The problem
-isn't the firewalling ruleset; the machine still forwards (I can ping
-between networks that the machine routes between) but it doesn't let me
-ping from an internal machine to an internet machine.  I can access the
-internet from the machine locally however.
+Menno
 
-The (two) internet connections are to ADSL routers via PPTP; could this
-be part of the problem?
 
-I didn't spend as much time as I'd have wanted to tcpdumping, as in
-order to test everything works I really need to run it on a real world
-connected machine instead of a proper test environment, and people
-needed their internet connection back. I'll experiment again without the
-other patches, but is there any known fault here, or is there anything
-in the way of debugging information I should post to try and solve this
-one?
-
-Craig
+Wim Ceulemans wrote:
+> Hi
+> 
+> Any news on the PPTP connection tracking problem?
+> 
+> Regards
+> Wim
+> 
+> Menno Smits wrote:
+> 
+>>  > I'm sorry for this whole mess.  Releasing a new version of the
+>>
+>>> pptp-conntrack-nat patch is on my TODO list for quite some time.  I'll
+>>> expect it to be done during the next week.
+>>
+>>
+>>
+>> Great, look forward to it.
+>>
+>> Menno
+>>
+>>
+> 
+> 
