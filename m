@@ -1,20 +1,19 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: TCP window tracking has bad side effects
-Date: Fri, 10 Dec 2004 20:42:10 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0412102036050.15549@blackhole.kfki.hu>
-References: <20041201110253.GA9536@suse.de>
-	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
-	<20041201153903.GA16807@suse.de>
-	<Pine.LNX.4.58.0412030942320.30157@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
-	<20041209162656.GA9569@suse.de>
-	<20041210172217.GA4323@ti64.telemetry-investments.com>
+From: Simon Kirby <sim@netnation.com>
+Subject: Re: REJECT using invalid data
+Date: Fri, 10 Dec 2004 05:10:50 -0800
+Message-ID: <20041210131050.GB9398@netnation.com>
+References: <Pine.LNX.4.53.0412072347080.2736@bizon.gios.gov.pl>
+	<41B642A1.9030807@eurodev.net>
+	<20041208005216.GA7958@netnation.com>
+	<Pine.LNX.4.53.0412101310210.1288@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Ludwig Nussel <ludwig.nussel@suse.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
-In-Reply-To: <20041210172217.GA4323@ti64.telemetry-investments.com>
+To: Krzysztof Oledzki <ole@ans.pl>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.53.0412101310210.1288@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,22 +25,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 10 Dec 2004, Bill Rugolsky Jr. wrote:
+On Fri, Dec 10, 2004 at 01:29:30PM +0100, Krzysztof Oledzki wrote:
 
-> On Thu, Dec 09, 2004 at 05:26:56PM +0100, Ludwig Nussel wrote:
-> > Seems to work. The client machine no longer drops the packet and
-> > properly sends RST.
->
-> Will you push this to DaveM for 2.6.10?
+> > I don't think it's a good idea to try to filter all TCP flags in REJECT
+> > unless we're trying to avoid rejecting rejects and we don't already do
+> > that for some reason (eep), for the same reason that unclean was removed
+> > (ECN and other new functionality could break).  I would think that all
+> > that is needed is a check for the RST bit.
+> >
+> > At the same time, it would be nice to have a match (or at least some
+> > functionality) resulting in the ability to drop corrupted packets
+> > ("corrupted" as in with the checksum) that would otherwise be accepted.
+> >
+> > Hmm.  Maybe this should be done at a different level?  It should
+> > basically not match "-p tcp" in the rule "iptables -p tcp -j REJECT".
+> > Doing it at "-p tcp" time would also correct "iptables -p tcp --dport 80
+> > -j ACCEPT", which would otherwise also be affected by the same problem
+> > (the TCP port could be corrupted).
+> 
+> No. We simply can't do that. Please consider such config:
+> iptables -A INPUT -p tcp -j ACCEPT
+> iptables -A INPUT -j REJECT
 
-Yes, he fully aware of the issue and the slightly modified version I have
-posted to the list today (not arrived yet, it seems) will hopefully be
-added to 2.6.10.
+Yes, what's the problem?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+If the TCP checksum is fine, "-p tcp" will match and it will accept the
+packet.  If it is corrupted, "-p tcp" will not match and the ACCEPT rule
+will not match.  The REJECT rule will then DROP the packet.  There is
+nothing wrong with this.
+
+The only difference here is the use of "-p tcp" alone to literally match
+the protocol in the IP header (under the IP checksum) versus the use of
+"-p tcp" to enable inspection of the TCP header.
+
+For example, if this rule were to match a packet with a bad TCP checksum,
+it would be broken (because the port could be corrupted):
+
+	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+
+On the other hand, it would not be broken to match in this case:
+
+	iptables -A INPUT -p tcp -j ACCEPT
+
+...which may be what you are getting at.  Fixing this requires a syntax
+or design change, most likely.
+
+> I thing we really need somethig like "-m malformed" so we can do tricks
+> like: iptables -A FORWARD -m malformed -j DROP (to drop malformed packets)
+> or: iptables -A FORWARD -m malformed -j ACCEPT (to stop further processing such packets)
+
+Sure, adding the a corrupted test is useful for things such as logging,
+etc.  However, requiring the firewall user to check for corruption
+explicitly before any "-p tcp --tcp-blah" rules is just going to make
+the iptables learning curve even higher, and 99% of us are going to miss
+it.  Simply, I think it's broken.
+
+So, how does the code structure of iptables work in this case?  Can the
+checksum be added in a single place such that "-p tcp" alone will match
+but any of --dport, --sport, --syn, --tcp-flags, --tcp-option, --mss,
+multiport, etc?
+
+Simon-
