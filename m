@@ -1,15 +1,11 @@
-From: Jonas Berlin <jberlin@niksula.hut.fi>
-Subject: Re: netfilter & ipv6
-Date: Thu, 10 Feb 2005 19:20:34 +0200
-Message-ID: <420B97E2.3090003@niksula.hut.fi>
-References: <42086F50.9090504@niksula.hut.fi> <420B6A93.3080005@niksula.hut.fi>
-	<60195.142.169.215.10.1108046474.squirrel@142.169.215.10>
+From: Jan Du Caju <Jan.DuCaju@kuleuven.net>
+Subject: [PATCH] nf-log for 2.4.29
+Date: Thu, 10 Feb 2005 18:27:12 +0100
+Message-ID: <20050210172712.GC4353@kuleuven.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Samuel Jean <sj-netfilter@cookinglinux.org>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <60195.142.169.215.10.1108046474.squirrel@142.169.215.10>
+Content-Type: multipart/mixed; boundary="a8Wt8u1KmwUX3Y2C"
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,52 +17,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Samuel Jean wrote:
 
->On Thu, February 10, 2005 9:07 am, Jonas Berlin said:
->
->Hi Jonas!
->  
->
-Hello Samuel!
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->>  ip6tables ... -j CLASSIFY_v6 --set-class 1:20
->>
->>Although this works fine, having some modules with suffix _v6 and some
->>not is just plain confusing. Is there any way to reuse the CLASSIFY for
->>ipv6 name without conflicting with the CLASSIFY module already in pom?
->>Maybe I missed something?
->>    
->>
->
->You have to create an ipv6 directory into the CLASSIFY in pom.
->
->CLASSIFY/linux/net/ipv6/netfilter/ip6t_CLASSIFY.c
->  
->
-Yeah that would be nice, but I think there is a problem: the newest 
-kernels already have the ipv4 version included, and so patch-o-matic 
-would either consider CLASSIFY already installed and skip it or then it 
-would probably complain while installing that it there were some 
-conflicts with the files. I haven't tested though, but I wouldn't assume 
-it has the logic to pick out the ipv6-specific parts from the directory..
+Hi,
 
->Also, just register your target against ip6_tables with the same name
->as CLASSIFY would do with ip_tables. There's no conflict in that way.
->  
->
-Yeah, it does work fine as CLASSIFY_v6..
+nf-log can not be applied to a 2.4.29 kernel with patch-o-matic-ng-20050208
+Please find in attachment a patch that tries to change this.
 
->All of this is a AFAIK.
->  
->
-Same here :D
+Greetings,
+Jan.
+--------------------------------------------------- KULeuvenNet -------
+Jan.DuCaju@kuleuven.net         http://www.kuleuven.net/e_index.html
+K.U.Leuven                      http://www.kuleuven.ac.be/english/
+LUDIT - KULeuvenNet             http://ludit.kuleuven.be/index_en.html
+de Croylaan 52A                 3001 Leuven                     Belgium
+-----------------------------------------------------------------------
 
->Thanks for your effort,
->Samuel
->  
->
-Thanks for the reply.. I haven't got any others yet.
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="patchFor_nf-log_linux-2.4.patch"
 
--- 
-- xkr47
+--- nf-log/linux-2.4.patch	Thu Feb 10 18:12:18 2005
++++ nf-log-2.4.29/linux-2.4.patch	Thu Feb 10 18:11:45 2005
+@@ -100,9 +100,9 @@
+ +	}
+ +}
+ +
+- /* This does not belong here, but ipt_REJECT needs it if connection
+-    tracking in use: without this, connection may not be in hash table,
+-    and hence manufactured ICMP or RST packets will not be associated
++ /* This does not belong here, but locally generated errors need it if connection
++    tracking in use: without this, connection may not be in hash table, and hence
++    manufactured ICMP or RST packets will not be associated with it. */
+ diff -urN --exclude-from=diff.exclude linux-2.4.20-base/net/ipv4/netfilter/ipt_LOG.c linux-2.4.20-log/net/ipv4/netfilter/ipt_LOG.c
+ --- linux-2.4.20-base/net/ipv4/netfilter/ipt_LOG.c	2002-02-25 20:38:14.000000000 +0100
+ +++ linux-2.4.20-log/net/ipv4/netfilter/ipt_LOG.c	2003-05-13 19:30:26.000000000 +0200
+@@ -474,6 +474,7 @@
+  EXPORT_SYMBOL(nf_setsockopt);
+  EXPORT_SYMBOL(nf_getsockopt);
+  EXPORT_SYMBOL(ip_ct_attach);
++ EXPORT_SYMBOL(nf_ct_attach);
+ +EXPORT_SYMBOL(nf_log_register);
+ +EXPORT_SYMBOL(nf_log_unregister);
+ +EXPORT_SYMBOL(nf_log_packet);
+
+--a8Wt8u1KmwUX3Y2C--
