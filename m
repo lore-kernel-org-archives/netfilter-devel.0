@@ -1,11 +1,13 @@
-From: Sven Anders <anders@anduras.de>
-Subject: NOT in mport / multiport
-Date: Mon, 08 Nov 2004 12:33:12 +0100
-Message-ID: <418F5978.2010902@anduras.de>
+From: "lu.peng" <lu.peng.louis@163.com>
+Subject: How to limit the rate of the TCP connections from a subnet?
+Date: Mon, 8 Nov 2004 19:53:48 +0800
+Message-ID: <MHEFLEOMPIPCIFEKLNIPEEGGCAAA.lu.peng.louis@163.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090006000209010709000404"
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,43 +19,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090006000209010709000404
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Why did the mport and multiport matches do not support inverting? Any reason?
-
-Pablo Neira did some changes on these lately, so why didn't you implemented the negation?
-
-I think ANY matching module should support negation of itself...
-
-(Any if any compatibilty with the user space program will break, why not? We are useded to
-it - it does break every two versions of ip-tables...)
-
-Regards
-~ Sven
-
-- --
-~ Sven Anders <anders@anduras.de>
-
-~ ANDURAS service solutions AG
-~ Innstraße 71 - 94036 Passau - Germany
-~ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
-
-Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
-Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
-Vorsitzender des Aufsichtsrats: Dipl. Kfm. Karlheinz Antesberger
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFBj1l45lKZ7Feg4EcRAq2fAJ9mQFA2d5V3hWNyzOvTuQz1lZOZCQCgogFG
-vOhfYzj+gOIA+xr3+WM66xE=
-=acxU
------END PGP SIGNATURE-----
-
---------------090006000209010709000404--
+DQoNCkhpLCBhbGwsDQoNCiAgICAgIEkgd2FudCB0byBsaW1pdCB0aGUgcmF0ZSBvZiB0aGUgVENQ
+IGNvbm5lY3Rpb25zIG9mIGV2ZXJ5IHNpbmdsZSBpcCBmcm9tIGEgc3BlY2lmaWMgc3VibmV0LCBi
+dXQgaSBjYW4ndCBmaW5kIGEgZ29vZCB3YXkgdG8gZG8gdGhhdC4NCg0KICAgICAgSSBoYXZlIHN0
+dWRpZWQgdHdvIG1hdGNoZXM6DQogICAgICAxLCAnY29ubmxpbWl0JyAgbWF0Y2gNCiAgICAgICAg
+ICBidXQgdW5mb3J0dW5hdGVseSwgICdjb25ubGltaXQnIG1hdGNoIHByb3ZpZGUgdHdvIHdheXMg
+dG8gbGltaXQgdGhlIHN1bSBvZiB0aGUgVENQIGNvbm5lY3Rpb25zOg0KICAgICAgICAgIDEpIHNp
+bmdsZSBJUA0KICAgICAgICAgIDIpIHdob2xlIHN1Ym5ldCBub3QgZXZlcnkgc2luZ2xlIGlwIG9m
+IHRoZSBzdWJuZXQNCiAgICAgICAgIGFuZCBtb3N0IGltcG9ydGFudGx5LCBpdCBjYW4gbm90IGxp
+bWl0IHRoZSByYXRlICwganVzdCBsaW1pdCB0aGUgc3VtIG9mIHRoZSBUQ1AgY29ubmVjdGlvbnMu
+DQoNCiAgICAgIDIsICdsaW1pdCcgIG1hdGNoZXM6DQogICAgICAgICAgIEkgY2FuIHVzZSAgJy1w
+IHRjcCAtLXN5biAtbSBsaW1pdCAtLWxpbWl0IDYvbSAuLi4uLi4nIHRvIGxpbWl0IHRoZSByYXRl
+IG9mIHRoZSBUQ1AgY29ubmVjdGlvbnMgb2YgdGhlIHdob2xlIHN1Ym5ldCBvciBzaW5nbGUgaXAu
+IGlmIGkgd2FudCB0byBsaW1pdCB0aGUgcmF0ZSBvZiBldmVyeSBzaW5nbGUgaXAgb2YgdGhlIHNw
+ZWNpZmljIHN1Ym5ldCwgSSBzaG91bGQgc2V0IGEgcnVsZSBmb3IgZXZlcnkgaXAuDQoNCiAgICAg
+IHdoYXQgaSB3YW50IGlzIDogIG9ubHkgb25lIHJ1bGUgY2FuIGFjaGlldmUgLS0tbGltaXQgdGhl
+IHJhdGUgb2YgdGhlIFRDUCBjb25uZWN0aW9ucyBvZiBldmVyeSBzaW5nbGUgaXAgZnJvbSBhIHNw
+ZWNpZmljIHN1Ym5ldC4NCg0KDQogICAgICBzb3JyeSBmb3IgbXkgcG9vciBlbmdsaXNoLCAgSSBo
+b3BlIHlvdSBjYW4ga25vdyB3aGF0IGkgbWVhbi4gUGxlYXNlIGhlbHAgbWUgaWYgeW91IGtub3cg
+aG93Lg0KDQogICAgICBUaGFua3MgaW4gYWR2YW5jZS4NCiAgICAgICAgIA0KICAgICANCiAgICAg
+ICAgDQogICAgICANCg0K
