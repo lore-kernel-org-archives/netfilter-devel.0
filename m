@@ -1,15 +1,15 @@
-From: jamal <hadi@cyberus.ca>
-Subject: tc filtering vs iptables
-Date: 27 Aug 2004 09:46:29 -0400
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: tc filtering vs iptables
+Date: Fri, 27 Aug 2004 17:54:41 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1093614389.1068.20.camel@jzny.localdomain>
-Reply-To: hadi@cyberus.ca
+Message-ID: <Pine.LNX.4.61.0408271751360.32691@filer.marasystems.com>
+References: <1093614389.1068.20.camel@jzny.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: jamal <hadi@cyberus.ca>
+In-Reply-To: <1093614389.1068.20.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,23 +20,20 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald or anyone from the netfilter devel cabal: 
+On Fri, 27 Aug 2004, jamal wrote:
 
-I am trying to do a performance comparison for basic stateless
-firewalling using tc and iptables. I want to provide a fair analysis
-but dont know how well to optimize iptables. I know you can use chains
-but not sure what the best way to approach it in this case. I will
-describe what i am trying to do in English and someone please help
-provide it in iptables-speak:
+> Let me know how to create proper chains for a range of hosts
+> {1,2,8, 64,256,4096,8192,16384,32768,64K}
 
-I want to be able to have many hosts[1] accessing a web server at
-TCP port 80. The return path is asymetric so wont go via same box.
-In this case clearly the ephemeral src port will vary as will the src IP
-but nothing else.
-Anything that doesnt match gets dropped i.e thats the default rule.
+For very many unique hosts in iptables it is better to use an ippool for 
+matching the source IP, or to look into using hipac.
 
-Let me know how to create proper chains for a range of hosts
-{1,2,8, 64,256,4096,8192,16384,32768,64K} 
+ippool has the benefit that it allows you to create a group of hosts where 
+the lookup is relatively fast to determine if the IP is among those hosts 
+or not.
 
-cheers,
-jamal
+The benefit of hipac is that any kind of lookup is fast with no need to 
+arrange the ruleset in a special mannner.
+
+Regards
+Henrik
