@@ -1,13 +1,11 @@
-From: Ulises =?iso-8859-1?q?Cervi=F1o?= <ulisescervino@fullzero.com.ar>
-Subject: NAT-PT
-Date: Sat, 19 Oct 2002 10:38:52 -0300
+From: James Bryan <james@penguintowne.com>
+Subject: Question about Porting the cu-seeme ipchains module to iptables.
+Date: 19 Oct 2002 13:10:04 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E182tvv-00066I-00@kashyyyk.netfilter.org>
-Reply-To: ulisescervino@fullzero.com.ar
+Message-ID: <1035051004.18879.2.camel@opus.penguintowne.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -20,15 +18,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello, 
+Has the cu-seeme ipchains module been ported over to work with iptables?
+I know myself and others would be interested in having a working
+cu-seeme module for iptables. :-)
 
-This is my first post to this mailing list. I was reading RFC (which 
-describes NAT-PT) and I was wondering if anyone is working on this. I asking 
-this because I planning to do so, so I like to know if there was anything 
-already done.
-
-Best regards,
 -- 
-Cerviño Ulises <ulisescervino@ciudad.com.ar>
-----------------------------------------------------------------
-Dance is Life!
+James Bryan
+ james@penguintowne.com
