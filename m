@@ -1,15 +1,16 @@
-From: "ISLERO77@telefonica.net" <ISLERO77@telefonica.net>
-Subject: How to observe the changes made in the code
-Date: Sat, 19 Apr 2003 18:56:46 +0200
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: netfilter language
+Date: Sun, 20 Apr 2003 21:50:12 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <676ee6cd29.6cd29676ee@teleline.es>
+Message-ID: <20030420195012.GB1003@oknodo.bof.de>
+References: <200304181524.44951.fabrice@netfilter.org> <20030418113906.98028.qmail@web13906.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Language: es
+To: Scott MacKay <scottmackay@yahoo.com>
 Content-Disposition: inline
+In-Reply-To: <20030418113906.98028.qmail@web13906.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,12 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+>     I was wondering, can C++ be used in developing
+> netfilter modules, or is it really limited more to C? 
 
-Hi, I have no many experience with Linux, and I'm trying to make some 
-changes in an existent match, concretely in ipt_multiport, so I'm modifying 
-the ipt_multiport.c file. Now, when I make any simple change in the code 
-I'm compiling the kernel and I'm losing a lot of time. My question is if it's 
-any other way to observe the results of the changes made in the code. 
- 
-Thanks a lot. 
- 
+ANY kernel development is limited to C - Gnu gcc, to be exact.
+
+> Also, are there any references to the order
+> in which my work would be called?
+
+See the definition of 'enum nf_ip_hook_priorities' in the file
+include/linux/netfilter_ipv4.h. These go into the 'priority' field
+of the 'struct nf_hook_ops' (declaration in include/linux/netfilter.h).
+
+You define such a 'struct nf_hook_ops', and pass it to nf_register_hook(),
+in your module initialization code.
+
+> Because of it's nature, I would need to be called before any other
+> handler module (especially conn track).
+
+Just use a priority numerically lower than -200 (NF_IP_PRI_CONNTRACK).
+
+best regards
+  Patrick
