@@ -1,16 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: what's the lockingrules for ip_conntrack_expect_list?
-Date: Fri, 11 Oct 2002 16:07:39 +0200 (CEST)
+From: Nigel Clarke <nigel@forever-networks.com>
+Subject: Re: need project for school
+Date: Fri, 11 Oct 2002 10:26:51 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0210111559050.29766-100000@blackhole.kfki.hu>
-References: <1034344573.25146.55.camel@tux>
+Message-ID: <200210111426.QCH20922@vmms1.verisignmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Harald Welte <laforge@gnumonks.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, peltco@mail.utexas.edu
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1034344573.25146.55.camel@tux>
+To: Victor Pelt <peltco@mail.utexas.edu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,29 +19,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On 11 Oct 2002, Martin Josefsson wrote:
+Victor, 
 
-> But is it really neccessary to hold ip_conntrack_lock when we are only
-> going to change an expectation and not touch anything else?
-> If we enforce that we always hold a readlock or writelock on
-> ip_conntrack_expect_tuple_lock when we touch it we should be safe?
+If you go with IP filter/tables, take a look at the cluster 
+solutions. Currently it is possible to run IPfilter 
+in "cluster" config using VRRP. This is an active/passive 
+solution. A active/active solution might be more reasonable 
+for the enterprise networks. 
 
-We wanted to avoid possible cross-locking bugs by keeping a strict
-hierarchy of the locks. Sometimes too complicated functions are called
-while a lock is held.
+In addition, take a look a the the current VPN support. I 
+know I'd consider a Linux firewall over Checkpoint if 
+I could get gateway to gateway VPNs working. 
 
-> I think Rusty has changed the lockingrules in his conntrack-optimization
-> patch to only require that we hold the ip_conntrack_expect_tuple_lock.
-
-The other way around: he removed ip_conntrack_expect_tuple_lock
-completely. I think that is the proper way, but it implies that later
-the fine-grained locking is introduced in order to remove the dependency
-of everything on the single ip_conntrack_lock.
-
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Clarke 
