@@ -1,15 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: "cyberyam" <zpeak@cyberyam.com>
 Subject: Re: What can i do ? When i rmmod the modules .
-Date: Fri, 9 May 2003 15:08:06 +0200 (CEST)
+Date: Fri, 9 May 2003 21:16:58 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0305091502210.9035-100000@blackhole.kfki.hu>
-References: <000801c31625$9c29c510$01e7a8c0@zpeak>
+Message-ID: <002f01c3162d$45b49db0$01e7a8c0@zpeak>
+References: <Pine.LNX.4.33.0305091502210.9035-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: cyberyam <zpeak@cyberyam.com>
-In-Reply-To: <000801c31625$9c29c510$01e7a8c0@zpeak>
+To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,27 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 9 May 2003, cyberyam wrote:
-
-> unable to handle kernel NULL pointer dereference at virtual address 000004a0
->  printing eip:
-> c689a16e
-> *pde = 00000000
-> Oops: 0000
-> myfirewall ipt_MASQUERADE iptable_nat ip_conntrack autofs pcnet32 mii ipt_REJE
-> CPU:    0
-> EIP:    0010:[<c689a16e>]    Tainted: P
-> EFLAGS: 00000296
->
-> EIP is at fini [myfirewall] 0x1e (2.4.18-14)
-
-Unfortunately we don't have telepathy capabilities and cannot read out the
-source code of myfirewall from your hard disk.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+SGVsbG8gLEpvenNlZg0KICAgIFRoYW5rcyBmb3IgeW91ciBhbnN3ZXIuDQpUaGUgc291cmNlIGlz
+IGlzIHRoZSBuZXh0ICAgLkkgdCBpcyBqdXN0IGEgdGVzdCBwcm9ncmFtLg0KDQoNCi0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KI2lmbmRlZiBfX0tFUk5FTF9fDQoj
+ZGVmaW5lIF9fS0VSTkVMX18NCiNlbmRpZg0KDQojaWZuZGVmIE1PRFVMRQ0KI2RlZmluZSBNT0RV
+TEUNCiNlbmRpZg0KI2lmbmRlZiBORVRMSU5LX01ZTE9HDQojZGVmaW5lIE5FVExJTktfTVlMT0cg
+ICA2NiANCiNlbmRpZiANCg0KI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KI2luY2x1ZGUgPGxp
+bnV4L3NrYnVmZi5oPg0KI2luY2x1ZGUgPGxpbnV4L25ldGRldmljZS5oPg0KI2luY2x1ZGUgPGxp
+bnV4L3NvY2tldC5oPg0KI2luY2x1ZGUgPGxpbnV4L25ldGxpbmsuaD4NCiNpbmNsdWRlIDxsaW51
+eC9jb25maWcuaD4NCiNpbmNsdWRlIDxsaW51eC9pcC5oPg0KI2luY2x1ZGUgPGxpbnV4L21tLmg+
+DQojaW5jbHVkZSA8bGludXgvdGNwLmg+DQojaW5jbHVkZSA8bGludXgvdWRwLmg+DQojaW5jbHVk
+ZSA8bGludXgvc3BpbmxvY2suaD4NCiNpbmNsdWRlIDxhc20taTM4Ni9zZWdtZW50Lmg+DQojaW5j
+bHVkZSA8YXNtLWkzODYvdWFjY2Vzcy5oPg0KI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY0
+Lmg+DQojaW5jbHVkZSA8bGludXgvc2NoZWQuaD4NCiNpbmNsdWRlIDxuZXQvc29jay5oPg0KI2lu
+Y2x1ZGUgPGxpbnV4L2JpdG9wcy5oPg0KI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY0L2lw
+X3RhYmxlcy5oPg0Kc3RhdGljIHN0cnVjdCBzb2NrICpuZm15bG9nIDsNCg0Kc3RhdGljIHNpemVf
+dCBxbGVuIDsNCiNkZWZpbmUgQlVGRkVSU0laRSA2NTUzNSANCnN0YXRpYyB2b2lkICBteWxvZ19z
+ZW5kKHN0cnVjdCBza19idWZmKiBza2IpDQp7DQogIG5ldGxpbmtfYnJvYWRjYXN0KG5mbXlsb2cs
+c2tiLDAsfjAsR0ZQX0FUT01JQykgOw0KfQ0KDQpzdGF0aWMgdW5zaWduZWQgaW50IG15ZmlyZXdh
+bGwodW5zaWduZWQgaW50IGhvb2tudW0sc3RydWN0IHNrX2J1ZmYgKipza2IsDQogIGNvbnN0IHN0
+cnVjdCBuZXRfZGV2aWNlICppbiwNCiAgY29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKm91dCxpbnQg
+KCpva2ZuKShzdHJ1Y3Qgc2tfYnVmZiopKQ0Kew0KIHN0cnVjdCBza19idWZmICpuZXdza2IgOw0K
+IGludCBsZW4gOw0KIGxlbiA9ICgqc2tiKS0+dHJ1ZXNpemUgOw0KDQogbmV3c2tiID0gYWxsb2Nf
+c2tiKGxlbixHRlBfQVRPTUlDKTsNCiBpZighbmV3c2tiKSB7DQogIHByaW50aygiY2FuJ3QgYWxs
+b2Mgd2hvbGUgYnVmZmVyIFxuIik7DQogfQ0KDQogbmV3c2tiID0gc2tiX2NvcHkoKnNrYixHRlBf
+QVRPTUlDKTsNCg0KIG5ldGxpbmtfYnJvYWRjYXN0KG5mbXlsb2csc2tiLDAgLCAxLEdGUF9BVE9N
+SUMpIDsNCiBrZnJlZV9za2IobmV3c2tiKSA7DQogDQogcmV0dXJuIE5GX0FDQ0VQVDsNCn0NCg0K
+c3RhdGljIHN0cnVjdCBuZl9ob29rX29wcyBpcGxpbWl0ZmlsdGVyPQ0Kew0KIHtOVUxMLE5VTEx9
+LA0KIG15ZmlyZXdhbGwsDQogUEZfSU5FVCwNCiBORl9JUF9QUkVfUk9VVElORywNCiBORl9JUF9Q
+UklfRklMVEVSDQp9Ow0KDQppbnQgIGluaXRfbW9kdWxlKHZvaWQpDQp7DQogbmZteWxvZyA9IG5l
+dGxpbmtfa2VybmVsX2NyZWF0ZShORVRMSU5LX01ZTE9HLE5VTEwpOw0KIHJldHVybiBuZl9yZWdp
+c3Rlcl9ob29rKCZpcGxpbWl0ZmlsdGVyKTsNCn0NCg0Kc3RhdGljICB2b2lkICBjbGVhbnVwX21v
+ZHVsZSh2b2lkKQ0KeyANCiBuZl91bnJlZ2lzdGVyX2hvb2soJmlwbGltaXRmaWx0ZXIpOw0KIHNv
+Y2tfcmVsZWFzZShuZm15bG9nLT5zb2NrZXQpOw0KfQ0KDQoNCg0K
