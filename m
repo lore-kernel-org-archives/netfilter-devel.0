@@ -1,15 +1,13 @@
-From: Oskar Andreasson <blueflux@koffein.net>
-Subject: Re: Some dumb questions...
-Date: Mon, 4 Nov 2002 17:00:27 +0100 (CET)
+From: Didier Tournier <Didier.TOURNIER@gemplus.com>
+Subject: RFC 2694 and iptables
+Date: Mon, 04 Nov 2002 17:48:39 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0211041658260.31431-100000@laptop1.agatha>
-References: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>
+Message-ID: <3DC6A4E7.30708@gemplus.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Joel Linuxdude <linuxlists@hotmail.com>
-In-Reply-To: <F150xCT9EioMhrQkhJn00022e7c@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,64 +18,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Joel,
+Hi,
+I would like to build a dns alg with iptables.
+The main role of a dns alg is to modify DNS response packet by replacing 
+private IP address with public ones.
 
-See http://www.netfilter.org and http://iptables-tutorial.frozentux.net, 
-both sites should answer all your questions. Sidenote, take martins 
-advice, these questions are not development related. 
+I ask anybody if it is a good idea to build a new module target and in 
+this case if I have to rebuild the kernel or if I could build it in user 
+space by using libipq?
+Is there any litterature on how to add a new target module for iptables.
 
-On Sun, 3 Nov 2002, Joel Linuxdude wrote:
+Thanks in advance for your help
+Didier Tournier
 
-> I was referred to this list by one of the Netfilter guys on order to gleen 
-> some information needed to write a decent
-> tutorial/reference guide.
-> 
-> WARNING: POSSIBLE DUMB QUESTIONS. (But, ask me if I care!)
-> 
-> QUESTION: Would a packet created on the Netfilter PC first
-> go through the OUTPUT chain and then through POSTROUTING?
-> If so, what TABLE??? NAT? What about FILTER? I assume:
-> NetFilter system -> (nat)OUTPUT -> (nat)POSTROUTING -> Eth0 -> Internet
-> 
-> QUESTION: Absolutely everything coming INTO an interface
-> first goes to (nat)PREROUTING, right?
-> 
-> QUESTION: Netfilter PC has 3 workstations over Eth1 and they
-> are SNATing through Eth0 and out to the internet. What if
-> somebody conversing with the workstation over...say...
-> IRC gets the IP of the workstation (It would be the Netfilter
-> PC's IP) and pings it.....Of course, it would be pinging
-> the Netfilter PC and NOT the workstation, right? The workstation
-> would not even see any ICMP packets at all, right?
-> 
-> QUESTION: Where is the most effective place to stop spoofed
-> packets or block a port?
-> A) -t nat PREROUTING ???
-> B) -t filter INPUT (for local) and -t filter FORWARD (for LAN)?
-> C) Either A or B would work fine.
-> D) None. You're way off.
-> 
-> 
-> THANK YOU VERY MUCH! These answers will help me out a lot.
-> 
-> Joel
-> 
-> 
-> 
-> 
-> 
-> 
-> _________________________________________________________________
-> Choose an Internet access plan right for you -- try MSN! 
-> http://resourcecenter.msn.com/access/plans/default.asp
-> 
-> 
-> 
+French version :
 
--- 
-----
-Oskar Andreasson
-http://www.frozentux.net
-http://iptables-tutorial.frozentux.net
-http://ipsysctl-tutorial.frozentux.net
-mailto:blueflux@koffein.net
+Bonjour,
+
+Je souhaite écrire un target pour iptables. Celle-ci remplira la 
+fonction DNS-ALG pour IPV4.
+La fonction principale de ce DNSALG sera de remplacer une adresse privée 
+par une publique. (cf RFC 2694).
+
+Pouvez vous me guider un peu sur les points suivant.
+
+Si j'écris un module. dois-je obligatoirement recompiler le noyau ou 
+puis je simplement écrire un shared object.
+Ou puis je trouver des exemple de makefiles pour ce type de shared objects.
+Qu'elle littérature me conseillez vous pour cet exercice?
+Est il possible d'écrire une target en utilisant libipq?
+
+Merci d'avance pour votre aide.
+Didier Tournier
+Gemplus Application research labs.
