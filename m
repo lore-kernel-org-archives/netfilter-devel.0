@@ -1,17 +1,13 @@
-From: Flavio Pescuma <flavio@marasystems.com>
-Subject: Re: how to clear the conntrack table!
-Date: 27 Jun 2003 11:28:11 +0200
+From: Mike-Ro-Chanel <mikerochanel@yahoo.it>
+Subject: Mutex question in iptables
+Date: Mon, 25 Aug 2003 11:54:35 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1056706091.4078.26.camel@alba>
-References: <006301c3630d$7c163260$5b01aa0a@nightmare>
-	 <20030823210837.GE6750@sunbeam.de.gnumonks.org>
+Message-ID: <3F49DCDB.4080804@yahoo.it>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Decoy <yangzehui@boco.com.cn>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030823210837.GE6750@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,21 +18,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-You could look into using the patch I send some day ago.  the you could
-set all connection to unconfirmed, and then set you rule set so that al
-unconfirmed packets pass the rule set
+Hi All,
+a simple question for a match module writing:
 
+Is "checkentry()" and "destroy()" mutex granted by 'ipt_mutex" semaphore?
 
-/flavio
+Regards.
 
-On Sat, 2003-08-23 at 23:08, Harald Welte wrote:
-> On Fri, Aug 15, 2003 at 05:13:05PM +0800, Decoy wrote:
-> > Hi!
-> > 
-> > how can I clear the conntrack table?!
-> 
-> unfortunately there is currently no other way than to unload and reload the
-> ip_conntrack module :(
-> 
-> > Thanks very much!
-> > dec0y
+                Mike-Ro-Chanel
