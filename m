@@ -1,13 +1,14 @@
-From: "olivier" <odanes@free.fr>
-Subject: forwarding one port to a port range with REDIRECT target
-Date: Fri, 4 Mar 2005 17:02:22 +0100
-Message-ID: <013c01c520d3$8d037710$1416a8c0@lannion.citypassenger.com>
-Reply-To: olivier <odanes@free.fr>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: FOLLOW UP: 2.6.11 FTP conntrack problems?
+Date: Sat, 05 Mar 2005 04:04:56 +1100
+Message-ID: <1109955896.26082.7.camel@localhost.localdomain>
+References: <200503032206.26987.durk.van.veen@cox.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+To: durk.van.veen@cox.net
+In-Reply-To: <200503032206.26987.durk.van.veen@cox.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,38 +20,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+On Thu, 2005-03-03 at 22:06 -0800, Durk van Veen wrote:
+> Following up on my earlier email, included below. It appears that ip_nat_ftp 
+> no longer supports the "ports" argument to give it a list of ports for which 
+> to be active.
 
-I would like to use the REDIRECT target to load balance incoming HTTP =
-connections to a few couple of processes (not webservers).
-for example incoming connections are received on port 8000 and forwarded =
-to port 8080 and 8081 (or more).
-I try the following rule:
+Sorry, this is my fault.  It means that the module will fail to load,
+which is why it doesn't work for you.  "ports" is no longer required for
+the NAT module as it is intuited from the settings on the conntrack
+module.
 
-iptables -t nat -A  PREROUTING -p tcp --dport 8000 -j REDIRECT =
---to-ports 8080-8081
+It would be nice to add a patch to re-include the ports param, but print
+a "no longer neccessary" warning when it's used.  And similarly with the
+other NAT helper modules.
 
-the rule seems to be good according to the man page, but all the =
-connections are forwarded to the same port (8080 in this example). I've =
-tried different clients with odd and even IPs but nothing change.
-
-How target port is selected, I've thought round-robin ... (no =
-information found about selection algorithm) ?
-
-a previous post seems to have the same problem but no suitables response =
-was given... (see =
-https://lists.netfilter.org/pipermail/netfilter/2004-January/049701.html)=
-
-
-thanks for your help
-
-NB: I'll do performances tests with httperf, and my stupid question is : =
-is this method (processes load balancing with iptables) has through put =
-limitations ?
-
-my linux box is a redhat 9 :
-# uname -a
-Linux mowgli 2.4.20-8 #1 Thu Mar 13 17:18:24 EST 2003 i686 athlon i386 =
-GNU/Linux
-# iptables --version
-iptables v1.2.7a
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
