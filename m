@@ -1,13 +1,17 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] ipv6 limit match does not support invert
-Date: Mon, 20 Sep 2004 16:57:48 -0700
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: nfsim updates
+Date: Tue, 21 Sep 2004 12:13:39 +1000
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040920235748.GC4094@linuxace.com>
+Message-ID: <1095732625.1940.166.camel@bach>
+References: <20040919223457.GL1307@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="KDt/GgjP6HVcx58l"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jeremy Kerr <jk@ozlabs.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040919223457.GL1307@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,57 +22,30 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 2004-09-20 at 08:34, Harald Welte wrote:
+> Hi!
+> 
+> I was actually over the last days using nfsim for useful debugging the
+> first time :)
+> 
+> Please review (+ integrate?) the following changes:
+> 
+> 1) add open/fopen support to fakesockopt (for iptables-save)
+> 2) block SIGCHILD in message.c (if exec()ed program dies)
+> 3) fix wrong "((len = read(fd, msg, sizeof(*msg)) != sizeof(*msg)))"
+> 4) add iptables-save and iptables-restore as commands
 
---KDt/GgjP6HVcx58l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Committed, with some minor changes to merge with later work.  I'll also
+be committing the nfsim-related testcases soon.
 
-Should have included this in earlier ipv4 version, but here is the
-ipv6 version which clarifies that invert is not supported by limit.
+> btw: Could you please make your current SVN tree publicly accessible
+> at some point?  As stated before, we could also move it to
+> svn.netfilter.org (which actually exists, but also has no public
+> interface yet).
 
-Phil
+Jeremy?
 
-
-
---KDt/GgjP6HVcx58l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ipv6limit
-
-diff -ru ipt-orig/extensions/libip6t_limit.c ipt-new/extensions/libip6t_limit.c
---- ipt-orig/extensions/libip6t_limit.c	2004-06-14 15:02:16.000000000 -0700
-+++ ipt-new/extensions/libip6t_limit.c	2004-09-20 16:55:14.752980888 -0700
-@@ -104,19 +104,14 @@
- 
- 	switch(c) {
- 	case '%':
--		if (check_inverse(optarg, &invert, NULL, 0))
--			exit_error(PARAMETER_PROBLEM,
--				   "Unexpected `!' after --limit");
-+		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
- 		if (!parse_rate(optarg, &r->avg))
- 			exit_error(PARAMETER_PROBLEM,
- 				   "bad rate `%s'", optarg);
- 		break;
- 
- 	case '$':
--		if (check_inverse(optarg, &invert, NULL, 0))
--			exit_error(PARAMETER_PROBLEM,
--				   "Unexpected `!' after --limit-burst");
--
-+		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
- 		if (string_to_number(optarg, 0, 10000, &num) == -1)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "bad --limit-burst `%s'", optarg);
-@@ -127,6 +122,10 @@
- 		return 0;
- 	}
- 
-+	if (invert)
-+		exit_error(PARAMETER_PROBLEM,
-+			   "limit does not support invert");
-+
- 	return 1;
- }
- 
-
---KDt/GgjP6HVcx58l--
+Thanks!
+Rusty.
+-- 
+Anyone who quotes me in their signature is an idiot -- Rusty Russell
