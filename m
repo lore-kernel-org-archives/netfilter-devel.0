@@ -1,17 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: rfc3514
-Date: 01 Apr 2003 17:50:13 +0200
+From: Friedrich Lobenstock <fl@fl.priv.at>
+Subject: Re: extra/pptp-conntrack-nat.patch
+Date: Tue, 01 Apr 2003 21:37:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1049212213.9858.80.camel@tux.rsn.bth.se>
-References: <1049206544.10856.76.camel@tux.rsn.bth.se>
-	 <20030401151318.GA6116@oknodo.bof.de>
+Message-ID: <3E89EA96.3040804@fl.priv.at>
+References: <3E8832B4.8030901@fl.priv.at> <20030331123134.GN7718@sunbeam.de.gnumonks.org> <3E883849.3050706@fl.priv.at> <20030331130715.GR7718@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20030401151318.GA6116@oknodo.bof.de>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030331130715.GR7718@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,18 +21,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2003-04-01 at 17:13, Patrick Schaaf wrote:
-> > And there's another small problem regarding conntrack... conntrack tries
-> > to reassemble all fragments and this doesn't really work with these
-> > packets :)
+Hi!
+
+Harald Welte wrote:
+> On Mon, Mar 31, 2003 at 02:44:57PM +0200, Friedrich Lobenstock wrote:
+>>So I conclude that there is not a W2k at the other side (I missinterpreted
+>>the comment ion the patch the other way round) because I needed to remove
+>>the '//' to get it working. But when I ask the people what they've got
+>>as PPTP-Server they tell me it's a W2k server.
+>>
+>>At least it works now but it looks like a mistery now.
 > 
-> Will you write a suitable conntrack helper? There's still some hours to go :)
+> 
+> indeed. can anybody else on the mailinglist confirm this observation?
+> 
 
-Don't think I'll spend any more time on this extremely useful RFC...
-
-> In any case: thanks for the laugh!
-
-Just couldn't help myself :)
+So what do you think of making this a module option?
+eg.
+   modprobe ip_conntrack_pptp braindead_w2k=[0|1]
+or
+   modprobe ip_conntrack_pptp accept_bad_csum=[0|1]
 
 -- 
-/Martin
+MfG / Regards
+Friedrich Lobenstock
