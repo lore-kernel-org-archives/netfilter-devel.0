@@ -1,12 +1,12 @@
 From: Guillowind@aol.com
 Subject: Re: string patch for 2.6
-Date: Sat, 01 Jan 2005 17:03:43 -0500
-Message-ID: <7EC9EED7.6601B8AC.0B9ABE5A@aol.com>
+Date: Sat, 01 Jan 2005 18:25:14 -0500
+Message-ID: <0AD52117.79752AB5.0B9ABE5A@aol.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-bounces@lists.netfilter.org>
-To: jnk@pwn.emphyrio.org (Dimitris Kotsonis),
+To: Guillowind@aol.com, jnk@pwn.emphyrio.org (Dimitris Kotsonis),
 	netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
 	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,24 +19,11 @@ Sender: netfilter-bounces@lists.netfilter.org
 Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Ok, sorry for the spam/confusion
 
-Perhaps Im going about this the wrong way but Im trying to apply this patch I'd really like to use string patch for 2.6 kernel.
+I made another directory called linux-2.6 in the string directory and copied the files from the linux dir into it then edited the patch to leave out the editing of string/info as it already appeared to have that information, then repatched with patch -p1 < ../kernel-2.6-string patch and there were no errors.
 
-But I get 
-patch -p0 < /usr/src/redhat/SOURCES/kernel-2.6-string.patch
-can't find file to patch at input line 4
-Perhaps you used the wrong -p or --strip option?
-The text leading up to this was:
---------------------------
-|diff -urN patch-o-matic-ng-20041229.orig/string/info patch-o-matic-ng-20041229/string/info
-|--- patch-o-matic-ng-20041229.orig/string/info  2004-02-20 01:55:30.000000000 +0200
-|+++ patch-o-matic-ng-20041229/string/info   2004-12-30 09:45:42.000000000 +0200
---------------------------
-File to patch:
+I ran a make menuconfig for the kernel dir (2.6.10) and it was there, so now Im building the RPMS, Thanks!
 
-when I attempt this, can anyone clarify the next step for me, if I specify the listed file with a full path, then I get another error about line 5 concerning the authors name and so on.
-
-I'd like to get new kernels and iptables rpms built with this patch can anyone clarify this for me
-
-Thanks.
+Brian Urrutia
+RHCE
