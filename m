@@ -1,15 +1,18 @@
-From: Ilguiz Latypov <ilguiz@nit.ca>
-Subject: Re: [PATCH] PPTP conntrack enhancements
-Date: Wed, 4 Dec 2002 06:17:39 -0500 (EST)
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [netfilter-core] netfilter violates RFC 1812
+Date: Wed, 4 Dec 2002 14:06:52 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0212040606320.21660-100000@localhost.localdomain>
-References: <3DEC4A99.9090805@snapgear.com>
+Message-ID: <20021204130651.GF9736@naboo.club.berlin.ccc.de>
+References: <3DE60D10.4060703@rz.rwth-aachen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OZkY3AIuv2LYvjdk"
+Cc: coreteam@netfilter.org, Wolfgang Kueter <wolfgang@shconnect.de>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Philip Craig <philipc@snapgear.com>
-In-Reply-To: <3DEC4A99.9090805@snapgear.com>
+To: Jens Hektor <hektor@rz.rwth-aachen.de>
+Content-Disposition: inline
+In-Reply-To: <3DE60D10.4060703@rz.rwth-aachen.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,32 +24,55 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Philip,
+--OZkY3AIuv2LYvjdk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The updated patch works fine with my tests.
+On Thu, Nov 28, 2002 at 01:33:20PM +0100, Jens Hektor wrote:
+> Hi,
+>=20
+> I'm pretty sure that this has been stated elsewhere, but it would
+> be nice to have a fix because Linux packte filters are clearly
+> running well.
 
-I still get GRE write errors in PoPToP server but they could happen due to
-many other reasons.  E.g., the file descriptor set the daemon monitored
-was never cleared in the beginning of each loop.
+Yup, please refer to multiple threads about this subject on
+netfilter-devel.
 
-I had to add the following line to the bottom of ip_conntrack_proto_gre.c
-in order to avoid an insmod error when loading ip_conntrack_pptp.o.  The
-error message informed that the ip_ct_gre_keymap_destroy symbol could not
-be found.
+> RFC 1812 (pp81-82) clearly states that router with packet filtering
+> capabilities should give ICMP Type "destination unreachable", code
+> "communication administratively prohibited" (13).
 
-    EXPORT_SYMBOL(ip_ct_gre_keymap_destroy);
+this is true.  There are patches floating around for exactly this
+issue.  The problem is: It is impossible to add this feature without
+hurting backwards- or forward-compatibility between new/old
+iptables-userspace and iptables-kernel.  So we're sort of in a no-win
+situation :(
 
-Many thanks for the PPTP conntrack corrections.
+> Bye, Jens Hektor
 
---
-Ilguiz Latypov
-Net Integration Technologies, Inc
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
+=20
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
-tel. +1 (514) 281 9191 x 117
+--OZkY3AIuv2LYvjdk
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-On Tue, 3 Dec 2002, Philip Craig wrote:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-> I've attached a diff against the PPTP conntrack patch to fix
-> various issues.  The major changes are that it now works in
-> the presence of DNAT, and uses GRE expectations in both
-> directions.
+iD8DBQE97f3rXaXGVTD0i/8RAtblAKCFXOHkY3e1GmyzPeYVAd89AYpUJACdGzjH
+ANp6C8dP3CeB+wWaA5haTWs=
+=mFtJ
+-----END PGP SIGNATURE-----
+
+--OZkY3AIuv2LYvjdk--
