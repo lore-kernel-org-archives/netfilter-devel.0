@@ -1,19 +1,18 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Any way of knowing a packet's been defragmented
-Date: Thu, 19 Aug 2004 14:00:57 +0200 (CEST)
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [RFC] ct_sync 0.15 (corrected)
+Date: Thu, 19 Aug 2004 14:13:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408191346500.2389@filer.marasystems.com>
-References: <W5101410375481091705422@asteria.telenet-ops.be>
- <Pine.LNX.4.61.0408051507530.405@filer.marasystems.com>
- <20040819114604.GQ3921@sunbeam.de.gnumonks.org>
+Message-ID: <1092917551.2425.28.camel@nienna.balabit>
+References: <1092407190.2402.120.camel@nienna.balabit>
+	 <20040819110646.GJ3921@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Bart De Schuymer <bdschuym@pandora.be>, shemminger@osdl.org,
-   netfilter-devel <netfilter-devel@lists.netfilter.org>,
-   bridge <bridge@osdl.org>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040819114604.GQ3921@sunbeam.de.gnumonks.org>
+In-Reply-To: <20040819110646.GJ3921@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,39 +23,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 19 Aug 2004, Harald Welte wrote:
+  Hi,
 
->> Eh.. I do not claim to be a bridge guru, but won't such bridge cause
->> serious havoc on the network much like PMTU blackholes does?
->
-> Nobody ever replied to that question.
+2004-08-19, cs keltez=E9ssel 13:06-kor Harald Welte ezt =EDrta:
+> >         On the other hand, it may be possible that the master is not
+> >         able to re-send the packet, for example this may be the case =
+if
+> >         it is "too old", and is not present in the backlog anymore. I=
+n
+> >         this case, the slave should be notified that recovery is not
+> >         possible this way, and it needs to do a full re-sync.
+>=20
+> Within the current protocol, the master can just make that decision and
+> do a full resync without telling the slave.
 
-Actually it was replied but with other words.
+  Indeed. However, I'd like to implement a new state (SLAVE_BROKEN)
+later, which could be used to avoid electing a slave as new master if
+that node is known to be not in sync. A facility of this kind would help
+in early detection of such cases.
 
-The bridge has to drop oversized frames when bridgeing between media of 
-different MTU size due to the simple fact that it can not send them out 
-without violating the specifications of the target media. A bridge can not 
-be responsible for fragmenting oversized packets mainly due to the fact 
-that the bridge is not a router and fragmenting of packets is not defined 
-at the ethernet level. In addition it can not respond with ICMP MUST 
-FRAGMENT as it does not have an IP. It is also from the fine details about 
-which level the bridge operates at (Ethernet, not IP).
+> >      3. There are a few things in the connection tracking code which
+> >         are incompatible with replication "by design". For example,
+> >         the expectfn() function in the expectation structure is such:
+> >         simply, there is no way to replicate a stand-alone function
+> >         pointer which could point to any arbitrary function.=20
+>=20
+> Yes, indeed.  we could look up the symbol name in the symbol table and
+> replicate that ;)   Crude hack, but it would work.
 
-It is the administrators responsibility to make sure he does not build a 
-IP network where bridgeing between different media will cause packets to 
-be dropped. This means that it is theoretically OK to bridge between media 
-of different physical MTU size as long as all hosts on the side with 
-larger MTU knows the actual MTU of the full network segment, not just 
-their physical media. This for example makes perfect sense in a transit 
-network.
+  Unfortunately I don't think it would work... AFAIK there is no symbol
+table information in 2.4 kernels and usually these functions are
+declared as static anyway. Moreover, take a look at the H.323 helper, it
+uses this expectfn function to set the helper of the conntrack to an
+unregistered helper structure... I think there is no point in making
+ct_sync overly complicated; these helpers should be fixed instead. (I
+don't know why the H.323 does things this way, but it is completely
+hopeless to replicate things like this.)
 
-As I view it it is just a minor issue on bridge specification compliance, 
-nothing really important. The resolution is to modify slightly where in 
-the process the bridge drops oversized packets. It should be on transmit, 
-not forward, where the difference between the two is mainly which 
-Netfilter hooks has been called. This change also allows conntrack to do 
-it's work like normal as the bridge will then only drop packets if 
-oversized after it has left all the netfilter bridge hooks.
+> > 	 One more example could be TCP window tracking, I don't think we
+> > 	 have the necessary bandwidth and CPU time to send an update
+> > 	 message after each and every received TCP packet... Any idea
+> > 	 how we could solve these problems?
+>=20
+> We already do this since the timeout is updated with every packet.  So
+> at this point, I see not much difference.  Jozsef and I agreed some tim=
+e
+> in the past, that if we don't replicate all the window information, in
+> the event of a slave being propagated to master, the new master should
+> disable windowtracking or switch into a lazy mode.
 
-Regards
-Henrik
+  Indeed, the timeout is updated with every packet. However, we do not
+generate an update message for IPCT_REFRESH events at the moment. On the
+other hand, we replicate the timeout changes when a state change occurs
+as well, so I don't worry about incorrect (relative) timeout values at
+all.
+
+  Anyway, thanks for the comments.
+
+--=20
+ Regards,
+   Krisztian KOVACS
