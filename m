@@ -1,17 +1,16 @@
 From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: Re: question regarding iptables tuning (was Re: iptables denial of
- services)
-Date: Thu, 22 Apr 2004 22:44:41 +0200
+Subject: Re: limiting connection rate
+Date: Thu, 22 Apr 2004 22:55:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40882EB9.7090306@fl.priv.at>
-References: <Pine.LNX.4.44.0404171843020.22016-100000@filer.marasystems.com> <408167F2.9060501@fl.priv.at> <408180C7.6080302@eurodev.net> <40818C75.8010609@fl.priv.at> <4081911D.1070307@fl.priv.at> <1082234028.13261.375.camel@tux.rsn.bth.se> <4081967F.8040005@fl.priv.at> <1082235494.13261.385.camel@tux.rsn.bth.se> <20040422122301.GC1211@eychenne.org>
+Message-ID: <40883135.20301@fl.priv.at>
+References: <20040422201732.60347.qmail@web41906.mail.yahoo.com>
 Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20040422122301.GC1211@eychenne.org>
+In-Reply-To: <20040422201732.60347.qmail@web41906.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,19 +21,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Herve Eychenne wrote on 22.04.2004 14:23 MET:
-> 
-> I've checked, and the change in hash algorithm appeared in 2.4.21.
-> I have updated the document accordingly.
-> 
-> Here is the new version:
-> http://www.wallfire.org/misc/netfilter_conntrack_perf.txt
-> 
+Hello <realname missing>
 
-Hmmmm....."Last changes on 12/02/2003" ?
+Null Device wrote on 22.04.2004 22:17 MET:
+> 
+> i am using netfilter hooks only.
+> is there a way i can limit the no of connections per
+> second per ip using certail iptable or netfilter
+> modules.
+> i was unable to find any documentation on it.
 
-PS: A BIG THANKS for that document. I has helped me a lot getting a better 
-understanding of the matter.
+Are you talking about client ip (where the connection comes from) or server 
+ip (where the connection goes to)?
+
+In general what about using
+   -m state --state NEW
+in combination with eg.
+   -m limit --limit 3/s
 
 -- 
 MfG / Regards
