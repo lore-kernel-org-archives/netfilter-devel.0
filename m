@@ -1,15 +1,13 @@
-From: James Morris <jmorris@intercode.com.au>
-Subject: Re: [libipq] Accessing packet payload
-Date: Thu, 4 Jul 2002 01:32:30 +1000 (EST)
+From: "Wei Koong CHAI" <eem1wc@eim.surrey.ac.uk>
+Subject: [libipq] Shutdown problem
+Date: Wed, 3 Jul 2002 22:54:00 +0100 (BST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Mutt.LNX.4.44.0207040106140.11542-100000@blackbird.intercode.com.au>
-References: <1231.131.227.136.38.1025691493.squirrel@ike.ee.surrey.ac.uk>
+Message-ID: <1257.131.227.137.112.1025733240.squirrel@ike.ee.surrey.ac.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Wei Koong CHAI <eem1wc@eim.surrey.ac.uk>
-In-Reply-To: <1231.131.227.136.38.1025691493.squirrel@ike.ee.surrey.ac.uk>
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,44 +18,31 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 3 Jul 2002, Wei Koong CHAI wrote:
+Dear all,
 
-> My questions:
-> 
-> [1] In the struct ipq_packet_msg, the data_len field is referring to what? 
-> Is it referring to the length of the whole IP packet (header + payload) or 
-> just the header or the payload alone?
+   I have successfully setup my bridge with netfilter capability to 
+connect two segment of LANs together and now using the below: -
 
-The whole IP packet, which is the packet message payload.
+[1] kernel 2.4.18 (patched with bridge-nf-0.0.6-against-2.4.18.diff)
+[2] iptables-1.2.5
+[3] bridge-utils-0.9.5
 
-> And, is the payload[0] referring to 
-> the first byte of the IP packet?
+   Then i started to develop a userspace program using libipq. Everything 
+works fine until i want to shutdown my linux box. I get the message below 
+every time i try to shutdown my system.
 
-Yes.  Please refer to ipq_get_packet(3).
+unregister_netdevice: waiting for eth1 to become free. Usage count = 14157
 
-> 
-> [2] I have already managed to randomly decide a bit to corrupt within a 
-> packet (which is just inverting the bit) but i'm unsure on how to actually 
-> access the packet (header + payload) and invert the bit.
+   I get the same message (except the number of usage count)... 
 
-An example of packet modification is at:
-http://cvs.netfilter.org/cgi-bin/cvsweb/netfilter/OLD/tools/ipq_client.c
+   Has anybody ever encounter this problem before? Please advice me on how 
+to solve this. I have actually post this problem to the bridge mailing list 
+but after several exchange of mails with the bridge maintainer, it seems 
+that it's not the bridge problem. Most probably, it is with my userspace 
+program. But then, i am writing my program strictly base on the example 
+given in the libipq man pages. 
 
-It won't compile anymore, but is trivial to fix.
+   There is a suggestion that maybe there's packet leaking but i can't 
+figure out how could there be any leak.
 
-> 
-> [3] I have read somewhere that the kernel would silently / automatically 
-> drop the packet if i change the packet without updating the checksum. What 
-> i need to know is that, which kernel will drop the packet? My bridge or the 
-> receiving workstation? I don't want my libipq program to drop it as i need 
-> it to be as transparent as possible.
-
-Generally, the receiving workstation.  I'm sure I've seen the sending 
-kernel drop invalid packets, but can't see (with a brief look) where this 
-would happen in the current kernel.
-
-
-- James
--- 
-James Morris
-<jmorris@intercode.com.au>
+Thank you in advance.
