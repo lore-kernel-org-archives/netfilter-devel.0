@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] fixes for ipt_unclean.c
-Date: Mon, 14 Oct 2002 16:05:33 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] runme patch for 2.5
+Date: 14 Oct 2002 15:30:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021014160533.A13233@sunbeam.de.gnumonks.org>
-References: <20021014132237.N13233@sunbeam.de.gnumonks.org> <20021014132620.O13233@sunbeam.de.gnumonks.org> <20021014.042139.48671253.davem@redhat.com>
+Message-ID: <1034602229.7609.152.camel@tux>
+References: <Pine.LNX.4.44.0210131708170.15495-200000@sparrow>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MhDS85o8hQkNlKhq"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <20021014.042139.48671253.davem@redhat.com>; from davem@redhat.com on Mon, Oct 14, 2002 at 04:21:39AM -0700
+To: William Stearns <wstearns@pobox.com>
+In-Reply-To: <Pine.LNX.4.44.0210131708170.15495-200000@sparrow>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,64 +22,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, 2002-10-13 at 23:15, William Stearns wrote:
+> Good evening, Martin, Harald, all,
+> 
+> On 10 Oct 2002, Martin Josefsson wrote:
+> 
+> > Here's a small patch that will make patch-o-matic work with kernel 2.5
+> > There's been some configurationchanges (Documentation/Configure.help
+> > doesn't exist anymore)
+> > 
+> > This patch will make 'runme' incompatible with kernel 2.4 so use it only
+> > with 2.5 kernels.
+> 
+> 	Many thanks, Martin, for the work.
+> 	I've attached a patch, based on Martin's approach, that detects 
+> whether Config.help or Configure.help is in use and automatically uses 
+> what it finds.
+> 	The second parameter to apply_config_help_change(s) has been 
+> changed to the file to use rather than the directory in which Config*.help 
+> lives.
+> 	The patched runme successfully finds help files in 2.4.19 and 
+> 2.5.42-ac1.  Please let me know if there are problems with it.
 
---MhDS85o8hQkNlKhq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I think this looks ok but I havn't tested it yet. As long as p-o-m is
+compatible with both 2.4 and 2.5 this would be a nice thing to include.
+(and the same runme could be used for both 2.4 and 2.5 p-o-m when they
+are split)
 
-On Mon, Oct 14, 2002 at 04:21:39AM -0700, David Miller wrote:
->    From: Harald Welte <laforge@gnumonks.org>
->    Date: Mon, 14 Oct 2002 13:26:20 +0200
->=20
->    I've actually already sent you the UDP checksum fix.  The UDP sport fi=
-x is=20
->    new, though.  Just ignore the one failing hunk, thanks.
->=20
-> You need to resend it anyways as I've already deleted the original
-> email sorry :(
+-- 
+/Martin
 
-No problem. Here it comes again.=20
-
---- linux-2.4.19-vanilla/net/ipv4/netfilter/ipt_unclean.c	2002-09-10 16:06:=
-50.000000000 +0200
-+++ linux/net/ipv4/netfilter/ipt_unclean.c	2002-10-12 00:56:09.000000000 +0=
-200
-@@ -216,10 +216,9 @@
- 				 csum_partial((char *)udph, datalen, 0)) !=3D 0)
- 		return 0;
-=20
--	/* CHECK: Ports can't be zero. */
--	if (!udph->source || !udph->dest) {
--		limpk("UDP zero ports %u/%u\n",
--		      ntohs(udph->source), ntohs(udph->dest));
-+	/* CHECK: Destination port can't be zero. */
-+	if (!udph->dest) {
-+		limpk("UDP zero destination port\n");
- 		return 0;
- 	}
-=20
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---MhDS85o8hQkNlKhq
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9qs8tXaXGVTD0i/8RAkqWAJ9VCuq4ESLeymeeVgSzOcVs6cykLACfUSxv
-9gTCztaUysB3Oqkr9v+O4dE=
-=q95p
------END PGP SIGNATURE-----
-
---MhDS85o8hQkNlKhq--
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
