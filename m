@@ -1,17 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: mutex or semaphore
-Date: Sun, 30 Mar 2003 20:42:37 +0200
+Subject: [PATCH] 2.4.x iptables iptable_mangle LOCAL_IN bugfix
+Date: Sun, 30 Mar 2003 21:36:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030330184237.GO7718@sunbeam.de.gnumonks.org>
-References: <200303281746.24624.zigie@gmx.de>
+Message-ID: <20030330193641.GS7718@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0kRkyLZR5zsR9u2P"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="U5J2I87mWnf1KeOw"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Christian Ziegler <zigie@gmx.de>
+To: David Miller <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <200303281746.24624.zigie@gmx.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +21,38 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---0kRkyLZR5zsR9u2P
+--U5J2I87mWnf1KeOw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 28, 2003 at 05:46:24PM +0100, Christian Ziegler wrote:
-> Hello,
->=20
-> I hope I've choosed the right mailing list.
->=20
-> Does iptables use a mechanism like mutex or semaphore?
+Hi Davem!
 
-it uses a mutex.
+The patch below fixes a bug when the MARK target is used in the INPUT
+chain of the mangle table.
 
-> Or should I use some lock-files in my scripts to avoid simultaneous acces=
-s to=20
-> the rules?
+This one is for 2.4.x, expect the 2.5.x fix in my next email.
 
-no, this is not necessarry. any iptables command will execute
-atomically.
+Please apply, thanks.
 
-> Thank you
-> Chris
+
+diff -Nru --exclude .depend --exclude *.o --exclude *.ver --exclude .*.flag=
+s --exclude *.orig --exclude *.rej --exclude *~ linux-2.4.20-plain/net/ipv4=
+/netfilter/iptable_mangle.c linux-2.4.20-mangleinput/net/ipv4/netfilter/ipt=
+able_mangle.c
+--- linux-2.4.20-plain/net/ipv4/netfilter/iptable_mangle.c	Mon Feb 25 20:38=
+:14 2002
++++ linux-2.4.20-mangleinput/net/ipv4/netfilter/iptable_mangle.c	Wed Jan  8=
+ 18:09:36 2003
+@@ -170,7 +170,7 @@
+ static struct nf_hook_ops ipt_ops[]
+ =3D { { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_PRE_ROUTING,=20
+ 	NF_IP_PRI_MANGLE },
+-    { { NULL, NULL }, ipt_local_hook, PF_INET, NF_IP_LOCAL_IN,
++    { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_LOCAL_IN,
+ 	NF_IP_PRI_MANGLE },
+     { { NULL, NULL }, ipt_route_hook, PF_INET, NF_IP_FORWARD,
+ 	NF_IP_PRI_MANGLE },
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -57,7 +64,7 @@ atomically.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---0kRkyLZR5zsR9u2P
+--U5J2I87mWnf1KeOw
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -65,9 +72,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+hzqdXaXGVTD0i/8RAmlnAJ9zOy3n59tJIZuss0Tne7mgwqxdygCgkyaQ
-GoYyiIO65Ayn71BPKuEqgHE=
-=Oq80
+iD8DBQE+h0dJXaXGVTD0i/8RAmAYAJ46CrZwMRAksCZXmF4uVBgRlnenqwCfSBrX
+bmXXV1taDhF5RF9vhjGmoPI=
+=2fHR
 -----END PGP SIGNATURE-----
 
---0kRkyLZR5zsR9u2P--
+--U5J2I87mWnf1KeOw--
