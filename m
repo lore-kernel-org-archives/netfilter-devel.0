@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Redirect problem in bridge
-Date: Wed, 23 Jul 2003 14:15:48 +0200
+Subject: Re: Netbios problem with NAT
+Date: Wed, 23 Jul 2003 14:15:12 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030723121548.GM3733@naboo>
-References: <00c301c3502c$f6cae120$33c909c0@rsaxena>
+Message-ID: <20030723121512.GL3733@naboo>
+References: <BAY5-F38OUbYAGeZNeH00001598@hotmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sl5MdczEF/OU2Miu"
-Cc: NetFilter <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="it/zdz3K1bH9Y8/E"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ravi Saxena <rsaxena@networkprograms.com>
+To: Song Wang <song_wang@msn.com>
 Content-Disposition: inline
-In-Reply-To: <00c301c3502c$f6cae120$33c909c0@rsaxena>
+In-Reply-To: <BAY5-F38OUbYAGeZNeH00001598@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +23,29 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---sl5MdczEF/OU2Miu
+--it/zdz3K1bH9Y8/E
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 22, 2003 at 02:10:52PM +0530, Ravi Saxena wrote:
-> BlankHello All,
+On Tue, Jul 22, 2003 at 12:00:25AM -0700, Song Wang wrote:
+> Hi,
 >=20
-> I'm using bridge-nf-0.0.7-against-2.4.19.diff patch for bridge firewallin=
-g.
->=20
-> But I am facing a problem in adding this rule.
->=20
-> iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 80=
-80
-> it always give error as invalid arguments.
->=20
-> Can anyone suggest the reason.
+> I found a problem with netbios when 2 Windows PCs behind a NAT router try=
+=20
+> to access the same shared directory on the Windows server sitting on
+> the other side of the NAT router.  (kernel 2.4.17 w/ iptables 1.2.7a)
 
-you most likely just need to recompile your iptables program.
+why did you ever think that this would work?  Even the microsoft
+knowledge base contains an article that you'd need some kind of special
+NAT support for it, in order to mangle the contents of the netbios
+packets.
 
-> regards
-> Ravi Saxena
+> Could this be a problem of netbios with connection tracking? Maybe we nee=
+d=20
+> to write a nat helper module for netbios?
+
+yes, indeed. A nat helper would be required.  Patches welcome.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -57,16 +57,16 @@ you most likely just need to recompile your iptables program.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---sl5MdczEF/OU2Miu
+--it/zdz3K1bH9Y8/E
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE/HnxzXaXGVTD0i/8RAgplAKCV5Fyk8wVzSgYgXvKgXqWfBJDVNACfWJ90
-vSsi9Vb4g4/HTOSQz+DkVLw=
-=GU45
+iD8DBQE/HnxPXaXGVTD0i/8RAsFpAJ9CB5WrKUO9ZMSgMkUAxAWmYuQn0wCgiGUz
+UoX/yfPJO0oJNXPbVzVBPIA=
+=m335
 -----END PGP SIGNATURE-----
 
---sl5MdczEF/OU2Miu--
+--it/zdz3K1bH9Y8/E--
