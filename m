@@ -1,16 +1,17 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: init_conntrack() low hanging fruit
-Date: Sun, 7 Jul 2002 12:51:41 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: cttest-0.1
+Date: Sun, 7 Jul 2002 13:00:40 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020707125141.L13116@oknodo.bof.de>
-References: <20020707123754.K13116@oknodo.bof.de>
+Message-ID: <200207071300.40861@henrik.marasystems.com>
+References: <20020706224109.GH3729@aaricia.hemmet.chalmers.se> <20020707042341.GK3729@aaricia.hemmet.chalmers.se> <20020707054607.GL3729@aaricia.hemmet.chalmers.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="i0/AhcQY5QxfSsSZ"
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
-Content-Disposition: inline
-In-Reply-To: <20020707123754.K13116@oknodo.bof.de>; from bof@bof.de on Sun, Jul 07, 2002 at 12:37:54PM +0200
+To: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson),
+	netfilter-devel@lists.samba.org
+In-Reply-To: <20020707054607.GL3729@aaricia.hemmet.chalmers.se>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,86 +22,41 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sunday 07 July 2002 07.46, Joakim Axelsson wrote:
+> res = ((key->sip & 0xF0F0F0F0) >> 4) | ((key->sip & 0x0F0F0F0F) <<
+> 4); res *= 0x47441DFB;
+> res ^= key->dip ^ key->proto;
+> res ^= ((key->dport << 16) | key->sport);
+> res ^= 0x57655A7D;
+> res ^= (res >> 24);
+> res ^= (res >> 8);
+>
+>
+> Now someone else have to take a look at it. I digged my head into a
+> corner.
 
---i0/AhcQY5QxfSsSZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hmm...
 
-Just spotted one more thing, rediff appended. Now that I've saved some
-horizontal screen real estate, the drop error can be single-line again...
+> res ^= key->dip ^ key->proto;
+> res ^= ((key->dport << 16) | key->sport);
 
-:)
-  Patrick
+can easily nullify itself.. here you are just xor:ing the destination 
+IP with the source and destination ports, which makes a highly 
+predictable hash pattern..
 
+To always hit the same hash bucket you just need to keep the source IP 
+constant, and the result of the above XOR constant..
 
---i0/AhcQY5QxfSsSZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="bof-conntrack.1.patch"
+> res ^= 0x57655A7D;
+> res ^= (res >> 24);
+> res ^= (res >> 8);
 
---- linux-2.4.19-post7/net/ipv4/netfilter/ip_conntrack_core.c	Fri Apr 19 21:50:25 2002
-+++ bof-conntrack/net/ipv4/netfilter/ip_conntrack_core.c	Sun Jul  7 12:36:57 2002
-@@ -485,35 +485,20 @@
- {
- 	struct ip_conntrack *conntrack;
- 	struct ip_conntrack_tuple repl_tuple;
--	size_t hash, repl_hash;
- 	struct ip_conntrack_expect *expected;
- 	int i;
--	static unsigned int drop_next = 0;
--
--	hash = hash_conntrack(tuple);
- 
- 	if (ip_conntrack_max &&
- 	    atomic_read(&ip_conntrack_count) >= ip_conntrack_max) {
--		/* Try dropping from random chain, or else from the
--                   chain about to put into (in case they're trying to
--                   bomb one hash chain). */
--		if (drop_next >= ip_conntrack_htable_size)
--			drop_next = 0;
--		if (!early_drop(&ip_conntrack_hash[drop_next++])
--		    && !early_drop(&ip_conntrack_hash[hash])) {
--			if (net_ratelimit())
--				printk(KERN_WARNING
--				       "ip_conntrack: table full, dropping"
--				       " packet.\n");
--			return ERR_PTR(-ENOMEM);
--		}
-+		goto under_pressure;
- 	}
- 
-+let_it_pass:
-+
- 	if (!invert_tuple(&repl_tuple, tuple, protocol)) {
- 		DEBUGP("Can't invert tuple.\n");
- 		return NULL;
- 	}
--	repl_hash = hash_conntrack(&repl_tuple);
- 
- 	conntrack = kmem_cache_alloc(ip_conntrack_cachep, GFP_ATOMIC);
- 	if (!conntrack) {
-@@ -572,6 +557,23 @@
- 	if (expected && expected->expectfn)
- 		expected->expectfn(conntrack);
- 	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
-+
-+under_pressure: {
-+		/* Try dropping from random chain, or else from the
-+		   chain about to put into (in case they're trying to
-+		   bomb one hash chain). */
-+		static size_t drop_next = 0;
-+		size_t victim = drop_next;
-+		size_t next = victim + 1;
-+		drop_next = (next < ip_conntrack_htable_size) ? next : 0;
-+		if (	early_drop(&ip_conntrack_hash[victim])
-+		     || early_drop(&ip_conntrack_hash[hash_conntrack(tuple)]))
-+			goto let_it_pass;
-+		if (net_ratelimit())
-+			printk(KERN_WARNING
-+		       "ip_conntrack: table full, dropping packet.\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
- }
- 
- /* On success, returns conntrack ptr, sets skb->nfct and ctinfo */
+And this is twofold.. it both obfuscates the bits and probably makes 
+it likelier an attacker can find bits that nullify eachother, 
+especially so if the hash size is not prime (or at a minimum odd).. 
+These 5 xor statements xor:s quite many sources into the lower bits, 
+always in the same order.. I am pretty sure you will find very 
+interesting iterference patterns if you unwind these xors.
 
---i0/AhcQY5QxfSsSZ--
+Regards
+Henrik
