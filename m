@@ -1,13 +1,16 @@
-From: Nagaraj G <gnraj@teneoris.com>
-Subject: Help Needed in Connection Tracking/NAT
-Date: Tue, 24 Feb 2004 19:40:41 +0530
+From: Chee Yong TAN <chee_yong_tan@hotmail.com>
+Subject: Re: Sending back out A TCP Packet from netfilter
+Date: Tue, 24 Feb 2004 15:00:19 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1077631840.3772.48.camel@localhost.localdomain>
+Message-ID: <403AF683.2060905@hotmail.com>
+References: <Pine.LNX.4.44.0402231518470.1686-100000@filer.marasystems.com> <403AB462.6080404@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter <netfilter-devel@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <403AB462.6080404@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,55 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Everyone,
+Additional information regarding unable to sending back out thru lo interface
 
-I am a developer working on a new application module (NAT ALG) using the
-netfilter NAT/ConnTrack framework.
+my module hooks on 2 netfilter hooks NF_IP_LOCAL_IN and NF_IP_POST_ROUTING
 
-I am using Linux 2.4.10 kernel.
+I did see the reply packet going out via the POST_ROUTING hook and coming back 
+via the LOCAL_IN hook
 
-I am facing a strange problem with the ConnTrack/NAT framework which I
-am not able to understand. Can you please help me understanding the
-framework and help me in solving my problem.
+Note: There is extensive logging in my module looking at the network headers.
+The header information do not seems to have any problem.
 
-My application protocol is as follows:
+POST_ROUTING - orginal packet
+LOCAL_IN - orginal packet
+POST_ROUTING - reply packet
+LOCAL_IN - reply packet
 
-1. A new packet is sent from a port X to a well known port MY_PORT. I
-hook my NAT helper for MY_PORT and I get called for this packet to
-mangle the contents.
+both tcpdump and my application failed to receive the changed packet.
 
-2. The response for the above packet does not come to X at all, It
-always comes to MY_PORT. So, I create a new expectation using
-expect_related.
+i even tried flushing off my iptables to get rid of all the rules and set back 
+the policy to ACCEPT for all chains
 
-3. In one scenario, the response packet comes from MY_PORT destined to
-MY_PORT. In this scenario, my Nat_Expect function gets called for
-MANIP_DST and I supply the destIp and destPort (which again is MY_PORT)
-of the internal host in multi_range structure and call nat_setup_info.
-After this I attach my helper to the info supplied. After this, I get
-called into my Nat_Help routine to handle this packet for the contents
-which I do and complete the packet. After this, for all the outgoing
-packets destined to MY_PORT, I don't see my Nat_Help routine getting
-called. The packets go out without the content being mangled.
-
-4. In another scenario, the response packet comes from a new port Y
-destined to MY_PORT. In this scenario also, I do the same things as in 3
-above. But, in this case, I get called for all future packets going out.
-
-
-I am not able to understand what is going wrong in this scenario
-mentioned in 3 above. 
-
-Please help me.
-
-Am I missing something? Do you want me send you the code snippets?
-
-
-By the way, is Rustie or Harald listening on this list?
-
-
-Thanks in advance
-
-Best Regards,
-
-Nagaraj
+The application running from another subnetwork connecting to my machine works 
+perfectly fine (with iptables firewalling rules turned on)...
