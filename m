@@ -1,13 +1,15 @@
-From: Jonas Berlin <jberlin@niksula.hut.fi>
+From: "Samuel Jean" <sj-netfilter@cookinglinux.org>
 Subject: Re: netfilter & ipv6
-Date: Thu, 10 Feb 2005 16:07:15 +0200
-Message-ID: <420B6A93.3080005@niksula.hut.fi>
-References: <42086F50.9090504@niksula.hut.fi>
+Date: Thu, 10 Feb 2005 09:41:14 -0500 (EST)
+Message-ID: <60195.142.169.215.10.1108046474.squirrel@142.169.215.10>
+References: <42086F50.9090504@niksula.hut.fi> <420B6A93.3080005@niksula.hut.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42086F50.9090504@niksula.hut.fi>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <420B6A93.3080005@niksula.hut.fi>
+To: "Jonas Berlin" <jberlin@niksula.hut.fi>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,26 +21,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jonas Berlin wrote:
+On Thu, February 10, 2005 9:07 am, Jonas Berlin said:
 
-> 3. If I succeed porting something, what should I name the patch to be 
-> sent to patch-o-matic-ng? I don't think I could just extend the 
-> existing ones as that would suggest the original authors have 
-> something to do with it and also some of them also are pending or 
-> already included in the ekernel. So, would CLASSIFY_v6 be an 
-> acceptable name for the ipv6 version of CLASSIFY?
+Hi Jonas!
 
-After twisting some bits around, my CLASSIFY_v6 seems to work 
-succesfully, however the naming is awkward since the name of the name of 
-the module essentially determines the name of the target, the module 
-etc. So one has to write
+>
+>   ip6tables ... -j CLASSIFY_v6 --set-class 1:20
+>
+> Although this works fine, having some modules with suffix _v6 and some
+> not is just plain confusing. Is there any way to reuse the CLASSIFY for
+> ipv6 name without conflicting with the CLASSIFY module already in pom?
+> Maybe I missed something?
 
-  ip6tables ... -j CLASSIFY_v6 --set-class 1:20
+You have to create an ipv6 directory into the CLASSIFY in pom.
 
-Although this works fine, having some modules with suffix _v6 and some 
-not is just plain confusing. Is there any way to reuse the CLASSIFY for 
-ipv6 name without conflicting with the CLASSIFY module already in pom? 
-Maybe I missed something?
+CLASSIFY/linux/net/ipv6/netfilter/ip6t_CLASSIFY.c
 
--- 
-- xkr47
+Same for the include
+CLASSIFY/linux/include/linux/netfilter_ipv6/ip6t_CLASSIFY.h
+
+Also, just register your target against ip6_tables with the same name
+as CLASSIFY would do with ip_tables. There's no conflict in that way.
+
+All of this is a AFAIK.
+
+>
+> --
+> - xkr47
+>
+
+Thanks for your effort,
+Samuel
