@@ -1,15 +1,16 @@
-From: Leen Besselink <leen@wirehub.nl>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: Bug (?) in ipt_reject doesn't follow policy routing (2.4.x)
-Date: Mon, 14 Apr 2003 09:27:32 +0200 (CEST)
+Date: Mon, 14 Apr 2003 09:59:33 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.21.0304140923320.411-100000@debian.besselink>
-References: <Pine.LNX.4.21.0304132204320.31984-100000@debian.besselink>
-Reply-To: leen@wirehub.nl
+Message-ID: <20030414075933.GJ18520@oknodo.bof.de>
+References: <Pine.LNX.4.21.0304132035370.31823-100000@debian.besselink>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.21.0304132204320.31984-100000@debian.besselink>
+To: Leen Besselink <leen@wirehub.nl>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.21.0304132035370.31823-100000@debian.besselink>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,26 +21,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 13 Apr 2003, Leen Besselink wrote:
+HiHo,
 
-> On Sun, 13 Apr 2003, Leen Besselink wrote:
+> OK, first the situation...
 > 
-> > Hi netfilter-hackers,
-> > 
-> > So, I think the 'local ? nskb->nh.iph->saddr : 0' can actually be
-> > removed, am I right ?
-> > 
+> I use policy routing to decide (based on the from-address) on what
+> out-interface to send a packet (and thus a different sender IP-address and
+> gateway).
 > 
-> OK, tried that, didn't work..., strange, maybe I should just add a printk
-> or something, see what happends, or see if I have a routing problem as
-> well.
-> 
-> Works with the default-route, strange. BTW, I think the part
+> But... when I use reject-with tcp-reset, for a port on a host on the
+> network behind my firewall, the tcp-reset-packet goes over the wrong
+> interface.
 
-OK, I took a closer look, the icmp's from --reject-with don't go past the
-policy-routing rules either.
+I don't understand that description fully. Let's be more specific.
+You have an outside host O, a policy router P, and an inside target T.
+Further assume that O sends in packets on P.eth0, and T sits on P.eth1.
 
-Any ideas on how I can make it so, any pointers ?
+1) when O sends a packet to P, P will see a source-NATted address Q, right?
+   If not, what did you mean with 'thus a different sender IP-address'?
 
-tia,
-	Leen.
+2) is the reject-with-tcp-reset rule on P or T?
+
+3) in the situation you describe, O tries to send to T?
+
+4) when the RST goes out the wrong interface, what interface is that,
+   and on what interface did the packet come in?
+
+5) how do the source and destination IP addresses of that RST packet
+   look at PREROUTING?
+
+6) how do the source and destination IP addresses of that RST packet
+   look at POSTROUTING / on the outgoing wire?
+
+Maybe, if you can answer these questions, we'll be able to understand
+your problem. Maybe somebody can do that even without those answers,
+but the silence you received up to now indicates that's unlikely.
+
+best regards
+  Patrick
