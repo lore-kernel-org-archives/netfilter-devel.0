@@ -1,114 +1,78 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: [patch, cosmetic] CONNMARK update to minimize conflicts
-Date: Mon, 17 May 2004 11:26:50 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405171123280.10765-200000@filer.marasystems.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [netfilter-core] memory leak with IP connection tracking and IP forwarding
+Date: Mon, 17 May 2004 09:14:53 +0200
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20040517071453.GE26147@obroa-skai.de.gnumonks.org>
+References: <200405041305.55627.tspat@de.ibm.com> <20040504115808.GJ6345@sunbeam.de.gnumonks.org> <200405041602.26635.tspat@de.ibm.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-1510554117-1084786010=:10765"
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+SfteS7bOf3dGlBC"
+Cc: linux-net@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@lists.netfilter.org
+Return-path: <linux-net-owner@vger.kernel.org>
+To: tspat@gmx.de
+Content-Disposition: inline
+In-Reply-To: <200405041602.26635.tspat@de.ibm.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
 
----1463811839-1510554117-1084786010=:10765
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+--+SfteS7bOf3dGlBC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Attached is a trivial update to convert the last remaining linux.patch 
-fragments to suitable .ladd files. This should resolve any conflicts 
-CONNMARK may have with other patches, at least if CONNMARK is applied 
-last..
+On Tue, May 04, 2004 at 04:02:26PM +0200, Thomas Spatzier wrote:
+> > > I'm experiencing a major memory leak if I run a router with IP connec=
+tion
+> > > tracking enabled and packets larger than MTU size.
+> >
+> > How do you observe such a memory leak?  What exact values are you
+> > looking at?
+>=20
+> On the router I issue a 'watch -n 1 cat /proc/meminfo'.
+> Then I do a 'ping -f -s 64000' from one host to another host via the rout=
+er.
+> On each update of my watch above there are about 10 MB of memory
+> (MemFree) missing.
 
-There is no change in the resulting code, just the patch format.
+MemFree is not significant in this case.  please refer to your favourite
+linux kernel FAQ.
 
-Regards
-Henrik
+> I also watched /proc/slabinfo and noticed the increasing size of the
+> skbuff_head_cache slab.
 
----1463811839-1510554117-1084786010=:10765
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="CONNMARK.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0405171126500.10765@filer.marasystems.com>
-Content-Description: 
-Content-Disposition: attachment; filename="CONNMARK.patch"
+does it increase and stay at a certain value, or increase indefinitely?
+my guess is that you are observing quite normal behaviour, after getting
+used, the slab cache allocates some memory which is then re-used again
+and again.
 
-SW5kZXg6IENPTk5NQVJLL2luZm8NCj09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0N
-ClJDUyBmaWxlOiAvY3ZzcHVibGljL3BhdGNoLW8tbWF0aWMtbmcvQ09OTk1B
-UksvaW5mbyx2DQpyZXRyaWV2aW5nIHJldmlzaW9uIDEuMg0KZGlmZiAtdSAt
-cjEuMiBpbmZvDQotLS0gQ09OTk1BUksvaW5mbwkyMCBEZWMgMjAwMyAxNzoy
-NjoyMyAtMDAwMAkxLjINCisrKyBDT05OTUFSSy9pbmZvCTE3IE1heSAyMDA0
-IDA5OjIyOjM4IC0wMDAwDQpAQCAtMSw0ICsxLDMgQEANCiBBdXRob3I6IEhl
-bnJpayBOb3Jkc3Ryb20gPGhub0BtYXJhc3lzdGVtcy5jb20+DQogU3RhdHVz
-OiB3b3JraW5nDQogUmVwb3NpdG9yeTogZXh0cmENCi1EZXBlbmRzOiAhY29u
-bmJ5dGVzDQpJbmRleDogQ09OTk1BUksvbGludXgucGF0Y2gNCj09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT0NClJDUyBmaWxlOiBDT05OTUFSSy9saW51eC5wYXRj
-aA0KZGlmZiAtTiBDT05OTUFSSy9saW51eC5wYXRjaA0KLS0tIENPTk5NQVJL
-L2xpbnV4LnBhdGNoCTggTWF5IDIwMDQgMTQ6Mjk6MTAgLTAwMDAJMS41DQor
-KysgL2Rldi9udWxsCTEgSmFuIDE5NzAgMDA6MDA6MDAgLTAwMDANCkBAIC0x
-LDI1ICswLDAgQEANCi1kaWZmIC11TiAtLWV4Y2x1ZGUgLiogLS1leGNsdWRl
-ICoubyBsaW51eC0yLjQuMy1wcmUzL25ldC9pcHY0L25ldGZpbHRlci9pcF9j
-b25udHJhY2tfc3RhbmRhbG9uZS5jIGxpbnV4LTIuNC4zLXByZTMtdW1sL25l
-dC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jDQot
-LS0tIGxpbnV4LTIuNC4zLXByZTMvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nv
-bm50cmFja19zdGFuZGFsb25lLmMJVGh1IEF1ZyAxMCAyMTozNToxNSAyMDAw
-DQotKysrIGxpbnV4LTIuNC4zLXByZTMtdW1sL25ldC9pcHY0L25ldGZpbHRl
-ci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jCVdlZCBNYXIgMjEgMTM6MDQ6
-MTkgMjAwMQ0KLUBAIC05Miw2ICs5Miw5IEBADQotIAkJbGVuICs9IHNwcmlu
-dGYoYnVmZmVyICsgbGVuLCAiW1VOQ09ORklSTUVEXSAiKTsNCi0gCWxlbiAr
-PSBzcHJpbnRmKGJ1ZmZlciArIGxlbiwgInVzZT0ldSAiLA0KLSAJCSAgICAg
-ICBhdG9taWNfcmVhZCgmY29ubnRyYWNrLT5jdF9nZW5lcmFsLnVzZSkpOw0K
-LSsjaWYgZGVmaW5lZChDT05GSUdfSVBfTkZfQ09OTlRSQUNLX01BUkspDQot
-KwlsZW4gKz0gc3ByaW50ZihidWZmZXIgKyBsZW4sICJtYXJrPSVsZCAiLCBj
-b25udHJhY2stPm1hcmspOw0KLSsjZW5kaWYNCi0gCWxlbiArPSBzcHJpbnRm
-KGJ1ZmZlciArIGxlbiwgIlxuIik7DQotIA0KLSAJcmV0dXJuIGxlbjsNCi0t
-LS0gbGludXgtMi40LjQtcHJlMS1obm8vbmV0L2lwdjQvbmV0ZmlsdGVyL2lw
-X2Nvbm50cmFja19jb3JlLmMJRnJpIE1heSAgMyAxNTo0MjoyNiAyMDAyDQot
-KysrIGxpbnV4LTIuNC40LXByZTEtdW1sL25ldC9pcHY0L25ldGZpbHRlci9p
-cF9jb25udHJhY2tfY29yZS5jCUZyaSBNYXkgIDMgMTU6NDQ6MTEgMjAwMg0K
-LUBAIC03MjQsNiArNzI0LDkgQEANCi0gCQlfX3NldF9iaXQoSVBTX0VYUEVD
-VEVEX0JJVCwgJmNvbm50cmFjay0+c3RhdHVzKTsNCi0gCQljb25udHJhY2st
-Pm1hc3RlciA9IGV4cGVjdGVkOw0KLSAJCWV4cGVjdGVkLT5zaWJsaW5nID0g
-Y29ubnRyYWNrOw0KLSsjaWYgQ09ORklHX0lQX05GX0NPTk5UUkFDS19NQVJL
-DQotKwkJY29ubnRyYWNrLT5tYXJrID0gZXhwZWN0ZWQtPmV4cGVjdGFudC0+
-bWFyazsNCi0rI2VuZGlmDQotIAkJTElTVF9ERUxFVEUoJmlwX2Nvbm50cmFj
-a19leHBlY3RfbGlzdCwgZXhwZWN0ZWQpOw0KLSAJCWV4cGVjdGVkLT5leHBl
-Y3RhbnQtPmV4cGVjdGluZy0tOw0KLSAJCW5mX2Nvbm50cmFja19nZXQoJm1h
-c3Rlcl9jdChjb25udHJhY2spLT5pbmZvc1swXSk7DQpJbmRleDogQ09OTk1B
-UksvbGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3Jl
-LmMubGFkZA0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KUkNTIGZpbGU6IENP
-Tk5NQVJLL2xpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tf
-Y29yZS5jLmxhZGQNCmRpZmYgLU4gQ09OTk1BUksvbGludXgvbmV0L2lwdjQv
-bmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3JlLmMubGFkZA0KLS0tIC9kZXYv
-bnVsbAkxIEphbiAxOTcwIDAwOjAwOjAwIC0wMDAwDQorKysgQ09OTk1BUksv
-bGludXgvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3JlLmMu
-bGFkZAkxNyBNYXkgMjAwNCAwOToyMjozOCAtMDAwMA0KQEAgLTAsMCArMSw0
-IEBADQorCQlleHBlY3RlZC0+c2libGluZyA9IGNvbm50cmFjazsNCisjaWYg
-Q09ORklHX0lQX05GX0NPTk5UUkFDS19NQVJLDQorCQljb25udHJhY2stPm1h
-cmsgPSBleHBlY3RlZC0+ZXhwZWN0YW50LT5tYXJrOw0KKyNlbmRpZg0KSW5k
-ZXg6IENPTk5NQVJLL2xpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25u
-dHJhY2tfc3RhbmRhbG9uZS5jLmxhZGQNCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0NClJDUyBmaWxlOiBDT05OTUFSSy9saW51eC9uZXQvaXB2NC9uZXRmaWx0
-ZXIvaXBfY29ubnRyYWNrX3N0YW5kYWxvbmUuYy5sYWRkDQpkaWZmIC1OIENP
-Tk5NQVJLL2xpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tf
-c3RhbmRhbG9uZS5jLmxhZGQNCi0tLSAvZGV2L251bGwJMSBKYW4gMTk3MCAw
-MDowMDowMCAtMDAwMA0KKysrIENPTk5NQVJLL2xpbnV4L25ldC9pcHY0L25l
-dGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jLmxhZGQJMTcgTWF5
-IDIwMDQgMDk6MjI6MzggLTAwMDANCkBAIC0wLDAgKzEsNCBAQA0KKwkJICAg
-ICAgIGF0b21pY19yZWFkKCZjb25udHJhY2stPmN0X2dlbmVyYWwudXNlKSk7
-DQorI2lmIGRlZmluZWQoQ09ORklHX0lQX05GX0NPTk5UUkFDS19NQVJLKQ0K
-KwlsZW4gKz0gc3ByaW50ZihidWZmZXIgKyBsZW4sICJtYXJrPSVsZCAiLCBj
-b25udHJhY2stPm1hcmspOw0KKyNlbmRpZg0K
----1463811839-1510554117-1084786010=:10765--
+Interesting is also not the sizze of the SLAB, but the number of objects
+in use from a particular slab.
+
+> Regards,
+> Thomas.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--+SfteS7bOf3dGlBC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAqGZsXaXGVTD0i/8RAtuZAJ9ezTrO9R1dE2bIimG8lDcNeb0djwCeMXMx
+2YXYLF551DW4pUewPCWrbto=
+=XMVB
+-----END PGP SIGNATURE-----
+
+--+SfteS7bOf3dGlBC--
