@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: patch-o-matic , how to use it,
-Date: Thu, 29 Jan 2004 10:12:27 +0100 (CET)
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: libnfnetlink status
+Date: Thu, 29 Jan 2004 10:45:25 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401291009480.16238-100000@filer.marasystems.com>
-References: <20040129060024.76651.qmail@web25204.mail.ukl.yahoo.com>
+Message-ID: <4018D635.7030504@eurodev.net>
+References: <Pine.LNX.4.44.0401290954520.16238-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: =?iso-8859-1?q?rohit=20persaie?= <persaie@yahoo.co.in>
-In-Reply-To: <20040129060024.76651.qmail@web25204.mail.ukl.yahoo.com>
+To: Henrik Nordstrom <hno@marasystems.com>,
+	netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0401290954520.16238-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,17 +21,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 29 Jan 2004, rohit persaie wrote:
+Henrik Nordstrom wrote:
 
-> i want to use patch-o-matic , and also want to create 
-> a patch of my own .
+>With the usage of libnfnetlink broadening well beyond iptables2 with the
+>introduction of ctnetlink/nfnetlink kernel component into p-o-m, how about
+>making the related libraries (libnfnetlink/libctnetlink) more official by
+>moving/importing it into the iptables package, or maybe making some kind
+>of release of it separately?
+>  
+>
+Hi Henrik,
 
-There is a README which describes how to use it, and a NEWPATCHES document 
-describing how to create new p-o-m patches.
+this is my chance to ask, what's the status of those libraries up to 
+now? Is there any docs about them or they still need to be done?
 
-But please note that there is currently a transition from patch-o-match to 
-patch-o-matic-ng using a different patch format. The usage is still 
-identical.
-
-Regards
-Henrik
+thanks!!
+Pablo
