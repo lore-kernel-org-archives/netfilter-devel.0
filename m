@@ -1,15 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [netfilter-core] RFP - Request For Participation
-Date: Tue, 15 Feb 2005 02:00:25 +0100
-Message-ID: <20050215010025.GV3829@sunbeam.de.gnumonks.org>
-References: <9e07bb0c05021214067569fff5@mail.gmail.com>
+From: Jonas Berlin <jberlin@niksula.hut.fi>
+Subject: Re: netfilter & ipv6
+Date: Tue, 15 Feb 2005 03:29:15 +0200
+Message-ID: <4211506B.8050600@niksula.hut.fi>
+References: <42086F50.9090504@niksula.hut.fi> <420B6A93.3080005@niksula.hut.fi>
+	<Pine.LNX.4.62.0502102231060.6223@mercury.sdinet.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y9o+fgG4MNl0mnzl"
-Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org
-To: Tarek Amr <tarekamr@gmail.com>
-Content-Disposition: inline
-In-Reply-To: <9e07bb0c05021214067569fff5@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Sven-Haegar Koch <haegar@sdinet.de>
+In-Reply-To: <Pine.LNX.4.62.0502102231060.6223@mercury.sdinet.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,55 +21,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Sven-Haegar Koch wrote:
 
---Y9o+fgG4MNl0mnzl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>> since the name of the name of the module essentially determines the 
+>> name of the target, the module etc.
+>
+> why?
+> the module in patch-o-matic-ng (the top directory name) could be named 
+> CLASSIFY_v6, containing the target CLASSIFY for ipv6, with the kernel 
+> module named ip6t_CLASSIFY.
+> I see nothing which prevents this.
 
-On Sun, Feb 13, 2005 at 12:06:27AM +0200, Tarek Amr wrote:
-> Hello
-> How to participate in NetFilter developmen. I like writting code
-> especially in kernel space using LKMs. I am not familiar with working
-> in big projects not working with CSV and so. But I'd like to learn any
-> way.
+Oh! You're right, it worked. I must have had something wrong somewhere 
+before when it complained. Excellent! :)
 
-First of all thanks for your request.  All development discussion
-happens on netfilter-devel@lists.netfilter.org, you should subscribe to
-that list.  Secondly, getting used to working with subversion (svn) is a
-good step forward.
+> c'ya
+> sven
 
-We usually don't give svn committ access to anyone outside the coreteam,
-so all contributions are sent in via patches (unified diffs), i.e. the
-output of 'svn diff'.
+Thanks,
 
-Just watch how others submit their work on netfilter-devel.
-
-Also, for any kind of questions, netfilter-devel is your friend :)
-
-Cheers,
-	Harald
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---Y9o+fgG4MNl0mnzl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFCEUmpXaXGVTD0i/8RAsDpAJ42uENo8lhyPyXBM1VvrJ4EIPr7ogCgjHVF
-4/Ns129ZptwLpvX8H03sm/8=
-=TGb/
------END PGP SIGNATURE-----
-
---Y9o+fgG4MNl0mnzl--
+-- 
+- xkr47
