@@ -1,16 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Iptables 1.3.1 still not very fast.
-Date: Sun, 3 Apr 2005 23:11:30 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0504032310260.16488@filer.marasystems.com>
-References: <89b63d049739b257@mayday.cix.co.uk>
-	<20050402124038.0201.LARK@linux.net.cn>
-	<ade359ba902d15c6@mayday.cix.co.uk>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re[2]: [PATCH] new 'tcpack' match
+Date: Sun, 3 Apr 2005 23:30:59 +0200
+Message-ID: <878113493.20050403233059@dns.toxicfilms.tv>
+References: <42464598.9040707@outerspace.dyndns.org>
+	<425032D5.2010302@trash.net>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robert de Bath <list-netfilter@debath.co.uk>
-In-Reply-To: <ade359ba902d15c6@mayday.cix.co.uk>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <425032D5.2010302@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +22,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2 Apr 2005, Robert de Bath wrote:
+> I can see that it would be useful, given all the half-working ACK
+> matching rules for shaping floating around, but we already a tcp
+> match, so it should be done in there, and, if possible, kept a little
+> bit more generic. Perhaps a data-len match option.
+Hmm. I'm no guru, but isn't it possible to do that using the u32 filter
+with tc? Which propably is faster than doing it in iptables anyway.
 
-> So you actually need two hashtables for the example 'blacklist' one in
-> each mode.  For an IP packet a single lookup is needed on the ip-address
-> hash but upto 30 lookups would be needed on the net-address hash.
-
-For networks/ranges hash tables is the wrong kind of data structure. Trees 
-are much more appropriate for this form of data.
-
-Regards
-Henrik
+--
+Maciej
