@@ -1,44 +1,41 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [FUN] New target: passive OS fingerprinting.
-Date: Mon, 24 Nov 2003 11:18:06 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031124101806.GI4888@obroa-skai.de.gnumonks.org>
-References: <20031124020436.334cf2c6.johnpol@2ka.mipt.ru>
+Subject: Re: IPv6 multicast (MLD,IGMP) code bypasses netfilter hooks
+Date: Mon, 24 Nov 2003 11:24:51 +0100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20031124102451.GJ4888@obroa-skai.de.gnumonks.org>
+References: <OFBBD13E53.65F0744F-ON88256DE7.003D0DE0@us.ibm.com> <20031123224414.0bea3633.davem@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mFHiwr52TKrxpkjc"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+	protocol="application/pgp-signature"; boundary="W/+CTqSGWdiRg+8j"
+Cc: David Stevens <dlstevens@us.ibm.com>, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: "David S. Miller" <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <20031124020436.334cf2c6.johnpol@2ka.mipt.ru>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+In-Reply-To: <20031123224414.0bea3633.davem@redhat.com>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
 
---mFHiwr52TKrxpkjc
+--W/+CTqSGWdiRg+8j
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 24, 2003 at 02:04:36AM +0300, Evgeniy Polyakov wrote:
-> New target which trying to determine(by passive fingerprinting)=20
-> remote OS by set of parameters from initial SYN packet which was sent to
-> us.
+On Sun, Nov 23, 2003 at 10:44:14PM -0800, David S. Miller wrote:
 
-why an additional target?  I don't think it's a good idea to copy+paste
-all that code. =20
+> David Stevens <dlstevens@us.ibm.com> wrote:
+>=20
+> > Here's a patch to add netfilter hooks for MLD v1 & v2. Can you take
+> > quick look at it, Harald?
+>=20
+> Whoa, David beat me to it, on a weekend no less :)))
 
-You could maybe add a '--log' option to the match or whatever... but I
-really don't think it's a good idea to have the same code replicated as
-match and as target.
+Thanks, David & David :)
+
+> It looks good to me.  Applied, thanks.
+
+obviously fine with mee, too.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -50,16 +47,16 @@ match and as target.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---mFHiwr52TKrxpkjc
+--W/+CTqSGWdiRg+8j
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/wdrdXaXGVTD0i/8RAlzKAJ4wy3CqM5QPsqyaoQGjXHjz4gbtngCgjdER
-pTnRb4U9rf3P28j18eLhaS4=
-=B8kX
+iD8DBQE/wdxzXaXGVTD0i/8RAvskAKCa3uDiy7EsfvZs5+/R903R+s6otwCfU5Hz
+Asp39O69bw/z9cTCgun7ujs=
+=Suf4
 -----END PGP SIGNATURE-----
 
---mFHiwr52TKrxpkjc--
+--W/+CTqSGWdiRg+8j--
