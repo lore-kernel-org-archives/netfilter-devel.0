@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] sparc64 compatibility netfilter patches
-Date: Thu, 2 Jan 2003 09:57:34 +0100
+Subject: Re: ECN target bug report
+Date: Thu, 2 Jan 2003 10:03:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030102085734.GL9467@sunbeam.de.gnumonks.org>
-References: <20030101171654.B25870@linux.karinthy.hu>
+Message-ID: <20030102090326.GM9467@sunbeam.de.gnumonks.org>
+References: <3DF1F442.806@istitutocolli.org> <3DF508CA.6000107@istitutocolli.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8bBEDOJVaa9YlTAt"
-Cc: netfilter-devel@lists.netfilter.org,
-	"David S . Miller" <davem@redhat.com>
+	protocol="application/pgp-signature"; boundary="e5bfZ/T2xnjpUIbw"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Laszlo Valko <valko@linux.karinthy.hu>
+To: Andrea Rossato <mailing_list@istitutocolli.org>
 Content-Disposition: inline
-In-Reply-To: <20030101171654.B25870@linux.karinthy.hu>
+In-Reply-To: <3DF508CA.6000107@istitutocolli.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,47 +23,47 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---8bBEDOJVaa9YlTAt
+--e5bfZ/T2xnjpUIbw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 01, 2003 at 05:16:54PM +0100, Laszlo Valko wrote:
-> Hi all!
->=20
-> Here are two patches to make netfilter "more" usable on sparc64
-> platforms with 32-bit user-space.
+On Mon, Dec 09, 2002 at 10:19:06PM +0100, Andrea Rossato wrote:
+> attached you will find 3 patches. the first one is an attempt to prove=20
+> the existence of the problem.=20
 
-Thanks a lot for this valuable contribution!
+> the second is just a hack that provides a temporary solution it's just
+> a workaround: packets with ec e cwr bits set and good checksum will be
+> stripped and checksum recalculated from scratch.
 
-> The first one is a workaround for the not-so-nice idea of passing
-> a user-space pointer in a structure for setsockopt. The patch makes
-> the netfilter counters working.
+I agree that this is not=20
 
-Unfortunately we will never get netfilter-specific code into the
-sys_sparc32.c file (and we also really don't want it to be there).
+> The problem, as far as I can see it, could be located in csum_partial=20
+> (arch/i386/lib/checksum.S, meaning a platform dependent problem): i'm=20
+> not a kernel hacker (i'm a lawyer, a legal scholar actually), but i do=20
 
-Is there no solution which only touches iptables userspace and kernel
-code? (net/ipv4/netfilter/* as well as libiptc.c in userspace)?
+hey, usually people say IANAL, but you could say IANAP ;)
 
-> Please review, comment, etc.
->=20
-> Laszlo
-> email: <valko@linux.karinthy.hu>
->=20
->=20
-> PS: the first patch is the best I can imagine without changing the way
-> of data exchange (maybe putting the counters struct at the end of struct
-> ipt_replace, after the entries, with offset pointers like struct ipt_entry
-> uses with target_offset and next_offset?), even though it results in
-> HORRIBLE amount of copying for EVERY iptables change command.
+> not see any mistake in the way partial checksum is carried out in=20
+> tcp_etc_set. anyway checksum after partial or total recalculation=20
+> differ. That's a fact. Evidence of the fact  can be gained with the=20
+> second patch: in this case the kernel will log the checksum after=20
+> partial recalculation and after total recalculation (that means that two=
+=20
+> calculations will take place). The two values differ!
 
-I understand... but still... putting netfilter code into the sparc64
-architecture dependent syscall code sounds like a bigger hack to me.
+It's most certainly not a bug in csum_partial(), since this function is
+used all over the place, including other targets like TTL and even the
+NAT core itself.
 
-btw: I think we can spare DaveM from further discussions on this topic,
-I will inform him as soon as we have found a final solution to the
-issue.
+I think there is an error in the way I used the function to recalculate
+the TCP checksum.  I'll have a look.
+
+> Thanks for your attention.
+
+Thanks for helping us!
+
+> andrea
 
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -75,7 +74,7 @@ issue.
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---8bBEDOJVaa9YlTAt
+--e5bfZ/T2xnjpUIbw
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -83,9 +82,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+E/7+XaXGVTD0i/8RAlyEAKCvyI0tuH0cN21MtCifAFBGXyeVmACfWv+h
-gKPDeW8+rsAC3m8qJS1/uCk=
-=U4Yn
+iD8DBQE+FABeXaXGVTD0i/8RAi7YAJ9eDGrNoKVwYZb9dOKSoo7xhoveYgCglcDQ
+suEHClxJIHJMGhfsIcCCmQw=
+=1Tjf
 -----END PGP SIGNATURE-----
 
---8bBEDOJVaa9YlTAt--
+--e5bfZ/T2xnjpUIbw--
