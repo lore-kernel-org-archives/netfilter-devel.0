@@ -1,16 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: PKTTABLES?
-Date: Wed, 24 Mar 2004 17:05:24 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: problem when loading ip_tables
+Date: Wed, 24 Mar 2004 17:51:22 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4061B1C4.5060305@eurodev.net>
-References: <20040324155901.GA11345@linux.org.ar>
+Message-ID: <Pine.LNX.4.44.0403241750440.31592-100000@filer.marasystems.com>
+References: <40616A52.3080704@netlab.hut.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Diego Woitasen (Lanux)" <diegows@linux.org.ar>,
- netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040324155901.GA11345@linux.org.ar>
+To: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+In-Reply-To: <40616A52.3080704@netlab.hut.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,20 +20,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Wed, 24 Mar 2004, Emmanuel Guiton wrote:
 
-Diego Woitasen (Lanux) wrote:
+> insmod: ip_tables: no module by that name found
+> 
+> while the module ip_tables.o exists. insmod finds without problem the 
+> other modules like for example ipt_REDIRECT, ip_conntrack, iptable_nat...
 
->Which is the state of PKTTABLES?
->  
->
-in development
 
->I want to contribute to the project but i don't see code updates in cvs.
->  
->
-AFAIK, Harald is busy working on libipt2 and after finishing that, he 
-will work on pkttables again.
+Probably your modules.dep is not up to date.
 
-regards,
-Pablo
+Regards
+Henrik
