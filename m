@@ -1,16 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: RE: How can I get these packets in the user space application?
-Date: Thu, 9 Dec 2004 17:59:22 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0412091757470.1688@filer.marasystems.com>
-References: <4EE0CBA31942E547B99B3D4BFAB3481125897A@mail.esn.co.in>
+Subject: Re: How can I get these packets in the user space application?
+ Performance Issues?
+Date: Thu, 9 Dec 2004 18:02:15 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0412091801040.1688@filer.marasystems.com>
+References: <OF3990817D.244AD4C0-ON86256F65.005572ED-86256F65.0055EDC2@ra.rockwell.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: kung@uiuc.edu, netfilter-devel@lists.netfilter.org,
-	Diego Woitasen <diegows@linux.org.ar>,
-	"Mukund JB." <mukundjb@esntechnologies.co.in>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Srinivas G." <srinivasg@esntechnologies.co.in>
-In-Reply-To: <4EE0CBA31942E547B99B3D4BFAB3481125897A@mail.esn.co.in>
+To: Steven J Scott <sjscott@ra.rockwell.com>
+In-Reply-To: <OF3990817D.244AD4C0-ON86256F65.005572ED-86256F65.0055EDC2@ra.rockwell.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +21,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 9 Dec 2004, Srinivas G. wrote:
+On Thu, 9 Dec 2004, Steven J Scott wrote:
 
-> Actually I need to send the packets to user space and then in the user
-> space I need to do some calculations on the packet data and then I want
-> to send the packet back to kernel space.
+> I have a side question on this.  I have a kernel module that creates a
+> netfilter hook that looks for packets with a certain source port, and then
+> directs them to NF_QUEUE, and I have a user space application that receives the queued packets.
+> Since I am only queuing packets I want to monitor/modify is my performance
+> hit significant?  Or am I better off doing everything within the kernel
+> module?
 
-Perfect fit for QUEUE.
+Only the packets you return NF_QUEUE on receives a noticeable performance 
+penalty.
 
-> I understood that queue the packet for user space handling. Finally we
-> can issue 'nf_reinject' to send the packet into the network path again.
-
-ip_queue manages all of this automatically for you. See libipq in the 
-iptables package for how to write user-space side of things.
-
-Unless you have very special demands you should not need to make any 
-kernel changes, just use iptables as usual and send what you want to 
-process in userspace to -j QUEUE
+But if all you do is to look into the source port then why not use plain 
+iptables for the match?
 
 Regards
 Henrik
