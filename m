@@ -1,13 +1,15 @@
-From: Peter Kundrat <kundrat@kundrat.sk>
-Subject: priority of MANGLE and NAT tables
-Date: Wed, 10 Jul 2002 10:00:36 +0200
+From: James Morris <jmorris@intercode.com.au>
+Subject: Re: [PATCH] Iptables multiport match fix
+Date: Wed, 10 Jul 2002 19:23:51 +1000 (EST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020710080036.GA9220@napri.sk>
+Message-ID: <Mutt.LNX.4.44.0207101922001.1563-100000@blackbird.intercode.com.au>
+References: <veznx0ejov.fsf@inigo.ingate.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
+To: Marcus Sundberg <marcus@ingate.com>
+In-Reply-To: <veznx0ejov.fsf@inigo.ingate.se>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,40 +20,26 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On 9 Jul 2002, Marcus Sundberg wrote:
 
-Basically i have the following problem: shaping together with SNAT works
-only in one direction (incoming) .. but i am writing here since i
-believe it is implementation problem .. not configuration one (but i
-might have overlooked something).
+> Hi,
+> 
+> The multiport match checks for the IPT_INV_PROTO flag in the 'flags'
+> member of struct ipt_ip instead of in the 'invflags' member.
+> 
 
-If i shape using u32 .. the packet gets classified with real addresses,
-which is too late for outgoing traffic (since the source address is
-allready rewritten).
+Thanks, the patch looks good, even though inverted multiport isn't 
+functional.
 
-So the only chance is using fwmark and classify for that. Fine .. but 
-the problem remains, since there is no hook for mangle table, where the
-the src addr/port (and dst parts in reply packets) would correspond 
-to the internal (translated addr/ports) = in PREROUTING .. mangle is before nat (so
-before rewriting dst addr/port), and there is no mangle hook in POSTROUTING
-(which would help, since it would be before SNAT).
+> (Where should I send this btw? The kernel part of iptables doesn't
+> seem to be in the netfilter CVS. Was I supposed to create a p-o-m
+> patch? Or send it directly to Marcelo?)
+> 
 
-So my questions are (since any of those would save me):
-- what is the reason there is no hook for mangle table in POSTROUTING ?
-- is there any reason why NAT is after MANGLE (i.e. has higher numerical
-  priority) ?
-
-I can live with my local change reverting order for MANGLE/SNAT or 
-adding MANGLE hook to the POSTROUTING .. but i would still be interested
-in your opinion and why it was done this way.
-
-Thanks for any info. Regards,
-
-	peter
-
-PS: please CC me, since i am not subscribed
+netfilter-devel is the best bet.
 
 
+- James
 -- 
-Peter Kundrat
-peter@kundrat.sk
+James Morris
+<jmorris@intercode.com.au>
