@@ -1,14 +1,13 @@
-From: Meg <root@server.titansoft.ru>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: REDIRECT
-Date: Mon, 13 Dec 2004 19:11:53 +0500
-Message-ID: <604750014.20041213191153@server.titansoft.ru>
+Date: Mon, 13 Dec 2004 16:59:40 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0412131657200.10816@filer.marasystems.com>
 References: <1538174627.20041213183631@server.titansoft.ru>
-Reply-To: Meg <root@server.titansoft.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: r00t <root@server.titansoft.ru>
 In-Reply-To: <1538174627.20041213183631@server.titansoft.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -21,35 +20,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, r00t.
-
-
-
->>> How to i make by libipq  this rule:
->>> -j REDIRECT --to-ports 3128 ?
-
->>You don't.
->>REDIRECT or other NAT related operations must be done in the kernel.
+On Mon, 13 Dec 2004, r00t wrote:
 
 > Ok, but if i use this:
-
+>
 > -A PREROUTING -p tcp -j QUEUE
 > -A PREROUTING -i eth1 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3128
 
-> And in the program:
+You can't. QUEUE terminates the PREROUTING hook.
 
-> ipq_set_verdict(h, m->packet_id,NF_ACCEPT, 0, NULL);
+You need to queue before nat PREROUTING if you want to apply NAT rules on 
+packets after QUEUE reinjects them to the kernel, i.e. from mangle or raw 
+tables.
 
-> the packet not going to second rule(REDIRECT)
-
--A FORWARD -p tcp -j QUEUE
-or
--t nat -p tcp -j QUEUE
-
-this right by iptables, but not work
-
-
-
--- 
-Best regards,
- Meg                          mailto:root@server.titansoft.ru
+Regards
+Henrik
