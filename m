@@ -1,15 +1,12 @@
-From: "Pieter De Wit" <pieter@vodacom.co.za>
-Subject: Problem compiling iptables with gcc 3.3.1
-Date: Mon, 15 Sep 2003 08:06:54 +0200
+From: sanoj mg <sanoj_mg@yahoo.com>
+Subject: unresolved symbol ip_conntrack_find_get
+Date: Thu, 11 Sep 2003 08:57:56 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <93C53436ECB2B94BAE3A4958AE886F0209198B@zadbn02001.vodacom.corp>
+Message-ID: <20030911155756.50469.qmail@web14915.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative; boundary="0-2133836480-1063295876=:48919"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,16 +17,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Guys,
+--0-2133836480-1063295876=:48919
+Content-Type: text/plain; charset=us-ascii
 
-I am currently running Gentoo 1.4rc4 with the "test portage". Basically
-when I enable iptables in the kernel (2.4.20 - with a bunch of patches)
-I get a compile error in ip_nat_core at line 854. If I take this line
-and put it all on one line it works fine. Is this something that you
-guys would maintain?
+hi all,
+       just been playing with netfilter. When I try to insmod a module which uses
+ip_conntrack_find_get , i am getting the error message : "unresolved symbol -ip_conntrack_find_get" .
+          I'd like to know which netfilter module is to be insmod'ed to use(get exported)  the symbol ip_conntrack_find_get. Thanking you in advance.
+ 
+sanoj
+ 
 
-Thanks,
 
-Pieter De Wit
-=93This e-mail is sent on the Terms and Conditions that can be accessed b=
-y Clicking on this link http://www.vodacom.net/legal/email.asp "
+
+---------------------------------
+Do you Yahoo!?
+Yahoo! SiteBuilder - Free, easy-to-use web site design software
+--0-2133836480-1063295876=:48919
+Content-Type: text/html; charset=us-ascii
+
+<DIV>
+<DIV>hi all,</DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; just been playing with netfilter. When I try to insmod a module which uses</DIV>
+<DIV>ip_conntrack_find_get , i&nbsp;am getting the error message : "unresolved symbol -<STRONG>ip_conntrack_find_get</STRONG>" .</DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; I'd like to know which netfilter module&nbsp;is to be insmod'ed to&nbsp;use(get exported)&nbsp; the symbol ip_conntrack_find_get. Thanking you in advance.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>sanoj</DIV>
+<DIV>&nbsp;</DIV></DIV><p><hr SIZE=1>
+Do you Yahoo!?<br>
+<a href="http://us.rd.yahoo.com/evt=10469/*http://sitebuilder.yahoo.com">Yahoo! SiteBuilder</a> - Free, easy-to-use web site design software
+--0-2133836480-1063295876=:48919--
