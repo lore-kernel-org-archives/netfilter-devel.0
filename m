@@ -1,18 +1,11 @@
-From: "Maarten Wijnants" <maarten.wijnants@pandora.be>
-Subject: Re: How can I get these packets in the user space application?
-Date: Thu, 9 Dec 2004 14:24:42 +0100
-Message-ID: <008101c4ddf2$736d65f0$6c2813ac@in.edm.luc.ac.be>
-References: <4EE0CBA31942E547B99B3D4BFAB3481125897A@mail.esn.co.in>
+From: Cedric de Launois <delaunois@info.ucl.ac.be>
+Subject: [PATCH] info file for ROUTE target
+Date: Thu, 09 Dec 2004 15:43:00 +0100
+Message-ID: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Cc: kung@uiuc.edu, netfilter-devel@lists.netfilter.org,
-	"Mukund JB." <mukundjb@esntechnologies.co.in>,
-	Diego Woitasen <diegows@linux.org.ar>
+Content-Type: multipart/mixed; boundary="=-BvNmM6aIvkRjjjpu9XW0"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Srinivas G." <srinivasg@esntechnologies.co.in>,
-	"Henrik Nordstrom" <hno@marasystems.com>
+To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,24 +17,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Srinivas G,
 
-> My doubt is: How the user application can get the packet from the 'hook'
-> function? What APIs are used in the user space application to access the
-> packet from the hook function?
+--=-BvNmM6aIvkRjjjpu9XW0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-I am trying to understand your current situation. So you have a kernel 
-module that is subscribed to a certain netfilter hook and as a result starts 
-receiving packets; and now you want to pass these packets from your kernel 
-module to a userspace application? Is this correct?
+Hi,
 
-If this is your current situation, you should issue a NF_QUEUE verdict for 
-arriving packets in your kernel module to queue the packets to userspace. 
-Subsequently, you will need to create a userspace application to receive the 
-queued packets and run it. You can use libipq to write a userspace 
-application that will accept queued packets. See the man page of libipq for 
-more information on how to do this (the man page contains a fully working 
-example).
+This little patch is to allow the ROUTE target to be applied by pom-ng
+on kernel >= 2.6.0. The patch just removes the "Requires: linux < 2.6.0"
+line from the ROUTE/info file.
 
-I hope this helps you. Regards,
-Maarten 
+Please apply ;)
+
+Thanks,
+
+Cedric
+
+
+--=-BvNmM6aIvkRjjjpu9XW0
+Content-Disposition: attachment; filename=ipt_ROUTE-info.patch
+Content-Type: text/x-patch; name=ipt_ROUTE-info.patch; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by info.ucl.ac.be id
+	iB9EeZgj014598
+
+--- patch-o-matic-ng.orig/ROUTE/info	2004-02-20 00:11:50.000000000 +0100
++++ patch-o-matic-ng/ROUTE/info	2004-12-09 15:33:55.000000000 +0100
+@@ -1,4 +1,3 @@
+ Author: C=E9dric de Launois <delaunois@info.ucl.ac.be>
+ Status: Experimental
+ Repository: extra
+-Requires: linux < 2.6.0
+
+--=-BvNmM6aIvkRjjjpu9XW0--
