@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Patch with additional options for quota match
-Date: Sun, 27 Apr 2003 14:40:55 +0200
+Subject: Re: PATCH: extra conntrack stats
+Date: Sun, 27 Apr 2003 14:48:35 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427124055.GX990@sunbeam.de.gnumonks.org>
-References: <3E9DCA15.40C99A6C@info-link.net>
+Message-ID: <20030427124835.GA990@sunbeam.de.gnumonks.org>
+References: <200304192142.h3JLg1S03466@fokkensr.vertis.nl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qxpYSgLynlcP4boX"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	samj@samj.net
+	protocol="application/pgp-signature"; boundary="SqEPCaGsKgsesFh5"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Brad Fisher <brad@info-link.net>
+To: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>
 Content-Disposition: inline
-In-Reply-To: <3E9DCA15.40C99A6C@info-link.net>
+In-Reply-To: <200304192142.h3JLg1S03466@fokkensr.vertis.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,21 +23,29 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qxpYSgLynlcP4boX
+--SqEPCaGsKgsesFh5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 16, 2003 at 04:24:37PM -0500, Brad Fisher wrote:
-> I have made up a small patch for the quota match by Sam Johnston to add
-> a couple of options I find useful - negated matching and the option to
-> count total packet size (data + headers) instead of just data size.
+On Sat, Apr 19, 2003 at 11:42:01PM +0200, Rolf Fokkens wrote:
+> Hi!
+>=20
+> This patch adds a little statistical information to the connection tracki=
+ng:
+> the number of packets and bytes that have gone throught each connection.
+>=20
+> Well, it's a small patch that may not do any harm and please some people.
 
-I don't want to include this without the orignal author's permission.
-Please contact Sam Johnston about your changes and ask him if he agrees
-with those changes.
+It will.  You are adding a counter that is written to for every packet.
+This causes tremendous cache line ping-pong on SMP systems.
 
-Thanks.
+This is inacceptable, the only way to implement this is via per-cpu
+counters that are added at the time you read them out (like the iptables
+per-cpu local counters)
+
+> Cheers,
+> Rolf
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -50,7 +57,7 @@ Thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---qxpYSgLynlcP4boX
+--SqEPCaGsKgsesFh5
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -58,9 +65,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+q8/XXaXGVTD0i/8RArpcAJ9FnXcy23SoBCG97N3EwYOl+PAGRgCZAf5M
-29td8VfPZ7D0t21MuCfj5WQ=
-=XLbx
+iD8DBQE+q9GjXaXGVTD0i/8RAuuKAJ0bl7K2WLUYWBvcWznQdivYhmfHdgCcDvMc
+uymgFvBr8I6Z1jcOAhkdSZs=
+=1Z2F
 -----END PGP SIGNATURE-----
 
---qxpYSgLynlcP4boX--
+--SqEPCaGsKgsesFh5--
