@@ -1,16 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: RE: Memory leaks in ip_conntrack?
-Date: Tue, 11 Nov 2003 08:51:22 +0100 (CET)
+From: Juha Heljoranta <juha.heljoranta@evitech.fi>
+Subject: stat module
+Date: 11 Nov 2003 12:49:07 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0311110849430.24817-100000@blackhole.kfki.hu>
-References: <EFBADA8C200C2B418DA39734FD15475B0B2057@skat.sky.com>
+Message-ID: <1068547747.1719.114.camel@jazz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter@lists.netfilter.org>,
-	"'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kishore Dharmavaram <kishored@servgate.com>
-In-Reply-To: <EFBADA8C200C2B418DA39734FD15475B0B2057@skat.sky.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,20 +18,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 10 Nov 2003, Kishore Dharmavaram wrote:
+Hi, 
 
-> Earlier when I checked, /proc/net/ip_conntrack  and /proc/slabinfo were both
-> showing a number around 34000 to 36000, when I checked again after sometime,
-> number of connections in /proc/slabinfo hit the maximum 131072 and number of
-> connections went down to 20 to 30 in /proc/net/ip_conntrack andbox is
-> rejecting new connections.
+I was thinking about to write a module to match outbound packets against
+stat (file of filesystem status) information. One might find device and
+inode information usefull.
 
-Did you apply any patches from patch-o-matic? If yes, which one?
+Usage might be something like
+$ iptables -A OUTPUT -m stat --device 303 --inode 341166 -j ACCEPT
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Anyway, I thought to ask if you have any suggestions, thoughts,
+opinions, etc. about this. I might find them helpfull :)
+
+I have about 400 hours to spend on this. So how does it sound? 
+
+
+Regards,
+
+Juha Heljoranta
+email: juha.heljoranta at evitech.fi
