@@ -1,15 +1,19 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] patch-o-matic-ng patch
-Date: Wed, 18 Feb 2004 15:57:12 +0100 (CET)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH]Re: NAT before IPsec with 2.6
+Date: Wed, 18 Feb 2004 15:57:39 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402181553330.13121-200000@blackhole.kfki.hu>
-References: <Pine.LNX.4.33.0402180005300.11937-200000@blackhole.kfki.hu>
+Message-ID: <40337D63.6080602@trash.net>
+References: <20040127103917.GC11761@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0401271207160.16067-100000@filer.marasystems.com> <20040127130739.GR11761@sunbeam.de.gnumonks.org> <20040128000938.GH11761@sunbeam.de.gnumonks.org> <401777B4.9020000@trash.net> <20040128103000.GP11761@sunbeam.de.gnumonks.org> <401D12B6.5030707@trash.net> <40301AB2.2030103@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-975494621-1077116232=:13121"
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------030808050803030000030802"
+Cc: Harald Welte <laforge@netfilter.org>,
+ Henrik Nordstrom <hno@marasystems.com>,
+ Willy Tarreau <willy@w.ods.org>, Tom Eastep <teastep@shorewall.net>,
+ Michal Ludvig <mludvig@suse.cz>,
+  netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <Pine.LNX.4.33.0402180005300.11937-200000@blackhole.kfki.hu>
+In-Reply-To: <40301AB2.2030103@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,60 +24,140 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+This is a multi-part message in MIME format.
+--------------030808050803030000030802
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---110391808-975494621-1077116232=:13121
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Here is another patch on top of the last ones, it makes
+incoming packets from transport mode SAs visible to
+netfilter hooks and emulates normal behaviour. With this
+patch you can share a transport-mode SA between an entire
+network using MASQUERADE, but also do weird stuff like
+DNAT packets coming from a transport mode SA to remote
+hosts ;)
 
-Hi Harald,
+The patch is not exactly nice, but with it, everything should
+be working fine except for nested tunnels. I would really
+appreciate if I can get some comments for this part and the
+other ones so I can prepare some final patches to discuss
+with davem.
 
-Just another patch :-) If a patch has got kernel tree and kernel patch
-for one kernel version, but only kernel patch for another kernel version
-(the to-be-released nf-log patch is such a beast), then it cannot be
-applied correctly.
+Regards
+Patrick
 
-The attached patch fixes the problem.
+Patrick McHardy wrote:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> There are 4 patches:
+> 
+> 01-nf_reset.diff
+>     Move common nf_conntrack_put/nfct=NULL/nf_debug=0 code to
+>     new inline function nf_reset.
+> 
+> 02-hooks.diff
+>     Make packets to be encrypted visible on POST_ROUTING hook
+>     and encrypted packets on LOCAL_OUT. Reset nfct etc. before
+>     reposting the packet into the stack on reception.
+> 
+> 03-nat-policy-lookup.diff
+>     Add policy lookups to ip_route_me_harder and change NAT to
+>     reroute for any change that affects routing or policy lookups
+> 
+> 04-nat-policy-checks.diff
+>     Make xfrm_policy_check find correct policy for NATed packets
 
---110391808-975494621-1077116232=:13121
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="pom-ng.patch3"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.33.0402181557120.13121@blackhole.kfki.hu>
-Content-Description: pom-ng.patch3
-Content-Disposition: attachment; filename="pom-ng.patch3"
+--------------030808050803030000030802
+Content-Type: text/plain;
+ name="05-transport-mode-hooks.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="05-transport-mode-hooks.diff"
 
-LS0tIHAtby1tLWEvTmV0ZmlsdGVyX1BPTS5wbQkyMDA0LTAyLTE3IDA3OjI3
-OjM0LjAwMDAwMDAwMCArMDEwMA0KKysrIHBhdGNoLW8tbWF0aWMtbmcyL05l
-dGZpbHRlcl9QT00ucG0JMjAwNC0wMi0xOCAxNToxMjozOC4wMDAwMDAwMDAg
-KzAxMDANCkBAIC0yMTMsOSArMjEzLDExIEBADQogCQkJcmV0dXJuIDA7DQog
-CQl9DQogCX0NCi0JbXkoJGJpbmdvLCAkbWF0Y2gpOw0KKyNwcmludCBEdW1w
-ZXIoJHBhdGNobGV0KTsNCisNCisJbXkoJHByb2osICRiaW5nbywgJG1hdGNo
-KTsNCiAJZm9yZWFjaCBteSAkdHlwZSAocXcocGF0Y2ggZmlsZXMgbGFkZHMp
-KSB7DQotCQlmb3JlYWNoIG15ICRwcm9qIChrZXlzICV7JCRwYXRjaGxldHsk
-dHlwZX19KSB7DQorCQlmb3JlYWNoICRwcm9qIChrZXlzICV7JCRwYXRjaGxl
-dHskdHlwZX19KSB7DQogCQkJJGJpbmdvID0gLTE7DQogCQkJZm9yZWFjaCBt
-eSAkdmVyIChrZXlzICV7JCRwYXRjaGxldHskdHlwZX17JHByb2p9fSkgew0K
-IAkJCQkkbWF0Y2ggPSAhJHZlciA/IDENCkBAIC0yMjgsMTMgKzIzMCwxNSBA
-QA0KIAkJCQl9DQogCQkJfQ0KIAkJCWlmICgkYmluZ28gPCAwKSB7DQotCQkJ
-CSRFUlJNU0cgPSAiQ2FuJ3QgZmluZCBhIHBhdGNoIHZlcnNpb24gb2YgJCRw
-YXRjaGxldHtuYW1lfSBtYXRjaGluZyB5b3VyICIgDQotCQkJCQkgICAuICgk
-cHJvaiBlcSAnbGludXgnID8gJ2tlcm5lbCcgOiAkcHJvaikgLiAiIHZlcnNp
-b24iOw0KLQkJCXJldHVybiAwOw0KKwkJCQlkZWxldGUgJCRwYXRjaGxldHsk
-dHlwZX17JHByb2p9Ow0KIAkJCX0NCiAJCX0NCiAJfQ0KLQkNCisJaWYgKCEo
-JXskJHBhdGNobGV0e3BhdGNofX0gfHwgJXskJHBhdGNobGV0e2ZpbGVzfX0g
-fHwgJXskJHBhdGNobGV0e2xhZGRzfX0pKSB7DQorCQkkRVJSTVNHID0gIkNh
-bid0IGZpbmQgYSBwYXRjaCB2ZXJzaW9uIG9mICQkcGF0Y2hsZXR7bmFtZX0g
-bWF0Y2hpbmcgeW91ciAiIA0KKwkJCSAgIC4gKCRwcm9qIGVxICdsaW51eCcg
-PyAna2VybmVsJyA6ICRwcm9qKSAuICIgdmVyc2lvbiI7DQorCQlyZXR1cm4g
-MDsNCisJfQ0KIAlpZiAoIWNoZWNrX2tjb25maWcoJHBhdGNobGV0KSkgew0K
-IAkJIyBkb24ndCBvdmVycmlkZSAkRVJSTVNHDQogCQlyZXR1cm4gMDsNCg==
---110391808-975494621-1077116232=:13121--
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/02/18 15:42:49+01:00 kaber@trash.net 
+#   Emulate netfilter hooks for transport mode packets
+# 
+# net/ipv4/xfrm4_input.c
+#   2004/02/18 15:42:42+01:00 kaber@trash.net +46 -1
+#   Emulate netfilter hooks for transport mode packets
+# 
+diff -Nru a/net/ipv4/xfrm4_input.c b/net/ipv4/xfrm4_input.c
+--- a/net/ipv4/xfrm4_input.c	Wed Feb 18 15:45:17 2004
++++ b/net/ipv4/xfrm4_input.c	Wed Feb 18 15:45:17 2004
+@@ -9,10 +9,53 @@
+  * 	
+  */
+ 
++#include <linux/config.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter_ipv4.h>
+ #include <net/inet_ecn.h>
+ #include <net/ip.h>
+ #include <net/xfrm.h>
+ 
++#ifdef CONFIG_NETFILTER
++static inline int emulate_nf_done(struct sk_buff *skb)
++{
++	return 0;
++}
++
++static inline int emulate_nf_hooks2(struct sk_buff *skb)
++{
++	if (inet_addr_type(skb->nh.iph->daddr) != RTN_LOCAL) {
++		if (ip_route_me_harder(&skb) == 0)
++			dst_input(skb);
++		else
++			kfree_skb(skb);
++		return -1;
++	}
++		
++	return NF_HOOK(PF_INET, NF_IP_LOCAL_IN, skb, skb->dev, NULL,
++	               emulate_nf_done);
++}
++
++static inline int emulate_nf_hooks(struct sk_buff *skb)
++{
++	int off = skb->data - skb->nh.raw;
++		
++	skb_push(skb, off);
++	skb->nh.iph->tot_len = htons(skb->len);
++	ip_send_check(skb->nh.iph);
++
++	if (NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, skb->dev, NULL,
++	            emulate_nf_hooks2) != 0)
++		return -1;
++
++	skb_pull(skb, off);
++	return 0;
++}
++#else /* CONFIG_NETFILTER */
++static inline int emulate_nf_hooks(struct sk_buff *skb) {}
++#endif /* CONFIG_NETFILTER */
++
+ int xfrm4_rcv(struct sk_buff *skb)
+ {
+ 	return xfrm4_rcv_encap(skb, 0);
+@@ -125,15 +168,17 @@
+ 	memcpy(skb->sp->x+skb->sp->len, xfrm_vec, xfrm_nr*sizeof(struct sec_decap_state));
+ 	skb->sp->len += xfrm_nr;
+ 
++	nf_reset(skb);
+ 	if (decaps) {
+ 		if (!(skb->dev->flags&IFF_LOOPBACK)) {
+ 			dst_release(skb->dst);
+ 			skb->dst = NULL;
+ 		}
+-		nf_reset(skb);
+ 		netif_rx(skb);
+ 		return 0;
+ 	} else {
++		if (emulate_nf_hooks(skb) != 0)
++			return 0;
+ 		return -skb->nh.iph->protocol;
+ 	}
+ 
+
+--------------030808050803030000030802--
