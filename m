@@ -1,12 +1,13 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Duplicating packets, ether headers?
-Date: Tue, 20 Jan 2004 08:11:06 -0800 (PST)
+From: Johan Ankarloo <johan.ankarloo@volvo.com>
+Subject: DNAT/SNAT and logging
+Date: Tue, 20 Jan 2004 20:15:46 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040120161106.19440.qmail@web13909.mail.yahoo.com>
+Message-ID: <1074626146.8739.6.camel@ankarloo.got.volvo.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,22 +18,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Poking thru the code for ip_queue.c (code for QUEUE
-usespace targets), I found that the source ethernet
-address is stored in the hw_addr field (from
-eth_header_parse).  This means the source ethernet
-address should be accessible from userspace code as it
-gets ipq_packet_msg packets.  I was wondering, though,
-if there was a reason why the ethernet destination
-address is not passed up.  
-In userspace, I would like to duplicate a packet being
-intercepted by the QUEUE target (namely, UDP packets).
- The only way I know of is to use libpcap and build
-the entire message.  Is there a way to get the
-destination ethernet address, or will I need to code
-in a new field for the ipq_packet_msg?
+Hi all. This is a repost. I first tried the
+netfilter@lists.netfilter.org list with no luck. Mayby someone here can
+help me with an answer to this question?
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Hotjobs: Enter the "Signing Bonus" Sweepstakes
-http://hotjobs.sweepstakes.yahoo.com/signingbonus
+I need a way to log SNAT/DNAT packets. In the log i need all the
+information about what have happend to the packet. Since the log target
+is above the actually mangle line, the log target won't know how the
+packet will be mangle. What i need in the log files are something like:
+
+Original Source 
+Original SourcePort 
+Original Destination 
+Original DestinationPort
+Translated Source 
+Translated SourcePort 
+Translated Destination 
+Translated DestinationPort
+
+As an example, take a look at the documentaion about nat and look at the
+examples below taken from
+http://www.netfilter.org/documentation/HOWTO//NAT-HOWTO-6.html
+
+---- SNIP ----
+## Change destination addresses to 5.6.7.8, 5.6.7.9 or 5.6.7.10.
+# iptables -t nat -A PREROUTING -i eth0 -j DNAT --to 5.6.7.8-5.6.7.10
+## Change source addresses to 1.2.3.4, 1.2.3.5 or 1.2.3.6
+# iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to 1.2.3.4-1.2.3.6
+---- SNIP ----
+
+Here you can se that you can do DNAT and SNAT to an range of ipadresse
+so the question may be a bit clearer when i ask the question like this. 
+How is it possible to log to wich ipadress the connection is translated
+to? The logs should contain all that the information that is needed to
+tell what have happend to a packet.
+
+Regards
+
+Johan
