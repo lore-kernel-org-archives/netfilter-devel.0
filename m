@@ -1,18 +1,13 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH 3/2] Fix compile with NAT but without modules
-Date: Tue, 25 Jan 2005 14:35:19 +1100
-Message-ID: <1106624119.19186.27.camel@localhost.localdomain>
-References: <1106440732.20995.48.camel@tux.rsn.bth.se>
-	<41F4426B.3040204@trash.net>
-	<20050123201517.56619591.davem@davemloft.net>
+From: "Michael Varga" <mike.varga@cavium.com>
+Subject: crash using netfilter for ipsec when processing icmp packets
+Date: Mon, 24 Jan 2005 20:01:19 -0800
+Message-ID: <096901c50292$8ad6f070$a610a8c0@niche>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
-	gandalf@wlug.westbo.se, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20050123201517.56619591.davem@davemloft.net>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,49 +19,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2005-01-23 at 20:15 -0800, David S. Miller wrote:
-> On Mon, 24 Jan 2005 01:33:47 +0100
-> Patrick McHardy <kaber@trash.net> wrote:
-> 
-> > I'll apply your patches and push them to Dave tomorrow, bkbkits.com
-> > is unreachable currently so I can't resync my tree.
-> 
-> To be frank, this is one of several severe fallouts from
-> Rusty's patches.  I really think they were not ready for
-> submission when he sent them to me.
+Hello:
 
-Yes.  Harald NAKed some of them, and I did nowhere near enough testing
-after I shuffled and reworked them to remove the ones he didn't like.
-That's entirely my fault, because I needed to get back to IBM work and
-rushed it.  Some of these patches had been sitting around for over a
-year, and I know that if I didn't push now it would be another year 8(
+I have written an Ipsec module that uses netfilter to capture packets. =
+These packets
+are then sent to a hardware crypto device which after finishing, it's =
+driver calls a callback, which
+then calls either an ip_rcv (inbound/decrypt) or an ip_send =
+(outbound/encrypt) to deliver the
+packet.
 
-> It even broke the build if you had modules enabled in any
-> way.
-> 
-> I'm only mentioning this because it appears that nfsim is
-> becomming partially a crutch, because I know this is what
-> Rusty and others use heavily for testing.  Which is fine,
-> but if your patches break the build in many ways in the
-> real kernel tree you're relying too heavily on the userland
-> simulator IMHO.
+When netfilter captures icmp packets which are destined to the machine =
+for=20
+which the Ipsec module is running on, I get kernel crashes.=20
 
-True, nfsim sucks for build testing (eg. you only need one #include),
-and you always need "real life" testing (eg. races, complex routing,
-etc).  But the worst build breakage was because my .config didn't
-include some things, which is my the "real" build test also failed to
-find them.
+It only crashes when the icmp traffic is >=3D 10Mbits/sec.
 
-OTOH, without nfsim those patches would never have been completed at
-all, due to untestability.  That's why major NAT changes were not done
-much earlier: there are too many nasty complex scenarios for someone to
-test them all, especially such "unnecessary" cleanup work.
+Are there some unpublished rules when processing icmp with Netfilter?
+Does anyone have some suggestions/recommendations?
 
-I will admit that I'm learning the hard way when to use nfsim, and when
-not to.  For example, looks like the IRC nat helper is broken.  Guess
-what: no tests in the testsuite.  (I'm writing one now, expect a "boot
-tested" patch RSN).
-
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+thanks
+Mike
