@@ -1,24 +1,15 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: [PATCH 13/18] Netfilter: Multiport revision with port ranges
-	(replaces "mport")
-Date: Tue, 11 Jan 2005 02:47:40 +0100
-Message-ID: <20050111014740.GP18211@eychenne.org>
-References: <1104896159.20582.79.camel@localhost.localdomain>
-	<20050105043027.GA23546@linuxace.com>
-	<1104904015.20582.91.camel@localhost.localdomain>
-	<20050108020322.GA11903@linuxace.com>
-	<20050108034205.GK8756@eychenne.org> <41E1B162.2010104@eurodev.net>
-	<1105323851.22093.2.camel@localhost.localdomain>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] nf_conntrack: struct inet_opt now inet_sock
+Date: Tue, 11 Jan 2005 17:01:09 +0900 (JST)
+Message-ID: <200501110801.j0B81Ar0015639@toshiba.co.jp>
+References: <20050107020136.GA26992@ti64.telemetry-investments.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-Content-Disposition: inline
-In-Reply-To: <1105323851.22093.2.camel@localhost.localdomain>
+To: brugolsky@telemetry-investments.com
+In-Reply-To: <20050107020136.GA26992@ti64.telemetry-investments.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,47 +21,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 10, 2005 at 01:24:11PM +1100, Rusty Russell wrote:
 
-> On Sun, 2005-01-09 at 23:34 +0100, Pablo Neira wrote:
-> > bonjour,
-> >=20
-> > Herve Eychenne wrote:
-> >=20
-> > >>(note: didn't update manpage, but then again, wasn't updated with p=
-revious
-> > >>changes)
-> > >>   =20
-> > >>
-> > >
-> > >Maybe because no one stated what the manpage policy regarding the
-> > >new revision system would be?...
-> > >When adding every successive revision documentation of every
-> > >match/target to the manpage, wouldn't it become severly bloated in t=
-he
-> > >end?
+Hi, Bill,
 
-> You should add the new feature to the manpage.
+I'll apply your patch. Thanks a lot.
 
-Yes, let's just hope there won't be too many revisions over time,
-because that would certainly confuse the users.  So, we shouln't add
-revisions too often as Pablo said, or at least think before doing so.
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-> The extension should
-> then fail with an appropriate message if the version of the kernel does
-> not support the option used.
+From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+Date: Thu, 6 Jan 2005 21:01:36 -0500
 
-Yes, and add a mecanism in iptables command enabling to know in advance
-(before actually trying) if a given revision will work (for third party
-software), as well as the list of usable revisions (for third
-party again) _and_ available (whether they would actually
-work with current kernel or not) revisions (for the user, this time),
-ideally.
-
- Herve
-
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+> Fixup use of struct inet_opt, which has been renamed to inet_sock in
+> Linus's current tree.
+> 
+> Signed-off-by: Bill Rugolsky <brugolsky@telemetry-investments.com>
+> 
+> --- patch-o-matic-ng/nf_conntrack/linux-2.6/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c.inet_sock	2004-11-24 10:19:38.000000000 -0500
+> +++ patch-o-matic-ng/nf_conntrack/linux-2.6/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c	2005-01-06 20:34:00.000000000 -0500
+> @@ -386,7 +386,7 @@
+>  static int
+>  getorigdst(struct sock *sk, int optval, void *user, int *len)
+>  {
+> -	struct inet_opt *inet = inet_sk(sk);
+> +	struct inet_sock *inet = inet_sk(sk);
+>  	struct ipv6_pinfo *np = inet6_sk(sk);
+>  	struct nf_conntrack_tuple_hash *h;
+>  	struct nf_conntrack_tuple tuple;
+> --- patch-o-matic-ng/nf_conntrack/linux-2.6/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c.inet_sock	2004-12-27 13:39:18.000000000 -0500
+> +++ patch-o-matic-ng/nf_conntrack/linux-2.6/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2005-01-06 20:33:25.000000000 -0500
+> @@ -334,7 +334,7 @@
+>  static int
+>  getorigdst(struct sock *sk, int optval, void __user *user, int *len)
+>  {
+> -	struct inet_opt *inet = inet_sk(sk);
+> +	struct inet_sock *inet = inet_sk(sk);
+>  	struct nf_conntrack_tuple_hash *h;
+>  	struct nf_conntrack_tuple tuple;
+>  	
+> 
