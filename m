@@ -1,9 +1,9 @@
 From: Evan Harris <eharris@puremagic.com>
 Subject: Bug/Problem with DNAT on OUTPUT chain (-t nat -A OUTPUT) that breaks
  routing?
-Date: Tue, 21 Oct 2003 11:42:57 -0500 (CDT)
+Date: Wed, 22 Oct 2003 19:46:40 -0500 (CDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0310211141480.7787-100000@kinison.puremagic.com>
+Message-ID: <Pine.LNX.4.44.0310221946250.29188-100000@kinison.puremagic.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
