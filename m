@@ -1,14 +1,14 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 2.6.11 0/4]: Netfilter fixes
-Date: Sun, 6 Feb 2005 22:02:36 -0800
-Message-ID: <20050206220236.0ab7d1be.davem@davemloft.net>
-References: <4202E65E.2030008@trash.net>
+Subject: Re: [PATCH 2.6.11]: Clear NAT status bits on module unload
+Date: Sun, 6 Feb 2005 22:13:08 -0800
+Message-ID: <20050206221308.3cb13f6b.davem@davemloft.net>
+References: <4204351C.8010701@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4202E65E.2030008@trash.net>
+In-Reply-To: <4204351C.8010701@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,16 +20,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 04 Feb 2005 04:05:02 +0100
+On Sat, 05 Feb 2005 03:53:16 +0100
 Patrick McHardy <kaber@trash.net> wrote:
 
-> I hope these patches can still make it in 2.6.11. The TCP window tracking
-> bug seems quite important to me, but I haven't actually heard complains 
-> besides
-> Phil's yet. The others patches aren't very serious, but the patches are 
-> pretty
-> trivial.
-> 
-> You can pull all changes from bk://212.42.230.204/nf-2.6
+> another patch which I think should go in 2.6.11, it fixes a crash
+> when unloading, then reloading iptable_nat.
 
-All pulled, thanks Patrick.
+Applied, thanks Patrick.
