@@ -1,12 +1,18 @@
-From: linux lover <linux_lover2004@yahoo.com>
-Subject: Is my program is correct to print packet data part at IP layer?
-Date: Fri, 31 Dec 2004 04:13:03 -0800 (PST)
-Message-ID: <20041231121303.59844.qmail@web52204.mail.yahoo.com>
+From: Matteo Croce <rootkit85@yahoo.it>
+Subject: Re: UNWANTED state
+Date: Fri, 31 Dec 2004 14:15:53 +0100
+Message-ID: <200412311415.53465.rootkit85@yahoo.it>
+References: <200412300042.18561.rootkit85@yahoo.it>
+	<200412300139.49266.rootkit85@yahoo.it>
+	<20041231055657.GA3759@alpha.home.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: rusty@rustcorp.com.au
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20041231055657.GA3759@alpha.home.local>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,80 +24,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Respected sir,
-            I request you to please check my program
-and reply me whether it is the correct way of getting
-packets data part at IP layer? I am using netfilter
-and dumping its output to unsigned string. I just want
-to know the results return by following program is
-correct or wrong?
-regards,
-linux_lover.
+> In other terms, you would then do something like this :
+> 
+> -A INPUT -m state ESTABLISHED -j ACCEPT 
+> -A INPUT -m state RELATED -p tcp --dport 113 -j REJECT --reject-with tcp-reset
+> -A INPUT -m state RELATED -j ACCEPT
+> ... check for new connections here then final drop ...
+> -A INPUT -j DROP
+> 
+> A last solution would be the RECENT match. You create an entry when
+> establishing the outgoing session, and you match against it in return so that
+> only this address has the permission to receive a REJECT.
 
-#define MODULE
-#define __KERNEL__
+here is my iptables -L output:
 
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/skbuff.h>
-#include <linux/ip.h>
-#include <linux/netfilter.h>
-#include <linux/netfilter_ipv4.h>
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+DROP       all  --  anywhere             anywhere            state INVALID,UNTRACKED
+DROP       icmp --  anywhere             anywhere            icmp echo-request
+REJECT     tcp  --  anywhere             anywhere            tcp dpt:auth reject-with icmp-port-unreachable
 
-#include <linux/string.h>
+Chain FORWARD (policy DROP)
+target     prot opt source               destination
 
-static struct nf_hook_ops nfho1;
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+DROP       tcp  --  anywhere             anywhere            tcp flags:FIN,SYN,RST,PSH,ACK,URG/RST,ACK
 
-unsigned int hook_func1(unsigned int hooknum,struct
-sk_buff **skb,
-                                 const struct
-net_device *in,
-                                 const struct
-net_device *out,
-                                 int (*okfn)(struct
-sk_buff *))
-{
-  struct sk_buff *sb = *skb;
-  printk(KERN_DEBUG "calling hook_func at
-NF_IP_LOCAL_OUT\n");
-      unsigned char *packet;
-      unsigned int buflen;
-      int  i=0;
-      buflen=sb->len;
-      packet=kmalloc(buflen,GFP_USER);
-      memset(packet,'\0',buflen);
-      printk(KERN_DEBUG "Length of skb->data in hook
-function = %d\n", buflen);
-      strncpy(packet,sb->data,buflen);
-      printk(KERN_DEBUG "packet contents of sb->data
-in hook function = %02x\n", packet);
+Add the patch that doesn't respond on closed udp ports with an ICMP, and i have
+the system sthealted with only 3 rules.
+But I also know that the kernel patch and the rule that drops RST/ACKs are very ugly hacks.
+Don't forget that this ugly hack works even for loopback!
 
-     return NF_ACCEPT;
-}
+> You know, it's enough that you have *one* open port for an attacker to be
+> able to do this, be it SMTP, HTTP, SSH, or anything else...
 
-static int __init init(void)   
-  {
-              nfho1.hook     = hook_func1;
-              nfho1.hooknum  = NF_IP_LOCAL_OUT;
-              nfho1.pf       = PF_INET;
-              nfho1.priority = NF_IP_PRI_FIRST;
-              nf_register_hook(&nfho1);
-              return 0;
-          }
+Yes, but in most tipical end-user systems, open ports will be only:
+20 for non PASV ftp transfers
+some ports for IRC's DCC transfer
+some ports for P2P apps
 
-static void __exit fini(void)
-          {
-              nf_unregister_hook(&nfho1);
-          }
-module_init(init);
-module_exit(fini);
-MODULE_LICENSE("GPL");
+These ports are open only when needed, and (apart for p2p)
+the program that opens them accepts only one connection.
+So is almost impossible being DOSsed whit traffic on port 20 or so..
 
 
+> Regards,
+> Willy
 
+Regards,
+Matteo
 
-		
-__________________________________ 
-Do you Yahoo!? 
-The all-new My Yahoo! - What will yours do?
-http://my.yahoo.com 
+-- 
+  .""`.     Matteo Croce <rootkit85@yahoo.it>
+ : :"  :    proud Debian admin and user
+ `. `"`
+   `-  Debian - when you have better things to do than fix a system
