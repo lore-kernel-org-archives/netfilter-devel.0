@@ -1,13 +1,14 @@
-From: Jim Gifford <maillist@jg555.com>
-Subject: Use of Kernel Headers
-Date: Tue, 17 Aug 2004 14:10:18 -0700
+From: Herve Eychenne <rv@wallfire.org>
+Subject: iptables-save counters on builtin chains not restored?
+Date: Tue, 17 Aug 2004 23:18:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4122743A.7020309@jg555.com>
+Message-ID: <20040817211821.GE23109@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Developer <netfilter-devel@lists.netfilter.org>
+To: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,20 +19,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have been asked this question a lot of times, and I think it should be 
-asked here for an official answer.
+ Hi,
 
-It has been stated numerous times that userspace programs should not be 
-compiled against raw kernel headers, but iptables does compile against 
-userspace headers and breaks this rule. With the advent of the 
-linux-libc-headers package, should iptables be compiled against the 
-linux-libc-headers or the raw kernel headers since iptables is a user 
-space program?
+Seems like I'm studying iptables-save too much tonight...
 
-Should patch-o-matic update the headers in the proper location, 
-/usr/include/linux/netfilter_ipv4 etc?
+When fed with the result of iptables-save -c, iptables-restore -c
+does not seem to restore counters on chains (I'm not talking about
+rules), as I simply cannot find any parsing code for that.
 
--- 
-----
-Jim Gifford
-maillist@jg555.com
+Note that it would make sense only on builtin chains, but not
+user-chains, because only builtin chains have a policy, and the
+counters are about packets that hit the policy.
+
+Anyway, it doesn't seem to be restored at all, and I suspect an
+omission, so... a bug. Can someone confirm?
+
+ Herve
+
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
