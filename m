@@ -1,12 +1,16 @@
-From: Andre Uratsuka Manoel <andre@insite.com.br>
-Subject: using a hash table for netfilter tables?
-Date: Thu, 24 Apr 2003 02:19:58 -0300 (BRT)
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: using a hash table for netfilter tables?
+Date: Thu, 24 Apr 2003 08:21:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
+Message-ID: <20030424062148.GE3374@oknodo.bof.de>
+References: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Andre Uratsuka Manoel <andre@insite.com.br>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,16 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, Apr 24, 2003 at 02:19:58AM -0300, Andre Uratsuka Manoel wrote:
+> 
+> 	I need to replace the current list-based netfilter code for 
+> something using hashtables. The reason is that I have hundreds of tables 
+> in a project, but set up times are killing me.
 
-	Hi all,
+I assume you already use iptables-restore to load them in one go?
+If not, you want to do that!
 
-	I need to replace the current list-based netfilter code for 
-something using hashtables. The reason is that I have hundreds of tables 
-in a project, but set up times are killing me. I took a peek at the code 
-and it looked easy to do, since the current list-based code already takes 
-care of locking, that's a huge problem I don't have to care about.
+Apart from that, what you appear to think you could do, is NOT easy.
 
-	Is there something I should know abot? Any tips? Is this stupid?
+Three very basic easy questions for you:
 
-	Thanks in advance,
-	Andre
+1) what, exactly, is the key material you'll compute the hash function on?
+2) for any given iptables match line, a multitude of keys could match.
+   What do you do?
+3) Each iptables line is a combination of several matches. Each of them
+   can represent a range of matching values. Sometimes, that range is
+   not even known when the rule is loaded. Consider stateful matches
+   like 'limit' and 'random'.  What do you do?  
+
+There is an ongoing attempt at meeting the challenges for a noninterpretive
+lookup structure. See http://www.hipac.org/. I have no personal experience
+with that code, though. They solve 1) by giving a list of the key
+material (see the site), and they are solving 2) and 3) step by
+step, by building their own tool parallel to iptables, with only
+the features they can efficiently represent. The result is emphatically
+NOT iptables, and can't be.
+
+best regards
+  Patrick
