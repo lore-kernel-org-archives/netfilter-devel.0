@@ -1,8 +1,8 @@
 From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [PATCH] net/ipv6/netfilter warning removal 2.[45]
-Date: Fri, 11 Apr 2003 19:07:53 +0200 (CEST)
+Subject: [CORRECTED][PATCH] net/ipv6/netfilter warning removal 2.[45]
+Date: Fri, 11 Apr 2003 19:36:45 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0304111904240.17912__25006.1444742189$1050081339@dns.toxicfilms.tv>
+Message-ID: <Pine.LNX.4.51.0304111933550.18066@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.samba.org
@@ -20,6 +20,8 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
+Joe Perches pointed out a mistake in the previous patch, here's a
+corrected version.
 there are simple warning to remove in 4 files there, here are the
 warnings:
 net/ipv6/netfilter/ip6t_rt.c: In function `match':
@@ -46,7 +48,7 @@ diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c linux-2.5.67-bk3/ne
         }
 
 -       ah=skb->data+ptr;
-+       ah = (struct ahhdr *) skb->data+ptr;
++       ah = (struct ahhdr *) (skb->data+ptr);
 
         DEBUGP("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
         DEBUGP("RES %04X ", ah->reserved);
@@ -60,7 +62,7 @@ diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c linux-2.5.67-bk3/n
         }
 
 -	esp=skb->data+ptr;
-+	esp = (struct esphdr *) skb->data+ptr;
++	esp = (struct esphdr *) (skb->data+ptr);
 
  	DEBUGP("IPv6 ESP SPI %u %08X\n", ntohl(esp->spi), ntohl(esp->spi));
 
@@ -74,7 +76,7 @@ diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c linux-2.5.67-bk3/
         }
 
 -       frag=skb->data+ptr;
-+       frag = (struct fraghdr *) skb->data+ptr;
++       frag = (struct fraghdr *) (skb->data+ptr);
 
         DEBUGP("IPv6 FRAG LEN %u %u ", hdrlen, frag->hdrlen);
         DEBUGP("INFO %04X ", frag->info);
@@ -88,7 +90,7 @@ diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c linux-2.5.67-bk3/ne
         }
 
 -       route=skb->data+ptr;
-+       route = (struct ipv6_rt_hdr *) skb->data+ptr;
++       route = (struct ipv6_rt_hdr *) (skb->data+ptr);
 
         DEBUGP("IPv6 RT LEN %u %u ", hdrlen, route->hdrlen);
         DEBUGP("TYPE %04X ", route->type);
