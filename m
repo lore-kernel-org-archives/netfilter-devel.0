@@ -1,11 +1,11 @@
 From: Felipe W Damasio <felipewd@terra.com.br>
-Subject: [PATCH 4/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_fw_compat_masq
-Date: Fri, 29 Aug 2003 17:09:12 -0300
+Subject: [PATCH 6/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_nat_core
+Date: Fri, 29 Aug 2003 17:09:18 -0300
 Sender: kernel-janitor-discuss-admin@lists.sourceforge.net
-Message-ID: <3F4FB2E8.7030508@terra.com.br>
+Message-ID: <3F4FB2EE.8080509@terra.com.br>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------040800050604000406000800"
+ boundary="------------090505070401040800000800"
 Return-path: <kernel-janitor-discuss-admin@lists.sourceforge.net>
 To: netfilter-devel@lists.netfilter.org,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -21,7 +21,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=kernel-janitor
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040800050604000406000800
+--------------090505070401040800000800
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -35,25 +35,25 @@ Content-Transfer-Encoding: 7bit
 
 Felipe
 
---------------040800050604000406000800
+--------------090505070401040800000800
 Content-Type: text/plain;
- name="ip_fw_compat_masq.patch"
+ name="ip_nat_core.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="ip_fw_compat_masq.patch"
+ filename="ip_nat_core.patch"
 
---- linux-2.6.0-test4/net/ipv4/netfilter/ip_fw_compat_masq.c.orig	Fri Aug 29 16:44:04 2003
-+++ linux-2.6.0-test4/net/ipv4/netfilter/ip_fw_compat_masq.c	Fri Aug 29 16:44:11 2003
-@@ -13,7 +13,6 @@
- #include <linux/netdevice.h>
- #include <linux/inetdevice.h>
- #include <linux/proc_fs.h>
+--- linux-2.6.0-test4/net/ipv4/netfilter/ip_nat_core.c.orig	Fri Aug 29 16:44:38 2003
++++ linux-2.6.0-test4/net/ipv4/netfilter/ip_nat_core.c	Fri Aug 29 16:44:44 2003
+@@ -2,7 +2,6 @@
+ 
+ /* (c) 1999 Paul `Rusty' Russell.  Licenced under the GNU General
+    Public Licence. */
 -#include <linux/version.h>
  #include <linux/module.h>
- #include <net/route.h>
- 
+ #include <linux/types.h>
+ #include <linux/timer.h>
 
---------------040800050604000406000800--
+--------------090505070401040800000800--
 
 
 
