@@ -1,14 +1,16 @@
-From: Jay Schulist <jschlst@linux-sna.org>
-Subject: [PATCH] multiple devices with ranges match support
-Date: Tue, 17 Sep 2002 22:20:30 -0700 (PDT)
+From: Jay Schulist <jschulist@bivio.net>
+Subject: Re: [PATCH] associate user defined name with rule match
+Date: Wed, 18 Sep 2002 15:17:52 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44L.0209172209270.10390-102000@hunger.screamingdaemon.com>
+Message-ID: <Pine.LNX.4.33.0209181516070.5702-100000@beavis.networkrobots.com>
+References: <20020918214757.GD10465@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-1663971492-1032326430=:10390"
-Cc: netfilter-devel@lists.netfilter.org,
-	<netfilter@lists.netfilter.org>, Jay Schulist <jschlst@linux-sna.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jay Schulist <jschlst@linux-sna.org>, Harald Welte <laforge@gnumonks.org>,
+   <netfilter-devel@lists.netfilter.org>, <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20020918214757.GD10465@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,145 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+On Wed, 18 Sep 2002, Patrick Schaaf wrote:
 
----1463811839-1663971492-1032326430=:10390
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+> I don't understand. Do you mean "tag with some string, so we can later
+> easily grep for it"? No real match operation, just a way to attach some
+> text to a rule?
+> 
+> If that's it, I vote to rename the thing "comment", and please permit
+> arbitrary quoted strings (with proper escaping for iptables-restore's
+> benefit).
+> 
 
-Hello Harald,
-Here is a new match which allows the user to match by using multiple comma
-seperated devices each with range support.
+right, it already does quoted strings on iptables-save.
 
-Iptables userspace patch is against a clean iptables-1.2.7a
-Kernel patch is against a clean linux-2.4.19
-
-mdev v1.2.7a options:
- --i dev[,dev:dev,dev...]       match inbound device(s)
- --o dev[,dev:dev,dev...]       match outbound device(s)
-
-Thanks,
 jay-s.
-
----1463811839-1663971492-1032326430=:10390
-Content-Type: APPLICATION/octet-stream; name="linux-2.4.19-mdev-match-2002091820.diff.gz"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44L.0209172220300.10390@hunger.screamingdaemon.com>
-Content-Description: 
-Content-Disposition: attachment; filename="linux-2.4.19-mdev-match-2002091820.diff.gz"
-
-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
----1463811839-1663971492-1032326430=:10390
-Content-Type: APPLICATION/octet-stream; name="iptables-1.2.7a-mdev-match-2002091810.diff.gz"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44L.0209172220301.10390@hunger.screamingdaemon.com>
-Content-Description: 
-Content-Disposition: attachment; filename="iptables-1.2.7a-mdev-match-2002091810.diff.gz"
-
-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
-
----1463811839-1663971492-1032326430=:10390--
