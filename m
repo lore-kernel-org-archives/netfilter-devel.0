@@ -1,18 +1,16 @@
-From: Willy TARREAU <willy@w.ods.org>
-Subject: [RFC][PATCH-2.4] fix NF_REPEAT (take 2)
-Date: Sat, 25 Oct 2003 14:35:10 +0200
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: [PATCH] Fix ip_queue for bridged packets
+Date: Sat, 25 Oct 2003 17:09:13 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031025123510.GA2717@pcw.home.local>
-References: <20031022102556.GA10540@alpha.home.local> <Pine.LNX.4.33.0310232349181.20545-100000@blackhole.kfki.hu>
+Message-ID: <200310251709.13913.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-   marcelo.tosatti@cyclades.com
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: David S.Miller <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0310232349181.20545-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,55 +21,73 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+Hi Dave,
 
-here come two patches to fix the NF_REPEAT bug ; the first one based upon
-your suggestion (your patch was for 2.6), but against ip_conntrack_core.c
-in 2.4, which is the same in standard kernel and tcp_window_tracking, and
-the second one is only targetted at a window_tracking enabled kernel.
+When ip_queue copies an old skbuff to a new one (because the tailroom is
+too small), it uses skb_copy_expand(). This function doesn't copy the
+Ethernet header, which is not needed for normal IP traffic. Normally, the
+Ethernet header is filled in later before doing dev_queue_xmit.
+When ip_queue does this to a bridged IP packet, it has to copy the Ethernet
+header, because the Ethernet header is already filled in and won't be filled
+in again.
+The patch below makes this happen. It puts the code that actually copies the
+header inside netfilter_bridge.h, so that it can be reused and altered
+without touching other code.
 
-I have verified that they fix the reported problem. Could you please check
-them so that Marcelo can merge it before 2.4.23-final ?
+The patch is already approved by Stephen Hemminger (in private mail).
+Since Harald Welte excels in silence, I'm sending netfilter stuff directly
+to you from now on.
 
-Regards,
-Willy
+The patch is vs test7 but applies fine vs test8.
 
-====== first one, for Marcelo
+cheers,
+Bart
 
-diff -urN linux-2.4.23-pre8/net/ipv4/netfilter/ip_conntrack_core.c linux-2.4.23-pre8-nf_repeat/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-2.4.23-pre8/net/ipv4/netfilter/ip_conntrack_core.c	Fri Oct 10 08:47:16 2003
-+++ linux-2.4.23-pre8-nf_repeat/net/ipv4/netfilter/ip_conntrack_core.c	Fri Oct 24 09:09:22 2003
-@@ -859,11 +859,13 @@
- 	IP_NF_ASSERT((*pskb)->nfct);
- 
- 	ret = proto->packet(ct, (*pskb)->nh.iph, (*pskb)->len, ctinfo);
--	if (ret == -1) {
--		/* Invalid */
-+	if (ret < 0) {
-+		/* Invalid: inverse of the return code tells
-+		 * to netfilter core what to do :
-+		 * -1 == -NF_ACCEPT,  -NF_REPEAT, ... */
- 		nf_conntrack_put((*pskb)->nfct);
- 		(*pskb)->nfct = NULL;
--		return NF_ACCEPT;
-+		return -ret;
+--- linux-2.6.0-test7/net/ipv4/netfilter/ip_queue.c.old	2003-10-12 21:23:01.000000000 +0200
++++ linux-2.6.0-test7/net/ipv4/netfilter/ip_queue.c	2003-10-12 22:13:45.000000000 +0200
+@@ -21,6 +21,9 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv4/ip_queue.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
++#ifdef CONFIG_BRIDGE_NETFILTER
++#include <linux/netfilter_bridge.h>
++#endif
+ #include <linux/netlink.h>
+ #include <linux/spinlock.h>
+ #include <linux/sysctl.h>
+@@ -353,6 +356,10 @@ ipq_mangle_ipv4(ipq_verdict_msg_t *v, st
+ 			}
+ 			if (e->skb->sk)
+ 				skb_set_owner_w(newskb, e->skb->sk);
++#ifdef CONFIG_BRIDGE_NETFILTER
++			/* bridged packets already have their Ethernet header */
++			br_nf_maybe_copy_header2(newskb, e->skb);
++#endif
+ 			kfree_skb(e->skb);
+ 			e->skb = newskb;
+ 		}
+--- linux-2.6.0-test7/include/linux/netfilter_bridge.h.old	2003-10-12 21:44:28.000000000 +0200
++++ linux-2.6.0-test7/include/linux/netfilter_bridge.h	2003-10-12 22:21:16.000000000 +0200
+@@ -81,6 +81,22 @@ void nf_bridge_maybe_copy_header(struct 
  	}
+ }
  
- 	if (ret != NF_DROP && ct->helper) {
-
-
-
-====== second one, for window tracking use only
-
-diff -urN linux-2.4.23-pre8-wintrack-20031023/net/ipv4/netfilter/ip_conntrack_proto_tcp.c linux-2.4.23-pre8-wintrack-nf_repeat/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
---- linux-2.4.23-pre8-wintrack-20031023/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	Fri Oct 24 09:13:33 2003
-+++ linux-2.4.23-pre8-wintrack-nf_repeat/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	Fri Oct 24 09:15:30 2003
-@@ -736,7 +736,7 @@
- 	    	WRITE_UNLOCK(&tcp_lock);
- 	    	if (del_timer(&conntrack->timeout))
- 	    		conntrack->timeout.function((unsigned long)conntrack);
--	    	return NF_REPEAT;
-+	    	return -NF_REPEAT;
- 	} else if (!(new_state == TCP_CONNTRACK_MAX
- 		   || tcp_in_window(&conntrack->proto.tcp,
- 		   		    dir, iph, len, tcph)))
++/* needed in IP netfilter modules that can copy bridged skbuff's,
++ * but don't copy the Ethernet header by default. */
++static inline
++void nf_bridge_maybe_copy_header2(struct sk_buff *d,
++				  struct sk_buff *s)
++{
++	if (s->nf_bridge) {
++#if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
++		if (s->protocol == __constant_htons(ETH_P_8021Q))
++			memcpy(d->data - 18, s->data - 18, 18);
++		else
++#endif
++			memcpy(d->data - 16, s->data - 16, 16);
++	}
++}
++
+ static inline
+ void nf_bridge_save_header(struct sk_buff *skb)
+ {
