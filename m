@@ -1,15 +1,18 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: [PATCH] Re: another PPTP conntrack problem (no fix this time)
-Date: Tue, 18 Feb 2003 11:21:50 +1000
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: PPTP connection tracking
+Date: Tue, 18 Feb 2003 10:38:12 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E518AAE.4040005@snapgear.com>
-References: <4.2.0.58.20030129161653.01aab6e8@avocetgw> <4.2.0.58.20030131122321.01a7a8b8@avocetgw> <3E40CA1F.1080205@snapgear.com>
+Message-ID: <20030218093812.GM11812@sunbeam.de.gnumonks.org>
+References: <4.2.0.58.20030119145120.00b1c6f0@avocetgw> <20030217190023.GF11812@sunbeam.de.gnumonks.org> <3E51836B.8030207@snapgear.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010003030804040709070206"
-Cc: Paul Mielke <paulm@routefree.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lrvsYIebpInmECXG"
+Cc: Harald Welte <laforge@netfilter.org>, Paul Mielke <paulm@routefree.com>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Philip Craig <philipc@snapgear.com>
+Content-Disposition: inline
+In-Reply-To: <3E51836B.8030207@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,115 +23,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010003030804040709070206
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Philip Craig wrote:
-> Paul Mielke wrote:
-> 
->>Does this seem to make sense?  Please let me know if you think I am
->>mistaken in my analysis and that the previous ICMP patches would help.
-> 
-> 
-> You've convinced me that there is a problem here.  I think
-> that gre_pkt_to_tuple() needs to handle the case when
-> gre_keymap_lookup() fails by trying to do an inverse
-> lookup.  I haven't tried fixing this yet.
-> 
-> I suspect that you will still need the other ICMP patches
-> as well once you have the gre lookup succeeding though.
-> 
+--lrvsYIebpInmECXG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I've attached a patch that Paul has tested that fixes this
-problem.  He had to use it in conjunction with an ICMP patch
-posted by Balazs Scheidler.
+On Tue, Feb 18, 2003 at 10:50:51AM +1000, Philip Craig wrote:
+> >Can you please test if your setup works with this patch?
+>=20
+> Paul and I have tested that the attached patch fixes the problem.
+> It is similar to yours, except that it returns earlier.  I don't
+> think the calls to place_in_hashes() and do_bindings() are
+> necessary if we just need to return NF_ACCEPT without doing any
+> NAT?
 
-The problem is that there are only gre keymaps for packets
-in the state where they first arrive at a machine.  But when
-we need to generate an ICMP error, the gre packet may have
-been NATed, and so it no longer matches the keymaps.
+yes, but  I can imagine the case where somebody actually _does_ want to
+do some nat from the expectfn() - and we should keep that option open...
 
-The attached patch extends gre_keymap_lookup to also compare
-against the inverted keymaps.
+> Philip Craig - philipc@snapgear.com - http://www.SnapGear.com
 
-I'm not happy with this patch, but I don't have the time to
-fix it properly at the moment, so I've post it here.  There
-are 2 problems with the patch.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Firstly, it is combining two tasks into the one function.
-That means that incoming packets are compared against the
-inverted keymap, when they shouldn't be.  Similarly, when
-generating ICMP errors, the packet is matched against the
-original keymap when it only needs to be matched against
-inverted one.
+--lrvsYIebpInmECXG
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Secondly, matching against inverted tuples is not going to
-work when we are doing both SNAT and DNAT.  This problem may
-not be specific to the gre conntrack either; ip_conntrack_core.c
-has the following comment in icmp_error_track():
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-/* FIXME: NAT code has to handle half-done double NAT --RR */
+iD8DBQE+Uf8EXaXGVTD0i/8RAtfQAJ0Xdt0s6quvY65iHDeMwDXUX+TUbQCdE7CN
+/+BBCddbeJlu/5QhKvIxdTM=
+=As4X
+-----END PGP SIGNATURE-----
 
-I think the fix to both of these problems is to add another
-pkt_to_tuple function to the ip_conntrack_protocol structure
-which converts a half-NATed packet to a tuple.
-
--- 
-Philip Craig - philipc@snapgear.com - http://www.SnapGear.com
-SnapGear - Custom Embedded Solutions and Security Appliances
-
---------------010003030804040709070206
-Content-Type: text/plain;
- name="gre-lookup.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="gre-lookup.patch"
-
-diff -u -r1.4 ip_conntrack_proto_gre.c
---- ip_conntrack_proto_gre.c	4 Dec 2002 23:44:24 -0000	1.4
-+++ ip_conntrack_proto_gre.c	6 Feb 2003 03:38:39 -0000
-@@ -79,6 +79,17 @@
- 	        (km->tuple.dst.u.all == t->dst.u.all));
- }
- 
-+static inline int gre_key_inverse_cmpfn(const struct ip_ct_gre_keymap *km,
-+					const struct ip_conntrack_tuple *t)
-+{
-+	return ((km->tuple.dst.ip == t->src.ip) &&
-+		(km->tuple.src.ip == t->dst.ip) &&
-+	        (km->tuple.dst.protonum == t->dst.protonum) &&
-+		(km->tuple.dst.u.gre.protocol == t->dst.u.gre.protocol) &&
-+		(km->tuple.dst.u.gre.version == t->dst.u.gre.version) &&
-+	        (km->tuple.src.u.gre.key == t->dst.u.gre.key));
-+}
-+
- /* look up the source key for a given tuple */
- static u_int32_t gre_keymap_lookup(struct ip_conntrack_tuple *t)
- {
-@@ -88,12 +99,18 @@
- 	READ_LOCK(&ip_ct_gre_lock);
- 	km = LIST_FIND(&gre_keymap_list, gre_key_cmpfn,
- 			struct ip_ct_gre_keymap *, t);
--	if (!km) {
--		READ_UNLOCK(&ip_ct_gre_lock);
--		return 0;
-+	if (km) {
-+		key = km->tuple.src.u.gre.key;
-+	} else {
-+		km = LIST_FIND(&gre_keymap_list, gre_key_inverse_cmpfn,
-+				struct ip_ct_gre_keymap *, t);
-+		if (km) {
-+			key = km->tuple.dst.u.gre.key;
-+		} else {
-+			key = 0;
-+		}
- 	}
- 
--	key = km->tuple.src.u.gre.key;
- 	READ_UNLOCK(&ip_ct_gre_lock);
- 
- 	return key;
-
---------------010003030804040709070206--
+--lrvsYIebpInmECXG--
