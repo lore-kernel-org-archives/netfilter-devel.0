@@ -1,20 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] matching any helper in ipt_helper.c
-Date: Fri, 5 Mar 2004 10:23:30 +0100 (CET)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Again, HOPLIMIT inconsistency
+Date: Fri, 5 Mar 2004 10:35:54 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0403051022150.17613@tux.rsn.bth.se>
-References: <Pine.LNX.4.60.0403031947450.8957@dsl093-017-216.msp1.dsl.speakeasy.net>
- <40469E10.7080100@trash.net> <Pine.LNX.4.60.0403032150000.8957@dsl093-017-216.msp1.dsl.speakeasy.net>
- <4046BFB9.809@trash.net> <Pine.LNX.4.60.0403041500280.10634@dsl093-017-216.msp1.dsl.speakeasy.net>
- <4047A42E.6080307@trash.net> <Pine.LNX.4.60.0403041821010.21790@dsl093-017-216.msp1.dsl.speakeasy.net>
- <4047E231.60304@trash.net>
+Message-ID: <Pine.LNX.4.33.0403051034030.6328-100000@blackhole.kfki.hu>
+References: <Pine.LNX.4.44.0403032157330.17424-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Matthew Strait <quadong@users.sourceforge.net>,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Cc: Maciej Soltysiak <solt@dns.toxicfilms.tv>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4047E231.60304@trash.net>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0403032157330.17424-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,18 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 5 Mar 2004, Patrick McHardy wrote:
+On Wed, 3 Mar 2004, Henrik Nordstrom wrote:
 
-> Matthew Strait wrote:
-> > Silly me, I assumed that the error was generated in user space.  Ok.  In
-> > that case, let's forget translating "any" to "", because that just makes
-> > the output of "iptables -L" confusing.  Sound good?
-> >
+> On Wed, 3 Mar 2004, Maciej Soltysiak wrote:
 >
-> I actually meant translate in both direction. But no problem, I'm going
-> to make a patch for iptables myself, if Martin is fine with it we can
-> remove the childlevel match.
+> > I remember having sent a patch that renames HOPLIMIT in
+> > patch-o-matic-ng to HL (in helps and in files)
+>
+> The same change is also included in the patch-o-matic-ng jumbo patch I
+> sent some days ago, making the patch-o-matic version look likethe
+> patch-o-matic version.
 
-I'm fine with making ipt_helper able to match any helper if so desired.
+I have just committed your jumbo patch in cvs. Sorry for the delay and
+thank you the patience both of you.
 
-/Martin
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
