@@ -1,23 +1,16 @@
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: Thu, 26 Aug 2004 18:14:43 +0200
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: netfilter IPv6 support
+Date: Thu, 26 Aug 2004 13:00:24 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040826161443.GA26828@sch.bme.hu>
-References: <1092407190.2402.120.camel@nienna.balabit>
-	<20040819110646.GJ3921@sunbeam.de.gnumonks.org>
-	<1092917551.2425.28.camel@nienna.balabit>
-	<Pine.LNX.4.58.0408261015001.16945@blackhole.kfki.hu>
-	<1093518747.2447.16.camel@nienna.balabit>
-	<Pine.LNX.4.58.0408261333510.17019@blackhole.kfki.hu>
+Message-ID: <20040826130024.6ff83dff.davem@redhat.com>
+References: <1093546367.3497.23.camel@hostmaster.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0408261333510.17019@blackhole.kfki.hu>
+To: Thomas Zehetbauer <thomasz@hostmaster.org>
+In-Reply-To: <1093546367.3497.23.camel@hostmaster.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,17 +21,18 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 26 Aug 2004 20:52:47 +0200
+Thomas Zehetbauer <thomasz@hostmaster.org> wrote:
 
-  Hi,
+> Although linux was one of the first to support IPv6 it seems to me that
+> netfilter support has almost stuck. There is still not even a REJECT
+> target not to mention stateful filtering for IPv6.
 
-On Thu, Aug 26, 2004 at 01:39:33PM +0200, Jozsef Kadlecsik wrote:
-> Because the so far unregistered H.323 helper were registered, that would
-> be fully ct_sync compatible, without the need to modify anyting in
-> ct_sync. The core/ct_sync should be modified for the expectn only and
-> that's a general requirement, independent of the H.323 helper.
+Why not ask the netfilter development lists such questions?
 
-  In fact, ct_sync would not require any modifications, so I'd prefer this
-solution.
-
--- 
- KOVACS Krisztian
+Stateful netfilter is not there because it's a total waste
+to completely duplicate all of the connection tracking et al.
+code into ipv6 counterparts when %80 of the code is roughly
+the same.  People are working on a consolidation of these
+things so that there is no code duplication but it is a lot
+of work and there are bigger fires to put out at the moment.
