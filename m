@@ -1,17 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC]: ip_conntrack breaks UDP PMTU
-Date: Sat, 15 Feb 2003 06:12:33 +0100
+From: Fabio Spelta <spelta@linux.it>
+Subject: Which version of libipq? (or: "How to compile "OSFPE" "?)
+Date: 15 Feb 2003 11:06:05 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E4DCC41.1040604@trash.net>
-References: <20030214080612.GN14794@sunbeam.de.gnumonks.org> <3E4CF238.2030207@trash.net> <20030214145521.GB17921@sunbeam.de.gnumonks.org>
+Message-ID: <1045307166.1157.37.camel@vaniglia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-   coreteam@netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20030214145521.GB17921@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,48 +18,67 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
+...where OSFPE should be for "Operating System fingerprint evasion" ?
 
->On Fri, Feb 14, 2003 at 02:42:16PM +0100, Patrick McHardy wrote:
->
->  
->
->>Usually all fragments except the last one will have equal size, so the
->>fragment sizes can be stored as (size, boundary) tuples. I would
->>suggest making the max.
->>    
->>
->
->yes, usually.  But if we implement this 'fragment-backlog', we should do
->it as good as possible.  
->
->I see people already whining about 'firewall can be detected because
->overlapping fragments are not present after passing through' or stuff
->like this :((
->
+Hello All.
 
-This is probably unavoidable as long as we want to use ip_defrag. I think we
-really don't want the "perfect solution".
+I got a fine (hopefully) source code of Rob Beck (which is impossible to
+find or to mail for asking himself), from this link 
+ftp://ftp.ssc.com/pub/lj/listings/issue89/4750.tgz
+found in a Linux journal article. (Well, that article it is really not
+SO more than the Fyodor one about fingerprinting with nmap, but this
+does not matter). 
+The tool should make appear "microsoft windows" if a scan that try to
+fingerprint the OS is executed on the machine running "osfpe", no matter
+which real OS is it running.
 
->
->  
->
->>number of different fragment sizes fixed or controllable via sysctl and 
->>set it to some low default (like 4). This would reduce the amount of
->>memory per reassembled packet to 4 * (2b + 2b) = 16b.
->>    
->>
->
->so what do we do if the number is exceeded?  fallback to current
->behaviour?
->
+So, I got the source; and I downloaded the CVS of the userspace tools of
+netfilter because it needed the "libipq" library.
 
-I have to admit, i really don't know,  I would favour dropping such
-crap with a higher default of maybe 8-16, although i understand
-conntrack should not drop any packets.
+Too bad, as an header of libipq itself says, the library is still in
+development and the API too may change. Hm. (the article is of September
+2001)
+In fact, I got two errors, one was easy to fix, the other not:
 
-I guess some cruel decisions have to be made here, and we haven't even
-started to think about mangling nat helpers ..
+# gcc -Inetfilter/userspace/include/libipq/ osfpe.c
 
-Bye,
-Patrick
+fregabis.c: In function `Watch_Queue':
+fregabis.c:479: too few arguments to function `ipq_create_handle'
+
+So I changed the call
+handle = ipq_create_handle(0);
+
+to:
+
+handle = ipq_create_handle(0,0);
+
+Adding a COMPLETELY FAKE parameter! (oh, yes, what a lamer am I! :))
+
+Then I tried to compile it by telling gcc to link the library too.
+(too bad, when I compiled the library I do not got a .o file, but only
+.3 and .a files. Oh, yes, what a lamer.. )
+
+gcc -Inetfilter/userspace/include/libipq/ -lnetfilter/userspace/libipq/
+osfpe.c : 
+
+/usr/bin/ld: cannot find -lnetfilter/userspace/libipq/
+collect2: ld returned 1 exit status
+
+
+So, to put an end, what I'd like to know from you is:
+Can you tell me if there is a more suitable version of libipq that I
+should downgrade to, for having it to work?
+
+Or, this one can be good but I'm a jerk and I cannot link a "simple"
+library? In that case, what's the damn second argument of
+ipq_create_handle() ?
+
+Thank you very much!
+Salutations, with lots of esteem.
+
+-- 
+  Fabio Spelta
+  
+   email:  spelta@linux.it
+   jabber: febs@jabber.linux.it
+   ecdl project: http://ecdllibre.sf.net
