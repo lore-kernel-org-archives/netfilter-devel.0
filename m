@@ -1,15 +1,14 @@
-From: Rolf Wuerdemann <rowue@digitalis.org>
-Subject: Re: iptables accounting and promiscuous mode
-Date: Sun, 24 Nov 2002 15:04:31 +0100
+From: Alexander Pazdnikov <sasha@cnit.ustu.ru>
+Subject: Patch for libiptc
+Date: Mon, 25 Nov 2002 09:23:17 +0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DE0DC6F.7572F71F@digitalis.org>
-References: <3DDD2101.3030006@smidl.cz>
-Reply-To: rowue@digitalis.org
+Message-ID: <200211250422.gAP4Mu4F016168@garrick.ustu.ru>
+Reply-To: sasha@cnit.ustu.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Multipart/Mixed;
+  boundary="------------Boundary-00=_TU64T4IF0KP3KE5T3HEN"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jakub Urban <jakub.urban@smidl.cz>, netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,52 +19,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Jakub Urban schrieb:
-> =
 
-> hi all
+--------------Boundary-00=_TU64T4IF0KP3KE5T3HEN
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8bit
 
-Hi Jakob ...
-> =
+	Hello.
+  Patch for function is_same() in libiptc4.c (in libiptc6.c all ok)
 
-> it's posible to use iptables for passive IP accounting on linux box wit=
-h
-> one NIC sets to promisc mode?
-> if yes - which version?
-> if no - is this feature plan to the future?
+Best Wishes
+Alexander Pazdnikov
 
-As far as i know it isn't possible to do nettfilter-based-accounting
-with
-an NIC in Promisc mode - it's based on the fact that you have to route =
 
-packets to use netfilter (otherwise netfilter doesn't make sense ...)
+--------------Boundary-00=_TU64T4IF0KP3KE5T3HEN
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="libiptc4.c.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="libiptc4.c.patch"
 
-On the other hand I've developed an Target for
-netfilter-based-accounting
-for our routers that is running stable since 2 1/2 Months, where =
+KioqIC91c3Ivc3JjL3JlZGhhdC9CVUlMRC9pcHRhYmxlcy0xLjIuNS9saWJpcHRjL2xpYmlwNHRj
+LmMJRnJpIEphbiAgNSAyMDoyMjo1OSAyMDAxCi0tLSAvdXNyL3NyYy9yZWRoYXQvQlVJTEQvUEFU
+Q0hFRC9pcHRhYmxlcy0xLjIuNS9saWJpcHRjL2xpYmlwNHRjLmMJV2VkIE5vdiAyMCAyMTozMzoz
+MCAyMDAyCioqKioqKioqKioqKioqKiBpc19zYW1lKGNvbnN0IFNUUlVDVF9FTlRSWSAqYSwgY29u
+c3QgU1RSCioqKiAxOTEsMjAxICoqKioKICAKICAJLyogQWx3YXlzIGNvbXBhcmUgaGVhZCBzdHJ1
+Y3R1cmVzOiBpZ25vcmUgbWFzayBoZXJlLiAqLwogIAlpZiAoYS0+aXAuc3JjLnNfYWRkciAhPSBi
+LT5pcC5zcmMuc19hZGRyCiAgCSAgICB8fCBhLT5pcC5kc3Quc19hZGRyICE9IGItPmlwLmRzdC5z
+X2FkZHIKICAJICAgIHx8IGEtPmlwLnNtc2suc19hZGRyICE9IGItPmlwLnNtc2suc19hZGRyCi0g
+CSAgICB8fCBhLT5pcC5zbXNrLnNfYWRkciAhPSBiLT5pcC5zbXNrLnNfYWRkcgogIAkgICAgfHwg
+YS0+aXAucHJvdG8gIT0gYi0+aXAucHJvdG8KICAJICAgIHx8IGEtPmlwLmZsYWdzICE9IGItPmlw
+LmZsYWdzCiAgCSAgICB8fCBhLT5pcC5pbnZmbGFncyAhPSBiLT5pcC5pbnZmbGFncykKICAJCXJl
+dHVybiAwOwogIAotLS0gMTkxLDIwMSAtLS0tCiAgCiAgCS8qIEFsd2F5cyBjb21wYXJlIGhlYWQg
+c3RydWN0dXJlczogaWdub3JlIG1hc2sgaGVyZS4gKi8KICAJaWYgKGEtPmlwLnNyYy5zX2FkZHIg
+IT0gYi0+aXAuc3JjLnNfYWRkcgogIAkgICAgfHwgYS0+aXAuZHN0LnNfYWRkciAhPSBiLT5pcC5k
+c3Quc19hZGRyCiAgCSAgICB8fCBhLT5pcC5zbXNrLnNfYWRkciAhPSBiLT5pcC5zbXNrLnNfYWRk
+cgorIAkgICAgfHwgYS0+aXAuZG1zay5zX2FkZHIgIT0gYi0+aXAuZG1zay5zX2FkZHIKICAJICAg
+IHx8IGEtPmlwLnByb3RvICE9IGItPmlwLnByb3RvCiAgCSAgICB8fCBhLT5pcC5mbGFncyAhPSBi
+LT5pcC5mbGFncwogIAkgICAgfHwgYS0+aXAuaW52ZmxhZ3MgIT0gYi0+aXAuaW52ZmxhZ3MpCiAg
+CQlyZXR1cm4gMDsKICAK
 
-I've permissions and will to release ;) (but I've to apply some patches
-and to set up an cvs before)
-
-If you want to get an "prerelease" - just mail me ;)
-
-> =
-
-> i cant't find any info in the docs, i only find patch for iptables-1.2.=
-3
-> on
-> http://www.fokus.gmd.de/research/cc/glone/employees/sebastian.zander/pr=
-ivate/netfilter.html
-> =
-
-> thanks
-> jakub urban
-
-regards
-
-	Rolf W=FCrdemann
-	Wieske's Crew KG
-
-PS: perhaps I'll should set myself an "dead-line" to release, so it will
-released
-sometimes (and not in 23 years ;)
+--------------Boundary-00=_TU64T4IF0KP3KE5T3HEN--
