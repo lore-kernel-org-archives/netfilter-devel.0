@@ -1,16 +1,12 @@
-From: Joshua Goodall <joshua@myinternet.com.au>
-Subject: iptables2
-Date: Wed, 19 Mar 2003 11:03:47 +1100
+From: Peter Stamfest <peter@stamfest.at>
+Subject: Introducing iptables-snmp...
+Date: Wed, 19 Mar 2003 12:02:27 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200303191103.47656.joshua@myinternet.com.au>
+Message-ID: <Pine.LNX.4.44.0303191155100.24978-100000@peter.stamf.pr.at>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Netfilter-devel" <netfilter-devel@lists.netfilter.org>
-Content-Description: clearsigned data
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,26 +17,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Is there any chance this package might be completed and render nfnetlink=20
-useful (especially libctnetlink)?
+Hello everybody, 
 
-The connection-tracing-netlink data could be incredibly useful for monitori=
-ng=20
-purposes.
+I have just put up a very alpha version of my iptables-over-SNMP software 
+for download on http://oss.stamfest.net/iptables-snmp/
 
-Joshua.
+It provides for basic access to iptables information via SNMP using the 
+net-snmp (http://www.net-snmp.org/) SNMP agent.
 
-=2D --=20
-Joshua Goodall <joshua@myinternet.com.au>
-Solutions Architect / Principal Security Architect
-myinternet, Pty Ltd.
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+A MIB is provided as well.
 
-iD8DBQE+d7Pjo8kg3R/NoUQRAtgeAKCvnzpIabYm2JrC47bJYvR6OHBljwCglkiT
-r4N2Af/6XNwlVNxebarK1yw=3D
-=3DTIAo
-=2D----END PGP SIGNATURE-----
+It also requires iptables-1.2.7a (+a small patch to introduce 
+"iptc_free" - I would suggest to actually apply this patch to the 
+iptables-distribution) - it uses the libiptc.a library.
+
+Currently it provides for access to packet and bytes counters and some 
+information about the rules. However, currently it does not provide for 
+information about extension modules due to the lack(?) of a reasonable 
+interface to access such information via iptables..
+
+Also it has no support for IPv6.
+
+Have a look at the README file for build-instructions. No thoughts went 
+into making it user-friendly so far ;-)  This is experimental!
+
+I am most interested in any feedback. I am willing to contribute this 
+software to iptables proper if there is interest in this.
+
+peter
