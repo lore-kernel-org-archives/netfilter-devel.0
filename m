@@ -1,13 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: [RFC] Event Cache per-cpu
-Date: Mon, 08 Nov 2004 20:29:38 +0100
-Message-ID: <418FC922.9080004@eurodev.net>
+From: Sven Anders <anders@anduras.de>
+Subject: Re: Re: Unique rule ID?!
+Date: Mon, 08 Nov 2004 21:28:56 +0100
+Message-ID: <418FD708.3030302@anduras.de>
+References: <20041108134743.217B817BE5@grasshopper.anduras.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="------------040203060304040205000806"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20041108134743.217B817BE5@grasshopper.anduras.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,61 +19,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+This is a multi-part message in MIME format.
+--------------040203060304040205000806
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-I've been discussing this issue with Patrick during last week. I've 
-found two problems with the current approach of a event cache per cpu. 
-The problem is related to 1) preemption, 2) the fact that 
-ip_conntrack_in can be called from process and softirq context.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-1) If preemption is enable, a calling process walking on ip_conntrack_in 
-could be preempted by other process which has more priority on the same CPU.
 
-2) A calling process walking on ip_conntrack can be preempted by a 
-softirq which could walk the same piece of bits on the same CPU.
+| From: Henrik Nordstrom <hno@marasystems.com>
+| Subject: Re: Unique rule ID?!
+| To: Sven Anders <anders@anduras.de>
+| Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+|
+| On Mon, 8 Nov 2004, Sven Anders wrote:
+|
+|
+|>Harald Welte and some others are breaking the compatibility every two or
+|>three ip-tables/netfilter/kernel versions. :-)
+|
+|
+| Only for patch-o-matic modules and intentionally so as there is good
+| reasons why these are not (yet) in mainline. Every breakage of what is in
+| mainline is a bug and gets fixed pretty quickly should it occur.
 
-In both cases, the event cache will be corrupted. In resume, I see three 
-possibilities:
+Ok, thats correct. But I need many of the POM modules and so it does occure
+often.
 
-a) per-cpu event cache. Won't work, even if we disable preemption in 
-ip_conntrack_in, we can still have problems with softirqs preempting a 
-calling process.
+| Using stuff from pom is a gamble on versions, much like any other use of
+| experimental stuff is. Yes, it occationally happens, but frankly so quite
+| rarely.
+|
+| Lately this has started to becoming quite a bit of hinderance for the
+| iptables development as there is many changes everyone agrees needs to be
+| done, but can't be done in a clean manner without breaking mainline stuff.
+|
+| Regards
+| Henrik
 
-b) per conntrack cache. It won't work, in a SMP environment, two packets 
-of the same connection can be handled by two different CPU's.
+You cannot think of all possibilites when designing and API. We have now a
+state, which was not changed for over 2 (or more?) years.
+As I read, a new iptables version (1.3?) is comming, don't you think, now
+is the time to rethink the design and implement (or accept) new features
+to the API?
+There are so many interesting new match and target modules in the POM,
+many are stable and could be taken to the mainline...
 
-c) per packet cache. I don't see any possible race with this approach at 
-the moment, but I'll need to use the nfcache field in skbuff. I prefer 
-this than adding a new field to a skbuff, I think that Davem won't like 
-that.
+My idea is to collect all necessary changes (or wishes) and discuss them.
+Which POM modules should be taken to the mainline, should be discussed too...
 
-There's 15 bits in nfcache available now (because IPVS guys are using 
-one in private). My last patch has 11 events.
+Any comments?!
 
-enum ip_conntrack_events
-{
-       IPCT_NEW,                       /* New conntrack                */
-       IPCT_RELATED,                   /* Expected connection          */
-       IPCT_DESTROY,                   /* Destroyed conntrack          */
-       IPCT_STATUS,                    /* Status has changed           */
-       IPCT_REFRESH,                   /* Timer has been refreshed     */
-       IPCT_PROTOINFO,                 /* Update of protocol info      */
-       IPCT_PROTOINFO_VOLATILE,        /* Volatile protocol info       */
-       IPCT_HELPER,                    /* New helper for conntrack     */
-       IPCT_HELPINFO,                  /* Update of helper info        */
-       IPCT_HELPINFO_VOLATILE,         /* Volatile helper info         */
-       IPCT_NATINFO,                   /* NAT info                     */
-};
+Regards
+~ Sven
 
-Patrick suggests that we could run out of bits soon if events go in 
-nfcache, that's true. To fix that, could we remove this stuff in 
-netfilter_ipv4.h, nobody is using it ?
+- --
+~ Sven Anders <anders@anduras.de>
 
-#define NFC_IP_SRC              0x0001
-/* Dest IP address. */
-#define NFC_IP_DST              0x0002
-...
+~ ANDURAS service solutions AG
+~ Innstraße 71 - 94036 Passau - Germany
+~ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
 
-Please, comments welcome.
+Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
+Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
+Vorsitzender des Aufsichtsrats: Dipl. Kfm. Karlheinz Antesberger
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-Pablo
+iD8DBQFBj9cI5lKZ7Feg4EcRAn9IAJsHrSCTh/BH8kH09YddXF3OTt6bCACghuFp
+IlWstOxgdOr+4JPVyeEao5M=
+=SchT
+-----END PGP SIGNATURE-----
+
+--------------040203060304040205000806--
