@@ -1,17 +1,18 @@
-From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
-Subject: Re: OpenBSD Firewall Failover with pfsync and CARP, Netfilter solutions?
-Date: Sun, 4 Apr 2004 13:18:51 +0300
+From: Cedric Blancher <blancher@cartel-securite.fr>
+Subject: Re: OpenBSD Firewall Failover with pfsync and CARP, Netfilter
+	solutions?
+Date: Sun, 04 Apr 2004 12:25:50 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040404101851.GA19532@edu.joroinen.fi>
+Message-ID: <1081074350.1649.68.camel@anduril.intranet.cartel-securite.net>
 References: <20040330153008.GH1237@eychenne.org>
+	 <20040404101851.GA19532@edu.joroinen.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: quoted-printable
 Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-Content-Disposition: inline
-In-Reply-To: <20040330153008.GH1237@eychenne.org>
+To: Pasi =?ISO-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+In-Reply-To: <20040404101851.GA19532@edu.joroinen.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,39 +23,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Mar 30, 2004 at 05:30:08PM +0200, Herve Eychenne wrote:
->  Hi,
->=20
-> This is not stricly netfilter related, but it might be of some
-> interest for those who are working on this issue for Linux.
-> It's always good to stay tuned and see what others are doing.
->=20
-> OpenBSD Firewall Failover with pfsync and CARP:
-> http://www.countersiege.com/doc/pfsync-carp/
->=20
-> UCARP - Common Address Redundancy Protocol (CARP) for Unix:
-> http://www.ucarp.org/
->=20
+Le dim 04/04/2004 =E0 12:18, Pasi K=E4rkk=E4inen a =E9crit :
+> I noticed this one too.. I'm wondering, if there is same functionality
+> available for Linux ?
 
-I noticed this one too.. I'm wondering, if there is same functionality
-available for Linux ?
+Not yet.
 
-ucarp runs on Linux too, as does vrrp, but the pfsync-part seems to be
-missing.. ?
+> ucarp runs on Linux too, as does vrrp, but the pfsync-part seems to be
+> missing.. ?
 
-Is there any way to synchronize the state tables of two Linux/Netfilter
-boxes?
+It's pf specific. pf runs on BSD, not on Linux, the same way Netfilter
+is specific to Linux.
 
-box1: cat /proc/net/ip_conntrack > file
-box2: cat file > /proc/net/ip_conntrack
+> Is there any way to synchronize the state tables of two Linux/Netfilter
+> boxes?
 
-That would be a good start.. :)
+Harald seems to be working hard on this (libnfnetlink/libctnetlink). See
+CVS.
 
--- Pasi K=E4rkk=E4inen
-      =20
-                                   ^
-                                .     .
-                                 Linux
-                              /    -    \
-                             Choice.of.the
-                           .Next.Generation.
+--=20
+http://www.netexit.com/~sid/
+PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
+>> Hi! I'm your friendly neighbourhood signature virus.
+>> Copy me to your signature file and help me spread!
