@@ -1,29 +1,32 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] IPv6: Miscellaneous clean-ups
-Date: Fri, 04 Oct 2002 17:44:22 -0700 (PDT)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20021004.174422.88502153.davem@redhat.com>
-References: <20021004.073925.101556969.yoshfuji@linux-ipv6.org>
-	<20021004.075416.20775355.yoshfuji@linux-ipv6.org>
-	<20021004.081525.51826759.yoshfuji@linux-ipv6.org>
+From: Phil Howard <phil-netfilter-devel@ipal.net>
+Subject: routing by netfilter
+Date: Sat, 5 Oct 2002 00:24:13 -0500
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20021005002413.A16288@hamal.ipal.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-2022-jp
-Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-   usagi@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: yoshfuji@linux-ipv6.org
-In-Reply-To: <20021004.081525.51826759.yoshfuji@linux-ipv6.org>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: YOSHIFUJI Hideaki / 吉藤英明 <yoshfuji@linux-ipv6.org>
-   Date: Fri, 04 Oct 2002 08:15:25 +0900 (JST)
-   
-   so sorry... it must be a bad day for me today and
-   i should not do anything today...
-   
-   removed duplicate chunks.
-   confirmed to be applied with linux-2.4.19.
+Has anyone implemented a new target that could be used to force
+specific routing on the basis of tests done in netfilter, when
+done in the right place, such as table filter chain forward to
+verride the previous routign decision.  For example I would like
+to route everything destined to a specific port number via a
+different gateway.
 
-Patch applied, thanks.
+-- 
+-----------------------------------------------------------------
+| Phil Howard - KA9WGN |   Dallas   | http://linuxhomepage.com/ |
+| phil-nospam@ipal.net | Texas, USA | http://ka9wgn.ham.org/    |
+-----------------------------------------------------------------
