@@ -1,16 +1,14 @@
-From: Tom Marshall <tommy@home.tig-grr.com>
-Subject: Re: disturbing MTU experiment
-Date: Tue, 8 Apr 2003 14:57:58 -0700
+From: Dirk Morris <dmorris@neogenen.com>
+Subject: NF_IP_PRE_ROUTING hook
+Date: Tue, 8 Apr 2003 15:08:07 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030408215758.GA8715@home.tig-grr.com>
-References: <20030408154101.13919.89741.Mailman@kashyyyk> <16018.64600.149601.372694@isis.cs3-inc.com> <007601c2fdff$20a81790$8500a8c0@repligate>
+Message-ID: <20030408150328.I60375-100000@neogenen.com>
+References: <20030408215758.GA8715@home.tig-grr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <007601c2fdff$20a81790$8500a8c0@repligate>
+In-Reply-To: <20030408215758.GA8715@home.tig-grr.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,45 +20,19 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have hacked up some hooks and targets over the past few months
+They all seem to work fine except in the NF_IP_PRE_ROUTING table
+(fine in FORWARD and POST ROUTING)
 
-This is obviously flamebait.  Jim Fleming is currently in his second
-suspension from posting on the IETF lists[1].  I thought that was enough
-but apparently it's driven him to other lists in pursuit of arguments.
+Is there something different about hooks/targets working there?
+they are all accessing the network headers in the skb,
+maybe those arent filled out until after PREROUTING?
 
-To answer the question, Jim, I don't even know if we're on the same planet.=
-=20
-Don't bother educating me on that issue because I won't see the reply.
+they consitently cause a kernel panic, but its hard for me to see where.
+Thanks for any help.
 
-[1] http://www1.ietf.org/mail-archive/ietf/Current/msg19652.html
+-dirk
 
-On Tue, Apr 08, 2003 at 01:46:11PM -0500, Jim Fleming wrote:
-> Are you on the AM Internet or the FM InterNAT ?
->=20
-> [irrelevant stuff removed]
->=20
-> Jim Fleming
-> http://www.IPv8.info
-
---=20
-A great many people think they are thinking when they are merely
-rearranging their prejudices.
-        -- William James
-
---cWoXeonUoKmBZSoM
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iEYEARECAAYFAj6TReYACgkQFMm9uvwPXW6arQCfdHc+lE4bpgGJsfKZUidu1ozM
-S18An1kFPcYtfQiwFG/74wgi4FQJtZWv
-=XSG3
------END PGP SIGNATURE-----
-
---cWoXeonUoKmBZSoM--
+//* */   dmorris   (* www.neogenen.com *)
+main(){int _=0;for(;_!=1687193639&&putchar(" \
+dn\nc@oge.m"[abs(_%11)]);_=(_*42913)+115127);}
