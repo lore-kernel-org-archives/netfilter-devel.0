@@ -1,11 +1,11 @@
 From: "Drake Henderson" <dhenderson@n2bb.com>
-Subject: (no subject)
-Date: Tue, 24 Jun 2003 13:01:33 -0400
+Subject: using libipq to change ip destination
+Date: Tue, 24 Jun 2003 13:04:46 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <382BC0C28F397F4785E7414B8279F5272BA1BB@n2-atl-exch.it.n2bb.com>
+Message-ID: <382BC0C28F397F4785E7414B8279F527040F769C@n2-atl-exch.it.n2bb.com>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C33A72.440F5908"
+	boundary="----_=_NextPart_001_01C33A72.B6C03850"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 content-class: urn:content-classes:message
 To: <netfilter-devel@lists.netfilter.org>
@@ -21,7 +21,7 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C33A72.440F5908
+------_=_NextPart_001_01C33A72.B6C03850
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -51,8 +51,9 @@ Thanks for your help.
 =20
 Drake
 =20
+=20
 
-------_=_NextPart_001_01C33A72.440F5908
+------_=_NextPart_001_01C33A72.B6C03850
 Content-Type: text/html;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -63,6 +64,7 @@ Content-Transfer-Encoding: quoted-printable
 charset=3Dus-ascii">
 <META content=3D"MSHTML 5.50.4807.2300" name=3DGENERATOR></HEAD>
 <BODY>
+<DIV><FONT face=3DArial size=3D2>
 <DIV><SPAN class=3D295515416-24062003><FONT face=3DArial size=3D2>Is it =
 possible to=20
 use libipq to modify the destination ip address of the=20
@@ -115,7 +117,7 @@ size=3D2></FONT></SPAN>&nbsp;</DIV>
 size=3D2></FONT></SPAN>&nbsp;</DIV>
 <DIV><SPAN class=3D295515416-24062003><FONT face=3DArial=20
 size=3D2>Drake</FONT></SPAN></DIV>
-<DIV><SPAN class=3D295515416-24062003><FONT face=3DArial=20
-size=3D2></FONT></SPAN>&nbsp;</DIV></BODY></HTML>
+<DIV><SPAN class=3D295515416-24062003></SPAN>&nbsp;</DIV></FONT></DIV>
+<DIV>&nbsp;</DIV></BODY></HTML>
 =00
-------_=_NextPart_001_01C33A72.440F5908--
+------_=_NextPart_001_01C33A72.B6C03850--
