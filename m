@@ -1,20 +1,15 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: TSO and netfilter (Re: Extremely slow network with e1000 &
- ip_conntrack)
-Date: Thu, 11 Dec 2003 17:41:36 -0800
+From: Kishore Dharmavaram <kishored@servgate.com>
+Subject: iptable_nat module slows/hoses my Redhat 9.0 box
+Date: Thu, 11 Dec 2003 21:47:25 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031211174136.1ed23e2e.davem@redhat.com>
-References: <20031204213030.2B75.MUKANSAI@emailplus.org>
-	<20031205122819.25ac14ab.davem@redhat.com>
-	<20031211110315.GJ22826@sunbeam.de.gnumonks.org>
+Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B20EF@skat.sky.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: mukansai@emailplus.org, scott.feldman@intel.com,
-        netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031211110315.GJ22826@sunbeam.de.gnumonks.org>
+To: "'netfilter@lists.netfilter.org'" <netfilter@lists.netfilter.org>,
+	"'netfilter-devel@lists.netfilter.org'"
+	 <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,43 +20,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 11 Dec 2003 12:03:15 +0100
-Harald Welte <laforge@netfilter.org> wrote:
+Hi All,
 
-> The only interesting case is in ip_output.c:ip_queue_xmit(), where
-> tso_size and tso_segs are calculated, before NF_IP_LOCAL_OUT is run.
-> 
-> But changing the content or the size of the tcp payload should not
-> affect those calculations. 
+I find that after inserting "iptable_nat" module on my RH9.0(2.4.20-19.9)
+box, session-setup(ip_conntrack)  performance gets very bad. 
 
-It changes at least tso_segs, since if you decrease of increase the
-size of the payload the number of real TCP/IP packets the TSO engine
-will end up spitting out could be different.
+Details of my test and results are as follows:
+-I used 2.4.20-19.9 kernel on my RH9.0 box and I inserted "ip_tables",
+"iptable_filter" and "ip_conntrack" modules.
+-There are only INPUT, FORWARD, OUTPUT chains all with policy as ACCEPT
+with no other rules/chains and "no" NAT rules.
+-I used IXIA to send UDP packets continuously at 7Mbps rate to
+20,000(incrementing) destination IP addresses through the RH9.0 box.
+-I  find by doing "fgrep ip_conntrack /proc/slabinfo"  that 20,000 sessions
+were created within 1 second and RH9.0 box was behaving normally, 60%CPU
+idle.
+-I stopped the test, did "insmod iptable_nat" on my RH9.0 and after all
+existing ip_conntrack sessions have expired I reran the test again.
+-My RH9.0 box got very busy, I even couldn't type any command on Linux
+shell, and only some UDP traffic was going through the box at 200Kbps rate.
+-After I stopped the test RH9.0 box returned to normal state and I found by
+doing "fgrep ip_conntrack /proc/slabinfo" that only about 8,000 sessions
+were created.
 
-The one netfilter module I'm most concerned about is the one that
-handles non-passive FTP, I remember that one did strange things with
-the data stream, removed TCP options, and stuff like that.
+I am wondering why "iptable_nat" is slowing doing the box so much when I
+don't have any NAT rules defined.
 
-> A real problem would be resizing the TCP header (where th.doff is
-> affected).  But I cannot think of any case where any of the current
-> netfilter/iptables/conntrack/nat code does that.
+Do you guys know of any netfilter patches made to address/fix this issue?.
+Any help willbe appreciated.
 
-As mentioned above, I thought the netfilter module handling non-passive
-FTP stripped TCP options.
+Thanks,
+Kishore
 
-> Even in the past, when
-> we used to remove SACKPERM from the tcp header, we just NOP'ed it out
-> instead of resizing the header.
 
-This may be what I was thinking about.
 
-> > Another area for inspection are the cases where TCP header bits are
-> > changed and thus the checksum needs to be adjusted.
-> 
-> Why is this a problem?  The netfilter code has to adjust the checksum
-> anyway... or is the checksum calculation for TSO-enabled skb's
-> different?
 
-Currently all the TSO supporting drivers set the ip and tcp header
-checksum values themselves as appropriate, so there are no worries in
-this area.
+ 
