@@ -1,15 +1,13 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Re[3]: bidirectional CONNMARK?
-Date: Wed, 09 Mar 2005 19:24:27 +0800
-Message-ID: <20050309191213.A571.LARK@linux.net.cn>
-References: <Pine.LNX.4.61.0503091019020.6780@filer.marasystems.com>
-	<20050309174657.A56E.LARK@linux.net.cn>
+From: John Leach <john@johnleach.co.uk>
+Subject: ipt_ROUTE bug
+Date: Wed, 09 Mar 2005 12:11:18 +0000
+Message-ID: <1110370278.7508.13.camel@lion>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Wang Jian <lark@linux.net.cn>
-In-Reply-To: <20050309174657.A56E.LARK@linux.net.cn>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-VPVRW7dx9rryvUi9X+DM"
+Cc: delaunois@info.ucl.ac.be
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,126 +19,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+
+--=-VPVRW7dx9rryvUi9X+DM
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
 Hi,
 
-Again.
+on compiling 2.6.11 with the ROUTE target patched in from patch-o-matic
+snapshot 20050307, I get the following compile error:
 
-The script works, but another issue arises.
+  CC      net/ipv4/netfilter/ipt_ROUTE.o
+net/ipv4/netfilter/ipt_ROUTE.c: In function `init':
+net/ipv4/netfilter/ipt_ROUTE.c:452: error: structure has no member named
+`initialized'
+make[4]: *** [net/ipv4/netfilter/ipt_ROUTE.o] Error 1
+make[3]: *** [net/ipv4/netfilter] Error 2
+make[2]: *** [net/ipv4] Error 2
+make[1]: *** [net] Error 2
 
-I use CONNMARK's 32 bits to store two 16 bits number, the MSB of each is
-used as flag to test if set.
+the lines causing the problem are in the init() function:
 
-The problem here is that TC use too simple hash to process the nfmark
+        /* Initialize fake conntrack so that NAT will skip it */
+        route_tee_track.nat.info.initialized |=3D
+                (1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST);
 
-static __inline__ int fw_hash(u32 handle)
-{
-        return handle&0xFF;
-}
+looking at ip_nat_init() in ip_nat_core.c my guess would be this should
+be replaced with:
 
-The hash will be futile for hi-word case.
+        route_tee_track.status |=3D IPS_NAT_DONE_MASK;
 
-It seems that I should write an extended CONNMARK like target.
+any comments?  I'm not at all familiar with the netfilter code, or even
+kernel programming :S
 
-
-Jesse: can you post your code here?
-
-
-On Wed, 09 Mar 2005 17:54:51 +0800, Wang Jian <lark@linux.net.cn> wrote:
-
-> Hi Henrik Nordstrom,
-> 
-> Below is a test script, which uses mark/mask to do bi-directional
-> control. I just craft it and haven't test it yet. (Need to compile a new
-> iptables in the test bed, later)
-> 
-> Jesse <jesse@deansoft.com.tw> tells me off-list that he has a CTDIRMARK
-> target based on CONNMARK. Looking forward to his code for easier use.
-> 
-> 
-> --snip--
-> #!/bin/sh
-> 
-> CLEAR="iptables -F PREROUTING -t mangle"
-> IPT="iptables -A PREROUTING -t mangle"
-> IPTIN="iptables -A INBOUND -t mangle"
-> IPTOUT="iptables -A OUTBOUND -t mangle"
-> 
-> $CLEAR
-> 
-> iptables -N INBOUND -t mangle
-> iptables -N OUTBOUND -t mangle
-> 
-> # Start
-> $IPT -i eth1 -m connmark --mark 0x80000000/0x80000000 \
->         -j CONNMARK --restore-mark --mask 0x7FFF0000
-> $IPT -i eth1 -m connmark --mark 0x80000000/0x80000000 -j RETURN
-> 
-> $IPT -i eth0 -m connmark --mark 0x00008000/0x00008000 \
->         -j CONNMARK --restore-mark --mark 0x00007FFF
-> $IPT -i eth0 -m connmark --mark 0x00008000/0x00008000 -j RETURN
-> 
-> # End with default to prevent rule traversal
-> $IPT -i eth1 -j INBOUND
-> $IPT -i eth1 -m connmark --mark ! 0x80000000/0x80000000 \
->         -j CONNMARK --set-mark  0x80000000/0x8FFF0000
-> $IPT -i eth1 -j RETURN
-> 
-> $IPT -i eth0 -j OUTBOUND
-> $IPT -i eth0 -m connmark --mark ! 0x00008000/0x00008000 \
->         -j CONNMARK --set-mark  0x00008000/0x00008FFF
-> $IPT -i eth0 -j RETURN
-> 
-> # Classes
-> $IPTOUT -p tcp --sport 80 -j CONNMARK --set-mark 0x80030000/0xFFFF0000
-> $IPTOUT -p tcp --sport 80 -j RETURN
-> 
-> 
-> 
-> On Wed, 9 Mar 2005 10:24:50 +0100 (CET), Henrik Nordstrom <hno@marasystems.com> wrote:
-> 
-> > On Wed, 9 Mar 2005, Wang Jian wrote:
-> > 
-> > > What is the CONNMARK's purpose?
-> > 
-> > To act as a decision memory on the connection. What you use this memory 
-> > for is up to you.
-> > 
-> > > I think it is to reduce rule traversal,
-> > 
-> > This is one of many applications.
-> > 
-> > The --save-mark/--restore-mark options to CONNMARK should be seen as a 
-> > bonus. It is not the main purpose of CONNMARK. The main purpose of 
-> > CONNMARK is to act as a connection oriented state memory, allowing you to 
-> > remember an earlier decision about something on later packets in the same 
-> > session.
-> > 
-> > > But an issue occurs, when we want to set 2 different marks for a single
-> > > session in two directions.
-> > 
-> > Then you need to structure the use of CONNMARK differently, and depending 
-> > on the direction set different marks.
-> > 
-> > > When doing QoS control as an router between two or more interfaces,
-> > > bi-directional control is neccessary. Since nfmark is the most
-> > > convenient way to classify packet, should we extend CONNMARK to support
-> > > two marks?
-> > 
-> > If it helps you in reducing your ruleset, why not? Adjusting the tools to 
-> > your needs is one of the cornerstones of using Open Source software.
-> > 
-> > But I don't think it is generally suitable for CONNMARK.
-> > 
-> > Regards
-> > Henrik
-> 
-> 
-> 
-> -- 
->   lark
-> 
+John.
 
 
+--=20
+GPG: B89C D450 5B2C 74D8 58FB A360 9B06 B5C2 26F0 3047
+WEB: http://johnleach.co.uk
 
--- 
-  lark
+--=-VPVRW7dx9rryvUi9X+DM
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQBCLufmmwa1wibwMEcRAmO8AKCb7QF/HosCPH9+15/RVuxFfw5wlwCfTJMM
+T8PBqvqVpKHoV8Fy7iuzjsk=
+=Pwzz
+-----END PGP SIGNATURE-----
+
+--=-VPVRW7dx9rryvUi9X+DM--
