@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: socket() call in iptables?
-Date: Wed, 7 Jan 2004 17:01:31 +0100 (CET)
+Subject: Re: kernel rule insertion question/suggestion
+Date: Wed, 7 Jan 2004 17:08:19 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401071659480.4717-100000@filer.marasystems.com>
-References: <008901c3d536$13a35f50$0e25fe0a@southpark.ae.poznan.pl>
+Message-ID: <Pine.LNX.4.44.0401071706160.4717-100000@filer.marasystems.com>
+References: <1073385010.1106.15.camel@sin.nobugconsulting.ro>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <008901c3d536$13a35f50$0e25fe0a@southpark.ae.poznan.pl>
+To: Patrascu Eugeniu <epatrascu@go.ro>
+In-Reply-To: <1073385010.1106.15.camel@sin.nobugconsulting.ro>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,19 +20,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 7 Jan 2004, Maciej Soltysiak wrote:
+On Tue, 6 Jan 2004, Patrascu Eugeniu wrote:
 
-> And here is the result. Please notice:
-> socket(PF_INET, SOCK_RAW, IPPROTO_RAW)  = -1 EPERM (Operation not permitted)
+> Hi,
 > 
-> [Why is socket() called? Who is calling it, I did not find it anywhere in
-> iptables,
+> As explained by a list member a while ago, to insert a netfilter rule in
+> the running kernel the following things happen:
+> 	I. the whole ruleset is being downloaded in userspace
+> 	II. the rules are checked for loops/errors/whatever and the new rule is
+> added to the chain.
+> 	III. then the whole ruleset is uploaded back into the running kernel.
+> 	IV. the steps above are repeated for each and every rule added.
 
-iptables needs to create a socket in order to be able to issue
-getsockopt() calls to the kernel to talk to the iptables kernel modules.
 
-Have you done any harderning of your kernel limiting what kind of socket 
-operations root is allowed to perform?
+If you want to avoid this then use iptables-restore to load your ruleset. 
+This compiles the ruleset and if successful installs it with one call to 
+the kernel.
+
+> I was wondering (in case what I wrote above is really true) if there
+> would be a good ideea to have a userspace rule compiler that can check
+> for errors in the rules and then just upload them in the kernel, without
+> using the mecanism described above.
+
+Having a "dry-run" iptables-restore type command would perhaps be useful
+to verify the syntax of a ruleset.
 
 Regards
 Henrik
