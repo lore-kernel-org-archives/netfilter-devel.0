@@ -1,15 +1,12 @@
-From: Roberto Nibali <ratz@drugphish.ch>
-Subject: Re: when IPVS into netfilter?
-Date: Tue, 20 May 2003 09:42:17 +0200
+From: "Wojciech \"Sas\" Cieciwa" <cieciwa@alpha.zarz.agh.edu.pl>
+Subject: [FWD][PATCH] conntrack endianes
+Date: Tue, 20 May 2003 09:47:21 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EC9DC59.6010006@drugphish.ch>
-References: <3EB44BE7.3070602@wanadoo.es> <3EBCE288.5020801@drugphish.ch> <3EBEACBC.2090202@wanadoo.es>
+Message-ID: <Pine.LNX.4.44L.0305200945070.21231-100000@alpha.zarz.agh.edu.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Xose Vazquez Perez <xose@wanadoo.es>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,118 +17,199 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Xose,
 
-> I can't understand this, the code is not ready for to put into kernel but
-> it is ready for enterprise use ;-)
+Next patch from my friend.
 
-1. That's your view, yes. Kernel net maintainers were not so nice with
-    us when we first proposed the code for inclusion.
-2. There is a lot of stable code around on the net that can't be
-    included into the mainline kernel because the design doesn't suit the
-    rest of the kernel control path. Think about the grsecurity patches.
-3. We are now officially working on it :).
+/********************************************************** */
 
-> well, never is too late for 2.5. A lot of features were included into
-> latest 2.4.xx. And ,in theory, it is more frozen than a penguin at north pole.
+This patch fixes bugs related to machine endianess (harmless on
+little-endians, but causing that some of conntrack modules don't
+work on big-endian machines).
 
-We'll see. I've started a discussion in the core dev team about it.
+Bugs fixed:
+* (debugging, not endianess related) compilation failure in
+  destroy_expect() in ip_conntrack_core.c when debugging was enabled
 
-> if the code is not into the kernel, then it's little useful. Because
-> not all people are kernel hackers and they need official distribution
-> support. And custom kernels are not supported.
+* (minor problem for now) fixed warning about format string used
+  for conntrack->mark (which is unsigned long) - would be harmful on
+  64-bit big-endians
 
-There are official distributions which support LVS, RH and SuSE come to 
-mind.
+* the real problem: the way that ip_conntrack_tuple structures were
+  initialized was wrong - in compound literals port number was catched
+  by the first dst.u union element, which is int64_t (so port was
+  stored in 2 least significant bytes, i.e. 6 bytes after beginning of
+  dst.u.tcp or dst.u.udp element).
+  This fix uses C99 field specifiers.
 
-> It is not necessary to have a leader, bugs must go to mailing-list.
-
-Yes, that's what they always say. The truth is different, ask Harald 
-Welte about some netfilter questions he finds in his Inbox.
-
-> well, ipvs has 5 years of history. Versions are released every XX time.
-> Red Hat has sold 6.2 and next distributions with ipvs patch.
-> It works! And how many headaches has you gotten?
-
-Yes, I know it works, it was stable starting around June 1999 on 2.0.35 
-and ever since. No headaches so far :).
-
-> it is easy to patch kernel, for me it's not a problem.
-> But now LiNUX is not only a hacker OS, there are places where you need
-> to have distribution support because the boss wants it :-)
-
-Now how exactly does this work? Only because a feature is in the kernel, 
-doesn't necessarily mean that a distributor supports it. But as I've 
-said, we'll be working on an inclusion comitee for LVS. Most of the core 
-  LVS hackers will meet at OLS this year and we'll have a BoF too, so 
-stay tuned until about August. A lot of decisions will be made then, 
-kernel wise, gcc wise, netfilter wise, ... .
-
-And to go back on being more on-topic, I'd like to ask the netfilter 
-team if the ip_fw_compat.c is going to remain in the 2.5.x/2.6.x cycle?
-I was under the impression that Rusty once mentioned that he'd wanted to 
-get rid of it, but I could be dreaming here.
-
-We have following patch which hooks up LVS to netfilter and sneaks away 
-packets and a patch to export a symbol for multicasting.
-
---- linux-2.5.69/net/ipv4/netfilter/ip_fw_compat.c      Mon May  5 
-07:53:13 2003
-+++ linux-2.5.69-ipvs-1.1.5/net/ipv4/netfilter/ip_fw_compat.c   Fri May 
-  9 11:52:09 200
-3
-@@ -43,6 +43,10 @@
-  extern int __init masq_init(void);
-  extern void masq_cleanup(void);
-
-+/* From ip_vs_core.c */
-+extern unsigned int
-+check_for_ip_vs_out(struct sk_buff **skb_p, int (*okfn)(struct sk_buff *));
-+
-  /* They call these; we do what they want. */
-  int register_firewall(int pf, struct firewall_ops *fw)
-  {
-@@ -172,8 +176,14 @@
-                 return NF_ACCEPT;
-
-         case FW_MASQUERADE:
--               if (hooknum == NF_IP_FORWARD)
-+               if (hooknum == NF_IP_FORWARD) {
-+#ifdef CONFIG_IP_VS
-+                        /* check if it is for ip_vs */
-+                        if (check_for_ip_vs_out(pskb, okfn) == NF_STOLEN)
-+                                return NF_STOLEN;
-+#endif
-                         return do_masquerade(pskb, out);
-+                }
-                 else return NF_ACCEPT;
-
-         case FW_REDIRECT:
+  Aternative way to fix can be zeroing whole structure and then
+  setting wanted fields in separate statements (like in
+  ip_conntrack_pptp for example).
 
 
-I will send in a patch to correct the extern part as it is not ifdef'd. 
-The second one is, which makes the whole LVS code as non-intrusive as 
-even possible. I think the netfilter community could live with two more 
-ifdef-blocks, right? :)
+	Jakub Bogusz <qboosh@pld.org.pl>
 
-The next one is a symbol export which we need to smuggle into the kernel 
-bypassing DaveM :). No, seriously, it should be feasable.
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_standalone.c.orig	Fri May 16 10:17:39 2003
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_standalone.c	Mon May 19 15:58:25 2003
+@@ -105,7 +105,7 @@
+ 	len += sprintf(buffer + len, "use=%u ",
+ 		       atomic_read(&conntrack->ct_general.use));
+ #if defined(CONFIG_IP_NF_CONNTRACK_MARK)
+-	len += sprintf(buffer + len, "mark=%d ", conntrack->mark);
++	len += sprintf(buffer + len, "mark=%ld ", conntrack->mark);
+ #endif
+ 	len += sprintf(buffer + len, "\n");
+ 
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_core.c.orig	Fri May 16 10:17:39 2003
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_core.c	Mon May 19 15:49:36 2003
+@@ -211,8 +211,8 @@
+ static void
+ destroy_expect(struct ip_conntrack_expect *exp)
+ {
+-	DEBUGP("destroy_expect(%p) use=%d\n", exp, atomic_read(exp->use));
+-	IP_NF_ASSERT(atomic_read(exp->use));
++	DEBUGP("destroy_expect(%p) use=%d\n", exp, atomic_read(&exp->use));
++	IP_NF_ASSERT(atomic_read(&exp->use));
+ 	IP_NF_ASSERT(!timer_pending(&exp->timeout));
+ 
+ 	kfree(exp);
+@@ -1446,8 +1446,8 @@
+ getorigdst(struct sock *sk, int optval, void *user, int *len)
+ {
+ 	struct ip_conntrack_tuple_hash *h;
+-	struct ip_conntrack_tuple tuple = { { sk->rcv_saddr, { sk->sport } },
+-					    { sk->daddr, { sk->dport },
++	struct ip_conntrack_tuple tuple = { { sk->rcv_saddr, { .tcp = { sk->sport } } },
++					    { sk->daddr, { .tcp = { sk->dport } },
+ 					      IPPROTO_TCP } };
+ 
+ 	/* We only do TCP at the moment: is there a better way? */
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_ftp.c.orig	Fri May 16 10:17:39 2003
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_ftp.c	Mon May 19 15:50:54 2003
+@@ -366,11 +366,11 @@
+ 		    { 0 } },
+ 		  { htonl((array[0] << 24) | (array[1] << 16)
+ 			  | (array[2] << 8) | array[3]),
+-		    { htons(array[4] << 8 | array[5]) },
++		    { .tcp = { htons(array[4] << 8 | array[5]) } },
+ 		    IPPROTO_TCP }});
+ 	exp->mask = ((struct ip_conntrack_tuple)
+ 		{ { 0xFFFFFFFF, { 0 } },
+-		  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++		  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+ 
+ 	exp->expectfn = NULL;
+ 
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_h323.c.orig	Fri May 16 10:17:39 2003
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_h323.c	Mon May 19 15:52:03 2003
+@@ -108,11 +108,11 @@
+ 				{ { ct->tuplehash[!dir].tuple.src.ip,
+ 				    { 0 } },
+ 				  { data_ip,
+-				    { data_port },
++				    { .tcp = { data_port } },
+ 				    IPPROTO_UDP }});
+ 			exp->mask = ((struct ip_conntrack_tuple)
+ 				{ { 0xFFFFFFFF, { 0 } },
+-				  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++				  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+ 	
+ 			exp->expectfn = NULL;
+ 			
+@@ -237,11 +237,11 @@
+ 					{ { ct->tuplehash[!dir].tuple.src.ip,
+ 					    { 0 } },
+ 					  { data_ip,
+-					    { data_port },
++					    { .tcp = { data_port } },
+ 					    IPPROTO_TCP }});
+ 				exp->mask = ((struct ip_conntrack_tuple)
+ 					{ { 0xFFFFFFFF, { 0 } },
+-					  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++					  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+ 	
+ 				exp->expectfn = h225_expect;
+ 				
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_irc.c.orig	Fri Nov 29 00:53:15 2002
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_irc.c	Mon May 19 15:54:24 2003
+@@ -209,11 +209,11 @@
+ 
+ 			exp->tuple = ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
+-				  { htonl(dcc_ip), { htons(dcc_port) },
++				  { htonl(dcc_ip), { .tcp = { htons(dcc_port) } },
+ 				    IPPROTO_TCP }});
+ 			exp->mask = ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
+-				  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++				  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+ 
+ 			exp->expectfn = NULL;
+ 
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_mms.c.orig	Fri May 16 10:17:39 2003
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_mms.c	Mon May 19 15:55:06 2003
+@@ -238,12 +238,12 @@
+ 		exp->tuple = ((struct ip_conntrack_tuple)
+ 		              { { ct->tuplehash[!dir].tuple.src.ip, { 0 } },
+ 		              { mms_ip,
+-		                { (__u16) ntohs(mms_port) },
++		                { .tcp = { (__u16) ntohs(mms_port) } },
+ 		                mms_proto } }
+ 		             );
+ 		exp->mask  = ((struct ip_conntrack_tuple)
+ 		             { { 0xFFFFFFFF, { 0 } },
+-		               { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++		               { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+ 		exp->expectfn = NULL;
+ 		ip_conntrack_expect_related(ct, &expect);
+ 		UNLOCK_BH(&ip_mms_lock);
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_quake3.c.orig	Fri May 16 10:17:39 2003
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_quake3.c	Mon May 19 15:57:27 2003
+@@ -82,12 +82,12 @@
+ 			exp.tuple = ((struct ip_conntrack_tuple)
+ 			             { { ct->tuplehash[!dir].tuple.src.ip, { 0 } },
+ 			               { (u_int32_t) *((u_int32_t *)((int)udph + i)), 
+-			               { (__u16) *((__u16 *)((int)udph+i+4)) }, 
++			               { .udp = { (__u16) *((__u16 *)((int)udph+i+4)) } }, 
+ 			                 IPPROTO_UDP } }
+ 			            );
+ 			exp.mask  = ((struct ip_conntrack_tuple)
+ 			             { { 0xFFFFFFFF, { 0 } },
+-		                       { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++		                       { 0xFFFFFFFF, { .udp = { 0xFFFF } }, 0xFFFF }});
+ 			exp.expectfn = NULL;
+ 
+ 			ip_conntrack_expect_related(ct, &exp);
+--- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_talk.c.orig	Fri May 16 10:17:39 2003
++++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_talk.c	Mon May 19 16:00:41 2003
+@@ -119,11 +119,11 @@
+ 			{ { ct->tuplehash[dir].tuple.src.ip,
+ 			    { 0 } },
+ 			  { ct->tuplehash[dir].tuple.dst.ip,
+-			    { htons(talk_port) },
++			    { .udp = { htons(talk_port) } },
+ 			    IPPROTO_UDP }});
+ 		exp->mask = ((struct ip_conntrack_tuple)
+ 			{ { 0xFFFFFFFF, { 0 } },
+-			  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++			  { 0xFFFFFFFF, { .udp = { 0xFFFF } }, 0xFFFF }});
+ 		
+ 		exp->expectfn = talk_expectfn[talk_port - TALK_PORT];
+ 
+@@ -148,11 +148,11 @@
+ 			{ { ct->tuplehash[!dir].tuple.src.ip,
+ 			    { 0 } },
+ 			  { addr->ta_addr,
+-			    { addr->ta_port },
++			    { .tcp = { addr->ta_port } },
+ 			    IPPROTO_TCP }});
+ 		exp->mask = ((struct ip_conntrack_tuple)
+ 			{ { 0xFFFFFFFF, { 0 } },
+-			  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++			  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+ 		
+ 		exp->expectfn = NULL;
+ 		
 
---- linux-2.5.69/net/netsyms.c  Mon May  5 07:53:13 2003
-+++ linux-2.5.69-ipvs-1.1.5/net/netsyms.c       Fri May  9 11:52:08 2003
-@@ -265,6 +265,7 @@
-  EXPORT_SYMBOL(in_aton);
-  EXPORT_SYMBOL(ip_mc_inc_group);
-  EXPORT_SYMBOL(ip_mc_dec_group);
-+EXPORT_SYMBOL(ip_mc_join_group);
-  EXPORT_SYMBOL(ip_finish_output);
-  EXPORT_SYMBOL(inet_stream_ops);
-  EXPORT_SYMBOL(inet_dgram_ops);
-
-
-Comments, flames?
-
-Best regards,
-Roberto Nibali, ratz
 -- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
+{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
+{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
