@@ -1,15 +1,12 @@
 From: laurent.ml@linuxfr.org
 Subject: kernel 2.5 and patch-o-matic
-Date: Sun, 24 Nov 2002 15:16:17 +0000
+Date: Sun, 24 Nov 2002 15:38:33 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <wazza.874ra72e2m.fsf@message.id>
-References: <Pine.LNX.4.44.0211200005530.5235-100000@azalea.cs.jmu.edu>
+Message-ID: <wazza.87znrz0yh2.fsf@message.id>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.44.0211200005530.5235-100000@azalea.cs.jmu.edu> (Arch
- Harris's message of "Wed, 20 Nov 2002 00:21:57 -0500 (EST)")
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -41,3 +38,5 @@ TEST FAILED: patch NOT applied.
 
 -- 
 Laurent
+ 
+[sorry, I re-post with good headers]
