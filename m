@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: IP Options with libipq
-Date: Wed, 21 Jan 2004 08:44:11 -0500
+Subject: Re: [PATCH] Traffic accounting match
+Date: Wed, 21 Jan 2004 08:22:32 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040121134410.GO8642@obroa-skai.de.gnumonks.org>
-References: <Pine.LNX.4.44.0401171737300.10400-100000@filer.marasystems.com> <40093097.7010902@plobe.com>
+Message-ID: <20040121132232.GN8642@obroa-skai.de.gnumonks.org>
+References: <20031212182346.GA21222@moon.ondraszek.ds.polsl.gliwice.pl> <20031213084905.GE8950@obroa-skai.de.gnumonks.org> <20040116181043.GJ12709@chloe.cb.ac.at>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2hMgfIw2X+zgXrFs"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="n2Pv11Ogg/Ox8ay5"
+Cc: Piotr Gasid?o <quaker@ondraszek.eu.org>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: XiChimos <xichimos@plobe.com>
+To: Peter Surda <shurdeek@routehat.org>
 Content-Disposition: inline
-In-Reply-To: <40093097.7010902@plobe.com>
+In-Reply-To: <20040116181043.GJ12709@chloe.cb.ac.at>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,24 +24,26 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---2hMgfIw2X+zgXrFs
+--n2Pv11Ogg/Ox8ay5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Jan 17, 2004 at 07:54:47AM -0500, XiChimos wrote:
-> I hate to repost, but I still need help.  I need to use libipq to add=20
-> and remove an IP option defined by me.  I am working from the sample in=
-=20
-> the man page and also samples from the CVS tools folder.  Does anyone=20
-> have *any* idea how to do this?
+On Fri, Jan 16, 2004 at 07:10:44PM +0100, Peter Surda wrote:
 
-where's the exact problem?  You get the packet via
-ipq_read()/ipq_get_packet(), then modify it according to your needs, and
-send it back via ipq_set_verdict(handle, id, NF_ACCEPT, new_len,
-buffer).
+> I have been using the patch for a couple of days and it seems to work fin=
+e,
+> and I think it is a very useful thing. I looked at the code and seem to be
+> able to understand most of the comments (I don't actually speak Polish, b=
+ut 3
+> other slavic languages :-)). If I translate it into english, is there any=
+thing
+> more preventing it from going into p-o-m?
 
-> Chris
+No, at least not from my point of view.
+
+But please discuss this with Piotr first, since he is the original
+author.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -52,7 +55,7 @@ buffer).
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---2hMgfIw2X+zgXrFs
+--n2Pv11Ogg/Ox8ay5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -60,9 +63,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFADoIqXaXGVTD0i/8RAlpoAJwLktCnP+Md6Z3/X2VmNBvTJuR+lgCgprvf
-ET+iKbhXpeaLNIfCYCNZVh4=
-=Al3K
+iD8DBQFADn0YXaXGVTD0i/8RAgEjAJ9nQA0HPZznH9kAk026QAKmr9djPgCglyvG
+t2qBVhYegBGTnk3dQFHKxbk=
+=2ck+
 -----END PGP SIGNATURE-----
 
---2hMgfIw2X+zgXrFs--
+--n2Pv11Ogg/Ox8ay5--
