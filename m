@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] patch-o-matic-ng patch
-Date: Sat, 14 Feb 2004 21:42:04 +0100
+Subject: Re: Can't checkout netfilter/userspace from CVS (???)
+Date: Sat, 14 Feb 2004 21:46:23 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040214204204.GX7756@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.33.0402120950190.3899-200000@blackhole.kfki.hu>
+Message-ID: <20040214204623.GY7756@sunbeam.de.gnumonks.org>
+References: <402C1F8E.4060500@vialink.com.br>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="S4+Kf2w4CfEO117G"
+	protocol="application/pgp-signature"; boundary="V6LUty14dADzmtgW"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Juan Carlos Castro y Castro <jcastro@vialink.com.br>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0402120950190.3899-200000@blackhole.kfki.hu>
+In-Reply-To: <402C1F8E.4060500@vialink.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,65 +23,22 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---S4+Kf2w4CfEO117G
+--V6LUty14dADzmtgW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 12, 2004 at 10:22:19AM +0100, Jozsef Kadlecsik wrote:
-> Hi Harald,
-
-Hi Jozsef. =20
+On Thu, Feb 12, 2004 at 10:51:26PM -0200, Juan Carlos Castro y Castro wrote:
+> netfilter-patch-o-matic checks out OK, but...
 >=20
-> Please consider applying the attached patch on top of patch-o-matic-ng.
-> The new features implemented in the patch are:
+> root@jcwork:/usr/src/cvs>cvs -d=20
+> :pserver:cvs:cvs@pserver.netfilter.org:/cvspublic co netfilter/userspace
+> cvs server: warning: new-born netfilter/userspace has disappeared
 
-Thank you very much, I will regard this as the best birthday present
-I have received this year ;)
+it's now called 'iptables' (cvs
+-d:pserver:cvs:cvs@pserver.netfilter.org:/cvspublic co iptables)
 
-I hope it was not too painful to wade through my crappy perl code.
-
->   The patch assumes that 'patch' files are renamed to 'linux.patch'.
-
-Ok, I'll do that directly in the CVS repository to not loose version
-information
-
-> - Userspace patches are supported (iptables-x.y.z.patch).
->   In general, other projects can be plugged in easily: just the
->   new srcpath and version parsing are required and that's all.
-
-great.  I really like to have it remain very=20
-
-> Working on patch-o-matic-ng I believe one more important thing is
-> still missing. In the current shape p-o-m-ng is more tailored for
-> 'feature' patches, and not for tiny bugfixes.=20
-> [...]
-> If you agree with such modifications, I can start implementing the
-> required code.
-
-At the workshop last year, I think we agreed to not put bugfixes into
-patch-o-matic anymore.  The general idea was to
-
-1) not require people to run a special program for just fixing bugs
-2) not blow up patch-o-matic any further
-3) not require us to release a new patch-o-matic with every bugfix
-
-However, I'm not sure whether this is still the right decision.  What
-about a bit of both?
-
-Maybe we don't include any bugfixes in pom-ng, but rather put them as
-patches somewhere in our FTP tree, but have pom-ng automatically fetch
-those fixes via http/ftp on demand.
-
-As long as the fixes remain plain patches, people have the choice to
-a) download them as patch and apply it by hand
-b) use any kind of pom-ng release, but still get the most up-to-date
-   security fixes?
-
-what do you think?
-
-> Best regards,
-> Jozsef
+I have to update the webpage to reflect this reorganization.
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -92,7 +49,7 @@ what do you think?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---S4+Kf2w4CfEO117G
+--V6LUty14dADzmtgW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -100,9 +57,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFALogcXaXGVTD0i/8RAsxmAKCSCSynaAXzCRwnFCZ0XfOZUQYg2QCeJcA5
-yQghJ9+OUwMrAqozjc6qiuk=
-=zjTn
+iD8DBQFALokfXaXGVTD0i/8RAp2FAJ4odl9E4SaB6UkizOSMr3ZMJpYLZwCdFF1u
+SNosmt6f4bJtpm9iVVwPaac=
+=gNYF
 -----END PGP SIGNATURE-----
 
---S4+Kf2w4CfEO117G--
+--V6LUty14dADzmtgW--
