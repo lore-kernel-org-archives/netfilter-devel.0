@@ -1,19 +1,13 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [BUG] active ftp doesn't work since 2.6.9-rc1
-Date: Fri, 1 Oct 2004 15:30:42 -0700
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] ipt_helper-invert-fix is < 2.4.27
+Date: Fri, 1 Oct 2004 15:49:46 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041001153042.15ed4a82.davem@redhat.com>
-References: <20041001111201.GA23033@pc11.op.pod.cz>
-	<20041001132248.GG27499@sunbeam.de.gnumonks.org>
-	<20041001141050.GH27499@sunbeam.de.gnumonks.org>
+Message-ID: <20041001224946.GC30842@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	samel@mail.cz
+Content-Type: multipart/mixed; boundary="/Uq4LBwYP4y1W6pO"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20041001141050.GH27499@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,21 +18,35 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 1 Oct 2004 16:10:50 +0200
-Harald Welte <laforge@netfilter.org> wrote:
 
-> On Fri, Oct 01, 2004 at 03:22:48PM +0200, Harald Welte wrote:
-> > On Fri, Oct 01, 2004 at 01:12:01PM +0200, Vitezslav Samel wrote:
-> > > 	Hi!
-> > > 
-> > >   After upgrade to 2.6.9-rc3 on the firewall (with NAT), active ftp stopped
-> > > working. The first kernel, which doesn't work is 2.6.9-rc1.
-> > > Sympotms: passive ftp works O.K., active FTP doesn't open data
-> > > stream (and in logs there entries about invalid packets - using
-> > > iptables ... -m state --state INVALID -j LOG)
-> 
-> Please use the following (attached) fix:
-> 
-> DaveM: Please apply and push to Linus:
+--/Uq4LBwYP4y1W6pO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Will do, thanks Harald.
+The ipt_helper-invert-fix isn't needed on 2.4.27, but because of
+some other changes in the vicinity pom-ng can't determine it has
+already been applied.  This breaks --batch mode on 2.4.  Add a 
+proper requires entry.
+
+This patch, combined with the previous two pom-ng patches makes
+runme --batch work again on 2.4, and closes bugzilla #241 (but
+come 2.4.28, it will likely break again)
+
+Phil
+
+
+
+--/Uq4LBwYP4y1W6pO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ipthelper
+
+diff -ruN pom-orig/ipt_helper-invert-fix/info pom-new/ipt_helper-invert-fix/info
+--- pom-orig/ipt_helper-invert-fix/info	2004-03-17 20:09:05.000000000 -0500
++++ pom-new/ipt_helper-invert-fix/info	2004-10-01 18:38:39.485828512 -0400
+@@ -1,3 +1,4 @@
+ Author: Patrick McHardy <kaber@trash.net>
+ Status: Pending for kernel inclusion
++Requires: linux-2.4 < 2.4.27
+ Repository: pending
+
+--/Uq4LBwYP4y1W6pO--
