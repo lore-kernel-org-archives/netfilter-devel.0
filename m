@@ -1,17 +1,12 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: manual connection adding to ip_conntrack hash table
-Date: Fri, 16 Jan 2004 18:03:40 +0100
+From: kernel_learner <kernel_learner@yahoo.com>
+Subject: Netfilter as an application
+Date: Fri, 16 Jan 2004 11:47:05 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1074272620.22839.46.camel@nienna.balabit>
-References: <Pine.LNX.4.44.0401161721460.30706-100000@filer.marasystems.com>
+Message-ID: <20040116194705.905.qmail@web40302.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: "Konrad D." <darnok@post.pl>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0401161721460.30706-100000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +18,40 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-  Hi,
+Dear All,
 
-On Fri, 2004-01-16 at 17:53, Henrik Nordstrom wrote:
-> > I'm in the course of writing my thesis about connection tracking in netfilter,
-> > it's sad but I need help. So I'm asking for help you, the netfilter developers.
-> > Topic of my thesis is High Availability Firewall.
-> 
-> There has been several projects aiming to add connection tracking
-> synchronisation/failover to netfiler, but so far it is not completed.
-> 
-> The most current and active is netfilter-ha which can be browsed at
-> http://cvs.netfilter.org/netfilter-ha/ with mailinglist at 
-> http://lists.netfilter.org/mailman/listinfo/netfilter-failover
+ How's it going! I am looking for something that I am
+not sure currently exists. Basically I want to make a
+version of netfilter that's free from all the
+kernel-level and networking stack hooks. I am looking
+for a plain simpler version of netfilter which does
+not interact with the kernel or the networking stack
+in any way. It would be a standard user program which
+a person with normal privelges could compile and run.
+What would it do? It could do the same things that
+netfilter does...i.e. filter packets/NAT etc. However
+the input could be driven from a "main" function which
+"fakes" packets arriving on the network (this could be
+driven from a trace).
 
-  I can recommend reading Harald's paper on Netfilter failover, which
-can be found in the proceedings of OLS 2002
-(http://www.linux.org.uk/~ajh/ols2002_proceedings.pdf.gz). I also have a
-thesis in Hungarian, largely based on Haralds paper, but I don't think
-that it would be of much help for you. Browsing the archives of the
-netfilter-failover list can also provide you with the basic ideas behind
-the latest approach, which has some not completed code in the CVS.
+Does such a thing exist?
 
-  And of course, feel free to ask, either here or on netfilter-failover.
+How easy/difficult would it be to hack into the
+current netfilter code to remove all the
+networking/kernel hooks it has?
 
--- 
- Regards,
-   Krisztian KOVACS
+Could someone guide me as to how exactly to go about
+doing this? i.e. where the hooks are..in the code?
+
+Sorry for too many questions! :|
+
+Cheers!
+KeRNEL_LeaRNER
+
+P.S: SORRY for first Posting to Users...didn't realise
+it was the wrong place to post such a question.
+
+__________________________________
+Do you Yahoo!?
+Yahoo! Hotjobs: Enter the "Signing Bonus" Sweepstakes
+http://hotjobs.sweepstakes.yahoo.com/signingbonus
