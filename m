@@ -1,12 +1,16 @@
-From: "Grace Li" <zheyinli@hotmail.com>
-Subject: Re: How does iptables redirect a packet that is not addressed to its local machi
-Date: Thu, 08 Apr 2004 10:58:10 -0400
+From: Chris Wilson <chris@netservers.co.uk>
+Subject: Re: How does iptables redirect a packet that is not addressed to
+ its local machi
+Date: Thu, 8 Apr 2004 16:01:31 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY7-F89pJbxZN8WHqQ000321c9@hotmail.com>
+Message-ID: <Pine.LNX.4.44.0404081559410.29813-100000@chris.camcom.co.uk>
+References: <BAY7-F991UjdSkleUBU00007230@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: wanghtb@legend.com.cn, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Grace Li <zheyinli@hotmail.com>
+In-Reply-To: <BAY7-F991UjdSkleUBU00007230@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,46 +21,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Grace,
 
+> Yes, Client and Server are in the same network!
+> 
+> I used the Ethereal tool, which is similiar to but better than tcpdump.  On 
+> Client, Server and Gateway, I could all always see that packets are sending 
+> back and forth from Server and Client.  There is no sign that Gateway 
+> receives packets on port 1888 or 2000.
 
+If you ping the Server from the Client, does it go through the Gateway? 
+Probably not, because Client and Server are in the same subnet and on the 
+same physical LAN. In this case, the packets never arrive at Gateway, so 
+iptables on Gateway can't do anything to intercept or modify them.
 
->From: Phil Oester <kernel@linuxace.com>
->To: Grace Li <zheyinli@hotmail.com>
->CC: netfilter-devel@lists.netfilter.org
->Subject: Re: How does iptables redirect a packet that is not addressed to 
->its local machine
->Date: Wed, 7 Apr 2004 16:40:58 -0700
->
->Perhaps you haven't added a corresponding rule to the INPUT table
->to actually allow port 2000 to the gateway?
->
->Phil
->
->On Wed, Apr 07, 2004 at 06:16:07PM -0700, Grace Li wrote:
-> > Hi,
-> >
-> > I am just wondering if anybody could explain what happened in the 
->following experiments:
-> >
-> > Client (192.168.1.134) tries to connect to port 1888 of Server
-> > (192.168.1.115) through Gateway (192.168.1.1).  In the Gateway, the 
->iptables
-> > has been instructed to redirect traffic on port 1888 to 2000 (iptables 
->-t
-> > nat -A PREROUTING -i eth0 -p tcp --dport 1888 -j REDIRECT -to-port 2000 
->).
-> >
-> > The results of my experiments is that the application on Gateway who 
->listens
-> > to port 2000 could not get anything, while Server receives everything
-> > expected on its port 1888. So my question is that did iptables do 
->anything
-> > here?
-> >
-> > Many thanks,
-> >
-> > Grace
-> >
+You could try setting a route on the Client which points to the Server, 
+but using Gateway as the gateway of the route.
 
-_________________________________________________________________
-http://join.msn.com/?pgmarket=en-ca&page=byoa/prem&xAPID=1994&DI=1034&SU=http://hotmail.com/enca&HL=Market_MSNIS_Taglines
+Cheers, Chris.
+-- 
+_  __ __     _
+ / __/ / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
+/ (_  ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
+\__/_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
