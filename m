@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Netfilter+IPsec patches
-Date: Sat, 21 Aug 2004 17:30:58 +0200
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: [2/2] osf: fixed /proc reading bug
+Date: Sun, 22 Aug 2004 01:03:58 +0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <41276AB2.4030505@trash.net>
-References: <20040526033537.GH4402@samad.com.au> <40B53CCE.40704@trash.net> <20040527044613.GC24464@samad.com.au> <20040818024025.GC21419@ns.snowman.net> <20040818024852.GD21419@ns.snowman.net>
+Message-ID: <20040822010358.79048eda@zanzibar.2ka.mipt.ru>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Sun__22_Aug_2004_01_03_58_+0400_V4XlUrVC=eCdGEmk"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Stephen Frost <sfrost@snowman.net>
-In-Reply-To: <20040818024852.GD21419@ns.snowman.net>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,38 +20,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen Frost wrote:
+This is a multi-part message in MIME format.
 
->* Stephen Frost (sfrost@snowman.net) wrote:
->  
->
->>I've got a bunch of network cards in my gateway, in this example we're
->>concerned w/ 3 of them- two connections to the internet, one internal.
->>For this to work I have to have source-based routing working (which it
->>used to, back when I was using 2.4).  It appears to still work fine for
->>connections which are *not* NAT'd.  For connections which are NAT'd it
->>goes like this:
->>    
->>
->
->Alright, so, tried something funny-  If I add a source-route rule for 
->the *internal* address of the machine then the source routing works (but,
->unfortunately, this breaks things since that machine needs to be able to
->accept connections from both internet connections).
->
->I'm guessing this is done because of the packets are going through the 
->stack twice, but only going through the routing code once, and that's
->happening prior to the NAT'ing?
->
->Please note, these packets aren't IPSEC'd and don't have anything to do
->w/ IPSEC stuff.  I'm doing some other IPSEC stuff on one of the
->connections at the moment, but that's all working fine (it's on
->internet1, so that may help...).
->  
->
-It looks like it has something to do with the ipsec patches rerouting in
-POSTROUTING after NAT. Please send your exact routes and rules, I can't
-figure out the exact problem.
+--Multipart=_Sun__22_Aug_2004_01_03_58_+0400_V4XlUrVC=eCdGEmk
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Regards
-Patrick
+Fixed buffer overflow when reading rules from /proc file.
+
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+
+	Evgeniy Polyakov ( s0mbre )
+
+Only failure makes us experts. -- Theo de Raadt
+
+
+--Multipart=_Sun__22_Aug_2004_01_03_58_+0400_V4XlUrVC=eCdGEmk
+Content-Type: application/octet-stream;
+ name="ipt_osf.diff.1"
+Content-Disposition: attachment;
+ filename="ipt_osf.diff.1"
+Content-Transfer-Encoding: base64
+
+LS0tIG5ldGZpbHRlcl9jdnMvcGF0Y2gtby1tYXRpYy1uZy9vc2YvbGludXgtMi42L25ldC9pcHY0
+L25ldGZpbHRlci9pcHRfb3NmLmMJMjAwNC0wOC0yMiAwMDo1NDo0NC4wMDAwMDAwMDAgKzA0MDAK
+KysrIG5ldGZpbHRlcl9jdnMvcGF0Y2gtby1tYXRpYy1uZy9vc2YvbGludXgtMi42L25ldC9pcHY0
+L25ldGZpbHRlci9pcHRfb3NmLmMJMjAwNC0wOC0yMCAyMjozNjoyNC4wMDAwMDAwMDAgKzA0MDAK
+QEAgLTE4Miw3ICsxODUsNiBAQAogCQlvcHRzaXplID0gdGNwLT5kb2ZmKjQgLSBzaXplb2Yoc3Ry
+dWN0IHRjcGhkcik7CiAJfQogCi0JCiAJLyogQWN0dWFsbHkgd2UgY2FuIGNyZWF0ZSBoYXNoL3Rh
+YmxlIG9mIGFsbCBnZW5yZXMgYW5kIHNlYXJjaAogCSAqIG9ubHkgaW4gYXBwcm9wcmlhdGUgcGFy
+dCwgYnV0IGhlcmUgaXMgaW5pdGlhbCB2YXJpYW50LAogCSAqIHNvIHdpbGwgdXNlIHNsb3cgcGF0
+aC4KQEAgLTYwMSw5ICs2MDMsMTAgQEAKIHsKIAlzdHJ1Y3QgbGlzdF9oZWFkICplbnQ7CiAJc3Ry
+dWN0IG9zZl9maW5nZXIgKmYgPSBOVUxMOwotCWludCBpOworCWludCBpLCBfX2NvdW50LCBlcnI7
+CiAJCiAJKmVvZiA9IDE7CisJX19jb3VudCA9IGNvdW50OwogCWNvdW50ID0gMDsKIAogCXJlYWRf
+bG9ja19iaCgmb3NmX2xvY2spOwpAQCAtNjEzLDEwICs2MTYsMTMgQEAKIAogCQlsb2coIiVzIFsl
+c10iLCBmLT5nZW5yZSwgZi0+ZGV0YWlscyk7CiAJCQotCQljb3VudCArPSBzcHJpbnRmKGJ1Zitj
+b3VudCwgIiVzIC0gJXNbJXNdIDogJXMiLCAKKwkJZXJyID0gc25wcmludGYoYnVmK2NvdW50LCBf
+X2NvdW50LWNvdW50LCAiJXMgLSAlc1slc10gOiAlcyIsIAogCQkJCQlmLT5nZW5yZSwgZi0+dmVy
+c2lvbiwKIAkJCQkJZi0+c3VidHlwZSwgZi0+ZGV0YWlscyk7Ci0JCQorCQlpZiAoZXJyIDwgMCkK
+KwkJCWJyZWFrOworCQllbHNlCisJCQljb3VudCArPSBlcnI7CiAJCWlmIChmLT5vcHRfbnVtKQog
+CQl7CiAJCQlsb2dhKCIgT1BUOiAiKTsKQEAgLTYzMCw3ICs2MzYsMTEgQEAKIAkJCX0KIAkJfQog
+CQlsb2dhKCJcbiIpOwotCQljb3VudCArPSBzcHJpbnRmKGJ1Zitjb3VudCwgIlxuIik7CisJCWVy
+ciA9IHNucHJpbnRmKGJ1Zitjb3VudCwgX19jb3VudC1jb3VudCwgIlxuIik7CisJCWlmIChlcnIg
+PCAwKQorCQkJYnJlYWs7CisJCWVsc2UKKwkJCWNvdW50ICs9IGVycjsKIAl9CiAJcmVhZF91bmxv
+Y2tfYmgoJm9zZl9sb2NrKTsKIAo=
+
+--Multipart=_Sun__22_Aug_2004_01_03_58_+0400_V4XlUrVC=eCdGEmk--
