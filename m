@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Conntrack Entries
-Date: Fri, 13 Jun 2003 17:19:58 +0200
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [RESEND][TRIVIAL][PATCH] 25_natcore-nohelper.patch compile problem
+ (fwd)
+Date: Fri, 13 Jun 2003 17:45:02 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030613151957.GF32593@sunbeam.de.gnumonks.org>
-References: <Sea2-F465SpDz9vUkUq0000c036@hotmail.com>
+Message-ID: <Pine.LNX.4.51.0306131744310.11867@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4ewN61DNRuNLc83n"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ricky Foo <blue_pion@hotmail.com>
-Content-Disposition: inline
-In-Reply-To: <Sea2-F465SpDz9vUkUq0000c036@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,55 +18,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---4ewN61DNRuNLc83n
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+25_natcore-nohelper.patch applied to the kernel will not compile with
+gcc3.3 (i think 3.2 too)
 
-On Thu, Jun 12, 2003 at 08:45:01AM +0000, Ricky Foo wrote:
-> Hi all,
->=20
-> I have written a netbios conntrack module for port 139. However when I=20
-> tested it, it shows several entries because the source port on my side=20
-> keeps changing.....e.g. 32900, then 32901, 32902.... in this case, there=
-=20
-> will be 3 lines as if there are 3 different connections are going on. Is=
-=20
-> this the correct expected behaviour or should they just go into 1 line?
+It is because gcc3.3 will complain about an unterminated string here:
 
-I have no idea about the netbios protocol, so I don't know what the
-expected behaviour is.  Is it really only one connection?  Then you
-should probably make the 2nd an 3rd connection be siblings
-(ip_conntrack_expect_related()) of the master connection. =20
+                              DEBUGP("calling nat helper (exp=%p) for
+                                      packet\n", exp);
 
-> What does the "use" field mean?
 
-It's an internal reference counter indicating how many other objects in
-the kernel are still referencing this conntrack.
+Here is patch to patch-o-matic to fix the patch so it compiles with
+gcc-3.3.
 
->    Ricky
+Regards,
+Maciej
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Index: 25_natcore-nohelper.patch
+===================================================================
+RCS file: /cvspublic/netfilter/patch-o-matic/pending/25_natcore-nohelper.patch,v
+retrieving revision 1.1
+diff -u -r1.1 25_natcore-nohelper.patch
+--- 25_natcore-nohelper.patch	26 Mar 2003 15:31:08 -0000	1.1
++++ 25_natcore-nohelper.patch	4 Jun 2003 09:11:15 -0000
+@@ -21,7 +21,7 @@
 
---4ewN61DNRuNLc83n
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+  		DEBUGP("do_bindings: helper existing for (%p)\n", ct);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+-@@ -817,19 +823,22 @@
++@@ -817,19 +823,21 @@
+  				continue;
 
-iD8DBQE+6eudXaXGVTD0i/8RAn1dAJ4xwcVjT87m5CHC7jPMT7dRpr6lPACfSpRL
-7rGlhDCxR7j0Nv+bnIJwB+o=
-=gwwI
------END PGP SIGNATURE-----
-
---4ewN61DNRuNLc83n--
+  			if (exp_for_packet(exp, pskb)) {
+@@ -30,8 +30,7 @@
+ -					exp);
+ +				/* FIXME: May be true multiple times in the
+ +				 * case of UDP!! */
+-+				DEBUGP("calling nat helper (exp=%p) for
+-+					packet\n", exp);
+++				DEBUGP("calling nat helper (exp=%p) for	packet\n", exp);
+  				ret = helper->help(ct, exp, info, ctinfo,
+  						   hooknum, pskb);
+  				if (ret != NF_ACCEPT) {
