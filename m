@@ -1,12 +1,12 @@
-From: James Morris <jmorris@redhat.com>
-Subject: Remote DoS vulnerability in Linux kernel 2.6.x (fwd)
-Date: Wed, 30 Jun 2004 14:24:06 -0400 (EDT)
+From: "Yoav Zamir" <yoav_zamm@hotmail.com>
+Subject: Reset regarded as a new session
+Date: Mon, 28 Jun 2004 15:46:50 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Xine.LNX.4.44.0406301423320.32212-100000@thoron.boston.redhat.com>
+Message-ID: <BAY7-F70KywM6iYOU3I000463e7@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="----=_NextPart_000_25f2_24ef_2566"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, Harald Welte <laforge@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,102 +17,158 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
----------- Forwarded message ----------
-Date: Wed, 30 Jun 2004 12:57:17 +0200
-From: Adam Osuchowski <adwol@polsl.gliwice.pl>
-To: bugtraq@securityfocus.com
-Subject: Remote DoS vulnerability in Linux kernel 2.6.x
+This is a multi-part message in MIME format.
 
-1. Overview
------------
+------=_NextPart_000_25f2_24ef_2566
+Content-Type: text/plain; format=flowed
 
-There is a remotely exploitable bug in all Linux kernel 2.6 series due to
-using incorrect variable type. Vulnerability is connected to netfilter
-subsystem and may cause DoS. It's disclosed only when using iptables with
-rules matching TCP options (i.e.  --tcp-option). There is no difference
-what action is taking up by matching rule.
+It seems like iptables doesn't treat correctly a session I have created.
+The situation is as follows:
+I have two machines (A-holds a program that is a TCP client, B-TCP server).
+A contains an SNAT & DNAT that alter the ip-addresses of the outgoing 
+sessions.
 
-Vulnerability was detected on i386 architecture. The other ones weren't tested
-but it seems to be vulnerable too.
+Now (in chronological order):
+A opens a session (sends a SYN, recieves SYN ACK).
+A sends some data (and recieves acks).
+A closes the connection: (Sends a FIN)
+B sends an ACK to the FIN (that contains data(!)).
+A sends a RST to B (because data was recieved in the FINACK(?)), but at this 
+point the NAT sends it with altered IP addresses - as though the session has 
+already ended and the reset packet belongs to a new session. This packet 
+also has bad chksum.
+B tries to send FIN packets (with the correct IP addresses), but recieves no 
+acknowledgements to them; Thus leaving the session stuck on the server in 
+the mode LAST_ACK.
 
-2. Details
-----------
+The NAT configuration and a plot of tethereal is attached.
 
-Problem lies in tcp_find_option() function (net/ipv4/netfilter/ip_tables.c).
-There is local array `opt' defined as:
+Regards,
+Yoav.
 
-    char opt[60 - sizeof(struct tcphdr)];
+_________________________________________________________________
+Add photos to your messages with MSN 8. Get 2 months FREE*. 
+http://join.msn.com/?page=features/featuredemail
 
-which contains TCP options extracted from packet. Function mentioned above
-searches for specified option in this array.
+------=_NextPart_000_25f2_24ef_2566
+Content-Type: text/plain; name="table_config.txt"; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename="table_config.txt"
 
-Options in TCP packet, with some exceptions, are organized in the following
-way:
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination
 
-	Octet no.	Length	Field
-	-----------------------------
-		0	1	Opcode
-		1	1	Length of all option (N + 2)
-		2	N	Params
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+SNAT       tcp  --  anywhere             anywhere            tcp 
+spts:20000:29999 to:3.2.46.172-3.19.11.33:20000-30000
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+DNAT       tcp  --  anywhere             anywhere            tcp 
+spts:20000:29999 to:2.3.31.18-2.12.21.34:11111-22222
 
 
-The function iterates over options in array:
+------=_NextPart_000_25f2_24ef_2566
+Content-Type: application/octet-stream; name="NATRSTRotate.log"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="NATRSTRotate.log"
 
-    for (i = 0; i < optlen; ) {
-	    if (opt[i] == option) return !invert;
-	    if (opt[i] < 2) i++;
-	    else i += opt[i+1]?:1;
-    }
+Q29tcGlsZWQgYnkgdGV0aGVyZWFsLCBiYXNlZCBvbiB0Y3BkdW1wOg0KDQog
+IDEgICAwLjAwMDAwMCAgMy42LjEwNC4xNTQgLT4gMi43Ljg4LjI1NSAgIFRD
+UCAyMDAwMCA+IDIwMDAwIFtTWU5dIFNlcT0wIEFjaz0wIFdpbj01ODQwIExl
+bj0wIE1TUz0xNDYwIFRTVj01MTQwNzEwIFRTRVI9MCBXUz0wDQogIDIgICAw
+LjAwMTQzNyAgIDIuNy44OC4yNTUgLT4gMy42LjEwNC4xNTQgIFRDUCAyMDAw
+MCA+IDIwMDAwIFtTWU4sIEFDS10gU2VxPTAgQWNrPTEgV2luPTU3OTIgTGVu
+PTAgTVNTPTE0NjAgVFNWPTUxMDkxNjcgVFNFUj01MTQwNzEwIFdTPTANCiAg
+MyAgIDAuMDAxNDc3ICAzLjYuMTA0LjE1NCAtPiAyLjcuODguMjU1ICAgVENQ
+IDIwMDAwID4gMjAwMDAgW0FDS10gU2VxPTEgQWNrPTEgV2luPTU4NDAgTGVu
+PTAgVFNWPTUxNDA3MTIgVFNFUj01MTA5MTY3DQogIDQgICAwLjAwMTU1MSAg
+My42LjEwNC4xNTQgLT4gMi43Ljg4LjI1NSAgIFRDUCAyMDAwMCA+IDIwMDAw
+IFtBQ0tdIFNlcT0xIEFjaz0xIFdpbj01ODQwIExlbj0xNDQ4IFRTVj01MTQw
+NzEyIFRTRVI9NTEwOTE2Nw0KICA1ICAgMC4wMDE1NzUgIDMuNi4xMDQuMTU0
+IC0+IDIuNy44OC4yNTUgICBUQ1AgMjAwMDAgPiAyMDAwMCBbQUNLXSBTZXE9
+MTQ0OSBBY2s9MSBXaW49NTg0MCBMZW49MTQ0OCBUU1Y9NTE0MDcxMiBUU0VS
+PTUxMDkxNjcNCiAgNiAgIDAuMDEwMjg0ICAgMi43Ljg4LjI1NSAtPiAzLjYu
+MTA0LjE1NCAgVENQIDIwMDAwID4gMjAwMDAgW0FDS10gU2VxPTEgQWNrPTE0
+NDkgV2luPTg2ODggTGVuPTAgVFNWPTUxMDkxNzUgVFNFUj01MTQwNzEyDQog
+IDcgICAwLjAxMDMwNyAgMy42LjEwNC4xNTQgLT4gMi43Ljg4LjI1NSAgIFRD
+UCAyMDAwMCA+IDIwMDAwIFtQU0gsIEFDS10gU2VxPTI4OTcgQWNrPTEgV2lu
+PTU4NDAgTGVuPTE0NDggVFNWPTUxNDA3MjEgVFNFUj01MTA5MTc1DQogIDgg
+ICAwLjAxMDMxOCAgMy42LjEwNC4xNTQgLT4gMi43Ljg4LjI1NSAgIFRDUCAy
+MDAwMCA+IDIwMDAwIFtQU0gsIEFDS10gU2VxPTQzNDUgQWNrPTEgV2luPTU4
+NDAgTGVuPTY1OCBUU1Y9NTE0MDcyMSBUU0VSPTUxMDkxNzUNCiAgOSAgIDAu
+MDIyNDUwICAgMi43Ljg4LjI1NSAtPiAzLjYuMTA0LjE1NCAgVENQIFtUQ1Ag
+RHVwIEFDSyA2IzFdIFtUQ1AgUHJldmlvdXMgc2VnbWVudCBsb3N0XSAyMDAw
+MCA+IDIwMDAwIFtBQ0tdIFNlcT03IEFjaz0xNDQ5IFdpbj04Njg4IExlbj0w
+IFRTVj01MTA5MTg4IFRTRVI9NTE0MDcxMiBTTEU9MTcwOTYyMjExNyBTUkU9
+MTcwOTYyMzU2NQ0KIDEwICAgMC4wMjQ3MDQgICAyLjcuODguMjU1IC0+IDMu
+Ni4xMDQuMTU0ICBUQ1AgW1RDUCBEdXAgQUNLIDYjMl0gMjAwMDAgPiAyMDAw
+MCBbQUNLXSBTZXE9NyBBY2s9MTQ0OSBXaW49ODY4OCBMZW49MCBUU1Y9NTEw
+OTE5MCBUU0VSPTUxNDA3MTIgU0xFPTE3MDk2MjIxMTcgU1JFPTE3MDk2MjQy
+MjMNCiAxMSAgIDAuMjEzMTcyICAzLjYuMTA0LjE1NCAtPiAyLjcuODguMjU1
+ICAgVENQIFtUQ1AgUmV0cmFuc21pc3Npb25dIDIwMDAwID4gMjAwMDAgW0FD
+S10gU2VxPTE0NDkgQWNrPTEgV2luPTU4NDAgTGVuPTE0NDggVFNWPTUxNDA5
+MjMgVFNFUj01MTA5MTc1DQogMTIgICAwLjIxNTkxNiAgIDIuNy44OC4yNTUg
+LT4gMy42LjEwNC4xNTQgIFRDUCBbVENQIFJldHJhbnNtaXNzaW9uXSAyMDAw
+MCA+IDIwMDAwIFtQU0gsIEFDS10gU2VxPTEgQWNrPTE0NDkgV2luPTg2ODgg
+TGVuPTYgVFNWPTUxMDkzODEgVFNFUj01MTQwNzEyIFNMRT0xNzA5NjIyMTE3
+IFNSRT0xNzA5NjI0MjIzDQogMTMgICAwLjIxNTk0MCAgMy42LjEwNC4xNTQg
+LT4gMi43Ljg4LjI1NSAgIFRDUCAyMDAwMCA+IDIwMDAwIFtBQ0tdIFNlcT01
+MDAzIEFjaz03IFdpbj01ODQwIExlbj0wIFRTVj01MTQwOTI2IFRTRVI9NTEw
+OTM4MQ0KIDE0ICAgMC4yMTYwMjUgIDMuNi4xMDQuMTU0IC0+IDIuNy44OC4y
+NTUgICBUQ1AgMjAwMDAgPiAyMDAwMCBbRklOLCBBQ0tdIFNlcT01MDAzIEFj
+az03IFdpbj01ODQwIExlbj0wIFRTVj01MTQwOTI2IFRTRVI9NTEwOTM4MQ0K
+IDE1ICAgMC4yMjE4MTUgICAyLjcuODguMjU1IC0+IDMuNi4xMDQuMTU0ICBU
+Q1AgMjAwMDAgPiAyMDAwMCBbQUNLXSBTZXE9NyBBY2s9NTAwMyBXaW49MTE1
+ODQgTGVuPTAgVFNWPTUxMDkzODcgVFNFUj01MTQwOTIzDQogMTYgICAwLjIy
+MjE0MCAgIDIuNy44OC4yNTUgLT4gMy42LjEwNC4xNTQgIFRDUCAyMDAwMCA+
+IDIwMDAwIFtQU0gsIEFDS10gU2VxPTcgQWNrPTUwMDQgV2luPTExNTg0IExl
+bj02IFRTVj01MTA5Mzg3IFRTRVI9NTE0MDkyNg0KIDE3ICAgMC4yMjIyMTEg
+IDMuNi4xMDQuMjMyIC0+IDIuNy44OS43NyAgICBUQ1AgMjAwMDAgPiAyMDAw
+MCBbUlNUXSBTZXE9MCBBY2s9MCBXaW49MCBbQ0hFQ0tTVU0gSU5DT1JSRUNU
+XSBMZW49MA0KIDE4ICAgMC4yMjI0NjggICAyLjcuODguMjU1IC0+IDMuNi4x
+MDQuMTU0ICBUQ1AgMjAwMDAgPiAyMDAwMCBbRklOLCBQU0gsIEFDS10gU2Vx
+PTEzIEFjaz01MDA0IFdpbj0xMTU4NCBMZW49NiBUU1Y9NTEwOTM4NyBUU0VS
+PTUxNDA5MjYNCiAxOSAgIDAuMjIyNDk0ICAzLjYuMTA0LjIzNCAtPiAyLjcu
+ODkuNzkgICAgVENQIDIwMDAwID4gMjAwMDAgW1JTVF0gU2VxPTAgQWNrPTAg
+V2luPTAgW0NIRUNLU1VNIElOQ09SUkVDVF0gTGVuPTANCiAyMCAgIDAuNDIy
+ODU2ICAgMi43Ljg4LjI1NSAtPiAzLjYuMTA0LjE1NCAgVENQIFtUQ1AgUmV0
+cmFuc21pc3Npb25dIDIwMDAwID4gMjAwMDAgW0ZJTiwgUFNILCBBQ0tdIFNl
+cT03IEFjaz01MDA0IFdpbj0xMTU4NCBMZW49MTIgVFNWPTUxMDk1ODggVFNF
+Uj01MTQwOTI2DQogMjEgICAwLjQyMjg4NyAgMy42LjEwNC4yMzYgLT4gMi43
+Ljg5LjgxICAgIFRDUCAyMDAwMCA+IDIwMDAwIFtSU1RdIFNlcT0wIEFjaz0w
+IFdpbj0wIFtDSEVDS1NVTSBJTkNPUlJFQ1RdIExlbj0wDQogMjIgICAwLjgy
+NDc3NiAgIDIuNy44OC4yNTUgLT4gMy42LjEwNC4xNTQgIFRDUCBbVENQIFJl
+dHJhbnNtaXNzaW9uXSAyMDAwMCA+IDIwMDAwIFtGSU4sIFBTSCwgQUNLXSBT
+ZXE9NyBBY2s9NTAwNCBXaW49MTE1ODQgTGVuPTEyIFRTVj01MTA5OTkwIFRT
+RVI9NTE0MDkyNg0KIDIzICAgMC44MjQ4MzcgIDMuNi4xMDQuMjM4IC0+IDIu
+Ny44OS44MyAgICBUQ1AgMjAwMDAgPiAyMDAwMCBbUlNUXSBTZXE9MCBBY2s9
+MCBXaW49MCBbQ0hFQ0tTVU0gSU5DT1JSRUNUXSBMZW49MA0KIDI0ICAgMS42
+Mjg2MTYgICAyLjcuODguMjU1IC0+IDMuNi4xMDQuMTU0ICBUQ1AgW1RDUCBS
+ZXRyYW5zbWlzc2lvbl0gMjAwMDAgPiAyMDAwMCBbRklOLCBQU0gsIEFDS10g
+U2VxPTcgQWNrPTUwMDQgV2luPTExNTg0IExlbj0xMiBUU1Y9NTExMDc5NCBU
+U0VSPTUxNDA5MjYNCiAyNSAgIDEuNjI4NjQzICAzLjYuMTA0LjI0MCAtPiAy
+LjcuODkuODUgICAgVENQIDIwMDAwID4gMjAwMDAgW1JTVF0gU2VxPTAgQWNr
+PTAgV2luPTAgW0NIRUNLU1VNIElOQ09SUkVDVF0gTGVuPTANCiAyNiAgIDMu
+MjM2Mjk5ICAgMi43Ljg4LjI1NSAtPiAzLjYuMTA0LjE1NCAgVENQIFtUQ1Ag
+UmV0cmFuc21pc3Npb25dIDIwMDAwID4gMjAwMDAgW0ZJTiwgUFNILCBBQ0td
+IFNlcT03IEFjaz01MDA0IFdpbj0xMTU4NCBMZW49MTIgVFNWPTUxMTI0MDIg
+VFNFUj01MTQwOTI2DQogMjcgICAzLjIzNjM0MSAgMy42LjEwNC4yNDIgLT4g
+Mi43Ljg5Ljg3ICAgIFRDUCAyMDAwMCA+IDIwMDAwIFtSU1RdIFNlcT0wIEFj
+az0wIFdpbj0wIFtDSEVDS1NVTSBJTkNPUlJFQ1RdIExlbj0wDQogMjggICA2
+LjQ1MTY2MyAgIDIuNy44OC4yNTUgLT4gMy42LjEwNC4xNTQgIFRDUCBbVENQ
+IFJldHJhbnNtaXNzaW9uXSAyMDAwMCA+IDIwMDAwIFtGSU4sIFBTSCwgQUNL
+XSBTZXE9NyBBY2s9NTAwNCBXaW49MTE1ODQgTGVuPTEyIFRTVj01MTE1NjE4
+IFRTRVI9NTE0MDkyNg0KIDI5ICAgNi40NTE2OTkgIDMuNi4xMDQuMjQ0IC0+
+IDIuNy44OS44OSAgICBUQ1AgMjAwMDAgPiAyMDAwMCBbUlNUXSBTZXE9MCBB
+Y2s9MCBXaW49MCBbQ0hFQ0tTVU0gSU5DT1JSRUNUXSBMZW49MA0KIDMwICAx
+Mi44ODM0MTcgICAyLjcuODguMjU1IC0+IDMuNi4xMDQuMTU0ICBUQ1AgW1RD
+UCBSZXRyYW5zbWlzc2lvbl0gMjAwMDAgPiAyMDAwMCBbRklOLCBQU0gsIEFD
+S10gU2VxPTcgQWNrPTUwMDQgV2luPTExNTg0IExlbj0xMiBUU1Y9NTEyMjA1
+MCBUU0VSPTUxNDA5MjYNCiAzMSAgMTIuODgzNDYxICAzLjYuMTA0LjI0NiAt
+PiAyLjcuODkuOTEgICAgVENQIDIwMDAwID4gMjAwMDAgW1JTVF0gU2VxPTAg
+QWNrPTAgV2luPTAgW0NIRUNLU1VNIElOQ09SUkVDVF0gTGVuPTA=
 
-moving counter by the option length.
 
-But, in case the `length' value is greater than 127, the value of this octet
-in `opt' is implicitly casted to char, which results in negative number and
-the loop counter moving back. In some cases it is possible, that counter
-cycles throught the contents of this array infinitely.
-
-3. Impact
----------
-
-After sending one suitably prepared TCP packet to victim host, kernel goes
-into infinite loop consuming all CPU resources, rendering the box
-unresponsable. Of course, there is no need to have a shell access to attacked
-host.
-
-4. Exploitation
----------------
-
-Example of packet-of-death:
-
-0x0000:  4500 0030 1234 4000 ff06 e83f c0a8 0001
-0x0010:  c0a8 0002 0400 1000 0000 0064 0000 0064
-0x0020:  7000 0fa0 dc6a 0000 0204 05b4 0101 04fd
-
-5. Fix
-------
-
-There is only need to change type of `opt' array from signed char to unsigned
-(or, better to u_int8_t) as it was defined in 2.4 kernel or prior to version
-1.16 of net/ipv4/netfilter/ip_tables.c file.
-
---- net/ipv4/netfilter/ip_tables.c.orig	2004-04-04 05:36:47.000000000 +0200
-+++ net/ipv4/netfilter/ip_tables.c	2004-06-24 21:24:26.000000000 +0200
-@@ -1461,7 +1461,7 @@
- 		int *hotdrop)
- {
- 	/* tcp.doff is only 4 bits, ie. max 15 * 4 bytes */
--	char opt[60 - sizeof(struct tcphdr)];
-+	u_int8_t opt[60 - sizeof(struct tcphdr)];
- 	unsigned int i;
- 
- 	duprintf("tcp_match: finding option\n");
-
-6. Credits
-----------
-
-Vulnerability was discovered, identified and fixed by Adam Osuchowski
-and Tomasz Dubinski.
-
--- 
-##  Adam Osuchowski   adwol@polsl.gliwice.pl, adwol@silesia.linux.org.pl
-##  Silesian University of Technology, Computer Centre   Gliwice, Poland
+------=_NextPart_000_25f2_24ef_2566--
