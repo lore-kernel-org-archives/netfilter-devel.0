@@ -1,14 +1,12 @@
-From: Alexander Pazdnikov <sasha@cnit.ustu.ru>
-Subject: Patch for libiptc
-Date: Mon, 25 Nov 2002 09:23:17 +0500
+From: "Hsiao Kevin" <kevinhsiao@msn.com>
+Subject: iptables 1.2.7a bug report for conntrack
+Date: Mon, 25 Nov 2002 16:53:31 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200211250422.gAP4Mu4F016168@garrick.ustu.ru>
-Reply-To: sasha@cnit.ustu.ru
+Message-ID: <DAV60HW2Qxc0fHqr8k600025ce4@hotmail.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="------------Boundary-00=_TU64T4IF0KP3KE5T3HEN"
+Content-Type: multipart/alternative; boundary="----=_NextPart_001_0000_01C294A3.2F7DF840"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,43 +18,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---------------Boundary-00=_TU64T4IF0KP3KE5T3HEN
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 8bit
+------=_NextPart_001_0000_01C294A3.2F7DF840
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: quoted-printable
 
-	Hello.
-  Patch for function is_same() in libiptc4.c (in libiptc6.c all ok)
+TO WHOM IT MAY CONCERN,
 
-Best Wishes
-Alexander Pazdnikov
+I found some error in =20
 
+iptables-1.2.7a/extensions/libipt_conntrack.c
+Line#437: printf("%sctreplsrc ", optpfx);
+Line#447: printf("%sctrepldst ", optpfx);
 
---------------Boundary-00=_TU64T4IF0KP3KE5T3HEN
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="libiptc4.c.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="libiptc4.c.patch"
+Sincerely,
 
-KioqIC91c3Ivc3JjL3JlZGhhdC9CVUlMRC9pcHRhYmxlcy0xLjIuNS9saWJpcHRjL2xpYmlwNHRj
-LmMJRnJpIEphbiAgNSAyMDoyMjo1OSAyMDAxCi0tLSAvdXNyL3NyYy9yZWRoYXQvQlVJTEQvUEFU
-Q0hFRC9pcHRhYmxlcy0xLjIuNS9saWJpcHRjL2xpYmlwNHRjLmMJV2VkIE5vdiAyMCAyMTozMzoz
-MCAyMDAyCioqKioqKioqKioqKioqKiBpc19zYW1lKGNvbnN0IFNUUlVDVF9FTlRSWSAqYSwgY29u
-c3QgU1RSCioqKiAxOTEsMjAxICoqKioKICAKICAJLyogQWx3YXlzIGNvbXBhcmUgaGVhZCBzdHJ1
-Y3R1cmVzOiBpZ25vcmUgbWFzayBoZXJlLiAqLwogIAlpZiAoYS0+aXAuc3JjLnNfYWRkciAhPSBi
-LT5pcC5zcmMuc19hZGRyCiAgCSAgICB8fCBhLT5pcC5kc3Quc19hZGRyICE9IGItPmlwLmRzdC5z
-X2FkZHIKICAJICAgIHx8IGEtPmlwLnNtc2suc19hZGRyICE9IGItPmlwLnNtc2suc19hZGRyCi0g
-CSAgICB8fCBhLT5pcC5zbXNrLnNfYWRkciAhPSBiLT5pcC5zbXNrLnNfYWRkcgogIAkgICAgfHwg
-YS0+aXAucHJvdG8gIT0gYi0+aXAucHJvdG8KICAJICAgIHx8IGEtPmlwLmZsYWdzICE9IGItPmlw
-LmZsYWdzCiAgCSAgICB8fCBhLT5pcC5pbnZmbGFncyAhPSBiLT5pcC5pbnZmbGFncykKICAJCXJl
-dHVybiAwOwogIAotLS0gMTkxLDIwMSAtLS0tCiAgCiAgCS8qIEFsd2F5cyBjb21wYXJlIGhlYWQg
-c3RydWN0dXJlczogaWdub3JlIG1hc2sgaGVyZS4gKi8KICAJaWYgKGEtPmlwLnNyYy5zX2FkZHIg
-IT0gYi0+aXAuc3JjLnNfYWRkcgogIAkgICAgfHwgYS0+aXAuZHN0LnNfYWRkciAhPSBiLT5pcC5k
-c3Quc19hZGRyCiAgCSAgICB8fCBhLT5pcC5zbXNrLnNfYWRkciAhPSBiLT5pcC5zbXNrLnNfYWRk
-cgorIAkgICAgfHwgYS0+aXAuZG1zay5zX2FkZHIgIT0gYi0+aXAuZG1zay5zX2FkZHIKICAJICAg
-IHx8IGEtPmlwLnByb3RvICE9IGItPmlwLnByb3RvCiAgCSAgICB8fCBhLT5pcC5mbGFncyAhPSBi
-LT5pcC5mbGFncwogIAkgICAgfHwgYS0+aXAuaW52ZmxhZ3MgIT0gYi0+aXAuaW52ZmxhZ3MpCiAg
-CQlyZXR1cm4gMDsKICAK
+Kevin=A6b=BA=F4=B8=F4=A4W=A8=CF=A5=CE=A7=F3=A6h=A5\=AF=E0=A1C=A4U=B8=FC=A7=
+K=B6O MSN Explorer: http://explorer.msn.com.tw/intl.asp
 
---------------Boundary-00=_TU64T4IF0KP3KE5T3HEN--
+------=_NextPart_001_0000_01C294A3.2F7DF840
+Content-Type: text/html; charset="big5"
+Content-Transfer-Encoding: quoted-printable
+
+<HTML><BODY STYLE=3D"font:10pt verdana; border:none;"><DIV>TO WHOM IT MAY=
+ CONCERN,</DIV> <DIV>&nbsp;</DIV> <DIV>I found some error in <BR><BR>ipta=
+bles-1.2.7a/extensions/libipt_conntrack.c</DIV> <DIV>Line#437: printf("%s=
+ctreplsrc ", optpfx);</DIV> <DIV>Line#447: printf("%sctrepldst ", optpfx)=
+;</DIV> <DIV>&nbsp;</DIV> <DIV>Sincerely,</DIV> <DIV>&nbsp;</DIV> <DIV>Ke=
+vin</DIV></BODY></HTML><br clear=3Dall><hr>=A6b=BA=F4=B8=F4=A4W=A8=CF=A5=CE=
+=A7=F3=A6h=A5\=AF=E0=A1C=A4U=B8=FC=A7K=B6O <a href=3D'http://explorer.msn=
+.com.tw/intl.asp'>MSN Explorer</a><br></p>
+
+------=_NextPart_001_0000_01C294A3.2F7DF840--
