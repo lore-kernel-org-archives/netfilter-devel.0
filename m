@@ -1,17 +1,15 @@
-From: =?iso-8859-2?q?Micha=B3_Margula?= <alchemyx@uznam.net.pl>
-Subject: Re: Connlimit
-Date: Wed, 25 Feb 2004 23:01:35 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: libiptc question
+Date: Wed, 25 Feb 2004 23:02:19 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200402252301.35569.alchemyx@uznam.net.pl>
-References: <200402251533.36904.alchemyx@uznam.net.pl>
+Message-ID: <Pine.LNX.4.44.0402252259370.32183-100000@filer.marasystems.com>
+References: <20040225042920.21925.qmail@web25104.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200402251533.36904.alchemyx@uznam.net.pl>
-Content-Disposition: inline
+To: =?iso-8859-1?q?Jambunathan=20Kalyanasundaram?= <k_jambunathan@yahoo.co.uk>
+In-Reply-To: <20040225042920.21925.qmail@web25104.mail.ukl.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,11 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dnia =B6ro 25. lutego 2004 15:33, Micha=B3 Margula napisa=B3:
-> It is caused when I choose connlimit as a module. Whats wrong?
+On Wed, 25 Feb 2004, Jambunathan Kalyanasundaram wrote:
 
-Using p-o-m-ng solved that issue.
+> I would like to add a SNAT rule ( with a TCP protocol match )
+> programmatically to iptables.
 
-=2D-=20
-Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/
-"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
+Then the best method is to call the iptables command from your program to
+add the needed iptables rule.
+
+Using libiptc is completely undocumented and subject to change at any
+time, even if unlikely as there is not much reason to care about libiptc
+at this time with thoughts going into the next generation.
+
+Regards
+Henrik
