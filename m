@@ -1,16 +1,16 @@
-From: "Qiang" <qzhang@endeavorsystems.net>
-Subject: Where is DROP target implemented {Virus Scanned}
-Date: Fri, 16 Apr 2004 11:21:02 -0400
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Where is DROP target implemented {Virus Scanned}
+Date: Fri, 16 Apr 2004 18:39:31 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200404161525.i3GFP2Fq012438@localhost.localdomain>
-References: <20040415212034.GE7611@obs.bg>
+Message-ID: <40800C43.9040105@trash.net>
+References: <200404161525.i3GFP2Fq012438@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20040415212034.GE7611@obs.bg>
+To: Qiang <qzhang@endeavorsystems.net>
+In-Reply-To: <200404161525.i3GFP2Fq012438@localhost.localdomain>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,6 +21,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Qiang wrote:
+> I am trying to read the Netfilter kernel, can't find where is the DROP
+> Target implemented? Any hints which file to look at ? thanks!
+> 
 
-I am trying to read the Netfilter kernel, can't find where is the DROP
-Target implemented? Any hints which file to look at ? thanks!
+Interesting question, I didn't know either until just now ;)
+DROP/ACCEPT/RETURN (and I think QUEUE) are handled by
+ipt_standard_target (net/ipv4/netfilter/ip_tables.c).
+
+Regards
+Patrick
