@@ -1,18 +1,14 @@
-From: Fabrice MARIE <fabrice@netfilter.org>
-Subject: Re: (no subject)
-Date: Fri, 18 Apr 2003 15:24:44 +0800
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: netfilter language
+Date: Fri, 18 Apr 2003 04:39:06 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200304181524.44951.fabrice@netfilter.org>
-References: <20030414053740.53077.qmail@web14901.mail.yahoo.com>
-Reply-To: fabrice@netfilter.org
+Message-ID: <20030418113906.98028.qmail@web13906.mail.yahoo.com>
+References: <200304181524.44951.fabrice@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030414053740.53077.qmail@web14901.mail.yahoo.com>
-Content-Disposition: inline
+In-Reply-To: <200304181524.44951.fabrice@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,21 +19,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
 Hello,
+    I have been playing with the userspace component
+of iptables, making my own QUEUE application, with
+varying levels of success (as seen in previous
+emails).  Because of my needs which I don't think can
+be fulfilled in a QUEUE, I am thinking of looking into
+working more in the kernel level netfilter.  
+    I was wondering, can C++ be used in developing
+netfilter modules, or is it really limited more to C? 
+The material I would shift into a netfilter area is
+pretty simple, so I can easily convert it to C if
+needed.  Also, are there any references to the order
+in which my work would be called?  Because of it's
+nature, I would need to be called before any other
+handler module (especially conn track).  Thanks in
+advance!
 
-On Monday 14 April 2003 13:37, sanoj mg wrote:
-> hello,          I am looking for a netfilter filter project to work with(
-> of about 5 month duration).I would be very buch obliged if any of you give 
-> any ideas/directions on this. sanoj.
+-Scott
 
-http://www.netfilter.org/documentation/HOWTO/netfilter-hacking-HOWTO.html
-
-Have a nice day,
-
-Fabrice.
---
-Fabrice MARIE
-
-"Silly hacker, root is for administrators"
-       -Unknown
+__________________________________________________
+Do you Yahoo!?
+The New Yahoo! Search - Faster. Easier. Bingo
+http://search.yahoo.com
