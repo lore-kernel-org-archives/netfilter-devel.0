@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: iptables compilation (or user :) error
-Date: Wed, 10 Sep 2003 21:57:02 +0200 (CEST)
+Date: Wed, 10 Sep 2003 22:00:22 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0309102156470.31287-100000@filer.marasystems.com>
-References: <Pine.LNX.4.44.0309101645580.2834-100000@mx.nextra.ro>
+Message-ID: <Pine.LNX.4.44.0309102158250.31287-100000@filer.marasystems.com>
+References: <Pine.LNX.4.51.0309101554140.6867@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Gergely Imre <gimre@nextra.ro>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Gergely Imre <gimre@nextra.ro>
-In-Reply-To: <Pine.LNX.4.44.0309101645580.2834-100000@mx.nextra.ro>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <Pine.LNX.4.51.0309101554140.6867@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,18 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 10 Sep 2003, Gergely Imre wrote:
+On Wed, 10 Sep 2003, Maciej Soltysiak wrote:
 
-> [root@imi userspace]# make
-> Making dependencies: please wait...
-> Something wrong... deleting dependencies.
-> make: *** [/usr/src/linux/include/linux/netfilter_ipv4/ipt_CLASSIFY.h] 
-> Error 1
-> 
-> i have kernel source 2.4.22. do i have to patch it, or why isn't this 
-> working? thx.
+> There is a bug in the build system, apply this patch over the
+> netfilter tree.
 
-See my post a few days ago for a patch.
+> Harald, or anyone, can you apply this, it breaks all builds that did
+> not choose CLASSIFY target to be patched from pom.
+
+Or better yet the slightly larger (same lines, one word more deleted)  
+patch I submitted a few days ago which also fixes a similar problem with
+NETMAP.
 
 Regards
 Henrik
