@@ -1,18 +1,16 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack (l3 independent conntrack)
-Date: Tue, 02 Dec 2003 10:36:10 +0900 (JST)
+From: IP v6 <inet6@mail.be>
+Subject: Re: raw/NOTRACK + TARPIT = good idea?
+Date: Tue, 2 Dec 2003 05:38:44 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200312020137.KAA06337@toshiba.co.jp>
-References: <200311261126.UAA26305@toshiba.co.jp>
-	<20031129175622.GN3181@obroa-skai.de.gnumonks.org>
-	<200312020035.JAA26549@toshiba.co.jp>
+Message-ID: <14014030.1070339924765.JavaMail.Administrator@pumbaa>
+References: <Pine.LNX.4.33.0311240903430.12476-100000@blackhole.kfki.hu>
+Reply-To: IP v6 <inet6@mail.be>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <200312020035.JAA26549@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.33.0311240903430.12476-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,35 +21,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I would like to do this also but I don't quite understand what you mean with "take care both directions for the tarpitted sessions".
 
-Hi, Harald,
+I'm a bit confused there, could you explain? :)
 
-Sorry, I forgot to say the important thing.
+Wkr, Robby
 
-I want to use "union" very much. But.. I'll think of structure and try to
-rewrite my code for some time.
+> ----------------------------------------
+> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Sent: Mon Nov 24 09:11:17 CET 2003
+> To: Juan Carlos Castro y Castro <jcastro@vialink.com.br>
+> Subject: Re: raw/NOTRACK + TARPIT = good idea?
+> 
+> 
+> On Fri, 21 Nov 2003, Juan Carlos Castro y Castro wrote:
+> 
+> > I'm thinking about the TARPIT target, and that it's a shame it will
+> > use resources if my box does conntrack. But if I previously pass them
+> > through -t raw -j NOTRACK, can I have the best of both worlds, i.e., a
+> > routing NAT box who is able to tarpit undesired packets itself?
+> 
+> Yes, but you have to take care both directions for the tarpitted
+> sessions. That's the price using the NOTRACK target.
+> 
+> Best regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : KFKI Research Institute for Particle and Nuclear Physics
+>           H-1525 Budapest 114, POB. 49, Hungary
+> 
+> 
+> 
 
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Date: Tue, 02 Dec 2003 09:34:40 +0900 (JST)
-
-> [ short ]
-> 
-> I agree that we should not care too much about the corner cases, and
-> translation of IPv4 (or IPv6) packets is the corner case, IN NOW.
-> 
-> And, I still seem to misunderstand your idea about tuple.
-> 
-> I tried to write structure of tuple like that in last week.
-> 	- all connection can be represented with nf_conntrack_tuple.
-> 	- l4 part and l3 protocol number in tuple can be accessed with l3
-> 	  independently.
-> 	- operations of tuple are easy as possible.
-> 	- only one hash for conntrack is allocated in kernel.
-> 
-> I don't know these are what you want, or not.
-> 
-> And, I thought about some types of structure, but all of them have some complexity to operate tuple.
-> I needed typecasting, manual calculation of pointer.
-> 
-> After all, I think that using "union" is simply and better even though wasting
-> memory space.
+-----------------------------------------------------
+Mail.be, WebMail and Virtual Office
+http://www.mail.be
