@@ -1,15 +1,15 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Call for testing: patch-o-matic-ng
-Date: Mon, 5 Jan 2004 12:32:35 +0100 (CET)
+Subject: Re: GnomeMeeting STUN
+Date: Mon, 5 Jan 2004 12:47:42 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0401051150120.15063-100000@blackhole.kfki.hu>
-References: <20040101163627.GD3530@obroa-skai.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0401051236450.15139-100000@blackhole.kfki.hu>
+References: <1072370922.680.6.camel@golgoth01>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040101163627.GD3530@obroa-skai.de.gnumonks.org>
+To: Damien Sandras <dsandras@seconix.com>
+In-Reply-To: <1072370922.680.6.camel@golgoth01>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,32 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 1 Jan 2004, Harald Welte wrote:
+On Thu, 25 Dec 2003, Damien Sandras wrote:
 
-> a 2.6 specific patch would then be inside a linux-2.6 directory.  The
-> only remaining question is:
+> > I assume all we have to offer is ip_conntrack/nat_h323, which is in
+> > patch-o-matic but has been reported not to work with gnomemeeting (but
+> > with netmeeting) in the past ?  We'd be happy to receive any feedback
+> > you would have regarding that subject.
 >
-> - how to encode the information 'which patch for which version' in the
->   info file ?  We would need something like
->   "if linux >= 2.6.0 && linux < 2.7.0, then use linux-2.6 and
->   linux-2.6.patch"
->
-> - what about patchlets that have the same wholefiles but a different
->   'patch' file.  I.e. a new conntrack helper that has the same source
->   file, valid for 2.4 and 2.6 - but a different diff for patching
->   something into conntrack_core ?
+> I will do my best. I already had sent some information to Joszef a long
+> time ago, but I think it was lost.
 
-Something like 'best match wins'?
+No, it was not lost (if I did not respond to you, then I'm sorry): I put
+h323-conntrack-nat aside as there was more important issues to be dealt
+with. (And since then the ethereal code has been released with an H.323
+parser, written in pure C...)
 
-linux-2.6.13		- just for 2.6.13
-linux-2.6		- every (other) 2.6 release
-linux-2.4		- every 2.4 release
-linux			- every other release :-)
+> The problem with the conntrack approach is that we will also have to do
+> the same kind of connection tracker for the SIP protocol :(
 
-(Same goes for the linux.patch file.) 'Requires' could be used to set
-general version bounds, like
+It's not so bad at all: the nfnetlink/ctnetlink interface is about to be
+finished, which will give us the full power to solve such problems, in the
+most efficient way:
 
-Requires: linux >= 2.4.22
+- we can keep the kernel modules for the simple cases
+- can delegate the problem to userspace processes for complicated ones
+  (DNS lookups, ets.)
+
+Just time and some human resources are required :-).
 
 Best regards,
 Jozsef
