@@ -1,18 +1,18 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: Logs behind a transparent proxy
-Date: Wed, 29 Jan 2003 14:08:06 +0100
+From: don-netf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: iptables u32 match patch-o-matic (attempt)
+Date: Wed, 29 Jan 2003 07:28:57 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030129130806.GB9188@balabit.hu>
-References: <1043363627.3e30772b136d4@imp.free.fr> <200301291146.48346.bdschuym@pandora.be>
+Message-ID: <15927.62265.746506.765623@isis.cs3-inc.com>
+References: <20030128234654.29362.28104.Mailman@kashyyyk>
+	<15927.22044.618895.821767@isis.cs3-inc.com>
+	<20030129090945.A880@linux.karinthy.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: =?iso-8859-1?Q?Gr=E9gory?= <gregory.wajs@free.fr>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@gnumonks.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-Content-Disposition: inline
-In-Reply-To: <200301291146.48346.bdschuym@pandora.be>
+To: Laszlo Valko <valko@linux.karinthy.hu>
+In-Reply-To: <20030129090945.A880@linux.karinthy.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +23,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 29, 2003 at 11:46:48AM +0100, Bart De Schuymer wrote:
-> On Friday 24 January 2003 00:13, Grégory wrote:
-> > I'd like to make a "really" transparent bridge using a proxy.
-> > Though when  watching my logs on my server (behind the bridge), I
-> > always get the proxy IP  (which is normal). I'd like to know if
-> > there's an existing patch to iptables that could hide the proxy's
-> > adress by putting back the real source adress when the traffic is
-> > coming from Internet.
-> 
-> If I understand correctly, the bridge proxy will make new IP packets to talk 
-> with the server and therefore the IP packets have the proxy's IP. Because 
-> these are new packets, it seems hard to get your requested behaviour using 
-> iptables. I think it's much easier to hack the code of the proxy, maybe it's 
-> even already an option there.
+Laszlo Valko writes:
+ > Hi Don!
+ > 
+ > May I ask you to change those u_int8_t's to u_int32_t in 
+ > struct ipt_u32_location_element, struct ipt_u32_value_element,
+ > struct ipt_u32_test, struct ipt_u32?
+ > 
+ > There's really no point in making those integers 1 byte long when every
+ > second field is (a multiple of) 4 byte long and thus will eventually get
+ > padded during compilation. It just complicates matters.
 
-Check my transparent proxy patches. They are reported to work in bridging
-mode, though a couple of conflicts in the patches need to be sorted out.
+Now that I've dumped it in Harald's lap I guess it's up to him.
+But I don't see how it complicates matters.
 
-Note that your proxy need to be modified a bit to be able to do what you
-want.
+ > > +struct ipt_u32_test
+ > > +{
+ > > +	u_int8_t nnums;
+ > > +	struct ipt_u32_location_element location[U32MAXSIZE+1];
+ > > +	u_int8_t nvalues;
+ > > +	struct ipt_u32_value_element value[U32MAXSIZE+1];
+ > > +};
 
-http://www.balabit.hu/en/downloads/tproxy/
-
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+In this one case at least it might help to put the two 8's together,
+right? 
