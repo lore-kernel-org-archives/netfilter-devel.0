@@ -1,13 +1,16 @@
-From: Ulysses Almeida <munky@maluco.com.br>
-Subject: Libipq sequence doubt
-Date: Mon, 25 Oct 2004 19:47:30 -0400
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH 2.6 0/19]: Netfilter Update
+Date: Mon, 25 Oct 2004 20:59:00 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041025234729.GA3141@maluco.com.br>
+Message-ID: <20041025205900.04e58c90.davem@redhat.com>
+References: <417C4D5F.7080401@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Devel <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <417C4D5F.7080401@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,23 +21,15 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  I have a doubt about packets sequence, on libipq.
+On Mon, 25 Oct 2004 02:48:31 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-  I have queue hooked on net PREROUTING and POSTROUTING. And my linux
-box is a router. If two nodes (A and B) on my intranet, sends one
-packet each, at the same time. Packet from host A arrives on my
-machine, and goes to QUEUE hooked by PREROUTING. What can i expect?
-Packet from host A arrives POSTROUTING before B arrives on PREROUTING,
-or isn't it syncronous.
+> the following 19 patches contain Yasuyuki's work to remove
+> skb_linearize from ip6_tables, Rusty's MASQUERADE changes
+> with Herbert's suggested change, ip_conntrack_stat fixes
+> and some minor cleanup. I'll check what is needed for 2.4
+> and send patches during the next week.
+> 
+> You can pull all changes from bk://212.42.230.204/nf-2.6
 
-  Other libipq question, can I mark packets on userspace? Do this packet
-need to be queued by mangle? If yes, do I need to update any other
-value?
-
-  Thanks in advance.
-
--- 
-    .~.  Ulysses Almeida
-   / V \  munky@maluco.com.br
- / (   ) \  Seja livre, use GNU/Linux! 
-   ^^-^^
+All pulled, thanks Patrick.
