@@ -1,13 +1,16 @@
-From: =?iso-8859-1?q?vamsi=20krishna?= <b_vamsi2002@yahoo.co.in>
-Subject: problem in compiling the hooks
-Date: Mon, 12 Jan 2004 08:19:40 +0000 (GMT)
+From: Adrian Bunk <bunk@fs.tum.de>
+Subject: Re: help entries for CONFIG_IP_NF_ARP{TABLES,FILTER} ?
+Date: Tue, 13 Jan 2004 01:24:09 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040112081940.86820.qmail@web8207.mail.in.yahoo.com>
+Message-ID: <20040113002408.GW9677@fs.tum.de>
+References: <20040109024917.GD1440@fs.tum.de> <20040113000658.GN20206@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+  David Miller <davem@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20040113000658.GN20206@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,86 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hai,
-  
-I am a new bie. when i am trying to compile the
-following netfilter hook program i am getting errors .
+On Tue, Jan 13, 2004 at 01:06:58AM +0100, Harald Welte wrote:
+> On Fri, Jan 09, 2004 at 03:49:17AM +0100, Adrian Bunk wrote:
+> > Hi Harald,
+> > 
+> > both kernel 2.4 and 2.6 contain the CONFIG_IP_NF_ARP{TABLES,FILTER} 
+> > options but lack help texts for these options. Could you (or someone 
+> > else) provide help texts?
+> 
+> Sure, please see the attached help texts below. 
+>...
 
-#define __KERNEL__
-#define MODULE
+Thanks a lot!
 
-#include<linux/module.h>
-#include<linux/kernel.h>
-#include<linux/netfilter.h>
-#include<linux/netfilter_ipv4.h>
-static struct nf_hook_ops nfho;
- 
-int hook_func(unsigned int hooknum,
-                      struct sk_buff **skb,
-                      const struct net_device *in,
-                      const struct net_device *out,
-                      int (*okfn)(struct sk_buff *))
-{
-return NF_DROP;
-}
+cu
+Adrian
 
-int init_module()
-{
-nfho.hook=hook_func;
-nfho.hooknum=NF_IP_PRI_ROUTING;
-nfho.pf=PF_INET;
-nfho.priority=NF_IP_PRI_FIRST;
+-- 
 
-nf_register_hook(&nfho);
-
-return 0;
-}
-void cleanup_module()
-{
-nf_unregister_hook(&nfho);
-}
-
-i got the following errors
-
-[root@localhost vamsi]# gcc -c p1.c
-In file included from p1.c:7:
-/usr/include/linux/netfilter_ipv4.h:53: `INT_MIN'
-undeclared here (not in a function)
-/usr/include/linux/netfilter_ipv4.h:53: enumerator
-value for `NF_IP_PRI_FIRST' not integer constant
-/usr/include/linux/netfilter_ipv4.h:59: `INT_MAX'
-undeclared here (not in a function)
-/usr/include/linux/netfilter_ipv4.h:59: enumerator
-value for `NF_IP_PRI_LAST' not integer constant
-p1.c:15: warning: `struct net_device' declared inside
-parameter list
-p1.c:15: warning: its scope is only this definition or
-declaration, which is probably not what you want
-p1.c:15: warning: `struct sk_buff' declared inside
-parameter list
-p1.c: In function `init_module':
-p1.c:22: invalid use of undefined type `struct
-nf_hook_ops'
-p1.c:23: invalid use of undefined type `struct
-nf_hook_ops'
-p1.c:24: invalid use of undefined type `struct
-nf_hook_ops'
-p1.c:24: `PF_INET' undeclared (first use in this
-function)
-p1.c:24: (Each undeclared identifier is reported only
-once
-p1.c:24: for each function it appears in.)
-p1.c:25: invalid use of undefined type `struct
-nf_hook_ops'
-p1.c: At top level:
-p1.c:9: storage size of `nfho' isn't known
-
-please help me,
-
-vamsi
-
-
-
-________________________________________________________________________
-Yahoo! India Mobile: Download the latest polyphonic ringtones.
-Go to http://in.mobile.yahoo.com
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
