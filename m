@@ -1,18 +1,20 @@
-From: Ludwig Nussel <ludwig.nussel@suse.de>
-Subject: Re: TCP window tracking has bad side effects
-Date: Thu, 9 Dec 2004 17:26:56 +0100
-Message-ID: <20041209162656.GA9569@suse.de>
-References: <20041201110253.GA9536@suse.de>
-	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
-	<20041201153903.GA16807@suse.de>
-	<Pine.LNX.4.58.0412030942320.30157@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
+From: "Maarten Wijnants" <maarten.wijnants@pandora.be>
+Subject: Re: How can I get these packets in the user space application?
+	Performance Issues?
+Date: Thu, 9 Dec 2004 17:30:38 +0100
+Message-ID: <00dd01c4de0c$6ad9d0d0$6c2813ac@in.edm.luc.ac.be>
+References: <OF3990817D.244AD4C0-ON86256F65.005572ED-86256F65.0055EDC2@ra.rockwell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Cc: Henrik Nordstrom <hno@marasystems.com>, kung@uiuc.edu,
+	netfilter-devel@lists.netfilter.org,
+	"Mukund JB." <mukundjb@esntechnologies.co.in>,
+	netfilter-devel-bounces@lists.netfilter.org,
+	Diego Woitasen <diegows@linux.org.ar>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
+To: "Steven J Scott" <sjscott@ra.rockwell.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,27 +26,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-> On Fri, 3 Dec 2004, Jozsef Kadlecsik wrote:
-> 
-> > On Wed, 1 Dec 2004, Ludwig Nussel wrote:
-> >
-> > > My description probably wasn't unambiguous. The client has the
-> > > packetfilter, crashes and reboots.
-> >
-> > I see - that case was not handled in the code. Please try the patch below
-> > and report the result.
-> 
-> Oh, I'm sorry that was an incomplete patch. This is the fixed code, please
-> give it a try.
+Hello Steven,
 
-Seems to work. The client machine no longer drops the packet and
-properly sends RST.
+>I have a side question on this.  I have a kernel module that creates a
+> netfilter hook that looks for packets with a certain source port, and then
+> directs them to NF_QUEUE, and I have a user space application that 
+> receives the queued packets.
+> Since I am only queuing packets I want to monitor/modify is my performance
+> hit significant?  Or am I better off doing everything within the kernel
+> module?
+>
 
-cu
-Ludwig
+As I see it, there will only be a slight performance loss for the packets 
+you are queueing to userspace, all other packets are not sent to userspace 
+and as a result do not incur extra delay. In my opinion, the question 
+whether you should monitor/modify the packets in userspace or kernelspace 
+depends on the complexity of the operations you would like to perform on the 
+packets. If rather complicated operations are needed, it is my opinion you 
+are better off in userspace (programming in userspace is easier than 
+programming in kernelspace). On the other hand, if processing speed is 
+really essential, you should choose for kernelspace processing.
 
--- 
- (o_   Ludwig Nussel
- //\   SUSE LINUX Products GmbH, Development
- V_/_  http://www.suse.de/
+Kind regards,
+Maarten 
