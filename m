@@ -1,17 +1,19 @@
-From: Bastian Blank <bastian@waldi.eu.org>
-Subject: Re: iptables/extensions/libipt_time.c missing include
-Date: Tue, 27 Jan 2004 12:41:52 +0100
+From: Valentijn Sessink <valentyn+netfilter-users@nospam.openoffice.nl>
+Subject: Re: NAT before IPsec with 2.6
+Date: Tue, 27 Jan 2004 14:27:25 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127114152.GA2530@wavehammer.waldi.eu.org>
-References: <wazza.877jzj8ll6.fsf@message.id> <20040123095234.GA4595@wavehammer.waldi.eu.org> <20040127105745.GG11761@sunbeam.de.gnumonks.org>
+Message-ID: <20040127132725.GA14685@openoffice.nl>
+References: <20040124082252.GA19035@alpha.home.local> <Pine.LNX.4.44.0401241015470.32723-100000@filer.marasystems.com> <20040124092721.GA19140@alpha.home.local> <20040127103917.GC11761@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
-Cc: Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>,
+	Willy Tarreau <willy@w.ods.org>,
+	Henrik Nordstrom <hno@marasystems.com>,
+	Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
+	netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20040127105745.GG11761@sunbeam.de.gnumonks.org>
+In-Reply-To: <20040127103917.GC11761@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,34 +24,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+At Tue, Jan 27, 2004 at 11:39:18AM +0100, Harald Welte wrote:
+> I also disagree that an ESP packet should be trated as locally
+> generated (and thus iterate over OUTPUT).
 
-On Tue, Jan 27, 2004 at 11:57:45AM +0100, Harald Welte wrote:
-> > You should use <stddef.h> instead of <linux/stddef.h>.
-> At least on my debian machines /usr/include/stddef.h doesn't exist.
+This is what happens with incoming packets: they hit INPUT twice.
 
-It don't exists there, because it is shipped with the gcc.
+>   From my perspective, locally
+> generated means more something like: sent via a local userspace process
+> using PF_INET sockets.  If we consider a packet after any kind of change 
+> as locally-generated, we could argue doing this with NAT'ed packets,
+> too.  Please try to convince me, if I'm missing some point.
 
-Bastian
+You are missing the point that the netfilter code changes the packets here,
+thus if you would want netfilter to do something else, you could code that
+in netfilter rules.
 
---=20
-Phasers locked on target, Captain.
+Now let's review an IPsec tunnel. On the input side, everything works as
+expected: an ESP packet hits PREROUTING, then INPUT, gets unencrypted, then
+the new packet (that has different from and to, and may be a different
+protocol altogether) hits PREROUTING again, then INPUT (or FORWARD).
 
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+On output, however, things are not so transparant. A packet hits OUTPUT,
+then gets encrypted. A totally different packet hits POSTROUTING. This makes
+no sense.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+> One of the fundamental principles behind netfilter/iptables, especially
+> NAT, is it's symmetric behaviour (between incoming and outgoing packets,
+> between the hooks, ...).   So with any possible solution, this should be
+> kept in mind.
 
-iEYEARECAAYFAkAWToAACgkQLkAIIn9ODhHo/ACgmyKEkqzTrI9qF7cbUxnzmmKB
-eIUAoN7EQyIITeG9+DLOQkyoBLXdGlwZ
-=UeWC
------END PGP SIGNATURE-----
+There's no symmetric behaviour now. And from an "input" perspective, I think
+a decapsulated packet that has a locally ending payload should hit INPUT
+again. Same with output: a locally generated packet hits output, then should
+hit OUTPUT again if it was really destined for the outside world.
 
---Qxx1br4bt0+wmkIi--
+V.
+-- 
+http://www.openoffice.nl/   Open Office - Linux Office Solutions
+Valentijn Sessink  valentyn+sessink@nospam.openoffice.nl
