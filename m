@@ -1,16 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: --reject-with admin-prohib - Suggested Solution.
-Date: Wed, 4 Dec 2002 01:02:23 +0100 (CET)
+From: Ilguiz Latypov <ilguiz@nit.ca>
+Subject: Re: [PATCH] PPTP conntrack enhancements
+Date: Wed, 4 Dec 2002 06:17:39 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0212040052300.29619-100000@blackhole.kfki.hu>
-References: <20021128081009.GJ7047@naboo.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0212040606320.21660-100000@localhost.localdomain>
+References: <3DEC4A99.9090805@snapgear.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Maciej Soltysiak <solt@dns.toxicfilms.tv>,
-	<g@naboo.gnumonks.org>, <netfilter-devel@lists.samba.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20021128081009.GJ7047@naboo.de.gnumonks.org>
+To: Philip Craig <philipc@snapgear.com>
+In-Reply-To: <3DEC4A99.9090805@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 28 Nov 2002, Harald Welte wrote:
 
-> > Now, if the 2.5.48 kernel has the admin-prohib support, the userspace will
-> > detect it, and will show the option in -j REJECT --help and will accept
-> > admin-prohib.
->
-> No.  You will make the libipt_REJECT.so dependent on the particular
-> source code installed on the machine where iptables was compiled.
+Philip,
 
-Why don't we simply add an INCOMPATIBILITIES file to the userspace source
-tree, together with a similar section in the manpage?
+The updated patch works fine with my tests.
 
-Backward compatibility is very important, but we shouldn't insist on it at
-every cost.
+I still get GRE write errors in PoPToP server but they could happen due to
+many other reasons.  E.g., the file descriptor set the daemon monitored
+was never cleared in the beginning of each loop.
 
-Maciej's patch is simple, I'd even leave out the checking of the kernel
-version as the manpage would describe the conditions.
+I had to add the following line to the bottom of ip_conntrack_proto_gre.c
+in order to avoid an insmod error when loading ip_conntrack_pptp.o.  The
+error message informed that the ip_ct_gre_keymap_destroy symbol could not
+be found.
 
-Regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+    EXPORT_SYMBOL(ip_ct_gre_keymap_destroy);
+
+Many thanks for the PPTP conntrack corrections.
+
+--
+Ilguiz Latypov
+Net Integration Technologies, Inc
+
+tel. +1 (514) 281 9191 x 117
+
+On Tue, 3 Dec 2002, Philip Craig wrote:
+
+> I've attached a diff against the PPTP conntrack patch to fix
+> various issues.  The major changes are that it now works in
+> the presence of DNAT, and uses GRE expectations in both
+> directions.
