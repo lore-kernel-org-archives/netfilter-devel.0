@@ -1,11 +1,10 @@
-From: Wilson Padovani =?ISO-8859-1?Q?J=FAnior?= <admin@netmogi.com.br>
-Subject: Re: Problem using REDIRECT and SO_ORIGINAL_DST
-Date: Thu, 07 Nov 2002 17:49:26 GMT
+From: KC Turner <kctst6@pitt.edu>
+Subject: Netfilter profiling
+Date: Tue, 05 Nov 2002 19:08:35 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021107.17492673@mis.configured.host>
+Message-ID: <5.1.1.6.0.20021105190403.00aecdf8@imap.pitt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,32 +17,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Balazs Scheidler wrote:
->
-> inet_ntoa() uses a static buffer to format its result, you are calling=
+Hello, I am a student studying computer engineering at the University of 
+Pittsburgh in Pittsburgh, Pennsylvania USA.   I have been tasked with 
+profiling how the Netfilter firewall operates, i.e. in which modules does 
+it spend most of its time.  I plan on using a software profiling suite, 
+such as VPROF to do this work.  However, I must add code to call the VPROF 
+software (to turn it on) in each Netfilter module, but I am having problems 
+locating the actual source code that Netfilter uses.  Can anyone tell me 
+which files (c files presumably) Netfilter compiles into its executable?  I 
+appreciate any help I can get on this, and if anyone has any previous 
+information on Netfilter profiling.  Thank you.
 
-> inet_ntoa three times which all work on the same buffer -> the result =
-of=20
-the
-> last invocation will be used three times.
->
-> try writing 3 printf() statements, or copy the result of inet_ntoa()=20=
-
-to a
-> private buffer, or create your own inet_ntoa() function.
->
-> --
-> Bazsi
-> PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E=20=
-
-C82C 8EB1
-
-Thanks Bazsi.
-
-    I changed the code to use 3 printf() statements, as you said, and=20=
-
-it worked. I was expecting an error on my program, but not something=20=
-
-stupid like that!!
-
-Wilson.
+--Kasey Turner
+   kctst6@pitt.edu
