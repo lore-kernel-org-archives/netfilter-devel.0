@@ -1,18 +1,17 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [PATCH] aggressive early_drop and reserved conntrack entries
-Date: Thu, 9 Dec 2004 12:29:13 +0100
-Message-ID: <20041209112913.GA31497@oknodo.bof.de>
-References: <Pine.LNX.4.58.0412090845060.11649@blackhole.kfki.hu>
-	<20041209085249.GA22714@oknodo.bof.de>
-	<Pine.LNX.4.58.0412091108420.11649@blackhole.kfki.hu>
+From: "Srinivas G." <srinivasg@esntechnologies.co.in>
+Subject: RE: How can I get these packets in the user space application?
+Date: Thu, 9 Dec 2004 18:39:26 +0530
+Message-ID: <4EE0CBA31942E547B99B3D4BFAB3481125897A@mail.esn.co.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Patrick Schaaf <bof@bof.de>,
-	Grzegorz Piotr Jaskiewicz <gj@pointblue.com.pl>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: kung@uiuc.edu, netfilter-devel@lists.netfilter.org,
+	Diego Woitasen <diegows@linux.org.ar>,
+	"Mukund JB." <mukundjb@esntechnologies.co.in>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0412091108420.11649@blackhole.kfki.hu>
+Content-class: urn:content-classes:message
+To: "Henrik Nordstrom" <hno@marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +23,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+> On Wed, 8 Dec 2004, Srinivas G. wrote:
+>=20
+> > My question is: How can I get these packets in the user space
+> > application?
+>=20
+> Depends on what you want to do with the packet. If you intend to have
+them
+> returned back to the kernel then QUEUE is the best action.
+>=20
+> If you only want to have them sent to userspace then a more lean
+design
+> may be desireable.
+>=20
+> Regards
+> Henrik
 
-> > > - When the conntrack table is full, we search only in a single hash
-> > >   bucket. We are in trouble anyway, so let's search harder for
-> > >   droppable entries: the patch extends the search to at most the third of
-> > >   all the buckets.
-> >
-> > Hmm. It's correct that we are in trouble anyway, but will it help burning
-> > much more CPU to get out of trouble?
-> 
-> How could we lessen the trouble we are in? By refusing to add the new
-> connection to the table after failing to find an unreplied connection
-> in one bucket, or searching more with the price of spinning the CPU a
-> little further?
+Dear Henrik,
 
-Well, the way I see it, the primary task, under pressure, is still to
-run ASSURED connections as good as possible. Burning more CPU in
-early_drop for each new potential connection (at possibly high rate,
-when under a real DoS attempt), will take significant time from routing
-ASSURED connection's packets.
+Actually I am new to network device drivers. Please spend some time to
+read this mail.
 
-best regards
-  Patrick
+Actually I need to send the packets to user space and then in the user
+space I need to do some calculations on the packet data and then I want
+to send the packet back to kernel space.
+
+According to Mr. Ravi Kumar from rocsys.com there is a performance issue
+in moving packets from kernel space to user space and then back to
+kernel space. Even though, I need to transmit the packets from kernel to
+user space and back to kernel space.
+
+I have gone through the documents that are available in the
+netfilter.org.=20
+Especially I read the netfilter-hacking-HOWTO-4.html document which
+explains about iptables, NAT and netfilter. I mainly concentrated on
+netfilter driver. My understanding is as follows.
+
+I send the sample code in the previous mail to you.=20
+
+I understood that queue the packet for user space handling. Finally we
+can issue 'nf_reinject' to send the packet into the network path again.
+
+I understood the some of the concepts about 'setsockopt' mechanism in
+the netfilter driver which is useful for processing the user space
+commands in the kernel.=20
+
+I understood the topics from the following link.
+http://www.netfilter.org/documentation/HOWTO//netfilter-hacking-HOWTO-4.
+html
+
+---------
+My doubt is: How the user application can get the packet from the 'hook'
+function? What APIs are used in the user space application to access the
+packet from the hook function?
+
+Thanks and regards,
+Srinivas G
