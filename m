@@ -1,13 +1,10 @@
-From: Paul Gallant <Paul.Gallant@eicon.com>
-Subject: RE: Problem: cannot apply H.323 conntrack patch on Linux 2.6.11
-Date: Tue, 8 Mar 2005 15:00:52 -0500
-Message-ID: <A4ED24A7CF46224E9246EBF1E71B0B90015CE67D@mtlmail.eicon.com>
+From: "Chad Goss" <chgoss@nortel.com>
+Subject: Having trouble building a new connection tracker helper module
+Date: Tue, 8 Mar 2005 17:38:39 -0500
+Message-ID: <8B888AAAAB0FD31189590008C79184432644807B@zbl6c002.corpeast.baynetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Cc: "'netfilter-devel@lists.netfilter.org'"
-	<netfilter-devel@lists.netfilter.org>
-To: 'Max Kellermann' <max@duempel.org>
+Content-Type: text/plain
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,17 +16,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Max Kellermann wrote:
-[...]
-> There is already a patch for that. Please check out the "linux 2.6.11"
-> branch from the patch-o-matic repository, it contains my 2.6.11
-> patches.
+Hi folks,
 
-I checked it out from SVN.
-The code under 2.6.11 is identical to the one in 2.6 and is identical to the
-code I tried to patch my Linux 2.6.11 kernel.
+I am trying to compile a new connection tracker helper module, I have
+1) downloaded 2.6.10 kernel source 
 
-Regards,
+2) built a fresh kernel from that source
 
-Paul Gallant
-Eicon Networks Corp.
+3) created a new file "ip_conntrack_cftp.c" in
+$KERNEL_DIR/net/ipv4/netfilter/
+  (basically just copied the file ip_conntrack_tftp.c and changed all of
+"tftp" text to "cftp", "TFTP" to "CFTP"
+
+4) created a new file "ip_conntrack_cftp.h" in
+$KERNEL_DIR/include/linux/netfilter_ipv4, 
+  (copied ip_conntrack_tftp.h to ip_conntrack_cftp.h and made the
+adjustments to the text strings)
+
+5) updated the $KERNEL_DIR/net/ipv4/netfilter/Makefile adding a line
+	# connection tracking helpers
+	obj-$(CONFIG_IP_NF_CFTP) += ip_conntrack_cftp.o
+	
+
+6) attempted to make that directory "make -C $KERNEL_DIR  M=`pwd`
+	(executed from $KERNEL_DIR/net/ipv4/netfilter/ )
+
+
+But, I don't see any .ko, or .o or .mod.c files getting created... What step
+am I missing?
+
+Thanks in advance
+-chad
