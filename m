@@ -1,11 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 1/5]: Release dst_entry in PRE_ROUTING after NAT
-Date: Sat, 27 Nov 2004 13:48:04 +0100
-Message-ID: <41A87784.4070308@trash.net>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: New iptables structure (was: [PATCH 1/2] ipt_MARK extension
+	with backwards compatibilty...)
+Date: Sat, 27 Nov 2004 15:14:25 +0100
+Message-ID: <200411271514.25237.bdschuym@pandora.be>
+References: <1101358191.5842.26.camel@localhost.localdomain>
+	<41A7B514.9030703@eurodev.net> <41A85AC4.5080006@anduras.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000802070603010501090202"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Sven Anders <anders@anduras.de>,
+	netfilter-devel@lists.netfilter.org
+In-Reply-To: <41A85AC4.5080006@anduras.de>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,83 +25,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000802070603010501090202
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Saturday 27 November 2004 11:45, Sven Anders wrote:
+> Pablo Neira wrote:
+> | My idea, I don't know how crazy it is. Instead of using the size to
+> | guess the target/match version, we could steal 1 byte from char name[]
+> | to define a new field called version, so we could register different
+> | versions of a match/target.
+>
+> Once again, we need a field more...
+> Wasn't there an suggestion to reuse the 'nfcache' field too??
+> Wasn't the need to an unique rule id posted?
+> What more???
+>
+> Why not break compatibilty, if it hamper the development?
 
-Release dst_entry in PRE_ROUTING after NAT. The loopback driver doesn't
-reset the dst_entry itself, ip_rcv_finish only routes the packet if it
-doesn't already have a dst_entry. Fixes DNAT on loopback.
+Rusty's solution allows backwards compatibility and adding new features. Your 
+suggestion only allows adding new features. Furthermore, both solutions add 
+the same kind of code complexity.
+A unique rule id per table is easily constructed. As all the rules of the 
+chains are located after each other, one can just use the number of previous 
+rules, or the address offset from the first rule.
+Ergo, backwards compatibility need not be broken.
 
-
-
---------------000802070603010501090202
-Content-Type: text/x-patch;
- name="01.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01.diff"
-
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/11/27 12:14:54+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Release dst_entry in PRE_ROUTING after NAT
-#   
-#   Fixes NAT on loopback.
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_nat_standalone.c
-#   2004/11/27 12:14:47+01:00 kaber@coreworks.de +24 -1
-#   [NETFILTER]: Release dst_entry in PRE_ROUTING after NAT
-#   
-#   Fixes NAT on loopback.
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
---- a/net/ipv4/netfilter/ip_nat_standalone.c	2004-11-27 13:37:39 +01:00
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c	2004-11-27 13:37:39 +01:00
-@@ -180,6 +180,29 @@
- }
- 
- static unsigned int
-+ip_nat_in(unsigned int hooknum,
-+          struct sk_buff **pskb,
-+          const struct net_device *in,
-+          const struct net_device *out,
-+          int (*okfn)(struct sk_buff *))
-+{
-+	u_int32_t saddr, daddr;
-+	unsigned int ret;
-+
-+	saddr = (*pskb)->nh.iph->saddr;
-+	daddr = (*pskb)->nh.iph->daddr;
-+
-+	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
-+	if (ret != NF_DROP && ret != NF_STOLEN
-+	    && ((*pskb)->nh.iph->saddr != saddr
-+	        || (*pskb)->nh.iph->daddr != daddr)) {
-+		dst_release((*pskb)->dst);
-+		(*pskb)->dst = NULL;
-+	}
-+	return ret;
-+}
-+
-+static unsigned int
- ip_nat_out(unsigned int hooknum,
- 	   struct sk_buff **pskb,
- 	   const struct net_device *in,
-@@ -243,7 +266,7 @@
- 
- /* Before packet filtering, change destination */
- static struct nf_hook_ops ip_nat_in_ops = {
--	.hook		= ip_nat_fn,
-+	.hook		= ip_nat_in,
- 	.owner		= THIS_MODULE,
- 	.pf		= PF_INET,
- 	.hooknum	= NF_IP_PRE_ROUTING,
-
---------------000802070603010501090202--
+cheers,
+Bart
