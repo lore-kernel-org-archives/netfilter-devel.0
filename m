@@ -1,19 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ICMP DNAT bug fix no longer applies?
-Date: Sun, 27 Apr 2003 15:20:39 +0200
+Subject: Re: using a hash table for netfilter tables?
+Date: Sun, 27 Apr 2003 15:17:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427132039.GN990@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0304241412470.24242-100000@localhost>
+Message-ID: <20030427131705.GM990@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rdbbj4JunmnVtKq/"
-Cc: netfilter-devel@lists.netfilter.org,
-	John McEleney <john@netservers.co.uk>,
-	Philippe Biondi <biondi@cartel-securite.fr>
+	protocol="application/pgp-signature"; boundary="qMyE1nnBIN65x+Vj"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Wilson <chris@netservers.co.uk>
+To: Andre Uratsuka Manoel <andre@insite.com.br>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0304241412470.24242-100000@localhost>
+In-Reply-To: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,35 +23,30 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---rdbbj4JunmnVtKq/
+--qMyE1nnBIN65x+Vj
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 24, 2003 at 02:34:11PM +0100, Chris Wilson wrote:
-> Hi all,
+On Thu, Apr 24, 2003 at 02:19:58AM -0300, Andre Uratsuka Manoel wrote:
 >=20
-> Since the ICMP DNAT advisory came out last year
-> [http://www.iptables.org/security/2002-04-02-icmp-dnat.html], we have bee=
-n=20
-> applying this patch to all kernels we build. However, in between=20
-> patch-o-matic 20030107 and 20030422 this has been broken and no longer=20
-> applies.
+> 	Hi all,
+>=20
+> 	I need to replace the current list-based netfilter code for=20
+> something using hashtables. The reason is that I have hundreds of tables=
+=20
+> in a project, but set up times are killing me. I took a peek at the code=
+=20
+> and it looked easy to do, since the current list-based code already takes=
+=20
+> care of locking, that's a huge problem I don't have to care about.
+>=20
+> 	Is there something I should know abot? Any tips? Is this stupid?
 
-This is becaue this bug should now finally have disappeared from all
-future kernels ;)
+please try to read about the nf-hipac project (www.hipac.org, IIRC)
 
-> Does anyone know why the DNAT bug fix hasn't been incorporated into=20
-> the main codebase yet?
-
-The reason was that the solution at that time was too intrusive into the
-core ipv4 stack to be applied by David Miller.
-
-What we now have is a probably unclean solution, that mangles the same
-stuff in a packet twice :(  But this was necessarry for yet another
-number of ICMP NAT bugs (see bugzilla)
-
-> Cheers, Chris.
+> 	Thanks in advance,
+> 	Andre
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -65,7 +58,7 @@ number of ICMP NAT bugs (see bugzilla)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---rdbbj4JunmnVtKq/
+--qMyE1nnBIN65x+Vj
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -73,9 +66,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+q9knXaXGVTD0i/8RAsYZAJ49josNODeYRJdspoOitU+rXYYrogCglJXs
-CL5aQanJjonslknfCN2+2g8=
-=KJav
+iD8DBQE+q9hRXaXGVTD0i/8RAp1vAKCE0WsSfADowphDt56UK2J5mmD3MwCcCQkq
+iYIDx3zso7vI3eIvuD1SxUw=
+=VXci
 -----END PGP SIGNATURE-----
 
---rdbbj4JunmnVtKq/--
+--qMyE1nnBIN65x+Vj--
