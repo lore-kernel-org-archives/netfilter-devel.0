@@ -1,14 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [BUG] ipt_SAME rule can't be deleted
-Date: Mon, 6 Dec 2004 08:34:48 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0412060821280.10926@filer.marasystems.com>
-References: <20041204150223.GA10247@dfbbb.opencjk.org>
+From: "Richard" <richard@o-matrix.org>
+Subject: RE: target for modifying conntrack timeout value
+Date: Sun, 5 Dec 2004 21:43:33 -1000
+Message-ID: <EINSTEINXKCnzNwRC6H000068e2@einstein.systemmetrics.com>
+References: <20041201085448.GE4605@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Fang Han <fanghan@opencjk.org>
-In-Reply-To: <20041204150223.GA10247@dfbbb.opencjk.org>
+To: "'Patrick Schaaf'" <bof@bof.de>
+In-Reply-To: <20041201085448.GE4605@oknodo.bof.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,25 +22,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 4 Dec 2004, Fang Han wrote:
+> That should indeed work by calling ip_ct_refresh (ip_ct_refresh_acct
+> in 2.6, it seems) in e.g. filter, matching --dport 5060. Just make
+> sure you do it in front of any '-m state --state ESTABLISHED -j ACCEPT'
+> rules.
+> 
+> Go ahead, write such a target.
+> 
 
-> Kernel 2.6.9 ac2
->
-> Using the next test command:
->
-> /sbin/iptables  -t nat -I POSTROUTING -s 192.168.100.23 -o eth0 -j SAME --to 192.168.1.60
-> /sbin/iptables  -t nat -D POSTROUTING -s 192.168.100.23 -o eth0 -j SAME --to 192.168.1.60
->
-> generate error:
-> iptables: Bad rule (does a matching rule exist in that chain?)
+I finished the code and testing. It is based on the stable versions of
+iptables and pom. I'd like to have it included in cvs. Should I post the
+patch based on stable or cvs?
 
-This is quite likely due to that kernel land pointer within the target 
-info...
+Btw, the cvs server seems down now. I followed the instruction in
+http://www.netfilter.org/downloads.html#cvs.
 
-         u_int32_t *iparray;
-
-If I am right the same problem applies to -m limit and any other extension 
-storing private kernel side stuff within it's info data..
-
-Regards
-Henrik
+Thanks,
+Richard
