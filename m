@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: conntrack hash function
-Date: Fri, 5 Jul 2002 15:59:55 +0200
+Subject: Re: possible race in init_conntrack()?
+Date: Fri, 5 Jul 2002 16:18:44 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020705135955.GH21280@naboo.ists.dartmouth.edu>
-References: <20020625132643.C31BD45CF@lists.samba.org> <15640.49204.886734.272701@isis.cs3-inc.com>
+Message-ID: <20020705141844.GJ21280@naboo.ists.dartmouth.edu>
+References: <20020702111451.D7684@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Don Cohen <don-nf@isis.cs3-inc.com>
+To: Patrick Schaaf <bof@bof.de>
 Content-Disposition: inline
-In-Reply-To: <15640.49204.886734.272701@isis.cs3-inc.com>
+In-Reply-To: <20020702111451.D7684@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,16 +21,18 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 25, 2002 at 12:10:44PM -0700, Don Cohen wrote:
+On Tue, Jul 02, 2002 at 11:14:51AM +0200, Patrick Schaaf wrote:
+> Hi devel,
+> Did I overlook something? Making drop_next atomic_t should be a good fix.
 
-> A few questions here:
-> - Why make the two halves of the connection hash to different buckets?
->   I'd think you'd want to consider the two halves to be the same
->   connection.  So you want them to hash the same.  It would make the
->   comparison a little more expensive, but save half the space.
+no, you didn't.  I'm not going to submit a patch for this, since we've
+never had a single bug report and it is very theoretic [whatever reason
+has to become true], and we are currently redesigning the conntrack hash
+anyway.... so I'd expect the new conntrack hash code including the
+limit-number-of-entries-per-chain code to fix this issue as well :)
 
-so what happens in case of NAT?  The tuples are not the same in this
-case...
+> best regards
+>   Patrick
 
 -- 
 Live long and prosper
