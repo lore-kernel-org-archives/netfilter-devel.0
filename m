@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: init_conntrack oops :-(
-Date: Mon, 10 Feb 2003 11:35:37 +0100
+Subject: Re: [PATCH] big endian patch against netfilter after PPTP NAT pat ch
+Date: Mon, 10 Feb 2003 12:01:44 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030210103537.GW24861@sunbeam.de.gnumonks.org>
-References: <003c01c2ce73$55c30400$0c0110ac@nap.nikolaev.ua>
+Message-ID: <20030210110144.GX24861@sunbeam.de.gnumonks.org>
+References: <771F217D7A4AF84494632457889470A412D77E@bcmsg011.corp.ads> <3E41A7BC.20209@snapgear.com> <20030209092911.GO13269@naboo.fugue.com> <20030209165347.GA1737@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0lsrIB+s628ok5gC"
+	protocol="application/pgp-signature"; boundary="zxEKvxCKojqA/Afl"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Oleg A Chernov <oleg.chernov@nap.nikolaev.ua>
+To: Patrick Schaaf <bof@bof.de>
 Content-Disposition: inline
-In-Reply-To: <003c01c2ce73$55c30400$0c0110ac@nap.nikolaev.ua>
+In-Reply-To: <20030209165347.GA1737@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,33 +23,32 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---0lsrIB+s628ok5gC
+--zxEKvxCKojqA/Afl
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Feb 07, 2003 at 08:37:07AM +0200, Oleg A Chernov wrote:
-> Hello,
-> I have Debian router with 2.4.18 kernel compiled myself from debian sourc=
-es
-> with gcc 2.95.4 with the following options:
+On Sun, Feb 09, 2003 at 05:53:47PM +0100, Patrick Schaaf wrote:
+> > yes.  David Miller has indicated that he wants us to use
+> > individual-member initialization instead of our '{{{{ }}, }}' stuff.
+> > So maybe this is the time to do the change - or at least use named
+> > initializers like '{ asdf: 0xffff, }'
+>=20
+> Nowaways, we'd rather use the C99 syntax: { .asdf =3D 0xffff, }.
 
-can you plase submit this to http://bugzilla.netfilter.org/ ?
+Yes, Iforgot about that.
 
-Thanks.
+> I'm all for a change towards such initializers; the current stuff
+> is completely opaque.
 
-> If any advanced information is required, I'll provide it and I will be ve=
-ry
-> grateful if someone helps me with this problem.
+Anybody volunteering to make a patch?  It's very easy, you don't even
+need to know how to program ;)
 
-We are not aware of this problem.  A couple of further questions (please
-include answers to your bugzilla post):
+If nobody raises his hand, I'll put it on my todo list [and you know,
+it is long...]
 
-- did you apply any patches (netfilter related or not) to the 2.4.18
-  kernel?
-- do you have any kind of 'special' setup (tunnelling, freeswan,
-  ip_queue, ...)?
-- do you have any idea how to reproduce your problem?
+> best regards
+>   Patrick
 
 --=20
 - Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
@@ -60,7 +59,7 @@ include answers to your bugzilla post):
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---0lsrIB+s628ok5gC
+--zxEKvxCKojqA/Afl
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -68,9 +67,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+R4B5XaXGVTD0i/8RAs0cAKCnJxyIo8Q3F/u5iXOEt+mX1IVkvACeMkLx
-y+FLspdELBH0qVtuEkl95mw=
-=Cu99
+iD8DBQE+R4aYXaXGVTD0i/8RAkBmAKCn0K3WXZ3xymnJzPr89jL2bDybpwCfdhV3
+ayVee4UNzmLySFP6cXI/X3E=
+=imIG
 -----END PGP SIGNATURE-----
 
---0lsrIB+s628ok5gC--
+--zxEKvxCKojqA/Afl--
