@@ -1,15 +1,15 @@
-From: Craig Knox <crg@purplefields.com>
-Subject: Re: TTL target working with 2.6 kernel??
-Date: Wed, 14 Jan 2004 09:42:37 +0000
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Changing the content of tcp timeouts in ip_conntrack_proto_tcp.c
+Date: Wed, 14 Jan 2004 12:34:00 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E1AghXr-000748-G8@vishnu.netfilter.org>
-References: <20040113143806.GA25078@zion.homelinux.com>
+Message-ID: <40051B18.40004@netlab.hut.fi>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Cw4uR3JONr1KIb4gEAbl"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sven Schuster <schuster.sven@gmx.de>
-In-Reply-To: <20040113143806.GA25078@zion.homelinux.com>
+To: "netfilter-devel@lists.netfilter.org"
+ <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,172 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!
 
---=-Cw4uR3JONr1KIb4gEAbl
-Content-Type: multipart/mixed; boundary="=-rtwoqdexfCmBYR5jUQsM"
+In the target module I'm writing, I need to customize the values 
+ip_ct_tcp_timeout_/somthing/ in the ip_conntrack_proto_tcp.c file. I 
+tried to write an extern function on the model of ip_ct_refresh, but I 
+always got the same problem with depmod:
 
+depmod: *** Unresolved symbols in 
+/lib/modules/2.4.23/kernel/net/ipv4/netfilter/ipt_MY_TARGET.o
+depmod:     ip_ct_proto_tcp_set_timeouts
 
---=-rtwoqdexfCmBYR5jUQsM
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Does someone have a good advice on how to proceed correctly?
 
-This one works for me.
-
-Regards
-Craig
-
-On Tue, 2004-01-13 at 14:38, Sven Schuster wrote:
-> Resending to netfilter-dev mailinglist as noone replied on the
-> users mailing list.
->=20
->=20
-> Hello list members,
->=20
-> has anybody been using the TTL target from the new patch-o-matic-ng
-> with kernel 2.6(.1) yet? I have patched my 2.6.1 kernel with this
-> target, recompiled iptables (1.2.9) and wanted to insert a rule
-> using the TTL target into mangle-table's FORWARD chain:
->=20
-> iptables -t mangle -A FORWARD -j TTL --ttl-inc 1
->=20
-> All I'm getting is a Segmentation fault. The ipt_TTL module can be
-> loaded into kernel, and everytime I try to add this rule (or try
-> to add this rule to the OUTPUT chain in mangle table) the used-
-> count shown by lsmod increments by 1.
->=20
-> But when I try
->=20
-> iptables -t mangle -nL FORWARD
->=20
-> I just get the following output:
->=20
-> Chain FORWARD (policy ACCEPT)
-> target     prot opt source               destination
->=20
-> So, the rule doesn't seem to be taken...although the module use
-> count increments.
->=20
-> Any idea? Maybe the TTL target isn't yet really ready for 2.6?
-> Maybe I should try at the developer's mailing list??=3D20
-> Any tips welcome!!
->=20
-> Sven
->=20
-
---=-rtwoqdexfCmBYR5jUQsM
-Content-Disposition: attachment; filename=TTL.2.6.1-patch
-Content-Transfer-Encoding: base64
-Content-Type: text/x-patch; name=TTL.2.6.1-patch; charset=iso-8859-1
-
-ZGlmZiAtTmF1ciBsaW51eC0yLjYuMS9uZXQvaXB2NC9uZXRmaWx0ZXIvS2NvbmZpZyBsaW51eC0y
-LjYuMS1UVEwvbmV0L2lwdjQvbmV0ZmlsdGVyL0tjb25maWcNCi0tLSBsaW51eC0yLjYuMS9uZXQv
-aXB2NC9uZXRmaWx0ZXIvS2NvbmZpZwkyMDA0LTAxLTA5IDA2OjU5OjU2LjAwMDAwMDAwMCArMDAw
-MA0KKysrIGxpbnV4LTIuNi4xLVRUTC9uZXQvaXB2NC9uZXRmaWx0ZXIvS2NvbmZpZwkyMDA0LTAx
-LTE0IDA5OjE1OjU5Ljc2NTc0NTQ0MCArMDAwMA0KQEAgLTQ2Niw2ICs0NjYsMTYgQEANCiANCiAJ
-ICBUbyBjb21waWxlIGl0IGFzIGEgbW9kdWxlLCBjaG9vc2UgTSBoZXJlLiAgSWYgdW5zdXJlLCBz
-YXkgTi4NCiANCitjb25maWcgSVBfTkZfVEFSR0VUX1RUTA0KKwl0cmlzdGF0ZSAgJ1RUTCB0YXJn
-ZXQgc3VwcG9ydCcNCisJZGVwZW5kcyBvbiBJUF9ORl9NQU5HTEUNCisJICBoZWxwDQorCSAgVGhp
-cyBhZGRzIGFuIGlwdGFibGVzIFRUTCBtYW5pcHVsYXRpb24gdGFyZ2V0LCB3aGljaCBlbmFibGVz
-IHRoZSB1c2VyDQorCSAgdG8gc2V0IHRoZSBUVEwgdmFsdWUgb2YgYW4gSVAgcGFja2V0IG9yIHRv
-IGluY3JlbWVudCAvIGRlY3JlbWVudCBpdCANCisJICBieSBhIGdpdmVuIHZhbHVlLg0KKw0KKwkg
-IFRvIGNvbXBpbGUgaXQgYXMgYSBtb2R1bGUsIGNob29zZSBNIGhlcmUuICBJZiB1bnN1cmUsIHNh
-eSBOLg0KKw0KIGNvbmZpZyBJUF9ORl9UQVJHRVRfQ0xBU1NJRlkNCiAJdHJpc3RhdGUgIkNMQVNT
-SUZZIHRhcmdldCBzdXBwb3J0Ig0KIAlkZXBlbmRzIG9uIElQX05GX01BTkdMRQ0KZGlmZiAtTmF1
-ciBsaW51eC0yLjYuMS9uZXQvaXB2NC9uZXRmaWx0ZXIvTWFrZWZpbGUgbGludXgtMi42LjEtVFRM
-L25ldC9pcHY0L25ldGZpbHRlci9NYWtlZmlsZQ0KLS0tIGxpbnV4LTIuNi4xL25ldC9pcHY0L25l
-dGZpbHRlci9NYWtlZmlsZQkyMDA0LTAxLTA5IDA2OjU5OjE4LjAwMDAwMDAwMCArMDAwMA0KKysr
-IGxpbnV4LTIuNi4xLVRUTC9uZXQvaXB2NC9uZXRmaWx0ZXIvTWFrZWZpbGUJMjAwNC0wMS0xNCAw
-OToxNzo1Ny40ODA4NTAwMjQgKzAwMDANCkBAIC03Miw2ICs3Miw3IEBADQogb2JqLSQoQ09ORklH
-X0lQX05GX1RBUkdFVF9FQ04pICs9IGlwdF9FQ04ubw0KIG9iai0kKENPTkZJR19JUF9ORl9UQVJH
-RVRfRFNDUCkgKz0gaXB0X0RTQ1Aubw0KIG9iai0kKENPTkZJR19JUF9ORl9UQVJHRVRfTUFSSykg
-Kz0gaXB0X01BUksubw0KK29iai0kKENPTkZJR19JUF9ORl9UQVJHRVRfVFRMKSArPSBpcHRfVFRM
-Lm8NCiBvYmotJChDT05GSUdfSVBfTkZfVEFSR0VUX01BU1FVRVJBREUpICs9IGlwdF9NQVNRVUVS
-QURFLm8NCiBvYmotJChDT05GSUdfSVBfTkZfVEFSR0VUX1JFRElSRUNUKSArPSBpcHRfUkVESVJF
-Q1Qubw0KIG9iai0kKENPTkZJR19JUF9ORl9UQVJHRVRfTkVUTUFQKSArPSBpcHRfTkVUTUFQLm8N
-CmRpZmYgLU5hdXIgbGludXgtMi42LjEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9UVEwuYyBsaW51
-eC0yLjYuMS1UVEwvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9UVEwuYw0KLS0tIGxpbnV4LTIuNi4x
-L25ldC9pcHY0L25ldGZpbHRlci9pcHRfVFRMLmMJMTk3MC0wMS0wMSAwMDowMDowMC4wMDAwMDAw
-MDAgKzAwMDANCisrKyBsaW51eC0yLjYuMS1UVEwvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9UVEwu
-YwkyMDA0LTAxLTE0IDA5OjE4OjUwLjM1MzgxMjExMiArMDAwMA0KQEAgLTAsMCArMSwxMTcgQEAN
-CisvKiBUVEwgbW9kaWZpY2F0aW9uIHRhcmdldCBmb3IgSVAgdGFibGVzDQorICogKEMpIDIwMDAg
-YnkgSGFyYWxkIFdlbHRlIDxsYWZvcmdlQGdudW1vbmtzLm9yZz4NCisgKg0KKyAqIFZlcnNpb246
-IDEuOA0KKyAqDQorICogVGhpcyBzb2Z0d2FyZSBpcyBkaXN0cmlidXRlZCB1bmRlciB0aGUgdGVy
-bXMgb2YgR05VIEdQTA0KKyAqLw0KKw0KKyNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4NCisjaW5j
-bHVkZSA8bGludXgvc2tidWZmLmg+DQorI2luY2x1ZGUgPGxpbnV4L2lwLmg+DQorI2luY2x1ZGUg
-PG5ldC9jaGVja3N1bS5oPg0KKw0KKyNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2NC9pcF90
-YWJsZXMuaD4NCisjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X1RUTC5oPg0KKw0K
-K01PRFVMRV9BVVRIT1IoIkhhcmFsZCBXZWx0ZSA8bGFmb3JnZUBnbnVtb25rcy5vcmc+Iik7DQor
-TU9EVUxFX0RFU0NSSVBUSU9OKCJJUCB0YWJsZXMgVFRMIG1vZGlmaWNhdGlvbiBtb2R1bGUiKTsN
-CitNT0RVTEVfTElDRU5TRSgiR1BMIik7DQorDQorc3RhdGljIHVuc2lnbmVkIGludCBpcHRfdHRs
-X3RhcmdldChzdHJ1Y3Qgc2tfYnVmZiAqKnBza2IsDQorCQkgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBjb25zdCBzdHJ1Y3QgbmV0X2RldmljZSAqaW4sDQorICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBjb25zdCBzdHJ1Y3QgbmV0X2RldmljZSAqb3V0LA0KKyAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgaW50IGhvb2tudW0sDQorICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCB2b2lkICp0YXJnaW5mbywNCisgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZvaWQgKnVzZXJpbmZvKQ0KK3sNCisJc3RydWN0
-IGlwaGRyICppcGggPSAoKnBza2IpLT5uaC5pcGg7DQorCWNvbnN0IHN0cnVjdCBpcHRfVFRMX2lu
-Zm8gKmluZm8gPSB0YXJnaW5mbzsNCisJdV9pbnQxNl90IGRpZmZzWzJdOw0KKwlpbnQgbmV3X3R0
-bDsNCisJCQkgDQorCXN3aXRjaCAoaW5mby0+bW9kZSkgew0KKwkJY2FzZSBJUFRfVFRMX1NFVDoN
-CisJCQluZXdfdHRsID0gaW5mby0+dHRsOw0KKwkJCWJyZWFrOw0KKwkJY2FzZSBJUFRfVFRMX0lO
-QzoNCisJCQluZXdfdHRsID0gaXBoLT50dGwgKyBpbmZvLT50dGw7DQorCQkJaWYgKG5ld190dGwg
-PiAyNTUpDQorCQkJCW5ld190dGwgPSAyNTU7DQorCQkJYnJlYWs7DQorCQljYXNlIElQVF9UVExf
-REVDOg0KKwkJCW5ld190dGwgPSBpcGgtPnR0bCArIGluZm8tPnR0bDsNCisJCQlpZiAobmV3X3R0
-bCA8IDApDQorCQkJCW5ld190dGwgPSAwOw0KKwkJCWJyZWFrOw0KKwkJZGVmYXVsdDoNCisJCQlu
-ZXdfdHRsID0gaXBoLT50dGw7DQorCQkJYnJlYWs7DQorCX0NCisNCisJaWYgKG5ld190dGwgIT0g
-aXBoLT50dGwpIHsNCisJCWRpZmZzWzBdID0gaHRvbnMoKCh1bnNpZ25lZClpcGgtPnR0bCkgPDwg
-OCkgXiAweEZGRkY7DQorCQlpcGgtPnR0bCA9IG5ld190dGw7DQorCQlkaWZmc1sxXSA9IGh0b25z
-KCgodW5zaWduZWQpaXBoLT50dGwpIDw8IDgpOw0KKwkJaXBoLT5jaGVjayA9IGNzdW1fZm9sZChj
-c3VtX3BhcnRpYWwoKGNoYXIgKilkaWZmcywNCisJCQkJCQkgICAgc2l6ZW9mKGRpZmZzKSwNCisJ
-CQkJIAkgICAgICAgICAgICBpcGgtPmNoZWNrXjB4RkZGRikpOw0KKwkJCQkJCQkJCSAgICAgICAg
-ICAgICAgICAJKCpwc2tiKS0+bmZjYWNoZSB8PSBORkNfQUxURVJFRDsNCisJfQ0KKw0KKwlyZXR1
-cm4gSVBUX0NPTlRJTlVFOw0KK30NCisNCitzdGF0aWMgaW50IGlwdF90dGxfY2hlY2tlbnRyeShj
-b25zdCBjaGFyICp0YWJsZW5hbWUsDQorCQljb25zdCBzdHJ1Y3QgaXB0X2VudHJ5ICplLA0KKwkJ
-dm9pZCAqdGFyZ2luZm8sDQorCQl1bnNpZ25lZCBpbnQgdGFyZ2luZm9zaXplLA0KKwkJdW5zaWdu
-ZWQgaW50IGhvb2tfbWFzaykNCit7DQorCXN0cnVjdCBpcHRfVFRMX2luZm8gKmluZm8gPSB0YXJn
-aW5mbzsNCisNCisJaWYgKHRhcmdpbmZvc2l6ZSAhPSBJUFRfQUxJR04oc2l6ZW9mKHN0cnVjdCBp
-cHRfVFRMX2luZm8pKSkgew0KKwkJcHJpbnRrKEtFUk5fV0FSTklORyAiVFRMOiB0YXJnaW5mb3Np
-emUgJXUgIT0gJVp1XG4iLA0KKwkJCQl0YXJnaW5mb3NpemUsDQorCQkJCUlQVF9BTElHTihzaXpl
-b2Yoc3RydWN0IGlwdF9UVExfaW5mbykpKTsNCisJCXJldHVybiAwOwkNCisJfQkNCisNCisJaWYg
-KHN0cmNtcCh0YWJsZW5hbWUsICJtYW5nbGUiKSkgew0KKwkJcHJpbnRrKEtFUk5fV0FSTklORyAi
-VFRMOiBjYW4gb25seSBiZSBjYWxsZWQgZnJvbSBcIm1hbmdsZVwiIHRhYmxlLCBub3QgXCIlc1wi
-XG4iLCB0YWJsZW5hbWUpOw0KKwkJcmV0dXJuIDA7DQorCX0NCisNCisJaWYgKGluZm8tPm1vZGUg
-PiBJUFRfVFRMX01BWE1PREUpIHsNCisJCXByaW50ayhLRVJOX1dBUk5JTkcgIlRUTDogaW52YWxp
-ZCBvciB1bmtub3duIE1vZGUgJXVcbiIsIA0KKwkJCWluZm8tPm1vZGUpOw0KKwkJcmV0dXJuIDA7
-DQorCX0NCisNCisJaWYgKChpbmZvLT5tb2RlICE9IElQVF9UVExfU0VUKSAmJiAoaW5mby0+dHRs
-ID09IDApKSB7DQorCQlwcmludGsoS0VSTl9XQVJOSU5HICJUVEw6IGluY3JlbWVudC9kZWNyZW1l
-bnQgZG9lc24ndCBtYWtlIHNlbnNlIHdpdGggdmFsdWUgMFxuIik7DQorCQlyZXR1cm4gMDsNCisJ
-fQ0KKwkNCisJcmV0dXJuIDE7DQorfQ0KKw0KK3N0YXRpYyBzdHJ1Y3QgaXB0X3RhcmdldCBpcHRf
-VFRMID0gew0KKyAgICAubmFtZSAgICAgICA9ICJUVEwiLCANCisJLnRhcmdldCAgICAgPSBpcHRf
-dHRsX3RhcmdldCwNCisgICAgLmNoZWNrZW50cnkgPSBpcHRfdHRsX2NoZWNrZW50cnksDQorICAg
-IC5tZSA9IFRISVNfTU9EVUxFDQorfTsNCisNCitzdGF0aWMgaW50IF9faW5pdCBpbml0KHZvaWQp
-DQorew0KKwlyZXR1cm4gaXB0X3JlZ2lzdGVyX3RhcmdldCgmaXB0X1RUTCk7DQorfQ0KKw0KK3N0
-YXRpYyB2b2lkIF9fZXhpdCBmaW5pKHZvaWQpDQorew0KKwlpcHRfdW5yZWdpc3Rlcl90YXJnZXQo
-JmlwdF9UVEwpOw0KK30NCisNCittb2R1bGVfaW5pdChpbml0KTsNCittb2R1bGVfZXhpdChmaW5p
-KTsNCmRpZmYgLU5hdXIgbGludXgtMi42LjEvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9p
-cHRfVFRMLmggbGludXgtMi42LjEtVFRMLy9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lw
-dF9UVEwuaA0KLS0tIGxpbnV4LTIuNi4xL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0
-X1RUTC5oCTE5NzAtMDEtMDEgMDA6MDA6MDAuMDAwMDAwMDAwICswMDAwDQorKysgbGludXgtMi42
-LjEtVFRMLy9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwdF9UVEwuaAkyMDA0LTAxLTE0
-IDA5OjE4OjUwLjM2ODgwOTgzMiArMDAwMA0KQEAgLTAsMCArMSwyMSBAQA0KKy8qIFRUTCBtb2Rp
-ZmljYXRpb24gbW9kdWxlIGZvciBJUCB0YWJsZXMNCisgKiAoQykgMjAwMCBieSBIYXJhbGQgV2Vs
-dGUgPGxhZm9yZ2VAZ251bW9ua3Mub3JnPiAqLw0KKw0KKyNpZm5kZWYgX0lQVF9UVExfSA0KKyNk
-ZWZpbmUgX0lQVF9UVExfSA0KKw0KK2VudW0gew0KKwlJUFRfVFRMX1NFVCA9IDAsDQorCUlQVF9U
-VExfSU5DLA0KKwlJUFRfVFRMX0RFQw0KK307DQorDQorI2RlZmluZSBJUFRfVFRMX01BWE1PREUJ
-SVBUX1RUTF9ERUMNCisNCitzdHJ1Y3QgaXB0X1RUTF9pbmZvIHsNCisJdV9pbnQ4X3QJbW9kZTsN
-CisJdV9pbnQ4X3QJdHRsOw0KK307DQorDQorDQorI2VuZGlmDQo=
-
---=-rtwoqdexfCmBYR5jUQsM--
-
---=-Cw4uR3JONr1KIb4gEAbl
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQBABQ8MRVpYpM95tE0RAsoHAJ4t/Tk92whOdWCmN2ePy3IcCLECxQCfbjaD
-qGJw0WmLhaQP4hcTisEGOwE=
-=QHGx
------END PGP SIGNATURE-----
-
---=-Cw4uR3JONr1KIb4gEAbl--
+                 Emmanuel
