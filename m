@@ -1,16 +1,14 @@
-From: "Sneppe Filip" <Filip.Sneppe@cronos.be>
-Subject: RE: ip_nat_amanda unresolved symbol
-Date: Thu, 17 Oct 2002 01:37:02 +0200
+From: Svenning Sorensen <sss@sss.dnsalias.net>
+Subject: Re: [patch] tcp connection tracking 2.4.19
+Date: Thu, 17 Oct 2002 10:26:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E131E9F1848D0148813EAF06A846608F615F97@w2ks-e2k.iconos.be>
+Message-ID: <5.1.0.14.2.20021017101600.00bc4328@sss.dnsalias.net>
+References: <20021016074837.GA18011@old.homeip.net>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C2756C.ED85D426"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: "Jan Srzednicki" <winfried@expro.pl>,
-	<netfilter-devel@lists.netfilter.org>,
-	<netfilter@interlinx.bc.ca>
+To: Martin Renold <martinxyz@gmx.ch>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <20021016074837.GA18011@old.homeip.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,152 +19,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+At 09:48 16-10-2002, Martin Renold wrote:
+>So I wrote a simple patch against 2.4.19, but I must admit that I do not
+>really understand the code around it, especially why it does not mark
+>such a packet as invalid (I'm new to most things here). It's running
+>right now on 3-4 machines.
 
-------_=_NextPart_001_01C2756C.ED85D426
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+I can't speak about the merits of this patch, since I haven't tried it, but
+I believe there is a bug in it:
 
-Hi,
-
-Jan Srzednicki [mailto:winfried@expro.pl] wrote:
->
->Hello there,
->
->I've just cvsupped new version of netfilter stuff (16/10/2002). I =
-wanted
->to try some of the new modules in patch-o-matic, one of which is the
->Amanda connection tracking helper. However, this module contains an
->unresolved symbol:
->
->find kernel -path '*/pcmcia/*' -name '*.o' | xargs -i -r ln -sf ../{} =
-pcmcia
->if [ -r System.map ]; then /sbin/depmod -ae -F System.map 2.4.19; fi
->depmod: *** Unresolved symbols in
->/lib/modules/2.4.19/kernel/net/ipv4/netfilter/ip_nat_amanda.o
->depmod:         ip_nat_mangle_udp_packet
->
->I grepped all kernel sources and netfilter patches -
->ip_nat_mangle_udp_packet is not defined anywhere! I looked on the code =
-of
->similar function - ip_nat_mangle_tcp_packet(); it is defined and =
-exported
->correctly. Yet, ip_nat_mangle_udp_packet() clearly is missing. I use =
-the
->"new" nat headers and schemes, if that matters in any way.
->
-
-It seems like the amanda conntracker/nat module depends on some
-earlier code written by the same author to mangle udp packets.
-However, that earlier code did not get accepted; see the following
-mails on netfilter-devel:
-
-http://lists.netfilter.org/pipermail/netfilter-devel/2002-August/009012.h=
-tml
-http://lists.netfilter.org/pipermail/netfilter-devel/2002-September/00937=
-1.html
-http://lists.netfilter.org/pipermail/netfilter-devel/2002-August/008916.h=
-tml
-
-So what you can do is:
-- if you need to get this to work quickly, you can apply the patch
-  that adds ip_nat_mangle_udp_packet() and recompile. This is more of=20
-  a quickfix solution, though.
-- get in touch with the author of the amanda conntracker/nat module,
-  because obviously the patch in p-o-m is of little use to anyone in its
-  current state. (I've put him email address in the mail loop)
-
-Regards,
-Filip Sneppe
+>--- kernel-source-2.4.19.origin/net/ipv4/netfilter/ip_conntrack_proto_tcp.c     Fri Oct  4 08:13:38 2002
+>+++ kernel-source-2.4.19.patch/net/ipv4/netfilter/ip_conntrack_proto_tcp.c      Sat Oct  5 20:45:49 2002
+>@@ -180,6 +180,8 @@
+>        if (oldtcpstate == TCP_CONNTRACK_SYN_SENT
+>            && CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY
+>            && tcph->syn && tcph->ack)
+>+               conntrack->proto.tcp.handshake_seq
+>+                       = tcph->ack_seq;
+>                conntrack->proto.tcp.handshake_ack
+>                        = htonl(ntohl(tcph->seq) + 1);
+>        WRITE_UNLOCK(&tcp_lock);
+>-- 
 
 
-------_=_NextPart_001_01C2756C.ED85D426
-Content-Type: text/html;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Note that the original statement will now be unconditionally executed.
+You need to enclose the statements by brackets.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3DWindows-1252">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
-6.0.6249.1">
-<TITLE>RE: ip_nat_amanda unresolved symbol</TITLE>
-</HEAD>
-<BODY>
-<!-- Converted from text/plain format -->
 
-<P><FONT SIZE=3D2>Hi,<BR>
-<BR>
-Jan Srzednicki [<A =
-HREF=3D"mailto:winfried@expro.pl">mailto:winfried@expro.pl</A>] =
-wrote:<BR>
-&gt;<BR>
-&gt;Hello there,<BR>
-&gt;<BR>
-&gt;I've just cvsupped new version of netfilter stuff (16/10/2002). I =
-wanted<BR>
-&gt;to try some of the new modules in patch-o-matic, one of which is =
-the<BR>
-&gt;Amanda connection tracking helper. However, this module contains =
-an<BR>
-&gt;unresolved symbol:<BR>
-&gt;<BR>
-&gt;find kernel -path '*/pcmcia/*' -name '*.o' | xargs -i -r ln -sf =
-../{} pcmcia<BR>
-&gt;if [ -r System.map ]; then /sbin/depmod -ae -F System.map 2.4.19; =
-fi<BR>
-&gt;depmod: *** Unresolved symbols in<BR>
-&gt;/lib/modules/2.4.19/kernel/net/ipv4/netfilter/ip_nat_amanda.o<BR>
-&gt;depmod:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-ip_nat_mangle_udp_packet<BR>
-&gt;<BR>
-&gt;I grepped all kernel sources and netfilter patches -<BR>
-&gt;ip_nat_mangle_udp_packet is not defined anywhere! I looked on the =
-code of<BR>
-&gt;similar function - ip_nat_mangle_tcp_packet(); it is defined and =
-exported<BR>
-&gt;correctly. Yet, ip_nat_mangle_udp_packet() clearly is missing. I use =
-the<BR>
-&gt;&quot;new&quot; nat headers and schemes, if that matters in any =
-way.<BR>
-&gt;<BR>
-<BR>
-It seems like the amanda conntracker/nat module depends on some<BR>
-earlier code written by the same author to mangle udp packets.<BR>
-However, that earlier code did not get accepted; see the following<BR>
-mails on netfilter-devel:<BR>
-<BR>
-<A =
-HREF=3D"http://lists.netfilter.org/pipermail/netfilter-devel/2002-August/=
-009012.html">http://lists.netfilter.org/pipermail/netfilter-devel/2002-Au=
-gust/009012.html</A><BR>
-<A =
-HREF=3D"http://lists.netfilter.org/pipermail/netfilter-devel/2002-Septemb=
-er/009371.html">http://lists.netfilter.org/pipermail/netfilter-devel/2002=
--September/009371.html</A><BR>
-<A =
-HREF=3D"http://lists.netfilter.org/pipermail/netfilter-devel/2002-August/=
-008916.html">http://lists.netfilter.org/pipermail/netfilter-devel/2002-Au=
-gust/008916.html</A><BR>
-<BR>
-So what you can do is:<BR>
-- if you need to get this to work quickly, you can apply the patch<BR>
-&nbsp; that adds ip_nat_mangle_udp_packet() and recompile. This is more =
-of<BR>
-&nbsp; a quickfix solution, though.<BR>
-- get in touch with the author of the amanda conntracker/nat module,<BR>
-&nbsp; because obviously the patch in p-o-m is of little use to anyone =
-in its<BR>
-&nbsp; current state. (I've put him email address in the mail loop)<BR>
-<BR>
-Regards,<BR>
-Filip Sneppe<BR>
-</FONT>
-</P>
-
-</BODY>
-</HTML>
-------_=_NextPart_001_01C2756C.ED85D426--
+Svenning
