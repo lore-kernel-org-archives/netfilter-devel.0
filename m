@@ -1,16 +1,15 @@
-From: Gordon Messmer <yinyang@eburg.com>
-Subject: Re: kernel crash
-Date: Thu, 29 May 2003 21:23:35 -0700
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [netfilter-core] iptables/conntrack in enterprise environment.
+Date: Thu, 29 May 2003 19:08:36 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3ED6DCC7.7020302@eburg.com>
-References: <3ED67067.6080605@eburg.com>
- <1054247760.709.94.camel@tux.rsn.bth.se>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7BIT
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Message-ID: <20030530072818.E2AAB2C053@lists.samba.org>
+References: <200305290113.58552.prez@srealm.net.au>
+Cc: netfilter@lists.netfilter.org,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-reply-to: <1054247760.709.94.camel@tux.rsn.bth.se>
+To: "Preston A. Elder" <prez@srealm.net.au>
+In-reply-to: Your message of "Thu, 29 May 2003 01:13:47 -0400."
+             <200305290113.58552.prez@srealm.net.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,56 +20,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Martin Josefsson wrote:
-> 
-> Beware that conntrack in kernel 2.4.20 has a serious bug caused by core
-> kernel changes. Can you please try 2.4.21-rc or apply at least
-> submitted/10_confirm_fix.patch from patch-o-matic and run the same thing
-> again and see if it still happens?
+In message <200305290113.58552.prez@srealm.net.au> you write:
+> We have a system that acts as a router, however any new inbound connection for
+> any machine behind this router is re-directed to a specific port on the local
+> machine, where an application responds as if it were the system behind the
+> router.  These systems experience some very high volumes of traffic
 
-I've suggested the patch to the person responsible for the machine (I'm 
-just helping him track this down).
+Sounds a lot like something is happening to the FIN or RST packets: as
+soon as conntrack sees a FIN or RST, it'll leave ESTABLISHED and
+timeout fairly quickly.
 
-> It appears that as if the reply-tuple is modified after the conntrack
-> has been added to the hashtable (shouldn't happen). The only place this
-> modification could happen is in ip_conntrack_alter_reply() which is
-> called from ip_nat_setup_info() which in turn is called from various
-> places to set up NAT mappings. But I can't find a place where it's
-> called for a connection that's already in the hashtable...
-> And the IP_NF_ASSERT() in ip_conntrack_alter_reply() would have
-> triggered unless the conntrack had already been deleted from the
-> lists...
+Now, there are several simple things you can do here, as well as
+dropping the ESTABLISHED timeout:
 
-Possibly memory corruption, then?
+1) Try 2.4.21-rc5.  The hashing algorithm was markedly improved, which
+   you could well be hitting.
 
-> 
-> Which modules are you using?
-> 
+2) You set the conntrack_max to 524280, but on a 1GB machine you'll
+   only have about 8192 hash chains, making each chain 64 long.  Up
+   the hashsize module parameter to around 100000 (or edit the kernel
+   source if builtin, sorry).
 
-According to Mark:
+There are certainly more intrusive measures we can investigate, too.
 
-lsmod
-Module                  Size  Used by    Not tainted
-ipt_MARK                 856   1  (autoclean)
-ipt_LOG                 3320   1  (autoclean)
-ipt_limit               1048   1  (autoclean)
-ipt_REJECT              2840  13  (autoclean)
-ipt_mark                 536   1  (autoclean)
-iptable_mangle          2228   1  (autoclean)
-ip_nat_ftp              3696   0  (unused)
-ip_conntrack_ftp        4240   1  [ip_nat_ftp]
-ipt_state                632   0  (unused)
-ipt_multiport            728   0  (unused)
-ipt_esp                  632   0  (unused)
-ipt_MASQUERADE          1944   1
-iptable_filter          1736   1
-iptable_nat            21176   2  [ip_nat_ftp ipt_MASQUERADE]
-ip_conntrack           28064   3  [ip_nat_ftp ip_conntrack_ftp ipt_state
-				ipt_MASQUERADE iptable_nat]
-ip_tables              13400  14  [ipt_MARK ipt_LOG ipt_limit ipt_REJECT
-				ipt_mark iptable_mangle ipt_state
-				ipt_multiport ipt_esp ipt_MASQUERADE
-				iptable_filter iptable_nat]
-ip_gre                  7584   0  (unused)
-sk98lin               113136   1
-e1000                  47980   1
+> We have multiple systems performing this task (essentially for load balancing
+> and to remove a single point of faulure).
+
+Um, how are you load balancing?  Remember, if the connection tracking
+code doesn't see all the packets for a connection, it can't work.
+
+Cheers,
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
