@@ -1,8 +1,8 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 13/18] Netfilter:  Multiport revision with port ranges
-	(replaces "mport")
-Date: Wed, 05 Jan 2005 14:35:59 +1100
-Message-ID: <1104896159.20582.79.camel@localhost.localdomain>
+Subject: [PATCH 14/18] Netfilter:  Conntrack Hash Allocation using
+	__get_free_pages
+Date: Wed, 05 Jan 2005 14:36:22 +1100
+Message-ID: <1104896182.20582.81.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -21,207 +21,92 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Multiport revision with port ranges (replaces "mport")
+Name: Conntrack Hash Allocation using __get_free_pages
+Author: Andi Kleen
 Status: Tested under nfsim
-Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au> (modified)
 
-The multiport match doesn't support ranges of ports, so a new match
-called "mport" was written.  Now we have versioning of matches and
-targets, we can simply put this extension in multiport revision 1.
+Here is a patch for 2.4 that just makes it use get_free_pages to
+test the TLB theory. Another obvious improvement would be to not
+use list_heads for the hash table buckets - a single pointer would
+likely suffice and it would cut the hash table in half, saving
+cache, TLB and memory.
 
-Also, removes gratuitous checking in match: we basically trust
-iptables userspace these days.
-
-===== net/ipv4/netfilter/ipt_multiport.c 1.8 vs edited =====
-Index: linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ipt_multiport.h
+Index: linux-2.6.10-bk6-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c
 ===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-05 12:59:28.122700808 +1100
-+++ linux-2.6.10-bk7-Netfilter/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-05 13:02:41.176352192 +1100
-@@ -18,4 +18,12 @@
- 	u_int8_t count;				/* Number of ports */
- 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
- };
-+
-+struct ipt_multiport_v1
-+{
-+	u_int8_t flags;				/* Type of comparison */
-+	u_int8_t count;				/* Number of ports */
-+	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
-+	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
-+};
- #endif /*_IPT_MULTIPORT_H*/
-Index: linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ipt_multiport.c
-===================================================================
---- linux-2.6.10-bk7-Netfilter.orig/net/ipv4/netfilter/ipt_multiport.c	2005-01-05 12:59:28.121700960 +1100
-+++ linux-2.6.10-bk7-Netfilter/net/ipv4/netfilter/ipt_multiport.c	2005-01-05 13:02:41.176352192 +1100
-@@ -46,6 +46,50 @@
- 	return 0;
+--- linux-2.6.10-bk6-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-04 22:11:53.614947576 +1100
++++ linux-2.6.10-bk6-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-04 22:25:56.082872984 +1100
+@@ -75,6 +75,7 @@
+ struct ip_conntrack ip_conntrack_untracked;
+ unsigned int ip_ct_log_invalid;
+ static LIST_HEAD(unconfirmed);
++static int ip_conntrack_vmalloc;
+ 
+ DEFINE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
+ 
+@@ -1309,6 +1310,16 @@
+ 	return 1;
  }
  
-+/* Returns 1 if the port is matched by the test, 0 otherwise. */
-+static inline int
-+ports_match_v1(const struct ipt_multiport_v1 *minfo,
-+	       u_int16_t src, u_int16_t dst)
++static void free_conntrack_hash(void)
 +{
-+	unsigned int i;
-+	u_int16_t s, e;
-+
-+	for (i=0; i < minfo->count; i++) {
-+		s = minfo->ports[i];
-+
-+		if (minfo->pflags[i]) {
-+			/* range port matching */
-+			e = minfo->ports[++i];
-+			duprintf("src or dst matches with %d-%d?\n", s, e);
-+
-+			if (minfo->flags == IPT_MULTIPORT_SOURCE
-+			    && src >= s && src <= e)
-+				return 1;
-+			if (minfo->flags == IPT_MULTIPORT_DESTINATION
-+			    && dst >= s && dst <= e)
-+				return 1;
-+			if (minfo->flags == IPT_MULTIPORT_EITHER
-+			    && ((dst >= s && dst <= e)
-+				|| (src >= s && src <= e)))
-+				return 1;
-+		} else {
-+			/* exact port matching */
-+			duprintf("src or dst matches with %d?\n", s);
-+			if (minfo->flags == IPT_MULTIPORT_SOURCE
-+			    && src == s)
-+				return 1;
-+			if (minfo->flags == IPT_MULTIPORT_DESTINATION
-+			    && dst == s)
-+				return 1;
-+			if (minfo->flags == IPT_MULTIPORT_EITHER
-+			    && (src == s || dst == s))
-+				return 1;
-+		}
-+	}
-+ 
-+ 	return 0;
++	if (ip_conntrack_vmalloc)
++		vfree(ip_conntrack_hash);
++	else
++		free_pages((unsigned long)ip_conntrack_hash, 
++			   get_order(sizeof(struct list_head)
++				     * ip_conntrack_htable_size));
 +}
 +
- static int
- match(const struct sk_buff *skb,
-       const struct net_device *in,
-@@ -57,14 +101,11 @@
- 	u16 _ports[2], *pptr;
- 	const struct ipt_multiport *multiinfo = matchinfo;
+ /* Mishearing the voices in his head, our hero wonders how he's
+    supposed to kill the mall. */
+ void ip_conntrack_cleanup(void)
+@@ -1328,7 +1339,7 @@
  
--	/* Must not be a fragment. */
- 	if (offset)
- 		return 0;
- 
--	/* Must be big enough to read ports (both UDP and TCP have
--           them at the start). */
- 	pptr = skb_header_pointer(skb, skb->nh.iph->ihl * 4,
--				  sizeof(_ports), &_ports[0]);
-+				  sizeof(_ports), _ports);
- 	if (pptr == NULL) {
- 		/* We've been asked to examine this packet, and we
- 		 * can't.  Hence, no choice but to drop.
-@@ -80,6 +121,35 @@
- 			   ntohs(pptr[0]), ntohs(pptr[1]));
+ 	kmem_cache_destroy(ip_conntrack_cachep);
+ 	kmem_cache_destroy(ip_conntrack_expect_cachep);
+-	vfree(ip_conntrack_hash);
++	free_conntrack_hash();
+ 	nf_unregister_sockopt(&so_getorigdst);
  }
  
-+static int
-+match_v1(const struct sk_buff *skb,
-+	 const struct net_device *in,
-+	 const struct net_device *out,
-+	 const void *matchinfo,
-+	 int offset,
-+	 int *hotdrop)
-+{
-+	u16 _ports[2], *pptr;
-+	const struct ipt_multiport_v1 *multiinfo = matchinfo;
-+
-+	if (offset)
-+		return 0;
-+
-+	pptr = skb_header_pointer(skb, skb->nh.iph->ihl * 4,
-+				  sizeof(_ports), _ports);
-+	if (pptr == NULL) {
-+		/* We've been asked to examine this packet, and we
-+		 * can't.  Hence, no choice but to drop.
-+		 */
-+		duprintf("ipt_multiport:"
-+			 " Dropping evil offset=0 tinygram.\n");
-+		*hotdrop = 1;
-+		return 0;
+@@ -1366,8 +1377,20 @@
+ 		return ret;
+ 	}
+ 
+-	ip_conntrack_hash = vmalloc(sizeof(struct list_head)
+-				    * ip_conntrack_htable_size);
++	/* AK: the hash table is twice as big than needed because it
++	   uses list_head.  it would be much nicer to caches to use a
++	   single pointer list head here. */
++	ip_conntrack_vmalloc = 0; 
++	ip_conntrack_hash 
++		=(void*)__get_free_pages(GFP_KERNEL, 
++					 get_order(sizeof(struct list_head)
++						   *ip_conntrack_htable_size));
++	if (!ip_conntrack_hash) { 
++		ip_conntrack_vmalloc = 1;
++		printk(KERN_WARNING "ip_conntrack: falling back to vmalloc.\n");
++		ip_conntrack_hash = vmalloc(sizeof(struct list_head)
++					    * ip_conntrack_htable_size);
 +	}
-+
-+	return ports_match_v1(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
-+}
-+
- /* Called when user tries to insert an entry of this type. */
- static int
- checkentry(const char *tablename,
-@@ -88,36 +158,53 @@
- 	   unsigned int matchsize,
- 	   unsigned int hook_mask)
- {
--	const struct ipt_multiport *multiinfo = matchinfo;
--
--	if (matchsize != IPT_ALIGN(sizeof(struct ipt_multiport)))
--		return 0;
-+	return (matchsize == IPT_ALIGN(sizeof(struct ipt_multiport)));
-+}
+ 	if (!ip_conntrack_hash) {
+ 		printk(KERN_ERR "Unable to create ip_conntrack_hash\n");
+ 		goto err_unreg_sockopt;
+@@ -1375,7 +1398,7 @@
  
--	/* Must specify proto == TCP/UDP, no unknown flags or bad count */
--	return (ip->proto == IPPROTO_TCP || ip->proto == IPPROTO_UDP)
--		&& !(ip->invflags & IPT_INV_PROTO)
--		&& matchsize == IPT_ALIGN(sizeof(struct ipt_multiport))
--		&& (multiinfo->flags == IPT_MULTIPORT_SOURCE
--		    || multiinfo->flags == IPT_MULTIPORT_DESTINATION
--		    || multiinfo->flags == IPT_MULTIPORT_EITHER)
--		&& multiinfo->count <= IPT_MULTI_PORTS;
-+static int
-+checkentry_v1(const char *tablename,
-+	      const struct ipt_ip *ip,
-+	      void *matchinfo,
-+	      unsigned int matchsize,
-+	      unsigned int hook_mask)
-+{
-+	return (matchsize == IPT_ALIGN(sizeof(struct ipt_multiport_v1)));
- }
+ 	ip_conntrack_cachep = kmem_cache_create("ip_conntrack",
+ 	                                        sizeof(struct ip_conntrack), 0,
+-	                                        SLAB_HWCACHE_ALIGN, NULL, NULL);
++	                                        SLAB_HWCACHE_ALIGN, NULL,NULL);
+ 	if (!ip_conntrack_cachep) {
+ 		printk(KERN_ERR "Unable to create ip_conntrack slab cache\n");
+ 		goto err_free_hash;
+@@ -1416,7 +1439,7 @@
+ err_free_conntrack_slab:
+ 	kmem_cache_destroy(ip_conntrack_cachep);
+ err_free_hash:
+-	vfree(ip_conntrack_hash);
++	free_conntrack_hash();
+ err_unreg_sockopt:
+ 	nf_unregister_sockopt(&so_getorigdst);
  
- static struct ipt_match multiport_match = {
- 	.name		= "multiport",
-+	.revision	= 0,
- 	.match		= &match,
- 	.checkentry	= &checkentry,
- 	.me		= THIS_MODULE,
- };
- 
-+static struct ipt_match multiport_match_v1 = {
-+	.name		= "multiport",
-+	.revision	= 1,
-+	.match		= &match_v1,
-+	.checkentry	= &checkentry_v1,
-+	.me		= THIS_MODULE,
-+};
-+
- static int __init init(void)
- {
--	return ipt_register_match(&multiport_match);
-+	int err;
-+
-+	err = ipt_register_match(&multiport_match);
-+	if (!err) {
-+		err = ipt_register_match(&multiport_match_v1);
-+		if (err)
-+			ipt_unregister_match(&multiport_match);
-+	}
-+
-+	return err;
- }
- 
- static void __exit fini(void)
- {
- 	ipt_unregister_match(&multiport_match);
-+	ipt_unregister_match(&multiport_match_v1);
- }
- 
- module_init(init);
