@@ -1,15 +1,17 @@
-From: Brad Chapman <kakadu_croc@yahoo.com>
+From: dmorris <dmorris@metavize.com>
 Subject: Re: [PATCH?] Fix getorigdst() in ip_conntrack_core.c on 2.4.22-ac2
-Date: Wed, 10 Sep 2003 14:27:15 -0700 (PDT)
+Date: Wed, 10 Sep 2003 15:29:40 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030910212715.80212.qmail@web40906.mail.yahoo.com>
-References: <Pine.LNX.4.44.0309102151530.31287-100000@filer.marasystems.com>
+Message-ID: <3F5FA5D4.9030202@metavize.com>
+References: <20030910212715.80212.qmail@web40906.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+ netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0309102151530.31287-100000@filer.marasystems.com>
+To: Brad Chapman <kakadu_croc@yahoo.com>
+In-Reply-To: <20030910212715.80212.qmail@web40906.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,87 +22,88 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Mr. Nordstrom,
 
---- Henrik Nordstrom <hno@marasystems.com> wrote:
-> On Wed, 10 Sep 2003, Brad Chapman wrote:
-> 
-> > Hi everyone!
-> > 
-> > gcc fails with the following error when compiling ip_conntrack_core.c on
-> 2.4.22-ac2
-> > with gcc 3.2.2:
-> 
-> See my post a few days ago..
+>Would this work, or would it be horribly worse? Where can I get an app which uses
+>SO_ORIGINAL_DST to test this out?
+>
+>  
+>
 
-OK. I temporarily suspended my subscription a month ago because I was very busy
-and no longer had time to read e-mails. I'll check the pipermail archives.
+Try this:
 
-> 
-> > +	struct ip_conntrack_tuple *tuple;
-> 
-> > +	IP_CT_TUPLE_BLANK(tuple);
-> 
-> Won't work.. the tuple needs to be allocated somewhere. If you make this 
-> change then you will cause random memory corruption or segmentation 
-> faults.
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <string.h>
+#include <linux/netfilter_ipv4.h>
 
-Hmmmm, OK. Does that mean that the tuple can't be allocated on the stack, but
-instead has to be allocated from the heap ([v,k]malloc()?) I had a feeling that
-something was amiss, since the original code _appeared_ to be correct, but
-did not compile. My patch made it compile, but since I have no apps which use
-SO_ORIGINAL_DST, I can't tell if it would cause it to crash.
-
-> 
-> > gcc 3.2.2 compiles this properly with only a warning about the possiblity that
-> > tuple will be uninitialized. The original code looks perfectly legal and proper,
-> > so why would gcc 3.x fail?
-> 
-> Because the original code is not legal in any C compiler and should not be
-> accepted by any compiler, not only GCC 3.x (I am using RH GCC 2.96).  The
-> problem is the IP_CT_TUPLE_BLANK which is an incorrectly constructed
-> macro.
-
-Then how should it be constructed? It almost sounds like you would need to write
-an actual function, and code it and getorigdst() something like this (I'm sure this
-is horribly wrong):
-
-static void ip_ct_tuple_blank(struct ip_conntrack_tuple *tuple)
+int main ()
 {
-         tuple->src.u.all = 0;
-         tuple->dst.u.all = 0;
+    int sock;
+    int one = 1;
+    struct sockaddr_in addr;
+   
+    if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP))<0)
+    {perror("socket()");exit(-1);}
+
+    setsockopt(sock, SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
+
+    memset(&addr,0,sizeof(addr));
+    addr.sin_port = htons(1234);
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (bind(sock, (struct sockaddr*)&addr, sizeof(addr))<0)
+    {perror("bind()");exit(-1);}
+ 
+    if (listen(sock, 3) < 0)
+    {perror("listen()");exit(-1);}
+   
+    while(1) {
+        int addrlen = sizeof(addr);
+        int fd = accept(sock,(struct sockaddr*)&addr,&addrlen);
+       
+        if (fd < 0)
+        {perror("accept()");exit(-1);}
+      
+        printf("accepted.");
+       
+        if (getsockopt(fd,SOL_IP,SO_ORIGINAL_DST,&addr,&addrlen)<0)
+        {perror("getsockopt()");exit(-1);}
+
+        printf("original dest: 
+%s:%i\n",inet_ntoa(addr.sin_addr),ntohs(addr.sin_port));
+
+        close(fd);
+    }
+   
 }
 
-static int getorigdst(...)
-{
-....
-         struct ip_conntrack_tuple *tuple;
-
-         tuple = kmalloc(sizeof(ip_conntrack_tuple), GFP_ATOMIC);
-         if (!tuple) return -ENOMEM;
-         ip_ct_tuple_blank(tuple);
-....
-         kfree(tuple);
-....
-}
-
-Would this work, or would it be horribly worse? Where can I get an app which uses
-SO_ORIGINAL_DST to test this out?
-
-> 
-> Regards
-> Henrik
-> 
-
-Brad
 
 
-=====
-Brad Chapman
 
-Permanent e-mail: kakadu_croc@yahoo.com
 
-__________________________________
-Do you Yahoo!?
-Yahoo! SiteBuilder - Free, easy-to-use web site design software
-http://sitebuilder.yahoo.com
+then do:
+s iptables -t nat -A PREROUTING -p tcp --destination-port 7 -j REDIRECT 
+--to-port 1234
+
+then from some machine behind that machine
+"telnet 128.2.1.2 7"
+Trying 128.2.1.2...
+Connected to 128.2.1.2.
+Escape character is '^]'.
+Connection closed by foreign host.
+
+the machine running the code above should print:
+accepted.original dest: 128.2.1.2:7
+
+
+and from the localmachine
+telnet localhost 1234
+
+the code should say:
+accepted.original dest: 127.0.0.1:1234
+
+goodluck,
+
+-dirk morris
