@@ -1,9 +1,9 @@
 From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: [testsuite] ipt_mac testcase
-Date: Fri, 17 Dec 2004 18:15:22 -0500
-Message-ID: <41C3688A.4030302@cookinglinux.org>
+Subject: [testsuite] ipt_multiport testcase
+Date: Sat, 18 Dec 2004 00:27:19 -0500
+Message-ID: <41C3BFB7.3030901@cookinglinux.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030007010700010001000405"
+Content-Type: multipart/mixed; boundary="------------030507070500030206010200"
 Cc: netfilter-devel@lists.netfilter.org,
 	Nicolas Bouliane <nib@cookinglinux.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -20,143 +20,111 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030007010700010001000405
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+--------------030507070500030206010200
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
 Hi Rusty,
 
-Like the subject suggests, here's the ipt_mac testcase.
-This is your third christmas gift. Please, don't try to find out how much
-I paid for... 8)~
-
-As of revision 3436:
-    * attached a tiny patch removing bad entry into expected-failures.
-    * the other one is about 01iptables/27ipt_iprange-bad-addr.sim
-
-iptables -A INPUT -m iprange --src-range 0.0.0.0-1.1.1.1 --src-range 
-1.1.1.1-2.2.2.2
-iptables -A INPUT -m iprange --dst-range 0.0.0.0-1.1.1.1 --dst-range 
-1.1.1.1-2.2.2.2
-
-Above rules should fail. Added expects...
-
-Let me know if I missed something.
+Like the subject suggests, here's the ipt_multiport testcase.
+This is your fourth christmas gift. This one was very expensive
+so I hope you will like it.
 
 Cheers,
 
 --peejix
 
---------------030007010700010001000405
+
+--------------030507070500030206010200
 Content-Type: text/plain;
- name="34ipt_mac-bad-addr.sim"
+ name="36ipt_multiport-bad-args.sim"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="34ipt_mac-bad-addr.sim"
+ filename="36ipt_multiport-bad-args.sim"
 
-# Straight rule (expecting: success)
-iptables -I INPUT -m mac --mac-source 00:50:BA:56:CB:3A
-iptables -D INPUT -m mac --mac-source 00:50:BA:56:CB:3A
+# the three options should work (expecting: success)
+# Default maximum ports number supported by the library is 15
+iptables -I INPUT -p tcp -m multiport --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -D INPUT -p tcp -m multiport --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -I INPUT -p tcp -m multiport --destination-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -D INPUT -p tcp -m multiport --destination-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -I INPUT -p tcp -m multiport --ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -D INPUT -p tcp -m multiport --ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
 
-# Inverted rule (expecting: success)
-iptables -I INPUT -m mac ! --mac-source 00:50:BA:56:CB:3A
-iptables -D INPUT -m mac ! --mac-source 00:50:BA:56:CB:3A
-iptables -I INPUT -m mac --mac-source ! 00:50:BA:56:CB:3A
-iptables -D INPUT -m mac --mac-source ! 00:50:BA:56:CB:3A
+# Ensure UDP works too.. (expecting: success)
+# One test should be sufficient
+iptables -I INPUT -p udp -m multiport --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -D INPUT -p udp -m multiport --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
 
-# Inverted twice (expecting: failure)
-expect iptables iptables: command failed
-iptables -I INPUT -m mac ! --mac-source ! 00:50:BA:56:CB:3A
+# Multiport doesn't support invert nor complains about it. (expecting: answer from rusty)
+# Do we still test it Rusty ?
+iptables -I INPUT -p tcp -m multiport ! --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -D INPUT -p tcp -m multiport ! --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -I INPUT -p tcp -m multiport ! --destination-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -D INPUT -p tcp -m multiport ! --destination-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -I INPUT -p tcp -m multiport ! --ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+iptables -D INPUT -p tcp -m multiport ! --ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
 
-# Bad MAC address (expecting: failure)
+# Multiport doesn't support multiple options. (expecting: failure)
 expect iptables iptables: command failed
-iptables -I INPUT -m mac --mac-source 00:50:BA:56:CB:
+iptables -I INPUT -p tcp -m multiport --sports 1 --dports 2 --ports 3
 expect iptables iptables: command failed
-iptables -I INPUT -m mac --mac-source 00:50:BA:56:CB
-expect iptables iptables: command failed
-iptables -I INPUT -m mac --mac-source 00:50:BA:56:CB:3A:
-expect iptables iptables: command failed
-iptables -I INPUT -m mac --mac-source 00:50:BA:56:CB:3A:00
+iptables -I INPUT -p tcp -m multiport --sports 1 --dports 2
 
---------------030007010700010001000405
+# Can we override ourself ? (expecting: failure)
+expect iptables iptables: command failed
+iptables -I INPUT -p tcp -m multiport --sports 1 --sports 1
+expect iptables iptables: command failed
+iptables -I INPUT -p tcp -m multiport --dports 2 --dports 2
+expect iptables iptables: command failed
+iptables -I INPUT -p tcp -m multiport --ports 3 --ports 3
+
+# Reject ICMP and ALL (expecting: failure)
+expect iptables iptables: command failed
+iptables -I INPUT -p icmp -m multiport --ports 3
+expect iptables iptables: command failed
+iptables -I INPUT -m multiport --ports 3
+
+--------------030507070500030206010200
 Content-Type: text/plain;
- name="35ipt_mac.sim"
+ name="37ipt_multiport.sh"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="35ipt_mac.sim"
+ filename="37ipt_multiport.sh"
 
-# Straight rule
-iptables -I INPUT -m mac --mac-source 00:50:BA:56:CB:3A -j DROP
+#! /bin/sh
 
-	# source MAC matches
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP {IPv4 192.168.0.2 192.168.0.1 0 6 1 2 SYN}
-gen_ip IF=eth0 MAC=00:50:BA:56:CB:3A 192.168.0.2 192.168.0.1 0 6 1 2 SYN
+# For both TCP and UDP, test five ports against the three options
+# where port 1 and port 5 are always the excluded twin (NF_ACCEPT'ed).
+FLAG=" SYN"
+for proto in 6 17; do
+	if [[ $proto == 17 ]]; then
+			 unset FLAG
+	fi
+	for arg in sports dports ports
+	do
+		echo iptables -I INPUT -p $proto -m multiport --${arg} 2,3,4 -j DROP
+		for port in 1 2 3 4 5
+		do
+			case $port in
+				[1,5]) 	VERDICT=NF_ACCEPT ;;
+				*) 		VERDICT=NF_DROP	;;
+			esac
 
-	# source MAC doesn't
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT {IPv4 192.168.0.2 192.168.0.1 0 6 1 2 SYN}
-gen_ip IF=eth0 MAC=00:A0:C9:5A:94:EF 192.168.0.2 192.168.0.1 0 6 1 2 SYN
+			case $arg in
+				sports)	PORTS="${port} 1" ;;
+				dports)	PORTS="1 ${port}"	;;
+				ports)	PORTS="${port} ${port}"	;;
+			esac
+				
+				echo expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter $VERDICT \
+				{IPv4 192.168.0.2 192.168.0.1 0 $proto ${PORTS}$FLAG}
+				echo gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 $proto $PORTS $FLAG
+		done
+		echo iptables -D INPUT -p $proto -m multiport --${arg} 2,3,4 -j DROP
+	done
+done > $TMPFILE
 
-iptables -D INPUT -m mac --mac-source 00:50:BA:56:CB:3A -j DROP
+$NFSIM $NFSIM_ARGS < $TMPFILE
 
-# Inverted rule
-iptables -I INPUT -m mac ! --mac-source 00:50:BA:56:CB:3A -j DROP
-
-	# source MAC matches
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_ACCEPT {IPv4 192.168.0.2 192.168.0.1 0 6 1 2 SYN}
-gen_ip IF=eth0 MAC=00:50:BA:56:CB:3A 192.168.0.2 192.168.0.1 0 6 1 2 SYN
-
-	# source MAC doesn't
-expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter NF_DROP {IPv4 192.168.0.2 192.168.0.1 0 6 1 2 SYN}
-gen_ip IF=eth0 MAC=00:A0:C9:5A:94:EF 192.168.0.2 192.168.0.1 0 6 1 2 SYN
-
-iptables -D INPUT -m mac ! --mac-source 00:50:BA:56:CB:3A -j DROP
-
-
---------------030007010700010001000405
-Content-Type: text/x-patch;
- name="expected-failures-remove_entry.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="expected-failures-remove_entry.patch"
-
---- expected-failures	2004-12-17 17:34:13.000000000 -0500
-+++ expected-failures.fix	2004-12-17 17:55:57.000000000 -0500
-@@ -26,4 +26,3 @@
- linux:2.6.10*:03NAT/21loopback.sim
- iptables:*:01iptables/26ipt_ttl-out-of-range.sim
- iptables:*:01iptables/27ipt_iprange-bad-addr.sim
--*:01iptables/27ipt_iprange-bad-addr.sim
-
---------------030007010700010001000405
-Content-Type: text/x-patch;
- name="27ipt_iprange-bad-addr.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="27ipt_iprange-bad-addr.patch"
-
---- 01iptables/27ipt_iprange-bad-addr.sim	2004-12-16 23:37:50.000000000 -0500
-+++ 01iptables/27ipt_iprange-bad-addr.sim.fix	2004-12-17 17:52:22.000000000 -0500
-@@ -8,17 +8,16 @@
- # Check if inputing the same option twice override previous one.
- # This should ring the bell.
- # Side note: Fixed in SVN since Mon Jul 12 07:16:54 2004 UTC, Revision 1407
--
-+expect iptables iptables: command failed
- iptables -A INPUT -m iprange --src-range 0.0.0.0-1.1.1.1 --src-range 1.1.1.1-2.2.2.2
-+expect iptables iptables: command failed
- iptables -A INPUT -m iprange --dst-range 0.0.0.0-1.1.1.1 --dst-range 1.1.1.1-2.2.2.2
- 
- # Giving a source and destination range should succeed.
- iptables -A INPUT -m iprange --src-range 0.0.0.0-1.1.1.1 --dst-range 1.1.1.1-2.2.2.2
-+iptables -D INPUT -m iprange --src-range 0.0.0.0-1.1.1.1 --dst-range 1.1.1.1-2.2.2.2
- 
--# Invert
-+# Invert rule too...
- iptables -A INPUT -m iprange ! --src-range 0.0.0.0-1.1.1.1 ! --dst-range 1.1.1.1-2.2.2.2
--
--# Remove me!
--iptables -D INPUT -m iprange --src-range 0.0.0.0-1.1.1.1 --dst-range 1.1.1.1-2.2.2.2
- iptables -D INPUT -m iprange ! --src-range 0.0.0.0-1.1.1.1 ! --dst-range 1.1.1.1-2.2.2.2
- 
-
---------------030007010700010001000405--
+--------------030507070500030206010200--
