@@ -1,22 +1,13 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] aggressive early_drop and reserved conntrack entries
-Date: Mon, 13 Dec 2004 14:25:47 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0412131423340.18050@tux.rsn.bth.se>
-References: <Pine.LNX.4.58.0412090845060.11649@blackhole.kfki.hu>
-	<20041209085249.GA22714@oknodo.bof.de>
-	<Pine.LNX.4.58.0412091108420.11649@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0412102315110.15772@blackhole.kfki.hu>
-	<1102772053.12078.40.camel@tux.rsn.bth.se>
-	<Pine.LNX.4.58.0412111740420.16780@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0412131310420.19191@blackhole.kfki.hu>
+From: r00t <root@server.titansoft.ru>
+Subject: REDIRECT
+Date: Mon, 13 Dec 2004 18:36:31 +0500
+Message-ID: <1538174627.20041213183631@server.titansoft.ru>
+Reply-To: r00t <root@server.titansoft.ru>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>,
-	Grzegorz Piotr Jaskiewicz <gj@pointblue.com.pl>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0412131310420.19191@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,22 +19,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 13 Dec 2004, Jozsef Kadlecsik wrote:
+Hi all,
+>> How to i make by libipq  this rule:
+>> -j REDIRECT --to-ports 3128 ?
 
-> > > Huh? No check to see if we already are assured or not?
-> > > Not needed for icmp, tcp or sctp but udp and the generic handler does.
-> >
-> > Oops, absolutely correct, I tested the code with TCP only. Fortunately
-> > it's easy to fix :-)
->
-> Attached is the patch which takes into account that the assured bit might
-> already be set (and thus we are on the unassured list).
+>You don't.
+>REDIRECT or other NAT related operations must be done in the kernel.
 
-I'll take this for a testdrive during a DoS on a testmachine here later
-this evening. I doubt it makes any diffrence compared to the old one when
-you have virtually no assured entries, just a truckload of unassured ones.
-So it's a bit tricky to test in a lab, I need to set up that
-sniffermachine on the real internet feed so I get a proper conntrack
-table to test with.
+Ok, but if i use this:
 
-/Martin
+-A PREROUTING -p tcp -j QUEUE
+-A PREROUTING -i eth1 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3128
+
+And in the program:
+
+ipq_set_verdict(h, m->packet_id,NF_ACCEPT, 0, NULL);
+
+the packet not going to second rule(REDIRECT)
+
+Sorry to my english
+Best regards, Meg
