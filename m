@@ -1,12 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: [BUG] Netfilter ipt_owner deadlock (fwd)
-Date: Sun, 16 May 2004 14:06:52 +0200 (CEST)
+Subject: Re: chain_cache
+Date: Sun, 16 May 2004 14:15:50 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405161406060.30410-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0405161409220.30410-100000@filer.marasystems.com>
+References: <40A4A9BB.4050706@aiqa.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+To: Ozgur Akan <akan@aiqa.com>
+In-Reply-To: <40A4A9BB.4050706@aiqa.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,30 +20,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Found on linux-net
+On Fri, 14 May 2004, Ozgur Akan wrote:
 
----------- Forwarded message ----------
-Date: Fri, 14 May 2004 17:19:05 +0200
-From: Christophe Saout <christophe@saout.de>
-To: linux-net@vger.kernel.org
-Subject: [BUG] Netfilter ipt_owner deadlock
+> no one knows?
 
-Hi,
+Very few people if any is looking at or caring about how libiptc operates.  
+What we care about is how the iptables kernel operate and that libiptc
+succeds in building correct tables to the kernel.
 
-there's a nasty problem with the ipt_owner netfilter code:
+The official interface to the iptables kernel is the iptables and 
+iptables-save/restore commands, with their official module interfaces for 
+writing your own matches/target extensions, the rest is "woodo magics" and 
+is best left alone.
 
-It does a spin_lock(&files->file_lock), sometimes from softirq context.
-This can lead to deadlocks on SMP systems. The lock must not be taken
-from softirq context because the rest of the kernel doesn't use
-spin_lock_bh.
-
-On a UP machine (that had an SMP compiled kernel) the machine repeatedly
-locked up after approx. five minutes. SysRQ shows backtraces like fput
--> timer interrupt -> softirq -> ipv4 -> netfilter -> ipt_owner -> hang.
-
-I don't see a clean solution for this (except for changing all the
-spin_locks to spin_lock_bhs which I think is way too aggressive).
-
-Any ideas?
+libiptc is primarily maintained for the purpose of implementing the above
+commands and module interfaces, and other uses of the libiptc library is 
+mostly on your own responsibility. It is expected there will be multiple 
+memory leaks, odd bugs and other ill effects lurking around there.
 
 
+iptables does not have a chain_cache. This is purely an artefact of the
+libiptc userspace implementation for compiling/modifying the iptables
+table before it is sent to the kernel.
+
+Regards
+Henrik
