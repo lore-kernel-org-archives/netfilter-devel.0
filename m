@@ -1,16 +1,15 @@
-From: "Piotr =?iso-8859-2?Q?Gasid=B3o?=" <quaker@pandora.barbara.eu.org>
-Subject: Re: ip accounting
-Date: Fri, 21 May 2004 11:15:34 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: NAT for IPv6 Update
+Date: Sat, 22 May 2004 09:24:25 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040521091534.GA17812@pandora.barbara.eu.org>
-References: <40ACAFDA.7497.4A56EAD@localhost> <200405201604.46581.thomas.jarosch@intra2net.com>
+Message-ID: <Pine.LNX.4.33.0405220921140.10115-100000@blackhole.kfki.hu>
+References: <20040521224419.25928.qmail@web90007.mail.scd.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=_pandora.barbara.ds.polsl.gliwice.pl-27406-1085155637-0001-2"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Content-Disposition: inline
-In-Reply-To: <200405201604.46581.thomas.jarosch@intra2net.com>
-Resent-Message-Id: <E1BRCYN-000640-KE@vishnu.netfilter.org>
+To: Natty McButterpants <ipv6natlover@yahoo.com>
+In-Reply-To: <20040521224419.25928.qmail@web90007.mail.scd.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,54 +20,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+On Fri, 21 May 2004, Natty McButterpants wrote:
 
---=_pandora.barbara.ds.polsl.gliwice.pl-27406-1085155637-0001-2
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Just an update, we have UDP getting NAT'ed properly, and hope to have
+> TCP done by the weekend.  We may also setup TFTP before releasing the
+> code, not sure yet.  Expect a posting of the code sometime within the
+> next week.  If you are specifically interested in getting the code,
+> email us.  Our primary difficulty has been the way to re-calculate the
+> checksum using the in6_addr struct instead of the old 32int, but we
+> got it figured out.  Man is this going to upset the IETF or what? :)
 
-On czw, 20/05, 04:04:46, Thomas Jarosch wrote:
-> Hello Toholj,
->=20
-> > I heard that there was a discussion about "accounting based on ip addre=
-ss
-> > upl/dnl". If that's right, could someone send me the whole story?
->=20
-> There are currently four ways to do traffic account:
-> (...)
-> 2. Use the ipt_account match from here:
-> http://www.barbara.eu.org/~quaker/ipt_account/
-> (Wasn't there an english version somewhere?)
+I hope this work is based on Yasuyuki Kozakai's nf_conntrack
+generalization...
 
-Please use ipt_account, 0.2.x tree. It can be found here:
-http://www.barbara.eu.org/~quaker/ipt_account2/
-
-English documentation:
-http://www.barbara.eu.org/~quaker/ipt_account2/english/mini-howto.txt
-
-ipt_account version 0.2.x will be soon submitted to netfilter cvs,
-replacing old one (version 0.1.x).
-
---=20
-Piotr 'QuakeR' Gasid=B3o, BOFH @ pandora.barbara.eu.org
-############## sending lusers to /dev/null since 1998
-##### Waiting for tomorrow, for a little ray of light
-### Waiting for tomorrow just to see your smile again
-
---=_pandora.barbara.ds.polsl.gliwice.pl-27406-1085155637-0001-2
-Content-Type: application/pgp-signature
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQFArci2gEmu6PNADqoRAjw2AKCQuST3BF9Or/h2eejWdLwnF5IY5QCbBnYO
-vOgjhdhKL9buVipoY1u4Ib8=
-=jRn3
------END PGP SIGNATURE-----
-
---=_pandora.barbara.ds.polsl.gliwice.pl-27406-1085155637-0001-2--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
