@@ -1,16 +1,18 @@
-From: Cedric de Launois <delaunois@info.ucl.ac.be>
-Subject: Re: Kernel compile error with ROUTE-ipv6 patch
-Date: Mon, 27 Oct 2003 08:50:37 +0100
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [netfilter-core] linux-2.6.0-testX ipchains oops in NAT
+Date: Sun, 26 Oct 2003 23:58:44 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1067241037.13397.29.camel@descartes>
-References: <6068024.1067030166937.JavaMail.Administrator@pumbaa>
+Message-ID: <20031026235844.2481be02.davem@redhat.com>
+References: <3F97B874.CB12C184@fy.chalmers.se>
+	<20031026063626.D0FCE2C04B@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: appro@fy.chalmers.se, laforge@netfilter.org, coreteam@netfilter.org,
+        netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Internet Protocol version Six <inet6@mail.be>
-In-Reply-To: <6068024.1067030166937.JavaMail.Administrator@pumbaa>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <20031026063626.D0FCE2C04B@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +23,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Le ven 24/10/2003 a 23:16, Internet Protocol version Six a ecrit :
-> Hi all, I get an error with ROUTE-ipv6 enabled:
+On Sun, 26 Oct 2003 17:19:38 +1100
+Rusty Russell <rusty@rustcorp.com.au> wrote:
+
+> We updated ip_nat_setup_info to set the initialized flag and call
+> place_in_hashes, but *didn't* change the call in ip_fw_compat_masq.c
+> which also calls place_in_hashes() itself (again!).  Result: corrupt
+> list, and next thing which lands in the same hash bucket goes boom.
 > 
-> [...]
-> net/network.o: In function `init':
-> net/network.o(.text.init+0x19c0): undefined reference to `ip6t_register_target'
-> make: *** [vmlinux] Error 1
-> 
-> If I disable this in menuconfig and then recompile, it compiles fine
-> so it must be ROUTE-ipv6 that's causing this. How can I get this to
-> compile? 
+> This should fix it.
 
-The only possible reason I see is that you probably compiled the
-IP6 tables support as a module while the IPv6 ROUTE target
-is (and must be) statically compiled inside the kernel.
-
-The solution could be to simply say 'Y' instead of 'M' for the
-IP6 tables support.
-
--- Cedric
+Applied, thanks a lot Rusty.
