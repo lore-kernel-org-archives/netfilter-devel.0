@@ -1,12 +1,16 @@
-From: Yaron Wahl <elllgaucho@yahoo.com>
-Subject: IPSEC Tunnel test setup
-Date: Sat, 24 Apr 2004 17:57:39 -0700 (PDT)
+From: Esteban Ribicic <eribicic@uolsinectis.com>
+Subject: Re: [PATCH] ROUTE target : update to pom-ng + new version for
+ kernel 2.6.x
+Date: Sat, 24 Apr 2004 21:01:27 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040425005739.89191.qmail@web50105.mail.yahoo.com>
+Message-ID: <20040424210127.27cbc7fc.eribicic@uolsinectis.com>
+References: <1082535373.17611.39.camel@descartes.info.ucl.ac.be>
+	<408AF23C.3060300@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <408AF23C.3060300@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,100 +21,78 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Content-Transfer-Encoding: 7bit
+
+hi
+
+im trying to match all recent ip_conntrak connections from my network
+im using this algortithm:
+
+# does not concern ESTA connections..
+# udp      17 59 src=10.0.3.75 dst=62.215.85.173 sport=26097 dport=19210 src=62.215.85.173 dst=200.69.147.80 sport=19210 dport=26097 [ASSURED] use=1 mark=0
+
+$timeout=300;
+if ($_=~/\w+\s+\d+\s(\d+)\s+src=/) {
+	if ($1<$timeout) {
+		$counter++;
+	}
+}
+
+where $timeout is the max timeout of the connection.
+
+now, what i notice is that ESTABLISHED connections are rarely under 2000 seconds? isnt it rare?
 
 
-I wanted to find a setup that let me test the
-establishment of a number of IPSEC tunnels initiated
-by a VPN Gateway. You can do it via 
+lp:~/codigos/conntrack# cat /proc/net/ip_conntrack | grep ESTABLISHED  | awk '{print $3}' | sort -n | head -n 5
+870
+938
+1106
+1977
+1990
 
+...(the list is realy extensive)
 
-				--------------VPN GW
-				|
-				|____________ VPN GW
-				|
-VPN-GW(Device Under Test)-------|
-				|____________ VPN GW
-				|
-				|____________ VPN GW
+Its obvious im thinking something woron..maybe $1 is not a timeout and less is seconds?
 
-When number of tunnel setup is getting large, it
-becomes not practical
+thanks for the help
+Steve
 
+On Sun, 25 Apr 2004 01:03:24 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-I have tried to find a setup where I could do it via
-NAT with 2 Gateways only.
-
-
-
-VPN-GW(1.1.1.1)------------NAT------------(2.2.2.2)VPN-GW
-
-As seen by GW 1
-
-Tunnel 1: 1.1.1.1<=>1.1.2.1
-Tunnel 2: 1.1.1.1<=>1.1.2.2
-.
-.
-
-As seen by GW 2
-
-Tunnel 1: 2.2.1.1<=>2.2.2.2
-Tunnel 2: 2.2.1.2<=>2.2.2.2
-.
-.
-
-And where both sides of the NAT devices have to be
-configured as default gateway for VPN-Gw's
-
-I have tried to find routers, and open source
-implementations who could that, but I have found none.
-Maybe I didn't look hard enough.
-You can do it with 2 NATting devices though.
-
-The problem with Source NATting and Destination
-NATting is that 
--for source natting you modify the source address only
-after the routing
--for destination natting you modify the destination
-address only before the routing
-
-I decided to write my own Linux Netfilter/Iptables
-module to do it, just to experiment with the Linux
-kernel with which I don't have too much experience.
-
-It is a new nat target module, that let you modify
-source and destination address at the same time and on
-the same hook for both directions.
-
-Lets say you have a packet 1.1.1.1=>1.1.2.1 going from
-VPN GW 1 to VPN GW 2
-when it passes the PREROUTING hook, it will be
-modified to 2.2.1.1=>2.2.2.2
-When coming back from the VPN-GW2 2.2.2.2=>2.2.1.1
-will be modified back to its original 1.1.2.1=>1.1.1.1
-also in the PREROUTING hook and this with 1 rule.
-
-
-The module works for what it was supposed to do: me
-having fun experimenting and to have a practical setup
-to test multiple IPSEC tunnel initiation.
-
-I wrote on PC with a traditional 2.4.22 kernel
-(Fedora). with iptables 1.2.9
-
-If there is interest I can post the code for it
-
-Hasta la pasta
-
-Yaron
-
-=====
-
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-Yahoo! Photos: High-quality 4x6 digital prints for 25¢
-http://photos.yahoo.com/ph/print_splash
+> Cedric de Launois wrote:
+> > Here is a patch to convert the ROUTE target to the new pom-ng.
+> > This patch also contains a corrected version of the ROUTE target
+> > for kernels 2.6.x.
+> 
+> Please make sure your patch doesn't contain changes to CVS directories.
+> 
+> Regards
+> Patrick
+> 
+> > 
+> > Cedric
+> > 
+> > 
+> > 
+> > diff -Nru ROUTE.orig/linux-2.4/net/ipv6/netfilter/CVS/Entries ROUTE/linux-2.4/net/ipv6/netfilter/CVS/Entries
+> > --- ROUTE.orig/linux-2.4/net/ipv6/netfilter/CVS/Entries	1970-01-01 01:00:00.000000000 +0100
+> > +++ ROUTE/linux-2.4/net/ipv6/netfilter/CVS/Entries	2004-03-08 10:06:41.000000000 +0100
+> > @@ -0,0 +1,5 @@
+> > +/Config.in.ladd/1.1/Sat Dec 20 16:43:09 2003//
+> > +/Kconfig.ladd/1.1/Tue Dec 23 11:41:11 2003//
+> > +/Makefile.ladd/1.1/Sat Dec 20 16:43:09 2003//
+> > +/ip6t_ROUTE.c/1.1/Sat Dec 20 16:43:09 2003//
+> > +D
+> > diff -Nru ROUTE.orig/linux-2.4/net/ipv6/netfilter/CVS/Repository ROUTE/linux-2.4/net/ipv6/netfilter/CVS/Repository
+> > --- ROUTE.orig/linux-2.4/net/ipv6/netfilter/CVS/Repository	1970-01-01 01:00:00.000000000 +0100
+> > +++ ROUTE/linux-2.4/net/ipv6/netfilter/CVS/Repository	2004-03-08 10:06:41.000000000 +0100
+> > @@ -0,0 +1 @@
+> > +patch-o-matic-ng/ROUTE/linux/net/ipv6/netfilter
+> > diff -Nru ROUTE.orig/linux-2.4/net/ipv6/netfilter/CVS/Root ROUTE/linux-2.4/net/ipv6/netfilter/CVS/Root
+> > --- ROUTE.orig/linux-2.4/net/ipv6/netfilter/CVS/Root	1970-01-01 01:00:00.000000000 +0100
+> > +++ ROUTE/linux-2.4/net/ipv6/netfilter/CVS/Root	2004-03-08 10:06:41.000000000 +0100
+> > @@ -0,0 +1 @@
+> > +:pserver:cvs:cvs@pserver.netfilter.org:/cvspublic
+> 
+> 
