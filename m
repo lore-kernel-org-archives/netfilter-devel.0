@@ -1,16 +1,13 @@
-From: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson)
-Subject: Re: cttest-0.1
-Date: Wed, 3 Jul 2002 06:15:02 +0200
+From: "Wei Koong CHAI" <eem1wc@eim.surrey.ac.uk>
+Subject: [libipq] Accessing packet payload
+Date: Wed, 3 Jul 2002 11:18:13 +0100 (BST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020703041502.GH20570@aaricia.hemmet.chalmers.se>
-References: <20020628082339.I2890@oknodo.bof.de> <15644.41633.528107.723418@isis.cs3-inc.com> <20020628203624.A4136@oknodo.bof.de> <15644.45834.373409.220647@isis.cs3-inc.com> <20020702144048.GM18333@naboo.rchrd.phub.net.cable.rogers.com> <20020702183242.E7684@oknodo.bof.de> <20020702183547.F7684@oknodo.bof.de> <15649.59247.55523.824241@isis.cs3-inc.com> <20020702203117.G7684@oknodo.bof.de> <20020702235206.H7684@oknodo.bof.de>
+Message-ID: <1231.131.227.136.38.1025691493.squirrel@ike.ee.surrey.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
-Content-Disposition: inline
-In-Reply-To: <20020702235206.H7684@oknodo.bof.de>
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,43 +18,45 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-2002-07-02 23:52:06+0200, Patrick Schaaf <bof@bof.de> ->
-> Hi all,
-> 
-> I have put a tarball at http://bei.bof.de/cttest-0.1.tar.gz
-> Unpack, look at README, and reproduce the gnuplot pictures I have
-> mentioned earlier today (at http://bei.bof.de/ex1/)
-> 
-> I would love to see results from other kinds of workloads.
-> 
-> thanks in advance
->   Patrick
+Hi...
 
-I've tested it on our router data. The router holds one mayor DALnet server
-(~7000K users) and one minor EFnet-server (~700 users) behind. Also about
-1000 student computers. The DALnet-server was attack today and yesterday
-with 70K pps icmp reply. However I filtered that (in mangle PREROUTING) fast
-and I don't know how much impact is show in the conntrack. I also have
-limiters on state NEW to prevent attacks to fill the conntrack.
+   I am currently developing a userspace program using libipq to emulate a 
+satellite link which would require me to inject extra delay and error on 
+packets going through a bridge (with netfilter support). No problem on 
+intercepting the packets going through the bridge.
 
-Graphs at: http://aaricia.hemmet.chalmers.se/~gozem/cttest/
+   Also, no problem on incurring extra delay on the packets.
 
-Stats for the actuall running conntrack is:
-$MODPROBE ip_conntrack hashsize=131072 
-echo 262144 > /proc/sys/net/ipv4/ip_conntrack_max
-(Yes meaning average bucket-length to be 2 not 8).
+   But, while i am implementing the extra satellite error, i suddenly found 
+myself confuse over several points. What i need to do is to randomly decide 
+an error in the packet and actually corrupt that bit in the packet.
 
-Conntrack was using about 50K slabs according to /proc/slabinfo
+My questions:
 
-However looking at the stats, I will change hashsize to a primenumber 
-fast :-)
+[1] In the struct ipq_packet_msg, the data_len field is referring to what? 
+Is it referring to the length of the whole IP packet (header + payload) or 
+just the header or the payload alone? And, is the payload[0] referring to 
+the first byte of the IP packet?
 
-I collected this data 5am during absolut low time. I'll try again later
-at primetime :-)
+[2] I have already managed to randomly decide a bit to corrupt within a 
+packet (which is just inverting the bit) but i'm unsure on how to actually 
+access the packet (header + payload) and invert the bit.
 
-One comment: In your script ctplot you have an absolute path to gnuplot
-which I guess not everyone has the same as you :-)
+[3] I have read somewhere that the kernel would silently / automatically 
+drop the packet if i change the packet without updating the checksum. What 
+i need to know is that, which kernel will drop the packet? My bridge or the 
+receiving workstation? I don't want my libipq program to drop it as i need 
+it to be as transparent as possible.
+
+Please enlighten me on the above issues. Really, suddenly, suffering a 
+brain crash. Luckily, Linux doesn't crash so easily!
+
+Thank you in advance.
 
 
--- 
-/Joakim Axelsson A.K.A Gozem@EFnet & OPN
+
+
+Wei Koong CHAI
+CCSR,
+University of Surrey,
+United Kingdom.
