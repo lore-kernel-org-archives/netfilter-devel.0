@@ -1,16 +1,18 @@
-From: "Mike Andersen" <mike@src.no>
-Subject: Re: Idea: Check session source and destination
-Date: Sun, 23 May 2004 03:17:16 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: repeatet postings (was Re: Idea: Check session source and destination)
+Date: Sun, 23 May 2004 11:08:38 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1980.80.53.224.38.1085275036.squirrel@www.tmuras.2000.cd>
-Reply-To: nexor@mybaby.cd
+Message-ID: <20040523090838.GA27296@sunbeam.de.gnumonks.org>
+References: <2187.80.53.224.38.1085275561.squirrel@www.tmuras.2000.cd>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Cc: "Netfilter Developers List  netfilter@lists.netfilter.org"
-     <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+Cc: "Netfilter Developers List  netfilter@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>,
+	mailman-owner@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: yooman@fnet.pl
+To: Mike Andersen <mike@src.no>
+Content-Disposition: inline
+In-Reply-To: <2187.80.53.224.38.1085275561.squirrel@www.tmuras.2000.cd>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,84 +23,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Apr 26, 2004, at 16:44, Henrik Nordstrom wrote:
 
-> On Mon, 26 Apr 2004, Mike Andersen wrote:
->
->> iptables -A FORWARD -m conntrack --ctorigdst <int_ip> -j ACCEPT iptables -A
-FORWARD -j DROP
->
-> Works here..
->
->> I then look more closely at the state table (/proc/net/ip_conntrack) and
-see that there are two sets of source definition, and two sets for the
-destination:
->
-> One is the ORIGINAL direction, the other the REPLY direction. Each is
-matched independently by the "conntrack" match (--ctorigdst vs
-> --ctreplydst).
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ah, that explains it.  Thanks for clearing up that.
+Apparently either Mike Andersen's MUA or MTA are broken and keep
+re-transmitting the same mail.  Given that every message has a different
+msgid, I'd suggest it's the MUA.
 
->> Any idea of why the "-m conntrack --ctorigdst <int_ip>" also passes through
-traffic where int_ip is the source of the session?
->
-> Does work like intended here and only matches where it is the original
-destination. But I am using this for packet filtering, not mirroring. Not
-that I see any difference.
+Anyway, I have now deleted all mail from the mailman and exim spools on
+both netfilter.org mailservers to ensure no more of thos mails are
+delivered.
 
-I reconfigured my test setup and used the FW for filtering instead of
-mirroring (physical reconfiguration, all software .  Then the rules works as
-intended.
+I also unsubscribed mike@src.no from netfilter-devel to make sure all
+his postings will end up in manual moderation until further
+investigation.
 
-So the problem I'm having here, seems to be related to the mirroring. My gut
-feeling says that it may be related to the fact that the state table is being
-built independently of the netfilter rules.
+I'm sorry for the amount of mail you received, but there's nothing we
+can [automatically] do about this, if a individual legitimate subscriber
+keeps sending in the same message over and over again.
 
-Here is some more data. First the rules used in this test case:
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-iptables -A FORWARD -m conntrack --ctorigdst 10.10.10.199/32 -j LOG
---log-level  DEBUG --log-prefix '>ctorigdst> '
-iptables -A FORWARD -m conntrack --ctorigdst 10.10.10.199/32 -j ACCEPT
-iptables -A FORWARD -j LOG --log-level DEBUG --log-prefix '>drop> ' iptables
--A FORWARD -j DROP
+--RnlQjJ0d97Da+TV1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Then I try to connect _from_ 10.10.10.199, and this is what the log says:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-Apr 27 14:22:35 local kernel: >drop> IN=br0 OUT=br0 PHYSIN=eth0
-PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=60 TOS=0x00
-PREC=0x00 TTL=64 ID=19660 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 RES=0x00
-SYN URGP=0
+iD8DBQFAsGoWXaXGVTD0i/8RAspfAJ9WC5xxODm1tiU47G9BCb8a30ri0wCcC3QF
+0CPwcJuIXJJFTN08ByQbWxU=
+=h5bX
+-----END PGP SIGNATURE-----
 
-Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0
-PHYSOUT=eth1 SRC=10.10.10.200 DST=10.10.10.199 LEN=60 TOS=0x00
-PREC=0x00 TTL=61 ID=0 DF PROTO=TCP SPT=80 DPT=51905 WINDOW=5792
-RES=0x00 ACK SYN URGP=0
-
-Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0
-PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=52 TOS=0x00
-PREC=0x00 TTL=64 ID=19661 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 RES=0x00
-ACK URGP=0
-
-Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0
-PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=536 TOS=0x00
-PREC=0x00 TTL=64 ID=19662 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 RES=0x00
-ACK PSH URGP=0
-
-Apr 27 14:22:36 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0
-PHYSOUT=eth1 SRC=10.10.10.200 DST=10.10.10.199 LEN=52 TOS=0x00
-PREC=0x00 TTL=61 ID=58220 DF PROTO=TCP SPT=80 DPT=51905 WINDOW=6432 RES=0x00
-ACK URGP=0
-
-As you see, the first SYN package is dropped, while the rest of the traffic is
-passed through.
-
-I really want to figure out _why_ this is not working as intended, and are
-therefore willing to put a lot of hours into testing.  But I'm pretty stuck
-here.  Any suggestion and hints about what I should try out next
-(tools/configurations etc) is very welcome.
-
-mike
---
-"It is a lesson which all history teaches wise men, to put trust in
-  ideas, and not in circumstances."            --Ralph Waldo Emerson
+--RnlQjJ0d97Da+TV1--
