@@ -1,15 +1,17 @@
-From: "Hime Junior" <hime@engineer.com>
-Subject: Re: [PATCH] fuzzy.patch and fuzzy6.patch.ipv6
-Date: Sun, 04 May 2003 19:05:39 -0500
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] iptables-proc and admin-prohib patches
+Date: Mon, 5 May 2003 10:32:19 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030505000539.32918.qmail@mail.com>
+Message-ID: <Pine.LNX.4.33.0305051018360.607-100000@blackhole.kfki.hu>
+References: <20030430163304.GI685@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Content-Disposition: inline
-To: laforge@netfilter.org, baggins@sith.mimuw.edu.pl,
-  cieciwa@alpha.zarz.agh.edu.pl, netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030430163304.GI685@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,47 +22,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald,
 
- Hi !
+On Wed, 30 Apr 2003, Harald Welte wrote:
 
- My comments go along the message...
+> > while the major modification is that I added versioning support to
+> > tables/matches/targets.
+>
+> To be honest, I wouldn't call this 'versioning support'.  It just adds a
+> version number field to the structures that is printed in '/proc/'.
+>
+> The kind of versioning support we could really need (but which cannot be
+> added to the 2.4.x architecture without being totally incompatible) is
+> to have version information in every rule that is loaded from userspace.
+> The kernel would then reject rules for target versions > than the loaded
+> target module. Userspace would then need to read the version number and
+> prepare a structure for an older version.
 
-> On Fri, May 02, 2003 at 11:15:05PM +0200, Jan Rekorajski wrote:
- 
-> > They're because of the floating point usage, you won't see them on ix86
-> > because gcc uses native FPU instructions there - 
+Yes, you are correct. That'd mean real versioning.
 
-Yes - the FP operations were in the generated code.
+> So without any further convincing arguments, I would rather not want to
+> include your patch.  It would require patching all existing
+> targets/matches (to include the version number), and that's a too high
+> price for the little/limited use.
 
-> > silently building incorrect code,
+There is no need to patch all existing extensions. I admit it's not
+elegant, but because the version parameter is the last in the module
+structures, all unpatched module gets automatically the zero version
+number. (And in order to introduce C99 initialization, we have to patch
+all extensions anyway and then the version numbers can explicitly be
+added.)
 
- The generated code must be fixed then - FP instructions are not a problem , they are a solution even for system software . If the machine context is not being saved , let us save it at once , redesigning compilers , CPUs and brains , if necessary .
+What disturbs me is that the users cannot check (at least in such a
+primitive way) what is actually supported by the running kernel in the
+case of such incompatibilities.
 
- After all , soft computing is out there to stay , and doing fuzzy math without FP operations is , sometimes , unfeasible (it is not the case here) .
-
- Anyway , I agree 100% that kernel code should NOT contain any FP operations , that are (at present) too slow , but a compiler with a good optimizer could have made the proposed change silently , eliminating FP operations from the generated code by means of inline , equivalent integer arithmetic instructions.
-
-> > but on other architectures gcc uses math emulation
-> > library thus generating unresolved symbols.
-> 
-
- OK - now we know the reason for the messages ...
-
-> This is what I was assuming. I think I've seen this happen on PPC
-> before.
-
-> 
-> > The primary reason was to eliminate the usage of FPU from kernel,
-> > unresolved symbols is just the effect of this on non-ix86 archs.
-> 
-> I'll apply the patch now.
-
- As I said before,the qualitative behavior is virtually the same AND THIS TIME ALL FP OPERATIONS ARE GONE !!!
-     (I SAW IT IN THE NEW GENERATED CODE)
-
-       Thanks to all .
-
--- 
-__________________________________________________________
-Sign-up for your own FREE Personalized E-mail at Mail.com
-http://www.mail.com/?sr=signup
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
