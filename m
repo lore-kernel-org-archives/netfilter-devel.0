@@ -1,16 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [PATCH] for some issues in tcp window tracking patch
-Date: Fri, 21 May 2004 11:33:36 +0200
+Date: Fri, 21 May 2004 11:58:03 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40ADCCF0.9040505@eurodev.net>
-References: <Pine.LNX.4.44.0405210317470.14542-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0405211156380.22237-100000@filer.marasystems.com>
+References: <40AD6835.2060105@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira <pablo@eurodev.net>, Jozsef Kadlecsik <kadlec@netfilter.org>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0405210317470.14542-100000@filer.marasystems.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <40AD6835.2060105@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,24 +21,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Henrik,
+On Fri, 21 May 2004, Patrick McHardy wrote:
 
-Henrik Nordstrom wrote:
+> It should be, on x86 set_bit locks the bus:
 
->>e) I'm not sure if it's worthy optimizing this case. In tcp_new, we are 
->>checking if a packet is clean as well as size of tcp header, then in 
->>tcp_packet we will do the same, so we are doing twice the same checking. 
->>If we consider that general case is that packets are clean, will be this 
->>double check worthy?
->>    
->>
->
->But there is one obvious way to optimize this.. move the check for a valid 
->TCP header to the pkt_to_tuple function. 
->
+Which was my second question.. does this set_bit really need to be atomic 
+with a memory barrier?
 
-We can't do that because we are not only checking the tcp header but 
-also using the information for window scaling.
-
-regards,
-Pablo
+Regards
+Henrik
