@@ -1,19 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] remove exessive timer updates (3/4)
-Date: 12 Jun 2002 11:10:45 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Wed, 12 Jun 2002 11:23:27 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1023873045.19812.95.camel@tux>
-References: <1023365846.845.26.camel@tux>
-	<20020611095922.G11177@sunbeam.de.gnumonks.org>
-	<200206120021.15472@henrik.marasystems.com>
+Message-ID: <Pine.LNX.4.33.0206121115150.11580-100000@blackhole.kfki.hu>
+References: <015d01c21055$82f7aed0$6501a8c0@multisofteducation.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@gnumonks.org>,
-	Netfilter-devel <netfilter-devel@lists.samba.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <200206120021.15472@henrik.marasystems.com>
+To: Oskar Andreasson <blueflux@koffein.net>
+In-Reply-To: <015d01c21055$82f7aed0$6501a8c0@multisofteducation.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -24,32 +20,52 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2002-06-12 at 00:21, Henrik Nordstrom wrote:
-> On Tuesday 11 June 2002 09:59, Harald Welte wrote:
-> > On Thu, Jun 06, 2002 at 02:24:04PM +0200, Martin Josefsson wrote:
-> > > This patch adds a check to ip_ct_refresh() so it doesn't update
-> > > the timer of a connection unless it's been >HZ ticks since the
-> > > last update. both del_timer() and add_timer() disables interrupts
-> > > while removing/inserting the timer, no reason to do this for each
-> > > packet.
+Hi,
+
+On Mon, 10 Jun 2002, Oskar Andreasson wrote:
+
+> Sorry for the late reply. I never suggested that this usage (see
+> below) is only theoretical and I'm very sorry if it was misinterpreted
+> as that.
+
+Oh, no! I wanted to *second* you in this argument.
+
+Regards,
+Jozsef
+
+> ----- Original Message -----
+>
+> > On Fri, 7 Jun 2002, Oskar Andreasson wrote:
 > >
-> > ok.  I'm postponing this stuff for after 2.4.20 time, since for
-> > 2.4.19 we already have enough netfilter [and core networking
-> > changes], and for 2.4.20 there will be the newnat merge.
-> 
-> Haven't looked at the patch, but one thing to look out for is to make 
-> sure timer transitions is not lost.
-> 
-> Unlike atime updates, conntrack timers vary in length depending on the 
-> state. It would not be fun if a TIME_WAIT state got a timeout of 
-> ESTABLISHED only because the transition was too quick to be noticed 
-> by the timer update filter..
+> > > Another, related, usage is
+> > > if we have a redundant firewall (I haven't seen this discussed so far
+> > > so.... Consider this:
+> > >
+> > > 1 main firewall
+> > > 1 router
+> > > and a secondary firewall.
+> > >
+> > > The three are set up in a routing zone. If the main firewall goes
+> > > down, the router will notice, and route packets through the redundant
+> > > firewall. If the NEW target was to allow only SYN packets, this would
+> > > be impossible as you can understand from this.
+> >
+> > We have been using such a redundant setup for more than a year.
+> > It's *not* theoretical.
+> >
+> > Regards,
+> > Jozsef
+> > -
+> > E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+> > WWW-Home: http://www.kfki.hu/~kadlec
+> > Address : KFKI Research Institute for Particle and Nuclear Physics
+> >           H-1525 Budapest 114, POB. 49, Hungary
+> >
+> >
+>
 
-Yes I thought about it yesterday and I'll send Harald a new patch which
-will allow us to force an update.
-
--- 
-/Martin
-
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+WWW-Home: http://www.kfki.hu/~kadlec
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
