@@ -1,10 +1,9 @@
-From: reinaldosilva@c-comp.grad.ufmg.br
-Subject: Packet Count per Host
-Date: Mon, 26 May 2003 16:05:23 -0300
+From: Jason Lunz <lunz@falooley.org>
+Subject: Re: [PATCH] admin-prohibited option. Let us look at it again.
+Date: Sat, 24 May 2003 14:36:21 +0000 (UTC)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <OF085D3A08.819A2596-ON83256D32.0068DC40-83256D32.0068DD38@grude.ufmg.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <slrnbcv0ur.ltg.lunz@orr.homenet>
+References: <Pine.LNX.4.51.0304091927060.13250@dns.toxicfilms.tv> <slrnbcn8rd.440.lunz@stoli.localnet> <20030524113934.GA3077@sunbeam.de.gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -17,12 +16,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+laforge@netfilter.org said:
+>> not, and happily adds a rule with a bogus type if one is passed. Should
+>> something like the patch below be applied?
+> 
+> it might be a good idea for the future.  It doesn't help us with our
+> current problem (since it's the old kernels which will default to DROP
+> right now).
 
-I am newbie developer so sorry if the question is too stupid.
-I want to count how many packets have been sent and received by each of the
-host included in the iptable of the gateway. is there a way to do this.
+Is the patch good?  If so, to whom should I send it? 
 
-All the best!
-
-Reinaldo.
+Jason
