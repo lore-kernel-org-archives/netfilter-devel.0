@@ -1,16 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_queue.c inefficiencies?
-Date: Thu, 03 Feb 2005 19:39:44 +0100
-Message-ID: <42026FF0.2060602@trash.net>
-References: <6.2.0.14.2.20050118185904.047393e0@pop.mindspring.com>
-	<20050201131128.GF6878@sunbeam.de.gnumonks.org>
-	<4200EF2C.1030808@trash.net>
-	<6.2.0.14.2.20050202105005.05278940@pop.mindspring.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: limited number if iptable rules on 64bit hosts
+Date: Thu, 3 Feb 2005 11:00:49 -0800
+Message-ID: <20050203110049.6b2d9c64.davem@davemloft.net>
+References: <20050202133851.GA9680@suse.de> <20050202222516.GA15440@suse.de>
+	<20050202223853.GA29237@ti64.telemetry-investments.com>
+	<20050202225258.GA15563@suse.de> <20050203111939.GI31570@suse.de>
+	<20050203104822.05be3281.davem@davemloft.net>
+	<20050203185928.GA22832@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030500030205020909070604"
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
-To: Michael StJohns <mstjohns@mindspring.com>
-In-Reply-To: <6.2.0.14.2.20050202105005.05278940@pop.mindspring.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: okir@suse.de, netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
+	brugolsky@telemetry-investments.com
+To: Olaf Hering <olh@suse.de>
+In-Reply-To: <20050203185928.GA22832@suse.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,152 +25,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030500030205020909070604
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 3 Feb 2005 19:59:28 +0100
+Olaf Hering <olh@suse.de> wrote:
 
-Michael StJohns wrote:
+>  On Thu, Feb 03, David S. Miller wrote:
+> 
+> > The rule itself is replicated per-cpu as well to keep L2 cache
+> > accesses local per cpu on SMP systems.
+> 
+> Andy made this change, which helped on a dual box.
 
-> The original patch was against the ip_queue.c 1.10 version - which was 
-> 2.4.21 Kernel.  (RHEL3).  Below is a version against the ip_queue.c 
-> 1.20 version for the 2.6 kernel which seems to be the current version 
-> in bk.
+It might not help for Olaf's 128 cpu box though :-)
 
-Thanks, I've added it to my 2.6.12 tree with one small change.
-We hold queue_lock in your new check for queue_total >= queue_maxlen,
-so the similar check in __ipq_enqueue_entry will never be true.
-Therefore I removed it.
-
->
-> Do you want a version of this against net/ipv6/netfilter/ip6_queue.c 
-> as well?  It has the same inefficiency issue.
-
-Yes, please.
-
-Regards
-Patrick
-
-BTW: Please add a Signed-off-by: line when you send a patch.
-
-
---------------030500030205020909070604
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2005/02/03 19:33:24+01:00 mstjohns@mindspring.com 
-#   [NETFILTER]: fix ip_queue inefficiencies
-#   
-#   Check if packet exceeds max queue length before netlink_unicast(),
-#   add drop statistics.
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_queue.c
-#   2005/02/03 19:33:13+01:00 mstjohns@mindspring.com +27 -15
-#   [NETFILTER]: fix ip_queue inefficiencies
-#   
-#   Check if packet exceeds max queue length before netlink_unicast(),
-#   add drop statistics.
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
---- a/net/ipv4/netfilter/ip_queue.c	2005-02-03 19:34:12 +01:00
-+++ b/net/ipv4/netfilter/ip_queue.c	2005-02-03 19:34:12 +01:00
-@@ -14,6 +14,9 @@
-  *             Zander).
-  * 2000-08-01: Added Nick Williams' MAC support.
-  * 2002-06-25: Code cleanup.
-+ * 2005-01-10: Added /proc counter for dropped packets; fixed so
-+ *             packets aren't delivered to user space if they're going 
-+ *             to be dropped. 
-  *
-  */
- #include <linux/module.h>
-@@ -59,6 +62,8 @@
- static int peer_pid;
- static unsigned int copy_range;
- static unsigned int queue_total;
-+static unsigned int queue_dropped = 0;
-+static unsigned int queue_user_dropped = 0;
- static struct sock *ipqnl;
- static LIST_HEAD(queue_list);
- static DECLARE_MUTEX(ipqnl_sem);
-@@ -70,18 +75,11 @@
- 	kfree(entry);
- }
- 
--static inline int
-+static inline void
- __ipq_enqueue_entry(struct ipq_queue_entry *entry)
- {
--       if (queue_total >= queue_maxlen) {
--               if (net_ratelimit()) 
--                       printk(KERN_WARNING "ip_queue: full at %d entries, "
--                              "dropping packet(s).\n", queue_total);
--               return -ENOSPC;
--       }
-        list_add(&entry->list, &queue_list);
-        queue_total++;
--       return 0;
- }
- 
- /*
-@@ -308,14 +306,24 @@
- 	if (!peer_pid)
- 		goto err_out_free_nskb; 
- 
-+	if (queue_total >= queue_maxlen) {
-+                queue_dropped++;
-+		status = -ENOSPC;
-+		if (net_ratelimit())
-+		          printk (KERN_WARNING "ip_queue: full at %d entries, "
-+				  "dropping packets(s). Dropped: %d\n", queue_total,
-+				  queue_dropped);
-+		goto err_out_free_nskb;
-+	}
-+
-  	/* netlink_unicast will either free the nskb or attach it to a socket */ 
- 	status = netlink_unicast(ipqnl, nskb, peer_pid, MSG_DONTWAIT);
--	if (status < 0)
--		goto err_out_unlock;
--	
--	status = __ipq_enqueue_entry(entry);
--	if (status < 0)
-+	if (status < 0) {
-+	        queue_user_dropped++;
- 		goto err_out_unlock;
-+	}
-+
-+	__ipq_enqueue_entry(entry);
- 
- 	write_unlock_bh(&queue_lock);
- 	return status;
-@@ -637,12 +645,16 @@
- 	              "Copy mode         : %hu\n"
- 	              "Copy range        : %u\n"
- 	              "Queue length      : %u\n"
--	              "Queue max. length : %u\n",
-+	              "Queue max. length : %u\n"
-+		      "Queue dropped     : %u\n"
-+		      "Netlink dropped   : %u\n",
- 	              peer_pid,
- 	              copy_mode,
- 	              copy_range,
- 	              queue_total,
--	              queue_maxlen);
-+	              queue_maxlen,
-+		      queue_dropped,
-+		      queue_user_dropped);
- 
- 	read_unlock_bh(&queue_lock);
- 	
-
---------------030500030205020909070604--
+I think reconsider the idea of replicating the rule itself per-cpu.
+Also, this thread should have begun with netfilter-devel at least on
+the CC:, added.
