@@ -1,17 +1,13 @@
-From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
-Subject: limiting bandwidth using qdisc alone
-Date: Tue, 13 Jul 2004 02:05:44 +0300
+From: "Patrick" <patrick_@freenet.de>
+Subject: string match patch
+Date: Mon, 12 Jul 2004 17:21:26 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200407122303.i6CN3bMX002899@madinah.ccse.kfupm.edu.sa>
-References: <Pine.LNX.4.44.0407122348430.23090-100000@filer.marasystems.com>
+Message-ID: <001501c46823$e6e555f0$0200a8c0@milchreis>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0012_01C46834.A9B695C0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'Henrik Nordstrom'" <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0407122348430.23090-100000@filer.marasystems.com>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,52 +18,120 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I want to limit the bandwidth of my outgoing interfaces for all traffic but
-do not want to use shapecfg and shaper. My question is that can I use qdisc
-instead. As far as my understanding, I just have to specify a qdisc
-(preferably HTB) on the interface, limit the bandwidth and allow all traffic
-to go through it, without any iptables marking. Is this possible and
-efficient way to do what I want? Or does anybody have a better solution for
-this?
-Regards,
+This is a multi-part message in MIME format.
 
-Muhammad R. Sami 
-Research Assistant, 
-Computer Engineering Department 
-P.O.Box 354 
-King Fahd University of Petroleum & Minerals 
-Dhahran 31261 
-Saudi Arabia. 
-Tel: +96638601423 
-Cell: +96657982951 
-www.ccse.kfupm.edu.sa/sami
+------=_NextPart_000_0012_01C46834.A9B695C0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
------Original Message-----
-From: netfilter-devel-admin@lists.netfilter.org
-[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Henrik
-Nordstrom
-Sent: Tuesday, July 13, 2004 12:51 AM
-To: Patrick
-Cc: netfilter-devel@lists.netfilter.org
-Subject: Re: string match patch
+Hello,
 
-On Mon, 12 Jul 2004, Patrick wrote:
+I am worried .. after I upgraded my kernel to 2.4.27-rc3 I also noticed =
+that theres a new iptables version ( 1.2.11 ) .. I updated it, after =
+this I noticed that I forgot to patch my kernel with the pom-ng =
+extra/string patch .. after I patched it I noticed that I dont have any =
+new menu point nor do I have CONFIG_IP_NF_MATCH_STRING in my kernel =
+config .. the patch pretends to be applied correctly, which I can also =
+verify, because the header files are present.
 
-> after I patched it I noticed that I dont have any
-> new menu point nor do I have CONFIG_IP_NF_MATCH_STRING in my kernel
-> config .. the patch pretends to be applied correctly, which I can also
-> verify, because the header files are present.
+After booting my new kernel I recompiled iptables .. it also built the =
+libipt_string.so as it is supposed to .. to verify that its included =
+successfully I used 'iptables -m string -h' which returns:
 
-You SHOULD have a new menu entries for the string match..
+STRING match v1.2.11 options:
+--string [!] string          Match a string in a packet
+--hex-string [!] string      Match a hex string in a packet
 
-    dep_tristate '  String match support (EXPERIMENTAL)'
-CONFIG_IP_NF_MATCH_STRING $CONFIG_IP_NF_IPTABLES
+It looks as if everything's correct, but it is not. I cant use the =
+string match at all. Everytime I get the reply "iptables: No =
+chain/target/match by that name" .. the syntax is correct .. e.g. the =
+syntax from the example of the POM page:
 
-If you do not, and or else do not have CONFIG_IP_NF_MATCH_STRING defined
-in your kernel configuration then the string match won't be build, and 
-hence won't work.
+iptables -A INPUT -m string --string 'cmd.exe' -j QUEUE
+iptables: No chain/target/match by that name
 
-Which version of pom-ng are you using?
+I am not sure wether it has something to do with the kernel or not .. =
+but I tried all kernels between 2.4.20 and 2.4.27-rc3 and the entry =
+'CONFIG_IP_NF_MATCH_STRING' did never appear ..=20
 
-Regards
-Henrik
+Any further help's appreciated
+
+
+Sincerely yours
+Patrick
+
+
+------=_NextPart_000_0012_01C46834.A9B695C0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>Hello,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I am worried .. after I upgraded my =
+kernel to=20
+2.4.27-rc3 I also noticed that theres a new iptables version ( 1.2.11 ) =
+.. I=20
+updated it, after this I noticed that I forgot to patch my kernel with =
+the=20
+pom-ng extra/string patch .. after I patched it I noticed that I dont =
+have any=20
+new menu point nor do I have CONFIG_IP_NF_MATCH_STRING in my kernel =
+config ..=20
+the patch pretends to be applied correctly, which I can also verify, =
+because the=20
+header files are present.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>After booting my new kernel I =
+recompiled iptables=20
+.. it also built the libipt_string.so as it is supposed to .. to verify =
+that its=20
+included successfully I used 'iptables -m string -h' which =
+returns:</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>STRING match v1.2.11 =
+options:<BR>--string [!]=20
+string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Match a =
+string in a=20
+packet<BR>--hex-string [!] string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Match a =
+hex=20
+string in a packet</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>It looks as if everything's correct, =
+but it is not.=20
+I cant use the string match at all. Everytime I get the reply "iptables: =
+No=20
+chain/target/match by that name" .. the syntax is correct .. e.g. the =
+syntax=20
+from the example of the POM page:</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>iptables -A INPUT -m string --string =
+'cmd.exe' -j=20
+QUEUE<BR>iptables: No chain/target/match by that name</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I am not sure wether it has something =
+to do with=20
+the kernel or not .. but I tried all kernels between 2.4.20 and =
+2.4.27-rc3 and=20
+the entry 'CONFIG_IP_NF_MATCH_STRING' did never appear .. </FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Any further help's </FONT><FONT =
+face=3DArial=20
+size=3D2>appreciated</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Sincerely yours</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>Patrick</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
+
+------=_NextPart_000_0012_01C46834.A9B695C0--
