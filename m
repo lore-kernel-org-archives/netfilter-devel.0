@@ -1,18 +1,16 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: Re: iptables as a state machine
-Date: Mon, 04 Oct 2004 08:51:51 -0700
+From: Padam J Singh <padam.singh@inventum.cc>
+Subject: Re: Ruleset creation process.
+Date: Mon, 04 Oct 2004 11:55:34 +0530
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1096905111.27100.0.camel@localhost.localdomain>
-References: <20040930193955.6fa24afc.davem@davemloft.net>
-	<61687.63.170.215.71.1096602469.squirrel@www.osdl.org>
-	<415E6A86.6040707@drugphish.ch>
+Message-ID: <4160ECDE.20005@inventum.cc>
+References: <415E83B5.5090301@inventum.cc>
+	<Pine.LNX.4.61.0410031804410.16241@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------020903030706040005070409"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@drugphish.ch>
-In-Reply-To: <415E6A86.6040707@drugphish.ch>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0410031804410.16241@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,12 +21,48 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2004-10-02 at 10:44 +0200, Roberto Nibali wrote:
-> > Have you looked at nf-hipac.  It works and is fast but is limited
-> > to 2.4 right now.  It's on my to do list...
-> 
-> I've started porting it as well, except a few locking issues and some 
-> Makefile hazzle I should be done with it. I can send it to you in private.
+This is a multi-part message in MIME format.
+--------------020903030706040005070409
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Great, I planned to convert it to RCU and get rid of the netdevice
-unregister changes.
+
+
+Henrik Nordstrom wrote:
+
+> On Sat, 2 Oct 2004, Padam J Singh wrote:
+>
+>> Is there are document that specifies the ruleset creation process?
+>
+>
+> What part of the ruleset creation process?
+>
+>> I recently had an issue with destroy being called for old rules when 
+>> adding a new rule for the same target.
+>
+>
+> Destroy of what, where?
+>
+> If you refer to the match/target destroy functions being called then 
+> this is by design of iptables. Each modification to an iptable results 
+> in a new table being installed in the kernel and the old deleted.
+
+Yes, I am talking about the target destroy functions.
+
+What  is happening is that once i add a new rule, the old rule's
+checktarget is called first then it's destroy, leaving my internal
+states invalid.
+
+So maybe I should traverse the rule link list and setup my internal
+structures according to that?
+
+>
+> Regards
+> Henrik
+>
+>
+Regards,
+Padam J Singh
+
+
+--------------020903030706040005070409--
