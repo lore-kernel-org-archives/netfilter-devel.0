@@ -1,14 +1,16 @@
-From: "NeXTstep" <nextstepn@katamail.com>
-Subject: [leadership/opensource] invitation to online survey
-Date: Mon, 19 Jan 2004 14:09:27 +0100
+From: David Cannings <lists@edeca.net>
+Subject: Unique IDs for rules?
+Date: Mon, 19 Jan 2004 13:31:42 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <00d901c3de8d$80a66790$1929e282@babayaro>
+Message-ID: <200401191331.42034.lists@edeca.net>
+Reply-To: david@edeca.net
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,37 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all,
+I've taken a look at the iptables manual page but can't seem to see 
+anything that would suit what I want.  I have a number of rules that I 
+grep for every five minutes, reading the packet/byte count then resetting 
+their totals by using --replace and --set-counters.  At present, I know 
+that these rules will always be the ones at the top of my INPUT chain, so 
+I know their IDs will be 1, 2, 3 etc.
 
-      I have just put online a survey addressing the topic of "good
-leadership in the open-source environment". Basically, my objective is to
-identify the personal conceptions of good leadership that reside in
-the minds of the contributors, in terms of leaders' _behaviors_ and
-_characteristics_.
+I want to do similar with other rules elsewhere in the chain but I can't 
+be sure that they'll always be number 12, for example.  This makes 
+grepping for them a little harder.  Would it be possible to have some 
+sort of "comment" field for each rule so that some sort of token or 
+unique ID for the rule could be inserted.  That way, it would simply be a 
+case of "iptables -L -v | grep 'token'".  
 
-What is a good open-source project leader, from the contributor's point of
-view? To what extent, those personal believes are shared among developers?
-Can the
-contributor's national cultural belonging and level of experience in
-contributing to open-source projects explain such differences in their idea
-of what a good leader is?
+Whether such an idea would add extra overhead to processing I don't know.  
+I can also see that adding an extra column to the iptables output could 
+be troublesome for those with scripts that rely on the present format but 
+I'm sure it could be accomodated, somehow.
 
-I would really appreciate your participation to the survey! Contribution
-(completely anonymous) consists in rating a list of statements that may be
-used to describe the behaviors of an open-source leader. It will take around
-ten minutes - there aren't any "time-consuming" open ended questions;)
+Thanks,
 
-Following, the link to the survey:
-
-http://freeonlinesurveys.com/rendersurvey.asp?id=49776
-
-If you are interested, I will not miss to email you a link to the
-final report, when ready ;) (approx, a couple of months from now)
-
-Thank you in advance, and don't hesitate to contact me if you have
-any questions or comments :)
-
-Gianluca Bosco
-g.bosco@GETRIDOFTHISinwind.it
-Denmark Technical University
-Department of manufacturing engineering and management
+David
