@@ -1,17 +1,18 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Is libiptc responsible for any memory leak?
-Date: 07 Jan 2003 14:13:48 +0100
+From: Filip Sneppe <filip.sneppe@cronos.be>
+Subject: Re: trouble with expect_related
+Date: 07 Jan 2003 18:07:43 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1041945228.30004.8.camel@tux>
-References: <Pine.LNX.4.43.0301071139010.282-100000@abodh.pesit.deeproot.co.in>
+Message-ID: <1041959263.502.248.camel@xbox>
+References: <t2mk7hlwz5c.fsf@rw2-laptop.wellner.org>
+	<1041651291.1637.41.camel@exile> <t2mwulie0cu.fsf@rw2-laptop.wellner.org>
+	<1041933003.502.23.camel@xbox>  <t2mk7hhx86x.fsf@rw2-laptop.wellner.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	leonardo@opalsoft.net
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Narendra Prabhu. B" <naren@deeproot.co.in>
-In-Reply-To: <Pine.LNX.4.43.0301071139010.282-100000@abodh.pesit.deeproot.co.in>
+To: Rich Wellner <rkw@objenv.com>
+In-Reply-To: <t2mk7hhx86x.fsf@rw2-laptop.wellner.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,42 +23,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2003-01-07 at 07:40, Narendra Prabhu. B wrote:
+On Tue, 2003-01-07 at 16:59, Rich Wellner wrote:
+> Filip Sneppe <filip.sneppe@cronos.be> writes:
+> > Do you see the expected connection in /proc/net/ip_conntrack? It should
+> > be preceded by "EXPECTING:" if it hasn't seen any traffic yet.
 > 
-> Hi,
+> Ok, this is very helpful.  I didn't know about that vfile.  There is the line
+> I expect there.
 > 
-> Few days back I had posted, regarding memory leakage in the libiptc
-> APIs.
+> EXPECTING: proto=6 src=131.225.80.34 dst=207.252.250.2 sport=0 dport=41209
 > 
-> I worked more closely with libiptc and some debuggers(ccmalloc ,valgrind).
-> Now I able able to, precisly point out functions(APIs) were responsible
-> for memory leakage:-
-> 
-> 1> iptc_init(..)
-> 	there is some memory leakage here... but if we mention that
-> free(the_handle), there is no memory leakage from here.. This is not done
-> in iptables-save.c function "static int do_output(const char *tablename);
-> " seems like the free(h) was commented out. ref: iptables-1.2.7a
-> 
-> 2> iptc_first_chain(..)
-> 	here to there is some memory leakage.
-> 
-> 
-> Are the developers aware of this?
-> Hope we get some response.
+> I don't know where to look to find out what proto 6 is, but the rest *seems*
+> ok. 
 
-If you search the archives you'll see that we are aware of this. But
-since libiptc isn't intented to be used outside of iptables noone has
-bothered to spend any time to find out where it leaks memory.
+proto=6 means it's a tcp packet. /etc/protocols has all the
+protocol numbers.
 
-So don't expect anyone to send you a patch any time soon. But we do
-accept patches :)
+> The src, 131.225.80.34 is the machine I expect to be calling me back.  The
+> sport of 0 should be ok because I don't have that byte masked in my call to
+> expect_related the dport is correct.
+> 
+> I wasn't sure if the dst should be the NAT node or the private net node, so
+> I've tried it both ways:
+> 
+> EXPECTING: proto=6 src=131.225.80.34 dst=192.168.1.2 sport=0 dport=41330
+> 
+> And neither forwarded the connection.  Judging by the FTP example the dst
+> should be the private node, right?
 
-So please continue your investigation and send a patch, it will probably
-be happily accepted if it's correct.
+I *think* that EXPECTING should show the packet as it appears on the
+wire, since you should call ip_conntrack_change_expect in the nat helper
+code to change the expectation. Not 100% sure though. You could try 
+without NAT.
 
--- 
-/Martin
+> And I reconfirmed using tcpdump that the incoming connection is still being
+> attempted and is on the correct port.
+>
+As I pointed this out in my very first reply, and I suspect that this
+may be the cause of the problem:
 
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+Are you letting the RELATED traffic in with the appropriate iptables
+rules ? Can you post your firewall script, chain policies etc ?
+
+I have never seen any reports of the connection tracking code not
+picking up related TCP packets unless they were being blocked by
+policy.
+
+Regards,
+Filip
