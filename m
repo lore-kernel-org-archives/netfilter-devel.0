@@ -1,31 +1,30 @@
-From: Art Haas <ahaas@airmail.net>
-Subject: Recent C99 patches to net/ipv4/netfilter
-Date: Tue, 11 Mar 2003 14:27:50 -0600
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <20030311202750.GC4808@debian>
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: Recent C99 patches to net/ipv4/netfilter
+Date: Tue, 11 Mar 2003 14:16:52 -0800 (PST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030311.141652.31265629.davem@redhat.com>
+References: <20030311202750.GC4808@debian>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-net-owner@vger.kernel.org>
-To: linux-net@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-net@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: ahaas@airmail.net
+In-Reply-To: <20030311202750.GC4808@debian>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
-
-I'd recently sent a set of patches for converting some structures to use
-C99 named initializers, and it looks like they've been sent to Linus,
-but somehow got applied incorrectly. The changes for the ipv6 netfilter
-code are present, but the ones for ipv4 netfilter aren't, yet the BK
-SCCS files indicate that the changes were applied. My copy of Linus's
-tree has changeset 1.1085 to be the ipv4 netfilter changes that contain
-the patches in question.
-
-Should I send the patches again, or is this something that can be
-resolved by Linus repulling the changeset?
-
-Art Haas
-
--- 
-They that can give up essential liberty to obtain a little temporary safety
-deserve neither liberty nor safety.
- -- Benjamin Franklin, Historical Review of Pennsylvania, 1759
+   From: Art Haas <ahaas@airmail.net>
+   Date: Tue, 11 Mar 2003 14:27:50 -0600
+   
+   Should I send the patches again, or is this something that can be
+   resolved by Linus repulling the changeset?
+   
+Just resend please, thanks.
