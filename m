@@ -1,18 +1,15 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: netfilter IPv6 support
-Date: Fri, 27 Aug 2004 00:05:01 +0200
+From: "Ye, Xiaolu" <xiaolu.ye@intel.com>
+Subject: cross compile netfilter to arm-linux
+Date: Fri, 27 Aug 2004 10:32:04 +0800
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040826220501.GA564@alpha.home.local>
-References: <1093546367.3497.23.camel@hostmaster.org>
-	<20040826130024.6ff83dff.davem@redhat.com>
-	<1093555510.3497.33.camel@hostmaster.org>
+Message-ID: <01385A324262E54DA1F2087B0A87EDBFA369EF@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Zehetbauer <thomasz@hostmaster.org>
-Content-Disposition: inline
-In-Reply-To: <1093555510.3497.33.camel@hostmaster.org>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,30 +20,135 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Aug 26, 2004 at 11:25:10PM +0200, Thomas Zehetbauer wrote:
-> On Don, 2004-08-26 at 13:00 -0700, David S. Miller wrote:
-> > Stateful netfilter is not there because it's a total waste
-> > to completely duplicate all of the connection tracking et al.
-> > code into ipv6 counterparts when %80 of the code is roughly
-> > the same.  People are working on a consolidation of these
-> > things so that there is no code duplication but it is a lot
-> > of work and there are bigger fires to put out at the moment.
-> 
-> Of course it's a waste to duplicate the code but as far as I remember
-> the status of netfilter for IPv6 has not changed for almost a year. As
-> said there is still not even the basic REJECT target available.
+Hi:
 
-These features are available in patch-o-matic-ng. They're not in mainline
-because the netfilter team only pushes well tested and non-intrusive changes.
-But there are lots of people using features from patch-o-matic in production.
-You can get those here :
+    I want to cross compile netfilter(1.2.7a) to my arm-linux
+platform(Kernel 2.4.17-rmk3).
 
-    ftp://ftp.netfilter.org/pub/patch-o-matic-ng/
+    I add these lines to the Makefile:
 
-Please also take a look at the mailing list archives since it's an area
-which is currently moving :
- 
-    http://marc.theaimsgroup.com/?l=netfilter-devel
+        CC :=3D /arm/bin/arm-linux-gcc #my arm gnu gcc
 
-Regards,
-Willy
+LD :=3D /arm/bin/arm-linux-ld  #my arm gnu linker
+
+AR :=3D /arm/bin/arm-linux-ar
+
+    Then compile the netfilter, some errors occur:
+
+        include/linux/netfilter_ipv4/ipt_conntrack.h:28: `IP_CT_DIR_MAX'
+undeclared here (not in a function)
+
+include/linux/netfilter_ipv4/ipt_conntrack.h:29: `IP_CT_DIR_MAX'
+undeclared here (not in a function)
+
+include/linux/netfilter_ipv4/ipt_conntrack.h:29: `IP_CT_DIR_MAX'
+undeclared here (not in a function)
+
+extensions/libipt_conntrack.c: In function `parse_status':
+
+extensions/libipt_conntrack.c:103: `IPS_EXPECTED' undeclared (first use
+in this function)   =20
+
+extensions/libipt_conntrack.c:103: (Each undeclared identifier is
+reported only once
+
+extensions/libipt_conntrack.c:103: for each function it appears in.)
+
+extensions/libipt_conntrack.c:105: `IPS_SEEN_REPLY' undeclared (first
+use in this function)
+
+extensions/libipt_conntrack.c:107: `IPS_ASSURED' undeclared (first use
+in this function)
+
+extensions/libipt_conntrack.c: In function `parse':
+
+extensions/libipt_conntrack.c:202: `IP_CT_DIR_ORIGINAL' undeclared
+(first use in this function)
+
+extensions/libipt_conntrack.c:259: `IP_CT_DIR_REPLY' undeclared (first
+use in this function)
+
+extensions/libipt_conntrack.c: In function `print_status':
+
+extensions/libipt_conntrack.c:364: `IPS_EXPECTED' undeclared (first use
+in this function)
+
+extensions/libipt_conntrack.c:368: `IPS_SEEN_REPLY' undeclared (first
+use in this function)
+
+extensions/libipt_conntrack.c:372: `IPS_ASSURED' undeclared (first use
+in this function)
+
+extensions/libipt_conntrack.c: In function `matchinfo_print':
+
+extensions/libipt_conntrack.c:420: `IP_CT_DIR_ORIGINAL' undeclared
+(first use in this function)
+
+extensions/libipt_conntrack.c:440: `IP_CT_DIR_REPLY' undeclared (first
+use in this function)
+
+make: *** [extensions/libipt_conntrack.o] Error 1
+
+   For this error, I check the netfilter code, and add two enum to
+ipt_conntrack.h/libipt_conntrack.c, and then pass these errors.
+
+=20
+
+    But, in compile progress, still have some errors:
+
+        extensions/libipt_tos.c:58: warning: `struct ipt_tos_info'
+declared inside parameter list
+
+extensions/libipt_tos.c:58: warning: its scope is only this definition
+or declaration, which is probably not what you want.
+
+extensions/libipt_tos.c: In function `parse_tos':
+
+extensions/libipt_tos.c:69: dereferencing pointer to incomplete type
+
+extensions/libipt_tos.c:75: dereferencing pointer to incomplete type
+
+extensions/libipt_tos.c: In function `parse':
+
+extensions/libipt_tos.c:95: warning: passing arg 2 of `parse_tos' from
+incompatible pointer type
+
+extensions/libipt_tos.c:97: dereferencing pointer to incomplete type
+
+extensions/libipt_tos.c: In function `print':
+
+extensions/libipt_tos.c:141: dereferencing pointer to incomplete type
+
+extensions/libipt_tos.c:142: dereferencing pointer to incomplete type
+
+extensions/libipt_tos.c: In function `save':
+
+extensions/libipt_tos.c:150: dereferencing pointer to incomplete type
+
+extensions/libipt_tos.c:151: dereferencing pointer to incomplete type
+
+extensions/libipt_tos.c: At top level:
+
+extensions/libipt_tos.c:159: sizeof applied to an incomplete type
+
+extensions/libipt_tos.c:160: sizeof applied to an incomplete type
+
+make: *** [extensions/libipt_tos.o] Error 1
+
+=20
+
+How can I pass this error? Many Thanks!
+
+=20
+
+=20
+
+Best Regards!
+
+Ye.XiaoLu
+
+=20
+
+=20
+
+=20
