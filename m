@@ -1,19 +1,17 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack (l3 independent conntrack)
-Date: Wed, 19 Nov 2003 11:45:29 +0900 (JST)
+From: Eldad Zack <eldad@stoneshaft.ath.cx>
+Subject: Re: 2.4 SNAT fails randomly
+Date: Wed, 19 Nov 2003 09:46:00 +0200 (IST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200311190246.LAA10515@toshiba.co.jp>
-References: <20031115105020.GI656@obroa-skai.de.gnumonks.org>
-	<200311180305.MAA20518@toshiba.co.jp>
-	<20031118165138.GO5075@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.58.0311190942290.31702@localhost>
+References: <200311151103.47454.timg@tpi.com> <20031116095206.GA32471@balabit.hu>
+ <200311160953.51722.timg@tpi.com> <200311180835.09794.timg@tpi.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, netfilter-devel@lists.netfilter.org,
-        usagi-core@linux-ipv6.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Balazs Scheidler <bazsi@balabit.hu>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20031118165138.GO5075@sunbeam.de.gnumonks.org>
+To: Tim Gardner <timg@tpi.com>
+In-Reply-To: <200311180835.09794.timg@tpi.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,43 +23,23 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, Harald,
+On Tue, 18 Nov 2003, Tim Gardner wrote:
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Tue, 18 Nov 2003 17:51:38 +0100
+> I've been thinking more about this scenario. When a standard distribution like 
+> SuSE-9.0 boots, the interfaces are  IFF_UP sometime before firewall rules are 
+> installed. This is particularly a problem in the case of a NAT router. Is 
+> there any way to flush /proc/net/ip_conntrack to make sure that you get rid 
+> of entries that were established between the time the interfaces were brought 
+> up and the time the rules were installed? Removing the ip_conntrack modules 
+> seems kind of brute force, and does not work on kernels where ip_conntrack is 
+> not a module.
 
-> On Tue, Nov 18, 2003 at 12:04:49PM +0900, Yasuyuki Kozakai wrote:
-> 
-> > I read. It's very usefull to implement nf_conntrack. Thank you.
-> 
-> Well, I doubt it is, but anyway ;)
+There is a quick and dirty way to do it - forging a RST packet to the 
+tuple you want to flush. I've used hping to forge such packets and 
+iptstate to look at the conntrack table.
 
-Did I missread something enough to make you suspect that I read it...
-
-> And to reply to your question: The tuple is part of the 'dynamic' part,
-> along with other fields.
-
-Thank you for datail explanation. I try to rewrite the codes that processes
-nf_conntrack and tuple. At first, I'll move only tuple to the dynamic part of
-nf_conntrack. I may ask you about other question, I'm happy if you reply.
-
-> > I'll send the patches as snapshot when I finish debugging.
-> > Or should I send them after I finish implementing above items ?
-> 
-> If possible, I think it is good to have the development as open as
-> possible.  It's not important that the code runs (or even compiles).
-> But if your current status of development was public, other netfilter
-> developers could have a look at the code and comment.
-
-OK, I'll send it ASAP. But maybe I take a week to get permission.
+There really should be another way, though.
 
 
-----------------------------------------
-Yasuyuki KOZAKAI
 
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
-
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+Eldad
