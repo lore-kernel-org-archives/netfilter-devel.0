@@ -1,16 +1,13 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: PPTP connection tracking and Poptop on same box
-Date: Tue, 09 Sep 2003 18:39:56 +1000
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: pending/63_getorigdst-tuple-zero syntax error
+Date: Tue, 9 Sep 2003 11:19:11 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F5D91DC.3030706@snapgear.com>
-References: <3F542C4E.1000307@netbox.biz> <Pine.GSO.4.56.0309031853090.10914@shemp.vdata.com> <3F56E2E2.5040007@netbox.biz> <Pine.GSO.4.56.0309040327250.10914@shemp.vdata.com> <3F57D70B.3040307@netbox.biz> <20030905115534.GD665@obroa-skai.de.gnumonks.org>
+Message-ID: <200309091104.19260@henrik.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030402030600080208020904"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="------------Boundary-00=_ZJWXNW84N3N510UJVHU1"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030905115534.GD665@obroa-skai.de.gnumonks.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,102 +18,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030402030600080208020904
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi Harald,
-
-Harald Welte wrote:
-> I'm sorry for this whole mess.  Releasing a new version of the
-> pptp-conntrack-nat patch is on my TODO list for quite some time.  I'll
-> expect it to be done during the next week.
-
-When you do this, you will need the attached patches.  Jeff Hall
-posted them to the list on 2003/04/08, but I couldn't find them
-in the netfilter CVS anywhere.
-
-natcore-noexpecthelper.patch is related to 25natcore-nohelper.patch
-which was applied in 2.4.22.  25natcore-nohelper.patch stopped us
-from calling ip_nat_helper->help() when there were no manips, but
-we were still calling ip_nat_helper->expect().  This was corrupting
-the call IDs in the GRE packets.
-
-pptp-grekeymapdestroy.patch does some more cleaning up when freeing
-the unused second expectation.
-
-I now have pptp connection tracking working using linux 2.4.22,
-the latest patch from netfilter/patch-o-matic/extra, the latest
-files from netfilter-extensions/helpers/pptp, and the attached
-two patches.
-
-I have two concerns with the current patches:
-
-25natcore-nohelper.patch fixed the problem where we were doing
-NAT for connections even if there was no matching NAT rules.
-However, we now have the opposite problem in that we don't do
-NAT even if we should.  This is because this patch bases the
-decision on the number of manipulations, but it is possible to
-match a NAT rule and have no manipulations.
-
-The impact of this is that I cannot guarentee unique call IDs for
-local connections when doing masquerading, since they usually have
-no manipulations (they will occassionally have a port manip).
-
-The only solution I can see for this problem is to add another
-field to ip_nat_info to determine whether a NAT rule was matched.
-
-The second concern is that I believe we choose the NATed call ID
-based on the TCP source port prior to source NAT, which means we
-may not get a unique call ID.  If you agree this is a problem
-then I can try to fix it.
-
--- 
-Philip Craig - philipc@snapgear.com - http://www.SnapGear.com
-SnapGear - Custom Embedded Solutions and Security Appliances
-
---------------030402030600080208020904
+--------------Boundary-00=_ZJWXNW84N3N510UJVHU1
 Content-Type: text/plain;
- name="natcore-noexpecthelper.patch"
+  charset="us-ascii"
+Content-Transfer-Encoding: 8bit
+
+Harald:
+
+The current IP_CT_TUPLE_BLANK() macro expansion does not protect it's 
+arguments, making a syntax error in ip_conntrack_core when the macro 
+is used IP_CT_TUPLE_BLANK(&tuple);
+
+This expands to &tuple->memberfield which is not what is expected.. 
+(&tuple)->memberfield or tuple.memberfield would work.
+
+The attached patch adds the required parantesis around the macro 
+argument expansions giving (&tuple)->member in the expansion.
+
+Regards
+Henrik
+
+
+--------------Boundary-00=_ZJWXNW84N3N510UJVHU1
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="63_getorigdst-tuple-zero-parantesis.patch"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="natcore-noexpecthelper.patch"
+Content-Disposition: attachment; filename="63_getorigdst-tuple-zero-parantesis.patch"
 
---- linux-2.4.x/net/ipv4/netfilter/ip_nat_standalone.c	25 Jun 2003 13:50:47 -0000	1.5
-+++ linux-2.4.x/net/ipv4/netfilter/ip_nat_standalone.c	5 Sep 2003 05:29:24 -0000	1.6
-@@ -121,8 +121,13 @@
- 			if (ct->master
- 			    && master_ct(ct)->nat.info.helper
- 			    && master_ct(ct)->nat.info.helper->expect) {
--				ret = call_expect(master_ct(ct), pskb, 
-+				if (master_ct(ct)->nat.info.num_manips) {
-+					ret = call_expect(master_ct(ct), pskb, 
- 						  hooknum, ct, info);
-+				} else {
-+					WRITE_UNLOCK(&ip_nat_lock);
-+					return NF_ACCEPT;
-+				}
- 			} else {
- #ifdef CONFIG_IP_NF_NAT_LOCAL
- 				/* LOCAL_IN hook doesn't have a chain!  */
+Index: pending/63_getorigdst-tuple-zero.patch
+===================================================================
+RCS file: /cvspublic/netfilter/patch-o-matic/pending/63_getorigdst-tuple-zero.patch,v
+retrieving revision 1.2
+diff -u -w -p -r1.2 63_getorigdst-tuple-zero.patch
+--- pending/63_getorigdst-tuple-zero.patch	5 Sep 2003 15:13:15 -0000	1.2
++++ pending/63_getorigdst-tuple-zero.patch	9 Sep 2003 08:58:16 -0000
+@@ -9,8 +9,8 @@ diff -Nru --exclude .depend --exclude '*
+ + * really care about is the  source/destination unions */
+ +#define IP_CT_TUPLE_BLANK(tuple) 				\
+ +	do {							\
+-+		tuple->src.u.all = 0;				\
+-+		tuple->dst.u.all = 0;				\
+++		(tuple)->src.u.all = 0;				\
+++		(tuple)->dst.u.all = 0;				\
+ +	} while (0)
+ +
+  enum ip_conntrack_dir
 
---------------030402030600080208020904
-Content-Type: text/plain;
- name="pptp-grekeymapdestroy.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pptp-grekeymapdestroy.patch"
-
---- linux-2.4.x/net/ipv4/netfilter/ip_conntrack_pptp.c	5 Sep 2003 04:24:24 -0000	1.12
-+++ linux-2.4.x/net/ipv4/netfilter/ip_conntrack_pptp.c	5 Sep 2003 05:29:24 -0000	1.13
-@@ -124,6 +124,7 @@
- 			/* remove only if occurred at same sequence number */
- 			if (other_exp != exp && other_exp->seq == exp->seq) {
- 				DEBUGP("unexpecting other direction\n");
-+				ip_ct_gre_keymap_destroy(exp);
- 				ip_conntrack_unexpect_related(other_exp);
- 			}
- 		}
-
---------------030402030600080208020904--
+--------------Boundary-00=_ZJWXNW84N3N510UJVHU1--
