@@ -1,17 +1,12 @@
-From: "Maarten Wijnants" <maarten.wijnants@pandora.be>
-Subject: Re: ipq_set_verdict gives errors for multicast packets but works
-	fine	for unicast (kernel 2.6)
-Date: Thu, 6 Jan 2005 16:49:17 +0100
-Message-ID: <015a01c4f407$482a32d0$642813ac@in.edm.luc.ac.be>
-References: <013301c4f341$50919b00$642813ac@in.edm.luc.ac.be>
-	<41DD3737.4080808@eurodev.net>
+From: Max Kellermann <max@duempel.org>
+Subject: nfsim on amd64: va_list incompatible type error
+Date: Fri, 7 Jan 2005 00:57:48 +0100
+Message-ID: <20050106235748.GA23714@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=response
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Pablo Neira" <pablo@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,35 +18,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Pablo (and rest of list),
+Hi,
 
-Thanks for your reply,
+I'm trying to get nfsim running on my Athlon 64.. (nfsim is definitely
+cool stuff! I'll use it to test my H.323 ct helper module)
 
-> Maarten Wijnants wrote:
->
->> This all worked fine on kernel version 2.4. However, I have just upgraded 
->> to kernel 2.6.6, and all of a sudden my application doesn't work anymore.
->
->
-> Update to lastest kernel stable 2.6. Patrick McHardy pushed forward some 
-> patches which fixes some problems in ip_queue some time ago.
->
+The easiest thing first: the README should mention that you need the
+libreadline headers to compile (libreadline4-dev on Debian).
 
-Well I tried a variety of kernels already. More specifically, I started out 
-with kernel 2.4.20. Everything works fine on this kernel version. 
-Afterwards, I have tried kernel 2.4.28, 2.6.6, 2.6.9 and 2.6.10. I even 
-patched 2.6.10 with the latest snapshot from kernel.org. On none of these 
-kernel versions the rule
+I applied Patrick's 4 patches to my svn/trunk working copy, they fixed
+a lot of error messages concerning 64 bit portability. Plus, I had to
+add 24 dummy bytes to pad cmdline_option (also Patrick's idea).
 
-ipq_set_verdict(ipq_handle, m->packet_id, NF_ACCEPT, m->data_len, packet);
+gcc -Wmissing-prototypes -Wstrict-prototypes -Wunused -Wall -g -Wa,-W
+-I. -I/home/max/svn/nfsim/core -I/home/max/svn/nfsim/kernelenv/include
+-I/home/max/svn/nfsim/netfilter/include  -c -o core/talloc.o
+core/talloc.c
+core/talloc.c: In function `talloc_vasprintf':
+core/talloc.c:862: error: incompatible types in assignment
+core/talloc.c:868: error: incompatible types in assignment
+core/talloc.c: In function `talloc_vasprintf_append':
+core/talloc.c:906: error: incompatible types in assignment
+core/talloc.c:918: error: incompatible types in assignment
 
-works for an altered packet with a multicast destination. For unicast 
-destination packets, the rule works on any kernel version. On kernel 2.4.20, 
-this rule works perfectly correct in all situations (i.e. both unicast and 
-multicast destinations). I have absolutely no idea what is going wrong in 
-the other kernel versions. Any ideas?
+both gcc 1:3.3.5-5 and 3.4.3-6 (Debian) are affected. I found several
+references to this behaviour on the net, one is a gcc bug report:
 
-Thanks in advance.
+ http://gcc.gnu.org/bugzilla/show_bug.cgi?id=8262
 
-Kind regards,
-Maarten 
+.. but I fail to understand how to go around this limitation. When I
+defined HAVE_VA_COPY as a workaround, the error went away. Where is
+HAVE_VA_COPY meant to be defined?
+
+nfsim works now, although most tests from nfsim-testsuite fail, is
+that correct?  (on my P4 @work, nfsim segfaults, I'll analyze that
+tomorrow).
+
+Max
