@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_conntrack_proto_sctp INIT_ACK messages dropped
-Date: Wed, 23 Feb 2005 16:53:11 +0100
-Message-ID: <421CA6E7.6030508@trash.net>
-References: <003001c51910$8d3d1990$320aa8c0@blueslicemtl>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH 2.6]: Prevent NAT from seeing fragments
+Date: Wed, 23 Feb 2005 20:10:52 -0800
+Message-ID: <20050223201052.6a472c00.davem@davemloft.net>
+References: <42153590.8010704@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: 'Harald Welte' <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	'Kiran Kumar Immidi' <immidi@spymac.com>
-To: Ariel Rosenblatt <ariel@blueslice.com>
-In-Reply-To: <003001c51910$8d3d1990$320aa8c0@blueslicemtl>
+Cc: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42153590.8010704@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +20,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ariel Rosenblatt wrote:
->>Still we should do the best we can, which seems to be makeing
->>sure the restart is valid before changing the tags. I'll see
->>if I can come up with a patch.
-> 
-> Please let me know if I can help with this and also the multi homing
-> support.
+On Fri, 18 Feb 2005 01:23:44 +0100
+Patrick McHardy <kaber@trash.net> wrote:
 
-Unfortunately we can't use the Tie-Tags since the format and content
-of the cookie is up to its sender. We could probably add our own data
-to the cookie, but I don't have time to play with this currently.
+> This patch fixes another fragment handling problem, on loopback NAT might
+> get to see fragments because conntrack skips defragmentation for already
+> seen traffic. It just meant as a temporary solution for 2.6.11, in 2.6.12
+> we would prefer to skip refragmentation for loopback if it doesn't cause
+> problems.
 
-Regards
-Patrick
+Applied for 2.6.11, thanks Patrick.
