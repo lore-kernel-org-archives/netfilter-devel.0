@@ -1,13 +1,13 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ANNOUNCE] mod_auth_nufw, an apache authentication module
-Date: Wed, 23 Jun 2004 17:30:04 +0200
+From: Phillip Whelan <pwhelan@exis.cl>
+Subject: Faking ethernet source MAC in NF_IP_POST_ROUTING
+Date: Wed, 23 Jun 2004 16:15:03 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1088004603.5595.57.camel@porky>
+Message-ID: <20040623161503.188c007f@mindrape>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-X/6ohQgYPlYjMVah3bJf"
-Cc: Vincent Deffontaines <vincent@inl.fr>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,72 +18,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---=-X/6ohQgYPlYjMVah3bJf
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Quote: (myself)
+  "I've been working lately on a netfilter hook extension which Rewrites outgoing ARP packets to spoof a host's MAC address."
 
-Hello everyone,
+I already managed to solve a problem involving ARP replies automagically updating arp caches by modifying the arp payload's sender hw_addr.
+(or perhaps, the tha... whatever, it works).
 
-NuFW core team and INL are proud to introduce mod_auth_nufw, an SSO
-apache authentication module using the NuFW authentication framework, to
-you.
+The kernel is now spoofing itself, etc... but, it still sends out packets with the real MAC address. This, of course confuses the end host to no ends.
 
-You may think "Hey, we're talking about Netfilter here. Not apache !",
-but this is indeed about Netfilter :
-Let's have first a few word about NuFW. NuFW is a GPL authentication
-firewall suite working under Linux, based on Netfilter.
-Its main feature is that it can trustfully authenticate connections, and
-link them to actual user IDs (stored in an LDAP tree).=20
-It also provides other features, such as user id marking of packet,
-dynamic acls list, ...
+In NF_IP_POST_ROUTING, the skb->mac is not NULL, but skb->mac_len is 0.
+Directly modifying the skb->mac would just lead to memory corruption. 
+How would I modify the source MAC address? (Im inside NF_IP_POST_ROUTING). Can I access through a negative offset from skb->data? (net/ipv4/arp.c does this, I think).
 
-For more information on NuFW see :
-        http://www.nufw.org
-
-NuFW 0.7.1, which was released last week, introduces an option that
-permits to build a real-time authenticated connection tracking table :
-it's a sort of Conntrack table where each entry contains IP parameters
-of the connection and the identity of user at the origin of this
-connection and the state of the connection. This table is stored in an
-SQL database (both MySQL and PostgreSQL are supported).
-
-As a server (like Apache) knows about the IP parameters of the
-connections it receives, it can query the SQL database to find the
-corresponding entry for each connection. Mod_auth_nufw performs this
-exact task for Apache : lookup in the Nufw "conntrack" for the userID,
-and let Apache know this user is now identified (and authenticated).
-(The authorization task then lays on other Apache modules, and is just
-the classical process)
-
-This gives the server the identity of the user who opened the
-connection. So the authentication of the user by the server is done and
-it's fully transparent to the user. Thus, this principle allows to build
-complete Single Sign On systems where the key is a netfilter firewall
-using NuFW.
-
-mod_auth_nufw is the first authentication module that uses NuFW
-authentication principle. It permits to achieve Single Sign On for a
-whole set of apache servers.
-
-mod_auth_nufw is available for download at :
-        http://www.inl.fr/article.php3?id_article=3D24
-
-Best regards,
---=20
-Eric Leblond <eric@inl.fr>
-INL
-
---=-X/6ohQgYPlYjMVah3bJf
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBA2aH6nxA7CdMWjzIRAmG9AJ9i73/XcrQvKBERPD0NuImf/2ri5gCdG1IO
-O7FWWXP50I9ihRM9izOP+3E=
-=TjFt
------END PGP SIGNATURE-----
-
---=-X/6ohQgYPlYjMVah3bJf--
+-- 
+Phillip Whelan
+Lead Programmer
+Exis - Extreme Information Solutions/Security
+http://www.exis.cl
