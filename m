@@ -1,15 +1,17 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: RE: blocking/allowing particular protocol
-Date: Wed, 17 Mar 2004 13:46:33 +0100 (CET)
+Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
+Date: Wed, 17 Mar 2004 14:04:53 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403171335400.9283-100000@filer.marasystems.com>
-References: <0C674B14EAEBD61196D900B0D03DB49F01C1EA7A@blrw502w.blr.infineon.com>
+Message-ID: <Pine.LNX.4.44.0403171351490.9283-100000@filer.marasystems.com>
+References: <1079524124.813.103.camel@nienna.balabit>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
+Cc: Vijaya Chandra Vupputuri <vijay@tachyontech.net>,
+   Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+   netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Kumar Shobhit (IFIN DC COM)" <Shobhit.Kumar@infineon.com>
-In-Reply-To: <0C674B14EAEBD61196D900B0D03DB49F01C1EA7A@blrw502w.blr.infineon.com>
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <1079524124.813.103.camel@nienna.balabit>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,47 +22,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 17 Mar 2004, Kumar Shobhit (IFIN DC COM) wrote:
+On Wed, 17 Mar 2004, KOVACS Krisztian wrote:
 
-> Ok. Just to veryfy whether I understand everything correctly. First I
-> have to register a NAT helper and then in the helper's callback function
-> I call Ip_nat_setup_info. Correct?
+>   I think I've got it. When such a connection is initiated, the SYN goes
+> out on the LOCAL_OUT hook, and gets confirmed at POSTROUTING. Then it
+> arrives in PREROUTING, where it's NAT-ted according to the REDIRECT
+> rule.
 
-Depends on the protocol the helper is tracking, but if there is related 
-connections then you need to set up matching NAT entries for these when 
-the expected related connection is seen by the firewall.
+Ouch... this (new NAT mappings of an already confirmed session) MUST NOT
+happen.
 
-> But now I have one more doubt There is another expect callback function
-> in the Ip_nat_helper structure. What is the purpose of this?
+A quick and painless fix unless one wants to enable CONFIG_IP_NF_LOCAL_NAT
+would be to not apply NAT to confirmed sessions even if no NAT mapping has
+priorly been set up for this connection.
 
-Which function?
+But I am still a little confused... this traffic should have been seen by
+the POSTROUTING hook where a null source mapping should have been set up
+already for this direction, so the PREROUTING on return traffic should do
+nothing. Thinking.. ah, now I get it. The problem is that you are doing
+traffic local->local and that the NAT code then gets confused as it sees
+the same packet twice in each direction, and as no null mapping was
+created the first time for the "local" side PREROUTING tries to when it
+sees the traffic coming "in" (from itself).
 
-NAT helpers only have two functions
-
-a) A "help" function which is called on each payload packet in the master
-connection. This is responsible for parsing the protocol control messages, 
-rewrite content where needed.
-
-b) A "expected" function which is called on the initial packet of an 
-expected connection registered by the "help" function, responsible for 
-setting up the required NAT mappings of the expected related 
-data connection.
-
-In addition to the NAT helper you generally need a conntrack helper. This
-helper is responsible for tracking the master control channel and register
-the expected related data connections. 
-
-> I reffered to the FTP ALG (FYI I am implementing a SIP ALG) and I found that
-> ip_set_nat_info is being called from there. 
-
-Yes, and also from any other NAT helper where there is related data 
-connections involved.
-
-> When and how will this function be called?
-
-On the first (SYN) packet of a expected related data connection. This 
-confims the NAT mapping of the related connection according to the 
-instructions of the master control connection.
+The solution I mentioned above should workI think, but my gut feeling is
+that it would be better to simply have the hooks of CONFIG_IP_NF_LOCAL_NAT
+always enabled and not try to optimize local traffic by making it such
+special case for NAT to deal with.
 
 Regards
 Henrik
