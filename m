@@ -1,16 +1,14 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: ip_packet_match causing kernel crash (?)
-Date: 20 Jul 2003 20:35:58 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 2.5]: Fix wrong AH-header in ipt_ah.c
+Date: Mon, 21 Jul 2003 03:33:59 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1058726157.8305.309.camel@tux.rsn.bth.se>
-References: <1057104632.3f0222f82da97@webmail.pacific.net.au>
+Message-ID: <3F1B4307.8070108@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------090007030905070009060105"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: dwu@zipworld.com.au
-In-Reply-To: <1057104632.3f0222f82da97@webmail.pacific.net.au>
+To: Harald Welte <laforge@gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,24 +19,68 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2003-07-02 at 02:10, dwu@zipworld.com.au wrote:
-> Hi,
-> 
-> I'm seeing a kernel crash in the netfilter section of the kernel and is trying 
-> to get some help in tracking down the problem.
-> 
-> In my test environment, I see that the crash occurs if there is a mismatch 
-> between the ip address in the iptables entry and the incoming packet, when the 
-> function ip_packet_match from the file ip_tables.c returns 0.
-> 
-> Analysing the code in ip_tables.c, in the function ipt_do_table, if the 
-> ip_packet_match return 0, then it looks at the next ipt_entry (see the code 
-> around line 384). It looks to me as if there is no way for the loop to get out 
-> of the "do { ... } while (!hotdrop)" loop if ip_packet_match always return 0 
-> (?) Is this causing the kernel crash in my test environment.
+This is a multi-part message in MIME format.
+--------------090007030905070009060105
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-There's always a rule at the end that matches all packets, the default
-policy.
+This patch uses the common struct ip_auth_hdr declaration from ip.h.
+The header declared in ipt_ah.c was wrong, so this makes matching actually
+work.
 
--- 
-/Martin
+Best regards,
+Patrick
+
+--------------090007030905070009060105
+Content-Type: text/plain;
+ name="25-ipt_ah-wrong-ahhdr.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="25-ipt_ah-wrong-ahhdr.diff"
+
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1536  -> 1.1537 
+#	net/ipv4/netfilter/ipt_esp.c	1.6     -> 1.7    
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/07/21	kaber@trash.net	1.1537
+# [NETFILTER]: Fix wrong AH-header
+# --------------------------------------------
+#
+diff -Nru a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
+--- a/net/ipv4/netfilter/ipt_ah.c	Thu May 22 01:35:36 2003
++++ b/net/ipv4/netfilter/ipt_ah.c	Mon Jul 21 02:48:59 2003
+@@ -1,6 +1,7 @@
+ /* Kernel module to match AH parameters. */
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
++#include <linux/ip.h>
+ 
+ #include <linux/netfilter_ipv4/ipt_ah.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+@@ -13,10 +14,6 @@
+ #define duprintf(format, args...)
+ #endif
+ 
+-struct ahhdr {
+-	__u32   spi;
+-};
+-
+ /* Returns 1 if the spi is matched by the range, 0 otherwise */
+ static inline int
+ spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, int invert)
+@@ -37,7 +34,7 @@
+       int offset,
+       int *hotdrop)
+ {
+-	struct ahhdr ah;
++	struct ip_auth_hdr ah;
+ 	const struct ipt_ah *ahinfo = matchinfo;
+ 
+ 	/* Must not be a fragment. */
+
+--------------090007030905070009060105--
