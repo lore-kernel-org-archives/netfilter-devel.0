@@ -1,42 +1,42 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] IPv6: Functions Clean-up
-Date: Sun, 23 Feb 2003 01:18:16 -0800 (PST)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20030223.011816.108201183.davem@redhat.com>
-References: <20021103.115427.104445233.yoshfuji@linux-ipv6.org>
+From: Arvanitis Kostas <arvanit@ellemedia.com>
+Subject: Buffer of by one in iptables.c in iptables v1.2.7a
+Date: Fri, 21 Feb 2003 16:24:05 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <200302211624.05704.arvanit@ellemedia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-2022-jp
+Content-Type: text/plain;
+  charset="iso-8859-7"
 Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
-   netfilter-devel@lists.netfilter.org, kuznet@ms2.inr.ac.ru,
-   usagi@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: yoshfuji@linux-ipv6.org
-In-Reply-To: <20021103.115427.104445233.yoshfuji@linux-ipv6.org>
-Errors-to: netdev-bounce@oss.sgi.com
+Cc: arvanit@ellemedia.com
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: YOSHIFUJI Hideaki / 吉藤英明 <yoshfuji@linux-ipv6.org>
-   Date: Sun, 03 Nov 2002 11:54:27 +0900 (JST)
-   
-   This patch cleans up functions in ipv6 stack:
-   
-    - export route6_me_harder() as ip6_route_harder() and
-      use it from net/ipv6/netfilter/ip6_queue.c.
-    - make ip6_addr_prefix() to generate prefix of given address and
-      prefix length, instead of doing "ipv6_copy_addr() then
-      ipv6_wash_prefix()."
-   
-Please change new name to ip6_route_me_harder().  When one
-says "something me harder" is has amusing implications when
-heard by most english speakers and I'd like to keep this :-)
+The line in find_target() that reads:
 
-I will apply this patch once you make the change.  Would you
-like me to add it to 2.4.x as well?
+char path[sizeof(IPT_LIB_DIR) + sizeof("/libipt_.so") + strlen(name)]
 
-We really need to revisit USAGI patch backlog.  I have and will apply
-privacy extension 2.5.x patch you sent.  For all the others please
-feel free to "patch bomb" me :-) Please indicate with each patch
-whether the it is desired in 2.4.x as well.
+is used as the target buffer for a sprintf() statement. However sprintf will 
+also append a '\0' after the string, so the corrected line should be:
 
-If you wish to concentrate on ipv6 ipsec first, that is ok too. :-)
+char path[sizeof(IPT_LIB_DIR) + sizeof("/libipt_.so") + strlen(name)+1]
+
+This does not seem to affect the program, since path[] is allocated on the 
+stack and there is nothing following it. However, for the shake of 
+completeness, I think it should be corrected.
+
+PS: Keep up the good work.
+PS2: Is there a thought for iptables to take src/dst addresses as ranges in 
+the form of ip_low - ip_high? (so as to be more compatible with the NAT-MIB)
+-- 
+A: No. See http://www.netmeister.org/news/learn2quote.html
+Q: Should I include quotations after my reply ?
