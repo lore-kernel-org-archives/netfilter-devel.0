@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: iptables.8 -i
-Date: Wed, 17 Mar 2004 15:15:43 +0100
+Subject: Re: [PATCH] Traffic accounting match, once again
+Date: Wed, 17 Mar 2004 15:28:56 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040317141543.GG21899@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.60.0403050940260.21790@dsl093-017-216.msp1.dsl.speakeasy.net>
+Message-ID: <20040317142856.GH21899@sunbeam.de.gnumonks.org>
+References: <20040307174010.GA4193@pandora.barbara.eu.org> <20040308102437.GA11273@pandora.barbara.eu.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EDJsL2R9iCFAt7IV"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="mhjHhnbe5PrRcwjY"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: quadong@users.sf.net
+To: Piotr Gasid?o <quaker@pandora.barbara.eu.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.60.0403050940260.21790@dsl093-017-216.msp1.dsl.speakeasy.net>
+In-Reply-To: <20040308102437.GA11273@pandora.barbara.eu.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,16 +23,31 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---EDJsL2R9iCFAt7IV
+--mhjHhnbe5PrRcwjY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 05, 2004 at 09:47:12AM -0600, quadong@users.sf.net wrote:
-> iptable's man page currently reads:
+On Mon, Mar 08, 2004 at 11:24:37AM +0100, Piotr Gasid?o wrote:
+> On Sun, 07/03, 06:40:10PM, Piotr Gasid?o wrote:
+> > Hello,
+> >=20
+> > Nearly two months ago I've sent to netfilter-devel my ipt_account.patch.
+> > It was at the beginning rejected because of polish language in comments.
+> > I've translated it to english. I've also fixed some minor bug in
+> > libipt_account.c/save function.
+> > (...)
+>=20
+> I've attached wrong diffs. Sorry :)
 
-thanks, committed your change to cvs.
+thanks, I'm applying them right now:
 
+btw: patch-o-matic is no longer used, we now use patch-o-matic-ng.
+and: Please send diffs as uncompressed plaintext, this way any
+emailreader would be able to display them without extra
+saving/uncompressing/...
+
+> These are right.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -44,7 +59,7 @@ thanks, committed your change to cvs.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---EDJsL2R9iCFAt7IV
+--mhjHhnbe5PrRcwjY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -52,9 +67,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFAWF2PXaXGVTD0i/8RAk7wAJ9jPdQEZwnkNFmZh5XJFymJ/kBucACePmbK
-9aec/iFUN37GRGvKvklxuOI=
-=Ekij
+iD8DBQFAWGCoXaXGVTD0i/8RAlKOAJ9bqSLHJyPnfgHHJYCjs4LKplG6NACfY/Fn
+/x9LcT6xu/pjpTr3aN7Xafs=
+=9rq8
 -----END PGP SIGNATURE-----
 
---EDJsL2R9iCFAt7IV--
+--mhjHhnbe5PrRcwjY--
