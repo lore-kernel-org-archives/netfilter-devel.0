@@ -1,20 +1,16 @@
-From: "Zheng Weibin" <zwb@xanet.edu.cn>
-Subject: Re: ip_conntrack_hash() problem
-Date: Fri, 11 Oct 2002 11:51:55 +0800
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: what's the lockingrules for ip_conntrack_expect_list?
+Date: Fri, 11 Oct 2002 15:06:59 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <008901c270d9$bce2f5c0$26301bd2@zwb>
-References: <20020905115208.4D0A02C064@lists.samba.org>
+Message-ID: <Pine.LNX.4.33.0210111455100.29766-100000@blackhole.kfki.hu>
+References: <1034286048.25146.40.camel@tux>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
-Cc: "Andi Kleen" <ak@suse.de>, "Harald Welte" <laforge@gnumonks.org>,
-   "Netfilter Mailing List" <netfilter-devel@lists.netfilter.org>,
-   "Linux Kernel mailing list" <linux-kernel@vger.kernel.org>,
-   "Patrick Schaaf" <bof@bof.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Rusty Russell" <rusty@rustcorp.com.au>,
-   "Martin Wilck" <Martin.Wilck@Fujitsu-Siemens.com>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1034286048.25146.40.camel@tux>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,27 +21,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-YW55b25lIHRlc3QgdGhlIHBhdGNoPyBJIGZpbmQgaXQgaXMgbm90IGFwcGxpY2FibGUgdW5kZXIg
-Mi41LjM2LiBBbmQgDQpJIG1ha2UgZWZmb3J0cyB0byBwYXRjaCB0aGUgMi40LjE4LCBnZXQgYWx3
-YXlzIE9vcHMuDQoNClpoZW5nDQoNCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLSANCkZy
-b206ICJSdXN0eSBSdXNzZWxsIiA8cnVzdHlAcnVzdGNvcnAuY29tLmF1Pg0KVG86ICJNYXJ0aW4g
-V2lsY2siIDxNYXJ0aW4uV2lsY2tARnVqaXRzdS1TaWVtZW5zLmNvbT4NCkNjOiAiQW5kaSBLbGVl
-biIgPGFrQHN1c2UuZGU+OyAiSGFyYWxkIFdlbHRlIiA8bGFmb3JnZUBnbnVtb25rcy5vcmc+OyAi
-TmV0ZmlsdGVyIE1haWxpbmcgTGlzdCIgPG5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0ZXIu
-b3JnPjsgIkxpbnV4IEtlcm5lbCBtYWlsaW5nIGxpc3QiIDxsaW51eC1rZXJuZWxAdmdlci5rZXJu
-ZWwub3JnPjsgIlBhdHJpY2sgU2NoYWFmIiA8Ym9mQGJvZi5kZT4NClNlbnQ6IFRodXJzZGF5LCBT
-ZXB0ZW1iZXIgMDUsIDIwMDIgNzoxNSBQTQ0KU3ViamVjdDogUmU6IGlwX2Nvbm50cmFja19oYXNo
-KCkgcHJvYmxlbSANCg0KDQpJbiBtZXNzYWdlIDwxMDMxMjEwMzQyLjk3ODUuMTU5LmNhbWVsQGJp
-a2VyLnBkYi5mc2MubmV0PiB5b3Ugd3JpdGU6DQo+IEFtIERvbiwgMjAwMi0wOS0wNSB1bSAwMi4z
-OSBzY2hyaWViIFJ1c3R5IFJ1c3NlbGw6DQo+IA0KPiA+IFRoaXMgd29yayBpcyBhbHJlYWR5IGRv
-bmU6DQo+ID4gaHR0cDovL3d3dy5rZXJuZWwub3JnL3B1Yi9saW51eC9rZXJuZWwvcGVvcGxlL3J1
-c3R5L3BhdGNoZXMvTmV0ZmlsdGVyL2Nvbm50DQpyYWNrX2hhc2hpbmcucGF0Y2guZ3oNCj4gDQo+
-IFdlbGwsIGJlYXV0aWZ1bC4NCj4gV2lsbCB0aGlzIGdvIGludG8gdGhlIG1haW4gbGluZSBrZXJu
-ZWwgYW55IHRpbWUgc29vbj8NCj4gKEknZCBiZSBmb3IgdGhhdCkuDQo+IA0KPiBJZiB0aGVyZSdz
-IHN0aWxsIG5lZWQgZm9yIGRpc2N1c3Npb24gcmVnYXJkaW5nIHRoaXMgcGF0Y2gsIGFzIHRoZSB0
-aHJlYWQNCj4gc3VnZ2VzdHMsIEknZCBwcm9wb3NlIHRvIGdvIGZvciBhbiBpbnRlcm1lZGlhdGUs
-IGxlc3MgaW50cnVzaXZlIGZpeCBsaWtlDQo+IG1pbmUgZmlyc3QuDQoNCkknbGwgZmVlZCB0aGlz
-IHRocm91Z2ggMi41LCBvbmNlIGl0J3MgaGFkIHNvbWUgbW9yZSB0ZXN0aW5nIChoaW50DQpoaW50
-ISkuICBUaGVuIEhhcmFsZCB3aWxsIG1ha2UgYSBjYWxsIG9uIDIuNC4NCg0KUnVzdHkuDQotLQ0K
-ICBBbnlvbmUgd2hvIHF1b3RlcyBtZSBpbiB0aGVpciBzaWcgaXMgYW4gaWRpb3QuIC0tIFJ1c3R5
-IFJ1c3NlbGwuDQoNCg0KDQo=
+Hi Martin,
+
+On 10 Oct 2002, Martin Josefsson wrote:
+
+> What's the lockingrules for ip_conntrack_expect_list?
+
+As far as I remember, the guiding rules were the following:
+ip_conntrack_lock is always held when we do something with the
+expectations. If it's write-locked, then there is no need for additional
+locking. If it's read-locked, then we use the additional
+ip_conntrack_expect_tuple_lock to protect the expectation lists.
+
+> I've gone through 2.4.20-pre8aa2 which was the kernel the bugreport was
+> from. And I've found some inconsistencies.
+
+> init_conntrack
+> 	first:
+> 		WRITE_LOCK(&ip_conntrack_lock);
+> 		READ_LOCK(&ip_conntrack_expect_tuple_lock);
+> 		LIST_FIND
+
+Read-locking ip_conntrack_expect_tuple_lock is unnecessary here then.
+
+> 	later:
+> 		WRITE_LOCK(&ip_conntrack_lock);
+> 		LIST_DELETE
+>
+> ip_conntrack_expect_related
+> 	WRITE_LOCK(&ip_conntrack_lock);
+> 	LIST_FIND
+> 	LIST_FIND
+> 	list_prepend
+>
+> ip_conntrack_change_expect
+> 	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
+> 	LIST_FIND
+>
+> 	FAILS!! called from nat-helpers which only hold their own locks 	if any
+> at all.
+
+Well spotted! It's a locking bug then.
+
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
