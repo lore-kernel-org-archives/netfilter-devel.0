@@ -1,13 +1,15 @@
-From: "Vishwas Manral" <Vishwas@sinett.com>
-Subject: TCP small Fragments
-Date: Wed, 16 Feb 2005 02:49:26 -0800
-Message-ID: <BB6D74C75CC76A419B6D6FA7C38317B2628B73@sinett-sbs.SiNett.LAN>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: (no subject)
+Date: Wed, 16 Feb 2005 12:26:33 +0100
+Message-ID: <1108553193.3685.7.camel@nienna.balabit>
+References: <20050215210947.32682.qmail@ad.mailbox.hu>
+	<Pine.LNX.4.58.0502160910450.16487@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-reply-to: <Pine.LNX.4.58.0502160910450.16487@blackhole.kfki.hu>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,27 +21,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi folks,
 
-=20
+  Hi,
 
-IP packets containing TCP payload can be fragmented. Firewalls have
-checks on TCP flags to check if there are illegal combinations of TCP
-flags. However if the TCP header in the IP packet itself is fragmented,
-it may not be easy to track such a packet.
+2005-02-16, sze keltez=E9ssel 09.14-kor Jozsef Kadlecsik ezt =EDrta:
+> > To be short, my problem is the following:
+> > I must track outgoing SYN+ACK packets (confirmation of connection
+> > request) and incoming ACK packets acknowledging the SYN+ACKs. Wit=
+h this,
+> > the module would be able to calculate the ratio of half open
+> > connections.
+> > It is easy to track outgoing SYN+ACKs, but to decide if an incomi=
+ng ACK
+> > is a response to a former SYN+ACK I have to track the state of th=
+e TCP
+> > connection. Of course I dont want to do this, because the TCP con=
+ntrack
+> > module makes this - It would be a nonsense and a source of incons=
+istency
+> > to track the state in both modules.
+>=20
+> You could rely on event notification from the nfnetlink-ctnetlink-0=
+.13
+> patch from patch-o-matic-ng. Unfortunately it seems to me
+> nfnetlink-ctnetlink's a little bit out of sync compared to the rece=
+nt
+> kernel trees.
 
-=20
+  The event notification part of ctnetlink is available for 2.6 kerne=
+ls
+as well (from the netfilter-ha patchset, for example), thanks to Pabl=
+o
+Neira's work.
 
-What is the default behavior for such packets in which the TCP header
-itself is not completely there (I know a lot of hosts crash on getting
-such packets)?=20
-
-=20
-
-Thanks,
-
-Vishwas
-
-=20
-
-=20
+--=20
+KOVACS Krisztian <hidden@sch.bme.hu>
