@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: nf_conntrack (l3 independent conntrack)
-Date: Tue, 18 Nov 2003 17:51:38 +0100
+Subject: Re: [RFC] NAT tuple reservation
+Date: Tue, 18 Nov 2003 17:57:34 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031118165138.GO5075@sunbeam.de.gnumonks.org>
-References: <20031113010159.GD835@mea-ext.zmailer.org> <200311131303.WAA28664@toshiba.co.jp> <20031115105020.GI656@obroa-skai.de.gnumonks.org> <200311180305.MAA20518@toshiba.co.jp>
+Message-ID: <20031118165734.GP5075@sunbeam.de.gnumonks.org>
+References: <3FB8DF90.5090505@balabit.hu> <20031117222933.GE5075@sunbeam.de.gnumonks.org> <3FB9CE8E.4000105@balabit.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="e5bfZ/T2xnjpUIbw"
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
+	protocol="application/pgp-signature"; boundary="oxV4ZoPwBLqAyY+a"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+To: KOVACS Krisztian <hidden@balabit.hu>
 Content-Disposition: inline
-In-Reply-To: <200311180305.MAA20518@toshiba.co.jp>
+In-Reply-To: <3FB9CE8E.4000105@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,89 +23,81 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---e5bfZ/T2xnjpUIbw
+--oxV4ZoPwBLqAyY+a
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 18, 2003 at 12:04:49PM +0900, Yasuyuki Kozakai wrote:
-
-> > However, I'll attach the current (icomplete) start of my paper to this
-> > email and also put it in CVS. =20
+On Tue, Nov 18, 2003 at 08:47:26AM +0100, KOVACS Krisztian wrote:
+> >However, I fear this would add considerable overhead.  Yet another hash
+> >table... however, most of the time this table would be empty, or almost
+> >empty.  So let's rather optimize on the speed of the hash function than
+> >on the hash distribution in that case.
 >=20
-> I read. It's very usefull to implement nf_conntrack. Thank you.
+>   The empty case could be made fast using a reservation-counter.
 
-Well, I doubt it is, but anyway ;)
+that sounds like a good plan.
 
-> >      * Size of Addresses. ip_conntrack keeps two address tuples
+> >> /* reference count */
+> >> atomic_t use;
+> >
+> >do we really need to do sophisticated reference counting on those
+> >objects?  I think it is enough to protect the whole hash table under the
+> >already existing nat lock.  Entries are inserted/deleted under that lock=
+,=20
+> >and
+> >hash table lookups also only happen under that lock.   The only
+> >reference would be a pointer from a single ip_conntrack_expect - thus
+> >the refcount would always be one.
+
+you didn't comment on that.  What do you think?
+
+> >> Do you see any shortcomings/problems with this?
+> >
+> >It doesn't cover allocation/reservation of contiguous port numbers,
+> >which especially RTP/RTSP require.=20
 >=20
-> OK, I understand this problem, but I don't perfectly understand the detai=
-l of
-> your solution.=20
-> Is "The dynamic part" equal to tuple ? or does this part include the priv=
-ate
-> structures for L3, protocol, and helper ?
+>   It could be extended, however, it would make checking/allocating even=
+=20
+> more slow...=20
 
-There is a static part.  The static part would countain everything that
-exists for connections of any protocol.  An (incomplete) list of static
-structure members would be:=20
-- usage count
-- list_head's for the hash table[s]
-- pointer to the l4 helper (->proto)
-- pointer to the l3 helper (new)
+I don't care about allocation speed, as it is a rare thing to happen
+(compared to the total number of packets we see).  However, checking
+should be fast.
 
-In the first step, the static part would also contain:
-- list of expected connections
-- union for conntrack helper
-- union for nat helper
+> If you could register ranges, for example, how do you define=20
+> the hash function? Or, for example, you should be able to delete parts of=
+=20
+> that range from the reserved list, so that splitting the original range=
+=20
+> could be necessary...=20
 
-However, my real idea was some mechanism where the conntrack core can
-deal with what I now call 'extensible conntracks'.   The size of the
-conntrack would be determined at 'NEW' time, i.e. when we receive the
-first packet.  I.e. if it is an ipv4 packet, we only need ipv4-sized
-tupels.  If there is no helper registered for that connection, there is
-no need to allocate the memory for expect_tuple_list and others.
+I know, it's not a trivial issue.  It's ugly.  And I don't think that
+you could ever put ranges in the hashtable.  However, you could provide
+a high-layer function that=20
 
-In the 'perfect world', we would thus have several different sized
-kmem_cache's:
+- locks the htable
+- tries to allocate as many reservations as there are in the range,
+  contiguously
+- unlocks the htable
 
-- struct ip_conntrack for ipv4, no helper
-- struct ip_conntrack for ipv4, with helper
-- struct ip_conntrack for ipv6, no helper
-- struct ip_conntrack for ipv6, with helper
+In normal cases, we would only have 2 or 4 (maybe 8) consecutive port
+numbers to allocate.  So it is feasible to put each of them into the
+hash.  This would not give a slowdown at checking / lookup time.
 
-I think we can save a lot of memory, if we not only seperate the
-l3-specific part (tuple), but also the expectation-specific part.  I
-guess in most installations, 99.9% of all connections don't have a
-helper - and thus no expectations.
+> Cannot problems like these solved by allowing more=20
+> than one reservation per expectation to be registered?
 
-And to reply to your question: The tuple is part of the 'dynamic' part,
-along with other fields.
+The problem is, that then there is no atomicity.  They really need to be
+consecutive. =20
 
-> > net/ipv4/netfilter/nf_conntrack_ipv4.c
-> > - init()
-> >         - register with nf_conntrack core. tell it the size of the l4
->=20
-> I think it is not l4 but l3. Is this right ?
-yes, sorry.
+So from the implementation point of view: yes, they are multiple
+seperate reservations.  But from an API point of view, it should be a
+single call.
 
-> Actually, I already started implementing L3 independent conntrack....
-
-that is good news.  Your work is really appreciated.
-
-> I'll send the patches as snapshot when I finish debugging.
-> Or should I send them after I finish implementing above items ?
-
-If possible, I think it is good to have the development as open as
-possible.  It's not important that the code runs (or even compiles).
-But if your current status of development was public, other netfilter
-developers could have a look at the code and comment.
-
-If you are interested, we oould also put it in the netfilter.org CVS
-repository.
-
-> Regeards,
-> Yasuyuki KOZAKAI
+> --=20
+>   Regards,
+>     Krisztian KOVACS
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -117,16 +109,16 @@ repository.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---e5bfZ/T2xnjpUIbw
+--oxV4ZoPwBLqAyY+a
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/uk4aXaXGVTD0i/8RAmE0AJ0RWeTspvjz3N5JLEGf/c36xeonxwCfZaIv
-gHRdBWCJQVMJWILLyFHX7J4=
-=TrO0
+iD8DBQE/uk9+XaXGVTD0i/8RArcLAJ9F7HA4aEcS1PbPVM3D4B4WM1Uc5wCfXQ/4
+txfZDl3KEL0FLPJjqCDvQ/c=
+=ekN+
 -----END PGP SIGNATURE-----
 
---e5bfZ/T2xnjpUIbw--
+--oxV4ZoPwBLqAyY+a--
