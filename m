@@ -1,16 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: unresolved symbol ip_conntrack_find_get
-Date: 15 Sep 2003 13:22:19 +0200
+Subject: Re: Per session rule matching (TC)
+Date: 15 Sep 2003 13:24:14 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1063624939.2123.15.camel@henrik.marasystems.com>
-References: <20030911155756.50469.qmail@web14915.mail.yahoo.com>
+Message-ID: <1063625053.2123.17.camel@henrik.marasystems.com>
+References: <BAY3-F37iY6QYb6cnzu00038ebc@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: sanoj mg <sanoj_mg@yahoo.com>
-In-Reply-To: <20030911155756.50469.qmail@web14915.mail.yahoo.com>
+To: Avi Lipa <alipa_54@msn.com>
+In-Reply-To: <BAY3-F37iY6QYb6cnzu00038ebc@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,19 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-tor 2003-09-11 klockan 17.57 skrev sanoj mg:
-> hi all,
->        just been playing with netfilter. When I try to insmod a module
-> which uses
-> ip_conntrack_find_get , i am getting the error message : "unresolved
-> symbol -ip_conntrack_find_get" .
+s=F6n 2003-09-14 klockan 16.33 skrev Avi Lipa:
 
-What kernel and iptables are you using? This error should only be seen
-if you are using a old kernel with a old version of iptables.
+> I think that supporting a dedicated entry in ip_conntrack for cached qu=
+euing=20
+> discipline rule matching
+> is a capability that would improve performance for system where numerou=
+s of=20
+> classifiers are configured and
+> deals with multiple sessions.
+
+See the CONNMARK patch for one possible approach.
 
 Regards
 Henrik
 
--- 
+--=20
 Henrik Nordstrom <hno@marasystems.com>
 MARA Systems AB
