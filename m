@@ -1,12 +1,13 @@
-From: Russell Whitaker <russ@ashlandhome.net>
-Subject: bug report
-Date: Sat, 2 Aug 2003 11:10:45 -0700 (PDT)
+From: Jakub Bogusz <qboosh@pld-linux.org>
+Subject: [PATCH] endianess fix for ip_conntrack_amanda
+Date: Fri, 8 Aug 2003 10:46:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.53.0308021058060.423@bigred.russwhit.org>
+Message-ID: <20030808084605.GE22335@gruby.cs.net.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="mYCpIKhGyMATD0i+"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,33 +18,58 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hi
-Downloaded vers 1.2.8
 
-Executing this:
-  make KERNEL_DIR=/home/russ/linux-2.6.0-test2 > ../tmp 2>&1
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I got:
+I've sent it few days ago, but I can't see it in netfilter-devel
+archives, so I'm sending again...
 
-Extensions found: IPv4:recent IPv6:ah IPv6:esp IPv6:frag IPv6:ipv6header IPv6:hbh IPv6:dst IPv6:rt
-cc -O2 -Wall -Wunused -I/home/russ/linux-2.6.0-test2/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.8\"  -fPIC -o extensions/libipt_physdev_sh.o -c extensions/libipt_physdev.c
-extensions/libipt_physdev.c: In function `parse':
-extensions/libipt_physdev.c:86: `IPT_PHYSDEV_OP_MATCH_IN' undeclared (first use in this function)
-extensions/libipt_physdev.c:86: (Each undeclared identifier is reported only once
-extensions/libipt_physdev.c:86: for each function it appears in.)
-extensions/libipt_physdev.c:97: `IPT_PHYSDEV_OP_MATCH_OUT' undeclared (first use in this function)
-extensions/libipt_physdev.c: In function `print':
-extensions/libipt_physdev.c:144: `IPT_PHYSDEV_OP_MATCH_IN' undeclared (first use in this function)
-extensions/libipt_physdev.c:146: `IPT_PHYSDEV_OP_MATCH_OUT' undeclared (first use in this function)
-extensions/libipt_physdev.c: In function `save':
-extensions/libipt_physdev.c:156: `IPT_PHYSDEV_OP_MATCH_IN' undeclared (first use in this function)
-extensions/libipt_physdev.c:158: `IPT_PHYSDEV_OP_MATCH_OUT' undeclared (first use in this function)
-make: *** [extensions/libipt_physdev_sh.o] Error 1
+----- Forwarded message from Jakub Bogusz <qboosh@pld.org.pl> -----
+Date: Tue, 5 Aug 2003 21:06:57 +0200
+From: Jakub Bogusz <qboosh@pld.org.pl>
 
-Kernel 2.6.0-test2 seems to work OK but since don't want to run without a
-firewall went back to 2.4.21 for now.
 
-Suggestions? Fix? Patch?
+Hello,
 
-Thanks,
-  Russ
+I've just noticed that I probably missed one place (in ip_conntrack_amanda)
+when I was making fixes for big-endian archs in conntrack and nat modules
+by using C99 initializers in May, and it remained unfixed (at least in
+2.6.0-test2, where all other fixes are already merged; probably the same
+in 2.4.22-pre).
+
+So here is the missing element...
+
+
+-- 
+Jakub Bogusz    http://cyber.cs.net.pl/~qboosh/
+PLD Linux       http://www.pld-linux.org/
+
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="linux-netfilter-ip_conntrack_amanda-endian.patch"
+
+This is one more fix for big-endian problems in conntrack and nat modules,
+similar to those merged about two months ago (this one was missing).
+
+	Jakub Bogusz <qboosh@pld.org.pl>
+
+--- linux-2.6.0-test2/net/ipv4/netfilter/ip_conntrack_amanda.c.orig	2003-07-14 05:35:56.000000000 +0200
++++ linux-2.6.0-test2/net/ipv4/netfilter/ip_conntrack_amanda.c	2003-08-05 20:38:55.000000000 +0200
+@@ -133,11 +133,11 @@
+ 				{ { ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip,
+ 				    { 0 } },
+ 				  { ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip,
+-				    { htons(exp_amanda_info->port) },
++				    { .tcp = { htons(exp_amanda_info->port) } },
+ 				    IPPROTO_TCP }});
+ 			expect.mask = ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
+-				  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++				  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+ 
+ 			expect.expectfn = NULL;
+ 
+
+--mYCpIKhGyMATD0i+--
