@@ -1,15 +1,17 @@
-From: Filip Sneppe <filip.sneppe@gmail.com>
-Subject: Re: Iptables Match on Direction (IP_CT_IS_REPLY)
-Date: Sun, 27 Feb 2005 21:37:38 +0100
-Message-ID: <9151ac2a05022712376c099fb4@mail.gmail.com>
-References: <20050226124304.13105.qmail@web90010.mail.scd.yahoo.com>
-Reply-To: Filip Sneppe <filip.sneppe@gmail.com>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [1/1] ipt_osf: fix ipt_osf compilation on some distros.
+Date: Sun, 27 Feb 2005 20:39:52 +0300
+Message-ID: <20050227203952.6a2d1b84@zanzibar.2ka.mipt.ru>
+References: <1109308057.6728.54.camel@uganda> <4221F609.3060305@trash.net>
+	<20050227201020.289d1cbe@zanzibar.2ka.mipt.ru>
+	<4221FD46.50408@trash.net>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Peter Lenci <peterlenci@yahoo.ca>
-In-Reply-To: <20050226124304.13105.qmail@web90010.mail.scd.yahoo.com>
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4221FD46.50408@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +23,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Peter,
+On Sun, 27 Feb 2005 18:03:02 +0100
+Patrick McHardy <kaber@trash.net> wrote:
 
-On Sat, 26 Feb 2005 07:43:03 -0500 (EST), Peter Lenci
-<peterlenci@yahoo.ca> wrote:
-> Hi there
+> Evgeniy Polyakov wrote:
+> > Both patches will be sent in 2 next e-mails.
 > 
-> Is there a possibility to access flag IP_CT_IS_REPLY from an iptables
-> command?
-> 
-> I have only spotted the "--direction original|reply|both" option from
-> the connbytes patch
-> (http://www.netfilter.org/patch-o-matic/pom-extra.html#pom-extra-connbytes)
-> but then I would prefer not to waste memory by counting bytes.
-> 
+> Thanks. I'm having trouble accessing svn, I'll commit them when
+> it is working again.
 
-The "conntrack" match should do what you are looking for. From the help
-option:
+Thank you.
+Please inform me, so I could commit it into my trees.
 
-conntrack match v1.2.11 options:
- [!] --ctstate [INVALID|ESTABLISHED|NEW|RELATED|UNTRACKED|SNAT|DNAT][,...]
-				State(s) to match
- [!] --ctproto	proto		Protocol to match; by number or name, eg. `tcp'
-     --ctorigsrc  [!] address[/mask]
-				Original source specification
-     --ctorigdst  [!] address[/mask]
-				Original destination specification
-     --ctreplsrc  [!] address[/mask]
-				Reply source specification
-     --ctrepldst  [!] address[/mask]
-				Reply destination specification
- [!] --ctstatus [NONE|EXPECTED|SEEN_REPLY|ASSURED|CONFIRMED][,...]
-				Status(es) to match
- [!] --ctexpire time[:time]	Match remaining lifetime in seconds against
-				value or range of values (inclusive)
+> Regards
+> Patrick
 
-Regards,
-Filip
+
+	Evgeniy Polyakov
+
+Only failure makes us experts. -- Theo de Raadt
