@@ -1,12 +1,11 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 2.0 released
-Date: Thu, 2 Dec 2004 20:32:13 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0412022016180.29298@blackhole.kfki.hu>
+From: Sven Anders <anders@anduras.de>
+Subject: Reset conntrack...
+Date: Thu, 02 Dec 2004 23:09:53 +0100
+Message-ID: <41AF92B1.30802@anduras.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="------------050005070005060605010705"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org,
-	netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,35 +17,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------050005070005060605010705
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-I'm happy to announce ipset 2.0! If you want to
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-- store multiple IP addresses or port numbers and match against the
-  collection at one swoop;
-- dynamically update rules against IP addresses or ports without
-  performance penalty;
-- express complex IP address and port based rulesets with one single
-  iptables rule and benefit from the speed of IP sets
+Hello!
 
-then check out
+Is it possible to reset the conntrack list or set any entry to the state NEW to force
+a recheck against new filter rules?
 
-	http://people.netfilter.org/kadlec/ipset/
+The problem is:
 
-This is a major rewriting of the previous ipset version. The most
-important changes are
+~  If I set the (new) filtering rules with the target DROP, I want old
+~  (existing) connections to be dropped immediatly.
+~  The global rule '--state RELATED,ESTABLISHED' I set would still allow them...
 
-- Chaining of sets are changed: child sets replaced by bindings
-- Kernel-userspace communication reorganized to minimize the
-  number of syscalls
-- Save and restore functionality implemented
-- iphash type reworked: clashing resolved by double-hashing and by
-  dynamically growing the set.
+Regards
+~ Sven
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+- --
+~ Sven Anders <anders@anduras.de>
+
+~ ANDURAS service solutions AG
+~ Innstraße 71 - 94036 Passau - Germany
+~ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+
+Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
+Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
+Vorsitzender des Aufsichtsrats: Dipl. Kfm. Karlheinz Antesberger
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFBr5Kw5lKZ7Feg4EcRAsENAJ0XErp8VEr6vAIBUiyj9UM+Qm0gMgCdHQ4h
+QzBcNjCwn8da+HnPIaGjH+M=
+=cVzY
+-----END PGP SIGNATURE-----
+
+--------------050005070005060605010705--
