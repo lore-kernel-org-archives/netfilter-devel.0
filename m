@@ -1,34 +1,34 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: ipt_physdev.c alignment problems on parisc64
-Date: 16 Sep 2003 11:18:34 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <1063703910.5948.85.camel@henrik.marasystems.com>
-References: <200309022116.41697.bdschuym@pandora.be>
-	 <200309132159.37834.bdschuym@pandora.be>
-	 <20030915155903.12a3f95d.davem@redhat.com>
-	 <200309160805.08171.bdschuym@pandora.be>
-	 <20030915230259.79f5a545.davem@redhat.com>
+From: Diadon <diadon@isfera.ru>
+Subject: Netfilter problem with new 2.4.22
+Date: Tue, 16 Sep 2003 16:11:19 +0400
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3F66FDE7.3000908@isfera.ru>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Bart De Schuymer <bdschuym@pandora.be>, laforge@netfilter.org,
-   acme@conectiva.com.br, netfilter-devel@lists.netfilter.org,
-   netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: "David S. Miller" <davem@redhat.com>
-In-Reply-To: <20030915230259.79f5a545.davem@redhat.com>
-Errors-to: netdev-bounce@oss.sgi.com
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-tis 2003-09-16 klockan 08.02 skrev David S. Miller:
+After installing 2.4.22
+this chain doesn't work
+$IPPROG -A OUTPUT -p tcp --dport 113 -j REJECT --reject-with tcp-reset
 
-> Also, another solution could be to store the object inside the kernel
-> using a different structure, one where you can guarentee the alignment
-> of these things properly.
+On 2.4.21 all works fine
+In tcpdump on 2.4.21:
+14:41:41.752557 somehost.auth > somehost1.32825: R 0:0(0) ack 217583467
+win 0 (DF)
 
-unfortunately iptables does not allow such differences between userspace
-and kernel representation..
+In tcpdump on 2.4.22:
+nothing.......
 
--- 
-Henrik Nordstrom <hno@marasystems.com>
-MARA Systems AB
+
+any ideas?
