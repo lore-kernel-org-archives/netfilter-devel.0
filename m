@@ -1,13 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
 Subject: Re: [PATCH] for several issues
-Date: Sat, 27 Mar 2004 23:13:57 +0100 (CET)
+Date: Sat, 27 Mar 2004 23:38:22 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403272253530.23501-100000@filer.marasystems.com>
-References: <20040327211205.GB26945@sunbeam.de.gnumonks.org>
+Message-ID: <1080427101.26265.30.camel@tux.rsn.bth.se>
+References: <405992CD.1040707@eurodev.net>
+	 <20040327211205.GB26945@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Y5VNxki+9Tb5KIZicaP/"
 Cc: Pablo Neira <pablo@eurodev.net>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
 In-Reply-To: <20040327211205.GB26945@sunbeam.de.gnumonks.org>
@@ -21,61 +22,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 27 Mar 2004, Harald Welte wrote:
 
+--=-Y5VNxki+9Tb5KIZicaP/
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, 2004-03-27 at 22:12, Harald Welte wrote:
+
+> > c) ip_ct_refresh lock issue. The conntrack table is write_lock'ed to=20
+> > refresh a non-confirmed conntrack but this is not needed since it's not=
+=20
+> > inserted yet, so I consider that this lock is not needed. Actually=20
+> > playing with nfsim tells me that this condition only happens when a new=
+=20
+> > conntrack is created, and this conntrack is not inserted yet.
+>=20
 > Yes.  But isn't this optimization based on the assumption that
 > 'is_confirmed()' is an atomic operation?  What if it gets confirmed on a
 > second cpu, after is_confirmed() was called and before we refresh?
-> 
+>=20
 > Am I missing something?
 
-My understanding: 
+How did the second cpu get hold of our connection-entry that hasn't been
+inserted into the hashtable yet? :)
 
-If it is not confirmed it is not yet in the conntrack hash, as it is not 
-yet in the conntrack hash there can only be a single packet referencing 
-this ct, and if another packet is being processed on another CPU for the 
-same session before it is confirmed you will have one ct per packet, both 
-of which will be confirmed individually.
+I have a patch that makes ip_ct_refresh() lockfree. I just need to
+SMP-test it a bit more before I post it. It gives a fairly large
+performance increase even on UP kernels since it removes the call to
+local_bh_enable().
+And on SMP it sort of removes the only real serializing we have in
+conntrack for packets belonging to an existing connection. (we should go
+with something like the timer-handling patch Patrick Schaaf posted a
+long time ago (Subject: [PATCH][WORKSFORME] make add_timer rare) but
+this simple patch is a good first start)
 
-It is also my understanding that the same packet will not be processed by 
-both CPUs at the same time. Only one CPU will confirm the packet (and the 
-conntrack referenced by it).
+> You seem to be digging quite deep into the internals of
+> netfilter/iptables/ip_conntrack.  That's very welcome, we always need
+> more people who understand the complex code.  Would be nice to receive
+> more of your insights and optimizations.
 
+Yes we certainly do.
 
-Note: assured is a different thing, this can obviosuly happen 
-concurrently and should be expected to happen.
+--=20
+/Martin
 
-> In principle you're right.  The question is, whether it's worth
-> optimizing that case.  Maybe you can do a little analysis:  How many
-> direct or indirect calleers of ip_conntrack_get (or __ip_conntrack_get)
-> don't need ctinfo?  If it is just about connmark, I guess we can leave
-> it like it is.  But if a reasonable number of callers doesn't need it,
-> we could change it.
+--=-Y5VNxki+9Tb5KIZicaP/
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-My feeling is that it would be better to make ip_conntrack_get an inline
-and let the compiler nullify the ctinfo calculation where it is not
-needed. The only reason I see for ip_conntrack_get not being an inline is
-to have correct module dependencies which can almost ceratinly be solved
-in a better way.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-There is a few other callers that don't really need the ctinfo. Several of
-the other iptables extensions we have made just needs the conntrack (see
-ml archives), and in the tree there is
+iD8DBQBAZgJdWm2vlfa207ERAuGuAKC6ABd5cZsXyQWJy8wJfcjp2rlCgwCeJqTA
+8C1N2zwEsjd7ex9p1teArBw=
+=4+1L
+-----END PGP SIGNATURE-----
 
-  ipt_connlimit
-  ipt_connmark
-  ipt_CONNMARK
-  ipt_helper
-  ipt_MASQUERADE (only used in IP_NF_ASSERT)
-  ipt_NETMAP
-  ipt_REDIRECT (only used in IP_NF_ASSERT)
-  ipt_SAME
-
-
-Some of these could go good with similar IP_NF_ASSERT as is used in
-ipt_MASQUERADE and ipt_REDIRECT which is further evidence that the inline
-approach is the best path if one wants to optimize away the use of ctinfo
-when not needed.
- 
-Regards
-Henrik
+--=-Y5VNxki+9Tb5KIZicaP/--
