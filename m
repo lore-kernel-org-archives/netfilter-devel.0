@@ -1,16 +1,13 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: cttest-0.1
-Date: Sat, 6 Jul 2002 17:23:42 +0200
+From: "Reilly, John" <john@xelector.com>
+Subject: RE: Is it possible
+Date: Sat, 6 Jul 2002 16:15:41 +0100
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020706172342.H13116@oknodo.bof.de>
-References: <20020705165354.GD3729@aaricia.hemmet.chalmers.se> <53889.203.134.158.15.1025935801.squirrel@iw.k1k2.com> <20020706091259.F13116@oknodo.bof.de>
+Message-ID: <F54DD05BD063D411920200D0B77E68510131F133@mail.xelector.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C224FF.FDF30DA0"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
-Content-Disposition: inline
-In-Reply-To: <20020706091259.F13116@oknodo.bof.de>; from bof@bof.de on Sat, Jul 06, 2002 at 09:12:59AM +0200
+To: 'Peter Gosens' <ptha@mac.com>, netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,23 +18,90 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
-I have released http://bei.bof.de/cttest-0.2.tar.gz. It is now easier
-to modify the list of sizes and hashes that should be plotted, and
-there's timing code for the hash functions, together with average
-used list length analysis.
+------_=_NextPart_001_01C224FF.FDF30DA0
+Content-Type: text/plain;
+	charset="iso-8859-1"
 
-> Actually, I now have this nice <128-byte-icache snippet which computes the
-> next-smaller-prime, given any 32 bit unsigned. And it's fast.
+Since forwarding/proxying is based on hostname, it must be proxied based on
+application protocol (if the hostname is included into the protocol
+request/response).
+ 
+For http you can use apache with mod_proxy to do the proxying.  I'm not sure
+about https - I think I've heard that the different virtual servers in
+apache need different IP addresses for the certs to work correctly in all
+cases, but I'm not 100% sure about that.
+ 
+Cheers,
+jr
 
-If somebody wants to review this code, have a look at cttest-0.2/prime.c
+Is it possible to make iptables forward packets based on hostname. 
+ 
+I've one.cc.com and two.cc.com three.cc.com pointing to 213.93.43.28 . And I
+want that traffic with one.cc.com is going to 213.93.43.84. But the
+two.cc.com and three.cc.com traffic need to be forwarded to an internal
+network ip (suchs as 192.168.100.2).
+ 
+Is this possible with iptables. Or do I have to add an loadbalancer or use
+an proxy. I also thought about using ipv6, but it has an lack of supporting
+program's.
+ 
+If you have any other idea's about this matter. Please tell me.
+ 
+Peter Gosens
 
-The pictures at http://bei.bof.de/ex1/ have been updated to the produce
-of cttest-0.2.
 
-I'd like to see some runs from Athlon and Pentium4 systems, to compare
-the hash function timings.
+------_=_NextPart_001_01C224FF.FDF30DA0
+Content-Type: text/html;
+	charset="iso-8859-1"
 
-best regards
-  Patrick
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+
+<META content="MSHTML 5.00.2920.0" name=GENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=#ffffff>
+<DIV><FONT color=#0000ff face=Arial size=2><SPAN class=703390015-06072002>Since 
+forwarding/proxying is based on hostname, it must be proxied based on 
+application protocol (if the hostname is included into the protocol 
+request/response).</SPAN></FONT></DIV>
+<DIV><FONT color=#0000ff face=Arial size=2><SPAN 
+class=703390015-06072002></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT color=#0000ff face=Arial size=2><SPAN class=703390015-06072002>For 
+http you can use apache with mod_proxy to do the proxying.&nbsp; I'm not sure 
+about https - I think I've heard that the different virtual servers in apache 
+need different IP addresses for the certs to work correctly in all cases, but 
+I'm not 100% sure about that.</SPAN></FONT></DIV>
+<DIV><FONT color=#0000ff face=Arial size=2><SPAN 
+class=703390015-06072002></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT color=#0000ff face=Arial size=2><SPAN 
+class=703390015-06072002>Cheers,</SPAN></FONT></DIV>
+<DIV><FONT color=#0000ff face=Arial size=2><SPAN 
+class=703390015-06072002>jr</SPAN></FONT></DIV>
+<BLOCKQUOTE 
+style="BORDER-LEFT: #0000ff 2px solid; MARGIN-LEFT: 5px; MARGIN-RIGHT: 0px; PADDING-LEFT: 5px">
+  <DIV><FONT face=Arial size=2>Is it possible to make iptables forward packets 
+  based on hostname. </FONT></DIV>
+  <DIV><FONT face=Arial size=2></FONT>&nbsp;</DIV>
+  <DIV><FONT face=Arial size=2>I've one.cc.com and two.cc.com three.cc.com 
+  pointing to 213.93.43.28 . </FONT><FONT face=Arial size=2>And I want that 
+  traffic with one.cc.com is going to 213.93.43.84. But&nbsp;the two.cc.com and 
+  three.cc.com traffic need&nbsp;to be forwarded to an internal network ip 
+  (suchs as 192.168.100.2).</FONT></DIV>
+  <DIV><FONT face=Arial size=2></FONT>&nbsp;</DIV>
+  <DIV><FONT face=Arial size=2>Is this possible with iptables.&nbsp;Or do I have 
+  to&nbsp;add an loadbalancer or&nbsp;use an proxy. I also thought about using 
+  ipv6, but it has an&nbsp;lack of supporting program's.</FONT></DIV>
+  <DIV><FONT face=Arial size=2></FONT>&nbsp;</DIV>
+  <DIV><FONT face=Arial size=2>If you have any other idea's about this matter. 
+  Please tell me.</FONT></DIV>
+  <DIV><FONT face=Arial size=2></FONT>&nbsp;</DIV>
+  <DIV><FONT face=Arial size=2>Peter 
+Gosens</FONT></DIV></BLOCKQUOTE></BODY></HTML>
+
+------_=_NextPart_001_01C224FF.FDF30DA0--
