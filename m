@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH/RFC 1/2] optimization updating timer in connection
-	tracking
-Date: Mon, 20 Sep 2004 05:40:24 +0200
+Subject: Re: [PATCH 2/2] Cleanup returnvalues of protocolhandlers
+Date: Mon, 20 Sep 2004 10:11:41 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414E5128.3040204@trash.net>
-References: <414DFB56.1050503@eurodev.net>
+Message-ID: <414E90BD.6090005@trash.net>
+References: <1095597972.8380.16.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------010403010309070703050102"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <414DFB56.1050503@eurodev.net>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1095597972.8380.16.camel@tux.rsn.bth.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,39 +20,111 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
+This is a multi-part message in MIME format.
+--------------010403010309070703050102
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> Hi Patrick,
->
-> I think that I found something interesting reading kernel/timer.c some 
-> weeks ago, well I would like to know about this idea. The comment 
-> above mod_timer speaks by itself...
->
-> * mod_timer(timer, expires) is equivalent to:
-> *
-> *     del_timer(timer); timer->expires = expires; add_timer(timer);
-> *
-> * Note that if there are multiple unserialized concurrent users of the
-> * same timer, then mod_timer() is the only safe way to modify the 
-> timeout,
-> * since add_timer() cannot modify an already running timer.
-> *
-> * The function returns whether it has modified a pending timer or not.
-> * (ie. mod_timer() of an inactive timer returns 0, mod_timer() of an
-> * active timer returns 1.)
->
-> so I think that you could use mod_timer in 2.6 and remove that 
-> WRITE_LOCK when updating the timer, because it's there to serialize 
-> timer updates and now mod_timer controls this possible situation. I 
-> don't have a smp machine here but this week I'll look for a platform 
-> to test it.
->
-> If I'm missing something, please let me know.
+Martin Josefsson wrote:
 
-We can't use mod_timer because it will re-add a timer that
-already went off and dropped it's reference count to the conntrack.
-mod_timer is equivalent to del_timer(); add_timer(); but we do
-del_timer() && add_timer();
+>Hi Patrick
+>
+>Here's the second of two patches based on Pablo Neiras patch.
+>
+>This adds new defines to be returned from conntrack protocol modules in
+>order to make it clear what they want. Most importantly, they get rid of
+>the confusing mixing of positive and negative returnvalues.
+>
+
+We also need this patch on top of the last one to avoid ip_conntrack_in
+from returning CONNTRACK_CONT (-1) to nf_hook_slow.
 
 Regards
 Patrick
+
+>diff -urNp -x '*.orig' linux-2.6.9-rc1-bk16.stats/net/ipv4/netfilter/ip_conntrack_core.c linux-2.6.9-rc1-bk16/net/ipv4/netfilter/ip_conntrack_core.c
+>--- linux-2.6.9-rc1-bk16.stats/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-11 13:28:41.000000000 +0200
+>+++ linux-2.6.9-rc1-bk16/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-11 13:43:12.000000000 +0200
+>@@ -786,14 +786,14 @@ unsigned int ip_conntrack_in(unsigned in
+> 
+> 	proto = ip_ct_find_proto((*pskb)->nh.iph->protocol);
+> 
+>-	/* It may be an special packet, error, unclean...
+>-	 * inverse of the return code tells to the netfilter
+>-	 * core what to do with the packet. */
+>-	if (proto->error != NULL 
+>-	    && (ret = proto->error(*pskb, &ctinfo, hooknum)) <= 0) {
+>-		CONNTRACK_STAT_INC(error);
+>-		CONNTRACK_STAT_INC(invalid);
+>-		return -ret;
+>+	/* It may be an special packet, error, unclean... */
+>+	if (proto->error != NULL) {
+>+		ret = proto->error(*pskb, &ctinfo, hooknum);
+>+		if (ret != CONNTRACK_CONT) {
+>+			CONNTRACK_STAT_INC(error);
+>+			CONNTRACK_STAT_INC(invalid);
+>+			return ret;
+>+		}
+> 	}
+> 
+> 	if (!(ct = resolve_normal_ct(*pskb, proto,&set_reply,hooknum,&ctinfo))) {
+>@@ -811,16 +811,14 @@ unsigned int ip_conntrack_in(unsigned in
+> 	IP_NF_ASSERT((*pskb)->nfct);
+> 
+> 	ret = proto->packet(ct, *pskb, ctinfo);
+>-	if (ret < 0) {
+>-		/* Invalid: inverse of the return code tells
+>-		 * the netfilter core what to do*/
+>+	if (ret != CONNTRACK_CONT) {
+> 		nf_conntrack_put((*pskb)->nfct);
+> 		(*pskb)->nfct = NULL;
+> 		CONNTRACK_STAT_INC(invalid);
+>-		return -ret;
+>+		return ret;
+> 	}
+> 
+>-	if (ret != NF_DROP && ct->helper) {
+>+	if (ct->helper != NULL) {
+> 		ret = ct->helper->help(*pskb, ct, ctinfo);
+> 		if (ret == -1) {
+> 			/* Invalid */
+>
+>  
+>
+
+
+--------------010403010309070703050102
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/09/20 10:05:19+02:00 kaber@coreworks.de 
+#   [NETFILTER]: Fix invalid return values from ip_conntrack_in
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# net/ipv4/netfilter/ip_conntrack_core.c
+#   2004/09/20 10:04:56+02:00 kaber@coreworks.de +1 -1
+#   [NETFILTER]: Fix invalid return values from ip_conntrack_in
+#   
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 10:08:05 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-20 10:08:05 +02:00
+@@ -767,7 +767,7 @@
+ 	if (set_reply)
+ 		set_bit(IPS_SEEN_REPLY_BIT, &ct->status);
+ 
+-	return ret;
++	return NF_ACCEPT;
+ }
+ 
+ int invert_tuplepr(struct ip_conntrack_tuple *inverse,
+
+--------------010403010309070703050102--
