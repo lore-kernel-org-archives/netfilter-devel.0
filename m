@@ -1,19 +1,24 @@
-From: Brad Fisher <brad@info-link.net>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Fri, 14 Jan 2005 10:27:06 -0600
-Message-ID: <41E7F2DA.608@info-link.net>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
-	<20050114143722.GA10088@ti64.telemetry-investments.com>
-	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
-	<Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nf_conntrack [was Re: [PATCH 1/4] RFC: fast string
+ matching	infrastrure for netfilter]
+Date: Fri, 14 Jan 2005 18:52:18 +0100
+Message-ID: <41E806D2.6040108@trash.net>
+References: <41E1AECD.6020209@eurodev.net> <41E1B9F1.7010106@trash.net>	
+	<Pine.LNX.4.58.0501102041430.28819@blackhole.kfki.hu>	
+	<41E2E631.3060102@trash.net>	
+	<20050110212807.GZ18568@sunbeam.de.gnumonks.org>	
+	<41E73258.7030002@trash.net>
+	<1105686102.7311.101.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Samuel Jean <sj-netfilter@cookinglinux.org>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <1105686102.7311.101.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,34 +30,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
+Rusty Russell wrote:
 
+>It was IRC, and for IPv6 I agree with Harald that it's probably not the
+>right mechanism.  I prefer a simple discriminated union and two slab
+>caches (IPv4 and IPv6), which is hardcoded, but still fairly easy to
+>read.
+>  
 >
-> -        packet_local_time = skb->stamp.tv_sec;
-> +    /* We might not have a timestamp, get one */
-> +    if (skb->stamp.tv_sec == 0)
-> +        do_gettimeofday((struct timeval *)&skb->stamp);
+Sounds good.
+
+>Does that mean I should *not* send the expectation and NAT patches to
+>DaveM now?  (Posted before the ct_extend patches):
 >
->      /* First we make sure we are in the date start-stop boundaries */
-> -    if ((packet_local_time < info->date_start) || (packet_local_time 
-> > info->date_stop))
-> +    if ((skb->stamp.tv_sec < info->date_start) || (skb->stamp.tv_sec 
-> > info->date_stop))
->          return 0; /* We are outside the date boundaries */
->
-I'd like to see the above like become:
+No, I just meant we need to stop at some point some so nf_conntrack has a
+chance of beeing resynced.
 
-+    if ((skb->stamp.tv_sec >= info->date_start) && (skb->stamp.tv_sec 
-<= info->date_stop))
-         return 0; /* We are outside the date boundaries */
-
-This will have the same logic in most situations, and fix a problem with 
-the time match where you need 2 rules to match something like all times 
-between 20:00-04:00 (ie. the start time is "greater" than the end 
-time).  I've used something similar for years and enjoy not needing 
-multiple rules for this.  I also have a patch (and I believe I've 
-submitted it in the past) for grabbing the kernel time if no time is 
-known (and with that patch, or what's being discussed here, I believe 
-the time match should work in any chain).
-
--Brad Fisher
+Regards
+Patrick
