@@ -1,12 +1,10 @@
-From: "A. van Schie" <a.van.schie@quicknet.nl>
-Subject: Stange ip_conntrack (newnat) behaviour.
-Date: Sun, 2 Jun 2002 10:45:10 +0200
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: [PATCH] Compile fixes
+Date: 02 Jun 2002 16:01:04 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206020845.g528jCj06987@mint.home.net>
+Message-ID: <veg005rd9b.fsf@inigo.ingate.se>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
@@ -21,46 +19,81 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-I have switched almost a month ago to kernel-2.4.18 (from 2.4.8) with netfilters (cvs update around 2002/04/31) 'newnat'.
->From that moment on I got dropped packets on excisting tcp connectings.
-After I added logging of NEW tcp connections,
-I saw something strange that I think comes from ip_conntrack.
+some fixes to make current CVS compile properly.
 
-I'm using conntrack-state to filter my packets. 
-A simple version of my rules look like this:
-  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-  iptables -A OUTPUT -m state --state NEW -p tcp --destination-port 110 -j log+accept
-  ...
-  iptables -A OUTPUT -j log+drop
+Changes
+* Fix typo in ipt_ecn.h
+* Make connmark match and target compile with NO_SHARED_LIBS=1
+* Make POOL target compile with NO_SHARED_LIBS=1
 
-  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-  iptables -A INPUT -j log+drop
 
-What I see with ULOG is the following:
-+------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
-| id   | prefix     | in   | out  | time            | saddr  | sport | daddr  | dport | ip_csum | ip_id | ip_fragoff | tcp_seq    | tcp_ackseq | tcp_ack | tcp_syn |
-+------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
-| 8603 | ACCEPT-NEW |      | eth1 | 18:38:10.389606 | client | 38136 | server |   110 |       0 |     0 |          0 | 4080432246 |          0 |    NULL |       1 |
-| 8604 | ACCEPT-NEW |      | eth1 | 18:38:10.389606 | client | 38136 | server |   110 |   21509 | 13068 |          0 | 4080432246 |          0 |    NULL |       1 |
-| 8605 | DROPPED    | eth1 |      | 18:38:10.397096 | server |   110 | client | 38136 |   62367 | 56184 |      16384 | 3577899487 | 4080432247 |       1 |    NULL |
-| 8606 | ACCEPT-NEW |      | eth1 | 18:38:16.389606 | client | 38136 | server |   110 |   21508 | 13069 |          0 | 4080432246 |          0 |    NULL |       1 |
-| 8607 | DROPPED    | eth1 |      | 18:38:16.403816 | server |   110 | client | 38136 |   62365 | 56186 |      16384 | 3577899487 | 4080432247 |       1 |    NULL |
-| 8608 | ACCEPT-NEW |      | eth1 | 18:39:55.286423 | client | 38137 | server |   110 |    1024 |     0 |          0 | 4184019953 |          0 |    NULL |       1 |
-+------+------------+------+------+-----------------+--------+-------+--------+-------+---------+-------+------------+------------+------------+---------+---------+
-All other fields are equal.
+Index: userspace/include/linux/netfilter_ipv4/ipt_ecn.h
+===================================================================
+RCS file: /cvsroot/netfilter/userspace/include/linux/netfilter_ipv4/ipt_ecn.h,v
+retrieving revision 1.1
+diff -u -u -r1.1 ipt_ecn.h
+--- userspace/include/linux/netfilter_ipv4/ipt_ecn.h	29 May 2002 15:12:30 -0000	1.1
++++ userspace/include/linux/netfilter_ipv4/ipt_ecn.h	2 Jun 2002 13:46:07 -0000
+@@ -9,7 +9,7 @@
+ */
+ #ifndef _IPT_ECN_H
+ #define _IPT_ECN_H
+-#include <linux/netfilter_ipv4/ipt_dcsp.h>
++#include <linux/netfilter_ipv4/ipt_dscp.h>
+ 
+ #define IPT_ECN_IP_MASK	(~IPT_DSCP_MASK)
+ 
+Index: userspace/patch-o-matic/base/ecn.patch
+===================================================================
+RCS file: /cvsroot/netfilter/userspace/patch-o-matic/base/ecn.patch,v
+retrieving revision 1.1
+diff -u -u -r1.1 ecn.patch
+--- userspace/patch-o-matic/base/ecn.patch	29 May 2002 15:10:11 -0000	1.1
++++ userspace/patch-o-matic/base/ecn.patch	2 Jun 2002 13:46:07 -0000
+@@ -13,7 +13,7 @@
+ +*/
+ +#ifndef _IPT_ECN_H
+ +#define _IPT_ECN_H
+-+#include <linux/netfilter_ipv4/ipt_dcsp.h>
+++#include <linux/netfilter_ipv4/ipt_dscp.h>
+ +
+ +#define IPT_ECN_IP_MASK	(~IPT_DSCP_MASK)
+ +
+Index: userspace/extensions/libipt_CONNMARK.c
+===================================================================
+RCS file: /cvsroot/netfilter/userspace/extensions/libipt_CONNMARK.c,v
+retrieving revision 1.2
+diff -u -r1.2 libipt_CONNMARK.c
+--- userspace/extensions/libipt_CONNMARK.c	29 May 2002 13:08:16 -0000	1.2
++++ userspace/extensions/libipt_CONNMARK.c	2 Jun 2002 13:47:09 -0000
+@@ -146,6 +146,7 @@
+ 	}
+ }
+ 
++static
+ struct iptables_target mark
+ = { NULL,
+     "CONNMARK",
+Index: userspace/extensions/libipt_connmark.c
+===================================================================
+RCS file: /cvsroot/netfilter/userspace/extensions/libipt_connmark.c,v
+retrieving revision 1.3
+diff -u -r1.3 libipt_connmark.c
+--- userspace/extensions/libipt_connmark.c	29 May 2002 13:08:16 -0000	1.3
++++ userspace/extensions/libipt_connmark.c	2 Jun 2002 13:47:09 -0000
+@@ -107,6 +107,7 @@
+ 		  ((struct ipt_connmark_info *)match->data)->invert, 0);
+ }
+ 
++static
+ struct iptables_match mark
+ = { NULL,
+     "connmark",
 
-What I find strange is that it starts with 2 almost the same packets (except for ip_id), 
-and that they both get the conntrack state NEW!
-And that the first response (I think) does not get the conntrack state ESTABLISHED because it's dropped!
-And a few seconds later it happens again (normally it not happens agian on the same connecting).
+*
 
-I see no syslog-messages at that time.
-
-I think there is a problem in conntrack, 
-maybe the newnat patch or the "double packet" is introduced in the kernel.
-
-Can someone tell me what is going wrong, and/or how to solve it.
-
+//Marcus
 -- 
-Andries van Schie
-Let's make the linux-world a safer place to live in ;-)
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Firewall Developer, Ingate Systems AB |  http://www.ingate.com/
