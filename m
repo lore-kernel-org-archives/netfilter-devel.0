@@ -1,16 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: /proc/net/ip_conntrack
-Date: Wed, 30 Jun 2004 18:32:23 +0200 (CEST)
+From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+Subject: RE: Problems using libipq/QUEUE
+Date: Wed, 30 Jun 2004 20:03:32 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406301831470.12023-100000@filer.marasystems.com>
-References: <40E2C206.1070302@eurodev.net>
+Message-ID: <200406301704.i5UH4EMX025110@madinah.ccse.kfupm.edu.sa>
+References: <Pine.LNX.4.44.0406301857210.12023-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: =?ISO-8859-1?Q?Daniel_Corr=EAa_de_Azevedo?= <nielca@linkexpress.com.br>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter List" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40E2C206.1070302@eurodev.net>
+To: "'Henrik Nordstrom'" <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0406301857210.12023-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +22,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 30 Jun 2004, Pablo Neira wrote:
+I am simply using the same example in the manpage. The nfmark is being used
+within the libipq application program (status = ipq_set_verdict(h,
+m->packet_id,
+                                                         NF_ACCEPT, 0,
+NULL);.
 
-> >   Any way, what do you think about this? Does it sound like nonsense (I've just my first 
-> >contact with LKM...) or it maybe possible? 
+Still it doesn't seem to work
+Regards,
+
+Muhammad R. Sami 
+Research Assistant, 
+Computer Engineering Department 
+P.O.Box 354 
+King Fahd University of Petroleum & Minerals 
+Dhahran 31261 
+Saudi Arabia. 
+Tel: +96638601423 
+Cell: +96657982951 
+www.ccse.kfupm.edu.sa/sami
+
+-----Original Message-----
+From: Henrik Nordstrom [mailto:hno@marasystems.com] 
+Sent: Wednesday, June 30, 2004 7:59 PM
+To: Muhammad R. Sami
+Cc: Netfilter List
+Subject: Re: Problems using libipq/QUEUE
+
+On Wed, 30 Jun 2004, Muhammad R. Sami wrote:
+
+> iptables -A OUTPUT -p icmp -j QUEUE
 > 
-> you should forget your thoughts about the /proc interface and start 
-> understanding some ip_conntrack internal to replicate the information to 
-> some backup's machines.
+> Now this should queue all originating ping packets and then depending on
+the
+> NF mark action will be taken. But it seems that regardless of the NF mark,
+> all icmp traffic is blocked. As I remove the above rule from the iptables,
+> things work fine.
 
-Or even better yet look into the already ongoing project implementing such 
-interface to conntrack.
+You don't seem to be using the nfmark in this simple ruleset...
 
 Regards
 Henrik
