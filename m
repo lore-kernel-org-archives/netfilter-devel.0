@@ -1,19 +1,18 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: Re: conntrack performance/DoS formula
-Date: Mon, 1 Jul 2002 10:49:15 -0700
+From: Michael Shuey <shuey@fmepnet.org>
+Subject: Re: NAT and locally bound sockets
+Date: Mon, 1 Jul 2002 13:46:15 -0500
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15648.38427.807689.794217@isis.cs3-inc.com>
-References: <20020628082339.I2890@oknodo.bof.de>
-	<20020630103131.X4136@oknodo.bof.de>
-	<15647.24217.324807.354846@isis.cs3-inc.com>
-	<200207011007.25108.hno@marasystems.com>
+Message-ID: <20020701184615.GA13296@lucky>
+References: <20020529164926.GA9003@gort.ecn.purdue.edu> <20020530153247.I7658@sunbeam.de.gnumonks.org> <20020701163232.GB7090@lucky> <200207011859.39589.hno@marasystems.com>
+Reply-To: shuey@purdue.edu
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.samba.org
+Cc: Harald Welte <laforge@gnumonks.org>,
+	netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <200207011007.25108.hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <200207011859.39589.hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -24,29 +23,34 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom writes:
- > Don Cohen wrote:
- > 
- > > On a related subject, I'm worried that UNREPLIED might not mean
- > > what I think it does.  Your data contains things like:
- > >  tcp 6 387070 ESTABLISHED src=9.163.211.64 dst=165.130.71.38 sport=3228
- > >  dport=1301 [UNREPLIED] src=165.130.71.38 dst=9.163.211.64 sport=1301
- > >  dport=3228 use=1
- > > How can one half of the connection be established while the other half
- > > is unreplied?
- > 
- > The ESTABLISHED indicates the TCP state, UNREPLIED indicates the conntrack 
- > state. This is a TCP session that has only seen ACK in one direction, no 
- > packets in the other.
- > 
- > Almost related note: The connection is not ASSURED.
+On Mon, Jul 01, 2002 at 06:59:39PM +0200, Henrik Nordstrom wrote:
+> > would be just fine; however, with a high level of traffic the NAT system
+> > would occaisionally select a srcport that was already in use by the NFS
+> > client local to natbox.  That's not fine - it causes quite a few NFS
+> 
+> This is handled fine in all tests I have done provided your SNAT rule applies 
+> to both forwarded and locally originating packets.
 
-I'm having trouble making sense of your explanation above.
-This line is supposed to describe a single connection, right?
-Established as a tcp state means the three packet handshake is
-complete?  But that seems to contradict the unreplied.
+First, why would I want to SNAT locally originating packets?  Second, are
+you telling me that netfilter _does_ check to see if a port is locally bound
+before using it for a translation?
 
-Is there any doc for stuff like this?
-- how to read the lines above
-- what exactly these things (unreplied, assured, established ...) mean
-- can I match on ASSURED ?
+> If however your UDP nat entries times out from conntrack, which they can 
+> easily do for a idle NFS mount, then all bets is off.. The default udp 
+> timeout is only 180 seconds which is not by far sufficient for multi-client 
+> NAT of NFS. A typical case where conntrack by default cannot easily know a 
+> suitable timeout without additional information.
+
+The problem is not that UDP NAT entries are timing out from conntrack.  The
+problem is that SNAT'd NFS connections are stealing packets bound for the
+nat host.  As near as I can tell the NAT code will occaisionally select a
+srcport that's already in use by a client local to the natbox.  For more
+information, check the posting at the URL I mailed to the list earlier.
+
+If my problems were caused by UDP nat entried timing out from conntrack, why
+did all my problems disappear when I SNAT'd the connections through an IP
+alias?  I didn't change the timeout, so if your assumption were correct I
+would still have NFS issues.
+
+-- 
+Mike Shuey
