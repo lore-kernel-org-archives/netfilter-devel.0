@@ -1,13 +1,16 @@
-From: "Wei Ming Long" <WEI_Ming_Long@dsi.a-star.edu.sg>
-Subject: Iptables usage
-Date: Mon, 20 Oct 2003 17:31:22 +0800
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: ctnetlink questions
+Date: Mon, 20 Oct 2003 11:37:57 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <sf941bf0.062@GWIA>
+Message-ID: <Pine.LNX.4.44.0310201133040.23768-100000@filer.marasystems.com>
+References: <20031020071545.GA21521@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031020071545.GA21521@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,17 +21,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 20 Oct 2003, Harald Welte wrote:
 
-Hi everyone,
-I need your helpfollowed the instructions in "Transparent Proxy with Linux
-and Squid
-mini-HOWTO" but when my client machines specify 'direct connection' or 'do
-not
-use proxy' in their network settings, the transparent proxy doesn't workly
-when my client machines specify a proxy other than my own proxy, then the
-transparent proxy works. Why is this so? 
+> again, this seems a shortcoming of the netlink infrastructure.  This
+> would be much better, if we'd actually have a reference to the socket of
+> the userspace process (since table dumps could be unicast anyway...).
 
-Please help. Thanks.
+If it is a shortcoming of netlink or a shortcoming of how to reliably dump 
+the content of a large hash buckets can be argued, but I tend to agree 
+with you here.
 
-Best regards
-Matthew
+The dump operation should be connetion oriented with the userspace 
+application, not purely datagram based. The kernel should know for certain 
+if the userspace application terminates a dump operation mid-air.
+
+Regards
+Henrik
