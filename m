@@ -1,12 +1,12 @@
-From: "Andrew Hall" <temp02@bluereef.com.au>
-Subject: ipsec with SNAT
-Date: Fri, 18 Mar 2005 18:29:54 +1100
-Message-ID: <019901c52b8c$47932a90$5001010a@bluereef.local>
+From: Vinay Reddy <vinayvinay@gmail.com>
+Subject: reverse NATing
+Date: Fri, 18 Mar 2005 13:07:33 +0530
+Message-ID: <537f59d10503172337941a6a4@mail.gmail.com>
+Reply-To: Vinay Reddy <vinayvinay@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,38 +19,16 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
+I would like to know where exactly reverse mapping(packets coming from
+outside to the internal network) is done in the case of SNAT? From the
+netfilter documentation, it seems to be done in the POST_ROUTING hook.
+Is it true?
+Logically I would expect the packet to be reverse mapped in the
+pre-routing state itself. Why would one want to reverse map it in post
+routing? I am sure I am missing something. Could anyone please
+enlighten me?
 
-On 11th March Rob Borger wrote a request to add:
+Any help would be appreciated.
 
->
-I changed the "xfrm_policy_check" function in
-"./include/net/xfrm.h" to allow forwarding if
-the "decap_done" flag is set.
-
-Then I made this change to "xfrm.h":
-
-static inline int xfrm_policy_check(struct sock *sk, int dir, struct sk_buff
-*skb, unsigned short family)
-{
-  if (sk && sk->sk_policy[XFRM_POLICY_IN])
-    return __xfrm_policy_check(sk, dir, skb, family);
-
-  return(!xfrm_policy_list[dir] && !skb->sp) ||
-    (skb->sp && skb->sp->decap_done) || /* Added this line */
-    (skb->dst->flags & DST_NOPOLICY) ||
-    __xfrm_policy_check(sk, dir, skb, family);
-}
->
-I think he was trying to get SNAT working through an ipsec tunnel. Can 
-someone please confirm if this patch is required, and/or if SNAT should 
-currently work with Patrick's ipsec patches (and policy match) applied to 
-stock 2.6.10?
-
-Can someone also please explain how the ipsec policy match is meant to work 
-in relation to forcing NAT. Is --pol ipsec supposed to match packets that 
-have or will be subject to encryption? An example would be good for marking 
-packets to be SNATTed through the tunnel.
-
-Thanks,
-
-Andrew. 
+Regards,
+Vinay
