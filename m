@@ -1,11 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 12/19]: Enable ip6t_multiport.c to work without
-	skb_linearize()
-Date: Mon, 25 Oct 2004 02:49:45 +0200
+Subject: [PATCH 2.6 14/19]: Fix warning in CONNMARK
+Date: Mon, 25 Oct 2004 02:49:52 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <417C4DA9.3090901@trash.net>
+Message-ID: <417C4DB0.3090206@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040701020008080505030004"
+Content-Type: multipart/mixed; boundary="------------010207030005010508030209"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -20,82 +19,50 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040701020008080505030004
+--------------010207030005010508030209
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Convert ip6t_multiport to skb_header_pointer.
+Fix warning in CONNMARK:
+net/ipv4/netfilter/ipt_CONNMARK.c:63: warning: suggest parentheses 
+around arithmetic in operand of ^
 
 
 
---------------040701020008080505030004
+--------------010207030005010508030209
 Content-Type: text/x-patch;
- name="12.diff"
+ name="14.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="12.diff"
+ filename="14.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/10/20 21:33:37+02:00 yasuyuki.kozakai@toshiba.co.jp 
-#   [NETFILTER]: Enable ip6t_multiport.c to work without skb_linearize()
+#   2004/10/24 16:16:40+02:00 tgraf@suug.ch 
+#   [NETFILTER]: Fix warning in CONNMARK
 #   
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Thomas Graf <tgraf@suug.ch>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv6/netfilter/ip6t_multiport.c
-#   2004/10/20 21:33:00+02:00 yasuyuki.kozakai@toshiba.co.jp +18 -13
-#   [NETFILTER]: Enable ip6t_multiport.c to work without skb_linearize()
+# net/ipv4/netfilter/ipt_CONNMARK.c
+#   2004/10/24 16:16:34+02:00 tgraf@suug.ch +1 -1
+#   [NETFILTER]: Fix warning in CONNMARK
 #   
-#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Thomas Graf <tgraf@suug.ch>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/net/ipv6/netfilter/ip6t_multiport.c b/net/ipv6/netfilter/ip6t_multiport.c
---- a/net/ipv6/netfilter/ip6t_multiport.c	2004-10-22 03:41:35 +02:00
-+++ b/net/ipv6/netfilter/ip6t_multiport.c	2004-10-22 03:41:35 +02:00
-@@ -56,24 +56,29 @@
-       unsigned int protoff,
-       int *hotdrop)
- {
--	const struct udphdr *udp = (const struct udphdr *)(skb->data + protoff);
-+	u16 _ports[2], *pptr;
- 	const struct ip6t_multiport *multiinfo = matchinfo;
- 
--	/* Must be big enough to read ports. */
--	if (offset == 0 && skb->len - protoff < sizeof(struct udphdr)) {
-+	/* Must not be a fragment. */
-+	if (offset)
-+		return 0;
-+
-+	/* Must be big enough to read ports (both UDP and TCP have
-+	   them at the start). */
-+	pptr = skb_header_pointer(skb, protoff, sizeof(_ports), &_ports[0]);
-+	if (pptr == NULL) {
- 		/* We've been asked to examine this packet, and we
--		   can't.  Hence, no choice but to drop. */
--			duprintf("ip6t_multiport:"
--				 " Dropping evil offset=0 tinygram.\n");
--			*hotdrop = 1;
--			return 0;
-+		 * can't.  Hence, no choice but to drop.
-+		 */
-+		duprintf("ip6t_multiport:"
-+			 " Dropping evil offset=0 tinygram.\n");
-+		*hotdrop = 1;
-+		return 0;
- 	}
- 
--	/* Must not be a fragment. */
--	return !offset
--		&& ports_match(multiinfo->ports,
--			       multiinfo->flags, multiinfo->count,
--			       ntohs(udp->source), ntohs(udp->dest));
-+	return ports_match(multiinfo->ports,
-+			   multiinfo->flags, multiinfo->count,
-+			   ntohs(pptr[0]), ntohs(pptr[1]));
- }
- 
- /* Called when user tries to insert an entry of this type. */
+diff -Nru a/net/ipv4/netfilter/ipt_CONNMARK.c b/net/ipv4/netfilter/ipt_CONNMARK.c
+--- a/net/ipv4/netfilter/ipt_CONNMARK.c	2004-10-25 01:13:43 +02:00
++++ b/net/ipv4/netfilter/ipt_CONNMARK.c	2004-10-25 01:13:43 +02:00
+@@ -60,7 +60,7 @@
+ 		break;
+ 	    case IPT_CONNMARK_RESTORE:
+ 		nfmark = (*pskb)->nfmark;
+-		diff = (ct->mark ^ nfmark & markinfo->mask);
++		diff = (ct->mark ^ nfmark) & markinfo->mask;
+ 		if (diff != 0) {
+ 		    (*pskb)->nfmark = nfmark ^ diff;
+ 		    (*pskb)->nfcache |= NFC_ALTERED;
 
---------------040701020008080505030004--
+--------------010207030005010508030209--
