@@ -1,20 +1,13 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: Re: iptables as a state machine
-Date: Fri, 01 Oct 2004 13:33:52 -0700
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] note owner match brokenness
+Date: Fri, 1 Oct 2004 13:44:47 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1096662832.23645.4.camel@localhost.localdomain>
-References: <20040930193955.6fa24afc.davem@davemloft.net>
-	<61687.63.170.215.71.1096602469.squirrel@www.osdl.org>
-	<20040930210127.0ac9623c.davem@davemloft.net>
-	<415D1437.6030503@hipac.org>
-	<20041001124608.6a6b374c.davem@davemloft.net>
+Message-ID: <20041001204447.GA30390@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Heinz <creatix@hipac.org>, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="fUYQa+Pmc3FrFX/N"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20041001124608.6a6b374c.davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,23 +18,44 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2004-10-01 at 12:46 -0700, David S. Miller wrote:
-> On Fri, 01 Oct 2004 10:24:23 +0200
-> Thomas Heinz <creatix@hipac.org> wrote:
-> 
-> > Your statement about the algorithmic approach of nf-hipac
-> > is wrong.
-> 
-> Thanks for the correction.
-> 
-> > This approach was already considered very early in history
-> > of packet classification. Even more complex matchings as
-> > context free grammars have been used. Nonetheless, even
-> > regular expressions have been found to not being able to
-> > cope with high performance demands of todays rule bases.
-> 
-> Any pointers to papers on this topic?
 
-Current state described here:
+--fUYQa+Pmc3FrFX/N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-http://www.netfilter.org/documentation/conferences/nf-workshop-2004-summary.html#AEN525
+Someone recently complained in bugzilla that the note about owner
+match being broken on SMP took hours to find because it was in
+syslog instead of userspace.  Hopefully the below patch will
+save others some time.
+
+This closes bugzilla #244
+
+Phil
+
+
+
+--fUYQa+Pmc3FrFX/N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-owner
+
+diff -ru ipt-orig/extensions/libipt_owner.c ipt-new/extensions/libipt_owner.c
+--- ipt-orig/extensions/libipt_owner.c	2004-06-14 15:02:17.000000000 -0700
++++ ipt-new/extensions/libipt_owner.c	2004-10-01 13:36:50.779263920 -0700
+@@ -22,6 +22,7 @@
+ "[!] --pid-owner processid  Match local pid\n"
+ "[!] --sid-owner sessionid  Match local sid\n"
+ "[!] --cmd-owner name       Match local command name\n"
++"NOTE: pid, sid and command matching are broken on SMP\n"
+ "\n",
+ IPTABLES_VERSION);
+ #else
+@@ -31,6 +32,7 @@
+ "[!] --gid-owner groupid    Match local gid\n"
+ "[!] --pid-owner processid  Match local pid\n"
+ "[!] --sid-owner sessionid  Match local sid\n"
++"NOTE: pid and sid matching are broken on SMP\n"
+ "\n",
+ IPTABLES_VERSION);
+ #endif /* IPT_OWNER_COMM */
+
+--fUYQa+Pmc3FrFX/N--
