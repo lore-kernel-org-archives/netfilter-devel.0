@@ -1,15 +1,20 @@
-From: Roberto Nibali <ratz@drugphish.ch>
-Subject: Re: slog target status
-Date: Wed, 08 Jan 2003 00:13:56 +0100
+From: don-nf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: iptables u32 match code for review/testing/...
+Date: Tue, 7 Jan 2003 22:41:05 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E1B5F34.1080801@drugphish.ch>
-References: <m3vg1asglq.fsf@beagle.ton.tut.fi>
+Message-ID: <15899.51201.381520.438520@isis.cs3-inc.com>
+References: <200212271854.gBRIsf131987@isis.cs3-inc.com>
+	<20030106125720.GF9467@sunbeam.de.gnumonks.org>
+	<15897.46884.822054.847738@isis.cs3-inc.com>
+	<20030107185748.GV9467@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Don Cohen <don-nf@isis.cs3-inc.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Antti Siiskonen <antti.siiskonen@tut.fi>
+To: 
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20030107185748.GV9467@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,44 +25,85 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Antti,
+Harald Welte writes (two separate msgs):
+  > /* *** What's this about?
+  >    Must fit inside union ipt_matchinfo: 16 bytes */
+  What do you mean by this?
+That was a comment I found in one of the other match modules
+(which I used as a template for this one).
+I didn't understand it so I thought I better keep it and flag it.
+If you don't know what it's about I guess it's safe to discard it.
 
-Sorry for the late reply but I took a hiatus after having spent several 
-weeks in the hospital.
+  > /* *** any way to allow for an arbitrary number of elements?
+  >    for now I settle for a limit of 10 of each */
+  no way. At least not with the current kernel/userspace interface :(
+Ok, then I'll leave it at 10x10x10 (perhaps a lot of overhead for
+a single match?)
 
->>http://www.drugphish.ch/patches/roman/slog-kernel-2.4.18.diff
-> 
-> The patch adds a slog target to the kernel which provides exactly the
-> functionality requested in the quoted mail. All connections matching
-> the rule with slog target are logged with connection specific byte and
-> packet counters when the connection is deleted from the connection
-> tracking mechanism.
-> 
-> I'm very interested in this patch. I'm curious if the patch has been
-> updated in any way and also if the user space tools have been patched
-> to include this target. All information on the subject is very
-> welcome, I'd love to play around with this. Also if there are other
-> patches with the same objectives, please let me know.
+ > I like the content (code/implementation/idea of having u32).
+ > The only issue is that it doesn't really fit into the current iptables
+ > architecture. Why?
+ > 	- because it is a whole classification engine on it's own
+Why is this bad?  I wrote it to do things I wanted to do but didn't
+see how.  I think that's good.  If it subsumes a few others that are
+out there, even better.  (But it's almost certainly a lot slower than 
+any more specialized match, so they're still useful.)
 
-Yes, Roman has sent me an update to that patch which addresses most of 
-the issues Harald and me were having at the time of its first drop. He's 
-currently doing his diploma thesis and sitting some exams so I will be 
-responsible for the patch.
+ > 	- because it has an arbitrary [variable] amount of match data
+At the moment, a large fixed amount.  I regard that as a fault of
+current iptables, though.
 
-Unfortunately I also have different priorities at the moment so I can't 
-do much work on the SLOG target. I've made the latest drop available at:
+ > Those issues are not possible to resolve, unfortunately.
 
-http://www.drugphish.ch/patches/roman/slog-kernel-devel11.diff
-http://www.drugphish.ch/patches/roman/slog-userspace-r3.diff
+ ...
+ > > Was the indentation a problem?  The tabs were all 8 spaces, but
+ > > perhaps you want wider indentation?
+ > no, but look at the structure definitions in your header file.
+Oops.  The "no" above suggests that you don't mind the narrow
+indentation, in which case not only the .h file but the earlier
+versions of the .c files were ok except for the few misplaced }'s.
 
-Unfortunately we haven't forward ported it to newer kernels and the user 
-space patch is against 1.2.6a of iptables. Another problem is that I 
-lost track of the ctnetlink status so I don't know how quick I can adapt 
-the changes into the SLOG patch. Nevertheless it should give you 
-something to play with. Your testing and reporting would be very 
-valuable to me.
+But if you do want wide indentation (and don't mind >80 cols)
+then here you go:
 
-Sorry for the inconvenience and best regards,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
+====
+#ifndef _IPT_U32_H
+#define _IPT_U32_H
+#include <linux/netfilter_ipv4/ip_tables.h>
+
+enum ipt_u32_ops
+{
+	IPT_U32_AND,
+	IPT_U32_LEFTSH,
+	IPT_U32_RIGHTSH,
+	IPT_U32_AT
+};
+
+struct ipt_u32_location_element
+{
+	u_int32_t number;
+	u_int8_t nextop;
+};
+struct ipt_u32_value_element
+{
+	u_int32_t min;
+	u_int32_t max;
+};
+/* *** any way to allow for an arbitrary number of elements?
+   for now I settle for a limit of 10 of each */
+#define U32MAXSIZE 10
+struct ipt_u32_test
+{
+	u_int8_t nnums;
+	struct ipt_u32_location_element location[U32MAXSIZE+1];
+	u_int8_t nvalues;
+	struct ipt_u32_value_element value[U32MAXSIZE+1];
+};
+
+struct ipt_u32
+{
+	u_int8_t ntests;
+	struct ipt_u32_test tests[U32MAXSIZE+1];
+};
+
+#endif /*_IPT_U32_H*/
