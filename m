@@ -1,51 +1,49 @@
-From: alex <alex@bennee.com>
-Subject: Should forwarded packets ever hit the OUTPUT chain?
-Date: 08 Nov 2002 08:31:50 +0000
-Sender: netfilter-admin@lists.netfilter.org
-Message-ID: <1036744310.2708.64.camel@trent.nin>
+From: Wilson Padovani =?ISO-8859-1?Q?J=FAnior?= <admin@netmogi.com.br>
+Subject: Re: Problem using REDIRECT and SO_ORIGINAL_DST
+Date: Thu, 07 Nov 2002 17:49:26 GMT
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20021107.17492673@mis.configured.host>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org
-Errors-To: netfilter-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-As I understood it forwarded packets never went over the OUTPUT chain,
-the OUTPUT chain is only to filter what local processes send out. In
-trying to debug my firewall (see earlier message on the user list) I can
-see the final rule of my to-lan chain (attached to output) dropping
-packets when the incomming web connection hangs. My to-lan chain is set
-up like this:
+Balazs Scheidler wrote:
+>
+> inet_ntoa() uses a static buffer to format its result, you are calling=
 
-    # Filters for stuff going to the LAN. About the only things we need to make
-    # sure is that existing connections are maintained (see from-lan).
-    # its more or less a mirror of from-lan
+> inet_ntoa three times which all work on the same buffer -> the result =
+of=20
+the
+> last invocation will be used three times.
+>
+> try writing 3 printf() statements, or copy the result of inet_ntoa()=20=
 
-    # maintain any existing ssh connections (cannot make new connections)
-    /sbin/iptables -A to-lan -d $TRENT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
-    # return any icmp stuff to TRENT
-    /sbin/iptables -A to-lan -d $TRENT -p icmp -j ACCEPT
-    # allow name resolution
-    /sbin/iptables -A to-lan -d $ZHEER -p tcp --dport 53 -j ACCEPT
-    /sbin/iptables -A to-lan -d $ZHEER -p udp --dport 53 -j ACCEPT
-    # log stuff
-    /sbin/iptables -A to-lan -m limit -j LOG --log-prefix "[Dropped to-lan]"
-    /sbin/iptables -A to-lan -j DROP
-    # enable to-lan
-    /sbin/iptables -A OUTPUT -o $INTIF -j to-lan
+to a
+> private buffer, or create your own inet_ntoa() function.
+>
+> --
+> Bazsi
+> PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E=20=
 
-I'm womdering if the filtering based on output interface could be the
-problem? Perhaps triggering a netfilter bug?
+C82C 8EB1
 
--- 
-Alex@Bennee.com
-http://www.bennee.com/~alex/
+Thanks Bazsi.
+
+    I changed the code to use 3 printf() statements, as you said, and=20=
+
+it worked. I was expecting an error on my program, but not something=20=
+
+stupid like that!!
+
+Wilson.
