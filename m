@@ -1,15 +1,12 @@
-From: Ben Reser <ben@reser.org>
-Subject: Re: Security flaw in Stateful filtering ??????
-Date: Fri, 7 Jun 2002 15:02:56 -0700
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [PATCH] small optimization in __ip_conntrack_find()
+Date: 08 Jun 2002 01:00:59 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020607220256.GT28055@titanium.brain.org>
-References: <E17G6im-0000FK-00@wagner.rustcorp.com.au> <3D006B9E.1040809@cs.auc.dk>
+Message-ID: <1023490707.19838.14.camel@tux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-5dK3oTvNUcaaAdgNpqgW"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
-In-Reply-To: <3D006B9E.1040809@cs.auc.dk>
+To: Netfilter-devel <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,30 +17,45 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jun 07, 2002 at 10:15:26AM +0200, Emmanuel Fleury wrote:
-> Precisely.
-> 
-> Actually, my exact complain is now that the documentation is not
-> making you awared of what you are exactly doing...
-> 
-> Somehow, this is dangerous and can lead you to have a flaw in your
-> firewall without being awared of it.
-> 
-> Moreover, most of the papers, articles, and web pages about Netfilter
-> are wrong about this.
 
-So submit a patch to the documentation.  One of the very first emails to
-answer your original post said that a patch to the documentation would
-be accepted and probably applied promptly.
+--=-5dK3oTvNUcaaAdgNpqgW
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-The issue is understood.  No point in going on and on and on about how
-the documentation is wrong in your opinion.  Spend your time fixing it
-instead of bitching about it.
+Hi,
+
+Attached is a small optimization for __ip_conntrack_find().
+The way I read the use of the LIST_FIND macro it seems that we are
+calling hash_conntrack() for each iteration with the same inparameters.
+
+My change calls it once before looping.
 
 -- 
-Ben Reser <ben@reser.org>
-http://ben.reser.org
+/Martin
 
-We tend to see all wars through the lens of the current conflict, and we
-mine history for lessons convenient to the present purpose.
-- Brian Hayes
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
+
+--=-5dK3oTvNUcaaAdgNpqgW
+Content-Disposition: attachment; filename=ip_conntrack_core.c-find-diff
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; name=ip_conntrack_core.c-find-diff; charset=ISO-8859-15
+
+--- linux-2.4.19-pre10/net/ipv4/netfilter/ip_conntrack_core.c.orig	Sat Jun =
+ 8 00:48:59 2002
++++ linux-2.4.19-pre10/net/ipv4/netfilter/ip_conntrack_core.c	Sat Jun  8 00=
+:49:56 2002
+@@ -292,9 +292,10 @@
+ 		    const struct ip_conntrack *ignored_conntrack)
+ {
+ 	struct ip_conntrack_tuple_hash *h;
++	size_t hash =3D hash_conntrack(tuple);
+=20
+ 	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
+-	h =3D LIST_FIND(&ip_conntrack_hash[hash_conntrack(tuple)],
++	h =3D LIST_FIND(&ip_conntrack_hash[hash],
+ 		      conntrack_tuple_cmp,
+ 		      struct ip_conntrack_tuple_hash *,
+ 		      tuple, ignored_conntrack);
+
+--=-5dK3oTvNUcaaAdgNpqgW--
