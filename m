@@ -1,17 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [ANNOUNCE] call for testing of patch-o-matic-ng
-Date: Sun, 29 Feb 2004 11:25:06 +0100 (CET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: condition and 2.6
+Date: Sun, 29 Feb 2004 12:07:11 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402291121270.25361-100000@filer.marasystems.com>
-References: <20040229101116.GA10012@pcw.home.local>
+Message-ID: <20040229110711.GJ7790@sunbeam.de.gnumonks.org>
+References: <200402290210.35962.lists@egidy.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-   Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nqkreNcslJAfgyzk"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Willy TARREAU <willy@w.ods.org>
-In-Reply-To: <20040229101116.GA10012@pcw.home.local>
+To: gerd@egidy.de
+Content-Disposition: inline
+In-Reply-To: <200402290210.35962.lists@egidy.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,51 +22,70 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 29 Feb 2004, Willy TARREAU wrote:
 
->   - first, I didn't find how to specify where my iptables sources is
->     installed, so I had to enter it by hand each time I restarted it.
->     I did not find any env variable in the perl code, and I must say
->     that my understanding of perl is, hmmm.. very limited.
+--nqkreNcslJAfgyzk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There is a --path= option which can specify the path to both iptables and 
-the kernl.
+On Sun, Feb 29, 2004 at 02:10:35AM +0100, Gerd v. Egidy wrote:
+> Hi Harald,
+>=20
+> I'm currently using the condition match on a lot of 2.4 machines. I use i=
+t to=20
+> differentiate between primary provider/secondary provider, remote=20
+> administration on/off,...=20
+> I like it very much because I don't need to change the rules themselves i=
+n a=20
+> live production environment anymore and can therefore make my scripts muc=
+h=20
+> more rule-independant.
+>=20
+> Now I was playing around a bit with 2.6 and found the following comment f=
+rom=20
+> you in cvs: "made it 2.4.x only, since I don't like it anyway."
 
->   - ROUTE and TRACE told me :
->     "unable to find ladd slot in src /usr/src/linux-2.4.25-pomng/./net/ipv6/Makefile"
->     I think they wanted to add a line in the Makefile but didn't find
->     the right place to do so. BTW, is there a way to install a patch
->     only for ipv4 or for ipv6 like before ?
+This comment is meant as:
 
-Please try with the large patch of .ladd files I posted on netfilter-devel 
-yesterday.
+"Since nobody provided us with a 2.6.x port yet, and I have very limited
+time for such porting, and I personnaly dislike the condition match
+anyway, I marked it as 2.4.x only - since the 2.4.x patch doesn't work
+for 2.6.x"
 
->   - I observed usual conflicts :
->     present 'CONNMARK' conflicts with to-be-installed 'connbytes'
->     present 'raw' conflicts with to-be-installed 'conntrack-seqfile'
->     present 'CONNMARK' conflicts with to-be-installed 'conntrack_arefcount'
+> What do you dislike? Is it the idea or the implementation? Do you know of=
+ any=20
+> bugs or possible problems in the code - especially with 2.6?
 
-Yes.
+The idea of having /proc files control how the ruleset behaves.  This is
+an ugly kludge for our less-than-optimal ruleset change performance.
+Apart from that I cannot really see why this has to be solved in the
+kernel and not by some userspace daemon that updates the ruleset
+whenever a change is needed.
 
->   - and finally, trying to apply conntrack_locking litterally killed my
->     box in out of memory within a few tens of seconds (I could not even
->     run ps) :
->       Out of Memory: Killed process 9841 (runme).
->       Out of Memory: Killed process 9970 (ps).
->       Out of Memory: Killed process 159 (bash).
->       Out of Memory: Killed process 158 (bash).
-> 
->     Since conntrack_locking needs conntrack_arefcount which could not
->     be applied, I wonder if there's some problem resolving dependancies.
+> Kind regards,
+> Gerd
 
-Not unlikely.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Applying "extra" blindly is not recommended. There is reasons to why a 
-patch is in "extra", and many of these extensions conflict with each 
-other.
+--nqkreNcslJAfgyzk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-If you want patches from extra you better name the patches you want 
-explicily, after applying the base set.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-Regards
-Henrik
+iD8DBQFAQcffXaXGVTD0i/8RAjGrAJ99JInYzYgSHRzlm7XAgN30nHoKngCfSgvy
+4DDzZEoj9mJfnFv+bleglSA=
+=/2i1
+-----END PGP SIGNATURE-----
+
+--nqkreNcslJAfgyzk--
