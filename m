@@ -1,10 +1,11 @@
 From: Andras Kis-Szabo <kisza@securityaudit.hu>
-Subject: [PATCH] libip6t_tcp
-Date: Mon, 8 Jul 2002 09:56:51 +0200
+Subject: Re: bug in ip6tables-save ?
+Date: Mon, 8 Jul 2002 09:59:16 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020708095651.A17100@sch.bme.hu>
+Message-ID: <20020708095916.C17100@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="pWyiEgJYm5f9v55/"
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
 Content-Disposition: inline
@@ -18,14 +19,18 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+vanuxem gregory ..................................... (2002. július 06.)
 
---pWyiEgJYm5f9v55/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+ Hi!
 
-Hi,
 
-2 misstyping bug in libip6t_tcp.c.
+> -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE -j
+> log-and-drop 
+> result:
+> -A INPUT -s ::/0 -d ::/0 -p tcp -m tcp NONE/FIN,SYN,RST,PSH,ACK,URG
+> -j log-and-drop 
+It has been fixed in the CVS.
+http://cvs.netfilter.org/cgi-bin/cvsweb/netfilter/userspace/extensions/libip6t_tcp.c.diff?r1=1.6&r2=1.7&f=u
 
 Regards,
 
@@ -35,30 +40,3 @@ Regards,
     Andras Kis-Szabo       Security Development, Design and Audit
 -------------------------/        Zorp, NetFilter and IPv6
  kisza@SecurityAudit.hu /-----Member of the BUTE-MIS-SEARCHlab---------->
-
---pWyiEgJYm5f9v55/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="tcp6.20020708"
-
---- netfilter.old/userspace/extensions/libip6t_tcp.c	Mon Jul  8 09:44:13 2002
-+++ netfilter/userspace/extensions/libip6t_tcp.c	Mon Jul  8 09:47:52 2002
-@@ -143,7 +143,7 @@
- {
- 	unsigned int ret;
- 
--	if (string_to_number(option, 1, 266, &ret) == -1)
-+	if (string_to_number(option, 1, 255, &ret) == -1)
- 		exit_error(PARAMETER_PROBLEM, "Bad TCP option `%s'", option);
- 
- 	*result = (u_int8_t)ret;
-@@ -371,7 +371,7 @@
- 	const struct ip6t_tcp *tcpinfo = (struct ip6t_tcp *)match->data;
- 
- 	if (tcpinfo->spts[0] != 0
--	    && tcpinfo->spts[1] != 0xFFFF) {
-+	    || tcpinfo->spts[1] != 0xFFFF) {
- 		if (tcpinfo->invflags & IP6T_TCP_INV_SRCPT)
- 			printf("! ");
- 		if (tcpinfo->spts[0]
-
---pWyiEgJYm5f9v55/--
