@@ -1,15 +1,21 @@
-From: "Robbert" <hanbo163com@163.com>
-Subject: Re: Some one knows how to implement policy routing with iptables?
-Date: Sat, 28 Aug 2004 14:58:24 +0800
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: tc filtering vs iptables
+Date: Sat, 28 Aug 2004 09:08:40 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <000e01c48ccc$6bd0a770$8e5f78ca@nic.ecnu.edu.cn>
-References: <7C9884991ADAE0479C14F10C858BCDF591E362@alderaan.smgtec.com>
+Message-ID: <Pine.LNX.4.61.0408280855001.17572@filer.marasystems.com>
+References: <1093614389.1068.20.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0408271751360.32691@filer.marasystems.com>
+	<1093632324.14188.2.camel@jzny.localdomain>
+	<20040827201137.GB9274@ti64.telemetry-investments.com>
+	<1093638474.14190.29.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0408280154210.10193@filer.marasystems.com>
+	<1093656940.1078.25.camel@jzny.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: jamal <hadi@cyberus.ca>
+In-Reply-To: <1093656940.1078.25.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,23 +26,59 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-SWYgdGhlcmUgYXJlIHNvbWUgd2F5IHRvIGFycmFuZ2UgdGhlIHJ1bGVzIGluIGlwdGFibGVzIHNv
-cnRlZCwgc28gdGhlIGFkbWluaXN0cmF0b3IgZG8gbm90IGJvcnRoZXIgd2l0aCB3aGljaCBydWxl
-cyBoZSBhZGRlZCBmaXJzdCBhbmQgd2hpY2ggbGFzdCAsIHRoaXMga2luZCBvZiB0aGluZyBtYWtl
-IHNlbnNlID8NCkFuZCxzaW5jZSB0aGUgUk9VVEUgdGFyZ2Ugbm93IGNhbiBvbmx5IGxldCB1cyBz
-cGVjaWZ5IHRoZSBpbnRlcmZhY2UgYW5kIHRoZSBnYXRld2F5ICwgdGhlbiBpZiB0aGVyZSBpcyBh
-IHdheSBjYW4gbGV0IHVzIHNwZWNpZnkgdGhlIHJvdXRlIHRhYmxlLCBzbyB3ZSBkbyBOT1QgbmVl
-ZCB0byBtYXJrIHRoZSBwYWNrZXQgZmlyc3QgdGhlbiBmaW5kIHRoZSBpcCBydWxlcyxyb3V0ZSB0
-YWJsZSx0aGVuIHRoZSBuZXh0IGhvcCBhbmQgd2UgY2FuIHJvdXRpbmcgZmFzdGVyLkRvZXMgdGhp
-cyB0aG91Z2h0IHZlcnkgd2VpcmQ/SXMgaXQgdmFsdWFibGU/DQotLS0tLSBPcmlnaW5hbCBNZXNz
-YWdlIC0tLS0tIA0KVmVyeSB0cnVlLCB0aGUgb25seSB0aGluZyBJJ2QgYWRkIGlzIHRoYXQgTmV0
-ZmlsdGVyIGl0c2VsZiB3YXMgbmV2ZXINCmRlc2lnbmVkIHRvIGJlIGEgcHJpb3JpdHkgYmFzZWQg
-cG9saWN5IHRvb2wuIFRDIGFscmVhZHkgZG9lcyB0aGlzDQpjb21wb25lbnQuIFRoZSBhZHZhbnRh
-Z2Ugb2YgTmV0ZmlsdGVyIGlzIHRoYXQgaXRzIGEgZmFidWxvdXMgY2xhc3NpZmllci4NClVzaW5n
-IE5ldGZpbHRlciBpbiBjb25qdW5jdGlvbiB3aXRoIFRDIGlzIGFsbW9zdCBtYW5kaXRvcnkgZm9y
-IGNvbXBsZXgNCmFuZCBzcGVjaWFsIFFPUyByZXF1aXJlbWVudHMuIENoZWNrIG91dCBsYXJ0Yy5v
-cmcgZm9yIG1vcmUgaW5mb3JtYXRpb24NCm9uIFFPUyBhbmQgcm91dGluZy4NCg0KQXMgZm9yIHRo
-ZSBST1VURSB0YXJnZXQsIEkndmUgaGFkIG1peGVkIHJlc3VsdHMgbXlzZWxmLiBUaGUgUk9VVEUg
-dGFyZ2V0DQphIGxvdCBlYXNpZXIgdG8gc2V0dXAvdW5kZXJzdGFuZCB0aGFuIHRoZSBpcCByb3V0
-ZSBiYXNlZCBwb2xpY3kgcm91dGluZywNCmJ1dCBpdCBsYWNrcyBtdWNoIG9mIHRoZSBmbGV4aWJp
-bGl0eSB0aGF0IHRoZSBsYXR0ZXIgb2ZmZXJzLg0K
+On Sat, 27 Aug 2004, jamal wrote:
+
+> A single web server (TCP port 80) connected to by upto 64K different
+> clients.
+> The reason i chose this simple setup is because i can plot its lookups
+> easily and write simple scripts to install rules.
+> So end goal: stash many rules in both u32 and iptables and check
+> results.
+
+This test case is an exact match for using ippool/ipset. You then stash 
+all the client IP addresses into the pool and use a single iptable rule 
+with very good performance mostly independent on the number of IP 
+addresses.
+
+iptables -d ip.of.web.server -p tcp --dport -m pool --srcpool webserver -j ACCEPT
+iptables -d ip.of.web.server -p tcp --dport -m pool -j REJECT
+
+> In this example setup src IP and src TCP port are always looked up in
+> the case of u32 and only when a match happens are the packets let
+> through - by default they are dropped. In the case of iptables, only the
+> src IP is looked up (didnt wanna add any overhead).
+
+The overhead of looking up the destination ip and tcp port is minimal. Can 
+easily be done at the head of your lookup tree
+
+iptables -d ip.of.web.server -p tcp --dport 80 -j WEBSERVER
+
+then have the match tree for the client source IP addresses in WEBSERVER. 
+Remember to terminate each subchain with a REJECT/DROP in case there is no 
+match.
+
+> While all that traffic is being sent add then delete a totaly unrelated
+> rule. Two metrics:
+> 1) what packet rates are observed during add/del?
+
+With iptables there should not be much difference, except that the higher 
+the packet load the slower the change take.
+
+If you use ippool then the overhead of this operation is considerably 
+less.
+
+> 2) how many times/sec can you do this? (essentially this could be used
+> to simulate opening and closing peepholes maybe even in a midcom kind
+> environment)
+>
+> I will present my results at SUCON.
+
+Looking forward to see your results.
+
+
+
+How do you optimize this kind of lookups using u32?
+
+
+Regards
+Henrik
