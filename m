@@ -1,77 +1,57 @@
-From: Olaf Kirch <okir@suse.de>
-Subject: [PATCH] Kernel oops in ip6t_LOG.c:ip6_nexthdr
-Date: Thu, 26 Aug 2004 13:35:39 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040826113538.GE15409@suse.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [RFC] ct_sync 0.15 (corrected)
+Date: Thu, 26 Aug 2004 13:39:33 +0200 (CEST)
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <Pine.LNX.4.58.0408261333510.17019@blackhole.kfki.hu>
+References: <1092407190.2402.120.camel@nienna.balabit>
+	<20040819110646.GJ3921@sunbeam.de.gnumonks.org>
+	<1092917551.2425.28.camel@nienna.balabit>
+	<Pine.LNX.4.58.0408261015001.16945@blackhole.kfki.hu>
+	<1093518747.2447.16.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="24zk1gE8NUlDmwG9"
-Cc: netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <1093518747.2447.16.camel@nienna.balabit>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
-
-
---24zk1gE8NUlDmwG9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
 Hi,
 
-We just ran into a kernel oops after enabling ipv6 packet filtering.
-The machine would choke on the IGMPv6 packets sent out when the
-interface is taken up. The reason is this code:
+On Thu, 26 Aug 2004, KOVACS Krisztian wrote:
 
-                /*stupid rfc2402 */
-                case IPPROTO_DSTOPTS:
-                case IPPROTO_ROUTING:
-                case IPPROTO_HOPOPTS:
-                        nexthdr = **hdrptr;
-                        hdrlen = *hdrptr[1] * 8 + 8;
-			         ^^^^^^^^^^ it dies here
-                        *hdrptr = *hdrptr + hdrlen;
-                        break;
+> > We could add the expect function to the ip_conntrack_helper structure and
+> > identify it by the helper name in the update messages. The unregistered
+> > helper in the H.323 conntrack/nat module could be registered with an
+> > invalid, never matching port and let the expect function handle it as
+> > before (because the real port is dynamic). I think that'd be sufficient in
+> > solving the replication problem.
+>
+>   Sounds good. This way the could replicate the expectfn function along
+> with the conntrack helper structure, and the unregistered helpers could
+> be handled as well. Although this might be a bit more complicated than
+> the current solution, but if we have to do some evil magic to handle
+> H.323, we should do that in a ct_sync compatible manner if possible...
 
-hdrptr is a u_int8_t **. What you really want to do here is
-look at (*hdrptr)[1], but what the expression does is look at
-*(hdrptr[1]). Unfortunately, hdrptr[1] is usually random garbage.
+Because the so far unregistered H.323 helper were registered, that would
+be fully ct_sync compatible, without the need to modify anyting in
+ct_sync. The core/ct_sync should be modified for the expectn only and
+that's a general requirement, independent of the H.323 helper.
 
-The attached patch fixes this.
-
-Olaf
--- 
-Olaf Kirch     |  The Hardware Gods hate me.
-okir@suse.de   |
----------------+ 
-
---24zk1gE8NUlDmwG9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=netfilter6-logging
-
-Prevent oopses when logging IGMPv6 packets and similar.
-
-Index: linux-2.6.5/net/ipv6/netfilter/ip6t_LOG.c
-===================================================================
---- linux-2.6.5.orig/net/ipv6/netfilter/ip6t_LOG.c
-+++ linux-2.6.5/net/ipv6/netfilter/ip6t_LOG.c
-@@ -55,7 +55,7 @@ static u_int8_t ip6_nexthdr(u_int8_t cur
- 		repeatedly...with a large stick...no, an even LARGER
- 		stick...no, you're still not thinking big enough */
- 			nexthdr = **hdrptr;
--			hdrlen = *hdrptr[1] * 4 + 8;
-+			hdrlen = (*hdrptr)[1] * 4 + 8;
- 			*hdrptr = *hdrptr + hdrlen;
- 			break;
- 		/*stupid rfc2402 */
-@@ -63,7 +63,7 @@ static u_int8_t ip6_nexthdr(u_int8_t cur
- 		case IPPROTO_ROUTING:
- 		case IPPROTO_HOPOPTS:
- 			nexthdr = **hdrptr;
--			hdrlen = *hdrptr[1] * 8 + 8;
-+			hdrlen = (*hdrptr)[1] * 8 + 8;
- 			*hdrptr = *hdrptr + hdrlen;
- 			break;
- 		case IPPROTO_FRAGMENT:
-
---24zk1gE8NUlDmwG9--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
