@@ -1,17 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Netbios problem with NAT
-Date: Wed, 23 Jul 2003 14:15:12 +0200
+From: Shlomi Fish <shlomif@vipe.technion.ac.il>
+Subject: Netfilter Project for Adoption: IP-Noise Simulator
+Date: Thu, 24 Jul 2003 12:29:18 +0300 (IDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030723121512.GL3733@naboo>
-References: <BAY5-F38OUbYAGeZNeH00001598@hotmail.com>
+Message-ID: <Pine.LNX.4.56.0307241224590.14555@vipe.technion.ac.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="it/zdz3K1bH9Y8/E"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Song Wang <song_wang@msn.com>
-Content-Disposition: inline
-In-Reply-To: <BAY5-F38OUbYAGeZNeH00001598@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,50 +18,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---it/zdz3K1bH9Y8/E
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The IP-Noise Simulator is a simulator for noise at the IP level for the
+Linux kernel or as a standalone program. I am looking for a new maintainer
+for the project:
 
-On Tue, Jul 22, 2003 at 12:00:25AM -0700, Song Wang wrote:
-> Hi,
->=20
-> I found a problem with netbios when 2 Windows PCs behind a NAT router try=
-=20
-> to access the same shared directory on the Windows server sitting on
-> the other side of the NAT router.  (kernel 2.4.17 w/ iptables 1.2.7a)
+http://www-comnet.technion.ac.il/~cn1w02/
 
-why did you ever think that this would work?  Even the microsoft
-knowledge base contains an article that you'd need some kind of special
-NAT support for it, in order to mangle the contents of the netbios
-packets.
+IP-Noise Simulator is open-source software. The original parts are dually
+licensed under the GPL/MIT X11 license, and two derived modules are GPL
+and LGPL.
 
-> Could this be a problem of netbios with connection tracking? Maybe we nee=
-d=20
-> to write a nat helper module for netbios?
+Regards,
 
-yes, indeed. A nat helper would be required.  Patches welcome.
+	Shlomi Fish
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---it/zdz3K1bH9Y8/E
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+----------------------------------------------------------------------
+Shlomi Fish        shlomif@vipe.technion.ac.il
+Home Page:         http://t2.technion.ac.il/~shlomif/
 
-iD8DBQE/HnxPXaXGVTD0i/8RAsFpAJ9CB5WrKUO9ZMSgMkUAxAWmYuQn0wCgiGUz
-UoX/yfPJO0oJNXPbVzVBPIA=
-=m335
------END PGP SIGNATURE-----
+An apple a day will keep a doctor away. Two apples a day will keep two
+doctors away.
 
---it/zdz3K1bH9Y8/E--
+	Falk Fish
