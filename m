@@ -1,13 +1,13 @@
-From: Venkatesh Prasad Ranganath <vranganath@cox.net>
-Subject: question about ipt_table_info structure.
-Date: Thu, 12 Dec 2002 04:23:36 -0600
+From: Mateusz Golicz <mtg@elsat.net.pl>
+Subject: [BUG] nth match: using more than 1 counter
+Date: Sat, 7 Dec 2002 04:58:17 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DF863A8.1080206@cox.net>
+Message-ID: <20021207035817.GA15544@fouk.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,45 +18,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I am using netfilter/iptables (1.2.7a) in a project (which may end up 
-contributing to netfilter/iptable branch if it succeeds).  Hence, I was 
-browsing the kernel space netfilter/iptables code.  I am able to follow 
-the code except for a few glitches.
+Hello,
 
-1> What is the purpose of underflow field in ipt_replace?  Where is it used?
-2> What is the purpose of term field in struct initial_table in 
-iptables_filter.c?  Where is it used?
-3> What is the purpose of ipt_replace structure?  Where is it used?
-4> What is the purpose of table field in ipt_table?  It is not used at 
-any time during filtering.  (or am I wrong about this?)  If it is used, 
-where is it used?
-5> Is it correct to say that ACCEPT, DROP, QUEUE, and RETURN are the 
-builtin targets?
+  The userspace part of the nth match (BTW, quite an useful one)
+seems to be a bit broken. (at least in the CVS version from the
+WWW frontend (don't know if there are any other ones ;), i'm
+new to netfilter developement): http://cvs.netfilter.org/cgi-bin/cvsweb/~checkout~/netfilter/userspace/extensions/libipt_nth.c)
 
-Also, can someone comment if my understanding of part of 
-netfilter/iptable as given below is correct.
-"Each rule that can be added via iptables command is represented via a 
-set of data rather than a single piece of data.  Each criterion to be 
-satisfied for the entire rule to be satisfied is represented as a match. 
- If all of the match/criterion are satisfied then target (linked at the 
-end of the sequence of matches) associated with the rule is executed. 
- Hence, there is only one target with a rule, but may be multiple matches."
+around line 102, in parse(), there is a fragment doing some
+checks concerning the --every option:
 
-Finally, are there any documents that discuss the performance of and 
-issues related (if any) to netfilter/iptables?  In particular, I am 
-looking for documents which may have identified bottlenecks or have 
-pointers to locations in which to look for such opportunities. Benchmark 
-results and/or test run results would also be helpful.  I am just piggy 
-backing this last question along with the others and I would understand 
-if someone replied "google would be a good place to start" ;-)
+--- CUT ---
+                nthinfo->packet = 0xFF;
+                if(!(*flags & IPT_NTH_OPT_EVERY))
+                {
+                        nthinfo->counter = 0;
+                }
+--- CUT ---
 
-waiting for reply,
+... but actually, the IPT_NTH_OPT_EVERY flag is
+set only in this function, but after this part. So, if
+you specify --every after --counter, the previous nthinfo->counter
+will be always lost, which will make the match behave quite improperly in
+case you use more than a one counter... i guess this check should be
+something like:
 
+--- CUT ---
+--- extensions/libipt_nth.c.old Sat Dec  7 05:47:47 2002
++++ extensions/libipt_nth.c     Sat Dec  7 05:29:28 2002
+@@ -100,7 +101,7 @@
+                nthinfo->every = num-1;
+                nthinfo->startat = 0;
+                 nthinfo->packet = 0xFF;
+-                if(!(*flags & IPT_NTH_OPT_EVERY))
++                if(!(*flags & IPT_NTH_OPT_COUNTER))
+                 {
+                         nthinfo->counter = 0;
+                 }
+--- CUT ---
+
+Matthew Golicz, IP Network Dept., Cable Television "Elsat" Ltd.
 -- 
-
-Venkatesh Prasad Ranganath,
-Dept. Computing and Information Science,
-Kansas State University, US.
-web: http://www.cis.ksu.edu/~rvprasad
+______________________________________________________________________
+mteg <mtg@elsat.net.pl>       * MG452-RIPE *            Mateusz Golicz
+* ,,I just had a thought I have seen everything in this lifetime, but*
+* now I sit here and watch a cyborg diving ... in her spare time!''  *
