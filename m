@@ -1,15 +1,16 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH pom-ng] string match on 2.6 kernel
-Date: Wed, 06 Apr 2005 20:12:00 +0200
-Message-ID: <42542670.7010000@eurodev.net>
-References: <20050406151645.GA3921@helminth.linuxhacker.ru>
+Subject: Re: [RFC] [PATCH] ctnetlink updates
+Date: Wed, 06 Apr 2005 20:08:14 +0200
+Message-ID: <4254258E.5000204@eurodev.net>
+References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Anatoly Pugachev <mator@rootshell.ru>
-In-Reply-To: <20050406151645.GA3921@helminth.linuxhacker.ru>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42502F8D.5030504@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Patrick McHardy wrote:
+> Pablo Neira wrote:
+>> There are some issues I'd like to discuss:
+>>
+>> o Declaring ID as unsigned int. I think it's just fine.
+>>
+>>     - A conntrack must be identified with one of the tuples (original 
+>> or reply) and its id. That way it can be uniquely identified.
+> 
+> Good idea, although I'm not completely convinced.
 
-Anatoly Pugachev wrote:
-> This kernel-2.6 patch is over cvs version of patch-o-matic, i'm used patch-o-
-> matic-ng-20050316. Since i'm not a kernel programmer, this patch isn't SMP
-> clean - noticed this in string/linux-2.6/info. 
+Now I've changed my mind :).
 
-Current string matching support in pom-ng has several problems:
+I think that we can identify a connection with both the original and 
+reply tuple. Since a connection is represented by means of a conntrack, 
+if a user kills a conntrack via ctnetlink, he's willing to kill the 
+connection that the conntrack represents, and not to such conntrack itself.
 
-o Boyer-Moore shifts are calculated every time a packets hits the match, 
-this is not necessary. This increases the constants hidden in the O-big 
-notation.
-o As you pointed out, it's neither SMP nor preemptible safe. Per-cpu 
-stuff is not the way to do this.
+There aren't two conntracks with the same original and reply tuples. I 
+can't see anymore why we need such id.
 
-I've got a brand new infrastructure for string matching that I posted 
-during xmas. As soon as I get some spare time I'll be back on it.
+>>     - Using u_int64_t just reduces the possibility of the wrapping 
+>> around but such possible problem is still there.
+> 
+> 
+> The time until a wrap is many many years even if you assume very
+> high connection rate and many CPUs, so its not a practical problem.
+> The difference to your solution is that you can tell for sure that
+> clashes won't occur until a date under known conditions. I dislike
+> the idea of an unreliable API that has no possibilty of even noticing
+> and/or handling the error, so I'm not sure about this.
+
+Yes, you are right this is not a practical problem. Well, if we keep 
+using the id, we could detect a wrap and adjust all sequence numbers. Of 
+course that this is a expensive operation but it would happen once in a 
+blue moon :).
 
 --
 Pablo
