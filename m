@@ -1,18 +1,14 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] TCP window tracking over-window handling
-Date: Mon, 7 Feb 2005 08:25:53 -0800
-Message-ID: <20050207162553.GA8788@linuxace.com>
-References: <20050128234334.GA20713@linuxace.com>
-	<Pine.LNX.4.58.0502021017590.24272@blackhole.kfki.hu>
-	<20050202160009.GB30465@linuxace.com>
-	<Pine.LNX.4.58.0502022139470.25538@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0502071036410.31326@blackhole.kfki.hu>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: [1/1] libipt_osf: fix iptables-1.3.0rc1 compilation.
+Date: Mon, 07 Feb 2005 20:29:53 +0300
+Message-ID: <1107797393.5789.17.camel@uganda>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0502071036410.31326@blackhole.kfki.hu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-TnmmQgREf88XShfiQ8Pv"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,28 +20,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Feb 07, 2005 at 11:32:27AM +0100, Jozsef Kadlecsik wrote:
-> Actually the real governing rule is that packets must intersect the
-> window: there may be segments before the left or after the right edge.
-> Moreover, the receivers may keep the segments over the window for later
-> processing, and your recording just proves it does happen.
-> 
-> So we can either follow the article and drop the assumption about
-> receivers trimming the segments over the window or adjust the code to
-> meet RFC793 and real life traffic patterns. I believe the second
-> approach would be preferable because then conntrack wouldn't drop
-> legitimate packets and there were less false alarms.
-> 
-> The first attached patch (your version with some modifications to
-> complete it) implements the first variation.
-> 
-> The second one aims to implement the more RFC-compatible window tracking
-> code. It is slightly tested using the first window tracking tests by
-> nfsim. I'm working on writing more tests to cover as many cases as
-> possible.
 
-Both look good, but would it be best to merge the less intrusive alternative
-#1 for 2.6.11, then update to alternative #2 early in 2.6.12 so it can receive
-more testing?
+--=-TnmmQgREf88XShfiQ8Pv
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Phil
+Bug reported by Sami Farin <safari-kernel@safari.iki.fi>.
+
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+
+--- linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h.orig 2005-02-07
+19:11:08.237624320+0300
++++ linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h    2005-02-07
+19:11:43.854209776 +0300 @@ -33,9 +33,6 @@
+ #define IPT_OSF_LOGLEVEL_ALL   0
+ #define IPT_OSF_LOGLEVEL_FIRST 1
+
+-#include <linux/list.h>
+-#include <net/tcp.h>
+-
+ #ifndef __KERNEL__
+ #include <netinet/ip.h>
+ #include <netinet/tcp.h>
+@@ -98,6 +95,10 @@
+
+ #ifdef __KERNEL__
+
++#include <linux/list.h>
++#include <net/tcp.h>
++
++
+ /* Defines for IANA option kinds */
+
+ #define OSFOPT_EOL             0       /* End of options */
+
+--=20
+        Evgeniy Polyakov
+
+Crash is better than data corruption -- Arthur Grabowski
+
+--=-TnmmQgREf88XShfiQ8Pv
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQBCB6WRIKTPhE+8wY0RAlLGAJ9CnPwbdjFiKTojHOJlGMby6A7Y3QCdHXeq
+RLj8VO8R3i/zBven8SbrgLM=
+=bbwg
+-----END PGP SIGNATURE-----
+
+--=-TnmmQgREf88XShfiQ8Pv--
