@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: SNAT and IP ID
-Date: Fri, 2 May 2003 17:43:19 +0200
+From: Chris Wilson <chris@netservers.co.uk>
+Subject: Re: IPtables performance (fwd)
+Date: Fri, 2 May 2003 19:32:29 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030502154319.GN26924@sunbeam.de.gnumonks.org>
-References: <20030502070651.GG15143@oknodo.bof.de> <20030502090512.834482C085@lists.samba.org> <20030502095420.GI15143@oknodo.bof.de>
+Message-ID: <Pine.LNX.4.44.0305021921030.14737-100000@localhost>
+References: <20030429143442.GD684@naboo.intranet.astaro.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GeONROBiaq1zPAtT"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, Robert Olsson <robban@robtex.com>,
+   John McEleney <john@netservers.co.uk>, Ben McKeegan <ben@netservers.co.uk>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-Content-Disposition: inline
-In-Reply-To: <20030502095420.GI15143@oknodo.bof.de>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030429143442.GD684@naboo.intranet.astaro.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,62 +21,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald,
 
---GeONROBiaq1zPAtT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> I have to admit that I don't exactly remember all the details about
+> mark_source_chains without re-investigating it as well.  I did that now,
+> so I think I'm fit for further discussion  ;)
 
-On Fri, May 02, 2003 at 11:54:21AM +0200, Patrick Schaaf wrote:
-> Hi all,
->=20
-> I have a question that seems too simple, somehow. Anyway, out with it:
+I know it's late on Friday evening and I'm in a rush to get home, but I'd
+like to give everyone the weekend to think about this, so I'm going to
+venture into unknown territory and risk making a fool of myself in public =)
 
-one which has already been mentioned, not sure if on this list or on
-netdev@oss.sgi.com a couple of months ago.;)
+> > It appears to me that loop check made by mark_source_chains is
+> > deterministic, so once we've visited a particular rule, and determined
+> > that there are no loops in the paths leading from it, then the rule is
+> > _safe_, and we don't need to check it again.
+> 
+> You are missing the other half of the functionality of
+> mark_source_chains:  It needs to write down (into the 'comefrom' field),
+> from which hooks the particular rule can be called.
+> 
+> There are matches (like the 'owner' match), that can only be used at
+> certain hooks (in our example: There is no socket owner at
+> NF_IP_FORWARD).
 
-> Now, consider both hosts sending out an IP packet with identical ID
-> field. Will the IDs be made unique by the SNAT process? If not, what
-> happens when, after the SNAT, the packets get fragmented on their
-> way to the server? The server cannot sanely reassemble.
+I agree completely that it's important for the kernel to verify that the 
+ruleset does not break this condition by calling rules which are not 
+valid from a given hook.
 
-yes, they will clash.   DaveM said something like IP ID's can already
-clash on a single host at gbit speeds...  so it's not worth considering
-this issue.
+However, it seems to me that it's only necessary to visit each rule once 
+_and_ set the appropriate bit in the 'comefrom' bitmask. Once the bit is 
+set, there's no use setting it again.
 
-I said, that it can easily be fixed by creating a mangle table IPID
-target which would reset the IPID on the NAT gateway.
+So it's only necessary to visit each rule once per hook, in order both to 
+detect loops and mark the valid source chains (hooks).
 
-This target (if used on nat boxes) would also prevent the
-recently-published way to heuristically guess that NAT is used (because
-of the different incrementing sequences IPID's that reveal multiple
-hosts).
+Therefore, if the patched code does actually succeed in visiting each rule 
+once, and detecting loops, and setting the appropriate bit in comefrom, 
+then it's functionally equivalent to the original code, right?
 
-> best regards
->   Patrick
->=20
+Thanks for including the patch in pom/extra, we look forward to having it 
+well tested. =)
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---GeONROBiaq1zPAtT
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+spIXXaXGVTD0i/8RAhxZAJ9Vl6l9zsmTiXEgtwtuUsiPDLoVQwCgi1sG
-7BCcDr2+uofADbfkoQZUjuc=
-=4xTw
------END PGP SIGNATURE-----
-
---GeONROBiaq1zPAtT--
+Cheers, Chris.
+-- 
+   ___ __     _
+ / __// / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
+/ (_ / ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
+\ _//_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
