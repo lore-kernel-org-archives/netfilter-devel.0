@@ -1,13 +1,13 @@
-From: "Eble, Dan" <DanE@aiinet.com>
-Subject: RE: Opinion on patch?
-Date: Mon, 16 Sep 2002 15:06:11 -0400
+From: Dan Eble <dane@aiinet.com>
+Subject: [PATCH] unused "prepend" argument
+Date: Mon, 16 Sep 2002 15:24:56 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <638AA0336D7ED411928700D0B7B0D75B03053C92@aimail.aiinet.com>
+Message-ID: <Pine.LNX.4.33.0209161523100.26236-100000@dane-linux.aiinet.com>
+Reply-To: <dane@aiinet.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,21 +18,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> -----Original Message-----
-> From: Bart De Schuymer [mailto:bart.de.schuymer@pandora.be] 
-> Ofcouse, your triplicated mail with patch didn't encourage 
-> any reading...
-
-Sorry.  I feel like I should be wearing a pointy hat and sitting in the
-corner.  Everyone in the company prefers Outlook except a dozen software
-engineers, so we use it too.  I'll be posting patches with Pine from now on
-even though it means I'll have sent-mail in two places.
-
-> Also, your mail seems to imply you changed 2 other things 
-> too: something about 
-> the counters and something about the "prepend" flag. Maybe 
-> it's better not to 
-> do multiple different changes in one patch.
-
-I can accommodate that.  Expect those two in a little while.  (I will not
-post the main change again until after further discussion.)
+--- iptables-GPL-old/libiptc/libiptc.c	Wed May 29 09:08:16 2002
++++ iptables-GPL/libiptc/libiptc.c	Mon Sep 16 15:21:29 2002
+@@ -699,13 +699,11 @@
+ 	return 1;
+ }
+ 
+-/* If prepend is set, then we are prepending to a chain: if the
+- * insertion position is an entry point, keep the entry point. */
++/* If the insertion position is an entry point, keep the entry point. */
+ static int
+ insert_rules(unsigned int num_rules, unsigned int rules_size,
+ 	     const STRUCT_ENTRY *insert,
+ 	     unsigned int offset, unsigned int num_rules_offset,
+-	     int prepend,
+ 	     TC_HANDLE_T *handle)
+ {
+ 	TC_HANDLE_T newh;
+@@ -939,7 +937,7 @@
+ 		return 0;
+ 
+ 	ret = insert_rules(1, e->next_offset, e, offset,
+-			   chainindex + rulenum, rulenum == 0, handle);
++			   chainindex + rulenum, handle);
+ 	unmap_target((STRUCT_ENTRY *)e, &old);
+ 	return ret;
+ }
+@@ -982,7 +980,7 @@
+ 		return 0;
+ 
+ 	ret = insert_rules(1, e->next_offset, e, offset,
+-			   chainindex + rulenum, 1, handle);
++			   chainindex + rulenum, handle);
+ 	unmap_target((STRUCT_ENTRY *)e, &old);
+ 	return ret;
+ }
+@@ -1011,7 +1009,7 @@
+ 	ret = insert_rules(1, e->next_offset, e,
+ 			   entry2offset(*handle, c->end),
+ 			   entry2index(*handle, c->end),
+-			   0, handle);
++			   handle);
+ 	unmap_target((STRUCT_ENTRY *)e, &old);
+ 	return ret;
+ }
+@@ -1371,7 +1369,7 @@
+ 	ret = insert_rules(2, sizeof(newc), &newc.head,
+ 			   index2offset(*handle, (*handle)->new_number - 1),
+ 			   (*handle)->new_number - 1,
+-			   0, handle);
++			   handle);
+ 	return ret;
+ }
+ 
