@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: PPTP Patch
-Date: Fri, 31 Oct 2003 21:32:41 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: RE: iptables and SPI...
+Date: Fri, 31 Oct 2003 23:01:42 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031031203241.GA15184@sunbeam.de.gnumonks.org>
-References: <C5A99C0B73DE4C4BAAA040DF3023269802B94405@onyxexchange.onyxco.com>
+Message-ID: <Pine.LNX.4.44.0310312251150.22626-100000@filer.marasystems.com>
+References: <Law10-F5700goZolmRB000000bb@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Aaron Gray <Aaron.Gray@onyxco.com>
-Content-Disposition: inline
-In-Reply-To: <C5A99C0B73DE4C4BAAA040DF3023269802B94405@onyxexchange.onyxco.com>
+To: dimitri borjac <dimitri_borjac@hotmail.com>
+In-Reply-To: <Law10-F5700goZolmRB000000bb@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,43 +20,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 31 Oct 2003, dimitri borjac wrote:
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> So the problem is still there... is it possible to extend the NAT functions 
+> of iptables in order to make the local gateway read and use the SPI for 
+> NATting packets ?
 
-On Fri, Oct 31, 2003 at 09:59:25AM -0800, Aaron Gray wrote:
-> Harald,
->=20
+You will need to write a ESP protocol conntrack module, similar to the UDP
+or ICMP conntrack modules. Note however that this will only work assuming
+it is the NAT:ed endpoint which sends the initial packet ESP per SPI. For 
+situations where it is the other endpoint who sends the initial ESP packet 
+for this SPI then you need to somehow decode IKE to know that the SPI has 
+been negotiated. Unless my memory is wrong this may be a little hard due 
+to encryption of the IKE protocol..
 
-> # iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-> iptables: Invalid argument
-
-http://www.netfilter.org/documentation/FAQ/netfilter-faq-3.html#ss3.20
-
-> thank you.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/osbpXaXGVTD0i/8RAoyrAJ0SoLeYTbT2VCBZMIrdnkcSOfI0BQCfcp3/
-iAY7D/SeXEY6gZPmEvBZ0LE=
-=7wW0
------END PGP SIGNATURE-----
-
---a8Wt8u1KmwUX3Y2C--
+Regards
+Henrik
