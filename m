@@ -1,12 +1,14 @@
-From: Tuan nguyen hoang anh <nguyen_hoang_anh_tuan@yahoo.com>
-Subject: Netfilter hook! Insert error (insmod)
-Date: Mon, 29 Mar 2004 19:49:54 -0800 (PST)
+From: Herve Eychenne <rv@wallfire.org>
+Subject: OpenBSD Firewall Failover with pfsync and CARP
+Date: Tue, 30 Mar 2004 17:30:08 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040330034954.13321.qmail@web41302.mail.yahoo.com>
+Message-ID: <20040330153008.GH1237@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,17 +19,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, i'm writting a netfilter hook module. I compiled
-it successfull but when i insert it into kernel then
-it occurs errors following:
+ Hi,
 
-"unresolved symbol nf_register_hook"
-"unresolved symbol nf_unregister_hook"
+This is not stricly netfilter related, but it might be of some
+interest for those who are working on this issue for Linux.
+It's always good to stay tuned and see what others are doing.
 
-help me, please!
-Thanks a lot!
+OpenBSD Firewall Failover with pfsync and CARP:
+http://www.countersiege.com/doc/pfsync-carp/
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Finance Tax Center - File online. File on time.
-http://taxes.yahoo.com/filing.html
+UCARP - Common Address Redundancy Protocol (CARP) for Unix:
+http://www.ucarp.org/
+
+ Herve
+
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
