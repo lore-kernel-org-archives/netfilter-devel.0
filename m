@@ -1,58 +1,60 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: "No buffer space available" upon ipq_read
-Date: Thu, 29 Jul 2004 14:08:18 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4108E8B2.1070305@eurodev.net>
-References: <20040729104449.GA2202@rie.rie.priv>
+From: Kiko Piris <kernel@pirispons.net>
+Subject: Re: ipsec and/or netfilter problem
+Date: Thu, 29 Jul 2004 21:04:01 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040729190401.GA11195@mortadelo.pirispons.net>
+References: <20040728212823.GA19345@mortadelo.pirispons.net> <410844F2.3030503@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Christian Riechmann <riechmann@fgan.de>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20040729104449.GA2202@rie.rie.priv>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel <linux-kernel@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S264251AbUG2TJn@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <410844F2.3030503@trash.net>
 List-Id: netfilter-devel.vger.kernel.org
 
-Christian Riechmann wrote:
+[ Please CC me on reply, I'm subscribed to linux-kernel
+but not to netfilter-devel ]
 
->	Which buffer is meant ? 
->  
->
+On 29/07/2004 at 02:29 +0200, Patrick McHardy wrote:
 
-there's a buffer in kernel space, if I remember well, when it gets full 
-the socket flag overrun is set, that's why you get that error when you 
-try to read() in user space.
+> Kiko Piris wrote:
+> >The problem is that the server sends the data to Internet without doing
+> >SNAT (checked with tcpdump) (the packets do not traverse the POSTROUTING
+> >chain in nat table, checked watching the pkts counters).
+> >
+> >Anyone has any hint?
+> 
+> You could try the netfilter+ipsec patches in netfilter patch-o-matic-ng,
+> they should solve this problem,
 
->and
->	Which are some reasons for this error situation ?
->  
->
+Hi Patrick
 
-kernel has sent more messages than it can storage in the buffer.
+I've tried those patches with 2.6.6 and I see the same behaviour,
+packets do not traverse POSTROUTING chain in nat table (and thus they
+are not s-natted).
 
->I use iptables- 1.2.9 and I am pretty sure, that all packets read into
->user space are verdicted. The user space program does not expand its used
->memory the more it runs.
->  
->
+What I did was to manually aply the following patches from
+patch-o-matic-ng-20040621 to a vanilla 2.6.6 tree:
 
-This is netlink related, note that libipq is built on top of netlink 
-sockets so it inherits this limitation.
+nf_reset
+ipsec-01-output-hooks
+ipsec-02-input-hooks
+ipsec-03-policy-lookup
+ipsec-04-policy-checks
 
-you could fix that setting a bigger buffer via sysctl:
+did I miss something? (I understood from your email and from
+patch-o-matic-ng-20040621/ipsec-*/info files that this was enough, maybe
+it wasn't... O:-).
 
-echo 524280 > /proc/sys/net/core/rmem_default
-echo 524280 > /proc/sys/net/core/rmem_max
-echo 524280 > /proc/sys/net/core/wmem_default
-echo 524280 > /proc/sys/net/core/wmem_max
+> The current patches only apply to 2.6.6, but I will update them next
+> week
 
-regards,
-Pablo
+I can wait until then, no problem...
+
+Thanks a lot for responding.
+
+-- 
+Kiko
