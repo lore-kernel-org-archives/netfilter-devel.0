@@ -1,18 +1,17 @@
-From: Simon Lodal <simonl@parknet.dk>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: RFC: Partial IP4 syntax
-Date: Wed, 29 Sep 2004 18:38:12 +0200
+Date: Wed, 29 Sep 2004 18:54:50 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <415AE4F4.2000903@parknet.dk>
-References: <415A12AE.1060901@parknet.dk> <415A3263.7080708@xgendev.com>
-	<415A4B4E.1080801@parknet.dk>
-	<Pine.LNX.4.61.0409291051190.11661@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.61.0409291837430.15266@filer.marasystems.com>
+References: <415A12AE.1060901@parknet.dk>
+	<Pine.LNX.4.61.0409291042240.11661@filer.marasystems.com>
+	<415AE4CE.3030305@parknet.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Ben Efros <ben@xgendev.com>, Henrik Nordstrom <hno@marasystems.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Ben Efros <ben@xgendev.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.61.0409291051190.11661@filer.marasystems.com>
+To: Simon Lodal <simonl@parknet.dk>
+In-Reply-To: <415AE4CE.3030305@parknet.dk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,41 +22,48 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom skrev:
-> IETF has not defined such ascii representation of IPv4 addresses, but 
-> the BSD libc inet_aton function does and this has been inherited by very 
-> many systems and tools.
-> 
-> This notation is being depreated as it does not serve a very useful 
-> purpose and can be somewhat confusing, but it exists and conflicting 
-> with it would be a bad idea.
-Ok, let's see where we may get compatibility problems:
-1) iptables input: iptables' support for full 32bit format addresses is 
-both lacking and undocumented and could disappear without notice. So if 
-any programs use it they should rather be fixed.
-2) iptables output: There is a potential problem here, if programs parse 
-iptables or iptables-save output, and they know about the full 32bit form.
+On Wed, 29 Sep 2004, Simon Lodal wrote:
 
-iptables -L is for human eyes while iptables-save is for machine 
-parsing. So what if we make iptables -L print in any format it likes 
-(not intended for machine parsing anyway), but have iptables-save always 
-print addresses in full dotted quad?
+> When people talk about the 10.44 network, I assume they append .0.0, not 
+> insert them in the middle. My proposal does that with a double dot, eg. 
+> 10..44 = 10.0.0.44.
 
->> If it is really a problem I agree my scheme will break it. Could 
->> probably be solved by changing the default to incomplete-at-beginning, 
->> so 10 = .10 = 0.0.0.10.
-> 
-> 
-> Not without breaking existing "industry standards" on how IP numbers can 
-> be typed.
-Why? I certainly do not want to break anything, formalized or not, only 
-extend.
+There is a well established meaning in the computing industry of 10.44 to 
+mean 10.0.0.44, not 10.44.0.0.
 
-> You could use 10. for the 10.0.0.0/8 network.
-That is what I propose.
+There is also a well established meaning in the routing business of 
+10.44/24 to mean 10.44.0.0/24, but then only in CIDR notation with a mask 
+size (not netmask), and certainly not without the mask size.
 
-The question is how to interpret a single number. Implicitly append or 
-prepend a dot? Or interpret as full 32bit notation? Or ignore it?
+There is no one using double dots that I know of.
 
+Guessing the netmask size is generally bad and should be avoided imho. 
+Lots of problems have been caused by computers guessing netmasks based on 
+zeroes..
 
-Simon
+>> 10.59470 is the same as 10.0.232.78
+>> 
+>> 2888886350 is the same as 172.48.232.78
+> I understand if that is being deprecated.
+>
+> They could at least have used hex!
+
+Many allows hex notation using 0xXX syntax per element in the IP address..
+
+0x54.0x63.0xFE.0xEE
+0x5463FEEE
+0x54.0x63FEEE
+84.6553326
+84.99.254.238
+84.99.13094
+
+is all the same IP address. You can try it with ping if in doubt.
+
+> What I also want is a way to only specify the least significant bits. If I do 
+> not care about the first octet (10), the above would just become ".1".
+
+Which with the already established notation is simply 1/0.255.255.255 
+which matches *.0.0.1
+
+Regards
+Henrik
