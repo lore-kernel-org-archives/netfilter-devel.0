@@ -1,15 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [NEW TARGET] target for modifying conntrack timeout value
-Date: Wed, 15 Dec 2004 20:38:33 +0100
-Message-ID: <41C092B9.9020501@eurodev.net>
-References: <EINSTEIN2Mb1s7nlT2N00000521@einstein.systemmetrics.com>
+From: "Maciej Soltysiak" <solt@dns.toxicfilms.tv>
+Subject: ip_conntrack_max registered twice
+Date: Wed, 15 Dec 2004 21:53:36 +0100
+Message-ID: <000701c4e2e8$280ae830$0e25fe0a@pysiak>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; format=flowed; charset="iso-8859-2";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: 'Netfilter Development Mailinglist' <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard <richard@o-matrix.org>
-In-Reply-To: <EINSTEIN2Mb1s7nlT2N00000521@einstein.systemmetrics.com>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,80 +19,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Richard wrote:
+Hi,
 
->>Some comments:
->>
->>a) I think that you should implement this thing as a match instead of a
->>target. Have a look at ipt_limit. It isn't actually matching anything
->>but, for example, you could use it together with nat targets. A match
->>gives you more flexibility.
->>    
->>
->Not sure that I follow you. This target changes the conntrack expire timer.
->For example, the default timeout for udp stream is 180 seconds. If I want to
->make it 3600 for sip (udp 5060) traffic, I would do,
->iptables -t mangle -A INPUT -p UDP --dport 5060 -j CTEXPIRE --ctexpire-set
->3600
->iptables -t mangle -A OUTPUT -p UDP --sport 5060 -j CTEXPIRE --ctexpire-set
->3600
->  
->
+I noticed that I have:
+/proc/sys/net/ipv4/netfilter/ip_conntrack_max
+/proc/sys/net/ipv4/ip_conntrack_max
 
-An example of what I mean:
+A quick look at net/ipv4/netfilter/ip_conntrack_standalone.c shows
+that we register the same variable (ip_conntrack_max) twice:
 
-iptables -A OUTPUT -m ctexpire --ctexpire-set 3600 -j ACCEPT
+In:
+ip_ct_sysctl_table[]:
+        {
+                .ctl_name       = NET_IPV4_NF_CONNTRACK_MAX,
+                .procname       = "ip_conntrack_max",
+                .data           = &ip_conntrack_max,
+                .maxlen         = sizeof(int),
+                .mode           = 0644,
+                .proc_handler   = &proc_dointvec,
+        },
 
-BTW, why can you only use this target in mangle? I think that it's safe 
-using it elsewhere, except by the `raw' table where you can not.
+And in ip_ct_netfilter_table[]:
+        {
+                .ctl_name       = NET_IP_CONNTRACK_MAX,
+                .procname       = "ip_conntrack_max",
+                .data           = &ip_conntrack_max,
+                .maxlen         = sizeof(int),
+                .mode           = 0644,
+                .proc_handler   = &proc_dointvec
+        },
 
->>b) About source code:
->>
->>+       if (!is_confirmed(ct)) {
->>           ^^^
->>remove this `if' condition. ip_ct_refresh worries about about this for
->>you and makes the thing more simple.
->>    
->>
->In order to increase or decrease the expire value, we need to get the
->current expire value. If it is !is_confirmed, the ct->timeout value is the
->real expire value. Otherwise, it is jiffies + expire value. Is there a
->function to get this value without checking is_confirmed?
->  
->
+Is this for some backward compatibility or is it a needless duplication ?
 
-you are right, you need that for increments and decrements, forget this 
-comment.
-
->>c) In checkentry:
->>
->>+       if (info->mode > IPT_CTEXPIRE_MAXMODE) {
->>+               printk(KERN_WARNING "CTEXPIRE: invalid or unknown Mode
->>%u\n",
->>+                       info->mode);
->>+               return 0;
->>+       }
->>+ [...]
->>+
->>+       if (info->expires * HZ < info->expires) {
->>+               /* if user specified value is too big, *HZ can overflow
->>the counter
->>+               */
->>+               printk(KERN_WARNING "CTEXPIRE: expire value too big,
->>will overflow counter: %ld\n", info->expires);
->>+               return 0;
->>+       }
->>
->>You should do those checkings in user space. Those error must be handle
->>in iptables, not in kernel.
->>    
->>
->It is already done in user space. It is probably redundant doing the same
->thing here. I will drop it.
->  
->
-
-yes, it's redudant. Please, drop that.
-
---
-Pablo
+Regards,
+Maciej
