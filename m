@@ -1,18 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: RFC: conntrack hash function comparison II
-Date: Thu, 27 Feb 2003 19:32:25 +0100
+From: netfilter@interlinx.bc.ca
+Subject: testing checksum in helpers is redundant with tcp_window_tracking
+Date: Thu, 27 Feb 2003 17:21:55 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030227183225.GJ22249@sunbeam.de.gnumonks.org>
-References: <20030226171820.GF8883@sunbeam.de.gnumonks.org> <Pine.LNX.4.33.0302271148260.25458-100000@blackhole.kfki.hu> <20030227164911.GA23977@oknodo.bof.de>
+Message-ID: <20030227222154.GA9692@pc.ilinx>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="n8884J15jRwcBTvu"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <20030227164911.GA23977@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,47 +20,40 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---n8884J15jRwcBTvu
+--6TrnltStXW4iwmi0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 27, 2003 at 05:49:11PM +0100, Patrick Schaaf wrote:
-> I won't mind at all, feel free to do so. If you want to modify any
-> copyright messages (did I add any?), that's also OK with me, as long
-> as we keep any code GPL (which I take for granted).
+Would it not be a good idea to have some kind of macro defined when
+tcp_window_tracking in built into netfilter so that all of the helpers
+and other code that are doing things like TCP checksum verification
+and whatnot, can avoid wasting cycles doing it a second time?
 
-of course it is (and will be) GPL, as everything else in the netfilter
-project.
+Then helpers could wrap their tcp checksum calls with something like:
 
-> best regards, and thanks for the good work!
->   Patrick
+#ifndef TCP_WINDOW_TRACKING
+=2E..
+#endif
 
-As cttest is your invention, may I ask you for your ssh2 (DSA) public key
-in order to provide write access to the CVS repository where we will put
-it?
+Or is a runtime check a better idea?  If so what test could be done at
+runtime to know that tcp_window_tracking is checking TCP checksums?
+
+b.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Brian J. Murrell
 
---n8884J15jRwcBTvu
+--6TrnltStXW4iwmi0
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+Xlm5XaXGVTD0i/8RAkM3AJ9MzQgUoRrgNlhUShNiK60MrI7UvACeMcvc
-huxRd1eeXtN8+V1QwsBQJj8=
-=HneS
+iD8DBQE+Xo+Cl3EQlGLyuXARAqcLAJ9WsAwNwRM/U4DK6OTygKGe6ZTfJwCfQFbo
+n5vZSMtu/BzZHwBeoeuHkKs=
+=jG7Q
 -----END PGP SIGNATURE-----
 
---n8884J15jRwcBTvu--
+--6TrnltStXW4iwmi0--
