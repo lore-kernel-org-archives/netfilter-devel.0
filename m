@@ -1,134 +1,74 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: 2.5.67 -- questions about netfilter config options
-Date: Thu, 10 Apr 2003 11:22:16 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20030410092216.GK21326@naboo>
-References: <Pine.LNX.4.44.0304080702130.25860-100000@dell>
+From: Friedrich Lobenstock <fl@fl.priv.at>
+Subject: Re: extra/pptp-conntrack-nat.patch
+Date: Thu, 10 Apr 2003 15:28:19 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3E957173.6090103@fl.priv.at>
+References: <Pine.GSO.4.03.10304092023000.11290-100000@shemp.vdata.com>
+Reply-To: netfilter-devel@lists.netfilter.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HuXIgs6JvY9hJs5C"
-Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: "Robert P. J. Day" <rpjday@mindspring.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0304080702130.25860-100000@dell>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.GSO.4.03.10304092023000.11290-100000@shemp.vdata.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!
 
---HuXIgs6JvY9hJs5C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Jeff Hall wrote:
+> I found the following discussion on the www.sonicwall.com/support site.
+> It may explain the mystery of the broken/not-broken check sums.
+> 
+> Jeff Hall
+> 
+> SonicWALL: In certain circumstances, a Windows 2000 PC cannot use PPTP to
+> access another node on the opposite side of the SonicWall. The issue
+> appears to be caused by how certain checksums are calculated differently
+> depending on whether this function is performed by the OS itself or if it
+> is off-loaded to the ethernet NIC. 
+> To work around the issue, you must make sure the OS is allowed to perform
+> the checksum calculations, not the ethernet NIC. This can be done by
+> following these steps: 
+> Right-click the 'My Network Places' desktop icon and select 'Properties'. 
+> Right-click on the icon for your ethernet NIC and select 'Properties'. 
+> Click on the 'Configure' button. 
+> Click on the 'Advanced' tab. 
+> Disable the Rx and Tx Checksum Offload options for the card.
+> This problem is known to occur with the following: 
+> OS: Windows 2000 with service pack 1 
+> Ethernet NIC: 3Com 905/920 series ethernet controller. 
 
-On Tue, Apr 08, 2003 at 07:15:45AM -0400, Robert P. J. Day wrote:
->=20
->   [while i'm discussing these things on the netfilter mailing
-> list, i figure at least a few folks here might be helpful.]
->=20
->   i'm trying to clarify the purpose and interdependence of=20
-> the NF config options, and perhaps document them more clearly
-> in their associated help screens.  to that end, i'm confused
-> by the way some options can be selected without other=20
-> options that would seem to be obvious dependencies.
-> to wit:
+May I recall that I really have to remove the // to get it running.
 
-so why didn't you take this to the netfilter development mailinglist
-first?  I don't think this is of general interest to linux-kernel, which
-certainly has more than enough postings per day, and the subject is
-clearly netfilter-only.
+/* track caller id inside control connection, call expect_related */
+static int
+conntrack_pptp_help(const struct iphdr *iph, size_t len,
+                     struct ip_conntrack *ct, enum ip_conntrack_info ctinfo)
 
-> 1) currently, it's possible to select the single option
->    "IP tables support" without any other options *anywhere*
->    in that menu.  what value does this have?
+{ ...
 
-this means that you have the generic iptables core. this enables you for
-example to use some out-of-kernel compiled iptables_foo module.=20
+         /* checksum invalid? */
+         if (tcp_v4_check(tcph, tcplen, iph->saddr, iph->daddr,
+                         csum_partial((char *) tcph, tcplen, 0))) {
+                 printk(KERN_NOTICE __FILE__ ": bad csum\n");
+//             return NF_ACCEPT;
+         }
 
-compare this with enabling scsi support, but not enabling a single scsi
-host.
+If I take a look at the cvs version of the patch there's a comment
+above the // line that says that w2k servers send out false csums.
 
->    if you look down the submenu for that option, you see
->    "Packet filtering", which suggests you can ask for=20
->    "IP tables support" but still not have any ability to
->    set up any filtering rules. =20
+So do I understand this correct that if I remove the //, the pptp
+contrack module actually is more RFC conform than before? Or is
+it just the other way round?
 
-yes, this makes sense.  packet filtering is the 'filter' table.  It is
-perfectly legal to use NAT ('nat' table) or mangling ('mangle') without
-enabling packet filtering.
-
-> sort of strange.  it seems
->    odd that you can select to support limit matches,
->    TTL matches, etc., without actually having basic
->    "Packet filtering" support built in.  what does this
->    mean?
-
-see above.
-
->    one possibility is that, according to the help info,
->    "IP tables support" is necesasry for masq/NAT.  if
->    this is true, it leads into my next question ...
-
-it is true.
-
-> 2) currently, it's possible to select "Connection tracking"
->    without "IP tables support", even though the latter is
->    listed as being essential for masq/NAT as well.
->=20
->    what is the value of selecting only "Conenction tracking"
->    in the entire NF config menu?  that is, what does it allow
->    you to do if not masq/NAT?
-
-connection tracking provides a service to the kernel.  If you load it,
-any code within the kernel can derive the connection tracking entry to
-which a packet belongs.  Even though there is no current code in the
-kernel (besides iptable_nat and ipt_state) that uses this information,
-we should not decide on that. =20
-
-A possible application would be something like a 'cfq' (derived from the
-stochastic fairness queue).  This would eliminate the 'stochastic' part
-which tries to determine which 'flow' (basically one direction of a
-connection) a packet belongs to.
-
-> i guess i'm trying to clarify whether there should be more
-> dependencies in the underlying config structure, or it not,
-
-no, at least not from the point of view of the netfilter coreteam.
-
-> rday
->=20
-> p.s.  is there a reason that almost all of the options
-> are listed as "(NEW)" in the config menu?  they weren't
-> even labelled that way in the 2.4.20 kernel.  how is it
-> that they're suddenly "NEW" now?
-
-Everything marked as 'NEW' means that your .config file did not contain
-a setting (i.e. it was copied from a kernel that didn't have support for
-those options).  This is also used for 'make oldconfig'.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---HuXIgs6JvY9hJs5C
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+lTfIXaXGVTD0i/8RAsl9AJ0XadSj16Fsz6h4JIbraj7XtJVuKwCePegU
-XoNBKI2QAb1eDl0w0ciR1ho=
-=+Ya+
------END PGP SIGNATURE-----
-
---HuXIgs6JvY9hJs5C--
+-- 
+MfG / Regards
+Friedrich Lobenstock
