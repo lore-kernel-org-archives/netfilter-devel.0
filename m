@@ -1,14 +1,13 @@
-From: Kovacs Krisztian <piglet@sch.bme.hu>
-Subject: nf/ctnetlink and notify
-Date: Mon, 20 Jan 2003 18:11:29 +0100
+From: "=?iso-8859-1?q?Daniel=20E.=20Testa?=" <da_tes@yahoo.com.ar>
+Subject: Gtk-IPtables v1.3 is out
+Date: Mon, 20 Jan 2003 16:36:37 -0300 (ART)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030120171129.GB27847@sch.bme.hu>
+Message-ID: <20030120193637.91413.qmail@web20902.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: NetFilter <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,21 +18,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi, Gtk-IPtables v1.3 is out and includes the mangle table. Now you can
+use mangle/nat/filter tables.
 
-  Hi,
+Regards.
+Daniel E. Testa.
 
-  I'd have a question regarding the nfnetlink/ctnetlink patch in the
-'extra' suite of POM. In this version of nfnetlink, the notify callback
-API is missing (ip_conntrack_notify_register() and friends), while in the
-old version in the oldnat directory it is part of the ctnetlink patch. Wh=
-y
-was this left out of the patch? What are the main concerns with the
-_notify() code in the old patch?
-  As I can see some kind of such notification service will be required to
-complete the nfnetlink patch, because in its current state it's totally
-uncapable of sending messages on conntrack state changes. (And one
-possible typo in the patch: in nfnetlink_conntrack.c ctnetlink_create is
-not commented out, but there is no use of this function.)
-
---=20
- Kov=E1cs Kriszti=E1n
+Ahora podés usar Yahoo! Messenger desde tu celular. Aprendé cómo hacerlo en Yahoo! Móvil: http://ar.mobile.yahoo.com/sms.html
