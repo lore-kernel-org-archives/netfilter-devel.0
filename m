@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: childlevel's pom comment
-Date: Thu, 04 Mar 2004 06:33:45 +0100
+From: wanghtb@legend.com.cn
+Subject: BUG related with in_range()
+Date: Thu, 4 Mar 2004 14:42:00 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4046BFB9.809@trash.net>
-References: <Pine.LNX.4.60.0403031947450.8957@dsl093-017-216.msp1.dsl.speakeasy.net> <40469E10.7080100@trash.net> <Pine.LNX.4.60.0403032150000.8957@dsl093-017-216.msp1.dsl.speakeasy.net>
+Message-ID: <OFDECF36AD.3B6C79B3-ON48256E4D.001CCF85@legend.com.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="us-ascii"
+Cc: hidden@balabit.hu
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Matthew Strait <quadong@users.sourceforge.net>
-In-Reply-To: <Pine.LNX.4.60.0403032150000.8957@dsl093-017-216.msp1.dsl.speakeasy.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,112 +18,95 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Matthew Strait wrote:
->>I'm going to add your updated help-text. But I have doubts about whether
->>a new match is required at all. A connection can only have a childlevel
->>of one because only masters have helpers assigned to them, although in
->>theory the expect-function could register more expectations. So you can
->>basically match if a connection was expected or not. The same can also
->>be achieved by a trivial change to the helper match, just allow
->>zero-string length and use them as a special value. This should also
->>allow full userspace compatibility. What do you think ?
-> 
-> 
-> Sounds like a good idea.  The only variation I'd make is to have the
-> helper match take "any" as the special value, because it's hard to pass an
-> empty string to iptables.  (Trying to pass "" gets you an error message
-> and trying to pass \"\" ends up giving the module literal quotation marks.
-> If I'm missing something obvious, let me know.  Here are the changes
-> needed in the kernel:
-> 
-> --- ipt_helper.c.old    2004-03-03 21:34:05.625216688 -0600
-> +++ ipt_helper.c        2004-03-03 22:32:06.239867656 -0600
-> @@ -48,7 +48,7 @@
-> 
->         if (!ct->master) {
->                 DEBUGP("ipt_helper: conntrack %p has no master\n", ct);
-> -               return 0;
-> +               return info->invert;
->         }
-> 
->         exp = ct->master;
-> @@ -68,8 +68,11 @@
->         DEBUGP("master's name = %s , info->name = %s\n",
->                 exp->expectant->helper->name, info->name);
-> 
-> -       ret = !strncmp(exp->expectant->helper->name, info->name,
-> -                      strlen(exp->expectant->helper->name)) ^
-> info->invert;
-> +       if(!strcmp(info->name, "any"))
-> +               ret = 1 ^ info->invert;
-> +       else
-> +               ret = !strncmp(exp->expectant->helper->name, info->name,
-> +                              strlen(exp->expectant->helper->name)) ^
-> info->invert;
+As metioned in Krisztian KOVACS' letter,just before 2.4.23 released, a patch for in_range() is rolled 
+back, though it seems definitly correct.
 
-I would prefer if "any" wouldn't need to be matched in the kernel,
-something like:
+Here is the rollback code in in_range();
 
-if (info->name[0] == '\0')
-	ret = !info->invert;
-else
-	...
+--- linux-2.4.23-pre3/net/ipv4/netfilter/ip_nat_core.c 2003-11-08 
+03:01:59.000000000 -1000
++++ linux-2.4.23-pre4/net/ipv4/netfilter/ip_nat_core.c 2003-11-08 
+03:00:47.000000000 -1000
+@@ -157,8 +157,8 @@
+                                                                 continue;
+                                 }
+ 
+-                                if ((mr->range[i].flags & 
+IP_NAT_RANGE_PROTO_SPECIFIED)
+-                                    && proto->in_range(&newtuple, 
+IP_NAT_MANIP_SRC,
++                                if (!(mr->range[i].flags & 
+IP_NAT_RANGE_PROTO_SPECIFIED)
++                                    || proto->in_range(&newtuple, 
+IP_NAT_MANIP_SRC,
+ &mr->range[i].min, &mr->range[i].max))
+                                                 return 1;
+                 }
 
-and have userspace do the "any" <=> "" translation.
 
->  out_unlock:
->         READ_UNLOCK(&ip_conntrack_lock);
->         return ret;
-> 
-> 
-> I have to change the 0 to info->invert so that "! --helper any" means
-> "packets that aren't from any helper".  With the 0, that rule would never
-> match.  It seems to me that this is the correct behavior even without
-> adding the "any" special case.  If I ask for "! --helper ftp", I would
-> expect master packets to match, because they are not from an ftp helper.
+Because bug is reported related with this patch:
+http://lists.netfilter.org/pipermail/netfilter-devel/2003-November/013099.html)
+which will make the machine hange on, in dead loop in ip_nat_setup_info().
+which means get_unique_tuple() always return same new tuple and 
+ip_conntrack_alter_reply()
+always fail.
 
-That is correct. Can you send a seperate patch for this, as a bugfix
-this should be submitted to the kernel anyway.
+I thought about this problem for serveral days, and at last  figured out 
+one
+situation it can go into the loop, with in_range() patched:-)
 
-> 
-> Trivial documentational changes in userspace:
-> 
-> --- libipt_helper.c.old 2004-03-03 21:39:07.255361936 -0600
-> +++ libipt_helper.c     2004-03-03 21:52:10.838861040 -0600
-> @@ -15,6 +15,7 @@
->         printf(
->  "helper match v%s options:\n"
->  "[!] --helper string        Match helper identified by string\n"
-> +"                           (or any helper if string is "any")\n"
->  "\n",
->  IPTABLES_VERSION);
->  }
-> 
-> --- iptables.8.old      2004-03-03 22:18:55.017383552 -0600
-> +++ iptables.8  2004-03-03 22:20:43.137999928 -0600
-> @@ -458,6 +458,8 @@
->  For other ports append -portnr to the value, ie. "ftp-2121".
->  .PP
->  Same rules apply for other conntrack-helpers.
-> +.PP
-> +Use "any" to match any helper.
->  .RE
->  .SS icmp
->  This extension is loaded if `--protocol icmp' is specified.  It
-> 
-> 
-> 
-> 
-> If this patch is accepted, I don't see any reason to keep childlevel in
-> patch-o-matic.
+ip_conntrack_alter_reply() will fail only in the situation another ct have 
+the same tuple 
+with the new reply tuple. However, since the new reply must be generated 
+by a null mapping,
+which means this ct will not changed at all. So, if another ct already 
+exists, then 
+when the skb comes into the box, it will be attached to the existing ct, 
+since it's reply tuple matches the existing ct's reply tuple, which will 
+not create a new ct and new nat steps will not happen:-)
 
-Can you please send a new patch which removes the "any" strcmp ?
-We can ask Martin about his opinion then (he is the author of
-the helper match), but I don't think there will be a problem.
+It seems correct, but in fact, it is not the whole things. We must notice 
+it is only that the new skb's reply tuple  matches existing ct's reply 
+tuple, not definitly means skb's orig tuple matches
+existing ct's reply/orig tuple, which is ip_conntrack_find_get() will do. 
+if they do not match, which means the existing ct MUST NOT be a  null 
+mapping, new ct will be built, and problem is comming.
 
-Regards
-Patrick
+Still consider the scenario, which is a simple SNAT 
 
-> 
-> -matthew
-> 
+[ Client A ] -----> [ Box B ] ----> [ Server C ]
+iptalbes -A POSTROUTING -t nat -p udp -s A -j MASQUERADE
+
+existing ct:  orig A.1 --> C.1   reply C.1 ---> B.1 //assume port not 
+changed
+considerate the  new skb generated at Box B, B.1 ---> C.1, as we can see, 
+new ct is built.
+When find_appropriate_src() is called , if another ct B.1--->D.2 already 
+exists, find_appropriate_src() will always tell us he get the right manip, 
+and the dead loop happen!
+
+It seems complete, but wait for a while, never forget that 
+find_appropriate_src() is only called
+at POSTROUTING hook, so when skb(B.1--->C.1) reaches NF_IP_LOCAL_OUT, a 
+null mapping is setted for it, and ip_nat_setup_info() will change the ct 
+for the skb like (B.1-->C.1 and C.1--->B.2), since the reply tuple 
+(C.1-->B.1) is already occupied. So, nothing will happen in this way.
+
+
+So, only in the situation that local out skb not do a null NAT mapping, 
+bad things can happen.
+When I got it, I checked the kernel configuration file Beau E. Cox posted: it didnot make
+CONFIG_IP_NF_NAT_LOCAL selected. But why his box works correct before 
+2.4.23? I checked the 2.4.23.patch.tar.bz2,  and got the answer: in 
+2.4.23, without CONFIG_IP_NF_NAT_LOCAL
+configured, ip_nat_local_fn() will not be compiled, while 2.4.22 will 
+do:-)
+
+Then I made some experiments in my 2.4.24 Box:  de-select 
+CONFIG_IP_NF_NAT_LOCAL,
+and patching the in_range() and using nc as the packet generator, and 
+everytime I really can make my machine hang on:-)
+
+So, this bug exist in 2.6. However, I think the behavior of 
+find_appropriate_src() is 
+too strange, it only can be used in null mappping situation :-)
