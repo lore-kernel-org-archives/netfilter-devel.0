@@ -1,34 +1,39 @@
-From: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
-Subject: [PATCH] fix typo in net/ipv4/ip_input.c
-Date: Fri, 12 Sep 2003 13:27:30 -0300
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20030912162729.GD8713@conectiva.com.br>
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH] fix typo in net/ipv4/ip_input.c
+Date: Fri, 12 Sep 2003 17:05:39 -0700
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030912170539.2be84702.davem@redhat.com>
+References: <20030912162729.GD8713@conectiva.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@redhat.com>,
-   Bart De Schuymer <bdschuym@pandora.be>, netfilter-devel@lists.netfilter.org,
-   netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: Harald Welte <laforge@netfilter.org>
-Content-Disposition: inline
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, bdschuym@pandora.be,
+        netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+In-Reply-To: <20030912162729.GD8713@conectiva.com.br>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald, Dave,
+On Fri, 12 Sep 2003 13:27:30 -0300
+Arnaldo Carvalho de Melo <acme@conectiva.com.br> wrote:
 
-	Please apply.
+> 	Please apply.
 
-- Arnaldo
+Applied.
 
-===== net/ipv4/ip_input.c 1.18 vs edited =====
---- 1.18/net/ipv4/ip_input.c	Thu Sep 11 20:46:34 2003
-+++ edited/net/ipv4/ip_input.c	Fri Sep 12 16:17:06 2003
-@@ -201,7 +201,7 @@
- 
- #ifdef CONFIG_NETFILTER_DEBUG
- 	nf_debug_ip_local_deliver(skb);
--	skb->nf_debug =3D 0;
-+	skb->nf_debug = 0;
- #endif /*CONFIG_NETFILTER_DEBUG*/
- 
- 	__skb_pull(skb, ihl);
+This happens because of the encoding Harald uses for his
+emails, when I save the email in the default way using
+"Ctrl-s" in Sylpheed, I get all of those weird space and
+newline characters.  I have to save it in a different way
+to avoid this problem and I forgot to do that this time :(
+
+Usually the patch fails to apply when I make this mistake,
+unfortunately this time it did not.
