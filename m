@@ -1,16 +1,13 @@
-From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
-Subject: Re: performance issues (nat / conntrack)
-Date: Fri, 21 Jun 2002 20:26:41 +0200
+From: Rob Radez <rob@osinvestor.com>
+Subject: [PATCH] Tiny ip_nat_snmp_basic fix
+Date: Sun, 23 Jun 2002 13:51:17 -0400
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <007701c21951$30b6b1c0$0489cb8a@etbx180>
-References: <20020621132640.2C326472B@lists.samba.org> <15635.25545.469973.950625@isis.cs3-inc.com>
-Reply-To: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
+Message-ID: <20020623135117.K9029@osinvestor.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: netfilter-devel@lists.samba.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,71 +18,33 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
+I looked at the pending patches page, tried to browse through the mailing
+archives, and checked google, but didn't see if anyone had already addressed
+this.  fini() in net/ipv4/netfilter/ip_nat_snmp_basic.c is marked __exit,
+but on Sparc32 will fail to link into the kernel because of some btfixup
+magic.  I saw two obvious ways to fix this, but only did one because I wasn't
+sure about what kind of netfilter magic is going on in fini().  The attached
+patch simply removes the __exit tag from fini() and lets the file link in ok.
 
+The other option is to remove the br_write_lock_bh/br_write_unlock_bh calls
+in fini() since they don't seem to be protecting anything.  I didn't do that
+because I'm not sure if there are any side effects that are being taken
+advantage of here.
 
-> > I'm doing some tcp benches on a netfilter enabled box and noticed
->  > huge and surprising perf decrease when loading iptable_nat module. 
-> Rather similar to the results I posted about a week ago.
+Patch is against 2.4.19-pre10.
 
-oops, sorry, it seems we performed our tests at the same time ;o)
+Regards,
+Rob Radez
 
-> 
->  > - Another (old) question: why are conntrack or nat active when there are
->  > no rules configured (using them or not)? 
-> I noticed this too.  After a test using conntrack the next test
-> without "using" conntrack would perfom poorly unless I did rmmod.
-
-yes, minor issue if documented...
-
-> 
->  > Since in my test, each connection is ephemeral (<10ms) ...
-> When all works correctly, the end of each connection should be noticed
-> by conntrack and the connection removed from the table, right?
-
-yep
-
-> In which case the table should never get very full.
-
-ideally yes, but from the conntrack machine perspective, the rest of
-the world should not be considered reliable... and in fact it is not.
-So, timouts should be reviewed, especially if we know that the average
-tcp connection duration on the www is about 20 seconds.
-
-> So I'm guessing that large number of entries in conntrack table is
-> evidence that packets are being lost.  
-
-not only: a crashed client breaking the tcp sequence causes also
-garbage entries in conntrack.
-
-> In particular, if the syn
-> packet arrives but is never forwarded, you get one of those conntrack
-> entries where conntrack thinks (incorrectly) the syn has been
-> forwarded so it's waiting for the reply.  Ideally the entry should
-> not be added to the table until the packet goes out.
-
-??? or is served locally ???
-
-> 
-> Just wondering, how did you measure cpu load?
-> 
-
-procinfo -n10 ; [d] for showing differences, which in fact, computes
-                   the differences of cumulated cpu time (got from 
-                   /proc/meminfo) on the given period: (tsys1-tsys0)/T
-                   (I was too lazy to write a 'while' script...)
-
-
-Maybe my mail was not clear... I've been surprised by 2 issues:
-1) conntrack timeout garbages (which was addressed by you mail)
-2) nat performance killing: I really don't understand it, especially
-   when there's no rule active on it, and thus no translation active.
-
-I can admit the overhead of conntrack because of the number of
-entries and criteria it has to manage, but this one can be 
-dimensionned and understood. 
-But what about NAT??? In my opinion, the NAT overhead should only
-be a delta against the conntrack overhead. But what I noticed is 
-an overhead as big as the conntrack overhead! why?
-
-_______________________________________________________________________
--jmhe-               He who expects nothing shall never be disappointed
+--- stock-2.4.19pre10/net/ipv4//netfilter/ip_nat_snmp_basic.c	Fri Jun 14 18:46:54 2002
++++ build/net/ipv4/netfilter/ip_nat_snmp_basic.c	Sun Jun 23 13:33:16 2002
+@@ -1338,7 +1338,7 @@
+ 	return ret;
+ }
+ 
+-static void __exit fini(void)
++static void fini(void)
+ {
+ 	ip_nat_helper_unregister(&snmp);
+ 	ip_nat_helper_unregister(&snmp_trap);
