@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: iptables u32 match patch-o-matic (attempt)
-Date: Sat, 11 Jan 2003 20:47:40 +0100
+Subject: Re: Fixed proken MARK target in POM.
+Date: Sat, 11 Jan 2003 20:23:16 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030111194740.GF24488@naboo.de.gnumonks.org>
-References: <200212271854.gBRIsf131987@isis.cs3-inc.com> <20030106125720.GF9467@sunbeam.de.gnumonks.org> <15897.46884.822054.847738@isis.cs3-inc.com> <20030107185748.GV9467@sunbeam.de.gnumonks.org> <15899.51201.381520.438520@isis.cs3-inc.com> <20030108105646.GH9467@sunbeam.de.gnumonks.org> <15900.41422.812422.110502@isis.cs3-inc.com>
+Message-ID: <20030111192315.GE24488@naboo.de.gnumonks.org>
+References: <3E1D7419.1060502@fugmann.dhs.org> <20030110140024.GU1353@sunbeam.de.gnumonks.org> <3E1EE68C.7030004@fugmann.dhs.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y5rl02BVI9TCfPar"
+	protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Don Cohen <don-nf@isis.cs3-inc.com>
+To: Anders Fugmann <afu@fugmann.dhs.org>
 Content-Disposition: inline
-In-Reply-To: <15900.41422.812422.110502@isis.cs3-inc.com>
+In-Reply-To: <3E1EE68C.7030004@fugmann.dhs.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,61 +23,47 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Y5rl02BVI9TCfPar
+--gatW/ieO32f1wygP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 08, 2003 at 02:10:22PM -0800, Don Cohen wrote:
-Content-Description: message body text
->  > yes.  If you now would be as friendly to post it as a unified diff
->  > against current patch-o-matic CVS, attached in MIME format?  (And for
->  > posting habits and/or coding style hints there are plenty of examples =
-in
->  > the list archives respectively CVS).
->=20
-> I've tried to follow directions in NEWPATCHES.
-> I don't quite understand, though, where libipt_u32.c belongs.
+On Fri, Jan 10, 2003 at 04:28:12PM +0100, Anders Fugmann wrote:
 
-no, it just belongs into the extensions subdirectory, together with a
-=2Eu32-test shellscript (similar to the others...)
+> >Apart from that, everything in patch-o-matic are new features or
+> >extensions, which are either not fully stable or we strongly doubt that
+> >they are useful for the big public.  And if somebody wants to test one
+> >of those non-standard extensions, we can ask people to use patch-o-matic.
+>
+> Yes. I'm aware of that. My question is "How can a patch be proven stable=
+=20
+> enough to be included, and is the functionality provided 'importent'=20
+> enough for the general public?
 
-> It looks like you want me to download the current patch-o-matic cvs,
-> make a copy of it with my 3 patch files, then do a diff.
-> But this just contains my 3 patch files, right?
+Well, It's hard to give a set of rules for this.  Mainly it reduces to
+the case that I (or somebody else of the coreteam) has the personal
+feeling that the code is OK and the functionality is important enough.
 
-yup, it is a diff which adds 3 files (of which one is again a diff)
+This sounds a bit like dictatorship, but our impression of what is
+'important' is not a fixed one.  We judge by the practical cases we know
+of, and by what users tell us.  So if there is a discussion about a
+particular patch [or feature] on the list, and we see there is a big
+demand by the users, we are likely to be inclined that this feature is
+'needed'.  This has just happeed with the 'string' match, which I
+personally dislike, but I am now convinced that there is a reasonable
+demand for that particular function [and which will now be submitted to
+the kernel anytime soon].
 
-> So wouldn't that be the same as putting those files in one directory,
-> creating a second directory with empty files of those names and doing
-> the diff of those?
+It's not different than in other subsystems of the kernel.  If you want
+a feature to get into the core network stack, you need to write good
+code and convince Alexey, DaveM and/or Andi Kleen that it is needed ;)
 
-yes, it would turn out the same thing, as long as (like in the usual
-case) there are no modifications to existing Makefiles, etc.
+btw: having a bit-wise mark match and MARK target has always been one of
+my favourites.  So if we can solve the compatibility issue, the patch
+will certainly make it ;)
 
-> Anyhow, see if this is what you wanted:
-
-couple of comments:
-
-1) please include the patch 'netfilter/userspace' or at least
-'userspace', so the patch can be applied from the 'root' netfilter
-directory. (this is not really important, but usual) (this is not really
-important, but usual)
-
-2) please don't include the u32 in extensions/Makefile.  If you do that,
-you would also need to put your kernel header file into
-userspace/include/linux/...  - but we only do this for stable matches
-which are about to be submitted to the kernel soon.  Instead, we use a
-conditional compilation mechanism with the '.foo-test' scripts.
-
-Maybe it's a good idea to have a look at some other patches (like the
-recently submitted hoplimit (hl) patches as an example.  I didn't need
-to describe this into detail so far, everybody just figured..
-
-=2E. but it seems like there is a need for documentation.  If you feel
-NEWPATCHES should be extended in some way -> patches are welcome ;)
-
-Thanks again.
+> Regards
+> Anders Fugmann
 
 --=20
 Live long and prosper
@@ -90,7 +76,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---Y5rl02BVI9TCfPar
+--gatW/ieO32f1wygP
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -98,9 +84,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+IHTcXaXGVTD0i/8RAhCaAJ9zif6L3WBmO0JLJ8FMpwT6ct736wCcCl9b
-F41aV0LagWOG9Kd9IbRclvI=
-=fFKp
+iD8DBQE+IG8jXaXGVTD0i/8RArBLAJ4j7SlWmbSaURYKCoL2GVApQv7k6QCdHzxa
+8T1U5UtRf3yaI/WNV2FfBdI=
+=rGeC
 -----END PGP SIGNATURE-----
 
---Y5rl02BVI9TCfPar--
+--gatW/ieO32f1wygP--
