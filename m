@@ -1,13 +1,14 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Re: Transparent broadband network connectivity (IP PnP)
-Date: Fri, 14 Mar 2003 11:36:43 +1100
+From: Bobo <boboaq@163.com>
+Subject: How does a NAT-packet traverse?
+Date: Fri, 14 Mar 2003 15:2:11 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200303140136.h2E1akt16404@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
-Cc: <dragon_nlt@yahoo.com>, <netfilter-devel@lists.netfilter.org>
+Message-ID: <20030314070154.5FDA81CFB5E00@sm203.163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="GB2312"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+To: netfilter@lists.netfilter.org <netfilter@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,85 +19,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Yeah, the proxy arp stuff is already built to do this sort of
-thing;   http://lartc.org/howto/lartc.bridging.proxy-arp.html
-
-.. I don't know if this gives us routing table entries for the
-rarp'd addresses tho ... but if you're saying he doesn't
-get the replies going back to those machines, then I guess
-it doesn't ...  your rule may work depending on what that
-proxy arp stuff does to the kernel routing table ...
-
-We're keen to test it here .. we might have a crack at it
-to see what it takes to get it working.
 
 
+ Hello:
 
+        Now,I  am studying how to setup Iptable rules,and I meet a question.
 
+        I would like to know how netfilter  do with a packet which is the response of 
 
------ Original Message -----
->From: "Patrick McHardy" <kaber@trash.net>
->To: "Ian Latter" <Ian.Latter@mq.edu.au>
->Subject:  Re: Transparent broadband network connectivity (IP PnP)
->Date: Fri, 14 Mar 2003 00:32:56 +0100
->
-> I still think my suggestion is a lot easier, as i understood him he already
-> got so far that the clients can send packet to the internet, they are SNATed
-> and reply packet reach the NAT box which DNATs them back automatically.
-> With a simple iptables rule packet can be directed to the client-network:
-> iptables -A PREROUTING -i eth1 -m conntrack --orig-dst <eth0-ip> -j 
-> ROUTE --oif eth1
-> Only thing left to do is make linux send arp requests for the client ips 
-> on eth1,
-> im unsure how this can be achieved or if anything needs to be done at all.
-> 
-> Patrick
-> 
-> 
-> Ian Latter wrote:
-> 
-> >Clarifying this ...  correcting 1 and 2 below;
-> >
-> >  Once they're at the linux router/firewall doohicky, they can then
-> >be universally NATed .... but then you've got a problem ... because
-> >the linux box, doing layer-3 routing, will send user data back to the
-> >internet.  You can fix this by doing one of two things;
-> >
-> >  1.  Whatever does the arp spoofing to correct the routing, should
-> >       also rarp the ips of the macs currently asking for arps.  This
-> >       would allow you to layer-2 correct/align the linux box.  ie;
-> >            rarp on 10.1.1.99 = US:ER:1M:AC
-> >            rarp on 192.168.27.149 = US:ER:2M:AC
-> >            rarp on 1.2.3.200 = US:ER:3M:AC
-> >          (users[1-n]) --- [linux1/router/fw] -- (net)
-> >       This linux box would have a default (l3) route to the net.
-> >
-> >  2. You could use two linux boxes.  The first (closest to the users)
-> >      would have to do all of the layer 2 work - and then forward (bridge)
-> >      traffic to the second.  The second would have to do ip NATing
-> >      when matching the traffic from the MAC of the first ... I think ... I
-> >      haven't done any layer 2 stuff in iptables.  Ie;
-> >          (users[1-n]) --- [linux1/l2bridge] -x- [linux2/router/fw] -- (net)
-> >      The second linux box has default (l3) route of the net, it would 
-> >      reply to traffic from the outer interface mac address of the first
-> >      linux box.
-> >
-> >
-> >  Option 1 looks easy enough to do ... and seems cooler .. but option
-> >2 might let you get away with doing this without writing a scrap of 
-> >code ...  dunno ... check the kernel options and supporting software
-> >for the layer 2 stuff .. and if iptables' match on mac will do what we
-> >want then you're set.
-> >
-> >
-> >
-> >  
-> >
-> 
-> 
-> 
+        a NAT-packet from the inside network?
 
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
+        Where does netfilter do with these packets and give them original IP address?
+  
+       Will these packets pass through INPUT chains and go out from OUT chains?and  they are
+
+       changed at the local process ?
+
+        I am puzzled now .
+
+       Hope to know of it soon .
+
+      Thanks
