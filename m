@@ -1,16 +1,16 @@
-From: Wim Ceulemans <wim.ceulemans@able.be>
-Subject: Re: New Version (1.13) of PPTP conntrack/nat helper
-Date: Wed, 24 Sep 2003 13:42:10 +0200
+From: Eduardo Costa <ecosta@tpk.com.br>
+Subject: Re: A Newb
+Date: Wed, 24 Sep 2003 11:06:50 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F718312.4020000@able.be>
-References: <20030923144924.GM31401@sunbeam.de.gnumonks.org> <3F707404.5080107@able.be> <20030924101329.GW31401@sunbeam.de.gnumonks.org>
+Message-ID: <3F717ACA.3030602@tpk.com.br>
+References: <20030924042855.16435.80088.Mailman@netfilter-sponsored-by.noris.net> <000c01c38259$064f0cd0$03fea8c0@SMURTHY>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_1064403727-26536-5"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-   Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030924101329.GW31401@sunbeam.de.gnumonks.org>
+To: Sreenivasa Poleboyina <smurthy@vet.ksu.edu>
+In-Reply-To: <000c01c38259$064f0cd0$03fea8c0@SMURTHY>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,73 +21,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format...
+Depends on what you want to do, but the start point is the Netfilter 
+Hacking HOWTO. You must know how Netfilter works to help in something. 
+Then you start the job and send patches here (there are rules to do that 
+- you can find on the site).
 
-------------=_1064403727-26536-5
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Sreenivasa Poleboyina wrote:
 
-Harald
-
-Sorry, my mistake, the crashes occur with CONFIG_IP_NF_NAT_LOCAL is 
-switched off.
-I'll produce a debug log when CONFIG_IP_NF_NAT_LOCAL is on of one PPTP 
-session through the firewall.
-
-Regards
-Wim
-
-Harald Welte wrote:
-
->On Tue, Sep 23, 2003 at 06:25:40PM +0200, Wim Ceulemans wrote:
-> 
+>Hello All,
+>Am new to this group and I want to be part of the development. Any place to
+>start ?
+>Sorry for such a newb mail.
+>Any suggestions appreciated.
+>Sreenivasa
 >  
 >
->>If I switch CONFIG_IP_NF_NAT_LOCAL off, the forwarding to a pptp server 
->>behind the firewall works.
->>If switch it on, I don't see any gre packet behind the firewall, so it 
->>does not work.
->>
->>However, with CONFIG_IP_NF_NAT_LOCAL on I have had two freezes (firewall 
->>completely stuck and I had to switch it on and off).
->>    
->>
->
->So to summarize:  It works perfectly of it is OFF, but you have problems
->with DNAT and crashes, if it is ON.  That is surprising - it seems like
->the problems have just been reverting :(
->
->Did you do anything in particular when the firewall hang happened? (like
->unloading/loading a module, ...)?
->
->  
->
->>Regards
->>Wim
->>    
->>
->
->  
->
-
-
--- 
-Wim Ceulemans
-R&D Engineer
-
-Secure Internet Communication with aXs Guard
-
-Able NV
-Leuvensesteenweg 282 - B-3190 Boortmeerbeek - Belgium
-Phone: + 32 15 50.44.00 - Fax: + 32 15 50.44.09
-E-mail: wim.ceulemans@able.be
-
-
-
---
-Security check on this e-mail has been done by aXs GUARD
-(http://www.axsguard.com)
-
-
-------------=_1064403727-26536-5--
