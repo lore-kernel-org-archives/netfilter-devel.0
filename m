@@ -1,14 +1,11 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: tcp window tracking question
-Date: Wed, 15 Dec 2004 08:51:03 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0412150849450.22202@blackhole.kfki.hu>
-References: <00f901c4e21c$452634f0$0e25fe0a@pysiak>
+Subject: [RFC] Match wants to change skbuff (nfcache)
+Date: Wed, 15 Dec 2004 09:01:24 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0412131258330.19191@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <00f901c4e21c$452634f0$0e25fe0a@pysiak>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,14 +17,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Maciej,
+Hi,
 
-On Tue, 14 Dec 2004, Maciej Soltysiak wrote:
+Currently a match function cannot modify the skbuff. However, sometimes
+it'd be useful to be able to modify at least the nfcache field.
 
-> Is the tcp window tracking code in effect only when ip_conntrack is loaded
-> or regardles of ip_conntrack?
+An example: I'm working on porting the unclean match to 2.6. But how nice
+would it be if the unclean match could notify the error function of the
+TCP window tracking code that it had already verified the packet and found
+it clean. nfcache comes as a possibility to pass the required info, but
+match function cannot touch it.
 
-Of course the former. It's an enhanced way of TCP connection tracking.
+It'd be easy and simple to drop 'const' from the definiton of the match
+function, but a match should not poke with skbuff so 'const struct
+sk_buff *skb' is just the right thing.
+
+What I suggest is to add '__u32 *nfcache' to the argument list of the
+match functions.
+
+Are there better alternatives?
 
 Best regards,
 Jozsef
