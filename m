@@ -1,18 +1,17 @@
-From: DarKRaveR <DarKRaveR@habitat-b.de>
-Subject: Re[2]: ip_contrack table full ?
-Date: Mon, 17 Feb 2003 14:31:18 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: PPTP connection tracking
+Date: Mon, 17 Feb 2003 20:00:23 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <12216879671.20030217143118@habitat-b.de>
-References: <18436282631.20030216234147@habitat-b.de>
- <20030217130328.GA9541@sunbeam.de.gnumonks.org>
-Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
+Message-ID: <20030217190023.GF11812@sunbeam.de.gnumonks.org>
+References: <4.2.0.58.20030119145120.00b1c6f0@avocetgw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="R+My9LyyhiUvIEro"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030217130328.GA9541@sunbeam.de.gnumonks.org>
+To: Paul Mielke <paulm@routefree.com>
+Content-Disposition: inline
+In-Reply-To: <4.2.0.58.20030119145120.00b1c6f0@avocetgw>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,35 +22,65 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Harald,
 
-Yeah, realized that too late, and I am just subscribed to this one,
-because of the other things, I am working on. wrecked was the wrong
-word, wrecked in the sense of, the roputinr was screwed, or actually,
-No user could do anything anymore ...
-Sorry again, for posting to the wrong place ...
+--R+My9LyyhiUvIEro
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Monday, February 17, 2003, 2:03:28 PM, you wrote:
+On Sun, Jan 19, 2003 at 03:01:09PM -0800, Paul Mielke wrote:
 
-HW> On Sun, Feb 16, 2003 at 11:41:47PM +0100, DarKRaveR wrote:
->> Hello list,
->> 
->>   I got an issue with ip_contrack module. I have a router here, with
->>   ip_contrack enabled, because I need the REDIRECT target. Earlier
->>   this day, the system wrecked, because the ip_contrack table was
->>   obviously full. How could this happen, with just 6 users ?
+> The thing that prevented case 1) from working is the following
+> fragment in the routine ip_nat_fn() in ip_nat_standalone.c starting
+> around line 111:
+>=20
+>          case IP_CT_NEW:
+> #ifdef CONFIG_IP_NF_NAT_LOCAL
+>                  /* LOCAL_IN hook doesn't have a chain and thus doesn't c=
+are
+>                   * about new packets -HW */
+>                  if (hooknum =3D=3D NF_IP_LOCAL_IN)
+>                          return NF_ACCEPT;
+> #endif
 
-HW> 1) the system doesn't just crash because the table is full.  The system
-HW>    can run out of memory, ip_conntrack_max is too big and you don't have 
-HW>    enough (free) memory.
-HW> 2) this is not a develoment question (but the development list)
-HW> 3) see http://www.netfilter.org/documentation/FAQ/netfilter-faq-3.html#ss3.6
+you are definitely correct, althought your solution is problematic.  In
+the case NAT_LOCAL is enabled, we are still not allowed to call
+ip_nat_rule_find, because this in turn calls ipt_do_table()... but
+there is no chain attached to the LOCAL_IN hook of the 'nat' table, and
+bad things start to happen.
 
->> Best regards,
+I have put a proposed patch into CVS:
+(patch-o-matic/pending/10_local-nat-expectfn.patch)
 
+This patch rather moves the particular piece of code a couple of lines
+down, so we assure that an expectfn (if it exists) gets called.
 
+Can you please test if your setup works with this patch?
 
+> Paul Mielke                        paulm@routefree.com
+> RouteFree, Inc.                   (650) 739-5377
 
--- 
-Best regards,
- DarKRaveR                            mailto:DarKRaveR@habitat-b.de
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--R+My9LyyhiUvIEro
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+UTFGXaXGVTD0i/8RAhZ2AJoDmiKdwStZFFyCAuAqfWxARfx5WQCgi5IY
+d437pREI5lmWhhSSFGDp9Bw=
+=yj0M
+-----END PGP SIGNATURE-----
+
+--R+My9LyyhiUvIEro--
