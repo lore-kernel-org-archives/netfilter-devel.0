@@ -1,53 +1,108 @@
-From: Simon Lodal <simonl@parknet.dk>
-Subject: Re: [PATCH] realm: fix inversion
-Date: Wed, 22 Sep 2004 14:32:50 +0200
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <415170F2.2060506@parknet.dk>
-References: <4150D9F8.7060600@parknet.dk> <4150DC31.4050807@trash.net>
+From: Gene Heskett <gene.heskett@verizon.net>
+Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
+Date: Wed, 22 Sep 2004 08:41:34 -0400
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200409220841.34453.gene.heskett@verizon.net>
+References: <1095721742.5886.128.camel@bach> <Pine.LNX.4.58.0409221347010.23967@tux.rsn.bth.se> <Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
+Reply-To: gene.heskett@verizon.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4150DC31.4050807@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Marc Ballarin <Ballarin.Marc@gmx.de>,
+	Linus Torvalds <torvalds@osdl.org>,
+	netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265029AbUIVMmS@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, root@chaos.analogic.com
+In-Reply-To: <Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
+Content-Disposition: inline
 List-Id: netfilter-devel.vger.kernel.org
 
-
-Hmm ... just realized that inversion is generally a mess. Is there any 
-kind of consensus on how to handle it, now/future?
-
-There are 3 ways to specify inversion:
-
-! --ip 1.2.3.4
---ip !1.2.3.4
---ip ! 1.2.3.4
-
-None of them are both 1) documented and 2) working. Especially 
-iptables-save and iptables-restore rarely works with inversion.
-
-You should probably remove my patch in favor of a better solution for 
-all modules.
-
-
-Simon
-
-
-Patrick McHardy skrev:
-> Simon Lodal wrote:
-> 
+On Wednesday 22 September 2004 08:05, Richard B. Johnson wrote:
+>On Wed, 22 Sep 2004, Martin Josefsson wrote:
+>> On Wed, 22 Sep 2004, Richard B. Johnson wrote:
+>> > > Sure, but you have to start somewhere.  Next step will be
+>> > > #error.  Then finally remove the whole thing (I don't want to
+>> > > remove the whole thing to start with, since that would create
+>> > > a silent failure).
+>> > >
+>> > > Cheers,
+>> > > Rusty.
+>> > > --
+>> >
+>> > What replaces the firewall stuff? It can't just "go away"!
 >>
->> Make '--realm ! id' work as advertised.
->> Make save() output inversion correctly so it can be parsed back in, 
->> and work with iptables-restore and iptables-save.
-> 
-> 
-> 
-> Applied, thanks.
+>> Ever heard of iptables?
+>>
+>> /Martin
+>
+>I guess I'll have to convert 1340 lines of ipchains commands to
+>iptables -yech!
+
+Ouch!  If it takes 1340 lines of ipchains commands, a direct 
+translation to iptables syntax is both counter-productive and 
+extremely wastefull of system resources, cpu in particular.  I 
+admittedly have a dsl router in front of my machine, so it does 99% 
+of that job, but if I wanted to put up with the idiosyncracies of the 
+Roaring Penguin PPPoE, I could skip the router and be just as secure 
+with the less than 30 active lines of my present iptables script.  
+With the router, I'm invisible to the outside world.  Of course that 
+does restrict me some as I've not figured out how to drill a hole 
+thru all that to allow a torrent server to function.  The peace of 
+mind is worth that loss IMO.  Its been over a year now since 
+portsentry-1.1 saw a trigger and logged it.
+
+Humm, thats a lie, from the firewalls /var/log/messages.1 file:
+
+[root@gene root]# grep attackalert /var/log/messages*
+/var/log/messages.1:Sep 16 18:09:16 gene portsentry[1159]: 
+attackalert: UDP scan from host: home1.bellatlantic.net/199.45.32.43 
+to UDP port: 32771
+/var/log/messages.1:Sep 16 18:09:16 gene portsentry[1159]: 
+attackalert: Host 199.45.32.43 has been blocked via wrappers with 
+string: "ALL: 199.45.32.43"
+/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
+attackalert: Host 199.45.32.43 has been blocked via dropped route 
+using command: "/sbin/iptables -I INPUT -s 199.45.32.43 -j DROP"
+/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
+attackalert: UDP scan from host: home1.bellatlantic.net/199.45.32.43 
+to UDP port: 32771
+/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
+attackalert: Host: home1.bellatlantic.net/199.45.32.43 is already 
+blocked Ignoring
+
+Time to send another nastygram to verizon since thats one of their 
+nameservers, and clear out that address from the hosts.deny file.
+
+FWIW, the last time that happened, in April 2003, the hack attempt  
+trashed a siemans router and I had to replace it with that linksys.  
+Must be time to change the user and password in it again too...
+
+FWIW, verizon has apparently a problem keeping their nameservers from 
+being hacked.
+
+>I had convert something to ipchains a couple of years ago.
+>That's when I only had to kill-off only about 100 spam-hosts.
+>
+>Now I gotta convert again. Soon they'll be replacing `ls`
+>with `echo *` and nothing will work.
+
+Surely you jest?
+
+>Cheers,
+>Dick Johnson
+>Penguin : Linux version 2.4.26 on an i686 machine (5570.56
+> BogoMips). Note 96.31% of all statistics are fiction.
+
+-- 
+Cheers, Gene
+"There are four boxes to be used in defense of liberty:
+ soap, ballot, jury, and ammo. Please use in that order."
+-Ed Howdershelt (Author)
+99.26% setiathome rank, not too shabby for a WV hillbilly
+Yahoo.com attorneys please note, additions to this message
+by Gene Heskett are:
+Copyright 2004 by Maurice Eugene Heskett, all rights reserved.
