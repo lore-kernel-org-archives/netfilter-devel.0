@@ -1,13 +1,13 @@
-From: =?ISO-8859-1?Q?C=E9dric?= de Launois <delaunoi@info.ucl.ac.be>
-Subject: New target 'ROUTE' and new table 'rsip'
-Date: 10 Jun 2002 11:23:12 +0200
+From: <zenadsl3030@zen.co.uk>
+Subject: [PATCH] DSCP match/target patches
+Date: Mon, 10 Jun 2002 13:49:13 GMT
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1023700992.3124.29.camel@descartes>
+Message-ID: <20020610135311.246C1453D@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary = "NextPart4b31ce7bcd41b45a264686ec7776bf29"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Netfilter-devel <netfilter-devel@lists.samba.org>
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,70 +18,84 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a MIME encoded message.
+
+--NextPart4b31ce7bcd41b45a264686ec7776bf29
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
 Hi,
 
-Here is an extension to directly reroute packets without modifying
-them, even and especially if those packets are destined to the router
-itself. Those packets are locally delivered and cannot be forwarded to
-another computer using the standard routing mechanisms.
-Sometimes, this is useful to redirect them to another computer, without
-modification, e.g. when using the new RSIP protocol (RFC3102, RFC3103,
-see http://openresources.info.ucl.ac.be/rsip for more info).
+Here is a simple patch to the DSCP match to allow the use of DiffServ class=
+ names in the matches, in a similar manner to the target.
 
-This extension includes a new target, called 'ROUTE', and a new table,
-called 'rsip'. It provides a way to reroute those packets to an
-interface selected by the user.=20
+Also attached is a one line fix for a typo in the DSCP target where CS6 was=
+ defined twice in the match list.
 
-Source files are available at
-  http://openresources.info.ucl.ac.be/rsip/netfilter/
-
-These files are not yet packaged in any way. Sorry.
+Iain
 
 
-Example
--------
+--NextPart4b31ce7bcd41b45a264686ec7776bf29
+Content-Type: application/octet-stream;
+	name="libipt_DSCP-target.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="libipt_DSCP-target.diff"
 
-With RSIP, we can lease some ports (8000-8200 here) to one of
-our private host. The host has the same IP as its router, so that
-packets may remain unmodified when going through the router.
-We want to reroute tcp packets coming from eth0 with dst port
-8000-8200 towards iface tunl1 (in order to forward them to the
-host) :
+LS0tIGxpYmlwdF9EU0NQLmMub3JpZwlNb24gSnVuIDEwIDE0OjM1OjE0IDIwMDIKKysrIGxpYmlw
+dF9EU0NQLmMJTW9uIEp1biAxMCAxNDozNToyNCAyMDAyCkBAIC0zNSw3ICszNSw3IEBACiAJeyAi
+Q1M0IiwgIDB4MjAgfSwKIAl7ICJDUzUiLCAgMHgyOCB9LAogCXsgIkNTNiIsICAweDMwIH0sCi0J
+eyAiQ1M2IiwgIDB4MzggfSwKKwl7ICJDUzciLCAgMHgzOCB9LAogCXsgIkJFIiwgICAgMCB9LAog
+CXsgIkFGMTEiLCAweDBhIH0sCiAJeyAiQUYxMiIsIDB4MGMgfSwK
 
-          eth0  +------+ 192.168.0.1        192.168.0.2 +----+
-----------------|router|--------------------------------|host|
-IP: 150.150.0.1 +------+                                +----+
-                    | | tunl1      tunnel IP: 150.150.0.1 | |
-                    | +-----------------------------------+ |
-                    +---------------------------------------+
+--NextPart4b31ce7bcd41b45a264686ec7776bf29
+Content-Type: application/octet-stream;
+	name="libipt_dscp-match.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="libipt_dscp-match.diff"
 
-We do :
+LS0tIGxpYmlwdF9kc2NwLmMub3JpZwlUaHUgTWFyIDE0IDEyOjE5OjQzIDIwMDIKKysrIGxpYmlw
+dF9kc2NwLmMJTW9uIEp1biAxMCAxNDozMjozOCAyMDAyCkBAIC05LDYgKzksNyBAQAogICogRm9y
+IGEgbGlzdCBvZiBEU0NQIGNvZGVwb2ludHMgc2VlIAogICogaHR0cDovL3d3dy5pYW5hLm9yZy9h
+c3NpZ25tZW50cy9kc2NwLXJlZ2lzdHJ5CiAgKgorICogRGlmZlNlcnYgY2xhc3Mgc3VwcG9ydCBi
+eSBJYWluIEJhcm5lcy4KICAqLwogI2luY2x1ZGUgPHN0ZGlvLmg+CiAjaW5jbHVkZSA8c3RyaW5n
+Lmg+CkBAIC0xOSw2ICsyMCwzOSBAQAogI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY0L2lw
+X3RhYmxlcy5oPgogI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY0L2lwdF9kc2NwLmg+CiAK
+Kworc3RhdGljIHN0cnVjdCBkc19jbGFzcworeworCWNoYXIgKmNsYXNzOworCXVuc2lnbmVkIGlu
+dCBkc2NwOworfSBkc19jbGFzc2VzW10gPSAKK3sKKwl7ICJDUzAiLCAwIH0sCisJeyAiQ1MxIiwg
+MHgwOCB9LAorCXsgIkNTMiIsIDB4MTAgfSwKKwl7ICJDUzMiLCAweDE4IH0sCisJeyAiQ1M0Iiwg
+MHgyMCB9LAorCXsgIkNTNSIsIDB4MjggfSwKKwl7ICJDUzYiLCAweDMwIH0sCisJeyAiQ1M3Iiwg
+MHgzOCB9LAorCXsgIkJFIiwgIDAgfSwKKwl7ICJBRjExIiwgMHgwYSB9LAorCXsgIkFGMTIiLCAw
+eDBjIH0sCisJeyAiQUYxMyIsIDB4MGUgfSwKKwl7ICJBRjIxIiwgMHgxMiB9LAorCXsgIkFGMjIi
+LCAweDE0IH0sCisJeyAiQUYyMyIsIDB4MTYgfSwKKwl7ICJBRjMxIiwgMHgxYSB9LAorCXsgIkFG
+MzIiLCAweDFjIH0sCisJeyAiQUYzMyIsIDB4MWUgfSwKKwl7ICJBRjQxIiwgMHgyMiB9LAorCXsg
+IkFGNDIiLCAweDI0IH0sCisJeyAiQUY0MyIsIDB4MjYgfSwKKwl7ICJFRiIsIDB4MmUgfQorfTsK
+KworCisKIHN0YXRpYyB2b2lkIGluaXQoc3RydWN0IGlwdF9lbnRyeV9tYXRjaCAqbSwgdW5zaWdu
+ZWQgaW50ICpuZmNhY2hlKSAKIHsKIAkqbmZjYWNoZSB8PSBORkNfSVBfVE9TOwpAQCAtMzAsMTIg
+KzY0LDE1IEBACiAiRFNDUCBtYXRjaCB2JXMgb3B0aW9uc1xuIgogIlshXSAtLWRzY3AgdmFsdWUJ
+CU1hdGNoIERTQ1AgY29kZXBvaW50IHdpdGggbnVtZXJpY2FsIHZhbHVlXG4iCiAiICAJCSAgICAg
+ICAgICAgICAgICBUaGlzIHZhbHVlIGNhbiBiZSBpbiBkZWNpbWFsIChleDogMzIpXG4iCi0iICAg
+ICAgICAgICAgICAgCQlvciBpbiBoZXggKGV4OiAweDIwKVxuIiwgTkVURklMVEVSX1ZFUlNJT04K
+KyIgICAgICAgICAgICAgICAJCW9yIGluIGhleCAoZXg6IDB4MjApXG4iCisiWyFdIC0tY2xhc3Mg
+bmFtZQkJTWF0Y2ggdGhlIERpZmZTZXJ2IENsYXNzIG5hbWVzIHN1Y2ggYXNcbiIKKyIJCQkJQUZ4
+eCxCRSxFRiBvciBDU3hcbiIsIE5FVEZJTFRFUl9WRVJTSU9OCiApOwogfQogCiBzdGF0aWMgc3Ry
+dWN0IG9wdGlvbiBvcHRzW10gPSB7CiAJeyAiZHNjcCIsIDEsIDAsICdGJyB9LAorCXsgImNsYXNz
+IiwgMSwgMCwgJ0cnIH0sCiAJeyAwIH0KIH07CiAKQEAgLTU2LDYgKzkzLDIzIEBACiAgICAgCXJl
+dHVybjsKIH0KIAorCitzdGF0aWMgdm9pZAorcGFyc2VfY2xhc3MoY29uc3QgdW5zaWduZWQgY2hh
+ciAqcywgc3RydWN0IGlwdF9kc2NwX2luZm8gKmRpbmZvKQoreworCWludCBpOworCisJZm9yKGkg
+PSAwOyBpIDwgc2l6ZW9mKGRzX2NsYXNzZXMpIC8gc2l6ZW9mKHN0cnVjdCBkc19jbGFzcyk7IGkr
+KykgeworCQlpZiAoIXN0cm5jYXNlY21wIChzLCBkc19jbGFzc2VzW2ldLmNsYXNzLAorCQkJCQlz
+dHJsZW4oZHNfY2xhc3Nlc1tpXS5jbGFzcykpKSB7CisJCQlkaW5mby0+ZHNjcCA9ICh1X2ludDhf
+dClkc19jbGFzc2VzW2ldLmRzY3A7CisJCQlyZXR1cm47CisJCX0KKwl9CisKKwlleGl0X2Vycm9y
+KFBBUkFNRVRFUl9QUk9CTEVNLCAiSW52YWxpZCBEaWZmU2VydiBjbGFzcyAnJXMnXG4iLCBzKTsK
+K30KKwogc3RhdGljIGludAogcGFyc2UoaW50IGMsIGNoYXIgKiphcmd2LCBpbnQgaW52ZXJ0LCB1
+bnNpZ25lZCBpbnQgKmZsYWdzLAogICAgICAgY29uc3Qgc3RydWN0IGlwdF9lbnRyeSAqZW50cnks
+CkBAIC03Nyw2ICsxMzEsMTggQEAKIAkJKmZsYWdzID0gMTsKIAkJYnJlYWs7CiAKKwljYXNlICdH
+JzoKKwkJaWYgKCpmbGFncykKKwkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sCisJCQkJ
+IkRTQ1AgbWF0Y2g6IE9ubHkgdXNlIC0tY2xhc3MgT05DRSEiKTsKKworCQljaGVja19pbnZlcnNl
+KG9wdGFyZywgJmludmVydCwgJm9wdGluZCwgMCk7CisJCXBhcnNlX2NsYXNzKGFyZ3Zbb3B0aW5k
+IC0gMV0sIGRpbmZvKTsKKwkJaWYgKGludmVydCkKKwkJCWRpbmZvLT5pbnZlcnQgPSAxOworCQkq
+ZmxhZ3MgPSAxOworCQlicmVhazsKKwkJCiAJZGVmYXVsdDoKIAkJcmV0dXJuIDA7CiAJfQo=
 
- iptables -A PREROUTING -i eth0 -p tcp --dport 8000:8200 -j ROUTE
---iface tunl1
-
-
-
-The new files
--------------
-
-a) The new 'ROUTE' target :
-
-*  ipt_ROUTE.c        in /usr/src/linux/net/ipv4/netfilter
-*  ipt_ROUTE.h        in /usr/src/linux/include/linux/netfilter_ipv4
-
-b) A new 'rsip' table, with only PREROUTING hook, and priority -170=20
-   =3D=3D after Conntrack but before Mangle, NAT,... (since we do not
-   want those packet being altered in any way)
-
-*  iptable_rsip.c     in /usr/src/linux/net/ipv4/netfilter
-
-c) Extension to make iptables support the new 'ROUTE' target :
-
-*  libipt_ROUTE.c     in iptables-x.x.X/extensions
-
-Any comment ?
-
-Thanks,
-
-C=E9dric
+--NextPart4b31ce7bcd41b45a264686ec7776bf29--
