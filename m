@@ -1,17 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: netlink and iptables
-Date: Thu, 26 Jun 2003 09:25:48 +0200
+From: Fabrice MARIE <fabrice@netfilter.org>
+Subject: Re: Netfilter Design
+Date: Thu, 26 Jun 2003 23:42:34 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030626072548.GL2645@sunbeam.de.gnumonks.org>
-References: <3EFA0B56.1030006@linux.org.ar>
+Message-ID: <200306262342.34359.fabrice@netfilter.org>
+References: <01C33A40.D7C36290.rhagelstrom@atcorp.com>
+Reply-To: fabrice@netfilter.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="I7xMaAXwyt9AGI17"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Diego Woitasen <diegows@linux.org.ar>
+To: "rhagelstrom@atcorp.com" <rhagelstrom@atcorp.com>,
+   netfilter-devel@lists.netfilter.org
+In-Reply-To: <01C33A40.D7C36290.rhagelstrom@atcorp.com>
 Content-Disposition: inline
-In-Reply-To: <3EFA0B56.1030006@linux.org.ar>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,46 +24,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wednesday 25 June 2003 00:07, Ryan Hagelstrom wrote:
+> [...]
+> Also, this isn't the only list like this but why on earth in this day and 
+> age do the archives not have a search feature, but rather download and do
+> search yourself. I feel that a lot of the repeat questions and "search the
+> archives" responses could be eliminated if it was not so much of a pain in
+> the ass to search the archives.
 
---I7xMaAXwyt9AGI17
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I know it's not the best solution, bu it's definitely the best search engine : google :)
+You can simply use the 'site:' keyword of google (i.e. site:lists.netfilter.org)
+OK, it won't feature the very recent posts, but it's better than nothing.
 
-On Wed, Jun 25, 2003 at 05:51:34PM -0300, Diego Woitasen wrote:
-> Where is the code of iptables2 updated? I saw some code in CVS but is=20
-> really old. I want to contribute to the project but i can 't find=20
-> anything about it.
+example:
+http://www.google.com/search?hl=en&q=Netfilter+Design+site%3Alists.netfilter.org
 
-the problem is that I don't have as much time as I'd like to have to
-spend on iptables2 (which should be renamed to pkttables anyway).
+Finally, there are already existing proper search engine for the netfilter
+and netfilter devel mailing lists:
 
-Before the development of the userspace program can start, libiptables
-(which should be renamed to libpkttables) has to be at some more mature
-state.
+netfilter searchable archive:
+http://marc.theaimsgroup.com/?l=netfilter&r=1&w=2
 
-> Thanks.
+netfilter-devel searchable archive:
+http://marc.theaimsgroup.com/?l=netfilter-devel&r=1&w=2
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Have a nice day,
 
---I7xMaAXwyt9AGI17
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Fabrice.
+--
+Fabrice MARIE
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE++p/8XaXGVTD0i/8RAqEQAJ0do3lER0cRU+bICoYstUIlLFS3CACgkVGF
-sSbyLCoVBorzPdR9bEDWB0c=
-=i0xB
------END PGP SIGNATURE-----
-
---I7xMaAXwyt9AGI17--
+"Silly hacker, root is for administrators"
+       -Unknown
