@@ -1,13 +1,16 @@
-From: Martijn Lievaart <netfilter-devel@rtij.nl>
-Subject: I don't understand what goes where, very confused about POM-ng
-Date: Wed, 05 May 2004 19:14:52 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] ROUTE target fixes for --iif
+Date: Wed, 5 May 2004 19:26:38 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4099210C.40309@rtij.nl>
+Message-ID: <Pine.LNX.4.33.0405051925410.31016-100000@blackhole.kfki.hu>
+References: <20040505144333.GA17752@ti64.telemetry-investments.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Cedric de Launois <delaunois@info.ucl.ac.be>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+In-Reply-To: <20040505144333.GA17752@ti64.telemetry-investments.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,31 +21,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Wed, 5 May 2004, Bill Rugolsky Jr. wrote:
 
-Using CVS of today 5/5/2004.
+> On Wed, May 05, 2004 at 02:04:19PM +0200, Cedric de Launois wrote:
+> > Concerning the TTL, what happens if you re-inject the packet
+> > on the same interface ? If you don't decrement the TTL, you
+> > might introduce a loop, no ? Could you check this ?
+>
+> D'oh!  You are of course correct that it will loop (and I've verified that
+> it does).  I had previously been using
+>
+> 	iptables -t mangle -A PREROUTING -i hdlc\+ -j TTL --ttl-inc 1
+>
+> to get the desired behavior, but changed ROUTE because the above seemed
+> inelegant.   The original behavior is indeed the safer course.  The attached
+> patch backs out the TTL change.
 
-I'm trying to port the psd match to 2.6. The C code is ready (not much 
-of a change needed). However POM will not apply the headerfile from the 
-linux/ tree, I need to copy it to the linux-2.6 tree. I would expect 
-that everything in the linux tree would also be applied, eventually 
-overridden by something in the linux-2.6 tree. Why else have seperate 
-linux-2.4 trees?
+Patch is applied. Quick fixes are highly appreciated. :-)
 
-By now I gather that POM-ng tries to find a best match, and does this 
-independently for the ladds and the files (and the patches as well?). I 
-find this very confusing, but I think this is by design?
-
-Anyhow, I looked at a couple of other patches and many have their header 
-file only in the linux-tree. Many are also base, so probably already 
-applied to any 2.6 kernel, but the why have a linux-2.6 tree in that 
-case? One patch where this really breaks is the XOR patch, it does not 
-apply to 2.6 because POM-ng does not copy the header.
-
-As an alternative, would it be possible to just create a linux-2.6.patch 
-file that applies after the 2.4 patch has applied? This would be a good 
-solution because many patches need only minor modifications to newly 
-added files (especially only ipt_xxx.c) to make them run under 2.6.
-
-TIA,
-Martijn Lievaart
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
