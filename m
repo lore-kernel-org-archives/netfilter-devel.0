@@ -1,15 +1,13 @@
-From: Sven Anders <anders@anduras.de>
-Subject: New iptables structure (was: [PATCH 1/2] ipt_MARK extension with
- backwards compatibilty...)
-Date: Sat, 27 Nov 2004 11:45:24 +0100
-Message-ID: <41A85AC4.5080006@anduras.de>
-References: <1101358191.5842.26.camel@localhost.localdomain>
-	<41A7B514.9030703@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Enabling CONFIG_IP_NAT_LOCAL unconditionally
+Date: Sat, 27 Nov 2004 12:53:56 +0100
+Message-ID: <41A86AD4.1060706@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070105000300090501090404"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <41A7B514.9030703@eurodev.net>
+To: coreteam@netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,58 +19,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070105000300090501090404
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Hi,
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I discovered more problems with locally generated ICMP errors while
+testing NAT with IPsec. When an error is generated after POST_ROUTING,
+the original packet has already be SNATed. icmp_reply_translation
+expects all packets to go PRE_ROUTING -> ... -> POST_ROUTING, so both
+SNAT and DNAT of the inner packet can be reversed and applied to the
+outer packet in the opposite direction. Locally generated ICMP errors
+only go through LOCAL_OUT -> POST_ROUTING. Since they never hit
+PRE_ROUTING, the inner packet is not reverse-SNATed and the outer
+packet is not DNATed properly.
 
-Pablo Neira wrote:
+Example with locally generated traffic. The error is visible best for
+locally generated traffic with SNAT to non-local addresses, with local
+addresses the error is reported properly anyway unless the port number
+is also translated.
 
-| My idea, I don't know how crazy it is. Instead of using the size to
-| guess the target/match version, we could steal 1 byte from char name[]
-| to define a new field called version, so we could register different
-| versions of a match/target.
+eth0 is 172.16.195.3/16, 172.16.195.100 is not existant:
 
-Once again, we need a field more...
-Wasn't there an suggestion to reuse the 'nfcache' field too??
-Wasn't the need to an unique rule id posted?
-What more???
+# iptables -t nat -A POSTROUTING -o eth0 -d 172.16.195.100 -j SNAT 
+--to-source 10.0.0.1
+# telnet 172.16.195.100
 
-Why not break compatibilty, if it hamper the development?
+on eth0:
+IP (tos 0xd0, ttl  64, id 57576, offset 0, flags [none], length: 88) 
+172.16.195.3 > 10.0.0.1: icmp 68: host 172.16.195.100 unreachable for IP 
+(tos 0x10, ttl  64, id 48538, offset 0, flags [DF], length: 60) 
+10.0.0.1.33912 > 172.16.195.100.23: [|tcp]
 
-Admit it, the design has some flaws, why not eliminating them? You can not preserve the
-compatibility forever! It you do it NOW (in the next 2.6 kernel release) you can rely on
-the circumstance, that it will updated, because in the current kernel cycle, it will be
-done more often. The longer you wait, the more difficult it will be!
-
-To prevent further incompatibility, you can insert some reserved fields to the main
-structure...
-
-Comments welcome :-)
+It seems the easiest fix for this is always enabling CONFIG_IP_NAT_LOCAL
+and applying PRE_ROUTING manips in LOCAL_OUT in icmp_reply_translation.
+Is everyone fine with this ?
 
 Regards
-~ Sven
-
-- --
-~ Sven Anders <anders@anduras.de>
-
-~ ANDURAS service solutions AG
-~ Innstraße 71 - 94036 Passau - Germany
-~ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
-
-Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
-Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
-Vorsitzender des Aufsichtsrats: Dipl. Kfm. Karlheinz Antesberger
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD4DBQFBqFrD5lKZ7Feg4EcRAohvAKCD53V3uhC/b2EBWQvjSlHzKQdXrQCYu7iy
-FnXEAMJ0SKVKwID2d3yUIw==
-=2wlB
------END PGP SIGNATURE-----
-
---------------070105000300090501090404--
+Patrick
