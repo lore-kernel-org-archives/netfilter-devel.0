@@ -1,12 +1,16 @@
-From: Oskar Andreasson <blueflux@koffein.net>
-Subject: [almost OT] ipsysctl-tutorial pre-beta version
-Date: Mon, 7 Oct 2002 19:43:40 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: TCP window tracking patch status query for further design
+ considerations
+Date: Tue, 8 Oct 2002 12:17:10 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0210071935500.1772-100000@laptop1.agatha>
+Message-ID: <Pine.LNX.4.33.0210081210410.23021-100000@blackhole.kfki.hu>
+References: <3DA1AE9E.6030106@tac.ch>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, <netfilter-devel@lists.netfilter.org>
+To: Roberto Nibali <ratz@tac.ch>
+In-Reply-To: <3DA1AE9E.6030106@tac.ch>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,33 +21,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+Hi,
 
-Just wanted to let everyone know that the ipsysctl-tutorial is released 
-in a kind of super-pre-beta version or so. It's far far from complete, it 
-probably contain 500 errors per word that it consists of, but.... I'd just 
-like to see if some people would like to read through parts of it and see 
-what they think of it? This is the URL to the current version:
+On Mon, 7 Oct 2002, Roberto Nibali wrote:
 
-http://ipsysctl-tutorial.frozentux.net
+> Is/Are there any news about the possibly impaired functionality of the
+> TCP window tracking patch? I recall the thread about the mailinglist
+> problems where Harald concluded that it was this patch that caused
+> headaches to several people trying to send emails to the netfilter
+> lists. Has the problem been investigated any further or is the status
+> still unclear?
 
-Is this document worth the effort? Is this anything along the lines what 
-you have wished for? Is there anything missing (yes, tons that I know 
-of=))? Find any bugs or errors on my part? 
+The problem hasn't still been investigated. :-( I have been totally buried
+with other tasks in the last weeks. :-((
 
-I will be totally honest, this document probably took me several hundreds 
-of hours getting this far, since I had to pretty much read up on every 
-single variable in the source code. Considering that I am a fairly bad 
-coder, this took some considerable part of the time:). I am pretty damn 
-certain that this has led to hundreds of errors, and people will probably 
-want to kill me for some of them.
+I hope in this month I'll be able to run an excessive testing of the
+delayed SMTP delivery caused by the patch and find the solution.
 
-Thanks for any kind of feedback!
+> Without this patch, netfilter is completely useless to us. Could
+> someone please give me a status report of this patch? What about a
+> possible inclusion into mainstream kernel (this question is important
+> to our management to create appropriate SLAs)?
 
--- 
-----
-Oskar Andreasson
-http://www.frozentux.net
-http://iptables-tutorial.frozentux.net
-http://ipsysctl-tutorial.frozentux.net
-mailto:blueflux@koffein.net
+Even after the problem is fixed, some time will be required for further
+testing the patch before considering submitting into the kernel. Also,
+a decision will be required on the the proc interface of netfilter due to
+the new level introduced by the patch.
+
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
