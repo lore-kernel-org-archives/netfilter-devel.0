@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Problem with connection tracking ESP using SPI
-Date: Thu, 29 Jan 2004 12:16:57 +0100
+Subject: Re: [PATCH]Re: NAT before IPsec with 2.6
+Date: Thu, 29 Jan 2004 20:05:14 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040129111657.GB11761@sunbeam.de.gnumonks.org>
-References: <OF6DBB9E97.4BB21383-ON88256E29.00667A58@tais.net>
+Message-ID: <20040129190514.GN11761@sunbeam.de.gnumonks.org>
+References: <20040127103917.GC11761@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0401271207160.16067-100000@filer.marasystems.com> <20040127130739.GR11761@sunbeam.de.gnumonks.org> <20040128000938.GH11761@sunbeam.de.gnumonks.org> <pan.2004.01.28.10.30.03.44921@dungeon.inka.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2RPSo2VWgDbGU+zh"
-Cc: glenn@swonk.com,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="gWPeGsYce+mZStT1"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Glenn.Swonk@tais.com
+To: Andreas Jellinghaus <aj@dungeon.inka.de>
 Content-Disposition: inline
-In-Reply-To: <OF6DBB9E97.4BB21383-ON88256E29.00667A58@tais.net>
+In-Reply-To: <pan.2004.01.28.10.30.03.44921@dungeon.inka.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,51 +23,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---2RPSo2VWgDbGU+zh
+--gWPeGsYce+mZStT1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 28, 2004 at 10:46:47AM -0800, Glenn.Swonk@tais.com wrote:
-> Dear Harald,
+On Wed, Jan 28, 2004 at 11:30:04AM +0100, Andreas Jellinghaus wrote:
+> ah_output to ah_output_finish and a new ah_output
+> with:
+> > +	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, skb->dev, ah_dummyde=
+v,
+> > +		       ah_output_finish);
 >=20
-> I read your document on "Linux 2.4.x netfilter/iptables firewalling
-> internals" and had a couple of questions.
->=20
-> I am trying to create a netfilter module for IPSec connection tracking fr=
-om
-> the LAN side to a destination host.
+> please add the same to ipip, ipgre and friends, to keep them
+> in sync? what about ipv6?
 
-Please write to the netfilter-devel mailinglist, as it is meant for
-development related questions.
+yes, please wait until we have implemented in one case and proven that
+it does what it is supposed to do.. after that we will sync up.
 
-> Multiple clients on the LAN side cannot connect to the destination
-> host successfully since the packets on the way back cannot be
-> successfully routed back to the requesting client (nothing to track
-> with).
->=20
-> I have in the past used the SPI to track connections but cannot seem to
-> include this in a netfilter module.
+> Andreas
+> p.s. I hope the idea with the new hook POSTENCAP died?
 
-You would first have to write something like ip_conntrack_proto_esp.c,
-which would include the SPI (as port numbers are tracked with TCP).=20
-It's not as easy as TCP, since the SPI is different for each direction,
-and every packet only contains the SPI for one direction.=20
-
-However, this is again similar of what I had to do for
-ip_conntrack_proto_gre.c (see the patch-o-matic PPTP patch), where
-ip_conntrack_pptp.c tells ip_conntrack_proto_gre.c which two CallID's
-belong to a single connection.
-
-> Any suggestions?
-
-Maybe you could pos your current code so we could see where the problem
-might be?
-
-> thanks,
-> glenn
->=20
-> Glenn Swonk
+yes.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -80,7 +56,7 @@ might be?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---2RPSo2VWgDbGU+zh
+--gWPeGsYce+mZStT1
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -88,9 +64,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAGOupXaXGVTD0i/8RAtsZAKCxXl6qTEioD134D8X8SuPRxdvQtgCfdtfI
-v1QegfrPQHo9/M7vyC9G2l0=
-=uSLT
+iD8DBQFAGVlqXaXGVTD0i/8RAhVTAJ9WeL/Wed/AfsUqr2pXVzE7Y72JQwCfQH8b
+TU+3OyGnnUURwvy6v3rz7aU=
+=lHQU
 -----END PGP SIGNATURE-----
 
---2RPSo2VWgDbGU+zh--
+--gWPeGsYce+mZStT1--
