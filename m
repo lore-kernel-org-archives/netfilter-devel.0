@@ -1,19 +1,16 @@
-From: insecure <insecure@mail.od.ua>
-Subject: Re: I see wrong ip on icmp_need_fragment. MASQUERADE+less_than_1500_MTU_link+nfs
-Date: Sun, 24 Aug 2003 03:42:28 +0300
+From: James Morris <jmorris@intercode.com.au>
+Subject: Re: Making ip_queue l3 independent
+Date: Sun, 24 Aug 2003 17:51:27 +1000 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200308240342.28529.insecure@mail.od.ua>
-References: <200308141317.h7EDHad01974@Port.imtp.ilyichevsk.odessa.ua> <20030823210759.GD6750@sunbeam.de.gnumonks.org>
-Reply-To: insecure@mail.od.ua
+Message-ID: <Mutt.LNX.4.44.0308241738460.20308-100000@excalibur.intercode.com.au>
+References: <20030823210022.GA6750@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: coreteam@netfilter.org,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
- Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
-In-Reply-To: <20030823210759.GD6750@sunbeam.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030823210022.GA6750@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,26 +21,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > Hi folks,
-> >
-> > Please CC me, I'm not on the list.
-> >
-> > I think I see a bug.
->
-> Unfortunately you didn't tell us which exact kernel version you were
-> using while experiencing the described behaviour.
->
-> Could you please file a bug about this to bugzilla.netfilter.org with
-> the kernel version and all details?  thanks.
->
-> > Is this a known problem?
->
-> we've had this bug in the past - but it's assumed to be fixed since
-> quite some time (2.4.19 or 2.4.20, I think).
+On Sat, 23 Aug 2003, Harald Welte wrote:
 
-I am sorry. Seems like I indeed tripped over an old bug.
-It is fixed in 2.4.21
+> James, what is your take on this?  What do you think?  If you agree, do
+> you have the time to do the change, or would you be fine if I'd work out
+> a patch?
 
-Thanks folks for your incredible work!
+Yes it's a good idea.  Most of the code is indeed protocol independent,
+and things like the mangle function could be registerable as part of e.g.  
+nf_queue_handler_ops.
+
+It is unlikely that I would have time to work on this before 2.6.0, due to 
+other projects and the fact that I'm moving to the US in a few weeks.  
+
+Please feel free to hack on the code.  Another potentially useful
+improvement would be to allow for multiple packet messages and verdicts,
+which I don't think would be difficult to implement (using the same or
+similar technique in your ulogd code).
+
+It would be nice to maintain binary compatibility with current libipq, if 
+possible.
+
+
+- James
 -- 
-vda
+James Morris
+<jmorris@intercode.com.au>
