@@ -1,19 +1,18 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PTCH 2.5.68] netfilter using Read Copy Update
-Date: Tue, 29 Apr 2003 19:26:21 -0700 (PDT)
+Subject: Re: [PATCH, RFC] possible use of freed skbuff in netfilter.c
+Date: Tue, 29 Apr 2003 23:54:44 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030429.192621.71114474.davem@redhat.com>
-References: <20030428123009.4cde1e57.shemminger@osdl.org>
-	<20030429.012909.26514398.davem@redhat.com>
-	<20030429115845.45e48dfa.shemminger@osdl.org>
+Message-ID: <20030429.235444.26991098.davem@redhat.com>
+References: <200304251957.18012.bdschuym@pandora.be>
+	<20030429145129.GG684@naboo.intranet.astaro.de>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: rusty@rustcorp.com.au, laforge@netfilter.org,
+Cc: bdschuym@pandora.be, rusty@rustcorp.com.au,
         netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: shemminger@osdl.org
-In-Reply-To: <20030429115845.45e48dfa.shemminger@osdl.org>
+To: laforge@netfilter.org
+In-Reply-To: <20030429145129.GG684@naboo.intranet.astaro.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,14 +23,9 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-   From: Stephen Hemminger <shemminger@osdl.org>
-   Date: Tue, 29 Apr 2003 11:58:45 -0700
+   From: Harald Welte <laforge@netfilter.org>
+   Date: Tue, 29 Apr 2003 16:51:29 +0200
 
-   On Tue, 29 Apr 2003 01:29:09 -0700 (PDT)
-   "David S. Miller" <davem@redhat.com> wrote:
-   
-   > Applied, thanks.
-   
-   Looks like one line got dropped in the patch.
-   
-Unused local var, GCC gave a warning, so I deleted it.
+   I'm fine with this fix, please apply (if it isn't already).
+
+Applied.  Should we be putting this fix into 2.4.x as well?
