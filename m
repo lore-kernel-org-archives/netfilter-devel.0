@@ -1,20 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: Sat, 25 Sep 2004 09:52:53 +0200
+Subject: Re: [nf-failover] NAT support for peer-to-peer games
+Date: Sat, 25 Sep 2004 09:54:22 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040925075253.GQ3236@sunbeam.de.gnumonks.org>
-References: <1092407190.2402.120.camel@nienna.balabit>
-	<1095993739.1044.9.camel@jzny.localdomain>
+Message-ID: <20040925075421.GR3236@sunbeam.de.gnumonks.org>
+References: <00d901c49fb3$2dea51f0$e310f43e@manowar>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="elWSKwo949DbmCL3"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
-	KOVACS Krisztian <hidden@balabit.hu>
+	protocol="application/pgp-signature"; boundary="22aa2PWZKnsI44rM"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: jamal <hadi@cyberus.ca>
+To: "Serguei I. Ivantsov" <manowar@gsc-game.kiev.ua>
 Content-Disposition: inline
-In-Reply-To: <1095993739.1044.9.camel@jzny.localdomain>
+In-Reply-To: <00d901c49fb3$2dea51f0$e310f43e@manowar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,31 +23,30 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---elWSKwo949DbmCL3
+--22aa2PWZKnsI44rM
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 23, 2004 at 10:42:19PM -0400, jamal wrote:
-> Hi Krisztian,
+On Tue, Sep 21, 2004 at 11:15:38AM +0300, Serguei I. Ivantsov wrote:
+> Hello!
 >=20
-> I just glanced over your code (30 sec scan) and your state machine
-> doesnt allow for active/active (i.e two masters).
+> I just interesting - whether something changes in Netfilter to support
+> peer-to-peer games.
 
-yes, this is not a supported mode of operation in this first
-implementation.
+You're definitely on the wrong mailinglist.  Please re-post to
+netfilter-devel.
 
-> I havent actually run it - can you confirm this is impossible?=20
-> if ct_sync was blind i.e it just did what it was told "become master" or
-> "become slave" regardless of who else is master, then it would be more
-> usable - leave policy to whatever tells it to switch.
+> How to implement the scheme described below using netfilter?
 
-well it exactly does this, with an additional security:  A master will
-be downgraded to slave as soon as another master announces itself.  This
-is a security guard against invalid mode of operation.
+netfilter implements draft-ford-natp2p-00, which should address your
+problem.
 
-> cheers,
-> jamal
+> http://www.hasenstein.com/HyperNews/get/linux-ip-nat/97.html
+
+yes, this is the draft that iptable_nat aims to implement.
+
+>  Serguei I. Ivantsov
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,7 +58,7 @@ is a security guard against invalid mode of operation.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---elWSKwo949DbmCL3
+--22aa2PWZKnsI44rM
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -70,9 +66,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBVSPVXaXGVTD0i/8RAtKNAKCMhcn3y/JBoGX/HAfPT6BugwoT3QCeLhtV
-Gzh7SCAuIav1HZ4VRgBysRw=
-=AynR
+iD8DBQFBVSQtXaXGVTD0i/8RAg7KAJ93XkxOZBtVbVdwg9KhwKLLO7pckQCcDQ8D
+Kv4vhIldBMrHGh+8nxZtGfc=
+=Kdu4
 -----END PGP SIGNATURE-----
 
---elWSKwo949DbmCL3--
+--22aa2PWZKnsI44rM--
