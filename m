@@ -1,12 +1,19 @@
-From: Michael Richardson <mcr@sandelman.ottawa.on.ca>
-Subject: Re: isakmp/ike nat helper
-Date: Fri, 14 Jan 2005 11:41:47 -0500
-Message-ID: <3236.1105720907@marajade.sandelman.ottawa.on.ca>
-References: <41E7B978.1040102@xelerance.com>
+From: Brad Fisher <brad@info-link.net>
+Subject: Re: ipt_time fixes (resend, sorry)
+Date: Fri, 14 Jan 2005 10:27:06 -0600
+Message-ID: <41E7F2DA.608@info-link.net>
+References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
+	<20050114143722.GA10088@ti64.telemetry-investments.com>
+	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
+	<Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	Samuel Jean <sj-netfilter@cookinglinux.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: leon_tseng@wneweb.com.tw, netfilter-devel@lists.netfilter.org
-In-Reply-To: Message from Ken Bantoft <ken@xelerance.com>
-	of "Fri, 14 Jan 2005 07:22:16 EST." <41E7B978.1040102@xelerance.com>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,30 +25,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
+Krzysztof Oledzki wrote:
 
+>
+> -        packet_local_time = skb->stamp.tv_sec;
+> +    /* We might not have a timestamp, get one */
+> +    if (skb->stamp.tv_sec == 0)
+> +        do_gettimeofday((struct timeval *)&skb->stamp);
+>
+>      /* First we make sure we are in the date start-stop boundaries */
+> -    if ((packet_local_time < info->date_start) || (packet_local_time 
+> > info->date_stop))
+> +    if ((skb->stamp.tv_sec < info->date_start) || (skb->stamp.tv_sec 
+> > info->date_stop))
+>          return 0; /* We are outside the date boundaries */
+>
+I'd like to see the above like become:
 
-Please do not any helpers for ISAKMP in your NAT.
-You just make it worse, and it breaks more often.
++    if ((skb->stamp.tv_sec >= info->date_start) && (skb->stamp.tv_sec 
+<= info->date_stop))
+         return 0; /* We are outside the date boundaries */
 
-Instead, you should be providing: IPv6 support	(via 6to4 to get
-address space if you do not have v6 on the outside)
+This will have the same logic in most situations, and fix a problem with 
+the time match where you need 2 rules to match something like all times 
+between 20:00-04:00 (ie. the start time is "greater" than the end 
+time).  I've used something similar for years and enjoy not needing 
+multiple rules for this.  I also have a patch (and I believe I've 
+submitted it in the past) for grabbing the kernel time if no time is 
+known (and with that patch, or what's being discussed here, I believe 
+the time match should work in any chain).
 
-Your customers should use NAT traversal for IPsec. This is widely available.
-The NAT-T permits packets to originate from different UDP ports.
-
-- -- 
-] Michael Richardson          Xelerance Corporation, Ottawa, ON |  firewalls  [
-] mcr @ xelerance.com           Now doing IPsec training, see   |net architect[
-] http://www.sandelman.ca/mcr/    www.xelerance.com/training/   |device driver[
-] panic("Just another Debian GNU/Linux using, kernel hacking, security guy"); [
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-Comment: Finger me for keys
-
-iQCVAwUBQef2SoqHRg3pndX9AQGQ3wP9GQTovd0K9CVNilQPACkv2kzcN6LTyXuH
-r8Wm1ElBaCuZmob5Gco1pMnoYHMRRsEH6suEUhdD36AodOgaCs3mwGjIGMqC56BO
-Pel+8d8Kd+iDXjsaKESno2DypoM2Ap3IPc8TCZoSO6mYw6MY+YdoIzVjmmcjZ4Oq
-PuP70ah/C5g=
-=InH5
------END PGP SIGNATURE-----
+-Brad Fisher
