@@ -1,8 +1,7 @@
 From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH 14/18] Netfilter:  Conntrack Hash Allocation using
-	__get_free_pages
-Date: Wed, 05 Jan 2005 14:36:22 +1100
-Message-ID: <1104896182.20582.81.camel@localhost.localdomain>
+Subject: [PATCH 15/18] Netfilter: Fix for UDP and TCP NAT on nonlinear skbs
+Date: Wed, 05 Jan 2005 14:37:00 +1100
+Message-ID: <1104896221.20582.83.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -21,92 +20,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Conntrack Hash Allocation using __get_free_pages
-Author: Andi Kleen
+Name: Fix for UDP and TCP NAT on nonlinear skbs
 Status: Tested under nfsim
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-Here is a patch for 2.4 that just makes it use get_free_pages to
-test the TLB theory. Another obvious improvement would be to not
-use list_heads for the hash table buckets - a single pointer would
-likely suffice and it would cut the hash table in half, saving
-cache, TLB and memory.
+UDP and TCP refer to potentially stale pointers after calling
+skb_ip_make_writable(), and UDP calls it with the wrong len argument.
+All found by nfsim.
 
-Index: linux-2.6.10-bk6-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_nat_proto_udp.c
 ===================================================================
---- linux-2.6.10-bk6-Netfilter.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-04 22:11:53.614947576 +1100
-+++ linux-2.6.10-bk6-Netfilter/net/ipv4/netfilter/ip_conntrack_core.c	2005-01-04 22:25:56.082872984 +1100
-@@ -75,6 +75,7 @@
- struct ip_conntrack ip_conntrack_untracked;
- unsigned int ip_ct_log_invalid;
- static LIST_HEAD(unconfirmed);
-+static int ip_conntrack_vmalloc;
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_nat_proto_udp.c	2004-12-29 23:07:37.000000000 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_nat_proto_udp.c	2005-01-04 19:19:58.036153920 +1100
+@@ -90,20 +90,20 @@
+ 	struct iphdr *iph = (struct iphdr *)((*pskb)->data + iphdroff);
+ 	struct udphdr *hdr;
+ 	unsigned int hdroff = iphdroff + iph->ihl*4;
+-	u_int32_t oldip;
+-	u_int16_t *portptr;
++	u32 oldip, oldsrc = iph->saddr, olddst = iph->daddr;
++	u16 *portptr;
  
- DEFINE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
+-	if (!skb_ip_make_writable(pskb, hdroff + sizeof(hdr)))
++	if (!skb_ip_make_writable(pskb, hdroff + sizeof(*hdr)))
+ 		return 0;
  
-@@ -1309,6 +1310,16 @@
- 	return 1;
- }
- 
-+static void free_conntrack_hash(void)
-+{
-+	if (ip_conntrack_vmalloc)
-+		vfree(ip_conntrack_hash);
-+	else
-+		free_pages((unsigned long)ip_conntrack_hash, 
-+			   get_order(sizeof(struct list_head)
-+				     * ip_conntrack_htable_size));
-+}
-+
- /* Mishearing the voices in his head, our hero wonders how he's
-    supposed to kill the mall. */
- void ip_conntrack_cleanup(void)
-@@ -1328,7 +1339,7 @@
- 
- 	kmem_cache_destroy(ip_conntrack_cachep);
- 	kmem_cache_destroy(ip_conntrack_expect_cachep);
--	vfree(ip_conntrack_hash);
-+	free_conntrack_hash();
- 	nf_unregister_sockopt(&so_getorigdst);
- }
- 
-@@ -1366,8 +1377,20 @@
- 		return ret;
+ 	hdr = (void *)(*pskb)->data + hdroff;
+ 	if (maniptype == IP_NAT_MANIP_SRC) {
+ 		/* Get rid of src ip and src pt */
+-		oldip = iph->saddr;
++		oldip = oldsrc;
+ 		portptr = &hdr->source;
+ 	} else {
+ 		/* Get rid of dst ip and dst pt */
+-		oldip = iph->daddr;
++		oldip = olddst;
+ 		portptr = &hdr->dest;
  	}
+ 	if (hdr->check) /* 0 is a special case meaning no checksum */
+Index: linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_nat_proto_tcp.c
+===================================================================
+--- linux-2.6.10-bk1-Netfilter.orig/net/ipv4/netfilter/ip_nat_proto_tcp.c	2004-12-29 23:07:37.000000000 +1100
++++ linux-2.6.10-bk1-Netfilter/net/ipv4/netfilter/ip_nat_proto_tcp.c	2005-01-04 19:23:51.765621640 +1100
+@@ -91,8 +91,8 @@
+ 	struct iphdr *iph = (struct iphdr *)((*pskb)->data + iphdroff);
+ 	struct tcphdr *hdr;
+ 	unsigned int hdroff = iphdroff + iph->ihl*4;
+-	u_int32_t oldip;
+-	u_int16_t *portptr, oldport;
++	u32 oldip, oldsrc = iph->saddr, olddst = iph->daddr;
++	u16 *portptr, oldport;
+ 	int hdrsize = 8; /* TCP connection tracking guarantees this much */
  
--	ip_conntrack_hash = vmalloc(sizeof(struct list_head)
--				    * ip_conntrack_htable_size);
-+	/* AK: the hash table is twice as big than needed because it
-+	   uses list_head.  it would be much nicer to caches to use a
-+	   single pointer list head here. */
-+	ip_conntrack_vmalloc = 0; 
-+	ip_conntrack_hash 
-+		=(void*)__get_free_pages(GFP_KERNEL, 
-+					 get_order(sizeof(struct list_head)
-+						   *ip_conntrack_htable_size));
-+	if (!ip_conntrack_hash) { 
-+		ip_conntrack_vmalloc = 1;
-+		printk(KERN_WARNING "ip_conntrack: falling back to vmalloc.\n");
-+		ip_conntrack_hash = vmalloc(sizeof(struct list_head)
-+					    * ip_conntrack_htable_size);
-+	}
- 	if (!ip_conntrack_hash) {
- 		printk(KERN_ERR "Unable to create ip_conntrack_hash\n");
- 		goto err_unreg_sockopt;
-@@ -1375,7 +1398,7 @@
+ 	/* this could be a inner header returned in icmp packet; in such
+@@ -108,11 +108,11 @@
  
- 	ip_conntrack_cachep = kmem_cache_create("ip_conntrack",
- 	                                        sizeof(struct ip_conntrack), 0,
--	                                        SLAB_HWCACHE_ALIGN, NULL, NULL);
-+	                                        SLAB_HWCACHE_ALIGN, NULL,NULL);
- 	if (!ip_conntrack_cachep) {
- 		printk(KERN_ERR "Unable to create ip_conntrack slab cache\n");
- 		goto err_free_hash;
-@@ -1416,7 +1439,7 @@
- err_free_conntrack_slab:
- 	kmem_cache_destroy(ip_conntrack_cachep);
- err_free_hash:
--	vfree(ip_conntrack_hash);
-+	free_conntrack_hash();
- err_unreg_sockopt:
- 	nf_unregister_sockopt(&so_getorigdst);
+ 	if (maniptype == IP_NAT_MANIP_SRC) {
+ 		/* Get rid of src ip and src pt */
+-		oldip = iph->saddr;
++		oldip = oldsrc;
+ 		portptr = &hdr->source;
+ 	} else {
+ 		/* Get rid of dst ip and dst pt */
+-		oldip = iph->daddr;
++		oldip = olddst;
+ 		portptr = &hdr->dest;
+ 	}
  
