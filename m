@@ -1,14 +1,17 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: Re: iptables extensions
-Date: Sun, 27 Apr 2003 08:03:51 -0700 (PDT)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: PATCH: extra conntrack stats
+Date: Sun, 27 Apr 2003 22:42:18 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427150352.61643.qmail@web13904.mail.yahoo.com>
-References: <20030427123927.GW990@sunbeam.de.gnumonks.org>
+Message-ID: <20030427204218.GT990@sunbeam.de.gnumonks.org>
+References: <200304192142.h3JLg1S03466@fokkensr.vertis.nl> <20030427124835.GA990@sunbeam.de.gnumonks.org> <200304271523.h3RFNZk05880@fokkensr.vertis.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UTgPAcoWnJ37G5eg"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030427123927.GW990@sunbeam.de.gnumonks.org>
+To: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>
+Content-Disposition: inline
+In-Reply-To: <200304271523.h3RFNZk05880@fokkensr.vertis.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,40 +23,54 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---- Harald Welte <laforge@netfilter.org> wrote:
-> On Wed, Apr 16, 2003 at 11:14:04AM -0700, Scott
-> MacKay wrote:
-> > Basically would do what print() does, but dump the
-> > results into a character buffer, to
-> examine/deliver in
-> > a means other than printf().  
-> 
-> As the iptables userspace was not designed to be
-> used (as a library) by
-> other applications, there is no support for doing
-> so.
-> 
-> With good luck, we will eventually see libiptables
-> show up in the far
-> future...
+--UTgPAcoWnJ37G5eg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Understandable, though I would guess this kind of
-extension would be more 'grunt work' (given that the
-format & code behind the format is already done for
-printf), needing only to have a generic-o safe buffer
-filler and add in a new function for each of the
-existing items already coded.  Since there is a good
-chance that I will have a need for something like
-this, my general preference to not have to re-code on
-new releases and instead contribute something which
-others may like, combined with my lack of experience
-generating patchfiles, if I were to code this in would
-there be any devel teamies that could review and
-accept/reject it in the code base?
+On Sun, Apr 27, 2003 at 05:23:30PM +0200, Rolf Fokkens wrote:
+> On Sunday 27 April 2003 02:48 pm, Harald Welte wrote:
+> > This is inacceptable, the only way to implement this is via per-cpu
+> > counters that are added at the time you read them out (like the iptables
+> > per-cpu local counters)
+>=20
+> Oh boy! It's even worse! Even without this patch we have a concurrency=20
+> problem: the timout! It's updated frequently I guess, and it's also prote=
+cted=20
+> by the same lock: ip_conntrack_lock!
 
--Scott
+Oh yes, sorry.  This issue never was fixed, although I seem to remember
+some patches implementing a solution where the timeout was not updated
+for every packet.
 
-__________________________________
-Do you Yahoo!?
-The New Yahoo! Search - Faster. Easier. Bingo.
-http://search.yahoo.com
+> Should a lock per contrack entry be considered? This increases the=20
+> concurrency for different connections anyhow.
+
+Rusty has written some patches about this quite some time ago,
+unfortunately they seem to be discontinued.  IIRC Martin Josefsson
+wanted to look into them again.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--UTgPAcoWnJ37G5eg
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+rECqXaXGVTD0i/8RAg5NAJ9p4CoFYAq1pvlRFdRo3wXjuztxxQCfQXBj
+tXscrTRgLrRFxthGab04qZ8=
+=NtXB
+-----END PGP SIGNATURE-----
+
+--UTgPAcoWnJ37G5eg--
