@@ -1,57 +1,170 @@
-From: Adrian Bunk <bunk@fs.tum.de>
-Subject: Re: [2.4 patch] netfilter Configure.help cleanup
-Date: Sat, 26 Jul 2003 12:50:21 +0200
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <20030726105021.GH22218@fs.tum.de>
-References: <20030717201304.GL1407@fs.tum.de> <20030718012910.0D5BB2C5A9@lists.samba.org> <20030725205024.GA3244@sunbeam.de.gnumonks.org>
+From: Tomas Szepe <szepe@pinerecords.com>
+Subject: [TRIVIAL] place IPv4 netfilter submenu where it belongs
+Date: Sat, 26 Jul 2003 22:06:46 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20030726200646.GF16160@louise.pinerecords.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-net-owner@vger.kernel.org>
-To: Harald Welte <laforge@netfilter.org>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	Marcelo Tosatti <marcelo@conectiva.com.br>,
-	"David S. Miller" <davem@redhat.com>,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	linux-net@vger.kernel.org
+Cc: lkml <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: davem@redhat.com, netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20030725205024.GA3244@sunbeam.de.gnumonks.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jul 25, 2003 at 10:50:24PM +0200, Harald Welte wrote:
-> On Fri, Jul 18, 2003 at 11:06:49AM +1000, Rusty Russell wrote:
-> > In message <20030717201304.GL1407@fs.tum.de> you write:
-> >
-> > > the patch below does the following changes to the netfilter entries in
-> > > Configure.help in 2.4.22-pre2:
-> > > - order similar to net/ipv4/netfilter/Config.in
-> > > - remove useless short descriptions above CONFIG_*
-> > > - added CONFIG_IP_NF_MATCH_RECENT entry (stolen from 2.5)
-> > 
-> > Sorry Adrian, I think this is overzealous.
-> > 
-> > Please just add the CONFIG_IP_NF_MATCH_RECENT entry.  Remember,
-> > "stable" means "boring". 8)
-> 
-> I will submit the RECENT entry to davem with my next set of patches.
-> 
-> Does everybody else have an ordered Configure.help?  if yes, I'd accept
+$subj
 
-Most subsytems have their Configure.help entries ordered according to 
-the Config.in order.
-
-> the patch to comply with common practice.  If not, I would just say: who
-> cares about the order, it's processed by {old,menu,x}config anyway.
-
-I'm not religious regarding the order of Configure.help entries, and in 
-2.6 this problem will be non-existant.
-
-cu
-Adrian
+Patch against -bk3.
 
 -- 
+Tomas Szepe <szepe@pinerecords.com>
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
 
+diff -urN a/net/Kconfig b/net/Kconfig
+--- a/net/Kconfig	2003-05-27 08:06:58.000000000 +0200
++++ b/net/Kconfig	2003-07-26 21:45:02.000000000 +0200
+@@ -58,66 +58,6 @@
+ 	  the real netlink socket.
+ 	  This is a backward compatibility option, choose Y for now.
+ 
+-config NETFILTER
+-	bool "Network packet filtering (replaces ipchains)"
+-	---help---
+-	  Netfilter is a framework for filtering and mangling network packets
+-	  that pass through your Linux box.
+-
+-	  The most common use of packet filtering is to run your Linux box as
+-	  a firewall protecting a local network from the Internet. The type of
+-	  firewall provided by this kernel support is called a "packet
+-	  filter", which means that it can reject individual network packets
+-	  based on type, source, destination etc. The other kind of firewall,
+-	  a "proxy-based" one, is more secure but more intrusive and more
+-	  bothersome to set up; it inspects the network traffic much more
+-	  closely, modifies it and has knowledge about the higher level
+-	  protocols, which a packet filter lacks. Moreover, proxy-based
+-	  firewalls often require changes to the programs running on the local
+-	  clients. Proxy-based firewalls don't need support by the kernel, but
+-	  they are often combined with a packet filter, which only works if
+-	  you say Y here.
+-
+-	  You should also say Y here if you intend to use your Linux box as
+-	  the gateway to the Internet for a local network of machines without
+-	  globally valid IP addresses. This is called "masquerading": if one
+-	  of the computers on your local network wants to send something to
+-	  the outside, your box can "masquerade" as that computer, i.e. it
+-	  forwards the traffic to the intended outside destination, but
+-	  modifies the packets to make it look like they came from the
+-	  firewall box itself. It works both ways: if the outside host
+-	  replies, the Linux box will silently forward the traffic to the
+-	  correct local computer. This way, the computers on your local net
+-	  are completely invisible to the outside world, even though they can
+-	  reach the outside and can receive replies. It is even possible to
+-	  run globally visible servers from within a masqueraded local network
+-	  using a mechanism called portforwarding. Masquerading is also often
+-	  called NAT (Network Address Translation).
+-
+-	  Another use of Netfilter is in transparent proxying: if a machine on
+-	  the local network tries to connect to an outside host, your Linux
+-	  box can transparently forward the traffic to a local server,
+-	  typically a caching proxy server.
+-
+-	  Various modules exist for netfilter which replace the previous
+-	  masquerading (ipmasqadm), packet filtering (ipchains), transparent
+-	  proxying, and portforwarding mechanisms. Please see
+-	  <file:Documentation/Changes> under "iptables" for the location of
+-	  these packages.
+-
+-	  Make sure to say N to "Fast switching" below if you intend to say Y
+-	  here, as Fast switching currently bypasses netfilter.
+-
+-	  Chances are that you should say Y here if you compile a kernel which
+-	  will run as a router and N for regular hosts. If unsure, say N.
+-
+-config NETFILTER_DEBUG
+-	bool "Network packet filtering debugging"
+-	depends on NETFILTER
+-	help
+-	  You can say Y here if you want to get additional messages useful in
+-	  debugging the netfilter code.
+-
+ config UNIX
+ 	tristate "Unix domain sockets"
+ 	---help---
+diff -urN a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+--- a/net/ipv4/netfilter/Kconfig	2003-07-10 23:30:37.000000000 +0200
++++ b/net/ipv4/netfilter/Kconfig	2003-07-26 21:48:25.000000000 +0200
+@@ -2,8 +2,69 @@
+ # IP netfilter configuration
+ #
+ 
++config NETFILTER
++	bool "Network packet filtering (replaces ipchains)"
++	depends on INET
++	---help---
++	  Netfilter is a framework for filtering and mangling network packets
++	  that pass through your Linux box.
++
++	  The most common use of packet filtering is to run your Linux box as
++	  a firewall protecting a local network from the Internet. The type of
++	  firewall provided by this kernel support is called a "packet
++	  filter", which means that it can reject individual network packets
++	  based on type, source, destination etc. The other kind of firewall,
++	  a "proxy-based" one, is more secure but more intrusive and more
++	  bothersome to set up; it inspects the network traffic much more
++	  closely, modifies it and has knowledge about the higher level
++	  protocols, which a packet filter lacks. Moreover, proxy-based
++	  firewalls often require changes to the programs running on the local
++	  clients. Proxy-based firewalls don't need support by the kernel, but
++	  they are often combined with a packet filter, which only works if
++	  you say Y here.
++
++	  You should also say Y here if you intend to use your Linux box as
++	  the gateway to the Internet for a local network of machines without
++	  globally valid IP addresses. This is called "masquerading": if one
++	  of the computers on your local network wants to send something to
++	  the outside, your box can "masquerade" as that computer, i.e. it
++	  forwards the traffic to the intended outside destination, but
++	  modifies the packets to make it look like they came from the
++	  firewall box itself. It works both ways: if the outside host
++	  replies, the Linux box will silently forward the traffic to the
++	  correct local computer. This way, the computers on your local net
++	  are completely invisible to the outside world, even though they can
++	  reach the outside and can receive replies. It is even possible to
++	  run globally visible servers from within a masqueraded local network
++	  using a mechanism called portforwarding. Masquerading is also often
++	  called NAT (Network Address Translation).
++
++	  Another use of Netfilter is in transparent proxying: if a machine on
++	  the local network tries to connect to an outside host, your Linux
++	  box can transparently forward the traffic to a local server,
++	  typically a caching proxy server.
++
++	  Various modules exist for netfilter which replace the previous
++	  masquerading (ipmasqadm), packet filtering (ipchains), transparent
++	  proxying, and portforwarding mechanisms. Please see
++	  <file:Documentation/Changes> under "iptables" for the location of
++	  these packages.
++
++	  Make sure to say N to "Fast switching" below if you intend to say Y
++	  here, as Fast switching currently bypasses netfilter.
++
++	  Chances are that you should say Y here if you compile a kernel which
++	  will run as a router and N for regular hosts. If unsure, say N.
++
+ menu "IP: Netfilter Configuration"
+-	depends on INET && NETFILTER
++	depends on NETFILTER
++
++config NETFILTER_DEBUG
++	bool "Network packet filtering debugging"
++	help
++	  You can say Y here if you want to get additional messages useful in
++	  debugging the netfilter code.
++
+ 
+ config IP_NF_CONNTRACK
+ 	tristate "Connection tracking (required for masq/NAT)"
+@@ -588,4 +649,3 @@
+ 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
+ 
+ endmenu
+-
