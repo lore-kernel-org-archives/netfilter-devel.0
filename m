@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: use of a state machine compiler in netfilter?
-Date: Wed, 30 Oct 2002 09:53:36 +0100
+Subject: Re: mac_len uninitialized in ipt_ULOG.c
+Date: Wed, 30 Oct 2002 09:59:32 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021030095336.T8635@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0210261452140.16251-100000@ice.ragel.ca>
+Message-ID: <20021030095932.V8635@sunbeam.de.gnumonks.org>
+References: <3DBC5F7D.3FC31A48@cohaesio.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pw8vfKuzsXn95o6p"
+	protocol="application/pgp-signature"; boundary="3M+s3upKwjqB7kL8"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Adrian Thurston <adriant@ragel.ca>
+To: "Anders K. Pedersen"@harrier.cohaesio.com,
+	mailnews+linux-netfilter-devel@news.cohaesio.com
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0210261452140.16251-100000@ice.ragel.ca>; from adriant@ragel.ca on Sat, Oct 26, 2002 at 03:11:19PM -0400
+In-Reply-To: <3DBC5F7D.3FC31A48@cohaesio.com>; from "Anders K. Pedersen"@harrier.cohaesio.com on Sun, Oct 27, 2002 at 10:49:49PM +0100
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,37 +24,29 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---pw8vfKuzsXn95o6p
+--3M+s3upKwjqB7kL8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 26, 2002 at 03:11:19PM -0400, Adrian Thurston wrote:
->   I am the author of the Ragel State Machine Compiler
->   (http://www.essemage.com/ragel/). State machines are very useful for
->   matching a large number of diverse patterns very efficiently.
+On Sun, Oct 27, 2002 at 10:49:49PM +0100, "Anders K. Pedersen"@harrier.coha=
+esio.com wrote:
+> Hello,
 >=20
-> This leads me to my question. Would the netfilter project benefit from
-> code that built state machines from high-level descriptions of packets
-> that would recognise and ultimately route many different types of packets
-> on one pass?
+> I recently startet using the ulogd daemon to log traffic from a PPPoE
+> interface (have used it on regular ethernet interfaces for long). In the
+> resulting logs, the MAC address was filled with (what seemed to be)
+> garbage like the following entry:
 
-Well it is definitely interesting to have something like this.  We currently
-have already multiple classification mechanisms:  There is the tc/u32 style=
-=20
-classifier, there is iptables, the upcoming pkttables, the nf-hipac stuff,.=
-..
+> When using the regular LOG target, the MAC field was empty. I traced
+> this back to the ipt_ulog_target function in
+> net/ipv4/netfilter/ipt_ULOG.c in the kernel, where pm->mac_len in the
+> ulog_packet_msg_t struct is left uninitialized, when there is no MAC
+> address.
 
-So (from an academic/educational point of view) it would be great to have
-yet another classification mechanism.
-
-However, I cannot promise that any of those will go mainline anytime soon.
-
-> Perhaps you have something like this implemented already?
-
-no, not that I am aware of.
-
-> -Adrian
+thanks, I will submit your bugfix soon.
+> Regards,
+> Anders K. Pedersen
 
 --=20
 Live long and prosper
@@ -65,7 +58,7 @@ Live long and prosper
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---pw8vfKuzsXn95o6p
+--3M+s3upKwjqB7kL8
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -73,9 +66,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9v54PXaXGVTD0i/8RAi51AKCzeDOKmuIoB9cqhf7/DDFJJUGV3wCdEpXM
-G5Fpi3Dyywc+Ks5bfnWVU8U=
-=dFbT
+iD8DBQE9v590XaXGVTD0i/8RAnaEAJ4y9nuFBvFNbVjzR/SqltV7+syaFwCcDCee
+b1PlqdRccifrV8dBQQCQfTM=
+=NPXh
 -----END PGP SIGNATURE-----
 
---pw8vfKuzsXn95o6p--
+--3M+s3upKwjqB7kL8--
