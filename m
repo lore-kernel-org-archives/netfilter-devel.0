@@ -1,16 +1,13 @@
-From: Jens Hektor <hektor@rz.rwth-aachen.de>
-Subject: [PATCH] [RESEND] RFC 1812 recommended reject codes Was:[ANNOUNCE]
- Current netfilter/iptables development
-Date: Fri, 10 Jan 2003 20:26:28 +0100
+From: =?ISO-8859-2?Q?Krzysztof_Ol=EAdzki?= <ole@ans.pl>
+Subject: PATCH: add PRE_ROUTING and POST_ROUTING to filter table
+Date: Fri, 10 Jan 2003 14:23:11 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E1F1E64.4060404@rz.rwth-aachen.de>
-References: <3E1BD5E0.2030006@rz.rwth-aachen.de>
- <20030110130924.GP1353@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0301101422160.5200-101000@dark.pcgames.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_yF0k/e34im0CP81hcTRLbQ)"
+Content-Type: MULTIPART/Mixed; BOUNDARY="-842857922-1008661402-1042065228=:32462"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-reply-to: <20030110130924.GP1353@sunbeam.de.gnumonks.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
+Content-ID: <Pine.LNX.4.33.0301101422161.5200@dark.pcgames.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,174 +18,66 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
---Boundary_(ID_yF0k/e34im0CP81hcTRLbQ)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+---842857922-1008661402-1042065228=:32462
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <Pine.LNX.4.33.0301101422162.5200@dark.pcgames.pl>
 
-Hi,
+Hello,
 
-I am submitting the patches hoping they are in the correct form
-and get into the queue for 2.4.21.
+This patch adds support for NF_IP_PRE_ROUTING and NF_IP_POST_ROUTING for
+filter table.
 
-Credits to Maciej Soltysiak who worked on the same problem also.
+Now, on linux router, it is possible to block with one rule all traffic
+from specific source or to specific destination. Previously, in such
+situations, two rules were required (one in FORWARD and one in
+INPUT/OUTPUT).
 
-Best regards, Jens Hektor
+This patch was tested with 2.4.20 and 2.4.50 kernels.
 
--- 
-Jens Hektor, RWTH Aachen, Rechenzentrum, Seffenter Weg 23, 52074 Aachen
-Computing Center, Aachen University, network operation & security
-mailto:hektor@RZ.RWTH-Aachen.DE, Tel.: +49 241 80 29206, Raum: 2.35
-
---Boundary_(ID_yF0k/e34im0CP81hcTRLbQ)
-Content-type: text/plain; name=fix-RFC-1812-ipt_REJECT-kernel.patch
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=fix-RFC-1812-ipt_REJECT-kernel.patch
-
---- linux-2.4.20/net/ipv4/netfilter/ipt_REJECT.c.orig	2002-11-29 07:03:27.000000000 +0100
-+++ linux-2.4.20/net/ipv4/netfilter/ipt_REJECT.c	2002-11-29 07:07:14.000000000 +0100
-@@ -308,6 +308,9 @@
- 	case IPT_ICMP_HOST_PROHIBITED:
-     		send_unreach(*pskb, ICMP_HOST_ANO);
-     		break;
-+	case IPT_ICMP_ADMIN_PROHIBITED:
-+    		send_unreach(*pskb, ICMP_PKT_FILTERED);
-+    		break;
- 	case IPT_TCP_RESET:
- 		send_reset(*pskb, hooknum == NF_IP_LOCAL_IN);
- 	case IPT_ICMP_ECHOREPLY:
---- linux-2.4.20/include/linux/netfilter_ipv4/ipt_REJECT.h.orig	2002-11-29 07:32:28.000000000 +0100
-+++ linux-2.4.20/include/linux/netfilter_ipv4/ipt_REJECT.h	2002-11-29 19:42:47.000000000 +0100
-@@ -9,7 +9,8 @@
- 	IPT_ICMP_ECHOREPLY,
- 	IPT_ICMP_NET_PROHIBITED,
- 	IPT_ICMP_HOST_PROHIBITED,
--	IPT_TCP_RESET
-+	IPT_TCP_RESET,
-+	IPT_ICMP_ADMIN_PROHIBITED
- };
- 
- struct ipt_reject_info {
+Best regards,
 
 
---Boundary_(ID_yF0k/e34im0CP81hcTRLbQ)
-Content-type: text/plain; name=fix-RFC-1812-ipt_REJECT-kernel.patch.help
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=fix-RFC-1812-ipt_REJECT-kernel.patch.help
+=09=09=09=09Krzysztof Ol=EAdzki
 
-Author: Jens Hektor <hektor@rz.rwth-aachen.de>
-Status: Trivial.
+---842857922-1008661402-1042065228=:32462
+Content-Type: APPLICATION/OCTET-STREAM; NAME="iptable_filter.patch.gz"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.33.0301082333480.32462@dark.pcgames.pl>
+Content-Description: 
+Content-Disposition: ATTACHMENT; FILENAME="iptable_filter.patch.gz"
 
-Adds the possibility of sending RFC 1812 recommended reject codes
-into the kernel code.  (ICMP destination unreachable, code 13, 
-see RFC 1812, p 81)
-
-Backward compatibility with older iptables
-versions preserved by appending to the enum.
-
-
---Boundary_(ID_yF0k/e34im0CP81hcTRLbQ)
-Content-type: text/plain; name=fix-RFC-1812-libipt_REJECT.patch
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=fix-RFC-1812-libipt_REJECT.patch
-
---- iptables-1.2.7a/extensions/libipt_REJECT.c.orig	2002-11-29 19:38:01.000000000 +0100
-+++ iptables-1.2.7a/extensions/libipt_REJECT.c	2002-12-02 06:51:31.000000000 +0100
-@@ -7,6 +7,8 @@
- #include <stdlib.h>
- #include <getopt.h>
- #include <iptables.h>
-+#include <linux/version.h>
-+#include <sys/utsname.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_REJECT.h>
- 
-@@ -35,9 +37,17 @@
- 	{"icmp-host-prohibited", "host-prohib",
- 	 IPT_ICMP_HOST_PROHIBITED, "ICMP host prohibited"},
- 	{"tcp-reset", "tcp-reset",
--	 IPT_TCP_RESET, "TCP RST packet"}
-+	 IPT_TCP_RESET, "TCP RST packet"},
-+/* #if to fix compiletime compatibility, adjust version to reflect the include of the kernel patch into the main tree */
-+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,20) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0))||LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,99))
-+	{"icmp-admin-prohibited", "admin-prohib",
-+	 IPT_ICMP_ADMIN_PROHIBITED, "ICMP administratively prohibited"}
-+#endif
- };
- 
-+static
-+int icmp_admin_prohib_enabled = 0 ;
-+
- static void
- print_reject_types()
- {
-@@ -46,8 +56,10 @@
- 	printf("Valid reject types:\n");
- 
- 	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
--		printf("    %-25s\t%s\n", reject_table[i].name, reject_table[i].desc);
--		printf("    %-25s\talias\n", reject_table[i].alias);
-+		if ((strcmp ( reject_table[i].name, "icmp-admin-prohibited" ) == 0) && icmp_admin_prohib_enabled) {
-+			printf("    %-25s\t%s\n", reject_table[i].name, reject_table[i].desc);
-+			printf("    %-25s\talias\n", reject_table[i].alias);
-+		}
- 	}
- 	printf("\n");
- }
-@@ -103,8 +115,13 @@
- 		for (i = 0; i < limit; i++) {
- 			if ((strncasecmp(reject_table[i].name, optarg, strlen(optarg)) == 0)
- 			    || (strncasecmp(reject_table[i].alias, optarg, strlen(optarg)) == 0)) {
--				reject->with = reject_table[i].with;
--				return 1;
-+				if (reject_table[i].with==IPT_ICMP_ADMIN_PROHIBITED && !icmp_admin_prohib_enabled) {
-+					exit_error(PARAMETER_PROBLEM,
-+						"icmp-admin-prohibited not with this kernel version");
-+				} else {
-+					reject->with = reject_table[i].with;
-+					return 1;
-+				}
- 			}
- 		}
- 		/* This due to be dropped late in 2.4 pre-release cycle --RR */
-@@ -174,5 +191,15 @@
- 
- void _init(void)
- {
-+	struct utsname buf ;
-+	int a, b, c ;
-+
-+	/* This is to fix run-time compatibility with kernels that
-+           are not compatible with this version of iptables */
-+	uname(&buf);
-+	sscanf (buf.release, "%d.%d.%d", &a, &b, &c);
-+	if ((a==2 && b==4 && c>=20) || (a==2 && b==5 && c>=99 ))
-+		icmp_admin_prohib_enabled = 1;
-+
- 	register_target(&reject);
- }
-
-
---Boundary_(ID_yF0k/e34im0CP81hcTRLbQ)
-Content-type: text/plain; name=fix-RFC-1812-libipt_REJECT.patch.help
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=fix-RFC-1812-libipt_REJECT.patch.help
-
-Author: Jens Hektor <hektor@rz.rwth-aachen.de>
-Status: It Works For Me.
-
-This patch adds a new option for --reject-with, namely
-"icmp-admin-prohibited" or short "admin-prohib" to enable
-RFC 1812 compatible reject codes.
-
-While the actual code to enable this feature is trivial
-most of the code in this patch is to preserve backward 
-compatibility of a new iptables version running or compiling
-on an older kernel.
-
-Assumption in this patch is that 2.4.21 and 2.5.99 support 
-this feature already in the kernel.
-
-
---Boundary_(ID_yF0k/e34im0CP81hcTRLbQ)--
+H4sIADENAT4CA+VXbW/aSBD+bP+KUSr1cGwDNi8JJD0lJaSl5QARev2QQz7H
+rGGFsZFf0rxc/vD9iptdY2KCMempOp1U3hZ7Z5595plZe6yqKpSiwC8FvlVy
+qBvdqXqxVqzWSi4JS3R5W2V/bOqExMfD0LxxiBEfFi1hNIugb4VQ0aCsNat6
+U6+DXi7roizLUMy2vyAWaA1mX642K8ex/dkZqLqiaSDjbwPOzkSAQxjNaAD4
+CWcEXRoN8Mk3n4YEPBs6A7ikeGw6yHqqgEkXOILt+TAnvksc0IuV4l2RAXGw
+lre89+l0FkKhJcVwAzNy4M9hFIT3vwAOAXEceAu/UWtmIsCnIvRIxOBFGUHw
+C+27kLgTMoHQA1wZbHpLYC0QzDxvHsDNPXz2H+6DhxB59p2/Jw9zyr3fmwG6
+ei4P6H0Ll/r4FRbehNrUMkOKE+iQiLYw3alDihYjXxJlEd5Q13KiCYFTnqcS
+OkZoMPt1e2rNyOAZpEuDYwbcWFTfTIhNXQKXne6oPTR+P+92LoyP/f7nKygU
+NDg9hd6l0RkY3X7rvGt0ehL8Benzl/3h1/PhxcvTsXn/y0iSRPm1awyGbWOI
+Pp3eB4b3hygLggD42kUk2yJFKQ+CkdtpMuhfjdZcJBQKSodwFZruxPQnQNzQ
+vy+yXEAQ+hFWPWbKCFbTcQUfKboOcqWmVGq8hoWUJfF9z8c8+FMSQjyciPCE
+X5ZcxAmptUIW4XHT1ydLx7QIsPFEVIUMApwfJcF1ZXyC0eVZ1NBimxpguSwY
+I6AuDanpxDUDhsGOJ2Zoiuo7eMT3QVxbB0pGchWoKqIK/BXQB+LZhQwqEm6G
+CsgZFpyKtIZ4hOvNChhDGSeF642sj/OWSpmva2C8h5sOT/8LCvJrBK+j3WsE
+r+UKLr+INrUvxwIGLAsvZRByI5ZfCiQIewLeWoOptMepknJKb999flWu7s8X
+chwxFjD0vnS7Csb+tD79iLhsxIteSgl+8xFineJ3GT2yh4OD+Lt5thx/uOJC
+rGsGVX55lXZMboiMEAxaSRZ5ipGTZMbvzmBk4Cb50CvsRltdjCWJseYwz2iC
+igqft1rtwQhU0FYyJfokBcHvBj9KHODisPtIva7UQT4+UrRqfBvJlwSyJYH/
+QpLnkkmV4k9ZM5AlULyzkh2GMrWHw/6Q6cPyjBk+AlnT6jiwPPOGY4S94TfP
+n4PlLQi2vy7MiE/A9r3Fc6dZtJJOhLcNkRvQqYu9JXVDUWV8WSdaSJ/mvSnG
+zNsJLwrJThOsm1Xgwdy4iWwbDg+XwfyGz1ieG4TJPNIxJuSWYmdySN38eVwy
+Lu5GHLSeBP3E4t4Zh+NZ2Imgc35EsdnuiFimdwbFJvfElWuyDk3TakoDY6tW
+Fa22FVziaXOehrcMeGXheD1OWqvH1XWZ/bLaSlKpwAAv+L32SHnRESvrNrpj
+xM3BunX5DrTVDeu7wTazs4MkXhPWnUwWyHM1bgGk7kN8F2fRk3fTy0Fe6/dj
+YRMh/wXqcwnn6vgj2aav2bzKt6FXTyi8ums15Riru1FW9HJ8X6I2FHx8nDmF
+ssT8px4+F1sOMd1oyZfU+OONwGzescr3yZQG7LmUb9W3Sf1XxhJ7aNmAkzPg
+dLR6BVz1lXAVBgcMLvJdfLgKOdtNkyZ64kqRm0t9k+U+H535wKZQTSSS56Nt
++5Sb4j/4991mvxEAAA==
+---842857922-1008661402-1042065228=:32462--
