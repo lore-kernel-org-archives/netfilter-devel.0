@@ -1,16 +1,16 @@
-From: Marcel Pol <mpol@gmx.net>
-Subject: Re: linux-2.6 and iptables compiled against 2.4 problems
-Date: Sat, 6 Sep 2003 17:30:36 +0200
+From: Ryan Veety <ryan@ryanspc.com>
+Subject: [PATCH] was Re: QUEUE on Alpha not working?
+Date: Sat, 6 Sep 2003 21:16:22 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030906173036.4f471bf0.mpol@gmx.net>
-References: <20030831150403.3472842d.mpol@gmx.net>
-	<20030905115207.GB665@obroa-skai.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.55.0309062059230.31908@ryanspc.com>
+References: <Pine.LNX.4.55.0309041224060.27499@ryanspc.com>
+ <20030905121526.GF665@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030905115207.GB665@obroa-skai.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030905121526.GF665@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,55 +21,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 5 Sep 2003 13:52:08 +0200
-Harald Welte <laforge@netfilter.org> wrote:
+On Fri, 5 Sep 2003, Harald Welte wrote:
 
-> On Sun, Aug 31, 2003 at 03:04:03PM +0200, Marcel Pol wrote:
-> > The problem is that when a distribution like Mandrake ships both a 2.4 and
-> > a 2.6 kernel, it will have a broken iptables for linux-2.6. Linux-2.4 is
-> > still the main kernel, and that's the one which is used to compile
-> > iptables, while the latest 1.2.8 release doesn't compile against
-> > linux-2.6.
-> 
-> 1.2.8 doesn't compile against 2.6 ? which 2.6 are you talking about?
-> Why doesn't it compile?  What error messages do you get?
+> On Thu, Sep 04, 2003 at 01:17:56PM -0400, Ryan Veety wrote:
+> > My DEC Alpha Multia is running debian unstable with kernel 2.4.21.  All code
+> > that uses libipq fails.  ipq_message_type returns NLMSG_ERROR for every
+> > packet.  Even the intercept tool from the netfilter testsuite (CVS) fails:
+>
+> can you please submit this to bugzilla.netfilter.org?
+>
+> James Morris (the ip_queue author) is currently moving from one
+> continent to another... so it could take some time until he can have a
+> look.
 
-I'm compiling it against a 2.6-test4 kernelsource on mandrake cooker (9.2rc1)
-with gcc-3.3.1 and glibc-2-3-2.
+Instead of filing the bug report I decided to hunt down the bug.  The problem
+was in the libipq.h header, where it assumed if the architecture was not 64bit
+kernel/32bit userspace that the userspace must be 32bit for the ipq_id_t type.
+I instead defined ipq_id_t the same way it is in the kernel code, as unsigned
+long.  Now libipq should work everywhere (I'm assuming it was also broken on
+other 64bit cpus).
 
-cc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/
--DIPTABLES_VERSION=\"1.2.8\"  -fPIC -o extensions/libipt_physdev_sh.o -c
-extensions/libipt_physdev.c
-extensions/libipt_physdev.c: In function `parse':
-extensions/libipt_physdev.c:86: error: `IPT_PHYSDEV_OP_MATCH_IN' undeclared
-(first use in this function)
-extensions/libipt_physdev.c:86: error: (Each undeclared identifier is reported
-only once
-extensions/libipt_physdev.c:86: error: for each function it appears in.)
-extensions/libipt_physdev.c:97: error: `IPT_PHYSDEV_OP_MATCH_OUT' undeclared
-(first use in this function)
-extensions/libipt_physdev.c: In function `print':
-extensions/libipt_physdev.c:144: error: `IPT_PHYSDEV_OP_MATCH_IN' undeclared
-(first use in this function)
-extensions/libipt_physdev.c:146: error: `IPT_PHYSDEV_OP_MATCH_OUT' undeclared
-(first use in this function)
-extensions/libipt_physdev.c: In function `save':
-extensions/libipt_physdev.c:156: error: `IPT_PHYSDEV_OP_MATCH_IN' undeclared
-(first use in this function)
-extensions/libipt_physdev.c:158: error: `IPT_PHYSDEV_OP_MATCH_OUT' undeclared
-(first use in this function)
-make: *** [extensions/libipt_physdev_sh.o] Error 1
+--- netfilter-orig/userspace/include/libipq/libipq.h    2003-09-06
+20:45:40.000000000 -0400
++++ netfilter/userspace/include/libipq/libipq.h 2003-09-06 20:44:50.000000000
+-0400
+@@ -35,7 +35,7 @@
+ typedef u_int64_t ipq_id_t;
+ #else
+ #include <linux/netfilter_ipv4/ip_queue.h>
+-typedef u_int32_t ipq_id_t;
++typedef unsigned long ipq_id_t;
+ #endif
 
- 
-> In any case the solution would be to release a new iptables (1.2.9)
-
-If you do, would it be possible that if it's compiled against a 2.4 (2.4.22 or
-newer) kernel, that it still works on a 2.6 (test4 or newer) kernel? I think
-that's a bigger problem, because distro's will ship with two kernels, and
-having one iptables package that works on both would be a good thing. Having
-to ship two iptables packages will make it hard to get work right, and will be
-confusing for users.
+ #ifdef DEBUG_LIBIPQ
 
 
---
-Marcel Pol
+Ryan
+     __________________________________________________________
+   .'  Ryan Veety <ryan@ryanspc.com> - http://www.ryanspc.com  `.
+   |          PGP Key: http://www.ryanspc.com/pgp.txt           |
+    `----------------------------------------------------------'
