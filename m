@@ -1,14 +1,13 @@
-From: "cyberyam" <zpeak@cyberyam.com>
-Subject: under netfilter,a netlink problem puzzled me  .
-Date: Wed, 7 May 2003 16:17:45 +0800
+From: Eicke Friedrich <tady@gmx.net>
+Subject: conntrack and connmark
+Date: Wed, 07 May 2003 11:14:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001201c31471$249db0c0$01e7a8c0@zpeak>
+Message-ID: <3EB8CE6D.1030809@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,22 +18,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGkgLGV2ZXJ5IGZyaWVuZHMuIA0KDQogIEkgIHdvdWxkIGxpa2UgdG8gdHJhbnNmZXIgc29tZSBk
-YXRhIGJldHdlZW4gYSB1c2VyIHByb2Nlc3MgDQphbmQgYSBrZXJuZWwgbW9kdWxlICh3aGljaCBj
-cmVhdGVkIGJ5IG1lIGFuZCBpdCB3aWxsIGhvb2sgdGhlIG1vZHVsZSBvZiANCm5ldGZpbHRlciAu
-KSAuSSB3b3VsZCBsaWtlICB0byBjb3B5IGEgc2tfYnVmZmVyIGluZm9ybWF0aW9uICB0byB1c2Vy
-c3BhY2UgIGFuZCBhbmFseXplIGl0Lg0KDQogIEFmdGVyIHJlYWRpbmcgdGhlIGRvY3VtZW50IG9m
-IE5ldGxpbmsgU29ja2V0IChieSBHb3dyaSBEaGFuZGFwYW5pKSwgSSBoYXZlIA0Kc29tZSBxdWVz
-dGlvbnM6DQoNCiAgaS4pIEluIHRoZSBjYXNlIG9mIG1pbmUsIGNhbiBJIHRyYW5zZmVyIHRoZSBk
-YXRhIGJldHdlZW4gdGhlIHVzZXIgcHJvY2VzcyANCmFuZCBhIGtlcm5lbCBNb2R1bGUoaG9va2Vk
-IGJ5IHRoZSBtb2R1bGUgb2YgbmV0ZmlsdGVyLCB3aGljaCBjcmVhdGVkIGJ5IG1lKSBieSB1c2lu
-ZyBuZXRsaW5rIA0Kc29ja2V0PyAgQmVjYXVzZSBpdCBzZWVtcyB0aGF0IHRoZSBrZXJuZWwgbW9k
-dWxlIHRoYXQgSSBjcmVhdGVkIGRvZXNuJ3QgDQpyZWxhdGUvbWF0Y2ggdGhlIG9wdGlvbiBvZiAi
-TkVUTElOS19ST1VURSwgTkVUTElOS19BUlBELCBORVRMSU5LX1JPVVRFNiwgDQpORVRMSU5LX0lQ
-X0ZXLCBORVRMSU5LX1NLSVAsIE5FVExJTktfRklSRVdBTEwuLi4iICBPciBJIGNhbiB1c2UgdGhl
-IG9uZSBvZiANCnRoZSBvcHRpb25zIGFib3ZlLCBzYXkgTkVUTElOS19GSVJFV0FMTC4gIENvdWxk
-IHlvdSBnaXZlIHNvbWUgYWR2aWNlIHRvIG1lLCANCnBsZWFzZQ0KDQogIGlpLikgQW5kIGlmIEkg
-Y2FuJ3QgdXNlIG5ldGxpbmsgc29ja2V0IHRoZW4sIHdoYXQgY2FuIEkgZG8/ICBIb3cgY2FuIEkg
-Z2V0IA0KY29tbXVuaWNhdGUgYmV0d2VlbiB0aGVzZSAyIHByb2Nlc3M/ICBQbGVhc2UgaGVscC4N
-CiANCg0KICBUaGFua3MgZm9yIHJlYWRpbmcgbWFpbC4gIFRoYW5rIHlvdSBzbyBtdWNoLiBJIGFt
-IGV4cGVjdCB5b3VyIGFuc3dzZXIuDQoNClJlZ2FyZHMNCiAgICB6cGVhaw==
+Hi folks,
+
+I've a very simple question about connmark. I hope you can help me 
+here. I'm running a linux ethernet bridge with netfilter support. 
+There are two ports in this bridge (eth0 and eth1).
+If I mark a packet with connmark that leaves the bridge at eth0 for 
+example will a packet belonging to the same connection but in the 
+other direction (so leaving th bridge ar eth1) also be marked with the 
+same mark?
+Or to put in short words: will connmark just work for one direction or 
+for both?
+
+Thanks for any comments!
+Eicke.
