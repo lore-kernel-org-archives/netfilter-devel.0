@@ -1,19 +1,13 @@
-From: Fabrice MARIE <fabrice@celestix.com>
-Subject: Re: [PATCH}: Make MARK target terminate (resend)
-Date: Fri, 5 Jul 2002 12:01:21 +0800
+From: George Vieira <GeorgeV@citadelcomputer.com.au>
+Subject: iptables -L command and other sugestions.
+Date: Fri, 5 Jul 2002 14:35:39 +1000
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200207051201.21457.fabrice@celestix.com>
-References: <20020702142447.GI18333@naboo.rchrd.phub.net.cable.rogers.com> <Pine.LNX.4.33.0207031255220.17202-100000@blackhole.kfki.hu> <20020704235831.GO20357@naboo.ists.dartmouth.edu>
-Reply-To: fabrice@celestix.com
+Message-ID: <200FAA488DE0D41194F10010B597610D2BA248@JUPITER>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel <netfilter-devel@lists.samba.org>
+	charset="iso-8859-1"
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <20020704235831.GO20357@naboo.ists.dartmouth.edu>
+To: "'netfilter-devel@lists.samba.org'" <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -24,77 +18,46 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all,
 
-Hello Harald,
+Firstly awesome job on iptables/netfilter..
 
-On Friday 05 July 2002 07:58, Harald Welte wrote:
-> [...]
-> yes. But then, how do we distinguish between terminating targets [where
-> we can have only one per rule] and non-terminating targets AKA actions,
-> where we can have multiple.
+1st Request/Suggestion: I would like to know if it's at all possible that
+the same/similar code you guys use to track and delete a rule "iptables -D
+INPUT {options}" can also be used when listing a rule instead of listing the
+WHOLE table?
+I am currently using a PHP script to do this.. ie.
+"php -q /root/bin/mrtg-iptables.php --ifout eth0 --prot tcp --dest
+10.10.0.130 --sport 3128 --table HOSTS"
+But embedded would be great and much faster to search as I know no other way
+than filtering it out which is slow and cpu chewy..
 
-You could just add a boolean field 'terminating' to the iptables_target.
-Then, make sure iptables abort and complains if it sees more than one terminating
-target being requested in a single rule.
+2nd Request/Suggestion: If there is any way to make the tables save their
+byte/packet count to a DB file and reread back again for the sake of
+rerunning the rules.. it checks if the rule exists in the DB and reads the
+count.. if none there, set it to 0. If a special iptables switch is sent
+it'll clear any rules not added/matched incase some rules where removed
+previously.
+This would be great as I use the byte count for download checks and I can't
+rerun the rules and have to manually -I or -D them because -F and then -A
+just resets the count. This would be great for ISPs I would guess.
+Again at the moment I'm using PHP scripts to save all rules (-L-v-x-n) to a
+/var/log/iptables.db file on stop/start and when adding it checks it against
+the file and adds to it until I reset the DB.. a real pain but it's in the
+works so far..
 
-Iptables could even give a warning (and reorder on the fly if necessary) if a
-terminating target is found before a non-terminating target.
+3rd Request/Suggestion: Last one, trust me ;)  Sounds a bit script if too
+many fired off but is it possible to fire off a command on matched rules? Of
+course this could kill a server if nmap was used or something but with
+careful planning using --limit etc.. this would make some things easy.. I
+only know of doing something like    `tail -f /var/log/kernel | grep
+"IPTINPUT" | myscript` which handles search rules..
 
-For example, the iptables_target struct of the TTL target would become :
+Sorry if this isn't the right place or the suggestions are pretty lame..
+it'll just help me a sh$@ load..
 
-static
-struct iptables_target TTL = { NULL,
-        "TTL",
-        IPTABLES_VERSION,
-        IPT_ALIGN(sizeof(struct ipt_TTL_info)),
-        IPT_ALIGN(sizeof(struct ipt_TTL_info)),
-        &help,
-        &init,
-        &parse,
-        &final_check,
-        &print,
-        &save,
--       opts
-+       opts,
-+       0 /* target is NOT terminating*/
-};
-
-and the iptables_target struct of the REJECT target would become :
-
-static
-struct iptables_target reject
-= { NULL,
-    "REJECT",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ipt_reject_info)),
-    IPT_ALIGN(sizeof(struct ipt_reject_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
--   opts
-+   opts,
-+   1 /* target is terminating */
-};
-
-But now, if you don't want to use the match piggybacking trick that Jozsef & Henrik
-mentionned, then we can't implement that right now.
-Do you think multiple targets is worth including in the design of the next
-netfilter framework ?
-
-I bielieve we should do that, multiple actions for one condition is very natural,
-and I believe the usage of a custom chain for each of theses rules is a bit overkill..
-
-Any thoughts ?
-
-Fabrice.
---
-Fabrice MARIE
-Senior R&D Engineer
-Celestix Networks
-http://www.celestix.com/
-
-"Silly hacker, root is for administrators"
-       -Unknown
+thanks,
+George Vieira
+Systems Manager
+Citadel Computer Systems P/L
+http://www.citadelcomputer.com.au
