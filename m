@@ -1,15 +1,18 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: pom-ng and kernel 2.6.6
-Date: Fri, 14 May 2004 15:40:23 +0200 (CEST)
+Subject: Re: [PATCH] ipt_ROUTE fix for 2.6 kernels [was: IPROUTE compilation
+ problem]
+Date: Fri, 14 May 2004 15:43:35 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405141538590.21804-100000@blackhole.kfki.hu>
-References: <87ekpojci2.fsf@thorr.asgardr.info>
+Message-ID: <Pine.LNX.4.33.0405141543110.21804-100000@blackhole.kfki.hu>
+References: <1084520305.1841.16.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Daniel 'NebuchadnezzaR' Dehennin <nebuchadnezzar@nerim.net>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Daniel 'NebuchadnezzaR' Dehennin <nebuchadnezzar@nerim.net>
-In-Reply-To: <87ekpojci2.fsf@thorr.asgardr.info>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+In-Reply-To: <1084520305.1841.16.camel@descartes.info.ucl.ac.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +23,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 13 May 2004, Daniel 'NebuchadnezzaR' Dehennin wrote:
+On Fri, 14 May 2004, Cedric de Launois wrote:
 
-> On 3907 September 1993, Daniel Dehennin wrote:
-> > I say no and try to continue.
+> Le jeu 13/05/2004 =E0 23:28, Daniel 'NebuchadnezzaR' Dehennin a =E9crit :
+> > The IPROUTE patch failed to build (latest CVS + 2.6.6):
 >
-> I apply all the base section of pom-ng to my 2.6.6, everything seems
-> to apply cleanly but during make menuconfig I have errors:
+> Yes, I know. The ROUTE target is not yet converted to kernel 2.6 series.
+> Here is a patch that updates it.
+> Changes include :
+>  - conversion from struct rt_key to struct flowi
+>  - checksum fix from Rickard Molin
 >
-> net/ipv4/netfilter/Kconfig:682: syntax error, unexpected T_WORD
-> net/ipv4/netfilter/Kconfig:685: invalid menu option
-> I remove the following help
->
-> in /net/ipv4/netfilter/Kconfig, option IP_NF_MATCH_NTH
-> The same for IP6_NF_MATCH_NTH
+> Please apply ;)
 
-Help text was not properly indented. Bug is fixed in cvs, thank you.
+Patch is applied, thank you Cedric.
 
 Best regards,
 Jozsef
