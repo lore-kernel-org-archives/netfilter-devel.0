@@ -1,18 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [NEW TARGET]: CLASSIFY
-Date: Fri, 31 Jan 2003 13:06:00 +0100
+Subject: Re: another PPTP conntrack problem (no fix this time)
+Date: Fri, 31 Jan 2003 13:04:34 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131120559.GB9073@naboo.cybercafe42>
-References: <3E38DF6A.3000504@trash.net> <20030130155353.29792.qmail@web40311.mail.yahoo.com>
+Message-ID: <20030131120434.GA9073@naboo.cybercafe42>
+References: <4.2.0.58.20030129161653.01aab6e8@avocetgw> <3E38D590.9070608@snapgear.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gX5Hm7FaHdN5aeGl"
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="m9FEOsnejx470nED"
+Cc: Paul Mielke <paulm@routefree.com>, netfilter-devel@lists.netfilter.org,
+	paulm@broadon.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kevin McConnell <kevymac@yahoo.com>
+To: Philip Craig <philipc@snapgear.com>
 Content-Disposition: inline
-In-Reply-To: <20030130155353.29792.qmail@web40311.mail.yahoo.com>
+In-Reply-To: <3E38D590.9070608@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,36 +24,25 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gX5Hm7FaHdN5aeGl
+--m9FEOsnejx470nED
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 30, 2003 at 07:53:53AM -0800, Kevin McConnell wrote:
->=20
-> --- Patrick McHardy <kaber@trash.net> wrote:
-> > Hi,
->=20
-> Hi Patrick,
->=20
-> >=20
-> > I've written the attached target a couple of days
-> > ago for someone else.
-> > It is used to classify packets for qdiscs by setting
-> > skb->priority.
->=20
-> You might consider using bugzilla to submit your patch
-> as an enhancement, as I believe this is what Harald
-> now prefers.=20
-> https://bugzilla.netfilter.org/
+On Thu, Jan 30, 2003 at 05:34:40PM +1000, Philip Craig wrote:
+> This sounds like a problem with NAT of ICMP errors, rather than
+> a PPTP conntrack problem.  There have been at least 2 patches
+> on the list regarding NAT of the inner ICMP header.  I don't
+> think either have made it into standard kernels yet.  Have you
+> tried them?
 
-No, sorry :)
+Yes, you are correct. After finishing some final testing one of those
+patches will make it to the kernel during the next couple of days.
 
-To make it clear [maybe this should be on the website somewhere]:
-- enhancements/patches for patch-o-matic per email to the devel list
-- enhancement [new feature] requests and bugreports in bugzilla
+This bug is IIRC also in bugzilla.netfilter.org
 
-> Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
+> Philip Craig     Software Engineer     http://www.SnapGear.com
+=20
 
 --=20
 Live long and prosper
@@ -66,7 +55,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---gX5Hm7FaHdN5aeGl
+--m9FEOsnejx470nED
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -74,9 +63,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+OmanXaXGVTD0i/8RAneFAKCyMAMANQhIgVx0WHnavHLXyQJPOQCeOQaP
-O0O+4SOOQRhmFOexgDdDZ6A=
-=fkFA
+iD8DBQE+OmZSXaXGVTD0i/8RAtD9AJ9G/CB62EvrRQ/2x3mQenMiKPNuxACgoYv5
+VJI0Q/JBP+sbWYuXEX37NyQ=
+=raga
 -----END PGP SIGNATURE-----
 
---gX5Hm7FaHdN5aeGl--
+--m9FEOsnejx470nED--
