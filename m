@@ -1,39 +1,69 @@
-From: "Fao, Sean" <Sean.Fao@capitalgenomix.com>
+From: William Stearns <wstearns@pobox.com>
 Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
-Date: Wed, 22 Sep 2004 10:19:07 -0400
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <415189DB.6090003@capitalgenomix.com>
-References: <1095721742.5886.128.camel@bach>  <20040921143613.2dc78e2f.Ballarin.Marc@gmx.de> <1095803902.1942.211.camel@bach> <Pine.LNX.4.53.0409220735080.2066@chaos.analogic.com> <Pine.LNX.4.58.0409221347010.23967@tux.rsn.bth.se> <Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
+Date: Wed, 22 Sep 2004 11:31:51 -0400 (EDT)
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <Pine.LNX.4.58.0409221110260.3523@sparrow>
+References: <1095721742.5886.128.camel@bach>
+	<20040921143613.2dc78e2f.Ballarin.Marc@gmx.de>
+	<1095803902.1942.211.camel@bach>
+	<Pine.LNX.4.53.0409220735080.2066@chaos.analogic.com>
+	<Pine.LNX.4.58.0409221347010.23967@tux.rsn.bth.se>
+	<Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
+Reply-To: William Stearns <wstearns@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	Marc Ballarin <Ballarin.Marc@gmx.de>,
-	Linus Torvalds <torvalds@osdl.org>,
-	netfilter-devel@lists.netfilter.org,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Rusty Russell <rusty@rustcorp.com.au>, Marc Ballarin <Ballarin.Marc@gmx.de>,
+	ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
 	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265817AbUIVOXz@vger.kernel.org>
-To: root@chaos.analogic.com
+	Linus Torvalds <torvalds@osdl.org>,
+	Martin Josefsson <gandalf@wlug.westbo.se>,
+	William Stearns <wstearns@pobox.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "Richard B. Johnson" <root@chaos.analogic.com>
 In-Reply-To: <Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Richard B. Johnson wrote:
+Good day, all,
 
->I guess I'll have to convert 1340 lines of ipchains commands to
->iptables -yech!
->
->I had convert something to ipchains a couple of years ago.
->That's when I only had to kill-off only about 100 spam-hosts.
->
->Now I gotta convert again. Soon they'll be replacing `ls`
->with `echo *` and nothing will work.
->
+On Wed, 22 Sep 2004, Richard B. Johnson wrote:
 
-iptables is a much better firewall than ipchains and, in my opinion, 
-anybody using ipchains should upgrade to iptables.  I, for one, am quite 
-pleased to see that ipchains will be removed.
+> On Wed, 22 Sep 2004, Martin Josefsson wrote:
+> 
+> > On Wed, 22 Sep 2004, Richard B. Johnson wrote:
+> >
+> > > What replaces the firewall stuff? It can't just "go away"!
+> >
+> > Ever heard of iptables?
+> 
+> I guess I'll have to convert 1340 lines of ipchains commands to
+> iptables -yech!
 
--- 
-Sean
+	I have a script that does a first pass of converting an ipchains 
+firewall script to an iptables firewall script at 
+
+http://www.stearns.org/i2i/ipchains2iptables
+http://www.stearns.org/i2i/ipchains2iptables.README
+
+	Because of architectural differences between the two firewall 
+technologies it can't produce a perfect translation, but it does handle 
+most of the grunt work.
+	Cheers,
+	- Bill
+
+---------------------------------------------------------------------------
+        "The sign on the window next to the entrance of OptInRealBig's
+offices in Westminster leaves no room for misunderstanding.  Or irony.
+NO SOLICITING."
+http://www.westword.com/issues/2004-01-29/feature.html/3/index.html
+--------------------------------------------------------------------------
+William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
+rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
+--------------------------------------------------------------------------
