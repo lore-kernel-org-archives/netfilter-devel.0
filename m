@@ -1,16 +1,17 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Re: OR with the --set-mark flag
-Date: Wed, 4 Aug 2004 14:10:02 +1000
+From: Lukas Ruf <ruf@rawip.org>
+Subject: Re: modifications for SMP processor
+Date: Wed, 4 Aug 2004 09:45:57 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040804041002.GJ21117@samad.com.au>
-References: <20040803151102.30082.31199.Mailman@vishnu.netfilter.org> <41101528.6080609@metavize.com>
+Message-ID: <20040804074557.GA871@tik.ee.ethz.ch>
+References: <PAEMKCJPEJFAMHHIJGBOOEKPMLAB.laurent@eriservice.ch>
+Reply-To: PLEASE REPLY TO THE LIST <dev_null@rawip.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HuscSE0D68UGttcd"
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: laurent Schweizer <laurent@eriservice.ch>
 Content-Disposition: inline
-In-Reply-To: <41101528.6080609@metavize.com>
+In-Reply-To: <PAEMKCJPEJFAMHHIJGBOOEKPMLAB.laurent@eriservice.ch>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,40 +22,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+> laurent Schweizer <laurent@eriservice.ch> [2004-08-04 05:20]:
+>
+> I am writing a target for iptables.  My target has a table and I see
+> that it is not working correctly on SMP processor.  I want to know
+> which modifications I must make, or where I can find an example.
+>
 
---HuscSE0D68UGttcd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+what is the exact problem?
 
-I believe there is a patch in pom that allow this
+Is it a problem with your target?
 
-but it patches iptables as well as the kernel
+Or do you believe it's a problem with iptables?
 
-Alex
-
-On Tue, Aug 03, 2004 at 03:43:52PM -0700, Robert Scott wrote:
-> It appears that using the MARK target "--set-mark <value>" option always=
-=20
-> overwrites whatever mark is already there with <value>.  Is there a way=
-=20
-> to perform an OR operation with what is already there?
->=20
-> --rb
->=20
->=20
-
---HuscSE0D68UGttcd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBEGGakZz88chpJ2MRAlXoAKCkcIAClqzGQahH6WbuqVyKaliyDACfSmkA
-avHc4ePo8ObNc0d9lnSqwXo=
-=c3rb
------END PGP SIGNATURE-----
-
---HuscSE0D68UGttcd--
+wbr,
+Lukas
+-- 
+Lukas Ruf           | Wanna know anything about raw |
+<http://www.lpr.ch> | IP? -> <http://www.rawip.org> |
+eMail Style Guide: <http://www.rawip.org/style.html>|
