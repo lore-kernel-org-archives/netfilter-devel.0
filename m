@@ -1,16 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] expectation use a slab instead of kmalloc
-Date: Wed, 02 Jun 2004 13:10:51 +0200
+From: "Joseph Tung" <jst1@pacbell.net>
+Subject: Masquerading and loading balancing among several outbound Internet connections
+Date: Tue, 1 Jun 2004 07:52:38 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40BDB5BB.60904@eurodev.net>
-References: <40BB397B.6050300@eurodev.net> <40BD0BD0.7090103@trash.net>
+Message-ID: <063e01c447e8$16d81060$650011ac@knxshunsfjwpvc>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070704060708000800000500"
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_063B_01C447AD.68D377A0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <40BD0BD0.7090103@trash.net>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,146 +19,96 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070704060708000800000500
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi Patrick,
+------=_NextPart_000_063B_01C447AD.68D377A0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Patrick McHardy wrote:
+Hello,
 
-> please fix the two minor issues noted below first.
+I have several internal networks that are to be ipmasqueraded or snat'd =
+among several outbound Internet connections (all going to this one =
+router/bridge).
+1) Is it possible to ipmasquerade to more than 1 outbound Internet =
+connection? (I have Fedora Core 1).
+2) If so, are there any samples of how this is done?  For now, I'd be =
+happy just assigning each private network one outgoing ip address; but I =
+want to do this with one box.  Then I'll bridge the two (or more) by =
+modifying the routing table?
+3) I'd like to provide webservices via several low bandwidth =
+connections, so I'd like to dynamically route the traffic based on the =
+load.  My sense is that this is impossible with the current release.
+_________________________
+
+Joseph Tung
+eXnium Inc.
+
+5255 Stevens Creek Blvd Ste 336
+Santa Clara, CA 95051
+   main:     408.253.9970
+   mobile:  408.393.1123
+   fax::       408.253.9971
+   email:     joe.tung@eXnium.com
+
+   url:         http://www.eXnium.com
+_________________________
 
 
-I fixed them, attached the patch.
+------=_NextPart_000_063B_01C447AD.68D377A0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-thanks!
-Pablo
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1400" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>Hello,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I have several internal networks that =
+are to be=20
+ipmasqueraded or snat'd among several outbound Internet connections (all =
+going=20
+to this one router/bridge).</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>1) Is it possible to ipmasquerade to =
+more than 1=20
+outbound Internet connection? (I have Fedora Core 1).</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>2) If so, are there any samples of how =
+this is=20
+done?&nbsp; For now, I'd be happy just assigning each private network =
+one=20
+outgoing ip address; but I want to do this with one box.&nbsp; Then I'll =
+bridge=20
+the two (or more) by modifying the routing table?</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>3) I'd like to provide webservices via =
+several low=20
+bandwidth connections, so I'd like to dynamically route the traffic =
+based on the=20
+load.&nbsp; My sense is that this is impossible with the current=20
+release.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>_________________________</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Joseph Tung<BR>eXnium Inc.</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>5255 Stevens Creek Blvd Ste =
+336<BR>Santa Clara, CA=20
+95051<BR>&nbsp;&nbsp; main:&nbsp;&nbsp;&nbsp;&nbsp; =
+408.253.9970<BR>&nbsp;&nbsp;=20
+mobile:&nbsp; 408.393.1123<BR>&nbsp;&nbsp;=20
+fax::&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 408.253.9971<BR>&nbsp;&nbsp;=20
+email:&nbsp;&nbsp;&nbsp;&nbsp; <A=20
+href=3D"mailto:joe.tung@eXnium.com">joe.tung@eXnium.com</A></FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>&nbsp;&nbsp;=20
+url:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <A=20
+href=3D"http://www.eXnium.com">http://www.eXnium.com</A><BR>_____________=
+____________</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
 
---------------070704060708000800000500
-Content-Type: text/x-patch;
- name="slab-expectation2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="slab-expectation2.patch"
-
-diff -u -r1.1.1.1 ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	11 May 2004 13:07:08 -0000	1.1.1.1
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	2 Jun 2004 11:06:44 -0000
-@@ -67,6 +67,7 @@
- static atomic_t ip_conntrack_count = ATOMIC_INIT(0);
- struct list_head *ip_conntrack_hash;
- static kmem_cache_t *ip_conntrack_cachep;
-+static kmem_cache_t *ip_conntrack_expect_cachep;
- struct ip_conntrack ip_conntrack_untracked;
- 
- extern struct ip_conntrack_protocol ip_conntrack_generic_protocol;
-@@ -176,7 +177,7 @@
- 	IP_NF_ASSERT(atomic_read(&exp->use));
- 	IP_NF_ASSERT(!timer_pending(&exp->timeout));
- 
--	kfree(exp);
-+	kmem_cache_free(ip_conntrack_expect_cachep, exp);
- }
- 
- 
-@@ -335,7 +336,7 @@
- 			list_del(&ct->master->expected_list);
- 			master = ct->master->expectant;
- 		}
--		kfree(ct->master);
-+		kmem_cache_free(ip_conntrack_expect_cachep, ct->master);
- 	}
- 	WRITE_UNLOCK(&ip_conntrack_lock);
- 
-@@ -923,9 +924,8 @@
- ip_conntrack_expect_alloc()
- {
- 	struct ip_conntrack_expect *new;
--	
--	new = (struct ip_conntrack_expect *)
--		kmalloc(sizeof(struct ip_conntrack_expect), GFP_ATOMIC);
-+
-+	new = kmem_cache_alloc(ip_conntrack_expect_cachep, GFP_ATOMIC);
- 	if (!new) {
- 		DEBUGP("expect_related: OOM allocating expect\n");
- 		return NULL;
-@@ -933,6 +933,7 @@
- 
- 	/* tuple_cmp compares whole union, we have to initialized cleanly */
- 	memset(new, 0, sizeof(struct ip_conntrack_expect));
-+	atomic_set(&new->use, 1);
- 
- 	return new;
- }
-@@ -944,7 +945,6 @@
- 	DEBUGP("new expectation %p of conntrack %p\n", new, related_to);
- 	new->expectant = related_to;
- 	new->sibling = NULL;
--	atomic_set(&new->use, 1);
- 
- 	/* add to expected list for this connection */
- 	list_add(&new->expected_list, &related_to->sibling_list);
-@@ -998,7 +998,8 @@
- 		}
- 
- 		WRITE_UNLOCK(&ip_conntrack_lock);
--		kfree(expect);
-+		/* This expectation is not inserted so no need to lock */
-+		kmem_cache_free(ip_conntrack_expect_cachep, expect);
- 		return -EEXIST;
- 
- 	} else if (related_to->helper->max_expected && 
-@@ -1017,7 +1018,7 @@
- 				       related_to->helper->name,
-  		    	       	       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip),
-  		    	       	       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip));
--			kfree(expect);
-+			kmem_cache_free(ip_conntrack_expect_cachep, expect);
- 			return -EPERM;
- 		}
- 		DEBUGP("ip_conntrack: max number of expected "
-@@ -1058,7 +1059,7 @@
- 		WRITE_UNLOCK(&ip_conntrack_lock);
- 		DEBUGP("expect_related: busy!\n");
- 
--		kfree(expect);
-+		kmem_cache_free(ip_conntrack_expect_cachep, expect);
- 		return -EBUSY;
- 	}
- 
-@@ -1379,6 +1380,7 @@
- 	}
- 
- 	kmem_cache_destroy(ip_conntrack_cachep);
-+	kmem_cache_destroy(ip_conntrack_expect_cachep);
- 	vfree(ip_conntrack_hash);
- 	nf_unregister_sockopt(&so_getorigdst);
- }
-@@ -1431,6 +1433,15 @@
- 		printk(KERN_ERR "Unable to create ip_conntrack slab cache\n");
- 		goto err_free_hash;
- 	}
-+
-+	ip_conntrack_expect_cachep = kmem_cache_create("ip_conntrack_expect",
-+					sizeof(struct ip_conntrack_expect),
-+					0, SLAB_HWCACHE_ALIGN, NULL, NULL);
-+	if (!ip_conntrack_expect_cachep) {
-+		printk(KERN_ERR "Unable to create ip_expect slab cache\n");
-+		goto err_free_conntrack_slab;
-+	}
-+
- 	/* Don't NEED lock here, but good form anyway. */
- 	WRITE_LOCK(&ip_conntrack_lock);
- 	/* Sew in builtin protocols. */
-@@ -1458,6 +1469,8 @@
- 
- 	return ret;
- 
-+err_free_conntrack_slab:
-+	kmem_cache_destroy(ip_conntrack_cachep);
- err_free_hash:
- 	vfree(ip_conntrack_hash);
- err_unreg_sockopt:
-
---------------070704060708000800000500--
+------=_NextPart_000_063B_01C447AD.68D377A0--
