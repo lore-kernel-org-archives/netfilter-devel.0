@@ -1,24 +1,21 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Missing ipt_osf.h in p-o-m (kernel 2.6)
-Date: Thu, 26 Aug 2004 12:31:59 +0200 (CEST)
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [RFC] ct_sync 0.15 (corrected)
+Date: Thu, 26 Aug 2004 13:12:27 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0408261226590.17019@blackhole.kfki.hu>
-References: <20040818223233.GA317@cerbere.dyndns.info>
-	<20040819094720.GZ3921@sunbeam.de.gnumonks.org>
-	<4127E920.2080100@trash.net>
-	<Pine.LNX.4.58.0408241134530.13212@blackhole.kfki.hu>
-	<20040824104945.GR26877@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.61.0408241435260.7021@filer.marasystems.com>
-	<Pine.LNX.4.58.0408241447140.13212@blackhole.kfki.hu>
-	<Pine.LNX.4.61.0408241647300.9087@filer.marasystems.com>
-	<Pine.LNX.4.58.0408261103190.17019@blackhole.kfki.hu>
-	<Pine.LNX.4.61.0408261219210.7376@filer.marasystems.com>
+Message-ID: <1093518747.2447.16.camel@nienna.balabit>
+References: <1092407190.2402.120.camel@nienna.balabit>
+	<20040819110646.GJ3921@sunbeam.de.gnumonks.org>
+	<1092917551.2425.28.camel@nienna.balabit>
+	<Pine.LNX.4.58.0408261015001.16945@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0408261219210.7376@filer.marasystems.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0408261015001.16945@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,27 +26,58 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 26 Aug 2004, Henrik Nordstrom wrote:
 
-> On Thu, 26 Aug 2004, Jozsef Kadlecsik wrote:
->
-> > If we put the file into each linux-x.y.z directory up to 2.6.8, we are
-> > copying the same file between directories in spite of the efforts of
-> > avoiding that.
->
-> If there is that many Linux version dependencies of the extension yes, but
-> I doubt this will be the case very often.
+  Hi,
 
-Yes, and we smooth out the versions by bringing them up to the
-most recent 2.4/2.6 version by the special update/ patches.
+2004-08-26, cs keltez=E9ssel 12:00-kor Jozsef Kadlecsik ezt =EDrta:
+> >   Unfortunately I don't think it would work... AFAIK there is no symb=
+ol
+> > table information in 2.4 kernels and usually these functions are
+> > declared as static anyway. Moreover, take a look at the H.323 helper,=
+ it
+> > uses this expectfn function to set the helper of the conntrack to an
+> > unregistered helper structure... I think there is no point in making
+> > ct_sync overly complicated; these helpers should be fixed instead. (I
+> > don't know why the H.323 does things this way, but it is completely
+> > hopeless to replicate things like this.)
+>=20
+> We could add the expect function to the ip_conntrack_helper structure a=
+nd
+> identify it by the helper name in the update messages. The unregistered
+> helper in the H.323 conntrack/nat module could be registered with an
+> invalid, never matching port and let the expect function handle it as
+> before (because the real port is dynamic). I think that'd be sufficient=
+ in
+> solving the replication problem.
 
-Patches are always welcomed :-). But it'd be interesting to see how many
-files are actually affected.
+  Sounds good. This way the could replicate the expectfn function along
+with the conntrack helper structure, and the unregistered helpers could
+be handled as well. Although this might be a bit more complicated than
+the current solution, but if we have to do some evil magic to handle
+H.323, we should do that in a ct_sync compatible manner if possible...
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> Unfortunately we cannot fix the H.323 protocol. :-)
+
+  Of course, I tried to write 'I don't know why the H.323 _helper_ does
+things this way' but made some mistakes... :(
+
+> >   Indeed, the timeout is updated with every packet. However, we do no=
+t
+> > generate an update message for IPCT_REFRESH events at the moment. On =
+the
+> > other hand, we replicate the timeout changes when a state change occu=
+rs
+> > as well, so I don't worry about incorrect (relative) timeout values a=
+t
+> > all.
+>=20
+> That's still fine with TCP window tracking. Just as Harald wrote, we ca=
+n
+> switch to lazy mode on the slaves. But to be honest, that is the least
+> verified part of the window tracking code.
+
+  This would be an easy solution.
+
+--=20
+ Regards,
+   Krisztian KOVACS
