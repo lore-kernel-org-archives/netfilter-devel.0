@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: REJECT target
-Date: Thu, 26 Jun 2003 17:20:34 +0200
+Date: Thu, 26 Jun 2003 17:19:47 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EFB0F42.5020707@trash.net>
+Message-ID: <20030626151947.GA10045@oknodo.bof.de>
 References: <Pine.LNX.4.33.0306260830550.10452-100000@blackhole.kfki.hu> <1012141349.20030626165642@habitat-b.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: DarKRaveR <DarKRaveR@habitat-b.de>
+Content-Disposition: inline
 In-Reply-To: <1012141349.20030626165642@habitat-b.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -21,35 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Have a look at the conntracl match from pom. This is probably what you want.
+> Okay, admitted. I would be glad to do that in the filtering table, the
+> question is: How can I identify those packets, when the were modified
+> in the nat table ?
 
-Bye,
-Patrick
+One approach that I used in some places, and which could be workable
+for your scenario, is to use the MARK target at mangle/PREROUTING,
+and then use the mark match both in the NAT decision, and in the
+filter table. The firewall mark stays with the packet, regardless
+of application of a NAT action.
 
-DarKRaveR wrote:
+The CONNMARK stuff may be even more useful / cover more cases.
 
->Hello Jozsef, list,
->
->Okay, admitted. I would be glad to do that in the filtering table, the
->question is: How can I identify those packets, when the were modified
->in the nat table ?
->
->Assuming I have a subnet and a cluster of ip addresses, which get
->redirected in the PREROUTING chain. since the destination address is
->getting changed, how can I now reject some of those packets, when they
->are meant for certain hosts/networks. So, what I want to do, redirect
->packets, but those send to certain destination, or which were meant
->for certain destinations should be rejected. I don't want them to just
->be dropped (without further notice).
->
->In the current design I can't see any way, to do such a thing, that's
->why I wanted to reject them in nat(PREROUTING).
->
->Any thoughts on that ?
->
->Sorry for bothering again ...
->
->-Sven
->
->  
->
+best regards
+  Patrick
