@@ -1,15 +1,16 @@
-From: Tim Gardner <timg@tpi.com>
-Subject: [PATCH] patch-o-matic-ng PPTP missing GRE dependency
-Date: Wed, 17 Mar 2004 09:40:08 -0700
+From: Cedric Blancher <blancher@cartel-securite.fr>
+Subject: Re: Creating rules without the /sbin/iptables command?
+Date: Wed, 17 Mar 2004 20:25:39 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200403170940.08902.timg@tpi.com>
-Reply-To: timg@tpi.com
+Message-ID: <1079551538.1424.23.camel@anduril.intranet.cartel-securite.net>
+References: <40589CF8.8010007@nk.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: quoted-printable
+Cc: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Victor Julien <victor@nk.nl>
+In-Reply-To: <40589CF8.8010007@nk.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,35 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Seems to me that PPTP depends on GRE. Otherwise you get unresolved refere=
-nces=20
-because ip_nat_proto_gre.c does not get compiled.
+Le mer 17/03/2004 =E0 19:46, Victor Julien a =E9crit :
+> My program (written in c) creates rules by opening a pipe to=20
+> /sbin/iptables. However this is quite slow with large rulessets and on=20
+> slow hardware. Is there another way, like an iptables librarycall or=20
+> something?
 
-rtg
+You could use iptables libs that stand in /usr/lib/iptables, just like
+iptables does.
 
-<--Snip-->
-diff -r -u --new-file=20
-pptp-conntrack-nat.old/linux/net/ipv4/netfilter/Config.in.ladd=20
-pptp-conntrack-nat/linux/net/ipv4/netfilter/Config.in.ladd
---- pptp-conntrack-nat.old/linux/net/ipv4/netfilter/Config.in.ladd=092004=
--03-05=20
-02:30:28.000000000 -0700
-+++ pptp-conntrack-nat/linux/net/ipv4/netfilter/Config.in.ladd=092004-03-=
-17=20
-09:28:29.000000000 -0700
-@@ -1,5 +1,6 @@
-   dep_tristate '  FTP protocol support' CONFIG_IP_NF_FTP=20
-$CONFIG_IP_NF_CONNTRACK
--  dep_tristate '  PPTP protocol support' CONFIG_IP_NF_PPTP=20
-$CONFIG_IP_NF_CONNTRACK
-+  dep_tristate 'GRE protocol support' CONFIG_IP_NF_CT_PROTO_GRE=20
-$CONFIG_IP_NF_CONNTRACK
-+  dep_tristate '  PPTP protocol support' CONFIG_IP_NF_PPTP=20
-$CONFIG_IP_NF_CT_PROTO_GRE
-   if [ "$CONFIG_IP_NF_PPTP" !=3D "n" ]; then
- =09bool   '    PPTP verbose debug' CONFIG_IP_NF_PPTP_DEBUG
-   fi
+You should however ask netfilter developpers mailing list.
+
+Cc : netfilter-devel@lists.netfilter.org
 
 --=20
-Tim Gardner - timg@tpi.com
-www.tpi.com 406-443-5357
+http://www.netexit.com/~sid/
+PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
+>> Hi! I'm your friendly neighbourhood signature virus.
+>> Copy me to your signature file and help me spread!
