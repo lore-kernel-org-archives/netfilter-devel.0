@@ -1,20 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf_conntrack [was Re: [PATCH 1/4] RFC: fast string matching
- infrastrure for netfilter]
-Date: Fri, 14 Jan 2005 04:16:19 +0100
-Message-ID: <41E73983.7060905@trash.net>
-References: <41E1AECD.6020209@eurodev.net> <41E1B9F1.7010106@trash.net>
-	<Pine.LNX.4.58.0501102041430.28819@blackhole.kfki.hu>
-	<41E2E631.3060102@trash.net>
-	<20050110212807.GZ18568@sunbeam.de.gnumonks.org>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050807020403010802050200"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: zhongyu <xxx@mail.goldenhope.com.cn>
+Subject: a patch for conntrack_tuple
+Date: Fri, 14 Jan 2005 11:52:44 +0800
+Message-ID: <BF65C818-65DF-11D9-9545-000A95B170F8@mail.goldenhope.com.cn>
+References: <20050111102202.99FD6A90F2@mail.goldenhope.com.cn>
+Mime-Version: 1.0 (Apple Message framework v619)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050110212807.GZ18568@sunbeam.de.gnumonks.org>
+In-Reply-To: <20050111102202.99FD6A90F2@mail.goldenhope.com.cn>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,50 +20,67 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050807020403010802050200
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+##################begin##########################################
+--- include/linux/netfilter_ipv4/ip_conntrack_tuple.h   27 Nov 2003 
+12:42:40 -0000      1.2
++++ include/linux/netfilter_ipv4/ip_conntrack_tuple.h   10 Jan 2005 
+04:28:28 -0000
+@@ -50,13 +50,37 @@
+                         u_int64_t all;
 
-Harald Welte wrote:
+                         struct {
++#if defined(__LITTLE_ENDIAN_BITFIELD)
+                                 u_int16_t port;
++#elif defined (__BIG_ENDIAN_BITFIELD)
++                               u_int32_t pad1;
++                               u_int16_t pad2;
++                               u_int16_t port;
++#else
++#error "Please fix <asm/byteorder.h>"
++#endif
+                         } tcp;
+                         struct {
++#if defined(__LITTLE_ENDIAN_BITFIELD)
++                               u_int16_t port;
++#elif defined (__BIG_ENDIAN_BITFIELD)
++                               u_int32_t pad1;
++                               u_int16_t pad2;
+                                 u_int16_t port;
++#else
++#error "Please fix <asm/byteorder.h>"
++#endif
+                         } udp;
+                         struct {
++#if defined(__LITTLE_ENDIAN_BITFIELD)
++                               u_int8_t type, code;
++#elif defined (__BIG_ENDIAN_BITFIELD)
++                               u_int32_t pad1;
++                               u_int16_t pad2;
+                                 u_int8_t type, code;
++#else
++#error "Please fix <asm/byteorder.h>"
++#endif
+                         } icmp;
+                         struct {
+                                 u_int16_t protocol;
+################end#######################
+The function hash_conntrack use the low 16 bits of tuple->dst, but in 
+big-endian system
+the port infomation is in high 16 bits. So the destination port on 
+big-endian system was
+ignored. This caused hash collision. The patch above fixed this problem 
+:-)
 
->>I think we should put ip_conntrack in maintenance mode, than we can
->>resync nf_conntrack and make changes like this before we submit it.
->>
->
->At last, we again agree :)
->
-
-I've commited a TODO list for nf_conntrack (just off the top of my head)
-to svn. Any further suggestions are appreciated.
-
-Regards
-Patrick
-
-
---------------050807020403010802050200
-Content-Type: text/plain;
- name="TODO"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="TODO"
-
-TODOs for nf_conntrack (last changed Jan 14 2005)
--------------------------------------------------
-
-Some items are controversial, so make sure to get some feedback on
-netfilter-develbefore working on any of these.
-
-- Resync with latest ip_conntrack changes
-- Function/structure name unification: s/nf_conntrack/nf_ct/
-- Replace get_features stuff by ct_extend ?
-- Don't waste space for IPv4 tuples (currently union with IPv6 tuples) ?
-- kill ->confirm, nf_conntrack_confirm is generic
-- Add nf_ct_get_afinfo for things like ip_ct_attach
-- Some IPv4/IPv6 registered hook functions just call generic functions, this
-  means even longer call-chains. Add family argument to hook functions and
-  kill them ?
-- IPv4 NAT
-
-
---------------050807020403010802050200--
+static u_int32_t
+hash_conntrack(const struct ip_conntrack_tuple *tuple)
+{
+#if 0
+         dump_tuple(tuple);
+#endif
+         return (jhash_3words(tuple->src.ip,
+                              (tuple->dst.ip ^ tuple->dst.protonum),
+                              (tuple->src.u.all | (tuple->dst.u.all << 
+16)),
+                              ip_conntrack_hash_rnd) % 
+ip_conntrack_htable_size);
+}
