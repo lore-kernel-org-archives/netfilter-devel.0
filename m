@@ -1,16 +1,19 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: 2.4.25 crash with conntrack msgs in the kernel log
-Date: Thu, 04 Mar 2004 13:22:18 +0100
+From: David Cannings <lists@edeca.net>
+Subject: Re: taking related connections to the limit
+Date: Thu, 4 Mar 2004 22:29:14 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1078402938.773.38.camel@nienna.balabit>
-References: <1078250798.957.58.camel@vijay>
+Message-ID: <200403042229.14348.lists@edeca.net>
+References: <20040304120402.GH14383@magicbluesmoke.net>
+Reply-To: david@edeca.net
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
-In-Reply-To: <1078250798.957.58.camel@vijay>
+To: "John P. Looney" <valen@tuatha.org>,
+ netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040304120402.GH14383@magicbluesmoke.net>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,19 +24,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thursday 04 March 2004 12:04, John P. Looney wrote:
+>  Hi, I was wondering if netfilter can do the following:
+>
+>  If a packet has dest ip X, dport 110, do a DNAT --to IP Y, record the
+> SRC IP If a subsequent packet comes into dest IP X, from that SRC IP,
+> --dport 25 from the same IP, DNAT --to IP Y also.
+>
+>  This is to do some work with POP-before-smtp, if you wondered why such
+> a demented thing would be needed.
 
-  Hi,
+I am not sure whether it can be done or not but remember that they would 
+only have to connect in order to be allowed subsequent access to your 
+SMTP server.  netfilter obviously cannot handle authentication for POP3 
+so will never know whether the user was successful in their connection 
+attempt.  Normally, POP before SMTP is based on their username/password 
+being entered successfully to POP, which allows later access to SMTP.
 
-On Tue, 2004-03-02 at 19:08, Vijaya Chandra Vupputuri wrote:
-> The system acts as the gateway for around 500 active users, with around
-> 1000 rules in the forward chain and around 400 chains, each of these
-> chains with one rule (using the 'ipt_quota' match), in the filter table
-> and around 1500 rules in the 'nat' table, HTB, being the one used for
-> shaping bandwidth.
+Personally I've always found authenticated SMTP to be a better 
+alternative.  It means I can give only selected POP users access to SMTP 
+and also I can give non POP users access, if need be.
 
-  What conntrack/NAT helpers do you use? Which modules are loaded in the
-kernel?
+Just something so think about, perhaps.
 
--- 
- Regards,
-   Krisztian KOVACS
+David
