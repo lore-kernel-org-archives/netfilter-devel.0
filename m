@@ -1,15 +1,13 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: Problem: cannot apply H.323 conntrack patch on Linux 2.6.11
-Date: Tue, 8 Mar 2005 14:42:03 +0100
-Message-ID: <20050308134203.GA16137@roonstrasse.net>
-References: <A4ED24A7CF46224E9246EBF1E71B0B90015CE67A@mtlmail.eicon.com>
+From: scarab@echostar.pl
+Subject: Basic linux firewall
+Date: Tue, 8 Mar 2005 15:26:32 +0100
+Message-ID: <200503081526.32310.scarab@echostar.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "'netfilter-devel@lists.netfilter.org'"
-	<netfilter-devel@lists.netfilter.org>
-To: Paul Gallant <Paul.Gallant@eicon.com>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <A4ED24A7CF46224E9246EBF1E71B0B90015CE67A@mtlmail.eicon.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +19,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/03/08 14:40, Paul Gallant <Paul.Gallant@eicon.com> wrote:
-[...]
-> Then tried to apply Patch-o-Matic-ng-20050306 to add H.323 conntrack.
-> 
-> The patch does not apply... (It is specified that it requires: linux-2.6 >=
-> 2.6.11)
-> 
-> It seems that ip_conntrack.h file structure changed and that there is no
-> more "insert conntrack helper private data (expect) here" section anymore.
-> 
-> What should I do to resolve this issue?
+Hi,
+I don't know if I'm writing to right mailing list but I have problem and i 
+hope you could help me solve it. I must write simple linux firewall. I tried 
+find any information about how to start but most of them was useless. It is 
+very important for me because in this year I'm finishing university and 
+trying get engineering degree. It mustn't be advanced linux firewall, it can 
+filter only TCP packets (although  I'd like to do it as advanced as it 
+possible). Could anybody give me some information where can i find some 
+documents, books or something like that about how to start etc? I knew that 
+propably somebody asked for that here before and I tried to find something in 
+netfilter-devel archive but i didn't success.
+Thank you
 
-There is already a patch for that. Please check out the "linux 2.6.11"
-branch from the patch-o-matic repository, it contains my 2.6.11
-patches.
-
-btw. the subversion repository on svn.netfilter.org is still broken -
-"Could not open the requested SVN filesystem". Could somebody fix that
-please?
-
-Max
+PS. Sorry for my poor English 
