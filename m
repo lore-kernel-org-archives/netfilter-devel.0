@@ -1,13 +1,13 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Conntrack & NAT question
-Date: Thu, 15 Jul 2004 11:03:45 +0200
+From: "Eric Leblond" <eric@inl.fr>
+Subject: ct_link and conntrack evolution ?
+Date: Thu, 15 Jul 2004 12:12:23 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1089882225.2556.10.camel@nienna.balabit>
+Message-ID: <58305.193.164.229.102.1089886343.squirrel@193.164.229.102>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,46 +18,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-  Hi,
+The NuFW project (see http://www.nufw.org for details) has recently
+evolved by building a "real-time" authenticated connection tracking table
+stored in a SQL database. This brings some great features especially in
+the Single Sign On domain (application can ask the SQL database about
+users as they know about the connection).
 
-  While re-thinking the conntrack entry update facility of ct_sync, I
-was thinking on the relation of conntrack entries, their NAT-related
-information, and confirmation.
+As it can for sure not be compared with ct_link implementation, it points
+out that it may be useful to be able to add some informations to
+conntrack. I think about mark (like connmark does) or other fields as the
+userid (although it's really NuFW oriented).
 
-  So, in theory, I think that the tuples of an already confirmed
-conntrack entry cannot be changed. Since NAT (usually) changes the reply
-tuple, their NAT entries should be constant as well after confirming.
-However, I'm having weird things in ct_sync... In theory, ct_sync
-replicates confirmed conntrack entries only, so there shouldn't be any
-problem if my theory 'confirmed entries have constant tuples' is true.
-However, I have somethink like this in the update function:
-
-	[...]
-
-	if (new) {
-		memcpy(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple, &sct->orig,
-		       sizeof(struct ip_conntrack_tuple));
-		memcpy(&ct->tuplehash[IP_CT_DIR_REPLY].tuple, &sct->reply,
-		       sizeof(struct ip_conntrack_tuple));
-	} else {
-		CT_SYNC_ASSERT(memcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-				    &sct->orig, sizeof(sct->orig)) == 0);
-		CT_SYNC_ASSERT(memcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple,
-				    &sct->reply, sizeof(sct->reply)) == 0);
-		CT_SYNC_DUMP_TUPLE(&sct->orig);
-		CT_SYNC_DUMP_TUPLE(&sct->reply);
-	}
-
-	[...]
-
-  The 'new' parameter means we're updating an entry we've just created.
-So, unless the entry is new, we check whether the tuples in the update
-message are the same as ours. And, unfortunately, I have a few assertion
-failed messages in the logs... :(
-
-  Any idea? What am I missing?
-
+BR,
 -- 
- Regards,
-   Krisztian KOVACS
+Eric Leblond : eric@inl.fr
+INL : http://www.inl.fr/
