@@ -1,19 +1,17 @@
 From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: ICMP unreachable (DF) does not report the NATed IP
-Date: 29 Apr 2003 21:13:06 +0200
+Subject: Re: Bug in rpc conntrack modules
+Date: 29 Apr 2003 21:15:33 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1051643586.8214.37.camel@tux.rsn.bth.se>
-References: <4F9AFAF72B246745B6847C7EECD8FF6901D17A81@EXCHANGE1.charite.de>
-	 <1051552224.5946.239.camel@tux.rsn.bth.se>
-	 <20030429145046.GF684@naboo.intranet.astaro.de>
+Message-ID: <1051643733.8200.41.camel@tux.rsn.bth.se>
+References: <1051483678.5944.223.camel@tux.rsn.bth.se>
+	 <20030429145550.GH684@naboo.intranet.astaro.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: "Hillmann, Oliver" <Oliver.Hillmann@charite.de>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030429145046.GF684@naboo.intranet.astaro.de>
+In-Reply-To: <20030429145550.GH684@naboo.intranet.astaro.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,47 +22,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2003-04-29 at 16:50, Harald Welte wrote:
+On Tue, 2003-04-29 at 16:55, Harald Welte wrote:
 
-> > That's the wrong way to do it, fix the cause of the problem. It's the
-> > code in icmp_reply_translation() in ip_nat_core.c
-> 
-> please don't tell me there is still an unhandled ICMP reply translation
-> problem.  If yes, I think I need a new brain.
+> Hi Martin.  Please note that I don't expect Marcelo to comment on your
+> email.  He has written this code about three years ago and I assume he
+> has abandoned the code (which is perfectly fine, every author has the
+> right to do so).
+>
+> As the comment on top of ip_conntrack_rpc_tcp.c indicates, rusty did
+> some porting, I merged it with newnat (IIRC), and Ian.Latter finally
+> re-worked it again.  He probably is the one most familiar with the code
+> now.
 
-I actually havn't verified it :) I see problems with kernels without the
-inner-icmp-translation-fix. I see two cases:
+Yeah, I failed to look at the changelog in the patch itself, I just read
+.patch.help which turned out to be a mistake.
 
-1. no NAT rules but ip_conntrack_ftp and ip_nat_ftp are loaded.
-   router which has these modules loaded generate an icmp frag needed
-   packet and the outer header is rewritten to the ip of the ftpserver.
-   Internal header is probably untouched, hard to tell from a tcpdump.
+> Martin, you'll have to fix it by yourself (or I will have to do it).
 
-2. DNAT and the icmp frag needed gets the outer header rewritten but not
-   the internal.
+Ian Latter has said he'll fix it.
 
-So with the fix both headers will be rewritten if I understand it
-correctly. It's been a little while since I looked at it.
-Case 1 won't happen anymore because of pending/25_natcore-nohelper.patch
+> Please add a bug to bugzilla, accept it and mark it as FIXED just for
+> keeping track of those issues.
 
-Case 2 will get both headers rewritten and hosts do not expect to get an
-icmp frag needed from the ip they are trying to send packets to. I've
-tested and Linux ipstack will drop those packets.
-
-This can't always be avoided, think about the case where the DNAT is for
-packets destined for the router itself. But if the DNAT is for other
-ip's the external header shouldn't be rewritten, just the internal.
-
-It's tricky, I understand why it's always been a problematic area :)
-
-> > Also look at the submitted/11_inner-icmp-translation-fix.patch patch in
-> > patch-o-matic as it modifies this function.
-> 
-> This patch was supposed to handle all the remaining cases we had with
-> fixing ICMP translation.  The case Oliver Hillmann was talking about
-> sounds exactly like one of them.
-
-I hope I'm wrong :)
+I'll add the bug, accept it and then mark it fixed when the patches (rpc
+and rsh it turns out) are fixed.
 
 -- 
 /Martin
