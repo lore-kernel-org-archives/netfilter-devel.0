@@ -1,14 +1,16 @@
-From: "Paul J. Caritj" <pcaritj@riovia.net>
-Subject: Basic API Question
-Date: 26 Jun 2003 03:39:46 -0400
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re[2]: REJECT target
+Date: Thu, 26 Jun 2003 12:14:51 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1056613186.8171.11.camel@localhost.localdomain>
-Reply-To: pcaritj@riovia.net
+Message-ID: <Pine.LNX.4.51.0306261214300.14851@dns.toxicfilms.tv>
+References: <Pine.LNX.4.33.0306260830550.10452-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: DarKRaveR <DarKRaveR@habitat-b.de>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0306260830550.10452-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,19 +21,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Geetings,
-I am trying to accomplish a very simple task: the addition, removal, etc
-of iptables rules through C. I have found ample documentation on
-developing modules, etc, but nothing to answer this basic question. 
+> > I understood that, the question is why ? I got a scenarion, where I
+> > would need it in the PREROUTING chain of the nat table, instead of
+> > just dropping the packets ... Is there any reason, why it is only
+> > available in the filter table. I mean, it's for filtering okay, but
+> > maybe I want to reject connections properly at other places (like nat
+> > table, prerouting) instead of plain stupid
+> > dropping them and waiting at the client software to time out.
+>
+> Thy users of netfilter do not filter packets in the nat or mangle tables.
+>
+> [Check out the mailing list archive and the documentation if you do not
+> know why. We discussed it countless times.]
+Shouldn't it be in the FAQ then ?
 
-Does such an interface exist or will I basically have to pipe out shell
-commands (eew)?
-
-For the sake of illustration, lets say I wanted to mark all packets
-bound to IP [IP] with fw-mark [mark] on the PREROUTING chain.
-
-
-
-
-Thanks all,
-Paul
+Regards,
+Maciej
