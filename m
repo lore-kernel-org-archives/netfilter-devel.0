@@ -1,17 +1,11 @@
-From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: Re: Suggestions for some patch-o-matic extensions (comment, ipp2p,
- random, etc...)
-Date: Wed, 16 Feb 2005 19:00:16 -0500
-Message-ID: <4213DE90.7060106@cookinglinux.org>
-References: <4213C6FD.5080705@arcoscom.com> <4213CF7F.6060901@arcoscom.com>
-	<4213D403.3000202@cookinglinux.org> <4213DB25.1080604@arcoscom.com>
-Reply-To: sjean@cookinglinux.org
+From: Jonas Berlin <jberlin@niksula.hut.fi>
+Subject: [PATCH] conntrack-acct "workaround" for 2.6.9+
+Date: Thu, 17 Feb 2005 02:20:32 +0200
+Message-ID: <4213E350.8060604@niksula.hut.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
-To: =?ISO-8859-1?Q?Samuel_D=EDaz_Garc=EDa?= <samueldg@arcoscom.com>
-In-Reply-To: <4213DB25.1080604@arcoscom.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,32 +17,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Samuel Díaz García wrote:
-> Well, I have 3 iptables extensions patched for the use with iptables 1.3.0.
-> 
-> libipt_comment.c
-> libipt_ipp2p.c
-> libip6t_random.c
-> 
-> They are compiling fine now (after I done some changes in the "struct 
-> iptables_match" variable definition.
-> 
-> The way to correct compile errors is revise the "struct iptables_match" 
-> variable definition.
+patch-o-matic-ng fails to detect that conntrack-acct is already applied 
+(I don't know how it does the detection) and thus fails when trying to 
+apply it.
 
-Please take a look at :
-https://lists.netfilter.org/pipermail/netfilter-devel/2005-February/018468.html
+However, if an empty file called linux-2.6.9.patch is placed in the 
+conntrack-acct/ directory, everything works just fine.
 
-comment and ipp2p are done yet.
+I noticed this problem when I was trying to patch connbytes into the 
+kernel (which depends on conntrack-acct). After adding the empty patch 
+file, connbytes also went in just fine.
 
-Patch for 6_random is, I guess, welcome.
+So unless there's a better way of fixing it in the patch-o-matic-ng 
+detection code, maybe someone with commit rights just create an empty 
+conntrack-acct/linux-2.6.9.patch file :)
 
- > [...]
-> 
->    Samuel Díaz García
->     Director Gerente
-> ArcosCom Wireless, S.L.L.
+(I verified that the original patch worked until 2.6.8 ; hence my choice 
+of 2.6.9)
 
-
-Best regards,
-Samuel
+-- 
+- xkr47
