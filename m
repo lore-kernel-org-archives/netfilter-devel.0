@@ -1,14 +1,18 @@
-From: Rick Kennell <kennell@ecn.purdue.edu>
-Subject: port-based filtering of ESP packets with in-kernel IPsec?
-Date: 29 Jul 2003 23:44:57 -0500
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [TRIVIAL] place IPv4 netfilter submenu where it belongs
+Date: Tue, 29 Jul 2003 22:38:02 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1059540296.16545.305.camel@k7.localnet>
-Reply-To: netfilter-devel@lists.netfilter.org
+Message-ID: <20030729223802.1d670476.davem@redhat.com>
+References: <20030726200646.GF16160@louise.pinerecords.com>
+	<20030727160942.647707d8.davem@redhat.com>
+	<20030729042618.GL32673@louise.pinerecords.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+To: Tomas Szepe <szepe@pinerecords.com>
+In-Reply-To: <20030729042618.GL32673@louise.pinerecords.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,30 +23,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I asked about this last week in the general netfilter list, but it
-appears that most folks are still using FreeS/WAN for IPsec.
+On Tue, 29 Jul 2003 06:26:18 +0200
+Tomas Szepe <szepe@pinerecords.com> wrote:
 
-I'm using the in-kernel IPsec and want to be able to filter ESP packets
-based on protocol or port number.  These values are encapsulated in the
-ESP payload and are unavailable to netfilter.  If I were using
-FreeS/WAN, I could use standard netfilter techniques on the ipsec0
-device.  With the in-kernel IPsec, there's no extra pseudo-device with
-which to examine unencapsulated ESP packets.
+> Ok, what does this look like?
+> 
+> The only aim of the patch is to put most netfilter options
+> in a dedicated submenu so that one can go tweaking the
+> them right where they've enabled netfilter in the first
+> place.
 
-It looks too me like netfilter sees the packet as ESP in all chains in
-all tables.  (I'd be delighted to be corrected.)
+This looks fine to me.  Can I get an ACK from the netfilter
+folks?
 
-Since ESP packets that reach the mangle INPUT chain are destined for a
-local process, why not unencapsulate them just before that point?  It
-might still be nice to have an indication that this was once an ESP
-packet for filtering, but that could be done by setting a mark in the
-mangle PREROUTING chain.
-
-I realize that this would probably require some heavy lifting in the
-network layer to accomplish this nesting of functionality.
-
-Am I missing something obvious?
-
--- 
-Rick Kennell <kennell@ecn.purdue.edu>
-Purdue University School of Electrical and Computer Engineering
+Thanks.
