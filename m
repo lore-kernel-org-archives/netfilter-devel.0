@@ -1,16 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Need help on 2.6.11 and pom-ng HEAD
-Date: Fri, 1 Apr 2005 09:06:25 +0200
-Message-ID: <20050401070625.GU19835@sunbeam.de.gnumonks.org>
+From: Wang Jian <lark@linux.net.cn>
+Subject: Re[2]: Need help on 2.6.11 and pom-ng HEAD
+Date: Fri, 01 Apr 2005 17:04:10 +0800
+Message-ID: <20050401165720.01F7.LARK@linux.net.cn>
 References: <20050331173635.01D4.LARK@linux.net.cn>
+	<20050401070625.GU19835@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AX2clmtSw6ieHBMM"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wang Jian <lark@linux.net.cn>
-Content-Disposition: inline
-In-Reply-To: <20050331173635.01D4.LARK@linux.net.cn>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20050401070625.GU19835@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,45 +21,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald Welte,
 
---AX2clmtSw6ieHBMM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sigh. Then I have to do it myself? Which tree is the most suitable to
+start from? Can you give me some suggestion?
 
-On Thu, Mar 31, 2005 at 05:50:24PM +0800, Wang Jian wrote:
-> Beside ordinary conntrack helper, the following things are needed:
->=20
->  directx8-conntrack-nat
->  h323-conntrack-nat
->  ipp2p
->  mms-conntrack-nat
->  quake3-conntrack-nat
->  rtsp-conntrack
->  nfnetlink-ctnetlink-0.13
+I think it is better to work on a stable API. Then I can try bring
+current half ported things to fully ported.
 
-you will have a really long job.  Most of them are neither fully ported
-nor tested.
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Now I am writing a per flow rate control qdisc. I wish I can finish it
+in this week. Then I can put my time on netfilter.
 
---AX2clmtSw6ieHBMM
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Sigh, it is already Friday. I have only 2 weeks left for beta test, and
+alpha stage is not clear yet :(
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCTPLxXaXGVTD0i/8RAliLAKCYgQtY9VhhnBMS+ZvNMDMG/0r3sQCfS0WD
-VM48S0G0PpMd8IOjWKPFuvw=
-=ipOK
------END PGP SIGNATURE-----
+On Fri, 1 Apr 2005 09:06:25 +0200, Harald Welte <laforge@netfilter.org> wrote:
 
---AX2clmtSw6ieHBMM--
+> On Thu, Mar 31, 2005 at 05:50:24PM +0800, Wang Jian wrote:
+> > Beside ordinary conntrack helper, the following things are needed:
+> > 
+> >  directx8-conntrack-nat
+> >  h323-conntrack-nat
+> >  ipp2p
+> >  mms-conntrack-nat
+> >  quake3-conntrack-nat
+> >  rtsp-conntrack
+> >  nfnetlink-ctnetlink-0.13
+> 
+> you will have a really long job.  Most of them are neither fully ported
+> nor tested.
+> -- 
+> - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+> ============================================================================
+>   "Fragmentation is like classful addressing -- an interesting early
+>    architectural error that shows how much experimentation was going
+>    on while IP was being designed."                    -- Paul Vixie
+
+
+
+-- 
+  lark
