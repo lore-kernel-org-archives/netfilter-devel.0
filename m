@@ -1,17 +1,14 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [nf-failover] [PATCH] Numerous ct_sync updates.
-Date: Fri, 15 Oct 2004 16:09:27 +0200
+From: "Emiel Mols" <emiel@fulgor-hosting.nl>
+Subject: IPSEC and NAT
+Date: Fri, 15 Oct 2004 20:00:07 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1097849367.2498.107.camel@nienna.balabit>
-References: <20041014191624.GH12694@obroa-skai.de.gnumonks.org>
+Message-ID: <E1CIWN8-0005Vo-00@deer.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20041014191624.GH12694@obroa-skai.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,59 +19,28 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-  Hi,
+ 
 
-  Wow, great! :) Some comments:
+I've managed to setup a host-to-net ipsec connection with a remote network
+on a linux router using (ported) isakmpd and kernel 2.6.8.1. However, I want
+to be able to 'share' this ipsec connection with the rest of the network,
+but since no ipsecn virtual interface is created in the 2.6 kernels I can't
+use ordinary SNAT/MASQUERADE targets in iptables: ipsec packets get
+encrypted before entering the POSTROUTING table :(, so the source address of
+the encapsulated packet can't be changed anymore. I've read
+http://lists.netfilter.org/pipermail/netfilter-devel/2004-January/thread.htm
+l#13879, but the supplied patch doesn't work very well.
 
-2004-10-14, cs keltez=E9ssel 21:16-kor Harald Welte ezt =EDrta:
-> - comment out INITSYNC_FOLLOWS code, it shouldn't be needed anymore
+ 
 
-  Yes, it's obsolete now that MASTER_ANNOUNCE is sent before each
-initial resync. If the end of an initsync run would be signalled as well
-(by always sending the empty update message for example) the following
-code could be obsoleted as well (it is a hack, after all):
+Does anyone have any suggestions on how to get this working?
 
-	if (msgs_received < CT_SYNC_INITSYNC_RATE) {
-		/* We have not received more than CT_SYNC_INITSYNC_RATE
-		 * messages in the last 100 ms.  This usually means
-		 * we're not receiving initial re-synchronization
-		 * messages anymore, so if we're in state
-		 * SLAVE_SYNRECV, we transition into SLAVE_RUNNING. */
-		cts_proto_recv_running(cts_cfg.protoh);
-	}
+ 
 
-> +	CT_SYNC_DEBUG("sending master_announce with seqno=3D%u\n",
-> +		      cph->send.ring.seqno);
-> +
->  	csb_hdr_fill(cph, &pkt.hdr, CT_SYNC_PKT_MASTER_ANNOUNCE,=20
-> -		     cph->send.ring.seqno++);
-> +		     cph->send.ring.seqno);
+Thanks in advance,
 
-> +			CT_SYNC_INFO("received master announcement, "
-> +				     "setting initial seqno to %u\n",=20
-> +				     csr->seqno);
-> +			/* csr->seqno is last received seqno, thus we expect
-> +			 * csr->seqno+1 in next SYNC packet. Sender tells us
-> +			 * the sequence number it is about to send with the
-> +			 * next packet, so we need to subtract 1 ?!?  */
->  			csr->seqno =3D ntohs(csb->pkt.hdr.pktseq);
->  			break;
+ 
 
-  Hmm, the log message does not seem to be correct, CT_SYNC_INFO should
-be _after_ setting csr->seqno to the new value. And because the master
-announcement is now sent without incrementing the sender's seqno (which
-is correct in my opinion), we really have to subtract 1 in the second
-part, don't we?
-
-  I have some updates as well, I'll commit them if I find the time
-needed to do some basic testing. (Mostly trivial ones not affecting
-normal operation at all...)
-
-  BTW, I think the protocol/ct_sync needs some more work. At the moment,
-it is not possible for a single node to be part of more sync groups, and
-this is a problem if you try to use ct_sync in a typical VRRP setup...
-
---=20
- Regards,
-   Krisztian KOVACS
+Emiel
