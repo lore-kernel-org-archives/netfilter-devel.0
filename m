@@ -1,14 +1,11 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: FOLLOW UP: 2.6.11 FTP conntrack problems?
-Date: Sat, 05 Mar 2005 04:04:56 +1100
-Message-ID: <1109955896.26082.7.camel@localhost.localdomain>
-References: <200503032206.26987.durk.van.veen@cox.net>
+From: Rolf Offermanns <roffermanns@sysgo.com>
+Subject: status of netfilter+ipsec patches
+Date: Fri, 04 Mar 2005 18:09:07 +0100
+Message-ID: <42289633.6020804@sysgo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
-To: durk.van.veen@cox.net
-In-Reply-To: <200503032206.26987.durk.van.veen@cox.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,20 +17,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2005-03-03 at 22:06 -0800, Durk van Veen wrote:
-> Following up on my earlier email, included below. It appears that ip_nat_ftp 
-> no longer supports the "ports" argument to give it a list of ports for which 
-> to be active.
+Hi!
+I read in the archives of this ml that the netfilter+ipsec patches were 
+supposed to be submitted after 2.6.10 release.
 
-Sorry, this is my fault.  It means that the module will fail to load,
-which is why it doesn't work for you.  "ports" is no longer required for
-the NAT module as it is intuited from the settings on the conntrack
-module.
+Are there any open issues? What keeps them from going into the main kernel?
 
-It would be nice to add a patch to re-include the ports param, but print
-a "no longer neccessary" warning when it's used.  And similarly with the
-other NAT helper modules.
-
-Rusty.
+-Rolf
 -- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Rolf Offermanns <roffermanns@sysgo.com>
+SYSGO AG     Tel.: +49-6136-9948-0
+Am Pfaffenstein 14   Fax: +49-6136-9948-10
+55270 Klein-Winternheim  http://www.sysgo.com
