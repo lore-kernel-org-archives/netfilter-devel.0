@@ -1,19 +1,15 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: Re: conntrack performance/DoS formula
-Date: Fri, 5 Jul 2002 19:49:15 -0700
+From: "Andrew Smith" <nfml@k1k2.com>
+Subject: Re: cttest-0.1
+Date: Sat, 6 Jul 2002 16:10:01 +1000 (EST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15654.23211.14464.294545@isis.cs3-inc.com>
-References: <20020628082339.I2890@oknodo.bof.de>
-	<200207042353.56244@henrik.marasystems.com>
-	<15653.17909.240706.246795@isis.cs3-inc.com>
-	<200207051341.11454@henrik.marasystems.com>
+Message-ID: <53889.203.134.158.15.1025935801.squirrel@iw.k1k2.com>
+References: <20020705165354.GD3729@aaricia.hemmet.chalmers.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <200207051341.11454@henrik.marasystems.com>
+To: <netfilter-devel@lists.samba.org>
+In-Reply-To: <20020705165354.GD3729@aaricia.hemmet.chalmers.se>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -24,21 +20,32 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom writes:
+> 2002-07-05 18:54:15+0200, Patrick Schaaf <bof@bof.de> ->
+>> 
+>> - make the hash bucket count at least individible by 2. This should go
+>>   as a strong suggestion into the documentation, and should be
+>>   implemented in the default initialization code. Anybody volunteering
+>>   for one or the other? I'll do the code part, but I won't do the
+>>   docs.
+> 
+> Well, I think we even can force people to use an odd count.
+> 
+> if (hashsize%2 == 0)
+> 	hashsize--;
+> 
+> 
+> -- 
+> /Joakim Axelsson A.K.A Gozem@EFnet & OPN
 
- > The TCP tracking states are approximations of RFC793. However, 
- > conntrack_tcp does not implement TCP, it only tries to derive the 
- > states of the involved TCP endpoints by looking at the transmitted 
- > packets.
-I understand that there are limits to what conntrack can do.
-However, someone has taken the trouble to compute assured, and
-this seems like a *much* better approximation to tcp established
-than what is actually presented as the intended approximation. 
-I guess now that you can match on assured the right functionality
-is there, but the current tcp established still seems like false
-advertising.
+Just so you don't underestimate a requirement ... :-)
 
-While I'm at it,
-  so what happens in case of NAT?  The tuples are not the same in this
-  case...
-Yep, that's what I realized later.
+if ((hashsize & 1) == 0)
+	hashsize++;
+
+(assume we are checking positive numbers ;-)
+
+-- 
+-Cheers
+-Andrew
+
+MS ... if only he hadn't been hang gliding!
