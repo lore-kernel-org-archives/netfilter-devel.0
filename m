@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: status of netfilter+ipsec patches
-Date: Mon, 28 Mar 2005 21:49:38 +0200
-Message-ID: <42485FD2.3020508@trash.net>
-References: <42289633.6020804@sysgo.com> <424853B8.9090607@shorewall.net>
+Subject: Re: [PATCH] Conntrack leak with raw sockets
+Date: Mon, 28 Mar 2005 22:16:34 +0200
+Message-ID: <42486622.9080802@trash.net>
+References: <20050325201127.GA3400@linuxace.com> <4244766D.2020001@trash.net>
+	<20050326060543.GA4791@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
-In-Reply-To: <424853B8.9090607@shorewall.net>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20050326060543.GA4791@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +22,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tom Eastep wrote:
-> I second this question -- I'm giving a presentation about Shorewall and
-> IPSEC next month at Linuxfest Northwest and I'd like to be able to give
-> the audience the current status of the patches.
+Phil Oester wrote:
+> Something like the attached?
 
-Read last weeks netdev archive, turns out the whole idea of skipping
-netfilter hooks until all IPsec processing is done was wrong. I don't
-know how to solve it yet.
+Perfect, thanks. I'll push it to Dave with the next batch of netfilter
+patches.
 
 Regards
 Patrick
