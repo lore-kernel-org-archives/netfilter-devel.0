@@ -1,10 +1,11 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: ctnetlink delete conntrack performance
-Date: Mon, 07 Mar 2005 12:25:15 +0100
-Message-ID: <422C3A1B.5080604@ingate.com>
+From: =?ISO-8859-1?Q?S=E9rgio_Bernardino?= <sergio.bernardino@gmail.com>
+Subject: LibIPQ issue
+Date: Mon, 7 Mar 2005 12:51:40 +0000
+Message-ID: <e54bc1880503070451419fc57@mail.gmail.com>
+Reply-To: =?ISO-8859-1?Q?S=E9rgio_Bernardino?= <sergio.bernardino@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -17,37 +18,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Greetings to all.
+I have a small problem in regards to libipq and the effects of
+altering packets in userspace. I was wondering if anyone could help me
+clear the issue. Here's the situation:
+Consider three machines: A, B and C. They are located in a LAN. Now, i
+sent a packet from A to B. On the machine B i have the following
+iptables rule:
 
-When the CTNL_MSG_DELCONNTRACK function of the ctnetlink patch is
-used it calls ip_ct_selective_cleanup() to remove the conntrack.
+iptables -t mangle -A PREROUTING -p ip -j QUEUE
 
-This is highly ineffective (depending on how many hash buckets you
-have ofcourse - I had 131007 of them when performing the test :-)
+Inside the program i created to deal with the packets i queue into
+userspace i change the destination address on the IP header to point
+to the machine C and ACCEPT the packet with all the changes. Now, as
+far as i can tell and for what i've gathered from reading this,
 
-Is there any reason I'm missing (except that maybe the code should
-go into it's own function) for not simply doing it this way:
+http://iptables-tutorial.frozentux.net/chunkyhtml/traversingoftables.html=
+=20
 
---- nfnetlink_conntrack.c	2005/03/05 21:17:43	1.1
-+++ nfnetlink_conntrack.c	2005/03/06 21:49:34
-@@ -366,9 +366,11 @@
-  		DUMP_TUPLE(tuple);
-  		return -ENOENT;
-  	}
--
--	ct_debug(0, "calling selective_cleanup\n");
--	ip_ct_selective_cleanup(ctnetlink_kill, h->ctrack);
-+	
-+	ct_debug(0, "deleting conntrack\n");
-+	ip_conntrack_put(h->ctrack);
-+	if (del_timer(&h->ctrack->timeout))
-+		ip_ct_death_by_timeout((unsigned long)h->ctrack);
+I'm changing the packet before the routing decision, hence, it should
+continue to traverse the network and reach machine C instead of
+"staying" on machine B. The thing is, nothing happens. I'm sure the
+packet is valid, and that i recalculate the checksum correctly and
+such since i've tested it several times. In fact, in the case where i
+have the following iptables rule:
 
-  	return 0;
-  }
+iptables -t filter -A OUTPUT -p ip -j QUEUE
 
-//Marcus
--- 
----------------------------------------+--------------------------
-   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
-  Software Developer, Ingate Systems AB |  http://www.ingate.com/
+I can alter the destination address of the outgoing packet (for
+example, a packet that goes from A to B becomes a packet that goes
+from A to A, a localhost packet), and it all works fine.
+I seems like i'm doing something wrong but i can't quite figure out
+what. Any ideas?
+Thank you.
+--=20
+S=E9rgio Bernardino
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+"The Dragon awakens in the darkness
+with a frozen heart he roars.
+If you are close, the dragon sleeps
+And when the wings appear before him
+people's dreams will fill the sky..."
