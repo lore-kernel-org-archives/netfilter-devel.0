@@ -1,15 +1,14 @@
-From: Denis Ducamp <Denis.Ducamp@groar.org>
-Subject: Re: separation of sysctl and tcp-window-tracking patch?
-Date: Fri, 13 Dec 2002 15:17:35 +0100
+From: "Ranjeet Shetye" <ranjeet.shetye@zultys.com>
+Subject: How do I add a 1:1 port-forwarding capability for a DNAT port-range to NetFilter ?
+Date: Fri, 13 Dec 2002 10:01:32 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021213151734.A31607@groar.org>
-References: <20021101021236.GA16306@pc.ilinx> <Pine.LNX.4.44.0212120252370.3113-100000@shieldbreaker.l33tskillz.org>
+Message-ID: <000d01c2a2d1$ab576050$0100a8c0@zultys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0212120252370.3113-100000@shieldbreaker.l33tskillz.org>; from qralston+ml.netfilter-devel@andrew.cmu.edu on Thu, Dec 12, 2002 at 03:05:33AM -0500
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,13 +19,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Dec 12, 2002 at 03:05:33AM -0500, James Ralston wrote:
-> (My specific need is related to DNS service: namely, in many cases, 30
-> seconds to establish a UDP session simply isn't enough time to permit
-> a reply to an outstanding DNS query.  I want to be able to up that
-> timeout to something closer to 60 or 120 seconds.)
 
-If your DNS servers serve zones then make them send requests from the udp/53
-port, then late replies are accepted as requests by the filter.
+This is what I posted on the user-mailing list yesterday.
 
-Denis Ducamp.
+---------------------------------------------------------------
+DNAT:
+
+Is it possible to have a SINGLE (DNAT?) rule that will let me do 1:1
+port-forwarding over a range of ports while doing Destination NAT.
+
+e.g. Any incoming connections to 64.1.0.20:100-101 need to be mapped to
+172.16.0.100:200-201 for the TCP protocol.
+such that a connection to port 101 will ALWAYS map to port 201 and a
+connection to port 100 will ALWAYS map to port 200.
+
+Under current DNAT port range scenario, the connection goes to the
+lowest port that is free e.g. a port 101 connection will be DNATt'ed to
+port 200 if port 200 is free.
+
+The reason for wanting a 1:1 rule is for X windows and other fat port
+ranges. Dont want hundreds of rules in there if one can do the job. Can
+IPTables do it ? If so how ? If not, I guess I'll have to get in touch
+with the developers for tips on a good starting point.
+---------------------------------------------------------------
+
+The answer I got is that basically I have to modify the nat code. I have
+been reading the code for the last 2-3 days but I am competely lost as
+to where to start. Should I make the change in ip_nat_setup_info or
+get_unique_tuple or manip_pkt ? Any pointers/any help here is
+appreciated.
+
+Also, if anyone has an architectural diagram of NetFilter :D (mapping
+out the interactions between the various layers/components), that would
+be heaven!!!
+
+Thanks in advance,
+
+Ranjeet Shetye
+Senior Software Engineer
+Zultys Technologies
+771 Vaqueros Avenue
+Sunnyvale  CA  94085
+USA
+Ranjeet.Shetye@Zultys.com
+http://www.zultys.com/
+
+ 
