@@ -1,14 +1,18 @@
-From: "Benton Pena" <bpena@centennialrd.com.do>
-Subject: Fw: Kernel panic: Aiee, killing interrupt handler!
-Date: Mon, 7 Oct 2002 11:36:08 -0400
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [netfilter-core] TimeBlock
+Date: Wed, 9 Oct 2002 17:07:55 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <004701c26e17$41add650$e8f412ac@centennialrd.com>
+Message-ID: <20021009170755.A13233@sunbeam.de.gnumonks.org>
+References: <000801c26e96$24999570$1400000a@sneak>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BOY+hQj86lETlGFu"
+Cc: <coreteam@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: "Ilo Lorusso" <ilo@gmsg.co.za>
+Content-Disposition: inline
+In-Reply-To: <000801c26e96$24999570$1400000a@sneak>; from ilo@gmsg.co.za on Tue, Oct 08, 2002 at 08:44:21AM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,79 +24,46 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
------ Original Message -----
-From: "Benton Pena" <bpena@centennialrd.com.do>
-To: <shorewall-users@shorewall.net>
-Sent: Monday, October 07, 2002 10:52 AM
-Subject: Fw: Kernel panic: Aiee, killing interrupt handler!
+--BOY+hQj86lETlGFu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Tue, Oct 08, 2002 at 08:44:21AM +0200, Ilo Lorusso wrote:
+> How does the idea of having time feature included in the DENYoption, so a
+> person can DENY Access to curtain resources on based on time.
 
->
-> Hi, all
->
-> I just installed shorewall ver. 1.3.9a on a:
->
-> mobile:~ # uname -a
-> Linux mobile 2.4.14 #1 Mon Nov 12 11:25:00 GMT 2001 sparc64 unknown
->
-> when i try to ssh to it i get from the console:
->
-> Kernel panic: Aiee, killing interrupt handler!
-> In interrupt handler - not syncing
->
-> after this, the server hang up and do not get any logs about what
-happened.
-> if anyone have seen this, please help.
->
-> shorewall is configured to firewall this only host:
->
-> interfaces file:
-> #ZONE    INTERFACE      BROADCAST       OPTIONS
-> net     eth0            detect          noping,norfc1918,routefilter
->
-> the policy file:
-> #SOURCE         DEST            POLICY          LOG LEVEL
-LIMIT:BURST
-> fw              net             DROP            info
-> net             fw              DROP            info
-> all             all             REJECT          info
->
-> the rules file:
->
-############################################################################
-> ##
-> #ACTION  SOURCE         DEST            PROTO   DEST    SOURCE
-ORIGINAL
-> #                                               PORT    PORT(S)    DEST
->
-> #SSH administration depend on hosts.allow
-> ACCEPT  net             fw              tcp     ssh
->
-> #request from host
-> ACCEPT  fw              net             tcp     domain,ssh,80,443,25,110
-> ACCEPT  fw              net             udp     domain,ntp,110
-> ACCEPT  fw              net             icmp    8
->
->  #mysql
-> ACCEPT  net             fw              tcp     3306
-> ACCEPT  net             fw              udp     3306
->
-> #www
-> ACCEPT  net             fw              tcp     80
-> ACCEPT  net             fw              udp     80
-> ACCEPT  net             fw              tcp     443
-> ACCEPT  net             fw              udp     443
-> #smtp
-> ACCEPT  net             fw              tcp     25
->
-> #pop3
-> ACCEPT  net             fw              tcp     110
-> ACCEPT  net             fw              udp     110
->
-> #ftp
-> ACCEPT  net             fw              tcp     21
->
-> Benton Pena
-> (809) 444-8027
->
->
+1) read http://www.netfilter.org/contact.html [this suggestion should have
+   gone to netfilter-devel
+
+2) this has been discussed before
+
+3) there are two possibilities of achieving your goal
+   a) use crontab to change your ruleset
+   b) use the 'time' match from patch-o-matic
+
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long =
+as
+ I'm the dictator."  --  George W. Bush Dec 18, 2000
+
+--BOY+hQj86lETlGFu
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9pEZLXaXGVTD0i/8RApUcAJ9PpZJAqh6vOh6n5QdHIgEgEzaglwCfYVkp
+z+Xcg6VaXwp9HI5bmL+RW8U=
+=DRVh
+-----END PGP SIGNATURE-----
+
+--BOY+hQj86lETlGFu--
