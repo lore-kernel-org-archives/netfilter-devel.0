@@ -1,8 +1,8 @@
 From: "raquel toribio" <raqueltoribio@hotmail.com>
-Subject: Re: Problems using iqp_read
-Date: Tue, 26 Nov 2002 11:56:36 +0100
+Subject: Using -j QUEUE
+Date: Tue, 26 Nov 2002 12:02:04 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F184epaBzhSCnxIw4oy0001ca80@hotmail.com>
+Message-ID: <F188P1Ny1WafSqy4YkV0000addd@hotmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
@@ -17,91 +17,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
+I am using the following rule in iptables:
 
-Hi,
-please do not bother trying to solve my previous problem. The fact is that 
-it was returning the error of EPERM, cause I was running my userspace 
-program without being the root, i.e. I had no permissions.
+iptables -A INPUT -p TCP -j QUEUE
+
+and I would expect all incoming tcp traffic, independently of the 
+destination IP to be fetched by my userspace program. Nevertheless, what I 
+get, is that only tcp packets destined for the linux machine arrive to the 
+userspace program. Is that the correct behaviour? If so, how should I 
+configure the iptables to get all the tcp packets independently of the 
+destination IP?
+
 Regards
 Raquel
 
 
 
-
->From: "raquel toribio" <raqueltoribio@hotmail.com>
->To: netfilter-devel@lists.netfilter.org
->Subject: Problems using iqp_read
->Date: Mon, 25 Nov 2002 20:25:35 +0100
->
->
->Hello,
->Hi. I am quite new into Linux programming and I am having some difficulties 
->trying to develop a userspace program that should intercept packets that 
->are for the QUEUE target of the iptables.
->I've created a program using the socket netlink, and libipq, but it fails 
->to receive correct packets:  ipq_message_type(packet) returns NLMSG_ERROR, 
->and ipq_errstr() returns Unknown error.
->Does anybody know why this could be hapenning?
->Any hint will be very appreciated!!
->The code I have is the following: 
->________________________________________________________
->int main(void)
->{    struct ipq_handle *h=NULL;
->        int rval=0;
->        unsigned char packet[65536];
->        memset(packet, 0, 65536);
->        if ((h = ipq_create_handle(0, PF_INET)) == NULL) exit(1);
->        rval = ipq_set_mode(h, IPQ_COPY_META, 0);
->        if (rval < 0) goto die;
->        while (rval >= 0)
->        {
->        	int mType = 0;
->        	rval = ipq_read(h, packet, sizeof(packet), 0);
->        	 switch (mType = ipq_message_type(packet))
->                {
->                	case IPQM_PACKET:
->                	{
->                                ipq_packet_msg_t *m = 
->ipq_get_packet(packet);
->                                int verdict = NF_ACCEPT;
->
->                               if (m->data_len == 200)  verdict = NF_DROP;
->                                ipq_set_verdict(h, m->packet_id, verdict, 
->m->data_len, m->payload);
->                                             break;
->                        }
->               		case NLMSG_ERROR:
->               		{
->
->                        fprintf(stderr,  "Received error message: %s, 
->messageType = %d\n", ipq_errstr(), mType);
->                        rval = -1;
->                        break;
->                        }
->                        default:
->                        rval = -1;
->                        fprintf(stderr, "Unknown message type %d!\n", 
->mType);
->                        break;
->                }
->        }
->    die:
->	printf("Die\n");
->        ipq_destroy_handle(h);
->        exit(1);
->}
->______________________________ End of code
->
->Thanks,
->Raquel
->
->
->
->
->_________________________________________________________________
->Charla con tus amigos en línea mediante MSN Messenger: 
->http://messenger.microsoft.com/es
-
-
 _________________________________________________________________
-MSN. Más Útil Cada Día http://www.msn.es/intmap/
+Charla con tus amigos en línea mediante MSN Messenger: 
+http://messenger.microsoft.com/es
