@@ -1,9 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6.11 2/4]: fix iptables userspace build
-Date: Fri, 04 Feb 2005 04:05:12 +0100
-Message-ID: <4202E668.6030005@trash.net>
+Subject: [PATCH 2.6.11 3/4]: Fix ip_conntrack_ftp crash with debugging
+	enabled
+Date: Fri, 04 Feb 2005 04:05:14 +0100
+Message-ID: <4202E66A.9070908@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070505080408050200000509"
+Content-Type: multipart/mixed; boundary="------------020707000302070408020405"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,60 +19,53 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070505080408050200000509
+--------------020707000302070408020405
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Netfilter uses u_intXX_t types in it's headers shared with userspace. 
-Some patch
-added uXX types to a header, but iptables userspace doesn't know these 
-types. This
-breaks compilation with recent kernels. I know netfilter shouldn't use 
-these types
-in headers shared with userspace, but it currently does so in all files, 
-so the
-simple fix is to replace uXX by u_intXX_t.
+data doesn't exist, an integer is printed with %s
 
 
 
---------------070505080408050200000509
+--------------020707000302070408020405
 Content-Type: text/x-patch;
- name="02.diff"
+ name="03.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02.diff"
+ filename="03.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2005/02/01 14:16:17+01:00 pablo@eurodev.net 
-#   [NETFILTER]: fix iptables userspace build
+#   2005/02/01 14:24:23+01:00 nib@cookinglinux.org 
+#   [NETFILTER]: Fix ip_conntrack_ftp crash with debugging enabled
 #   
-#   Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+#   Signed-off-by: Nicolas Bouliane <nib@cookinglinux.org>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# include/linux/netfilter_ipv4/ip_conntrack_tuple.h
-#   2005/02/01 14:16:09+01:00 pablo@eurodev.net +2 -2
-#   [NETFILTER]: fix iptables userspace build
+# net/ipv4/netfilter/ip_conntrack_ftp.c
+#   2005/02/01 14:24:15+01:00 nib@cookinglinux.org +3 -4
+#   [NETFILTER]: Fix ip_conntrack_ftp crash with debugging enabled
 #   
-#   Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+#   Signed-off-by: Nicolas Bouliane <nib@cookinglinux.org>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-diff -Nru a/include/linux/netfilter_ipv4/ip_conntrack_tuple.h b/include/linux/netfilter_ipv4/ip_conntrack_tuple.h
---- a/include/linux/netfilter_ipv4/ip_conntrack_tuple.h	2005-02-03 20:43:01 +01:00
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_tuple.h	2005-02-03 20:43:01 +01:00
-@@ -64,10 +64,10 @@
- 		} u;
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- a/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-02-03 20:43:10 +01:00
++++ b/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-02-03 20:43:10 +01:00
+@@ -373,10 +373,9 @@
+ 		goto out_update_nl;
+ 	}
  
- 		/* The protocol. */
--		u8 protonum;
-+		u_int8_t protonum;
- 
- 		/* The direction (for tuplehash) */
--		u8 dir;
-+		u_int8_t dir;
- 	} dst;
- };
- 
+-	DEBUGP("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
+-	       (int)matchlen, data + matchoff,
+-	       matchlen, ntohl(th->seq) + matchoff);
+-
++	DEBUGP("conntrack_ftp: match `%s' (%u bytes at %u)\n",
++	       fb_ptr + matchoff, matchlen, ntohl(th->seq) + matchoff);
++			 
+ 	/* Allocate expectation which will be inserted */
+ 	exp = ip_conntrack_expect_alloc();
+ 	if (exp == NULL) {
 
---------------070505080408050200000509--
+--------------020707000302070408020405--
