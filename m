@@ -1,12 +1,10 @@
-From: Eric Leblond <eric@regit.org>
-Subject: libipq and mark
-Date: Sat, 27 Sep 2003 14:31:06 +0200
+From: "Shen Rong" <rshen@udtech.com.cn>
+Subject: dynamic rule for bi-directional udp conversation
+Date: Sun, 28 Sep 2003 21:44:56 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1064665866.2289.33.camel@porky>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-HtMGh3/IHUo2D9OETTgf"
+Message-ID: <039b01c385c6$b4449c40$e600a8c0@udtech.net>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,38 +15,62 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
---=-HtMGh3/IHUo2D9OETTgf
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
 Hi,
 
-I like to know it it's possible to set the mark of a paquet in usermode
-using libipq ?
-=46rom the doc of lipipq it appears that only the payload can be changed.
-If it's really the case, have you an idea of the feasibility and
-difficulty to add this in libipq ?
+   Sorry for long mail.:)
 
-This can be used by NuFW to have a user based mark system ! Thus
-enabling to have a per-user bandwith allocation !
+   We use dnat & snat to dynamically maintain the
+RTP stream between the hosts from the internal
+network and external network. When the two parties'
+IP address and UDP port is determined, our application
+will create dnat & snat rules dynamically to masquerade
+the internal IP address. Just like the following pic.
 
-BR,
---=20
-Eric Leblond
-Nufw, Now User Filtering Works (http://www.nufw.org)
+Host A       ------   gateway  -----    Host B
+192.168.0.2  192.168.0.1   1.1.1.1      1.1.1.2
 
---=-HtMGh3/IHUo2D9OETTgf
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e=2E?=
+Say A will use the UDP 10000 as it's receiving port, and
+use UDP 10001 as it's sending port(source port). B will
+use the UDP 20000/20001 as it's receiving/sending port.
+Since the RTP stream is bi-directional, we should dynamically
+create two rules for the conversation:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+iptables -t nat -A PREROUTING -d 1.1.1.1 -p udp \
+         --destination-port 50000 -j DNAT \
+         --to-destination 192.168.0.2:10000
 
-iD8DBQA/dYMKnxA7CdMWjzIRAuc1AJ4lcFHwpJaMvyhj9xggyHXaRQYg1QCfYPgN
-vODpwMESbmdAjKE3CAUG3+g=
-=TQuJ
------END PGP SIGNATURE-----
+iptables -t nat -A POSTROUTING -d 1.1.1.2 -p udp \
+         --destination-port 20000 -j SNAT \
+         --to-source 1.1.1.1:50000
 
---=-HtMGh3/IHUo2D9OETTgf--
+We create the above two rules only with the dest. information
+as match since we only know these information when creating
+the rules. As you see, we want to use only one port (50000)
+as the receiving/sending port on the gateway whatever A and
+B use.
+
+The problem is if the data packets come from the outside first,
+they will match the DNAT rule, like that:
+original pkt: dest. 1.1.1.1:50000       src 1.1.1.2:20001
+DNATed pkt:   dest. 192.168.0.2:10000   src 1.1.1.2:20001
+
+IIRC, the packets will leads to the following conntrack:
+original:   dest. 1.1.1.1:50000   src 1.1.1.2:20001
+reply:      dest. 1.1.1.2:20001   src 192.168.0.2:10000
+
+But the packets from the internal network will use 10001 as source
+port, so they won't match this conntrack, thus the IP Conntrack will
+create another conntrack for them. It sounds ok, but in fact, after
+the internal packets match the SNAT rule, they are all dropped, since
+the NAT code can't find unique tuple (50000 is already used by the first
+conntrack) for them as the SNAT rule says. Though I could use another
+port (say 50001) to create the SNAT rule, but it will leads to two
+un-replied conntrack, which may be filtered by stateful filter rule.
+
+So far, I don't want to write a helper/expecter module for our application
+since there are already ALG there. So, is there any other solution for
+my problem? Thanks a lot.
+
+
+--
+Shenrong
