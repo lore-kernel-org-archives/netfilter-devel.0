@@ -1,11 +1,10 @@
-From: Padraig@Linux.ie
-Subject: invalid packets
-Date: Fri, 16 May 2003 17:38:39 +0100
+From: John Minnis <jminnis@yahoo.com>
+Subject: IPQ Userspace Filtering
+Date: Fri, 16 May 2003 09:18:23 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EC5140F.1030203@Linux.ie>
+Message-ID: <20030516161823.31741.qmail@web10705.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,21 +17,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, under what circumstances would iptraf (PF_PACKET)
-be able to recieve packets on an interface, and
-for those same packets to be not registered
-with netfilter at all. I'm setting the filter on
-the PREROUTING chain in the mangle table and no
-packets are registered?
+Does anyone know of a way to determine if another
+userspace application has created an IPQ handler
+(NETLINK_FIREWALL socket)?  I understand that the only
+one may be used at a time, however currently the
+second one is allowed to open, and then all traffic is
+directed to this one.  Neither instance receives any
+indication that there is a conflict. I am using the
+intercept.c example code to test this.  My first
+preference would be to prevent the second socket from
+being opened until the first program exited.
 
-I have a suspicion that the checksums in the packets
-are incorrect, so would this cause it, and any
-work arounds (so I can just match ip addresses
-for e.g. and then drop the packet).
+Any assistance would be appreciated.
 
-Hmm I suppose if the checksum is wrong you can't depend
-on anything, but I'm just surprised iptraf can
-log them which netfilter can't.
+Thanks,
+John
 
-cheers,
-P=E1draig.
+__________________________________
+Do you Yahoo!?
+The New Yahoo! Search - Faster. Easier. Bingo.
+http://search.yahoo.com
