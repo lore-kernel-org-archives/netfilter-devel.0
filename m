@@ -1,17 +1,15 @@
 From: Patrick Schaaf <bof@bof.de>
-Subject: Re: cttest-0.3
-Date: Sun, 7 Jul 2002 18:10:07 +0200
+Subject: cttest-0.4
+Date: Sun, 7 Jul 2002 19:37:18 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020707181007.O13116@oknodo.bof.de>
-References: <20020707151703.M13116@oknodo.bof.de> <1026054628.1283.170.camel@tux>
+Message-ID: <20020707193717.P13116@oknodo.bof.de>
+References: <20020707151703.M13116@oknodo.bof.de> <1026054628.1283.170.camel@tux> <20020707181007.O13116@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick Schaaf <bof@bof.de>,
-	Netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+To: netfilter-devel@lists.samba.org
 Content-Disposition: inline
-In-Reply-To: <1026054628.1283.170.camel@tux>; from gandalf@wlug.westbo.se on Sun, Jul 07, 2002 at 05:10:28PM +0200
+In-Reply-To: <20020707181007.O13116@oknodo.bof.de>; from bof@bof.de on Sun, Jul 07, 2002 at 06:10:07PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,22 +20,37 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Now also see:
+> 	http://bei.bof.de/ex2crc
+> 	http://bei.bof.de/ex3crc
 
-	http://bei.bof.de/ex3
-	http://bei.bof.de/ex3rt
-	http://bei.bof.de/ex3abcd
-	http://bei.bof.de/ex3crc
+These are updated with a faster version of crc32, called crc32_bof for now.
+A seed is XORed with the source IP, and an unrolled CRC is done over the
+sport, dip, and dport. Curves look close enough to crc32, as far as I
+can see. For the speedup, I must caution that the timing is done for
+the unrealistic case of a dense loop doing not much of anything
+besides calculating the hash function over and over. This means that
+the 1k crc32_table will be in L1 cache on all interesting processors.
+However, this may not be the case for a system doing more than calculating
+hashes. It is likely that the crc32 timings here are best-case values.
+For the other hashes, the timings should reflect reality.
 
-This is the same calculations as before, but with a different data set.
-These are from a web server farm (a web portal), with the server farm
-running on a single virtual IP address [*]. I have accumulated the
-/proc/net/ip_conntracks from all servers in the farm. There are
-37608 unique conntrack entries, and all but 2385 of them refer
-to the virtual service IP and port 80. This dataset is to show
-the extreme case of a single-address-and-port server.
+I have made cttest-0.4.tar.gz. In addition to the crc32_bof, this includes
+seed selection, which may be interesting for experimentors. The seed used
+in the crc32 hashes, can be set in the ctreport.hashes.XXX control file,
+by appending "+1234" to the hash name.  Append "+R" for random seed
+selection. By default, the new crc32 functions use one of Don's
+constants (C) as a default seed. The crc32 itself is unmodified.
+
+I haven't done anything yet with that seed selection. Feel free to play.
+
+While you compare these functions, I'd like to mention something we _may_ need
+to look out for. Some of the hash functions we are looking at, behave the
+same whether big endian or little endian. Others factually are two different
+hash functions, one on little endian, and one on big endian. Up to now I did
+not care much about this, but I see all our known results so far have been
+on little endian machines. We need some runs on big endian gear.
+
+That's it for today - have a nice evening, whereever you are.
 
 best regards
   Patrick
-
-[*] we use Cisco IOS SLB for loadbalancing
