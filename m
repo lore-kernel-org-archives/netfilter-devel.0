@@ -1,16 +1,18 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] Re: hashsize available through /proc was RAM and conntrack
- performance: first draft of the document is online
-Date: Thu, 27 Nov 2003 12:57:02 +0100 (CET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: RAM and conntrack performance: first draft of the document is online
+Date: Thu, 27 Nov 2003 12:10:19 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311271255290.24016-100000@filer.marasystems.com>
-References: <20031127113815.GD1083@eychenne.org>
+Message-ID: <20031127111019.GC3373@obroa-skai.de.gnumonks.org>
+References: <20031028151032.GD726@eychenne.org> <20031103081240.GQ1536@sunbeam.de.gnumonks.org> <20031125153543.GD1082@eychenne.org> <20031125205723.GE2971@obroa-skai.de.gnumonks.org> <20031126034231.GA1044@eychenne.org> <20031126113645.GF3121@obroa-skai.de.gnumonks.org> <3FC4D429.3050401@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Cc: Herve Eychenne <rv@wallfire.org>,
+	Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-In-Reply-To: <20031127113815.GD1083@eychenne.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <3FC4D429.3050401@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,15 +23,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 27 Nov 2003, Herve Eychenne wrote:
 
-> I worked on 2.4.22 Debian kernel sources (patched), but in vanilla
-> kernel 2.4.22, the files you're talking about are identical to the
-> Debian sources (which contain only a few patches).
-> And I maintain that my patch is against ip_conntrack_core.c...
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Right.. my sources have current patch-o-matic applied.. 
-80_ip_conntrack-proc.patch moves these to ip_conntrack_standalone.c
+On Wed, Nov 26, 2003 at 05:26:17PM +0100, Patrick McHardy wrote:
+> I recall someone wanted to make a patch for this some time ago to
+> prevent timer storms, do you have any information if anyone is currently
+> working on this ? Otherwise I might just do both ..
 
-Regards
-Henrik
+I think somebody had already written such a patch (gandalf?), however
+he didn't see any significant performance difference.
+
+> Best regards,
+> Patrick
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/xduaXaXGVTD0i/8RAtB9AJ93vJUoUEVFllEHaj4cIDAge0HwdwCglnhW
+/G2qAUAjSaxJ4p2dx1JUUpg=
+=xM7W
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
