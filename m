@@ -1,12 +1,15 @@
-From: Null Device <nulldevice83@yahoo.com>
-Subject: help wanted regarding connction limits.
-Date: Tue, 27 Apr 2004 14:20:07 -0700 (PDT)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: help wanted regarding connction limits.
+Date: Tue, 27 Apr 2004 23:37:58 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040427212007.42770.qmail@web41908.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0404272328380.29115-100000@filer.marasystems.com>
+References: <20040427212007.42770.qmail@web41908.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Null Device <nulldevice83@yahoo.com>
+In-Reply-To: <20040427212007.42770.qmail@web41908.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,60 +20,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi List,
+On Tue, 27 Apr 2004, Null Device wrote:
 
-If u recall my previous post i posted regarding
-limiting no. of connections per IP per sec on
-particular port.
+> well he prob is i am unable to make out how can i
+> integrate this code in mine own module.
 
-As suggested i got connlimit extension by Gerd Knorr &
-Martin Bene.
+Just do the same things as this module is doing in your own netfilter 
+module.
 
-List with due regards i am very new netfilter
-devlment.
+It is not practical to call iptables modules from other netfilter modules,
+but practically anything iptables modules do wrt packet matching can you
+do in your netfilter modules in the same manner.
 
-Well, i went thought netfilter kernel hacking howto
-and other how to's regarding netfilter extensions and
-related material.
+> "Connection Tarcking Helper Module", I tried
+> ip_conntrack_helper_register(&modified_connlimit) in
+> my module.
 
-Well my module is totally netfilter based. NO Ip
-Tables. 
+This is a completely different thing, only relevant if you need to 
+implement connection tracking helpers for parsing various protocols. FTP 
+is a good example requiring this to figure our that the data transfers 
+belong to the same FTP session.
 
-The module connlimit registers with iptables 
-ipt_register_match(&connlimit_match);
+> But then i realized, connlimit depends on usual
+> parametesr which are supposed to be passed to the
+> matching function when i registers with
+> ip_register_match ie ptr to skbuff, in and out
+> devices, ptr to header, and ptr to match info.
+> And i was lost in the dark how can make it work.
 
-well he prob is i am unable to make out how can i
-integrate this code in mine own module.
+You are simply looking too hard at connlimit.
 
-I went through netfilter-hacking howto title
-"Connection Tarcking Helper Module", I tried
-ip_conntrack_helper_register(&modified_connlimit) in
-my module.
+What you need in your module is a equivalence to the connlimit match() 
+function and anything used by this function. Any arguments such as 
+interfaces, offset etc not used by the connlimit match() function can be 
+ignored as these are just artifacts of the iptables module interface.
 
-But then i realized, connlimit depends on usual
-parametesr which are supposed to be passed to the
-matching function when i registers with
-ip_register_match ie ptr to skbuff, in and out
-devices, ptr to header, and ptr to match info.
-And i was lost in the dark how can make it work.
+The hotdrop thing can also be ignored. This is just a way for an iptables 
+match to say the packet is invalid and should be dropped to not conflict 
+with the match. In a netfilter module this is the same as returning 
+NF_DROP.
 
-My module is netfilter based. And as a part of it
-(along with other functionality that i am
-implementing) i want to restrict the no of connections
-too. but i am struck here on how to integrate this
-code to make the things work for me....to b more
-specific abt my project....it resgister two hooks
-NF_IP_PRE_ROUTING && NF_IP_POST_ROUTING and does some
-checks on every packet (stateless implimentation). I
-am to integrate connlimit in this module itself.
+There will automatically be a dependency on netfilter conntrack, and the 
+info returned from ip_conntrack_get can be used to determine if this is a 
+new or ongoing connection.
 
-any help this regarding would be of extereme help.
-thx in advance.
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-Win a $20,000 Career Makeover at Yahoo! HotJobs  
-http://hotjobs.sweepstakes.yahoo.com/careermakeover 
+Regards
+Henrik
