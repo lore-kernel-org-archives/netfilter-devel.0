@@ -1,12 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 4/6]: Fix ip6tables ESP matching with "-p all"
-Date: Tue, 11 Jan 2005 13:49:54 +0100
-Message-ID: <41E3CB72.3020303@trash.net>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: ct_sync for Linux 2.6.10
+Date: Tue, 11 Jan 2005 00:22:19 +0100
+Message-ID: <1105399340.2948.29.camel@krak.odu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070603030309050302060304"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Netfilter-failover list <netfilter-failover@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,45 +19,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070603030309050302060304
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
+  Hi,
 
+  After some more hacking on ct_sync, I've finally committed the Linux
+2.6 version to a separate branch in the Netfilter SVN repository. The
+README file and the example scripts have been updated to reflect the
+numerous changes I've made while doing the porting and some
+restructuring. The changes include:
 
---------------070603030309050302060304
-Content-Type: text/x-patch;
- name="04.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="04.diff"
+      * some important parameters of ct_sync can be tuned on-the-fly
+        using sysctl; the path under /proc has changed as well (see
+        README for more information)
+      * the required patchset touching core Netfilter parts has been
+        substantially simplified (many thanks to Pablo Neira for his new
+        per-packet conntrack notifiers patch)
+      * loadable module arguments have changed, the only mandatory
+        parameter is 'syncdev'
+      * the internal NOTRACK hook can be disabled (although this is not
+        recommended and may cause severe problems if used without the
+        necessary NOTRACK rules in place)
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2005/01/11 03:44:14+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Fix ip6tables ESP matching with "-p all"
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv6/netfilter/ip6_tables.c
-#   2005/01/11 03:44:07+01:00 kaber@coreworks.de +1 -1
-#   [NETFILTER]: Fix ip6tables ESP matching with "-p all"
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
---- a/net/ipv6/netfilter/ip6_tables.c	2005-01-11 13:39:53 +01:00
-+++ b/net/ipv6/netfilter/ip6_tables.c	2005-01-11 13:39:53 +01:00
-@@ -234,7 +234,7 @@
- 			 * we will change the return 0 to 1*/
- 			if ((currenthdr == IPPROTO_NONE) || 
- 				(currenthdr == IPPROTO_ESP))
--				return 0;
-+				break;
- 
- 			hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
- 			BUG_ON(hp == NULL);
+  All the code can be found in the SVN repository at:
 
---------------070603030309050302060304--
+  http://svn.netfilter.org/netfilter/branches/netfilter-ha/linux-2.6
+
+or alternatively in my public GNU Arch (tla) archive here:
+
+  http://people.netfilter.org/hidden/archives/2005-public
+
+  To simplify the lengthy and complicated kernel patching procedure
+using quilt, I've created a single patch of the current ct_sync snapshot
+for Linux 2.6.10, it's available here:
+
+  http://people.netfilter.org/hidden/ct_sync/snapshots/
+
+  As always, I have to point out that this version of ct_sync has had
+very limited testing until now, so it's still experimental quality code
+not recommended for production systems.
+
+-- 
+  Krisztian Kovacs
