@@ -1,253 +1,86 @@
-From: "Maciej Soltysiak" <solt@dns.toxicfilms.tv>
-Subject: [PATCH] Polish FAQ update
-Date: Thu, 11 Dec 2003 11:15:49 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001d01c3bfcf$c0263210$0e25fe0a@southpark.ae.poznan.pl>
+From: Harald Welte <laforge@netfilter.org>
+Subject: TSO and netfilter (Re: Extremely slow network with e1000 & ip_conntrack)
+Date: Thu, 11 Dec 2003 12:03:15 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20031211110315.GJ22826@sunbeam.de.gnumonks.org>
+References: <20031204213030.2B75.MUKANSAI@emailplus.org> <20031205122819.25ac14ab.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_001A_01C3BFD8.21C47470"
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x+WOirvrtTKur1pg"
+Cc: Stephen Lee <mukansai@emailplus.org>, scott.feldman@intel.com,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: "David S. Miller" <davem@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20031205122819.25ac14ab.davem@redhat.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_001A_01C3BFD8.21C47470
-Content-Type: text/plain;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: 8bit
-
-Hi,
-
-this patch fixes my screwups with the translation.
-
-Also I'd like to point out, that there is a problem with
-sgmltools and linuxdoc-tools. They both have has bad translations of
-polish words for:
-Next, Previous, Index
-They have:
-Nastny, Poprzedni, Spis Trei
-instead of:
-Nastêpny, Poprzedni, Spis Tre¶ci
-
-I have just sent the patch to the maintainer of Lang.pm.
-You might want to patch your
-/usr/share/linuxdoc-tools/LinuxDocTools/Lang.pm
-(or whatever the path is for Lang.pm)
-with the Lang.pm.diff patch.
-
-I can't belive it hasn't been fixed yet. I have noticed it about 1,5 year
-ago :-|
-Okay, here they go: FAQ patch, Lang.pm patch.
-
-
-Index: documentation/FAQ/pl/netfilter-faq.sgml
-===================================================================
-RCS file: /cvspublic/netfilter/documentation/FAQ/pl/netfilter-faq.sgml,v
-retrieving revision 1.8
-diff -u -r1.8 netfilter-faq.sgml
---- documentation/FAQ/pl/netfilter-faq.sgml 16 Oct 2003 07:36:38 -0000 1.8
-+++ documentation/FAQ/pl/netfilter-faq.sgml 11 Dec 2003 10:03:45 -0000
-@@ -4,10 +4,8 @@
-
- <title>netfilter/iptables FAQ</title>
- <author>Harald Welte &lt;laforge@gnumonks.org&gt;&nl;
--<date>Version $Revision: 1.8 $, $Date: 2003/10/16 07:36:38 $</date>
-+<date>Version $Revision: 1.9 $, $Date: 2003/12/11 10:55:39 $</date>
- T³umaczenie: Maciej So³tysiak<tt><htmlurl name="solt@dns.toxicfilms.tv"
-url="mailto:solt@dns.toxicfilms.tv"></tt></author>
--<date>Version $Revision: 1.8 $, $Date: 2003/10/16 07:36:38 $</date>
--T³umaczenie: ¦roda 15 Pa¼dziernika 2003 $</date>
-
- <abstract>
- Ten dokument zawiera najczê¶ciej zadawane pytania (Frequently Asked
-Questions) wystêpuj±ce na li¶cie
-@@ -123,8 +121,6 @@
- jest w iptables. Zerknij w NAT HOWTO na stronach domowych netfiltra.
- </sect1>
-
--</sect>
--
- <sect1>Czy iptables/ip6tables jest w stanie zrobiæ IPv6 NAT?
- <p>
- Nie, rdzeñ NAT nie obs³uguje transjacji IPv6 lub IPv6/IPv4 jakiegokolwiek
-@@ -144,8 +140,6 @@
- </sect1>
-
- <sect1>Czy netfilter/iptables wspiera failover/HA?
--
--Does netfilter/iptables support failover/HA?
- <p>
- Odpowied¼ jest prosta 'tak' i 'nie'.
- <p>
-@@ -159,7 +153,7 @@
- <p>Je¶li chcesz przechowaæ po³±czenia NAT: <bf>Nie</bf>.
- <p>Je¶li filtrujesz bez przechowywania stanu (stateless): <bf>Tak</bf>
- </sect1>
--
-+</sect>
-
-
- <sect>Problemy podczas kompilacji
-@@ -280,9 +274,7 @@
- <tscreen><verb>
- ip_conntrack: max number of expected connections N of M reached for
-aaa.aaa.aaa.aaa -> bbb.bbb.bbb.bbb
- </verb></tscreen>
--</sect1>
-
--<sect1>
- <p>
- Zasadniczo nie ma siê czym przejmowaæ, szczególnie gdy <tt>N</tt> i
- <tt>M</tt> sa <tt>1</tt>, a po tej wiadomo¶ci jest <tt>, reusing</tt>.
-
-
---- Lang.pm~ 2002-03-25 14:46:40.000000000 +0100
-+++ Lang.pm 2003-12-11 11:07:41.000000000 +0100
-@@ -185,7 +185,7 @@
-      "it" => "Avanti",
-      "ro" => "Înainte",
-      "ja" => "¼¡¤Î¥Ú¡¼¥¸",
--     "pl" => "Nastny",
-+     "pl" => "Nastêpny",
-      "ko" => "´ÙÀ½"
-   },
-   "Contents" => {
-@@ -201,7 +201,7 @@
-      "it" => "Indice",
-      "ro" => "Cuprins",
-      "ja" => "ÌÜ¼¡¤Ø",
--     "pl" => "Spis Trei",
-+     "pl" => "Spis Tre¶ci",
-      "ko" => "Â÷·Ê"
-   },
-   "Table of Contents" => {
-@@ -217,7 +217,7 @@
-      "it" => "Indice Generale",
-      "ro" => "Cuprins",
-      "ja" => "ÌÜ¼¡",
--     "pl" => "Spis Trei",
-+     "pl" => "Spis Tre¶ci",
-      "ko" => "Â÷·Ê"
-   }
- };
-
-------=_NextPart_000_001A_01C3BFD8.21C47470
-Content-Type: application/octet-stream;
-	name="Lang.pm.diff"
+--x+WOirvrtTKur1pg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="Lang.pm.diff"
 
---- Lang.pm~	2002-03-25 14:46:40.000000000 +0100=0A=
-+++ Lang.pm	2003-12-11 11:07:41.000000000 +0100=0A=
-@@ -185,7 +185,7 @@=0A=
-      "it" =3D> "Avanti",=0A=
-      "ro" =3D> "=CEnainte",=0A=
-      "ja" =3D> "=BC=A1=A4=CE=A5=DA=A1=BC=A5=B8",=0A=
--     "pl" =3D> "Nastny",=0A=
-+     "pl" =3D> "Nast=EApny",=0A=
-      "ko" =3D> "=B4=D9=C0=BD"=0A=
-   },=0A=
-   "Contents" =3D> {=0A=
-@@ -201,7 +201,7 @@=0A=
-      "it" =3D> "Indice",=0A=
-      "ro" =3D> "Cuprins",=0A=
-      "ja" =3D> "=CC=DC=BC=A1=A4=D8",=0A=
--     "pl" =3D> "Spis Trei",=0A=
-+     "pl" =3D> "Spis Tre=B6ci",=0A=
-      "ko" =3D> "=C2=F7=B7=CA"=0A=
-   },=0A=
-   "Table of Contents" =3D> {=0A=
-@@ -217,7 +217,7 @@=0A=
-      "it" =3D> "Indice Generale",=0A=
-      "ro" =3D> "Cuprins",=0A=
-      "ja" =3D> "=CC=DC=BC=A1",=0A=
--     "pl" =3D> "Spis Trei",=0A=
-+     "pl" =3D> "Spis Tre=B6ci",=0A=
-      "ko" =3D> "=C2=F7=B7=CA"=0A=
-   }=0A=
- };=0A=
+On Fri, Dec 05, 2003 at 12:28:19PM -0800, David S. Miller wrote:
 
-------=_NextPart_000_001A_01C3BFD8.21C47470
-Content-Type: application/octet-stream;
-	name="faq.diff"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="faq.diff"
+> Some auditing is definitely necessary wrt. TSO and netfilter.  In particu=
+lar
+> I am incredibly confident that we have issues in cases like when the FTP
+> netfilter modules mangle the data.
 
-Index: documentation/FAQ/pl/netfilter-faq.sgml=0A=
+I didn't have a look into how TSO is implemented until today.  From my
+naive point of view, I cannot think of any issues.  From a netfilter
+point of view, a TSO-enabled skb just looks like a single large packet,
+right?
+
+I mean, the TSO-enabled skb still contains a fully valid IP and TCP
+packet.  If we do any changes to the IP header or tcp header bits, or
+even to the payload of the packet, this happens before the TSO-enabled
+driver and the network board start creating multiple tcp/ip datagrams
+=66rom this skb (by using the information present in the
+netfilter-modified ip/tcp headers).
+
+The only interesting case is in ip_output.c:ip_queue_xmit(), where
+tso_size and tso_segs are calculated, before NF_IP_LOCAL_OUT is run.
+
+But changing the content or the size of the tcp payload should not
+affect those calculations.=20
+
+A real problem would be resizing the TCP header (where th.doff is
+affected).  But I cannot think of any case where any of the current
+netfilter/iptables/conntrack/nat code does that.  Even in the past, when
+we used to remove SACKPERM from the tcp header, we just NOP'ed it out
+instead of resizing the header.
+
+> Another area for inspection are the cases where TCP header bits are
+> changed and thus the checksum needs to be adjusted.
+
+Why is this a problem?  The netfilter code has to adjust the checksum
+anyway... or is the checksum calculation for TSO-enabled skb's
+different?
+
+Please enlighten me if I have missed something.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: /cvspublic/netfilter/documentation/FAQ/pl/netfilter-faq.sgml,v=0A=
-retrieving revision 1.8=0A=
-diff -u -r1.8 netfilter-faq.sgml=0A=
---- documentation/FAQ/pl/netfilter-faq.sgml	16 Oct 2003 07:36:38 -0000	=
-1.8=0A=
-+++ documentation/FAQ/pl/netfilter-faq.sgml	11 Dec 2003 10:03:45 -0000=0A=
-@@ -4,10 +4,8 @@=0A=
- =0A=
- <title>netfilter/iptables FAQ</title>=0A=
- <author>Harald Welte &lt;laforge@gnumonks.org&gt;&nl;=0A=
--<date>Version $Revision: 1.8 $, $Date: 2003/10/16 07:36:38 $</date>=0A=
-+<date>Version $Revision: 1.9 $, $Date: 2003/12/11 10:55:39 $</date>=0A=
- T=B3umaczenie: Maciej So=B3tysiak<tt><htmlurl =
-name=3D"solt@dns.toxicfilms.tv" =
-url=3D"mailto:solt@dns.toxicfilms.tv"></tt></author>=0A=
--<date>Version $Revision: 1.8 $, $Date: 2003/10/16 07:36:38 $</date>=0A=
--T=B3umaczenie: =A6roda 15 Pa=BCdziernika 2003 $</date>=0A=
- =0A=
- <abstract>=0A=
- Ten dokument zawiera najcz=EA=B6ciej zadawane pytania (Frequently Asked =
-Questions) wyst=EApuj=B1ce na li=B6cie=0A=
-@@ -123,8 +121,6 @@=0A=
- jest w iptables. Zerknij w NAT HOWTO na stronach domowych netfiltra.=0A=
- </sect1>=0A=
- =0A=
--</sect>=0A=
--=0A=
- <sect1>Czy iptables/ip6tables jest w stanie zrobi=E6 IPv6 NAT?=0A=
- <p>=0A=
- Nie, rdze=F1 NAT nie obs=B3uguje transjacji IPv6 lub IPv6/IPv4 =
-jakiegokolwiek=0A=
-@@ -144,8 +140,6 @@=0A=
- </sect1>=0A=
- =0A=
- <sect1>Czy netfilter/iptables wspiera failover/HA?=0A=
--=0A=
--Does netfilter/iptables support failover/HA?=0A=
- <p>=0A=
- Odpowied=BC jest prosta 'tak' i 'nie'.=0A=
- <p>=0A=
-@@ -159,7 +153,7 @@=0A=
- <p>Je=B6li chcesz przechowa=E6 po=B3=B1czenia NAT: <bf>Nie</bf>.=0A=
- <p>Je=B6li filtrujesz bez przechowywania stanu (stateless): <bf>Tak</bf>=0A=
- </sect1>=0A=
--=0A=
-+</sect>=0A=
- =0A=
- =0A=
- <sect>Problemy podczas kompilacji=0A=
-@@ -280,9 +274,7 @@=0A=
- <tscreen><verb>=0A=
- ip_conntrack: max number of expected connections N of M reached for =
-aaa.aaa.aaa.aaa -> bbb.bbb.bbb.bbb=0A=
- </verb></tscreen>=0A=
--</sect1>=0A=
- =0A=
--<sect1>=0A=
- <p>=0A=
- Zasadniczo nie ma si=EA czym przejmowa=E6, szczeg=F3lnie gdy <tt>N</tt> =
-i=0A=
- <tt>M</tt> sa <tt>1</tt>, a po tej wiadomo=B6ci jest <tt>, reusing</tt>.=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-------=_NextPart_000_001A_01C3BFD8.21C47470--
+--x+WOirvrtTKur1pg
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/2E7zXaXGVTD0i/8RAp+OAKCoJ+hjxMn1NNNa8LZQkR8jo8DjcgCgoNGd
+YfIVOi6AEOe3MZY7CuC2KcQ=
+=uhHX
+-----END PGP SIGNATURE-----
+
+--x+WOirvrtTKur1pg--
