@@ -1,20 +1,20 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: Security flaw in Stateful filtering ??????
-Date: 06 Jun 2002 19:48:14 +0200
+Date: Thu, 6 Jun 2002 19:57:06 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1023385694.4894.50.camel@tux>
+Message-ID: <20020606195706.A21880@oknodo.bof.de>
 References: <3CFF9A00.2070805@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.samba.org>,
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.samba.org,
 	Mikkel Christiansen <mixxel@cs.auc.dk>,
 	Mikkel Refsgaard Bech <mrb@cs.auc.dk>,
 	Torben Vinther Schmidt <mariachi@cs.auc.dk>,
 	Carsten Stiborg <stiborg@cs.auc.dk>
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: Emmanuel Fleury <fleury@cs.auc.dk>
-In-Reply-To: <3CFF9A00.2070805@cs.auc.dk>
+Content-Disposition: inline
+In-Reply-To: <3CFF9A00.2070805@cs.auc.dk>; from fleury@cs.auc.dk on Thu, Jun 06, 2002 at 07:21:04PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -25,41 +25,57 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2002-06-06 at 19:21, Emmanuel Fleury wrote:
+Hello,
 
-[snip]
-> I am just quoting their mail here:
- 
-[snip again]
+> iptables -A FORWARD -p tcp -m state --state NEW -j ACCEPT
+>
+> The Problem:
+> ------------
+> When sending an ACK packet, the packet is allowed through the filter.
+> Due to the second rule. This means that ACK packets are accepted as
+> being in the state NEW and does not create an entry in the state table.
+> So if any rule state that we allow NEW connections, this rule can be
+> used for port scanning.
 
-> For short:
-> - ACK packets are classified as NEW (without opening a connection),
-> - Therefore, allowing NEW packets allow all the ACK packets to go
->    through,
-> - And consequently, in this setting, you can perform ACK scanning
->    if you just trust the documentation...
+The "problem" has been reported here several times, already.
+
+> We were wondering if this is intentional due to some reason that we
+> cannot see or if it is a flaw as suggested ?
+
+The behaviour is intentional. The reason is "connection pickup". Imagine
+a situation where the firewall reboots. All active conntracking information
+will be lost. With the observed behaviour, connections are "relearned"
+on the fly as they create new traffic.
+
+> A Solution:
+> -----------
+> As a temporary hack the following rule can be added as the second rule:
 > 
-> Actually, I don't know what to answer to them. Has somebody any clue to
-> explain this ?
+> iptables -A FORWARD -p tcp --tcp-flags ACK ACK -j DROP
 
-Tell them (well  they are probably the ones cc'd :) to read through the
-netfilter and netfilter-devel mailinglist archives as there's been
-discussions about this.
+This is indeed only an ugly hack. Make your students think about what
+exactly they want. Somehow, new connections need to be accepted, or
+you wouldn't have anything to match the ESTABLISHED rule. The thing
+you want to at least accept, are packets with SYN set, and the SYN/ACK
+in the opposite direction. A real forwarding table will additionally
+match on certain ports, to make sure even the SYN is only accepted
+for permitted protocols.
 
-And tell them that they should look at the conntrack-tcp-nopickup patch
-in patch-o-matic. This patch disables the exact thing described here.
+Thus, you want a ruleset like this to properly do "no connection pickup".
+I assume we are talking about tcp, only:
 
-I recently mailed a patch against patch-o-matic that improves the
-conntrack-tcp-nopickup patch so you can change the behaviour at runtime.
+1) permit ESTABLISHED
+2) deny INVALID
+(now only state NEW should be left, right?)
+3) deny packets which are neither SYN nor SYN/ACK
+4-N) specifically permit the desired protocols, using port based matches.
 
-The newest tcp-window-tracking patch also has support for disabling this
-type of connection pickup.
+> We have found something about it in the Iptables tutorial (1.1.8),
+> page 54 (Appendix B, "State NEW packets but no SYN bit set").
+> But, this is not really convincing.
 
-If you apply the conntrack-tcp-nopickup patch these ACK's will be marked
-as INVALID instead of NEW.
+I hope I could explain the rationale, and how to cope if your policy
+demands it, a bit better.
 
--- 
-/Martin
-
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+best regards
+  Patrick
