@@ -1,13 +1,14 @@
-From: "hMax Roth" <mroth2002@hotmail.com>
-Subject: Re: Question about mac addresses in IP hook.,
-Date: Tue, 17 Sep 2002 03:45:09 +0000
+From: "Toshihiro Sonoda" <toshihiro@jp.fujitsu.com>
+Subject: about ROUTE target
+Date: Wed, 18 Sep 2002 00:24:10 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F165KUFcShw8pCjAZK0000143d8@hotmail.com>
+Message-ID: <002f01c25e5e$46745100$ecf8a8c0@monday>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: netfilter-devel@lists.netfilter.org, DanE@aiinet.com
+Content-Type: text/plain;
+	charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: bof@bof.de
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,56 +20,49 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
+Hi, 
 
->>Thanks for the response.
->>On the NF_IP_PRE_ROUTING I can get the mac header without a problem (what 
->>a
->>relief! Thanks for the help, it really helped a lot) Basically, it's 
->>always
->>14 bytes before the data pointer or on the .mac union.  However, the
->>outbound hook, the mac address pointer is still randomly NULL and pointing
->>to strange data! I can't understand it.  The code looks something like 
->>this
->>
->><in NF_IP_LOCAL_OUToutbound hook>
-
->Stop right there. For outbound packets, all the way through to
->POST_ROUTING, there is NO WAY the outbound ethernet header could
->already be in place for all cases. Think about sending to a station
->which is not yet in the local ARP cache. Before the kernel can be
->sure of the destination MAC address, it keeps back the original
->outgoing packet, makes an ARP broadcast, and only when it hears
->back, can it send on the packet on its journey.
-
-Really? How can this be? So, you're telling me that if the mac address is 
-not in the arp cache table it *queues* the packets? Who designed this? Is it 
-going to queue all my packets should there be no reply to the arp? Nahh, I 
-think you are mistaken.  Most likely, it probably drops the packet should 
-there be no arp cache. Then the TCP/IP restart would allow enough time to 
-see if the machine can find the destination. (i think windows does this)
-
->If what you naively expect, must be implemented, then all filtering
->action has to be postponed to the moment where the outgoing header
->is completely determined - doing so would need an almost complete
->rearrangement of the output path of iptables (and probably much
->meddling with the network stack itself). Furthermore, it would open
->the possibility for to-be-blocked traffic to neccessiate traffic,
->namely the ARP request/reply.
-
-It's not as difficult as you may think (see above.)
-
->
->Can you see why things are the way they are, now?
->(There is a small chance, that I'm wrong for the POST_ROUTING hook.
->Somebody please correct me if that hook guarantees L2 header
->availability. I haven't looked closely at the code, so far.)
->
->best regards
->   Patrick
+I want to re-route the packet to tunneling device in spite of the
+packet's destination address. I know the ipt_ROUTE target, so
+I set up the iptables and tunneling device in the following environment.
 
 
+[ local pc]- LAN ->[  router ] <- WAN -> [ target pc ]   
 
+LAN's network is 192.168.7.0/24.
+WAN's network is 192.168.1.0/24.
 
-_________________________________________________________________
-Join the world’s largest e-mail service with MSN Hotmail. 
-http://www.hotmail.com
+LAN side IP address of the router is  192.168.7.1.
+WAN side IP address of the router is 192.168.1.2.
+target pc IP address is 192.168.1.3.
+
+router is 2.4.18 kernel and I did p-o-m for ipt_ROUTE to the router.
+
+I set the following command on the router.
+
+# modprobe ip_gre
+# iptunnel add tundev mode gre remote 192.168.1.3
+# ifoconfig tundev 192.168.1.2
+#
+# modprobe ipt_ROUTE
+# iptables -t nat -A PREROUTING -p icmp -j ROUTE --iface tundev
+
+and I executed  "ping" to anather pc(ex, 192.168.1.10) on the local pc.
+
+# ping 192.168.1.10
+
+then, router(linux) was freezed.
+ 
+I confirmed that ipt_route_target(), which is in "ipt_ROUTE.c", hook function 
+in the ROUTE target was called in the router's linux kernel,
+and ipgre_tunnel_xmit() in gre's tunneling device(ip_gre.c) was called.
+
+But, the at the IPTUNNLE_XMIT() called in the ipgre_tunnel_xmit(), linux 
+was freezed.
+
+Do I mistake how to use the ROUTE target ?
+
+thanks for your advice.
+
+-
+T.Sono
