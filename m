@@ -1,56 +1,31 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: "ip_conntrack_core: Frag of proto 17." error and memory leak?
-Date: Sat, 20 Sep 2003 14:11:16 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1064059876.2500.54.camel@tux.rsn.bth.se>
-References: <3F65EC33.2060906@wp.pl>
+From: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+Subject: Re: ipt_physdev.c alignment problems on parisc64
+Date: Sat, 20 Sep 2003 13:05:26 -0300
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20030920160526.GB29040@conectiva.com.br>
+References: <200309022116.41697.bdschuym@pandora.be> <200309172317.38348.bdschuym@pandora.be> <20030918194802.6726d53c.davem@redhat.com> <200309201332.13167.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter@tux.rsn.bth.se,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: c0g <c0g@wp.pl>
-In-Reply-To: <3F65EC33.2060906@wp.pl>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Cc: "David S. Miller" <davem@redhat.com>, laforge@netfilter.org,
+        hno@marasystems.com, netfilter-devel@lists.netfilter.org,
+        netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Disposition: inline
+In-Reply-To: <200309201332.13167.bdschuym@pandora.be>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2003-09-15 at 18:43, c0g wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+Em Sat, Sep 20, 2003 at 01:32:12PM +0200, Bart De Schuymer escreveu:
+> On Friday 19 September 2003 04:48, David S. Miller wrote:
+> > Don't use an alignment attribute, just put the member of
+> > the struct at the very beginning and use "unsigned int"
+> > at a time op+comparisons.
+> >
+> > How about that?
 > 
-> Hi,
-> I'm getting this error, my kern.log is flooded, it is logged many
-> hundred of thousands times. I read in ip_conntrack_core.c it should
-> "never happen" (so it's kind of assertion). Why does this assertion fail?
-> 
-> I'm using 2.4.22 kernel with CVS p-o-m 20030907. I'm using only
-> following major netfilter patches:
-> 
-> TCPLAG.patch
-> ipt_REJECT-fake-source.patch
-> raw.patch
+> Fine with me.
 
-Are you using the NOTRACK target in raw/PREROUTING?
+Fixes the problem on parisc64, just tested, thanks.
 
-This is the only source of this I can see and it is indeed a bug. This
-message shouldn't be printed for this case. It doesn't defrag packets
-and calls get_tuple() for all packets, even the fragments and
-get_tuple() barfs. This causes only the first fragment to be marked as
-untracked and leaves the rest of the fragments to conntrack which tries
-to defrag them but that won't succeed since conntrack will never see the
-first packet. And thus the kernel keeps lots of fragments in memory
-until they time out and are dropped.
-
-We'll look into how to best solve this if this is what is causing the
-problem for you.
-
--- 
-/Martin
+- Arnaldo
