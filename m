@@ -1,56 +1,37 @@
-From: Jesper Juhl <juhl-lkml@dif.dk>
+From: David Woodhouse <dwmw2@infradead.org>
 Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
-Date: Wed, 22 Sep 2004 15:58:59 +0200 (CEST)
+Date: Wed, 22 Sep 2004 15:04:50 +0100
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.61.0409221556010.14486@jjulnx.backbone.dif.dk>
-References: <1095721742.5886.128.camel@bach> <20040921143613.2dc78e2f.Ballarin.Marc@gmx.de>
- <1095803902.1942.211.camel@bach> <20040922003646.3a84f4c5.Ballarin.Marc@gmx.de>
- <20040921153600.2e732ea6.davem@davemloft.net> <20040922013516.753044db.Ballarin.Marc@gmx.de>
- <4150C448.5040604@trash.net> <20040922153707.2cc1d886.Ballarin.Marc@gmx.de>
+Message-ID: <1095861889.17821.1337.camel@hades.cambridge.redhat.com>
+References: <2GFBZ-61e-11@gated-at.bofh.it> <2GSfS-6eW-5@gated-at.bofh.it>
+	 <2H0ZO-49v-13@gated-at.bofh.it> <2HdDL-48z-53@gated-at.bofh.it>
+	 <2HdNp-4eJ-27@gated-at.bofh.it>  <m37jqmeby9.fsf@averell.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
-	rusty@rustcorp.com.au, torvalds@osdl.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265331AbUIVOB0@vger.kernel.org>
-To: Marc Ballarin <Ballarin.Marc@gmx.de>
-In-Reply-To: <20040922153707.2cc1d886.Ballarin.Marc@gmx.de>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Martin Josefsson <gandalf@wlug.westbo.se>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Marc Ballarin <Ballarin.Marc@gmx.de>,
+	Linus Torvalds <torvalds@osdl.org>,
+	netfilter-devel@lists.netfilter.org,
+	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S265395AbUIVOFT@vger.kernel.org>
+To: Andi Kleen <ak@muc.de>
+In-Reply-To: <m37jqmeby9.fsf@averell.firstfloor.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 22 Sep 2004, Marc Ballarin wrote:
-
-> Date: Wed, 22 Sep 2004 15:37:07 +0200
-> From: Marc Ballarin <Ballarin.Marc@gmx.de>
-> To: Patrick McHardy <kaber@trash.net>
-> Cc: davem@davemloft.net, rusty@rustcorp.com.au, torvalds@osdl.org,
->     netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-> Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
+On Wed, 2004-09-22 at 14:15 +0200, Andi Kleen wrote:
+> > Ever heard of iptables?
 > 
-> On Wed, 22 Sep 2004 02:16:08 +0200
-> Patrick McHardy <kaber@trash.net> wrote:
+> Except that it doesn't have usable 32bit emulation on x86-64.
+> 32bit userland on x86-64 kernel cannot use iptables, they have
+> to use ipchains.
 > 
-> > Fixed by this patch.
-> 
-> Yes, works fine. Does this mean that ipchains was broken for a while, but
-> no one complained?
-> 
-> Anyway, here is another trivial patch against -bk7 that adds runtime
-> warnings. IMO most users are going to miss compile time warnings, or
-> won't even compile kernels themselves.
-> 
+> I would ask for to not drop ipchains until this is fixed.
 
-I like having runtime info as well as a compile time warning, but maybe 
-the message should mention that iptables is staying and people should 
-migrate??
+Agreed. The iptables compatibility with 32-bit userspace is completely
+broken.
 
-> +	printk(KERN_WARNING
-> +		"Warning: ipchains is obsolete, and will be removed soon!\n");
-> +			
-
-Perhaps something like this instead:
-
-"Warning: ipchains is obsolete, and will be removed soon. Please migrate to iptables."
-
-
---
-Jesper Juhl
+-- 
+dwmw2
