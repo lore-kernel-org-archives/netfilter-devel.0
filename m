@@ -1,11 +1,11 @@
 From: Anders Fugmann <afu@fugmann.dhs.org>
-Subject: MARK bit operations patch #2
-Date: Tue, 14 Jan 2003 13:52:17 +0100
+Subject: [PATCH] update MOD_INC/DEC_USE_COUNT to 2.5 API.
+Date: Tue, 14 Jan 2003 15:10:00 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E240801.8080801@fugmann.dhs.org>
+Message-ID: <3E241A38.9000407@fugmann.dhs.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060007010306000108060806"
+ boundary="------------050203070205050703020703"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,332 +19,822 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060007010306000108060806
+--------------050203070205050703020703
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
 Hi.
 
-I have tried to make the MARK target include
-two new operations '--or-mark' and '--and-mark'.
+This is third try of the patch against 2.5.56.
+Changes to the previous:
+- Do not blindly remove MOD_INC/DEC_USE_COUNT
+- Remove all comments.
 
-The patch is compatible in the following ways:
+The patch only youched ipv4 netfilter code for now.
+Please comment on the changes.
 
-new kernel - old userspace: OK
-new kernel - old userspace: OK
-old kernel - new userspace: OK(*)
-
-* - Only if the new userspace is compiled against the old kernel.
-
-Please comment. I'm not use if the compatibility satifies the 
-requirements needed for such a patch to go into the 2.4 series.
-
-Attached: MARK_TARGET.patch - patch against 2.4 (applies to 2.5 aswell))
-Attached: MARK_operations.patch.userspace  - patch against iptables .1.2.7a)
-
-Regards
-Anders Fugmann
+Btw. Looking at ipchains_core.c and ipfwadm_code.c, I see that all 
+functions that return an error, returns a positive error (eg. ENOENT 
+instead of -ENOENT as usual). Is this desired? I have not changed the 
+convention in the patch.
 
 
---------------060007010306000108060806
+--------------050203070205050703020703
 Content-Type: text/plain;
- name="MARK_TARGET.patch"
+ name="netfilter-2.5.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="MARK_TARGET.patch"
+ filename="netfilter-2.5.diff"
 
---- linux-2.5.56/include/linux/netfilter_ipv4/ipt_MARK.h	2003-01-09 05:03:58.000000000 +0100
-+++ linux-2.5.56-new/include/linux/netfilter_ipv4/ipt_MARK.h	2003-01-14 13:28:30.000000000 +0100
-@@ -5,4 +5,17 @@
- 	unsigned long mark;
- };
- 
-+#define MARK_BITOPS 1
-+
-+enum {
-+	IPT_MARK_SET=0,
-+	IPT_MARK_AND,
-+	IPT_MARK_OR
-+};
-+
-+struct ipt_mark_bitops_target_info {
-+	unsigned long mark;
-+	u_int8_t mode;
-+};
-+
- #endif /*_IPT_MARK_H_target*/
---- linux-2.5.56/net/ipv4/netfilter/ipt_MARK.c	2003-01-09 05:04:15.000000000 +0100
-+++ linux-2.5.56-new/net/ipv4/netfilter/ipt_MARK.c	2003-01-14 13:29:37.000000000 +0100
-@@ -1,4 +1,9 @@
--/* This is a module which is used for setting the NFMARK field of an skb. */
-+/* This is a module which is used for setting the NFMARK field of an skb. *
-+ *
-+ *  13-1-2003: Anders Fugmann <afu@fugmann.dhs.org>
-+ *             Added bit operations ADD and OR.
-+ */
-+
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ip.h>
-@@ -7,6 +12,10 @@
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_MARK.h>
- 
-+/* If this variable is set, NFMARK works in compability mode and 
-+   Uses the old ipt_mark_target_info. */
-+static int compat_mode;
-+
- static unsigned int
- target(struct sk_buff **pskb,
-        unsigned int hooknum,
-@@ -15,12 +24,36 @@
-        const void *targinfo,
-        void *userinfo)
- {
--	const struct ipt_mark_target_info *markinfo = targinfo;
--
--	if((*pskb)->nfmark != markinfo->mark) {
--		(*pskb)->nfmark = markinfo->mark;
--		(*pskb)->nfcache |= NFC_ALTERED;
-+	int mark;
-+	if (compat_mode) {
-+		const struct ipt_mark_target_info *markinfo = targinfo;
-+		mark = markinfo->mark;
-+	} else {
-+		const struct ipt_mark_bitops_target_info *markinfo = targinfo;
-+		
-+		switch (markinfo->mode) {
-+		case IPT_MARK_SET:
-+			mark = markinfo->mark;
-+			break;
-+			
-+		case IPT_MARK_AND:
-+			mark = (*pskb)->nfmark & markinfo->mark;
-+			break;
-+			
-+		case IPT_MARK_OR:
-+			mark = (*pskb)->nfmark | markinfo->mark;
-+			break;
-+			
-+		default:
-+			mark = (*pskb)->nfmark;
-+			break;
-+		}
+diff -u linux-2.5.56/net/ipv4/netfilter/arp_tables.c linux-2.5.56-new/net/ipv4/netfilter/arp_tables.c
+--- linux-2.5.56/net/ipv4/netfilter/arp_tables.c	2003-01-09 05:04:22.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/arp_tables.c	2003-01-14 14:59:27.000000000 +0100
+@@ -539,8 +539,8 @@
+ 		duprintf("check_entry: `%s' not found\n", t->u.user.name);
+ 		goto out;
  	}
-+	if ((*pskb)->nfmark != mark) {
-+		(*pskb)->nfmark = mark;
-+		(*pskb)->nfcache |= NFC_ALTERED;
-+        }
-+
- 	return IPT_CONTINUE;
- }
+-	if (target->me)
+-		__MOD_INC_USE_COUNT(target->me);
++	if (!try_module_get(target->me)) 
++		return -EAGAIN;
+ 	t->u.kernel.target = target;
+ 	up(&arpt_mutex);
  
-@@ -31,15 +64,18 @@
-            unsigned int targinfosize,
-            unsigned int hook_mask)
- {
--	if (targinfosize != IPT_ALIGN(sizeof(struct ipt_mark_target_info))) {
--		printk(KERN_WARNING "MARK: targinfosize %u != %Zu\n",
--		       targinfosize,
--		       IPT_ALIGN(sizeof(struct ipt_mark_target_info)));
-+	if (targinfosize == IPT_ALIGN(sizeof(struct ipt_mark_target_info))) 
-+		compat_mode = 1;
-+	else if (targinfosize !=  
-+		 IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info))) {
-+		printk(KERN_WARNING "MARK: targinfosize %u mismatch\n",
-+		       targinfosize);
- 		return 0;
- 	}
- 
- 	if (strcmp(tablename, "mangle") != 0) {
--		printk(KERN_WARNING "MARK: can only be called from \"mangle\" table, not \"%s\"\n", tablename);
-+		printk(KERN_WARNING "MARK: can only be called from "
-+		       "\"mangle\" table, not \"%s\"\n", tablename);
- 		return 0;
- 	}
- 
-@@ -53,6 +89,8 @@
- {
- 	if (ipt_register_target(&ipt_mark_reg))
- 		return -EINVAL;
-+	
-+	compat_mode = 0;
+@@ -554,8 +554,7 @@
+ 						      t->u.target_size
+ 						      - sizeof(*t),
+ 						      e->comefrom)) {
+-		if (t->u.kernel.target->me)
+-			__MOD_DEC_USE_COUNT(t->u.kernel.target->me);
++		module_put(t->u.kernel.target->me);
+ 		duprintf("arp_tables: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+ 		ret = -EINVAL;
+@@ -622,8 +621,7 @@
+ 	if (t->u.kernel.target->destroy)
+ 		t->u.kernel.target->destroy(t->data,
+ 					    t->u.target_size - sizeof(*t));
+-	if (t->u.kernel.target->me)
+-		__MOD_DEC_USE_COUNT(t->u.kernel.target->me);
++	module_put(t->u.kernel.target->me);
  
  	return 0;
  }
-
---------------060007010306000108060806
-Content-Type: text/plain;
- name="MARK_operations.patch.userspace"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="MARK_operations.patch.userspace"
-
---- iptables-1.2.7a-old/extensions/libipt_MARK.c	2002-08-05 16:26:47.000000000 +0200
-+++ iptables-1.2.7a-new/extensions/libipt_MARK.c	2003-01-14 13:40:55.000000000 +0100
-@@ -8,11 +8,6 @@
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_MARK.h>
- 
--struct markinfo {
--	struct ipt_entry_target t;
--	struct ipt_mark_target_info mark;
--};
--
- /* Function which prints out usage message. */
- static void
- help(void)
-@@ -20,12 +15,20 @@
- 	printf(
- "MARK target v%s options:\n"
- "  --set-mark value                   Set nfmark value\n"
-+#ifdef MARK_BITOPS
-+"  --and-mark value                   Binary AND the nfmark with value\n"
-+"  --or-mark  value                   Binary OR  the nfmark with value\n"
-+#endif
- "\n",
- IPTABLES_VERSION);
- }
- 
- static struct option opts[] = {
- 	{ "set-mark", 1, 0, '1' },
-+#ifdef MARK_BITOPS
-+	{ "and-mark", 1, 0, '2' },
-+	{ "or-mark", 1, 0, '3' },
-+#endif
- 	{ 0 }
- };
- 
-@@ -42,24 +45,40 @@
-       const struct ipt_entry *entry,
-       struct ipt_entry_target **target)
- {
--	struct ipt_mark_target_info *markinfo
--		= (struct ipt_mark_target_info *)(*target)->data;
-+#ifdef MARK_BITOPS
-+	struct ipt_mark_bitops_target_info *markinfo
-+		= (struct ipt_mark_bitops_target_info *)(*target)->data;
- 
- 	switch (c) {
- 	case '1':
--		if (string_to_number(optarg, 0, 0xffffffff, 
--				     (unsigned int *)&markinfo->mark))
--			exit_error(PARAMETER_PROBLEM, "Bad MARK value `%s'", optarg);
--		if (*flags)
--			exit_error(PARAMETER_PROBLEM,
--			           "MARK target: Can't specify --set-mark twice");
--		*flags = 1;
-+	        markinfo->mode = IPT_MARK_SET;
-+		break;
-+	case '2':
-+	        markinfo->mode = IPT_MARK_AND;
-+		break;
-+	case '3':
-+	        markinfo->mode = IPT_MARK_OR;
- 		break;
--
- 	default:
- 		return 0;
+@@ -910,20 +908,23 @@
+ 		ret = -EINVAL;
+ 		goto free_newinfo_counters_untrans_unlock;
  	}
--
-+#else 
-+	struct ipt_mark_target_info *markinfo
-+		= (struct ipt_mark_target_info *)(*target)->data;
-+	if (c != '1') 
-+		return 0;
-+#endif
-+	if (string_to_number(optarg, 0, 0xffffffff, 
-+			     (unsigned int *)&markinfo->mark))
-+		exit_error(PARAMETER_PROBLEM, 
-+			   "Bad MARK value `%s'", optarg);
-+	
-+	if (*flags)
-+		exit_error(PARAMETER_PROBLEM,
-+			   "MARK target: "
-+			   "Can't specify operation twice");
-+	*flags = 1;
-+	
- 	return 1;
- }
- 
-@@ -68,7 +87,7 @@
- {
- 	if (!flags)
- 		exit_error(PARAMETER_PROBLEM,
--		           "MARK target: Parameter --set-mark is required");
-+		           "MARK target: Additional parameter required");
- }
- 
- static void
-@@ -83,20 +102,54 @@
-       const struct ipt_entry_target *target,
-       int numeric)
- {
-+#ifdef MARK_BITOPS
-+	const struct ipt_mark_bitops_target_info *markinfo =
-+		(const struct ipt_mark_bitops_target_info *)target->data;
-+	switch (markinfo->mode) {
-+	case IPT_MARK_SET:
-+	        printf("MARK set ");
-+	        break;
-+	case IPT_MARK_AND:
-+	        printf("MARK and ");
-+	        break;
-+	case IPT_MARK_OR: 
-+	        printf("MARK or ");
-+	        break;
++	if (!try_module_get(t->me)) {
++		ret = -EAGAIN;
++		goto free_newinfo_counters_untrans_unlock;
 +	}
-+#else
- 	const struct ipt_mark_target_info *markinfo =
- 		(const struct ipt_mark_target_info *)target->data;
- 	printf("MARK set ");
-+#endif
- 	print_mark(markinfo->mark, numeric);
+ 
+ 	oldinfo = replace_table(t, tmp.num_counters, newinfo, &ret);
+ 	if (!oldinfo)
+-		goto free_newinfo_counters_untrans_unlock;
++		goto free_newinfo_counters_untrans_unlock_module;
+ 
+ 	/* Update module usage count based on number of rules */
+ 	duprintf("do_replace: oldnum=%u, initnum=%u, newnum=%u\n",
+ 		oldinfo->number, oldinfo->initial_entries, newinfo->number);
+-	if (t->me && (oldinfo->number <= oldinfo->initial_entries) &&
+- 	    (newinfo->number > oldinfo->initial_entries))
+-		__MOD_INC_USE_COUNT(t->me);
+-	else if (t->me && (oldinfo->number > oldinfo->initial_entries) &&
+-	 	 (newinfo->number <= oldinfo->initial_entries))
+-		__MOD_DEC_USE_COUNT(t->me);
++
++	if (oldinfo->number > oldinfo->initial_entries) 
++		module_put(t->me);
++	if (newinfo->number <= oldinfo->initial_entries)
++		module_put(t->me);
+ 
+ 	/* Get the old counters. */
+ 	get_counters(oldinfo, counters);
+@@ -937,6 +938,8 @@
+ 	up(&arpt_mutex);
+ 	return 0;
+ 
++ free_newinfo_counters_untrans_unlock_module:
++	module_put(t->me);
+  free_newinfo_counters_untrans_unlock:
+ 	up(&arpt_mutex);
+  free_newinfo_counters_untrans:
+@@ -1110,17 +1113,14 @@
+ {
+ 	int ret;
+ 
+-	MOD_INC_USE_COUNT;
+ 	ret = down_interruptible(&arpt_mutex);
+ 	if (ret != 0) {
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 	if (!list_named_insert(&arpt_target, target)) {
+ 		duprintf("arpt_register_target: `%s' already in list!\n",
+ 			 target->name);
+ 		ret = -EINVAL;
+-		MOD_DEC_USE_COUNT;
+ 	}
+ 	up(&arpt_mutex);
+ 	return ret;
+@@ -1131,7 +1131,6 @@
+ 	down(&arpt_mutex);
+ 	LIST_DELETE(&arpt_target, target);
+ 	up(&arpt_mutex);
+-	MOD_DEC_USE_COUNT;
+ }
+ 
+ int arpt_register_table(struct arpt_table *table)
+@@ -1141,12 +1140,10 @@
+ 	static struct arpt_table_info bootstrap
+ 		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 
+-	MOD_INC_USE_COUNT;
+ 	newinfo = vmalloc(sizeof(struct arpt_table_info)
+ 			  + SMP_ALIGN(table->table->size) * NR_CPUS);
+ 	if (!newinfo) {
+ 		ret = -ENOMEM;
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 	memcpy(newinfo->entries, table->table->entries, table->table->size);
+@@ -1159,14 +1156,12 @@
+ 	duprintf("arpt_register_table: translate table gives %d\n", ret);
+ 	if (ret != 0) {
+ 		vfree(newinfo);
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 
+ 	ret = down_interruptible(&arpt_mutex);
+ 	if (ret != 0) {
+ 		vfree(newinfo);
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 
+@@ -1196,7 +1191,6 @@
+ 
+  free_unlock:
+ 	vfree(newinfo);
+-	MOD_DEC_USE_COUNT;
+ 	goto unlock;
+ }
+ 
+@@ -1210,7 +1204,6 @@
+ 	ARPT_ENTRY_ITERATE(table->private->entries, table->private->size,
+ 			   cleanup_entry, NULL);
+ 	vfree(table->private);
+-	MOD_DEC_USE_COUNT;
+ }
+ 
+ /* The built-in targets: standard (NULL) and error. */
+diff -u linux-2.5.56/net/ipv4/netfilter/ip_conntrack_core.c linux-2.5.56-new/net/ipv4/netfilter/ip_conntrack_core.c
+--- linux-2.5.56/net/ipv4/netfilter/ip_conntrack_core.c	2003-01-13 12:18:35.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ip_conntrack_core.c	2003-01-14 14:18:24.000000000 +0100
+@@ -11,6 +11,8 @@
+  * 16 Jul 2002: Harald Welte <laforge@gnumonks.org>
+  * 	- add usage/reference counts to ip_conntrack_expect
+  *	- export ip_conntrack[_expect]_{find_get,put} functions
++ * 14 Jan 2003: Anders Fugmann <afu@fugmann.dhs.org>
++ *      - Convert to 2.5 module API.
+  * */
+ 
+ #ifdef MODULE
+@@ -1131,8 +1133,6 @@
+ 
+ int ip_conntrack_helper_register(struct ip_conntrack_helper *me)
+ {
+-	MOD_INC_USE_COUNT;
+-
+ 	WRITE_LOCK(&ip_conntrack_lock);
+ 	list_prepend(&helpers, me);
+ 	WRITE_UNLOCK(&ip_conntrack_lock);
+@@ -1169,8 +1169,6 @@
+ 	/* Someone could be still looking at the helper in a bh. */
+ 	br_write_lock_bh(BR_NETPROTO_LOCK);
+ 	br_write_unlock_bh(BR_NETPROTO_LOCK);
+-
+-	MOD_DEC_USE_COUNT;
+ }
+ 
+ /* Refresh conntrack for this many jiffies. */
+diff -u linux-2.5.56/net/ipv4/netfilter/ip_conntrack_standalone.c linux-2.5.56-new/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- linux-2.5.56/net/ipv4/netfilter/ip_conntrack_standalone.c	2003-01-09 05:04:13.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ip_conntrack_standalone.c	2003-01-14 14:19:16.000000000 +0100
+@@ -310,7 +310,6 @@
+ 	}
+ 
+ 	list_prepend(&protocol_list, proto);
+-	MOD_INC_USE_COUNT;
+ 
+  out:
+ 	WRITE_UNLOCK(&ip_conntrack_lock);
+@@ -333,7 +332,6 @@
+ 	/* Remove all contrack entries for this protocol */
+ 	ip_ct_selective_cleanup(kill_proto, &proto->proto);
+ 
+-	MOD_DEC_USE_COUNT;
+ }
+ 
+ static int __init init(void)
+diff -u linux-2.5.56/net/ipv4/netfilter/ip_nat_helper.c linux-2.5.56-new/net/ipv4/netfilter/ip_nat_helper.c
+--- linux-2.5.56/net/ipv4/netfilter/ip_nat_helper.c	2003-01-13 12:18:35.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ip_nat_helper.c	2003-01-14 15:00:14.000000000 +0100
+@@ -11,6 +11,8 @@
+  *	16 Aug 2002 Brian J. Murrell <netfilter@interlinx.bc.ca>:
+  *		- make ip_nat_resize_packet more generic (TCP and UDP)
+  *		- add ip_nat_mangle_udp_packet
++ *     13 Jan 2003 Anders Fugmann <afu@fugmann.dhs.org>
++ *              - convert to 2.5 module API.
+  */
+ #include <linux/version.h>
+ #include <linux/config.h>
+@@ -481,7 +483,8 @@
+ 		
+ 		if ((ct_helper = ip_ct_find_helper(&me->tuple))
+ 		    && ct_helper->me) {
+-			__MOD_INC_USE_COUNT(ct_helper->me);
++			if (!try_module_get(ct_helper->me))
++				return -EAGAIN;
+ 		} else {
+ 			/* We are a NAT helper for protocol X.  If we need
+ 			 * respective conntrack helper for protoccol X, compute
+@@ -501,7 +504,8 @@
+ 			if (!request_module(name)
+ 			    && (ct_helper = ip_ct_find_helper(&me->tuple))
+ 			    && ct_helper->me) {
+-				__MOD_INC_USE_COUNT(ct_helper->me);
++				if (!try_module_get(ct_helper->me))
++				    return -EAGAIN;
+ 			} else {
+ 				printk("unable to load module %s\n", name);
+ 				return -EBUSY;
+@@ -519,7 +523,6 @@
+ 		ret = -EBUSY;
+ 	else {
+ 		list_prepend(&helpers, me);
+-		MOD_INC_USE_COUNT;
+ 	}
+ 	WRITE_UNLOCK(&ip_nat_lock);
+ 
+@@ -563,9 +566,6 @@
+ 	   worse. --RR */
+ 	ip_ct_selective_cleanup(kill_helper, me);
+ 
+-	if (found)
+-		MOD_DEC_USE_COUNT;
+-
+ 	/* If we are no standalone NAT helper, we need to decrement usage count
+ 	 * on our conntrack helper */
+ 	if (me->me && !(me->flags & IP_NAT_HELPER_F_STANDALONE)) {
+@@ -573,7 +573,7 @@
+ 		
+ 		if ((ct_helper = ip_ct_find_helper(&me->tuple))
+ 		    && ct_helper->me) {
+-			__MOD_DEC_USE_COUNT(ct_helper->me);
++			module_put(ct_helper->me);
+ 		}
+ #ifdef CONFIG_MODULES
+ 		else 
+diff -u linux-2.5.56/net/ipv4/netfilter/ip_nat_standalone.c linux-2.5.56-new/net/ipv4/netfilter/ip_nat_standalone.c
+--- linux-2.5.56/net/ipv4/netfilter/ip_nat_standalone.c	2003-01-13 12:18:35.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ip_nat_standalone.c	2003-01-14 15:00:54.000000000 +0100
+@@ -10,6 +10,8 @@
+  * 23 Apr 2001: Harald Welte <laforge@gnumonks.org>
+  * 	- new API and handling of conntrack/nat helpers
+  * 	- now capable of multiple expectations for one master
++ * 13 Jan 2003 Anders Fugmann <afu@fugmann.dhs.org>
++ *      - Convert to 2.5 module API.
+  * */
+ 
+ #include <linux/config.h>
+@@ -253,9 +255,12 @@
+ 			goto out;
+ 		}
+ 	}
++	if (!try_module_get(THIS_MODULE)) {
++	    ret = -EAGAIN;
++	    goto out;
++	}
+ 
+ 	list_prepend(&protos, proto);
+-	MOD_INC_USE_COUNT;
+ 
+  out:
+ 	WRITE_UNLOCK(&ip_nat_lock);
+@@ -273,7 +278,7 @@
+ 	br_write_lock_bh(BR_NETPROTO_LOCK);
+ 	br_write_unlock_bh(BR_NETPROTO_LOCK);
+ 
+-	MOD_DEC_USE_COUNT;
++	module_put(THIS_MODULE);
+ }
+ 
+ static int init_or_cleanup(int init)
+@@ -314,13 +319,16 @@
+ 		goto cleanup_localoutops;
+ 	}
+ #endif
+-	if (ip_conntrack_module)
+-		__MOD_INC_USE_COUNT(ip_conntrack_module);
++	if (! try_module_get(ip_conntrack_module)) {
++		ret = -EAGAIN;
++		goto cleanup_module;
++	}    
+ 	return ret;
+ 
+  cleanup:
+-	if (ip_conntrack_module)
+-		__MOD_DEC_USE_COUNT(ip_conntrack_module);
++	    module_put(ip_conntrack_module);
++ cleanup_module:
++
+ #ifdef CONFIG_IP_NF_NAT_LOCAL
+ 	nf_unregister_hook(&ip_nat_local_in_ops);
+  cleanup_localoutops:
+diff -u linux-2.5.56/net/ipv4/netfilter/ip_tables.c linux-2.5.56-new/net/ipv4/netfilter/ip_tables.c
+--- linux-2.5.56/net/ipv4/netfilter/ip_tables.c	2003-01-09 05:03:58.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ip_tables.c	2003-01-14 14:58:39.000000000 +0100
+@@ -7,6 +7,8 @@
+  * 19 Jan 2002 Harald Welte <laforge@gnumonks.org>
+  * 	- increase module usage count as soon as we have rules inside
+  * 	  a table
++ * 14 Jan 2003 Anders Fugmann <afu@fugmann.dhs.org>
++ *      - convert to 2.5 module API.
+  */
+ #include <linux/config.h>
+ #include <linux/cache.h>
+@@ -599,8 +601,7 @@
+ 		m->u.kernel.match->destroy(m->data,
+ 					   m->u.match_size - sizeof(*m));
+ 
+-	if (m->u.kernel.match->me)
+-		__MOD_DEC_USE_COUNT(m->u.kernel.match->me);
++	module_put(m->u.kernel.match->me);
+ 
+ 	return 0;
+ }
+@@ -650,8 +651,9 @@
+ 		duprintf("check_match: `%s' not found\n", m->u.user.name);
+ 		return ret;
+ 	}
+-	if (match->me)
+-		__MOD_INC_USE_COUNT(match->me);
++	if (!try_module_get(match->me))
++	    return -EAGAIN;
++	    
+ 	m->u.kernel.match = match;
+ 	up(&ipt_mutex);
+ 
+@@ -659,8 +661,7 @@
+ 	    && !m->u.kernel.match->checkentry(name, ip, m->data,
+ 					      m->u.match_size - sizeof(*m),
+ 					      hookmask)) {
+-		if (m->u.kernel.match->me)
+-			__MOD_DEC_USE_COUNT(m->u.kernel.match->me);
++		module_put(m->u.kernel.match->me);
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+ 		return -EINVAL;
+@@ -697,8 +698,8 @@
+ 		duprintf("check_entry: `%s' not found\n", t->u.user.name);
+ 		goto cleanup_matches;
+ 	}
+-	if (target->me)
+-		__MOD_INC_USE_COUNT(target->me);
++	if (!try_module_get(target->me))
++		return -EAGAIN;
+ 	t->u.kernel.target = target;
+ 	up(&ipt_mutex);
+ 
+@@ -712,8 +713,7 @@
+ 						      t->u.target_size
+ 						      - sizeof(*t),
+ 						      e->comefrom)) {
+-		if (t->u.kernel.target->me)
+-			__MOD_DEC_USE_COUNT(t->u.kernel.target->me);
++		module_put(t->u.kernel.target->me);
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+ 		ret = -EINVAL;
+@@ -785,8 +785,7 @@
+ 	if (t->u.kernel.target->destroy)
+ 		t->u.kernel.target->destroy(t->data,
+ 					    t->u.target_size - sizeof(*t));
+-	if (t->u.kernel.target->me)
+-		__MOD_DEC_USE_COUNT(t->u.kernel.target->me);
++	module_put(t->u.kernel.target->me);
+ 
+ 	return 0;
+ }
+@@ -1106,22 +1105,25 @@
+ 			 tmp.valid_hooks, t->valid_hooks);
+ 		ret = -EINVAL;
+ 		goto free_newinfo_counters_untrans_unlock;
++	}	
++	if (!try_module_get(t->me)) {
++		ret = -EAGAIN;
++		goto free_newinfo_counters_untrans_unlock;
+ 	}
+ 
+ 	oldinfo = replace_table(t, tmp.num_counters, newinfo, &ret);
+ 	if (!oldinfo)
+-		goto free_newinfo_counters_untrans_unlock;
++		goto free_newinfo_counters_untrans_unlock_module;
+ 
+ 	/* Update module usage count based on number of rules */
+ 	duprintf("do_replace: oldnum=%u, initnum=%u, newnum=%u\n",
+ 		oldinfo->number, oldinfo->initial_entries, newinfo->number);
+-	if (t->me && (oldinfo->number <= oldinfo->initial_entries) &&
+- 	    (newinfo->number > oldinfo->initial_entries))
+-		__MOD_INC_USE_COUNT(t->me);
+-	else if (t->me && (oldinfo->number > oldinfo->initial_entries) &&
+-	 	 (newinfo->number <= oldinfo->initial_entries))
+-		__MOD_DEC_USE_COUNT(t->me);
+ 
++	if (oldinfo->number > oldinfo->initial_entries) 
++		module_put(t->me);
++	if (newinfo->number <= oldinfo->initial_entries)
++		module_put(t->me);
++	
+ 	/* Get the old counters. */
+ 	get_counters(oldinfo, counters);
+ 	/* Decrease module usage counts and free resource */
+@@ -1133,7 +1135,9 @@
+ 	vfree(counters);
+ 	up(&ipt_mutex);
+ 	return 0;
+-
++ 
++ free_newinfo_counters_untrans_unlock_module:
++	module_put(t->me);
+  free_newinfo_counters_untrans_unlock:
+ 	up(&ipt_mutex);
+  free_newinfo_counters_untrans:
+@@ -1319,17 +1323,14 @@
+ {
+ 	int ret;
+ 
+-	MOD_INC_USE_COUNT;
+ 	ret = down_interruptible(&ipt_mutex);
+ 	if (ret != 0) {
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 	if (!list_named_insert(&ipt_target, target)) {
+ 		duprintf("ipt_register_target: `%s' already in list!\n",
+ 			 target->name);
+ 		ret = -EINVAL;
+-		MOD_DEC_USE_COUNT;
+ 	}
+ 	up(&ipt_mutex);
+ 	return ret;
+@@ -1341,7 +1342,6 @@
+ 	down(&ipt_mutex);
+ 	LIST_DELETE(&ipt_target, target);
+ 	up(&ipt_mutex);
+-	MOD_DEC_USE_COUNT;
+ }
+ 
+ int
+@@ -1349,16 +1349,13 @@
+ {
+ 	int ret;
+ 
+-	MOD_INC_USE_COUNT;
+ 	ret = down_interruptible(&ipt_mutex);
+ 	if (ret != 0) {
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 	if (!list_named_insert(&ipt_match, match)) {
+ 		duprintf("ipt_register_match: `%s' already in list!\n",
+ 			 match->name);
+-		MOD_DEC_USE_COUNT;
+ 		ret = -EINVAL;
+ 	}
+ 	up(&ipt_mutex);
+@@ -1372,7 +1369,6 @@
+ 	down(&ipt_mutex);
+ 	LIST_DELETE(&ipt_match, match);
+ 	up(&ipt_mutex);
+-	MOD_DEC_USE_COUNT;
+ }
+ 
+ int ipt_register_table(struct ipt_table *table)
+@@ -1382,12 +1378,10 @@
+ 	static struct ipt_table_info bootstrap
+ 		= { 0, 0, 0, { 0 }, { 0 }, { } };
+ 
+-	MOD_INC_USE_COUNT;
+ 	newinfo = vmalloc(sizeof(struct ipt_table_info)
+ 			  + SMP_ALIGN(table->table->size) * NR_CPUS);
+ 	if (!newinfo) {
+ 		ret = -ENOMEM;
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 	memcpy(newinfo->entries, table->table->entries, table->table->size);
+@@ -1399,14 +1393,12 @@
+ 			      table->table->underflow);
+ 	if (ret != 0) {
+ 		vfree(newinfo);
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 
+ 	ret = down_interruptible(&ipt_mutex);
+ 	if (ret != 0) {
+ 		vfree(newinfo);
+-		MOD_DEC_USE_COUNT;
+ 		return ret;
+ 	}
+ 
+@@ -1436,7 +1428,6 @@
+ 
+  free_unlock:
+ 	vfree(newinfo);
+-	MOD_DEC_USE_COUNT;
+ 	goto unlock;
+ }
+ 
+@@ -1450,7 +1441,6 @@
+ 	IPT_ENTRY_ITERATE(table->private->entries, table->private->size,
+ 			  cleanup_entry, NULL);
+ 	vfree(table->private);
+-	MOD_DEC_USE_COUNT;
+ }
+ 
+ /* Returns 1 if the port is matched by the range, 0 otherwise */
+diff -u linux-2.5.56/net/ipv4/netfilter/ipchains_core.c linux-2.5.56-new/net/ipv4/netfilter/ipchains_core.c
+--- linux-2.5.56/net/ipv4/netfilter/ipchains_core.c	2003-01-09 05:04:24.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ipchains_core.c	2003-01-14 14:47:33.000000000 +0100
+@@ -44,6 +44,8 @@
+  * 23-Jul-1999: Fixed small fragment security exposure opened on 15-May-1998.
+  *              John McDonald <jm@dataprotect.com>
+  *              Thomas Lopatic <tl@dataprotect.com>
++ * 14-Jan-2003  Convert to 2.5 module API.
++ *              Anders Fugmann <afu@fugmann.dhs.org>
+  */
+ 
+ /*
+@@ -839,7 +841,7 @@
+ 			i->branch->refcount--;
+ 		kfree(i);
+ 		i = tmp;
+-		MOD_DEC_USE_COUNT;
++		module_put(THIS_MODULE);
+ 	}
+ 	return 0;
+ }
+@@ -869,6 +871,9 @@
+ {
+ 	struct ip_fwkernel *i;
+ 
++	if (!try_module_get(THIS_MODULE))
++	    return EAGAIN;
++
+ 	FWC_HAVE_LOCK(fwc_wlocks);
+ 	/* Special case if no rules already present */
+ 	if (chainptr->chain == NULL) {
+@@ -886,7 +891,6 @@
+ 	if (rule->branch) rule->branch->refcount++;
+ 
+ append_successful:
+-	MOD_INC_USE_COUNT;
+ 	return 0;
+ }
+ 
+@@ -897,8 +901,12 @@
+ 			   struct ip_fwkernel *frwl,
+ 			   __u32 position)
+ {
++	int ret=0;
+ 	struct ip_fwkernel *f = chainptr->chain;
+ 
++	if (!try_module_get(THIS_MODULE))
++	    return EAGAIN;
++
+ 	FWC_HAVE_LOCK(fwc_wlocks);
+ 	/* special case if the position is number 1 */
+ 	if (position == 1) {
+@@ -909,16 +917,20 @@
+ 	}
+ 	position--;
+ 	while (--position && f != NULL) f = f->next;
+-	if (f == NULL)
+-		return EINVAL;
++	if (f == NULL) {
++		ret = EINVAL;
++		goto insert_unsuccessful;
++	}
+ 	if (frwl->branch) frwl->branch->refcount++;
+ 	frwl->next = f->next;
+ 
+ 	f->next = frwl;
+ 
+-insert_successful:
+-	MOD_INC_USE_COUNT;
+-	return 0;
++ insert_unsuccessful:
++        module_put(THIS_MODULE);
++ insert_successful:
++	return ret;
 +
  }
  
- /* Saves the union ipt_targinfo in parsable form to stdout. */
- static void
- save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
- {
-+#ifdef MARK_BITOPS
-+	const struct ipt_mark_bitops_target_info *markinfo =
-+		(const struct ipt_mark_bitops_target_info *)target->data;
-+	switch (markinfo->mode) {
-+	case IPT_MARK_SET:
-+	        printf("--set-mark ");
-+	        break;
-+	case IPT_MARK_AND:
-+	        printf("--and-mark ");
-+	        break;
-+	case IPT_MARK_OR: 
-+	        printf("--or-mark ");
-+	        break;
-+	}
-+#else
- 	const struct ipt_mark_target_info *markinfo =
- 		(const struct ipt_mark_target_info *)target->data;
-+	printf("--set-mark ");
-+#endif
-+	printf(" 0x%lx ", markinfo->mark);
+ /* This function deletes the a rule from a given rulenum and chain.
+@@ -952,7 +964,7 @@
+ 		kfree(tmp);
+ 	}
  
--	printf("--set-mark 0x%lx ", markinfo->mark);
+-	MOD_DEC_USE_COUNT;
++	module_put(THIS_MODULE);
+ 	return 0;
  }
  
- static
-@@ -104,8 +157,13 @@
- = { NULL,
-     "MARK",
-     IPTABLES_VERSION,
-+#ifdef MARK_BITOPS
-+    IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info)),
-+    IPT_ALIGN(sizeof(struct ipt_mark_bitops_target_info)),
-+#else
-     IPT_ALIGN(sizeof(struct ipt_mark_target_info)),
-     IPT_ALIGN(sizeof(struct ipt_mark_target_info)),
-+#endif
-     &help,
-     &init,
-     &parse,
+@@ -1059,7 +1071,7 @@
+ 		else
+ 			chainptr->chain = ftmp->next;
+ 		kfree(ftmp);
+-		MOD_DEC_USE_COUNT;
++		module_put(THIS_MODULE);
+ 		break;
+ 	}
+ 
+@@ -1101,7 +1113,7 @@
+ 	tmp->next = tmp2->next;
+ 	kfree(tmp2);
+ 
+-	MOD_DEC_USE_COUNT;
++	module_put(THIS_MODULE);
+ 	return 0;
+ }
+ 
+@@ -1148,13 +1160,16 @@
+ 
+ 	if (strcmp(tmp->label,label) == 0)
+ 		return EEXIST;
++	
++	if (!try_module_get(THIS_MODULE))
++		return EGAGIN;
+ 
+ 	tmp->next = ip_init_chain(label, 0, FW_SKIP); /* refcount is
+ 					      * zero since this is a
+ 					      * user defined chain *
+ 					      * and therefore can be
+ 					      * deleted */
+-	MOD_INC_USE_COUNT;
++	
+ 	return 0;
+ }
+ 
+diff -u linux-2.5.56/net/ipv4/netfilter/ipfwadm_core.c linux-2.5.56-new/net/ipv4/netfilter/ipfwadm_core.c
+--- linux-2.5.56/net/ipv4/netfilter/ipfwadm_core.c	2003-01-09 05:04:12.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ipfwadm_core.c	2003-01-14 14:46:52.000000000 +0100
+@@ -55,6 +55,8 @@
+  *		Jos Vos <jos@xos.nl> 18/5/1996.
+  *	Added trap out of bad frames.
+  *		Alan Cox <alan@cymru.net> 17/11/1996
++ *      Convert to 2.5 module API.
++ *              Anders Fugmann <afu@fugmann.dhs.org>
+  *
+  *
+  * Masquerading functionality
+@@ -705,7 +707,7 @@
+ 		ftmp = *chainptr;
+ 		*chainptr = ftmp->fw_next;
+ 		kfree(ftmp);
+-		MOD_DEC_USE_COUNT;
++		try_module_put(THIS_MODULE);
+ 	}
+ 	WRITE_UNLOCK(&ip_fw_lock);
+ }
+@@ -715,6 +717,9 @@
+ static int insert_in_chain(struct ip_fw *volatile* chainptr, struct ip_fw *frwl,int len)
+ {
+ 	struct ip_fw *ftmp;
++	
++	if (!try_module_get(THIS_MODULE))
++	    return EAGAIN;
+ 
+ 	ftmp = kmalloc( sizeof(struct ip_fw), GFP_KERNEL );
+ 	if ( ftmp == NULL )
+@@ -746,7 +751,6 @@
+ 	ftmp->fw_next = *chainptr;
+        	*chainptr=ftmp;
+ 	WRITE_UNLOCK(&ip_fw_lock);
+-	MOD_INC_USE_COUNT;
+ 	return(0);
+ }
+ 
+@@ -756,6 +760,9 @@
+ 	struct ip_fw *chtmp=NULL;
+ 	struct ip_fw *volatile chtmp_prev=NULL;
+ 
++	if (!try_module_get(THIS_MODULE))
++	    return EAGAIN;
++
+ 	ftmp = kmalloc( sizeof(struct ip_fw), GFP_KERNEL );
+ 	if ( ftmp == NULL )
+ 	{
+@@ -794,7 +801,6 @@
+ 	else
+         	*chainptr=ftmp;
+ 	WRITE_UNLOCK(&ip_fw_lock);
+-	MOD_INC_USE_COUNT;
+ 	return(0);
+ }
+ 
+@@ -867,7 +873,7 @@
+ 	}
+ 	WRITE_UNLOCK(&ip_fw_lock);
+ 	if (was_found) {
+-		MOD_DEC_USE_COUNT;
++		module_put(THIS_MODULE);
+ 		return 0;
+ 	} else
+ 		return(EINVAL);
+diff -u linux-2.5.56/net/ipv4/netfilter/ipt_conntrack.c linux-2.5.56-new/net/ipv4/netfilter/ipt_conntrack.c
+--- linux-2.5.56/net/ipv4/netfilter/ipt_conntrack.c	2003-01-09 05:04:25.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ipt_conntrack.c	2003-01-14 14:10:33.000000000 +0100
+@@ -106,16 +106,16 @@
+ static int __init init(void)
+ {
+ 	/* NULL if ip_conntrack not a module */
+-	if (ip_conntrack_module)
+-		__MOD_INC_USE_COUNT(ip_conntrack_module);
++	if (!try_module_get(ip_conntrack_module))
++		return -EAGAIN;
++
+ 	return ipt_register_match(&conntrack_match);
+ }
+ 
+ static void __exit fini(void)
+ {
+ 	ipt_unregister_match(&conntrack_match);
+-	if (ip_conntrack_module)
+-		__MOD_DEC_USE_COUNT(ip_conntrack_module);
++	module_put(ip_conntrack_module);
+ }
+ 
+ module_init(init);
+diff -u linux-2.5.56/net/ipv4/netfilter/ipt_helper.c linux-2.5.56-new/net/ipv4/netfilter/ipt_helper.c
+--- linux-2.5.56/net/ipv4/netfilter/ipt_helper.c	2003-01-09 05:04:20.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ipt_helper.c	2003-01-14 14:53:26.000000000 +0100
+@@ -6,6 +6,8 @@
+  *
+  *   19 Mar 2002 Harald Welte <laforge@gnumonks.org>:
+  *   		 - Port to newnat infrastructure
++ *   13 Jan 2003 Anders Fugmann <afu@fugmann.dhs.org>
++ *              - convert to 2.5 module API.
+  */
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+@@ -95,16 +97,15 @@
+ static int __init init(void)
+ {
+ 	/* NULL if ip_conntrack not a module */
+-	if (ip_conntrack_module)
+-		__MOD_INC_USE_COUNT(ip_conntrack_module);
++        if (! try_module_get(ip_conntrack_module))
++		return -EAGAIN;
+ 	return ipt_register_match(&helper_match);
+ }
+ 
+ static void __exit fini(void)
+ {
+ 	ipt_unregister_match(&helper_match);
+-	if (ip_conntrack_module)
+-		__MOD_DEC_USE_COUNT(ip_conntrack_module);
++	module_put(ip_conntrack_module);
+ }
+ 
+ module_init(init);
+diff -u linux-2.5.56/net/ipv4/netfilter/ipt_state.c linux-2.5.56-new/net/ipv4/netfilter/ipt_state.c
+--- linux-2.5.56/net/ipv4/netfilter/ipt_state.c	2003-01-09 05:04:27.000000000 +0100
++++ linux-2.5.56-new/net/ipv4/netfilter/ipt_state.c	2003-01-14 14:10:33.000000000 +0100
+@@ -47,16 +47,15 @@
+ static int __init init(void)
+ {
+ 	/* NULL if ip_conntrack not a module */
+-	if (ip_conntrack_module)
+-		__MOD_INC_USE_COUNT(ip_conntrack_module);
++       if (! try_module_get(ip_conntrack_module))
++		return -EAGAIN;
+ 	return ipt_register_match(&state_match);
+ }
+ 
+ static void __exit fini(void)
+ {
+ 	ipt_unregister_match(&state_match);
+-	if (ip_conntrack_module)
+-		__MOD_DEC_USE_COUNT(ip_conntrack_module);
++	module_put(ip_conntrack_module);
+ }
+ 
+ module_init(init);
 
---------------060007010306000108060806--
+--------------050203070205050703020703--
