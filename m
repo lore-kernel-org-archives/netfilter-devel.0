@@ -1,16 +1,16 @@
 From: pablo neira <pablo@eurodev.net>
-Subject: Re: problems with netlink_broadcast
-Date: Wed, 14 Jan 2004 12:25:58 +0100
+Subject: Re: problem in compiling the hooks
+Date: Wed, 14 Jan 2004 12:30:59 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40052746.80400@eurodev.net>
-References: <4003DCD7.6040602@fokus.fraunhofer.de> <400424F7.9040508@trash.net> <400435F7.7070309@fokus.fraunhofer.de>
+Message-ID: <40052873.5090106@eurodev.net>
+References: <20040112081940.86820.qmail@web8207.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: John Williams Floroiu <floroiu@fokus.fraunhofer.de>,
+To: vamsi krishna <b_vamsi2002@yahoo.co.in>,
 	netfilter-devel@lists.netfilter.org
-In-Reply-To: <400435F7.7070309@fokus.fraunhofer.de>
+In-Reply-To: <20040112081940.86820.qmail@web8207.mail.in.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,102 +21,93 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi John,
+http://www.faqs.org/docs/kernel/x204.html
 
-John Williams Floroiu wrote:
+vamsi krishna wrote:
 
-> void uk_task(void *arg) {
+>hai,
+>  
+>I am a new bie. when i am trying to compile the
+>following netfilter hook program i am getting errors .
 >
->         local_bh_disable();
->         printk(KERN_INFO "--- calling netlink_broadcast ---\n");
->         netlink_broadcast(uknl, (struct sk_buff *)arg, 0, UKGRP_TEST, 
-> GFP_ATOMIC);
->         local_bh_enable();
->         printk(KERN_INFO "### uk_task terminates ###\n");
-> }
+>#define __KERNEL__
+>#define MODULE
 >
-> void uk_timer_handler(unsigned long arg){
+>#include<linux/module.h>
+>#include<linux/kernel.h>
+>#include<linux/netfilter.h>
+>#include<linux/netfilter_ipv4.h>
+>static struct nf_hook_ops nfho;
+> 
+>int hook_func(unsigned int hooknum,
+>                      struct sk_buff **skb,
+>                      const struct net_device *in,
+>                      const struct net_device *out,
+>                      int (*okfn)(struct sk_buff *))
+>{
+>return NF_DROP;
+>}
 >
->         struct nlmsghdr *nl;
->         struct sk_buff *skb;
+>int init_module()
+>{
+>nfho.hook=hook_func;
+>nfho.hooknum=NF_IP_PRI_ROUTING;
+>nfho.pf=PF_INET;
+>nfho.priority=NF_IP_PRI_FIRST;
 >
->         uktimer.expires = jiffies + HZ/2;
->         add_timer(&uktimer);
+>nf_register_hook(&nfho);
 >
->         skb = alloc_skb(NLMSG_SPACE(256), GFP_ATOMIC);
->         if (!skb) {
->                 printk(KERN_INFO "### uk_task skb allocation failure 
-> ###\n");
->                 return;
->         }
->         NLMSG_PUT(skb, 0, 0, UK_NOTIF_TEST, 0); 
-
-
-I think that you are trying to create a skbuff with no netlink header 
-because you set last parameter of NLMSG_PUT to 0.
-
-Set it to:
-NLMSG_SPACE(256) - sizeof(struct nlmsghdr)
-
-Have a look at the function __nlmsg_put which is called by the macro 
-NLMSG_PUT:
-http://lxr.linux.no/source/include/linux/netlink.h#L141
-
-Anyway, if it doesn't work have a look at ip_queue.c and ipt_ULOG.c. It 
-could help you out.
-
-cheers,
-Pablo
-
+>return 0;
+>}
+>void cleanup_module()
+>{
+>nf_unregister_hook(&nfho);
+>}
 >
->         NETLINK_CB(skb).dst_groups = UKGRP_TEST;
->         printk(KERN_INFO "### skb->len = %d ###\n", skb->len);
+>i got the following errors
 >
->         uk_work.data = skb;
->         schedule_work(&uk_work);
->         printk(KERN_INFO "### uk_timer_handler terminates ###\n");
+>[root@localhost vamsi]# gcc -c p1.c
+>In file included from p1.c:7:
+>/usr/include/linux/netfilter_ipv4.h:53: `INT_MIN'
+>undeclared here (not in a function)
+>/usr/include/linux/netfilter_ipv4.h:53: enumerator
+>value for `NF_IP_PRI_FIRST' not integer constant
+>/usr/include/linux/netfilter_ipv4.h:59: `INT_MAX'
+>undeclared here (not in a function)
+>/usr/include/linux/netfilter_ipv4.h:59: enumerator
+>value for `NF_IP_PRI_LAST' not integer constant
+>p1.c:15: warning: `struct net_device' declared inside
+>parameter list
+>p1.c:15: warning: its scope is only this definition or
+>declaration, which is probably not what you want
+>p1.c:15: warning: `struct sk_buff' declared inside
+>parameter list
+>p1.c: In function `init_module':
+>p1.c:22: invalid use of undefined type `struct
+>nf_hook_ops'
+>p1.c:23: invalid use of undefined type `struct
+>nf_hook_ops'
+>p1.c:24: invalid use of undefined type `struct
+>nf_hook_ops'
+>p1.c:24: `PF_INET' undeclared (first use in this
+>function)
+>p1.c:24: (Each undeclared identifier is reported only
+>once
+>p1.c:24: for each function it appears in.)
+>p1.c:25: invalid use of undefined type `struct
+>nf_hook_ops'
+>p1.c: At top level:
+>p1.c:9: storage size of `nfho' isn't known
 >
->         return;
+>please help me,
 >
-> nlmsg_failure:
->         skb_trim(skb, skb->tail - skb->data);
->         printk(KERN_INFO "### uk_task NLMSG_PUT failure ###\n");
-> }
->
-> ----------------------------------------------------------------
->
-> Unable to handle kernel paging request at virtual address f6a34fb0
->   printing eip:
->  f88233ca
->  *pde = 00488067
->  *pte = 36a34000
->  Oops: 0000 [#1]
->  CPU:    1
->  EIP:    0060:[__crc_utf8_wctomb+5448385/6417782]    Not tainted
->  EFLAGS: 00010246
->  EIP is at uk_task+0xda/0x160 [uk]
->  eax: 00000000   ebx: f6a34f4c   ecx: 00000000   edx: fffffffd
->  esi: f2f1fbf8   edi: f8824460   ebp: c1a95f64   esp: c1a95f48
->  ds: 007b   es: 007b   ss: 0068
->  Process events/1 (pid: 7, threadinfo=c1a94000 task=c1a619b0)
->  Stack: f2fa7e94 f6a34f4c 00000000 00000159 00000020 c1a94000 f8824464 
-> c1a95fec
->         c01370f6 00000000 c1a95fa0 00000000 c1a64f90 c1a64fa0 00000000 
-> f88232f0
->         00000212 c1a64f88 c1a64f78 5a5a5a5a 5a5a5a5a 5a5a5a5a 00000001 
-> 00000000
->  Call Trace:
->   [worker_thread+534/960] worker_thread+0x216/0x3c0
->   [__crc_utf8_wctomb+5448167/6417782] uk_task+0x0/0x160 [uk]
->   [default_wake_function+0/32] default_wake_function+0x0/0x20
->   [ret_from_fork+6/20] ret_from_fork+0x6/0x14
->   [default_wake_function+0/32] default_wake_function+0x0/0x20
->   [worker_thread+0/960] worker_thread+0x0/0x3c0
->   [kernel_thread_helper+5/24] kernel_thread_helper+0x5/0x18
->
->  Code: 8b 43 64 c7 04 24 a0 36 82 f8 89 44 24 04 e8 73 10 90 c7 83
+>vamsi
 >
 >
 >
+>________________________________________________________________________
+>Yahoo! India Mobile: Download the latest polyphonic ringtones.
+>Go to http://in.mobile.yahoo.com
 >
+>  
 >
