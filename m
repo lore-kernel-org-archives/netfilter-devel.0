@@ -1,19 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] Fix RST handling in ip_conntrack_proto_tcp.c
-Date: Mon, 03 Jan 2005 00:22:38 +0100
-Message-ID: <1104708158.3821.50.camel@tux.rsn.bth.se>
-References: <1104511137.3821.20.camel@tux.rsn.bth.se>
-	<Pine.LNX.4.58.0501011551420.15783@blackhole.kfki.hu>
-	<1104593032.3821.25.camel@tux.rsn.bth.se> <41D88211.1050202@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [1/1] OSF: pom-ng - linux-2.6.
+Date: Mon, 03 Jan 2005 00:31:20 +0100
+Message-ID: <41D88448.6080701@trash.net>
+References: <1102503533.3363.48.camel@uganda>	<1102503753.3363.50.camel@uganda>	<41B74C8C.20607@trash.net>
+	<20041212181351.22570bf6@zanzibar.2ka.mipt.ru>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-BNBetdrj2JjuOODTaCsQ"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41D88211.1050202@trash.net>
+To: johnpol@2ka.mipt.ru
+In-Reply-To: <20041212181351.22570bf6@zanzibar.2ka.mipt.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,34 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Evgeniy Polyakov wrote:
 
---=-BNBetdrj2JjuOODTaCsQ
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+>On Wed, 08 Dec 2004 19:48:44 +0100
+>Patrick McHardy <kaber@trash.net> wrote:
+>
+>>Anyhow, it still needs to handle non-linear skbs. Have a look
+>>at the other matches and their use of skb_header_pointer.
+>>
+>
+>Sure.
+>Patch attached, although I do not quite understand what should be 
+>done with a poor skb to move IP and TCP headers into the fragments...
+>
+Applied, sorry for the delay. Copying the ip-header is not necessary,
+but the TCP header may be nonlinear because of defragmentation.
 
-On Mon, 2005-01-03 at 00:21 +0100, Patrick McHardy wrote:
+>P.P.S. I do not have 2.4 sources but if 2.4 has skb_header_pointer
+>(as long as it has skb_copy_bits()) patch can be applied against it
+>as well, but path in diff should be changed. If needed it is attached
+>as well.
+>
+2.4 doesn't need this change, netfilter always gets linearized skbs.
 
-> >I'll submit it to Andrew since Davem is on vacation.
-> >
-> The patch hasn't shown up in Linus's tree yet. I'm going to add it to
-> my tree and push it to Dave with the other patches if it didn't show up
-> by Tuesday.
-
-Great, thanks
-
---=20
-/Martin
-
---=-BNBetdrj2JjuOODTaCsQ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBB2II+Wm2vlfa207ERAtdpAJ9mttXGF7JDjrqj6lsoIg6kp58mfgCfSj0H
-6kLhMTlppxBJxdbHPe+a6tU=
-=90Qt
------END PGP SIGNATURE-----
-
---=-BNBetdrj2JjuOODTaCsQ--
+Regards
+Patrick
