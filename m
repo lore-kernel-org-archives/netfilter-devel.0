@@ -1,21 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: tc filtering vs iptables
-Date: Sat, 28 Aug 2004 09:08:40 +0200 (CEST)
+Subject: Re: Some one knows how to implement policy routing with iptables?
+Date: Sat, 28 Aug 2004 09:15:23 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408280855001.17572@filer.marasystems.com>
-References: <1093614389.1068.20.camel@jzny.localdomain>
-	<Pine.LNX.4.61.0408271751360.32691@filer.marasystems.com>
-	<1093632324.14188.2.camel@jzny.localdomain>
-	<20040827201137.GB9274@ti64.telemetry-investments.com>
-	<1093638474.14190.29.camel@jzny.localdomain>
-	<Pine.LNX.4.61.0408280154210.10193@filer.marasystems.com>
-	<1093656940.1078.25.camel@jzny.localdomain>
+Message-ID: <Pine.LNX.4.61.0408280912520.17572@filer.marasystems.com>
+References: <7C9884991ADAE0479C14F10C858BCDF591E362@alderaan.smgtec.com>
+	<000e01c48ccc$6bd0a770$8e5f78ca@nic.ecnu.edu.cn>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: jamal <hadi@cyberus.ca>
-In-Reply-To: <1093656940.1078.25.camel@jzny.localdomain>
+To: Robbert <hanbo163com@163.com>
+In-Reply-To: <000e01c48ccc$6bd0a770$8e5f78ca@nic.ecnu.edu.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,59 +21,26 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 27 Aug 2004, jamal wrote:
+On Sat, 28 Aug 2004, Robbert wrote:
 
-> A single web server (TCP port 80) connected to by upto 64K different
-> clients.
-> The reason i chose this simple setup is because i can plot its lookups
-> easily and write simple scripts to install rules.
-> So end goal: stash many rules in both u32 and iptables and check
-> results.
+> If there are some way to arrange the rules in iptables sorted, so the 
+> administrator do not borther with which rules he added first and which 
+> last , this kind of thing make sense ?
 
-This test case is an exact match for using ippool/ipset. You then stash 
-all the client IP addresses into the pool and use a single iptable rule 
-with very good performance mostly independent on the number of IP 
-addresses.
+Yes, by using a frontend implementing the sorting, or by defining a tree 
+of chains defining priority levels.
 
-iptables -d ip.of.web.server -p tcp --dport -m pool --srcpool webserver -j ACCEPT
-iptables -d ip.of.web.server -p tcp --dport -m pool -j REJECT
+> And,since the ROUTE targe now can only let us specify the interface and 
+> the gateway , then if there is a way can let us specify the route table, 
+> so we do NOT need to mark the packet first then find the ip rules,route 
+> table,then the next hop and we can routing faster.Does this thought very 
+> weird?Is it valuable?
 
-> In this example setup src IP and src TCP port are always looked up in
-> the case of u32 and only when a match happens are the packets let
-> through - by default they are dropped. In the case of iptables, only the
-> src IP is looked up (didnt wanna add any overhead).
+It is better to fix the route table lookup to be efficient rather than 
+a linerar search than to make iptables look into doing this.
 
-The overhead of looking up the destination ip and tcp port is minimal. Can 
-easily be done at the head of your lookup tree
-
-iptables -d ip.of.web.server -p tcp --dport 80 -j WEBSERVER
-
-then have the match tree for the client source IP addresses in WEBSERVER. 
-Remember to terminate each subchain with a REJECT/DROP in case there is no 
-match.
-
-> While all that traffic is being sent add then delete a totaly unrelated
-> rule. Two metrics:
-> 1) what packet rates are observed during add/del?
-
-With iptables there should not be much difference, except that the higher 
-the packet load the slower the change take.
-
-If you use ippool then the overhead of this operation is considerably 
-less.
-
-> 2) how many times/sec can you do this? (essentially this could be used
-> to simulate opening and closing peepholes maybe even in a midcom kind
-> environment)
->
-> I will present my results at SUCON.
-
-Looking forward to see your results.
-
-
-
-How do you optimize this kind of lookups using u32?
-
+There is apparently ongoing work to optimize the route slow path 
+considerably, if done correctly this should solve the above.
 
 Regards
 Henrik
