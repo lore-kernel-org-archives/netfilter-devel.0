@@ -1,15 +1,16 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
+From: Harald Welte <laforge@gnumonks.org>
 Subject: Re: performance issues (nat / conntrack)
-Date: Tue, 25 Jun 2002 10:00:47 -0700
+Date: Tue, 25 Jun 2002 18:07:42 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15640.41407.432907.402311@isis.cs3-inc.com>
-References: <20020625151007.980D14140@lists.samba.org>
+Message-ID: <20020625160742.GG7975@naboo.ols.wavesec.org>
+References: <008201c21a96$88eb6520$0489cb8a@etbx180> <Pine.LNX.4.33.0206251238390.4927-100000@blackhole.kfki.hu> <20020625124744.GB7975@naboo.ols.wavesec.org> <025001c21c50$763fa880$0489cb8a@etbx180>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-In-Reply-To: <20020625151007.980D14140@lists.samba.org>
+To: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
+Content-Disposition: inline
+In-Reply-To: <025001c21c50$763fa880$0489cb8a@etbx180>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,66 +21,32 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
- > From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
- > I suppose that due to the load, packets are dropped not because of conntrack
- > but because they simply can't be processed, and thus conntrack misses packets
- > of existing connections (such as FIN, RST) and can't thus recover due to its 
- > timeouts.
+On Tue, Jun 25, 2002 at 03:59:01PM +0200, Jean-Michel Hemstedt wrote:
+> > ??? Why should listing an IP table try to reserve twice the size of the
+> > conntrack table?
+> 
+> this is in nat_init (or so): nat takes the conntrack hash size to
+> allocate 2 additional nat hashes 'bysource' and 'byisproto'.
 
-But I believe that conntrack is exactly what's causing the load.  If
-the machine is busy creating connections then it's clearly going to
-lose packets.  I imagine that the packets that are dropped are those
-arriving at full queues.  So fin's and rst's could very well be
-dropped if they arrive on interfaces that are receiving lots of other
-stuff while the cpu is busy building conntrack records.
+Ah. I was not aware that you didn't have iptable_nat loaded before the 
+command.  Just issuing the '-L' command with no nat loaded does not 
+allocate anything big inside the kernel.
 
- > From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
- > > We don't even need to have a full table to get into troubles. If at one
- > > point, the vast majority of the conntrack entries are unused, but still
- > > in hash, then you get more and more collisions, which decreases the
- > > hash efficiency.
- > 
- > What kind of collisions? Do you mean, that we end up in the same hash
- > entry and the linked list in the entry becomes too long? There is not much
- > wizardy we can do about it:
+> The question is, why do we init it, if we don't use it (on a rule
+> point of view)? This init step should occur only if we insert a rule
+> using nat.
 
-Not true.  See my proposed bucket size limit.  I hope to find some
-formulae to post on this later.
+no. This is again something I regard as feature, not as bug. dont load
+the module if you don't use it.
 
- > - increase the hash size (i.e buy more RAM) if the hash is small
- > - create better hash function, if one can deliberately hit the same entry.
- > 
- > By the way, so far nobody has ever proved that the hash function is
- > not good enough.
+It's the same behaviour like conntrack.
 
-I suspect the hash function is fine.  I propose to insert code that
-does printk whenever a bucket size exceeds some threshold and then
-invite all the readers of this list to try it and report their
-results.  Obviously an attacker can arrange to attack one bucket,
-but I think the solution is limiting the size of each bucket.
-He still has no way of attacking a particular client/server pair or
-a particular client or particular server.
+> kr,
+> -jmhe-
 
- > > There's another side effect: when the system get's loaded (because of
- > > hash exhaustion or hash collisions), it can't process all packets arriving
- > > which means that conntrack will not see some FIN or RST packets allowing
- > > it to recover... This is a kind of 'vicious circle', or point of failure.
- > 
- > This is not true. If those FIN/RST packets belong to already existing
- > connections, then those are in the conntrack hash and data can be updated.
- > If those packets do not belong to an existing connection, then either they
- > can create a new entry and we are fine, or conntrack is full and the
- > packets will be dropped - we are fine again.
-
-I think what happens is that it's not hash collisions but conntrack
-record creation that takes a long time, and that pretty much all
-packets are likely to be lost when the cpu is saturated with that
-activity.  In that case it's true that connections are not garbage
-collected as fast as they should be.
-
- > From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
- > If conntrack missed packets such a way, then the destination would miss as
- > well and the sender should resend them. No problem.
-
-Other than the delay.  And if there's a high probability of drop then
-you get multiple delays, with each delay being longer than the last.
+-- 
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
