@@ -1,12 +1,16 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004@gmx.net>
-Subject: [PATCH] remove overzealous checks in REJECT target
-Date: Wed, 01 Dec 2004 07:41:39 +0100
-Message-ID: <41AD67A3.6090608@gmx.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: TCP window tracking has bad side effects
+Date: Wed, 1 Dec 2004 16:54:54 -0800
+Message-ID: <20041202005454.GA14803@linuxace.com>
+References: <20041201110253.GA9536@suse.de>
+	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Ludwig Nussel <ludwig.nussel@suse.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,31 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Wed, Dec 01, 2004 at 01:16:31PM +0100, Jozsef Kadlecsik wrote:
+> Yes, you can disable it anytime:
+> 
+> echo 1 > /proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_be_liberal
+> 
+> But a full tcpdump from such a session and the log entries on the
+> invalid packets would be useful for us to recheck the code.
 
-after wondering why the REJECT target didn't work as expected
-when scanned with nmap -sO, I found a check in ipt_REJECT.c
-for 8 or more bytes of proto header which caused all packets
-gernated by nmap to be dropped although they were sent to the
-REJECT target. Since I could not see any use for the proto
-header length check, I replaced it with a warning.
-Now the REJECT target works as expected for all packets I
-could thow at it.
+This sounds remarkably similar to bugzilla #258, where a TCP
+session which works in 2.6.8.1 fails in 2.6.9:
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=258
 
-Signed-off-by Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004@gmx.net>
---- linux-2.6.9/net/ipv4/netfilter/ipt_REJECT.c~	Wed Dec  1 06:38:06 2004
-+++ linux-2.6.9/net/ipv4/netfilter/ipt_REJECT.c	Wed Dec  1 06:41:04 2004
-@@ -255,7 +255,7 @@ static void send_unreach(struct sk_buff
+Attached to the report is a binary tcpdump.  I've replayed it
+and tried a few things but can't figure out what the problem
+is.
 
- 	/* Ensure we have at least 8 bytes of proto header. */
- 	if (skb_in->len < skb_in->nh.iph->ihl*4 + 8)
--		return;
-+		printk("REJECT: we have less than 8 bytes of proto header.\n");
+Disabling window tracking did nothing -- were there any other
+interesting changes in 2.6.9 series?
 
- 	/* if UDP checksum is set, verify it's correct */
- 	if (iph->protocol == IPPROTO_UDP
+Phil
