@@ -1,15 +1,15 @@
-From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Subject: Re: Maximum chain name length
-Date: Mon, 08 Dec 2003 06:42:33 -0500
+From: Rodrigo Severo <rodrigo.lists@fabricadeideias.com>
+Subject: Re: ippool -X not working
+Date: Mon, 08 Dec 2003 10:56:11 -0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1070883753.1932.7.camel@jasiiitosh.nexusmgmt.com>
-References: <1070674657.3314.9.camel@jasiiitosh.nexusmgmt.com>
+Message-ID: <3FD474EB.90906@fabricadeideias.com>
+References: <Pine.LNX.4.44.0312051604100.3680-300000@filer.marasystems.com> <1070646289.22338.3.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1070674657.3314.9.camel@jasiiitosh.nexusmgmt.com>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <1070646289.22338.3.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,40 +20,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have posted this to netfilter-devel at the suggestion of the netfilter
-mailing list.
+Martin Josefsson wrote:
 
-We've posted a large number of screen shots on the project web page
-(http://iscs.sourceforge.net/ScreenShots/ScreenShots.html) to show what
-the application looks like and why the thirty character limit is a
-problem for us.  Any help or input will be greatly appreciated - John
+>The latest "semi-released" version of the new ippool can be found at:
+>http://gandalf.hjorten.nu/ippool/ippool-0.3.2b.tgz
+>  
+>
+I'm trying it in a test machine. Right now I'm still stuck at 
+compilation level.
 
-On Fri, 2003-12-05 at 21:02, John A. Sullivan III wrote:
-> 	We are developing a GUI manager for iptables and FreeS/WAN for large
-> complex deployments.  It is similar to the global management consoles
-> from Smartpipes, Solsoft, NetScreen, Checkpoint, etc., except that it
-> creates more efficient rules, is significantly easier to manage, is GPL
-> rather than a five to six figure product, but does not yet support
-> additional services such as IDS and Content Filtering.  (
-> http://iscs.sourceforge.net) Actually it is vendor independent and thus
-> can manage more than iptables but iptables is our initial target.
-> 	We've hit a major problem with the maximum chain name length.  We
-> organize our user communities and resource groups into a hierarchical
-> structure with inheritance.  These map directly to the iptables chain
-> names.  Thus a chain name like 
-> 
-> AppliedTechnologies/Engineering/NewProducts/SanFranciscoLabs/ProjectB
-> 
-> is not out of the ordinary.  This runs us up against the 30 character
-> limit of chain names very quickly.  Working around this by substituting
-> numbers for names or some other such workaround will greatly complicate
-> the project and reduce ease of troubleshooting in the field.
-> 
-> 	Is there any way to extend the maximum allowed chain name length in
-> iptables? Thanks - John
+I already compiled a kernel with pool support.
+
+During iptables make I get:
+
+[root@fellini iptables-1.2.9]# make
+Extensions found: IPv4:IPMARK IPv4:ROUTE IPv4:condition IPv4:mport 
+IPv4:pool IPv4:POOL IPv4:recent IPv4:string IPv4:time IPv6:ah IPv6:esp 
+IPv6:frag IPv6:ipv6header IPv6:hbh IPv6:dst IPv6:rt
+cc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ 
+-DIPTABLES_VERSION=3D\"1.2.9\"  -fPIC -o extensions/libipt_pool_sh.o -c 
+extensions/libipt_pool.c
+In file included from extensions/libipt_pool.c:13:
+include/libippool/ip_pool_support.h:17: parse error before 
+"ip_pool_get_index"
+include/libippool/ip_pool_support.h:17: warning: type defaults to `int' 
+in declaration of `ip_pool_get_index'
+include/libippool/ip_pool_support.h:17: warning: data definition has no 
+type or storage class
+include/libippool/ip_pool_support.h:24: parse error before "ip_pool_t"
+
+AFAICT, the problem is the lack of ip_pool_t definition, but I can't 
+find a place where it IS defined so I could include it in ip_pool_suppor=
+t.h.
+
+I have not compiled userspace ippool yet.
+
+Suggestions?
+
+>It's not a nice patch, it needs some file-copying and manual chaning of
+>Makefile etc...
+>  
+>
+I believe I got the handwork fine but it can also be the reason for my 
+problems.
+
+
+
+Thanks in advance for your attention,
+
+Rodrigo
+
 -- 
-John A. Sullivan III
-Chief Technology Officer
-Nexus Management
-+1 207-985-7880
-john.sullivan@nexusmgmt.com
+----------------------------------------------------
+Rodrigo Severo
+F=E1brica de Id=E9ias
+Fone: +55(61)321 1357
+Fax: +55(61)223 1712
+SBS - Quadra 2 - Ed. Empire Center - Sala 1301
+Bras=EDlia/DF - Brasil
+CEP: 70.070-904
+----------------------------------------------------
