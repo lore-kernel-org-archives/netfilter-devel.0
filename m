@@ -1,13 +1,16 @@
-From: Roberto Nibali <ratz@drugphish.ch>
-Subject: [Fwd: Re: [patch] tcp connection tracking 2.4.19]
-Date: Wed, 09 Oct 2002 00:16:49 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: TCP window tracking patch status query for further design
+ considerations
+Date: Wed, 9 Oct 2002 00:32:57 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DA35951.4060106@drugphish.ch>
+Message-ID: <Pine.LNX.4.33.0210090017160.24530-100000@blackhole.kfki.hu>
+References: <3DA2F1E8.8000704@tac.ch>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030006060901020905040509"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Roberto Nibali <ratz@tac.ch>
+In-Reply-To: <3DA2F1E8.8000704@tac.ch>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,113 +21,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030006060901020905040509
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
+On Tue, 8 Oct 2002, Roberto Nibali wrote:
 
---------------030006060901020905040509
-Content-Type: message/rfc822;
- name="Re: [patch] tcp connection tracking 2.4.19"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="Re: [patch] tcp connection tracking 2.4.19"
+> Could you explain or point me to some RFC for the following lines in the TCP
+> window tracking patch.?
+>
+> +/* Fixme: what about big packets? */
+> +#define MAXACKWINCONST                 66000
+> +#define MAXACKWINDOW(sender)           ((sender)->td_maxwin > MAXACKWINCONST ?
+> (sender)->td_maxwin : MAXACKWINCONST)
 
-Return-Path: <linux-kernel-owner+ratz=40drugphish.ch@vger.kernel.org>
-Delivered-To: ratz@drugphish.ch
-Received: from vger.kernel.org (vger.kernel.org [209.116.70.75])
-	by mailphish.drugphish.ch (drugphish mail transportation agency) with ESMTP id 077112EDA
-	for <ratz@drugphish.ch>; Tue,  8 Oct 2002 21:00:30 +0000 (/etc/localtime)
-Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-	id <S263853AbSJHVB7>; Tue, 8 Oct 2002 17:01:59 -0400
-Received: (majordomo@vger.kernel.org) by vger.kernel.org
-	id <S263854AbSJHVB7>; Tue, 8 Oct 2002 17:01:59 -0400
-Received: from adsl-196-233.cybernet.ch ([212.90.196.233]:28146 "HELO
-	mailphish.drugphish.ch") by vger.kernel.org with SMTP
-	id <S263853AbSJHVB5>; Tue, 8 Oct 2002 17:01:57 -0400
-Received: from drugphish.ch (laphish.drugphish.ch [172.23.2.141])
-	by mailphish.drugphish.ch (drugphish mail transportation agency) with ESMTP
-	id 85DDF2EDA; Tue,  8 Oct 2002 20:58:21 +0000 (/etc/localtime)
-Message-ID: <3DA348EF.7060709@drugphish.ch>
-Date: Tue, 08 Oct 2002 23:06:55 +0200
-From: Roberto Nibali <ratz@drugphish.ch>
-User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.0.1) Gecko/20020826
-X-Accept-Language: en-us, en
-MIME-Version: 1.0
-To: Martin Renold <martinxyz@gmx.ch>
-Cc: linux-kernel@vger.kernel.org
-Subject: Re: [patch] tcp connection tracking 2.4.19
-References: <20021008205053.GA2621@old.homeip.net>
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-Precedence: bulk
-X-Mailing-List: linux-kernel@vger.kernel.org
+Read Guido's article on which the patch is based:
+http://www.iane.nl/users/guido/papers/tcp_filtering.ps.gz
 
-Hello Martin,
+The constant is a little bit bigger than the maximal possible window size
+without window scaling. The macro tries to take window scaling into
+account.
 
-> There is a bug in the stable 2.4.19 kernel in the ip_conntrack code that
-> allows the final ACK of a SYN - SYN/ACK - ACK tcp handshake to establish
-> an ASSURED connection even if it has a wrong sequence number. The current
-> code only checks the ACK number.
+> Shouldn't it be (or what is the point of having MAXACKWINCONST):
+>
+> +#define MAXACKWINDOW(sender)           ((sender)->td_maxwin > MAXACKWINCONST ?
+>   MAXACKWINCONST : (sender)->td_maxwin)
 
-Yes, and more than that. You can remove ESTABLISHED entries in the 
-conntrack table by sending packets with the RST flag set and matching 
-the template <srcIP, srcPORT, dstIP, dstPORT>.
+No, it'd make the possible ACK window smaller in the case of window
+scaling.
 
-> This allows a DoS attack that will make it impossible to establish *real*
-> connections for some days, once the maximum is reached. Somebody sent me
-> an exploit:
+> Why do you do the following thing? Isn't it up to the ruleset to take care of
+> this? What if I would like to have those flags accepted :)?
+[...]
 
-:) You should probably send stuff like that to the netfilter-devel ml. 
-Besides that it isn't really an exploit.
+Those packets are either corrupted or invalid ones sent deliberately
+and would (wrongly) be reported as out of window ones.
 
-> http://old.homeip.net/martin/cdos.tgz
-> 
-> So I wrote a simple patch against 2.4.19, but I must admit that I do not
-> really understand the code around it, especially why it does not mark
-> such a packet as invalid (I'm new to most things here).
+Most of the out of window log entries created by the earlier patch
+releases was generated because the code was not protected against such
+packets.
 
-You might want to take a look at the TCP window tracking patch which 
-comes with the latest pom. It's part of the extra patches. This will 
-solve the problems for you.
-
-> diff -urN -X dontdiff kernel-source-2.4.19.origin/net/ipv4/netfilter/ip_conntrack_proto_tcp.c kernel-source-2.4.19.patch/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-> --- kernel-source-2.4.19.origin/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	Fri Oct  4 08:13:38 2002
-> +++ kernel-source-2.4.19.patch/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	Sat Oct  5 20:45:49 2002
-> @@ -180,6 +180,8 @@
->  	if (oldtcpstate == TCP_CONNTRACK_SYN_SENT
->  	    && CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY
->  	    && tcph->syn && tcph->ack)
-> +		conntrack->proto.tcp.handshake_seq
-> +			= tcph->ack_seq;
->  		conntrack->proto.tcp.handshake_ack
->  			= htonl(ntohl(tcph->seq) + 1);
->  	WRITE_UNLOCK(&tcp_lock);
-> @@ -196,6 +198,7 @@
->  		if (oldtcpstate == TCP_CONNTRACK_SYN_RECV
->  		    && CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL
->  		    && tcph->ack && !tcph->syn
-> +		    && tcph->seq == conntrack->proto.tcp.handshake_seq
->  		    && tcph->ack_seq == conntrack->proto.tcp.handshake_ack)
->  			set_bit(IPS_ASSURED_BIT, &conntrack->status);
->  
-
-Welcome to the world of almost-stateful packet filtering. Hey, other 
-than that, the 3wahas 'exploit' is old. Also don't I understand why they 
-claim that SYN cookies prevent syn flooding. Next time you meet someone 
-of the guys, tell them about the backlog queue.
-
-Cheers,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
-
+Regards,
+Jozsef
 -
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
-
---------------030006060901020905040509--
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
