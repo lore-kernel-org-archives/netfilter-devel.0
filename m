@@ -1,17 +1,15 @@
-From: "Qiang" <qzhang@endeavorsystems.net>
-Subject: RE: Changing packet data {Virus Scanned}
-Date: Mon, 19 Apr 2004 10:19:31 -0400
+From: zhi wang <pangy2004@yahoo.com>
+Subject: Re: current pom-ng's nfnetlink doesn't apply cleanly to kernel 2.4.22
+Date: Mon, 19 Apr 2004 07:22:18 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200404191423.i3JENZFq003381@localhost.localdomain>
-References: <20040417123252.GA22087@pandora.barbara.eu.org>
+Message-ID: <20040419142219.6631.qmail@web41713.mail.yahoo.com>
+References: <Pine.LNX.4.44.0404181817380.6618-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Develop <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "=?iso-8859-2?Q?'Piotr_Gasid=B3o'?=" <quaker@pandora.barbara.eu.org>,
-   <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20040417123252.GA22087@pandora.barbara.eu.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0404181817380.6618-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,34 +20,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Piotr,
+> Ok. So it is the ctstat patch you have problems with, not nfnetlink..
+It is exactly this ctstat odd. The info file of nfnetlink says:
+    Repository: extra
+    Depends: !netfilter-docbook
+    Depends: !ctstat
+which means, if I was right, nfnetlink conflicts with ctstat, but it seems that
+./runme apply the ctstat as a dependence :(
 
-I found it is do-able in MATCH if you are not enlarging the packet, if
-resizing it to larger packet, you probably have to swap it to a new SKB
-buffer, which is not do-able from MATCH, can only be done via TARGET
+---
+Regards
+wang,zhi
 
-Q
 
------Original Message-----
-From: netfilter-devel-admin@lists.netfilter.org
-[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Piotr
-Gasidlo
-Sent: Saturday, April 17, 2004 8:33 AM
-To: netfilter-devel@lists.netfilter.org
-Subject: Changing packet data {Virus Scanned}
 
-Hello,
-
-I'm trying to develop match which is able to change packet data
-according to perl regular expression, s/.../.../. Finding match is very
-easy. But I'm stuck in replacing it. One thing that bothers me it's how
-to resize packet (replacement can be shorter or taller than match) in
-match() function. I'm only beginner in <skbuff.h> functions, which =
-should
-I use? And whether this is possible to do it in match (not in TARGET).
-
---=20
-Piotr 'QuakeR' Gasid=B3o, BOFH @ pandora.barbara.eu.org
-############## sending lusers to /dev/null since 1998
-##### Waiting for tomorrow, for a little ray of light
-### Waiting for tomorrow just to see your smile again
+	
+		
+__________________________________
+Do you Yahoo!?
+Yahoo! Photos: High-quality 4x6 digital prints for 25¢
+http://photos.yahoo.com/ph/print_splash
