@@ -1,75 +1,57 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Fix ip_queue for bridged packets
-Date: Tue, 14 Oct 2003 12:58:25 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031014105825.GA3752@obroa-skai.de.gnumonks.org>
-References: <200310122243.38551.bdschuym@pandora.be>
+From: Florian Zwoch <zwoch@backendmedia.com>
+Subject: Re: why does netfilter make upload very slow? (was: Re: e1000 ->
+ 82540EM on linux 2.6.0-test[45] very slow in one direction)
+Date: Wed, 15 Oct 2003 10:28:50 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <3F8D0542.1060101@backendmedia.com>
+References: <20031008131320.GD16964@favonius> <20031008153237.GC25743@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="n8g4imXOkfNTN/H1"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Stephen Hemminger <shemminger@osdl.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-Content-Disposition: inline
-In-Reply-To: <200310122243.38551.bdschuym@pandora.be>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+In-Reply-To: <20031008153237.GC25743@sunbeam.de.gnumonks.org>
+Cc: linux-kernel@vger.kernel.org, netdev@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+>>Would somebody like to explain why netfilter (in kernel, but not in use)
+>>makes upload go very slow? I am by no means a network guru, but eager to
+>>learn :-)
+> 
+> 
+> let's get this straight.  There are five possible cases
+> 
+> a) CONFIG_NETFILTER disabled.  you won't even have the netfilter hooks
+>    in the network stack (so certainly no netfilter-using modules loaded)
 
---n8g4imXOkfNTN/H1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+no problem
 
-On Sun, Oct 12, 2003 at 10:43:38PM +0200, Bart De Schuymer wrote:
-> Hi Harald,
->=20
-> When ip_queue copies an old skbuff to a new one (because the tailroom is
-> too small), it uses skb_copy_expand(). This function doesn't copy the
-> Ethernet header, which is not needed for normal IP traffic. Normally, the
-> Ethernet header is filled in later before doing dev_queue_xmit.
-> When ip_queue does this to a bridged IP packet, it has to copy the Ethern=
-et
-> header, because the Ethernet header was already filled in earlier and won=
-'t
-> be filled in again.
+> b) CONFIG_NETFILTER enabled, but _no_ modules (iptable_filter,
+>    ip_conntrack, ...) attached to the netfilter hook
 
-what about ip6_queue.c ?  Would you need a similar fix for ipv6
-bridging  If yes, could you please merge your changes with ip6_queue.c
-and send me a cumulative patch?
+no problem
 
-Thanks.
+> c) CONFIG_NETFILTER enabled and iptable_filter.o (which pulls ip_tables.o)
+>    loaded, NO RULES in the table
 
-> cheers,
-> Bart
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+no problem
 
---n8g4imXOkfNTN/H1
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+> d) CONFIG_NETFILTER enabled and iptable_filter.o (which pulls ip_tables.o)
+>    loaded, RULES in the table
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+no problem (as long as i dont load any rules that require ip_conntrack)
 
-iD8DBQE/i9bQXaXGVTD0i/8RAoOxAJwLFrPDth4OTtppu0SY7nWWiVm6OQCggZjC
-czCJQqNQTjqwEg+vjztpAcY=
-=K17h
------END PGP SIGNATURE-----
+> e) CONFIG_NETFILTER enabled and ip_conntrack.o loaded, iptable_filter
+>    loaded or not, rules or not
 
---n8g4imXOkfNTN/H1--
+*boink*
+
+whenever i try to load ip_conntrack the nic performance drops from 5mb/s 
+to 200k/s.
+
+still using 2.6.0-test6.
+
+regards,
+Florian
