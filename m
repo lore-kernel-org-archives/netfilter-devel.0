@@ -1,17 +1,15 @@
-From: Ozgur AKAN <akan@aiqa.com>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: prohibiting iptables to insert a rule twice
-Date: Thu, 06 May 2004 14:48:49 +0300
+Date: Thu, 6 May 2004 14:33:48 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <409A2621.1020109@aiqa.com>
-References: <Pine.LNX.4.44.0405061320210.30218-100000@filer.marasystems.com> <409A239B.2040409@aiqa.com>
+Message-ID: <Pine.LNX.4.44.0405061429200.30809-100000@filer.marasystems.com>
+References: <409A2621.1020109@aiqa.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-9; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Henrik Nordstrom <hno@marasystems.com>,
- "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Ozgur AKAN <akan@aiqa.com>
-In-Reply-To: <409A239B.2040409@aiqa.com>
+In-Reply-To: <409A2621.1020109@aiqa.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,19 +20,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Lets examine this stuation
+On Thu, 6 May 2004, Ozgur AKAN wrote:
 
-1 iptables -A INPUT -p tcp -d 10.1.1.2 --dport 80 -j ACCEPT
-2 iptables -A INPUT -m fuzzy --lower-limit 100 --upper-limit 1000 -j REJECT
-3 iptables -A INPUT -p tcp -d 10.1.1.2 --dport 80 -j ACCEPT
+> Then inserting same rule afterwards is not meaningful but inserting same 
+> rule in other order my be meaningful!
 
-by the example below 3th rule`s byte/packet count  is used to check how 
-effective 2nd rule is used!
+I agree that same rule immediately afterwards is not meaningful.
 
-This is a good example, I hope.
+but the more advanced functions are used the less possible it is to 
+automatically determine from a simple match that two seemingly identical 
+rules are duplicates. Here is yet another
 
-Then inserting same rule afterwards is not meaningful but inserting same 
-rule in other order my be meaningful!
+iptables -m mark --mark 0x01 -d 10.0.0.1 -j ACCEPT
+[number of other rules]
+iptables -j MARK --set-mark 0x01
+[possibly a number of other rules]
+iptables -m mark --mark 0x01 -d 10.0.0.1 -j ACCEPT
 
--- 
-Ozgur Akan
+Only if the rule is only using simple matches not depending on other
+contexts and terminal targets can it be easily determined that two
+identical rules are duplicates and the second can not match.
+
+Regards
+Henrik
