@@ -1,12 +1,13 @@
-From: "li meng" <lmbjok@hotmail.com>
-Subject: FW: netfilt die
-Date: Sat, 14 Aug 2004 10:40:19 +0000
+From: sam@cerbere.dyndns.info (Samir Bellabes)
+Subject: Update ip_conntrack_count in kernel 2.6
+Date: Sun, 15 Aug 2004 04:22:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY15-F22ApmdUrmibf000019a5@hotmail.com>
+Message-ID: <20040815022249.GA13604@cerbere.dyndns.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312; format=flowed
+Content-Type: multipart/mixed; boundary="G4iJoqBmSsgzjUCe"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,207 +19,73 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
+--G4iJoqBmSsgzjUCe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+Hi Harald,
 
->From: "li meng" <lmbjok@hotmail.com>
->To: netfilter-failover@lists.netfilter.org, lmbjok@hotmail.com
->Subject: netfilt die
->Date: Sat, 14 Aug 2004 10:38:36 +0000
->
->i  am a new babie to write netfilt program, a program cause netfilt die, 
-so it doesnt work.
->
->when i compile it and run it in the following two situtaion, it productes 
-the two result.
->
->i) iptables work just forward, it works.
->
->ii)iptables work as forward and masquade: every packet cause a daemon 
-disappeared -- i think it die--until all daemons disappeared!
->
->the following is the program.
->
->/************************************ BEGIN **************************/
->#include <linux/netfilter.h>
->#include <libipq/libipq.h>
->#include <stdio.h>
->#include <stdlib.h>
->#include <string.h>
->#include <netinet/ip.h>
->#define __FAVOR_BSD		/* use bsd'ish tcp header */
->#ifndef __USE_BSD
->#define __USE_BSD		/* use bsd'ish tcp header */
->#endif
->#include <netinet/tcp.h>
->#include <sys/socket.h>
->#include <netinet/in.h>
->#include <arpa/inet.h>
->#include <time.h>
->#include <arpa/inet.h>
->#include <time.h>
->#include <sys/un.h>
->#include <stdio.h>
->#include <stdlib.h>
->#include <unistd.h>
->#include <string.h>
->
->
->int debug = 0;
->struct ipq_handle *h;
->pid_t child_make ();
->int child_main ();
->static void die (struct ipq_handle *h);
->int checkpacket (const unsigned char *pktptr, int pktlen, long pkttime);
->int writelog (long, long, char *, char *, int);
->
->int
->main (int argc, char **argv)
->{
->   int daemons = 0;
->   int i = 0;
->   pid_t pid;
->
->   if (argc > 1)
->     {
->       daemons = atoi (argv[1]);
->     }
->   if (daemons < 5)
->     daemons = 5;
->   if (argc > 2)
->     {
->       debug = atoi (argv[2]);
->     }
->   printf ("\nDaemons=%d DEBUG LEVEL:%d\n", daemons, debug);
->
->   h = ipq_create_handle (0);
->   if (!h)
->     die (h);
->
->   for (i = 0; i < daemons; i++)
->     {
->       pid = child_make ();
->     }
->   return (0);
->}
->
->pid_t
->child_make ()
->{
->   pid_t pid;
->   if ((pid = fork ()) > 0)
->     return pid;
->   child_main ();
->   return 1;
->}
->
->int
->child_main ()
->{
->   int status;
->   unsigned char buf[BUFSIZE];
->
->   status = ipq_set_mode (h, IPQ_COPY_PACKET, BUFSIZE);
->   if (status < 0)
->     die (h);
->
->   do
->     {
->       status = ipq_read (h, buf, BUFSIZE, 0);
->       if (status < 0)
->	die (h);
->
->       switch (ipq_message_type (buf))
->	{
->	case NLMSG_ERROR:
->	  fprintf (stderr, "Received error message %d\n",
->		   ipq_get_msgerr (buf));
->	  break;
->
->	case IPQM_PACKET:
->	  {
->	    ipq_packet_msg_t *m = ipq_get_packet (buf);
->	    if (checkpacket (m->payload, m->data_len, m->timestamp_sec))
->	      {
->		status =
->		  ipq_set_verdict (h, m->packet_id, NF_ACCEPT, 0, NULL);
->		if (status < 0)
->		  {
->		    die (h);
->		  };
->	      }
->	    else
->	      {
->		status = ipq_set_verdict (h, m->packet_id, NF_DROP, 0, NULL);
->		if (status < 0)
->		  {
->		    die (h);
->		  };
->	      }
->	  }
->	  break;
->
->	default:
->	  fprintf (stderr, "Unknown message type!\n");
->	  break;
->	}
->     }
->   while (1);
->}
->
->static void
->die (struct ipq_handle *h)
->{
->   ipq_perror ("passer");
->   ipq_destroy_handle (h);
->   exit (1);
->}
->
->int
->checkpacket (const unsigned char *pktptr, int pktlen, long pkttime)
->{
->   struct in_addr ipaddr;
->   struct ip *iph;
->   struct tcphdr *tcph;
->
->   iph = (struct ip *) pktptr;
->   if (!iph)
->     {
->       return 1;
->     }
->   ipaddr = iph->ip_src;
->   if (iph->ip_p == 6)		//TCP package
->     {
->       tcph = (struct tcphdr *) (iph + (iph->ip_hl << 2));
->       if (pktlen < 200)
->	return 1;
->       pktptr += iph->ip_hl << 2;
->       pktptr += tcph->th_off << 2;
->       if(pktlen>800)
->         return 0;
->     }
->   else if (iph->ip_p == 17)	//UDP package
->     {
->       ;
->     }
->   else if (iph->ip_p == 1)	//ICMP package
->     {
->       ;
->     }
->   return 1;
->}
->
->
->
->/************************************ END **************************/
->
->
->can you help me to sovle this problem?
->
->thanks in advanced!
->
->
->George
->
+   The ip_conntrack_count patch is broken with the last kernel
+   2.6.8. This patch, which do the same thing, applies correctly.
 
-_________________________________________________________________
-√‚∑—œ¬‘ÿ MSN Explorer:   http://explorer.msn.com/lccn/  
+thanks.
+
+-- 
+samir bellabes
+sam@cerbere.dyndns.info
+
+--G4iJoqBmSsgzjUCe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="linux-2.6-ip_conntrack_count.patch"
+
+diff -Nru --exclude '*~' linux-2.6.8/include/linux/sysctl.h linux-2.6.8-conntrack_count/include/linux/sysctl.h
+--- linux-2.6.8/include/linux/sysctl.h	2004-08-15 03:34:57.000000000 +0200
++++ linux-2.6.8-conntrack_count/include/linux/sysctl.h	2004-08-15 03:47:25.000000000 +0200
+@@ -410,6 +410,7 @@
+ 	NET_IPV4_NF_CONNTRACK_ICMP_TIMEOUT=12,
+ 	NET_IPV4_NF_CONNTRACK_GENERIC_TIMEOUT=13,
+ 	NET_IPV4_NF_CONNTRACK_BUCKETS=14,
++	NET_IPV4_NF_CONNTRACK_COUNT=15,
+ };
+  
+ /* /proc/sys/net/ipv6 */
+diff -Nru --exclude '*~' linux-2.6.8/net/ipv4/netfilter/ip_conntrack_core.c linux-2.6.8-conntrack_count/net/ipv4/netfilter/ip_conntrack_core.c
+--- linux-2.6.8/net/ipv4/netfilter/ip_conntrack_core.c	2004-08-15 03:34:58.000000000 +0200
++++ linux-2.6.8-conntrack_count/net/ipv4/netfilter/ip_conntrack_core.c	2004-08-15 03:42:59.000000000 +0200
+@@ -65,7 +65,7 @@
+ static LIST_HEAD(helpers);
+ unsigned int ip_conntrack_htable_size = 0;
+ int ip_conntrack_max;
+-static atomic_t ip_conntrack_count = ATOMIC_INIT(0);
++atomic_t ip_conntrack_count = ATOMIC_INIT(0);
+ struct list_head *ip_conntrack_hash;
+ static kmem_cache_t *ip_conntrack_cachep;
+ struct ip_conntrack ip_conntrack_untracked;
+diff -Nru --exclude '*~' linux-2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c linux-2.6.8-conntrack_count/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- linux-2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-08-15 03:34:58.000000000 +0200
++++ linux-2.6.8-conntrack_count/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-08-15 03:46:11.000000000 +0200
+@@ -312,6 +312,7 @@
+ 
+ /* From ip_conntrack_core.c */
+ extern int ip_conntrack_max;
++extern atomic_t ip_conntrack_count;
+ extern unsigned int ip_conntrack_htable_size;
+ 
+ /* From ip_conntrack_proto_tcp.c */
+@@ -346,6 +347,14 @@
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
++		.ctl_name	= NET_IPV4_NF_CONNTRACK_COUNT,
++		.procname	= "ip_conntrack_count",
++		.data		= &ip_conntrack_count,
++		.maxlen		= sizeof(int),
++		.mode		= 0444,
++		.proc_handler	= &proc_dointvec,
++	},
++	{
+ 		.ctl_name	= NET_IPV4_NF_CONNTRACK_BUCKETS,
+ 		.procname	= "ip_conntrack_buckets",
+ 		.data		= &ip_conntrack_htable_size,
+
+--G4iJoqBmSsgzjUCe--
