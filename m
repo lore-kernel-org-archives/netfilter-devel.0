@@ -1,15 +1,18 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Ruleset creation process.
-Date: Sun, 3 Oct 2004 18:07:05 +0200 (CEST)
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: [PATCH] note owner match brokenness
+Date: Sun, 3 Oct 2004 21:43:30 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0410031804410.16241@filer.marasystems.com>
-References: <415E83B5.5090301@inventum.cc>
+Message-ID: <20041003194330.GG2823@eychenne.org>
+References: <20041001204447.GA30390@linuxace.com> <415DC791.3060409@trash.net>
+	<20041001211251.GA30542@linuxace.com> <415DCC5E.2030407@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Padam J Singh <padam.singh@inventum.cc>
-In-Reply-To: <415E83B5.5090301@inventum.cc>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <415DCC5E.2030407@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,20 +23,36 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2 Oct 2004, Padam J Singh wrote:
+On Fri, Oct 01, 2004 at 11:30:06PM +0200, Patrick McHardy wrote:
 
-> Is there are document that specifies the ruleset creation process?
+> Phil Oester wrote:
 
-What part of the ruleset creation process?
+> >On Fri, Oct 01, 2004 at 11:09:37PM +0200, Patrick McHardy wrote:
+> >=20
+> >
+> >>If we warn in userspace, we should warn when then options are used
+> >>instead of in the helptext.
+> >>  =20
+> >>
+> >
+> >Agreed, but do we want to:
+> >
+> >  1) warn on every single use of owner match?
+> >  2) have iptables determine if we are running on an SMP box, and
+> >     only warn in that case?
+> >
+> >I didn't think either of these were terribly appealing.
+> >=20
+> >
 
-> I recently had an issue with destroy being called for old rules when adding a 
-> new rule for the same target.
+> Agreed, I'm going to apply your patch. Thanks.
 
-Destroy of what, where?
+Please apply the same to the manpage!
 
-If you refer to the match/target destroy functions being called then this 
-is by design of iptables. Each modification to an iptable results in a 
-new table being installed in the kernel and the old deleted.
+ Herve
 
-Regards
-Henrik
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
