@@ -1,11 +1,16 @@
-From: Robert de Bath <robert$@mayday.cix.co.uk>
-Subject: Iptables 1.3.1 still not very fast.
-Date: Fri, 1 Apr 2005 21:47:05 +0100 (BST)
-Message-ID: <0f598b09cef38490@mayday.cix.co.uk>
+From: Milos Wimmer <wimmer@zcu.cz>
+Subject: Re: 2.6.11 corrupting FTP session
+Date: Sat, 2 Apr 2005 21:31:13 +0200 (CEST)
+Message-ID: <Pine.LNX.4.62.0504022105520.19574@nike.zcu.cz>
+References: <1111176664.423b35d80b351@webmail.conectcor.com.br>
+	<423DA1FB.6030209@trash.net>
+	<1111341503.423db9bfcffb7@webmail.conectcor.com.br>
+	<20050401060249.GI19835@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20050401060249.GI19835@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,46 +22,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Okay, I'll admit is it a LOT faster that 1.2.11 it still seems to take a 
-long time with big tables.
+On Fri, 1 Apr 2005, Harald Welte wrote:
 
-An example:
-I have a program (I've called iptrange) that will take a file full of ip 
-address ranges (192.168.42.10 192.168.42.25) and converts them into a set
-of iptables chains that invokes another chain if the source (or dest) 
-matches ie:
+> this sounds pretty straight forward, still i can't reproduce the problem
+> at all. which ftp server and client are you using?
 
-iptables -N CHECK
-iptables -A CHECK -s 192.168.42.10/31 -j FOUND
-iptables -A CHECK -s 192.168.42.12/30 -j FOUND
-iptables -A CHECK -s 192.168.42.16/29 -j FOUND
-iptables -A CHECK -s 192.168.42.24/31 -j FOUND
+  I have same problem (see Bug #308).
 
-The good bit is that it will create a tree of subchains so that the
-matching is efficient for large numbers of ip addresses.
+  I'm using command line ftp client on Linux machines and command line ftp 
+client on Windows XP.
+And any of ftp serveres which I tried (e.g. 
+ftp://ftp.zcu.cz/pub/doc/rfc/, 
+ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/,
+ftp.cesnet.cz,  ...)
 
-This works well for a few hundred address ranges; I use it to match
-recent 'evil' ips and ranges from dshield.org.
+I'm using Linux firewalls with shorewall package on many sites and I 
+found this problem on any of them.
 
-However, when I tried a 50000 range list from http://blocklist.org I
-ran into problems.  After conversion it created 20000 chains with a
-total of 70000 rules.  This tables took about an hour to load using
-iptables-1.2.11!
 
-Version 1.3.1 of libiptc is a LOT faster at about 5 minutes to do the
-load. But this still seems very slow when it takes about half a second
-to generate and print out the iptables rules to a script.
+For simplification - I build test configuration with 1 firewall box and 1
+client box on my office now. Firewall has 2 interfaces - one to Internet,
+second to local network - client. Client box is connected to firewall with
+crosswired twisted pair cable.
+Client uses no iptables and when it is connected to Internet, it transfers
+all files via active ftp session without problems.
 
-I hate to think how slow it would be with a million ranges; assuming 
-it can be loaded it looks like it would be about 300000 chains, 1.3M
-rules and about 100 rules checked per packet (to pick some figures out
-of a single test) so it should be useable ...
+On the firewall I use vanilla Shorewall (2.x.x) configuration with
+"loc    net     ACCEPT"  global policy, no any other specialities.
 
-BTW: iptables-restore is slower than my iptrange!
+When I'm running kernel 2.4.x and 2.6.0-2.6.10 kernel on the firewall,
+active ftp session on the client works fine. When I'm running 2.6.11,
+2.6.11.x and 2.6.12-rc1 kernel on the firewall box, active ftp session
+with "mget *" command fails after 6 transfered files.
+Passive ftp session works fine on any kernel.
 
-My problem is that I think that libiptc looks evil and I really don't
-want to dive into messing with that code. So how can I help to make
-libiptc run as fast as I'd like it to?
+I used vanilla kernel without patches (I could send you my kernel config 
+file).
 
--- 
-Rob.                          (Robert de Bath <robert$ @ debath.co.uk>)
+        Milos Wimmer
