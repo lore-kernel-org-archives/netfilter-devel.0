@@ -1,11 +1,10 @@
 From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH] Recent Match - Possible memory leaks + Possible buffer
- overflow with strncpy()
-Date: Tue, 29 Oct 2002 13:11:54 -0500
+Subject: [NEW EXTENSION] Condition Match
+Date: Tue, 29 Oct 2002 13:54:06 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DBECF6A.3040903@videotron.ca>
+Message-ID: <3DBED94E.1030107@videotron.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_5wr8ZvKWaIgT2F2/P1JJ/g)"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -20,198 +19,448 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---Boundary_(ID_5wr8ZvKWaIgT2F2/P1JJ/g)
+--Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)
 Content-type: text/plain; charset=us-ascii; format=flowed
 Content-transfer-encoding: 7BIT
 
 Folks,
 
-   the attached patch fixes for the recent match two issues:
+   I developped last week a new extension to Netfilter in order to 
+enable or disable a set of rules using /proc files.
 
-1- using strncpy() does not garantee that the destination string will be 
-NULL-terminated
+   As an example, I like to play Quake III Aerna with a few friends of 
+mine but I don't want to keep the firewall rules that make them able to 
+connect to my computer active at all times.  Adding and removing these 
+specific rules is annoying...
 
-2- If a vmalloc() fails, the previously allocated memory blocks are not 
-freed.
+    So my solution is illustrated by the following rules:
+
+iptables -t nat -A PREROUTING -p udp -m condition -i $INTERNET --dport 
+27960 --condition quake -j DNAT --to-destination $MYCOMPUTER
+iptables -t filter -A FORWARD -p udp -m condition -i $INTERNET -o $LAN 
+--dport 27960 --condition quake -j ACCEPT
+iptables -t filter -A FORWARD -p udp -m condition -i $LAN -o $INTERNET 
+--dport 27960 --condition quake -j ACCEPT
+
+
+To enable the rules, issue:        echo 1 > /proc/net/ipt_condition/quake
+To disable the rules, issue:       echo 0> /proc/net/ipt_condition/quake
+
+
+The /proc files are created automagically when a new condition is 
+defined and destroyed when no rule points to them anymore.
+
+As of this writing, the condition match module supports only one 
+condition per rule.  I think I will add in a near future the possibility 
+to match on many conditions at the same time, using the syntax:     
+--condition file1,file2,file3. . .
+
+- It was tested under kernel 2.4.20-pre10-ac2
+- So far so good, the condition match module seems stable !
+
+Any comments, bug reports or suggestions would be greatly appreciated.
 
 Enjoy !
 
+Stephane.
 
---Boundary_(ID_5wr8ZvKWaIgT2F2/P1JJ/g)
-Content-type: text/plain; name=recent.patch
+
+--Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)
+Content-type: text/plain; name=condition.patch
 Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=recent.patch
+Content-disposition: inline; filename=condition.patch
 
-diff -aruN linux-2.4.20-pre10-ac2/include/linux/netfilter_ipv4/ipt_recent.h linux-2.4.20-pre10-ac2-new/include/linux/netfilter_ipv4/ipt_recent.h
---- linux-2.4.20-pre10-ac2/include/linux/netfilter_ipv4/ipt_recent.h	2002-10-24 12:06:54.000000000 -0400
-+++ linux-2.4.20-pre10-ac2-new/include/linux/netfilter_ipv4/ipt_recent.h	2002-10-24 12:28:42.000000000 -0400
-@@ -1,6 +1,8 @@
- #ifndef _IPT_RECENT_H
- #define _IPT_RECENT_H
- 
-+#define NAME_LEN  200
+diff -aruN linux-2.4.20-pre10-ac1-machiavel/include/linux/netfilter_ipv4/ipt_condition.h linux-2.4.20-pre10-ac1-machiavel-new/include/linux/netfilter_ipv4/ipt_condition.h
+--- linux-2.4.20-pre10-ac1-machiavel/include/linux/netfilter_ipv4/ipt_condition.h	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.4.20-pre10-ac1-machiavel-new/include/linux/netfilter_ipv4/ipt_condition.h	2002-10-25 21:26:09.000000000 -0400
+@@ -0,0 +1,11 @@
++#ifndef __IPT_CONDITION_MATCH__
++#define __IPT_CONDITION_MATCH__
 +
- const static int IPT_RECENT_CHECK = 1;
- const static int IPT_RECENT_SET = 2;
- const static int IPT_RECENT_UPDATE = 4;
-@@ -15,7 +17,7 @@
- 	u_int32_t   hit_count;
- 	u_int8_t    check_set;
- 	u_int8_t    invert;
--	char        name[200];
-+	char        name[NAME_LEN];
- 	u_int8_t    side;
- };
- 
-diff -aruN linux-2.4.20-pre10-ac2/net/ipv4/netfilter/ipt_recent.c linux-2.4.20-pre10-ac2-new/net/ipv4/netfilter/ipt_recent.c
---- linux-2.4.20-pre10-ac2/net/ipv4/netfilter/ipt_recent.c	2002-10-24 12:06:54.000000000 -0400
-+++ linux-2.4.20-pre10-ac2-new/net/ipv4/netfilter/ipt_recent.c	2002-10-24 13:11:30.000000000 -0400
-@@ -69,7 +69,7 @@
- 
- /* Structure of our linked list of tables of recent lists. */
- struct recent_ip_tables {
--	char name[200];
-+	char name[NAME_LEN];
- 	int count;
- 	int side;
- 	int time_pos;
-@@ -259,7 +259,7 @@
- 	info.hit_count = 0;
- 	info.check_set = check_set;
- 	info.invert = 0;
--	strncpy(info.name,curr_table->name,200);
-+	strncpy(info.name,curr_table->name,NAME_LEN);
- 
- 	skb.nh.iph = kmalloc(sizeof(struct iphdr),GFP_ATOMIC);
- 	if(!skb.nh.iph) { return -ENOMEM; }
-@@ -322,7 +322,7 @@
- 	/* Find the right table */
- 	spin_lock_bh(&recent_lock);
- 	curr_table = r_tables;
--	while( (last_table = curr_table) && strncmp(info->name,curr_table->name,200) && (curr_table = curr_table->next) );
-+	while( (last_table = curr_table) && strncmp(info->name,curr_table->name,NAME_LEN) && (curr_table = curr_table->next) );
- 
- 	if(debug) printk(KERN_INFO "ipt_recent: match(): table found('%s')\n",info->name);
- 
-@@ -585,7 +585,7 @@
- 	/* Look for an entry with this name already created */
- 	/* Finds the end of the list and the entry before the end if current name does not exist */
- 	curr_table = r_tables;
--	while( (last_table = curr_table) && strncmp(info->name,curr_table->name,200) && (curr_table = curr_table->next) );
-+	while( (last_table = curr_table) && strncmp(info->name,curr_table->name,NAME_LEN) && (curr_table = curr_table->next) );
- 
- 	/* If a table already exists just increment the count on that table and return */
- 	if(curr_table) { 
-@@ -598,18 +598,20 @@
- 	/* Table with this name not found */
- 	/* Allocate memory for new linked list item */
- 
--	if(debug) printk(KERN_INFO "ipt_recent: checkentry: no table found (%s)\n",info->name);
--
--	if(debug) printk(KERN_INFO "ipt_recent: checkentry: Allocationg %d for link-list entry.\n",sizeof(struct recent_ip_tables));
-+	if(debug) {
-+		printk(KERN_INFO "ipt_recent: checkentry: no table found (%s)\n",info->name);
-+		printk(KERN_INFO "ipt_recent: checkentry: Allocationg %d for link-list entry.\n",sizeof(struct recent_ip_tables));
-+	}
- 
- 	curr_table = vmalloc(sizeof(struct recent_ip_tables));
--	if(curr_table == NULL) { spin_unlock_bh(&recent_lock); return -ENOMEM; }
-+	if(curr_table == NULL) goto out1;
- 
- 	curr_table->list_lock = SPIN_LOCK_UNLOCKED;
- 	curr_table->next = NULL;
- 	curr_table->count = 1;
- 	curr_table->time_pos = 0;
--	strncpy(curr_table->name,info->name,200);
-+	strncpy(curr_table->name,info->name,NAME_LEN-1);
-+	curr_table->name[NAME_LEN-1] = 0;  // Garantee a NULL-terminated string
- 
- 	if(info->side != IPT_RECENT_SOURCE && info->side != IPT_RECENT_DEST) 
- 		curr_table->side = IPT_RECENT_SOURCE;
-@@ -622,7 +624,8 @@
- 			info->name);
- 
- 	curr_table->table = vmalloc(sizeof(struct recent_ip_list)*ip_list_tot);
--	if(curr_table->table == NULL) { spin_unlock_bh(&recent_lock); return -ENOMEM; }
-+	if(curr_table->table == NULL) goto out2;
++#define VARIABLE_NAME_LEN  32
 +
- 	memset(curr_table->table,0,sizeof(struct recent_ip_list)*ip_list_tot);
- 	if(debug) printk(KERN_INFO "ipt_recent: checkentry: Allocating %d for pkt_list.\n",
- 			sizeof(u_int32_t)*ip_pkt_list_tot*ip_list_tot);
-@@ -631,8 +634,7 @@
- 	if(debug) printk(KERN_INFO "ipt_recent: checkentry: After pkt_list allocation.\n");
- 	if(hold == NULL) { 
- 		printk(KERN_INFO "ipt_recent: checkentry: unable to allocate for pkt_list.\n");
--		vfree(curr_table->table); spin_unlock_bh(&recent_lock);
--		return -ENOMEM;
-+		goto out3;
- 	}
- 	for(c = 0; c < ip_list_tot; c++) {
- 		curr_table->table[c].last_pkts = hold + c*ip_pkt_list_tot;
-@@ -643,6 +645,8 @@
- 			sizeof(int)*ip_list_hash_size);
- 
- 	curr_table->hash_table = vmalloc(sizeof(int)*ip_list_hash_size);
-+	if(curr_table->hash_table == NULL) goto out4;
++struct condition_info {
++  char	name[VARIABLE_NAME_LEN];
++  int   invert;
++};
 +
- 	for(c = 0; c < ip_list_hash_size; c++) {
- 		curr_table->hash_table[c] = -1;
- 	}
-@@ -652,6 +656,8 @@
- 			sizeof(struct time_info_list)*ip_list_tot);
- 
- 	curr_table->time_info = vmalloc(sizeof(struct time_info_list)*ip_list_tot);
-+	if(curr_table->time_info == NULL) goto out5;
++#endif
+diff -aruN linux-2.4.20-pre10-ac1-machiavel/net/ipv4/netfilter/ipt_condition.c linux-2.4.20-pre10-ac1-machiavel-new/net/ipv4/netfilter/ipt_condition.c
+--- linux-2.4.20-pre10-ac1-machiavel/net/ipv4/netfilter/ipt_condition.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.4.20-pre10-ac1-machiavel-new/net/ipv4/netfilter/ipt_condition.c	2002-10-25 23:30:15.000000000 -0400
+@@ -0,0 +1,227 @@
++/*-------------------------------------------*\
++|          Netfilter Condition Module         |
++|                                             |
++|  Description: This module allows firewall   |
++|    rules to match using condition variables |
++|    stored in /proc files.                   |
++|                                             |
++|  Author: Stephane Ouellette     2002-10-22  |
++|          (ouellettes@videotron.ca)          |
++\*-------------------------------------------*/
 +
- 	for(c = 0; c < ip_list_tot; c++) {
- 		curr_table->time_info[c].position = c;
- 		curr_table->time_info[c].time = 0;
-@@ -659,13 +665,9 @@
- 
- 	/* Create our proc 'status' entry. */
- 	curr_table->status_proc = create_proc_entry(curr_table->name, 0644, proc_net_ipt_recent);
--	if (curr_table->status_proc) curr_table->status_proc->owner = THIS_MODULE;
--	else {
--		vfree(curr_table->table);
--		vfree(curr_table);
--		vfree(hold);
--		return -ENOMEM;
--	}
-+	if (curr_table->status_proc == NULL) goto out6;
++#include<linux/module.h>
++#include<linux/proc_fs.h>
++#include<linux/spinlock.h>
++#include<linux/interrupt.h>
++#include<asm/uaccess.h>
++#include<linux/ctype.h>
++#include<linux/vmalloc.h>
 +
-+	curr_table->status_proc->owner = THIS_MODULE;
- 	curr_table->status_proc->read_proc = ip_recent_get_info;
- 	curr_table->status_proc->write_proc = ip_recent_ctrl;
- 	curr_table->status_proc->data = curr_table;
-@@ -678,6 +680,20 @@
- 	if(debug) printk(KERN_INFO "ipt_recent: checkentry() left.\n");
- 
- 	return 1;
++#include<linux/netfilter_ipv4/ip_tables.h>
++#include<linux/netfilter_ipv4/ipt_condition.h>
 +
-+out6:
-+	vfree(curr_table->time_info);
-+out5:
-+	vfree(curr_table->hash_table);
-+out4:
-+	vfree(hold);
-+out3:
-+	vfree(curr_table->table);	
-+out2:
-+	vfree(curr_table);	
-+out1:
-+	spin_unlock_bh(&recent_lock);
-+	return -ENOMEM;
- }
- 
- /* This function is called in the event that a rule matching this module is
-@@ -708,7 +724,7 @@
- 		spin_unlock_bh(&recent_lock);
- 		return;
- 	}
--	while( strncmp(info->name,curr_table->name,200) && (last_table = curr_table) && (curr_table = curr_table->next) );
-+	while( strncmp(info->name,curr_table->name,NAME_LEN) && (last_table = curr_table) && (curr_table = curr_table->next) );
- 
- 	/* If a table does not exist then do nothing and return */
- 	if(!curr_table) { 
++
++MODULE_AUTHOR("Stephane Ouellette <ouellettes@videotron.ca>");
++MODULE_DESCRIPTION("Allows rules to match against condition variables");
++MODULE_LICENSE("GPL");
++
++
++struct condition_variable {
++  char         name[VARIABLE_NAME_LEN];
++			   // Variable Name (NULL-terminated string)
++  u_int32_t    refcount;   // Number of references to this variable
++  u_int32_t    boolean;    // TRUE == 1, FALSE == 0
++  spinlock_t   variable_lock;
++  struct proc_dir_entry *status_proc;
++  struct condition_variable *next;
++};
++
++
++static spinlock_t list_lock = SPIN_LOCK_UNLOCKED;
++static struct condition_variable *head = NULL;
++static struct proc_dir_entry *proc_net_condition = NULL;
++
++
++static int ipt_condition_read_info(char *buffer, char **start, off_t offset,
++int length, int *eof, void *data)
++{
++  if(offset == 0)
++  {
++    *start = buffer;
++    buffer[0] = '0' + (char)((struct condition_variable*)data)->boolean;
++    buffer[1] = '\n';
++    return 2;
++  }
++ 
++  *eof = 1;
++  return 0;
++}
++
++
++static int ipt_condition_write_info(struct file *file, const char *buffer,
++unsigned long length, void *data)
++{
++  if(length)
++  {
++    // Match only on the first character
++    if(buffer[0] == '0')
++      ((struct condition_variable*)data)->boolean = 0;
++    else if(buffer[0] == '1') 
++      ((struct condition_variable*)data)->boolean = 1;
++  }
++
++  return length;
++}
++
++
++static int match(const struct sk_buff *skb, const struct net_device *in,
++const struct net_device *out, const void *matchinfo, int offset,
++const void *hdr, u_int16_t datalen, int *hotdrop)
++{
++  const struct condition_info *info = (const struct condition_info*)matchinfo;
++  struct condition_variable *var = head;
++  
++  while(var && strncmp(info->name, var->name, VARIABLE_NAME_LEN))
++    var = var->next;
++
++  return((var) ? var->boolean ^ info->invert : 0);
++}
++
++
++static int checkentry(const char *tablename, const struct ipt_ip *ip,
++void *matchinfo, unsigned int matchsize, unsigned int hook_mask)
++{
++  struct condition_info *info = (struct condition_info*)matchinfo;
++  struct condition_variable *var, *previous;
++
++  if(matchsize != IPT_ALIGN(sizeof(struct condition_info)))
++    return 0;
++
++  var = head;
++  previous = NULL;
++  spin_lock_bh(&list_lock);
++
++  // Search for the condition variable in the list
++  while(var && (strncmp(info->name, var->name, VARIABLE_NAME_LEN))) 
++  {
++    previous = var;
++    var = var->next;
++  }
++
++  if(var)
++  {
++    // The variable already exists, increment the reference count
++    spin_lock_bh(&var->variable_lock);
++    var->refcount++;    
++    spin_unlock_bh(&var->variable_lock);
++  }
++  else
++  {
++    // Create a new variable 
++    if((var = vmalloc(sizeof(struct condition_variable))) == NULL)
++    {
++      spin_unlock_bh(&list_lock);
++      return -ENOMEM;
++    }
++
++    strncpy(var->name, info->name, VARIABLE_NAME_LEN - 1);
++    var->name[VARIABLE_NAME_LEN - 1] = 0;
++    var->refcount = 1;
++    var->boolean = 0;
++    var->variable_lock = SPIN_LOCK_UNLOCKED;
++    var->next = NULL;
++    var->status_proc = create_proc_entry(var->name, 0644, proc_net_condition);
++
++    if(!var->status_proc)
++    {
++      vfree(var);
++      spin_unlock_bh(&list_lock);
++      return -ENOMEM;
++    }
++
++    var->status_proc->owner = THIS_MODULE;
++    var->status_proc->read_proc = ipt_condition_read_info;
++    var->status_proc->write_proc = ipt_condition_write_info;
++    var->status_proc->data = var;
++
++    if(previous)
++      previous->next = var;
++    else
++      head = var;
++  }
++
++  spin_unlock_bh(&list_lock);
++  return 1;
++}
++
++
++static void destroy(void *matchinfo, unsigned int matchsize)
++{
++  struct condition_info *info = (struct condition_info*)matchinfo;
++  struct condition_variable *var, *previous;
++
++  if(matchsize != IPT_ALIGN(sizeof(struct condition_info)))
++    return;
++
++  var = head;
++  previous = NULL;
++  
++  spin_lock_bh(&list_lock);
++
++  while(var && strncmp(info->name, var->name, VARIABLE_NAME_LEN))
++  {
++    previous = var;
++    var = var->next;
++  }
++
++  if(var)
++  {
++    spin_lock_bh(&var->variable_lock);
++
++    if(--var->refcount == 0)
++    {
++      if(previous)
++        previous->next = var->next;
++      else
++        head = var->next;
++
++      remove_proc_entry(var->name, proc_net_condition);
++      spin_unlock_bh(&var->variable_lock);
++      vfree(var);
++    }
++    else spin_unlock_bh(&var->variable_lock);
++  }
++
++  spin_unlock_bh(&list_lock);
++}
++
++
++static struct ipt_match condition_match =
++{ { NULL, NULL }, "condition", &match, &checkentry, &destroy, THIS_MODULE };
++
++
++static int __init init(void)
++{
++  int  errorcode;
++  proc_net_condition = proc_mkdir("ipt_condition", proc_net);
++
++  if(proc_net_condition)
++  {
++    if((errorcode = ipt_register_match(&condition_match)) != 0)
++      remove_proc_entry("ipt_condition", proc_net);
++  }
++  else errorcode = -EACCES;
++
++  return(errorcode);
++}
++
++
++static void __exit fini(void)
++{
++  ipt_unregister_match(&condition_match);
++  remove_proc_entry("ipt_condition", proc_net);
++}
++
++module_init(init);
++module_exit(fini);
++
 
---Boundary_(ID_5wr8ZvKWaIgT2F2/P1JJ/g)--
+--Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)
+Content-type: text/plain; name=condition.patch.config.in
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=condition.patch.config.in
+
+  dep_tristate '  TOS match support' CONFIG_IP_NF_MATCH_TOS $CONFIG_IP_NF_IPTABLES
+  dep_tristate '  condition match support' CONFIG_IP_NF_MATCH_CONDITION $CONFIG_IP_NF_IPTABLES
+
+--Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)
+Content-type: text/plain; name=condition.patch.configure.help
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=condition.patch.configure.help
+
+CONFIG_IP_NF_MATCH_TOS
+condition match support
+CONFIG_IP_NF_MATCH_CONDITION
+  This option allows you to match firewall rules against condition
+  variables stored in /proc files.
+
+  If you want to compile it as a module, say M here and read
+  Documentation/modules.txt.  If unsure, say `N'.
+
+--Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)
+Content-type: text/plain; name=condition.patch.help
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=condition.patch.help
+
+Author: Stephane Ouellette <ouellettes@videotron.ca>
+Status: ItWorksForMe(tm)
+
+This patch adds CONFIG_IP_NF_MATCH_CONDITION which allows you to
+match firewall rules against condition variables stored in /proc files.
+
+
+--Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)
+Content-type: text/plain; name=condition.patch.makefile
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=condition.patch.makefile
+
+obj-$(CONFIG_IP_NF_MATCH_TOS) += ipt_tos.o
+
+obj-$(CONFIG_IP_NF_MATCH_CONDITION) += ipt_condition.o
+
+
+--Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)
+Content-type: text/plain; name=libipt_condition.c
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=libipt_condition.c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
+#include <iptables.h>
+
+#include<linux/netfilter_ipv4/ip_tables.h>
+#include<linux/netfilter_ipv4/ipt_condition.h>
+
+
+static void help(void)
+{
+  printf("condition match v%s options:\n"
+  "--condition [!] filename       Match on boolean value stored in /proc file"
+  "\n", IPTABLES_VERSION);
+}
+
+static struct option opts[] = { { "condition", 1, 0, 'X' }, { 0 } };
+
+static void init(struct ipt_entry_match *m, unsigned int *nfcache)
+{
+  *nfcache |= NFC_UNKNOWN;
+}
+
+static int parse(int c, char **argv, int invert, unsigned int *flags,
+		const struct ipt_entry *entry, unsigned int *nfcache,
+		struct ipt_entry_match **match)
+{
+  struct condition_info *info = (struct condition_info*)(*match)->data;
+
+  check_inverse(optarg, &invert, &optind, 0);
+
+  if(*flags)
+    exit_error(PARAMETER_PROBLEM, "Can't specify multiple conditions");
+
+  if(c == 'X')
+  {
+    if(strlen(argv[optind-1]) < VARIABLE_NAME_LEN)
+      strcpy(info->name, argv[optind-1]);
+    else
+      exit_error(PARAMETER_PROBLEM, "File name too long");
+
+    info->invert = invert;
+    *flags = 1;
+    return 1;
+  }
+
+  return 0;
+}
+
+
+static void final_check(unsigned int flags)
+{
+  if(!flags)
+    exit_error(PARAMETER_PROBLEM, "Condition match: must specify --condition");
+}
+
+
+static void print(const struct ipt_ip *ip,
+		const struct ipt_entry_match *match, int numeric)
+{
+  const struct condition_info *info = (const struct condition_info*)match->data;
+
+  printf("condition %s%s ", (info->invert) ? "!" : "", info->name);
+}
+
+
+static void save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
+{
+  const struct condition_info *info = (const struct condition_info*)match->data;
+
+  printf("--condition %s%s ", (info->invert) ? "! " : "", info->name);
+}
+
+
+static struct iptables_match condition = {
+  NULL,
+  "condition",
+  IPTABLES_VERSION,
+  IPT_ALIGN(sizeof(struct condition_info)),
+  IPT_ALIGN(sizeof(struct condition_info)),
+  &help,
+  &init,
+  &parse,
+  &final_check,
+  &print,
+  &save,
+  opts
+};
+
+
+void _init(void)
+{
+  register_match(&condition);
+}
+
+
+--Boundary_(ID_BhfeGma8P15A1+Ful0DG0A)--
