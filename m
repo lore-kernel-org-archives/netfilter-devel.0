@@ -1,17 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: NAT for IPv6
-Date: Wed, 26 Nov 2003 20:48:52 +0100
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: [PATCH] Re: hashsize available through /proc was RAM and conntrack performance: first draft of the document is online
+Date: Thu, 27 Nov 2003 12:38:15 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031126194852.GD3740@obroa-skai.de.gnumonks.org>
-References: <20031122052856.5228.24236.Mailman@netfilter-sponsored-by.noris.net> <16319.2729.387658.806467@isis.cs3-inc.com>
+Message-ID: <20031127113815.GD1083@eychenne.org>
+References: <20031127041452.GD1084@eychenne.org> <Pine.LNX.4.44.0311271102000.21649-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jousvV0MzM2p6OtC"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Don Cohen <don-nfil@isis.cs3-inc.com>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <16319.2729.387658.806467@isis.cs3-inc.com>
+In-Reply-To: <Pine.LNX.4.44.0311271102000.21649-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,44 +23,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, Nov 27, 2003 at 11:09:03AM +0100, Henrik Nordstrom wrote:
 
---jousvV0MzM2p6OtC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Thu, 27 Nov 2003, Herve Eychenne wrote:
 
-On Fri, Nov 21, 2003 at 11:05:13PM -0800, Don Cohen wrote:
+Anyway, Harald had already made a patch for pom without telling,
+and Patrick discussed it some hours ago.
 
-> I also don't see that IPV6 reduces my need for NAT.
-> For instance, my ISP will probably still give me only one IP address=20
-> that I'll want to share with my home network.
+> Also what kernel version did you do this in? Your source does not seem to
+> match either 2.4.22 or 2.6.0-test10.. in the sources I see the conntrack
+> sysctls are all in ip_conntrack_standalone.c not ip_conntrack_core.c..
+> (looks like you got the filename wrong only..  the sources seem to match
+> ip_conntrack_standalone.c even if the header say 
+> ip_conntrack_core.c.new/orig)
 
-That is actually violating the address allocation guidelines of the
-RIR's, IIRC.
+I worked on 2.4.22 Debian kernel sources (patched), but in vanilla
+kernel 2.4.22, the files you're talking about are identical to the
+Debian sources (which contain only a few patches).
+And I maintain that my patch is against ip_conntrack_core.c...
 
-Unless there is only a single segment on the other side, you should
-receive a /48.  If there is only a single segment, a /64.
+This is crazy, as I'm aware that Harald's patch what against
+ip_conntrack_standalone.c... but I just downloaded a fresh 2.4.22
+kernel from kernel.org, and I can swear that sysctls are in
+ip_conntrack_core.c (and not ip_conntrack_standalone.c).
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+rv@comet:/usr/src/linux-2.4.22/net/ipv4/netfilter$ grep sysctl *
+ip_conntrack_core.c:#include <linux/sysctl.h>
+ip_conntrack_core.c:static struct ctl_table_header *ip_conntrack_sysctl_header;
+ip_conntrack_core.c:unregister_sysctl_table(ip_conntrack_sysctl_header);
+ip_conntrack_core.c:    ip_conntrack_sysctl_header
+ip_conntrack_core.c:  = register_sysctl_table(ip_conntrack_root_table, 0);
+ip_conntrack_core.c:    if (ip_conntrack_sysctl_header == NULL) {
+ip_queue.c:#include <linux/sysctl.h>
+ip_queue.c:static int sysctl_maxlen = IPQ_QMAX_DEFAULT;
+ip_queue.c:static struct ctl_table_header *ipq_sysctl_header;
+ip_queue.c:     { NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &sysctl_maxlen,
+ip_queue.c:  sizeof(sysctl_maxlen), 0644, NULL, proc_dointvec },
+ip_queue.c:  ipq_sysctl_header = register_sysctl_table(ipq_root_table, 0);
+ip_queue.c:             goto cleanup_sysctl;
+ip_queue.c:cleanup_sysctl:
+ip_queue.c:     unregister_sysctl_table(ipq_sysctl_header);
+ipt_REJECT.c:   /* FIXME: Use sysctl number. --RR */
+ipt_ULOG.c: *            nlgroup now global (sysctl)
+rv@comet:/usr/src/linux-2.4.22/net/ipv4/netfilter$
 
---jousvV0MzM2p6OtC
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Has someone an explanation, before I'm going nuts?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+ Herve
 
-iD8DBQE/xQOkXaXGVTD0i/8RAq1FAJ9pgz7YAa04iwxaCzI9ZFPu7wnu3ACeNEp3
-1XzFyXVBf7lrRkRx2tWzvxA=
-=p+YN
------END PGP SIGNATURE-----
-
---jousvV0MzM2p6OtC--
+-- 
+ _
+(°=  Hervé Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
