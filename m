@@ -1,18 +1,18 @@
-From: Herve Eychenne <rv@wallfire.org>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [PATCH] multiple changes/fixes
-Date: Sat, 28 Aug 2004 02:01:24 +0200
+Date: Sat, 28 Aug 2004 02:32:19 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040828000124.GB2416@eychenne.org>
+Message-ID: <Pine.LNX.4.61.0408280202470.10193@filer.marasystems.com>
 References: <20040827133700.GT23981@eychenne.org> <412F5A3C.1000704@trash.net>
 	<20040827162808.GA29915@eychenne.org> <412F94D6.8040906@trash.net>
+	<20040828000124.GB2416@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <412F94D6.8040906@trash.net>
+To: Herve Eychenne <rv@wallfire.org>
+In-Reply-To: <20040828000124.GB2416@eychenne.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,86 +23,48 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Aug 27, 2004 at 10:08:54PM +0200, Patrick McHardy wrote:
+On Sat, 28 Aug 2004, Herve Eychenne wrote:
 
-Disclaimer for overbooked netfilter people: this email is perfecly
-uninteresting.
+> BTW, I cannot imagine that an application enabling to wipe
+> spacechanges-only from a patch does not currently exist... Eventually,
+> it could wipe syntaxical changes only (but should be aware of the
+> language structure/grammar), but that's harder, of course. So many
+> things to do, and so little time...
 
-> Herve Eychenne wrote:
+The problem is most tools including patch & diff is line oriented, not 
+whitespace oriented. It is trivial to weed out changes in indentation or 
+whitespace per line only, but not changes involving reformatting such as 
+moving the curly braket from one line to another etc.
 
-> >On Fri, Aug 27, 2004 at 05:58:52PM +0200, Patrick McHardy wrote:
-> >
-> >>Would it be possible that you split the patch into logical changes
-> >>so it's easier to review ?
-> >>
-> >
-> >I was afraid someone would say that. Does someone know a good tool to
-> >split patches? I think of a X11 that would enable to drag and drop
-> >diff file portions to several new areas/patches, with an option that
-> >would automatically create one containing only whitespace changes.
+To weed out the simple whitespace changes use "diff -wu"
 
-> Unfortunately, no. I use bitkeeper, patch and cut-n-paste for that, but
-> that's just my preference.
+Another tool which looks promising is xxdiff 
+<url:http://xxdiff.sourceforge.net/>, but I have not been able to try this 
+out yet.
 
-I certainly wouldn't allow any of my libre work to rely on processes
-using a "non-libre" application. Question of survival.
-Anyway, I don't want to create a holy war here, a certain G.W.B.
-is already doing fine stuff in this area. :-)
+> I don't think it's that hard. But I'm not objective, as I wrote it. :-)
 
-BTW, I cannot imagine that an application enabling to wipe
-spacechanges-only from a patch does not currently exist... Eventually,
-it could wipe syntaxical changes only (but should be aware of the
-language structure/grammar), but that's harder, of course. So many
-things to do, and so little time...
+I think it is very hard when I do the same thing which happens every now 
+and then when restructuring a large piece of code, but that is me.
 
-> > Otherwise I guess I may not have the courage to do it. :-(
+> The changes are simple, it's just that there are plenty of them.
 
-> I hope you're still going to do it.
+Which makes the odd change which are different from the rest easy to miss.
 
-When I think about the time it would take me to do that, compared to the
-relatively small overhead of having to ignore obvious cosmetic changes
-during the review, I'm still quite sceptical about it... :-(
+>> with just one big patch that also reindents and reformats stuff.
+>
+> I know I'm a bad boy, but if I didn't do these as I was wandering
+> through the code, I would never have done it afterwards, and I still
+> think it was worth cleaning a little bit. Readability is often
+> more important than one thinks.
 
-> I don't want to throw in a 70k
-> patch which touches stuff all over the place, and it's really hard
-> to judge which change has which purpose
+There is several tools doing a very good job of cleaning up indentation 
+and formatting. My favorite for C code is indent. There is no need of 
+doing this by hand.
 
-I don't think it's that hard. But I'm not objective, as I wrote it. :-)
-The changes are simple, it's just that there are plenty of them.
-Yet, I can understand your reluctance.
+On the other hand the same tool can be used to identify the real changes 
+"after the fact" even if the original code was a mess, simply by diffing 
+the modified version with an original version formatted by the same tool.
 
-> with just one big patch that also reindents and reformats stuff.
-
-I know I'm a bad boy, but if I didn't do these as I was wandering
-through the code, I would never have done it afterwards, and I still
-think it was worth cleaning a little bit. Readability is often
-more important than one thinks.
-
-> BTW:
-
-> -static int print_match(const struct ip6t_entry_match *e,
-> -                       const struct ip6t_ip6 *ip)
-> -{
-> +static int
-> +print_match(const struct ip6t_entry_match *e, const struct ip6t_ip6 *i=
-p) {
-
-> the opening bracket should be on a seperate line.
-
-For functions only (argh)...
-Oh, you're right. The global coding style of the tree is quite
-different from mine (I particularly hate 8 spaces indentation, but
-we all know Linus was sent by hell, right? ;-), so I guess I may
-sometimes have been trapped into unconsciously bringing it closer to
-mine.
-But maybe you'll notice that the (this) coding style is far from having
-been applied everywhere in the current tree, as multiple people wrote
-different parts, obviously.
-
- Herve
-
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+Regards
+Henrik
