@@ -1,12 +1,12 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [RFC][PATCH] NAT reservations, again
-Date: Fri, 16 Jan 2004 17:33:19 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Where is the 2003 workshop summary
+Date: Fri, 16 Jan 2004 17:51:46 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1074270798.22839.39.camel@nienna.balabit>
+Message-ID: <Pine.LNX.4.44.0401161734210.30706-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-jlvLd4tT0mUAYuYVXlFw"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,141 +17,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Is the workshop summary available for online reading somwhere? Can not 
+find it linked from the home page.
 
---=-jlvLd4tT0mUAYuYVXlFw
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+The draft in the CVS looks interesting, apart from the syntax errors 
+preventing it from being compiled and the missing introduction..
 
-
-  Hi,
-
-  Attached is a new version of the NAT reservations patch, with new
-features compared to the old one published last year. (See
-https://lists.netfilter.org/pipermail/netfilter-devel/2003-December/013384.html for the former one, and https://lists.netfilter.org/pipermail/netfilter-devel/2003-November/013152.html for some discussion about the functionality of the patch.
-
-  The last version had a few unsolved problems, the biggest one being
-that when registering a reserved tuple, the NAT subsystem has to make
-sure there is no clashing connection at the moment of the registration.
-However, since the reservation used only a manip instead of a full
-tuple, looking up the conntrack hash was not possible, and a full hash
-table scan is not a viable solution in a lot of cases.
-
-  This version tries to solve the problem by making it possible to
-specify a peer address besides the manip, which makes it a fully
-specified tuple, and so makes it possible to check collisions with a
-hash lookup. However, if the peer is also specified, it is the
-responsibility of the user of reservations to make sure the reservation
-is used only with the specified peer.
-
-  Because of this, the function prototypes have been changed, I think it
-got too complicated and illogical, so that part of the patch definitely
-needs some cleanup. The other remaining area is testing, especially the
-integration of nat reservations into a NAT helper which would need it.
-Can you suggest such a helper?
-
-  Comments are welcome, as always.
-
--- 
- Regards,
-   Krisztian KOVACS
-
---=-jlvLd4tT0mUAYuYVXlFw
-Content-Disposition: attachment; filename=nat_reserved_200401161714.diff.gz
-Content-Type: application/x-gzip; name=nat_reserved_200401161714.diff.gz
-Content-Transfer-Encoding: base64
-
-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
---=-jlvLd4tT0mUAYuYVXlFw--
+Regards
+Henrik
